@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>HY ENG — 단어 게이트 러너</title>
+<meta name="theme-color" content="#100b22">
+<meta name="description" content="다가오는 문 중 뜻에 맞는 영어 단어를 골라 통과하는 3D 단어 학습 게임">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--
+=========================================================================
+  WORD GATE RUNNER — VERSION 1 (핵심 프로토타입)
+  Three.js / 단일 HTML
+
+  [핵심 구조 — 절대 변경 금지]
+  1) 플레이어는 앞으로 달려가지 않는다. 게이트가 플레이어에게 다가온다.
+  2) 선택지는 버튼이 아니라 3D 게이트다. 플레이어는 좌우 이동으로 답을 고른다.
+  3) 정답 판정은 물리 충돌이 아니라 Lane + Trigger(판정선)로만 처리한다.
+
+  [파일 분리 안내]
+  아래 주석의 구획을 그대로 잘라내면 됩니다.
+    §1 DATA     → words.json / words.js
+    §2 CONFIG   → config.js
+    §3 QUIZ     → quiz.js
+    §4 RANKING  → ranking.js
+    §5~§8       → game.js
+    <style>     → style.css
+=========================================================================
+-->
+<style>
+:root{
+  --void:#0d0a1c; --ink:#181030; --ivory:#f3ece0;
+  --amber:#ffc46b; --mint:#5fe0b0; --coral:#ff7a66; --violet:#8b7bd8; --muted:#a89ec4;
+  --font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);font-family:var(--font);
+  overscroll-behavior:none;touch-action:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.layer{position:fixed;inset:0;pointer-events:none;user-select:none}
+
+/* ---------------- HUD ---------------- */
+#hud{opacity:0;transition:opacity .25s;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0}
+#hud.on{opacity:1}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.chip{background:rgba(28,19,58,.82);border:2.5px solid rgba(255,255,255,.22);border-radius:18px;
+  padding:6px 12px;line-height:1.2;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.chip small{display:block;font-size:10px;color:#cfc3f0;letter-spacing:.06em;font-weight:700}
+.chip b{font-size:19px;font-variant-numeric:tabular-nums;font-weight:900}
+.hearts{font-size:17px;letter-spacing:3px;color:var(--coral)}
+.hearts .off{color:#463a70}
+#pauseBtn{pointer-events:auto;width:42px;height:42px;border-radius:15px;display:grid;place-items:center;
+  background:rgba(28,19,58,.82);border:2.5px solid rgba(255,255,255,.22);font-size:13px;cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.35)}
+#pauseBtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+
+/* 문제판 */
+#prompt{margin:8px auto 0;width:min(360px,80vw);text-align:center;
+  background:linear-gradient(180deg,rgba(45,32,84,.86),rgba(24,16,52,.86));
+  border:1.5px solid rgba(255,196,107,.5);border-radius:18px;padding:6px 14px 8px;
+  backdrop-filter:blur(8px);box-shadow:0 10px 26px rgba(0,0,0,.4)}
+#plabel{font-size:10px;color:#c9bdec;letter-spacing:.04em;font-weight:700}
+#plabel b{font-weight:800}
+#ptext{font-weight:900;letter-spacing:-.02em;line-height:1.1;font-size:clamp(24px,6.2vw,34px);
+  text-shadow:0 2px 8px rgba(0,0,0,.5)}
+#ptext.en{text-transform:uppercase;letter-spacing:.01em}
+#approach{height:5px;border-radius:99px;background:rgba(0,0,0,.4);margin-top:6px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.12)}
+#approach i{display:block;height:100%;width:100%;background:var(--mint);border-radius:99px}
+#comboTag{margin-top:5px;font-size:11px;font-weight:800;color:#2a1b00;opacity:0;transition:opacity .2s;
+  background:var(--amber);display:inline-block;padding:2px 10px;border-radius:99px}
+#comboTag.on{opacity:1;animation:pump .35s ease}
+@keyframes pump{0%{transform:scale(.7)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+/* 판정 연출 */
+#flash{transition:opacity .16s;opacity:0}
+#verdict{position:absolute;top:70%;left:0;right:0;text-align:center;opacity:0;transform:scale(.86)}
+#verdict.show{animation:pop .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes pop{to{opacity:1;transform:scale(1)}}
+#vmain{font-size:clamp(34px,9vw,52px);font-weight:900;letter-spacing:-.03em;
+  text-shadow:0 5px 0 rgba(0,0,0,.5),0 10px 30px rgba(0,0,0,.6)}
+#vsub{font-size:15.5px;margin-top:6px;font-weight:700}
+#vsub em{font-style:normal;color:var(--amber);font-weight:900}
+#rumble{position:fixed;left:0;right:0;bottom:0;height:46%;pointer-events:none;opacity:0;z-index:2;
+  background:radial-gradient(100% 100% at 50% 118%,rgba(255,80,60,.75) 0%,rgba(255,80,60,.28) 42%,rgba(0,0,0,0) 72%)}
+#rockTag{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 54px);
+  z-index:3;display:none;padding:5px 13px;border-radius:100px;font-size:13px;font-weight:800;color:#ffd7cf;
+  background:rgba(28,19,58,.75);border:1px solid rgba(255,122,102,.5);pointer-events:none}
+#rockTag b{font-variant-numeric:tabular-nums;color:#fff}
+#fade{position:fixed;inset:0;background:#0d0a1c;opacity:0;pointer-events:none;transition:opacity .22s}
+
+/* 조이스틱 */
+#stick{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .12s;z-index:3}
+#stick.on{opacity:1}
+#stickBase{position:absolute;width:138px;height:138px;margin:-69px 0 0 -69px;border-radius:50%;
+  background:rgba(28,19,58,.45);border:3px solid rgba(255,255,255,.3)}
+#stickBase:after{content:"";position:absolute;inset:26px;border-radius:50%;border:2px dashed rgba(255,255,255,.18)}
+#stickKnob{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;
+  background:linear-gradient(180deg,#ffd98a,#ffab29);border:3px solid #fff3d6;
+  box-shadow:0 6px 16px rgba(0,0,0,.5)}
+#touchHint{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);text-align:center;
+  font-size:12.5px;color:#d9cef5;font-weight:700;display:none;transition:opacity .4s}
+#kbhint{position:fixed;left:0;right:0;bottom:14px;text-align:center;font-size:12px;color:#b9addb;
+  font-weight:700;display:none}
+@media (orientation:landscape){
+  #hud{padding-top:calc(env(safe-area-inset-top,0px) + 6px)}
+  #prompt{margin-top:2px;width:min(300px,46vw);padding:4px 12px 6px;border-radius:15px}
+  #ptext{font-size:clamp(20px,3.2vw,28px)}
+  #plabel{font-size:9.5px}
+  #approach{height:4px;margin-top:4px}
+  .chip{padding:4px 10px;border-radius:14px}
+  .chip b{font-size:16px}
+}
+
+/* ---------------- 메뉴 화면 ---------------- */
+.screen{position:fixed;inset:0;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:5;
+  background:#100b22}
+.screen:before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(46% 30% at 18% 8%,rgba(255,168,90,.28),transparent 70%),
+    radial-gradient(42% 28% at 86% 20%,rgba(120,110,255,.30),transparent 70%),
+    radial-gradient(70% 45% at 50% 104%,rgba(95,224,176,.16),transparent 70%);
+  filter:blur(6px)}
+.screen.on{display:block}
+.panel{position:relative;width:min(430px,90vw);margin:0 auto;
+  padding:calc(env(safe-area-inset-top,0px) + 26px) 18px calc(env(safe-area-inset-bottom,0px) + 96px);
+  min-height:100dvh;display:flex;flex-direction:column;justify-content:center}
+
+/* 타이틀 */
+.brand{font-size:clamp(58px,18vw,96px);font-weight:900;letter-spacing:-.055em;line-height:.9;text-align:center;
+  background:linear-gradient(180deg,#ffffff 0%,#ffd7a0 52%,#ff9f6a 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 14px 34px rgba(255,150,90,.28))}
+.brandsub{margin-top:14px;text-align:center;font-size:11.5px;letter-spacing:.4em;
+  color:#9b90c6;font-weight:700;text-transform:uppercase}
+.titleActions{margin-top:38px}
+
+/* 버튼 */
+.play{width:100%;margin-top:14px;padding:17px;border:0;border-radius:100px;cursor:pointer;
+  font-family:var(--font);font-size:17.5px;font-weight:800;letter-spacing:-.01em;
+  background:linear-gradient(135deg,#ffd06a 0%,#ff9a5c 100%);color:#2c1700;
+  box-shadow:0 12px 30px rgba(255,150,90,.3);transition:transform .12s ease,box-shadow .2s}
+.play:active{transform:scale(.975);box-shadow:0 6px 18px rgba(255,150,90,.26)}
+.ghost{background:rgba(255,255,255,.06);color:#efe9ff;border:1px solid rgba(255,255,255,.14);
+  box-shadow:none;font-size:15.5px;font-weight:700}
+.ghost:active{background:rgba(255,255,255,.1)}
+
+/* 선택 카드 */
+.kicker{display:none}
+h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
+.lede{font-size:13.5px;line-height:1.6;color:#a99ed0}
+.group{margin-top:22px}
+.glab{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#8d82b8;margin-bottom:9px}
+.opts{display:flex;gap:8px}
+.opts.wrap{flex-wrap:wrap}
+.opts.wrap .opt{flex:1 1 28%;min-width:0;padding:11px 4px 10px}
+.opts.wrap .opt i{font-size:24px}
+.opts.wrap .opt b{font-size:12.5px;margin-top:2px}
+.opt{flex:1;padding:14px 6px 13px;border-radius:20px;text-align:center;cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  transition:background .16s,border-color .16s,transform .12s}
+.opt i{display:block;font-style:normal;font-size:19px;line-height:1.1;opacity:.75}
+.opt b{display:block;font-size:14px;font-weight:800;margin-top:5px}
+.opt small{display:block;margin-top:3px;font-size:10.5px;color:#8d82b8;font-weight:600;line-height:1.35}
+.opt:active{transform:scale(.97)}
+.opt.sel{background:linear-gradient(160deg,#ffcf78,#ff9257);border-color:transparent;
+  box-shadow:0 10px 24px rgba(255,150,90,.26)}
+.opt.sel i{opacity:1}
+#selDiff .opt{padding:16px 6px 15px}
+#selDiff .opt i{font-size:24px}
+#selDiff .opt b{font-size:15px;margin-top:6px}
+.opt.sel b{color:#2c1700}
+.opt.sel small{color:rgba(44,23,0,.62)}
+
+/* 모서리 작은 버튼 */
+.corner{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:6;
+  padding:9px 15px;border-radius:100px;cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:700;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#b9aee0;
+  backdrop-filter:blur(8px)}
+.corner.left{left:16px}
+.corner.right{right:16px}
+.corner:active{background:rgba(255,255,255,.12)}
+.back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);left:0;
+  width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);color:#efe9ff;font-size:15px;cursor:pointer;font-family:var(--font)}
+
+/* 시트(단어/이름) */
+.sheet{position:fixed;inset:0;z-index:8;display:none;background:rgba(8,5,18,.7);backdrop-filter:blur(8px)}
+.sheet.on{display:grid;place-items:end center}
+.sheetIn{width:min(460px,100%);max-height:88dvh;overflow-y:auto;
+  padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 22px);
+  background:#1a1235;border:1px solid rgba(255,255,255,.1);border-radius:28px 28px 0 0}
+.sheetIn h2{font-size:18px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+input[type=text]{width:100%;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.06);color:#fff;
+  border:1px solid rgba(255,255,255,.12);font-family:var(--font);font-size:15px;font-weight:600}
+input[type=text]::placeholder{color:#7b71a3}
+textarea{width:100%;height:110px;margin-top:9px;padding:12px;border-radius:16px;resize:vertical;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#efe9ff;
+  font:12px/1.55 ui-monospace,Menlo,monospace}
+.mini{margin-top:10px;padding:11px 16px;border-radius:100px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.07);color:#efe9ff;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+.mini:active{background:rgba(255,255,255,.13)}
+.note{font-size:11.5px;color:#8d82b8;margin-top:8px;line-height:1.6}
+details{display:none}
+
+/* 결과 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{padding:14px 8px;border-radius:20px;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);text-align:center}
+.stat b{display:block;font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat small{font-size:10.5px;color:#8d82b8;font-weight:700}
+.wrow{display:flex;justify-content:space-between;gap:10px;padding:12px 15px;border-radius:16px;margin-bottom:7px;
+  background:rgba(255,122,102,.12);border:1px solid rgba(255,122,102,.28)}
+.wrow b{color:#ffa392;font-size:15px;font-weight:800}
+.wrow span{font-size:14px;color:#e8e2ff;font-weight:600}
+.rrow{display:flex;gap:10px;align-items:center;padding:11px 15px;border-radius:16px;margin-bottom:6px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.rrow i{font-style:normal;width:20px;color:var(--amber);font-weight:800;font-size:14px}
+.rrow b{flex:1;font-weight:700;font-size:14.5px}
+.rrow span{font-variant-numeric:tabular-nums;color:#a99ed0;font-size:13.5px;font-weight:700}
+
+#err{display:none;position:fixed;inset:0;place-items:center;padding:24px;text-align:center;background:var(--void);
+  font-size:14px;line-height:1.7;color:#c3bad9;z-index:9}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="layer" id="hud">
+  <div class="top">
+    <div>
+      <div class="chip"><small>STAGE</small><b id="uStage">1</b></div>
+      <div class="chip" style="margin-top:6px"><small>SCORE</small><b id="uScore">0</b></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <div id="pauseBtn">❚❚</div>
+      <div class="chip"><small>LIFE</small><div class="hearts" id="uLives">♥♥♥</div></div>
+    </div>
+  </div>
+  <div id="prompt">
+    <div id="plabel">이 뜻을 가진 단어의 게이트로</div>
+    <div id="ptext">－</div>
+    <div id="approach"><i id="approachBar"></i></div>
+    <div id="comboTag">2 COMBO</div>
+  </div>
+</div>
+
+<div class="layer" id="flash"></div>
+<div id="rumble"></div>
+<div id="rockTag">🪨 <b id="rockDist"></b></div>
+<div class="layer"><div id="verdict"><div id="vmain"></div><div id="vsub"></div></div></div>
+<div id="fade"></div>
+
+<div id="stick"><div id="stickBase"><div id="stickKnob"></div></div></div>
+<div id="touchHint">화면 아래쪽을 눌러 조이스틱으로 움직이세요</div>
+<div id="kbhint">A D / ← → 좌우 이동 · W S / ↑ ↓ 앞뒤 이동 · P 일시정지</div>
+
+<!-- 타이틀 -->
+<div class="screen on" id="scStart"><div class="panel">
+  <div class="brand">HY ENG</div>
+  <div class="brandsub">Word Gate Runner</div>
+  <div class="titleActions">
+    <button class="play" id="btnGo">PLAY</button>
+  </div>
+</div>
+  <button class="corner left" id="btnWords">＋ 단어</button>
+  <button class="corner right" id="btnRankHome">랭킹</button>
+</div>
+
+<!-- 설정 -->
+<div class="screen" id="scSetup"><div class="panel">
+  <button class="back" id="btnBack">←</button>
+
+  <div class="group" style="margin-top:0"><div class="glab">난이도</div>
+    <div class="opts" id="selDiff">
+      <div class="opt" data-v="easy"><i>🐣</i><b>쉬움</b></div>
+      <div class="opt sel" data-v="normal"><i>⚡</i><b>보통</b></div>
+      <div class="opt" data-v="hard"><i>🔥</i><b>어려움</b></div>
+    </div></div>
+
+  <div class="group"><div class="glab">문제 방법</div>
+    <div class="opts" id="selMode">
+      <div class="opt" data-v="k2e"><i>🇰🇷</i><b>뜻 → 단어</b><small>사과 → APPLE</small></div>
+      <div class="opt" data-v="e2k"><i>🔡</i><b>단어 → 뜻</b><small>APPLE → 사과</small></div>
+      <div class="opt sel" data-v="mix"><i>🎲</i><b>섞어서</b><small>랜덤 출제</small></div>
+    </div></div>
+
+  <div class="group"><div class="glab">학년</div>
+    <div class="opts" id="selSet">
+      <div class="opt sel" data-v="all"><i>🌈</i><b>전체</b><small>1543개</small></div>
+      <div class="opt" data-v="basic"><i>🍎</i><b>기초</b><small>500개</small></div>
+      <div class="opt" data-v="elem"><i>🎒</i><b>초등</b><small>1004개</small></div>
+      <div class="opt" data-v="mid"><i>🏫</i><b>중등</b><small>1043개</small></div>
+    </div></div>
+
+  <div class="group"><div class="glab">캐릭터</div>
+    <div class="opts wrap" id="selChar">
+      <div class="opt sel" data-v="runner"><i>🏃</i><b>러너</b></div>
+      <div class="opt" data-v="robot"><i>🤖</i><b>로봇</b></div>
+      <div class="opt" data-v="cat"><i>🐱</i><b>고양이</b></div>
+      <div class="opt" data-v="dino"><i>🦖</i><b>공룡</b></div>
+      <div class="opt" data-v="ghost"><i>👻</i><b>유령</b></div>
+      <div class="opt" data-v="astro"><i>🧑‍🚀</i><b>우주인</b></div>
+    </div></div>
+
+  <button class="play" id="btnStart" style="margin-top:28px">START</button>
+</div></div>
+
+<!-- 단어 / 이름 시트 -->
+<div class="sheet" id="shWords"><div class="sheetIn">
+  <h2>내 이름</h2>
+  <p class="note" style="margin-bottom:10px">랭킹에 기록됩니다.</p>
+  <input type="text" id="nick" maxlength="10" placeholder="PLAYER" value="">
+  <h2 style="margin-top:22px">단어 추가</h2>
+  <p class="note">JSON 배열로 붙여넣으세요. level은 1(기초)·2(초등)·3(중등)입니다.
+     파일 상단 WORD_BANK 배열을 직접 고쳐도 됩니다.</p>
+  <textarea id="userWords">[
+  {"en":"orange","ko":"오렌지","level":1},
+  {"en":"pencil","ko":"연필","level":1}
+]</textarea>
+  <button class="mini" id="btnAdd">단어장에 넣기</button>
+  <span class="note" id="addMsg"></span>
+  <button class="play ghost" id="btnSheetClose" style="margin-top:18px">닫기</button>
+</div></div>
+
+<!-- 결과 -->
+<div class="screen" id="scOver"><div class="panel">
+  <h1 id="oTitle">여기까지</h1>
+  <p class="lede" id="oKick">RESULT</p>
+  <div class="stats">
+    <div class="stat"><b id="oScore">0</b><small>⭐ 점수</small></div>
+    <div class="stat"><b id="oStage">1</b><small>🚪 스테이지</small></div>
+    <div class="stat"><b id="oAcc">0%</b><small>🎯 정답률</small></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="oRight">0</b><small>⭕ 맞힘</small></div>
+    <div class="stat"><b id="oWrong">0</b><small>❌ 틀림</small></div>
+    <div class="stat"><b id="oCombo">0</b><small>🔥 최고 콤보</small></div>
+  </div>
+  <div id="oReview" class="group"></div>
+  <div id="oRank" class="group"></div>
+  <button class="play" id="btnRetry">다시 도전</button>
+  <button class="play ghost" id="btnMain">처음 화면으로</button>
+</div></div>
+
+<!-- 랭킹 -->
+<div class="screen" id="scRank"><div class="panel">
+  <h1>랭킹</h1>
+  <div class="group"><div class="opts" id="selRankDiff">
+    <div class="opt sel" data-v="easy"><i>🐣</i><b>쉬움</b></div>
+    <div class="opt" data-v="normal"><i>⚡</i><b>보통</b></div>
+    <div class="opt" data-v="hard"><i>🔥</i><b>어려움</b></div>
+  </div></div>
+  <div id="rankList" class="group"></div>
+  <button class="play ghost" id="btnRankBack">돌아가기</button>
+</div></div>
+
+<!-- 일시정지 -->
+<div class="screen" id="scPause"><div class="panel">
+  <h1>잠깐 쉬는 중</h1>
+  <p class="lede">문도 같이 멈춰 있어요. 천천히 쉬었다 와요!</p>
+  <button class="play" id="btnResume">계속하기</button>
+  <button class="play ghost" id="btnGiveUp">그만하고 결과 보기</button>
+</div></div>
+
+<div id="err">3D 엔진(three.js)을 불러오지 못했습니다.<br>인터넷 연결을 확인하고 새로고침해 주세요.</div>
+
+<script>
+/* three.js 로더 — 같은 폴더에 three.min.js 가 있으면 그것을 쓰고(오프라인 가능),
+   없으면 CDN 에서 받아온다. */
+(function(){
+  function start(){
+    if(window.__start) window.__start();
+    else addEventListener("load", function(){ window.__start && window.__start(); });
+  }
+  function load(src, ok, fail){
+    var el=document.createElement("script");
+    el.src=src; el.onload=ok; el.onerror=fail;
+    document.head.appendChild(el);
+  }
+  load("three.min.js", start, function(){
+    load("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", start, start);
+  });
+})();
+</script>
+<script>
+"use strict";
+
+/* =====================================================================
+   §1 DATA — 단어 데이터 (words.json 으로 분리 가능)
+   { en:"apple", ko:"사과", level:1 }   level 1 기초 / 2 초등 / 3 중등
+===================================================================== */
+const WORD_BANK = [
+  // ── level 1 — 기초 (초등 저학년~중학년)
+  {en:"cat",ko:"고양이",level:1}, {en:"dog",ko:"개",level:1},
+  {en:"bird",ko:"새",level:1}, {en:"fish",ko:"물고기",level:1},
+  {en:"cow",ko:"소",level:1}, {en:"pig",ko:"돼지",level:1},
+  {en:"horse",ko:"말",level:1}, {en:"sheep",ko:"양",level:1},
+  {en:"duck",ko:"오리",level:1}, {en:"chicken",ko:"닭",level:1},
+  {en:"rabbit",ko:"토끼",level:1}, {en:"mouse",ko:"쥐",level:1},
+  {en:"lion",ko:"사자",level:1}, {en:"tiger",ko:"호랑이",level:1},
+  {en:"bear",ko:"곰",level:1}, {en:"elephant",ko:"코끼리",level:1},
+  {en:"monkey",ko:"원숭이",level:1}, {en:"giraffe",ko:"기린",level:1},
+  {en:"zebra",ko:"얼룩말",level:1}, {en:"frog",ko:"개구리",level:1},
+  {en:"snake",ko:"뱀",level:1}, {en:"turtle",ko:"거북이",level:1},
+  {en:"spider",ko:"거미",level:1}, {en:"ant",ko:"개미",level:1},
+  {en:"bee",ko:"벌",level:1}, {en:"butterfly",ko:"나비",level:1},
+  {en:"deer",ko:"사슴",level:1}, {en:"fox",ko:"여우",level:1},
+  {en:"wolf",ko:"늑대",level:1}, {en:"goat",ko:"염소",level:1},
+  {en:"puppy",ko:"강아지",level:1}, {en:"kitten",ko:"새끼 고양이",level:1},
+  {en:"dolphin",ko:"돌고래",level:1}, {en:"whale",ko:"고래",level:1},
+  {en:"shark",ko:"상어",level:1}, {en:"penguin",ko:"펭귄",level:1},
+  {en:"panda",ko:"판다",level:1}, {en:"squirrel",ko:"다람쥐",level:1},
+  {en:"camel",ko:"낙타",level:1}, {en:"crocodile",ko:"악어",level:1},
+  {en:"apple",ko:"사과",level:1}, {en:"banana",ko:"바나나",level:1},
+  {en:"orange",ko:"오렌지",level:1}, {en:"grape",ko:"포도",level:1},
+  {en:"peach",ko:"복숭아",level:1}, {en:"melon",ko:"멜론",level:1},
+  {en:"lemon",ko:"레몬",level:1}, {en:"strawberry",ko:"딸기",level:1},
+  {en:"watermelon",ko:"수박",level:1}, {en:"pear",ko:"배",level:1},
+  {en:"tomato",ko:"토마토",level:1}, {en:"potato",ko:"감자",level:1},
+  {en:"carrot",ko:"당근",level:1}, {en:"onion",ko:"양파",level:1},
+  {en:"cabbage",ko:"양배추",level:1}, {en:"cucumber",ko:"오이",level:1},
+  {en:"pumpkin",ko:"호박",level:1}, {en:"corn",ko:"옥수수",level:1},
+  {en:"bean",ko:"콩",level:1}, {en:"rice",ko:"쌀",level:1},
+  {en:"bread",ko:"빵",level:1}, {en:"cake",ko:"케이크",level:1},
+  {en:"cookie",ko:"쿠키",level:1}, {en:"candy",ko:"사탕",level:1},
+  {en:"chocolate",ko:"초콜릿",level:1}, {en:"milk",ko:"우유",level:1},
+  {en:"water",ko:"물",level:1}, {en:"juice",ko:"주스",level:1},
+  {en:"tea",ko:"차",level:1}, {en:"coffee",ko:"커피",level:1},
+  {en:"soup",ko:"수프",level:1}, {en:"salad",ko:"샐러드",level:1},
+  {en:"sandwich",ko:"샌드위치",level:1}, {en:"pizza",ko:"피자",level:1},
+  {en:"hamburger",ko:"햄버거",level:1}, {en:"noodle",ko:"국수",level:1},
+  {en:"egg",ko:"달걀",level:1}, {en:"meat",ko:"고기",level:1},
+  {en:"beef",ko:"소고기",level:1}, {en:"pork",ko:"돼지고기",level:1},
+  {en:"cheese",ko:"치즈",level:1}, {en:"butter",ko:"버터",level:1},
+  {en:"sugar",ko:"설탕",level:1}, {en:"salt",ko:"소금",level:1},
+  {en:"honey",ko:"꿀",level:1}, {en:"jam",ko:"잼",level:1},
+  {en:"soda",ko:"탄산음료",level:1}, {en:"snack",ko:"간식",level:1},
+  {en:"breakfast",ko:"아침 식사",level:1}, {en:"lunch",ko:"점심 식사",level:1},
+  {en:"dinner",ko:"저녁 식사",level:1}, {en:"red",ko:"빨간",level:1},
+  {en:"blue",ko:"파란",level:1}, {en:"green",ko:"초록의",level:1},
+  {en:"yellow",ko:"노란",level:1}, {en:"black",ko:"검은",level:1},
+  {en:"white",ko:"하얀",level:1}, {en:"pink",ko:"분홍의",level:1},
+  {en:"purple",ko:"보라의",level:1}, {en:"brown",ko:"갈색의",level:1},
+  {en:"gray",ko:"회색의",level:1}, {en:"color",ko:"색깔",level:1},
+  {en:"circle",ko:"원",level:1}, {en:"square",ko:"정사각형",level:1},
+  {en:"triangle",ko:"삼각형",level:1}, {en:"line",ko:"선",level:1},
+  {en:"family",ko:"가족",level:1}, {en:"father",ko:"아버지",level:1},
+  {en:"mother",ko:"어머니",level:1}, {en:"brother",ko:"남자 형제",level:1},
+  {en:"sister",ko:"여자 형제",level:1}, {en:"baby",ko:"아기",level:1},
+  {en:"grandfather",ko:"할아버지",level:1}, {en:"grandmother",ko:"할머니",level:1},
+  {en:"uncle",ko:"삼촌",level:1}, {en:"aunt",ko:"이모",level:1},
+  {en:"son",ko:"아들",level:1}, {en:"daughter",ko:"딸",level:1},
+  {en:"friend",ko:"친구",level:1}, {en:"boy",ko:"소년",level:1},
+  {en:"girl",ko:"소녀",level:1}, {en:"man",ko:"남자",level:1},
+  {en:"woman",ko:"여자",level:1}, {en:"people",ko:"사람들",level:1},
+  {en:"child",ko:"아이",level:1}, {en:"teacher",ko:"선생님",level:1},
+  {en:"student",ko:"학생",level:1}, {en:"doctor",ko:"의사",level:1},
+  {en:"nurse",ko:"간호사",level:1}, {en:"farmer",ko:"농부",level:1},
+  {en:"cook",ko:"요리사",level:1}, {en:"police",ko:"경찰",level:1},
+  {en:"singer",ko:"가수",level:1}, {en:"name",ko:"이름",level:1},
+  {en:"head",ko:"머리",level:1}, {en:"hair",ko:"머리카락",level:1},
+  {en:"face",ko:"얼굴",level:1}, {en:"eye",ko:"눈",level:1},
+  {en:"ear",ko:"귀",level:1}, {en:"nose",ko:"코",level:1},
+  {en:"mouth",ko:"입",level:1}, {en:"tooth",ko:"이빨",level:1},
+  {en:"neck",ko:"목",level:1}, {en:"shoulder",ko:"어깨",level:1},
+  {en:"arm",ko:"팔",level:1}, {en:"hand",ko:"손",level:1},
+  {en:"finger",ko:"손가락",level:1}, {en:"leg",ko:"다리",level:1},
+  {en:"foot",ko:"발",level:1}, {en:"knee",ko:"무릎",level:1},
+  {en:"back",ko:"등",level:1}, {en:"body",ko:"몸",level:1},
+  {en:"heart",ko:"심장",level:1}, {en:"skin",ko:"피부",level:1},
+  {en:"school",ko:"학교",level:1}, {en:"class",ko:"수업",level:1},
+  {en:"classroom",ko:"교실",level:1}, {en:"desk",ko:"책상",level:1},
+  {en:"chair",ko:"의자",level:1}, {en:"book",ko:"책",level:1},
+  {en:"notebook",ko:"공책",level:1}, {en:"pencil",ko:"연필",level:1},
+  {en:"pen",ko:"펜",level:1}, {en:"eraser",ko:"지우개",level:1},
+  {en:"ruler",ko:"자",level:1}, {en:"crayon",ko:"크레용",level:1},
+  {en:"bag",ko:"가방",level:1}, {en:"glue",ko:"풀",level:1},
+  {en:"scissors",ko:"가위",level:1}, {en:"paper",ko:"종이",level:1},
+  {en:"board",ko:"칠판",level:1}, {en:"computer",ko:"컴퓨터",level:1},
+  {en:"clock",ko:"시계",level:1}, {en:"map",ko:"지도",level:1},
+  {en:"picture",ko:"그림",level:1}, {en:"window",ko:"창문",level:1},
+  {en:"door",ko:"문",level:1}, {en:"wall",ko:"벽",level:1},
+  {en:"floor",ko:"바닥",level:1}, {en:"table",ko:"탁자",level:1},
+  {en:"bed",ko:"침대",level:1}, {en:"sofa",ko:"소파",level:1},
+  {en:"lamp",ko:"램프",level:1}, {en:"box",ko:"상자",level:1},
+  {en:"key",ko:"열쇠",level:1}, {en:"cup",ko:"컵",level:1},
+  {en:"dish",ko:"접시",level:1}, {en:"spoon",ko:"숟가락",level:1},
+  {en:"fork",ko:"포크",level:1}, {en:"knife",ko:"칼",level:1},
+  {en:"bowl",ko:"그릇",level:1}, {en:"bottle",ko:"병",level:1},
+  {en:"basket",ko:"바구니",level:1}, {en:"towel",ko:"수건",level:1},
+  {en:"soap",ko:"비누",level:1}, {en:"brush",ko:"솔",level:1},
+  {en:"mirror",ko:"거울",level:1}, {en:"toy",ko:"장난감",level:1},
+  {en:"ball",ko:"공",level:1}, {en:"doll",ko:"인형",level:1},
+  {en:"kite",ko:"연",level:1}, {en:"balloon",ko:"풍선",level:1},
+  {en:"robot",ko:"로봇",level:1}, {en:"game",ko:"게임",level:1},
+  {en:"music",ko:"음악",level:1}, {en:"song",ko:"노래",level:1},
+  {en:"piano",ko:"피아노",level:1}, {en:"guitar",ko:"기타",level:1},
+  {en:"drum",ko:"북",level:1}, {en:"movie",ko:"영화",level:1},
+  {en:"story",ko:"이야기",level:1}, {en:"letter",ko:"편지",level:1},
+  {en:"number",ko:"숫자",level:1}, {en:"word",ko:"단어",level:1},
+  {en:"question",ko:"질문",level:1}, {en:"answer",ko:"대답",level:1},
+  {en:"hat",ko:"모자",level:1}, {en:"cap",ko:"야구모자",level:1},
+  {en:"shirt",ko:"셔츠",level:1}, {en:"pants",ko:"바지",level:1},
+  {en:"skirt",ko:"치마",level:1}, {en:"dress",ko:"원피스",level:1},
+  {en:"coat",ko:"외투",level:1}, {en:"jacket",ko:"재킷",level:1},
+  {en:"sweater",ko:"스웨터",level:1}, {en:"shoe",ko:"신발",level:1},
+  {en:"sock",ko:"양말",level:1}, {en:"glove",ko:"장갑",level:1},
+  {en:"scarf",ko:"목도리",level:1}, {en:"belt",ko:"허리띠",level:1},
+  {en:"button",ko:"단추",level:1}, {en:"pocket",ko:"주머니",level:1},
+  {en:"ring",ko:"반지",level:1}, {en:"watch",ko:"손목시계",level:1},
+  {en:"glasses",ko:"안경",level:1}, {en:"umbrella",ko:"우산",level:1},
+  {en:"sun",ko:"태양",level:1}, {en:"moon",ko:"달",level:1},
+  {en:"star",ko:"별",level:1}, {en:"sky",ko:"하늘",level:1},
+  {en:"cloud",ko:"구름",level:1}, {en:"rain",ko:"비",level:1},
+  {en:"snow",ko:"눈",level:1}, {en:"wind",ko:"바람",level:1},
+  {en:"storm",ko:"폭풍",level:1}, {en:"rainbow",ko:"무지개",level:1},
+  {en:"tree",ko:"나무",level:1}, {en:"flower",ko:"꽃",level:1},
+  {en:"grass",ko:"풀",level:1}, {en:"leaf",ko:"나뭇잎",level:1},
+  {en:"seed",ko:"씨앗",level:1}, {en:"root",ko:"뿌리",level:1},
+  {en:"river",ko:"강",level:1}, {en:"lake",ko:"호수",level:1},
+  {en:"sea",ko:"바다",level:1}, {en:"beach",ko:"해변",level:1},
+  {en:"mountain",ko:"산",level:1}, {en:"hill",ko:"언덕",level:1},
+  {en:"rock",ko:"바위",level:1}, {en:"stone",ko:"돌",level:1},
+  {en:"sand",ko:"모래",level:1}, {en:"island",ko:"섬",level:1},
+  {en:"forest",ko:"숲",level:1}, {en:"field",ko:"들판",level:1},
+  {en:"garden",ko:"정원",level:1}, {en:"park",ko:"공원",level:1},
+  {en:"world",ko:"세계",level:1}, {en:"earth",ko:"지구",level:1},
+  {en:"fire",ko:"불",level:1}, {en:"ice",ko:"얼음",level:1},
+  {en:"light",ko:"빛",level:1}, {en:"shadow",ko:"그림자",level:1},
+  {en:"air",ko:"공기",level:1}, {en:"day",ko:"날",level:1},
+  {en:"night",ko:"밤",level:1}, {en:"morning",ko:"아침",level:1},
+  {en:"afternoon",ko:"오후",level:1}, {en:"evening",ko:"저녁",level:1},
+  {en:"today",ko:"오늘",level:1}, {en:"tomorrow",ko:"내일",level:1},
+  {en:"yesterday",ko:"어제",level:1}, {en:"week",ko:"주",level:1},
+  {en:"month",ko:"달(월)",level:1}, {en:"year",ko:"해(년)",level:1},
+  {en:"hour",ko:"시간",level:1}, {en:"minute",ko:"분",level:1},
+  {en:"time",ko:"시간",level:1}, {en:"spring",ko:"봄",level:1},
+  {en:"summer",ko:"여름",level:1}, {en:"fall",ko:"가을",level:1},
+  {en:"winter",ko:"겨울",level:1}, {en:"birthday",ko:"생일",level:1},
+  {en:"holiday",ko:"휴일",level:1}, {en:"weekend",ko:"주말",level:1},
+  {en:"monday",ko:"월요일",level:1}, {en:"tuesday",ko:"화요일",level:1},
+  {en:"wednesday",ko:"수요일",level:1}, {en:"thursday",ko:"목요일",level:1},
+  {en:"friday",ko:"금요일",level:1}, {en:"saturday",ko:"토요일",level:1},
+  {en:"sunday",ko:"일요일",level:1}, {en:"house",ko:"집",level:1},
+  {en:"home",ko:"가정",level:1}, {en:"room",ko:"방",level:1},
+  {en:"kitchen",ko:"부엌",level:1}, {en:"bathroom",ko:"욕실",level:1},
+  {en:"yard",ko:"마당",level:1}, {en:"roof",ko:"지붕",level:1},
+  {en:"stairs",ko:"계단",level:1}, {en:"store",ko:"가게",level:1},
+  {en:"shop",ko:"상점",level:1}, {en:"market",ko:"시장",level:1},
+  {en:"bank",ko:"은행",level:1}, {en:"hospital",ko:"병원",level:1},
+  {en:"library",ko:"도서관",level:1}, {en:"museum",ko:"박물관",level:1},
+  {en:"station",ko:"역",level:1}, {en:"airport",ko:"공항",level:1},
+  {en:"zoo",ko:"동물원",level:1}, {en:"farm",ko:"농장",level:1},
+  {en:"restaurant",ko:"식당",level:1}, {en:"hotel",ko:"호텔",level:1},
+  {en:"city",ko:"도시",level:1}, {en:"town",ko:"마을",level:1},
+  {en:"village",ko:"시골 마을",level:1}, {en:"street",ko:"거리",level:1},
+  {en:"road",ko:"길",level:1}, {en:"bridge",ko:"다리",level:1},
+  {en:"church",ko:"교회",level:1}, {en:"office",ko:"사무실",level:1},
+  {en:"factory",ko:"공장",level:1}, {en:"car",ko:"자동차",level:1},
+  {en:"bus",ko:"버스",level:1}, {en:"train",ko:"기차",level:1},
+  {en:"subway",ko:"지하철",level:1}, {en:"bike",ko:"자전거",level:1},
+  {en:"taxi",ko:"택시",level:1}, {en:"truck",ko:"트럭",level:1},
+  {en:"ship",ko:"배",level:1}, {en:"boat",ko:"보트",level:1},
+  {en:"plane",ko:"비행기",level:1}, {en:"rocket",ko:"로켓",level:1},
+  {en:"go",ko:"가다",level:1}, {en:"come",ko:"오다",level:1},
+  {en:"run",ko:"달리다",level:1}, {en:"walk",ko:"걷다",level:1},
+  {en:"jump",ko:"뛰어오르다",level:1}, {en:"sit",ko:"앉다",level:1},
+  {en:"stand",ko:"서다",level:1}, {en:"sleep",ko:"잠자다",level:1},
+  {en:"wake",ko:"깨다",level:1}, {en:"eat",ko:"먹다",level:1},
+  {en:"drink",ko:"마시다",level:1}, {en:"read",ko:"읽다",level:1},
+  {en:"write",ko:"쓰다",level:1}, {en:"draw",ko:"그리다",level:1},
+  {en:"sing",ko:"노래하다",level:1}, {en:"dance",ko:"춤추다",level:1},
+  {en:"play",ko:"놀다",level:1}, {en:"study",ko:"공부하다",level:1},
+  {en:"work",ko:"일하다",level:1}, {en:"help",ko:"돕다",level:1},
+  {en:"make",ko:"만들다",level:1}, {en:"take",ko:"가져가다",level:1},
+  {en:"give",ko:"주다",level:1}, {en:"get",ko:"얻다",level:1},
+  {en:"put",ko:"놓다",level:1}, {en:"open",ko:"열다",level:1},
+  {en:"close",ko:"닫다",level:1}, {en:"push",ko:"밀다",level:1},
+  {en:"pull",ko:"당기다",level:1}, {en:"look",ko:"보다",level:1},
+  {en:"see",ko:"보이다",level:1}, {en:"hear",ko:"듣다",level:1},
+  {en:"listen",ko:"귀 기울이다",level:1}, {en:"speak",ko:"말하다",level:1},
+  {en:"talk",ko:"이야기하다",level:1}, {en:"say",ko:"말하다",level:1},
+  {en:"tell",ko:"알려주다",level:1}, {en:"ask",ko:"묻다",level:1},
+  {en:"like",ko:"좋아하다",level:1}, {en:"love",ko:"사랑하다",level:1},
+  {en:"want",ko:"원하다",level:1}, {en:"need",ko:"필요하다",level:1},
+  {en:"have",ko:"가지다",level:1}, {en:"hold",ko:"잡다",level:1},
+  {en:"buy",ko:"사다",level:1}, {en:"sell",ko:"팔다",level:1},
+  {en:"find",ko:"찾다",level:1}, {en:"lose",ko:"잃다",level:1},
+  {en:"start",ko:"시작하다",level:1}, {en:"stop",ko:"멈추다",level:1},
+  {en:"wait",ko:"기다리다",level:1}, {en:"meet",ko:"만나다",level:1},
+  {en:"call",ko:"부르다",level:1}, {en:"visit",ko:"방문하다",level:1},
+  {en:"swim",ko:"수영하다",level:1}, {en:"fly",ko:"날다",level:1},
+  {en:"ride",ko:"타다",level:1}, {en:"drive",ko:"운전하다",level:1},
+  {en:"wash",ko:"씻다",level:1}, {en:"clean",ko:"청소하다",level:1},
+  {en:"cut",ko:"자르다",level:1}, {en:"fix",ko:"고치다",level:1},
+  {en:"throw",ko:"던지다",level:1}, {en:"catch",ko:"잡다",level:1},
+  {en:"climb",ko:"오르다",level:1}, {en:"send",ko:"보내다",level:1},
+  {en:"bring",ko:"가져오다",level:1}, {en:"wear",ko:"입다",level:1},
+  {en:"laugh",ko:"웃다",level:1}, {en:"cry",ko:"울다",level:1},
+  {en:"smile",ko:"미소짓다",level:1}, {en:"think",ko:"생각하다",level:1},
+  {en:"know",ko:"알다",level:1}, {en:"learn",ko:"배우다",level:1},
+  {en:"teach",ko:"가르치다",level:1}, {en:"live",ko:"살다",level:1},
+  {en:"grow",ko:"자라다",level:1}, {en:"feel",ko:"느끼다",level:1},
+  {en:"turn",ko:"돌리다",level:1}, {en:"carry",ko:"나르다",level:1},
+  {en:"count",ko:"세다",level:1}, {en:"big",ko:"큰",level:1},
+  {en:"small",ko:"작은",level:1}, {en:"tall",ko:"키가 큰",level:1},
+  {en:"short",ko:"짧은",level:1}, {en:"long",ko:"긴",level:1},
+  {en:"fat",ko:"뚱뚱한",level:1}, {en:"thin",ko:"얇은",level:1},
+  {en:"new",ko:"새로운",level:1}, {en:"old",ko:"낡은",level:1},
+  {en:"young",ko:"어린",level:1}, {en:"hot",ko:"뜨거운",level:1},
+  {en:"cold",ko:"차가운",level:1}, {en:"warm",ko:"따뜻한",level:1},
+  {en:"cool",ko:"시원한",level:1}, {en:"wet",ko:"젖은",level:1},
+  {en:"dry",ko:"마른",level:1}, {en:"fast",ko:"빠른",level:1},
+  {en:"slow",ko:"느린",level:1}, {en:"strong",ko:"강한",level:1},
+  {en:"weak",ko:"약한",level:1}, {en:"happy",ko:"행복한",level:1},
+  {en:"sad",ko:"슬픈",level:1}, {en:"angry",ko:"화난",level:1},
+  {en:"tired",ko:"피곤한",level:1}, {en:"hungry",ko:"배고픈",level:1},
+  {en:"thirsty",ko:"목마른",level:1}, {en:"busy",ko:"바쁜",level:1},
+  {en:"free",ko:"자유로운",level:1}, {en:"easy",ko:"쉬운",level:1},
+  {en:"hard",ko:"어려운",level:1}, {en:"soft",ko:"부드러운",level:1},
+  {en:"loud",ko:"시끄러운",level:1}, {en:"quiet",ko:"조용한",level:1},
+  {en:"dirty",ko:"더러운",level:1}, {en:"heavy",ko:"무거운",level:1},
+  {en:"bright",ko:"밝은",level:1}, {en:"dark",ko:"어두운",level:1},
+  {en:"full",ko:"가득한",level:1}, {en:"empty",ko:"텅 빈",level:1},
+  {en:"rich",ko:"부유한",level:1}, {en:"poor",ko:"가난한",level:1},
+  {en:"kind",ko:"친절한",level:1}, {en:"nice",ko:"멋진",level:1},
+  {en:"bad",ko:"나쁜",level:1}, {en:"good",ko:"좋은",level:1},
+  {en:"pretty",ko:"예쁜",level:1}, {en:"ugly",ko:"못생긴",level:1},
+  {en:"cute",ko:"귀여운",level:1}, {en:"funny",ko:"웃긴",level:1},
+  {en:"scary",ko:"무서운",level:1}, {en:"safe",ko:"안전한",level:1},
+  {en:"sweet",ko:"달콤한",level:1}, {en:"sour",ko:"신",level:1},
+  {en:"fresh",ko:"신선한",level:1}, {en:"right",ko:"오른쪽의",level:1},
+  {en:"left",ko:"왼쪽의",level:1}, {en:"same",ko:"같은",level:1},
+  {en:"different",ko:"다른",level:1}, {en:"hello",ko:"안녕",level:1},
+  {en:"please",ko:"부탁합니다",level:1}, {en:"sorry",ko:"미안해",level:1},
+  {en:"thank",ko:"감사하다",level:1}, {en:"yes",ko:"네",level:1},
+  {en:"no",ko:"아니오",level:1}, {en:"up",ko:"위로",level:1},
+  {en:"down",ko:"아래로",level:1}, {en:"in",ko:"안에",level:1},
+  {en:"out",ko:"밖에",level:1}, {en:"here",ko:"여기에",level:1},
+  {en:"there",ko:"거기에",level:1}, {en:"now",ko:"지금",level:1},
+  {en:"always",ko:"항상",level:1}, {en:"never",ko:"결코 ~않다",level:1},
+  {en:"again",ko:"다시",level:1}, {en:"very",ko:"매우",level:1},
+  {en:"many",ko:"많은",level:1}, {en:"few",ko:"적은",level:1},
+
+  // ── level 2 — 초등 고학년~중1
+  {en:"quite",ko:"꽤",level:2}, {en:"quick",ko:"빠른",level:2},
+  {en:"quit",ko:"그만두다",level:2}, {en:"desert",ko:"사막",level:2},
+  {en:"dessert",ko:"후식",level:2}, {en:"design",ko:"디자인하다",level:2},
+  {en:"decide",ko:"결정하다",level:2}, {en:"message",ko:"메시지",level:2},
+  {en:"machine",ko:"기계",level:2}, {en:"weather",ko:"날씨",level:2},
+  {en:"whether",ko:"~인지 아닌지",level:2}, {en:"animal",ko:"동물",level:2},
+  {en:"angle",ko:"각도",level:2}, {en:"ankle",ko:"발목",level:2},
+  {en:"travel",ko:"여행하다",level:2}, {en:"tunnel",ko:"터널",level:2},
+  {en:"tower",ko:"탑",level:2}, {en:"forget",ko:"잊다",level:2},
+  {en:"forgive",ko:"용서하다",level:2}, {en:"effort",ko:"노력",level:2},
+  {en:"history",ko:"역사",level:2}, {en:"honest",ko:"정직한",level:2},
+  {en:"invite",ko:"초대하다",level:2}, {en:"invent",ko:"발명하다",level:2},
+  {en:"insect",ko:"곤충",level:2}, {en:"break",ko:"깨뜨리다",level:2},
+  {en:"brake",ko:"제동장치",level:2}, {en:"brave",ko:"용감한",level:2},
+  {en:"reach",ko:"도달하다",level:2}, {en:"apron",ko:"앞치마",level:2},
+  {en:"april",ko:"4월",level:2}, {en:"then",ko:"그 다음에",level:2},
+  {en:"than",ko:"~보다",level:2}, {en:"loose",ko:"헐거운",level:2},
+  {en:"borrow",ko:"빌리다",level:2}, {en:"lend",ko:"빌려주다",level:2},
+  {en:"subject",ko:"과목",level:2}, {en:"science",ko:"과학",level:2},
+  {en:"math",ko:"수학",level:2}, {en:"english",ko:"영어",level:2},
+  {en:"art",ko:"미술",level:2}, {en:"homework",ko:"숙제",level:2},
+  {en:"test",ko:"시험",level:2}, {en:"grade",ko:"성적",level:2},
+  {en:"lesson",ko:"수업",level:2}, {en:"practice",ko:"연습하다",level:2},
+  {en:"example",ko:"예시",level:2}, {en:"mistake",ko:"실수",level:2},
+  {en:"problem",ko:"문제",level:2}, {en:"solution",ko:"해결책",level:2},
+  {en:"idea",ko:"생각",level:2}, {en:"plan",ko:"계획",level:2},
+  {en:"project",ko:"과제",level:2}, {en:"report",ko:"보고서",level:2},
+  {en:"result",ko:"결과",level:2}, {en:"score",ko:"점수",level:2},
+  {en:"prize",ko:"상",level:2}, {en:"contest",ko:"대회",level:2},
+  {en:"club",ko:"동아리",level:2}, {en:"member",ko:"회원",level:2},
+  {en:"group",ko:"무리",level:2}, {en:"team",ko:"팀",level:2},
+  {en:"leader",ko:"지도자",level:2}, {en:"rule",ko:"규칙",level:2},
+  {en:"order",ko:"순서",level:2}, {en:"chance",ko:"기회",level:2},
+  {en:"choice",ko:"선택",level:2}, {en:"reason",ko:"이유",level:2},
+  {en:"purpose",ko:"목적",level:2}, {en:"title",ko:"제목",level:2},
+  {en:"page",ko:"쪽",level:2}, {en:"list",ko:"목록",level:2},
+  {en:"note",ko:"메모",level:2}, {en:"diary",ko:"일기",level:2},
+  {en:"envelope",ko:"봉투",level:2}, {en:"stamp",ko:"우표",level:2},
+  {en:"address",ko:"주소",level:2}, {en:"package",ko:"소포",level:2},
+  {en:"newspaper",ko:"신문",level:2}, {en:"magazine",ko:"잡지",level:2},
+  {en:"comic",ko:"만화",level:2}, {en:"novel",ko:"소설",level:2},
+  {en:"poem",ko:"시",level:2}, {en:"writer",ko:"작가",level:2},
+  {en:"artist",ko:"예술가",level:2}, {en:"painter",ko:"화가",level:2},
+  {en:"actor",ko:"배우",level:2}, {en:"dancer",ko:"무용수",level:2},
+  {en:"pilot",ko:"조종사",level:2}, {en:"driver",ko:"운전사",level:2},
+  {en:"soldier",ko:"군인",level:2}, {en:"scientist",ko:"과학자",level:2},
+  {en:"engineer",ko:"기술자",level:2}, {en:"designer",ko:"디자이너",level:2},
+  {en:"reporter",ko:"기자",level:2}, {en:"lawyer",ko:"변호사",level:2},
+  {en:"dentist",ko:"치과의사",level:2}, {en:"baker",ko:"제빵사",level:2},
+  {en:"waiter",ko:"종업원",level:2}, {en:"seller",ko:"판매자",level:2},
+  {en:"customer",ko:"손님",level:2}, {en:"guest",ko:"손님",level:2},
+  {en:"neighbor",ko:"이웃",level:2}, {en:"partner",ko:"동료",level:2},
+  {en:"stranger",ko:"낯선 사람",level:2}, {en:"crowd",ko:"군중",level:2},
+  {en:"society",ko:"사회",level:2}, {en:"country",ko:"나라",level:2},
+  {en:"nation",ko:"국가",level:2}, {en:"capital",ko:"수도",level:2},
+  {en:"flag",ko:"깃발",level:2}, {en:"language",ko:"언어",level:2},
+  {en:"culture",ko:"문화",level:2}, {en:"custom",ko:"관습",level:2},
+  {en:"tradition",ko:"전통",level:2}, {en:"festival",ko:"축제",level:2},
+  {en:"parade",ko:"행진",level:2}, {en:"ceremony",ko:"의식",level:2},
+  {en:"wedding",ko:"결혼식",level:2}, {en:"funeral",ko:"장례식",level:2},
+  {en:"religion",ko:"종교",level:2}, {en:"temple",ko:"절",level:2},
+  {en:"palace",ko:"궁전",level:2}, {en:"castle",ko:"성",level:2},
+  {en:"building",ko:"건물",level:2}, {en:"apartment",ko:"아파트",level:2},
+  {en:"elevator",ko:"승강기",level:2}, {en:"basement",ko:"지하실",level:2},
+  {en:"balcony",ko:"발코니",level:2}, {en:"furniture",ko:"가구",level:2},
+  {en:"curtain",ko:"커튼",level:2}, {en:"carpet",ko:"양탄자",level:2},
+  {en:"blanket",ko:"담요",level:2}, {en:"pillow",ko:"베개",level:2},
+  {en:"drawer",ko:"서랍",level:2}, {en:"shelf",ko:"선반",level:2},
+  {en:"closet",ko:"옷장",level:2}, {en:"fridge",ko:"냉장고",level:2},
+  {en:"oven",ko:"오븐",level:2}, {en:"stove",ko:"가스레인지",level:2},
+  {en:"sink",ko:"싱크대",level:2}, {en:"faucet",ko:"수도꼭지",level:2},
+  {en:"garbage",ko:"쓰레기",level:2}, {en:"tool",ko:"도구",level:2},
+  {en:"hammer",ko:"망치",level:2}, {en:"nail",ko:"못",level:2},
+  {en:"rope",ko:"밧줄",level:2}, {en:"ladder",ko:"사다리",level:2},
+  {en:"engine",ko:"엔진",level:2}, {en:"wheel",ko:"바퀴",level:2},
+  {en:"battery",ko:"건전지",level:2}, {en:"screen",ko:"화면",level:2},
+  {en:"keyboard",ko:"자판",level:2}, {en:"printer",ko:"프린터",level:2},
+  {en:"camera",ko:"카메라",level:2}, {en:"phone",ko:"전화기",level:2},
+  {en:"radio",ko:"라디오",level:2}, {en:"television",ko:"텔레비전",level:2},
+  {en:"speaker",ko:"스피커",level:2}, {en:"headphone",ko:"헤드폰",level:2},
+  {en:"charger",ko:"충전기",level:2}, {en:"internet",ko:"인터넷",level:2},
+  {en:"website",ko:"웹사이트",level:2}, {en:"email",ko:"이메일",level:2},
+  {en:"password",ko:"비밀번호",level:2}, {en:"program",ko:"프로그램",level:2},
+  {en:"data",ko:"자료",level:2}, {en:"file",ko:"파일",level:2},
+  {en:"folder",ko:"폴더",level:2}, {en:"signal",ko:"신호",level:2},
+  {en:"network",ko:"통신망",level:2}, {en:"device",ko:"장치",level:2},
+  {en:"cheek",ko:"뺨",level:2}, {en:"chin",ko:"턱",level:2},
+  {en:"throat",ko:"목구멍",level:2}, {en:"stomach",ko:"배",level:2},
+  {en:"bone",ko:"뼈",level:2}, {en:"blood",ko:"피",level:2},
+  {en:"muscle",ko:"근육",level:2}, {en:"brain",ko:"뇌",level:2},
+  {en:"lung",ko:"폐",level:2}, {en:"breath",ko:"숨",level:2},
+  {en:"health",ko:"건강",level:2}, {en:"medicine",ko:"약",level:2},
+  {en:"pill",ko:"알약",level:2}, {en:"fever",ko:"열",level:2},
+  {en:"cough",ko:"기침",level:2}, {en:"headache",ko:"두통",level:2},
+  {en:"injury",ko:"부상",level:2}, {en:"bandage",ko:"붕대",level:2},
+  {en:"germ",ko:"세균",level:2}, {en:"exercise",ko:"운동",level:2},
+  {en:"sport",ko:"스포츠",level:2}, {en:"soccer",ko:"축구",level:2},
+  {en:"baseball",ko:"야구",level:2}, {en:"basketball",ko:"농구",level:2},
+  {en:"tennis",ko:"테니스",level:2}, {en:"golf",ko:"골프",level:2},
+  {en:"skate",ko:"스케이트를 타다",level:2}, {en:"ski",ko:"스키를 타다",level:2},
+  {en:"race",ko:"경주",level:2}, {en:"match",ko:"경기",level:2},
+  {en:"player",ko:"선수",level:2}, {en:"coach",ko:"감독",level:2},
+  {en:"referee",ko:"심판",level:2}, {en:"stadium",ko:"경기장",level:2},
+  {en:"gym",ko:"체육관",level:2}, {en:"pool",ko:"수영장",level:2},
+  {en:"court",ko:"경기장(코트)",level:2}, {en:"victory",ko:"승리",level:2},
+  {en:"defeat",ko:"패배",level:2}, {en:"champion",ko:"우승자",level:2},
+  {en:"medal",ko:"메달",level:2}, {en:"trophy",ko:"트로피",level:2},
+  {en:"record",ko:"기록",level:2}, {en:"rank",ko:"순위",level:2},
+  {en:"final",ko:"결승",level:2}, {en:"round",ko:"회",level:2},
+  {en:"point",ko:"점수",level:2}, {en:"goal",ko:"골",level:2},
+  {en:"whistle",ko:"호루라기",level:2}, {en:"uniform",ko:"유니폼",level:2},
+  {en:"helmet",ko:"헬멧",level:2}, {en:"bat",ko:"방망이",level:2},
+  {en:"racket",ko:"라켓",level:2}, {en:"net",ko:"그물",level:2},
+  {en:"weight",ko:"무게",level:2}, {en:"height",ko:"키",level:2},
+  {en:"length",ko:"길이",level:2}, {en:"width",ko:"너비",level:2},
+  {en:"size",ko:"크기",level:2}, {en:"shape",ko:"모양",level:2},
+  {en:"piece",ko:"조각",level:2}, {en:"part",ko:"부분",level:2},
+  {en:"half",ko:"절반",level:2}, {en:"double",ko:"두 배",level:2},
+  {en:"pair",ko:"한 쌍",level:2}, {en:"dozen",ko:"열두 개",level:2},
+  {en:"amount",ko:"양",level:2}, {en:"total",ko:"합계",level:2},
+  {en:"average",ko:"평균",level:2}, {en:"percent",ko:"퍼센트",level:2},
+  {en:"degree",ko:"도",level:2}, {en:"meter",ko:"미터",level:2},
+  {en:"kilogram",ko:"킬로그램",level:2}, {en:"liter",ko:"리터",level:2},
+  {en:"mile",ko:"마일",level:2}, {en:"inch",ko:"인치",level:2},
+  {en:"distance",ko:"거리",level:2}, {en:"speed",ko:"속도",level:2},
+  {en:"direction",ko:"방향",level:2}, {en:"north",ko:"북쪽",level:2},
+  {en:"south",ko:"남쪽",level:2}, {en:"east",ko:"동쪽",level:2},
+  {en:"west",ko:"서쪽",level:2}, {en:"center",ko:"중심",level:2},
+  {en:"corner",ko:"모퉁이",level:2}, {en:"edge",ko:"가장자리",level:2},
+  {en:"side",ko:"옆면",level:2}, {en:"top",ko:"꼭대기",level:2},
+  {en:"bottom",ko:"바닥",level:2}, {en:"middle",ko:"가운데",level:2},
+  {en:"front",ko:"앞",level:2}, {en:"end",ko:"끝",level:2},
+  {en:"begin",ko:"시작하다",level:2}, {en:"finish",ko:"끝내다",level:2},
+  {en:"continue",ko:"계속하다",level:2}, {en:"repeat",ko:"반복하다",level:2},
+  {en:"change",ko:"바꾸다",level:2}, {en:"move",ko:"움직이다",level:2},
+  {en:"follow",ko:"따라가다",level:2}, {en:"lead",ko:"이끌다",level:2},
+  {en:"join",ko:"참여하다",level:2}, {en:"share",ko:"나누다",level:2},
+  {en:"collect",ko:"모으다",level:2}, {en:"choose",ko:"고르다",level:2},
+  {en:"pick",ko:"고르다",level:2}, {en:"save",ko:"구하다",level:2},
+  {en:"spend",ko:"쓰다",level:2}, {en:"waste",ko:"낭비하다",level:2},
+  {en:"return",ko:"돌아오다",level:2}, {en:"arrive",ko:"도착하다",level:2},
+  {en:"leave",ko:"떠나다",level:2}, {en:"enter",ko:"들어가다",level:2},
+  {en:"exit",ko:"나가다",level:2}, {en:"pass",ko:"지나가다",level:2},
+  {en:"cross",ko:"건너다",level:2}, {en:"avoid",ko:"피하다",level:2},
+  {en:"escape",ko:"달아나다",level:2}, {en:"hide",ko:"숨다",level:2},
+  {en:"seek",ko:"찾다",level:2}, {en:"appear",ko:"나타나다",level:2},
+  {en:"disappear",ko:"사라지다",level:2}, {en:"remain",ko:"남다",level:2},
+  {en:"belong",ko:"속하다",level:2}, {en:"happen",ko:"일어나다",level:2},
+  {en:"seem",ko:"~인 것 같다",level:2}, {en:"become",ko:"~이 되다",level:2},
+  {en:"remember",ko:"기억하다",level:2}, {en:"understand",ko:"이해하다",level:2},
+  {en:"believe",ko:"믿다",level:2}, {en:"guess",ko:"추측하다",level:2},
+  {en:"imagine",ko:"상상하다",level:2}, {en:"hope",ko:"바라다",level:2},
+  {en:"wish",ko:"소망하다",level:2}, {en:"worry",ko:"걱정하다",level:2},
+  {en:"fear",ko:"두려워하다",level:2}, {en:"enjoy",ko:"즐기다",level:2},
+  {en:"prefer",ko:"더 좋아하다",level:2}, {en:"agree",ko:"동의하다",level:2},
+  {en:"refuse",ko:"거절하다",level:2}, {en:"promise",ko:"약속하다",level:2},
+  {en:"explain",ko:"설명하다",level:2}, {en:"describe",ko:"묘사하다",level:2},
+  {en:"introduce",ko:"소개하다",level:2}, {en:"suggest",ko:"제안하다",level:2},
+  {en:"discover",ko:"발견하다",level:2}, {en:"create",ko:"창조하다",level:2},
+  {en:"build",ko:"짓다",level:2}, {en:"repair",ko:"수리하다",level:2},
+  {en:"paint",ko:"칠하다",level:2}, {en:"decorate",ko:"장식하다",level:2},
+  {en:"prepare",ko:"준비하다",level:2}, {en:"cover",ko:"덮다",level:2},
+  {en:"fill",ko:"채우다",level:2}, {en:"pour",ko:"붓다",level:2},
+  {en:"mix",ko:"섞다",level:2}, {en:"boil",ko:"끓이다",level:2},
+  {en:"bake",ko:"굽다",level:2}, {en:"fry",ko:"튀기다",level:2},
+  {en:"serve",ko:"대접하다",level:2}, {en:"taste",ko:"맛보다",level:2},
+  {en:"smell",ko:"냄새 맡다",level:2}, {en:"touch",ko:"만지다",level:2},
+  {en:"shake",ko:"흔들다",level:2}, {en:"press",ko:"누르다",level:2},
+  {en:"lift",ko:"들어올리다",level:2}, {en:"drop",ko:"떨어뜨리다",level:2},
+  {en:"hang",ko:"걸다",level:2}, {en:"tie",ko:"묶다",level:2},
+  {en:"fold",ko:"접다",level:2}, {en:"tear",ko:"찢다",level:2},
+  {en:"burn",ko:"태우다",level:2}, {en:"melt",ko:"녹다",level:2},
+  {en:"freeze",ko:"얼다",level:2}, {en:"float",ko:"뜨다",level:2},
+  {en:"blow",ko:"불다",level:2}, {en:"shine",ko:"빛나다",level:2},
+  {en:"useful",ko:"유용한",level:2}, {en:"useless",ko:"쓸모없는",level:2},
+  {en:"careful",ko:"조심스러운",level:2}, {en:"careless",ko:"부주의한",level:2},
+  {en:"famous",ko:"유명한",level:2}, {en:"popular",ko:"인기 있는",level:2},
+  {en:"special",ko:"특별한",level:2}, {en:"common",ko:"흔한",level:2},
+  {en:"usual",ko:"보통의",level:2}, {en:"strange",ko:"이상한",level:2},
+  {en:"important",ko:"중요한",level:2}, {en:"serious",ko:"심각한",level:2},
+  {en:"simple",ko:"간단한",level:2}, {en:"difficult",ko:"어려운",level:2},
+  {en:"possible",ko:"가능한",level:2}, {en:"impossible",ko:"불가능한",level:2},
+  {en:"correct",ko:"올바른",level:2}, {en:"wrong",ko:"틀린",level:2},
+  {en:"true",ko:"진실한",level:2}, {en:"false",ko:"거짓의",level:2},
+  {en:"real",ko:"진짜의",level:2}, {en:"perfect",ko:"완벽한",level:2},
+  {en:"terrible",ko:"끔찍한",level:2}, {en:"wonderful",ko:"훌륭한",level:2},
+  {en:"excellent",ko:"우수한",level:2}, {en:"lovely",ko:"사랑스러운",level:2},
+  {en:"polite",ko:"예의 바른",level:2}, {en:"rude",ko:"무례한",level:2},
+  {en:"lazy",ko:"게으른",level:2}, {en:"diligent",ko:"부지런한",level:2},
+  {en:"clever",ko:"영리한",level:2}, {en:"foolish",ko:"어리석은",level:2},
+  {en:"proud",ko:"자랑스러운",level:2}, {en:"shy",ko:"수줍은",level:2},
+  {en:"lonely",ko:"외로운",level:2}, {en:"nervous",ko:"긴장한",level:2},
+  {en:"excited",ko:"신이 난",level:2}, {en:"surprised",ko:"놀란",level:2},
+  {en:"bored",ko:"지루해하는",level:2}, {en:"comfortable",ko:"편안한",level:2},
+  {en:"delicious",ko:"맛있는",level:2}, {en:"healthy",ko:"건강한",level:2},
+  {en:"sick",ko:"아픈",level:2}, {en:"alive",ko:"살아 있는",level:2},
+  {en:"dead",ko:"죽은",level:2}, {en:"deep",ko:"깊은",level:2},
+  {en:"shallow",ko:"얕은",level:2}, {en:"narrow",ko:"좁은",level:2},
+  {en:"wide",ko:"넓은",level:2}, {en:"smooth",ko:"매끄러운",level:2},
+  {en:"rough",ko:"거친",level:2}, {en:"sharp",ko:"날카로운",level:2},
+  {en:"flat",ko:"평평한",level:2}, {en:"straight",ko:"곧은",level:2},
+  {en:"crowded",ko:"붐비는",level:2}, {en:"noisy",ko:"시끄러운",level:2},
+  {en:"peaceful",ko:"평화로운",level:2}, {en:"modern",ko:"현대의",level:2},
+  {en:"ancient",ko:"고대의",level:2}, {en:"national",ko:"국가의",level:2},
+  {en:"local",ko:"지역의",level:2}, {en:"public",ko:"공공의",level:2},
+  {en:"private",ko:"사적인",level:2}, {en:"ability",ko:"능력",level:2},
+  {en:"accident",ko:"사고",level:2}, {en:"active",ko:"활동적인",level:2},
+  {en:"adult",ko:"성인",level:2}, {en:"advance",ko:"전진하다",level:2},
+  {en:"advantage",ko:"이점",level:2}, {en:"adventure",ko:"모험",level:2},
+  {en:"agreement",ko:"합의",level:2}, {en:"ahead",ko:"앞에",level:2},
+  {en:"aim",ko:"목표",level:2}, {en:"allow",ko:"허락하다",level:2},
+  {en:"alone",ko:"혼자",level:2}, {en:"already",ko:"이미",level:2},
+  {en:"although",ko:"비록 ~이지만",level:2}, {en:"amaze",ko:"놀라게 하다",level:2},
+  {en:"announce",ko:"발표하다",level:2}, {en:"apart",ko:"떨어져",level:2},
+  {en:"apology",ko:"사과",level:2}, {en:"article",ko:"기사",level:2},
+  {en:"athlete",ko:"운동선수",level:2}, {en:"attack",ko:"공격하다",level:2},
+  {en:"attend",ko:"참석하다",level:2}, {en:"attention",ko:"주의",level:2},
+  {en:"audience",ko:"청중",level:2}, {en:"author",ko:"저자",level:2},
+  {en:"balance",ko:"균형",level:2}, {en:"benefit",ko:"이익",level:2},
+  {en:"blame",ko:"비난하다",level:2}, {en:"brief",ko:"간단한",level:2},
+  {en:"broad",ko:"넓은",level:2}, {en:"career",ko:"직업",level:2},
+  {en:"cause",ko:"원인",level:2}, {en:"celebrate",ko:"축하하다",level:2},
+  {en:"century",ko:"세기",level:2}, {en:"certain",ko:"확실한",level:2},
+  {en:"challenge",ko:"도전",level:2}, {en:"character",ko:"성격",level:2},
+  {en:"charge",ko:"요금",level:2}, {en:"citizen",ko:"시민",level:2},
+  {en:"climate",ko:"기후",level:2}, {en:"comment",ko:"논평",level:2},
+  {en:"community",ko:"공동체",level:2}, {en:"compare",ko:"비교하다",level:2},
+  {en:"compete",ko:"경쟁하다",level:2}, {en:"complain",ko:"불평하다",level:2},
+  {en:"complete",ko:"완성하다",level:2}, {en:"concern",ko:"걱정",level:2},
+  {en:"condition",ko:"조건",level:2}, {en:"confidence",ko:"자신감",level:2},
+  {en:"connect",ko:"연결하다",level:2}, {en:"contact",ko:"접촉하다",level:2},
+  {en:"contain",ko:"포함하다",level:2}, {en:"control",ko:"통제하다",level:2},
+  {en:"conversation",ko:"대화",level:2}, {en:"courage",ko:"용기",level:2},
+  {en:"creature",ko:"생물",level:2}, {en:"cure",ko:"치료하다",level:2},
+  {en:"curious",ko:"호기심 있는",level:2}, {en:"damage",ko:"손상",level:2},
+  {en:"danger",ko:"위험",level:2}, {en:"deal",ko:"거래",level:2},
+  {en:"debate",ko:"토론",level:2}, {en:"decade",ko:"십 년",level:2},
+  {en:"delay",ko:"미루다",level:2}, {en:"deliver",ko:"배달하다",level:2},
+  {en:"demand",ko:"요구하다",level:2}, {en:"desire",ko:"욕망",level:2},
+  {en:"destroy",ko:"파괴하다",level:2}, {en:"detail",ko:"세부 사항",level:2},
+  {en:"develop",ko:"발전시키다",level:2}, {en:"difference",ko:"차이",level:2},
+  {en:"direct",ko:"직접의",level:2}, {en:"disagree",ko:"동의하지 않다",level:2},
+  {en:"disappoint",ko:"실망시키다",level:2}, {en:"disaster",ko:"재난",level:2},
+  {en:"discuss",ko:"논의하다",level:2}, {en:"disease",ko:"질병",level:2},
+  {en:"display",ko:"전시하다",level:2}, {en:"distant",ko:"먼",level:2},
+  {en:"doubt",ko:"의심하다",level:2}, {en:"duty",ko:"의무",level:2},
+  {en:"earn",ko:"벌다",level:2}, {en:"enemy",ko:"적",level:2},
+  {en:"energy",ko:"에너지",level:2}, {en:"environment",ko:"환경",level:2},
+  {en:"equal",ko:"동등한",level:2}, {en:"error",ko:"오류",level:2},
+  {en:"exact",ko:"정확한",level:2}, {en:"excuse",ko:"변명",level:2},
+  {en:"exist",ko:"존재하다",level:2}, {en:"expert",ko:"전문가",level:2},
+  {en:"explore",ko:"탐험하다",level:2}, {en:"express",ko:"표현하다",level:2},
+
+  // ── level 3 — 중등
+  {en:"accept",ko:"받아들이다",level:3}, {en:"except",ko:"~을 제외하고",level:3},
+  {en:"expect",ko:"기대하다",level:3}, {en:"aspect",ko:"측면",level:3},
+  {en:"affect",ko:"영향을 주다",level:3}, {en:"effect",ko:"효과",level:3},
+  {en:"advice",ko:"충고",level:3}, {en:"advise",ko:"충고하다",level:3},
+  {en:"divide",ko:"나누다",level:3}, {en:"receive",ko:"받다",level:3},
+  {en:"relieve",ko:"덜어주다",level:3}, {en:"achieve",ko:"이루다",level:3},
+  {en:"principal",ko:"교장",level:3}, {en:"principle",ko:"원칙",level:3},
+  {en:"personal",ko:"개인의",level:3}, {en:"personnel",ko:"직원",level:3},
+  {en:"quantity",ko:"양",level:3}, {en:"quality",ko:"질",level:3},
+  {en:"quarter",ko:"4분의 1",level:3}, {en:"quarrel",ko:"말다툼",level:3},
+  {en:"thorough",ko:"철저한",level:3}, {en:"through",ko:"~을 통과하여",level:3},
+  {en:"though",ko:"비록 ~이지만",level:3}, {en:"thought",ko:"생각",level:3},
+  {en:"stationary",ko:"움직이지 않는",level:3}, {en:"stationery",ko:"문구류",level:3},
+  {en:"examine",ko:"조사하다",level:3}, {en:"determine",ko:"결심하다",level:3},
+  {en:"eliminate",ko:"제거하다",level:3}, {en:"complement",ko:"보완물",level:3},
+  {en:"compliment",ko:"칭찬",level:3}, {en:"component",ko:"구성 요소",level:3},
+  {en:"comparison",ko:"비교",level:3}, {en:"industry",ko:"산업",level:3},
+  {en:"indicate",ko:"나타내다",level:3}, {en:"individual",ko:"개인",level:3},
+  {en:"independent",ko:"독립적인",level:3}, {en:"absence",ko:"부재",level:3},
+  {en:"academic",ko:"학문의",level:3}, {en:"account",ko:"계좌",level:3},
+  {en:"accurate",ko:"정확한",level:3}, {en:"achievement",ko:"업적",level:3},
+  {en:"actual",ko:"실제의",level:3}, {en:"addition",ko:"추가",level:3},
+  {en:"affair",ko:"사건",level:3}, {en:"afford",ko:"여유가 되다",level:3},
+  {en:"against",ko:"~에 반대하여",level:3}, {en:"agency",ko:"대리점",level:3},
+  {en:"altogether",ko:"완전히",level:3}, {en:"ancestor",ko:"조상",level:3},
+  {en:"annual",ko:"해마다의",level:3}, {en:"anxious",ko:"불안한",level:3},
+  {en:"appeal",ko:"호소하다",level:3}, {en:"appliance",ko:"가전제품",level:3},
+  {en:"application",ko:"지원",level:3}, {en:"appoint",ko:"임명하다",level:3},
+  {en:"appreciate",ko:"감사하다",level:3}, {en:"approach",ko:"다가가다",level:3},
+  {en:"appropriate",ko:"적절한",level:3}, {en:"approve",ko:"승인하다",level:3},
+  {en:"argue",ko:"논쟁하다",level:3}, {en:"arrange",ko:"정리하다",level:3},
+  {en:"arrest",ko:"체포하다",level:3}, {en:"artificial",ko:"인공의",level:3},
+  {en:"ashamed",ko:"부끄러운",level:3}, {en:"aside",ko:"옆으로",level:3},
+  {en:"assist",ko:"돕다",level:3}, {en:"associate",ko:"연관 짓다",level:3},
+  {en:"assume",ko:"가정하다",level:3}, {en:"astonish",ko:"깜짝 놀라게 하다",level:3},
+  {en:"atmosphere",ko:"대기",level:3}, {en:"attach",ko:"붙이다",level:3},
+  {en:"attempt",ko:"시도하다",level:3}, {en:"attitude",ko:"태도",level:3},
+  {en:"attract",ko:"끌어당기다",level:3}, {en:"authority",ko:"권한",level:3},
+  {en:"available",ko:"이용 가능한",level:3}, {en:"awake",ko:"깨어 있는",level:3},
+  {en:"aware",ko:"알고 있는",level:3}, {en:"barrier",ko:"장벽",level:3},
+  {en:"basis",ko:"기초",level:3}, {en:"behave",ko:"행동하다",level:3},
+  {en:"belief",ko:"믿음",level:3}, {en:"beyond",ko:"~을 넘어서",level:3},
+  {en:"boast",ko:"자랑하다",level:3}, {en:"bother",ko:"귀찮게 하다",level:3},
+  {en:"budget",ko:"예산",level:3}, {en:"calculate",ko:"계산하다",level:3},
+  {en:"campaign",ko:"운동",level:3}, {en:"capable",ko:"할 수 있는",level:3},
+  {en:"capacity",ko:"수용력",level:3}, {en:"charity",ko:"자선",level:3},
+  {en:"chemical",ko:"화학의",level:3}, {en:"circumstance",ko:"상황",level:3},
+  {en:"civil",ko:"시민의",level:3}, {en:"claim",ko:"주장하다",level:3},
+  {en:"combine",ko:"결합하다",level:3}, {en:"commercial",ko:"상업의",level:3},
+  {en:"commit",ko:"저지르다",level:3}, {en:"communicate",ko:"의사소통하다",level:3},
+  {en:"complex",ko:"복잡한",level:3}, {en:"concentrate",ko:"집중하다",level:3},
+  {en:"concept",ko:"개념",level:3}, {en:"conclude",ko:"결론짓다",level:3},
+  {en:"conduct",ko:"수행하다",level:3}, {en:"confirm",ko:"확인하다",level:3},
+  {en:"conflict",ko:"갈등",level:3}, {en:"confuse",ko:"혼란시키다",level:3},
+  {en:"conscious",ko:"의식하는",level:3}, {en:"consequence",ko:"결과",level:3},
+  {en:"consider",ko:"고려하다",level:3}, {en:"consist",ko:"구성되다",level:3},
+  {en:"constant",ko:"일정한",level:3}, {en:"construct",ko:"건설하다",level:3},
+  {en:"consult",ko:"상담하다",level:3}, {en:"consume",ko:"소비하다",level:3},
+  {en:"content",ko:"내용",level:3}, {en:"context",ko:"맥락",level:3},
+  {en:"continent",ko:"대륙",level:3}, {en:"contract",ko:"계약",level:3},
+  {en:"contrast",ko:"대조",level:3}, {en:"contribute",ko:"기여하다",level:3},
+  {en:"convenient",ko:"편리한",level:3}, {en:"convince",ko:"설득하다",level:3},
+  {en:"cooperate",ko:"협력하다",level:3}, {en:"correspond",ko:"일치하다",level:3},
+  {en:"council",ko:"의회",level:3}, {en:"credit",ko:"신용",level:3},
+  {en:"crisis",ko:"위기",level:3}, {en:"criticize",ko:"비판하다",level:3},
+  {en:"crop",ko:"농작물",level:3}, {en:"crucial",ko:"결정적인",level:3},
+  {en:"current",ko:"현재의",level:3}, {en:"debt",ko:"빚",level:3},
+  {en:"declare",ko:"선언하다",level:3}, {en:"decline",ko:"감소하다",level:3},
+  {en:"decrease",ko:"줄다",level:3}, {en:"dedicate",ko:"바치다",level:3},
+  {en:"defend",ko:"방어하다",level:3}, {en:"define",ko:"정의하다",level:3},
+  {en:"democracy",ko:"민주주의",level:3}, {en:"demonstrate",ko:"보여주다",level:3},
+  {en:"deny",ko:"부인하다",level:3}, {en:"depend",ko:"의존하다",level:3},
+  {en:"deserve",ko:"~할 자격이 있다",level:3}, {en:"despite",ko:"~에도 불구하고",level:3},
+  {en:"detect",ko:"탐지하다",level:3}, {en:"devote",ko:"헌신하다",level:3},
+  {en:"digest",ko:"소화하다",level:3}, {en:"discipline",ko:"규율",level:3},
+  {en:"dismiss",ko:"해고하다",level:3}, {en:"distinguish",ko:"구별하다",level:3},
+  {en:"distribute",ko:"분배하다",level:3}, {en:"disturb",ko:"방해하다",level:3},
+  {en:"divorce",ko:"이혼하다",level:3}, {en:"domestic",ko:"국내의",level:3},
+  {en:"donate",ko:"기부하다",level:3}, {en:"drought",ko:"가뭄",level:3},
+  {en:"due",ko:"~때문인",level:3}, {en:"eager",ko:"열망하는",level:3},
+  {en:"economy",ko:"경제",level:3}, {en:"edit",ko:"편집하다",level:3},
+  {en:"educate",ko:"교육하다",level:3}, {en:"effective",ko:"효과적인",level:3},
+  {en:"efficient",ko:"효율적인",level:3}, {en:"elect",ko:"선출하다",level:3},
+  {en:"electric",ko:"전기의",level:3}, {en:"element",ko:"요소",level:3},
+  {en:"emergency",ko:"비상사태",level:3}, {en:"emotion",ko:"감정",level:3},
+  {en:"emphasize",ko:"강조하다",level:3}, {en:"employ",ko:"고용하다",level:3},
+  {en:"encourage",ko:"격려하다",level:3}, {en:"endure",ko:"견디다",level:3},
+  {en:"engage",ko:"참여시키다",level:3}, {en:"enormous",ko:"거대한",level:3},
+  {en:"ensure",ko:"보장하다",level:3}, {en:"entertain",ko:"즐겁게 하다",level:3},
+  {en:"enthusiasm",ko:"열정",level:3}, {en:"entire",ko:"전체의",level:3},
+  {en:"equipment",ko:"장비",level:3}, {en:"essential",ko:"필수적인",level:3},
+  {en:"establish",ko:"설립하다",level:3}, {en:"estimate",ko:"추정하다",level:3},
+  {en:"evidence",ko:"증거",level:3}, {en:"exceed",ko:"초과하다",level:3},
+  {en:"exchange",ko:"교환하다",level:3}, {en:"exhibit",ko:"전시하다",level:3},
+  {en:"expand",ko:"확장하다",level:3}, {en:"expense",ko:"비용",level:3},
+  {en:"experience",ko:"경험",level:3}, {en:"experiment",ko:"실험",level:3},
+  {en:"explode",ko:"폭발하다",level:3}, {en:"export",ko:"수출하다",level:3},
+  {en:"extend",ko:"늘리다",level:3}, {en:"extreme",ko:"극단적인",level:3},
+  {en:"facility",ko:"시설",level:3}, {en:"factor",ko:"요인",level:3},
+  {en:"fail",ko:"실패하다",level:3}, {en:"faith",ko:"믿음",level:3},
+  {en:"familiar",ko:"익숙한",level:3}, {en:"fascinate",ko:"매혹하다",level:3},
+  {en:"fashion",ko:"유행",level:3}, {en:"fault",ko:"잘못",level:3},
+  {en:"favor",ko:"호의",level:3}, {en:"feature",ko:"특징",level:3},
+  {en:"figure",ko:"수치",level:3}, {en:"finance",ko:"재정",level:3},
+  {en:"firm",ko:"회사",level:3}, {en:"flexible",ko:"유연한",level:3},
+  {en:"focus",ko:"집중하다",level:3}, {en:"forbid",ko:"금지하다",level:3},
+  {en:"force",ko:"힘",level:3}, {en:"forecast",ko:"예보",level:3},
+  {en:"former",ko:"이전의",level:3}, {en:"fortune",ko:"행운",level:3},
+  {en:"foundation",ko:"기초",level:3}, {en:"frequent",ko:"잦은",level:3},
+  {en:"function",ko:"기능",level:3}, {en:"fundamental",ko:"근본적인",level:3},
+  {en:"furthermore",ko:"게다가",level:3}, {en:"gather",ko:"모으다",level:3},
+  {en:"gene",ko:"유전자",level:3}, {en:"generation",ko:"세대",level:3},
+  {en:"generous",ko:"너그러운",level:3}, {en:"gentle",ko:"온화한",level:3},
+  {en:"genuine",ko:"진짜의",level:3}, {en:"gesture",ko:"몸짓",level:3},
+  {en:"global",ko:"세계적인",level:3}, {en:"govern",ko:"통치하다",level:3},
+  {en:"gradual",ko:"점진적인",level:3}, {en:"grateful",ko:"고마워하는",level:3},
+  {en:"guarantee",ko:"보장하다",level:3}, {en:"guilty",ko:"죄책감을 느끼는",level:3},
+  {en:"habit",ko:"습관",level:3}, {en:"handle",ko:"다루다",level:3},
+  {en:"harmony",ko:"조화",level:3}, {en:"harvest",ko:"수확",level:3},
+  {en:"hesitate",ko:"망설이다",level:3}, {en:"horizon",ko:"수평선",level:3},
+  {en:"household",ko:"가정",level:3}, {en:"huge",ko:"거대한",level:3},
+  {en:"humble",ko:"겸손한",level:3}, {en:"identify",ko:"확인하다",level:3},
+  {en:"ignore",ko:"무시하다",level:3}, {en:"illegal",ko:"불법의",level:3},
+  {en:"illustrate",ko:"설명하다",level:3}, {en:"immediate",ko:"즉각적인",level:3},
+  {en:"impact",ko:"충격",level:3}, {en:"implement",ko:"시행하다",level:3},
+  {en:"imply",ko:"암시하다",level:3}, {en:"import",ko:"수입하다",level:3},
+  {en:"impress",ko:"감명을 주다",level:3}, {en:"improve",ko:"향상시키다",level:3},
+  {en:"include",ko:"포함하다",level:3}, {en:"income",ko:"소득",level:3},
+  {en:"increase",ko:"증가하다",level:3}, {en:"influence",ko:"영향",level:3},
+  {en:"inform",ko:"알리다",level:3}, {en:"injure",ko:"다치게 하다",level:3},
+  {en:"innocent",ko:"무죄의",level:3}, {en:"inquire",ko:"문의하다",level:3},
+  {en:"insist",ko:"주장하다",level:3}, {en:"inspire",ko:"영감을 주다",level:3},
+  {en:"install",ko:"설치하다",level:3}, {en:"instance",ko:"사례",level:3},
+  {en:"instant",ko:"즉각적인",level:3}, {en:"instead",ko:"대신에",level:3},
+  {en:"institute",ko:"기관",level:3}, {en:"instruct",ko:"지시하다",level:3},
+  {en:"instrument",ko:"도구",level:3}, {en:"insult",ko:"모욕하다",level:3},
+  {en:"insurance",ko:"보험",level:3}, {en:"intend",ko:"의도하다",level:3},
+  {en:"intense",ko:"강렬한",level:3}, {en:"interest",ko:"관심",level:3},
+  {en:"interfere",ko:"간섭하다",level:3}, {en:"interpret",ko:"해석하다",level:3},
+  {en:"interrupt",ko:"방해하다",level:3}, {en:"invest",ko:"투자하다",level:3},
+  {en:"investigate",ko:"조사하다",level:3}, {en:"involve",ko:"포함하다",level:3},
+  {en:"isolate",ko:"고립시키다",level:3}, {en:"issue",ko:"문제",level:3},
+  {en:"journey",ko:"여정",level:3}, {en:"judge",ko:"판단하다",level:3},
+  {en:"justice",ko:"정의",level:3}, {en:"knowledge",ko:"지식",level:3},
+  {en:"labor",ko:"노동",level:3}, {en:"lack",ko:"부족",level:3},
+  {en:"launch",ko:"시작하다",level:3}, {en:"legal",ko:"합법의",level:3},
+  {en:"liberty",ko:"자유",level:3}, {en:"license",ko:"면허",level:3},
+  {en:"limit",ko:"제한하다",level:3}, {en:"literature",ko:"문학",level:3},
+  {en:"locate",ko:"위치시키다",level:3}, {en:"logic",ko:"논리",level:3},
+  {en:"maintain",ko:"유지하다",level:3}, {en:"major",ko:"주요한",level:3},
+  {en:"manage",ko:"관리하다",level:3}, {en:"manner",ko:"방식",level:3},
+  {en:"manufacture",ko:"제조하다",level:3}, {en:"marriage",ko:"결혼",level:3},
+  {en:"material",ko:"재료",level:3}, {en:"mature",ko:"성숙한",level:3},
+  {en:"measure",ko:"측정하다",level:3}, {en:"mental",ko:"정신의",level:3},
+  {en:"mention",ko:"언급하다",level:3}, {en:"merchant",ko:"상인",level:3},
+  {en:"mercy",ko:"자비",level:3}, {en:"method",ko:"방법",level:3},
+  {en:"military",ko:"군사의",level:3}, {en:"minor",ko:"사소한",level:3},
+  {en:"missile",ko:"미사일",level:3}, {en:"mission",ko:"임무",level:3},
+  {en:"modify",ko:"수정하다",level:3}, {en:"moral",ko:"도덕적인",level:3},
+  {en:"motive",ko:"동기",level:3}, {en:"multiply",ko:"곱하다",level:3},
+  {en:"mutual",ko:"서로의",level:3}, {en:"narrative",ko:"이야기",level:3},
+  {en:"native",ko:"토박이의",level:3}, {en:"natural",ko:"자연의",level:3},
+  {en:"necessary",ko:"필요한",level:3}, {en:"negative",ko:"부정적인",level:3},
+  {en:"neglect",ko:"소홀히 하다",level:3}, {en:"negotiate",ko:"협상하다",level:3},
+  {en:"neutral",ko:"중립의",level:3}, {en:"nevertheless",ko:"그럼에도 불구하고",level:3},
+  {en:"normal",ko:"정상의",level:3}, {en:"notice",ko:"알아채다",level:3},
+  {en:"obey",ko:"복종하다",level:3}, {en:"object",ko:"물체",level:3},
+  {en:"observe",ko:"관찰하다",level:3}, {en:"obtain",ko:"얻다",level:3},
+  {en:"obvious",ko:"명백한",level:3}, {en:"occasion",ko:"경우",level:3},
+  {en:"occupy",ko:"차지하다",level:3}, {en:"occur",ko:"일어나다",level:3},
+  {en:"offend",ko:"기분 상하게 하다",level:3}, {en:"offer",ko:"제공하다",level:3},
+  {en:"operate",ko:"작동시키다",level:3}, {en:"opinion",ko:"의견",level:3},
+  {en:"opportunity",ko:"기회",level:3}, {en:"oppose",ko:"반대하다",level:3},
+  {en:"optimistic",ko:"낙관적인",level:3}, {en:"organize",ko:"조직하다",level:3},
+  {en:"origin",ko:"기원",level:3}, {en:"outcome",ko:"결과",level:3},
+  {en:"overcome",ko:"극복하다",level:3}, {en:"owe",ko:"빚지다",level:3},
+  {en:"particular",ko:"특정한",level:3}, {en:"passenger",ko:"승객",level:3},
+  {en:"patient",ko:"환자",level:3}, {en:"pattern",ko:"무늬",level:3},
+  {en:"perceive",ko:"인식하다",level:3}, {en:"perform",ko:"공연하다",level:3},
+  {en:"period",ko:"기간",level:3}, {en:"permanent",ko:"영구적인",level:3},
+  {en:"permit",ko:"허가하다",level:3}, {en:"persuade",ko:"설득하다",level:3},
+  {en:"phenomenon",ko:"현상",level:3}, {en:"physical",ko:"신체의",level:3},
+  {en:"policy",ko:"정책",level:3}, {en:"politics",ko:"정치",level:3},
+  {en:"pollute",ko:"오염시키다",level:3}, {en:"population",ko:"인구",level:3},
+  {en:"portion",ko:"부분",level:3}, {en:"positive",ko:"긍정적인",level:3},
+  {en:"possess",ko:"소유하다",level:3}, {en:"potential",ko:"잠재력",level:3},
+  {en:"poverty",ko:"가난",level:3}, {en:"practical",ko:"실용적인",level:3},
+  {en:"praise",ko:"칭찬하다",level:3}, {en:"precious",ko:"귀중한",level:3},
+  {en:"predict",ko:"예측하다",level:3}, {en:"prejudice",ko:"편견",level:3},
+  {en:"present",ko:"현재의",level:3}, {en:"preserve",ko:"보존하다",level:3},
+  {en:"pressure",ko:"압력",level:3}, {en:"prevent",ko:"막다",level:3},
+  {en:"previous",ko:"이전의",level:3}, {en:"priority",ko:"우선순위",level:3},
+  {en:"prison",ko:"감옥",level:3}, {en:"privilege",ko:"특권",level:3},
+  {en:"procedure",ko:"절차",level:3}, {en:"proceed",ko:"진행하다",level:3},
+  {en:"process",ko:"과정",level:3}, {en:"produce",ko:"생산하다",level:3},
+  {en:"profession",ko:"직업",level:3}, {en:"profit",ko:"이익",level:3},
+  {en:"progress",ko:"진보",level:3}, {en:"prohibit",ko:"금지하다",level:3},
+  {en:"promote",ko:"촉진하다",level:3}, {en:"pronounce",ko:"발음하다",level:3},
+  {en:"proper",ko:"적절한",level:3}, {en:"propose",ko:"제안하다",level:3},
+  {en:"protect",ko:"보호하다",level:3}, {en:"protest",ko:"항의하다",level:3},
+  {en:"prove",ko:"증명하다",level:3}, {en:"provide",ko:"제공하다",level:3},
+  {en:"publish",ko:"출판하다",level:3}, {en:"punish",ko:"처벌하다",level:3},
+  {en:"pursue",ko:"추구하다",level:3}, {en:"qualify",ko:"자격을 얻다",level:3},
+  {en:"quote",ko:"인용하다",level:3}, {en:"range",ko:"범위",level:3},
+  {en:"rare",ko:"드문",level:3}, {en:"rate",ko:"비율",level:3},
+  {en:"react",ko:"반응하다",level:3}, {en:"realize",ko:"깨닫다",level:3},
+  {en:"recall",ko:"기억해 내다",level:3}, {en:"recent",ko:"최근의",level:3},
+  {en:"recognize",ko:"알아보다",level:3}, {en:"recommend",ko:"추천하다",level:3},
+  {en:"recover",ko:"회복하다",level:3}, {en:"reduce",ko:"줄이다",level:3},
+  {en:"refer",ko:"언급하다",level:3}, {en:"reflect",ko:"반사하다",level:3},
+  {en:"reform",ko:"개혁하다",level:3}, {en:"regard",ko:"여기다",level:3},
+  {en:"region",ko:"지역",level:3}, {en:"register",ko:"등록하다",level:3},
+  {en:"regret",ko:"후회하다",level:3}, {en:"regular",ko:"규칙적인",level:3},
+  {en:"reject",ko:"거부하다",level:3}, {en:"relate",ko:"관련시키다",level:3},
+  {en:"release",ko:"풀어주다",level:3}, {en:"reliable",ko:"믿을 만한",level:3},
+  {en:"rely",ko:"의지하다",level:3}, {en:"remove",ko:"제거하다",level:3},
+  {en:"replace",ko:"대체하다",level:3}, {en:"represent",ko:"대표하다",level:3},
+  {en:"reputation",ko:"명성",level:3}, {en:"request",ko:"요청하다",level:3},
+  {en:"require",ko:"요구하다",level:3}, {en:"rescue",ko:"구조하다",level:3},
+  {en:"research",ko:"연구",level:3}, {en:"reserve",ko:"예약하다",level:3},
+  {en:"resist",ko:"저항하다",level:3}, {en:"resource",ko:"자원",level:3},
+  {en:"respect",ko:"존경하다",level:3}, {en:"respond",ko:"응답하다",level:3},
+  {en:"responsible",ko:"책임 있는",level:3}, {en:"restore",ko:"복원하다",level:3},
+  {en:"restrict",ko:"제한하다",level:3}, {en:"retire",ko:"은퇴하다",level:3},
+  {en:"reveal",ko:"드러내다",level:3}, {en:"review",ko:"검토하다",level:3},
+  {en:"revolution",ko:"혁명",level:3}, {en:"reward",ko:"보상",level:3},
+  {en:"rhythm",ko:"리듬",level:3}, {en:"rural",ko:"시골의",level:3},
+  {en:"sacrifice",ko:"희생하다",level:3}, {en:"satisfy",ko:"만족시키다",level:3},
+  {en:"scarce",ko:"부족한",level:3}, {en:"schedule",ko:"일정",level:3},
+  {en:"scholar",ko:"학자",level:3}, {en:"secure",ko:"안전한",level:3},
+  {en:"select",ko:"선택하다",level:3}, {en:"sensitive",ko:"민감한",level:3},
+  {en:"separate",ko:"분리하다",level:3}, {en:"sequence",ko:"순서",level:3},
+  {en:"settle",ko:"정착하다",level:3}, {en:"severe",ko:"심한",level:3},
+  {en:"significant",ko:"중요한",level:3}, {en:"similar",ko:"비슷한",level:3},
+  {en:"sincere",ko:"진실한",level:3}, {en:"situation",ko:"상황",level:3},
+  {en:"solve",ko:"해결하다",level:3}, {en:"source",ko:"출처",level:3},
+  {en:"specific",ko:"구체적인",level:3}, {en:"spread",ko:"퍼지다",level:3},
+  {en:"stable",ko:"안정된",level:3}, {en:"standard",ko:"기준",level:3},
+  {en:"statement",ko:"진술",level:3}, {en:"statistic",ko:"통계",level:3},
+  {en:"strategy",ko:"전략",level:3}, {en:"stress",ko:"압박",level:3},
+  {en:"structure",ko:"구조",level:3}, {en:"struggle",ko:"투쟁하다",level:3},
+  {en:"substance",ko:"물질",level:3}, {en:"succeed",ko:"성공하다",level:3},
+  {en:"sufficient",ko:"충분한",level:3}, {en:"suitable",ko:"알맞은",level:3},
+  {en:"supply",ko:"공급하다",level:3}, {en:"support",ko:"지지하다",level:3},
+  {en:"suppose",ko:"가정하다",level:3}, {en:"surface",ko:"표면",level:3},
+  {en:"surround",ko:"둘러싸다",level:3}, {en:"survive",ko:"살아남다",level:3},
+  {en:"suspect",ko:"의심하다",level:3}, {en:"sustain",ko:"지속하다",level:3},
+  {en:"symbol",ko:"상징",level:3}, {en:"sympathy",ko:"동정",level:3},
+  {en:"technique",ko:"기술",level:3}, {en:"temporary",ko:"일시적인",level:3},
+  {en:"tend",ko:"~하는 경향이 있다",level:3}, {en:"tension",ko:"긴장",level:3},
+  {en:"theory",ko:"이론",level:3}, {en:"threaten",ko:"위협하다",level:3},
+  {en:"tolerate",ko:"참다",level:3}, {en:"transfer",ko:"옮기다",level:3},
+  {en:"transform",ko:"변형시키다",level:3}, {en:"translate",ko:"번역하다",level:3},
+  {en:"transport",ko:"수송하다",level:3}, {en:"treat",ko:"다루다",level:3},
+  {en:"tremble",ko:"떨다",level:3}, {en:"trust",ko:"신뢰하다",level:3},
+  {en:"typical",ko:"전형적인",level:3}, {en:"unique",ko:"독특한",level:3},
+  {en:"universe",ko:"우주",level:3}, {en:"urban",ko:"도시의",level:3},
+  {en:"urge",ko:"촉구하다",level:3}, {en:"vacant",ko:"비어 있는",level:3},
+  {en:"vague",ko:"모호한",level:3}, {en:"valuable",ko:"귀중한",level:3},
+  {en:"vanish",ko:"사라지다",level:3}, {en:"variety",ko:"다양성",level:3},
+  {en:"various",ko:"다양한",level:3}, {en:"vast",ko:"광대한",level:3},
+  {en:"vehicle",ko:"차량",level:3}, {en:"venture",ko:"모험",level:3},
+  {en:"victim",ko:"피해자",level:3}, {en:"violence",ko:"폭력",level:3},
+  {en:"virtue",ko:"미덕",level:3}, {en:"visible",ko:"눈에 보이는",level:3},
+  {en:"volume",ko:"부피",level:3}, {en:"voluntary",ko:"자발적인",level:3},
+  {en:"vote",ko:"투표하다",level:3}, {en:"wander",ko:"돌아다니다",level:3},
+  {en:"warn",ko:"경고하다",level:3}, {en:"wealth",ko:"부",level:3},
+  {en:"welfare",ko:"복지",level:3}, {en:"witness",ko:"목격자",level:3},
+  {en:"wonder",ko:"궁금해하다",level:3}, {en:"worth",ko:"가치 있는",level:3},
+  {en:"yield",ko:"산출하다",level:3}
+];
+
+/* 헷갈리는 단어 묶음 — 오답 후보로 먼저 사용 */
+const CONFUSION_GROUPS = [
+  ["quiet","quite","quick","quit"],
+  ["desert","dessert","design","decide"],
+  ["weather","whether","sweater","wealth"],
+  ["accept","except","expect","aspect"],
+  ["lose","loose","choose","close"],
+  ["then","than","that","them"],
+  ["borrow","lend","bother","below"],
+  ["cloud","clock","clown","clean"],
+  ["apple","apron","april","angle"],
+  ["house","horse","mouse","nurse"],
+  ["night","light","right","might"],
+  ["market","museum","message","machine"],
+  ["animal","angle","ankle","annual"],
+  ["travel","tunnel","towel","tower"],
+  ["forest","forget","forgive","forever"],
+  ["invite","invent","insect","invest"],
+  ["break","brake","bread","brave"],
+  ["beach","peach","teach","reach"],
+  ["affect","effect","effort","effective"],
+  ["advice","advise","device","divide"],
+  ["receive","relieve","believe","achieve"],
+  ["principal","principle","personal","personnel"],
+  ["quantity","quality","quarter","quarrel"],
+  ["thorough","through","though","thought"],
+  ["stationary","stationery","station","situation"],
+  ["imagine","examine","determine","eliminate"],
+  ["complement","compliment","component","competent"],
+  ["industry","indicate","individual","independent"]
+];
+
+/* 단어 세트 — 추후 "이번 주 시험단어" 등을 여기에 추가 */
+const WORD_SETS = {
+  all:  {label:"전체", levels:[1,2,3]},
+  basic:{label:"기초", levels:[1]},
+  elem: {label:"초등", levels:[1,2]},
+  mid:  {label:"중등", levels:[2,3]}
+};
+
+/* =====================================================================
+   §2 CONFIG — 상수 (config.js 로 분리 가능)
+===================================================================== */
+const CFG = {
+  BASE_APPROACH_TIME: 6.0,   // Stage 1 접근시간(초)
+  MIN_APPROACH_TIME : 3.5,   // 최소 접근시간
+  APPROACH_DECAY    : 0.086, // Stage 당 감소량
+
+  SPAWN_DIST_LAND: 74,       // 가로모드 생성 거리
+  SPAWN_DIST_PORT: 52,       // 세로모드 생성 거리(가까이 생성해 글자를 크게)
+
+  SCORE_BASE: 100, COMBO_STEP: 10, GIMMICK_BONUS: 30,
+  LIVES: 3,
+  REVIEW_MIN: 3, REVIEW_MAX: 7,   // 틀린 단어 재출제 간격
+
+  LANE_W: 3.3, GATE_W: 2.9, GATE_H: 4.4,
+
+  MOVE_X: 9.5,               // 좌우 이동 속도 (문 개수에 따라 자동 조정)
+  MOVE_Z: 15.0,              // 앞뒤 이동 속도
+  ACCEL: 16,                 // 가속 반응 (클수록 즉각적)
+  BRAKE: 20,                 // 멈출 때 반응
+  Z_FORWARD: -13,            // 앞으로 나갈 수 있는 한계
+  Z_BACK: 4,                 // 뒤로 물러설 수 있는 한계
+  SNAP: 6.5,                 // 손을 떼면 레인 중앙으로 붙는 힘
+  DEADZONE: 0.16,            // 조이스틱 데드존
+  RUSH_BONUS: 40,            // 앞으로 나가서 맞혔을 때 최대 보너스
+  GRAVITY: 26, DEATH_Y: -13
+};
+
+const DIFF = {
+  // lanes 문 개수 / levels 단어 난이도 / trick 헷갈리는 오답 비율 / approachMul·decay 속도
+  // holes 구멍 / blocks 장애물 / hide 단어가 사라지는 비율 / scoreMul 점수 배수
+  easy:  {label:"EASY",  lanes:3, levels:[1],   trick:0.15, approachMul:1.15, approachAdd:-1.0, decay:0.050,
+          lateDecay:0, minTime:3.5,
+          holes:0, blocks:0, hide:0,    scoreMul:1.0, lives:5, boulder:false, sway:false, swaps:0,
+          ramp:[]},
+  normal:{label:"NORMAL",lanes:5, levels:[1,2], trick:0.70, approachMul:1.00, approachAdd:-1.0, decay:0.086,
+          lateDecay:0.020, minTime:3.0,
+          holes:1, blocks:0, hide:0,    scoreMul:1.6, lives:3, boulder:true, rockFrom:30, sway:false, swaps:0,
+          // 스테이지가 오르면 기믹이 늘어난다
+          ramp:[{from:12, blocks:1}, {from:22, holes:1}]},
+  hard:  {label:"HARD",  lanes:7, levels:[2,3], trick:1.00, approachMul:0.95, approachAdd:0,    decay:0.120,
+          lateDecay:0.030, minTime:2.7,
+          holes:1, blocks:1, hide:0.75, scoreMul:2.4, lives:3, boulder:true, rockFrom:5, sway:false, swaps:0,
+          ramp:[{from:20, holes:1, blocks:1, rocks:1, rockRate:1},
+                {from:30, blocks:1, rockRate:1},
+                {from:40, rocks:1, rockRate:1}]}
+};
+
+/* 문 개수에 따라 레인 폭·문 폭·이동 속도를 다시 잡는다 (7개도 화면에 들어오도록) */
+function applyLaneMetrics(){
+  const n = G.lanes;
+  CFG.LANE_W = n<=3 ? 3.7 : n<=4 ? 3.3 : n<=5 ? 3.05 : 2.75;
+  CFG.GATE_W = CFG.LANE_W - 0.42;
+  CFG.MOVE_X = 10.2 + (n-3)*1.45;     // 문이 많을수록 더 빨리 좌우로 움직인다
+}
+/* 뒤에서 굴러오는 바위 */
+const BOULDER = {
+  FROM_STAGE: 5,     // 이 스테이지부터 등장
+  SPEED: 6.2,        // 굴러오는 속도
+  SPEED_UP: 0.03,    // 스테이지당 가속
+  SPEED_MAX: 9.5,
+  BEHIND: 11,        // 카메라 뒤 이만큼에서 떨어진다
+  HIT: 1.8,          // 앞뒤 충돌 거리
+  LANE: 0.52,        // 레인 중심에서 이 비율 안이면 맞는다
+  GONE: 26,          // 플레이어를 이만큼 지나치면 사라짐
+  WAIT: 5.5,         // 다음 바위까지 대기 시간
+  WAIT_MIN: 2.4
+};
+const HAZARD_FROM_STAGE = 3;   // 이 스테이지부터 구멍/장애물 등장
+const SWAP_FROM_STAGE   = 5;   // (자리바꿈을 다시 켤 경우) 시작 스테이지
+const HIDE_FROM_STAGE   = 3;   // 이 스테이지부터 단어가 사라지기 시작
+const FLASH_FROM_STAGE  = 10;  // 이 스테이지부터 더 짧게 보이는 FLASH 방식 등장
+/* 사라짐 기믹 — 시간은 "글자를 읽을 수 있을 만큼 가까워진 뒤"부터 잰다.
+   멀리 있어 글자가 작을 때 흘러간 시간은 노출 시간으로 치지 않는다. */
+const READ_RATIO = 0.50;       // 생성거리의 55% 안으로 들어오면 읽을 수 있다고 본다
+const HIDE_TIME = {
+  onetime:{readSec:1.6, minLeft:0.9},   // 가까이서 1.6초 보여준 뒤 사라짐
+  flash:  {readSec:1.2, minLeft:0.9}    // 가까이서 1.2초만 보여줌
+};
+
+const COL = {
+  floor:0x2a2148, edge:0xffc46b, frame:0x8b7bd8, panel:0x9ee8d4,
+  mint:0x5fe0b0, coral:0xff7a66, dim:0x5a5280
+};
+
+/* 현재 스테이지에서의 기믹 수치 (기본값 + 램프 누적) */
+function ramped(key){
+  const d = DIFF[G.diff];
+  let n = d[key] || 0;
+  if(d.ramp) for(let i=0;i<d.ramp.length;i++){
+    const r = d.ramp[i];
+    if(G.stage >= r.from && r[key]) n += r[key];
+  }
+  return n;
+}
+
+/* 접근시간 & 게이트 속도 — 속도가 아니라 "몇 초 만에 도달하는가"가 기준 */
+function approachTime(stage){
+  const d = DIFF[G.diff];
+  // 20스테이지 이후에는 lateDecay 만큼 계속 더 빨라진다 (난이도별 하한선까지)
+  let t = CFG.BASE_APPROACH_TIME
+        - (stage-1)*(d.decay || CFG.APPROACH_DECAY)
+        - Math.max(0, stage-20)*(d.lateDecay || 0);
+  t = t*d.approachMul + (d.approachAdd||0);
+  return Math.max(d.minTime || CFG.MIN_APPROACH_TIME, t);
+}
+
+/* =====================================================================
+   §3 QUIZ — 문제 생성 (quiz.js 로 분리 가능)
+===================================================================== */
+const rnd = a => a[Math.floor(Math.random()*a.length)];
+const clamp = (v,a,b)=> v<a?a:v>b?b:v;
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function levenshtein(a,b){
+  const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
+  let prev=new Array(n+1),cur=new Array(n+1);
+  for(let j=0;j<=n;j++)prev[j]=j;
+  for(let i=1;i<=m;i++){
+    cur[0]=i;
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    const t=prev; prev=cur; cur=t;
+  }
+  return prev[n];
+}
+const findWord = en => WORD_BANK.filter(w=>w.en===en)[0];
+
+function pool(){
+  const setLv = WORD_SETS[G.set].levels, dLv = DIFF[G.diff].levels;
+  let p = WORD_BANK.filter(w=> setLv.indexOf(w.level)>=0 && dLv.indexOf(w.level)>=0);
+  if(p.length < 8) p = WORD_BANK.filter(w=> setLv.indexOf(w.level)>=0);
+  if(p.length < 8) p = WORD_BANK.slice();
+  return p;
+}
+
+const recent = [];
+function pickWord(p){
+  for(let i=0;i<40;i++){
+    const w = rnd(p);
+    if(recent.indexOf(w.en)<0){ recent.push(w.en); if(recent.length>40) recent.shift(); return w; }
+  }
+  return rnd(p);
+}
+
+/* 오답 후보. needKo=true 면 한국어 뜻이 있는 단어만 사용 */
+function pickDistractors(word, count, needKo){
+  const p = pool(), out=[], used={};
+  used[word.en]=1;
+  // 뜻이 같은 단어는 두 방향 모두에서 오답 후보에서 뺀다 (정답이 둘이 되는 것 방지)
+  const okKo = w => needKo ? (!!w.ko && w.ko!==word.ko) : (!w.ko || w.ko!==word.ko);
+  const usedKo = {}; usedKo[word.ko] = 1;
+  const add = w => {
+    if(!w || used[w.en] || !okKo(w)) return;
+    if(w.ko){ if(usedKo[w.ko]) return; usedKo[w.ko] = 1; }   // 뜻이 겹치는 오답끼리도 배제
+    used[w.en] = 1; out.push(w);
+  };
+  const useTrick = Math.random() < DIFF[G.diff].trick;
+
+  if(useTrick){
+    // 1) 손으로 고른 혼동 묶음
+    const groups = CONFUSION_GROUPS.filter(g=>g.indexOf(word.en)>=0);
+    if(groups.length){
+      shuffle(rnd(groups)).forEach(en=>{
+        if(out.length>=count || en===word.en) return;
+        const w = findWord(en) || (needKo?null:{en:en, ko:null});
+        add(w);
+      });
+    }
+    // 2) 철자 편집거리로 비슷한 단어
+    if(out.length<count){
+      const near = p.filter(w=>w.en!==word.en)
+        .map(w=>({w:w, d:levenshtein(word.en,w.en) - (w.en[0]===word.en[0]?1.5:0)}))
+        .sort((a,b)=>a.d-b.d).slice(0,8);
+      shuffle(near).forEach(x=>{ if(out.length<count) add(x.w); });
+    }
+  }
+  // 3) 남으면 무작위
+  let guard=0;
+  while(out.length<count && guard++<300) add(rnd(p));
+  return out.slice(0,count);
+}
+
+/* 틀린 단어 복습 큐 */
+const reviewQueue = [];
+function queueReview(en){
+  if(reviewQueue.some(r=>r.en===en)) return;
+  reviewQueue.push({en:en, dueIn: CFG.REVIEW_MIN + Math.floor(Math.random()*(CFG.REVIEW_MAX-CFG.REVIEW_MIN+1))});
+}
+function takeReviewWord(){
+  let hit=null;
+  for(let i=0;i<reviewQueue.length;i++){
+    reviewQueue[i].dueIn--;
+    if(!hit && reviewQueue[i].dueIn<=0){ hit=i; }
+  }
+  if(hit===null) return null;
+  const en = reviewQueue.splice(hit,1)[0].en;
+  return findWord(en);
+}
+
+/* 문제 하나 생성 */
+function makeQuestion(){
+  const p = pool();
+  const word = takeReviewWord() || pickWord(p);
+  const n = DIFF[G.diff].lanes;
+  let dir = G.mode;
+  if(dir==="mix") dir = Math.random()<0.5 ? "k2e" : "e2k";
+  const needKo = (dir==="e2k");
+  const cands = shuffle([word].concat(pickDistractors(word, n-1, needKo)));
+  const options = cands.map(w => needKo ? w.ko : w.en.toUpperCase());
+  return {
+    word: word, dir: dir,
+    prompt: needKo ? word.en.toUpperCase() : word.ko,
+    promptIsEn: needKo,
+    options: options,
+    answer: cands.indexOf(word)
+  };
+}
+
+/* =====================================================================
+   §4 RANKING — 저장 (ranking.js 로 분리 가능)
+   localStorage 를 쓰되, 사용할 수 없는 환경(일부 미리보기/시크릿 모드)에서는
+   자동으로 메모리에 저장됩니다. 온라인 랭킹은 save/top 두 함수만 교체하면 됩니다.
+===================================================================== */
+const Ranking = (function(){
+  const KEY = "wgr_rank_v1";
+  let mem = {easy:[],normal:[],hard:[]};
+  let useLS = false;
+  try{ localStorage.setItem(KEY+"_t","1"); localStorage.removeItem(KEY+"_t"); useLS = true; }catch(e){ useLS = false; }
+  function load(){
+    if(!useLS) return mem;
+    try{ return JSON.parse(localStorage.getItem(KEY)) || mem; }catch(e){ return mem; }
+  }
+  function persist(d){
+    mem = d;
+    if(!useLS) return;
+    try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){}
+  }
+  return {
+    isLocal: useLS,
+    save(rec){                                   // rec: {nick,score,stage,acc,combo,diff,date}
+      const d = load();
+      if(!d[rec.diff]) d[rec.diff] = [];
+      d[rec.diff].push(rec);
+      d[rec.diff].sort((a,b)=>b.score-a.score);
+      d[rec.diff] = d[rec.diff].slice(0,20);
+      persist(d);
+      return d[rec.diff].indexOf(rec)+1;
+    },
+    top(diff,n){ const d=load(); return (d[diff]||[]).slice(0,n||5); }
+  };
+})();
+
+/* =====================================================================
+   §5 STATE
+===================================================================== */
+const G = {
+  diff:"normal", mode:"mix", set:"all", char:"runner", nick:"PLAYER",
+  running:false, paused:false,
+  stage:1, score:0, combo:0, bestCombo:0, lives:CFG.LIVES, maxLives:CFG.LIVES,
+  right:0, wrong:0, wrongWords:[],
+  lanes:4, lane:0,
+  falling:false, dead:false, spawning:false, rush:0,
+  sets:[], spawnDist:74, groundSpeed:12, shake:0
+};
+
+/* =====================================================================
+   §6 SCENE
+===================================================================== */
+let renderer, scene, camera, player, blob, beam, clock;
+const VIEW = {portrait:false, camZ:9, camY:5};
+const P = {x:0, y:0, z:0, vx:0, vz:0, vy:0, phase:0, tilt:0};
+const input = {x:0, y:0};        // -1 ~ 1 아날로그 입력 (키보드/조이스틱 공용)
+const laneX = (j,n) => (j-(n-1)/2)*CFG.LANE_W;
+const laneOfX = (x,n) => clamp(Math.round(x/CFG.LANE_W + (n-1)/2), 0, n-1);
+
+function boot(){
+  renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:true, powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth, innerHeight);
+  if(THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0a1c);
+  scene.fog = new THREE.Fog(0x0d0a1c, 55, 150);
+
+  camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 400);
+
+  scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x1a1030, 0.9));
+  const d1 = new THREE.DirectionalLight(0xfff0d8, 1.0); d1.position.set(6,16,10); scene.add(d1);
+  const d2 = new THREE.DirectionalLight(0x8b7bd8, 0.55); d2.position.set(-8,7,-16); scene.add(d2);
+
+  makeStars();
+  setCharacter(G.char);
+  beam = new THREE.Mesh(new THREE.PlaneGeometry(CFG.LANE_W-0.5, 30),
+        new THREE.MeshBasicMaterial({color:0xffc46b,transparent:true,opacity:.09}));
+  beam.rotation.x=-Math.PI/2; beam.position.y=.06; beam.visible=false; scene.add(beam);
+  blob = new THREE.Mesh(new THREE.CircleGeometry(1.05,20),
+        new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.3}));
+  blob.rotation.x = -Math.PI/2; blob.position.y = .05; scene.add(blob);
+
+  applyLaneMetrics();
+  applyView();
+  addEventListener("resize", onResize);
+  addEventListener("orientationchange", ()=>setTimeout(onResize,120));
+  clock = new THREE.Clock();
+  renderer.setAnimationLoop(loop);
+}
+
+/* 반응형: 세로/가로에 맞춰 FOV·카메라 거리·생성거리를 다시 계산 */
+function applyView(){
+  const a = innerWidth/innerHeight;
+  VIEW.portrait = a < 1;
+  camera.aspect = a;
+  camera.fov = VIEW.portrait ? 86 : (a < 1.5 ? 72 : 62);
+  const tanH = Math.tan(camera.fov*Math.PI/360) * a;         // 수평 half-FOV
+  const halfW = CFG.LANE_W*G.lanes/2 + (G.lanes>=6 ? -0.6 : 2.1);
+  VIEW.camZ = clamp(halfW/Math.max(tanH,0.15), 11, 40);
+  VIEW.camY = 3.4 + VIEW.camZ*0.11;   // 시선을 낮춰 소실점(먼 게이트)이 화면 중앙쯤에 오게
+  camera.updateProjectionMatrix();
+  const near = G.lanes>=6 ? 0.78 : (G.lanes>=5 ? 0.9 : 1);   // 문이 많을수록 가까이서 등장
+  G.spawnDist = (VIEW.portrait ? CFG.SPAWN_DIST_PORT : CFG.SPAWN_DIST_LAND) * near;
+  Ground.ensure();
+}
+function onResize(){
+  renderer.setSize(innerWidth, innerHeight);
+  applyView();
+}
+
+function makeStars(){
+  const n=800, pos=new Float32Array(n*3), g=new THREE.BufferGeometry();
+  for(let i=0;i<n;i++){
+    pos[i*3]=(Math.random()-.5)*420; pos[i*3+1]=Math.random()*150-35; pos[i*3+2]=-Math.random()*520+40;
+  }
+  g.setAttribute("position", new THREE.BufferAttribute(pos,3));
+  scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xc9b8ff,size:.6,transparent:true,opacity:.7})));
+}
+
+/* =====================================================================
+   캐릭터 — 새 캐릭터를 만들려면 build 함수 하나만 추가하면 됩니다.
+   규칙: 발이 y=0 에 오게, 키는 약 2.1, 팔다리는 userData.legL/legR/armL/armR
+===================================================================== */
+function MAT(color, rough){ return new THREE.MeshStandardMaterial({color:color, roughness:rough===undefined?.65:rough}); }
+function limb(g,x,y,w,h,mat,key){
+  const pv=new THREE.Group(); pv.position.set(x,y,0);
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,w),mat);
+  m.position.y=-h/2; pv.add(m); g.add(pv); g.userData[key]=pv; return pv;
+}
+
+function buildRunner(){
+  const g=new THREE.Group();
+  const skin=MAT(0xffc46b,.6), suit=MAT(0x4a3d7a,.7), dark=MAT(0x241a3d,.5);
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(.34,.30,.72,14),suit); t.position.y=1.02; g.add(t);
+  const b=new THREE.Mesh(new THREE.SphereGeometry(.34,16,12),suit); b.position.y=1.02; b.scale.set(1,.75,1); g.add(b);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.40,20,16),skin); h.position.y=1.66; g.add(h);
+  const v=new THREE.Mesh(new THREE.BoxGeometry(.60,.20,.10),dark); v.position.set(0,1.70,-.34); g.add(v);
+  const tu=new THREE.Mesh(new THREE.ConeGeometry(.13,.34,10),MAT(0x5fe0b0,.5)); tu.position.set(0,2.02,.05); g.add(tu);
+  limb(g,-.17,.66,.20,.66,skin,"legL"); limb(g,.17,.66,.20,.66,skin,"legR");
+  limb(g,-.40,1.28,.16,.55,skin,"armL"); limb(g,.40,1.28,.16,.55,skin,"armR");
+  return g;
+}
+
+function buildRobot(){
+  const g=new THREE.Group();
+  const body=MAT(0x9aa6c8,.45), acc=MAT(0xff7a66,.5), dark=MAT(0x241a3d,.4);
+  const t=new THREE.Mesh(new THREE.BoxGeometry(.72,.78,.5),body); t.position.y=1.05; g.add(t);
+  const chest=new THREE.Mesh(new THREE.BoxGeometry(.34,.18,.1),acc); chest.position.set(0,1.18,-.27); g.add(chest);
+  const h=new THREE.Mesh(new THREE.BoxGeometry(.6,.5,.5),body); h.position.y=1.7; g.add(h);
+  const eye=new THREE.Mesh(new THREE.BoxGeometry(.5,.16,.08),dark); eye.position.set(0,1.74,-.27); g.add(eye);
+  const ant=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.3,8),body); ant.position.y=2.06; g.add(ant);
+  const bulb=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),acc); bulb.position.y=2.24; g.add(bulb);
+  limb(g,-.2,.66,.22,.66,body,"legL"); limb(g,.2,.66,.22,.66,body,"legR");
+  limb(g,-.46,1.3,.18,.58,body,"armL"); limb(g,.46,1.3,.18,.58,body,"armR");
+  return g;
+}
+
+function buildCat(){
+  const g=new THREE.Group();
+  const fur=MAT(0xffb066,.75), dark=MAT(0x3a2410,.5), pink=MAT(0xffc9d8,.6);
+  const t=new THREE.Mesh(new THREE.SphereGeometry(.42,18,14),fur); t.position.y=1.02; t.scale.set(.95,1.05,.9); g.add(t);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.42,20,16),fur); h.position.y=1.68; g.add(h);
+  [-1,1].forEach(sx=>{
+    const ear=new THREE.Mesh(new THREE.ConeGeometry(.15,.3,4),fur);
+    ear.position.set(sx*.22,2.02,0); ear.rotation.y=Math.PI/4; g.add(ear);
+    const inner=new THREE.Mesh(new THREE.ConeGeometry(.08,.16,4),pink);
+    inner.position.set(sx*.22,2.0,-.04); inner.rotation.y=Math.PI/4; g.add(inner);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),dark);
+    eye.position.set(sx*.15,1.72,-.36); g.add(eye);
+  });
+  const nose=new THREE.Mesh(new THREE.ConeGeometry(.06,.1,8),pink);
+  nose.position.set(0,1.6,-.42); nose.rotation.x=-Math.PI/2; g.add(nose);
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(.06,.09,.8,8),fur);
+  tail.position.set(0,1.15,.42); tail.rotation.x=-0.9; g.add(tail);
+  limb(g,-.17,.62,.20,.62,fur,"legL"); limb(g,.17,.62,.20,.62,fur,"legR");
+  limb(g,-.42,1.24,.17,.5,fur,"armL"); limb(g,.42,1.24,.17,.5,fur,"armR");
+  return g;
+}
+
+function buildDino(){
+  const g=new THREE.Group();
+  const skin=MAT(0x6fd18a,.7), belly=MAT(0xe8f2b0,.7), spike=MAT(0xffc46b,.5), dark=MAT(0x1d2a1d,.4);
+  const t=new THREE.Mesh(new THREE.SphereGeometry(.45,18,14),skin); t.position.y=1.0; t.scale.set(.95,1.1,1); g.add(t);
+  const bl=new THREE.Mesh(new THREE.SphereGeometry(.3,14,12),belly); bl.position.set(0,.95,-.24); bl.scale.set(.9,1,.5); g.add(bl);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.4,18,14),skin); h.position.y=1.68; g.add(h);
+  const snout=new THREE.Mesh(new THREE.BoxGeometry(.34,.26,.34),skin); snout.position.set(0,1.6,-.36); g.add(snout);
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),dark); e.position.set(sx*.17,1.82,-.3); g.add(e); });
+  for(let i=0;i<4;i++){
+    const sp=new THREE.Mesh(new THREE.ConeGeometry(.1,.24,4),spike);
+    sp.position.set(0,1.35-i*.22,.30+i*.05); sp.rotation.x=-0.3; g.add(sp);
+  }
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(.22,.85,10),skin);
+  tail.position.set(0,.75,.6); tail.rotation.x=-1.35; g.add(tail);
+  limb(g,-.2,.6,.24,.6,skin,"legL"); limb(g,.2,.6,.24,.6,skin,"legR");
+  limb(g,-.44,1.2,.15,.42,skin,"armL"); limb(g,.44,1.2,.15,.42,skin,"armR");
+  return g;
+}
+
+function buildGhost(){
+  const g=new THREE.Group();
+  const body=new THREE.MeshStandardMaterial({color:0xe8e4ff,roughness:.4,transparent:true,opacity:.85});
+  const dark=MAT(0x241a3d,.4);
+  const t=new THREE.Mesh(new THREE.SphereGeometry(.5,20,16),body); t.position.y=1.35; t.scale.set(1,1.15,1); g.add(t);
+  const skirt=new THREE.Mesh(new THREE.ConeGeometry(.5,.7,16),body); skirt.position.y=.72; skirt.rotation.x=Math.PI; g.add(skirt);
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),dark); e.position.set(sx*.17,1.5,-.42); g.add(e); });
+  const m=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),dark); m.position.set(0,1.28,-.45); m.scale.set(1,.7,.5); g.add(m);
+  limb(g,-.5,1.4,.15,.42,body,"armL"); limb(g,.5,1.4,.15,.42,body,"armR");
+  g.userData.float=true;
+  return g;
+}
+
+function buildAstro(){
+  const g=new THREE.Group();
+  const suit=MAT(0xf1f0ff,.55), acc=MAT(0x5fe0b0,.5), glass=new THREE.MeshStandardMaterial({color:0x2a3c6b,roughness:.15,metalness:.4});
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(.36,.32,.75,14),suit); t.position.y=1.03; g.add(t);
+  const pack=new THREE.Mesh(new THREE.BoxGeometry(.5,.6,.26),acc); pack.position.set(0,1.08,.36); g.add(pack);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.44,20,16),suit); h.position.y=1.72; g.add(h);
+  const vis=new THREE.Mesh(new THREE.SphereGeometry(.38,20,16,0,Math.PI*2,0,Math.PI/2),glass);
+  vis.position.set(0,1.72,-.06); vis.rotation.x=Math.PI/2.1; g.add(vis);
+  const belt=new THREE.Mesh(new THREE.CylinderGeometry(.37,.37,.12,14),acc); belt.position.y=.78; g.add(belt);
+  limb(g,-.19,.66,.22,.66,suit,"legL"); limb(g,.19,.66,.22,.66,suit,"legR");
+  limb(g,-.44,1.3,.18,.55,suit,"armL"); limb(g,.44,1.3,.18,.55,suit,"armR");
+  return g;
+}
+
+const CHARACTERS = [
+  {id:"runner", name:"러너",   emoji:"🏃", build:buildRunner},
+  {id:"robot",  name:"로봇",   emoji:"🤖", build:buildRobot},
+  {id:"cat",    name:"고양이", emoji:"🐱", build:buildCat},
+  {id:"dino",   name:"공룡",   emoji:"🦖", build:buildDino},
+  {id:"ghost",  name:"유령",   emoji:"👻", build:buildGhost},
+  {id:"astro",  name:"우주인", emoji:"🧑‍🚀", build:buildAstro}
+];
+function setCharacter(id){
+  const c = CHARACTERS.filter(x=>x.id===id)[0] || CHARACTERS[0];
+  if(player){
+    scene.remove(player);
+    player.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
+  }
+  player = c.build();
+  scene.add(player);
+}
+
+/* --------- 텍스트 텍스처 --------- */
+function rr(x,a,b,w,h,r){ x.beginPath(); x.moveTo(a+r,b); x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r);
+  x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); }
+function fitFont(x,text,maxW,start,weight){
+  let s=start;
+  while(s>16){
+    x.font = weight+" "+s+"px 'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif";
+    if(x.measureText(text).width<=maxW) break;
+    s-=4;
+  }
+  return s;
+}
+/* 밝은 판 + 어두운 글자 → material.color 로 초록/빨강 착색 가능 */
+function signTexture(text){
+  const c=document.createElement("canvas"); c.width=768; c.height=232;
+  const x=c.getContext("2d");
+  x.fillStyle="#f3ece0"; rr(x,10,10,748,212,38); x.fill();
+  x.strokeStyle="#241a3d"; x.lineWidth=10; rr(x,10,10,748,212,38); x.stroke();
+  x.fillStyle="#181030"; x.textAlign="center"; x.textBaseline="middle";
+  fitFont(x,text,660,132,"800");
+  x.fillText(text,384,122);
+  const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+}
+
+/* =====================================================================
+   §7 GROUND — 레인별 타일 스크롤 + 붕괴
+===================================================================== */
+const Ground = {
+  tiles:[], step:8.6, len:8.0, span:0, lanes:0,
+  ensure(){
+    const need = Math.ceil((G.spawnDist + VIEW.camZ + 40 - CFG.Z_FORWARD)/this.step)+2;
+    if(this.lanes===G.lanes && this.per>=need) return;
+    this.build(need);
+  },
+  build(count){
+    if(typeof Hazards!=="undefined") Hazards.clear();   // 옛 타일을 참조하는 함정 먼저 정리
+    this.tiles.forEach(t=>{
+      scene.remove(t.mesh);
+      t.mesh.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
+    });
+    this.tiles=[]; this.lanes=G.lanes; this.per=count;
+    this.span = count*this.step;
+    const mat = new THREE.MeshStandardMaterial({color:COL.floor, roughness:.9});
+    const edge = new THREE.MeshBasicMaterial({color:COL.edge});
+    for(let j=0;j<G.lanes;j++){
+      for(let k=0;k<count;k++){
+        const grp = new THREE.Group();
+        const top = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W-0.22,0.6,this.len), mat);
+        top.position.y=-0.3; grp.add(top);
+        const s1 = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,this.len*0.92), edge);
+        s1.position.set(-(CFG.LANE_W-0.22)/2+0.06,0.01,0); grp.add(s1);
+        const s2 = s1.clone(); s2.position.x*=-1; grp.add(s2);
+        grp.position.set(laneX(j,G.lanes), 0, VIEW.camZ+10 - k*this.step);
+        scene.add(grp);
+        this.tiles.push({mesh:grp, lane:j, fall:false, ft:0, logicZ:grp.position.z});
+      }
+    }
+  },
+  update(dt,speed){
+    const back = camera.position.z + 8;
+    for(let i=0;i<this.tiles.length;i++){
+      const t=this.tiles[i];
+      // 떨어지는 중에도 "원래 있어야 할 위치"는 계속 흘려보낸다
+      t.logicZ += speed*dt;
+      if(t.logicZ > back) t.logicZ -= this.span;
+      if(t.fall){
+        t.ft+=dt;
+        t.mesh.position.y -= (3+t.ft*18)*dt;
+        t.mesh.rotation.z += dt*1.1; t.mesh.rotation.x += dt*.6;
+        if(t.ft>2.2){ t.fall=false; t.ft=0; t.mesh.rotation.set(0,0,0);
+          t.mesh.position.y=0; t.mesh.position.z=t.logicZ; }
+        continue;
+      }
+      t.mesh.position.z = t.logicZ;
+    }
+  },
+  collapseAt(lane, z){
+    let best=null, bd=1e9;
+    for(let i=0;i<this.tiles.length;i++){
+      const t=this.tiles[i];
+      if(t.lane!==lane || t.fall) continue;
+      const d=Math.abs(t.mesh.position.z - z);
+      if(d<bd){ bd=d; best=t; }
+    }
+    if(best && bd < this.len){ best.fall=true; best.ft=0; return true; }
+    return false;
+  },
+  resetAll(){ this.tiles.forEach(t=>{
+    t.fall=false; t.ft=0; t.mesh.rotation.set(0,0,0);
+    t.mesh.position.y=0; t.mesh.position.z=t.logicZ;      // 격자 정확히 복구
+  }); }
+};
+
+/* =====================================================================
+   §8 GATES — 생성 · 접근 · Lane+Trigger 판정
+   게이트에는 충돌체가 없다. 판정은 오직 laneIndex 비교로만 이루어진다.
+===================================================================== */
+function buildGate(text, lane, n){
+  const root = new THREE.Group();
+  root.position.x = laneX(lane,n);
+  const frameMat = new THREE.MeshStandardMaterial({color:COL.frame, roughness:.5, metalness:.2});
+  const W=CFG.GATE_W, H=CFG.GATE_H;
+  [-1,1].forEach(s=>{
+    const post=new THREE.Mesh(new THREE.BoxGeometry(.2,H,.5),frameMat);
+    post.position.set(s*W/2,H/2,0); root.add(post);
+  });
+  const top=new THREE.Mesh(new THREE.BoxGeometry(W+.4,.24,.5),frameMat);
+  top.position.set(0,H,0); root.add(top);
+
+  // 통로를 막는 패널은 두지 않는다 (문이 닫힌 것처럼 보이는 문제 방지).
+  // 바닥 쪽에만 얇은 문턱을 두어 어느 칸인지 알려준다.
+  const sill=new THREE.Mesh(new THREE.BoxGeometry(W,.12,.6), frameMat);
+  sill.position.set(0,.06,0); root.add(sill);
+
+  // 단어판은 문 안쪽 한가운데 — 어느 문의 단어인지 헷갈리지 않고 화면 밖으로도 안 나간다
+  const tex=signTexture(text);
+  const sw=Math.min(CFG.LANE_W*0.97, W*1.18);   // 문틀보다 살짝 넓게 → 글자 크기 확보
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(sw, sw*232/768),
+    new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));
+  sign.position.set(0,H*0.52,0); root.add(sign);
+
+  return {root, sign, tex, frameMat, lane};
+}
+
+function spawnSet(){
+  const q = makeQuestion();
+  const n = q.options.length;
+  const group = new THREE.Group();
+  group.position.z = P.z - G.spawnDist;      // 플레이어 기준으로 생성 → 접근시간 일정
+  group.userData.startZ = group.position.z;
+  const gates=[];
+  for(let j=0;j<n;j++){ const g=buildGate(q.options[j], j, n); group.add(g.root); gates.push(g); }
+  scene.add(group);
+  const t = approachTime(G.stage);
+  const s = {group, gates, q, judged:false, speed:G.spawnDist/t, time:t, t0:0};
+  applyGimmicks(s);
+  Hazards.spawnFor(group.position.z, q.answer);   // 정답 레인은 항상 비워둔다
+  G.sets.push(s);
+  G.groundSpeed = s.speed;
+  showQuestion(q, s);
+}
+
+/* V3 확장 지점: Flash Word / Moving Gates / Gate Swap / Blink / Fake Shake /
+   Late Reveal / One-Time Hide / Pinch Gate 를 여기에서 s 에 부여한다.
+   기믹은 항상 "보고 판단하면 풀 수 있는" 범위여야 한다. */
+function applyGimmicks(s){
+  const d = DIFF[G.diff];
+  s.sway      = !!d.sway && G.stage >= HAZARD_FROM_STAGE;
+  s.swapsLeft = (G.stage >= SWAP_FROM_STAGE) ? d.swaps : 0;
+  s.nextSwapAt = 0.34;
+  s.gates.forEach((g,i)=>{ g.slot=i; g.anim=null; g.phase=Math.random()*6.283; });
+
+  /* 기억 기믹 — 단어를 충분히 보여준 뒤 사라지게 한다.
+     처음부터 안 보이는 일은 절대 없고, 최소 노출 시간을 보장한다. */
+  s.hideMode = null; s.fade = 0; s.hidden = false;
+  if(d.hide && G.stage >= HIDE_FROM_STAGE && Math.random() < d.hide){
+    const canFlash = G.stage >= FLASH_FROM_STAGE;
+    s.hideMode = (canFlash && Math.random() < 0.5) ? "flash" : "onetime";
+    const t = HIDE_TIME[s.hideMode];
+    s.readSec = t.readSec; s.minLeft = t.minLeft; s.readT = 0;
+    s.time *= 1.30;                       // 단어가 사라지는 문제는 접근시간을 넉넉히 준다
+    s.speed = G.spawnDist / s.time;
+  }
+}
+
+/* 이웃한 두 문이 부드럽게 자리를 바꾼다 (순간이동 금지 · 서로 겹치지 않게 z를 어긋냄) */
+function startSwap(s){
+  const n = s.gates.length;
+  const j = Math.floor(Math.random()*(n-1));
+  const a = s.gates.filter(g=>g.slot===j)[0], b = s.gates.filter(g=>g.slot===j+1)[0];
+  if(!a || !b || a.anim || b.anim) return false;
+  // ★ 정답 문이 함정이 있는 레인으로 옮겨가는 자리바꿈은 하지 않는다
+  const ans = s.gates[s.q.answer];
+  if((a===ans && Hazards.laneHasPending(j+1)) || (b===ans && Hazards.laneHasPending(j))) return false;
+  const ax = a.root.position.x, bx = b.root.position.x;
+  a.slot = j+1; b.slot = j;
+  a.anim = {from:ax, t:0, dur:0.8, zoff: 1.1};
+  b.anim = {from:bx, t:0, dur:0.8, zoff:-1.1};
+  return true;
+}
+
+function updateGateMotion(s, dt){
+  const n = s.gates.length;
+  const prog = clamp(1 - (P.z - s.group.position.z)/G.spawnDist, 0, 1);
+  if(s.swapsLeft>0 && prog>=s.nextSwapAt && prog<0.75){
+    if(startSwap(s)) s.swapsLeft--;
+    s.nextSwapAt = prog + 0.12;
+  }
+  for(let i=0;i<n;i++){
+    const g = s.gates[i];
+    let x = laneX(g.slot, n), z = 0;
+    if(g.anim){
+      g.anim.t += dt;
+      const k = Math.min(1, g.anim.t/g.anim.dur), e = k*k*(3-2*k);
+      x = g.anim.from + (x - g.anim.from)*e;
+      z = Math.sin(Math.PI*k)*g.anim.zoff;
+      if(k>=1) g.anim = null;
+    }
+    if(s.sway) x += Math.sin(s.t0*2.0 + g.phase)*0.26;   // 읽기를 방해하지 않는 흔들림
+    g.root.position.x = x;
+    g.root.position.z = z;
+  }
+}
+
+function removeSet(s){
+  scene.remove(s.group);
+  s.gates.forEach(g=>{ g.tex.dispose(); });
+  s.group.traverse(o=>{
+    if(o.geometry) o.geometry.dispose();
+    if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose()); }
+  });
+}
+function clearSets(){ G.sets.forEach(removeSet); G.sets=[]; }
+
+function updateGates(dt){
+  const back = camera.position.z + 5;
+  for(let i=G.sets.length-1;i>=0;i--){
+    const s=G.sets[i];
+    s.t0 += dt;
+    s.group.position.z += s.speed*dt;
+
+    if(!s.judged){ updateGateMotion(s, dt); updateWordFade(s, dt); }
+
+    // 판정선 = 플레이어의 현재 z. 앞으로 나가면 더 빨리 만난다.
+    if(!s.judged && s.group.position.z >= P.z){ judge(s); s.hideAt = s.t0 + 0.6; }
+    if(s.judged && s.hideAt && s.t0 > s.hideAt) s.group.visible = false;
+
+    // 단어판이 항상 카메라를 향하게 (바깥쪽 문도 정면으로 읽힌다)
+    if(!s.judged){
+      for(let k=0;k<s.gates.length;k++){
+        const g=s.gates[k];
+        g.sign.rotation.y = Math.atan2(camera.position.x - g.root.position.x,
+                                       camera.position.z - s.group.position.z);
+      }
+    }
+
+    if(s.group.position.z > back){ removeSet(s); G.sets.splice(i,1); }
+  }
+  // 접근 게이지
+  const act = activeSet();
+  if(act){
+    const r = clamp(1 - (P.z - act.group.position.z)/G.spawnDist, 0, 1);
+    const bar = document.getElementById("approachBar");
+    bar.style.width = (100-r*100)+"%";
+    bar.style.background = r<.55 ? "#5fe0b0" : (r<.8 ? "#ffc46b" : "#ff7a66");
+  }
+}
+function highlightLane(){
+  const s = activeSet(); if(!s) return;
+  const n=s.gates.length;
+  for(let i=0;i<n;i++){
+    const g=s.gates[i];
+    g.frameMat.color.setHex(laneOfX(g.root.position.x,n)===G.lane ? COL.edge : COL.frame);
+  }
+}
+/* 단어판 페이드 — 최소 노출 시간과 접근 진행도를 모두 만족해야 사라진다 */
+function updateWordFade(s, dt){
+  if(!s.hideMode) return;
+  const dist = P.z - s.group.position.z;              // 플레이어까지 남은 거리
+  if(dist < G.spawnDist*READ_RATIO) s.readT += dt;    // 읽을 수 있는 거리에서만 시간을 잰다
+  const left = dist / Math.max(s.speed, 0.01);        // 도착까지 남은 시간
+  // 충분히 읽었고, 사라진 뒤에도 움직일 시간이 남아 있을 때만 감춘다.
+  // 조건이 안 되면 끝까지 보이게 두어 억울한 경우를 만들지 않는다.
+  if(!s.hidden && s.readT >= s.readSec && left >= s.minLeft) s.hidden = true;
+  if(!s.hidden) return;
+  s.fade = Math.min(1, s.fade + dt/0.4);
+  const o = 1 - s.fade;
+  for(let i=0;i<s.gates.length;i++) s.gates[i].sign.material.opacity = o;
+}
+
+function activeSet(){ for(let i=0;i<G.sets.length;i++) if(!G.sets[i].judged) return G.sets[i]; return null; }
+
+/* ---------- 정답 판정: Lane + Trigger ---------- */
+function judge(s){
+  s.judged = true;
+  const n = s.gates.length, lane = G.lane;
+  // 문이 움직였을 수 있으므로 "지금 그 문이 서 있는 레인"으로 판정한다
+  const laneOfGate = g => laneOfX(g.root.position.x, n);
+  const ansLane = laneOfGate(s.gates[s.q.answer]);
+  const ok = (lane === ansLane);
+
+  s.gates.forEach(g=>{
+    g.sign.material.opacity = 1;          // 사라졌던 단어를 정답 공개와 함께 다시 표시
+    const gl = laneOfGate(g);
+    if(g.lane===s.q.answer){ g.sign.material.color.setHex(COL.mint); g.frameMat.color.setHex(COL.mint); }
+    else if(gl===lane){ g.sign.material.color.setHex(COL.coral); g.frameMat.color.setHex(COL.coral); }
+    else { g.sign.material.color.setHex(COL.dim); g.frameMat.color.setHex(COL.dim); }
+  });
+
+  if(ok){
+    G.right++; G.combo++; G.bestCombo=Math.max(G.bestCombo,G.combo);
+    const rush = clamp(P.z/CFG.Z_FORWARD, 0, 1);            // 앞으로 나간 정도
+    const bonus = Math.round(rush*CFG.RUSH_BONUS);
+    const memo  = s.hideMode ? CFG.GIMMICK_BONUS : 0;        // 기억 기믹 보너스
+    const gain = Math.round((CFG.SCORE_BASE + (G.combo-1)*CFG.COMBO_STEP + bonus + memo) * DIFF[G.diff].scoreMul);
+    G.score += gain;
+    burst(P.x, 1.4, P.z+0.5, COL.mint, 22);
+    verdict("Correct!", "+"+gain+"점"+(bonus?" <em>RUSH +"+bonus+"</em>":"")+(memo?" <em>MEMORY +"+memo+"</em>":""),
+            COL.mint, "rgba(95,224,176,.2)");
+    G.stage++;
+    updateHUD();
+    spawnSet();                     // 흐름이 끊기지 않도록 즉시 다음 문제
+  } else {
+    G.wrong++; G.combo=0;
+    const w = s.q.word;
+    if(!G.wrongWords.some(x=>x.en===w.en)) G.wrongWords.push({en:w.en, ko:w.ko});
+    queueReview(w.en);
+    const correctLabel = s.q.dir==="k2e" ? w.en.toUpperCase() : w.ko;
+    verdict("Wrong!", "정답은 <em>"+correctLabel+"</em>", COL.coral, "rgba(255,122,102,.24)");
+    G.shake = .55;
+    Ground.collapseAt(lane, P.z);   // 발밑 붕괴
+    startFall();
+    updateHUD();
+  }
+}
+
+/* =====================================================================
+   §9 HAZARDS — 바닥 구멍 / 장애물
+   규칙: 정답 문으로 가는 레인에는 절대 만들지 않는다.
+        (구멍은 실제 바닥 타일을 숨겨서 만든다 → 보이는 구멍 = 진짜 구멍)
+===================================================================== */
+function makeHoleRim(){
+  const g = new THREE.Group();
+  const m = new THREE.MeshBasicMaterial({color:COL.coral});
+  const w = CFG.LANE_W-0.22, L = Ground.len;
+  [-1,1].forEach(sx=>{
+    const b=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.18,L),m);
+    b.position.set(sx*(w/2-0.07),0.06,0); g.add(b);
+  });
+  [-1,1].forEach(sz=>{
+    const b=new THREE.Mesh(new THREE.BoxGeometry(w,0.18,0.3),m);
+    b.position.set(0,0.06,sz*(L/2-0.15)); g.add(b);
+  });
+  const pit=new THREE.Mesh(new THREE.PlaneGeometry(w,L),
+        new THREE.MeshBasicMaterial({color:0x05030f}));
+  pit.rotation.x=-Math.PI/2; pit.position.y=-2.2; g.add(pit);
+  return g;
+}
+function makeBlock(){
+  const g = new THREE.Group();
+  const b = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W-0.75,1.15,0.9),
+        new THREE.MeshStandardMaterial({color:0x6a5cb0, roughness:.65}));
+  b.position.y=0.6; g.add(b);
+  const cap = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W-0.6,0.18,1.0),
+        new THREE.MeshBasicMaterial({color:COL.coral}));
+  cap.position.y=1.22; g.add(cap);
+  return g;
+}
+
+const Hazards = {
+  list:[],
+  /* 게이트 세트가 생성될 때 함께 배치 */
+  spawnFor(gateZ, answerLane){
+    const nHoles = ramped("holes"), nBlocks = ramped("blocks");
+    if(G.stage < HAZARD_FROM_STAGE) return;
+    const used = [answerLane];              // ★ 정답 레인 제외
+    const zs = [];
+    const freeLane = ()=>{
+      const c=[]; for(let j=0;j<G.lanes;j++) if(used.indexOf(j)<0) c.push(j);
+      return c.length ? rnd(c) : -1;
+    };
+    const freeZ = ()=>{
+      for(let k=0;k<12;k++){
+        const z = gateZ + 14 + Math.random()*16;
+        if(zs.every(v=>Math.abs(v-z)>7)){ zs.push(z); return z; }
+      }
+      return null;
+    };
+    for(let i=0;i<nHoles;i++){ const l=freeLane(), z=freeZ(); if(l<0||z===null) break; this.addHole(l,z); used.push(l); }
+    for(let i=0;i<nBlocks;i++){ const l=freeLane(), z=freeZ(); if(l<0||z===null) break; this.addBlock(l,z); used.push(l); }
+  },
+  addHole(lane, z){
+    // 그 자리의 바닥 타일을 숨겨서 진짜 구멍을 만든다
+    let tile=null, bd=1e9;
+    for(let i=0;i<Ground.tiles.length;i++){
+      const t=Ground.tiles[i];
+      if(t.lane!==lane || t.hidden || t.fall) continue;
+      const d=Math.abs(t.logicZ - z);
+      if(d<bd){ bd=d; tile=t; }
+    }
+    if(!tile) return;
+    tile.hidden=true; tile.mesh.visible=false;
+    const mesh=makeHoleRim();
+    mesh.position.set(laneX(lane,G.lanes),0,tile.logicZ);
+    scene.add(mesh);
+    this.list.push({type:"hole", lane, tile, mesh, len:Ground.len-1.6, done:false});
+  },
+  addBlock(lane, z){
+    const mesh=makeBlock();
+    mesh.position.set(laneX(lane,G.lanes),0,z);
+    scene.add(mesh);
+    this.list.push({type:"block", lane, tile:null, mesh, z:z, len:1.8, done:false});
+  },
+  update(dt, speed){
+    const back = camera.position.z + 3;
+    for(let i=this.list.length-1;i>=0;i--){
+      const h=this.list[i];
+      let z;
+      if(h.tile){ z = h.tile.logicZ; h.mesh.visible = !h.tile.fall; }
+      else { h.z += speed*dt; z = h.z; }
+      h.mesh.position.z = z;
+      h.mesh.position.x = laneX(h.lane, G.lanes);
+
+      if(!h.done && !G.falling && G.running &&
+         Math.abs(z - P.z) < h.len/2 &&
+         Math.abs(P.x - laneX(h.lane,G.lanes)) < CFG.LANE_W*0.38){
+        h.done = true;
+        if(h.type==="hole") hitHole(); else hitBlock();
+      }
+      if(z > back){ this.remove(i); }
+    }
+  },
+  remove(i){
+    const h=this.list[i];
+    if(h.tile){ h.tile.hidden=false; h.tile.mesh.visible=true; }
+    scene.remove(h.mesh);
+    h.mesh.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
+    this.list.splice(i,1);
+  },
+  clear(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); },
+  /* 아직 플레이어 앞에 남아 있는 함정이 그 레인에 있는가 */
+  laneHasPending(lane){
+    for(let i=0;i<this.list.length;i++){
+      const h=this.list[i];
+      const z = h.tile ? h.tile.logicZ : h.z;
+      if(h.lane===lane && !h.done && z < P.z) return true;
+    }
+    return false;
+  }
+};
+
+/* =====================================================================
+   §10 BOULDER — 뒤에서 떨어져 굴러오는 바위
+   좌우로는 피할 수 없다. 빨리 맞히고 앞으로 나아가야 거리가 벌어진다.
+===================================================================== */
+/* 낙석 여러 개를 동시에 굴릴 수 있는 관리자.
+   [수정] 예전에는 플레이어를 2.2 지나친 뒤에도 맞는 판정이 남아 있었다.
+          이제 지나가는 순간(gap<=0) 판정과 경고 표시가 함께 꺼진다. */
+function newRock(){
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.IcosahedronGeometry(1.0,0),
+    new THREE.MeshStandardMaterial({color:0x6b6480, flatShading:true, roughness:.95}));
+  g.add(body);
+  const bump = new THREE.Mesh(new THREE.IcosahedronGeometry(.55,0),
+    new THREE.MeshStandardMaterial({color:0x574f70, flatShading:true, roughness:.95}));
+  bump.position.set(.5,.5,.35); g.add(bump);
+  const root = new THREE.Group(); root.add(g); scene.add(root);
+  const beam = new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+    new THREE.MeshBasicMaterial({color:0xff5a45, transparent:true, opacity:.2}));
+  beam.rotation.x = -Math.PI/2; beam.position.y = .07; scene.add(beam);
+  return {root, body:g, beam, lane:0, z:0, drop:0, spin:0, spent:false};
+}
+
+const Rocks = {
+  list:[], wait:2.5,
+  active(){ const d=DIFF[G.diff];
+    return !!d.boulder && G.stage >= (d.rockFrom || BOULDER.FROM_STAGE); },
+  maxCount(){ return 1 + ramped("rocks"); },
+  interval(){
+    const boost = 1 + 0.45*ramped("rockRate");
+    return Math.max(BOULDER.WAIT_MIN, (BOULDER.WAIT - G.stage*0.05) / boost);
+  },
+  speed(){ return Math.min(BOULDER.SPEED_MAX, BOULDER.SPEED + G.stage*BOULDER.SPEED_UP); },
+  spawn(){
+    // 곧 도착할 문의 정답 길과, 이미 다른 돌이 굴러오는 길은 피한다
+    const ban = {};
+    const act = activeSet();
+    if(act){
+      const left = (P.z - act.group.position.z)/act.speed;
+      if(left < 2.6) ban[laneOfX(act.gates[act.q.answer].root.position.x, G.lanes)] = 1;
+    }
+    this.list.forEach(r=>{ if(r.z > P.z) ban[r.lane]=1; });
+    const free = [];
+    for(let j=0;j<G.lanes;j++) if(!ban[j]) free.push(j);
+    if(!free.length) return;
+
+    const r = newRock();
+    r.lane = rnd(free);
+    r.z = P.z + VIEW.camZ + BOULDER.BEHIND;
+    r.drop = 15;
+    const sc = CFG.LANE_W*0.42;
+    r.body.scale.set(sc,sc,sc);
+    r.beam.scale.set(CFG.LANE_W-0.5, 1, 1);
+    this.list.push(r);
+  },
+  remove(i){
+    const r = this.list[i];
+    scene.remove(r.root); scene.remove(r.beam);
+    r.root.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
+    r.beam.geometry.dispose(); r.beam.material.dispose();
+    this.list.splice(i,1);
+  },
+  stop(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); this.wait = 2.5; setWarn(0); },
+  /* HUD 표시용 — 아직 다가오는 중이면서 가장 가까운 돌 */
+  threat(){
+    let best=null;
+    for(let i=0;i<this.list.length;i++){
+      const r=this.list[i], g=r.z-P.z;
+      if(g<=0) continue;
+      if(!best || g < best.z-P.z) best=r;
+    }
+    return best;
+  },
+  inLane(r){ return Math.abs(P.x - laneX(r.lane,G.lanes)) < CFG.LANE_W*BOULDER.LANE; },
+  update(dt){
+    if(!G.running || !this.active()){ if(this.list.length) this.stop(); return; }
+    if(!G.falling && !G.dead && this.list.length < this.maxCount()){
+      this.wait -= dt;
+      if(this.wait<=0){ this.spawn(); this.wait = this.interval(); }
+    }
+    const sp = this.speed();
+    let danger = 0;
+    for(let i=this.list.length-1;i>=0;i--){
+      const r = this.list[i];
+      r.z -= sp*dt;
+      if(r.drop>0){
+        r.drop = Math.max(0, r.drop - 26*dt);
+        if(r.drop===0) burst(laneX(r.lane,G.lanes), .6, r.z, 0x6b6480, 12);
+      }
+      r.spin -= dt*sp*0.85;
+      const lx = laneX(r.lane,G.lanes);
+      r.root.position.set(lx, CFG.LANE_W*0.42 + r.drop, r.z);
+      r.body.rotation.x = r.spin;
+
+      const gap = r.z - P.z;
+      // 아직 뒤에 있을 때만 위험 표시 — 지나간 돌은 즉시 경고를 끈다
+      if(gap > 0.2 && !r.spent){
+        const len = Math.max(4, gap + 12);
+        r.beam.visible = true;
+        r.beam.scale.set(CFG.LANE_W-0.5, len, 1);
+        r.beam.position.set(lx, .07, r.z - len/2);
+        const near = clamp(1 - (gap-BOULDER.HIT)/14, 0, 1);
+        r.beam.material.opacity = .12 + near*.30;
+        const d = this.inLane(r) ? near : near*0.22;
+        if(d > danger) danger = d;
+        if(gap < BOULDER.HIT && this.inLane(r) && !G.falling && !G.dead){ r.spent = true; crushed(); }
+      } else {
+        r.spent = true;                 // 지나감 → 더 이상 판정도 경고도 없음
+        r.beam.visible = false;
+      }
+      if(gap < -BOULDER.GONE) this.remove(i);
+    }
+    setWarn(danger);
+    if(danger>0.6) G.shake = Math.max(G.shake,(danger-0.6)*0.5);
+  }
+};
+
+function setWarn(v){
+  const el=document.getElementById("rumble");
+  if(el) el.style.opacity = v.toFixed(2);
+  const tag=document.getElementById("rockTag");
+  if(!tag) return;
+  const th = Rocks.threat();
+  if(th && G.running){
+    tag.style.display="block";
+    const hit = Rocks.inLane(th);
+    document.getElementById("rockDist").textContent =
+      (th.lane+1)+"번째 길 · "+Math.max(0,Math.round(th.z-P.z))+"m"
+      + (Rocks.list.length>1 ? "  (+"+(Rocks.list.length-1)+")" : "");
+    tag.style.borderColor = hit ? "rgba(255,122,102,.95)" : "rgba(255,122,102,.35)";
+    tag.style.background  = hit ? "rgba(120,26,26,.85)" : "rgba(28,19,58,.75)";
+  } else tag.style.display="none";
+}
+function crushed(){
+  G.combo = 0;
+  verdict("Crash!", "바위는 옆으로 피하세요", COL.coral, "rgba(255,122,102,.3)");
+  G.shake = .8;
+  burst(P.x, 1.2, P.z, 0x6b6480, 26);
+  startFall(); P.vy = -16;                        // 바닥으로 처박힘
+  updateHUD();
+}
+
+function hitHole(){
+  G.combo = 0;
+  verdict("함정!", "바닥 구멍을 피하세요", COL.coral, "rgba(255,122,102,.24)");
+  G.shake = .5;
+  startFall();
+  updateHUD();
+}
+function hitBlock(){
+  G.combo = 0;
+  P.z = clamp(P.z + 4.0, CFG.Z_FORWARD, CFG.Z_BACK);   // 뒤로 밀림 = 시간 손해
+  G.shake = .45;
+  burst(P.x, 1.0, P.z-1, COL.coral, 14);
+  verdict("쿵!", "장애물에 부딪혔습니다", COL.edge, "rgba(255,196,107,.2)");
+  updateHUD();
+}
+
+/* =====================================================================
+   추락 / 부활
+===================================================================== */
+function startFall(){
+  G.falling = true; G.spawning = false;
+  G.sets.forEach(s=>{                      // 떨어지는 동안 남은 문제는 판정하지 않는다
+    if(!s.judged){ s.judged = true; s.hideAt = s.t0 + 0.6;
+      s.gates.forEach(g=>{ g.sign.material.opacity = 1; }); }
+  });
+}
+function onDead(){
+  if(G.dead) return;
+  G.dead = true; G.lives--;
+  updateHUD();
+  setTimeout(()=>{ if(G.lives<=0) gameOver(); else respawn(); }, 420);
+}
+function respawn(){
+  const fade=document.getElementById("fade");
+  fade.style.opacity="1";
+  setTimeout(()=>{
+    clearSets(); Hazards.clear(); Ground.resetAll();
+    P.x = laneX(Math.floor(G.lanes/2), G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
+    G.lane = Math.floor(G.lanes/2);
+    G.falling=false; G.dead=false; G.spawning=true; G.shake=0;
+    Rocks.stop();
+    spawnSet();
+    fade.style.opacity="0";
+  }, 240);
+}
+
+/* =====================================================================
+   입력 — 레인 단위 이동 (좌우만)
+===================================================================== */
+const keys={};
+addEventListener("keydown",e=>{
+  keys[e.code]=true;
+  if(!e.repeat && (e.code==="KeyP"||e.code==="Escape")){ if(G.running) togglePause(); }
+  if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Space"].indexOf(e.code)>=0) e.preventDefault();
+});
+addEventListener("keyup",e=>{ keys[e.code]=false; });
+
+/* ---- 가상 조이스틱: 화면 아래쪽 아무 곳이나 누르면 그 자리에 생긴다 ---- */
+const stickEl=()=>document.getElementById("stick");
+let stick = {id:null, ox:0, oy:0};
+const STICK_R = 58;
+function stickSet(dx,dy){
+  const k=document.getElementById("stickKnob");
+  k.style.transform="translate("+dx+"px,"+dy+"px)";
+  input.x = dx/STICK_R; input.y = -dy/STICK_R;
+}
+function stickEnd(){
+  stick.id=null; input.x=0; input.y=0;
+  stickEl().classList.remove("on");
+  const k=document.getElementById("stickKnob"); k.style.transform="translate(0,0)";
+}
+addEventListener("touchstart",e=>{
+  if(!G.running||G.paused||stick.id!==null) return;
+  const t=e.changedTouches[0], el=e.target;
+  if(el && el.closest && (el.closest(".screen")||el.closest("#pauseBtn"))) return;
+  if(t.clientY < innerHeight*0.3) return;                 // 상단 문제판 영역은 제외
+  stick.id=t.identifier; stick.ox=t.clientX; stick.oy=t.clientY;
+  const b=document.getElementById("stickBase");
+  b.style.left=stick.ox+"px"; b.style.top=stick.oy+"px";
+  stickEl().classList.add("on");
+  const h=document.getElementById("touchHint"); h.style.opacity="0";
+  stickSet(0,0);
+},{passive:true});
+addEventListener("touchmove",e=>{
+  if(stick.id===null) return;
+  for(let i=0;i<e.touches.length;i++){
+    const t=e.touches[i];
+    if(t.identifier!==stick.id) continue;
+    let dx=t.clientX-stick.ox, dy=t.clientY-stick.oy;
+    const d=Math.hypot(dx,dy);
+    if(d>STICK_R){ dx=dx/d*STICK_R; dy=dy/d*STICK_R; }
+    stickSet(dx,dy);
+  }
+},{passive:true});
+["touchend","touchcancel"].forEach(ev=>addEventListener(ev,e=>{
+  if(stick.id===null) return;
+  for(let i=0;i<e.changedTouches.length;i++)
+    if(e.changedTouches[i].identifier===stick.id){ stickEnd(); return; }
+},{passive:true}));
+
+/* 키보드 → 아날로그 입력으로 변환 (조이스틱이 잡혀 있으면 조이스틱 우선) */
+function readInput(){
+  if(stick.id!==null) return;
+  const l=keys.ArrowLeft||keys.KeyA, r=keys.ArrowRight||keys.KeyD;
+  const u=keys.ArrowUp||keys.KeyW,   d=keys.ArrowDown||keys.KeyS;
+  input.x = (r?1:0)-(l?1:0);
+  input.y = (u?1:0)-(d?1:0);
+}
+const dz = v => Math.abs(v)<CFG.DEADZONE ? 0 : v;
+
+/* =====================================================================
+   플레이어 업데이트 (물리 충돌 없음 → 끼임 버그 원천 차단)
+===================================================================== */
+function updatePlayer(dt){
+  readInput();
+  const ix = G.falling ? 0 : dz(clamp(input.x,-1,1));
+  const iy = G.falling ? 0 : dz(clamp(input.y,-1,1));
+
+  /* 좌우: 가감속을 넣어 뚝뚝 끊기지 않게 한다 */
+  const half = CFG.LANE_W*G.lanes/2 - CFG.LANE_W*0.5;
+  const tvx = ix*CFG.MOVE_X;
+  P.vx += (tvx - P.vx) * Math.min(1, dt*(ix===0 ? CFG.BRAKE : CFG.ACCEL));
+  P.x += P.vx*dt;
+  if(P.x<=-half || P.x>=half) P.vx = 0;
+  P.x = clamp(P.x, -half, half);
+
+  /* 현재 레인 = 가장 가까운 레인 (판정은 언제나 이 값으로만 이루어진다) */
+  G.lane = clamp(Math.round(P.x/CFG.LANE_W + (G.lanes-1)/2), 0, G.lanes-1);
+  if(ix===0 && Math.abs(P.vx)<2.5){
+    const tx = laneX(G.lane,G.lanes);
+    P.x += (tx-P.x)*Math.min(1,dt*CFG.SNAP);
+  }
+  P.tilt += ((-clamp(P.vx/CFG.MOVE_X,-1,1)*0.24) - P.tilt)*Math.min(1,dt*9);
+
+  /* 앞뒤: 같은 방식으로 부드럽게. 속도를 올려 아이들도 빠르게 파고들 수 있다 */
+  const tvz = -iy*CFG.MOVE_Z;
+  P.vz += (tvz - P.vz) * Math.min(1, dt*(iy===0 ? CFG.BRAKE : CFG.ACCEL));
+  P.z += P.vz*dt;
+  if(P.z<=CFG.Z_FORWARD || P.z>=CFG.Z_BACK) P.vz = 0;
+  P.z = clamp(P.z, CFG.Z_FORWARD, CFG.Z_BACK);
+  G.rush = clamp(P.z/CFG.Z_FORWARD,0,1);
+
+  if(G.falling){
+    P.vy -= CFG.GRAVITY*dt; P.y += P.vy*dt;
+    if(P.y < CFG.DEATH_Y) onDead();
+  } else { P.y=0; P.vy=0; }
+
+  const ud = player.userData;
+  const runSpd = 9 + Math.abs(ix)*4 + Math.max(0,iy)*5;
+  P.phase += dt*(G.falling?4:(ud.float?3.2:runSpd));
+  const sw=Math.sin(P.phase)*(G.falling?.5:.8);
+  if(ud.legL){ ud.legL.rotation.x= sw; ud.legR.rotation.x=-sw; }
+  if(ud.armL){ ud.armL.rotation.x=-sw*.8; ud.armR.rotation.x= sw*.8; }
+  const bob = G.falling ? 0 : (ud.float ? .35+Math.sin(P.phase)*.14 : Math.abs(Math.sin(P.phase))*.07);
+  player.position.set(P.x, P.y + bob, P.z);
+  player.rotation.z = P.tilt;
+  player.rotation.x = G.falling ? clamp(P.vy*.02,-.5,0) : 0;
+
+  blob.position.set(P.x, .05, P.z);
+  const sc = clamp(1-Math.abs(P.y)*.1, .2, 1);
+  blob.scale.set(sc,sc,sc); blob.material.opacity=.3*sc; blob.visible = P.y>-6;
+
+  /* 어느 게이트를 고르고 있는지 보여주는 레인 가이드 */
+  beam.position.set(laneX(G.lane,G.lanes), .06, P.z-15);
+  beam.visible = !G.falling;
+  beam.material.opacity = .07 + G.rush*.06;
+  highlightLane();
+}
+
+function updateCamera(dt){
+  const k=Math.min(1,dt*5);
+  camera.position.x += (P.x*(G.lanes>=6?0.55:0.35) - camera.position.x)*Math.min(1,dt*7);
+  camera.position.z += ((P.z + VIEW.camZ) - camera.position.z)*Math.min(1,dt*9);
+  const ty = VIEW.camY + (G.falling ? clamp(P.y*.55,-8,0) : 0);
+  camera.position.y += (ty - camera.position.y)*k;
+  if(G.shake>0){
+    G.shake=Math.max(0,G.shake-dt);
+    camera.position.x += (Math.random()-.5)*G.shake*1.3;
+    camera.position.y += (Math.random()-.5)*G.shake;
+  }
+  camera.lookAt(P.x*0.22, Math.max(P.y,-9)+2.2, P.z-20);  // 멀리 보게 → 문제판과 겹치지 않음
+}
+
+/* 파티클 */
+const fx=[];
+function burst(x,y,z,color,n){
+  for(let i=0;i<n;i++){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(.17,.17,.17), new THREE.MeshBasicMaterial({color,transparent:true}));
+    m.position.set(x+(Math.random()-.5)*1.6, y+Math.random()*1.4, z+(Math.random()-.5)*1.2);
+    scene.add(m);
+    fx.push({m,t:0,life:.85,v:{x:(Math.random()-.5)*7,y:2+Math.random()*6,z:1+Math.random()*5}});
+  }
+}
+function updateFx(dt){
+  for(let i=fx.length-1;i>=0;i--){
+    const e=fx[i]; e.t+=dt; e.v.y-=20*dt;
+    e.m.position.x+=e.v.x*dt; e.m.position.y+=e.v.y*dt; e.m.position.z+=e.v.z*dt;
+    e.m.rotation.x+=dt*6; e.m.material.opacity=Math.max(0,1-e.t/e.life);
+    if(e.t>=e.life){ scene.remove(e.m); e.m.geometry.dispose(); e.m.material.dispose(); fx.splice(i,1); }
+  }
+}
+
+/* =====================================================================
+   루프
+===================================================================== */
+function loop(){
+  const dt=Math.min(clock.getDelta(),.05);
+  if(G.running && !G.paused){
+    updateGates(dt);
+    Ground.update(dt, G.groundSpeed);
+    Hazards.update(dt, G.groundSpeed);
+    Rocks.update(dt);       // 등장·대기 관리는 모듈 안에서 처리
+    updatePlayer(dt);
+    updateFx(dt);
+    updateCamera(dt);
+  }
+  renderer.render(scene,camera);
+}
+
+/* =====================================================================
+   UI
+===================================================================== */
+const $ = id=>document.getElementById(id);
+function showQuestion(q, s){
+  const base = q.dir==="k2e" ? "뜻에 맞는 단어" : "단어의 뜻";
+  const warn = (s && s.hideMode)
+    ? ' · <b style="color:var(--coral)">'+(s.hideMode==="flash"?"곧 사라짐":"가까워지면 사라짐")+'</b>'
+    : '';
+  $("plabel").innerHTML = base + warn;
+  const el=$("ptext");
+  el.textContent = q.prompt;
+  el.className = q.promptIsEn ? "en" : "";
+}
+function updateHUD(){
+  $("uStage").textContent = G.stage;
+  $("uScore").textContent = G.score.toLocaleString();
+  let h=""; for(let i=0;i<(G.maxLives||CFG.LIVES);i++) h += i<G.lives ? "♥" : '<span class="off">♥</span>';
+  $("uLives").innerHTML = h;
+  const c=$("comboTag");
+  c.textContent = G.combo+" COMBO";
+  c.className = G.combo>=2 ? "on" : "";
+}
+function verdict(main,sub,hex,flash){
+  const v=$("verdict");
+  $("vmain").textContent=main;
+  $("vmain").style.color="#"+hex.toString(16);
+  $("vsub").innerHTML=sub;
+  v.classList.remove("show"); void v.offsetWidth; v.classList.add("show");
+  const f=$("flash");
+  f.style.background="radial-gradient(120% 70% at 50% 55%,"+flash+" 0%,rgba(0,0,0,0) 70%)";
+  f.style.opacity="1";
+  setTimeout(()=>f.style.opacity="0",240);
+  setTimeout(()=>v.classList.remove("show"),1300);
+}
+function pickers(id,onPick){
+  const els=document.querySelectorAll("#"+id+" .opt");
+  els.forEach(el=>el.addEventListener("click",()=>{
+    els.forEach(o=>o.classList.remove("sel")); el.classList.add("sel"); onPick(el.dataset.v);
+  }));
+}
+pickers("selDiff",v=>G.diff=v);
+pickers("selMode",v=>G.mode=v);
+pickers("selSet", v=>G.set=v);
+pickers("selChar",v=>G.char=v);
+
+/* 시작 / 종료 */
+function startGame(){
+  G.nick = ($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase() || "PLAYER";
+  G.lanes = DIFF[G.diff].lanes;
+  applyLaneMetrics();
+  setCharacter(G.char);
+  G.stage=1; G.score=0; G.combo=0; G.bestCombo=0; G.lives=CFG.LIVES;
+  G.maxLives = DIFF[G.diff].lives || CFG.LIVES; G.lives = G.maxLives;
+  G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false;
+  G.lane=Math.floor(G.lanes/2);
+  reviewQueue.length=0; recent.length=0;
+  clearSets(); Hazards.clear(); Rocks.stop();
+  applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
+  P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
+  input.x=0; input.y=0; stick.id=null;
+  camera.position.set(0,VIEW.camY,VIEW.camZ);
+  G.running=true; G.paused=false; G.spawning=true;
+  spawnSet(); updateHUD();
+  ["scStart","scSetup","scOver","scRank","scPause"].forEach(x=>$(x).classList.remove("on"));
+  $("shWords").classList.remove("on");
+  $("hud").classList.add("on");
+  $("touchHint").style.display = isTouch ? "block" : "none";
+  $("touchHint").style.opacity = "1";
+  $("touchHint").textContent = "화면 아래쪽을 눌러 조이스틱으로 움직여요";
+  $("kbhint").style.display = isTouch ? "none" : "block";
+  clock.getDelta();
+}
+function gameOver(){
+  G.running=false;
+  Rocks.stop();
+  $("hud").classList.remove("on"); $("kbhint").style.display="none";
+  $("touchHint").style.display="none"; stickEnd();
+  const total=G.right+G.wrong;
+  $("oScore").textContent=G.score.toLocaleString();
+  $("oStage").textContent=G.stage;
+  $("oAcc").textContent= total? Math.round(G.right/total*100)+"%" : "0%";
+  $("oRight").textContent=G.right; $("oWrong").textContent=G.wrong; $("oCombo").textContent=G.bestCombo;
+  $("oKick").textContent=DIFF[G.diff].label+" · "+WORD_SETS[G.set].label+" · 최고 콤보 "+G.bestCombo;
+  $("oTitle").textContent = G.right>=12 ? "잘 달렸습니다" : "여기까지";
+  $("oReview").innerHTML = G.wrongWords.length
+    ? '<div class="glab">📕 다시 볼 단어</div>'+G.wrongWords.slice(0,8).map(w=>
+        '<div class="wrow"><b>'+w.en.toUpperCase()+'</b><span>'+w.ko+'</span></div>').join("")
+    : '<div class="glab">🎊 하나도 안 틀렸어요!</div>';
+  const rank = Ranking.save({nick:G.nick, score:G.score, stage:G.stage,
+    acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now()});
+  const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
+  $("oRank").innerHTML = '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
+  $("scOver").classList.add("on");
+}
+function rankRows(diff){
+  const top=Ranking.top(diff,5);
+  if(!top.length) return '<div class="note">아직 기록이 없습니다.</div>';
+  return top.map((r,i)=>'<div class="rrow"><i>'+(i+1)+'</i><b>'+r.nick+'</b><span>'+r.score.toLocaleString()+'</span></div>').join("");
+}
+function togglePause(){
+  G.paused=!G.paused;
+  $("scPause").classList.toggle("on",G.paused);
+  if(!G.paused) clock.getDelta();
+}
+
+const show = id => { ["scStart","scSetup","scOver","scRank","scPause"].forEach(x=>$(x).classList.toggle("on", x===id)); };
+$("btnGo").addEventListener("click",()=>show("scSetup"));
+$("btnBack").addEventListener("click",()=>show("scStart"));
+$("btnStart").addEventListener("click",startGame);
+$("btnRetry").addEventListener("click",startGame);
+$("btnMain").addEventListener("click",()=>show("scStart"));
+$("btnWords").addEventListener("click",()=>$("shWords").classList.add("on"));
+$("btnSheetClose").addEventListener("click",()=>$("shWords").classList.remove("on"));
+$("btnResume").addEventListener("click",togglePause);
+$("btnGiveUp").addEventListener("click",()=>{ G.paused=false; $("scPause").classList.remove("on"); gameOver(); });
+$("pauseBtn").addEventListener("click",()=>{ if(G.running) togglePause(); });
+$("btnRankHome").addEventListener("click",()=>{ $("scStart").classList.remove("on"); showRank("easy"); });
+$("btnRankBack").addEventListener("click",()=>{ $("scRank").classList.remove("on"); $("scStart").classList.add("on"); });
+pickers("selRankDiff",v=>{ $("rankList").innerHTML=rankRows(v); });
+function showRank(d){ $("rankList").innerHTML=rankRows(d); $("scRank").classList.add("on"); }
+
+$("btnAdd").addEventListener("click",()=>{
+  const msg=$("addMsg");
+  try{
+    const arr=JSON.parse($("userWords").value);
+    if(!Array.isArray(arr)) throw 0;
+    let n=0;
+    arr.forEach(w=>{
+      if(w && typeof w.en==="string" && typeof w.ko==="string"){
+        WORD_BANK.push({en:w.en.toLowerCase().trim(), ko:w.ko.trim(), level:Number(w.level)||1}); n++;
+      }
+    });
+    msg.textContent = n ? n+"개 추가 · 단어장 "+WORD_BANK.length+"개" : "형식에 맞는 단어가 없습니다.";
+  }catch(e){ msg.textContent="JSON 형식이 아닙니다. 대괄호와 따옴표를 확인하세요."; }
+});
+
+const isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints>0;
+
+addEventListener("error",e=>{
+  const el=$("err");
+  el.innerHTML = "오류가 발생했습니다.<br><span style='color:#ff7a66'>"+(e.message||"")+"</span><br>새로고침해 주세요.";
+  el.style.display="grid";
+});
+
+window.__start = function(){
+  if(window.__booted) return;
+  window.__booted = true;
+  if(window.THREE) boot();
+  else $("err").style.display="grid";
+};
+if(window.THREE) window.__start();          // 이미 로드됐다면 바로 시작
+
+/* 오프라인 지원 (서비스워커) — https 또는 localhost 에서만 동작합니다 */
+if("serviceWorker" in navigator){
+  addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
