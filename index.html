@@ -485,6 +485,7 @@ details{display:none}
       <button class="mitem" id="btnResume" style="display:none"></button>
       <button class="mitem" id="btnGo">게임 시작</button>
       <button class="mitem" id="btnStats">학습 기록</button>
+      <button class="mitem" id="btnVersus" style="display:none">2인용 대결 <small style="display:block;font-size:11px;color:#a99ed0;font-weight:700">키보드 하나로 둘이 · PC</small></button>
       <button class="mitem" id="btnRankHome">랭킹</button>
       <button class="mitem" id="btnWords">단어 추가</button>
       <button class="mitem" id="btnHelp">조작법</button>
@@ -2246,7 +2247,8 @@ const HorizonArt = {
     const tryLoad=(exts)=>{
       if(!exts.length){ this.failed[url]=true; if(this.want===kind) this.fallback(); return; }
       try{
-        new THREE.TextureLoader().load(url+exts[0], t=>{
+        const path = exts[0][0]==="@" ? exts[0].slice(1) : url+exts[0];
+        new THREE.TextureLoader().load(path, t=>{
           t.wrapS=THREE.RepeatWrapping; t.repeat.set(7,1);
           t.anisotropy=8;
           if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
@@ -2255,7 +2257,9 @@ const HorizonArt = {
         }, undefined, ()=>tryLoad(exts.slice(1)));
       }catch(e){ tryLoad(exts.slice(1)); }
     };
-    tryLoad([".webp", ".png"]);
+    // assets 폴더 → 첫 화면 순서로 찾는다 (어디에 올려도 동작)
+    const name = url.replace(/^assets\//, "");
+    tryLoad([".webp", ".png"].flatMap(e=>["assets/"+name+e, name+e]).map(p=>"@"+p));
   },
   apply(t){
     if(!this.mesh) return;
@@ -5261,7 +5265,14 @@ addEventListener("keydown", e=>{
 menuFocus(0);
 $("btnStart").addEventListener("click",startGame);
 $("btnRetry").addEventListener("click",startGame);
-$("btnMain").addEventListener("click",()=>{ Voice.stop(); Attract.focus=false; refreshResume(); show("scStart"); });
+$("btnMain").addEventListener("click",()=>{ Voice.stop(); Attract.focus=false; refreshResume();
+/* 2인용은 키보드가 필요해서 PC 에서만 보여준다 */
+(function(){
+  const b=$("btnVersus"); if(!b) return;
+  const touch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
+  if(!touch) b.style.display="block";
+  b.addEventListener("click",()=>{ SFX.click(); location.href="versus.html"; });
+})(); show("scStart"); });
 $("btnWords").addEventListener("click",()=>$("shWords").classList.add("on"));
 $("btnSheetClose").addEventListener("click",()=>$("shWords").classList.remove("on"));
 $("btnUnpause").addEventListener("click",togglePause);
