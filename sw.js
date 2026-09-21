@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v64";
+const VERSION = "hyeng-v68";
 const CORE = [
   "./",
   "./index.html",
@@ -14,7 +14,8 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀
   "./assets/mountains-ice.webp",    "./assets/mountains-volcano.webp",
   "./assets/mountains-night.webp",
   "./mountains-meadow.webp", "./mountains-desert.webp", "./mountains-ice.webp",
-  "./mountains-volcano.webp", "./mountains-night.webp"
+  "./mountains-volcano.webp", "./mountains-night.webp",
+  "./hole-meadow.webp", "./quicksand-desert.webp", "./lava-pit.webp", "./crumble-volcano.webp"
 ];
 
 self.addEventListener("install", e => {
@@ -36,12 +37,31 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  const url = new URL(e.request.url);
+  // 게임 화면(HTML)은 항상 새로 받아온다 — 올린 즉시 새 버전이 보이게.
+  // 인터넷이 없을 때만 저장해 둔 것을 쓴다.
+  const isPage = e.request.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("/");
+  if (isPage) {
+    e.respondWith((async () => {
+      try {
+        const res = await fetch(e.request, {cache: "no-store"});
+        if (res && res.ok) {
+          const c = await caches.open(VERSION);
+          c.put(e.request, res.clone());
+        }
+        return res;
+      } catch (err) {
+        return (await caches.match(e.request)) || (await caches.match("./index.html"));
+      }
+    })());
+    return;
+  }
+  // 그림·스크립트는 저장해 둔 것을 먼저 쓴다 (빠르게)
   e.respondWith((async () => {
     const hit = await caches.match(e.request);
     if (hit) return hit;
     try {
       const res = await fetch(e.request);
-      // CDN 으로 받아온 three.js 도 한 번 받으면 캐시해 둔다
       if (res && (res.ok || res.type === "opaque")) {
         const c = await caches.open(VERSION);
         c.put(e.request, res.clone());

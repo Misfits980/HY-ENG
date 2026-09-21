@@ -2500,6 +2500,7 @@ function applyZone(i, announce){
   Props.build(z.prop);
   Weather.build(z.prop);
   HorizonArt.show(z.prop);                         // 지대에 맞는 산맥 그림
+  if(!TrapArt._pre){ TrapArt._pre=true; TrapArt.preload(); }
   if(announce) zoneBanner(z);
 }
 function zoneBanner(z){
@@ -3277,11 +3278,67 @@ function judge(s){
    규칙: 정답 문으로 가는 레인에는 절대 만들지 않는다.
         (구멍은 실제 바닥 타일을 숨겨서 만든다 → 보이는 구멍 = 진짜 구멍)
 ===================================================================== */
+
+/* =====================================================================
+   함정 그림 — 그림 파일이 있으면 쓰고, 없으면 코드로 만든 모양 그대로
+===================================================================== */
+const TrapArt = {
+  names:["hole-meadow","quicksand-desert","lava-pit","crumble-volcano"], tex:{},
+  preload(){
+    if(typeof THREE==="undefined" || !THREE.TextureLoader) return;
+    this.names.forEach(n=>{
+      const tries=[".webp",".png"].flatMap(e=>[n+e,"assets/"+n+e]);
+      const next=()=>{
+        if(!tries.length) return;
+        const p=tries.shift();
+        try{
+          new THREE.TextureLoader().load(p, t=>{
+            t.anisotropy=8;
+            if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
+            if(n==="crumble-volcano"){ t.wrapS=t.wrapT=THREE.RepeatWrapping; }
+            this.tex[n]=t;
+          }, undefined, next);
+        }catch(e){ next(); }
+      };
+      next();
+    });
+  },
+  has(n){ return !!this.tex[n]; },
+  /* 바닥에 깔리는 함정: 뚫린 칸을 바닥 무늬로 덮고, 그 위에 그림을 붙인다 */
+  floorDecal(g, n, w, L, floorMat){
+    if(floorMat){
+      const base=new THREE.Mesh(new THREE.PlaneGeometry(w,L), floorMat);
+      base.rotation.x=-Math.PI/2; base.position.y=.02; g.add(base);
+    }
+    const d=Math.min(w,L)*1.04;
+    const decal=new THREE.Mesh(new THREE.PlaneGeometry(d,d),
+      new THREE.MeshBasicMaterial({map:this.tex[n], transparent:true, depthWrite:false}));
+    decal.rotation.x=-Math.PI/2; decal.position.y=.05;
+    decal.userData.noOutline=true;
+    g.add(decal);
+    g.userData.decal=decal;
+    return g;
+  }
+};
+
 function makeHoleRim(){
   const kind = zone().prop;
   const g = new THREE.Group();
   const w = CFG.LANE_W-0.12, L = Ground.len-0.35;
 
+  if(kind==="pillar" && TrapArt.has("quicksand-desert")){  // 사막 — 그림 유사가 천천히 돈다
+    TrapArt.floorDecal(g, "quicksand-desert", w, L, (typeof Ground!=="undefined" && Ground.mat) || null);
+    g.userData.decalSpin = 0.55;
+    return g;
+  }
+  if(kind==="lava" && TrapArt.has("lava-pit")){             // 화산 — 용암 구덩이가 숨 쉬듯 빛난다
+    TrapArt.floorDecal(g, "lava-pit", w, L, (typeof Ground!=="undefined" && Ground.mat) || null);
+    g.userData.decalGlow = true;
+    return g;
+  }
+  if(kind==="tree" && TrapArt.has("hole-meadow")){      // 초원 — 그림으로 그린 돌 우물
+    return TrapArt.floorDecal(g, "hole-meadow", w, L, (typeof Ground!=="undefined" && Ground.mat) || null);
+  }
   if(kind==="tree"){
     /* 초원 — 돌을 둘러 쌓은 우물 같은 구멍 */
     const stone = new THREE.MeshStandardMaterial({color:0x8b8b96, flatShading:true, roughness:1});
@@ -3393,8 +3450,17 @@ const ZONE_STYLE = {
 };
 function makeZoneMesh(kind, w, L){
   const st=ZONE_STYLE[kind], g=new THREE.Group(), parts=[], cracks=[];
-  const face=new THREE.Mesh(new THREE.PlaneGeometry(w,L),
-    new THREE.MeshBasicMaterial({color:st.face, transparent:true, opacity:st.op, depthWrite:false}));
+  let faceMat;
+  if(kind==="crumble" && zone().prop==="lava" && TrapArt.has("crumble-volcano")){
+    // 화산 흔들다리 — 그림 무늬를 구역 길이만큼 반복
+    const t=TrapArt.tex["crumble-volcano"].clone(); t.needsUpdate=true;
+    t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(w/3.2, L/3.2);
+    faceMat=new THREE.MeshBasicMaterial({map:t, transparent:false});
+    g.userData.artFace=true;
+  } else {
+    faceMat=new THREE.MeshBasicMaterial({color:st.face, transparent:true, opacity:st.op, depthWrite:false});
+  }
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(w,L), faceMat);
   face.rotation.x=-Math.PI/2; face.position.y=st.y; g.add(face);
 
   if(kind==="crumble"){
@@ -3453,7 +3519,7 @@ function makeZoneMesh(kind, w, L){
     [-1,1].forEach(sz=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,.1,.4),em);
       b.position.set(0,st.y+.02,sz*L/2); g.add(b); });
   }
-  g.userData={kind, parts, cracks, t:0};
+  g.userData={kind, parts, cracks, t:0, artFace:!!g.userData.artFace};   // 그림 여부 유지
   return g;
 }
 function animateZone(mesh, dt){
@@ -3720,6 +3786,13 @@ const Hazards = {
     for(let i=this.list.length-1;i>=0;i--){
       const h=this.list[i];
       let z;
+      if(h.mesh.userData.decalSpin && h.mesh.userData.decal){   // 그림 유사 — 천천히 돈다
+        h.mesh.userData.decal.rotation.z += h.mesh.userData.decalSpin*dt;
+      }
+      if(h.mesh.userData.decalGlow && h.mesh.userData.decal){   // 용암 구덩이 — 숨 쉬듯 밝아진다
+        const k=0.82+Math.sin(performance.now()*0.003 + h.z)*0.18;
+        h.mesh.userData.decal.material.color.setRGB(k,k,k);
+      }
       if(h.mesh.userData.spin){                        // 유사 — 소용돌이와 모래알
         const q=h.mesh.userData.quick;
         if(q){
@@ -3825,14 +3898,25 @@ const Rocks = {
   list:[], wait:2.5,
   active(){ const d=DIFF[G.diff];
     if(G.rule==="endless" || G.rule==="mine") return false;
-    return !G.gentle && zoneAllows("rock") && !!d.boulder
-           && G.stage >= (d.rockFrom || BOULDER.FROM_STAGE); },
-  maxCount(){ return 1 + ramped("rocks"); },
+    if(!zoneAllows("rock")) return false;
+    const Z=zone(), own = Z.traps && Z.traps.indexOf("rock")>=0;   // 낙석이 이 지대의 대표 함정인가
+    if(G.gentle){
+      // 유치원 어려움 — 얼음 동굴에서만 느린 눈덩이
+      return G.diff==="hard" && Z.prop==="spike";
+    }
+    if(!d.boulder) return false;
+    // 대표 함정이면 지대에 들어서자마자 나온다 (보통 난이도에서 눈덩이를 못 보던 문제)
+    const from = own ? Math.min(d.rockFrom || BOULDER.FROM_STAGE, Z.from) : (d.rockFrom || BOULDER.FROM_STAGE);
+    return G.stage >= from; },
+  maxCount(){ return G.gentle ? 1 : 1 + ramped("rocks"); },
   interval(){
     const boost = 1 + 0.45*ramped("rockRate");
     return Math.max(BOULDER.WAIT_MIN, (BOULDER.WAIT - G.stage*0.05) / (boost * (zone().rockMul||1)));
   },
-  speed(){ return Math.min(BOULDER.SPEED_MAX, BOULDER.SPEED + G.stage*BOULDER.SPEED_UP); },
+  speed(){
+    const v = Math.min(BOULDER.SPEED_MAX, BOULDER.SPEED + G.stage*BOULDER.SPEED_UP);
+    return G.gentle ? v*0.6 : v;                    // 유치원은 천천히 굴러온다
+  },
   spawn(){
     // 곧 도착할 문의 정답 길과, 이미 다른 돌이 굴러오는 길은 피한다
     const ban = {};
@@ -5381,7 +5465,15 @@ window.__start = function(){
 if(window.THREE) window.__start();
 
 if("serviceWorker" in navigator){
-  addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+  const hadOld = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if(!hadOld || reloaded || G.running) return;
+    reloaded = true; location.reload();
+  });
+  addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").then(function(r){ try{ r.update(); }catch(e){} }).catch(function(){});
+  });
 }
 </script>
 </body>
