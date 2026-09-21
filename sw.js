@@ -1,14 +1,20 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v1";
+const VERSION = "hyeng-v62";
 const CORE = [
   "./",
   "./index.html",
+  "./versus.html",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png"
 ];
-const OPTIONAL = ["./three.min.js"];   // 없으면 그냥 건너뜀
+const OPTIONAL = [                    // 없으면 그냥 건너뜀
+  "./three.min.js",
+  "./assets/mountains-meadow.webp", "./assets/mountains-desert.webp",
+  "./assets/mountains-ice.webp",    "./assets/mountains-volcano.webp",
+  "./assets/mountains-night.webp"
+];
 
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
