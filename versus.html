@@ -2712,9 +2712,10 @@ function spawnSet(){
   }
   /* 안개 구름 — 단어 앞을 천천히 가로지른다 */
   if(trick==="cloud"){
-    const cloud=new THREE.Group();
+    const art=cloudSprite();
+    const cloud=art || new THREE.Group();
     const mat=new THREE.MeshStandardMaterial({color:0xcfd6ee, roughness:1, transparent:true, opacity:.93});
-    for(let k=0;k<6;k++){
+    for(let k=0;k<(art?0:6);k++){
       const b=new THREE.Mesh(new THREE.SphereGeometry(.9+Math.random()*.7,12,10),mat);
       b.position.set((k-2.5)*.85+(Math.random()-.5)*.4,(Math.random()-.5)*.5,(Math.random()-.5)*.6);
       cloud.add(b);
@@ -2748,7 +2749,8 @@ function activeSet(){ for(let i=0;i<G.sets.length;i++){ const s=G.sets[i];
 const TrapArt = {
   names:["hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
-          "props-meadow","props-desert","props-ice","props-volcano","props-night"], tex:{},
+          "props-meadow","props-desert","props-ice","props-volcano","props-night",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks"], tex:{},
   preload(){
     if(typeof THREE==="undefined" || !THREE.TextureLoader) return;
     this.names.forEach(n=>{
@@ -2760,7 +2762,7 @@ const TrapArt = {
           new THREE.TextureLoader().load(p, t=>{
             t.anisotropy=8;
             if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
-            if(n==="crumble-volcano"){ t.wrapS=t.wrapT=THREE.RepeatWrapping; }
+            if(n.indexOf("crumble-")===0 || n==="ice-night"){ t.wrapS=t.wrapT=THREE.RepeatWrapping; }
             this.tex[n]=t;
             this.loaded(n);
           }, undefined, next);
@@ -2844,6 +2846,37 @@ function applyLandArt(){
   if(typeof ZoneFade!=="undefined" && ZoneFade.to) ZoneFade.to.land = lm.color.getHex();
 }
 
+
+/* 서 있는 장애물 그림 — 한 장에 4칸 (초원·사막·얼음·밤하늘) */
+const BLOCK_CELL = {tree:0, pillar:1, spike:2, crystal:3};
+function blockSprite(kind){
+  if(!(kind in BLOCK_CELL) || !TrapArt.has("blocks")) return null;
+  const k=BLOCK_CELL[kind], Wd=CFG.LANE_W*0.86, Hd=Wd*2;
+  const geo=new THREE.PlaneGeometry(Wd,Hd); geo.translate(0,Hd/2,0);
+  const uv=geo.attributes.uv;
+  for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/4);
+  const mat=new THREE.MeshBasicMaterial({map:TrapArt.tex["blocks"], transparent:true, alphaTest:.06,
+    side:THREE.DoubleSide, color:mulHex(0xf0f0f0, artTint())});
+  const g=new THREE.Group();
+  const s=new THREE.Mesh(geo,mat); s.userData.noOutline=true; g.add(s);
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(Wd*0.42,16),
+    new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.3,depthWrite:false}));
+  sh.rotation.x=-Math.PI/2; sh.position.y=.04; sh.scale.y=.55; sh.userData.noOutline=true; g.add(sh);
+  g.userData.sprite=true;
+  return g;
+}
+
+/* 안개구름 그림 — 단어 앞을 가로지르는 구름 한 장 */
+function cloudSprite(){
+  if(!TrapArt.has("cloud-fog")) return null;
+  const w=6.2, h=w/2;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),
+    new THREE.MeshBasicMaterial({map:TrapArt.tex["cloud-fog"], transparent:true, depthWrite:false,
+      side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}));
+  const g=new THREE.Group(); g.add(m); g.userData.sprite=true;
+  return g;
+}
+
 /* 나무·조형물 그림 — 한 장에 4칸, 항상 앞을 보는 그림판으로 세운다 */
 const PropArt = {
   geos:[], mats:{}, shadowGeo:null, shadowMat:null,
@@ -2881,6 +2914,11 @@ function holeMesh(){
   if(kind==="pillar" && TrapArt.has("quicksand-desert")){  // 사막 — 그림 유사가 천천히 돈다
     TrapArt.floorDecal(g, "quicksand-desert", w, L, null);
     g.userData.decalSpin = 0.55;
+    return g;
+  }
+  if(kind==="crystal" && TrapArt.has("hole-night")){      // 밤하늘 — 별빛 틈이 천천히 돈다
+    TrapArt.floorDecal(g, "hole-night", w, L, null);
+    g.userData.decalSpin = 0.22;
     return g;
   }
   if(kind==="lava" && TrapArt.has("lava-pit")){             // 화산 — 용암 구덩이가 숨 쉬듯 빛난다
@@ -2990,6 +3028,7 @@ function holeMesh(){
 }
 function blockMesh(){
   const kind = zone().prop;
+  { const sp=blockSprite(kind); if(sp) return sp; }   // 그림 장애물
   const g = new THREE.Group();
   const W = CFG.LANE_W-0.75;
 
@@ -3106,11 +3145,17 @@ const ZONE_STYLE = {
 function makeZoneMesh(kind, w, L){
   const st=ZONE_STYLE[kind], g=new THREE.Group(), parts=[], cracks=[];
   let faceMat;
-  if(kind==="crumble" && zone().prop==="lava" && TrapArt.has("crumble-volcano")){
-    // 화산 흔들다리 — 그림 무늬를 구역 길이만큼 반복
-    const t=TrapArt.tex["crumble-volcano"].clone(); t.needsUpdate=true;
+  const zp=zone().prop;
+  const zArt = kind==="crumble" ? (zp==="lava" ? "crumble-volcano" : zp==="crystal" ? "crumble-night" : null)
+             : kind==="ice" && zp==="crystal" ? "ice-night" : null;
+  if(zArt && TrapArt.has(zArt)){
+    // 흔들다리·빙판 그림 무늬를 구역 길이만큼 반복
+    const t=TrapArt.tex[zArt].clone(); t.needsUpdate=true;
     t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(w/3.2, L/3.2);
-    faceMat=new THREE.MeshBasicMaterial({map:t, transparent:false});
+    if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
+    faceMat = kind==="ice"
+      ? new THREE.MeshBasicMaterial({map:t, transparent:true, opacity:.9, depthWrite:false})
+      : new THREE.MeshBasicMaterial({map:t, transparent:false});
     g.userData.artFace=true;
   } else {
     faceMat=new THREE.MeshBasicMaterial({color:st.face, transparent:true, opacity:st.op, depthWrite:false});
@@ -3282,11 +3327,11 @@ const Haz = {
       used.push(l);
     }
     for(let i=0;i<blocks;i++){ const l=freeLane(), z=freeZ(); if(l<0||z===null) break;
-      const bm=blockMesh(); stylize(bm,1.06); this.setPatrol(bm,l); this.add("block",l,z,bm); used.push(l); }
+      const bm=blockMesh(); if(!bm.userData.sprite) stylize(bm,1.06); this.setPatrol(bm,l); this.add("block",l,z,bm); used.push(l); }
     // 화산 — 도롱뇽을 한 마리 더 자주
     if(zone().prop==="lava" && zoneAllows("block") && Math.random()<0.55){
       const l=freeLane(), z=freeZ();
-      if(l>=0 && z!==null){ const bm=blockMesh(); stylize(bm,1.06); this.setPatrol(bm,l);
+      if(l>=0 && z!==null){ const bm=blockMesh(); if(!bm.userData.sprite) stylize(bm,1.06); this.setPatrol(bm,l);
         this.add("block",l,z,bm); used.push(l); }
     }
   },
