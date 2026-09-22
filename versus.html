@@ -1388,13 +1388,13 @@ const TRAP = {
 ===================================================================== */
 const ZONES = [
   {name:"초원",       sub:"MEADOW",   from:1,
-   sky:[0x1b2a4a,0x3f6a8a,0x0d1626], fog:0x16253f, floor:0x2f4a38, frame:0x8fd88f, edge:0xffe28a,
+   sky:[0x1b2a4a,0x3f6a8a,0x0d1626], fog:0x16253f, tint:0x8fa3d6, floor:0x2f4a38, frame:0x8fd88f, edge:0xffe28a,
    prop:"tree",   traps:["hole","block"],              rockMul:1,   windMul:1},
   {name:"사막 유적",  sub:"RUINS",    from:11,
-   sky:[0x3a2410,0x8a5a2a,0x1a1008], fog:0x3a2a16, floor:0x6b5334, frame:0xffc46b, edge:0xfff0c0,
+   sky:[0x3a2410,0x8a5a2a,0x1a1008], fog:0x3a2a16, tint:0xb89a82, floor:0x6b5334, frame:0xffc46b, edge:0xfff0c0,
    prop:"pillar", traps:["hole","block","wind"],        rockMul:1,   windMul:1.6},
   {name:"얼음 동굴",  sub:"ICE CAVE", from:21,
-   sky:[0x0e2740,0x2f6f9e,0x07121f], fog:0x123047, floor:0x2b4a63, frame:0x9fe8ff, edge:0xe8faff,
+   sky:[0x0e2740,0x2f6f9e,0x07121f], fog:0x123047, tint:0x93b2dc, floor:0x2b4a63, frame:0x9fe8ff, edge:0xe8faff,
    prop:"spike",  traps:["block","rock"], iceAll:true,  rockMul:0.9, windMul:1},
   {name:"화산",       sub:"VOLCANO",  from:31,
    sky:[0x2a0a06,0x8a2a12,0x160503], fog:0x30100a, floor:0x4a2420, frame:0xff7a66, edge:0xffb45c,
@@ -1993,7 +1993,8 @@ const HorizonArt = {
   },
   apply(t){
     if(!this.mesh) return;
-    this.mesh.material.map=t; this.mesh.material.needsUpdate=true;
+    this.mesh.material.map=t; this.mesh.material.color.setHex(artTint());
+    this.mesh.material.needsUpdate=true;
     this.mesh.visible=true;
     if(typeof hills!=="undefined") hills.forEach(h=>h.visible=false);
   },
@@ -2179,7 +2180,7 @@ const ZoneFade = {
       hill:scene.userData.hillMat ? scene.userData.hillMat.color.getHex() : (z.hill||z.fog)
     };
     this.to = {top:z.sky[0], mid:z.sky[1], low:z.sky[2], fog:z.fog,
-               land:0x6e6e6e, hill:z.hill||z.fog};
+               land:(TrapArt.tex["floor-"+ZONE_FILE[z.prop]] ? mulHex(0x8a8a8a, z.tint||0xffffff) : 0x6e6e6e), hill:z.hill||z.fog};
     this.t = 0;
   },
   update(dt){
@@ -2224,13 +2225,14 @@ function applyZone(i, announce){
     lt.repeat.set(7,24);
     scene.userData.landMat.map = lt;
     applyLandArt();                                 // 바닥 그림이 있으면 땅에도
-    if(!announce) scene.userData.landMat.color.setHex(0x6e6e6e);
+    if(!announce) scene.userData.landMat.color.setHex(TrapArt.tex["floor-"+ZONE_FILE[z.prop]] ? mulHex(0x8a8a8a, artTint()) : 0x6e6e6e);
     scene.userData.landMat.needsUpdate = true;
   }
   if(Ground.markMat) Ground.markMat.color.setHex(z.edge);
   Props.build(z.prop);
   Weather.build(z.prop);
   HorizonArt.show(z.prop);                         // 지대에 맞는 산맥 그림
+  if(scene.userData.stars) scene.userData.stars.visible = !z.day;   // 낮 지대에는 별이 없다
   if(!TrapArt._pre){ TrapArt._pre=true; TrapArt.preload(); }
   if(announce) zoneBanner(z);
 }
@@ -2315,7 +2317,10 @@ const Props = {
           m.rotation.y = m.userData.sprite ? 0 : Math.random()*6.28;   // 그림판은 앞을 본다
           m.scale.setScalar(r.sc[0] + Math.random()*(r.sc[1]-r.sc[0]));
           if(!m.userData.sprite){
-            if(ri===0) stylize(m, 1.05); else toonify(m);
+            toonify(m);                              // 외곽선은 멀리서 점선처럼 끊겨 보여 뺀다
+            const tn = artTint();
+            if(tn!==0xffffff) m.traverse(o=>{ if(o.isMesh && o.material && o.material.color)
+              o.material.color.setHex(mulHex(o.material.color.getHex(), tn)); });
             m.traverse(o=>{ if(o.isMesh && !o.userData.noOutline) o.castShadow = (HQ && ri===0); });
           }
           scene.add(m);
@@ -2359,8 +2364,9 @@ function stars(){
   const n=700, pos=new Float32Array(n*3), g=new THREE.BufferGeometry();
   for(let i=0;i<n;i++){ pos[i*3]=(Math.random()-.5)*400; pos[i*3+1]=Math.random()*140-30; pos[i*3+2]=-Math.random()*500+40; }
   g.setAttribute("position", new THREE.BufferAttribute(pos,3));
-  scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xdcd2ff,size:.8,sizeAttenuation:true,
-    transparent:true,opacity:.85, map:glowTexture(), depthWrite:false, blending:THREE.AdditiveBlending})));
+  const starPts=new THREE.Points(g,new THREE.PointsMaterial({color:0xdcd2ff,size:.8,sizeAttenuation:true,
+    transparent:true,opacity:.85, map:glowTexture(), depthWrite:false, blending:THREE.AdditiveBlending}));
+  scene.add(starPts); scene.userData.stars = starPts;
 }
 
 function MAT(color, rough){ return new THREE.MeshStandardMaterial({color:color, roughness:rough===undefined?.65:rough}); }
@@ -2591,14 +2597,15 @@ const Ground = {
   build(){
     this.tiles.forEach(t=>{ scene.remove(t.mesh); t.mesh.traverse(o=>{ if(o.geometry)o.geometry.dispose(); }); });
     this.tiles=[];
-    const count = Math.ceil((CFG.SPAWN + VIEW.camZ + 50 - CFG.Z_FWD)/this.step)+2;
+    let count = Math.ceil((CFG.SPAWN + VIEW.camZ + 50 - CFG.Z_FWD)/this.step)+2;
+    count += count % 2;                             // 짝수 — 거울 반복이 이어지게
     this.span = count*this.step;
     const mat = new THREE.MeshStandardMaterial({color:COL.floor, roughness:.62, metalness:.18});
     const edge = new THREE.MeshBasicMaterial({color:COL.edge});
     this.mat = mat; this.markMat = edge;
     this.mats = [mat, mat.clone(), mat.clone(), mat.clone()];   // 칸마다 그림 위치를 달리한다
     for(let j=0;j<CFG.LANES;j++) for(let k=0;k<count;k++){
-      const m = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W,.6,this.step), this.mats[(j*3+k*5)%4]);
+      const m = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W,.6,this.step), this.mats[(j%2) + 2*(k%2)]);
       m.receiveShadow = HQ;
       const grp = new THREE.Group(); m.position.y=-.3; grp.add(m);
       grp.position.set(laneX(j),0, VIEW.camZ+14 - k*this.step);
@@ -2779,7 +2786,7 @@ const TrapArt = {
     }
     const d=Math.min(w,L)*1.04;
     const decal=new THREE.Mesh(new THREE.PlaneGeometry(d,d),
-      new THREE.MeshBasicMaterial({map:this.tex[n], transparent:true, depthWrite:false}));
+      new THREE.MeshBasicMaterial({map:this.tex[n], transparent:true, depthWrite:false, color:artTint()}));
     decal.rotation.x=-Math.PI/2; decal.position.y=.05;
     decal.userData.noOutline=true;
     g.add(decal);
@@ -2788,6 +2795,13 @@ const TrapArt = {
   }
 };
 
+
+/* 달빛 — 낮에 그린 그림을 밤하늘 아래에 어울리게 푸르고 어둡게 */
+function mulHex(a,b){
+  const r=((a>>16)&255)*((b>>16)&255)/255, g=((a>>8)&255)*((b>>8)&255)/255, bl=(a&255)*(b&255)/255;
+  return (Math.round(r)<<16)|(Math.round(g)<<8)|Math.round(bl);
+}
+function artTint(){ return (zone() && zone().tint) || 0xffffff; }
 
 /* 지대 이름 — 그림 파일 이름에 쓴다 */
 const ZONE_FILE = {tree:"meadow", pillar:"desert", spike:"ice", lava:"volcano", crystal:"night"};
@@ -2801,12 +2815,15 @@ function applyFloorArt(ftex){
     if(art){
       const t = art.clone(); t.needsUpdate = true;
       t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      t.repeat.set(W/4.2, L/4.2);                   // 그림 한 장 ≈ 가로세로 4.2
-      t.offset.set((k*0.37)%1, (k*0.61)%1);
+      // 칸 하나에 그림 한 장, 옆 칸·앞 칸은 거울처럼 뒤집는다 → 경계가 항상 이어진다
+      const fx = (k & 1) ? -1 : 1, fy = (k & 2) ? -1 : 1;
+      t.repeat.set(fx, fy); t.offset.set(fx<0 ? 1 : 0, fy<0 ? 1 : 0);
       if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
-      m.map = t; m.color.setHex(0xd2d2d2);
+      m.map = t; m.color.setHex(mulHex(0xd2d2d2, artTint()));
+      m.roughness = 1; m.metalness = 0;              // 칠한 그림에는 반사가 없어야 자연스럽다
     } else if(ftex){
       m.map = ftex; m.color.setHex(0x8c8c8c);
+      m.roughness = .62; m.metalness = .18;
     }
     m.needsUpdate = true;
   });
@@ -2823,7 +2840,8 @@ function applyLandArt(){
   t.repeat.set(260/5, 900/5);
   if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
   t.anisotropy = 8;
-  lm.map = t; lm.needsUpdate = true;
+  lm.map = t; lm.color.setHex(mulHex(0x8a8a8a, artTint())); lm.needsUpdate = true;
+  if(typeof ZoneFade!=="undefined" && ZoneFade.to) ZoneFade.to.land = lm.color.getHex();
 }
 
 /* 나무·조형물 그림 — 한 장에 4칸, 항상 앞을 보는 그림판으로 세운다 */
@@ -2843,8 +2861,8 @@ const PropArt = {
       this.shadowGeo=new THREE.CircleGeometry(Wd*0.34,16);
       this.shadowMat=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.26,depthWrite:false});
     }
-    if(!this.mats[n]) this.mats[n]=new THREE.MeshBasicMaterial({map:TrapArt.tex[n], alphaTest:.5,
-      side:THREE.DoubleSide, color:0xe6e6e6});
+    if(!this.mats[n]) this.mats[n]=new THREE.MeshBasicMaterial({map:TrapArt.tex[n], alphaTest:.06,
+      side:THREE.DoubleSide, color:mulHex(0xe6e6e6, artTint()), transparent:true});   // 연기·빛번짐 같은 반투명도 살린다
     const g=new THREE.Group();
     const s=new THREE.Mesh(this.geos[Math.floor(Math.random()*4)], this.mats[n]);
     s.userData.noOutline=true; g.add(s);
@@ -2861,17 +2879,17 @@ function holeMesh(){
   const w = CFG.LANE_W-0.12, L = Ground.step-0.35;
 
   if(kind==="pillar" && TrapArt.has("quicksand-desert")){  // 사막 — 그림 유사가 천천히 돈다
-    TrapArt.floorDecal(g, "quicksand-desert", w, L, (typeof Ground!=="undefined" && Ground.mat) || null);
+    TrapArt.floorDecal(g, "quicksand-desert", w, L, null);
     g.userData.decalSpin = 0.55;
     return g;
   }
   if(kind==="lava" && TrapArt.has("lava-pit")){             // 화산 — 용암 구덩이가 숨 쉬듯 빛난다
-    TrapArt.floorDecal(g, "lava-pit", w, L, (typeof Ground!=="undefined" && Ground.mat) || null);
+    TrapArt.floorDecal(g, "lava-pit", w, L, null);
     g.userData.decalGlow = true;
     return g;
   }
   if(kind==="tree" && TrapArt.has("hole-meadow")){      // 초원 — 그림으로 그린 돌 우물
-    return TrapArt.floorDecal(g, "hole-meadow", w, L, (typeof Ground!=="undefined" && Ground.mat) || null);
+    return TrapArt.floorDecal(g, "hole-meadow", w, L, null);
   }
   if(kind==="tree"){
     /* 초원 — 돌을 둘러 쌓은 우물 같은 구멍 */
@@ -3296,7 +3314,7 @@ const Haz = {
       for(let i=0;i<Ground.tiles.length;i++){ const t=Ground.tiles[i];
         if(t.lane!==lane||t.hidden||t.fall) continue;
         const d=Math.abs(t.logicZ-z); if(d<bd){bd=d;best=t;} }
-      if(best){ best.hidden=true; best.mesh.visible=false;
+      if(best){ best.hidden=true; best.mesh.visible = !!(mesh && mesh.userData.decal);   // 그림 구멍은 바닥 위에
         const h=this.list[this.list.length-1]; h.tile=best; h.z=best.logicZ; }
     }
   },
