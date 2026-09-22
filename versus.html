@@ -2569,6 +2569,8 @@ function addOutline(root, k){
 function stylize(root, k){ toonify(root); addOutline(root, k); }
 
 function signTexture(text){
+  { const a=(typeof signArtFor==="function") ? signArtFor() : null;
+    if(a) return signTextureArt(text, a.img, a.box); }
   const c=document.createElement("canvas"); c.width=SIGN_W; c.height=SIGN_H;
   const x=c.getContext("2d");
   x.fillStyle="#f3ece0"; rr(x,6,6,SIGN_W-12,SIGN_H-12,46); x.fill();
@@ -2663,14 +2665,18 @@ const Ground = {
 function buildGate(text, lane){
   const root=new THREE.Group(); root.position.x=laneX(lane);
   const W=CFG.GATE_W, H=CFG.GATE_H;
-  const frameMat=new THREE.MeshStandardMaterial({color:COL.frame, roughness:.2, metalness:.35,
-    transparent:true, opacity:0.42, depthWrite:false});
-  [-1,1].forEach(sx=>{ const p=new THREE.Mesh(new THREE.BoxGeometry(.2,H,.5),frameMat);
-    p.position.set(sx*W/2,H/2,0); root.add(p); });
-  const top=new THREE.Mesh(new THREE.BoxGeometry(W+.4,.24,.5),frameMat); top.position.set(0,H,0); root.add(top);
-  const sill=new THREE.Mesh(new THREE.BoxGeometry(W,.12,.6),frameMat); sill.position.set(0,.06,0); root.add(sill);
+  let frameMat=artArch(root);                       // 그림 문틀이 있으면 그것을 쓴다
+  if(!frameMat){
+    frameMat=new THREE.MeshStandardMaterial({color:COL.frame, roughness:.2, metalness:.35,
+      transparent:true, opacity:0.42, depthWrite:false});
+    [-1,1].forEach(sx=>{ const p=new THREE.Mesh(new THREE.BoxGeometry(.2,H,.5),frameMat);
+      p.position.set(sx*W/2,H/2,0); root.add(p); });
+    const top=new THREE.Mesh(new THREE.BoxGeometry(W+.4,.24,.5),frameMat); top.position.set(0,H,0); root.add(top);
+    const sill=new THREE.Mesh(new THREE.BoxGeometry(W,.12,.6),frameMat); sill.position.set(0,.06,0); root.add(sill);
+  }
   const tex=signTexture(text), sw=Math.min(CFG.LANE_W*.97, W*1.18);
-  const sign=new THREE.Mesh(new THREE.PlaneGeometry(sw, sw*SIGN_H/SIGN_W),
+  const sasp=(tex.userData && tex.userData.aspect) || (SIGN_W/SIGN_H);
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(sw, sw/sasp),
     new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));
   sign.position.set(0,H*.52,0); root.add(sign);
   const halo=new THREE.Mesh(new THREE.PlaneGeometry(sw*1.9, sw*1.9*SIGN_H/SIGN_W),
@@ -2750,7 +2756,9 @@ const TrapArt = {
   names:["hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks"], tex:{},
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks",
+          "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
+          "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night"], tex:{},
   preload(){
     if(typeof THREE==="undefined" || !THREE.TextureLoader) return;
     this.names.forEach(n=>{
@@ -2875,6 +2883,84 @@ function cloudSprite(){
       side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}));
   const g=new THREE.Group(); g.add(m); g.userData.sprite=true;
   return g;
+}
+
+
+
+/* 글자 크기 맞추기 — 그림 단어판에서 쓴다 */
+function fitFont(x,text,maxW,start,weight){
+  let sz=start;
+  while(sz>16){
+    x.font = weight+" "+sz+"px 'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif";
+    if(x.measureText(text).width<=maxW) break;
+    sz-=4;
+  }
+  return sz;
+}
+
+const SIGN_SQUEEZE = (typeof SQUEEZE!=="undefined") ? SQUEEZE : 0.76;
+/* 지대별 문틀·단어판 그림 — 단어판 안쪽 칸(글자 쓸 자리)의 비율 */
+const SIGN_ART = {
+  meadow: [0.117,0.319,0.886,0.798], desert:[0.152,0.273,0.849,0.593],
+  ice:    [0.150,0.310,0.857,0.751], volcano:[0.149,0.305,0.848,0.709],
+  night:  [0.150,0.300,0.850,0.720]
+};
+function mixHex(a,b,k){
+  const ar=(a>>16)&255, ag=(a>>8)&255, ab=a&255, br=(b>>16)&255, bg=(b>>8)&255, bb=b&255;
+  return (Math.round(ar+(br-ar)*k)<<16)|(Math.round(ag+(bg-ag)*k)<<8)|Math.round(ab+(bb-ab)*k);
+}
+/* 그림 단어판 — 판 그림 위, 안쪽 칸에 단어를 쓴다 */
+function signTextureArt(text, img, box){
+  const cw=900, ch=Math.round(900*img.height/img.width);
+  const c=document.createElement("canvas"); c.width=cw; c.height=ch;
+  const x=c.getContext("2d");
+  x.drawImage(img,0,0,cw,ch);
+  const bx=box[0]*cw, by=box[1]*ch, bw=(box[2]-box[0])*cw, bh=(box[3]-box[1])*ch;
+  x.fillStyle="#181030"; x.textAlign="center"; x.textBaseline="middle";
+  const maxW=bw*0.94;
+  fitFont(x, text, maxW/SIGN_SQUEEZE, Math.round(bh*0.86), "800");
+  const w=x.measureText(text).width, sx=Math.min(1, maxW/w);
+  x.save(); x.translate(bx+bw/2, by+bh/2+4); x.scale(sx,1);
+  x.lineJoin="round"; x.miterLimit=2;
+  x.strokeStyle="#ffffff"; x.lineWidth=12; x.strokeText(text,0,0);
+  x.strokeStyle="#181030"; x.lineWidth=5;  x.strokeText(text,0,0);
+  x.fillText(text,0,0); x.restore();
+  const t=new THREE.CanvasTexture(c); t.anisotropy=8;
+  if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
+  t.userData={aspect:cw/ch};
+  return t;
+}
+function signArtFor(){
+  try{
+    const zf=ZONE_FILE[zone().prop], t=TrapArt.tex["sign-"+zf];
+    if(t && t.image && t.image.width && SIGN_ART[zf]) return {img:t.image, box:SIGN_ART[zf]};
+  }catch(e){}
+  return null;
+}
+/* 그림 문틀 — 기존 연출(강조·정답·오답·흐리게)이 색을 바꾸면 그림에 맞게 옮겨 준다 */
+function artFrameProxy(mat){
+  const base=mulHex(0xffffff, artTint());
+  const p={ _c:null, _o:0.42,
+    apply(){
+      let col=base;
+      if(p._c!=null && p._c!==COL.frame) col=mixHex(base, p._c, p._c===COL.dim ? 0.6 : 0.5);
+      mat.color.setHex(col);
+      mat.opacity=Math.min(1, 0.55+p._o);
+    }};
+  p.color={ setHex(h){ p._c=h; p.apply(); }, getHex(){ return mat.color.getHex(); } };
+  Object.defineProperty(p,"opacity",{ get(){ return p._o; }, set(v){ p._o=v; p.apply(); } });
+  p.apply();
+  return p;
+}
+function artArch(root){
+  let t=null;
+  try{ t=TrapArt.tex["gate-"+ZONE_FILE[zone().prop]]; }catch(e){}
+  if(!t) return null;
+  const aw=CFG.LANE_W*0.98, ah=aw*2;
+  const geo=new THREE.PlaneGeometry(aw,ah); geo.translate(0,ah/2,0);
+  const am=new THREE.MeshBasicMaterial({map:t, transparent:true, alphaTest:.3, side:THREE.DoubleSide});
+  const arch=new THREE.Mesh(geo,am); arch.position.z=-0.12; root.add(arch);
+  return artFrameProxy(am);
 }
 
 /* 나무·조형물 그림 — 한 장에 4칸, 항상 앞을 보는 그림판으로 세운다 */
