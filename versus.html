@@ -2223,6 +2223,7 @@ function applyZone(i, announce){
     const lt = ftex.clone(); lt.needsUpdate=true; lt.wrapS=lt.wrapT=THREE.RepeatWrapping;
     lt.repeat.set(7,24);
     scene.userData.landMat.map = lt;
+    applyLandArt();                                 // 바닥 그림이 있으면 땅에도
     if(!announce) scene.userData.landMat.color.setHex(0x6e6e6e);
     scene.userData.landMat.needsUpdate = true;
   }
@@ -2296,7 +2297,8 @@ const Props = {
   build(kind){
     if(this.kind===kind && this.list.length) return;
     this.clear(); this.kind=kind;
-    const gap=8, n=Math.ceil((150+VIEW.camZ)/gap)+2;
+    const sprite = PropArt.ready(kind);
+    const gap = sprite ? 6 : 8, n=Math.ceil((150+VIEW.camZ)/gap)+2;   // 그림판은 가벼워서 더 촘촘히
     this.span=n*gap;
     const half=CFG.LANE_W*CFG.LANES/2 + 2.6;
     // 가까운 열 / 중간 열 / 먼 열 — 세 겹으로 깔아 빈 느낌을 없앤다
@@ -2320,6 +2322,20 @@ const Props = {
           this.list.push({mesh:m, logicZ:m.position.z});
         }
       });
+    }
+    // 레일 바로 옆 작은 나무 — 트랙 가장자리가 휑하지 않게 (그림판일 때만)
+    if(sprite && Quality.propRows()>=2){
+      const edgeX = CFG.LANE_W*((typeof G.lanes==="number") ? G.lanes : CFG.LANES)/2;
+      for(let side=-1;side<=1;side+=2){
+        for(let k=0;k<n;k++){
+          const m=this.make(kind);
+          m.position.set(side*(edgeX + 0.9 + Math.random()*1.6), 0,
+                         VIEW.camZ+10 - k*gap - Math.random()*gap);
+          m.scale.setScalar(0.3 + Math.random()*0.22);
+          scene.add(m);
+          this.list.push({mesh:m, logicZ:m.position.z});
+        }
+      }
     }
   },
   update(dt,speed){
@@ -2751,7 +2767,7 @@ const TrapArt = {
   loaded(n){
     try{
       const cur = ZONE_FILE[zone().prop];
-      if(n==="floor-"+cur && typeof Ground!=="undefined" && Ground.mat) applyFloorArt(null);
+      if(n==="floor-"+cur && typeof Ground!=="undefined" && Ground.mat){ applyFloorArt(null); applyLandArt(); }
       if(n==="props-"+cur && typeof Props!=="undefined"){ Props.kind=null; Props.build(zone().prop); }
     }catch(e){}
   },
@@ -2794,6 +2810,20 @@ function applyFloorArt(ftex){
     }
     m.needsUpdate = true;
   });
+}
+
+
+/* 트랙 밖 넓은 땅에도 바닥 그림을 깐다 — 조금 어둡게 해서 트랙과 구분 */
+function applyLandArt(){
+  const lm = scene.userData.landMat; if(!lm) return;
+  const art = TrapArt.tex["floor-"+ZONE_FILE[zone().prop]];
+  if(!art) return;
+  const t = art.clone(); t.needsUpdate = true;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(260/5, 900/5);
+  if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
+  t.anisotropy = 8;
+  lm.map = t; lm.needsUpdate = true;
 }
 
 /* 나무·조형물 그림 — 한 장에 4칸, 항상 앞을 보는 그림판으로 세운다 */
