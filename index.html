@@ -141,6 +141,39 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);
   25%{opacity:1;transform:translateX(-50%) translateY(-6px) scale(1.08)}
   70%{opacity:1;transform:translateX(-50%) translateY(-34px) scale(1)}
   100%{opacity:0;transform:translateX(-50%) translateY(-62px) scale(.95)}}
+#err{z-index:100 !important}
+#loading{position:fixed;inset:0;z-index:90;display:grid;place-items:center;
+  background:radial-gradient(120% 90% at 50% 35%,#2a1f55 0%,#140e2e 55%,#0a0718 100%);
+  transition:opacity .45s ease}
+#loading.done{opacity:0;pointer-events:none}
+#loading .ldIn{text-align:center;width:min(80vw,320px)}
+#loading .ldLogo{font-weight:900;font-size:clamp(34px,11vw,54px);letter-spacing:.06em;color:#ffd37a;
+  text-shadow:0 3px 0 #7a3e12,0 8px 24px rgba(0,0,0,.6)}
+#loading .ldSub{margin-top:4px;font-weight:800;font-size:14px;color:#cfc4f2;letter-spacing:.12em}
+#loading .ldBar{margin:26px auto 10px;height:12px;border-radius:99px;background:rgba(255,255,255,.1);
+  overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
+#loading .ldBar i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,#5fe0b0,#ffd37a);transition:width .25s ease}
+#loading .ldText{font-size:12.5px;font-weight:800;color:#e9dffd}
+#loading .ldTip{margin-top:6px;font-size:11px;color:#8d82b8}
+#loading .ldSkip{margin-top:18px;display:none;border:0;border-radius:99px;padding:9px 18px;cursor:pointer;
+  font-weight:800;font-size:12.5px;color:#241a3d;background:#ffd37a}
+
+/* ── 그림 테두리·로고 — 그림을 다 받은 뒤에만 켠다 (없으면 기존 모양) ── */
+body.ui-skin .chip, body.ui-skin .pcard{background:none;border-style:solid;border-width:18px;border-color:transparent;
+  border-image:url(ui-panel.webp) 72 fill / 18px / 3px stretch;border-radius:0;box-shadow:none;padding:0 6px}
+body.ui-skin #prompt{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-style:solid;
+  border-width:22px 26px;border-color:transparent;
+  border-image:url(ui-wide.webp) 90 100 fill / 22px 26px / 3px stretch;border-radius:0;padding:0 8px 2px}
+.logoImg{display:none;width:min(88vw,540px);height:auto;margin:0 auto;
+  filter:drop-shadow(0 10px 22px rgba(0,0,0,.55))}
+.logo.hasImg .logoImg{display:block}
+.logo.hasImg .logoMain, .logo.hasImg .logoSub{display:none}
+#loading .ldImg{display:none;width:min(78vw,380px);height:auto;margin:0 auto 4px}
+#loading .ldIn.hasImg .ldImg{display:block}
+#loading .ldIn.hasImg .ldLogo, #loading .ldIn.hasImg .ldSub{display:none}
+body.ui-skin #pauseBtn, body.ui-skin #fsBtn{background:url(ui-round.webp) center/100% 100% no-repeat;
+  border:0;box-shadow:none;border-radius:50%}
 #zoneTag{position:fixed;left:50%;top:28%;transform:translate(-50%,0) scale(.9);z-index:6;
   pointer-events:none;opacity:0;text-align:center;transition:opacity .4s,transform .4s}
 #zoneTag.on{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -478,6 +511,7 @@ details{display:none}
 <div class="screen on" id="scStart">
   <div class="titleWrap">
     <div class="logo">
+      <img class="logoImg" src="logo.webp" alt="HY ENG" onload="this.parentNode.classList.add('hasImg')" onerror="this.remove()">
       <div class="logoMain">HY ENG</div>
       <div class="logoSub">WORD&nbsp;GATE&nbsp;RUNNER</div>
     </div>
@@ -660,6 +694,17 @@ details{display:none}
   <button class="play ghost" id="btnGiveUp">그만하고 결과 보기</button>
 </div></div>
 
+<div id="loading">
+  <div class="ldIn">
+    <img class="ldImg" src="logo.webp" alt="" onload="this.parentNode.classList.add('hasImg')" onerror="this.remove()">
+    <div class="ldLogo">HY ENG</div>
+    <div class="ldSub">단어 게이트 러너</div>
+    <div class="ldBar"><i id="loadBar"></i></div>
+    <div class="ldText" id="loadText">그림 불러오는 중</div>
+    <div class="ldTip">처음 한 번만 조금 걸려요</div>
+    <button class="ldSkip" id="loadSkip">바로 시작하기</button>
+  </div>
+</div>
 <div id="err">3D 엔진(three.js)을 불러오지 못했습니다.<br>인터넷 연결을 확인하고 새로고침해 주세요.</div>
 
 <script>
@@ -2223,6 +2268,45 @@ function makeLand(){
 /* =====================================================================
    지평선 산맥 그림 — assets 폴더에 그림이 있으면 쓰고, 없으면 기존 삼각 능선
 ===================================================================== */
+
+/* =====================================================================
+   그림 불러오기 화면 — 처음 켤 때 그림을 다 받은 뒤 시작한다
+   (두 번째부터는 저장본이 있어 금방 끝난다)
+===================================================================== */
+
+/* 그림 테두리 세 장을 다 받으면 화면 테두리를 그림으로 바꾼다 */
+(function(){
+  const list=["ui-panel","ui-wide","ui-round"]; let ok=0;
+  list.forEach(n=>{ const im=new Image();
+    im.onload=()=>{ if(++ok===list.length) document.body.classList.add("ui-skin"); };
+    im.src=n+".webp"; });
+})();
+
+const ArtLoad = {
+  total:0, done:0, finished:false,
+  add(n){ this.total+=n; this.render(); },
+  tick(){ this.done++; this.render(); if(this.done>=this.total) this.finish(); },
+  render(){
+    const b=$("loadBar"), t=$("loadText");
+    const pct=Math.round(100*Math.min(this.done,this.total)/Math.max(1,this.total));
+    if(b) b.style.width=pct+"%";
+    if(t) t.textContent="그림 불러오는 중 "+pct+"%";
+  },
+  finish(){
+    if(this.finished) return;
+    this.finished=true;
+    const ov=$("loading");
+    if(ov){ ov.classList.add("done"); setTimeout(()=>{ ov.style.display="none"; }, 480); }
+    try{ if(!G.running) applyZone(G.zone||0,false); }catch(e){}   // 늦게 온 그림까지 한 번에 반영
+  },
+  begin(){
+    setTimeout(()=>{ const k=$("loadSkip"); if(k && !this.finished) k.style.display="inline-block"; }, 4000);
+    setTimeout(()=>this.finish(), 15000);                          // 아무리 늦어도 15초면 시작
+    const k=$("loadSkip"); if(k) k.addEventListener("click",()=>this.finish());
+    if(this.total===0) setTimeout(()=>{ if(this.total===0) this.finish(); }, 600);
+  }
+};
+
 const HorizonArt = {
   files:{ tree:"assets/mountains-meadow",  pillar:"assets/mountains-desert",
           spike:"assets/mountains-ice",    lava:"assets/mountains-volcano",
@@ -2260,6 +2344,31 @@ const HorizonArt = {
     // assets 폴더 → 첫 화면 순서로 찾는다 (어디에 올려도 동작)
     const name = url.replace(/^assets\//, "");
     tryLoad([".webp", ".png"].flatMap(e=>["assets/"+name+e, name+e]).map(p=>"@"+p));
+  },
+  preloadAll(){
+    if(!THREE.TextureLoader) return;
+    const kinds=Object.keys(this.files);
+    ArtLoad.add(kinds.length);
+    kinds.forEach(k=>{
+      const url=this.files[k];
+      if(this.tex[url]){ ArtLoad.tick(); return; }
+      const name=url.replace(/^assets\//,"");
+      const tries=[".webp",".png"].flatMap(e=>[name+e, "assets/"+name+e]);
+      const next=()=>{
+        if(!tries.length){ ArtLoad.tick(); return; }
+        const p=tries.shift();
+        try{
+          new THREE.TextureLoader().load(p, t=>{
+            t.wrapS=THREE.RepeatWrapping; t.repeat.set(7,1); t.anisotropy=8;
+            if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
+            this.tex[url]=t;
+            if(this.want===k) this.apply(t);
+            ArtLoad.tick();
+          }, undefined, next);
+        }catch(e){ next(); }
+      };
+      next();
+    });
   },
   apply(t){
     if(!this.mesh) return;
@@ -2503,7 +2612,7 @@ function applyZone(i, announce){
   Weather.build(z.prop);
   HorizonArt.show(z.prop);                         // 지대에 맞는 산맥 그림
   if(scene.userData.stars) scene.userData.stars.visible = !z.day;   // 낮 지대에는 별이 없다
-  if(!TrapArt._pre){ TrapArt._pre=true; TrapArt.preload(); }
+  if(!TrapArt._pre){ TrapArt._pre=true; ArtLoad.begin(); TrapArt.preload(); }
   if(announce) zoneBanner(z);
 }
 function zoneBanner(z){
@@ -2878,12 +2987,12 @@ const Ground = {
     const mat = new THREE.MeshStandardMaterial({color:COL.floor, roughness:.62, metalness:.18});
     const edge = new THREE.MeshBasicMaterial({color:COL.edge});
     this.mat = mat; this.markMat = edge;
-    this.mats = [mat, mat.clone(), mat.clone(), mat.clone()];   // 칸마다 그림 위치를 달리한다
+    this.mats = [mat]; for(let q=1;q<8;q++) this.mats.push(mat.clone());   // 레인마다 하나 (그림이 이어지게)
     for(let j=0;j<G.lanes;j++){
       for(let k=0;k<count;k++){
         const grp = new THREE.Group();
         // 레인끼리도 딱 붙여 하나의 바닥처럼 보이게 한다
-        const top = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W,0.6,this.len), this.mats[(j%2) + 2*(k%2)]);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W,0.6,this.len), this.mats[j]);
         top.position.y=-0.3; top.receiveShadow = HQ; grp.add(top);
         grp.position.set(laneX(j,G.lanes), 0, VIEW.camZ+10 - k*this.step);
         scene.add(grp);
@@ -3327,11 +3436,13 @@ const TrapArt = {
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night"], tex:{},
   preload(){
-    if(typeof THREE==="undefined" || !THREE.TextureLoader) return;
+    if(typeof THREE==="undefined" || !THREE.TextureLoader){ ArtLoad.finish(); return; }
+    ArtLoad.add(this.names.length);
+    HorizonArt.preloadAll();                        // 산맥 그림도 함께
     this.names.forEach(n=>{
       const tries=[".webp",".png"].flatMap(e=>[n+e,"assets/"+n+e]);
       const next=()=>{
-        if(!tries.length) return;
+        if(!tries.length){ ArtLoad.tick(); return; }     // 없는 그림은 건너뛴다
         const p=tries.shift();
         try{
           new THREE.TextureLoader().load(p, t=>{
@@ -3340,6 +3451,7 @@ const TrapArt = {
             if(n.indexOf("crumble-")===0 || n==="ice-night"){ t.wrapS=t.wrapT=THREE.RepeatWrapping; }
             this.tex[n]=t;
             this.loaded(n);
+            ArtLoad.tick();
           }, undefined, next);
         }catch(e){ next(); }
       };
@@ -3392,9 +3504,8 @@ function applyFloorArt(ftex){
     if(art){
       const t = art.clone(); t.needsUpdate = true;
       t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      // 칸 하나에 그림 한 장, 옆 칸·앞 칸은 거울처럼 뒤집는다 → 경계가 항상 이어진다
-      const fx = (k & 1) ? -1 : 1, fy = (k & 2) ? -1 : 1;
-      t.repeat.set(fx, fy); t.offset.set(fx<0 ? 1 : 0, fy<0 ? 1 : 0);
+      // 그림 한 장 = 한 칸 길이. 레인마다 가로 위치를 이어 붙여 큰 돌판도 끊기지 않는다
+      t.repeat.set(W/L, 1); t.offset.set((k*W/L) % 1, 0);
       if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
       m.map = t; m.color.setHex(mulHex(0xd2d2d2, artTint()));
       m.roughness = 1; m.metalness = 0;              // 칠한 그림에는 반사가 없어야 자연스럽다

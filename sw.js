@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v78";
+const VERSION = "hyeng-v80";
 const CORE = [
   "./",
   "./index.html",
@@ -20,7 +20,8 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀
   "./props-meadow.webp", "./props-desert.webp", "./props-ice.webp", "./props-volcano.webp", "./props-night.webp",
   "./hole-night.webp", "./crumble-night.webp", "./ice-night.webp", "./cloud-fog.webp", "./blocks.webp",
   "./gate-meadow.webp", "./gate-desert.webp", "./gate-ice.webp", "./gate-volcano.webp", "./gate-night.webp",
-  "./sign-meadow.webp", "./sign-desert.webp", "./sign-ice.webp", "./sign-volcano.webp", "./sign-night.webp"
+  "./sign-meadow.webp", "./sign-desert.webp", "./sign-ice.webp", "./sign-volcano.webp", "./sign-night.webp",
+  "./logo.webp", "./ui-panel.webp", "./ui-wide.webp", "./ui-round.webp", "./icon-maskable-512.png"
 ];
 
 self.addEventListener("install", e => {
