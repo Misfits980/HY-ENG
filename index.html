@@ -2110,10 +2110,10 @@ function boot(){
   makeStars();
   setCharacter(G.char);
   beam = new THREE.Mesh(new THREE.PlaneGeometry(CFG.LANE_W-0.5, 30),
-        new THREE.MeshBasicMaterial({color:0xffc46b,transparent:true,opacity:.09}));
+        new THREE.MeshBasicMaterial({color:0xffc46b,transparent:true,opacity:.09,depthWrite:false}));   // 바닥 그림을 가리지 않게
   beam.rotation.x=-Math.PI/2; beam.position.y=.06; beam.visible=false; scene.add(beam);
   blob = new THREE.Mesh(new THREE.CircleGeometry(1.05,20),
-        new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.3}));
+        new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.3,depthWrite:false}));
   blob.rotation.x = -Math.PI/2; blob.position.y = .05; scene.add(blob);
 
   applyLaneMetrics();
@@ -3364,7 +3364,7 @@ const TrapArt = {
     const d=Math.min(w,L)*1.04;
     const decal=new THREE.Mesh(new THREE.PlaneGeometry(d,d),
       new THREE.MeshBasicMaterial({map:this.tex[n], transparent:true, depthWrite:false, color:artTint()}));
-    decal.rotation.x=-Math.PI/2; decal.position.y=.05;
+    decal.rotation.x=-Math.PI/2; decal.position.y=.05; decal.renderOrder=-1;   // 바닥 위 띠·그림자보다 먼저
     decal.userData.noOutline=true;
     g.add(decal);
     g.userData.decal=decal;
@@ -3635,7 +3635,7 @@ function makeHoleRim(){
       for(let i=0;i<8;i++){
         const t=i/8, r=w*.4*(1-t*.72), a=t*2.4;
         const seg=new THREE.Mesh(new THREE.BoxGeometry(.28*(1-t*.5),.02,.08),
-          new THREE.MeshBasicMaterial({color:0xf2e0b4, transparent:true, opacity:.5-t*.34}));
+          new THREE.MeshBasicMaterial({color:0xf2e0b4, transparent:true, opacity:.5-t*.34, depthWrite:false}));
         seg.position.set(Math.cos(a)*r, .05-t*.9, Math.sin(a)*r*1.2);
         seg.rotation.y=-a;
         arm.add(seg);
@@ -3719,7 +3719,7 @@ function makeZoneMesh(kind, w, L){
     // 맥동하는 균열
     for(let i=0;i<10;i++){
       const l=new THREE.Mesh(new THREE.BoxGeometry(.09,.03,1.9),
-        new THREE.MeshBasicMaterial({color:0x2a1408, transparent:true, opacity:.75}));
+        new THREE.MeshBasicMaterial({color:0x2a1408, transparent:true, opacity:.75, depthWrite:false}));
       l.position.set((Math.random()-.5)*w*.85, st.y+.01, (Math.random()-.5)*L*.85);
       l.rotation.y=(Math.random()-.5)*1.6;
       l.userData={phase:Math.random()*6.28};
@@ -4127,7 +4127,7 @@ function newRock(){
   bump.position.set(.5,.5,.35); g.add(bump);
   const root = new THREE.Group(); root.add(g); scene.add(root);
   const beam = new THREE.Mesh(new THREE.PlaneGeometry(1,1),
-    new THREE.MeshBasicMaterial({color:0xff5a45, transparent:true, opacity:.2}));
+    new THREE.MeshBasicMaterial({color:0xff5a45, transparent:true, opacity:.2, depthWrite:false}));
   beam.rotation.x = -Math.PI/2; beam.position.y = .07; scene.add(beam);
   return {root, body:g, beam, lane:0, z:0, drop:0, spin:0, spent:false};
 }
