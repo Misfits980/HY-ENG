@@ -2486,8 +2486,8 @@ function applyZone(i, announce){
   COL.frame = z.frame; COL.edge = z.edge; COL.floor = z.floor;
   const ftex = zoneFloorTexture(i);
   if(Ground.mat){
-    Ground.mat.map = ftex; ftex.repeat.set(1,1);
-    Ground.mat.color.setHex(0x8c8c8c); Ground.mat.needsUpdate = true;
+    ftex.repeat.set(1,1);
+    applyFloorArt(ftex);                             // 바닥 그림이 있으면 그림, 없으면 무늬
   }
   if(scene.userData.landMat){
     const lt = ftex.clone(); lt.needsUpdate=true; lt.wrapS=lt.wrapT=THREE.RepeatWrapping;
@@ -2516,6 +2516,7 @@ function zoneBanner(z){
 const Props = {
   list:[], kind:null, span:0,
   make(kind){
+    if(PropArt.ready(kind)) return PropArt.make(kind);
     const g=new THREE.Group();
     if(kind==="tree"){
       const t=new THREE.Mesh(new THREE.CylinderGeometry(.16,.22,1.4,7),
@@ -2559,6 +2560,7 @@ const Props = {
   },
   clear(){
     this.list.forEach(p=>{ scene.remove(p.mesh);
+      if(p.mesh.userData.sprite) return;             // 그림판은 모양·재질을 함께 쓰므로 지우지 않는다
       p.mesh.traverse(o=>{ if(o.geometry)o.geometry.dispose(); if(o.material)o.material.dispose(); }); });
     this.list=[];
   },
@@ -2579,10 +2581,12 @@ const Props = {
           const m=this.make(kind);
           m.position.set(side*(half + r.off + Math.random()*5), 0,
                          VIEW.camZ+10 - k*gap - (side>0?gap/2:0) - ri*3);
-          m.rotation.y=Math.random()*6.28;
+          m.rotation.y = m.userData.sprite ? 0 : Math.random()*6.28;   // 그림판은 앞을 본다
           m.scale.setScalar(r.sc[0] + Math.random()*(r.sc[1]-r.sc[0]));
-          if(ri===0) stylize(m, 1.05); else toonify(m);
-          m.traverse(o=>{ if(o.isMesh && !o.userData.noOutline) o.castShadow = (HQ && ri===0); });
+          if(!m.userData.sprite){
+            if(ri===0) stylize(m, 1.05); else toonify(m);
+            m.traverse(o=>{ if(o.isMesh && !o.userData.noOutline) o.castShadow = (HQ && ri===0); });
+          }
           scene.add(m);
           this.list.push({mesh:m, logicZ:m.position.z});
         }
@@ -2848,11 +2852,12 @@ const Ground = {
     const mat = new THREE.MeshStandardMaterial({color:COL.floor, roughness:.62, metalness:.18});
     const edge = new THREE.MeshBasicMaterial({color:COL.edge});
     this.mat = mat; this.markMat = edge;
+    this.mats = [mat, mat.clone(), mat.clone(), mat.clone()];   // 칸마다 그림 위치를 달리한다
     for(let j=0;j<G.lanes;j++){
       for(let k=0;k<count;k++){
         const grp = new THREE.Group();
         // 레인끼리도 딱 붙여 하나의 바닥처럼 보이게 한다
-        const top = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W,0.6,this.len), mat);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(CFG.LANE_W,0.6,this.len), this.mats[(j*3+k*5)%4]);
         top.position.y=-0.3; top.receiveShadow = HQ; grp.add(top);
         grp.position.set(laneX(j,G.lanes), 0, VIEW.camZ+10 - k*this.step);
         scene.add(grp);
@@ -3283,7 +3288,9 @@ function judge(s){
    함정 그림 — 그림 파일이 있으면 쓰고, 없으면 코드로 만든 모양 그대로
 ===================================================================== */
 const TrapArt = {
-  names:["hole-meadow","quicksand-desert","lava-pit","crumble-volcano"], tex:{},
+  names:["hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
+          "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
+          "props-meadow","props-desert","props-ice","props-volcano","props-night"], tex:{},
   preload(){
     if(typeof THREE==="undefined" || !THREE.TextureLoader) return;
     this.names.forEach(n=>{
@@ -3297,6 +3304,7 @@ const TrapArt = {
             if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
             if(n==="crumble-volcano"){ t.wrapS=t.wrapT=THREE.RepeatWrapping; }
             this.tex[n]=t;
+            this.loaded(n);
           }, undefined, next);
         }catch(e){ next(); }
       };
@@ -3304,6 +3312,14 @@ const TrapArt = {
     });
   },
   has(n){ return !!this.tex[n]; },
+  /* 늦게 도착한 그림도 지금 지대라면 바로 반영 */
+  loaded(n){
+    try{
+      const cur = ZONE_FILE[zone().prop];
+      if(n==="floor-"+cur && typeof Ground!=="undefined" && Ground.mat) applyFloorArt(null);
+      if(n==="props-"+cur && typeof Props!=="undefined"){ Props.kind=null; Props.build(zone().prop); }
+    }catch(e){}
+  },
   /* 바닥에 깔리는 함정: 뚫린 칸을 바닥 무늬로 덮고, 그 위에 그림을 붙인다 */
   floorDecal(g, n, w, L, floorMat){
     if(floorMat){
@@ -3317,6 +3333,59 @@ const TrapArt = {
     decal.userData.noOutline=true;
     g.add(decal);
     g.userData.decal=decal;
+    return g;
+  }
+};
+
+
+/* 지대 이름 — 그림 파일 이름에 쓴다 */
+const ZONE_FILE = {tree:"meadow", pillar:"desert", spike:"ice", lava:"volcano", crystal:"night"};
+
+/* 바닥 그림 — 칸마다 그림의 다른 부분을 붙여 같은 무늬가 줄지어 보이지 않게 한다 */
+function applyFloorArt(ftex){
+  const mats = Ground.mats || (Ground.mat ? [Ground.mat] : []);
+  const art = TrapArt.tex["floor-"+ZONE_FILE[zone().prop]];
+  const L = Ground.len || Ground.step, W = CFG.LANE_W;
+  mats.forEach((m,k)=>{
+    if(art){
+      const t = art.clone(); t.needsUpdate = true;
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(W/4.2, L/4.2);                   // 그림 한 장 ≈ 가로세로 4.2
+      t.offset.set((k*0.37)%1, (k*0.61)%1);
+      if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
+      m.map = t; m.color.setHex(0xd2d2d2);
+    } else if(ftex){
+      m.map = ftex; m.color.setHex(0x8c8c8c);
+    }
+    m.needsUpdate = true;
+  });
+}
+
+/* 나무·조형물 그림 — 한 장에 4칸, 항상 앞을 보는 그림판으로 세운다 */
+const PropArt = {
+  geos:[], mats:{}, shadowGeo:null, shadowMat:null,
+  ready(kind){ return !!TrapArt.tex["props-"+ZONE_FILE[kind]]; },
+  make(kind){
+    const n="props-"+ZONE_FILE[kind];
+    if(!this.geos.length){
+      const H=4.4, Wd=H*0.5;
+      for(let k=0;k<4;k++){
+        const g=new THREE.PlaneGeometry(Wd,H); g.translate(0,H/2,0);   // 밑동을 기준으로 선다
+        const uv=g.attributes.uv;
+        for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/4);
+        this.geos.push(g);
+      }
+      this.shadowGeo=new THREE.CircleGeometry(Wd*0.34,16);
+      this.shadowMat=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.26,depthWrite:false});
+    }
+    if(!this.mats[n]) this.mats[n]=new THREE.MeshBasicMaterial({map:TrapArt.tex[n], alphaTest:.5,
+      side:THREE.DoubleSide, color:0xe6e6e6});
+    const g=new THREE.Group();
+    const s=new THREE.Mesh(this.geos[Math.floor(Math.random()*4)], this.mats[n]);
+    s.userData.noOutline=true; g.add(s);
+    const sh=new THREE.Mesh(this.shadowGeo,this.shadowMat);                 // 발밑 그림자
+    sh.rotation.x=-Math.PI/2; sh.position.y=.03; sh.userData.noOutline=true; g.add(sh);
+    g.userData.sprite=true;
     return g;
   }
 };
