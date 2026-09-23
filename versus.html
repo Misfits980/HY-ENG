@@ -179,6 +179,39 @@ body.ui-skin #prompt{background:none;backdrop-filter:none;-webkit-backdrop-filte
 #loading .ldIn.hasImg .ldLogo, #loading .ldIn.hasImg .ldSub{display:none}
 body.ui-skin #pauseBtn{background:none;border-style:solid;border-width:12px 16px;border-color:transparent;
   border-image:url(ui-wide.webp) 90 100 fill / 12px 16px / 2px stretch;border-radius:0;box-shadow:none;padding:0 6px}
+
+/* ── 난이도 광택 버튼 (스케치대로) ── */
+.cardCol{display:flex;flex-direction:column;gap:10px;align-items:center;width:100%}
+.scrollRow{max-height:min(52vh,420px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.tile.gbtn{position:relative;width:min(360px,92%);height:80px;padding:0 20px;border-radius:20px;
+  border:3px solid #150c28;clip-path:none;background:none;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;
+  box-shadow:0 5px 0 #150c28,inset 0 3px 0 rgba(255,255,255,.4),inset 0 -8px 0 rgba(0,0,0,.16)}
+.tile.gbtn b{font-size:25px;color:#fff;text-shadow:0 2px 0 #150c28,2px 0 0 #150c28,-2px 0 0 #150c28,0 -2px 0 #150c28}
+.tile.gbtn small{font-size:11.5px;font-weight:900;color:#1b1030}
+.tile.gbtn em{position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  font-style:normal;font-size:19px;color:#ffe9a8;text-shadow:0 2px 0 #150c28;letter-spacing:-1px}
+.tile.gbtn.sel{box-shadow:0 5px 0 #150c28,inset 0 3px 0 rgba(255,255,255,.4),
+  inset 0 -8px 0 rgba(0,0,0,.16),0 0 0 3px #ffd37a,0 0 18px rgba(255,211,122,.55)}
+.tile.gbtn.g-green{background:linear-gradient(180deg,#98e46f,#4fb33a 55%,#3a8f2a)}
+.tile.gbtn.g-amber{background:linear-gradient(180deg,#ffd978,#f0a92a 55%,#c9801a)}
+.tile.gbtn.g-red{background:linear-gradient(180deg,#ff8f70,#e5533a 55%,#b53a26)}
+body.ui-skin .tile.gbtn{border-image:none;border-width:3px;padding:0 20px}
+#selP1 .tile, #selP2 .tile{width:104px}
+
+/* ── 타이틀 주요 버튼 — 광택 버튼으로 ── */
+.menu #btnGo, .menu #btnResume, .menu #btnStart2P{
+  width:min(300px,84vw);height:64px;margin:5px auto;border-radius:20px;border:3px solid #150c28;
+  color:#fff;font-size:clamp(20px,5vw,25px);
+  text-shadow:0 2px 0 #150c28,2px 0 0 #150c28,-2px 0 0 #150c28,0 -2px 0 #150c28;
+  box-shadow:0 5px 0 #150c28,inset 0 3px 0 rgba(255,255,255,.4),inset 0 -8px 0 rgba(0,0,0,.16);
+  background:linear-gradient(180deg,#9fe86b,#5aa832 55%,#40851f)}
+.menu #btnResume{background:linear-gradient(180deg,#ffd978,#f0a92a 55%,#c9801a)}
+.menu #btnGo:before, .menu #btnResume:before, .menu #btnStart2P:before{content:none}
+.menu #btnGo:hover, .menu #btnResume:hover, .menu #btnStart2P:hover{
+  transform:translateY(-2px) scale(1.02);color:#fff;background-color:transparent}
+.menu #btnGo:active, .menu #btnResume:active, .menu #btnStart2P:active{
+  transform:translateY(3px);box-shadow:0 2px 0 #150c28,inset 0 3px 0 rgba(255,255,255,.35)}
 #zoneTag{position:fixed;left:50%;top:26%;transform:translate(-50%,0) scale(.9);z-index:6;
   pointer-events:none;opacity:0;text-align:center;transition:opacity .4s,transform .4s}
 #zoneTag.on{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -353,10 +386,10 @@ body.ui-skin #pauseBtn{background:none;border-style:solid;border-width:12px 16px
     <div class="setBoard">
 
       <div class="tsec" data-step="0">
-        <div class="tileRow" id="selDiff">
-          <div class="tile" data-v="easy"><i>🐣</i><b>쉬움</b><small>문 3개 · 함정 없음</small></div>
-          <div class="tile sel" data-v="normal"><i>⚡</i><b>보통</b><small>문 5개 · 함정 조금</small></div>
-          <div class="tile" data-v="hard"><i>🔥</i><b>어려움</b><small>문 7개 · 함정 전부</small></div>
+        <div class="cardCol" id="selDiff">
+          <div class="tile gbtn g-green" data-v="easy"><b>쉬움</b><small>문 3개 · 목숨 5개 · 함정 없음</small><em>★</em></div>
+          <div class="tile gbtn g-amber sel" data-v="normal"><b>보통</b><small>문 5개 · 목숨 3개 · 함정 조금</small><em>★★</em></div>
+          <div class="tile gbtn g-red" data-v="hard"><b>어려움</b><small>문 7개 · 목숨 3개 · 함정 전부</small><em>★★★</em></div>
         </div>
       </div>
 
@@ -381,7 +414,7 @@ body.ui-skin #pauseBtn{background:none;border-style:solid;border-width:12px 16px
       </div>
 
       <div class="tsec" data-step="3">
-        <div class="tileRow wrap" id="selP1">
+        <div class="tileRow wrap scrollRow" id="selP1">
           <div class="tile sel" data-v="hero"><i>⚔️</i><b>용사</b></div>
           <div class="tile" data-v="explorer"><i>🗺️</i><b>탐험가</b></div>
           <div class="tile" data-v="archer"><i>🏹</i><b>궁수</b></div>
@@ -395,7 +428,7 @@ body.ui-skin #pauseBtn{background:none;border-style:solid;border-width:12px 16px
       </div>
 
       <div class="tsec" data-step="4">
-        <div class="tileRow wrap" id="selP2">
+        <div class="tileRow wrap scrollRow" id="selP2">
           <div class="tile" data-v="hero"><i>⚔️</i><b>용사</b></div>
           <div class="tile sel" data-v="explorer"><i>🗺️</i><b>탐험가</b></div>
           <div class="tile" data-v="archer"><i>🏹</i><b>궁수</b></div>
@@ -3987,7 +4020,13 @@ function movePlayer(p, dt){
   if(p.legL){ p.legL.rotation.x=sw; p.legR.rotation.x=-sw; }
   if(p.armL){ p.armL.rotation.x=-sw*.8; p.armR.rotation.x=sw*.8; }
   p.tilt += ((-clamp(p.vx/CFG.MOVE,-1,1)*.24)-p.tilt)*Math.min(1,dt*9);
-  const bob = p.falling ? 0 : (p.float ? .35+Math.sin(p.phase)*.14 : Math.abs(Math.sin(p.phase))*.07);
+  const spr = !!(p.mesh && p.mesh.userData.sprite), bnc = Math.abs(Math.sin(p.phase));
+  const bob = p.falling ? 0 : (p.float ? .35+Math.sin(p.phase)*.14 : (spr ? bnc*0.16 : bnc*.07));
+  if(spr && !p.float){
+    const sq = p.falling ? 1 : 1 + (1-bnc)*0.09;
+    p.mesh.scale.set(sq, 2-sq, 1);
+    p.mesh.rotation.x = p.falling ? p.mesh.rotation.x : -0.06;
+  }
   p.mesh.position.set(p.x, p.y + bob, p.z);
   updateBlob(p);
   p.mesh.rotation.z = p.tilt;
@@ -4474,9 +4513,13 @@ function drawDots(){
   const d=$("stepDots"); if(!d) return;
   d.innerHTML = STEPS.map((_,i)=>'<i class="'+(i<=step?"on":"")+'"></i>').join("");
 }
+const TILE_EMOJI = {easy:"🐣", normal:"⚡", hard:"🔥"};
 function drawSummary(){
   const pick1=(id)=>{ const el=document.querySelector("#"+id+" .tile.sel");
-    return el ? {i:el.querySelector("i").textContent, b:el.querySelector("b").textContent} : null; };
+    if(!el) return null;
+    const ic=el.querySelector("i");
+    const emo = ic ? ic.textContent : (TILE_EMOJI[el.dataset.v] || "");   // 광택 버튼에는 이모지 칸이 없다
+    return {i:emo, b:el.querySelector("b").textContent}; };
   const parts=[pick1("selDiff"),pick1("selSet"),pick1("selMode"),
                pick1("selP1"),pick1("selP2")].filter(Boolean);
   $("summary").innerHTML = parts.map(p=>'<div class="sumItem"><i>'+p.i+'</i>'+p.b+'</div>').join("");
