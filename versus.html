@@ -199,19 +199,36 @@ body.ui-skin #pauseBtn{background:none;border-style:solid;border-width:12px 16px
 body.ui-skin .tile.gbtn{border-image:none;border-width:3px;padding:0 20px}
 #selP1 .tile, #selP2 .tile{width:104px}
 
-/* ── 타이틀 주요 버튼 — 광택 버튼으로 ── */
-.menu #btnGo, .menu #btnResume, .menu #btnStart2P{
-  width:min(300px,84vw);height:64px;margin:5px auto;border-radius:20px;border:3px solid #150c28;
-  color:#fff;font-size:clamp(20px,5vw,25px);
-  text-shadow:0 2px 0 #150c28,2px 0 0 #150c28,-2px 0 0 #150c28,0 -2px 0 #150c28;
-  box-shadow:0 5px 0 #150c28,inset 0 3px 0 rgba(255,255,255,.4),inset 0 -8px 0 rgba(0,0,0,.16);
-  background:linear-gradient(180deg,#9fe86b,#5aa832 55%,#40851f)}
-.menu #btnResume{background:linear-gradient(180deg,#ffd978,#f0a92a 55%,#c9801a)}
-.menu #btnGo:before, .menu #btnResume:before, .menu #btnStart2P:before{content:none}
-.menu #btnGo:hover, .menu #btnResume:hover, .menu #btnStart2P:hover{
-  transform:translateY(-2px) scale(1.02);color:#fff;background-color:transparent}
-.menu #btnGo:active, .menu #btnResume:active, .menu #btnStart2P:active{
-  transform:translateY(3px);box-shadow:0 2px 0 #150c28,inset 0 3px 0 rgba(255,255,255,.35)}
+
+
+
+
+/* ── 타이틀 메뉴 — 명판 3개 + 아래 한 줄 ── */
+.menu{display:flex;flex-direction:column;align-items:center;gap:7px}
+.subRow{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;
+  width:min(320px,90vw);margin-top:9px}
+.subRow .mitem{padding:9px 10px;font-size:14.5px;font-weight:800;color:#bdb2e4;
+  text-shadow:0 2px 6px rgba(0,0,0,.7);background:none;transform:none}
+.subRow .mitem:before{content:none}
+.subRow .mitem:hover,.subRow .mitem.on{color:#ffd37a;background:none;transform:none;text-decoration:underline}
+.subRow .dot{color:#6a5d96;font-size:13px;font-weight:800;pointer-events:none}
+body.ui-skin .menu .mitem{width:min(310px,88vw);min-height:58px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-style:solid;border-width:14px 20px;border-color:transparent;
+  border-image:url(ui-wide.webp) 90 100 fill / 14px 20px / 2px stretch;
+  border-radius:0;background:none;padding:2px 4px;transform:none;transition:.13s}
+body.ui-skin .menu .mitem:before{content:none}
+body.ui-skin .menu .mitem:hover, body.ui-skin .menu .mitem.on{
+  color:#ffd37a;background:none;transform:translateY(-2px);
+  filter:drop-shadow(0 0 9px rgba(255,205,110,.5))}
+body.ui-skin .menu .mitem:active{transform:translateY(2px)}
+body.ui-skin .menu #btnGo{color:#ffd37a;animation:plaqueGlow 2.6s ease-in-out infinite}
+@keyframes plaqueGlow{0%,100%{filter:drop-shadow(0 0 5px rgba(255,205,110,.35))}
+  50%{filter:drop-shadow(0 0 12px rgba(255,205,110,.8))}}
+/* 아래 한 줄은 명판을 쓰지 않는다 */
+body.ui-skin .subRow .mitem{width:auto;min-height:0;border:0;border-image:none;padding:9px 10px;
+  display:inline-block;filter:none}
+body.ui-skin .subRow .mitem:hover{filter:none;transform:none}
 #zoneTag{position:fixed;left:50%;top:26%;transform:translate(-50%,0) scale(.9);z-index:6;
   pointer-events:none;opacity:0;text-align:center;transition:opacity .4s,transform .4s}
 #zoneTag.on{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -367,9 +384,11 @@ body.ui-skin .tile.gbtn{border-image:none;border-width:3px;padding:0 20px}
     <div class="tagline">한 화면에서 둘이 동시에<br>같은 문제를 푼다</div>
     <nav class="menu" id="mainMenu">
       <button class="mitem" id="btnResume" style="display:none"></button>
-      <button class="mitem" id="btnGo">대결 시작</button>
-      <button class="mitem" id="btnHelp">조작법</button>
-      <button class="mitem" id="btnSolo">혼자 하기</button>
+      <button class="mitem" id="btnGo">▶ 대결 시작</button>
+      <div class="subRow">
+        <button class="mitem" id="btnHelp">조작법</button><span class="dot">·</span>
+        <button class="mitem" id="btnSolo">혼자 하기</button>
+      </div>
     </nav>
   </div>
   <div class="verTag">v1.0</div>
@@ -4646,7 +4665,7 @@ function refreshResume(){
   const c1=(CHARACTERS.filter(c=>c.id===st.p1)[0]||CHARACTERS[0]);
   const c2=(CHARACTERS.filter(c=>c.id===st.p2)[0]||CHARACTERS[1]);
   el.style.display="block";
-  el.innerHTML='이어서 하기 <small style="display:block;font-size:11px;color:#a99ed0;font-weight:700">'
+  el.innerHTML = '↻ 이어서 하기 <small style="display:block;font-size:11px;color:#a99ed0;font-weight:700">'
     + VDIFF[st.diff].label+' · '+(SETS[st.set].label||st.set)+' · '+c1.emoji+' vs '+c2.emoji+'</small>';
 }
 $("btnResume").addEventListener("click",()=>{
