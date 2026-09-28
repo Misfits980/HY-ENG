@@ -299,16 +299,32 @@ body.hud-ok #pauseBtn .hico.pause{width:20px;height:20px}
 body.hud-ok #pauseBtn .hico.pause{display:inline-block}
 body.por-ok #selChar .tile i, body.por-ok #selP1 .tile i, body.por-ok #selP2 .tile i{
   display:block;width:58px;height:58px;margin:0 auto 2px;font-size:0;color:transparent;
-  background:url(char-portraits.webp) no-repeat;background-size:900% 100%;border-radius:50%}
-body.por-ok .tile[data-v="hero"] i{background-position:0.0% 0}
-body.por-ok .tile[data-v="explorer"] i{background-position:12.5% 0}
-body.por-ok .tile[data-v="archer"] i{background-position:25.0% 0}
-body.por-ok .tile[data-v="mage"] i{background-position:37.5% 0}
-body.por-ok .tile[data-v="knight"] i{background-position:50.0% 0}
-body.por-ok .tile[data-v="scholar"] i{background-position:62.5% 0}
-body.por-ok .tile[data-v="ghost"] i{background-position:75.0% 0}
-body.por-ok .tile[data-v="cat"] i{background-position:87.5% 0}
-body.por-ok .tile[data-v="wolf"] i{background-position:100.0% 0}
+  background-image:url(char-portraits.webp);background-repeat:no-repeat;background-size:900% 100%;
+  border-radius:50%}
+body.por-ok #selChar .tile[data-v="hero"] i, body.por-ok #selP1 .tile[data-v="hero"] i, body.por-ok #selP2 .tile[data-v="hero"] i{background-position:0.0% 0}
+body.por-ok #selChar .tile[data-v="explorer"] i, body.por-ok #selP1 .tile[data-v="explorer"] i, body.por-ok #selP2 .tile[data-v="explorer"] i{background-position:12.5% 0}
+body.por-ok #selChar .tile[data-v="archer"] i, body.por-ok #selP1 .tile[data-v="archer"] i, body.por-ok #selP2 .tile[data-v="archer"] i{background-position:25.0% 0}
+body.por-ok #selChar .tile[data-v="mage"] i, body.por-ok #selP1 .tile[data-v="mage"] i, body.por-ok #selP2 .tile[data-v="mage"] i{background-position:37.5% 0}
+body.por-ok #selChar .tile[data-v="knight"] i, body.por-ok #selP1 .tile[data-v="knight"] i, body.por-ok #selP2 .tile[data-v="knight"] i{background-position:50.0% 0}
+body.por-ok #selChar .tile[data-v="scholar"] i, body.por-ok #selP1 .tile[data-v="scholar"] i, body.por-ok #selP2 .tile[data-v="scholar"] i{background-position:62.5% 0}
+body.por-ok #selChar .tile[data-v="ghost"] i, body.por-ok #selP1 .tile[data-v="ghost"] i, body.por-ok #selP2 .tile[data-v="ghost"] i{background-position:75.0% 0}
+body.por-ok #selChar .tile[data-v="cat"] i, body.por-ok #selP1 .tile[data-v="cat"] i, body.por-ok #selP2 .tile[data-v="cat"] i{background-position:87.5% 0}
+body.por-ok #selChar .tile[data-v="wolf"] i, body.por-ok #selP1 .tile[data-v="wolf"] i, body.por-ok #selP2 .tile[data-v="wolf"] i{background-position:100.0% 0}
+
+/* ── 등급 표시 ── */
+.rkName{font-style:normal;font-weight:900;letter-spacing:.04em}
+.rkLine{margin-top:5px;font-size:12px;font-weight:800;color:#cfc4f2}
+.rkRow{display:grid;grid-template-columns:78px 82px 1fr;align-items:center;gap:4px 8px;
+  padding:7px 2px;border-bottom:1px solid rgba(255,255,255,.07);font-size:12.5px}
+.rkRow .rkSet{color:#cfc4f2;font-weight:800}
+.rkRow b{font-weight:900;letter-spacing:.03em}
+.rkRow .rkBar{height:7px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}
+.rkRow .rkBar i{display:block;height:100%;border-radius:9px}
+.rkRow small{grid-column:2 / 4;color:#8d82b8;font-size:11px}
+.back{width:auto !important;min-width:40px;height:36px !important;padding:0 14px !important;
+  border-radius:99px !important;white-space:nowrap;left:10px !important;font-size:14px}
+/* 그래픽 품질 4칸은 2x2 로 */
+#selQual .tile{width:calc(50% - 8px) !important;max-width:150px}
 #zoneTag{position:fixed;left:50%;top:28%;transform:translate(-50%,0) scale(.9);z-index:6;
   pointer-events:none;opacity:0;text-align:center;transition:opacity .4s,transform .4s}
 #zoneTag.on{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -672,6 +688,7 @@ details{display:none}
 <!-- 학습 기록 -->
 <div class="sheet" id="shStats"><div class="sheetIn">
   <h2>학습 기록</h2>
+  <div id="stRank"></div>
   <div class="stats" id="stToday"></div>
   <div class="glab" style="margin-top:14px">최근 7일</div>
   <div id="stChart"></div>
@@ -1852,6 +1869,61 @@ const WrongBook = (function(){
     count(){ return load().length; }
   };
 })();
+
+
+/* =====================================================================
+   등급 — 학년 묶음마다 "익힌 단어"(두 번 연속 맞힘) 비율로 오른다
+   BEGINNER → STARTER → RUNNER → SPRINTER → MASTER
+===================================================================== */
+const Rank = (function(){
+  const KEY="hyeng_rank_v1";
+  const TIERS=[
+    {name:"BEGINNER", ko:"첫걸음", at:0,    col:"#d49a5c"},
+    {name:"STARTER",  ko:"출발",   at:0.20, col:"#d6dceb"},
+    {name:"RUNNER",   ko:"달리기", at:0.45, col:"#ffd37a"},
+    {name:"SPRINTER", ko:"질주",   at:0.70, col:"#8fe3ff"},
+    {name:"MASTER",   ko:"마스터", at:0.90, col:"#ff9ad5"}
+  ];
+  let mem={}, ls=false;
+  try{ localStorage.setItem(KEY+"_t","1"); localStorage.removeItem(KEY+"_t"); ls=true; }catch(e){}
+  function load(){ if(ls){ try{ const v=JSON.parse(localStorage.getItem(KEY)); if(v) return v; }catch(e){} } return mem; }
+  function save(o){ mem=o; if(!ls) return; try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
+  function pool(id){
+    const S=WORD_SETS[id]; if(!S || S.review) return null;
+    return WORD_BANK.filter(w=>S.levels.indexOf(w.level)>=0 && (!S.pictureOnly || w.emoji)).map(w=>w.en);
+  }
+  return {
+    TIERS,
+    record(en, ok){
+      if(!en) return;
+      const o=load(), v=o[en]||0;
+      o[en] = ok ? Math.min(9, v+1) : 0;
+      save(o);
+    },
+    of(id){
+      const p=pool(id); if(!p || !p.length) return null;
+      const o=load(); let n=0;
+      for(let k=0;k<p.length;k++) if((o[p[k]]||0)>=2) n++;
+      const pct=n/p.length; let i=0;
+      TIERS.forEach((t,k)=>{ if(pct>=t.at) i=k; });
+      const nx=TIERS[i+1]||null;
+      const need = nx ? Math.max(0, Math.ceil(nx.at*p.length)-n) : 0;
+      return {i, tier:TIERS[i], pct, learned:n, total:p.length, next:nx, need};
+    }
+  };
+})();
+
+/* 학년 타일에 등급 이름과 진행률 */
+function refreshRankTiles(){
+  const els=document.querySelectorAll ? document.querySelectorAll('#selSet .tile[data-v]') : [];
+  for(let k=0;k<els.length;k++){
+    const el=els[k], id=el.dataset && el.dataset.v;
+    if(!id || id==="wrong") continue;
+    const r=Rank.of(id), sm=el.querySelector && el.querySelector("small");
+    if(!r || !sm) continue;
+    sm.innerHTML='<em class="rkName" style="color:'+r.tier.col+'">'+r.tier.name+'</em> '+Math.round(r.pct*100)+'%';
+  }
+}
 
 /* =====================================================================
    §2 CONFIG — 상수 (config.js 로 분리 가능)
@@ -3613,6 +3685,7 @@ function judge(s){
     });
     if(hitMine){
       G.wrong++; G.combo=0; SFX.wrong(); G.breather=true;
+      Rank.record(s.q.word && s.q.word.en, false);
       passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.coral);
       const w=s.q.word;
       if(!G.wrongWords.some(x=>x.en===w.en)) G.wrongWords.push({en:w.en, ko:w.ko});
@@ -3624,6 +3697,7 @@ function judge(s){
       if(G.lives<=0){ updateHUD(); gameOver(); return; }
     } else {
       G.right++; G.combo++; G.bestCombo=Math.max(G.bestCombo,G.combo);
+      Rank.record(s.q.word && s.q.word.en, true);
       SFX.correct();
       passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.mint);
       const bonus = Math.round(CFG.SCORE_BASE*0.8 + (G.combo-1)*CFG.COMBO_STEP);
@@ -3661,6 +3735,7 @@ function judge(s){
 
   if(ok){
     G.right++; G.combo++; G.solved++;
+    Rank.record(s.q.word && s.q.word.en, true);
     onRuleRight();
     passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.mint);
     shatterGate(s.gates[s.q.answer], s.group.position.z, COL.mint);
@@ -3686,6 +3761,7 @@ function judge(s){
     spawnSet();                     // 흐름이 끊기지 않도록 즉시 다음 문제
   } else {
     G.wrong++; G.combo=0; SFX.wrong(); G.breather = true; G.solved++;
+    Rank.record(s.q.word && s.q.word.en, false);
     onRuleWrong();
     passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.coral);
     setTimeout(()=>Voice.say(s.q.word.en, {keep:true}), 320);   // 틀리면 정답 발음을 들려준다
@@ -5679,6 +5755,7 @@ function goStep(i){
   drawDots();
   if(step===0) syncCardScroll();
   if(step===1) refreshExtremeTile();
+  if(step===3) refreshRankTiles();
   if(step===3){ refreshWrongCount(); refreshTagTiles(); }
   if(step===5){ drawSummary(); refreshQualTiles(); }
   Attract.focus = (step===4 || step===5);      // 캐릭터 단계에서 클로즈업
@@ -5697,13 +5774,15 @@ function syncCardScroll(){
   }
 }
 function nextStep(){ SFX.select(); setTimeout(()=>goStep(step+1), 180); }
-const TILE_EMOJI = {normal:"⚡", time:"⏱", endless:"🏃", mine:"🚫", daily:"🌙",
-                    easy:"🐣", hard:"🔥", extreme:"⚔️"};
+const TILE_EMOJI = {normal:"⚡", easy:"🐣", hard:"🔥", extreme:"⚔️"};   // 난이도용
 function drawSummary(){
   const pick=(id)=>{ const el=document.querySelector("#"+id+" .tile.sel");
     if(!el) return null;
     const ic=el.querySelector("i");
-    const emo = ic ? ic.textContent : (TILE_EMOJI[el.dataset.v] || "");   // 카드·버튼에는 이모지 칸이 없다
+    const v=el.dataset.v;
+    const emo = ic ? ic.textContent
+              : id==="selRule" ? ((RULES[v]||{}).icon || "")          // 게임 방식은 규칙 아이콘
+              : (TILE_EMOJI[v] || "");                                // 난이도
     return {i:emo, b:el.querySelector("b").textContent}; };
   const parts=[pick("selRule"),pick("selDiff"),pick("selMode"),pick("selSet"),pick("selChar")].filter(Boolean);
   $("summary").innerHTML = parts.map(p=>'<div class="sumItem"><i>'+p.i+'</i>'+p.b+'</div>').join("");
@@ -5791,6 +5870,7 @@ pickers("selChar",v=>{ G.char=v; setCharacter(v); previewCharacter(); nextStep()
 
 /* 시작 / 종료 */
 function startGame(){
+  try{ const r0=Rank.of(G.set); G.rankBefore = r0 ? r0.i : null; }catch(e){ G.rankBefore=null; }
   Attract.focus=false; Attract.clear();
   SFX.start(); Voice.warm(); BGM.start();
   G.nick = ($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase() || "PLAYER";
@@ -5884,6 +5964,16 @@ function gameOver(){
   else if(prev && G.stage===prev.stage) msg="지난번과 같은 "+G.stage+"스테이지 — 다음엔 한 걸음 더";
   else msg = G.wrongWords.length ? "틀린 단어를 한 번만 더 보고 가요" : "좋아요, 이 흐름을 이어가요";
   const hl=$("oHighlight"); hl.textContent=msg; hl.className = isBest ? "best" : "";
+  try{
+    const r1=Rank.of(G.set);
+    if(r1 && G.rankBefore!=null && r1.i>G.rankBefore){
+      hl.innerHTML='🏅 <b style="color:'+r1.tier.col+'">'+r1.tier.name+'</b> 달성! · '+WORD_SETS[G.set].label;
+      hl.className="best";
+    } else if(r1){
+      hl.innerHTML += '<div class="rkLine">'+WORD_SETS[G.set].label+' <b style="color:'+r1.tier.col+'">'+r1.tier.name+'</b>'
+        + (r1.next ? ' · '+r1.next.name+'까지 '+r1.need+'단어' : ' · 최고 등급!')+'</div>';
+    }
+  }catch(e){}
   Best.save(G.diff, {score:G.score, stage:G.stage, acc:acc});
   Stats.addGame(G.right, G.wrong, G.wrongWords);
   LastSetup.save({rule:G.rule, diff:G.diff, mode:G.mode, set:G.set, char:G.char,
@@ -5992,6 +6082,15 @@ function drawStats(){
      '<div class="stat"><b>'+(t.right+t.wrong)+'</b><small>오늘 푼 문제</small></div>'
     +'<div class="stat"><b>'+accT+'%</b><small>오늘 정답률</small></div>'
     +'<div class="stat"><b>'+a.games+'</b><small>누적 판수</small></div>';
+  const rk=["kinder","basic","elem","mid","all"].map(id=>{
+    const r=Rank.of(id); if(!r) return "";
+    const w=Math.round(r.pct*100);
+    return '<div class="rkRow"><span class="rkSet">'+WORD_SETS[id].label+'</span>'
+      +'<b style="color:'+r.tier.col+'">'+r.tier.name+'</b>'
+      +'<div class="rkBar"><i style="width:'+w+'%;background:'+r.tier.col+'"></i></div>'
+      +'<small>'+(r.next ? r.next.name+'까지 '+r.need+'개' : '최고 등급')+'</small></div>';
+  }).join("");
+  if($("stRank")) $("stRank").innerHTML='<div class="glab">학년별 등급</div>'+rk;
   const days=Stats.recentDays(7);
   const max=Math.max(1, ...days.map(d=>d.right+d.wrong));
   $("stChart").innerHTML = '<div class="bar">'+days.map(d=>{
