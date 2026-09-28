@@ -2141,6 +2141,7 @@ const DIFF = {
           lateDecay:0.030, minTime:2.4,
           holes:1, blocks:2, ice:0, hide:0.80, scoreMul:2.4, lives:3, twinHole:10,
           hazGap:0.105, hazFrom:0.33, hazSpan:0.46,
+          grid:true, rowGap:0.46, twoPerRow:0.30, ansClear:1.5, exitClear:1.0, gateSafe:0.9, passSafe:0.5,
           boulder:true, rockFrom:5, windFrom:8, sway:false, swaps:0,
           ramp:[{from:6, ice:1}, {from:9, cloud:1},
                 {from:11, crumble:1}, {from:13, fake:1},
@@ -2153,6 +2154,7 @@ const DIFF = {
           lateDecay:0.040, minTime:2.0,
           holes:2, blocks:2, ice:0, hide:0.9, scoreMul:3.5, lives:2, twinHole:8,
           hazGap:0.085, hazFrom:0.30, hazSpan:0.50,
+          grid:true, rowGap:0.38, twoPerRow:0.45, ansClear:1.2, exitClear:0.9, gateSafe:0.8, passSafe:0.5,
           boulder:true, rockFrom:3, windFrom:6, sway:false, swaps:0,
           ramp:[{from:5, ice:1}, {from:7, cloud:1},
                 {from:8, crumble:1}, {from:9, fake:1},
@@ -3874,7 +3876,7 @@ function judge(s){
       if(G.lives<=0){ updateHUD(); gameOver(); return; }
     } else {
       G.right++; G.combo++; G.bestCombo=Math.max(G.bestCombo,G.combo);
-      G.passSafe = 1.2;
+      G.passSafe = (DIFF[G.diff].passSafe!=null ? DIFF[G.diff].passSafe : 1.2);
       Rank.record(s.q.word && s.q.word.en, true);
       SFX.correct();
       passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.mint);
@@ -3913,7 +3915,7 @@ function judge(s){
 
   if(ok){
     G.right++; G.combo++; G.solved++;
-    G.passSafe = 1.2;                              // 문을 막 통과했다 — 잠깐 함정에 안 걸린다
+    G.passSafe = (DIFF[G.diff].passSafe!=null ? DIFF[G.diff].passSafe : 1.2);                              // 문을 막 통과했다 — 잠깐 함정에 안 걸린다
     Rank.record(s.q.word && s.q.word.en, true);
     onRuleRight();
     passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.mint);
@@ -3968,7 +3970,7 @@ function judge(s){
    함정 그림 — 그림 파일이 있으면 쓰고, 없으면 코드로 만든 모양 그대로
 ===================================================================== */
 const TrapArt = {
-  names:["hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
+  names:["ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
           "hole-night","crumble-night","ice-night","cloud-fog","blocks",
@@ -4078,6 +4080,27 @@ function applyLandArt(){
 
 /* 서 있는 장애물 그림 — 한 장에 4칸 (초원·사막·얼음·밤하늘) */
 const BLOCK_CELL = {tree:0, pillar:1, spike:2, crystal:3};
+/* 얼음덩이 — 그림(ice-chunk)이 있으면 그림판, 없으면 반투명 얼음 */
+function makeIceChunk(){
+  const g=new THREE.Group(), Wd=CFG.LANE_W*0.9;
+  if(TrapArt.has("ice-chunk")){
+    const im=TrapArt.tex["ice-chunk"].image, r=(im && im.width) ? im.height/im.width : 0.662;   // 그림 비율 그대로
+    const Hd=Wd*r, geo=new THREE.PlaneGeometry(Wd,Hd); geo.translate(0,Hd/2,0);
+    const s=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:TrapArt.tex["ice-chunk"], transparent:true, alphaTest:.06,
+      side:THREE.DoubleSide, color:mulHex(0xf4f8ff, artTint())}));
+    s.userData.noOutline=true; g.add(s); g.userData.sprite=true;
+  } else {
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(Wd*0.4,0), new THREE.MeshStandardMaterial({color:0xcdeeff,
+      roughness:.15, metalness:0, transparent:true, opacity:.88, emissive:0x3a6f9a, emissiveIntensity:.3, flatShading:true}));
+    m.scale.set(1.1,0.8,0.9); m.position.y=Wd*0.32; m.userData.noOutline=true; g.add(m);
+    const cap=new THREE.Mesh(new THREE.IcosahedronGeometry(Wd*0.22,0), new THREE.MeshStandardMaterial({color:0xf4fbff,roughness:.6,flatShading:true}));
+    cap.scale.set(1.4,0.35,1.1); cap.position.y=Wd*0.62; cap.userData.noOutline=true; g.add(cap);   // 위에 쌓인 눈
+  }
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(Wd*0.44,16),
+    new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));
+  sh.rotation.x=-Math.PI/2; sh.position.y=.04; sh.scale.y=.55; sh.userData.noOutline=true; g.add(sh);
+  return g;
+}
 function blockSprite(kind){
   if(!(kind in BLOCK_CELL) || !TrapArt.has("blocks")) return null;
   const k=BLOCK_CELL[kind], Wd=CFG.LANE_W*0.86, Hd=Wd*2;
@@ -4554,6 +4577,7 @@ const Hazards = {
       if(!nHoles && !nBlocks && !(g.iceFrom && G.stage>=g.iceFrom)) return;
     }
     else if(G.stage < HAZARD_FROM_STAGE) return;
+    if(!G.gentle && DIFF[G.diff].grid){ this.spawnGrid(gateZ, answerLane, setSpeed); return; }
     const used = [answerLane];              // ★ 정답 레인 제외
     const zs = [], zones = [];
     /* ★ 문을 지나자마자 함정에 부딪히지 않게
@@ -4665,6 +4689,156 @@ const Hazards = {
       this.addBlock(l,z); used.push(l);
     }
   },
+
+  /* =================================================================
+     어려움·극한 — 시간 줄 배치
+     · 앞 문을 지나 gateSafe 초 뒤부터, 문 바로 앞 0.35초 전까지
+     · rowGap 초마다 한 줄, 한 줄에 1~2개 (빨라질수록 촘촘해진다)
+     · 정답 줄은 "문 앞 ansClear 초"만 비운다 — 그 전에는 정답 줄에도 함정
+     · 빠져나온 줄은 exitClear 초 동안 비운다
+     · 마지막에 길 찾기 검사 — 앞 문에서 정답 줄까지 갈 길이 없으면 하나씩 뺀다
+  ================================================================= */
+  spawnGrid(gateZ, answerLane, setSpeed){
+    const d=DIFF[G.diff], n=G.lanes, Z=zone();
+    const spd=Math.max(setSpeed||0, G.groundSpeed||0, G.spawnDist/Math.max(0.6, approachTime(G.stage)));
+    let prevZ=(typeof P!=="undefined")?P.z:0, exitLane=G.lane;
+    G.sets.forEach(st=>{ const z=st.group.position.z; if(z>gateZ+1 && z<prevZ){ prevZ=z; exitLane=st.q.answer; } });
+    const tTotal=(prevZ-gateZ)/spd;
+    const pz=(typeof P!=="undefined")?P.z:0;
+    const tPop=(prevZ-(pz-spd*1.5))/spd;               // 생길 때 플레이어로부터 1.5초 이상 앞
+    const gSafe=Math.min(d.gateSafe||0.9, tTotal*0.28), aClear=Math.min(d.ansClear||1.5, tTotal*0.42);
+    const tStart=Math.max(gSafe, tPop), tEnd=tTotal-0.35;
+    if(tEnd-tStart<0.3) return;
+    // 지대별 함정 비율
+    const W = Z.prop==="tree"    ? {hole:5, block:5}
+            : Z.prop==="pillar"  ? {hole:4, block:6}
+            : Z.prop==="spike"   ? {block:6, chunk:4}
+            : Z.prop==="lava"    ? {hole:3, block:3, geyser:4}
+            :                      {hole:4, block:3, geyser:3};
+    const kinds=Object.keys(W).filter(k=> (k==="geyser"||k==="chunk") ? true : zoneAllows(k));
+    const pick=()=>{ let tot=0; kinds.forEach(k=>tot+=W[k]); let r=Math.random()*tot;
+      for(const k of kinds){ r-=W[k]; if(r<=0) return k; } return kinds[0]; };
+    if(!kinds.length) return;
+    // 흔들다리 구간 (화산·밤하늘) — 트랙 전체, 그 안에는 다른 함정을 두지 않는다
+    let crumble=null;
+    const cp = Z.prop==="lava" ? 0.55 : (Z.prop==="crystal" ? 0.35 : 0);
+    if(cp>0 && zoneAllows("crumble") && ramped("crumble")>0 && Math.random()<cp){
+      const lenT=CRUMBLE.LEN/spd, t0=tStart+Math.random()*Math.max(0.01,(tEnd-tStart)-lenT);
+      if(t0+lenT<=tEnd) crumble={t0, t1:t0+lenT};
+    }
+    // 줄마다 함정 고르기
+    const two=(d.twoPerRow||0)*Math.min(1, Math.max(0.35,(G.stage-4)/20));
+    const items=[];
+    for(let t=tStart; t<=tEnd; t+=(d.rowGap||0.46)*(0.85+Math.random()*0.3)){
+      if(crumble && t>crumble.t0-0.25 && t<crumble.t1+0.25) continue;
+      const cnt = Math.random()<two ? 2 : 1;
+      const ok=[];
+      for(let j=0;j<n;j++){
+        if(j===exitLane && t<Math.min(d.exitClear||1.0, tTotal*0.34)) continue;
+        if(j===answerLane && (tTotal-t)<aClear) continue;
+        ok.push(j);
+      }
+      for(let c=0;c<cnt && ok.length;c++){
+        const j=ok.splice(Math.floor(Math.random()*ok.length),1)[0];
+        let k=pick();
+        if((k==="block" && Z.prop==="lava") || k==="chunk"){   // 도롱뇽·얼음덩이는 옆 칸까지 — 정답 줄은 넘보지 않게
+          const other=(j+1<n && j+1!==answerLane) ? j+1 : ((j-1>=0 && j-1!==answerLane) ? j-1 : -1);
+          items.push({t, lane:j, kind:k, also:other});
+        } else items.push({t, lane:j, kind:k, also:-1});
+      }
+    }
+    // 얼음덩이가 오가는 두 칸 앞뒤 0.55초에는 다른 함정을 두지 않는다 (겹치지 않게)
+    const chunks=items.filter(it=>it.kind==="chunk");
+    for(let i=items.length-1;i>=0;i--){
+      const it=items[i];
+      const clash=chunks.some(c=> c!==it && Math.abs(c.t-it.t)<0.55 &&
+        ([c.lane,c.also].indexOf(it.lane)>=0 || (it.also>=0 && [c.lane,c.also].indexOf(it.also)>=0)));
+      if(clash) items.splice(i,1);
+    }
+    // 길 찾기 검사 — 한 칸 옮기는 데 0.32초로 넉넉히 잡는다
+    const step=Math.max(0.2, 1.6*CFG.LANE_W/Math.max(6,CFG.MOVE_X));   // 한 칸 옮기는 시간의 1.6배
+    const halfT=it=> it.kind==="geyser" ? 0.40 : ((it.kind==="block"||it.kind==="chunk"||it.kind==="wall") ? (it.also>=0?0.45:0.30) : (Ground.len/2)/spd+0.12);
+    const blockedIn=(list,lane,t)=>list.some(it=>(it.lane===lane || it.also===lane) && Math.abs(it.t-t)<halfT(it));
+    let extra=[];
+    const blocked=(lane,t)=>blockedIn(items,lane,t)||blockedIn(extra,lane,t);
+    const reachable=()=>{
+      let cur=new Set([exitLane]);
+      for(let t=0; t<tTotal; t+=step){
+        const nx=new Set(), t2=Math.min(tTotal,t+step);
+        cur.forEach(l=>{ for(let dl=-1;dl<=1;dl++){ const m=l+dl; if(m<0||m>=n) continue;
+          if(blocked(m,t2) || blocked(m,(t+t2)/2) || (dl!==0 && blocked(l,(t+t2)/2))) continue; nx.add(m); } });
+        if(!nx.size) return false; cur=nx;
+      }
+      return cur.has(answerLane);
+    };
+    let guard=0;
+    // 스핑크스 벽 (사막) — 한 줄을 막고 틈은 한 칸. 앞 문 → 틈 → 정답 줄로 갈 수 있는 틈만 고른다
+    const wp = Z.prop==="pillar" ? (G.diff==="extreme" ? 0.6 : 0.45) : 0;
+    const tw0=tStart+0.25, tw1=tTotal-0.55;
+    if(wp>0 && tw1>tw0 && Math.random()<wp){
+      const tw=tw0+Math.random()*(tw1-tw0);
+      for(let i=items.length-1;i>=0;i--) if(Math.abs(items[i].t-tw)<0.45) items.splice(i,1);   // 벽 둘레는 비운다
+      let gaps=[]; for(let j=0;j<n;j++) gaps.push(j);
+      for(let i=gaps.length-1;i>0;i--){ const r=Math.floor(Math.random()*(i+1)); [gaps[i],gaps[r]]=[gaps[r],gaps[i]]; }
+      if(tTotal-tw < aClear) gaps=[answerLane];          // 문에 가까운 벽은 틈이 곧 정답 줄 — 문 앞 정답 줄은 항상 비어 있다
+      for(const gp of gaps){
+        extra=[]; for(let j=0;j<n;j++) if(j!==gp) extra.push({t:tw, lane:j, kind:"wall", also:-1});
+        if(reachable()){ items.push(...extra); this.lastWall={gap:gp, t:tw}; break; }
+        extra=[];
+      }
+      extra=[];
+    }
+    while(items.length && !reachable() && guard++<40){
+      // 길을 막는 줄 가운데 가장 늦은 것부터 뺀다
+      items.sort((a,b)=>a.t-b.t);
+      const cand=items.map((it,i)=>i).filter(i=>items[i].kind!=="wall");
+      if(!cand.length){ for(let i=items.length-1;i>=0;i--) if(items[i].kind==="wall") items.splice(i,1); continue; }
+      items.splice(cand[cand.length-1-Math.floor(Math.random()*Math.min(3,cand.length))],1);
+    }
+    this.lastCheck={items:items.length, ok:reachable()};
+    // 실제로 놓기
+    if(crumble){
+      const z=prevZ-((crumble.t0+crumble.t1)/2)*spd, w=CFG.LANE_W*n;
+      const mesh=makeZoneMesh("crumble", w-0.2, CRUMBLE.LEN);
+      mesh.position.set(0,0,z); scene.add(mesh);
+      this.list.push({type:"crumble", lane:0, cx:0, halfW:w/2, z, mesh, len:CRUMBLE.LEN, tile:null, done:false});
+    }
+    this._ans=answerLane;
+    items.forEach(it=>{
+      const z=prevZ-it.t*spd;
+      if(it.kind==="hole") this.addHole(it.lane, z);
+      else if(it.kind==="geyser") this.addGeyser(it.lane, z);
+      else if(it.kind==="chunk") this.addChunk(it.lane, z, it.also);
+      else this.addBlock(it.lane, z);
+    });
+  },
+  /* 얼음덩이 — 두 칸을 천천히 미끄러져 오간다 */
+  addChunk(lane, z, other){
+    const g=makeIceChunk(), n=G.lanes;
+    const x1=laneX(lane,n), x2= other>=0 ? laneX(other,n) : x1;
+    g.userData.patrol={mid:(x1+x2)/2, half: other>=0 ? Math.abs(x2-x1)/2 : CFG.LANE_W*0.2, sp:0.85+Math.random()*0.35};
+    g.userData.chunk={t:Math.random()*6.28};
+    g.position.set(g.userData.patrol.mid+Math.sin(g.userData.chunk.t)*g.userData.patrol.half, 0, z);
+    scene.add(g);
+    this.list.push({type:"block", lane, tile:null, mesh:g, z, len:1.9, done:false});
+  },
+  /* 용암 분출 — 금이 쉬다가 → 빛나며 경고 → 솟는다 */
+  addGeyser(lane, z){
+    const g=new THREE.Group(), w=CFG.LANE_W*0.72, L=Math.min(Ground.len*0.8, 3.2);
+    if(TrapArt.has("lava-pit")) TrapArt.floorDecal(g, "lava-pit", w, L, null);
+    else { const m=new THREE.Mesh(new THREE.CircleGeometry(w*0.45,20), new THREE.MeshBasicMaterial({color:0xff6a1a}));
+      m.rotation.x=-Math.PI/2; m.position.y=0.06; g.add(m); g.userData.decal=m; }
+    const ring=new THREE.Mesh(new THREE.RingGeometry(w*0.42,w*0.55,28),
+      new THREE.MeshBasicMaterial({color:0xffc04a, transparent:true, opacity:0, depthWrite:false}));
+    ring.rotation.x=-Math.PI/2; ring.position.y=0.08; g.add(ring);
+    const col=new THREE.Mesh(new THREE.CylinderGeometry(w*0.28, w*0.42, 4.6, 14, 1, true),
+      new THREE.MeshBasicMaterial({color:0xff7a2a, transparent:true, opacity:0.88, side:THREE.DoubleSide, depthWrite:false}));
+    col.position.y=2.3; col.visible=false; g.add(col);
+    g.position.set(laneX(lane,G.lanes),0,z);
+    g.userData.geo={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, ring, col, on:false, puffT:0};
+    scene.add(g);
+    this.list.push({type:"geyser", lane, tile:null, mesh:g, z, len:1.9, done:false});
+  },
   addHole(lane, z){
     // 그 자리의 바닥 타일을 숨겨서 진짜 구멍을 만든다
     let tile=null, bd=1e9;
@@ -4734,6 +4908,16 @@ const Hazards = {
       if(h.tile){ z = h.tile.logicZ; h.mesh.visible = !h.tile.fall; }
       else { h.z += speed*dt; z = h.z; }
       h.mesh.position.z = z;
+      if(h.type==="geyser"){
+        const q=h.mesh.userData.geo, per=q.rest+q.warn+q.act; q.t=(q.t+dt)%per;
+        const warn=q.t>=q.rest && q.t<q.rest+q.warn, on=q.t>=q.rest+q.warn;
+        const k=warn ? (q.t-q.rest)/q.warn : 0;
+        q.ring.material.opacity = warn ? 0.25+0.7*k*(0.6+0.4*Math.sin(q.t*30)) : (on?0.9:0);
+        if(h.mesh.userData.decal){ const sc=1+(warn?0.18*k:0)+(on?0.22:0); h.mesh.userData.decal.scale.set(sc,sc,sc); }
+        q.col.visible=on; if(on){ const e=(q.t-q.rest-q.warn)/q.act; q.col.scale.y=Math.min(1,e*4)*(1-Math.max(0,e-0.8)*3); }
+        if(on && !q.on){ q.on=true; if(typeof puff==="function") try{ puff(h.mesh.position.x,.4,z,0xff7a2a,10,4.5); }catch(e){} }
+        if(!on){ q.on=false; h.done=false; }                   // 다음 분출 때 다시 맞을 수 있다
+      }
       // 생겨날 때: 비석은 땅에서 솟고, 구멍은 벌어진다 (0.35초)
       if(h.emerge===undefined && (h.type==="block" || h.type==="hole")){
         h.emerge=0.35; h.baseY=h.mesh.position.y;
@@ -4747,7 +4931,17 @@ const Hazards = {
       }
       h.mesh.position.x = laneX(h.lane, G.lanes);
 
-      if(h.mesh.userData.patrol){                    // 도롱뇽 — 좌우로 기어다닌다
+      if(h.mesh.userData.chunk){                     // 얼음덩이 — 미끄러지듯 오간다
+        const u=h.mesh.userData; u.chunk.t += dt*u.patrol.sp;
+        h.mesh.position.x = u.patrol.mid + Math.sin(u.chunk.t)*u.patrol.half;
+        h.mesh.rotation.z = Math.cos(u.chunk.t)*0.04;
+        u.chunk.fx = (u.chunk.fx||0) - dt;                       // 미끄러질 때 바닥 눈가루
+        if(u.chunk.fx<=0 && Math.abs(Math.cos(u.chunk.t))>0.5){
+          u.chunk.fx=0.32;
+          if(typeof puff==="function") try{ puff(h.mesh.position.x, .15, h.mesh.position.z, 0xe8faff, 3, 1.4); }catch(e){}
+        }
+      }
+      else if(h.mesh.userData.patrol && h.mesh.userData.sala){   // 도롱뇽 — 좌우로 기어다닌다
         const u=h.mesh.userData, pt=u.patrol, sa=u.sala;
         sa.t += dt*pt.sp;
         const nx = pt.mid + Math.sin(sa.t)*pt.half;
@@ -4773,10 +4967,13 @@ const Hazards = {
         }
       }
       else if(!h.done && !G.falling && G.running && G.inv<=0 && !(G.passSafe>0) &&
+         (h.type!=="geyser" || h.mesh.userData.geo.on) &&
          Math.abs(z - P.z) < h.len/2 &&
          Math.abs(P.x - (h.mesh.userData.patrol ? h.mesh.position.x : laneX(h.lane,G.lanes))) < CFG.LANE_W*0.38){
         h.done = true;
-        if(h.type==="hole") hitHole(); else hitBlock(h);
+        if(h.type==="hole") hitHole();
+        else if(h.type==="geyser"){ hitBlock(null); verdict("앗 뜨거!", "용암이 솟았어요", COL.coral, "rgba(255,122,102,.22)"); }
+        else hitBlock(h);
       }
       if(z > back){ this.remove(i); }
     }
