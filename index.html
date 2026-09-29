@@ -469,6 +469,16 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 .nickIn{width:100%;height:48px;box-sizing:border-box;border-radius:12px;border:2px solid #c9a14a;background:#120c2a;
   color:#fff;font-size:17px;font-weight:800;padding:0 14px;font-family:var(--font);outline:none}
 .nickIn:focus{border-color:#ffd37a;box-shadow:0 0 0 3px rgba(255,211,122,.25)}
+
+/* ── 브레이크 게이지 ── */
+#brakeBar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translateX(-50%);
+  width:120px;height:8px;border-radius:6px;background:rgba(20,14,44,.6);box-shadow:0 0 0 2px rgba(255,255,255,.12);
+  opacity:0;transition:opacity .25s;pointer-events:none;z-index:4}
+#brakeBar.on{opacity:1}
+#brakeBar i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#7fd6ff,#b9f0ff)}
+#brakeBar span{position:absolute;left:50%;top:-18px;transform:translateX(-50%);font-size:11px;font-weight:900;color:#b9f0ff;
+  letter-spacing:.06em;text-shadow:0 1px 3px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#brakeBar.act span{opacity:1}
 #zoneTag{position:fixed;left:50%;top:28%;transform:translate(-50%,0) scale(.9);z-index:6;
   pointer-events:none;opacity:0;text-align:center;transition:opacity .4s,transform .4s}
 #zoneTag.on{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -766,6 +776,7 @@ details{display:none}
 <canvas id="c"></canvas>
 
 <div class="layer" id="hud">
+  <div id="brakeBar"><i></i><span>브레이크</span></div>
   <div class="top">
     <div>
       <div class="chip"><small><span class="hico flag"></span><span id="uZone">초원</span></small><b id="uStage">1</b></div>
@@ -876,6 +887,7 @@ details{display:none}
   <div class="helpRow"><b>모바일</b><span>화면 아래쪽을 눌러 조이스틱</span></div>
   <div class="helpRow"><b>단축키</b><span>P 일시정지 · F 전체화면</span></div>
   <div class="helpRow"><b>보너스</b><span>앞으로 나가서 통과하면 RUSH 점수</span></div>
+  <div class="helpRow"><b>브레이크</b><span>뒤로(아래로) 당기고 있으면 문과 함정이 느려져요 — 막대만큼</span></div>
   <div class="helpRow"><b>주의</b><span>구멍 · 낙석 · 빙판 · 돌풍을 피하세요</span></div>
   <button class="play ghost" id="btnHelpClose" style="margin-top:18px">닫기</button>
 </div></div>
@@ -2125,7 +2137,7 @@ const CFG = {
   ACCEL: 16,                 // 가속 반응 (클수록 즉각적)
   BRAKE: 20,                 // 멈출 때 반응
   Z_FORWARD: -13,            // 앞으로 나갈 수 있는 한계
-  Z_BACK: 4,                 // 뒤로 물러설 수 있는 한계
+  Z_BACK: 9,                 // 뒤로 물러설 수 있는 한계 (카메라가 따라온다)
   SNAP: 6.5,                 // 손을 떼면 레인 중앙으로 붙는 힘
   DEADZONE: 0.16,            // 조이스틱 데드존
   RUSH_BONUS: 40,            // 앞으로 나가서 맞혔을 때 최대 보너스
@@ -2154,7 +2166,7 @@ const DIFF = {
           lateDecay:0.030, minTime:2.4,
           holes:1, blocks:2, ice:0, hide:0.80, scoreMul:2.4, lives:3, twinHole:10,
           hazGap:0.105, hazFrom:0.33, hazSpan:0.46,
-          grid:true, rowGap:0.46, twoPerRow:0.30, ansClear:1.5, exitClear:1.0, gateSafe:0.9, passSafe:0.5,
+          grid:true, rowGap:0.60, twoPerRow:0.15, ansClear:1.5, exitClear:1.0, gateSafe:0.9, passSafe:0.5, maxPerQ:5, minFree:3,
           boulder:true, rockFrom:5, windFrom:8, sway:false, swaps:0,
           ramp:[{from:6, ice:1}, {from:9, cloud:1},
                 {from:11, crumble:1}, {from:13, fake:1},
@@ -2167,7 +2179,7 @@ const DIFF = {
           lateDecay:0.040, minTime:2.0,
           holes:2, blocks:2, ice:0, hide:0.9, scoreMul:3.5, lives:2, twinHole:8,
           hazGap:0.085, hazFrom:0.30, hazSpan:0.50,
-          grid:true, rowGap:0.38, twoPerRow:0.45, ansClear:1.2, exitClear:0.9, gateSafe:0.8, passSafe:0.5,
+          grid:true, rowGap:0.50, twoPerRow:0.25, ansClear:1.2, exitClear:0.9, gateSafe:0.8, passSafe:0.5, maxPerQ:6, minFree:3,
           boulder:true, rockFrom:3, windFrom:6, sway:false, swaps:0,
           ramp:[{from:5, ice:1}, {from:7, cloud:1},
                 {from:8, crumble:1}, {from:9, fake:1},
@@ -2217,7 +2229,16 @@ const WIND = {
   TAIL_FROM:18                                  // 이 스테이지부터 앞뒤 돌풍도 섞인다
 };
 /* 새 함정 */
+const BRAKE   = { MAX:1.5, REFILL:0.5, SLOW:0.6 };  // 브레이크 — 뒤로 당기면 문·함정이 60% 속도로 (게이지 1.5초)
 const CRUMBLE = { TIME:1.25, LEN:18 };   // 흔들다리 — 한 칸에 이만큼 머물면 무너진다
+let _brakeShown=-1;
+function drawBrake(on){
+  const el=$("brakeBar"); if(!el) return;
+  const v=Math.round(G.brake/BRAKE.MAX*100);
+  const show = on || v<100;
+  if(v!==_brakeShown){ _brakeShown=v; const i=el.firstElementChild || el.children && el.children[0]; if(i && i.style) i.style.width=v+"%"; }
+  if(el.classList){ el.classList.toggle("on", show); el.classList.toggle("act", !!on); }
+}
 function crumbleTime(){ return G.diff==="extreme" ? 0.8 : (G.diff==="hard" ? 1.0 : CRUMBLE.TIME); }
 const PUDDLE  = { SLOW:0.45, LEN:9 };    // 물웅덩이 — 이동 속도가 이만큼으로 떨어진다
 const CLOUD   = { RATE:0.5, SPEED:2.6 }; // 안개 구름 — 단어 앞을 천천히 지나간다
@@ -4839,6 +4860,20 @@ const Hazards = {
         } else items.push({t, lane:j, kind:k, also:-1});
       }
     }
+    // 숨 쉴 자리 — 어느 순간(0.35초 안)이든 빈 칸이 minFree 개 이상 남게, 문제당 maxPerQ 개까지
+    {
+      const minFree=d.minFree||3, maxQ=d.maxPerQ||99;
+      items.sort((a,b)=>a.t-b.t);
+      const kept=[];
+      items.forEach(it=>{
+        const lanes=new Set();
+        kept.forEach(k=>{ if(Math.abs(k.t-it.t)<0.35){ lanes.add(k.lane); if(k.also>=0) lanes.add(k.also); } });
+        lanes.add(it.lane); if(it.also>=0) lanes.add(it.also);
+        if(n-lanes.size >= minFree) kept.push(it);
+      });
+      while(kept.length>maxQ) kept.splice(Math.floor(Math.random()*kept.length),1);
+      items.length=0; kept.forEach(k=>items.push(k));
+    }
     // 초원 — 벌떼: 내 줄을 따라오므로 앞뒤 0.6초는 비워 피할 자리를 남긴다
     let swarmT=null;
     const sp = Z.prop==="tree" ? (G.diff==="extreme" ? 0.55 : 0.4) : 0;
@@ -4856,7 +4891,7 @@ const Hazards = {
       if(clash) items.splice(i,1);
     }
     // 길 찾기 검사 — 한 칸 옮기는 데 0.32초로 넉넉히 잡는다
-    const step=Math.max(0.2, 1.6*CFG.LANE_W/Math.max(6,CFG.MOVE_X));   // 한 칸 옮기는 시간의 1.6배
+    const step=Math.max(0.28, 2.1*CFG.LANE_W/Math.max(6,CFG.MOVE_X));  // 한 칸 옮기는 시간의 2.1배 — 아이 반응 속도 기준
     const halfT=it=> it.kind==="geyser" ? 0.40 : ((it.kind==="block"||it.kind==="chunk"||it.kind==="wall") ? (it.also>=0?0.45:0.30) : (Ground.len/2)/spd+0.12);
     const blockedIn=(list,lane,t)=>list.some(it=>(it.lane===lane || it.also===lane) && Math.abs(it.t-t)<halfT(it));
     let extra=[];
@@ -4873,7 +4908,7 @@ const Hazards = {
     };
     let guard=0;
     // 스핑크스 벽 (사막) — 한 줄을 막고 틈은 한 칸. 앞 문 → 틈 → 정답 줄로 갈 수 있는 틈만 고른다
-    const wp = Z.prop==="pillar" ? (G.diff==="extreme" ? 0.6 : 0.45) : 0;
+    const wp = Z.prop==="pillar" ? (G.diff==="extreme" ? 0.4 : 0.3) : 0;
     const tw0=tStart+0.25, tw1=tTotal-0.55;
     if(wp>0 && tw1>tw0 && Math.random()<wp){
       const tw=tw0+Math.random()*(tw1-tw0);
@@ -6071,11 +6106,19 @@ function loop(){
     /* 안전장치 — 너무 깊이 떨어졌는데 판정이 안 났으면 강제로 처리 */
     if(G.falling && !G.dead && P.y < CFG.DEATH_Y - 6) onDead();
 
-    updateGates(dt);
-    Ground.update(dt, G.groundSpeed);
-    Props.update(dt, G.groundSpeed);
-    Hazards.update(dt, G.groundSpeed);
-    Rocks.update(dt);       // 등장·대기 관리는 모듈 안에서 처리
+    /* 브레이크 — 뒤로 당기고 있으면 문·길·함정이 느려진다 (게이지만큼만) */
+    const braking = !G.falling && input.y < -0.35 && G.brake > 0.02;
+    if(braking) G.brake = Math.max(0, G.brake - dt);
+    else G.brake = Math.min(BRAKE.MAX, G.brake + dt*BRAKE.REFILL);
+    G.worldScale += ((braking ? BRAKE.SLOW : 1) - G.worldScale) * Math.min(1, dt*8);
+    const wdt = dt * G.worldScale;
+    drawBrake(braking);
+
+    updateGates(wdt);
+    Ground.update(wdt, G.groundSpeed);
+    Props.update(wdt, G.groundSpeed);
+    Hazards.update(wdt, G.groundSpeed);
+    Rocks.update(wdt);      // 등장·대기 관리는 모듈 안에서 처리
     Wind.update(dt);
     if(G.rule==="time" && !G.falling){              // 타임어택 — 시간이 흐른다
       G.timeLeft -= dt;
@@ -6085,7 +6128,7 @@ function loop(){
     updatePlayer(dt);
     updateFx(dt);
     updateRings(dt);
-    updateMarks(dt, G.groundSpeed);
+    updateMarks(wdt, G.groundSpeed);
     updateAmbience(dt);
     updateCamera(dt);
   }
@@ -6628,6 +6671,7 @@ const TEST_STAGE = (function(){
   catch(e){ return 0; }
 })();
 function startGame(){
+  G.brake = BRAKE.MAX; G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
   try{ const r0=Rank.of(G.set); G.rankBefore = r0 ? r0.i : null; }catch(e){ G.rankBefore=null; }
   Attract.focus=false; Attract.clear();
