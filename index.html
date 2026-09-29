@@ -2218,6 +2218,7 @@ const WIND = {
 };
 /* 새 함정 */
 const CRUMBLE = { TIME:1.25, LEN:18 };   // 흔들다리 — 한 칸에 이만큼 머물면 무너진다
+function crumbleTime(){ return G.diff==="extreme" ? 0.8 : (G.diff==="hard" ? 1.0 : CRUMBLE.TIME); }
 const PUDDLE  = { SLOW:0.45, LEN:9 };    // 물웅덩이 — 이동 속도가 이만큼으로 떨어진다
 const CLOUD   = { RATE:0.5, SPEED:2.6 }; // 안개 구름 — 단어 앞을 천천히 지나간다
 const FAKE    = { RATE:0.45 };           // 가짜 문 — 정답 단어가 좌우로 뒤집혀 적힌 문
@@ -4388,6 +4389,29 @@ function makeZoneMesh(kind, w, L){
   } else {
     faceMat=new THREE.MeshBasicMaterial({color:st.face, transparent:true, opacity:st.op, depthWrite:false});
   }
+  // 무너지는 바닥 (그림이 있을 때) — 네모 카펫 대신 조각 타일, 틈으로 아래 빛이 비친다
+  if(kind==="crumble" && g.userData.artFace){
+    const n=Math.max(1,G.lanes), cols=n, tw=w/cols, rows=Math.max(3,Math.round(L/(CFG.LANE_W*1.05))), tl=L/rows;
+    const glowC = zp==="lava" ? 0xff5a1a : 0x7a3cff;
+    const below=new THREE.Mesh(new THREE.PlaneGeometry(w*0.98,L*0.98),
+      new THREE.MeshBasicMaterial({color:glowC, transparent:true, opacity:.85}));
+    below.rotation.x=-Math.PI/2; below.position.y=st.y-0.25; g.add(below);          // 틈 사이로 보이는 아래
+    const tex=faceMat.map; tex.repeat.set(1,1);
+    const tiles=[];
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+      const geo=new THREE.PlaneGeometry(tw*0.93, tl*0.9), uv=geo.attributes.uv;
+      const u0=(c*tw)/3.2, v0=(r*tl)/3.2;
+      for(let i=0;i<uv.count;i++) uv.setXY(i, u0+uv.getX(i)*tw/3.2, v0+uv.getY(i)*tl/3.2);
+      const m=new THREE.Mesh(geo, new THREE.MeshBasicMaterial({map:tex, transparent:true, opacity:1}));
+      m.rotation.x=-Math.PI/2; m.rotation.z=(Math.random()-.5)*0.06;
+      const x=-w/2+tw*(c+.5), z=-L/2+tl*(r+.5);
+      m.position.set(x, st.y+0.02, z);
+      m.userData.tile={x, z, y0:st.y+0.02, row:r, col:c, fall:false, vy:0, rx:(Math.random()-.5)*2.2, rz:(Math.random()-.5)*2.2};
+      g.add(m); tiles.push(m);
+    }
+    g.userData={kind, st, parts:[], cracks:[], t:0, tiles, rows, tl, glow:below, artFace:true};
+    return g;
+  }
   const face=new THREE.Mesh(new THREE.PlaneGeometry(w,L), faceMat);
   face.rotation.x=-Math.PI/2; face.position.y=st.y; g.add(face);
 
@@ -4453,6 +4477,31 @@ function makeZoneMesh(kind, w, L){
 function animateZone(mesh, dt){
   const u=mesh.userData; if(!u || !u.parts) return;
   u.t += dt;
+  if(u.tiles){
+    const gz=mesh.position.z, lim=crumbleTime();
+    const k=Math.min(1, (P.crumbT||0)/lim);                     // 서 있는 칸 떨림 세기
+    u.glow.material.opacity = .7+.2*Math.sin(u.t*3);
+    u.tiles.forEach(m=>{
+      const t=m.userData.tile, wz=gz+t.z;
+      if(!t.fall && wz > P.z+1.1){                                 // 캐릭터가 지나간 줄 → 무너진다
+        t.fall=true; t.vy=0.6+Math.random()*0.8;
+        if(Math.random()<.35 && typeof puff==="function") try{ puff(mesh.position.x+t.x, .2, wz, 0x3a2a24, 2, 1.4); }catch(e){}
+      }
+      if(t.fall){
+        t.vy -= 24*dt; m.position.y += t.vy*dt;
+        m.rotation.x = -Math.PI/2 + t.rx*(t.y0-m.position.y)*0.12; m.rotation.y = t.rz*(t.y0-m.position.y)*0.1;
+        m.material.opacity = Math.max(0, 1+(m.position.y-t.y0)/5);
+        if(m.position.y < t.y0-8) m.visible=false;              // 다 떨어지면 그만 그린다
+        return;
+      }
+      const near = Math.abs(wz-P.z) < u.tl*0.6 && Math.abs(mesh.position.x+t.x-P.x) < CFG.LANE_W*0.5;
+      const amp = near ? 0.015+0.09*k*k : (wz > P.z-4 ? 0.012 : 0);   // 발밑은 오래 설수록 세게, 바로 앞은 살짝
+      m.position.x = t.x + (Math.random()-.5)*amp;
+      m.position.y = t.y0 + (Math.random()-.5)*amp*0.6;
+      if(m.material.color && m.material.color.setRGB) m.material.color.setRGB(1, 1-0.45*(near?k:0), 1-0.55*(near?k:0));   // 오래 서 있으면 붉어진다
+    });
+    return;
+  }
   if(u.kind==="ice"){
     u.parts.forEach((m,i)=>{ m.rotation.y+=dt*1.4; m.rotation.x+=dt*.7;
       m.position.y = m.userData.y0 + Math.sin(u.t*2+i)*.22; });
@@ -5103,7 +5152,14 @@ const Hazards = {
     this.list.splice(i,1);
   },
   clear(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); if(typeof G!=="undefined"){ G.preHazQ=null; } },
-  dropTile(lane,z){ Ground.collapseAt(lane,z); },
+  dropTile(lane,z){
+    Ground.collapseAt(lane,z);
+    // 무너지는 바닥 — 발밑 조각도 떨어진다
+    const x=laneX(lane,G.lanes);
+    this.list.forEach(h=>{ const u=h.mesh && h.mesh.userData; if(!u || !u.tiles) return;
+      u.tiles.forEach(m=>{ const t=m.userData.tile;
+        if(Math.abs(h.mesh.position.z+t.z-z)<u.tl*0.6 && Math.abs(h.mesh.position.x+t.x-x)<CFG.LANE_W*0.6){ t.fall=true; t.vy=0; } }); });
+  },
   /* 아직 플레이어 앞에 남아 있는 함정이 그 레인에 있는가 */
   laneHasPending(lane){
     for(let i=0;i<this.list.length;i++){
@@ -5579,15 +5635,15 @@ function updatePlayer(dt){
   if(P.onCrumble && !G.falling && G.inv<=0 && !(G.passSafe>0)){
     if(P.crumbLane !== G.lane){ P.crumbLane = G.lane; P.crumbT = 0; }
     P.crumbT = (P.crumbT||0) + dt;
-    if(P.crumbT > CRUMBLE.TIME*0.55){
+    if(P.crumbT > crumbleTime()*0.55){
       G.shake = Math.max(G.shake, .18);
       P.pebble = (P.pebble||0) - dt;
       if(P.pebble<=0){ P.pebble=0.09; puff(P.x, .2, P.z, 0x6b5334, 2, 1.6); }   // 부스러기
     }
-    if(P.crumbT > CRUMBLE.TIME){
+    if(P.crumbT > crumbleTime()){
       P.crumbT = 0; G.combo = 0;
       Hazards.dropTile(G.lane, P.z);
-      verdict("흔들다리!", "한 칸에 오래 서 있지 마세요", COL.coral, "rgba(255,180,92,.24)");
+      verdict("바닥이 무너졌어요!", "한 칸에 오래 서 있지 마세요", COL.coral, "rgba(255,180,92,.24)");
       startFall(); updateHUD();
     }
   } else { P.crumbT = 0; P.crumbLane = -1; }
