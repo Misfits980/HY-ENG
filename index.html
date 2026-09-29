@@ -3983,7 +3983,7 @@ function judge(s){
    함정 그림 — 그림 파일이 있으면 쓰고, 없으면 코드로 만든 모양 그대로
 ===================================================================== */
 const TrapArt = {
-  names:["ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
+  names:["rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
           "hole-night","crumble-night","ice-night","cloud-fog","blocks",
@@ -4116,7 +4116,8 @@ function makeIceChunk(){
 }
 function blockSprite(kind){
   if(!(kind in BLOCK_CELL) || !TrapArt.has("blocks")) return null;
-  const k=BLOCK_CELL[kind], Wd=CFG.LANE_W*0.86, Hd=Wd*2;
+  const f=(typeof VIEW!=="undefined" && VIEW.portrait) ? 0.68 : 0.76;   // 세로 화면은 더 작게 — 뒤를 가리지 않게
+  const k=BLOCK_CELL[kind], Wd=CFG.LANE_W*f, Hd=Wd*2;
   const geo=new THREE.PlaneGeometry(Wd,Hd); geo.translate(0,Hd/2,0);
   const uv=geo.attributes.uv;
   for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/4);
@@ -4124,6 +4125,7 @@ function blockSprite(kind){
     side:THREE.DoubleSide, color:mulHex(0xf0f0f0, artTint())});
   const g=new THREE.Group();
   const s=new THREE.Mesh(geo,mat); s.userData.noOutline=true; g.add(s);
+  g.userData.spr=s;                                   // 가까워지면 흐리게 할 때 쓴다
   const sh=new THREE.Mesh(new THREE.CircleGeometry(Wd*0.42,16),
     new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.3,depthWrite:false}));
   sh.rotation.x=-Math.PI/2; sh.position.y=.04; sh.scale.y=.55; sh.userData.noOutline=true; g.add(sh);
@@ -4760,6 +4762,14 @@ const Hazards = {
         } else items.push({t, lane:j, kind:k, also:-1});
       }
     }
+    // 초원 — 벌떼: 내 줄을 따라오므로 앞뒤 0.6초는 비워 피할 자리를 남긴다
+    let swarmT=null;
+    const sp = Z.prop==="tree" ? (G.diff==="extreme" ? 0.55 : 0.4) : 0;
+    const ts0=tStart+0.3, ts1=tTotal-aClear-0.2;
+    if(sp>0 && ts1>ts0 && Math.random()<sp){
+      swarmT=ts0+Math.random()*(ts1-ts0);
+      for(let i=items.length-1;i>=0;i--) if(Math.abs(items[i].t-swarmT)<0.6) items.splice(i,1);
+    }
     // 얼음덩이가 오가는 두 칸 앞뒤 0.55초에는 다른 함정을 두지 않는다 (겹치지 않게)
     const chunks=items.filter(it=>it.kind==="chunk");
     for(let i=items.length-1;i>=0;i--){
@@ -4824,6 +4834,35 @@ const Hazards = {
       else if(it.kind==="chunk") this.addChunk(it.lane, z, it.also);
       else this.addBlock(it.lane, z);
     });
+    if(swarmT!==null) this.addSwarm(prevZ-swarmT*spd);
+  },
+  /* 벌떼 — 길가에서 날아와 내 줄을 천천히 따라온다. 부딪히기 0.45초 전부터는 방향을 고정 */
+  addSwarm(z){
+    const g=new THREE.Group(), n=7, half=CFG.LANE_W*G.lanes/2;
+    const art=TrapArt.has("bee");
+    let matA=null, matB=null;
+    if(art){
+      const mk=off=>{ const t=TrapArt.tex["bee"].clone(); t.needsUpdate=true; t.repeat.set(0.5,1); t.offset.set(off,0);
+        return new THREE.MeshBasicMaterial({map:t, transparent:true, alphaTest:.06, side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}); };
+      matA=mk(0); matB=mk(0.5);
+    }
+    const bees=[];
+    for(let i=0;i<n;i++){
+      let m;
+      if(art){ const sz=CFG.LANE_W*(0.30+Math.random()*0.10); m=new THREE.Mesh(new THREE.PlaneGeometry(sz,sz), matA); }
+      else { m=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6), new THREE.MeshBasicMaterial({color:0xffcc33})); }
+      m.userData.noOutline=true;
+      m.userData.orb={r:0.25+Math.random()*0.6, sp:2.2+Math.random()*2.2, ph:Math.random()*6.28, y:0.9+Math.random()*0.9, bob:Math.random()*6.28};
+      g.add(m); bees.push(m);
+    }
+    const sh=new THREE.Mesh(new THREE.CircleGeometry(CFG.LANE_W*0.38,16),
+      new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.22, depthWrite:false}));
+    sh.rotation.x=-Math.PI/2; sh.position.y=.04; sh.scale.y=.6; sh.userData.noOutline=true; g.add(sh);
+    const side=Math.random()<.5 ? -1 : 1;
+    g.position.set(side*(half-CFG.LANE_W*0.2), 0, z);          // 트랙 가장자리 풀숲에서 시작
+    g.userData.swarm={bees, matA, matB, t:0, buzz:0, lock:false, vx:0, x:g.position.x};   // 줄이 없으니 위치를 따로 기억
+    scene.add(g);
+    this.list.push({type:"swarm", lane:-1, tile:null, mesh:g, z, len:1.7, done:false});
   },
   /* 얼음덩이 — 두 칸을 천천히 미끄러져 오간다 */
   addChunk(lane, z, other){
@@ -4835,18 +4874,60 @@ const Hazards = {
     scene.add(g);
     this.list.push({type:"block", lane, tile:null, mesh:g, z, len:1.9, done:false});
   },
+  /* 부드러운 빛 — 단색 도형 대신 번지는 빛으로 (바닥 그림과 어울리게) */
+  _glowTex(kind){
+    this._gt=this._gt||{};
+    if(this._gt[kind]!==undefined) return this._gt[kind];
+    let tex=null;
+    try{
+      const c=document.createElement("canvas"), W=kind==="jet"?64:128, H=kind==="jet"?256:128;
+      c.width=W; c.height=H; const x=c.getContext && c.getContext("2d");
+      if(x){
+        if(kind==="jet"){                            // 아래는 하얗게 뜨겁고 위로 갈수록 주황 → 사라짐
+          const g=x.createLinearGradient(0,H,0,0);
+          g.addColorStop(0,"rgba(255,244,200,1)"); g.addColorStop(0.25,"rgba(255,170,60,0.95)");
+          g.addColorStop(0.7,"rgba(240,80,20,0.55)"); g.addColorStop(1,"rgba(200,40,10,0)");
+          x.fillStyle=g; x.fillRect(0,0,W,H);
+          const m=x.createLinearGradient(0,0,W,0);   // 좌우 가장자리는 흐리게
+          m.addColorStop(0,"rgba(0,0,0,1)"); m.addColorStop(0.5,"rgba(0,0,0,0)"); m.addColorStop(1,"rgba(0,0,0,1)");
+          x.globalCompositeOperation="destination-out"; x.fillStyle=m; x.fillRect(0,0,W,H);
+        } else {                                     // 바닥 경고 빛 — 가운데 밝고 바깥으로 번짐
+          const g=x.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);
+          g.addColorStop(0,"rgba(255,220,120,0.95)"); g.addColorStop(0.45,"rgba(255,120,40,0.6)"); g.addColorStop(1,"rgba(255,60,10,0)");
+          x.fillStyle=g; x.fillRect(0,0,W,H);
+        }
+        tex=new THREE.CanvasTexture(c);
+      }
+    }catch(e){ tex=null; }
+    this._gt[kind]=tex; return tex;
+  },
   /* 용암 분출 — 금이 쉬다가 → 빛나며 경고 → 솟는다 */
   addGeyser(lane, z){
     const g=new THREE.Group(), w=CFG.LANE_W*0.72, L=Math.min(Ground.len*0.8, 3.2);
     if(TrapArt.has("lava-pit")) TrapArt.floorDecal(g, "lava-pit", w, L, null);
     else { const m=new THREE.Mesh(new THREE.CircleGeometry(w*0.45,20), new THREE.MeshBasicMaterial({color:0xff6a1a}));
       m.rotation.x=-Math.PI/2; m.position.y=0.06; g.add(m); g.userData.decal=m; }
-    const ring=new THREE.Mesh(new THREE.RingGeometry(w*0.42,w*0.55,28),
-      new THREE.MeshBasicMaterial({color:0xffc04a, transparent:true, opacity:0, depthWrite:false}));
-    ring.rotation.x=-Math.PI/2; ring.position.y=0.08; g.add(ring);
-    const col=new THREE.Mesh(new THREE.CylinderGeometry(w*0.28, w*0.42, 4.6, 14, 1, true),
-      new THREE.MeshBasicMaterial({color:0xff7a2a, transparent:true, opacity:0.88, side:THREE.DoubleSide, depthWrite:false}));
-    col.position.y=2.3; col.visible=false; g.add(col);
+    const glow=this._glowTex("glow"), jet=this._glowTex("jet");
+    let ring, col;
+    if(glow && jet){                                  // 번지는 빛 (더하기 섞기)
+      ring=new THREE.Mesh(new THREE.PlaneGeometry(w*1.5,w*1.5), new THREE.MeshBasicMaterial({map:glow, transparent:true,
+        opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));
+      ring.rotation.x=-Math.PI/2; ring.position.y=0.09; g.add(ring);
+      col=new THREE.Group();
+      [0, Math.PI/2].forEach(r=>{                     // 엇갈린 두 장 — 어느 쪽에서 봐도 기둥
+        const pl=new THREE.Mesh(new THREE.PlaneGeometry(w*0.9,4.8), new THREE.MeshBasicMaterial({map:jet, transparent:true,
+          depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
+        pl.position.y=2.4; pl.rotation.y=r; pl.userData.noOutline=true; col.add(pl);
+      });
+      col.visible=false; g.add(col);
+    } else {                                          // 캔버스를 못 쓰면 예전 모양
+      ring=new THREE.Mesh(new THREE.RingGeometry(w*0.42,w*0.55,28),
+        new THREE.MeshBasicMaterial({color:0xffc04a, transparent:true, opacity:0, depthWrite:false}));
+      ring.rotation.x=-Math.PI/2; ring.position.y=0.08; g.add(ring);
+      col=new THREE.Mesh(new THREE.CylinderGeometry(w*0.28, w*0.42, 4.6, 14, 1, true),
+        new THREE.MeshBasicMaterial({color:0xff7a2a, transparent:true, opacity:0.88, side:THREE.DoubleSide, depthWrite:false}));
+      col.position.y=2.3; col.visible=false; g.add(col);
+    }
     g.position.set(laneX(lane,G.lanes),0,z);
     g.userData.geo={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, ring, col, on:false, puffT:0};
     scene.add(g);
@@ -4921,6 +5002,28 @@ const Hazards = {
       if(h.tile){ z = h.tile.logicZ; h.mesh.visible = !h.tile.fall; }
       else { h.z += speed*dt; z = h.z; }
       h.mesh.position.z = z;
+      if(h.mesh.userData.spr){                    // 비석이 캐릭터 옆을 지나 카메라 쪽으로 오면 흐려진다
+        const d=z-P.z, o = d>-2 ? Math.max(0.28, 1-(d+2)/2.6) : 1;
+        h.mesh.userData.spr.material.opacity=o;
+      }
+      if(h.type==="swarm"){
+        const u=h.mesh.userData.swarm, spd2=Math.max(0.1, speed||G.groundSpeed||1);
+        u.t+=dt;
+        const tHit=(P.z - z)/spd2;                               // 나에게 닿기까지 남은 시간
+        if(tHit<0.45) u.lock=true;                                // 막판에는 방향 고정 — 비키면 피한다
+        if(!u.lock){
+          const dx=P.x - u.x, max=4.2;                           // 따라오는 속도 (좌우 이동의 약 1/4)
+          u.vx += (Math.max(-max,Math.min(max,dx*1.4)) - u.vx)*Math.min(1,dt*3);
+        } else u.vx *= Math.max(0,1-dt*6);
+        u.x += u.vx*dt; h.mesh.position.x = u.x;
+        const flap=Math.floor(u.t*24)%2;
+        u.bees.forEach((b,i)=>{ const o=b.userData.orb, a=o.ph+u.t*o.sp;
+          b.position.set(Math.cos(a)*o.r, o.y+Math.sin(u.t*5+o.bob)*0.12, Math.sin(a)*o.r*0.5);
+          if(u.matA){ b.material = ((flap+i)%2) ? u.matB : u.matA; b.scale.x = (u.vx<-0.2) ? -1 : 1; } });
+        if(tHit>0 && tHit<1.1){                                   // 가까우면 윙—
+          u.buzz-=dt; if(u.buzz<=0){ u.buzz=0.13; try{ SFX.tone(210+Math.random()*40, .07, "sawtooth", .012*(1.2-tHit)); }catch(e){} }
+        }
+      }
       if(h.type==="geyser"){
         const q=h.mesh.userData.geo, per=q.rest+q.warn+q.act; q.t=(q.t+dt)%per;
         const warn=q.t>=q.rest && q.t<q.rest+q.warn, on=q.t>=q.rest+q.warn;
@@ -4942,7 +5045,7 @@ const Hazards = {
         if(h.type==="block"){ h.mesh.position.y = h.baseY - (1-e)*2.2; }
         else { const sc=0.05+0.95*e; h.mesh.scale.set(sc,1,sc); }
       }
-      h.mesh.position.x = laneX(h.lane, G.lanes);
+      if(h.type!=="swarm") h.mesh.position.x = laneX(h.lane, G.lanes);   // 벌떼는 자기 위치를 따로 가진다
 
       if(h.mesh.userData.chunk){                     // 얼음덩이 — 미끄러지듯 오간다
         const u=h.mesh.userData; u.chunk.t += dt*u.patrol.sp;
@@ -4982,10 +5085,11 @@ const Hazards = {
       else if(!h.done && !G.falling && G.running && G.inv<=0 && !(G.passSafe>0) &&
          (h.type!=="geyser" || h.mesh.userData.geo.on) &&
          Math.abs(z - P.z) < h.len/2 &&
-         Math.abs(P.x - (h.mesh.userData.patrol ? h.mesh.position.x : laneX(h.lane,G.lanes))) < CFG.LANE_W*0.38){
+         Math.abs(P.x - ((h.mesh.userData.patrol || h.type==="swarm") ? h.mesh.position.x : laneX(h.lane,G.lanes))) < CFG.LANE_W*0.38){
         h.done = true;
         if(h.type==="hole") hitHole();
         else if(h.type==="geyser"){ hitBlock(null); verdict("앗 뜨거!", "용암이 솟았어요", COL.coral, "rgba(255,122,102,.22)"); }
+        else if(h.type==="swarm"){ hitBlock(null); verdict("앗 따가워!", "벌떼에 쏘였어요", COL.edge, "rgba(255,204,51,.22)"); }
         else hitBlock(h);
       }
       if(z > back){ this.remove(i); }
@@ -5018,7 +5122,31 @@ const Hazards = {
 /* 낙석 여러 개를 동시에 굴릴 수 있는 관리자.
    [수정] 예전에는 플레이어를 2.2 지나친 뒤에도 맞는 판정이 남아 있었다.
           이제 지나가는 순간(gap<=0) 판정과 경고 표시가 함께 꺼진다. */
+/* 지대별 돌 그림 (rocks.webp 5칸: 초원·사막·얼음·화산·밤하늘) */
+const ROCK_CELL = {tree:0, pillar:1, spike:2, lava:3, crystal:4};
+const ROCK_DUST = {tree:0xa89272, pillar:0xd8b27a, spike:0xe8faff, lava:0xff7a2a, crystal:0x9a7ad8};
+function newRockArt(){
+  const k=ROCK_CELL[zone().prop]; if(k===undefined || !TrapArt.has("rocks")) return null;
+  const geo=new THREE.PlaneGeometry(2,2); geo.translate(0,0,0);
+  const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/5);
+  const mat=new THREE.MeshBasicMaterial({map:TrapArt.tex["rocks"], transparent:true, alphaTest:.06,
+    side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())});
+  const g=new THREE.Group(); const spr=new THREE.Mesh(geo,mat); spr.userData.noOutline=true; g.add(spr);
+  let glow=null;                                     // 화산 돌 — 금이 숨 쉬듯 빛난다
+  if(zone().prop==="lava" && Hazards._glowTex){ const gt=Hazards._glowTex("glow");
+    if(gt){ glow=new THREE.Mesh(new THREE.PlaneGeometry(2.8,2.8), new THREE.MeshBasicMaterial({map:gt, transparent:true,
+      opacity:.35, depthWrite:false, blending:THREE.AdditiveBlending})); glow.position.z=-0.05; glow.userData.noOutline=true; g.add(glow); } }
+  const root=new THREE.Group(); root.add(g); scene.add(root);
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(1,20), new THREE.MeshBasicMaterial({color:0x000000,
+    transparent:true, opacity:.34, depthWrite:false}));
+  shadow.rotation.x=-Math.PI/2; shadow.userData.noOutline=true; scene.add(shadow);
+  const beam = new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+    new THREE.MeshBasicMaterial({color:0xff5a45, transparent:true, opacity:.2, depthWrite:false}));
+  beam.rotation.x = -Math.PI/2; beam.position.y = .07; scene.add(beam);
+  return {root, body:g, beam, shadow, glow, art:true, lane:0, z:0, drop:0, spin:0, spent:false, dustC:ROCK_DUST[zone().prop]};
+}
 function newRock(){
+  const art=newRockArt(); if(art) return art;        // 그림이 있으면 그림 돌
   const g = new THREE.Group();
   const snow = zone().prop==="spike";               // 얼음 동굴에서는 눈덩이가 굴러온다
   const body = new THREE.Mesh(
@@ -5104,13 +5232,14 @@ const Rocks = {
     r.z = P.z + VIEW.camZ + BOULDER.BEHIND;
     r.drop = 15;
     const sc = CFG.LANE_W*0.42;
-    r.body.scale.set(sc,sc,sc);
+    r.body.scale.set(sc,sc,sc); r.sc=sc;
     r.beam.scale.set(CFG.LANE_W-0.5, 1, 1);
     this.list.push(r);
   },
   remove(i){
     const r = this.list[i];
     scene.remove(r.root); scene.remove(r.beam);
+    if(r.shadow){ scene.remove(r.shadow); r.shadow.geometry.dispose(); r.shadow.material.dispose(); }
     r.root.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
     r.beam.geometry.dispose(); r.beam.material.dispose();
     this.list.splice(i,1);
@@ -5140,7 +5269,7 @@ const Rocks = {
       r.z -= sp*dt;
       if(r.drop>0){
         r.drop = Math.max(0, r.drop - 26*dt);
-        if(r.drop===0) burst(laneX(r.lane,G.lanes), .6, r.z, 0x6b6480, 12);
+        if(r.drop===0) burst(laneX(r.lane,G.lanes), .6, r.z, r.dustC||0x6b6480, 12);
       }
       r.spin -= dt*sp*0.85;
       const lx = laneX(r.lane,G.lanes);
@@ -5149,12 +5278,26 @@ const Rocks = {
         if(r.dust<=0){
           r.dust = 0.11;
           const snow = zone().prop==="spike";
-          puff(lx, .25, r.z, snow?0xe8faff:0xa89272, 3, 2.2);
+          puff(lx, .25, r.z, r.dustC || (snow?0xe8faff:0xa89272), 3, 2.2);
           groundMark(lx, r.z, snow?0x9fd8ff:0x241a10, 1.0, 1.1);
         }
       }
-      r.root.position.set(lx, CFG.LANE_W*0.42 + r.drop, r.z);
-      r.body.rotation.x = r.spin;
+      if(r.art){
+        const ph=-r.spin*1.35, hop=Math.abs(Math.sin(ph))*CFG.LANE_W*0.10;       // 통통 튀기
+        const land=1-Math.min(1,hop/(CFG.LANE_W*0.10));
+        const sq=1+land*0.08;                                                      // 닿을 때 살짝 납작
+        r.root.position.set(lx, CFG.LANE_W*0.42*(2-sq) + r.drop + hop, r.z);
+        r.body.scale.set(sq*(r.sc||1), (2-sq)*(r.sc||1), (r.sc||1));
+        r.body.rotation.z = Math.sin(ph*0.5)*0.17;                                 // 좌우로 조금만 흔들기
+        const up=r.drop+hop, k=Math.max(0.25, 1-up/6);
+        r.shadow.position.set(lx, .05, r.z);
+        r.shadow.scale.set(CFG.LANE_W*0.40*k, CFG.LANE_W*0.24*k, 1);
+        r.shadow.material.opacity = 0.36*k;
+        if(r.glow) r.glow.material.opacity = 0.22+0.2*(0.5+0.5*Math.sin(r.spin*-2.2));
+      } else {
+        r.root.position.set(lx, CFG.LANE_W*0.42 + r.drop, r.z);
+        r.body.rotation.x = r.spin;
+      }
 
       const gap = r.z - P.z;
       // 아직 뒤에 있을 때만 위험 표시 — 지나간 돌은 즉시 경고를 끈다
@@ -5349,7 +5492,15 @@ function respawn(){
    입력 — 레인 단위 이동 (좌우만)
 ===================================================================== */
 const keys={};
+/* 이름 칸 같은 입력칸에 글자를 쓰는 중이면 게임 단축키를 쓰지 않는다 */
+function typingNow(e){
+  const t=(e && e.target) || document.activeElement;
+  if(!t) return false;
+  const tg=(t.tagName||"").toUpperCase();
+  return tg==="INPUT" || tg==="TEXTAREA" || tg==="SELECT" || !!t.isContentEditable;
+}
 addEventListener("keydown",e=>{
+  if(typingNow(e)) return;
   keys[e.code]=true;
   if(!e.repeat && (e.code==="KeyP"||e.code==="Escape")){ if(G.running) togglePause(); }
   if(!e.repeat && e.code==="KeyF"){ if(typeof fsToggle==="function") fsToggle(); }
@@ -6550,11 +6701,13 @@ function gameOver(){
     $("oReview").innerHTML = '<div class="glab">🎊 하나도 안 틀렸어요!</div>';
   }
   $("oHint").textContent = isTouch ? "" : "R 키를 누르면 바로 다시 시작합니다";
-  const rank = Ranking.save({nick:G.nick, score:G.score, stage:G.stage,
+  const noRank = (G.set==="kinder");                     // 유치원 단어는 랭킹에 넣지 않는다
+  const rank = noRank ? 0 : Ranking.save({nick:G.nick, score:G.score, stage:G.stage,
     acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now()});
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
-  $("oRank").innerHTML = '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
-  if(Online.on() && G.rule==="normal" && G.score>0){
+  $("oRank").innerHTML = noRank ? '<div class="note">유치원 단어는 랭킹에 기록되지 않아요</div>'
+    : '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
+  if(!noRank && Online.on() && G.rule==="normal" && G.score>0){
     const d0=G.diff;
     Online.submit({nick:G.nick, score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
                    diff:d0, rule:G.rule, char:G.char})
@@ -6591,6 +6744,7 @@ $("oReview").addEventListener("click", e=>{
   if(e.target.id==="btnReview"){ SFX.click(); G.set="wrong"; startGame(); }
 });
 addEventListener("keydown", e=>{
+  if(typingNow(e)) return;
   if(!$("scOver").classList.contains("on")) return;
   if(e.code==="KeyR"){ SFX.click(); startGame(); e.preventDefault(); }
 });
@@ -6697,6 +6851,8 @@ function menuFocus(i){
   items.forEach((el,k)=>el.classList.toggle("on", k===menuIdx));
 }
 addEventListener("keydown", e=>{
+  if(typingNow(e)) return;
+  if($("shSettings") && $("shSettings").classList.contains("on")) return;   // 설정창이 열려 있으면 메뉴를 건드리지 않는다
   if(!$("scStart").classList.contains("on")) return;
   if(e.code==="ArrowDown"){ menuFocus(menuIdx+1); SFX.click(); e.preventDefault(); }
   else if(e.code==="ArrowUp"){ menuFocus(menuIdx-1); SFX.click(); e.preventDefault(); }
