@@ -6538,6 +6538,11 @@ function refreshWrongCount(){
 pickers("selChar",v=>{ G.char=v; setCharacter(v); previewCharacter(); nextStep(); });
 
 /* 시작 / 종료 */
+/* 선생님 시험 주소 — 주소 끝에 ?stage=35 처럼 붙이면 그 단계(지대)부터 시작. 랭킹에는 올라가지 않는다 */
+const TEST_STAGE = (function(){
+  try{ const v=parseInt(new URLSearchParams(location.search).get("stage"),10); return (v>=1 && v<=200) ? v : 0; }
+  catch(e){ return 0; }
+})();
 function startGame(){
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
   try{ const r0=Rank.of(G.set); G.rankBefore = r0 ? r0.i : null; }catch(e){ G.rankBefore=null; }
@@ -6558,7 +6563,9 @@ function startGame(){
   if(G.rule==="time"){ G.maxLives = 99; G.lives = 99; }    // 죽지 않고 시간으로만 끝난다
   G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false;
   G.lane=Math.floor(G.lanes/2); G.inv=1.2;
-  applyZone(zoneIndex(1), false);                // 시작은 1지대
+  G.testRun = TEST_STAGE>0;
+  if(G.testRun) G.stage = TEST_STAGE;
+  applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
   clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset();
@@ -6568,6 +6575,7 @@ function startGame(){
   camera.position.set(0,VIEW.camY,VIEW.camZ);
   G.running=true; G.paused=false; G.spawning=true;
   spawnSet(); updateHUD();
+  if(G.testRun) setTimeout(()=>{ try{ verdict("🧪 시험 모드", TEST_STAGE+"단계부터 · 랭킹에 안 올라가요", COL.edge, "rgba(255,211,122,.18)"); }catch(e){} }, 700);
   ["scStart","scSetup","scOver","scRank","scPause"].forEach(x=>$(x).classList.remove("on"));
   $("shWords").classList.remove("on");
   $("hud").classList.add("on");
@@ -6701,11 +6709,11 @@ function gameOver(){
     $("oReview").innerHTML = '<div class="glab">🎊 하나도 안 틀렸어요!</div>';
   }
   $("oHint").textContent = isTouch ? "" : "R 키를 누르면 바로 다시 시작합니다";
-  const noRank = (G.set==="kinder");                     // 유치원 단어는 랭킹에 넣지 않는다
+  const noRank = (G.set==="kinder") || !!G.testRun;      // 유치원 단어·시험 주소는 랭킹에 넣지 않는다
   const rank = noRank ? 0 : Ranking.save({nick:G.nick, score:G.score, stage:G.stage,
     acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now()});
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
-  $("oRank").innerHTML = noRank ? '<div class="note">유치원 단어는 랭킹에 기록되지 않아요</div>'
+  $("oRank").innerHTML = noRank ? '<div class="note">'+(G.testRun?'시험 모드 기록은 랭킹에 올라가지 않아요':'유치원 단어는 랭킹에 기록되지 않아요')+'</div>'
     : '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
   if(!noRank && Online.on() && G.rule==="normal" && G.score>0){
     const d0=G.diff;
