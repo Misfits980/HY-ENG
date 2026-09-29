@@ -4371,6 +4371,59 @@ const ZONE_STYLE = {
   puddle:  {y:0.08, face:0x2f77b5, edge:0x9fd8ff, op:.55},
   crumble: {y:0.12, face:0xc07a35, edge:0xffd24a, op:.48}
 };
+/* 금 그림 — 투명한 바탕에 금만 (지대 색) */
+const _crackTex={};
+function crackTex(zp){
+  if(_crackTex[zp]!==undefined) return _crackTex[zp];
+  let tex=null;
+  try{
+    const c=document.createElement("canvas"); c.width=c.height=512; const x=c.getContext && c.getContext("2d");
+    if(x){
+      const glow = zp==="lava" ? "rgba(255,120,30,0.95)" : zp==="crystal" ? "rgba(190,120,255,0.95)"
+                 : zp==="spike" ? "rgba(150,220,255,0.9)" : "rgba(120,80,40,0.9)";
+      const core = zp==="lava" ? "rgba(255,230,150,1)" : zp==="crystal" ? "rgba(240,210,255,1)"
+                 : zp==="spike" ? "rgba(235,250,255,1)" : "rgba(60,40,20,1)";
+      const lines=[];
+      const walk=(px,py,a,steps,depth)=>{                      // 들쭉날쭉 갈라지는 금 (가지도 친다)
+        const pts=[[px,py]];
+        for(let s2=0;s2<steps;s2++){
+          a+=(Math.random()-.5)*1.8; const L2=8+Math.random()*16;
+          px+=Math.cos(a)*L2; py+=Math.sin(a)*L2; pts.push([px,py]);
+          if(depth<2 && Math.random()<.16) walk(px,py,a+(Math.random()<.5?1:-1)*(0.7+Math.random()*.6), 4+Math.floor(Math.random()*6), depth+1);
+        }
+        lines.push({pts, depth});
+      };
+      for(let k=0;k<7;k++) walk(Math.random()*512, Math.random()*512, Math.random()*6.28, 14+Math.floor(Math.random()*8), 0);
+      const draw=(w2,col)=>{ x.strokeStyle=col; x.lineCap="round"; x.lineJoin="round";
+        lines.forEach(L3=>{ const pts=L3.pts, n2=pts.length;
+          for(let i2=1;i2<n2;i2++){                            // 끝으로 갈수록 가늘게
+            x.lineWidth=Math.max(0.6, w2*(1-0.75*i2/n2)*(L3.depth?0.6:1));
+            x.beginPath(); x.moveTo(pts[i2-1][0],pts[i2-1][1]); x.lineTo(pts[i2][0],pts[i2][1]); x.stroke(); } }); };
+      draw(11,"rgba(10,5,3,0.6)"); draw(4.2,glow); draw(1.4,core);
+      tex=new THREE.CanvasTexture(c); tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+    }
+  }catch(e){ tex=null; }
+  _crackTex[zp]=tex; return tex;
+}
+function makeCrackZone(w, L, zp){
+  const g=new THREE.Group(), st=ZONE_STYLE.crumble, n=Math.max(1,G.lanes), tw=w/n;
+  const rows=Math.max(3,Math.round(L/(CFG.LANE_W*1.05))), tl=L/rows, tex=crackTex(zp);
+  const tiles=[];
+  for(let r=0;r<rows;r++) for(let c=0;c<n;c++){
+    const geo=new THREE.PlaneGeometry(tw*0.96, tl*0.98), uv=geo.attributes.uv;
+    const ou=Math.random(), ov=Math.random();                       // 칸마다 다른 금 모양
+    for(let i=0;i<uv.count;i++) uv.setXY(i, ou+uv.getX(i)*0.55, ov+uv.getY(i)*0.55);
+    const m=new THREE.Mesh(geo, tex ? new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, opacity:.95})
+                                    : new THREE.MeshBasicMaterial({color:0x2a1408, transparent:true, opacity:.35, depthWrite:false}));
+    m.rotation.x=-Math.PI/2; m.userData.noOutline=true;
+    const x0=-w/2+tw*(c+.5), z0=-L/2+tl*(r+.5);
+    m.position.set(x0, 0.035, z0);
+    m.userData.tile={x:x0, z:z0, y0:0.035, lane:c, fall:false, vy:0, dropped:false};
+    g.add(m); tiles.push(m);
+  }
+  g.userData={kind:"crumble", st, parts:[], cracks:[], t:0, tiles, rows, tl, crack:true};
+  return g;
+}
 function makeZoneMesh(kind, w, L){
   const st=ZONE_STYLE[kind], g=new THREE.Group(), parts=[], cracks=[];
   let faceMat;
@@ -4389,29 +4442,8 @@ function makeZoneMesh(kind, w, L){
   } else {
     faceMat=new THREE.MeshBasicMaterial({color:st.face, transparent:true, opacity:st.op, depthWrite:false});
   }
-  // 무너지는 바닥 (그림이 있을 때) — 네모 카펫 대신 조각 타일, 틈으로 아래 빛이 비친다
-  if(kind==="crumble" && g.userData.artFace){
-    const n=Math.max(1,G.lanes), cols=n, tw=w/cols, rows=Math.max(3,Math.round(L/(CFG.LANE_W*1.05))), tl=L/rows;
-    const glowC = zp==="lava" ? 0xff5a1a : 0x7a3cff;
-    const below=new THREE.Mesh(new THREE.PlaneGeometry(w*0.98,L*0.98),
-      new THREE.MeshBasicMaterial({color:glowC, transparent:true, opacity:.85}));
-    below.rotation.x=-Math.PI/2; below.position.y=st.y-0.25; g.add(below);          // 틈 사이로 보이는 아래
-    const tex=faceMat.map; tex.repeat.set(1,1);
-    const tiles=[];
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-      const geo=new THREE.PlaneGeometry(tw*0.93, tl*0.9), uv=geo.attributes.uv;
-      const u0=(c*tw)/3.2, v0=(r*tl)/3.2;
-      for(let i=0;i<uv.count;i++) uv.setXY(i, u0+uv.getX(i)*tw/3.2, v0+uv.getY(i)*tl/3.2);
-      const m=new THREE.Mesh(geo, new THREE.MeshBasicMaterial({map:tex, transparent:true, opacity:1}));
-      m.rotation.x=-Math.PI/2; m.rotation.z=(Math.random()-.5)*0.06;
-      const x=-w/2+tw*(c+.5), z=-L/2+tl*(r+.5);
-      m.position.set(x, st.y+0.02, z);
-      m.userData.tile={x, z, y0:st.y+0.02, row:r, col:c, fall:false, vy:0, rx:(Math.random()-.5)*2.2, rz:(Math.random()-.5)*2.2};
-      g.add(m); tiles.push(m);
-    }
-    g.userData={kind, st, parts:[], cracks:[], t:0, tiles, rows, tl, glow:below, artFace:true};
-    return g;
-  }
+  // 무너지는 바닥 — 새 바닥을 덮지 않는다. 원래 길 위에 빛나는 금만 그리고, 지나간 줄은 진짜 길 타일이 떨어진다
+  if(kind==="crumble") return makeCrackZone(w, L, zp);
   const face=new THREE.Mesh(new THREE.PlaneGeometry(w,L), faceMat);
   face.rotation.x=-Math.PI/2; face.position.y=st.y; g.add(face);
 
@@ -4478,27 +4510,23 @@ function animateZone(mesh, dt){
   const u=mesh.userData; if(!u || !u.parts) return;
   u.t += dt;
   if(u.tiles){
-    const gz=mesh.position.z, lim=crumbleTime();
-    const k=Math.min(1, (P.crumbT||0)/lim);                     // 서 있는 칸 떨림 세기
-    u.glow.material.opacity = .7+.2*Math.sin(u.t*3);
+    const gz=mesh.position.z, gx=mesh.position.x, lim=crumbleTime();
+    const k=Math.min(1, (P.crumbT||0)/lim);
     u.tiles.forEach(m=>{
       const t=m.userData.tile, wz=gz+t.z;
-      if(!t.fall && wz > P.z+1.1){                                 // 캐릭터가 지나간 줄 → 무너진다
-        t.fall=true; t.vy=0.6+Math.random()*0.8;
-        if(Math.random()<.35 && typeof puff==="function") try{ puff(mesh.position.x+t.x, .2, wz, 0x3a2a24, 2, 1.4); }catch(e){}
+      if(!t.fall && wz > P.z+1.1){                                   // 지나간 줄 → 길이 무너진다
+        t.fall=true; t.vy=0;
+        if(!t.dropped){ t.dropped=true; try{ Ground.collapseAt(t.lane, wz); }catch(e){} }
+        if(Math.random()<.4 && typeof puff==="function") try{ puff(gx+t.x, .2, wz, 0x2a1f1a, 3, 1.6); }catch(e){}
       }
-      if(t.fall){
-        t.vy -= 24*dt; m.position.y += t.vy*dt;
-        m.rotation.x = -Math.PI/2 + t.rx*(t.y0-m.position.y)*0.12; m.rotation.y = t.rz*(t.y0-m.position.y)*0.1;
-        m.material.opacity = Math.max(0, 1+(m.position.y-t.y0)/5);
-        if(m.position.y < t.y0-8) m.visible=false;              // 다 떨어지면 그만 그린다
-        return;
-      }
-      const near = Math.abs(wz-P.z) < u.tl*0.6 && Math.abs(mesh.position.x+t.x-P.x) < CFG.LANE_W*0.5;
-      const amp = near ? 0.015+0.09*k*k : (wz > P.z-4 ? 0.012 : 0);   // 발밑은 오래 설수록 세게, 바로 앞은 살짝
+      if(t.fall){ t.vy -= 24*dt; m.position.y += t.vy*dt; m.material.opacity=Math.max(0,.95+(m.position.y-t.y0)/3);
+        if(m.position.y < t.y0-6) m.visible=false; return; }
+      const near = Math.abs(wz-P.z) < u.tl*0.6 && Math.abs(gx+t.x-P.x) < CFG.LANE_W*0.5;
+      const amp = near ? 0.02+0.1*k*k : 0;                              // 서 있는 칸은 오래 설수록 떨리고
       m.position.x = t.x + (Math.random()-.5)*amp;
-      m.position.y = t.y0 + (Math.random()-.5)*amp*0.6;
-      if(m.material.color && m.material.color.setRGB) m.material.color.setRGB(1, 1-0.45*(near?k:0), 1-0.55*(near?k:0));   // 오래 서 있으면 붉어진다
+      const sc = 1+(near?0.12*k:0)+0.03*Math.sin(u.t*4+t.z);            // 금이 벌어진다
+      m.scale.set(sc,sc,1);
+      m.material.opacity = near ? Math.min(1,.8+.2*k+.15*Math.sin(u.t*20)*k) : .85+.1*Math.sin(u.t*2.5+t.x);
     });
     return;
   }
