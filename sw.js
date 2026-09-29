@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v108";
+const VERSION = "hyeng-v110";
 const CORE = [
   "./",
   "./index.html",
@@ -47,6 +47,8 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
+  // 학원 랭킹(구글 시트)은 저장하지 않는다 — 항상 최신 순위
+  if (url.hostname.indexOf("script.google") >= 0 || url.hostname.indexOf("googleusercontent") >= 0) return;
   // 게임 화면(HTML)은 항상 새로 받아온다 — 올린 즉시 새 버전이 보이게.
   // 인터넷이 없을 때만 저장해 둔 것을 쓴다.
   const isPage = e.request.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("/");

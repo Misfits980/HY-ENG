@@ -460,6 +460,15 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 #stMiss .missRow{background:rgba(20,14,44,.55);border:1px solid rgba(255,255,255,.07);border-radius:12px;
   padding:8px 10px;margin-bottom:6px}
 #stMiss .missRow b{color:#ffe7b2;letter-spacing:.04em}
+
+/* ── 학원 랭킹 ── */
+.rrow.me{background:rgba(255,211,122,.14) !important;box-shadow:inset 0 0 0 2px rgba(255,211,122,.55)}
+.meTag{font-style:normal;font-size:11px;font-weight:900;color:#2a1c06;background:#ffd37a;border-radius:8px;padding:1px 6px;margin-left:4px}
+#selRankRange{margin-top:-4px}
+
+.nickIn{width:100%;height:48px;box-sizing:border-box;border-radius:12px;border:2px solid #c9a14a;background:#120c2a;
+  color:#fff;font-size:17px;font-weight:800;padding:0 14px;font-family:var(--font);outline:none}
+.nickIn:focus{border-color:#ffd37a;box-shadow:0 0 0 3px rgba(255,211,122,.25)}
 #zoneTag{position:fixed;left:50%;top:28%;transform:translate(-50%,0) scale(.9);z-index:6;
   pointer-events:none;opacity:0;text-align:center;transition:opacity .4s,transform .4s}
 #zoneTag.on{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -839,6 +848,8 @@ details{display:none}
 <div class="sheet" id="shSettings"><div class="sheetIn setSheet">
   <div class="shGrip"></div>
   <div class="setHead"><h2>설정</h2><button class="setClose" id="btnSetClose">✕</button></div>
+  <div class="setRow"><span>✏️ 내 이름</span><b style="color:#9d92c8;font-size:11.5px">학원 랭킹에 나와요</b></div>
+  <input type="text" id="nick" class="nickIn" maxlength="10" placeholder="이름을 적어 주세요" value="" autocomplete="off">
   <div class="setRow"><span>🎵 배경음</span><b id="valBgm">70%</b></div>
   <input type="range" class="setRange" id="rngBgm" min="0" max="100" step="5" value="70">
   <div class="setRow"><span>🔔 효과음</span><b id="valSfx">85%</b></div>
@@ -957,10 +968,7 @@ details{display:none}
 
 <!-- 단어 / 이름 시트 -->
 <div class="sheet" id="shWords"><div class="sheetIn">
-  <h2>내 이름</h2>
-  <p class="note" style="margin-bottom:10px">랭킹에 기록됩니다.</p>
-  <input type="text" id="nick" maxlength="10" placeholder="PLAYER" value="">
-  <h2 style="margin-top:22px">단어 추가</h2>
+  <h2>단어 추가</h2>
   <p class="note">JSON 배열로 붙여넣으세요. level은 1(기초)·2(초등)·3(중등)입니다.<br>
      <b style="color:#ffd37a">tag</b> 를 넣으면 학년 선택에 <b>📎 단원 세트</b>가 생깁니다 (4개 이상부터).</p>
   <textarea id="userWords">[
@@ -1005,6 +1013,11 @@ details{display:none}
     <div class="opt" data-v="normal"><i>⚡</i><b>보통</b></div>
     <div class="opt" data-v="hard"><i>🔥</i><b>어려움</b></div>
     <div class="opt" data-v="extreme"><i>⚔️</i><b>극한</b></div>
+  </div></div>
+  <div class="group"><div class="opts" id="selRankRange" style="display:none">
+    <div class="opt sel" data-v="week"><b>이번 주</b></div>
+    <div class="opt" data-v="all"><b>전체</b></div>
+    <div class="opt" data-v="local"><b>이 기기</b></div>
   </div></div>
   <div id="rankList" class="group"></div>
   <button class="play ghost" id="btnRankBack">돌아가기</button>
@@ -6316,6 +6329,11 @@ function syncSettings(){
   const q=Quality.resolved();
   ["setQual"].forEach(id=>{ const row=$(id); if(row && row.querySelectorAll) row.querySelectorAll(".tile").forEach(t=>t.classList.toggle("sel", t.dataset.v===q)); });
 }
+(function(){                                          // 이름을 기억한다
+  const el=$("nick"); if(!el) return;
+  try{ const v=localStorage.getItem("hyeng_nick"); if(v) el.value=v; }catch(e){}
+  if(el.addEventListener) el.addEventListener("input",()=>{ try{ localStorage.setItem("hyeng_nick", el.value.trim().slice(0,10)); }catch(e){} });
+})();
 function openSettings(){ SFX.click(); syncSettings(); $("shSettings").classList.add("on"); }
 function closeSettings(){ SFX.click(); $("shSettings").classList.remove("on"); }
 $("btnGear").addEventListener("click", openSettings);
@@ -6536,6 +6554,18 @@ function gameOver(){
     acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now()});
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
   $("oRank").innerHTML = '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
+  if(Online.on() && G.rule==="normal" && G.score>0){
+    const d0=G.diff;
+    Online.submit({nick:G.nick, score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
+                   diff:d0, rule:G.rule, char:G.char})
+      .then(()=>Online.top(d0,"week"))
+      .then(list=>{
+        if(!list) return;
+        const i=list.findIndex(r=>r.me);
+        $("oRank").innerHTML='<div class="glab">🏫 학원 '+DIFF[d0].label+' 이번 주 · '+(i>=0?(i+1)+"위":"20위 밖")+'</div>'+onlineRows(list.slice(0,5))
+          + (G.nick==="PLAYER" ? '<div class="note">설정 ⚙에서 이름을 정하면 랭킹에 내 이름이 나와요</div>' : '');
+      });
+  }
   $("scOver").classList.add("on");
 }
 function rankRows(diff){
@@ -6692,8 +6722,53 @@ $("btnGiveUp").addEventListener("click",()=>{ G.paused=false; $("scPause").class
 $("pauseBtn").addEventListener("click",()=>{ if(G.running) togglePause(); });
 $("btnRankHome").addEventListener("click",()=>{ $("scStart").classList.remove("on"); showRank("easy"); });
 $("btnRankBack").addEventListener("click",()=>{ $("scRank").classList.remove("on"); $("scStart").classList.add("on"); });
-pickers("selRankDiff",v=>{ $("rankList").innerHTML=rankRows(v); });
-function showRank(d){ $("rankList").innerHTML=rankRows(d); $("scRank").classList.add("on"); }
+pickers("selRankDiff",v=>{ RANK_VIEW.diff=v; drawRankScreen(); });
+pickers("selRankRange",v=>{ RANK_VIEW.range=v; drawRankScreen(); });
+
+/* =====================================================================
+   학원 온라인 랭킹 — 구글 시트에 점수를 모은다
+   URL 이 비어 있으면 예전처럼 이 기기 기록만 쓴다
+===================================================================== */
+const Online = {
+  URL: "https://script.google.com/macros/s/AKfycbyOcgwtafpMTXOo8Wtn40a-pnpbELhgDRogjrHXdGck78fy_IpzmmHVSMOZDBc7pWll/exec",   // 구글 시트 "웹 앱" 주소
+  KEY: "HYENG",              // 학원 코드 — 시트 코드의 KEY 와 같아야 한다
+  on(){ return !!this.URL && typeof fetch==="function"; },
+  dev(){
+    let d="nodev";
+    try{ d=localStorage.getItem("hyeng_dev");
+      if(!d){ d=Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem("hyeng_dev",d); } }catch(e){}
+    return d;
+  },
+  submit(rec){
+    if(!this.on()) return Promise.resolve(null);
+    return fetch(this.URL,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify(Object.assign({key:this.KEY, dev:this.dev()}, rec))}).then(r=>r.json()).catch(()=>null);
+  },
+  top(diff, range){
+    if(!this.on()) return Promise.resolve(null);
+    const u=this.URL+"?key="+encodeURIComponent(this.KEY)+"&diff="+diff+"&range="+(range||"week")+"&n=20&dev="+encodeURIComponent(this.dev());
+    return fetch(u).then(r=>r.json()).then(j=>(j && j.ok) ? j.list : null).catch(()=>null);
+  }
+};
+function onlineRows(list){
+  if(!list || !list.length) return '<div class="note">아직 기록이 없습니다. 첫 번째 주인공이 되어 보세요!</div>';
+  return list.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><i>'+(i+1)+'</i><b>'+String(r.nick).replace(/[<>&"]/g,"")+
+    (r.me?' <em class="meTag">나</em>':'')+'</b><span>'+Number(r.score).toLocaleString()+'</span></div>').join("");
+}
+let RANK_VIEW={diff:"easy", range:"week"};
+function drawRankScreen(){
+  const box=$("rankList"), v=RANK_VIEW;
+  const rr=$("selRankRange"); if(rr) rr.style.display = Online.on() ? "" : "none";
+  if(!Online.on() || v.range==="local"){ box.innerHTML=rankRows(v.diff); return; }
+  box.innerHTML='<div class="note">학원 랭킹을 불러오는 중…</div>';
+  const want=v.diff+"|"+v.range;
+  Online.top(v.diff, v.range).then(list=>{
+    if(RANK_VIEW.diff+"|"+RANK_VIEW.range!==want) return;           // 그새 다른 탭을 눌렀다
+    box.innerHTML = list ? onlineRows(list)
+      : '<div class="note">인터넷 연결을 확인해 주세요 · 이 기기 기록을 보여드려요</div>'+rankRows(v.diff);
+  });
+}
+function showRank(d){ RANK_VIEW.diff=d; drawRankScreen(); $("scRank").classList.add("on"); }
 
 $("btnAdd").addEventListener("click",()=>{
   const msg=$("addMsg");
