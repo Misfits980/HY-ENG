@@ -3577,9 +3577,16 @@ const Ground = {
       if(t.logicZ > back) t.logicZ -= this.span;
       if(t.fall){
         t.ft+=dt;
-        t.mesh.position.y -= (3+t.ft*18)*dt;
-        t.mesh.rotation.z += dt*1.1; t.mesh.rotation.x += dt*.6;
+        if(t.soft){                                             // 금 간 바닥 — 부르르 떨다가 곧게 가라앉는다
+          t.mesh.position.z=t.logicZ;
+          if(t.ft<0.35) t.mesh.position.x=t.baseX+(Math.random()-.5)*0.08;
+          else { t.mesh.position.x=t.baseX; t.mesh.position.y -= (1.2+(t.ft-0.35)*9)*dt; }
+        } else {
+          t.mesh.position.y -= (3+t.ft*18)*dt;
+          t.mesh.rotation.z += dt*1.1; t.mesh.rotation.x += dt*.6;
+        }
         if(t.ft>2.2){ t.fall=false; t.ft=0; t.mesh.rotation.set(0,0,0);
+          if(t.soft && t.baseX!==undefined) t.mesh.position.x=t.baseX; t.soft=false;
           t.mesh.position.y=0; t.mesh.position.z=t.logicZ; }
         continue;
       }
@@ -3592,7 +3599,7 @@ const Ground = {
       m.mesh.position.z = m.logicZ;
     }
   },
-  collapseAt(lane, z){
+  collapseAt(lane, z, soft){                         // soft: 떨다가 곧게 가라앉는다 (금 간 바닥)
     let best=null, bd=1e9;
     for(let i=0;i<this.tiles.length;i++){
       const t=this.tiles[i];
@@ -3600,7 +3607,7 @@ const Ground = {
       const d=Math.abs(t.mesh.position.z - z);
       if(d<bd){ bd=d; best=t; }
     }
-    if(best && bd < this.len){ best.fall=true; best.ft=0; return true; }
+    if(best && bd < this.len){ best.fall=true; best.ft=0; best.soft=!!soft; best.baseX=best.mesh.position.x; return true; }
     return false;
   },
   resetAll(){ this.tiles.forEach(t=>{
@@ -4535,12 +4542,13 @@ function animateZone(mesh, dt){
     const k=Math.min(1, (P.crumbT||0)/lim);
     u.tiles.forEach(m=>{
       const t=m.userData.tile, wz=gz+t.z;
-      if(!t.fall && wz > P.z+1.1){                                   // 지나간 줄 → 길이 무너진다
-        t.fall=true; t.vy=0;
-        if(!t.dropped){ t.dropped=true; try{ Ground.collapseAt(t.lane, wz); }catch(e){} }
+      if(!t.fall && wz > P.z+2.2){                                   // 조금 더 지나간 줄 → 떨다가 가라앉는다
+        t.fall=true; t.vy=0; t.delay=0.35;
+        if(!t.dropped){ t.dropped=true; try{ Ground.collapseAt(t.lane, wz, true); }catch(e){} }
         if(Math.random()<.4 && typeof puff==="function") try{ puff(gx+t.x, .2, wz, 0x2a1f1a, 3, 1.6); }catch(e){}
       }
-      if(t.fall){ t.vy -= 24*dt; m.position.y += t.vy*dt; m.material.opacity=Math.max(0,.95+(m.position.y-t.y0)/3);
+      if(t.fall && t.delay>0){ t.delay-=dt; m.position.x=t.x+(Math.random()-.5)*0.08; return; }
+      if(t.fall){ t.vy -= 9*dt; m.position.y += t.vy*dt; m.material.opacity=Math.max(0,.95+(m.position.y-t.y0)/3);
         if(m.position.y < t.y0-6) m.visible=false; return; }
       const near = Math.abs(wz-P.z) < u.tl*0.6 && Math.abs(gx+t.x-P.x) < CFG.LANE_W*0.5;
       const amp = near ? 0.02+0.1*k*k : 0;                              // 서 있는 칸은 오래 설수록 떨리고
@@ -7136,7 +7144,15 @@ const Online = {
   top(diff, range){
     if(!this.on()) return Promise.resolve(null);
     const u=this.URL+"?key="+encodeURIComponent(this.KEY)+"&diff="+diff+"&range="+(range||"week")+"&n=20&dev="+encodeURIComponent(this.dev());
-    return fetch(u).then(r=>r.json()).then(j=>(j && j.ok) ? j.list : null).catch(()=>null);
+    return fetch(u).then(r=>r.json()).then(j=>{ const L=(j && j.ok) ? j.list : null; if(L) this.cacheSet(diff,range,L); return L; }).catch(()=>null);
+  },
+  /* 받은 순위를 기기에 저장 — 다음에 열 때 바로 보여 준다 */
+  cacheGet(diff, range){ try{ const v=JSON.parse(localStorage.getItem("hyeng_rkc_"+diff+"_"+(range||"week"))); return v && v.list ? v : null; }catch(e){ return null; } },
+  cacheSet(diff, range, list){ try{ localStorage.setItem("hyeng_rkc_"+diff+"_"+(range||"week"), JSON.stringify({t:Date.now(), list})); }catch(e){} },
+  warm(){                                             // 켤 때 한 번 불러서 구글 서버를 깨워 둔다
+    if(!this.on()) return;
+    let d="easy"; try{ const ls=JSON.parse(localStorage.getItem("hyeng_setup_v1")||"null"); if(ls && ls.diff) d=ls.diff; }catch(e){}
+    setTimeout(()=>{ this.top(d,"week"); }, 1500);
   }
 };
 function onlineRows(list){
@@ -7149,14 +7165,18 @@ function drawRankScreen(){
   const box=$("rankList"), v=RANK_VIEW;
   const rr=$("selRankRange"); if(rr) rr.style.display = Online.on() ? "" : "none";
   if(!Online.on() || v.range==="local"){ box.innerHTML=rankRows(v.diff); return; }
-  box.innerHTML='<div class="note">학원 랭킹을 불러오는 중…</div>';
+  const cached=Online.cacheGet(v.diff, v.range);
+  box.innerHTML = cached ? '<div class="note">최신 순위로 바꾸는 중…</div>'+onlineRows(cached.list)
+                         : '<div class="note">학원 랭킹을 불러오는 중…</div>';
   const want=v.diff+"|"+v.range;
   Online.top(v.diff, v.range).then(list=>{
     if(RANK_VIEW.diff+"|"+RANK_VIEW.range!==want) return;           // 그새 다른 탭을 눌렀다
     box.innerHTML = list ? onlineRows(list)
+      : cached ? '<div class="note">인터넷이 느려요 · 조금 전 순위예요</div>'+onlineRows(cached.list)
       : '<div class="note">인터넷 연결을 확인해 주세요 · 이 기기 기록을 보여드려요</div>'+rankRows(v.diff);
   });
 }
+Online.warm();
 function showRank(d){ RANK_VIEW.diff=d; drawRankScreen(); $("scRank").classList.add("on"); }
 
 $("btnAdd").addEventListener("click",()=>{
