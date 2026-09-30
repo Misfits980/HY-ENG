@@ -2225,7 +2225,8 @@ function lanesFor(diff){
 /* 빙판 · 돌풍 */
 const ICE = { GRIP:0.16, LEN:24 };              // 미끄러움 / 길이 (폭은 트랙 전체)
 const WIND = {
-  EVERY:11, TIME:2.4, PUSH:7.0, PUSH_Z:7.5,     // 부는 간격 / 지속 / 좌우 힘 / 앞뒤 힘
+  EVERY:11, TIME:2.4, PUSH:4.5, PUSH_Z:4.8,     // 부는 간격 / 지속 / 좌우 힘 / 앞뒤 힘 (v125: 7.0·7.5 → 4.5·4.8)
+  AGAINST:0.5,                                  // 바람을 거슬러 밀고 있으면 바람 힘이 이만큼으로 (조이스틱을 덜 밀어도 이긴다)
   TAIL_FROM:18                                  // 이 스테이지부터 앞뒤 돌풍도 섞인다
 };
 /* 새 함정 */
@@ -2481,7 +2482,7 @@ function makeQuestion(){
   }
 
   const p = pool();
-  const word = takeReviewWord() || pickWord(p);
+  const word = Boss.word() || takeReviewWord() || pickWord(p);   // 보스전에는 이번 판에 틀린 단어부터
   const n = G.lanes || DIFF[G.diff].lanes;   // 화면에 실제로 놓인 문 개수와 반드시 일치해야 한다
   let dir = G.mode;
   if(dir==="mix") dir = Math.random()<0.5 ? "k2e" : "e2k";
@@ -3744,6 +3745,7 @@ function spawnSet(){
     G.nextQ = newQuestion();
     Hazards.spawnFor(group.position.z - G.spawnDist, G.nextQ.answer, s.speed);   // 다음 문제 함정 — 이 문 뒤편
     G.preHazQ = G.nextQ;
+    Boss.attack(group.position.z, G.nextQ.answer, q.answer);                      // 보스전 — 별똥별 (정답 줄은 피함)
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
   G.groundSpeed = s.speed;
@@ -3977,7 +3979,9 @@ function judge(s){
             COL.mint, "rgba(95,224,176,.2)");
     if(WORD_SETS[G.set].review) WrongBook.remove(s.q.word.en);
     if(ruleEnded()) return;
+    if(Boss.active && !Boss.hit()){ updateHUD(); spawnSet(); return; }   // 보스전 — 단계 대신 보스 하트(삼킨 별)를 깎는다
     G.stage++;
+    Boss.check();                                   // 50단계에 닿으면 보스 등장
     const zi = zoneIndex(G.stage);
     if(zi !== G.zone) applyZone(zi, true);       // 새 지대 진입
     updateHUD();
@@ -3985,7 +3989,7 @@ function judge(s){
   } else {
     G.wrong++; G.combo=0; SFX.wrong(); G.breather = true; G.solved++;
     Rank.record(s.q.word && s.q.word.en, false);
-    onRuleWrong();
+    onRuleWrong(); Boss.taunt();
     passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.coral);
     setTimeout(()=>Voice.say(s.q.word.en, {keep:true}), 320);   // 틀리면 정답 발음을 들려준다
     const w = s.q.word;
@@ -4015,7 +4019,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -4828,7 +4832,7 @@ const Hazards = {
     const tTotal=(prevZ-gateZ)/spd;
     const pz=(typeof P!=="undefined")?P.z:0;
     const tPop=(prevZ-(pz-spd*1.5))/spd;               // 생길 때 플레이어로부터 1.5초 이상 앞
-    const gSafe=Math.min(d.gateSafe||0.9, tTotal*0.28), aClear=Math.min(d.ansClear||1.5, tTotal*0.42);
+    const gSafe=Math.min(d.gateSafe||0.9, tTotal*0.28), aClear=Math.max(0.9, Math.min(d.ansClear||1.5, tTotal*0.42));   // 문 앞 정답 줄은 최소 0.9초 비움
     const tStart=Math.max(gSafe, tPop), tEnd=tTotal-0.35;
     if(tEnd-tStart<0.3) return;
     // 지대별 함정 비율
@@ -4836,8 +4840,8 @@ const Hazards = {
             : Z.prop==="pillar"  ? {hole:4, block:6}
             : Z.prop==="spike"   ? {block:6, chunk:4}
             : Z.prop==="lava"    ? {hole:3, block:3, geyser:4}
-            :                      {hole:4, block:3, geyser:3};
-    const kinds=Object.keys(W).filter(k=> (k==="geyser"||k==="chunk"||k==="flower") ? true : zoneAllows(k));
+            :                      {hole:3, block:2, blink:3, meteor:2};   // 밤하늘
+    const kinds=Object.keys(W).filter(k=> (k==="geyser"||k==="chunk"||k==="flower"||k==="blink"||k==="meteor") ? true : zoneAllows(k));
     const pick=()=>{ let tot=0; kinds.forEach(k=>tot+=W[k]); let r=Math.random()*tot;
       for(const k of kinds){ r-=W[k]; if(r<=0) return k; } return kinds[0]; };
     if(!kinds.length) return;
@@ -4862,7 +4866,7 @@ const Hazards = {
       for(let j=0;j<n;j++){
         if(crumble && crumble.lanes.indexOf(j)>=0 && t>crumble.t0-0.25 && t<crumble.t1+0.25) continue;   // 금 간 줄 위엔 두지 않는다
         if(j===exitLane && t<Math.min(d.exitClear||1.0, tTotal*0.34)) continue;
-        if(j===answerLane && (tTotal-t)<aClear) continue;
+        if(j===answerLane && (tTotal-t)<aClear+0.3) continue;              // 구멍은 바닥 타일에 붙으며 조금 밀릴 수 있어 여유 0.3초
         ok.push(j);
       }
       for(let c=0;c<cnt && ok.length;c++){
@@ -4927,7 +4931,8 @@ const Hazards = {
     }
     // 길 찾기 검사 — 한 칸 옮기는 데 0.32초로 넉넉히 잡는다
     const step=Math.max(0.28, 2.1*CFG.LANE_W/Math.max(6,CFG.MOVE_X));  // 한 칸 옮기는 시간의 2.1배 — 아이 반응 속도 기준
-    const halfT=it=> it.kind==="geyser" ? 0.40 : it.kind==="treeseg" ? 0.35 : it.kind==="flower" ? 0.40
+    const halfT=it=> it.kind==="geyser" ? 0.40 : it.kind==="treeseg" ? 0.35 : it.kind==="flower" ? 0.40 : it.kind==="meteor" ? 0.32
+      : it.kind==="blink" ? (Ground.len/2)/spd+0.12
       : ((it.kind==="block"||it.kind==="chunk"||it.kind==="wall") ? (it.also>=0?0.45:0.30) : (Ground.len/2)/spd+0.12);
     const blockedIn=(list,lane,t)=>list.some(it=>(it.lane===lane || it.also===lane) && Math.abs(it.t-t)<halfT(it));
     let extra=[];
@@ -4982,11 +4987,65 @@ const Hazards = {
       else if(it.kind==="geyser") this.addGeyser(it.lane, z);
       else if(it.kind==="chunk") this.addChunk(it.lane, z, it.also);
       else if(it.kind==="flower") this.addFlower(it.lane, it.also, z);
+      else if(it.kind==="blink") this.addBlink(it.lane, z);
+      else if(it.kind==="meteor") this.addMeteor(it.lane, z);
       else if(it.kind==="treeseg") {}                              // 나무는 아래에서 한 그루로
       else this.addBlock(it.lane, z);
     });
     if(treeFall && items.some(it=>it.kind==="treeseg")) this.addTree(treeFall.lanes, treeFall.left, prevZ-treeFall.t*spd);
     if(swarmT!==null) this.addSwarm(prevZ-swarmT*spd);
+  },
+  /* 깜빡이는 발판 (밤하늘) — 진짜 바닥 타일이 있다가 → 깜빡이고 → 사라진다. 사라졌을 때 밟으면 떨어진다 */
+  addBlink(lane, z){
+    let tile=null, bd=1e9;
+    for(let i=0;i<Ground.tiles.length;i++){ const t=Ground.tiles[i];
+      if(t.lane!==lane || t.hidden || t.fall) continue; const d=Math.abs(t.logicZ-z); if(d<bd){ bd=d; tile=t; } }
+    if(!tile) return;
+    tile.hidden=true;                                         // 다른 함정이 이 칸을 쓰지 않게
+    const g=new THREE.Group(), w=CFG.LANE_W*0.96, L=Ground.len*0.96, glow=this._glowTex("white");
+    const rim=new THREE.Mesh(new THREE.PlaneGeometry(w,L), new THREE.MeshBasicMaterial({map:glow||null, color:0xb48cff,
+      transparent:true, opacity:.55, depthWrite:false, blending:THREE.AdditiveBlending}));
+    rim.rotation.x=-Math.PI/2; rim.position.y=.07; rim.userData.noOutline=true; g.add(rim);
+    const edge=new THREE.Mesh(new THREE.RingGeometry(0.46,0.5,4,1,Math.PI/4), new THREE.MeshBasicMaterial({color:0xd9c4ff,
+      transparent:true, opacity:.8, depthWrite:false}));
+    edge.rotation.x=-Math.PI/2; edge.position.y=.08; edge.scale.set(w*1.38, L*1.38, 1); edge.userData.noOutline=true; g.add(edge);
+    g.position.set(laneX(lane,G.lanes),0,tile.logicZ);
+    g.userData.blink={t:Math.random()*2.6, on:1.3, warn:0.45, off:0.9, rim, edge, gone:false};
+    scene.add(g);
+    this.list.push({type:"blink", lane, tile, mesh:g, len:Ground.len-1.6, done:false});
+  },
+  /* 별똥별 (밤하늘) — 바닥 표적이 밝아지다가, 가까워지면 떨어져 수정 바위가 된다. 떨어진 뒤에만 부딪힌다 */
+  addMeteor(lane, z){
+    const g=new THREE.Group(), glow=this._glowTex("white"), jet=this._glowTex("jet");
+    const ring=new THREE.Mesh(new THREE.PlaneGeometry(CFG.LANE_W*1.1, CFG.LANE_W*1.1), new THREE.MeshBasicMaterial({map:glow||null,
+      color:0xb48cff, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));
+    ring.rotation.x=-Math.PI/2; ring.position.y=.09; ring.userData.noOutline=true; g.add(ring);
+    const star=new THREE.Mesh(new THREE.PlaneGeometry(2.2,2.2), new THREE.MeshBasicMaterial({map:glow||null, color:0xeadcff,
+      transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}));
+    star.visible=false; star.userData.noOutline=true; g.add(star);
+    const trail=new THREE.Mesh(new THREE.PlaneGeometry(1.1,6), new THREE.MeshBasicMaterial({map:jet||null, color:0xc9b0ff,
+      transparent:true, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
+    trail.visible=false; trail.userData.noOutline=true; g.add(trail);
+    let rock=null;
+    if(TrapArt.has("rocks")){                                // 떨어진 자리 — 보라 수정 바위
+      const r=CFG.LANE_W*0.4, geo=new THREE.PlaneGeometry(r*2,r*2); geo.translate(0,r,0);
+      const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(4+uv.getX(i))/5);
+      rock=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:TrapArt.tex["rocks"], transparent:true, alphaTest:.06, side:THREE.DoubleSide}));
+    } else rock=new THREE.Mesh(new THREE.IcosahedronGeometry(CFG.LANE_W*0.36,0), MAT(0x6a4bb0,.6));
+    rock.visible=false; rock.userData.noOutline=true; g.add(rock);
+    let art=null;                                          // 크리스털 별똥별 그림 — 덩어리가 아래, 꼬리가 위
+    if(TrapArt.has("geyser-night")){
+      const tx=TrapArt.tex["geyser-night"], im=tx.image, asp=(im&&im.height)? im.width/im.height : 1/3;
+      const H=5.4, W=H*asp, geo=new THREE.PlaneGeometry(W,H); geo.translate(0, H/2 - H*0.14, 0);   // 덩어리 가운데가 기준점
+      art=new THREE.Group();
+      const pl=new THREE.Mesh(geo, new THREE.MeshBasicMaterial({map:tx, transparent:true, alphaTest:.02, depthWrite:false, side:THREE.DoubleSide}));
+      pl.userData.noOutline=true; art.add(pl); art.visible=false; g.add(art);
+      star.scale.setScalar(0.8);                             // 빛은 덩어리 뒤 후광으로만
+    }
+    g.position.set(laneX(lane,G.lanes),0,z);
+    g.userData.meteor={state:0, t:0, ring, star, trail, rock, art, sx:(Math.random()<.5?-1:1)*4};
+    scene.add(g);
+    this.list.push({type:"meteor", lane, tile:null, mesh:g, z, len:1.8, done:false});
   },
   /* 해바라기 — 두 줄 경계에 서서 꽃머리를 좌우로 천천히 돌린다 (양 끝에서 잠깐 멈춘다) */
   addFlower(a, b, z){
@@ -5081,21 +5140,24 @@ const Hazards = {
     if(this._gt[kind]!==undefined) return this._gt[kind];
     let tex=null;
     try{
-      const c=document.createElement("canvas"), isJet=kind.indexOf("jet")===0, W=isJet?64:128, H=isJet?256:128;
+      const c=document.createElement("canvas"), W=kind==="jet"?64:128, H=kind==="jet"?256:128;
       c.width=W; c.height=H; const x=c.getContext && c.getContext("2d");
       if(x){
-        if(isJet){                                   // 아래는 하얗게 뜨겁고 위로 갈수록 주황(밤하늘은 보라) → 사라짐
+        if(kind==="jet"){                            // 아래는 하얗게 뜨겁고 위로 갈수록 주황 → 사라짐
           const g=x.createLinearGradient(0,H,0,0);
-          const nt=kind.slice(-1)==="N";
-          g.addColorStop(0,nt?"rgba(245,230,255,1)":"rgba(255,244,200,1)"); g.addColorStop(0.25,nt?"rgba(190,130,255,0.95)":"rgba(255,170,60,0.95)");
-          g.addColorStop(0.7,nt?"rgba(120,70,220,0.55)":"rgba(240,80,20,0.55)"); g.addColorStop(1,nt?"rgba(80,40,180,0)":"rgba(200,40,10,0)");
+          g.addColorStop(0,"rgba(255,244,200,1)"); g.addColorStop(0.25,"rgba(255,170,60,0.95)");
+          g.addColorStop(0.7,"rgba(240,80,20,0.55)"); g.addColorStop(1,"rgba(200,40,10,0)");
           x.fillStyle=g; x.fillRect(0,0,W,H);
           const m=x.createLinearGradient(0,0,W,0);   // 좌우 가장자리는 흐리게
           m.addColorStop(0,"rgba(0,0,0,1)"); m.addColorStop(0.5,"rgba(0,0,0,0)"); m.addColorStop(1,"rgba(0,0,0,1)");
           x.globalCompositeOperation="destination-out"; x.fillStyle=m; x.fillRect(0,0,W,H);
+        } else if(kind==="white"){                   // 흰 빛 — 색을 입혀 쓴다
+          const g=x.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);
+          g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(0.35,"rgba(255,255,255,0.55)"); g.addColorStop(1,"rgba(255,255,255,0)");
+          x.fillStyle=g; x.fillRect(0,0,W,H);
         } else {                                     // 바닥 경고 빛 — 가운데 밝고 바깥으로 번짐
-          const g=x.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2), nt=kind.slice(-1)==="N";
-          g.addColorStop(0,nt?"rgba(230,200,255,0.95)":"rgba(255,220,120,0.95)"); g.addColorStop(0.45,nt?"rgba(150,90,255,0.6)":"rgba(255,120,40,0.6)"); g.addColorStop(1,nt?"rgba(90,40,200,0)":"rgba(255,60,10,0)");
+          const g=x.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);
+          g.addColorStop(0,"rgba(255,220,120,0.95)"); g.addColorStop(0.45,"rgba(255,120,40,0.6)"); g.addColorStop(1,"rgba(255,60,10,0)");
           x.fillStyle=g; x.fillRect(0,0,W,H);
         }
         tex=new THREE.CanvasTexture(c);
@@ -5106,30 +5168,16 @@ const Hazards = {
   /* 용암 분출 — 금이 쉬다가 → 빛나며 경고 → 솟는다 */
   addGeyser(lane, z){
     const g=new THREE.Group(), w=CFG.LANE_W*0.72, L=Math.min(Ground.len*0.8, 3.2);
-    const night = zone().prop==="crystal";            // 밤하늘 — 용암 대신 보라 별빛 불꽃
-    if(night){ const m=new THREE.Mesh(new THREE.CircleGeometry(w*0.45,24), new THREE.MeshBasicMaterial({color:0x7a52e0,
-        transparent:true, opacity:.85, depthWrite:false}));
-      m.rotation.x=-Math.PI/2; m.position.y=0.06; m.userData.noOutline=true; g.add(m); g.userData.decal=m; }
-    else if(TrapArt.has("lava-pit")) TrapArt.floorDecal(g, "lava-pit", w, L, null);
+    if(TrapArt.has("lava-pit")) TrapArt.floorDecal(g, "lava-pit", w, L, null);
     else { const m=new THREE.Mesh(new THREE.CircleGeometry(w*0.45,20), new THREE.MeshBasicMaterial({color:0xff6a1a}));
       m.rotation.x=-Math.PI/2; m.position.y=0.06; g.add(m); g.userData.decal=m; }
-    const glow=this._glowTex(night?"glowN":"glow"), jet=this._glowTex(night?"jetN":"jet");
+    const glow=this._glowTex("glow"), jet=this._glowTex("jet");
     let ring, col;
     if(glow && jet){                                  // 번지는 빛 (더하기 섞기)
       ring=new THREE.Mesh(new THREE.PlaneGeometry(w*1.5,w*1.5), new THREE.MeshBasicMaterial({map:glow, transparent:true,
         opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));
       ring.rotation.x=-Math.PI/2; ring.position.y=0.09; g.add(ring);
       col=new THREE.Group();
-      if(night && TrapArt.has("geyser-night")){       // 밤하늘 그림 — 카메라를 보는 한 장 + 뒤에 은은한 빛
-        const tx=TrapArt.tex["geyser-night"], im=tx.image, H=4.8;
-        const asp=(im && im.height) ? im.width/im.height : 1/3;
-        const halo=new THREE.Mesh(new THREE.PlaneGeometry(w*0.9,H), new THREE.MeshBasicMaterial({map:jet, transparent:true,
-          opacity:.55, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
-        halo.position.set(0,H/2,-0.05); halo.userData.noOutline=true; col.add(halo);
-        const art=new THREE.Mesh(new THREE.PlaneGeometry(H*asp,H), new THREE.MeshBasicMaterial({map:tx, transparent:true,
-          alphaTest:.02, depthWrite:false, side:THREE.DoubleSide}));
-        art.position.y=H/2; art.userData.noOutline=true; col.add(art);
-      } else
       [0, Math.PI/2].forEach(r=>{                     // 엇갈린 두 장 — 어느 쪽에서 봐도 기둥
         const pl=new THREE.Mesh(new THREE.PlaneGeometry(w*0.9,4.8), new THREE.MeshBasicMaterial({map:jet, transparent:true,
           depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
@@ -5145,7 +5193,7 @@ const Hazards = {
       col.position.y=2.3; col.visible=false; g.add(col);
     }
     g.position.set(laneX(lane,G.lanes),0,z);
-    g.userData.geo={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, ring, col, on:false, puffT:0, night};
+    g.userData.geo={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, ring, col, on:false, puffT:0};
     scene.add(g);
     this.list.push({type:"geyser", lane, tile:null, mesh:g, z, len:1.9, done:false});
   },
@@ -5222,6 +5270,30 @@ const Hazards = {
         const d=z-P.z, o = d>-2 ? Math.max(0.28, 1-(d+2)/2.6) : 1;
         h.mesh.userData.spr.material.opacity=o;
       }
+      if(h.type==="blink"){                         // 있다 → 깜빡 → 사라짐
+        const b=h.mesh.userData.blink, per=b.on+b.warn+b.off; b.t=(b.t+dt)%per;
+        const warn=b.t>=b.on && b.t<b.on+b.warn; b.gone=b.t>=b.on+b.warn;
+        const fl = warn ? (Math.sin(b.t*42)>0 ? 1 : 0.15) : 1;
+        if(h.tile && !h.tile.fall) h.tile.mesh.visible = !b.gone && fl>0.5;
+        b.rim.material.opacity = b.gone ? 0 : 0.55*fl; b.edge.material.opacity = b.gone ? 0.25 : 0.8*fl;
+        if(!b.gone) h.done=false;
+      }
+      if(h.type==="meteor"){                        // 표적이 밝아지다 → 떨어져 → 수정 바위
+        const m=h.mesh.userData.meteor, spd4=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/spd4;
+        if(m.state===0){ const k=Math.max(0,Math.min(1,(3.2-tHit)/1.6));
+          m.ring.material.opacity=k*(0.55+0.35*Math.sin(tHit*14)); m.ring.scale.setScalar(1.2-0.35*k);
+          if(tHit<1.75){ if(h.boss) Boss.pose("attack",0.6); m.state=1; m.t=0; m.star.visible=true; m.trail.visible=!m.art; if(m.art) m.art.visible=true; } }
+        if(m.state===1){ m.t+=dt; const e=Math.min(1,m.t/0.55);
+          const y=16*(1-e), x=m.sx*(1-e);
+          m.star.position.set(x,y+0.6,0); m.trail.position.set(x+m.sx*0.18,y+3.4,0); m.trail.rotation.z=Math.atan2(m.sx,16)*-1;
+          if(m.art){ m.art.position.set(x,y+0.6,0.05); m.art.rotation.z=Math.atan2(m.sx,16)*-1; }
+          m.ring.material.opacity=0.9;
+          if(e>=1){ m.state=2; m.star.visible=false; m.trail.visible=false; if(m.art) m.art.visible=false; m.rock.visible=true;
+            if(typeof burst==="function") try{ burst(h.mesh.position.x,.6,z,0xc9b0ff,16); }catch(e){}
+            if(typeof puff==="function") try{ puff(h.mesh.position.x,.3,z,0x9a7ad8,10,3.5); }catch(e){}
+            G.shake=Math.max(G.shake||0,.2); try{ SFX.tone(90,.2,"sine",.05); }catch(e){} } }
+        if(m.state===2){ m.ring.material.opacity=Math.max(0,m.ring.material.opacity-dt*2); }
+      }
       if(h.type==="flower"){
         const u=h.mesh.userData.flower; u.t+=dt;
         const a=u.A*Math.max(-1,Math.min(1,Math.sin(u.t*u.w)*1.6));    // 양 끝에서 잠깐 멈춘다
@@ -5266,7 +5338,7 @@ const Hazards = {
         q.ring.material.opacity = warn ? 0.25+0.7*k*(0.6+0.4*Math.sin(q.t*30)) : (on?0.9:0);
         if(h.mesh.userData.decal){ const sc=1+(warn?0.18*k:0)+(on?0.22:0); h.mesh.userData.decal.scale.set(sc,sc,sc); }
         q.col.visible=on; if(on){ const e=(q.t-q.rest-q.warn)/q.act; q.col.scale.y=Math.min(1,e*4)*(1-Math.max(0,e-0.8)*3); }
-        if(on && !q.on){ q.on=true; if(typeof puff==="function") try{ puff(h.mesh.position.x,.4,z,q.night?0xb48cff:0xff7a2a,10,4.5); }catch(e){} }
+        if(on && !q.on){ q.on=true; if(typeof puff==="function") try{ puff(h.mesh.position.x,.4,z,0xff7a2a,10,4.5); }catch(e){} }
         if(!on){ q.on=false; h.done=false; }                   // 다음 분출 때 다시 맞을 수 있다
       }
       // 생겨날 때: 비석은 땅에서 솟고, 구멍은 벌어진다 (0.35초)
@@ -5320,16 +5392,17 @@ const Hazards = {
       else if(!h.done && !G.falling && G.running && G.inv<=0 && !(G.passSafe>0) &&
          (h.type!=="geyser" || h.mesh.userData.geo.on) &&
          (h.type!=="tree" || (h.mesh.userData.tree.state===3 && h.mesh.userData.tree.lanes.indexOf(G.lane)>=0)) &&
+         (h.type!=="blink" || h.mesh.userData.blink.gone) &&
+         (h.type!=="meteor" || h.mesh.userData.meteor.state===2) &&
          Math.abs(z - P.z) < h.len/2 &&
          (h.type==="tree" || Math.abs(P.x - (h.type==="flower" ? h.headX : (h.mesh.userData.patrol || h.type==="swarm") ? h.mesh.position.x : laneX(h.lane,G.lanes))) < CFG.LANE_W*0.38)){
         h.done = true;
-        if(h.type==="hole") hitHole();
-        else if(h.type==="geyser"){ hitBlock(null);
-          if(h.mesh.userData.geo.night) verdict("앗 뜨거!", "별빛 불꽃이 솟았어요", 0xb48cff, "rgba(180,140,255,.22)");
-          else verdict("앗 뜨거!", "용암이 솟았어요", COL.coral, "rgba(255,122,102,.22)"); }
+        if(h.type==="hole" || h.type==="blink") hitHole();
+        else if(h.type==="geyser"){ hitBlock(null); verdict("앗 뜨거!", "용암이 솟았어요", COL.coral, "rgba(255,122,102,.22)"); }
         else if(h.type==="swarm"){ hitBlock(null); verdict("앗 따가워!", "벌떼에 쏘였어요", COL.edge, "rgba(255,204,51,.22)"); }
         else if(h.type==="flower"){ hitBlock(null); verdict("앗!", "해바라기에 부딪혔어요", COL.edge, "rgba(255,204,51,.22)"); }
         else if(h.type==="tree"){ hitBlock(null); verdict("쿵!", "쓰러진 나무에 걸렸어요", COL.coral, "rgba(255,122,102,.22)"); }
+        else if(h.type==="meteor"){ hitBlock(null); verdict("쾅!", "별똥별이 떨어졌어요", COL.edge, "rgba(180,140,255,.22)"); }
         else hitBlock(h);
       }
       if(z > back){ this.remove(i); }
@@ -5846,8 +5919,9 @@ function updatePlayer(dt){
   }
   const tvx = ix*CFG.MOVE_X*slow;
   P.vx += (tvx - P.vx) * Math.min(1, dt*(ix===0 ? CFG.BRAKE : CFG.ACCEL)*grip);
-  P.x += (P.vx + (G.falling?0:Wind.pushX()))*dt;
-  if(P.x<=-half || P.x>=half) P.vx = 0;
+  const wx = G.falling ? 0 : Wind.pushX();
+  P.x += (P.vx + wx*((ix!==0 && ix*wx<0) ? WIND.AGAINST : 1))*dt;
+  if((P.x<=-half && P.vx<0) || (P.x>=half && P.vx>0)) P.vx = 0;   // 벽 쪽으로 가는 속도만 멈춤 (돌풍에 벽에 눌려도 빠져나올 수 있게)
   P.x = clamp(P.x, -half, half);
 
   /* 현재 레인 = 가장 가까운 레인 (판정은 언제나 이 값으로만 이루어진다) */
@@ -5861,8 +5935,9 @@ function updatePlayer(dt){
   /* 앞뒤: 같은 방식으로 부드럽게. 속도를 올려 아이들도 빠르게 파고들 수 있다 */
   const tvz = -iy*CFG.MOVE_Z*slow;
   P.vz += (tvz - P.vz) * Math.min(1, dt*(iy===0 ? CFG.BRAKE : CFG.ACCEL)*grip);
-  P.z += (P.vz + (G.falling?0:Wind.pushZ()))*dt;
-  if(P.z<=CFG.Z_FORWARD || P.z>=CFG.Z_BACK) P.vz = 0;
+  const wzp = G.falling ? 0 : Wind.pushZ();
+  P.z += (P.vz + wzp*((iy!==0 && tvz*wzp<0) ? WIND.AGAINST : 1))*dt;
+  if((P.z<=CFG.Z_FORWARD && P.vz<0) || (P.z>=CFG.Z_BACK && P.vz>0)) P.vz = 0;
   P.z = clamp(P.z, CFG.Z_FORWARD, CFG.Z_BACK);
   G.rush = clamp(P.z/CFG.Z_FORWARD,0,1);
 
@@ -6249,6 +6324,7 @@ function loop(){
     Hazards.update(wdt, G.groundSpeed);
     Rocks.update(wdt);      // 등장·대기 관리는 모듈 안에서 처리
     Wind.update(dt);
+    Boss.update(dt);
     if(G.rule==="time" && !G.falling){              // 타임어택 — 시간이 흐른다
       G.timeLeft -= dt;
       if(G.timeLeft<=0){ G.timeLeft=0; updateHUD(); gameOver(); }
@@ -6547,7 +6623,7 @@ function updateHUD(){
     }
   }
   $("uStage").textContent = G.stage;
-  const zn=$("uZone"); if(zn) zn.textContent = zone().name;
+  const zn=$("uZone"); if(zn) zn.textContent = (typeof Boss!=="undefined" && Boss.active) ? "⚔️ 보스" : zone().name;
   $("uScore").textContent = G.score.toLocaleString();
   if(G.rule==="normal" || G.rule==="mine"){
     let h=""; const img=!!(document.body && document.body.classList && document.body.classList.contains("hud-ok"));
@@ -6799,6 +6875,256 @@ const TEST_STAGE = (function(){
   try{ const v=parseInt(new URLSearchParams(location.search).get("stage"),10); return (v>=1 && v<=200) ? v : 0; }
   catch(e){ return 0; }
 })();
+/* =====================================================================
+   §BOSS — 50단계 보스 "첫 번째 문지기" (수정 갑옷 기사, 기본 모드에서만)
+   - 체력 10칸 = 정답 10개. 정답 하나 = 1 데미지 (빛 화살이 날아가 꽂힌다)
+   - 체력 절반(5칸)이 되면 2단계로 변신 — 그림이 바뀌고 공격이 한 단계 세진다
+   - 0칸이 되면 갑옷이 부서지며 쓰러진다 → 51단계
+   - 보스는 문제 사이사이에 수정 파편을 떨어뜨린다 (정답 줄에는 절대 안 떨어짐)
+   - 보스전 단어는 그 판에서 틀린 단어부터. 틀려도 체력은 회복되지 않는다
+   그림: boss-knight.webp (1단계) · boss-knight-2.webp (2단계, 변신)
+         세로 2:3 (1024×1536), 투명 배경, 떠 있는 돌섬 위에 선 전신. 없으면 코드로 그린 임시 기사.
+===================================================================== */
+const BOSS = {
+  STAGE:50, NAME:"첫 번째 문지기", SUB:"BOSS",
+  HP:10, RAGE_AT:5,                                   // 이 칸 이하로 내려가면 2단계
+  SHOW_BAR:false,                                     // 체력 칸 표시 (꺼 둠)
+  METEOR:{easy:0, normal:1, hard:2, extreme:3},       // 1단계 — 문제 하나 사이에 떨어지는 수정 파편 수
+  RAGE_PLUS:1,                                        // 2단계에서 더해지는 수
+  WIN_BONUS:2000,
+  DIST:120                                            // 카메라에서 보스까지 거리 (문보다 멀리)
+};
+const Boss = {
+  active:false, done:false, hp:0, max:0, phase:1, used:{}, won:false,
+  root:null, body:null, flash:null, bar:[], fx:[], t:0,
+  poseName:"idle", poseT:0, deadT:0, enterT:0, rageT:0, texA:null, texB:null, asp:2/3,
+  allowed(){ return G.rule==="normal"; },
+  reset(){
+    this.active=false; this.done=false; this.won=false; this.hp=0; this.max=0; this.phase=1; this.used={};
+    this.poseName="idle"; this.poseT=0; this.deadT=0; this.enterT=0; this.rageT=0;
+    this.fx.forEach(f=>this._drop(f.m)); this.fx=[];
+    if(this.root) this.root.visible=false;
+    G.bossWin=false; G.bossDmg=0;
+  },
+  check(){                                            // 단계가 바뀔 때마다 — 50단계에 닿으면 등장
+    if(this.done || this.active || !this.allowed() || G.stage!==BOSS.STAGE) return;
+    this.start();
+  },
+  start(){
+    this.active=true; this.won=false; this.used={}; this.phase=1;
+    this.max=this.hp=BOSS.HP; G.bossDmg=0;
+    this.build(); this.setTex(1);
+    this.root.visible=true; this.enterT=1.6; this.deadT=0; this.pose("idle");
+    this.body.material.opacity=1; this.body.position.set(0,0,0); this.body.rotation.set(0,0,0); this.body.scale.set(1,1,1);
+    this.bar.forEach(b=>b.visible=true); this.drawBar();
+    const el=document.getElementById("zoneTag");
+    if(el){
+      el.innerHTML='<b>'+BOSS.NAME+'</b><span>'+BOSS.SUB+'</span>';
+      el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
+      setTimeout(()=>el.classList.remove("on"), 2600);
+    }
+    try{ SFX.tone(70,1.1,"sawtooth",.06,45); SFX.tone(140,.8,"square",.025,90); }catch(e){}
+    G.shake=Math.max(G.shake||0,.5);
+  },
+  /* 정답 — 1 데미지. true 를 돌려주면 이번 정답으로 쓰러뜨린 것 */
+  hit(){
+    if(!this.active) return false;
+    this.hp=Math.max(0,this.hp-1); G.bossDmg=this.max-this.hp;
+    this.arrow();
+    if(this.hp<=0){ this.win(); return true; }
+    return false;
+  },
+  win(){
+    this.active=false; this.done=true; this.won=true; G.bossWin=true;
+    const gain=Math.round(BOSS.WIN_BONUS*(DIFF[G.diff].scoreMul||1));
+    G.score+=gain;
+    setTimeout(()=>{ if(G.running) try{ popScore("+"+gain, "BOSS CLEAR", "#c9a8ff", 30); }catch(e){} updateHUD(); }, 900);
+  },
+  taunt(){ if(this.active) this.pose("attack",0.6); },
+  word(){                                             // 보스전 단어 — 이번 판에 틀린 단어부터 (한 번씩)
+    if(!this.active || !G.wrongWords || !G.wrongWords.length) return null;
+    for(const w of G.wrongWords){
+      if(this.used[w.en]) continue;
+      const f=findWord(w.en); if(!f) continue;
+      this.used[w.en]=1; return f;
+    }
+    return null;
+  },
+  /* 수정 파편 — 다음 문제 구간에, 다음 정답 줄과 지금 정답 줄은 피해서 */
+  attack(gateZ, nextAns, curAns){
+    if(!this.active || G.gentle) return;
+    let n=BOSS.METEOR[G.diff]||0; if(this.phase===2) n+=BOSS.RAGE_PLUS;
+    if(n<=0) return;
+    const pool=()=>{ const a=[]; for(let j=0;j<G.lanes;j++) if(j!==nextAns && j!==curAns) a.push(j); return a; };
+    let lanes=pool(); if(!lanes.length) for(let j=0;j<G.lanes;j++) if(j!==nextAns) lanes.push(j);
+    const span=G.spawnDist;
+    for(let k=0;k<n;k++){
+      if(!lanes.length) lanes=pool();
+      if(!lanes.length) break;
+      const f=0.40+0.40*(n===1?0.5:k/(n-1));           // 문 사이 40~80% 지점에 고르게
+      const z=gateZ-span*f;
+      const li=Math.floor(Math.random()*lanes.length), lane=lanes[li];
+      lanes.splice(li,1);
+      if(Hazards.list.some(h=>h.lane===lane && Math.abs(h.z-z)<5)) continue;
+      try{ Hazards.addMeteor(lane, z); const h=Hazards.list[Hazards.list.length-1]; if(h) h.boss=true; }catch(e){}
+    }
+  },
+  pose(name,dur){ this.poseName=name; this.poseT=dur||0; },
+  _drop(m){ if(!m) return; if(m.parent) m.parent.remove(m); if(m.geometry) m.geometry.dispose(); if(m.material) m.material.dispose(); },
+  /* ---------- 그림 ---------- */
+  setTex(p){
+    const t = p===2 ? (this.texB||this.texA) : this.texA;
+    if(!t) return;
+    const im=t.image; this.asp=(im && im.width && im.height) ? im.width/im.height : 2/3;
+    [this.body,this.flash].forEach(m=>{ m.material.map=t; m.material.needsUpdate=true; m.scale.x=this.asp; });
+    if(p===2 && !this.texB) this.body.material.color.setHex(0xffc0e8);   // 2단계 그림이 없으면 색으로만 표시
+    else this.body.material.color.setHex(0xffffff);
+  },
+  build(){
+    if(this.root) return;
+    if(!camera.parent) scene.add(camera);              // 카메라에 붙여 화면 위쪽에 둔다
+    this.root=new THREE.Group(); this.root.visible=false; camera.add(this.root);
+    const load=n=>{ if(!TrapArt.has(n)) return null; const t=TrapArt.tex[n]; if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding; return t; };
+    this.texA = load("boss-knight") || this._canvasKnight(1);
+    this.texB = load("boss-knight-2") || (TrapArt.has("boss-knight") ? null : this._canvasKnight(2));
+    const geo=new THREE.PlaneGeometry(1,1); geo.translate(0,0.5,0);            // 발밑(돌섬 아래)이 기준점
+    this.body=new THREE.Mesh(geo, new THREE.MeshBasicMaterial({transparent:true, alphaTest:.02, depthWrite:false, fog:false, side:THREE.DoubleSide}));
+    this.body.userData.noOutline=true; this.body.renderOrder=1; this.root.add(this.body);
+    this.flash=new THREE.Mesh(geo.clone(), new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false, fog:false,
+      blending:THREE.AdditiveBlending, side:THREE.DoubleSide}));      // 맞을 때·변신할 때 번쩍임 (같은 그림을 겹쳐 더함)
+    this.flash.userData.noOutline=true; this.flash.renderOrder=2; this.body.add(this.flash);
+    this.flash.scale.x=1; this.flash.position.z=0.001;
+    // 체력 10칸 — 화면에는 표시하지 않는다 (선생님 결정). 맞을 때 번쩍임·조각, 반피 변신으로만 알 수 있다
+    this.bar=[];
+    if(BOSS.SHOW_BAR)
+    for(let i=0;i<BOSS.HP;i++){
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(0.058,0.022), new THREE.MeshBasicMaterial({color:0xb48cff, transparent:true, depthWrite:false, fog:false}));
+      m.position.set((i-(BOSS.HP-1)/2)*0.066, -0.045, 0.01); m.userData.noOutline=true; m.renderOrder=3;
+      this.root.add(m); this.bar.push(m);
+    }
+  },
+  drawBar(){
+    this.bar.forEach((m,i)=>{
+      const on=i<this.hp;
+      m.material.color.setHex(on ? (this.phase===2 ? 0xff6fb5 : 0xb48cff) : 0x2a2148);
+      m.material.opacity = on ? 1 : 0.8;
+    });
+  },
+  /* 임시 기사 — 그림이 오기 전까지 */
+  _canvasKnight(phase){
+    try{
+      const W=256, H=384, c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+      const out="#120c24", stone=phase===2?"#3a2c5c":"#2c2f58", cry=phase===2?"#ff7ac8":"#a98bff", eye=phase===2?"#ffe0f4":"#cdb6ff";
+      x.lineJoin="round"; x.lineWidth=6; x.strokeStyle=out;
+      const poly=(pts,fill)=>{ x.beginPath(); pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1])); x.closePath(); x.fillStyle=fill; x.fill(); x.stroke(); };
+      poly([[58,318],[198,318],[176,352],[128,376],[82,352]], "#23264a");                  // 떠 있는 돌섬
+      poly([[70,318],[92,300],[164,300],[186,318]], "#34386a");
+      poly([[96,300],[88,190],[168,190],[160,300]], stone);                                  // 다리·몸
+      poly([[80,196],[92,132],[164,132],[176,196],[128,214]], stone);                        // 가슴
+      poly([[112,150],[128,138],[144,150],[128,188]], cry);                                  // 가슴 수정
+      poly([[56,150],[92,124],[100,164],[70,178]], cry); poly([[200,150],[164,124],[156,164],[186,178]], cry);   // 어깨 수정
+      if(phase===2){ poly([[40,140],[56,110],[66,150]], cry); poly([[216,140],[200,110],[190,150]], cry); }
+      poly([[98,128],[100,76],[128,62],[156,76],[158,128]], stone);                          // 투구
+      poly([[120,66],[128,16],[136,66]], cry);                                                // 볏
+      x.fillStyle="#07050f"; x.fillRect(104,96,48,12);                                      // 눈 틈
+      x.fillStyle=eye; x.shadowColor=eye; x.shadowBlur=10; x.fillRect(110,99,10,6); x.fillRect(136,99,10,6); x.shadowBlur=0;
+      x.lineWidth=7; x.beginPath(); x.moveTo(210,340); x.lineTo(210,70); x.stroke();         // 창
+      x.strokeStyle=phase===2?"#6a3a7a":"#4a4e80"; x.lineWidth=4; x.beginPath(); x.moveTo(210,338); x.lineTo(210,72); x.stroke();
+      x.lineWidth=6; x.strokeStyle=out; poly([[210,24],[222,74],[210,86],[198,74]], cry);    // 창끝 수정
+      if(phase===2){ x.strokeStyle=cry; x.lineWidth=2; [[100,210,120,250],[150,220,138,262],[110,150,100,176]].forEach(l=>{ x.beginPath(); x.moveTo(l[0],l[1]); x.lineTo(l[2],l[3]); x.stroke(); }); }
+      return new THREE.CanvasTexture(c);
+    }catch(e){ return null; }
+  },
+  arrow(){                                            // 빛 화살 — 화면 아래에서 기사 가슴으로
+    if(!this.root) return;
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(0.05,0.16), new THREE.MeshBasicMaterial({map:Hazards._glowTex("white")||null,
+      color:0xfff0d0, transparent:true, depthWrite:false, fog:false, blending:THREE.AdditiveBlending}));
+    m.userData.noOutline=true; m.renderOrder=4; this.root.add(m);
+    this.fx.push({m, t:0, life:0.34, kind:"arrow"});
+    try{ SFX.tone(660,.16,"triangle",.05,990); }catch(e){}
+  },
+  _impact(){
+    const rage = this.phase===1 && this.hp<=BOSS.RAGE_AT && this.hp>0;
+    if(this.hp<=0){ this.die(); return; }
+    this.pose("hurt",0.4); this.flashT=0.25; this.flashCol=0xffffff;
+    G.shake=Math.max(G.shake||0,.16);
+    try{ SFX.tone(180,.18,"square",.04,120); }catch(e){}
+    this.shards(6, 0, true); this.shards(3, 0xb48cff);
+    if(rage){                                        // 반피 — 2단계로 변신
+      this.phase=2; this.rageT=1.0; this.flashT=0.9; this.flashCol=0xff6fb5;
+      setTimeout(()=>{ if(this.active) this.setTex(2); }, 250);
+      G.shake=Math.max(G.shake||0,.7);
+      try{ SFX.tone(60,1.2,"sawtooth",.07,35); SFX.tone(300,.6,"square",.03,600); }catch(e){}
+      this.shards(10, 0, true); this.shards(12, 0xff6fb5);
+    }
+    this.drawBar();
+  },
+  die(){                                             // 쓰러짐 — 갑옷이 부서지며 떨어진다
+    this.deadT=1.8; this.flashT=0.5; this.flashCol=0xffffff; this.drawBar();
+    G.shake=Math.max(G.shake||0,.9);
+    try{ SFX.crash(); SFX.tone(90,1.0,"sawtooth",.06,40); }catch(e){}
+    this.shards(44, 0, true); this.shards(14, 0xb48cff);
+    try{ confetti(); }catch(e){}
+  },
+  shards(n,col,stone){                               // 조각이 튀어나간다 (루트 기준 좌표) — stone=true 면 어두운 돌덩이
+    for(let i=0;i<n;i++){
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(0.03+Math.random()*0.03,0.05+Math.random()*0.05), new THREE.MeshBasicMaterial({
+        color: stone ? [0x3a3b62,0x4b4c78,0x2c2d52][i%3] : col, transparent:true, depthWrite:false, fog:false,
+        blending: stone ? THREE.NormalBlending : THREE.AdditiveBlending}));
+      m.userData.noOutline=true; m.renderOrder=4; m.position.set((Math.random()-.5)*0.3, 0.35+Math.random()*0.4, 0.02);
+      this.root.add(m);
+      const a=Math.random()*Math.PI*2, sp=0.4+Math.random()*0.9;
+      this.fx.push({m, t:0, life:0.8+Math.random()*0.6, kind:"shard", vx:Math.cos(a)*sp, vy:Math.sin(a)*sp+0.3, vr:(Math.random()-.5)*12});
+    }
+  },
+  update(dt){
+    if(!this.root) return;
+    const show = G.running && (this.active || this.deadT>0 || this.fx.length>0);
+    this.root.visible = show;
+    if(!show) return;
+    this.t+=dt;
+    // 화면 위쪽 — 세로 화면은 높이 26%, 가로 화면은 36%. 발밑은 화면 위에서 50% 지점
+    const D=BOSS.DIST, hv=Math.tan((camera.fov||60)*Math.PI/360)*D, portrait=(camera.aspect||1)<1;
+    let S=2*hv*(portrait?0.26:0.36);
+    if(this.enterT>0) this.enterT=Math.max(0,this.enterT-dt);
+    const k=1-this.enterT/1.6, e=k*k*(3-2*k);
+    const bob=Math.sin(this.t*1.1)*0.012*S;
+    this.root.position.set(0, -hv*0.02 + bob - (1-e)*hv*0.6, -D);   // 아래에서 떠오르며 등장
+    this.root.scale.setScalar(S);
+    if(this.poseT>0){ this.poseT-=dt; if(this.poseT<=0) this.poseName="idle"; }
+    const b=this.body;
+    if(this.deadT<=0){
+      const lean = this.poseName==="attack" ? 0.06 : 0;
+      b.rotation.z += ((this.poseName==="hurt" ? Math.sin(this.t*45)*0.04 : Math.sin(this.t*0.8)*0.012) - b.rotation.z)*Math.min(1,dt*12);
+      const sc = 1 + (this.poseName==="attack" ? 0.05 : 0) + (this.rageT>0 ? Math.sin(this.rageT*30)*0.03 : 0);
+      b.scale.set(this.asp*sc, sc, 1); b.position.y += ((this.poseName==="attack"? -0.02:0) - b.position.y)*Math.min(1,dt*10);
+      b.rotation.x = lean;
+      if(this.rageT>0) this.rageT-=dt;
+    } else {                                          // 쓰러지는 중
+      this.deadT-=dt; const p=1-Math.max(0,this.deadT)/1.8;
+      b.rotation.z=Math.sin(this.t*30)*0.05*(1-p) + p*0.25; b.position.y=-p*p*0.6;
+      b.material.opacity=Math.max(0,1-p*1.2);
+      this.bar.forEach(m=>m.visible=false);
+    }
+    if(this.flashT>0){ this.flashT-=dt; this.flash.material.color.setHex(this.flashCol||0xffffff); this.flash.material.opacity=Math.min(1,this.flashT*2.5)*0.8; }
+    else this.flash.material.opacity = this.poseName==="attack" ? 0.25 : 0;
+    // 효과
+    for(let i=this.fx.length-1;i>=0;i--){
+      const f=this.fx[i]; f.t+=dt; const p=Math.min(1,f.t/f.life);
+      if(f.kind==="arrow"){                          // 화면 아래 → 기사 가슴(발밑에서 60% 높이)
+        const y0=(-hv*0.9)/S;
+        f.m.position.set(0, y0+(0.6-y0)*p, 0.05);
+        if(p>=1){ this._drop(f.m); this.fx.splice(i,1); this._impact(); }
+      } else if(f.kind==="shard"){
+        f.m.position.x+=f.vx*dt; f.m.position.y+=f.vy*dt; f.vy-=1.2*dt; f.m.rotation.z+=f.vr*dt;
+        f.m.material.opacity=1-p;
+        if(p>=1){ this._drop(f.m); this.fx.splice(i,1); }
+      }
+    }
+  }
+};
+
+
 function startGame(){
   G.brake = BRAKE.MAX; G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
@@ -6825,12 +7151,13 @@ function startGame(){
   applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
-  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset();
+  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset();
   applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
   input.x=0; input.y=0; stick.id=null;
   camera.position.set(0,VIEW.camY,VIEW.camZ);
   G.running=true; G.paused=false; G.spawning=true;
+  Boss.check();                                    // 시험 주소로 50단계부터 시작하면 바로 보스
   spawnSet(); updateHUD();
   if(G.testRun) setTimeout(()=>{ try{ verdict("🧪 시험 모드", TEST_STAGE+"단계부터 · 랭킹에 안 올라가요", COL.edge, "rgba(255,211,122,.18)"); }catch(e){} }, 700);
   ["scStart","scSetup","scOver","scRank","scPause"].forEach(x=>$(x).classList.remove("on"));
@@ -6884,6 +7211,7 @@ function gameOver(){
   const acc = total ? Math.round(G.right/total*100) : 0;
   $("oScore").textContent=G.score.toLocaleString();
   $("oStage").textContent=G.stage;
+  if(Boss.root) Boss.root.visible=false;
   $("oAcc").textContent= acc+"%";
   $("oRight").textContent=G.right; $("oWrong").textContent=G.wrong; $("oCombo").textContent=G.bestCombo;
   $("oKick").textContent=rule().icon+" "+rule().label+" · "+DIFF[G.diff].label+" · "+WORD_SETS[G.set].label;
@@ -6909,7 +7237,9 @@ function gameOver(){
   else if(G.bestCombo>=8) msg="🔥 "+G.bestCombo+"연속 정답을 이어갔어요";
   else if(prev && G.stage===prev.stage) msg="지난번과 같은 "+G.stage+"스테이지 — 다음엔 한 걸음 더";
   else msg = G.wrongWords.length ? "틀린 단어를 한 번만 더 보고 가요" : "좋아요, 이 흐름을 이어가요";
-  const hl=$("oHighlight"); hl.textContent=msg; hl.className = isBest ? "best" : "";
+  if(G.bossWin) msg="⚔️ 첫 번째 문지기를 쓰러뜨렸어요!";
+  else if(Boss.active) msg="⚔️ 첫 번째 문지기 — "+(G.bossDmg||0)+" / "+BOSS.HP+" 데미지";
+  const hl=$("oHighlight"); hl.textContent=msg; hl.className = (isBest||G.bossWin) ? "best" : "";
   try{
     const r1=Rank.of(G.set);
     if(r1 && G.rankBefore!=null && r1.i>G.rankBefore){

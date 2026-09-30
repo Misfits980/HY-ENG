@@ -3108,7 +3108,7 @@ const TrapArt = {
   names:["hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night","sunflower","bee","ice-chunk","rocks",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -3965,12 +3965,12 @@ const Haz = {
         t.pivot.rotation.z=(t.left?-1:1)*k*Math.PI/2; t.pivot.scale.x=1-0.45*k; t.sh.material.opacity=0.3*k;
         if(e>=1){ t.state=3; u.active=true; try{ puff(h.mesh.position.x+(t.left?1:-1)*t.span/2,.3,h.z,0x7a6a4a,12,3.2); }catch(e){} } }
     }
-    if(u.geo){                                       // 용암 분출(밤하늘은 별빛 불꽃) — 쉬고 → 빛나며 경고 → 솟는다
+    if(u.geo){                                       // 용암 분출 — 쉬고 → 빛나며 경고 → 솟는다
       const q=u.geo, per=q.rest+q.warn+q.act; q.t=(q.t+dt)%per;
       const warn=q.t>=q.rest && q.t<q.rest+q.warn, on=q.t>=q.rest+q.warn, k=warn?(q.t-q.rest)/q.warn:0;
       q.ring.material.opacity = warn ? 0.25+0.7*k*(0.6+0.4*Math.sin(q.t*30)) : (on?0.9:0);
       q.col.visible=on; if(on){ const e=(q.t-q.rest-q.warn)/q.act; q.col.scale.y=Math.min(1,e*4)*(1-Math.max(0,e-0.8)*3); }
-      if(on && !u.active){ try{ puff(h.mesh.position.x,.4,h.z,q.night?0xb48cff:0xff7a2a,10,4.5); }catch(e){} }
+      if(on && !u.active){ try{ puff(h.mesh.position.x,.4,h.z,0xff7a2a,10,4.5); }catch(e){} }
       u.active=on; if(!on) h.done=false;
     }
     if(u.chunk){                                     // 얼음덩이 — 두 칸을 미끄러져 오간다
@@ -4038,15 +4038,15 @@ const Haz = {
 function _glowTex2(kind){
   _glowTex2.c=_glowTex2.c||{}; if(_glowTex2.c[kind]!==undefined) return _glowTex2.c[kind];
   let tex=null;
-  try{ const c=document.createElement("canvas"), isJet=kind.indexOf("jet")===0, nt=kind.slice(-1)==="N", W=isJet?64:128, H=isJet?256:128; c.width=W; c.height=H;
+  try{ const c=document.createElement("canvas"), W=kind==="jet"?64:128, H=kind==="jet"?256:128; c.width=W; c.height=H;
     const x=c.getContext && c.getContext("2d");
-    if(x){ if(isJet){ const g=x.createLinearGradient(0,H,0,0);
-        g.addColorStop(0,nt?"rgba(245,230,255,1)":"rgba(255,244,200,1)"); g.addColorStop(0.25,nt?"rgba(190,130,255,0.95)":"rgba(255,170,60,0.95)"); g.addColorStop(0.7,nt?"rgba(120,70,220,0.55)":"rgba(240,80,20,0.55)"); g.addColorStop(1,nt?"rgba(80,40,180,0)":"rgba(200,40,10,0)");
+    if(x){ if(kind==="jet"){ const g=x.createLinearGradient(0,H,0,0);
+        g.addColorStop(0,"rgba(255,244,200,1)"); g.addColorStop(0.25,"rgba(255,170,60,0.95)"); g.addColorStop(0.7,"rgba(240,80,20,0.55)"); g.addColorStop(1,"rgba(200,40,10,0)");
         x.fillStyle=g; x.fillRect(0,0,W,H);
         const m=x.createLinearGradient(0,0,W,0); m.addColorStop(0,"rgba(0,0,0,1)"); m.addColorStop(0.5,"rgba(0,0,0,0)"); m.addColorStop(1,"rgba(0,0,0,1)");
         x.globalCompositeOperation="destination-out"; x.fillStyle=m; x.fillRect(0,0,W,H);
       } else { const g=x.createRadialGradient(W/2,H/2,0,W/2,H/2,W/2);
-        g.addColorStop(0,nt?"rgba(230,200,255,0.95)":"rgba(255,220,120,0.95)"); g.addColorStop(0.45,nt?"rgba(150,90,255,0.6)":"rgba(255,120,40,0.6)"); g.addColorStop(1,nt?"rgba(90,40,200,0)":"rgba(255,60,10,0)");
+        g.addColorStop(0,"rgba(255,220,120,0.95)"); g.addColorStop(0.45,"rgba(255,120,40,0.6)"); g.addColorStop(1,"rgba(255,60,10,0)");
         x.fillStyle=g; x.fillRect(0,0,W,H); }
       tex=new THREE.CanvasTexture(c); } }catch(e){ tex=null; }
   _glowTex2.c[kind]=tex; return tex;
@@ -4116,23 +4116,13 @@ function mkChunk(lane, other, z){
   return {kind:"block", lane, z, mesh:g, done:false, len:1.9, tile:null};
 }
 function mkGeyser(lane, z){
-  const night = zone().prop==="crystal";            // 밤하늘 — 용암 대신 보라 별빛 불꽃
-  const g=new THREE.Group(), w=CFG.LANE_W*0.72, glow=_glowTex2(night?"glowN":"glow"), jet=_glowTex2(night?"jetN":"jet");
-  if(night){ const m=new THREE.Mesh(new THREE.CircleGeometry(w*0.45,24), new THREE.MeshBasicMaterial({color:0x7a52e0, transparent:true, opacity:.85, depthWrite:false}));
-    m.rotation.x=-Math.PI/2; m.position.y=.06; g.add(m); }
-  else if(TrapArt.has("lava-pit")) TrapArt.floorDecal(g,"lava-pit", w, Math.min(Ground.step*0.8,3.2), null);
+  const g=new THREE.Group(), w=CFG.LANE_W*0.72, glow=_glowTex2("glow"), jet=_glowTex2("jet");
+  if(TrapArt.has("lava-pit")) TrapArt.floorDecal(g,"lava-pit", w, Math.min(Ground.step*0.8,3.2), null);
   let ring, col;
   if(glow && jet){
     ring=new THREE.Mesh(new THREE.PlaneGeometry(w*1.5,w*1.5), new THREE.MeshBasicMaterial({map:glow, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));
     ring.rotation.x=-Math.PI/2; ring.position.y=.09; g.add(ring);
-    col=new THREE.Group();
-    if(night && TrapArt.has("geyser-night")){         // 밤하늘 그림 — 카메라를 보는 한 장 + 뒤에 은은한 빛
-      const tx=TrapArt.tex["geyser-night"], im=tx.image, H=4.8, asp=(im && im.height) ? im.width/im.height : 1/3;
-      const halo=new THREE.Mesh(new THREE.PlaneGeometry(w*0.9,H), new THREE.MeshBasicMaterial({map:jet, transparent:true, opacity:.55, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
-      halo.position.set(0,H/2,-0.05); col.add(halo);
-      const art=new THREE.Mesh(new THREE.PlaneGeometry(H*asp,H), new THREE.MeshBasicMaterial({map:tx, transparent:true, alphaTest:.02, depthWrite:false, side:THREE.DoubleSide}));
-      art.position.y=H/2; col.add(art);
-    } else [0,Math.PI/2].forEach(r=>{ const pl=new THREE.Mesh(new THREE.PlaneGeometry(w*0.9,4.8), new THREE.MeshBasicMaterial({map:jet,
+    col=new THREE.Group(); [0,Math.PI/2].forEach(r=>{ const pl=new THREE.Mesh(new THREE.PlaneGeometry(w*0.9,4.8), new THREE.MeshBasicMaterial({map:jet,
       transparent:true, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending})); pl.position.y=2.4; pl.rotation.y=r; col.add(pl); });
     col.visible=false; g.add(col);
   } else {
@@ -4142,7 +4132,7 @@ function mkGeyser(lane, z){
     col.position.y=2.3; col.visible=false; g.add(col);
   }
   g.position.set(laneX(lane),0,z);
-  g.userData.geo={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, ring, col, night}; g.userData.active=false;
+  g.userData.geo={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, ring, col}; g.userData.active=false;
   scene.add(g);
   return {kind:"block", lane, z, mesh:g, done:false, len:1.9, tile:null};
 }
