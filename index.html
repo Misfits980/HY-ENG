@@ -4433,8 +4433,8 @@ function crackTex(zp){
   }catch(e){ tex=null; }
   _crackTex[zp]=tex; return tex;
 }
-function makeCrackZone(w, L, zp){
-  const g=new THREE.Group(), st=ZONE_STYLE.crumble, n=Math.max(1,G.lanes), tw=w/n;
+function makeCrackZone(w, L, zp, cols, lane0){
+  const g=new THREE.Group(), st=ZONE_STYLE.crumble, n=Math.max(1, cols||G.lanes), tw=w/n; lane0=lane0||0;
   const rows=Math.max(3,Math.round(L/(CFG.LANE_W*1.05))), tl=L/rows, tex=crackTex(zp);
   const tiles=[];
   for(let r=0;r<rows;r++) for(let c=0;c<n;c++){
@@ -4446,13 +4446,13 @@ function makeCrackZone(w, L, zp){
     m.rotation.x=-Math.PI/2; m.userData.noOutline=true;
     const x0=-w/2+tw*(c+.5), z0=-L/2+tl*(r+.5);
     m.position.set(x0, 0.035, z0);
-    m.userData.tile={x:x0, z:z0, y0:0.035, lane:c, fall:false, vy:0, dropped:false};
+    m.userData.tile={x:x0, z:z0, y0:0.035, lane:lane0+c, fall:false, vy:0, dropped:false};
     g.add(m); tiles.push(m);
   }
   g.userData={kind:"crumble", st, parts:[], cracks:[], t:0, tiles, rows, tl, crack:true};
   return g;
 }
-function makeZoneMesh(kind, w, L){
+function makeZoneMesh(kind, w, L, cols, lane0){
   const st=ZONE_STYLE[kind], g=new THREE.Group(), parts=[], cracks=[];
   let faceMat;
   const zp=zone().prop;
@@ -4471,7 +4471,7 @@ function makeZoneMesh(kind, w, L){
     faceMat=new THREE.MeshBasicMaterial({color:st.face, transparent:true, opacity:st.op, depthWrite:false});
   }
   // 무너지는 바닥 — 새 바닥을 덮지 않는다. 원래 길 위에 빛나는 금만 그리고, 지나간 줄은 진짜 길 타일이 떨어진다
-  if(kind==="crumble") return makeCrackZone(w, L, zp);
+  if(kind==="crumble") return makeCrackZone(w, L, zp, cols, lane0);
   const face=new THREE.Mesh(new THREE.PlaneGeometry(w,L), faceMat);
   face.rotation.x=-Math.PI/2; face.position.y=st.y; g.add(face);
 
@@ -4762,11 +4762,12 @@ const Hazards = {
       const z = gateZ + G.spawnDist*(0.14+Math.random()*0.32);
       const zlen = kind==="crumble" ? CRUMBLE.LEN : (kind==="puddle" ? PUDDLE.LEN : ICE.LEN);
       if(z + zlen/2 > zMax) continue;                   // 앞 문 바로 뒤까지 뻗지 않게
-      if(kind==="crumble"){
-        const w=CFG.LANE_W*G.lanes;
-        const mesh=makeZoneMesh("crumble", w-0.2, CRUMBLE.LEN);
-        mesh.position.set(0,0,z); scene.add(mesh);
-        this.list.push({type:"crumble", lane:0, cx:0, halfW:w/2, z, mesh,
+      if(kind==="crumble"){                                    // 금 간 줄 — 정답이 아닌 한 줄만
+        const cand=[]; for(let j=0;j<G.lanes;j++) if(j!==answerLane) cand.push(j);
+        const l=cand[Math.floor(Math.random()*cand.length)], w=CFG.LANE_W, cx=laneX(l,G.lanes);
+        const mesh=makeZoneMesh("crumble", w-0.2, CRUMBLE.LEN, 1, l);
+        mesh.position.set(cx,0,z); scene.add(mesh);
+        this.list.push({type:"crumble", lane:l, cx, halfW:w/2, z, mesh,
                         len:CRUMBLE.LEN, tile:null, done:false});
         zones.push({z, len:CRUMBLE.LEN});
       } else if(kind==="puddle"){
@@ -4845,16 +4846,21 @@ const Hazards = {
     const cp = Z.prop==="lava" ? 0.55 : (Z.prop==="crystal" ? 0.35 : 0);
     if(cp>0 && zoneAllows("crumble") && ramped("crumble")>0 && Math.random()<cp){
       const lenT=CRUMBLE.LEN/spd, t0=tStart+Math.random()*Math.max(0.01,(tEnd-tStart)-lenT);
-      if(t0+lenT<=tEnd) crumble={t0, t1:t0+lenT};
+      const k=(G.diff==="extreme" && n>=4) ? 2 : 1, cand=[];
+      for(let j=0;j+k<=n;j++){ let ok=true; for(let q=0;q<k;q++){ const l=j+q;
+          if(l===answerLane) ok=false; if(l===exitLane && t0<Math.min(d.exitClear||1.0, tTotal*0.34)) ok=false; }
+        if(ok) cand.push(j); }
+      if(t0+lenT<=tEnd && cand.length){ const l0=cand[Math.floor(Math.random()*cand.length)], L=[]; for(let q=0;q<k;q++) L.push(l0+q);
+        crumble={t0, t1:t0+lenT, lanes:L}; }
     }
     // 줄마다 함정 고르기
     const two=(d.twoPerRow||0)*Math.min(1, Math.max(0.35,(G.stage-4)/20));
     const items=[];
     for(let t=tStart; t<=tEnd; t+=(d.rowGap||0.46)*(0.85+Math.random()*0.3)){
-      if(crumble && t>crumble.t0-0.25 && t<crumble.t1+0.25) continue;
       const cnt = Math.random()<two ? 2 : 1;
       const ok=[];
       for(let j=0;j<n;j++){
+        if(crumble && crumble.lanes.indexOf(j)>=0 && t>crumble.t0-0.25 && t<crumble.t1+0.25) continue;   // 금 간 줄 위엔 두지 않는다
         if(j===exitLane && t<Math.min(d.exitClear||1.0, tTotal*0.34)) continue;
         if(j===answerLane && (tTotal-t)<aClear) continue;
         ok.push(j);
@@ -4963,10 +4969,11 @@ const Hazards = {
     this.lastCheck={items:items.length, ok:reachable()};
     // 실제로 놓기
     if(crumble){
-      const z=prevZ-((crumble.t0+crumble.t1)/2)*spd, w=CFG.LANE_W*n;
-      const mesh=makeZoneMesh("crumble", w-0.2, CRUMBLE.LEN);
-      mesh.position.set(0,0,z); scene.add(mesh);
-      this.list.push({type:"crumble", lane:0, cx:0, halfW:w/2, z, mesh, len:CRUMBLE.LEN, tile:null, done:false});
+      const z=prevZ-((crumble.t0+crumble.t1)/2)*spd, k=crumble.lanes.length, w=CFG.LANE_W*k;
+      const cx=(laneX(crumble.lanes[0],n)+laneX(crumble.lanes[k-1],n))/2;
+      const mesh=makeZoneMesh("crumble", w-0.2, CRUMBLE.LEN, k, crumble.lanes[0]);
+      mesh.position.set(cx,0,z); scene.add(mesh);
+      this.list.push({type:"crumble", lane:crumble.lanes[0], cx, halfW:w/2, z, mesh, len:CRUMBLE.LEN, tile:null, done:false});
     }
     this._ans=answerLane;
     items.forEach(it=>{
@@ -5258,7 +5265,7 @@ const Hazards = {
         if(h.type==="block"){ h.mesh.position.y = h.baseY - (1-e)*2.2; }
         else { const sc=0.05+0.95*e; h.mesh.scale.set(sc,1,sc); }
       }
-      if(h.type!=="swarm" && h.type!=="flower" && h.type!=="tree") h.mesh.position.x = laneX(h.lane, G.lanes);   // 벌떼·해바라기·나무는 자기 위치를 따로 가진다
+      if(h.type!=="swarm" && h.type!=="flower" && h.type!=="tree") h.mesh.position.x = (h.cx!==undefined) ? h.cx : laneX(h.lane, G.lanes);   // 구역형은 자기 중심에   // 벌떼·해바라기·나무는 자기 위치를 따로 가진다
 
       if(h.mesh.userData.chunk){                     // 얼음덩이 — 미끄러지듯 오간다
         const u=h.mesh.userData; u.chunk.t += dt*u.patrol.sp;
@@ -5811,7 +5818,7 @@ function updatePlayer(dt){
     if(P.crumbT > crumbleTime()){
       P.crumbT = 0; G.combo = 0;
       Hazards.dropTile(G.lane, P.z);
-      verdict("바닥이 무너졌어요!", "한 칸에 오래 서 있지 마세요", COL.coral, "rgba(255,180,92,.24)");
+      verdict("바닥이 무너졌어요!", "금 간 줄에 오래 서 있지 마세요", COL.coral, "rgba(255,180,92,.24)");
       startFall(); updateHUD();
     }
   } else { P.crumbT = 0; P.crumbLane = -1; }

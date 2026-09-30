@@ -3616,8 +3616,8 @@ function crackTex(zp){
   }catch(e){ tex=null; }
   _crackTex[zp]=tex; return tex;
 }
-function makeCrackZone(w, L, zp){
-  const g=new THREE.Group(), st=ZONE_STYLE.crumble, n=CFG.LANES, tw=w/n;
+function makeCrackZone(w, L, zp, cols){
+  const g=new THREE.Group(), st=ZONE_STYLE.crumble, n=cols||CFG.LANES, tw=w/n;
   const rows=Math.max(3,Math.round(L/(CFG.LANE_W*1.05))), tl=L/rows, tex=crackTex(zp), tiles=[];
   for(let r=0;r<rows;r++) for(let c=0;c<n;c++){
     const geo=new THREE.PlaneGeometry(tw*0.96, tl*0.98), uv=geo.attributes.uv, ou=Math.random(), ov=Math.random();
@@ -3632,11 +3632,11 @@ function makeCrackZone(w, L, zp){
   g.userData={kind:"crumble", st, parts:[], cracks:[], t:0, tiles, rows, tl, crack:true};
   return g;
 }
-function makeZoneMesh(kind, w, L){
+function makeZoneMesh(kind, w, L, cols){
   const st=ZONE_STYLE[kind], g=new THREE.Group(), parts=[], cracks=[];
   let faceMat;
   const zp=zone().prop;
-  if(kind==="crumble") return makeCrackZone(w, L, zp);   // 네모 덮개 대신 원래 길 위에 금만
+  if(kind==="crumble") return makeCrackZone(w, L, zp, cols);   // 네모 덮개 대신 원래 길 위에 금만
   const zArt = kind==="crumble" ? (zp==="lava" ? "crumble-volcano" : zp==="crystal" ? "crumble-night" : null)
              : kind==="ice" && zp==="crystal" ? "ice-night" : null;
   if(zArt && TrapArt.has(zArt)){
@@ -3786,11 +3786,13 @@ const Haz = {
       const kind=kinds.splice(Math.floor(Math.random()*kinds.length),1)[0];
       for(let k=kinds.length-1;k>=0;k--) if(kinds[k]===kind) kinds.splice(k,1);
       const z=gateZ + CFG.SPAWN*(0.14+Math.random()*0.30);
-      if(kind==="crumble"){
-        const w=CFG.LANE_W*CFG.LANES;
-        const mesh=makeZoneMesh("crumble", w-0.2, TRAP.CRUMB_LEN);
-        mesh.position.set(0,0,z); scene.add(mesh);
-        this.list.push({kind, lane:0, cx:0, halfW:w/2, z, mesh, len:TRAP.CRUMB_LEN});
+      if(kind==="crumble"){                                   // 금 간 줄 — 정답이 아닌 한 줄 (어려움은 두 줄)
+        const k = trapFactor()>=1 ? 2 : 1, cand=[];
+        for(let j=0;j+k<=CFG.LANES;j++){ let ok=true; for(let q=0;q<k;q++) if(j+q===answerLane) ok=false; if(ok) cand.push(j); }
+        const l0=rnd(cand), w=CFG.LANE_W*k, cx=(laneX(l0)+laneX(l0+k-1))/2;
+        const mesh=makeZoneMesh("crumble", w-0.2, TRAP.CRUMB_LEN, k);
+        mesh.position.set(cx,0,z); scene.add(mesh);
+        this.list.push({kind, lane:l0, cx, halfW:w/2, z, mesh, len:TRAP.CRUMB_LEN});
         zones.push({z, len:TRAP.CRUMB_LEN});
       } else if(kind==="puddle"){
         const span=2, s0=Math.floor(Math.random()*(CFG.LANES-span+1));
