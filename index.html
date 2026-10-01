@@ -2282,16 +2282,16 @@ const ZONES = [
   {name:"밤하늘",     sub:"NIGHT SKY",from:41,
    sky:[0x140e30,0x34215e,0x0a0718], fog:0x120d28, floor:0x2a2148, frame:0x8b7bd8, edge:0xffc46b,
    prop:"crystal",traps:["all"],                        rockMul:1.2, windMul:1.4},
-  /* ── 2장 · 몰락한 수정 왕국 (51~80, 보통 이상) — 같은 그림 세트를 시간대 색으로 나눈다: 새벽 → 한낮 → 노을 ── */
-  {name:"무너진 성문 거리", sub:"2장 · 몰락한 수정 왕국", from:51, ch:2,
+  /* ── 2장 · 몰락한 수정 왕국 (51~80, 보통 이상) — 같은 그림 세트를 시간대 색으로 나눈다: 새벽 → 한낮 → 노을. 2장에는 구멍이 없다 ── */
+  {name:"무너진 성문 거리", art:"castle", sub:"2장 · 몰락한 수정 왕국", from:51, ch:2,
    sky:[0x203b56,0x9a7090,0x101a2c], fog:0x2c3650, tint:0xb0bcdc, floor:0x3a4258, frame:0xe6c27a, edge:0xfff0c8,
-   prop:"crystal", traps:["hole","block","statue"], W:{hole:4, block:3, statue:4}, crumbleP:0, rockMul:1, windMul:1},
-  {name:"수정 시장 거리", sub:"CRYSTAL MARKET", from:61, ch:2, day:true,
+   prop:"crystal", traps:["block","statue"], W:{block:4, statue:5}, crumbleP:0, rockMul:1, windMul:1},
+  {name:"수정 시장 거리", art:"castle", sub:"CRYSTAL MARKET", from:61, ch:2, day:true,
    sky:[0x3a6c9c,0xa8c8dc,0x1c2c42], fog:0x6e8aa8, tint:0xdcdff0, floor:0x4a5068, frame:0xffd27a, edge:0xffffff,
-   prop:"crystal", traps:["hole","block","statue","rock"], W:{hole:3, block:3, statue:4}, crumbleP:0, rockMul:1.3, windMul:1},
-  {name:"왕궁 앞 광장", sub:"ROYAL PLAZA", from:71, ch:2, mirror:true,
+   prop:"crystal", traps:["block","statue","rock"], W:{block:4, statue:5}, crumbleP:0, rockMul:1.3, windMul:1},
+  {name:"왕궁 앞 광장", art:"castle", sub:"ROYAL PLAZA", from:71, ch:2, mirror:true,
    sky:[0x2c1642,0xc8644c,0x160a22], fog:0x3c2232, tint:0xd8b0b4, floor:0x4a3848, frame:0xffa86a, edge:0xffe0b0,
-   prop:"crystal", traps:["hole","block","statue","rock","crumble"], W:{hole:3, block:3, statue:4}, crumbleP:0.25, rockMul:1, windMul:1}
+   prop:"crystal", traps:["block","statue","rock","crumble"], W:{block:4, statue:5}, crumbleP:0.25, rockMul:1, windMul:1}
 ];
 const CH2_END = 80;                                  // 2장 끝 — 두 번째 문지기가 생기기 전까지는 여기서 "2장 완주"
 function zoneIndex(stage){
@@ -2776,7 +2776,7 @@ const ArtLoad = {
 const HorizonArt = {
   files:{ tree:"assets/mountains-meadow",  pillar:"assets/mountains-desert",
           spike:"assets/mountains-ice",    lava:"assets/mountains-volcano",
-          crystal:"assets/mountains-night" },       // .webp 를 먼저, 안 되면 .png
+          crystal:"assets/mountains-night", castle:"assets/mountains-castle" },       // .webp 를 먼저, 안 되면 .png
   tex:{}, failed:{}, mesh:null, want:null,
   build(){
     if(this.mesh || typeof THREE==="undefined") return;
@@ -3025,7 +3025,7 @@ const ZoneFade = {
       hill:scene.userData.hillMat ? scene.userData.hillMat.color.getHex() : (z.hill||z.fog)
     };
     this.to = {top:z.sky[0], mid:z.sky[1], low:z.sky[2], fog:z.fog,
-               land:(TrapArt.tex["floor-"+ZONE_FILE[z.prop]] ? mulHex(0x8a8a8a, z.tint||0xffffff) : 0x6e6e6e), hill:z.hill||z.fog};
+               land:(TrapArt.tex["floor-"+zoneArt(z)] ? mulHex(0x8a8a8a, z.tint||0xffffff) : 0x6e6e6e), hill:z.hill||z.fog};
     this.t = 0;
   },
   update(dt){
@@ -3070,13 +3070,13 @@ function applyZone(i, announce){
     lt.repeat.set(7,24);
     scene.userData.landMat.map = lt;
     applyLandArt();                                 // 바닥 그림이 있으면 땅에도
-    if(!announce) scene.userData.landMat.color.setHex(TrapArt.tex["floor-"+ZONE_FILE[z.prop]] ? mulHex(0x8a8a8a, artTint()) : 0x6e6e6e);
+    if(!announce) scene.userData.landMat.color.setHex(TrapArt.tex["floor-"+zoneArt(z)] ? mulHex(0x8a8a8a, artTint()) : 0x6e6e6e);
     scene.userData.landMat.needsUpdate = true;
   }
   if(Ground.markMat) Ground.markMat.color.setHex(z.edge);
-  Props.build(z.prop);
+  Props.build(propKey(z));
   Weather.build(z.prop);
-  HorizonArt.show(z.prop);                         // 지대에 맞는 산맥 그림
+  HorizonArt.show(propKey(z));                         // 지대에 맞는 산맥 그림
   if(scene.userData.stars) scene.userData.stars.visible = !z.day;   // 낮 지대에는 별이 없다
   if(!TrapArt._pre){ TrapArt._pre=true; ArtLoad.begin(); TrapArt.preload(); }
   if(announce) zoneBanner(z);
@@ -4044,7 +4044,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","statue-castle",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -4087,9 +4087,9 @@ const TrapArt = {
   /* 늦게 도착한 그림도 지금 지대라면 바로 반영 */
   loaded(n){
     try{
-      const cur = ZONE_FILE[zone().prop];
+      const cur = zoneArt();
       if(n==="floor-"+cur && typeof Ground!=="undefined" && Ground.mat){ applyFloorArt(null); applyLandArt(); }
-      if(n==="props-"+cur && typeof Props!=="undefined"){ Props.kind=null; Props.build(zone().prop); }
+      if(n==="props-"+cur && typeof Props!=="undefined"){ Props.kind=null; Props.build(propKey()); }
       if((n==="skin-"+G.char || n==="char-"+G.char) && typeof setCharacter==="function") setCharacter(G.char);
     }catch(e){}
   },
@@ -4120,11 +4120,14 @@ function artTint(){ return (zone() && zone().tint) || 0xffffff; }
 
 /* 지대 이름 — 그림 파일 이름에 쓴다 */
 const ZONE_FILE = {tree:"meadow", pillar:"desert", spike:"ice", lava:"volcano", crystal:"night"};
+/* 지대 그림 이름 — 2장처럼 그림 세트를 따로 쓰는 지대는 art 로 정한다 (규칙은 prop 그대로) */
+function zoneArt(z){ z=z||zone(); return (z && z.art) || ZONE_FILE[z.prop]; }
+function propKey(z){ z=z||zone(); return (z && z.art) || z.prop; }
 
 /* 바닥 그림 — 칸마다 그림의 다른 부분을 붙여 같은 무늬가 줄지어 보이지 않게 한다 */
 function applyFloorArt(ftex){
   const mats = Ground.mats || (Ground.mat ? [Ground.mat] : []);
-  const art = TrapArt.tex["floor-"+ZONE_FILE[zone().prop]];
+  const art = TrapArt.tex["floor-"+zoneArt()];
   const L = Ground.len || Ground.step, W = CFG.LANE_W;
   mats.forEach((m,k)=>{
     if(art){
@@ -4147,7 +4150,7 @@ function applyFloorArt(ftex){
 /* 트랙 밖 넓은 땅에도 바닥 그림을 깐다 — 조금 어둡게 해서 트랙과 구분 */
 function applyLandArt(){
   const lm = scene.userData.landMat; if(!lm) return;
-  const art = TrapArt.tex["floor-"+ZONE_FILE[zone().prop]];
+  const art = TrapArt.tex["floor-"+zoneArt()];
   if(!art) return;
   const t = art.clone(); t.needsUpdate = true;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -4183,13 +4186,13 @@ function makeIceChunk(){
   return g;
 }
 function blockSprite(kind){
-  if(!(kind in BLOCK_CELL) || !TrapArt.has("blocks")) return null;
+  const own = zone().art && TrapArt.has("block-"+zone().art) ? "block-"+zone().art : null;   // 2장: 성벽 잔해 한 장
+  if(!own && (!(kind in BLOCK_CELL) || !TrapArt.has("blocks"))) return null;
   const f=(typeof VIEW!=="undefined" && VIEW.portrait) ? 0.68 : 0.76;   // 세로 화면은 더 작게 — 뒤를 가리지 않게
-  const k=BLOCK_CELL[kind], Wd=CFG.LANE_W*f, Hd=Wd*2;
+  const Wd=CFG.LANE_W*f, Hd=Wd*2;
   const geo=new THREE.PlaneGeometry(Wd,Hd); geo.translate(0,Hd/2,0);
-  const uv=geo.attributes.uv;
-  for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/4);
-  const mat=new THREE.MeshBasicMaterial({map:TrapArt.tex["blocks"], transparent:true, alphaTest:.06,
+  if(!own){ const k=BLOCK_CELL[kind], uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/4); }
+  const mat=new THREE.MeshBasicMaterial({map:TrapArt.tex[own||"blocks"], transparent:true, alphaTest:.06,
     side:THREE.DoubleSide, color:mulHex(0xf0f0f0, artTint())});
   const g=new THREE.Group();
   const s=new THREE.Mesh(geo,mat); s.userData.noOutline=true; g.add(s);
@@ -4217,7 +4220,7 @@ function cloudSprite(){
 const SIGN_ART = {
   meadow: [0.117,0.319,0.886,0.798], desert:[0.152,0.273,0.849,0.593],
   ice:    [0.150,0.310,0.857,0.751], volcano:[0.149,0.305,0.848,0.709],
-  night:  [0.133,0.304,0.865,0.776]
+  night:  [0.133,0.304,0.865,0.776], castle:[0.134,0.438,0.866,0.796]
 };
 function mixHex(a,b,k){
   const ar=(a>>16)&255, ag=(a>>8)&255, ab=a&255, br=(b>>16)&255, bg=(b>>8)&255, bb=b&255;
@@ -4246,7 +4249,7 @@ function signTextureArt(text, img, box){
 }
 function signArtFor(){
   try{
-    const zf=ZONE_FILE[zone().prop], t=TrapArt.tex["sign-"+zf];
+    const zf=zoneArt(), t=TrapArt.tex["sign-"+zf];
     if(t && t.image && t.image.width && SIGN_ART[zf]) return {img:t.image, box:SIGN_ART[zf]};
   }catch(e){}
   return null;
@@ -4268,7 +4271,7 @@ function artFrameProxy(mat){
 }
 function artArch(root){
   let t=null;
-  try{ t=TrapArt.tex["gate-"+ZONE_FILE[zone().prop]]; }catch(e){}
+  try{ t=TrapArt.tex["gate-"+zoneArt()]; }catch(e){}
   if(!t) return null;
   const aw=CFG.LANE_W*0.98, ah=aw*2;
   const geo=new THREE.PlaneGeometry(aw,ah); geo.translate(0,ah/2,0);
@@ -4280,9 +4283,9 @@ function artArch(root){
 /* 나무·조형물 그림 — 한 장에 4칸, 항상 앞을 보는 그림판으로 세운다 */
 const PropArt = {
   geos:[], mats:{}, shadowGeo:null, shadowMat:null,
-  ready(kind){ return !!TrapArt.tex["props-"+ZONE_FILE[kind]]; },
+  ready(kind){ return !!TrapArt.tex["props-"+(ZONE_FILE[kind]||kind)]; },
   make(kind){
-    const n="props-"+ZONE_FILE[kind];
+    const n="props-"+(ZONE_FILE[kind]||kind);
     if(!this.geos.length){
       const H=4.4, Wd=H*0.5;
       for(let k=0;k<4;k++){
@@ -4495,7 +4498,7 @@ function makeZoneMesh(kind, w, L, cols, lane0){
   const st=ZONE_STYLE[kind], g=new THREE.Group(), parts=[], cracks=[];
   let faceMat;
   const zp=zone().prop;
-  const zArt = kind==="crumble" ? (zp==="lava" ? "crumble-volcano" : zp==="crystal" ? "crumble-night" : null)
+  const zArt = kind==="crumble" ? ((zone().art && TrapArt.has("crumble-"+zone().art)) ? "crumble-"+zone().art : zp==="lava" ? "crumble-volcano" : zp==="crystal" ? "crumble-night" : null)
              : kind==="ice" && zp==="crystal" ? "ice-night" : null;
   if(zArt && TrapArt.has(zArt)){
     // 흔들다리·빙판 그림 무늬를 구역 길이만큼 반복
@@ -5077,19 +5080,24 @@ const Hazards = {
     }
     eye=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.16), new THREE.MeshBasicMaterial({map:this._glowTex("white")||null, color:0xb48cff,
       transparent:true, opacity:.25, depthWrite:false, blending:THREE.AdditiveBlending}));
-    eye.position.set(0, TrapArt.has("statue-castle") ? w*0.95*1.6*0.8 : 2.7, 0.4); eye.userData.noOutline=true; g.add(eye);
+    { const tx=TrapArt.tex["statue-castle"], im=tx&&tx.image, r=(im&&im.width)? im.height/im.width : 1.6;
+      eye.position.set(0, TrapArt.has("statue-castle") ? w*0.95*r*0.80 : 2.7, 0.4); }   // 그림 석상: 눈 높이 = 그림 높이의 80%
+    eye.userData.noOutline=true; g.add(eye);
     const dir = also>=0 ? Math.sign(also-lane) : 1;
     spear=new THREE.Group(); spear.position.set(dir*w*0.32, 1.9, 0.2);
     const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,2.6,6), MAT(0x2c2f48,.8)); shaft.position.y=0.9; spear.add(shaft);
     const tip=new THREE.Mesh(new THREE.ConeGeometry(0.16,0.5,4), MAT(0x9a8ad0,.4)); tip.position.y=2.4; spear.add(tip);
     g.add(spear);
+    const art=TrapArt.has("statue-castle");
+    if(art) spear.visible=false;                              // 그림 석상은 창을 들고 있다 — 몸을 기울여 찍는 느낌만 준다
     g.position.set(laneX(lane,G.lanes),0,z); scene.add(g);
-    const st={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, eye, spear, dir, on:false, strike:null};
+    const st={t:Math.random()*3.2, rest:1.6, warn:0.9, act:0.7, eye, spear, dir, on:false, strike:null, body:art?body:null};
     g.userData.statue=st;
     this.list.push({type:"block", lane, tile:null, mesh:g, z, len:1.9, done:false, statueBody:true});
     if(also>=0){                                             // 창이 찍는 옆 줄 — 바닥 갈라짐 + 솟는 가시
       const s2=new THREE.Group(); let crack=null;
-      if(TrapArt.has("crumble-night")){ TrapArt.floorDecal(s2,"crumble-night",w*0.9,2.6,null); crack=s2.userData.decal; }
+      const ck = TrapArt.has("crack-castle") ? "crack-castle" : (TrapArt.has("crumble-night") ? "crumble-night" : null);
+      if(ck){ TrapArt.floorDecal(s2,ck,w*0.9,2.6,null); crack=s2.userData.decal; }
       else { crack=new THREE.Mesh(new THREE.PlaneGeometry(w*0.85,2.4), new THREE.MeshBasicMaterial({color:0x6a4bb0, transparent:true, depthWrite:false}));
         crack.rotation.x=-Math.PI/2; crack.position.y=.05; s2.add(crack); }
       crack.material.transparent=true; crack.material.opacity=0.15;
@@ -5416,6 +5424,7 @@ const Hazards = {
         const warn=st.t>=st.rest && st.t<st.rest+st.warn, on=st.t>=st.rest+st.warn, k=warn?(st.t-st.rest)/st.warn:0;
         st.eye.material.opacity = warn ? 0.35+0.6*k : (on?0.9:0.22);
         st.spear.rotation.z = st.dir*(warn ? -0.25-0.9*k : (on ? 0.55 : -0.25));       // 들었다가 → 옆으로 내리찍기
+        if(st.body) st.body.rotation.z = st.dir*(warn ? 0.06*k : (on ? -0.09 : 0));   // 그림 석상: 뒤로 젖혔다가 옆으로 기울며 찍기
         if(st.strike){
           st.strike.crack.material.opacity = warn ? 0.2+0.7*k*(0.6+0.4*Math.sin(st.t*30)) : (on?0.95:0.15);
           st.strike.sp.visible=on; if(on){ const e=(st.t-st.rest-st.warn)/st.act; st.strike.sp.scale.y=Math.min(1,e*6)*(1-Math.max(0,e-0.8)*3); }
@@ -5599,10 +5608,11 @@ const Hazards = {
 const ROCK_CELL = {tree:0, pillar:1, spike:2, lava:3, crystal:4};
 const ROCK_DUST = {tree:0xa89272, pillar:0xd8b27a, spike:0xe8faff, lava:0xff7a2a, crystal:0x9a7ad8};
 function newRockArt(){
-  const k=ROCK_CELL[zone().prop]; if(k===undefined || !TrapArt.has("rocks")) return null;
+  const own = zone().art && TrapArt.has("rock-"+zone().art) ? "rock-"+zone().art : null;      // 2장: 굴러오는 성벽 돌
+  const k=ROCK_CELL[zone().prop]; if(!own && (k===undefined || !TrapArt.has("rocks"))) return null;
   const geo=new THREE.PlaneGeometry(2,2); geo.translate(0,0,0);
-  const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/5);
-  const mat=new THREE.MeshBasicMaterial({map:TrapArt.tex["rocks"], transparent:true, alphaTest:.06,
+  if(!own){ const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/5); }
+  const mat=new THREE.MeshBasicMaterial({map:TrapArt.tex[own||"rocks"], transparent:true, alphaTest:.06,
     side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())});
   const g=new THREE.Group(); const spr=new THREE.Mesh(geo,mat); spr.userData.noOutline=true; g.add(spr);
   let glow=null;                                     // 화산 돌 — 금이 숨 쉬듯 빛난다
@@ -6951,7 +6961,7 @@ function applyQualityChoice(v){
   HQ = Quality.shadows();
   if(renderer) renderer.setPixelRatio(Math.min(devicePixelRatio, Quality.pixelRatio()));
   Weather.kind=null; Weather.build(zone().prop);
-  Props.kind=null;   Props.build(zone().prop);
+  Props.kind=null;   Props.build(propKey());
   ["selQual","setQual"].forEach(id=>{
     const row=$(id); if(!row || !row.querySelectorAll) return;
     row.querySelectorAll(".tile").forEach(t=>t.classList.toggle("sel", t.dataset.v===v));
