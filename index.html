@@ -4835,6 +4835,34 @@ const Hazards = {
       const z=freeZ(), l=(z!==null && z<=exitUntil) ? laneFor(z) : -1;   // 순찰하므로 더 멀리
       if(l>=0){ this.addBlock(l,z); used.push(l); }
     }
+    // 보통 — 1장 지대의 대표 함정을 약하게 하나 (지대 4번째 단계부터, 두 문제에 하나꼴, 보스전 제외)
+    if(!G.gentle && G.diff==="normal" && !Z.ch && !(typeof Boss!=="undefined" && Boss.active) && G.stage>=Z.from+3 && Math.random()<0.5)
+    for(let tryN=0, placed=false; tryN<4 && !placed; tryN++){       // 자리가 안 맞으면 몇 번 더 찾아본다
+      const nBefore=this.list.length;
+      const z=freeZ();
+      if(z!==null){
+        const pair=()=>{ const c=[]; for(let j=0;j+1<G.lanes;j++){
+            if(used.indexOf(j)>=0 || used.indexOf(j+1)>=0) continue;
+            if((j===exitLane || j+1===exitLane) && z>exitUntil) continue; c.push(j); }
+          return c.length ? rnd(c) : -1; };
+        const last=()=>this.list[this.list.length-1];
+        if(Z.prop==="tree"){                                   // 초원 — 해바라기만 (벌떼·나무는 어려움부터)
+          const a=pair(); if(a>=0){ this.addFlower(a,a+1,z); used.push(a,a+1); } }
+        else if(Z.prop==="spike"){                             // 얼음 — 얼음덩이, 느리게
+          const a=pair(); if(a>=0){ this.addChunk(a,z,a+1); const h=last(); if(h && h.mesh.userData.patrol) h.mesh.userData.patrol.sp*=0.6; used.push(a,a+1); } }
+        else if(Z.prop==="lava"){                              // 화산 — 분출, 경고를 길게
+          const l=laneFor(z); if(l>=0){ this.addGeyser(l,z); const h=last(), q=h && h.mesh.userData.geo; if(q){ q.warn=1.4; q.rest=1.9; } used.push(l); } }
+        else if(Z.prop==="crystal"){                           // 밤하늘 — 깜빡이 발판, 사라지는 시간을 짧게
+          const l=laneFor(z); if(l>=0){ this.addBlink(l,z); const h=last(), b=h && h.mesh.userData.blink; if(b){ b.off=0.6; b.warn=0.6; } used.push(l); } }
+        else if(Z.prop==="pillar" && G.stage>=Z.from+4){        // 사막 — 스핑크스 벽, 틈 두 칸 (정답 줄 + 한 칸)
+          const others=[]; for(let j=0;j<G.lanes;j++) if(j!==answerLane) others.push(j);
+          const second = (z>exitUntil && exitLane!==answerLane) ? exitLane : rnd(others);   // 앞 문에서 막 나온 줄은 열어 둔다
+          const gaps=[answerLane, second];
+          for(let j=0;j<G.lanes;j++) if(gaps.indexOf(j)<0){ this.addBlock(j,z); const h=last(); if(h) h.sphinx=true; }
+        }
+      }
+      placed = this.list.length>nBefore;
+    }
     // 2장 — 석상 기사 (창이 옆 칸을 박자에 맞춰 내리찍는다). 석상 줄과 찍는 줄 모두 정답 줄이 아니게
     if(Z.traps && Z.traps.indexOf("statue")>=0 && !G.gentle && Math.random()<0.55){   // "all"(밤하늘)에는 안 나온다
       const z=freeZ(), l=(z!==null) ? laneFor(z) : -1;
@@ -5036,7 +5064,7 @@ const Hazards = {
       else if(it.kind==="meteor") this.addMeteor(it.lane, z);
       else if(it.kind==="statue") this.addStatue(it.lane, z, it.also);
       else if(it.kind==="treeseg") {}                              // 나무는 아래에서 한 그루로
-      else this.addBlock(it.lane, z);
+      else { this.addBlock(it.lane, z); if(it.kind==="wall"){ const h=this.list[this.list.length-1]; if(h) h.sphinx=true; } }
     });
     if(treeFall && items.some(it=>it.kind==="treeseg")) this.addTree(treeFall.lanes, treeFall.left, prevZ-treeFall.t*spd);
     if(swarmT!==null) this.addSwarm(prevZ-swarmT*spd);
@@ -5387,6 +5415,7 @@ const Hazards = {
       if(h.tile){ z = h.tile.logicZ; h.mesh.visible = !h.tile.fall; }
       else { h.z += speed*dt; z = h.z; }
       h.mesh.position.z = z;
+      if(!h._tip) TrapTip.check(h, z);
       if(h.mesh.userData.spr){                    // 비석이 캐릭터 옆을 지나 카메라 쪽으로 오면 흐려진다
         const d=z-P.z, o = d>-2 ? Math.max(0.28, 1-(d+2)/2.6) : 1;
         h.mesh.userData.spr.material.opacity=o;
@@ -7477,6 +7506,43 @@ const Boss = {
 };
 
 
+/* 처음 만나는 함정 — 화면 위쪽에 한 줄 안내 (한 판에 종류별로 한 번, 유치원 제외) */
+const TrapTip = {
+  seen:{}, el:null, timer:null,
+  MSG:{flower:"🌻 해바라기가 두 줄을 번갈아 막아요", sphinx:"🗿 벽에 난 틈으로 지나가요", chunk:"🧊 얼음덩이가 두 칸을 오가요",
+       geyser:"🔥 바닥이 빛나면 곧 솟아요", blink:"✨ 깜빡이는 발판 — 사라질 때 조심해요", meteor:"☄️ 빛나는 표적에 별똥별이 떨어져요",
+       statue:"⚔️ 석상이 옆 줄을 내리찍어요", crumble:"🪨 금 간 길은 오래 서 있으면 무너져요", swarm:"🐝 벌떼가 내 줄을 따라와요",
+       tree:"🌳 나무가 쓰러지며 길을 막아요", salamander:"🦎 불도롱뇽이 좌우로 다녀요"},
+  reset(){ this.seen={}; if(this.el) this.el.style.opacity="0"; },
+  key(h){
+    const u=(h.mesh && h.mesh.userData) || {};
+    if(h.sphinx) return "sphinx"; if(h.statueBody) return "statue";
+    if(h.type==="flower"||h.type==="geyser"||h.type==="blink"||h.type==="meteor"||h.type==="crumble"||h.type==="swarm"||h.type==="tree") return h.type;
+    if(u.chunk) return "chunk"; if(u.patrol && zone().prop==="lava") return "salamander";
+    return null;
+  },
+  check(h, z){
+    const d=P.z-z; if(d>34 || d<4) return;                 // 앞쪽에 또렷이 보일 때
+    h._tip=1;
+    if(G.gentle || (typeof Boss!=="undefined" && Boss.active)) return;
+    const k=this.key(h); if(!k || this.seen[k]) return;
+    this.seen[k]=1; this.show(this.MSG[k]);
+  },
+  show(text){
+    try{ this._show(text); }catch(e){}
+  },
+  _show(text){
+    if(!this.el){
+      const el=document.createElement("div"); el.id="trapTip";
+      el.style.cssText="position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:3;pointer-events:none;opacity:0;"+
+        "transition:opacity .25s;padding:6px 16px;border-radius:100px;font-size:14px;font-weight:800;white-space:nowrap;"+
+        "color:#fff8e6;background:rgba(30,20,60,.72);border:1px solid rgba(255,226,138,.6)";
+      document.body.appendChild(el); this.el=el;
+    }
+    this.el.textContent=text; this.el.style.opacity="1";
+    clearTimeout(this.timer); this.timer=setTimeout(()=>{ if(this.el) this.el.style.opacity="0"; }, 2600);
+  }
+};
 /* 완주 엔딩 — 쉬움·유치원은 밤하늘 50단계를 마치면 모험이 끝난다 (보통 이상은 문지기와 다음 장으로) */
 const FINISH_STAGE = 50;
 function finishRun(ch){
@@ -7518,7 +7584,7 @@ function startGame(){
   applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
-  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); G.finishing=false; G.cleared=false;
+  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); G.finishing=false; G.cleared=false;
   applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
   input.x=0; input.y=0; stick.id=null;
