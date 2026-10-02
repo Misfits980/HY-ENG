@@ -4253,9 +4253,11 @@ function signTextureArt(text, img, box){
     x.strokeStyle="#181030"; x.lineWidth=thin?4:5;  x.strokeText(t,0,0);
     x.fillText(t,0,0); x.restore();
   };
-  // 긴 뜻 "잡고 있었다 (hold)" — 뜻은 크게 윗줄, 괄호 속 도움말은 작게 아랫줄
+  // 긴 뜻 "잡고 있었다 (hold)" — 두 줄(뜻은 크게 윗줄, 괄호 속 도움말은 작게 아랫줄)로 쓰는 게
+  // 실제로 뜻 글자를 더 크게 만들 때만 두 줄로. 짧은 뜻이나 납작한 단어판은 한 줄이 더 크다
   const m=String(text).match(/^(.*\S)\s+(\([^()]+\))$/);
-  if(m && text.length>=8){ line(m[1], by+bh*0.34+4, bh*0.50); line(m[2], by+bh*0.82+2, bh*0.28, true); }
+  const eff=(t,hMax)=>{ const s=fitFont(x,t,maxW/SIGN_SQUEEZE,Math.round(hMax),"800"); return s*Math.min(1, maxW/x.measureText(t).width); };
+  if(m && eff(m[1], bh*0.50) > eff(text, bh*0.86)*1.12){ line(m[1], by+bh*0.34+4, bh*0.50); line(m[2], by+bh*0.82+2, bh*0.28, true); }
   else line(text, by+bh/2+4, bh*0.86);
   const t=new THREE.CanvasTexture(c); t.anisotropy=8;
   if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;

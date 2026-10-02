@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>단어판 시험</title>
+<style>
+:root{--font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+body{margin:0;background:#1d1838;color:#efeaff;font-family:var(--font);padding:14px 10px 40px}
+h1{font-size:18px;margin:4px 4px 2px} p{font-size:13px;color:#b9b2d8;margin:4px 4px 14px;line-height:1.5}
+.zone{background:#2a2350;border-radius:14px;padding:10px;margin:0 0 16px}
+.zone h2{font-size:16px;margin:2px 4px 8px;display:flex;justify-content:space-between;gap:8px}
+.zone h2 small{font-size:12px;color:#c9bfff;font-weight:600}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.cell{text-align:center} .cell canvas{width:100%;height:auto;display:block}
+.cap{font-size:11px;color:#a59cd0;margin-top:2px}
+.real{display:flex;gap:10px;align-items:flex-end;margin-top:6px;padding:6px;background:#3a3168;border-radius:10px}
+.real canvas{width:110px;height:auto}
+.real span{font-size:11px;color:#d8d0ff}
+.miss{color:#ff9a9a;font-size:13px}
+</style></head><body>
+<h1>단어판 시험 — 한 줄 vs 두 줄</h1>
+<p>왼쪽은 지금까지 방식(한 줄), 오른쪽은 새 방식이에요. 새 방식은 <b>두 줄로 나눴을 때 뜻 글자가 실제로 더 커지는 경우에만</b> 괄호 부분을 아랫줄에 작게 쓰고, 아니면 한 줄 그대로예요. 각 지대 아래 보라 칸은 <b>게임에서 문이 가까이 왔을 때와 비슷한 실제 크기</b>예요. 지대 이름 옆 숫자는 글자 칸의 가로÷세로 비율로, 클수록 납작한 칸이에요.</p>
+<div id="list"></div>
+<script>
+const SIGN_SQUEEZE=0.76;
+const SIGN_ART={
+  meadow:[0.117,0.319,0.886,0.798], desert:[0.152,0.273,0.849,0.593],
+  ice:[0.150,0.310,0.857,0.751], volcano:[0.149,0.305,0.848,0.709],
+  night:[0.133,0.304,0.865,0.776], castle:[0.134,0.382,0.866,0.822], rampart:[0.128,0.313,0.872,0.787]
+};
+const NAMES={meadow:"초원",desert:"사막",ice:"얼음",volcano:"화산",night:"밤하늘",castle:"성문 거리",rampart:"성벽 위의 길"};
+const TEXTS=["잡고 있었다 (hold)","~ 사이에 (셋 이상)","샀다 (buy)","CONVERSATION"];
+function fitFont(x,text,maxW,start,weight){
+  let s=start;
+  while(s>16){ x.font=weight+" "+s+"px 'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif";
+    if(x.measureText(text).width<=maxW) break; s-=4; }
+  return s;
+}
+function draw(img, box, text, two){
+  const cw=900, ch=Math.round(900*img.height/img.width);
+  const c=document.createElement("canvas"); c.width=cw; c.height=ch; const x=c.getContext("2d");
+  x.drawImage(img,0,0,cw,ch);
+  const bx=box[0]*cw, by=box[1]*ch, bw=(box[2]-box[0])*cw, bh=(box[3]-box[1])*ch;
+  x.fillStyle="#181030"; x.textAlign="center"; x.textBaseline="middle";
+  const maxW=bw*0.94;
+  const line=(t,cy,hMax,thin)=>{ fitFont(x,t,maxW/SIGN_SQUEEZE,Math.round(hMax),"800");
+    const w=x.measureText(t).width, sx=Math.min(1,maxW/w);
+    x.save(); x.translate(bx+bw/2,cy); x.scale(sx,1); x.lineJoin="round"; x.miterLimit=2;
+    x.strokeStyle="#ffffff"; x.lineWidth=thin?9:12; x.strokeText(t,0,0);
+    x.strokeStyle="#181030"; x.lineWidth=thin?4:5; x.strokeText(t,0,0); x.fillText(t,0,0); x.restore(); };
+  const m=String(text).match(/^(.*\S)\s+(\([^()]+\))$/);
+  const eff=(t,hMax)=>{ const s=fitFont(x,t,maxW/SIGN_SQUEEZE,Math.round(hMax),"800"); return s*Math.min(1, maxW/x.measureText(t).width); };
+  if(two && m && eff(m[1], bh*0.50) > eff(text, bh*0.86)*1.12){ line(m[1], by+bh*0.34+4, bh*0.50); line(m[2], by+bh*0.82+2, bh*0.28, true); }
+  else line(text, by+bh/2+4, bh*0.86);
+  return {c, ratio:(bw/bh)};
+}
+function load(name){
+  const tries=["sign-"+name+".webp","assets/sign-"+name+".webp","sign-"+name+".png","assets/sign-"+name+".png"];
+  return new Promise(res=>{ const next=()=>{ if(!tries.length) return res(null);
+      const im=new Image(); im.onload=()=>res(im); im.onerror=next; im.src=tries.shift()+"?t="+Date.now(); }; next(); });
+}
+(async()=>{
+  try{ await document.fonts.ready; }catch(e){}
+  const list=document.getElementById("list");
+  for(const z of Object.keys(SIGN_ART)){
+    const box=document.createElement("div"); box.className="zone"; list.appendChild(box);
+    const img=await load(z);
+    if(!img){ box.innerHTML='<h2>'+NAMES[z]+'</h2><div class="miss">sign-'+z+' 그림을 못 찾았어요</div>'; continue; }
+    const probe=draw(img,SIGN_ART[z],"A",false);
+    box.innerHTML='<h2>'+NAMES[z]+' <small>글자 칸 비율 '+probe.ratio.toFixed(2)+'</small></h2>';
+    TEXTS.forEach(t=>{
+      const row=document.createElement("div"); row.className="row";
+      [false,true].forEach(two=>{ const d=document.createElement("div"); d.className="cell";
+        d.appendChild(draw(img,SIGN_ART[z],t,two).c); const cap=document.createElement("div"); cap.className="cap"; cap.textContent=two?"새 방식 (자동)":"지금 (한 줄)"; d.appendChild(cap); row.appendChild(d); });
+      box.appendChild(row);
+    });
+    const real=document.createElement("div"); real.className="real";
+    [false,true].forEach(two=>{ real.appendChild(draw(img,SIGN_ART[z],TEXTS[0],two).c); });
+    const sp=document.createElement("span"); sp.textContent="← 실제 크기 (지금 / 새 방식)"; real.appendChild(sp);
+    box.appendChild(real);
+  }
+})();
+</script>
+</body></html>
