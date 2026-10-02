@@ -2286,7 +2286,7 @@ const ZONES = [
   {name:"무너진 성문 거리", art:"castle", sub:"2장 · 몰락한 수정 왕국", from:51, ch:2,
    sky:[0x203b56,0x9a7090,0x101a2c], fog:0x2c3650, tint:0xb0bcdc, floor:0x3a4258, frame:0xe6c27a, edge:0xfff0c8,
    prop:"crystal", traps:["block","statue"], W:{block:4, statue:5}, crumbleP:0, rockMul:1, windMul:1},
-  {name:"수정 시장 거리", art:"castle", sub:"CRYSTAL MARKET", from:61, ch:2, day:true,
+  {name:"성벽 위의 길", art:"rampart", artBase:"castle", sub:"RAMPART WALK", from:61, ch:2, day:true,
    sky:[0x3a6c9c,0xa8c8dc,0x1c2c42], fog:0x6e8aa8, tint:0xdcdff0, floor:0x4a5068, frame:0xffd27a, edge:0xffffff,
    prop:"crystal", traps:["block","statue","rock"], W:{block:4, statue:5}, crumbleP:0, rockMul:1.3, windMul:1},
   {name:"왕궁 앞 광장", art:"castle", sub:"ROYAL PLAZA", from:71, ch:2, mirror:true,
@@ -2776,7 +2776,7 @@ const ArtLoad = {
 const HorizonArt = {
   files:{ tree:"assets/mountains-meadow",  pillar:"assets/mountains-desert",
           spike:"assets/mountains-ice",    lava:"assets/mountains-volcano",
-          crystal:"assets/mountains-night", castle:"assets/mountains-castle" },       // .webp 를 먼저, 안 되면 .png
+          crystal:"assets/mountains-night", castle:"assets/mountains-castle", rampart:"assets/mountains-rampart" },       // .webp 를 먼저, 안 되면 .png
   tex:{}, failed:{}, mesh:null, want:null,
   build(){
     if(this.mesh || typeof THREE==="undefined") return;
@@ -2811,17 +2811,19 @@ const HorizonArt = {
     const name = url.replace(/^assets\//, "");
     tryLoad([".webp", ".png"].flatMap(e=>["assets/"+name+e, name+e]).map(p=>"@"+p));
   },
-  preloadAll(){
+  LATE:["castle","rampart"],                         // 2장 산맥 — 로딩 화면 뒤에 받는다
+  preloadAll(late){
     if(!THREE.TextureLoader) return;
-    const kinds=Object.keys(this.files);
-    ArtLoad.add(kinds.length);
+    const kinds=Object.keys(this.files).filter(k=> late ? this.LATE.indexOf(k)>=0 : this.LATE.indexOf(k)<0);
+    const tick=()=>{ if(!late) ArtLoad.tick(); };
+    if(!late) ArtLoad.add(kinds.length);
     kinds.forEach(k=>{
       const url=this.files[k];
-      if(this.tex[url]){ ArtLoad.tick(); return; }
+      if(this.tex[url]){ tick(); return; }
       const name=url.replace(/^assets\//,"");
       const tries=[".webp",".png"].flatMap(e=>[name+e, "assets/"+name+e]);
       const next=()=>{
-        if(!tries.length){ ArtLoad.tick(); return; }
+        if(!tries.length){ tick(); return; }
         const p=tries.shift();
         try{
           new THREE.TextureLoader().load(p, t=>{
@@ -2829,7 +2831,7 @@ const HorizonArt = {
             if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
             this.tex[url]=t;
             if(this.want===k) this.apply(t);
-            ArtLoad.tick();
+            tick();
           }, undefined, next);
         }catch(e){ next(); }
       };
@@ -4044,22 +4046,24 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
           "char-hero","char-explorer","char-archer","char-mage","char-knight","char-scholar","char-ghost","char-cat","char-wolf"], tex:{},
   preload(){
     if(typeof THREE==="undefined" || !THREE.TextureLoader){ ArtLoad.finish(); return; }
-    const eager=this.names.filter(n=>n.indexOf("boss-")!==0);
+    const eager=this.names.filter(n=>!this.late(n));
     ArtLoad.add(eager.length);
     HorizonArt.preloadAll();                        // 산맥 그림도 함께
     this._loadList(eager, true);
   },
-  /* 보스 그림 — 로딩 화면이 끝난 뒤 조용히 받는다 (50단계까지 가는 아이만 쓰므로) */
+  /* 보스·2장 그림 — 로딩 화면이 끝난 뒤 조용히 받는다 (50단계 넘게 가는 아이만 쓰므로, 처음 로딩을 가볍게) */
+  late(n){ return n.indexOf("boss-")===0 || /-(castle|rampart)$/.test(n); },
   preloadLazy(){
     if(this._lazy || typeof THREE==="undefined" || !THREE.TextureLoader) return; this._lazy=true;
-    this._loadList(this.names.filter(n=>n.indexOf("boss-")===0), false);
+    this._loadList(this.names.filter(n=>this.late(n)), false);
+    try{ HorizonArt.preloadAll(true); }catch(e){}
   },
   _loadList(list, count){
     const tick=()=>{ if(count) ArtLoad.tick(); };
@@ -4123,6 +4127,11 @@ const ZONE_FILE = {tree:"meadow", pillar:"desert", spike:"ice", lava:"volcano", 
 /* 지대 그림 이름 — 2장처럼 그림 세트를 따로 쓰는 지대는 art 로 정한다 (규칙은 prop 그대로) */
 function zoneArt(z){ z=z||zone(); return (z && z.art) || ZONE_FILE[z.prop]; }
 function propKey(z){ z=z||zone(); return (z && z.art) || z.prop; }
+/* 지대 전용 그림이 없으면 같은 장의 기본 그림(artBase)으로 — 예: 성벽 위의 길에 없는 굴러오는 돌은 성문 거리 것 */
+function artFile(prefix){ const z=zone(); if(!z || !z.art) return null;
+  if(TrapArt.has(prefix+z.art)) return prefix+z.art;
+  if(z.artBase && TrapArt.has(prefix+z.artBase)) return prefix+z.artBase;
+  return null; }
 
 /* 바닥 그림 — 칸마다 그림의 다른 부분을 붙여 같은 무늬가 줄지어 보이지 않게 한다 */
 function applyFloorArt(ftex){
@@ -4186,7 +4195,7 @@ function makeIceChunk(){
   return g;
 }
 function blockSprite(kind){
-  const own = zone().art && TrapArt.has("block-"+zone().art) ? "block-"+zone().art : null;   // 2장: 성벽 잔해 한 장
+  const own = artFile("block-");                                         // 2장: 지대 장애물 한 장
   if(!own && (!(kind in BLOCK_CELL) || !TrapArt.has("blocks"))) return null;
   const f=(typeof VIEW!=="undefined" && VIEW.portrait) ? 0.68 : 0.76;   // 세로 화면은 더 작게 — 뒤를 가리지 않게
   const Wd=CFG.LANE_W*f, Hd=Wd*2;
@@ -4220,7 +4229,7 @@ function cloudSprite(){
 const SIGN_ART = {
   meadow: [0.117,0.319,0.886,0.798], desert:[0.152,0.273,0.849,0.593],
   ice:    [0.150,0.310,0.857,0.751], volcano:[0.149,0.305,0.848,0.709],
-  night:  [0.133,0.304,0.865,0.776], castle:[0.134,0.382,0.866,0.822]
+  night:  [0.133,0.304,0.865,0.776], castle:[0.134,0.382,0.866,0.822], rampart:[0.128,0.313,0.872,0.787]
 };
 function mixHex(a,b,k){
   const ar=(a>>16)&255, ag=(a>>8)&255, ab=a&255, br=(b>>16)&255, bg=(b>>8)&255, bb=b&255;
@@ -4235,13 +4244,19 @@ function signTextureArt(text, img, box){
   const bx=box[0]*cw, by=box[1]*ch, bw=(box[2]-box[0])*cw, bh=(box[3]-box[1])*ch;
   x.fillStyle="#181030"; x.textAlign="center"; x.textBaseline="middle";
   const maxW=bw*0.94;
-  fitFont(x, text, maxW/SIGN_SQUEEZE, Math.round(bh*0.86), "800");
-  const w=x.measureText(text).width, sx=Math.min(1, maxW/w);
-  x.save(); x.translate(bx+bw/2, by+bh/2+4); x.scale(sx,1);
-  x.lineJoin="round"; x.miterLimit=2;
-  x.strokeStyle="#ffffff"; x.lineWidth=12; x.strokeText(text,0,0);
-  x.strokeStyle="#181030"; x.lineWidth=5;  x.strokeText(text,0,0);
-  x.fillText(text,0,0); x.restore();
+  const line=(t, cy, hMax, thin)=>{                     // 한 줄 쓰기 — 넓으면 가로로 조금 좁혀서라도 크게
+    fitFont(x, t, maxW/SIGN_SQUEEZE, Math.round(hMax), "800");
+    const w=x.measureText(t).width, sx=Math.min(1, maxW/w);
+    x.save(); x.translate(bx+bw/2, cy); x.scale(sx,1);
+    x.lineJoin="round"; x.miterLimit=2;
+    x.strokeStyle="#ffffff"; x.lineWidth=thin?9:12; x.strokeText(t,0,0);
+    x.strokeStyle="#181030"; x.lineWidth=thin?4:5;  x.strokeText(t,0,0);
+    x.fillText(t,0,0); x.restore();
+  };
+  // 긴 뜻 "잡고 있었다 (hold)" — 뜻은 크게 윗줄, 괄호 속 도움말은 작게 아랫줄
+  const m=String(text).match(/^(.*\S)\s+(\([^()]+\))$/);
+  if(m && text.length>=8){ line(m[1], by+bh*0.34+4, bh*0.50); line(m[2], by+bh*0.82+2, bh*0.28, true); }
+  else line(text, by+bh/2+4, bh*0.86);
   const t=new THREE.CanvasTexture(c); t.anisotropy=8;
   if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
   t.userData={aspect:cw/ch};
@@ -4498,7 +4513,7 @@ function makeZoneMesh(kind, w, L, cols, lane0){
   const st=ZONE_STYLE[kind], g=new THREE.Group(), parts=[], cracks=[];
   let faceMat;
   const zp=zone().prop;
-  const zArt = kind==="crumble" ? ((zone().art && TrapArt.has("crumble-"+zone().art)) ? "crumble-"+zone().art : zp==="lava" ? "crumble-volcano" : zp==="crystal" ? "crumble-night" : null)
+  const zArt = kind==="crumble" ? (artFile("crumble-") ? artFile("crumble-") : zp==="lava" ? "crumble-volcano" : zp==="crystal" ? "crumble-night" : null)
              : kind==="ice" && zp==="crystal" ? "ice-night" : null;
   if(zArt && TrapArt.has(zArt)){
     // 흔들다리·빙판 그림 무늬를 구역 길이만큼 반복
@@ -5637,7 +5652,7 @@ const Hazards = {
 const ROCK_CELL = {tree:0, pillar:1, spike:2, lava:3, crystal:4};
 const ROCK_DUST = {tree:0xa89272, pillar:0xd8b27a, spike:0xe8faff, lava:0xff7a2a, crystal:0x9a7ad8};
 function newRockArt(){
-  const own = zone().art && TrapArt.has("rock-"+zone().art) ? "rock-"+zone().art : null;      // 2장: 굴러오는 성벽 돌
+  const own = artFile("rock-");                                           // 2장: 굴러오는 성벽 돌
   const k=ROCK_CELL[zone().prop]; if(!own && (k===undefined || !TrapArt.has("rocks"))) return null;
   const geo=new THREE.PlaneGeometry(2,2); geo.translate(0,0,0);
   if(!own){ const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(k+uv.getX(i))/5); }
