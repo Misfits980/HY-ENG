@@ -2289,7 +2289,7 @@ const ZONES = [
   {name:"성벽 위의 길", art:"rampart", artBase:"castle", sub:"RAMPART WALK", from:61, ch:2, day:true,
    sky:[0x3a6c9c,0xa8c8dc,0x1c2c42], fog:0x6e8aa8, tint:0xdcdff0, floor:0x4a5068, frame:0xffd27a, edge:0xffffff,
    prop:"crystal", traps:["block","statue","rock"], W:{block:4, statue:5}, crumbleP:0, rockMul:1.3, windMul:1},
-  {name:"왕궁 앞 광장", art:"castle", sub:"ROYAL PLAZA", from:71, ch:2, mirror:true,
+  {name:"왕궁 앞 광장", art:"plaza", artBase:"castle", sub:"ROYAL PLAZA", from:71, ch:2, mirror:true,
    sky:[0x2c1642,0xc8644c,0x160a22], fog:0x3c2232, tint:0xd8b0b4, floor:0x4a3848, frame:0xffa86a, edge:0xffe0b0,
    prop:"crystal", traps:["block","statue","rock","crumble"], W:{block:4, statue:5}, crumbleP:0.25, rockMul:1, windMul:1}
 ];
@@ -2776,7 +2776,7 @@ const ArtLoad = {
 const HorizonArt = {
   files:{ tree:"assets/mountains-meadow",  pillar:"assets/mountains-desert",
           spike:"assets/mountains-ice",    lava:"assets/mountains-volcano",
-          crystal:"assets/mountains-night", castle:"assets/mountains-castle", rampart:"assets/mountains-rampart" },       // .webp 를 먼저, 안 되면 .png
+          crystal:"assets/mountains-night", castle:"assets/mountains-castle", rampart:"assets/mountains-rampart", plaza:"assets/mountains-plaza" },       // .webp 를 먼저, 안 되면 .png
   tex:{}, failed:{}, mesh:null, want:null,
   build(){
     if(this.mesh || typeof THREE==="undefined") return;
@@ -2811,7 +2811,7 @@ const HorizonArt = {
     const name = url.replace(/^assets\//, "");
     tryLoad([".webp", ".png"].flatMap(e=>["assets/"+name+e, name+e]).map(p=>"@"+p));
   },
-  LATE:["castle","rampart"],                         // 2장 산맥 — 로딩 화면 뒤에 받는다
+  LATE:["castle","rampart","plaza"],                         // 2장 산맥 — 로딩 화면 뒤에 받는다
   preloadAll(late){
     if(!THREE.TextureLoader) return;
     const kinds=Object.keys(this.files).filter(k=> late ? this.LATE.indexOf(k)>=0 : this.LATE.indexOf(k)<0);
@@ -4046,7 +4046,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -4059,7 +4059,7 @@ const TrapArt = {
     this._loadList(eager, true);
   },
   /* 보스·2장 그림 — 로딩 화면이 끝난 뒤 조용히 받는다 (50단계 넘게 가는 아이만 쓰므로, 처음 로딩을 가볍게) */
-  late(n){ return n.indexOf("boss-")===0 || /-(castle|rampart)$/.test(n); },
+  late(n){ return n.indexOf("boss-")===0 || /-(castle|rampart|plaza)$/.test(n); },
   preloadLazy(){
     if(this._lazy || typeof THREE==="undefined" || !THREE.TextureLoader) return; this._lazy=true;
     this._loadList(this.names.filter(n=>this.late(n)), false);
@@ -4229,7 +4229,7 @@ function cloudSprite(){
 const SIGN_ART = {
   meadow: [0.117,0.319,0.886,0.798], desert:[0.152,0.273,0.849,0.593],
   ice:    [0.150,0.310,0.857,0.751], volcano:[0.149,0.305,0.848,0.709],
-  night:  [0.133,0.304,0.865,0.776], castle:[0.134,0.382,0.866,0.822], rampart:[0.128,0.313,0.872,0.787]
+  night:  [0.133,0.304,0.865,0.776], castle:[0.134,0.382,0.866,0.822], rampart:[0.128,0.313,0.872,0.787], plaza:[0.130,0.226,0.870,0.862]
 };
 function mixHex(a,b,k){
   const ar=(a>>16)&255, ag=(a>>8)&255, ab=a&255, br=(b>>16)&255, bg=(b>>8)&255, bb=b&255;
