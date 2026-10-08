@@ -4007,7 +4007,10 @@ function judge(s){
     if(Boss.active && !Boss.hit()){ updateHUD(); spawnSet(); return; }   // 보스전 — 단계 대신 보스 하트(삼킨 별)를 깎는다
     G.stage++;
     if(G.rule==="normal" && (G.diff==="easy" || G.gentle) && G.stage>FINISH_STAGE){ G.stage=FINISH_STAGE; finishRun(); return; }   // 쉬움·유치원 — 밤하늘 끝에서 완주
-    if(G.rule==="normal" && G.stage>CH2_END){ G.stage=CH2_END; finishRun(2); return; }   // 보통 이상 — 2장 끝 (두 번째 문지기 전까지)
+    if(G.rule==="normal" && G.stage>CH2_END){ G.stage=CH2_END;                    // 보통 이상 — 2장 끝 (80단계 두 번째 문지기를 이기면)
+      if(Boss.won && G.bossName==="두 번째 문지기"){ G.finishing=true; G.spawning=false; clearSets(); Hazards.clear();
+        setTimeout(()=>{ if(G.running) finishRun(2); }, 1900); } else finishRun(2);
+      return; }
     Boss.check();                                   // 50단계에 닿으면 보스 등장
     const zi = zoneIndex(G.stage);
     if(zi !== G.zone) applyZone(zi, true);       // 새 지대 진입
@@ -4046,7 +4049,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -5158,6 +5161,48 @@ const Hazards = {
       this.list.push({type:"statue", lane:also, tile:null, mesh:s2, z, len:1.9, done:false});
     }
   },
+  /* 두 번째 문지기의 철퇴 — 정해진 줄들(lo~hi) 위를 진자처럼 왔다 갔다. 바닥에 청록 띠로 쓸고 다닐 범위가 먼저 보인다 */
+  addMace(lo, hi, z, fast){
+    const g=new THREE.Group(), w=CFG.LANE_W, x0=laneX(lo,G.lanes), x1=laneX(hi,G.lanes);
+    const band=new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(x1-x0)+w*0.95, 1.6), new THREE.MeshBasicMaterial({color:0x48e8e0, transparent:true, opacity:0, depthWrite:false}));
+    band.rotation.x=-Math.PI/2; band.position.set((x0+x1)/2,.07,0); band.userData.noOutline=true; g.add(band);
+    const ball=new THREE.Group();                            // 방패 모양 충격파 — 방패를 휘두를 때 날아가는 청록 빛
+    ball.add(Hazards._shieldWave(w));
+    ball.position.set(x0,0,0); g.add(ball);
+    g.position.set(0,0,z); scene.add(g);
+    g.userData.mace={ball, band, x0, x1, t:Math.random()*6, per: fast?1.5:1.9};
+    this.list.push({type:"mace", lane:lo, tile:null, mesh:g, z, len:1.4, done:false, mx:x0, boss:true});
+  },
+  _shieldWave(w){                                   // 방패 윤곽 빛판 (캔버스) — 테두리는 밝게, 속은 은은하게
+    if(!this._swTex){ try{ const c=document.createElement("canvas"); c.width=256; c.height=320; const x=c.getContext("2d");
+        const path=()=>{ x.beginPath(); x.moveTo(30,20); x.lineTo(226,20); x.lineTo(226,190); x.quadraticCurveTo(226,270,128,305); x.quadraticCurveTo(30,270,30,190); x.closePath(); };
+        const g=x.createRadialGradient(128,150,10,128,150,170); g.addColorStop(0,"rgba(160,255,250,.55)"); g.addColorStop(1,"rgba(40,180,190,.12)");
+        path(); x.fillStyle=g; x.fill(); x.lineWidth=16; x.strokeStyle="rgba(120,250,240,.95)"; path(); x.stroke();
+        x.lineWidth=5; x.strokeStyle="rgba(230,255,255,1)"; path(); x.stroke();
+        x.fillStyle="rgba(230,255,255,.9)"; x.beginPath(); x.moveTo(128,95); x.lineTo(150,150); x.lineTo(128,205); x.lineTo(106,150); x.closePath(); x.fill();
+        this._swTex=new THREE.CanvasTexture(c); }catch(e){ this._swTex=null; } }
+    const H=w*1.25, m=new THREE.Mesh(new THREE.PlaneGeometry(H*0.8,H), new THREE.MeshBasicMaterial({map:this._swTex||null, color:this._swTex?0xffffff:0x48e8e0,
+      transparent:true, opacity:.95, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
+    m.geometry.translate(0,H/2,0); m.userData.noOutline=true; return m;
+  },
+  /* 두 번째 문지기의 쇠창살 — 그림자가 짙어지다가, 가까워지면 위에서 쾅 떨어진다. 떨어진 뒤에만 막는다 */
+  addBars(lane, z){
+    const g=new THREE.Group(), w=CFG.LANE_W;
+    const sh=new THREE.Mesh(new THREE.PlaneGeometry(w*0.95,1.2), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0, depthWrite:false}));
+    sh.rotation.x=-Math.PI/2; sh.position.y=.06; sh.userData.noOutline=true; g.add(sh);
+    let bars;
+    if(TrapArt.has("boss-gate-bars")){ const tx=TrapArt.tex["boss-gate-bars"], im=tx.image, r=(im&&im.width)? im.height/im.width : 1.33, Wd=w*0.98, Hd=Math.min(Wd*r, 4.0);   // 너무 길면 문 글씨를 가린다 — 높이 4.0까지
+      const geo=new THREE.PlaneGeometry(Wd,Hd); geo.translate(0,Hd/2-0.22,0);          // 창끝이 바닥에 살짝 박힌다
+      bars=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tx, transparent:true, alphaTest:.05, side:THREE.DoubleSide})); bars.userData.noOutline=true; }
+    else { bars=new THREE.Group(); const iron=MAT(0x2c2f48,.5);
+      for(let i=0;i<5;i++){ const b=new THREE.Mesh(new THREE.BoxGeometry(0.12,3.2,0.12), iron); b.position.set((i-2)*w*0.2,1.6,0); bars.add(b);
+        const tip=new THREE.Mesh(new THREE.ConeGeometry(0.12,0.35,4), MAT(0x48e8e0,.4)); tip.position.set((i-2)*w*0.2,-0.05,0); tip.rotation.x=Math.PI; bars.add(tip); }
+      [0.8,2.5].forEach(y=>{ const h=new THREE.Mesh(new THREE.BoxGeometry(w*0.9,0.14,0.14), iron); h.position.y=y; bars.add(h); }); }
+    bars.position.y=7; bars.visible=false; g.add(bars);
+    g.position.set(laneX(lane,G.lanes),0,z); scene.add(g);
+    g.userData.bars={state:0, t:0, sh, bars};
+    this.list.push({type:"bars", lane, tile:null, mesh:g, z, len:1.3, done:false, boss:true});
+  },
   /* 수정 가시 (보스 — 창 내리찍기) — 바닥이 갈라지며 빛나다가, 가까워지면 가시가 솟는다. 솟은 뒤에만 부딪힌다 */
   addSpike(lane, z){
     const g=new THREE.Group(), w=CFG.LANE_W;
@@ -5465,6 +5510,21 @@ const Hazards = {
             G.shake=Math.max(G.shake||0,.2); try{ SFX.tone(90,.2,"sine",.05); }catch(e){} } }
         if(m.state===2){ m.ring.material.opacity=Math.max(0,m.ring.material.opacity-dt*2); }
       }
+      if(h.type==="mace"){                           // 철퇴 — 진자처럼 흔들리며 다가온다
+        const u=h.mesh.userData.mace, sp6=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/sp6;
+        u.t+=dt; const ph=(Math.sin(u.t*2*Math.PI/u.per)+1)/2, mx=u.x0+(u.x1-u.x0)*ph;
+        u.ball.position.x=mx; u.ball.rotation.z=Math.cos(u.t*2*Math.PI/u.per)*0.18; u.ball.scale.x=0.85+0.15*Math.abs(Math.cos(u.t*2*Math.PI/u.per)); h.mx=mx;
+        h.lane=laneOfX(mx,G.lanes);
+        u.band.material.opacity=Math.max(0,Math.min(0.35,(4.5-tHit)/4));
+        if(!u.posed && tHit<3.2 && Boss.active){ u.posed=true; Boss.pose("attack",0.8); }
+      }
+      if(h.type==="bars"){                           // 쇠창살 — 그림자 → 쾅 떨어짐
+        const u=h.mesh.userData.bars, sp7=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/sp7;
+        if(u.state===0){ u.sh.material.opacity=Math.max(0,Math.min(0.5,(3.0-tHit)/2.2));
+          if(tHit<1.7){ u.state=1; u.t=0; u.bars.visible=true; if(Boss.active) Boss.pose("slam",0.45); } }
+        if(u.state===1){ u.t+=dt; const e=Math.min(1,u.t/0.18); u.bars.position.y=7*(1-e*e);
+          if(e>=1){ u.state=2; G.shake=Math.max(G.shake||0,.3); try{ SFX.tone(80,.25,"square",.05,45); puff(h.mesh.position.x,.3,z,0x6a6e88,8,4); }catch(e){} } }
+      }
       if(h.statueBody){                             // 석상 기사 — 눈이 빛나며 창을 들었다가 옆 줄을 찍는다
         const st=h.mesh.userData.statue, per=st.rest+st.warn+st.act; st.t=(st.t+dt)%per;
         const warn=st.t>=st.rest && st.t<st.rest+st.warn, on=st.t>=st.rest+st.warn, k=warn?(st.t-st.rest)/st.warn:0;
@@ -5598,8 +5658,9 @@ const Hazards = {
          (h.type!=="meteor" || h.mesh.userData.meteor.state===2) &&
          (h.type!=="spike" || h.mesh.userData.spike.state>=1) &&
          (h.type!=="statue" || h.mesh.userData.statueStrike.on) &&
+         (h.type!=="bars" || h.mesh.userData.bars.state===2) &&
          Math.abs(z - P.z) < h.len/2 &&
-         (h.type==="tree" || Math.abs(P.x - (h.type==="flower" ? h.headX : (h.mesh.userData.patrol || h.type==="swarm") ? h.mesh.position.x : laneX(h.lane,G.lanes))) < CFG.LANE_W*0.38)){
+         (h.type==="tree" || Math.abs(P.x - (h.type==="flower" ? h.headX : h.type==="mace" ? h.mx : (h.mesh.userData.patrol || h.type==="swarm") ? h.mesh.position.x : laneX(h.lane,G.lanes))) < CFG.LANE_W*0.38)){
         h.done = true;
         if(h.type==="hole" || h.type==="blink") hitHole();
         else if(h.type==="geyser"){ hitBlock(null); verdict("앗 뜨거!", "용암이 솟았어요", COL.coral, "rgba(255,122,102,.22)"); }
@@ -5609,6 +5670,8 @@ const Hazards = {
         else if(h.type==="meteor"){ hitBlock(null); verdict("쾅!", "별똥별이 떨어졌어요", COL.edge, "rgba(180,140,255,.22)"); }
         else if(h.type==="spike"){ hitBlock(null); verdict("쾅!", "수정 가시에 막혔어요", COL.edge, "rgba(180,140,255,.22)"); }
         else if(h.type==="statue"){ hitBlock(null); verdict("쾅!", "석상의 창에 막혔어요", COL.edge, "rgba(230,194,122,.22)"); }
+        else if(h.type==="mace"){ hitBlock(null); verdict("쾅!", "방패 충격파에 맞았어요", COL.edge, "rgba(72,232,224,.22)"); }
+        else if(h.type==="bars"){ hitBlock(null); verdict("쾅!", "쇠창살에 막혔어요", COL.edge, "rgba(72,232,224,.22)"); }
         else hitBlock(h);
       }
       if(z > back){ this.remove(i); }
@@ -6505,6 +6568,7 @@ function updateFx(dt){
 ===================================================================== */
 function loop(){
   let dt=Math.min(clock.getDelta(),.05);
+  G.rawDt=dt;                                       // 보스 변신 연출은 멎은 시간 속에서도 제 속도로
   if(G.hitStop>0){ G.hitStop-=dt; dt*=0.08; }      // 충돌 순간 시간이 멎는다
   if(!G.running){ Attract.update(dt); }
   if(G.running && !G.paused){
@@ -6532,7 +6596,7 @@ function loop(){
     Hazards.update(wdt, G.groundSpeed);
     Rocks.update(wdt);      // 등장·대기 관리는 모듈 안에서 처리
     Wind.update(dt);
-    Boss.update(dt);
+    Boss.update(G.rawDt||dt);
     if(G.rule==="time" && !G.falling){              // 타임어택 — 시간이 흐른다
       G.timeLeft -= dt;
       if(G.timeLeft<=0){ G.timeLeft=0; updateHUD(); gameOver(); }
@@ -7110,15 +7174,24 @@ const BOSS = {
   ELBOW:{u:0.3383, v:0.6875}, WRIST:{u:0.2651, v:0.6625}, BUTT:{u:0.2445, v:0.2651}, EYE_V:0.837,
   LIFT:-32                                            // 창을 들어 올릴 때 팔뚝 각도(도)
 };
+/* 단계별 문지기 — 같은 기사단, 다른 무기·공격. 그림 이름·눈빛 색·공격 목록이 다르다 */
+const BOSS_DEF = {
+  50:{ id:"knight", name:"첫 번째 문지기", tex:["boss-knight","boss-knight-2"], parts:"boss-knight-parts",
+       eye:[0xb070ff,0xff5fc0], eyeV:0.837, p1:["slam","shard"], p2:["slam","shard","stomp","curse"] },
+  80:{ id:"shield", name:"두 번째 문지기", tex:["boss-shield","boss-shield-2"], parts:null,
+       eye:[0x48e8e0,0xa8fff8], eyeV:0.856, eyeP:[[0.528,0.856],[0.446,0.751]], chestP:[0.43,0.60], p1:["sweep","bars"], p2:["sweep","bars","stomp","curse"],
+       hp:20, rageAt:10,                              // 체력 20 — 앞 10은 방패가 받아 내고(금이 감), 방패가 깨지면 나머지 10은 몸으로
+       shieldBox:[0.47,0.265,0.78,0.655] }             // 방패 자리 [왼,아래,오른,위] — boss-shield.webp 금테두리 기준으로 잰 값
+};
 const Boss = {
-  active:false, done:false, hp:0, max:0, phase:1, used:{}, won:false,
+  active:false, done:false, hp:0, max:0, phase:1, used:{}, won:false, def:BOSS_DEF[50], doneAt:{},
   root:null, body:null, main:null, parts:null, eye:null, fx:[], wfx:[], t:0, last:null, darkT:0, darkEl:null,
   poseName:"idle", poseT:0, deadT:0, enterT:0, rageT:0, texA:null, texB:null, texP:null, asp:2/3,
   armA:0, armT:0, seq:null, flashT:0, flashCol:null,
   allowed(){ return G.rule==="normal" && G.diff!=="easy" && !G.gentle; },   // 쉬움·유치원에는 보스 없음
   reset(){
-    this.active=false; this.done=false; this.won=false; this.hp=0; this.max=0; this.phase=1; this.used={};
-    this.poseName="idle"; this.poseT=0; this.deadT=0; this.enterT=0; this.rageT=0; this.seq=null; this.armA=0; this.armT=0; this.flashT=0;
+    this.active=false; this.done=false; this.won=false; this.hp=0; this.max=0; this.phase=1; this.used={}; this.doneAt={};
+    this.poseName="idle"; this.poseT=0; this.deadT=0; this.enterT=0; this.rageT=0; this.seq=null; this.armA=0; this.armT=0; this.flashT=0; this.transT=0; this._lastFrom=null;
     this.fx.forEach(f=>this._drop(f.m)); this.fx=[];
     this.wfx.forEach(f=>this._drop(f.m)); this.wfx=[]; this.last=null; this.darkT=0;
     if(this.darkEl) this.darkEl.style.opacity="0";
@@ -7126,14 +7199,16 @@ const Boss = {
     G.bossWin=false; G.bossDmg=0;
   },
   check(){
-    if(this.done || this.active || !this.allowed() || G.stage!==BOSS.STAGE) return;
-    this.start();
+    const d=BOSS_DEF[G.stage];
+    if(!d || this.doneAt[G.stage] || this.active || !this.allowed()) return;
+    this.start(d);
   },
-  start(){
-    this.active=true; this.won=false; this.used={}; this.phase=1; this.seq=null; this.armA=0;
-    this.max=this.hp=BOSS.HP; G.bossDmg=0;
-    const key=["boss-knight","boss-knight-2","boss-knight-parts"].map(n=>TrapArt.has(n)?1:0).join("");
-    if(this.root && this._key!==key){ camera.remove(this.root); this.root.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }); this.root=null; this.parts=null; }
+  start(d){
+    d=d||BOSS_DEF[50]; this.def=d; this.stageAt=G.stage;
+    this.active=true; this.won=false; this.used={}; this.phase=1; this.seq=null; this.armA=0; this.transT=0;
+    this.max=this.hp=(d.hp||BOSS.HP); G.bossDmg=0; G.bossName=d.name; this.crackLv=0; if(this.crack) this.crack.visible=false;
+    const key=d.id+":"+d.tex.concat(d.parts?[d.parts]:[]).map(n=>TrapArt.has(n)?1:0).join("");
+    if(this.root && this._key!==key){ camera.remove(this.root); this.root.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }); this.root=null; this.parts=null; this.crack=null; }
     this._key=key;
     this.build(); this.setTex(1);
     this.root.visible=true; this.enterT=1.6; this.deadT=0; this.pose("idle");
@@ -7141,7 +7216,7 @@ const Boss = {
     this.body.position.set(0,0,0); this.body.rotation.set(0,0,0); this.body.scale.set(1,1,1);
     const el=document.getElementById("zoneTag");
     if(el){
-      el.innerHTML='<b>'+BOSS.NAME+'</b><span>'+BOSS.SUB+'</span>';
+      el.innerHTML='<b>'+d.name+'</b><span>'+BOSS.SUB+'</span>';
       el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
       setTimeout(()=>el.classList.remove("on"), 2600);
     }
@@ -7156,7 +7231,8 @@ const Boss = {
     return false;
   },
   win(){
-    this.active=false; this.done=true; this.won=true; G.bossWin=true; this.seq=null;
+    this.active=false; this.done=true; this.won=true; G.bossWin=true; this.seq=null; this.doneAt[this.stageAt||G.stage]=true;
+    G.bossWins=(G.bossWins||0)+1; G.bossName=this.def.name;
     const gain=Math.round(BOSS.WIN_BONUS*(DIFF[G.diff].scoreMul||1));
     G.score+=gain;
     setTimeout(()=>{ if(G.running) try{ popScore("+"+gain, "BOSS CLEAR", "#c9a8ff", 30); }catch(e){} updateHUD(); }, 900);
@@ -7175,7 +7251,7 @@ const Boss = {
   attack(gateZ, nextAns, curAns){
     if(!this.active || G.gentle) return;
     const q=G.nextQ, d=G.diff, ph=this.phase;
-    let pool = ph===1 ? ["slam","shard"] : ["slam","shard","stomp","curse"];
+    let pool = (ph===1 ? this.def.p1 : this.def.p2).slice();
     if(pool.length>2 && this.last) pool=pool.filter(p=>p!==this.last);          // 같은 공격 두 번 연속은 피한다
     const n = d==="extreme" ? 2 : (d==="hard" && ph===2 ? 2 : 1);             // 보통 1 · 어려움 1→2 · 극한 2
     const picks=[];
@@ -7187,6 +7263,8 @@ const Boss = {
     picks.forEach(p=>{
       if(p==="slam") this._planSlam(q, gateZ, nextAns, curAns);
       else if(p==="shard") this._shards(gateZ,nextAns,curAns);
+      else if(p==="sweep") this._planSweep(gateZ, nextAns);
+      else if(p==="bars") this._planBars(q, gateZ, nextAns);
       else (q._bossFx=q._bossFx||[]).push(p);
     });
     this._avoid=[];
@@ -7204,6 +7282,34 @@ const Boss = {
     const zw=(gateZ-span)+span*0.22;
     for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], z=h.tile?h.tile.logicZ:h.z; if(solid(h) && Math.abs(z-zw)<3.5) Hazards.remove(i); }
     for(let j=0;j<G.lanes;j++){ try{ Hazards.addSpike(j, zw); const h=Hazards.list[Hazards.list.length-1]; if(h){ h.wall=true; h.slamQ=q; } }catch(e){} }
+  },
+  /* 두 번째 문지기 ① 방패 휘두르기 — 방패 모양 충격파가 정답 줄 한쪽의 줄들을 왔다 갔다 쓸고 다닌다. 정답 줄에는 절대 안 들어간다
+     (철퇴가 닿는 끝이 늘 정답 바로 옆이면 정답이 들키므로, 반쯤은 한 칸 더 일찍 멈춘다) */
+  _planSweep(gateZ, nextAns){
+    const n=G.lanes, L=[], R=[];
+    for(let j=0;j<nextAns;j++) L.push(j); for(let j=nextAns+1;j<n;j++) R.push(j);
+    const useL = (L.length&&R.length) ? Math.random()<.5 : !!L.length;
+    let side=(useL?L:R).slice(); if(!side.length) return;
+    if(side.length>=2 && Math.random()<.5){ if(useL) side.pop(); else side.shift(); }
+    const z=gateZ-G.spawnDist*(0.45+Math.random()*0.12);
+    for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], hz=h.tile?h.tile.logicZ:h.z;
+      if(side.indexOf(h.lane)>=0 && Math.abs(hz-z)<4 && !(h.type==="ice"||h.type==="puddle"||h.type==="crumble")) Hazards.remove(i); }
+    try{ Hazards.addMace(side[0], side[side.length-1], z, this.phase===2); }catch(e){}
+    if(this.phase===2){                              // 2단계: 반대쪽도 함께 휩쓴다 (정답 줄과 그 옆 한 칸은 비운다)
+      let other=(useL?R:L).slice(); if(other.length>=2){ if(useL) other.shift(); else other.pop(); } else other=[];
+      if(other.length){ for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], hz=h.tile?h.tile.logicZ:h.z;
+          if(other.indexOf(h.lane)>=0 && Math.abs(hz-z)<4 && h.type!=="mace" && !(h.type==="ice"||h.type==="puddle"||h.type==="crumble")) Hazards.remove(i); }
+        try{ Hazards.addMace(other[0], other[other.length-1], z, true); }catch(e){} }
+    }
+  },
+  /* 두 번째 문지기 ② 방패 쿵 — 성문 쇠창살이 위에서 떨어져 줄을 막는다. 틈은 두 칸(정답 + 다른 한 칸)이라 틈만 보고는 정답을 모른다 */
+  _planBars(q, gateZ, nextAns){
+    const n=G.lanes, span=G.spawnDist, zb=(gateZ-span)+span*0.24;
+    const c=[nextAns-1,nextAns+1].filter(j=>j>=0&&j<n); const other=c.length ? c[Math.floor(Math.random()*c.length)] : -1;
+    const gaps=[nextAns, other];
+    for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], hz=h.tile?h.tile.logicZ:h.z;
+      if(Math.abs(hz-zb)<3.5 && !(h.type==="ice"||h.type==="puddle"||h.type==="crumble")) Hazards.remove(i); }
+    for(let j=0;j<n;j++) if(gaps.indexOf(j)<0){ try{ Hazards.addBars(j, zb); }catch(e){} }
   },
   _free(nextAns,curAns){
     const bad=[nextAns,curAns].concat(this._avoid||[]), a=[];
@@ -7252,20 +7358,26 @@ const Boss = {
         if(blocked(k)) k=undefined;
       }
       const b = k===undefined ? null : s.gates.filter(g=>g.slot===k)[0];
+      this._lastFrom=null;
       if(b && !a.anim && !b.anim){
         const ax=a.root.position.x, bx=b.root.position.x;
-        a.slot=k; b.slot=j;
+        a.slot=k; b.slot=j; this._lastFrom=j;                // 정답 문이 떠난 자리 — 옆 문이 들어온다
         a.anim={from:ax, t:0, dur:0.55, zoff:1.4}; b.anim={from:bx, t:0, dur:0.55, zoff:-1.4};
       }
       s.swapsLeft=0;
     }
-    if(s && s.q){
-      const gap = s.gates ? s.gates[s.q.answer].slot : -1;
+    if(s && s.q && s.gates){
+      // 틈은 두 개 — 자리를 바꾼 두 문(정답 문과 옆 문)이 모두 열린다. 틈만 보고는 정답을 알 수 없고, 단어를 읽어야 한다
+      const ns=s.gates[s.q.answer].slot, n=s.gates.length;
+      let other = (typeof this._lastFrom==="number" && this._lastFrom!==ns) ? this._lastFrom : -1;
+      if(other<0){ const c=[ns-1,ns+1].filter(j=>j>=0 && j<n); other=c.length ? c[Math.floor(Math.random()*c.length)] : -1; }
+      const gaps=[ns, other];
       for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i];
         if(!h.wall || h.slamQ!==s.q) continue;
-        if(h.lane===gap) Hazards.remove(i);                  // 정답 줄 — 길이 하나 열린다
+        if(gaps.indexOf(h.lane)>=0) Hazards.remove(i);
         else h.mesh.userData.spike.forceRise=true; }
     }
+    this._lastFrom=null;
   },
   _ring(){                                            // 창끝이 닿은 돌섬 자리에서 퍼지는 보라 고리
     if(!this.root) return;
@@ -7322,9 +7434,10 @@ const Boss = {
     if(!camera.parent) scene.add(camera);             // 카메라에 붙여 화면 위쪽에 둔다
     this.root=new THREE.Group(); this.root.visible=false; camera.add(this.root);
     const load=n=>{ if(!TrapArt.has(n)) return null; const t=TrapArt.tex[n]; if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding; return t; };
-    this.texA = load("boss-knight") || this._canvasKnight(1);
-    this.texB = load("boss-knight-2") || (TrapArt.has("boss-knight") ? null : this._canvasKnight(2));
-    this.texP = load("boss-knight-parts");
+    const D=this.def, draw = p => D.id==="shield" ? this._canvasShield(p) : this._canvasKnight(p);
+    this.texA = load(D.tex[0]) || draw(1);
+    this.texB = load(D.tex[1]) || (TrapArt.has(D.tex[0]) ? null : draw(2));
+    this.texP = D.parts ? load(D.parts) : null;
     const im=(this.texP||this.texA||{}).image; this.asp = (im && im.width && im.height) ? (this.texP ? im.width/5 : im.width)/im.height : 2/3;
     const mat=map=>new THREE.MeshBasicMaterial({map, transparent:true, alphaTest:.02, depthWrite:false, fog:false, toneMapped:false, side:THREE.DoubleSide});
     this.body=new THREE.Group(); this.root.add(this.body);                       // 몸 전체를 움직이는 틀
@@ -7351,6 +7464,12 @@ const Boss = {
       if(cv && cv.parentNode) cv.parentNode.insertBefore(el, cv.nextSibling); else document.body.appendChild(el);
       this.darkEl=el;
     }
+    if(!this.flashEl){
+      const f=document.createElement("div"); f.id="bossFlash";
+      f.style.cssText="position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 30%, rgba(255,190,240,.95), rgba(255,90,190,.55) 45%, rgba(120,20,90,0) 80%)";
+      const cv=document.getElementById("c"); if(cv && cv.parentNode) cv.parentNode.insertBefore(f, cv.nextSibling); else if(document.body.appendChild) document.body.appendChild(f);
+      this.flashEl=f;
+    }
   },
   _canvasKnight(phase){                               // 임시 기사 — 그림이 없을 때
     try{
@@ -7373,6 +7492,29 @@ const Boss = {
       return new THREE.CanvasTexture(c);
     }catch(e){ return null; }
   },
+  _canvasShield(phase){                              // 임시 방패의 문지기 — 그림이 오기 전까지
+    try{
+      const W=256, H=384, c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+      const out="#0c1424", stone=phase===2?"#2c4a58":"#2c3558", cry=phase===2?"#9ffcff":"#48e8e0", gold="#c9a85a";
+      x.lineJoin="round"; x.lineWidth=6; x.strokeStyle=out;
+      const poly=(pts,fill)=>{ x.beginPath(); pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1])); x.closePath(); x.fillStyle=fill; x.fill(); x.stroke(); };
+      poly([[40,318],[216,318],[190,352],[128,378],[66,352]], "#23264a");
+      poly([[86,300],[76,196],[180,196],[170,300]], stone);
+      poly([[70,200],[84,136],[172,136],[186,200],[128,218]], stone);
+      poly([[100,132],[102,82],[128,66],[154,82],[156,132]], stone); poly([[118,70],[128,30],[138,70]], gold);
+      x.fillStyle="#05080f"; x.fillRect(106,98,44,12); x.fillStyle=cry; x.fillRect(112,101,9,6); x.fillRect(135,101,9,6);
+      if(phase===1){                                   // 1단계: 돌 껍질의 거대한 탑 방패
+        poly([[22,130],[112,122],[116,312],[26,306]], "#3a4068"); x.strokeStyle=gold; x.lineWidth=4; x.strokeRect(36,142,66,152);
+        x.strokeStyle=out; x.lineWidth=6; poly([[68,190],[80,170],[92,190],[80,210]], cry);
+      } else {                                         // 2단계: 껍질이 깨지고 드러난 청록 수정 방패 — 높이 치켜듦
+        poly([[150,60],[236,70],[232,230],[192,262],[150,224]], "#1f6f78"); x.strokeStyle=cry; x.lineWidth=5;
+        [[160,80],[226,90],[222,220],[192,248],[160,214]].forEach((p,i,arr)=>{ const q=arr[(i+1)%arr.length]; x.beginPath(); x.moveTo(p[0],p[1]); x.lineTo(q[0],q[1]); x.stroke(); });
+        x.strokeStyle=out; x.lineWidth=6; poly([[236,70],[252,52],[244,96]], cry); poly([[150,60],[138,40],[160,70]], cry); poly([[192,262],[192,292],[204,258]], cry);
+        x.strokeStyle=cry; x.lineWidth=3; [[100,150,118,200],[150,170,136,230],[96,240,110,290]].forEach(l=>{ x.beginPath(); x.moveTo(l[0],l[1]); x.lineTo(l[2],l[3]); x.stroke(); });
+      }
+      return new THREE.CanvasTexture(c);
+    }catch(e){ return null; }
+  },
   arrow(){                                            // 빛 화살 — 화면 아래에서 기사 가슴으로
     if(!this.root) return;
     const m=new THREE.Mesh(new THREE.PlaneGeometry(0.05,0.16), new THREE.MeshBasicMaterial({map:Hazards._glowTex("white")||null,
@@ -7381,21 +7523,85 @@ const Boss = {
     this.fx.push({m, t:0, life:0.34, kind:"arrow"});
     try{ SFX.tone(660,.16,"triangle",.05,990); }catch(e){}
   },
+  _shieldUp(){ return !!(this.def.shieldBox && this.phase===1); },
+  _target(){                                        // 빛 화살이 꽂힐 곳 — 방패가 있으면 방패, 아니면 가슴
+    const b=this.body, sb=this.def.shieldBox;
+    if(this._shieldUp()) return [b.position.x+((sb[0]+sb[2])/2-0.5)*this.asp*b.scale.x, b.position.y+((sb[1]+sb[3])/2)*b.scale.y];
+    const cp=(this.phase===2&&this.def.chestP)||null;
+    return cp ? [b.position.x+(cp[0]-0.5)*this.asp*b.scale.x, b.position.y+cp[1]*b.scale.y] : [b.position.x, b.position.y+0.6*b.scale.y];
+  },
   _impact(){
-    const rage = this.phase===1 && this.hp<=BOSS.RAGE_AT && this.hp>0;
+    const rageAt=this.def.rageAt||BOSS.RAGE_AT, rage = this.phase===1 && this.hp<=rageAt && this.hp>0;
     if(this.hp<=0){ this.die(); return; }
+    const tg=this._target();
+    if(this._shieldUp()){                            // 방패가 받아 낸다 — 팅! 청록 불꽃, 방패에 금이 점점 번진다
+      this.pose("guard",0.35); this.flashT=0.18; this.flashCol=[1.2,1.6,1.6];
+      G.shake=Math.max(G.shake||0,.12);
+      try{ SFX.tone(1320,.09,"square",.035,1760); SFX.tone(660,.14,"triangle",.03); }catch(e){}
+      this.shards(7, 0x7ff8f0, false, tg); this.shards(2, 0, true, tg);
+      this.crackLv=Math.min(1,(this.max-this.hp)/(this.max-rageAt)); this._drawCrack();
+      if(rage){ this.shieldBreak(); this.transform(); }
+      return;
+    }
     if(!this.seq) this.pose("hurt",0.4);
     this.flashT=0.25; this.flashCol=[1.6,1.6,1.6];
     G.shake=Math.max(G.shake||0,.16);
     try{ SFX.tone(180,.18,"square",.04,120); }catch(e){}
-    this.shards(6, 0, true); this.shards(3, 0xb48cff);
-    if(rage){                                        // 반피 — 2단계로 변신
-      this.phase=2; this.rageT=1.0; this.flashT=0.9; this.flashCol=[1.7,1.1,1.6]; this.seq=null; this.armA=0;
-      setTimeout(()=>{ if(this.active) this.setTex(2); }, 250);
-      G.shake=Math.max(G.shake||0,.7);
-      try{ SFX.tone(60,1.2,"sawtooth",.07,35); SFX.tone(300,.6,"square",.03,600); }catch(e){}
-      this.shards(10, 0, true); this.shards(12, 0xff6fb5);
+    this.shards(6, 0, true, tg); this.shards(3, this.def.id==="shield"?0x5ff0e8:0xb48cff, false, tg);
+    if(rage) this.transform();                       // 반피 — 2단계로 변신 (연출)
+  },
+  /* 방패 금 — 맞을수록 금이 늘어난다 (그림 위에 겹쳐 그림, 방패 자리에만) */
+  _drawCrack(){
+    const sb=this.def.shieldBox; if(!sb || !this.body) return;
+    if(!this.crack){
+      const c=document.createElement("canvas"); c.width=256; c.height=384; this.crackCv=c;
+      this.crackTex=new THREE.CanvasTexture(c);
+      this.crack=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({map:this.crackTex, transparent:true, depthWrite:false, fog:false, toneMapped:false}));
+      this.crack.userData.noOutline=true; this.crack.renderOrder=5; this.body.add(this.crack);
+      this.crackSeed=[]; for(let i=0;i<9;i++){ const pts=[[0.5,0.45]]; let x=0.5,y=0.45,a=Math.random()*Math.PI*2;
+        for(let k=0;k<6;k++){ a+=(Math.random()-.5)*1.1; x+=Math.cos(a)*0.09; y+=Math.sin(a)*0.07; pts.push([x,y]); } this.crackSeed.push(pts); }
     }
+    const w=(sb[2]-sb[0])*this.asp, h=(sb[3]-sb[1]);
+    this.crack.scale.set(w,h,1); this.crack.position.set(((sb[0]+sb[2])/2-0.5)*this.asp, (sb[1]+sb[3])/2, 0.004);
+    const x=this.crackCv.getContext("2d"), W=256, H=384; x.clearRect(0,0,W,H);
+    const lines=Math.ceil(this.crackLv*this.crackSeed.length);
+    x.lineCap="round"; x.lineJoin="round";
+    for(let i=0;i<lines;i++){ const pts=this.crackSeed[i], seg=Math.max(2,Math.ceil(pts.length*Math.min(1,this.crackLv*1.4)));
+      [[26,"rgba(72,232,224,.35)"],[11,"rgba(170,255,250,.95)"],[4,"rgba(20,30,50,.9)"]].forEach(([lw,col])=>{
+        x.strokeStyle=col; x.lineWidth=lw; x.beginPath(); pts.slice(0,seg).forEach((p,k)=>{ const px=p[0]*W, py=(1-p[1])*H; k?x.lineTo(px,py):x.moveTo(px,py); }); x.stroke(); }); }
+    this.crackTex.needsUpdate=true; this.crack.visible=this.crackLv>0;
+  },
+  /* 방패가 깨진다 — 방패 자리에서 돌과 청록 수정이 크게 터져 나간다 (이어서 변신) */
+  shieldBreak(){
+    const tg=this._target();
+    try{ SFX.crash(); SFX.tone(1500,.25,"square",.05,300); }catch(e){}
+    this.shards(26, 0, true, tg); this.shards(26, 0x7ff8f0, false, tg);
+    G.shake=Math.max(G.shake||0,.8);
+  },
+  /* 변신 — 1.8초 동안 세상이 느려진다. 떨림(0.6초) → 번쩍! 그림이 바뀌고 충격파 → 몸이 부풀며 포효(1.2초) */
+  transform(){
+    this.phase=2; this.seq=null; this.armA=0; this.transT=1.8; this.transSwapped=false;
+    G.hitStop=Math.max(G.hitStop||0, 1.8); this.darkT=Math.max(this.darkT,2.1);
+    try{ SFX.tone(45,0.7,"sawtooth",.06,140); }catch(e){}
+  },
+  _transformTick(dt){
+    if(!(this.transT>0)) return 1;
+    const before=this.transT; this.transT-=dt;
+    if(this.transT>1.2){                              // 떨림 — 하얗게 깜빡이며 점점 세게
+      const k=(1.8-this.transT)/0.6; this.flashT=0.06*(Math.sin(this.t*40)>0?1:0); this.flashCol=[1.5+k*0.3,1.4,1.6];
+      this.body.rotation.z=Math.sin(this.t*55)*0.05*k; G.shake=Math.max(G.shake||0,0.15+0.25*k);
+    }
+    if(before>1.2 && this.transT<=1.2 && !this.transSwapped){   // 번쩍! — 그림이 바뀐다
+      this.transSwapped=true; this.setTex(2); if(this.crack) this.crack.visible=false; this.flashT=0.8; this.flashCol = this.def.id==="shield" ? [1.1,1.8,1.8] : [1.8,1.1,1.7];
+      if(this.flashEl){ this.flashEl.style.transition="none"; this.flashEl.style.opacity="0.85"; void this.flashEl.offsetWidth; this.flashEl.style.transition="opacity .7s"; this.flashEl.style.opacity="0"; }
+      G.shake=Math.max(G.shake||0,.9);
+      try{ SFX.crash(); SFX.tone(60,1.2,"sawtooth",.08,30); SFX.tone(220,.9,"square",.035,880); }catch(e){}
+      this.shards(14, 0, true); this.shards(22, this.def.id==="shield" ? 0x5ff0e8 : 0xff6fb5); this._ring(); this.pose("curse",1.2);
+    }
+    if(this.transT<=1.2 && this.transT>0){            // 부풀며 포효
+      const p=(1.2-this.transT)/1.2; return 1+0.16*Math.sin(p*Math.PI);
+    }
+    return 1;
   },
   die(){                                             // 쓰러짐 — 갑옷이 부서지며 떨어진다
     this.deadT=1.8; this.flashT=0.5; this.flashCol=[1.6,1.6,1.6]; this.seq=null;
@@ -7404,12 +7610,14 @@ const Boss = {
     this.shards(44, 0, true); this.shards(14, 0xb48cff);
     try{ confetti(); }catch(e){}
   },
-  shards(n,col,stone){                               // 조각이 튀어나간다 (루트 기준 좌표)
+  shards(n,col,stone,at){                            // 조각이 튀어나간다 (루트 기준 좌표, at=[x,y] 이면 그 자리에서)
     for(let i=0;i<n;i++){
       const m=new THREE.Mesh(new THREE.PlaneGeometry(0.03+Math.random()*0.03,0.05+Math.random()*0.05), new THREE.MeshBasicMaterial({
         color: stone ? [0x3a3b62,0x4b4c78,0x2c2d52][i%3] : col, transparent:true, depthWrite:false, fog:false,
         blending: stone ? THREE.NormalBlending : THREE.AdditiveBlending}));
-      m.userData.noOutline=true; m.renderOrder=8; m.position.set((Math.random()-.5)*0.3, 0.35+Math.random()*0.4, 0.02);
+      m.userData.noOutline=true; m.renderOrder=8;
+      if(at) m.position.set(at[0]+(Math.random()-.5)*0.12, at[1]+(Math.random()-.5)*0.15, 0.02);
+      else m.position.set((Math.random()-.5)*0.3, 0.35+Math.random()*0.4, 0.02);
       this.root.add(m);
       const a=Math.random()*Math.PI*2, sp=0.4+Math.random()*0.9;
       this.fx.push({m, t:0, life:0.8+Math.random()*0.6, kind:"shard", vx:Math.cos(a)*sp, vy:Math.sin(a)*sp+0.3, vr:(Math.random()-.5)*12});
@@ -7468,16 +7676,18 @@ const Boss = {
       // 자세: [높이, 기울기, 크기, 눈빛] — 조각 그림이 있으면 몸은 덜 움직이고 팔이 움직인다
       const soft = (this.parts && this.parts.forearm.visible) ? 0.4 : 1;
       const PO={idle:[0,0,1,0], windup:[0.03*soft,-0.04*soft,1+0.03*soft,0.7], slam:[-0.035,0.025*soft,1.05,1], attack:[-0.02*soft,0.03*soft,1+0.05*soft,0.5],
-                hurt:[0,0,1,0.2], stomp:[-0.06,0,1.05,0.8], curse:[0.012,0,1.03,1.4]}[this.poseName]||[0,0,1,0];
+                hurt:[0,0,1,0.2], stomp:[-0.06,0,1.05,0.8], curse:[0.012,0,1.03,1.4], guard:[-0.01,0.035,1.02,0.4]}[this.poseName]||[0,0,1,0];
       const breathe=Math.sin(this.t*1.6)*0.008;
       const rz = this.poseName==="hurt" ? Math.sin(this.t*45)*0.04 : PO[1]+Math.sin(this.t*0.8)*0.01;
-      b.rotation.z += (rz - b.rotation.z)*Math.min(1,dt*10);
-      const sc = PO[2] + breathe + (this.rageT>0 ? Math.sin(this.rageT*30)*0.03 : 0);
+      if(!(this.transT>1.2)) b.rotation.z += (rz - b.rotation.z)*Math.min(1,dt*10);
+      const pump = this._transformTick(dt);
+      const sc = (PO[2] + breathe + (this.rageT>0 ? Math.sin(this.rageT*30)*0.03 : 0)) * pump;
       b.scale.set(sc, sc, 1); b.position.y += (PO[0] - b.position.y)*Math.min(1,dt*(this.poseName==="slam"||this.poseName==="stomp"?22:8));
       if(this.rageT>0) this.rageT-=dt;
       if(this.eye){
-        this.eye.position.set(b.position.x, b.position.y+BOSS.EYE_V*b.scale.y, 0.02);
-        this.eye.material.color.setHex(this.phase===2?0xff5fc0:0xb070ff);
+        const ep=this.def.eyeP ? this.def.eyeP[(this.phase===2&&this.transSwapped)?1:0] : null;   // 그림마다 눈 자리가 다르다
+        this.eye.position.set(b.position.x+(ep?(ep[0]-0.5)*this.asp*b.scale.x:0), b.position.y+(ep?ep[1]:(this.def.eyeV||BOSS.EYE_V))*b.scale.y, 0.02);
+        this.eye.material.color.setHex(this.def.eye[this.phase===2?1:0]);
         const glow = 0.35+0.2*Math.sin(this.t*3.2) + PO[3]*0.6;
         this.eye.material.opacity=Math.min(1,glow); this.eye.scale.setScalar(1+PO[3]*0.9);
         this.eye.visible=true;
@@ -7506,8 +7716,8 @@ const Boss = {
     for(let i=this.fx.length-1;i>=0;i--){
       const q=this.fx[i]; q.t+=dt; const p=Math.min(1,q.t/q.life);
       if(q.kind==="arrow"){
-        const y0=(-hv*0.9)/S;
-        q.m.position.set(0, y0+(0.6-y0)*p, 0.05);
+        const y0=(-hv*0.9)/S, tg=this._target();
+        q.m.position.set(tg[0]*p, y0+(tg[1]-y0)*p, 0.05); q.m.rotation.z=-Math.atan2(tg[0],tg[1]-y0)*0.6;
         if(p>=1){ this._drop(q.m); this.fx.splice(i,1); this._impact(); }
       } else if(q.kind==="shard"){
         q.m.position.x+=q.vx*dt; q.m.position.y+=q.vy*dt; q.vy-=1.2*dt; q.m.rotation.z+=q.vr*dt;
@@ -7601,7 +7811,7 @@ function startGame(){
   applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
-  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); G.finishing=false; G.cleared=false;
+  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
   applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
   input.x=0; input.y=0; stick.id=null;
@@ -7688,10 +7898,10 @@ function gameOver(){
   else if(G.bestCombo>=8) msg="🔥 "+G.bestCombo+"연속 정답을 이어갔어요";
   else if(prev && G.stage===prev.stage) msg="지난번과 같은 "+G.stage+"스테이지 — 다음엔 한 걸음 더";
   else msg = G.wrongWords.length ? "틀린 단어를 한 번만 더 보고 가요" : "좋아요, 이 흐름을 이어가요";
-  if(G.cleared && G.clearCh===2) msg = "🏆 몰락한 수정 왕국을 가로질렀어요! 성문의 두 번째 문지기는 곧 찾아와요";
+  if(G.cleared && G.clearCh===2) msg = (G.bossWin && G.bossName==="두 번째 문지기") ? "🏆 두 번째 문지기를 쓰러뜨리고 2장을 완주했어요!" : "🏆 몰락한 수정 왕국을 가로질렀어요!";
   else if(G.cleared) msg = G.gentle ? "🏆 밤하늘 끝까지 완주했어요!" : "🏆 밤하늘 끝까지 완주했어요! 보통 난이도에서는 첫 번째 문지기가 기다리고 있어요";
-  else if(G.bossWin) msg="⚔️ 첫 번째 문지기를 쓰러뜨렸어요!";
-  else if(Boss.active) msg="⚔️ 첫 번째 문지기 — "+(G.bossDmg||0)+" / "+BOSS.HP+" 데미지";
+  else if(Boss.active) msg="⚔️ "+(G.bossName||"문지기")+" — "+(G.bossDmg||0)+" / "+(Boss.max||BOSS.HP)+" 데미지";
+  else if(G.bossWin) msg="⚔️ "+(G.bossName||"문지기")+"를 쓰러뜨렸어요!";
   const hl=$("oHighlight"); hl.textContent=msg; hl.className = (isBest||G.bossWin||G.cleared) ? "best" : "";
   try{
     const r1=Rank.of(G.set);
