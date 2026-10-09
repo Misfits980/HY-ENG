@@ -2232,7 +2232,8 @@ function lanesFor(diff){
   return (innerHeight > innerWidth) ? Math.min(n, PORTRAIT_MAX_LANES) : n;
 }
 /* 빙판 · 돌풍 */
-const ICE = { GRIP:0.16, LEN:24 };              // 미끄러움 / 길이 (폭은 트랙 전체)
+const ICE = { GRIP:0.16, LEN:24, PUSH:0.35, SLIDE:0.16, AMP:1.4, SNAP_V:1.2 };   // 미끄러움 / 길이 (폭은 트랙 전체)
+// 빙판: 밀고 나가는 힘(PUSH)은 그럭저럭, 멈추거나 방향을 트는 힘(SLIDE)은 약하다 → 짧게 톡 쳐야 한 칸. 조이스틱을 살짝만 밀어도 제대로 미끄러진다(AMP)
 const WIND = {
   EVERY:11, TIME:2.4, PUSH:4.5, PUSH_Z:4.8,     // 부는 간격 / 지속 / 좌우 힘 / 앞뒤 힘 (v125: 7.0·7.5 → 4.5·4.8)
   AGAINST:0.5,                                  // 바람을 거슬러 밀고 있으면 바람 힘이 이만큼으로 (조이스틱을 덜 밀어도 이긴다)
@@ -2294,13 +2295,13 @@ const ZONES = [
   /* ── 2장 · 몰락한 수정 왕국 (51~80, 보통 이상) — 같은 그림 세트를 시간대 색으로 나눈다: 새벽 → 한낮 → 노을. 2장에는 구멍이 없다 ── */
   {name:"무너진 성문 거리", art:"castle", sub:"2장 · 몰락한 수정 왕국", from:51, ch:2,
    sky:[0x203b56,0x9a7090,0x101a2c], fog:0x2c3650, tint:0xb0bcdc, floor:0x3a4258, frame:0xe6c27a, edge:0xfff0c8,
-   prop:"crystal", traps:["block","statue"], W:{block:4, statue:5}, crumbleP:0, rockMul:1, windMul:1},
+   prop:"crystal", traps:["block","statue","rubble"], W:{block:4, statue:5, rubble:3}, sig:"rubble", crumbleP:0, rockMul:1, windMul:1},
   {name:"성벽 위의 길", art:"rampart", artBase:"castle", sub:"RAMPART WALK", from:61, ch:2, day:true,
    sky:[0x3a6c9c,0xa8c8dc,0x1c2c42], fog:0x6e8aa8, tint:0xdcdff0, floor:0x4a5068, frame:0xffd27a, edge:0xffffff,
-   prop:"crystal", traps:["block","statue","rock"], W:{block:4, statue:5}, crumbleP:0, rockMul:1.3, windMul:1},
+   prop:"crystal", traps:["block","statue","rock","spike","rubble"], W:{block:3, statue:4, spike:3, rubble:1}, sig:"spike", crumbleP:0, rockMul:1.3, windMul:1},
   {name:"왕궁 앞 광장", art:"plaza", artBase:"castle", sub:"ROYAL PLAZA", from:71, ch:2, mirror:true,
    sky:[0x2c1642,0xc8644c,0x160a22], fog:0x3c2232, tint:0xd8b0b4, floor:0x4a3848, frame:0xffa86a, edge:0xffe0b0,
-   prop:"crystal", traps:["block","statue","rock","crumble"], W:{block:4, statue:5}, crumbleP:0.25, rockMul:1, windMul:1}
+   prop:"crystal", traps:["block","statue","rock","crumble","spike"], W:{block:3, statue:3, spike:2}, sig:"fall", fallP:0.35, crumbleP:0.25, rockMul:1, windMul:1}
 ];
 const CH2_END = 80;                                  // 2장 끝 — 두 번째 문지기가 생기기 전까지는 여기서 "2장 완주"
 function zoneIndex(stage){
@@ -4896,6 +4897,21 @@ const Hazards = {
       }
       placed = this.list.length>nBefore;
     }
+    // 2장 대표 함정 (보통) — 성문 거리: 무너지는 돌 / 성벽: 수정 가시 / 광장: 쓰러지는 석상 (안 되면 가시)
+    if(!G.gentle && G.diff==="normal" && Z.ch && Z.sig && !(typeof Boss!=="undefined" && Boss.active) && Math.random()<0.75){
+      const last=()=>this.list[this.list.length-1];
+      let done=false;
+      if(Z.sig==="fall" && Math.random()<0.6){             // 길 가장자리 두 줄 — 정답 줄·막 나온 줄은 덮지 않는다
+        const z=freeZ();
+        if(z!==null){ const left=Math.random()<.5, L=left?[0,1]:[G.lanes-1,G.lanes-2];
+          const bad=L.some(l=>l===answerLane || used.indexOf(l)>=0 || (l===exitLane && z>exitUntil) || usedZ.some(u=>u.l===l && Math.abs(u.z-z)<laneGap));
+          if(!bad){ this.addTree(L.slice().sort((a,b)=>a-b), left, z, "statue"); used.push(...L); done=true; } }
+      }
+      if(!done){ const z=freeZ(), l=(z!==null)?laneFor(z):-1;
+        if(l>=0){ if(Z.sig==="rubble") this.addMeteor(l,z,"rubble");
+          else { this.addSpike(l,z); const h=last(); if(h){ h.boss=false; h.trapSpike=true; } }
+          usedZ.push({l,z}); } }
+    }
     // 2장 — 석상 기사 (창이 옆 칸을 박자에 맞춰 내리찍는다). 석상 줄과 찍는 줄 모두 정답 줄이 아니게
     if(Z.traps && Z.traps.indexOf("statue")>=0 && !G.gentle && Math.random()<0.8){   // "all"(밤하늘)에는 안 나온다
       const z=freeZ(), l=(z!==null) ? laneFor(z) : -1;
@@ -4947,7 +4963,7 @@ const Hazards = {
             : Z.prop==="spike"   ? {block:6, chunk:4}
             : Z.prop==="lava"    ? {hole:3, block:3, geyser:4}
             :                      {hole:3, block:2, blink:3, meteor:2};   // 밤하늘
-    const kinds=Object.keys(W).filter(k=> (k==="geyser"||k==="chunk"||k==="flower"||k==="blink"||k==="meteor") ? true : zoneAllows(k));
+    const kinds=Object.keys(W).filter(k=> (k==="geyser"||k==="chunk"||k==="flower"||k==="blink"||k==="meteor"||k==="rubble"||k==="spike") ? true : zoneAllows(k));
     const pick=()=>{ let tot=0; kinds.forEach(k=>tot+=W[k]); let r=Math.random()*tot;
       for(const k of kinds){ r-=W[k]; if(r<=0) return k; } return kinds[0]; };
     if(!kinds.length) return;
@@ -5006,7 +5022,7 @@ const Hazards = {
     }
     // 초원 — 쓰러지는 나무: 길 가장자리에서 2~3줄을 막는다 (앞뒤 0.5초 비움)
     let treeFall=null;
-    const tp = Z.prop==="tree" ? (G.diff==="extreme" ? 0.35 : 0.25) : 0;
+    const tp = Z.prop==="tree" ? (G.diff==="extreme" ? 0.35 : 0.25) : (Z.fallP ? Z.fallP*(G.diff==="extreme" ? 1.15 : 1) : 0);   // 초원 나무 · 광장 석상
     const tf0=tStart+0.4, tf1=tTotal-aClear-0.3;
     if(tp>0 && tf1>tf0 && Math.random()<tp){
       const k2 = n>=6 ? 3 : 2, left=Math.random()<.5;
@@ -5037,7 +5053,7 @@ const Hazards = {
     }
     // 길 찾기 검사 — 한 칸 옮기는 데 0.32초로 넉넉히 잡는다
     const step=Math.max(0.28, 2.1*CFG.LANE_W/Math.max(6,CFG.MOVE_X));  // 한 칸 옮기는 시간의 2.1배 — 아이 반응 속도 기준
-    const halfT=it=> it.kind==="geyser" ? 0.40 : it.kind==="treeseg" ? 0.35 : it.kind==="flower" ? 0.40 : it.kind==="meteor" ? 0.32
+    const halfT=it=> it.kind==="geyser" ? 0.40 : it.kind==="treeseg" ? 0.35 : it.kind==="flower" ? 0.40 : (it.kind==="meteor"||it.kind==="rubble") ? 0.32 : it.kind==="spike" ? 0.30
       : it.kind==="blink" ? (Ground.len/2)/spd+0.12
       : ((it.kind==="block"||it.kind==="chunk"||it.kind==="wall"||it.kind==="statue") ? (it.also>=0?0.45:0.30) : (Ground.len/2)/spd+0.12);
     const blockedIn=(list,lane,t)=>list.some(it=>(it.lane===lane || it.also===lane) && Math.abs(it.t-t)<halfT(it));
@@ -5096,11 +5112,13 @@ const Hazards = {
       else if(it.kind==="flower") this.addFlower(it.lane, it.also, z);
       else if(it.kind==="blink") this.addBlink(it.lane, z);
       else if(it.kind==="meteor") this.addMeteor(it.lane, z);
+      else if(it.kind==="rubble") this.addMeteor(it.lane, z, "rubble");
+      else if(it.kind==="spike"){ this.addSpike(it.lane, z); const h=this.list[this.list.length-1]; if(h){ h.boss=false; h.trapSpike=true; } }
       else if(it.kind==="statue") this.addStatue(it.lane, z, it.also);
       else if(it.kind==="treeseg") {}                              // 나무는 아래에서 한 그루로
       else { this.addBlock(it.lane, z); if(it.kind==="wall"){ const h=this.list[this.list.length-1]; if(h) h.sphinx=true; } }
     });
-    if(treeFall && items.some(it=>it.kind==="treeseg")) this.addTree(treeFall.lanes, treeFall.left, prevZ-treeFall.t*spd);
+    if(treeFall && items.some(it=>it.kind==="treeseg")) this.addTree(treeFall.lanes, treeFall.left, prevZ-treeFall.t*spd, Z.fallP ? "statue" : null);
     if(swarmT!==null) this.addSwarm(prevZ-swarmT*spd);
   },
   /* 깜빡이는 발판 (밤하늘) — 진짜 바닥 타일이 있다가 → 깜빡이고 → 사라진다. 사라졌을 때 밟으면 떨어진다 */
@@ -5221,7 +5239,8 @@ const Hazards = {
   addSpike(lane, z){
     const g=new THREE.Group(), w=CFG.LANE_W;
     let crack=null;
-    if(TrapArt.has("crumble-night")){ TrapArt.floorDecal(g, "crumble-night", w*0.95, 3.2, null); crack=g.userData.decal; }
+    const dk = (zone().ch && TrapArt.has("crack-castle")) ? "crack-castle" : "crumble-night";   // 2장은 성 바닥 금
+    if(TrapArt.has(dk)){ TrapArt.floorDecal(g, dk, w*0.95, 3.2, null); crack=g.userData.decal; }
     else { crack=new THREE.Mesh(new THREE.PlaneGeometry(w*0.9,3), new THREE.MeshBasicMaterial({color:0x6a4bb0, transparent:true, depthWrite:false}));
       crack.rotation.x=-Math.PI/2; crack.position.y=.05; g.add(crack); }
     crack.material.transparent=true; crack.material.opacity=0; crack.userData.noOutline=true;
@@ -5240,7 +5259,8 @@ const Hazards = {
     this.list.push({type:"spike", lane, tile:null, mesh:g, z, len:2.2, done:false, boss:true});
   },
   /* 별똥별 (밤하늘) — 바닥 표적이 밝아지다가, 가까워지면 떨어져 수정 바위가 된다. 떨어진 뒤에만 부딪힌다 */
-  addMeteor(lane, z){
+  addMeteor(lane, z, style){
+    const rubble = style==="rubble";                         // 2장 — 무너지는 성벽 돌
     const g=new THREE.Group(), glow=this._glowTex("white"), jet=this._glowTex("jet");
     const ring=new THREE.Mesh(new THREE.PlaneGeometry(CFG.LANE_W*1.1, CFG.LANE_W*1.1), new THREE.MeshBasicMaterial({map:glow||null,
       color:0xb48cff, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));
@@ -5252,6 +5272,11 @@ const Hazards = {
       transparent:true, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
     trail.visible=false; trail.userData.noOutline=true; g.add(trail);
     let rock=null;
+    if(rubble){ ring.material.color.setHex(0x1a1426); ring.material.blending=THREE.NormalBlending; star.scale.setScalar(0.001); }   // 표적 대신 짙어지는 그림자
+    if(rubble && TrapArt.has("rock-castle")){                // 떨어진 자리 — 돌무더기
+      const r=CFG.LANE_W*0.44, geo=new THREE.PlaneGeometry(r*2,r*2); geo.translate(0,r*0.9,0);
+      rock=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:TrapArt.tex["rock-castle"], transparent:true, alphaTest:.06, side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}));
+    } else
     if(TrapArt.has("rocks")){                                // 떨어진 자리 — 보라 수정 바위
       const r=CFG.LANE_W*0.4, geo=new THREE.PlaneGeometry(r*2,r*2); geo.translate(0,r,0);
       const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(4+uv.getX(i))/5);
@@ -5259,7 +5284,8 @@ const Hazards = {
     } else rock=new THREE.Mesh(new THREE.IcosahedronGeometry(CFG.LANE_W*0.36,0), MAT(0x6a4bb0,.6));
     rock.visible=false; rock.userData.noOutline=true; g.add(rock);
     let art=null;                                          // 크리스털 별똥별 그림 — 덩어리가 아래, 꼬리가 위
-    if(TrapArt.has("geyser-night")){
+    if(rubble){ art=new THREE.Group(); const fall=rock.clone(); fall.visible=true; fall.rotation.z=0.6; art.add(fall); art.visible=false; g.add(art); }   // 같은 돌이 위에서 떨어진다
+    else if(TrapArt.has("geyser-night")){
       const tx=TrapArt.tex["geyser-night"], im=tx.image, asp=(im&&im.height)? im.width/im.height : 1/3;
       const H=5.4, W=H*asp, geo=new THREE.PlaneGeometry(W,H); geo.translate(0, H/2 - H*0.14, 0);   // 덩어리 가운데가 기준점
       art=new THREE.Group();
@@ -5268,9 +5294,9 @@ const Hazards = {
       star.scale.setScalar(0.8);                             // 빛은 덩어리 뒤 후광으로만
     }
     g.position.set(laneX(lane,G.lanes),0,z);
-    g.userData.meteor={state:0, t:0, ring, star, trail, rock, art, sx:(Math.random()<.5?-1:1)*4};
+    g.userData.meteor={state:0, t:0, ring, star, trail, rock, art, sx: rubble ? 0 : (Math.random()<.5?-1:1)*4, rubble};
     scene.add(g);
-    this.list.push({type:"meteor", lane, tile:null, mesh:g, z, len:1.8, done:false});
+    this.list.push({type:"meteor", lane, tile:null, mesh:g, z, len:1.8, done:false, rubble});
   },
   /* 해바라기 — 두 줄 경계에 서서 꽃머리를 좌우로 천천히 돌린다 (양 끝에서 잠깐 멈춘다) */
   addFlower(a, b, z){
@@ -5299,11 +5325,19 @@ const Hazards = {
     this.list.push({type:"flower", lane:a, tile:null, mesh:g, z, len:1.6, done:false, headX:xb});
   },
   /* 쓰러지는 나무 — 길 가장자리에 서 있다가 흔들린 뒤 길 쪽으로 쓰러진다 */
-  addTree(lanes, left, z){
+  addTree(lanes, left, z, kind){
+    const statue = kind==="statue" && TrapArt.has("statue-castle");   // 2장 광장 — 쓰러지는 왕의 석상
     const n=G.lanes, k=lanes.length, span=k*CFG.LANE_W;
     const baseX = left ? laneX(0,n)-CFG.LANE_W*0.5-0.25 : laneX(n-1,n)+CFG.LANE_W*0.5+0.25;
     const g=new THREE.Group(), pivot=new THREE.Group(); g.add(pivot);
     const H=span*1.08, Wd=H*0.5;
+    if(statue){
+      const im=TrapArt.tex["statue-castle"].image, r=(im&&im.height)? im.width/im.height : 0.6, W3=H*r;
+      const geo=new THREE.PlaneGeometry(W3,H); geo.translate(0,H/2,0);
+      const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:TrapArt.tex["statue-castle"], transparent:true, alphaTest:.06,
+        side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}));
+      m.userData.noOutline=true; pivot.add(m);
+    } else
     if(TrapArt.has("props-meadow")){
       const geo=new THREE.PlaneGeometry(Wd,H); geo.translate(0,H/2,0);
       const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(0+uv.getX(i))/4);   // 키 큰 소나무 칸
@@ -5317,9 +5351,9 @@ const Hazards = {
     const sh=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0, depthWrite:false}));
     sh.rotation.x=-Math.PI/2; sh.position.set((left?1:-1)*span/2, .04, 0); sh.scale.set(span, CFG.LANE_W*0.5, 1); g.add(sh);
     g.position.set(baseX,0,z);
-    g.userData.tree={pivot, sh, left, state:0, t:0, lanes};
+    g.userData.tree={pivot, sh, left, state:0, t:0, lanes, statue};
     scene.add(g);
-    this.list.push({type:"tree", lane:lanes[0], tile:null, mesh:g, z, len:1.8, done:false});
+    this.list.push({type:"tree", lane:lanes[0], tile:null, mesh:g, z, len:1.8, done:false, statueFall:statue});
   },
   /* 벌떼 — 길가에서 날아와 내 줄을 천천히 따라온다. 부딪히기 0.45초 전부터는 방향을 고정 */
   addSwarm(z){
@@ -5511,15 +5545,17 @@ const Hazards = {
       if(h.type==="meteor"){                        // 표적이 밝아지다 → 떨어져 → 수정 바위
         const m=h.mesh.userData.meteor, spd4=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/spd4;
         if(m.state===0){ const k=Math.max(0,Math.min(1,(3.2-tHit)/1.6));
-          m.ring.material.opacity=k*(0.55+0.35*Math.sin(tHit*14)); m.ring.scale.setScalar(1.2-0.35*k);
+          if(m.rubble){ m.ring.material.opacity=k*0.7; m.ring.scale.setScalar(0.5+0.6*k); if(k>0 && !m.dust){ m.dust=1; try{ puff(h.mesh.position.x,.3,z,0x8a7f72,4,1.5); }catch(e){} } }   // 그림자가 커지며 짙어진다
+          else { m.ring.material.opacity=k*(0.55+0.35*Math.sin(tHit*14)); m.ring.scale.setScalar(1.2-0.35*k); }
           if(tHit<1.75){ if(h.boss) Boss.pose("attack",0.6); m.state=1; m.t=0; m.star.visible=true; m.trail.visible=!m.art; if(m.art) m.art.visible=true; } }
         if(m.state===1){ m.t+=dt; const e=Math.min(1,m.t/0.55);
           const y=16*(1-e), x=m.sx*(1-e);
           m.star.position.set(x,y+0.6,0); m.trail.position.set(x+m.sx*0.18,y+3.4,0); m.trail.rotation.z=Math.atan2(m.sx,16)*-1;
           if(m.art){ m.art.position.set(x,y+0.6,0.05); m.art.rotation.z=Math.atan2(m.sx,16)*-1; }
-          m.ring.material.opacity=0.9;
+          m.ring.material.opacity=m.rubble?0.75:0.9;
+          if(m.rubble && m.art) m.art.rotation.z=0.6+e*2.4;
           if(e>=1){ m.state=2; m.star.visible=false; m.trail.visible=false; if(m.art) m.art.visible=false; m.rock.visible=true;
-            if(typeof burst==="function") try{ burst(h.mesh.position.x,.6,z,0xc9b0ff,16); }catch(e){}
+            if(typeof burst==="function") try{ burst(h.mesh.position.x,.6,z,m.rubble?0x9a8f86:0xc9b0ff,16); }catch(e){}
             if(typeof puff==="function") try{ puff(h.mesh.position.x,.3,z,0x9a7ad8,10,3.5); }catch(e){}
             G.shake=Math.max(G.shake||0,.2); try{ SFX.tone(90,.2,"sine",.05); }catch(e){} } }
         if(m.state===2){ m.ring.material.opacity=Math.max(0,m.ring.material.opacity-dt*2); }
@@ -5587,7 +5623,8 @@ const Hazards = {
           u.pivot.rotation.z=(u.left?-1:1)*k3*Math.PI/2;
           u.pivot.scale.x = 1-0.45*k3;                                               // 누우면 납작하게
           u.sh.material.opacity=0.3*k3;
-          if(e>=1){ u.state=3; if(typeof puff==="function") try{ puff(h.mesh.position.x+(u.left?1:-1)*CFG.LANE_W*u.lanes.length/2, .3, z, 0x7a6a4a, 12, 3.2); }catch(e){}
+          if(e>=1){ u.state=3; if(typeof puff==="function") try{ puff(h.mesh.position.x+(u.left?1:-1)*CFG.LANE_W*u.lanes.length/2, .3, z, u.statue?0x8a8494:0x7a6a4a, u.statue?18:12, 3.2); }catch(e){}
+            if(u.statue) try{ SFX.crash(); }catch(e){}
             G.shake=Math.max(G.shake||0,.25); } }
       }
       if(h.type==="swarm"){
@@ -5681,8 +5718,8 @@ const Hazards = {
         else if(h.type==="geyser"){ hitBlock(null); verdict("앗 뜨거!", "용암이 솟았어요", COL.coral, "rgba(255,122,102,.22)"); }
         else if(h.type==="swarm"){ hitBlock(null); verdict("앗 따가워!", "벌떼에 쏘였어요", COL.edge, "rgba(255,204,51,.22)"); }
         else if(h.type==="flower"){ hitBlock(null); verdict("앗!", "해바라기에 부딪혔어요", COL.edge, "rgba(255,204,51,.22)"); }
-        else if(h.type==="tree"){ hitBlock(null); verdict("쿵!", "쓰러진 나무에 걸렸어요", COL.coral, "rgba(255,122,102,.22)"); }
-        else if(h.type==="meteor"){ hitBlock(null); verdict("쾅!", "별똥별이 떨어졌어요", COL.edge, "rgba(180,140,255,.22)"); }
+        else if(h.type==="tree"){ hitBlock(null); verdict("쿵!", h.statueFall ? "쓰러진 석상에 걸렸어요" : "쓰러진 나무에 걸렸어요", COL.coral, "rgba(255,122,102,.22)"); }
+        else if(h.type==="meteor"){ hitBlock(null); if(h.rubble) verdict("쿵!", "무너진 돌에 맞았어요", COL.coral, "rgba(255,122,102,.22)"); else verdict("쾅!", "별똥별이 떨어졌어요", COL.edge, "rgba(180,140,255,.22)"); }
         else if(h.type==="spike"){ hitBlock(null); verdict("쾅!", "수정 가시에 막혔어요", COL.edge, "rgba(180,140,255,.22)"); }
         else if(h.type==="statue"){ hitBlock(null); verdict("쾅!", "석상의 창에 막혔어요", COL.edge, "rgba(230,194,122,.22)"); }
         else if(h.type==="mace"){ hitBlock(null); verdict("쾅!", "방패 충격파에 맞았어요", COL.edge, "rgba(72,232,224,.22)"); }
@@ -6205,7 +6242,13 @@ function updatePlayer(dt){
     P.spray = (P.spray||0) - dt;
     if(P.spray<=0){ P.spray=0.07; puff(P.x, .15, P.z+0.3, 0xe8faff, 2, 2.6); }  // 얼음가루
   }
-  const tvx = ix*CFG.MOVE_X*slow;
+  const slick = icy && !G.gentle;                    // 유치원은 예전처럼 살짝만
+  const ixs = (slick && ix!==0) ? Math.sign(ix)*Math.min(1, Math.abs(ix)*ICE.AMP) : ix;
+  const tvx = ixs*CFG.MOVE_X*slow;
+  if(slick){
+    const speeding = ixs!==0 && tvx*P.vx>=0 && Math.abs(tvx)>Math.abs(P.vx);   // 같은 쪽으로 더 빨라질 때만 잘 붙는다
+    P.vx += (tvx - P.vx) * Math.min(1, dt*(speeding ? CFG.ACCEL*ICE.PUSH : CFG.BRAKE*ICE.SLIDE));
+  } else
   P.vx += (tvx - P.vx) * Math.min(1, dt*(ix===0 ? CFG.BRAKE : CFG.ACCEL)*grip);
   const wx = G.falling ? 0 : Wind.pushX();
   P.x += (P.vx + wx*((ix!==0 && ix*wx<0) ? WIND.AGAINST : 1))*dt;
@@ -6214,15 +6257,15 @@ function updatePlayer(dt){
 
   /* 현재 레인 = 가장 가까운 레인 (판정은 언제나 이 값으로만 이루어진다) */
   G.lane = clamp(Math.round(P.x/CFG.LANE_W + (G.lanes-1)/2), 0, G.lanes-1);
-  if(ix===0 && Math.abs(P.vx)<2.5 && Wind.pushX()===0){
+  if(ix===0 && Math.abs(P.vx)<(slick ? ICE.SNAP_V : 2.5) && Wind.pushX()===0){
     const tx = laneX(G.lane,G.lanes);
-    P.x += (tx-P.x)*Math.min(1,dt*CFG.SNAP*grip);   // 빙판에서는 중앙으로 잘 붙지 않는다
+    P.x += (tx-P.x)*Math.min(1,dt*(slick ? 1.5 : CFG.SNAP*grip));   // 빙판에서는 거의 멈춘 뒤에야 천천히 자리 잡는다
   }
   P.tilt += ((-clamp(P.vx/CFG.MOVE_X,-1,1)*0.24) - P.tilt)*Math.min(1,dt*9);
 
   /* 앞뒤: 같은 방식으로 부드럽게. 속도를 올려 아이들도 빠르게 파고들 수 있다 */
   const tvz = -iy*CFG.MOVE_Z*slow;
-  P.vz += (tvz - P.vz) * Math.min(1, dt*(iy===0 ? CFG.BRAKE : CFG.ACCEL)*grip);
+  P.vz += (tvz - P.vz) * Math.min(1, dt*(iy===0 ? CFG.BRAKE : CFG.ACCEL)*(slick ? 0.3 : grip));   // 앞뒤는 너무 미끄러우면 문을 놓치므로 조금 덜
   const wzp = G.falling ? 0 : Wind.pushZ();
   P.z += (P.vz + wzp*((iy!==0 && tvz*wzp<0) ? WIND.AGAINST : 1))*dt;
   if((P.z<=CFG.Z_FORWARD && P.vz<0) || (P.z>=CFG.Z_BACK && P.vz>0)) P.vz = 0;
@@ -7916,11 +7959,13 @@ const TrapTip = {
   MSG:{flower:"🌻 해바라기가 두 줄을 번갈아 막아요", sphinx:"🗿 벽에 난 틈으로 지나가요", chunk:"🧊 얼음덩이가 두 칸을 오가요",
        geyser:"🔥 바닥이 빛나면 곧 솟아요", blink:"✨ 깜빡이는 발판 — 사라질 때 조심해요", meteor:"☄️ 빛나는 표적에 별똥별이 떨어져요",
        statue:"⚔️ 석상이 옆 줄을 내리찍어요", crumble:"🪨 금 간 길은 오래 서 있으면 무너져요", swarm:"🐝 벌떼가 내 줄을 따라와요",
-       tree:"🌳 나무가 쓰러지며 길을 막아요", salamander:"🦎 불도롱뇽이 좌우로 다녀요"},
+       tree:"🌳 나무가 쓰러지며 길을 막아요", salamander:"🦎 불도롱뇽이 좌우로 다녀요",
+       rubble:"🧱 바닥 그림자가 짙어지면 돌이 떨어져요", trapSpike:"💎 바닥 금이 빛나면 수정 가시가 솟아요", statueFall:"🗿 석상이 쓰러지며 두 줄을 막아요"},
   reset(){ this.seen={}; if(this.el) this.el.style.opacity="0"; },
   key(h){
     const u=(h.mesh && h.mesh.userData) || {};
     if(h.sphinx) return "sphinx"; if(h.statueBody) return "statue";
+    if(h.rubble) return "rubble"; if(h.trapSpike) return "trapSpike"; if(h.statueFall) return "statueFall";
     if(h.type==="flower"||h.type==="geyser"||h.type==="blink"||h.type==="meteor"||h.type==="crumble"||h.type==="swarm"||h.type==="tree") return h.type;
     if(u.chunk) return "chunk"; if(u.patrol && zone().prop==="lava") return "salamander";
     return null;
