@@ -485,6 +485,14 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 #zoneTag b{display:block;font-size:clamp(30px,8vw,54px);font-weight:900;letter-spacing:-.03em;
   color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.5),0 0 34px rgba(255,196,107,.85)}
 #zoneTag span{display:block;margin-top:6px;font-size:11px;letter-spacing:.4em;font-weight:800;color:#ffd37a}
+#chFlash{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 45%,#fffdf4 0%,#fff6dc 55%,#ffe6b0 100%)}
+#chTag{position:fixed;left:50%;top:30%;transform:translate(-50%,0) scale(.92);z-index:8;pointer-events:none;opacity:0;text-align:center;
+  transition:opacity .5s,transform .7s cubic-bezier(.2,.9,.3,1.2);white-space:nowrap}
+#chTag.on{opacity:1;transform:translate(-50%,0) scale(1)}
+#chTag i{display:block;font-style:normal;font-size:13px;letter-spacing:.5em;font-weight:900;color:#ffd37a;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+#chTag b{display:block;margin:6px 0 4px;font-size:clamp(34px,9vw,64px);font-weight:900;letter-spacing:-.03em;color:#fff;
+  text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 40px rgba(201,168,255,.9)}
+#chTag span{display:block;font-size:clamp(14px,3.6vw,20px);font-weight:800;color:#e6e0ff;text-shadow:0 2px 6px rgba(0,0,0,.7)}
 #goTag{position:fixed;inset:0;display:none;place-items:center;z-index:6;pointer-events:none}
 #goTag b{font-size:clamp(56px,16vw,120px);font-weight:900;letter-spacing:-.04em;color:#fff;
   text-shadow:0 0 30px rgba(255,196,107,.85),0 8px 30px rgba(0,0,0,.6);
@@ -803,6 +811,7 @@ details{display:none}
 <div id="vignette"></div>
 <div id="popLayer"></div>
 <div id="zoneTag"></div>
+<div id="chFlash"></div><div id="chTag"></div>
 <div id="goTag"><b id="goText">GO!</b></div>
 <div class="layer" id="flash"></div>
 <div id="rumble"></div>
@@ -2149,16 +2158,16 @@ const DIFF = {
   // holes 구멍 / blocks 장애물 / hide 단어가 사라지는 비율 / scoreMul 점수 배수
   easy:  {label:"EASY",  lanes:3, levels:[1],   trick:0.15, approachMul:1.15, approachAdd:-1.0, decay:0.050,
           lateDecay:0, minTime:3.5, twinHole:999,
-          holes:0, blocks:0, ice:0, hide:0, scoreMul:1.0, lives:5,
+          holes:0, blocks:1, ice:0, hide:0, scoreMul:1.0, lives:5,
           boulder:false, windFrom:0, sway:false, swaps:0,
-          ramp:[]},
+          ramp:[{from:15, holes:1}, {from:35, blocks:1}]},
   normal:{label:"NORMAL",lanes:5, levels:[1,2], trick:0.70, approachMul:1.00, approachAdd:-1.0, decay:0.086,
           lateDecay:0.020, minTime:3.0,
           holes:1, blocks:0, ice:0, hide:0, scoreMul:1.6, lives:3, twinHole:26,
-          hazGap:0.15, hazFrom:0.36, hazSpan:0.40,
+          hazGap:0.11, hazFrom:0.36, hazSpan:0.40,
           boulder:true, rockFrom:30, windFrom:22, sway:false, swaps:0,
           // 스테이지가 오르면 기믹이 늘어난다
-          ramp:[{from:12, blocks:1}, {from:18, ice:1},
+          ramp:[{from:8, blocks:1}, {from:12, blocks:1}, {from:18, ice:1},
                 {from:20, cloud:1}, {from:22, holes:1}, {from:26, crumble:1},
                 {from:30, blocks:1}]},
   // 어려움 — 1단계부터 보통보다 빠르다 (예전에는 초반 15단계가 보통보다 느렸다)
@@ -2166,7 +2175,7 @@ const DIFF = {
           lateDecay:0.030, minTime:2.4,
           holes:1, blocks:2, ice:0, hide:0.80, scoreMul:2.4, lives:3, twinHole:10,
           hazGap:0.105, hazFrom:0.33, hazSpan:0.46,
-          grid:true, rowGap:0.60, twoPerRow:0.15, ansClear:1.5, exitClear:1.0, gateSafe:0.9, passSafe:0.5, maxPerQ:5, minFree:3,
+          grid:true, rowGap:0.50, twoPerRow:0.22, ansClear:1.5, exitClear:1.0, gateSafe:0.9, passSafe:0.5, maxPerQ:7, minFree:3,
           boulder:true, rockFrom:5, windFrom:8, sway:false, swaps:0,
           ramp:[{from:6, ice:1}, {from:9, cloud:1},
                 {from:11, crumble:1}, {from:13, fake:1},
@@ -2179,7 +2188,7 @@ const DIFF = {
           lateDecay:0.040, minTime:2.0,
           holes:2, blocks:2, ice:0, hide:0.9, scoreMul:3.5, lives:2, twinHole:8,
           hazGap:0.085, hazFrom:0.30, hazSpan:0.50,
-          grid:true, rowGap:0.50, twoPerRow:0.25, ansClear:1.2, exitClear:0.9, gateSafe:0.8, passSafe:0.5, maxPerQ:6, minFree:3,
+          grid:true, rowGap:0.36, twoPerRow:0.45, ansClear:1.2, exitClear:0.9, gateSafe:0.8, passSafe:0.5, maxPerQ:8, minFree:3,
           boulder:true, rockFrom:3, windFrom:6, sway:false, swaps:0,
           ramp:[{from:5, ice:1}, {from:7, cloud:1},
                 {from:8, crumble:1}, {from:9, fake:1},
@@ -4004,8 +4013,10 @@ function judge(s){
             COL.mint, "rgba(95,224,176,.2)");
     if(WORD_SETS[G.set].review) WrongBook.remove(s.q.word.en);
     if(ruleEnded()) return;
-    if(Boss.active && !Boss.hit()){ updateHUD(); spawnSet(); return; }   // 보스전 — 단계 대신 보스 하트(삼킨 별)를 깎는다
+    let bossKill=false;
+    if(Boss.active){ if(!Boss.hit()){ updateHUD(); spawnSet(); return; } bossKill=true; }   // 보스전 — 단계 대신 보스 체력을 깎는다
     G.stage++;
+    if(bossKill && G.rule==="normal" && Chapter.next(G.stage)!==null){ const zi=Chapter.next(G.stage); G.stage--; Chapter.begin(zi); updateHUD(); return; }   // 1장 끝 — 장 넘김 연출
     if(G.rule==="normal" && (G.diff==="easy" || G.gentle) && G.stage>FINISH_STAGE){ G.stage=FINISH_STAGE; finishRun(); return; }   // 쉬움·유치원 — 밤하늘 끝에서 완주
     if(G.rule==="normal" && G.stage>CH2_END){ G.stage=CH2_END;                    // 보통 이상 — 2장 끝 (80단계 두 번째 문지기를 이기면)
       if(Boss.won && G.bossName==="두 번째 문지기"){ G.finishing=true; G.spawning=false; clearSets(); Hazards.clear();
@@ -4049,7 +4060,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-shield-parts","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -4775,9 +4786,11 @@ const Hazards = {
     });
     // 앞 문을 지나 1.1초 + 생겨나는 순간 플레이어로부터 최소 1.5초 앞 (코앞에 갑자기 생기지 않게)
     const zMax = Math.min(prevZ - spd*1.1, ((typeof P!=="undefined")?P.z:0) - spd*1.5), exitUntil = prevZ - spd*2.2;
+    // 구멍·장애물은 같은 줄이라도 충분히 떨어져 있으면 또 놓을 수 있다 (예전에는 한 문제에 한 줄당 하나뿐이라 함정이 적었다)
+    const usedZ = [], laneGap = G.spawnDist*0.26;
     const laneFor = z=>{
       const c=[]; for(let j=0;j<G.lanes;j++)
-        if(used.indexOf(j)<0 && !(j===exitLane && z>exitUntil)) c.push(j);
+        if(used.indexOf(j)<0 && !(j===exitLane && z>exitUntil) && !usedZ.some(u=>u.l===j && Math.abs(u.z-z)<laneGap)) c.push(j);
       return c.length ? rnd(c) : -1;
     };
     const freeLane = ()=>{
@@ -4856,7 +4869,7 @@ const Hazards = {
       if(l>=0){ this.addBlock(l,z); used.push(l); }
     }
     // 보통 — 1장 지대의 대표 함정을 약하게 하나 (지대 4번째 단계부터, 두 문제에 하나꼴, 보스전 제외)
-    if(!G.gentle && G.diff==="normal" && !Z.ch && !(typeof Boss!=="undefined" && Boss.active) && G.stage>=Z.from+3 && Math.random()<0.5)
+    if(!G.gentle && G.diff==="normal" && !Z.ch && !(typeof Boss!=="undefined" && Boss.active) && G.stage>=Z.from+3 && Math.random()<0.75)
     for(let tryN=0, placed=false; tryN<4 && !placed; tryN++){       // 자리가 안 맞으면 몇 번 더 찾아본다
       const nBefore=this.list.length;
       const z=freeZ();
@@ -4884,7 +4897,7 @@ const Hazards = {
       placed = this.list.length>nBefore;
     }
     // 2장 — 석상 기사 (창이 옆 칸을 박자에 맞춰 내리찍는다). 석상 줄과 찍는 줄 모두 정답 줄이 아니게
-    if(Z.traps && Z.traps.indexOf("statue")>=0 && !G.gentle && Math.random()<0.55){   // "all"(밤하늘)에는 안 나온다
+    if(Z.traps && Z.traps.indexOf("statue")>=0 && !G.gentle && Math.random()<0.8){   // "all"(밤하늘)에는 안 나온다
       const z=freeZ(), l=(z!==null) ? laneFor(z) : -1;
       if(l>=0){ const c=[l-1,l+1].filter(j=>j>=0 && j<G.lanes && used.indexOf(j)<0 && !(j===exitLane && z>exitUntil));
         if(c.length){ const o=rnd(c); this.addStatue(l,z,o); used.push(l,o); } }
@@ -4899,12 +4912,12 @@ const Hazards = {
       const twin = !G.gentle && G.stage >= (d.twinHole||999) && Math.random()<0.45
                    && z2<=zMax && !(l===exitLane && z2>exitUntil);
       if(twin) this.addHole(l, z2);
-      used.push(l);
+      usedZ.push({l,z}); if(twin) usedZ.push({l,z:z2});
     }
     for(let i=0;i<nBlocks;i++){
       const z=freeZ(); if(z===null) break;
       const l=laneFor(z); if(l<0) continue;
-      this.addBlock(l,z); used.push(l);
+      this.addBlock(l,z); usedZ.push({l,z});
     }
   },
 
@@ -5057,13 +5070,14 @@ const Hazards = {
       }
       extra=[];
     }
-    while(items.length && !reachable() && guard++<40){
+    while(items.length && !reachable() && guard++<160){
       // 길을 막는 줄 가운데 가장 늦은 것부터 뺀다
       items.sort((a,b)=>a.t-b.t);
       const cand=items.map((it,i)=>i).filter(i=>items[i].kind!=="wall" && items[i].kind!=="treeseg");
       if(!cand.length){ for(let i=items.length-1;i>=0;i--) if(items[i].kind==="wall"||items[i].kind==="treeseg") items.splice(i,1); treeFall=null; continue; }
       items.splice(cand[cand.length-1-Math.floor(Math.random()*Math.min(3,cand.length))],1);
     }
+    if(items.length && !reachable()){ items.length=0; treeFall=null; this.lastWall=null; }   // 끝내 길이 없으면 이번 문제는 함정을 비운다 (절대 막힌 길을 만들지 않는다)
     this.lastCheck={items:items.length, ok:reachable()};
     // 실제로 놓기
     if(crumble){
@@ -5516,12 +5530,13 @@ const Hazards = {
         u.ball.position.x=mx; u.ball.rotation.z=Math.cos(u.t*2*Math.PI/u.per)*0.18; u.ball.scale.x=0.85+0.15*Math.abs(Math.cos(u.t*2*Math.PI/u.per)); h.mx=mx;
         h.lane=laneOfX(mx,G.lanes);
         u.band.material.opacity=Math.max(0,Math.min(0.35,(4.5-tHit)/4));
-        if(!u.posed && tHit<3.2 && Boss.active){ u.posed=true; Boss.pose("attack",0.8); }
+        if(!u.posed && tHit<3.2 && Boss.active){ u.posed=true; Boss.pose("attack",0.8); Boss.swing((u.x0+u.x1)/2>=0?1:-1); }
       }
       if(h.type==="bars"){                           // 쇠창살 — 그림자 → 쾅 떨어짐
         const u=h.mesh.userData.bars, sp7=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/sp7;
         if(u.state===0){ u.sh.material.opacity=Math.max(0,Math.min(0.5,(3.0-tHit)/2.2));
-          if(tHit<1.7){ u.state=1; u.t=0; u.bars.visible=true; if(Boss.active) Boss.pose("slam",0.45); } }
+          if(tHit<2.3 && !u.raised){ u.raised=true; if(Boss.active) Boss.raise(); }                 // 방패를 치켜든다
+          if(tHit<1.7){ u.state=1; u.t=0; u.bars.visible=true; if(Boss.active){ Boss.pose("slam",0.45); Boss.shieldSlam(); } } }
         if(u.state===1){ u.t+=dt; const e=Math.min(1,u.t/0.18); u.bars.position.y=7*(1-e*e);
           if(e>=1){ u.state=2; G.shake=Math.max(G.shake||0,.3); try{ SFX.tone(80,.25,"square",.05,45); puff(h.mesh.position.x,.3,z,0x6a6e88,8,4); }catch(e){} } }
       }
@@ -5762,6 +5777,7 @@ const Rocks = {
   list:[], wait:2.5,
   active(){ const d=DIFF[G.diff];
     if(G.rule==="endless" || G.rule==="mine") return false;
+    if(G.chapterBreak) return false;                 // 장 넘김 연출 중에는 쉰다
     if(!zoneAllows("rock")) return false;
     const Z=zone(), own = Z.traps && Z.traps.indexOf("rock")>=0;   // 낙석이 이 지대의 대표 함정인가
     if(G.gentle){
@@ -5946,6 +5962,7 @@ const Wind = {
   t:0, type:null, next:WIND.EVERY,
   active(){ const d=DIFF[G.diff];
     if(G.rule==="endless" || G.rule==="mine") return false;
+    if(G.chapterBreak) return false;                 // 장 넘김 연출 중에는 쉰다
     return !G.gentle && zoneAllows("wind") && !!d.windFrom && G.stage >= d.windFrom; },
   pushX(){ return this.t>0 ? (this.type==="left"? -WIND.PUSH : this.type==="right"? WIND.PUSH : 0) : 0; },
   pushZ(){ return this.t>0 ? (this.type==="tail"? -WIND.PUSH_Z : this.type==="head"? WIND.PUSH_Z : 0) : 0; },
@@ -6597,6 +6614,7 @@ function loop(){
     Rocks.update(wdt);      // 등장·대기 관리는 모듈 안에서 처리
     Wind.update(dt);
     Boss.update(G.rawDt||dt);
+    Chapter.update(dt);
     if(G.rule==="time" && !G.falling){              // 타임어택 — 시간이 흐른다
       G.timeLeft -= dt;
       if(G.timeLeft<=0){ G.timeLeft=0; updateHUD(); gameOver(); }
@@ -7178,7 +7196,9 @@ const BOSS = {
 const BOSS_DEF = {
   50:{ id:"knight", name:"첫 번째 문지기", tex:["boss-knight","boss-knight-2"], parts:"boss-knight-parts",
        eye:[0xb070ff,0xff5fc0], eyeV:0.837, p1:["slam","shard"], p2:["slam","shard","stomp","curse"] },
-  80:{ id:"shield", name:"두 번째 문지기", tex:["boss-shield","boss-shield-2"], parts:null,
+  80:{ id:"shield", name:"두 번째 문지기", tex:["boss-shield","boss-shield-2"], parts:"boss-shield-parts", cells:4,
+       // 조각 그림: [1단계 몸, 1단계 방패(손 포함), 2단계 몸, 2단계 방패(팔 포함)] — 방패는 팔꿈치/어깨를 축으로 돈다
+       rig:{ p1:{body:0, piece:1, pivot:{u:0.3955, v:0.6888}}, p2:{body:2, piece:3, pivot:{u:0.6104, v:0.7448}} },
        eye:[0x48e8e0,0xa8fff8], eyeV:0.856, eyeP:[[0.528,0.856],[0.446,0.751]], chestP:[0.43,0.60], p1:["sweep","bars"], p2:["sweep","bars","stomp","curse"],
        hp:20, rageAt:10,                              // 체력 20 — 앞 10은 방패가 받아 내고(금이 감), 방패가 깨지면 나머지 10은 몸으로
        shieldBox:[0.47,0.265,0.78,0.655] }             // 방패 자리 [왼,아래,오른,위] — boss-shield.webp 금테두리 기준으로 잰 값
@@ -7208,12 +7228,12 @@ const Boss = {
     this.active=true; this.won=false; this.used={}; this.phase=1; this.seq=null; this.armA=0; this.transT=0;
     this.max=this.hp=(d.hp||BOSS.HP); G.bossDmg=0; G.bossName=d.name; this.crackLv=0; if(this.crack) this.crack.visible=false;
     const key=d.id+":"+d.tex.concat(d.parts?[d.parts]:[]).map(n=>TrapArt.has(n)?1:0).join("");
-    if(this.root && this._key!==key){ camera.remove(this.root); this.root.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }); this.root=null; this.parts=null; this.crack=null; }
+    if(this.root && this._key!==key){ camera.remove(this.root); this.root.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }); this.root=null; this.parts=null; this.rig2=null; this.crack=null; }
     this._key=key;
     this.build(); this.setTex(1);
     this.root.visible=true; this.enterT=1.6; this.deadT=0; this.pose("idle");
     this._mats().forEach(m=>{ m.opacity=1; m.color.setRGB(1,1,1); });
-    this.body.position.set(0,0,0); this.body.rotation.set(0,0,0); this.body.scale.set(1,1,1);
+    this.body.position.set(0,0,0); this.body.rotation.set(0,0,0); this.body.scale.set(1,1,1); this.sseq=null; this.jolt=0;
     const el=document.getElementById("zoneTag");
     if(el){
       el.innerHTML='<b>'+d.name+'</b><span>'+BOSS.SUB+'</span>';
@@ -7413,9 +7433,10 @@ const Boss = {
     if(s.q._bossFx.indexOf("stomp")>=0 && !s._stompDone && left<2.6){ s._stompDone=true; this.stomp(); }
   },
   _drop(m){ if(!m) return; if(m.parent) m.parent.remove(m); if(m.geometry) m.geometry.dispose(); if(m.material) m.material.dispose(); },
-  _mats(){ const a=[]; if(this.main) a.push(this.main.material); if(this.parts) Object.values(this.parts).forEach(m=>a.push(m.material)); return a; },
+  _mats(){ const a=[]; if(this.main) a.push(this.main.material); if(this.parts) Object.values(this.parts).forEach(m=>a.push(m.material)); if(this.rig2) Object.values(this.rig2).forEach(m=>a.push(m.material)); return a; },
   /* ---------- 그림 ---------- */
   setTex(p){
+    if(this.rig2){ const r=this.rig2; r.b1.visible=r.s1.visible=(p===1); r.b2.visible=r.s2.visible=(p===2); this.main.visible=false; this.tint=[1,1,1]; return; }
     const useParts = p===1 && !!this.parts;
     if(this.parts) Object.values(this.parts).forEach(m=>m.visible=useParts);
     const t = p===2 ? (this.texB||this.texA) : this.texA;
@@ -7426,7 +7447,7 @@ const Boss = {
   _plane(cell, pivot){                                // 조각 한 칸 — 너비 asp, 높이 1, 기준점은 발밑 가운데(또는 pivot)
     const g=new THREE.PlaneGeometry(this.asp,1);
     g.translate(pivot ? -(pivot.u-0.5)*this.asp : 0, pivot ? 0.5-pivot.v : 0.5, 0);
-    if(cell!=null){ const uv=g.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,(cell+uv.getX(i))/5); }
+    if(cell!=null){ const uv=g.attributes.uv, nc=this.cells||5; for(let i=0;i<uv.count;i++) uv.setX(i,(cell+uv.getX(i))/nc); }
     return g;
   },
   build(){
@@ -7438,11 +7459,18 @@ const Boss = {
     this.texA = load(D.tex[0]) || draw(1);
     this.texB = load(D.tex[1]) || (TrapArt.has(D.tex[0]) ? null : draw(2));
     this.texP = D.parts ? load(D.parts) : null;
-    const im=(this.texP||this.texA||{}).image; this.asp = (im && im.width && im.height) ? (this.texP ? im.width/5 : im.width)/im.height : 2/3;
+    this.cells=D.cells||5; this.rig2=null;
+    const im=(this.texP||this.texA||{}).image; this.asp = (im && im.width && im.height) ? (this.texP ? im.width/this.cells : im.width)/im.height : 2/3;
     const mat=map=>new THREE.MeshBasicMaterial({map, transparent:true, alphaTest:.02, depthWrite:false, fog:false, toneMapped:false, side:THREE.DoubleSide});
     this.body=new THREE.Group(); this.root.add(this.body);                       // 몸 전체를 움직이는 틀
     this.main=new THREE.Mesh(this._plane(null), mat(this.texA)); this.main.renderOrder=1; this.body.add(this.main);
-    if(this.texP){
+    if(this.texP && D.rig){                          // 두 번째 문지기 — 몸과 방패를 따로 그려 방패를 휘두른다
+      const R=D.rig, S=this.rig2={};
+      const mk=(c,pv,ro)=>{ const m=new THREE.Mesh(this._plane(c,pv), mat(this.texP)); m.renderOrder=ro; m.userData.noOutline=true;
+        if(pv) m.position.set((pv.u-0.5)*this.asp, pv.v, 0.001); this.body.add(m); return m; };
+      S.b1=mk(R.p1.body,null,1); S.s1=mk(R.p1.piece,R.p1.pivot,2); S.b2=mk(R.p2.body,null,1); S.s2=mk(R.p2.piece,R.p2.pivot,2);
+    }
+    else if(this.texP){
       const B=BOSS, P5=this.parts={};
       P5.body   =new THREE.Mesh(this._plane(0), mat(this.texP)); P5.body.renderOrder=1;
       P5.spear  =new THREE.Mesh(this._plane(1), mat(this.texP)); P5.spear.renderOrder=2;
@@ -7535,7 +7563,7 @@ const Boss = {
     if(this.hp<=0){ this.die(); return; }
     const tg=this._target();
     if(this._shieldUp()){                            // 방패가 받아 낸다 — 팅! 청록 불꽃, 방패에 금이 점점 번진다
-      this.pose("guard",0.35); this.flashT=0.18; this.flashCol=[1.2,1.6,1.6];
+      this.pose("guard",0.35); this.flashT=0.18; this.flashCol=[1.2,1.6,1.6]; this.jolt=0.22;
       G.shake=Math.max(G.shake||0,.12);
       try{ SFX.tone(1320,.09,"square",.035,1760); SFX.tone(660,.14,"triangle",.03); }catch(e){}
       this.shards(7, 0x7ff8f0, false, tg); this.shards(2, 0, true, tg);
@@ -7544,6 +7572,7 @@ const Boss = {
       return;
     }
     if(!this.seq) this.pose("hurt",0.4);
+    this.jolt=0.3;
     this.flashT=0.25; this.flashCol=[1.6,1.6,1.6];
     G.shake=Math.max(G.shake||0,.16);
     try{ SFX.tone(180,.18,"square",.04,120); }catch(e){}
@@ -7557,12 +7586,13 @@ const Boss = {
       const c=document.createElement("canvas"); c.width=256; c.height=384; this.crackCv=c;
       this.crackTex=new THREE.CanvasTexture(c);
       this.crack=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({map:this.crackTex, transparent:true, depthWrite:false, fog:false, toneMapped:false}));
-      this.crack.userData.noOutline=true; this.crack.renderOrder=5; this.body.add(this.crack);
+      this.crack.userData.noOutline=true; this.crack.renderOrder=5; (this.rig2 ? this.rig2.s1 : this.body).add(this.crack);   // 조각이 있으면 방패를 따라 움직인다
       this.crackSeed=[]; for(let i=0;i<9;i++){ const pts=[[0.5,0.45]]; let x=0.5,y=0.45,a=Math.random()*Math.PI*2;
         for(let k=0;k<6;k++){ a+=(Math.random()-.5)*1.1; x+=Math.cos(a)*0.09; y+=Math.sin(a)*0.07; pts.push([x,y]); } this.crackSeed.push(pts); }
     }
     const w=(sb[2]-sb[0])*this.asp, h=(sb[3]-sb[1]);
-    this.crack.scale.set(w,h,1); this.crack.position.set(((sb[0]+sb[2])/2-0.5)*this.asp, (sb[1]+sb[3])/2, 0.004);
+    const pv=this.rig2 ? this.def.rig.p1.pivot : null, ox=pv?(pv.u-0.5)*this.asp:0, oy=pv?pv.v:0;
+    this.crack.scale.set(w,h,1); this.crack.position.set(((sb[0]+sb[2])/2-0.5)*this.asp-ox, (sb[1]+sb[3])/2-oy, 0.004);
     const x=this.crackCv.getContext("2d"), W=256, H=384; x.clearRect(0,0,W,H);
     const lines=Math.ceil(this.crackLv*this.crackSeed.length);
     x.lineCap="round"; x.lineJoin="round";
@@ -7580,7 +7610,7 @@ const Boss = {
   },
   /* 변신 — 1.8초 동안 세상이 느려진다. 떨림(0.6초) → 번쩍! 그림이 바뀌고 충격파 → 몸이 부풀며 포효(1.2초) */
   transform(){
-    this.phase=2; this.seq=null; this.armA=0; this.transT=1.8; this.transSwapped=false;
+    this.phase=2; this.seq=null; this.sseq=null; this.armA=0; this.transT=1.8; this.transSwapped=false;
     G.hitStop=Math.max(G.hitStop||0, 1.8); this.darkT=Math.max(this.darkT,2.1);
     try{ SFX.tone(45,0.7,"sawtooth",.06,140); }catch(e){}
   },
@@ -7622,6 +7652,63 @@ const Boss = {
       const a=Math.random()*Math.PI*2, sp=0.4+Math.random()*0.9;
       this.fx.push({m, t:0, life:0.8+Math.random()*0.6, kind:"shard", vx:Math.cos(a)*sp, vy:Math.sin(a)*sp+0.3, vr:(Math.random()-.5)*12});
     }
+  },
+  /* ---------- 두 번째 문지기 방패 동작 ----------
+     키프레임 [시간, 각도(도, +는 반시계), 들림(키 비율)] 사이를 부드럽게 잇는다.
+     1단계: 탑실드를 손으로 짚은 채 팔꿈치를 축으로 — 옆으로 밀어치기 / 들었다가 바닥에 쿵
+     2단계: 수정 방패를 든 팔을 어깨를 축으로 — 크게 휘두르기 / 치켜들었다가 내리찍기 */
+  _p2art(){ return this.phase===2 && this.transSwapped; },
+  _move(keys, ev, hold){ if(!this.rig2 || this.deadT>0 || this.transT>0) return false;
+    const c=this._swNow||[0,0]; keys=keys.map(k=>k.slice()); keys[0][1]=c[0]; keys[0][2]=c[1];
+    this.sseq={keys, ev:ev||[], t:0, hold:!!hold}; return true; },
+  swing(dir){                                       // 방패 충격파와 함께 — dir: +1 오른쪽 줄들, -1 왼쪽 줄들
+    if(!this.rig2 || (this.sseq && this.sseq.t<0.9)) return;
+    const hit=()=>this._shieldHit(0.3, 0.25);
+    if(this._p2art()) this._move(dir>0 ? [[0,0,0],[0.28,18,0],[0.42,-75,0],[0.7,-75,0],[1.3,0,0]]
+                                       : [[0,0,0],[0.25,-10,0],[0.4,28,0.01],[0.68,28,0.01],[1.25,0,0]], [[0.42,hit]]);
+    else this._move([[0,0,0],[0.22,-4*dir,0.006],[0.34,13*dir,-0.004],[0.62,13*dir,-0.004],[1.05,0,0]], [[0.34,hit]]);
+    try{ SFX.tone(200,.25,"sawtooth",.025,520); }catch(e){}
+  },
+  raise(){                                          // 쇠창살 — 방패를 치켜들고 부르르 (내리찍기를 기다린다)
+    if(!this.rig2 || (this.sseq && this.sseq.hold)) return;
+    this._move(this._p2art() ? [[0,0,0],[0.45,28,0.01]] : [[0,0,0],[0.45,6,0.035]], [], true);
+    try{ SFX.tone(110,.45,"triangle",.03,170); }catch(e){}
+  },
+  shieldSlam(){                                     // 쾅 — 쇠창살이 떨어지는 순간
+    if(!this.rig2 || (this.sseq && !this.sseq.hold && this.sseq.t<0.5)) return;
+    const hit=()=>this._shieldHit(0.5, 0.4);
+    if(this._p2art()) this._move([[0,0,0],[0.08,-55,-0.01],[0.4,-55,-0.01],[1.0,0,0]], [[0.08,hit]]);
+    else this._move([[0,0,0],[0.07,-1,-0.01],[0.35,-1,-0.01],[0.75,0,0]], [[0.07,hit]]);
+  },
+  _shieldHit(shake, big){                            // 방패가 닿는 순간 — 청록 불꽃과 돌 부스러기
+    G.shake=Math.max(G.shake||0, shake); this.flashT=Math.max(this.flashT||0,0.15); this.flashCol=[1.15,1.5,1.5];
+    const b=this.body, pt=this._p2art() ? [0.80,0.60] : [0.64,0.27];
+    const at=[b.position.x+(pt[0]-0.5)*this.asp*b.scale.x, b.position.y+pt[1]*b.scale.y];
+    this.shards(Math.round(10*big+4), 0x7ff8f0, false, at); this.shards(Math.round(6*big+2), 0, true, at);
+    try{ SFX.tone(70,.3,"square",.05,40); SFX.tone(900,.12,"triangle",.03,1400); }catch(e){}
+  },
+  _srig(dt){
+    const r=this.rig2; if(!r) return;
+    const pc=this._p2art() ? r.s2 : r.s1, other=pc===r.s1 ? r.s2 : r.s1;
+    const p2=pc===r.s2, idleA = p2 ? Math.sin(this.t*1.5)*3 : Math.sin(this.t*1.2)*0.6;
+    let a=0, dy=0;
+    const q=this.sseq;
+    if(q){
+      const before=q.t; q.t+=dt; const K=q.keys, T=K[K.length-1][0];
+      q.ev.forEach(e=>{ if(before<e[0] && q.t>=e[0]) try{ e[1](); }catch(err){} });
+      if(q.t>=T){ a=K[K.length-1][1]; dy=K[K.length-1][2];
+        if(q.hold){ a+=Math.sin(this.t*60)*0.9; if(q.t>T+1.8) this._move([[0,0,0],[0.5,0,0]]); }   // 내리찍기가 안 오면 천천히 내린다
+        else this.sseq=null; }
+      else { let j=0; while(j<K.length-2 && q.t>K[j+1][0]) j++;
+        const k0=K[j], k1=K[j+1], u=Math.min(1,Math.max(0,(q.t-k0[0])/Math.max(1e-4,k1[0]-k0[0]))), e=u*u*(3-2*u);
+        a=k0[1]+(k1[1]-k0[1])*e; dy=k0[2]+(k1[2]-k0[2])*e; }
+    }
+    this._swNow=[a,dy];
+    if(this.jolt>0){ this.jolt-=dt; const j=this.jolt; a+=Math.sin(j*70)*(p2?4:1.5)*Math.min(1,j*5); }
+    pc.rotation.z=(a+idleA)*Math.PI/180;
+    const pv=p2 ? this.def.rig.p2.pivot : this.def.rig.p1.pivot;
+    pc.position.set((pv.u-0.5)*this.asp, pv.v+dy, 0.001);
+    other.rotation.z=0;
   },
   /* 팔 — 팔뚝은 팔꿈치에서 꺾이고, 창과 주먹은 기울지 않은 채 손목을 따라간다 */
   _arm(dt){
@@ -7670,11 +7757,11 @@ const Boss = {
     const b=this.body;
     if(this.active) Wind.next=Math.max(Wind.next,4);           // 보스전에는 저절로 부는 돌풍을 막는다
     this._events();
-    this._arm(dt);
+    this._arm(dt); this._srig(dt);
     const mats=this._mats(), tint=this.tint||[1,1,1];
     if(this.deadT<=0){
       // 자세: [높이, 기울기, 크기, 눈빛] — 조각 그림이 있으면 몸은 덜 움직이고 팔이 움직인다
-      const soft = (this.parts && this.parts.forearm.visible) ? 0.4 : 1;
+      const soft = ((this.parts && this.parts.forearm.visible) || this.rig2) ? 0.4 : 1;
       const PO={idle:[0,0,1,0], windup:[0.03*soft,-0.04*soft,1+0.03*soft,0.7], slam:[-0.035,0.025*soft,1.05,1], attack:[-0.02*soft,0.03*soft,1+0.05*soft,0.5],
                 hurt:[0,0,1,0.2], stomp:[-0.06,0,1.05,0.8], curse:[0.012,0,1.03,1.4], guard:[-0.01,0.035,1.02,0.4]}[this.poseName]||[0,0,1,0];
       const breathe=Math.sin(this.t*1.6)*0.008;
@@ -7702,7 +7789,7 @@ const Boss = {
     // 번쩍임 — 그림 색을 잠깐 밝게 (조각 모두 함께)
     let f=0, fc=this.flashCol||[1.5,1.5,1.5];
     if(this.flashT>0){ this.flashT-=dt; f=Math.min(1,this.flashT*3); }
-    else if(this.poseName==="attack" && !(this.parts && this.parts.forearm.visible)) { f=0.25; fc=[1.3,1.2,1.5]; }
+    else if(this.poseName==="attack" && !(this.parts && this.parts.forearm.visible) && !this.rig2) { f=0.25; fc=[1.3,1.2,1.5]; }
     mats.forEach(m=>m.color.setRGB(tint[0]*(1+(fc[0]-1)*f), tint[1]*(1+(fc[1]-1)*f), tint[2]*(1+(fc[2]-1)*f)));
     for(let i=this.wfx.length-1;i>=0;i--){            // 충격파 (발 구르기)
       const w=this.wfx[i]; w.t+=dt; const p=Math.min(1,w.t/w.life);
@@ -7732,6 +7819,96 @@ const Boss = {
   }
 };
 
+
+/* =====================================================================
+   장 넘김 — 1장 끝 문지기를 쓰러뜨리면
+   ① 함정·문제를 멈추고 문지기가 무너지는 걸 보여 준다
+   ② 길 끝에 커다란 성문이 나타나고, 달리기가 빨라지며 쇠창살이 올라간다
+   ③ 성문을 지나는 순간 하얗게 번쩍 — 그 사이 2장 바닥·장식·하늘로 바꿔 둔다
+   ④ "2장 · 몰락한 수정 왕국" 제목을 보여 준 뒤 51단계 첫 문제
+===================================================================== */
+const Chapter = {
+  on:false, t:0, gate:null, bars:null, phase:0,
+  next(stage){ const zi=zoneIndex(stage), z=ZONES[zi];                      // 이 단계가 새 장의 첫 단계면 그 지대 번호
+    return (z && z.ch && z.from===stage && zoneIndex(stage-1)!==zi) ? zi : null; },
+  reset(){ this.on=false; this.phase=0; this.shook=false; G.chapterBreak=false; this._drop();
+    const f=document.getElementById("chFlash"), c=document.getElementById("chTag");
+    if(f){ f.style.transition="none"; f.style.opacity="0"; } if(c) c.classList.remove("on");
+    const pc=document.getElementById("prompt"); if(pc) pc.style.visibility=""; },
+  begin(zi){
+    this.on=true; this.t=0; this.phase=0; this.zi=zi; this.sp0=G.groundSpeed||10; this.shook=false;
+    G.chapterBreak=true; G.finishing=true; G.inv=99;
+    G.nextQ=null; G.preHazQ=null; Hazards.clear(); Rocks.stop();
+    G.sets.forEach(s=>{ s.judged=true; });
+    const pc=document.getElementById("prompt"); if(pc) pc.style.visibility="hidden";   // 문제 카드는 잠시 숨긴다
+  },
+  _drop(){ if(this.gate){ scene.remove(this.gate); this.gate.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }); }
+    this.gate=null; this.bars=null; },
+  _build(){
+    const roadW=CFG.LANE_W*G.lanes, g=new THREE.Group();
+    const tA=TrapArt.tex["gate-castle"], tB=TrapArt.tex["boss-gate-bars"];
+    const aw=roadW*1.25, ah=aw*1.6; this.ah=ah;
+    if(tA){ const geo=new THREE.PlaneGeometry(aw,ah); geo.translate(0,ah/2,0);
+      g.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tA, transparent:true, alphaTest:.3, side:THREE.DoubleSide}))); }
+    else { const st=MAT(0x4a4668,.8);
+      [-1,1].forEach(sd=>{ const p=new THREE.Mesh(new THREE.BoxGeometry(roadW*0.14,ah*0.8,1.4),st); p.position.set(sd*(roadW*0.57),ah*0.4,0); g.add(p); });
+      const top=new THREE.Mesh(new THREE.BoxGeometry(roadW*1.3,ah*0.14,1.4),st); top.position.y=ah*0.8; g.add(top); }
+    let bars;
+    if(tB){ const im=tB.image, r=(im&&im.width)?im.height/im.width:1.48, bw=roadW*0.98, bh=Math.min(bw*r, ah*0.62);
+      const geo=new THREE.PlaneGeometry(bw,bh); geo.translate(0,bh/2,0);
+      bars=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tB, transparent:true, alphaTest:.05, side:THREE.DoubleSide})); bars.position.z=0.2; }
+    else { bars=new THREE.Group(); const iron=MAT(0x2c2f48,.5);
+      for(let i=0;i<9;i++){ const b=new THREE.Mesh(new THREE.BoxGeometry(0.16,ah*0.55,0.16),iron); b.position.set((i-4)*roadW*0.11,ah*0.275,0.2); bars.add(b); } }
+    g.add(bars); this.bars=bars;
+    g.traverse(o=>{ o.userData.noOutline=true; });
+    g.position.set(0,0,P.z-G.spawnDist*0.95); scene.add(g); this.gate=g;
+    try{ SFX.tone(70,1.4,"sawtooth",.04,55); }catch(e){}
+  },
+  update(dt){
+    if(!this.on) return;
+    this.t+=dt; const T=this.t;
+    Wind.next=Math.max(Wind.next||0,4);
+    if(this.phase===0){                                   // 문지기가 무너지는 동안 그대로 달린다
+      if(T>=1.2){ this.phase=1; this._build(); }
+      return;
+    }
+    if(this.phase===1){                                   // 성문으로 돌진 — 바닥이 점점 빨라진다
+      const k=Math.min(1,(T-1.2)/1.0);
+      G.groundSpeed=this.sp0*(1+0.9*k);
+      const g=this.gate; if(!g){ this.phase=2; this.t2=0; return; }
+      g.position.z += G.groundSpeed*dt*1.15;
+      const d=P.z-g.position.z;                           // 남은 거리
+      if(this.bars){ const open=Math.min(1,Math.max(0,1-(d-6)/(G.spawnDist*0.45)));   // 가까워질수록 쇠창살이 올라간다
+        this.bars.position.y=open*open*this.ah*0.75; }
+      if(d<6 && !this.shook){ this.shook=true; G.shake=Math.max(G.shake||0,.35); try{ SFX.crash(); }catch(e){} }
+      if(d<1.5 || T>9){ this.phase=2; this.t2=0;
+        const f=document.getElementById("chFlash"); if(f){ f.style.transition="opacity .22s ease-in"; f.style.opacity="1"; }
+        try{ SFX.tone(520,.9,"triangle",.06,1040); }catch(e){} }
+      return;
+    }
+    if(this.phase===2){ this.t2+=dt;
+      if(this.t2>=0.24){                                  // 하얀 화면 뒤에서 2장으로 바꾼다
+        this.phase=3; this.t3=0;
+        this._drop(); clearSets();
+        G.stage++; applyZone(this.zi,false); try{ BGM.tune(); }catch(e){}
+        G.groundSpeed=this.sp0; updateHUD();
+        const z=ZONES[this.zi], c=document.getElementById("chTag");
+        if(c){ c.innerHTML='<i>CHAPTER 2</i><b>몰락한 수정 왕국</b><span>'+z.name+'</span>'; c.classList.remove("on"); void c.offsetWidth; c.classList.add("on"); }
+        const f=document.getElementById("chFlash"); if(f){ f.style.transition="opacity .9s ease-out"; f.style.opacity="0"; }
+        try{ confetti(); }catch(e){}
+      }
+      return;
+    }
+    if(this.phase===3){ this.t3+=dt;
+      if(this.t3>=2.3){ const c=document.getElementById("chTag"); if(c) c.classList.remove("on"); }
+      if(this.t3>=2.6){                                    // 51단계 첫 문제
+        this.on=false; this.phase=0; G.chapterBreak=false; G.finishing=false; G.inv=1.0; this.shook=false;
+        const pc=document.getElementById("prompt"); if(pc) pc.style.visibility="";
+        Boss.check(); updateHUD(); spawnSet();
+      }
+    }
+  }
+};
 
 /* 처음 만나는 함정 — 화면 위쪽에 한 줄 안내 (한 판에 종류별로 한 번, 유치원 제외) */
 const TrapTip = {
@@ -7811,7 +7988,7 @@ function startGame(){
   applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
-  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
+  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); Chapter.reset(); G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
   applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
   input.x=0; input.y=0; stick.id=null;
