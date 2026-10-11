@@ -287,6 +287,8 @@ body.ui-skin .subRow .mitem:hover{filter:none;transform:none}
 .subRow .mico{width:.95em;height:.95em;margin-right:4px}
 .hico{display:inline-block;width:18px;height:18px;vertical-align:-3px;
   background:url(hud-icons.webp) no-repeat;background-size:800% 100%}
+#uLives.gain{animation:heartGain .7s ease-out}
+@keyframes heartGain{0%{transform:scale(1)}35%{transform:scale(1.28);filter:drop-shadow(0 0 6px #ff7a9c)}100%{transform:scale(1)}}
 .hico.full{background-position:0 0}   .hico.empty{background-position:14.286% 0}
 .hico.pause{background-position:28.571% 0}.hico.gear{background-position:42.857% 0}
 .hico.clock{background-position:57.143% 0}.hico.star{background-position:71.429% 0}
@@ -492,6 +494,7 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 #chTag i{display:block;font-style:normal;font-size:13px;letter-spacing:.5em;font-weight:900;color:#ffd37a;text-shadow:0 2px 6px rgba(0,0,0,.6)}
 #chTag b{display:block;margin:6px 0 4px;font-size:clamp(34px,9vw,64px);font-weight:900;letter-spacing:-.03em;color:#fff;
   text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 40px rgba(201,168,255,.9)}
+#chTag em{display:block;margin-top:14px;font-style:normal;font-size:clamp(12px,3.2vw,16px);font-weight:800;color:#ffd0dc;text-shadow:0 2px 6px rgba(0,0,0,.75)}
 #chTag span{display:block;font-size:clamp(14px,3.6vw,20px);font-weight:800;color:#e6e0ff;text-shadow:0 2px 6px rgba(0,0,0,.7)}
 #goTag{position:fixed;inset:0;display:none;place-items:center;z-index:6;pointer-events:none}
 #goTag b{font-size:clamp(56px,16vw,120px);font-weight:900;letter-spacing:-.04em;color:#fff;
@@ -2263,7 +2266,7 @@ const GENTLE = {
 };
 const NIGHT_ANS_CLEAR = 1.3;
 function passSafeNow(){ const d=DIFF[G.diff]; if(d.passSafe!=null) return d.passSafe;   // 문을 막 통과했을 때 함정에 안 걸리는 시간
-  return (G.diff==="normal" && !G.gentle && zone().prop==="crystal" && !zone().ch) ? 0.6 : 1.2; }   // 보통 밤하늘만 짧게   // 보통 밤하늘 — 정답 줄에 함정이 올 수 있지만 문 앞 이 시간(초)은 비운다
+  return (G.diff==="normal" && !G.gentle && zone().prop==="crystal") ? 0.6 : 1.2; }   // 보통 밤하늘·2장은 짧게 (정답 줄 함정이 의미 있게)   // 보통 밤하늘 — 정답 줄에 함정이 올 수 있지만 문 앞 이 시간(초)은 비운다
 const HAZARD_FROM_STAGE = 3;   // 이 스테이지부터 구멍/장애물 등장
 const SWAP_FROM_STAGE   = 5;   // (자리바꿈을 다시 켤 경우) 시작 스테이지
 const HIDE_FROM_STAGE   = 3;   // 이 스테이지부터 단어가 사라지기 시작
@@ -2410,17 +2413,33 @@ function pool(){
 }
 
 const recent = [];
+/* 이 기기에서 최근 몇 판 동안 나온 단어 — 판을 새로 시작해도 아직 안 나온 단어부터 낸다 (단어를 거의 다 돌면 다시 처음부터) */
+const SeenWords = (function(){
+  const KEY="hyeng_seen_v1"; let mem=null;
+  function load(){ if(mem) return mem; mem=[]; try{ const v=JSON.parse(localStorage.getItem(KEY)); if(Array.isArray(v)) mem=v; }catch(e){} return mem; }
+  return {
+    add(en){ const a=load(); const i=a.indexOf(en); if(i>=0) a.splice(i,1); a.push(en); if(a.length>1500) a.splice(0,a.length-1500);
+      try{ localStorage.setItem(KEY, JSON.stringify(a)); }catch(e){} },
+    recentSet(n){ const a=load(), o={}; for(let i=Math.max(0,a.length-n);i<a.length;i++) o[a[i]]=1; return o; }
+  };
+})();
 function pickWord(p){
-  for(let i=0;i<40;i++){
-    const w = rnd(p);
-    if(recent.indexOf(w.en)<0){ recent.push(w.en); if(recent.length>40) recent.shift(); return w; }
-  }
-  return rnd(p);
+  const seen = SeenWords.recentSet(Math.floor(p.length*0.8));   // 단어 수의 80%까지를 "최근에 봤음"으로 친다
+  const fresh = p.filter(w=>!seen[w.en] && recent.indexOf(w.en)<0);
+  let w=null;
+  if(fresh.length) w=rnd(fresh);
+  else for(let i=0;i<40 && !w;i++){ const c=rnd(p); if(recent.indexOf(c.en)<0) w=c; }
+  if(!w) w=rnd(p);
+  recent.push(w.en); if(recent.length>40) recent.shift();
+  SeenWords.add(w.en);
+  return w;
 }
 
 /* 오답 후보. needKo=true 면 한국어 뜻이 있는 단어만 사용 */
+const recentOpt = [];                               // 최근 오답 보기 (약 8문제치)
 function pickDistractors(word, count, needKo){
   const p = pool(), out=[], used={};
+  const rested = en => recentOpt.indexOf(en)>=0;
   used[word.en]=1;
   // 뜻이 같은 단어는 두 방향 모두에서 오답 후보에서 뺀다 (정답이 둘이 되는 것 방지)
   const okKo = w => needKo ? (!!w.ko && w.ko!==word.ko) : (!w.ko || w.ko!==word.ko);
@@ -2445,15 +2464,17 @@ function pickDistractors(word, count, needKo){
     // 2) 철자 편집거리로 비슷한 단어
     if(out.length<count){
       const near = p.filter(w=>w.en!==word.en)
-        .map(w=>({w:w, d:levenshtein(word.en,w.en) - (w.en[0]===word.en[0]?1.5:0)}))
+        .map(w=>({w:w, d:levenshtein(word.en,w.en) - (w.en[0]===word.en[0]?1.5:0) + (rested(w.en)?3:0)}))
         .sort((a,b)=>a.d-b.d).slice(0,8);
       shuffle(near).forEach(x=>{ if(out.length<count) add(x.w); });
     }
   }
-  // 3) 남으면 무작위
+  // 3) 남으면 무작위 (최근 보기로 쓴 단어는 되도록 피한다)
   let guard=0;
-  while(out.length<count && guard++<300) add(rnd(p));
-  return out.slice(0,count);
+  while(out.length<count && guard++<300){ const w=rnd(p); if(guard<200 && w && rested(w.en)) continue; add(w); }
+  const res=out.slice(0,count);
+  res.forEach(w=>{ if(w && w.en){ recentOpt.push(w.en); } }); while(recentOpt.length>48) recentOpt.shift();
+  return res;
 }
 
 /* 틀린 단어 복습 큐 */
@@ -4028,7 +4049,7 @@ function judge(s){
       return; }
     Boss.check();                                   // 50단계에 닿으면 보스 등장
     const zi = zoneIndex(G.stage);
-    if(zi !== G.zone) applyZone(zi, true);       // 새 지대 진입
+    if(zi !== G.zone){ applyZone(zi, true); zoneHeal(); }   // 새 지대 진입 — 하트 하나 회복
     updateHUD();
     spawnSet();                     // 흐름이 끊기지 않도록 즉시 다음 문제
   } else {
@@ -4952,6 +4973,21 @@ const Hazards = {
           else { this.addSpike(l,z); const h=last(); if(h){ h.boss=false; h.trapSpike=true; } }
           usedZ.push({l,z}); } }
     }
+    // 2장 (보통) — 정답 줄에도 무너지는 돌·수정 가시. 문 앞 1.3초는 언제나 비우고, 옆으로 비킬 자리를 남긴다 (밤하늘과 같은 규칙)
+    if(!G.gentle && G.diff==="normal" && Z.ch && Z.sig && !(typeof Boss!=="undefined" && Boss.active) && Math.random()<0.8){
+      const spdB=spd/1.25, zFar=gateZ+spdB*NIGHT_ANS_CLEAR;
+      const zTop=(answerLane===exitLane) ? Math.min(zMax, exitUntil) : Math.min(prevZ-spdB*0.75, ((typeof P!=="undefined")?P.z:0)-spd*1.5);
+      let z=null; for(let tr=0;tr<12 && z===null && zTop>zFar;tr++){ const c=zFar+Math.random()*0.45*(zTop-zFar);
+        if(usedZ.some(u=>Math.abs(u.z-c)<G.spawnDist*0.12 && Math.abs(u.l-answerLane)<=1)) continue;
+        if(zones.some(v=>Math.abs(c-v.z)<v.len/2+3)) continue; z=c; }
+      if(z!==null){
+        const kind = Z.sig==="rubble" ? "rubble" : "spike";
+        if(kind==="rubble") this.addMeteor(answerLane,z,"rubble");
+        else { this.addSpike(answerLane,z); const h=this.list[this.list.length-1]; if(h){ h.boss=false; h.trapSpike=true; } }
+        const h=this.list[this.list.length-1]; if(h) h.ansEarly=true;
+        usedZ.push({l:answerLane,z}); zs.push(z);
+      }
+    }
     // 2장 — 석상 기사 (창이 옆 칸을 박자에 맞춰 내리찍는다). 석상 줄과 찍는 줄 모두 정답 줄이 아니게
     if(Z.traps && Z.traps.indexOf("statue")>=0 && !G.gentle && Math.random()<0.8){   // "all"(밤하늘)에는 안 나온다
       const z=freeZ(), l=(z!==null) ? laneFor(z) : -1;
@@ -5772,7 +5808,7 @@ const Hazards = {
         else if(h.type==="swarm"){ hitBlock(null); verdict("앗 따가워!", "벌떼에 쏘였어요", COL.edge, "rgba(255,204,51,.22)"); }
         else if(h.type==="flower"){ hitBlock(null); verdict("앗!", "해바라기에 부딪혔어요", COL.edge, "rgba(255,204,51,.22)"); }
         else if(h.type==="tree"){ hitBlock(null); verdict("쿵!", h.statueFall ? "쓰러진 석상에 걸렸어요" : "쓰러진 나무에 걸렸어요", COL.coral, "rgba(255,122,102,.22)"); }
-        else if(h.type==="meteor" && !h.rubble && !h.boss && meteorHurts()){ starHit(); }   // 밤하늘 별똥별 — 맞으면 하트 하나 (보스 파편은 예전처럼)
+        else if(trapHurts(h)){ trapHit(h); }                                             // 예고하고 내리치는 함정 — 하트 하나 (보통부터)
         else if(h.type==="meteor"){ hitBlock(null); if(h.rubble) verdict("쿵!", "무너진 돌에 맞았어요", COL.coral, "rgba(255,122,102,.22)"); else verdict("쾅!", "별똥별이 떨어졌어요", COL.edge, "rgba(180,140,255,.22)"); }
         else if(h.type==="spike"){ hitBlock(null); verdict("쾅!", "수정 가시에 막혔어요", COL.edge, "rgba(180,140,255,.22)"); }
         else if(h.type==="statue"){ hitBlock(null); verdict("쾅!", "석상의 창에 막혔어요", COL.edge, "rgba(230,194,122,.22)"); }
@@ -6037,13 +6073,45 @@ function setWarn(v){
     tag.style.background  = hit ? "rgba(120,26,26,.85)" : "rgba(28,19,58,.75)";
   } else tag.style.display="none";
 }
-/* 밤하늘 별똥별은 보통부터 진짜 대미지 — 바위에 깔린 것처럼 떨어지고 하트가 하나 줄어든다 */
-function meteorHurts(){ return !G.gentle && G.diff!=="easy" && zone().prop==="crystal" && !zone().ch; }
-function starHit(){
+/* 하트를 깎는 함정 — "미리 알려 주고 내리치는" 것만 (보통부터). 늘 서 있는 벽(비석·돌덩이·쇠창살)은 뒤로 밀리기만 한다
+   별똥별(보스 파편 제외)·무너지는 성벽 돌·석상 기사 창·수정 가시(보스 가시 벽 포함)·용암 분출·두 번째 문지기 충격파
+   쓰러지는 나무·석상은 어려움부터 */
+/* 새 지대 회복 — 쉬움은 지대마다 하트 +1
+   보통 이상은 1장(1~50단계)에서는 회복 없음 → 첫 번째 문지기를 넘고 2장부터 새 지대 두 곳마다 +1
+   글자는 띄우지 않고 하트가 톡 커지며 작은 소리만 난다. 설명은 회복 규칙이 시작될 때 한 번만 */
+function zoneHeal(){
+  if(G.rule!=="normal") return;
+  const easy = G.diff==="easy", every = easy ? 1 : 2;
+  if(!easy && !zone().ch) return;                   // 보통 이상 — 1장은 회복 없음
+  G.zonesPassed=(G.zonesPassed||0)+1;               // (보통 이상은 2장 지대만 센다: 51 → 61에서 +1 → 71)
+  if(G.zonesPassed===1 && !G.healTold){ G.healTold=true;
+    if(typeof Chapter!=="undefined" && Chapter.on){ G.healTag=true; }      // 장 넘김 — 제목 카드 아래에 한 줄로 (함정 안내와 겹치지 않게)
+    else {
+    const msg = easy ? "💗 새 지대에 들어설 때마다 하트가 하나 차요" : "💗 이제부터 새 지대를 두 곳 지날 때마다 하트가 하나 차요";
+    setTimeout(()=>{ try{ if(G.running) TrapTip.show(msg); }catch(e){} }, easy ? 2600 : 3400); } }
+  if(G.zonesPassed % every !== 0 || G.lives>=G.maxLives) return;
+  G.lives++; updateHUD();
+  setTimeout(()=>{ try{ const el=document.getElementById("uLives"); if(el){ el.classList.remove("gain"); void el.offsetWidth; el.classList.add("gain"); }
+    SFX.tone(660,.22,"triangle",.035,990); }catch(e){} }, 1200);
+}
+function trapHurts(h){
+  if(G.gentle || G.diff==="easy") return false;
+  const hard = G.diff==="hard" || G.diff==="extreme";
+  if(h.type==="meteor") return h.rubble || !h.boss;
+  if(h.type==="statue" || h.type==="spike" || h.type==="geyser" || h.type==="mace") return true;
+  if(h.type==="tree") return hard;
+  return false;
+}
+const HURT_MSG = { meteor:["쾅!","별똥별에 맞았어요 — 빛나는 표적은 피하세요"], rubble:["쿵!","무너진 돌에 맞았어요 — 짙은 그림자는 피하세요"],
+  statue:["쾅!","석상의 창에 맞았어요 — 눈이 빛나면 옆 줄을 피하세요"], spike:["쾅!","수정 가시에 찔렸어요 — 빛나는 금은 피하세요"],
+  geyser:["앗 뜨거!","용암이 솟았어요 — 빛나는 바닥은 피하세요"], mace:["쾅!","방패 충격파에 맞았어요"], tree:["쿵!","쓰러진 나무에 깔렸어요"], statueFall:["쿵!","쓰러진 석상에 깔렸어요"] };
+function trapHit(h){
+  const k = h.rubble ? "rubble" : h.statueFall ? "statueFall" : h.type;
+  const m = HURT_MSG[k] || ["쾅!","함정에 맞았어요"];
   G.combo = 0; SFX.crash(); G.hitStop = 0.1;
-  verdict("쾅!", "별똥별에 맞았어요 — 빛나는 표적은 피하세요", COL.coral, "rgba(180,140,255,.3)");
+  verdict(m[0], m[1], COL.coral, "rgba(255,122,102,.3)");
   G.shake = .8;
-  burst(P.x, 1.2, P.z, 0xc9b0ff, 26);
+  burst(P.x, 1.2, P.z, h.type==="meteor" && !h.rubble ? 0xc9b0ff : 0x8a8494, 26);
   startFall(); P.vy = -16;
   updateHUD();
 }
@@ -7399,7 +7467,9 @@ const Boss = {
   _planSlam(q, gateZ, nextAns, curAns){               // 정답 문이 옮겨 갈 옆 칸을 미리 정하고, 그 칸 함정을 치운다
     const span=G.spawnDist, inQ=h=>{ const z=h.tile?h.tile.logicZ:h.z; return z<gateZ && z>gateZ-span-4; };
     const solid=h=>!(h.type==="ice"||h.type==="puddle"||h.type==="crumble");
-    const cand=[nextAns-1,nextAns+1].filter(k=>k>=0 && k<G.lanes);
+    const far = G.lanes>=5 && Math.random()<0.5;            // 줄이 넉넉하면 절반은 두 칸 멀리 — 바로 옆만 보면 되는 걸 막는다
+    let cand=(far?[nextAns-2,nextAns+2]:[nextAns-1,nextAns+1]).filter(k=>k>=0 && k<G.lanes);
+    if(!cand.length) cand=[nextAns-1,nextAns+1,nextAns-2,nextAns+2].filter(k=>k>=0 && k<G.lanes);
     if(!cand.length) return;
     cand.sort((a,b)=>Hazards.list.filter(h=>h.lane===a&&inQ(h)).length-Hazards.list.filter(h=>h.lane===b&&inQ(h)).length || Math.random()-.5);
     const k=cand[0];
@@ -7472,39 +7542,58 @@ const Boss = {
     G.shake=Math.max(G.shake||0,.55);
     try{ SFX.crash(); SFX.tone(62,.5,"sawtooth",.07,38); }catch(e){}
     this._ring();
-    if(s && !s.judged && s.gates){                   // 정답 문 ↔ 옆 한 칸
+    if(s && s.judged && s.q){                         // 이미 지나간 문제 — 가시 벽은 그냥 치운다
+      for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i]; if(h.wall && h.slamQ===s.q) Hazards.remove(i); }
+    }
+    if(s && !s.judged && s.gates && s.q){            // 문 섞기 — 정답 문과 함께 다른 문들도 한꺼번에 자리를 바꾼다
       const n=s.gates.length, a=s.gates[s.q.answer], j=a.slot, gz=s.group.position.z;
       const zone=h=>h.type==="ice"||h.type==="puddle"||h.type==="crumble";
       const inWay=(h,k)=>{ if(h.lane!==k || h.done || zone(h)) return false; const z=h.tile?h.tile.logicZ:h.z; return z<P.z+1 && z>gz-2; };
       const blocked=k=>Hazards.list.some(h=>inWay(h,k));
-      const order=[s.q._slamTo, j-1, j+1].filter((k,i,arr)=>k>=0 && k<n && Math.abs(k-j)===1 && arr.indexOf(k)===i);
+      const order=[s.q._slamTo, j-1, j+1, j-2, j+2].filter((k,i,arr)=>k>=0 && k<n && k!==j && Math.abs(k-j)<=2 && arr.indexOf(k)===i);
       let k=order.find(x=>!blocked(x));
-      if(k===undefined && order.length){                 // 두 옆 칸 모두 함정이 있으면 — 아직 멀리 있는 것만 치우고, 가까우면 바꾸지 않는다
+      if(k===undefined && order.length){                 // 갈 곳마다 함정 — 아직 멀리 있는 것만 치우고, 가까우면 정답은 그대로
         k=order[0]; const far=P.z - s.speed*1.3;
         for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i]; if(inWay(h,k) && (h.tile?h.tile.logicZ:h.z) < far) Hazards.remove(i); }
         if(blocked(k)) k=undefined;
       }
-      const b = k===undefined ? null : s.gates.filter(g=>g.slot===k)[0];
-      this._lastFrom=null;
-      if(b && !a.anim && !b.anim){
-        const ax=a.root.position.x, bx=b.root.position.x;
-        a.slot=k; b.slot=j; this._lastFrom=j;                // 정답 문이 떠난 자리 — 옆 문이 들어온다
-        a.anim={from:ax, t:0, dur:0.55, zoff:1.4}; b.anim={from:bx, t:0, dur:0.55, zoff:-1.4};
+      const moving = s.gates.some(g=>g.anim);
+      if(!moving){
+        const perm=this._shuffle(n, j, k===undefined ? j : k);   // perm[옛 칸] = 새 칸
+        if(perm){
+          const old=s.gates.map(g=>({g, from:g.slot, x:g.root.position.x}));
+          old.forEach(o=>{ const to=perm[o.from]; if(to===o.from) return;
+            const d=to-o.from; o.g.slot=to;
+            o.g.anim={from:o.x, t:0, dur:0.5+0.12*Math.abs(d), zoff:(d>0?1:-1)*(1.0+0.5*Math.abs(d))*(o.from%2?1:0.7)}; });
+        }
       }
       s.swapsLeft=0;
-    }
-    if(s && s.q && s.gates){
-      // 틈은 두 개 — 자리를 바꾼 두 문(정답 문과 옆 문)이 모두 열린다. 틈만 보고는 정답을 알 수 없고, 단어를 읽어야 한다
-      const ns=s.gates[s.q.answer].slot, n=s.gates.length;
-      let other = (typeof this._lastFrom==="number" && this._lastFrom!==ns) ? this._lastFrom : -1;
-      if(other<0){ const c=[ns-1,ns+1].filter(j=>j>=0 && j<n); other=c.length ? c[Math.floor(Math.random()*c.length)] : -1; }
-      const gaps=[ns, other];
+      // 가시 벽의 틈 — 정답 문이 간 줄 + 아무 줄 1~2개 (움직인 문과 상관없이). 틈만 보고는 정답을 알 수 없다
+      const ns=a.slot, others=[]; for(let x=0;x<n;x++) if(x!==ns) others.push(x);
+      for(let x=others.length-1;x>0;x--){ const r=Math.floor(Math.random()*(x+1)); const t=others[x]; others[x]=others[r]; others[r]=t; }
+      const gaps=[ns].concat(others.slice(0, n>=5 ? 2 : 1));
       for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i];
         if(!h.wall || h.slamQ!==s.q) continue;
         if(gaps.indexOf(h.lane)>=0) Hazards.remove(i);
         else h.mesh.userData.spike.forceRise=true; }
     }
     this._lastFrom=null;
+  },
+  _shuffle(n, j, k){
+    const want = Math.min(n, G.diff==="extreme" ? n : G.diff==="hard" ? 5 : 4);
+    let best=null;
+    for(let t=0;t<400;t++){
+      const free=[]; for(let x=0;x<n;x++) if(x!==j) free.push(x);
+      const perm=new Array(n); perm[j]=k;
+      const targets=[]; for(let x=0;x<n;x++) if(x!==k) targets.push(x);
+      for(let x=targets.length-1;x>0;x--){ const r=Math.floor(Math.random()*(x+1)); const tt=targets[x]; targets[x]=targets[r]; targets[r]=tt; }
+      let ok=true; free.forEach((f,i)=>{ perm[f]=targets[i]; if(Math.abs(targets[i]-f)>2) ok=false; });
+      if(!ok) continue;
+      const mv=perm.filter((v,i)=>v!==i).length;
+      if(mv>=want){ return perm; }
+      if(!best || mv>best.mv) best={perm, mv};
+    }
+    return best ? best.perm : null;
   },
   _ring(){                                            // 창끝이 닿은 돌섬 자리에서 퍼지는 보라 고리
     if(!this.root) return;
@@ -7997,10 +8086,10 @@ const Chapter = {
       if(this.t2>=0.24){                                  // 하얀 화면 뒤에서 2장으로 바꾼다
         this.phase=3; this.t3=0;
         this._drop(); clearSets();
-        G.stage++; applyZone(this.zi,false); try{ BGM.tune(); }catch(e){}
+        G.stage++; applyZone(this.zi,false); zoneHeal(); try{ BGM.tune(); }catch(e){}
         G.groundSpeed=this.sp0; updateHUD();
         const z=ZONES[this.zi], c=document.getElementById("chTag");
-        if(c){ c.innerHTML='<i>CHAPTER 2</i><b>몰락한 수정 왕국</b><span>'+z.name+'</span>'; c.classList.remove("on"); void c.offsetWidth; c.classList.add("on"); }
+        if(c){ c.innerHTML='<i>CHAPTER 2</i><b>몰락한 수정 왕국</b><span>'+z.name+'</span>'+(G.healTag?'<em>💗 이제부터 새 지대 두 곳마다 하트가 하나 차요</em>':''); G.healTag=false; c.classList.remove("on"); void c.offsetWidth; c.classList.add("on"); }
         const f=document.getElementById("chFlash"); if(f){ f.style.transition="opacity .9s ease-out"; f.style.opacity="0"; }
         try{ confetti(); }catch(e){}
       }
@@ -8090,7 +8179,7 @@ function startGame(){
   G.maxLives = DIFF[G.diff].lives || CFG.LIVES; G.lives = G.maxLives;
   if(G.rule==="endless"){ G.maxLives = 1; G.lives = 1; }   // 한 번 틀리면 끝
   if(G.rule==="time"){ G.maxLives = 99; G.lives = 99; }    // 죽지 않고 시간으로만 끝난다
-  G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false;
+  G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false; G.zonesPassed=0; G.healTold=false; G.healTag=false;
   G.lane=Math.floor(G.lanes/2); G.inv=1.2;
   G.testRun = TEST_STAGE>0;
   if(G.testRun) G.stage = TEST_STAGE;
