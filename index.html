@@ -3538,7 +3538,8 @@ function charSprite(id){
   let ot=null; try{ ot = (typeof Outfit!=="undefined") ? Outfit.tex(id) : null; }catch(e){}
   const t = ot || TrapArt.tex["char-"+id];
   if(!t) return null;
-  const H = 2.25, W = H*(320/384);          // 칸 320x384
+  const im = t.image, cw = (im && im.width) ? im.width/2 : 320, chh = (im && im.height) ? im.height : 384;
+  const H = 2.25, W = H*(cw/chh);           // 칸 320x384 (스킨은 망토가 넓어 480x384 — 몸 크기는 같고 옆만 넓다)
   const geo = new THREE.PlaneGeometry(W,H); geo.translate(0,H/2,0);
   const tex = t.clone(); tex.needsUpdate = true;
   tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
@@ -8896,7 +8897,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v199";
+const GAME_VER = "v200";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
