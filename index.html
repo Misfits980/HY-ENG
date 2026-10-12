@@ -6270,7 +6270,7 @@ const Rocks = {
     // 대표 함정이면 지대에 들어서자마자 나온다 (보통 난이도에서 눈덩이를 못 보던 문제)
     const from = own ? Math.min(d.rockFrom || BOULDER.FROM_STAGE, Z.from) : (d.rockFrom || BOULDER.FROM_STAGE);
     return G.stage >= from; },
-  maxCount(){ return G.gentle ? 1 : 1 + ramped("rocks"); },
+  maxCount(){ return G.gentle ? 1 : 1 + ramped("rocks") + ((G.diff==="normal" && (zone().ch||1)>=2) ? 1 : 0); },   // 보통 2장부터 바위 둘까지 (어려움은 셋)
   interval(){
     const boost = 1 + 0.45*ramped("rockRate");
     return Math.max(BOULDER.WAIT_MIN, (BOULDER.WAIT - G.stage*0.05) / (boost * (zone().rockMul||1)));
@@ -8817,7 +8817,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v195";
+const GAME_VER = "v196";
 function runReport(){
   let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
   const boss=[]; try{ Object.keys(Boss.doneAt||{}).forEach(k=>{ if(Boss.doneAt[k]) boss.push(k); }); }catch(e){}
