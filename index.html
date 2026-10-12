@@ -772,6 +772,28 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
 @keyframes fxFlat{0%{opacity:0;transform:translateX(0) scale(.7)}20%{opacity:1}100%{opacity:0;transform:translateX(-26px) scale(1)}}
 @keyframes fxBob{to{transform:scaleX(-1) translateY(-3px)}}
 @media (prefers-reduced-motion:reduce){.fxPrev i,.fxPrev .fxRun{animation:none;opacity:.8}}
+/* 상점 칸 · 정답 효과 · 동료 · 칭호 */
+.shopTabs{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.shopTabs button{flex:none;padding:8px 12px;border-radius:100px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#e9e2ff;font:inherit;font-weight:900;font-size:13.5px;cursor:pointer}
+.shopTabs button.on{background:#9a5cff;border-color:#e6c8ff;color:#fff}
+.shopPane{display:none}.shopPane.on{display:block}
+.seasonBand{margin-top:12px;padding:10px 10px 12px;border-radius:18px;background:linear-gradient(135deg,rgba(255,140,40,.24),rgba(120,40,200,.28));border:1px solid rgba(255,170,80,.55)}
+.seasonBand h3{margin:0;font-size:15.5px;font-weight:900}.seasonBand p{margin:2px 0 0;font-size:12px;color:#ffd9b0;font-weight:700}
+.sCard.limited{border-color:rgba(255,170,80,.6);background:linear-gradient(180deg,rgba(255,140,40,.14),rgba(255,255,255,.03))}
+.hitPrev{position:relative;height:96px;margin:4px 0 10px;border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 60%,rgba(255,211,122,.18),rgba(20,14,44,0) 70%),linear-gradient(180deg,#1b1338,#120c26)}
+.hitPrev i{position:absolute;left:50%;top:55%;font-style:normal;font-size:16px;opacity:0;animation:hitB 1.5s ease-out infinite}
+.hitPrev b{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:22px}
+@keyframes hitB{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.15)}}
+.petPrev{height:96px;margin:4px 0 10px;border-radius:14px;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 70%,rgba(143,227,255,.18),rgba(20,14,44,0) 70%),linear-gradient(180deg,#1b1338,#120c26)}
+.petPrev img{height:80px;animation:petBob 1.4s ease-in-out infinite alternate}
+.petPrev .petArt{width:80px;height:80px;background:no-repeat 0 0/200% 100%;animation:petBob 1.4s ease-in-out infinite alternate}
+.petPrev b{font-size:44px;filter:grayscale(1) brightness(.6) opacity(.45)}
+@keyframes petBob{to{transform:translateY(-6px)}}
+.titlePrev{height:64px;display:grid;place-items:center;margin:2px 0 8px}
+.tTag{display:inline-block;padding:2px 8px;border-radius:100px;background:rgba(255,211,122,.14);border:1px solid rgba(255,211,122,.45);color:#ffe3a0;font-size:11px;font-weight:900;margin-left:4px;white-space:nowrap;vertical-align:1px}
+.titlePrev .tTag{font-size:14px;padding:6px 12px;margin:0}
+.sCard.lockedT .titlePrev .tTag{filter:grayscale(1) opacity(.5)}
+@media (prefers-reduced-motion:reduce){.hitPrev i,.petPrev img,.petPrev .petArt{animation:none;opacity:.85}}
 /* 잠긴 캐릭터 */
 #selChar .tile.locked i{filter:brightness(0) opacity(.35)}
 #selChar .tile.locked b{color:#7d72a8}
@@ -942,12 +964,12 @@ details{display:none}
         <button class="mitem duo" id="btnShop"><span class="eico">💎</span>상점</button>
       </div>
       <button class="mitem" id="btnVersus" style="display:none"><span class="mico i6"></span>2인용 대결 <small style="display:block;font-size:11px;color:#a99ed0;font-weight:700">키보드 하나로 둘이 · PC</small></button>
-      <div class="subRow">
-        <button class="mitem" id="btnRankHome"><span class="mico i3"></span>랭킹</button><span class="dot">·</span>
-        <button class="mitem" id="btnWords"><span class="mico i4"></span>단어 추가</button><span class="dot">·</span>
-        <button class="mitem" id="btnHelp"><span class="mico i5"></span>조작법</button><span class="dot">·</span>
-        <button class="mitem" id="btnNews"><span class="eico" style="margin-right:4px">📢</span>새 소식<i class="newDot" id="newsDot"></i></button>
+      <div class="menuDuo">
+        <button class="mitem duo" id="btnRankHome"><span class="eico">🏆</span>랭킹</button>
+        <button class="mitem duo" id="btnNews"><span class="eico">📰</span>소식지<i class="newDot" id="newsDot"></i></button>
       </div>
+      <!-- 단어 추가 · 조작법은 메뉴에서 뺐다 (코드는 남겨 둠) -->
+      <button class="mitem" id="btnWords" style="display:none"></button><button class="mitem" id="btnHelp" style="display:none"></button>
     </nav>
     <div class="rotateTip" id="rotTip">📱 가로로 돌리면 문이 더 많이 나옵니다</div>
   </div>
@@ -971,7 +993,7 @@ details{display:none}
 
 <!-- 새 소식 -->
 <div class="sheet" id="shNews"><div class="sheetIn newsIn">
-  <div class="newsTop"><span class="newsBadge">UPDATE</span><span class="newsDate" id="newsDate"></span></div>
+  <div class="newsTop"><span class="newsBadge">📰 소식지</span><span class="newsDate" id="newsDate"></span></div>
   <h2 id="newsTitle"></h2>
   <ul class="newsList" id="newsList"></ul>
   <button class="play" id="btnNewsOk">확인했어요</button>
@@ -983,12 +1005,18 @@ details{display:none}
 <div class="sheet" id="shShop"><div class="sheetIn shopIn">
   <div class="shopHead"><h2>상점</h2><span class="gemPill">💎 <b id="shopGems">0</b></span></div>
   <p class="note" id="shopMsg"></p>
-  <div class="glab" style="margin-top:14px">👕 옷</div>
-  <div class="sGrid" id="shopGrid"></div>
-  <div class="glab" style="margin-top:18px">✨ 달리기 효과 <span>· 하나만 켤 수 있어요</span></div>
-  <div class="sGrid" id="shopFx"></div>
-  <div class="glab" style="margin-top:18px">📖 도감 완성 보상</div>
-  <div class="sGrid" id="shopDex"></div>
+  <div class="shopTabs" id="shopTabs"></div>
+  <div class="seasonBand" id="shopSeason" style="display:none"></div>
+  <div class="shopPane" data-pane="outfit">
+    <div class="glab" style="margin-top:14px">👕 옷</div>
+    <div class="sGrid" id="shopGrid"></div>
+    <div class="glab" style="margin-top:18px">📖 도감 완성 보상</div>
+    <div class="sGrid" id="shopDex"></div>
+  </div>
+  <div class="shopPane" data-pane="fx"><div class="glab" style="margin-top:14px">✨ 달리기 효과 <span>· 하나만 켤 수 있어요</span></div><div class="sGrid" id="shopFx"></div></div>
+  <div class="shopPane" data-pane="hit"><div class="glab" style="margin-top:14px">🎆 정답 효과 <span>· 정답 문을 지날 때 터져요</span></div><div class="sGrid" id="shopHit"></div></div>
+  <div class="shopPane" data-pane="pet"><div class="glab" style="margin-top:14px">🐾 동료 <span>· 옆에서 같이 달려요</span></div><div class="sGrid" id="shopPet"></div></div>
+  <div class="shopPane" data-pane="title"><div class="glab" style="margin-top:14px">🏷️ 칭호 <span>· 랭킹에서 이름 옆에 보여요</span></div><div class="sGrid" id="shopTitle"></div></div>
   <button class="play ghost" id="btnShopClose" style="margin-top:16px">닫기</button>
 </div></div>
 
@@ -4184,6 +4212,7 @@ function judge(s){
     const gain = Math.round((CFG.SCORE_BASE + (G.combo-1)*CFG.COMBO_STEP + bonus + memo) * DIFF[G.diff].scoreMul);
     G.score += gain;
     burst(P.x, 1.4, P.z+0.5, COL.mint, 22);
+    try{ HitFx.play(); }catch(e){}                   // 상점 정답 효과
     popScore("+"+gain, (bonus?"RUSH ":"")+(memo?"MEMORY ":"")+(G.combo>=2?G.combo+" COMBO":""),
              comboColor(G.combo), 44);
     comboStep();
@@ -7104,6 +7133,7 @@ function loop(){
     updatePlayer(dt);
     updateFx(dt);
     try{ Trail.update(dt, G.groundSpeed*(G.worldScale||1)); }catch(e){}
+    try{ HitFx.update(dt); Pet.update(dt); }catch(e){}
     updateRings(dt);
     updateMarks(wdt, G.groundSpeed);
     updateAmbience(dt);
@@ -8567,7 +8597,7 @@ function startGame(){
   applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
-  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); Chapter.reset(); try{ Trail.clear(); }catch(e){} G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
+  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); Chapter.reset(); try{ Trail.clear(); HitFx.clear(); }catch(e){} G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
   applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
   input.x=0; input.y=0; stick.id=null;
@@ -8630,7 +8660,7 @@ function gameOver(){
   if(Boss.root) Boss.root.visible=false;
   $("oAcc").textContent= acc+"%";
   $("oRight").textContent=G.right; $("oWrong").textContent=G.wrong; $("oCombo").textContent=G.bestCombo;
-  $("oKick").textContent=rule().icon+" "+rule().label+" · "+DIFF[G.diff].label+" · "+WORD_SETS[G.set].label;
+  $("oKick").innerHTML=rule().icon+" "+rule().label+" · "+DIFF[G.diff].label+" · "+WORD_SETS[G.set].label+" "+titleTag(myTitle());
   $("oTitle").textContent =
       G.rule==="daily"   ? (G.solved>=RULES.daily.count ? "오늘의 20 완주!" : "여기까지")
     : G.rule==="endless" ? (G.right>=15 ? G.right+"연속 기록!" : "여기까지")
@@ -8703,6 +8733,10 @@ function gameOver(){
       const names=nu.map(id=>{ const c=CHARACTERS.filter(x=>x.id===id)[0]; return c ? c.emoji+" "+c.name : id; }).join(", ");
       const hl=$("oHighlight"); hl.innerHTML="🔓 새 캐릭터! <b>"+names+"</b>"; hl.className="best";
       setTimeout(()=>{ try{ confetti(); SFX.tone(784,.25,"triangle",.05,1568); }catch(e){} }, 700); } }catch(e){}
+  try{ const nt=Titles.check();                                  // 칭호 · 도감 2권 보상 동료
+    if(!G.testRun){ try{ if(Dex.bookDone(2) && !Wallet.owns("pet-owl")){ Wallet.give("pet-owl"); nt.push("pet-owl"); } }catch(e){} }
+    if(nt.length){ const names=nt.map(id=>{ const t=titleOf(id); if(t) return t.emo+" "+t.name; const pp=Pet.of(id); return pp ? pp.emo+" "+pp.name+"(동료)" : id; }).join(", ");
+      $("oGems").insertAdjacentHTML("beforeend", '<div class="gDex">🏷️ 새로 얻었어요: <b>'+names+'</b> — 상점에서 달 수 있어요</div>'); } }catch(e){}
   LastSetup.save({rule:G.rule, diff:G.diff, mode:G.mode, set:G.set, char:G.char,
                   voice:Voice.on, picture:G.picture, versus:false});
 
@@ -8725,14 +8759,14 @@ function gameOver(){
   }
   $("oHint").textContent = isTouch ? "" : "R 키를 누르면 바로 다시 시작합니다";
   const noRank = (G.set==="kinder") || !!G.testRun;      // 유치원 단어·시험 주소는 랭킹에 넣지 않는다
-  const rank = noRank ? 0 : Ranking.save({nick:G.nick, score:G.score, stage:G.stage,
+  const rank = noRank ? 0 : Ranking.save({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage,
     acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now()});
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
   $("oRank").innerHTML = noRank ? '<div class="note">'+(G.testRun?'시험 모드 기록은 랭킹에 올라가지 않아요':'유치원 단어는 랭킹에 기록되지 않아요')+'</div>'
     : '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
   if(!noRank && Online.on() && G.rule==="normal" && G.score>0){
     const d0=G.diff;
-    Online.submit({nick:G.nick, score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
+    Online.submit({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
                    diff:d0, rule:G.rule, char:G.char})
       .then(()=>Online.top(d0,"week"))
       .then(list=>{
@@ -8747,7 +8781,7 @@ function gameOver(){
 function rankRows(diff){
   const top=Ranking.top(diff,5);
   if(!top.length) return '<div class="note">아직 기록이 없습니다.</div>';
-  return top.map((r,i)=>'<div class="rrow"><i>'+(i+1)+'</i><b>'+r.nick+'</b><span>'+r.score.toLocaleString()+'</span></div>').join("");
+  return top.map((r,i)=>'<div class="rrow"><i>'+(i+1)+'</i><b>'+r.nick+titleTag(r.title)+'</b><span>'+r.score.toLocaleString()+'</span></div>').join("");
 }
 function togglePause(){
   G.paused=!G.paused;
@@ -8955,6 +8989,7 @@ const Unlock = (function(){
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} }
   return {
     has(id){ return FREE.indexOf(id)>=0 || !!load().got[id]; },
+    daily(){ return load().daily||0; },
     give(id){ const a=load(); if(this.has(id)) return false; a.got[id]=1; save(); return true; },
     /* 한 판이 끝날 때 — 새로 열린 캐릭터 목록 */
     check(){
@@ -9020,6 +9055,10 @@ const Wallet = (function(){
     wearing(ch){ const id=load().wear[ch]; return (id && this.owns(id)) ? id : null; },
     wear(ch, id){ const a=load(); if(id) a.wear[ch]=id; else delete a.wear[ch]; save(); },
     fxOn(){ const id=load().fx; return (id && this.owns(id)) ? id : null; },
+    /* 하나만 고르는 칸: fx(달리기) · hit(정답 효과) · pet(동료) · title(칭호) */
+    sel(slot){ if(slot==="fx") return this.fxOn(); const a=load(), id=(a.sel||{})[slot];
+      if(!id) return null; const t=(typeof titleOf==="function") && titleOf(id); return (this.owns(id) || (t && t.free)) ? id : null; },
+    setSel(slot, id){ if(slot==="fx") return this.setFx(id); const a=load(); a.sel=a.sel||{}; if(id) a.sel[slot]=id; else delete a.sel[slot]; save(); },
     setFx(id){ const a=load(); a.fx=id||null; save(); },
     paid(k){ return !!load().paid[k]; },
     pay(k){ const a=load(); a.paid[k]=1; save(); }
@@ -9035,68 +9074,399 @@ const TRAILS = [
   {id:"fx-sparkle", name:"반짝이 발자국", price:100, emo:"✨", note:"금빛 별이 반짝반짝"},
   {id:"fx-heart",   name:"하트 뿅뿅",     price:100, emo:"💗", note:"분홍 하트가 동동"},
   {id:"fx-snow",    name:"눈꽃 바람",     price:120, emo:"❄️", note:"하얀 눈꽃이 살랑"},
-  {id:"fx-fire",    name:"불꽃 질주",     price:150, emo:"🔥", note:"발밑에서 불꽃이 활활"},
-  {id:"fx-comet",   name:"별똥 꼬리",     price:150, emo:"🌠", note:"푸른 별빛 꼬리"},
-  {id:"fx-rainbow", name:"무지개 길",     price:200, emo:"🌈", note:"지나간 자리에 무지개", rare:true}
+  {id:"fx-fire",    name:"불꽃 질주",     price:150, emo:"🔥", note:"불길이 활활, 지나간 자리가 타올라요"},
+  {id:"fx-comet",   name:"별똥 꼬리",     price:150, emo:"🌠", note:"빛나는 별이 나를 감아 돌고, 별똥별이 쏟아져요"},
+  {id:"fx-rainbow", name:"무지개 길",     price:200, emo:"🌈", note:"달린 길에 일곱 빛깔 무지개가 깔려요", rare:true},
+  {id:"fx-pumpkin", name:"호박 발자국",   price:120, emo:"🎃", note:"통통 튀는 호박과 보라 도깨비불", limited:"halloween"}
 ];
 const Trail = {
-  tex:{}, pool:[], live:[], acc:0, hue:0,
-  KIND:{                                                   // 모양 · 색 · 빈도 · 움직임
-    "fx-sparkle":{shape:"star",  cols:["#fff3b0","#ffd36b","#ffffff"], every:0.045, life:0.65, size:[0.22,0.42], up:[0.6,1.6], side:0.5, add:true, twinkle:true},
-    "fx-heart":  {shape:"heart", cols:["#ff7aa8","#ff9ec4","#ffc2d8"], every:0.07,  life:0.9,  size:[0.26,0.4],  up:[1.0,1.8], side:0.35, add:false},
-    "fx-snow":   {shape:"flake", cols:["#ffffff","#dff6ff","#bfe9ff"], every:0.06,  life:1.0,  size:[0.22,0.38], up:[-0.2,0.5], side:0.9, add:true, spin:true},
-    "fx-fire":   {shape:"flame", cols:["#ffcf5a","#ff8a3a","#ff5a2a"], every:0.035, life:0.5,  size:[0.3,0.55],  up:[1.4,2.6], side:0.25, add:true, grow:true},
-    "fx-comet":  {shape:"star",  cols:["#bfe9ff","#8fd0ff","#ffffff"], every:0.03,  life:0.55, size:[0.18,0.34], up:[0.1,0.4], side:0.12, add:true, high:true},
-    "fx-rainbow":{shape:"dot",   cols:null,                            every:0.022, life:0.85, size:[0.34,0.46], up:[0,0.05],  side:0.05, add:true, rainbow:true}
+  tex:{}, pool:[], fpool:[], live:[], acc:{}, hue:0,
+  /* 층(layer)마다: 모양 · 색 · 빈도 · 수명 · 크기 · 움직임. flat = 바닥에 눕는 조각(무지개 길·불꽃 자국) */
+  KIND:{
+    "fx-sparkle":[{shape:"star",  cols:["#fff3b0","#ffd36b","#ffffff"], every:0.045, life:0.65, size:[0.22,0.42], up:[0.6,1.6], side:0.5, add:true, twinkle:true}],
+    "fx-heart":  [{shape:"heart", cols:["#ff7aa8","#ff9ec4","#ffc2d8"], every:0.07,  life:0.9,  size:[0.26,0.4],  up:[1.0,1.8], side:0.35, add:false}],
+    "fx-snow":   [{shape:"flake", cols:["#ffffff","#dff6ff","#bfe9ff"], every:0.06,  life:1.0,  size:[0.22,0.38], up:[-0.2,0.5], side:0.9, add:true, spin:true}],
+    /* 별똥 꼬리 — 빛나는 별 하나가 몸을 감아 돌며 별가루 꼬리를 흘리고, 바닥엔 푸른 빛 자국, 하늘에선 별똥별이 쏟아진다 */
+    "fx-comet":[
+      {orbit:true, shape:"star", cols:["#ffffff","#d8f2ff","#9fdcff"], every:0.01, life:0.75, size:[0.14,0.3], add:true, twinkle:true},
+      {flat:true, shape:"band", cols:["#5fc8ff"], every:0.02, life:0.9, w:[0.95,0.95], l:0, add:true, op:0.7, ribbon:true},
+      {shoot:true, shape:"glow", cols:["#ffffff"], every:0.45, life:0.75, size:[0.55,0.75], add:true}
+    ],
+    /* 불꽃 질주 — 큰 불길(흰노랑→주황→빨강→그을음) + 튀는 불티 + 발밑에 남는 타는 자국 */
+    "fx-fire":[
+      {shape:"flame", grad:["#fff4c2","#ffb83a","#ff5a1e","#5a1a14"], every:0.014, life:0.6, size:[0.6,1.05], up:[1.8,3.0], side:0.55, add:true, fire:true},
+      {shape:"dot",   cols:["#fff0a0","#ffc34a","#ff8a2a"], every:0.028, life:0.9, size:[0.09,0.17], up:[2.6,4.6], side:0.4, add:true, ember:true},
+      {flat:true, shape:"glow", cols:["#ff7a2a"], every:0.04, life:0.75, w:[1.3,1.7], l:1.6, add:true, op:0.85}
+    ],
+    "fx-pumpkin":[
+      {shape:"pumpkin", cols:["#ffffff"], every:0.07, life:0.95, size:[0.34,0.52], up:[1.2,2.0], side:0.6, add:false, spin:true},
+      {shape:"flame", grad:["#f0d8ff","#b07aff","#6a2ad0","#1a0a2a"], every:0.03, life:0.55, size:[0.4,0.7], up:[1.4,2.4], side:0.5, add:true, fire:true}
+    ],
+    /* 무지개 길 — 지나간 자리에 일곱 빛깔 띠가 바닥에 깔리고, 무지개 별이 반짝 */
+    "fx-rainbow":[
+      {flat:true, shape:"rainbow", every:0.02, life:1.25, w:[1.45,1.45], l:0, add:false, op:0.92, ribbon:true},
+      {shape:"star", cols:null, every:0.05, life:0.85, size:[0.24,0.44], up:[0.7,1.6], side:0.9, add:true, twinkle:true, rainbow:true}
+    ]
   },
   _draw(shape){                                            // 64x64 하얀 모양 (색은 재질 색으로 입힌다)
     if(this.tex[shape]) return this.tex[shape];
-    const c=document.createElement("canvas"); c.width=c.height=64; const x=c.getContext("2d");
+    const big=shape==="rainbow"||shape==="band", c=document.createElement("canvas"); c.width=big?256:64; c.height=big?16:64; const x=c.getContext("2d");
     x.fillStyle="#fff"; x.strokeStyle="#fff"; x.shadowColor="rgba(255,255,255,.9)"; x.shadowBlur=8;
     if(shape==="star"){ x.beginPath(); for(let i=0;i<8;i++){ const a=i*Math.PI/4-Math.PI/2, r=i%2?9:28; x.lineTo(32+Math.cos(a)*r, 32+Math.sin(a)*r); } x.closePath(); x.fill(); }
     else if(shape==="heart"){ x.beginPath(); x.moveTo(32,52); x.bezierCurveTo(6,34,10,12,32,22); x.bezierCurveTo(54,12,58,34,32,52); x.fill(); }
     else if(shape==="flake"){ x.lineWidth=4; x.lineCap="round"; for(let i=0;i<6;i++){ const a=i*Math.PI/3; x.beginPath(); x.moveTo(32,32); x.lineTo(32+Math.cos(a)*24,32+Math.sin(a)*24); x.stroke();
         const bx=32+Math.cos(a)*15, by=32+Math.sin(a)*15; x.beginPath(); x.moveTo(bx,by); x.lineTo(bx+Math.cos(a+.7)*7,by+Math.sin(a+.7)*7); x.moveTo(bx,by); x.lineTo(bx+Math.cos(a-.7)*7,by+Math.sin(a-.7)*7); x.stroke(); } }
-    else if(shape==="flame"){ const g=x.createRadialGradient(32,40,2,32,36,26); g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(.5,"rgba(255,255,255,.7)"); g.addColorStop(1,"rgba(255,255,255,0)");
-      x.fillStyle=g; x.shadowBlur=0; x.beginPath(); x.moveTo(32,6); x.bezierCurveTo(46,24,54,36,44,50); x.quadraticCurveTo(32,60,20,50); x.bezierCurveTo(10,36,18,24,32,6); x.fill(); }
-    else { const g=x.createRadialGradient(32,32,0,32,32,30); g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(.55,"rgba(255,255,255,.6)"); g.addColorStop(1,"rgba(255,255,255,0)");
+    else if(shape==="flame"){ const g=x.createRadialGradient(32,42,2,32,36,28); g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(.45,"rgba(255,255,255,.8)"); g.addColorStop(1,"rgba(255,255,255,0)");
+      x.fillStyle=g; x.shadowBlur=0; x.beginPath(); x.moveTo(32,2); x.bezierCurveTo(40,16,58,30,48,48); x.quadraticCurveTo(32,64,16,48); x.bezierCurveTo(6,30,24,16,32,2); x.fill(); }
+    else if(shape==="rainbow"){ x.shadowBlur=0;                // 가로로 일곱 띠, 양끝은 부드럽게
+      const C=["#ff3b3b","#ff8a1e","#ffe03a","#3ee06a","#3aa8ff","#5a5cff","#b04aff"];
+      C.forEach((col,i)=>{ x.fillStyle=col; x.fillRect(Math.round(i*256/7), 0, Math.ceil(256/7)+1, 16); });
+      const id=x.getImageData(0,0,256,16); for(let px=0;px<256;px++){ const e=Math.min(1, Math.min(px,255-px)/22); for(let py=0;py<16;py++){ id.data[(py*256+px)*4+3]=Math.round(255*e); } } x.putImageData(id,0,0); }
+    else if(shape==="pumpkin"){ x.shadowBlur=0;                // 색을 그대로 쓰는 호박 (재질 색은 흰색)
+      x.fillStyle="#ff8a1e"; x.strokeStyle="#7a3a08"; x.lineWidth=3;
+      [[20,36,14,16],[44,36,14,16],[32,36,15,17]].forEach(e=>{ x.beginPath(); x.ellipse(e[0],e[1],e[2],e[3],0,0,Math.PI*2); x.fill(); x.stroke(); });
+      x.fillStyle="#3a7a1a"; x.fillRect(29,14,6,8);
+      x.fillStyle="#3a1a08"; x.beginPath(); x.moveTo(22,32); x.lineTo(28,32); x.lineTo(25,26); x.fill(); x.beginPath(); x.moveTo(36,32); x.lineTo(42,32); x.lineTo(39,26); x.fill();
+      x.beginPath(); x.moveTo(22,40); x.lineTo(42,40); x.lineTo(38,46); x.lineTo(32,42); x.lineTo(26,46); x.closePath(); x.fill(); }
+    else if(shape==="band"){ x.shadowBlur=0; const id=x.createImageData(256,16);   // 가운데가 밝은 빛줄기
+      for(let px=0;px<256;px++){ const d=(px-128)/128, a=Math.exp(-d*d*5.5); for(let py=0;py<16;py++){ const o=(py*256+px)*4; id.data[o]=id.data[o+1]=id.data[o+2]=255; id.data[o+3]=Math.round(255*a); } }
+      x.putImageData(id,0,0); }
+    else { const g=x.createRadialGradient(32,32,0,32,32,30); g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(.5,"rgba(255,255,255,.55)"); g.addColorStop(1,"rgba(255,255,255,0)");
       x.fillStyle=g; x.shadowBlur=0; x.fillRect(0,0,64,64); }
     const t=new THREE.CanvasTexture(c); this.tex[shape]=t; return t;
   },
   _get(K){
-    let s=this.pool.pop();
-    if(!s){ s=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true, depthWrite:false, fog:false})); s.userData.noOutline=true; s.renderOrder=3; }
+    let s;
+    if(K.flat){ s=this.fpool.pop();
+      if(!s){ s=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({transparent:true, depthWrite:false, fog:false, side:THREE.DoubleSide}));
+        s.rotation.x=-Math.PI/2; s.userData.noOutline=true; s.userData.flat=true; s.renderOrder=2; } }
+    else { s=this.pool.pop();
+      if(!s){ s=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true, depthWrite:false, fog:false})); s.userData.noOutline=true; s.renderOrder=3; } }
     s.material.map=this._draw(K.shape); s.material.blending = K.add ? THREE.AdditiveBlending : THREE.NormalBlending; s.material.needsUpdate=true;
     s.visible=true; scene.add(s); return s;
   },
-  clear(){ this.live.forEach(p=>{ scene.remove(p.s); this.pool.push(p.s); }); this.live=[]; this.acc=0; },
+  _put(s){ scene.remove(s); (s.userData.flat ? this.fpool : this.pool).push(s); },
+  clear(){ this.live.forEach(p=>this._put(p.s)); this.live=[]; this.acc={}; this.lastRib=null; if(this.head) this.head.visible=false; },
+  _headPos(t){ const a=t*4.2; return {x:P.x+Math.cos(a)*0.95, y:P.y+1.35+Math.sin(a*2)*0.25, z:P.z+Math.sin(a)*0.55}; },
+  _hex(h){ return new THREE.Color(h); },
   update(dt, speed){
     let id=null; try{ id=Wallet.fxOn(); }catch(e){}
-    const K=id && this.KIND[id], on = K && G.running && !G.falling && !G.paused && !G.finishing && typeof player!=="undefined" && player;
+    const L=id && this.KIND[id], on = L && G.running && !G.falling && !G.paused && !G.finishing && typeof player!=="undefined" && player;
+    const r=(a)=>a[0]+Math.random()*(a[1]-a[0]);
+    this.t=(this.t||0)+dt;
+    const comet = on && id==="fx-comet";                              // 별똥 — 몸을 도는 빛나는 별 (머리)
+    if(comet && !this.head){ const h=new THREE.Sprite(new THREE.SpriteMaterial({map:this._draw("glow"), color:0xdff4ff, transparent:true, depthWrite:false, fog:false, blending:THREE.AdditiveBlending}));
+      h.userData.noOutline=true; h.renderOrder=4; const c=new THREE.Sprite(new THREE.SpriteMaterial({map:this._draw("star"), color:0xffffff, transparent:true, depthWrite:false, fog:false, blending:THREE.AdditiveBlending}));
+      c.userData.noOutline=true; c.scale.set(0.8,0.8,1); h.add(c); scene.add(h); this.head=h; this.headStar=c; }
+    if(this.head){ this.head.visible=!!comet;
+      if(comet){ const hp=this._headPos(this.t), pul=1+0.15*Math.sin(this.t*12); this.head.position.set(hp.x,hp.y,hp.z); this.head.scale.set(0.9*pul,0.9*pul,1);
+        this.headStar.material.rotation=this.t*3; } }
     if(on){
-      this.acc+=dt;
-      while(this.acc>=K.every){ this.acc-=K.every;
-        if(this.live.length>70) break;
-        const s=this._get(K), r=(a)=>a[0]+Math.random()*(a[1]-a[0]);
-        const col = K.rainbow ? new THREE.Color().setHSL((this.hue=(this.hue+0.035)%1),0.9,0.62) : new THREE.Color(K.cols[(Math.random()*K.cols.length)|0]);
-        s.material.color.copy(col);
-        const sz=r(K.size); s.scale.set(sz,sz,1);
-        s.position.set(P.x+(Math.random()-.5)*K.side, (K.high?0.9:0.18)+P.y+Math.random()*(K.rainbow?0.05:0.35), P.z+0.35);
-        this.live.push({s, t:0, life:K.life*(0.8+Math.random()*0.4), vy:r(K.up), vx:(Math.random()-.5)*K.side*1.4, sz, K, ph:Math.random()*6});
-      }
-    } else this.acc=0;
-    const drift=(speed||0)*0.92;                       // 땅과 함께 뒤로 밀려나며 남는다
+      L.forEach((K,li)=>{
+        const key=id+li; this.acc[key]=(this.acc[key]||0)+dt;
+        while(this.acc[key]>=K.every){ this.acc[key]-=K.every;
+          if(this.live.length>(id==="fx-comet"?190:(id==="fx-fire"||id==="fx-rainbow")?150:70)) break;
+          const s=this._get(K);
+          let col = K.rainbow ? new THREE.Color().setHSL((this.hue=(this.hue+0.06)%1),0.95,0.62)
+                  : K.grad ? this._hex(K.grad[0]) : K.cols ? this._hex(K.cols[(Math.random()*K.cols.length)|0]) : new THREE.Color(1,1,1);
+          s.material.color.copy(col);
+          const p={s, t:0, life:K.life*(0.8+Math.random()*0.4), K, ph:Math.random()*6};
+          if(K.orbit){ const hp=this._headPos(this.t-Math.random()*dt); const sz=r(K.size); s.scale.set(sz,sz,1); p.sz=sz;
+            s.position.set(hp.x+(Math.random()-.5)*0.15, hp.y+(Math.random()-.5)*0.15, hp.z); p.vx=(Math.random()-.5)*0.3; p.vy=(Math.random()-.3)*0.4; }
+          else if(K.shoot){                                         // 별똥별 — 앞쪽 하늘에서 비스듬히 떨어진다
+            const sz=r(K.size); s.scale.set(sz,sz,1); p.sz=sz; const sd=Math.random()<.5?-1:1;
+            s.position.set(P.x+sd*(2.5+Math.random()*2), 7+Math.random()*2, P.z-9-Math.random()*4);
+            p.vx=-sd*(3+Math.random()*2); p.vy=-(9+Math.random()*3); p.vz=11+Math.random()*4; p.emit=0; }
+          else if(K.flat){
+            const w=r(K.w), l = K.ribbon ? Math.max(0.5, (speed||8)*K.every*1.8) : K.l;   // 무지개 띠는 조각이 겹쳐 이어지게
+            s.scale.set(w, l, 1); p.w=w; p.l=l;
+            s.position.set(P.x + (K.ribbon?0:(Math.random()-.5)*0.3), 0.035+P.y + (K.ribbon?0.004*(this._rib=((this._rib||0)+1)%5):0), P.z+0.45);
+            p.vx=0; p.vy=0;
+          } else {
+            const sz=r(K.size); s.scale.set(sz,sz,1); p.sz=sz;
+            s.position.set(P.x+(Math.random()-.5)*K.side, (K.high?0.9:(K.fire?0.25:0.18))+P.y+Math.random()*(K.fire?0.2:0.35), P.z+(K.fire?0.55:0.35));
+            p.vy=r(K.up); p.vx=(Math.random()-.5)*K.side*(K.ember?4:1.4);
+          }
+          this.live.push(p);
+        }
+      });
+    } else this.acc={};
     for(let i=this.live.length-1;i>=0;i--){
-      const p=this.live[i]; p.t+=dt; const k=p.t/p.life;
-      if(k>=1 || !G.running){ scene.remove(p.s); this.pool.push(p.s); this.live.splice(i,1); continue; }
-      p.s.position.x+=p.vx*dt; p.s.position.y+=p.vy*dt; p.s.position.z+=drift*dt;
+      const p=this.live[i], K=p.K; p.t+=dt; const k=p.t/p.life;
+      if(k>=1 || !G.running){ this._put(p.s); this.live.splice(i,1); continue; }
+      p.s.position.z += (speed||0)*(K.flat?1:0.92)*dt;                 // 바닥과 함께 뒤로 (바닥 조각은 바닥에 딱 붙어서)
+      if(K.flat){
+        const fade = K.ribbon ? (k<0.6 ? 1 : 1-(k-0.6)/0.4) : (1-k);
+        p.s.material.opacity = (K.op||1)*fade*(K.ribbon?1:(0.6+0.4*Math.sin(p.t*30+p.ph)));
+        if(!K.ribbon){ const g=1+k*0.4; p.s.scale.set(p.w*g, K.l*g, 1); }
+        continue;
+      }
+      p.s.position.x+=p.vx*dt; p.s.position.y+=p.vy*dt; if(p.vz) p.s.position.z+=p.vz*dt;
       let a=1-k, sc=p.sz;
-      if(p.K.twinkle) a*=0.55+0.45*Math.sin(p.t*28+p.ph);
-      if(p.K.grow) sc=p.sz*(0.7+k*0.8);
-      else if(!p.K.rainbow) sc=p.sz*(1-k*0.45);
-      if(p.K.spin) p.s.material.rotation=p.t*2+p.ph;
-      p.s.scale.set(sc,sc,1); p.s.material.opacity=a*(p.K.rainbow?0.75:1);
+      if(K.shoot){                                                     // 지나간 길에 별가루를 흘린다
+        p.emit+=dt; while(p.emit>0.012 && this.live.length<190){ p.emit-=0.012;
+          const q=this._get({shape:"star", add:true}); q.material.color.setHex(Math.random()<.5?0xbfe9ff:0xffffff);
+          const z=0.12+Math.random()*0.16; q.scale.set(z,z,1); q.position.copy(p.s.position);
+          this.live.push({s:q, t:0, life:0.35+Math.random()*0.2, K:{dust:true}, sz:z, vx:(Math.random()-.5)*0.4, vy:(Math.random()-.5)*0.4, ph:Math.random()*6}); }
+        if(p.s.position.y<0.3){ p.t=p.life; }                         // 땅에 닿으면 사라짐
+        a=1; sc=p.sz*(1+0.2*Math.sin(p.t*30));
+      }
+      if(K.fire){                                                     // 불길 — 커졌다가 줄며, 흰노랑→주황→빨강→그을음
+        const g=K.grad, seg=Math.min(g.length-2, Math.floor(k*(g.length-1))), f=k*(g.length-1)-seg;
+        p.s.material.color.copy(this._hex(g[seg])).lerp(this._hex(g[seg+1]), f);
+        sc=p.sz*(k<0.3 ? 0.6+k/0.3*0.6 : 1.2-(k-0.3)*0.9);
+        p.s.position.x+=Math.sin(p.t*18+p.ph)*0.012; a=k<0.7?1:1-(k-0.7)/0.3;
+        p.s.material.rotation=Math.sin(p.t*10+p.ph)*0.25;
+      }
+      else if(K.ember){ p.vy-=dt*2.5; a=(1-k)*(0.6+0.4*Math.sin(p.t*40+p.ph)); }
+      else if(K.dust){ a=1-k; sc=p.sz*(1-k*0.6); }
+      else if(K.shoot){}
+      else {
+        if(K.twinkle) a*=0.55+0.45*Math.sin(p.t*28+p.ph);
+        if(K.spin) p.s.material.rotation=p.t*2+p.ph;
+        sc=p.sz*(1-k*0.45);
+      }
+      p.s.scale.set(sc,sc,1); p.s.material.opacity=a;
     }
+  }
+};
+
+/* =====================================================================
+   상점 칸 늘리기 — 🎆 정답 효과 · 🐾 동료 · 🏷️ 칭호 · 🎃 한정판
+   - 점수·하트에는 아무 영향 없음 (보기만 멋있어짐)
+   - 정답 효과/동료/칭호는 하나씩만 고른다 (Wallet.sel)
+   - 한정판은 해마다 정해진 날짜에만 판다. 산 것은 계속 쓸 수 있다
+   ===================================================================== */
+const SEASONS = { halloween:{from:"10-24", to:"11-02", name:"🎃 할로윈 한정", sub:"11월 2일까지만 팔아요 · 산 것은 계속 쓸 수 있어요"} };
+function seasonOn(k){
+  const S=SEASONS[k]; if(!S) return false;
+  try{ if(window.SIM && SIM.season) return true; }catch(e){}
+  const d=new Date(), md=String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  return md>=S.from && md<=S.to;
+}
+function seasonNow(){ return Object.keys(SEASONS).filter(seasonOn); }
+const HITS = [
+  {id:"hit-stars",    name:"별 터짐",   price:80,  emo:"⭐", note:"정답 문에서 금빛 별이 팡!"},
+  {id:"hit-hearts",   name:"하트 팡팡", price:80,  emo:"💖", note:"하트가 몽글몽글 솟아요"},
+  {id:"hit-fireworks",name:"폭죽",      price:120, emo:"🎆", note:"펑! 머리 위에서 폭죽이 터져요"},
+  {id:"hit-ring",     name:"무지개 링", price:150, emo:"🌈", note:"발밑에서 무지개 고리가 퍼져요"},
+  {id:"hit-bolt",     name:"번개",      price:150, emo:"⚡", note:"하늘에서 번개가 쾅!"},
+  {id:"hit-crystal",  name:"수정 폭발", price:180, emo:"💎", note:"보라 수정 조각이 사방으로", rare:true},
+  {id:"hit-bats",     name:"박쥐 떼",   price:120, emo:"🦇", note:"박쥐가 우르르 날아올라요", limited:"halloween"}
+];
+const PETS = [
+  {id:"pet-spirit", name:"수정 정령",   price:300, emo:"💠", note:"반짝반짝 작은 수정 친구", draw:"spirit"},
+  {id:"pet-slime",  name:"말랑 슬라임", price:300, emo:"🟢", note:"통통 튀는 젤리 친구"},
+  {id:"pet-dragon", name:"아기 용",     price:500, emo:"🐲", note:"파닥파닥 나는 아기 용", rare:true},
+  {id:"pet-owl",    name:"부엉이 박사", emo:"🦉", note:"단어를 좋아하는 부엉이", dex:2},
+  {id:"pet-ghost",  name:"꼬마 유령",   price:250, emo:"👻", note:"둥실둥실 따라다녀요", draw:"ghost", limited:"halloween"}
+];
+const TITLES = [
+  {id:"t-sprout",  name:"새싹 러너",     emo:"🌱", free:true},
+  {id:"t-gate1",   name:"문지기 사냥꾼", emo:"⚔️", goal:"첫 번째 문지기 쓰러뜨리기"},
+  {id:"t-gate2",   name:"방패 파괴자",   emo:"🛡️", goal:"두 번째 문지기 쓰러뜨리기"},
+  {id:"t-palace",  name:"왕궁 탐험가",   emo:"🏰", goal:"왕궁 회랑(81단계) 들어가기"},
+  {id:"t-combo",   name:"콤보 장인",     emo:"🔥", goal:"한 판에 콤보 30"},
+  {id:"t-perfect", name:"만점 러너",     emo:"💯", goal:"한 번도 안 틀리고 30단계까지"},
+  {id:"t-dex",     name:"도감 박사",     emo:"📖", goal:"도감 200단어 모으기"},
+  {id:"t-daily",   name:"개근 러너",     emo:"🌙", goal:"오늘의 20을 10번 끝내기"},
+  {id:"t-star",    name:"반짝 스타",     emo:"🌟", price:50},
+  {id:"t-cool",    name:"멋쟁이",        emo:"😎", price:50},
+  {id:"t-dragon",  name:"용의 기사",     emo:"🐉", price:100},
+  {id:"t-king",    name:"단어 왕",       emo:"👑", price:150, rare:true},
+  {id:"t-pumpkin", name:"호박 대장",     emo:"🎃", price:60, limited:"halloween"}
+];
+function titleOf(id){ return TITLES.filter(t=>t.id===id)[0] || null; }
+function titleTag(id){ const t=titleOf(id); return t ? '<small class="tTag">'+t.emo+' '+t.name+'</small>' : ""; }
+function myTitle(){ try{ return Wallet.sel("title") || "t-sprout"; }catch(e){ return "t-sprout"; } }
+
+/* 칭호 — 한 판이 끝날 때 해낸 일을 확인해서 준다 (시험 모드 제외) */
+const Titles = {
+  check(){
+    if(G.testRun) return [];
+    const norm=G.rule==="normal", out=[];
+    let dexN=0; try{ dexN=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
+    let daily=0; try{ daily=Unlock.daily(); }catch(e){}
+    const T={
+      "t-gate1":  !!(Boss.doneAt && Boss.doneAt[50]),
+      "t-gate2":  !!(Boss.doneAt && Boss.doneAt[80]),
+      "t-palace": norm && G.stage>=81,
+      "t-combo":  (G.bestCombo||0)>=30,
+      "t-perfect":norm && (G.wrong|0)===0 && G.stage>=30,
+      "t-dex":    dexN>=200,
+      "t-daily":  daily>=10
+    };
+    Object.keys(T).forEach(id=>{ if(T[id] && !Wallet.owns(id)){ Wallet.give(id); out.push(id); } });
+    return out;
+  }
+};
+
+/* 정답 효과 — 정답 문을 지나는 순간 내 주변에서 터진다 (캐릭터를 따라 움직임) */
+const HitFx = {
+  live:[], pool:[], fpool:[], tex:{},
+  _tex(k){
+    if(this.tex[k]) return this.tex[k];
+    if(["star","heart","dot","glow","flame"].indexOf(k)>=0) return (this.tex[k]=Trail._draw(k==="dot"?"glow":k));
+    const c=document.createElement("canvas"); c.width=c.height=128; const x=c.getContext("2d"); x.fillStyle="#fff"; x.strokeStyle="#fff";
+    if(k==="bolt"){ c.width=64; c.height=512; x.shadowColor="#fff"; x.shadowBlur=14; x.lineWidth=7; x.lineJoin="round"; x.beginPath();
+      let px=32; x.moveTo(px,0); for(let y=40;y<=512;y+=40){ px=32+(Math.random()-.5)*36; x.lineTo(px,y); } x.stroke();
+      x.lineWidth=3; x.shadowBlur=0; x.stroke(); }
+    else if(k==="ring"){ const C=["#ff3b3b","#ff8a1e","#ffe03a","#3ee06a","#3aa8ff","#5a5cff","#b04aff"];
+      C.forEach((col,i)=>{ x.strokeStyle=col; x.lineWidth=4.2; x.beginPath(); x.arc(64,64,34+i*4,0,Math.PI*2); x.stroke(); }); }
+    else if(k==="shard"){ x.beginPath(); x.moveTo(64,6); x.lineTo(92,64); x.lineTo(64,122); x.lineTo(36,64); x.closePath(); x.fill();
+      x.globalCompositeOperation="destination-out"; x.globalAlpha=.35; x.beginPath(); x.moveTo(64,6); x.lineTo(92,64); x.lineTo(64,64); x.fill(); }
+    else if(k==="bat"){ x.beginPath(); x.moveTo(64,70);
+      x.quadraticCurveTo(44,40,8,52); x.quadraticCurveTo(22,60,20,74); x.quadraticCurveTo(34,66,44,82); x.quadraticCurveTo(54,72,64,86);
+      x.quadraticCurveTo(74,72,84,82); x.quadraticCurveTo(94,66,108,74); x.quadraticCurveTo(106,60,120,52); x.quadraticCurveTo(84,40,64,70); x.fill();
+      x.beginPath(); x.arc(64,66,11,0,Math.PI*2); x.fill(); x.beginPath(); x.moveTo(56,58); x.lineTo(58,46); x.lineTo(62,57); x.moveTo(66,57); x.lineTo(70,46); x.lineTo(72,58); x.fill();
+      x.fillStyle="#ffcf3a"; x.fillRect(58,63,4,3); x.fillRect(66,63,4,3); }
+    const t=new THREE.CanvasTexture(c); this.tex[k]=t; return t;
+  },
+  _sprite(tex, col, add){
+    let s=this.pool.pop(); if(!s){ s=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true, depthWrite:false, fog:false})); s.userData.noOutline=true; s.renderOrder=5; }
+    s.material.map=tex; s.material.color.set(col); s.material.blending=add?THREE.AdditiveBlending:THREE.NormalBlending; s.material.opacity=1; s.material.rotation=0; s.material.needsUpdate=true;
+    s.visible=true; scene.add(s); return s;
+  },
+  _flat(tex){
+    let m=this.fpool.pop(); if(!m){ m=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({transparent:true, depthWrite:false, fog:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
+      m.rotation.x=-Math.PI/2; m.userData.noOutline=true; m.userData.flat=true; m.renderOrder=5; }
+    m.material.map=tex; m.material.opacity=1; m.material.needsUpdate=true; m.visible=true; scene.add(m); return m;
+  },
+  /* 한 조각: 플레이어 기준 위치(ox,oy,oz) · 속도 · 중력 · 수명 */
+  add(o){ const s=o.flat ? this._flat(this._tex(o.tex)) : this._sprite(this._tex(o.tex), o.col||"#fff", o.add!==false);
+    if(o.flat) s.material.color.set(o.col||"#fff");
+    const p=Object.assign({s, t:0, vx:0, vy:0, vz:0, g:0, sz:0.4, delay:0, spin:0}, o); p.ox=o.ox||0; p.oy=o.oy||0; p.oz=o.oz||0;
+    s.visible = !(p.delay>0); this.live.push(p); return p; },
+  clear(){ this.live.forEach(p=>{ scene.remove(p.s); (p.s.userData.flat?this.fpool:this.pool).push(p.s); }); this.live=[]; },
+  play(id){
+    id = id || Wallet.sel("hit"); if(!id) return;
+    const R=(a,b)=>a+Math.random()*(b-a), rnd2=a=>a[(Math.random()*a.length)|0];
+    if(id==="hit-stars"){
+      this.add({tex:"glow", col:"#fff3b0", oy:1.3, sz:3.2, life:0.3, flash:true});
+      for(let i=0;i<20;i++){ const a=i/20*Math.PI*2; this.add({tex:"star", col:rnd2(["#fff3b0","#ffd36b","#ffffff"]), oy:1.3, vx:Math.cos(a)*R(4,6.5), vy:Math.sin(a)*R(4,6.5)+2, g:6, sz:R(.35,.6), life:R(.7,1), spin:R(-6,6)}); }
+    }
+    else if(id==="hit-hearts"){
+      for(let i=0;i<14;i++) this.add({tex:"heart", col:rnd2(["#ff6fa3","#ff9ec4","#ff4f8a","#ffc2d8"]), add:false, ox:R(-1.4,1.4), oy:R(.6,1.4), vx:R(-.6,.6), vy:R(2,4), sz:R(.4,.75), life:R(1,1.4), wob:R(2,4), delay:i*0.03});
+    }
+    else if(id==="hit-fireworks"){
+      [-1.6,0,1.6].forEach((x,k)=>{ const col=rnd2(["#ff5a7a","#ffd23a","#5ad1ff","#9a7bff","#5affa0"]);
+        this.add({tex:"dot", col:"#fff", ox:x, oy:0.6, vy:13, sz:.35, life:0.42, delay:k*0.12, rocket:{col, x}}); });
+    }
+    else if(id==="hit-ring"){
+      [0,0.15,0.3].forEach(d=>this.add({tex:"ring", flat:true, col:"#fff", oy:0.06, sz:1, grow:9, life:0.8, delay:d}));
+      for(let i=0;i<16;i++){ const a=i/16*Math.PI*2; this.add({tex:"star", col:"hsl("+(i*22)+",95%,65%)", oy:.3, vx:Math.cos(a)*5, vz:Math.sin(a)*5, vy:R(1,2.5), sz:.35, life:.8}); }
+    }
+    else if(id==="hit-bolt"){
+      this.add({tex:"bolt", col:"#e8f6ff", ox:0, oy:7.5, oz:-0.8, sz:1, sx:1.4, sy:15, life:0.4, bolt:true});
+      this.add({tex:"glow", col:"#bfe9ff", oy:.8, oz:-0.8, sz:4.5, life:0.35, flash:true});
+      for(let i=0;i<22;i++){ const a=Math.random()*Math.PI*2; this.add({tex:"dot", col:rnd2(["#ffffff","#fff3a0","#bfe9ff"]), oy:.4, oz:-0.8, vx:Math.cos(a)*R(3,7), vz:Math.sin(a)*R(1,3), vy:R(2,6), g:12, sz:R(.12,.22), life:R(.4,.7)}); }
+      try{ G.shake=Math.max(G.shake||0,.18); SFX.tone(1200,.08,"square",.03,300); }catch(e){}
+    }
+    else if(id==="hit-crystal"){
+      this.add({tex:"glow", col:"#c9a0ff", oy:1.2, sz:3.4, life:0.35, flash:true});
+      for(let i=0;i<18;i++){ const a=i/18*Math.PI*2; this.add({tex:"shard", col:rnd2(["#c9a0ff","#9a6cff","#8fe3ff","#ffffff"]), oy:1.1, vx:Math.cos(a)*R(4,7), vy:Math.sin(a)*R(3,6)+3, vz:R(-1,1), g:9, sz:R(.35,.6), life:R(.8,1.1), spin:R(-9,9)}); }
+    }
+    else if(id==="hit-bats"){
+      for(let i=0;i<12;i++){ const sd=i%2?1:-1; this.add({tex:"bat", col:"#3a2456", add:false, ox:R(-.6,.6), oy:R(.8,1.4), vx:sd*R(2,5), vy:R(2.5,4.5), vz:R(-2,0), sz:R(.5,.8), life:R(1.1,1.5), flap:R(14,20), delay:i*0.03}); }
+      this.add({tex:"glow", col:"#ff9a3a", oy:1, sz:2.6, life:0.3, flash:true});
+    }
+  },
+  update(dt){
+    for(let i=this.live.length-1;i>=0;i--){
+      const p=this.live[i];
+      if(p.delay>0){ p.delay-=dt; if(p.delay>0) continue; p.s.visible=true; }
+      p.t+=dt; const k=p.t/p.life;
+      if(k>=1 || !G.running){
+        if(p.rocket && k>=1 && G.running){                            // 폭죽 — 꼭대기에서 펑
+          for(let j=0;j<26;j++){ const a=j/26*Math.PI*2, sp=4+Math.random()*2.5;
+            this.add({tex:"dot", col:p.rocket.col, ox:p.ox, oy:p.oy, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, g:4, sz:.26, life:.9+Math.random()*.3, twinkle:true}); }
+          this.add({tex:"glow", col:p.rocket.col, ox:p.ox, oy:p.oy, sz:3, life:.25, flash:true});
+          try{ SFX.tone(180,.18,"sawtooth",.025,90); }catch(e){}
+        }
+        scene.remove(p.s); (p.s.userData.flat?this.fpool:this.pool).push(p.s); this.live.splice(i,1); continue; }
+      p.vy-=p.g*dt; p.ox+=p.vx*dt; p.oy+=p.vy*dt; p.oz+=p.vz*dt;
+      if(p.wob) p.ox+=Math.sin(p.t*p.wob)*0.01;
+      p.s.position.set(P.x+p.ox, P.y+p.oy, P.z+p.oz);
+      let a=1-k, sc=p.sz;
+      if(p.flash){ sc=p.sz*(0.4+k*0.9); a=1-k; }
+      if(p.twinkle) a*=0.6+0.4*Math.sin(p.t*30);
+      if(p.rocket){ a=1; if(Math.random()<.6) this.add({tex:"dot", col:"#ffe9a0", ox:p.ox+(Math.random()-.5)*.1, oy:p.oy-.2, vy:-1, sz:.12, life:.3}); }
+      if(p.spin) p.s.material.rotation+=p.spin*dt;
+      if(p.bolt){ a = (Math.sin(p.t*60)>-.2 ? 1 : 0.25)*(1-k); p.s.scale.set(p.sx*(1-k*.3), p.sy, 1); p.s.material.opacity=a; continue; }
+      if(p.s.userData.flat){ const g=1+k*(p.grow||1); p.s.scale.set(g,g,1); p.s.material.opacity=(1-k)*0.95; continue; }
+      if(p.flap){ p.s.scale.set(sc, sc*(0.55+0.45*Math.abs(Math.sin(p.t*p.flap))), 1); p.s.material.opacity=k<.8?1:(1-k)/.2; continue; }
+      p.s.scale.set(sc,sc,1); p.s.material.opacity=Math.max(0,a);
+    }
+  }
+};
+
+/* 동료 — 캐릭터 옆에서 같이 달린다 (둥실 떠서 따라옴). 그림 파일 pet-<id>.webp (가로 2칸 = 날갯짓 2장)이 있으면 그 그림,
+   수정 정령·꼬마 유령은 코드로 그린 그림 */
+const Pet = {
+  spr:null, id:null, t:0, pos:null, frames:null, ready:{}, probing:{},
+  of(id){ return PETS.filter(p=>p.id===id)[0] || null; },
+  draw(kind){
+    const c=document.createElement("canvas"); c.width=c.height=256; const x=c.getContext("2d");
+    if(kind==="spirit"){
+      const g=x.createRadialGradient(128,128,10,128,128,120); g.addColorStop(0,"rgba(190,240,255,.55)"); g.addColorStop(1,"rgba(150,120,255,0)");
+      x.fillStyle=g; x.fillRect(0,0,256,256);
+      const b=x.createLinearGradient(80,40,176,216); b.addColorStop(0,"#d9f6ff"); b.addColorStop(.5,"#8fd0ff"); b.addColorStop(1,"#9a6cff");
+      x.fillStyle=b; x.strokeStyle="#2a1f5a"; x.lineWidth=7; x.lineJoin="round";
+      x.beginPath(); x.moveTo(128,34); x.lineTo(190,116); x.lineTo(128,222); x.lineTo(66,116); x.closePath(); x.fill(); x.stroke();
+      x.fillStyle="rgba(255,255,255,.65)"; x.beginPath(); x.moveTo(128,46); x.lineTo(150,96); x.lineTo(118,96); x.closePath(); x.fill();
+      x.fillStyle="#1d1540"; x.beginPath(); x.ellipse(108,128,9,13,0,0,Math.PI*2); x.ellipse(148,128,9,13,0,0,Math.PI*2); x.fill();
+      x.fillStyle="#fff"; x.beginPath(); x.arc(111,123,3.5,0,Math.PI*2); x.arc(151,123,3.5,0,Math.PI*2); x.fill();
+      x.strokeStyle="#1d1540"; x.lineWidth=4; x.lineCap="round"; x.beginPath(); x.arc(128,146,10,0.2,Math.PI-0.2); x.stroke();
+      x.fillStyle="rgba(255,140,200,.55)"; x.beginPath(); x.ellipse(94,148,9,5,0,0,Math.PI*2); x.ellipse(162,148,9,5,0,0,Math.PI*2); x.fill();
+    } else if(kind==="ghost"){
+      x.fillStyle="rgba(255,255,255,.96)"; x.strokeStyle="#3a2c5a"; x.lineWidth=7; x.lineJoin="round";
+      x.beginPath(); x.moveTo(60,200); x.lineTo(60,118); x.bezierCurveTo(60,40,196,40,196,118); x.lineTo(196,200);
+      for(let i=0;i<4;i++){ const x0=196-i*34; x.quadraticCurveTo(x0-8,224,x0-17,204); x.quadraticCurveTo(x0-26,186,x0-34,204); }
+      x.closePath(); x.fill(); x.stroke();
+      x.fillStyle="#22183a"; x.beginPath(); x.ellipse(104,118,11,16,0,0,Math.PI*2); x.ellipse(152,118,11,16,0,0,Math.PI*2); x.fill();
+      x.fillStyle="#fff"; x.beginPath(); x.arc(108,111,4,0,Math.PI*2); x.arc(156,111,4,0,Math.PI*2); x.fill();
+      x.fillStyle="rgba(255,130,170,.6)"; x.beginPath(); x.ellipse(88,142,10,6,0,0,Math.PI*2); x.ellipse(168,142,10,6,0,0,Math.PI*2); x.fill();
+      x.fillStyle="#22183a"; x.beginPath(); x.ellipse(128,146,9,7,0,0,Math.PI*2); x.fill();
+      x.fillStyle="#ff9a3a"; x.beginPath(); x.moveTo(150,48); x.lineTo(176,60); x.lineTo(158,72); x.closePath(); x.fill();   // 작은 호박 리본
+    }
+    return c;
+  },
+  _img:{},
+  imgURL(p){ if(!p.draw) return null; if(!this._img[p.id]) this._img[p.id]=this.draw(p.draw).toDataURL(); return this._img[p.id]; },
+  probe(p, done){ if(p.draw){ this.ready[p.id]=true; done&&done(); return; }
+    if(this.ready[p.id]!=null){ done&&done(); return; }
+    if(this.probing[p.id]){ this.probing[p.id].push(done); return; } this.probing[p.id]=[done];
+    const im=new Image(), fin=ok=>{ this.ready[p.id]=ok; const l=this.probing[p.id]||[]; delete this.probing[p.id]; l.forEach(f=>f&&f()); };
+    im.onload=()=>fin(true); im.onerror=()=>fin(false); im.src=p.id+".webp"; },
+  reset(){ if(this.spr){ scene.remove(this.spr); } this.spr=null; this.id=null; this.pos=null; },
+  _build(id){
+    const p=this.of(id); if(!p) return;
+    let tex=null, two=false;
+    if(p.draw) tex=new THREE.CanvasTexture(this.draw(p.draw));
+    else if(TrapArt.tex[id]){ tex=TrapArt.tex[id].clone(); tex.needsUpdate=true; tex.repeat.set(0.5,1); two=true; }
+    else { if(!this["_req_"+id]){ this["_req_"+id]=1; try{ TrapArt._loadList([id], false); }catch(e){} } return; }
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthWrite:false, fog:false}));
+    s.userData.noOutline=true; s.renderOrder=4; s.scale.set(1.25,1.25,1); scene.add(s);
+    this.spr=s; this.id=id; this.two=two; this.tex=tex; this.kind=p.draw||"art";
+  },
+  update(dt){
+    let id=null; try{ id=Wallet.sel("pet"); }catch(e){}
+    const on = id && G.running && !G.finishing && typeof player!=="undefined" && player;
+    if(!on){ if(this.spr) this.spr.visible=false; return; }
+    if(this.id!==id){ this.reset(); this._build(id); if(!this.spr) return; }
+    this.t+=dt; const s=this.spr; s.visible=!G.falling;
+    const side = P.x > (CFG.LANE_W*(G.lanes-1)/2 - 0.5) ? -1 : 1;      // 길 오른쪽 끝이면 왼쪽에
+    const tx=P.x+side*1.25, ty=P.y+1.9+Math.sin(this.t*3)*0.18, tz=P.z+0.4;
+    if(!this.pos) this.pos={x:tx,y:ty,z:tz};
+    const k=Math.min(1, dt*6); this.pos.x+=(tx-this.pos.x)*k; this.pos.y+=(ty-this.pos.y)*k; this.pos.z=tz;
+    s.position.set(this.pos.x, this.pos.y, this.pos.z);
+    const sq = this.kind==="ghost" ? 1+0.05*Math.sin(this.t*4) : 1+0.04*Math.sin(this.t*6);
+    s.scale.set(1.25*sq, 1.25/sq, 1);
+    s.material.rotation = this.kind==="ghost" ? Math.sin(this.t*2)*0.12 : Math.sin(this.t*2.5)*0.06;
+    if(this.kind==="ghost") s.material.opacity=0.82+0.12*Math.sin(this.t*3);
+    if(this.two){ const f=(Math.floor(this.t/0.16)%2); this.tex.offset.x=f*0.5; }
+    if(this.kind==="spirit"){ this._sp=(this._sp||0)+dt; if(this._sp>0.12){ this._sp=0;                // 반짝 가루
+        HitFx.add({tex:"star", col:Math.random()<.5?"#bff1ff":"#d8c8ff", ox:this.pos.x-P.x+(Math.random()-.5)*.6, oy:this.pos.y-P.y-.3, vy:-.4, vz:1.5, sz:.18, life:.6, twinkle:true}); } }
   }
 };
 
@@ -9191,11 +9561,46 @@ function drawGemResult(r){
 
 /* ── 상점 화면 ── */
 const ShopUI = {
-  arm:null,
+  arm:null, tab:"fx",
+  TABS:[["outfit","👕 옷"],["fx","✨ 달리기"],["hit","🎆 정답"],["pet","🐾 동료"],["title","🏷️ 칭호"]],
   open(){ SFX.click(); this.arm=null; this.draw(); $("shShop").classList.add("on");
-    OUTFITS.forEach(o=>Outfit.probe(o, ()=>this.draw())); },
+    OUTFITS.forEach(o=>Outfit.probe(o, ()=>this.draw())); PETS.forEach(p=>Pet.probe(p, ()=>this.draw())); },
+  /* 한정판·정답 효과·동료·칭호·달리기 — 같은 모양의 카드 */
+  gcard(o, slot){
+    const lim=o.limited, season=lim && seasonOn(lim), own=o.free || Wallet.owns(o.id), on=Wallet.sel(slot)===o.id || (slot==="title" && !Wallet.sel("title") && o.free);
+    if(lim && !season && !own) return "";                                   // 기간이 지난 한정판은 산 사람에게만 보인다
+    let btn;
+    const artOk = slot!=="pet" || Pet.ready[o.id]===true;
+    if(own) btn = on ? (slot==="title" ? '<button class="sBtn on" disabled>달고 있어요</button>' : '<button class="sBtn on" data-act="goff" data-slot="'+slot+'" data-id="'+o.id+'">켜짐 · 끄기</button>')
+                     : '<button class="sBtn wear" data-act="gon" data-slot="'+slot+'" data-id="'+o.id+'">'+(slot==="title"?'달기':slot==="pet"?'데려가기':'켜기')+'</button>';
+    else if(!artOk) btn='<button class="sBtn off" disabled>곧 나와요</button>';
+    else if(o.goal) btn='<button class="sBtn off" disabled>🔒 '+o.goal+'</button>';
+    else if(o.dex) btn='<button class="sBtn off" disabled>📖 '+o.dex+'권 완성 보상</button>';
+    else if(this.arm===o.id) btn='<button class="sBtn sure" data-act="gbuy" data-slot="'+slot+'" data-id="'+o.id+'">💎'+o.price+' 정말 살까요?</button>';
+    else btn='<button class="sBtn buy'+(Wallet.gems()<o.price?' poor':'')+'" data-act="garm" data-slot="'+slot+'" data-id="'+o.id+'">💎 '+o.price+'</button>';
+    let prev="";
+    if(slot==="fx"){ const dots=[0,1,2,3,4].map(i=>'<i style="left:'+(14+i*17)+'%;animation-delay:'+(i*0.28).toFixed(2)+'s">'+o.emo+'</i>').join("");
+      prev='<div class="fxPrev fx-'+o.id.slice(3)+'">'+dots+'<b class="fxRun">🏃</b></div>'; }
+    else if(slot==="hit"){ const d=[[-46,-30],[46,-30],[-30,-44],[30,-44],[0,-50],[-52,-6],[52,-6],[0,-20]].map((v,i)=>'<i style="--dx:'+v[0]+'px;--dy:'+v[1]+'px;animation-delay:'+(i%3*0.06).toFixed(2)+'s">'+o.emo+'</i>').join("");
+      prev='<div class="hitPrev">'+d+'<b>🏃</b></div>'; }
+    else if(slot==="pet"){ const u=Pet.imgURL(o);
+      prev='<div class="petPrev">'+(u ? '<img src="'+u+'" alt="">' : artOk ? '<div class="petArt" style="background-image:url('+o.id+'.webp)"></div>' : '<b>'+o.emo+'</b>')+'</div>'; }
+    else if(slot==="title"){ prev='<div class="titlePrev"><span class="tTag">'+o.emo+' '+o.name+'</span></div>'; }
+    const sub = slot==="title" ? (o.goal ? "업적 칭호" : o.free ? "처음부터" : "상점 칭호") : (o.note||"");
+    return '<div class="sCard fxCard'+(o.rare?' rare':'')+(lim?' limited':'')+(on?' wearing':'')+(slot==="title"&&!own?' lockedT':'')+'">'+prev
+      +'<div class="sName">'+(slot==="title"?'':o.name)+'</div><div class="sSub">'+sub+'</div>'+btn+'</div>';
+  },
+  setTab(t){ this.tab=t; this.arm=null; SFX.click(); this.draw(); },
   draw(){
     $("shopGems").textContent=Wallet.gems();
+    $("shopTabs").innerHTML=this.TABS.map(t=>'<button data-tab="'+t[0]+'"'+(t[0]===this.tab?' class="on"':'')+'>'+t[1]+'</button>').join("");
+    document.querySelectorAll("#shShop .shopPane").forEach(el=>el.classList.toggle("on", el.dataset.pane===this.tab));
+    const ss=seasonNow(), band=$("shopSeason");
+    if(ss.length){ const k=ss[0], S=SEASONS[k];
+      const items=[].concat(TRAILS.filter(o=>o.limited===k).map(o=>this.gcard(o,"fx")), HITS.filter(o=>o.limited===k).map(o=>this.gcard(o,"hit")),
+                            PETS.filter(o=>o.limited===k).map(o=>this.gcard(o,"pet")), TITLES.filter(o=>o.limited===k).map(o=>this.gcard(o,"title"))).join("");
+      band.style.display="block"; band.innerHTML='<h3>'+S.name+'</h3><p>'+S.sub+'</p><div class="sGrid">'+items+'</div>'; }
+    else band.style.display="none";
     const cname=id=>(CHARACTERS.filter(c=>c.id===id)[0]||{}).name||"";
     const ci=id=>Math.max(0, CHARACTERS.findIndex(c=>c.id===id));
     const card=o=>{
@@ -9224,10 +9629,25 @@ const ShopUI = {
       return '<div class="sCard fxCard'+(f.rare?' rare':'')+(on?' wearing':'')+'"><div class="fxPrev fx-'+f.id.slice(3)+'">'+dots+'<b class="fxRun">🏃</b></div>'
         +'<div class="sName">'+f.name+'</div><div class="sSub">'+f.note+'</div>'+btn+'</div>';
     };
-    $("shopFx").innerHTML=TRAILS.map(fxCard).join("");
+    $("shopFx").innerHTML=TRAILS.filter(o=>!o.limited || Wallet.owns(o.id)).map(o=>this.gcard(o,"fx")).join("");
+    $("shopHit").innerHTML=HITS.filter(o=>!o.limited || Wallet.owns(o.id)).map(o=>this.gcard(o,"hit")).join("");
+    $("shopPet").innerHTML=PETS.filter(o=>!o.limited || Wallet.owns(o.id)).map(o=>this.gcard(o,"pet")).join("");
+    $("shopTitle").innerHTML=TITLES.filter(o=>!o.limited || Wallet.owns(o.id)).map(o=>this.gcard(o,"title")).join("");
     $("shopMsg").textContent="정답 10개(보통 기준)마다 보석 1개 · 지금 "+Wallet.pts()+"/"+GEM.PER+"점";
   },
-  act(a, id){
+  act(a, id, slot){
+    if(a.charAt(0)==="g"){                                                    // 달리기·정답·동료·칭호 (한정판 포함)
+      const L={fx:TRAILS, hit:HITS, pet:PETS, title:TITLES}[slot]||[], o=L.filter(x=>x.id===id)[0]; if(!o) return;
+      if(a==="garm"){ if(Wallet.gems()<o.price){ $("shopMsg").textContent="보석이 "+(o.price-Wallet.gems())+"개 더 필요해요"; try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
+        this.arm=id; SFX.click(); this.draw(); return; }
+      if(a==="gbuy"){ if(o.limited && !seasonOn(o.limited)) return;
+        if(Wallet.buy(id,o.price)){ Wallet.setSel(slot,id); try{ SFX.tone(660,.2,"triangle",.05,1320); confetti(); }catch(e){}
+          this.arm=null; this.draw();
+          $("shopMsg").textContent="🎉 "+(slot==="title"?o.emo+" ":"")+o.name+"! "+({fx:"다음 판부터 발밑에 나와요", hit:"정답 문을 지날 때 터져요", pet:"다음 판부터 옆에서 같이 달려요", title:"랭킹에서 이름 옆에 보여요"}[slot]||"");
+          if(slot==="hit") try{ HitFx.play(id); }catch(e){} } return; }
+      if(a==="gon"){ Wallet.setSel(slot,id); SFX.click(); this.draw(); return; }
+      if(a==="goff"){ Wallet.setSel(slot,null); SFX.click(); this.draw(); return; }
+      return; }
     if(a.indexOf("fx")===0){ const f=TRAILS.filter(x=>x.id===id)[0]; if(!f) return;
       if(a==="fxarm"){ if(Wallet.gems()<f.price){ $("shopMsg").textContent="보석이 "+(f.price-Wallet.gems())+"개 더 필요해요"; try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
         this.arm=id; SFX.click(); this.draw(); return; }
@@ -9295,9 +9715,8 @@ $("btnShop").addEventListener("click",()=>ShopUI.open());
 $("btnDex").addEventListener("click",()=>DexUI.open());
 $("btnShopClose").addEventListener("click",()=>{ SFX.click(); $("shShop").classList.remove("on"); });
 $("btnDexClose").addEventListener("click",()=>{ SFX.click(); $("shDex").classList.remove("on"); });
-$("shopGrid").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id); });
-$("shopFx").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id); });
-$("shopDex").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id); });
+$("shShop").addEventListener("click",e=>{ const t=e.target.closest && e.target.closest("[data-tab]"); if(t){ ShopUI.setTab(t.dataset.tab); return; }
+  const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id, b.dataset.slot); });
 $("dexTabs").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-b]"); if(!b) return; SFX.click(); DexUI.b=+b.dataset.b; DexUI.p=DexUI.firstOpen(DexUI.b); DexUI.draw(); });
 $("dexPrev").addEventListener("click",()=>{ if(DexUI.p>0){ DexUI.p--; SFX.click(); DexUI.draw(); } });
 $("dexNext").addEventListener("click",()=>{ if(DexUI.p<Dex.pages(DexUI.b)-1){ DexUI.p++; SFX.click(); DexUI.draw(); } });
@@ -9387,7 +9806,7 @@ const Online = {
 function onlineRows(list){
   if(!list || !list.length) return '<div class="note">아직 기록이 없습니다. 첫 번째 주인공이 되어 보세요!</div>';
   return list.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><i>'+(i+1)+'</i><b>'+String(r.nick).replace(/[<>&"]/g,"")+
-    (r.me?' <em class="meTag">나</em>':'')+'</b><span>'+Number(r.score).toLocaleString()+'</span></div>').join("");
+    (r.title && titleOf(r.title) ? titleTag(r.title) : '')+(r.me?' <em class="meTag">나</em>':'')+'</b><span>'+Number(r.score).toLocaleString()+'</span></div>').join("");
 }
 let RANK_VIEW={diff:"easy", range:"week"};
 function drawRankScreen(){
