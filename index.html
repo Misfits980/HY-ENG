@@ -3948,7 +3948,6 @@ function spawnSet(){
   if(ramped("fake")>0 && n>=3) tricks.push("fake");
   if(zone().mirror && n>=3 && !G.gentle){ tricks.push("fake"); tricks.push("fake"); }   // 왕궁 광장 — 거울에 비친 글자 문
   let trick = (!G.gentle && tricks.length) ? rnd(tricks) : null;
-  if(s.hideMode && q._bossFx && q._bossFx.indexOf("curse")>=0) trick="hide";   // 보스의 저주는 다른 기믹보다 먼저
   if(s.hideMode && trick!=="hide"){ s.hideMode=null; s.time/=1.3; s.speed=G.spawnDist/s.time; }
 
   /* 가짜 문 — 정답 단어가 좌우로 뒤집힌 채 적힌 문 하나를 섞는다 */
@@ -4018,10 +4017,8 @@ function applyGimmicks(s){
     s.swapsLeft=0;                                                            //  정답은 옆 한 칸까지만 움직인다
     if(s.time<3.6){ s.time=3.6; s.speed=G.spawnDist/s.time; }                 //  들어 올리고 찍고 피할 시간을 보장한다
   }
-  if(s.q && s.q._bossFx && s.q._bossFx.indexOf("curse")>=0 && typeof Boss!=="undefined" && Boss.active){   // 보스의 어둠의 저주
-    const t=HIDE_TIME.flash;
-    if(!s.hideMode){ s.time*=1.30; s.speed=G.spawnDist/s.time; }
-    s.hideMode="flash"; s.readSec=t.readSec + perk("read"); s.minLeft=t.minLeft; s.readT=0;
+  if(s.q && s.q._bossFx && s.q._bossFx.indexOf("curse")>=0 && typeof Boss!=="undefined" && Boss.active){   // 보스의 저주 — 발이 무거워진다 (좌우 이동 느려짐)
+    s.time*=1.12; s.speed=G.spawnDist/s.time;                                   //  느려진 만큼 문은 조금 늦게 온다
   }
 }
 
@@ -6748,7 +6745,7 @@ function updatePlayer(dt){
   }
   const slick = icy && !G.gentle && G.diff!=="easy" && perk("icy");   // 보통부터 — 쉬움·유치원은 예전처럼 살짝만
   const ixs = (slick && ix!==0) ? Math.sign(ix)*Math.min(1, Math.abs(ix)*ICE.AMP) : ix;
-  const tvx = ixs*CFG.MOVE_X*slow*perk("move");
+  const tvx = ixs*CFG.MOVE_X*slow*perk("move")*((G.curseT>0 && !G.falling) ? (CURSE_SLOW[G.diff]||0.6) : 1);   // 문지기의 저주 — 좌우로 느리게
   if(slick){
     const speeding = ixs!==0 && tvx*P.vx>=0 && Math.abs(tvx)>Math.abs(P.vx);   // 같은 쪽으로 더 빨라질 때만 잘 붙는다
     P.vx += (tvx - P.vx) * Math.min(1, dt*(speeding ? CFG.ACCEL*ICE.PUSH : CFG.BRAKE*ICE.SLIDE));
@@ -7756,6 +7753,16 @@ const BOSS_DEF = {
        hp:20, rageAt:10,                              // 체력 20 — 앞 10은 방패가 받아 내고(금이 감), 방패가 깨지면 나머지 10은 몸으로
        shieldBox:[0.08,0.46,0.33,0.72] }               // (조각 그림이 없을 때만 씀)
 };
+const CURSE_SLOW = {normal:0.6, hard:0.55, extreme:0.5};   // 저주에 걸리면 좌우 이동 속도 배율
+/* 기술 예고 — 기술마다 눈빛 색과 소리가 다르다 (대사 없이 "무엇이 오는지" 배우게) */
+const BOSS_TELL = {
+  slam:  {col:0xb070ff, snd:()=>{ SFX.tone(220,.35,"triangle",.05,440); setTimeout(()=>SFX.tone(330,.3,"triangle",.04,660),160); }},
+  shard: {col:0x7fd8ff, snd:()=>{ [1200,1500,1800].forEach((f,i)=>setTimeout(()=>SFX.tone(f,.12,"sine",.035),i*90)); }},
+  stomp: {col:0xff9a3c, snd:()=>{ SFX.tone(62,.22,"square",.06,48); setTimeout(()=>SFX.tone(58,.22,"square",.06,44),230); }},
+  curse: {col:0xff4fd8, snd:()=>{ SFX.tone(98,1.0,"triangle",.05,74); SFX.tone(147,1.0,"sine",.02,111); }},
+  sweep: {col:0x48e8e0, snd:()=>{ SFX.tone(300,.45,"sawtooth",.025,900); }},
+  bars:  {col:0xffd24a, snd:()=>{ SFX.tone(660,.12,"square",.04); setTimeout(()=>SFX.tone(990,.14,"square",.035),130); setTimeout(()=>SFX.tone(660,.12,"square",.03),260); }}
+};
 const Boss = {
   active:false, done:false, hp:0, max:0, phase:1, used:{}, won:false, def:BOSS_DEF[50], doneAt:{},
   root:null, body:null, main:null, parts:null, eye:null, fx:[], wfx:[], t:0, last:null, darkT:0, darkEl:null,
@@ -7768,6 +7775,7 @@ const Boss = {
     this.fx.forEach(f=>this._drop(f.m)); this.fx=[];
     this.wfx.forEach(f=>this._drop(f.m)); this.wfx=[]; this.last=null; this.darkT=0;
     if(this.darkEl) this.darkEl.style.opacity="0";
+    G.curseT=0; this.tellT=0; if(this.curseRing){ this._drop(this.curseRing); this.curseRing=null; }
     if(this.root) this.root.visible=false;
     G.bossWin=false; G.bossDmg=0;
   },
@@ -7843,12 +7851,13 @@ const Boss = {
     for(let i=0;i<n && pool.length;i++){ const j=Math.floor(Math.random()*pool.length); picks.push(pool[j]); pool.splice(j,1); }
     if(!picks.length || !q) return;
     this.last=picks[picks.length-1];
+    q._tell=picks.slice();
     picks.sort((a,b)=>(a==="slam"?-1:0)-(b==="slam"?-1:0));                     // 내리찍기를 먼저 — 옮겨 갈 칸을 비워 둔다
     this._avoid=[];
     picks.forEach(p=>{
       if(p==="slam") this._planSlam(q, gateZ, nextAns, curAns);
       else if(p==="shard") this._shards(gateZ,nextAns,curAns);
-      else if(p==="sweep") this._planSweep(gateZ, nextAns);
+      else if(p==="sweep") this._planSweep(gateZ, nextAns, curAns);
       else if(p==="bars") this._planBars(q, gateZ, nextAns);
       else (q._bossFx=q._bossFx||[]).push(p);
     });
@@ -7872,17 +7881,30 @@ const Boss = {
   },
   /* 두 번째 문지기 ① 방패 휘두르기 — 방패 모양 충격파가 정답 줄 한쪽의 줄들을 왔다 갔다 쓸고 다닌다. 정답 줄에는 절대 안 들어간다
      (철퇴가 닿는 끝이 늘 정답 바로 옆이면 정답이 들키므로, 반쯤은 한 칸 더 일찍 멈춘다) */
-  _planSweep(gateZ, nextAns){
-    const n=G.lanes, L=[], R=[];
+  _planSweep(gateZ, nextAns, curAns){
+    const n=G.lanes;
+    const early = this.phase===2 || Math.random()<0.5;                       // 이른 휩쓸기 — 정답 줄을 포함한 2~3칸 (1단계 절반 · 2단계 언제나)
+    let zE=null;
+    if(early){ const f=this._ansF(nextAns, curAns);
+      if(f!==null){ const w=Math.min(n-1, (this.phase===2 || n>=7) ? 3 : 2);
+        let a=nextAns-Math.floor(Math.random()*w); a=Math.max(0, Math.min(n-w, a));
+        zE=gateZ-G.spawnDist*f;
+        for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], hz=h.tile?h.tile.logicZ:h.z;
+          if(h.lane>=a && h.lane<a+w && Math.abs(hz-zE)<4 && !(h.type==="ice"||h.type==="puddle"||h.type==="crumble")) Hazards.remove(i); }
+        try{ Hazards.addMace(a, a+w-1, zE, this.phase===2); const h=Hazards.list[Hazards.list.length-1]; if(h) h.ansEarly=true; }catch(e){}
+        if(this.phase===1) return;
+      } }
+    const L=[], R=[];
     for(let j=0;j<nextAns;j++) L.push(j); for(let j=nextAns+1;j<n;j++) R.push(j);
     const useL = (L.length&&R.length) ? Math.random()<.5 : !!L.length;
     let side=(useL?L:R).slice(); if(!side.length) return;
     if(side.length>=2 && Math.random()<.5){ if(useL) side.pop(); else side.shift(); }
-    const z=gateZ-G.spawnDist*(0.45+Math.random()*0.12);
+    let z=gateZ-G.spawnDist*(0.45+Math.random()*0.12);
+    if(zE!==null){ z=gateZ-G.spawnDist*(0.60+Math.random()*0.06); if(Math.abs(z-zE)<6) return; }   // 이른 휩쓸기와 겹치지 않게
     for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], hz=h.tile?h.tile.logicZ:h.z;
       if(side.indexOf(h.lane)>=0 && Math.abs(hz-z)<4 && !(h.type==="ice"||h.type==="puddle"||h.type==="crumble")) Hazards.remove(i); }
     try{ Hazards.addMace(side[0], side[side.length-1], z, this.phase===2); }catch(e){}
-    if(this.phase===2){                              // 2단계: 반대쪽도 함께 휩쓴다 (정답 줄과 그 옆 한 칸은 비운다)
+    if(this.phase===2 && zE===null){                 // 2단계인데 이른 휩쓸기를 못 놓았을 때만: 반대쪽도 휩쓴다 (정답 줄과 그 옆 한 칸은 비운다)
       let other=(useL?R:L).slice(); if(other.length>=2){ if(useL) other.shift(); else other.pop(); } else other=[];
       if(other.length){ for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], hz=h.tile?h.tile.logicZ:h.z;
           if(other.indexOf(h.lane)>=0 && Math.abs(hz-z)<4 && h.type!=="mace" && !(h.type==="ice"||h.type==="puddle"||h.type==="crumble")) Hazards.remove(i); }
@@ -7892,11 +7914,25 @@ const Boss = {
   /* 두 번째 문지기 ② 방패 쿵 — 성문 쇠창살이 위에서 떨어져 줄을 막는다. 틈은 두 칸(정답 + 다른 한 칸)이라 틈만 보고는 정답을 모른다 */
   _planBars(q, gateZ, nextAns){
     const n=G.lanes, span=G.spawnDist, zb=(gateZ-span)+span*0.24;
-    const c=[nextAns-1,nextAns+1].filter(j=>j>=0&&j<n); const other=c.length ? c[Math.floor(Math.random()*c.length)] : -1;
-    const gaps=[nextAns, other];
+    const others=[]; for(let j=0;j<n;j++) if(j!==nextAns) others.push(j);
+    for(let i=others.length-1;i>0;i--){ const r=Math.floor(Math.random()*(i+1)); const t=others[i]; others[i]=others[r]; others[r]=t; }
+    const gaps=[nextAns].concat(others.slice(0, n>=5 ? 2 : 1));              // 틈 3칸 (줄이 적으면 2칸) — 틈만 보고는 정답을 모른다
     for(let i=Hazards.list.length-1;i>=0;i--){ const h=Hazards.list[i], hz=h.tile?h.tile.logicZ:h.z;
       if(Math.abs(hz-zb)<3.5 && !(h.type==="ice"||h.type==="puddle"||h.type==="crumble")) Hazards.remove(i); }
     for(let j=0;j<n;j++) if(gaps.indexOf(j)<0){ try{ Hazards.addBars(j, zb); }catch(e){} }
+  },
+  _ansF(nextAns, curAns){
+    const T=Math.max(1.6, approachTime(G.stage))*0.86;                       // 박자가 빨라져도 안전하게 (가장 짧은 경우)
+    const clear={normal:1.3, hard:1.0, extreme:0.9}[G.diff]||1.3;
+    const tA=(nextAns===curAns) ? 1.0 : 0.75;                                // 지금 서 있는 줄이면 피할 시간을 조금 더
+    const lo=tA/T, hi=1-clear/T;
+    return hi>lo ? lo+Math.random()*(hi-lo) : null;
+  },
+  _ansShard(gateZ, nextAns, curAns){                  // 정답 줄에도 일찍 파편 하나 — "아무것도 안 오는 줄 = 정답"을 막는다
+    const f=this._ansF(nextAns,curAns); if(f===null) return;
+    const z=gateZ-G.spawnDist*f;
+    if(Hazards.list.some(h=>h.lane===nextAns && Math.abs((h.tile?h.tile.logicZ:h.z)-z)<5)) return;
+    try{ Hazards.addMeteor(nextAns, z); const h=Hazards.list[Hazards.list.length-1]; if(h){ h.boss=true; h.ansEarly=true; } }catch(e){}
   },
   _free(nextAns,curAns){
     const bad=[nextAns,curAns].concat(this._avoid||[]), a=[];
@@ -7914,6 +7950,7 @@ const Boss = {
       if(Hazards.list.some(h=>h.lane===lane && Math.abs(h.z-z)<5)) continue;
       try{ Hazards.addMeteor(lane, z); const h=Hazards.list[Hazards.list.length-1]; if(h) h.boss=true; }catch(e){}
     }
+    if(Math.random() < (this.phase===2 ? 0.8 : 0.6)) this._ansShard(gateZ, nextAns, curAns);
   },
   _spikes(gateZ,nextAns,curAns){
     const n = G.diff==="extreme" ? 2 : 1;
@@ -8006,18 +8043,46 @@ const Boss = {
     setTimeout(()=>{ if(!G.running || !this.active) return;
       Wind.type=dir; Wind.t=1.3; Wind.show(true, dir==="left"?"←←←":"→→→"); }, 520);
   },
-  curse(){                                            // ④ 어둠의 저주
+  curse(s){                                           // ④ 저주 — 발이 무거워진다: 그 문을 지날 때까지 좌우 이동이 느려진다
     if(this.rig2 && this.rig2.kind==="multi") this._move(this._MV.roar);
-    this.pose("curse",1.4); this.darkT=1.9;
-    try{ SFX.tone(98,1.0,"triangle",.05,65); }catch(e){}
+    this.pose("curse",1.4); this.darkT=1.0;
+    const left = s ? (P.z - s.group.position.z)/Math.max(0.1,s.speed) : 3;
+    G.curseT = left + 0.25;
+    try{ SFX.tone(98,1.0,"triangle",.05,65); SFX.tone(196,.5,"sine",.03,120); }catch(e){}
+    try{ burst(P.x, 1.0, P.z, 0xff4fd8, 18); }catch(e){}
+  },
+  _curseFx(dt){                                       // 저주에 걸린 동안 — 발밑에 보라 고리 + 사슬 같은 보라 불씨
+    if(G.curseT>0) G.curseT-=dt;
+    const on = G.curseT>0 && G.running && !G.falling;
+    if(on && !this.curseRing){
+      const m=new THREE.Mesh(new THREE.RingGeometry(0.9,1.35,36), new THREE.MeshBasicMaterial({color:0xff4fd8, transparent:true, opacity:.8,
+        depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide}));
+      m.rotation.x=-Math.PI/2; m.userData.noOutline=true; scene.add(m); this.curseRing=m;
+    }
+    if(this.curseRing){
+      const m=this.curseRing;
+      if(!on){ this._drop(m); this.curseRing=null; return; }
+      m.position.set(P.x, 0.1, P.z); m.rotation.z+=dt*2.2;
+      const k=Math.min(1, G.curseT*2); m.material.opacity=(0.55+0.3*Math.sin(this.t*9))*k; m.scale.setScalar(1+0.08*Math.sin(this.t*6));
+      this.curseP=(this.curseP||0)-dt;
+      if(this.curseP<=0){ this.curseP=0.08; try{ puff(P.x+(Math.random()-.5)*1.4, .3, P.z, 0xd060ff, 2, 1.2); }catch(e){} }
+    }
+  },
+  tell(kind){                                         // 기술 예고 — 눈빛 색 + 소리
+    const T=BOSS_TELL[kind]; if(!T) return;
+    this.tellCol=T.col; this.tellT=1.3;
+    try{ T.snd(); }catch(e){}
   },
   pose(name,dur){ this.poseName=name; this.poseT=dur||0; if(name==="attack" && !this.seq) this.armT=0.6; },
   _events(){                                          // 지금 풀고 있는 문제에 걸린 공격을 알맞은 때에 발동
     if(!this.active) return;
-    const s=activeSet(); if(!s || !s.q || !s.q._bossFx) return;
+    const s=activeSet(); if(!s || !s.q) return;
     const left=(P.z - s.group.position.z)/Math.max(0.1,s.speed);
+    if(s.q._tell && !s._tellDone && left < (s.time||4)-0.25){ s._tellDone=true;
+      s.q._tell.forEach((k,i)=>setTimeout(()=>{ if(this.active) this.tell(k); }, i*650)); }
+    if(!s.q._bossFx) return;
     if(s.q._bossFx.indexOf("slam")>=0 && !s._slamDone && !this.seq && left<3.2){ s._slamDone=true; this.slam(s); }
-    if(s.q._bossFx.indexOf("curse")>=0 && !s._curseDone && left<3.4){ s._curseDone=true; this.curse(); }
+    if(s.q._bossFx.indexOf("curse")>=0 && !s._curseDone && left<3.4){ s._curseDone=true; this.curse(s); }
     if(s.q._bossFx.indexOf("stomp")>=0 && !s._stompDone && left<2.6){ s._stompDone=true; this.stomp(); }
   },
   _drop(m){ if(!m) return; if(m.parent) m.parent.remove(m); if(m.geometry) m.geometry.dispose(); if(m.material) m.material.dispose(); },
@@ -8370,6 +8435,8 @@ const Boss = {
   },
   update(dt){
     if(!this.root) return;
+    if(!this.active && G.curseT>0) G.curseT=0;                // 문지기가 쓰러지면 저주도 풀린다
+    this._curseFx(dt);
     const show = G.running && (this.active || this.deadT>0 || this.fx.length>0);
     if(!G.running && this.darkEl) this.darkEl.style.opacity="0";
     this.root.visible = show;
@@ -8406,9 +8473,11 @@ const Boss = {
       if(this.eye){
         const ep=this.def.eyeP ? this.def.eyeP[(this.phase===2&&this.transSwapped)?1:0] : null;   // 그림마다 눈 자리가 다르다
         this.eye.position.set(b.position.x+(ep?(ep[0]-0.5)*this.asp*b.scale.x:0), b.position.y+(ep?ep[1]:(this.def.eyeV||BOSS.EYE_V))*b.scale.y, 0.02);
-        this.eye.material.color.setHex(this.def.eye[this.phase===2?1:0]);
-        const glow = 0.35+0.2*Math.sin(this.t*3.2) + PO[3]*0.6;
-        this.eye.material.opacity=Math.min(1,glow); this.eye.scale.setScalar(1+PO[3]*0.9);
+        if(this.tellT>0) this.tellT-=dt;
+        const tl = this.tellT>0 ? Math.min(1,this.tellT*2.5) : 0;            // 기술 예고 — 그 기술 색으로 눈이 크게 빛난다
+        this.eye.material.color.setHex(tl>0 ? this.tellCol : this.def.eye[this.phase===2?1:0]);
+        const glow = 0.35+0.2*Math.sin(this.t*3.2) + PO[3]*0.6 + tl*(0.7+0.3*Math.sin(this.t*24));
+        this.eye.material.opacity=Math.min(1,glow); this.eye.scale.setScalar(1+PO[3]*0.9+tl*1.6);
         this.eye.visible=true;
       }
       mats.forEach(m=>m.opacity=1);
@@ -8817,7 +8886,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v196";
+const GAME_VER = "v197";
 function runReport(){
   let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
   const boss=[]; try{ Object.keys(Boss.doneAt||{}).forEach(k=>{ if(Boss.doneAt[k]) boss.push(k); }); }catch(e){}
