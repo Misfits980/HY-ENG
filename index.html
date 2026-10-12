@@ -743,6 +743,29 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
   width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.12);
   background:rgba(255,255,255,.06);color:#efe9ff;font-size:15px;cursor:pointer;font-family:var(--font)}
 
+/* 새 소식 */
+.newDot{display:none;width:7px;height:7px;border-radius:50%;background:var(--coral);margin-left:3px;vertical-align:5px;box-shadow:0 0 6px var(--coral)}
+.newsIn{padding-top:20px}
+.newsTop{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.newsBadge{padding:3px 9px;border-radius:100px;background:var(--coral);color:#2a0b05;font-size:10.5px;font-weight:900;letter-spacing:.14em}
+.newsDate{font-size:12px;color:#9d92c8;font-weight:800}
+.newsIn h2{font-size:20px;color:#ffd37a;text-wrap:balance}
+.newsList{list-style:none;margin:12px 0 4px;display:flex;flex-direction:column;gap:8px}
+.newsList li{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.newsList .nIco{font-size:22px;line-height:1.1;flex:none}
+.newsList li div{min-width:0}
+.newsList b{display:block;font-size:14.5px;font-weight:900;margin-bottom:2px}
+.newsList p{font-size:12.5px;line-height:1.5;color:#cfc4f2;font-weight:600;word-break:keep-all}
+.newsPast{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1)}
+.newsPast small{font-size:11px;color:#8d82b8;font-weight:800}.newsPast b{display:block;font-size:13.5px;margin:2px 0 4px}
+.newsPast p{font-size:12px;color:#b8aedc;line-height:1.5}
+/* 잠긴 캐릭터 */
+#selChar .tile.locked i{filter:brightness(0) opacity(.35)}
+#selChar .tile.locked b{color:#7d72a8}
+#selChar .tile .lk{display:block;margin-top:3px;font-size:9.5px;line-height:1.25;font-weight:800;color:#ffd37a;white-space:normal;word-break:keep-all}
+#selChar .tile.locked{cursor:not-allowed}
+#selChar .tile.nope{animation:nope .35s}
+@keyframes nope{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
 /* 단어 도감 · 옷 상점 */
 .menuDuo{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .menuDuo .mitem.duo{flex:1 1 0;min-width:0}
@@ -909,7 +932,8 @@ details{display:none}
       <div class="subRow">
         <button class="mitem" id="btnRankHome"><span class="mico i3"></span>랭킹</button><span class="dot">·</span>
         <button class="mitem" id="btnWords"><span class="mico i4"></span>단어 추가</button><span class="dot">·</span>
-        <button class="mitem" id="btnHelp"><span class="mico i5"></span>조작법</button>
+        <button class="mitem" id="btnHelp"><span class="mico i5"></span>조작법</button><span class="dot">·</span>
+        <button class="mitem" id="btnNews"><span class="eico" style="margin-right:4px">📢</span>새 소식<i class="newDot" id="newsDot"></i></button>
       </div>
     </nav>
     <div class="rotateTip" id="rotTip">📱 가로로 돌리면 문이 더 많이 나옵니다</div>
@@ -931,6 +955,16 @@ details{display:none}
   <button class="play ghost" id="btnStatsReset" style="margin-top:8px;opacity:.6">기록 지우기</button>
 </div></div>
 
+
+<!-- 새 소식 -->
+<div class="sheet" id="shNews"><div class="sheetIn newsIn">
+  <div class="newsTop"><span class="newsBadge">UPDATE</span><span class="newsDate" id="newsDate"></span></div>
+  <h2 id="newsTitle"></h2>
+  <ul class="newsList" id="newsList"></ul>
+  <button class="play" id="btnNewsOk">확인했어요</button>
+  <button class="mini" id="btnNewsOld" style="width:100%;margin-top:10px">지난 소식 보기</button>
+  <div id="newsOld"></div>
+</div></div>
 
 <!-- 상점 -->
 <div class="sheet" id="shShop"><div class="sheetIn shopIn">
@@ -2339,12 +2373,12 @@ const CRUMBLE = { TIME:1.25, LEN:18 };   // 흔들다리 — 한 칸에 이만�
 let _brakeShown=-1;
 function drawBrake(on){
   const el=$("brakeBar"); if(!el) return;
-  const v=Math.round(G.brake/BRAKE.MAX*100);
+  const v=Math.round(G.brake/(BRAKE.MAX*perk("brake"))*100);
   const show = on || v<100;
   if(v!==_brakeShown){ _brakeShown=v; const i=el.firstElementChild || el.children && el.children[0]; if(i && i.style) i.style.width=v+"%"; }
   if(el.classList){ el.classList.toggle("on", show); el.classList.toggle("act", !!on); }
 }
-function crumbleTime(){ return G.diff==="extreme" ? 0.8 : (G.diff==="hard" ? 1.0 : CRUMBLE.TIME); }
+function crumbleTime(){ return (G.diff==="extreme" ? 0.8 : (G.diff==="hard" ? 1.0 : CRUMBLE.TIME)) * perk("crumble"); }
 const PUDDLE  = { SLOW:0.45, LEN:9 };    // 물웅덩이 — 이동 속도가 이만큼으로 떨어진다
 const CLOUD   = { RATE:0.5, SPEED:2.6 }; // 안개 구름 — 단어 앞을 천천히 지나간다
 const FAKE    = { RATE:0.45 };           // 가짜 문 — 정답 단어가 좌우로 뒤집혀 적힌 문
@@ -3911,7 +3945,7 @@ function applyGimmicks(s){
     const canFlash = G.stage >= FLASH_FROM_STAGE;
     s.hideMode = (canFlash && Math.random() < 0.5) ? "flash" : "onetime";
     const t = HIDE_TIME[s.hideMode];
-    s.readSec = t.readSec; s.minLeft = t.minLeft; s.readT = 0;
+    s.readSec = t.readSec + perk("read"); s.minLeft = t.minLeft; s.readT = 0;
     s.time *= 1.30;                       // 단어가 사라지는 문제는 접근시간을 넉넉히 준다
     s.speed = G.spawnDist / s.time;
   }
@@ -3922,7 +3956,7 @@ function applyGimmicks(s){
   if(s.q && s.q._bossFx && s.q._bossFx.indexOf("curse")>=0 && typeof Boss!=="undefined" && Boss.active){   // 보스의 어둠의 저주
     const t=HIDE_TIME.flash;
     if(!s.hideMode){ s.time*=1.30; s.speed=G.spawnDist/s.time; }
-    s.hideMode="flash"; s.readSec=t.readSec; s.minLeft=t.minLeft; s.readT=0;
+    s.hideMode="flash"; s.readSec=t.readSec + perk("read"); s.minLeft=t.minLeft; s.readT=0;
   }
 }
 
@@ -6199,6 +6233,13 @@ const HURT_MSG = { meteor:["쾅!","별똥별에 맞았어요 — 빛나는 표�
   statue:["쾅!","석상의 창에 맞았어요 — 눈이 빛나면 옆 줄을 피하세요"], spike:["쾅!","수정 가시에 찔렸어요 — 빛나는 금은 피하세요"],
   geyser:["앗 뜨거!","용암이 솟았어요 — 빛나는 바닥은 피하세요"], mace:["쾅!","방패 충격파에 맞았어요"], tree:["쿵!","쓰러진 나무에 깔렸어요"], statueFall:["쿵!","쓰러진 석상에 깔렸어요"] };
 function trapHit(h){
+  if(G.char==="knight" && G.guardZone!==G.zone){             // 기사 — 방패로 한 번 막는다 (지대마다)
+    G.guardZone=G.zone; G.inv=Math.max(G.inv,0.9); G.hitStop=0.06; G.shake=.35;
+    try{ SFX.tone(1100,.1,"square",.04,1500); SFX.tone(550,.16,"triangle",.04); }catch(e){}
+    burst(P.x, 1.3, P.z-0.5, 0xffe08a, 22);
+    verdict("🛡️ 막았다!", "", COL.mint, "rgba(255,224,138,.22)");
+    return;
+  }
   const k = h.rubble ? "rubble" : h.statueFall ? "statueFall" : h.type;
   const m = HURT_MSG[k] || ["쾅!","함정에 맞았어요"];
   G.combo = 0; SFX.crash(); G.hitStop = 0.1;
@@ -6274,6 +6315,13 @@ const Wind = {
 };
 
 function hitHole(){
+  if(G.char==="ghost" && G.floatZone!==G.zone){               // 유령 — 둥실 떠올라 한 번 버틴다 (지대마다)
+    G.floatZone=G.zone; G.inv=Math.max(G.inv,0.9);
+    try{ SFX.tone(880,.25,"sine",.04,1320); }catch(e){}
+    puff(P.x, .4, P.z, 0xdff0ff, 14, 3);
+    verdict("👻 둥실!", "", COL.mint, "rgba(200,230,255,.22)");
+    return;
+  }
   G.combo = 0; SFX.crash(); G.hitStop = 0.09;
   verdict("함정!", "바닥 구멍을 피하세요", COL.coral, "rgba(255,122,102,.24)");
   G.shake = .5;
@@ -6290,7 +6338,7 @@ function hitBlock(h){
     h.mesh.userData.knock = 1;
     h.mesh.userData.dir = (P.x < h.mesh.position.x) ? 1 : -1;
   }
-  P.z = clamp(P.z + 4.0, CFG.Z_FORWARD, CFG.Z_BACK);   // 뒤로 밀림 = 시간 손해
+  P.z = clamp(P.z + perk("knock"), CFG.Z_FORWARD, CFG.Z_BACK);   // 뒤로 밀림 = 시간 손해
   G.shake = .45;
   burst(P.x, 1.0, P.z-1, COL.coral, 14);
   verdict("쿵!", "장애물에 부딪혔습니다", COL.edge, "rgba(255,196,107,.2)");
@@ -6444,7 +6492,7 @@ function updatePlayer(dt){
   const half = CFG.LANE_W*G.lanes/2 - CFG.LANE_W*0.5;
   const icy = P.onIce || (!!zone().iceAll);        // 얼음 동굴은 트랙 전체가 빙판
   const grip = icy ? (G.gentle ? 0.45 : ICE.GRIP) : 1;
-  const slow = P.onPuddle ? PUDDLE.SLOW : 1;          // 물웅덩이에서는 느려진다
+  const slow = P.onPuddle ? perk("puddle") : 1;          // 물웅덩이에서는 느려진다
 
   /* 흔들다리 — 같은 칸에 계속 서 있으면 발밑이 무너진다 */
   if(P.onCrumble && !G.falling && G.inv<=0 && !(G.passSafe>0)){
@@ -6467,15 +6515,15 @@ function updatePlayer(dt){
     P.spray = (P.spray||0) - dt;
     if(P.spray<=0){ P.spray=0.07; puff(P.x, .15, P.z+0.3, 0xe8faff, 2, 2.6); }  // 얼음가루
   }
-  const slick = icy && !G.gentle && G.diff!=="easy";   // 보통부터 — 쉬움·유치원은 예전처럼 살짝만
+  const slick = icy && !G.gentle && G.diff!=="easy" && perk("icy");   // 보통부터 — 쉬움·유치원은 예전처럼 살짝만
   const ixs = (slick && ix!==0) ? Math.sign(ix)*Math.min(1, Math.abs(ix)*ICE.AMP) : ix;
-  const tvx = ixs*CFG.MOVE_X*slow;
+  const tvx = ixs*CFG.MOVE_X*slow*perk("move");
   if(slick){
     const speeding = ixs!==0 && tvx*P.vx>=0 && Math.abs(tvx)>Math.abs(P.vx);   // 같은 쪽으로 더 빨라질 때만 잘 붙는다
     P.vx += (tvx - P.vx) * Math.min(1, dt*(speeding ? CFG.ACCEL*ICE.PUSH : CFG.BRAKE*ICE.SLIDE));
   } else
   P.vx += (tvx - P.vx) * Math.min(1, dt*(ix===0 ? CFG.BRAKE : CFG.ACCEL)*grip);
-  const wx = G.falling ? 0 : Wind.pushX();
+  const wx = G.falling ? 0 : Wind.pushX()*perk("wind");
   P.x += (P.vx + wx*((ix!==0 && ix*wx<0) ? WIND.AGAINST : 1))*dt;
   if((P.x<=-half && P.vx<0) || (P.x>=half && P.vx>0)) P.vx = 0;   // 벽 쪽으로 가는 속도만 멈춤 (돌풍에 벽에 눌려도 빠져나올 수 있게)
   P.x = clamp(P.x, -half, half);
@@ -6870,7 +6918,7 @@ function loop(){
     /* 브레이크 — 뒤로 당기고 있으면 문·길·함정이 느려진다 (게이지만큼만) */
     const braking = !G.falling && input.y < -0.35 && G.brake > 0.02;
     if(braking) G.brake = Math.max(0, G.brake - dt);
-    else G.brake = Math.min(BRAKE.MAX, G.brake + dt*BRAKE.REFILL);
+    else G.brake = Math.min(BRAKE.MAX*perk("brake"), G.brake + dt*BRAKE.REFILL);
     G.worldScale += ((braking ? BRAKE.SLOW : 1) - G.worldScale) * Math.min(1, dt*8);
     const wdt = dt * G.worldScale;
     drawBrake(braking);
@@ -7289,7 +7337,9 @@ const TILE_EMOJI = {normal:"⚡", easy:"🐣", hard:"🔥", extreme:"⚔️",   
 function drawReadyHero(){
   const box=$("rhImg"), nm=$("rhName"); if(!box) return;
   const c=(CHARACTERS.filter(x=>x.id===G.char)[0]||CHARACTERS[0]);
-  if(TrapArt.tex["char-"+c.id]){ box.style.backgroundImage="url(char-"+c.id+".webp)"; box.textContent=""; box.className="rhImg run"; }
+  let wo=null; try{ wo=Wallet.wearing(c.id); }catch(e){}
+  if(wo && TrapArt.tex["outfit-"+wo]){ box.style.backgroundImage="url(outfit-"+wo+".webp)"; box.textContent=""; box.className="rhImg run"; }
+  else if(TrapArt.tex["char-"+c.id]){ box.style.backgroundImage="url(char-"+c.id+".webp)"; box.textContent=""; box.className="rhImg run"; }
   else { box.style.backgroundImage=""; box.textContent=c.emoji; box.className="rhImg"; }
   if(nm) nm.textContent=c.name;
 }
@@ -7513,7 +7563,7 @@ const Boss = {
   },
   hit(){                                              // 정답 — 1 데미지. true 면 이번 정답으로 쓰러뜨림
     if(!this.active) return false;
-    this.hp=Math.max(0,this.hp-1); G.bossDmg=this.max-this.hp;
+    this.hp=Math.max(0,this.hp-perk("arrows")); G.bossDmg=this.max-this.hp;
     this.arrow();
     if(this.hp<=0){ this.win(); return true; }
     return false;
@@ -8254,7 +8304,7 @@ function finishRun(ch){
   setTimeout(()=>{ if(!G.finishing) return; G.finishing=false; G.skipOutro=true; gameOver(); G.skipOutro=false; }, 2800);
 }
 function startGame(){
-  G.brake = BRAKE.MAX; G.worldScale = 1;
+  G.brake = BRAKE.MAX*perk("brake"); G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
   try{ const r0=Rank.of(G.set); G.rankBefore = r0 ? r0.i : null; }catch(e){ G.rankBefore=null; }
   Attract.focus=false; Attract.clear();
@@ -8272,6 +8322,8 @@ function startGame(){
   G.maxLives = DIFF[G.diff].lives || CFG.LIVES; G.lives = G.maxLives;
   if(G.rule==="endless"){ G.maxLives = 1; G.lives = 1; }   // 한 번 틀리면 끝
   if(G.rule==="time"){ G.maxLives = 99; G.lives = 99; }    // 죽지 않고 시간으로만 끝난다
+  if(G.rule!=="endless" && G.rule!=="time"){ G.maxLives += perk("lives"); G.lives = G.maxLives; }
+  G.guardZone=-1; G.floatZone=-1;
   G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false; G.zonesPassed=0; G.healTold=false; G.healTag=false; G._gemDone=false; G.dexNew=0;
   G.lane=Math.floor(G.lanes/2); G.inv=1.2;
   G.testRun = TEST_STAGE>0;
@@ -8289,7 +8341,7 @@ function startGame(){
   spawnSet(); updateHUD();
   if(G.testRun) setTimeout(()=>{ try{ verdict("🧪 시험 모드", TEST_STAGE+"단계부터 · 랭킹에 안 올라가요", COL.edge, "rgba(255,211,122,.18)"); }catch(e){} }, 700);
   ["scStart","scSetup","scOver","scRank","scPause"].forEach(x=>$(x).classList.remove("on"));
-  $("shWords").classList.remove("on");
+  $("shWords").classList.remove("on"); try{ $("shNews").classList.remove("on"); }catch(e){}
   $("hud").classList.add("on");
   camera.position.set(0, VIEW.camY*0.72, VIEW.camZ*0.52);   // 메뉴 시점에서 시작해 뒤로 빠진다
   const go=$("goTag"), gt=$("goText");
@@ -8410,6 +8462,10 @@ function gameOver(){
   Best.save(G.diff, {score:G.score, stage:G.stage, acc:acc});
   Stats.addGame(G.right, G.wrong, G.wrongWords);
   try{ drawGemResult(settleGems()); }catch(e){}
+  try{ const nu=Unlock.check(); if(nu.length){
+      const names=nu.map(id=>{ const c=CHARACTERS.filter(x=>x.id===id)[0]; return c ? c.emoji+" "+c.name : id; }).join(", ");
+      const hl=$("oHighlight"); hl.innerHTML="🔓 새 캐릭터! <b>"+names+"</b>"; hl.className="best";
+      setTimeout(()=>{ try{ confetti(); SFX.tone(784,.25,"triangle",.05,1568); }catch(e){} }, 700); } }catch(e){}
   LastSetup.save({rule:G.rule, diff:G.diff, mode:G.mode, set:G.set, char:G.char,
                   voice:Voice.on, picture:G.picture, versus:false});
 
@@ -8478,7 +8534,8 @@ document.addEventListener("visibilitychange", ()=>{
   }catch(e){}
 });
 
-const show = id => { ["scStart","scSetup","scOver","scRank","scPause"].forEach(x=>$(x).classList.toggle("on", x===id)); };
+const show = id => { ["scStart","scSetup","scOver","scRank","scPause"].forEach(x=>$(x).classList.toggle("on", x===id));
+  if(id==="scSetup") try{ Unlock.paint(); }catch(e){} };
 /* 결과창 — 카드 발음 듣기 · 틀린 단어만 다시 풀기 · R 키 재시작 */
 $("oReview").addEventListener("click", e=>{
   const spk = e.target.closest ? e.target.closest(".spk") : null;
@@ -8505,6 +8562,42 @@ $("btnBack").addEventListener("click",()=>{
   Attract.focus=false; show("scStart");
 });
 $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.add("on"); });
+/* =====================================================================
+   새 소식 — 게임을 켤 때 새 공지가 있으면 한 번 보여 준다
+   새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
+   ===================================================================== */
+const NEWS = [
+  {id:"2026-10-12", date:"10월 12일", title:"보석 · 단어 도감 · 캐릭터 해금!",
+   items:[
+     ["💎","보석","정답을 맞히면 보석이 조금씩 모여요. 상점에서 특별한 옷을 살 수 있어요 (옷은 곧 공개!)"],
+     ["📖","단어 도감","같은 단어를 두 번 연속 맞히면 도감에 스티커가 붙어요. 한 쪽을 다 채우면 보석 선물!"],
+     ["🔓","캐릭터 해금","새 캐릭터는 도전 과제를 깨야 열려요. 캐릭터 고르는 곳에서 조건을 확인해 보세요"],
+     ["🤫","비밀","캐릭터마다 숨겨진 특별한 능력이 있어요. 누가 어떤 능력을 가졌는지 찾아보세요!"]
+   ]}
+];
+const News = {
+  KEY:"hyeng_news_seen",
+  seen(){ try{ return localStorage.getItem(this.KEY)||""; }catch(e){ return ""; } },
+  mark(){ try{ localStorage.setItem(this.KEY, NEWS[0].id); }catch(e){} this.dot(); },
+  unread(){ return NEWS.length && this.seen()!==NEWS[0].id; },
+  dot(){ const d=$("newsDot"); if(d) d.style.display=this.unread()?"inline-block":"none"; },
+  fill(n){ $("newsDate").textContent=n.date; $("newsTitle").textContent=n.title;
+    $("newsList").innerHTML=n.items.map(it=>'<li><span class="nIco">'+it[0]+'</span><div><b>'+it[1]+'</b><p>'+it[2]+'</p></div></li>').join(""); },
+  open(){ if(!NEWS.length) return; this.fill(NEWS[0]); $("newsOld").innerHTML=""; $("btnNewsOld").style.display = NEWS.length>1 ? "block" : "none";
+    $("shNews").classList.add("on"); },
+  close(){ $("shNews").classList.remove("on"); this.mark(); },
+  old(){ $("newsOld").innerHTML=NEWS.slice(1).map(n=>'<div class="newsPast"><small>'+n.date+'</small><b>'+n.title+'</b>'
+      +n.items.map(it=>'<p>'+it[0]+' '+it[1]+' — '+it[2]+'</p>').join("")+'</div>').join(""); $("btnNewsOld").style.display="none"; },
+  auto(){ this.dot();
+    if(TEST_STAGE>0 || !this.unread()) return;
+    setTimeout(()=>{ try{ if(!G.running && $("scStart").classList.contains("on")) this.open(); }catch(e){} }, 900); }
+};
+$("btnNews").addEventListener("click",()=>{ SFX.click(); News.open(); });
+$("btnNewsOk").addEventListener("click",()=>{ SFX.click(); News.close(); });
+$("btnNewsOld").addEventListener("click",()=>{ SFX.click(); News.old(); });
+$("shNews").addEventListener("click",e=>{ if(e.target===$("shNews")) News.close(); });
+News.auto();
+
 
 /* 이어서 하기 — 마지막 설정 그대로 바로 시작 */
 function refreshResume(){
@@ -8527,7 +8620,7 @@ $("btnResume").addEventListener("click",()=>{
     G.diff = DIFF[st.diff] ? st.diff : "normal";
     G.mode = st.mode || "mix";
     G.set  = WORD_SETS[st.set] ? st.set : "elem";
-    G.char = (CHARACTERS.filter(c=>c.id===st.char)[0] ? st.char : "hero");
+    G.char = (CHARACTERS.filter(c=>c.id===st.char)[0] && Unlock.has(st.char)) ? st.char : "hero";
     Voice.on = st.voice!==false;
     G.picture = st.picture!==false;
     startGame();
@@ -8575,6 +8668,89 @@ function drawStats(){
       }).join("")
     : '<div class="note">아직 틀린 단어가 없습니다.</div>';
 }
+
+/* =====================================================================
+   캐릭터 해금 — 용사·탐험가·궁수는 처음부터, 나머지는 도전 과제로 연다
+   - 이미 이 기기에서 한 판이라도 한 아이는 9명 모두 열린 채로 (업데이트 전 기록이 있으면)
+   - 캐릭터마다 숨은 효과가 있다 (아이들에게는 따로 설명하지 않는다 — CHAR_PERK)
+   - 시험 주소(?stage=)로 한 판은 해금에 세지 않는다
+   ===================================================================== */
+const CHAR_GOAL = {
+  mage:   {txt:"밤하늘(41단계)까지 가기"},
+  wolf:   {txt:"보통 이상에서 화산(31단계)까지 가기"},
+  cat:    {txt:"한 판에 콤보 15 만들기"},
+  scholar:{txt:"단어 도감 100개 모으기"},
+  knight: {txt:"첫 번째 문지기 쓰러뜨리기"},
+  ghost:  {txt:"오늘의 20을 5번 끝내기"}
+};
+/* 숨은 효과 (설명 없음)
+   용사: 하트 +1 · 탐험가: 금 간 길에서 더 오래 버티고 물웅덩이에서 덜 느려짐 · 궁수: 보스전 콤보 5부터 화살 2발
+   마법사: 브레이크 게이지 1.5배 · 늑대: 빙판·돌풍에 덜 밀림 · 고양이: 부딪혀도 반만 밀리고 좌우로 조금 빠름
+   학자: 사라지는 단어가 조금 더 오래 보임 · 기사: 지대마다 한 번 하트 깎이는 공격을 막음 · 유령: 지대마다 한 번 구멍에서 떠오름 */
+const CHAR_PERK = {
+  lives:    c => c==="hero" ? 1 : 0,
+  crumble:  c => c==="explorer" ? 1.6 : 1,
+  puddle:   c => c==="explorer" ? 0.75 : PUDDLE.SLOW,
+  arrows:   c => (c==="archer" && G.combo>=5) ? 2 : 1,
+  brake:    c => c==="mage" ? 1.5 : 1,
+  wind:     c => c==="wolf" ? 0.5 : 1,
+  icy:      c => c!=="wolf",
+  knock:    c => c==="cat" ? 2.0 : 4.0,
+  move:     c => c==="cat" ? 1.1 : 1,
+  read:     c => c==="scholar" ? 0.5 : 0
+};
+const Unlock = (function(){
+  const KEY="hyeng_unlock_v1", FREE=["hero","explorer","archer"];
+  let mem=null;
+  function load(){
+    if(mem) return mem;
+    mem={got:{}, daily:0};
+    try{ const v=JSON.parse(localStorage.getItem(KEY)); if(v && v.got) mem=v; }catch(e){}
+    if(!mem.seeded){                                    // 처음 한 번 — 이미 해 본 기기는 모두 열어 둔다
+      let played=false;
+      try{ played = (Stats.all().games||0)>0 || !!LastSetup.get(); }catch(e){}
+      if(played) CHARACTERS.forEach(c=>mem.got[c.id]=1);
+      mem.seeded=1; save();
+    }
+    return mem;
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} }
+  return {
+    has(id){ return FREE.indexOf(id)>=0 || !!load().got[id]; },
+    give(id){ const a=load(); if(this.has(id)) return false; a.got[id]=1; save(); return true; },
+    /* 한 판이 끝날 때 — 새로 열린 캐릭터 목록 */
+    check(){
+      if(G.testRun) return [];
+      const a=load(), out=[];
+      if(G.rule==="daily" && G.solved>=RULES.daily.count){ a.daily=(a.daily||0)+1; save(); }
+      const norm = G.rule==="normal";
+      const tests = {
+        mage:   norm && G.stage>=41,
+        wolf:   norm && G.diff!=="easy" && !G.gentle && G.stage>=31,
+        cat:    (G.bestCombo||0)>=15,
+        scholar:(function(){ try{ return Dex.count(1)+Dex.count(2)+Dex.count(3)>=100; }catch(e){ return false; } })(),
+        knight: !!(Boss.doneAt && Boss.doneAt[50]),
+        ghost:  (a.daily||0)>=5
+      };
+      Object.keys(tests).forEach(id=>{ if(tests[id] && this.give(id)) out.push(id); });
+      return out;
+    },
+    /* 캐릭터 고르는 칸 — 잠긴 캐릭터는 실루엣 + 조건 */
+    paint(){
+      document.querySelectorAll("#selChar [data-v]").forEach(el=>{
+        const id=el.dataset.v, lock=!this.has(id);
+        el.classList.toggle("locked", lock);
+        let t=el.querySelector(".lk");
+        if(lock){ if(!t){ t=document.createElement("small"); t.className="lk"; el.appendChild(t); } t.textContent="🔒 "+((CHAR_GOAL[id]||{}).txt||""); }
+        else if(t) t.remove();
+      });
+      if(!this.has(G.char)) G.char="hero";
+    }
+  };
+})();
+function perk(k){ try{ return CHAR_PERK[k](G.char); }
+  catch(e){ return ({lives:0, crumble:1, puddle:0.45, arrows:1, brake:1, wind:1, icy:true, knock:4.0, move:1, read:0})[k]; } }   // 아직 준비 전이면 기본값
+
 /* =====================================================================
    보석 · 옷 상점 · 단어 도감
    - 보석(💎): 정답을 쌓아야 모인다. 정답 1개 = 점수 2 (어려움 3 · 극한 4), 점수 20 = 보석 1개 (남은 점수는 다음 판으로 이어짐)
@@ -8775,6 +8951,13 @@ const DexUI = {
     if(gift.length) $("dexMsg").textContent="👑 "+this.b+"권 완성! "+gift.map(o=>o.name).join(", ")+" 옷을 받았어요"; }
 };
 
+$("selChar").addEventListener("click",e=>{
+  const t=e.target.closest && e.target.closest("[data-v]"); if(!t || Unlock.has(t.dataset.v)) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  t.classList.remove("nope"); void t.offsetWidth; t.classList.add("nope");
+  try{ SFX.tone(200,.12,"square",.035); }catch(err){}
+}, true);
+Unlock.paint();
 $("btnShop").addEventListener("click",()=>ShopUI.open());
 $("btnDex").addEventListener("click",()=>DexUI.open());
 $("btnShopClose").addEventListener("click",()=>{ SFX.click(); $("shShop").classList.remove("on"); });
