@@ -9101,7 +9101,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v207";
+const GAME_VER = "v208";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10140,10 +10140,10 @@ const ShopUI = {
 };
 
 /* ── 도감 화면 ── */
-/* 도감 자세히 데이터 — 권마다 data/dex<권>.json (도감을 열 때만 받는다). 지금은 1권만 있다
+/* 도감 자세히 데이터 — 권마다 data/dex<권>.json (도감을 열 때만 받는다). 지금은 ★1·★2 (data/dex1.json · dex2.json)
    단어 → [설명, 품사, 변하는 모양, [[예문,해석]×3], 발음기호, 한글 소리, 자주 쓰는 말, {o 반대 · s 비슷 · f 가족 · g 같은 무리}, 쓰임 팁, 재미있는 사실] */
 const DexData = {
-  has:{1:true}, d:{}, st:{},
+  has:{1:true, 2:true}, d:{}, st:{},
   load(b){ if(!this.has[b] || this.st[b]) return; this.st[b]="loading";
     fetch("data/dex"+b+".json").then(r=>r.json()).then(j=>{ Object.assign(this.d,j); this.st[b]="ok"; if(DexDet.cur) DexDet.show(DexDet.cur,true,true); })
       .catch(()=>{ this.st[b]=null; }); },
@@ -10191,12 +10191,13 @@ const DexDet = {
         h+='<p class="wDesc">'+this.esc(D[0])+'</p>'+(D[8]?'<div class="wTip"><b>!</b><span>'+this.esc(D[8])+'</span></div>':'')
           +(D[9]?'<div class="wFact"><b>💡 알고 있었어요?</b><span>'+this.esc(D[9])+'</span></div>':'')
           +'<div class="wSec">예문</div>'+D[3].map(x=>'<div class="wEx"><div><p>'+this.hl(x[0],en,D[2])+'</p><small>'+this.esc(x[1])+'</small></div><button class="wSay sm" data-say="'+this.esc(x[0])+'">🔊</button></div>').join("")
-          +'<div class="wSec">변하는 모양 · '+(/동사/.test(D[1])&&!/^명사/.test(D[1])?"했어요 · 해 왔어요 · 하는 중":/형용사/.test(D[1])?"더 ~한 · 가장 ~한":/명사/.test(D[1])?"여러 개일 때":"모양")+'</div>'
-          +'<div class="wForms"><span>'+en+'</span><span class="ar">→</span>'+this.esc(D[2]).replace(/\(([^)]*)\)/g,'<span class="nt">$1</span>').split(" · ").map(f=>'<span class="f">'+f+'</span>').join('<span class="ar">·</span>')+'</div>'
+          +(/과거형/.test(D[1]) ? '<div class="wSec">변하는 모양 · 원래 → 과거 → 다 한 모양</div><div class="wForms">'+D[2].split(" → ").map(f=>'<span class="f"'+(f===en?' style="color:var(--mint)"':'')+'>'+this.esc(f)+'</span>').join('<span class="ar">→</span>')+'</div>' :
+           '<div class="wSec">변하는 모양 · '+(/동사/.test(D[1])&&!/^명사/.test(D[1])?"했어요 · 해 왔어요 · 하는 중":/형용사/.test(D[1])?"더 ~한 · 가장 ~한":/명사/.test(D[1])?"여러 개일 때":"모양")+'</div>'
+          +'<div class="wForms"><span>'+en+'</span><span class="ar">→</span>'+this.esc(D[2]).replace(/\(([^)]*)\)/g,'<span class="nt">$1</span>').split(" · ").map(f=>'<span class="f">'+f+'</span>').join('<span class="ar">·</span>')+'</div>')
           +(D[6]?'<div class="wSec">자주 같이 쓰는 말</div><div class="wCols">'+D[6].split(" · ").map(c=>'<button class="wCol" data-say="'+this.esc(c)+'">'+this.hl(c,en,D[2])+'</button>').join("")+'</div>':'');
         const r=D[7]||{}, rows=[]; if(r.o) rows.push(["반대말",r.o]); if(r.s) rows.push(["비슷한 말",r.s]); if(r.f) rows.push(["단어 가족",r.f]);
-        const L=Dex.list(book), i=L.findIndex(x=>x.en===en), p0=Math.floor(i/20)*20;
-        rows.push(["같은 쪽", r.g || L.slice(p0,p0+20).filter(x=>x.en!==en).slice(0,4).map(x=>x.en).join(", ")]);
+        if(r.g) rows.push(["같은 무리", r.g]);
+        else if(wh){ const A=wh.a, l0=Math.floor(wh.i/5)*5; rows.push(["같은 앨범", A.words.slice(Math.max(0,l0-2),l0+7).filter(x=>x.en!==en).slice(0,4).map(x=>x.en).join(", ")]); }
         h+='<div class="wSec">관련 단어</div><div class="wRel">'+rows.map(x=>'<div class="wRr"><span class="wRk">'+x[0]+'</span><div class="wRv">'+this.link(x[1],en)+'</div></div>').join("")+'</div>';
         h+='<div class="wSec">연습해 보기 · 철자 맞추기</div><div class="wQuiz" id="wQuiz"></div>';
       }
