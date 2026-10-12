@@ -4264,7 +4264,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-warden","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","salamander-volcano","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-warden","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
           "floor-hall","props-hall","gate-hall","sign-hall","block-hall","chandelier-hall","knight-hall",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
@@ -4922,6 +4922,19 @@ function makeBlock(){
     const frost=new THREE.Mesh(new THREE.CircleGeometry(W*0.6,16),
       new THREE.MeshBasicMaterial({color:0xe8faff, transparent:true, opacity:.35}));
     frost.rotation.x=-Math.PI/2; frost.position.y=0.03; g.add(frost);
+  }
+  else if(kind==="lava" && TrapArt.has("salamander-volcano")){
+    /* 화산 — 그림 불도롱뇽 (옆모습 2장으로 걷는다. 왼쪽으로 갈 땐 판을 뒤집어 뒷면 = 거울) */
+    const tx=TrapArt.tex["salamander-volcano"].clone(); tx.needsUpdate=true; tx.repeat.set(0.5,1);
+    const im=tx.image, asp=(im && im.width) ? (im.height/(im.width/2)) : 0.42;
+    const Wd=CFG.LANE_W*0.78, Hd=Wd*asp;
+    const body=new THREE.Group(); g.add(body);
+    const geo=new THREE.PlaneGeometry(Wd,Hd); geo.translate(0,Hd/2-0.04,0);
+    const pl=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tx, transparent:true, alphaTest:.05, side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}));
+    pl.userData.noOutline=true; body.add(pl);
+    const glow=new THREE.Mesh(new THREE.PlaneGeometry(Wd*1.1,Wd*0.5), new THREE.MeshBasicMaterial({map:Hazards._glowTex("white")||null, color:0xff6a2a, transparent:true, opacity:.45, depthWrite:false, blending:THREE.AdditiveBlending}));
+    glow.rotation.x=-Math.PI/2; glow.position.y=.05; glow.userData.noOutline=true; g.add(glow);   // 발밑 용암 빛
+    g.userData.sala={body, tail:new THREE.Group(), legs:[], t:Math.random()*6, tex:tx, glow, art:true};
   }
   else if(kind==="lava"){
     /* 화산 — 좌우로 기어다니는 불도롱뇽 */
@@ -6097,6 +6110,13 @@ const Hazards = {
         sa.legs.forEach((l,i)=>{ l.rotation.z = Math.sin(sa.t*7 + i*1.6)*0.6; });
         sa.tail.rotation.y = Math.sin(sa.t*5)*0.45;
         sa.body.position.y = Math.abs(Math.sin(sa.t*7))*0.03;
+        if(sa.art){                                  // 그림 — 2장 번갈아(걷기) · 살짝 출렁 · 발밑 불씨
+          sa.tex.offset.x = (Math.floor(sa.t*7/Math.PI)%2) ? 0.5 : 0;
+          sa.body.position.y = Math.abs(Math.sin(sa.t*7))*0.07;
+          sa.body.scale.set(1+0.03*Math.sin(sa.t*14), 1-0.03*Math.sin(sa.t*14), 1);
+          sa.glow.material.opacity = 0.35+0.15*Math.sin(sa.t*9);
+          sa.fx=(sa.fx||0)-dt; if(sa.fx<=0){ sa.fx=0.18; try{ puff(h.mesh.position.x-dir*0.9, .12, h.mesh.position.z, 0xff7a2a, 2, 1.2); }catch(e){} }
+        }
       }
       if(h.mesh.userData.knock > 0){               // 맞은 장애물의 반동
         const u=h.mesh.userData;
