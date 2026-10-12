@@ -759,6 +759,19 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
 .newsPast{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1)}
 .newsPast small{font-size:11px;color:#8d82b8;font-weight:800}.newsPast b{display:block;font-size:13.5px;margin:2px 0 4px}
 .newsPast p{font-size:12px;color:#b8aedc;line-height:1.5}
+/* 상점 — 달리기 효과 미리보기 */
+.fxPrev{position:relative;height:96px;margin:4px 0 10px;border-radius:14px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 120%,rgba(139,123,216,.35),rgba(20,14,44,.0) 70%),linear-gradient(180deg,#1b1338,#120c26)}
+.fxPrev:after{content:"";position:absolute;left:0;right:0;bottom:16px;height:1px;background:rgba(255,255,255,.12)}
+.fxPrev i{position:absolute;bottom:14px;font-style:normal;font-size:15px;opacity:0;animation:fxUp 1.4s ease-out infinite}
+.fxPrev .fxRun{position:absolute;right:8%;bottom:14px;font-size:24px;transform:scaleX(-1);animation:fxBob .35s ease-in-out infinite alternate}
+.fx-snow i{animation-name:fxDrift}.fx-rainbow i{animation-name:fxFlat;font-size:13px}.fx-comet i{bottom:40px;animation-name:fxFlat}
+.fx-fire i{animation-duration:.9s}
+@keyframes fxUp{0%{opacity:0;transform:translateY(6px) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1.1)}}
+@keyframes fxDrift{0%{opacity:0;transform:translate(0,-30px) rotate(0)}25%{opacity:1}100%{opacity:0;transform:translate(-14px,4px) rotate(180deg)}}
+@keyframes fxFlat{0%{opacity:0;transform:translateX(0) scale(.7)}20%{opacity:1}100%{opacity:0;transform:translateX(-26px) scale(1)}}
+@keyframes fxBob{to{transform:scaleX(-1) translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.fxPrev i,.fxPrev .fxRun{animation:none;opacity:.8}}
 /* 잠긴 캐릭터 */
 #selChar .tile.locked i{filter:brightness(0) opacity(.35)}
 #selChar .tile.locked b{color:#7d72a8}
@@ -972,6 +985,8 @@ details{display:none}
   <p class="note" id="shopMsg"></p>
   <div class="glab" style="margin-top:14px">👕 옷</div>
   <div class="sGrid" id="shopGrid"></div>
+  <div class="glab" style="margin-top:18px">✨ 달리기 효과 <span>· 하나만 켤 수 있어요</span></div>
+  <div class="sGrid" id="shopFx"></div>
   <div class="glab" style="margin-top:18px">📖 도감 완성 보상</div>
   <div class="sGrid" id="shopDex"></div>
   <button class="play ghost" id="btnShopClose" style="margin-top:16px">닫기</button>
@@ -4211,7 +4226,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-shield-parts","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-shield-rig","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -4260,6 +4275,7 @@ const TrapArt = {
       if(n==="floor-"+cur && typeof Ground!=="undefined" && Ground.mat){ applyFloorArt(null); applyLandArt(); }
       if(n==="props-"+cur && typeof Props!=="undefined"){ Props.kind=null; Props.build(propKey()); }
       if((n==="skin-"+G.char || n==="char-"+G.char) && typeof setCharacter==="function") setCharacter(G.char);
+      if(n.indexOf("boss-")===0 && typeof Boss!=="undefined" && Boss.refreshArt) Boss.refreshArt();
       if(n.indexOf("outfit-")===0 && typeof Wallet!=="undefined" && n==="outfit-"+Wallet.wearing(G.char) && typeof setCharacter==="function") setCharacter(G.char);
     }catch(e){}
   },
@@ -6938,6 +6954,7 @@ function loop(){
     }
     updatePlayer(dt);
     updateFx(dt);
+    try{ Trail.update(dt, G.groundSpeed*(G.worldScale||1)); }catch(e){}
     updateRings(dt);
     updateMarks(wdt, G.groundSpeed);
     updateAmbience(dt);
@@ -7514,12 +7531,13 @@ const BOSS = {
 const BOSS_DEF = {
   50:{ id:"knight", name:"첫 번째 문지기", tex:["boss-knight","boss-knight-2"], parts:"boss-knight-parts",
        eye:[0xb070ff,0xff5fc0], eyeV:0.837, p1:["slam","shard"], p2:["slam","shard","stomp","curse"] },
-  80:{ id:"shield", name:"두 번째 문지기", tex:["boss-shield","boss-shield-2"], parts:"boss-shield-parts", cells:4,
-       // 조각 그림: [1단계 몸, 1단계 방패(손 포함), 2단계 몸, 2단계 방패(팔 포함)] — 방패는 팔꿈치/어깨를 축으로 돈다
-       rig:{ p1:{body:0, piece:1, pivot:{u:0.3955, v:0.6888}}, p2:{body:2, piece:3, pivot:{u:0.6104, v:0.7448}} },
-       eye:[0x48e8e0,0xa8fff8], eyeV:0.856, eyeP:[[0.528,0.856],[0.446,0.751]], chestP:[0.43,0.60], p1:["sweep","bars"], p2:["sweep","bars","stomp","curse"],
+  80:{ id:"shield", name:"두 번째 문지기", tex:["boss-shield","boss-shield-2"], parts:"boss-shield-rig", cells:5,
+       // 조각 그림 (칸 812x768): [몸, 탑실드, 방패 든 팔, 견갑, 깨진 방패(2페이즈)]
+       // 팔은 견갑 아래 어깨(PV)를 축으로 돌고, 방패는 세운 채로 주먹(FIST)을 따라간다 — 팔이 몸에서 떨어지지 않는다
+       rig:{ kind:"arm", body:0, shield:1, arm:2, pad:3, broken:4, PV:{u:0.3294, v:0.7233}, FIST:[0.2833,0.6582], SBOT:[0.2863,0.2591] },
+       eye:[0x48e8e0,0xa8fff8], eyeV:0.8817, eyeP:[[0.4922,0.8817],[0.4922,0.8817]], chestP:[0.50,0.62], p1:["sweep","bars"], p2:["sweep","bars","stomp","curse"],
        hp:20, rageAt:10,                              // 체력 20 — 앞 10은 방패가 받아 내고(금이 감), 방패가 깨지면 나머지 10은 몸으로
-       shieldBox:[0.47,0.265,0.78,0.655] }             // 방패 자리 [왼,아래,오른,위] — boss-shield.webp 금테두리 기준으로 잰 값
+       shieldBox:[0.2124,0.2611,0.3602,0.6615] }       // 방패 자리 [왼,아래,오른,위] — 방패 조각(칸 기준)의 금테두리
 };
 const Boss = {
   active:false, done:false, hp:0, max:0, phase:1, used:{}, won:false, def:BOSS_DEF[50], doneAt:{},
@@ -7540,6 +7558,18 @@ const Boss = {
     const d=BOSS_DEF[G.stage];
     if(!d || this.doneAt[G.stage] || this.active || !this.allowed()) return;
     this.start(d);
+  },
+  _artKey(d){ d=d||this.def; return d ? d.id+":"+d.tex.concat(d.parts?[d.parts]:[]).map(n=>TrapArt.has(n)?1:0).join("") : ""; },
+  /* 보스 그림이 싸움 도중에 도착하면 — 체력·페이즈는 그대로 두고 그림만 새로 짓는다 */
+  refreshArt(){
+    if(!this.active || !this.root || !this.def || this.deadT>0) return;
+    const key=this._artKey(); if(key===this._key) return;
+    const wasVis=this.root.visible;
+    camera.remove(this.root); this.root.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
+    this.root=null; this.parts=null; this.rig2=null; this.crack=null; this.sseq=null; this._key=key;
+    this.build(); this.setTex(this.phase===2 && (this.transSwapped || !(this.transT>0)) ? 2 : 1);
+    this.root.visible=wasVis; this.body.position.set(0,0,0); this.body.rotation.set(0,0,0); this.body.scale.set(1,1,1);
+    if(this.phase===1 && this.crackLv>0 && this.def.shieldBox) try{ this._drawCrack(); }catch(e){}
   },
   start(d){
     d=d||BOSS_DEF[50]; this.def=d; this.stageAt=G.stage;
@@ -7772,10 +7802,10 @@ const Boss = {
     if(s.q._bossFx.indexOf("stomp")>=0 && !s._stompDone && left<2.6){ s._stompDone=true; this.stomp(); }
   },
   _drop(m){ if(!m) return; if(m.parent) m.parent.remove(m); if(m.geometry) m.geometry.dispose(); if(m.material) m.material.dispose(); },
-  _mats(){ const a=[]; if(this.main) a.push(this.main.material); if(this.parts) Object.values(this.parts).forEach(m=>a.push(m.material)); if(this.rig2) Object.values(this.rig2).forEach(m=>a.push(m.material)); return a; },
+  _mats(){ const a=[]; if(this.main) a.push(this.main.material); if(this.parts) Object.values(this.parts).forEach(m=>a.push(m.material)); if(this.rig2) this.rig2.meshes.forEach(m=>a.push(m.material)); return a; },
   /* ---------- 그림 ---------- */
   setTex(p){
-    if(this.rig2){ const r=this.rig2; r.b1.visible=r.s1.visible=(p===1); r.b2.visible=r.s2.visible=(p===2); this.main.visible=false; this.tint=[1,1,1]; return; }
+    if(this.rig2){ const r=this.rig2; r.shield.visible=(p===1); r.broken.visible=(p===2); this.main.visible=false; this.tint = p===2 ? [0.95,1.04,1.08] : [1,1,1]; return; }
     const useParts = p===1 && !!this.parts;
     if(this.parts) Object.values(this.parts).forEach(m=>m.visible=useParts);
     const t = p===2 ? (this.texB||this.texA) : this.texA;
@@ -7803,11 +7833,13 @@ const Boss = {
     const mat=map=>new THREE.MeshBasicMaterial({map, transparent:true, alphaTest:.02, depthWrite:false, fog:false, toneMapped:false, side:THREE.DoubleSide});
     this.body=new THREE.Group(); this.root.add(this.body);                       // 몸 전체를 움직이는 틀
     this.main=new THREE.Mesh(this._plane(null), mat(this.texA)); this.main.renderOrder=1; this.body.add(this.main);
-    if(this.texP && D.rig){                          // 두 번째 문지기 — 몸과 방패를 따로 그려 방패를 휘두른다
-      const R=D.rig, S=this.rig2={};
+    if(this.texP && D.rig && D.rig.kind==="arm"){   // 두 번째 문지기 — 몸·방패·팔·견갑을 따로 그려, 팔은 어깨에서 돌고 방패는 주먹을 따라간다
+      const R=D.rig, S=this.rig2={kind:"arm", meshes:[]};
+      S.g=new THREE.Group(); this.body.add(S.g);                                  // 몸 전체 기울기·낮춤 (자세와 따로)
       const mk=(c,pv,ro)=>{ const m=new THREE.Mesh(this._plane(c,pv), mat(this.texP)); m.renderOrder=ro; m.userData.noOutline=true;
-        if(pv) m.position.set((pv.u-0.5)*this.asp, pv.v, 0.001); this.body.add(m); return m; };
-      S.b1=mk(R.p1.body,null,1); S.s1=mk(R.p1.piece,R.p1.pivot,2); S.b2=mk(R.p2.body,null,1); S.s2=mk(R.p2.piece,R.p2.pivot,2);
+        if(pv) m.position.set((pv.u-0.5)*this.asp, pv.v, 0); S.g.add(m); S.meshes.push(m); return m; };
+      S.body=mk(R.body,null,1); S.shield=mk(R.shield,null,2); S.broken=mk(R.broken,null,2); S.arm=mk(R.arm,R.PV,3); S.pad=mk(R.pad,null,4);
+      S.shield.position.z=0.001; S.broken.position.z=0.001; S.arm.position.z=0.002; S.pad.position.z=0.003; S.broken.visible=false;
     }
     else if(this.texP){
       const B=BOSS, P5=this.parts={};
@@ -7893,7 +7925,7 @@ const Boss = {
   _shieldUp(){ return !!(this.def.shieldBox && this.phase===1); },
   _target(){                                        // 빛 화살이 꽂힐 곳 — 방패가 있으면 방패, 아니면 가슴
     const b=this.body, sb=this.def.shieldBox;
-    if(this._shieldUp()) return [b.position.x+((sb[0]+sb[2])/2-0.5)*this.asp*b.scale.x, b.position.y+((sb[1]+sb[3])/2)*b.scale.y];
+    if(this._shieldUp()){ const d=this._fistD(); return [b.position.x+((sb[0]+sb[2])/2+d[0]-0.5)*this.asp*b.scale.x, b.position.y+((sb[1]+sb[3])/2+d[1])*b.scale.y]; }
     const cp=(this.phase===2&&this.def.chestP)||null;
     return cp ? [b.position.x+(cp[0]-0.5)*this.asp*b.scale.x, b.position.y+cp[1]*b.scale.y] : [b.position.x, b.position.y+0.6*b.scale.y];
   },
@@ -7925,13 +7957,12 @@ const Boss = {
       const c=document.createElement("canvas"); c.width=256; c.height=384; this.crackCv=c;
       this.crackTex=new THREE.CanvasTexture(c);
       this.crack=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({map:this.crackTex, transparent:true, depthWrite:false, fog:false, toneMapped:false}));
-      this.crack.userData.noOutline=true; this.crack.renderOrder=5; (this.rig2 ? this.rig2.s1 : this.body).add(this.crack);   // 조각이 있으면 방패를 따라 움직인다
+      this.crack.userData.noOutline=true; this.crack.renderOrder=5; (this.rig2 ? this.rig2.shield : this.body).add(this.crack);   // 조각이 있으면 방패를 따라 움직인다
       this.crackSeed=[]; for(let i=0;i<9;i++){ const pts=[[0.5,0.45]]; let x=0.5,y=0.45,a=Math.random()*Math.PI*2;
         for(let k=0;k<6;k++){ a+=(Math.random()-.5)*1.1; x+=Math.cos(a)*0.09; y+=Math.sin(a)*0.07; pts.push([x,y]); } this.crackSeed.push(pts); }
     }
     const w=(sb[2]-sb[0])*this.asp, h=(sb[3]-sb[1]);
-    const pv=this.rig2 ? this.def.rig.p1.pivot : null, ox=pv?(pv.u-0.5)*this.asp:0, oy=pv?pv.v:0;
-    this.crack.scale.set(w,h,1); this.crack.position.set(((sb[0]+sb[2])/2-0.5)*this.asp-ox, (sb[1]+sb[3])/2-oy, 0.004);
+    this.crack.scale.set(w,h,1); this.crack.position.set(((sb[0]+sb[2])/2-0.5)*this.asp, (sb[1]+sb[3])/2, 0.004);
     const x=this.crackCv.getContext("2d"), W=256, H=384; x.clearRect(0,0,W,H);
     const lines=Math.ceil(this.crackLv*this.crackSeed.length);
     x.lineCap="round"; x.lineJoin="round";
@@ -7997,57 +8028,69 @@ const Boss = {
      1단계: 탑실드를 손으로 짚은 채 팔꿈치를 축으로 — 옆으로 밀어치기 / 들었다가 바닥에 쿵
      2단계: 수정 방패를 든 팔을 어깨를 축으로 — 크게 휘두르기 / 치켜들었다가 내리찍기 */
   _p2art(){ return this.phase===2 && this.transSwapped; },
+  /* 키프레임 [시간, 팔 각도(도, -는 바깥으로 들기 / +는 몸 쪽), 방패 추가 내림, 몸 기울기, 몸 낮춤, 이 구간의 움직임] */
+  _MV:{
+    bash:  [[0,0,0,0,0],[0.40,6,0,-0.02,0.012,"io"],[0.53,-20,0,0.03,0.004,"out"],[0.82,-20,0,0.03,0.004,"io"],[1.5,0,0,0,0,"io"]],
+    raise: [[0,0,0,0,0],[0.18,3,0,0,0.018,"io"],[0.55,-32,0,0.015,-0.006,"io"]],
+    slam:  [[0,0,0,0,0],[0.10,2,0.006,0.01,0.03,"in"],[0.45,2,0.006,0.01,0.03,"io"],[1.1,0,0,0,0,"io"]],
+    knock: [[0,0,0,0,0],[0.06,4,0,-0.012,0,"out"],[0.45,0,0,0,0,"io"]]
+  },
   _move(keys, ev, hold){ if(!this.rig2 || this.deadT>0 || this.transT>0) return false;
-    const c=this._swNow||[0,0]; keys=keys.map(k=>k.slice()); keys[0][1]=c[0]; keys[0][2]=c[1];
+    const c=this._swNow||[0,0,0,0], big=this._p2art()?1.25:1;                   // 2페이즈는 더 크게
+    keys=keys.map((k,i)=>{ const o=k.slice(); if(i>0) o[1]*=big; return o; }); for(let i=1;i<5;i++) keys[0][i]=c[i-1];
     this.sseq={keys, ev:ev||[], t:0, hold:!!hold}; return true; },
-  swing(dir){                                       // 방패 충격파와 함께 — dir: +1 오른쪽 줄들, -1 왼쪽 줄들
+  /* 팔을 deg만큼 돌렸을 때 주먹(=방패)이 옮겨 가는 양 (칸 비율: [가로, 세로]) */
+  _fistD(deg){
+    const R=this.def.rig; if(!this.rig2 || !R || !R.FIST) return [0,0];
+    if(deg==null) deg=(this._armNow||0);
+    const t=deg*Math.PI/180, A=this.asp||1, rx=(R.FIST[0]-R.PV.u)*A, ry=R.FIST[1]-R.PV.v;
+    return [((rx*Math.cos(t)-ry*Math.sin(t))-rx)/A, (rx*Math.sin(t)+ry*Math.cos(t))-ry-((this._swNow||[])[1]||0)];
+  },
+  swing(dir){                                       // 방패 휘두르기 — 당겼다가 바깥으로 크게 (충격파와 함께)
     if(!this.rig2 || (this.sseq && this.sseq.t<0.9)) return;
-    const hit=()=>this._shieldHit(0.3, 0.25);
-    if(this._p2art()) this._move(dir>0 ? [[0,0,0],[0.28,18,0],[0.42,-75,0],[0.7,-75,0],[1.3,0,0]]
-                                       : [[0,0,0],[0.25,-10,0],[0.4,28,0.01],[0.68,28,0.01],[1.25,0,0]], [[0.42,hit]]);
-    else this._move([[0,0,0],[0.22,-4*dir,0.006],[0.34,13*dir,-0.004],[0.62,13*dir,-0.004],[1.05,0,0]], [[0.34,hit]]);
+    this._move(this._MV.bash, [[0.54,()=>this._shieldHit(0.3,0.25)]]);
     try{ SFX.tone(200,.25,"sawtooth",.025,520); }catch(e){}
   },
-  raise(){                                          // 쇠창살 — 방패를 치켜들고 부르르 (내리찍기를 기다린다)
+  raise(){                                          // 쇠창살 — 방패를 옆으로 번쩍 들고 부르르 (내리찍기를 기다린다)
     if(!this.rig2 || (this.sseq && this.sseq.hold)) return;
-    this._move(this._p2art() ? [[0,0,0],[0.45,28,0.01]] : [[0,0,0],[0.45,6,0.035]], [], true);
+    this._move(this._MV.raise, [], true);
     try{ SFX.tone(110,.45,"triangle",.03,170); }catch(e){}
   },
-  shieldSlam(){                                     // 쾅 — 쇠창살이 떨어지는 순간
+  shieldSlam(){                                     // 쾅 — 쇠창살이 떨어지는 순간 (몸이 내려앉으며 방패를 땅에)
     if(!this.rig2 || (this.sseq && !this.sseq.hold && this.sseq.t<0.5)) return;
-    const hit=()=>this._shieldHit(0.5, 0.4);
-    if(this._p2art()) this._move([[0,0,0],[0.08,-55,-0.01],[0.4,-55,-0.01],[1.0,0,0]], [[0.08,hit]]);
-    else this._move([[0,0,0],[0.07,-1,-0.01],[0.35,-1,-0.01],[0.75,0,0]], [[0.07,hit]]);
+    this._move(this._MV.slam, [[0.10,()=>this._shieldHit(0.5,0.4)]]);
   },
-  _shieldHit(shake, big){                            // 방패가 닿는 순간 — 청록 불꽃과 돌 부스러기
+  _shieldHit(shake, big){                            // 방패 밑동이 닿는 순간 — 청록 불꽃과 돌 부스러기
     G.shake=Math.max(G.shake||0, shake); this.flashT=Math.max(this.flashT||0,0.15); this.flashCol=[1.15,1.5,1.5];
-    const b=this.body, pt=this._p2art() ? [0.80,0.60] : [0.64,0.27];
+    const b=this.body, R=this.def.rig, d=this._fistD(), pt=[R.SBOT[0]+d[0], R.SBOT[1]+d[1]];
     const at=[b.position.x+(pt[0]-0.5)*this.asp*b.scale.x, b.position.y+pt[1]*b.scale.y];
     this.shards(Math.round(10*big+4), 0x7ff8f0, false, at); this.shards(Math.round(6*big+2), 0, true, at);
     try{ SFX.tone(70,.3,"square",.05,40); SFX.tone(900,.12,"triangle",.03,1400); }catch(e){}
   },
   _srig(dt){
     const r=this.rig2; if(!r) return;
-    const pc=this._p2art() ? r.s2 : r.s1, other=pc===r.s1 ? r.s2 : r.s1;
-    const p2=pc===r.s2, idleA = p2 ? Math.sin(this.t*1.5)*3 : Math.sin(this.t*1.2)*0.6;
-    let a=0, dy=0;
+    const R=this.def.rig, E={io:u=>u*u*(3-2*u), in:u=>u*u*u, out:u=>1-Math.pow(1-u,3)};
+    let v=[0,0,0,0];
     const q=this.sseq;
     if(q){
       const before=q.t; q.t+=dt; const K=q.keys, T=K[K.length-1][0];
       q.ev.forEach(e=>{ if(before<e[0] && q.t>=e[0]) try{ e[1](); }catch(err){} });
-      if(q.t>=T){ a=K[K.length-1][1]; dy=K[K.length-1][2];
-        if(q.hold){ a+=Math.sin(this.t*60)*0.9; if(q.t>T+1.8) this._move([[0,0,0],[0.5,0,0]]); }   // 내리찍기가 안 오면 천천히 내린다
+      if(q.t>=T){ v=K[K.length-1].slice(1,5);
+        if(q.hold){ v[0]+=Math.sin(this.t*55)*0.45; if(q.t>T+1.8) this._move([[0,0,0,0,0],[0.9,0,0,0,0,"io"]]); }   // 내리찍기가 안 오면 천천히 내린다
         else this.sseq=null; }
       else { let j=0; while(j<K.length-2 && q.t>K[j+1][0]) j++;
-        const k0=K[j], k1=K[j+1], u=Math.min(1,Math.max(0,(q.t-k0[0])/Math.max(1e-4,k1[0]-k0[0]))), e=u*u*(3-2*u);
-        a=k0[1]+(k1[1]-k0[1])*e; dy=k0[2]+(k1[2]-k0[2])*e; }
+        const k0=K[j], k1=K[j+1], u=Math.min(1,Math.max(0,(q.t-k0[0])/Math.max(1e-4,k1[0]-k0[0]))), e=(E[k1[5]]||E.io)(u);
+        for(let i=0;i<4;i++) v[i]=k0[i+1]+(k1[i+1]-k0[i+1])*e; }
     }
-    this._swNow=[a,dy];
-    if(this.jolt>0){ this.jolt-=dt; const j=this.jolt; a+=Math.sin(j*70)*(p2?4:1.5)*Math.min(1,j*5); }
-    pc.rotation.z=(a+idleA)*Math.PI/180;
-    const pv=p2 ? this.def.rig.p2.pivot : this.def.rig.p1.pivot;
-    pc.position.set((pv.u-0.5)*this.asp, pv.v+dy, 0.001);
-    other.rotation.z=0;
+    this._swNow=v.slice();
+    let a=v[0] + (this._p2art() ? Math.sin(this.t*1.3)*0.4 : 0);
+    if(this.jolt>0){ this.jolt-=dt; const j=this.jolt; a+=Math.sin(j*70)*1.6*Math.min(1,j*5); }   // 화살이 방패에 맞으면 움찔
+    this._armNow=a;
+    r.arm.rotation.z=a*Math.PI/180;
+    const d=this._fistD(a);
+    r.shield.position.x=r.broken.position.x=d[0]*this.asp;
+    r.shield.position.y=r.broken.position.y=d[1];
+    r.g.rotation.z=v[2]; r.g.position.y=-v[3];
   },
   /* 팔 — 팔뚝은 팔꿈치에서 꺾이고, 창과 주먹은 기울지 않은 채 손목을 따라간다 */
   _arm(dt){
@@ -8331,7 +8374,7 @@ function startGame(){
   applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
-  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); Chapter.reset(); G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
+  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); Chapter.reset(); try{ Trail.clear(); }catch(e){} G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
   applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
   input.x=0; input.y=0; stick.id=null;
@@ -8567,12 +8610,13 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
-  {id:"2026-10-12", date:"10월 12일", title:"보석 · 단어 도감 · 캐릭터 해금!",
+  {id:"2026-10-12b", date:"10월 12일", title:"보석 · 상점 · 단어 도감 · 캐릭터 해금!",
    items:[
-     ["💎","보석","정답을 맞히면 보석이 조금씩 모여요. 상점에서 특별한 옷을 살 수 있어요 (옷은 곧 공개!)"],
+     ["💎","보석 · 상점","정답을 맞히면 보석이 조금씩 모여요. 상점에서 달리기 효과(반짝이·하트·불꽃·무지개…)를 살 수 있어요. 특별한 옷도 곧 나와요!"],
      ["📖","단어 도감","같은 단어를 두 번 연속 맞히면 도감에 스티커가 붙어요. 한 쪽을 다 채우면 보석 선물!"],
      ["🔓","캐릭터 해금","새 캐릭터는 도전 과제를 깨야 열려요. 캐릭터 고르는 곳에서 조건을 확인해 보세요"],
-     ["🤫","비밀","캐릭터마다 숨겨진 특별한 능력이 있어요. 누가 어떤 능력을 가졌는지 찾아보세요!"]
+     ["🤫","비밀","캐릭터마다 숨겨진 특별한 능력이 있어요. 누가 어떤 능력을 가졌는지 찾아보세요!"],
+     ["🛡️","두 번째 문지기","80단계 문지기가 새 모습으로 돌아왔어요. 방패를 깨뜨려 보세요!"]
    ]}
 ];
 const News = {
@@ -8781,10 +8825,86 @@ const Wallet = (function(){
       a.gems-=price; a.owned.push(id); save(); return true; },
     wearing(ch){ const id=load().wear[ch]; return (id && this.owns(id)) ? id : null; },
     wear(ch, id){ const a=load(); if(id) a.wear[ch]=id; else delete a.wear[ch]; save(); },
+    fxOn(){ const id=load().fx; return (id && this.owns(id)) ? id : null; },
+    setFx(id){ const a=load(); a.fx=id||null; save(); },
     paid(k){ return !!load().paid[k]; },
     pay(k){ const a=load(); a.paid[k]=1; save(); }
   };
 })();
+
+/* =====================================================================
+   달리기 효과 (상점) — 발밑에 남는 반짝이·하트·불꽃 … 코드로 그린 작은 그림을 흩뿌린다
+   - 한 번에 하나만 켠다 (Wallet.fxOn). 게임 중에만, 넘어지는 동안은 쉰다
+   - 그림은 처음 쓸 때 캔버스로 한 번 만들고, 조각은 모아 두었다가 다시 쓴다
+   ===================================================================== */
+const TRAILS = [
+  {id:"fx-sparkle", name:"반짝이 발자국", price:45, emo:"✨", note:"금빛 별이 반짝반짝"},
+  {id:"fx-heart",   name:"하트 뿅뿅",     price:45, emo:"💗", note:"분홍 하트가 동동"},
+  {id:"fx-snow",    name:"눈꽃 바람",     price:55, emo:"❄️", note:"하얀 눈꽃이 살랑"},
+  {id:"fx-fire",    name:"불꽃 질주",     price:65, emo:"🔥", note:"발밑에서 불꽃이 활활"},
+  {id:"fx-comet",   name:"별똥 꼬리",     price:65, emo:"🌠", note:"푸른 별빛 꼬리"},
+  {id:"fx-rainbow", name:"무지개 길",     price:100, emo:"🌈", note:"지나간 자리에 무지개", rare:true}
+];
+const Trail = {
+  tex:{}, pool:[], live:[], acc:0, hue:0,
+  KIND:{                                                   // 모양 · 색 · 빈도 · 움직임
+    "fx-sparkle":{shape:"star",  cols:["#fff3b0","#ffd36b","#ffffff"], every:0.045, life:0.65, size:[0.22,0.42], up:[0.6,1.6], side:0.5, add:true, twinkle:true},
+    "fx-heart":  {shape:"heart", cols:["#ff7aa8","#ff9ec4","#ffc2d8"], every:0.07,  life:0.9,  size:[0.26,0.4],  up:[1.0,1.8], side:0.35, add:false},
+    "fx-snow":   {shape:"flake", cols:["#ffffff","#dff6ff","#bfe9ff"], every:0.06,  life:1.0,  size:[0.22,0.38], up:[-0.2,0.5], side:0.9, add:true, spin:true},
+    "fx-fire":   {shape:"flame", cols:["#ffcf5a","#ff8a3a","#ff5a2a"], every:0.035, life:0.5,  size:[0.3,0.55],  up:[1.4,2.6], side:0.25, add:true, grow:true},
+    "fx-comet":  {shape:"star",  cols:["#bfe9ff","#8fd0ff","#ffffff"], every:0.03,  life:0.55, size:[0.18,0.34], up:[0.1,0.4], side:0.12, add:true, high:true},
+    "fx-rainbow":{shape:"dot",   cols:null,                            every:0.022, life:0.85, size:[0.34,0.46], up:[0,0.05],  side:0.05, add:true, rainbow:true}
+  },
+  _draw(shape){                                            // 64x64 하얀 모양 (색은 재질 색으로 입힌다)
+    if(this.tex[shape]) return this.tex[shape];
+    const c=document.createElement("canvas"); c.width=c.height=64; const x=c.getContext("2d");
+    x.fillStyle="#fff"; x.strokeStyle="#fff"; x.shadowColor="rgba(255,255,255,.9)"; x.shadowBlur=8;
+    if(shape==="star"){ x.beginPath(); for(let i=0;i<8;i++){ const a=i*Math.PI/4-Math.PI/2, r=i%2?9:28; x.lineTo(32+Math.cos(a)*r, 32+Math.sin(a)*r); } x.closePath(); x.fill(); }
+    else if(shape==="heart"){ x.beginPath(); x.moveTo(32,52); x.bezierCurveTo(6,34,10,12,32,22); x.bezierCurveTo(54,12,58,34,32,52); x.fill(); }
+    else if(shape==="flake"){ x.lineWidth=4; x.lineCap="round"; for(let i=0;i<6;i++){ const a=i*Math.PI/3; x.beginPath(); x.moveTo(32,32); x.lineTo(32+Math.cos(a)*24,32+Math.sin(a)*24); x.stroke();
+        const bx=32+Math.cos(a)*15, by=32+Math.sin(a)*15; x.beginPath(); x.moveTo(bx,by); x.lineTo(bx+Math.cos(a+.7)*7,by+Math.sin(a+.7)*7); x.moveTo(bx,by); x.lineTo(bx+Math.cos(a-.7)*7,by+Math.sin(a-.7)*7); x.stroke(); } }
+    else if(shape==="flame"){ const g=x.createRadialGradient(32,40,2,32,36,26); g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(.5,"rgba(255,255,255,.7)"); g.addColorStop(1,"rgba(255,255,255,0)");
+      x.fillStyle=g; x.shadowBlur=0; x.beginPath(); x.moveTo(32,6); x.bezierCurveTo(46,24,54,36,44,50); x.quadraticCurveTo(32,60,20,50); x.bezierCurveTo(10,36,18,24,32,6); x.fill(); }
+    else { const g=x.createRadialGradient(32,32,0,32,32,30); g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(.55,"rgba(255,255,255,.6)"); g.addColorStop(1,"rgba(255,255,255,0)");
+      x.fillStyle=g; x.shadowBlur=0; x.fillRect(0,0,64,64); }
+    const t=new THREE.CanvasTexture(c); this.tex[shape]=t; return t;
+  },
+  _get(K){
+    let s=this.pool.pop();
+    if(!s){ s=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true, depthWrite:false, fog:false})); s.userData.noOutline=true; s.renderOrder=3; }
+    s.material.map=this._draw(K.shape); s.material.blending = K.add ? THREE.AdditiveBlending : THREE.NormalBlending; s.material.needsUpdate=true;
+    s.visible=true; scene.add(s); return s;
+  },
+  clear(){ this.live.forEach(p=>{ scene.remove(p.s); this.pool.push(p.s); }); this.live=[]; this.acc=0; },
+  update(dt, speed){
+    let id=null; try{ id=Wallet.fxOn(); }catch(e){}
+    const K=id && this.KIND[id], on = K && G.running && !G.falling && !G.paused && !G.finishing && typeof player!=="undefined" && player;
+    if(on){
+      this.acc+=dt;
+      while(this.acc>=K.every){ this.acc-=K.every;
+        if(this.live.length>70) break;
+        const s=this._get(K), r=(a)=>a[0]+Math.random()*(a[1]-a[0]);
+        const col = K.rainbow ? new THREE.Color().setHSL((this.hue=(this.hue+0.035)%1),0.9,0.62) : new THREE.Color(K.cols[(Math.random()*K.cols.length)|0]);
+        s.material.color.copy(col);
+        const sz=r(K.size); s.scale.set(sz,sz,1);
+        s.position.set(P.x+(Math.random()-.5)*K.side, (K.high?0.9:0.18)+P.y+Math.random()*(K.rainbow?0.05:0.35), P.z+0.35);
+        this.live.push({s, t:0, life:K.life*(0.8+Math.random()*0.4), vy:r(K.up), vx:(Math.random()-.5)*K.side*1.4, sz, K, ph:Math.random()*6});
+      }
+    } else this.acc=0;
+    const drift=(speed||0)*0.92;                       // 땅과 함께 뒤로 밀려나며 남는다
+    for(let i=this.live.length-1;i>=0;i--){
+      const p=this.live[i]; p.t+=dt; const k=p.t/p.life;
+      if(k>=1 || !G.running){ scene.remove(p.s); this.pool.push(p.s); this.live.splice(i,1); continue; }
+      p.s.position.x+=p.vx*dt; p.s.position.y+=p.vy*dt; p.s.position.z+=drift*dt;
+      let a=1-k, sc=p.sz;
+      if(p.K.twinkle) a*=0.55+0.45*Math.sin(p.t*28+p.ph);
+      if(p.K.grow) sc=p.sz*(0.7+k*0.8);
+      else if(!p.K.rainbow) sc=p.sz*(1-k*0.45);
+      if(p.K.spin) p.s.material.rotation=p.t*2+p.ph;
+      p.s.scale.set(sc,sc,1); p.s.material.opacity=a*(p.K.rainbow?0.75:1);
+    }
+  }
+};
 
 /* 옷 목록 — 그림이 들어오면 바로 팔린다 (가격은 보통 난이도로 20판쯤) */
 const OUTFITS = [
@@ -8900,9 +9020,28 @@ const ShopUI = {
     };
     $("shopGrid").innerHTML=OUTFITS.filter(o=>!o.dex).map(card).join("");
     $("shopDex").innerHTML=OUTFITS.filter(o=>o.dex).map(card).join("");
+    const fxCard=f=>{
+      const own=Wallet.owns(f.id), on=Wallet.fxOn()===f.id;
+      let btn;
+      if(own) btn = on ? '<button class="sBtn on" data-act="fxoff" data-id="'+f.id+'">켜짐 · 끄기</button>' : '<button class="sBtn wear" data-act="fxon" data-id="'+f.id+'">켜기</button>';
+      else if(this.arm===f.id) btn='<button class="sBtn sure" data-act="fxbuy" data-id="'+f.id+'">💎'+f.price+' 정말 살까요?</button>';
+      else btn='<button class="sBtn buy'+(Wallet.gems()<f.price?' poor':'')+'" data-act="fxarm" data-id="'+f.id+'">💎 '+f.price+'</button>';
+      const dots=[0,1,2,3,4].map(i=>'<i style="left:'+(14+i*17)+'%;animation-delay:'+(i*0.28).toFixed(2)+'s">'+f.emo+'</i>').join("");
+      return '<div class="sCard fxCard'+(f.rare?' rare':'')+(on?' wearing':'')+'"><div class="fxPrev fx-'+f.id.slice(3)+'">'+dots+'<b class="fxRun">🏃</b></div>'
+        +'<div class="sName">'+f.name+'</div><div class="sSub">'+f.note+'</div>'+btn+'</div>';
+    };
+    $("shopFx").innerHTML=TRAILS.map(fxCard).join("");
     $("shopMsg").textContent="정답 10개(보통 기준)마다 보석 1개 · 지금 "+Wallet.pts()+"/"+GEM.PER+"점";
   },
   act(a, id){
+    if(a.indexOf("fx")===0){ const f=TRAILS.filter(x=>x.id===id)[0]; if(!f) return;
+      if(a==="fxarm"){ if(Wallet.gems()<f.price){ $("shopMsg").textContent="보석이 "+(f.price-Wallet.gems())+"개 더 필요해요"; try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
+        this.arm=id; SFX.click(); this.draw(); return; }
+      if(a==="fxbuy"){ if(Wallet.buy(id,f.price)){ Wallet.setFx(id); try{ SFX.tone(660,.2,"triangle",.05,1320); confetti(); }catch(e){}
+          this.arm=null; this.draw(); $("shopMsg").textContent="🎉 "+f.name+"! 다음 판부터 발밑에 나와요"; } return; }
+      if(a==="fxon"){ Wallet.setFx(id); SFX.click(); this.draw(); return; }
+      if(a==="fxoff"){ Wallet.setFx(null); SFX.click(); this.draw(); return; }
+      return; }
     const o=Outfit.of(id); if(!o) return;
     if(a==="arm"){ if(Wallet.gems()<o.price){ $("shopMsg").textContent="보석이 "+(o.price-Wallet.gems())+"개 더 필요해요"; try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
       this.arm=id; SFX.click(); this.draw(); return; }
@@ -8963,6 +9102,7 @@ $("btnDex").addEventListener("click",()=>DexUI.open());
 $("btnShopClose").addEventListener("click",()=>{ SFX.click(); $("shShop").classList.remove("on"); });
 $("btnDexClose").addEventListener("click",()=>{ SFX.click(); $("shDex").classList.remove("on"); });
 $("shopGrid").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id); });
+$("shopFx").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id); });
 $("shopDex").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id); });
 $("dexTabs").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-b]"); if(!b) return; SFX.click(); DexUI.b=+b.dataset.b; DexUI.p=DexUI.firstOpen(DexUI.b); DexUI.draw(); });
 $("dexPrev").addEventListener("click",()=>{ if(DexUI.p>0){ DexUI.p--; SFX.click(); DexUI.draw(); } });
