@@ -3810,6 +3810,8 @@ const Ground = {
    §8 GATES — 생성 · 접근 · Lane+Trigger 판정
    게이트에는 충돌체가 없다. 판정은 오직 laneIndex 비교로만 이루어진다.
 ===================================================================== */
+/* 단어판 높이 — 2장 문틀은 안쪽이 훨씬 높게 비어 있어서 판을 더 위에 단다 (쇠창살·바위에 덜 가려진다) */
+function signY(){ let ch=false; try{ ch=!!zone().ch; }catch(e){} return CFG.GATE_H*(ch?0.80:0.52); }
 function buildGate(text, lane, n){
   const root = new THREE.Group();
   root.position.x = laneX(lane,n);
@@ -3840,13 +3842,13 @@ function buildGate(text, lane, n){
   const sasp = (tex.userData && tex.userData.aspect) || (SIGN_W/SIGN_H);   // 그림 판은 제 비율대로
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(sw, sw/sasp),
     new THREE.MeshBasicMaterial({map:tex, transparent:true, side:THREE.DoubleSide}));
-  sign.position.set(0, H*0.52, 0); root.add(sign);
+  const sy=signY(); sign.position.set(0, sy, 0); root.add(sign);
 
   // 단어판 뒤 은은한 빛 번짐 — 멀리서도 눈에 띈다
   const halo = new THREE.Mesh(new THREE.PlaneGeometry(sw*1.9, sw*1.9*SIGN_H/SIGN_W),
     new THREE.MeshBasicMaterial({map:glowTexture(), color:COL.frame, transparent:true,
       opacity:.34, blending:THREE.AdditiveBlending, depthWrite:false}));
-  halo.position.set(0, H*0.52, -0.05); root.add(halo);
+  halo.position.set(0, sy, -0.05); root.add(halo);
 
   return {root, sign, tex, frameMat, halo, lane};
 }
@@ -3924,7 +3926,7 @@ function spawnSet(){
       b.position.set((k-2.5)*0.85+(Math.random()-.5)*.4, (Math.random()-.5)*.5, (Math.random()-.5)*.6);
       cloud.add(b);
     }
-    cloud.position.set((Math.random()-.5)*CFG.LANE_W*n*0.6, CFG.GATE_H*0.52, 1.5);
+    cloud.position.set((Math.random()-.5)*CFG.LANE_W*n*0.6, signY(), 1.5);
     group.add(cloud);
     s.cloud = cloud;
     s.cloudDir = Math.random()<.5 ? -1 : 1;
@@ -5117,7 +5119,7 @@ const Hazards = {
           usedZ.push({l,z}); } }
     }
     // 2장 (보통) — 정답 줄에도 무너지는 돌·수정 가시. 문 앞 1.3초는 언제나 비우고, 옆으로 비킬 자리를 남긴다 (밤하늘과 같은 규칙)
-    if(!G.gentle && G.diff==="normal" && Z.ch && Z.sig && !(typeof Boss!=="undefined" && Boss.active) && Math.random()<0.8){
+    if(!G.gentle && G.diff==="normal" && Z.ch && Z.sig && Math.random()<((typeof Boss!=="undefined" && Boss.active)?0.5:0.8)){   // 보스전에도 — 정답 줄만 늘 비어 있으면 읽지 않고도 답이 보인다
       const spdB=spd/1.25, zFar=gateZ+spdB*NIGHT_ANS_CLEAR;
       const zTop=(answerLane===exitLane) ? Math.min(zMax, exitUntil) : Math.min(prevZ-spdB*0.75, ((typeof P!=="undefined")?P.z:0)-spd*1.5);
       let z=null; for(let tr=0;tr<12 && z===null && zTop>zFar;tr++){ const c=zFar+Math.random()*0.45*(zTop-zFar);
@@ -6777,7 +6779,7 @@ function shatterGate(gate, z, color){
     const m=new THREE.Mesh(new THREE.BoxGeometry(.22,.22,.06),
       new THREE.MeshBasicMaterial({color, transparent:true}));
     m.position.set(gate.root.position.x+(Math.random()-.5)*CFG.GATE_W*0.8,
-                   CFG.GATE_H*0.52+(Math.random()-.5)*0.8, z);
+                   signY()+(Math.random()-.5)*0.8, z);
     scene.add(m);
     fx.push({m, t:0, life:.7, v:{x:(Math.random()-.5)*9, y:1.5+Math.random()*5,
                                  z:2+Math.random()*6}});
