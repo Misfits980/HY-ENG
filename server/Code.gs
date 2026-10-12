@@ -78,7 +78,9 @@ function doPost(e){
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);                                           // 여러 명이 동시에 보내도 줄이 안 겹치게
-    (isBuy ? buySheet_() : sheet_()).appendRow(row);
+    const sh = isBuy ? buySheet_() : sheet_();
+    sh.appendRow(row);
+    sh.getRange(sh.getLastRow(), 1).setNumberFormat("yyyy-mm-dd hh:mm");   // 날짜를 다른 줄과 같은 모양으로
   } catch(err){
     return json_({ok:false, err:"busy"});
   } finally {

@@ -815,6 +815,15 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
   text-align:center;min-width:0}
 .sCard.rare{border-color:rgba(143,227,255,.45);background:linear-gradient(180deg,rgba(143,227,255,.10),rgba(255,255,255,.03))}
 .sCard.dex{border-color:rgba(255,211,122,.45);background:linear-gradient(180deg,rgba(255,211,122,.10),rgba(255,255,255,.03))}
+.sCard.t-rare{border-color:rgba(90,184,255,.5);background:linear-gradient(180deg,rgba(90,184,255,.12),rgba(255,255,255,.03))}
+.sCard.t-hero{border-color:rgba(180,122,255,.6);background:linear-gradient(180deg,rgba(180,122,255,.18),rgba(255,120,60,.05) 70%,rgba(255,255,255,.03));
+  box-shadow:0 0 18px rgba(180,122,255,.18)}
+.sCard.t-legend{border-color:rgba(255,194,58,.7);background:linear-gradient(180deg,rgba(255,194,58,.18),rgba(255,255,255,.03));box-shadow:0 0 22px rgba(255,194,58,.22)}
+.tierTag{position:absolute;left:8px;top:8px;padding:2px 8px;border-radius:100px;font-style:normal;font-size:10.5px;font-weight:900;color:#0d0820;z-index:1}
+.t-rare .tierTag{background:#5ab8ff}.t-hero .tierTag{background:#b47aff;color:#fff}.t-legend .tierTag{background:#ffc23a}
+.sLine{font-size:10.5px;font-weight:900;color:#ff9a5a;letter-spacing:-.01em}
+.sPerk{font-size:10.5px;font-weight:800;color:#ffcf8a;margin-top:3px}
+.sCard.wearing.t-hero,.sCard.wearing.t-rare,.sCard.wearing.t-legend{box-shadow:0 0 0 2px var(--mint) inset}
 .sCard.wearing{box-shadow:0 0 0 2px var(--mint) inset}
 .sArt{height:118px;background:no-repeat center bottom/contain;margin-bottom:6px}
 .sArt.ghost{background-image:url(assets/chars/char-portraits.webp);background-size:900% 100%;background-repeat:no-repeat;
@@ -8887,7 +8896,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v198";
+const GAME_VER = "v199";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -9233,6 +9242,13 @@ const Trail = {
       {shape:"dot",   cols:["#fff0a0","#ffc34a","#ff8a2a"], every:0.028, life:0.9, size:[0.09,0.17], up:[2.6,4.6], side:0.4, add:true, ember:true},
       {flat:true, shape:"glow", cols:["#ff7a2a"], every:0.04, life:0.75, w:[1.3,1.7], l:1.6, add:true, op:0.85}
     ],
+    /* 용암 군단 (스킨 전용) — 발자국마다 용암 금이 찍혀 식어 가고, 발밑에 불길·불티·연기 */
+    "fx-lava":[
+      {flat:true, shape:"crack", grad:["#fff0b0","#ffb030","#ff4a14","#5a1408"], every:0.12, life:1.5, w:[0.85,1.0], l:1.05, add:true, op:1, step:true},
+      {shape:"flame", grad:["#ffe9a0","#ff7a1a","#c0200a","#2a0a06"], every:0.03, life:0.45, size:[0.38,0.62], up:[1.2,2.0], side:0.5, add:true, fire:true},
+      {shape:"dot",   cols:["#fff0a0","#ffc34a","#ff7a2a"], every:0.04, life:0.95, size:[0.09,0.16], up:[2.4,4.2], side:0.45, add:true, ember:true},
+      {shape:"glow",  cols:["#3a2a26","#4a3530"], every:0.11, life:1.2, size:[0.6,0.95], up:[0.9,1.5], side:0.6, add:false, smoke:true}
+    ],
     "fx-pumpkin":[
       {shape:"pumpkin", cols:["#ffffff"], every:0.07, life:0.95, size:[0.34,0.52], up:[1.2,2.0], side:0.6, add:false, spin:true},
       {shape:"flame", grad:["#f0d8ff","#b07aff","#6a2ad0","#1a0a2a"], every:0.03, life:0.55, size:[0.4,0.7], up:[1.4,2.4], side:0.5, add:true, fire:true}
@@ -9263,6 +9279,11 @@ const Trail = {
       x.fillStyle="#3a7a1a"; x.fillRect(29,14,6,8);
       x.fillStyle="#3a1a08"; x.beginPath(); x.moveTo(22,32); x.lineTo(28,32); x.lineTo(25,26); x.fill(); x.beginPath(); x.moveTo(36,32); x.lineTo(42,32); x.lineTo(39,26); x.fill();
       x.beginPath(); x.moveTo(22,40); x.lineTo(42,40); x.lineTo(38,46); x.lineTo(32,42); x.lineTo(26,46); x.closePath(); x.fill(); }
+    else if(shape==="crack"){ x.shadowBlur=0;                  // 용암 발자국 — 둥근 빛 위에 갈라진 금
+      const g=x.createRadialGradient(32,32,0,32,32,30); g.addColorStop(0,"rgba(255,255,255,.75)"); g.addColorStop(.55,"rgba(255,255,255,.3)"); g.addColorStop(1,"rgba(255,255,255,0)");
+      x.fillStyle=g; x.fillRect(0,0,64,64); x.lineWidth=3.2; x.lineCap="round"; x.strokeStyle="#fff"; x.shadowColor="#fff"; x.shadowBlur=6;
+      for(let i=0;i<6;i++){ let a=i*Math.PI/3+Math.random()*0.5, px=32, py=32; x.beginPath(); x.moveTo(px,py);
+        for(let k=0;k<3;k++){ a+=(Math.random()-.5)*0.9; px+=Math.cos(a)*(6+Math.random()*4); py+=Math.sin(a)*(6+Math.random()*4); x.lineTo(px,py); } x.stroke(); } }
     else if(shape==="band"){ x.shadowBlur=0; const id=x.createImageData(256,16);   // 가운데가 밝은 빛줄기
       for(let px=0;px<256;px++){ const d=(px-128)/128, a=Math.exp(-d*d*5.5); for(let py=0;py<16;py++){ const o=(py*256+px)*4; id.data[o]=id.data[o+1]=id.data[o+2]=255; id.data[o+3]=Math.round(255*a); } }
       x.putImageData(id,0,0); }
@@ -9285,7 +9306,7 @@ const Trail = {
   _headPos(t){ const a=t*4.2; return {x:P.x+Math.cos(a)*0.95, y:P.y+1.35+Math.sin(a*2)*0.25, z:P.z+Math.sin(a)*0.55}; },
   _hex(h){ return new THREE.Color(h); },
   update(dt, speed){
-    let id=null; try{ id=Wallet.fxOn(); }catch(e){}
+    let id=null; try{ id=skinFx("fx") || Wallet.fxOn(); }catch(e){}
     const L=id && this.KIND[id], on = L && G.running && !G.falling && !G.paused && !G.finishing && typeof player!=="undefined" && player;
     const r=(a)=>a[0]+Math.random()*(a[1]-a[0]);
     this.t=(this.t||0)+dt;
@@ -9315,7 +9336,9 @@ const Trail = {
           else if(K.flat){
             const w=r(K.w), l = K.ribbon ? Math.max(0.5, (speed||8)*K.every*1.8) : K.l;   // 무지개 띠는 조각이 겹쳐 이어지게
             s.scale.set(w, l, 1); p.w=w; p.l=l;
-            s.position.set(P.x + (K.ribbon?0:(Math.random()-.5)*0.3), 0.035+P.y + (K.ribbon?0.004*(this._rib=((this._rib||0)+1)%5):0), P.z+0.45);
+            const foot = K.step ? ((this._foot=!this._foot) ? 0.32 : -0.32) : 0;     // 용암 발자국 — 왼발·오른발
+            if(K.step) s.material.rotation=Math.random()*6;
+            s.position.set(P.x + foot + (K.ribbon?0:(Math.random()-.5)*(K.step?0.1:0.3)), 0.035+P.y + (K.ribbon?0.004*(this._rib=((this._rib||0)+1)%5):0)+(K.step?0.002:0), P.z+0.45);
             p.vx=0; p.vy=0;
           } else {
             const sz=r(K.size); s.scale.set(sz,sz,1); p.sz=sz;
@@ -9331,9 +9354,11 @@ const Trail = {
       if(k>=1 || !G.running){ this._put(p.s); this.live.splice(i,1); continue; }
       p.s.position.z += (speed||0)*(K.flat?1:0.92)*dt;                 // 바닥과 함께 뒤로 (바닥 조각은 바닥에 딱 붙어서)
       if(K.flat){
-        const fade = K.ribbon ? (k<0.6 ? 1 : 1-(k-0.6)/0.4) : (1-k);
+        if(K.grad){ const g=K.grad, seg=Math.min(g.length-2, Math.floor(k*(g.length-1))), f=k*(g.length-1)-seg;   // 용암이 식어 간다
+          p.s.material.color.copy(this._hex(g[seg])).lerp(this._hex(g[seg+1]), f); }
+        const fade = K.ribbon ? (k<0.6 ? 1 : 1-(k-0.6)/0.4) : K.step ? (k<0.5 ? 1 : 1-(k-0.5)/0.5) : (1-k);
         p.s.material.opacity = (K.op||1)*fade*(K.ribbon?1:(0.6+0.4*Math.sin(p.t*30+p.ph)));
-        if(!K.ribbon){ const g=1+k*0.4; p.s.scale.set(p.w*g, K.l*g, 1); }
+        if(!K.ribbon && !K.step){ const g=1+k*0.4; p.s.scale.set(p.w*g, K.l*g, 1); }
         continue;
       }
       p.s.position.x+=p.vx*dt; p.s.position.y+=p.vy*dt; if(p.vz) p.s.position.z+=p.vz*dt;
@@ -9354,6 +9379,7 @@ const Trail = {
         p.s.material.rotation=Math.sin(p.t*10+p.ph)*0.25;
       }
       else if(K.ember){ p.vy-=dt*2.5; a=(1-k)*(0.6+0.4*Math.sin(p.t*40+p.ph)); }
+      else if(K.smoke){ sc=p.sz*(0.6+k*1.3); a=(k<0.2 ? k/0.2 : 1-(k-0.2)/0.8)*0.45; p.vx*=0.98; }
       else if(K.dust){ a=1-k; sc=p.sz*(1-k*0.6); }
       else if(K.shoot){}
       else {
@@ -9474,7 +9500,7 @@ const HitFx = {
     s.visible = !(p.delay>0); this.live.push(p); return p; },
   clear(){ this.live.forEach(p=>{ scene.remove(p.s); (p.s.userData.flat?this.fpool:this.pool).push(p.s); }); this.live=[]; },
   play(id){
-    id = id || Wallet.sel("hit"); if(!id) return;
+    id = id || skinFx("hit") || Wallet.sel("hit"); if(!id) return;
     const R=(a,b)=>a+Math.random()*(b-a), rnd2=a=>a[(Math.random()*a.length)|0];
     if(id==="hit-stars"){
       this.add({tex:"glow", col:"#fff3b0", oy:1.3, sz:3.2, life:0.3, flash:true});
@@ -9500,6 +9526,14 @@ const HitFx = {
     else if(id==="hit-crystal"){
       this.add({tex:"glow", col:"#c9a0ff", oy:1.2, sz:3.4, life:0.35, flash:true});
       for(let i=0;i<18;i++){ const a=i/18*Math.PI*2; this.add({tex:"shard", col:rnd2(["#c9a0ff","#9a6cff","#8fe3ff","#ffffff"]), oy:1.1, vx:Math.cos(a)*R(4,7), vy:Math.sin(a)*R(3,6)+3, vz:R(-1,1), g:9, sz:R(.35,.6), life:R(.8,1.1), spin:R(-9,9)}); }
+    }
+    else if(id==="hit-lava"){                                       // 용암 분출 (용암 군단 스킨 전용)
+      this.add({tex:"glow", col:"#ff7a2a", oy:.8, sz:4, life:0.35, flash:true});
+      this.add({tex:"glow", flat:true, col:"#ff6a1a", oy:0.05, sz:1, grow:5, life:0.7});
+      for(let i=0;i<16;i++) this.add({tex:"flame", col:rnd2(["#ffd25a","#ff8a2a","#ff5a1a","#ffb040"]), ox:R(-.45,.45), oy:.2, vx:R(-.8,.8), vy:R(6,10.5), g:5, sz:R(.6,1.15), life:R(.45,.75), delay:i*0.015});
+      for(let i=0;i<10;i++){ const a=Math.random()*Math.PI*2; this.add({tex:"shard", col:rnd2(["#3a2420","#4a2c26","#2a1a18"]), add:false, ox:Math.cos(a)*.3, oy:.4, vx:Math.cos(a)*R(2,4.5), vz:Math.sin(a)*R(1,2.5), vy:R(5,8.5), g:16, sz:R(.28,.48), life:R(.8,1.1), spin:R(-10,10)}); }
+      for(let i=0;i<20;i++) this.add({tex:"dot", col:rnd2(["#fff0a0","#ffc34a","#ff8a2a"]), ox:R(-.5,.5), oy:.3, vx:R(-2.5,2.5), vz:R(-1,1), vy:R(4,9), g:7, sz:R(.12,.22), life:R(.6,1), twinkle:true});
+      try{ G.shake=Math.max(G.shake||0,.14); SFX.tone(70,.35,"sawtooth",.05,38); [0,70,140].forEach(d=>setTimeout(()=>SFX.tone(700+Math.random()*500,.05,"square",.018,200),d)); }catch(e){}
     }
     else if(id==="hit-bats"){
       for(let i=0;i<12;i++){ const sd=i%2?1:-1; this.add({tex:"bat", col:"#3a2456", add:false, ox:R(-.6,.6), oy:R(.8,1.4), vx:sd*R(2,5), vy:R(2.5,4.5), vz:R(-2,0), sz:R(.5,.8), life:R(1.1,1.5), flap:R(14,20), delay:i*0.03}); }
@@ -9607,12 +9641,19 @@ const Pet = {
 
 /* 옷 목록 — 그림이 들어오면 바로 팔린다 (가격은 보통 난이도로 20판쯤) */
 const OUTFITS = [
-  {id:"hero-flame",     ch:"hero",    name:"불꽃 용사",     price:250, note:"붉은 망토 · 불꽃 검"},
-  {id:"mage-star",      ch:"mage",    name:"별빛 마법사",   price:250, note:"밤하늘 로브 · 별 지팡이"},
-  {id:"cat-ninja",      ch:"cat",     name:"달빛 닌자",     price:250, note:"남색 닌자복 · 초승달 머리띠"},
-  {id:"knight-crystal", ch:"knight",  name:"수정 기사",     price:450, note:"2장 수정 왕국의 갑옷", rare:true},
+  /* 등급: rare 희귀 300 (새 옷) · hero 영웅 600 (+ 입으면 전용 달리기·정답 효과) · legend 전설 1000 (+ 큰 그림·소리·포즈, 나중) */
+  {id:"hero-lava",      ch:"hero",    name:"용암 군단 용사", price:600, tier:"hero", line:"🔥 용암 군단", fx:"fx-lava", hit:"hit-lava",
+   note:"흑요석 갑옷 · 불타는 망토", perks:"용암 발자국 · 용암 분출"},
+  {id:"mage-star",      ch:"mage",    name:"별빛 마법사",   price:300, tier:"rare", note:"밤하늘 로브 · 별 지팡이"},
+  {id:"cat-ninja",      ch:"cat",     name:"달빛 닌자",     price:300, tier:"rare", note:"남색 닌자복 · 초승달 머리띠"},
+  {id:"knight-crystal", ch:"knight",  name:"수정 기사",     price:300, tier:"rare", note:"2장 수정 왕국의 갑옷"},
   {id:"scholar-gold",   ch:"scholar", name:"황금 단어왕",   dex:1,    note:"도감 1권을 다 채우면"}
 ];
+const TIER = {rare:{name:"희귀", col:"#5ab8ff"}, hero:{name:"영웅", col:"#b47aff"}, legend:{name:"전설", col:"#ffc23a"}};
+/* 입고 있는 스킨의 전용 효과 (slot = fx · hit) — 고른 효과보다 먼저 */
+function skinFx(slot){
+  try{ const id=Wallet.wearing(G.char); if(!id || !Outfit.ready[id]) return null; const o=OUTFITS.find(x=>x.id===id); return (o && o[slot]) || null; }catch(e){ return null; }
+}
 const Outfit = {
   ready:{}, probing:{},
   of(id){ return OUTFITS.filter(o=>o.id===id)[0] || null; },
@@ -9750,8 +9791,12 @@ const ShopUI = {
       else btn='<button class="sBtn buy'+(Wallet.gems()<o.price?' poor':'')+'" data-act="arm" data-id="'+o.id+'">💎 '+o.price+'</button>';
       const art = ok ? '<div class="sArt" style="background-image:url('+AP('outfit-'+o.id+'-card.webp')+')"></div>'
                      : '<div class="sArt ghost" style="background-position:'+(ci(o.ch)/8*100)+'% 0"></div>';
-      return '<div class="sCard'+(o.rare?' rare':'')+(o.dex?' dex':'')+(on?' wearing':'')+'">'+art
-        +'<div class="sName">'+o.name+'</div><div class="sSub">'+cname(o.ch)+' · '+o.note+'</div>'+btn+'</div>';
+      const T=o.tier && TIER[o.tier];
+      return '<div class="sCard'+(o.rare?' rare':'')+(o.dex?' dex':'')+(T?' t-'+o.tier:'')+(on?' wearing':'')+'">'
+        +(T?'<i class="tierTag">'+T.name+'</i>':'')+art
+        +(o.line?'<div class="sLine">'+o.line+'</div>':'')
+        +'<div class="sName">'+o.name+'</div><div class="sSub">'+cname(o.ch)+' · '+o.note+'</div>'
+        +(o.perks?'<div class="sPerk">✨ 입으면 '+o.perks+'</div>':'')+btn+'</div>';
     };
     $("shopGrid").innerHTML=OUTFITS.filter(o=>!o.dex).map(card).join("");
     $("shopDex").innerHTML=OUTFITS.filter(o=>o.dex).map(card).join("");
