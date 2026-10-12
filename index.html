@@ -1039,8 +1039,8 @@ details{display:none}
   <div class="setHead"><h2>설정</h2><button class="setClose" id="btnSetClose">✕</button></div>
   <div class="setRow"><span>✏️ 내 이름</span><b style="color:#9d92c8;font-size:11.5px">학원 랭킹에 나와요</b></div>
   <input type="text" id="nick" class="nickIn" maxlength="10" placeholder="이름을 적어 주세요" value="" autocomplete="off">
-  <div class="setRow"><span>🎵 배경음</span><b id="valBgm">70%</b></div>
-  <input type="range" class="setRange" id="rngBgm" min="0" max="100" step="5" value="70">
+  <div class="setRow" style="display:none"><span>🎵 배경음</span><b id="valBgm">70%</b></div>
+  <input type="range" class="setRange" id="rngBgm" min="0" max="100" step="5" value="70" style="display:none">
   <div class="setRow"><span>🔔 효과음</span><b id="valSfx">85%</b></div>
   <input type="range" class="setRange" id="rngSfx" min="0" max="100" step="5" value="85">
   <div class="tileRow toggleCol" style="margin-top:14px">
@@ -1141,7 +1141,7 @@ details{display:none}
         <div class="tileRow toggleCol">
           <div class="tile sel" id="tglVoice"><i>🔊</i><b>발음 듣기</b></div>
           <div class="tile sel" id="tglPic"><i>🖼️</i><b>그림 힌트</b></div>
-          <div class="tile sel" id="tglBgm"><i>🎵</i><b>배경음</b></div>
+          <div class="tile sel" id="tglBgm" style="display:none"><i>🎵</i><b>배경음</b></div>
         </div>
         <div class="tlab" style="margin-top:12px">그래픽 품질</div>
         <div class="tileRow wrap" id="selQual">
@@ -7329,7 +7329,7 @@ const Quality = {
 
 /* 배경음 — 파일 없이 웹오디오로 만든 낮은 화음. 지대마다 음이 바뀐다 */
 const BGM = {
-  on:true, ctx:null, nodes:[], gain:null, timer:null, step:0,
+  on:false, ctx:null, nodes:[], gain:null, timer:null, step:0,   // v198: 배경음 없앰 (계속 울리는 화음이 시끄럽다는 의견) — 효과음만 쓴다
   ZONE_KEY:[
     [196.00, 246.94, 293.66],   // 초원   G major
     [174.61, 220.00, 261.63],   // 사막   F
@@ -7342,6 +7342,7 @@ const BGM = {
     [123.47, 146.83, 185.00]    // 왕궁 회랑 B minor (밤)
   ],
   start(){
+    return;                                   // 배경음 없음 (되살리려면 이 줄과 on:false 를 지운다)
     if(!this.on || !SFX.on) return;
     SFX.wake(); this.ctx = SFX.ctx;
     if(!this.ctx || this.nodes.length) return;
@@ -8886,11 +8887,18 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v197";
+const GAME_VER = "v198";
+/* 상점 물건 이름 찾기 (구글 시트 기록용) */
+function itemInfo(id){
+  const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
+  for(const [kind,arr] of L){ const o=arr.find(x=>x.id===id); if(o) return {kind, name:o.name}; }
+  return null;
+}
 function runReport(){
   let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
   const boss=[]; try{ Object.keys(Boss.doneAt||{}).forEach(k=>{ if(Boss.doneAt[k]) boss.push(k); }); }catch(e){}
-  let w={}; try{ w={outfit:Wallet.wearing(G.char)||"", fx:Wallet.fxOn()||"", hit:Wallet.sel("hit")||"", gems:Wallet.gems()}; }catch(e){}
+  let w={}; try{ w={outfit:Wallet.wearing(G.char)||"", fx:Wallet.fxOn()||"", hit:Wallet.sel("hit")||"", gems:Wallet.gems(),
+    owned:Wallet.owned().map(id=>(itemInfo(id)||{name:id}).name).join(", "), earned:Wallet.earned()}; }catch(e){}
   return Object.assign({
     combo:G.bestCombo|0, right:G.right|0, wrong:G.wrong|0,
     boss:boss.join(","),                                   // 쓰러뜨린 문지기 단계 (예: "50,80")
@@ -9174,7 +9182,11 @@ const Wallet = (function(){
     owns(id){ return load().owned.indexOf(id)>=0; },
     give(id){ const a=load(); if(a.owned.indexOf(id)<0){ a.owned.push(id); save(); } },
     buy(id, price){ const a=load(); if(a.owned.indexOf(id)>=0) return true; if(a.gems<price) return false;
-      a.gems-=price; a.owned.push(id); save(); return true; },
+      a.gems-=price; a.owned.push(id); save();
+      try{ if(typeof Online!=="undefined") Online.buyLog(id, price, a.gems); }catch(e){}       // 학원 시트 "구매" 탭에 한 줄
+      return true; },
+    owned(){ return load().owned.slice(); },
+    earned(){ return load().earned|0; },
     wearing(ch){ const id=load().wear[ch]; return (id && this.owns(id)) ? id : null; },
     wear(ch, id){ const a=load(); if(id) a.wear[ch]=id; else delete a.wear[ch]; save(); },
     fxOn(){ const id=load().fx; return (id && this.owns(id)) ? id : null; },
@@ -9912,6 +9924,13 @@ const Online = {
     if(!this.on()) return Promise.resolve(null);
     return fetch(this.URL,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify(Object.assign({key:this.KEY, dev:this.dev()}, rec))}).then(r=>r.json()).catch(()=>null);
+  },
+  BUY_LOG: false,            // 새 Apps Script(구매 탭)를 배포한 뒤 true — 옛 스크립트는 구매를 점수 줄로 적어 버린다
+  buyLog(id, price, left){
+    if(!this.on() || !this.BUY_LOG || TEST_STAGE) return;
+    const it=itemInfo(id)||{kind:"", name:id};
+    let nick=G.nick; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
+    this.submit({type:"buy", nick, item:id, name:it.name, kind:it.kind, price, gems:left, ver:GAME_VER});
   },
   top(diff, range){
     if(!this.on()) return Promise.resolve(null);
