@@ -2450,8 +2450,9 @@ const ZONES = [
    prop:"crystal", traps:["block","statue","rock","crumble","spike"], W:{block:3, statue:3, spike:2}, sig:"fall", fallP:0.35, crumbleP:0.25, rockMul:1, windMul:1},
   /* ── 3장 · 왕궁 깊은 곳 (81~110, 보통 이상) — 지붕이 무너진 왕궁. 기사가 길을 가로지르고 샹들리에가 떨어진다 ── */
   {name:"왕궁 회랑", art:"hall", artBase:"castle", sub:"3장 · 왕궁 깊은 곳", from:81, ch:3,
-   sky:[0x100c2a,0x3c2c66,0x07061a], fog:0x1e1834, tint:0xcdc4e4, floor:0x2e2840, frame:0xe6c27a, edge:0xffe9b0,
-   prop:"crystal", traps:["block","chandelier","knight"], W:{block:4, chandelier:4}, sig:"chandelier", knight:true, crumbleP:0, rockMul:1, windMul:1}
+   sky:[0x140f34,0x4a3a7c,0x0a0820], fog:0x2a2244, tint:0xf2e6e0, lit:1.3, floor:0x3a3250, frame:0xe6c27a, edge:0xffe9b0,
+   prop:"crystal", traps:["block","statue","spike","crumble","chandelier","knight"], W:{block:2, statue:3, spike:3, chandelier:4},
+   sig:"chandelier", sig2:"spike", knight:true, fallP:0.3, crumbleP:0.2, rockMul:1, windMul:1}
 ];
 const CH2_END = 80;                                  // 2장 끝
 const RUN_END = 90;                                  // 보통 이상 — 지금 만들어진 끝 (3장 왕궁 회랑까지). 다음 방이 생기면 늘린다
@@ -3210,7 +3211,7 @@ const ZoneFade = {
       hill:scene.userData.hillMat ? scene.userData.hillMat.color.getHex() : (z.hill||z.fog)
     };
     this.to = {top:z.sky[0], mid:z.sky[1], low:z.sky[2], fog:z.fog,
-               land:(TrapArt.tex["floor-"+zoneArt(z)] ? mulHex(0x8a8a8a, z.tint||0xffffff) : 0x6e6e6e), hill:z.hill||z.fog};
+               land:(TrapArt.tex["floor-"+zoneArt(z)] ? mulHex(litHex(0x8a8a8a,z), z.tint||0xffffff) : 0x6e6e6e), hill:z.hill||z.fog};
     this.t = 0;
   },
   update(dt){
@@ -3255,7 +3256,7 @@ function applyZone(i, announce){
     lt.repeat.set(7,24);
     scene.userData.landMat.map = lt;
     applyLandArt();                                 // 바닥 그림이 있으면 땅에도
-    if(!announce) scene.userData.landMat.color.setHex(TrapArt.tex["floor-"+zoneArt(z)] ? mulHex(0x8a8a8a, artTint()) : 0x6e6e6e);
+    if(!announce) scene.userData.landMat.color.setHex(TrapArt.tex["floor-"+zoneArt(z)] ? mulHex(litHex(0x8a8a8a,z), artTint()) : 0x6e6e6e);
     scene.userData.landMat.needsUpdate = true;
   }
   if(Ground.markMat) Ground.markMat.color.setHex(z.edge);
@@ -4312,6 +4313,9 @@ function mulHex(a,b){
   return (Math.round(r)<<16)|(Math.round(g)<<8)|Math.round(bl);
 }
 function artTint(){ return (zone() && zone().tint) || 0xffffff; }
+/* 바닥 밝기 — 지대마다 lit 배수 (3장 회랑은 밤이지만 어두워 함정이 안 보이지 않게 1.3배) */
+function litHex(base, z){ z=z||zone(); const k=(z && z.lit) || 1; if(k===1) return base;
+  const c=v=>Math.min(255, Math.round(v*k)); return (c((base>>16)&255)<<16)|(c((base>>8)&255)<<8)|c(base&255); }
 
 /* 지대 이름 — 그림 파일 이름에 쓴다 */
 const ZONE_FILE = {tree:"meadow", pillar:"desert", spike:"ice", lava:"volcano", crystal:"night"};
@@ -4336,7 +4340,7 @@ function applyFloorArt(ftex){
       // 그림 한 장 = 한 칸 길이. 레인마다 가로 위치를 이어 붙여 큰 돌판도 끊기지 않는다
       t.repeat.set(W/L, 1); t.offset.set((k*W/L) % 1, 0);
       if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
-      m.map = t; m.color.setHex(mulHex(0xd2d2d2, artTint()));
+      m.map = t; m.color.setHex(mulHex(litHex(0xd2d2d2), artTint()));
       m.roughness = 1; m.metalness = 0;              // 칠한 그림에는 반사가 없어야 자연스럽다
     } else if(ftex){
       m.map = ftex; m.color.setHex(0x8c8c8c);
@@ -4357,7 +4361,7 @@ function applyLandArt(){
   t.repeat.set(260/5, 900/5);
   if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
   t.anisotropy = 8;
-  lm.map = t; lm.color.setHex(mulHex(0x8a8a8a, artTint())); lm.needsUpdate = true;
+  lm.map = t; lm.color.setHex(mulHex(litHex(0x8a8a8a), artTint())); lm.needsUpdate = true;
   if(typeof ZoneFade!=="undefined" && ZoneFade.to) ZoneFade.to.land = lm.color.getHex();
 }
 
@@ -4657,9 +4661,9 @@ function crackTex(zp){
   try{
     const c=document.createElement("canvas"); c.width=c.height=512; const x=c.getContext && c.getContext("2d");
     if(x){
-      const glow = zp==="lava" ? "rgba(255,120,30,0.95)" : zp==="crystal" ? "rgba(190,120,255,0.95)"
+      const glow = zp==="hall" ? "rgba(255,170,60,0.95)" : zp==="lava" ? "rgba(255,120,30,0.95)" : zp==="crystal" ? "rgba(190,120,255,0.95)"
                  : zp==="spike" ? "rgba(150,220,255,0.9)" : "rgba(120,80,40,0.9)";
-      const core = zp==="lava" ? "rgba(255,230,150,1)" : zp==="crystal" ? "rgba(240,210,255,1)"
+      const core = zp==="hall" ? "rgba(255,240,190,1)" : zp==="lava" ? "rgba(255,230,150,1)" : zp==="crystal" ? "rgba(240,210,255,1)"
                  : zp==="spike" ? "rgba(235,250,255,1)" : "rgba(60,40,20,1)";
       const lines=[];
       const walk=(px,py,a,steps,depth)=>{                      // 들쭉날쭉 갈라지는 금 (가지도 친다)
@@ -4677,7 +4681,8 @@ function crackTex(zp){
           for(let i2=1;i2<n2;i2++){                            // 끝으로 갈수록 가늘게
             x.lineWidth=Math.max(0.6, w2*(1-0.75*i2/n2)*(L3.depth?0.6:1));
             x.beginPath(); x.moveTo(pts[i2-1][0],pts[i2-1][1]); x.lineTo(pts[i2][0],pts[i2][1]); x.stroke(); } }); };
-      draw(11,"rgba(10,5,3,0.6)"); draw(4.2,glow); draw(1.4,core);
+      if(zp==="hall"){ draw(22,"rgba(0,0,0,0.85)"); x.shadowColor=glow; x.shadowBlur=14; draw(9,glow); x.shadowBlur=0; draw(3.2,core); }   // 어두운 대리석 — 굵은 금빛 금
+      else { draw(11,"rgba(10,5,3,0.6)"); draw(4.2,glow); draw(1.4,core); }
       tex=new THREE.CanvasTexture(c); tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
     }
   }catch(e){ tex=null; }
@@ -4685,7 +4690,7 @@ function crackTex(zp){
 }
 function makeCrackZone(w, L, zp, cols, lane0){
   const g=new THREE.Group(), st=ZONE_STYLE.crumble, n=Math.max(1, cols||G.lanes), tw=w/n; lane0=lane0||0;
-  const rows=Math.max(3,Math.round(L/(CFG.LANE_W*1.05))), tl=L/rows, tex=crackTex(zp);
+  const rows=Math.max(3,Math.round(L/(CFG.LANE_W*1.05))), tl=L/rows, tex=crackTex(zone().art==="hall" ? "hall" : zp);
   const tiles=[];
   for(let r=0;r<rows;r++) for(let c=0;c<n;c++){
     const geo=new THREE.PlaneGeometry(tw*0.96, tl*0.98), uv=geo.attributes.uv;
@@ -5121,10 +5126,19 @@ const Hazards = {
           const bad=L.some(l=>l===answerLane || used.indexOf(l)>=0 || (l===exitLane && z>exitUntil) || usedZ.some(u=>u.l===l && Math.abs(u.z-z)<laneGap));
           if(!bad){ this.addTree(L.slice().sort((a,b)=>a-b), left, z, "statue"); used.push(...L); done=true; } }
       }
-      if(!done){ const z=freeZ(), l=(z!==null)?laneFor(z):-1;
-        if(l>=0){ if(Z.sig==="rubble"||Z.sig==="chandelier") this.addMeteor(l,z,Z.sig);
+      if(!done){ const z=freeZ(), l=(z!==null)?laneFor(z):-1, sg=(Z.sig2 && Math.random()<0.45) ? Z.sig2 : Z.sig;   // 3장 회랑: 샹들리에 또는 수정 가시
+        if(l>=0){ if(sg==="rubble"||sg==="chandelier") this.addMeteor(l,z,sg);
           else { this.addSpike(l,z); const h=last(); if(h){ h.boss=false; h.trapSpike=true; } }
           usedZ.push({l,z}); } }
+    }
+    // 3장 회랑 (보통) — 수정 가시를 하나 더 + 갑옷 석상이 길가 두 줄로 쓰러진다
+    if(!G.gentle && G.diff==="normal" && Z.sig2 && !(typeof Boss!=="undefined" && Boss.active)){
+      if(Math.random()<0.6){ const z=freeZ(), l=(z!==null)?laneFor(z):-1;
+        if(l>=0){ this.addSpike(l,z); const h=this.list[this.list.length-1]; if(h){ h.boss=false; h.trapSpike=true; } usedZ.push({l,z}); } }
+      if(Z.fallP && Math.random()<Z.fallP){ const z=freeZ();
+        if(z!==null){ const left=Math.random()<.5, L=left?[0,1]:[G.lanes-1,G.lanes-2];
+          const bad=L.some(l=>l===answerLane || used.indexOf(l)>=0 || (l===exitLane && z>exitUntil) || usedZ.some(u=>u.l===l && Math.abs(u.z-z)<laneGap));
+          if(!bad){ this.addTree(L.slice().sort((a,b)=>a-b), left, z, "statue"); used.push(...L); } } }
     }
     // 2장 (보통) — 정답 줄에도 무너지는 돌·수정 가시. 문 앞 1.3초는 언제나 비우고, 옆으로 비킬 자리를 남긴다 (밤하늘과 같은 규칙)
     if(!G.gentle && G.diff==="normal" && Z.ch && Z.sig && Math.random()<((typeof Boss!=="undefined" && Boss.active)?0.5:0.8)){   // 보스전에도 — 정답 줄만 늘 비어 있으면 읽지 않고도 답이 보인다
@@ -5166,26 +5180,34 @@ const Hazards = {
     }
     if(!G.gentle && Z.knight && !(typeof Boss!=="undefined" && Boss.active)) this._knightRows(gateZ, prevZ, spd, answerLane, nStart);
   },
-  /* 기사 돌진 줄 놓기 — 보통 문제의 70%, 어려움 매 문제, 극한은 가끔 두 번.
+  /* 기사 돌진 줄 놓기 — 보통 문제의 90%, 어려움 매 문제, 지대 후반엔 두 번 (보통 25% · 어려움 40% · 극한 55%).
      · 앞 문 지나고 잠깐 뒤부터, 문 앞 약 1초 전까지 (보통 기준 — 정답 문 바로 앞에서는 오지 않는다)
-     · 기사 줄 앞뒤 0.5초의 다른 함정은 치운다 — 피할 칸을 언제나 남긴다 */
+     · 기사 줄 앞뒤 0.3초의 다른 함정은 치운다 — 피할 칸을 언제나 남긴다 */
   _knightRows(gateZ, prevZ, spd, answerLane, nStart){
     const T=this.knightTimes(), pz=(typeof P!=="undefined")?P.z:0;
-    const want = G.diff==="normal" ? (Math.random()<0.7?1:0) : ((G.diff==="extreme" && Math.random()<0.35) ? 2 : 1);
+    const late = G.stage >= zone().from+4;                                        // 지대 후반(85~)엔 두 기사가 이어 달리기도
+    const two = late ? ({normal:0.25, hard:0.4, extreme:0.55}[G.diff]||0) : (G.diff==="extreme" ? 0.35 : 0);
+    const want = (G.diff==="normal" && Math.random()>=0.9) ? 0 : (Math.random()<two ? 2 : 1);
     const W=T.win, zNear=Math.min(prevZ-spd*W[0], pz-spd*(T.tele+T.run)), zFar=gateZ+spd*W[1];
     if(!want || zNear<=zFar) return;
-    const rows=[];
-    for(let k=0;k<want;k++) for(let tr=0;tr<10;tr++){ const z=zFar+Math.random()*(zNear-zFar);
-      if(rows.some(r=>Math.abs(r-z)<spd*0.7)) continue; rows.push(z); break; }
-    rows.forEach(z=>{
-      for(let i=this.list.length-1;i>=nStart;i--){ const h=this.list[i];
+    const zOf=h=>h.tile ? h.tile.logicZ : h.z, band=spd*0.3;
+    const near=z=>{ const o=[]; for(let i=nStart;i<this.list.length;i++){ const h=this.list[i];
         if(h.type==="ice"||h.type==="puddle"||h.type==="crumble"||h.type==="knight") continue;
-        const hz=h.tile ? h.tile.logicZ : h.z;
-        if(Math.abs(hz-z) < spd*0.5+(h.len||2)/2) this.remove(i); }
+        if(Math.abs(zOf(h)-z) < band+(h.len||2)/2) o.push(i); } return o; };
+    const rows=[];
+    for(let k=0;k<want;k++){ let best=null, bs=1e9;                    // 다른 함정과 덜 겹치는 자리를 고른다
+      for(let tr=0;tr<12;tr++){ const z=zFar+Math.random()*(zNear-zFar);
+        if(rows.some(r=>Math.abs(r-z)<spd*0.7)) continue;
+        const sc=near(z).length; if(sc<bs){ bs=sc; best=z; } }
+      if(best!==null) rows.push(best); }
+    rows.forEach(z=>{
+      // 기사 줄 앞뒤 0.3초에는 다른 함정을 하나까지만 남긴다 (정답 줄 함정을 먼저 남김) — 비킬 칸이 늘 남는다
+      const o=near(z).sort((i,j)=>(this.list[j].ansEarly?1:0)-(this.list[i].ansEarly?1:0));
+      o.slice(1).sort((i,j)=>j-i).forEach(i=>this.remove(i));
       const dir=Math.random()<.5?1:-1;
-      const nearGate = (z-gateZ) < spd*1.5;                                    // 문 앞이 가까우면 정답 줄은 겨누지 않는다 (비켰다 돌아올 시간)
+      const nearGate = (z-gateZ) < spd*1.2;                                    // 문 앞이 가까우면 정답 줄은 겨누지 않는다 (비켰다 돌아올 시간)
       const others=[]; for(let j=0;j<G.lanes;j++) if(j!==answerLane) others.push(j);
-      const target=(!nearGate && Math.random()<0.5) ? answerLane : rnd(others);   // 절반은 정답 줄을 노린다
+      const target=(!nearGate && Math.random()<0.6) ? answerLane : rnd(others);   // 60%는 정답 줄을 노린다
       this.addKnight(z, dir, target);
     });
   },
@@ -5514,7 +5536,7 @@ const Hazards = {
       crack.rotation.x=-Math.PI/2; crack.position.y=.05; g.add(crack); }
     crack.material.transparent=true; crack.material.opacity=0; crack.userData.noOutline=true;
     const glow=new THREE.Mesh(new THREE.PlaneGeometry(w*1.15,3.6), new THREE.MeshBasicMaterial({map:this._glowTex("white")||null,
-      color:0xd06cff, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));
+      color:(zone().art==="hall" ? 0xffa53a : 0xd06cff), transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending}));   // 회랑은 어두운 보라 바닥이라 금빛으로
     glow.rotation.x=-Math.PI/2; glow.position.y=.08; glow.userData.noOutline=true; g.add(glow);
     let sp;
     if(TrapArt.has("boss-spike")){
@@ -5574,6 +5596,7 @@ const Hazards = {
     trail.visible=false; trail.userData.noOutline=true; g.add(trail);
     let rock=null;
     if(rubble){ ring.material.color.setHex(0x1a1426); ring.material.blending=THREE.NormalBlending; star.scale.setScalar(0.001); }   // 표적 대신 짙어지는 그림자
+    if(chand){ ring.material.color.setHex(0xffb24a); ring.material.blending=THREE.AdditiveBlending; }   // 회랑은 바닥이 어두워 그림자 대신 촛불 빛이 모인다
     if(chand){                                               // 떨어진 자리 — 부서진 샹들리에 (납작하게 기울어 누움)
       const r=CFG.LANE_W*0.56, geo=new THREE.PlaneGeometry(r*2,r*2); geo.translate(0,r*0.62,0);
       rock=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:TrapArt.tex["chandelier-hall"], transparent:true, alphaTest:.06, side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}));
@@ -5882,7 +5905,8 @@ const Hazards = {
       if(h.type==="meteor"){                        // 표적이 밝아지다 → 떨어져 → 수정 바위
         const m=h.mesh.userData.meteor, spd4=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/spd4;
         if(m.state===0){ const k=Math.max(0,Math.min(1,(3.2-tHit)/1.6));
-          if(m.rubble){ m.ring.material.opacity=k*0.7; m.ring.scale.setScalar(0.5+0.6*k); if(k>0 && !m.dust){ m.dust=1; try{ puff(h.mesh.position.x,.3,z,0x8a7f72,4,1.5); }catch(e){} } }   // 그림자가 커지며 짙어진다
+          if(m.chand){ m.ring.material.opacity=k*(0.6+0.3*Math.sin(tHit*14)); m.ring.scale.setScalar(0.5+0.6*k); }
+          else if(m.rubble){ m.ring.material.opacity=k*0.7; m.ring.scale.setScalar(0.5+0.6*k); if(k>0 && !m.dust){ m.dust=1; try{ puff(h.mesh.position.x,.3,z,0x8a7f72,4,1.5); }catch(e){} } }   // 그림자가 커지며 짙어진다
           else { m.ring.material.opacity=k*(0.55+0.35*Math.sin(tHit*14)); m.ring.scale.setScalar(1.2-0.35*k); }
           if(tHit<1.75){ if(h.boss) Boss.pose("attack",0.6); m.state=1; m.t=0; m.star.visible=true; m.trail.visible=!m.art; if(m.art) m.art.visible=true; } }
         if(m.state===1){ m.t+=dt; const e=Math.min(1,m.t/0.55);
@@ -6352,7 +6376,7 @@ function trapHurts(h){
   if(h.type==="tree") return hard;
   return false;
 }
-const HURT_MSG = { chandelier:["쨍그랑!","샹들리에에 맞았어요 — 짙은 그림자는 피하세요"], knight:["쾅!","기사에게 부딪혔어요 — 기사가 지나간 줄로 피하세요"],
+const HURT_MSG = { chandelier:["쨍그랑!","샹들리에에 맞았어요 — 바닥에 빛이 모이면 피하세요"], knight:["쾅!","기사에게 부딪혔어요 — 기사가 지나간 줄로 피하세요"],
   meteor:["쾅!","별똥별에 맞았어요 — 빛나는 표적은 피하세요"], rubble:["쿵!","무너진 돌에 맞았어요 — 짙은 그림자는 피하세요"],
   statue:["쾅!","석상의 창에 맞았어요 — 눈이 빛나면 옆 줄을 피하세요"], spike:["쾅!","수정 가시에 찔렸어요 — 빛나는 금은 피하세요"],
   geyser:["앗 뜨거!","용암이 솟았어요 — 빛나는 바닥은 피하세요"], mace:["쾅!","방패 충격파에 맞았어요"], tree:["쿵!","쓰러진 나무에 깔렸어요"], statueFall:["쿵!","쓰러진 석상에 깔렸어요"] };
@@ -8442,7 +8466,7 @@ const TrapTip = {
        statue:"⚔️ 석상이 옆 줄을 내리찍어요", crumble:"🪨 금 간 길은 오래 서 있으면 무너져요", swarm:"🐝 벌떼가 내 줄을 따라와요",
        tree:"🌳 나무가 쓰러지며 길을 막아요", salamander:"🦎 불도롱뇽이 좌우로 다녀요",
        rubble:"🧱 바닥 그림자가 짙어지면 돌이 떨어져요", trapSpike:"💎 바닥 금이 빛나면 수정 가시가 솟아요", statueFall:"🗿 석상이 쓰러지며 두 줄을 막아요",
-       chandelier:"🕯️ 바닥 그림자가 짙어지면 샹들리에가 떨어져요", knight:"⚔️ 기사가 길을 가로질러요 — 지나간 줄로 피해요"},
+       chandelier:"🕯️ 바닥에 빛이 모이면 샹들리에가 떨어져요", knight:"⚔️ 기사가 길을 가로질러요 — 지나간 줄로 피해요"},
   reset(){ this.seen={}; if(this.el) this.el.style.opacity="0"; },
   key(h){
     const u=(h.mesh && h.mesh.userData) || {};
