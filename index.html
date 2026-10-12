@@ -820,6 +820,8 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
   box-shadow:0 0 18px rgba(180,122,255,.18)}
 .sCard.t-legend{border-color:rgba(255,194,58,.7);background:linear-gradient(180deg,rgba(255,194,58,.18),rgba(255,255,255,.03));box-shadow:0 0 22px rgba(255,194,58,.22)}
 .tierTag{position:absolute;left:8px;top:8px;padding:2px 8px;border-radius:100px;font-style:normal;font-size:10.5px;font-weight:900;color:#0d0820;z-index:1}
+.sCard .tierTag.testTag{left:auto;right:8px;background:#ffd37a;color:#3a2600}
+.sEmpty{grid-column:1/-1;padding:22px 12px;text-align:center;font-size:13px;font-weight:800;color:#b9add8;background:rgba(255,255,255,.05);border-radius:14px}
 .t-rare .tierTag{background:#5ab8ff}.t-hero .tierTag{background:#b47aff;color:#fff}.t-legend .tierTag{background:#ffc23a}
 .sLine{font-size:10.5px;font-weight:900;color:#ff9a5a;letter-spacing:-.01em}
 .sPerk{font-size:10.5px;font-weight:800;color:#ffcf8a;margin-top:3px}
@@ -9069,7 +9071,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v204";
+const GAME_VER = "v205";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -9369,7 +9371,7 @@ const Wallet = (function(){
       return true; },
     owned(){ return load().owned.slice(); },
     earned(){ return load().earned|0; },
-    wearing(ch){ const id=load().wear[ch]; return (id && this.owns(id)) ? id : null; },
+    wearing(ch){ const id=load().wear[ch]; return (id && (this.owns(id) || (TEST_STAGE>0 && (OUTFITS.find(o=>o.id===id)||{}).hidden))) ? id : null; },
     wear(ch, id){ const a=load(); if(id) a.wear[ch]=id; else delete a.wear[ch]; save(); },
     fxOn(){ const id=load().fx; return (id && this.owns(id)) ? id : null; },
     /* 하나만 고르는 칸: fx(달리기) · hit(정답 효과) · pet(동료) · title(칭호) */
@@ -9388,13 +9390,13 @@ const Wallet = (function(){
    - 그림은 처음 쓸 때 캔버스로 한 번 만들고, 조각은 모아 두었다가 다시 쓴다
    ===================================================================== */
 const TRAILS = [
-  {id:"fx-sparkle", name:"반짝이 발자국", price:100, emo:"✨", note:"금빛 별이 반짝반짝"},
-  {id:"fx-heart",   name:"하트 뿅뿅",     price:100, emo:"💗", note:"분홍 하트가 동동"},
-  {id:"fx-snow",    name:"눈꽃 바람",     price:120, emo:"❄️", note:"하얀 눈꽃이 살랑"},
-  {id:"fx-fire",    name:"불꽃 질주",     price:150, emo:"🔥", note:"불길이 활활, 지나간 자리가 타올라요"},
-  {id:"fx-comet",   name:"별똥 꼬리",     price:150, emo:"🌠", note:"빛나는 별이 나를 감아 돌고, 별똥별이 쏟아져요"},
-  {id:"fx-rainbow", name:"무지개 길",     price:200, emo:"🌈", note:"달린 길에 일곱 빛깔 무지개가 깔려요", rare:true},
-  {id:"fx-pumpkin", name:"호박 발자국",   price:120, emo:"🎃", note:"통통 튀는 호박과 보라 도깨비불", limited:"halloween"}
+  {id:"fx-sparkle", name:"반짝이 발자국", price:120, emo:"✨", note:"금빛 별이 반짝반짝"},
+  {id:"fx-heart",   name:"하트 뿅뿅",     price:120, emo:"💗", note:"분홍 하트가 동동"},
+  {id:"fx-snow",    name:"눈꽃 바람",     price:150, emo:"❄️", note:"하얀 눈꽃이 살랑"},
+  {id:"fx-fire",    name:"불꽃 질주",     price:200, emo:"🔥", note:"불길이 활활, 지나간 자리가 타올라요"},
+  {id:"fx-comet",   name:"별똥 꼬리",     price:200, emo:"🌠", note:"빛나는 별이 나를 감아 돌고, 별똥별이 쏟아져요"},
+  {id:"fx-rainbow", name:"무지개 길",     price:300, emo:"🌈", note:"달린 길에 일곱 빛깔 무지개가 깔려요", rare:true},
+  {id:"fx-pumpkin", name:"호박 발자국",   price:150, emo:"🎃", note:"통통 튀는 호박과 보라 도깨비불", limited:"halloween"}
 ];
 const Trail = {
   tex:{}, pool:[], fpool:[], live:[], acc:{}, hue:0,
@@ -9580,13 +9582,13 @@ function seasonOn(k){
 }
 function seasonNow(){ return Object.keys(SEASONS).filter(seasonOn); }
 const HITS = [
-  {id:"hit-stars",    name:"별 터짐",   price:80,  emo:"⭐", note:"정답 문에서 금빛 별이 팡!"},
-  {id:"hit-hearts",   name:"하트 팡팡", price:80,  emo:"💖", note:"하트가 몽글몽글 솟아요"},
-  {id:"hit-fireworks",name:"폭죽",      price:120, emo:"🎆", note:"펑! 머리 위에서 폭죽이 터져요"},
-  {id:"hit-ring",     name:"무지개 링", price:150, emo:"🌈", note:"발밑에서 무지개 고리가 퍼져요"},
-  {id:"hit-bolt",     name:"번개",      price:150, emo:"⚡", note:"하늘에서 번개가 쾅!"},
-  {id:"hit-crystal",  name:"수정 폭발", price:180, emo:"💎", note:"보라 수정 조각이 사방으로", rare:true},
-  {id:"hit-bats",     name:"박쥐 떼",   price:120, emo:"🦇", note:"박쥐가 우르르 날아올라요", limited:"halloween"}
+  {id:"hit-stars",    name:"별 터짐",   price:100, emo:"⭐", note:"정답 문에서 금빛 별이 팡!"},
+  {id:"hit-hearts",   name:"하트 팡팡", price:100, emo:"💖", note:"하트가 몽글몽글 솟아요"},
+  {id:"hit-fireworks",name:"폭죽",      price:150, emo:"🎆", note:"펑! 머리 위에서 폭죽이 터져요"},
+  {id:"hit-ring",     name:"무지개 링", price:200, emo:"🌈", note:"발밑에서 무지개 고리가 퍼져요"},
+  {id:"hit-bolt",     name:"번개",      price:200, emo:"⚡", note:"하늘에서 번개가 쾅!"},
+  {id:"hit-crystal",  name:"수정 폭발", price:250, emo:"💎", note:"보라 수정 조각이 사방으로", rare:true},
+  {id:"hit-bats",     name:"박쥐 떼",   price:150, emo:"🦇", note:"박쥐가 우르르 날아올라요", limited:"halloween"}
 ];
 const PETS = [
   {id:"pet-spirit", name:"수정 정령",   price:300, hidden:true, emo:"💠", note:"반짝반짝 작은 수정 친구", draw:"spirit"},
@@ -9814,12 +9816,13 @@ const Pet = {
 
 /* 옷 목록 — 그림이 들어오면 바로 팔린다 (가격은 보통 난이도로 20판쯤) */
 const OUTFITS = [
-  /* 등급: rare 희귀 300 (새 옷) · hero 영웅 600 (+ 입으면 전용 달리기·정답 효과) · legend 전설 1000 (+ 큰 그림·소리·포즈, 나중) */
-  {id:"hero-lava",      ch:"hero",    name:"용암 군단 용사", price:600, tier:"hero", line:"🔥 용암 군단", fx:"fx-lava", hit:"hit-lava",
+  /* 등급: rare 희귀 450 (새 옷) · hero 영웅 900 (+ 입으면 전용 달리기·정답 효과) · legend 전설 1500 (+ 큰 그림·소리·포즈, 나중)
+     hidden:true = 아직 비공개 — 상점에 안 보인다 (산 아이에게만 보임). ?stage=N 시험 모드에서는 보이고 공짜로 입어 볼 수 있다 */
+  {id:"hero-lava",      ch:"hero",    name:"용암 군단 용사", price:900, tier:"hero", hidden:true, line:"🔥 용암 군단", fx:"fx-lava", hit:"hit-lava",
    note:"흑요석 갑옷 · 불타는 망토", perks:"용암 발자국 · 용암 분출"},
-  {id:"mage-star",      ch:"mage",    name:"별빛 마법사",   price:300, tier:"rare", note:"밤하늘 로브 · 별 지팡이"},
-  {id:"cat-ninja",      ch:"cat",     name:"달빛 닌자",     price:300, tier:"rare", note:"남색 닌자복 · 초승달 머리띠"},
-  {id:"knight-crystal", ch:"knight",  name:"수정 기사",     price:300, tier:"rare", note:"2장 수정 왕국의 갑옷"},
+  {id:"mage-star",      ch:"mage",    name:"별빛 마법사",   price:450, tier:"rare", hidden:true, note:"밤하늘 로브 · 별 지팡이"},
+  {id:"cat-ninja",      ch:"cat",     name:"달빛 닌자",     price:450, tier:"rare", hidden:true, note:"남색 닌자복 · 초승달 머리띠"},
+  {id:"knight-crystal", ch:"knight",  name:"수정 기사",     price:450, tier:"rare", hidden:true, note:"2장 수정 왕국의 갑옷"},
   {id:"scholar-gold",   ch:"scholar", name:"황금 단어왕",   dex:1,    note:"도감 1권을 다 채우면"}
 ];
 const TIER = {rare:{name:"희귀", col:"#5ab8ff"}, hero:{name:"영웅", col:"#b47aff"}, legend:{name:"전설", col:"#ffc23a"}};
@@ -9954,9 +9957,11 @@ const ShopUI = {
     const cname=id=>(CHARACTERS.filter(c=>c.id===id)[0]||{}).name||"";
     const ci=id=>Math.max(0, CHARACTERS.findIndex(c=>c.id===id));
     const card=o=>{
-      const ok=Outfit.ready[o.id]===true, own=Wallet.owns(o.id), on=Wallet.wearing(o.ch)===o.id;
+      const ok=Outfit.ready[o.id]===true, own=Wallet.owns(o.id), on=Wallet.wearing(o.ch)===o.id, test=o.hidden && !own;
       let btn;
       if(!ok) btn='<button class="sBtn off" disabled>곧 나와요</button>';
+      else if(test) btn = on ? '<button class="sBtn on" data-act="off" data-id="'+o.id+'">🧪 입어 보는 중 · 벗기</button>'
+                             : '<button class="sBtn wear" data-act="try" data-id="'+o.id+'">🧪 입어 보기</button>';
       else if(own) btn= on ? '<button class="sBtn on" data-act="off" data-id="'+o.id+'">입는 중 · 벗기</button>'
                            : '<button class="sBtn wear" data-act="wear" data-id="'+o.id+'">입기</button>';
       else if(o.dex) btn='<button class="sBtn off" disabled>📖 '+o.dex+'권 완성 보상</button>';
@@ -9966,12 +9971,13 @@ const ShopUI = {
                      : '<div class="sArt ghost" style="background-position:'+(ci(o.ch)/8*100)+'% 0"></div>';
       const T=o.tier && TIER[o.tier];
       return '<div class="sCard'+(o.rare?' rare':'')+(o.dex?' dex':'')+(T?' t-'+o.tier:'')+(on?' wearing':'')+'">'
-        +(T?'<i class="tierTag">'+T.name+'</i>':'')+art
+        +(T?'<i class="tierTag">'+T.name+'</i>':'')+(test?'<i class="tierTag testTag">🧪 비공개</i>':'')+art
         +(o.line?'<div class="sLine">'+o.line+'</div>':'')
         +'<div class="sName">'+o.name+'</div><div class="sSub">'+cname(o.ch)+' · '+o.note+'</div>'
         +(o.perks?'<div class="sPerk">✨ 입으면 '+o.perks+'</div>':'')+btn+'</div>';
     };
-    $("shopGrid").innerHTML=OUTFITS.filter(o=>!o.dex).map(card).join("");
+    const showO=o=>!o.dex && (!o.hidden || Wallet.owns(o.id) || TEST_STAGE>0);   // 비공개 옷은 시험 모드에서만
+    $("shopGrid").innerHTML=OUTFITS.filter(showO).map(card).join("") || '<div class="sEmpty">✂️ 새 옷을 만드는 중이에요 · 조금만 기다려 주세요!</div>';
     $("shopDex").innerHTML=OUTFITS.filter(o=>o.dex).map(card).join("");
     const fxCard=f=>{
       const own=Wallet.owns(f.id), on=Wallet.fxOn()===f.id;
@@ -10013,7 +10019,9 @@ const ShopUI = {
     const o=Outfit.of(id); if(!o) return;
     if(a==="arm"){ if(Wallet.gems()<o.price){ $("shopMsg").textContent="보석이 "+(o.price-Wallet.gems())+"개 더 필요해요"; try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
       this.arm=id; SFX.click(); this.draw(); return; }
-    if(a==="buy"){ if(Wallet.buy(id,o.price)){ Wallet.wear(o.ch,id); try{ SFX.tone(660,.2,"triangle",.05,1320); confetti(); }catch(e){}
+    if(a==="try"){ if(!(TEST_STAGE>0) || !o.hidden) return; Wallet.wear(o.ch,id); SFX.click(); this.draw(); if(G.char===o.ch) try{ setCharacter(G.char); }catch(e){} return; }
+    if(a==="buy"){ if(o.hidden) return;                                     // 비공개 옷은 못 산다 (시험 모드는 입어 보기만)
+      if(Wallet.buy(id,o.price)){ Wallet.wear(o.ch,id); try{ SFX.tone(660,.2,"triangle",.05,1320); confetti(); }catch(e){}
         this.arm=null; this.draw(); $("shopMsg").textContent="🎉 "+o.name+"! "+(G.char===o.ch ? "다음 판부터 입고 달려요" : (CHARACTERS.filter(c=>c.id===o.ch)[0]||{}).name+"(으)로 달리면 입어요");
         if(G.char===o.ch) try{ setCharacter(G.char); }catch(e){} } return; }
     if(a==="wear"){ Wallet.wear(o.ch,id); SFX.click(); this.draw(); if(G.char===o.ch) try{ setCharacter(G.char); }catch(e){} return; }
