@@ -5033,10 +5033,17 @@ const Hazards = {
     const zMax = Math.min(prevZ - spd*1.1, ((typeof P!=="undefined")?P.z:0) - spd*1.5), exitUntil = prevZ - spd*2.2;
     // 구멍·장애물은 같은 줄이라도 충분히 떨어져 있으면 또 놓을 수 있다 (예전에는 한 문제에 한 줄당 하나뿐이라 함정이 적었다)
     const usedZ = [], laneGap = G.spawnDist*0.26;
+    const crumbAt = (l,z)=>zones.some(v=>v.lane===l && Math.abs(z-v.z) < v.len/2 + 3);
     const laneFor = z=>{
       const c=[]; for(let j=0;j<G.lanes;j++)
-        if(used.indexOf(j)<0 && !(j===exitLane && z>exitUntil) && !usedZ.some(u=>u.l===j && Math.abs(u.z-z)<laneGap)) c.push(j);
+        if(used.indexOf(j)<0 && !(j===exitLane && z>exitUntil) && !usedZ.some(u=>u.l===j && Math.abs(u.z-z)<laneGap) && !crumbAt(j,z)) c.push(j);
       return c.length ? rnd(c) : -1;
+    };
+    // 쓰러지는 석상 — 왼쪽·오른쪽 가운데 정답 줄·막 나온 줄·다른 함정이 없는 쪽을 고른다 (전에는 한쪽을 먼저 정해 자주 취소됐다 — 광장 13%)
+    const pickFall = z=>{
+      const opts=[[true,[0,1]],[false,[G.lanes-1,G.lanes-2]]].filter(([lf,L])=>!L.some(l=>l===answerLane || used.indexOf(l)>=0 || (l===exitLane && z>exitUntil)
+        || usedZ.some(u=>u.l===l && Math.abs(u.z-z)<laneGap) || crumbAt(l,z)));
+      return opts.length ? rnd(opts) : null;
     };
     const freeLane = ()=>{
       const c=[]; for(let j=0;j<G.lanes;j++) if(used.indexOf(j)<0) c.push(j);
@@ -5052,7 +5059,7 @@ const Hazards = {
       if(near <= far) return null;
       for(let k=0;k<24;k++){
         const z = far + Math.random()*(near-far);
-        if(zones.some(v=>Math.abs(z-v.z) < v.len/2 + 5)) continue;   // 구역 안에는 두지 않는다
+        if(zones.some(v=>v.lane===undefined && Math.abs(z-v.z) < v.len/2 + 5)) continue;   // 구역 안에는 두지 않는다 (2장·3장 금 간 줄은 그 줄만 피한다 — crumbAt)
         if(zs.every(v=>Math.abs(v-z)>sep)){ zs.push(z); return z; }
       }
       return null;
@@ -5089,7 +5096,7 @@ const Hazards = {
         mesh.position.set(cx,0,z); scene.add(mesh);
         this.list.push({type:"crumble", lane:l, cx, halfW:w/2, z, mesh,
                         len:CRUMBLE.LEN, tile:null, done:false});
-        zones.push({z, len:CRUMBLE.LEN});
+        zones.push(Z.ch ? {z, len:CRUMBLE.LEN, lane:l} : {z, len:CRUMBLE.LEN});   // 2장·3장 — 금 간 줄 옆 줄에는 다른 함정을 놓아도 된다
       } else if(kind==="puddle"){
         const span=2, start=Math.floor(Math.random()*(G.lanes-span+1));
         const mesh=makeZoneMesh("puddle", CFG.LANE_W*span-0.2, PUDDLE.LEN);
@@ -5184,9 +5191,8 @@ const Hazards = {
       let done=false;
       if(Z.sig==="fall" && Math.random()<0.6){             // 길 가장자리 두 줄 — 정답 줄·막 나온 줄은 덮지 않는다
         const z=freeZ();
-        if(z!==null){ const left=Math.random()<.5, L=left?[0,1]:[G.lanes-1,G.lanes-2];
-          const bad=L.some(l=>l===answerLane || used.indexOf(l)>=0 || (l===exitLane && z>exitUntil) || usedZ.some(u=>u.l===l && Math.abs(u.z-z)<laneGap));
-          if(!bad){ this.addTree(L.slice().sort((a,b)=>a-b), left, z, "statue"); used.push(...L); done=true; } }
+        if(z!==null){ const sides=pickFall(z); if(sides){ const [left,L]=sides;
+          this.addTree(L.slice().sort((a,b)=>a-b), left, z, "statue"); used.push(...L); done=true; } }
       }
       if(!done){ const z=freeZ(), l=(z!==null)?laneFor(z):-1, sg=(Z.sig2 && Math.random()<0.45) ? Z.sig2 : Z.sig;   // 3장 회랑: 샹들리에 또는 수정 가시
         if(l>=0){ if(sg==="rubble"||sg==="chandelier") this.addMeteor(l,z,sg);
@@ -5198,9 +5204,8 @@ const Hazards = {
       if(Math.random()<0.6){ const z=freeZ(), l=(z!==null)?laneFor(z):-1;
         if(l>=0){ this.addSpike(l,z); const h=this.list[this.list.length-1]; if(h){ h.boss=false; h.trapSpike=true; } usedZ.push({l,z}); } }
       if(Z.fallP && Math.random()<Z.fallP){ const z=freeZ();
-        if(z!==null){ const left=Math.random()<.5, L=left?[0,1]:[G.lanes-1,G.lanes-2];
-          const bad=L.some(l=>l===answerLane || used.indexOf(l)>=0 || (l===exitLane && z>exitUntil) || usedZ.some(u=>u.l===l && Math.abs(u.z-z)<laneGap));
-          if(!bad){ this.addTree(L.slice().sort((a,b)=>a-b), left, z, "statue"); used.push(...L); } } }
+        if(z!==null){ const sides=pickFall(z); if(sides){ const [left,L]=sides;
+          this.addTree(L.slice().sort((a,b)=>a-b), left, z, "statue"); used.push(...L); } } }
     }
     // 2장 (보통) — 정답 줄에도 무너지는 돌·수정 가시. 문 앞 1.3초는 언제나 비우고, 옆으로 비킬 자리를 남긴다 (밤하늘과 같은 규칙)
     if(!G.gentle && G.diff==="normal" && Z.ch && Z.sig && Math.random()<((typeof Boss!=="undefined" && Boss.active)?0.5:0.8)){   // 보스전에도 — 정답 줄만 늘 비어 있으면 읽지 않고도 답이 보인다
@@ -5208,7 +5213,7 @@ const Hazards = {
       const zTop=(answerLane===exitLane) ? Math.min(zMax, exitUntil) : Math.min(prevZ-spdB*0.75, ((typeof P!=="undefined")?P.z:0)-spd*1.5);
       let z=null; for(let tr=0;tr<12 && z===null && zTop>zFar;tr++){ const c=zFar+Math.random()*0.45*(zTop-zFar);
         if(usedZ.some(u=>Math.abs(u.z-c)<G.spawnDist*0.12 && Math.abs(u.l-answerLane)<=1)) continue;
-        if(zones.some(v=>Math.abs(c-v.z)<v.len/2+3)) continue; z=c; }
+        if(zones.some(v=>(v.lane===undefined || v.lane===answerLane) && Math.abs(c-v.z)<v.len/2+3)) continue; z=c; }
       if(z!==null){
         const kind = (Z.sig==="rubble"||Z.sig==="chandelier") ? Z.sig : "spike";
         if(kind!=="spike") this.addMeteor(answerLane,z,kind);
@@ -5220,7 +5225,7 @@ const Hazards = {
     // 2장 — 석상 기사 (창이 옆 칸을 박자에 맞춰 내리찍는다). 석상 줄과 찍는 줄 모두 정답 줄이 아니게
     if(Z.traps && Z.traps.indexOf("statue")>=0 && !G.gentle && Math.random()<0.8){   // "all"(밤하늘)에는 안 나온다
       const z=freeZ(), l=(z!==null) ? laneFor(z) : -1;
-      if(l>=0){ const c=[l-1,l+1].filter(j=>j>=0 && j<G.lanes && used.indexOf(j)<0 && !(j===exitLane && z>exitUntil));
+      if(l>=0){ const c=[l-1,l+1].filter(j=>j>=0 && j<G.lanes && used.indexOf(j)<0 && !(j===exitLane && z>exitUntil) && !crumbAt(j,z));
         if(c.length){ const o=rnd(c); this.addStatue(l,z,o); used.push(l,o); } }
     }
     // 구멍·장애물은 구역을 피해서 배치한다
@@ -8812,7 +8817,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v194";
+const GAME_VER = "v195";
 function runReport(){
   let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
   const boss=[]; try{ Object.keys(Boss.doneAt||{}).forEach(k=>{ if(Boss.doneAt[k]) boss.push(k); }); }catch(e){}
