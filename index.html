@@ -3989,13 +3989,16 @@ function spawnSet(){
     s.cloudDir = Math.random()<.5 ? -1 : 1;
   }
 
-  if(!pre) Hazards.spawnFor(group.position.z, q.answer, s.speed);   // 정답 레인은 항상 비워둔다
+  if(!pre){ const hb=new Set(Hazards.list); Hazards.spawnFor(group.position.z, q.answer, s.speed);   // 정답 레인은 항상 비워둔다
+    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z, q.answer, s.speed); }catch(e){} }
   G.sets.push(s);
   try{
     G.nextQ = newQuestion();
+    const hb=new Set(Hazards.list);
     Hazards.spawnAhead(group.position.z - G.spawnDist, G.nextQ.answer, s.speed);   // 다음 문제 함정 — 이 문 뒤편 (다음 단계의 지대로)
     G.preHazQ = G.nextQ;
-    Boss.attack(group.position.z, G.nextQ.answer, q.answer);                      // 보스전 — 별똥별 (정답 줄은 피함)
+    Boss.attack(group.position.z, G.nextQ.answer, q.answer);                      // 보스전 공격
+    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z - G.spawnDist, G.nextQ.answer, s.speed); }catch(e){}   // 함정 + 보스 공격을 합쳐 길 검사
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
   G.groundSpeed = s.speed;
@@ -5340,18 +5343,24 @@ const Hazards = {
         if(j===answerLane && (tTotal-t)<aClear+0.3) continue;              // 구멍은 바닥 타일에 붙으며 조금 밀릴 수 있어 여유 0.3초
         ok.push(j);
       }
+      const rowUsed=[];                                       // 한 줄 안에서 이미 쓴 칸 (석상 창·해바라기가 찍는 옆 칸 포함) — 겹쳐 놓지 않는다
       for(let c=0;c<cnt && ok.length;c++){
         const j=ok.splice(Math.floor(Math.random()*ok.length),1)[0];
+        if(rowUsed.indexOf(j)>=0) continue;
+        rowUsed.push(j);
         let k=pick();
         if(k==="flower"){                                     // 해바라기 — 두 줄 경계에 서서 양쪽을 번갈아 막는다
           const other=(j+1<n) ? j+1 : j-1;
           if(other===answerLane && (tTotal-t)<aClear) continue;
           if(other===exitLane && t<Math.min(d.exitClear||1.0, tTotal*0.34)) continue;
-          items.push({t, lane:Math.min(j,other), kind:"flower", also:Math.max(j,other)});
+          if(rowUsed.indexOf(other)>=0 && other!==j) continue;
+          items.push({t, lane:Math.min(j,other), kind:"flower", also:Math.max(j,other)}); rowUsed.push(other); { const oi=ok.indexOf(other); if(oi>=0) ok.splice(oi,1); }
         } else
         if((k==="block" && Z.prop==="lava") || k==="chunk" || k==="statue"){   // 도롱뇽·얼음덩이·석상(창이 옆 칸을 찍음)은 옆 칸까지 — 정답 줄은 넘보지 않게
-          const other=(j+1<n && j+1!==answerLane) ? j+1 : ((j-1>=0 && j-1!==answerLane) ? j-1 : -1);
-          items.push({t, lane:j, kind:k, also:other});
+          const free=x=>x>=0 && x<n && x!==answerLane && rowUsed.indexOf(x)<0;
+          const other= free(j+1) ? j+1 : (free(j-1) ? j-1 : -1);
+          if(other<0 && k==="statue") k="block";                    // 창을 찍을 옆 칸이 없으면 그냥 장애물
+          items.push({t, lane:j, kind:k, also:other}); if(other>=0){ rowUsed.push(other); const oi=ok.indexOf(other); if(oi>=0) ok.splice(oi,1); }
         } else items.push({t, lane:j, kind:k, also:-1});
       }
     }
@@ -6191,6 +6200,48 @@ const Hazards = {
     this.list.splice(i,1);
   },
   clear(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); if(typeof G!=="undefined"){ G.preHazQ=null; } },
+  /* 길 검사 — 한 문제 구간에 새로 놓인 함정(보스 공격 포함)으로 앞 문 → 정답 문 길이 막히면 하나씩 뺀다.
+     보통(spawnFor)은 이런 검사가 없어서, 정답 줄 함정 + 옆 줄 함정 + 쇠창살·석상이 겹치면 지나갈 틈이 0.1초뿐인 문제가 생겼다 (v202 점검: 2·3장 보통 약 7%).
+     한 칸 옮기는 시간은 어려움·극한 시간 줄 배치와 같은 "아이 반응 기준"(2.1배)으로 넉넉히 잡는다. 움직이는 함정(기사·방패 휘두르기·벌떼)과 구역(빙판·흔들다리)은 따지지 않는다 */
+  ensurePath(newH, gateZ, ans, spd){
+    if(!newH || !newH.length || G.gentle) return 0;
+    spd=Math.max(0.1, spd||G.groundSpeed||10);
+    let prevZ=(typeof P!=="undefined")?P.z:0, exitLane=G.lane;
+    G.sets.forEach(st=>{ const z=st.group.position.z; if(z>gateZ+1 && z<prevZ){ prevZ=z; exitLane=st.q.answer; } });
+    const n=G.lanes, tTotal=(prevZ-gateZ)/spd, SKIP={mace:1,knight:1,swarm:1,crumble:1,ice:1,puddle:1};
+    const zOf=h=>h.tile?h.tile.logicZ:h.z;
+    const lanesOf=h=>{ if(h.type==="tree"){ const u=h.mesh.userData.tree; return u?u.lanes:[h.lane]; }
+      if(h.type==="flower") return [h.lane, Math.min(n-1,h.lane+1)];
+      const pt=h.mesh && h.mesh.userData.patrol; if(pt){ const a=laneOfX(pt.mid-pt.half,n), b=laneOfX(pt.mid+pt.half,n), L=[]; for(let j=Math.min(a,b);j<=Math.max(a,b);j++) L.push(j); return L; }
+      return [h.lane]; };
+    const halfT=h=>{ const t=h.type; if(t==="hole"||t==="blink") return (Ground.len/2)/spd+0.12;
+      if(t==="geyser"||t==="flower") return 0.40; if(t==="tree") return 0.35; if(t==="meteor") return 0.32;
+      if(t==="block" && (h.statueBody || (h.mesh && h.mesh.userData.patrol))) return 0.45; return 0.30; };
+    // 후보 묶음 — 석상 기사(몸 + 창 줄)는 함께 다룬다
+    const live=newH.filter(h=>this.list.indexOf(h)>=0 && !SKIP[h.type] && !h.wall);
+    const groups=[]; live.forEach(h=>{
+      if(h.type==="statue"){ const g=groups.find(g=>g.hs[0].statueBody && Math.abs(zOf(g.hs[0])-zOf(h))<0.05); if(g){ g.hs.push(h); return; } }
+      if(h.statueBody){ const g=groups.find(g=>g.hs[0].type==="statue" && Math.abs(zOf(g.hs[0])-zOf(h))<0.05); if(g){ g.hs.unshift(h); return; } }
+      groups.push({hs:[h]}); });
+    groups.forEach(g=>{ g.t=(prevZ-zOf(g.hs[0]))/spd; g.ht=Math.max(...g.hs.map(halfT)); g.lanes=[].concat(...g.hs.map(lanesOf));
+      g.pri = g.hs[0].type==="bars" ? 3 : g.hs.some(h=>h.ansEarly) ? 2 : 1; });   // 먼저 빼는 순서: 보통 함정 → 정답 줄 함정 → 쇠창살
+    const step=Math.max(0.28, 2.1*CFG.LANE_W/Math.max(6,CFG.MOVE_X));
+    const ok=(G2)=>{ const blocked=(l,t)=>G2.some(g=>g.lanes.indexOf(l)>=0 && Math.abs(g.t-t)<g.ht);
+      let cur=new Set([exitLane]);
+      for(let t=0;t<tTotal;t+=step){ const nx=new Set(), t2=Math.min(tTotal,t+step);
+        cur.forEach(l=>{ for(let d=-1;d<=1;d++){ const m=l+d; if(m<0||m>=n) continue;
+          if(blocked(m,t2)||blocked(m,(t+t2)/2)||(d!==0&&blocked(l,(t+t2)/2))) continue; nx.add(m); } });
+        if(!nx.size) return false; cur=nx; }
+      return cur.has(ans); };
+    let cur=groups.slice(), removed=0, guard=0;
+    while(cur.length && !ok(cur) && guard++<14){
+      const order=cur.slice().sort((a,b)=>a.pri-b.pri || b.t-a.t);
+      let pick=order.find(g=>ok(cur.filter(x=>x!==g))) || order[0];       // 하나만 빼서 풀리면 그것, 아니면 가장 먼저 뺄 것
+      cur=cur.filter(x=>x!==pick);
+      pick.hs.forEach(h=>{ const i=this.list.indexOf(h); if(i>=0){ this.remove(i); removed++; } });
+    }
+    this.lastFix=removed; return removed;
+  },
   dropTile(lane,z){
     Ground.collapseAt(lane,z);
     // 무너지는 바닥 — 발밑 조각도 떨어진다
@@ -7958,7 +8009,7 @@ const Boss = {
       if(!lanes.length) break;
       const f=0.40+0.40*(n===1?0.5:k/(n-1)), z=gateZ-span*f;
       const li=Math.floor(Math.random()*lanes.length), lane=lanes[li]; lanes.splice(li,1);
-      if(Hazards.list.some(h=>h.lane===lane && Math.abs(h.z-z)<5)) continue;
+      if(Hazards.list.some(h=>h.lane===lane && Math.abs((h.tile?h.tile.logicZ:h.z)-z)<5)) continue;   // 구멍·깜빡이 발판은 h.z 가 없고 타일 자리
       try{ Hazards.addMeteor(lane, z); const h=Hazards.list[Hazards.list.length-1]; if(h) h.boss=true; }catch(e){}
     }
     if(Math.random() < (this.phase===2 ? 0.8 : 0.6)) this._ansShard(gateZ, nextAns, curAns);
@@ -7968,7 +8019,7 @@ const Boss = {
     const lanes=this._free(nextAns,curAns), z=gateZ-G.spawnDist*(0.55+Math.random()*0.12);
     for(let k=0;k<n && lanes.length;k++){
       const li=Math.floor(Math.random()*lanes.length), lane=lanes[li]; lanes.splice(li,1);
-      if(Hazards.list.some(h=>h.lane===lane && Math.abs(h.z-z)<5)) continue;
+      if(Hazards.list.some(h=>h.lane===lane && Math.abs((h.tile?h.tile.logicZ:h.z)-z)<5)) continue;
       try{ Hazards.addSpike(lane, z); }catch(e){}
     }
   },
@@ -8897,7 +8948,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v201";
+const GAME_VER = "v202";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
