@@ -4226,7 +4226,7 @@ const TrapArt = {
   names:["sunflower","rocks","bee","ice-chunk","hole-meadow","quicksand-desert","lava-pit","crumble-volcano",
           "floor-meadow","floor-desert","floor-ice","floor-volcano","floor-night",
           "props-meadow","props-desert","props-ice","props-volcano","props-night",
-          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-shield-rig","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
+          "hole-night","crumble-night","ice-night","cloud-fog","blocks","geyser-night","boss-knight","boss-knight-2","boss-knight-parts","boss-spike","boss-shield","boss-shield-2","boss-warden","boss-gate-bars","statue-castle","floor-castle","props-castle","gate-castle","sign-castle","block-castle","rock-castle","crack-castle","crumble-castle","floor-rampart","props-rampart","gate-rampart","sign-rampart","block-rampart","floor-plaza","props-plaza","gate-plaza","sign-plaza","block-plaza",
           "gate-meadow","gate-desert","gate-ice","gate-volcano","gate-night",
           "sign-meadow","sign-desert","sign-ice","sign-volcano","sign-night",
           "skin-hero","skin-explorer","skin-archer","skin-mage","skin-knight","skin-scholar","skin-ghost","skin-cat","skin-wolf",
@@ -7531,13 +7531,13 @@ const BOSS = {
 const BOSS_DEF = {
   50:{ id:"knight", name:"첫 번째 문지기", tex:["boss-knight","boss-knight-2"], parts:"boss-knight-parts",
        eye:[0xb070ff,0xff5fc0], eyeV:0.837, p1:["slam","shard"], p2:["slam","shard","stomp","curse"] },
-  80:{ id:"shield", name:"두 번째 문지기", tex:["boss-shield","boss-shield-2"], parts:"boss-shield-rig", cells:5,
-       // 조각 그림 (칸 812x768): [몸, 탑실드, 방패 든 팔, 견갑, 깨진 방패(2페이즈)]
-       // 팔은 견갑 아래 어깨(PV)를 축으로 돌고, 방패는 세운 채로 주먹(FIST)을 따라간다 — 팔이 몸에서 떨어지지 않는다
-       rig:{ kind:"arm", body:0, shield:1, arm:2, pad:3, broken:4, PV:{u:0.3294, v:0.7233}, FIST:[0.2833,0.6582], SBOT:[0.2863,0.2591] },
-       eye:[0x48e8e0,0xa8fff8], eyeV:0.8817, eyeP:[[0.4922,0.8817],[0.4922,0.8817]], chestP:[0.50,0.62], p1:["sweep","bars"], p2:["sweep","bars","stomp","curse"],
+  80:{ id:"shield", name:"두 번째 문지기", tex:["boss-shield","boss-shield-2"], parts:"boss-warden",
+       // 성문의 방패 수호자 — 조각 묶음 그림 boss-warden.webp (몸·머리·양팔·방패+주먹·견갑 × 1·2페이즈)
+       // P: [그림 속 x, y, 너비, 높이, 원래 자리 x, y]  PV: 어깨·목 축  WRIST: 방패를 쥔 손목(방패가 따라가는 점)  SK: 방패가 팔 각도를 따라 기우는 비율
+       rig:{"kind":"multi","AW":2048,"AH":1168,"IW":716,"IH":1075,"P":{"body1":[657,0,655,952,42,104],"head1":[1036,975,105,161,329,19],"shield":[1314,0,205,350,44,242],"armL1":[1305,975,76,64,177,242],"armR1":[1521,0,147,282,487,274],"paul1":[0,975,459,193,147,124],"body2":[0,0,655,973,42,83],"head2":[929,975,105,163,329,17],"armL2":[1143,975,160,129,112,257],"armR2":[1670,0,147,282,487,274],"paul2":[461,975,466,193,147,124]},"PV":{"armL1":[231.0,283.5],"armR1":[542.5,294.0],"armL2":[241.5,294.0],"armR2":[542.5,294.0],"head1":[381.5,178.5],"head2":[381.5,178.5]},"WRIST":[187.6,278.6],"SBOT":[143.5,586.6],"SC":[143.5,437.5],"FACE":[55,300,234,578],"EYE":[382.2,143.5],"CHEST":[358.4,392.0],"SK":0.3},
+       eye:[0x48e8e0,0xa8fff8], eyeV:0.8665, eyeP:[[0.5338,0.8665],[0.5338,0.8665]], chestP:[0.5006,0.6353], p1:["sweep","bars"], p2:["sweep","bars","stomp","curse"],
        hp:20, rageAt:10,                              // 체력 20 — 앞 10은 방패가 받아 내고(금이 감), 방패가 깨지면 나머지 10은 몸으로
-       shieldBox:[0.2124,0.2611,0.3602,0.6615] }       // 방패 자리 [왼,아래,오른,위] — 방패 조각(칸 기준)의 금테두리
+       shieldBox:[0.08,0.46,0.33,0.72] }               // (조각 그림이 없을 때만 씀)
 };
 const Boss = {
   active:false, done:false, hp:0, max:0, phase:1, used:{}, won:false, def:BOSS_DEF[50], doneAt:{},
@@ -7777,6 +7777,7 @@ const Boss = {
     this.fx.push({m, t:0, life:0.55, kind:"ring", x:bx, y:by});
   },
   stomp(){                                            // ③ 발 구르기
+    if(this.rig2 && this.rig2.kind==="multi") this._move(this._MV.pound);     // 두 번째 문지기 — 주먹으로 땅을 내려찍는다
     this.pose("stomp",0.7); G.shake=Math.max(G.shake||0,.55);
     try{ SFX.tone(55,.6,"sawtooth",.07,35); SFX.crash(); }catch(e){}
     const w=CFG.LANE_W*G.lanes;
@@ -7789,6 +7790,7 @@ const Boss = {
       Wind.type=dir; Wind.t=1.3; Wind.show(true, dir==="left"?"←←←":"→→→"); }, 520);
   },
   curse(){                                            // ④ 어둠의 저주
+    if(this.rig2 && this.rig2.kind==="multi") this._move(this._MV.roar);
     this.pose("curse",1.4); this.darkT=1.9;
     try{ SFX.tone(98,1.0,"triangle",.05,65); }catch(e){}
   },
@@ -7805,7 +7807,8 @@ const Boss = {
   _mats(){ const a=[]; if(this.main) a.push(this.main.material); if(this.parts) Object.values(this.parts).forEach(m=>a.push(m.material)); if(this.rig2) this.rig2.meshes.forEach(m=>a.push(m.material)); return a; },
   /* ---------- 그림 ---------- */
   setTex(p){
-    if(this.rig2){ const r=this.rig2; r.shield.visible=(p===1); r.broken.visible=(p===2); this.main.visible=false; this.tint = p===2 ? [0.95,1.04,1.08] : [1,1,1]; return; }
+    if(this.rig2){ const r=this.rig2; Object.keys(r.p).forEach(k=>{ r.p[k].visible = (k==="shield") ? p===1 : k.slice(-1)===String(p); });
+      r.p.shield.material.opacity=1; this.main.visible=false; this.tint=[1,1,1]; return; }
     const useParts = p===1 && !!this.parts;
     if(this.parts) Object.values(this.parts).forEach(m=>m.visible=useParts);
     const t = p===2 ? (this.texB||this.texA) : this.texA;
@@ -7833,13 +7836,19 @@ const Boss = {
     const mat=map=>new THREE.MeshBasicMaterial({map, transparent:true, alphaTest:.02, depthWrite:false, fog:false, toneMapped:false, side:THREE.DoubleSide});
     this.body=new THREE.Group(); this.root.add(this.body);                       // 몸 전체를 움직이는 틀
     this.main=new THREE.Mesh(this._plane(null), mat(this.texA)); this.main.renderOrder=1; this.body.add(this.main);
-    if(this.texP && D.rig && D.rig.kind==="arm"){   // 두 번째 문지기 — 몸·방패·팔·견갑을 따로 그려, 팔은 어깨에서 돌고 방패는 주먹을 따라간다
-      const R=D.rig, S=this.rig2={kind:"arm", meshes:[]};
-      S.g=new THREE.Group(); this.body.add(S.g);                                  // 몸 전체 기울기·낮춤 (자세와 따로)
-      const mk=(c,pv,ro)=>{ const m=new THREE.Mesh(this._plane(c,pv), mat(this.texP)); m.renderOrder=ro; m.userData.noOutline=true;
-        if(pv) m.position.set((pv.u-0.5)*this.asp, pv.v, 0); S.g.add(m); S.meshes.push(m); return m; };
-      S.body=mk(R.body,null,1); S.shield=mk(R.shield,null,2); S.broken=mk(R.broken,null,2); S.arm=mk(R.arm,R.PV,3); S.pad=mk(R.pad,null,4);
-      S.shield.position.z=0.001; S.broken.position.z=0.001; S.arm.position.z=0.002; S.pad.position.z=0.003; S.broken.visible=false;
+    if(this.texP && D.rig && D.rig.kind==="multi"){ // 두 번째 문지기 — 몸·머리·양팔·방패·견갑을 따로 그려 움직인다
+      const R=D.rig, S=this.rig2={kind:"multi", meshes:[], p:{}}; this.asp=R.IW/R.IH;
+      S.g=new THREE.Group(); this.body.add(S.g);                                  // 몸 전체 기울기·낮춤
+      const mk=(k,pv,ro)=>{ const q=R.P[k], ax=q[0], ay=q[1], w=q[2], h=q[3], ox=q[4], oy=q[5], H=R.IH;
+        const g=new THREE.PlaneGeometry(w/H, h/H), cx=ox+w/2, cy=oy+h/2, px=pv?pv[0]:cx, py=pv?pv[1]:cy;
+        g.translate((cx-px)/H, -(cy-py)/H, 0);
+        const uv=g.attributes.uv, u0=ax/R.AW, u1=(ax+w)/R.AW, v1=1-ay/R.AH, v0=1-(ay+h)/R.AH;
+        uv.setXY(0,u0,v1); uv.setXY(1,u1,v1); uv.setXY(2,u0,v0); uv.setXY(3,u1,v0); uv.needsUpdate=true;
+        const m=new THREE.Mesh(g, mat(this.texP)); m.renderOrder=ro; m.userData.noOutline=true;
+        m.position.set((px-R.IW/2)/H, (H-py)/H, ro*0.0004); m.userData.bx=m.position.x; m.userData.by=m.position.y;
+        S.g.add(m); S.meshes.push(m); S.p[k]=m; return m; };
+      mk("body1",null,1); mk("head1",R.PV.head1,2); mk("armL1",R.PV.armL1,3); mk("shield",R.WRIST,4); mk("armR1",R.PV.armR1,5); mk("paul1",null,6);
+      mk("body2",null,1); mk("head2",R.PV.head2,2); mk("armR2",R.PV.armR2,4); mk("armL2",R.PV.armL2,5); mk("paul2",null,6);
     }
     else if(this.texP){
       const B=BOSS, P5=this.parts={};
@@ -7925,7 +7934,8 @@ const Boss = {
   _shieldUp(){ return !!(this.def.shieldBox && this.phase===1); },
   _target(){                                        // 빛 화살이 꽂힐 곳 — 방패가 있으면 방패, 아니면 가슴
     const b=this.body, sb=this.def.shieldBox;
-    if(this._shieldUp()){ const d=this._fistD(); return [b.position.x+((sb[0]+sb[2])/2+d[0]-0.5)*this.asp*b.scale.x, b.position.y+((sb[1]+sb[3])/2+d[1])*b.scale.y]; }
+    if(this._shieldUp()){ const q=this._shieldPt("SC"); if(q) return [b.position.x+q[0]*b.scale.x, b.position.y+q[1]*b.scale.y];
+      return [b.position.x+((sb[0]+sb[2])/2-0.5)*this.asp*b.scale.x, b.position.y+((sb[1]+sb[3])/2)*b.scale.y]; }
     const cp=(this.phase===2&&this.def.chestP)||null;
     return cp ? [b.position.x+(cp[0]-0.5)*this.asp*b.scale.x, b.position.y+cp[1]*b.scale.y] : [b.position.x, b.position.y+0.6*b.scale.y];
   },
@@ -7943,6 +7953,7 @@ const Boss = {
       return;
     }
     if(!this.seq) this.pose("hurt",0.4);
+    if(this.rig2 && this.rig2.kind==="multi" && !this.sseq) this._move(this._MV.knock);
     this.jolt=0.3;
     this.flashT=0.25; this.flashCol=[1.6,1.6,1.6];
     G.shake=Math.max(G.shake||0,.16);
@@ -7957,12 +7968,14 @@ const Boss = {
       const c=document.createElement("canvas"); c.width=256; c.height=384; this.crackCv=c;
       this.crackTex=new THREE.CanvasTexture(c);
       this.crack=new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({map:this.crackTex, transparent:true, depthWrite:false, fog:false, toneMapped:false}));
-      this.crack.userData.noOutline=true; this.crack.renderOrder=5; (this.rig2 ? this.rig2.shield : this.body).add(this.crack);   // 조각이 있으면 방패를 따라 움직인다
+      this.crack.userData.noOutline=true; this.crack.renderOrder=5; (this.rig2 ? (this.rig2.p ? this.rig2.p.shield : this.rig2.shield) : this.body).add(this.crack);   // 조각이 있으면 방패를 따라 움직인다
       this.crackSeed=[]; for(let i=0;i<9;i++){ const pts=[[0.5,0.45]]; let x=0.5,y=0.45,a=Math.random()*Math.PI*2;
         for(let k=0;k<6;k++){ a+=(Math.random()-.5)*1.1; x+=Math.cos(a)*0.09; y+=Math.sin(a)*0.07; pts.push([x,y]); } this.crackSeed.push(pts); }
     }
     const w=(sb[2]-sb[0])*this.asp, h=(sb[3]-sb[1]);
-    this.crack.scale.set(w,h,1); this.crack.position.set(((sb[0]+sb[2])/2-0.5)*this.asp, (sb[1]+sb[3])/2, 0.004);
+    if(this.rig2 && this.rig2.kind==="multi"){ const R=this.def.rig, F=R.FACE, H=R.IH;
+      this.crack.scale.set((F[2]-F[0])/H,(F[3]-F[1])/H,1); this.crack.position.set(((F[0]+F[2])/2-R.WRIST[0])/H, -((F[1]+F[3])/2-R.WRIST[1])/H, 0.004); }
+    else { this.crack.scale.set(w,h,1); this.crack.position.set(((sb[0]+sb[2])/2-0.5)*this.asp, (sb[1]+sb[3])/2, 0.004); }
     const x=this.crackCv.getContext("2d"), W=256, H=384; x.clearRect(0,0,W,H);
     const lines=Math.ceil(this.crackLv*this.crackSeed.length);
     x.lineCap="round"; x.lineJoin="round";
@@ -7997,6 +8010,7 @@ const Boss = {
       G.shake=Math.max(G.shake||0,.9);
       try{ SFX.crash(); SFX.tone(60,1.2,"sawtooth",.08,30); SFX.tone(220,.9,"square",.035,880); }catch(e){}
       this.shards(14, 0, true); this.shards(22, this.def.id==="shield" ? 0x5ff0e8 : 0xff6fb5); this._ring(); this.pose("curse",1.2);
+      if(this.rig2 && this.rig2.kind==="multi") this._move(this._MV.roar, [], false, true);   // 방패를 잃고 양팔을 벌려 포효
     }
     if(this.transT<=1.2 && this.transT>0){            // 부풀며 포효
       const p=(1.2-this.transT)/1.2; return 1+0.16*Math.sin(p*Math.PI);
@@ -8028,69 +8042,88 @@ const Boss = {
      1단계: 탑실드를 손으로 짚은 채 팔꿈치를 축으로 — 옆으로 밀어치기 / 들었다가 바닥에 쿵
      2단계: 수정 방패를 든 팔을 어깨를 축으로 — 크게 휘두르기 / 치켜들었다가 내리찍기 */
   _p2art(){ return this.phase===2 && this.transSwapped; },
-  /* 키프레임 [시간, 팔 각도(도, -는 바깥으로 들기 / +는 몸 쪽), 방패 추가 내림, 몸 기울기, 몸 낮춤, 이 구간의 움직임] */
+  /* 키프레임 [시간, 왼팔(방패 쪽), 오른팔, 머리, 몸 기울기(rad), 몸 낮춤, 이 구간의 움직임]
+     팔 각도는 "바깥으로 들기"가 + (양쪽 같음) · 머리는 + 가 화면에서 반시계 */
   _MV:{
-    bash:  [[0,0,0,0,0],[0.40,6,0,-0.02,0.012,"io"],[0.53,-20,0,0.03,0.004,"out"],[0.82,-20,0,0.03,0.004,"io"],[1.5,0,0,0,0,"io"]],
-    raise: [[0,0,0,0,0],[0.18,3,0,0,0.018,"io"],[0.55,-32,0,0.015,-0.006,"io"]],
-    slam:  [[0,0,0,0,0],[0.10,2,0.006,0.01,0.03,"in"],[0.45,2,0.006,0.01,0.03,"io"],[1.1,0,0,0,0,"io"]],
-    knock: [[0,0,0,0,0],[0.06,4,0,-0.012,0,"out"],[0.45,0,0,0,0,"io"]]
+    bash:  [[0,0,0,0,0,0],[0.35,-10,4,4,-0.02,0.010,"io"],[0.5,40,-6,-5,0.035,0.004,"out"],[0.85,40,-6,-5,0.035,0.004,"io"],[1.5,0,0,0,0,0,"io"]],
+    raise: [[0,0,0,0,0,0],[0.2,-4,4,2,0,0.015,"io"],[0.55,60,24,-7,-0.03,-0.01,"io"]],
+    slam:  [[0,0,0,0,0,0],[0.1,-8,-12,7,0.02,0.03,"in"],[0.45,-8,-12,7,0.02,0.03,"io"],[1.1,0,0,0,0,0,"io"]],
+    knock: [[0,0,0,0,0,0],[0.06,-5,3,-6,-0.015,0,"out"],[0.4,0,0,0,0,0,"io"]],
+    pound: [[0,0,0,0,0,0],[0.4,4,80,-7,0.02,-0.012,"io"],[0.55,0,-30,9,0.03,0.04,"in"],[0.85,0,-30,9,0.03,0.04,"io"],[1.5,0,0,0,0,0,"io"]],
+    roar:  [[0,0,0,0,0,0],[0.3,-5,-5,6,0,0.015,"io"],[0.6,40,40,-8,0,-0.012,"out"],[1.4,40,40,-8,0,-0.012,"io"],[2.0,0,0,0,0,0,"io"]],
+    bash2: [[0,0,0,0,0,0],[0.3,-12,-4,5,-0.025,0.012,"io"],[0.45,50,-8,-6,0.045,0.004,"out"],[0.8,50,-8,-6,0.045,0.004,"io"],[1.4,0,0,0,0,0,"io"]],
+    raise2:[[0,0,0,0,0,0],[0.2,-6,-6,3,0,0.02,"io"],[0.55,75,75,-10,0,-0.015,"io"]],
+    slam2: [[0,0,0,0,0,0],[0.1,-25,-25,9,0,0.05,"in"],[0.45,-25,-25,9,0,0.05,"io"],[1.1,0,0,0,0,0,"io"]]
   },
-  _move(keys, ev, hold){ if(!this.rig2 || this.deadT>0 || this.transT>0) return false;
-    const c=this._swNow||[0,0,0,0], big=this._p2art()?1.25:1;                   // 2페이즈는 더 크게
-    keys=keys.map((k,i)=>{ const o=k.slice(); if(i>0) o[1]*=big; return o; }); for(let i=1;i<5;i++) keys[0][i]=c[i-1];
+  _mv(n){ return (this._p2art() && this._MV[n+"2"]) || this._MV[n]; },
+  _move(keys, ev, hold, force){ if(!this.rig2 || this.deadT>0 || (this.transT>0 && !force)) return false;
+    const c=this._swNow||[0,0,0,0,0]; keys=keys.map(k=>k.slice()); for(let i=1;i<6;i++) keys[0][i]=c[i-1];
     this.sseq={keys, ev:ev||[], t:0, hold:!!hold}; return true; },
-  /* 팔을 deg만큼 돌렸을 때 주먹(=방패)이 옮겨 가는 양 (칸 비율: [가로, 세로]) */
-  _fistD(deg){
-    const R=this.def.rig; if(!this.rig2 || !R || !R.FIST) return [0,0];
-    if(deg==null) deg=(this._armNow||0);
-    const t=deg*Math.PI/180, A=this.asp||1, rx=(R.FIST[0]-R.PV.u)*A, ry=R.FIST[1]-R.PV.v;
-    return [((rx*Math.cos(t)-ry*Math.sin(t))-rx)/A, (rx*Math.sin(t)+ry*Math.cos(t))-ry-((this._swNow||[])[1]||0)];
+  /* 방패의 한 점(SC 가운데 · SBOT 밑동)이 지금 몸 안에서 어디 있는지 — 몸 기준 좌표 */
+  _shieldPt(key){
+    const r=this.rig2, R=this.def.rig; if(!r || r.kind!=="multi" || !R[key]) return null;
+    const sh=r.p.shield, H=R.IH, lx=(R[key][0]-R.WRIST[0])/H, ly=-(R[key][1]-R.WRIST[1])/H, a=sh.rotation.z;
+    return [sh.position.x+lx*Math.cos(a)-ly*Math.sin(a), sh.position.y+lx*Math.sin(a)+ly*Math.cos(a)+r.g.position.y];
   },
-  swing(dir){                                       // 방패 휘두르기 — 당겼다가 바깥으로 크게 (충격파와 함께)
+  swing(dir){                                       // 휘두르기 — 1페이즈 방패 / 2페이즈 왼팔 후려치기 (충격파와 함께)
     if(!this.rig2 || (this.sseq && this.sseq.t<0.9)) return;
-    this._move(this._MV.bash, [[0.54,()=>this._shieldHit(0.3,0.25)]]);
+    this._move(this._mv("bash"), [[this._p2art()?0.45:0.5,()=>this._shieldHit(0.3,0.25)]]);
     try{ SFX.tone(200,.25,"sawtooth",.025,520); }catch(e){}
   },
-  raise(){                                          // 쇠창살 — 방패를 옆으로 번쩍 들고 부르르 (내리찍기를 기다린다)
+  raise(){                                          // 쇠창살 — 1페이즈 방패를 번쩍 / 2페이즈 양주먹을 치켜든다 (내리찍기를 기다린다)
     if(!this.rig2 || (this.sseq && this.sseq.hold)) return;
-    this._move(this._MV.raise, [], true);
+    this._move(this._mv("raise"), [], true);
     try{ SFX.tone(110,.45,"triangle",.03,170); }catch(e){}
   },
-  shieldSlam(){                                     // 쾅 — 쇠창살이 떨어지는 순간 (몸이 내려앉으며 방패를 땅에)
+  shieldSlam(){                                     // 쾅 — 쇠창살이 떨어지는 순간 (몸이 내려앉는다)
     if(!this.rig2 || (this.sseq && !this.sseq.hold && this.sseq.t<0.5)) return;
-    this._move(this._MV.slam, [[0.10,()=>this._shieldHit(0.5,0.4)]]);
+    this._move(this._mv("slam"), [[0.10,()=>this._shieldHit(0.5,0.4)]]);
   },
-  _shieldHit(shake, big){                            // 방패 밑동이 닿는 순간 — 청록 불꽃과 돌 부스러기
+  _shieldHit(shake, big){                            // 방패 밑동(2페이즈는 주먹)이 닿는 순간 — 청록 불꽃과 돌 부스러기
     G.shake=Math.max(G.shake||0, shake); this.flashT=Math.max(this.flashT||0,0.15); this.flashCol=[1.15,1.5,1.5];
-    const b=this.body, R=this.def.rig, d=this._fistD(), pt=[R.SBOT[0]+d[0], R.SBOT[1]+d[1]];
-    const at=[b.position.x+(pt[0]-0.5)*this.asp*b.scale.x, b.position.y+pt[1]*b.scale.y];
+    const b=this.body, R=this.def.rig;
+    let q = this._p2art() ? null : this._shieldPt("SBOT");
+    if(!q){ const arm=this.rig2.p.armL2, a=arm.rotation.z, lx=-0.10, ly=-0.01;          // 2페이즈 — 왼주먹 자리
+      q=[arm.position.x+lx*Math.cos(a)-ly*Math.sin(a), arm.position.y+lx*Math.sin(a)+ly*Math.cos(a)+this.rig2.g.position.y]; }
+    const at=[b.position.x+q[0]*b.scale.x, b.position.y+q[1]*b.scale.y];
     this.shards(Math.round(10*big+4), 0x7ff8f0, false, at); this.shards(Math.round(6*big+2), 0, true, at);
     try{ SFX.tone(70,.3,"square",.05,40); SFX.tone(900,.12,"triangle",.03,1400); }catch(e){}
   },
   _srig(dt){
     const r=this.rig2; if(!r) return;
-    const R=this.def.rig, E={io:u=>u*u*(3-2*u), in:u=>u*u*u, out:u=>1-Math.pow(1-u,3)};
-    let v=[0,0,0,0];
+    const R=this.def.rig, E={io:u=>u*u*(3-2*u), in:u=>u*u*u, out:u=>1-Math.pow(1-u,3)}, D2R=Math.PI/180;
+    let v=[0,0,0,0,0];
     const q=this.sseq;
     if(q){
       const before=q.t; q.t+=dt; const K=q.keys, T=K[K.length-1][0];
       q.ev.forEach(e=>{ if(before<e[0] && q.t>=e[0]) try{ e[1](); }catch(err){} });
-      if(q.t>=T){ v=K[K.length-1].slice(1,5);
-        if(q.hold){ v[0]+=Math.sin(this.t*55)*0.45; if(q.t>T+1.8) this._move([[0,0,0,0,0],[0.9,0,0,0,0,"io"]]); }   // 내리찍기가 안 오면 천천히 내린다
+      if(q.t>=T){ v=K[K.length-1].slice(1,6);
+        if(q.hold){ v[0]+=Math.sin(this.t*55)*0.6; v[1]+=Math.sin(this.t*51)*0.6; if(q.t>T+1.8) this._move([[0,0,0,0,0,0],[0.9,0,0,0,0,0,"io"]]); }   // 내리찍기가 안 오면 천천히 내린다
         else this.sseq=null; }
       else { let j=0; while(j<K.length-2 && q.t>K[j+1][0]) j++;
-        const k0=K[j], k1=K[j+1], u=Math.min(1,Math.max(0,(q.t-k0[0])/Math.max(1e-4,k1[0]-k0[0]))), e=(E[k1[5]]||E.io)(u);
-        for(let i=0;i<4;i++) v[i]=k0[i+1]+(k1[i+1]-k0[i+1])*e; }
+        const k0=K[j], k1=K[j+1], u=Math.min(1,Math.max(0,(q.t-k0[0])/Math.max(1e-4,k1[0]-k0[0]))), e=(E[k1[6]]||E.io)(u);
+        for(let i=0;i<5;i++) v[i]=k0[i+1]+(k1[i+1]-k0[i+1])*e; }
     }
     this._swNow=v.slice();
-    let a=v[0] + (this._p2art() ? Math.sin(this.t*1.3)*0.4 : 0);
-    if(this.jolt>0){ this.jolt-=dt; const j=this.jolt; a+=Math.sin(j*70)*1.6*Math.min(1,j*5); }   // 화살이 방패에 맞으면 움찔
-    this._armNow=a;
-    r.arm.rotation.z=a*Math.PI/180;
-    const d=this._fistD(a);
-    r.shield.position.x=r.broken.position.x=d[0]*this.asp;
-    r.shield.position.y=r.broken.position.y=d[1];
-    r.g.rotation.z=v[2]; r.g.position.y=-v[3];
+    const p2=this._p2art(), s=p2?"2":"1", t=this.t;
+    let aL=v[0]+Math.sin(t*1.2)*(p2?2.5:1), aR=v[1]+Math.sin(t*1.1+1)*(p2?3:1.5), hd=v[2]+Math.sin(t*0.7)*1.5;    // 숨 쉬듯 조금씩
+    if(this.jolt>0){ this.jolt-=dt; const j=this.jolt, w=Math.sin(j*70)*Math.min(1,j*5); aL+=w*(p2?4:2); aR+=w*1.5; hd+=w*3; }   // 맞으면 움찔
+    const armL=r.p["armL"+s], armR=r.p["armR"+s], head=r.p["head"+s], sh=r.p.shield;
+    armL.rotation.z=-aL*D2R; armR.rotation.z=aR*D2R; head.rotation.z=hd*D2R;
+    head.position.x=head.userData.bx; head.position.y=head.userData.by;
+    if(!p2){                                          // 방패(+주먹)는 손목을 따라가고, 팔 각도의 일부만 기운다
+      const H=R.IH, wx=(R.WRIST[0]-R.PV.armL1[0])/H, wy=-(R.WRIST[1]-R.PV.armL1[1])/H, a=-aL*D2R;
+      sh.position.x=sh.userData.bx+(wx*Math.cos(a)-wy*Math.sin(a))-wx; sh.position.y=sh.userData.by+(wx*Math.sin(a)+wy*Math.cos(a))-wy;
+      sh.rotation.z=a*R.SK;
+      if(this.phase===2 && this.transT>1.2){          // 변신 직전 — 깨진 방패가 손에서 떨어진다
+        const k=Math.min(1,(1.8-this.transT)/0.6); sh.position.y-=k*k*0.35; sh.position.x-=k*0.04; sh.rotation.z+=k*0.7; sh.material.opacity=1-k*0.5; }
+    }
+    if(this.deadT>0){                                 // 쓰러짐 — 투구·팔이 따로 무너진다
+      const p=1-Math.max(0,this.deadT)/1.8;
+      head.position.y-=p*p*0.3; head.position.x+=p*0.05; head.rotation.z+=p*1.4;
+      armL.rotation.z-=p*0.8; armR.rotation.z+=p*0.8;
+    }
+    r.g.rotation.z=v[3]; r.g.position.y=-v[4];
   },
   /* 팔 — 팔뚝은 팔꿈치에서 꺾이고, 창과 주먹은 기울지 않은 채 손목을 따라간다 */
   _arm(dt){
