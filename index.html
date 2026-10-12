@@ -1203,7 +1203,7 @@ details{display:none}
     <div class="ldLogo">HY ENG</div>
     <div class="ldSub">단어 게이트 러너</div>
     <div class="ldBar"><i id="loadBar"></i></div>
-    <div class="ldText" id="loadText">그림 불러오는 중</div>
+    <div class="ldText" id="loadText">업데이트 확인 중</div>
     <div class="ldTip">처음 한 번만 조금 걸려요</div>
     <button class="ldSkip" id="loadSkip">바로 시작하기</button>
   </div>
@@ -2936,7 +2936,7 @@ const ArtLoad = {
     const b=$("loadBar"), t=$("loadText");
     const pct=Math.round(100*Math.min(this.done,this.total)/Math.max(1,this.total));
     if(b) b.style.width=pct+"%";
-    if(t) t.textContent="그림 불러오는 중 "+pct+"%";
+    if(t) t.textContent="업데이트 확인 중 "+pct+"%";
   },
   finish(){
     if(this.finished) return;
@@ -3946,7 +3946,7 @@ function spawnSet(){
   G.sets.push(s);
   try{
     G.nextQ = newQuestion();
-    Hazards.spawnFor(group.position.z - G.spawnDist, G.nextQ.answer, s.speed);   // 다음 문제 함정 — 이 문 뒤편
+    Hazards.spawnAhead(group.position.z - G.spawnDist, G.nextQ.answer, s.speed);   // 다음 문제 함정 — 이 문 뒤편 (다음 단계의 지대로)
     G.preHazQ = G.nextQ;
     Boss.attack(group.position.z, G.nextQ.answer, q.answer);                      // 보스전 — 별똥별 (정답 줄은 피함)
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
@@ -4941,6 +4941,16 @@ function makeBlock(){
 const Hazards = {
   list:[],
   /* 게이트 세트가 생성될 때 함께 배치 */
+  /* 이 문 뒤편은 문을 지나면(정답이면) 다음 단계 구간 — 새 지대 첫 문제면 새 지대 함정으로 놓는다
+     (전에는 지금 지대로 놓아서 사막 첫 구간에 해바라기가 나오는 식이었다). 장이 바뀌는 곳은 장 넘김이 함정을 비우므로 제외 */
+  spawnAhead(gateZ, answerLane, setSpeed){
+    let zi=G.zone||0;
+    try{ const n=zoneIndex(G.stage+1), bossOn=(typeof Boss!=="undefined" && Boss.active);
+      if(!bossOn && ZONES[n] && (ZONES[n].ch||1)===(zone().ch||1)) zi=n; }catch(e){}
+    if(zi===G.zone) return this.spawnFor(gateZ, answerLane, setSpeed);
+    const keep=G.zone; G.zone=zi;
+    try{ this.spawnFor(gateZ, answerLane, setSpeed); } finally { G.zone=keep; }
+  },
   spawnFor(gateZ, answerLane, setSpeed){
     this._ans = answerLane;                         // 도롱뇽이 정답 길로 들어가지 않게
     if(G.rule==="endless" || G.rule==="mine") return;   // 무한 질주·철자 지뢰 — 단어만 나온다
@@ -8514,6 +8524,14 @@ function finishRun(ch){
     try{ burst(P.x+(Math.random()-.5)*CFG.LANE_W*G.lanes, 4+Math.random()*5, P.z-12-Math.random()*24, 0xffe28a, 10); }catch(e){} }, i*140);
   setTimeout(()=>{ if(!G.finishing) return; G.finishing=false; G.skipOutro=true; gameOver(); G.skipOutro=false; }, 2800);
 }
+/* 처음 화면으로 — 끝난 판의 지대(성·회랑…)가 메뉴 배경에 남아 있다가 시작하면 초원으로 바뀌던 문제. 메뉴는 늘 첫 지대로 */
+function titleZone(){
+  try{
+    clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Chapter.reset();
+    if((G.zone||0)!==0){ applyZone(0, false); Attract.clear(); }
+    Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
+  }catch(e){}
+}
 function startGame(){
   G.brake = BRAKE.MAX*perk("brake"); G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
@@ -9308,7 +9326,7 @@ addEventListener("keydown", e=>{
 menuFocus(0);
 $("btnStart").addEventListener("click",startGame);
 $("btnRetry").addEventListener("click",startGame);
-$("btnMain").addEventListener("click",()=>{ Voice.stop(); Attract.focus=false; refreshResume();
+$("btnMain").addEventListener("click",()=>{ Voice.stop(); Attract.focus=false; refreshResume(); titleZone();
 /* 2인용은 키보드가 필요해서 PC 에서만 보여준다 */
 (function(){
   const b=$("btnVersus"); if(!b) return;
