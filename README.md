@@ -11,6 +11,26 @@
 
 이 주소를 QR코드로 만들어 나눠주면 학생들이 바로 접속합니다.
 
+## 폴더 구조 (v193~)
+
+```
+index.html            게임
+versus.html           2인용 대결 (PC)
+sw.js                 오프라인 저장 — 고칠 때마다 VERSION 숫자를 올린다
+manifest.webmanifest  홈 화면 앱 설정
+icon-*.png            앱 아이콘
+assets/
+  ui/      화면 테두리 · 로고 · 메뉴/HUD 아이콘 · 결과 배지 · 모드 카드
+  chars/   캐릭터 달리기 그림 · 앞모습 · 얼굴 · (옷 outfit-* · 동료 pet-*)
+  world/   지대별 바닥 floor- · 장식 props- · 문 gate- · 단어판 sign- · 배경 mountains-
+  traps/   함정·장애물 그림 (해바라기, 돌, 구멍, 샹들리에, 기사, 불도롱뇽 …)
+  boss/    문지기 그림
+```
+
+새 그림은 이름 앞부분으로 폴더가 정해진다 (`index.html`의 `AP()`):
+`boss-*` → boss · `char-/skin-/outfit-/pet-*` → chars · `floor-/props-/gate-/sign-/mountains-*` → world ·
+`logo, ui-*, menu-icons, hud-icons, result-badges, card-*` → ui · 나머지 → traps.
+
 ## 수정하는 법
 
 `index.html` 안의 `WORD_BANK` 배열을 고치면 단어가 바뀝니다.

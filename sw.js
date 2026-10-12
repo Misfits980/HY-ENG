@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v192";
+const VERSION = "hyeng-v193";
 const CORE = [
   "./",
   "./index.html",
@@ -8,24 +8,34 @@ const CORE = [
   "./icon-192.png",
   "./icon-512.png"
 ];
-const OPTIONAL = [                    // 없으면 그냥 건너뜀
-  "./three.min.js", "./versus.html",
-  "./assets/mountains-meadow.webp", "./assets/mountains-desert.webp",
-  "./assets/mountains-ice.webp",    "./assets/mountains-volcano.webp",
-  "./assets/mountains-night.webp",
-  "./mountains-meadow.webp", "./mountains-desert.webp", "./mountains-ice.webp",
-  "./mountains-volcano.webp", "./mountains-night.webp",
-  "./hole-meadow.webp", "./quicksand-desert.webp", "./lava-pit.webp", "./crumble-volcano.webp", "./salamander-volcano.webp",
-  "./floor-meadow.webp", "./floor-desert.webp", "./floor-ice.webp", "./floor-volcano.webp", "./floor-night.webp",
-  "./props-meadow.webp", "./props-desert.webp", "./props-ice.webp", "./props-volcano.webp", "./props-night.webp",
-  "./hole-night.webp", "./crumble-night.webp", "./ice-night.webp", "./cloud-fog.webp", "./blocks.webp", "./geyser-night.webp", "./boss-knight.webp", "./boss-knight-2.webp", "./boss-knight-parts.webp", "./boss-spike.webp", "./boss-shield.webp", "./boss-shield-2.webp", "./boss-warden.webp", "./boss-gate-bars.webp", "./statue-castle.webp", "./floor-castle.webp", "./props-castle.webp", "./gate-castle.webp", "./sign-castle.webp", "./mountains-castle.webp", "./block-castle.webp", "./rock-castle.webp", "./crack-castle.webp", "./crumble-castle.webp", "./floor-rampart.webp", "./props-rampart.webp", "./gate-rampart.webp", "./sign-rampart.webp", "./mountains-rampart.webp", "./block-rampart.webp", "./floor-plaza.webp", "./props-plaza.webp", "./gate-plaza.webp", "./sign-plaza.webp", "./mountains-plaza.webp", "./block-plaza.webp",
-  "./floor-hall.webp", "./props-hall.webp", "./gate-hall.webp", "./sign-hall.webp", "./mountains-hall.webp", "./block-hall.webp", "./chandelier-hall.webp", "./knight-hall.webp",
-  "./gate-meadow.webp", "./gate-desert.webp", "./gate-ice.webp", "./gate-volcano.webp", "./gate-night.webp",
-  "./sign-meadow.webp", "./sign-desert.webp", "./sign-ice.webp", "./sign-volcano.webp", "./sign-night.webp",
-  "./logo.webp", "./sunflower.webp", "./rocks.webp", "./bee.webp", "./ice-chunk.webp", "./result-badges.webp", "./char-cheer.webp", "./menu-icons.webp", "./hud-icons.webp", "./char-portraits.webp", "./ui-panel.webp", "./ui-wide.webp", "./ui-round.webp", "./icon-maskable-512.png",
-  "./card-meadow.webp", "./card-desert.webp", "./card-ice.webp", "./card-volcano.webp", "./card-night.webp",
-  "./char-hero.webp", "./char-explorer.webp", "./char-archer.webp", "./char-mage.webp", "./char-knight.webp", "./char-scholar.webp", "./char-ghost.webp", "./char-cat.webp", "./char-wolf.webp",
-  "./skin-hero.png", "./skin-explorer.png", "./skin-archer.png", "./skin-mage.png", "./skin-knight.png", "./skin-scholar.png", "./skin-ghost.png", "./skin-cat.png", "./skin-wolf.png"
+const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림은 assets/ 아래 갈래별 폴더
+  "./versus.html", "./icon-maskable-512.png",
+  "./assets/boss/boss-gate-bars.webp", "./assets/boss/boss-knight-2.webp", "./assets/boss/boss-knight-parts.webp", "./assets/boss/boss-knight.webp",
+  "./assets/boss/boss-shield-2.webp", "./assets/boss/boss-shield.webp", "./assets/boss/boss-spike.webp", "./assets/boss/boss-warden.webp",
+  "./assets/chars/char-archer.webp", "./assets/chars/char-cat.webp", "./assets/chars/char-cheer.webp", "./assets/chars/char-explorer.webp",
+  "./assets/chars/char-ghost.webp", "./assets/chars/char-hero.webp", "./assets/chars/char-knight.webp", "./assets/chars/char-mage.webp",
+  "./assets/chars/char-portraits.webp", "./assets/chars/char-scholar.webp", "./assets/chars/char-wolf.webp", "./assets/traps/bee.webp",
+  "./assets/traps/block-castle.webp", "./assets/traps/block-hall.webp", "./assets/traps/block-plaza.webp", "./assets/traps/block-rampart.webp",
+  "./assets/traps/blocks.webp", "./assets/traps/chandelier-hall.webp", "./assets/traps/cloud-fog.webp", "./assets/traps/crack-castle.webp",
+  "./assets/traps/crumble-castle.webp", "./assets/traps/crumble-night.webp", "./assets/traps/crumble-volcano.webp", "./assets/traps/geyser-night.webp",
+  "./assets/traps/hole-meadow.webp", "./assets/traps/hole-night.webp", "./assets/traps/ice-chunk.webp", "./assets/traps/ice-night.webp",
+  "./assets/traps/knight-hall.webp", "./assets/traps/lava-pit.webp", "./assets/traps/quicksand-desert.webp", "./assets/traps/rock-castle.webp",
+  "./assets/traps/rocks.webp", "./assets/traps/salamander-volcano.webp", "./assets/traps/statue-castle.webp", "./assets/traps/sunflower.webp",
+  "./assets/ui/card-desert.webp", "./assets/ui/card-ice.webp", "./assets/ui/card-meadow.webp", "./assets/ui/card-night.webp",
+  "./assets/ui/card-volcano.webp", "./assets/ui/hud-icons.webp", "./assets/ui/logo.webp", "./assets/ui/menu-icons.webp",
+  "./assets/ui/result-badges.webp", "./assets/ui/ui-panel.webp", "./assets/ui/ui-round.webp", "./assets/ui/ui-wide.webp",
+  "./assets/world/floor-castle.webp", "./assets/world/floor-desert.webp", "./assets/world/floor-hall.webp", "./assets/world/floor-ice.webp",
+  "./assets/world/floor-meadow.webp", "./assets/world/floor-night.webp", "./assets/world/floor-plaza.webp", "./assets/world/floor-rampart.webp",
+  "./assets/world/floor-volcano.webp", "./assets/world/gate-castle.webp", "./assets/world/gate-desert.webp", "./assets/world/gate-hall.webp",
+  "./assets/world/gate-ice.webp", "./assets/world/gate-meadow.webp", "./assets/world/gate-night.webp", "./assets/world/gate-plaza.webp",
+  "./assets/world/gate-rampart.webp", "./assets/world/gate-volcano.webp", "./assets/world/mountains-castle.webp", "./assets/world/mountains-desert.webp",
+  "./assets/world/mountains-hall.webp", "./assets/world/mountains-ice.webp", "./assets/world/mountains-meadow.webp", "./assets/world/mountains-night.webp",
+  "./assets/world/mountains-plaza.webp", "./assets/world/mountains-rampart.webp", "./assets/world/mountains-volcano.webp", "./assets/world/props-castle.webp",
+  "./assets/world/props-desert.webp", "./assets/world/props-hall.webp", "./assets/world/props-ice.webp", "./assets/world/props-meadow.webp",
+  "./assets/world/props-night.webp", "./assets/world/props-plaza.webp", "./assets/world/props-rampart.webp", "./assets/world/props-volcano.webp",
+  "./assets/world/sign-castle.webp", "./assets/world/sign-desert.webp", "./assets/world/sign-hall.webp", "./assets/world/sign-ice.webp",
+  "./assets/world/sign-meadow.webp", "./assets/world/sign-night.webp", "./assets/world/sign-plaza.webp", "./assets/world/sign-rampart.webp",
+  "./assets/world/sign-volcano.webp"
 ];
 
 self.addEventListener("install", e => {
