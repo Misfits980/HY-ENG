@@ -8734,7 +8734,7 @@ function gameOver(){
       const hl=$("oHighlight"); hl.innerHTML="🔓 새 캐릭터! <b>"+names+"</b>"; hl.className="best";
       setTimeout(()=>{ try{ confetti(); SFX.tone(784,.25,"triangle",.05,1568); }catch(e){} }, 700); } }catch(e){}
   try{ const nt=Titles.check();                                  // 칭호 · 도감 2권 보상 동료
-    if(!G.testRun){ try{ if(Dex.bookDone(2) && !Wallet.owns("pet-owl")){ Wallet.give("pet-owl"); nt.push("pet-owl"); } }catch(e){} }
+    if(!G.testRun && !(Pet.of("pet-owl")||{}).hidden){ try{ if(Dex.bookDone(2) && !Wallet.owns("pet-owl")){ Wallet.give("pet-owl"); nt.push("pet-owl"); } }catch(e){} }
     if(nt.length){ const names=nt.map(id=>{ const t=titleOf(id); if(t) return t.emo+" "+t.name; const pp=Pet.of(id); return pp ? pp.emo+" "+pp.name+"(동료)" : id; }).join(", ");
       $("oGems").insertAdjacentHTML("beforeend", '<div class="gDex">🏷️ 새로 얻었어요: <b>'+names+'</b> — 상점에서 달 수 있어요</div>'); } }catch(e){}
   LastSetup.save({rule:G.rule, diff:G.diff, mode:G.mode, set:G.set, char:G.char,
@@ -9255,11 +9255,11 @@ const HITS = [
   {id:"hit-bats",     name:"박쥐 떼",   price:120, emo:"🦇", note:"박쥐가 우르르 날아올라요", limited:"halloween"}
 ];
 const PETS = [
-  {id:"pet-spirit", name:"수정 정령",   price:300, emo:"💠", note:"반짝반짝 작은 수정 친구", draw:"spirit"},
-  {id:"pet-slime",  name:"말랑 슬라임", price:300, emo:"🟢", note:"통통 튀는 젤리 친구"},
-  {id:"pet-dragon", name:"아기 용",     price:500, emo:"🐲", note:"파닥파닥 나는 아기 용", rare:true},
-  {id:"pet-owl",    name:"부엉이 박사", emo:"🦉", note:"단어를 좋아하는 부엉이", dex:2},
-  {id:"pet-ghost",  name:"꼬마 유령",   price:250, emo:"👻", note:"둥실둥실 따라다녀요", draw:"ghost", limited:"halloween"}
+  {id:"pet-spirit", name:"수정 정령",   price:300, hidden:true, emo:"💠", note:"반짝반짝 작은 수정 친구", draw:"spirit"},
+  {id:"pet-slime",  name:"말랑 슬라임", price:300, hidden:true, emo:"🟢", note:"통통 튀는 젤리 친구"},
+  {id:"pet-dragon", name:"아기 용",     price:500, hidden:true, emo:"🐲", note:"파닥파닥 나는 아기 용", rare:true},
+  {id:"pet-owl",    name:"부엉이 박사", emo:"🦉", hidden:true, note:"단어를 좋아하는 부엉이", dex:2},
+  {id:"pet-ghost",  name:"꼬마 유령",   price:250, hidden:true, emo:"👻", note:"둥실둥실 따라다녀요", draw:"ghost", limited:"halloween"}
 ];
 const TITLES = [
   {id:"t-sprout",  name:"새싹 러너",     emo:"🌱", free:true},
@@ -9270,11 +9270,11 @@ const TITLES = [
   {id:"t-perfect", name:"만점 러너",     emo:"💯", goal:"한 번도 안 틀리고 30단계까지"},
   {id:"t-dex",     name:"도감 박사",     emo:"📖", goal:"도감 200단어 모으기"},
   {id:"t-daily",   name:"개근 러너",     emo:"🌙", goal:"오늘의 20을 10번 끝내기"},
-  {id:"t-star",    name:"반짝 스타",     emo:"🌟", price:50},
-  {id:"t-cool",    name:"멋쟁이",        emo:"😎", price:50},
-  {id:"t-dragon",  name:"용의 기사",     emo:"🐉", price:100},
-  {id:"t-king",    name:"단어 왕",       emo:"👑", price:150, rare:true},
-  {id:"t-pumpkin", name:"호박 대장",     emo:"🎃", price:60, limited:"halloween"}
+  {id:"t-star",    name:"반짝 스타",     emo:"🌟", price:50, hidden:true},
+  {id:"t-cool",    name:"멋쟁이",        emo:"😎", price:50, hidden:true},
+  {id:"t-dragon",  name:"용의 기사",     emo:"🐉", price:100, hidden:true},
+  {id:"t-king",    name:"단어 왕",       emo:"👑", price:150, rare:true, hidden:true},
+  {id:"t-pumpkin", name:"호박 대장",     emo:"🎃", price:60, limited:"halloween", hidden:true}
 ];
 function titleOf(id){ return TITLES.filter(t=>t.id===id)[0] || null; }
 function titleTag(id){ const t=titleOf(id); return t ? '<small class="tTag">'+t.emo+' '+t.name+'</small>' : ""; }
@@ -9562,11 +9562,12 @@ function drawGemResult(r){
 /* ── 상점 화면 ── */
 const ShopUI = {
   arm:null, tab:"fx",
-  TABS:[["outfit","👕 옷"],["fx","✨ 달리기"],["hit","🎆 정답"],["pet","🐾 동료"],["title","🏷️ 칭호"]],
+  TABS:[["outfit","👕 옷"],["fx","✨ 달리기"],["hit","🎆 정답"],["title","🏷️ 칭호"]],   // 🐾 동료는 그림이 준비될 때까지 닫아 둠 (PETS hidden)
   open(){ SFX.click(); this.arm=null; this.draw(); $("shShop").classList.add("on");
     OUTFITS.forEach(o=>Outfit.probe(o, ()=>this.draw())); PETS.forEach(p=>Pet.probe(p, ()=>this.draw())); },
   /* 한정판·정답 효과·동료·칭호·달리기 — 같은 모양의 카드 */
   gcard(o, slot){
+    if(o.hidden && !Wallet.owns(o.id)) return "";                          // 아직 비공개 (동료 · 상점 칭호)
     const lim=o.limited, season=lim && seasonOn(lim), own=o.free || Wallet.owns(o.id), on=Wallet.sel(slot)===o.id || (slot==="title" && !Wallet.sel("title") && o.free);
     if(lim && !season && !own) return "";                                   // 기간이 지난 한정판은 산 사람에게만 보인다
     let btn;
@@ -9640,7 +9641,7 @@ const ShopUI = {
       const L={fx:TRAILS, hit:HITS, pet:PETS, title:TITLES}[slot]||[], o=L.filter(x=>x.id===id)[0]; if(!o) return;
       if(a==="garm"){ if(Wallet.gems()<o.price){ $("shopMsg").textContent="보석이 "+(o.price-Wallet.gems())+"개 더 필요해요"; try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
         this.arm=id; SFX.click(); this.draw(); return; }
-      if(a==="gbuy"){ if(o.limited && !seasonOn(o.limited)) return;
+      if(a==="gbuy"){ if((o.limited && !seasonOn(o.limited)) || o.hidden) return;
         if(Wallet.buy(id,o.price)){ Wallet.setSel(slot,id); try{ SFX.tone(660,.2,"triangle",.05,1320); confetti(); }catch(e){}
           this.arm=null; this.draw();
           $("shopMsg").textContent="🎉 "+(slot==="title"?o.emo+" ":"")+o.name+"! "+({fx:"다음 판부터 발밑에 나와요", hit:"정답 문을 지날 때 터져요", pet:"다음 판부터 옆에서 같이 달려요", title:"랭킹에서 이름 옆에 보여요"}[slot]||"");
