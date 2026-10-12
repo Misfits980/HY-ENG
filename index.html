@@ -9101,7 +9101,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v206";
+const GAME_VER = "v207";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -9403,10 +9403,10 @@ const Wallet = (function(){
     earned(){ return load().earned|0; },
     wearing(ch){ const id=load().wear[ch]; return (id && (this.owns(id) || (TEST_STAGE>0 && (OUTFITS.find(o=>o.id===id)||{}).hidden))) ? id : null; },
     wear(ch, id){ const a=load(); if(id) a.wear[ch]=id; else delete a.wear[ch]; save(); },
-    fxOn(){ const id=load().fx; return (id && this.owns(id)) ? id : null; },
+    fxOn(){ const id=load().fx; return (id && (this.owns(id) || TEST_STAGE>0)) ? id : null; },   // 시험 모드(?stage=N)에서는 안 산 효과도 켜 볼 수 있다
     /* 하나만 고르는 칸: fx(달리기) · hit(정답 효과) · pet(동료) · title(칭호) */
     sel(slot){ if(slot==="fx") return this.fxOn(); const a=load(), id=(a.sel||{})[slot];
-      if(!id) return null; const t=(typeof titleOf==="function") && titleOf(id); return (this.owns(id) || (t && t.free)) ? id : null; },
+      if(!id) return null; const t=(typeof titleOf==="function") && titleOf(id); return (this.owns(id) || (t && t.free) || (slot==="hit" && TEST_STAGE>0)) ? id : null; },
     setSel(slot, id){ if(slot==="fx") return this.setFx(id); const a=load(); a.sel=a.sel||{}; if(id) a.sel[slot]=id; else delete a.sel[slot]; save(); },
     setFx(id){ const a=load(); a.fx=id||null; save(); },
     paid(k){ return !!load().paid[k]; },
@@ -10029,7 +10029,10 @@ const ShopUI = {
     if(lim && !season && !own) return "";                                   // 기간이 지난 한정판은 산 사람에게만 보인다
     let btn;
     const artOk = slot!=="pet" || Pet.ready[o.id]===true;
-    if(own) btn = on ? (slot==="title" ? '<button class="sBtn on" disabled>달고 있어요</button>' : '<button class="sBtn on" data-act="goff" data-slot="'+slot+'" data-id="'+o.id+'">켜짐 · 끄기</button>')
+    const tryable = !own && TEST_STAGE>0 && (slot==="fx" || slot==="hit");   // 시험 모드: 사지 않고 켜 보기
+    if(tryable) btn = on ? '<button class="sBtn on" data-act="goff" data-slot="'+slot+'" data-id="'+o.id+'">🧪 켜 보는 중 · 끄기</button>'
+                         : '<button class="sBtn wear" data-act="gtry" data-slot="'+slot+'" data-id="'+o.id+'">🧪 켜 보기</button>';
+    else if(own) btn = on ? (slot==="title" ? '<button class="sBtn on" disabled>달고 있어요</button>' : '<button class="sBtn on" data-act="goff" data-slot="'+slot+'" data-id="'+o.id+'">켜짐 · 끄기</button>')
                      : '<button class="sBtn wear" data-act="gon" data-slot="'+slot+'" data-id="'+o.id+'">'+(slot==="title"?'달기':slot==="pet"?'데려가기':'켜기')+'</button>';
     else if(!artOk) btn='<button class="sBtn off" disabled>곧 나와요</button>';
     else if(o.goal) btn='<button class="sBtn off" disabled>🔒 '+o.goal+'</button>';
@@ -10111,6 +10114,8 @@ const ShopUI = {
           $("shopMsg").textContent="🎉 "+(slot==="title"?o.emo+" ":"")+o.name+"! "+({fx:"다음 판부터 발밑에 나와요", hit:"정답 문을 지날 때 터져요", pet:"다음 판부터 옆에서 같이 달려요", title:"랭킹에서 이름 옆에 보여요"}[slot]||"");
           if(slot==="hit") try{ HitFx.play(id); }catch(e){} } return; }
       if(a==="gon"){ Wallet.setSel(slot,id); SFX.click(); this.draw(); return; }
+      if(a==="gtry"){ if(!(TEST_STAGE>0)) return; Wallet.setSel(slot,id); SFX.click(); this.draw();
+        $("shopMsg").textContent="🧪 시험으로 켰어요 · 한 판 달려서 확인해 보세요"; if(slot==="hit") try{ HitFx.play(id); }catch(e){} return; }
       if(a==="goff"){ Wallet.setSel(slot,null); SFX.click(); this.draw(); return; }
       return; }
     if(a.indexOf("fx")===0){ const f=TRAILS.filter(x=>x.id===id)[0]; if(!f) return;
