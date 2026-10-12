@@ -8759,7 +8759,7 @@ function startGame(){
   if(G.rule==="time"){ G.maxLives = 99; G.lives = 99; }    // 죽지 않고 시간으로만 끝난다
   if(G.rule!=="endless" && G.rule!=="time"){ G.maxLives += perk("lives"); G.lives = G.maxLives; }
   G.guardZone=-1; G.floatZone=-1;
-  G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false; G.zonesPassed=0; G.healTold=false; G.healTag=false; G._gemDone=false; G.dexNew=0;
+  G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false; G.zonesPassed=0; G.healTold=false; G.healTag=false; G._gemDone=false; G._overDone=false; G.dexNew=0;
   G.lane=Math.floor(G.lanes/2); G.inv=1.2;
   G.testRun = TEST_STAGE>0;
   if(G.testRun) G.stage = TEST_STAGE;
@@ -8818,6 +8818,8 @@ function gameOver(){
     }, 620);
     return;
   }
+  if(G._overDone) return;                      // 한 판에 한 번만 — 늦게 도착한 두 번째 호출이 기록을 또 보내던 것 (시트에 같은 줄 두 번, v203)
+  G._overDone=true;
   G.running=false;
   Rocks.stop(); Wind.reset(); Voice.stop(); BGM.stop();
   $("hud").classList.remove("on"); $("kbhint").style.display="none";
@@ -8948,7 +8950,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v202";
+const GAME_VER = "v203";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10022,7 +10024,7 @@ const Online = {
     return fetch(this.URL,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify(Object.assign({key:this.KEY, dev:this.dev()}, rec))}).then(r=>r.json()).catch(()=>null);
   },
-  BUY_LOG: false,            // 새 Apps Script(구매 탭)를 배포한 뒤 true — 옛 스크립트는 구매를 점수 줄로 적어 버린다
+  BUY_LOG: true,             // 상점 구매 → 시트 "구매" 탭 (2026-10-13 새 Apps Script 배포 확인)
   buyLog(id, price, left){
     if(!this.on() || !this.BUY_LOG || TEST_STAGE) return;
     const it=itemInfo(id)||{kind:"", name:id};
