@@ -5607,6 +5607,12 @@ const Hazards = {
     let rock=null;
     if(rubble){ ring.material.color.setHex(0x1a1426); ring.material.blending=THREE.NormalBlending; star.scale.setScalar(0.001); }   // 표적 대신 짙어지는 그림자
     if(chand){ ring.material.color.setHex(0xffb24a); ring.material.blending=THREE.AdditiveBlending; }   // 회랑은 바닥이 어두워 그림자 대신 촛불 빛이 모인다
+    let warn=null;
+    if(rubble && !chand){                                    // 2장 바닥도 어두워 그림자만으로는 안 보였다 — 그림자 둘레에 빛나는 경고 고리
+      warn=new THREE.Mesh(new THREE.RingGeometry(CFG.LANE_W*0.40, CFG.LANE_W*0.50, 40), new THREE.MeshBasicMaterial({color:0xff9a4a,
+        transparent:true, opacity:0, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
+      warn.rotation.x=-Math.PI/2; warn.position.y=.1; warn.userData.noOutline=true; g.add(warn);
+    }
     if(chand){                                               // 떨어진 자리 — 부서진 샹들리에 (납작하게 기울어 누움)
       const r=CFG.LANE_W*0.56, geo=new THREE.PlaneGeometry(r*2,r*2); geo.translate(0,r*0.62,0);
       rock=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:TrapArt.tex["chandelier-hall"], transparent:true, alphaTest:.06, side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())}));
@@ -5635,7 +5641,7 @@ const Hazards = {
       star.scale.setScalar(0.8);                             // 빛은 덩어리 뒤 후광으로만
     }
     g.position.set(laneX(lane,G.lanes),0,z);
-    g.userData.meteor={state:0, t:0, ring, star, trail, rock, art, sx: rubble ? 0 : (Math.random()<.5?-1:1)*4, rubble, chand};
+    g.userData.meteor={state:0, t:0, ring, star, trail, rock, art, sx: rubble ? 0 : (Math.random()<.5?-1:1)*4, rubble, chand, warn};
     scene.add(g);
     this.list.push({type:"meteor", lane, tile:null, mesh:g, z, len:1.8, done:false, rubble, chand:style==="chandelier"});
   },
@@ -5916,14 +5922,15 @@ const Hazards = {
         const m=h.mesh.userData.meteor, spd4=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/spd4;
         if(m.state===0){ const k=Math.max(0,Math.min(1,(3.2-tHit)/1.6));
           if(m.chand){ m.ring.material.opacity=k*(0.6+0.3*Math.sin(tHit*14)); m.ring.scale.setScalar(0.5+0.6*k); }
-          else if(m.rubble){ m.ring.material.opacity=k*0.7; m.ring.scale.setScalar(0.5+0.6*k); if(k>0 && !m.dust){ m.dust=1; try{ puff(h.mesh.position.x,.3,z,0x8a7f72,4,1.5); }catch(e){} } }   // 그림자가 커지며 짙어진다
+          else if(m.rubble){ m.ring.material.opacity=k*0.7; m.ring.scale.setScalar(0.5+0.6*k);
+            if(m.warn){ m.warn.material.opacity=k*(0.55+0.35*Math.sin(tHit*14)); m.warn.scale.setScalar(1.25-0.25*k); } if(k>0 && !m.dust){ m.dust=1; try{ puff(h.mesh.position.x,.3,z,0x8a7f72,4,1.5); }catch(e){} } }   // 그림자가 커지며 짙어진다
           else { m.ring.material.opacity=k*(0.55+0.35*Math.sin(tHit*14)); m.ring.scale.setScalar(1.2-0.35*k); }
           if(tHit<1.75){ if(h.boss) Boss.pose("attack",0.6); m.state=1; m.t=0; m.star.visible=true; m.trail.visible=!m.art; if(m.art) m.art.visible=true; } }
         if(m.state===1){ m.t+=dt; const e=Math.min(1,m.t/0.55);
           const y=16*(1-e), x=m.sx*(1-e);
           m.star.position.set(x,y+0.6,0); m.trail.position.set(x+m.sx*0.18,y+3.4,0); m.trail.rotation.z=Math.atan2(m.sx,16)*-1;
           if(m.art){ m.art.position.set(x,y+0.6,0.05); m.art.rotation.z=Math.atan2(m.sx,16)*-1; }
-          m.ring.material.opacity=m.rubble?0.75:0.9;
+          m.ring.material.opacity=m.rubble?0.75:0.9; if(m.warn) m.warn.material.opacity=0.9;
           if(m.chand && m.art) m.art.rotation.z=Math.sin(m.t*9)*0.08;      // 샹들리에는 흔들리며 곧장 떨어진다
           else if(m.rubble && m.art) m.art.rotation.z=0.6+e*2.4;
           if(e>=1){ m.state=2; m.star.visible=false; m.trail.visible=false; if(m.art) m.art.visible=false; m.rock.visible=true;
@@ -5931,7 +5938,7 @@ const Hazards = {
             if(m.chand) try{ SFX.tone(1320,.25,"triangle",.035,1760); SFX.tone(990,.3,"triangle",.03,1480); }catch(e){}   // 유리 깨지는 소리
             if(typeof puff==="function") try{ puff(h.mesh.position.x,.3,z,0x9a7ad8,10,3.5); }catch(e){}
             G.shake=Math.max(G.shake||0,.2); try{ SFX.tone(90,.2,"sine",.05); }catch(e){} } }
-        if(m.state===2){ m.ring.material.opacity=Math.max(0,m.ring.material.opacity-dt*2); }
+        if(m.state===2){ m.ring.material.opacity=Math.max(0,m.ring.material.opacity-dt*2); if(m.warn) m.warn.material.opacity=Math.max(0,m.warn.material.opacity-dt*3); }
       }
       if(h.type==="mace"){                           // 철퇴 — 진자처럼 흔들리며 다가온다
         const u=h.mesh.userData.mace, sp6=Math.max(0.1, speed||G.groundSpeed||1), tHit=(P.z-z)/sp6;
@@ -6387,7 +6394,7 @@ function trapHurts(h){
   return false;
 }
 const HURT_MSG = { chandelier:["쨍그랑!","샹들리에에 맞았어요 — 바닥에 빛이 모이면 피하세요"], knight:["쾅!","기사에게 부딪혔어요 — 기사가 지나간 줄로 피하세요"],
-  meteor:["쾅!","별똥별에 맞았어요 — 빛나는 표적은 피하세요"], rubble:["쿵!","무너진 돌에 맞았어요 — 짙은 그림자는 피하세요"],
+  meteor:["쾅!","별똥별에 맞았어요 — 빛나는 표적은 피하세요"], rubble:["쿵!","무너진 돌에 맞았어요 — 빛나는 고리는 피하세요"],
   statue:["쾅!","석상의 창에 맞았어요 — 눈이 빛나면 옆 줄을 피하세요"], spike:["쾅!","수정 가시에 찔렸어요 — 빛나는 금은 피하세요"],
   geyser:["앗 뜨거!","용암이 솟았어요 — 빛나는 바닥은 피하세요"], mace:["쾅!","방패 충격파에 맞았어요"], tree:["쿵!","쓰러진 나무에 깔렸어요"], statueFall:["쿵!","쓰러진 석상에 깔렸어요"] };
 function trapHit(h){
@@ -8475,7 +8482,7 @@ const TrapTip = {
        geyser:"🔥 바닥이 빛나면 곧 솟아요", blink:"✨ 깜빡이는 발판 — 사라질 때 조심해요", meteor:"☄️ 빛나는 표적에 별똥별이 떨어져요",
        statue:"⚔️ 석상이 옆 줄을 내리찍어요", crumble:"🪨 금 간 길은 오래 서 있으면 무너져요", swarm:"🐝 벌떼가 내 줄을 따라와요",
        tree:"🌳 나무가 쓰러지며 길을 막아요", salamander:"🦎 불도롱뇽이 좌우로 다녀요",
-       rubble:"🧱 바닥 그림자가 짙어지면 돌이 떨어져요", trapSpike:"💎 바닥 금이 빛나면 수정 가시가 솟아요", statueFall:"🗿 석상이 쓰러지며 두 줄을 막아요",
+       rubble:"🧱 바닥에 빛나는 고리가 생기면 돌이 떨어져요", trapSpike:"💎 바닥 금이 빛나면 수정 가시가 솟아요", statueFall:"🗿 석상이 쓰러지며 두 줄을 막아요",
        chandelier:"🕯️ 바닥에 빛이 모이면 샹들리에가 떨어져요", knight:"⚔️ 기사가 길을 가로질러요 — 지나간 줄로 피해요"},
   reset(){ this.seen={}; if(this.el) this.el.style.opacity="0"; },
   key(h){
