@@ -1000,6 +1000,13 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .wLock{margin-top:12px;padding:15px;border-radius:14px;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.03);text-align:center;color:#a89ec4;font-size:13px;font-weight:700;line-height:1.6}
 .wLock b{color:#ffd37a}
 .wTags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.wFind{margin-top:12px;padding:11px 12px;border-radius:14px;background:rgba(125,255,176,.06);border:1px solid rgba(125,255,176,.22);text-align:left}
+.wFind>b{display:block;font-size:12.5px;color:#9ff5c4;margin-bottom:6px}
+.wFind>div{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px}
+.wFind .k{flex:none;width:76px;font-size:11.5px;font-weight:800;color:#a89ec4}
+.wFind .c{padding:4px 9px;border-radius:100px;background:rgba(255,255,255,.07);font-size:11.5px;font-weight:800;color:#efe9ff;border:0;font-family:var(--font)}
+.wFind .c.go{background:rgba(125,255,176,.16);color:#d6ffe6;cursor:pointer}
+.wFind .c.go:active{transform:scale(.96)}
 .wTags span{padding:3px 9px;border-radius:8px;font-size:11.5px;font-weight:900;color:#0d0a1c}
 .wTags .t1{background:#7aa6ff}.wTags .t2{background:#8fd14f}.wTags .t3{background:#6cc6e0}
 .wEmpty{display:grid;place-items:center;text-align:center;min-height:260px;color:#a89ec4;font-size:13.5px;line-height:1.6}
@@ -9665,7 +9672,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v213";
+const GAME_VER = "v214";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10851,11 +10858,14 @@ const Dex = (function(){
 /* =====================================================================
    🔧 관리자 (선생님용) — 이 기기의 보석·해금·공부·도감 상태를 한눈에 보고 고친다
    - 여는 법: 주소 끝에 ?admin  또는  첫 화면 오른쪽 아래 버전 글씨를 2초 길게 누르기 → 비밀번호
-   - 비밀번호는 아래 PIN. 한 번 맞히면 브라우저를 닫을 때까지 다시 묻지 않는다
+   - 비밀번호는 코드에 숫자로 두지 않고 SHA-256 값만 둔다 (저장소가 공개라서). 바꾸려면 sha256("hyeng-admin:"+새 번호) 를 PIN_H 에
+   - 한 번 맞히면 브라우저를 닫을 때까지 다시 묻지 않는다
    - 보석 기록은 v213부터 쌓인다 (그 전 것은 없음)
    ===================================================================== */
 const Admin = (function(){
-  const PIN="4827", SK="hyeng_admin_ok";
+  const PIN_H="2767bcc0af23670ffa42b9523c2ecb7094b07ede9a55dde9232a3bd379d8bd08", SK="hyeng_admin_ok";
+  function hash(t){ try{ return crypto.subtle.digest("SHA-256", new TextEncoder().encode("hyeng-admin:"+t)).then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")); }
+    catch(e){ return Promise.resolve(""); } }
   let ok=false; try{ ok=sessionStorage.getItem(SK)==="1"; }catch(e){}
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
   const two=n=>String(n).padStart(2,"0");
@@ -10865,8 +10875,8 @@ const Admin = (function(){
   function card(v, t){ return '<div><b>'+v+'</b><small>'+t+'</small></div>'; }
   function why(s){ return esc(s).replace(/^(달리기 점수|공부|건너뛰기 시험|도감 보상|문지기|구매|관리자)/, '<em>$1</em>'); }
   function body(){
-    if(!ok) return '<p class="note">비밀번호 4자리를 넣어 주세요</p>'
-      +'<div class="adPinRow"><input id="adPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button class="mini" data-ad="pin">확인</button></div><div class="adMsg" id="adMsg"></div>';
+    if(!ok) return '<p class="note">비밀번호를 넣어 주세요</p>'
+      +'<div class="adPinRow"><input id="adPin" type="password" inputmode="numeric" maxlength="12" autocomplete="off"><button class="mini" data-ad="pin">확인</button></div><div class="adMsg" id="adMsg"></div>';
     const W=Wallet.raw(), st=Stats.all(), S=Study.load();
     const books=Dex.BOOKS.map(B=>B.lv+"권 "+Dex.count(B.lv)+"/"+Dex.list(B.lv).length).join(" · ");
     const stLv=Object.keys(S.lv).filter(k=>S.lv[k]>0), st3=stLv.filter(k=>S.lv[k]>=3).length;
@@ -10897,7 +10907,8 @@ const Admin = (function(){
   function msg(t){ const m=$("adMsg"); if(m) m.textContent=t; }
   function draw(){ $("adBody").innerHTML=body(); const p=$("adPin"); if(p) setTimeout(()=>{ try{ p.focus(); }catch(e){} },50); }
   function act(a, el){
-    if(a==="pin"){ if(($("adPin").value||"")===PIN){ ok=true; try{ sessionStorage.setItem(SK,"1"); }catch(e){} draw(); } else { msg("비밀번호가 달라요"); $("adPin").value=""; } return; }
+    if(a==="pin"){ const v=($("adPin").value||"").trim();
+      hash(v).then(h=>{ if(h && h===PIN_H){ ok=true; try{ sessionStorage.setItem(SK,"1"); }catch(e){} draw(); } else { msg(h?"비밀번호가 달라요":"이 브라우저에서는 확인할 수 없어요 (https 주소로 열어 주세요)"); $("adPin").value=""; } }); return; }
     if(!ok) return;
     if(a==="g"){ Wallet.adjust(+el.dataset.n); }
     else if(a==="gset"){ const v=parseInt($("adSet").value,10); if(!(v>=0)) return msg("숫자를 넣어 주세요"); Wallet.adjust(v-Wallet.gems()); }
@@ -11115,6 +11126,16 @@ const DexDet = {
   link(txt, en){ return String(txt).split(/,\s*/).filter(Boolean).map(t=>{ const k=t.split(" ")[0].toLowerCase(), w=this.word(k);
       if(w && k!==en) return '<button class="wRl'+(Dex.has(k)?'':' lk')+'" data-go="'+k+'">'+(Dex.has(k)?((w.emoji?w.emoji+' ':'')+this.esc(t)):'? '+this.esc(w.ko))+'</button>';
       return '<span class="wRl pl">'+this.esc(t)+'</span>'; }).join(""); },
+  /* 📍 나오는 곳 — 이 단어가 나오는 달리기 학년 · 오늘의 20 과 (도감에서 모으러 갈 곳을 알려 준다) */
+  found(en){ const w=this.word(en); if(!w) return "";
+    const run=["kinder","basic","elem","mid","phrase"].filter(id=>{ const S=WORD_SETS[id]; return S && S.levels.indexOf(w.level)>=0 && (!S.pictureOnly || w.emoji); });
+    const st=[]; try{ Study.SETS.forEach(id=>Study.lessons(id).forEach((l,i)=>{ if(l.ws.some(x=>x.en===en)) st.push({id,i,n:l.n}); })); }catch(e){}
+    if(!run.length && !st.length) return "";
+    return '<div class="wFind"><b>📍 나오는 곳</b>'
+      +(run.length?'<div><span class="k">🏃 달리기</span>'+run.map(id=>'<span class="c">'+WORD_SETS[id].icon+' '+WORD_SETS[id].label+'</span>').join("")+'</div>':'')
+      +(st.length?'<div><span class="k">📚 오늘의 20</span>'+st.slice(0,3).map(x=>{ const S=WORD_SETS[x.id], lv=Study.lv(x.id,x.n);
+          return '<button class="c go" data-study="'+x.id+'" data-si="'+x.i+'">'+S.emo+' '+S.nm+' '+x.n+'과'+(lv?' '+'★'.repeat(lv):Study.open(x.id,x.i)?'':' 🔒')+'</button>'; }).join("")+'</div>':'')
+      +'</div>'; },
   show(en, quiet, keepScroll){
     const w=this.word(en); if(!w) return; this.cur=en;
     const box=$("dexDet"), got=Dex.has(en), D=DexData.of(en), S=WStat.of(en)||{}, m=this.mst(en);
@@ -11128,7 +11149,7 @@ const DexDet = {
     let h='<button class="wBack" data-back="1">← 목록</button>';
     if(!got){
       h+='<div class="wHero"><div class="wPic">?</div><div><div class="wWord"><h3 style="letter-spacing:.2em;color:#6f6596">· · ·</h3></div><div class="wKo">'+this.esc(w.ko)+(D?'<span class="wPos">'+D[1]+'</span>':'')+'</div></div></div>'+stats
-        +'<div class="wLock">🔒 아직 못 모은 단어예요<br>게임에서 <b>두 번 연달아 맞히면</b> 영어 단어·예문·변하는 모양이 열려요</div>'+tags;
+        +'<div class="wLock">🔒 아직 못 모은 단어예요<br>게임에서 <b>두 번 연달아 맞히면</b> 영어 단어·예문·변하는 모양이 열려요</div>'+this.found(en)+tags;
     } else {
       h+='<div class="wHero"><div class="wPic">'+(w.emoji||"✦")+'</div><div><div class="wWord"><h3>'+en+'</h3><button class="wSay" data-say="'+en+'">🔊</button></div>'
         +'<div class="wKo">'+this.esc(w.ko)+(D?'<span class="wPos">'+D[1]+'</span>':'')+'</div>'
@@ -11148,7 +11169,7 @@ const DexDet = {
         h+='<div class="wSec">관련 단어</div><div class="wRel">'+rows.map(x=>'<div class="wRr"><span class="wRk">'+x[0]+'</span><div class="wRv">'+this.link(x[1],en)+'</div></div>').join("")+'</div>';
         h+='<div class="wSec">연습해 보기 · 철자 맞추기</div><div class="wQuiz" id="wQuiz"></div>';
       }
-      h+=tags;
+      h+=this.found(en)+tags;
     }
     box.innerHTML=h; if(!keepScroll) box.scrollTop=0;
     if(got && D) this.quiz(en);
@@ -11163,6 +11184,9 @@ const DexDet = {
     draw(); this._q={en,L,T,draw,get got(){return got;},set got(v){got=v;}}; },
   click(e){ const t=e.target;
     const b=t.closest("[data-back]"); if(b){ $("dexIn").classList.remove("det"); return; }
+    const sg=t.closest("[data-study]"); if(sg){ SFX.click(); const id=sg.dataset.study, i=+sg.dataset.si;
+      $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); try{ speechSynthesis.cancel(); }catch(er){}
+      const s=Study.load(); s.set=id; Study.save(); StudyUI.open(); StudyUI.pop(i); return; }
     const sy=t.closest("[data-say]"); if(sy){ this.say(sy.dataset.say); return; }
     const sl=t.closest("[data-slow]"); if(sl){ this.say(sl.dataset.slow,true); return; }
     const g=t.closest("[data-go]"); if(g){ SFX.click(); this.show(g.dataset.go); return; }
