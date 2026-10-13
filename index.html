@@ -1277,6 +1277,16 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stTabs button.stCat.on small{color:#ffd37a}
 .stTabs button.stCat.full small{color:#8fe3a0}
 .stTt{font-size:11px;color:#ffd37a;font-weight:900}
+.stSubs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 8px;padding:2px;flex:0 0 100%;min-width:0}
+.stHead .stResume{flex:0 0 100%}
+.stSubB b{font-size:inherit;color:inherit}
+.stSubs::-webkit-scrollbar{display:none}
+.stSubB{appearance:none;flex:0 0 auto;display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;cursor:pointer;font:800 13px var(--font);
+  color:#e9e2ff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);white-space:nowrap}
+.stSubB i{font-style:normal} .stSubB small{font-size:10px;color:#a99ed0;font-weight:800}
+.stSubB.on{background:#ffd37a;color:#2a1600;border-color:#ffd37a} .stSubB.on small{color:#6a4a10}
+.stSubB.full small{color:#4fbf6a}
+.stRun small{font-size:11px;opacity:.75}
 .stEn u,.stMini b u,.stCard u{text-decoration:none;color:#ffd37a;border-bottom:3px solid #ffd37a}
 .stPopIn .stGo{margin-top:12px}
 .stPopIn > small{display:block;margin-top:4px}
@@ -1285,7 +1295,7 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stHead b{font-size:17px;color:#fff3d6}
 .stHead em{margin-left:auto;font-style:normal;color:#ffd37a}
 .stMap{display:flex;flex-direction:column;align-items:center;gap:18px;padding:16px 0 30px}
-.stNode{display:flex;flex-direction:column;align-items:center;position:relative}
+.stNode{display:flex;flex-direction:column;align-items:center;position:relative;margin-top:10px}
 .stDot{appearance:none;width:66px;height:62px;border-radius:50%;border:0;cursor:pointer;font:900 22px var(--font);color:#fff;
   box-shadow:0 6px 0 rgba(0,0,0,.35),inset 0 -6px 0 rgba(0,0,0,.18);background:#4b3f7d;transition:transform .1s}
 .stDot:active{transform:translateY(3px)}
@@ -5171,7 +5181,7 @@ function judge(s){
     });
     if(hitMine){
       G.wrong++; G.combo=0; SFX.wrong(); G.breather=true;
-      Rank.record(s.q.word && s.q.word.en, false);
+      Rank.record(s.q.word && s.q.word.en, false, null, !!G.practice);
       passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.coral);
       const w=s.q.word;
       if(!G.wrongWords.some(x=>x.en===w.en)) G.wrongWords.push({en:w.en, ko:w.ko});
@@ -5184,7 +5194,7 @@ function judge(s){
     } else {
       G.right++; G.combo++; G.bestCombo=Math.max(G.bestCombo,G.combo);
       G.passSafe = passSafeNow();
-      Rank.record(s.q.word && s.q.word.en, true);
+      Rank.record(s.q.word && s.q.word.en, true, null, !!G.practice);
       SFX.correct();
       passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.mint);
       const bonus = Math.round(CFG.SCORE_BASE*0.8 + (G.combo-1)*CFG.COMBO_STEP);
@@ -5223,7 +5233,7 @@ function judge(s){
   if(ok){
     G.right++; G.combo++; G.solved++; G.bestCombo=Math.max(G.bestCombo,G.combo);   // (예전엔 이 줄이 주석 안에 들어가 최대 콤보가 늘 0이었다)
     G.passSafe = passSafeNow();                              // 문을 막 통과했다 — 잠깐 함정에 안 걸린다
-    Rank.record(s.q.word && s.q.word.en, true);
+    Rank.record(s.q.word && s.q.word.en, true, null, !!G.practice);   // (v227) 연습 달리기는 도감에 안 쌓인다
     onRuleRight();
     passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.mint);
     shatterGate(s.gates[s.q.answer], s.group.position.z, COL.mint);
@@ -5257,7 +5267,7 @@ function judge(s){
   } else {
     G.wrong++; G.combo=0; SFX.wrong(); G.breather = true; G.solved++;
     let conf=null; try{ const j=s.gates.findIndex(g=>laneOfGate(g)===G.lane); if(j>=0){ conf=String(s.q.options[j]); if(/[A-Za-z]/.test(conf)) conf=conf.toLowerCase(); } }catch(e){}   // 어떤 단어와 헷갈렸는지
-    Rank.record(s.q.word && s.q.word.en, false, conf);
+    Rank.record(s.q.word && s.q.word.en, false, conf, !!G.practice);
     onRuleWrong(); Boss.taunt();
     passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.coral);
     setTimeout(()=>Voice.say(s.q.word.en, {keep:true}), 320);   // 틀리면 정답 발음을 들려준다
@@ -9937,6 +9947,7 @@ function titleZone(){
 function startGame(){
   try{ localStorage.setItem("hyeng_last_kind","run"); }catch(e){}
   G.words = G._nextWords || null; G._nextWords = null;      // (v226) 오늘의 20 → 이 Stage 단어로 달리기 (한 판만)
+  G.practice = !!G._nextPractice; G._nextPractice = false;  // (v227) 같은 Stage 카드로 두 번째부터 = 연습 (보석·도감·랭킹 없음)
   G.runStart=Date.now(); G.quit=false; G.lastCause="";
   G.brake = BRAKE.MAX*perk("brake"); G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
@@ -10390,7 +10401,7 @@ function gameOver(){
     $("oReview").innerHTML = '<div class="glab">🎊 하나도 안 틀렸어요!</div>';
   }
   $("oHint").textContent = isTouch ? "" : "R 키를 누르면 바로 다시 시작합니다";
-  const noRank = (G.set==="kinder") || !!G.testRun;      // 유치원 단어·시험 주소는 랭킹에 넣지 않는다
+  const noRank = (G.set==="kinder") || !!G.testRun || !!G.practice;      // 유치원 단어·시험 주소는 랭킹에 넣지 않는다
   const rank = noRank ? 0 : Ranking.save({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage,
     acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now()});
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
@@ -10411,7 +10422,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v226";
+const GAME_VER = "v227";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10496,14 +10507,14 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
-  {id:"2026-10-13c", date:"10월 13일", title:"Grade 단어 칸 · 빙고 도감 · 이름!",
+  {id:"2026-10-13d", date:"10월 13일", title:"Grade 단어 칸 · 빙고 도감 · 이름!",
    items:[
      ["✏️","내 이름","설정 ⚙에서 이름을 정해요. 처음은 무료! 바꾸려면 무료권 1장, 그다음부터는 💎 100이 들어요"],
      ["🎒","Grade 1-2 · 3-4 · 5-6","단어를 Grade로 골라요. 멀리 달릴수록 어려운 단어가 조금씩 늘어나요. 도감 📍에서 어느 Grade에 나오는지 볼 수 있어요"],
      ["🎉","빙고 도감","도감에서 가로·세로·대각선 한 줄이 채워지면 저절로 빛나고 보석을 받아요. 빈칸을 눌러 🎯 노릴 단어를 고를 수 있어요"],
      ["✨","카드 열기","새로 모은 카드는 뒤집혀 있어요. 눌러서 뜻을 맞히면 열려요!"],
-     ["📚","오늘의 20","옆으로 밀어서 카테고리를 골라요 — 단모음 · 장모음 · 이중자음 소리 공부도 생겼어요! Stage를 끝내면 💎3, 별은 실력으로 (★2 = 처음에 80%, ★3 = 90%). 중간에 나가도 '이어서 하기'로 그 문제부터"],
-     ["🏃","도감은 달리기에서","공부한 단어는 달리기에서 맞혀야 도감 카드가 돼요. 'Stage 단어로 달리기'로 바로 모으러 가요!"],
+     ["📚","오늘의 20","옆으로 밀어서 카테고리를 고르고, 아래 줄에서 골라요 — 유치원에 단모음 · 장모음 · 이중자음 소리 공부도 생겼어요! Stage를 끝내면 💎3, 별은 실력으로 (★2 = 처음에 80%, ★3 = 90%). 중간에 나가도 '이어서 하기'로 그 문제부터"],
+     ["🏃","도감은 달리기에서","공부한 단어는 달리기에서 맞혀야 도감 카드가 돼요. 'Stage 단어로 달리기'는 Stage마다 한 번만 보석·도감이 쌓이고, 그다음부터는 연습이에요"],
      ["🏆","단어 수집 랭킹","랭킹에서 누가 단어를 가장 많이 모았는지 볼 수 있어요"]
    ]},
   {id:"2026-10-12b", date:"10월 12일", title:"보석 · 상점 · 단어 도감 · 캐릭터 해금!",
@@ -10657,17 +10668,25 @@ const Study = (function(){
     s.days.n = s.days.last===t-1 ? (s.days.n||0)+1 : 1; s.days.last=t; save(); return true; }
   /* (v225) 달리기와 같은 Grade 로 나눈다 · 그 안은 교재(권)의 과 */
   /* (v226) 카테고리 — 슬라이드로 고른다 (책 이름 대신) */
-  const BOOKS={ k:    {nm:"유치원",    tab:"유치원",   emo:"🧸", sub:"그림으로 배우는 첫 단어", sets:["kinder"]},
-                short:{nm:"단모음",    tab:"단모음",   emo:"🔤", sub:"짧은 소리 a · e · i · o · u", sets:["short"]},
-                long: {nm:"장모음",    tab:"장모음",   emo:"🌟", sub:"길게 읽는 소리 a_e · ee · ai", sets:["long"]},
-                digr: {nm:"이중자음",  tab:"이중자음", emo:"🔗", sub:"두 글자 한 소리 sh · ch · th", sets:["digr"]},
-                g12:  {nm:"Grade 1-2", tab:"G1-2",    emo:"🍎", sub:"초등 1~2학년 단어", sets:["basic"]},
-                g34:  {nm:"Grade 3-4", tab:"G3-4",    emo:"🎒", sub:"초등 3~4학년 단어", sets:["elem"]},
-                g56:  {nm:"Grade 5-6", tab:"G5-6",    emo:"🧭", sub:"초등 5~6학년 단어", sets:["g56"]},
-                mid:  {nm:"중등",      tab:"중등",    emo:"🏫", sub:"중학교 단어", sets:["mid"]},
-                ph:   {nm:"표현",      tab:"표현",    emo:"🗣️", sub:"두 단어 이상 표현", sets:["phrase"]} };
+  /* (v227) 위 줄 = 큰 카테고리(슬라이드) · 아래 줄 = 그 안에서 고르는 것 (유치원 → 그림 단어·단모음·장모음·이중자음 / Grade → 책) */
+  const BOOKS={ k:  {nm:"유치원",    tab:"유치원", emo:"🧸", sets:["kinder","short","long","digr"]},
+                g12:{nm:"Grade 1-2", tab:"G1-2",   emo:"🍎", sets:["basic"]},
+                g34:{nm:"Grade 3-4", tab:"G3-4",   emo:"🎒", sets:["elem"]},
+                g56:{nm:"Grade 5-6", tab:"G5-6",   emo:"🧭", sets:["g56"]},
+                mid:{nm:"중등",      tab:"중등",   emo:"🏫", sets:["mid"]},
+                ph: {nm:"표현",      tab:"표현",   emo:"🗣️", sets:["phrase"]} };
+  const SUB={ kinder:{nm:"그림 단어", emo:"🖼️", sub:"그림으로 배우는 첫 단어"},
+              short: {nm:"단모음",   emo:"🔤", sub:"짧은 소리 a · e · i · o · u"},
+              long:  {nm:"장모음",   emo:"🌟", sub:"길게 읽는 소리 a_e · ee · ai"},
+              digr:  {nm:"이중자음", emo:"🔗", sub:"두 글자 한 소리 sh · ch · th"},
+              basic: {nm:"1권",      emo:"📗", sub:"초등 1~2학년 단어 · 보카 1권"},
+              elem:  {nm:"2권",      emo:"📘", sub:"초등 3~4학년 단어 · 보카 2권"},
+              g56:   {nm:"고학년 단어", emo:"🧭", sub:"초등 5~6학년 단어 (교재는 곧)"},
+              mid:   {nm:"3권",      emo:"📙", sub:"중학교 단어 · 3권"},
+              phrase:{nm:"표현",     emo:"🗣️", sub:"두 단어 이상 표현"} };
   const bookOf = set => Object.keys(BOOKS).find(b=>BOOKS[b].sets.indexOf(set)>=0) || "g12";
-  const label = set => { const b=BOOKS[bookOf(set)]; return b ? b.emo+" "+b.nm : set; };
+  const label = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; return b ? b.emo+" "+b.nm+(u && b.sets.length>1 ? " · "+u.nm : "") : set; };
+  const tag = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; return b ? b.tab+(u && (b.sets.length>1 || /권/.test(u.nm)) ? " "+u.nm : "") : set; };   // 시트용 짧은 이름
   const word = en => byEn[en] || null;
   /* Stage 번호 = 카테고리 안의 순서 (교재 과 번호와 따로) · 기록·저장 열쇠는 그대로 과 번호 */
   const stageNo = (set,n) => { const k=lessons(set).findIndex(x=>x.n===n); return k>=0 ? k+1 : n; };
@@ -10724,7 +10743,7 @@ const Study = (function(){
     shuffle(ws).slice(0, Math.min(ws.length, 15-ws.length)).forEach(w=>{ let t=pickType(w,1,false); if(t==="match") t="k2e"; qs.push(makeQ(t, w, pool, 1)); });
     return qs.map(q=> q.t==="match" ? makeQ("e2k", q.w, pool, 2) : q);
   }
-  return { SETS, N, MAXW, BOOKS, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview,
+  return { SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview,
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); },
     see(en){ const s=load(); if(!s.seen[en]){ s.seen[en]=1; save(); } } };
 })();
@@ -10733,12 +10752,13 @@ const StudyUI = {
   set:null, les:null, test:false, qs:[], i:0, done:0, first:0, wrong:0, missed:{}, t0:0, sel:null, locked:false,
   book:"g12", combo:0, best:0, okW:{}, rv:false, total:20,
   open(){ const s=Study.load();
+    if(s.book && !Study.BOOKS[s.book] && Study.SETS.indexOf(s.set)>=0){ s.book=Study.bookOf(s.set); Study.save(); }   // (v227) 예전 탭 이름(단모음 등) → 유치원 안으로
     if(!s.book || !Study.BOOKS[s.book]){                    // (v225) 처음엔 달리기에서 고른 Grade 로
       let g=null; try{ const ls=LastSetup.get(); g=ls && ls.set; }catch(e){}
       if(!g || Study.SETS.indexOf(g)<0) g = Study.SETS.indexOf(s.set)>=0 ? s.set : "basic";
       s.book=Study.bookOf(g); Study.save(); }
     this.book=s.book; const BK=Study.BOOKS[this.book];
-    this.set = BK.sets.indexOf(s.set)>=0 ? s.set : BK.sets[0];
+    this.set = BK.sets.indexOf(s.set)>=0 ? s.set : ((s.sub||{})[this.book] && BK.sets.indexOf(s.sub[this.book])>=0 ? s.sub[this.book] : BK.sets[0]);
     try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); }catch(e){}
     show("scStudy"); this.path(); },
   close(){ SFX.click(); try{ speechSynthesis.cancel(); }catch(e){} Attract.focus=false; show("scStart"); },
@@ -10746,21 +10766,24 @@ const StudyUI = {
   /* ── 길 ── */
   path(){
     this.view("stPath");
-    const B=Study.BOOKS, bk=B[this.book] ? this.book : "g12"; this.book=bk; const BK=B[bk]; this.set=BK.sets[0];
+    const B=Study.BOOKS, bk=B[this.book] ? this.book : "g12"; this.book=bk; const BK=B[bk];
+    if(BK.sets.indexOf(this.set)<0){ const sv=(Study.load().sub||{})[bk]; this.set = BK.sets.indexOf(sv)>=0 ? sv : BK.sets[0]; }
+    const U=Study.SUB[this.set]||{nm:"",emo:"",sub:""};
+    const progS = st => { const L=Study.lessons(st); return [L.filter(x=>Study.lv(st,x.n)>0).length, L.length]; };
     const prog = id => { let f=0, t=0; B[id].sets.forEach(st=>{ const L=Study.lessons(st); t+=L.length; f+=L.filter(x=>Study.lv(st,x.n)>0).length; }); return [f,t]; };
     $("stTabs").innerHTML=Object.keys(B).map(id=>{ const p=prog(id); return '<button class="stCat'+(id===bk?' on':'')+(p[0]>=p[1]&&p[1]?' full':'')+'" data-b="'+id+'"><i>'+B[id].emo+'</i><b>'+B[id].tab+'</b><small>'+p[0]+' / '+p[1]+'</small></button>'; }).join("");
     setTimeout(()=>{ const on=$("stTabs").querySelector(".on"); if(on && on.scrollIntoView) try{ on.scrollIntoView({inline:"center", block:"nearest"}); }catch(e){} }, 30);
-    const [fin, tot] = prog(bk), sk=Study.streak();
+    const [fin, tot] = progS(this.set), sk=Study.streak();
+    const subRow = '<div class="stSubs">'+BK.sets.map(st=>{ const u=Study.SUB[st]||{}, p=progS(st); return '<button class="stSubB'+(st===this.set?' on':'')+(p[0]>=p[1]&&p[1]?' full':'')+'" data-sub="'+st+'"><i>'+u.emo+'</i>'+u.nm+' <small>'+p[0]+'/'+p[1]+'</small></button>'; }).join("")+'</div>';
     const rc=this.getCur(), rcS=rc ? (rc.rv ? '🔁 복습' : Study.label(rc.set)+' '+Study.stageName(rc.set, rc.n))+' · '+rc.done+' / '+rc.total : '';
     $("stHead").innerHTML=(rc?'<button class="stResume" data-resume="1"><i>▶</i><span><b>이어 하기</b><small>'+rcS+'</small></span></button>':'')
-      +'<b>'+BK.emo+' '+BK.nm+'</b> <span>'+BK.sub+'</span><em>'+fin+' / '+tot+' Stage</em>'
+      +subRow+'<b>'+U.emo+' '+U.nm+'</b> <span>'+U.sub+'</span><em>'+fin+' / '+tot+' Stage</em>'
       +'<div class="stHead2">'+(sk?'<span class="stFire">🔥 '+sk+'일째 공부 중</span>':'<span class="stFire off">🔥 오늘 한 Stage 하면 불이 붙어요</span>')+'</div>';
     const due=Study.due().length, rvDone=Wallet.paid("rv-"+Study.today());
     let h = due>=3 ? '<button class="stReview" data-review="1"><i>🔁</i><span><b>오늘의 복습 · '+Math.min(due,10)+'단어</b><small>'
       +(rvDone ? '오늘 보석은 받았어요 · 더 해도 좋아요' : '잊기 전에 한 번 더 · 💎 +2')+'</small></span></button>' : '';
     const zig=[0,38,58,38,0,-38,-58,-38];
-    BK.sets.forEach(st=>{ const L=Study.lessons(st), c=Study.cur(st), S=WORD_SETS[st];
-      if(BK.sets.length>1) h+='<div class="stSec">'+S.icon+' '+(S.stLabel||S.label)+' 과정</div>';
+    [this.set].forEach(st=>{ const L=Study.lessons(st), c=Study.cur(st);
       h+=L.map((x,i)=>{
         const v=Study.lv(st,x.n), op=true, now=i===c, nextLock=false;
         const cls = now ? "now" : v>=3 ? "gold" : v>0 ? "done" : op ? "open" : "lock";
@@ -10780,7 +10803,7 @@ const StudyUI = {
     let btn;
     const need = v===1 ? '<p>★2 — 처음에 80% 맞히면</p>' : v===2 ? '<p>★3 — 처음에 90% 맞히면 (철자·받아쓰기 많아요)</p>' : '';
     btn='<button class="stGo" data-act="go" data-i="'+i+'">'+(v>=3?'🔁 연습하기':'▶ 시작하기 '+'★'.repeat(v+1))+'</button>'
-      +need+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">🏃 이 Stage 단어로 달리기 · 📖 도감 모으기</button>':'');
+      +need+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">'+this.runLbl(x)+'</button>':'');
     const qn=Math.max(Study.N, Math.min(x.ws.length, Study.MAXW)), fresh=!x.ws.some(w=>seen[w.en]);
     box.innerHTML='<div class="stPopIn"><b>'+WORD_SETS[this.set].icon+' Stage '+(i+1)+(x.title?' · '+x.title:'')+'</b> <small>'+qn+'문제 · '+(v>=3?'👑 다 끝냄':'★ '+v+' / 3')+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
     box.classList.add("on");
@@ -10936,6 +10959,9 @@ const StudyUI = {
   },
   next(){ this.i++; this.show(); },
   /* ── 끝 ── */
+  /* (v227) Stage 카드로 달리기 — 첫 번째만 보석·도감·랭킹, 그다음은 연습 */
+  runLbl(x){ const ran=((Study.load().ran)||{})[Study.key(this.set,x.n)];
+    return ran ? '🏃 이 Stage 단어로 연습 달리기 <small>(보석·도감 없음)</small>' : '🏃 이 Stage 단어로 달리기 · 📖 도감 모으기 <small>(한 번만)</small>'; },
   /* (v226) 도감은 달리기에서만 모은다 — 공부는 '이제 달리면 도감 카드가 모여요'로 이어 준다 */
   runHint(){ const n=Object.keys(this.okW).filter(en=>{ try{ return !Dex.has(en); }catch(e){ return false; } }).length;
     return n ? '<div class="stDexAdd">🏃 달리기에서 이 단어를 맞히면 📖 도감 카드가 모여요 <b>(새 카드 '+n+'장 기다리는 중)</b></div>' : ''; },
@@ -10979,7 +11005,7 @@ const StudyUI = {
       +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+(pass && !this.test ? this.runHint() : '')
       +(miss.length?'<div class="stMiss"><small>다시 볼 단어</small>'+miss.map(en=>{ const w=WORD_BANK.find(y=>y.en===en)||{en,ko:""}; return '<button data-say="'+this.esc(en)+'">🔊 '+this.esc(en)+' <i>'+this.esc(w.ko)+'</i></button>'; }).join("")+'</div>':'')
       +'<button class="stGo" id="stBack">길로 돌아가기</button>'
-      +(pass && !this.test ? '<button class="stRun" id="stRun">🏃 이 Stage 단어로 달리기</button>' : '');
+      +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl(x)+'</button>' : '');
     if(pass) try{ confetti(); }catch(e){}
     this.log(pass, acc);
   },
@@ -10989,14 +11015,15 @@ const StudyUI = {
       let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
       Online.submit({nick, score:this.first*10, diff:"study", rule:this.rv?"study-review":this.test?"study-test":"study", stage:this.rv?0:Study.stageNo(this.set,this.les.n), acc, right:this.done, wrong:this.wrong,
-        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"복습":(Study.BOOKS[Study.bookOf(this.set)].tab+" Stage "+Study.stageNo(this.set,this.les.n)), secs:Math.round((Date.now()-this.t0)/1000), dex, gems:Wallet.gems(), ver:GAME_VER,
+        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)), secs:Math.round((Date.now()-this.t0)/1000), dex, gems:Wallet.gems(), ver:GAME_VER,
         miss:Object.keys(this.missed).slice(0,25).join(", ")});
     }catch(e){}
   },
   run(i){                                                   // 공부한 과 단어로 바로 달리기 (기본 모드)
     const x=Study.lessons(this.set)[i]; if(!x) return;
     const st=LastSetup.get()||{};
-    G.rule="normal"; G.set=this.set; G.lesson=(WORD_SETS[this.set].course ? x.n : 0); G.tag=null; G._nextWords=x.ws.map(w=>w.en);   // (v226) 그 Stage 단어만
+    G.rule="normal"; G.set=this.set; G.lesson=(WORD_SETS[this.set].course ? x.n : 0); G.tag=null; G._nextWords=x.ws.map(w=>w.en);
+    const s=Study.load(), rk=Study.key(this.set,x.n); s.ran=s.ran||{}; G._nextPractice=!!s.ran[rk]; if(!s.ran[rk]){ s.ran[rk]=Date.now(); Study.save(); }   // (v226) 그 Stage 단어만
     G.diff = DIFF[st.diff] ? st.diff : "normal"; G.mode = st.mode || "mix";
     G.char = (CHARACTERS.find(c=>c.id===st.char) && Unlock.has(st.char)) ? st.char : (Unlock.has(G.char)?G.char:"hero");
     if(!WORD_SETS[this.set].course) G.tag=null;
@@ -11006,7 +11033,8 @@ const StudyUI = {
 $("scStudy").addEventListener("click",e=>{
   const t=e.target; if(!t.closest) return;
   if(t.closest("#stClose")){ StudyUI.close(); return; }
-  const tb=t.closest("#stTabs [data-b]"); if(tb){ SFX.click(); StudyUI.book=tb.dataset.b; const s=Study.load(); s.book=StudyUI.book; Study.save(); StudyUI.path(); return; }
+  const tb=t.closest("#stTabs [data-b]"); if(tb){ SFX.click(); StudyUI.book=tb.dataset.b; const s=Study.load(); s.book=StudyUI.book; Study.save(); StudyUI.set=null; StudyUI.path(); return; }
+  const sb=t.closest("[data-sub]"); if(sb){ SFX.click(); StudyUI.set=sb.dataset.sub; const s=Study.load(); s.sub=s.sub||{}; s.sub[StudyUI.book]=StudyUI.set; s.set=StudyUI.set; Study.save(); StudyUI.path(); return; }
   const sk=t.closest(".stSkip"); if(sk){ SFX.click(); StudyUI.set=sk.dataset.s||StudyUI.set; StudyUI.pop(+sk.dataset.i, true); return; }
   const d=t.closest(".stDot"); if(d){ SFX.click(); StudyUI.set=d.dataset.s||StudyUI.set; const s=Study.load(); s.set=StudyUI.set; Study.save(); StudyUI.pop(+d.dataset.i); return; }
   if(t.closest("[data-review]")){ SFX.select(); StudyUI.review(); return; }
@@ -11958,7 +11986,7 @@ const Admin = (function(){
 
 /* 한 판이 끝나면 — 보석 정산 (결과 화면에서 한 번) */
 function settleGems(){
-  if(G.testRun || G._gemDone) return null;
+  if(G.testRun || G.practice || G._gemDone) return null;   // (v227) 연습 달리기(같은 Stage 카드로 두 번째부터)는 보석 없음
   G._gemDone=true;
   const pt=(GEM.PT[G.diff]||2)*(G.right|0);
   const before=Wallet.gems();
@@ -11969,7 +11997,7 @@ function settleGems(){
 }
 function drawGemResult(r){
   const el=$("oGems"); if(!el) return;
-  if(!r){ el.innerHTML = G.testRun ? '<small>🧪 시험 모드에서는 보석을 받지 않아요</small>' : ""; return; }
+  if(!r){ el.innerHTML = G.testRun ? '<small>🧪 시험 모드에서는 보석을 받지 않아요</small>' : G.practice ? '<small>🏃 연습 달리기 — 이 Stage 카드로는 첫 달리기에서만 보석·도감·랭킹이 쌓여요</small>' : ""; return; }
   const pct=Math.round(r.pts/GEM.PER*100);
   el.innerHTML =
     '<div class="gLine"><span class="gIco">💎</span><b class="gGain">'+(r.gain>0?'+'+r.gain:'+0')+'</b><span class="gTot">모은 보석 '+r.total+'개</span></div>'
