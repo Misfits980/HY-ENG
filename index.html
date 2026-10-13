@@ -917,6 +917,9 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .dCard.master{border:1.5px solid #ffd37a;box-shadow:0 0 0 2px rgba(255,211,122,.15),0 0 12px rgba(255,211,122,.25)}
 .dCard.master::after{content:"★";position:absolute;right:4px;top:2px;font-size:9px;color:#ffd37a}
 .dCard.sel{outline:2px solid var(--mint);outline-offset:1px}
+.dCard.up{border-color:rgba(125,255,176,.45);background:rgba(125,255,176,.06)}
+.dCard.up.got{border-color:rgba(125,255,176,.7);background:rgba(125,255,176,.12)}
+.dCard .upT{position:absolute;left:3px;top:1px;font-style:normal;font-size:10px;line-height:1}
 /* 도감 — 사전 · 자세히 (v204) */
 .dexIn.wide{width:min(980px,100%);display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:22px;max-height:92dvh}
 .dexIn.wide .dexL{overflow-y:auto;max-height:calc(92dvh - 44px);padding-right:4px}
@@ -9672,7 +9675,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v214";
+const GAME_VER = "v215";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10786,6 +10789,30 @@ const DEX_ALBUMS = [
   {id:"phrase", emo:"🗣️", name:"표현",
    w:"look_for have_to how_to each_other hand_in put_on of_course according_to get_up wake_up sit_down stand_up look_at listen_to go_to_bed go_home take_off turn_on turn_off come_in come_back give_up pick_up wait_for take_a_picture take_a_walk have_fun a_lot_of in_front_of next_to far_from thank_you excuse_me see_you good_job how_about be_good_at be_late_for look_like right_now at_home on_time for_example take_care come_on all_day every_day last_night cheer_up calm_down hurry_up get_on get_off grow_up find_out try_on look_after watch_out"}
 ];
+/* 도감 한 줄 = 그 단계 단어 4칸 + 다음 단계 단어 1칸 (v215) — 지금 단계에 안주하지 않고 다음 단계로 가게.
+   ★1 줄에는 ★2(고학년) 한 칸, ★2 줄에는 ★3(중등) 한 칸. 앨범에 다음 단계 단어가 없으면 짝 앨범에서 빌려 온다.
+   줄은 5칸씩 순서대로 자르므로, 끝 줄을 빼면 모든 줄이 꼭 5칸이 되게 이어 붙인다 */
+const DEX_MIX_PAIR = {act1:"act2", act2:"act3", feel1:"feel2", mind1:"mind2"};
+function mixUp(albs){
+  const byId={}; albs.forEach(A=>byId[A.id]=A);
+  albs.forEach(A=>{
+    const Q={0:[],1:[],2:[],3:[]}; A.words.forEach(w=>(Q[w.level]||(Q[w.level]=[])).push(w));
+    [1,2].forEach(lv=>{                                   // 다음 단계 단어가 없으면 짝 앨범에서 빌린다
+      const D=byId[DEX_MIX_PAIR[A.id]]; if(!Q[lv].length || Q[lv+1].length || !D) return;
+      const need=Math.floor(Q[lv].length/4), take=D.words.filter(w=>w.level===lv+1).slice(0,need);
+      if(!take.length) return; const t={}; take.forEach(w=>t[w.en]=1);
+      D.words=D.words.filter(w=>!t[w.en]); Q[lv+1]=take; });
+    if(!Q[0].length && (!Q[1].length || !Q[2].length) && (!Q[2].length || !Q[3].length)) return;   // 섞을 게 없음
+    const out=[], lvs=[0,1,2,3];
+    while(lvs.some(l=>Q[l].length)){
+      const c=lvs.find(l=>Q[l].length), line=Q[c].splice(0,4);
+      if(c>=1 && c<=2 && Q[c+1].length) line.push(Q[c+1].shift());
+      while(line.length<5 && lvs.some(l=>Q[l].length)){ const d=lvs.find(l=>Q[l].length); line.push(Q[d].shift()); }
+      out.push.apply(out, line);
+    }
+    A.words=out;
+  });
+}
 const Dex = (function(){
   const KEY="hyeng_dex_v1", PAGE=20;
   const BOOKS=[{lv:1, name:"1권 · 기초 단어"}, {lv:2, name:"2권 · 초등 고학년"}, {lv:3, name:"3권 · 중등"}];
@@ -10827,6 +10854,7 @@ const Dex = (function(){
         if(ws.length) albs.push({id:A.id, emo:A.emo, name:A.name, words:ws}); });
       const rest=DEX_BASE.filter(w=>!used[w.en] && (used[w.en]=1));
       if(rest.length) albs.push({id:"new", emo:"🆕", name:"새 단어", words:rest});
+      mixUp(albs);
       albs.forEach(a=>{ const l=a.words.map(w=>w.level); a.lo=Math.min.apply(null,l); a.hi=Math.max.apply(null,l); a.words.forEach((w,i)=>{ where[w.en]={a,i}; }); });
       return albs;
     },
@@ -11244,15 +11272,16 @@ const DexUI = {
     $("dexBar").style.width=Math.round(got/n*100)+"%";
     $("dexShelf").style.display="none"; $("dexGrid").style.display="";
     let h="";
-    for(let i=0;i<nl;i++){ const L=Dex.line(A,i), done=Dex.lineDone(A,i), gift=paidL[i];
+    for(let i=0;i<nl;i++){ const L=Dex.line(A,i), done=Dex.lineDone(A,i), gift=paidL[i], base=Math.min.apply(null, L.map(w=>w.level||0));
       h+='<div class="dLine'+(done?' done':'')+(gift?' gift':'')+'">'+(gift?'<button class="dGift" data-claim="'+i+'">🎁 +'+gift.gems+'</button>':done?'<i class="dChk">✔</i>':'')
         +L.map(w=>{ const has=Dex.has(w.en), ms=DexDet.mst(w.en), sel=DexDet.cur===w.en?' sel':'';
           const lg=w.en.length>=11?' l2':w.en.length>=9?' l1':'';
-          return has ? '<button class="dCard got'+(ms>=5?' master':'')+sel+'" data-en="'+w.en+'"><i>'+(w.emoji||"✦")+'</i><b class="'+lg+'">'+w.en+'</b><small>'+w.ko+'</small></button>'
-                     : '<button class="dCard'+sel+'" data-en="'+w.en+'"><i>?</i><b>· · ·</b><small>'+w.ko+'</small></button>'; }).join("")+'</div>'; }
+          const up=w.level>base ? ' up' : '', ut=up ? '<em class="upT">'+(w.level>=3?'🌲':'🌳')+'</em>' : '';
+          return has ? '<button class="dCard got'+(ms>=5?' master':'')+sel+up+'" data-en="'+w.en+'">'+ut+'<i>'+(w.emoji||"✦")+'</i><b class="'+lg+'">'+w.en+'</b><small>'+w.ko+'</small></button>'
+                     : '<button class="dCard'+sel+up+'" data-en="'+w.en+'">'+ut+'<i>?</i><b>· · ·</b><small>'+w.ko+'</small></button>'; }).join("")+'</div>'; }
     if(got===n) h+='<div class="dDone">🏆 '+A.name+' 앨범 완성!</div>';
     $("dexGrid").innerHTML=h;
-    $("dexMsg").textContent="한 줄(5칸)을 채우면 보석 "+GEM.LINE+"개 · 앨범을 다 채우면 보석 "+Dex.albumGems(A)+"개";
+    $("dexMsg").textContent="한 줄(5칸)을 채우면 보석 "+GEM.LINE+"개 · 앨범을 다 채우면 보석 "+Dex.albumGems(A)+"개"+(A.words.some(w=>w.level>=2) && A.lo<A.hi ? " · 🌳🌲 칸은 다음 단계 단어 (📍 나오는 곳에서 확인)" : "");
   },
   claim(list){ const g=Dex.claim(list); if(!g) return;
     try{ SFX.tone(660,.2,"triangle",.05,1320); confetti(); }catch(e){}
