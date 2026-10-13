@@ -1277,6 +1277,7 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stTabs button.stCat.on small{color:#ffd37a}
 .stTabs button.stCat.full small{color:#8fe3a0}
 .stTt{font-size:11px;color:#ffd37a;font-weight:900}
+.stUnit{display:block;font-size:12px;color:#aab4cc;font-weight:700;margin:2px 0 4px}
 .stSubs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 8px;padding:2px;flex:0 0 100%;min-width:0}
 .stHead .stResume{flex:0 0 100%}
 .stSubB b{font-size:inherit;color:inherit}
@@ -10644,7 +10645,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v231";
+const GAME_VER = "v232";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10918,9 +10919,9 @@ const Study = (function(){
               basic: {nm:"1권",      emo:"📗", sub:"초등 1~2학년 단어 · 보카 1권"},
               elem:  {nm:"2권",      emo:"📘", sub:"초등 3~4학년 단어 · 보카 2권"},
               g56:   {nm:"고학년 단어", emo:"🧭", sub:"초등 5~6학년 단어"},
-              rd1:   {nm:"리딩 1",   emo:"📖", sub:"TOSEL Reading Basic 1 · Unit 1~12"},
-              rd2:   {nm:"리딩 2",   emo:"📖", sub:"TOSEL Reading Basic 2 · Unit 1~12"},
-              rd3:   {nm:"리딩 3",   emo:"📖", sub:"TOSEL Reading Basic 3 · Unit 1~12"},
+              rd1:   {nm:"리딩 1",   emo:"📖", sub:"리딩책 1권 단어"},
+              rd2:   {nm:"리딩 2",   emo:"📖", sub:"리딩책 2권 단어"},
+              rd3:   {nm:"리딩 3",   emo:"📖", sub:"리딩책 3권 단어"},
               mid:   {nm:"3권",      emo:"📙", sub:"중학교 단어 · 3권"},
               phrase:{nm:"표현",     emo:"🗣️", sub:"두 단어 이상 표현"} };
   const bookOf = set => Object.keys(BOOKS).find(b=>BOOKS[b].sets.indexOf(set)>=0) || "g12";
@@ -10929,7 +10930,7 @@ const Study = (function(){
   const word = en => byEn[en] || null;
   /* Stage 번호 = 카테고리 안의 순서 (교재 과 번호와 따로) · 기록·저장 열쇠는 그대로 과 번호 */
   const stageNo = (set,n) => { const k=lessons(set).findIndex(x=>x.n===n); return k>=0 ? k+1 : n; };
-  const stageName = (set,n) => { const L=lessons(set), x=L.find(y=>y.n===n); return "Stage "+stageNo(set,n)+(x && x.title ? " · "+x.title : ""); };
+  const stageName = (set,n) => { const L=lessons(set), x=L.find(y=>y.n===n); return "Stage "+stageNo(set,n)+(x && x.title && !WORD_SETS[set].reading ? " · "+x.title : ""); };
   const canHear = () => Voice.canListen();
   /* 문제 모양 고르기 — 과 단계(⭐)가 오를수록 철자·듣기가 많아진다 */
   function pickType(w, level, test, phc){
@@ -11054,7 +11055,7 @@ const StudyUI = {
         const cls = now ? "now" : v>=3 ? "gold" : v>0 ? "done" : op ? "open" : "lock";
         return '<div class="stNode" style="transform:translateX('+zig[i%8]+'px)"><button class="stDot '+cls+'" data-s="'+st+'" data-i="'+i+'">'
           +(cls==="lock"?'🔒':cls==="gold"?'👑':v>0?'✓':(i+1))+'</button>'
-          +'<div class="stLbl">Stage '+(i+1)+(x.title?' <b class="stTt">'+x.title+'</b>':'')+' <span>'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></span></div>'
+          +'<div class="stLbl">Stage '+(i+1)+(x.title && !WORD_SETS[st].reading?' <b class="stTt">'+x.title+'</b>':'')+' <span>'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></span></div>'
           +(now?'<div class="stNow">📌 오늘 할 차례</div>':'')+(nextLock?'<div class="stSkip" data-s="'+st+'" data-i="'+i+'">⏩ 건너뛰기 시험</div>':'')+'</div>';
       }).join(""); });
     $("stMap").innerHTML=h;
@@ -11070,7 +11071,8 @@ const StudyUI = {
     btn='<button class="stGo" data-act="go" data-i="'+i+'">'+(v>=3?'🔁 연습하기':'▶ 시작하기 '+'★'.repeat(v+1))+'</button>'
       +need+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">'+this.runLbl(x)+'</button>':'');
     const qn=Math.max(Study.N, Math.min(x.ws.length, Study.MAXW)), fresh=!x.ws.some(w=>seen[w.en]);
-    box.innerHTML='<div class="stPopIn"><b>'+WORD_SETS[this.set].icon+' Stage '+(i+1)+(x.title?' · '+x.title:'')+'</b> <small>'+qn+'문제 · '+(v>=3?'👑 다 끝냄':'★ '+v+' / 3')+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
+    const rd=WORD_SETS[this.set].reading;   // (v232) 리딩은 Unit 이름을 작게 한 줄로만
+    box.innerHTML='<div class="stPopIn"><b>'+WORD_SETS[this.set].icon+' Stage '+(i+1)+(x.title && !rd?' · '+x.title:'')+'</b>'+(rd && x.title?'<small class="stUnit">Unit '+x.n+' · '+x.title+'</small>':'')+' <small>'+qn+'문제 · '+(v>=3?'👑 다 끝냄':'★ '+v+' / 3')+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
     box.classList.add("on");
   },
   /* ── 한 과 ── */
