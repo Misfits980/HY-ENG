@@ -4642,7 +4642,8 @@ function spawnSet(){
   }
 
   if(!pre){ const hb=new Set(Hazards.list); Hazards.spawnFor(group.position.z, q.answer, s.speed);   // 정답 레인은 항상 비워둔다
-    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z, q.answer, s.speed); }catch(e){} }
+    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z, q.answer, s.speed); }catch(e){}
+    try{ Hazards.decoyLane(group.position.z, q.answer, s.speed); }catch(e){} }
   G.sets.push(s);
   try{
     G.nextQ = newQuestion();
@@ -4651,6 +4652,7 @@ function spawnSet(){
     G.preHazQ = G.nextQ;
     Boss.attack(group.position.z, G.nextQ.answer, q.answer);                      // 보스전 공격
     try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z - G.spawnDist, G.nextQ.answer, s.speed); }catch(e){}   // 함정 + 보스 공격을 합쳐 길 검사
+    try{ Hazards.decoyLane(group.position.z - G.spawnDist, G.nextQ.answer, s.speed); }catch(e){}   // 빈 줄이 정답 하나뿐이지 않게
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
   G.groundSpeed = s.speed;
@@ -6899,6 +6901,30 @@ const Hazards = {
       pick.hs.forEach(h=>{ const i=this.list.indexOf(h); if(i>=0){ this.remove(i); removed++; } });
     }
     this.lastFix=removed; return removed;
+  },
+  /* 미끼 빈 줄 (v216) — 문 앞에서 "함정 없는 줄 = 정답 줄 하나뿐"이면 빈 줄만 보고 답을 맞힐 수 있다.
+     문까지 WIN초 안쪽에 오답 줄이 모두 막혔으면, 오답 줄 하나의 함정을 빼서 빈 줄을 둘 이상으로 만든다.
+     (스핑크스 벽도 줄마다 한 조각이라, 문 가까운 벽은 정답 틈 + 미끼 틈 두 칸이 된다)
+     쉬움·씨앗(gentle)은 그대로 — 어린아이에게는 빈 줄이 힌트다. 움직이는 함정(기사·벌떼·철퇴)과 보스 가시 벽은 따지지 않는다 */
+  decoyLane(gateZ, ans, spd){
+    if(G.gentle || G.diff==="easy" || !(G.lanes>=3)) return -1;
+    spd=Math.max(0.1, spd||G.groundSpeed||10);
+    const n=G.lanes, WIN=2.2, MOVE={knight:1, swarm:1, mace:1};
+    const zOf=h=>h.tile?h.tile.logicZ:h.z;
+    const lanesOf=h=>{ if(h.cx!=null && h.halfW!=null){ const L=[]; for(let l=0;l<n;l++) if(Math.abs(laneX(l,n)-h.cx)<h.halfW-0.05) L.push(l); if(L.length) return L; }
+      if(h.type==="tree"){ const u=h.mesh && h.mesh.userData.tree; return u&&u.lanes ? u.lanes : [h.lane]; }
+      if(h.type==="flower") return [h.lane, Math.min(n-1,h.lane+1)];
+      const pt=h.mesh && h.mesh.userData.patrol; if(pt){ const a=laneOfX(pt.mid-pt.half,n), b=laneOfX(pt.mid+pt.half,n), L=[]; for(let j=Math.min(a,b);j<=Math.max(a,b);j++) L.push(j); return L; }
+      return h.lane>=0 ? [h.lane] : []; };
+    const near=this.list.filter(h=>{ if(MOVE[h.type] || h.wall) return false; const z=zOf(h); return z!=null && z>gateZ+0.3 && z<gateZ+WIN*spd; });
+    const busy={}; near.forEach(h=>lanesOf(h).forEach(l=>{ (busy[l]=busy[l]||[]).push(h); }));
+    if(busy[ans]) return -1;                                   // 정답 줄에도 함정이 있으면 단서가 아니다
+    const wrong=[]; for(let l=0;l<n;l++) if(l!==ans) wrong.push(l);
+    if(wrong.some(l=>!busy[l])) return -1;                     // 이미 빈 오답 줄이 있다
+    // 빼기 쉬운 줄부터 (함정 수가 적은 줄), 같으면 아무 줄이나
+    const pick=wrong.slice().sort((a,b)=>busy[a].length-busy[b].length || Math.random()-.5)[0];
+    busy[pick].forEach(h=>{ const i=this.list.indexOf(h); if(i>=0) this.remove(i); });
+    this.lastDecoy=pick; return pick;
   },
   dropTile(lane,z){
     Ground.collapseAt(lane,z);
@@ -9675,7 +9701,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v215";
+const GAME_VER = "v216";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
