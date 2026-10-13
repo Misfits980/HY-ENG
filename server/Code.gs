@@ -4,6 +4,8 @@
    - POST : 판 기록 1줄을 scores 탭에 추가 · type:"buy" 면 상점 구매 1줄을 "구매" 탭에 추가
    - GET  : 난이도별 랭킹 (이번 주 / 전체) — 닉네임마다 최고 점수 1줄 · diff=dex 면 단어 수집 랭킹 (v221) · act=1 이면 그 아이에게 온 원격 조치 (v222)
    - POST type:"ack" : 원격 조치를 처리했다는 표시를 '조치' 탭 '처리' 칸에 (v222)
+   - POST type:"name" : 이름을 정하거나 바꾼 기록을 '이름' 탭에 (v225)
+   - (v225) scores 탭 맨 끝에 '틀린 단어' 칸 — 그 판(달리기·공부)에서 틀린 단어
    붙여 넣은 뒤 반드시: 배포 → 배포 관리 → ✏️수정 → 버전 "새 버전" → 배포
    (새 배포를 만들면 주소가 바뀌어 게임이 못 찾는다)
 ===================================================================== */
@@ -20,7 +22,7 @@ const COLS = [
   ["boss","문지기처치"], ["clear","완주"], ["end","끝난이유"], ["cause","넘어진이유"],
   ["zone","지대"], ["set","단어장"], ["secs","플레이(초)"], ["dex","도감"], ["gems","보석"],
   ["outfit","옷"], ["fx","달리기효과"], ["hit","정답효과"], ["ver","버전"],
-  ["owned","가진 물건"], ["earned","모은 보석"]
+  ["owned","가진 물건"], ["earned","모은 보석"], ["miss","틀린 단어"]
 ];
 const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1};
 /* 구매 탭 열 순서 */
@@ -35,11 +37,14 @@ const C = {}; COLS.forEach((c,i)=>C[c[0]]=i);                     // 이름 → 
    한 기기에서는 한 줄을 한 번만 처리한다 (같은 조치를 또 하려면 새 줄) */
 const ACT_SHEET = "조치";
 const ACT_COLS = [["date","날짜 (비우면 자동)"], ["who","대상 (닉네임·기기·모두)"], ["kind","조치"], ["value","값"], ["memo","아이에게 보일 말"], ["done","처리 (자동)"]];
-const ACT_KINDS = ["보석","선물","회수","환불회수","캐릭터"];
+const ACT_KINDS = ["보석","선물","회수","환불회수","캐릭터","이름","이름권"];   // (v225) 이름 = 값으로 바로 바꿈 · 이름권 = 무료 변경권 (값 = 장 수)
+/* (v225) 이름 탭 — 이름을 처음 정하거나 바꿀 때마다 한 줄 (같은 기기 = 같은 아이) */
+const NAME_SHEET = "이름";
+const NAME_COLS = [["date","날짜"], ["dev","기기"], ["old","전 이름"], ["nick","새 이름"], ["how","방법"], ["ver","버전"]];
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
-  if (sh.getRange(1, COLS.length).getValue() === "")                // 헤더가 비었으면 채운다
+  if (sh.getRange(1, COLS.length).getValue() === "")                // 헤더가 비었으면 채운다 (새 칸이 생겨도)
     sh.getRange(1, 1, 1, COLS.length).setValues([COLS.map(c=>c[1])]);
   return sh;
 }
@@ -70,6 +75,7 @@ function doPost(e){
   try { d = JSON.parse(e.postData.contents); } catch(err){ return json_({ok:false, err:"bad json"}); }
   if (!d || d.key !== KEY) return json_({ok:false, err:"key"});
   if (d.type === "ack") return ackAct_(d);                          // (v222) 원격 조치 처리 확인
+  if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
   const isBuy = d.type === "buy";
 
   const row = isBuy ? BUY_COLS.map(([k])=>{
@@ -82,7 +88,7 @@ function doPost(e){
     if (k === "nick") return txt_(d.nick, 20) || "PLAYER";
     if (NUM[k])       return num_(d[k], k === "score" ? 10000000 : 1000000);
     if (k === "boss") return txt_(d.boss, 40).replace(/,/g, " · ");   // "50,80" 이 숫자 5080 으로 바뀌지 않게
-    return txt_(d[k], k === "owned" ? 400 : (k === "cause" ? 60 : 40));
+    return txt_(d[k], k === "owned" ? 400 : (k === "miss" ? 400 : (k === "cause" ? 60 : 40)));
   });
 
   const lock = LockService.getScriptLock();
@@ -196,6 +202,22 @@ function ackAct_(d){
       const cell = sh.getRange(i + 2, ACT_COLS.length), prev = String(cell.getValue() || "");
       const tag = txt_(d.nick, 20) + "(" + txt_(d.dev, 20) + ") " + Utilities.formatDate(new Date(), TZ, "MM-dd HH:mm") + (d.res ? " " + txt_(d.res, 40) : "");
       if (prev.indexOf(String(d.dev)) < 0) cell.setValue(prev ? prev + "\n" + tag : tag); });
+  } catch(err){ return json_({ok:false, err:"busy"}); }
+  finally { try { lock.releaseLock(); } catch(_){} }
+  return json_({ok:true});
+}
+
+/* ── (v225) 이름 기록 ── */
+function nameLog_(d){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(NAME_SHEET);
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    if (!sh){ sh = ss.insertSheet(NAME_SHEET); sh.setFrozenRows(1); }
+    if (sh.getRange(1, 1).getValue() === "") sh.getRange(1, 1, 1, NAME_COLS.length).setValues([NAME_COLS.map(c=>c[1])]);
+    sh.appendRow(NAME_COLS.map(([k])=> k === "date" ? new Date() : txt_(d[k], 30)));
+    sh.getRange(sh.getLastRow(), 1).setNumberFormat("yyyy-mm-dd hh:mm");
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
   return json_({ok:true});
