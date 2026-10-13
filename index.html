@@ -1261,11 +1261,26 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stX{appearance:none;flex:0 0 40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#e9e2ff;font:900 18px/1 var(--font);cursor:pointer}
 .stTitle{font-size:20px;font-weight:900;color:#ffd37a;text-shadow:0 2px 0 #150c28}
 .stSub{margin-left:auto;font-size:11.5px;font-weight:800;color:#8d82b8}
-.stTabs{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:2px 0 8px}
-@media (max-width:520px){ .stTabs{grid-template-columns:repeat(3,1fr)} }
-.stTabs button{appearance:none;min-width:0;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#cfc4f2;border-radius:99px;padding:7px 4px;font:800 13px var(--font);cursor:pointer;white-space:nowrap}
-.stTabs button i{font-style:normal;margin-right:4px}
-.stTabs button.on{background:rgba(255,211,122,.16);border-color:rgba(255,211,122,.55);color:#ffd37a}
+/* (v226) 카테고리 슬라이드 — 옆으로 밀어서 고른다 */
+.stTabs{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:4px 18px 10px;margin:0 -12px;scroll-snap-type:x proximity;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent)}
+.stTabs::-webkit-scrollbar{display:none}
+.stTabs button.stCat{appearance:none;flex:0 0 auto;width:86px;height:84px;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));color:#e9e2ff;border-radius:18px;
+  font-family:var(--font);cursor:pointer;transition:transform .12s}
+.stTabs button.stCat i{font-style:normal;font-size:28px;line-height:1.1}
+.stTabs button.stCat b{font-size:13px;font-weight:900;white-space:nowrap}
+.stTabs button.stCat small{font-size:10px;font-weight:800;color:#a99ed0}
+.stTabs button.stCat.on{background:linear-gradient(180deg,rgba(255,211,122,.28),rgba(255,211,122,.08));border-color:#ffd37a;color:#ffe6a8;
+  box-shadow:0 0 0 2px #ffd37a,0 0 16px rgba(255,211,122,.35);transform:translateY(-2px)}
+.stTabs button.stCat.on small{color:#ffd37a}
+.stTabs button.stCat.full small{color:#8fe3a0}
+.stTt{font-size:11px;color:#ffd37a;font-weight:900}
+.stEn u,.stMini b u,.stCard u{text-decoration:none;color:#ffd37a;border-bottom:3px solid #ffd37a}
+.stPopIn .stGo{margin-top:12px}
+.stPopIn > small{display:block;margin-top:4px}
+.stMini span{gap:4px} .stMini b{line-height:1.25} .stMini b u{border-bottom-width:2px}
 .stHead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:4px 2px 6px;font-size:13px;color:#a99ed0;font-weight:800}
 .stHead b{font-size:17px;color:#fff3d6}
 .stHead em{margin-left:auto;font-style:normal;color:#ffd37a}
@@ -3067,7 +3082,11 @@ const WORD_SETS = {
           ramp:{1:[.3,.1,1,40], 2:[.7,.6,1,40], 3:[0,.3,1,40]}},
   mid:   {label:"중등",       icon:"🏫", nm:"숲",   emo:"🌲", grade:"중등",        sub:"중학생", levels:[2,3],
           ramp:{2:[.6,.3,1,40], 3:[.4,.7,1,40]}},
-  phrase:{label:"표현",       icon:"🗣️", nm:"표현", emo:"🗣️", grade:"두 단어 이상", levels:[0]},                 // level 0 = 표현(구문)만
+  phrase:{label:"표현",       icon:"🗣️", nm:"표현", emo:"🗣️", grade:"두 단어 이상", levels:[0]},
+  /* (v226) 파닉스 — 오늘의 20 카테고리 · '이 Stage 단어로 달리기'에서만 쓴다 */
+  short: {label:"단모음",     icon:"🔤", nm:"단모음", emo:"🔤", grade:"파닉스", levels:[1], course:"short", phonics:true},
+  long:  {label:"장모음",     icon:"🌟", nm:"장모음", emo:"🌟", grade:"파닉스", levels:[1], course:"long", phonics:true},
+  digr:  {label:"이중자음",   icon:"🔗", nm:"이중자음", emo:"🔗", grade:"파닉스", levels:[1], course:"digr", phonics:true},                 // level 0 = 표현(구문)만
   wrong: {label:"틀린 단어",   icon:"📕", nm:"틀린 단어", emo:"📕", grade:"", levels:[1,2,3], review:true},
   all:   {label:"전체",       icon:"🌈", nm:"전체", emo:"🌈", grade:"모든 단어", levels:[1,2,3]}
 };
@@ -3139,8 +3158,48 @@ const COURSE = {
     27:"heel|notice|quick|flavor|cone|insect|husband|participate|lazy|pepper|divide|french|elementary|pillow|past|remember|journal|glide|heat|landscape|outdoor|realize|mistake|reason|cover|gym|bucket|material|seal|mouse",
     28:"gallery|restroom|prepare|experience|control|grow|hut|lottery|own|needle|fry|sale|contain|free|flat|flea market|improve|tap|native|poor|review|scramble|grain|hen|kingdom|moment|perfect|dive|perform",
     30:"shiny|theater|wood|downtown|craft|hammer|fool|group|librarian|path|stuff|shrimp|cough|grill|way|steal|expiration|fistful|greeting|horrible|crash|flood|jeans|follow|nail|knit|intersection|price|serve|lunar"
+  },
+  /* (v226) 파닉스 — 단모음 · 장모음 · 이중자음. 교재 밖 카테고리 (오늘의 20 슬라이드) */
+  short:{
+    1:"cat|hat|bag|map|man|jam|cap|fan|pan|mat|bat|sad|hand|lamp|flag|clap|sand|camp|black|glad",
+    2:"red|leg|pen|bed|ten|net|wet|hen|pet|vet|yes|get|desk|neck|bell|belt|help|dress|vest|shell",
+    3:"pig|big|six|sit|lip|kid|hit|win|fix|mix|dig|fish|milk|pink|ship|swim|hill|ring|king|dish",
+    4:"dog|fox|box|hot|pot|top|job|jog|frog|doll|sock|clock|rock|stop|shop|drop|block|pond|spot",
+    5:"cup|sun|bus|run|cut|fun|bug|hut|duck|drum|truck|jump|lunch|brush|club|luck|bump",
+    6:"cat|map|hand|flag|bed|pen|ten|desk|pig|six|fish|milk|dog|box|frog|sock|sun|cup|duck|drum"
+  },
+  long:{
+    1:"cake|name|face|game|lake|plane|snake|whale|grape|bake|cave|vase|wave|plate|cage|skate|shape|race|same|safe",
+    2:"kite|bike|five|nine|rice|line|time|ride|hide|smile|white|knife|prize|size|side|nice|bite|dive|life|wide",
+    3:"nose|rope|bone|home|stone|note|phone|hope|joke|cone|globe|stove|code|cute|rule|flute|rude",
+    4:"bee|tree|sheep|green|see|seed|sleep|three|knee|wheel|sweet|sea|tea|eat|leaf|read|beach|peach|meat|dream",
+    5:"rain|train|tail|nail|paint|wait|day|play|say|way|pay|gray|goat|boat|coat|road|soap|float|coach",
+    6:"cake|snake|grape|kite|bike|five|nose|bone|cute|tree|sheep|green|leaf|tea|rain|train|play|goat|boat|soap"
+  },
+  digr:{
+    1:"fish|ship|shop|dish|shell|sheep|shark|shoe|shirt|brush|wash|push|wish|shy|short|shape|shine|trash|shrimp",
+    2:"chair|cheese|chin|child|chess|lunch|peach|beach|bench|catch|watch|teach|rich|much|check|chew|chalk",
+    3:"thin|thick|three|think|thank|bath|math|path|mouth|tooth|both|month|north|south|then|than|there|throw",
+    4:"fish|ship|sheep|shoe|brush|chair|cheese|chin|lunch|peach|beach|three|thin|bath|mouth|tooth|math|thank"
   }
 };
+/* (v226) 파닉스 Stage 이름과 강조 — 강조 코드: 모음 한 글자(a·e·i·o·u) · ae/ie/oue = 모음…e · ee/ai/sh/ch/th = 그 글자 묶음 · mix/dg = 섞어서 */
+const PHONICS = {
+  short:[["짧은 a","a"], ["짧은 e","e"], ["짧은 i","i"], ["짧은 o","o"], ["짧은 u","u"], ["섞어서",""]],
+  long:[["a_e","ae"], ["i_e","ie"], ["o_e · u_e","oue"], ["ee · ea","ee"], ["ai · ay · oa","ai"], ["섞어서","mix"]],
+  digr:[["sh","sh"], ["ch","ch"], ["th","th"], ["섞어서","dg"]]
+};
+const PH_RE = { a:/a/, e:/e/, i:/i/, o:/o/, u:/u/, ae:/(a)([^aeiou]+)(e)$/, ie:/(i)([^aeiou]+)(e)$/, oue:/([ou])([^aeiou]+)(e)$/,
+  ee:/(ee|ea)/, ai:/(ai|ay|oa)/, sh:/(sh)/, ch:/(ch)/, th:/(th)/,
+  mix:/(a|i|o|u)([^aeiou]+)(e)$|(ee|ea|ai|ay|oa)/, dg:/(sh|ch|th)/ };
+/* 단어에서 파닉스 소리 글자를 <u> 로 (HTML 이스케이프는 영어 소문자라 필요 없음) */
+function phonicsMark(en, code){
+  const re=PH_RE[code]; if(!re || !/^[a-z]+$/.test(en)) return en;
+  return en.replace(re, function(m){ const g=[].slice.call(arguments,1,-2);
+    if(g.length===3 && g[0]!=null) return '<u>'+g[0]+'</u>'+g[1]+'<u>'+g[2]+'</u>';
+    if(g.length>=4 && g[0]!=null) return '<u>'+g[0]+'</u>'+g[1]+'<u>'+g[2]+'</u>';
+    return '<u>'+m+'</u>'; });
+}
 
 /* 틀린 단어 저장소 — 기기에 남겨 두고 "틀린 단어" 세트로 다시 풀 수 있게 한다 */
 const WrongBook = (function(){
@@ -3194,17 +3253,18 @@ const Rank = (function(){
   function save(o){ mem=o; if(!ls) return; try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
   function pool(id){
     const S=WORD_SETS[id]; if(!S || S.review) return null;
+    if(S.phonics && COURSE[S.course]){ const o={}; Object.keys(COURSE[S.course]).forEach(n=>COURSE[S.course][n].split("|").forEach(en=>o[en]=1)); return Object.keys(o); }
     return WORD_BANK.filter(w=>S.levels.indexOf(w.level)>=0 && (!S.pictureOnly || w.emoji)).map(w=>w.en);
   }
   return {
     TIERS,
-    record(en, ok, conf){
+    record(en, ok, conf, noDex){                       // (v226) noDex = 공부(오늘의 20) — 도감은 달리기에서만
       if(!en) return;
       const o=load(), v=o[en]||0;
       o[en] = ok ? Math.min(9, v+1) : 0;
       save(o);
       try{ WStat.rec(en, ok, conf); }catch(e){}
-      if(ok && o[en]>=2 && typeof Dex!=="undefined") try{ Dex.add(en); WStat.got(en); }catch(e){}   // 두 번 연달아 맞히면 도감에
+      if(ok && o[en]>=2 && !noDex && typeof Dex!=="undefined") try{ Dex.add(en); WStat.got(en); }catch(e){}   // 두 번 연달아 맞히면 도감에
     },
     of(id){
       const p=pool(id); if(!p || !p.length) return null;
@@ -3508,6 +3568,7 @@ function customTags(){
 }
 
 function pool(){
+  if(G.words && G.words.length>=4){ const p=WORD_BANK.filter(w=>G.words.indexOf(w.en)>=0); if(p.length>=4) return p; }   // (v226) 오늘의 20 Stage 단어로 달리기
   if(G.tag){                                        // 교재 단원 세트가 선택된 경우
     const p = WORD_BANK.filter(w=>w.tag===G.tag);
     if(p.length>=4) return p;
@@ -9875,6 +9936,7 @@ function titleZone(){
 }
 function startGame(){
   try{ localStorage.setItem("hyeng_last_kind","run"); }catch(e){}
+  G.words = G._nextWords || null; G._nextWords = null;      // (v226) 오늘의 20 → 이 Stage 단어로 달리기 (한 판만)
   G.runStart=Date.now(); G.quit=false; G.lastCause="";
   G.brake = BRAKE.MAX*perk("brake"); G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
@@ -10349,7 +10411,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v225";
+const GAME_VER = "v226";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10434,13 +10496,14 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
-  {id:"2026-10-13b", date:"10월 13일", title:"Grade 단어 칸 · 빙고 도감 · 이름!",
+  {id:"2026-10-13c", date:"10월 13일", title:"Grade 단어 칸 · 빙고 도감 · 이름!",
    items:[
      ["✏️","내 이름","설정 ⚙에서 이름을 정해요. 처음은 무료! 바꾸려면 무료권 1장, 그다음부터는 💎 100이 들어요"],
      ["🎒","Grade 1-2 · 3-4 · 5-6","단어를 Grade로 골라요. 멀리 달릴수록 어려운 단어가 조금씩 늘어나요. 도감 📍에서 어느 Grade에 나오는지 볼 수 있어요"],
      ["🎉","빙고 도감","도감에서 가로·세로·대각선 한 줄이 채워지면 저절로 빛나고 보석을 받아요. 빈칸을 눌러 🎯 노릴 단어를 고를 수 있어요"],
      ["✨","카드 열기","새로 모은 카드는 뒤집혀 있어요. 눌러서 뜻을 맞히면 열려요!"],
-     ["📚","오늘의 20","Grade별로 나뉘고 아무 과나 할 수 있어요. 과 단어가 모두 나오고, 별은 실력으로 (★2 = 처음에 80%, ★3 = 90%). 중간에 나가도 '이어서 하기'로 그 문제부터!"],
+     ["📚","오늘의 20","옆으로 밀어서 카테고리를 골라요 — 단모음 · 장모음 · 이중자음 소리 공부도 생겼어요! Stage를 끝내면 💎3, 별은 실력으로 (★2 = 처음에 80%, ★3 = 90%). 중간에 나가도 '이어서 하기'로 그 문제부터"],
+     ["🏃","도감은 달리기에서","공부한 단어는 달리기에서 맞혀야 도감 카드가 돼요. 'Stage 단어로 달리기'로 바로 모으러 가요!"],
      ["🏆","단어 수집 랭킹","랭킹에서 누가 단어를 가장 많이 모았는지 볼 수 있어요"]
    ]},
   {id:"2026-10-12b", date:"10월 12일", title:"보석 · 상점 · 단어 도감 · 캐릭터 해금!",
@@ -10486,9 +10549,9 @@ function refreshResume(){
   let lk=""; try{ lk=localStorage.getItem("hyeng_last_kind")||""; }catch(e){}
   el.dataset.kind="";
   if(lk==="study" || !st){ try{ const c=StudyUI.getCur(); let sub="";
-      if(c) sub = (c.rv ? "🔁 복습" : Study.label(c.set)+" "+c.n+"과")+" · "+c.done+" / "+c.total+" 푸는 중";
+      if(c) sub = (c.rv ? "🔁 복습" : Study.label(c.set)+" Stage "+Study.stageNo(c.set,c.n))+" · "+c.done+" / "+c.total+" 푸는 중";
       else if(lk==="study"){ const sl=Study.load(), set=Study.SETS.indexOf(sl.set)>=0 ? sl.set : null, i=set ? Study.cur(set) : -1;
-        if(i>=0) sub = "📌 "+Study.label(set)+" "+Study.lessons(set)[i].n+"과"; }
+        if(i>=0) sub = "📌 "+Study.label(set)+" Stage "+(i+1); }
       if(sub){ el.dataset.kind="study"; el.style.display="block";
         el.innerHTML='<span class="mico i1"></span>이어서 하기 <small style="display:block;font-size:11px;color:#a99ed0;font-weight:700">📚 '+sub+'</small>'; return; }
     }catch(e){} }
@@ -10531,7 +10594,7 @@ $("btnResume").addEventListener("click",()=>{
    맞힘·틀림은 Rank.record 로 기록되어 도감·등급·약한 단어에 그대로 쓰인다
 ===================================================================== */
 const Study = (function(){
-  const KEY="hyeng_study_v1", SETS=["kinder","basic","elem","g56","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
+  const KEY="hyeng_study_v1", SETS=["kinder","short","long","digr","basic","elem","g56","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
   let m=null;
   function load(){ if(m) return m; try{ m=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ m={}; } m.lv=m.lv||{}; m.seen=m.seen||{}; if(!m.set) m.set="basic"; return m; }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(m)); }catch(e){} }
@@ -10543,7 +10606,8 @@ const Study = (function(){
     const S=WORD_SETS[set], out=[];
     if(S && S.course && COURSE[S.course]){
       Object.keys(COURSE[S.course]).map(Number).sort((a,b)=>a-b).forEach(n=>{
-        const ws=COURSE[S.course][n].split("|").map(en=>byEn[en]).filter(Boolean); if(ws.length) out.push({n, ws}); });
+        const ws=COURSE[S.course][n].split("|").map(en=>byEn[en]).filter(Boolean), ph=PHONICS[set] && PHONICS[set][out.length];
+        if(ws.length) out.push(ph ? {n, ws, title:ph[0], hl:ph[1]} : {n, ws}); });
     } else {
       /* (v225) Grade 5-6 = 교재 과(1권·2권)에 없는 ★2 단어 · 중등 = ★3 · 표현 = 구문 — 교재 과 목록이 생기면 COURSE 로 옮긴다 */
       const inCourse={}; ["kinder","basic","elem"].forEach(c=>Object.keys(COURSE[c]||{}).forEach(n=>COURSE[c][n].split("|").forEach(en=>inCourse[en]=1)));
@@ -10592,15 +10656,22 @@ const Study = (function(){
   function didToday(){ const s=load(); s.days=s.days||{}; const t=today(); if(s.days.last===t) return false;
     s.days.n = s.days.last===t-1 ? (s.days.n||0)+1 : 1; s.days.last=t; save(); return true; }
   /* (v225) 달리기와 같은 Grade 로 나눈다 · 그 안은 교재(권)의 과 */
-  const BOOKS={ k:  {nm:"유치원",    tab:"유치원", emo:"🧸", sub:"📗 1권 · 유치원 과정", sets:["kinder"], dex:1},
-                g12:{nm:"Grade 1-2", tab:"G1-2", emo:"🍎", sub:"📗 1권 · 저학년 과정", sets:["basic"], dex:1},
-                g34:{nm:"Grade 3-4", tab:"G3-4", emo:"🎒", sub:"📘 2권", sets:["elem"], dex:2},
-                g56:{nm:"Grade 5-6", tab:"G5-6", emo:"🧭", sub:"★2 단어 · 교재 과는 곧", sets:["g56"], dex:2},
-                mid:{nm:"중등",      tab:"중등", emo:"🏫", sub:"📙 3권 · ★3 단어", sets:["mid"], dex:3},
-                ph: {nm:"표현",      tab:"표현", emo:"🗣️", sub:"두 단어 이상", sets:["phrase"], dex:0} };
+  /* (v226) 카테고리 — 슬라이드로 고른다 (책 이름 대신) */
+  const BOOKS={ k:    {nm:"유치원",    tab:"유치원",   emo:"🧸", sub:"그림으로 배우는 첫 단어", sets:["kinder"]},
+                short:{nm:"단모음",    tab:"단모음",   emo:"🔤", sub:"짧은 소리 a · e · i · o · u", sets:["short"]},
+                long: {nm:"장모음",    tab:"장모음",   emo:"🌟", sub:"길게 읽는 소리 a_e · ee · ai", sets:["long"]},
+                digr: {nm:"이중자음",  tab:"이중자음", emo:"🔗", sub:"두 글자 한 소리 sh · ch · th", sets:["digr"]},
+                g12:  {nm:"Grade 1-2", tab:"G1-2",    emo:"🍎", sub:"초등 1~2학년 단어", sets:["basic"]},
+                g34:  {nm:"Grade 3-4", tab:"G3-4",    emo:"🎒", sub:"초등 3~4학년 단어", sets:["elem"]},
+                g56:  {nm:"Grade 5-6", tab:"G5-6",    emo:"🧭", sub:"초등 5~6학년 단어", sets:["g56"]},
+                mid:  {nm:"중등",      tab:"중등",    emo:"🏫", sub:"중학교 단어", sets:["mid"]},
+                ph:   {nm:"표현",      tab:"표현",    emo:"🗣️", sub:"두 단어 이상 표현", sets:["phrase"]} };
   const bookOf = set => Object.keys(BOOKS).find(b=>BOOKS[b].sets.indexOf(set)>=0) || "g12";
   const label = set => { const b=BOOKS[bookOf(set)]; return b ? b.emo+" "+b.nm : set; };
   const word = en => byEn[en] || null;
+  /* Stage 번호 = 카테고리 안의 순서 (교재 과 번호와 따로) · 기록·저장 열쇠는 그대로 과 번호 */
+  const stageNo = (set,n) => { const k=lessons(set).findIndex(x=>x.n===n); return k>=0 ? k+1 : n; };
+  const stageName = (set,n) => { const L=lessons(set), x=L.find(y=>y.n===n); return "Stage "+stageNo(set,n)+(x && x.title ? " · "+x.title : ""); };
   const canHear = () => Voice.canListen();
   /* 문제 모양 고르기 — 과 단계(⭐)가 오를수록 철자·듣기가 많아진다 */
   function pickType(w, level, test){
@@ -10653,7 +10724,7 @@ const Study = (function(){
     shuffle(ws).slice(0, Math.min(ws.length, 15-ws.length)).forEach(w=>{ let t=pickType(w,1,false); if(t==="match") t="k2e"; qs.push(makeQ(t, w, pool, 1)); });
     return qs.map(q=> q.t==="match" ? makeQ("e2k", q.w, pool, 2) : q);
   }
-  return { SETS, N, MAXW, BOOKS, bookOf, label, word, touch, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview,
+  return { SETS, N, MAXW, BOOKS, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview,
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); },
     see(en){ const s=load(); if(!s.seen[en]){ s.seen[en]=1; save(); } } };
 })();
@@ -10676,14 +10747,14 @@ const StudyUI = {
   path(){
     this.view("stPath");
     const B=Study.BOOKS, bk=B[this.book] ? this.book : "g12"; this.book=bk; const BK=B[bk]; this.set=BK.sets[0];
-    $("stTabs").innerHTML=Object.keys(B).map(id=>'<button class="'+(id===bk?'on':'')+'" data-b="'+id+'"><i>'+B[id].emo+'</i>'+B[id].tab+'</button>').join("");
-    let fin=0, tot=0; BK.sets.forEach(st=>{ const L=Study.lessons(st); tot+=L.length; fin+=L.filter(x=>Study.lv(st,x.n)>0).length; });
-    const sk=Study.streak(), dexN = BK.dex ? "★".repeat(BK.dex)+" "+Dex.count(BK.dex)+" / "+Dex.list(BK.dex).length : "";
-    const rc=this.getCur(), rcS=rc ? (rc.rv ? '🔁 복습' : Study.label(rc.set)+' '+rc.n+'과')+' · '+rc.done+' / '+rc.total : '';
+    const prog = id => { let f=0, t=0; B[id].sets.forEach(st=>{ const L=Study.lessons(st); t+=L.length; f+=L.filter(x=>Study.lv(st,x.n)>0).length; }); return [f,t]; };
+    $("stTabs").innerHTML=Object.keys(B).map(id=>{ const p=prog(id); return '<button class="stCat'+(id===bk?' on':'')+(p[0]>=p[1]&&p[1]?' full':'')+'" data-b="'+id+'"><i>'+B[id].emo+'</i><b>'+B[id].tab+'</b><small>'+p[0]+' / '+p[1]+'</small></button>'; }).join("");
+    setTimeout(()=>{ const on=$("stTabs").querySelector(".on"); if(on && on.scrollIntoView) try{ on.scrollIntoView({inline:"center", block:"nearest"}); }catch(e){} }, 30);
+    const [fin, tot] = prog(bk), sk=Study.streak();
+    const rc=this.getCur(), rcS=rc ? (rc.rv ? '🔁 복습' : Study.label(rc.set)+' '+Study.stageName(rc.set, rc.n))+' · '+rc.done+' / '+rc.total : '';
     $("stHead").innerHTML=(rc?'<button class="stResume" data-resume="1"><i>▶</i><span><b>이어 하기</b><small>'+rcS+'</small></span></button>':'')
-      +'<b>'+BK.emo+' '+BK.nm+'</b> <span>'+BK.sub+'</span><em>'+fin+' / '+tot+'과</em>'
-      +'<div class="stHead2">'+(sk?'<span class="stFire">🔥 '+sk+'일째 공부 중</span>':'<span class="stFire off">🔥 오늘 한 과 하면 불이 붙어요</span>')
-      +(dexN?'<button class="stDexB" data-dexbook="'+BK.dex+'">📖 도감 '+dexN+'</button>':'')+'</div>';
+      +'<b>'+BK.emo+' '+BK.nm+'</b> <span>'+BK.sub+'</span><em>'+fin+' / '+tot+' Stage</em>'
+      +'<div class="stHead2">'+(sk?'<span class="stFire">🔥 '+sk+'일째 공부 중</span>':'<span class="stFire off">🔥 오늘 한 Stage 하면 불이 붙어요</span>')+'</div>';
     const due=Study.due().length, rvDone=Wallet.paid("rv-"+Study.today());
     let h = due>=3 ? '<button class="stReview" data-review="1"><i>🔁</i><span><b>오늘의 복습 · '+Math.min(due,10)+'단어</b><small>'
       +(rvDone ? '오늘 보석은 받았어요 · 더 해도 좋아요' : '잊기 전에 한 번 더 · 💎 +2')+'</small></span></button>' : '';
@@ -10694,9 +10765,9 @@ const StudyUI = {
         const v=Study.lv(st,x.n), op=true, now=i===c, nextLock=false;
         const cls = now ? "now" : v>=3 ? "gold" : v>0 ? "done" : op ? "open" : "lock";
         return '<div class="stNode" style="transform:translateX('+zig[i%8]+'px)"><button class="stDot '+cls+'" data-s="'+st+'" data-i="'+i+'">'
-          +(cls==="lock"?'🔒':cls==="gold"?'👑':v>0?'✓':x.n)+'</button>'
-          +'<div class="stLbl">'+x.n+'과 <span>'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></span></div>'
-          +(now?'<div class="stNow">📌 오늘 할 과</div>':'')+(nextLock?'<div class="stSkip" data-s="'+st+'" data-i="'+i+'">⏩ 건너뛰기 시험</div>':'')+'</div>';
+          +(cls==="lock"?'🔒':cls==="gold"?'👑':v>0?'✓':(i+1))+'</button>'
+          +'<div class="stLbl">Stage '+(i+1)+(x.title?' <b class="stTt">'+x.title+'</b>':'')+' <span>'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></span></div>'
+          +(now?'<div class="stNow">📌 오늘 할 차례</div>':'')+(nextLock?'<div class="stSkip" data-s="'+st+'" data-i="'+i+'">⏩ 건너뛰기 시험</div>':'')+'</div>';
       }).join(""); });
     $("stMap").innerHTML=h;
     this.pop(null);
@@ -10706,13 +10777,12 @@ const StudyUI = {
   pop(i, skip){
     const box=$("stPop"); if(i==null){ box.classList.remove("on"); return; }
     const L=Study.lessons(this.set), x=L[i], v=Study.lv(this.set,x.n), op=Study.open(this.set,i), seen=Study.load().seen;
-    const words=x.ws.slice(0,10).map(w=>'<span>'+(w.emoji?w.emoji+' ':'')+(seen[w.en]?w.en:'<i>'+w.ko+'</i>')+'</span>').join("")+(x.ws.length>10?'<span>…</span>':'');
     let btn;
     const need = v===1 ? '<p>★2 — 처음에 80% 맞히면</p>' : v===2 ? '<p>★3 — 처음에 90% 맞히면 (철자·받아쓰기 많아요)</p>' : '';
     btn='<button class="stGo" data-act="go" data-i="'+i+'">'+(v>=3?'🔁 연습하기':'▶ 시작하기 '+'★'.repeat(v+1))+'</button>'
-      +need+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">🏃 이 과 단어로 달리기</button>':'');
-    const dg=x.ws.filter(w=>Dex.has(w.en)).length;
-    box.innerHTML='<div class="stPopIn"><b>'+WORD_SETS[this.set].icon+' '+x.n+'과</b> <small>'+Math.min(x.ws.length,Study.MAXW)+'문제 이상 · '+(v>=3?'👑 다 끝냄':'★ '+v+' / 3')+' · 📖 도감 '+dg+'/'+x.ws.length+'</small><div class="stWords">'+words+'</div>'+btn+'</div>';
+      +need+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">🏃 이 Stage 단어로 달리기 · 📖 도감 모으기</button>':'');
+    const qn=Math.max(Study.N, Math.min(x.ws.length, Study.MAXW)), fresh=!x.ws.some(w=>seen[w.en]);
+    box.innerHTML='<div class="stPopIn"><b>'+WORD_SETS[this.set].icon+' Stage '+(i+1)+(x.title?' · '+x.title:'')+'</b> <small>'+qn+'문제 · '+(v>=3?'👑 다 끝냄':'★ '+v+' / 3')+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
     box.classList.add("on");
   },
   /* ── 한 과 ── */
@@ -10751,6 +10821,8 @@ const StudyUI = {
     const c=$("stCombo"); if(c){ c.textContent = this.combo>=2 ? "🔥 "+this.combo : ""; c.className="stCombo"+(this.combo>=5?" hot":""); } },
   esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
   say(t){ try{ DexDet.say(t); }catch(e){} },
+  /* (v226) 파닉스 Stage 면 소리 글자를 노랗게 */
+  wd(en){ const hl=this.les && this.les.hl; return hl ? phonicsMark(String(en), hl) : this.esc(en); },
   show(){
     const q=this.qs[this.i]; if(!q){ this.finish(true); return; }
     if(q.t==="listen" && !Voice.canListen()) q.t="e2k";                 // 소리가 안 나는 기기 — 듣기 문제는 글자로
@@ -10761,13 +10833,13 @@ const StudyUI = {
     let h="";
     if(q.t==="intro" && q.ws && q.ws.length>1){                         // (v225) 새 단어 2~3개를 한 장에
       h='<div class="stKind">✨ 새 단어 '+q.ws.length+'개</div><div class="stCards">'+q.ws.map(o=>'<div class="stMini">'+(o.emoji?'<i>'+o.emoji+'</i>':'')
-        +'<span><b>'+this.esc(o.en)+'</b><small>'+this.esc(o.ko)+'</small></span><button class="stSay" data-say="'+this.esc(o.en)+'">🔊</button></div>').join("")+'</div>';
+        +'<span><b>'+this.wd(o.en)+'</b><small>'+this.esc(o.ko)+'</small></span><button class="stSay" data-say="'+this.esc(o.en)+'">🔊</button></div>').join("")+'</div>';
       f.innerHTML='<button class="stCheck go" id="stCheck">알겠어요 ▶</button>'; this.say(w.en); q.ws.forEach(o=>Study.see(o.en));
     } else if(q.t==="intro"){
-      h='<div class="stKind">✨ 새 단어</div><div class="stCard">'+pic+'<div class="stEn">'+this.esc(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div><div class="stKo">'+this.esc(w.ko)+'</div></div>';
+      h='<div class="stKind">✨ 새 단어</div><div class="stCard">'+pic+'<div class="stEn">'+this.wd(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div><div class="stKo">'+this.esc(w.ko)+'</div></div>';
       f.innerHTML='<button class="stCheck go" id="stCheck">알겠어요 ▶</button>'; this.say(w.en); Study.see(w.en);
     } else if(q.t==="e2k"){
-      h='<div class="stKind">무슨 뜻일까요?</div><div class="stPrompt">'+pic+'<div class="stEn">'+this.esc(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div></div>'
+      h='<div class="stKind">무슨 뜻일까요?</div><div class="stPrompt">'+pic+'<div class="stEn">'+this.wd(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div></div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt" data-k="'+k+'">'+this.esc(o.ko)+'</button>').join("")+'</div>';
       this.say(w.en);
     } else if(q.t==="k2e"){
@@ -10822,10 +10894,10 @@ const StudyUI = {
       if(!q.pick){ mm.classList.add("shake"); setTimeout(()=>mm.classList.remove("shake"),300); return; }
       const good = mm.dataset.ko===q.pick;
       if(good){ q.ok[q.pick]=1; mm.classList.add("ok"); const l=$("stQ").querySelector('.stM.en[data-en="'+q.pick.replace(/"/g,'&quot;')+'"]'); if(l){ l.classList.add("ok"); l.classList.remove("sel"); }
-        try{ Rank.record(q.pick, true); }catch(er){} q.pick=null; SFX.tone(740,.08,"triangle",.04,990);
+        try{ Rank.record(q.pick, true, null, true); }catch(er){} q.pick=null; SFX.tone(740,.08,"triangle",.04,990);
         if(Object.keys(q.ok).length===q.ws.length) this.result(q.miss===0, true); }
       else { q.miss++; mm.classList.add("bad"); setTimeout(()=>mm.classList.remove("bad"),400); SFX.tone(200,.1,"square",.03);
-        try{ Rank.record(q.pick, false, mm.dataset.ko); }catch(er){} }
+        try{ Rank.record(q.pick, false, mm.dataset.ko, true); }catch(er){} }
       return; }
   },
   check(){
@@ -10835,7 +10907,7 @@ const StudyUI = {
     let ok, conf=null;
     if(q.t==="spell" || q.t==="dict"){ ok = q.got===q.w.en; conf=q.got; }
     else { if(this.sel==null) return; const pick=q.opts[this.sel]; ok = pick.en===q.w.en; conf = q.t==="e2k" ? pick.ko : pick.en; }
-    try{ Rank.record(q.w.en, ok, ok?null:conf); }catch(e){}
+    try{ Rank.record(q.w.en, ok, ok?null:conf, true); }catch(e){}
     this.result(ok);
   },
   result(ok, isMatch){
@@ -10843,7 +10915,7 @@ const StudyUI = {
     (q.ws||[q.w]).forEach(o=>{ try{ Study.mark(o.en, ok && !q.again); }catch(e){} if(ok && !q.again && !this.missed[o.en]) this.okW[o.en]=1; });   // 복습 칸 · (v225) 도감은 한 번에 맞힌 단어만
     let bonus="";
     if(ok && !q.again){ this.combo++; this.best=Math.max(this.best,this.combo);
-      if(this.combo%5===0){ const g=Wallet.addPts(GEM.CARD_PT); bonus='<em class="stBonus">🔥 '+this.combo+' 콤보! 💎 조각 +¼'+(g?' → 보석 +'+g:'')+'</em>'; try{ SFX.tone(880,.18,"triangle",.05,1760); }catch(e){} } }
+      if(this.combo%5===0){ bonus='<em class="stBonus">🔥 '+this.combo+' 콤보!</em>'; try{ SFX.tone(880,.18,"triangle",.05,1760); }catch(e){} } }   // (v226) 보석은 Stage를 끝낼 때만
     else if(!ok) this.combo=0;
     if(ok){ this.done++; if(!q.again) this.first++; SFX.tone(660,.14,"triangle",.05,1320); }
     else { this.wrong++; this.missed[q.w.en]=1; delete this.okW[q.w.en]; SFX.tone(180,.18,"square",.04);
@@ -10864,7 +10936,9 @@ const StudyUI = {
   },
   next(){ this.i++; this.show(); },
   /* ── 끝 ── */
-  /* 맞힌 단어를 도감에 — 새로 들어가거나 뒤집힌 채였던 카드를 연다 (오늘의 20 ↔ 도감 연결) */
+  /* (v226) 도감은 달리기에서만 모은다 — 공부는 '이제 달리면 도감 카드가 모여요'로 이어 준다 */
+  runHint(){ const n=Object.keys(this.okW).filter(en=>{ try{ return !Dex.has(en); }catch(e){ return false; } }).length;
+    return n ? '<div class="stDexAdd">🏃 달리기에서 이 단어를 맞히면 📖 도감 카드가 모여요 <b>(새 카드 '+n+'장 기다리는 중)</b></div>' : ''; },
   toDex(){ let n=0, first=null; Object.keys(this.okW).forEach(en=>{ let k=false; try{ k=Dex.add(en,true) || Dex.open(en); }catch(e){} if(k){ n++; if(!first) first=en; } }); return {n, first}; },
   dexHtml(r){ let bg=""; try{ const st=Dex.settle(); if(st) bg='<div class="stBingo">'+DexUI.bingo(st)+'</div>'; }catch(e){}
     return (r.n ? '<div class="stDexAdd">📖 도감에 카드 <b>'+r.n+'</b>장이 들어갔어요 <button data-dexgo="'+this.esc(r.first)+'">보러 가기 ▶</button></div>' : '')+bg; },
@@ -10872,11 +10946,11 @@ const StudyUI = {
     try{ speechSynthesis.cancel(); }catch(e){} this.clearCur();
     if(this.rv){ const acc=Math.round(this.first/this.total*100), key="rv-"+Study.today(); let gems=0;
       if(!Wallet.paid(key)){ Wallet.pay(key); gems=2; Wallet.addGems(gems, "복습 "+Study.today()); }
-      const fresh=Study.didToday(); try{ Unlock.addDaily(); }catch(e){} const dr=this.toDex(), sk=Study.streak();
+      const fresh=Study.didToday(); try{ Unlock.addDaily(); }catch(e){} const sk=Study.streak();
       this.view("stDone");
       $("stDoneIn").innerHTML='<div class="stBigT">🔁 복습 끝!</div><p>'+(fresh&&sk>1?'🔥 '+sk+'일째 공부 중!':'잊기 전에 한 번 더 봤어요')+'</p>'
         +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>'+this.total+'</b><small>문제</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div></div>'
-        +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+this.dexHtml(dr)
+        +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+this.runHint()
         +'<button class="stGo" id="stBack">길로 돌아가기</button>';
       try{ confetti(); }catch(e){} this.log(true, acc); return; }
     const x=this.les, set=this.set, before=Study.lv(set,x.n), acc=Math.round(this.first/Math.max(1,this.total)*100);
@@ -10884,28 +10958,28 @@ const StudyUI = {
     if(this.test){
       if(pass){ const L=Study.lessons(set); L.forEach(y=>{ if(y.n<=x.n) Study.setLv(set,y.n,1); });
         if(!Wallet.paid("stt-"+Study.key(set,x.n))){ Wallet.pay("stt-"+Study.key(set,x.n)); gems=5; }
-        title="⏩ 건너뛰기 성공!"; sub=x.n+"과까지 열렸어요"; }
+        title="⏩ 건너뛰기 성공!"; sub=Study.stageName(set,x.n)+"까지 열렸어요"; }
       else { title="조금만 더!"; sub="틀린 게 3개라 시험이 끝났어요 · 앞 과부터 공부해 봐요"; }
     } else {
       /* (v225) 별은 실력으로 — ★1 끝까지 · ★2 처음에 80% · ★3 처음에 90% (★2 판은 철자·받아쓰기가 많다) */
       const NEED=[0,0,80,90], want=Math.min(3, before+1), nv = (before>=3 || acc>=NEED[want]) ? want : before;
       Study.setLv(set,x.n,nv);
-      const pk="st-"+Study.key(set,x.n)+"-"+nv; if(nv>before && !Wallet.paid(pk)){ Wallet.pay(pk); gems = nv===3 ? 5 : 3; }
+      const pk="st-"+Study.key(set,x.n)+"-"+nv; if(nv>before && !Wallet.paid(pk)){ Wallet.pay(pk); gems = 3; }   // (v226) 별이 오를 때만 💎3
       try{ Unlock.addDaily(); }catch(e){}
-      title = nv>=3 ? "👑 "+x.n+"과 완벽!" : "🎉 "+x.n+"과 끝!";
+      const sn="Stage "+Study.stageNo(set,x.n); title = nv>=3 ? "👑 "+sn+" 완벽!" : "🎉 "+sn+" 끝!";
       sub = nv>before ? "★ "+nv+" / 3" : before>=3 ? "연습 완료" : "★"+want+"까지 조금 더! 처음에 "+NEED[want]+"% 맞히면 돼요 (이번 "+acc+"%)";
     }
     if(gems) Wallet.addGems(gems, (this.test?"건너뛰기 시험 ":"공부 ")+Study.key(set,x.n));
-    const dr = pass ? this.toDex() : {n:0}, fresh = pass ? Study.didToday() : false, sk=Study.streak();
+    const fresh = pass ? Study.didToday() : false, sk=Study.streak();
     this.view("stDone");
     const v=Study.lv(set,x.n), miss=Object.keys(this.missed);
     $("stDoneIn").innerHTML='<div class="stBigT">'+title+'</div><div class="stStars">'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></div><p>'+sub+'</p>'
       +(fresh && sk>1 ? '<p class="stFireP">🔥 '+sk+'일째 공부 중!</p>' : '')
       +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div><div><b>'+Math.round((Date.now()-this.t0)/1000)+'초</b><small>걸린 시간</small></div></div>'
-      +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+this.dexHtml(dr)
+      +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+(pass && !this.test ? this.runHint() : '')
       +(miss.length?'<div class="stMiss"><small>다시 볼 단어</small>'+miss.map(en=>{ const w=WORD_BANK.find(y=>y.en===en)||{en,ko:""}; return '<button data-say="'+this.esc(en)+'">🔊 '+this.esc(en)+' <i>'+this.esc(w.ko)+'</i></button>'; }).join("")+'</div>':'')
       +'<button class="stGo" id="stBack">길로 돌아가기</button>'
-      +(pass && !this.test ? '<button class="stRun" id="stRun">🏃 이 과 단어로 달리기</button>' : '');
+      +(pass && !this.test ? '<button class="stRun" id="stRun">🏃 이 Stage 단어로 달리기</button>' : '');
     if(pass) try{ confetti(); }catch(e){}
     this.log(pass, acc);
   },
@@ -10914,15 +10988,15 @@ const StudyUI = {
     try{ if(!Online.on() || TEST_STAGE || this._lg===this.t0) return; this._lg=this.t0;   // 한 번 공부에 한 줄만
       let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
-      Online.submit({nick, score:this.first*10, diff:"study", rule:this.rv?"study-review":this.test?"study-test":"study", stage:this.les.n, acc, right:this.done, wrong:this.wrong,
-        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"review":Study.key(this.set,this.les.n), secs:Math.round((Date.now()-this.t0)/1000), dex, gems:Wallet.gems(), ver:GAME_VER,
+      Online.submit({nick, score:this.first*10, diff:"study", rule:this.rv?"study-review":this.test?"study-test":"study", stage:this.rv?0:Study.stageNo(this.set,this.les.n), acc, right:this.done, wrong:this.wrong,
+        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"복습":(Study.BOOKS[Study.bookOf(this.set)].tab+" Stage "+Study.stageNo(this.set,this.les.n)), secs:Math.round((Date.now()-this.t0)/1000), dex, gems:Wallet.gems(), ver:GAME_VER,
         miss:Object.keys(this.missed).slice(0,25).join(", ")});
     }catch(e){}
   },
   run(i){                                                   // 공부한 과 단어로 바로 달리기 (기본 모드)
     const x=Study.lessons(this.set)[i]; if(!x) return;
     const st=LastSetup.get()||{};
-    G.rule="normal"; G.set=this.set; G.lesson=(WORD_SETS[this.set].course ? x.n : 0); G.tag=null;
+    G.rule="normal"; G.set=this.set; G.lesson=(WORD_SETS[this.set].course ? x.n : 0); G.tag=null; G._nextWords=x.ws.map(w=>w.en);   // (v226) 그 Stage 단어만
     G.diff = DIFF[st.diff] ? st.diff : "normal"; G.mode = st.mode || "mix";
     G.char = (CHARACTERS.find(c=>c.id===st.char) && Unlock.has(st.char)) ? st.char : (Unlock.has(G.char)?G.char:"hero");
     if(!WORD_SETS[this.set].course) G.tag=null;
@@ -12069,7 +12143,7 @@ const DexDet = {
     return '<div class="wFind"><b>📍 나오는 곳</b>'
       +(run.length?'<div><span class="k">🏃 달리기</span>'+run.map(x=>'<span class="c'+(x.r==="main"?' main':'')+'">'+WORD_SETS[x.id].icon+' '+WORD_SETS[x.id].label+(RT[x.r]?' <small>· '+RT[x.r]+'</small>':'')+'</span>').join("")+'</div>':'')
       +(st.length?'<div><span class="k">📚 오늘의 20</span>'+st.slice(0,3).map(x=>{ const S=WORD_SETS[x.id], lv=Study.lv(x.id,x.n);
-          return '<button class="c go" data-study="'+x.id+'" data-si="'+x.i+'">'+Study.label(x.id)+' '+x.n+'과'+(lv?' '+'★'.repeat(lv):'')+'</button>'; }).join("")+'</div>':'')
+          return '<button class="c go" data-study="'+x.id+'" data-si="'+x.i+'">'+Study.label(x.id)+' Stage '+(x.i+1)+(lv?' '+'★'.repeat(lv):'')+'</button>'; }).join("")+'</div>':'')
       +'</div>'; },
   show(en, quiet, keepScroll){
     const w=this.word(en); if(!w) return;
