@@ -659,6 +659,34 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 .mitem:active{transform:scale(.99)}
 .verTag{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
   font-size:11px;color:#7b71a3;font-weight:700;pointer-events:none}
+#scStart .verTag{pointer-events:auto;padding:8px 0 8px 14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* 관리자 */
+#shAdmin{z-index:30}
+.adIn{max-height:92dvh}
+.adIn h2{color:#8fe3ff}
+.adSec{margin:16px 0 7px;font-size:12px;font-weight:900;letter-spacing:.08em;color:#9d92c8}
+.adSec small{margin-left:6px;font-weight:700;letter-spacing:0;color:#ffd37a}
+.adGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.adGrid div{padding:9px 6px;border-radius:12px;background:rgba(255,255,255,.06);text-align:center}
+.adGrid b{display:block;font-size:15px;color:#fff}
+.adGrid small{display:block;margin-top:2px;font-size:10.5px;color:#9d92c8;font-weight:700}
+.adLog{max-height:220px;overflow-y:auto;border-radius:12px;background:rgba(0,0,0,.22);padding:4px 8px}
+.adLog div{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+.adLog i{flex:none;width:74px;font-style:normal;color:#7b71a3}
+.adLog span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d9d1f5}
+.adLog em{font-style:normal;font-weight:800;color:#fff}
+.adLog b{flex:none;width:46px;text-align:right}
+.adLog b.p{color:#7dffb0} .adLog b.m{color:#ff8f9a}
+.adLog u{flex:none;width:42px;text-align:right;text-decoration:none;color:#9d92c8}
+.adRow{display:flex;flex-wrap:wrap;gap:6px}
+.adRow .mini{margin-top:0}
+.mini.warn{border-color:rgba(255,110,130,.5);color:#ffb3bd}
+.adPinRow{display:flex;gap:6px;margin-top:8px}
+.adPinRow input{flex:1;min-width:0;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.06);color:#fff;
+  border:1px solid rgba(255,255,255,.14);font-family:var(--font);font-size:16px;font-weight:700}
+#adPin{letter-spacing:.3em}
+.adPinRow .mini{margin-top:0}
+.adMsg{min-height:18px;margin:8px 0 4px;font-size:12px;font-weight:700;color:#ffd37a}
 .bar{display:flex;align-items:flex-end;gap:5px;height:76px;padding:6px 2px 0}
 .bar .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
 .bar .stack{width:100%;display:flex;flex-direction:column-reverse;justify-content:flex-start;
@@ -1305,6 +1333,13 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
   <button class="play ghost" id="btnStatsReset" style="margin-top:8px;opacity:.6">기록 지우기</button>
 </div></div>
 
+
+<!-- 🔧 관리자 (선생님용) — ?admin 또는 버전 글씨 길게 누르기 → 비밀번호 -->
+<div class="sheet" id="shAdmin"><div class="sheetIn adIn">
+  <h2>🔧 관리자</h2>
+  <div id="adBody"></div>
+  <button class="play ghost" id="btnAdminClose" style="margin-top:16px">닫기</button>
+</div></div>
 
 <!-- 새 소식 -->
 <div class="sheet" id="shNews"><div class="sheetIn newsIn">
@@ -9630,7 +9665,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v212";
+const GAME_VER = "v213";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10011,7 +10046,7 @@ const StudyUI = {
       try{ Unlock.addDaily(); }catch(e){}
       title = nv>=3 ? "👑 "+x.n+"과 완벽!" : "🎉 "+x.n+"과 끝!"; sub = nv>before ? "★ "+nv+" / 3" : "연습 완료";
     }
-    if(gems) Wallet.addGems(gems);
+    if(gems) Wallet.addGems(gems, (this.test?"건너뛰기 시험 ":"공부 ")+Study.key(set,x.n));
     this.view("stDone");
     const v=Study.lv(set,x.n), miss=Object.keys(this.missed);
     $("stDoneIn").innerHTML='<div class="stBigT">'+title+'</div><div class="stStars">'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></div><p>'+sub+'</p>'
@@ -10147,6 +10182,8 @@ const Unlock = (function(){
     daily(){ return load().daily||0; },
     addDaily(){ const a=load(); a.daily=(a.daily||0)+1; save(); if(a.daily>=5) this.give("ghost"); },   // 오늘의 20 공부 한 과 = 1번
     give(id){ const a=load(); if(this.has(id)) return false; a.got[id]=1; save(); return true; },
+    all(){ const a=load(); CHARACTERS.forEach(c=>a.got[c.id]=1); save(); },      // 관리자
+    reset(){ const a=load(); a.got={}; a.daily=0; save(); },
     /* 한 판이 끝날 때 — 새로 열린 캐릭터 목록 */
     check(){
       if(G.testRun) return [];
@@ -10199,15 +10236,21 @@ const Wallet = (function(){
     return mem;
   }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(load())); }catch(e){} }
+  /* 보석 기록 — [시각, 변화, 이유, 남은 보석] 최근 200줄 (관리자 화면에서 본다) */
+  function note(a, d, why){ a.log=a.log||[]; a.log.push([Date.now(), d, why||"", a.gems]); if(a.log.length>200) a.log.splice(0, a.log.length-200); }
   return {
     gems(){ return load().gems|0; },
     pts(){ return load().pts|0; },
-    addGems(n){ if(!(n>0)) return; const a=load(); a.gems+=n; a.earned=(a.earned||0)+n; save(); },
-    addPts(p){ const a=load(); a.pts=(a.pts|0)+p; let g=0; while(a.pts>=GEM.PER){ a.pts-=GEM.PER; g++; } a.gems+=g; a.earned=(a.earned||0)+g; save(); return g; },
+    addGems(n, why){ if(!(n>0)) return; const a=load(); a.gems+=n; a.earned=(a.earned||0)+n; note(a, n, why); save(); },
+    addPts(p){ const a=load(); a.pts=(a.pts|0)+p; let g=0; while(a.pts>=GEM.PER){ a.pts-=GEM.PER; g++; } a.gems+=g; a.earned=(a.earned||0)+g; if(g) note(a, g, "달리기 점수 "+p); save(); return g; },
+    log(){ return (load().log||[]).slice(); },
+    /* 관리자 — 보석을 직접 고친다 (누적 획득에는 넣지 않음) */
+    adjust(d){ const a=load(); d=Math.max(-a.gems, d|0); if(!d) return; a.gems+=d; note(a, d, "관리자"); save(); },
+    raw(){ return load(); },
     owns(id){ return load().owned.indexOf(id)>=0; },
     give(id){ const a=load(); if(a.owned.indexOf(id)<0){ a.owned.push(id); save(); } },
     buy(id, price){ const a=load(); if(a.owned.indexOf(id)>=0) return true; if(a.gems<price) return false;
-      a.gems-=price; a.owned.push(id); save();
+      a.gems-=price; a.owned.push(id); note(a, -price, "구매 "+id); save();
       try{ if(typeof Online!=="undefined") Online.buyLog(id, price, a.gems); }catch(e){}       // 학원 시트 "구매" 탭에 한 줄
       return true; },
     owned(){ return load().owned.slice(); },
@@ -10797,12 +10840,103 @@ const Dex = (function(){
         const N=A.words.length;
         if(this.got(A)===N && !Wallet.paid("da-"+A.id+"-"+N)) out.push({key:"da-"+A.id+"-"+N, gems:this.albumGems(A), a:A, album:true}); });
       return out; },
-    claim(list){ let g=0; (list||[]).forEach(x=>{ if(Wallet.paid(x.key)) return; Wallet.pay(x.key); g+=x.gems; }); if(g) Wallet.addGems(g); return g; },
+    claim(list){ let g=0; (list||[]).forEach(x=>{ if(Wallet.paid(x.key)) return; Wallet.pay(x.key); g+=x.gems; }); if(g) Wallet.addGems(g, "도감 보상 "+(list.length>1?list.length+"개":list[0].key)); return g; },
     /* 한 줄에 1~2칸만 남은 못 모은 단어 — 게임에서 조금 더 자주 낸다 */
     near(){ const out={}; this.albums().forEach(A=>{ const n=this.lines(A);
         for(let i=0;i<n;i++){ const L=this.line(A,i), miss=L.filter(w=>!this.has(w.en)); if(miss.length>0 && miss.length<=2 && L.length-miss.length>=2) miss.forEach(w=>{ out[w.en]=1; }); } });
       return out; }
   };
+})();
+
+/* =====================================================================
+   🔧 관리자 (선생님용) — 이 기기의 보석·해금·공부·도감 상태를 한눈에 보고 고친다
+   - 여는 법: 주소 끝에 ?admin  또는  첫 화면 오른쪽 아래 버전 글씨를 2초 길게 누르기 → 비밀번호
+   - 비밀번호는 아래 PIN. 한 번 맞히면 브라우저를 닫을 때까지 다시 묻지 않는다
+   - 보석 기록은 v213부터 쌓인다 (그 전 것은 없음)
+   ===================================================================== */
+const Admin = (function(){
+  const PIN="4827", SK="hyeng_admin_ok";
+  let ok=false; try{ ok=sessionStorage.getItem(SK)==="1"; }catch(e){}
+  const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+  const two=n=>String(n).padStart(2,"0");
+  const when=t=>{ const d=new Date(t); return (d.getMonth()+1)+"/"+d.getDate()+" "+two(d.getHours())+":"+two(d.getMinutes()); };
+  function keys(){ const out=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(hyeng|wgr)_/.test(k) && k!=="hyeng_dev") out.push(k); } }catch(e){} return out.sort(); }
+  function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function card(v, t){ return '<div><b>'+v+'</b><small>'+t+'</small></div>'; }
+  function why(s){ return esc(s).replace(/^(달리기 점수|공부|건너뛰기 시험|도감 보상|문지기|구매|관리자)/, '<em>$1</em>'); }
+  function body(){
+    if(!ok) return '<p class="note">비밀번호 4자리를 넣어 주세요</p>'
+      +'<div class="adPinRow"><input id="adPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button class="mini" data-ad="pin">확인</button></div><div class="adMsg" id="adMsg"></div>';
+    const W=Wallet.raw(), st=Stats.all(), S=Study.load();
+    const books=Dex.BOOKS.map(B=>B.lv+"권 "+Dex.count(B.lv)+"/"+Dex.list(B.lv).length).join(" · ");
+    const stLv=Object.keys(S.lv).filter(k=>S.lv[k]>0), st3=stLv.filter(k=>S.lv[k]>=3).length;
+    const chars=CHARACTERS.filter(c=>Unlock.has(c.id)).length;
+    const log=Wallet.log(), today=new Date().toDateString();
+    let gin=0, gout=0; log.forEach(r=>{ if(new Date(r[0]).toDateString()!==today || r[2]==="관리자") return; if(r[1]>0) gin+=r[1]; else gout-=r[1]; });
+    let h='<div class="adSec">한눈에</div><div class="adGrid">'
+      +card('💎 '+Wallet.gems(),'지금 보석')+card(Wallet.earned(),'모은 보석 (누적)')+card(Wallet.pts()+'/'+GEM.PER,'다음 보석까지 점수')
+      +card(st.games,'달리기 판 수')+card(st.right+' / '+st.wrong,'정답 / 오답')+card(chars+'/'+CHARACTERS.length,'열린 캐릭터')
+      +card(stLv.length+' (★3 '+st3+')','공부한 과')+card(Unlock.daily(),'오늘의 20 횟수')+card(W.owned.length,'산 물건')
+      +'</div><p class="note">도감: '+books+' · 받은 보상 '+Object.keys(W.paid||{}).length+'개<br>이름: '+esc(get("hyeng_nick")||"(없음)")+' · 기기: '+esc(get("hyeng_dev")||"-")+' · '+GAME_VER+'</p>';
+    h+='<div class="adSec">보석 기록 <small>오늘 번 것 +'+gin+' · 쓴 것 −'+gout+'</small></div>';
+    h+= log.length ? '<div class="adLog">'+log.slice(-60).reverse().map(r=>'<div><i>'+when(r[0])+'</i><span>'+why(r[2])+'</span><b class="'+(r[1]<0?'m':'p')+'">'+(r[1]>0?'+':'')+r[1]+'</b><u>'+r[3]+'</u></div>').join("")+'</div>'
+      : '<p class="note">아직 기록이 없어요 (v213부터 쌓여요)</p>';
+    h+='<div class="adSec">보석 고치기</div><div class="adRow"><button class="mini" data-ad="g" data-n="-100">−100</button><button class="mini" data-ad="g" data-n="-10">−10</button><button class="mini" data-ad="g" data-n="10">+10</button><button class="mini" data-ad="g" data-n="100">+100</button></div>'
+      +'<div class="adPinRow"><input id="adSet" type="number" inputmode="numeric" placeholder="보석 개수"><button class="mini" data-ad="gset">이 개수로</button></div>';
+    h+='<div class="adSec">열기 · 지우기</div><div class="adRow">'
+      +'<button class="mini" data-ad="charAll">캐릭터 모두 열기</button><button class="mini" data-ad="charReset">캐릭터 잠그기</button>'
+      +'<button class="mini" data-ad="shopAll">상점 물건 모두 갖기</button><button class="mini" data-ad="shopReset">산 물건 지우기</button>'
+      +'<button class="mini" data-ad="studyAll">공부 과 모두 열기</button><button class="mini" data-ad="studyReset">공부 기록 지우기</button>'
+      +'<button class="mini" data-ad="paidReset">받은 보상 지우기</button></div>'
+      +'<p class="note">상점 물건은 공개된 것만 (비공개 옷은 ?stage= 시험 주소에서 입어 보기). 받은 보상을 지우면 도감·공부 보석을 다시 받을 수 있어요.</p>';
+    h+='<div class="adSec">저장 데이터</div><div class="adRow"><button class="mini" data-ad="exp">내보내기 (복사)</button><button class="mini" data-ad="imp">붙여 넣어 불러오기</button><button class="mini warn" data-ad="wipe">이 기기 모두 지우기</button></div>'
+      +'<textarea id="adData" placeholder="내보내기를 누르면 여기에 나와요. 다른 기기에서 붙여 넣고 불러오기를 누르면 옮겨져요."></textarea>'
+      +'<div class="adMsg" id="adMsg"></div><button class="mini" data-ad="lock" style="opacity:.7">관리자 잠그기</button>';
+    return h;
+  }
+  function msg(t){ const m=$("adMsg"); if(m) m.textContent=t; }
+  function draw(){ $("adBody").innerHTML=body(); const p=$("adPin"); if(p) setTimeout(()=>{ try{ p.focus(); }catch(e){} },50); }
+  function act(a, el){
+    if(a==="pin"){ if(($("adPin").value||"")===PIN){ ok=true; try{ sessionStorage.setItem(SK,"1"); }catch(e){} draw(); } else { msg("비밀번호가 달라요"); $("adPin").value=""; } return; }
+    if(!ok) return;
+    if(a==="g"){ Wallet.adjust(+el.dataset.n); }
+    else if(a==="gset"){ const v=parseInt($("adSet").value,10); if(!(v>=0)) return msg("숫자를 넣어 주세요"); Wallet.adjust(v-Wallet.gems()); }
+    else if(a==="charAll"){ Unlock.all(); }
+    else if(a==="charReset"){ if(!confirm("기본 캐릭터 3개만 남기고 잠글까요?")) return; Unlock.reset(); }
+    else if(a==="shopAll"){ OUTFITS.concat(TRAILS, HITS).forEach(o=>{ if(!o.hidden && o.price) Wallet.give(o.id); }); }
+    else if(a==="shopReset"){ if(!confirm("산 물건을 모두 지울까요? (보석은 돌려주지 않아요)")) return; const W=Wallet.raw(); W.owned=[]; W.wear={}; W.sel={}; W.fx=null; try{ localStorage.setItem("hyeng_wallet_v1", JSON.stringify(W)); }catch(e){} }
+    else if(a==="studyAll"){ Study.SETS.forEach(set=>Study.lessons(set).forEach(l=>Study.setLv(set,l.n,1))); }
+    else if(a==="studyReset"){ if(!confirm("오늘의 20 공부 기록(별)을 지울까요?")) return; const s=Study.load(); s.lv={}; s.seen={}; Study.save(); }
+    else if(a==="paidReset"){ if(!confirm("받은 보상 기록을 지울까요? 같은 보상을 다시 받을 수 있게 돼요.")) return; const W=Wallet.raw(); W.paid={}; try{ localStorage.setItem("hyeng_wallet_v1", JSON.stringify(W)); }catch(e){} }
+    else if(a==="exp"){ const o={}; keys().forEach(k=>o[k]=get(k)); const t=JSON.stringify({hyeng:GAME_VER, t:Date.now(), data:o});
+      $("adData").value=t; try{ navigator.clipboard.writeText(t).then(()=>msg("복사했어요 ("+Math.round(t.length/1024)+"KB)"),()=>msg("아래 글을 길게 눌러 복사하세요")); }catch(e){ msg("아래 글을 길게 눌러 복사하세요"); } return; }
+    else if(a==="imp"){ let o; try{ o=JSON.parse($("adData").value); }catch(e){ return msg("내보낸 글이 아니에요"); }
+      if(!o || !o.data || typeof o.data!=="object") return msg("내보낸 글이 아니에요");
+      if(!confirm("이 기기의 기록을 붙여 넣은 기록으로 바꿀까요?")) return;
+      keys().forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+      Object.keys(o.data).forEach(k=>{ if(/^(hyeng|wgr)_/.test(k) && k!=="hyeng_dev" && typeof o.data[k]==="string") try{ localStorage.setItem(k, o.data[k]); }catch(e){} });
+      location.reload(); return; }
+    else if(a==="wipe"){ if(!confirm("이 기기의 모든 기록(보석·옷·도감·공부·학습 기록)을 지울까요?") || !confirm("정말 지울까요? 되돌릴 수 없어요.")) return;
+      keys().forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); location.reload(); return; }
+    else if(a==="lock"){ ok=false; try{ sessionStorage.removeItem(SK); }catch(e){} close(); return; }
+    try{ SFX.click(); }catch(e){}
+    draw(); refresh();
+  }
+  /* 메뉴·상점 숫자 다시 그리기 */
+  function refresh(){ try{ Unlock.paint(); }catch(e){} try{ if(typeof CharPick!=="undefined") CharPick.draw(); }catch(e){} }
+  function open(){ draw(); $("shAdmin").classList.add("on"); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} }
+  function close(){ $("shAdmin").classList.remove("on"); }
+  $("adBody").addEventListener("click", e=>{ const b=e.target.closest("[data-ad]"); if(b) act(b.dataset.ad, b); });
+  $("adBody").addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.id==="adPin") act("pin"); });
+  $("btnAdminClose").addEventListener("click", ()=>{ try{ SFX.click(); }catch(e){} close(); });
+  /* 버전 글씨 2초 길게 누르기 */
+  (function(){ const v=document.querySelector("#scStart .verTag"); if(!v) return; let t=null;
+    const go=e=>{ clearTimeout(t); t=setTimeout(open, 2000); }, stop=()=>clearTimeout(t);
+    v.addEventListener("touchstart", go, {passive:true}); v.addEventListener("mousedown", go);
+    ["touchend","touchcancel","mouseup","mouseleave"].forEach(n=>v.addEventListener(n, stop));
+    v.addEventListener("contextmenu", e=>e.preventDefault()); })();
+  try{ if(new URLSearchParams(location.search).has("admin")) setTimeout(open, 300); }catch(e){}
+  return { open, close, isOn:()=>ok };
 })();
 
 /* 한 판이 끝나면 — 보석 정산 (결과 화면에서 한 번) */
@@ -10813,7 +10947,7 @@ function settleGems(){
   const before=Wallet.gems();
   const fromPts=Wallet.addPts(pt);
   let boss=0; try{ Object.keys(Boss.doneAt||{}).forEach(k=>{ if(Boss.doneAt[k] && GEM.BOSS[k]) boss+=GEM.BOSS[k]; }); }catch(e){}
-  Wallet.addGems(boss);
+  Wallet.addGems(boss, "문지기");
   return {gain:Wallet.gems()-before, fromPts, boss, pt, pts:Wallet.pts(), total:Wallet.gems(), dexNew:G.dexNew|0};
 }
 function drawGemResult(r){
