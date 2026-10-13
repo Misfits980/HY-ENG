@@ -10283,7 +10283,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v223";
+const GAME_VER = "v224";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10779,12 +10779,12 @@ const StudyUI = {
     this.log(pass, acc);
   },
   /* 공부 기록도 시트로 (방식=study · 단어장=반-과) */
-  log(pass, acc){
-    try{ if(!Online.on() || TEST_STAGE) return;
+  log(pass, acc, why){
+    try{ if(!Online.on() || TEST_STAGE || this._lg===this.t0) return; this._lg=this.t0;   // 한 번 공부에 한 줄만
       let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
       Online.submit({nick, score:this.first*10, diff:"study", rule:this.rv?"study-review":this.test?"study-test":"study", stage:this.les.n, acc, right:this.done, wrong:this.wrong,
-        clear:pass?1:0, end:pass?"clear":"quit", set:this.rv?"review":Study.key(this.set,this.les.n), secs:Math.round((Date.now()-this.t0)/1000), dex, gems:Wallet.gems(), ver:GAME_VER});
+        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"review":Study.key(this.set,this.les.n), secs:Math.round((Date.now()-this.t0)/1000), dex, gems:Wallet.gems(), ver:GAME_VER});
     }catch(e){}
   },
   run(i){                                                   // 공부한 과 단어로 바로 달리기 (기본 모드)
@@ -10809,7 +10809,9 @@ $("scStudy").addEventListener("click",e=>{
   const a=t.closest("[data-act]"); if(a){ const i=+a.dataset.i; SFX.select();
     if(a.dataset.act==="go") StudyUI.start(i,false); else if(a.dataset.act==="test") StudyUI.start(i,true); else if(a.dataset.act==="run") StudyUI.run(i); return; }
   if(t.closest("#stPop") && !t.closest(".stPopIn")){ StudyUI.pop(null); return; }
-  if(t.closest("#stQuit")){ SFX.click(); try{ speechSynthesis.cancel(); }catch(er){} StudyUI.path(); return; }
+  if(t.closest("#stQuit")){ SFX.click(); try{ speechSynthesis.cancel(); }catch(er){}
+    try{ const U=StudyUI; if(U.t0 && U._lg!==U.t0 && (U.done||0)>0) U.log(false, Math.round(U.first/Math.max(1,U.done)*100), "quit"); }catch(er){}   // (v224) 중간에 그만둬도 '했다'는 기록은 남긴다
+    StudyUI.path(); return; }
   if(t.closest("#stCheck")){ StudyUI.check(); return; }
   if(t.closest("[data-nosnd]")){ SFX.click(); const q=StudyUI.qs[StudyUI.i]; if(q) q.t="e2k"; StudyUI.show(); return; }
   if(t.closest("#stBack")){ SFX.click(); StudyUI.path(); return; }
