@@ -2,7 +2,7 @@
    HY ENG 학원 랭킹 — 구글 Apps Script (Code.gs)
    - 게임(index.html)의 Online.URL 이 이 스크립트의 "웹 앱" 주소
    - POST : 판 기록 1줄을 scores 탭에 추가 · type:"buy" 면 상점 구매 1줄을 "구매" 탭에 추가
-   - GET  : 난이도별 랭킹 (이번 주 / 전체) — 닉네임마다 최고 점수 1줄
+   - GET  : 난이도별 랭킹 (이번 주 / 전체) — 닉네임마다 최고 점수 1줄 · diff=dex 면 단어 수집 랭킹 (v221)
    붙여 넣은 뒤 반드시: 배포 → 배포 관리 → ✏️수정 → 버전 "새 버전" → 배포
    (새 배포를 만들면 주소가 바뀌어 게임이 못 찾는다)
 ===================================================================== */
@@ -111,6 +111,7 @@ function doGet(e){
 
   const sh = sheet_(), last = sh.getLastRow();
   if (last < 2) return json_({ok:true, list:[]});
+  if (diff === "dex") return json_({ok:true, list:dexRank_(sh, last, since, n, dev)});   // (v221) 단어 수집 랭킹
   const rows = sh.getRange(2, 1, last - 1, C.title + 1).getValues();   // 날짜 ~ 칭호까지만 읽는다
 
   const best = {};                                                  // 닉네임 → 최고 기록
@@ -130,6 +131,24 @@ function doGet(e){
     .sort((a,b)=>b.score - a.score).slice(0, n)
     .map(b=>({nick:b.nick, score:b.score, stage:b.stage, title:b.title, me:b.me}));
   return json_({ok:true, list});
+}
+
+/* (v221) 단어 수집 랭킹 — 닉네임마다 '도감' 칸의 가장 큰 값 (모든 방식·난이도·공부 기록 포함)
+   이번 주 = 이번 주에 기록이 있는 사람만 (값은 그때까지 모은 전체 단어 수) */
+function dexRank_(sh, last, since, n, dev){
+  const rows = sh.getRange(2, 1, last - 1, C.dex + 1).getValues();
+  const best = {};
+  rows.forEach(r=>{
+    const t = time_(r[C.date]); if (t < since) return;
+    const nick = String(r[C.nick] || "PLAYER"), dex = Number(r[C.dex]) || 0;
+    let b = best[nick]; if (!b){ b = best[nick] = {nick, score:0, title:"", tt:0, me:false}; }
+    if (dex > b.score) b.score = dex;
+    if (r[C.title] && t >= b.tt){ b.title = String(r[C.title]); b.tt = t; }
+    if (dev && String(r[C.dev]) === dev) b.me = true;
+  });
+  return Object.keys(best).map(k=>best[k]).filter(b=>b.score>0)
+    .sort((a,b)=>b.score - a.score).slice(0, n)
+    .map(b=>({nick:b.nick, score:b.score, stage:0, title:b.title, me:b.me}));
 }
 
 /* 편집기에서 ▶실행 으로 확인용 — 시트에 쓰지 않고 랭킹만 로그로 */
