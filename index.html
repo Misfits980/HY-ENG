@@ -6982,7 +6982,10 @@ const Hazards = {
     if(wrong.some(l=>!busy[l])) return -1;                     // 이미 빈 오답 줄이 있다
     // 빼기 쉬운 줄부터 (함정 수가 적은 줄), 같으면 아무 줄이나
     const pick=wrong.slice().sort((a,b)=>busy[a].length-busy[b].length || Math.random()-.5)[0];
-    busy[pick].forEach(h=>{ const i=this.list.indexOf(h); if(i>=0) this.remove(i); });
+    const drop=busy[pick].slice();
+    drop.slice().forEach(h=>{ if(h.statueBody || h.type==="statue")           // 석상 기사는 몸과 창을 함께 뺀다 (하나만 남으면 이상해 보임)
+      this.list.forEach(o=>{ if(o!==h && (o.statueBody || o.type==="statue") && Math.abs(zOf(o)-zOf(h))<0.05 && drop.indexOf(o)<0) drop.push(o); }); });
+    drop.forEach(h=>{ const i=this.list.indexOf(h); if(i>=0) this.remove(i); });
     this.lastDecoy=pick; return pick;
   },
   dropTile(lane,z){
@@ -9662,7 +9665,7 @@ const VS = {
     startGame();                                                       // 세계 + 1P (지금 캐릭터 그림)
     const base={}; this.PF.forEach(k=>{ base[k]=G[k]; });
     this.pl=[0,1].map(i=>({i, P:Object.assign({},P), G:Object.assign({},base), input:{x:0,y:0}, out:false}));
-    this._blob0=blob; this._beam0=beam;
+    this._blob0=blob; this._beam0=beam; this._beamCol=beam.material.color.getHex();
     this.pl[0].mesh=player; this.pl[0].blob=blob; this.pl[0].beam=beam;
     const b2=blob.clone(); b2.material=blob.material.clone(); scene.add(b2);
     const m2=beam.clone(); m2.material=beam.material.clone(); scene.add(m2);
@@ -9688,7 +9691,7 @@ const VS = {
     this.pl.forEach(p=>{ kill(p.ring); kill(p.tag); });
     player=this.pl[0].mesh; blob=this._blob0||blob; beam=this._beam0||beam;
     if(player) player.visible=true; if(blob) blob.visible=true;
-    try{ beam.material.color.setHex(0xffffff); }catch(e){}
+    try{ beam.material.color.setHex(this._beamCol!=null ? this._beamCol : 0xffc46b); }catch(e){}   // 1인용 레인 빛 색으로 되돌린다
     this.pl=[]; this.cur=null; G.versus=false; document.body.classList.remove("vs");
     const kb=$("kbhint"); if(kb) kb.textContent="A D / ← → 좌우 이동 · W S / ↑ ↓ 앞뒤 이동 · P 일시정지";
   },
@@ -10031,7 +10034,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v217";
+const GAME_VER = "v218";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10063,7 +10066,9 @@ function togglePause(){
   $("scPause").classList.toggle("on",G.paused);
   if(G.paused){
     const pi=$("pauseInfo");
-    if(pi) pi.innerHTML='<span>'+zone().name+'</span><b>'+G.stage+'단계</b><span>'+G.score.toLocaleString()+'점</span>';
+    if(pi) pi.innerHTML = G.versus && VS.pl.length
+      ? '<span>'+zone().name+'</span><b>'+G.stage+'단계</b><span>'+[0,1].map(i=>VS.NAME[i]+' '+(VS.st(i).score||0).toLocaleString()).join(' · ')+'</span>'
+      : '<span>'+zone().name+'</span><b>'+G.stage+'단계</b><span>'+G.score.toLocaleString()+'점</span>';
   } else { const ss=$("shSettings"); if(ss) ss.classList.remove("on"); }
   if(!G.paused) clock.getDelta();
 }
@@ -11628,7 +11633,7 @@ const DexUI = {
     $("dexBar").style.width=Math.round(got/n*100)+"%";
     $("dexShelf").style.display="none"; $("dexGrid").style.display="";
     let h="";
-    for(let i=0;i<nl;i++){ const L=Dex.line(A,i), done=Dex.lineDone(A,i), gift=paidL[i], base=Math.min.apply(null, L.map(w=>w.level||0));
+    for(let i=0;i<nl;i++){ const L=Dex.line(A,i), done=Dex.lineDone(A,i), gift=paidL[i], lvs=L.map(w=>w.level||0).filter(x=>x>0), base=lvs.length ? Math.min.apply(null,lvs) : 9;
       h+='<div class="dLine'+(done?' done':'')+(gift?' gift':'')+'">'+(gift?'<button class="dGift" data-claim="'+i+'">🎁 +'+gift.gems+'</button>':done?'<i class="dChk">✔</i>':'')
         +L.map(w=>{ const has=Dex.has(w.en), ms=DexDet.mst(w.en), sel=DexDet.cur===w.en?' sel':'';
           const lg=w.en.length>=11?' l2':w.en.length>=9?' l1':'';
