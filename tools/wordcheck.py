@@ -104,16 +104,24 @@ def jong(ch):
     c = ord(ch) - 0xAC00
     return (c % 28) if 0 <= c < 11172 else -1
 
+SKIP_SEC = re.compile(r"핵심 표현|표현 표|학습지|확장 어휘|보충|자기 점검|점검")
 def parse_md(text):
-    """## 출처 + 마크다운 표 → 행 목록"""
-    rows, src = [], "출처 없음"
+    """## 출처 + 마크다운 표 → 행 목록
+    (v4) '### 게임 단어' 아래 표만 단어로 읽고, '핵심 표현·확장 어휘표·학습지' 같은 칸은 건너뛴다.
+    그 밖의 제목은 출처(책·과)로 본다 (v3 형식과 같음)."""
+    rows, src, on = [], "출처 없음", True
     for ln, line in enumerate(text.splitlines(), 1):
         s = line.strip()
-        if s.startswith("#"): src = s.lstrip("#").strip() or "출처 없음"; continue
-        if not s.startswith("|"): continue
+        if s.startswith("#"):
+            h = s.lstrip("#").strip()
+            if "게임 단어" in h: on = True
+            elif SKIP_SEC.search(h): on = False
+            else: src = h or "출처 없음"; on = True
+            continue
+        if not on or not s.startswith("|"): continue
         cells = [c.strip() for c in s.strip("|").split("|")]
         if all(re.fullmatch(r":?-{2,}:?", c or "--") for c in cells): continue
-        if cells and cells[0] in ("영어", "English"): continue
+        if cells and cells[0].lstrip("★ ").strip() in ("영어", "English"): continue
         rows.append({"src": src, "line": ln, "cells": cells})
     return rows
 
@@ -127,6 +135,8 @@ def level_of(src):
 
 def check(rows, bank, dic):
     known = set(dic) | {k.lower() for k in bank}
+    known_bank = {k.lower() for k in bank}
+    per_src = {}
     bank_forms = set(FUNC)
     for k in bank: bank_forms |= forms(k) if " " not in k else set(k.lower().split())
     seen, out = {}, []
@@ -136,9 +146,13 @@ def check(rows, bank, dic):
         c = r["cells"] + [""] * 8
         en_raw, ko, ko2, pos, e1, k1, e2, k2 = [x.strip() for x in c[:8]]
         dup_mark = "(중복)" in en_raw
-        en = re.sub(r"\s*\(중복\)\s*", "", en_raw).strip()
+        core = en_raw.lstrip().startswith("★")                      # (v4) 교재 단어 상자·굵은 글씨
+        en = re.sub(r"\s*\(중복\)\s*", "", en_raw).replace("★", "").strip()
+        m2 = re.match(r"^(.*?)\s*\(([^)]*)\)\s*$", ko2)              # (v4) 다른 뜻 (품사)
+        ko2_pos = m2.group(2).strip() if m2 and m2.group(2).strip() in POS_OK else ""
+        if ko2_pos: ko2 = m2.group(1).strip()
         lv_src = level_of(r["src"])
-        item = {"src": r["src"], "line": r["line"], "en": en, "ko": ko.lstrip("*").strip(), "ko2": ko2, "pos": pos,
+        item = {"src": r["src"], "line": r["line"], "en": en, "ko": ko.lstrip("*").strip(), "ko2": ko2, "ko2pos": ko2_pos, "core": core, "pos": pos,
                 "ex": [[e1, k1]] + ([[e2, k2]] if e2 else []), "err": [], "warn": [], "info": [], "level": lv_src or None}
         E, W, I = item["err"], item["warn"], item["info"]
         if len(r["cells"]) != 8: E.append(f"칸이 {len(r['cells'])}개예요 (8개여야 해요)")
@@ -150,6 +164,16 @@ def check(rows, bank, dic):
         for p in re.findall(r"[A-Za-z']+", en):
             if p.lower() not in known and p.lower().strip("'") not in known: E.append(f"철자 사전에 없어요: {p}")
         if re.search(r"[^A-Za-z' \-~.]", en): W.append("영어 칸에 영어가 아닌 글자가 있어요")
+        # (v4) 게임 단어 규칙 — 고유명사 · 기능어 · 변한 꼴
+        if en[:1].isupper() and en not in ("I",) and pos != "표현": W.append(f"대문자로 시작해요 — 사람·나라·요일 같은 고유명사는 게임 단어에서 빼요: {en}")
+        if en.lower() in FUNC and " " not in en and en.lower() not in known_bank: W.append(f"기능어예요 (a·for·very 같은 낱말은 문제로 내기 어려워요): {en}")
+        if " " not in en:
+            lw = en.lower(); base = [b for b, fs in IRREG.items() if lw in fs and lw != b]
+            if base: W.append(f"과거형·과거분사예요 — 원형 '{base[0]}'로 적어 주세요: {en}")
+            elif re.search(r"(ed|ing|er|est)$", lw) and lw not in known_bank:
+                stem = re.sub(r"(ied)$", "y", lw); cands = {re.sub(r"(ed|ing|er|est)$", "", lw), re.sub(r"(d|r|st)$", "", lw), stem}
+                cands |= {c[:-1] for c in list(cands) if len(c) > 3 and c[-1] == c[-2]}
+                if any(c in known_bank for c in cands): W.append(f"변한 꼴일 수 있어요 (원형이 게임에 있음) — 형용사로 따로 배우는 단어가 아니면 원형으로: {en}")
         # 뜻
         if ko.startswith("*"): W.append("챗지피티가 붙인 뜻이에요 (* — 교재에 뜻이 없음): " + ko)
         kk = ko.lstrip("*").strip()
@@ -201,6 +225,8 @@ def check(rows, bank, dic):
         same = [x for x in ko_index.get(kk, []) if x != en]
         if same and not b: I.append(f"대표 뜻이 같은 게임 단어: {', '.join(same[:4])} (문제 보기에서 서로 빠져요)")
         if not lv_src: I.append("출처에서 단계를 못 찾았어요 — 레벨은 직접 정해야 해요")
+        per_src[r["src"]] = per_src.get(r["src"], 0) + 1
+        if per_src[r["src"]] == 31: W.append(f"이 과의 게임 단어가 30개를 넘었어요 ({r['src']}) — 교재 단어(★) 먼저 30개만")
         if " " in en or pos == "표현": item["level"] = 0 if pos == "표현" else item["level"]
         out.append(item)
     return out
