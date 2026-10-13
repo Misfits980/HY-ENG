@@ -1491,6 +1491,42 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .stMini{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
 .stMini i{font-style:normal;font-size:30px} .stMini span{flex:1;display:flex;flex-direction:column;text-align:left}
 .stMini b{font-size:21px;color:#fff;letter-spacing:.01em} .stMini small{font-size:14px;color:#ffd37a;font-weight:800}
+
+/* v228 공부 — 끌어서 짝짓기 · 소리 합치기 · 라운드 · 보물상자 */
+.dgWrap{display:flex;flex-direction:column;gap:18px;margin-top:10px}
+.dgWords{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.dgChip{touch-action:none;user-select:none;-webkit-user-select:none;font:900 20px var(--font);color:#2a1600;background:linear-gradient(180deg,#ffe08a,#f2b23c);
+  border:0;border-radius:14px;padding:10px 16px;box-shadow:0 3px 0 #8a5a12;cursor:grab}
+.dgChip.lift{opacity:.35} .dgChip.sel{outline:3px solid #fff;outline-offset:2px} .dgChip.used{opacity:.15;box-shadow:none;cursor:default}
+.dgChip.ghost{position:fixed;z-index:999;pointer-events:none;transform:scale(1.08) rotate(-3deg);box-shadow:0 10px 24px rgba(0,0,0,.45);opacity:.95}
+.dgTargets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dgT{min-height:96px;border-radius:16px;border:2px dashed rgba(255,255,255,.25);background:rgba(255,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;text-align:center;transition:.12s}
+.dgT span{font-size:15px;font-weight:900;color:#e9e2ff} .dgTargets.pic .dgT span{font-size:42px;line-height:1}
+.dgT b{min-height:20px;font-size:15px;color:#2a1600}
+.dgT.hov{border-color:#ffd37a;background:rgba(255,211,122,.15);transform:scale(1.04)}
+.dgT.ok{border-style:solid;border-color:#7ed957;background:rgba(126,217,87,.22)} .dgT.ok b{color:#d8ffc8}
+.dgT.bad{border-color:#ff6b5a;animation:wsh .3s}
+.bdRow{display:flex;justify-content:center;gap:6px;margin:18px 0 8px}
+.bdT{min-width:44px;height:56px;padding:0 6px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;
+  font:900 30px var(--font);color:#fff}
+.bdT.slot{border:2px dashed #ffd37a;color:#ffd37a;background:rgba(255,211,122,.08)} .bdT.slot.fill{border-style:solid}
+.bdT.mg{color:#a99ed0;font-size:24px}
+.bdRow.merge .bdT{animation:bdPop .35s ease both}
+.bdRow.merge{gap:0} .bdRow.merge .bdT{border-radius:0;background:rgba(126,217,87,.25);border-color:transparent}
+.bdRow.merge .bdT:first-child{border-radius:12px 0 0 12px} .bdRow.merge .bdT:last-child{border-radius:0 12px 12px 0}
+@keyframes bdPop{0%{transform:translateY(0)}40%{transform:translateY(-8px)}100%{transform:none}}
+.stOpts.bd{grid-template-columns:repeat(3,1fr)} .stOpt.bdO{font:900 26px var(--font);letter-spacing:.04em}
+.stRnd{font-size:11px;font-weight:900;color:#ffd37a;white-space:nowrap;margin-left:6px}
+.rdBreak{text-align:center;padding:30px 10px}
+.rdStars{font-size:34px;letter-spacing:4px} .rdStars u{text-decoration:none;color:#4a4170}
+.rdT{font-size:28px;font-weight:900;color:#ffe6a8;margin-top:8px}
+.rdMas{font-size:64px;margin:14px 0 4px;animation:bdPop 1.2s ease-in-out infinite}
+.rdBreak p{font-size:15px;font-weight:800;color:#e9e2ff}
+.rdSt{display:flex;justify-content:center;gap:14px;margin-top:10px;font-size:12px;color:#a99ed0;font-weight:800} .rdSt b{color:#ffd37a;font-size:15px}
+.stChest{display:flex;align-items:center;gap:12px;width:100%;margin:10px 0;padding:12px 14px;border-radius:16px;cursor:pointer;font-family:inherit;text-align:left;
+  border:2px solid #ffd37a;background:linear-gradient(90deg,rgba(255,211,122,.25),rgba(255,140,60,.12));color:#ffe6a8;box-shadow:0 0 18px rgba(255,211,122,.35)}
+.stChest i{font-style:normal;font-size:40px} .stChest b{display:block;font-size:17px} .stChest small{font-size:12px;color:#ffd37a;font-weight:800}
+.stChest.shake i{animation:wsh .15s infinite} .stChest.open{border-color:#7ed957;background:linear-gradient(90deg,rgba(126,217,87,.25),rgba(255,211,122,.12))}
 </style>
 </head>
 <body>
@@ -1821,7 +1857,7 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
     <div class="stPop" id="stPop"></div>
   </div>
   <div id="stLesson" style="display:none">
-    <div class="stTop"><button class="stX" id="stQuit" aria-label="그만하기">✕</button><div class="stProg"><i id="stBar"></i></div><span class="stCombo" id="stCombo"></span></div>
+    <div class="stTop"><button class="stX" id="stQuit" aria-label="그만하기">✕</button><div class="stProg"><i id="stBar"></i></div><span class="stRnd" id="stRnd"></span><span class="stCombo" id="stCombo"></span></div>
     <div class="stQ" id="stQ"></div>
     <div class="stFoot" id="stFoot"></div>
   </div>
@@ -10422,7 +10458,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v227";
+const GAME_VER = "v228";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -10507,13 +10543,14 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
-  {id:"2026-10-13d", date:"10월 13일", title:"Grade 단어 칸 · 빙고 도감 · 이름!",
+  {id:"2026-10-13e", date:"10월 13일", title:"Grade 단어 칸 · 빙고 도감 · 이름!",
    items:[
      ["✏️","내 이름","설정 ⚙에서 이름을 정해요. 처음은 무료! 바꾸려면 무료권 1장, 그다음부터는 💎 100이 들어요"],
      ["🎒","Grade 1-2 · 3-4 · 5-6","단어를 Grade로 골라요. 멀리 달릴수록 어려운 단어가 조금씩 늘어나요. 도감 📍에서 어느 Grade에 나오는지 볼 수 있어요"],
      ["🎉","빙고 도감","도감에서 가로·세로·대각선 한 줄이 채워지면 저절로 빛나고 보석을 받아요. 빈칸을 눌러 🎯 노릴 단어를 고를 수 있어요"],
      ["✨","카드 열기","새로 모은 카드는 뒤집혀 있어요. 눌러서 뜻을 맞히면 열려요!"],
      ["📚","오늘의 20","옆으로 밀어서 카테고리를 고르고, 아래 줄에서 골라요 — 유치원에 단모음 · 장모음 · 이중자음 소리 공부도 생겼어요! Stage를 끝내면 💎3, 별은 실력으로 (★2 = 처음에 80%, ★3 = 90%). 중간에 나가도 '이어서 하기'로 그 문제부터"],
+     ["🧩","새 공부 방식","단어를 끌어서 그림·뜻에 놓기, 파닉스는 빈칸에 소리 넣기! 10문제마다 라운드로 쉬어 가고, Stage를 끝내면 가끔 🎁 보물상자가 나와요"],
      ["🏃","도감은 달리기에서","공부한 단어는 달리기에서 맞혀야 도감 카드가 돼요. 'Stage 단어로 달리기'는 Stage마다 한 번만 보석·도감이 쌓이고, 그다음부터는 연습이에요"],
      ["🏆","단어 수집 랭킹","랭킹에서 누가 단어를 가장 많이 모았는지 볼 수 있어요"]
    ]},
@@ -10693,11 +10730,12 @@ const Study = (function(){
   const stageName = (set,n) => { const L=lessons(set), x=L.find(y=>y.n===n); return "Stage "+stageNo(set,n)+(x && x.title ? " · "+x.title : ""); };
   const canHear = () => Voice.canListen();
   /* 문제 모양 고르기 — 과 단계(⭐)가 오를수록 철자·듣기가 많아진다 */
-  function pickType(w, level, test){
+  function pickType(w, level, test, phc){
     const bag = test ? {k2e:3, listen:2, spell:3, e2k:2, sent:2}
-      : level<=0 ? {e2k:4, k2e:3, listen:2, match:1, pic:3}
-      : level===1 ? {e2k:2, k2e:3, listen:2, spell:2, match:1, pic:2, sent:2}
-      : {e2k:1, k2e:2, listen:2, spell:3, match:1, sent:3, dict:2};
+      : level<=0 ? {e2k:3, k2e:2, listen:2, match:1, pic:2, drag:3}
+      : level===1 ? {e2k:2, k2e:2, listen:2, spell:2, match:1, pic:2, sent:2, drag:2}
+      : {e2k:1, k2e:2, listen:2, spell:3, match:1, sent:3, dict:2, drag:1};
+    if(phc!=null && !test && blendSeg(w.en, phc)) bag.blend = level<=0 ? 4 : 3;   // (v228) 파닉스 — 소리 합치기
     if(!canSpell(w)){ delete bag.spell; delete bag.dict; }
     if(!canHear()){ delete bag.listen; delete bag.dict; }
     if(!canPic(w)) delete bag.pic;
@@ -10705,7 +10743,31 @@ const Study = (function(){
     const ks=Object.keys(bag), tot=ks.reduce((t,k)=>t+bag[k],0); let r=Math.random()*tot;
     for(const k of ks){ r-=bag[k]; if(r<=0) return k; } return ks[0];
   }
-  function makeQ(t, w, pool, level){
+  /* (v228) 소리 합치기 — 단어를 [앞 · 빈칸(소리 글자) · 뒤]로 나눈다. 고르는 보기는 다른 소리 글자 */
+  const SND=[["ee","ea"],["ai","ay"],["oa"]];
+  function blendSeg(en, code){
+    if(!/^[a-z]+$/.test(en)) return null;
+    let m, i, mid, alts;
+    const vowel = (k)=>({pre:en.slice(0,k), mid:en[k], post:en.slice(k+1), alts:"aeiou".split("").filter(c=>c!==en[k])});
+    if(/^[aeiou]$/.test(code)){ i=en.indexOf(code); return i>=0 ? vowel(i) : null; }
+    if(code===""){ i=en.search(/[aeiou]/); return i>=0 ? vowel(i) : null; }
+    if(code==="ae"||code==="ie"||code==="oue"||code==="mix"){ m=en.match(/([aiou])([^aeiou]+)e$/);
+      if(m){ i=m.index; return {pre:en.slice(0,i), mid:m[1], post:en.slice(i+1), alts:"aiou".split("").filter(c=>c!==m[1]), magic:true}; }
+      if(code!=="mix") return null; }
+    if(code==="ee"||code==="ai"||code==="mix"){ m=en.match(/(ee|ea|ai|ay|oa)/);
+      if(m){ const grp=SND.find(g=>g.indexOf(m[1])>=0)||[]; return {pre:en.slice(0,m.index), mid:m[1], post:en.slice(m.index+m[1].length),
+        alts:["ee","ai","oa","ea","ay"].filter(x=>grp.indexOf(x)<0)}; }
+      return null; }
+    if(code==="sh"||code==="ch"||code==="th"||code==="dg"){ m=en.match(/(sh|ch|th)/);
+      return m ? {pre:en.slice(0,m.index), mid:m[1], post:en.slice(m.index+2), alts:["sh","ch","th"].filter(x=>x!==m[1])} : null; }
+    return null;
+  }
+  function makeQ(t, w, pool, level, phc){
+    if(t==="blend"){ const g=blendSeg(w.en, phc==null?"":phc); if(g){ const alts=shuffle(g.alts).slice(0,2);
+        return {t, w, pre:g.pre, mid:g.mid, post:g.post, magic:!!g.magic, opts:shuffle([g.mid].concat(alts))}; }
+      t="k2e"; }
+    if(t==="drag"){ const ds=decoys(w,pool,2,"ko"); if(ds.length>=2){ const ws=[w].concat(ds);
+        return {t, w, ws, pic: ws.every(x=>canPic(x))}; } t="e2k"; }
     if(t==="match"){ const ws=[w].concat(decoys(w,pool,3,"ko")).slice(0,4); return ws.length>=3 ? {t, w, ws} : {t:"k2e", w, opts:shuffle([w].concat(decoys(w,pool,3,"en")))}; }
     if(t==="spell" || t==="dict"){ const extra = level>=2 ? "aeiourstnl".split("").filter(c=>w.en.indexOf(c)<0).slice(0,2) : [];
       return {t, w, tiles:shuffle(w.en.split("").concat(extra))}; }
@@ -10726,12 +10788,13 @@ const Study = (function(){
       let ws=pool; if(ws.length>MAXW) ws=shuffle(unseen).concat(shuffle(pool.filter(w=>S.seen[w.en]))).slice(0,MAXW);
       targets=shuffle(ws);
     }
-    const qs=[], intro={}, total = test ? N : Math.max(N, targets.length);
+    const qs=[], intro={}, total = test ? N : Math.max(N, targets.length), phc = PHONICS[set] ? (les.hl||"") : null;
     for(let g=0; g<total; g+=3){                             // 세 문제마다, 그 안의 새 단어를 한 장에 먼저 보여 준다
       const grp=[]; for(let k=g;k<Math.min(total,g+3);k++) grp.push(targets[k%targets.length]);
       if(!test){ const nw=grp.filter(w=>!S.seen[w.en] && !intro[w.en] && (intro[w.en]=1)); if(nw.length) qs.push({t:"intro", w:nw[0], ws:nw}); }
-      grp.forEach((w,j)=>{ let t=pickType(w, level, test); if(t==="match" && g+j<targets.length) t="e2k";   // 짝 맞추기는 새 단어를 다 본 뒤에
-        qs.push(makeQ(t, w, test?pool:les.ws, level)); });
+      grp.forEach((w,j)=>{ let t=pickType(w, level, test, phc); if((t==="match"||t==="drag") && g+j<targets.length && !S.seen[w.en] && level<=0 && j===0) t="e2k";   // 막 본 새 단어는 쉬운 문제부터
+        if(t==="match" && g+j<targets.length) t="e2k";                                         // 짝 맞추기는 새 단어를 다 본 뒤에
+        qs.push(makeQ(t, w, test?pool:les.ws, level, phc)); });
     }
     return qs;
   }
@@ -10741,7 +10804,7 @@ const Study = (function(){
     const pool=ws.concat(shuffle(WORD_BANK.filter(x=>x.level===ws[0].level)).slice(0,30)), qs=[];
     ws.forEach(w=>{ qs.push(makeQ(pickType(w,2,false), w, pool, 2)); });
     shuffle(ws).slice(0, Math.min(ws.length, 15-ws.length)).forEach(w=>{ let t=pickType(w,1,false); if(t==="match") t="k2e"; qs.push(makeQ(t, w, pool, 1)); });
-    return qs.map(q=> q.t==="match" ? makeQ("e2k", q.w, pool, 2) : q);
+    return qs.map(q=> q.t==="match" ? makeQ("e2k", q.w, pool, 2) : q);   // (끌어서 짝짓기는 복습에도 나온다)
   }
   return { SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview,
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); },
@@ -10813,25 +10876,26 @@ const StudyUI = {
     const L=Study.lessons(this.set); this.les=L[i]; this.test=!!test; Study.touch(this.set, this.les.n);
     this.qs=Study.build(this.set, this.les.n, this.test); this.rv=false; this.begin();
   },
-  begin(){ this.i=0; this.done=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._lg=null;
+  begin(){ this.i=0; this.done=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._lg=null; this._rd=0; this._brk=false;
     this.total=Math.max(1, this.qs.filter(q=>q.t!=="intro").length); this.view("stLesson"); this.show(); },
   /* ── (v225) 이어 하기 — 푸는 중인 과를 저장해 두고 (3일), 길·첫 화면에서 그 문제부터 ── */
   CUR:"hyeng_study_cur_v1",
   saveCur(){ if(this.test || !this.qs.length) return; const W=w=>w&&w.en;
     const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW,
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(),
-      qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&q.opts.map(W), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again}))};
+      qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&(q.t==="blend"?q.opts:q.opts.map(W)), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
+        pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic}))};
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
   clearCur(){ try{ localStorage.removeItem(this.CUR); }catch(e){} },
   getCur(){ let c=null; try{ c=JSON.parse(localStorage.getItem(this.CUR)); }catch(e){}
     if(!c || !c.qs || !c.qs.length || Date.now()-(c.at||0)>3*864e5 || c.i>=c.qs.length) return null; return c; },
   resume(){ const c=this.getCur(); if(!c) return false;
     try{ const wd=en=>{ const w=Study.word(en); if(!w) throw 0; return w; };
-      const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?q.opts.map(wd):undefined, ws:q.ws?q.ws.map(wd):undefined}));
+      const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?(q.t==="blend"?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
       qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; });
       const les = c.rv ? {n:0, ws:[]} : Study.lessons(c.set).find(x=>x.n===c.n); if(!les) throw 0;
       this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; this.rv=!!c.rv; this.test=false; this.qs=qs;
-      ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this._lg=null;
+      ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND);
       show("scStudy"); this.view("stLesson"); this.show(); return true;
     }catch(e){ this.clearCur(); return false; } },
   /* 첫 화면 '이어서 하기' — 푸는 중이면 그 문제부터, 아니면 📌 오늘 할 과를 바로 */
@@ -10841,6 +10905,7 @@ const StudyUI = {
     this.qs=qs; this.rv=true; this.test=false; this.les={n:0, ws:[]}; this.set=this.set||"basic"; this.begin(); },
   graded(){ return this.qs.filter(q=>q.t!=="intro" && !q.again).length; },
   bar(){ $("stBar").style.width=Math.round(this.done/this.total*100)+"%";
+    const rl=$("stRnd"); if(rl){ const R=this.rounds(); rl.textContent = (R>1 && !this.test && !this.rv) ? "라운드 "+Math.min(R, Math.floor(this.done/this.RND)+1)+"/"+R : ""; }
     const c=$("stCombo"); if(c){ c.textContent = this.combo>=2 ? "🔥 "+this.combo : ""; c.className="stCombo"+(this.combo>=5?" hot":""); } },
   esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
   say(t){ try{ DexDet.say(t); }catch(e){} },
@@ -10891,6 +10956,20 @@ const StudyUI = {
       h='<div class="stKind">📝 빈칸에 들어갈 단어는?</div><div class="stPrompt sent"><div class="stSent">'+this.esc(q.st.pre)+'<u>＿＿＿</u>'+this.esc(q.st.post)+'</div>'
         +(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
+    } else if(q.t==="drag"){                                            // (v228) 끌어서 짝짓기 (Drops)
+      q.done={}; q.miss=0; q.pick=null; const L=shuffle(q.ws), T=shuffle(q.ws);
+      h='<div class="stKind">✋ 단어를 끌어서 '+(q.pic?'그림':'뜻')+'에 놓아요</div><div class="dgWrap"><div class="dgWords">'
+        +L.map(o=>'<button class="dgChip" data-en="'+this.esc(o.en)+'">'+this.esc(o.en)+'</button>').join("")+'</div><div class="dgTargets'+(q.pic?' pic':'')+'">'
+        +T.map(o=>'<div class="dgT" data-en="'+this.esc(o.en)+'"><span>'+(q.pic?o.emoji:this.esc(o.ko))+'</span><b></b></div>').join("")+'</div></div>';
+      f.innerHTML='';
+    } else if(q.t==="blend"){                                           // (v228) 소리 합치기 (파닉스)
+      const tile=(t,c)=>'<span class="bdT'+(c?' '+c:'')+'">'+t+'</span>';
+      const pre=q.pre.split("").map(c=>tile(c)).join(""), post=(q.magic ? q.post.slice(0,-1).split("").map(c=>tile(c)).join("")+tile("e","mg") : q.post.split("").map(c=>tile(c)).join(""));
+      h='<div class="stKind">🧩 빈칸에 맞는 소리를 넣어요</div><div class="stPrompt">'+(w.emoji?'<div class="stPic">'+w.emoji+'</div>':'')+'<div class="stKo big">'+this.esc(w.ko)+'</div>'
+        +'<button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div>'
+        +'<div class="bdRow" id="bdRow">'+pre+'<span class="bdT slot">?</span>'+post+'</div>'
+        +'<div class="stOpts bd">'+q.opts.map((o,k)=>'<button class="stOpt bdO" data-k="'+k+'">'+o+'</button>').join("")+'</div>';
+      setTimeout(()=>this.say(w.en), 250);
     } else if(q.t==="match"){
       q.left=shuffle(q.ws); q.right=shuffle(q.ws); q.ok={}; q.pick=null; q.miss=0;
       h='<div class="stKind">짝을 맞춰요</div><div class="stMatch"><div>'+q.left.map(o=>'<button class="stM en" data-en="'+this.esc(o.en)+'">'+this.esc(o.en)+'</button>').join("")
@@ -10899,6 +10978,38 @@ const StudyUI = {
     }
     $("stQ").innerHTML=h;
     if(q.t==="spell" || q.t==="dict") this.slots();
+    if(q.t==="drag") this.dragInit(q);
+  },
+  /* (v228) 끌어서 짝짓기 — 끌어다 놓기 · 눌러서 고르고 눌러서 놓기 둘 다 */
+  dragInit(q){
+    const box=$("stQ").querySelector(".dgWrap"); if(!box) return; const self=this;
+    const place=(chip, tgt)=>{
+      if(!chip || !tgt || q.done[chip.dataset.en] || self.locked) return;
+      if(tgt.dataset.en===chip.dataset.en && !tgt.classList.contains("ok")){
+        q.done[chip.dataset.en]=1; tgt.classList.add("ok"); tgt.querySelector("b").textContent=chip.dataset.en; chip.classList.add("used"); chip.disabled=true;
+        self.say(chip.dataset.en); try{ Rank.record(chip.dataset.en, true, null, true); }catch(e){} try{ SFX.tone(740,.08,"triangle",.04,990); }catch(e){}
+        if(Object.keys(q.done).length===q.ws.length) setTimeout(()=>{ if(self.qs[self.i]===q && !self.locked) self.result(q.miss===0, true); }, 380);
+      } else { q.miss++; tgt.classList.add("bad"); setTimeout(()=>tgt.classList.remove("bad"),400); try{ SFX.tone(200,.1,"square",.03); }catch(e){}
+        try{ Rank.record(chip.dataset.en, false, tgt.dataset.en, true); }catch(e){} }
+    };
+    let drag=null;
+    const hov=(x,y)=>{ const el=document.elementFromPoint(x,y), t=el && el.closest && el.closest(".dgT"); box.querySelectorAll(".dgT").forEach(o=>o.classList.toggle("hov", o===t)); return t; };
+    box.querySelectorAll(".dgChip").forEach(ch=>{
+      ch.addEventListener("pointerdown",e=>{ if(ch.disabled || self.locked) return; e.preventDefault();
+        const r=ch.getBoundingClientRect(), gh=ch.cloneNode(true); gh.className="dgChip ghost"; gh.style.left=r.left+"px"; gh.style.top=r.top+"px"; gh.style.width=r.width+"px";
+        document.body.appendChild(gh); drag={ch, gh, dx:e.clientX-r.left, dy:e.clientY-r.top, x0:e.clientX, y0:e.clientY, moved:false}; ch.classList.add("lift");
+        try{ ch.setPointerCapture(e.pointerId); }catch(_){} });
+      ch.addEventListener("pointermove",e=>{ if(!drag || drag.ch!==ch) return;
+        if(Math.abs(e.clientX-drag.x0)+Math.abs(e.clientY-drag.y0)>6) drag.moved=true;
+        drag.gh.style.left=(e.clientX-drag.dx)+"px"; drag.gh.style.top=(e.clientY-drag.dy)+"px"; hov(e.clientX, e.clientY); });
+      const end=e=>{ if(!drag || drag.ch!==ch) return; const d=drag; drag=null; d.gh.remove(); ch.classList.remove("lift");
+        const t=hov(e.clientX, e.clientY); box.querySelectorAll(".dgT").forEach(o=>o.classList.remove("hov"));
+        if(!d.moved){ box.querySelectorAll(".dgChip").forEach(o=>o.classList.toggle("sel", o===ch)); q.pick=ch; self.say(ch.dataset.en); return; }
+        if(t) place(ch, t); };
+      ch.addEventListener("pointerup", end);
+      ch.addEventListener("pointercancel",()=>{ if(drag && drag.ch===ch){ drag.gh.remove(); drag=null; ch.classList.remove("lift"); } });
+    });
+    box.querySelectorAll(".dgT").forEach(t=>t.addEventListener("click",()=>{ if(q.pick){ const c=q.pick; q.pick=null; c.classList.remove("sel"); place(c, t); } }));
   },
   slots(){ const q=this.qs[this.i]; $("stSlots").innerHTML=q.w.en.split("").map((c,k)=>'<span class="'+(k<q.got.length?'f':'')+'">'+(q.got[k]||'')+'</span>').join("");
     $("stCheck").disabled = q.got.length<q.w.en.length; },
@@ -10908,6 +11019,7 @@ const StudyUI = {
     const sl=t.closest("[data-slow]"); if(sl){ try{ DexDet.say(sl.dataset.slow, true); }catch(er){} return; }
     const q=this.qs[this.i]; if(!q || this.locked) return;
     const o=t.closest(".stOpt"); if(o){ $("stQ").querySelectorAll(".stOpt").forEach(x=>x.classList.toggle("sel", x===o)); this.sel=+o.dataset.k; $("stCheck").disabled=false; SFX.click();
+      if(q.t==="blend"){ const sl=$("bdRow").querySelector(".slot"); if(sl){ sl.textContent=q.opts[this.sel]; sl.classList.add("fill"); } return; }
       if(q.t!=="e2k") this.say(q.opts[this.sel].en); return; }
     const tl=t.closest(".stTile"); if(tl && !tl.disabled){ q.got+=q.tiles[+tl.dataset.t]; q.used.push(tl.dataset.t); tl.disabled=true; SFX.click(); this.slots(); return; }
     if(t.closest("#stUndo")){ if(!q.used || !q.used.length) return; const last=q.used.pop(); q.got=q.got.slice(0,-1);
@@ -10924,11 +11036,13 @@ const StudyUI = {
       return; }
   },
   check(){
+    if(this._brk){ this._brk=false; this.show(); return; }
     const q=this.qs[this.i]; if(!q) return;
     if(this.locked){ this.next(); return; }
     if(q.t==="intro"){ this.i++; this.show(); return; }
     let ok, conf=null;
     if(q.t==="spell" || q.t==="dict"){ ok = q.got===q.w.en; conf=q.got; }
+    else if(q.t==="blend"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.mid; conf = q.pre+q.opts[this.sel]+q.post; }
     else { if(this.sel==null) return; const pick=q.opts[this.sel]; ok = pick.en===q.w.en; conf = q.t==="e2k" ? pick.ko : pick.en; }
     try{ Rank.record(q.w.en, ok, ok?null:conf, true); }catch(e){}
     this.result(ok);
@@ -10944,8 +11058,11 @@ const StudyUI = {
     else { this.wrong++; this.missed[q.w.en]=1; delete this.okW[q.w.en]; SFX.tone(180,.18,"square",.04);
       if(this.test){ if(this.wrong>2){ this.finish(false); return; } this.done++; }
       else { const c=Object.assign({}, q, {again:true}); this.qs.push(c); } }
-    if(!ok && q.t!=="match"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts && q.opts[k].en===q.w.en) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); }); }
-    if(ok && q.opts){ const b=$("stQ").querySelectorAll(".stOpt"); if(b[this.sel]) b[this.sel].classList.add("ok"); }
+    if(q.t==="blend"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts[k]===q.mid) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); });
+      const sl=$("bdRow").querySelector(".slot"); if(sl){ sl.textContent=q.mid; sl.classList.add("fill"); }
+      const row=$("bdRow"); if(row){ row.querySelectorAll(".bdT").forEach((t,k)=>{ t.style.animationDelay=(k*0.12)+"s"; }); row.classList.add("merge"); } }
+    else if(!ok && q.t!=="match" && q.t!=="drag"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts && q.opts[k].en===q.w.en) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); }); }
+    if(ok && q.opts && q.t!=="blend"){ const b=$("stQ").querySelectorAll(".stOpt"); if(b[this.sel]) b[this.sel].classList.add("ok"); }
     this.bar();
     const f=$("stFoot"); f.className="stFoot "+(ok?"good":"bad");
     const mc=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji;
@@ -10956,9 +11073,34 @@ const StudyUI = {
       : '<b>'+cheer[Math.floor(Math.random()*cheer.length)]+'</b><span>정답: '+this.esc(q.w.en)+' = '+this.esc(q.w.ko)+'</span>'+(this.test?'':'<small>이 문제는 뒤에 한 번 더 나와요</small>'))+'</div>'
       +'<button class="stCheck go" id="stCheck">계속 ▶</button>';
     if(!ok || q.t==="spell" || q.t==="dict" || q.t==="sent") this.say(q.w.en);
+    else if(q.t==="blend") setTimeout(()=>this.say(q.w.en), 450);                     // 합쳐지는 모습 뒤에 소리
   },
-  next(){ this.i++; this.show(); },
+  /* (v228) 10문제마다 라운드 — 짧게 쉬어 가며 (단어 수는 그대로) */
+  RND:10,
+  rounds(){ return Math.max(1, Math.ceil(this.total/this.RND)); },
+  next(){ this.i++;
+    const r=Math.floor(this.done/this.RND);
+    if(!this.test && this.done<this.total && r>=1 && r>(this._rd|0) && this.rounds()>1){ this._rd=r; this.roundBreak(r); return; }
+    this.show(); },
+  roundBreak(r){
+    const mc=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji, R=this.rounds(), acc=Math.round(this.first/Math.max(1,this.done)*100);
+    $("stQ").innerHTML='<div class="rdBreak"><div class="rdStars">'+'⭐'.repeat(r)+'<u>'+'☆'.repeat(Math.max(0,R-r))+'</u></div>'
+      +'<div class="rdT">라운드 '+r+' 끝!</div><div class="rdMas">'+mc+'</div>'
+      +'<p>'+(acc>=90?'완벽해요! 이대로 가요 🔥':acc>=70?'잘하고 있어요! 👍':'천천히, 소리 내어 읽어 봐요 🙂')+'</p>'
+      +'<div class="rdSt"><span>한 번에 맞힘 <b>'+acc+'%</b></span><span>남은 라운드 <b>'+(R-r)+'</b></span></div></div>';
+    const f=$("stFoot"); f.className="stFoot good"; f.innerHTML='<button class="stCheck go" id="stCheck">라운드 '+(r+1)+' 시작 ▶</button>';
+    this.locked=false; this._brk=true; try{ SFX.tone(660,.12,"triangle",.05,1320); }catch(e){} this.bar(); },
   /* ── 끝 ── */
+  /* (v228) Stage 끝 보물상자 — 가끔(35%) · 하루 2번까지 · 💎1~5 (보석은 바로 들어가고 상자는 여는 재미) */
+  rollChest(){ const s=Study.load(), t=Study.today(); s.chest = (s.chest && s.chest.d===t) ? s.chest : {d:t, n:0};
+    if(s.chest.n>=2 || Math.random()>=0.35){ Study.save(); return 0; }
+    const r=Math.random(), g = r<0.55 ? 1 : r<0.82 ? 2 : r<0.95 ? 3 : 5;
+    s.chest.n++; Study.save(); Wallet.addGems(g, "보물상자"); return g; },
+  openChest(b){ if(!b || b.classList.contains("open")) return; const g=+b.dataset.chest||1;
+    b.classList.add("shake"); try{ SFX.tone(440,.08,"square",.03); }catch(e){}
+    setTimeout(()=>{ b.classList.remove("shake"); b.classList.add("open");
+      b.innerHTML='<i>✨</i><span><b>💎 보석 +'+g+'</b><small>'+(g>=5?'대박! 가장 큰 상자예요!':g>=3?'와, 많이 나왔어요!':'보석을 찾았어요!')+'</small></span>';
+      try{ SFX.tone(880,.2,"triangle",.05,1760); confetti(); }catch(e){} }, 650); },
   /* (v227) Stage 카드로 달리기 — 첫 번째만 보석·도감·랭킹, 그다음은 연습 */
   runLbl(x){ const ran=((Study.load().ran)||{})[Study.key(this.set,x.n)];
     return ran ? '🏃 이 Stage 단어로 연습 달리기 <small>(보석·도감 없음)</small>' : '🏃 이 Stage 단어로 달리기 · 📖 도감 모으기 <small>(한 번만)</small>'; },
@@ -10996,13 +11138,16 @@ const StudyUI = {
       sub = nv>before ? "★ "+nv+" / 3" : before>=3 ? "연습 완료" : "★"+want+"까지 조금 더! 처음에 "+NEED[want]+"% 맞히면 돼요 (이번 "+acc+"%)";
     }
     if(gems) Wallet.addGems(gems, (this.test?"건너뛰기 시험 ":"공부 ")+Study.key(set,x.n));
+    const chest = (!this.test && pass) ? this.rollChest() : 0;
     const fresh = pass ? Study.didToday() : false, sk=Study.streak();
     this.view("stDone");
     const v=Study.lv(set,x.n), miss=Object.keys(this.missed);
     $("stDoneIn").innerHTML='<div class="stBigT">'+title+'</div><div class="stStars">'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></div><p>'+sub+'</p>'
       +(fresh && sk>1 ? '<p class="stFireP">🔥 '+sk+'일째 공부 중!</p>' : '')
       +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div><div><b>'+Math.round((Date.now()-this.t0)/1000)+'초</b><small>걸린 시간</small></div></div>'
-      +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+(pass && !this.test ? this.runHint() : '')
+      +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')
+      +(chest?'<button class="stChest" data-chest="'+chest+'"><i>🎁</i><span><b>보물상자가 나왔어요!</b><small>눌러서 열어 봐요</small></span></button>':'')
+      +(pass && !this.test ? this.runHint() : '')
       +(miss.length?'<div class="stMiss"><small>다시 볼 단어</small>'+miss.map(en=>{ const w=WORD_BANK.find(y=>y.en===en)||{en,ko:""}; return '<button data-say="'+this.esc(en)+'">🔊 '+this.esc(en)+' <i>'+this.esc(w.ko)+'</i></button>'; }).join("")+'</div>':'')
       +'<button class="stGo" id="stBack">길로 돌아가기</button>'
       +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl(x)+'</button>' : '');
@@ -11038,6 +11183,7 @@ $("scStudy").addEventListener("click",e=>{
   const sk=t.closest(".stSkip"); if(sk){ SFX.click(); StudyUI.set=sk.dataset.s||StudyUI.set; StudyUI.pop(+sk.dataset.i, true); return; }
   const d=t.closest(".stDot"); if(d){ SFX.click(); StudyUI.set=d.dataset.s||StudyUI.set; const s=Study.load(); s.set=StudyUI.set; Study.save(); StudyUI.pop(+d.dataset.i); return; }
   if(t.closest("[data-review]")){ SFX.select(); StudyUI.review(); return; }
+  const ch=t.closest("[data-chest]"); if(ch){ StudyUI.openChest(ch); return; }
   if(t.closest("[data-resume]")){ SFX.select(); if(!StudyUI.resume()) StudyUI.path(); return; }
   const db=t.closest("[data-dexbook]"); if(db){ SFX.click(); DexUI.open(); return; }
   const dg=t.closest("[data-dexgo]"); if(dg){ SFX.click(); DexUI.open(); const wh=Dex.where(dg.dataset.dexgo); if(wh) DexUI.goAlbum(wh.a.id); return; }
