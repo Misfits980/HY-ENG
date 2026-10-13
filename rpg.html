@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>HY ENG 사냥터 (시험판)</title>
+<style>
+:root{--font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+html,body{margin:0;height:100%;background:#0f0b22;overflow:hidden;font-family:var(--font);color:#fff;-webkit-user-select:none;user-select:none;touch-action:none}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+.hud{position:fixed;left:10px;top:10px;display:flex;gap:10px;align-items:center;background:#150f2ecc;border:1px solid #3a3070;border-radius:16px;padding:8px 12px 8px 8px;pointer-events:auto}
+.pic{width:46px;height:46px;border-radius:50%;background:#2a2150 no-repeat;background-size:900% 100%;border:2px solid #ffd37a;cursor:pointer}
+.bars{display:flex;flex-direction:column;gap:4px;min-width:150px}
+.bars b{font-size:13px}
+.bar{height:9px;border-radius:9px;background:#00000066;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:9px;transition:width .2s}
+.hpb i{background:linear-gradient(90deg,#ff4f6e,#ff8a9d)}
+.exb i{background:linear-gradient(90deg,#5ab8ff,#9fe0ff)}
+.gems{position:fixed;right:10px;top:10px;background:#150f2ecc;border:1px solid #3a3070;border-radius:999px;padding:8px 14px;font-weight:900;font-size:16px}
+.who{position:fixed;right:10px;top:56px;background:#150f2ecc;border:1px solid #3a3070;border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.6;min-width:120px}
+.who em{font-style:normal;color:#7dffb2}
+.msg{position:fixed;left:50%;top:84px;transform:translateX(-50%);background:#150f2ee6;border:1px solid #ffd37a;border-radius:14px;padding:8px 16px;font-weight:900;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.msg.on{opacity:1}
+.btns{position:fixed;right:18px;bottom:22px;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.atk{width:96px;height:96px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#ffe9a3,#ffb52e 60%,#c97500);color:#3a2300;font:900 18px var(--font);box-shadow:0 6px 0 #8a4f00,0 0 24px #ffb52e66;cursor:pointer}
+.atk:active{transform:translateY(3px);box-shadow:0 3px 0 #8a4f00}
+.emo{width:56px;height:56px;border-radius:50%;border:1px solid #3a3070;background:#231c4a;color:#fff;font:700 13px var(--font);cursor:pointer}
+.quiz{position:fixed;left:50%;bottom:16px;transform:translate(-50%,140%);width:min(560px,calc(100% - 150px));background:#150f2ef2;border:2px solid #ffd37a;border-radius:20px;padding:12px;transition:transform .2s;box-sizing:border-box}
+.quiz.on{transform:translate(-50%,0)}
+.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.qword{font-size:26px;font-weight:900;letter-spacing:.5px}
+.qhint{font-size:12px;color:#b9b0e6}
+.qtime{height:6px;border-radius:6px;background:#00000066;margin-bottom:10px;overflow:hidden}
+.qtime i{display:block;height:100%;background:#7dffb2;width:100%}
+.qopts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qopts button{min-height:58px;border-radius:14px;border:1px solid #4a3f8a;background:#2f2766;color:#fff;font:900 17px var(--font);cursor:pointer;padding:4px}
+.qopts button.ok{background:#1f8a4c;border-color:#7dffb2}
+.qopts button.no{background:#8a1f35;border-color:#ff7d95}
+.joy{position:fixed;left:24px;bottom:24px;width:130px;height:130px;border-radius:50%;background:#ffffff14;border:2px solid #ffffff2a;pointer-events:none}
+.joy i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:#ffffff44}
+.tag{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);font-size:11px;color:#ffffff88;pointer-events:none}
+@media (max-width:520px){.quiz{width:calc(100% - 20px);bottom:130px}.who{display:none}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="hud"><div class="pic" id="pic" title="캐릭터 바꾸기"></div><div class="bars"><b id="lvTxt">Lv 1</b><div class="bar hpb"><i id="hpBar"></i></div><div class="bar exb"><i id="exBar"></i></div></div></div>
+<div class="gems" id="gems">💎 0</div>
+<div class="who" id="who"></div>
+<div class="msg" id="msg"></div>
+<div class="joy" id="joy"><i id="joyK"></i></div>
+<div class="btns"><button class="emo" id="emo">인사</button><button class="atk" id="atk">공격</button></div>
+<div class="quiz" id="quiz"><div class="qhead"><div><div class="qword" id="qWord">apple</div><div class="qhint" id="qHint">뜻을 골라 공격!</div></div><div class="qhint" id="qMon"></div></div><div class="qtime"><i id="qTime"></i></div><div class="qopts" id="qOpts"></div></div>
+<div class="tag">시험판 · 연습봇 3명 · 같은 기기에서 탭을 두 개 열면 서로 보여요 · WASD/방향키 이동, 스페이스 공격, 1·2·3 답</div>
+<script>
+"use strict";
+/* ── 단어 (본 게임 ★1·★2 중 한 단어짜리) ── */
+const WORDS = [["cat","고양이",1],["dog","개",1],["bird","새",1],["fish","물고기",1],["cow","소",1],["pig","돼지",1],["horse","말",1],["sheep","양",1],["duck","오리",1],["chicken","닭",1],["rabbit","토끼",1],["mouse","쥐",1],["lion","사자",1],["tiger","호랑이",1],["bear","곰",1],["elephant","코끼리",1],["monkey","원숭이",1],["giraffe","기린",1],["zebra","얼룩말",1],["frog","개구리",1],["snake","뱀",1],["turtle","거북이",1],["spider","거미",1],["ant","개미",1],["bee","벌",1],["butterfly","나비",1],["deer","사슴",1],["fox","여우",1],["wolf","늑대",1],["goat","염소",1],["puppy","강아지",1],["kitten","새끼 고양이",1],["dolphin","돌고래",1],["whale","고래",1],["shark","상어",1],["penguin","펭귄",1],["panda","판다",1],["squirrel","다람쥐",1],["camel","낙타",1],["crocodile","악어",1],["apple","사과",1],["banana","바나나",1],["orange","오렌지",1],["grape","포도",1],["peach","복숭아",1],["melon","멜론",1],["lemon","레몬",1],["pear","배",1],["tomato","토마토",1],["potato","감자",1],["carrot","당근",1],["onion","양파",1],["cabbage","양배추",1],["cucumber","오이",1],["pumpkin","호박",1],["corn","옥수수",1],["bean","콩",1],["rice","쌀",1],["bread","빵",1],["cake","케이크",1],["cookie","쿠키",1],["candy","사탕",1],["chocolate","초콜릿",1],["milk","우유",1],["water","물",1],["juice","주스",1],["tea","차",1],["coffee","커피",1],["soup","수프",1],["salad","샐러드",1],["sandwich","샌드위치",1],["pizza","피자",1],["hamburger","햄버거",1],["noodle","국수",1],["egg","달걀",1],["meat","고기",1],["beef","소고기",1],["pork","돼지고기",1],["cheese","치즈",1],["butter","버터",1],["sugar","설탕",1],["salt","소금",1],["honey","꿀",1],["jam","잼",1],["soda","탄산음료",1],["snack","간식",1],["breakfast","아침 식사",1],["lunch","점심 식사",1],["dinner","저녁 식사",1],["red","빨간",1],["blue","파란",1],["green","초록의",1],["yellow","노란",1],["black","검은",1],["white","하얀",1],["pink","분홍의",1],["purple","보라의",1],["brown","갈색의",1],["gray","회색의",1],["color","색깔",1],["circle","원",1],["square","정사각형",1],["triangle","삼각형",1],["line","선",1],["family","가족",1],["father","아버지",1],["mother","어머니",1],["brother","남자 형제",1],["sister","여자 형제",1],["baby","아기",1],["uncle","삼촌",1],["aunt","이모",1],["son","아들",1],["daughter","딸",1],["friend","친구",1],["boy","소년",1],["girl","소녀",1],["man","남자",1],["woman","여자",1],["people","사람들",1],["child","아이",1],["teacher","선생님",1],["student","학생",1],["doctor","의사",1],["nurse","간호사",1],["farmer","농부",1],["cook","요리사",1],["police","경찰",1],["singer","가수",1],["name","이름",1],["head","머리",1],["hair","머리카락",1],["face","얼굴",1],["eye","눈",1],["ear","귀",1],["nose","코",1],["mouth","입",1],["tooth","이빨",1],["neck","목",1],["shoulder","어깨",1],["arm","팔",1],["hand","손",1],["finger","손가락",1],["leg","다리",1],["foot","발",1],["knee","무릎",1],["back","등",1],["body","몸",1],["heart","심장",1],["skin","피부",1],["school","학교",1],["class","수업",1],["classroom","교실",1],["desk","책상",1],["chair","의자",1],["book","책",1],["notebook","공책",1],["pencil","연필",1],["pen","펜",1],["eraser","지우개",1],["ruler","자",1],["crayon","크레용",1],["bag","가방",1],["glue","풀",1],["scissors","가위",1],["paper","종이",1],["board","칠판",1],["computer","컴퓨터",1],["clock","시계",1],["map","지도",1],["picture","그림",1],["window","창문",1],["door","문",1],["wall","벽",1],["floor","바닥",1],["table","탁자",1],["bed","침대",1],["sofa","소파",1],["lamp","램프",1],["box","상자",1],["key","열쇠",1],["cup","컵",1],["dish","접시",1],["spoon","숟가락",1],["fork","포크",1],["knife","칼",1],["bowl","그릇",1],["bottle","병",1],["basket","바구니",1],["towel","수건",1],["soap","비누",1],["brush","솔",1],["mirror","거울",1],["toy","장난감",1],["ball","공",1],["doll","인형",1],["kite","연",1],["balloon","풍선",1],["robot","로봇",1],["game","게임",1],["music","음악",1],["song","노래",1],["piano","피아노",1],["guitar","기타",1],["drum","북",1],["movie","영화",1],["story","이야기",1],["letter","편지",1],["number","숫자",1],["word","단어",1],["question","질문",1],["answer","대답",1],["hat","모자",1],["cap","야구모자",1],["shirt","셔츠",1],["pants","바지",1],["skirt","치마",1],["dress","원피스",1],["coat","외투",1],["jacket","재킷",1],["sweater","스웨터",1],["shoe","신발",1],["sock","양말",1],["glove","장갑",1],["scarf","목도리",1],["belt","허리띠",1],["button","단추",1],["pocket","주머니",1],["ring","반지",1],["watch","손목시계",1],["glasses","안경",1],["umbrella","우산",1],["sun","태양",1],["moon","달",1],["star","별",1],["sky","하늘",1],["cloud","구름",1],["rain","비",1],["snow","눈",1],["wind","바람",1],["storm","폭풍",1],["rainbow","무지개",1],["tree","나무",1],["flower","꽃",1],["grass","풀",1],["leaf","나뭇잎",1],["seed","씨앗",1],["root","뿌리",1],["river","강",1],["lake","호수",1],["sea","바다",1],["beach","해변",1],["mountain","산",1],["hill","언덕",1],["rock","바위",1],["stone","돌",1],["sand","모래",1],["island","섬",1],["forest","숲",1],["field","들판",1],["garden","정원",1],["park","공원",1],["world","세계",1],["earth","지구",1],["fire","불",1],["ice","얼음",1],["light","빛",1],["shadow","그림자",1],["air","공기",1],["day","날",1],["night","밤",1],["morning","아침",1],["afternoon","오후",1],["evening","저녁",1],["today","오늘",1],["tomorrow","내일",1],["yesterday","어제",1],["week","주",1],["hour","시간",1],["minute","분",1],["time","시간",1],["spring","봄",1],["summer","여름",1],["fall","가을",1],["winter","겨울",1],["birthday","생일",1],["holiday","휴일",1],["weekend","주말",1],["monday","월요일",1],["tuesday","화요일",1],["wednesday","수요일",1],["thursday","목요일",1],["friday","금요일",1],["saturday","토요일",1],["sunday","일요일",1],["house","집",1],["home","가정",1],["room","방",1],["kitchen","부엌",1],["bathroom","욕실",1],["yard","마당",1],["roof","지붕",1],["stairs","계단",1],["store","가게",1],["shop","상점",1],["market","시장",1],["bank","은행",1],["hospital","병원",1],["library","도서관",1],["museum","박물관",1],["station","역",1],["airport","공항",1],["zoo","동물원",1],["farm","농장",1],["hotel","호텔",1],["city","도시",1],["town","마을",1],["village","시골 마을",1],["street","거리",1],["road","길",1],["bridge","다리",1],["church","교회",1],["office","사무실",1],["factory","공장",1],["car","자동차",1],["bus","버스",1],["train","기차",1],["subway","지하철",1],["bike","자전거",1],["taxi","택시",1],["truck","트럭",1],["ship","배",1],["boat","보트",1],["plane","비행기",1],["rocket","로켓",1],["go","가다",1],["come","오다",1],["run","달리다",1],["walk","걷다",1],["jump","뛰어오르다",1],["sit","앉다",1],["stand","서다",1],["sleep","잠자다",1],["wake","깨다",1],["eat","먹다",1],["drink","마시다",1],["read","읽다",1],["write","쓰다",1],["draw","그리다",1],["sing","노래하다",1],["dance","춤추다",1],["play","놀다",1],["study","공부하다",1],["work","일하다",1],["help","돕다",1],["make","만들다",1],["take","가져가다",1],["give","주다",1],["get","얻다",1],["put","놓다",1],["open","열다",1],["close","닫다",1],["push","밀다",1],["pull","당기다",1],["look","보다",1],["see","보이다",1],["hear","듣다",1],["listen","귀 기울이다",1],["speak","말하다",1],["talk","이야기하다",1],["say","말하다",1],["tell","알려주다",1],["ask","묻다",1],["like","좋아하다",1],["love","사랑하다",1],["want","원하다",1],["need","필요하다",1],["have","가지다",1],["hold","잡다",1],["buy","사다",1],["sell","팔다",1],["find","찾다",1],["lose","잃다",1],["start","시작하다",1],["stop","멈추다",1],["wait","기다리다",1],["meet","만나다",1],["call","부르다",1],["visit","방문하다",1],["swim","수영하다",1],["fly","날다",1],["ride","타다",1],["drive","운전하다",1],["wash","씻다",1],["clean","청소하다",1],["cut","자르다",1],["fix","고치다",1],["throw","던지다",1],["catch","잡다",1],["climb","오르다",1],["send","보내다",1],["bring","가져오다",1],["wear","입다",1],["laugh","웃다",1],["cry","울다",1],["smile","미소짓다",1],["think","생각하다",1],["know","알다",1],["learn","배우다",1],["teach","가르치다",1],["live","살다",1],["grow","자라다",1],["feel","느끼다",1],["turn","돌리다",1],["carry","나르다",1],["count","세다",1],["big","큰",1],["small","작은",1],["tall","키가 큰",1],["short","짧은",1],["long","긴",1],["fat","뚱뚱한",1],["thin","얇은",1],["new","새로운",1],["old","낡은",1],["young","어린",1],["hot","뜨거운",1],["cold","차가운",1],["warm","따뜻한",1],["cool","시원한",1],["wet","젖은",1],["dry","마른",1],["fast","빠른",1],["slow","느린",1],["strong","강한",1],["weak","약한",1],["happy","행복한",1],["sad","슬픈",1],["angry","화난",1],["tired","피곤한",1],["hungry","배고픈",1],["thirsty","목마른",1],["busy","바쁜",1],["free","자유로운",1],["easy","쉬운",1],["hard","어려운",1],["soft","부드러운",1],["loud","시끄러운",1],["quiet","조용한",1],["dirty","더러운",1],["heavy","무거운",1],["bright","밝은",1],["dark","어두운",1],["full","가득한",1],["empty","텅 빈",1],["rich","부유한",1],["poor","가난한",1],["kind","친절한",1],["nice","멋진",1],["bad","나쁜",1],["good","좋은",1],["pretty","예쁜",1],["ugly","못생긴",1],["cute","귀여운",1],["funny","웃긴",1],["scary","무서운",1],["safe","안전한",1],["sweet","달콤한",1],["sour","신",1],["fresh","신선한",1],["right","오른쪽의",1],["left","왼쪽의",1],["same","같은",1],["different","다른",1],["hello","안녕",1],["please","부탁합니다",1],["sorry","미안해",1],["thank","감사하다",1],["yes","네",1],["no","아니오",1],["up","위로",1],["down","아래로",1],["in","안에",1],["out","밖에",1],["here","여기에",1],["there","거기에",1],["now","지금",1],["always","항상",1],["never","결코 ~않다",1],["again","다시",1],["very","매우",1],["many","많은",1],["few","적은",1],["quite","꽤",2],["quick","빠른",2],["quit","그만두다",2],["desert","사막",2],["dessert","후식",2],["design","디자인하다",2],["decide","결정하다",2],["message","메시지",2],["machine","기계",2],["weather","날씨",2],["whether","~인지 아닌지",2],["animal","동물",2],["angle","각도",2],["ankle","발목",2],["travel","여행하다",2],["tunnel","터널",2],["tower","탑",2],["forget","잊다",2],["forgive","용서하다",2],["effort","노력",2],["history","역사",2],["honest","정직한",2],["invite","초대하다",2],["invent","발명하다",2],["insect","곤충",2],["break","깨뜨리다",2],["brake","제동장치",2],["brave","용감한",2],["reach","도달하다",2],["apron","앞치마",2],["april","4월",2],["then","그 다음에",2],["than","~보다",2],["loose","헐거운",2],["borrow","빌리다",2],["lend","빌려주다",2],["subject","과목",2],["science","과학",2],["math","수학",2],["english","영어",2],["art","미술",2],["homework","숙제",2],["test","시험",2],["grade","성적",2],["lesson","수업",2],["practice","연습하다",2],["example","예시",2],["mistake","실수",2],["problem","문제",2],["solution","해결책",2],["idea","생각",2],["plan","계획",2],["project","과제",2],["report","보고서",2],["result","결과",2],["score","점수",2],["prize","상",2],["contest","대회",2],["club","동아리",2],["member","회원",2],["group","무리",2],["team","팀",2],["leader","지도자",2],["rule","규칙",2],["order","순서",2],["chance","기회",2],["choice","선택",2],["reason","이유",2],["purpose","목적",2],["title","제목",2],["page","쪽",2],["list","목록",2],["note","메모",2],["diary","일기",2],["envelope","봉투",2],["stamp","우표",2],["address","주소",2],["package","소포",2],["newspaper","신문",2],["magazine","잡지",2],["comic","만화",2],["novel","소설",2],["poem","시",2],["writer","작가",2],["artist","예술가",2],["painter","화가",2],["actor","배우",2],["dancer","무용수",2],["pilot","조종사",2],["driver","운전사",2],["soldier","군인",2],["scientist","과학자",2],["engineer","기술자",2],["designer","디자이너",2],["reporter","기자",2],["lawyer","변호사",2],["dentist","치과의사",2],["baker","제빵사",2],["waiter","종업원",2],["seller","판매자",2],["customer","손님",2],["guest","손님",2],["neighbor","이웃",2],["partner","동료",2],["stranger","낯선 사람",2],["crowd","군중",2],["society","사회",2],["country","나라",2],["nation","국가",2],["capital","수도",2],["flag","깃발",2],["language","언어",2],["culture","문화",2],["custom","관습",2],["tradition","전통",2],["festival","축제",2],["parade","행진",2],["ceremony","의식",2],["wedding","결혼식",2],["funeral","장례식",2],["religion","종교",2],["temple","절",2],["palace","궁전",2],["castle","성",2],["building","건물",2],["apartment","아파트",2],["elevator","승강기",2],["basement","지하실",2],["balcony","발코니",2],["furniture","가구",2],["curtain","커튼",2],["carpet","양탄자",2],["blanket","담요",2],["pillow","베개",2],["drawer","서랍",2],["shelf","선반",2],["closet","옷장",2],["fridge","냉장고",2],["oven","오븐",2],["stove","가스레인지",2],["sink","싱크대",2],["faucet","수도꼭지",2],["garbage","쓰레기",2],["tool","도구",2],["hammer","망치",2],["nail","못",2],["rope","밧줄",2],["ladder","사다리",2],["engine","엔진",2],["wheel","바퀴",2],["battery","건전지",2],["screen","화면",2],["keyboard","자판",2],["printer","프린터",2],["camera","카메라",2],["phone","전화기",2],["radio","라디오",2],["speaker","스피커",2],["headphone","헤드폰",2],["charger","충전기",2],["internet","인터넷",2],["website","웹사이트",2],["email","이메일",2],["password","비밀번호",2],["program","프로그램",2],["data","자료",2],["file","파일",2],["folder","폴더",2],["signal","신호",2],["network","통신망",2],["device","장치",2],["cheek","뺨",2],["chin","턱",2],["throat","목구멍",2],["stomach","배",2],["bone","뼈",2],["blood","피",2],["muscle","근육",2],["brain","뇌",2],["lung","폐",2],["breath","숨",2],["health","건강",2],["medicine","약",2],["pill","알약",2],["fever","열",2],["cough","기침",2],["headache","두통",2],["injury","부상",2],["bandage","붕대",2],["germ","세균",2],["exercise","운동",2],["sport","스포츠",2],["soccer","축구",2],["baseball","야구",2],["tennis","테니스",2],["golf","골프",2],["skate","스케이트를 타다",2],["ski","스키를 타다",2],["race","경주",2],["match","경기",2],["player","선수",2],["coach","감독",2],["referee","심판",2],["stadium","경기장",2],["gym","체육관",2],["pool","수영장",2],["victory","승리",2],["defeat","패배",2],["champion","우승자",2],["medal","메달",2],["trophy","트로피",2],["record","기록",2],["rank","순위",2],["final","결승",2],["round","회",2],["point","점수",2],["goal","골",2],["whistle","호루라기",2],["uniform","유니폼",2],["helmet","헬멧",2],["bat","방망이",2],["racket","라켓",2],["net","그물",2],["weight","무게",2],["height","키",2],["length","길이",2],["width","너비",2],["size","크기",2],["shape","모양",2],["piece","조각",2],["part","부분",2],["half","절반",2],["double","두 배",2],["pair","한 쌍",2],["dozen","열두 개",2],["amount","양",2],["total","합계",2],["average","평균",2],["percent","퍼센트",2],["degree","도",2],["meter","미터",2],["kilogram","킬로그램",2],["liter","리터",2],["mile","마일",2],["inch","인치",2],["distance","거리",2],["speed","속도",2],["direction","방향",2],["north","북쪽",2],["south","남쪽",2],["east","동쪽",2],["west","서쪽",2],["center","중심",2],["corner","모퉁이",2],["edge","가장자리",2],["side","옆면",2],["top","꼭대기",2],["bottom","바닥",2],["middle","가운데",2],["front","앞",2],["end","끝",2],["begin","시작하다",2],["finish","끝내다",2],["continue","계속하다",2],["repeat","반복하다",2],["change","바꾸다",2],["move","움직이다",2],["follow","따라가다",2],["lead","이끌다",2],["join","참여하다",2],["share","나누다",2],["collect","모으다",2],["choose","고르다",2],["pick","고르다",2],["save","구하다",2],["spend","쓰다",2],["waste","낭비하다",2],["return","돌아오다",2],["arrive","도착하다",2],["leave","떠나다",2],["enter","들어가다",2],["exit","나가다",2],["pass","지나가다",2],["cross","건너다",2],["avoid","피하다",2],["escape","달아나다",2],["hide","숨다",2],["seek","찾다",2],["appear","나타나다",2],["disappear","사라지다",2],["remain","남다",2],["belong","속하다",2],["happen","일어나다",2],["seem","~인 것 같다",2],["become","~이 되다",2],["remember","기억하다",2],["believe","믿다",2],["guess","추측하다",2],["imagine","상상하다",2],["hope","바라다",2],["wish","소망하다",2],["worry","걱정하다",2],["fear","두려워하다",2],["enjoy","즐기다",2],["prefer","더 좋아하다",2],["agree","동의하다",2],["refuse","거절하다",2],["promise","약속하다",2],["explain","설명하다",2],["describe","묘사하다",2],["introduce","소개하다",2],["suggest","제안하다",2],["discover","발견하다",2],["create","창조하다",2],["build","짓다",2],["repair","수리하다",2],["paint","칠하다",2],["decorate","장식하다",2],["prepare","준비하다",2],["cover","덮다",2],["fill","채우다",2],["pour","붓다",2],["mix","섞다",2],["boil","끓이다",2],["bake","굽다",2],["fry","튀기다",2],["serve","대접하다",2],["taste","맛보다",2],["smell","냄새 맡다",2],["touch","만지다",2],["shake","흔들다",2],["press","누르다",2],["lift","들어올리다",2],["drop","떨어뜨리다",2],["hang","걸다",2],["tie","묶다",2],["fold","접다",2],["tear","찢다",2],["burn","태우다",2],["melt","녹다",2],["freeze","얼다",2],["float","뜨다",2],["blow","불다",2],["shine","빛나다",2],["useful","유용한",2],["useless","쓸모없는",2],["careful","조심스러운",2],["careless","부주의한",2],["famous","유명한",2],["popular","인기 있는",2],["special","특별한",2],["common","흔한",2],["usual","보통의",2],["strange","이상한",2],["important","중요한",2],["serious","심각한",2],["simple","간단한",2],["difficult","어려운",2],["possible","가능한",2],["correct","올바른",2],["wrong","틀린",2],["true","진실한",2],["false","거짓의",2],["real","진짜의",2],["perfect","완벽한",2],["terrible","끔찍한",2],["wonderful","훌륭한",2],["excellent","우수한",2],["lovely","사랑스러운",2],["polite","예의 바른",2],["rude","무례한",2],["lazy","게으른",2],["diligent","부지런한",2],["clever","영리한",2],["foolish","어리석은",2],["proud","자랑스러운",2],["shy","수줍은",2],["lonely","외로운",2],["nervous","긴장한",2],["excited","신이 난",2],["surprised","놀란",2],["bored","지루해하는",2],["delicious","맛있는",2],["healthy","건강한",2],["sick","아픈",2],["alive","살아 있는",2],["dead","죽은",2],["deep","깊은",2],["shallow","얕은",2],["narrow","좁은",2],["wide","넓은",2],["smooth","매끄러운",2],["rough","거친",2],["sharp","날카로운",2],["flat","평평한",2],["straight","곧은",2],["crowded","붐비는",2],["noisy","시끄러운",2],["peaceful","평화로운",2],["modern","현대의",2],["ancient","고대의",2],["national","국가의",2],["local","지역의",2],["public","공공의",2],["private","사적인",2],["ability","능력",2],["accident","사고",2],["active","활동적인",2],["adult","성인",2],["advance","전진하다",2],["advantage","이점",2],["adventure","모험",2],["agreement","합의",2],["ahead","앞에",2],["aim","목표",2],["allow","허락하다",2],["alone","혼자",2],["already","이미",2],["although","비록 ~이지만",2],["amaze","놀라게 하다",2],["announce","발표하다",2],["apart","떨어져",2],["apology","사과",2],["article","기사",2],["athlete","운동선수",2],["attack","공격하다",2],["attend","참석하다",2],["attention","주의",2],["audience","청중",2],["author","저자",2],["balance","균형",2],["benefit","이익",2],["blame","비난하다",2],["brief","간단한",2],["broad","넓은",2],["career","직업",2],["cause","원인",2],["celebrate","축하하다",2],["century","세기",2],["certain","확실한",2],["challenge","도전",2],["character","성격",2],["charge","요금",2],["citizen","시민",2],["climate","기후",2],["comment","논평",2],["community","공동체",2],["compare","비교하다",2],["compete","경쟁하다",2],["complain","불평하다",2],["complete","완성하다",2],["concern","걱정",2],["condition","조건",2],["connect","연결하다",2],["contact","접촉하다",2],["contain","포함하다",2],["control","통제하다",2],["courage","용기",2],["creature","생물",2],["cure","치료하다",2],["curious","호기심 있는",2],["damage","손상",2],["danger","위험",2],["deal","거래",2],["debate","토론",2],["decade","십 년",2],["delay","미루다",2],["deliver","배달하다",2],["demand","요구하다",2],["desire","욕망",2],["destroy","파괴하다",2],["detail","세부 사항",2],["develop","발전시키다",2],["direct","직접의",2],["disagree","동의하지 않다",2],["disaster","재난",2],["discuss","논의하다",2],["disease","질병",2],["display","전시하다",2],["distant","먼",2],["doubt","의심하다",2],["duty","의무",2],["earn","벌다",2],["enemy","적",2],["energy","에너지",2],["equal","동등한",2],["error","오류",2],["exact","정확한",2],["excuse","변명",2],["exist","존재하다",2],["expert","전문가",2],["explore","탐험하다",2],["express","표현하다",2],["under","~ 아래에",1],["over","~ 위로",1],["between","~ 사이에",2],["across","~ 건너서",2],["behind","~ 뒤에",1],["beside","~ 옆에",2],["without","~ 없이",2],["toward","~ 쪽으로",2],["during","~ 동안",2],["along","~ 을 따라",2],["because","~ 때문에",2],["however","그러나",2],["eleven","열하나",1],["twelve","열둘",1],["thirteen","열셋",1],["fifteen","열다섯",1],["twenty","스물",1],["thirty","서른",1],["forty","마흔",1],["fifty","쉰",1],["hundred","백",1],["thousand","천",2],["million","백만",2],["first","첫 번째",1],["second","두 번째",1],["third","세 번째",1],["fourth","네 번째",1],["fifth","다섯 번째",1],["sixth","여섯 번째",2],["eighth","여덟 번째",2],["ninth","아홉 번째",2],["tenth","열 번째",2],["usually","보통",2],["often","자주",2],["sometimes","가끔",1],["almost","거의",2],["enough","충분한",2],["still","여전히",2],["yet","아직",2],["soon","곧",1],["lip","입술",1],["toe","발가락",1],["cousin","사촌",1],["job","직업",1],["bell","종",1],["boxing","권투",1],["win","이기다",1],["clap","박수 치다",1],["hit","치다",1],["kick","발로 차다",1],["bakery","빵집",1],["on","~ 위에",1],["fruit","과일",1],["use","사용하다",1],["camp","캠프",1],["gift","선물",1],["favorite","가장 좋아하는",1],["party","파티",1],["try","해 보다",1],["plant","식물",1],["hippo","하마",1],["snowy","눈이 오는",1],["windy","바람이 부는",1],["cloudy","흐린",1],["rainy","비가 오는",1],["shell","조개껍데기",1],["rest","쉬다",1],["hike","하이킹하다",1],["vase","꽃병",1],["pot","냄비",1],["pan","프라이팬",1],["chess","체스",1],["block","블록",1],["yo-yo","요요",1],["rectangle","직사각형",1],["one","하나",1],["two","둘",1],["three","셋",1],["four","넷",1],["five","다섯",1],["six","여섯",1],["seven","일곱",1],["eight","여덟",1],["nine","아홉",1],["ten","열",1],["fourteen","열넷",1],["beard","턱수염",1],["necklace","목걸이",1],["vest","조끼",1],["costume","의상",1],["suit","정장",1],["blouse","블라우스",1],["clothes","옷",1],["mustache","콧수염",1],["waist","허리",1],["tongue","혀",1],["musician","음악가",1],["model","모델",1],["king","왕",1],["president","대통령",1],["queen","여왕",1],["dream","꿈",1],["role","역할",1],["parents","부모님",1],["vet","수의사",1],["banker","은행원",1],["person","사람",1],["little","작은",1],["sleepy","졸린",1],["best","최고의",1],["fun","재미있는",1],["great","훌륭한",1],["glad","기쁜",1],["age","나이",1],["fine","괜찮은",1],["chinese","중국어",1],["smart","똑똑한",1],["textbook","교과서",1],["let","~하게 하다",1],["exam","시험",1],["spell","철자를 쓰다",1],["japanese","일본어",1],["roll","구르다",1],["fair","공정한",1],["football","미식축구",1],["badminton","배드민턴",1],["jog","조깅하다",1],["hobby","취미",1],["talent","재능",1],["stretch","쭉 펴다",1],["cheer","응원하다",1],["wave","손을 흔들다",1],["feed","먹이를 주다",1],["well","잘",1],["keep","지키다",1],["ready","준비된",1],["hurry","서두르다",1],["outside","밖에",1],["from","~에서부터",1],["place","장소",1],["around","주위에",1],["bookstore","서점",1],["inside","안에",1],["cafe","카페",1],["next","다음의",1],["flour","밀가루",1],["cereal","시리얼",1],["pasta","파스타",1],["pie","파이",1],["vegetable","채소",1],["popcorn","팝콘",1],["food","음식",1],["sound","소리",1],["show","보여 주다",1],["concert","콘서트",1],["noise","소음",1],["beautiful","아름다운",1],["really","정말로",1],["hurt","다치게 하다",1],["fur","털",1],["wing","날개",1],["pet","애완동물",1],["ocean","바다",1],["tail","꼬리",1],["pond","연못",1],["hunt","사냥하다",1],["worm","지렁이",1],["parrot","앵무새",1],["bug","벌레",1],["ox","황소",1],["wild","야생의",1],["spot","점",1],["vacation","방학",1],["ground","땅",1],["airplane","비행기",1],["trip","여행",1],["backpack","배낭",1],["picnic","소풍",1],["clear","맑은",1],["wood","목재",1],["globe","지구본",1],["land","육지",1],["safari","사파리",1],["nature","자연",1],["add","더하다",1],["lie","눕다",1],["stay","머무르다",1],["poster","포스터",1],["ticket","표",1],["painting","그림",1],["glass","유리",1],["trash","쓰레기",1],["shower","샤워",1],["pack","짐을 싸다",1],["money","돈",1],["space","공간",1],["mat","매트",1],["bedroom","침실",1],["kid","아이",1],["fan","선풍기",1],["bookshelf","책장",1],["photo","사진",1],["plate","접시",1],["toilet","변기",1],["after","~ 후에",1],["all","모든",1],["any","어떤",1],["together","함께",1],["late","늦은",1],["dollar","달러",1],["early","이른",1],["every","~마다",1],["season","계절",1],["cheap","싼",1],["expensive","비싼",1],["someday","언젠가",1],["before","~ 전에",1],["another","또 하나의",1],["large","큰",1],["loaf","빵 한 덩이",1],["cream","크림",1],["graph","그래프",1],["flute","플루트",1],["snowman","눈사람",1],["each","각각의",1],["discount","할인",1],["some","몇몇의",1],["much","많은",1],["monster","괴물",1],["both","둘 다",1],["swing","그네",1],["broom","빗자루",1],["bush","덤불",1],["something","어떤 것",1],["own","자신의",1],["option","선택",1],["tablet","태블릿",2],["tour","여행",2],["skill","솜씨",2],["dragon","용",2],["waterfall","폭포",2],["jaw","턱",2],["cancer","암",2],["palm","손바닥",2],["xylophone","실로폰",2],["surprise","놀라게 하다",2],["spill","쏟다",2],["weigh","무게를 재다",2],["sign","서명하다",2],["sneeze","재채기하다",2],["relax","쉬다",2],["social","사회적인",2],["tight","꽉 끼는",2],["silly","우스꽝스러운",2],["sore","쑤시는",2],["asia","아시아",2],["chart","도표",2],["trap","덫",2],["spice","향신료",2],["bark","짖다",2],["diet","식단",2],["allergy","알레르기",2],["surf","파도타기를 하다",2],["care","돌보다",2],["trouble","곤란",2],["action","행동",2],["cage","우리",2],["human","인간",2],["tissue","화장지",2],["shore","해안",2],["shot","주사",2],["sunrise","해돋이",2],["voice","목소리",2],["actually","실제로",2],["anything","무엇이든",2],["entrance","입구",2],["twice","두 번",2],["stare","빤히 보다",2],["upload","업로드하다",2],["crane","학",2],["beak","부리",2],["buddy","친구",2],["grocery","식료품",2],["fancy","화려한",2],["bite","물다",2],["drug","약",2],["guide","안내자",2],["calm","침착한",2],["able","할 수 있는",2],["thick","두꺼운",2],["slim","날씬한",2],["magic","마법",2],["hall","홀",2],["vitamin","비타민",2],["alright","괜찮은",2],["nephew","조카",2],["wise","지혜로운",2],["print","인쇄하다",2],["flight","비행",2],["memory","기억",2],["online","온라인의",2],["striped","줄무늬가 있는",2],["tuna","참치",2],["ambulance","구급차",2],["ballet","발레",2],["yell","소리치다",2],["traffic","교통",2],["stick","막대기",2],["area","지역",2],["luck","운",2],["pay","지불하다",2],["bracelet","팔찌",2],["anymore","더 이상",2],["arrival","도착",2],["cave","동굴",2],["position","위치",2],["row","줄",2],["chef","요리사",2],["hockey","하키",2],["mitten","벙어리장갑",2],["pigeon","비둘기",2],["cart","수레",2],["category","범주",2],["nowadays","요즘에는",2],["helpful","도움이 되는",2],["sail","항해하다",2],["secret","비밀",2],["plastic","플라스틱",2],["bet","내기하다",2],["carpenter","목수",2],["bit","조금",2],["postcard","엽서",2],["anywhere","어디든지",2],["interview","면접",2],["pitch","공을 던지다",2],["news","뉴스",2],["tonight","오늘 밤",2],["damp","축축한",2],["astronaut","우주비행사",2],["bench","벤치",2],["calendar","달력",2],["shiny","빛나는",2],["theater","극장",2],["downtown","시내",2],["craft","공예",2],["fool","바보",2],["librarian","사서",2],["path","오솔길",2],["stuff","물건",2],["shrimp","새우",2],["grill","굽다",2],["way","방법",2],["steal","훔치다",2],["fistful","한 움큼",2],["greeting","인사",2],["horrible","끔찍한",2],["crash","충돌하다",2],["flood","홍수",2],["jeans","청바지",2],["knit","뜨개질하다",2],["price","가격",2],["lunar","달의",2],["vacuum","진공청소기",2],["silver","은",2],["branch","나뭇가지",2],["weekly","매주의",2],["sew","바느질하다",2],["pyramid","피라미드",2],["boot","장화",2],["award","상",2],["last","마지막의",2],["video","비디오",2],["whole","전체의",2],["chat","수다 떨다",2],["diagram","도표",2],["nobody","아무도 ~않다",2],["step","걸음",2],["chew","씹다",2],["cafeteria","구내식당",2],["brand","브랜드",2],["classmate","반 친구",2],["brick","벽돌",2],["scream","비명을 지르다",2],["meaning","의미",2],["upon","~ 위에",2],["airline","항공사",2],["code","암호",2],["bookmark","책갈피",2],["couch","소파",2],["chalk","분필",2],["fantastic","환상적인",2],["elder","어른",2],["alarm","경보",2],["dig","파다",2],["comedy","코미디",2],["feeling","느낌",2],["luggage","짐",2],["check","확인하다",2],["choir","합창단",2],["company","회사",2],["tomb","무덤",2],["bath","목욕",2],["oval","타원형의",2],["business","사업",2],["such","그러한",2],["handsome","잘생긴",2],["bump","부딪치다",2],["tiny","아주 작은",2],["topic","주제",2],["future","미래",2],["opposite","반대의",2],["probably","아마도",2],["gender","성별",2],["upset","속상한",2],["wipe","닦다",2],["chore","집안일",2],["suddenly","갑자기",2],["gear","장비",2],["level","수준",2],["giant","거대한",2],["pacific","태평양",2],["remote","리모컨",2],["life","삶",2],["gold","금",2],["district","구역",2],["flow","흐르다",2],["joke","농담",2],["lawn","잔디밭",2],["owl","올빼미",2],["peace","평화",2],["target","목표",2],["heel","발뒤꿈치",2],["flavor","맛",2],["cone","콘",2],["husband","남편",2],["pepper","후추",2],["french","프랑스어",2],["past","과거",2],["journal","일기",2],["glide","미끄러지다",2],["heat","열",2],["landscape","풍경",2],["outdoor","야외의",2],["bucket","양동이",2],["seal","물개",2],["gallery","미술관",2],["restroom","화장실",2],["hut","오두막",2],["lottery","복권",2],["needle","바늘",2],["sale","판매",2],["tap","톡톡 두드리다",2],["scramble","뒤섞다",2],["grain","곡물",2],["hen","암탉",2],["kingdom","왕국",2],["moment","순간",2],["dive","잠수하다",2],["mostly","주로",2],["lastly","마지막으로",2],["forever","영원히",2],["avenue","거리",2],["finally","마침내",2],["studio","스튜디오",2],["essay","에세이",2],["pianist","피아니스트",2],["volunteer","자원봉사하다",2],["gum","껌",1],["thing","물건",1],["senior","어르신",2],["wrap","포장하다",2],["juicy","즙이 많은",2],["hero","영웅",1],["fountain","분수",2],["tulip","튤립",1],["type","종류",2],["nap","낮잠",1],["sunlight","햇빛",2],["lemonade","레모네이드",1],["mall","쇼핑몰",2],["parent","부모",1],["mail","우편물",1],["quickly","빠르게",2],["cashier","계산원",2],["horror","공포",2],["scared","겁먹은",2],["platform","승강장",2],["ghost","유령",1],["mystery","수수께끼",2],["event","행사",2],["cinema","영화관",2],["cheerful","명랑한",2],["seat","좌석",1],["grandpa","할아버지",1],["awesome","멋진",2],["junior","청소년의",2],["dislike","싫어하다",2],["success","성공",2],["magician","마술사",2],["host","주최하다",2],["cycle","자전거를 타다",2],["hip-hop","힙합",2],["fight","다툼",2],["rap","랩",2],["normally","보통은",2],["album","앨범",2],["band","밴드",2],["tip","조언",2],["meal","식사",2],["happily","행복하게",2],["itchy","가려운",2],["sadly","안타깝게도",2],["bend","구부리다",2],["carefully","조심스럽게",2],["dangerous","위험한",2],["invention","발명품",2],["inventor","발명가",2],["slice","조각",2],["pineapple","파인애플",1],["ham","햄",1],["salty","짠",2],["tasty","맛있는",2],["hate","싫어하다",2],["recipe","요리법",2],["professor","교수",2],["yogurt","요구르트",1],["almond","아몬드",1],["burger","햄버거",1],["taco","타코",1],["worse","더 나쁜",2],["mom","엄마",1],["far","멀리",1],["dirt","흙",2],["messy","지저분한",2],["product","제품",2],["cost","비용",2],["avocado","아보카도",1],["ripe","잘 익은",2],["squeeze","꽉 쥐다",2],["scoop","퍼내다",2],["welcome","환영하다",1],["artwork","미술 작품",2],["section","구역",2],["origami","종이접기",2],["mean","의미하다",2],["mask","가면",1],["ribbon","리본",1],["string","실",2],["colorful","알록달록한",2],["webtoon","웹툰",2],["web","웹",2],["cartoon","만화",1],["site","사이트",2],["pain","통증",2],["recycle","재활용하다",2],["lid","뚜껑",2],["dad","아빠",1],["reuse","재사용하다",2],["jungle","정글",1],["main","주요한",2],["friendly","친절한",2],["visitor","방문객",2],["suitcase","여행 가방",2],["oil","석유",2],["twin","쌍둥이",2],["safety","안전",2],["windmill","풍차",2],["manners","예절",2],["exciting","신나는",2],["copy","따라 하다",2],["turkey","칠면조",1],["cornbread","옥수수빵",2],["tofu","두부",1],["tidy","정돈된",2],["treasure","보물",2],["die","죽다",2],["ill","아픈",2],["robber","도둑",2],["stripe","줄무늬",2],["eagle","독수리",1],["cactus","선인장",1],["war","전쟁",2],["firework","폭죽",2],["lizard","도마뱀",1],["grassland","초원",2],["florist","꽃집 주인",2],["power","전력",2],["low","낮은",2],["app","앱",1],["nearby","근처의",2],["above","~ 위에",1],["below","~ 아래에",1],["afraid","무서워하는",1],["ago","~ 전에",1],["also","또한",1],["autumn","가을",1],["away","멀리",1],["act","행동하다",2],["base","기초",2],["beauty","아름다움",2],["bill","계산서",2],["birth","탄생",2],["biscuit","비스킷",1],["card","카드",1],["case","경우",2],["cash","현금",1],["college","대학",2],["couple","한 쌍",2],["course","과정",2],["date","날짜",1],["death","죽음",2],["dialogue","대화",2],["doughnut","도넛",1],["fact","사실",2],["film","영화",1],["form","형태",2],["gas","가스",2],["gentleman","신사",2],["goodbye","잘 가",1],["guy","남자",2],["high","높은",1],["how","어떻게",1],["image","이미지",2],["lady","숙녀",2],["mad","화난",1],["marathon","마라톤",2],["marry","결혼하다",2],["mind","마음",2],["miss","그리워하다",2],["near","가까운",1],["nothing","아무것도 없음",2],["okay","괜찮은",1],["only","오직",2],["prince","왕자",1],["quiz","퀴즈",1],["rose","장미",1],["service","서비스",2],["set","세트",2],["software","소프트웨어",2],["spaghetti","스파게티",1],["staff","직원",2],["steak","스테이크",1],["style","스타일",2],["sure","확실한",2],["tape","테이프",1],["telephone","전화기",1],["tent","텐트",1],["thirst","갈증",2],["track","트랙",2],["violin","바이올린",1],["wife","아내",1],["what","무엇",1],["when","언제",1],["where","어디에",1],["who","누구",1],["why","왜",1],["admire","존경하다",2],["aloud","소리 내어",2],["angel","천사",2],["anger","화",2],["asleep","잠든",2],["bacon","베이컨",2],["bar","막대",2],["battle","전투",2],["beat","이기다",2],["bin","쓰레기통",2],["bitter","쓴",2],["blank","빈칸",2],["blonde","금발의",2],["bloom","꽃이 피다",2],["boss","사장",2],["bounce","튀다",2],["bow","활",2],["breathe","숨 쉬다",2],["bubble","거품",1],["bunch","다발",2],["cable","케이블",2],["cape","망토",2],["captain","선장",2],["ceiling","천장",2],["chain","사슬",2],["channel","채널",2],["chase","뒤쫓다",2],["chest","가슴",2],["chip","조각",2],["chop","썰다",2],["clerk","점원",2],["click","클릭하다",2],["cliff","절벽",2],["clip","클립",2],["clue","단서",2],["coal","석탄",2],["coast","해안",2],["coin","동전",1],["cottage","오두막",2],["cotton","면",2],["crack","금",2],["crawl","기어가다",2],["crisp","바삭한",2],["crown","왕관",1],["curl","곱슬곱슬하다",2],["dawn","새벽",2],["drag","끌다",2],["drama","드라마",2],["dust","먼지",2],["extra","추가의",2],["female","여성의",2],["fence","울타리",2],["fit","맞다",2],["flame","불꽃",2],["flash","번쩍임",2],["fog","안개",2],["foreign","외국의",2],["forward","앞으로",2],["frame","틀",2],["garage","차고",2],["gate","대문",1],["general","일반적인",2],["grab","움켜잡다",2],["grand","웅장한",2],["greet","인사하다",2],["guard","경비원",2],["heaven","천국",2],["highway","고속도로",2],["hint","힌트",2],["hole","구멍",1],["hug","껴안다",1],["humor","유머",2],["hunger","배고픔",2],["iron","철",2],["item","물건",2],["joy","기쁨",2],["knock","두드리다",2],["label","라벨",2],["lamb","어린 양",2],["lane","좁은 길",2],["league","리그",2],["link","연결하다",2],["lock","잠그다",2],["log","통나무",2],["male","남성의",2],["mark","표시",2],["master","주인",2],["mate","친구",2],["matter","문제",2],["maybe","아마",1],["menu","메뉴",1],["mess","엉망",2],["metal","금속",2],["microwave","전자레인지",2],["monitor","모니터",2],["mood","기분",2],["motor","모터",2],["mud","진흙",2],["mushroom","버섯",1],["neat","깔끔한",2],["nest","둥지",2],["noon","정오",2],["nut","견과",1],["oak","참나무",2],["officer","장교",2],["opera","오페라",2],["pause","멈추다",2],["perhaps","아마",2],["pile","더미",2],["pin","핀",2],["pine","소나무",2],["pipe","관",2],["planet","행성",1],["plenty","많음",2],["plus","더하기",2],["poet","시인",2],["poison","독",2],["pop","펑 터지다",2],["port","항구",2],["post","우편",2],["powder","가루",2],["pray","기도하다",2],["pretend","~인 척하다",2],["pump","펌프",2],["punch","주먹으로 치다",2],["puzzle","퍼즐",1],["raise","들어 올리다",2],["rat","쥐",2],["rent","빌리다",2],["reply","대답하다",2],["royal","왕실의",2],["rub","문지르다",2],["rush","서두르다",2],["sauce","소스",1],["scare","겁주다",2],["scene","장면",2],["scratch","긁다",2],["search","찾다",2],["sense","감각",2],["sentence","문장",2],["several","몇몇의",2],["shade","그늘",2],["shave","면도하다",2],["sheet","시트",2],["shock","충격",2],["shoot","쏘다",2],["shout","소리치다",2],["shut","닫다",2],["single","하나의",2],["slide","미끄럼틀",1],["slip","미끄러지다",2],["smoke","연기",2],["soil","흙",2],["speech","연설",2],["spin","돌다",2],["spray","뿌리다",2],["spy","스파이",2],["stage","무대",2],["steam","증기",2],["stir","젓다",2],["stream","시내",2],["sudden","갑작스러운",2],["super","최고의",2],["supper","저녁 식사",2],["swallow","삼키다",2],["sweep","쓸다",2],["switch","스위치",2],["tale","이야기",2],["tank","탱크",2],["teenage","십대의",2],["text","글",2],["thief","도둑",2],["toast","토스트",1],["tough","힘든",2],["tray","쟁반",2],["trick","속임수",2],["trunk","트렁크",2],["truth","진실",2],["twist","비틀다",2],["unit","단위",2],["valley","계곡",2],["van","승합차",2],["view","경치",2],["whisper","속삭이다",2],["wire","철사",2],["wool","양모",2],["zero","0",1]];
+const W1 = WORDS.filter(w => w[2] === 1), W2 = WORDS.filter(w => w[2] === 2);
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
+const FF = "Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif";
+const CHN = ["용사", "탐험가", "궁수", "마법사", "기사", "학자", "유령", "고양이", "늑대"];
+
+/* ── 저장 (시험판 전용 — 본 게임 보석과 따로) ── */
+const SAVE_KEY = "hyrpg-proto";
+let save = { gems: 0, lv: 1, exp: 0, ch: 0 };
+try { Object.assign(save, JSON.parse(localStorage.getItem(SAVE_KEY) || "{}")); } catch (e) {}
+const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} };
+
+/* ── 그림 ── */
+const IMG = {};
+[["cheer", "assets/chars/char-cheer.webp"], ["bee", "assets/traps/bee.webp"], ["sal", "assets/traps/salamander-volcano.webp"], ["knight", "assets/traps/knight-hall.webp"],
+ ["boss", "assets/boss/boss-knight.webp"], ["floor", "assets/world/floor-meadow.webp"], ["trees", "assets/world/props-meadow.webp"]].forEach(([k, s]) => { const i = new Image(); i.src = s; IMG[k] = i; });
+const ok = i => i && i.complete && i.naturalWidth > 0;
+
+/* ── 화면 ── */
+const cv = $("cv"), g = cv.getContext("2d");
+let VW = 0, VH = 0, DPR = 1;
+function resize() { DPR = Math.min(2, window.devicePixelRatio || 1); VW = innerWidth; VH = innerHeight; cv.width = VW * DPR; cv.height = VH * DPR; }
+addEventListener("resize", resize); resize();
+
+/* ── 세계 ── */
+const WW = 2200, WH = 1500;
+const trees = []; for (let i = 0; i < 46; i++) { let x, y; do { x = rnd(60, WW - 60); y = rnd(80, WH - 40); } while (Math.hypot(x - WW / 2, y - WH / 2) < 260); trees.push({ x, y, k: Math.floor(Math.random() * 4), s: rnd(0.75, 1.1) }); }
+const MT = {
+  bee:    { name: "꿀벌",     hp: 2, sp: 75, dmg: 5,  w: 74,  h: 74, gem: [1, 2], exp: 10, lv: 1, frames: 2, fw: 256, fh: 256, fly: 1 },
+  sal:    { name: "불도롱뇽", hp: 3, sp: 48, dmg: 8,  w: 140, h: 59, gem: [2, 3], exp: 18, lv: 1, frames: 2, fw: 1024, fh: 430 },
+  knight: { name: "흑기사",   hp: 4, sp: 42, dmg: 12, w: 190, h: 107, gem: [4, 6], exp: 35, lv: 2, frames: 2, fw: 1024, fh: 576 }
+};
+const me = { id: "me" + Math.floor(Math.random() * 1e6), name: "나", ch: save.ch, x: WW / 2, y: WH / 2, hp: 100, mhp: 100, face: 1, moving: 0, hurtT: 0, dead: 0, say: "", sayT: 0, combo: 0 };
+me.mhp = 90 + save.lv * 10; me.hp = me.mhp;
+let mons = [], parts = [], texts = [], bosses = [], warns = [], others = {}, bots = [];
+let t = 0, shake = 0, flash = 0, flashCol = "255,255,255", bossT = 45, spawnT = 0, quiz = null;
+
+function wordFor(lv) { return pick(lv === 2 && W2.length ? W2 : W1); }
+function spawnMon() {
+  const r = Math.random(), k = r < 0.45 ? "bee" : r < 0.82 ? "sal" : "knight", T = MT[k];
+  let x, y; do { x = rnd(80, WW - 80); y = rnd(100, WH - 60); } while (Math.hypot(x - me.x, y - me.y) < 380);
+  mons.push({ k, T, x, y, hp: T.hp, w: wordFor(T.lv), face: Math.random() < 0.5 ? -1 : 1, tx: x, ty: y, atkT: 0, hurt: 0, freeze: 0, seed: Math.random() * 9 });
+}
+for (let i = 0; i < 9; i++) spawnMon();
+
+/* ── 연습봇 (진짜 온라인이 생기면 다른 아이들 자리) ── */
+const BOT_N = ["연습봇 하나", "연습봇 둘", "연습봇 셋"], BOT_LINES = ["안녕!", "같이 잡자!", "좋아!", "고마워!", "보스다!"];
+for (let i = 0; i < 3; i++) bots.push({ id: "bot" + i, name: BOT_N[i], ch: [3, 7, 4][i], x: WW / 2 + [-260, 240, 40][i], y: WH / 2 + [120, -60, -220][i], face: 1, moving: 0, atkT: rnd(1, 3), target: null, say: "", sayT: 0, lv: 1 + i });
+
+/* ── 같은 기기 탭끼리 온라인 흉내 (BroadcastChannel) — 진짜 서버로 바꿀 자리 ── */
+let bc = null; try { bc = new BroadcastChannel("hyrpg-proto"); } catch (e) {}
+const send = m => { try { bc && bc.postMessage(m); } catch (e) {} };
+if (bc) bc.onmessage = ev => { const m = ev.data || {};
+  if (m.t === "s") others[m.id] = Object.assign(others[m.id] || {}, m, { seen: performance.now() });
+  else if (m.t === "fx") burst(m.x, m.y, m.k);
+  else if (m.t === "boss" && bosses[0]) hitBoss(m.dmg, false);
+  else if (m.t === "say" && others[m.id]) { others[m.id].say = m.s; others[m.id].sayT = 2.2; } };
+
+/* ── 효과 ── */
+const glowCache = {};
+function glow(col) { if (glowCache[col]) return glowCache[col]; const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.15, col); gr.addColorStop(0.45, col.replace(/,1\)$/, ",0.3)")); gr.addColorStop(1, col.replace(/,1\)$/, ",0)")); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return (glowCache[col] = c); }
+function P(o) { o.age = 0; o.vx = o.vx || 0; o.vy = o.vy || 0; o.ay = o.ay || 0; o.drag = o.drag || 0; o.rot = o.rot || 0; o.vr = o.vr || 0; parts.push(o); }
+function burst(x, y, k) {
+  if (k === "hit") {
+    P({ type: "ring", x, y, life: 0.35, s0: 10, s1: 90, col: "rgba(255,255,255,1)" });
+    for (let i = 0; i < 16; i++) { const a = rnd(-Math.PI, 0.3), s = rnd(220, 420); P({ type: "star", x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, ay: 700, drag: 0.6, life: rnd(0.6, 1), s0: rnd(6, 11), s1: 3, vr: rnd(-6, 6), col: i % 4 ? "rgba(255,200,60,1)" : "rgba(255,250,215,1)" }); }
+  } else if (k === "kill") {
+    P({ type: "ring", x, y, life: 0.5, s0: 20, s1: 140, col: "rgba(255,215,90,1)" });
+    for (let i = 0; i < 26; i++) { const a = rnd(0, 6.28), s = rnd(120, 300); P({ type: "glow", x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, drag: 2.2, life: rnd(0.5, 0.9), s0: rnd(4, 8), s1: 1, col: "rgba(255,225,120,1)" }); }
+  } else if (k === "miss") {
+    for (let i = 0; i < 10; i++) { const a = rnd(0, 6.28), s = rnd(60, 160); P({ type: "glow", x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, drag: 2, life: 0.5, s0: 6, s1: 1, col: "rgba(255,90,110,1)" }); }
+  } else if (k === "lvup") {
+    P({ type: "ring", x, y, life: 0.8, s0: 20, s1: 200, col: "rgba(120,220,255,1)" }); P({ type: "ring", x, y, life: 1.1, s0: 10, s1: 160, col: "rgba(255,255,255,1)" });
+    for (let i = 0; i < 40; i++) P({ type: "glow", x: x + rnd(-40, 40), y: y + rnd(-10, 20), vy: -rnd(120, 300), life: rnd(0.8, 1.4), s0: rnd(4, 8), s1: 1, col: "rgba(150,230,255,1)" });
+  } else if (k === "boom") {
+    P({ type: "ring", x, y, life: 0.4, s0: 20, s1: 110, col: "rgba(255,120,60,1)" });
+    for (let i = 0; i < 22; i++) { const a = rnd(0, 6.28), s = rnd(100, 260); P({ type: "glow", x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s * 0.5, drag: 2, life: 0.6, s0: rnd(6, 12), s1: 2, col: "rgba(255,140,60,1)" }); }
+  }
+}
+function floatText(x, y, s, col, big) { texts.push({ x, y, s, col, age: 0, big }); }
+let msgT = 0; function say(s) { const m = $("msg"); m.textContent = s; m.classList.add("on"); msgT = 2.2; }
+
+/* ── 소리 (짧은 효과음 + 단어 읽기) ── */
+let ac = null; function beep(f, d, type, v) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), gn = ac.createGain(); o.type = type || "triangle"; o.frequency.value = f; gn.gain.value = v || 0.06; gn.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + d); o.connect(gn); gn.connect(ac.destination); o.start(); o.stop(ac.currentTime + d); } catch (e) {} }
+function speak(w) { try { const u = new SpeechSynthesisUtterance(w); u.lang = "en-US"; u.rate = 0.9; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
+
+/* ── 단어 문제로 공격 ── */
+function nearestMon(r) { let best = null, bd = r; mons.forEach(m => { const d = Math.hypot(m.x - me.x, m.y - me.y); if (d < bd) { bd = d; best = m; } }); const B = bosses[0]; if (B && Math.hypot(B.x - me.x, B.y - me.y) < r + 120 && (!best || Math.hypot(B.x - me.x, B.y - me.y) - 120 < bd)) best = B; return best; }
+function opts(w, field) { const out = [w]; const pool = w[2] === 2 ? W2 : W1; let guard = 0;
+  while (out.length < 3 && guard++ < 200) { const c = pick(pool); if (out.some(o => o[0] === c[0] || o[1] === c[1])) continue; out.push(c); }
+  return out.sort(() => Math.random() - 0.5); }
+function attack(target) {
+  if (me.dead || quiz) return;
+  const m = target || nearestMon(170);
+  if (!m) { say("몬스터 가까이 가서 공격해요"); return; }
+  const isBoss = !!m.boss, w = m.w, type = (m.qn = (m.qn || 0) + 1) % 2 ? "e2k" : "k2e";
+  m.freeze = 99; quiz = { m, w, type, isBoss, T: 6, left: 6, done: 0, choices: opts(w) };
+  $("qWord").textContent = type === "e2k" ? w[0] : w[1];
+  $("qHint").textContent = type === "e2k" ? "뜻을 골라 공격!" : "영어 단어를 골라 공격!";
+  $("qMon").textContent = isBoss ? "필드 보스" : m.T.name;
+  $("qOpts").innerHTML = quiz.choices.map((c, i) => '<button data-i="' + i + '">' + (i + 1) + ". " + (type === "e2k" ? c[1] : c[0]) + "</button>").join("");
+  $("quiz").classList.add("on"); if (type === "e2k") speak(w[0]);
+}
+$("qOpts").addEventListener("click", e => { const b = e.target.closest("button"); if (b) answer(+b.dataset.i); });
+function answer(i) {
+  if (!quiz || quiz.done) return; quiz.done = 1;
+  const q = quiz, right = i >= 0 && q.choices[i][0] === q.w[0], btns = [...$("qOpts").children];
+  btns.forEach((b, j) => { if (q.choices[j][0] === q.w[0]) b.classList.add("ok"); else if (j === i) b.classList.add("no"); });
+  const m = q.m;
+  if (right) {
+    me.combo++; const crit = me.combo % 5 === 0, dmg = (save.lv >= 5 ? 2 : 1) * (crit ? 2 : 1);
+    burst(m.x, m.y - 30, "hit"); send({ t: "fx", x: m.x, y: m.y - 30, k: "hit" }); shake = Math.max(shake, crit ? 9 : 4); beep(880, 0.12); beep(1320, 0.18, "sine", 0.04);
+    floatText(m.x, m.y - 70, (crit ? "크리티컬 " : "") + "-" + dmg, crit ? "#ffd84a" : "#fff", crit); speak(q.w[0]);
+    if (q.isBoss) { hitBoss(dmg, true); } else { m.hp -= dmg; m.hurt = 0.25; m.x += (m.x > me.x ? 1 : -1) * 20; if (m.hp <= 0) killMon(m, true); }
+  } else {
+    me.combo = 0; burst(m.x, m.y - 30, "miss"); beep(180, 0.25, "square", 0.05);
+    floatText(me.x, me.y - 120, "틀렸어요: " + q.w[0] + " = " + q.w[1], "#ff8fa3"); hurtMe(q.isBoss ? 14 : m.T.dmg);
+  }
+  setTimeout(() => { $("quiz").classList.remove("on"); if (m) m.freeze = 0.6; quiz = null; }, right ? 450 : 1300);
+}
+function killMon(m, mine) {
+  burst(m.x, m.y - 20, "kill"); mons = mons.filter(x => x !== m);
+  if (mine) { const n = Math.round(rnd(m.T.gem[0], m.T.gem[1])); for (let i = 0; i < n; i++) P({ type: "gem", x: m.x + rnd(-20, 20), y: m.y - 20, vx: rnd(-120, 120), vy: rnd(-260, -160), ay: 600, life: 9, s0: 9, s1: 9, ground: m.y + rnd(0, 20) }); addExp(m.T.exp); }
+}
+function addExp(n) { save.exp += n; const need = () => 50 + save.lv * 30; let up = 0; while (save.exp >= need()) { save.exp -= need(); save.lv++; up = 1; }
+  if (up) { me.mhp = 90 + save.lv * 10; me.hp = me.mhp; burst(me.x, me.y, "lvup"); say("레벨 업! Lv " + save.lv + (save.lv === 5 ? " · 공격력 2배" : "")); beep(660, 0.15); setTimeout(() => beep(990, 0.25), 120); }
+  persist(); }
+function hurtMe(d) { if (me.dead) return; me.hp -= d; me.hurtT = 3; shake = Math.max(shake, 8); flash = 0.25; flashCol = "255,60,80"; floatText(me.x, me.y - 90, "-" + d, "#ff5f7a", 1);
+  if (me.hp <= 0) { me.hp = 0; me.dead = 2.2; say("쓰러졌어요… 곧 다시 일어나요"); if (quiz) { $("quiz").classList.remove("on"); quiz.m.freeze = 0; quiz = null; } } }
+
+/* ── 필드 보스 ── */
+function spawnBoss() { const B = { boss: 1, x: WW / 2 + rnd(-300, 300), y: WH / 2 + rnd(-200, 200), hp: 30, mhp: 30, w: wordFor(2), atkT: 3, hurt: 0, freeze: 0, T: { name: "필드 보스" } }; bosses = [B]; say("필드 보스 등장! 다 같이 공격해요"); beep(220, 0.5, "sawtooth", 0.05); }
+function hitBoss(d, mine) { const B = bosses[0]; if (!B) return; B.hp -= d; B.hurt = 0.2; if (mine) send({ t: "boss", dmg: d }); if (mine) B.w = wordFor(2);
+  if (B.hp <= 0) { bosses = []; bossT = 120; burst(B.x, B.y - 80, "kill"); burst(B.x, B.y - 120, "lvup"); flash = 0.4; flashCol = "255,240,200"; shake = 14; say("보스를 쓰러뜨렸어요! 💎 +15");
+    for (let i = 0; i < 15; i++) P({ type: "gem", x: B.x + rnd(-40, 40), y: B.y - 60, vx: rnd(-220, 220), vy: rnd(-360, -200), ay: 600, life: 9, s0: 9, s1: 9, ground: B.y + rnd(-10, 30) }); addExp(100); } }
+
+/* ── 입력 ── */
+const keys = {}; addEventListener("keydown", e => { keys[e.key.toLowerCase()] = 1; if (e.key === " ") { e.preventDefault(); attack(); } if (quiz && "123".includes(e.key)) answer(+e.key - 1); });
+addEventListener("keyup", e => { keys[e.key.toLowerCase()] = 0; });
+let joy = null; const joyEl = $("joy"), joyK = $("joyK");
+cv.addEventListener("pointerdown", e => {
+  const wx = e.clientX - VW / 2 + cam.x, wy = e.clientY - VH / 2 + cam.y;
+  const hit = mons.concat(bosses).find(m => Math.abs(m.x - wx) < (m.boss ? 110 : m.T.w / 2 + 10) && wy < m.y + 20 && wy > m.y - (m.boss ? 260 : m.T.h + 40));
+  if (hit) { if (Math.hypot(hit.x - me.x, hit.y - me.y) < (hit.boss ? 300 : 190)) attack(hit); else { me.goto = { x: hit.x, y: hit.y }; say("가까이 가는 중…"); } return; }
+  if (e.clientX < VW * 0.55) { joy = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dy: 0 }; joyEl.style.left = (e.clientX - 65) + "px"; joyEl.style.top = (e.clientY - 65) + "px"; joyEl.style.bottom = "auto"; }
+  else me.goto = { x: wx, y: wy };
+});
+addEventListener("pointermove", e => { if (joy && e.pointerId === joy.id) { let dx = e.clientX - joy.x, dy = e.clientY - joy.y; const d = Math.hypot(dx, dy); if (d > 50) { dx *= 50 / d; dy *= 50 / d; } joy.dx = dx / 50; joy.dy = dy / 50; joyK.style.transform = "translate(" + dx + "px," + dy + "px)"; } });
+addEventListener("pointerup", e => { if (joy && e.pointerId === joy.id) { joy = null; joyK.style.transform = ""; joyEl.style.left = "24px"; joyEl.style.top = "auto"; joyEl.style.bottom = "24px"; } });
+$("atk").addEventListener("click", () => attack());
+const LINES = ["안녕!", "같이 잡자!", "좋아!", "고마워!", "도와줘!"]; let li = 0;
+$("emo").addEventListener("click", () => { me.say = LINES[li++ % LINES.length]; me.sayT = 2.2; send({ t: "say", id: me.id, s: me.say }); });
+$("pic").addEventListener("click", () => { save.ch = me.ch = (me.ch + 1) % 9; persist(); updHud(); say(CHN[me.ch] + "(으)로 바꿨어요"); });
+
+/* ── 갱신 ── */
+const cam = { x: me.x, y: me.y };
+function step(dt) {
+  t += dt; shake = Math.max(0, shake - dt * 40); flash = Math.max(0, flash - dt * 2); if (msgT > 0 && (msgT -= dt) <= 0) $("msg").classList.remove("on");
+  // 나
+  if (me.dead) { me.dead -= dt; if (me.dead <= 0) { me.dead = 0; me.hp = me.mhp; me.x = WW / 2; me.y = WH / 2; say("다시 일어났어요!"); } }
+  else {
+    let dx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0), dy = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
+    if (joy) { dx = joy.dx; dy = joy.dy; }
+    if (dx || dy) me.goto = null;
+    if (me.goto) { const gx = me.goto.x - me.x, gy = me.goto.y - me.y, d = Math.hypot(gx, gy); if (d < 120) { const tg = mons.concat(bosses).find(m => Math.hypot(m.x - me.goto.x, m.y - me.goto.y) < 40); me.goto = null; if (tg) attack(tg); } else { dx = gx / d; dy = gy / d; } }
+    const L = Math.hypot(dx, dy); if (L > 1) { dx /= L; dy /= L; }
+    me.moving = L > 0.1 && !quiz; if (me.moving) { me.x = Math.max(30, Math.min(WW - 30, me.x + dx * 200 * dt)); me.y = Math.max(60, Math.min(WH - 20, me.y + dy * 200 * dt)); if (Math.abs(dx) > 0.2) me.face = dx > 0 ? 1 : -1; }
+    me.hurtT -= dt; if (me.hurtT <= 0 && me.hp < me.mhp) me.hp = Math.min(me.mhp, me.hp + 3 * dt);
+  }
+  if (me.sayT > 0) me.sayT -= dt;
+  if (quiz && !quiz.done) { quiz.left -= dt; $("qTime").style.width = Math.max(0, quiz.left / quiz.T * 100) + "%"; if (quiz.left <= 0) answer(-1); }
+  // 몬스터
+  mons.forEach(m => { const T = m.T; m.hurt = Math.max(0, m.hurt - dt); if (m.freeze > 0) { m.freeze -= dt; return; }
+    const d = Math.hypot(me.x - m.x, me.y - m.y);
+    if (!me.dead && d < 260) { m.tx = me.x; m.ty = me.y; } else if (Math.hypot(m.tx - m.x, m.ty - m.y) < 10 || Math.random() < dt * 0.3) { m.tx = Math.max(60, Math.min(WW - 60, m.x + rnd(-200, 200))); m.ty = Math.max(90, Math.min(WH - 40, m.y + rnd(-150, 150))); }
+    const gx = m.tx - m.x, gy = m.ty - m.y, gd = Math.hypot(gx, gy);
+    if (gd > (d < 260 ? 70 : 6)) { m.x += gx / gd * T.sp * dt; m.y += gy / gd * T.sp * dt; if (Math.abs(gx) > 4) m.face = gx > 0 ? 1 : -1; }
+    m.atkT -= dt; if (d < 80 && !me.dead && !quiz && m.atkT <= 0) { m.atkT = 1.6; hurtMe(T.dmg); burst(me.x, me.y - 40, "miss"); } });
+  spawnT -= dt; if (spawnT <= 0) { spawnT = 3; if (mons.length < 9) spawnMon(); }
+  // 보스
+  bossT -= dt; if (bossT <= 0 && !bosses.length) { bossT = 999; spawnBoss(); }
+  const B = bosses[0];
+  if (B) { B.hurt = Math.max(0, B.hurt - dt); B.atkT -= dt;
+    if (B.atkT <= 0) { B.atkT = 4.2; const targets = [me].concat(bots).filter(p => !p.dead && Math.hypot(p.x - B.x, p.y - B.y) < 520);
+      targets.slice(0, 4).forEach(p => warns.push({ x: p.x + rnd(-30, 30), y: p.y + rnd(-20, 20), r: 80, t: 1.3 })); } }
+  warns.forEach(w => { w.t -= dt; if (w.t <= 0 && !w.done) { w.done = 1; burst(w.x, w.y, "boom"); shake = Math.max(shake, 6); if (Math.hypot((me.x - w.x), (me.y - w.y) * 1.6) < w.r && !me.dead) hurtMe(20); } });
+  warns = warns.filter(w => w.t > -0.3);
+  // 봇
+  bots.forEach(b => { if (b.sayT > 0) b.sayT -= dt; if (Math.random() < dt * 0.05) { b.say = pick(BOT_LINES); b.sayT = 2; }
+    const tgt = bosses[0] || (b.target && mons.includes(b.target) ? b.target : (b.target = mons.slice().sort((a, c) => Math.hypot(a.x - b.x, a.y - b.y) - Math.hypot(c.x - b.x, c.y - b.y))[0]));
+    if (!tgt) return; const gx = tgt.x - b.x + (tgt.boss ? (b.id === "bot0" ? -120 : b.id === "bot1" ? 120 : 0) : 0), gy = tgt.y - b.y + (tgt.boss ? 60 : 0), d = Math.hypot(gx, gy);
+    b.moving = d > (tgt.boss ? 30 : 75); if (b.moving) { b.x += gx / d * 150 * dt; b.y += gy / d * 150 * dt; if (Math.abs(gx) > 4) b.face = gx > 0 ? 1 : -1; }
+    else { b.atkT -= dt; if (b.atkT <= 0) { b.atkT = rnd(2, 3.2); if (Math.random() < 0.8) { burst(tgt.x, tgt.y - 30, "hit"); if (tgt.boss) hitBoss(1, false); else { tgt.hp -= 1; tgt.hurt = 0.2; if (tgt.hp <= 0) { killMon(tgt, false); b.target = null; } } } else floatText(b.x, b.y - 110, "틀렸다!", "#ffb0c0"); } } });
+  // 효과
+  parts.forEach(p => { p.age += dt; const d = Math.exp(-p.drag * dt); p.vx *= d; p.vy = p.vy * d + p.ay * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+    if (p.type === "gem") { if (p.y > p.ground && p.vy > 0 && p.age < 1.2) { p.y = p.ground; p.vy *= -0.4; p.vx *= 0.6; }
+      if (p.age > 0.7) { const gx = me.x - p.x, gy = me.y - 40 - p.y, d = Math.hypot(gx, gy); if (d < 30) { p.age = 99; save.gems++; persist(); updHud(); beep(1500, 0.06, "sine", 0.03); P({ type: "glow", x: me.x, y: me.y - 40, life: 0.25, s0: 18, s1: 4, col: "rgba(120,230,255,1)" }); } else { p.ay = 0; p.vx = gx / d * 520; p.vy = gy / d * 520; } } } });
+  parts = parts.filter(p => p.age < p.life); texts.forEach(x => x.age += dt); texts = texts.filter(x => x.age < 1.2);
+  cam.x += (me.x - cam.x) * Math.min(1, dt * 6); cam.y += (me.y - 40 - cam.y) * Math.min(1, dt * 6);
+  // 온라인 흉내
+  if ((step.n = (step.n || 0) + dt) > 0.1) { step.n = 0; send({ t: "s", id: me.id, name: "다른 탭", ch: me.ch, x: me.x, y: me.y, face: me.face, moving: me.moving, hp: me.hp, mhp: me.mhp, lv: save.lv }); }
+  Object.keys(others).forEach(k => { if (performance.now() - others[k].seen > 3000) delete others[k]; else if (others[k].sayT > 0) others[k].sayT -= dt; });
+  if ((step.h = (step.h || 0) + dt) > 0.2) { step.h = 0; updHud(); }
+}
+
+/* ── 그리기 ── */
+function drawChar(p, isMe) {
+  const ch = IMG.cheer, x = p.x, y = p.y, bob = p.moving ? Math.abs(Math.sin(t * 12)) * 8 : Math.sin(t * 3) * 2;
+  g.fillStyle = "rgba(0,0,0,0.25)"; g.beginPath(); g.ellipse(x, y, 30, 10, 0, 0, 6.28); g.fill();
+  if (ok(ch)) { const fw = ch.naturalWidth / 9, fh = ch.naturalHeight, h = 112, w = h * fw / fh; g.save(); g.translate(x, y - bob); if (p.face < 0) g.scale(-1, 1); if (p.dead) g.globalAlpha = 0.35; g.drawImage(ch, fw * p.ch, 0, fw, fh, -w / 2, -h, w, h); g.restore(); }
+  g.font = "900 13px " + FF; g.textAlign = "center"; const label = (isMe ? "나" : p.name) + (p.lv ? " Lv" + p.lv : "");
+  g.fillStyle = "rgba(0,0,0,0.55)"; const tw = g.measureText(label).width + 12; g.fillRect(x - tw / 2, y - 140, tw, 18); g.fillStyle = isMe ? "#ffd37a" : "#bfe6ff"; g.fillText(label, x, y - 126);
+  if (p.sayT > 0 && p.say) { g.font = "900 15px " + FF; const sw = g.measureText(p.say).width + 20; g.fillStyle = "#fff"; g.beginPath(); g.roundRect ? g.roundRect(x - sw / 2, y - 176, sw, 28, 12) : g.rect(x - sw / 2, y - 176, sw, 28); g.fill(); g.fillStyle = "#2a1d55"; g.fillText(p.say, x, y - 157); }
+}
+function drawMon(m) {
+  const T = m.T, img = IMG[m.k], fr = Math.floor(t * (T.fly ? 10 : 4) + m.seed) % 2, bob = T.fly ? Math.sin(t * 5 + m.seed) * 8 - 30 : 0;
+  g.fillStyle = "rgba(0,0,0,0.25)"; g.beginPath(); g.ellipse(m.x, m.y, T.w * 0.35, 10, 0, 0, 6.28); g.fill();
+  if (ok(img)) { g.save(); g.translate(m.x, m.y + bob); const right = m.k === "bee" ? -1 : 1; if (m.face !== right) g.scale(-1, 1); if (m.hurt > 0) g.filter = "brightness(2.2)"; g.drawImage(img, T.fw * fr, 0, T.fw, T.fh, -T.w / 2, -T.h, T.w, T.h); g.restore(); }
+  const ty = m.y + bob - T.h - 16; g.font = "900 16px " + FF; g.textAlign = "center";
+  const tw = g.measureText(m.w[0]).width + 16; g.fillStyle = "rgba(20,14,46,0.82)"; g.fillRect(m.x - tw / 2, ty - 16, tw, 22); g.fillStyle = "#fff"; g.fillText(m.w[0], m.x, ty);
+  const hw = 54; g.fillStyle = "#00000088"; g.fillRect(m.x - hw / 2, ty + 9, hw, 6); g.fillStyle = "#ff5f7a"; g.fillRect(m.x - hw / 2, ty + 9, hw * Math.max(0, m.hp) / T.hp, 6);
+  if (quiz && quiz.m === m) { g.strokeStyle = "#ffd37a"; g.lineWidth = 3; g.beginPath(); g.ellipse(m.x, m.y, T.w * 0.45, 16, 0, 0, 6.28); g.stroke(); }
+}
+function drawBoss(B) {
+  const img = IMG.boss, h = 300, w = h * 512 / 768, bob = Math.sin(t * 2) * 6;
+  g.fillStyle = "rgba(0,0,0,0.3)"; g.beginPath(); g.ellipse(B.x, B.y, 110, 26, 0, 0, 6.28); g.fill();
+  g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = 0.5 + 0.2 * Math.sin(t * 4); g.drawImage(glow("rgba(150,90,255,1)"), B.x - 160, B.y - 300, 320, 320); g.restore();
+  if (ok(img)) { g.save(); if (B.hurt > 0) g.filter = "brightness(2)"; g.drawImage(img, B.x - w / 2, B.y - h + bob, w, h); g.restore(); }
+  const ty = B.y - h - 20; g.font = "900 22px " + FF; g.textAlign = "center"; const tw = g.measureText(B.w[0]).width + 20;
+  g.fillStyle = "rgba(20,14,46,0.88)"; g.fillRect(B.x - tw / 2, ty - 22, tw, 30); g.fillStyle = "#ffd37a"; g.fillText(B.w[0], B.x, ty);
+}
+function draw() {
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const sx = shake ? rnd(-shake, shake) : 0, sy = shake ? rnd(-shake, shake) : 0, ox = Math.round(VW / 2 - cam.x + sx), oy = Math.round(VH / 2 - cam.y + sy);
+  g.fillStyle = "#3f8d3c"; g.fillRect(0, 0, VW, VH);
+  g.save(); g.translate(ox, oy);
+  if (ok(IMG.floor)) { const S = 256, x0 = Math.floor((cam.x - VW / 2) / S) * S, y0 = Math.floor((cam.y - VH / 2) / S) * S; for (let x = x0; x < cam.x + VW / 2 + S; x += S) for (let y = y0; y < cam.y + VH / 2 + S; y += S) if (x >= -S && y >= -S && x < WW + S && y < WH + S) g.drawImage(IMG.floor, x, y, S, S); }
+  g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 6; g.strokeRect(0, 0, WW, WH);
+  warns.forEach(w => { const k = Math.max(0, w.t) / 1.3; g.fillStyle = "rgba(255,40,60," + (0.18 + 0.25 * (1 - k)) + ")"; g.strokeStyle = "rgba(255,80,90,0.9)"; g.lineWidth = 3; g.beginPath(); g.ellipse(w.x, w.y, w.r, w.r * 0.6, 0, 0, 6.28); g.fill(); g.stroke();
+    g.fillStyle = "rgba(255,60,80,0.5)"; g.beginPath(); g.ellipse(w.x, w.y, w.r * (1 - k), w.r * 0.6 * (1 - k), 0, 0, 6.28); g.fill(); });
+  const list = [];
+  trees.forEach(tr => list.push({ y: tr.y, f: () => { if (ok(IMG.trees)) { const h = 220 * tr.s, w = h / 2; g.drawImage(IMG.trees, 256 * tr.k, 0, 256, 512, tr.x - w / 2, tr.y - h, w, h); } } }));
+  mons.forEach(m => list.push({ y: m.y, f: () => drawMon(m) }));
+  bosses.forEach(B => list.push({ y: B.y, f: () => drawBoss(B) }));
+  bots.forEach(b => list.push({ y: b.y, f: () => drawChar(Object.assign({}, b, { name: b.name, lv: b.lv }), false) }));
+  Object.values(others).forEach(o => list.push({ y: o.y, f: () => drawChar(o, false) }));
+  list.push({ y: me.y, f: () => drawChar(Object.assign({}, me, { lv: save.lv }), true) });
+  list.sort((a, b) => a.y - b.y).forEach(o => o.f());
+  g.save(); g.globalCompositeOperation = "lighter";
+  parts.forEach(p => { const r = Math.min(1, p.age / p.life), a = r < 0.1 ? r / 0.1 : 1 - Math.pow((r - 0.1) / 0.9, 1.5), s = p.s0 + (p.s1 - p.s0) * r; g.globalAlpha = Math.max(0, a);
+    if (p.type === "glow") g.drawImage(glow(p.col), p.x - s * 1.5, p.y - s * 1.5, s * 3, s * 3);
+    else if (p.type === "ring") { g.globalAlpha = 1 - r; g.strokeStyle = p.col; g.lineWidth = 5 * (1 - r) + 1; g.beginPath(); g.ellipse(p.x, p.y, s, s * 0.7, 0, 0, 6.28); g.stroke(); }
+    else if (p.type === "star") { g.drawImage(glow(p.col), p.x - s * 1.4, p.y - s * 1.4, s * 2.8, s * 2.8); g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.fillStyle = "#ffe48a"; g.beginPath(); for (let i = 0; i < 10; i++) { const rr = i % 2 ? s * 0.45 : s, an = i * Math.PI / 5 - Math.PI / 2; g.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } g.closePath(); g.fill(); g.restore(); }
+    else if (p.type === "gem") { g.globalAlpha = 1; g.drawImage(glow("rgba(100,210,255,1)"), p.x - 16, p.y - 16, 32, 32); g.globalCompositeOperation = "source-over"; g.fillStyle = "#7fe0ff"; g.beginPath(); g.moveTo(p.x - 6, p.y - 3); g.lineTo(p.x - 3, p.y - 8); g.lineTo(p.x + 3, p.y - 8); g.lineTo(p.x + 6, p.y - 3); g.lineTo(p.x, p.y + 7); g.closePath(); g.fill(); g.globalCompositeOperation = "lighter"; } });
+  g.restore();
+  texts.forEach(x => { const r = x.age / 1.2; g.globalAlpha = 1 - r * r; g.font = "900 " + (x.big ? 26 : 18) + "px " + FF; g.textAlign = "center"; g.lineWidth = 4; g.strokeStyle = "rgba(0,0,0,0.6)"; g.strokeText(x.s, x.x, x.y - r * 40); g.fillStyle = x.col; g.fillText(x.s, x.x, x.y - r * 40); }); g.globalAlpha = 1;
+  g.restore();
+  const B = bosses[0]; if (B) { const bw = Math.min(420, VW - 40), bx = (VW - bw) / 2, by = VW > 760 ? 18 : 64; g.fillStyle = "rgba(20,14,46,0.85)"; g.fillRect(bx - 4, by - 4, bw + 8, 24); g.fillStyle = "#3a2a5a"; g.fillRect(bx, by, bw, 16); g.fillStyle = "#b46cff"; g.fillRect(bx, by, bw * B.hp / B.mhp, 16); g.fillStyle = "#fff"; g.font = "900 12px " + FF; g.textAlign = "center"; g.fillText("필드 보스 " + B.hp + " / " + B.mhp, VW / 2, by + 13); }
+  if (flash > 0) { g.fillStyle = "rgba(" + flashCol + "," + Math.min(0.5, flash) + ")"; g.fillRect(0, 0, VW, VH); }
+  if (me.dead) { g.fillStyle = "rgba(0,0,0,0.45)"; g.fillRect(0, 0, VW, VH); }
+}
+function updHud() {
+  $("lvTxt").textContent = "Lv " + save.lv + " · " + CHN[me.ch]; $("hpBar").style.width = (me.hp / me.mhp * 100) + "%"; $("exBar").style.width = (save.exp / (50 + save.lv * 30) * 100) + "%";
+  $("gems").textContent = "💎 " + save.gems; $("pic").style.backgroundImage = "url(assets/chars/char-portraits.webp)"; $("pic").style.backgroundPosition = (me.ch / 8 * 100) + "% 0";
+  const n = Object.keys(others).length;
+  $("who").innerHTML = "<b>같이 사냥 중</b><br>" + "<em>●</em> 나 Lv" + save.lv + "<br>" + bots.map(b => "<em>●</em> " + b.name).join("<br>") + (n ? "<br>" + Object.values(others).map(o => "<em>●</em> 다른 탭 Lv" + (o.lv || 1)).join("<br>") : "") + (bosses[0] ? "" : "<br><span style='color:#b9b0e6'>보스까지 " + Math.max(0, Math.ceil(bossT)) + "초</span>");
+}
+updHud(); say("몬스터를 눌러서 공격해요! 머리 위 단어의 뜻을 맞히면 공격");
+let last = 0; function loop(ts) { const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0.016); last = ts; try { step(dt); draw(); } catch (e) { console.error(e); } requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+window.__rpg = { me, mons, get bosses() { return bosses; }, attack, answer, spawnBoss, get quiz() { return quiz; }, save };
+</script>
+</body>
+</html>
