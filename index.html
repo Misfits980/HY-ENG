@@ -657,6 +657,38 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 .mitem:hover,.mitem.on{color:#ffd37a;background:rgba(255,196,107,.1);transform:scale(1.04)}
 .mitem:hover:before,.mitem.on:before{opacity:1;transform:translateX(0)}
 .mitem:active{transform:scale(.99)}
+/* 👥 2인용 */
+#vsHud{display:none}
+body.vs #vsHud{display:flex;justify-content:space-between;position:absolute;left:0;right:0;top:104px;padding:0 14px;pointer-events:none}
+body.vs #chipScore, body.vs #chipLife, body.vs #comboTag, body.vs #brakeBar{display:none!important}
+.vsCard{min-width:150px;padding:8px 13px 7px;border-radius:16px;background:rgba(24,16,48,.72);border:2px solid rgba(255,255,255,.12);backdrop-filter:blur(8px)}
+.vsCard.p1{border-color:rgba(95,224,176,.7)} .vsCard.p2{border-color:rgba(255,154,92,.7);text-align:right}
+.vsCard.out{opacity:.4}
+.vsCard .vsN{display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:900;letter-spacing:.12em}
+.vsCard.p1 .vsN{color:#5fe0b0} .vsCard.p2 .vsN{color:#ff9a5c;flex-direction:row-reverse}
+.vsCard .vsH{color:#ff7a66;letter-spacing:1px} .vsCard .vsH .off{color:#463a70}
+.vsCard b{display:block;font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+.vsCard small{display:block;font-size:11px;font-weight:800;color:#ffd37a;min-height:14px}
+.vsPanel .glab b{font-size:13px;letter-spacing:.1em}
+.vsPick.p1 .glab b{color:#5fe0b0} .vsPick.p2 .glab b{color:#ff9a5c}
+.vsPick.p1 .tile.sel{border-color:#5fe0b0;background:linear-gradient(180deg,#14503c,#0b2b21)}
+.vsPick.p2 .tile.sel{border-color:#ff9a5c;background:linear-gradient(180deg,#5a2f12,#331a08)}
+.vsPick .tile.locked{opacity:.38;cursor:not-allowed}
+.vsPanel .startBanner{margin-top:20px}
+.vsCols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.vsCol{padding:14px 10px 12px;border-radius:20px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);text-align:center}
+.vsCol.p1{border-color:rgba(95,224,176,.45)} .vsCol.p2{border-color:rgba(255,154,92,.45)}
+.vsCol.win.p1{border-color:#5fe0b0;box-shadow:0 0 18px rgba(95,224,176,.3)} .vsCol.win.p2{border-color:#ff9a5c;box-shadow:0 0 18px rgba(255,154,92,.3)}
+.vsCol .vsN{font-size:14px;font-weight:900;letter-spacing:.08em} .vsCol.p1 .vsN{color:#5fe0b0} .vsCol.p2 .vsN{color:#ff9a5c}
+.vsCol .vsN i{display:block;font-style:normal;font-size:12px;color:#c9bff0;letter-spacing:0;margin-top:2px}
+.vsCol>b{display:block;font-size:30px;font-weight:900;margin-top:8px;font-variant-numeric:tabular-nums}
+.vsCol>small{display:block;font-size:11px;color:#8d82b8;font-weight:700}
+.vsL{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;margin-top:9px;font-size:11.5px;font-weight:700;color:#d9d1f5}
+.vsCol em{display:inline-block;margin-top:9px;padding:3px 10px;border-radius:100px;font-style:normal;font-size:11px;font-weight:800;background:rgba(255,122,102,.16);color:#ffb3a8}
+.vsCol em.ok{background:rgba(95,224,176,.14);color:#9ff5c4}
+.vsW{display:flex;flex-wrap:wrap;gap:6px}
+.vsW span{padding:5px 10px;border-radius:100px;background:rgba(255,255,255,.06);font-size:12px;color:#c9bff0}
+.vsW b{color:#fff}
 .verTag{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
   font-size:11px;color:#7b71a3;font-weight:700;pointer-events:none}
 #scStart .verTag{pointer-events:auto;padding:8px 0 8px 14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -1263,16 +1295,17 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
   <div class="top">
     <div>
       <div class="chip"><small><span class="hico flag"></span><span id="uZone">초원</span></small><b id="uStage">1</b></div>
-      <div class="chip" style="margin-top:6px"><small><span class="hico star"></span>SCORE</small><b id="uScore">0</b></div>
+      <div class="chip" id="chipScore" style="margin-top:6px"><small><span class="hico star"></span>SCORE</small><b id="uScore">0</b></div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
       <div style="display:flex;gap:6px;pointer-events:auto">
         <div id="fsBtn" title="전체화면"></div>
         <div id="pauseBtn"><span class="pz">❚❚</span><span class="hico pause"></span></div>
       </div>
-      <div class="chip"><small id="uLifeLab">LIFE</small><div class="hearts" id="uLives">♥♥♥</div></div>
+      <div class="chip" id="chipLife"><small id="uLifeLab">LIFE</small><div class="hearts" id="uLives">♥♥♥</div></div>
     </div>
   </div>
+  <div id="vsHud"><div class="vsCard p1" id="vsC0"></div><div class="vsCard p2" id="vsC1"></div></div>
   <div id="promptWrap">
     <div id="prompt">
       <div id="plabel">이 뜻을 가진 단어의 게이트로</div>
@@ -1576,6 +1609,30 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
     <div class="stFoot" id="stFoot"></div>
   </div>
   <div id="stDone" style="display:none"><div class="stDoneIn" id="stDoneIn"></div></div>
+</div></div>
+
+<!-- 👥 2인용 준비 -->
+<div class="screen" id="scVs"><div class="panel vsPanel">
+  <h1>👥 2인용 대결</h1>
+  <p class="lede">키보드 하나로 둘이 같은 길을 달려요. 같은 문제를 풀고, 점수가 높은 사람이 이겨요.</p>
+  <div class="group"><div class="glab">난이도</div><div class="opts" id="vsDiff"></div></div>
+  <div class="group"><div class="glab">학년</div><div class="opts wrap" id="vsSet"></div></div>
+  <div class="group vsPick p1"><div class="glab"><b>1P</b> 캐릭터 · <span>W A S D</span></div><div class="tileRow scrollRow" id="vsP0"></div></div>
+  <div class="group vsPick p2"><div class="glab"><b>2P</b> 캐릭터 · <span>← → ↑ ↓</span></div><div class="tileRow scrollRow" id="vsP1"></div></div>
+  <button class="startBanner" id="vsGo">▶ START</button>
+  <button class="play ghost" id="vsBack">돌아가기</button>
+  <p class="note" style="text-align:center;margin-top:10px">틀리거나 함정에 빠지면 그 사람만 떨어지고 바로 다시 달려요 · 하트가 다 떨어지면 탈락<br>2인용 기록은 보석·도감·랭킹에 들어가지 않아요</p>
+</div></div>
+
+<!-- 👥 2인용 결과 -->
+<div class="screen" id="scVsOver"><div class="panel vsPanel">
+  <h1 id="vsWin">🏆</h1>
+  <p class="lede" id="vsSub"></p>
+  <div class="vsCols" id="vsCols"></div>
+  <div class="group" id="vsWords"></div>
+  <button class="play" id="vsAgain">▶ 한 판 더</button>
+  <button class="play ghost" id="vsSetupAgain">캐릭터 · 학년 바꾸기</button>
+  <button class="play ghost" id="vsHome">처음 화면으로</button>
 </div></div>
 
 <!-- 결과 -->
@@ -4755,7 +4812,8 @@ function updateGates(dt){
     }
 
     // 판정선 = 플레이어의 현재 z. 앞으로 나가면 더 빨리 만난다.
-    if(!s.judged && s.group.position.z >= P.z){ judge(s); s.hideAt = s.t0 + 0.6; }
+    if(G.versus) VS.gate(s);                                    // 2인용 — 사람마다 자기 자리에서 판정
+    else if(!s.judged && s.group.position.z >= P.z){ judge(s); s.hideAt = s.t0 + 0.6; }
     if(s.judged && s.hideAt && s.t0 > s.hideAt) s.group.visible = false;
 
     // 단어판이 항상 카메라를 향하게 (바깥쪽 문도 정면으로 읽힌다)
@@ -4779,6 +4837,7 @@ function updateGates(dt){
   }
 }
 function highlightLane(){
+  if(G.versus) return VS.highlight();
   const s = activeSet(); if(!s) return;
   const n=s.gates.length;
   for(let i=0;i<n;i++){
@@ -7338,6 +7397,7 @@ function ruleEnded(){
 }
 
 function startFall(){
+  if(G.versus){ G.falling=true; return; }          // 2인용 — 그 사람만 떨어지고 문제·세계는 그대로
   try{ const sub=(document.getElementById("vsub")||{}).textContent||"", main=(document.getElementById("vmain")||{}).textContent||"";
     G.lastCause = G.wrongFall ? "오답" : (sub.split(" — ")[0] || main).slice(0,40); }catch(e){}
   G.falling = true; G.spawning = false;
@@ -7347,6 +7407,7 @@ function startFall(){
   });
 }
 function onDead(){
+  if(G.versus) return VS.dead();                   // 2인용 — 제자리 부활 / 탈락
   if(G.dead) return;
   if(G.rule==="time"){
     // 타임어택 — 목숨 대신 시간을 잃고 곧바로 다시 달린다
@@ -7445,6 +7506,8 @@ addEventListener("touchmove",e=>{
 
 /* 키보드 → 아날로그 입력으로 변환 (조이스틱이 잡혀 있으면 조이스틱 우선) */
 function readInput(){
+  if(G.versus && VS.cur!=null){ const K=VS.KEYS[VS.cur];        // 2인용 — 1P WASD · 2P 방향키
+    input.x=(keys[K.r]?1:0)-(keys[K.l]?1:0); input.y=(keys[K.u]?1:0)-(keys[K.d]?1:0); return; }
   if(stick.id!==null) return;
   const l=keys.ArrowLeft||keys.KeyA, r=keys.ArrowRight||keys.KeyD;
   const u=keys.ArrowUp||keys.KeyW,   d=keys.ArrowDown||keys.KeyS;
@@ -7766,6 +7829,7 @@ function popScore(text, sub, color, topPct){
   el.className = /^(GOOD|GREAT|EXCELLENT|AMAZING)/.test(text) ? "pop big" : "pop";
   el.style.color = color || "#ffd37a";
   el.style.top = (topPct || 46) + "%";
+  if(G.versus && typeof VS!=="undefined" && VS.cur!=null) el.style.left = (VS.cur===0 ? 27 : 73) + "%";   // 2인용 — 자기 쪽에
   el.innerHTML = text + (sub ? '<small>'+sub+'</small>' : '');
   layer.appendChild(el);
   setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 900);
@@ -7877,7 +7941,8 @@ function loop(){
   G.rawDt=dt;                                       // 보스 변신 연출은 멎은 시간 속에서도 제 속도로
   if(G.hitStop>0){ G.hitStop-=dt; dt*=0.08; }      // 충돌 순간 시간이 멎는다
   if(!G.running){ Attract.update(dt); }
-  if(G.running && !G.paused){
+  if(G.running && !G.paused && G.versus){ VS.frame(dt); }               // 👥 2인용 — 세계 한 번 + 사람마다
+  else if(G.running && !G.paused){
     /* 안전장치 — 어떤 이유로든 문이 사라지면 다시 만든다 */
     if(!G.falling && !G.dead && !G.finishing){
       const live = G.sets.some(s=>!s.judged);
@@ -8192,6 +8257,7 @@ function showQuestion(q, s){
   if(q.promptIsEn) Voice.say(q.word.en);                       // 영어가 문제면 읽어준다
 }
 function updateHUD(){
+  if(G.versus) return VS.hud();
   const lab=$("uLifeLab");
   if(lab) lab.textContent = G.rule==="time" ? "TIME"
                           : G.rule==="daily" ? "DAILY"
@@ -8232,6 +8298,7 @@ function updateHUD(){
   c.style.transform = G.combo>=10 ? "scale(1.12)" : "";
 }
 function verdict(main,sub,hex,flash){
+  if(G.versus && typeof VS!=="undefined" && VS.cur!=null) main = VS.NAME[VS.cur]+"  "+main;   // 2인용 — 누구 일인지
   const v=$("verdict");
   $("vmain").textContent=main;
   $("vmain").style.color="#"+hex.toString(16);
@@ -8581,7 +8648,7 @@ const Boss = {
   root:null, body:null, main:null, parts:null, eye:null, fx:[], wfx:[], t:0, last:null, darkT:0, darkEl:null,
   poseName:"idle", poseT:0, deadT:0, enterT:0, rageT:0, texA:null, texB:null, texP:null, asp:2/3,
   armA:0, armT:0, seq:null, flashT:0, flashCol:null,
-  allowed(){ return G.rule==="normal" && G.diff!=="easy" && !G.gentle; },   // 쉬움·유치원에는 보스 없음
+  allowed(){ return G.rule==="normal" && G.diff!=="easy" && !G.gentle && !G.versus; },   // 쉬움·유치원·2인용에는 보스 없음
   reset(){
     this.active=false; this.done=false; this.won=false; this.hp=0; this.max=0; this.phase=1; this.used={}; this.doneAt={};
     this.poseName="idle"; this.poseT=0; this.deadT=0; this.enterT=0; this.rageT=0; this.seq=null; this.armA=0; this.armT=0; this.flashT=0; this.transT=0; this._lastFrom=null;
@@ -9468,6 +9535,7 @@ const TrapTip = {
 /* 완주 엔딩 — 쉬움·유치원은 밤하늘 50단계를 마치면 모험이 끝난다 (보통 이상은 문지기와 다음 장으로) */
 const FINISH_STAGE = 50;
 function finishRun(ch){
+  if(G.versus) return VS.finish();
   G.finishing=true; G.cleared=true; G.clearCh=ch||1; G.spawning=false;
   clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset();
   updateHUD();
@@ -9526,7 +9594,7 @@ function startGame(){
   Boss.check();                                    // 시험 주소로 50단계부터 시작하면 바로 보스
   spawnSet(); updateHUD();
   if(G.testRun) setTimeout(()=>{ try{ verdict("🧪 시험 모드", TEST_STAGE+"단계부터 · 랭킹에 안 올라가요", COL.edge, "rgba(255,211,122,.18)"); }catch(e){} }, 700);
-  ["scStart","scSetup","scOver","scRank","scPause","scStudy"].forEach(x=>$(x).classList.remove("on"));
+  ["scStart","scSetup","scOver","scRank","scPause","scStudy","scVs","scVsOver"].forEach(x=>$(x).classList.remove("on"));
   $("shWords").classList.remove("on"); try{ $("shNews").classList.remove("on"); }catch(e){}
   $("hud").classList.add("on");
   camera.position.set(0, VIEW.camY*0.72, VIEW.camZ*0.52);   // 메뉴 시점에서 시작해 뒤로 빠진다
@@ -9540,6 +9608,267 @@ function startGame(){
   $("kbhint").style.display = isTouch ? "none" : "block";
   clock.getDelta();
 }
+/* =====================================================================
+   👥 2인용 (v217) — 키보드 하나로 둘이 같은 길에서 같은 문제를 푼다 (PC). 1P: W A S D · 2P: 방향키
+   - 세계(문·바닥·함정·바위)는 한 번만 움직이고, 사람마다 P·G의 개인 값과 캐릭터 그림을 바꿔 끼워 (VS.use)
+     이동·함정 충돌·문 판정을 한다 → 1인용의 지대·함정·미끼 줄·2·3장이 그대로 따라온다
+   - 틀리거나 함정에 빠지면 그 사람만 떨어지고 제자리에서 다시 달린다. 하트가 0이면 탈락
+   - 둘 다 탈락하거나 끝 단계를 지나면 끝 — 점수가 높은 사람이 이긴다
+   - 보스·장 넘김 연출·보석·도감·랭킹·시트 기록은 없다 (한 기기를 둘이 쓰므로)
+   - 옛 2인용(versus.html, v190대에서 갈라진 파일)은 이 화면으로 넘긴다
+   ===================================================================== */
+const VS = {
+  KEY:"hyeng_vs_v1",
+  PF:["lives","maxLives","inv","falling","dead","wrongFall","combo","bestCombo","score","right","wrong","lane","rush","passSafe",
+      "curseT","guardZone","floatZone","char","lastCause","solved","zonesPassed","healTold","healTag","brake"],
+  KEYS:[{l:"KeyA",r:"KeyD",u:"KeyW",d:"KeyS"},{l:"ArrowLeft",r:"ArrowRight",u:"ArrowUp",d:"ArrowDown"}],
+  COL:[0x5fe0b0,0xff9a5c], CSS:["#5fe0b0","#ff9a5c"], NAME:["1P","2P"],
+  pl:[], cur:null, cfg:{diff:"normal", set:"basic", c:["hero","explorer"]},
+  load(){ try{ const v=JSON.parse(localStorage.getItem(this.KEY)); if(v && typeof v==="object") Object.assign(this.cfg, v); }catch(e){} return this.cfg; },
+  save(){ try{ localStorage.setItem(this.KEY, JSON.stringify(this.cfg)); }catch(e){} },
+  startLane(i){ const n=G.lanes; if(n<=2) return i?n-1:0;
+    return i===0 ? Math.max(0,Math.floor((n-1)*0.25)) : Math.min(n-1,Math.ceil((n-1)*0.75)); },
+  /* ── 사람 바꿔 끼우기 ── */
+  swapIn(i){ const p=this.pl[i]; Object.keys(P).forEach(k=>{ delete P[k]; }); Object.assign(P, p.P);
+    this.PF.forEach(k=>{ G[k]=p.G[k]; }); input.x=p.input.x; input.y=p.input.y;
+    player=p.mesh; blob=p.blob; beam=p.beam; this.cur=i; },
+  swapOut(){ const i=this.cur; if(i==null) return; const p=this.pl[i];
+    p.P=Object.assign({}, P); this.PF.forEach(k=>{ p.G[k]=G[k]; }); p.input.x=input.x; p.input.y=input.y; this.cur=null; },
+  use(i, fn){ if(this.cur===i) return fn(); const prev=this.cur; if(prev!=null) this.swapOut(); this.swapIn(i);
+    try{ return fn(); } finally { this.swapOut(); if(prev!=null) this.swapIn(prev); } },
+  st(i){ return this.cur===i ? G : (this.pl[i] && this.pl[i].G); },
+  /* 함정·바위의 "이미 맞음 / 지나감" 표시는 사람마다 따로 (한 사람이 맞은 함정에 다른 사람도 맞을 수 있게) */
+  flags(i, inn){
+    Hazards.list.forEach(h=>{ const k="_vd"+i; if(inn) h.done=!!h[k]; else h[k]=h.done; });
+    Rocks.list.forEach(r=>{ const k="_vs"+i; if(inn) r.spent=!!r[k]; else r[k]=r.spent; });
+  },
+  makeChar(id){ const c=CHARACTERS.find(x=>x.id===id)||CHARACTERS[0], m=charSprite(c.id)||c.build();
+    if(!m.userData.sprite){ stylize(m,1.08); m.traverse(o=>{ if(o.isMesh && !o.userData.noOutline) o.castShadow=HQ; }); }
+    scene.add(m); return m; },
+  ring(col){ const m=new THREE.Mesh(new THREE.RingGeometry(0.62,0.86,36),
+      new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:.9, side:THREE.DoubleSide, depthWrite:false}));
+    m.rotation.x=-Math.PI/2; m.userData.noOutline=true; scene.add(m); return m; },
+  label(i){ const c=document.createElement("canvas"); c.width=128; c.height=64; const x=c.getContext("2d");
+    x.fillStyle="rgba(16,11,34,.78)"; x.beginPath(); if(x.roundRect) x.roundRect(14,8,100,48,22); else x.rect(14,8,100,48); x.fill();
+    x.lineWidth=5; x.strokeStyle=this.CSS[i]; x.stroke();
+    x.font="900 34px sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillStyle=this.CSS[i]; x.fillText(this.NAME[i],64,34);
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c), depthTest:false, transparent:true}));
+    s.scale.set(1.3,0.65,1); s.renderOrder=20; scene.add(s); return s; },
+  /* ── 시작 ── */
+  start(){
+    const c=this.cfg; this.clear();
+    G.versus=true; document.body.classList.add("vs");
+    G.rule="normal"; G.diff=c.diff; G.set=WORD_SETS[c.set]?c.set:"basic"; G.lesson=0; G.tag=null; G.char=c.c[0]; G._vsDone=false;
+    startGame();                                                       // 세계 + 1P (지금 캐릭터 그림)
+    const base={}; this.PF.forEach(k=>{ base[k]=G[k]; });
+    this.pl=[0,1].map(i=>({i, P:Object.assign({},P), G:Object.assign({},base), input:{x:0,y:0}, out:false}));
+    this._blob0=blob; this._beam0=beam;
+    this.pl[0].mesh=player; this.pl[0].blob=blob; this.pl[0].beam=beam;
+    const b2=blob.clone(); b2.material=blob.material.clone(); scene.add(b2);
+    const m2=beam.clone(); m2.material=beam.material.clone(); scene.add(m2);
+    this.pl[1].mesh=this.makeChar(c.c[1]); this.pl[1].blob=b2; this.pl[1].beam=m2;
+    this.pl.forEach((p,i)=>{ p.beam.material.color.setHex(this.COL[i]); p.ring=this.ring(this.COL[i]); p.tag=this.label(i); });
+    this.pl.forEach((p,i)=>this.use(i,()=>{
+      G.char=c.c[i]; G.maxLives=(DIFF[G.diff].lives||CFG.LIVES)+perk("lives"); G.lives=G.maxLives;
+      G.lane=this.startLane(i); P.x=laneX(G.lane,G.lanes); P.y=0; P.z=0; P.vx=0; P.vy=0; P.vz=0; P.phase=i*1.7; P.tilt=0;
+      G.score=0; G.combo=0; G.bestCombo=0; G.right=0; G.wrong=0; G.solved=0; G.inv=1.2; G.falling=false; G.dead=false; G.wrongFall=false;
+      G.brake=0; G.zonesPassed=0; G.healTold=i>0; G.passSafe=0; G.curseT=0; G.guardZone=-1; G.floatZone=-1;
+      player.visible=true; blob.visible=true;
+    }));
+    G.char=c.c[0];
+    const kb=$("kbhint"); if(kb){ kb.textContent="1P  W A S D   ·   2P  ← → ↑ ↓   ·   P 일시정지"; kb.style.display="block"; }
+    this.marks(); updateHUD();
+  },
+  /* 2인용 그림을 치우고 1인용으로 돌린다 */
+  clear(){
+    if(!this.pl.length){ G.versus=false; document.body.classList.remove("vs"); return; }
+    if(this.cur!=null) this.swapOut();
+    const kill=o=>{ if(!o) return; scene.remove(o); o.traverse(x=>{ if(x.geometry) x.geometry.dispose(); if(x.material){ if(x.material.map && x.material.map.isCanvasTexture) x.material.map.dispose(); x.material.dispose(); } }); };
+    const p2=this.pl[1]; if(p2){ kill(p2.mesh); kill(p2.blob); kill(p2.beam); }
+    this.pl.forEach(p=>{ kill(p.ring); kill(p.tag); });
+    player=this.pl[0].mesh; blob=this._blob0||blob; beam=this._beam0||beam;
+    if(player) player.visible=true; if(blob) blob.visible=true;
+    try{ beam.material.color.setHex(0xffffff); }catch(e){}
+    this.pl=[]; this.cur=null; G.versus=false; document.body.classList.remove("vs");
+    const kb=$("kbhint"); if(kb) kb.textContent="A D / ← → 좌우 이동 · W S / ↑ ↓ 앞뒤 이동 · P 일시정지";
+  },
+  /* ── 한 프레임 ── */
+  frame(dt){
+    G.worldScale=1;
+    const alive=this.pl.some(p=>!p.out);
+    if(alive && !G.finishing && !G._vsDone){ const live=G.sets.some(s=>!s.judged);    // 안전장치 — 문이 사라지면 다시
+      G.noGate = live ? 0 : (G.noGate||0)+dt; if(G.noGate>1.2){ G.noGate=0; clearSets(); spawnSet(); } }
+    updateGates(dt);                                                   // 문 판정은 VS.gate 에서 사람마다
+    Ground.update(dt, G.groundSpeed); Props.update(dt, G.groundSpeed);
+    Hazards.list.forEach(h=>{ if(!("_vd0" in h)){ h._vd0=h._vd1=!!h.done; } });
+    Rocks.list.forEach(r=>{ if(!("_vs0" in r)){ r._vs0=r._vs1=!!r.spent; } });
+    const lead=Math.max(0, this.pl.findIndex(p=>!p.out));
+    [lead, 1-lead].forEach(i=>this.use(i,()=>{
+      const first = i===lead;                                          // 세계는 앞사람 차례에만 움직인다 (뒷사람은 dt 0 — 충돌만)
+      this.flags(i,true); Hazards.update(first?dt:0, G.groundSpeed); Rocks.update(first?dt:0); this.flags(i,false);
+      if(!this.pl[i].out){ if(G.falling && !G.dead && P.y < CFG.DEATH_Y-6) onDead(); updatePlayer(dt); }
+    }));
+    Wind.update(dt); Chapter.update(dt);
+    updateFx(dt); updateRings(dt); updateMarks(dt, G.groundSpeed);
+    this.marks();
+    // 카메라 — 두 사람 가운데를 본다
+    const a=this.pl.filter(p=>!p.out), zc=a.length ? a.reduce((t,p)=>t+p.P.z,0)/a.length : 0;
+    const keep=Object.assign({},P), kf=G.falling, kv=G.lanes;
+    Object.keys(P).forEach(k=>{ delete P[k]; }); Object.assign(P,{x:0,y:0,z:zc,vx:0,vy:0,vz:0}); G.falling=false;
+    try{ updateAmbience(dt); updateCamera(dt); }
+    finally { Object.keys(P).forEach(k=>{ delete P[k]; }); Object.assign(P,keep); G.falling=kf; G.lanes=kv; }
+  },
+  marks(){ this.pl.forEach(p=>{ const q=p.P, on=!p.out && !p.G.dead && q.y>-1.5;
+    if(p.ring){ p.ring.position.set(q.x||0, .08, q.z||0); p.ring.visible=on; }
+    if(p.tag){ p.tag.position.set(q.x||0, 2.95+(q.y||0), q.z||0); p.tag.visible=!p.out; } }); },
+  /* ── 문 판정 (updateGates 에서) ── */
+  gate(s){
+    if(s.judged) return; s.vj=s.vj||[false,false];
+    for(let i=0;i<2;i++){ if(s.vj[i]) continue; const p=this.pl[i]; if(!p) { s.vj[i]=true; continue; }
+      if(s.group.position.z < p.P.z) continue;
+      if(p.out || p.G.falling || p.G.dead){ s.vj[i]=true; continue; }
+      this.use(i,()=>this.judge(s,i)); }
+    this.settle(s);
+  },
+  settle(s){ if(!s.judged && s.vj && s.vj[0] && s.vj[1]) this.advance(s); },
+  judge(s,i){
+    s.vj[i]=true;
+    const n=s.gates.length, lg=g=>laneOfX(g.root.position.x,n), ans=lg(s.gates[s.q.answer]), ok=G.lane===ans, w=s.q.word;
+    G.solved++;
+    if(ok){
+      G.right++; G.combo++; G.bestCombo=Math.max(G.bestCombo,G.combo); G.passSafe=passSafeNow();
+      const rush=clamp(P.z/CFG.Z_FORWARD,0,1), bonus=Math.round(rush*CFG.RUSH_BONUS), memo=s.hideMode?CFG.GIMMICK_BONUS:0;
+      const gain=Math.round((CFG.SCORE_BASE+(G.combo-1)*CFG.COMBO_STEP+bonus+memo)*DIFF[G.diff].scoreMul);
+      G.score+=gain; (s.okBy=s.okBy||[]).push(i);
+      passRing(laneX(G.lane,G.lanes), s.group.position.z, this.COL[i]); burst(P.x,1.4,P.z+0.5,this.COL[i],22);
+      SFX.correct(); popScore("+"+gain, (bonus?"RUSH ":"")+(G.combo>=2?G.combo+" COMBO":""), this.CSS[i], 44); comboStep();
+      if(!s.voiced){ s.voiced=1; Voice.say(w.en,{keep:true}); }
+    } else {
+      G.wrong++; G.combo=0; SFX.wrong(); (s.pick=s.pick||[]).push(G.lane);
+      if(!G.wrongWords.some(x=>x.en===w.en)) G.wrongWords.push({en:w.en, ko:w.ko});
+      passRing(laneX(G.lane,G.lanes), s.group.position.z, COL.coral);
+      verdict("Wrong!", "정답은 <em>"+(s.q.dir==="k2e" ? w.en.toUpperCase() : w.ko)+"</em>", COL.coral, "rgba(255,122,102,.22)");
+      if(!s.voiced){ s.voiced=1; setTimeout(()=>Voice.say(w.en,{keep:true}),320); }
+      G.shake=.4; G.wrongFall=true; Ground.collapseAt(G.lane, P.z); startFall();
+    }
+    this.hud();
+  },
+  advance(s){
+    s.judged=true; s.hideAt=s.t0+0.6;
+    const n=s.gates.length, lg=g=>laneOfX(g.root.position.x,n), picks=s.pick||[];
+    if(s.cloud) s.cloud.visible=false;
+    s.gates.forEach(g=>{ g.sign.material.opacity=1;
+      if(g.lane===s.q.answer){ g.sign.material.color.setHex(COL.mint); g.frameMat.color.setHex(COL.mint); g.frameMat.opacity=.9; }
+      else if(picks.indexOf(lg(g))>=0){ g.sign.material.color.setHex(COL.coral); g.frameMat.color.setHex(COL.coral); g.frameMat.opacity=.9; }
+      else { g.sign.material.color.setHex(COL.dim); g.frameMat.color.setHex(COL.dim); g.frameMat.opacity=.3; } });
+    if((s.okBy||[]).length) shatterGate(s.gates[s.q.answer], s.group.position.z, COL.mint);
+    if(this.pl.every(p=>p.out) || G._vsDone) return;
+    G.stage++;
+    const endAt=(G.diff==="easy"||G.gentle) ? FINISH_STAGE : RUN_END;
+    if(G.stage>endAt){ G.stage=endAt; G.cleared=true; this.finish(); return; }
+    const zi=zoneIndex(G.stage);
+    if(zi!==G.zone){ applyZone(zi,true); this.pl.forEach((p,i)=>{ if(!p.out) this.use(i,()=>zoneHeal()); }); }
+    updateHUD(); spawnSet();
+  },
+  /* ── 떨어짐 → 제자리 부활 / 탈락 (onDead 에서) ── */
+  dead(){
+    if(G.dead) return; G.dead=true; G.lives--; const i=this.cur; this.hud();
+    setTimeout(()=>{ if(!G.versus || !G.running || G._vsDone || !this.pl[i]) return; this.use(i,()=>{ if(G.lives<=0) this.out(i); else this.respawn(i); }); }, 420);
+  },
+  respawn(i){
+    P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
+    G.falling=false; G.dead=false; G.wrongFall=false; G.inv=1.8; player.visible=true; blob.visible=true;
+    Ground.tiles.forEach(t=>{ if(t.fall && t.lane===G.lane && Math.abs(t.logicZ-P.z)<Ground.len*1.6){
+      t.fall=false; t.ft=0; t.mesh.rotation.set(0,0,0); t.mesh.position.y=0; t.mesh.position.z=t.logicZ; } });
+    G.sets.forEach(s=>{ if(s.judged) return; const left=(P.z-s.group.position.z)/Math.max(0.01,s.speed);
+      if(left<1.6){ s.vj=s.vj||[false,false]; s.vj[i]=true; } });            // 코앞의 문제는 건너뛴다
+    G.sets.slice().forEach(s=>this.settle(s));
+    this.hud();
+  },
+  out(i){
+    const p=this.pl[i]; p.out=true; G.dead=true; G.falling=true; G.inv=999;
+    player.visible=false; blob.visible=false; beam.visible=false;
+    verdict("탈락!", "친구를 응원해요", COL.coral, "rgba(255,122,102,.2)");
+    G.sets.forEach(s=>{ if(!s.judged){ s.vj=s.vj||[false,false]; s.vj[i]=true; } });
+    this.hud();
+    if(this.pl.every(q=>q.out)){ this.finish(); return; }
+    G.sets.slice().forEach(s=>this.settle(s));
+  },
+  /* ── 끝 · 결과 ── */
+  finish(){
+    if(G._vsDone) return; G._vsDone=true;
+    G.hitStop=0.4; const fade=$("fade"); if(fade) fade.style.opacity="0.6";
+    try{ SFX.tone(330,.6,"sawtooth",.05,160); }catch(e){}
+    setTimeout(()=>{ if(fade) fade.style.opacity="0";
+      G.running=false; Rocks.stop(); Wind.reset(); Voice.stop(); try{ BGM.stop(); }catch(e){}
+      $("hud").classList.remove("on"); $("kbhint").style.display="none"; $("touchHint").style.display="none";
+      this.result(); show("scVsOver"); }, 650);
+  },
+  cname(id){ const c=CHARACTERS.find(x=>x.id===id); return c ? c.emoji+" "+c.name : id; },
+  result(){
+    const S=this.pl.map(p=>p.G), win = S[0].score===S[1].score ? -1 : (S[0].score>S[1].score ? 0 : 1);
+    $("vsWin").innerHTML = win<0 ? "🤝 무승부!" : '<span style="color:'+this.CSS[win]+'">🏆 '+this.NAME[win]+' 승리!</span>';
+    $("vsSub").textContent = (G.cleared ? "끝까지 달렸어요 · " : "")+G.stage+"단계 "+zone().name+" · "+({easy:"쉬움",normal:"보통",hard:"어려움"}[G.diff]||G.diff)+" · "+WORD_SETS[G.set].label;
+    $("vsCols").innerHTML = this.pl.map((p,i)=>{ const g=p.G, t=g.right+g.wrong, acc=t?Math.round(g.right/t*100):0;
+      return '<div class="vsCol p'+(i+1)+(win===i?' win':'')+'"><div class="vsN">'+(win===i?'👑 ':'')+this.NAME[i]+'<i>'+this.cname(g.char)+'</i></div>'
+        +'<b>'+g.score.toLocaleString()+'</b><small>점수</small>'
+        +'<div class="vsL"><span>⭕ 맞힘 '+g.right+'</span><span>❌ 틀림 '+g.wrong+'</span><span>🎯 '+acc+'%</span><span>🔥 콤보 '+g.bestCombo+'</span></div>'
+        +(p.out ? '<em>탈락</em>' : '<em class="ok">끝까지 · ♥ '+g.lives+'</em>')+'</div>'; }).join("");
+    const ww=(G.wrongWords||[]).slice(0,10);
+    $("vsWords").innerHTML = ww.length ? '<div class="glab">같이 다시 볼 단어</div><div class="vsW">'+ww.map(x=>'<span><b>'+x.en+'</b> '+x.ko+'</span>').join("")+'</div>' : "";
+  },
+  hud(){
+    [0,1].forEach(i=>{ const el=$("vsC"+i), s=this.st(i), p=this.pl[i]; if(!el || !s) return;
+      let h=""; for(let k=0;k<(s.maxLives||3);k++) h += k<s.lives ? "♥" : '<span class="off">♥</span>';
+      el.className="vsCard p"+(i+1)+(p.out?" out":"");
+      el.innerHTML='<div class="vsN">'+this.NAME[i]+'<span class="vsH">'+(p.out?'탈락':h)+'</span></div><b>'+s.score.toLocaleString()+'</b><small>'+(s.combo>=2 ? s.combo+' COMBO' : '&nbsp;')+'</small>'; });
+    const us=$("uStage"); if(us) us.textContent=G.stage;
+    const zn=$("uZone"); if(zn) zn.textContent=zone().name;
+  },
+  /* 문 테두리 — 두 사람이 서 있는 문을 각자 색으로 */
+  highlight(){
+    const s=activeSet(); if(!s) return; const n=s.gates.length;
+    const L=[0,1].map(i=>{ const g=this.st(i), p=this.pl[i]; return (!g || (p && p.out) || g.falling) ? -9 : g.lane; });
+    s.gates.forEach(g=>{ const ln=laneOfX(g.root.position.x,n), a=L[0]===ln, b=L[1]===ln;
+      const col = a&&b ? COL.edge : a ? this.COL[0] : b ? this.COL[1] : COL.frame;
+      g.frameMat.color.setHex(col); g.frameMat.opacity = (a||b) ? 0.9 : 0.42;
+      g.sign.material.color.setHex((a||b) ? 0xffe6b0 : 0xffffff);
+      if(g.halo){ g.halo.material.color.setHex(col); g.halo.material.opacity=(a||b)?.6:.3; } });
+  },
+  /* ── 준비 화면 ── */
+  setup(){
+    const c=this.load(), T=CHARACTERS.filter(x=>Unlock.has(x.id));
+    if(!Unlock.has(c.c[0])) c.c[0]="hero"; if(!Unlock.has(c.c[1])) c.c[1]=T.length>1 ? T[1].id : "hero";
+    const opt=(id,arr,cur)=>{ $(id).innerHTML=arr.map(o=>'<div class="opt'+(o[0]===cur?' sel':'')+'" data-v="'+o[0]+'"><i>'+o[1]+'</i><b>'+o[2]+'</b></div>').join(""); };
+    opt("vsDiff", [["easy","🐣","쉬움"],["normal","⚡","보통"],["hard","🔥","어려움"]], c.diff);
+    opt("vsSet", ["kinder","basic","elem","mid","phrase"].filter(k=>WORD_SETS[k]).map(k=>[k,WORD_SETS[k].icon,WORD_SETS[k].label]), c.set);
+    [0,1].forEach(i=>{ $("vsP"+i).innerHTML=CHARACTERS.map(x=>{ const lk=!Unlock.has(x.id);
+      return '<div class="tile'+(x.id===c.c[i]?' sel':'')+(lk?' locked':'')+'" data-v="'+x.id+'"><i>'+(lk?'🔒':x.emoji)+'</i><b>'+x.name+'</b></div>'; }).join(""); });
+    show("scVs");
+  },
+  pick(row, v){
+    const c=this.cfg;
+    if(row==="vsDiff") c.diff=v; else if(row==="vsSet") c.set=v;
+    else { const i=row==="vsP0"?0:1; if(!Unlock.has(v)){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; } c.c[i]=v; }
+    $(row).querySelectorAll("[data-v]").forEach(el=>el.classList.toggle("sel", el.dataset.v===v));
+    try{ SFX.select(); }catch(e){} this.save();
+  }
+};
+["vsDiff","vsSet","vsP0","vsP1"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("click",e=>{ const b=e.target.closest("[data-v]"); if(b) VS.pick(id, b.dataset.v); }); });
+$("vsGo").addEventListener("click",()=>{ SFX.click(); VS.save(); VS.start(); });
+$("vsBack").addEventListener("click",()=>{ SFX.click(); show("scStart"); });
+$("vsAgain").addEventListener("click",()=>{ SFX.click(); VS.start(); });
+$("vsSetupAgain").addEventListener("click",()=>{ SFX.click(); VS.clear(); try{ setCharacter(G.char); }catch(e){} VS.setup(); });
+$("vsHome").addEventListener("click",()=>{ SFX.click(); VS.clear(); Voice.stop(); Attract.focus=false; try{ setCharacter(LastSetup.get() && LastSetup.get().char || G.char); }catch(e){} refreshResume(); titleZone(); show("scStart"); });
+/* 2인용은 키보드가 필요해서 PC(터치 없는 기기)에서만 메뉴에 보인다. 주소 끝 ?vs 로도 연다 */
+(function(){
+  const b=$("btnVersus"); if(!b) return;
+  const touch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
+  if(!touch) b.style.display="block";
+  b.addEventListener("click",()=>{ SFX.click(); VS.setup(); });
+  try{ if(new URLSearchParams(location.search).has("vs")) setTimeout(()=>VS.setup(), 400); }catch(e){}
+})();
+
 /* 색종이 — 최고 기록·등급 상승 때 */
 function confetti(){
   if(!document.body || !document.createElement) return;
@@ -9552,6 +9881,7 @@ function confetti(){
   }
 }
 function gameOver(){
+  if(G.versus) return VS.finish();                 // 2인용 — 승자 화면
   if(G.overFade) return;                       // 중복 호출 방지
   // 마지막 순간을 잠깐 늘렸다가 결과를 보여준다
   if(G.running && !G.skipOutro){
@@ -9701,7 +10031,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v216";
+const GAME_VER = "v217";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -9750,7 +10080,7 @@ document.addEventListener("visibilitychange", ()=>{
   }catch(e){}
 });
 
-const show = id => { ["scStart","scSetup","scOver","scRank","scPause","scStudy"].forEach(x=>$(x).classList.toggle("on", x===id));
+const show = id => { ["scStart","scSetup","scOver","scRank","scPause","scStudy","scVs","scVsOver"].forEach(x=>$(x).classList.toggle("on", x===id));
   if(id==="scSetup") try{ Unlock.paint(); }catch(e){} };
 /* 결과창 — 카드 발음 듣기 · 틀린 단어만 다시 풀기 · R 키 재시작 */
 $("oReview").addEventListener("click", e=>{
@@ -11373,14 +11703,7 @@ addEventListener("keydown", e=>{
 menuFocus(0);
 $("btnStart").addEventListener("click",startGame);
 $("btnRetry").addEventListener("click",startGame);
-$("btnMain").addEventListener("click",()=>{ Voice.stop(); Attract.focus=false; refreshResume(); titleZone();
-/* 2인용은 키보드가 필요해서 PC 에서만 보여준다 */
-(function(){
-  const b=$("btnVersus"); if(!b) return;
-  const touch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
-  if(!touch) b.style.display="block";
-  b.addEventListener("click",()=>{ SFX.click(); location.href="versus.html"; });
-})(); show("scStart"); });
+$("btnMain").addEventListener("click",()=>{ Voice.stop(); Attract.focus=false; refreshResume(); titleZone(); show("scStart"); });
 $("btnWords").addEventListener("click",()=>$("shWords").classList.add("on"));
 $("btnSheetClose").addEventListener("click",()=>$("shWords").classList.remove("on"));
 $("btnUnpause").addEventListener("click",togglePause);
