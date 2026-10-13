@@ -5534,6 +5534,10 @@ function makeZoneMesh(kind, w, L, cols, lane0){
     const em=new THREE.MeshBasicMaterial({color:st.edge});
     [-1,1].forEach(sx=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,L),em);
       b.position.set(sx*w/2,st.y+.02,0); g.add(b); });
+  } else if(g.userData.artFace){                     // (v219) 그림 빙판(밤하늘) — 옛 빙판의 흰 줄·떠다니는 얼음 조각·굵은 테두리 없이, 가장자리만 은은하게
+    const em=new THREE.MeshBasicMaterial({color:0xcbb8ff, transparent:true, opacity:.45, depthWrite:false});
+    [-1,1].forEach(sz=>{ const b=new THREE.Mesh(new THREE.PlaneGeometry(w,.22),em); b.rotation.x=-Math.PI/2;
+      b.position.set(0,st.y+.015,sz*L/2); g.add(b); });
   } else {
     for(let i=0;i<8;i++){
       const l=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.02,.07),
@@ -5825,7 +5829,8 @@ const Hazards = {
         mesh.position.set(cx,0,z); scene.add(mesh);
         this.list.push({type:"crumble", lane:l, cx, halfW:w/2, z, mesh,
                         len:CRUMBLE.LEN, tile:null, done:false});
-        zones.push(Z.ch ? {z, len:CRUMBLE.LEN, lane:l} : {z, len:CRUMBLE.LEN});   // 2장·3장 — 금 간 줄 옆 줄에는 다른 함정을 놓아도 된다
+        zones.push((Z.ch || Z.prop==="lava") ? {z, len:CRUMBLE.LEN, lane:l} : {z, len:CRUMBLE.LEN});   // 2장·3장·화산 — 금 간 줄 옆 줄에는 다른 함정을 놓아도 된다
+        // (v219) 화산은 흔들다리가 자주 나와 그 앞뒤 구간을 통째로 비우는 바람에 도롱뇽·장애물이 들어갈 자리가 없었다 (보통 화산 도롱뇽 0개, 함정 1.8개/문제)
       } else if(kind==="puddle"){
         const span=2, start=Math.floor(Math.random()*(G.lanes-span+1));
         const mesh=makeZoneMesh("puddle", CFG.LANE_W*span-0.2, PUDDLE.LEN);
@@ -5845,9 +5850,15 @@ const Hazards = {
       }
     }
     // 화산 — 도롱뇽이 대표 함정이라 따로 더 자주 등장시킨다
-    if(zone().prop==="lava" && zoneAllows("block") && !G.gentle && Math.random()<0.55){
-      const z=freeZ(), l=(z!==null && z<=exitUntil) ? laneFor(z) : -1;   // 순찰하므로 더 멀리
-      if(l>=0){ this.addBlock(l,z); used.push(l); }
+    if(zone().prop==="lava" && zoneAllows("block") && !G.gentle && Math.random()<(G.diff==="normal" ? 0.8 : 0.55)){
+      for(let t=0;t<3;t++){                                            // (v219) 자리가 안 맞으면 몇 번 더 — 보통 화산에 도롱뇽이 거의 안 나왔다
+        const z=freeZ(); if(z===null) break;
+        const l=laneFor(z);                                             // 막 나온 줄은 laneFor 가 뺀다
+        if(l>=0){ this._avoid = z>exitUntil ? exitLane : -1;            // 순찰 범위(옆 칸)도 막 나온 줄은 넘보지 않게
+          this.addBlock(l,z); this._avoid=-1; used.push(l); break; }
+        zs.splice(zs.indexOf(z),1);                                     // 못 쓴 자리는 돌려준다
+        // (전에는 "앞 문에서 2.2초 넘게 떨어진 자리"에만 놓았는데, 보통 31단계쯤부터는 빨라져서 그런 자리가 거의 없었다)
+      }
     }
     // 보통 — 1장 지대의 대표 함정을 약하게 하나 (지대 4번째 단계부터, 두 문제에 하나꼴, 보스전 제외)
     if(!G.gentle && G.diff==="normal" && !Z.ch && !(typeof Boss!=="undefined" && Boss.active) && G.stage>=Z.from+3 && Math.random()<0.75)
@@ -6619,8 +6630,9 @@ const Hazards = {
     if(mesh.userData.sala){                         // 순찰 범위 — 정답 길을 뺀 이웃 두 칸
       const ans=this._ans, n=G.lanes;
       let other = -1;
-      if(lane+1<n && lane+1!==ans) other=lane+1;
-      else if(lane-1>=0 && lane-1!==ans) other=lane-1;
+      const av=(this._avoid!=null) ? this._avoid : -1;
+      if(lane+1<n && lane+1!==ans && lane+1!==av) other=lane+1;
+      else if(lane-1>=0 && lane-1!==ans && lane-1!==av) other=lane-1;
       const x1=laneX(lane,n), x2= other>=0 ? laneX(other,n) : x1;
       mesh.userData.patrol={mid:(x1+x2)/2, half: other>=0 ? Math.abs(x2-x1)/2 : CFG.LANE_W*0.22,
                             sp: 1.1+Math.random()*0.5};
@@ -10034,7 +10046,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v218";
+const GAME_VER = "v219";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
