@@ -5034,6 +5034,15 @@ function spawnSet(){
     s.cloudDir = Math.random()<.5 ? -1 : 1;
   }
 
+  /* (v230) 학자 — 지식의 눈: 지대마다 두 번까지 (지대 첫 문제 · 틀린 바로 다음 문제) 틀린 문 하나에 ✕ */
+  try{ if(G.char==="scholar" && !G.versus && !(typeof Boss!=="undefined" && Boss.active) && n>=3 && !q.isMine){
+    if(G.schZone!==G.zone){ G.schZone=G.zone; G.schN=0; G._schPend=true; }
+    if(G._schPend && (G.schN|0)<2){
+      const c=[]; for(let j=0;j<n;j++) if(j!==q.answer && !gates[j].fake) c.push(j);
+      if(c.length){ G._schPend=false; G.schN=(G.schN|0)+1;
+        const g=gates[rnd(c)]; g.dim=true; try{ g.tex.dispose(); }catch(e){} g.tex=signTexture("✕"); g.sign.material.map=g.tex; g.sign.material.needsUpdate=true; g.sign.material.opacity=.35;
+        if(!G._schTold){ G._schTold=true; setTimeout(()=>{ try{ if(G.running) TrapTip.show("📜 학자가 틀린 문 하나를 찾았어요 — ✕ 문은 정답이 아니에요"); }catch(e){} }, 300); } } } } }catch(e){}
+
   if(!pre){ const hb=new Set(Hazards.list); Hazards.spawnFor(group.position.z, q.answer, s.speed);   // 정답 레인은 항상 비워둔다
     try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z, q.answer, s.speed); }catch(e){}
     try{ Hazards.decoyLane(group.position.z, q.answer, s.speed); }catch(e){} }
@@ -5178,6 +5187,7 @@ function highlightLane(){
   const n=s.gates.length;
   for(let i=0;i<n;i++){
     const g=s.gates[i], on = laneOfX(g.root.position.x,n)===G.lane;
+    if(g.dim){ g.frameMat.color.setHex(COL.frame); g.frameMat.opacity = on ? 0.3 : 0.15; g.sign.material.color.setHex(0x9a96b8); continue; }   // (v230) 학자가 찾은 틀린 문
     g.frameMat.color.setHex(on ? COL.edge : COL.frame);
     g.frameMat.opacity = on ? 0.85 : 0.42;
     g.sign.material.color.setHex(on ? 0xffe6b0 : 0xffffff);
@@ -5197,7 +5207,7 @@ function updateWordFade(s, dt){
   if(!s.hidden) return;
   s.fade = Math.min(1, s.fade + dt/0.4);
   const o = 1 - s.fade;
-  for(let i=0;i<s.gates.length;i++) s.gates[i].sign.material.opacity = o;
+  for(let i=0;i<s.gates.length;i++) s.gates[i].sign.material.opacity = s.gates[i].dim ? Math.min(o,.35) : o;
 }
 
 function activeSet(){ for(let i=0;i<G.sets.length;i++) if(!G.sets[i].judged) return G.sets[i]; return null; }
@@ -5301,7 +5311,7 @@ function judge(s){
     updateHUD();
     spawnSet();                     // 흐름이 끊기지 않도록 즉시 다음 문제
   } else {
-    G.wrong++; G.combo=0; SFX.wrong(); G.breather = true; G.solved++;
+    G.wrong++; G.combo=0; SFX.wrong(); G.breather = true; G.solved++; G._schPend = true;   // (학자) 틀린 다음 문제에 한 번 더
     let conf=null; try{ const j=s.gates.findIndex(g=>laneOfGate(g)===G.lane); if(j>=0){ conf=String(s.q.options[j]); if(/[A-Za-z]/.test(conf)) conf=conf.toLowerCase(); } }catch(e){}   // 어떤 단어와 헷갈렸는지
     Rank.record(s.q.word && s.q.word.en, false, conf, !!G.practice);
     onRuleWrong(); Boss.taunt();
@@ -10013,7 +10023,7 @@ function startGame(){
   if(G.rule==="endless"){ G.maxLives = 1; G.lives = 1; }   // 한 번 틀리면 끝
   if(G.rule==="time"){ G.maxLives = 99; G.lives = 99; }    // 죽지 않고 시간으로만 끝난다
   if(G.rule!=="endless" && G.rule!=="time"){ G.maxLives += perk("lives"); G.lives = G.maxLives; }
-  G.guardZone=-1; G.floatZone=-1;
+  G.guardZone=-1; G.floatZone=-1; G.schZone=-1; G.schN=0; G._schPend=false; G._schTold=false;
   G.right=0; G.wrong=0; G.wrongWords=[]; G.falling=false; G.dead=false; G.zonesPassed=0; G.healTold=false; G.healTag=false; G._iceTold=false; G._gemDone=false; G._overDone=false; G.dexNew=0;
   G.lane=Math.floor(G.lanes/2); G.inv=1.2;
   G.testRun = TEST_STAGE>0;
@@ -10467,7 +10477,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v229";
+const GAME_VER = "v230";
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
   const L=[["옷",OUTFITS],["달리기 효과",TRAILS],["정답 효과",HITS],["동료",PETS],["칭호",TITLES]];
@@ -11264,7 +11274,7 @@ const CHAR_GOAL = {
 /* 숨은 효과 (설명 없음)
    용사: 하트 +1 · 탐험가: 금 간 길에서 더 오래 버티고 물웅덩이에서 덜 느려짐 · 궁수: 보스전 콤보 5부터 화살 2발
    마법사: 브레이크 게이지 1.5배 · 늑대: 빙판·돌풍에 덜 밀림 · 고양이: 부딪혀도 반만 밀리고 좌우로 조금 빠름
-   학자: 사라지는 단어가 조금 더 오래 보임 · 기사: 지대마다 한 번 하트 깎이는 공격을 막음 · 유령: 지대마다 한 번 구멍에서 떠오름 */
+   학자: (v230) 지식의 눈 — 지대마다 두 번(지대 첫 문제·틀린 다음 문제) 틀린 문 하나에 ✕ + 사라지는 단어가 조금 더 오래 보임 · 기사: 지대마다 한 번 하트 깎이는 공격을 막음 · 유령: 지대마다 한 번 구멍에서 떠오름 */
 const CHAR_PERK = {
   lives:    c => c==="hero" ? 1 : 0,
   crumble:  c => c==="explorer" ? 1.6 : 1,
