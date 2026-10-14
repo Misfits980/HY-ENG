@@ -956,6 +956,7 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .dBH .dGift2{margin-left:auto;padding:3px 10px;border-radius:99px;border:0;background:#ffd37a;color:#3a2600;font:inherit;font-size:11.5px;font-weight:900;cursor:pointer;animation:dGlow 1.6s ease-in-out infinite}
 .dBH .dBdone{margin-left:auto;font-style:normal;color:#ffd37a;font-weight:900}
 .dBG{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.dXtra{grid-column:1/-1;margin:6px 0 1px;padding-top:7px;border-top:1px dashed rgba(255,255,255,.14);font-size:11px;font-weight:800;color:#a99ed0;text-align:center}
 .dBn{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:900;color:#6f6596}
 .dBn.on{color:#ffd37a}
 .dCard.lit{border-color:#ffd37a!important;box-shadow:0 0 0 1px rgba(255,211,122,.5),0 0 10px rgba(255,211,122,.45)}
@@ -10967,7 +10968,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v253";
+const GAME_VER = "v254";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12910,16 +12911,18 @@ const Dex = (function(){
     line(a,i){ return a.words.slice(i*5,i*5+5); },
     lineDone(a,i){ const L=this.line(a,i); return L.length>0 && L.every(w=>this.opened(w.en)); },
     /* ── 빙고판 (5줄 × 5칸) ── */
-    boards(a){ return Math.ceil(this.lines(a)/5); },
-    board(a,b){ const R=[]; for(let r=0;r<5;r++){ const L=this.line(a,b*5+r); if(L.length) R.push(L); } return R; },
-    full(a,b){ const R=this.board(a,b); return R.length===5 && R.every(L=>L.length===5); },
-    col(a,b,c){ return this.board(a,b).map(L=>L[c]).filter(Boolean); },
+    /* (v254) 마지막 판이 2줄 이하로 남으면 (예: 동물 76단어 → 25·25·25·1칸) 따로 판을 만들지 않고 앞 판의 '덤 줄'로 붙인다.
+       세로·대각선은 앞 5줄로만 · 덤 줄의 가로 보상 키는 예전(따로 판이던 때) 키를 그대로 써서 이미 받은 줄을 또 받지 않게 */
+    boards(a){ const n=this.lines(a), nb=Math.ceil(n/5), t=n-(nb-1)*5; return (nb>1 && t<=2) ? nb-1 : nb; },
+    board(a,b){ const nb=this.boards(a), end=(b===nb-1) ? this.lines(a) : b*5+5, R=[]; for(let i=b*5;i<end;i++){ const L=this.line(a,i); if(L.length) R.push(L); } return R; },
+    full(a,b){ const R=this.board(a,b); return R.length>=5 && R.slice(0,5).every(L=>L.length===5); },
+    col(a,b,c){ return this.board(a,b).slice(0,5).map(L=>L[c]).filter(Boolean); },
     rowDone(a,b,r){ const L=this.line(a,b*5+r); return L.length>0 && L.every(w=>this.opened(w.en)); },
     colDone(a,b,c){ if(!this.full(a,b)) return false; return this.col(a,b,c).every(w=>this.opened(w.en)); },
     boardDone(a,b){ const R=this.board(a,b); return R.length>0 && R.every(L=>L.every(w=>this.opened(w.en))); },
     /* (v221) 한 판의 빙고 줄 — 가로 5 + (25칸 판이면) 세로 5 + 대각선 2. 칸은 [줄, 칸] */
     lineSet(a,b){ const R=this.board(a,b), out=[];
-      R.forEach((L,r)=>out.push({key:"br-"+a.id+"-"+b+"-"+r, cells:L.map((_,c)=>[r,c])}));
+      R.forEach((L,r)=>out.push({key:r<5 ? "br-"+a.id+"-"+b+"-"+r : "br-"+a.id+"-"+(b+1)+"-"+(r-5), cells:L.map((_,c)=>[r,c])}));
       if(this.full(a,b)){ for(let c=0;c<5;c++) out.push({key:"bc-"+a.id+"-"+b+"-"+c, cells:[0,1,2,3,4].map(r=>[r,c])});
         out.push({key:"bd-"+a.id+"-"+b+"-0", cells:[0,1,2,3,4].map(r=>[r,r])});
         out.push({key:"bd-"+a.id+"-"+b+"-1", cells:[0,1,2,3,4].map(r=>[r,4-r])}); }
@@ -13434,6 +13437,7 @@ const DexUI = {
       h+='<div class="dBoard'+(bd?' done':'')+(isFresh("bf-"+A.id+"-"+b)?' fresh':'')+'"><div class="dBH"><b>'+(bd?'🏅':'🎯')+' 빙고판 '+(b+1)+'</b><span>'+op+' / '+tot+'</span>'
         +'<em class="dBn'+(nd?' on':'')+'">빙고 '+nd+' / '+LS.length+'줄</em></div><div class="dBG">';
       R.forEach((L,r)=>{ const lv=L.map(w=>w.level||0).filter(x=>x>0), base=lv.length?Math.min.apply(null,lv):0;
+        if(r===5) h+='<div class="dXtra">➕ 덤 줄 · 가로로 채우면 빛나요</div>';   // (v254)
         h+=L.map((w,c)=>card(w,base).replace('class="dCard', 'class="dCard'+(lit[r+"-"+c]?' lit'+(lit[r+"-"+c]>1?' lit2':''):'')+(fl[r+"-"+c]?' flash':'')+(!Dex.has(w.en)&&Dex.isTarget(w.en)?' tg':''))).join("")
           +'<i class="dPad"></i>'.repeat(5-L.length); });
       h+='</div>'+(bd?'<div class="dStamp">🏅 판 완성 도장</div>':'')+'</div>'; }
