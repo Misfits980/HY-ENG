@@ -1533,6 +1533,10 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .stEx p{margin:0;font-size:16px;font-weight:700;color:#fff;line-height:1.45}
 .stEx p b{color:#7dffb2}
 .stEx small{display:block;margin-top:4px;font-size:13px;color:#c9c0ff;font-weight:600}
+/* (v246) 사이트 워드 — 문장에서 단어 찾기 */
+.stFind{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px auto 6px;max-width:420px}
+.stOpt.fw{width:auto;min-width:0;flex:0 0 auto;padding:12px 14px;font-size:24px;font-weight:900;letter-spacing:.3px}
+.stFind+.stSentKo{text-align:center;margin-top:8px}
 .stExSay{display:flex;justify-content:center;gap:8px;margin-top:8px}
 .stExSay button{appearance:none;border:2px solid rgba(125,255,178,.5);border-radius:999px;padding:6px 12px;font:900 14px var(--font);color:#d8ffe8;background:rgba(125,255,178,.12);cursor:pointer}
 .stExSay button:active{transform:scale(.95)}
@@ -3352,6 +3356,15 @@ const WORD_BANK = [
   {en:"wool",ko:"양모, 털실",level:2,emoji:"🧶"}, {en:"wound",ko:"상처",level:3}, {en:"zero",ko:"0, 영",level:1},
   /* (v243) 파닉스 소리 가족(1-1 · 1-2 …)에 들어가는 쉬운 단어 */
   {en:"can",ko:"캔, 깡통",level:1,emoji:"🥫"}, {en:"crab",ko:"게",level:1,emoji:"🦀"}, {en:"jet",ko:"제트기",level:1,emoji:"🛩️"}, {en:"hop",ko:"깡충 뛰다",level:1,emoji:"🦘"}, {en:"mop",ko:"대걸레",level:1}, {en:"mug",ko:"머그컵",level:1,emoji:"☕"}, {en:"rug",ko:"깔개, 러그",level:1}, {en:"pup",ko:"새끼 강아지",level:1,emoji:"🐕"}, {en:"bun",ko:"둥근 빵",level:1}, {en:"plum",ko:"자두",level:1}, {en:"rake",ko:"갈퀴",level:1}, {en:"mice",ko:"생쥐들",level:1,emoji:"🐁"}, {en:"cube",ko:"정육면체, 큐브",level:1,emoji:"🎲"}, {en:"tube",ko:"튜브, 관",level:1}, {en:"feet",ko:"발 (두 발)",level:1,emoji:"👣"}, {en:"snail",ko:"달팽이",level:1,emoji:"🐌"}, {en:"chick",ko:"병아리",level:1,emoji:"🐤"}, {en:"cherry",ko:"체리",level:1,emoji:"🍒"}, {en:"witch",ko:"마녀",level:1,emoji:"🧙"}, {en:"teeth",ko:"이, 이빨 (여러 개)",level:1,emoji:"😁"}, {en:"this",ko:"이것, 이",level:1}, {en:"that",ko:"저것, 저",level:1},
+  /* (v246) 유치원 단자음 · 장모음 · 이중자음 · 이중모음 단어 + 사이트 워드 (sw:1 = the · is 같은 기능어 → 달리기 일반 단어·오답 보기에는 안 나옴) */
+  {en:"koala",ko:"코알라",level:1,emoji:"🐨"}, {en:"quilt",ko:"누비이불",level:1}, {en:"wig",ko:"가발",level:1}, {en:"yak",ko:"야크",level:1}, {en:"yarn",ko:"털실",level:1,emoji:"🧶"}, {en:"zip",ko:"지퍼, 지퍼를 잠그다",level:1},
+  {en:"zigzag",ko:"지그재그",level:1}, {en:"mule",ko:"노새",level:1}, {en:"June",ko:"6월",level:1}, {en:"sled",ko:"썰매",level:1,emoji:"🛷"}, {en:"oyster",ko:"굴",level:1,emoji:"🦪"}, {en:"cowboy",ko:"카우보이",level:1,emoji:"🤠"},
+  {en:"jar",ko:"병, 단지",level:1,emoji:"🫙"}, {en:"purse",ko:"지갑, 핸드백",level:1,emoji:"👛"}, {en:"I",ko:"나",level:1,sw:1}, {en:"a",ko:"하나의 (이름 앞에 붙는 말)",level:1,sw:1}, {en:"the",ko:"그 (정해진 것 앞에 붙는 말)",level:1,sw:1}, {en:"is",ko:"~이다, ~있다",level:1,sw:1},
+  {en:"it",ko:"그것",level:1,sw:1}, {en:"my",ko:"나의",level:1,sw:1}, {en:"me",ko:"나를, 나에게",level:1,sw:1}, {en:"to",ko:"~에, ~로",level:1,sw:1}, {en:"you",ko:"너, 너희",level:1,sw:1}, {en:"we",ko:"우리",level:1,sw:1},
+  {en:"and",ko:"그리고, ~와",level:1,sw:1}, {en:"said",ko:"말했다 (say)",level:1,sw:1}, {en:"not",ko:"~아니다",level:1,sw:1}, {en:"for",ko:"~을 위해, ~에게",level:1,sw:1}, {en:"he",ko:"그 (남자)",level:1,sw:1}, {en:"she",ko:"그녀 (여자)",level:1,sw:1},
+  {en:"they",ko:"그들",level:1,sw:1}, {en:"are",ko:"~이다, ~있다 (여럿·you)",level:1,sw:1}, {en:"am",ko:"~이다 (I와 함께)",level:1,sw:1}, {en:"was",ko:"~였다, ~있었다",level:1,sw:1}, {en:"at",ko:"~에서, ~을",level:1,sw:1}, {en:"into",ko:"~ 안으로",level:1,sw:1},
+  {en:"with",ko:"~와 함께, ~으로",level:1,sw:1}, {en:"so",ko:"아주, 그래서",level:1,sw:1}, {en:"too",ko:"~도, 너무",level:1,sw:1}, {en:"did",ko:"했다 (do)",level:1,sw:1}, {en:"do",ko:"하다",level:1,sw:1}, {en:"be",ko:"~이다, ~되다",level:1,sw:1},
+  {en:"will",ko:"~할 것이다",level:1,sw:1}, {en:"must",ko:"꼭 ~해야 한다",level:1,sw:1}, {en:"ran",ko:"달렸다 (run)",level:1,sw:1}, {en:"our",ko:"우리의",level:1,sw:1}, {en:"but",ko:"그러나, 하지만",level:1,sw:1},
 ];
 
 /* 헷갈리는 단어 묶음 — 오답 후보로 먼저 사용 */
@@ -3438,9 +3451,12 @@ const WORD_SETS = {
           ramp:{2:[.6,.3,1,40], 3:[.4,.7,1,40]}},
   phrase:{label:"표현",       icon:"🗣️", nm:"표현", emo:"🗣️", grade:"두 단어 이상", levels:[0]},
   /* (v226) 파닉스 — Daily 30 카테고리 · '이 Stage 단어로 달리기'에서만 쓴다 */
-  short: {label:"단모음",     icon:"🔤", nm:"단모음", emo:"🔤", grade:"파닉스", levels:[1], course:"short", phonics:true},
+  abc:   {label:"단자음",     icon:"🔤", nm:"단자음", emo:"🔤", grade:"파닉스", levels:[1], course:"abc", phonics:true},     // (v246)
+  short: {label:"단모음",     icon:"🅰️", nm:"단모음", emo:"🅰️", grade:"파닉스", levels:[1], course:"short", phonics:true},
   long:  {label:"장모음",     icon:"🌟", nm:"장모음", emo:"🌟", grade:"파닉스", levels:[1], course:"long", phonics:true},
   digr:  {label:"이중자음",   icon:"🔗", nm:"이중자음", emo:"🔗", grade:"파닉스", levels:[1], course:"digr", phonics:true},
+  vowel2:{label:"이중모음",   icon:"🎵", nm:"이중모음", emo:"🎵", grade:"파닉스", levels:[1], course:"vowel2", phonics:true},  // (v246)
+  sight: {label:"사이트 워드", icon:"👀", nm:"사이트 워드", emo:"👀", grade:"파닉스", levels:[1], course:"sight", sight:true},   // (v246) Dolch 92
   /* (v231) 📖 리딩 1·2·3 — Daily 30 G5-6 아래 줄 · '이 Stage 단어로 달리기'에서만 쓴다 */
   rd1:   {label:"리딩 1",     icon:"📖", nm:"리딩 1", emo:"📖", grade:"초등 5~6학년", levels:[1,2,3], course:"rd1", reading:true},
   rd2:   {label:"리딩 2",     icon:"📖", nm:"리딩 2", emo:"📖", grade:"초등 5~6학년", levels:[1,2,3], course:"rd2", reading:true},
@@ -3602,44 +3618,75 @@ const READING = {
   }
 };
 
-/* (v226) 파닉스 Stage 이름과 강조 — 강조 코드: 모음 한 글자(a·e·i·o·u) · ae/ie/oue = 모음…e · ee/ai/sh/ch/th = 그 글자 묶음 · mix/dg = 섞어서
-   (v243) 슈퍼마리오처럼 World 1 → 1-1 · 1-2 · 1-3 · 1-4 · 🚩(모아서 복습). 한 Stage 는 같은 소리 가족 5~7단어.
-   [이름, 그림, 강조, [[소리 가족, 단어…]…], (섞어서 월드만) 단어] · 번호 n = 월드×10 + 순서 (예전 저장 1~6 과 겹치지 않음) */
+/* (v226) 파닉스 Stage 이름과 강조 — 강조 코드(PH_RE): 모음 한 글자(a·e·i·o·u) · ae/ie/oue = 모음…e · c1 = 첫 글자 · lb/rb/sb = l·r·s 블렌드 · ee/ai/oa/oo/ou/oi/ar/er = 이중모음 · sh/ch/th/wp = 이중자음 · mix/dg/vm = 섞어서
+   (v243) 슈퍼마리오처럼 World 1 → 1-1 · 1-2 … → 🚩(모아서 복습). 한 Stage 는 같은 소리 가족 5~7단어.
+   (v246) 유치원 = 그림 단어 · 단자음 · 단모음 · 장모음(magic e) · 이중자음(블렌드+sh·ch·th…) · 이중모음 · 사이트 워드
+   월드 = {k: 저장 번호(n = k×10 + 순서, 바꾸지 않음), nm, emo, hl, st:[[소리 가족, 단어…]…] 또는 mix:단어, o: v242 예전 저장 열쇠} · 화면 순서는 배열 순서 */
 const PH_WORLDS = {
+  abc:[
+    {"k":1,"nm":"b · c · d","emo":"🐻","hl":"c1","st":[["b","bag|bed|bus|bee|ball|bear"],["c (크)","cat|cup|cake|car|cow|cap"],["d","dog|duck|doll|desk|door|drum"]]},
+    {"k":2,"nm":"f · g · h","emo":"🐟","hl":"c1","st":[["f","fan|fish|fox|five|feet|fire"],["g","gum|goat|game|gate|gift|girl"],["h","hat|hen|hand|horse|house|hill"]]},
+    {"k":3,"nm":"j · k · l","emo":"🦁","hl":"c1","st":[["j","jam|jet|jump|juice|jog|jeans"],["k","kid|king|kite|key|kitten|koala"],["l","lion|leg|lamp|lip|log|leaf"]]},
+    {"k":4,"nm":"m · n · p","emo":"🐵","hl":"c1","st":[["m","map|man|mug|moon|milk|monkey"],["n","net|nut|nose|nine|nest|nail"],["p","pig|pen|pan|pot|pup|pink"]]},
+    {"k":5,"nm":"qu · r · s","emo":"🐍","hl":"c1","st":[["qu (쿠)","queen|quiz|quick|quiet|quilt"],["r","rat|red|ring|rock|rug|rain"],["s","sun|sock|six|sand|seal|soap"]]},
+    {"k":6,"nm":"t · v · w","emo":"🐢","hl":"c1","st":[["t","top|ten|tent|tiger|toy|tooth"],["v","van|vet|vest|vase|violin"],["w","web|wet|window|wolf|watch|wig"]]},
+    {"k":7,"nm":"x · y · z","emo":"🦓","hl":"c1x","st":[["x (끝소리 ks)","box|fox|six|ox|mix|fix"],["y","yes|yellow|yak|yarn|yogurt|yo-yo"],["z","zoo|zebra|zero|zip|zigzag"]]}
+  ],
   short:[
-    ["짧은 a","🐱","a",[["-at","cat|hat|bat|mat|rat"], ["-an","man|fan|pan|can|van"], ["-ap · -ag · -am","map|cap|nap|bag|jam|ham"], ["받침 두 개","hand|sand|lamp|camp|flag|clap|crab"]]],
-    ["짧은 e","🥚","e",[["-en · -ed","pen|hen|ten|bed|red"], ["-et · -eg","net|wet|pet|vet|jet|leg|egg"], ["-ell · -est","bell|shell|well|vest|nest"], ["받침 두 개","desk|neck|belt|help|dress|tent"]]],
-    ["짧은 i","🐷","i",[["-ig · -id","pig|big|dig|kid|lid"], ["-it · -ip · -in","sit|hit|lip|ship|pin|win"], ["-ix · -ilk · -im","six|fix|mix|milk|swim"], ["-ing · -ish","ring|king|wing|sing|fish|dish"]]],
-    ["짧은 o","🐶","o",[["-og","dog|log|frog|jog|fog"], ["-ox · -ot","fox|box|ox|hot|pot"], ["-op","top|hop|mop|stop|shop|drop"], ["-ock · -ond","sock|rock|lock|clock|block|pond"]]],
-    ["짧은 u","☀️","u",[["-un · -us","sun|run|fun|bun|bus"], ["-ug · -ut","bug|hug|mug|rug|cut|hut|nut"], ["-up · -um","cup|pup|gum|drum|plum"], ["-uck · -unch","duck|truck|luck|jump|lunch"]]],
-    ["섞어서","🎲","",null,"cat|map|hand|flag|bed|pen|ten|desk|pig|six|fish|milk|dog|box|frog|sock|sun|cup|duck|drum"]
+    {"k":1,"nm":"짧은 a","emo":"🐱","hl":"a","o":"short-1","st":[["-at","cat|hat|bat|mat|rat"],["-an","man|fan|pan|can|van"],["-ap · -ag · -am","map|cap|nap|bag|jam|ham"],["받침 두 개","hand|sand|lamp|camp|flag|clap|crab"]]},
+    {"k":2,"nm":"짧은 e","emo":"🥚","hl":"e","o":"short-2","st":[["-en · -ed","pen|hen|ten|bed|red"],["-et · -eg","net|wet|pet|vet|jet|leg|egg"],["-ell · -est","bell|shell|well|vest|nest"],["받침 두 개","desk|neck|belt|help|dress|tent"]]},
+    {"k":3,"nm":"짧은 i","emo":"🐷","hl":"i","o":"short-3","st":[["-ig · -id","pig|big|dig|kid|lid"],["-it · -ip · -in","sit|hit|lip|ship|pin|win"],["-ix · -ilk · -im","six|fix|mix|milk|swim"],["-ing · -ish","ring|king|wing|sing|fish|dish"]]},
+    {"k":4,"nm":"짧은 o","emo":"🐶","hl":"o","o":"short-4","st":[["-og","dog|log|frog|jog|fog"],["-ox · -ot","fox|box|ox|hot|pot"],["-op","top|hop|mop|stop|shop|drop"],["-ock · -ond","sock|rock|lock|clock|block|pond"]]},
+    {"k":5,"nm":"짧은 u","emo":"☀️","hl":"u","o":"short-5","st":[["-un · -us","sun|run|fun|bun|bus"],["-ug · -ut","bug|hug|mug|rug|cut|hut|nut"],["-up · -um","cup|pup|gum|drum|plum"],["-uck · -unch","duck|truck|luck|jump|lunch"]]},
+    {"k":6,"nm":"섞어서","emo":"🎲","hl":"","o":"short-6","mix":"cat|map|hand|flag|bed|pen|ten|desk|pig|six|fish|milk|dog|box|frog|sock|sun|cup|duck|drum"}
   ],
   long:[
-    ["a_e","🎂","ae",[["-ake","cake|lake|bake|snake|rake"], ["-ame · -ace","name|game|same|face|race"], ["-ate · -ave","plate|gate|skate|cave|wave"], ["-ape · -age · -ane","grape|shape|cage|plane|vase|whale"]]],
-    ["i_e","🚲","ie",[["-ike · -ite","bike|hike|kite|bite|white"], ["-ide · -ive","ride|hide|side|wide|five|dive"], ["-ine · -ice","nine|line|pine|rice|nice|mice"], ["-ime · -ife · -ize","time|smile|knife|life|prize|size"]]],
-    ["o_e · u_e","🦴","oue",[["-one · -ome","bone|cone|stone|phone|home"], ["-ose · -ope · -ote","nose|rose|rope|hope|note"], ["-ole · -oke · -obe","hole|joke|globe|stove|code"], ["u_e","cute|cube|tube|flute|rule"]]],
-    ["ee · ea","🐝","ee",[["-ee","bee|tree|see|knee|three"], ["-ee-","sheep|green|seed|sleep|wheel|sweet|feet"], ["-ea","sea|tea|eat|leaf|read"], ["-ea-","beach|peach|meat|dream|seal"]]],
-    ["ai · ay · oa","🌧️","ai",[["-ai-","rain|train|tail|nail|paint|snail"], ["-ay","day|play|say|way|pay|gray"], ["-oa-","goat|boat|coat|road|soap|toast|coach"]]],
-    ["섞어서","🎲","mix",null,"cake|snake|grape|kite|bike|five|nose|bone|cute|tree|sheep|green|leaf|tea|rain|train|play|goat|boat|soap"]
+    {"k":1,"nm":"a_e","emo":"🎂","hl":"ae","o":"long-1","st":[["-ake","cake|lake|bake|snake|rake"],["-ame · -ace","name|game|same|face|race"],["-ate · -ave","plate|gate|skate|cave|wave"],["-ape · -age · -ane","grape|shape|cage|plane|vase|whale"]]},
+    {"k":2,"nm":"i_e","emo":"🚲","hl":"ie","o":"long-2","st":[["-ike · -ite","bike|hike|kite|bite|white"],["-ide · -ive","ride|hide|side|wide|five|dive"],["-ine · -ice","nine|line|pine|rice|nice|mice"],["-ime · -ife · -ize","time|smile|knife|life|prize|size"]]},
+    {"k":8,"nm":"o_e","emo":"🦴","hl":"oue","o":"long-3","st":[["-one · -ome","bone|cone|stone|phone|home"],["-ose · -ope · -ote","nose|rose|rope|hope|note"],["-ole · -oke · -obe","hole|joke|globe|stove|code"]]},
+    {"k":7,"nm":"u_e","emo":"🎶","hl":"oue","st":[["-ute · -ube","cute|cube|tube|mule|flute"],["-ule · -une · -uge","rule|June|tune|huge|use"]]},
+    {"k":6,"nm":"섞어서","emo":"🎲","hl":"mix","o":"long-6","mix":"cake|snake|grape|plate|kite|bike|five|smile|nose|bone|home|rope|cute|cube|tube|flute"}
   ],
   digr:[
-    ["sh","🐟","sh",[["sh- (앞)","ship|shop|shell|sheep|shoe"], ["sh- (앞)","shark|shirt|short|shape|shine|shy"], ["-sh (뒤)","fish|dish|wish|brush|wash|push|trash"]]],
-    ["ch","🧀","ch",[["ch- (앞)","chair|cheese|chin|chess|chick|chew"], ["ch- (앞)","child|check|chalk|chip|cherry"], ["-ch (뒤)","lunch|peach|beach|bench|teach|rich|much"], ["-tch","catch|watch|match|witch|kitchen"]]],
-    ["th","🛁","th",[["th- (앞)","thin|thick|three|think|thank|throw"], ["-th (뒤)","bath|math|path|both|month"], ["-th (뒤)","mouth|tooth|teeth|north|south"], ["th (드 소리)","this|that|then|than|there"]]],
-    ["섞어서","🎲","dg",null,"fish|ship|sheep|shoe|brush|chair|cheese|chin|lunch|peach|beach|three|thin|bath|mouth|tooth|math|thank"]
+    {"k":5,"nm":"bl · cl · fl · gl · pl · sl","emo":"🎈","hl":"lb","st":[["bl · cl","black|block|blue|clap|clock|cloud"],["fl · gl","flag|flower|fly|glass|glove|glue"],["pl · sl","plane|plant|plate|sled|sleep|slide"]]},
+    {"k":6,"nm":"br · cr · dr · fr · gr · tr","emo":"🐸","hl":"rb","st":[["br · cr","bread|brush|brick|crab|crown|crayon"],["dr · fr","drum|dress|drink|frog|fruit|friend"],["gr · pr · tr","grape|grass|prize|tree|train|truck"]]},
+    {"k":7,"nm":"sk · sn · sp · st · sw","emo":"⭐","hl":"sb","st":[["sk · sm · sn","skate|skirt|smile|snake|snail|snow"],["sp · st · sw","spoon|spider|star|stop|swim|swing"]]},
+    {"k":1,"nm":"sh","emo":"🐟","hl":"sh","o":"digr-1","st":[["sh- (앞)","ship|shop|shell|sheep|shoe"],["sh- (앞)","shark|shirt|short|shape|shine|shy"],["-sh (뒤)","fish|dish|wish|brush|wash|push|trash"]]},
+    {"k":2,"nm":"ch","emo":"🧀","hl":"ch","o":"digr-2","st":[["ch- (앞)","chair|cheese|chin|chess|chick|chew"],["ch- (앞)","child|check|chalk|chip|cherry"],["-ch (뒤)","lunch|peach|beach|bench|teach|rich|much"],["-tch","catch|watch|match|witch|kitchen"]]},
+    {"k":3,"nm":"th","emo":"🛁","hl":"th","o":"digr-3","st":[["th- (앞)","thin|thick|three|think|thank|throw"],["-th (뒤)","bath|math|path|both|month"],["-th (뒤)","mouth|tooth|teeth|north|south"],["th (드 소리)","this|that|then|than|there"]]},
+    {"k":8,"nm":"wh · ph · ck · ng","emo":"🐳","hl":"wp","st":[["wh · ph","whale|wheel|white|phone|photo|dolphin"],["ck · ng","duck|sock|clock|ring|king|sing"]]},
+    {"k":4,"nm":"섞어서","emo":"🎲","hl":"dg","o":"digr-4","mix":"black|flag|plane|crab|frog|tree|star|swim|snake|ship|fish|chair|lunch|three|bath|whale|phone|duck|ring"}
+  ],
+  vowel2:[
+    {"k":1,"nm":"ee · ea","emo":"🐝","hl":"ee","o":"long-4","st":[["-ee","bee|tree|see|knee|three"],["-ee-","sheep|green|seed|sleep|wheel|sweet|feet"],["-ea","sea|tea|eat|leaf|read"],["-ea-","beach|peach|meat|dream|seal"]]},
+    {"k":2,"nm":"ai · ay","emo":"🌧️","hl":"ai","o":"long-5","st":[["-ai-","rain|train|tail|nail|paint|snail"],["-ay","day|play|say|way|pay|gray"]]},
+    {"k":3,"nm":"oa · ow (오우)","emo":"⛵","hl":"oa","st":[["-oa-","goat|boat|coat|road|soap|toast|coach"],["-ow (오우)","snow|grow|slow|bowl|window|yellow"]]},
+    {"k":4,"nm":"oo","emo":"🌙","hl":"oo","st":[["oo (우-)","moon|spoon|zoo|food|pool|boot"],["oo (우)","book|look|cook|foot|wood|good"]]},
+    {"k":5,"nm":"ou · ow (아우)","emo":"🐄","hl":"ou","st":[["ou","house|mouse|cloud|mouth|out|round"],["ow (아우)","cow|owl|town|down|crown|brown"]]},
+    {"k":6,"nm":"oi · oy","emo":"🤖","hl":"oi","st":[["oi","coin|oil|soil|boil|point|noise"],["oy","boy|toy|joy|enjoy|oyster|cowboy"]]},
+    {"k":7,"nm":"ar · or","emo":"🚗","hl":"ar","st":[["ar","car|star|farm|park|jar|arm"],["or","corn|fork|horse|short|store|storm"]]},
+    {"k":8,"nm":"er · ir · ur","emo":"🐯","hl":"er","st":[["er","tiger|sister|water|dinner|letter|paper"],["ir · ur","bird|girl|shirt|nurse|purse|turtle"]]},
+    {"k":9,"nm":"섞어서","emo":"🎲","hl":"vm","mix":"tree|leaf|rain|play|goat|snow|moon|book|house|cow|coin|boy|car|corn|bird|nurse"}
+  ],
+  sight:[
+    {"k":1,"nm":"첫 사이트 워드","emo":"👀","hl":"","st":[["I · a · the","I|a|the|see|can|go"],["is · it · in","is|it|in|my|me|to"],["you · we · and","you|we|and|up|look|here"]]},
+    {"k":2,"nm":"색 · 수 · 움직임","emo":"🎈","hl":"","st":[["색","big|little|red|blue|yellow"],["수 · 움직임","one|two|three|run|jump|play"],["말하기","help|said|not|for|make|come"],["어디?","find|down|away|where|funny"]]},
+    {"k":3,"nm":"누가 · 무엇을","emo":"🍎","hl":"","st":[["he · she · they","he|she|they|are|am|was"],["좋아해요","have|like|want|eat|ate|good"],["어디에","on|at|into|under|out|with"]]},
+    {"k":4,"nm":"이것 · 저것","emo":"🐾","hl":"","st":[["this · that","this|that|there|what|who|all"],["yes · no","yes|no|now|new|so|too"],["해요","did|do|get|be|will|must"]]},
+    {"k":5,"nm":"했어요","emo":"🌈","hl":"","st":[["했어요","came|ran|saw|went|say|ride"],["색 · 수","black|brown|white|four|pretty|well"],["그리고","our|but|please|soon"]]}
   ]
 };
-/* PHONICS[set][n] = [제목, 강조, 월드 번호, 모아서 복습(🚩)?] — COURSE[set][n] 도 여기서 채운다 */
-const PHONICS = {};
-Object.keys(PH_WORLDS).forEach(set=>{ const C=COURSE[set]={}, P=PHONICS[set]={};
-  PH_WORLDS[set].forEach((W,wi)=>{ const wd=wi+1;
-    if(!W[3]){ C[wd*10+1]=W[4]; P[wd*10+1]=[W[0],W[2],wd,true]; return; }
-    const all=[]; W[3].forEach((st,si)=>{ C[wd*10+si+1]=st[1]; P[wd*10+si+1]=[st[0],W[2],wd,false]; st[1].split("|").forEach(en=>{ if(all.indexOf(en)<0) all.push(en); }); });
-    C[wd*10+W[3].length+1]=all.join("|"); P[wd*10+W[3].length+1]=["모아서 복습",W[2],wd,true]; }); });
+/* PHONICS[set][n] = [제목, 강조, 월드 번호(화면), 모아서 복습(🚩)?, 월드 정보] · PH_ORDER[set] = 화면 순서의 n — COURSE[set] 도 여기서 채운다 */
+const PHONICS = {}, PH_ORDER = {};
+Object.keys(PH_WORLDS).forEach(set=>{ const C=COURSE[set]={}, P=PHONICS[set]={}, O=PH_ORDER[set]=[];
+  PH_WORLDS[set].forEach((W,wi)=>{ const wd=wi+1, k=W.k;
+    if(!W.st){ C[k*10+1]=W.mix; P[k*10+1]=[W.nm,W.hl,wd,true,W]; O.push(k*10+1); return; }
+    const all=[]; W.st.forEach((st,si)=>{ const n=k*10+si+1; C[n]=st[1]; P[n]=[st[0],W.hl,wd,false,W]; O.push(n); st[1].split("|").forEach(en=>{ if(all.indexOf(en)<0) all.push(en); }); });
+    const n=k*10+W.st.length+1; C[n]=all.join("|"); P[n]=["모아서 복습",W.hl,wd,true,W]; O.push(n); }); });
 /* (v243) 그림 글자(이모지)가 빈 네모로 나오는 컴퓨터 — 학원 PC(윈도우 10)는 2019년 이후 이모지(🪆 인형 등)를 못 그린다.
    그 이모지만 캔버스에 그려 보고, 색이 안 나오거나(빈 네모) 둘로 갈라지면 assets/emoji/ 의 그림(Twemoji, CC-BY 4.0)으로 바꾼다 */
 const EmojiFix = (function(){
-  const MAP = {"♟️":"265f","🐻‍❄️":"1f43b-200d-2744-fe0f","🛖":"1f6d6","🛝":"1f6dd","🟥":"1f7e5","🟦":"1f7e6","🟨":"1f7e8","🟩":"1f7e9","🟪":"1f7ea","🟫":"1f7eb","🤿":"1f93f","🥬":"1f96c","🥵":"1f975","🥶":"1f976","🥸":"1f978","🥾":"1f97e","🦘":"1f998","🦛":"1f99b","🦜":"1f99c","🦭":"1f9ad","🦴":"1f9b4","🦵":"1f9b5","🦶":"1f9b6","🦷":"1f9b7","🦸":"1f9b8","🦺":"1f9ba","🧂":"1f9c2","🧃":"1f9c3","🧅":"1f9c5","🧈":"1f9c8","🧊":"1f9ca","🧍":"1f9cd","🧑‍🚀":"1f9d1-200d-1f680","🧑‍🚒":"1f9d1-200d-1f692","🧑‍🤝‍🧑":"1f9d1-200d-1f91d-200d-1f9d1","🧩":"1f9e9","🧪":"1f9ea","🧱":"1f9f1","🧳":"1f9f3","🧵":"1f9f5","🧶":"1f9f6","🧸":"1f9f8","🧹":"1f9f9","🧺":"1f9fa","🧻":"1f9fb","🧼":"1f9fc","🧽":"1f9fd","🧾":"1f9fe","🩰":"1fa70","🩵":"1fa75","🪀":"1fa80","🪁":"1fa81","🪄":"1fa84","🪆":"1fa86","🪈":"1fa88","🪐":"1fa90","🪑":"1fa91","🪚":"1fa9a","🪞":"1fa9e","🪟":"1fa9f","🪡":"1faa1","🪣":"1faa3","🪤":"1faa4","🪥":"1faa5","🪧":"1faa7","🪨":"1faa8","🪱":"1fab1","🪴":"1fab4","🪵":"1fab5","🪽":"1fabd","🫘":"1fad8"};
+  const MAP = {"♟️":"265f","🐻‍❄️":"1f43b-200d-2744-fe0f","🛖":"1f6d6","🛝":"1f6dd","🟥":"1f7e5","🟦":"1f7e6","🟨":"1f7e8","🟩":"1f7e9","🟪":"1f7ea","🟫":"1f7eb","🤿":"1f93f","🥬":"1f96c","🥵":"1f975","🥶":"1f976","🥸":"1f978","🥾":"1f97e","🦘":"1f998","🦛":"1f99b","🦜":"1f99c","🦪":"1f9aa","🦭":"1f9ad","🦴":"1f9b4","🦵":"1f9b5","🦶":"1f9b6","🦷":"1f9b7","🦸":"1f9b8","🦺":"1f9ba","🧂":"1f9c2","🧃":"1f9c3","🧅":"1f9c5","🧈":"1f9c8","🧊":"1f9ca","🧍":"1f9cd","🧑‍🚀":"1f9d1-200d-1f680","🧑‍🚒":"1f9d1-200d-1f692","🧑‍🤝‍🧑":"1f9d1-200d-1f91d-200d-1f9d1","🧩":"1f9e9","🧪":"1f9ea","🧱":"1f9f1","🧳":"1f9f3","🧵":"1f9f5","🧶":"1f9f6","🧸":"1f9f8","🧹":"1f9f9","🧺":"1f9fa","🧻":"1f9fb","🧼":"1f9fc","🧽":"1f9fd","🧾":"1f9fe","🩰":"1fa70","🩵":"1fa75","🪀":"1fa80","🪁":"1fa81","🪄":"1fa84","🪆":"1fa86","🪈":"1fa88","🪐":"1fa90","🪑":"1fa91","🪚":"1fa9a","🪞":"1fa9e","🪟":"1fa9f","🪡":"1faa1","🪣":"1faa3","🪤":"1faa4","🪥":"1faa5","🪧":"1faa7","🪨":"1faa8","🪱":"1fab1","🪴":"1fab4","🪵":"1fab5","🪽":"1fabd","🫘":"1fad8","🫙":"1fad9"};
   let ctx=null, base=0; const memo={};
   function ok(e){ if(memo[e]!=null) return memo[e]; let r=true;
     try{ if(!ctx){ const cv=document.createElement("canvas"); cv.width=cv.height=56; ctx=cv.getContext("2d",{willReadFrequently:true});
@@ -3654,8 +3701,11 @@ const EmojiFix = (function(){
   return { ok, fix, n: fix(WORD_BANK) };
 })();
 const PH_RE = { a:/a/, e:/e/, i:/i/, o:/o/, u:/u/, ae:/(a)([^aeiou]+)(e)$/, ie:/(i)([^aeiou]+)(e)$/, oue:/([ou])([^aeiou]+)(e)$/,
-  ee:/(ee|ea)/, ai:/(ai|ay|oa)/, sh:/(sh)/, ch:/(ch)/, th:/(th)/,
-  mix:/(a|i|o|u)([^aeiou]+)(e)$|(ee|ea|ai|ay|oa)/, dg:/(sh|ch|th)/ };
+  ee:/(ee|ea)/, ai:/(ai|ay)/, sh:/(sh)/, ch:/(ch)/, th:/(th)/,
+  mix:/([aiou])([^aeiou]+)(e)$/, dg:/sh|ch|th|wh|ph|ck|ng|bl|cl|fl|gl|pl|sl|br|cr|dr|fr|gr|pr|tr|sk|sm|sn|sp|st|sw/,
+  /* (v246) 단자음 · 블렌드 · 이중모음 */
+  c1:/^qu|^[a-z]/, c1x:/^[yz]|x/, lb:/bl|cl|fl|gl|pl|sl/, rb:/br|cr|dr|fr|gr|pr|tr/, sb:/sk|sm|sn|sp|st|sw/, wp:/wh|ph|ck|ng/,
+  oa:/oa|ow/, oo:/oo/, ou:/ou|ow/, oi:/oi|oy/, ar:/ar|or/, er:/er|ir|ur/, vm:/ee|ea|ai|ay|oa|ow|oo|ou|oi|oy|ar|or|er|ir|ur/ };
 /* 단어에서 파닉스 소리 글자를 <u> 로 (HTML 이스케이프는 영어 소문자라 필요 없음) */
 function phonicsMark(en, code){
   const re=PH_RE[code]; if(!re || !/^[a-z]+$/.test(en)) return en;
@@ -3717,8 +3767,8 @@ const Rank = (function(){
   function save(o){ mem=o; if(!ls) return; try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
   function pool(id){
     const S=WORD_SETS[id]; if(!S || S.review) return null;
-    if((S.phonics || S.reading) && COURSE[S.course]){ const o={}; Object.keys(COURSE[S.course]).forEach(n=>COURSE[S.course][n].split("|").forEach(en=>o[en]=1)); return Object.keys(o); }
-    return WORD_BANK.filter(w=>S.levels.indexOf(w.level)>=0 && (!S.pictureOnly || w.emoji)).map(w=>w.en);
+    if((S.phonics || S.reading || S.sight) && COURSE[S.course]){ const o={}; Object.keys(COURSE[S.course]).forEach(n=>COURSE[S.course][n].split("|").forEach(en=>o[en]=1)); return Object.keys(o); }
+    return WORD_BANK.filter(w=>S.levels.indexOf(w.level)>=0 && !w.sw && (!S.pictureOnly || w.emoji)).map(w=>w.en);
   }
   return {
     TIERS,
@@ -4049,7 +4099,7 @@ function pool(){
   }
   // 단어 수준은 '학년'이 정하고, 난이도는 문 개수·속도·함정만 담당한다
   const lv = set.ramp ? Object.keys(rampMix(set, G.stage)).map(Number) : set.levels;   // 지금 단계에서 나올 수 있는 수준만 (오답 보기도 같은 수준에서)
-  let p = WORD_BANK.filter(w=> lv.indexOf(w.level)>=0);
+  let p = WORD_BANK.filter(w=> lv.indexOf(w.level)>=0 && !w.sw);   // (v246) sw = 사이트 기능어(the·is…)는 달리기 일반 단어에서 뺀다
   if(set.pictureOnly) p = p.filter(w=> !!w.emoji);   // 씨앗(유치원)은 그림이 있는 단어만
   if(p.length < 8) p = WORD_BANK.slice();
   return p;
@@ -9262,7 +9312,7 @@ pickers("selCourse", v=>{                             // Daily 30 — 반을 고
 function refreshSetCounts(){ document.querySelectorAll("#selSet [data-v]").forEach(el=>{ const id=el.dataset.v, sm=el.querySelector("small");
   if(sm && !sm.innerHTML && WORD_SETS[id] && !WORD_SETS[id].review) sm.textContent=setCount(id)+"개"; }); }
 /* ── 과 고르기 (v209) ── */
-function setCount(id){ try{ const S=WORD_SETS[id]; return WORD_BANK.filter(w=>S.levels.indexOf(w.level)>=0 && (!S.pictureOnly || w.emoji)).length; }catch(e){ return 0; } }
+function setCount(id){ try{ const S=WORD_SETS[id]; return WORD_BANK.filter(w=>S.levels.indexOf(w.level)>=0 && !w.sw && (!S.pictureOnly || w.emoji)).length; }catch(e){ return 0; } }
 function lessonWords(id,n){ const S=WORD_SETS[id], c=S && S.course && COURSE[S.course]; return (c && c[n]) ? c[n].split("|") : []; }
 function showLessons(id){
   const S=WORD_SETS[id], C=COURSE[S.course]||{}, box=$("lessonBox");
@@ -10899,7 +10949,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v245";
+const GAME_VER = "v246";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -10985,6 +11035,12 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-14i", date:"10월 14일", title:"유치원 파닉스가 7가지로 나뉘었어요!",
+   items:[
+     ["🔤","단자음 · 단모음 · 장모음","첫소리 b·c·d부터, 짧은 소리, 끝에 e가 붙는 긴 소리까지"],
+     ["🔗","이중자음 · 🎵 이중모음","bl·br·st·sh·ch·th, 그리고 ee·ai·oa·oo·ou·oi·ar·er"],
+     ["👀","사이트 워드","the · is · said 처럼 보자마자 읽는 단어 92개 — 들리는 단어를 문장에서 찾아요"]
+   ]},
   {id:"2026-10-14h", date:"10월 14일", title:"파닉스가 1-1, 1-2 스테이지로 나뉘었어요!",
    items:[
      ["🚩","World 1 · 1-1 · 1-2","단모음 · 장모음 · 이중자음을 같은 소리 단어끼리 짧게 나눴어요. 🚩 모아서 복습을 끝내면 World 클리어!"],
@@ -11129,28 +11185,35 @@ $("btnResume").addEventListener("click",()=>{
    맞힘·틀림은 Rank.record 로 기록되어 도감·등급·약한 단어에 그대로 쓰인다
 ===================================================================== */
 const Study = (function(){
-  const KEY="hyeng_study_v1", SETS=["kinder","short","long","digr","basic","elem","g56","rd1","rd2","rd3","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
+  const KEY="hyeng_study_v1", SETS=["kinder","abc","short","long","digr","vowel2","sight","basic","elem","g56","rd1","rd2","rd3","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
   let m=null;
   function load(){ if(m) return m; try{ m=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ m={}; } m.lv=m.lv||{}; m.seen=m.seen||{}; if(!m.set) m.set="basic"; phMig(m); return m; }
-  /* (v243) 예전 파닉스 Stage(짧은 a 20단어 = short-1 …)의 별 → 새 1-1 · 1-2 … 중 단어를 다 만난 Stage 로 옮긴다 */
-  function phMig(m){ if(m.phv) return; try{
-      ["short","long","digr"].forEach(set=>{ lessons(set).forEach(x=>{ const ov=m.lv[set+"-"+x.wd]||0, k=set+"-"+x.n;
-        if(ov && x.ws.every(w=>m.seen[w.en])) m.lv[k]=Math.max(m.lv[k]||0, ov); });
-        if(m.last && m.last[set] && m.last[set]<10) m.last[set]=m.last[set]*10+1; });
-      m.phv=1; save(); }catch(e){} }
+  /* (v243) 예전 파닉스 Stage(짧은 a 20단어 = short-1 …)의 별 → 새 1-1 · 1-2 … 중 단어를 다 만난 Stage 로 옮긴다
+     (v246) 장모음 o_e·u_e 를 나누고 ee·ea·ai·ay·oa 를 이중모음으로 옮김 → v243 저장(phv 1)의 별도 옮긴다 */
+  function phMig(m){ if((m.phv|0)>=2) return; try{
+      if(!m.phv){ ["short","long","digr","vowel2"].forEach(set=>{ lessons(set).forEach(x=>{ const o=x.W && x.W.o, ov=o ? (m.lv[o]||0) : 0, k=set+"-"+x.n;
+          if(ov && x.ws.every(w=>m.seen[w.en])) m.lv[k]=Math.max(m.lv[k]||0, ov); });
+          if(m.last && m.last[set] && m.last[set]<10) m.last[set]=m.last[set]*10+1; }); }
+      else { const MV={"long-31":"long-81","long-32":"long-82","long-33":"long-83","long-34":"long-71","long-41":"vowel2-11","long-42":"vowel2-12","long-43":"vowel2-13","long-44":"vowel2-14","long-45":"vowel2-15","long-51":"vowel2-21","long-52":"vowel2-22","long-53":"vowel2-31"};
+        Object.keys(MV).forEach(o=>{ const ov=m.lv[o]||0; if(!ov) return; const nk=MV[o], p=nk.split("-"), x=lessons(p[0]).find(y=>y.n===+p[1]);
+          if(x && x.ws.every(w=>m.seen[w.en])) m.lv[nk]=Math.max(m.lv[nk]||0, ov); }); }
+      m.phv=2; save(); }catch(e){} }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(m)); }catch(e){} }
   const byEn={}; WORD_BANK.forEach(w=>{ if(!byEn[w.en]) byEn[w.en]=w; });
   const lcache={};
+  /* (v246) 사이트 워드에서는 이 뜻으로 (단어장 뜻이 다른 단어) */
+  const SIGHT_KO={can:"~할 수 있다", saw:"보았다 (see)", well:"잘", out:"밖으로", down:"아래로", up:"위로", one:"하나", there:"거기에, 저기에", like:"좋아하다", get:"얻다, 받다", so:"아주, 그래서", be:"~이다, ~되다", new:"새로운", all:"모두, 모든"};
   /* 반의 과 목록 — 교재 과가 없으면 단어를 25개(표현은 20개)씩 나눈다 */
   function lessons(set){
     if(lcache[set]) return lcache[set];
     const S=WORD_SETS[set], out=[];
     if(S && S.course && COURSE[S.course]){
-      Object.keys(COURSE[S.course]).map(Number).sort((a,b)=>a-b).forEach(n=>{
+      (PH_ORDER[set] || Object.keys(COURSE[S.course]).map(Number).sort((a,b)=>a-b)).forEach(n=>{   // (v246) 파닉스 월드는 화면 순서대로
         let ws=COURSE[S.course][n].split("|").map(en=>byEn[en]).filter(Boolean), ph=PHONICS[set] && PHONICS[set][n];
         if(S.reading) ws=ws.map(w=>readSense(w, set, n));
+        if(S.sight) ws=ws.map(w=>SIGHT_KO[w.en] ? Object.assign({}, w, {ko:SIGHT_KO[w.en], emoji:null}) : w);   // (v246) 사이트 워드 뜻
         const rt=S.reading && READING.title[set] && READING.title[set][n-1];
-        if(ws.length) out.push(ph ? {n, ws, title:ph[0], hl:ph[1], wd:ph[2], fin:ph[3]} : rt ? {n, ws, title:rt} : {n, ws}); });
+        if(ws.length) out.push(ph ? {n, ws, title:ph[0], hl:ph[1], wd:ph[2], fin:ph[3], W:ph[4]} : rt ? {n, ws, title:rt} : {n, ws}); });
     } else {
       /* (v225) Grade 5-6 = 교재 과(1권·2권)에 없는 ★2 단어 · 중등 = ★3 · 표현 = 구문 — 교재 과 목록이 생기면 COURSE 로 옮긴다 */
       const inCourse={}; ["kinder","basic","elem"].forEach(c=>Object.keys(COURSE[c]||{}).forEach(n=>COURSE[c][n].split("|").forEach(en=>inCourse[en]=1)));
@@ -11180,7 +11243,7 @@ const Study = (function(){
   /* 오답 보기 — 같은 과에서, 모자라면 같은 반에서. 뜻이 같은 단어는 빼서 정답이 둘이 되지 않게 */
   function decoys(w, pool, n, field){
     const used={}; used[w.en]=1; const kos={}, k1=koKey; kos[w.ko]=1; kos[k1(w.ko)]=1; const out=[];
-    const add=x=>{ if(!x || used[x.en] || kos[x.ko] || kos[k1(x.ko)]) return; if(field==="en" && x.en.indexOf(" ")>=0 !== w.en.indexOf(" ")>=0 && pool.length>8) return;
+    const add=x=>{ if(!x || used[x.en] || kos[x.ko] || kos[k1(x.ko)] || (x.sw && !w.sw)) return; if(field==="en" && x.en.indexOf(" ")>=0 !== w.en.indexOf(" ")>=0 && pool.length>8) return;
       used[x.en]=1; kos[x.ko]=1; kos[k1(x.ko)]=1; out.push(x); };
     shuffle(pool).forEach(x=>{ if(out.length<n) add(x); });
     if(out.length<n) shuffle(WORD_BANK.filter(x=>x.level===w.level)).slice(0,60).forEach(x=>{ if(out.length<n) add(x); });
@@ -11190,9 +11253,11 @@ const Study = (function(){
   /* (v220) 새 문제 모양 — 그림 고르기(그림이 있는 쉬운 단어) · 예문 빈칸(도감 예문) · 받아쓰기(듣고 철자) */
   const EMO = WORD_BANK.filter(x=>x.emoji);
   const canPic = w => !!w.emoji && (w.level||0)<=1 && EMO.length>8;
-  function sentOf(w){ let D=null; try{ D=DexData.of(w.en); }catch(e){} if(!D || !D[3]) return null;
-    const re=new RegExp("\\b("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")\\b","i");
-    const ex=D[3].filter(x=>x && x[0] && re.test(x[0])); if(!ex.length) return null;
+  function sentOf(w){
+    const re=new RegExp("\\b("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")\\b","i"), E=EASY[w.en];
+    let ex=null; if(E && E[0] && re.test(E[0])) ex=[E];                                  // (v246) 유치원 단어는 쉬운 예문 (data/easy.json)
+    else { let D=null; try{ D=DexData.of(w.en); }catch(e){} if(!D || !D[3]) return null; ex=D[3].filter(x=>x && x[0] && re.test(x[0])); }
+    if(!ex.length) return null;
     const x=ex[Math.floor(Math.random()*ex.length)], m=x[0].match(re);
     return {pre:x[0].slice(0,m.index), post:x[0].slice(m.index+m[0].length), ko:x[1]||"", cap:/^[A-Z]/.test(m[0])}; }
   /* (v220) 복습 — 간격 반복. 처음에 맞히면 칸이 올라가고(1·2·4·7·15일 뒤), 틀리면 내일 다시 */
@@ -11206,16 +11271,19 @@ const Study = (function(){
   /* (v225) 달리기와 같은 Grade 로 나눈다 · 그 안은 교재(권)의 과 */
   /* (v226) 카테고리 — 슬라이드로 고른다 (책 이름 대신) */
   /* (v227) 위 줄 = 큰 카테고리(슬라이드) · 아래 줄 = 그 안에서 고르는 것 (유치원 → 그림 단어·단모음·장모음·이중자음 / Grade → 책) */
-  const BOOKS={ k:  {nm:"유치원",    tab:"유치원", emo:"🧸", sets:["kinder","short","long","digr"]},
+  const BOOKS={ k:  {nm:"유치원",    tab:"유치원", emo:"🧸", sets:["kinder","abc","short","long","digr","vowel2","sight"]},
                 g12:{nm:"Grade 1-2", tab:"G1-2",   emo:"🍎", sets:["basic"]},
                 g34:{nm:"Grade 3-4", tab:"G3-4",   emo:"🎒", sets:["elem"]},
                 g56:{nm:"Grade 5-6", tab:"G5-6",   emo:"🧭", sets:["g56","rd1","rd2","rd3"]},
                 mid:{nm:"중등",      tab:"중등",   emo:"🏫", sets:["mid"]},
                 ph: {nm:"표현",      tab:"표현",   emo:"🗣️", sets:["phrase"]} };
   const SUB={ kinder:{nm:"그림 단어", emo:"🖼️", sub:"그림으로 배우는 첫 단어"},
-              short: {nm:"단모음",   emo:"🔤", sub:"짧은 소리 a · e · i · o · u"},
-              long:  {nm:"장모음",   emo:"🌟", sub:"길게 읽는 소리 a_e · ee · ai"},
-              digr:  {nm:"이중자음", emo:"🔗", sub:"두 글자 한 소리 sh · ch · th"},
+              abc:   {nm:"단자음",   emo:"🔤", sub:"첫소리 b · c · d … z"},
+              short: {nm:"단모음",   emo:"🅰️", sub:"짧은 소리 a · e · i · o · u"},
+              long:  {nm:"장모음",   emo:"🌟", sub:"끝에 e — a_e · i_e · o_e · u_e"},
+              digr:  {nm:"이중자음", emo:"🔗", sub:"bl · br · st … sh · ch · th"},
+              vowel2:{nm:"이중모음", emo:"🎵", sub:"ee · ai · oa · oo · ou · oi · ar · er"},
+              sight: {nm:"사이트 워드", emo:"👀", sub:"보자마자 읽는 단어 the · is · said"},
               basic: {nm:"1권",      emo:"📗", sub:"초등 1~2학년 단어 · 보카 1권"},
               elem:  {nm:"2권",      emo:"📘", sub:"초등 3~4학년 단어 · 보카 2권"},
               g56:   {nm:"고학년 단어", emo:"🧭", sub:"초등 5~6학년 단어"},
@@ -11233,7 +11301,13 @@ const Study = (function(){
   const stageName = (set,n) => { const L=lessons(set), x=L.find(y=>y.n===n); return "Stage "+stageNo(set,n)+(x && x.title && !WORD_SETS[set].reading ? " · "+x.title : ""); };
   const canHear = () => Voice.canListen();
   /* 문제 모양 고르기 — 과 단계(⭐)가 오를수록 철자·듣기가 많아진다 */
+  /* (v246) 사이트 워드 — 그림·뜻보다 '보자마자 읽기': 듣고 고르기 · 문장 빈칸 · 문장에서 들리는 단어 찾기(find) */
+  let swCtx=false; const ctx=set=>{ swCtx=!!(WORD_SETS[set]||{}).sight; }, isSW=w=>swCtx || !!(w && w.sw);
+  function swFix(bag, w){ if(!canSpell(w)){ delete bag.spell; delete bag.dict; } if(!canHear()){ delete bag.listen; delete bag.dict; delete bag.find; }
+    if(!sentOf(w)){ delete bag.sent; delete bag.find; } if(!Object.keys(bag).length) bag.listen=1; return bag; }
   function pickType(w, level, test, phc){
+    if(isSW(w)){ const bag=swFix(test ? {listen:3, sent:3, spell:2} : level<=0 ? {listen:3, find:3, sent:2} : level===1 ? {listen:2, find:2, sent:3, spell:1} : {sent:3, spell:2, dict:2, find:1}, w);
+      const ks=Object.keys(bag), tot=ks.reduce((t,k)=>t+bag[k],0); let r=Math.random()*tot; for(const k of ks){ r-=bag[k]; if(r<=0) return k; } return ks[0]; }
     const bag = test ? {k2e:3, listen:2, spell:3, e2k:2, sent:2}
       : level<=0 ? {e2k:3, k2e:2, listen:2, match:1, pic:2, drag:3, ox:2}
       : level===1 ? {e2k:2, k2e:2, listen:2, spell:2, match:1, pic:2, sent:2, drag:2, ox:1}
@@ -11262,10 +11336,19 @@ const Study = (function(){
       if(m){ const grp=SND.find(g=>g.indexOf(m[1])>=0)||[]; return {pre:en.slice(0,m.index), mid:m[1], post:en.slice(m.index+m[1].length),
         alts:["ee","ai","oa","ea","ay"].filter(x=>grp.indexOf(x)<0)}; }
       return null; }
-    if(code==="sh"||code==="ch"||code==="th"||code==="dg"){ m=en.match(/(sh|ch|th)/);
+    if(code==="sh"||code==="ch"||code==="th"){ m=en.match(/(sh|ch|th)/);
       return m ? {pre:en.slice(0,m.index), mid:m[1], post:en.slice(m.index+2), alts:["sh","ch","th"].filter(x=>x!==m[1])} : null; }
+    /* (v246) 단자음(첫소리) · 블렌드 · wh·ph·ck·ng · 이중모음 — 같은 소리 묶음(c·k, er·ir·ur …)은 보기에서 뺀다 */
+    const G=BG[code]; if(G){ m=en.match(PH_RE[code]); if(!m) return null; const mid=m[0], same=[mid].concat(...BGS.filter(g=>g.indexOf(mid)>=0));
+      return {pre:en.slice(0,m.index), mid, post:en.slice(m.index+mid.length), alts:G.filter(x=>same.indexOf(x)<0 && x!==mid)}; }
     return null;
   }
+  const CONS="b c d f g h j k l m n p r s t v w y z".split(" ");
+  const BG={ c1:CONS, c1x:CONS.concat(["x"]), lb:["bl","cl","fl","gl","pl","sl"], rb:["br","cr","dr","fr","gr","pr","tr"], sb:["sk","sm","sn","sp","st","sw"],
+    wp:["wh","ph","ck","ng","sh","th"], dg:["sh","ch","th","bl","fl","cr","tr","st","sw","ck","ng"],
+    oa:["oa","ee","ai","oo","ou"], oo:["oo","oa","ee","ou","ai"], ou:["ou","oo","oa","ee","oi"], oi:["oi","ou","oa","ai","ee"], ar:["ar","or","er","oo"], er:["er","ar","or","oo"],
+    vm:["ee","ai","oa","oo","ou","oi","ar","or","er"] };
+  const BGS=[["c","k"],["ee","ea"],["ai","ay"],["oa","ow"],["ou","ow"],["oi","oy"],["er","ir","ur"],["s","c"],["ph","f"],["ck","k","c"]];
   function makeQ(t, w, pool, level, phc){
     if(t==="ox"){ const d=decoys(w,pool,1,"ko")[0], truth=!d || Math.random()<0.5;   // (v234) ⭕❌ 이 뜻이 맞을까?
       return {t, w, truth, ko: truth ? w.ko : d.ko}; }
@@ -11279,6 +11362,10 @@ const Study = (function(){
       return {t, w, tiles:shuffle(w.en.split("").concat(extra))}; }
     if(t==="pic"){ const used={}; used[w.emoji]=1; const d=shuffle(EMO).filter(x=>x.en!==w.en && !used[x.emoji] && (used[x.emoji]=1)).slice(0,3);
       return {t, w, opts:shuffle([w].concat(d))}; }
+    if(t==="find"){ const st=sentOf(w); if(st){ const full=st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post, lw=w.en.toLowerCase();   // (v246) 문장에서 들리는 단어 누르기
+        const toks=full.split(/\s+/).filter(Boolean).map(x=>({t:x, ok:x.replace(/[^A-Za-z'-]/g,"").toLowerCase()===lw}));
+        if(toks.some(x=>x.ok) && toks.length>=3) return {t, w, st, toks}; }
+      t="listen"; }
     if(t==="sent"){ const st=sentOf(w); if(st) return {t, w, st, opts:shuffle([w].concat(decoys(w,pool,3,"en")))};
       return {t:"k2e", w, opts:shuffle([w].concat(decoys(w,pool,3,"en")))}; }
     return {t, w, opts:shuffle([w].concat(decoys(w,pool,3, t==="e2k"?"ko":"en")))};
@@ -11295,7 +11382,7 @@ const Study = (function(){
   function famPick(set, n, news){
     const L=lessons(set), k=L.findIndex(x=>x.n===n), S=load(), nset={}; news.forEach(w=>nset[w.en]=1);
     const own=L[k].ws.filter(w=>S.seen[w.en] && !nset[w.en]);
-    const mw=(WORD_SETS[set]||{}).phonics ? 12 : MINW;   // (v243) 파닉스 1-1 · 1-2 는 5~7단어 → 아는 단어로 12개까지만 (유치원)
+    const mw=((WORD_SETS[set]||{}).phonics || (WORD_SETS[set]||{}).sight) ? 12 : MINW;   // (v243) 파닉스 1-1 · 1-2 는 5~7단어 → 아는 단어로 12개까지만 (유치원)
     const need=Math.max(mw-news.length, Math.min(FAMX, own.length));
     let fam=shuffle(own).slice(0, need);
     if(fam.length<Math.max(need, FAMX) && news.length){                                // 앞 Stage에서 본 단어로 채움 (확신 주기)
@@ -11316,6 +11403,8 @@ const Study = (function(){
     return {nw:news.length, fam, wu:wu>=2?wu:0, qn:news.length*3+fam+(wu>=2?wu:0), left:unseen-news.length};
   }
   function stepType(w, step, phc, kid){
+    if(isSW(w)){ const bag=swFix(step===0 ? {listen:3, find:3} : step===1 ? {sent:3, find:2, listen:1} : step===2 ? {sent:2, find:1, listen:1, spell:1} : {spell:2, dict:1, sent:1}, w);
+      const ks=Object.keys(bag), tot=ks.reduce((t,k)=>t+bag[k],0); let r=Math.random()*tot; for(const k of ks){ r-=bag[k]; if(r<=0) return k; } return ks[0]; }
     const bag = step===0 ? {e2k:3, pic:3, listen:2, ox:1}
               : step===1 ? {k2e:3, listen:2, drag:2, ox:1}
               : kid ? (step===2 ? {listen:3, k2e:2, spell:1} : {spell:2, listen:2, k2e:1})   // 유치원 — 철자보다 듣기 위주
@@ -11359,9 +11448,10 @@ const Study = (function(){
   }
   /* 한 과의 20문제 만들기 */
   function build(set, n, test){
+    ctx(set);
     const L=lessons(set), i=L.findIndex(x=>x.n===n), les=L[i], level=test?3:lv(set,n);
     if(!test){                                                                            // (v242) 새 흐름
-      const phc0 = PHONICS[set] ? (les.hl||"") : null, news=wantedNew(set,n), wu=warmUp(les.ws);
+      const phc0 = (WORD_SETS[set]||{}).phonics ? (les.hl||"") : null, news=wantedNew(set,n), wu=warmUp(les.ws);
       if(news.length) return wu.concat(buildNew(set, les, news, level, phc0));
       if(wu.length) return wu.concat(buildOld());
     }
@@ -11375,7 +11465,7 @@ const Study = (function(){
       let ws=pool; if(ws.length>MAXW) ws=shuffle(unseen).concat(shuffle(pool.filter(w=>S.seen[w.en]))).slice(0,MAXW);
       targets=shuffle(ws);
     }
-    const qs=[], intro={}, total = test ? N : Math.max(N, targets.length), phc = PHONICS[set] ? (les.hl||"") : null;
+    const qs=[], intro={}, total = test ? N : Math.max(N, targets.length), phc = (WORD_SETS[set]||{}).phonics ? (les.hl||"") : null;
     for(let g=0; g<total; g+=3){                             // 세 문제마다, 그 안의 새 단어를 한 장에 먼저 보여 준다
       const grp=[]; for(let k=g;k<Math.min(total,g+3);k++) grp.push(targets[k%targets.length]);
       if(!test){ const nw=grp.filter(w=>!S.seen[w.en] && !intro[w.en] && (intro[w.en]=1)); if(nw.length) qs.push({t:"intro", w:nw[0], ws:nw}); }
@@ -11387,7 +11477,7 @@ const Study = (function(){
     }
   }
   /* 복습 한 판 — 때가 된 단어 최대 10개, 단어마다 1~2문제 (어려운 모양 위주) */
-  function buildReview(){
+  function buildReview(){ ctx(null);
     const ws=shuffle(due()).slice(0,10).map(en=>byEn[en]).filter(Boolean); if(ws.length<3) return null;
     const pool=ws.concat(shuffle(WORD_BANK.filter(x=>x.level===ws[0].level)).slice(0,30)), qs=[];
     ws.forEach(w=>{ qs.push(makeQ(pickType(w,2,false), w, pool, 2)); });
@@ -11395,14 +11485,14 @@ const Study = (function(){
     return qs.map(q=> q.t==="match" ? makeQ("e2k", q.w, pool, 2) : q);   // (끌어서 짝짓기는 복습에도 나온다)
   }
   /* (v234) 틀린 단어만 다시 — 단어마다 한 문제 (별·보석 없음) */
-  function quick(ws){
+  function quick(ws){ ctx(null);
     if(!ws.length) return null;
     const pool=ws.concat(shuffle(WORD_BANK.filter(x=>x.level===(ws[0].level||1))).slice(0,30)), qs=[];
     ws.forEach(w=>{ let t=pickType(w,1,false); if(t==="match"||t==="drag"||t==="pic") t= Math.random()<0.5 ? "e2k" : "k2e"; qs.push(makeQ(t, w, pool, 1)); });
     ws.forEach(w=>{ const t=canSpell(w) ? "spell" : "k2e"; qs.push(makeQ(t, w, pool, 1)); });
     return qs;
   }
-  return { SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf,
+  return { ctx, mig:()=>{ if(m) phMig(m); else load(); }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); },
@@ -11412,7 +11502,7 @@ const Study = (function(){
 const StudyUI = {
   set:null, les:null, test:false, qs:[], i:0, done:0, first:0, wrong:0, missed:{}, t0:0, sel:null, locked:false,
   book:"g12", combo:0, best:0, okW:{}, rv:false, total:20,
-  open(){ const s=Study.load();
+  open(){ try{ Study.mig(); }catch(e){} const s=Study.load();
     if(s.book && !Study.BOOKS[s.book] && Study.SETS.indexOf(s.set)>=0){ s.book=Study.bookOf(s.set); Study.save(); }   // (v227) 예전 탭 이름(단모음 등) → 유치원 안으로
     if(!s.book || !Study.BOOKS[s.book]){                    // (v225) 처음엔 달리기에서 고른 Grade 로
       let g=null; try{ const ls=LastSetup.get(); g=ls && ls.set; }catch(e){}
@@ -11420,7 +11510,7 @@ const StudyUI = {
       s.book=Study.bookOf(g); Study.save(); }
     this.book=s.book; const BK=Study.BOOKS[this.book];
     this.set = BK.sets.indexOf(s.set)>=0 ? s.set : ((s.sub||{})[this.book] && BK.sets.indexOf(s.sub[this.book])>=0 ? s.sub[this.book] : BK.sets[0]);
-    try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); }catch(e){}
+    try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     show("scStudy"); this.path(); },
   close(){ SFX.click(); try{ speechSynthesis.cancel(); }catch(e){} Attract.focus=false; show("scStart"); },
   view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); },
@@ -11450,7 +11540,7 @@ const StudyUI = {
       if(PW){   /* (v243) 슈퍼마리오 월드 지도처럼 — 월드마다 1-1 → 1-2 → … → 🚩 를 왼쪽에서 오른쪽으로 한 줄 */
         const wds=[]; L.forEach(x=>{ if(wds.indexOf(x.wd)<0) wds.push(x.wd); });
         h+=wds.map(wd=>{ const W=PW[wd-1]||[], WL=L.filter(y=>y.wd===wd), wf=WL.filter(y=>Study.lv(st,y.n)>0).length, fl=WL.find(y=>y.fin), clr=!!(fl && Study.lv(st,fl.n)>0);
-          return '<div class="stWBox'+(clr?' clr':'')+'"><div class="stWorld'+(clr?' clr':'')+'"><i>'+(W[1]||'')+'</i><span><b>World '+wd+'</b><small>'+(W[0]||'')+'</small></span><em>'+(clr?'🚩 클리어':wf+' / '+WL.length)+'</em></div>'
+          return '<div class="stWBox'+(clr?' clr':'')+'"><div class="stWorld'+(clr?' clr':'')+'"><i>'+(W.emo||'')+'</i><span><b>World '+wd+'</b><small>'+(W.nm||'')+'</small></span><em>'+(clr?'🚩 클리어':wf+' / '+WL.length)+'</em></div>'
             +(()=>{ /* (v245) 굽이치는 길 — 가운데 → 오른쪽 → 가운데 → 왼쪽 → 가운데(🚩) */
               const RH=112, W=340, A=96, T=26, xs=WL.map((x,j)=>W/2+[0,A,0,-A][j%4]), ys=WL.map((x,j)=>T+j*RH+28), H=T+WL.length*RH-30;
               let d='M'+xs[0]+' '+ys[0]; for(let j=1;j<xs.length;j++){ const my=(ys[j-1]+ys[j])/2; d+=' C'+xs[j-1]+' '+my+' '+xs[j]+' '+my+' '+xs[j]+' '+ys[j]; }
@@ -11504,7 +11594,7 @@ const StudyUI = {
     const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW,
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(),
       qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&(q.t==="blend"?q.opts:q.opts.map(W)), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
-        pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased})), wst:this.wst||{}};
+        pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased})), wst:this.wst||{}};
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
   clearCur(){ try{ localStorage.removeItem(this.CUR); }catch(e){} },
   getCur(){ let c=null; try{ c=JSON.parse(localStorage.getItem(this.CUR)); }catch(e){}
@@ -11514,12 +11604,12 @@ const StudyUI = {
       const wd=en=>{ const w=les.ws.find(x=>x.en===en) || Study.word(en); if(!w) throw 0; return w; };   // (v234) 리딩 뜻(교재 뜻)을 그대로
       const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?(q.t==="blend"?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
       qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; });
-      this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; this.rv=!!c.rv; this.test=false; this.retryMode=false; this.qs=qs;
+      this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.test=false; this.retryMode=false; this.qs=qs;
       ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0;
       show("scStudy"); this.view("stLesson"); this.ticks(); this.show(); return true;
     }catch(e){ this.clearCur(); return false; } },
   /* 첫 화면 '이어서 하기' — 푸는 중이면 그 문제부터, 아니면 📌 오늘 할 과를 바로 */
-  go(){ try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); }catch(e){}
+  go(){ try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     if(this.resume()) return; this.open(); const c=Study.cur(this.set); if(c>=0) this.start(c,false); },
   review(){ const qs=Study.buildReview(); if(!qs){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
     this.qs=qs; this.rv=true; this.test=false; this.retryMode=false; this.les={n:0, ws:[]}; this.set=this.set||"basic"; this.begin(); },
@@ -11604,6 +11694,11 @@ const StudyUI = {
       h='<div class="stKind">📝 빈칸에 들어갈 단어는?</div><div class="stPrompt sent"><div class="stSent">'+this.esc(q.st.pre)+'<u>＿＿＿</u>'+this.esc(q.st.post)+'</div>'
         +(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
+    } else if(q.t==="find"){                                            // (v246) 사이트 워드 — 문장에서 들리는 단어 누르기
+      h='<div class="stKind">👂 들리는 단어를 문장에서 눌러요</div><div class="stPrompt"><button class="stBig" data-say="'+this.esc(w.en)+'">🔊</button><button class="stSlow" data-slow="'+this.esc(w.en)+'">🐢 천천히</button></div>'
+        +'<div class="stFind">'+q.toks.map((o,k)=>'<button class="stOpt fw" data-k="'+k+'">'+this.esc(o.t)+'</button>').join("")+'</div>'
+        +(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'');
+      setTimeout(()=>this.say(w.en), 250);
     } else if(q.t==="drag"){                                            // (v228) 끌어서 짝짓기 (Drops)
       q.done={}; q.miss=0; q.pick=null; const L=shuffle(q.ws), T=shuffle(q.ws);
       h='<div class="stKind">✋ 단어를 끌어서 '+(q.pic?'그림':'뜻')+'에 놓아요</div><div class="dgWrap"><div class="dgWords">'
@@ -11696,6 +11791,7 @@ const StudyUI = {
     if(q.t==="spell" || q.t==="dict"){ ok = q.got===q.w.en; conf=q.got; }
     else if(q.t==="blend"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.mid; conf = q.pre+q.opts[this.sel]+q.post; }
     else if(q.t==="ox"){ if(this.sel==null) return; ok = (this.sel===0)===q.truth; conf = q.truth ? "X" : q.ko; }
+    else if(q.t==="find"){ if(this.sel==null) return; const tk=q.toks[this.sel]||{}; ok=!!tk.ok; conf=String(tk.t||"").replace(/[^A-Za-z'-]/g,""); }
     else { if(this.sel==null) return; const pick=q.opts[this.sel]; ok = pick.en===q.w.en; conf = q.t==="e2k" ? pick.ko : pick.en; }
     try{ Rank.record(q.w.en, ok, ok?null:conf, true); }catch(e){}
     this.result(ok);
@@ -11715,6 +11811,8 @@ const StudyUI = {
       const sl=$("bdRow").querySelector(".slot"); if(sl){ sl.textContent=q.mid; sl.classList.add("fill"); }
       const row=$("bdRow"); if(row){ row.querySelectorAll(".bdT").forEach((t,k)=>{ t.style.animationDelay=(k*0.12)+"s"; }); row.classList.add("merge"); } }
     else if(q.t==="ox"){ const b=$("stQ").querySelectorAll(".stOpt"), right=q.truth?0:1; b.forEach((x,k)=>{ if(k===right) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); }); }
+    else if(q.t==="find"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.toks[k] && q.toks[k].ok) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); });
+      setTimeout(()=>{ if(this.qs[this.i]===q) this.say(q.toks.map(o=>o.t).join(" ")); }, ok?250:900); }   // 문장을 통째로 들려준다
     else if(!ok && q.t!=="match" && q.t!=="drag"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts && q.opts[k].en===q.w.en) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); }); }
     if(ok && q.opts && q.t!=="blend"){ const b=$("stQ").querySelectorAll(".stOpt"); if(b[this.sel]) b[this.sel].classList.add("ok"); }
     if(q.t==="ox"){ const ko=$("stQ").querySelector(".stOxKo"); if(ko && !q.truth){ ko.classList.add("no"); ko.insertAdjacentHTML("afterend",'<div class="stOxKo yes">= '+this.kp(q.w)+'</div>'); } }
@@ -11740,7 +11838,7 @@ const StudyUI = {
      - 맞힘: '보통'을 한 번에 맞히고 아직 안 틀렸으면 마지막 단계를 가장 어렵게(철자·받아쓰기) */
   adapt(q, ok){
     const w=q.w; if(!w) return; const en=w.en, S=this.wst||(this.wst={}), st=S[en]||(S[en]={m:0,o:0});
-    const pool=(this.les && this.les.ws && this.les.ws.length) ? this.les.ws : [w], phc=(this.les && PHONICS[this.set]) ? (this.les.hl||"") : null;
+    const pool=(this.les && this.les.ws && this.les.ws.length) ? this.les.ws : [w], phc=(this.les && (WORD_SETS[this.set]||{}).phonics) ? (this.les.hl||"") : null;
     const SN=Study.load().seen, known=pool.filter(o=>SN[o.en]), kid=Study.BOOKS.k.sets.indexOf(this.set)>=0;
     const later=k=>{ for(let j=this.i+1;j<this.qs.length;j++){ const x=this.qs[j]; if(x.t!=="intro" && x.w && x.w.en===en && x.step!=null && x.step>=k && !x.again) return j; } return -1; };
     if(!ok){
@@ -12580,7 +12678,7 @@ const Outfit = {
 };
 
 /* 단어 도감 — 기본 단어장으로 쪽을 나눈다 (추가한 단어는 넣지 않음) */
-const DEX_BASE = WORD_BANK.slice();
+const DEX_BASE = WORD_BANK.filter(w=>!w.sw);   // (v246) 사이트 기능어는 도감 카드가 아니다
 /* 도감 앨범 — 주제별. 앨범 안 단어 순서는 고정: 새 단어는 반드시 그 앨범 w 맨 뒤에만 붙인다
    (5개 = 한 줄. 줄 번호로 보상 키를 만들기 때문에 중간에 끼우면 줄이 밀린다). 두 단어 이상은 빈칸 대신 _ (look_for). 어느 앨범에도 없는 단어는 "새 단어" 앨범에 자동으로 모인다 */
 const DEX_ALBUMS = [
@@ -13034,6 +13132,9 @@ const ShopUI = {
 /* ── 도감 화면 ── */
 /* 도감 자세히 데이터 — 권마다 data/dex<권>.json (도감을 열 때만 받는다). 지금은 ★1·★2 (data/dex1.json · dex2.json)
    단어 → [설명, 품사, 변하는 모양, [[예문,해석]×3], 발음기호, 한글 소리, 자주 쓰는 말, {o 반대 · s 비슷 · f 가족 · g 같은 무리}, 쓰임 팁, 재미있는 사실] */
+/* (v246) 유치원 단어 쉬운 예문 {en:[예문, 뜻]} — 새 단어 카드·예문 문제는 이것부터 */
+const EASY = {};
+function loadEasy(){ if(loadEasy.st) return; loadEasy.st=1; fetch("data/easy.json").then(r=>r.json()).then(j=>Object.assign(EASY,j)).catch(()=>{ loadEasy.st=0; }); }
 const DexData = {
   has:{1:true, 2:true, 3:true}, d:{}, st:{},
   load(b){ if(!this.has[b] || this.st[b]) return; this.st[b]="loading";
