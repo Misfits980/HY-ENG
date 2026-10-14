@@ -10961,7 +10961,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v251";
+const GAME_VER = "v252";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13729,10 +13729,27 @@ if(window.THREE) window.__start();
 if("serviceWorker" in navigator){
   const hadOld = !!navigator.serviceWorker.controller;
   let reloaded = false;
+  /* (v251) 새 버전이 오면 바로 새로고침하지 않는다 — 예전엔 달리기만 막아서 Daily 30 문제 푸는 중·결과 화면·일시정지·상점 창에서 갑자기 새로고침됐다.
+     첫 화면이나 Daily 30 길 화면에 창 없이 있을 때, 또는 앱이 뒤로 가 있을 때(안 보일 때)만 새로 고친다. */
+  let pendingReload = false;
+  const safeNow = function(){
+    try{
+      if(document.hidden) return true;
+      if(G.running || G.paused) return false;
+      if(document.querySelector(".sheet.on")) return false;
+      const sp=$("stPop"); if(sp && sp.classList.contains("on")) return false;
+      if($("scStart").classList.contains("on")) return true;
+      if($("scStudy").classList.contains("on") && $("stPath").style.display!=="none") return true;
+    }catch(e){}
+    return false;
+  };
+  const tryReload = function(){ if(pendingReload && !reloaded && safeNow()){ reloaded = true; location.reload(); } };
   navigator.serviceWorker.addEventListener("controllerchange", function(){
-    if(!hadOld || reloaded || G.running) return;
-    reloaded = true; location.reload();
+    if(!hadOld || reloaded) return;
+    pendingReload = true; tryReload();
   });
+  setInterval(tryReload, 2000);
+  document.addEventListener("visibilitychange", tryReload);
   addEventListener("load", function(){
     navigator.serviceWorker.register("sw.js").then(function(r){ try{ r.update(); }catch(e){} }).catch(function(){});
   });
