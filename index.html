@@ -11023,7 +11023,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v262";
+const GAME_VER = "v263";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11788,7 +11788,7 @@ const StudyUI = {
   /* ── (v225) 이어 하기 — 푸는 중인 과를 저장해 두고 (3일), 길·첫 화면에서 그 문제부터 ── */
   CUR:"hyeng_study_cur_v1",
   saveCur(){ if(this.test || this.oly || this.retryMode || !this.qs.length) return; const W=w=>w&&w.en;
-    const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW,
+    const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW, fw:this._fw|0,
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(),
       qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.t==="blend"||q.t==="past")?q.opts:q.opts.map(W)), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
         pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased})), wst:this.wst||{}};
@@ -11804,7 +11804,7 @@ const StudyUI = {
       const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?((q.t==="blend"||q.t==="past")?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
       qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; });
       this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; if(!c.rv) this._from={set:c.set, i:Study.lessons(c.set).indexOf(les)}; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.oly=false; this.test=false; this.retryMode=false; this.qs=qs;
-      ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0;
+      ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0; this._fw = c.fw!=null ? c.fw : Object.keys(c.missed||{}).length;   // (v263) 처음에 틀린 수도 이어서
       show("scStudy"); this.view("stLesson"); this.ticks(); this.show(); return true;
     }catch(e){ this.clearCur(); return false; } },
   /* 첫 화면 '이어서 하기' — 푸는 중이면 그 문제부터, 아니면 📌 오늘 할 과를 바로 */
@@ -12161,7 +12161,7 @@ const StudyUI = {
         +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')
         +'<button class="stGo" id="stBack">스테이지로 돌아가기</button>';
       try{ confetti(); }catch(e){} this.log(true, acc); return; }
-    const x=this.les, set=this.set, before=Study.lv(set,x.n), acc=Math.round(this.first/Math.max(1,this.total)*100);
+    const x=this.les, set=this.set, before=Study.lv(set,x.n), acc=this.acc1();
     let gems=0, title, sub, wc=0;
     if(this.test){
       if(pass){ const L=Study.lessons(set); L.forEach(y=>{ if(y.n<=x.n) Study.setLv(set,y.n,1); });
@@ -12207,6 +12207,8 @@ const StudyUI = {
     if(pass) try{ confetti(); }catch(e){}
     this.log(pass, acc);
   },
+  /* (v263) 한 번에 맞힘 % = 처음 푼 문제 중 맞힌 비율 (다시 나온 문제는 안 셈) — 중간에 그만둬도 틀린 것이 빠지지 않게 */
+  acc1(){ return Math.round(this.first/Math.max(1,this.first+(this._fw|0))*100); },
   /* 공부 기록도 시트로 (방식=study · 단어장=반-과) */
   log(pass, acc, why){
     try{ if(!Online.on() || TEST_STAGE || this._lg===this.t0) return; this._lg=this.t0;   // 한 번 공부에 한 줄만
@@ -12246,7 +12248,7 @@ const _stClick=e=>{
     if(a.dataset.act==="go") StudyUI.start(i,false); else if(a.dataset.act==="test") StudyUI.start(i,true); else if(a.dataset.act==="run") StudyUI.run(i); return; }
   if(t.closest("#stPop") && !t.closest(".stPopIn")){ StudyUI.pop(null); return; }
   if(t.closest("#stQuit")){ SFX.click(); try{ speechSynthesis.cancel(); }catch(er){}
-    try{ const U=StudyUI; if(U.t0 && U._lg!==U.t0 && (U.done||0)>0) U.log(false, Math.round(U.first/Math.max(1,U.done)*100), "quit"); }catch(er){}   // (v224) 중간에 그만둬도 '했다'는 기록은 남긴다
+    try{ const U=StudyUI; if(U.t0 && U._lg!==U.t0 && (U.done||0)>0) U.log(false, U.acc1(), "quit"); }catch(er){}   // (v224) 중간에 그만둬도 '했다'는 기록은 남긴다
     StudyUI.path(); return; }
   if(t.closest("[data-retry]")){ SFX.select(); StudyUI.retry(); return; }
   if(t.closest("#stCheck")){ if(Date.now()<(StudyUI._guard||0)) return; StudyUI.check(); return; }   // (v234) 저절로 넘어간 바로 뒤의 손가락은 무시
