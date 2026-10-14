@@ -1323,7 +1323,19 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stWorld b{display:block;font-size:16px;color:#fff} .stWorld small{font-size:13px;font-weight:800;color:#d9d0ff}
 .stWorld em{font-style:normal;font-size:13px;font-weight:900;color:#ffd37a}
 .stWorld.clr{border-color:#7ed957;background:linear-gradient(90deg,rgba(126,217,87,.25),rgba(107,90,216,.1))} .stWorld.clr em{color:#9dff7a}
-.stDot.ph{font-size:20px}
+.stWBox{width:min(380px,100%);margin:16px auto 6px;padding:0 0 10px;border-radius:20px;background:rgba(255,255,255,.04)}
+.stWBox .stWorld{width:auto;margin:0 0 4px}
+.stWRow{position:relative;display:flex;justify-content:space-between;align-items:flex-start;padding:22px 4px 0}
+.stWRow::before{content:"";position:absolute;left:12%;right:12%;top:52px;border-top:5px dotted rgba(200,190,255,.35)}   /* 길 */
+.stWRow.one{justify-content:center} .stWRow.one::before{display:none}
+.stWN{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center}
+.stDot.ph{width:52px;height:50px;font-size:16px;position:relative;z-index:1}
+.stWN.fin .stDot.ph{font-size:22px}
+.stWNo{margin-top:5px;font-size:13px;font-weight:900;color:#fff}
+.stWT span{white-space:nowrap} .stWT{display:block;margin-top:5px;padding:0 2px;font-size:10.5px;font-weight:800;line-height:1.25;color:#ffd37a;word-break:keep-all}
+.stWS{font-size:10px;letter-spacing:-1px;color:#ffd37a} .stWS u{text-decoration:none;color:rgba(255,255,255,.18)}
+.stWNow{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:16px;animation:chBob 1.2s ease-in-out infinite;z-index:2}
+.stWBox.clr{background:rgba(126,217,87,.07)}
 .stLbl span{margin-left:3px;color:#ffd37a;letter-spacing:-1px}
 .stLbl u{text-decoration:none;color:#4a4170}
 .stNow{position:absolute;top:-24px;white-space:nowrap;font-size:11px;font-weight:900;color:#0e2a08;background:#8ff07a;padding:2px 8px;border-radius:99px}
@@ -10886,7 +10898,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v243";
+const GAME_VER = "v244";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11431,17 +11443,24 @@ const StudyUI = {
     let h = due>=3 ? '<button class="stReview" data-review="1"><i>🔁</i><span><b>오늘의 복습 · '+Math.min(due,10)+'단어</b><small>'
       +(rvDone ? '오늘 보석은 받았어요 · 더 해도 좋아요' : '잊기 전에 한 번 더 · 💎 +2')+'</small></span></button>' : '';
     const zig=[0,38,58,38,0,-38,-58,-38];
-    [this.set].forEach(st=>{ const L=Study.lessons(st), c=Study.cur(st), PW=PH_WORLDS[st]; let wd0=0, zi=0;
+    [this.set].forEach(st=>{ const L=Study.lessons(st), c=Study.cur(st), PW=PH_WORLDS[st];
+      const cl=(x,i)=>{ const v=Study.lv(st,x.n); return i===c ? "now" : v>=3 ? "gold" : v>0 ? "done" : "open"; };
+      const stars=v=>'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u>';
+      if(PW){   /* (v243) 슈퍼마리오 월드 지도처럼 — 월드마다 1-1 → 1-2 → … → 🚩 를 왼쪽에서 오른쪽으로 한 줄 */
+        const wds=[]; L.forEach(x=>{ if(wds.indexOf(x.wd)<0) wds.push(x.wd); });
+        h+=wds.map(wd=>{ const W=PW[wd-1]||[], WL=L.filter(y=>y.wd===wd), wf=WL.filter(y=>Study.lv(st,y.n)>0).length, fl=WL.find(y=>y.fin), clr=!!(fl && Study.lv(st,fl.n)>0);
+          return '<div class="stWBox'+(clr?' clr':'')+'"><div class="stWorld'+(clr?' clr':'')+'"><i>'+(W[1]||'')+'</i><span><b>World '+wd+'</b><small>'+(W[0]||'')+'</small></span><em>'+(clr?'🚩 클리어':wf+' / '+WL.length)+'</em></div>'
+            +'<div class="stWRow'+(WL.length<2?' one':'')+'">'+WL.map(x=>{ const i=L.indexOf(x), v=Study.lv(st,x.n), k=cl(x,i), sn=Study.stageNo(st,x.n);
+              const face = x.fin?'🚩':sn;   // 끝낸 건 색(금색)과 별로
+              return '<div class="stWN'+(x.fin?' fin':'')+'">'+(k==="now"?'<div class="stWNow">📌</div>':'')
+                +'<button class="stDot ph '+k+'" data-s="'+st+'" data-i="'+i+'">'+face+'</button>'
+                +'<small class="stWT">'+String(x.title||'').split(' · ').map(t=>'<span>'+t+'</span>').join(' · ')+'</small><span class="stWS">'+stars(v)+'</span></div>'; }).join("")+'</div></div>'; }).join("");
+        return; }
       h+=L.map((x,i)=>{
-        const v=Study.lv(st,x.n), op=true, now=i===c, nextLock=false;
-        const cls = now ? "now" : v>=3 ? "gold" : v>0 ? "done" : op ? "open" : "lock";
-        let wh='';
-        if(PW && x.wd!==wd0){ wd0=x.wd; zi=0; const W=PW[x.wd-1]||[], WL=L.filter(y=>y.wd===x.wd), wf=WL.filter(y=>Study.lv(st,y.n)>0).length, fl=WL.find(y=>y.fin), clr=!!(fl && Study.lv(st,fl.n)>0);   // 🚩 모아서 복습을 끝내면 클리어   // (v243) 월드 머리
-          wh='<div class="stWorld'+(clr?' clr':'')+'"><i>'+(W[1]||'')+'</i><span><b>World '+x.wd+'</b><small>'+(W[0]||'')+'</small></span><em>'+(clr?'🚩 클리어':wf+' / '+WL.length)+'</em></div>'; }
-        const sn=Study.stageNo(st,x.n), face = cls==="lock"?'🔒':cls==="gold"?'👑':v>0?'✓':(PW && x.fin)?'🚩':sn;
-        return wh+'<div class="stNode" style="transform:translateX('+zig[(PW?zi++:i)%8]+'px)"><button class="stDot '+cls+(PW?' ph':'')+'" data-s="'+st+'" data-i="'+i+'">'
-          +face+'</button>'
-          +'<div class="stLbl">Stage '+sn+(x.title && !WORD_SETS[st].reading?' <b class="stTt">'+x.title+'</b>':'')+' <span>'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></span></div>'
+        const v=Study.lv(st,x.n), now=i===c, nextLock=false, cls=cl(x,i);
+        return '<div class="stNode" style="transform:translateX('+zig[i%8]+'px)"><button class="stDot '+cls+'" data-s="'+st+'" data-i="'+i+'">'
+          +(cls==="gold"?'👑':v>0?'✓':(i+1))+'</button>'
+          +'<div class="stLbl">Stage '+(i+1)+(x.title && !WORD_SETS[st].reading?' <b class="stTt">'+x.title+'</b>':'')+' <span>'+stars(v)+'</span></div>'
           +(now?'<div class="stNow">📌 오늘 할 차례</div>':'')+(nextLock?'<div class="stSkip" data-s="'+st+'" data-i="'+i+'">⏩ 건너뛰기 시험</div>':'')+'</div>';
       }).join(""); });
     $("stMap").innerHTML=h;
