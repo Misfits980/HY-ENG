@@ -1,6 +1,6 @@
 import json, re, sys
 grade=sys.argv[1]; setk={'g12':'basic','g34':'elem','g56':'g56'}[grade]
-W=json.load(open('words.json'))[setk]; need=[]
+W=json.load(open(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)),'words.json')))[setk]; need=[]
 for n,ws in W:
     for x in ws:
         en=x.split('=')[0]
