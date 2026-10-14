@@ -1263,6 +1263,9 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 
 /* ── 📚 Daily 30 공부 화면 (v212) ── */
 #scStudy{z-index:8;background:linear-gradient(180deg,#1d1640,#120c2a 60%,#0c081d)}
+/* (v251) 불투명 배경이라 blur 는 안 보인다 — backdrop-filter·남아 있는 transform 이 position:fixed(확인 버튼·시작 창)를 화면이 아니라 스크롤 내용에 붙여 버렸다 */
+#scStudy{-webkit-backdrop-filter:none;backdrop-filter:none}
+#scStudy.on{animation-fill-mode:backwards}
 .stWrap{width:min(480px,100%);margin:0 auto;min-height:100%;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 130px;position:relative}
 .stTop{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .stX{appearance:none;flex:0 0 40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#e9e2ff;font:900 18px/1 var(--font);cursor:pointer}
@@ -1346,6 +1349,7 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stSkip{margin-top:4px;font-size:11px;font-weight:900;color:#ffd37a;background:rgba(255,211,122,.12);border:1px dashed rgba(255,211,122,.5);padding:3px 9px;border-radius:99px;cursor:pointer}
 .stPop{position:fixed;left:0;right:0;bottom:0;display:none;z-index:9;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
 .stPop.on{display:block}
+#scStudy:not(.on) ~ #stPop{display:none!important}
 .stPopIn{width:min(456px,100%);margin:0 auto;background:#241a4a;border:1px solid rgba(255,211,122,.35);border-radius:20px;padding:14px 14px 12px;
   box-shadow:0 -10px 30px rgba(0,0,0,.5);animation:stepIn .22s cubic-bezier(.2,.9,.3,1) both}
 .stPopIn > b{font-size:20px;color:#ffd37a}
@@ -1953,7 +1957,6 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
     <div class="stTabs" id="stTabs"></div>
     <div class="stHead" id="stHead"></div>
     <div class="stMap" id="stMap"></div>
-    <div class="stPop" id="stPop"></div>
   </div>
   <div id="stLesson" style="display:none">
     <div class="stTop"><button class="stX" id="stQuit" aria-label="그만하기">✕</button><div class="stProg"><i id="stBar"></i></div><span class="stRnd" id="stRnd"></span><span class="stCombo" id="stCombo"></span></div>
@@ -1963,6 +1966,8 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
   <div id="stDone" style="display:none"><div class="stDoneIn" id="stDoneIn"></div></div>
 </div></div>
 
+<!-- (v251) 시작 창은 스크롤 화면 밖에 — .screen 의 backdrop-filter·애니메이션 때문에 fixed 가 화면 아래가 아니라 목록 맨 위에 붙던 문제 -->
+<div class="stPop" id="stPop"></div>
 <!-- 👥 2인용 준비 -->
 <div class="screen" id="scVs"><div class="panel vsPanel">
   <h1>👥 2인용 대결</h1>
@@ -10956,7 +10961,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v250";
+const GAME_VER = "v251";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11562,7 +11567,7 @@ const StudyUI = {
     try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     show("scStudy"); this.path(); },
   close(){ SFX.click(); try{ speechSynthesis.cancel(); }catch(e){} Attract.focus=false; show("scStart"); },
-  view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); },
+  view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); if(v!=="stPath") this.pop(null); },
   /* ── 길 ── */
   path(){
     this.view("stPath");
@@ -11609,7 +11614,9 @@ const StudyUI = {
       }).join(""); });
     $("stMap").innerHTML=h;
     this.pop(null);
-    if(!rc) setTimeout(()=>{ const n=$("stMap").querySelector(".stDot.now"); if(n && n.scrollIntoView) try{ n.scrollIntoView({block:"center"}); }catch(e){} }, 60);
+    /* (v251) 방금 한 Stage 자리로 돌아온다 — 예전엔 📌(맨 앞의 안 한 Stage)나 맨 위로 끌려 올라갔다 */
+    const fr=this._from && this._from.set===this.set ? $("stMap").querySelector('.stDot[data-i="'+this._from.i+'"]') : null;
+    if(fr || !rc) setTimeout(()=>{ const n=fr || $("stMap").querySelector(".stDot.now"); if(n && n.scrollIntoView) try{ n.scrollIntoView({block:"center"}); }catch(e){} }, 60);
     else { try{ $("scStudy").scrollTop=0; }catch(e){} }
   },
   pop(i, skip){
@@ -11626,13 +11633,13 @@ const StudyUI = {
   },
   /* ── 한 과 ── */
   start(i, test){
-    const L=Study.lessons(this.set); this.les=L[i]; this.test=!!test; Study.touch(this.set, this.les.n);
+    const L=Study.lessons(this.set); this.les=L[i]; this.test=!!test; Study.touch(this.set, this.les.n); this._from={set:this.set, i};
     this.qs=Study.build(this.set, this.les.n, this.test); this.rv=false; this.retryMode=false; this.begin();
   },
   /* (v234) 틀린 단어만 다시 — 끝난 Stage에서 바로 (별·보석·기록 없음) */
   retry(){ const ws=(this._lastMiss||[]); const qs=Study.quick(ws); if(!qs) return;
     this.qs=qs; this.rv=false; this.test=false; this.retryMode=true; this.begin(); },
-  begin(){ this.wst={}; this.i=0; this.done=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._lg=null; this._rd=0; this._brk=false; this._rm=0; this._fw=0;
+  begin(){ try{ $("scStudy").scrollTop=0; }catch(e){} this.wst={}; this.i=0; this.done=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._lg=null; this._rd=0; this._brk=false; this._rm=0; this._fw=0;
     this.total=Math.max(1, this.qs.filter(q=>q.t!=="intro").length); this.view("stLesson"); this.ticks(); this.show(); },
   /* (v234) 진행 막대에 라운드 눈금 */
   ticks(){ const pr=$("stBar") && $("stBar").parentNode; if(!pr) return; pr.querySelectorAll(".stTick").forEach(x=>x.remove());
@@ -11647,13 +11654,15 @@ const StudyUI = {
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
   clearCur(){ try{ localStorage.removeItem(this.CUR); }catch(e){} },
   getCur(){ let c=null; try{ c=JSON.parse(localStorage.getItem(this.CUR)); }catch(e){}
-    if(!c || !c.qs || !c.qs.length || Date.now()-(c.at||0)>3*864e5 || c.i>=c.qs.length) return null; return c; },
+    if(!c || !c.qs || !c.qs.length || Date.now()-(c.at||0)>3*864e5 || c.i>=c.qs.length) return null;
+    if(!c.rv){ try{ if(!Study.lessons(c.set).some(x=>x.n===c.n)){ this.clearCur(); return null; } }catch(e){ return null; } }   // (v251) 예전 과 번호(나누기 전)로 저장된 이어 하기는 버린다
+    return c; },
   resume(){ const c=this.getCur(); if(!c) return false;
     try{ const les = c.rv ? {n:0, ws:[]} : Study.lessons(c.set).find(x=>x.n===c.n); if(!les) throw 0;
       const wd=en=>{ const w=les.ws.find(x=>x.en===en) || Study.word(en); if(!w) throw 0; return w; };   // (v234) 리딩 뜻(교재 뜻)을 그대로
       const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?((q.t==="blend"||q.t==="past")?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
       qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; });
-      this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.test=false; this.retryMode=false; this.qs=qs;
+      this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; if(!c.rv) this._from={set:c.set, i:Study.lessons(c.set).indexOf(les)}; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.test=false; this.retryMode=false; this.qs=qs;
       ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0;
       show("scStudy"); this.view("stLesson"); this.ticks(); this.show(); return true;
     }catch(e){ this.clearCur(); return false; } },
@@ -12038,7 +12047,7 @@ const StudyUI = {
     }catch(e){}
   },
   run(i){                                                   // 공부한 과 단어로 바로 달리기 (기본 모드)
-    const x=Study.lessons(this.set)[i]; if(!x) return;
+    const x=Study.lessons(this.set)[i]; if(!x) return; this._from={set:this.set, i};
     const st=LastSetup.get()||{};
     G.rule="normal"; G.set=this.set; G.lesson=(WORD_SETS[this.set].course ? (x.pn||x.n) : 0); G.tag=null; G._nextWords=x.ws.map(w=>w.en);
     const s=Study.load(), rk=Study.key(this.set,x.n); s.ran=s.ran||{}; G._nextPractice=!!s.ran[rk]; if(!s.ran[rk]){ s.ran[rk]=Date.now(); Study.save(); }   // (v226) 그 Stage 단어만
@@ -12048,13 +12057,15 @@ const StudyUI = {
     startGame();
   }
 };
-$("scStudy").addEventListener("click",e=>{
+const _stClick=e=>{
   const t=e.target; if(!t.closest) return;
   if(t.closest("#stClose")){ StudyUI.close(); return; }
   const tb=t.closest("#stTabs [data-b]"); if(tb){ SFX.click(); StudyUI.book=tb.dataset.b; const s=Study.load(); s.book=StudyUI.book; Study.save(); StudyUI.set=null; StudyUI.path(); return; }
   const sb=t.closest("[data-sub]"); if(sb){ SFX.click(); StudyUI.set=sb.dataset.sub; const s=Study.load(); s.sub=s.sub||{}; s.sub[StudyUI.book]=StudyUI.set; s.set=StudyUI.set; Study.save(); StudyUI.path(); return; }
   const sk=t.closest(".stSkip"); if(sk){ SFX.click(); StudyUI.set=sk.dataset.s||StudyUI.set; StudyUI.pop(+sk.dataset.i, true); return; }
-  const d=t.closest(".stDot"); if(d){ SFX.click(); StudyUI.set=d.dataset.s||StudyUI.set; const s=Study.load(); s.set=StudyUI.set; Study.save(); StudyUI.pop(+d.dataset.i); return; }
+  const d=t.closest(".stDot"); if(d){ SFX.click(); StudyUI.set=d.dataset.s||StudyUI.set; const s=Study.load(); s.set=StudyUI.set; Study.save(); StudyUI.pop(+d.dataset.i);
+    try{ const r=d.getBoundingClientRect(), pt=$("stPop").firstChild.getBoundingClientRect().top; if(r.bottom+12>pt) $("scStudy").scrollBy({top:r.bottom+40-pt, behavior:"smooth"}); }catch(er){}   // (v251) 누른 동그라미가 창에 가려지지 않게
+    return; }
   if(t.closest("[data-review]")){ SFX.select(); StudyUI.review(); return; }
   const ch=t.closest("[data-chest]"); if(ch){ StudyUI.openChest(ch); return; }
   if(t.closest("[data-resume]")){ SFX.select(); if(!StudyUI.resume()) StudyUI.path(); return; }
@@ -12072,7 +12083,8 @@ $("scStudy").addEventListener("click",e=>{
   if(t.closest("#stBack")){ SFX.click(); StudyUI.path(); return; }
   if(t.closest("#stRun")){ SFX.select(); StudyUI.run(Study.lessons(StudyUI.set).findIndex(x=>x===StudyUI.les)); return; }
   if(t.closest("#stLesson") || t.closest("#stDone")) StudyUI.click(e);
-});
+};
+$("scStudy").addEventListener("click",_stClick); $("stPop").addEventListener("click",_stClick);
 
 /* (v234) Daily 30 키보드 — 1~4 보기 고르기 · O/X · Enter/스페이스 = 확인·계속 */
 addEventListener("keydown",e=>{
