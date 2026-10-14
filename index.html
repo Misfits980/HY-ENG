@@ -11133,7 +11133,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v265";
+const GAME_VER = "v266";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11172,6 +11172,11 @@ function togglePause(){
   } else { const ss=$("shSettings"); if(ss) ss.classList.remove("on"); }
   if(!G.paused) clock.getDelta();
 }
+/* (v266) 공부 시간 — 공부 화면을 누르면 '지금 하는 중', 앱이 뒤로 가면 멈춤 */
+(function(){ const live=()=>{ try{ return StudyUI.t0 && $("scStudy").classList.contains("on") && $("stLesson").style.display!=="none"; }catch(e){ return false; } };
+  ["click","keydown"].forEach(n=>$("scStudy").addEventListener(n, ()=>{ if(live()) StudyUI.tk(); }, {capture:true, passive:true}));
+  document.addEventListener("visibilitychange", ()=>{ try{ if(!StudyUI.t0) return; if(document.hidden) StudyUI.tk(true); else if(live()) StudyUI._ta=Date.now(); }catch(e){} });
+})();
 /* 아이폰 등 — 소리가 멈춰 있으면 다음 터치 때 다시 켠다 (사용자 동작이 있어야 켜지는 기기) */
 addEventListener("pointerdown", ()=>{ try{ if(SFX.ctx && SFX.ctx.state!=="running" && !document.hidden) SFX.ctx.resume(); }catch(e){} }, {passive:true});
 /* 앱 전환·화면 꺼짐 — 자동으로 일시정지하고 소리를 멈춘다 (v129) */
@@ -11890,7 +11895,7 @@ const StudyUI = {
   /* (v234) 틀린 단어만 다시 — 끝난 Stage에서 바로 (별·보석·기록 없음) */
   retry(){ const ws=(this._lastMiss||[]); const qs=Study.quick(ws); if(!qs) return;
     this.qs=qs; this.rv=false; this.test=false; this.oly=false; this.retryMode=true; this.begin(); },
-  begin(){ try{ $("scStudy").scrollTop=0; }catch(e){} this.wst={}; this.i=0; this.done=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._lg=null; this._rd=0; this._brk=false; this._rm=0; this._fw=0;
+  begin(){ try{ $("scStudy").scrollTop=0; }catch(e){} this.wst={}; this.i=0; this.done=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._act=0; this._ta=this.t0; this._lg=null; this._rd=0; this._brk=false; this._rm=0; this._fw=0;
     this.total=Math.max(1, this.qs.filter(q=>q.t!=="intro").length); this.view("stLesson"); this.ticks(); this.show(); },
   /* (v234) 진행 막대에 라운드 눈금 */
   ticks(){ const pr=$("stBar") && $("stBar").parentNode; if(!pr) return; pr.querySelectorAll(".stTick").forEach(x=>x.remove());
@@ -11899,7 +11904,7 @@ const StudyUI = {
   CUR:"hyeng_study_cur_v1",
   saveCur(){ if(this.test || this.oly || this.retryMode || !this.qs.length) return; const W=w=>w&&w.en;
     const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW, fw:this._fw|0,
-      combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(),
+      combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(), act:this.tk()|0,
       qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.t==="blend"||q.t==="past")?q.opts:q.opts.map(W)), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
         pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased})), wst:this.wst||{}};
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
@@ -11915,6 +11920,7 @@ const StudyUI = {
       qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; });
       this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; if(!c.rv) this._from={set:c.set, i:Study.lessons(c.set).indexOf(les)}; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.oly=false; this.test=false; this.retryMode=false; this.qs=qs;
       ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0; this._fw = c.fw!=null ? c.fw : Object.keys(c.missed||{}).length;   // (v263) 처음에 틀린 수도 이어서
+      this._act = c.act!=null ? c.act : 0; this._ta = Date.now();   // (v266) 실제로 푼 시간도 이어서 (예전 저장은 0부터)
       show("scStudy"); this.view("stLesson"); this.ticks(); this.show(); return true;
     }catch(e){ this.clearCur(); return false; } },
   /* 첫 화면 '이어서 하기' — 푸는 중이면 그 문제부터, 아니면 📌 오늘 할 과를 바로 */
@@ -12303,7 +12309,7 @@ const StudyUI = {
     this._lastMiss = miss.map(en=>(x.ws||[]).find(y=>y.en===en)||Study.word(en)).filter(Boolean);
     $("stDoneIn").innerHTML='<div class="stBigT">'+title+'</div><div class="stStars">'+'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u></div><p>'+sub+'</p>'
       +(fresh && sk>1 ? '<p class="stFireP">🔥 '+sk+'일째 공부 중!</p>' : '')
-      +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div><div><b>'+Math.round((Date.now()-this.t0)/1000)+'초</b><small>걸린 시간</small></div></div>'
+      +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div><div><b>'+this.secs()+'초</b><small>걸린 시간</small></div></div>'
       +(this.test ? '' : (()=>{ const tot=(x.ws||[]).length, met=tot-Study.unseenLeft(set,x.n), tm=Study.dueOn(Study.today()+1);   // (v242) Stage 단어 진행 · 내일 복습
           return '<div class="stDProg">이 Stage 단어 '+met+' / '+tot+' 만남<span class="stPgBar"><span style="width:'+Math.round(met/Math.max(1,tot)*100)+'%"></span></span></div>'
             +(tm?'<p class="stFireP">🔁 내일 먼저 복습할 단어 '+tm+'개</p>':''); })())
@@ -12319,13 +12325,18 @@ const StudyUI = {
   },
   /* (v263) 한 번에 맞힘 % = 처음 푼 문제 중 맞힌 비율 (다시 나온 문제는 안 셈) — 중간에 그만둬도 틀린 것이 빠지지 않게 */
   acc1(){ return Math.round(this.first/Math.max(1,this.first+(this._fw|0))*100); },
+  /* (v266) 실제로 푼 시간 — 손대고 있는 동안만 센다. 손대는 사이가 1분보다 길면 1분까지만 (화면 켜 둔 채 쉬거나 앱을 뒤로 보내 둔 시간은 빼기)
+     공부 화면을 누를 때·문제를 낼 때 tk(), 앱이 뒤로 가면 멈춤(_ta=0), 다시 보이면 거기서부터 */
+  IDLE:60000,
+  tk(stop){ const now=Date.now(); if(this._ta) this._act=(this._act||0)+Math.min(this.IDLE, Math.max(0, now-this._ta)); this._ta = stop ? 0 : now; return this._act||0; },
+  secs(){ return Math.round(this.tk()/1000); },
   /* 공부 기록도 시트로 (방식=study · 단어장=반-과) */
   log(pass, acc, why){
     try{ if(!Online.on() || TEST_STAGE || this._lg===this.t0) return; this._lg=this.t0;   // 한 번 공부에 한 줄만
       let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
       Online.submit({nick, score:this.first*10, diff:"study", rule:this.rv?"study-review":this.test?"study-test":"study", stage:this.rv?0:Study.stageNo(this.set,this.les.n), acc, right:this.done, wrong:this.wrong,
-        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)), secs:Math.round((Date.now()-this.t0)/1000), dex, gems:Wallet.gems(), ver:GAME_VER,
+        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)), secs:this.secs(), dex, gems:Wallet.gems(), ver:GAME_VER,
         miss:Object.keys(this.missed).slice(0,25).join(", ")});
     }catch(e){}
   },
@@ -14366,8 +14377,15 @@ if("serviceWorker" in navigator){
   });
   setInterval(tryReload, 2000);
   document.addEventListener("visibilitychange", tryReload);
+  /* (v266) 앱을 끄지 않고 뒤로 보내 두는 기기 — 다시 보일 때(10분에 한 번까지)와 켜 둔 동안 30분마다 새 버전을 확인한다.
+     예전엔 켤 때(load)만 확인해서, 뒤에 남겨 둔 기기는 며칠씩 옛 버전(v248 등)에 머물렀다 */
+  let swReg = null, lastChk = 0;
+  const chk = function(force){ const now=Date.now(); if(!swReg || (!force && now-lastChk<600000)) return; lastChk=now; try{ swReg.update(); }catch(e){} };
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) chk(); });
+  addEventListener("pageshow", function(){ chk(); });
+  setInterval(function(){ if(!document.hidden) chk(true); }, 1800000);
   addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").then(function(r){ try{ r.update(); }catch(e){} }).catch(function(){});
+    navigator.serviceWorker.register("sw.js").then(function(r){ swReg=r; lastChk=Date.now(); try{ r.update(); }catch(e){} }).catch(function(){});
   });
 }
 </script>

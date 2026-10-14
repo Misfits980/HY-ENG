@@ -49,6 +49,16 @@ async def main():
         f = await pg.evaluate("()=>({acc:StudyUI.acc1(), old:Math.round(StudyUI.first/Math.max(1,StudyUI.total)*100), subs:window._subs.map(s=>[s.end,s.acc])})")
         print("full stage", f)
         ok = ok and f['acc'] == f['old'] == 100 and f['subs'] and f['subs'][0] == ['clear', 100]
+        # (v266) 화면 켜 둔 채 20분 쉬었다가 한 문제 → 공부 시간은 1분까지만
+        await pg.evaluate("()=>{ window._subs=[]; StudyUI.start(2,false); }"); await pg.wait_for_timeout(200)
+        await pg.evaluate("()=>{ StudyUI._act=5000; StudyUI._ta=Date.now()-20*60000; StudyUI.t0=Date.now()-20*60000; }")
+        for _ in range(20):
+            if await pg.evaluate("()=>StudyUI.done>0"): break
+            await pg.evaluate(SOLVE, False); await pg.wait_for_timeout(30)
+        await pg.evaluate("()=>document.getElementById('stQuit').click()"); await pg.wait_for_timeout(200)
+        idle = await pg.evaluate("()=>window._subs.map(s=>s.secs)")
+        print("idle 20min -> secs", idle)
+        ok = ok and len(idle) == 1 and 60 <= idle[0] <= 70
         e = real_errs(errs)
         print("errs", e)
         if not ok: print("BAD accuracy")
