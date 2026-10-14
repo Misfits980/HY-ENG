@@ -6,6 +6,10 @@
    - POST type:"ack" : 원격 조치를 처리했다는 표시를 '조치' 탭 '처리' 칸에 (v222)
    - POST type:"name" : 이름을 정하거나 바꾼 기록을 '이름' 탭에 (v225)
    - (v225) scores 탭 맨 끝에 '틀린 단어' 칸 — 그 판(달리기·공부)에서 틀린 단어
+   - (v264 · 서버 v2) GET notice=1 : '공지' 탭에서 지금 보이는 공지 (아이 게임이 켜질 때 받아서 창으로 보여 줌)
+     POST type:"check"/"notice"/"noticeOff"/"actAdd" : 게임 관리 화면에서 공지 올리기·내리기·원격 조치 보내기
+       → 선생님 열쇠(tk)가 스크립트 속성 ADMIN_KEY 와 같아야 한다 (열쇠는 관리 화면 📢 공지 → 설정 방법에서 복사)
+       ⚙ 프로젝트 설정 → 스크립트 속성 → 속성 추가: ADMIN_KEY = (열쇠). 코드에는 열쇠를 적지 않는다 (저장소가 공개라서)
    붙여 넣은 뒤 반드시: 배포 → 배포 관리 → ✏️수정 → 버전 "새 버전" → 배포
    (새 배포를 만들면 주소가 바뀌어 게임이 못 찾는다)
 ===================================================================== */
@@ -41,6 +45,10 @@ const ACT_KINDS = ["보석","선물","회수","환불회수","캐릭터","이름
 /* (v225) 이름 탭 — 이름을 처음 정하거나 바꿀 때마다 한 줄 (같은 기기 = 같은 아이) */
 const NAME_SHEET = "이름";
 const NAME_COLS = [["date","날짜"], ["dev","기기"], ["old","전 이름"], ["nick","새 이름"], ["how","방법"], ["ver","버전"]];
+/* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
+const NOTICE_SHEET = "공지";
+const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
+const SERVER_V = 2;
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
@@ -76,6 +84,8 @@ function doPost(e){
   if (!d || d.key !== KEY) return json_({ok:false, err:"key"});
   if (d.type === "ack") return ackAct_(d);                          // (v222) 원격 조치 처리 확인
   if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
+  if (["check","notice","noticeOff","actAdd"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
+  if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
 
   const row = isBuy ? BUY_COLS.map(([k])=>{
@@ -120,6 +130,7 @@ function doGet(e){
   const p = (e && e.parameter) || {};
   if (p.key !== KEY) return json_({ok:false, err:"key"});
   if (p.act) return json_({ok:true, list:actsFor_(String(p.nick||""), String(p.dev||""))});   // (v222) 원격 조치
+  if (p.notice) return json_({ok:true, v:SERVER_V, notices:notices_()});                          // (v264) 공지
   const diff  = String(p.diff || "easy");
   const range = String(p.range || "week");
   const n     = Math.max(1, Math.min(100, Number(p.n) || 20));
@@ -221,6 +232,72 @@ function nameLog_(d){
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
   return json_({ok:true});
+}
+
+/* ── (v264) 공지 ── */
+function noticeSheet_(){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(NOTICE_SHEET);
+  if (!sh){ sh = ss.insertSheet(NOTICE_SHEET); sh.setFrozenRows(1); sh.setColumnWidth(2, 420); }
+  if (sh.getRange(1, 1).getValue() === "") sh.getRange(1, 1, 1, NOTICE_COLS.length).setValues([NOTICE_COLS.map(c=>c[1])]).setFontWeight("bold");
+  return sh;
+}
+function ymd_(v){ const t = time_(v); return t ? Utilities.formatDate(new Date(t), TZ, "yyyy-MM-dd") : String(v||"").trim(); }
+function noticeId_(r){ return String(r[5] || "").trim() || ("n" + time_(r[0])); }
+/* 지금 보이는 공지 — 보이기가 '끄기'가 아니고, 끝나는 날이 오늘이거나 그 뒤 (최신 10개) */
+function notices_(){
+  const sh = noticeSheet_(), last = sh.getLastRow(); if (last < 2) return [];
+  const rows = sh.getRange(2, 1, last - 1, NOTICE_COLS.length).getValues(), today = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd"), out = [];
+  rows.forEach((r, i)=>{
+    const text = String(r[1] || "").trim(); if (!text) return;
+    if (String(r[2] || "").trim() === "끄기") return;
+    const until = r[3] ? ymd_(r[3]) : ""; if (until && until < today) return;
+    if (!r[0]){ r[0] = new Date(); sh.getRange(i + 2, 1).setValue(r[0]).setNumberFormat("yyyy-mm-dd hh:mm"); }   // 직접 적은 줄 — 날짜가 번호가 된다
+    out.push({id:noticeId_(r), text:text.slice(0, 300), date:Utilities.formatDate(new Date(time_(r[0])), TZ, "M월 d일"), until, t:time_(r[0])});
+  });
+  return out.sort((a,b)=>b.t - a.t).slice(0, 10).map(n=>({id:n.id, text:n.text, date:n.date, until:n.until}));
+}
+/* 여러 줄 글 (공지) — 줄바꿈은 남기고 수식으로 시작하지 않게 */
+function txtMulti_(v, n){
+  let s = (v === undefined || v === null) ? "" : String(v).replace(/\r/g,"").replace(/\t/g," ").trim().slice(0, n||300);
+  if (/^[=+\-@]/.test(s)) s = "'" + s;
+  return s;
+}
+/* 선생님 관리 화면 — 스크립트 속성 ADMIN_KEY 와 같은 열쇠만 */
+function teacher_(d){
+  const want = PropertiesService.getScriptProperties().getProperty("ADMIN_KEY");
+  if (!want) return json_({ok:false, err:"nokey"});
+  if (String(d.tk || "") !== want) return json_({ok:false, err:"badkey"});
+  if (d.type === "check") return json_({ok:true, v:SERVER_V});
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    if (d.type === "notice"){
+      const text = txtMulti_(d.text, 300); if (!text) return json_({ok:false, err:"empty"});
+      const days = Math.max(0, Math.min(60, Math.round(Number(d.days) || 0)));
+      const until = days ? Utilities.formatDate(new Date(Date.now() + (days - 1) * 864e5), TZ, "yyyy-MM-dd") : "";
+      const sh = noticeSheet_(), now = new Date();
+      sh.appendRow([now, text, "켜기", until ? "'" + until : "", txt_(d.dev, 20), "n" + now.getTime()]);
+      sh.getRange(sh.getLastRow(), 1).setNumberFormat("yyyy-mm-dd hh:mm");
+      return json_({ok:true});
+    }
+    if (d.type === "noticeOff"){
+      const sh = noticeSheet_(), last = sh.getLastRow(); if (last < 2) return json_({ok:false, err:"none"});
+      const rows = sh.getRange(2, 1, last - 1, NOTICE_COLS.length).getValues(); let hit = 0;
+      rows.forEach((r, i)=>{ if (noticeId_(r) === String(d.id)){ sh.getRange(i + 2, 3).setValue("끄기"); hit++; } });
+      return json_({ok:hit > 0, err:hit ? "" : "none"});
+    }
+    if (d.type === "actAdd"){
+      const kind = String(d.kind || "").trim(); if (ACT_KINDS.indexOf(kind) < 0) return json_({ok:false, err:"kind"});
+      const who = txt_(d.who, 40); if (!who) return json_({ok:false, err:"who"});
+      const sh = actSheet_(), now = new Date();
+      sh.appendRow([now, who, kind, txt_(d.value, 40), txt_(d.memo, 60), ""]);
+      sh.getRange(sh.getLastRow(), 1).setNumberFormat("yyyy-mm-dd hh:mm");
+      return json_({ok:true});
+    }
+  } catch(err){ return json_({ok:false, err:"busy"}); }
+  finally { try { lock.releaseLock(); } catch(_){} }
+  return json_({ok:false, err:"type"});
 }
 
 /* 편집기에서 ▶실행 으로 확인용 — 시트에 쓰지 않고 랭킹만 로그로 */
