@@ -26,9 +26,10 @@ const COLS = [
   ["boss","문지기처치"], ["clear","완주"], ["end","끝난이유"], ["cause","넘어진이유"],
   ["zone","지대"], ["set","단어장"], ["secs","플레이(초)"], ["dex","도감"], ["gems","보석"],
   ["outfit","옷"], ["fx","달리기효과"], ["hit","정답효과"], ["ver","버전"],
-  ["owned","가진 물건"], ["earned","모은 보석"], ["miss","틀린 단어"]
+  ["owned","가진 물건"], ["earned","모은 보석"], ["miss","틀린 단어"],
+  ["short","짧은 판"]                                               // (v267) 이 줄 전에 초원에서 끝나 기록하지 않은 판 수
 ];
-const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1};
+const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1};
 /* 구매 탭 열 순서 */
 const BUY_SHEET = "구매";
 const BUY_COLS = [["date","날짜"], ["nick","닉네임"], ["kind","종류"], ["name","물건"], ["item","코드"],
@@ -298,6 +299,28 @@ function teacher_(d){
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
   return json_({ok:false, err:"type"});
+}
+
+/* ── (v267) 오래된 기록 보관 — scores 가 너무 길어져 시트가 느려지면 ──
+   KEEP_DAYS 보다 오래된 줄을 '보관' 탭으로 옮긴다 (지우지 않음). 시트 요약 탭들은 scores 만 보므로 옮긴 줄은 요약에서 빠진다.
+   쓰는 법: 편집기 위 함수 고르기에서 archiveOld → ▶실행 (한 번)  ·  자동으로: ⏰ 트리거 → 트리거 추가 → archiveOld · 시간 기반 · 주 단위 */
+const ARCHIVE_SHEET = "보관", KEEP_DAYS = 90;
+function archiveOld(){
+  const ss = SpreadsheetApp.openById(SHEET_ID), sh = sheet_();
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    const last = sh.getLastRow(); if (last < 2) return;
+    const vals = sh.getRange(2, 1, last - 1, COLS.length).getValues(), cut = Date.now() - KEEP_DAYS * 864e5;
+    let n = 0; while (n < vals.length && time_(vals[n][0]) && time_(vals[n][0]) < cut) n++;   // 줄은 시간 순서로 쌓여 있다 → 위에서부터
+    if (!n) return;
+    let ar = ss.getSheetByName(ARCHIVE_SHEET);
+    if (!ar){ ar = ss.insertSheet(ARCHIVE_SHEET); ar.getRange(1, 1, 1, COLS.length).setValues([COLS.map(c=>c[1])]); ar.setFrozenRows(1); }
+    const at = ar.getLastRow() + 1;
+    ar.getRange(at, 1, n, COLS.length).setValues(vals.slice(0, n));
+    ar.getRange(at, 1, n, 1).setNumberFormat("yyyy-mm-dd hh:mm");
+    sh.deleteRows(2, n);
+    Logger.log(n + "줄을 보관 탭으로 옮겼어요");
+  } finally { try { lock.releaseLock(); } catch(_){} }
 }
 
 /* 편집기에서 ▶실행 으로 확인용 — 시트에 쓰지 않고 랭킹만 로그로 */

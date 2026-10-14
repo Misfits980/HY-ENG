@@ -11120,8 +11120,14 @@ function gameOver(){
     : '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
   if(!noRank && Online.on() && G.rule==="normal" && G.score>0){
     const d0=G.diff;
-    Online.submit(Object.assign({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
-                   diff:d0, rule:G.rule, char:G.char}, runReport()))
+    /* (v267) 첫 지대(초원)도 못 넘긴 짧은 판은 시트에 줄을 만들지 않는다 (보통에서 금방 그만두고 다시 하는 판이 많아 기록이 너무 늘었다)
+       대신 몇 판이었는지 세어 두었다가 다음에 보내는 줄의 '짧은 판' 칸에 함께 보낸다 */
+    const SK="hyeng_short_v1", short=!G.cleared && (G.zone|0)===0;
+    let nShort=0; try{ nShort=parseInt(localStorage.getItem(SK),10)||0; }catch(e){}
+    const send = short ? (()=>{ try{ localStorage.setItem(SK, String(nShort+1)); }catch(e){} return Promise.resolve(null); })()
+      : Online.submit(Object.assign({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
+                   diff:d0, rule:G.rule, char:G.char, short:nShort}, runReport())).then(r=>{ if(r && r.ok && nShort){ try{ localStorage.setItem(SK, String(Math.max(0,(parseInt(localStorage.getItem(SK),10)||0)-nShort))); }catch(e){} } return r; });
+    send
       .then(()=>Online.top(d0,"week"))
       .then(list=>{
         if(!list) return;
@@ -11133,7 +11139,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v266";
+const GAME_VER = "v267";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
