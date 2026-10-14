@@ -114,6 +114,16 @@ async def main():
         print("old server:", await pg.evaluate("()=>document.querySelector('.adSrv').innerText"), "| post disabled", dis, "| posts", len(st["posts"]) - n0)
         await pg.screenshot(path=OUT + "ad_notice_oldserver.png")
         if not dis or len(st["posts"]) != n0: bad.append("예전 서버에 보냄")
+        # (v268) 열쇠가 없는 예전 세션: 설정 카드가 위에 펼쳐져 있고, 비밀번호 칸으로 열쇠를 만든다
+        st["v2"] = True
+        await pg.evaluate("()=>{ sessionStorage.removeItem('hyeng_admin_tk'); }")
+        await pg.reload(); await pg.wait_for_timeout(1500)
+        await pg.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }"); await pg.wait_for_timeout(300)
+        await pg.click('#adTabs [data-t="notice"]'); await pg.wait_for_timeout(900)
+        card = await pg.evaluate("()=>{ const c=document.querySelector('.adSetupCard'); return c ? {vis: c.getBoundingClientRect().height>0, pin: !!document.getElementById('adPin2'), top: Math.round(c.getBoundingClientRect().top)} : null }")
+        print("setup card (no key)", card)
+        await pg.screenshot(path=OUT + "ad_setup_nokey.png")
+        if not card or not card["vis"] or not card["pin"]: bad.append("설정 카드")
         e = real_errs(errs); print("errs", e)
         if e: bad.append("errors")
         if bad: print("BAD", bad)

@@ -799,6 +799,13 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 .adLockBtn{display:block;width:100%;opacity:.75}
 .adMsg{min-height:18px;margin:2px 0;font-size:12.5px;font-weight:800;color:#ffd37a}
 .adMsg.good{color:#7dffb0}
+.adSetupCard{border-color:rgba(255,211,122,.45);background:rgba(255,211,122,.07)}
+.adSteps li.done{color:#7dffb0}
+.adSteps code{font:700 12px ui-monospace,Menlo,monospace;color:#ffd37a}
+.adKeyBig{margin-top:10px;padding:10px;border-radius:14px;background:rgba(0,0,0,.28)}
+.adKeyBig small{display:block;font-size:11px;font-weight:800;color:#ffd37a;margin-bottom:6px}
+.adKeyBig input{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,211,122,.4);background:rgba(255,255,255,.06);color:#ffd37a;font:700 12px ui-monospace,Menlo,monospace;-webkit-user-select:text;user-select:text}
+.adKeyBig .play.adGo{margin-top:8px}
 .adGemNow small{font-size:12px;color:#9d92c8;font-weight:700}
 .adChk{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;font-weight:700;color:#cfc4f2}
 .adChk input{width:18px;height:18px;accent-color:#8fe3ff}
@@ -11139,7 +11146,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v267";
+const GAME_VER = "v268";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13371,29 +13378,42 @@ const Admin = (function(){
     if(!Online.on()) return '<div class="adSrv bad">온라인 기록이 꺼져 있어요</div>';
     if(!srv) return '<div class="adSrv">서버 확인 중…</div>';
     if(srv.v<0) return '<div class="adSrv bad">서버에 연결하지 못했어요 · 인터넷을 확인하고 「다시 확인」</div>';
-    if(!srv.v) return '<div class="adSrv bad">⚠️ Apps Script를 새 버전으로 바꿔야 해요 (아래 설정 방법)</div>';
-    if(srv.key==="nokey") return '<div class="adSrv bad">⚠️ 서버에 선생님 열쇠가 없어요 (아래 설정 방법)</div>';
-    if(srv.key==="badkey") return '<div class="adSrv bad">⚠️ 서버 열쇠가 이 비밀번호와 달라요 (아래 설정 방법)</div>';
+    if(!srv.v) return '<div class="adSrv bad">⚠️ Apps Script를 새 버전으로 바꿔야 해요 (아래 순서대로)</div>';
+    if(!tk) return '<div class="adSrv bad">✅ 서버는 새 버전이에요 · 아래에서 열쇠를 만들어 넣어 주세요</div>';
+    if(srv.key==="nokey") return '<div class="adSrv bad">⚠️ 서버에 선생님 열쇠가 없어요 (아래 순서대로)</div>';
+    if(srv.key==="badkey") return '<div class="adSrv bad">⚠️ 서버 열쇠가 이 비밀번호와 달라요 (아래 순서대로)</div>';
     if(srv.key==="ok") return '<div class="adSrv good">✅ 서버 연결 · 선생님 열쇠 확인됨</div>';
     return '<div class="adSrv">서버 연결됨 · 열쇠 확인 중…</div>';
   }
   const ready=()=>srv && srv.v>0 && srv.key==="ok" && tk;
+  /* (v268) 설정 안내 — 아직 안 됐으면 위쪽에 늘 펼친 카드로 (예전 접는 칸은 아이폰에서 안 열린다는 말이 있었다) */
+  function keyBox(){
+    if(tk) return '<div class="adKeyBig"><small>선생님 열쇠</small><input id="adKeyTxt" readonly value="'+esc(tk)+'" aria-label="선생님 열쇠">'
+      +'<button class="play adGo" data-ad="copyKey">🔑 열쇠 복사</button><p class="adSmall">복사가 안 되면 위 칸을 길게 눌러 「전체 선택 → 복사」</p></div>';
+    return '<div class="adKeyBig"><small>열쇠를 만들려면 비밀번호를 한 번 더 넣어 주세요</small>'
+      +'<div class="adPinRow"><input id="adPin2" type="password" inputmode="numeric" maxlength="12" autocomplete="off" aria-label="비밀번호"><button class="mini go" data-ad="mkKey">열쇠 만들기</button></div></div>';
+  }
   function setup(){
-    const show = !ready();
-    return '<details class="adSetup"'+(show?' open':'')+'><summary>설정 방법 (처음 한 번)</summary><ol>'
-      +'<li>저장소의 <b>server/Code.gs</b>를 Apps Script에 붙여 넣고 <b>배포 → 배포 관리 → ✏️ → 새 버전 → 배포</b> (새 배포 말고)</li>'
-      +'<li>Apps Script 왼쪽 ⚙ <b>프로젝트 설정 → 스크립트 속성 → 속성 추가</b><br>속성: <code>ADMIN_KEY</code> · 값: 아래 열쇠</li>'
-      +'<li>여기로 돌아와 <b>다시 확인</b></li></ol>'
-      +(tk ? '<div class="adKey"><code>'+esc(tk)+'</code><button class="mini" data-ad="copyKey">열쇠 복사</button></div>'
-           : '<p class="adSmall">열쇠를 보려면 관리자를 잠갔다가 비밀번호를 다시 넣어 주세요.</p>')
-      +'<p class="adSmall">열쇠는 비밀번호에서 만들어져요 (비밀번호를 바꾸면 열쇠도 바뀌어요). 아이들에게 보여 주지 마세요.</p>'
-      +'<button class="mini" data-ad="recheck">다시 확인</button></details>';
+    if(ready()) return '<details class="adSetup"><summary>설정 다시 보기</summary>'+keyBox()+'<button class="mini" data-ad="recheck">🔄 다시 확인</button></details>';
+    return '';
+  }
+  function setupCard(){
+    if(ready()) return '';
+    const step = !srv ? 0 : srv.v<=0 ? 1 : 2;
+    return '<section class="adCard adSetupCard"><h3>🔑 처음 한 번 — 서버 설정</h3><ol class="adSteps">'
+      +'<li'+(step>1?' class="done"':'')+'>Apps Script에 새 <b>Code.gs</b> 붙여 넣기 → <b>배포 관리 → ✏️ → 새 버전 → 배포</b>'+(step>1?' ✅':'')+'</li>'
+      +'<li>아래 <b>열쇠 복사</b></li>'
+      +'<li>Apps Script 왼쪽 <b>⚙ 프로젝트 설정</b> → 맨 아래 <b>스크립트 속성 → 스크립트 속성 추가</b><br>속성 <code>ADMIN_KEY</code> · 값 = 복사한 열쇠 → <b>저장</b></li>'
+      +'<li>여기서 <b>다시 확인</b></li></ol>'
+      +keyBox()
+      +'<button class="mini" data-ad="recheck" style="width:100%;margin-top:10px">🔄 다시 확인</button>'
+      +'<p class="adSmall">열쇠는 비밀번호에서 만들어져요 (비밀번호를 바꾸면 열쇠도 다시 넣어야 해요). 아이들에게 보여 주지 마세요.</p></section>';
   }
 
   /* ── 📢 공지 ── */
   function notice(){
     const L=(srv && srv.notices)||[];
-    let h=srvLine();
+    let h=srvLine()+setupCard();
     h+=card('새 공지 쓰기', '<textarea id="adNtText" maxlength="300" rows="4" placeholder="예) 이번 주 금요일은 단어 시험이 있어요! 오늘의 30을 꼭 하고 오세요 📚"></textarea>'
       +'<div class="adCount"><span id="adNtCnt">0</span>/300</div>'
       +'<div class="adField"><label>보이는 기간</label><div class="adSeg" id="adNtDays">'
@@ -13411,7 +13431,7 @@ const Admin = (function(){
   const KINDS=[["보석","💎 보석 주기·빼기","+50 / -30"],["선물","🎁 물건 선물","물건 코드"],["회수","📦 물건 회수","물건 코드"],["환불회수","↩️ 회수 + 보석 돌려주기","물건 코드"],
                ["캐릭터","🔓 캐릭터 열기","캐릭터 코드"],["이름","✏️ 이름 바꾸기","새 이름"],["이름권","🎫 이름 변경권","장 수"]];
   function send(){
-    let h=srvLine();
+    let h=srvLine()+setupCard();
     h+=card('누구에게', '<div class="adSeg" id="adWhoSeg">'+[["all","모두"],["nick","이름"],["dev","기기 코드"]].map(([k,t],i)=>'<button type="button" data-ad="who" data-k="'+k+'" class="'+(i===1?'on':'')+'">'+t+'</button>').join('')+'</div>'
       +'<div class="adPinRow" id="adWhoRow"><input id="adWho" maxlength="30" placeholder="게임 이름 (예: SEOWON)" autocomplete="off"><button class="mini" data-ad="whoMe">이 기기</button></div>');
     h+=card('무엇을', '<select id="adKind">'+KINDS.map(k=>'<option value="'+k[0]+'">'+k[1]+'</option>').join('')+'</select>'
@@ -13507,8 +13527,13 @@ const Admin = (function(){
         else { msg(h?"비밀번호가 달라요":"이 브라우저에서는 확인할 수 없어요 (https 주소로 열어 주세요)"); $("adPin").value=""; } }); return; }
     if(!ok) return;
     if(a==="tab"){ tab=el.dataset.t; ss(TB,tab); try{ SFX.click(); }catch(e){} draw(); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(tab==="notice"||tab==="send") check(); return; }
+    if(a==="mkKey"){ const v=($("adPin2").value||"").trim();
+      sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H) sha("hyeng-teacher:"+v).then(t=>{ tk=t; ss(TK,t); keepScroll=true; draw(); check(true); });
+        else { msg("비밀번호가 달라요"); $("adPin2").value=""; } }); return; }
+    if(a==="copyKey"){ const inp=$("adKeyTxt"); try{ inp.focus(); inp.select(); inp.setSelectionRange(0, 999); }catch(e){} }
     if(a==="copyDev"||a==="copyKey"){ const t = a==="copyDev" ? (get("hyeng_dev")||"") : tk;
-      try{ navigator.clipboard.writeText(t).then(()=>flash(el,"복사됨"),()=>flash(el,"길게 눌러 복사")); }catch(e){ flash(el,"길게 눌러 복사"); } return; }
+      const old=()=>{ let okc=false; try{ okc=document.execCommand("copy"); }catch(e){} flash(el, okc?"복사됨 ✅":"길게 눌러 복사"); };
+      try{ navigator.clipboard.writeText(t).then(()=>flash(el,"복사됨 ✅"),old); }catch(e){ old(); } return; }
     if(a==="recheck"){ msg("확인 중…"); srv=null; check(true); return; }
     if(a==="ntDays"){ ntDays=+el.dataset.d; el.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===el)); return; }
     if(a==="ntPost"){ const text=($("adNtText").value||"").trim(); if(text.length<2) return msg("공지 내용을 적어 주세요");
