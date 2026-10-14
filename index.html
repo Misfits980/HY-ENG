@@ -799,6 +799,9 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 .adLockBtn{display:block;width:100%;opacity:.75}
 .adMsg{min-height:18px;margin:2px 0;font-size:12.5px;font-weight:800;color:#ffd37a}
 .adMsg.good{color:#7dffb0}
+.adGemNow small{font-size:12px;color:#9d92c8;font-weight:700}
+.adChk{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;font-weight:700;color:#cfc4f2}
+.adChk input{width:18px;height:18px;accent-color:#8fe3ff}
 /* 📢 선생님 공지 (아이 화면) */
 #shNotice{z-index:40}
 .ntIn{padding-top:20px}
@@ -1229,8 +1232,16 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .wTags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
 .wFind{margin-top:12px;padding:11px 12px;border-radius:14px;background:rgba(125,255,176,.06);border:1px solid rgba(125,255,176,.22);text-align:left}
 .wFind>b{display:block;font-size:12.5px;color:#9ff5c4;margin-bottom:6px}
-.wFind>div{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px}
-.wFind .k{flex:none;width:76px;font-size:11.5px;font-weight:800;color:#a89ec4}
+.wFind>b small{margin-left:6px;font-size:10.5px;font-weight:700;color:#7fcfa2}
+.wfRow{display:flex;align-items:flex-start;gap:6px;margin-top:6px}
+.wfC{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.wFind .k{flex:none;width:72px;padding-top:5px;font-size:11.5px;font-weight:800;color:#a89ec4}
+.wFind .grp{font-size:11px;font-weight:800;color:#b9f5d2;margin-right:-1px}
+.wFind .c.run{cursor:pointer}
+.wFind .c.run:active{transform:scale(.96)}
+.wFind .c i{font-style:normal;color:#ffd37a;font-size:9.5px;margin-left:2px}
+.wFind .more{font-size:11px;font-weight:800;color:#8d82b8}
+.wfNote{margin:7px 0 0;font-size:10.5px;color:#8d82b8;font-weight:700}
 .wFind .c{padding:4px 9px;border-radius:100px;background:rgba(255,255,255,.07);font-size:11.5px;font-weight:800;color:#efe9ff;border:0;font-family:var(--font)}
 .wFind .c.main{background:rgba(255,211,122,.16);color:#ffe6a8}
 .wFind .c small{font-size:10px;color:#b9aee0;font-weight:700}
@@ -1266,6 +1277,11 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .shX{pointer-events:auto;width:40px;height:40px;margin:-8px -10px 0 0;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(36,26,74,.92);
   color:#fff;font-size:17px;font-weight:800;line-height:1;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .shX:active{transform:scale(.92)}
+.shopHead.stk{position:sticky;top:-22px;z-index:6;margin:-22px -20px 10px;padding:16px 16px 10px 20px;background:#1a1235;border-radius:28px 28px 0 0;box-shadow:0 8px 12px -8px rgba(8,5,18,.8)}
+.sheetIn .shopHead.stk{padding-right:16px}
+.shopHead.stk .gemPill{margin-left:auto}
+.shX.inl{margin:0;width:38px;height:38px;flex:none;font-size:15px}
+.dexIn.wide .dexL>.shopHead.stk{top:0;margin:0 0 10px;padding:4px 2px 10px 0;border-radius:0;box-shadow:none}
 .sheetIn .shopHead{padding-right:50px}
 input[type=text]{width:100%;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.06);color:#fff;
   border:1px solid rgba(255,255,255,.12);font-family:var(--font);font-size:15px;font-weight:600}
@@ -11117,7 +11133,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v264";
+const GAME_VER = "v265";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13154,6 +13170,16 @@ const Dex = (function(){
     open(en){ const a=load(); if(!a.got[en] || a.open[en]) return false; a.open[en]=1; save(); return true; },
     sealedList(A){ const L=A ? A.words : DEX_BASE; return L.filter(w=>this.sealed(w.en)); },
     sealedCount(){ const a=load(); return Object.keys(a.got).filter(en=>!a.open[en]).length; },
+    /* (v265) 관리 화면 — fill: 학년(g) 또는 전체 단어를 열린 카드로 모으기 · open: 뒤집힌 카드 모두 열기 · clear: 비우기
+       noGift=true 면 채워진 줄·판·앨범 보상을 '받은 것'으로 (보석이 쏟아지지 않게) */
+    admin(op, g, noGift){ const a=load(); const ws=[]; this.albums().forEach(A=>{ if(!g || A.g===g) ws.push.apply(ws, A.words); });
+      let n=0;
+      if(op==="fill") ws.forEach(w=>{ if(!a.got[w.en] || !a.open[w.en]) n++; a.got[w.en]=1; a.open[w.en]=1; });
+      else if(op==="open") Object.keys(a.got).forEach(en=>{ if(!a.open[en]){ a.open[en]=1; n++; } });
+      else if(op==="clear"){ ws.forEach(w=>{ if(a.got[w.en]) n++; delete a.got[w.en]; delete a.open[w.en]; }); if(!g) a.tg=[]; }
+      save();
+      if(op!=="clear" && noGift){ try{ this.gifts().forEach(x=>Wallet.pay(x.key)); }catch(e){} }
+      return n; },
     list,
     count(b){ return list(b).filter(w=>this.has(w.en)).length; },
     pages(b){ return Math.ceil(list(b).length/PAGE); },
@@ -13390,6 +13416,14 @@ const Admin = (function(){
       +'<button class="mini" data-ad="charAll">🔓 캐릭터 모두 열기</button><button class="mini" data-ad="shopAll">🛍 상점 물건 모두 갖기</button>'
       +'<button class="mini" data-ad="studyAll">📚 공부 Stage 모두 열기</button><button class="mini" data-ad="nameTk">🎫 이름 무료권 +1</button></div>'
       +'<p class="adSmall">상점 물건은 공개된 것만 (비공개 옷은 ?stage= 시험 주소에서 입어 보기).</p>');
+    const GB=Study.BOOKS, gopt=Object.keys(GB).filter(g=>Dex.albums().some(A=>A.g===g)).map(g=>'<option value="'+g+'">'+GB[g].emo+' '+GB[g].nm+'</option>').join('');
+    const dexN=Dex.albums().reduce((t,A)=>t+A.words.filter(w=>Dex.has(w.en)).length,0), dexT=Dex.albums().reduce((t,A)=>t+A.words.length,0);
+    h+=card('도감', '<div class="adGemNow">📖 <b>'+dexN+'</b> / '+dexT+' <small>· 뒤집힌 카드 '+Dex.sealedCount()+'</small></div>'
+      +'<select id="adDexG"><option value="">🌈 전체 학년</option>'+gopt+'</select>'
+      +'<label class="adChk"><input type="checkbox" id="adDexNoGift" checked> 줄·앨범 보석 보상은 주지 않기</label>'
+      +'<div class="adBtns" style="margin-top:8px"><button class="mini" data-ad="dexFill">📖 도감 모두 모으기</button><button class="mini" data-ad="dexOpen">✨ 뒤집힌 카드 모두 열기</button>'
+      +'<button class="mini warn" data-ad="dexClear">도감 비우기</button></div>'
+      +'<p class="adSmall">학년을 고르면 그 학년 앨범만. 보상 체크를 끄면 아이가 도감에서 「🎁 모두 받기」로 보석을 받을 수 있어요.</p>');
     h+=card('지우기', '<div class="adBtns">'
       +'<button class="mini warn" data-ad="charReset">캐릭터 잠그기</button><button class="mini warn" data-ad="shopReset">산 물건 지우기</button>'
       +'<button class="mini warn" data-ad="studyReset">공부 기록 지우기</button><button class="mini warn" data-ad="paidReset">받은 보상 지우기</button></div>'
@@ -13480,6 +13514,11 @@ const Admin = (function(){
     else if(a==="shopAll"){ OUTFITS.concat(TRAILS, HITS).forEach(o=>{ if(!o.hidden && o.price) Wallet.give(o.id); }); }
     else if(a==="shopReset"){ if(!confirm("산 물건을 모두 지울까요? (보석은 돌려주지 않아요)")) return; const W=Wallet.raw(); W.owned=[]; W.wear={}; W.sel={}; W.fx=null; try{ localStorage.setItem("hyeng_wallet_v1", JSON.stringify(W)); }catch(e){} }
     else if(a==="nameTk"){ NameCard.give(1); }
+    else if(a==="dexFill"||a==="dexOpen"||a==="dexClear"){ const g=$("adDexG").value, ng=$("adDexNoGift").checked, gn=g?Study.BOOKS[g].nm:"전체";
+      if(a==="dexClear" && (!confirm(gn+" 도감을 비울까요? (모은 카드가 사라져요)") || !confirm("정말 비울까요? 되돌릴 수 없어요."))) return;
+      if(a==="dexFill" && !confirm(gn+" 도감 단어를 모두 모을까요?")) return;
+      const n=Dex.admin(a==="dexFill"?"fill":a==="dexOpen"?"open":"clear", a==="dexOpen"?"":g, ng);
+      try{ refreshDexBadge(); }catch(e){} keepScroll=true; draw(); refresh(); return msg((a==="dexFill"?"모은 카드 +":a==="dexOpen"?"연 카드 ":"지운 카드 ")+n, true); }
     else if(a==="studyAll"){ Study.SETS.forEach(set=>Study.lessons(set).forEach(l=>Study.setLv(set,l.n,1))); }
     else if(a==="studyReset"){ if(!confirm("Daily 30 공부 기록(별)을 지울까요?")) return; const s=Study.load(); s.lv={}; s.seen={}; Study.save(); }
     else if(a==="paidReset"){ if(!confirm("받은 보상 기록을 지울까요? 같은 보상을 다시 받을 수 있게 돼요.")) return; const W=Wallet.raw(); W.paid={}; try{ localStorage.setItem("hyeng_wallet_v1", JSON.stringify(W)); }catch(e){} }
@@ -13699,19 +13738,31 @@ const DexDet = {
   link(txt, en){ return String(txt).split(/,\s*/).filter(Boolean).map(t=>{ const k=t.split(" ")[0].toLowerCase(), w=this.word(k);
       if(w && k!==en) return '<button class="wRl'+(Dex.has(k)?'':' lk')+'" data-go="'+k+'">'+(Dex.has(k)?((w.emoji?w.emoji+' ':'')+this.esc(t)):'? '+this.esc(w.ko))+'</button>';
       return '<span class="wRl pl">'+this.esc(t)+'</span>'; }).join(""); },
-  /* 📍 나오는 곳 — 이 단어가 나오는 달리기 학년 · Daily 30 과 (도감에서 모으러 갈 곳을 알려 준다) */
+  /* 📍 나오는 곳 — 이 단어가 나오는 달리기 학년 · Daily 30 Stage (v265: 눌러서 바로 가기 · 짧게 묶음) */
   found(en){ const w=this.word(en); if(!w) return "";
-    /* v223 — Grade 칸마다 이 단어가 어떻게 나오는지 (본 단어 · 뒤로 갈수록 · 처음에 많이) */
-    const RT={main:"", late:"뒤로 갈수록", warm:"처음에 많이"};
+    const SN={kinder:"유치원", basic:"G1-2", elem:"G3-4", g56:"G5-6", mid:"중등", phrase:"표현"};
     const run=["kinder","basic","elem","g56","mid","phrase"].map(id=>{ const S=WORD_SETS[id]; if(!S || (S.pictureOnly && !w.emoji)) return null;
       const r=rampRole(S, w.level); return r ? {id, r} : null; }).filter(Boolean);
     const st=[]; try{ Study.SETS.forEach(id=>Study.lessons(id).forEach((l,i)=>{ if(l.ws.some(x=>x.en===en)) st.push({id,i,n:l.n}); })); }catch(e){}
     if(!run.length && !st.length) return "";
-    return '<div class="wFind"><b>📍 나오는 곳</b>'
-      +(run.length?'<div><span class="k">🏃 달리기</span>'+run.map(x=>'<span class="c'+(x.r==="main"?' main':'')+'">'+WORD_SETS[x.id].icon+' '+WORD_SETS[x.id].label+(RT[x.r]?' <small>· '+RT[x.r]+'</small>':'')+'</span>').join("")+'</div>':'')
-      +(st.length?'<div><span class="k">📚 Daily 30</span>'+st.slice(0,3).map(x=>{ const S=WORD_SETS[x.id], lv=Study.lv(x.id,x.n);
-          return '<button class="c go" data-study="'+x.id+'" data-si="'+x.i+'">'+Study.label(x.id)+' Stage '+Study.stageNo(x.id,x.n)+(lv?' '+'★'.repeat(lv):'')+'</button>'; }).join("")+'</div>':'')
-      +'</div>'; },
+    /* Daily 30 — 같은 책끼리 묶고 Stage 번호만 (모두 4개까지 · 나머지는 +N) */
+    const grp=[], gi={}; st.forEach(x=>{ const L=Study.label(x.id); if(!gi[L]){ gi[L]={L, xs:[]}; grp.push(gi[L]); } gi[L].xs.push(x); });
+    let left=4, more=0;
+    const sh=grp.map(g=>{ const xs=g.xs.slice(0, Math.max(0,left)); left-=xs.length; more+=g.xs.length-xs.length; if(!xs.length) return "";
+      return '<span class="grp">'+this.esc(g.L)+'</span>'+xs.map(x=>{ const lv=Study.lv(x.id,x.n);
+        return '<button class="c go" data-study="'+x.id+'" data-si="'+x.i+'">'+Study.stageNo(x.id,x.n)+(lv?'<i>'+'★'.repeat(lv)+'</i>':'')+'</button>'; }).join(""); }).join("");
+    return '<div class="wFind"><b>📍 나오는 곳 <small>눌러서 바로 가기</small></b>'
+      +(run.length?'<div class="wfRow"><span class="k">🏃 달리기</span><div class="wfC">'+run.map(x=>'<button class="c run'+(x.r==="main"?' main':'')+'" data-run="'+x.id+'">'+WORD_SETS[x.id].icon+' '+(SN[x.id]||WORD_SETS[x.id].label)+'</button>').join("")+'</div></div>':'')
+      +(st.length?'<div class="wfRow"><span class="k">📚 Daily 30</span><div class="wfC">'+sh+(more?'<span class="more">+'+more+'</span>':'')+'</div></div>':'')
+      +(run.some(x=>x.r==="main")&&run.length>1?'<p class="wfNote">노란 칸 = 이 단어가 가장 많이 나오는 곳</p>':'')+'</div>'; },
+  /* (v265) 📍 달리기 칸 → 그 학년 단어로 바로 달리기 (마지막 난이도·캐릭터) */
+  runSet(id){ if(!WORD_SETS[id]) return;
+    $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); try{ speechSynthesis.cancel(); }catch(e){}
+    const st=LastSetup.get()||{};
+    G.rule="normal"; G.set=id; G.lesson=0; G.tag=null; G._nextWords=null; G._nextPractice=false;
+    G.diff = DIFF[st.diff] ? st.diff : "normal"; G.mode = st.mode || "mix";
+    G.char = (CHARACTERS.find(c=>c.id===st.char) && Unlock.has(st.char)) ? st.char : (Unlock.has(G.char)?G.char:"hero");
+    startGame(); },
   show(en, quiet, keepScroll){
     const w=this.word(en); if(!w) return;
     if(Dex.sealed(en) && !quiet){ CardOpen.start([en]); return; }       // 뒤집힌 카드는 먼저 열기
@@ -13778,7 +13829,8 @@ const DexDet = {
     const tg=t.closest("[data-target]"); if(tg){ const on=Dex.toggleTarget(tg.dataset.target); try{ SFX.tone(on?880:440,.12,"triangle",.04); }catch(er){} this.show(tg.dataset.target,true,true); if(DexUI.mode==="dex") DexUI.draw(); return; }
     const sg=t.closest("[data-study]"); if(sg){ SFX.click(); const id=sg.dataset.study, i=+sg.dataset.si;
       $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); try{ speechSynthesis.cancel(); }catch(er){}
-      const s=Study.load(); s.set=id; s.book=Study.bookOf(id); Study.save(); StudyUI.open(); StudyUI.pop(i); return; }
+      const s=Study.load(); s.set=id; s.book=Study.bookOf(id); Study.save(); StudyUI.open(); StudyUI.start(i,false); return; }   // (v265) 그 Stage 를 바로 시작
+    const rn=t.closest("[data-run]"); if(rn){ SFX.click(); this.runSet(rn.dataset.run); return; }
     const sy=t.closest("[data-say]"); if(sy){ this.say(sy.dataset.say); return; }
     const sl=t.closest("[data-slow]"); if(sl){ this.say(sl.dataset.slow,true); return; }
     const g=t.closest("[data-go]"); if(g){ SFX.click(); this.show(g.dataset.go); return; }
@@ -14280,7 +14332,11 @@ if(window.THREE) window.__start();
   const M={shDex:"btnDexClose", shShop:"btnShopClose", shStats:"btnStatsClose", shHelp:"btnHelpClose", shWords:"btnSheetClose", shNews:"btnNewsOk"};   // (v264) 관리자는 자기 ✕ (위쪽 고정 탭 줄에)
   Object.keys(M).forEach(function(id){ const sh=$(id), cl=$(M[id]); if(!sh || !cl) return;
     const hosts = id==="shDex" ? [sh.querySelector(".dexL")] : [sh.querySelector(".sheetIn")];
-    hosts.forEach(function(h){ if(!h) return; const w=document.createElement("div"); w.className="shXW";
+    hosts.forEach(function(h){ if(!h) return;
+      const hd=h.querySelector(":scope > .shopHead");          // (v265) 제목 줄이 있으면 ✕ 를 그 줄에 넣고 줄을 위에 붙인다 (떠 있는 ✕ 가 겹쳐 보였음)
+      if(hd){ hd.classList.add("stk"); const b=document.createElement("button"); b.className="shX inl"; b.type="button"; b.setAttribute("aria-label","닫기"); b.textContent="✕";
+        hd.appendChild(b); b.addEventListener("click", function(e){ e.stopPropagation(); cl.click(); }); return; }
+      const w=document.createElement("div"); w.className="shXW";
       w.innerHTML='<button class="shX" type="button" aria-label="닫기">✕</button>'; h.insertBefore(w, h.firstChild);
       w.firstChild.addEventListener("click", function(e){ e.stopPropagation(); cl.click(); }); });
   });
