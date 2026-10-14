@@ -11001,7 +11001,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v257";
+const GAME_VER = "v258";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11400,17 +11400,17 @@ const Study = (function(){
     const pick=(ok,k)=>{ const out=[]; ws.forEach(w=>{ if(out.length<k && !used[w.en] && ok(w)){ used[w.en]=1; out.push(w); } }); return out; };
     const n1=w=>sentsOf(w).length>=1, n2=w=>sentsOf(w).length>=2, all=()=>true;
     const opts=w=>shuffle([w].concat(decoys(w, les.ws, 3, "en"))), one=w=>{ const L=sentsOf(w); return L[Math.floor(Math.random()*L.length)]; };
-    const slow = set==="basic" ? 4 : 0;                                       // G1-2 는 읽는 시간을 조금 더
+    /* (v258) 시간 = 보카 올림피아드 표 (문제당 초): Pre Starter·Starter A 7 · B 8 · C 11 / Basic·Junior A 7 · B 10 · C 12 */
     const A=[], B=[], C=[];
     if(P==="ps"){
-      pick(w=>w.emoji && n1(w), nC).forEach(w=>C.push({t:"sent", w, st:one(w), opts:opts(w), opic:1, sec:16+slow}));
-      pick(n1, nC-C.length).forEach(w=>C.push({t:"sent", w, st:one(w), opts:opts(w), sec:16+slow}));
-      pick(w=>!!w.emoji, n-nC-nB).forEach(w=>A.push({t:"opic", w, opts:opts(w), sec:9+slow}));
-      pick(all, n).forEach(w=>B.push({t:"k2e", w, opts:opts(w), sec:10+slow}));
+      pick(w=>w.emoji && n1(w), nC).forEach(w=>C.push({t:"sent", w, st:one(w), opts:opts(w), opic:1, sec:11}));
+      pick(n1, nC-C.length).forEach(w=>C.push({t:"sent", w, st:one(w), opts:opts(w), sec:11}));
+      pick(w=>!!w.emoji, n-nC-nB).forEach(w=>A.push({t:"opic", w, opts:opts(w), sec:7}));
+      pick(all, n).forEach(w=>B.push({t:"k2e", w, opts:opts(w), sec:8}));
     } else {
-      pick(n2, nC).forEach(w=>{ const L=shuffle(sentsOf(w)); C.push({t:"sent2", w, sts:L.slice(0,2), opts:opts(w), sec:24}); });
-      pick(n1, nB).forEach(w=>B.push({t:"sent", w, st:one(w), opts:opts(w), noKo:P==="ba", sec:P==="ba"?16:18}));
-      pick(all, n).forEach(w=>A.push({t:"k2e", w, opts:opts(w), sec:8}));
+      pick(n2, nC).forEach(w=>{ const L=shuffle(sentsOf(w)); C.push({t:"sent2", w, sts:L.slice(0,2), opts:opts(w), sec:12}); });
+      pick(n1, nB).forEach(w=>B.push({t:"sent", w, st:one(w), opts:opts(w), noKo:P==="ba", sec:10}));
+      pick(all, n).forEach(w=>A.push({t:"k2e", w, opts:opts(w), sec:7}));
     }
     const qs=[].concat(shuffle(A), shuffle(B), shuffle(C)).map(q=>Object.assign(q, {oly:1}));
     return [{t:"intro", hd:"oly", w:ws[0], P, n:qs.length, na:A.length, nb:B.length, nc:C.length}].concat(qs); }
