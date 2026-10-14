@@ -809,6 +809,7 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
 .corner.top{top:calc(env(safe-area-inset-top,0px) + 16px);bottom:auto;right:16px;
   width:44px;height:44px;padding:0;display:grid;place-items:center}
 .corner.top.off{display:none}
+#scStart:not(.on) ~ #btnFsHome{display:none!important}
 .corner.top svg,#fsBtn svg{display:block;margin:auto}   /* (v259) 아이콘을 동그라미 가운데로 */
 .corner:active{background:rgba(255,255,255,.12)}
 .back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);left:0;
@@ -1750,9 +1751,10 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
     </nav>
     <div class="rotateTip" id="rotTip">📱 가로로 돌리면 문이 더 많이 나옵니다</div>
   </div>
-  <button class="corner top" id="btnFsHome" title="전체화면"></button>
   <div class="verTag" id="verTag">v1.0</div>
 </div>
+<!-- (v262) 첫 화면이 가로로 스크롤돼도 전체화면 버튼은 오른쪽 위에 그대로 (스크롤 화면 밖에 둠) -->
+<button class="corner top" id="btnFsHome" title="전체화면"></button>
 
 <!-- 학습 기록 -->
 <div class="sheet" id="shStats"><div class="sheetIn">
@@ -2332,7 +2334,7 @@ const WORD_BANK = [
   {en:"wake",ko:"깨다",level:1}, {en:"eat",ko:"먹다",level:1,emoji:"🍽️"},
   {en:"drink",ko:"마시다",level:1,emoji:"🥤"}, {en:"read",ko:"읽다",level:1,emoji:"📖"},
   {en:"write",ko:"쓰다",level:1,emoji:"✍️"}, {en:"draw",ko:"그리다",level:1,emoji:"🎨"},
-  {en:"sing",ko:"노래하다",level:1,emoji:"🎤"}, {en:"dance",ko:"춤추다",level:1,emoji:"💃"},
+  {en:"sing",ko:"노래하다",level:1}, {en:"dance",ko:"춤추다",level:1,emoji:"💃"},
   {en:"play",ko:"놀다",level:1,emoji:"🎮"}, {en:"study",ko:"공부하다",level:1,emoji:"📚"},
   {en:"work",ko:"일하다",level:1}, {en:"help",ko:"돕다",level:1},
   {en:"make",ko:"만들다",level:1}, {en:"take",ko:"가져가다",level:1},
@@ -2446,7 +2448,7 @@ const WORD_BANK = [
   {en:"envelope",ko:"봉투",level:2}, {en:"stamp",ko:"우표",level:2},
   {en:"address",ko:"주소",level:2}, {en:"package",ko:"소포",level:2},
   {en:"newspaper",ko:"신문",level:2}, {en:"magazine",ko:"잡지",level:2},
-  {en:"comic",ko:"만화",level:2}, {en:"novel",ko:"소설",level:2},
+  {en:"comic",ko:"만화책, 웃기는",level:2}, {en:"novel",ko:"소설",level:2},
   {en:"poem",ko:"시",level:2}, {en:"writer",ko:"작가",level:2},
   {en:"artist",ko:"예술가",level:2}, {en:"painter",ko:"화가",level:2},
   {en:"actor",ko:"배우",level:2}, {en:"dancer",ko:"무용수",level:2},
@@ -2600,7 +2602,7 @@ const WORD_BANK = [
   {en:"lonely",ko:"외로운",level:2}, {en:"nervous",ko:"긴장한",level:2},
   {en:"excited",ko:"신이 난",level:2}, {en:"surprised",ko:"놀란",level:2},
   {en:"bored",ko:"지루해하는",level:2}, {en:"comfortable",ko:"편안한",level:2},
-  {en:"delicious",ko:"맛있는",level:2}, {en:"healthy",ko:"건강한",level:2},
+  {en:"delicious",ko:"아주 맛있는",level:2}, {en:"healthy",ko:"건강한",level:2},
   {en:"sick",ko:"아픈",level:2}, {en:"alive",ko:"살아 있는",level:2},
   {en:"dead",ko:"죽은",level:2}, {en:"deep",ko:"깊은",level:2},
   {en:"shallow",ko:"얕은",level:2}, {en:"narrow",ko:"좁은",level:2},
@@ -2985,7 +2987,7 @@ const WORD_BANK = [
   {en:"unless",ko:"~ 하지 않으면",level:3},
   {en:"therefore",ko:"그러므로",level:3},
   {en:"however",ko:"그러나",level:2},
-  {en:"moreover",ko:"게다가",level:3},
+  {en:"moreover",ko:"더욱이, 게다가",level:3},
   {en:"otherwise",ko:"그렇지 않으면",level:3},
   {en:"besides",ko:"게다가",level:3},
   {en:"meanwhile",ko:"그동안에",level:3},
@@ -3062,7 +3064,7 @@ const WORD_BANK = [
   {en:"bookstore",ko:"서점",level:1,emoji:"📚"}, {en:"inside",ko:"안에",level:1}, {en:"cafe",ko:"카페",level:1,emoji:"☕"},
   {en:"swimming pool",ko:"수영장",level:1,emoji:"🏊"}, {en:"next",ko:"다음의",level:1}, {en:"flour",ko:"밀가루",level:1},
   {en:"cereal",ko:"시리얼",level:1,emoji:"🥣"}, {en:"pasta",ko:"파스타",level:1,emoji:"🍝"}, {en:"pie",ko:"파이",level:1,emoji:"🥧"},
-  {en:"vegetable",ko:"채소",level:1,emoji:"🥦"}, {en:"popcorn",ko:"팝콘",level:1,emoji:"🍿"}, {en:"food",ko:"음식",level:1,emoji:"🍱"},
+  {en:"vegetable",ko:"채소",level:1,emoji:"🥦"}, {en:"popcorn",ko:"팝콘",level:1,emoji:"🍿"}, {en:"food",ko:"음식",level:1},
   {en:"sound",ko:"소리",level:1,emoji:"🔊"}, {en:"show",ko:"보여 주다",level:1}, {en:"concert",ko:"콘서트",level:1,emoji:"🎤"},
   {en:"noise",ko:"소음",level:1}, {en:"beautiful",ko:"아름다운",level:1,emoji:"🌸"}, {en:"really",ko:"정말로",level:1},
   {en:"hurt",ko:"다치게 하다",level:1,emoji:"🤕"}, {en:"fur",ko:"털",level:1}, {en:"wing",ko:"날개",level:1,emoji:"🪽"},
@@ -3106,7 +3108,7 @@ const WORD_BANK = [
   {en:"cage",ko:"우리, 새장",level:2}, {en:"human",ko:"인간",level:2}, {en:"tissue",ko:"화장지",level:2,emoji:"🧻"},
   {en:"shore",ko:"해안",level:2}, {en:"shot",ko:"주사",level:2,emoji:"💉"}, {en:"sunrise",ko:"해돋이",level:2},
   {en:"voice",ko:"목소리",level:2,emoji:"🗣️"}, {en:"actually",ko:"실제로",level:2}, {en:"anything",ko:"무엇이든",level:2},
-  {en:"competition",ko:"대회, 경쟁",level:2}, {en:"entrance",ko:"입구",level:2}, {en:"twice",ko:"두 번",level:2},
+  {en:"competition",ko:"경쟁, 대회",level:2}, {en:"entrance",ko:"입구",level:2}, {en:"twice",ko:"두 번",level:2},
   {en:"stare",ko:"빤히 보다",level:2,emoji:"👀"}, {en:"upload",ko:"업로드하다",level:2,emoji:"⬆️"}, {en:"crane",ko:"학, 기중기",level:2,emoji:"🏗️"},
   {en:"beak",ko:"부리",level:2}, {en:"advertisement",ko:"광고",level:2}, {en:"buddy",ko:"친구",level:2},
   {en:"grocery",ko:"식료품",level:2,emoji:"🛒"}, {en:"membership",ko:"회원 자격",level:2}, {en:"fancy",ko:"화려한",level:2},
@@ -3123,7 +3125,7 @@ const WORD_BANK = [
   {en:"anymore",ko:"더 이상",level:2}, {en:"arrival",ko:"도착",level:2}, {en:"cave",ko:"동굴",level:2},
   {en:"position",ko:"위치",level:2}, {en:"row",ko:"줄, 열",level:2}, {en:"chef",ko:"요리사",level:2,emoji:"👨‍🍳"},
   {en:"hockey",ko:"하키",level:2,emoji:"🏒"}, {en:"mitten",ko:"벙어리장갑",level:2,emoji:"🧤"}, {en:"pigeon",ko:"비둘기",level:2,emoji:"🕊️"},
-  {en:"cart",ko:"수레",level:2,emoji:"🛒"}, {en:"category",ko:"범주",level:2}, {en:"definitely",ko:"분명히",level:2},
+  {en:"cart",ko:"수레",level:2}, {en:"category",ko:"범주",level:2}, {en:"definitely",ko:"분명히",level:2},
   {en:"nowadays",ko:"요즘에는",level:2}, {en:"helpful",ko:"도움이 되는",level:2}, {en:"sail",ko:"항해하다",level:2,emoji:"⛵"},
   {en:"martial art",ko:"무술",level:2,emoji:"🥋"}, {en:"department",ko:"부서",level:2}, {en:"secret",ko:"비밀",level:2,emoji:"🤫"},
   {en:"plastic",ko:"플라스틱",level:2}, {en:"bet",ko:"내기하다",level:2}, {en:"carpenter",ko:"목수",level:2,emoji:"🪚"},
@@ -3169,7 +3171,7 @@ const WORD_BANK = [
   {en:"french",ko:"프랑스어",level:2,emoji:"🇫🇷"}, {en:"elementary",ko:"초등의",level:2}, {en:"past",ko:"과거",level:2},
   {en:"journal",ko:"일기",level:2,emoji:"📓"}, {en:"glide",ko:"미끄러지다",level:2}, {en:"heat",ko:"열",level:2,emoji:"🔥"},
   {en:"landscape",ko:"풍경",level:2}, {en:"outdoor",ko:"야외의",level:2}, {en:"bucket",ko:"양동이",level:2,emoji:"🪣"},
-  {en:"seal",ko:"물개",level:2,emoji:"🦭"}, {en:"gallery",ko:"미술관",level:2}, {en:"restroom",ko:"화장실",level:2,emoji:"🚻"},
+  {en:"seal",ko:"물개",level:2,emoji:"🦭"}, {en:"gallery",ko:"화랑, 전시실",level:2}, {en:"restroom",ko:"화장실",level:2,emoji:"🚻"},
   {en:"hut",ko:"오두막",level:2,emoji:"🛖"}, {en:"lottery",ko:"복권",level:2}, {en:"needle",ko:"바늘",level:2},
   {en:"sale",ko:"판매, 세일",level:2}, {en:"flea market",ko:"벼룩시장",level:2}, {en:"tap",ko:"톡톡 두드리다",level:2},
   {en:"scramble",ko:"뒤섞다",level:2}, {en:"grain",ko:"곡물",level:2,emoji:"🌾"}, {en:"hen",ko:"암탉",level:2,emoji:"🐔"},
@@ -3198,7 +3200,7 @@ const WORD_BANK = [
   // ── (v231) 📖 리딩 1·2·3 (TOSEL Reading Basic) 에서 새로 온 단어 — 뜻은 교재 문맥
   {en:"police officer",ko:"경찰관",level:1,emoji:"👮"}, {en:"care about",ko:"~에 관심을 가지다",level:0,ph:1}, {en:"break down",ko:"고장 나다",level:0,ph:1},
   {en:"run away",ko:"달아나다",level:0,ph:1}, {en:"mostly",ko:"주로",level:2}, {en:"worry about",ko:"~을 걱정하다",level:0,ph:1},
-  {en:"lastly",ko:"마지막으로",level:2}, {en:"forever",ko:"영원히",level:2}, {en:"avenue",ko:"거리, 대로",level:2},
+  {en:"lastly",ko:"마지막으로",level:2}, {en:"forever",ko:"영원히",level:2}, {en:"avenue",ko:"대로, 큰 거리",level:2},
   {en:"finally",ko:"마침내",level:2}, {en:"photographer",ko:"사진작가",level:2,emoji:"📸"}, {en:"studio",ko:"스튜디오",level:2},
   {en:"essay",ko:"에세이, 글",level:2}, {en:"pianist",ko:"피아니스트",level:2,emoji:"🎹"}, {en:"lately",ko:"최근에",level:3},
   {en:"volunteer",ko:"자원봉사하다",level:2}, {en:"free time",ko:"자유 시간",level:2}, {en:"gum",ko:"껌",level:1},
@@ -3211,26 +3213,26 @@ const WORD_BANK = [
   {en:"mall",ko:"쇼핑몰",level:2,emoji:"🛍️"}, {en:"parent",ko:"부모",level:1}, {en:"mail",ko:"우편물",level:1,emoji:"📬"},
   {en:"supermarket",ko:"슈퍼마켓",level:1,emoji:"🛒"}, {en:"parking lot",ko:"주차장",level:2,emoji:"🅿️"}, {en:"quickly",ko:"빠르게",level:2},
   {en:"cashier",ko:"계산원",level:2}, {en:"horror",ko:"공포",level:2}, {en:"friendship",ko:"우정",level:2,emoji:"🤝"},
-  {en:"subway station",ko:"지하철역",level:2,emoji:"🚇"}, {en:"scared",ko:"겁먹은",level:2,emoji:"😱"}, {en:"platform",ko:"승강장",level:2},
+  {en:"subway station",ko:"지하철역",level:2}, {en:"scared",ko:"겁먹은",level:2,emoji:"😱"}, {en:"platform",ko:"승강장",level:2},
   {en:"ghost",ko:"유령",level:1,emoji:"👻"}, {en:"mystery",ko:"수수께끼, 미스터리",level:2,emoji:"🔍"}, {en:"event",ko:"행사",level:2},
   {en:"cinema",ko:"영화관",level:2,emoji:"🎬"}, {en:"information",ko:"정보",level:2}, {en:"cheerful",ko:"명랑한",level:2},
   {en:"home run",ko:"홈런",level:2,emoji:"⚾"}, {en:"seat",ko:"좌석, 자리",level:1,emoji:"💺"}, {en:"grandpa",ko:"할아버지",level:1,emoji:"👴"},
   {en:"awesome",ko:"멋진, 굉장한",level:2}, {en:"sports star",ko:"스포츠 스타",level:2}, {en:"figure skating",ko:"피겨 스케이팅",level:2,emoji:"⛸️"},
   {en:"junior",ko:"청소년의, 어린",level:2}, {en:"gold medal",ko:"금메달",level:2,emoji:"🥇"}, {en:"dislike",ko:"싫어하다",level:2},
   {en:"biography",ko:"전기, 인물 이야기",level:3}, {en:"hardworking",ko:"부지런한",level:2}, {en:"success",ko:"성공",level:2},
-  {en:"magician",ko:"마술사",level:2,emoji:"🎩"}, {en:"magic trick",ko:"마술 묘기",level:2,emoji:"🪄"}, {en:"magic show",ko:"마술 공연",level:2},
+  {en:"magician",ko:"마술사",level:2,emoji:"🎩"}, {en:"magic trick",ko:"마술 묘기",level:2}, {en:"magic show",ko:"마술 공연",level:2},
   {en:"arena",ko:"경기장, 공연장",level:3,emoji:"🏟️"}, {en:"performance",ko:"공연",level:3}, {en:"host",ko:"주최하다",level:2},
   {en:"ticket office",ko:"매표소",level:2,emoji:"🎫"}, {en:"cycle",ko:"자전거를 타다",level:2,emoji:"🚴"}, {en:"hip-hop",ko:"힙합",level:2},
   {en:"fight",ko:"다툼, 싸움",level:2}, {en:"best friend",ko:"가장 친한 친구",level:1}, {en:"rap",ko:"랩",level:2,emoji:"🎤"},
   {en:"normally",ko:"보통은, 대개",level:2}, {en:"album",ko:"앨범, 음반",level:2,emoji:"💿"}, {en:"band",ko:"밴드, 악단",level:2,emoji:"🎸"},
   {en:"least",ko:"가장 적은",level:3}, {en:"tip",ko:"조언, 요령",level:2,emoji:"💡"}, {en:"meal",ko:"식사",level:2,emoji:"🍽️"},
-  {en:"happily",ko:"행복하게",level:2}, {en:"hay fever",ko:"꽃가루 알레르기",level:3,emoji:"🤧"}, {en:"allergic",ko:"알레르기가 있는",level:3},
+  {en:"happily",ko:"행복하게",level:2}, {en:"hay fever",ko:"꽃가루 알레르기",level:3}, {en:"allergic",ko:"알레르기가 있는",level:3},
   {en:"pollen",ko:"꽃가루",level:3,emoji:"🌼"}, {en:"runny nose",ko:"콧물",level:2}, {en:"itchy",ko:"가려운",level:2},
   {en:"sunglasses",ko:"선글라스",level:1,emoji:"🕶️"}, {en:"especially",ko:"특히",level:3}, {en:"symptom",ko:"증상",level:3},
   {en:"stomachache",ko:"복통, 배탈",level:2}, {en:"smartphone",ko:"스마트폰",level:1,emoji:"📱"}, {en:"posture",ko:"자세",level:3},
   {en:"spine",ko:"척추",level:3,emoji:"🦴"}, {en:"sadly",ko:"안타깝게도",level:2}, {en:"bend",ko:"구부리다",level:2},
   {en:"carefully",ko:"조심스럽게",level:2}, {en:"dangerous",ko:"위험한",level:2,emoji:"⚠️"}, {en:"invention",ko:"발명품, 발명",level:2},
-  {en:"inventor",ko:"발명가",level:2}, {en:"slice",ko:"조각",level:2,emoji:"🍕"}, {en:"pineapple",ko:"파인애플",level:1,emoji:"🍍"},
+  {en:"inventor",ko:"발명가",level:2}, {en:"slice",ko:"조각",level:2}, {en:"pineapple",ko:"파인애플",level:1,emoji:"🍍"},
   {en:"ham",ko:"햄",level:1,emoji:"🥓"}, {en:"salty",ko:"짠",level:2,emoji:"🧂"}, {en:"tasty",ko:"맛있는",level:2,emoji:"😋"},
   {en:"hate",ko:"싫어하다",level:2}, {en:"recipe",ko:"요리법",level:2}, {en:"ingredient",ko:"재료",level:3},
   {en:"international",ko:"국제적인",level:3,emoji:"🌐"}, {en:"professor",ko:"교수",level:2}, {en:"calorie",ko:"칼로리, 열량",level:3},
@@ -3258,13 +3260,13 @@ const WORD_BANK = [
   {en:"windmill",ko:"풍차",level:2}, {en:"manners",ko:"예절",level:2}, {en:"exciting",ko:"신나는",level:2},
   {en:"copy",ko:"따라 하다, 복사하다",level:2}, {en:"abroad",ko:"해외에, 해외로",level:3,emoji:"✈️"}, {en:"turkey",ko:"칠면조",level:1,emoji:"🦃"},
   {en:"sweet potato",ko:"고구마",level:1,emoji:"🍠"}, {en:"cornbread",ko:"옥수수빵",level:2,emoji:"🌽"}, {en:"apple pie",ko:"사과 파이",level:1,emoji:"🥧"},
-  {en:"tofu",ko:"두부",level:1}, {en:"vegetarian",ko:"채식주의자",level:3,emoji:"🥗"}, {en:"board game",ko:"보드게임",level:1,emoji:"🎲"},
-  {en:"video game",ko:"비디오 게임",level:1,emoji:"🎮"}, {en:"relative",ko:"친척",level:3}, {en:"siesta",ko:"낮잠, 낮 휴식",level:3},
+  {en:"tofu",ko:"두부",level:1}, {en:"vegetarian",ko:"채식주의자",level:3}, {en:"board game",ko:"보드게임",level:1,emoji:"🎲"},
+  {en:"video game",ko:"비디오 게임",level:1,emoji:"🎮"}, {en:"relative",ko:"친척",level:3}, {en:"siesta",ko:"시에스타 (스페인의 낮잠 시간)",level:3},
   {en:"pharaoh",ko:"파라오",level:3}, {en:"tidy",ko:"정돈된",level:2}, {en:"treasure",ko:"보물",level:2,emoji:"💎"},
   {en:"die",ko:"죽다",level:2}, {en:"ill",ko:"아픈",level:2,emoji:"🤒"}, {en:"robber",ko:"도둑",level:2},
   {en:"stripe",ko:"줄무늬",level:2}, {en:"eagle",ko:"독수리",level:1,emoji:"🦅"}, {en:"cactus",ko:"선인장",level:1,emoji:"🌵"},
   {en:"war",ko:"전쟁",level:2}, {en:"law",ko:"법",level:3,emoji:"⚖️"}, {en:"firework",ko:"폭죽, 불꽃놀이",level:2,emoji:"🎆"},
-  {en:"pharmacist",ko:"약사",level:3,emoji:"💊"}, {en:"habitat",ko:"서식지",level:3}, {en:"sea turtle",ko:"바다거북",level:2,emoji:"🐢"},
+  {en:"pharmacist",ko:"약사",level:3,emoji:"💊"}, {en:"habitat",ko:"서식지",level:3}, {en:"sea turtle",ko:"바다거북",level:2},
   {en:"scientific",ko:"과학적인",level:3,emoji:"🔬"}, {en:"lizard",ko:"도마뱀",level:1,emoji:"🦎"}, {en:"grassland",ko:"초원",level:2},
   {en:"rainforest",ko:"열대우림",level:2,emoji:"🌳"}, {en:"arctic",ko:"북극의",level:3,emoji:"🧊"}, {en:"polar bear",ko:"북극곰",level:1,emoji:"🐻‍❄️"},
   {en:"florist",ko:"꽃집 주인",level:2,emoji:"💐"}, {en:"global warming",ko:"지구온난화",level:3,emoji:"🌡️"}, {en:"tropical forest",ko:"열대림",level:3},
@@ -3364,7 +3366,7 @@ const WORD_BANK = [
   {en:"panic",ko:"당황, 공황",level:3}, {en:"paragraph",ko:"단락",level:3}, {en:"pardon",ko:"용서",level:3},
   {en:"pause",ko:"멈추다",level:2,emoji:"⏸️"}, {en:"perhaps",ko:"아마",level:2}, {en:"pile",ko:"더미",level:2},
   {en:"pin",ko:"핀",level:2,emoji:"📌"}, {en:"pine",ko:"소나무",level:2,emoji:"🌲"}, {en:"pipe",ko:"관, 파이프",level:2},
-  {en:"pity",ko:"동정, 유감",level:3}, {en:"plain",ko:"평범한, 평원",level:3}, {en:"planet",ko:"행성",level:1,emoji:"🪐"},
+  {en:"pity",ko:"동정, 유감",level:3}, {en:"plain",ko:"꾸밈없는, 평원",level:3}, {en:"planet",ko:"행성",level:1,emoji:"🪐"},
   {en:"plenty",ko:"많음",level:2}, {en:"plus",ko:"더하기",level:2,emoji:"➕"}, {en:"poet",ko:"시인",level:2},
   {en:"poison",ko:"독",level:2}, {en:"pole",ko:"막대, 극",level:3}, {en:"pop",ko:"펑 터지다",level:2},
   {en:"port",ko:"항구",level:2,emoji:"⚓"}, {en:"post",ko:"우편, 게시하다",level:2}, {en:"powder",ko:"가루",level:2},
@@ -3682,7 +3684,7 @@ const READING = {
     "rd3-7:rule":"통치하다|동사|규칙|명사",
     "rd3-8:hope":"희망|명사|바라다|동사",
     "rd3-11:care":"돌봄, 관심|명사|돌보다|동사",
-    "rd3-12:application":"앱, 신청|명사|지원|명사"
+    "rd3-12:application":"응용 프로그램, 신청|명사|지원|명사"
   }
 };
 
@@ -11021,7 +11023,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v261";
+const GAME_VER = "v262";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11465,18 +11467,19 @@ const Study = (function(){
               digr:  {nm:"이중자음", emo:"🔗", sub:"bl · br · st … sh · ch · th"},
               vowel2:{nm:"이중모음", emo:"🎵", sub:"ee · ai · oa · oo · ou · oi · ar · er"},
               sight: {nm:"사이트 워드", emo:"👀", sub:"보자마자 읽는 단어 the · is · said"},
-              basic: {nm:"1권",      emo:"📗", sub:"초등 1~2학년 단어 · 보카 1권"},
-              elem:  {nm:"2권",      emo:"📘", sub:"초등 3~4학년 단어 · 보카 2권"},
+              basic: {nm:"G1-2 단어",  emo:"📗", sub:"초등 1~2학년 단어"},
+              elem:  {nm:"G3-4 단어",  emo:"📘", sub:"초등 3~4학년 단어"},
               g56:   {nm:"고학년 단어", emo:"🧭", sub:"초등 5~6학년 단어"},
               rd1:   {nm:"리딩 1",   emo:"📖", sub:"리딩책 1권 단어"},
               rd2:   {nm:"리딩 2",   emo:"📖", sub:"리딩책 2권 단어"},
               rd3:   {nm:"리딩 3",   emo:"📖", sub:"리딩책 3권 단어"},
               mv1:   {nm:"중등 voca 1", emo:"📕", sub:"중학교 단어 · DAY 36~"},
-              mid:   {nm:"3권",      emo:"📙", sub:"중학교 단어 · 3권"},
+              mid:   {nm:"중등 단어",  emo:"📙", sub:"중학교 필수 단어"},
               phrase:{nm:"표현",     emo:"🗣️", sub:"두 단어 이상 표현"} };
   const bookOf = set => Object.keys(BOOKS).find(b=>BOOKS[b].sets.indexOf(set)>=0) || "g12";
   const label = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; return b ? b.emo+" "+b.nm+(u && b.sets.length>1 ? " · "+u.nm : "") : set; };
-  const tag = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; return b ? b.tab+(u && set!=="g56" && (b.sets.length>1 || /권/.test(u.nm)) ? " "+u.nm : "") : set; };   // 시트용 짧은 이름
+  const tag = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; if(!b) return set; const show = u && set!=="g56" && (b.sets.length>1 || /권/.test(u.nm));
+    return show ? (u.nm.indexOf(b.tab)===0 ? u.nm : b.tab+" "+u.nm) : b.tab; };   // (v262) '중등 중등 voca 1' 처럼 겹치지 않게   // 시트용 짧은 이름
   const word = en => byEn[en] || null;
   /* Stage 번호 = 카테고리 안의 순서 (교재 과 번호와 따로) · 기록·저장 열쇠는 그대로 과 번호 */
   const stageNo = (set,n) => { const L=lessons(set), k=L.findIndex(x=>x.n===n); return k<0 ? n : L[k].wd ? L[k].wd+"-"+(n%10) : k+1; };   // (v243) 파닉스는 1-1 · 1-2 …
@@ -12981,6 +12984,21 @@ const DEX_ADD = {
   act1:"welcome hug",
   animal:"turkey eagle sea_turtle lizard polar_bear grasshopper lamb nest rat"
 };
+/* (v262) 중등 voca 1 에서 온 새 단어 47개를 주제 앨범으로 (예전엔 '새 단어' 한 권에 몰렸다) */
+if(DEX_ADD.play!=null) DEX_ADD.play += " sculpture paddle"; else DEX_ADD.play="sculpture paddle";
+if(DEX_ADD.food!=null) DEX_ADD.food += " vinegar crispy"; else DEX_ADD.food="vinegar crispy";
+if(DEX_ADD.mind1!=null) DEX_ADD.mind1 += " versus exactly fairly"; else DEX_ADD.mind1="versus exactly fairly";
+if(DEX_ADD.feel2!=null) DEX_ADD.feel2 += " unusual bumpy futuristic needy hopeful crude considerate indifferent"; else DEX_ADD.feel2="unusual bumpy futuristic needy hopeful crude considerate indifferent";
+if(DEX_ADD.act3!=null) DEX_ADD.act3 += " sting mash deceive sever pat rob"; else DEX_ADD.act3="sting mash deceive sever pat rob";
+if(DEX_ADD.animal!=null) DEX_ADD.animal += " herbivore cheetah"; else DEX_ADD.animal="herbivore cheetah";
+if(DEX_ADD.home!=null) DEX_ADD.home += " interior coil cabinet bookcase"; else DEX_ADD.home="interior coil cabinet bookcase";
+if(DEX_ADD.mind2!=null) DEX_ADD.mind2 += " comprehend response nightmare characterize"; else DEX_ADD.mind2="comprehend response nightmare characterize";
+if(DEX_ADD.feel1!=null) DEX_ADD.feel1 += " boring pleased"; else DEX_ADD.feel1="boring pleased";
+if(DEX_ADD.place!=null) DEX_ADD.place += " boundary crosswalk"; else DEX_ADD.place="boundary crosswalk";
+if(DEX_ADD.society!=null) DEX_ADD.society += " congress recruitment architecture warrant"; else DEX_ADD.society="congress recruitment architecture warrant";
+if(DEX_ADD.nature!=null) DEX_ADD.nature += " aluminum"; else DEX_ADD.nature="aluminum";
+if(DEX_ADD.people!=null) DEX_ADD.people += " gardener instructor sir detective conductor immigrant"; else DEX_ADD.people="gardener instructor sir detective conductor immigrant";
+if(DEX_ADD.school!=null) DEX_ADD.school += " auditorium"; else DEX_ADD.school="auditorium";
 DEX_ALBUMS.forEach(A=>{ if(DEX_ADD[A.id]) A.w += " "+DEX_ADD[A.id]; });
 
 /* 도감 한 줄 = 그 단계 단어 4칸 + 다음 단계 단어 1칸 (v215) — 지금 단계에 안주하지 않고 다음 단계로 가게.
