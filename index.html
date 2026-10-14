@@ -1322,6 +1322,9 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stWorld i{font-style:normal;font-size:30px;line-height:1} .stWorld span{flex:1;text-align:left}
 .stWorld b{display:block;font-size:16px;color:#fff} .stWorld small{font-size:13px;font-weight:800;color:#d9d0ff}
 .stWorld em{font-style:normal;font-size:13px;font-weight:900;color:#ffd37a}
+.stWorld .stWNum{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:13px;font:900 22px var(--font);font-style:normal;color:#fff;
+  background:linear-gradient(180deg,#9b8cff,#6b5ad8);box-shadow:0 3px 0 rgba(0,0,0,.3)}   /* (v250) 초등 Stage 번호 배지 */
+.stWorld.clr .stWNum{background:linear-gradient(180deg,#9dff7a,#46b83a)}
 .stWorld.clr{border-color:#7ed957;background:linear-gradient(90deg,rgba(126,217,87,.25),rgba(107,90,216,.1))} .stWorld.clr em{color:#9dff7a}
 .stWBox{width:min(380px,100%);margin:16px auto 6px;padding:0 0 10px;border-radius:20px;background:rgba(255,255,255,.04)}
 .stWBox .stWorld{width:auto;margin:0 0 4px}
@@ -10953,7 +10956,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v249";
+const GAME_VER = "v250";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11585,7 +11588,7 @@ const StudyUI = {
       const stars=v=>'★'.repeat(v)+'<u>'+'★'.repeat(3-v)+'</u>';
       if(PW){   /* (v243) 슈퍼마리오 월드 지도처럼 — 월드마다 1-1 → 1-2 → … → 🚩 를 왼쪽에서 오른쪽으로 한 줄 */
         const wds=[]; L.forEach(x=>{ if(wds.indexOf(x.wd)<0) wds.push(x.wd); });
-        h+=wds.map(wd=>{ const WL=L.filter(y=>y.wd===wd), W=SPL ? {emo:WORD_SETS[st].icon, nm:(WL[0].title && !RD ? WL[0].title+' · ' : '')+WL[WL.length-1].ws.length+'단어'} : (PW[wd-1]||{}), wf=WL.filter(y=>Study.lv(st,y.n)>0).length, fl=WL.find(y=>y.fin), clr=!!(fl && Study.lv(st,fl.n)>0);
+        h+=wds.map(wd=>{ const WL=L.filter(y=>y.wd===wd), W=SPL ? {emo:(st==="basic" ? WORD_SETS[st].icon : '<b class="stWNum">'+wd+'</b>'), nm:(WL[0].title && !RD ? WL[0].title+' · ' : '')+WL[WL.length-1].ws.length+'단어'} : (PW[wd-1]||{}), wf=WL.filter(y=>Study.lv(st,y.n)>0).length, fl=WL.find(y=>y.fin), clr=!!(fl && Study.lv(st,fl.n)>0);
           return '<div class="stWBox'+(clr?' clr':'')+'"><div class="stWorld'+(clr?' clr':'')+'"><i>'+(W.emo||'')+'</i><span><b>'+(SPL?'Stage ':'World ')+wd+'</b><small>'+(W.nm||'')+'</small></span><em>'+(clr?(SPL?'🚩 완성':'🚩 클리어'):wf+' / '+WL.length)+'</em></div>'
             +(()=>{ /* (v245) 굽이치는 길 — 가운데 → 오른쪽 → 가운데 → 왼쪽 → 가운데(🚩) */
               const RH=112, W=340, A=96, T=26, xs=WL.map((x,j)=>W/2+[0,A,0,-A][j%4]), ys=WL.map((x,j)=>T+j*RH+28), H=T+WL.length*RH-30;
