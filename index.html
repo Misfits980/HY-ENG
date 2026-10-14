@@ -10949,7 +10949,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v246";
+const GAME_VER = "v247";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11255,8 +11255,10 @@ const Study = (function(){
   const canPic = w => !!w.emoji && (w.level||0)<=1 && EMO.length>8;
   function sentOf(w){
     const re=new RegExp("\\b("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")\\b","i"), E=EASY[w.en];
-    let ex=null; if(E && E[0] && re.test(E[0])) ex=[E];                                  // (v246) 유치원 단어는 쉬운 예문 (data/easy.json)
-    else { let D=null; try{ D=DexData.of(w.en); }catch(e){} if(!D || !D[3]) return null; ex=D[3].filter(x=>x && x[0] && re.test(x[0])); }
+    let D=null; try{ D=DexData.of(w.en); }catch(e){}
+    const dx = D && D[3] ? D[3].filter(x=>x && x[0] && re.test(x[0])) : [];
+    /* (v246) 쉬운 예문(data/easy.json)은 유치원·Grade 1-2 에서만 먼저 — 그 위 학년은 사전 예문 (사전 예문이 없는 표현은 쉬운 예문) */
+    let ex = (E && E[0] && re.test(E[0]) && (easyCtx || !dx.length)) ? [E] : dx;
     if(!ex.length) return null;
     const x=ex[Math.floor(Math.random()*ex.length)], m=x[0].match(re);
     return {pre:x[0].slice(0,m.index), post:x[0].slice(m.index+m[0].length), ko:x[1]||"", cap:/^[A-Z]/.test(m[0])}; }
@@ -11302,7 +11304,7 @@ const Study = (function(){
   const canHear = () => Voice.canListen();
   /* 문제 모양 고르기 — 과 단계(⭐)가 오를수록 철자·듣기가 많아진다 */
   /* (v246) 사이트 워드 — 그림·뜻보다 '보자마자 읽기': 듣고 고르기 · 문장 빈칸 · 문장에서 들리는 단어 찾기(find) */
-  let swCtx=false; const ctx=set=>{ swCtx=!!(WORD_SETS[set]||{}).sight; }, isSW=w=>swCtx || !!(w && w.sw);
+  let swCtx=false, easyCtx=true; const ctx=set=>{ swCtx=!!(WORD_SETS[set]||{}).sight; const s2=set||load().set; easyCtx = BOOKS.k.sets.indexOf(s2)>=0 || s2==="basic"; }   // 복습·다시 하기는 마지막으로 공부한 반 기준, isSW=w=>swCtx || !!(w && w.sw);
   function swFix(bag, w){ if(!canSpell(w)){ delete bag.spell; delete bag.dict; } if(!canHear()){ delete bag.listen; delete bag.dict; delete bag.find; }
     if(!sentOf(w)){ delete bag.sent; delete bag.find; } if(!Object.keys(bag).length) bag.listen=1; return bag; }
   function pickType(w, level, test, phc){
