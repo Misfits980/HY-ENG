@@ -1043,6 +1043,14 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .dexR{display:none}
 .dexIn.det:not(.wide) .dexL{display:none}
 .dexIn.det:not(.wide) .dexR{display:block}
+.dGr{display:flex;gap:6px;overflow-x:auto;margin:10px -2px 0;padding:2px 2px 4px;scrollbar-width:none}
+.dGr::-webkit-scrollbar{display:none}
+.dGr button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;min-width:62px;padding:7px 9px 6px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#d8cff5;font-family:var(--font);cursor:pointer}
+.dGr button i{font-style:normal;font-size:19px;line-height:1.1}
+.dGr button b{font-size:12px;font-weight:900;margin-top:2px;white-space:nowrap}
+.dGr button small{font-size:10px;font-weight:800;color:#9d92c8;font-variant-numeric:tabular-nums}
+.dGr button.on{background:rgba(255,211,122,.14);border-color:rgba(255,211,122,.6);color:#ffd37a}
+.dGr button.full small{color:#5ad6b0}
 .dMode{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;padding:4px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
 .dMode button{border:0;background:none;padding:8px 6px;border-radius:12px;font-family:var(--font);font-weight:900;font-size:13.5px;color:#a89ec4;cursor:pointer}
 .dMode button.on{background:rgba(255,211,122,.14);color:#ffd37a;box-shadow:inset 0 0 0 1px rgba(255,211,122,.45)}
@@ -1777,6 +1785,7 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
   <div class="shopHead"><h2>단어 도감</h2><span class="gemPill">💎 <b id="dexGems">0</b></span></div>
   <div class="dMode" id="dexMode"><button data-m="dex" class="on">📖 도감</button><button data-m="dic">🔍 사전</button></div>
   <div id="dexBook">
+  <div class="dGr" id="dexGr"></div>
   <div class="dHead" id="dexHead"></div>
   <div class="dBar"><i id="dexBar"></i></div>
   <button class="play dClaim" id="dexClaim" style="display:none"></button>
@@ -10968,7 +10977,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v254";
+const GAME_VER = "v255";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12890,11 +12899,26 @@ const Dex = (function(){
       if(albs) return albs;
       const byEn={}; DEX_BASE.forEach(w=>{ if(!byEn[w.en]) byEn[w.en]=w; });
       const used={}; albs=[];
+      const topic=[];
       DEX_ALBUMS.forEach(A=>{ const ws=A.w.split(/\s+/).map(x=>x.replace(/_/g," ")).filter(en=>byEn[en] && !used[en] && (used[en]=1)).map(en=>byEn[en]);
-        if(ws.length) albs.push({id:A.id, emo:A.emo, name:A.name, words:ws}); });
+        if(ws.length) topic.push({id:A.id, emo:A.emo, name:A.name, words:ws}); });
       const rest=DEX_BASE.filter(w=>!used[w.en] && (used[w.en]=1));
-      if(rest.length) albs.push({id:"new", emo:"🆕", name:"새 단어", words:rest});
-      mixUp(albs);
+      if(rest.length) topic.push({id:"new", emo:"🆕", name:"새 단어", words:rest});
+      /* (v255) Daily 30 처럼 학년으로 먼저 나눈다 — 유치원 · G1-2 · G3-4 · G5-6 · 중등 · 표현 → 그 안에 주제 앨범.
+         단어의 학년 = Daily 30 에서 처음 나오는 학년 (없으면 단계로). 학년 안에서는 1·2·3 단계 짝 앨범(움직임·느낌·생각)을 하나로,
+         10단어도 안 되는 주제는 '여러 단어' 한 권으로 모은다. 다음 단계 칸 섞기(mixUp)는 학년을 섞게 되므로 쓰지 않는다 */
+      const gOf={}, BK=Study.BOOKS, GIDS=Object.keys(BK);
+      try{ GIDS.forEach(g=>BK[g].sets.forEach(st=>Study.lessons(st).forEach(l=>l.ws.forEach(w=>{ if(!gOf[w.en]) gOf[w.en]=g; })))); }catch(e){}
+      const gradeOf=w=>gOf[w.en] || ({0:"k",1:"g12",2:"g56",3:"mid"})[w.level] || "g12";
+      const TG={act1:"act",act2:"act",act3:"act",feel1:"feel",feel2:"feel",mind1:"mind",mind2:"mind"}, TN={act:["🏃","움직임"],feel:["😊","느낌·모양"],mind:["💬","생각·말"]};
+      GIDS.forEach(g=>{ const grp={}, ord=[];
+        topic.forEach(T=>{ const k=TG[T.id]||T.id; T.words.forEach(w=>{ if(gradeOf(w)!==g) return;
+          if(!grp[k]){ grp[k]={id:g+"-"+k, g, emo:TN[k]?TN[k][0]:T.emo, name:TN[k]?TN[k][1]:T.name, words:[]}; ord.push(k); }
+          grp[k].words.push(w); }); });
+        const small=[]; ord.forEach(k=>{ const A=grp[k]; if(A.words.length<10 && ord.length>1) small.push(A); else albs.push(A); });
+        if(small.length){ const ws=[]; small.forEach(A=>ws.push.apply(ws,A.words)); const last=albs[albs.length-1];
+          if(ws.length<5 && last && last.g===g) last.words.push.apply(last.words, ws);   // 몇 개뿐이면 따로 권을 만들지 않는다
+          else albs.push({id:g+"-more", g, emo:"🧩", name:"여러 단어", words:ws}); } });
       /* (v220) 빙고판 — 5줄 = 한 판(25칸). 다음 단계 칸을 줄마다 다른 칸으로 옮겨 가로·세로 모두 하나씩 들어가게 (판마다 시작 칸도 다르게) */
       albs.forEach(a=>{ const W=a.words, out=[];
         for(let i=0;i<W.length;i+=5){ const row=W.slice(i,i+5), lv=row.map(w=>w.level||0).filter(x=>x>0), base=lv.length?Math.min.apply(null,lv):0;
@@ -12903,6 +12927,8 @@ const Dex = (function(){
           out.push.apply(out,row); }
         a.words=out; });
       albs.forEach(a=>{ const l=a.words.map(w=>w.level); a.lo=Math.min.apply(null,l); a.hi=Math.max.apply(null,l); a.words.forEach((w,i)=>{ where[w.en]={a,i}; }); });
+      /* (v255) 학년별로 바뀐 판에서 이미 다 채워진 줄·판·앨범은 받은 것으로 (예전 판에서 보석을 받았으니 또 주지 않는다) */
+      try{ const m=load(); if(m.lay!==2){ this.gifts().forEach(x=>Wallet.pay(x.key)); m.lay=2; save(); } }catch(e){}
       return albs;
     },
     album(id){ return this.albums().find(a=>a.id===id)||null; },
@@ -13250,7 +13276,7 @@ const DexDet = {
     return '<div class="wFind"><b>📍 나오는 곳</b>'
       +(run.length?'<div><span class="k">🏃 달리기</span>'+run.map(x=>'<span class="c'+(x.r==="main"?' main':'')+'">'+WORD_SETS[x.id].icon+' '+WORD_SETS[x.id].label+(RT[x.r]?' <small>· '+RT[x.r]+'</small>':'')+'</span>').join("")+'</div>':'')
       +(st.length?'<div><span class="k">📚 Daily 30</span>'+st.slice(0,3).map(x=>{ const S=WORD_SETS[x.id], lv=Study.lv(x.id,x.n);
-          return '<button class="c go" data-study="'+x.id+'" data-si="'+x.i+'">'+Study.label(x.id)+' Stage '+(x.i+1)+(lv?' '+'★'.repeat(lv):'')+'</button>'; }).join("")+'</div>':'')
+          return '<button class="c go" data-study="'+x.id+'" data-si="'+x.i+'">'+Study.label(x.id)+' Stage '+Study.stageNo(x.id,x.n)+(lv?' '+'★'.repeat(lv):'')+'</button>'; }).join("")+'</div>':'')
       +'</div>'; },
   show(en, quiet, keepScroll){
     const w=this.word(en); if(!w) return;
@@ -13263,7 +13289,7 @@ const DexDet = {
       +(S.l?'<span>최근 '+S.l.length+'번 '+S.l.split("").map(x=>x==="1"?'<i class="o">○</i>':'<i class="x">✕</i>').join("")+'</span>':'')
       +(S.d!=null?'<span>마지막으로 만난 날 <b>'+this.ago(S.d)+'</b></span>':'')
       +(S.c?'<span class="conf">헷갈린 단어 <b>'+this.esc(this.confName(S.c))+'</b></span>':'')+'</div>';
-    const tags='<div class="wTags"><span class="t1">'+(book?"★".repeat(book):"표현")+'</span>'+(D?'<span class="t2">'+D[1]+'</span>':'')+(wh?'<span class="t3">'+wh.a.emo+' '+wh.a.name+' · '+(Math.floor(wh.i/5)+1)+'째 줄</span>':'')+'</div>';
+    const tags='<div class="wTags"><span class="t1">'+(book?"★".repeat(book):"표현")+'</span>'+(D?'<span class="t2">'+D[1]+'</span>':'')+(wh?'<span class="t3">'+(wh.a.g && Study.BOOKS[wh.a.g] ? Study.BOOKS[wh.a.g].tab+' · ' : '')+wh.a.emo+' '+wh.a.name+' · '+(Math.floor(wh.i/5)+1)+'째 줄</span>':'')+'</div>';
     let h='<button class="wBack" data-back="1">← 목록</button>';
     if(!got){
       h+='<div class="wHero"><div class="wPic">?</div><div><div class="wWord"><h3 style="letter-spacing:.2em;color:#6f6596">· · ·</h3></div><div class="wKo">'+this.esc(w.ko)+(D?'<span class="wPos">'+D[1]+'</span>':'')+'</div></div></div>'+stats
@@ -13388,7 +13414,7 @@ const DexUI = {
   a:null, mode:"dex",
   open(){ SFX.click(); DexDet.layout(); this.a=null; $("shDex").classList.add("on"); DexData.load(1);
     this.gift(); this.bingo(Dex.settle()); this.setMode(this.mode||"dex");
-    if(DexDet.wide()){ const A=Dex.albums()[0], f=A && (A.words.find(w=>Dex.opened(w.en))||A.words[0]); if(f) DexDet.show(f.en, true); } },
+    if(DexDet.wide()){ const A=Dex.albums().find(x=>x.g===this.grade())||Dex.albums()[0], f=A && (A.words.find(w=>Dex.opened(w.en))||A.words[0]); if(f) DexDet.show(f.en, true); } },
   setMode(m){ this.mode=m; $("dexMode").querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("on", x.dataset.m===m));
     $("dexBook").style.display = m==="dex" ? "" : "none"; $("dexDic").style.display = m==="dic" ? "" : "none";
     if(m==="dic") DexDet.drawList(); else this.draw(); },
@@ -13396,22 +13422,36 @@ const DexUI = {
   gift(){ try{ if(!Dex.bookDone(1)) return [];
       const g=OUTFITS.filter(o=>o.dex===1 && !Wallet.owns(o.id)); g.forEach(o=>Wallet.give(o.id)); return g; }catch(e){ return []; } },
   stars(A){ return A.hi===0 ? "표현" : "★"+(A.lo===A.hi ? A.lo : (A.lo||1)+"~"+A.hi); },
-  goAlbum(id){ this.a=id; SFX.click(); this.draw(); try{ $("dexIn").scrollTop=0; document.querySelector("#dexIn .dexL").scrollTop=0; }catch(e){}
+  /* (v255) 도감 학년 탭 — 처음엔 Daily 30 에서 고른 학년 */
+  G_KEY:"hyeng_dex_grade",
+  grade(){ const BK=Study.BOOKS; if(!this.g || !BK[this.g]){ let g=null; try{ g=localStorage.getItem(this.G_KEY); }catch(e){}
+      if(!BK[g]){ try{ g=Study.load().book; }catch(e){} } this.g = BK[g] ? g : "g12"; }
+    if(!Dex.albums().some(x=>x.g===this.g)) this.g=Dex.albums()[0].g; return this.g; },
+  setGrade(g){ if(!Study.BOOKS[g]) return; this.g=g; try{ localStorage.setItem(this.G_KEY,g); }catch(e){} SFX.click(); this.draw();
+    try{ document.querySelector("#dexIn .dexL").scrollTop=0; $("dexIn").scrollTop=0; }catch(e){}
+    const A=Dex.albums().find(x=>x.g===g); if(A && DexDet.wide()){ const f=A.words.find(w=>Dex.opened(w.en))||A.words[0]; if(f) DexDet.show(f.en,true); } },
+  goAlbum(id){ this.a=id; SFX.click(); const A0=Dex.album(id); if(A0 && A0.g) this.g=A0.g; this.draw(); try{ $("dexIn").scrollTop=0; document.querySelector("#dexIn .dexL").scrollTop=0; }catch(e){}
     const A=Dex.album(id); if(A && DexDet.wide()){ const f=A.words.find(w=>Dex.opened(w.en))||A.words[0]; if(f) DexDet.show(f.en,true); } },
   draw(){
     $("dexGems").textContent=Wallet.gems();
     const A=this.a && Dex.album(this.a), cl=$("dexClaim");
     const GF=[]; cl.style.display="none";                                 // (v221) 받기 버튼 없음 — 다 된 줄은 저절로 보석
     const T=Dex.targets(), tgH = T.length ? '<div class="dTg">🎯 노리는 중:'+T.map(en=>{ const w=DEX_BASE.find(x=>x.en===en); return '<button data-en="'+en+'">'+(w?w.ko:en)+'</button>'; }).join("")+'</div>' : '';
+    $("dexGr").style.display=A?"none":"";
     if(!A){                                                             // 앨범 책장
-      const all=Dex.albums(), tot=all.reduce((t,x)=>t+x.words.length,0), got=all.reduce((t,x)=>t+Dex.got(x),0), stp=Dex.stamps();
-      $("dexHead").innerHTML='<b>📚 앨범 '+all.length+'권'+(stp?' · 🏅 도장 '+stp:'')+'</b><span>'+got+' / '+tot+'</span>';
+      /* (v255) 학년 탭 — Daily 30 과 같은 순서 */
+      const BK=Study.BOOKS, gid=this.grade(), every=Dex.albums();
+      $("dexGr").innerHTML=Object.keys(BK).map(g=>{ const L=every.filter(x=>x.g===g); if(!L.length) return "";
+        const t=L.reduce((s,x)=>s+x.words.length,0), n=L.reduce((s,x)=>s+Dex.got(x),0), sn=L.reduce((s,x)=>s+Dex.sealedList(x).length,0);
+        return '<button class="'+(g===gid?'on':'')+(n>=t?' full':'')+'" data-g="'+g+'"><i>'+BK[g].emo+'</i><b>'+BK[g].tab+(sn?' ✨':'')+'</b><small>'+n+'/'+t+'</small></button>'; }).join("");
+      const all=every.filter(x=>x.g===gid), tot=all.reduce((t,x)=>t+x.words.length,0), got=all.reduce((t,x)=>t+Dex.got(x),0), stp=all.reduce((t,x)=>t+Dex.stamps(x),0);
+      $("dexHead").innerHTML='<b>'+BK[gid].emo+' '+BK[gid].nm+' · 앨범 '+all.length+'권'+(stp?' · 🏅 '+stp:'')+'</b><span>'+got+' / '+tot+'</span>';
       $("dexBar").style.width=(tot?Math.round(got/tot*100):0)+"%";
       $("dexShelf").style.display=""; $("dexGrid").style.display=tgH?"":"none"; $("dexGrid").innerHTML=tgH;
       $("dexShelf").innerHTML=all.map(x=>{ const n=x.words.length, g=Dex.got(x), gc=Dex.gifts(x).length, prev=Dex.albumPaidN(x);
         const sn=Dex.sealedList(x).length, stp=Dex.stamps(x);
         return '<button class="dAlb'+(g===n?' full':'')+'" data-a="'+x.id+'">'+(stp?'<i class="gb">🏅'+stp+'</i>':'')+(sn?'<i class="nb sn">✨'+sn+'</i>':(prev && prev<n?'<i class="nb">🆕+'+(n-prev)+'</i>':''))
-          +'<i>'+x.emo+'</i><b>'+x.name+'</b><small>'+this.stars(x)+' · '+g+'/'+n+'</small><span class="mb"><u style="width:'+Math.round(g/n*100)+'%"></u></span></button>'; }).join("");
+          +'<i>'+x.emo+'</i><b>'+x.name+'</b><small>'+g+' / '+n+'</small><span class="mb"><u style="width:'+Math.round(g/n*100)+'%"></u></span></button>'; }).join("");
       const sc=Dex.sealedCount();
       if(!this._toast) $("dexMsg").textContent=(sc ? "✨ 아직 안 연 새 카드 "+sc+"장 · " : "")+"같은 단어를 두 번 연달아 맞히면 도감에 붙어요 · 빙고 한 줄마다 보석";
       this._toast=null;
@@ -13419,7 +13459,7 @@ const DexUI = {
     }
     const n=A.words.length, got=Dex.got(A), nb=Dex.boards(A), gk={}; GF.forEach(x=>{ gk[x.key]=x; });
     const sealedN=Dex.sealedList(A).length;
-    $("dexHead").innerHTML='<button class="dBack" data-back="1">◀ 앨범</button><b>'+A.emo+' '+A.name+'<span class="dLv">'+this.stars(A)+'</span></b><span>'+got+' / '+n+'</span>';
+    $("dexHead").innerHTML='<button class="dBack" data-back="1">◀ 앨범</button><b>'+A.emo+' '+A.name+'<span class="dLv">'+(A.g && Study.BOOKS[A.g] ? Study.BOOKS[A.g].emo+' '+Study.BOOKS[A.g].tab : this.stars(A))+'</span></b><span>'+got+' / '+n+'</span>';
     $("dexBar").style.width=Math.round(got/n*100)+"%";
     $("dexShelf").style.display="none"; $("dexGrid").style.display="";
     const card=(w,base)=>{ const has=Dex.has(w.en), seal=has && Dex.sealed(w.en), ms=DexDet.mst(w.en), sel=DexDet.cur===w.en?' sel':'';
@@ -13470,6 +13510,7 @@ $("btnShopClose").addEventListener("click",()=>{ SFX.click(); $("shShop").classL
 $("btnDexClose").addEventListener("click",()=>{ SFX.click(); $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); refreshDexBadge(); });
 $("shShop").addEventListener("click",e=>{ const t=e.target.closest && e.target.closest("[data-tab]"); if(t){ ShopUI.setTab(t.dataset.tab); return; }
   const b=e.target.closest && e.target.closest("[data-act]"); if(b) ShopUI.act(b.dataset.act, b.dataset.id, b.dataset.slot); });
+$("dexGr").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-g]"); if(b) DexUI.setGrade(b.dataset.g); });
 $("dexShelf").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-a]"); if(b) DexUI.goAlbum(b.dataset.a); });
 $("dexHead").addEventListener("click",e=>{ if(e.target.closest && e.target.closest("[data-back]")){ SFX.click(); DexUI.a=null; DexUI.draw(); } });
 $("dexClaim").addEventListener("click",()=>DexUI.claimAll());
