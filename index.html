@@ -1325,15 +1325,16 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stWorld.clr{border-color:#7ed957;background:linear-gradient(90deg,rgba(126,217,87,.25),rgba(107,90,216,.1))} .stWorld.clr em{color:#9dff7a}
 .stWBox{width:min(380px,100%);margin:16px auto 6px;padding:0 0 10px;border-radius:20px;background:rgba(255,255,255,.04)}
 .stWBox .stWorld{width:auto;margin:0 0 4px}
-.stWRow{position:relative;display:flex;justify-content:space-between;align-items:flex-start;padding:22px 4px 0}
-.stWRow::before{content:"";position:absolute;left:12%;right:12%;top:52px;border-top:5px dotted rgba(200,190,255,.35)}   /* 길 */
-.stWRow.one{justify-content:center} .stWRow.one::before{display:none}
-.stWN{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center}
-.stDot.ph{width:52px;height:50px;font-size:16px;position:relative;z-index:1}
+.stWMap{position:relative;width:340px;margin:6px auto 0}
+.stWMap svg{position:absolute;left:0;top:0;pointer-events:none}
+.stWMap .rd{fill:none;stroke:rgba(200,190,255,.13);stroke-width:26;stroke-linecap:round}
+.stWMap .rdm{fill:none;stroke:rgba(255,230,160,.45);stroke-width:4;stroke-dasharray:2 12;stroke-linecap:round}
+.stWN{position:absolute;width:150px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;text-align:center}
+.stDot.ph{width:58px;height:56px;font-size:18px;position:relative;z-index:1}
 .stWN.fin .stDot.ph{font-size:22px}
 .stWNo{margin-top:5px;font-size:13px;font-weight:900;color:#fff}
-.stWT span{white-space:nowrap} .stWT{display:block;margin-top:5px;padding:0 2px;font-size:10.5px;font-weight:800;line-height:1.25;color:#ffd37a;word-break:keep-all}
-.stWS{font-size:10px;letter-spacing:-1px;color:#ffd37a} .stWS u{text-decoration:none;color:rgba(255,255,255,.18)}
+.stWT span{white-space:nowrap} .stWT,.stWS{text-shadow:0 1px 3px #0d0a24,0 0 6px #0d0a24} .stWT{display:block;margin-top:5px;padding:0 2px;font-size:12px;font-weight:800;line-height:1.25;color:#ffd37a;word-break:keep-all}
+.stWS{font-size:11px;letter-spacing:-1px;color:#ffd37a} .stWS u{text-decoration:none;color:rgba(255,255,255,.18)}
 .stWNow{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:16px;animation:chBob 1.2s ease-in-out infinite;z-index:2}
 .stWBox.clr{background:rgba(126,217,87,.07)}
 .stLbl span{margin-left:3px;color:#ffd37a;letter-spacing:-1px}
@@ -10898,7 +10899,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v244";
+const GAME_VER = "v245";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11450,11 +11451,15 @@ const StudyUI = {
         const wds=[]; L.forEach(x=>{ if(wds.indexOf(x.wd)<0) wds.push(x.wd); });
         h+=wds.map(wd=>{ const W=PW[wd-1]||[], WL=L.filter(y=>y.wd===wd), wf=WL.filter(y=>Study.lv(st,y.n)>0).length, fl=WL.find(y=>y.fin), clr=!!(fl && Study.lv(st,fl.n)>0);
           return '<div class="stWBox'+(clr?' clr':'')+'"><div class="stWorld'+(clr?' clr':'')+'"><i>'+(W[1]||'')+'</i><span><b>World '+wd+'</b><small>'+(W[0]||'')+'</small></span><em>'+(clr?'🚩 클리어':wf+' / '+WL.length)+'</em></div>'
-            +'<div class="stWRow'+(WL.length<2?' one':'')+'">'+WL.map(x=>{ const i=L.indexOf(x), v=Study.lv(st,x.n), k=cl(x,i), sn=Study.stageNo(st,x.n);
-              const face = x.fin?'🚩':sn;   // 끝낸 건 색(금색)과 별로
-              return '<div class="stWN'+(x.fin?' fin':'')+'">'+(k==="now"?'<div class="stWNow">📌</div>':'')
-                +'<button class="stDot ph '+k+'" data-s="'+st+'" data-i="'+i+'">'+face+'</button>'
-                +'<small class="stWT">'+String(x.title||'').split(' · ').map(t=>'<span>'+t+'</span>').join(' · ')+'</small><span class="stWS">'+stars(v)+'</span></div>'; }).join("")+'</div></div>'; }).join("");
+            +(()=>{ /* (v245) 굽이치는 길 — 가운데 → 오른쪽 → 가운데 → 왼쪽 → 가운데(🚩) */
+              const RH=112, W=340, A=96, T=26, xs=WL.map((x,j)=>W/2+[0,A,0,-A][j%4]), ys=WL.map((x,j)=>T+j*RH+28), H=T+WL.length*RH-30;
+              let d='M'+xs[0]+' '+ys[0]; for(let j=1;j<xs.length;j++){ const my=(ys[j-1]+ys[j])/2; d+=' C'+xs[j-1]+' '+my+' '+xs[j]+' '+my+' '+xs[j]+' '+ys[j]; }
+              return '<div class="stWMap" style="height:'+H+'px">'+(WL.length>1?'<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><path class="rd" d="'+d+'"/><path class="rdm" d="'+d+'"/></svg>':'')
+                +WL.map((x,j)=>{ const i=L.indexOf(x), v=Study.lv(st,x.n), k=cl(x,i), sn=Study.stageNo(st,x.n);
+                  return '<div class="stWN'+(x.fin?' fin':'')+'" style="left:'+xs[j]+'px;top:'+(ys[j]-28)+'px">'+(k==="now"?'<div class="stWNow">📌</div>':'')
+                    +'<button class="stDot ph '+k+'" data-s="'+st+'" data-i="'+i+'">'+(x.fin?'🚩':sn)+'</button>'
+                    +'<small class="stWT">'+String(x.title||'').split(' · ').map(t=>'<span>'+t+'</span>').join(' · ')+'</small><span class="stWS">'+stars(v)+'</span></div>'; }).join("")+'</div>'; })()
+            +'</div>'; }).join("");
         return; }
       h+=L.map((x,i)=>{
         const v=Study.lv(st,x.n), now=i===c, nextLock=false, cls=cl(x,i);
