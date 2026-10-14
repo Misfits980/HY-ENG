@@ -1152,6 +1152,12 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
   padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 22px);
   background:#1a1235;border:1px solid rgba(255,255,255,.1);border-radius:28px 28px 0 0}
 .sheetIn h2{font-size:18px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+/* (v253) 긴 창도 위에서 바로 닫기 — 스크롤해도 오른쪽 위에 따라오는 ✕ (예전엔 맨 아래 '닫기'까지 내려야 했다) */
+.shXW{position:sticky;top:10px;height:0;z-index:6;display:flex;justify-content:flex-end;pointer-events:none}
+.shX{pointer-events:auto;width:40px;height:40px;margin:-8px -10px 0 0;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(36,26,74,.92);
+  color:#fff;font-size:17px;font-weight:800;line-height:1;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.shX:active{transform:scale(.92)}
+.sheetIn .shopHead{padding-right:50px}
 input[type=text]{width:100%;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.06);color:#fff;
   border:1px solid rgba(255,255,255,.12);font-family:var(--font);font-size:15px;font-weight:600}
 input[type=text]::placeholder{color:#7b71a3}
@@ -10961,7 +10967,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v252";
+const GAME_VER = "v253";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13725,6 +13731,17 @@ window.__start = function(){
   else $("err").style.display="grid";
 };
 if(window.THREE) window.__start();
+
+/* (v253) 긴 창에 위쪽 ✕ — 누르면 그 창의 원래 '닫기'를 누른 것과 같다 (정리 코드 그대로) */
+(function(){
+  const M={shDex:"btnDexClose", shShop:"btnShopClose", shStats:"btnStatsClose", shHelp:"btnHelpClose", shAdmin:"btnAdminClose", shWords:"btnSheetClose", shNews:"btnNewsOk"};
+  Object.keys(M).forEach(function(id){ const sh=$(id), cl=$(M[id]); if(!sh || !cl) return;
+    const hosts = id==="shDex" ? [sh.querySelector(".dexL")] : [sh.querySelector(".sheetIn")];
+    hosts.forEach(function(h){ if(!h) return; const w=document.createElement("div"); w.className="shXW";
+      w.innerHTML='<button class="shX" type="button" aria-label="닫기">✕</button>'; h.insertBefore(w, h.firstChild);
+      w.firstChild.addEventListener("click", function(e){ e.stopPropagation(); cl.click(); }); });
+  });
+})();
 
 if("serviceWorker" in navigator){
   const hadOld = !!navigator.serviceWorker.controller;
