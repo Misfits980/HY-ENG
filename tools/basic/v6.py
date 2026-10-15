@@ -61,12 +61,14 @@ def tables(text):
     return out
 
 def pick(text):
+    """같은 종류 표가 여러 개(1~15번 · 16~20번)면 이어 붙인다"""
     T1 = T2 = None
     for t in tables(text):
         if not t: continue
+        t = [[re.sub(r"^\*\*(.*)\*\*$", r"\1", c.strip()).strip() for c in r] for r in t]   # **굵게** 벗기기
         h = [x.replace(" ", "") for x in t[0]]
-        if "품사1" in h and T1 is None: T1 = t
-        elif "상황" in h and T2 is None: T2 = t
+        if "품사1" in h: T1 = t if T1 is None else T1 + t[1:]
+        elif "상황" in h: T2 = t if T2 is None else T2 + t[1:]
     hard = ""
     m = re.search(r"어려운 말\s*[:：]\s*(.+)", text)
     if m: hard = m.group(1).strip()
@@ -95,8 +97,12 @@ def known_words():
 def base_forms(tok):
     t = tok.lower().strip("'")
     c = {t}
+    IRR = {"cannot":"can","can't":"can","won't":"will","don't":"do","doesn't":"do","isn't":"be","aren't":"be","is":"be","are":"be","am":"be","was":"be","were":"be",
+           "has":"have","had":"have","does":"do","did":"do","went":"go","goes":"go","made":"make","took":"take","came":"come","saw":"see","ate":"eat","got":"get","gave":"give",
+           "ran":"run","sat":"sit","told":"tell","said":"say","felt":"feel","left":"leave","bought":"buy","brought":"bring","thought":"think","found":"find","children":"child","feet":"foot","teeth":"tooth","men":"man","women":"woman","mice":"mouse"}
+    if t in IRR: c.add(IRR[t])
     for suf, rep in (("ies","y"),("ied","y"),("es",""),("s",""),("ed",""),("ed","e"),("d",""),("ing",""),("ing","e"),("er",""),("est",""),("ly",""),("'s","")):
-        if t.endswith(suf) and len(t) > len(suf)+2: c.add(t[:-len(suf)] + rep)
+        if t.endswith(suf) and len(t) > len(suf)+1: c.add(t[:-len(suf)] + rep)
     if re.search(r"([bdgmnprt])\1(ed|ing)$", t): c.add(re.sub(r"([bdgmnprt])\1(ed|ing)$", r"\1", t))
     return c
 
@@ -163,7 +169,7 @@ def check(path, level, K):
     if not T2: bad.append("[표 2] 게임 대화 표(상황 칸이 있는 표)를 못 찾음")
     else:
         if [x.replace(" ","") for x in T2[0]] != [x.replace(" ","") for x in H2]: bad.append("표 2 칸 이름·순서가 다름: " + " / ".join(T2[0]))
-        cnt = {}
+        cnt = {}; oth = []
         for i, r in enumerate(T2[1:], 1):
             if len(r) != 6: bad.append(f"표 2 {i}줄 칸 수 {len(r)} (6이어야 함)"); continue
             d = dict(zip(H2, r)); talk.append(d); en = d["영어"]; tag = f"{en} 대화: "
@@ -180,7 +186,7 @@ def check(path, level, K):
             if sl < 5 or sl > 16: warn.append(tag + f"상황 {sl}자 (6~15자): {d['상황']}")
             if wre(en).search(d["상황"]): bad.append(tag + "상황에 정답 영어 단어가 있음")
             others = [o for o in words_set if o != en and len(o) > 2 and wre(o).search(d["A"] + " " + d["B"])]
-            if others: warn.append(tag + f"같은 DAY 다른 목표 단어: {', '.join(others)} (빈칸에 들어가도 말이 되면 고치기)")
+            if others: oth.append(en)   # (v281) 게임이 대화 줄에 나온 단어를 보기에서 빼므로 경고 대신 숫자만
             if re.match(r"^(yes|no|ok|okay)[,.!]?\s*(i do|that's nice|i think so)?[.!]?$", d["B"].strip(), re.I): bad.append(tag + f"단서 없는 대답: {d['B']}")
         for en in words_set:
             if cnt.get(en, 0) != 2: bad.append(f"{en}: 대화 {cnt.get(en,0)}개 (2개)")
@@ -194,6 +200,7 @@ def check(path, level, K):
     info = {"단어": len(rows), "대화": len(talk), "과거 예문": f"{len(past)}/{len(ex)} ({round(100*len(past)/max(1,len(ex)))}%)",
             "시간 말 있는 과거 예문": sum(1 for s in past if PAST_SIG.search(s)), "전치사구 예문": f"{len(prep)}/{len(ex)} ({round(100*len(prep)/max(1,len(ex)))}%)",
             "과거 대화가 있는 단어": f"{len(tpast)}/{len(rows)}"}
+    if talk and oth: info["다른 목표 단어가 든 대화 (보기에서 자동으로 뺌)"] = len(oth)
     if level in ("L3","L4"):
         if len(past) < 0.4*len(ex): warn.append(f"과거 예문 {info['과거 예문']} — 40% 이상")
         if len(prep) < 0.5*len(ex): warn.append(f"전치사구 예문 {info['전치사구 예문']} — 절반 이상")
@@ -206,6 +213,7 @@ def check(path, level, K):
         for k in ("예문 1","예문 2"):
             for t in words(d[k]):
                 tl = t.lower()
+                if len(tl) < 2 or any(tl in w.split("-") for w in tw): continue
                 if tl in FUNC or tl in tw or any(b in K or b in tw for b in base_forms(t)) or t in NAMES or t in CAPOK: continue
                 unk.setdefault(tl, []).append(d["영어"])
     if level == "L4":
@@ -278,14 +286,27 @@ def apply(results):
     html_ = open(os.path.join(R, "index.html"), encoding="utf8").read()
     lvl = {}
     for m in re.finditer(r'\{en:"([^"]+)",ko:"[^"]*"[^}]*?level:(\d)', html_): lvl.setdefault(m.group(1), int(m.group(2)))
-    talk_lines, newwords = [], []
+    talk_lines, newwords, done = [], [], {}
     for res in results:
         for d in res["rows"]:
             en = d["영어"]; key = en.lower()
             P = [[d["품사 1"], d["뜻 1"], d["설명 1"]]] + ([[d["품사 2"], d["뜻 2"], d["설명 2"]]] if d["품사 2"] != "—" else [])
             x = [[d["예문 1"], d["해석 1"], 1], [d["예문 2"], d["해석 2"], int(d["예문 2 뜻"]) if d["예문 2 뜻"] in ("1","2") else 1]]
+            if key in done:   # (v281) 같은 단어가 다른 DAY 에 또 나옴 (back: 등 → 뒤) — 뜻·예문을 합친다 (뒤 DAY 가 앞 DAY 를 덮지 않게)
+                P0, x0 = done[key]; idx = {}
+                for i, sp in enumerate(P, 1):
+                    parts = lambda m: [t.strip() for t in m.split(",") if t.strip()]
+                    j = next((k for k, q in enumerate(P0, 1) if q[0] == sp[0] and set(parts(q[1])) & set(parts(sp[1]))), None)
+                    if j is None: P0.append(sp); j = len(P0)
+                    else: P0[j-1] = [P0[j-1][0], ", ".join(dict.fromkeys(parts(P0[j-1][1]) + parts(sp[1]))), P0[j-1][2]]
+                    idx[i] = j
+                x = x0 + [[e[0], e[1], idx.get(e[2], 1)] for e in x if e[0] not in [y[0] for y in x0]]
+                order = sorted(range(len(P0)), key=lambda i: ([q[0] for q in P0].index(P0[i][0]), i))   # 같은 품사끼리 붙여서 (명사 등 · 명사 뒤 · 부사)
+                new = {o + 1: n + 1 for n, o in enumerate(order)}
+                P = [P0[o] for o in order]; x = [[e[0], e[1], new.get(e[2], 1)] for e in x]
+            done[key] = (P, x)
             g = {k: v for k, v in res["gloss"].items() if any(re.search(r"\b" + re.escape(k) + r"\w*\b", e[0], re.I) for e in x)}
-            b = bex.get(key, {}); b.update({"x": x, "P": P, "p": "·".join(p[0] for p in P), "v": 6})
+            b = bex.get(key, {}); b.update({"x": x, "P": P, "p": "·".join(dict.fromkeys(p[0] for p in P)), "v": 6})
             b.pop("m", None); b.pop("a", None)
             if d["변하는 모양"] != "—": b["f"] = d["변하는 모양"]
             if d["자주 쓰는 말"] != "—": b["c"] = d["자주 쓰는 말"]
@@ -299,10 +320,10 @@ def apply(results):
                 if key in dex[bb]: D = dex[bb][key]; book = bb; break
             if D is None: D = ["", "", "", [], "", "", "", {}, "", ""]
             while len(D) < 11: D.append("" if len(D) != 10 else [])
-            D[0] = d["설명 1"]; D[1] = "·".join(p[0] for p in P)
+            D[0] = P[0][2]; D[1] = "·".join(dict.fromkeys(p[0] for p in P))
             if d["변하는 모양"] != "—": D[2] = d["변하는 모양"]
             old = [e for e in (D[3] or []) if e and e[0] not in (x[0][0], x[1][0])]
-            D[3] = [[e[0], e[1], e[2]] for e in x] + old[:1]
+            D[3] = [[e[0], e[1], e[2]] for e in x[:4]] + (old[:1] if len(x) <= 2 else [])
             if d["자주 쓰는 말"] != "—": D[6] = d["자주 쓰는 말"]
             rel = dict(D[7] or {})
             if d["비슷한 말"] != "—": rel["s"] = d["비슷한 말"]
