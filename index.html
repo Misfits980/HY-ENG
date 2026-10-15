@@ -9403,10 +9403,15 @@ const Voice = {
      ① 끊고(cancel) 바로 말하면 안드로이드 크롬이 그 말을 버린다 → 말하는 중이면 끊고 80ms 뒤에
      ② 크롬이 가끔 멈춤 상태로 남는다 → resume()
      ③ 끝까지 소리가 시작되지 않으면(onstart 없음) 실패로 세고, 두 번 연달아면 "이 기기는 소리가 안 남"(broken) → 듣기 문제를 빼고 안내 */
+  /* (v274) 한꺼번에 여러 번 부르면(보기 누름 → 바로 정답 읽기) 80ms 뒤로 미룬 말이 뒤늦게 또 나와 소리가 겹치던 것 → 마지막 말만 낸다 (_tok) */
+  _tok:0, _gt:null, _cx:0,
   speak(text, rate, opt){
     if(!this.supported() || !text) return false;
     opt=opt||{};
+    const tok=++this._tok;
     const go=()=>{
+      if(tok!==this._tok) return;                       // 더 새 말이 왔으면 이 말은 버린다
+      this._gt=null;
       try{
         const u=new SpeechSynthesisUtterance(String(text));
         u.lang="en-US"; u.rate=rate||0.85; u.pitch=opt.pitch||1.05;
@@ -9423,7 +9428,11 @@ const Voice = {
       }catch(e){ this.fail(); }
     };
     let busy=false; try{ busy=speechSynthesis.speaking || speechSynthesis.pending; }catch(e){}
-    if(busy){ try{ speechSynthesis.cancel(); }catch(e){} setTimeout(go, 80); } else go();
+    clearTimeout(this._gt);
+    const now=Date.now();
+    if(busy){ try{ speechSynthesis.cancel(); }catch(e){} this._cx=now; this._gt=setTimeout(go, 80); }
+    else if(now-this._cx<80) this._gt=setTimeout(go, 80-(now-this._cx));   // 방금 끊었으면 남은 시간만큼 기다림 (안드로이드가 버리지 않게)
+    else go();
     return true;
   },
   fail(){ this.fails++; if(this.fails>=2) this.broken=true; },
@@ -9457,7 +9466,7 @@ const Voice = {
     if(keep) this.lockUntil = now + Math.min(1800, 420 + String(text).length*95);
     this.speak(String(text).toLowerCase(), 0.85, keep ? {onend:()=>{ this.lockUntil=0; }} : null);
   },
-  stop(){ this.lockUntil=0; try{ speechSynthesis.cancel(); }catch(e){} }
+  stop(){ this.lockUntil=0; this._tok++; clearTimeout(this._gt); this._cx=Date.now(); try{ speechSynthesis.cancel(); }catch(e){} }
 };
 
 function showQuestion(q, s){
@@ -11317,7 +11326,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v273";
+const GAME_VER = "v274";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11369,7 +11378,7 @@ document.addEventListener("visibilitychange", ()=>{
     if(document.hidden){
       if(G.running && !G.paused && !G.overFade) togglePause();
       if(SFX.ctx && SFX.ctx.state==="running") SFX.ctx.suspend();
-      if(window.speechSynthesis) speechSynthesis.cancel();
+      Voice.stop();
     } else if(SFX.ctx && SFX.ctx.state==="suspended") SFX.ctx.resume();
   }catch(e){}
 });
@@ -12226,7 +12235,7 @@ const StudyUI = {
     this.set = BK.sets.indexOf(s.set)>=0 ? s.set : ((s.sub||{})[this.book] && BK.sets.indexOf(s.sub[this.book])>=0 ? s.sub[this.book] : BK.sets[0]);
     try{ Study.gvWallet(); }catch(e){} try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     show("scStudy"); this.path(); },
-  close(){ SFX.click(); try{ speechSynthesis.cancel(); }catch(e){} Attract.focus=false; show("scStart"); },
+  close(){ SFX.click(); try{ Voice.stop(); }catch(e){} Attract.focus=false; show("scStart"); },
   view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); $("scStudy").classList.toggle("vLesson", v==="stLesson"); if(v!=="stPath") this.pop(null); },
   /* ── 길 ── */
   path(){
@@ -12433,7 +12442,7 @@ const StudyUI = {
     } else if(q.t==="listen"){
       h='<div class="stKind">듣고 고르세요</div><div class="stPrompt"><button class="stBig" data-say="'+this.esc(w.en)+'">🔊</button><button class="stSlow" data-slow="'+this.esc(w.en)+'">🐢 천천히</button></div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
-      setTimeout(()=>this.say(w.en), 250);
+      setTimeout(()=>{ if(this.qs[this.i]===q && !this.locked) this.say(w.en); }, 250);
       const t0=Date.now();                                               // 3초 안에 소리가 시작되지 않으면 "글자로 풀기"
       setTimeout(()=>{ if(this.qs[this.i]===q && !this.locked && Voice.heardAt<t0){ const b=document.createElement("button");
         b.className="stNoSnd"; b.dataset.nosnd="1"; b.textContent="🔇 소리가 안 나와요 · 글자로 풀기"; const pr=$("stQ").querySelector(".stPrompt"); if(pr) pr.appendChild(b); } }, 3000);
@@ -12445,7 +12454,7 @@ const StudyUI = {
         : '<div class="stKind">철자를 맞춰요</div><div class="stPrompt">'+pic+'<div class="stKo big">'+this.esc(w.ko)+'</div></div>';
       h+='<div class="stSlots" id="stSlots"></div><div class="stTiles">'+q.tiles.map((c,k)=>'<button class="stTile" data-t="'+k+'">'+c+'</button>').join("")+'</div>'
         +'<button class="stUndo" id="stUndo">⌫ 지우기</button>';
-      if(q.t==="dict") setTimeout(()=>this.say(w.en), 250);
+      if(q.t==="dict") setTimeout(()=>{ if(this.qs[this.i]===q && !this.locked) this.say(w.en); }, 250);
     } else if(q.t==="pic"){
       h='<div class="stKind">🖼️ 알맞은 그림을 골라요</div><div class="stPrompt"><div class="stEn">'+this.esc(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div></div>'
         +'<div class="stOpts pic">'+q.opts.map((o,k)=>'<button class="stOpt pic" data-k="'+k+'">'+o.emoji+'</button>').join("")+'</div>';
@@ -12482,7 +12491,7 @@ const StudyUI = {
       h='<div class="stKind">👂 들리는 단어를 문장에서 눌러요</div><div class="stPrompt"><button class="stBig" data-say="'+this.esc(w.en)+'">🔊</button><button class="stSlow" data-slow="'+this.esc(w.en)+'">🐢 천천히</button></div>'
         +'<div class="stFind">'+q.toks.map((o,k)=>'<button class="stOpt fw" data-k="'+k+'">'+this.esc(o.t)+'</button>').join("")+'</div>'
         +(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'');
-      setTimeout(()=>this.say(w.en), 250);
+      setTimeout(()=>{ if(this.qs[this.i]===q && !this.locked) this.say(w.en); }, 250);
     } else if(q.t==="drag"){                                            // (v228) 끌어서 짝짓기 (Drops)
       q.done={}; q.miss=0; q.pick=null; const L=shuffle(q.ws), T=shuffle(q.ws);
       h='<div class="stKind">✋ 단어를 끌어서 '+(q.pic?'그림':'뜻')+'에 놓아요</div><div class="dgWrap"><div class="dgWords">'
@@ -12496,7 +12505,7 @@ const StudyUI = {
         +'<button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div>'
         +'<div class="bdRow" id="bdRow">'+pre+'<span class="bdT slot">?</span>'+post+'</div>'
         +'<div class="stOpts bd">'+q.opts.map((o,k)=>'<button class="stOpt bdO" data-k="'+k+'">'+o+'</button>').join("")+'</div>';
-      setTimeout(()=>this.say(w.en), 250);
+      setTimeout(()=>{ if(this.qs[this.i]===q && !this.locked) this.say(w.en); }, 250);
     } else if(q.t==="order"){                                           // (v273) 💜 문장 순서 맞추기
       const X=q.x; q.pk=[];
       h='<div class="stKind">🧱 순서대로 눌러 문장을 만들어요</div><div class="stPrompt">'+(X.aud?'<button class="stBig sm" data-say="'+this.esc(X.full)+'">🔊</button>':'')+'<div class="stSentKo big">'+this.esc(X.ko)+'</div></div>'
@@ -12611,7 +12620,7 @@ const StudyUI = {
       const sk2=t.closest("[data-sk]"); if(sk2){ q.got=q.got.slice(0, +sk2.dataset.sk); SFX.click(); this.slots(); return; } }
     const o=t.closest(".stOpt"); if(o){ $("stQ").querySelectorAll(".stOpt").forEach(x=>x.classList.toggle("sel", x===o)); this.sel=+o.dataset.k; $("stCheck").disabled=false; SFX.click();
       if(q.t==="blend"){ const sl=$("bdRow").querySelector(".slot"); if(sl){ sl.textContent=q.opts[this.sel]; sl.classList.add("fill"); } }
-      else if(q.t!=="e2k" && q.t!=="ox" && q.t!=="stk" && q.opts){ const o=q.opts[this.sel]; this.say(typeof o==="string" ? o : o.en); }
+      /* (v274) 고른 보기를 읽지 않는다 — 바로 채점하면서 정답을 또 읽어 소리가 겹치고 뭉개졌다 (정답·맞힌 말은 result 에서 한 번만) */
       this.check(); return; }                                            // (v234) 고르면 바로 채점 (확인 버튼 한 번 줄임)
     const tl=t.closest(".stTile"); if(tl && !tl.disabled){ q.got+=q.tiles[+tl.dataset.t]; q.used.push(tl.dataset.t); tl.disabled=true; SFX.click(); this.slots(); return; }
     const sk=t.closest("[data-sk]"); if(sk && q.used){ const k=+sk.dataset.sk; if(k>=q.got.length) return;   // (v271) 채운 글자를 누르면 그 글자부터 뒤까지 지운다
@@ -12701,6 +12710,7 @@ const StudyUI = {
     else if(q.t==="order") this.say(q.x.full);
     else if(!ok || q.t==="spell" || q.t==="dict" || q.t==="sent" || q.t==="sent2" || q.t==="talk") this.say(q.w.en);
     else if(q.t==="blend") setTimeout(()=>this.say(q.w.en), 450);                     // 합쳐지는 모습 뒤에 소리
+    else if(["e2k","ox","match","drag","find"].indexOf(q.t)<0) this.say(q.w.en);       // (v274) 맞힌 단어도 한 번 읽어 준다 (예전엔 보기를 누를 때)
     /* (v234) 맞히면 저절로 다음 문제로 (계속 버튼을 누르면 바로) — 틀리면 정답을 볼 수 있게 기다린다 */
     clearTimeout(this._adv);
     if(ok){ const wait = 850 + (bonus||q.w.alt||(q.t==="ox"&&!q.truth) ? 700 : 0) + (q.t==="blend"||q.t==="spell"||q.t==="dict"||q.t==="kdict"||q.t==="sent" ? 450 : 0) + (q.t==="order"||q.t==="stk" ? 1100 : 0) + (isMatch ? 250 : 0);
@@ -12815,7 +12825,7 @@ const StudyUI = {
   dexHtml(r){ let bg=""; try{ const st=Dex.settle(); if(st) bg='<div class="stBingo">'+DexUI.bingo(st)+'</div>'; }catch(e){}
     return (r.n ? '<div class="stDexAdd">📖 도감에 카드 <b>'+r.n+'</b>장이 들어갔어요 <button data-dexgo="'+this.esc(r.first)+'">보러 가기 ▶</button></div>' : '')+bg; },
   finish(pass){
-    try{ speechSynthesis.cancel(); }catch(e){} clearTimeout(this._adv);
+    try{ Voice.stop(); }catch(e){} clearTimeout(this._adv);
     if(this.retryMode){ const acc=Math.round(this.first/Math.max(1,this.total)*100), still=Object.keys(this.missed);   // (v234) 틀린 단어만 다시 — 별·보석·기록 없음
       this._lastMiss=(this._lastMiss||[]).filter(w=>this.missed[w.en]);
       this.view("stDone");
@@ -12942,7 +12952,7 @@ const _stClick=e=>{
   const a=t.closest("[data-act]"); if(a){ const i=+a.dataset.i; SFX.select();
     if(a.dataset.act==="go") StudyUI.start(i,false); else if(a.dataset.act==="test") StudyUI.start(i,true); else if(a.dataset.act==="run") StudyUI.run(i); return; }
   if(t.closest("#stPop") && !t.closest(".stPopIn")){ StudyUI.pop(null); return; }
-  if(t.closest("#stQuit")){ SFX.click(); try{ speechSynthesis.cancel(); }catch(er){}
+  if(t.closest("#stQuit")){ SFX.click(); try{ Voice.stop(); }catch(er){}
     try{ const U=StudyUI; if(U.t0 && U._lg!==U.t0 && (U.done||0)>0) U.log(false, U.acc1(), "quit"); }catch(er){}   // (v224) 중간에 그만둬도 '했다'는 기록은 남긴다
     StudyUI.path(); return; }
   if(t.closest("[data-retry]")){ SFX.select(); StudyUI.retry(); return; }
@@ -14390,7 +14400,7 @@ const DexDet = {
       +(run.some(x=>x.r==="main")&&run.length>1?'<p class="wfNote">노란 칸 = 이 단어가 가장 많이 나오는 곳</p>':'')+'</div>'; },
   /* (v265) 📍 달리기 칸 → 그 학년 단어로 바로 달리기 (마지막 난이도·캐릭터) */
   runSet(id){ if(!WORD_SETS[id]) return;
-    $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); try{ speechSynthesis.cancel(); }catch(e){}
+    $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); try{ Voice.stop(); }catch(e){}
     const st=LastSetup.get()||{};
     G.rule="normal"; G.set=id; G.lesson=0; G.tag=null; G._nextWords=null; G._nextPractice=false;
     G.diff = DIFF[st.diff] ? st.diff : "normal"; G.mode = st.mode || "mix";
@@ -14461,7 +14471,7 @@ const DexDet = {
     const b=t.closest("[data-back]"); if(b){ $("dexIn").classList.remove("det"); return; }
     const tg=t.closest("[data-target]"); if(tg){ const on=Dex.toggleTarget(tg.dataset.target); try{ SFX.tone(on?880:440,.12,"triangle",.04); }catch(er){} this.show(tg.dataset.target,true,true); if(DexUI.mode==="dex") DexUI.draw(); return; }
     const sg=t.closest("[data-study]"); if(sg){ SFX.click(); const id=sg.dataset.study, i=+sg.dataset.si;
-      $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); try{ speechSynthesis.cancel(); }catch(er){}
+      $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); try{ Voice.stop(); }catch(er){}
       const s=Study.load(); s.set=id; s.book=Study.bookOf(id); Study.save(); StudyUI.open(); StudyUI.start(i,false); return; }   // (v265) 그 Stage 를 바로 시작
     const rn=t.closest("[data-run]"); if(rn){ SFX.click(); this.runSet(rn.dataset.run); return; }
     const sy=t.closest("[data-say]"); if(sy){ this.say(sy.dataset.say); return; }
