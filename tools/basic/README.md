@@ -5,3 +5,9 @@ dayNN.txt 한 줄씩:
 build.py → COURSE(게임 코드는 손으로) · data/bex.json(교재 예문) · tools/talk/g56.txt 대화 추가
 화면에는 교재 이름을 쓰지 않는다 (Stage 번호만).
 - T 줄의 A 가 '@1'/'@2' 면 그 단어 예문1/예문2 와 같은 문장 (노션에서 대화 A = 예문인 DAY)
+
+## (v278) 노션 v6 (챗지피티 최종 프롬프트, claude/hy-eng-voca-prompt-final.md) 가져오기
+1. 노션 DAY 페이지를 글로 옮겨 `tools/basic/v6/DAYnn.md` 로 저장 (Claude 가 노션에서 읽어 저장)
+2. `python3 tools/basic/v6.py check tools/basic/v6/DAY*.md --level L3` — ❌ 꼭 고칠 것 · ⚠️ 확인할 것 · 과거/전치사 비율
+3. ❌ 가 0 이면 `python3 tools/basic/v6.py apply …` → data/bex.json(P 품사별 뜻 · x 예문+뜻 번호 · f · c · g 어려운 말), data/dex<권>.json(D[10] 품사별 뜻 …), tools/talk/v6.txt(상황) → talk.json
+4. 시험용 예시: tools/basic/v6sample/DAY99.md (permit · coil) — 실제 자료에 apply 하지 말 것

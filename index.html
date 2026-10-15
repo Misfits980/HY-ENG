@@ -1813,6 +1813,18 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .stSent.hid{display:none}
 .stSent.col{font-size:22px}
 .stAudRow{display:flex;gap:8px;align-items:center}
+.stSit{align-self:stretch;font-size:13px;font-weight:800;color:#cfe8ff;background:rgba(143,208,255,.12);border-radius:10px;padding:5px 10px;text-align:left}
+.stTalkKo{display:block;margin-top:2px;font-size:12px;font-weight:700;color:#c9c0ff}
+.wSenses{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}
+.wSenses.use{align-self:stretch;max-width:420px;margin:2px auto}
+.wSense{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.06);text-align:left}
+.wSense b{display:block;font-size:16px;color:#fff3d6} .wSense small{display:block;margin-top:2px;font-size:12.5px;color:#c9c0ff;font-weight:600;line-height:1.4}
+.wSp{flex:0 0 auto;font-size:11px;font-weight:900;padding:3px 8px;border-radius:99px;background:#3d3080;color:#d9ccff;margin-top:2px}
+.wExP{display:inline-block;font-size:10.5px;font-weight:900;padding:1px 7px;border-radius:99px;background:#3d3080;color:#d9ccff;margin-bottom:3px}
+.usPast.pos{color:#d9ccff}
+.wGlo{display:block;margin-top:3px;font-size:11.5px !important;color:#9fd8ff !important;font-weight:700}
+.wFp{font-size:10.5px;font-weight:900;padding:1px 7px;border-radius:99px;background:#3d3080;color:#d9ccff;margin-right:4px;align-self:center}
+.wSit{font-size:12px;font-weight:800;color:#cfe8ff;margin-bottom:4px}
 .stWhy{display:block;margin-top:4px;font-style:normal;font-size:13px;font-weight:800;color:#ffe6a8;background:rgba(255,211,122,.12);border-radius:10px;padding:4px 8px}
 .stFormB{font-size:13px;color:#a99ed0;font-weight:800} .stFormB b{color:#fff;font-size:16px;margin:0 4px} .stFormB span{color:#ffd37a}
 .ffArrow{font-size:20px;color:#8f86c2}
@@ -1879,6 +1891,12 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .rdMas.pic{display:block;width:120px;height:132px;margin:12px auto 4px;font-size:0;background-image:url(assets/chars/char-cheer.webp);background-repeat:no-repeat;background-size:900% 100%}
 .rdMas.pic.por{background-image:url(assets/chars/char-portraits.webp);border-radius:50%;width:110px;height:110px}
 .rdBreak.perfect .rdT{color:#ffe08a;text-shadow:0 0 18px rgba(255,214,110,.6)}
+.stNext2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;width:100%;align-self:stretch}
+.stNext2 .stGo{margin:0;padding:12px 8px;font-size:16px;line-height:1.25}
+.stNext2 .stGo small{display:block;margin:2px 0 0;font-size:11px}
+.stGo.same{background:linear-gradient(180deg,#ffe08a,#f0aa2c);color:#3a2600;box-shadow:0 5px 0 #a8701a}
+.stGo.same.deep{background:linear-gradient(180deg,#c98cff,#8a3fd6);color:#fff;box-shadow:0 5px 0 #5a2196}
+.stGo.nx{background:linear-gradient(180deg,#8ff07a,#46b83a)}
 .stGo.soft{background:rgba(255,255,255,.08);color:#e9e2ff;box-shadow:none;border:1px solid rgba(255,255,255,.22);margin-top:10px}
 .stGo small{font-size:12px;opacity:.8;margin-left:4px}
 .stRetry{display:block;width:100%;appearance:none;border:2px solid rgba(255,211,122,.55);border-radius:16px;padding:12px;margin:10px 0 0;font:900 16px var(--font);cursor:pointer;
@@ -11329,7 +11347,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v277";
+const GAME_VER = "v278";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11754,7 +11772,7 @@ const Study = (function(){
     const re=new RegExp("(^|[^A-Za-z\\-])("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")(?![A-Za-z\\-])","i");
     const x=L[Math.floor(Math.random()*L.length)], ia=re.test(x[0]) ? 0 : re.test(x[1]) ? 1 : -1; if(ia<0) return null;
     const line=x[ia], m=line.match(re), at=m.index+m[1].length;
-    return {lines:[x[0],x[1]], k:ia, pre:line.slice(0,at), post:line.slice(at+m[2].length), ko:x[2]||""}; }
+    return {lines:[x[0],x[1]], k:ia, pre:line.slice(0,at), post:line.slice(at+m[2].length), ko:x[2]||"", sit:x[3]||""}; }   // (v278) sit = 상황 (노션 v6 대화 표)
   function buildOly(set, les){ ctx(set);
     const P=olyProf(set), ws=shuffle(les.ws.slice()), n=ws.length, nC=Math.max(1,Math.round(n*.15)), nB=Math.max(1,Math.round(n*.25)), used={};
     const pick=(ok,k)=>{ const out=[]; ws.forEach(w=>{ if(out.length<k && !used[w.en] && ok(w)){ used[w.en]=1; out.push(w); } }); return out; };
@@ -12036,12 +12054,16 @@ const Study = (function(){
   function useInfo(w, set){ const gr=gradeOf(set), D=dexOf(w), b=BEX[w.en]||{}, re=reW(w.en), L=exAll(w);
     let ex=[]; const pf=pastOf(w.en), pre=pf ? new RegExp("\\b"+pf+"\\b","i") : null;
     if(gr==="g12"){ const E=EASY[w.en]; if(E && E[0]) ex.push(E); }
-    if(gr==="g56" || gr==="mid"){ const now=L.find(x=>re.test(x[0])), past=pre && L.find(x=>pre.test(x[0]) && x!==now); if(now) ex.push(now); if(past) ex.push(past); }
+    const notPass=x=>{ const m=pre && x[0].match(pre); return !!m && !/\b(am|is|are|be|been|being|has|have)\s+(not\s+)?$/i.test(x[0].slice(0,m.index)); };   // (v278) "are permitted" 은 지난 일이 아님
+    if(b.v===6 && b.x) ex=b.x.slice(0,2);                                    // (v278) 노션 v6: 예문 1(뜻 1) · 예문 2(뜻 2 또는 지난 일)를 그대로
+    else if(gr==="g56" || gr==="mid"){ const now=L.find(x=>re.test(x[0])), past=pre && L.find(x=>notPass(x) && x!==now); if(now) ex.push(now); if(past) ex.push(past); }
     L.forEach(x=>{ if(ex.length<2 && ex.indexOf(x)<0) ex.push(x); });
     ex=ex.slice(0, gr==="g12" ? 1 : 2);
     const col=String((D && D[6])||"").split(/\s*·\s*/).filter(Boolean).slice(0,2).join(" · ");
     const fm=String((D && D[2])||""), forms = fm && fm.toLowerCase()!==w.en ? fm : "";
-    return {ex:ex.map(x=>({en:x[0], ko:x[1], past:!!(pre && pre.test(x[0]))})), col, forms: gr==="g12" ? "" : forms, other: gr==="g56"||gr==="mid" ? (b.m||"") : "", pos:posOf(w).split("·")[0], tip:(D && D[8] && gr!=="g12") ? String(D[8]) : "",
+    const SN=(b.P && b.P.length) ? b.P : (D && Array.isArray(D[10]) && D[10].length ? D[10] : null);   // (v278) 노션 v6 품사별 뜻
+    const PS=/\b(yesterday|last (night|week|month|year|summer|winter|weekend|time)|ago)\b/i;
+    return {sn:SN, g:b.g||{}, ex:ex.map(x=>({en:x[0], ko:x[1], past:!!((pre && notPass(x)) || PS.test(x[0])), s:x[2]||0})), col, forms: gr==="g12" ? "" : forms, other: gr==="g56"||gr==="mid" ? (b.m||"") : "", pos:posOf(w).split("·")[0], tip:(D && D[8] && gr!=="g12") ? String(D[8]) : "",
       bits: gr==="g12" ? soundBits(w.en) : null}; }
   /* G1-2 소리 쪼개기 — c · a · t , sh · i · p , c · a · k(e) */
   const IRR_SND={}; "eye two said does friend people water again any many busy women sugar ocean island buy laugh aunt heart earth early bear pear wear great break steak door floor blood flood hour honest the of to do you your who what was want watch wash woman lamb climb sword answer listen castle".split(" ").forEach(w=>IRR_SND[w]=1);
@@ -12052,9 +12074,9 @@ const Study = (function(){
     return {b:out, silent}; }
   /* ── ★2 판: 세 단어씩 — 쓰임 카드 3장 → 뜻·빈칸으로 떠올리기 → 철자·받아쓰기·모양 ── */
   const T2B = { g12:[{k2e:3, sent:2, listen:1}, {spell:4, dict:2}],
-                g34:[{k2e:2, sent:3}, {spell:3, dict:2, past:2}],
-                g56:[{k2e:1, sent:3}, {spell:3, dict:2, sentp:2, past:1, tense:2, prep:1}],
-                mid:[{k2e:1, sent:3}, {spell:3, dict:2, sentp:2, tense:2, prep:1}] };
+                g34:[{k2e:2, sent:3, talk:2}, {spell:3, dict:2, past:2}],
+                g56:[{k2e:1, sent:3, talk:2}, {spell:3, dict:2, sentp:2, past:1, tense:2, prep:1}],
+                mid:[{k2e:1, sent:3, talk:2}, {spell:3, dict:2, sentp:2, tense:2, prep:1}] };   // (v278) talk = 대화 빈칸 (상황·해석)
   function canT(t, w, gr){
     if(t==="spell") return canSpell(w);
     if(t==="dict") return canSpell(w) && canHear() && (gr!=="g12" || w.en.length<=4);
@@ -12063,6 +12085,7 @@ const Study = (function(){
     if(t==="past") return canPast(w);
     if(t==="listen") return canHear();
     if(t==="tense" || t==="prep") return !!gramQ(t, w);   // (v276)
+    if(t==="talk") return !w.alt && !!talkOf(w);
     return true; }
   function bagT(bag, w, gr, fb){ const b={}; Object.keys(bag).forEach(k=>{ if(canT(k,w,gr)) b[k]=bag[k]; }); const ks=Object.keys(b); if(!ks.length) return fb||"k2e";
     const tot=ks.reduce((t,k)=>t+b[k],0); let r=Math.random()*tot; for(const k of ks){ r-=b[k]; if(r<=0) return k; } return ks[0]; }
@@ -12070,7 +12093,8 @@ const Study = (function(){
     const gr=gradeOf(set), B=T2B[gr], ws=shuffle(les.ws), pool=les.ws, out=[], lvq = gr==="g12" ? 1 : 2;
     for(let g=0; g<ws.length; g+=3){ const grp=ws.slice(g, g+3);
       grp.forEach(w=>out.push({t:"intro", w, ws:[w], use:1}));
-      grp.forEach(w=>{ const q=makeQ(bagT(B[0], w, gr), w, pool, lvq); q.tg="★2"; out.push(q); });
+      grp.forEach(w=>{ const t=bagT(B[0], w, gr), tk=t==="talk" ? talkOf(w) : null;
+        const q = tk ? {t:"talk", w, tk, opts:shuffle([w].concat(decoys(w,pool,3,"en")))} : makeQ(t==="talk" ? "k2e" : t, w, pool, lvq); q.tg="★2"; out.push(q); });
       shuffle(grp).forEach(w=>{ const t=bagT(B[1], w, gr, "k2e"), q=(t==="tense"||t==="prep") ? (gramQ(t, w) || makeQ("k2e", w, pool, lvq)) : makeQ(t, w, pool, lvq); q.tg="★2"; out.push(q); }); }
     return out; }
   /* ── 💜 심화 판: 안내 → 복습 4문제 → 규칙 카드(학년) → 심화 문제 (단어 수 × 1.3, 10~16) ── */
@@ -12365,7 +12389,7 @@ const StudyUI = {
   saveCur(){ if(this.test || this.oly || this.retryMode || !this.qs.length) return; const W=w=>w&&w.en;
     const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, tier:this.tier|0, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW, fw:this._fw|0,
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(), act:this.tk()|0,
-      qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.so||q.t==="blend"||q.t==="past"||q.t==="sentp")?q.opts:q.opts.map(W)), so:q.so, ans:q.ans, x:q.x, tg:q.tg, nok:q.nok, aud:q.aud, noKo:q.noKo, col:q.col, dk:q.dk, use:q.use, sts:q.sts||null, ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
+      qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.so||q.t==="blend"||q.t==="past"||q.t==="sentp")?q.opts:q.opts.map(W)), so:q.so, ans:q.ans, x:q.x, tg:q.tg, nok:q.nok, aud:q.aud, noKo:q.noKo, col:q.col, dk:q.dk, use:q.use, sts:q.sts||null, tk:q.tk||null, ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
         pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased, form:q.form, retry:q.retry})), wst:this.wst||{}};
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
   clearCur(){ try{ localStorage.removeItem(this.CUR); }catch(e){} },
@@ -12377,7 +12401,7 @@ const StudyUI = {
     try{ const les = c.rv ? {n:0, ws:[]} : Study.lessons(c.set).find(x=>x.n===c.n); if(!les) throw 0;
       const wd=en=>{ const w=les.ws.find(x=>x.en===en) || Study.word(en); if(!w) throw 0; return w; };   // (v234) 리딩 뜻(교재 뜻)을 그대로
       const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?((q.so||q.t==="blend"||q.t==="past"||q.t==="sentp")?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
-      qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; if(!q.sts) delete q.sts; });
+      qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; if(!q.sts) delete q.sts; if(!q.tk) delete q.tk; });
       this.tier=c.tier|0; try{ Study.setTier(this.tier); }catch(e){}
       this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; if(!c.rv) this._from={set:c.set, i:Study.lessons(c.set).indexOf(les)}; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.oly=false; this.test=false; this.retryMode=false; this.qs=qs;
       ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0; this._fw = c.fw!=null ? c.fw : Object.keys(c.missed||{}).length;   // (v263) 처음에 틀린 수도 이어서
@@ -12432,12 +12456,15 @@ const StudyUI = {
         +'<button class="usBitBtn" data-bits="'+this.esc(w.en)+'">👆 소리 쪼개 듣기</button>' : '';
       h='<div class="stKind">📒 쓰임 카드 <small class="stUseTag">★2</small></div><div class="stCard use">'
         +'<div class="stEn">'+(B && w.emoji?'<span class="usEmo">'+w.emoji+'</span>':'')+this.wd(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div>'
-        +'<div class="stKo">'+this.kp(w)+(U.pos && !w.pos?' <em class="stPos">'+this.esc(U.pos)+'</em>':'')+'</div>'+this.alt(w)
-        +(U.other && !w.alt?'<small class="stAlt">다른 뜻: '+this.esc(U.other)+'</small>':'')+bits
+        +(U.sn && U.sn.length>1 ? '<div class="wSenses use">'+U.sn.map(z=>'<div class="wSense"><span class="wSp">'+this.esc(z[0])+'</span><div><b>'+this.esc(z[1])+'</b>'+(z[2]?'<small>'+this.esc(z[2])+'</small>':'')+'</div></div>').join("")+'</div>'   // (v278) 품사마다 한 줄
+          : '<div class="stKo">'+this.kp(w)+(U.pos && !w.pos?' <em class="stPos">'+this.esc(U.pos)+'</em>':'')+'</div>'+this.alt(w)
+            +(U.other && !w.alt?'<small class="stAlt">다른 뜻: '+this.esc(U.other)+'</small>':''))+bits
         +(U.forms?'<div class="usRow"><b>모양</b><span>'+this.esc(U.forms)+'</span></div>':'')
         +(U.col?'<div class="usRow"><b>자주 쓰는 말</b><span>'+this.esc(U.col)+'</span></div>':'')
-        +U.ex.map(e=>'<div class="stEx'+(e.past?' past':'')+'">'+(e.past?'<small class="usPast">⏪ 지난 일</small>':'')+'<p>'+this.hlw(e.en, w.en)+'</p><small>'+this.esc(e.ko)+'</small>'
-          +'<div class="stExSay"><button data-say="'+this.esc(e.en)+'">🔊 문장 듣기</button><button data-slow="'+this.esc(e.en)+'">🐢 천천히</button></div></div>').join("")
+        +U.ex.map(e=>{ const gl=Object.keys(U.g).filter(k=>new RegExp("\\b"+k+"\\w*\\b","i").test(e.en));
+          return '<div class="stEx'+(e.past?' past':'')+'">'+(e.past?'<small class="usPast">⏪ 지난 일</small>':'')+(U.sn && U.sn.length>1 && e.s && U.sn[e.s-1] ? '<small class="usPast pos">'+this.esc(U.sn[e.s-1][0])+'</small>' : '')+'<p>'+this.hlw(e.en, w.en)+'</p><small>'+this.esc(e.ko)+'</small>'
+            +(gl.length?'<small class="wGlo">📘 '+gl.map(k=>this.esc(k)+' '+this.esc(U.g[k])).join(' · ')+'</small>':'')
+          +'<div class="stExSay"><button data-say="'+this.esc(e.en)+'">🔊 문장 듣기</button><button data-slow="'+this.esc(e.en)+'">🐢 천천히</button></div></div>'; }).join("")
         +(U.tip?'<div class="usTip">💡 '+this.esc(U.tip)+'</div>':'')+'</div>';
       f.innerHTML='<button class="stCheck go" id="stCheck">알겠어요 ▶</button>'; this.say(w.en); Study.see(w.en);
     } else if(q.t==="intro" && q.hd==="rule"){                          // (v273) 💜 심화 규칙 카드
@@ -12502,6 +12529,7 @@ const StudyUI = {
     } else if(q.t==="talk"){                                            // (v259) 💬 대화 단문 (빈칸 1개)
       const T=q.tk, ln=k=> k===T.k ? this.esc(T.pre)+'<u>&nbsp;</u>'+this.esc(T.post) : this.esc(T.lines[k]);
       h='<div class="stKind">💬 빈칸에 들어갈 단어는?</div><div class="stPrompt sent">'+(q.opic && w.emoji?'<div class="stPic">'+w.emoji+'</div>':'')
+        +(T.sit?'<div class="stSit">📍 '+this.esc(T.sit)+'</div>':'')   // (v278) 어떤 장면인지 한 줄
         +'<div class="stTalk"><p><b>A</b><span>'+ln(0)+'</span></p><p><b>B</b><span>'+ln(1)+'</span></p></div></div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
     } else if(q.t==="sent2"){                                           // (v257) 시험 C — 두 문장에 같은 단어
@@ -12743,6 +12771,7 @@ const StudyUI = {
     const cheer = ok ? (this.combo>=5 ? ["멈추지 마!","불붙었어! 🔥","천재인데?","계속 가자!"] : ["정답! ✨","잘했어요! 🎉","맞았어요! 👍","최고예요! ⭐"])
                      : ["괜찮아, 다시 해 보자!","아깝다!","거의 다 왔어!","다음엔 맞힐 거야!"];
     if((q.t==="sent" && q.st) || q.t==="sent2" || q.t==="talk") $("stQ").querySelectorAll(".stSent u, .stTalk u").forEach(s2=>{ s2.textContent=q.w.en; s2.className=ok?"ok":"bad"; });
+    this.talkKo(q);
     f.innerHTML='<div class="stMsg">'+mc+(ok ? '<b>'+cheer[Math.floor(Math.random()*cheer.length)]+'</b>'+bonus+this.alt(q.w)+this.why(q)
       : '<b>'+(q.tout?'⏰ 시간이 다 됐어요':cheer[Math.floor(Math.random()*cheer.length)])+'</b><span>정답: '+this.ansH(q)+'</span>'+this.why(q)+this.alt(q.w)+(this.test||this.oly?'':(this.qs[this.i+1] && this.qs[this.i+1].retry ? '<small>🔁 바로 한 번 더 해 봐요 · 뒤에도 또 나와요</small>' : '<small>이 문제는 뒤에 한 번 더 나와요</small>')))+'</div>'
       +'<button class="stCheck go" id="stCheck">계속 ▶</button>';
@@ -12760,6 +12789,9 @@ const StudyUI = {
   },
   /* (v272) 틀리면 정답을 보여 준 뒤 같은 문제를 바로 한 번 더 (보기·글자는 다시 섞음). 짝짓기·끌기·O/X 는 이미 그 자리에서 고치거나 답이 하나뿐이라 뺀다.
      바로 푸는 문제는 점수·진도·기록에 안 들어가고, 원래처럼 몇 문제 뒤에 또 나온다 */
+  /* (v278) 대화 빈칸 — 답한 뒤 줄마다 해석 (사용자 사진: 설명이 없어 이해할 수 있을까) */
+  talkKo(q){ if(!q || q.t!=="talk" || !q.tk) return; const ko=String(q.tk.ko||"").split(" / "); if(ko.length<2) return;
+    $("stQ").querySelectorAll(".stTalk p").forEach((p,k)=>{ if(ko[k] && !p.querySelector(".stTalkKo")) p.querySelector("span").insertAdjacentHTML("beforeend",'<small class="stTalkKo">'+this.esc(ko[k])+'</small>'); }); },
   /* (v276) 왜 그게 답인지 한 줄 (시제·전치사) */
   why(q){ return q && q.x && q.x.why ? '<em class="stWhy">'+this.esc(q.x.why)+'</em>' : ''; },
   /* (v273) 틀렸을 때 보여 줄 정답 */
@@ -12783,6 +12815,7 @@ const StudyUI = {
     if(q.t==="sentp" || (q.so && q.st)) $("stQ").querySelectorAll(".stSent u").forEach(s2=>{ const a=q.so?q.ans:q.form; s2.textContent=q.st && q.st.cap ? a.charAt(0).toUpperCase()+a.slice(1) : a; s2.className=ok?"ok":"bad"; });
     else if(q.t==="order"){ const row=$("odRow"); if(row) row.innerHTML=q.x.ch.map(c=>'<span class="odP fix '+(ok?'ok':'bad')+'">'+this.esc(c)+'</span>').join(""); }
     else if((q.t==="sent" && q.st) || q.t==="sent2" || q.t==="talk") $("stQ").querySelectorAll(".stSent u, .stTalk u").forEach(s2=>{ s2.textContent=q.w.en; s2.className=ok?"ok":"bad"; });
+    this.talkKo(q);
     const f=$("stFoot"); f.className="stFoot "+(ok?"good":"bad");
     f.innerHTML='<div class="stMsg">'+(ok ? '<b>이번엔 맞았어요! 👍</b><span>'+this.esc(q.w.en)+' = '+this.kp(q.w)+'</span>'
         : '<b>정답은 '+(q.so||q.t==="order" ? '' : this.esc(q.t==="sentp"?q.form:q.w.en))+'</b><span>'+this.ansH(q)+'</span>')
@@ -12938,14 +12971,21 @@ const StudyUI = {
             +(tm?'<p class="stFireP">🔁 내일 먼저 복습할 단어 '+tm+'개</p>':''); })())
       +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')
       +(dpGem?'<div class="stGem dp">💜 심화 보상 💎 +'+dpGem+'</div>':'')
-      +(dpNew?'<div class="stDpNew">💜 심화가 열렸어요! 길에서 이 Stage 를 다시 누르면 보라색 <b>심화 도전</b></div>':'')
+      +(dpNew?'<div class="stDpNew">💜 심화가 열렸어요! 아래 보라색 <b>심화 도전</b>으로 바로 할 수 있어요</div>':'')
       +(conq?'<div class="stConq">🏷️ 새 칭호 <b>'+conq.emo+' '+this.esc(conq.name)+'</b> — 상점 칭호에서 골라요</div>':'')
       +(wc?'<div class="stWc">🚩 '+(x.pn?'Stage 완성':'World 클리어')+' 보너스 💎 +'+wc+'</div>':'')
       +(chest?this.chestHtml(chest):'')
       +(miss.length?'<div class="stMiss"><small>다시 볼 단어</small>'+miss.map(en=>{ const w=(x.ws||[]).find(y=>y.en===en)||WORD_BANK.find(y=>y.en===en)||{en,ko:""}; return '<button data-say="'+this.esc(en)+'">🔊 '+this.esc(en)+' <i>'+this.esc(w.ko)+'</i></button>'; }).join("")+'</div>':'')
       /* (v275) '틀린 단어만 다시' → '다음 스테이지로 가기' (사용자: 틀리면 그 자리에서 바로 한 번 더 하니까 v272) */
       +(()=>{ if(this.test) return ''; const L=Study.lessons(set), k=L.findIndex(y=>y.n===x.n), nx=k>=0 ? L[k+1] : null;
-          return nx ? '<button class="stGo" data-next="'+(k+1)+'">▶ 다음 스테이지로 가기 <small>Stage '+Study.stageNo(set,nx.n)+(nx.fin?' 🚩':'')+'</small></button>' : ''; })()
+          /* (v278) 사용자 3-(나): 같은 Stage 다음 단계(★2 · 💜 심화)와 다음 스테이지를 나란히 — 아이들이 ★1 만 하고 옆으로만 넘어가던 것 (10-15 시트) */
+          let same='';
+          if(!this.oly && k>=0 && Study.tierLes(set,x)){ const lv2=Study.lv(set,x.n), T2=Study.tierOf(set,x.n), lt=Study.unseenLeft(set,x.n);
+            same = lt>0 ? '<button class="stGo same" data-same="'+k+'">✨ 남은 새 단어 배우기</button>'
+              : T2===2 ? '<button class="stGo same" data-same="'+k+'">'+(lv2>=2 ? '🔁 ★2 다시 <small>95% 넘으면 💜</small>' : '⭐ ★2 도전 <small>같은 Stage</small>')+'</button>'
+              : (T2===3 && lv2<3) ? '<button class="stGo same deep" data-same="'+k+'">💜 심화 도전 <small>같은 Stage</small></button>' : ''; }
+          const nb = nx ? '<button class="stGo'+(same?' nx':'')+'" data-next="'+(k+1)+'">▶ 다음 스테이지 <small>Stage '+Study.stageNo(set,nx.n)+(nx.fin?' 🚩':'')+'</small></button>' : '';
+          return same && nb ? '<div class="stNext2">'+same+nb+'</div>' : same+nb; })()
       +'<button class="stGo soft" id="stBack">스테이지로 돌아가기</button>'
       +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl(x)+'</button>' : '');
     if(pass) try{ confetti(); }catch(e){}
@@ -13007,6 +13047,7 @@ const _stClick=e=>{
   if(t.closest("#stCheck")){ if(Date.now()<(StudyUI._guard||0)) return; StudyUI.check(); return; }   // (v234) 저절로 넘어간 바로 뒤의 손가락은 무시
   if(t.closest("[data-nosnd]")){ SFX.click(); const q=StudyUI.qs[StudyUI.i]; if(q) q.t="e2k"; StudyUI.show(); return; }
   if(t.closest("#stBack")){ SFX.click(); StudyUI.path(); return; }
+  const smb=t.closest("[data-same]"); if(smb){ SFX.select(); const k=+smb.dataset.same; if(Study.lessons(StudyUI.set)[k]) StudyUI.start(k,false); else StudyUI.path(); return; }   // (v278) 같은 Stage 다음 단계
   const nxb=t.closest("[data-next]"); if(nxb){ SFX.select(); const k=+nxb.dataset.next, L=Study.lessons(StudyUI.set); if(L[k]){ Study.touch(StudyUI.set, L[k].n); StudyUI.start(k,false); } else StudyUI.path(); return; }   // (v275)
   if(t.closest("#stRun")){ SFX.select(); StudyUI.run(Study.lessons(StudyUI.set).findIndex(x=>x===StudyUI.les)); return; }
   if(t.closest("#stLesson") || t.closest("#stDone")) StudyUI.click(e);
@@ -14474,7 +14515,7 @@ const DexDet = {
         +'<button class="wTarget'+(Dex.isTarget(en)?' on':'')+'" data-target="'+this.esc(en)+'">'+(Dex.isTarget(en)?'🎯 노리는 중 (다시 누르면 그만)':'🎯 이 단어 노리기 · 달리기에 더 자주 나와요')+'</button></div>'+this.found(en)+tags;
     } else {
       h+='<div class="wHero"><div class="wPic">'+(w.emoji||"✦")+'</div><div><div class="wWord"><h3>'+en+'</h3><button class="wSay" data-say="'+en+'">🔊</button></div>'
-        +'<div class="wKo">'+this.esc(w.ko)+(D?'<span class="wPos">'+D[1]+'</span>':'')+'</div>'
+        +'<div class="wKo">'+this.esc(D && Array.isArray(D[10]) && D[10][0] ? D[10][0][1] : w.ko)+(D?'<span class="wPos">'+D[1]+'</span>':'')+'</div>'   // (v278) 노션 v6 뜻 1
         +(D&&D[4]?'<div class="wPron"><span class="wIpa">'+D[4]+'</span><span class="wSnd">'+this.esc(D[5])+'</span><button class="wSlow" data-slow="'+en+'">🐢 천천히</button></div>':'')+'</div></div>'+stats;
       if(!D){ h+= DexData.has[book] ? '<div class="wLock">자세한 설명을 불러오는 중…</div>' : '<div class="wLock">📚 '+"★".repeat(book)+' 단어의 예문·설명은 곧 나와요</div>'; }
       else {
@@ -14483,18 +14524,23 @@ const DexDet = {
         if(!TB.some(x=>x[0]===this.tab)) this.tab="m";
         const on=k=>this.tab===k ? ' on' : '';
         h+='<div class="wTabs">'+TB.map(x=>'<button class="'+on(x[0]).trim()+'" data-wt="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
-        h+='<div class="wPane'+on("m")+'" data-p="m"><p class="wDesc">'+this.esc(D[0])+'</p>'+(D[8]?'<div class="wTip"><b>!</b><span>'+this.esc(D[8])+'</span></div>':'')
+        const SN=Array.isArray(D[10]) && D[10].length ? D[10] : null, many=SN && SN.length>1, BG=(BEX[en]||{}).g||{};   // (v278) 노션 v6 — 품사마다 뜻 한 줄
+        const exTag=x=> many && x[2] && SN[x[2]-1] ? '<span class="wExP">'+this.esc(SN[x[2]-1][0])+'</span>' : '';
+        const glo=s0=>{ const g=Object.keys(BG).filter(k=>new RegExp("\\b"+k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\w*\\b","i").test(s0)); return g.length ? '<small class="wGlo">📘 '+g.map(k=>this.esc(k)+' '+this.esc(BG[k])).join(' · ')+'</small>' : ''; };
+        h+='<div class="wPane'+on("m")+'" data-p="m">'+(SN ? '<div class="wSenses">'+SN.map(z=>'<div class="wSense"><span class="wSp">'+this.esc(z[0])+'</span><div><b>'+this.esc(z[1])+'</b>'+(z[2]?'<small>'+this.esc(z[2])+'</small>':'')+'</div></div>').join("")+'</div>' : '<p class="wDesc">'+this.esc(D[0])+'</p>')+(D[8]?'<div class="wTip"><b>!</b><span>'+this.esc(D[8])+'</span></div>':'')
           +(D[9]?'<div class="wFact"><b>💡 알고 있었어요?</b><span>'+this.esc(D[9])+'</span></div>':'')
-          +'<div class="wSec">예문</div>'+D[3].map(x=>'<div class="wEx"><div><p>'+this.hl(x[0],en,D[2])+'</p><small>'+this.esc(x[1])+'</small></div><button class="wSay sm" data-say="'+this.esc(x[0])+'">🔊</button></div>').join("")+'</div>'
+          +'<div class="wSec">예문</div>'+D[3].map(x=>'<div class="wEx"><div>'+exTag(x)+'<p>'+this.hl(x[0],en,D[2])+'</p><small>'+this.esc(x[1])+'</small>'+glo(x[0])+'</div><button class="wSay sm" data-say="'+this.esc(x[0])+'">🔊</button></div>').join("")+'</div>'
           +(TK.length ? '<div class="wPane'+on("t")+'" data-p="t"><div class="wSec">💬 이렇게 말해요</div>'+TK.map(x=>{ const ko=String(x[2]||"").split(" / ");
-              return '<div class="wTalk"><div class="wTl"><b>A</b><div><p>'+this.hl(x[0],en,D[2])+'</p><small>'+this.esc(ko[0]||"")+'</small></div></div>'
+              return '<div class="wTalk">'+(x[3]?'<div class="wSit">📍 '+this.esc(x[3])+'</div>':'')+'<div class="wTl"><b>A</b><div><p>'+this.hl(x[0],en,D[2])+'</p><small>'+this.esc(ko[0]||"")+'</small></div></div>'
                 +'<div class="wTl r"><b>B</b><div><p>'+this.hl(x[1],en,D[2])+'</p><small>'+this.esc(ko[1]||"")+'</small></div></div>'
                 +'<button class="wSay sm" data-say="'+this.esc(x[0]+' '+x[1])+'">🔊</button></div>'; }).join("")+'</div>' : '')
           +'<div class="wPane'+on("f")+'" data-p="f">'
-          +(/과거형/.test(D[1]) ? '<div class="wSec">변하는 모양 · 원래 → 과거 → 다 한 모양</div><div class="wForms">'+D[2].split(" → ").map(f=>'<span class="f"'+(f===en?' style="color:var(--mint)"':'')+'>'+this.esc(f)+'</span>').join('<span class="ar">→</span>')+'</div>' :
+          +(/ \/ /.test(String(D[2])) || /^(명사|동사|형용사) /.test(String(D[2])) ? '<div class="wSec">변하는 모양</div>'+String(D[2]).split(" / ").map(g=>{ const m=/^(명사|동사|형용사|부사)\s+(.*)$/.exec(g.trim()), ps=m?m[1]:"", fs=m?m[2]:g;   // (v278) 품사마다 한 줄
+              return '<div class="wForms"><span class="wFp">'+this.esc(ps)+'</span><span>'+en+'</span><span class="ar">→</span>'+fs.split(" · ").map(f=>'<span class="f">'+this.esc(f)+'</span>').join('<span class="ar">·</span>')+'</div>'; }).join("") :
+           /과거형/.test(D[1]) ? '<div class="wSec">변하는 모양 · 원래 → 과거 → 다 한 모양</div><div class="wForms">'+D[2].split(" → ").map(f=>'<span class="f"'+(f===en?' style="color:var(--mint)"':'')+'>'+this.esc(f)+'</span>').join('<span class="ar">→</span>')+'</div>' :
            '<div class="wSec">변하는 모양 · '+(/동사/.test(D[1])&&!/^명사/.test(D[1])?"했어요 · 해 왔어요 · 하는 중":/형용사/.test(D[1])?"더 ~한 · 가장 ~한":/명사/.test(D[1])?"여러 개일 때":"모양")+'</div>'
           +'<div class="wForms"><span>'+en+'</span><span class="ar">→</span>'+this.esc(D[2]).replace(/\(([^)]*)\)/g,'<span class="nt">$1</span>').split(" · ").map(f=>'<span class="f">'+f+'</span>').join('<span class="ar">·</span>')+'</div>')
-          +(D[6]?'<div class="wSec">자주 같이 쓰는 말</div><div class="wCols">'+D[6].split(" · ").map(c=>'<button class="wCol" data-say="'+this.esc(c)+'">'+this.hl(c,en,D[2])+'</button>').join("")+'</div>':'');
+          +(D[6]?'<div class="wSec">자주 같이 쓰는 말</div><div class="wCols">'+D[6].split(" · ").map(c=>'<button class="wCol" data-say="'+this.esc(c.replace(/\s*\([^)]*\)/g,""))+'">'+this.hl(c,en,D[2])+'</button>').join("")+'</div>':'');
         const r=D[7]||{}, rows=[]; if(r.o) rows.push(["반대말",r.o]); if(r.s) rows.push(["비슷한 말",r.s]); if(r.f) rows.push(["단어 가족",r.f]);
         if(r.g) rows.push(["같은 무리", r.g]);
         else if(wh){ const A=wh.a, l0=Math.floor(wh.i/5)*5; rows.push(["같은 앨범", A.words.slice(Math.max(0,l0-2),l0+7).filter(x=>x.en!==en).slice(0,4).map(x=>x.en).join(", ")]); }
