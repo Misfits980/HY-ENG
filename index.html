@@ -1283,6 +1283,15 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .resGems .gBar i{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,#8fe3ff,#c9a8ff);transition:width 1s cubic-bezier(.2,.8,.2,1)}
 .resGems small{font-size:11.5px;color:#9d92c8;font-weight:700}
 .resGems .gDex{margin-top:6px;font-size:12.5px;font-weight:800;color:#ffd37a}
+.resGems{width:100%;box-sizing:border-box}
+.resGems .gMid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.resGems .gMid .gBar{margin:0}
+.resGems .gMid small{font-size:11px;line-height:1.1}
+.resGems .gTot{margin-left:0;font-size:11px;white-space:nowrap} .resGems .gTot b{font-size:15px;color:#bff1ff}
+.resGems .gPills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.resGems .gPill{appearance:none;border:1px solid rgba(255,211,122,.4);background:rgba(255,211,122,.1);color:#ffe6a8;border-radius:999px;
+  padding:5px 11px;font:800 12.5px var(--font);cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resGems .gPill.new{border-color:rgba(125,255,178,.5);background:rgba(125,255,178,.1);color:#cfffe0}
 
 /* 시트(단어/이름) */
 .sheet{position:fixed;inset:0;z-index:8;display:none;background:rgba(8,5,18,.7);backdrop-filter:blur(8px)}
@@ -1566,17 +1575,33 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stReview{display:flex;align-items:center;gap:10px;width:min(420px,100%);margin:6px auto 10px;padding:12px 14px;border-radius:18px;border:0;cursor:pointer;text-align:left;
   background:linear-gradient(160deg,#5fe0b0,#3aa0ff);color:#06232a;box-shadow:0 5px 0 #1f6c8a;font-family:var(--font)}
 .stReview i{font-style:normal;font-size:26px} .stReview b{display:block;font-size:15px;font-weight:900} .stReview small{display:block;font-size:12px;font-weight:700;opacity:.85}
-/* (v271) 아이패드 — 휴대폰 한 줄 화면을 그대로 키우고(세로), 가로에서는 Stage 를 두 줄로 펼친다 */
-@media (min-width:700px) and (min-height:860px){ #scStudy .stWrap, #stPop{zoom:1.3} #scStudy.vPath .stWrap{width:min(572px,100%)} }
-@media (min-width:900px) and (min-height:620px) and (max-height:859px){ #scStudy .stWrap, #stPop{zoom:1.1} }
-@media (min-width:900px) and (min-height:560px) and (orientation:landscape){
-  #scStudy.vPath .stWrap{width:min(820px,100%)}
-  #scStudy.vPath .stMap.wm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;align-items:start}
-  #scStudy.vPath .stMap.wm > .stReview{grid-column:1/-1}
-  #scStudy.vPath .stMap.wm .stWBox{width:100%;max-width:400px}
-}
-@media (min-width:700px){ .stTabs{padding-left:12px;padding-right:12px} .stTabs button.stCat{flex:1 1 0;width:auto;min-width:74px;max-width:110px}
-  .stTabs > :first-child{margin-left:auto} .stTabs > :last-child{margin-right:auto} }
+/* (v272) 태블릿(아이패드 · 갤럭시 탭) — 화면 크기에서 배율을 계산해 --stZ 로 키운다 (layoutTab).
+   세로 = 휴대폰 한 줄 화면을 그대로 크게 · 가로 = Stage 두 줄 + 문제는 왼쪽 그림/단어 · 오른쪽 보기 */
+#scStudy .stWrap, #stPop{zoom:var(--stZ,1)}
+body.tabP #scStudy.vPath .stWrap{width:min(572px,100%)}
+body.tabL #scStudy.vPath .stWrap{width:min(820px,100%)}
+body.tabL #scStudy.vPath .stMap.wm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;align-items:start}
+body.tabL #scStudy.vPath .stMap.wm > .stReview{grid-column:1/-1}
+body.tabL #scStudy.vPath .stMap.wm .stWBox{width:100%;max-width:400px}
+body.tabL #scStudy.vLesson .stWrap{width:min(900px,100%)}
+body.tabL .stFoot > *{max-width:640px;margin-left:auto;margin-right:auto}
+body.tabL #stQ.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-rows:auto auto 1fr;column-gap:28px;align-items:center;min-height:calc(100dvh / var(--stZ,1) - 200px)}
+body.tabL #stQ.two > .stKind, body.tabL #stQ.two > .stTimer{grid-column:1/-1;align-self:start}
+body.tabL #stQ.two > .stPrompt{grid-column:1;grid-row:3;align-self:center;margin:0}
+body.tabL #stQ.two > .stRight{grid-column:2;grid-row:3;align-self:center;min-width:0}
+body.tabL #stQ.two > .stRight > :first-child{margin-top:0}
+body.tabL #stQ.two > .stPrompt{padding-top:30px;padding-bottom:30px}
+body.tabL #stQ.two .stRight .stOpt{min-height:70px;font-size:19px}
+.stCardL{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+/* (v272) 태블릿: 소식지·상점·기록·설정·공지 창도 같은 배율로 (도감·관리 화면은 따로 맞춰져 있어 뺀다) */
+body.tabP .sheet:not(#shDex):not(#shAdmin) > .sheetIn, body.tabL .sheet:not(#shDex):not(#shAdmin) > .sheetIn{zoom:var(--stZ,1);max-height:calc(88dvh / var(--stZ,1))}
+body.tabL .stCard.wide{flex-direction:row;align-items:center;justify-content:center;gap:24px;padding:22px 18px}
+body.tabL .stCard.wide > .stCardL{flex:1 1 0;min-width:0}
+body.tabL .stCard.wide > .stEx{flex:1.2 1 0;min-width:0;margin:0}
+body.tabP .stTabs, body.tabL .stTabs{padding-left:12px;padding-right:12px}
+body.tabP .stTabs button.stCat, body.tabL .stTabs button.stCat{flex:1 1 0;width:auto;min-width:74px;max-width:110px}
+body.tabP .stTabs > :first-child, body.tabL .stTabs > :first-child{margin-left:auto}
+body.tabP .stTabs > :last-child, body.tabL .stTabs > :last-child{margin-right:auto}
 .stSec{margin:14px auto 4px;padding:5px 12px;width:max-content;border-radius:99px;background:rgba(255,255,255,.07);color:#c9bff0;font-size:12.5px;font-weight:900}
 .stCombo{min-width:44px;text-align:right;font-size:14px;font-weight:900;color:#ffb070}
 .stCombo.hot{color:#ff7a3a;text-shadow:0 0 10px rgba(255,140,60,.6)}
@@ -1733,6 +1758,7 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .stWuT{font-size:22px;font-weight:900;color:#fff3d6;text-align:center}
 .stWuS{font-size:14px;color:#c9c0ff;text-align:center;margin-top:4px}
 .stStep{display:inline-block;margin-left:8px;font-size:12px;font-weight:800;color:#8f86c2;letter-spacing:2px}
+.stStep.rt{letter-spacing:0;color:#ffd37a;font-weight:900}
 .stDProg{margin:10px auto 0;max-width:320px;font-size:14px;font-weight:800;color:#cfc4f2;text-align:center}   /* (v243) .stProg(위 진행 막대)와 이름이 겹쳐 잘리던 것 */
 .stPgBar{display:block;height:10px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:6px;overflow:hidden}
 .stPgBar span{display:block;height:100%;background:linear-gradient(90deg,#7dffb2,#4fd6ff);border-radius:5px}
@@ -1742,7 +1768,13 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .dgWords{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .dgChip{touch-action:none;user-select:none;-webkit-user-select:none;font:900 20px var(--font);color:#2a1600;background:linear-gradient(180deg,#ffe08a,#f2b23c);
   border:0;border-radius:14px;padding:10px 16px;box-shadow:0 3px 0 #8a5a12;cursor:grab}
-.dgChip.lift{opacity:.35} .dgChip.sel{outline:3px solid #fff;outline-offset:2px} .dgChip.used{opacity:.15;box-shadow:none;cursor:default}
+.dgChip.lift{opacity:.35} .dgChip.used{opacity:.15;box-shadow:none;cursor:default}
+/* (v272) 고른 칩 — 아이패드에서 네모 테두리(outline)가 보이던 것 → 눌려 들어간 모양 + 초록빛 */
+.dgChip:focus,.dgChip:focus-visible,.stOpt:focus,.stTile:focus,.stM:focus{outline:none}
+.dgChip.sel{transform:translateY(3px);background:linear-gradient(180deg,#b9ffcf,#5fe08f);color:#08351a;
+  box-shadow:0 0 0 #8a5a12,0 0 0 3px rgba(255,255,255,.9),0 0 16px 3px rgba(125,255,178,.55)}
+.dgWrap.picking .dgT:not(.ok){border-color:rgba(125,255,178,.75);animation:dgPick 1s ease-in-out infinite}
+@keyframes dgPick{0%,100%{background:rgba(125,255,178,.06)}50%{background:rgba(125,255,178,.16)}}
 .dgChip.ghost{position:fixed;z-index:999;pointer-events:none;transform:scale(1.08) rotate(-3deg);box-shadow:0 10px 24px rgba(0,0,0,.45);opacity:.95}
 .dgTargets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .dgT{min-height:96px;border-radius:16px;border:2px dashed rgba(255,255,255,.25);background:rgba(255,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;text-align:center;transition:.12s}
@@ -4540,6 +4572,16 @@ const laneOfX = (x,n) => clamp(Math.round(x/CFG.LANE_W + (n-1)/2), 0, n-1);
 /* (v271) 화면 크기 — 아이패드는 돌린 직후 innerWidth 가 예전 값으로 남는 때가 있어 문서 폭을 먼저 본다 */
 function scrW(){ const d=document.documentElement; return Math.round((d && d.clientWidth) || innerWidth); }
 function scrH(){ const d=document.documentElement; return Math.round((d && d.clientHeight) || innerHeight); }
+/* (v272) 태블릿 배율 — 짧은 변이 600px 이상이면 태블릿. 세로는 휴대폰 화면(약 560×760)이 꽉 차게, 가로는 두 칸 화면(높이 약 600)이 꽉 차게 */
+function layoutTab(){
+  const W=scrW(), H=scrH(), tab=Math.min(W,H)>=600, land=W>H;
+  let z=1; if(tab) z = land ? Math.min(1.5, Math.max(1, H/600)) : Math.min(1.6, Math.max(1, Math.min(W/560, H/760)));
+  z=Math.round(z*100)/100;
+  document.documentElement.style.setProperty("--stZ", z);
+  const b=document.body; if(!b) return; b.classList.toggle("tabP", tab && !land); b.classList.toggle("tabL", land && W>=700 && H>=340);   // 휴대폰 가로도 두 칸(배율은 1)
+}
+layoutTab();
+["resize","orientationchange"].forEach(ev=>addEventListener(ev, ()=>{ layoutTab(); setTimeout(layoutTab,300); setTimeout(layoutTab,1000); }));
 function boot(){
   renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:true, powerPreference:"high-performance"});
   Quality.load();
@@ -6098,7 +6140,8 @@ const TrapArt = {
       if(n==="floor-"+cur && typeof Ground!=="undefined" && Ground.mat){ applyFloorArt(null); applyLandArt(); }
       if(n==="props-"+cur && typeof Props!=="undefined"){ Props.kind=null; Props.build(propKey()); }
       if((n==="skin-"+G.char || n==="char-"+G.char) && typeof setCharacter==="function") setCharacter(G.char);
-      if(n.indexOf("char-")===0 && typeof Attract!=="undefined" && Attract.crew.length) Attract.clearCrew();   // (v271) 첫 화면 친구들도 그림이 오면 다시 세운다
+      if(n.indexOf("char-")===0 && typeof Attract!=="undefined" && Attract.crew.length) Attract.clearCrew();
+      if((n==="gate-"+cur || n==="sign-"+cur) && typeof Attract!=="undefined" && Attract.set && !G.running) Attract.spawn();   // (v272) 첫 화면 문도 그림 문으로 다시   // (v271) 첫 화면 친구들도 그림이 오면 다시 세운다
       if(n.indexOf("boss-")===0 && typeof Boss!=="undefined" && Boss.refreshArt) Boss.refreshArt();
       if(n.indexOf("outfit-")===0 && typeof Wallet!=="undefined" && n==="outfit-"+Wallet.wearing(G.char) && typeof setCharacter==="function") setCharacter(G.char);
     }catch(e){}
@@ -11149,7 +11192,8 @@ function gameOver(){
   try{ const nt=Titles.check();                                  // 칭호 · 도감 2권 보상 동료
     if(!G.testRun && !(Pet.of("pet-owl")||{}).hidden){ try{ if(Dex.bookDone(2) && !Wallet.owns("pet-owl")){ Wallet.give("pet-owl"); nt.push("pet-owl"); } }catch(e){} }
     if(nt.length){ const names=nt.map(id=>{ const t=titleOf(id); if(t) return t.emo+" "+t.name; const pp=Pet.of(id); return pp ? pp.emo+" "+pp.name+"(동료)" : id; }).join(", ");
-      $("oGems").insertAdjacentHTML("beforeend", '<div class="gDex">🏷️ 새로 얻었어요: <b>'+names+'</b> — 상점에서 달 수 있어요</div>'); } }catch(e){}
+      const og=$("oGems"); let pl=og.querySelector(".gPills"); if(!pl){ og.insertAdjacentHTML("beforeend",'<div class="gPills"></div>'); pl=og.querySelector(".gPills"); }
+      pl.insertAdjacentHTML("beforeend", '<button class="gPill new" data-go="title">🏷️ <b>'+names+'</b> 새로! ›</button>'); } }catch(e){}
   LastSetup.save({rule:G.rule, diff:G.diff, mode:G.mode, set:G.set, lesson:G.lesson||0, char:G.char,
                   voice:Voice.on, picture:G.picture, versus:false});
 
@@ -11198,7 +11242,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v271";
+const GAME_VER = "v272";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11906,7 +11950,7 @@ const StudyUI = {
     try{ Study.gvWallet(); }catch(e){} try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     show("scStudy"); this.path(); },
   close(){ SFX.click(); try{ speechSynthesis.cancel(); }catch(e){} Attract.focus=false; show("scStart"); },
-  view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); if(v!=="stPath") this.pop(null); },
+  view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); $("scStudy").classList.toggle("vLesson", v==="stLesson"); if(v!=="stPath") this.pop(null); },
   /* ── 길 ── */
   path(){
     this.view("stPath");
@@ -11992,7 +12036,7 @@ const StudyUI = {
     const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW, fw:this._fw|0,
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(), act:this.tk()|0,
       qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.t==="blend"||q.t==="past"||q.t==="sentp")?q.opts:q.opts.map(W)), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
-        pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased, form:q.form})), wst:this.wst||{}};
+        pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased, form:q.form, retry:q.retry})), wst:this.wst||{}};
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
   clearCur(){ try{ localStorage.removeItem(this.CUR); }catch(e){} },
   getCur(){ let c=null; try{ c=JSON.parse(localStorage.getItem(this.CUR)); }catch(e){}
@@ -12146,10 +12190,15 @@ const StudyUI = {
         +'</div><div>'+q.right.map(o=>'<button class="stM ko" data-ko="'+this.esc(o.en)+'">'+this.esc(o.ko)+'</button>').join("")+'</div></div>';
       f.innerHTML='';
     }
-    if(q.t!=="intro" && (q.step!=null || q.fam || q.wu)){                 // (v242) 이 단어를 몇 번째 떠올리는지
-      const tg = q.wu ? '🔁 복습' : q.fam ? '아는 단어' : '●'.repeat(q.step+1)+'○'.repeat(2-q.step);
-      h=h.replace('</div>', '<span class="stStep">'+tg+'</span></div>'); }
+    if(q.t!=="intro" && (q.step!=null || q.fam || q.wu || q.retry)){        // (v242) 이 단어를 몇 번째 떠올리는지
+      const tg = q.retry ? '🔁 한 번 더!' : q.wu ? '🔁 복습' : q.fam ? '아는 단어' : '●'.repeat(q.step+1)+'○'.repeat(2-q.step);
+      h=h.replace('</div>', '<span class="stStep'+(q.retry?' rt':'')+'">'+tg+'</span></div>'); }
     $("stQ").innerHTML=h;
+    { const Q=$("stQ"), pr=Q.querySelector(":scope > .stPrompt"), two=["intro","drag","match"].indexOf(q.t)<0 && !!pr;   // (v272) 가로 화면 두 칸: 왼쪽 문제 · 오른쪽(.stRight) 보기
+      Q.className="stQ"+(two?" two":"");
+      if(two){ const R=document.createElement("div"); R.className="stRight"; [...Q.children].forEach(c=>{ if(c!==pr && !c.classList.contains("stKind") && !c.classList.contains("stTimer")) R.appendChild(c); }); Q.appendChild(R); } }
+    { const cd=$("stQ").querySelector(".stCard"), ex=cd && cd.querySelector(":scope > .stEx");   // 새 단어 카드: 가로에서는 단어 | 예문 나란히
+      if(ex){ const L=document.createElement("div"); L.className="stCardL"; [...cd.children].forEach(c=>{ if(c!==ex) L.appendChild(c); }); cd.insertBefore(L, ex); cd.classList.add("wide"); } }
     if(this.oly && q.t!=="intro") this.tStart(q);   // (v257) ⏱
     if(q.t==="spell" || q.t==="dict") this.slots();
     if(q.t==="drag") this.dragInit(q);
@@ -12179,12 +12228,13 @@ const StudyUI = {
         drag.gh.style.left=(e.clientX-drag.dx)+"px"; drag.gh.style.top=(e.clientY-drag.dy)+"px"; hov(e.clientX, e.clientY); });
       const end=e=>{ if(!drag || drag.ch!==ch) return; const d=drag; drag=null; d.gh.remove(); ch.classList.remove("lift");
         const t=hov(e.clientX, e.clientY); box.querySelectorAll(".dgT").forEach(o=>o.classList.remove("hov"));
-        if(!d.moved){ box.querySelectorAll(".dgChip").forEach(o=>o.classList.toggle("sel", o===ch)); q.pick=ch; self.say(ch.dataset.en); return; }
+        if(!d.moved){ if(q.pick===ch){ ch.classList.remove("sel"); q.pick=null; box.classList.remove("picking"); return; }   // 다시 누르면 내려놓기
+          box.querySelectorAll(".dgChip").forEach(o=>o.classList.toggle("sel", o===ch)); q.pick=ch; box.classList.add("picking"); self.say(ch.dataset.en); return; }
         if(t) place(ch, t); };
       ch.addEventListener("pointerup", end);
       ch.addEventListener("pointercancel",()=>{ if(drag && drag.ch===ch){ drag.gh.remove(); drag=null; ch.classList.remove("lift"); } });
     });
-    box.querySelectorAll(".dgT").forEach(t=>t.addEventListener("click",()=>{ if(q.pick){ const c=q.pick; q.pick=null; c.classList.remove("sel"); place(c, t); } }));
+    box.querySelectorAll(".dgT").forEach(t=>t.addEventListener("click",()=>{ if(q.pick){ const c=q.pick; q.pick=null; c.classList.remove("sel"); box.classList.remove("picking"); place(c, t); } }));
   },
   slots(){ const q=this.qs[this.i]; $("stSlots").innerHTML=q.w.en.split("").map((c,k)=>'<span class="'+(k<q.got.length?'f':'')+'"'+(k<q.got.length?' data-sk="'+k+'"':'')+'>'+(q.got[k]||'')+'</span>').join("");
     $("stCheck").disabled = q.got.length<q.w.en.length; },
@@ -12226,7 +12276,7 @@ const StudyUI = {
     else if(q.t==="sentp"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.form; conf = null; }
     else if(q.t==="find"){ if(this.sel==null) return; const tk=q.toks[this.sel]||{}; ok=!!tk.ok; conf=String(tk.t||"").replace(/[^A-Za-z'-]/g,""); }
     else { if(this.sel==null) return; const pick=q.opts[this.sel]; ok = pick.en===q.w.en; conf = q.t==="e2k" ? pick.ko : pick.en; }
-    try{ Rank.record(q.w.en, ok, ok?null:conf, true); }catch(e){}
+    if(!q.retry) try{ Rank.record(q.w.en, ok, ok?null:conf, true); }catch(e){}   // (v272) 바로 다시 푸는 문제는 기록에 안 셈
     this.result(ok);
   },
   /* (v257) ⏱ 마지막 시험 — 문제마다 시간. 앱이 뒤로 가 있으면 멈춤. 다 되면 틀린 것으로 */
@@ -12240,6 +12290,7 @@ const StudyUI = {
   result(ok, isMatch){
     this.tStop();
     const q=this.qs[this.i]; this.locked=true; const nf=(q.step!=null || q.fam || q.wu); Study.see(q.w.en); if(q.ws && !nf) q.ws.forEach(o=>Study.see(o.en));
+    if(q.retry) return this.retryResult(q, ok);                         // (v272) 틀린 뒤 바로 한 번 더
     ((nf ? null : q.ws)||[q.w]).forEach(o=>{ try{ Study.mark(o.en, ok && !q.again); }catch(e){} if(ok && !q.again && !this.missed[o.en]) this.okW[o.en]=1; });   // 복습 칸 · (v225) 도감은 한 번에 맞힌 단어만
     let bonus="";
     if(ok && !q.again){ this.combo++; this.best=Math.max(this.best,this.combo);
@@ -12249,7 +12300,7 @@ const StudyUI = {
     else { this.wrong++; this._rm=(this._rm|0)+1; if(!q.again) this._fw=(this._fw|0)+1; this.missed[q.w.en]=1; delete this.okW[q.w.en]; SFX.tone(180,.18,"square",.04);
       if(this.test){ if(this.wrong>2){ this.finish(false); return; } this.done++; }
       else if(this.oly) this.done++;                                     // (v257) 시험은 다시 내지 않는다
-      else this.adapt(q, false); }
+      else { this.adapt(q, false); this.retryNow(q); } }
     if(q.t==="blend"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts[k]===q.mid) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); });
       const sl=$("bdRow").querySelector(".slot"); if(sl){ sl.textContent=q.mid; sl.classList.add("fill"); }
       const row=$("bdRow"); if(row){ row.querySelectorAll(".bdT").forEach((t,k)=>{ t.style.animationDelay=(k*0.12)+"s"; }); row.classList.add("merge"); } }
@@ -12269,7 +12320,7 @@ const StudyUI = {
                      : ["괜찮아, 다시 해 보자!","아깝다!","거의 다 왔어!","다음엔 맞힐 거야!"];
     if((q.t==="sent" && q.st) || q.t==="sent2" || q.t==="talk") $("stQ").querySelectorAll(".stSent u, .stTalk u").forEach(s2=>{ s2.textContent=q.w.en; s2.className=ok?"ok":"bad"; });
     f.innerHTML='<div class="stMsg">'+mc+(ok ? '<b>'+cheer[Math.floor(Math.random()*cheer.length)]+'</b>'+bonus+this.alt(q.w)
-      : '<b>'+(q.tout?'⏰ 시간이 다 됐어요':cheer[Math.floor(Math.random()*cheer.length)])+'</b><span>정답: '+this.esc(q.w.en)+' = '+this.kp(q.w)+'</span>'+this.alt(q.w)+(this.test||this.oly?'':'<small>이 문제는 뒤에 한 번 더 나와요</small>'))+'</div>'
+      : '<b>'+(q.tout?'⏰ 시간이 다 됐어요':cheer[Math.floor(Math.random()*cheer.length)])+'</b><span>정답: '+this.esc(q.w.en)+' = '+this.kp(q.w)+'</span>'+this.alt(q.w)+(this.test||this.oly?'':(this.qs[this.i+1] && this.qs[this.i+1].retry ? '<small>🔁 바로 한 번 더 해 봐요 · 뒤에도 또 나와요</small>' : '<small>이 문제는 뒤에 한 번 더 나와요</small>')))+'</div>'
       +'<button class="stCheck go" id="stCheck">계속 ▶</button>';
     if(q.t==="sentp") this.say(q.form);
     else if(!ok || q.t==="spell" || q.t==="dict" || q.t==="sent" || q.t==="sent2" || q.t==="talk") this.say(q.w.en);
@@ -12278,6 +12329,32 @@ const StudyUI = {
     clearTimeout(this._adv);
     if(ok){ const wait = 850 + (bonus||q.w.alt||(q.t==="ox"&&!q.truth) ? 700 : 0) + (q.t==="blend"||q.t==="spell"||q.t==="dict"||q.t==="sent" ? 450 : 0) + (isMatch ? 250 : 0);
       const b=$("stCheck"); if(b){ b.classList.add("auto"); b.style.setProperty("--wait", wait+"ms"); }
+      this._adv=setTimeout(()=>{ if(this.qs[this.i]===q && this.locked && $("stLesson").style.display!=="none"){ this._guard=Date.now()+350; this.next(); } }, wait); }
+  },
+  /* (v272) 틀리면 정답을 보여 준 뒤 같은 문제를 바로 한 번 더 (보기·글자는 다시 섞음). 짝짓기·끌기·O/X 는 이미 그 자리에서 고치거나 답이 하나뿐이라 뺀다.
+     바로 푸는 문제는 점수·진도·기록에 안 들어가고, 원래처럼 몇 문제 뒤에 또 나온다 */
+  retryNow(q){
+    if(!q || q.retry || ["match","drag","ox","intro"].indexOf(q.t)>=0) return;
+    const c=Object.assign({}, q, {again:true, retry:1, tout:0, got:"", used:[]});
+    if(Array.isArray(q.opts)) c.opts=shuffle(q.opts.slice());
+    if(Array.isArray(q.tiles)) c.tiles=shuffle(q.tiles.slice());
+    this.qs.splice(this.i+1, 0, c);
+  },
+  retryResult(q, ok){
+    const b=$("stQ").querySelectorAll(".stOpt");
+    if(q.t==="find") b.forEach((x,k)=>{ if(q.toks[k] && q.toks[k].ok) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); });
+    else if(q.opts) b.forEach((x,k)=>{ const o=q.opts[k], right = q.t==="blend" ? o===q.mid : q.t==="past" ? o===q.w.en : q.t==="sentp" ? o===q.form : (o && o.en===q.w.en); if(right) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); });
+    if(q.t==="blend"){ const sl=$("bdRow") && $("bdRow").querySelector(".slot"); if(sl){ sl.textContent=q.mid; sl.classList.add("fill"); } }
+    if(q.t==="sentp") $("stQ").querySelectorAll(".stSent u").forEach(s2=>{ s2.textContent=q.form; s2.className=ok?"ok":"bad"; });
+    else if((q.t==="sent" && q.st) || q.t==="sent2" || q.t==="talk") $("stQ").querySelectorAll(".stSent u, .stTalk u").forEach(s2=>{ s2.textContent=q.w.en; s2.className=ok?"ok":"bad"; });
+    const f=$("stFoot"); f.className="stFoot "+(ok?"good":"bad");
+    f.innerHTML='<div class="stMsg">'+(ok ? '<b>이번엔 맞았어요! 👍</b><span>'+this.esc(q.w.en)+' = '+this.kp(q.w)+'</span>'
+        : '<b>정답은 '+this.esc(q.t==="sentp"?q.form:q.w.en)+'</b><span>'+this.esc(q.w.en)+' = '+this.kp(q.w)+'</span>')
+      +'<small>뒤에 한 번 더 나와요</small></div><button class="stCheck go" id="stCheck">계속 ▶</button>';
+    if(ok) SFX.tone(660,.14,"triangle",.05,1320); else SFX.tone(180,.18,"square",.04);
+    this.say(q.t==="sentp" ? q.form : q.w.en);
+    clearTimeout(this._adv);
+    if(ok){ const b2=$("stCheck"), wait=1100; if(b2){ b2.classList.add("auto"); b2.style.setProperty("--wait", wait+"ms"); }
       this._adv=setTimeout(()=>{ if(this.qs[this.i]===q && this.locked && $("stLesson").style.display!=="none"){ this._guard=Date.now()+350; this.next(); } }, wait); }
   },
   /* (v242) 틀리면 쉽게 · 맞히면 어렵게
@@ -13697,11 +13774,12 @@ function drawGemResult(r){
   const el=$("oGems"); if(!el) return;
   if(!r){ el.innerHTML = G.testRun ? '<small>🧪 시험 모드에서는 보석을 받지 않아요</small>' : G.practice ? '<small>🏃 연습 달리기 — 이 Stage 카드로는 첫 달리기에서만 보석·도감·랭킹이 쌓여요</small>' : ""; return; }
   const pct=Math.round(r.pts/GEM.PER*100);
+  /* (v272) 한 줄로 간추림: 💎 +1 [막대] 다음까지 20점 · 모은 467 / 아래에 눌러서 가는 작은 알약(도감 · 칭호) */
   el.innerHTML =
-    '<div class="gLine"><span class="gIco">💎</span><b class="gGain">'+(r.gain>0?'+'+r.gain:'+0')+'</b><span class="gTot">모은 보석 '+r.total+'개</span></div>'
-    +'<div class="gBar"><i style="width:0"></i></div>'
-    +'<small>다음 보석까지 '+(GEM.PER-r.pts)+'점'+(r.boss?' · 문지기 처치 보너스 +'+r.boss:'')+'</small>'
-    +(r.dexNew ? '<div class="gDex">📖 도감에 새 단어 <b>'+r.dexNew+'</b>개 · ✨ 도감에서 카드를 열어 보세요</div>' : '');
+    '<div class="gLine"><span class="gIco">💎</span><b class="gGain">'+(r.gain>0?'+'+r.gain:'+0')+'</b>'
+    +'<div class="gMid"><div class="gBar"><i style="width:0"></i></div><small>다음 💎까지 '+(GEM.PER-r.pts)+'점'+(r.boss?' · 문지기 +'+r.boss:'')+'</small></div>'
+    +'<span class="gTot">모은 <b>'+r.total+'</b></span></div>'
+    +(r.dexNew ? '<div class="gPills"><button class="gPill" data-go="dex">📖 새 단어 <b>'+r.dexNew+'</b> ›</button></div>' : '');
   const bar=el.querySelector(".gBar i"); if(bar) setTimeout(()=>{ bar.style.width=pct+"%"; }, 450);
   if(r.gain>0){ el.classList.remove("gemIn"); void el.offsetWidth; el.classList.add("gemIn"); try{ setTimeout(()=>SFX.tone(880,.18,"triangle",.05,1320), 500); }catch(e){} }
 }
@@ -14129,6 +14207,8 @@ $("selChar").addEventListener("click",e=>{
 }, true);
 Unlock.paint();
 $("btnShop").addEventListener("click",()=>ShopUI.open());
+$("oGems").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-go]"); if(!b) return;   // (v272) 결과 화면 알약 → 도감 · 칭호
+  if(b.dataset.go==="dex") $("btnDex").click(); else { try{ ShopUI.tab="title"; }catch(er){} ShopUI.open(); try{ ShopUI.tab="title"; ShopUI.draw(); }catch(er){} } });
 $("btnDex").addEventListener("click",()=>DexUI.open());
 $("btnShopClose").addEventListener("click",()=>{ SFX.click(); $("shShop").classList.remove("on"); });
 $("btnDexClose").addEventListener("click",()=>{ SFX.click(); $("shDex").classList.remove("on"); $("dexIn").classList.remove("det"); refreshDexBadge(); });
