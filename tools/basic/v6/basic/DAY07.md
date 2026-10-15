@@ -36,13 +36,13 @@
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
 | cookie | 오븐 앞에서 | What smells so sweet in the oven? | A big cookie with nuts inside. | 오븐에서 뭐가 이렇게 달콤한 냄새가 나? | 안에 견과류가 든 큰 쿠키야. |
-| cookie | 쿠키 통이 비었을 때 | Who ate the last cookie in the jar? | Sorry, it was me. I was hungry. | 통에 있던 마지막 쿠키 누가 먹었어? | 미안, 나야. 배가 고팠어. |
+| cookie | 간식 통이 비었을 때 | Who ate the last cookie in the jar? | Sorry, it was me. I was hungry. | 통에 있던 마지막 쿠키 누가 먹었어? | 미안, 나야. 배가 고팠어. |
 | final | 퀴즈 쇼를 볼 때 | How many questions are left? | Just one. This is the final one. | 문제가 몇 개 남았어? | 하나만. 이게 마지막 문제야. |
-| final | 결승전 결과를 물을 때 | Did your team win the soccer final? | Yes, we won two to one! | 너희 팀이 축구 결승전에서 이겼어? | 응, 2대 1로 이겼어! |
+| final | 축구 대회 결과를 물을 때 | Did your team win the soccer final? | Yes, we won two to one! | 너희 팀이 축구 결승전에서 이겼어? | 응, 2대 1로 이겼어! |
 | fall | 빙판길을 걸을 때 | Why are you walking so slowly? | The ground is icy. I don't want to fall. | 왜 그렇게 천천히 걸어? | 땅이 얼었어. 넘어지기 싫어. |
 | fall | 단풍 계절 이야기 | When do the leaves turn red? | In the fall, before winter. | 나뭇잎은 언제 빨갛게 변해? | 가을에, 겨울이 오기 전에. |
 | number | 연락처를 나눌 때 | How can I call you this weekend? | Here's my phone number on this paper. | 이번 주말에 어떻게 전화하면 돼? | 이 종이에 내 전화번호가 있어. |
-| number | 번호표를 확인할 때 | Which number is on your ticket? | It says twelve. We are next! | 네 표에는 몇 번이 적혀 있어? | 12번이래. 우리 다음이야! |
+| number | 줄을 서서 기다릴 때 | Which number is on your ticket? | It says twelve. We are next! | 네 표에는 몇 번이 적혀 있어? | 12번이래. 우리 다음이야! |
 | collection | 방에 장난감 차가 가득할 때 | Wow, you have so many toy cars! | Yes, it's my collection. I have fifty. | 와, 장난감 자동차가 정말 많다! | 응, 내 수집품이야. 50대 있어. |
 | collection | 박물관 전시실에서 | What's in this big glass room? | A collection of old paintings. | 이 큰 유리 방에는 뭐가 있어? | 오래된 그림 모음이야. |
 | farm | 현장 학습을 정할 때 | Where can we see cows and pigs? | On the farm near our town. | 소랑 돼지를 어디서 볼 수 있어? | 우리 마을 근처 농장에서. |
@@ -83,7 +83,7 @@
 | create | 보드게임을 보며 | Who made this fun board game? | Jiho did. He loves to create games. | 이 재미있는 보드게임은 누가 만들었어? | 지호가. 지호는 게임 만드는 걸 좋아해. |
 | entry | 박물관 매표소에서 | How much does it cost to go in? | Entry is free for kids under ten. | 들어가는 데 얼마예요? | 열 살 아래 어린이는 무료입장이야. |
 | entry | 그림 대회 결과를 볼 때 | Which picture won first prize? | Amy's entry, the one with the whale. | 어떤 그림이 1등상을 받았어? | 에이미의 출품작, 고래가 있는 그림. |
-| club | 동아리를 고를 때 | Which group do you want to join? | The art club. I love painting. | 어느 모임에 들고 싶어? | 미술 동아리. 그림 그리는 걸 좋아해. |
+| club | 방과 후 모임을 고를 때 | Which group do you want to join? | The art club. I love painting. | 어느 모임에 들고 싶어? | 미술 동아리. 그림 그리는 걸 좋아해. |
 | club | 방과 후 운동 | Where are you going after school? | To soccer club practice in the gym. | 방과 후에 어디 가? | 체육관에서 하는 축구 동아리 연습에. |
 | goose | 농장에서 큰 새를 볼 때 | What big white bird is making that noise? | It's a goose. Don't get too close! | 저 소리를 내는 큰 하얀 새는 뭐야? | 거위야. 너무 가까이 가지 마! |
 | goose | 연못가에서 | Which bird has a long neck and swims? | A goose. It's bigger than a duck. | 어떤 새가 목이 길고 헤엄을 쳐? | 거위. 오리보다 커. |

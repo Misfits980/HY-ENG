@@ -62,7 +62,7 @@
 | clay | 미술 시간 재료를 고를 때 | What can we use to make a small bowl? | Use this soft clay and water. | 작은 그릇을 만들려면 뭘 써야 해? | 이 부드러운 찰흙이랑 물을 써. |
 | clay | 도자기 체험장에서 | What is this pot made of? | It's made of clay from the river. | 이 항아리는 무엇으로 만들었어? | 강에서 가져온 점토로 만들었어. |
 | application | 캠프 신청을 할 때 | How can I join the summer camp? | Fill out this application by Friday. | 여름 캠프는 어떻게 참가해? | 금요일까지 이 신청서를 작성해. |
-| application | 밴드 지원을 했을 때 | Did you send your application to the band? | Yes, I gave it to the teacher. | 밴드에 신청서 냈어? | 응, 선생님께 드렸어. |
+| application | 밴드에 들어가고 싶을 때 | Did you send your application to the band? | Yes, I gave it to the teacher. | 밴드에 신청서 냈어? | 응, 선생님께 드렸어. |
 | appointment | 학교에서 조퇴할 때 | Why are you leaving school early today? | I have a doctor's appointment at two. | 오늘 왜 학교에서 일찍 가? | 두 시에 병원 예약이 있어. |
 | appointment | 병원에 전화할 때 | Can I see the doctor this afternoon? | Sorry, you need an appointment first. | 오늘 오후에 진료받을 수 있어요? | 죄송해요, 먼저 예약을 하셔야 해요. |
 | chase | 강아지 산책 | Why is your dog running so fast? | He loves to chase birds. | 너희 개는 왜 저렇게 빨리 달려? | 새를 쫓아다니는 걸 좋아하거든. |
@@ -70,12 +70,12 @@
 | boring | TV 앞에서 | Do you like this TV show? | No, it's boring. Let's watch something else. | 이 TV 프로그램 좋아? | 아니, 지루해. 다른 거 보자. |
 | boring | 긴 차 여행 중 | We still have three hours in the car. | This trip is so boring! | 아직 차로 세 시간 더 가야 해. | 이 여행 너무 지루해! |
 | whistle | 체육 시간 출발선에서 | How will we know when to start running? | Listen for the coach's whistle. | 언제 달리기 시작하는지 어떻게 알아? | 코치님 호루라기 소리를 잘 들어. |
-| whistle | 휘파람을 배울 때 | Can you teach me how to whistle? | Sure. Make your lips round and blow. | 휘파람 부는 법 가르쳐 줄래? | 그럼. 입술을 동그랗게 하고 불어. |
+| whistle | 입으로 소리를 낼 때 | Can you teach me how to whistle? | Sure. Make your lips round and blow. | 휘파람 부는 법 가르쳐 줄래? | 그럼. 입술을 동그랗게 하고 불어. |
 | soil | 화분에 씨앗을 심을 때 | What should I put in this pot first? | Some soil, then the seeds. | 이 화분에 뭘 먼저 넣어야 해? | 흙을 조금 넣고, 그다음에 씨앗. |
 | soil | 식물이 시들 때 | Why is my plant turning yellow? | The soil is too dry. Give it water. | 내 식물이 왜 노랗게 변해? | 흙이 너무 말랐어. 물을 줘. |
 | camel | 사막 사진을 볼 때 | What animal has a big hump on its back? | That's a camel. It lives in the desert. | 등에 큰 혹이 있는 동물은 뭐야? | 낙타야. 사막에 살아. |
 | camel | 동물원 체험 후 | What animal did you ride at the zoo? | A camel! It was very tall. | 동물원에서 무슨 동물을 탔어? | 낙타! 아주 키가 컸어. |
-| meal | 하루 식사를 이야기할 때 | How many times do you eat each day? | Three. I never skip a meal. | 하루에 몇 번 먹어? | 세 번. 한 끼도 거르지 않아. |
+| meal | 밥 먹는 때를 이야기할 때 | How many times do you eat each day? | Three. I never skip a meal. | 하루에 몇 번 먹어? | 세 번. 한 끼도 거르지 않아. |
 | meal | 식탁이 가득할 때 | Why is the table so full of food? | Mom made a special meal for us. | 식탁에 왜 이렇게 음식이 많아? | 엄마가 우리를 위해 특별한 식사를 만드셨어. |
 | again | 쪽지 시험을 본 뒤 | I got a bad score on the quiz. | Don't worry. You can try again. | 쪽지 시험 점수가 안 좋아. | 걱정 마. 다시 해 볼 수 있어. |
 | again | 좋은 노래를 들은 뒤 | That song was so good! | Let's listen to it again. | 그 노래 정말 좋았어! | 한 번 더 듣자. |

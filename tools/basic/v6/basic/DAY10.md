@@ -64,7 +64,7 @@
 | crowd | 축제에서 동생을 잃었을 때 | I can't find my little brother! | He's somewhere in that crowd. | 남동생을 못 찾겠어! | 저 사람들 속 어딘가에 있을 거야. |
 | crowd | 사람이 많을 때 | Why are so many people here? | The crowd came to see the parade. | 왜 여기에 사람이 이렇게 많아? | 사람들이 행진을 보러 왔어. |
 | hotel | 여행지에 도착했을 때 | Where will we sleep tonight? | At a hotel near the beach. | 오늘 밤엔 어디서 자? | 바닷가 근처 호텔에서. |
-| hotel | 호텔 방을 구경할 때 | Look at the view from our room! | This hotel is really nice. | 우리 방에서 보이는 경치 좀 봐! | 이 호텔 정말 좋다. |
+| hotel | 여행지 숙소를 구경할 때 | Look at the view from our room! | This hotel is really nice. | 우리 방에서 보이는 경치 좀 봐! | 이 호텔 정말 좋다. |
 | internet | 숙제 자료를 찾을 때 | How can I learn about whales? | Look it up on the internet. | 고래에 대해 어떻게 알아볼 수 있어? | 인터넷에서 찾아봐. |
 | internet | 영상이 멈췄을 때 | Why did the video stop? | The internet is very slow today. | 영상이 왜 멈췄어? | 오늘 인터넷이 아주 느려. |
 | item | 장보기 목록을 볼 때 | What else do we need to buy? | Just one more item. Milk! | 또 뭘 사야 해? | 하나만 더. 우유! |

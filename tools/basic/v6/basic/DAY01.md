@@ -57,7 +57,7 @@
 | recreation | 탁구 칠 곳을 찾을 때 | Where can we play table tennis after school? | At the new recreation center near the library. | 방과 후에 어디서 탁구를 칠 수 있어? | 도서관 근처 새 여가 활동 센터에서. |
 | information | 도서관에서 숙제 자료 찾기 | I need some facts about tigers for homework. | This website has useful information about them. | 숙제 때문에 호랑이에 관한 사실이 필요해. | 이 웹사이트에 호랑이에 관한 유용한 정보가 있어. |
 | information | 박물관 입구에서 | Where can I get information about the tour? | Ask at the front desk by the door. | 관람 안내 정보는 어디서 얻을 수 있어요? | 문 옆 안내 데스크에 물어보세요. |
-| thing | 책상 위 물건을 볼 때 | What is this round thing on my desk? | It's a pencil sharpener from Amy. | 내 책상 위에 이 둥근 건 뭐야? | 에이미가 준 연필깎이야. |
+| thing | 책상 위를 정리할 때 | What is this round thing on my desk? | It's a pencil sharpener from Amy. | 내 책상 위에 이 둥근 건 뭐야? | 에이미가 준 연필깎이야. |
 | thing | 캠프에서 돌아온 날 | What was the best thing about camp? | Swimming in the lake with my friends. | 캠프에서 가장 좋았던 건 뭐야? | 친구들이랑 호수에서 수영한 거. |
 | become | 장래 희망 발표 시간 | What do you want to do in the future? | I want to become a famous chef. | 나중에 뭘 하고 싶어? | 나는 유명한 요리사가 되고 싶어. |
 | become | 냉동실에 물을 넣을 때 | What happens to water in the freezer? | It will become ice in a few hours. | 냉동실에 넣은 물은 어떻게 돼? | 몇 시간 뒤에 얼음이 될 거야. |

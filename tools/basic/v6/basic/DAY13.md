@@ -47,7 +47,7 @@
 | peel | 감자 요리를 할 때 | What should I do with these potatoes? | Peel them first, then cut them. | 이 감자들은 어떻게 해? | 먼저 껍질을 벗기고, 그다음 잘라. |
 | radio | 노래가 들릴 때 | Where is that music coming from? | From the old radio in the kitchen. | 저 음악은 어디서 나와? | 부엌에 있는 옛날 라디오에서. |
 | radio | 날씨 소식을 들었을 때 | How do you know it will rain? | I heard it on the radio. | 비가 올 거라는 걸 어떻게 알아? | 라디오에서 들었어. |
-| post | 우편함을 볼 때 | Is there anything in the mailbox? | Yes, there is some post for Mom. | 우편함에 뭐 있어? | 응, 엄마한테 온 우편물이 있어. |
+| post | 집 앞 상자를 열어 볼 때 | Is there anything in the mailbox? | Yes, there is some post for Mom. | 우편함에 뭐 있어? | 응, 엄마한테 온 우편물이 있어. |
 | post | 편지를 부치려 할 때 | How can I send this letter to my grandmother? | Take it to the post office. | 이 편지를 할머니께 어떻게 보내? | 우체국에 가져가. |
 | pattern | 옷을 고를 때 | Do you like this shirt with stripes? | Yes, the pattern is cool. | 이 줄무늬 셔츠 마음에 들어? | 응, 무늬가 멋져. |
 | pattern | 수학 규칙 찾기 | Red, blue, red, blue... What comes next? | Red! It's an easy pattern. | 빨강, 파랑, 빨강, 파랑... 다음은 뭐야? | 빨강! 쉬운 규칙이야. |
@@ -78,7 +78,7 @@
 | experiment | 과학실 문 앞에서 | Why are you wearing those goggles? | We're doing an experiment today. | 왜 그 보안경을 쓰고 있어? | 오늘 실험을 하거든. |
 | experiment | 컵에서 거품이 날 때 | Look! Bubbles are coming out of the cup! | Wow, our experiment is really working! | 봐! 컵에서 거품이 나와! | 와, 우리 실험이 진짜 되고 있어! |
 | far | 공원 가는 길을 물을 때 | Is the park near here? | No, it's far. Take a bus. | 공원이 여기서 가까워? | 아니, 멀어. 버스를 타. |
-| far | 공을 멀리 던졌을 때 | Wow, how did you throw it like that? | I can throw very far! | 와, 어떻게 그렇게 던졌어? | 나는 아주 멀리 던질 수 있어! |
+| far | 공 던지기를 할 때 | Wow, how did you throw it like that? | I can throw very far! | 와, 어떻게 그렇게 던졌어? | 나는 아주 멀리 던질 수 있어! |
 | customer | 가게 놀이를 할 때 | I'll be the shop owner. What about you? | I'll be your first customer! | 내가 가게 주인 할게. 너는? | 내가 네 첫 손님 할게! |
 | customer | 빵집 문을 열 때 | Who is waiting outside the bakery? | Our first customer of the day. | 빵집 밖에서 누가 기다려? | 오늘 첫 손님이야. |
 | password | 태블릿을 열 때 | Why can't I open this tablet? | You need the password first. | 이 태블릿이 왜 안 열려? | 먼저 비밀번호가 필요해. |

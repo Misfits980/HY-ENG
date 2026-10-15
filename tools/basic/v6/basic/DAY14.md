@@ -54,13 +54,13 @@
 | donkey | 농장 체험을 할 때 | Is that a small horse with long ears? | No, that's a donkey, not a horse. | 저건 귀가 긴 작은 말이야? | 아니, 말이 아니라 당나귀야. |
 | donkey | 옛날 짐 나르기 | How did people carry heavy bags long ago? | A donkey carried them on its back. | 옛날 사람들은 무거운 짐을 어떻게 날랐어? | 당나귀가 등에 지고 날랐어. |
 | shadow | 햇빛 아래를 걸을 때 | What is that dark thing following me? | Don't worry. It's just your shadow! | 나를 따라오는 저 까만 건 뭐야? | 걱정 마. 그냥 네 그림자야! |
-| shadow | 손 그림자 놀이 | Look at the wall! It's a rabbit! | That's the shadow of my hands. | 벽 좀 봐! 토끼다! | 그건 내 손 그림자야. |
+| shadow | 벽에 손을 비출 때 | Look at the wall! It's a rabbit! | That's the shadow of my hands. | 벽 좀 봐! 토끼다! | 그건 내 손 그림자야. |
 | frame | 그림을 선물할 때 | I drew this picture for my grandmother. | Let's put it in a frame. | 할머니께 드리려고 이 그림을 그렸어. | 액자에 넣자. |
 | frame | 안경을 고를 때 | Which glasses look good on me? | The ones with the red frame. | 어떤 안경이 나한테 잘 어울려? | 빨간 테가 있는 거. |
 | huge | 수박을 볼 때 | Wow! How big is that watermelon? | It's huge! Bigger than my head! | 와! 저 수박 얼마나 커? | 엄청 커! 내 머리보다 커! |
 | huge | 공룡 발자국을 볼 때 | Look at this footprint in the rock! | It's huge! A dinosaur made it. | 바위에 있는 이 발자국 좀 봐! | 엄청 크다! 공룡이 만든 거야. |
 | instrument | 밴드부에 들어갈 때 | What do you play in the band? | The drum. It's a loud instrument. | 밴드에서 뭘 연주해? | 드럼. 소리가 큰 악기야. |
-| instrument | 악기 가게에서 | What is this big gold thing with a horn? | It's a music instrument. Try it! | 나팔이 달린 이 큰 금색 물건은 뭐야? | 악기야. 불어 봐! |
+| instrument | 음악 가게에서 | What is this big gold thing with a horn? | It's a music instrument. Try it! | 나팔이 달린 이 큰 금색 물건은 뭐야? | 악기야. 불어 봐! |
 | root | 화분을 옮길 때 | What are these white lines under the plant? | That's the root. It drinks water. | 식물 아래 이 하얀 줄들은 뭐야? | 뿌리야. 물을 빨아들여. |
 | root | 당근을 뽑을 때 | Which part of the carrot do we eat? | The root under the ground. | 당근은 어느 부분을 먹어? | 땅속에 있는 뿌리. |
 | tasty | 엄마 요리를 맛볼 때 | How is the new chicken dish? | It's really tasty, Mom! Thanks! | 새 닭고기 요리 어때? | 정말 맛있어요, 엄마! 고마워요! |

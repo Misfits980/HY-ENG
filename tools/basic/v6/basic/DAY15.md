@@ -41,9 +41,9 @@
 | pork | 식당 메뉴를 고를 때 | What is inside this fried cutlet? | It's pork. Very tasty with sauce! | 이 튀긴 커틀릿 안에는 뭐가 들었어? | 돼지고기야. 소스랑 먹으면 아주 맛있어! |
 | proud | 상장을 받았을 때 | Look, Mom! I won first prize! | Wow! We are so proud of you! | 엄마, 보세요! 저 1등 했어요! | 와! 네가 정말 자랑스럽구나! |
 | proud | 그림을 완성했을 때 | How do you feel about your painting? | I feel proud. It took hours. | 네 그림을 보니 기분이 어때? | 뿌듯해. 몇 시간이나 걸렸거든. |
-| semester | 새 학기 첫날 | Are you excited about the new classes? | Yes! This semester will be fun. | 새 수업들 기대돼? | 응! 이번 학기는 재미있을 거야. |
+| semester | 3월 첫 등교 날 | Are you excited about the new classes? | Yes! This semester will be fun. | 새 수업들 기대돼? | 응! 이번 학기는 재미있을 거야. |
 | semester | 방학을 기다릴 때 | When does our summer vacation start? | At the end of this semester. | 여름 방학은 언제 시작해? | 이번 학기가 끝나면. |
-| project | 모둠 과제를 할 때 | What is our group making for science? | A paper rocket for our project. | 우리 모둠은 과학 시간에 뭘 만들어? | 과제로 종이 로켓을 만들어. |
+| project | 모둠 활동을 할 때 | What is our group making for science? | A paper rocket for our project. | 우리 모둠은 과학 시간에 뭘 만들어? | 과제로 종이 로켓을 만들어. |
 | project | 밤늦게까지 깨어 있을 때 | Why are you still awake so late? | I have to finish my project. | 왜 이렇게 늦게까지 안 자? | 과제를 끝내야 해. |
 | shock | 깜짝 파티를 준비할 때 | Let's hide and jump out at Mina! | Yes! It will shock her! | 숨어 있다가 미나 앞에 뛰어나가자! | 좋아! 깜짝 놀랄 거야! |
 | shock | 놀라운 소식을 들었을 때 | Our quiet teacher sings in a rock band! | Really? That news would shock anyone! | 우리 조용한 선생님이 록 밴드에서 노래하신대! | 정말? 그 소식이면 누구라도 놀라겠다! |

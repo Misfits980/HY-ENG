@@ -42,10 +42,10 @@
 | weekend | 금요일 오후에 | Do you have any plans for Saturday? | Yes! I'll go fishing this weekend. | 토요일에 무슨 계획 있어? | 응! 이번 주말에 낚시하러 가. |
 | weekend | 월요일 아침 교실에서 | How was your weekend, Mina? | Great! I went to the zoo. | 미나야, 주말 어땠어? | 좋았어! 동물원에 갔어. |
 | restaurant | 저녁 메뉴를 정할 때 | I don't want to cook tonight. | Let's eat at a restaurant then. | 오늘 밤엔 요리하기 싫어. | 그럼 식당에서 먹자. |
-| restaurant | 식당 예약을 할 때 | How many people are coming to the restaurant? | Four people, at six o'clock. | 식당에 몇 명이 와요? | 네 명이요, 여섯 시에요. |
+| restaurant | 저녁 약속을 정할 때 | How many people are coming to the restaurant? | Four people, at six o'clock. | 식당에 몇 명이 와요? | 네 명이요, 여섯 시에요. |
 | fin | 수족관에서 물고기를 볼 때 | What is that thing on the fish's back? | It's a fin. It helps the fish swim. | 물고기 등에 있는 저건 뭐야? | 지느러미야. 물고기가 헤엄치게 도와줘. |
 | fin | 바다에서 수영할 때 | Look! Something is moving in the water! | Don't worry. It's a dolphin fin. | 봐! 물속에서 뭔가 움직여! | 걱정 마. 돌고래 지느러미야. |
-| common | 공통점을 찾을 때 | We both love cats and pizza! | We have a lot in common. | 우리 둘 다 고양이랑 피자를 좋아해! | 우리는 공통점이 많네. |
+| common | 친구와 닮은 점을 찾을 때 | We both love cats and pizza! | We have a lot in common. | 우리 둘 다 고양이랑 피자를 좋아해! | 우리는 공통점이 많네. |
 | common | 흔한 이름 이야기 | There are three Minjis in our class! | It's a very common name. | 우리 반에 민지가 세 명이야! | 아주 흔한 이름이구나. |
 | express | 미술 시간 그림 설명 | Why did you use so much dark blue? | I wanted to express a sad feeling. | 왜 어두운 파란색을 그렇게 많이 썼어? | 슬픈 느낌을 표현하고 싶었어. |
 | express | 말로 하기 어려울 때 | I can't say how happy I am! | Then express it with a big hug. | 내가 얼마나 기쁜지 말로 못 하겠어! | 그럼 꼭 안아 주는 걸로 표현해. |
@@ -86,7 +86,7 @@
 | comment | 영상 댓글을 볼 때 | What did people say about your video? | One comment said it was funny! | 사람들이 네 영상에 대해 뭐라고 했어? | 어떤 댓글에 재미있대! |
 | comment | 그림 평가 시간 | Do you have any comment about my poster? | Yes. I love the bright colors! | 내 포스터에 대해 의견 있어? | 응. 밝은 색이 정말 좋아! |
 | flag | 운동회 경기를 할 때 | How do we win this race? | Run and grab the red flag first! | 이 경주는 어떻게 이겨? | 달려가서 빨간 깃발을 먼저 잡아! |
-| flag | 국기를 그릴 때 | What colors do we need for the flag? | Red, blue, black, and white. | 국기를 그리려면 무슨 색이 필요해? | 빨강, 파랑, 검정, 흰색. |
+| flag | 나라 상징을 그릴 때 | What colors do we need for the flag? | Red, blue, black, and white. | 국기를 그리려면 무슨 색이 필요해? | 빨강, 파랑, 검정, 흰색. |
 | beef | 햄버거를 먹을 때 | What meat is in this burger? | It's beef from a cow. | 이 햄버거에는 무슨 고기가 들었어? | 소에서 나온 소고기야. |
 | beef | 고기 이름을 배울 때 | Which meat comes from cows? | Beef! Pork comes from pigs. | 어떤 고기가 소에서 나와? | 소고기! 돼지고기는 돼지에서 나와. |
 | pour | 시리얼을 먹을 때 | Can you help me with my cereal? | Sure. I'll pour the milk for you. | 시리얼 먹는 것 좀 도와줄래? | 그럼. 우유를 부어 줄게. |

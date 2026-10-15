@@ -36,7 +36,7 @@
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
 | noodle | 추운 날 점심 메뉴 | What hot food do you want for lunch? | A big bowl of noodle soup! | 점심으로 어떤 뜨거운 음식을 먹고 싶어? | 국수 한 그릇 크게! |
-| noodle | 포크로 국수를 먹을 때 | These long things keep falling off my fork. | Each noodle is slippery. Use chopsticks. | 이 긴 것들이 포크에서 자꾸 떨어져. | 국숫가락은 미끄러워. 젓가락을 써. |
+| noodle | 포크로 점심을 먹을 때 | These long things keep falling off my fork. | Each noodle is slippery. Use chopsticks. | 이 긴 것들이 포크에서 자꾸 떨어져. | 국숫가락은 미끄러워. 젓가락을 써. |
 | sorry | 약속에 늦었을 때 | You're twenty minutes late again! | I'm sorry. My bus was slow. | 또 20분 늦었네! | 미안해. 버스가 느렸어. |
 | sorry | 발을 밟았을 때 | Ouch! You stepped on my foot. | Oh, sorry! Are you okay? | 아야! 네가 내 발 밟았어. | 앗, 미안해! 괜찮아? |
 | ago | 언니가 언제 왔는지 물을 때 | When did Mina come home today? | She came home an hour ago. | 미나는 오늘 언제 집에 왔어? | 한 시간 전에 왔어. |
@@ -53,7 +53,7 @@
 | fair | 사탕을 나눌 때 | Tom has three candies, and I have one. | That's not fair. Let's share equally. | 톰은 사탕이 세 개고 나는 하나야. | 그건 공평하지 않아. 똑같이 나누자. |
 | cello | 큰 악기 가방을 볼 때 | What's in that huge black case? | My cello. I have a lesson today. | 저 커다란 검은 가방에 뭐가 들었어? | 내 첼로야. 오늘 수업이 있어. |
 | cello | 음악회 중에 | Which instrument makes that low sound? | That's the cello in the back. | 어떤 악기가 저 낮은 소리를 내? | 뒤쪽에 있는 첼로야. |
-| treasure | 보물찾기 놀이 | What does this old map show? | Where the treasure is buried! | 이 오래된 지도는 뭘 보여 줘? | 보물이 묻힌 곳! |
+| treasure | 숨긴 상자 찾기 놀이 | What does this old map show? | Where the treasure is buried! | 이 오래된 지도는 뭘 보여 줘? | 보물이 묻힌 곳! |
 | treasure | 할머니 반지를 볼 때 | Why do you keep that old ring so safe? | It's a family treasure from Grandma. | 왜 그 오래된 반지를 그렇게 소중히 보관해? | 할머니께 받은 가족 보물이야. |
 | pool | 아주 더운 날 | It's so hot today. What should we do? | Let's go swimming in the pool! | 오늘 너무 덥다. 뭐 할까? | 수영장에 수영하러 가자! |
 | pool | 수영 수업 장소를 물을 때 | Where is your swimming class? | At the indoor pool near school. | 수영 수업은 어디서 해? | 학교 근처 실내 수영장에서. |
@@ -74,7 +74,7 @@
 | comic book | 도서관에서 책을 고를 때 | Which book is full of funny pictures? | This comic book about a talking cat. | 어떤 책에 재미있는 그림이 가득해? | 말하는 고양이가 나오는 이 만화책. |
 | comic book | 친구 생일 선물을 고를 때 | What should I give Minsu for his birthday? | A comic book. He loves them. | 민수 생일에 뭘 줄까? | 만화책. 민수가 아주 좋아해. |
 | furniture | 이삿날 아침 | What's in that big truck outside? | Our furniture. We're moving today. | 밖에 있는 저 큰 트럭에 뭐가 있어? | 우리 가구야. 오늘 이사해. |
-| furniture | 가구점 앞에서 | What do they sell at this store? | Furniture, like sofas and beds. | 이 가게에서는 뭘 팔아? | 소파나 침대 같은 가구. |
+| furniture | 이삿짐을 옮길 때 | What do they sell at this store? | Furniture, like sofas and beds. | 이 가게에서는 뭘 팔아? | 소파나 침대 같은 가구. |
 | seat | 버스에 탔을 때 | Is anyone sitting next to you? | No, this seat is free. | 네 옆에 누가 앉아 있어? | 아니, 이 자리 비었어. |
 | seat | 영화관에 들어갈 때 | Where are we sitting tonight? | We have a seat near the screen. | 오늘 밤 우리 어디에 앉아? | 스크린 가까운 자리야. |
 | tired | 달리기를 마친 뒤 | Why are you lying on the floor? | I'm so tired after running. | 왜 바닥에 누워 있어? | 달리고 나서 너무 피곤해. |

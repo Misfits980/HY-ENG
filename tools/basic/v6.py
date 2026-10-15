@@ -164,6 +164,7 @@ def check(path, level, K):
         for k in ("해석 1","해석 2"):
             if re.search(r"[A-Za-z]{3,}", d[k]) and not re.search(r"[가-힣]", d[k]): bad.append(tag + f"{k}이 한국어가 아님")
     words_set = [d["영어"] for d in rows]
+    mean1 = {d["영어"]: d["뜻 1"] for d in rows}
     # 대화
     talk = []
     if not T2: bad.append("[표 2] 게임 대화 표(상황 칸이 있는 표)를 못 찾음")
@@ -185,6 +186,10 @@ def check(path, level, K):
             sl = len(d["상황"].replace(" ", ""))
             if sl < 5 or sl > 16: warn.append(tag + f"상황 {sl}자 (6~15자): {d['상황']}")
             if wre(en).search(d["상황"]): bad.append(tag + "상황에 정답 영어 단어가 있음")
+            # (v283) 📍 상황은 문제와 함께 보이므로 정답의 한국어 뜻이 들어가면 답을 알려 주는 셈
+            for m in re.split(r"[,·]", mean1.get(en, "")):
+                m = re.sub(r"\(.*?\)|~", "", m).strip(); m = re.sub(r"(하다|다|의|한|운|은|는|적인)$", "", m).strip()
+                if len(m) >= 2 and m in d["상황"]: warn.append(tag + f"상황에 정답 뜻 '{m}'이 보임 (답을 알려 줌): {d['상황']}")
             others = [o for o in words_set if o != en and len(o) > 2 and wre(o).search(d["A"] + " " + d["B"])]
             if others: oth.append(en)   # (v281) 게임이 대화 줄에 나온 단어를 보기에서 빼므로 경고 대신 숫자만
             if re.match(r"^(yes|no|ok|okay)[,.!]?\s*(i do|that's nice|i think so)?[.!]?$", d["B"].strip(), re.I): bad.append(tag + f"단서 없는 대답: {d['B']}")
@@ -213,7 +218,7 @@ def check(path, level, K):
         for k in ("예문 1","예문 2"):
             for t in words(d[k]):
                 tl = t.lower()
-                if len(tl) < 2 or any(tl in w.split("-") for w in tw): continue
+                if len(tl) < 2 or any(tl in re.split(r"[- ]", w) for w in tw): continue
                 if tl in FUNC or tl in tw or any(b in K or b in tw for b in base_forms(t)) or t in NAMES or t in CAPOK or t.split("'")[0] in NAMES: continue
                 unk.setdefault(tl, []).append(d["영어"])
     if level == "L4":

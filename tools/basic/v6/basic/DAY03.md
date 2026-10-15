@@ -52,7 +52,7 @@
 | fortune | 설날 인사를 할 때 | What do people wish for on New Year's Day? | Good health and good fortune. | 설날에 사람들은 무엇을 빌어? | 건강과 행운을. |
 | fortune | 옛날이야기를 읽을 때 | How did the king get so much gold? | He made a fortune selling salt. | 그 왕은 어떻게 금을 그렇게 많이 모았어? | 소금을 팔아서 큰돈을 벌었어. |
 | firework | 축제 밤하늘 | What is that loud boom in the sky? | It's the first firework of the festival! | 하늘에서 저 펑 하는 소리는 뭐야? | 축제의 첫 번째 불꽃이야! |
-| firework | 불꽃놀이 장소를 물을 때 | Where can we see the show tonight? | The firework show is at the beach. | 오늘 밤 공연은 어디서 볼 수 있어? | 불꽃놀이는 해변에서 해. |
+| firework | 축제 밤 구경을 갈 때 | Where can we see the show tonight? | The firework show is at the beach. | 오늘 밤 공연은 어디서 볼 수 있어? | 불꽃놀이는 해변에서 해. |
 | instruction | 로봇 장난감을 조립할 때 | How do I put this robot together? | Look at the instruction sheet in the box. | 이 로봇은 어떻게 조립해? | 상자 안에 있는 설명서를 봐. |
 | instruction | 과학 실험 시간 | What should we do first in this experiment? | Follow the first instruction on the paper. | 이 실험에서 뭘 먼저 해야 해? | 종이에 적힌 첫 번째 지시를 따라. |
 | likely | 먹구름이 낀 날 | Look at those dark clouds in the sky. | Rain is likely. Bring your umbrella. | 하늘에 저 먹구름 좀 봐. | 비가 올 것 같아. 우산 챙겨. |
@@ -93,5 +93,5 @@
 | fairy | 빠진 이를 베개 밑에 둘 때 | Why is your tooth under your pillow? | The tooth fairy will take it tonight. | 왜 이를 베개 밑에 뒀어? | 오늘 밤 이의 요정이 가져갈 거야. |
 | homeless | 길고양이를 발견했을 때 | Does this little cat have an owner? | No, it's homeless. Let's give it food. | 이 작은 고양이는 주인이 있어? | 아니, 집이 없어. 먹이를 주자. |
 | homeless | 봉사 활동 준비 | Why are you making sandwiches today? | They are for homeless people in our town. | 오늘 왜 샌드위치를 만들어? | 우리 동네 집 없는 사람들에게 줄 거야. |
-| hour | 공부 시간을 물을 때 | How long did you study last night? | About an hour after dinner. | 어젯밤에 얼마나 공부했어? | 저녁 먹고 한 시간쯤. |
-| hour | 영화 상영 시간을 볼 때 | How long is this movie, Mom? | It's about one hour and thirty minutes. | 엄마, 이 영화 얼마나 길어요? | 한 시간 삼십 분쯤이야. |
+| hour | 공부를 얼마나 했는지 물을 때 | How long did you study last night? | About an hour after dinner. | 어젯밤에 얼마나 공부했어? | 저녁 먹고 한 시간쯤. |
+| hour | 영화표를 확인할 때 | How long is this movie, Mom? | It's about one hour and thirty minutes. | 엄마, 이 영화 얼마나 길어요? | 한 시간 삼십 분쯤이야. |

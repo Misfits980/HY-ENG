@@ -37,7 +37,7 @@
 |---|---|---|---|---|---|
 | think | 소풍 날씨를 걱정할 때 | Will it rain on our picnic day? | I don't think so. The sky is clear. | 소풍날 비가 올까? | 아닐 것 같아. 하늘이 맑아. |
 | think | 아빠 선물을 고를 때 | What should we buy for Dad's birthday? | Let me think about it for a minute. | 아빠 생신에 뭘 사 드릴까? | 잠깐 생각해 볼게. |
-| computer | 컴퓨터실에서 숙제할 때 | How can I print my report here? | Use the computer next to the printer. | 여기서 보고서를 어떻게 출력해? | 프린터 옆에 있는 컴퓨터를 써. |
+| computer | 정보실에서 숙제할 때 | How can I print my report here? | Use the computer next to the printer. | 여기서 보고서를 어떻게 출력해? | 프린터 옆에 있는 컴퓨터를 써. |
 | computer | 이메일을 못 보낼 때 | Why didn't you send the email yesterday? | My computer was broken, so I couldn't. | 어제 왜 이메일을 안 보냈어? | 내 컴퓨터가 고장 나서 못 보냈어. |
 | away | 새들이 갑자기 사라졌을 때 | Where did all the birds go? | They flew away when the dog barked. | 새들이 다 어디 갔어? | 개가 짖으니까 멀리 날아갔어. |
 | away | 견학 장소를 물을 때 | Is the museum close to our school? | No, it's about ten kilometers away. | 박물관은 우리 학교에서 가까워? | 아니, 10킬로미터쯤 떨어져 있어. |
