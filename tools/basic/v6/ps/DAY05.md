@@ -1,67 +1,69 @@
-## Pre-Starter Step 5 (노션 Pre starter / Voca 1 / Step (5), 2026-10-15)
+## 1단계 (Pre-Starter) DAY 05 — Claude 작성 (2026-10-16)
 
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| tennis | 명사 | 테니스 | 라켓으로 공을 주고받는 운동이에요. | — | — | — | We play tennis on Saturday. | 우리는 토요일에 테니스를 쳐요. | Tennis is fun with my dad. | 아빠와 하는 테니스는 재미있어요. | 1 | — | play tennis (테니스를 치다) · tennis racket (테니스 라켓) | — | — | — |
-| ball | 명사 | 공 | 둥글어서 던지거나 찰 수 있어요. | — | — | — | I kick the ball outside. | 저는 밖에서 공을 차요. | The ball rolls under the table. | 공이 탁자 아래로 굴러가요. | 1 | balls | throw a ball (공을 던지다) · catch a ball (공을 받다) | — | — | bell (종) |
-| golf | 명사 | 골프 | 공을 쳐서 구멍에 넣는 운동이에요. | 동사 | 골프 치다 | 채로 공을 쳐서 즐기는 운동이에요. | My dad plays golf on Sunday. | 저희 아빠는 일요일에 골프를 치세요. | My dad and I golf together. | 아빠와 저는 함께 골프를 쳐요. | 2 | 명사 — / 동사 golfs · golfed · golfed · golfing | play golf (골프 치다) · golf course (골프장) | — | — | — |
-| go | 동사 | 가다 | 어떤 장소로 움직일 때 써요. | — | — | — | I go to school by bus. | 저는 버스를 타고 학교에 가요. | We go home after the game. | 우리는 경기가 끝나고 집에 가요. | 1 | goes · went · gone · going | go home (집에 가다) · go to school (학교에 가다) | leave (떠나다) | come (오다) | no (아니요) |
-| boxing | 명사 | 복싱 | 장갑을 끼고 주먹으로 겨루는 운동이에요. | — | — | — | Boxing is a fun sport. | 복싱은 재미있는 운동이에요. | We learn boxing at the gym. | 우리는 체육관에서 복싱을 배워요. | 1 | — | boxing gloves (복싱 장갑) · boxing match (복싱 경기) | — | — | box (상자) |
-| swim | 동사 | 수영하다 | 물속에서 팔과 다리를 움직여요. | — | — | — | I can swim in the pool. | 저는 수영장에서 수영할 수 있어요. | We swim together every Saturday. | 우리는 매주 토요일 함께 수영해요. | 1 | swims · swam · swum · swimming | swim in a pool (수영장에서 수영하다) · swim well (수영을 잘하다) | — | — | swing (흔들다) |
-| bike | 명사 | 자전거 | 두 바퀴를 페달로 움직이는 탈것이에요. | 동사 | 자전거 타다 | 페달을 밟아 자전거로 이동해요. | My new bike has two wheels. | 제 새 자전거에는 바퀴가 두 개 있어요. | We bike to the park together. | 우리는 함께 공원까지 자전거를 타요. | 2 | 명사 bikes / 동사 bikes · biked · biked · biking | ride a bike (자전거를 타다) · bike to school (학교까지 자전거 타다) | bicycle (자전거) | — | like (좋아하다) |
-| stop | 동사 | 멈추다 | 움직이던 것을 그만둘 때 써요. | 명사 | 정류장 | 버스가 서서 사람을 태우는 곳이에요. | Stop at the red light, please. | 빨간불에서는 멈춰 주세요. | We wait at the bus stop. | 우리는 버스 정류장에서 기다려요. | 2 | 동사 stops · stopped · stopped · stopping / 명사 stops | stop here (여기서 멈추다) · bus stop (버스 정류장) | halt (멈추다) | go (가다) | shop (가게) |
-| baseball | 명사 | 야구 | 공을 방망이로 쳐서 하는 운동이에요. | — | — | — | We play baseball after school. | 우리는 방과 후 야구를 해요. | Baseball needs a bat and ball. | 야구에는 방망이와 공이 필요해요. | 1 | — | play baseball (야구하다) · baseball team (야구팀) | — | — | — |
-| ski | 명사 | 스키 | 눈 위에서 타는 긴 운동 도구예요. | 동사 | 스키 타다 | 눈 위에서 스키로 미끄러져요. | My ski is next to the door. | 제 스키는 문 옆에 있어요. | I can ski down that hill. | 저는 저 언덕을 스키로 내려갈 수 있어요. | 2 | 명사 skis / 동사 skis · skied · skied · skiing | ski boots (스키 부츠) · ski down a hill (스키로 언덕을 내려가다) | — | — | sky (하늘) |
-| helmet | 명사 | 헬멧 | 운동할 때 머리를 보호하는 물건이에요. | — | — | — | I wear a helmet when biking. | 저는 자전거를 탈 때 헬멧을 써요. | My helmet is blue and white. | 제 헬멧은 파란색과 흰색이에요. | 1 | helmets | wear a helmet (헬멧을 쓰다) · bike helmet (자전거 헬멧) | — | — | — |
-| win | 동사 | 이기다 | 경기에서 상대보다 잘해 승리해요. | 명사 | 승리 | 경기에서 이긴 결과를 말해요. | We can win the game today. | 우리는 오늘 경기에서 이길 수 있어요. | This is our first win. | 이것이 우리의 첫 승리예요. | 2 | 동사 wins · won · won · winning / 명사 wins | win a game (경기에서 이기다) · first win (첫 승리) | beat (이기다) | lose (지다) | wing (날개) |
-| exercise | 동사 | 운동하다 | 몸을 움직여 건강을 지킬 때 써요. | 명사 | 운동 | 몸을 튼튼히 만드는 활동이에요. | I exercise with Dad every morning. | 저는 매일 아침 아빠와 운동해요. | This exercise is good for me. | 이 운동은 저에게 좋아요. | 2 | 동사 exercises · exercised · exercised · exercising / 명사 exercises | exercise every day (매일 운동하다) · do exercise (운동하다) | work out (운동하다) | rest (쉬다) | — |
-| bat | 명사 | 방망이 | 공을 칠 때 손으로 잡는 도구예요. | — | — | — | I hit the ball with a bat. | 저는 방망이로 공을 쳐요. | My bat is near the door. | 제 방망이는 문 가까이에 있어요. | 1 | bats | baseball bat (야구 방망이) · swing a bat (방망이를 휘두르다) | — | — | bad (나쁜) |
-| soccer | 명사 | 축구 | 발로 공을 차서 골을 넣는 운동이에요. | — | — | — | We play soccer on Friday. | 우리는 금요일에 축구를 해요. | Soccer is fun with my friends. | 친구들과 하는 축구는 재미있어요. | 1 | — | play soccer (축구하다) · soccer team (축구팀) | football (축구) | — | — |
-| rule | 명사 | 규칙 | 함께 지키기로 정한 약속이에요. | — | — | — | This rule keeps our game fair. | 이 규칙은 경기를 공정하게 해 줘요. | We follow the rule at school. | 우리는 학교에서 규칙을 지켜요. | 1 | rules | follow a rule (규칙을 따르다) · school rule (학교 규칙) | — | — | ruler (자) |
-| basketball | 명사 | 농구 | 공을 높은 골대에 넣는 운동이에요. | — | — | — | We play basketball in the gym. | 우리는 체육관에서 농구를 해요. | Basketball is fun with friends. | 농구는 친구들과 함께하면 재미있어요. | 1 | — | play basketball (농구하다) · basketball game (농구 경기) | — | — | — |
-| skate | 동사 | 스케이트 타다 | 얼음 위를 미끄러지며 움직여요. | 명사 | 스케이트화 | 얼음 위를 미끄러지는 신발이에요. | I can skate on the ice. | 저는 얼음 위에서 스케이트를 탈 수 있어요. | My new skate fits my foot. | 제 새 스케이트화는 발에 꼭 맞아요. | 2 | 동사 skates · skated · skated · skating / 명사 skates | skate on ice (얼음 위에서 스케이트를 타다) · ice skate (아이스스케이트화) | glide (미끄러지다) | — | state (상태) |
-| glove | 명사 | 장갑 | 손을 따뜻하고 안전하게 감싸요. | — | — | — | I wear a glove in winter. | 저는 겨울에 장갑을 껴요. | This glove keeps my hand warm. | 이 장갑은 제 손을 따뜻하게 해 줘요. | 1 | gloves | wear gloves (장갑을 끼다) · baseball glove (야구 글러브) | — | — | globe (지구본) |
-| lose | 동사 | 지다, 패하다 | 경기에서 이기지 못할 때 써요. | — | — | — | We sometimes lose a soccer game. | 우리는 가끔 축구 경기에서 져요. | I can lose and still learn. | 저는 져도 배울 수 있어요. | 1 | loses · lost · lost · losing | lose a game (경기에서 지다) · lose a match (시합에서 지다) | — | win (이기다) | loose (헐거운) |
+| tennis | 명사 | 테니스 | 라켓으로 공을 넘겨 주고받는 운동이에요. | — | — | — | Mom and I play tennis on Sunday. | 엄마와 나는 일요일에 테니스를 쳐요. | A tennis ball is small and yellow. | 테니스공은 작고 노래요. | 1 | — | play tennis (테니스를 치다) · a tennis ball (테니스공) | — | — | — |
+| ball | 명사 | 공 | 둥글어서 던지고 차고 굴리는 거예요. | — | — | — | Throw the ball to me, Tom! | 톰, 나한테 공 던져! | My dog runs after the red ball. | 우리 강아지가 빨간 공을 쫓아 달려요. | 1 | balls | throw a ball (공을 던지다) · catch the ball (공을 잡다) | — | — | bell (종) |
+| golf | 명사 | 골프 | 작은 공을 쳐서 구멍에 넣는 운동이에요. | — | — | — | Grandpa plays golf on the grass. | 할아버지는 잔디에서 골프를 치세요. | Hit the golf ball into the hole. | 골프공을 쳐서 구멍에 넣어. | 1 | — | play golf (골프를 치다) · a golf ball (골프공) | — | — | — |
+| go | 동사 | 가다 | 다른 곳으로 움직여 가는 거예요. | — | — | — | I go to school at eight. | 나는 여덟 시에 학교에 가요. | Let's go to the pool together! | 같이 수영장에 가자! | 1 | goes · went · gone · going | go home (집에 가다) · go to bed (자러 가다) | — | come (오다) | — |
+| boxing | 명사 | 복싱, 권투 | 장갑을 끼고 주먹으로 겨루는 운동이에요. | — | — | — | My uncle does boxing at the gym. | 우리 삼촌은 체육관에서 복싱을 해요. | Boxing gloves are big and soft. | 복싱 장갑은 크고 푹신해요. | 1 | — | boxing gloves (복싱 장갑) · a boxing class (복싱 수업) | — | — | box (상자) |
+| swim | 동사 | 수영하다, 헤엄치다 | 물에서 팔다리를 움직여 나아가는 거예요. | — | — | — | I can swim like a fish! | 나는 물고기처럼 수영할 수 있어! | Ducks swim in the pond. | 오리들이 연못에서 헤엄쳐요. | 1 | swims · swam · swum · swimming | swim fast (빨리 헤엄치다) · swim in the sea (바다에서 수영하다) | — | — | swing (그네) |
+| bike | 명사 | 자전거 | 페달을 밟아 타는 두 바퀴 탈것이에요. | 동사 | 자전거를 타다 | 자전거를 타고 가는 거예요. | My new bike is red. | 내 새 자전거는 빨간색이에요. | We bike to the park on Sunday. | 우리는 일요일에 자전거를 타고 공원에 가요. | 2 | bikes · biked · biked · biking | ride a bike (자전거를 타다) · bike to school (자전거로 학교에 가다) | bicycle (자전거) | — | bake (굽다) |
+| stop | 동사 | 멈추다, 그만하다 | 움직이거나 하던 것을 그만하는 거예요. | 명사 | 정류장 | 버스가 서서 사람을 태우는 곳이에요. | Stop! The light is red. | 멈춰! 신호등이 빨간불이야. | Our bus stop is near my house. | 우리 버스 정류장은 우리 집 가까이에 있어요. | 2 | stops · stopped · stopped · stopping | stop here (여기서 멈추다) · a bus stop (버스 정류장) | — | go (가다) | shop (가게) |
+| baseball | 명사 | 야구 | 방망이로 공을 치고 달리는 운동이에요. | — | — | — | Jiho plays baseball with his dad. | 지호는 아빠와 야구를 해요. | I wear my baseball cap today. | 나는 오늘 야구 모자를 써요. | 1 | — | play baseball (야구를 하다) · a baseball team (야구팀) | — | — | basketball (농구) |
+| ski | 명사 | 스키 | 눈 위를 미끄러져 가는 길고 얇은 판이에요. | 동사 | 스키를 타다 | 스키를 신고 눈 위를 내려가는 거예요. | My ski is long and blue. | 내 스키는 길고 파래요. | We ski down the snowy hill. | 우리는 눈 덮인 언덕을 스키 타고 내려가요. | 2 | skis · skied · skied · skiing | ski boots (스키 부츠) · ski down (스키 타고 내려가다) | — | — | sky (하늘) |
+| helmet | 명사 | 헬멧 | 머리를 지키려고 쓰는 단단한 모자예요. | — | — | — | Wear your helmet on the bike. | 자전거 탈 때 헬멧을 써. | My helmet has a star on it. | 내 헬멧에는 별이 그려져 있어요. | 1 | helmets | wear a helmet (헬멧을 쓰다) · a bike helmet (자전거 헬멧) | — | — | — |
+| win | 동사 | 이기다 | 시합에서 상대보다 잘해서 이기는 거예요. | 명사 | 승리 | 시합에서 이긴 것이에요. | Our team can win today! | 우리 팀은 오늘 이길 수 있어! | It is a big win for us! | 우리에게 큰 승리야! | 2 | wins · won · won · winning | win a game (시합에서 이기다) · win a prize (상을 타다) | — | lose (지다) | wing (날개) |
+| exercise | 동사 | 운동하다 | 몸을 튼튼하게 하려고 움직이는 거예요. | 명사 | 운동 | 몸을 움직여 튼튼해지는 활동이에요. | Dad and I exercise after dinner. | 아빠와 나는 저녁을 먹고 운동해요. | Let's do a fun exercise together! | 같이 재미있는 운동을 하자! | 2 | exercises · exercised · exercised · exercising | exercise every day (매일 운동하다) · do exercise (운동을 하다) | — | — | — |
+| bat | 명사 | 방망이 | 야구에서 공을 치는 긴 막대예요. | — | — | — | Hold the bat with two hands. | 두 손으로 방망이를 잡아. | Tom swings his bat very hard. | 톰이 방망이를 아주 세게 휘둘러요. | 1 | bats | a baseball bat (야구 방망이) · swing the bat (방망이를 휘두르다) | — | — | bad (나쁜) |
+| soccer | 명사 | 축구 | 발로 공을 차서 골에 넣는 운동이에요. | — | — | — | We play soccer at lunch time. | 우리는 점심시간에 축구를 해요. | Minsu kicks the soccer ball high. | 민수가 축구공을 높이 차요. | 1 | — | play soccer (축구를 하다) · a soccer ball (축구공) | football (축구) | — | — |
+| rule | 명사 | 규칙 | 모두 함께 지키기로 한 약속이에요. | — | — | — | Wait in line. That is the rule. | 줄 서서 기다려. 그게 규칙이야. | Let's make a rule for our game. | 우리 놀이 규칙을 만들자. | 1 | rules | follow the rule (규칙을 지키다) · a class rule (학급 규칙) | — | — | ruler (자) |
+| basketball | 명사 | 농구 | 공을 높은 바구니에 넣는 운동이에요. | — | — | — | Amy plays basketball after school. | 에이미는 방과 후에 농구를 해요. | This basketball is big and orange. | 이 농구공은 크고 주황색이에요. | 1 | — | play basketball (농구를 하다) · a basketball game (농구 경기) | — | — | baseball (야구) |
+| skate | 동사 | 스케이트를 타다 | 얼음이나 바닥 위를 미끄러져 가는 거예요. | 명사 | 스케이트 | 바퀴나 날이 달린 신발이에요. | We skate on the ice in winter. | 우리는 겨울에 얼음 위에서 스케이트를 타요. | My left skate is too small. | 내 왼쪽 스케이트가 너무 작아요. | 2 | skates · skated · skated · skating | skate on ice (얼음 위에서 스케이트를 타다) · a roller skate (롤러스케이트) | — | — | — |
+| glove | 명사 | 장갑 | 손을 감싸서 따뜻하게 지켜 주는 거예요. | — | — | — | My hand is cold without a glove. | 장갑이 없으니 손이 차가워요. | Catch the ball with your glove! | 글러브로 공을 잡아! | 1 | gloves | a warm glove (따뜻한 장갑) · a baseball glove (야구 글러브) | — | — | love (사랑) |
+| lose | 동사 | 지다, 잃어버리다 | 시합에서 지거나 물건을 잃는 거예요. | — | — | — | It is okay to lose a game. | 시합에서 져도 괜찮아. | Don't lose your key, Minsu. | 민수야, 열쇠 잃어버리지 마. | 1 | loses · lost · lost · losing | lose a game (시합에서 지다) · lose your way (길을 잃다) | — | win (이기다) | loose (헐렁한) |
+
+## [표 2] 게임 대화 표
 
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
-| tennis | 라켓과 네트를 준비하기 | What sport uses this racket? | We play tennis with it. | 이 라켓은 어떤 운동에 써? | 테니스를 칠 때 써. |
-| tennis | 주말에 라켓으로 연습 | What do you play with rackets? | My dad and I play tennis. | 라켓으로 어떤 운동을 해? | 아빠와 나는 테니스를 쳐. |
-| ball | 운동장에서 공 주워 오기 | What rolled under the tree? | My ball rolls under there. | 무엇이 나무 아래로 굴러갔어? | 내 공이 저 아래로 굴러가. |
-| ball | 던지기 놀이를 시작하기 | What should I throw to you? | Throw me the soft ball. | 너에게 무엇을 던질까? | 부드러운 공을 던져 줘. |
-| golf | 잔디에서 홀을 찾는 운동 | Which sport puts balls into holes? | My dad plays golf there. | 어떤 운동은 공을 구멍에 넣어? | 아빠가 거기서 골프를 치셔. |
-| golf | 아빠와 운동 계획 세우기 | What game uses a small white ball? | We golf with Dad today. | 어떤 운동에서 작은 흰 공을 써? | 오늘 아빠와 골프를 쳐. |
-| go | 수업이 끝난 학교 정문 | Where do you walk after class? | I go home with Mom. | 수업 후 어디로 걸어가? | 엄마와 집에 가. |
-| go | 집 앞 버스 정류장 | How do you reach school today? | I go by bus today. | 오늘 어떻게 학교에 가? | 오늘은 버스를 타고 가. |
-| boxing | 운동교실에서 장갑 착용 | What sport uses big hand gloves? | We call that sport boxing. | 어떤 운동에서 큰 장갑을 껴? | 그 운동을 복싱이라고 해. |
-| boxing | 체육관에서 주먹 동작 연습 | What sport is this in the ring? | This is boxing with my coach. | 링 안에서 무슨 운동을 해? | 코치와 복싱하는 거야. |
-| swim | 수영장 가장자리에서 준비 | What can you do in water? | I can swim across this pool. | 물속에서 무엇을 할 수 있어? | 나는 이 수영장을 가로질러 수영할 수 있어. |
-| swim | 여름 방학 수영 배우기 | How do you move through water? | I swim with both arms. | 물속을 어떻게 움직여? | 양팔로 수영해. |
-| bike | 두 바퀴 탈것을 고르기 | What has two wheels and a seat? | My bike is over there. | 바퀴 두 개와 안장이 있는 건 뭐야? | 내 자전거는 저기에 있어. |
-| bike | 공원으로 페달 밟고 가기 | How will you reach the park? | We bike there after lunch. | 공원까지 어떻게 갈 거야? | 점심 먹고 자전거를 타고 가. |
-| stop | 횡단보도 빨간불 기다리기 | What should I do at red? | Please stop before the road. | 빨간불에 어떻게 해야 해? | 길에 들어가기 전에 멈춰 줘. |
-| stop | 버스가 올 때까지 기다리기 | Where does the school bus come? | Wait at the bus stop. | 학교 버스는 어디로 와? | 버스 정류장에서 기다려. |
-| baseball | 주자를 위해 공 치기 | Which sport uses bats and bases? | We play baseball this afternoon. | 어떤 운동에서 방망이와 베이스를 써? | 우리는 오늘 오후에 야구를 해. |
-| baseball | 경기장 관중석에서 구경 | What sport uses a bat and ball? | We play baseball in the park. | 어떤 운동에서 방망이와 공을 써? | 우리는 공원에서 야구해. |
-| ski | 겨울 운동 장비 챙기기 | What do we use on snow? | A ski goes under each foot. | 눈 위에서는 무엇을 사용해? | 각 발 아래에 스키를 하나씩 대. |
-| ski | 눈 덮인 언덕 내려가기 | What can you do on snowy hills? | I can ski down them. | 눈 온 언덕에서 뭘 할 수 있어? | 스키를 타고 내려갈 수 있어. |
-| helmet | 자전거 안전장비를 준비 | What do you wear on your head? | I wear a helmet on my bike. | 머리에 무엇을 써? | 자전거 탈 때 헬멧을 써. |
-| helmet | 스케이트장 입구에서 준비 | Why cover your head on ice? | My helmet keeps me safe. | 얼음 위에서 왜 머리를 가려? | 헬멧이 나를 안전하게 지켜 줘. |
-| win | 경기 종료 직전 응원하기 | How can our team finish first? | We can win this game. | 우리 팀이 어떻게 일등으로 끝낼까? | 우리는 이 경기에서 이길 수 있어. |
-| win | 스포츠 경기 결과 확인하기 | Does your team have first place? | Yes, this is our first win. | 너희 팀이 일등이야? | 응, 이번이 우리의 첫 승리야. |
-| exercise | 체육 수업 전 몸 풀기 | What helps make your body strong? | I exercise every morning at home. | 무엇이 몸을 튼튼하게 해? | 나는 매일 아침 집에서 운동해. |
-| exercise | 동작을 따라 하는 수업 | What is this jumping move for? | This exercise makes legs strong. | 이 뛰는 동작은 무엇을 위한 거야? | 이 운동은 다리를 튼튼하게 해. |
-| bat | 경기용 도구를 찾는 때 | What do I swing at pitches? | Use this bat to hit. | 던진 공을 칠 때 무엇을 휘둘러? | 이 방망이로 쳐. |
-| bat | 야구용품을 정리하는 방 | Where is my wooden hitting stick? | Your bat is by the door. | 내 나무 타격 도구는 어디 있어? | 방망이가 문 옆에 있어. |
-| soccer | 발로 공 차는 운동하기 | What game do you play with feet? | We play soccer after school. | 발로 하는 경기는 뭐야? | 우리는 방과 후 축구해. |
-| soccer | 운동장에서 골키퍼 만나기 | What game uses feet and a ball? | My friends play soccer outside. | 발과 공을 사용하는 경기는 뭐야? | 친구들이 밖에서 축구해. |
-| rule | 교실에서 약속 확인하기 | Why must we wait our turn? | It's a rule in our class. | 왜 차례를 기다려야 해? | 우리 반의 규칙이야. |
-| rule | 경기 시작 전 약속 정하기 | Can I run before we start? | No, the rule says wait. | 시작 전에 달려도 돼? | 아니, 규칙상 기다려야 해. |
-| basketball | 체육관에서 높은 골대 보기 | What game uses a big orange ball? | We play basketball at school. | 어떤 경기에서 큰 주황색 공을 써? | 학교에서 농구를 해. |
-| basketball | 친구와 공을 튀기는 날 | What game uses a high basket? | I play basketball with Amy. | 어떤 경기에서 높은 골대를 써? | 나는 에이미와 농구해. |
-| skate | 얼음판에서 처음 타보기 | What can you do on ice? | I can skate with help. | 얼음 위에서 무엇을 할 수 있어? | 도움을 받아 스케이트를 탈 수 있어. |
-| skate | 스케이트화 끈을 묶기 | What shoe goes on the ice? | This skate fits my foot. | 어떤 신발이 얼음 위에서 쓰여? | 이 스케이트화가 내 발에 맞아. |
-| glove | 겨울 손 보호하기 | What keeps your fingers warm outside? | A glove keeps my fingers warm. | 밖에서 손가락을 무엇으로 따뜻하게 해? | 장갑은 내 손가락을 따뜻하게 해 줘. |
-| glove | 야구공을 받아보는 연습 | What catches the hard flying ball? | Use your baseball glove for it. | 날아오는 단단한 공을 뭘로 받아? | 야구 장갑으로 받아. |
-| lose | 친구에게 경기 후 인사 | What if the other team scores more? | We may lose this game. | 다른 팀이 더 많이 득점하면? | 우리는 이 경기에서 질 수도 있어. |
-| lose | 시합에서 졌을 때 격려 | What happens without enough points? | We lose but learn today. | 점수가 부족하면 어떻게 돼? | 오늘은 지지만 배울 거야. |
+| tennis | 주말 계획을 말할 때 | What do you do on Saturday? | I play tennis with my mom. | 토요일에 뭐 해? | 엄마랑 테니스 쳐. |
+| tennis | 운동장 그물 앞에서 | Can you hit it over the net? | Sure! I am good at tennis. | 그물 너머로 칠 수 있어? | 그럼! 나 테니스 잘해. |
+| ball | 공원에서 강아지와 놀 때 | What does your dog like? | He loves to chase a ball. | 너희 강아지는 뭘 좋아해? | 공 쫓아가는 걸 엄청 좋아해. |
+| ball | 놀이터에서 놀 때 | Let's play catch, Yuna! | Okay! Where is the ball? | 유나야, 주고받기 하자! | 좋아! 공 어디 있어? |
+| golf | 할아버지가 잔디밭에 있을 때 | What is Grandpa doing there? | He is playing golf. | 할아버지는 저기서 뭐 하셔? | 골프 치고 계셔. |
+| golf | 아빠가 안 보일 때 | Where is Dad today? | He is out playing golf. | 아빠는 오늘 어디 계셔? | 골프 치러 나가셨어. |
+| go | 놀이터에서 해가 질 때 | It is getting dark, kids. | Okay, let's go home. | 얘들아, 어두워지고 있어. | 알겠어요, 집에 가요. |
+| go | 신호등 앞에서 | Is the light green now? | Yes, we can go now. | 이제 초록불이야? | 응, 이제 건너도 돼. |
+| boxing | 방과 후 수업을 말할 때 | What class do you take? | I take a boxing class. | 너는 무슨 수업 들어? | 나는 복싱 수업을 들어. |
+| boxing | 운동 경기를 볼 때 | What are you watching, Dad? | Boxing! It looks hard. | 아빠, 뭐 보세요? | 복싱! 힘들어 보이지. |
+| swim | 바닷가에 갔을 때 | The water looks so nice! | Let's swim to that rock! | 물 정말 좋아 보인다! | 저 바위까지 헤엄쳐 가자! |
+| swim | 물이 무서울 때 | I am scared of the water. | Don't worry. I will help you swim. | 나 물이 무서워. | 걱정 마. 헤엄치게 도와줄게. |
+| bike | 공원이 먼지 물을 때 | Is the park far? | No, we can bike there. | 공원 멀어? | 아니, 자전거 타고 가면 돼. |
+| bike | 생일 선물을 열 때 | What is in the big box? | Wow, a new red bike! | 큰 상자에 뭐가 들었어? | 와, 새 빨간 자전거다! |
+| stop | 버스를 기다릴 때 | Where do we wait for the bus? | At the bus stop over there. | 버스는 어디서 기다려? | 저기 버스 정류장에서. |
+| stop | 비 오는 날 창가에서 | Can we play outside now? | Wait for the rain to stop. | 이제 밖에서 놀아도 돼? | 비가 그칠 때까지 기다려. |
+| baseball | 모자를 고를 때 | Which cap do you want? | The blue baseball cap! | 어느 모자 갖고 싶어? | 파란 야구 모자! |
+| baseball | 운동장에서 친구를 만날 때 | Do you want to play? | Yes! Let's play baseball. | 같이 놀래? | 좋아! 야구하자. |
+| ski | 눈 덮인 산에 갔을 때 | Wow, so much snow! | Let's ski down the hill! | 와, 눈이 엄청 많아! | 언덕을 스키 타고 내려가자! |
+| ski | 겨울 방학 계획을 말할 때 | What will you do this winter? | I will learn to ski. | 이번 겨울에 뭐 할 거야? | 스키 타는 걸 배울 거야. |
+| helmet | 자전거를 타기 전에 | Can I ride now, Mom? | Put on your helmet first. | 엄마, 이제 타도 돼요? | 헬멧 먼저 쓰렴. |
+| helmet | 야구 시합 전에 | Do I need anything else? | Yes, wear this helmet. | 또 필요한 거 있어? | 응, 이 헬멧 써. |
+| win | 달리기 시합 전에 | Are you ready, Yuna? | Yes! I want to win! | 유나야, 준비됐어? | 응! 꼭 이기고 싶어! |
+| win | 보드게임을 할 때 | Ha ha, I have more points! | You always win this game! | 하하, 내 점수가 더 많아! | 넌 이 게임 맨날 이기더라! |
+| exercise | 이른 아침 공원에서 | Why is Grandpa up so early? | He likes to exercise outside. | 할아버지는 왜 이렇게 일찍 일어나셨어? | 밖에서 운동하는 걸 좋아하셔. |
+| exercise | 체육 시간이 시작될 때 | What do we do first? | Let's do an easy exercise. | 먼저 뭐 해요? | 쉬운 운동부터 하자. |
+| bat | 타석에 처음 섰을 때 | How should I hold it? | Hold the bat with both hands. | 이거 어떻게 잡아? | 방망이를 두 손으로 잡아. |
+| bat | 창고를 정리할 때 | What is this long wooden stick? | That is my old bat! | 이 긴 나무 막대는 뭐야? | 그거 내 옛날 방망이야! |
+| soccer | 쉬는 시간 운동장에서 | What game do we play? | Let's play soccer! | 우리 무슨 놀이 할까? | 축구하자! |
+| soccer | 운동복을 입고 나갈 때 | Why are you wearing that shirt? | I have soccer practice today. | 왜 그 옷 입었어? | 오늘 축구 연습이 있어. |
+| rule | 놀이를 시작하기 전에 | How do we play this game? | Listen, here is the first rule. | 이 놀이 어떻게 해? | 들어 봐, 이게 첫 번째 규칙이야. |
+| rule | 도서관에서 간식을 꺼낼 때 | Can I eat snacks here? | Sorry, no. That is the rule. | 여기서 과자 먹어도 돼요? | 미안하지만 안 돼. 그게 규칙이야. |
+| basketball | 체육관에서 공을 던질 때 | Can you throw it in? | Yes! I am good at basketball. | 저기 넣을 수 있어? | 응! 나 농구 잘해. |
+| basketball | 키가 큰 친구를 볼 때 | Tom is so tall now! | He plays basketball every day. | 톰 키 엄청 컸다! | 매일 농구하거든. |
+| skate | 얼어붙은 호수에서 | The lake is all ice! | Let's skate on it! | 호수가 전부 얼음이야! | 그 위에서 스케이트 타자! |
+| skate | 롤러장에서 자꾸 넘어질 때 | I keep falling down! | Hold my hand and skate slowly. | 자꾸 넘어져! | 내 손 잡고 천천히 타. |
+| glove | 눈사람을 만들 때 | My fingers are so cold! | Here, put on this glove. | 손가락이 너무 차가워! | 자, 이 장갑 껴. |
+| glove | 야구공을 받기 전에 | Throw it to me! | Wait, I need my glove! | 나한테 던져! | 잠깐, 내 글러브가 있어야 해! |
+| lose | 경기가 끝난 뒤 | The other team got more goals. | It is okay to lose sometimes. | 상대 팀이 골을 더 넣었어. | 가끔은 져도 괜찮아. |
+| lose | 새 모자를 쓰고 나갈 때 | Mom, can I wear my new hat? | Yes, but don't lose it. | 엄마, 새 모자 쓰고 가도 돼요? | 그래, 근데 잃어버리지 마. |

@@ -1,67 +1,69 @@
-## Pre-Starter Step 12 (노션 Pre starter / Voca 1 / Step (12), 2026-10-15)
+## 1단계 (Pre-Starter) DAY 12 — Claude 작성 (2026-10-16)
 
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| mountain | 명사 | 산 | 높이 솟은 큰 땅이에요. | — | — | — | We see a mountain far away. | 우리는 멀리 있는 산을 봐요. | The mountain has snow on top. | 그 산 꼭대기에는 눈이 있어요. | 1 | mountains | high mountain (높은 산) · climb a mountain (산에 오르다) | — | — | — |
-| sky | 명사 | 하늘 | 머리 위로 넓게 펼쳐져 있어요. | — | — | — | The sky looks blue today. | 오늘 하늘은 파랗게 보여요. | I see birds in the sky. | 저는 하늘에서 새들을 봐요. | 1 | skies | blue sky (파란 하늘) · in the sky (하늘에) | — | ground (땅) | ski (스키) |
-| river | 명사 | 강 | 물이 긴 길을 따라 흘러요. | — | — | — | A river runs past our town. | 강이 우리 마을을 지나 흘러요. | We watch boats on the river. | 우리는 강 위의 배들을 봐요. | 1 | rivers | wide river (넓은 강) · cross a river (강을 건너다) | stream (시내) | — | driver (운전자) |
-| tree | 명사 | 나무 | 줄기와 가지가 있는 식물이에요. | — | — | — | A tree grows beside our house. | 나무 한 그루가 우리 집 옆에서 자라요. | Birds sing in the tree. | 새들이 나무에서 지저귀어요. | 1 | trees | tall tree (높은 나무) · plant a tree (나무를 심다) | — | — | three (셋) |
-| sun | 명사 | 해 | 낮에 빛과 열을 주는 별이에요. | — | — | — | The sun is bright today. | 오늘 해가 밝아요. | I wear a hat under the sun. | 저는 햇볕 아래에서 모자를 써요. | 1 | — | bright sun (밝은 해) · in the sun (햇볕에서) | — | moon (달) | son (아들) |
-| rock | 명사 | 바위 | 땅에 있는 크고 단단한 돌이에요. | — | — | — | A rock sits near the river. | 바위 하나가 강 근처에 있어요. | The frog jumps onto a rock. | 개구리가 바위 위로 뛰어올라요. | 1 | rocks | big rock (큰 바위) · climb a rock (바위에 오르다) | stone (돌) | — | lock (자물쇠) |
-| beach | 명사 | 해변 | 모래와 바다가 만나는 곳이에요. | — | — | — | We build castles on the beach. | 우리는 해변에서 모래성을 만들어요. | The beach has soft white sand. | 그 해변에는 부드러운 흰 모래가 있어요. | 1 | beaches | sandy beach (모래 해변) · at the beach (해변에서) | seashore (바닷가) | — | peach (복숭아) |
-| sand | 명사 | 모래 | 작은 돌 알갱이가 모인 것이에요. | — | — | — | The sand feels warm on my feet. | 모래가 제 발에 따뜻하게 느껴져요. | We make shapes with wet sand. | 우리는 젖은 모래로 모양을 만들어요. | 1 | — | wet sand (젖은 모래) · sand castle (모래성) | — | — | send (보내다) |
-| island | 명사 | 섬 | 사방이 물로 둘러싸인 땅이에요. | — | — | — | The island is far from here. | 그 섬은 여기서 멀리 있어요. | We take a boat to the island. | 우리는 배를 타고 섬으로 가요. | 1 | islands | small island (작은 섬) · island beach (섬의 해변) | — | — | — |
-| grass | 명사 | 풀, 잔디 | 땅을 덮으며 자라는 식물이에요. | — | — | — | The grass is green after rain. | 비가 온 후 잔디가 초록색이에요. | We sit on the soft grass. | 우리는 부드러운 잔디 위에 앉아요. | 1 | — | green grass (푸른 잔디) · cut the grass (잔디를 깎다) | — | — | glass (유리) |
-| hill | 명사 | 언덕 | 산보다 낮게 솟아 있어요. | — | — | — | We walk up a small hill. | 우리는 작은 언덕 위로 걸어가요. | The hill has flowers on top. | 그 언덕 꼭대기에는 꽃이 있어요. | 1 | hills | small hill (작은 언덕) · up the hill (언덕 위로) | — | valley (계곡) | will (할 것이다) |
-| moon | 명사 | 달 | 밤하늘에서 지구를 돌아요. | — | — | — | The moon looks round tonight. | 오늘 밤 달은 둥글게 보여요. | We watch the moon after dinner. | 우리는 저녁 식사 후 달을 봐요. | 1 | moons | full moon (보름달) · bright moon (밝은 달) | — | sun (해) | noon (정오) |
-| star | 명사 | 별 | 밤하늘에서 반짝이는 천체예요. | — | — | — | A star shines in the sky. | 별 하나가 하늘에서 빛나요. | I see a star at night. | 저는 밤에 별 하나를 봐요. | 1 | stars | bright star (밝은 별) · shooting star (별똥별) | — | — | start (시작하다) |
-| shell | 명사 | 껍데기 | 동물을 둘러싸 보호하는 딱딱한 부분이에요. | — | — | — | I find a shell by the sea. | 저는 바닷가에서 조개껍데기를 찾아요. | This shell has pink lines. | 이 조개껍데기에는 분홍 선이 있어요. | 1 | shells | sea shell (조개껍데기) · hard shell (단단한 껍질) | — | — | sell (팔다) |
-| blow | 동사 | 불다 | 입이나 바람으로 공기를 움직여요. | — | — | — | I blow out my birthday candles. | 저는 생일 촛불을 불어 꺼요. | The wind can blow leaves away. | 바람은 나뭇잎을 날려 보낼 수 있어요. | 1 | blows · blew · blown · blowing | blow out candles (촛불을 불어 끄다) · blow bubbles (방울을 불다) | — | — | blue (파란색) |
-| air | 명사 | 공기 | 숨을 쉴 때 꼭 필요한 기체예요. | — | — | — | We need air to live. | 우리는 살아가려면 공기가 필요해요. | I feel cool air from outside. | 저는 밖에서 들어오는 시원한 공기를 느껴요. | 1 | — | fresh air (신선한 공기) · clean air (깨끗한 공기) | — | — | hair (머리카락) |
-| fresh | 형용사 | 신선한 | 오래되지 않아 좋은 상태예요. | — | — | — | We eat fresh fruit every day. | 우리는 매일 신선한 과일을 먹어요. | The air is fresh today. | 오늘 공기가 상쾌해요. | 1 | fresher · freshest | fresh fruit (신선한 과일) · fresh air (신선한 공기) | new (새로운) | stale (신선하지 않은) | flesh (살) |
-| garden | 명사 | 정원 | 꽃과 나무를 기르는 공간이에요. | — | — | — | Mom grows flowers in the garden. | 엄마는 정원에서 꽃을 키우세요. | We play in our garden. | 우리는 집 정원에서 놀아요. | 1 | gardens | flower garden (꽃밭) · in the garden (정원에서) | yard (마당) | — | guard (지키다) |
-| rest | 동사 | 쉬다 | 몸을 편안히 쉬게 할 때 써요. | 명사 | 휴식 | 몸을 잠시 쉬게 하는 시간이에요. | I rest after my soccer game. | 저는 축구 경기 후 쉬어요. | We take a rest under a tree. | 우리는 나무 아래에서 휴식해요. | 2 | 동사 rests · rested · rested · resting / 명사 rests | take a rest (휴식을 취하다) · rest after work (일 후에 쉬다) | relax (쉬다) | work (일하다) | test (시험) |
-| hike | 명사 | 도보 여행 | 자연을 걸으며 즐기는 여행이에요. | 동사 | 도보 여행하다 | 자연 속 길을 걸어 여행해요. | We go on a hike on Sunday. | 우리는 일요일에 도보 여행을 가요. | We hike up the hill today. | 우리는 오늘 언덕을 하이킹해요. | 2 | 명사 hikes / 동사 hikes · hiked · hiked · hiking | go on a hike (도보 여행하다) · mountain hike (산행) | walk (걷기) | — | bike (자전거) |
+| mountain | 명사 | 산 | 땅이 아주 높이 솟은 곳이에요. | — | — | — | We climb the mountain on Sunday. | 우리는 일요일에 산에 올라요. | I see a big mountain from my window. | 내 창문에서 큰 산이 보여요. | 1 | mountains | climb a mountain (산에 오르다) · a high mountain (높은 산) | — | — | — |
+| sky | 명사 | 하늘 | 머리 위로 넓게 펼쳐진 곳이에요. | — | — | — | Birds fly high in the sky. | 새들이 하늘 높이 날아요. | The sky turns orange in the evening. | 저녁에는 하늘이 주황색으로 변해요. | 1 | skies | a blue sky (파란 하늘) · in the sky (하늘에) | — | — | — |
+| river | 명사 | 강 | 물이 길게 흘러가는 곳이에요. | — | — | — | We swim in the river in summer. | 우리는 여름에 강에서 수영해요. | A long river runs through the city. | 긴 강이 도시를 가로질러 흘러요. | 1 | rivers | a long river (긴 강) · cross the river (강을 건너다) | — | — | — |
+| tree | 명사 | 나무 | 줄기와 가지, 잎이 있는 큰 식물이에요. | — | — | — | I climb the tree in our yard. | 나는 우리 마당에 있는 나무에 올라가요. | The tree has red apples. | 그 나무에는 빨간 사과가 열려 있어요. | 1 | trees | climb a tree (나무에 오르다) · a tall tree (키 큰 나무) | — | — | three (셋) |
+| sun | 명사 | 해 | 낮에 하늘에서 빛과 열을 주는 거예요. | — | — | — | The sun comes up in the morning. | 아침에 해가 떠요. | Do not look at the sun. | 해를 똑바로 보지 마. | 1 | — | the hot sun (뜨거운 해) · in the sun (햇볕에서) | — | — | son (아들) |
+| rock | 명사 | 바위 | 아주 크고 단단한 돌이에요. | — | — | — | I sit on a big rock. | 나는 큰 바위 위에 앉아요. | There is a crab under the rock. | 바위 밑에 게가 있어요. | 1 | rocks | a big rock (큰 바위) · behind the rock (바위 뒤에) | stone (돌) | — | lock (자물쇠) |
+| beach | 명사 | 해변 | 바닷가의 모래가 있는 곳이에요. | — | — | — | We play on the beach in summer. | 우리는 여름에 해변에서 놀아요. | The beach is full of people. | 해변에 사람이 가득해요. | 1 | beaches | at the beach (해변에서) · a sandy beach (모래 해변) | — | — | peach (복숭아) |
+| sand | 명사 | 모래 | 아주 작은 돌 알갱이들이에요. | — | — | — | I make a castle with sand. | 나는 모래로 성을 만들어요. | The sand is hot in summer. | 여름에는 모래가 뜨거워요. | 1 | — | a sand castle (모래성) · in the sand (모래 속에) | — | — | send (보내다) |
+| island | 명사 | 섬 | 사방이 물로 둘러싸인 땅이에요. | — | — | — | We go to the island by boat. | 우리는 배를 타고 섬에 가요. | The little island has many trees. | 그 작은 섬에는 나무가 많아요. | 1 | islands | a small island (작은 섬) · on the island (섬에서) | — | — | — |
+| grass | 명사 | 풀, 잔디 | 땅에서 자라는 가늘고 초록색인 식물이에요. | — | — | — | The cows eat green grass. | 소들이 초록 풀을 먹어요. | Do not walk on the grass. | 잔디밭에 들어가지 마세요. | 1 | — | green grass (초록 풀) · cut the grass (잔디를 깎다) | — | — | glass (유리) |
+| hill | 명사 | 언덕 | 산보다 낮게 솟은 땅이에요. | — | — | — | We roll down the hill. | 우리는 언덕을 굴러 내려가요. | Our school is on a hill. | 우리 학교는 언덕 위에 있어요. | 1 | hills | up the hill (언덕 위로) · down the hill (언덕 아래로) | — | — | — |
+| moon | 명사 | 달 | 밤하늘에 떠서 빛나는 둥근 거예요. | — | — | — | The moon is round tonight. | 오늘 밤 달이 둥글어요. | People walked on the moon. | 사람들이 달 위를 걸었어요. | 1 | moons | a full moon (보름달) · the moon and stars (달과 별) | — | — | — |
+| star | 명사 | 별 | 밤하늘에서 반짝이는 작은 빛이에요. | — | — | — | I see a bright star tonight. | 오늘 밤 밝은 별이 보여요. | I got a gold star from my teacher. | 선생님께 금색 별 스티커를 받았어요. | 1 | stars | a bright star (밝은 별) · a shooting star (별똥별) | — | — | — |
+| shell | 명사 | 껍데기 | 조개나 거북을 감싸는 딱딱한 부분이에요. | — | — | — | I put a shell to my ear. | 나는 조개껍데기를 귀에 대 봐요. | A turtle has a hard shell. | 거북은 등껍데기가 단단해요. | 1 | shells | a hard shell (단단한 껍데기) · a snail shell (달팽이 껍데기) | — | — | — |
+| blow | 동사 | 불다 | 입으로 바람을 세게 내보내는 거예요. | — | — | — | I blow out the candles. | 나는 촛불을 불어서 꺼요. | The wind blows the leaves. | 바람이 나뭇잎을 불어 날려요. | 1 | blows · blew · blown · blowing | blow out candles (촛불을 불어 끄다) · blow bubbles (비눗방울을 불다) | — | — | — |
+| air | 명사 | 공기 | 우리가 숨 쉴 때 들이마시는 거예요. | — | — | — | I fill my ball with air. | 나는 공에 바람을 넣어요. | The air is cool in the morning. | 아침에는 공기가 시원해요. | 1 | — | fresh air (맑은 공기) · in the air (공중에) | — | — | hair (머리카락) |
+| fresh | 형용사 | 신선한 | 새로 만들거나 따서 싱싱한 상태예요. | — | — | — | Grandma bakes fresh bread every Sunday. | 할머니는 일요일마다 갓 구운 빵을 만드세요. | These strawberries are so fresh. | 이 딸기들은 정말 싱싱해요. | 1 | fresher · freshest | fresh air (맑은 공기) · fresh fruit (신선한 과일) | — | stale (오래되어 맛없는) | — |
+| garden | 명사 | 정원 | 꽃이나 채소를 기르는 마당이에요. | — | — | — | Grandpa grows tomatoes in his garden. | 할아버지는 정원에서 토마토를 기르세요. | Butterflies fly in our garden. | 우리 정원에서 나비들이 날아요. | 1 | gardens | a flower garden (꽃밭) · in the garden (정원에서) | — | — | — |
+| rest | 동사 | 쉬다 | 힘들 때 몸을 편히 두는 거예요. | 명사 | 휴식 | 잠깐 쉬는 시간이에요. | I rest on the sofa after school. | 나는 학교 끝나고 소파에서 쉬어요. | Let's take a rest here. | 여기서 좀 쉬자. | 2 | rests · rested · rested · resting | take a rest (쉬다) · rest a little (조금 쉬다) | — | — | test (시험) |
+| hike | 명사 | 도보 여행 | 산이나 숲길을 오래 걷는 여행이에요. | 동사 | 걸어서 여행하다 | 산이나 숲길을 오래 걷는 거예요. | We go on a hike every fall. | 우리는 가을마다 도보 여행을 가요. | We hike up the mountain together. | 우리는 함께 산을 걸어 올라가요. | 2 | hikes · hiked · hiked · hiking | go on a hike (도보 여행을 가다) · a long hike (긴 도보 여행) | — | — | bike (자전거) |
+
+## [표 2] 게임 대화 표
 
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
-| mountain | 구름 위로 솟은 땅 보기 | What is that big place to climb? | That mountain is very high. | 저 높이 올라가는 큰 곳은 뭐야? | 저 산은 아주 높아. |
-| mountain | 높은 봉우리까지 올라가기 | Where can we climb on Sunday? | Let's go to that mountain. | 일요일에 어디로 올라갈까? | 저 산으로 가자. |
-| sky | 머리 위 푸른 곳 보기 | Where can we see white clouds? | Look up at the sky. | 하얀 구름은 어디서 보여? | 하늘을 올려다봐. |
-| sky | 해와 구름 위치 찾기 | Where do the clouds float? | They move across the sky. | 구름은 어디를 떠다녀? | 하늘을 가로질러 움직여. |
-| river | 다리 밑 흐르는 물 보기 | Where does this water go? | It goes down the river. | 이 물은 어디로 흘러가? | 강을 따라 흘러가. |
-| river | 강가에서 배가 지나는 때 | Where can the little boat go? | It goes along the river. | 작은 배는 어디로 갈 수 있어? | 강을 따라 가. |
-| tree | 공원에서 키 큰 식물 보기 | Where do these apples grow? | On that big tree. | 이 사과들은 어디에서 자라? | 저 큰 나무에서 자라. |
-| tree | 새 둥지 있는 나뭇가지 | Where is that small bird? | It is in the tree. | 저 작은 새는 어디 있어? | 나무 위에 있어. |
-| sun | 아침 햇빛이 들어오는 방 | What gives us light each morning? | The sun shines very brightly. | 무엇이 매일 아침 빛을 줘? | 해가 아주 밝게 빛나. |
-| sun | 구름 뒤 햇빛 찾는 때 | What hides behind those clouds? | The sun is behind them. | 구름 뒤에 무엇이 숨어 있어? | 해가 그 뒤에 있어. |
-| rock | 강가에 딱딱한 돌 찾기 | What is this big hard stone? | It is a rock. | 이 크고 단단한 돌은 뭐야? | 바위야. |
-| rock | 개구리의 쉴 곳 구경 | Where does the frog sit? | On the rock near water. | 개구리는 어디에 앉아? | 물가 바위 위에. |
-| beach | 바닷가 모래성 만드는 날 | Where do we build sand castles? | We play on the beach. | 어디에서 모래성을 만들어? | 해변에서 놀아. |
-| beach | 바다 수영을 마친 시간 | Where do we rest beside the sea? | Let's sit on the beach. | 바다 옆 어디에서 쉴까? | 해변에 앉자. |
-| sand | 손에서 흘러내리는 알갱이 | What is this soft yellow stuff? | It is warm sand. | 이 부드럽고 노란 건 뭐야? | 따뜻한 모래야. |
-| sand | 성을 만드는 재료 살피기 | What do we make castles with? | We use wet sand today. | 모래성은 무엇으로 만들어? | 오늘은 젖은 모래를 써. |
-| island | 물로 둘러싸인 땅 보기 | Is there water all around it? | Yes, that island is small. | 주위가 모두 물로 둘러싸였어? | 응, 저 섬은 작아. |
-| island | 배를 타고 땅 찾아가기 | Where does the boat go? | To that small island. | 배는 어디로 가? | 저 작은 섬으로 가. |
-| grass | 운동장에서 초록 바닥 보기 | What do cows eat here? | They eat green grass. | 여기서 소는 무엇을 먹어? | 초록 풀을 먹어. |
-| grass | 잔디 위 소풍 돗자리 | Where can we sit for lunch? | Let's sit on the grass. | 점심 먹을 때 어디 앉을까? | 잔디 위에 앉자. |
-| hill | 작은 봉우리 걸어오르기 | Is that a big mountain? | No, it's a small hill. | 저건 큰 산이야? | 아니, 작은 언덕이야. |
-| hill | 비탈길 위에서 동네 보기 | Do we have to walk up? | Yes, up that hill. | 위로 걸어 올라가야 해? | 응, 저 언덕 위로. |
-| moon | 어두운 밤 둥근 것 보기 | What round light appears at night? | The moon is shining brightly. | 밤에 둥글고 밝은 건 뭐야? | 달이 밝게 빛나고 있어. |
-| moon | 창문 너머 초승달 발견 | What is that round light at night? | The moon looks small tonight. | 밤에 저 둥근 빛은 뭐야? | 오늘 밤 달이 작아 보여. |
-| star | 밤하늘 반짝이는 점 보기 | What tiny light shines at night? | A star is above us. | 밤에 작게 빛나는 건 뭐야? | 별이 우리 위에 있어. |
-| star | 하늘에 별 하나 세기 | What shines in the night sky? | Look at that bright star. | 밤하늘에서 빛나는 것은 뭐야? | 저 밝은 별을 봐. |
-| shell | 바닷가에 조개 흔적 발견 | What is this by the sea? | It is a pink shell. | 바닷가에 있는 이건 뭐야? | 분홍 조개껍데기야. |
-| shell | 모래 속 빈 조개 찾기 | What can we find on the sand? | I see a shell. | 모래 위에서 무엇을 찾을 수 있어? | 조개껍데기가 보여. |
-| blow | 생일 케이크 촛불 끄기 | How do you put out candles? | I blow on the candles. | 초는 어떻게 꺼? | 촛불을 불어서 꺼. |
-| blow | 나뭇잎 날리는 바람 보기 | Why do those leaves move? | The wind can blow them. | 저 나뭇잎들은 왜 움직여? | 바람이 불어서 그래. |
-| air | 숲에서 숨 크게 쉬기 | What do we need to breathe? | We need clean air. | 숨 쉴 때 무엇이 필요해? | 깨끗한 공기가 필요해. |
-| air | 창문 열고 시원함 느끼기 | Why do you open the window? | I want some cool air. | 창문을 왜 열어? | 시원한 공기가 필요해서. |
-| fresh | 가게에서 갓 딴 과일 보기 | Is this apple old? | No, it is fresh. | 이 사과는 오래됐어? | 아니, 신선해. |
-| fresh | 비 온 뒤 공기 마시기 | Why are you by the open window? | I want some fresh air. | 왜 열린 창문 옆에 있어? | 신선한 공기를 마시고 싶어. |
-| garden | 집 앞 꽃밭을 가꾸기 | Where does Mom grow flowers? | In the garden at home. | 엄마는 어디서 꽃을 기르셔? | 집 정원에서 기르셔. |
-| garden | 매일 꽃에 물을 주는 때 | Where can we put these flowers? | Let's plant them in the garden. | 이 꽃들은 어디에 둘까? | 정원에 심자. |
-| rest | 오랫동안 걸은 후 쉬기 | What should we do after running? | Let's rest under that tree. | 달린 다음 뭘 해야 할까? | 저 나무 아래에서 쉬자. |
-| rest | 운동 후 그늘에서 쉬기 | Why are you sitting under trees? | I need a short rest. | 왜 나무 아래에 앉아 있어? | 잠깐 휴식이 필요해. |
-| hike | 숲속 길을 걷는 여행 | What do we do on the mountain? | We go for a hike. | 산에서 무엇을 해? | 하이킹을 해. |
-| hike | 산길을 따라 가족 여행 | What do we do on Sundays? | We hike in the mountains. | 일요일엔 무엇을 해? | 산에서 하이킹을 해. |
+| mountain | 주말 가족 나들이 날 | Where are we going today, Dad? | We will climb that mountain. | 아빠, 오늘 어디 가요? | 저 산에 올라갈 거야. |
+| mountain | 꼭대기에 올라갔을 때 | Wow, I can see our town! | We are on top of the mountain! | 와, 우리 동네가 보여! | 우리 산꼭대기에 있어! |
+| sky | 연을 날릴 때 | Where is your kite now? | Look! High up in the sky! | 네 연 지금 어디 있어? | 봐! 저 하늘 높이! |
+| sky | 비가 그친 뒤에 | Where is the rainbow? | Look up at the sky! | 무지개 어디 있어? | 위를 올려다봐! |
+| river | 다리 위를 걸을 때 | What is under this bridge? | A big river with fish! | 이 다리 밑에는 뭐가 있어? | 물고기가 사는 큰 강! |
+| river | 작은 배를 타고 갈 때 | Where does this boat go? | Down the river to the sea. | 이 배는 어디로 가? | 강을 따라 바다까지. |
+| tree | 숨바꼭질을 할 때 | Where is Jiho hiding? | Behind that big tree! | 지호 어디 숨었어? | 저 큰 나무 뒤에! |
+| tree | 가을에 낙엽이 질 때 | Why are the leaves falling? | The tree is getting ready for winter. | 나뭇잎이 왜 떨어져? | 나무가 겨울 준비를 하는 거야. |
+| sun | 아침에 일어날 때 | Wake up! It is morning! | Wow, the sun is up! | 일어나! 아침이야! | 와, 해가 떴네! |
+| sun | 그림을 그릴 때 | What is this yellow circle? | It is the sun in the sky. | 이 노란 동그라미는 뭐야? | 하늘에 있는 해야. |
+| rock | 계곡에서 쉴 때 | Where can I sit down? | Sit on this flat rock. | 어디에 앉을까? | 이 평평한 바위에 앉아. |
+| rock | 바닷가에서 게를 찾을 때 | Where do crabs hide? | Look under that rock! | 게는 어디에 숨어? | 저 바위 밑을 봐! |
+| beach | 여름 방학에 | Where do you want to go? | To the beach! I love swimming. | 어디 가고 싶어? | 해변! 나 수영 좋아해. |
+| beach | 수건을 챙길 때 | Why do you have a towel? | We are going to the beach! | 왜 수건을 가지고 있어? | 우리 해변에 가거든! |
+| sand | 신발을 털 때 | Why are your shoes so heavy? | They are full of sand! | 신발이 왜 이렇게 무거워? | 안에 모래가 가득해! |
+| sand | 놀이터에서 | What can we play with here? | Let's dig in the sand! | 여기서 뭐 하고 놀까? | 모래 파면서 놀자! |
+| island | 배 위에서 바다를 볼 때 | Look! Land in the sea! | That is a little island. | 봐! 바다 한가운데 땅이 있어! | 저건 작은 섬이야. |
+| island | 보물 지도를 볼 때 | Where is the treasure? | On that island over there! | 보물은 어디 있어? | 저기 저 섬에! |
+| grass | 소풍 자리를 고를 때 | Where should we have lunch? | On the grass under the tree. | 점심 어디서 먹을까? | 나무 아래 잔디 위에서. |
+| grass | 공원 표지판을 읽을 때 | What does this sign say? | Keep off the grass. | 이 표지판에 뭐라고 쓰여 있어? | 잔디에 들어가지 마세요. |
+| hill | 자전거를 탈 때 | Why are you so slow? | This hill is so high! | 너 왜 이렇게 느려? | 이 언덕이 너무 높아! |
+| hill | 공원에서 굴러 내려올 때 | Let's roll down together! | Okay! From the top of the hill! | 같이 굴러 내려가자! | 좋아! 언덕 꼭대기부터! |
+| moon | 밤 산책을 할 때 | What is that big round light? | That is the full moon! | 저 크고 동그란 빛은 뭐야? | 저건 보름달이야! |
+| moon | 추석 밤에 소원을 빌 때 | What are you doing, Grandma? | I make a wish to the moon. | 할머니, 뭐 하세요? | 달님한테 소원을 빌고 있어. |
+| star | 숙제 검사를 받을 때 | Good job on your homework! | Thank you! I got a star! | 숙제 잘했어! | 고맙습니다! 별 받았다! |
+| star | 밤하늘을 볼 때 | Look at that shiny dot! | It is a star, not a plane. | 저 반짝이는 점 좀 봐! | 비행기 말고 별이야. |
+| shell | 바닷가에서 줍기 놀이를 할 때 | What did you find, Yuna? | A pretty pink shell! | 유나야, 뭐 찾았어? | 예쁜 분홍 조개껍데기! |
+| shell | 거북이를 볼 때 | Where is the turtle's head? | It is inside its shell. | 거북이 머리는 어디 있어? | 등딱지 안에 들어가 있어. |
+| blow | 생일 케이크 앞에서 | Make a wish, Mina! | Okay! I blow out all the candles! | 미나야, 소원 빌어! | 좋아! 촛불을 다 불어서 끈다! |
+| blow | 비눗방울 놀이를 할 때 | How do I make bubbles? | Blow very softly, like this. | 비눗방울 어떻게 만들어? | 이렇게 아주 살살 불어. |
+| air | 공이 말랑할 때 | My ball is too soft. | Let's put some air in it. | 내 공이 너무 말랑해. | 바람을 좀 넣자. |
+| air | 방이 답답할 때 | This room is too hot. | Open the window for some air. | 이 방 너무 더워. | 창문 열어서 바람 좀 들어오게 해. |
+| fresh | 시장에서 생선을 고를 때 | Is this fish good today? | Yes, it is very fresh. | 오늘 이 생선 좋아요? | 응, 아주 싱싱해. |
+| fresh | 빵 가게 앞에서 | Mmm, what a nice smell! | The bread is fresh from the oven! | 음, 냄새 좋다! | 빵이 오븐에서 막 나왔어! |
+| garden | 꽃에 물을 줄 때 | Where are you going with water? | To the garden for the flowers. | 물 들고 어디 가? | 꽃 주러 정원에 가. |
+| garden | 마당에서 땅을 팔 때 | What are you planting, Mom? | Carrots for our garden. | 엄마, 뭐 심어요? | 우리 정원에 심을 당근. |
+| rest | 오래 걸어서 지쳤을 때 | My legs are so tired. | Let's rest on that bench. | 다리가 너무 힘들어. | 저 의자에서 쉬자. |
+| rest | 아파서 학교를 못 갈 때 | Do I go to school today? | No, you need to rest. | 오늘 학교 가요? | 아니, 쉬어야 해. |
+| hike | 주말 계획을 말할 때 | What will you do on Saturday? | My family will go on a hike. | 토요일에 뭐 할 거야? | 우리 가족은 산에 걸으러 가. |
+| hike | 숲길 입구에서 | Do you have water and snacks? | Yes! I am ready to hike. | 물이랑 간식 챙겼어? | 응! 걸을 준비 됐어. |

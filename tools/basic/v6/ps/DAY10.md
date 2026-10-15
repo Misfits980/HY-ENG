@@ -1,68 +1,69 @@
-## Pre-Starter Step 10 (노션 Pre starter / Voca 1 / Step (10), 2026-10-15)
-<!-- 고침: ant 예문1 해석 '나르어요' → '날라요' -->
+## 1단계 (Pre-Starter) DAY 10 — Claude 작성 (2026-10-16)
 
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| cat | 명사 | 고양이 | 야옹 울고 쥐를 잡는 동물이에요. | — | — | — | The cat sleeps by my bed. | 고양이가 제 침대 옆에서 자요. | My cat likes to drink milk. | 제 고양이는 우유 마시기를 좋아해요. | 1 | cats | pet cat (반려 고양이) · feed a cat (고양이에게 먹이를 주다) | — | — | cut (자르다) |
-| dog | 명사 | 개 | 멍멍 짖으며 사람과 함께 살아요. | — | — | — | My dog runs in the yard. | 제 개는 마당에서 달려요. | The dog waits by the door. | 개가 문 옆에서 기다려요. | 1 | dogs | pet dog (반려견) · walk a dog (개를 산책시키다) | — | — | dig (파다) |
-| cow | 명사 | 소 | 목장에서 우유를 얻기도 하는 동물이에요. | — | — | — | A cow eats grass all day. | 소가 하루 종일 풀을 먹어요. | The cow gives us fresh milk. | 소는 우리에게 신선한 우유를 줘요. | 1 | cows | dairy cow (젖소) · feed a cow (소에게 먹이를 주다) | — | — | how (어떻게) |
-| sheep | 명사 | 양 | 털이 많고 풀을 먹는 동물이에요. | — | — | — | The sheep eats green grass. | 양이 푸른 풀을 먹어요. | I see three sheep on the hill. | 저는 언덕에서 양 세 마리를 봐요. | 1 | sheep | white sheep (흰 양) · a flock of sheep (양 떼) | — | — | ship (배) |
-| horse | 명사 | 말 | 등에 사람을 태우고 달릴 수 있어요. | — | — | — | The horse runs across the field. | 말이 들판을 가로질러 달려요. | I feed a horse at the farm. | 저는 농장에서 말에게 먹이를 줘요. | 1 | horses | ride a horse (말을 타다) · brown horse (갈색 말) | — | — | house (집) |
-| pig | 명사 | 돼지 | 동그란 코로 킁킁대는 동물이에요. | — | — | — | The pig sleeps near the house. | 돼지는 집 가까이에서 자요. | A pig has a round nose. | 돼지는 둥근 코를 가지고 있어요. | 1 | pigs | pink pig (분홍 돼지) · feed a pig (돼지에게 먹이를 주다) | — | — | big (큰) |
-| fox | 명사 | 여우 | 뾰족한 귀와 긴 꼬리가 있어요. | — | — | — | A fox runs in the grass. | 여우가 풀밭에서 달려요. | The fox has a long tail. | 여우는 긴 꼬리를 가지고 있어요. | 1 | foxes | red fox (붉은 여우) · fox tail (여우 꼬리) | — | — | box (상자) |
-| duck | 명사 | 오리 | 넓은 부리와 물갈퀴가 있어요. | — | — | — | The duck swims in the pond. | 오리가 연못에서 헤엄쳐요. | A yellow duck follows its mother. | 노란 오리가 어미를 따라가요. | 1 | ducks | baby duck (아기 오리) · duck pond (오리 연못) | — | — | luck (행운) |
-| lion | 명사 | 사자 | 수컷은 머리 주위에 갈기가 있어요. | — | — | — | The lion rests under a tree. | 사자가 나무 아래에서 쉬어요. | A lion has a big mouth. | 사자는 입이 커요. | 1 | lions | male lion (수사자) · lion cub (새끼 사자) | — | — | line (선) |
-| fish | 명사 | 물고기 | 아가미로 숨 쉬며 물에서 살아요. | — | — | — | A fish swims in the river. | 물고기가 강에서 헤엄쳐요. | This fish has a blue tail. | 이 물고기는 파란 꼬리가 있어요. | 1 | fish | goldfish (금붕어) · fish tank (물고기 수조) | — | — | dish (접시) |
-| deer | 명사 | 사슴 | 다리가 길고 수컷은 뿔이 있어요. | — | — | — | A deer walks near the trees. | 사슴이 나무 근처를 걸어요. | The deer eats leaves near us. | 사슴은 우리 근처에서 나뭇잎을 먹어요. | 1 | deer | young deer (어린 사슴) · deer antlers (사슴뿔) | — | — | dear (소중한) |
-| bear | 명사 | 곰 | 몸집이 크고 두꺼운 털이 있어요. | — | — | — | The bear sleeps under a tree. | 곰은 나무 아래에서 자요. | A bear eats fish by the river. | 곰이 강가에서 물고기를 먹어요. | 1 | bears | brown bear (갈색 곰) · bear cub (새끼 곰) | — | — | bare (드러난) |
-| tiger | 명사 | 호랑이 | 주황색 몸에 검은 줄무늬가 있어요. | — | — | — | The tiger has black lines. | 호랑이는 검은 줄무늬가 있어요. | A tiger walks in the forest. | 호랑이가 숲속을 걸어요. | 1 | tigers | wild tiger (야생 호랑이) · tiger stripes (호랑이 줄무늬) | — | — | tire (타이어) |
-| hippo | 명사 | 하마 | 입이 크고 물가에서 살아요. | — | — | — | The hippo stays in the water. | 하마가 물속에 있어요. | A hippo opens its big mouth. | 하마가 커다란 입을 벌려요. | 1 | hippos | baby hippo (아기 하마) · hippo pool (하마 수영장) | — | — | — |
-| ant | 명사 | 개미 | 아주 작고 무리를 지어 살아요. | — | — | — | An ant carries food home. | 개미가 집으로 먹이를 날라요. | The ant walks across my book. | 개미가 제 책 위를 가로질러 걸어요. | 1 | ants | worker ant (일개미) · ant nest (개미집) | — | — | aunt (이모) |
-| monkey | 명사 | 원숭이 | 긴 팔로 나뭇가지를 잘 잡아요. | — | — | — | The monkey climbs up a tree. | 원숭이가 나무 위로 올라가요. | A monkey eats a yellow banana. | 원숭이가 노란 바나나를 먹어요. | 1 | monkeys | baby monkey (아기 원숭이) · monkey tail (원숭이 꼬리) | — | — | money (돈) |
-| zebra | 명사 | 얼룩말 | 몸에 검고 흰 줄무늬가 있어요. | — | — | — | A zebra has black and white lines. | 얼룩말은 검고 흰 줄무늬가 있어요. | The zebra runs across the grass. | 얼룩말이 풀밭을 가로질러 달려요. | 1 | zebras | baby zebra (새끼 얼룩말) · zebra stripes (얼룩말 줄무늬) | — | — | — |
-| snake | 명사 | 뱀 | 다리 없이 몸을 구불구불 움직여요. | — | — | — | The snake moves without any legs. | 뱀은 다리 없이 움직여요. | A green snake rests on a rock. | 초록색 뱀이 바위 위에서 쉬어요. | 1 | snakes | long snake (긴 뱀) · snake skin (뱀 가죽) | — | — | snack (간식) |
-| frog | 명사 | 개구리 | 뒷다리로 뛰고 개굴개굴 울어요. | — | — | — | The frog jumps into the water. | 개구리가 물속으로 뛰어들어요. | A frog has strong back legs. | 개구리는 튼튼한 뒷다리를 가지고 있어요. | 1 | frogs | green frog (초록 개구리) · frog pond (개구리 연못) | — | — | from (에서) |
-| bird | 명사 | 새 | 깃털과 부리가 있고 대부분 날아요. | — | — | — | A bird sings outside my window. | 새가 제 창문 밖에서 노래해요. | The bird flies above our garden. | 새가 우리 정원 위로 날아요. | 1 | birds | small bird (작은 새) · bird nest (새 둥지) | — | — | birth (출생) |
+| cat | 명사 | 고양이 | 야옹 하고 우는 털이 많은 동물이에요. | — | — | — | My cat sleeps on my bed. | 우리 고양이는 내 침대에서 자요. | The cat hides under the table. | 고양이가 식탁 밑에 숨어요. | 1 | cats | a black cat (검은 고양이) · my pet cat (내 반려 고양이) | — | — | — |
+| dog | 명사 | 개 | 멍멍 짖고 사람과 친하게 지내는 동물이에요. | — | — | — | I walk my dog after school. | 나는 학교 끝나고 개를 산책시켜요. | The dog barks at the cat. | 개가 고양이를 보고 짖어요. | 1 | dogs | walk the dog (개를 산책시키다) · a big dog (큰 개) | — | — | — |
+| cow | 명사 | 소 | 음매 울고 우유를 주는 큰 동물이에요. | — | — | — | A cow eats grass on the farm. | 소가 농장에서 풀을 먹어요. | This cow has black spots. | 이 소는 검은 점이 있어요. | 1 | cows | a brown cow (갈색 소) · milk a cow (소젖을 짜다) | — | — | — |
+| sheep | 명사 | 양 | 하얀 털이 복슬복슬한 동물이에요. | — | — | — | A sheep has soft white wool. | 양은 부드럽고 하얀 털이 있어요. | I count sheep at night. | 나는 밤에 양을 세요. | 1 | sheep | count sheep (양을 세다) · a baby sheep (아기 양) | — | — | ship (배) |
+| horse | 명사 | 말 | 사람을 태우고 빨리 달리는 동물이에요. | — | — | — | I ride a horse at the farm. | 나는 농장에서 말을 타요. | The horse eats a carrot. | 말이 당근을 먹어요. | 1 | horses | ride a horse (말을 타다) · a fast horse (빠른 말) | — | — | house (집) |
+| pig | 명사 | 돼지 | 꿀꿀 울고 코가 동그란 동물이에요. | — | — | — | The pig rolls in the mud. | 돼지가 진흙에서 뒹굴어요. | The baby pig drinks milk. | 아기 돼지가 우유를 마셔요. | 1 | pigs | a pink pig (분홍 돼지) · a baby pig (아기 돼지) | — | — | big (큰) |
+| fox | 명사 | 여우 | 꼬리가 길고 털이 붉은 동물이에요. | — | — | — | A fox has a long tail. | 여우는 꼬리가 길어요. | The fox runs into the forest. | 여우가 숲으로 뛰어가요. | 1 | foxes | a red fox (붉은 여우) · a little fox (작은 여우) | — | — | box (상자) |
+| duck | 명사 | 오리 | 꽥꽥 울고 물에서 헤엄치는 새예요. | 동사 | 숙이다 | 머리와 몸을 재빨리 낮추는 것이에요. | A duck swims in the pond. | 오리가 연못에서 헤엄쳐요. | Duck! The ball is coming! | 숙여! 공이 날아와! | 2 | ducks · ducked · ducked · ducking | a baby duck (아기 오리) · duck down (몸을 숙이다) | — | — | — |
+| lion | 명사 | 사자 | 크게 으르렁거리는 힘센 동물이에요. | — | — | — | The lion is the king of animals. | 사자는 동물의 왕이에요. | A lion sleeps under the tree. | 사자가 나무 아래에서 자요. | 1 | lions | a big lion (큰 사자) · a baby lion (아기 사자) | — | — | — |
+| fish | 명사 | 물고기 | 물속에서 지느러미로 헤엄치는 동물이에요. | 동사 | 낚시하다 | 물고기를 잡으려고 낚싯대를 쓰는 거예요. | I feed my fish every morning. | 나는 매일 아침 물고기에게 밥을 줘요. | Dad and I fish at the lake. | 아빠랑 나는 호수에서 낚시해요. | 2 | fish · fished · fished · fishing | a big fish (큰 물고기) · go fishing (낚시하러 가다) | — | — | dish (접시) |
+| deer | 명사 | 사슴 | 다리가 길고 수컷은 뿔이 있는 동물이에요. | — | — | — | A deer runs very fast. | 사슴은 아주 빨리 달려요. | The deer eats leaves in the forest. | 사슴이 숲에서 나뭇잎을 먹어요. | 1 | deer | a baby deer (아기 사슴) · a young deer (어린 사슴) | — | — | dear (사랑하는) |
+| bear | 명사 | 곰 | 몸집이 크고 꿀을 좋아하는 동물이에요. | — | — | — | The bear sleeps all winter. | 곰은 겨울 내내 자요. | A bear catches fish in the river. | 곰이 강에서 물고기를 잡아요. | 1 | bears | a teddy bear (곰 인형) · a brown bear (갈색 곰) | — | — | pear (배) |
+| tiger | 명사 | 호랑이 | 주황색 몸에 검은 줄무늬가 있어요. | — | — | — | A tiger has black stripes. | 호랑이는 검은 줄무늬가 있어요. | The tiger hides in the tall grass. | 호랑이가 키 큰 풀숲에 숨어요. | 1 | tigers | a baby tiger (아기 호랑이) · a big tiger (큰 호랑이) | — | — | — |
+| hippo | 명사 | 하마 | 몸이 크고 물속에서 지내는 동물이에요. | — | — | — | The hippo opens its big mouth. | 하마가 큰 입을 벌려요. | A hippo stays in the water all day. | 하마는 하루 종일 물속에 있어요. | 1 | hippos | a big hippo (큰 하마) · a baby hippo (아기 하마) | — | — | — |
+| ant | 명사 | 개미 | 아주 작고 줄지어 다니는 곤충이에요. | — | — | — | An ant is small but strong. | 개미는 작지만 힘이 세요. | I see an ant on my cake. | 내 케이크 위에 개미가 있어요. | 1 | ants | a little ant (작은 개미) · an ant hill (개미집) | — | — | aunt (이모, 고모) |
+| monkey | 명사 | 원숭이 | 나무를 잘 타고 바나나를 좋아해요. | — | — | — | The monkey swings from tree to tree. | 원숭이가 나무에서 나무로 건너가요. | A monkey eats a banana. | 원숭이가 바나나를 먹어요. | 1 | monkeys | a funny monkey (웃긴 원숭이) · a baby monkey (아기 원숭이) | — | — | money (돈) |
+| zebra | 명사 | 얼룩말 | 몸에 검고 하얀 줄무늬가 있어요. | — | — | — | A zebra looks like a horse. | 얼룩말은 말처럼 생겼어요. | The zebra has black and white stripes. | 얼룩말은 검고 하얀 줄무늬가 있어요. | 1 | zebras | a baby zebra (아기 얼룩말) · a wild zebra (야생 얼룩말) | — | — | — |
+| snake | 명사 | 뱀 | 다리가 없고 몸이 아주 긴 동물이에요. | — | — | — | A snake has no legs. | 뱀은 다리가 없어요. | The snake sleeps on a warm rock. | 뱀이 따뜻한 바위 위에서 자요. | 1 | snakes | a long snake (긴 뱀) · a green snake (초록 뱀) | — | — | snack (간식) |
+| frog | 명사 | 개구리 | 폴짝 뛰고 개굴개굴 우는 동물이에요. | — | — | — | The frog jumps very high. | 개구리가 아주 높이 뛰어요. | A frog catches flies with its tongue. | 개구리는 혀로 파리를 잡아요. | 1 | frogs | a green frog (초록 개구리) · a little frog (작은 개구리) | — | — | — |
+| bird | 명사 | 새 | 날개와 깃털이 있는 동물이에요. | — | — | — | A bird sings in the morning. | 아침에 새가 노래해요. | The bird makes a nest in the tree. | 새가 나무에 둥지를 지어요. | 1 | birds | a little bird (작은 새) · a bird nest (새 둥지) | — | — | — |
+
+## [표 2] 게임 대화 표
 
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
-| cat | 집에서 야옹 소리 듣기 | What animal says meow at home? | My cat makes that sound. | 집에서 어떤 동물이 야옹 울어? | 우리 고양이가 그런 소리를 내. |
-| cat | 소파에서 가르랑 소리 듣기 | Who sleeps on our sofa? | The cat likes this seat. | 누가 우리 소파에서 자? | 고양이가 이 자리를 좋아해. |
-| dog | 현관에서 멍멍 소리 듣기 | What animal barks at the door? | My dog wants a walk. | 어떤 동물이 문 앞에서 짖어? | 우리 개가 산책하고 싶어 해. |
-| dog | 반려동물과 공놀이 하기 | Who brings back the red ball? | Our dog brings it back. | 누가 빨간 공을 물어 와? | 우리 개가 물어 와. |
-| cow | 목장에서 우유 얻는 날 | What animal gives us fresh milk? | A cow lives on this farm. | 어떤 동물에게서 신선한 우유를 얻어? | 소가 이 농장에 살아. |
-| cow | 초원에서 음매 소리 듣기 | What animal says moo here? | That cow eats green grass. | 여기서 어떤 동물이 음매 울어? | 저 소가 푸른 풀을 먹어. |
-| sheep | 농장에서 복슬한 털 보기 | What white animal says baa? | That sheep is eating now. | 어떤 흰 동물이 매애 소리를 내? | 저 양이 지금 먹고 있어. |
-| sheep | 언덕에서 양 떼 구경하기 | What animal says baa on hills? | One sheep is near us. | 언덕에서 어떤 동물이 매에 울어? | 양 한 마리가 우리 근처에 있어. |
-| horse | 승마장에서 타는 동물 | What big animal can we ride? | That horse can carry us. | 어떤 큰 동물을 탈 수 있어? | 저 말은 우리를 태울 수 있어. |
-| horse | 목장에서 말발굽 소리 듣기 | Can we ride that big animal? | Yes, we can ride a horse. | 저 큰 동물을 탈 수 있어? | 응, 말을 탈 수 있어. |
-| pig | 농장에서 꿀꿀 소리 듣기 | What pink animal says oink? | The pig lives on this farm. | 어떤 분홍 동물이 꿀꿀 소리를 내? | 돼지는 이 농장에 살아. |
-| pig | 분홍 동물의 코 관찰 | What is that round pink animal? | That pig likes to eat. | 저 둥글고 분홍빛인 동물은 뭐야? | 저 돼지는 먹는 걸 좋아해. |
-| fox | 숲에서 붉은 꼬리 보기 | What small animal has red fur? | A fox runs through here. | 어떤 작은 동물은 붉은 털이 있어? | 여우 한 마리가 여길 지나가. |
-| fox | 동화 속 꾀 많은 동물 | What is that little red animal? | That fox is very quick. | 저 작은 붉은 동물은 뭐야? | 저 여우는 아주 빨라. |
-| duck | 연못에서 꽥꽥 소리 | Which bird says quack here? | That duck swims in circles. | 여기서 어떤 새가 꽥꽥 울어? | 저 오리가 빙글빙글 헤엄쳐. |
-| duck | 물 위 납작한 부리 보기 | What bird swims and says quack? | A duck swims beside me. | 어떤 새가 헤엄치고 꽥꽥 울어? | 오리가 내 옆에서 헤엄쳐. |
-| lion | 동물원에서 갈기 구경 | What big animal says roar? | The lion is over there. | 어떤 큰 동물이 으르렁거려? | 사자가 저기에 있어. |
-| lion | 동물 그림책에서 울음소리 | What big cat has yellow fur? | That lion is very loud. | 어떤 큰 고양잇과 동물은 노란 털이 있어? | 저 사자는 소리가 아주 커. |
-| fish | 수조 안 지느러미 관찰 | What animal swims in the water? | A fish is by the rock. | 물속에서 헤엄치는 동물은 뭐야? | 물고기가 바위 옆에 있어. |
-| fish | 강에서 아가미로 숨쉬기 | What animal lives in the water? | That fish swims very fast. | 어떤 동물이 물속에서 살아? | 저 물고기는 아주 빨리 헤엄쳐. |
-| deer | 숲에서 큰 뿔 발견 | What animal is by the trees? | A deer is standing there. | 나무 옆에 어떤 동물이 있어? | 사슴 한 마리가 서 있어. |
-| deer | 나무 사이 동물 발견 | What animal has long thin legs? | That deer is eating leaves. | 어떤 동물은 다리가 길고 가늘어? | 저 사슴은 나뭇잎을 먹고 있어. |
-| bear | 숲속 동굴 앞에서 발견 | What big animal likes honey? | A bear likes honey. | 어떤 큰 동물이 꿀을 좋아해? | 곰은 꿀을 좋아해. |
-| bear | 강가에서 큰 동물 낚시 | What big animal catches fish? | That bear is looking for food. | 어떤 큰 동물이 물고기를 잡아? | 저 곰은 먹이를 찾고 있어. |
-| tiger | 검은 줄무늬를 가진 맹수 | What orange animal has black stripes? | A tiger is walking there. | 어떤 주황 동물에게 검은 줄무늬가 있어? | 호랑이가 저기서 걷고 있어. |
-| tiger | 숲속 큰 고양잇과 동물 | What animal looks like a big cat? | That tiger has black lines. | 어떤 동물이 커다란 고양이 같아? | 저 호랑이는 검은 줄이 있어. |
-| hippo | 물속에서 큰 입을 벌리기 | What animal has a huge mouth? | That hippo stays in water. | 어떤 동물에게 입이 아주 커? | 저 하마는 물속에 있어. |
-| hippo | 동물원 물가에서 관찰 | What big animal stays in water? | That hippo has a big mouth. | 어떤 큰 동물이 물속에 있어? | 저 하마는 입이 커. |
-| ant | 바닥에서 작은 줄 발견 | What little bug carries food? | The ant has food now. | 어떤 작은 벌레가 먹이를 옮겨? | 개미가 지금 먹이를 가지고 있어. |
-| ant | 흙속 작은 집 관찰하기 | What is this tiny black bug? | The ant is very small. | 이 작은 검은 벌레는 뭐야? | 개미는 아주 작아. |
-| monkey | 나무에서 바나나 먹기 | Who climbs trees and eats bananas? | That monkey has a long tail. | 누가 나무를 타고 바나나를 먹어? | 저 원숭이는 꼬리가 길어. |
-| monkey | 동물원에서 매달리기 구경 | What animal climbs up this tree? | A monkey is up there. | 어떤 동물이 나무를 타고 올라가? | 원숭이가 저 위에 있어. |
-| zebra | 들판에서 검흰 무늬 보기 | What animal is black and white? | That zebra eats green grass. | 어떤 동물은 검고 흰색이야? | 저 얼룩말은 초록 풀을 먹어. |
-| zebra | 동물원 줄무늬 동물 찾기 | Does that animal look like a horse? | Yes, it is a zebra. | 저 동물은 말처럼 생겼어? | 응, 얼룩말이야. |
-| snake | 다리 없는 동물 관찰 | What animal moves without any legs? | The snake moves through grass. | 어떤 동물은 다리 없이 움직여? | 뱀이 풀밭을 지나가. |
-| snake | 뱀 허물을 살펴보는 날 | Look! That animal is very long! | Yes, it is a snake. | 봐! 저 동물은 아주 길어! | 응, 뱀이야. |
-| frog | 연못에서 개굴 소리 | What jumps by the pond? | A frog is jumping there. | 연못 옆에서 무엇이 뛰어? | 개구리가 거기서 뛰어. |
-| frog | 연못에서 뒷다리 관찰 | What small green animal can jump? | That frog can jump high. | 어떤 작은 초록 동물이 뛰어? | 저 개구리는 높이 뛸 수 있어. |
-| bird | 아침 창밖에서 지저귐 | Who is singing in the tree? | A bird sings every morning. | 누가 나무에서 노래해? | 새가 매일 아침 노래해. |
-| bird | 정원 둥지 속 알 발견 | Who can fly with two wings? | That bird can fly high. | 누가 날개 두 개로 날 수 있어? | 저 새는 높이 날 수 있어. |
+| cat | 야옹 소리가 날 때 | Meow! What is that sound? | My cat wants some food. | 야옹! 무슨 소리야? | 우리 고양이가 밥 달래. |
+| cat | 소파에 털이 묻었을 때 | Why is there fur on the sofa? | The cat sleeps there every day. | 소파에 왜 털이 있어? | 고양이가 매일 거기서 자거든. |
+| dog | 공원에서 산책할 때 | Can I pet your dog? | Sure, he is very kind. | 너희 강아지 쓰다듬어도 돼? | 그럼, 아주 순해. |
+| dog | 현관에서 짖는 소리가 날 때 | Woof! Woof! Who is at the door? | Our dog hears Dad coming. | 멍! 멍! 문 앞에 누구야? | 우리 개가 아빠 오는 소리를 들었어. |
+| cow | 농장 체험을 할 때 | What animal says moo? | A cow! Moo, moo! | 음매 하는 동물은 뭐야? | 소! 음매, 음매! |
+| cow | 우유를 마실 때 | Where does milk come from? | It comes from a cow. | 우유는 어디서 와? | 소한테서 나와. |
+| sheep | 잠이 안 올 때 | Mom, I am not sleepy. | Try to count sheep. | 엄마, 잠이 안 와요. | 양을 세어 봐. |
+| sheep | 농장에서 털을 깎을 때 | What is the farmer doing? | He cuts wool from a sheep. | 농부 아저씨는 뭐 해? | 양털을 깎고 계셔. |
+| horse | 회전목마 앞에서 | Which one do you want? | I want the white horse! | 어떤 거 탈래? | 하얀 말 탈래! |
+| horse | 농장에서 당근을 줄 때 | Who wants this carrot? | Give it to the horse. | 이 당근 누가 먹을까? | 말한테 줘. |
+| pig | 그림을 그릴 때 | What is this pink animal? | It is a pig. Oink! | 이 분홍 동물은 뭐야? | 돼지야. 꿀꿀! |
+| pig | 진흙탕 옆에서 | Why is that animal so dirty? | A pig loves the mud. | 저 동물은 왜 저렇게 더러워? | 돼지는 진흙을 좋아해. |
+| fox | 동물원에서 | Look at that red tail! | It is a fox! | 저 빨간 꼬리 좀 봐! | 여우야! |
+| fox | 밤에 숲속에서 | I see two eyes in the dark! | Maybe it is a fox. | 어둠 속에 눈 두 개가 보여! | 여우일지도 몰라. |
+| duck | 연못에 빵을 줄 때 | Who wants some bread? | Quack! The duck does! | 빵 먹을 사람? | 꽥! 오리가 먹고 싶대! |
+| duck | 피구를 할 때 | Watch out! The ball! | I will duck down fast! | 조심해! 공이야! | 얼른 몸을 숙일게! |
+| lion | 동물원에서 큰 소리가 날 때 | Roar! What was that? | It is the lion! | 어흥! 저게 뭐야? | 사자야! |
+| lion | 역할 놀이를 할 때 | What animal are you? | I am a strong lion! | 너는 무슨 동물이야? | 나는 힘센 사자야! |
+| fish | 수족관에서 | Look at the orange one! | That fish is so pretty! | 저 주황색 좀 봐! | 저 물고기 정말 예쁘다! |
+| fish | 호숫가에서 | What are you doing, Dad? | I fish here every Sunday. | 아빠, 뭐 하세요? | 일요일마다 여기서 낚시해. |
+| deer | 숲길을 걸을 때 | Shh! Something is behind the tree. | Wow, it is a deer! | 쉿! 나무 뒤에 뭐가 있어. | 와, 사슴이다! |
+| deer | 그림책을 볼 때 | Look at its long thin legs! | It is a baby deer. | 다리가 길고 가는 것 좀 봐! | 아기 사슴이야. |
+| bear | 잠자기 전에 | Do you want your doll? | Yes, my teddy bear, please! | 인형 줄까? | 응, 내 곰 인형 줘! |
+| bear | 꿀단지를 볼 때 | Who loves honey so much? | A big brown bear! | 누가 꿀을 그렇게 좋아해? | 커다란 갈색 곰! |
+| tiger | 페이스 페인팅을 할 때 | What should I paint on you? | Make me a tiger, please! | 얼굴에 뭘 그려 줄까? | 호랑이로 해 주세요! |
+| tiger | 동물원에서 줄무늬를 볼 때 | Look at the orange and black stripes! | That tiger looks hungry. | 주황색과 검은색 줄무늬 좀 봐! | 저 호랑이 배고파 보여. |
+| hippo | 동물원 연못에서 | What is that big gray animal? | It is a hippo! | 저 크고 회색인 동물은 뭐야? | 하마야! |
+| hippo | 입을 크게 벌릴 때 | Look! I can open my mouth wide! | Like a hungry hippo! | 봐! 입을 크게 벌릴 수 있어! | 배고픈 하마 같아! |
+| ant | 소풍 도시락을 펼 때 | Oh no, what is on my sandwich? | It is a little ant! | 앗, 내 샌드위치에 뭐가 있어? | 작은 개미야! |
+| ant | 돋보기로 땅을 볼 때 | What do you see on the ground? | One ant with a big leaf. | 땅에 뭐가 보여? | 큰 잎을 든 개미 한 마리. |
+| monkey | 정글짐에 매달려 놀 때 | Look, I can hang with one hand! | You are like a monkey! | 봐, 한 손으로 매달릴 수 있어! | 너 꼭 원숭이 같아! |
+| monkey | 동물원에서 바나나를 볼 때 | Who eats all these bananas? | That little monkey does! | 이 바나나 다 누가 먹어? | 저 작은 원숭이가 먹어! |
+| zebra | 색칠 공부를 할 때 | Which crayons do I need? | Black and white for the zebra. | 어떤 크레파스가 필요해? | 얼룩말은 검은색이랑 흰색. |
+| zebra | 동물원 지도를 볼 때 | I want to see the stripes! | The zebra is over there. | 줄무늬 동물 보고 싶어! | 얼룩말은 저쪽에 있어. |
+| snake | 점토 놀이를 할 때 | What did you make with clay? | A long, long snake! | 찰흙으로 뭐 만들었어? | 기다란 뱀! |
+| snake | 풀숲에서 쉭쉭 소리가 날 때 | Hiss! What is that sound? | Be careful! A snake! | 쉭! 무슨 소리야? | 조심해! 뱀이야! |
+| frog | 비 오는 날 연못에서 | Ribbit, ribbit! Who is singing? | A little green frog! | 개굴, 개굴! 누가 노래해? | 작은 초록 개구리! |
+| frog | 멀리뛰기 놀이를 할 때 | How far can you jump? | Far, like a frog! | 얼마나 멀리 뛸 수 있어? | 멀리, 개구리처럼! |
+| bird | 창문 밖에서 노래가 들릴 때 | Who is singing outside? | A little bird in the tree. | 밖에서 누가 노래해? | 나무에 있는 작은 새. |
+| bird | 팔을 쭉 펴고 달릴 때 | Look! I am flying! | You look like a big bird! | 봐! 나 날고 있어! | 너 꼭 큰 새 같아! |

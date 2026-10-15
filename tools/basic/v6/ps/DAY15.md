@@ -1,75 +1,69 @@
-## Pre-Starter Step 15 (노션 Pre starter / Voca 1 / Step (15), 2026-10-15)
-<!-- 고침 (상황이 대화와 안 맞음):
-  three 1 '삼각형 변 세어보기' → '사과 하나 더 세기' / three 2 '장난감 세 개 세기' → '그림 속 색 세어보기'
-  six 2 '육각형 변 세어보기' → '사과 더하기 놀이' / eight 2 '정육면체 꼭짓점 세기' → '새 더하기 놀이'
-  nine 1 '야구 선수 숫자 보기' → '장난감 차 더하기' / nine 2 '세 줄 칸의 개수 세기' → '별 스티커 더하기'
-  ten 2 '오리 다리 개수 계산' → '양손 손가락 더하기' / eleven 1 '축구팀 선수 수 세기' → '별 하나 더 세기'
-  month 1 '이월의 날짜 확인하기' → '일월 달력 보기'
-  count 설명 2 '사람이나 물건을 가리킬 때 써요.' → '센 결과의 수를 말해요.'   (v281 대화 고침: 같은 과 다른 단어도 빈칸에 맞던 대화 — 단서를 넣음)
--->
+## 1단계 (Pre-Starter) DAY 15 — Claude 작성 (2026-10-16)
 
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| one | 표현 | 하나 (1) | 숫자 1을 나타낼 때 써요. | — | — | — | I have one apple. | 나는 사과 하나가 있어요. | One bird is singing. | 새 한 마리가 노래해요. | 1 | — | one apple (사과 하나) · one more (하나 더) | — | — | won (이겼다) |
-| two | 표현 | 둘 (2) | 숫자 2를 나타낼 때 써요. | — | — | — | I have two cats. | 나는 고양이 두 마리가 있어요. | Two dogs are playing. | 개 두 마리가 놀고 있어요. | 1 | — | two eyes (눈 두 개) · two hands (손 두 개) | — | — | too (또한) |
-| three | 표현 | 셋 (3) | 숫자 3을 나타낼 때 써요. | — | — | — | I see three stars. | 나는 별 세 개를 봐요. | Three kids are here. | 아이 세 명이 여기 있어요. | 1 | — | three sides (변 세 개) · three cats (고양이 세 마리) | — | — | tree (나무) |
-| four | 표현 | 넷 (4) | 숫자 4를 나타낼 때 써요. | — | — | — | I see four birds outside. | 밖에서 새 네 마리가 보여요. | I have four red pens. | 나는 빨간 펜 네 개가 있어요. | 1 | — | four legs (다리 네 개) · four wheels (바퀴 네 개) | — | — | for (~을 위해) |
-| five | 표현 | 다섯 (5) | 숫자 5를 나타낼 때 써요. | — | — | — | There are five apples. | 사과가 다섯 개 있어요. | Five ducks can swim. | 오리 다섯 마리는 수영할 수 있어요. | 1 | — | five fingers (손가락 다섯) · five stars (별 다섯) | — | — | fire (불) |
-| six | 표현 | 여섯 (6) | 숫자 6을 나타낼 때 써요. | — | — | — | I have six crayons. | 나는 크레용 여섯 개가 있어요. | Six birds fly high. | 새 여섯 마리가 높이 날아요. | 1 | — | six legs (다리 여섯) · six books (책 여섯 권) | — | — | sick (아픈) |
-| seven | 표현 | 일곱 (7) | 숫자 7을 나타낼 때 써요. | — | — | — | I see seven balloons. | 나는 풍선 일곱 개를 봐요. | Seven kids play soccer. | 아이 일곱 명이 축구해요. | 1 | — | seven days (일곱 날) · seven colors (일곱 색) | — | — | — |
-| eight | 표현 | 여덟 (8) | 숫자 8을 나타낼 때 써요. | — | — | — | There are eight chairs. | 의자가 여덟 개 있어요. | Eight fish swim together. | 물고기 여덟 마리가 함께 헤엄쳐요. | 1 | — | eight legs (다리 여덟) · eight corners (꼭짓점 여덟) | — | — | ate (먹었다) |
-| nine | 표현 | 아홉 (9) | 숫자 9를 나타낼 때 써요. | — | — | — | I have nine books. | 나는 책 아홉 권이 있어요. | Nine frogs jump high. | 개구리 아홉 마리가 높이 뛰어요. | 1 | — | nine players (선수 아홉 명) · nine squares (아홉 개의 네모) | — | — | line (선) |
-| ten | 표현 | 열 (10) | 숫자 10을 나타낼 때 써요. | — | — | — | I have ten fingers. | 나는 손가락이 열 개예요. | Ten kids sing together. | 아이 열 명이 함께 노래해요. | 1 | — | ten fingers (손가락 열 개) · ten years (십 년) | — | — | then (그때) |
-| eleven | 표현 | 열하나 (11) | 숫자 11을 나타낼 때 써요. | — | — | — | There are eleven pencils. | 연필이 열한 자루 있어요. | Eleven birds sit here. | 새 열한 마리가 여기 앉아 있어요. | 1 | — | eleven players (선수 열한 명) · eleven books (책 열한 권) | — | — | — |
-| twelve | 표현 | 열둘 (12) | 숫자 12를 나타낼 때 써요. | — | — | — | A year has twelve months. | 일 년에는 열두 달이 있어요. | Twelve kids play outside. | 아이 열두 명이 밖에서 놀아요. | 1 | — | twelve months (열두 달) · twelve eggs (달걀 열두 개) | — | — | — |
-| thirteen | 표현 | 열셋 (13) | 숫자 13을 나타낼 때 써요. | — | — | — | I see thirteen stars. | 나는 별 열세 개를 봐요. | Thirteen kids are at school. | 열세 명의 아이들이 학교에 있어요. | 1 | — | thirteen stars (별 열세 개) · thirteen books (책 열세 권) | — | — | thirty (서른) |
-| fourteen | 표현 | 열넷 (14) | 숫자 14를 나타낼 때 써요. | — | — | — | I have fourteen stickers. | 나는 스티커 열네 장이 있어요. | Fourteen kids are here. | 아이 열네 명이 여기 있어요. | 1 | — | fourteen days (열나흘) · fourteen books (책 열네 권) | — | — | forty (마흔) |
-| fifteen | 표현 | 열다섯 (15) | 숫자 15를 나타낼 때 써요. | — | — | — | We have fifteen balls. | 우리는 공 열다섯 개가 있어요. | Fifteen birds fly away. | 새 열다섯 마리가 날아가요. | 1 | — | fifteen minutes (15분) · fifteen balls (공 열다섯 개) | — | — | fifty (쉰) |
-| count | 동사 | 숫자를 세다 | 물건이 몇 개인지 알아봐요. | 명사 | 숫자 세기, 수 | 센 결과의 수를 말해요. | I can count to ten. | 나는 열까지 셀 수 있어요. | The count is five now. | 지금 센 수는 다섯이에요. | 2 | 동사 counts · counted · counted · counting / 명사 counts | count to ten (열까지 세다) · count the apples (사과를 세다) | add up (합산하다) | — | can't (~할 수 없다) |
-| birthday | 명사 | 생일 | 태어난 날짜를 기념하는 날이에요. | — | — | — | Today is my birthday. | 오늘은 내 생일이에요. | We sing a birthday song. | 우리는 생일 축하 노래를 불러요. | 1 | birthdays | happy birthday (생일 축하해) · birthday cake (생일 케이크) | — | — | birth (출생) |
-| time | 명사 | 시간, 횟수 | 시계로 알 수 있는 때를 말해요. | — | — | — | What time is it? | 몇 시예요? | I try one more time. | 나는 한 번 더 시도해요. | 1 | times | what time (몇 시) · one more time (한 번 더) | — | — | tire (타이어) |
-| month | 명사 | 달 (월), 한 달의 기간 | 일 년을 열둘로 나눈 기간이에요. | — | — | — | This month is October. | 이번 달은 10월이에요. | I wait one month. | 나는 한 달 동안 기다려요. | 1 | months | next month (다음 달) · this month (이번 달) | — | — | mouth (입) |
-| year | 명사 | 해 (년) | 열두 달을 합친 기간이에요. | — | — | — | One year has four seasons. | 일 년에는 사계절이 있어요. | I have a party every year. | 저는 매년 파티를 해요. | 1 | years | next year (내년) · every year (매년) | — | — | ear (귀) |
+| one | 명사 | 하나 (1) | 숫자 1이에요. 한 개를 말해요. | — | — | — | I have one little brother. | 나는 남동생이 한 명 있어요. | Only one cookie is left! | 쿠키가 딱 하나 남았어요! | 1 | — | one more (하나 더) · one by one (하나씩) | — | — | won (이겼다) |
+| two | 명사 | 둘 (2) | 숫자 2예요. 하나 더하기 하나예요. | — | — | — | A bird has two wings. | 새는 날개가 두 개예요. | I eat two eggs for breakfast. | 나는 아침으로 달걀 두 개를 먹어요. | 1 | — | two hands (두 손) · two by two (둘씩) | — | — | too (너무, 또한) |
+| three | 명사 | 셋 (3) | 숫자 3이에요. 둘 다음 수예요. | — | — | — | My sister is three years old. | 내 여동생은 세 살이에요. | Three ducks swim in the pond. | 오리 세 마리가 연못에서 헤엄쳐요. | 1 | — | three times (세 번) · three years old (세 살) | — | — | tree (나무) |
+| four | 명사 | 넷 (4) | 숫자 4예요. 셋 다음 수예요. | — | — | — | A dog has four legs. | 개는 다리가 네 개예요. | There are four people in my family. | 우리 가족은 네 명이에요. | 1 | — | four legs (다리 네 개) · four seasons (사계절) | — | — | for (~을 위해) |
+| five | 명사 | 다섯 (5) | 숫자 5예요. 넷 다음 수예요. | — | — | — | Wait five minutes, please. | 5분만 기다려 주세요. | Five kids play in the sand. | 아이 다섯 명이 모래에서 놀아요. | 1 | — | five minutes (5분) · high five (하이 파이브) | — | — | fine (좋은) |
+| six | 명사 | 여섯 (6) | 숫자 6이에요. 다섯 다음 수예요. | — | — | — | An ant has six legs. | 개미는 다리가 여섯 개예요. | I wake up at six. | 나는 여섯 시에 일어나요. | 1 | — | six legs (다리 여섯 개) · at six (여섯 시에) | — | — | sick (아픈) |
+| seven | 명사 | 일곱 (7) | 숫자 7이에요. 여섯 다음 수예요. | — | — | — | A week has seven days. | 일주일은 7일이에요. | I see seven colors in the rainbow. | 무지개에서 일곱 가지 색이 보여요. | 1 | — | seven days (7일) · seven colors (일곱 색깔) | — | — | — |
+| eight | 명사 | 여덟 (8) | 숫자 8이에요. 일곱 다음 수예요. | — | — | — | My box has eight crayons. | 내 상자에는 크레파스가 여덟 개 있어요. | I leave home at eight. | 나는 여덟 시에 집을 나서요. | 1 | — | eight crayons (크레파스 여덟 개) · at eight (여덟 시에) | — | — | ate (먹었다) |
+| nine | 명사 | 아홉 (9) | 숫자 9예요. 여덟 다음 수예요. | — | — | — | My brother is nine years old. | 우리 형은 아홉 살이에요. | I go to bed at nine. | 나는 아홉 시에 자요. | 1 | — | nine years old (아홉 살) · at nine (아홉 시에) | — | — | — |
+| ten | 명사 | 열 (10) | 숫자 10이에요. 아홉 다음 수예요. | — | — | — | Ten little ducks follow their mom. | 아기 오리 열 마리가 엄마를 따라가요. | Close your eyes and count to ten. | 눈 감고 열까지 세. | 1 | — | count to ten (열까지 세다) · ten minutes (10분) | — | — | — |
+| eleven | 명사 | 열하나 (11) | 숫자 11이에요. 열 다음 수예요. | — | — | — | A soccer team has eleven players. | 축구 팀은 선수가 열한 명이에요. | Minsu is eleven years old. | 민수는 열한 살이에요. | 1 | — | eleven players (선수 열한 명) · eleven years old (열한 살) | — | — | — |
+| twelve | 명사 | 열둘 (12) | 숫자 12예요. 열하나 다음 수예요. | — | — | — | A clock has twelve numbers. | 시계에는 숫자가 열두 개 있어요. | Mom buys twelve eggs. | 엄마가 달걀 열두 개를 사요. | 1 | — | twelve months (열두 달) · twelve eggs (달걀 열두 개) | — | — | — |
+| thirteen | 명사 | 열셋 (13) | 숫자 13이에요. 열둘 다음 수예요. | — | — | — | Our bus is number thirteen. | 우리 버스는 13번이에요. | Ten and three make thirteen. | 10 더하기 3은 13이에요. | 1 | — | number thirteen (13번) · thirteen years old (열세 살) | — | — | thirty (서른) |
+| fourteen | 명사 | 열넷 (14) | 숫자 14예요. 열셋 다음 수예요. | — | — | — | Our class has fourteen girls. | 우리 반에는 여학생이 열네 명 있어요. | There are fourteen fish in the tank. | 어항에 물고기가 열네 마리 있어요. | 1 | — | fourteen days (14일) · fourteen years old (열네 살) | — | — | forty (마흔) |
+| fifteen | 명사 | 열다섯 (15) | 숫자 15예요. 열넷 다음 수예요. | — | — | — | Break time is fifteen minutes. | 쉬는 시간은 15분이에요. | My big brother is fifteen. | 우리 형은 열다섯 살이에요. | 1 | — | fifteen minutes (15분) · fifteen years old (열다섯 살) | — | — | fifty (쉰) |
+| count | 동사 | 숫자를 세다 | 하나, 둘, 셋 하고 수를 세는 거예요. | — | — | — | Let's count the stars! | 별을 세어 보자! | Mina counts her coins. | 미나가 동전을 세요. | 1 | counts · counted · counted · counting | count to ten (열까지 세다) · count the apples (사과를 세다) | — | — | — |
+| birthday | 명사 | 생일 | 내가 태어난 날이에요. 해마다 와요. | — | — | — | Happy birthday to you, Yuna! | 유나야, 생일 축하해! | My birthday is in May. | 내 생일은 5월이에요. | 1 | birthdays | happy birthday (생일 축하해) · a birthday cake (생일 케이크) | — | — | — |
+| time | 명사 | 시간, 때 | 시계로 알 수 있는 시각이나 때예요. | — | — | — | What time is it now? | 지금 몇 시예요? | It is time for lunch! | 점심 먹을 시간이에요! | 1 | times | what time (몇 시) · have a good time (즐겁게 보내다) | — | — | — |
+| month | 명사 | 달 (월) | 일 년을 열둘로 나눈 것 중 하나예요. | — | — | — | We go camping next month. | 우리는 다음 달에 캠핑을 가요. | Which month do you like best? | 너는 어느 달이 제일 좋아? | 1 | months | next month (다음 달) · every month (매달) | — | — | mouth (입) |
+| year | 명사 | 해 (년) | 열두 달을 모두 합친 기간이에요. | — | — | — | I am eight years old. | 나는 여덟 살이에요. | We visit Grandpa every year. | 우리는 해마다 할아버지 댁에 가요. | 1 | years | every year (해마다) · next year (내년) | — | — | ear (귀) |
+
+## [표 2] 게임 대화 표
 
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
-| one | 얼굴의 코 개수 세기 | How many noses do you have? | I have one nose. | 코는 몇 개 있니? | 한 개 있어. |
-| one | 하늘의 태양 개수 | How many suns can we see? | We see one sun. | 우리는 해를 몇 개 볼 수 있어? | 해는 한 개 보여. |
-| two | 사람의 눈 개수 세기 | How many eyes do you have? | I have two eyes. | 눈은 몇 개 있니? | 두 개 있어. |
-| two | 자전거 바퀴 개수 | How many wheels does your bike have? | My bike has two wheels. | 네 자전거에는 바퀴가 몇 개 있어? | 바퀴가 두 개 있어. |
-| three | 사과 하나 더 세기 | Two apples, and one more! | That makes three apples. | 사과 두 개에 하나 더! | 사과 세 개가 돼. |
-| three | 그림 속 색 세어보기 | Red, blue, and green. How many colors? | I can see three colors. | 빨강, 파랑, 초록. 몇 가지 색이야? | 세 가지 색이 보여. |
-| four | 고양이 다리 세어보기 | How many legs does a cat have? | A cat has four. | 고양이에게는 다리가 몇 개니? | 네 개야. |
-| four | 자동차 바퀴 수 세기 | How many wheels does that car have? | It has four wheels. | 저 자동차의 바퀴는 몇 개니? | 네 개야. |
-| five | 한 손 손가락 세기 | How many fingers on one hand? | I have five fingers. | 한 손에 손가락이 몇 개야? | 다섯 개야. |
-| five | 별의 꼭짓점 세기 | How many points make this star? | I can count five. | 이 별 모양에는 꼭짓점이 몇 개니? | 다섯 개를 셀 수 있어. |
-| six | 개미 다리 개수 세기 | How many legs does an ant have? | It has six legs. | 개미에게는 다리가 몇 개니? | 여섯 개야. |
-| six | 사과 더하기 놀이 | Three apples and three more. | That makes six apples. | 사과 세 개에 세 개 더. | 사과 여섯 개가 돼. |
-| seven | 일주일 날짜 수 세기 | How many days make a week? | A week has seven. | 일주일은 며칠이니? | 일곱 날이야. |
-| seven | 무지개 색깔 세기 | How many colors are in a rainbow? | A rainbow has seven colors. | 무지개에는 색이 몇 가지야? | 무지개에는 일곱 가지 색이 있어. |
-| eight | 거미 다리 수 세기 | How many legs does a spider have? | A spider has eight. | 거미의 다리는 몇 개니? | 여덟 개야. |
-| eight | 새 더하기 놀이 | Four birds and four more! | Now we have eight birds. | 새 네 마리에 네 마리 더! | 이제 새 여덟 마리가 있어. |
-| nine | 장난감 차 더하기 | Four cars and five more. | We have nine cars. | 자동차 네 대에 다섯 대 더. | 자동차 아홉 대야. |
-| nine | 별 스티커 더하기 | Five stars and four more. | That makes nine stars. | 별 다섯 개에 네 개 더. | 별 아홉 개가 돼. |
-| ten | 양손 손가락 세기 | How many fingers are on both hands? | We usually have ten. | 양손에는 손가락이 몇 개니? | 보통 열 개야. |
-| ten | 양손 손가락 더하기 | Five fingers here and five here. | There are ten in all. | 여기 손가락 다섯 개, 저기 다섯 개. | 전부 열 개야. |
-| eleven | 별 하나 더 세기 | Ten stars and one more. | We have eleven stars. | 별 열 개에 하나 더. | 별 열한 개야. |
-| eleven | 열 다음 숫자 맞히기 | What comes after the number ten? | The next number is eleven. | 숫자 열 다음은 무엇이니? | 다음 숫자는 열하나야. |
-| twelve | 한 해 달 수를 세기 | How many months make a year? | A year has twelve. | 일 년은 몇 달이니? | 열두 달이야. |
-| twelve | 여섯 더하기 여섯 | What is six plus six? | The answer is twelve. | 육 더하기 육은 얼마니? | 정답은 열둘이야. |
-| thirteen | 열둘 다음 수 맞히기 | What number follows twelve? | It is thirteen. | 열둘 다음 숫자는 무엇이니? | 열셋이야. |
-| thirteen | 열 더하기 셋 풀기 | What is ten plus three? | The answer is thirteen. | 십 더하기 삼은 얼마니? | 열셋이야. |
-| fourteen | 열셋 다음 수 맞히기 | What number comes after thirteen? | It is fourteen. | 열셋 다음 숫자는 무엇이니? | 열넷이야. |
-| fourteen | 일곱 더하기 일곱 | What is seven plus seven? | The answer is fourteen. | 칠 더하기 칠은 얼마니? | 열넷이야. |
-| fifteen | 열넷 다음 수 맞히기 | What number follows fourteen? | The next is fifteen. | 열넷 다음 숫자는 무엇이니? | 다음은 열다섯이야. |
-| fifteen | 열 더하기 다섯 | What is ten plus five? | The answer is fifteen. | 십 더하기 오는 얼마니? | 열다섯이야. |
-| count | 블록 개수 함께 세기 | How many blocks are here? | Let's count them together. | 여기 블록이 몇 개 있어? | 함께 세어 보자. |
-| count | 사과 수 확인하는 때 | How many apples do we have? | Let's count the apples. | 사과가 몇 개 있어? | 사과를 세어 보자. |
-| birthday | 매년 케이크를 준비하기 | Why do you have a cake? | It's my birthday today! | 케이크는 왜 있어? | 오늘 내 생일이야! |
-| birthday | 케이크 위 초 켜기 | Why is Mina so happy today? | It is her birthday! | 미나는 오늘 왜 기뻐해? | 오늘이 미나 생일이거든! |
-| time | 시계가 가리키는 때 | What do you see on that clock? | I can see the time. | 저 시계에서 무엇을 볼 수 있어? | 시간을 알 수 있어. |
-| time | 독서 전 시계 살펴보기 | Can we read one more book? | Yes, we have time. | 책 한 권 더 읽어도 돼? | 응, 시간이 있어. |
-| month | 일월 달력 보기 | Does January have many days? | Yes, it is a month. | 1월에는 여러 날이 있어? | 응, 한 달이야. |
-| month | 일월 다음 달 찾기 | What comes after January? | February is the next month. | 1월 다음에는 뭐가 와? | 2월이 다음 달이야. |
-| year | 생일 사이의 기간 보기 | Does your birthday come every month? | No, once a year. | 생일은 매달 돌아와? | 아니, 일 년에 한 번이야. |
-| year | 열두 달을 한 해로 | How long is twelve months? | That makes one year. | 열두 달은 얼마나 되니? | 한 해가 돼. |
+| one | 간식을 나눠 먹을 때 | Can I have a cookie? | Sure, take one. | 쿠키 먹어도 돼? | 그럼, 한 개 가져가. |
+| one | 가족 얘기를 할 때 | How many brothers do you have? | I have just one brother. | 남자 형제가 몇 명이야? | 딱 한 명 있어. |
+| two | 양말을 신을 때 | How many socks do you need? | I need two, of course! | 양말 몇 짝 필요해? | 당연히 두 짝이지! |
+| two | 아이스크림 가게에서 | How many ice creams, kids? | We want two, please! | 얘들아, 아이스크림 몇 개 줄까? | 두 개 주세요! |
+| three | 달리기 시합 전에 | Ready to race? | Yes! Go on three! | 달리기 준비됐어? | 응! 셋 하면 출발! |
+| three | 여동생 얘기를 할 때 | How old is your sister? | She is just three. | 네 여동생은 몇 살이야? | 이제 겨우 세 살이야. |
+| four | 보드게임을 할 때 | How many kids can play this? | Four kids can play. | 이거 몇 명이 할 수 있어? | 네 명이 할 수 있어. |
+| four | 강아지 그림을 볼 때 | Your dog drawing is missing a leg! | Oops! Dogs have four legs. | 네 개 그림에 다리 하나가 없어! | 앗! 개는 다리가 네 개지. |
+| five | 경기에서 이겼을 때 | We won the game! | Yay! Give me five! | 우리 경기 이겼어! | 야호! 하이파이브! |
+| five | 저녁 먹으라고 부를 때 | Come and eat dinner, kids! | Five more minutes, please! | 얘들아, 저녁 먹으러 와! | 5분만 더요! |
+| six | 개미를 구경할 때 | Look at this tiny ant! | Wow, it has six legs! | 이 작은 개미 좀 봐! | 와, 다리가 여섯 개야! |
+| six | 아주 이른 아침에 | Why are you up so early? | My clock rings at six. | 왜 이렇게 일찍 일어났어? | 내 시계가 여섯 시에 울려. |
+| seven | 비 갠 뒤 하늘을 볼 때 | Look, a rainbow! | Let's find all seven colors! | 봐, 무지개다! | 일곱 색깔을 다 찾아보자! |
+| seven | 새 친구를 만났을 때 | Jiho, how old are you now? | I am seven, and you? | 지호야, 너 이제 몇 살이야? | 나 일곱 살이야, 너는? |
+| eight | 벽에 벌레가 있을 때 | Eek! A spider on the wall! | Look, it has eight legs! | 으악! 벽에 거미가 있어! | 봐, 다리가 여덟 개야! |
+| eight | 늦잠을 잤을 때 | Mom, am I late for school? | Yes! It is almost eight! | 엄마, 저 학교 늦었어요? | 응! 벌써 여덟 시 다 됐어! |
+| nine | 밤에 더 놀고 싶을 때 | Can I stay up late tonight? | No, go to bed at nine. | 오늘 밤 늦게까지 안 자도 돼요? | 안 돼, 아홉 시에 자러 가. |
+| nine | 엘리베이터를 탔을 때 | Which button do I push? | Push nine for our home. | 어느 버튼 눌러? | 우리 집은 9층이니까 9 눌러. |
+| ten | 저금통을 열었을 때 | How many coins do you have? | I have ten coins now! | 동전 몇 개 있어? | 이제 열 개 있어! |
+| ten | 버스를 기다릴 때 | When does the bus come? | In ten minutes. | 버스 언제 와? | 10분 뒤에. |
+| eleven | 축구 경기를 볼 때 | How many players are on a team? | Eleven players on each team. | 한 팀에 선수가 몇 명이야? | 한 팀에 열한 명이야. |
+| eleven | 케이크에 초를 꽂을 때 | How old is Tom today? | He is eleven! Look at the candles. | 톰은 오늘 몇 살이야? | 열한 살이야! 초를 봐. |
+| twelve | 점심을 기다릴 때 | When do we eat lunch? | We eat at twelve. | 점심은 언제 먹어? | 열두 시에 먹어. |
+| twelve | 마트에서 장을 볼 때 | How many eggs are in a box? | There are twelve in a box. | 한 상자에 달걀이 몇 개야? | 한 상자에 열두 개 있어. |
+| thirteen | 버스 정류장에서 | Which bus goes to the zoo? | Take bus number thirteen. | 동물원 가는 버스는 몇 번이야? | 13번 버스 타. |
+| thirteen | 스티커를 모을 때 | How many stickers do you have? | I have thirteen stickers! | 스티커 몇 장 있어? | 열세 장 있어! |
+| fourteen | 책을 펴는 수업 중에 | What page are we on? | We are on page fourteen. | 우리 몇 쪽이야? | 14쪽이야. |
+| fourteen | 형 얘기를 할 때 | How old is your big brother? | He is fourteen. He is tall! | 너희 형은 몇 살이야? | 열네 살이야. 키가 커! |
+| fifteen | 쉬는 시간이 시작될 때 | How long is our break? | It is fifteen minutes. | 쉬는 시간 얼마나 돼? | 15분이야. |
+| fifteen | 줄넘기를 한 뒤 | How many jumps did you do? | I did fifteen jumps! | 몇 번 뛰었어? | 열다섯 번 뛰었어! |
+| count | 잠이 안 오는 밤에 | I can't sleep, Mom. | Try to count sheep. | 엄마, 잠이 안 와요. | 양을 세어 봐. |
+| count | 간식을 나눠 줄 때 | Is there a snack for everyone? | Let's count them first. | 모두 먹을 간식이 있어? | 먼저 세어 보자. |
+| birthday | 파티에 초대받았을 때 | Can you come to my party? | Sure! Is it your birthday? | 우리 파티에 올 수 있어? | 그럼! 네 생일이야? |
+| birthday | 케이크를 보았을 때 | Why is there a cake today? | It is Dad's birthday! | 오늘 왜 케이크가 있어? | 아빠 생일이거든! |
+| time | 밤늦게 놀고 있을 때 | Can we play more? | No, it is time for bed. | 더 놀아도 돼? | 안 돼, 잘 시간이야. |
+| time | 친구 집에서 놀고 나서 | Thank you for coming! | I had a great time! | 와 줘서 고마워! | 정말 즐거웠어! |
+| month | 달력을 넘겨 볼 때 | When is the school trip? | It is next month! | 소풍 언제야? | 다음 달이야! |
+| month | 새 강아지를 보았을 때 | How old is your puppy? | He is a month old. | 강아지는 몇 살이야? | 태어난 지 한 달 됐어. |
+| year | 설날 아침 인사할 때 | Happy New Year, Grandma! | Thank you! Here is a gift. | 할머니, 새해 복 많이 받으세요! | 고맙다! 여기 선물. |
+| year | 생일 파티가 끝난 뒤 | When is your next birthday party? | Next year, in March! | 다음 생일 파티는 언제야? | 내년 3월에! |

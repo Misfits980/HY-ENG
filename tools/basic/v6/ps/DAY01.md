@@ -1,67 +1,69 @@
-## Pre-Starter Step 1 (노션 Pre starter / Voca 1 / Step (1), 2026-10-15)
+## 1단계 (Pre-Starter) DAY 01 — Claude 작성 (2026-10-16)
 
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| head | 명사 | 머리 | 몸의 맨 위 부분을 말해요. | 동사 | 향하다 | 어떤 곳으로 갈 때 써요. | My head hurts after the game. | 게임이 끝난 뒤 머리가 아파요. | We head home after school. | 우리는 방과 후 집으로 향해요. | 2 | 명사 heads / 동사 heads · headed · headed · heading | shake your head (고개를 젓다) · head home (집으로 향하다) | — | — | heard (들었다) |
-| ear | 명사 | 귀 | 소리를 들을 때 사용하는 몸의 부분이에요. | — | — | — | My ear hurts a little today. | 오늘 귀가 조금 아파요. | I cover my ears at night. | 저는 밤에 귀를 가려요. | 1 | ears | left ear (왼쪽 귀) · right ear (오른쪽 귀) | — | — | hear (듣다) |
-| mouth | 명사 | 입 | 음식을 먹거나 말을 할 때 사용해요. | — | — | — | Open your mouth for the doctor. | 의사 선생님을 위해 입을 벌려 주세요. | My mouth feels dry after running. | 달리고 나니 입이 말라요. | 1 | mouths | open your mouth (입을 벌리다) · close your mouth (입을 다물다) | — | — | mouse (쥐) |
-| arm | 명사 | 팔 | 어깨에서 손까지 이어진 부분이에요. | — | — | — | I raise my arm in class. | 저는 수업 시간에 팔을 들어요. | My arm is in my shirt. | 제 팔은 셔츠 안에 있어요. | 1 | arms | raise your arm (팔을 들다) · stretch your arm (팔을 뻗다) | — | — | farm (농장) |
-| leg | 명사 | 다리 | 몸을 받치고 걷는 데 사용해요. | — | — | — | My leg hurts after running. | 뛰고 나면 다리가 아파요. | The doctor checks my left leg. | 의사 선생님이 제 왼쪽 다리를 살펴봐요. | 1 | legs | left leg (왼쪽 다리) · bend your leg (다리를 구부리다) | — | — | log (통나무) |
-| eye | 명사 | 눈 | 사람과 사물을 볼 때 사용해요. | — | — | — | My eye is red today. | 오늘 제 눈이 빨개요. | I see stars with my eyes. | 저는 눈으로 별을 봐요. | 1 | eyes | left eye (왼쪽 눈) · close your eye (눈을 감다) | — | — | I (나) |
-| nose | 명사 | 코 | 냄새를 맡거나 숨을 쉴 때 사용해요. | — | — | — | I can smell with my nose. | 저는 코로 냄새를 맡을 수 있어요. | My nose gets cold outside. | 밖에 나가면 코가 차가워져요. | 1 | noses | touch your nose (코를 만지다) · runny nose (콧물이 나는 코) | — | — | rose (장미) |
-| teeth | 명사 | 이 | 음식을 씹을 때 사용하는 단단한 부분이에요. | — | — | — | I brush my teeth after breakfast. | 저는 아침 식사 후 이를 닦아요. | My teeth are white and clean. | 제 이는 하얗고 깨끗해요. | 1 | — | brush your teeth (이를 닦다) · show your teeth (이를 드러내다) | — | — | tooth (이 한 개) |
-| hand | 명사 | 손 | 물건을 잡거나 만질 때 사용해요. | 동사 | 건네주다 | 다른 사람에게 물건을 줄 때 써요. | I hold the cup in my hand. | 저는 손에 컵을 들고 있어요. | Please hand me the blue book. | 파란 책을 저에게 건네주세요. | 2 | 명사 hands / 동사 hands · handed · handed · handing | raise your hand (손을 들다) · hand me (나에게 건네주다) | — | — | band (밴드) |
-| foot | 명사 | 발 | 걸을 때 땅을 딛는 부분이에요. | — | — | — | My left foot is cold. | 제 왼발이 차가워요. | I put one foot on the mat. | 저는 발 하나를 매트 위에 올려요. | 1 | feet | left foot (왼발) · on foot (걸어서) | — | — | food (음식) |
-| face | 명사 | 얼굴 | 눈, 코, 입이 있는 부분이에요. | 동사 | 마주보다 | 사람이나 물건 쪽을 향할 때 써요. | I wash my face every morning. | 저는 매일 아침 얼굴을 씻어요. | We face the board in class. | 우리는 교실에서 칠판을 마주 봐요. | 2 | 명사 faces / 동사 faces · faced · faced · facing | wash your face (세수하다) · face the door (문을 마주 보다) | — | — | race (경주) |
-| body | 명사 | 몸 | 머리와 팔다리를 포함하는 전체예요. | — | — | — | My body needs sleep at night. | 제 몸은 밤에 잠이 필요해요. | I move my body to music. | 저는 음악에 맞춰 몸을 움직여요. | 1 | bodies | body parts (신체 부위) · move your body (몸을 움직이다) | — | — | buddy (친구) |
-| hair | 명사 | 머리카락 | 머리 위에서 자라는 털이에요. | — | — | — | Yuna has long brown hair. | 유나는 긴 갈색 머리카락을 가지고 있어요. | I wash my hair on Sunday. | 저는 일요일에 머리를 감아요. | 1 | — | brush your hair (머리카락을 빗다) · long hair (긴 머리카락) | — | — | hare (산토끼) |
-| chin | 명사 | 턱 | 입 아래에 있는 얼굴 부분이에요. | — | — | — | Touch your chin with one finger. | 손가락 하나로 턱을 만져 보세요. | My chin is under my mouth. | 제 턱은 입 아래에 있어요. | 1 | chins | under your chin (턱 아래에) · touch your chin (턱을 만지다) | — | — | chain (사슬) |
-| lip | 명사 | 입술 | 입의 위와 아래를 감싸는 부분이에요. | — | — | — | My lip feels dry today. | 오늘은 입술이 말라요. | I put cream on my lips. | 저는 입술에 크림을 발라요. | 1 | lips | upper lip (윗입술) · lower lip (아랫입술) | — | — | lid (뚜껑) |
-| neck | 명사 | 목 | 머리와 몸을 이어주는 부분이에요. | — | — | — | My neck is cold today. | 오늘 제 목이 차가워요. | This scarf goes around my neck. | 이 목도리는 제 목을 감싸요. | 1 | necks | around your neck (목 주위에) · stretch your neck (목을 뻗다) | — | — | next (다음) |
-| back | 명사 | 등 | 몸의 뒤쪽 넓은 부분이에요. | 부사 | 뒤로, 다시 | 원래 있던 쪽으로 돌아갈 때 써요. | My back hurts after the game. | 게임이 끝난 뒤 등이 아파요. | Please come back before dinner. | 저녁 식사 전에 돌아와 주세요. | 2 | backs | on your back (등 위에) · come back (돌아오다) | — | front (앞) | bag (가방) |
-| knee | 명사 | 무릎 | 다리를 접을 때 구부러지는 곳이에요. | — | — | — | My knee hurts when I run. | 달릴 때 무릎이 아파요. | I touch my knee with my hand. | 저는 손으로 무릎을 만져요. | 1 | knees | bend your knee (무릎을 구부리다) · knee pad (무릎 보호대) | — | — | need (필요하다) |
-| toe | 명사 | 발가락 | 발끝에서 움직이는 작은 부분이에요. | — | — | — | My big toe hurts today. | 오늘 제 엄지발가락이 아파요. | I have five toes on each foot. | 저는 발마다 발가락이 다섯 개 있어요. | 1 | toes | big toe (엄지발가락) · little toe (새끼발가락) | — | — | toy (장난감) |
-| finger | 명사 | 손가락 | 손끝에서 물건을 집을 때 사용해요. | — | — | — | I point with my finger. | 저는 손가락으로 가리켜요. | She wears a ring on her finger. | 그녀는 손가락에 반지를 껴요. | 1 | fingers | little finger (새끼손가락) · point your finger (손가락으로 가리키다) | — | — | singer (가수) |
+| head | 명사 | 머리 | 몸의 맨 위, 얼굴이 있는 부분이에요. | 동사 | 향하다 | 어떤 곳으로 가는 것이에요. | I wear a hat on my head. | 나는 머리에 모자를 써요. | Let's head to the park now. | 이제 공원으로 가자. | 2 | heads · headed · headed · heading | nod your head (고개를 끄덕이다) · head home (집으로 가다) | — | — | — |
+| ear | 명사 | 귀 | 소리를 듣는 얼굴 옆 부분이에요. | — | — | — | A rabbit has long ears. | 토끼는 귀가 길어요. | I hear music in my ear. | 내 귀에 음악이 들려요. | 1 | ears | left ear (왼쪽 귀) · big ears (큰 귀) | — | — | year (해, 년) |
+| mouth | 명사 | 입 | 먹고 말할 때 쓰는 얼굴 부분이에요. | — | — | — | Open your mouth wide, please. | 입을 크게 벌려 주세요. | Don't talk with food in your mouth. | 입에 음식이 있을 때 말하지 마. | 1 | mouths | open your mouth (입을 벌리다) · a big mouth (큰 입) | — | — | — |
+| arm | 명사 | 팔 | 어깨에서 손까지 이어진 부분이에요. | — | — | — | Raise your arm if you know. | 알면 팔을 들어요. | My dad has strong arms. | 우리 아빠는 팔이 튼튼해요. | 1 | arms | raise your arm (팔을 들다) · my left arm (내 왼팔) | — | — | farm (농장) |
+| leg | 명사 | 다리 | 서고 걷는 데 쓰는 몸의 부분이에요. | — | — | — | A spider has eight legs. | 거미는 다리가 여덟 개예요. | My leg hurts after the race. | 달리기 시합 뒤에 다리가 아파요. | 1 | legs | long legs (긴 다리) · my right leg (내 오른쪽 다리) | — | — | — |
+| eye | 명사 | 눈 | 보는 데 쓰는 얼굴 부분이에요. | — | — | — | Close your eyes and sleep. | 눈을 감고 자. | My cat has one blue eye. | 우리 고양이는 한쪽 눈이 파래요. | 1 | eyes | close your eyes (눈을 감다) · blue eyes (파란 눈) | — | — | — |
+| nose | 명사 | 코 | 냄새를 맡고 숨 쉬는 얼굴 부분이에요. | — | — | — | I smell flowers with my nose. | 나는 코로 꽃 냄새를 맡아요. | An elephant has a long nose. | 코끼리는 코가 길어요. | 1 | noses | a runny nose (콧물 나는 코) · blow your nose (코를 풀다) | — | — | — |
+| teeth | 명사 | 이, 이빨 | 음식을 씹는 입 안의 하얀 것들이에요. | — | — | — | I brush my teeth every morning. | 나는 매일 아침 이를 닦아요. | Sharks have many sharp teeth. | 상어는 날카로운 이빨이 많아요. | 1 | tooth | brush your teeth (이를 닦다) · white teeth (하얀 이) | — | — | tooth (이 한 개) |
+| hand | 명사 | 손 | 팔 끝에 있고 물건을 잡는 부분이에요. | 동사 | 건네주다 | 물건을 손으로 주는 것이에요. | Wash your hands before lunch. | 점심 먹기 전에 손을 씻어. | Please hand me the red crayon. | 빨간 크레파스 좀 건네줘. | 2 | hands · handed · handed · handing | wash your hands (손을 씻다) · hold my hand (내 손을 잡다) | — | — | — |
+| foot | 명사 | 발 | 다리 끝에 있어 땅을 딛는 부분이에요. | — | — | — | My left foot is cold. | 내 왼발이 차가워요. | I put my foot in the water. | 나는 물에 발을 넣어요. | 1 | feet | on foot (걸어서) · my right foot (내 오른발) | — | — | — |
+| face | 명사 | 얼굴 | 눈, 코, 입이 있는 머리 앞쪽이에요. | 동사 | 마주 보다 | 어떤 쪽을 향해 보는 것이에요. | Wash your face with soap. | 비누로 얼굴을 씻어. | Please face the board, class. | 여러분, 칠판 쪽을 보세요. | 2 | faces · faced · faced · facing | a happy face (웃는 얼굴) · face the front (앞을 보다) | — | — | — |
+| body | 명사 | 몸 | 머리부터 발끝까지 전부예요. | — | — | — | Exercise is good for your body. | 운동은 몸에 좋아요. | A snake has a long body. | 뱀은 몸이 길어요. | 1 | bodies | body parts (몸의 부분) · a strong body (튼튼한 몸) | — | — | — |
+| hair | 명사 | 머리카락 | 머리에 난 가는 털이에요. | — | — | — | My sister has long hair. | 우리 언니는 머리가 길어요. | Brush your hair before school. | 학교 가기 전에 머리를 빗어. | 1 | — | long hair (긴 머리) · brush your hair (머리를 빗다) | — | — | — |
+| chin | 명사 | 턱 | 입 아래쪽의 얼굴 끝부분이에요. | — | — | — | Grandpa has a white beard on his chin. | 할아버지 턱에는 하얀 수염이 있어요. | Keep your chin up, Tom! | 고개 들어, 톰, 힘내! | 1 | chins | chin up (기운 내) · a round chin (둥근 턱) | — | — | — |
+| lip | 명사 | 입술 | 입 둘레의 부드럽고 빨간 부분이에요. | — | — | — | My lips are dry in winter. | 겨울에는 입술이 건조해요. | Mom puts cream on my lip. | 엄마가 내 입술에 크림을 발라 주세요. | 1 | lips | dry lips (건조한 입술) · lip balm (입술 보호제) | — | — | — |
+| neck | 명사 | 목 | 머리와 몸을 이어 주는 부분이에요. | — | — | — | A giraffe has a very long neck. | 기린은 목이 아주 길어요. | Wear a scarf around your neck. | 목에 목도리를 둘러. | 1 | necks | a long neck (긴 목) · around your neck (목에) | — | — | — |
+| back | 명사 | 등 | 몸의 뒤쪽, 어깨 아래 부분이에요. | 부사 | 뒤로, 다시 | 원래 있던 곳으로 돌아가는 것이에요. | My bag is on my back. | 가방이 내 등에 있어요. | Please come back soon! | 빨리 돌아와! | 2 | backs | come back (돌아오다) · my back (내 등) | — | front (앞) | — |
+| knee | 명사 | 무릎 | 다리 가운데에서 구부러지는 곳이에요. | — | — | — | I hurt my knee at the park. | 나는 공원에서 무릎을 다쳤어요. | Bend your knees and jump! | 무릎을 굽히고 뛰어! | 1 | knees | bend your knees (무릎을 굽히다) · on my knee (무릎 위에) | — | — | — |
+| toe | 명사 | 발가락 | 발 끝에 있는 작은 다섯 부분이에요. | — | — | — | I have ten toes. | 나는 발가락이 열 개예요. | The water is cold on my toes. | 물이 발가락에 닿으니 차가워요. | 1 | toes | big toe (엄지발가락) · on your toes (발끝으로) | — | — | — |
+| finger | 명사 | 손가락 | 손 끝에 있는 다섯 부분이에요. | — | — | — | I have five fingers on each hand. | 나는 한 손에 손가락이 다섯 개 있어요. | Count to five on your fingers. | 손가락으로 다섯까지 세어 봐. | 1 | fingers | point your finger (손가락으로 가리키다) · little finger (새끼손가락) | — | — | — |
+
+## [표 2] 게임 대화 표
 
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
-| head | 모자를 고르는 가게 | Where do you wear a hat? | I wear it on my head. | 모자는 어디에 써? | 내 머리에 써. |
-| head | 헬멧을 쓰는 운동장 | Where does my cap go? | Put it on your head. | 내 모자는 어디에 써? | 머리에 쓰면 돼. |
-| ear | 귀걸이를 고르는 가게 | Why do you hold the phone there? | It goes by my ear. | 왜 전화기를 거기에 대고 있어? | 귀 옆에 대는 거야. |
-| ear | 방 안 소리를 듣는 때 | This music is too loud! | It hurts my ear. | 이 음악은 너무 시끄러워! | 귀가 아파. |
-| mouth | 치과에서 검사받는 날 | How do you eat your food? | I put it in my mouth. | 음식은 어떻게 먹어? | 입에 넣어. |
-| mouth | 점심을 먹기 전 교실 | Where does the food go? | It goes into my mouth. | 음식은 어디로 들어가? | 내 입으로 들어가. |
-| arm | 옷 소매를 입는 아침 | What goes in this shirt? | My arm goes in here. | 이 옷 안에는 뭐가 들어가? | 내 팔이 여기로 들어가. |
-| arm | 체육 시간 스트레칭 | Can you lift your hand high? | Yes, I lift my arm. | 손을 높이 들 수 있어? | 응, 팔을 들어. |
-| leg | 바지를 입는 아침 | How do you put on pants? | Put one leg in first. | 바지는 어떻게 입어? | 먼저 한쪽 다리를 넣어. |
-| leg | 운동장에서 걷는 시간 | Why are you walking so slowly? | My leg hurts a little. | 왜 그렇게 천천히 걸어? | 다리가 조금 아파. |
-| eye | 친구와 윙크하는 놀이 | What do you close when sleeping? | I close each eye. | 잘 때 무엇을 감아? | 눈을 감아. |
-| eye | 학교에서 눈 검사받기 | What is the doctor checking? | My left eye is red. | 의사 선생님이 무엇을 검사하셔? | 내 왼쪽 눈이 빨개. |
-| nose | 꽃향기를 맡는 정원 | How can you smell this flower? | Bring your nose near it. | 이 꽃향기를 어떻게 맡아? | 코를 가까이 가져가. |
-| nose | 추운 날 휴지를 찾기 | Why is your nose so red? | The cold wind makes it red. | 왜 코가 그렇게 빨개? | 찬 바람 때문에 빨개졌어. |
-| teeth | 아침 양치하는 욕실 | What do you brush after breakfast? | I brush my teeth every morning. | 아침 먹은 뒤 무엇을 닦아? | 나는 매일 아침 이를 닦아. |
-| teeth | 사과를 먹는 간식시간 | How do you bite this apple? | I use my front teeth. | 이 사과는 어떻게 베어 물어? | 앞니를 사용해. |
-| hand | 교실에서 질문하는 때 | How do you ask a question? | Raise one hand very high. | 질문할 때는 어떻게 해? | 손 하나를 높이 들어. |
-| hand | 친구에게 책을 건네기 | Can I have that book, please? | I can hand it to you. | 그 책 좀 줄래? | 내가 너에게 건네줄 수 있어. |
-| foot | 신발을 신는 현관 | What goes inside this shoe? | My foot fits inside it. | 이 신발 안에는 뭐가 들어가? | 내 발이 그 안에 꼭 맞아. |
-| foot | 운동장에서 공 차기 | How do you kick the ball? | I use my right foot. | 공을 어떻게 차? | 오른발을 사용해. |
-| face | 세수하는 아침 욕실 | What do you wash each morning? | I wash my face with water. | 매일 아침 무엇을 씻어? | 나는 물로 얼굴을 씻어. |
-| face | 창문을 보는 교실 | Where should we look for light? | We face the big window. | 빛을 보려면 어디를 봐야 해? | 우리는 큰 창문을 마주 봐. |
-| body | 체육 수업 준비시간 | What do we move in exercise? | We move our whole body. | 운동할 때 무엇을 움직여? | 우리 몸 전체를 움직여. |
-| body | 잠자기 전 쉬는 시간 | Why do you need good sleep? | My body needs a rest. | 왜 잠을 잘 자야 해? | 내 몸에 휴식이 필요해. |
-| hair | 방에서 빗을 찾는 때 | What do you wash on your head? | I wash my hair. | 머리에서 무엇을 씻어? | 머리카락을 씻어. |
-| hair | 샴푸로 머리 감는 날 | What do you brush each day? | I brush my hair. | 매일 무엇을 빗어? | 머리카락을 빗어. |
-| chin | 헬멧 끈을 고정하기 | What is under your mouth? | My chin is right here. | 입 아래에는 무엇이 있어? | 여기가 내 턱이야. |
-| chin | 사진을 찍는 교실 | Can you touch your face here? | Yes, I touch my chin. | 여기 얼굴을 만져 볼래? | 응, 턱을 만져. |
-| lip | 겨울에 크림을 바르기 | Why do you need this cream? | My lip feels very dry. | 왜 이 크림이 필요해? | 입술이 너무 건조해. |
-| lip | 물을 마신 뒤 컵 보기 | What part touches the cup? | My lower lip touches it. | 어느 부분이 컵에 닿아? | 내 아랫입술이 닿아. |
-| neck | 목도리를 두르는 현관 | Where do you wear a scarf? | I wear it on my neck. | 목도리는 어디에 둘러? | 목에 둘러. |
-| neck | 수영 전 몸을 풀기 | Where is your head and body joined? | They meet at my neck. | 머리와 몸은 어디서 이어져? | 내 목에서 이어져. |
-| back | 교실에서 의자에 앉기 | What part touches the chair? | My back rests on it. | 어느 부위가 의자에 닿아? | 내 등이 거기에 기대어 있어. |
-| back | 두고 온 책을 찾기 | Where is your missing book? | I must go back to class. | 잃어버린 책은 어디 있어? | 교실로 다시 돌아가야 해. |
-| knee | 운동할 때 보호대 착용 | Where does this sports pad go? | Put it on your knee. | 이 운동 보호대는 어디에 해? | 무릎에 착용해. |
-| knee | 체육 수업에 앉아보기 | What bends when you sit down? | My knee bends every time. | 앉을 때 무엇이 굽혀져? | 내 무릎은 매번 구부러져. |
-| toe | 신발 속 발이 아픈 날 | What hurts in your shoe? | My little toe hurts a lot. | 신발 안에서 어디가 아파? | 새끼발가락이 많이 아파. |
-| toe | 새 운동화를 신는 날 | What do your shoes cover? | Each little toe stays inside. | 신발은 무엇을 덮어? | 작은 발가락들이 안에 있어. |
-| finger | 반지를 끼는 특별한 날 | Where does this little ring go? | It goes on my finger. | 이 작은 반지는 어디에 껴? | 손가락에 껴. |
-| finger | 그림 속 별을 가리키기 | How can you show that star? | Point with your finger right here. | 저 별을 어떻게 가리켜? | 여기에서 손가락으로 가리켜. |
+| head | 모자를 쓸 때 | Where does this hat go? | Put it on your head. | 이 모자는 어디에 써? | 머리에 써. |
+| head | 노래가 마음에 들 때 | Do you like this song? | Yes! I nod my head. | 이 노래 좋아? | 응! 고개를 끄덕끄덕해. |
+| ear | 음악이 너무 클 때 | The music is too loud! | Cover your ear with your hand. | 음악이 너무 시끄러워! | 손으로 귀를 막아. |
+| ear | 비밀을 말할 때 | Can I tell you a secret? | Sure, say it in my ear. | 비밀 하나 말해도 돼? | 그럼, 내 귀에 대고 말해. |
+| mouth | 치과에서 진료받을 때 | Let me look at your teeth. | Okay, I will open my mouth. | 이를 한번 볼게. | 네, 입을 벌릴게요. |
+| mouth | 밥을 먹는 중에 | What are you eating, Mina? | Wait, my mouth is full! | 미나야, 뭐 먹어? | 잠깐, 입에 음식이 가득해! |
+| arm | 수업 시간에 | Who knows the answer? | Me! I raise my arm! | 답을 아는 사람? | 저요! 팔을 들어요! |
+| arm | 넘어진 친구에게 | Are you okay, Jiho? | No, my arm really hurts. | 지호야, 괜찮아? | 아니, 팔이 정말 아파. |
+| leg | 친구가 천천히 걸을 때 | Why are you walking slowly? | I hurt my leg in soccer. | 왜 천천히 걸어? | 축구하다가 다리를 다쳤어. |
+| leg | 바지가 짧아졌을 때 | These pants are too short! | Your leg grew so fast! | 이 바지 너무 짧아! | 네 다리가 엄청 빨리 자랐구나! |
+| eye | 먼지가 들어갔을 때 | Ouch! Something is in my eye! | Don't rub it. Wash it. | 아야! 뭐가 들어갔어! | 비비지 말고 씻어. |
+| eye | 눈사람을 꾸밀 때 | What is missing on the snowman? | He needs one more eye! | 눈사람에 뭐가 빠졌지? | 하나 더 있어야 해, 눈 말이야! |
+| nose | 감기에 걸렸을 때 | Achoo! I have a cold. | Here, blow your nose. | 에취! 감기 걸렸어. | 자, 코 풀어. |
+| nose | 당근을 들고 있을 때 | Let's use this carrot! | Yes, for the snowman's nose! | 이 당근 쓰자! | 좋아, 눈사람 코로! |
+| teeth | 잠자기 전에 | Time for bed, sweetie. | Wait, I need to brush my teeth! | 이제 잘 시간이야. | 잠깐만요, 이 닦아야 해요! |
+| teeth | 치과 의자에 앉았을 때 | Open wide, please. | Are my teeth okay? | 크게 벌려 보렴. | 제 이 괜찮아요? |
+| hand | 길을 건널 때 | Let's cross the street. | Okay, hold my hand. | 길 건너자. | 그래, 내 손 잡아. |
+| hand | 식탁에서 컵이 멀 때 | Can you hand me that cup? | Sure, here you are. | 저 컵 좀 건네줄래? | 그래, 여기 있어. |
+| foot | 신발이 작을 때 | Do these shoes fit you? | No, my foot hurts in them. | 이 신발 맞아? | 아니, 신으면 발이 아파. |
+| foot | 학교 가는 길을 물을 때 | Do you take the bus? | No, I go on foot. | 너 버스 타? | 아니, 걸어서 가. |
+| face | 그림을 그릴 때 | What are you drawing, Amy? | A big smiley face! | 에이미, 뭐 그려? | 크게 웃는 얼굴! |
+| face | 친구들이 웃을 때 | Why is everyone laughing at me? | There is chocolate on your face! | 왜 다들 나를 보고 웃어? | 네 얼굴에 초콜릿이 묻었어! |
+| body | 체육 시간 전에 | Why do we stretch first? | It warms up your body. | 왜 먼저 스트레칭해요? | 몸을 따뜻하게 해 주거든. |
+| body | 수족관에서 | Look at that long fish! | Its body is so shiny! | 저 긴 물고기 좀 봐! | 몸이 엄청 반짝여! |
+| hair | 미용실에서 | How do you want it? | Please cut my hair short. | 어떻게 해 줄까? | 머리를 짧게 잘라 주세요. |
+| hair | 바람 부는 날 | Wow, it is so windy! | My hair is everywhere! | 와, 바람 엄청 분다! | 머리카락이 다 날려! |
+| chin | 아이스크림을 먹은 뒤 | Is my face clean? | No, there's ice cream on your chin. | 내 얼굴 깨끗해? | 아니, 턱에 아이스크림 묻었어. |
+| chin | 사진을 찍을 때 | How should I stand? | Lift your chin a little. | 어떻게 서 있을까? | 고개를 살짝 들어 봐. |
+| lip | 추운 날 웃을 때 | Ouch, it hurts when I smile. | Your lip is very dry. | 아야, 웃으면 아파. | 네 입술이 엄청 건조해. |
+| lip | 도서관에서 떠들 때 | Ha ha, this book is funny! | Shh! Put a finger on your lip. | 하하, 이 책 웃겨! | 쉿! 입술에 손가락을 대. |
+| neck | 추운 날 밖에 나갈 때 | Brr, it's cold outside! | Put this scarf on your neck. | 으, 밖이 추워! | 이 목도리를 목에 둘러. |
+| neck | 생일 선물을 받았을 때 | Happy birthday! Here's a necklace. | Thanks! I'll wear it on my neck. | 생일 축하해! 목걸이 선물이야. | 고마워! 목에 걸게. |
+| back | 등이 가려울 때 | Can you scratch my back? | Sure, right here? | 내 등 좀 긁어 줄래? | 그래, 여기? |
+| back | 책을 빌려줄 때 | Can I borrow your book? | Yes, but give it back tomorrow. | 네 책 빌려도 돼? | 응, 근데 내일 돌려줘. |
+| knee | 넘어졌을 때 | Ouch! I fell down! | Let me see your knee. | 아야! 넘어졌어! | 무릎 좀 보자. |
+| knee | 할머니 댁에서 | Grandma, can I sit with you? | Come sit on my knee. | 할머니, 같이 앉아도 돼요? | 할머니 무릎에 앉으렴. |
+| toe | 수영장에 들어가기 전 | Is the pool water warm? | Let me test it with my toe. | 수영장 물 따뜻해? | 발가락으로 한번 볼게. |
+| toe | 친구가 깡충깡충 뛸 때 | Why are you jumping around? | I hit my toe on the door! | 왜 깡충깡충 뛰어? | 문에 발가락을 찧었어! |
+| finger | 반지를 받았을 때 | What a pretty ring! | It fits my finger well. | 반지 정말 예쁘다! | 내 손가락에 딱 맞아. |
+| finger | 케이크 크림을 볼 때 | Is the cream sweet? | Let me taste it with my finger. | 크림 달아? | 손가락으로 맛볼게. |
