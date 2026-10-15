@@ -1565,6 +1565,7 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 /* (v257) ⏱ 마지막 시험 */
 .stTimer{position:relative;height:9px;border-radius:9px;background:rgba(255,255,255,.08);margin:2px 0 12px;overflow:visible}
 .stTimer i{display:block;height:100%;width:100%;border-radius:9px;background:linear-gradient(90deg,#5fe0b0,#ffd37a);transition:width .1s linear}
+.stPastTag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:rgba(122,166,255,.18);color:#a9c4ff;font-size:11px;font-weight:900;vertical-align:1px}
 .stTimer b{position:absolute;right:0;top:-19px;font-size:12px;font-weight:900;color:#ffd37a}
 .stTimer.hurry i{background:linear-gradient(90deg,#ff7a66,#ffb36b)} .stTimer.hurry b{color:#ff9a8a;animation:dGlow .6s ease-in-out infinite}
 .stPic.big{font-size:88px}
@@ -11152,7 +11153,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v269";
+const GAME_VER = "v270";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11539,6 +11540,21 @@ const Study = (function(){
     if(!ex.length) return null;
     const x=ex[Math.floor(Math.random()*ex.length)], m=x[0].match(re);
     return {pre:x[0].slice(0,m.index), post:x[0].slice(m.index+m[0].length), ko:x[1]||"", cap:/^[A-Z]/.test(m[0])}; }
+  /* (v270) 과거형 빈칸 — G5-6·중등(사용자: 초5-6부터는 예문에 과거형도). 도감 예문에 과거형(crept · sprinkled)이 있으면 그 모양 그대로 빈칸,
+     보기는 같은 Stage 동사들의 과거형. 동사 모양은 도감 '변하는 모양'(crawls · crawled · crawled · crawling)에서 */
+  function pastOf(en){ let D=null; try{ D=DexData.of(en); }catch(e){} if(!D || !/동사/.test(D[1]||"")) return null;
+    const f=String(D[2]||"").split(/\s*[·,→\/]\s*/).map(x=>x.trim().toLowerCase()).filter(Boolean), third=[en+"s", en+"es", en.replace(/y$/,"ies")];
+    const c=f.filter(x=>x!==en && !/ing$/.test(x) && third.indexOf(x)<0 && /^[a-z]+$/.test(x));
+    return c[0]||null; }
+  function sentPastOf(w){ if(!hiCtx || !w || w.alt || !/^[a-z]+$/.test(w.en)) return null; const p=pastOf(w.en); if(!p || p===w.en) return null;
+    let D=null; try{ D=DexData.of(w.en); }catch(e){} const re=new RegExp("\\b("+p+")\\b","i");
+    const L=((D && D[3])||[]).filter(x=>x && x[0] && re.test(x[0])); if(!L.length) return null;
+    const x=L[Math.floor(Math.random()*L.length)], m=x[0].match(re);
+    return {pre:x[0].slice(0,m.index), post:x[0].slice(m.index+m[0].length), ko:x[1]||"", cap:/^[A-Z]/.test(m[0]), form:p}; }
+  function pastDecoys(w, pool, n){ const p=pastOf(w.en), out=[], seen={}; seen[p]=1; seen[w.en]=1;
+    const cand=shuffle((pool||[]).filter(x=>x && x.en!==w.en)).concat(shuffle(WORD_BANK.filter(x=>x.level===w.level && x.en!==w.en)).slice(0,120));
+    for(const x of cand){ if(out.length>=n) break; if(x.ko===w.ko || homo(x.en,w.en)) continue; const q=pastOf(x.en); if(!q || seen[q]) continue; seen[q]=1; out.push(q); }
+    return out; }
   /* (v257) 🚩 마지막 시험 — 보카 올림피아드처럼 (사용자). 초등 나눈 Stage(1단계·2단계 = PS/ST, 고학년·리딩 = BA, 중등 voca 1 = JR)의 깃발.
      Stage 단어마다 한 문제 · 4지선다 영단어 · 문제마다 시간 제한 · 틀려도 다시 안 냄. 비율(30문제에 맞춰 조정): A 60% · B 25% · C 15%
      PS·ST: A 그림→영단어(그림 없으면 뜻) · B 한글 뜻→영단어 · C 그림 + 빈칸 문장(해석)
@@ -11621,7 +11637,7 @@ const Study = (function(){
   const canHear = () => Voice.canListen();
   /* 문제 모양 고르기 — 과 단계(⭐)가 오를수록 철자·듣기가 많아진다 */
   /* (v246) 사이트 워드 — 그림·뜻보다 '보자마자 읽기': 듣고 고르기 · 문장 빈칸 · 문장에서 들리는 단어 찾기(find) */
-  let swCtx=false, easyCtx=true, kidCtx=false; const ctx=set=>{ swCtx=!!(WORD_SETS[set]||{}).sight; const s2=set||load().set; kidCtx = BOOKS.k.sets.indexOf(s2)>=0; easyCtx = kidCtx || s2==="basic"; }, isSW=w=>swCtx || !!(w && w.sw);   // 복습·다시 하기는 마지막으로 공부한 반 기준
+  let swCtx=false, easyCtx=true, kidCtx=false, hiCtx=false; const ctx=set=>{ swCtx=!!(WORD_SETS[set]||{}).sight; const s2=set||load().set; kidCtx = BOOKS.k.sets.indexOf(s2)>=0; easyCtx = kidCtx || s2==="basic"; hiCtx = ["g56","mid"].indexOf(bookOf(s2))>=0; }, isSW=w=>swCtx || !!(w && w.sw);   // 복습·다시 하기는 마지막으로 공부한 반 기준
   function swFix(bag, w){ if(!canSpell(w)){ delete bag.spell; delete bag.dict; } if(!canHear()){ delete bag.listen; delete bag.dict; delete bag.find; }
     if(!sentOf(w)){ delete bag.sent; delete bag.find; } if(!Object.keys(bag).length) bag.listen=1; return bag; }
   function pickType(w, level, test, phc){
@@ -11637,6 +11653,7 @@ const Study = (function(){
     if(!canHear()){ delete bag.listen; delete bag.dict; }
     if(!canPic(w)) delete bag.pic;
     if(!sentOf(w) || w.alt) delete bag.sent;
+    if(!test && level>=1 && sentPastOf(w)) bag.sentp = 2;          // (v270) G5-6·중등 과거형 빈칸
     if(w.alt) delete bag.ox;                                      // 뜻이 둘인 단어는 O/X 가 헷갈린다
     const ks=Object.keys(bag), tot=ks.reduce((t,k)=>t+bag[k],0); let r=Math.random()*tot;
     for(const k of ks){ r-=bag[k]; if(r<=0) return k; } return ks[0];
@@ -11683,6 +11700,9 @@ const Study = (function(){
     if(t==="match"){ const ws=[w].concat(decoys(w,pool,3,"ko")).slice(0,4); return ws.length>=3 ? {t, w, ws} : {t:"k2e", w, opts:shuffle([w].concat(decoys(w,pool,3,"en")))}; }
     if(t==="spell" || t==="dict"){ const extra = level>=2 ? "aeiourstnl".split("").filter(c=>w.en.indexOf(c)<0).slice(0,2) : [];
       return {t, w, tiles:shuffle(w.en.split("").concat(extra))}; }
+    if(t==="sentp"){ const sp=sentPastOf(w), ds=sp ? pastDecoys(w,pool,3) : [];   // (v270) 과거형 빈칸
+      if(sp && ds.length>=3) return {t, w, st:sp, form:sp.form, opts:shuffle([sp.form].concat(ds))};
+      t = sentOf(w) ? "sent" : "k2e"; }
     if(t==="pic"){ const used={}; used[w.emoji]=1; const d=shuffle(EMO).filter(x=>x.en!==w.en && !used[x.emoji] && (used[x.emoji]=1)).slice(0,3);
       return {t, w, opts:shuffle([w].concat(d))}; }
     if(t==="past"){ if(canPast(w)){ const b=PAST[w.en]; let r=regPast(b);   // 틀린 규칙 과거형(goed) — 진짜 단어가 되면(see→seed) 다른 과거형으로
@@ -11742,6 +11762,7 @@ const Study = (function(){
     if(!canHear()){ delete bag.listen; delete bag.dict; }
     if(!canPic(w)) delete bag.pic;
     if(!sentOf(w) || w.alt) delete bag.sent;
+    if(step>=2 && !kid && sentPastOf(w)) bag.sentp = step===2 ? 2 : 1;   // (v270) G5-6·중등 과거형 빈칸 (철자 단계와 같이)
     if(w.alt) delete bag.ox;
     let ks=Object.keys(bag); if(!ks.length){ bag[step===0?"e2k":"k2e"]=1; ks=Object.keys(bag); }
     const tot=ks.reduce((t,k)=>t+bag[k],0); let r=Math.random()*tot;
@@ -11924,8 +11945,8 @@ const StudyUI = {
   saveCur(){ if(this.test || this.oly || this.retryMode || !this.qs.length) return; const W=w=>w&&w.en;
     const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW, fw:this._fw|0,
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(), act:this.tk()|0,
-      qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.t==="blend"||q.t==="past")?q.opts:q.opts.map(W)), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
-        pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased})), wst:this.wst||{}};
+      qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.t==="blend"||q.t==="past"||q.t==="sentp")?q.opts:q.opts.map(W)), ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
+        pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased, form:q.form})), wst:this.wst||{}};
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
   clearCur(){ try{ localStorage.removeItem(this.CUR); }catch(e){} },
   getCur(){ let c=null; try{ c=JSON.parse(localStorage.getItem(this.CUR)); }catch(e){}
@@ -11935,7 +11956,7 @@ const StudyUI = {
   resume(){ const c=this.getCur(); if(!c) return false;
     try{ const les = c.rv ? {n:0, ws:[]} : Study.lessons(c.set).find(x=>x.n===c.n); if(!les) throw 0;
       const wd=en=>{ const w=les.ws.find(x=>x.en===en) || Study.word(en); if(!w) throw 0; return w; };   // (v234) 리딩 뜻(교재 뜻)을 그대로
-      const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?((q.t==="blend"||q.t==="past")?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
+      const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?((q.t==="blend"||q.t==="past"||q.t==="sentp")?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
       qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; });
       this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; if(!c.rv) this._from={set:c.set, i:Study.lessons(c.set).indexOf(les)}; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.oly=false; this.test=false; this.retryMode=false; this.qs=qs;
       ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0; this._fw = c.fw!=null ? c.fw : Object.keys(c.missed||{}).length;   // (v263) 처음에 틀린 수도 이어서
@@ -12044,6 +12065,10 @@ const StudyUI = {
       h='<div class="stKind">📝 빈칸에 들어갈 단어는?</div><div class="stPrompt sent">'+(q.opic && w.emoji?'<div class="stPic">'+w.emoji+'</div>':'')+'<div class="stSent">'+this.esc(q.st.pre)+'<u>＿＿＿</u>'+this.esc(q.st.post)+'</div>'
         +(q.st.ko && !q.noKo?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
+    } else if(q.t==="sentp"){                                           // (v270) 과거형 빈칸
+      h='<div class="stKind">📝 빈칸에 알맞은 모양은? <small class="stPastTag">⏪ 지난 일</small></div><div class="stPrompt sent"><div class="stSent">'+this.esc(q.st.pre)+'<u>＿＿＿</u>'+this.esc(q.st.post)+'</div>'
+        +(q.st.ko && !q.noKo?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
+        +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o)+'</button>').join("")+'</div>';
     } else if(q.t==="past"){                                            // (v249) 과거형 짝
       const bw=Study.word(q.base)||{ko:""};
       h='<div class="stKind">⏪ 지난 일(과거형)은?</div><div class="stPrompt"><div class="stEn">'+this.esc(q.base)+' <button class="stSay" data-say="'+this.esc(q.base)+'">🔊</button></div>'
@@ -12149,6 +12174,7 @@ const StudyUI = {
     else if(q.t==="blend"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.mid; conf = q.pre+q.opts[this.sel]+q.post; }
     else if(q.t==="ox"){ if(this.sel==null) return; ok = (this.sel===0)===q.truth; conf = q.truth ? "X" : q.ko; }
     else if(q.t==="past"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.w.en; conf = q.opts[this.sel]; }
+    else if(q.t==="sentp"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.form; conf = null; }
     else if(q.t==="find"){ if(this.sel==null) return; const tk=q.toks[this.sel]||{}; ok=!!tk.ok; conf=String(tk.t||"").replace(/[^A-Za-z'-]/g,""); }
     else { if(this.sel==null) return; const pick=q.opts[this.sel]; ok = pick.en===q.w.en; conf = q.t==="e2k" ? pick.ko : pick.en; }
     try{ Rank.record(q.w.en, ok, ok?null:conf, true); }catch(e){}
@@ -12180,6 +12206,8 @@ const StudyUI = {
       const row=$("bdRow"); if(row){ row.querySelectorAll(".bdT").forEach((t,k)=>{ t.style.animationDelay=(k*0.12)+"s"; }); row.classList.add("merge"); } }
     else if(q.t==="ox"){ const b=$("stQ").querySelectorAll(".stOpt"), right=q.truth?0:1; b.forEach((x,k)=>{ if(k===right) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); }); }
     else if(q.t==="past"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts[k]===q.w.en) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); }); }
+    else if(q.t==="sentp"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts[k]===q.form) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); });
+      $("stQ").querySelectorAll(".stSent u").forEach(s2=>{ s2.textContent=q.form; s2.className=ok?"ok":"bad"; }); }
     else if(q.t==="find"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.toks[k] && q.toks[k].ok) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); });
       setTimeout(()=>{ if(this.qs[this.i]===q) this.say(q.toks.map(o=>o.t).join(" ")); }, ok?250:900); }   // 문장을 통째로 들려준다
     else if(!ok && q.t!=="match" && q.t!=="drag"){ const b=$("stQ").querySelectorAll(".stOpt"); b.forEach((x,k)=>{ if(q.opts && q.opts[k].en===q.w.en) x.classList.add("ok"); else if(k===this.sel) x.classList.add("bad"); }); }
@@ -12194,7 +12222,8 @@ const StudyUI = {
     f.innerHTML='<div class="stMsg">'+mc+(ok ? '<b>'+cheer[Math.floor(Math.random()*cheer.length)]+'</b>'+bonus+this.alt(q.w)
       : '<b>'+(q.tout?'⏰ 시간이 다 됐어요':cheer[Math.floor(Math.random()*cheer.length)])+'</b><span>정답: '+this.esc(q.w.en)+' = '+this.kp(q.w)+'</span>'+this.alt(q.w)+(this.test||this.oly?'':'<small>이 문제는 뒤에 한 번 더 나와요</small>'))+'</div>'
       +'<button class="stCheck go" id="stCheck">계속 ▶</button>';
-    if(!ok || q.t==="spell" || q.t==="dict" || q.t==="sent" || q.t==="sent2" || q.t==="talk") this.say(q.w.en);
+    if(q.t==="sentp") this.say(q.form);
+    else if(!ok || q.t==="spell" || q.t==="dict" || q.t==="sent" || q.t==="sent2" || q.t==="talk") this.say(q.w.en);
     else if(q.t==="blend") setTimeout(()=>this.say(q.w.en), 450);                     // 합쳐지는 모습 뒤에 소리
     /* (v234) 맞히면 저절로 다음 문제로 (계속 버튼을 누르면 바로) — 틀리면 정답을 볼 수 있게 기다린다 */
     clearTimeout(this._adv);

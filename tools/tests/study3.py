@@ -3,18 +3,7 @@ from playwright.async_api import async_playwright
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
 SP=OUT
-SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('stCheck').click(); return 'brk'; }
-  const q=U.qs[U.i]; if(!q) return 'none';
-  if(U.locked){ document.getElementById('stCheck').click(); return 'cont'; }
-  if(q.t==='intro'){ document.getElementById('stCheck').click(); return 'intro'; }
-  if(q.t==='match'){ q.ws.forEach(w=>{ document.querySelector('.stM.en[data-en="'+w.en+'"]').click(); document.querySelector('.stM.ko[data-ko="'+w.en+'"]').click(); }); document.getElementById('stCheck').click(); return 'match'; }
-  if(q.t==='drag'){ q.ws.forEach(w=>{ q.pick=document.querySelector('.dgChip[data-en="'+w.en+'"]'); document.querySelector('.dgT[data-en="'+w.en+'"]').click(); }); return 'drag'; }
-  if(q.t==='blend'){ let k=q.opts.indexOf(q.mid); if(wrongFirst && !q.again) k=(k+1)%(q.t==='ox'?2:q.opts.length); document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'blend'; }
-  if(q.t==='past'){ let k=q.opts.indexOf(q.w.en); if(wrongFirst && !q.again) k=(k+1)%q.opts.length; document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'past'; }
-  if(q.t==='find'){ let k=q.toks.findIndex(o=>o.ok); if(wrongFirst && !q.again) k=q.toks.findIndex(o=>!o.ok); document.querySelector('#stQ .stOpt[data-k="'+k+'"]').click(); return 'find'; }
-  if(q.t==='spell'||q.t==='dict'){ for(const c of q.w.en){ const b=[...document.querySelectorAll('.stTile')].find(x=>!x.disabled && x.textContent===c); b.click(); } document.getElementById('stCheck').click(); document.getElementById('stCheck').click(); return q.t; }
-  let k= q.t==='ox' ? (q.truth?0:1) : q.opts.findIndex(o=>o.en===q.w.en); if(wrongFirst && !q.again) k=(k+1)%(q.t==='ox'?2:q.opts.length);
-  document.querySelector('.stOpt[data-k="'+k+'"]').click(); return q.t; }"""
+# SOLVE 는 harness 것을 쓴다 (새 문제 유형이 생겨도 한 곳만 고치면 됨)
 async def main():
     async with async_playwright() as p:
         br=await p.chromium.launch(); errs=[]
