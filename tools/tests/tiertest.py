@@ -104,6 +104,16 @@ async def main():
             return {a:a&&[a.ans,a.x.why], b:b&&[b.ans,b.x.why], c:c&&c.ans} }""")
         print("gram", gq)
         if not gq["a"] or gq["a"][0]!="charged" or not gq["b"] or gq["b"][0]!="in" or gq["c"]: bad.append(f"문법 빈칸 {gq}")
+        # (v277) 이어 하기 → 바로 나감을 두 번 해도 시트 줄은 한 번 · 모은 보석(earned)도 보냄
+        lg=await pg.evaluate("""()=>{ const sent=[]; const on=Online.on, sub=Online.submit; Online.on=()=>true; Online.submit=r=>{ sent.push(r); return Promise.resolve({}); };
+            try{ localStorage.removeItem('hyeng_study_lastquit'); }catch(e){}
+            StudyUI.book='g34'; StudyUI.set='elem'; StudyUI.path(); StudyUI.start(0,false);
+            for(let k=0;k<4;k++){ const q=StudyUI.qs[StudyUI.i]; if(q.t==='intro'){ StudyUI.i++; continue; } StudyUI.done++; StudyUI.i++; }
+            StudyUI.saveCur(); document.getElementById('stQuit').click();
+            StudyUI.resume(); document.getElementById('stQuit').click();
+            Online.on=on; Online.submit=sub; return sent.map(r=>[r.end, r.earned]); }""")
+        print("quit log", lg)
+        if len(lg)!=1 or lg[0][1] is None: bad.append(f"나감 기록 {lg}")
         # 예전 ★3 옮기기
         await pg.evaluate("""()=>{ const s=Study.load(); const L=Study.lessons('elem').filter(x=>!x.fin); s.lv['elem-'+L[3].n]=3; delete s.tv; s.dp={}; Study.save(); }""")
         await pg.reload(); await pg.wait_for_timeout(1500)

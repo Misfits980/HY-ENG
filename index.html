@@ -11329,7 +11329,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v276";
+const GAME_VER = "v277";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12961,11 +12961,14 @@ const StudyUI = {
   /* 공부 기록도 시트로 (방식=study · 단어장=반-과) */
   log(pass, acc, why){
     try{ if(!Online.on() || TEST_STAGE || this._lg===this.t0) return; this._lg=this.t0;   // 한 번 공부에 한 줄만
+      /* (v277) 이어 하기로 다시 열고 바로 또 나가면 같은 '중간에 나감' 줄이 두 번 (시트 10-15 최선아 19-3) → 같은 판·같은 진도의 나감은 한 번만 */
+      const lk=this.t0+":"+(this.done|0)+":"+(this.wrong|0);
+      if(why==="quit"){ let last=""; try{ last=localStorage.getItem("hyeng_study_lastquit")||""; }catch(e){} if(last===lk) return; try{ localStorage.setItem("hyeng_study_lastquit", lk); }catch(e){} }
       let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
       const tl = this.tier===3 ? " 💜심화" : this.tier===2 ? " ★2" : "";   // (v273) 시트에서 어느 단계 판인지
       Online.submit({nick, score:this.first*10, diff:"study", rule:this.rv?"study-review":this.test?"study-test":this.tier===3?"study-deep":"study", stage:this.rv?0:Study.stageNo(this.set,this.les.n), acc, right:this.done, wrong:this.wrong,
-        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)+tl), secs:this.secs(), dex, gems:Wallet.gems(), ver:GAME_VER,
+        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)+tl), secs:this.secs(), dex, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER,   // (v277) 모은 보석도 — 공부만 하는 아이는 '보석 점검'에 0으로 나왔다
         miss:Object.keys(this.missed).slice(0,25).join(", ")});
     }catch(e){}
   },
