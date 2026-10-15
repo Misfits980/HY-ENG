@@ -354,12 +354,18 @@ def apply(results):
 def main():
     a = sys.argv[1:]
     if not a or a[0] not in ("check", "apply"): print(__doc__); sys.exit(1)
-    level = "L3"
-    if "--level" in a: level = a[a.index("--level") + 1]
-    files = [x for x in a[1:] if x.endswith((".md", ".txt", ".html"))]
+    # (v285) --level 이 여러 번 나오면 그 뒤 파일들에 그 레벨을 쓴다 (단계가 다른 파일을 한 번에 적용 → 겹치는 단어의 뜻·예문·대화를 합침).
+    #        --level 이 한 번이면 예전처럼 모든 파일에 적용.
+    nlv = a.count("--level"); level = "L3"; flv = []
+    if nlv == 1: level = a[a.index("--level") + 1]
+    cur = level
+    for i, x in enumerate(a[1:], 1):
+        if x == "--level" and nlv > 1: cur = a[i + 1]
+        elif x.endswith((".md", ".txt", ".html")): flv.append((x, cur))
+    files = [f for f, _ in flv]
     K = known_words(); res = []
-    for f in files:
-        r = check(f, level, K); report(f, r); res.append(r)
+    for f, lv in flv:
+        r = check(f, lv, K); report(f, r); res.append(r)
     nbad = sum(len(r["bad"]) for r in res)
     print(f"\n합계: ❌ {nbad} · ⚠️ {sum(len(r['warn']) for r in res)}")
     if a[0] == "apply":
@@ -369,7 +375,7 @@ def main():
         for f in files:
             m = re.search(r"DAY\s*0*(\d+)", os.path.basename(f), re.I)
             days.append(int(a[a.index("--day") + 1]) if "--day" in a else (int(m.group(1)) if m else None))
-        if "--no-course" not in a: to_auto(res, [level] * len(res), days)
+        if "--no-course" not in a: to_auto(res, [lv for _, lv in flv], days)
 
 if __name__ == "__main__":
     main()
