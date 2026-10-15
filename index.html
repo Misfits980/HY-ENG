@@ -142,22 +142,34 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);
   70%{opacity:1;transform:translateX(-50%) translateY(-34px) scale(1)}
   100%{opacity:0;transform:translateX(-50%) translateY(-62px) scale(.95)}}
 #err{z-index:100 !important}
-#loading{position:fixed;inset:0;z-index:90;display:grid;place-items:center;
-  background:radial-gradient(120% 90% at 50% 35%,#2a1f55 0%,#140e2e 55%,#0a0718 100%);
+#loading{position:fixed;inset:0;z-index:90;display:grid;place-items:center;overflow:hidden;
+  padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px);
+  background:linear-gradient(180deg,#3a4f86 0%,#2a2f63 38%,#1a1440 70%,#0d0a22 100%);
   transition:opacity .45s ease}
+/* (v271) 첫 화면과 같은 세상 — 뒤에 산맥 그림을 흐리게 깔고, 로고·막대를 한 덩어리로 */
+#loading:before{content:"";position:absolute;left:-4%;right:-4%;bottom:14%;height:42%;
+  background:url(assets/world/mountains-meadow.webp) center bottom/cover no-repeat;filter:blur(3px) saturate(.9);opacity:.55}
+#loading:after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(13,10,34,0) 40%,rgba(13,10,34,.55) 72%,#0d0a22 100%),
+    radial-gradient(60% 40% at 50% 38%,rgba(150,110,255,.28),transparent 70%)}
 #loading.done{opacity:0;pointer-events:none}
-#loading .ldIn{text-align:center;width:min(80vw,320px)}
+#loading .ldIn{position:relative;z-index:1;text-align:center;width:min(86vw,460px);margin-top:-4vh}
 #loading .ldLogo{font-weight:900;font-size:clamp(34px,11vw,54px);letter-spacing:.06em;color:#ffd37a;
   text-shadow:0 3px 0 #7a3e12,0 8px 24px rgba(0,0,0,.6)}
 #loading .ldSub{margin-top:4px;font-weight:800;font-size:14px;color:#cfc4f2;letter-spacing:.12em}
-#loading .ldBar{margin:26px auto 10px;height:12px;border-radius:99px;background:rgba(255,255,255,.1);
+#loading .ldBox{margin:clamp(6px,2vh,16px) auto 0;width:82%;padding:14px 18px 12px;border-radius:18px;
+  background:linear-gradient(180deg,#3b2f6e,#261d4d);border:2px solid #d9a441;
+  box-shadow:0 0 0 3px rgba(40,26,80,.9),0 10px 26px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.08)}
+#loading .ldBar{height:14px;border-radius:99px;background:rgba(10,6,28,.65);
   overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
 #loading .ldBar i{display:block;height:100%;width:0;border-radius:99px;
-  background:linear-gradient(90deg,#5fe0b0,#ffd37a);transition:width .25s ease}
-#loading .ldText{font-size:12.5px;font-weight:800;color:#e9dffd}
-#loading .ldTip{margin-top:6px;font-size:11px;color:#8d82b8}
-#loading .ldSkip{margin-top:18px;display:none;border:0;border-radius:99px;padding:9px 18px;cursor:pointer;
-  font-weight:800;font-size:12.5px;color:#241a3d;background:#ffd37a}
+  background:linear-gradient(90deg,#f5b93c,#ffe08a);box-shadow:0 0 10px rgba(255,210,110,.6);transition:width .25s ease}
+#loading .ldText{margin-top:9px;font-size:clamp(13px,1.9vh,16px);font-weight:900;color:#ffe7a6;letter-spacing:.02em}
+#loading .ldTip{margin-top:3px;font-size:clamp(11px,1.5vh,13px);font-weight:700;color:#b9acdf}
+#loading .ldSkip{margin-top:16px;display:none;border:0;border-radius:99px;padding:10px 22px;cursor:pointer;
+  font-weight:900;font-size:clamp(13px,1.8vh,15px);color:#3a2207;background:linear-gradient(180deg,#ffe08a,#f5b93c);
+  box-shadow:0 4px 0 #a8661c,0 8px 16px rgba(0,0,0,.35)}
+@keyframes ldFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 
 /* ── 그림 테두리·로고 — 그림을 다 받은 뒤에만 켠다 (없으면 기존 모양) ── */
 /* ── 설정 화면도 그림 테두리로 (그림을 받은 뒤에만) ── */
@@ -181,7 +193,7 @@ body.ui-skin #prompt{background:none;backdrop-filter:none;-webkit-backdrop-filte
   filter:drop-shadow(0 10px 22px rgba(0,0,0,.55))}
 .logo.hasImg .logoImg{display:block}
 .logo.hasImg .logoMain, .logo.hasImg .logoSub{display:none}
-#loading .ldImg{display:none;width:min(78vw,380px);height:auto;margin:0 auto 4px}
+#loading .ldImg{display:none;width:100%;height:auto;margin:0 auto;filter:drop-shadow(0 10px 22px rgba(0,0,0,.55));animation:ldFloat 3.2s ease-in-out infinite}
 #loading .ldIn.hasImg .ldImg{display:block}
 #loading .ldIn.hasImg .ldLogo, #loading .ldIn.hasImg .ldSub{display:none}
 body.ui-skin #pauseBtn, body.ui-skin #fsBtn{background:url(assets/ui/ui-round.webp) center/100% 100% no-repeat;
@@ -1523,7 +1535,8 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stOpt.bad{border-color:#ff7a8a;background:rgba(255,122,138,.18)}
 .stSlots{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin:4px 0 16px}
 .stSlots span{width:30px;height:40px;border-bottom:3px solid rgba(255,255,255,.35);font:900 26px/40px var(--font);color:#fff;text-align:center}
-.stSlots span.f{border-color:#ffd37a}
+.stSlots span.f{border-color:#ffd37a;cursor:pointer;border-radius:6px 6px 0 0}
+.stSlots span.f:active{background:rgba(255,120,120,.25)}
 .stTiles{display:flex;justify-content:center;flex-wrap:wrap;gap:7px}
 .stTile{appearance:none;width:44px;height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.18);background:#2e2560;color:#fff;font:900 22px var(--font);cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
 .stTile:disabled{opacity:.2;box-shadow:none}
@@ -1553,6 +1566,17 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stReview{display:flex;align-items:center;gap:10px;width:min(420px,100%);margin:6px auto 10px;padding:12px 14px;border-radius:18px;border:0;cursor:pointer;text-align:left;
   background:linear-gradient(160deg,#5fe0b0,#3aa0ff);color:#06232a;box-shadow:0 5px 0 #1f6c8a;font-family:var(--font)}
 .stReview i{font-style:normal;font-size:26px} .stReview b{display:block;font-size:15px;font-weight:900} .stReview small{display:block;font-size:12px;font-weight:700;opacity:.85}
+/* (v271) 아이패드 — 휴대폰 한 줄 화면을 그대로 키우고(세로), 가로에서는 Stage 를 두 줄로 펼친다 */
+@media (min-width:700px) and (min-height:860px){ #scStudy .stWrap, #stPop{zoom:1.3} #scStudy.vPath .stWrap{width:min(572px,100%)} }
+@media (min-width:900px) and (min-height:620px) and (max-height:859px){ #scStudy .stWrap, #stPop{zoom:1.1} }
+@media (min-width:900px) and (min-height:560px) and (orientation:landscape){
+  #scStudy.vPath .stWrap{width:min(820px,100%)}
+  #scStudy.vPath .stMap.wm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;align-items:start}
+  #scStudy.vPath .stMap.wm > .stReview{grid-column:1/-1}
+  #scStudy.vPath .stMap.wm .stWBox{width:100%;max-width:400px}
+}
+@media (min-width:700px){ .stTabs{padding-left:12px;padding-right:12px} .stTabs button.stCat{flex:1 1 0;width:auto;min-width:74px;max-width:110px}
+  .stTabs > :first-child{margin-left:auto} .stTabs > :last-child{margin-right:auto} }
 .stSec{margin:14px auto 4px;padding:5px 12px;width:max-content;border-radius:99px;background:rgba(255,255,255,.07);color:#c9bff0;font-size:12.5px;font-weight:900}
 .stCombo{min-width:44px;text-align:right;font-size:14px;font-weight:900;color:#ffb070}
 .stCombo.hot{color:#ff7a3a;text-shadow:0 0 10px rgba(255,140,60,.6)}
@@ -2220,9 +2244,11 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
     <img class="ldImg" src="assets/ui/logo.webp" alt="" onload="this.parentNode.classList.add('hasImg')" onerror="this.remove()">
     <div class="ldLogo">HY ENG</div>
     <div class="ldSub">단어 게이트 러너</div>
-    <div class="ldBar"><i id="loadBar"></i></div>
-    <div class="ldText" id="loadText">업데이트 확인 중</div>
-    <div class="ldTip">처음 한 번만 조금 걸려요</div>
+    <div class="ldBox">
+      <div class="ldBar"><i id="loadBar"></i></div>
+      <div class="ldText" id="loadText">모험 준비 중</div>
+      <div class="ldTip">처음 한 번만 조금 걸려요</div>
+    </div>
     <button class="ldSkip" id="loadSkip">바로 시작하기</button>
   </div>
 </div>
@@ -4110,7 +4136,7 @@ const BOULDER = {
 const PORTRAIT_MAX_LANES = 4;  // 세로 화면에서는 이 개수까지만 (글자 크기 확보)
 function lanesFor(diff){
   const n = DIFF[diff].lanes;
-  return (innerHeight > innerWidth) ? Math.min(n, PORTRAIT_MAX_LANES) : n;
+  return (scrH() > scrW()) ? Math.min(n, PORTRAIT_MAX_LANES) : n;
 }
 /* 빙판 · 돌풍 */
 const ICE = { GRIP:0.16, LEN:24, PUSH:0.35, SLIDE:0.16, AMP:1.4, SNAP_V:1.2, BRAKE_SLOW:0.85, BRAKE_USE:1.6 };   // (v229) 빙판 브레이크: 85% 속도까지만 · 게이지 1.6배로 닳음   // 미끄러움 / 길이 (폭은 트랙 전체)
@@ -4511,11 +4537,14 @@ const input = {x:0, y:0};        // -1 ~ 1 아날로그 입력 (키보드/조이
 const laneX = (j,n) => (j-(n-1)/2)*CFG.LANE_W;
 const laneOfX = (x,n) => clamp(Math.round(x/CFG.LANE_W + (n-1)/2), 0, n-1);
 
+/* (v271) 화면 크기 — 아이패드는 돌린 직후 innerWidth 가 예전 값으로 남는 때가 있어 문서 폭을 먼저 본다 */
+function scrW(){ const d=document.documentElement; return Math.round((d && d.clientWidth) || innerWidth); }
+function scrH(){ const d=document.documentElement; return Math.round((d && d.clientHeight) || innerHeight); }
 function boot(){
   renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:true, powerPreference:"high-performance"});
   Quality.load();
   renderer.setPixelRatio(Math.min(devicePixelRatio, Quality.pixelRatio()));
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(scrW(), scrH(), false);           // 캔버스 겉 크기는 CSS(100%)가 정한다 → 돌려도 오른쪽이 검게 남지 않음
   if(THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
   if(THREE.ACESFilmicToneMapping){
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -4562,8 +4591,9 @@ function boot(){
 
   applyLaneMetrics();
   applyView();
-  addEventListener("resize", onResize);
-  addEventListener("orientationchange", ()=>setTimeout(onResize,120));
+  addEventListener("resize", resizeSoon);
+  addEventListener("orientationchange", resizeSoon);
+  if(window.visualViewport) visualViewport.addEventListener("resize", resizeSoon);
   setupBloom();
   clock = new THREE.Clock();
   renderer.setAnimationLoop(loop);
@@ -4584,7 +4614,7 @@ function setupBloom(){
   }catch(e){ composer=null; }
 }
 function applyView(){
-  const a = innerWidth/innerHeight;
+  const a = scrW()/Math.max(1,scrH());
   VIEW.portrait = a < 1;
   camera.aspect = a;
   camera.fov = VIEW.portrait ? 86 : (a < 1.5 ? 72 : 62);
@@ -4598,12 +4628,18 @@ function applyView(){
   G.spawnDist = (VIEW.portrait ? CFG.SPAWN_DIST_PORT : CFG.SPAWN_DIST_LAND) * near;
   Ground.ensure();
 }
+/* 돌린 뒤 크기가 늦게 바뀌는 기기를 위해 몇 번 더 재 본다 (크기가 같으면 아무것도 안 함) */
+let _rsT=[], _rsLast="";
+function resizeSoon(){ _rsT.forEach(clearTimeout); _rsT=[0,120,350,800,1600].map(ms=>setTimeout(()=>{
+  try{ if(window.scrollX||window.scrollY) window.scrollTo(0,0); document.querySelectorAll(".screen.on").forEach(e=>{ if(e.scrollLeft) e.scrollLeft=0; }); }catch(e){}   // 돌린 뒤 화면이 옆으로 밀려 있는 것 바로잡기
+  const k=scrW()+"x"+scrH(); if(k===_rsLast) return; _rsLast=k; onResize(); }, ms)); }
 function onResize(){
-  renderer.setSize(innerWidth, innerHeight);
-  if(composer) composer.setSize(innerWidth, innerHeight);
+  const W=scrW(), H=scrH(); _rsLast=W+"x"+H;
+  renderer.setSize(W, H, false);
+  if(composer) composer.setSize(W, H);
   // 가로↔세로가 바뀌어 문 개수가 달라지면 현재 문제를 새로 배치한다
   const want = G.gentle
-    ? Math.min((GENTLE[G.diff]||GENTLE.normal).lanes, (innerHeight>innerWidth)?PORTRAIT_MAX_LANES:99)
+    ? Math.min((GENTLE[G.diff]||GENTLE.normal).lanes, (H>W)?PORTRAIT_MAX_LANES:99)
     : lanesFor(G.diff);
   if(G.running && want !== G.lanes){
     G.lanes = want;
@@ -4697,7 +4733,7 @@ const ArtLoad = {
     const b=$("loadBar"), t=$("loadText");
     const pct=Math.round(100*Math.min(this.done,this.total)/Math.max(1,this.total));
     if(b) b.style.width=pct+"%";
-    if(t) t.textContent="업데이트 확인 중 "+pct+"%";
+    if(t) t.textContent="모험 준비 중 · "+pct+"%";
   },
   finish(){
     if(this.finished) return;
@@ -6062,6 +6098,7 @@ const TrapArt = {
       if(n==="floor-"+cur && typeof Ground!=="undefined" && Ground.mat){ applyFloorArt(null); applyLandArt(); }
       if(n==="props-"+cur && typeof Props!=="undefined"){ Props.kind=null; Props.build(propKey()); }
       if((n==="skin-"+G.char || n==="char-"+G.char) && typeof setCharacter==="function") setCharacter(G.char);
+      if(n.indexOf("char-")===0 && typeof Attract!=="undefined" && Attract.crew.length) Attract.clearCrew();   // (v271) 첫 화면 친구들도 그림이 오면 다시 세운다
       if(n.indexOf("boss-")===0 && typeof Boss!=="undefined" && Boss.refreshArt) Boss.refreshArt();
       if(n.indexOf("outfit-")===0 && typeof Wallet!=="undefined" && n==="outfit-"+Wallet.wearing(G.char) && typeof setCharacter==="function") setCharacter(G.char);
     }catch(e){}
@@ -8693,8 +8730,8 @@ const Attract = {
     const others = CHARACTERS.filter(c=>c.id!==G.char).slice(0,4);
     const spots = [-6.2, -3.4, 3.4, 6.2];
     others.forEach((c,i)=>{
-      const m = c.build();
-      m.traverse(o=>{ if(o.isMesh && !o.userData.noOutline) o.castShadow = HQ; });
+      const m = charSprite(c.id) || c.build();          // (v271) 그림 캐릭터가 있으면 그림으로 (예전 블록 인형 X)
+      if(!m.userData.sprite) m.traverse(o=>{ if(o.isMesh && !o.userData.noOutline) o.castShadow = HQ; });
       m.position.set(spots[i]||0, 0, -2.6 - (i%2)*1.6);
       m.rotation.y = Math.PI + (Math.random()-.5)*0.5;
       m.scale.setScalar(0.92);
@@ -8705,7 +8742,7 @@ const Attract = {
   clearCrew(){
     this.crew.forEach(c=>{
       scene.remove(c.mesh);
-      c.mesh.traverse(o=>{ if(o.geometry)o.geometry.dispose(); if(o.material)o.material.dispose(); });
+      c.mesh.traverse(o=>{ if(o.geometry)o.geometry.dispose(); if(o.material){ if(c.mesh.userData.sprite && o.material.map) o.material.map.dispose(); o.material.dispose(); } });
     });
     this.crew=[];
   },
@@ -8754,9 +8791,17 @@ const Attract = {
     this.crew.forEach(c=>{
       const p=(this.t+c.phase)%c.hop;
       const hop=(p<.45)? Math.abs(Math.sin(p*Math.PI/0.45))*0.55 : 0;
+      const ud=c.mesh.userData;
+      if(ud.sprite){                                   // 그림 캐릭터: 주인공처럼 두 장을 번갈아 달린다
+        const ph=this.t*7+c.phase, b=Math.abs(Math.sin(ph));
+        if(ud.frameTex) ud.frameTex.offset.x = (Math.sin(ph)>=0) ? 0 : 0.5;
+        c.mesh.position.y = hop + (ud.float ? .35+Math.sin(ph*.4)*.14 : b*0.12);
+        c.mesh.rotation.y = Math.PI + Math.sin(this.t*0.5+c.phase)*0.08;
+        if(!ud.float){ const sq=1+(1-b)*0.06; c.mesh.scale.set(0.92*sq, 0.92*(2-sq), 0.92); }
+        return;
+      }
       c.mesh.position.y = hop;
       c.mesh.rotation.y = Math.PI + Math.sin(this.t*0.5+c.phase)*0.3;
-      const ud=c.mesh.userData;
       const sw=Math.sin(this.t*1.8+c.phase)*0.2;
       if(ud.armL){ ud.armL.rotation.x=-sw; ud.armR.rotation.x=sw; }
     });
@@ -11153,7 +11198,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v270";
+const GAME_VER = "v271";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11861,7 +11906,7 @@ const StudyUI = {
     try{ Study.gvWallet(); }catch(e){} try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     show("scStudy"); this.path(); },
   close(){ SFX.click(); try{ speechSynthesis.cancel(); }catch(e){} Attract.focus=false; show("scStart"); },
-  view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); if(v!=="stPath") this.pop(null); },
+  view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); if(v!=="stPath") this.pop(null); },
   /* ── 길 ── */
   path(){
     this.view("stPath");
@@ -11906,11 +11951,12 @@ const StudyUI = {
           +'<div class="stLbl">Stage '+(i+1)+(x.title && !WORD_SETS[st].reading?' <b class="stTt">'+x.title+'</b>':'')+' <span>'+stars(v)+'</span></div>'
           +(now?'<div class="stNow">📌 오늘 할 차례</div>':'')+(nextLock?'<div class="stSkip" data-s="'+st+'" data-i="'+i+'">⏩ 건너뛰기 시험</div>':'')+'</div>';
       }).join(""); });
-    $("stMap").innerHTML=h;
+    $("stMap").innerHTML=h; $("stMap").className="stMap"+($("stMap").querySelector(".stWBox")?" wm":"");
     this.pop(null);
     /* (v251) 방금 한 Stage 자리로 돌아온다 — 예전엔 📌(맨 앞의 안 한 Stage)나 맨 위로 끌려 올라갔다 */
     const fr=this._from && this._from.set===this.set ? $("stMap").querySelector('.stDot[data-i="'+this._from.i+'"]') : null;
-    if(fr || !rc) setTimeout(()=>{ const n=fr || $("stMap").querySelector(".stDot.now"); if(n && n.scrollIntoView) try{ n.scrollIntoView({block:"center"}); }catch(e){} }, 60);
+    if(fr || !rc) setTimeout(()=>{ const n=fr || $("stMap").querySelector(".stDot.now"); if(!n || !n.scrollIntoView) return;
+      try{ const r=n.getBoundingClientRect(); if(r.bottom > scrH()*0.78) n.scrollIntoView({block:"center"}); else $("scStudy").scrollTop=0; }catch(e){} }, 60);   // (v271) 이미 보이면 그대로 — 가로 화면에서 위 탭이 잘려 보이던 것
     else { try{ $("scStudy").scrollTop=0; }catch(e){} }
   },
   pop(i, skip){
@@ -12125,6 +12171,7 @@ const StudyUI = {
     box.querySelectorAll(".dgChip").forEach(ch=>{
       ch.addEventListener("pointerdown",e=>{ if(ch.disabled || self.locked) return; e.preventDefault();
         const r=ch.getBoundingClientRect(), gh=ch.cloneNode(true); gh.className="dgChip ghost"; gh.style.left=r.left+"px"; gh.style.top=r.top+"px"; gh.style.width=r.width+"px";
+        { const z=parseFloat(getComputedStyle(box.closest(".stWrap")||box).zoom)||1; if(Math.abs(z-1)>.01){ gh.style.width=(r.width/z)+"px"; gh.style.transformOrigin="0 0"; gh.style.transform="scale("+(z*1.08)+") rotate(-3deg)"; } }   // (v271) 아이패드 확대 화면
         document.body.appendChild(gh); drag={ch, gh, dx:e.clientX-r.left, dy:e.clientY-r.top, x0:e.clientX, y0:e.clientY, moved:false}; ch.classList.add("lift");
         try{ ch.setPointerCapture(e.pointerId); }catch(_){} });
       ch.addEventListener("pointermove",e=>{ if(!drag || drag.ch!==ch) return;
@@ -12139,7 +12186,7 @@ const StudyUI = {
     });
     box.querySelectorAll(".dgT").forEach(t=>t.addEventListener("click",()=>{ if(q.pick){ const c=q.pick; q.pick=null; c.classList.remove("sel"); place(c, t); } }));
   },
-  slots(){ const q=this.qs[this.i]; $("stSlots").innerHTML=q.w.en.split("").map((c,k)=>'<span class="'+(k<q.got.length?'f':'')+'">'+(q.got[k]||'')+'</span>').join("");
+  slots(){ const q=this.qs[this.i]; $("stSlots").innerHTML=q.w.en.split("").map((c,k)=>'<span class="'+(k<q.got.length?'f':'')+'"'+(k<q.got.length?' data-sk="'+k+'"':'')+'>'+(q.got[k]||'')+'</span>').join("");
     $("stCheck").disabled = q.got.length<q.w.en.length; },
   click(e){
     const t=e.target; if(!t.closest) return;
@@ -12151,6 +12198,8 @@ const StudyUI = {
       else if(q.t!=="e2k" && q.t!=="ox" && q.opts){ const o=q.opts[this.sel]; this.say(typeof o==="string" ? o : o.en); }
       this.check(); return; }                                            // (v234) 고르면 바로 채점 (확인 버튼 한 번 줄임)
     const tl=t.closest(".stTile"); if(tl && !tl.disabled){ q.got+=q.tiles[+tl.dataset.t]; q.used.push(tl.dataset.t); tl.disabled=true; SFX.click(); this.slots(); return; }
+    const sk=t.closest("[data-sk]"); if(sk && q.used){ const k=+sk.dataset.sk; if(k>=q.got.length) return;   // (v271) 채운 글자를 누르면 그 글자부터 뒤까지 지운다
+      q.used.splice(k).forEach(u=>{ const b=$("stQ").querySelector('.stTile[data-t="'+u+'"]'); if(b) b.disabled=false; }); q.got=q.got.slice(0,k); SFX.click(); this.slots(); return; }
     if(t.closest("#stUndo")){ if(!q.used || !q.used.length) return; const last=q.used.pop(); q.got=q.got.slice(0,-1);
       const b=$("stQ").querySelector('.stTile[data-t="'+last+'"]'); if(b) b.disabled=false; this.slots(); return; }
     const mm=t.closest(".stM"); if(mm && !mm.classList.contains("ok")){
