@@ -32,7 +32,7 @@ what who whom whose which where why how there here very too also just only still
 one two three four five six seven eight nine ten first second third last next many lot lots s t""".split())
 PREP_RE = re.compile(r"\b(at|on|in|for|during|since|until|before|after|from|to|into|through|between|among|by)\s+(the|a|an|my|our|his|her|their|your|this|that|\d|one|two|three|four|five|six|seven|eight|nine|ten|monday|tuesday|wednesday|thursday|friday|saturday|sunday|january|february|march|april|may|june|july|august|september|october|november|december|spring|summer|fall|autumn|winter|noon|night|school|home|class|lunch|breakfast|dinner|work)\b", re.I)
 PAST_SIG = re.compile(r"\b(yesterday|last (night|week|month|year|summer|winter|weekend|monday|tuesday|wednesday|thursday|friday|saturday|sunday|time)|\w+ (days?|weeks?|months?|years?) ago)\b", re.I)
-PAST_AUX = re.compile(r"\b(was|were|did|didn't|had)\b", re.I)
+PAST_AUX = re.compile(r"\b(was|were|did|didn't|had|wasn't|weren't|hadn't)\b", re.I)   # (v286) wasn't·weren't 도 과거
 
 def cells_md(line):
     s = line.strip()
@@ -201,7 +201,7 @@ def check(path, level, K):
     prep = [s for _, s in ex if PREP_RE.search(s)]
     tpast = {}
     for d in talk:
-        if re.search(r"\b(did|didn't|was|were|yesterday|ago|last)\b", d["A"] + " " + d["B"], re.I) or re.search(r"\b\w{3,}ed\b", d["A"] + " " + d["B"]): tpast[d["영어"]] = 1
+        if re.search(r"\b(did|didn't|was|were|wasn't|weren't|yesterday|ago|last)\b", d["A"] + " " + d["B"], re.I) or re.search(r"\b\w{3,}ed\b", d["A"] + " " + d["B"]): tpast[d["영어"]] = 1
     info = {"단어": len(rows), "대화": len(talk), "과거 예문": f"{len(past)}/{len(ex)} ({round(100*len(past)/max(1,len(ex)))}%)",
             "시간 말 있는 과거 예문": sum(1 for s in past if PAST_SIG.search(s)), "전치사구 예문": f"{len(prep)}/{len(ex)} ({round(100*len(prep)/max(1,len(ex)))}%)",
             "과거 대화가 있는 단어": f"{len(tpast)}/{len(rows)}"}
