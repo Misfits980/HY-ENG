@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 FAST = ["study3", "study4", "v243test", "v246test", "v249test", "uitest", "newstest", "homotest",
         "dexgr", "bingotest", "bingo2", "albumtest2", "olytest", "olyfail", "scrolltest2", "bottomtap",
-        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest", "tiertest", "voicetest", "v6test"]
+        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest", "tiertest", "voicetest", "v6test", "datacheck"]
 SLOW = ["runsweep", "sweep1"]
 TIMEOUT = {"runsweep": 1800, "sweep1": 3600}
 
@@ -60,6 +60,8 @@ def basic_checks():
     for f in ["data/dex1.json", "data/dex2.json", "data/dex3.json", "data/easy.json", "data/talk.json", "data/bex.json"]:
         try: json.load(open(os.path.join(ROOT, f), encoding="utf8"))
         except Exception as e: probs.append("%s 읽기 실패: %s" % (f, e))
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "words", "sync.py"), "--check"], capture_output=True, text=True)   # (v280) 단어 자동 칸
+    if r.returncode: probs.append("단어 자동 칸: " + (r.stdout + r.stderr).strip()[-200:])
     for g in ["g12", "g34", "g56"]:
         r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "talk", "check.py"), g], capture_output=True, text=True)
         if "BAD" in r.stdout or "missing count 0" not in r.stdout or r.returncode: probs.append("대화 %s: %s" % (g, r.stdout.strip()[-200:]))

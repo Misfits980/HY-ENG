@@ -27,6 +27,7 @@ byW = {w['en']: w for w in W}
 assert len(byW) == 450, len(byW)
 
 html = open(os.path.join(R, 'index.html'), encoding='utf8').read()
+html = html.split('/* AUTO-WORDS-BEGIN')[0] + html.split('/* AUTO-WORDS-END */')[-1]   # (v280) 이 도구가 넣은 단어는 '새 단어'로 다시 셈
 wb = {}
 for m in re.finditer(r'\{en:"([^"]+)",ko:"([^"]*)"[^}]*?level:(\d)', html):
     wb.setdefault(m.group(1), m.group(2))
@@ -94,21 +95,20 @@ wj['g56'] = [[str(d), [w['en'] + '=' + w['ko'] for w in W if w['day'] == d]] for
 json.dump(wj, open(wf, 'w', encoding='utf8'), ensure_ascii=False)
 subprocess.run([sys.executable, 'build.py'], cwd=os.path.join(R, 'tools', 'talk'), check=True)
 
-# index.html 조각
-os.makedirs(os.path.join(B, 'out'), exist_ok=True)
-js = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
-course = '\n'.join('    %d:"%s",' % (d, '|'.join(w['en'] for w in W if w['day'] == d)) for d in range(1, 16))
-open(os.path.join(B, 'out', 'course.js'), 'w', encoding='utf8').write(course + '\n')
-items = []
-for w in new:
-    e = ND[w['en']][1]
-    items.append('{en:"%s",ko:"%s",level:2%s}' % (js(w['en']), js(w['ko']), (',emoji:"%s"' % e) if e else ''))
-open(os.path.join(B, 'out', 'wb.js'), 'w', encoding='utf8').write('WORD_BANK.push(' + ', '.join(items) + ');\n')
+# (v280) index.html 은 손으로 붙이지 않는다 → tools/words/auto.json 을 고치고 sync.py 로
+AF = os.path.join(R, 'tools', 'words', 'auto.json'); A = json.load(open(AF, encoding='utf8'))
+A.setdefault('course', {})['elem'] = {str(d): [w['en'] for w in W if w['day'] == d] for d in range(1, 16)}
 def norm(s): return set(x.strip() for x in re.split(r'[,·/;]', re.sub(r'\(.*?\)', '', s)) if x.strip())
-ko = {w['en']: w['ko'] for w in W if w['en'] in wb and not (norm(wb[w['en']]) & norm(w['ko']))}
-open(os.path.join(B, 'out', 'g56ko.js'), 'w', encoding='utf8').write('const G56KO = ' + json.dumps(ko, ensure_ascii=False, separators=(',', ':')) + ';\n')
-alb = {}
-for w in new: alb.setdefault(ND[w['en']][2], []).append(w['en'].replace(' ', '_'))
-open(os.path.join(B, 'out', 'album.js'), 'w', encoding='utf8').write(
-    '\n'.join('if(DEX_ADD.%s!=null) DEX_ADD.%s += " %s"; else DEX_ADD.%s="%s";' % (a, a, ' '.join(v), a, ' '.join(v)) for a, v in alb.items()) + '\n')
-print('words', len(W), 'new', len(new), 'dex added', added, 'talk', len(talk_lines), 'ko override', len(ko))
+ko = {}
+for d in range(1, 16):
+    k = {w['en']: w['ko'] for w in W if w['day'] == d and w['en'] in wb and not (norm(wb[w['en']]) & norm(w['ko']))}
+    if k: ko[str(d)] = k
+A.setdefault('ko', {})['g56'] = ko
+A.setdefault('words', {}); A.setdefault('album', [])
+have = {en for _, en in A['album']}
+for w in new:
+    A['words'][w['en']] = {"ko": w['ko'], "level": 2, "emoji": ND[w['en']][1]}
+    if w['en'] not in have: A['album'].append([ND[w['en']][2], w['en']])
+json.dump(A, open(AF, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+subprocess.run([sys.executable, os.path.join(R, 'tools', 'words', 'sync.py')], check=True)
+print('words', len(W), 'new', len(new), 'dex added', added, 'talk', len(talk_lines), 'ko override', sum(len(v) for v in ko.values()))

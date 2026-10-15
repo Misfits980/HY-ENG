@@ -1,7 +1,8 @@
 """노션 보카 v6 (챗지피티 최종 프롬프트) → 검사 · 게임 자료.
 
   python3 tools/basic/v6.py check  DAY01.md [DAY02.md …] [--level L3]
-  python3 tools/basic/v6.py apply  DAY01.md [DAY02.md …] [--level L3] [--day-from-name]
+  python3 tools/basic/v6.py apply  DAY01.md [DAY02.md …] [--level L3] [--day N] [--no-course]
+        (DAY 번호는 파일 이름 DAYnn 에서. L1=G1-2 1단계 · L2=G3-4 2단계 · L3=G5-6 3단계 · L4=중등 voca — 과 목록·교재 뜻·새 단어는 tools/words/auto.json → sync.py)
 
 DAYnn.md = 노션 DAY 페이지를 그대로 옮긴 글. 안에 [표 1] 학습 표(17칸), [표 2] 게임 대화 표(6칸), 자기 점검 줄이 있다.
 표는 마크다운(| … |)이든 노션 <table>이든 읽는다.
@@ -222,6 +223,55 @@ def report(path, res):
     for w in res["warn"]: print("  ⚠️", w)
     if not res["bad"] and not res["warn"]: print("  ✅ 문제 없음")
 
+RAW = {"L1": "kinder", "L2": "basic", "L3": "elem", "L4": "mv1"}      # 원본 과 이름 (COURSE)
+SETK = {"L1": "basic", "L2": "elem", "L3": "g56", "L4": "mv1"}       # 게임 반 (교재 뜻 COURSE_KO)
+LVL = {"L1": 1, "L2": 1, "L3": 2, "L4": 3}                            # 게임 단어 레벨 (★)
+ALB_KW = [("animal", "동물|곤충|새끼|물고기|짐승|뱀|벌레|날개|꼬리"), ("food", "음식|과일|채소|먹|마시|음료|빵|요리|맛"), ("body", "몸|병|아프|건강|약|치료|증상|뼈|피부"),
+          ("people", "사람|직업|가족|선수|사람이에요|하는 사람"), ("school", "학교|공부|수업|과목|책|시험|학기|글"), ("play", "운동|놀이|경기|악기|공연|게임|노래|그림"),
+          ("nature", "자연|날씨|하늘|바다|산|강|식물|꽃|나무|돌|흙|번개"), ("place", "장소|곳|건물|가게|탈것|차|배|비행기|길"), ("time", "시간|날|달|해|숫자|색|번|순서"),
+          ("society", "나라|사회|돈|회사|뉴스|법|정부|문화|대륙"), ("home", "물건|집|가구|옷|도구|가방|상자|그릇")]
+def guess_album(pos, ko, expl, level):
+    t = ko + " " + expl
+    if pos == "동사": return ("act2" if level <= 2 else "act3"), False
+    if pos in ("형용사", "부사"): return ("feel1" if level <= 1 else "feel2"), False
+    for a, kw in ALB_KW:
+        if re.search(kw, t): return a, True
+    return ("mind1" if level <= 1 else "mind2"), True
+
+def to_auto(results, levels, days):
+    """auto.json 에 과 단어 순서 · 교재 뜻 · 새 단어(+앨범)를 넣고 sync.py"""
+    AF = os.path.join(R, "tools", "words", "auto.json"); A = json.load(open(AF, encoding="utf8"))
+    h = open(os.path.join(R, "index.html"), encoding="utf8").read()
+    base = h.split("/* AUTO-WORDS-BEGIN")[0] + h.split("/* AUTO-WORDS-END */")[-1]
+    wb = {}
+    for m in re.finditer(r'\{en:"([^"]+)",ko:"([^"]*)"', base): wb.setdefault(m.group(1), m.group(2))
+    for en, w in A.get("words", {}).items(): wb.setdefault(en, w["ko"])
+    norm = lambda s: set(x.strip() for x in re.split(r"[,·/;]", re.sub(r"\(.*?\)", "", s)) if x.strip())
+    A.setdefault("course", {}); A.setdefault("ko", {}); A.setdefault("words", {}); A.setdefault("album", [])
+    have = {en for _, en in A["album"]}; added, guessed = [], []
+    for res, lv, day in zip(results, levels, days):
+        if day is None: print("⚠️ DAY 번호를 몰라 과 목록에 넣지 않음 (파일 이름 DAYnn 또는 --day)"); continue
+        raw, setk = RAW[lv], SETK[lv]
+        ws = [d["영어"].lower() for d in res["rows"]]
+        A["course"].setdefault(raw, {})[str(day)] = ws
+        ko = {}
+        for d in res["rows"]:
+            en = d["영어"].lower(); m1 = d["뜻 1"]
+            if en in wb and not (norm(wb[en]) & norm(m1)): ko[en] = m1
+            if en not in wb:
+                A["words"][en] = {"ko": m1, "level": LVL[lv], "emoji": ""}
+                if lv == "L4": A["words"][en]["src"] = "mv1"
+                wb[en] = m1; added.append(en)
+                if en not in have:
+                    alb, g = guess_album(d["품사 1"], m1, d["설명 1"], LVL[lv]); A["album"].append([alb, en]); have.add(en)
+                    if g: guessed.append(f"{en}→{alb}")
+        if ko: A["ko"].setdefault(setk, {})[str(day)] = ko
+        else: A["ko"].get(setk, {}).pop(str(day), None)
+    json.dump(A, open(AF, "w", encoding="utf8"), ensure_ascii=False, indent=1)
+    import subprocess; subprocess.run([sys.executable, os.path.join(R, "tools", "words", "sync.py")], check=True)
+    if added: print("새 게임 단어 %d개: %s" % (len(added), ", ".join(added)))
+    if guessed: print("앨범을 뜻으로 짐작한 단어 (확인):", ", ".join(guessed))
+
 def apply(results):
     bexf = os.path.join(R, "data", "bex.json"); bex = json.load(open(bexf, encoding="utf8"))
     dex = {b: json.load(open(os.path.join(R, "data", f"dex{b}.json"), encoding="utf8")) for b in (1, 2, 3)}
@@ -274,7 +324,6 @@ def apply(results):
     open(tf, "w", encoding="utf8").write("\n".join(keep + talk_lines) + "\n")
     import subprocess; subprocess.run([sys.executable, "build.py"], cwd=os.path.join(R, "tools", "talk"), check=True)
     print(f"\n적용: 단어 {sum(len(r['rows']) for r in results)} · 대화 {len(talk_lines)}")
-    if newwords: print("게임 단어장(WORD_BANK)에 없는 단어 — 손으로 넣어야 함:", ", ".join(sorted(set(newwords))))
 
 def main():
     a = sys.argv[1:]
@@ -290,6 +339,11 @@ def main():
     if a[0] == "apply":
         if nbad: print("❌ 가 있어 적용하지 않음"); sys.exit(2)
         apply(res)
+        days = []
+        for f in files:
+            m = re.search(r"DAY\s*0*(\d+)", os.path.basename(f), re.I)
+            days.append(int(a[a.index("--day") + 1]) if "--day" in a else (int(m.group(1)) if m else None))
+        if "--no-course" not in a: to_auto(res, [level] * len(res), days)
 
 if __name__ == "__main__":
     main()
