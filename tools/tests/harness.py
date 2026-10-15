@@ -26,6 +26,9 @@ SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('s
   const q=U.qs[U.i]; if(!q) return 'none';
   if(U.locked){ document.getElementById('stCheck').click(); return 'cont'; }
   if(q.t==='intro'){ document.getElementById('stCheck').click(); return 'intro'; }
+  if(q.so){ let k=q.opts.indexOf(q.ans); if(wrongFirst && !q.again) k=(k+1)%q.opts.length; document.querySelector('#stQ .stOpt[data-k="'+k+'"]').click(); return q.t; }
+  if(q.t==='order'){ const used=[]; q.x.ch.forEach(c=>{ const k=q.tiles.findIndex((ci,j)=>q.x.ch[ci]===c && used.indexOf(j)<0); used.push(k); document.querySelector('.odT[data-o="'+k+'"]').click(); }); document.getElementById('stCheck').click(); return 'order'; }
+  if(q.t==='kdict'){ for(const c of q.w.en) document.querySelector('.kdK[data-kk="'+c+'"]').click(); document.getElementById('stCheck').click(); return 'kdict'; }
   if(q.t==='match'){ q.ws.forEach(w=>{ document.querySelector('.stM.en[data-en="'+w.en+'"]').click(); document.querySelector('.stM.ko[data-ko="'+w.en+'"]').click(); }); document.getElementById('stCheck').click(); return 'match'; }
   if(q.t==='drag'){ q.ws.forEach(w=>{ q.pick=document.querySelector('.dgChip[data-en="'+w.en+'"]'); document.querySelector('.dgT[data-en="'+w.en+'"]').click(); }); return 'drag'; }
   if(q.t==='blend'){ let k=q.opts.indexOf(q.mid); if(wrongFirst && !q.again) k=(k+1)%(q.t==='ox'?2:q.opts.length); document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'blend'; }

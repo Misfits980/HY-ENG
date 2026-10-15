@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v272";
+const VERSION = "hyeng-v273";
 const CORE = [
   "./",
   "./index.html",
@@ -14,7 +14,7 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림�
   "./assets/boss/boss-shield-2.webp", "./assets/boss/boss-shield.webp", "./assets/boss/boss-spike.webp", "./assets/boss/boss-warden.webp",
   "./assets/chars/char-archer.webp", "./assets/chars/char-cat.webp", "./assets/chars/char-cheer.webp", "./assets/chars/char-explorer.webp",
   "./assets/chars/char-ghost.webp", "./assets/chars/char-hero.webp", "./assets/chars/char-knight.webp", "./assets/chars/char-mage.webp",
-  "./assets/chars/char-portraits.webp", "./assets/chars/char-scholar.webp", "./assets/chars/char-wolf.webp", "./assets/chars/outfit-hero-lava.webp", "./data/dex1.json", "./data/dex2.json", "./data/dex3.json", "./data/easy.json", "./data/talk.json", "./assets/chars/outfit-hero-lava-card.webp", "./assets/traps/bee.webp",
+  "./assets/chars/char-portraits.webp", "./assets/chars/char-scholar.webp", "./assets/chars/char-wolf.webp", "./assets/chars/outfit-hero-lava.webp", "./data/dex1.json", "./data/dex2.json", "./data/dex3.json", "./data/easy.json", "./data/talk.json", "./data/bex.json", "./assets/chars/outfit-hero-lava-card.webp", "./assets/traps/bee.webp",
   "./assets/traps/block-castle.webp", "./assets/traps/block-hall.webp", "./assets/traps/block-plaza.webp", "./assets/traps/block-rampart.webp",
   "./assets/traps/blocks.webp", "./assets/traps/chandelier-hall.webp", "./assets/traps/cloud-fog.webp", "./assets/traps/crack-castle.webp",
   "./assets/traps/crumble-castle.webp", "./assets/traps/crumble-night.webp", "./assets/traps/crumble-volcano.webp", "./assets/traps/geyser-night.webp",

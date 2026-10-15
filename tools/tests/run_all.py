@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 FAST = ["study3", "study4", "v243test", "v246test", "v249test", "uitest", "newstest", "homotest",
         "dexgr", "bingotest", "bingo2", "albumtest2", "olytest", "olyfail", "scrolltest2", "bottomtap",
-        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest"]
+        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest", "tiertest"]
 SLOW = ["runsweep", "sweep1"]
 TIMEOUT = {"runsweep": 1800, "sweep1": 3600}
 
@@ -57,7 +57,7 @@ def basic_checks():
           "console.log('scripts '+m.length+' bad '+bad);") % os.path.join(ROOT, "index.html")
     r = subprocess.run(["node", "-e", js], capture_output=True, text=True)
     if "bad 0" not in r.stdout: probs.append("스크립트 문법: " + r.stdout.strip()[:300])
-    for f in ["data/dex1.json", "data/dex2.json", "data/dex3.json", "data/easy.json", "data/talk.json"]:
+    for f in ["data/dex1.json", "data/dex2.json", "data/dex3.json", "data/easy.json", "data/talk.json", "data/bex.json"]:
         try: json.load(open(os.path.join(ROOT, f), encoding="utf8"))
         except Exception as e: probs.append("%s 읽기 실패: %s" % (f, e))
     for g in ["g12", "g34", "g56"]:
