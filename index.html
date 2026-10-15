@@ -1226,6 +1226,10 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 .wEx small{display:block;margin-top:3px;font-size:12.5px;color:#a89ec4;font-weight:700}
 .wForms{margin-top:7px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 11px;border-radius:13px;border:1px dashed rgba(255,211,122,.35);background:rgba(255,211,122,.06);font-size:15px;font-weight:800}
 .wForms .f{color:#ffd37a} .wForms .ar{color:#ffd37a} .wForms .nt{font-size:11px;color:#a89ec4;font-weight:700;width:100%}
+.wForms .fx{display:inline-flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:10px;background:rgba(255,211,122,.1);cursor:pointer;color:#ffd37a}
+.wForms .fx b{font-size:16px} .wForms .fx small{font-size:10.5px;font-weight:800;color:#c9c0ff;white-space:nowrap}
+.wForms .fx.me{background:rgba(255,255,255,.06);color:#fff3d6;cursor:default}
+.wFhelp{font-size:11px;color:#8f86c2;font-weight:700;margin-left:4px}
 .wCols{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .wCol{padding:6px 11px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-family:var(--font);font-size:14px;font-weight:700;color:var(--ivory);cursor:pointer}
 .wRel{margin-top:7px;display:grid;gap:6px}
@@ -11347,7 +11351,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v278";
+const GAME_VER = "v279";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14535,11 +14539,11 @@ const DexDet = {
                 +'<div class="wTl r"><b>B</b><div><p>'+this.hl(x[1],en,D[2])+'</p><small>'+this.esc(ko[1]||"")+'</small></div></div>'
                 +'<button class="wSay sm" data-say="'+this.esc(x[0]+' '+x[1])+'">🔊</button></div>'; }).join("")+'</div>' : '')
           +'<div class="wPane'+on("f")+'" data-p="f">'
-          +(/ \/ /.test(String(D[2])) || /^(명사|동사|형용사) /.test(String(D[2])) ? '<div class="wSec">변하는 모양</div>'+String(D[2]).split(" / ").map(g=>{ const m=/^(명사|동사|형용사|부사)\s+(.*)$/.exec(g.trim()), ps=m?m[1]:"", fs=m?m[2]:g;   // (v278) 품사마다 한 줄
-              return '<div class="wForms"><span class="wFp">'+this.esc(ps)+'</span><span>'+en+'</span><span class="ar">→</span>'+fs.split(" · ").map(f=>'<span class="f">'+this.esc(f)+'</span>').join('<span class="ar">·</span>')+'</div>'; }).join("") :
-           /과거형/.test(D[1]) ? '<div class="wSec">변하는 모양 · 원래 → 과거 → 다 한 모양</div><div class="wForms">'+D[2].split(" → ").map(f=>'<span class="f"'+(f===en?' style="color:var(--mint)"':'')+'>'+this.esc(f)+'</span>').join('<span class="ar">→</span>')+'</div>' :
-           '<div class="wSec">변하는 모양 · '+(/동사/.test(D[1])&&!/^명사/.test(D[1])?"했어요 · 해 왔어요 · 하는 중":/형용사/.test(D[1])?"더 ~한 · 가장 ~한":/명사/.test(D[1])?"여러 개일 때":"모양")+'</div>'
-          +'<div class="wForms"><span>'+en+'</span><span class="ar">→</span>'+this.esc(D[2]).replace(/\(([^)]*)\)/g,'<span class="nt">$1</span>').split(" · ").map(f=>'<span class="f">'+f+'</span>').join('<span class="ar">·</span>')+'</div>')
+          +'<div class="wSec">변하는 모양 <small class="wFhelp">글자를 누르면 소리</small></div>'
+          +(/ \/ /.test(String(D[2])) || /^(명사|동사|형용사) /.test(String(D[2])) ? String(D[2]).split(" / ").map(g=>{ const m=/^(명사|동사|형용사|부사)\s+(.*)$/.exec(g.trim());   // (v278) 품사마다 한 줄
+              return this.formRow(en, m?m[2]:g, m?m[1]:D[1], m?m[1]:""); }).join("") :
+           /과거형/.test(D[1]) ? '<div class="wForms">'+D[2].split(" → ").map((f,k)=>'<span class="fx'+(f===en?' me':'')+'" data-say="'+this.esc(f)+'"><b>'+this.esc(f)+'</b><small>'+["원래 모양","했어요 (과거)","다 한 모양 (과거분사)"][k]+'</small></span>').join('<span class="ar">→</span>')+'</div>' :
+           this.formRow(en, String(D[2]), D[1], ""))   // (v279) 모양마다 이름표 (사용자: 했어요 · 해 왔어요 · 하는 중 이 어느 것인지 헷갈림)
           +(D[6]?'<div class="wSec">자주 같이 쓰는 말</div><div class="wCols">'+D[6].split(" · ").map(c=>'<button class="wCol" data-say="'+this.esc(c.replace(/\s*\([^)]*\)/g,""))+'">'+this.hl(c,en,D[2])+'</button>').join("")+'</div>':'');
         const r=D[7]||{}, rows=[]; if(r.o) rows.push(["반대말",r.o]); if(r.s) rows.push(["비슷한 말",r.s]); if(r.f) rows.push(["단어 가족",r.f]);
         if(r.g) rows.push(["같은 무리", r.g]);
@@ -14555,6 +14559,24 @@ const DexDet = {
     if(!quiet){ try{ if(got) this.say(en); }catch(e){} }
     if(DexUI.mode==="dex") DexUI.draw(); else this.drawList(true);
   },
+  /* (v279) 변하는 모양 — 낱말마다 밑에 이름표 (loves = 그가 해요 · loved = 했어요 · loved = 다 한 모양 · loving = 하는 중) */
+  formRow(en, str, pos, tag){
+    const fs=[]; { let cur="", dep=0; for(const ch of String(str)){ if(ch==="(") dep++; if(ch===")") dep=Math.max(0,dep-1); if(ch==="·" && !dep){ fs.push(cur.trim()); cur=""; } else cur+=ch; } fs.push(cur.trim()); }   // 괄호 안의 · 는 나누지 않음 (has (he·she))
+    for(let k=fs.length-1;k>=0;k--) if(!fs[k]) fs.splice(k,1);
+    const P=String(pos||""), b=String(en).toLowerCase(), bare=fs.map(f=>f.toLowerCase().replace(/\s*\(.*\)\s*$/,""));
+    const odd = /^(be|am|is|are|was|were|been)$/.test(b) || bare.some(x=>/^(am|is|are|was|were)$/.test(x)) || bare.some(x=>bare.indexOf(x+"s")>=0 || bare.indexOf(x+"es")>=0);   // be 동사 · 원형이 아닌 표제어(said: say · says)는 이름표 없이
+    const isV=/동사/.test(P) && !/^(명사|형용사)$/.test(tag||"") && !/^명사/.test(P), isA=!isV && /형용사|부사/.test(P), isN=!isV && !isA && /명사/.test(P);
+    let seenPast=0;
+    const lab=f=>{ const x=f.toLowerCase().replace(/\s*\(.*\)\s*/,"");
+      if(isN) return "여러 개";
+      if(isA) return /^most |est$/.test(x) ? "가장 ~한" : /^more |er$/.test(x) ? "더 ~한" : "";
+      if(!isV || odd) return "";
+      if(/ing$/.test(x)) return "하는 중 (-ing)";
+      if(/\bhe\b/.test(f) || (x!==b && (x===b+"s" || x===b+"es" || /ies$/.test(x) && x===b.slice(0,-1)+"ies"))) return "그가 해요 (he·she)";
+      seenPast++; return seenPast===1 ? "했어요 (과거)" : "다 한 모양 (과거분사)"; };
+    return '<div class="wForms">'+(tag?'<span class="wFp">'+this.esc(tag)+'</span>':'')+'<span class="fx me"><b>'+this.esc(en)+'</b><small>원래 모양</small></span><span class="ar">→</span>'
+      +fs.map(f=>{ const m=/^(.*?)\s*\((.*)\)\s*$/.exec(f), w0=m?m[1]:f, note=m?m[2]:"", l=lab(f);
+        return '<span class="fx" data-say="'+this.esc(w0)+'"><b>'+this.esc(w0)+'</b>'+((l||note)?'<small>'+this.esc(l||note)+'</small>':'')+'</span>'; }).join("")+'</div>'; },
   quiz(en){ const q=$("wQuiz"); if(!q) return; const w=this.word(en), L=en.split("");
     let T=L.map(c=>({c})).sort(()=>Math.random()-.5); if(T.map(t=>t.c).join("")===en && en.length>1) T.reverse(); let got="";
     const draw=msg=>{ q.innerHTML='<div class="wQh">'+this.esc(w.ko)+' '+(w.emoji||'')+' → 글자를 순서대로 눌러요</div><div class="wQa">'+L.map((c,i)=>'<i'+(i<got.length?' class="on"':'')+'>'+(i<got.length?got[i]:'')+'</i>').join("")+'</div>'
