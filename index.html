@@ -136,6 +136,8 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);
   text-shadow:0 2px 0 rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.6);
   animation:popUp .85s cubic-bezier(.2,.9,.3,1) forwards}
 .pop small{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;opacity:.9;margin-top:2px}
+.pop{-webkit-text-stroke:1.2px rgba(20,10,40,.85);paint-order:stroke fill}   /* (v289) QA: 초록 '5 COMBO' 와 주황 배경 대비가 약했다 → 진한 테두리 */
+.pop small{-webkit-text-stroke:.6px rgba(20,10,40,.85)}
 @keyframes popUp{
   0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.7)}
   25%{opacity:1;transform:translateX(-50%) translateY(-6px) scale(1.08)}
@@ -11436,7 +11438,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v289";
+const GAME_VER = "v290";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12513,7 +12515,7 @@ const StudyUI = {
   review(){ const qs=Study.buildReview(); if(!qs){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
     this.qs=qs; this.rv=true; this.test=false; this.oly=false; this.retryMode=false; this.tier=0; this.les={n:0, ws:[]}; this.set=this.set||"basic"; this.begin(); },
   graded(){ return this.qs.filter(q=>q.t!=="intro" && !q.again).length; },
-  bar(){ $("stBar").style.width=Math.round(this.done/this.total*100)+"%";
+  bar(){ $("stBar").style.width=Math.min(100, Math.round(this.done/Math.max(1,this.total)*100))+"%";   // (v289) QA: 다시 나온 문제까지 세면 100% 를 넘었다
     const rl=$("stRnd"); if(rl){ const R=this.rounds(); rl.textContent = (R>1 && !this.test && !this.oly && !this.rv) ? "라운드 "+Math.min(R, Math.floor(this.done/this.RND)+1)+"/"+R : ""; }
     const c=$("stCombo"); if(c){ c.textContent = this.combo>=2 ? "🔥 "+this.combo : ""; c.className="stCombo"+(this.combo>=5?" hot":""); } },
   esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
@@ -14330,6 +14332,7 @@ const Admin = (function(){
     if(a==="whoMe"){ const w=$("adWho"); if(whoK==="dev") w.value=get("hyeng_dev")||""; else w.value=(get("hyeng_nick")||""); return; }
     if(a==="sendGo"){ const who = whoK==="all" ? "모두" : ($("adWho").value||"").trim(), kind=$("adKind").value, value=($("adVal").value||"").trim(), memo=($("adMemo").value||"").trim();
       if(!who) return msg("누구에게 보낼지 적어 주세요");
+      if(kind==="이름" && who==="모두") return msg("이름 바꾸기는 한 사람씩만 보낼 수 있어요 (모두에게 보내면 모든 아이 이름이 같아져요)");   // (v289) QA
       if(kind!=="이름권" && !value) return msg("값을 적어 주세요 ("+(KINDS.find(x=>x[0]===kind)||[])[2]+")");
       if(kind==="보석" && !/^[+-]?\d+$/.test(value.replace(/\s/g,""))) return msg("보석은 +50 이나 -30 처럼 숫자로");
       if(!confirm((who==="모두"?"모든 아이":"「"+who+"」")+"에게 보낼까요?\n"+kind+" "+value+(memo?"\n“"+memo+"”":""))) return;
