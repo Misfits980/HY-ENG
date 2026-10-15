@@ -99,6 +99,11 @@ async def main():
         print("next", nx)
         if not nx["b"] or nx["r"] or nx.get("n")!=nx.get("want") or nx.get("blank",-1)>=0: bad.append(f"다음 스테이지 {nx}")
         await pg.evaluate("()=>document.getElementById('stQuit').click()")
+        # (v276) 시제·시간 전치사 빈칸 — 설명 한 줄이 붙는 것만
+        gq=await pg.evaluate("""()=>{ const a=Study._gram('tense','charge'), b=Study._gram('prep','tulip'), c=Study._gram('tense','arrest');
+            return {a:a&&[a.ans,a.x.why], b:b&&[b.ans,b.x.why], c:c&&c.ans} }""")
+        print("gram", gq)
+        if not gq["a"] or gq["a"][0]!="charged" or not gq["b"] or gq["b"][0]!="in" or gq["c"]: bad.append(f"문법 빈칸 {gq}")
         # 예전 ★3 옮기기
         await pg.evaluate("""()=>{ const s=Study.load(); const L=Study.lessons('elem').filter(x=>!x.fin); s.lv['elem-'+L[3].n]=3; delete s.tv; s.dp={}; Study.save(); }""")
         await pg.reload(); await pg.wait_for_timeout(1500)
