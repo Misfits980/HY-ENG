@@ -1,12 +1,15 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v288";
+const VERSION = "hyeng-v289";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "./three.min.js",                    // (v289) 3D 엔진 — 인터넷 없이도 켜지게 꼭 저장
+  "./lib/CopyShader.js", "./lib/LuminosityHighPassShader.js", "./lib/EffectComposer.js", "./lib/RenderPass.js",
+  "./lib/ShaderPass.js", "./lib/MaskPass.js", "./lib/UnrealBloomPass.js"
 ];
 const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림은 assets/ 아래 갈래별 폴더
   "./versus.html", "./icon-maskable-512.png",
@@ -90,7 +93,8 @@ self.addEventListener("fetch", e => {
       }
       return res;
     } catch (err) {
-      return caches.match("./index.html");
+      // (v289) 그림·스크립트·자료에 웹페이지(index.html)를 대신 주면 스크립트로 읽다 문법 오류가 난다 → 그냥 실패로 돌려준다
+      return Response.error();
     }
   })());
 });

@@ -46,7 +46,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);
 
 /* ---------------- HUD ---------------- */
 #hud{opacity:0;transition:opacity .25s;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0}
+  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 12px) 0 calc(env(safe-area-inset-left,0px) + 12px)}   /* (v289) 아이폰 가로 노치 */
 #hud.on{opacity:1}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .chip{background:rgba(28,19,58,.82);border:2.5px solid rgba(255,255,255,.22);border-radius:18px;
@@ -275,7 +275,7 @@ body.ui-skin .menu #btnGo{color:#ffd37a;animation:plaqueGlow 2.6s ease-in-out in
 @keyframes plaqueGlow{0%,100%{filter:drop-shadow(0 0 5px rgba(255,205,110,.35))}
   50%{filter:drop-shadow(0 0 12px rgba(255,205,110,.8))}}
 /* 아래 한 줄은 명판을 쓰지 않는다 */
-body.ui-skin .subRow .mitem{width:auto;min-height:0;border:0;border-image:none;padding:9px 10px;
+body.ui-skin .subRow .mitem{width:auto;min-height:44px;border:0;border-image:none;padding:9px 10px;
   display:inline-block;filter:none}
 body.ui-skin .subRow .mitem:hover{filter:none;transform:none}
 
@@ -328,7 +328,7 @@ body.por-ok #selChar .tile[data-v="wolf"] i, body.por-ok #vsP0 .tile[data-v="wol
 /* ── 등급 표시 ── */
 .rkName{font-style:normal;font-weight:900;letter-spacing:.04em}
 .rkLine{margin-top:5px;font-size:12px;font-weight:800;color:#cfc4f2}
-.rkRow{display:grid;grid-template-columns:78px 82px 1fr;align-items:center;gap:4px 8px;
+.rkRow{display:grid;grid-template-columns:100px 78px 1fr;align-items:center;gap:4px 8px;
   padding:7px 2px;border-bottom:1px solid rgba(255,255,255,.07);font-size:12.5px}
 .rkRow .rkSet{color:#cfc4f2;font-weight:800}
 .rkRow b{font-weight:900;letter-spacing:.03em}
@@ -669,6 +669,8 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 .mitem:hover,.mitem.on{color:#ffd37a;background:rgba(255,196,107,.1);transform:scale(1.04)}
 .mitem:hover:before,.mitem.on:before{opacity:1;transform:translateX(0)}
 .mitem:active{transform:scale(.99)}
+/* (v289) QA: 좁은 폰(360px)에서 학습 기록의 'Grade 3-' / '4' 처럼 학년 이름이 줄에서 쪼개졌다 */
+.rkRow .rkSet{white-space:nowrap}   /* (v289) QA: 360px 에서 Grade 3-4 가 두 줄로 */
 /* 👥 2인용 */
 #vsHud{display:none}
 body.vs #vsHud{display:flex;justify-content:space-between;position:absolute;left:0;right:0;top:104px;padding:0 14px;pointer-events:none}
@@ -911,11 +913,13 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
   padding:9px 15px;border-radius:100px;cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:700;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#b9aee0;
   backdrop-filter:blur(8px)}
-.corner.left{left:16px}
-.corner.right{right:16px}
+.corner.left{left:calc(env(safe-area-inset-left,0px) + 16px)}
+.corner.right{right:calc(env(safe-area-inset-right,0px) + 16px)}
+.screen{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}   /* (v289) 아이폰 가로에서 노치가 화면 글자·뒤로 버튼을 가렸다 */
 .corner.top{top:calc(env(safe-area-inset-top,0px) + 16px);bottom:auto;right:16px;
   width:44px;height:44px;padding:0;display:grid;place-items:center}
 .corner.top.off{display:none}
+#btnFsHome{right:auto;left:16px}   /* (v289) QA: 첫 화면 톱니(오른쪽 위)와 겹쳐 설정 대신 전체화면이 켜졌다 → 왼쪽 위로 */
 #scStart:not(.on) ~ #btnFsHome{display:none!important}
 .corner.top svg,#fsBtn svg{display:block;margin:auto}   /* (v259) 아이콘을 동그라미 가운데로 */
 .corner:active{background:rgba(255,255,255,.12)}
@@ -1344,8 +1348,16 @@ details{display:none}
 .rrow b{flex:1;font-weight:700;font-size:14.5px}
 .rrow span{font-variant-numeric:tabular-nums;color:#a99ed0;font-size:13.5px;font-weight:700}
 
-#err{display:none;position:fixed;inset:0;place-items:center;padding:24px;text-align:center;background:var(--void);
+#err{display:none;position:fixed;inset:0;place-items:center;padding:24px;text-align:center;background:rgba(12,8,29,.94);
   font-size:14px;line-height:1.7;color:#c3bad9;z-index:9}
+.errIn{max-width:min(340px,88vw);display:flex;flex-direction:column;align-items:center;gap:6px}
+.errIn b{font-size:18px;color:#fff}
+.errIn p{margin:0}
+.errEmo{font-size:40px;line-height:1}
+.errBtns{display:flex;gap:10px;margin:10px 0 4px;flex-wrap:wrap;justify-content:center}
+.errBtns button{min-height:48px;padding:0 20px;border-radius:14px;border:1px solid #e6c8ff;background:#9a5cff;color:#fff;font:inherit;font-weight:800;font-size:16px;cursor:pointer}
+.errBtns button.ghost{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.errIn small{font-size:11px;opacity:.5;word-break:break-all}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 /* ── 반 고르기 (v209) — 씨앗·새싹·나무·숲·표현 ── */
@@ -2367,19 +2379,15 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
     <button class="ldSkip" id="loadSkip">바로 시작하기</button>
   </div>
 </div>
-<div id="err">3D 엔진(three.js)을 불러오지 못했습니다.<br>인터넷 연결을 확인하고 새로고침해 주세요.</div>
+<div id="err"><div class="errIn"><div class="errEmo">📡</div><b>게임 그림을 불러오지 못했어요</b><p>인터넷 연결을 확인하고 다시 시작해 주세요.</p><div class="errBtns"><button type="button" onclick="location.reload()">🔄 다시 시작</button></div></div></div>
 
 <script>
 (function(){
-  var BLOOM = [
-    "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js",
-    "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js",
-    "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js",
-    "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js",
-    "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js",
-    "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js",
-    "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"
-  ];
+  /* (v289) three.js r128 과 빛 번짐(bloom) 스크립트를 저장소(three.min.js · lib/)에 두고 먼저 쓴다 → 서비스워커가 미리 저장해 인터넷 없이도 켜진다.
+     없으면 예전처럼 CDN 으로 */
+  var CDN = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/";
+  var BLOOM = ["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","postprocessing/EffectComposer.js","postprocessing/RenderPass.js",
+    "postprocessing/ShaderPass.js","postprocessing/MaskPass.js","postprocessing/UnrealBloomPass.js"];
   function start(){
     if(window.__start) window.__start();
     else addEventListener("load", function(){ window.__start && window.__start(); });
@@ -2389,7 +2397,8 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
     document.head.appendChild(el);
   }
   function chain(list,i,done){ if(i>=list.length) return done();
-    load(list[i], function(){ chain(list,i+1,done); }, function(){ done(); }); }
+    var next=function(){ chain(list,i+1,done); };
+    load("lib/"+list[i].split("/").pop(), next, function(){ load(CDN+list[i], next, function(){ done(); }); }); }
   function afterThree(){ chain(BLOOM,0,start); }
   load("three.min.js", afterThree, function(){
     load("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", afterThree, start);
@@ -4098,7 +4107,7 @@ const WrongBook = (function(){
   let mem=[], ls=false;
   try{ localStorage.setItem(KEY+"_t","1"); localStorage.removeItem(KEY+"_t"); ls=true; }catch(e){}
   function load(){
-    if(ls){ try{ const v=JSON.parse(localStorage.getItem(KEY)); if(v) return v; }catch(e){} }
+    if(ls){ try{ const v=JSON.parse(localStorage.getItem(KEY)); if(Array.isArray(v)) return v; }catch(e){} }   // (v289) 배열이 아니면 무시 (QA)
     return mem;
   }
   function save(a){ mem=a.slice(); if(!ls) return; try{ localStorage.setItem(KEY, JSON.stringify(a)); }catch(e){} }
@@ -4523,6 +4532,8 @@ function pickWord(p){
 const recentOpt = [];                               // 최근 오답 보기 (약 8문제치)
 /* (v234) 뜻 비교 열쇠 — 첫 뜻만, 괄호·띄어쓰기·~ 빼고 ("배 (뱃살)" = "배", "가게, 상점" = "가게") */
 function koKey(k){ return String(k==null?"":k).split(/[,;/]/)[0].replace(/\([^)]*\)/g,"").replace(/[\s~·.]/g,""); }
+/* (v289) QA: 첫 뜻만 비교해서 TOOTH 에 '이빨' 과 '이, 이빨(여러 개)' 처럼 뜻이 겹치는 보기가 함께 나왔다 → 뜻 조각을 모두 비교 */
+function koParts(k){ return String(k==null?"":k).split(/[,;/]/).map(x=>x.replace(/\([^)]*\)/g,"").replace(/[\s~·.]/g,"")).filter(Boolean); }
 function pickDistractors(word, count, needKo){
   const p = pool(), out=[], used={};
   const rested = en => recentOpt.indexOf(en)>=0;
@@ -4530,10 +4541,11 @@ function pickDistractors(word, count, needKo){
   // 뜻이 같은 단어는 두 방향 모두에서 오답 후보에서 뺀다 (정답이 둘이 되는 것 방지)
   const wk = koKey(word.ko);
   const okKo = w => needKo ? (!!w.ko && w.ko!==word.ko && koKey(w.ko)!==wk) : (!w.ko || (w.ko!==word.ko && koKey(w.ko)!==wk));
-  const usedKo = {}; usedKo[word.ko] = 1; usedKo[wk] = 1;
+  const usedKo = {}; usedKo[word.ko] = 1; usedKo[wk] = 1; koParts(word.ko).forEach(x=>usedKo[x]=1);
   const add = w => {
     if(!w || used[w.en] || !okKo(w)) return;
-    if(w.ko){ if(usedKo[w.ko] || usedKo[koKey(w.ko)]) return; usedKo[w.ko] = 1; usedKo[koKey(w.ko)] = 1; }   // 뜻이 겹치는 오답끼리도 배제
+    if(w.ko){ const ps=koParts(w.ko); if(usedKo[w.ko] || usedKo[koKey(w.ko)] || ps.some(x=>usedKo[x])) return;
+      usedKo[w.ko] = 1; usedKo[koKey(w.ko)] = 1; ps.forEach(x=>usedKo[x]=1); }   // 뜻이 겹치는 오답끼리도 배제
     used[w.en] = 1; out.push(w);
   };
   const useTrick = Math.random() < DIFF[G.diff].trick;
@@ -4559,6 +4571,12 @@ function pickDistractors(word, count, needKo){
   // 3) 남으면 무작위 (최근 보기로 쓴 단어는 되도록 피한다)
   let guard=0;
   while(out.length<count && guard++<300){ const w=rnd(p); if(guard<200 && w && rested(w.en)) continue; add(w); }
+  // (v289) QA: 단어가 적은 Stage 는 보기가 모자라 문이 레인보다 적게 서고, 정답 문 앞에 서도 오답이 났다 → 단어장 전체(비슷한 수준)에서 채운다
+  if(out.length<count){
+    const lv=word.level||1, multi=/\s/.test(word.en);
+    const extra=shuffle(WORD_BANK.filter(w=>w && w.en && !w.sw && Math.abs((w.level||1)-lv)<=1 && /\s/.test(w.en)===multi));
+    for(let i=0;i<extra.length && out.length<count;i++) add(extra[i]);
+  }
   const res=out.slice(0,count);
   res.forEach(w=>{ if(w && w.en){ recentOpt.push(w.en); } }); while(recentOpt.length>48) recentOpt.shift();
   return res;
@@ -4693,6 +4711,11 @@ const laneOfX = (x,n) => clamp(Math.round(x/CFG.LANE_W + (n-1)/2), 0, n-1);
 /* (v271) 화면 크기 — 아이패드는 돌린 직후 innerWidth 가 예전 값으로 남는 때가 있어 문서 폭을 먼저 본다 */
 function scrW(){ const d=document.documentElement; return Math.round((d && d.clientWidth) || innerWidth); }
 function scrH(){ const d=document.documentElement; return Math.round((d && d.clientHeight) || innerHeight); }
+/* (v289) 3D 캔버스 높이 — 아이폰 사파리는 아래 주소창이 접히면 화면이 커지는데 문서 높이(clientHeight)는 그대로라
+   캔버스가 짧게 남아 맨 아래가 검게 잘렸다. 폭이 같을 때(돌린 직후의 옛 값이 아닐 때)만 더 큰 innerHeight 를 쓴다 */
+function gameH(){ const H=scrH(), ih=Math.round(innerHeight||0);
+  return (Math.abs(Math.round(innerWidth||0)-scrW())<=2 && ih>H && ih-H<=160) ? ih : H; }
+function fitCanvas(W,H){ renderer.setSize(W, H, false); try{ renderer.domElement.style.height = H+"px"; }catch(e){} }
 /* (v272) 태블릿 배율 — 짧은 변이 600px 이상이면 태블릿. 세로는 휴대폰 화면(약 560×760)이 꽉 차게, 가로는 두 칸 화면(높이 약 600)이 꽉 차게 */
 function layoutTab(){
   const W=scrW(), H=scrH(), tab=Math.min(W,H)>=600, land=W>H;
@@ -4707,7 +4730,7 @@ function boot(){
   renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:true, powerPreference:"high-performance"});
   Quality.load();
   renderer.setPixelRatio(Math.min(devicePixelRatio, Quality.pixelRatio()));
-  renderer.setSize(scrW(), scrH(), false);           // 캔버스 겉 크기는 CSS(100%)가 정한다 → 돌려도 오른쪽이 검게 남지 않음
+  fitCanvas(scrW(), gameH());           // 캔버스 겉 크기는 CSS(100%)가 정한다 → 돌려도 오른쪽이 검게 남지 않음
   if(THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
   if(THREE.ACESFilmicToneMapping){
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -4760,6 +4783,10 @@ function boot(){
   setupBloom();
   clock = new THREE.Clock();
   renderer.setAnimationLoop(loop);
+  /* (v289) QA: 오래 뒤에 있다 돌아오면 그래픽이 끊겨(webglcontextlost) 검은 화면이 될 수 있다 → 판을 멈추고 '다시 시작'을 띄운다 */
+  try{ const cv=renderer.domElement;
+    cv.addEventListener("webglcontextlost", e=>{ e.preventDefault(); showErr("그래픽이 잠깐 끊겼어요 (webglcontextlost)"); }, false);
+    cv.addEventListener("webglcontextrestored", ()=>{ if(!G.running) location.reload(); }, false); }catch(e){}
 }
 
 /* 반응형: 세로/가로에 맞춰 FOV·카메라 거리·생성거리를 다시 계산 */
@@ -4777,7 +4804,7 @@ function setupBloom(){
   }catch(e){ composer=null; }
 }
 function applyView(){
-  const a = scrW()/Math.max(1,scrH());
+  const a = scrW()/Math.max(1,gameH());
   VIEW.portrait = a < 1;
   camera.aspect = a;
   camera.fov = VIEW.portrait ? 86 : (a < 1.5 ? 72 : 62);
@@ -4795,15 +4822,19 @@ function applyView(){
 let _rsT=[], _rsLast="";
 function resizeSoon(){ _rsT.forEach(clearTimeout); _rsT=[0,120,350,800,1600].map(ms=>setTimeout(()=>{
   try{ if(window.scrollX||window.scrollY) window.scrollTo(0,0); document.querySelectorAll(".screen.on").forEach(e=>{ if(e.scrollLeft) e.scrollLeft=0; }); }catch(e){}   // 돌린 뒤 화면이 옆으로 밀려 있는 것 바로잡기
-  const k=scrW()+"x"+scrH(); if(k===_rsLast) return; _rsLast=k; onResize(); }, ms)); }
+  const k=scrW()+"x"+gameH(); if(k===_rsLast) return; _rsLast=k; onResize(); }, ms)); }
 function onResize(){
-  const W=scrW(), H=scrH(); _rsLast=W+"x"+H;
-  renderer.setSize(W, H, false);
+  const W=scrW(), H=gameH(); _rsLast=W+"x"+H;
+  fitCanvas(W, H);
   if(composer) composer.setSize(W, H);
   // 가로↔세로가 바뀌어 문 개수가 달라지면 현재 문제를 새로 배치한다
   const want = G.gentle
     ? Math.min((GENTLE[G.diff]||GENTLE.normal).lanes, (H>W)?PORTRAIT_MAX_LANES:99)
     : lanesFor(G.diff);
+  if(G.running && want !== G.lanes && (G.falling || G.dead)){   // (v289) QA: 떨어지는 중에 화면을 돌리면 하트가 안 줄었다 → 떨어짐이 끝난 뒤에 다시 배치
+    if(!onResize._wait) onResize._wait=setTimeout(()=>{ onResize._wait=0; onResize(); }, 500);
+    applyView(); return;
+  }
   if(G.running && want !== G.lanes){
     G.lanes = want;
     applyLaneMetrics();
@@ -8650,12 +8681,12 @@ function onDead(){
       verdict("-"+rule().minusTrap+"초", "다시 달려요", COL.coral, "rgba(255,122,102,.2)");
     }
     updateHUD();
-    setTimeout(()=>{ if(G.timeLeft<=0) gameOver(); else respawn(); }, 260);
+    playLater(()=>{ if(G.timeLeft<=0) gameOver(); else respawn(); }, 260);
     return;
   }
   G.dead = true; G.lives--;
   updateHUD();
-  setTimeout(()=>{ if(G.lives<=0) gameOver(); else respawn(); }, 420);
+  playLater(()=>{ if(G.lives<=0) gameOver(); else respawn(); }, 420);
 }
 function respawn(){
   const fade=document.getElementById("fade");
@@ -8681,6 +8712,7 @@ function typingNow(e){
   const t=(e && e.target) || document.activeElement;
   if(!t) return false;
   const tg=(t.tagName||"").toUpperCase();
+  if(tg==="INPUT" && /^(range|checkbox|radio|button|submit)$/i.test(t.type||"")) return false;   // (v289) QA: 소리 막대에 초점이 있으면 방향키가 볼륨을 바꿨다
   return tg==="INPUT" || tg==="TEXTAREA" || tg==="SELECT" || !!t.isContentEditable;
 }
 addEventListener("keydown",e=>{
@@ -8691,6 +8723,10 @@ addEventListener("keydown",e=>{
   if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Space"].indexOf(e.code)>=0) e.preventDefault();
 });
 addEventListener("keyup",e=>{ keys[e.code]=false; });
+/* (v289) QA: 방향키를 누른 채 창을 바꾸면 keyup 이 안 와서 돌아와도 혼자 미끄러졌다 · 앱 전환 뒤 조이스틱이 먹통 → 창을 떠나면 입력을 모두 놓는다 */
+function releaseInput(){ try{ for(const k in keys) keys[k]=false; }catch(e){} try{ if(typeof stickEnd==="function") stickEnd(); }catch(e){} }
+addEventListener("blur", releaseInput);
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden) releaseInput(); });
 
 /* ---- 가상 조이스틱: 화면 아래쪽 아무 곳이나 누르면 그 자리에 생긴다 ---- */
 const stickEl=()=>document.getElementById("stick");
@@ -9181,7 +9217,19 @@ function updateFx(dt){
 /* =====================================================================
    루프
 ===================================================================== */
-function loop(){
+/* (v289) 한 프레임에서 오류가 나도 루프가 멈추지 않게 — 오류 창만 한 번 띄운다 */
+/* (v289) QA: 일시정지 중에도 완주·넘어짐 타이머가 돌아 결과 화면이 일시정지 화면과 겹쳤다 → 멈춘 시간은 빼고 센다 */
+function playLater(fn, ms){ let left=ms, last=performance.now();
+  const tick=()=>{ const now=performance.now(); if(!G.paused) left-=now-last; last=now; if(left<=0) fn(); else setTimeout(tick, Math.min(100, Math.max(16,left))); };
+  setTimeout(tick, Math.min(100, ms)); }
+/* (v289) QA: 안드로이드 뒤로 버튼을 누르면 일시정지 없이 게임이 닫혔다 → 달리는 동안 기록 한 칸을 넣어 두고, 뒤로 가면 일시정지 */
+(function(){ try{
+  let armed=false; const arm=()=>{ if(armed) return; try{ history.pushState({hyeng:1}, ""); armed=true; }catch(e){} };
+  setInterval(()=>{ if(G.running && !document.hidden) arm(); }, 800);
+  addEventListener("popstate", ()=>{ armed=false; if(G.running){ if(!G.paused && !G.overFade && !G.finishing) togglePause(); arm(); } });
+}catch(e){} })();
+function loop(){ try{ loopBody(); }catch(e){ showErr(e && e.message); } }
+function loopBody(){
   let dt=Math.min(clock.getDelta(),.05);
   G.rawDt=dt;                                       // 보스 변신 연출은 멎은 시간 속에서도 제 속도로
   if(G.hitStop>0){ G.hitStop-=dt; dt*=0.08; }      // 충돌 순간 시간이 멎는다
@@ -9444,7 +9492,8 @@ const Voice = {
   /* 영어 목소리 고르기 — en-US → en-GB → 다른 영어 (안드로이드는 en_US 처럼 밑줄) · 없으면 null (기기 기본 + lang en-US) */
   pickVoice(vs){ vs=vs||[]; const en=vs.filter(v=>/^en[-_]/i.test(v.lang||""));
     return en.find(v=>/^en[-_]US/i.test(v.lang) && v.localService) || en.find(v=>/^en[-_]US/i.test(v.lang)) || en.find(v=>/^en[-_]GB/i.test(v.lang)) || en[0] || null; },
-  canListen(){ return this.supported() && !this.broken; },
+  canListen(){ return this.supported() && !this.broken && !this.noVoice; },
+  noVoice:false,   // (v289) QA: 목소리가 0개인 기기에서도 듣기 문제가 나왔다 → 켠 뒤 4초가 지나도 목소리가 하나도 없으면 듣기 문제를 뺀다
   /* (v220) 소리 내기 — 학원 태블릿에서 듣기가 안 나던 것:
      ① 끊고(cancel) 바로 말하면 안드로이드 크롬이 그 말을 버린다 → 말하는 중이면 끊고 80ms 뒤에
      ② 크롬이 가끔 멈춤 상태로 남는다 → resume()
@@ -9486,11 +9535,12 @@ const Voice = {
     if(!this.supported()){ this.on=false; return; }
     const pick=()=>{
       const vs=speechSynthesis.getVoices()||[];
-      this.voice = this.pickVoice(vs) || vs[0] || null;
-      this.ready = vs.length>0;
+      this.voice = this.pickVoice(vs);              // (v289) 영어 목소리가 없으면 첫 목소리(대개 한국어)로 읽지 않고 기기 기본 + lang en-US 에 맡긴다
+      this.ready = vs.length>0; if(this.ready) this.noVoice=false;
     };
     pick();
     speechSynthesis.onvoiceschanged = pick;
+    setTimeout(()=>{ try{ if(!(speechSynthesis.getVoices()||[]).length) this.noVoice=true; }catch(e){} }, 4000);
   },
   /* 시작 버튼을 누를 때 무음으로 한 번 호출해 엔진을 깨운다 */
   warm(){
@@ -9500,7 +9550,7 @@ const Voice = {
       u.volume=0; u.rate=2;
       speechSynthesis.speak(u);
       if(!this.ready){ const vs=speechSynthesis.getVoices()||[];
-        this.voice = this.pickVoice(vs) || vs[0] || null;
+        this.voice = this.pickVoice(vs);
         this.ready = vs.length>0; }
     }catch(e){}
   },
@@ -9682,7 +9732,9 @@ function drawSummary(){
     const emo = ic ? ic.textContent
               : id==="selRule" ? ((RULES[v]||{}).icon || "")          // 게임 방식은 규칙 아이콘
               : (TILE_EMOJI[v] || "");                                // 난이도
-    return {i:emo, b:el.querySelector("b").textContent}; };
+    let b=el.querySelector("b").textContent;
+    if(emo && b.indexOf(emo)===0) b=b.slice(emo.length).trim();      // (v289) QA: '🗺️ 🗺️ Adventure' — 이름에 이미 붙은 아이콘은 뺀다
+    return {i:emo, b}; };
   const S=WORD_SETS[G.set]||WORD_SETS.elem, ps = G.tag ? {i:"📎", b:G.tag}
      : G.rule==="daily" ? {i:S.emo, b:S.nm+(G.lesson?" "+G.lesson+"과":"")} : {i:S.icon, b:S.label};
   const parts=[pick("selRule"),pick("selDiff"),pick("selMode"),ps].filter(Boolean);
@@ -9768,6 +9820,12 @@ function applyQualityChoice(v){
   if(renderer) renderer.setPixelRatio(Math.min(devicePixelRatio, Quality.pixelRatio()));
   Weather.kind=null; Weather.build(zone().prop);
   Props.kind=null;   Props.build(propKey());
+  // (v289) QA: '가볍게'로 바꿔도 빛 번짐·그림자가 새로고침 전까지 그대로였다 → 바로 끈다 (켜는 쪽 그림자는 처음부터 켜져 있던 기기만 바로 켜짐)
+  try{
+    if(Quality.bloom()){ if(!composer) setupBloom(); if(composer) composer.setSize(scrW(), gameH()); }
+    else { composer=null; bloomPass=null; }
+    if(keyLight) keyLight.castShadow = !!(HQ && renderer && renderer.shadowMap.enabled);
+  }catch(e){}
   ["selQual","setQual"].forEach(id=>{
     const row=$(id); if(!row || !row.querySelectorAll) return;
     row.querySelectorAll(".tile").forEach(t=>t.classList.toggle("sel", t.dataset.v===v));
@@ -10876,7 +10934,7 @@ function finishRun(ch){
   try{ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>SFX.tone(f,.32,"triangle",.06), i*150)); }catch(e){}
   for(let i=0;i<14;i++) setTimeout(()=>{ if(!G.finishing) return;               // 하늘에서 별이 쏟아진다
     try{ burst(P.x+(Math.random()-.5)*CFG.LANE_W*G.lanes, 4+Math.random()*5, P.z-12-Math.random()*24, 0xffe28a, 10); }catch(e){} }, i*140);
-  setTimeout(()=>{ if(!G.finishing) return; G.finishing=false; G.skipOutro=true; gameOver(); G.skipOutro=false; }, 2800);
+  playLater(()=>{ if(!G.finishing) return; G.finishing=false; G.skipOutro=true; gameOver(); G.skipOutro=false; }, 2800);
 }
 /* 처음 화면으로 — 끝난 판의 지대(성·회랑…)가 메뉴 배경에 남아 있다가 시작하면 초원으로 바뀌던 문제. 메뉴는 늘 첫 지대로 */
 function titleZone(){
@@ -11106,7 +11164,7 @@ const VS = {
   /* ── 떨어짐 → 제자리 부활 / 탈락 (onDead 에서) ── */
   dead(){
     if(G.dead) return; G.dead=true; G.lives--; const i=this.cur; this.hud();
-    setTimeout(()=>{ if(!G.versus || !G.running || G._vsDone || !this.pl[i]) return; this.use(i,()=>{ if(G.lives<=0) this.out(i); else this.respawn(i); }); }, 420);
+    playLater(()=>{ if(!G.versus || !G.running || G._vsDone || !this.pl[i]) return; this.use(i,()=>{ if(G.lives<=0) this.out(i); else this.respawn(i); }); }, 420);
   },
   respawn(i){
     P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
@@ -11199,6 +11257,12 @@ $("vsHome").addEventListener("click",()=>{ SFX.click(); VS.clear(); Voice.stop()
   const touch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
   let fine=false; try{ fine=matchMedia("(any-pointer:fine)").matches && matchMedia("(any-hover:hover)").matches; }catch(e){}
   if(!touch || fine) b.style.display="block";               // (v234) 터치 화면 노트북(마우스·키보드 있음)에서도 보이게
+  if(touch && !fine){                                        // (v289) QA: 터치 기기에서 ?vs 로 들어오면 움직일 수 없는 2인용이 그대로 시작됐다 → 안내하고 START 를 막는다
+    const go=$("vsGo"), note=document.createElement("p");
+    note.className="note"; note.style.cssText="text-align:center;color:#ffd37a;margin:8px 0 0";
+    note.textContent="⌨️ 2인용은 키보드가 있는 컴퓨터에서 할 수 있어요";
+    if(go){ go.disabled=true; go.style.opacity=".45"; go.parentNode.insertBefore(note, go); }
+  }
   b.addEventListener("click",()=>{ SFX.click(); VS.setup(); });
   try{ if(new URLSearchParams(location.search).has("vs")) setTimeout(()=>VS.setup(), 400); }catch(e){}
 })();
@@ -11372,7 +11436,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v288";
+const GAME_VER = "v289";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11733,9 +11797,10 @@ const Study = (function(){
   function touch(set,n){ const s=load(); s.last=s.last||{}; s.last[set]=n; s.set=set; save(); }
   /* 오답 보기 — 같은 과에서, 모자라면 같은 반에서. 뜻이 같은 단어는 빼서 정답이 둘이 되지 않게 */
   function decoys(w, pool, n, field, avoid){
-    const used={}; used[w.en]=1; const kos={}, k1=koKey; kos[w.ko]=1; kos[k1(w.ko)]=1; const out=[];
-    const add=x=>{ if(!x || used[x.en] || kos[x.ko] || kos[k1(x.ko)] || (x.sw && !w.sw) || homo(w.en, x.en) || (avoid && avoid(x))) return;   // (v248) 소리가 같은 단어(see·sea)는 보기에 같이 안 나옴 if(field==="en" && x.en.indexOf(" ")>=0 !== w.en.indexOf(" ")>=0 && pool.length>8) return;
-      used[x.en]=1; kos[x.ko]=1; kos[k1(x.ko)]=1; out.push(x); };
+    const used={}; used[w.en]=1; const kos={}, k1=koKey; kos[w.ko]=1; kos[k1(w.ko)]=1; koParts(w.ko).forEach(p=>kos[p]=1); const out=[];   // (v289) 뜻 조각이 하나라도 겹치면 보기에서 뺀다
+    const add=x=>{ if(!x || used[x.en] || kos[x.ko] || kos[k1(x.ko)] || koParts(x.ko).some(p=>kos[p]) || (x.sw && !w.sw) || homo(w.en, x.en) || (avoid && avoid(x))) return;   // (v248) 소리가 같은 단어(see·sea)는 보기에 같이 안 나옴
+      if(field==="en" && (x.en.indexOf(" ")>=0) !== (w.en.indexOf(" ")>=0) && pool.length>8) return;   // (v289) QA: 주석 안에 있어 안 돌던 줄 — 'post office' 처럼 여러 낱말 보기가 정답 힌트가 됐다
+      used[x.en]=1; kos[x.ko]=1; kos[k1(x.ko)]=1; koParts(x.ko).forEach(p=>kos[p]=1); out.push(x); };
     shuffle(pool).forEach(x=>{ if(out.length<n) add(x); });
     if(out.length<n) shuffle(WORD_BANK.filter(x=>x.level===w.level)).slice(0,60).forEach(x=>{ if(out.length<n) add(x); });
     return out;
@@ -11760,7 +11825,8 @@ const Study = (function(){
   const canPic = w => !!w.emoji && ((w.level||0)<=1 || kidCtx) && EMO.length>8;   // (v248) 유치원 탭은 레벨 2 단어(rat·van…)도 그림 문제
   const bexOf = w => { const b=w && BEX[w.en]; return (b && b.x) || []; };
   function sentOf(w){
-    const re=new RegExp("\\b("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")\\b","i"), E=EASY[w.en];
+    /* (v289) QA: thirty-five · Let's · hide-and-seek 처럼 하이픈·아포스트로피에 붙은 자리도 빈칸이 됐다 → 그런 자리는 건너뛴다 */
+    const re=new RegExp("(^|[^A-Za-z'\\-])("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")(?![A-Za-z\\-]|'[A-Za-z])","i"), E=EASY[w.en];
     let D=null; try{ D=DexData.of(w.en); }catch(e){}
     let dx = D && D[3] ? D[3].filter(x=>x && x[0] && re.test(x[0])) : [];
     /* (v273) G5-6·중등 — 교재 예문이 있으면 3번 중 2번은 교재 예문 */
@@ -11769,8 +11835,8 @@ const Study = (function(){
     /* (v246) 쉬운 예문(data/easy.json)은 유치원·Grade 1-2 에서만 먼저 — 그 위 학년은 사전 예문 (사전 예문이 없는 표현은 쉬운 예문) */
     let ex = (E && E[0] && re.test(E[0]) && (easyCtx || !dx.length)) ? [E] : dx;
     if(!ex.length) return null;
-    const x=ex[Math.floor(Math.random()*ex.length)], m=x[0].match(re);
-    return {pre:x[0].slice(0,m.index), post:x[0].slice(m.index+m[0].length), ko:x[1]||"", cap:/^[A-Z]/.test(m[0])}; }
+    const x=ex[Math.floor(Math.random()*ex.length)], m=x[0].match(re), at=m.index+m[1].length;
+    return {pre:x[0].slice(0,at), post:x[0].slice(at+m[2].length), ko:x[1]||"", cap:/^[A-Z]/.test(m[2])}; }
   /* (v270) 과거형 빈칸 — G5-6·중등(사용자: 초5-6부터는 예문에 과거형도). 도감 예문에 과거형(crept · sprinkled)이 있으면 그 모양 그대로 빈칸,
      보기는 같은 Stage 동사들의 과거형. 동사 모양은 도감 '변하는 모양'(crawls · crawled · crawled · crawling)에서 */
   function pastOf(en){ let D=null; try{ D=DexData.of(en); }catch(e){} if(!D || !/동사/.test(D[1]||"")) return null;
@@ -11800,7 +11866,7 @@ const Study = (function(){
     return L.map(x=>{ const m=x[0].match(re); return {pre:x[0].slice(0,m.index), post:x[0].slice(m.index+m[0].length), ko:x[1]||"", cap:/^[A-Z]/.test(m[0])}; }); }
   /* (v259) 대화 단문 — 단어가 든 줄에 빈칸 */
   function talkOf(w){ const L=TALK[w.en]; if(!L || !L.length) return null;
-    const re=new RegExp("(^|[^A-Za-z\\-])("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")(?![A-Za-z\\-])","i");
+    const re=new RegExp("(^|[^A-Za-z'\\-])("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")(?![A-Za-z\\-]|'[A-Za-z])","i");   // (v289) won't 안의 won 같은 자리는 빈칸으로 안 씀
     const x=L[Math.floor(Math.random()*L.length)], ia=re.test(x[0]) ? 0 : re.test(x[1]) ? 1 : -1; if(ia<0) return null;
     const line=x[ia], m=line.match(re), at=m.index+m[1].length;
     return {lines:[x[0],x[1]], k:ia, pre:line.slice(0,at), post:line.slice(at+m[2].length), ko:x[2]||"", sit:x[3]||""}; }   // (v278) sit = 상황 (노션 v6 대화 표)
@@ -11939,6 +12005,7 @@ const Study = (function(){
     if(t==="past"){ if(canPast(w)){ const b=PAST[w.en]; let r=regPast(b);   // 틀린 규칙 과거형(goed) — 진짜 단어가 되면(see→seed) 다른 과거형으로
         if(byEn[r]){ const o=shuffle(Object.keys(PAST).filter(e=>e!==w.en && byEn[e] && !byEn[e].sw)); r=o[0]||b+"ed"; }
         return {t, w, base:b, opts:shuffle([w.en, r, b])}; } t="k2e"; }   // (v249)
+    if(t==="find" && !Voice.canListen()) t="k2e";   // (v289) QA: 소리가 안 나는 기기에서 '들리는 단어 누르기'가 찍기가 됐다
     if(t==="find"){ const st=sentOf(w); if(st){ const full=st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post, lw=w.en.toLowerCase();   // (v246) 문장에서 들리는 단어 누르기
         const toks=full.split(/\s+/).filter(Boolean).map(x=>({t:x, ok:x.replace(/[^A-Za-z'-]/g,"").toLowerCase()===lw}));
         if(toks.some(x=>x.ok) && toks.length>=3) return {t, w, st, toks}; }
@@ -12114,7 +12181,7 @@ const Study = (function(){
     if(t==="sent") return !!sentOf(w) && !w.alt;
     if(t==="sentp") return !!sentPastOf(w);
     if(t==="past") return canPast(w);
-    if(t==="listen") return canHear();
+    if(t==="listen" || t==="lmean" || t==="find") return canHear();
     if(t==="tense" || t==="prep") return !!gramQ(t, w);   // (v276)
     if(t==="talk") return !w.alt && !!talkOf(w);
     return true; }
@@ -12230,6 +12297,7 @@ const Study = (function(){
         if(ds.length<2) continue;
         return {t:"rel", w, so:1, ans, opts:shuffle([ans].concat(ds)), x:{kd, ako}}; }
       return null; }
+    if(t==="lmean" && !Voice.canListen()) t="stk";  // (v289) 소리 없으면 '듣고 뜻 고르기' 대신 글로 읽고 고르기
     if(t==="stk" || t==="lmean"){ const own=shuffle(exAll(w).filter(x=>t!=="lmean" || x[0].split(/\s+/).length<=7)); if(!own.length) return null;
       const s=own[0], others=[];
       shuffle(pool.filter(o=>o.en!==w.en)).forEach(o=>{ if(others.length>=(t==="lmean"?2:3)) return; const e=exAll(o).filter(x=>x[1]!==s[1] && others.indexOf(x[1])<0); if(e.length) others.push(e[Math.floor(Math.random()*e.length)][1]); });
@@ -14039,7 +14107,9 @@ const Admin = (function(){
   function sha(t){ try{ return crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)).then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")); }
     catch(e){ return Promise.resolve(""); } }
   const ss=(k,v)=>{ try{ if(v===undefined) return sessionStorage.getItem(k); if(v===null) sessionStorage.removeItem(k); else sessionStorage.setItem(k,v); }catch(e){ return null; } };
-  let ok = ss(SK)==="1", tk = ss(TK)||"", tab = ss(TB)||"home";
+  /* (v289) QA: 한 번 열면 앱을 닫을 때까지 비밀번호 없이 다시 들어갔다(선생님이 아이 기기에서 열면 위험) → 마지막으로 쓴 뒤 10분이 지나면 다시 묻는다 */
+  const ADM_TTL=10*60*1000, fresh=()=>{ const t=+(ss(SK)||0); return t>0 && Date.now()-t<ADM_TTL; };
+  let ok = fresh(), tk = ok ? (ss(TK)||"") : "", tab = ss(TB)||"home";
   let srv = null;            // 서버 상태 {v, notices, key:"ok"|"nokey"|"badkey"|null, at}
   const TABS=[["home","📊","이 기기"],["notice","📢","공지"],["send","📮","보내기"],["fix","🛠","고치기"],["move","💾","옮기기"]];
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
@@ -14238,7 +14308,7 @@ const Admin = (function(){
   let ntDays=7, whoK="nick";
   function act(a, el){
     if(a==="pin"){ const v=($("adPin").value||"").trim();
-      sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H){ ok=true; ss(SK,"1"); sha("hyeng-teacher:"+v).then(t=>{ tk=t; ss(TK,t); draw(); check(true); }); }
+      sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H){ ok=true; ss(SK,String(Date.now())); sha("hyeng-teacher:"+v).then(t=>{ tk=t; ss(TK,t); draw(); check(true); }); }
         else { msg(h?"비밀번호가 달라요":"이 브라우저에서는 확인할 수 없어요 (https 주소로 열어 주세요)"); $("adPin").value=""; } }); return; }
     if(!ok) return;
     if(a==="tab"){ tab=el.dataset.t; ss(TB,tab); try{ SFX.click(); }catch(e){} draw(); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(tab==="notice"||tab==="send") check(); return; }
@@ -14297,7 +14367,8 @@ const Admin = (function(){
   function flash(el, t){ const o=el.textContent; el.textContent=t; setTimeout(()=>{ el.textContent=o; }, 1400); }
   /* 메뉴·상점 숫자 다시 그리기 */
   function refresh(){ try{ Unlock.paint(); }catch(e){} try{ if(typeof CharPick!=="undefined") CharPick.draw(); }catch(e){} }
-  function open(){ draw(); $("shAdmin").classList.add("on"); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(ok) check(); }
+  function open(){ if(ok && !fresh()){ ok=false; tk=""; ss(SK,null); ss(TK,null); } else if(ok) ss(SK,String(Date.now()));
+    draw(); $("shAdmin").classList.add("on"); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(ok) check(); }
   function close(){ $("shAdmin").classList.remove("on"); }
   ["adBody","adTabs"].forEach(id=>$(id).addEventListener("click", e=>{ const b=e.target.closest("[data-ad]"); if(b && !b.disabled) act(b.dataset.ad, b); }));
   $("btnAdminX").addEventListener("click", ()=>{ try{ SFX.click(); }catch(e){} close(); });
@@ -14423,7 +14494,8 @@ const ShopUI = {
     $("shopHit").innerHTML=HITS.filter(o=>!o.limited || Wallet.owns(o.id)).map(o=>this.gcard(o,"hit")).join("");
     $("shopPet").innerHTML=PETS.filter(o=>!o.limited || Wallet.owns(o.id)).map(o=>this.gcard(o,"pet")).join("");
     $("shopTitle").innerHTML=TITLES.filter(o=>!o.limited || Wallet.owns(o.id)).map(o=>this.gcard(o,"title")).join("");
-    $("shopMsg").textContent="정답 10개(Normal 기준)마다 보석 1개 · 지금 "+Wallet.pts()+"/"+GEM.PER+"점";
+    { const per=GEM.PT.normal||2, left=Math.max(1, Math.ceil((GEM.PER-Wallet.pts())/per));   // (v289) QA: '정답 10개마다 · 지금 0/20점' 이 헷갈렸다
+      $("shopMsg").textContent="달리기에서 정답 "+Math.round(GEM.PER/per)+"개마다 보석 1개 (Normal) · 다음 보석까지 정답 "+left+"개"; }
   },
   act(a, id, slot){
     if(a.charAt(0)==="g"){                                                    // 달리기·정답·동료·칭호 (한정판 포함)
@@ -14869,9 +14941,11 @@ const Online = {
   KEY: "HYENG",              // 학원 코드 — 시트 코드의 KEY 와 같아야 한다
   on(){ return !!this.URL && typeof fetch==="function"; },
   dev(){
-    let d="nodev";
-    try{ d=localStorage.getItem("hyeng_dev");
-      if(!d){ d=Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem("hyeng_dev",d); } }catch(e){}
+    if(this._dev) return this._dev;                  // (v289) QA: 저장이 막힌 기기에서 부를 때마다 새 기기 코드를 만들었다 → 한 번 만든 것은 기억
+    let d=null;
+    try{ d=localStorage.getItem("hyeng_dev"); }catch(e){}
+    if(!d){ d=Math.random().toString(36).slice(2,10)+Date.now().toString(36); try{ localStorage.setItem("hyeng_dev",d); }catch(e){} }
+    this._dev=d;
     return d;
   },
   submit(rec){
@@ -15091,27 +15165,29 @@ if(fsCan){
   if(tip) tip.textContent = "📱 공유 → 홈 화면에 추가하면 전체화면으로 실행됩니다";
 }
 
-addEventListener("error",e=>{
-  const el=$("err");
-  el.innerHTML = "오류가 발생했습니다.<br><span style='color:#ff7a66'>"+(e.message||"")+"</span><br>새로고침해 주세요.";
-  el.style.display="grid";
-});
-
-/* 예기치 못한 오류를 화면에 알려 준다 — 조용히 멈추는 것을 막는다 */
-let __shownErr=false;
-addEventListener("error", e=>{
-  if(__shownErr) return; __shownErr=true;
-  const box=$("err");
-  if(box){
-    box.style.display="grid";
-    box.innerHTML='<div style="max-width:88vw;text-align:center;font-size:13px;line-height:1.6">'
-      +'<b style="font-size:16px">문제가 생겼습니다</b><br>'
-      +'<span style="opacity:.85;word-break:break-all">'+((e&&e.message)||"알 수 없는 오류")+'</span><br>'
-      +'<span style="opacity:.6;font-size:11px">새로고침하면 다시 시작됩니다</span></div>';
-  }
-});
+/* (v289) 오류 창 하나로 — QA: 버튼 없는 영어 오류창이 화면을 덮고 뒤에서는 게임이 계속 달렸다.
+   이제 게임을 멈추고, 아이가 읽을 말과 버튼 두 개(다시 시작 · 계속하기)를 보여 준다. 자세한 오류는 작게. */
+let __errShown=false;
+function showErr(msg){
+  try{ console.error("[HY ENG]", msg); }catch(e){}
+  if(__errShown) return; __errShown=true;
+  try{ if(G.running && !G.paused && !G.overFade) togglePause(); }catch(e){}
+  const box=$("err"); if(!box) return;
+  box.innerHTML='<div class="errIn"><div class="errEmo">🛠️</div><b>앗, 잠깐 문제가 생겼어요</b>'
+    +'<p>다시 시작하면 대부분 괜찮아져요.</p>'
+    +'<div class="errBtns"><button type="button" id="errReload">🔄 다시 시작</button><button type="button" id="errClose" class="ghost">계속하기</button></div>'
+    +'<small>'+String(msg||"알 수 없는 오류").replace(/[<>&]/g,"").slice(0,160)+'</small></div>';
+  box.style.display="grid";
+  const r=$("errReload"), c=$("errClose");
+  if(r) r.onclick=function(){ location.reload(); };
+  if(c) c.onclick=function(){ box.style.display="none"; __errShown=false; };
+}
+addEventListener("error", function(e){ if(e && e.target && e.target!==window) return; showErr(e && e.message); });
+addEventListener("unhandledrejection", function(e){ try{ console.warn("[HY ENG] promise", e && e.reason); }catch(_){} });   // 소리 재생 거절 같은 것은 창을 띄우지 않는다
 
 Voice.init();
+/* (v289) QA: 보석·도감·공부 기록이 기기(localStorage)에만 있고 '지우지 마세요' 요청이 없었다 → 브라우저에 오래 보관을 부탁한다 (아이폰 사파리 7일 정리 대비) */
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p=>{ if(!p) return navigator.storage.persist(); }).catch(()=>{}); }catch(e){}
 refreshWrongCount();
 refreshResume();
 window.__start = function(){
@@ -15145,8 +15221,9 @@ if("serviceWorker" in navigator){
   let pendingReload = false;
   const safeNow = function(){
     try{
+      if(G.running || G.paused) return false;            // (v289) QA: 달리는 중·일시정지 중에 화면을 내리면 바로 새로고침돼 판이 사라졌다 → 숨겨져 있어도 판 중이면 미룬다
+      if($("scStudy").classList.contains("on") && $("stPath").style.display==="none") return false;   // 공부 문제 푸는 중
       if(document.hidden) return true;
-      if(G.running || G.paused) return false;
       if(document.querySelector(".sheet.on")) return false;
       const sp=$("stPop"); if(sp && sp.classList.contains("on")) return false;
       if($("scStart").classList.contains("on")) return true;

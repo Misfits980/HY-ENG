@@ -11,7 +11,8 @@ async def route(r):
     url=r.request.url
     if url.startswith(ORIGIN):
         p=url[len(ORIGIN):].split("?")[0] or "index.html"; f=os.path.join(SITE,p)
-        if p=="three.min.js" and not os.path.isfile(f): f=os.path.join(HERE,"fake_three.js")   # 테스트용 가짜 3D 엔진 (그림 없이 게임 로직만)
+        if p=="three.min.js" and not os.environ.get("HY_REAL3D"): f=os.path.join(HERE,"fake_three.js")   # 테스트용 가짜 3D 엔진 (그림 없이 게임 로직만) — (v289) 저장소에 진짜 three.min.js 가 생겨도 기본은 가짜 (HY_REAL3D=1 이면 진짜)
+        if p.startswith("lib/") and not os.environ.get("HY_REAL3D"): return await r.fulfill(status=404, body="nf")   # 가짜 엔진에는 빛 번짐 스크립트를 안 붙인다
         if os.path.isfile(f): return await r.fulfill(path=f, content_type="image/webp" if f.endswith(".webp") else (mimetypes.guess_type(f)[0] or "text/html"))
         return await r.fulfill(status=404, body="nf")
     await r.abort()                                           # 바깥 주소(CDN·구글 시트)는 막는다 → 콘솔의 'Failed to load' 는 정상

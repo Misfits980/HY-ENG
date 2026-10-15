@@ -14,7 +14,7 @@ async def main():
         br = await p.chromium.launch(); errs = []
         pg = await br.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
         pg.on("pageerror", lambda e: errs.append(str(e)))
-        await pg.add_init_script("try{ sessionStorage.setItem('hyeng_admin_ok','1'); }catch(e){}")
+        await pg.add_init_script("try{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); }catch(e){}")
         await boot(pg); await pg.wait_for_timeout(400)
         # 관리 화면에서 G1-2 도감 모으기 (보상 없이)
         await pg.evaluate("()=>{ Admin._tab('fix'); Admin.open(); }"); await pg.wait_for_timeout(400)

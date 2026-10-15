@@ -64,7 +64,7 @@ async def main():
         await pg.evaluate("()=>Admin.open()"); await pg.wait_for_timeout(300)
         await pg.screenshot(path=OUT + "ad_0_pin.png")
         # 비밀번호를 맞힌 것처럼 (열쇠 = testkey)
-        await pg.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok','1'); sessionStorage.setItem('hyeng_admin_tk','testkey'); Admin.close(); }")
+        await pg.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); Admin.close(); }")
         await pg.reload(); await pg.wait_for_timeout(1500)
         await pg.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }"); await pg.wait_for_timeout(500)
         for t in ["home", "notice", "send", "fix", "move"]:
