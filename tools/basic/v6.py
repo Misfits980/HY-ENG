@@ -214,7 +214,7 @@ def check(path, level, K):
             for t in words(d[k]):
                 tl = t.lower()
                 if len(tl) < 2 or any(tl in w.split("-") for w in tw): continue
-                if tl in FUNC or tl in tw or any(b in K or b in tw for b in base_forms(t)) or t in NAMES or t in CAPOK: continue
+                if tl in FUNC or tl in tw or any(b in K or b in tw for b in base_forms(t)) or t in NAMES or t in CAPOK or t.split("'")[0] in NAMES: continue
                 unk.setdefault(tl, []).append(d["영어"])
     if level == "L4":
         nog = [u for u in unk if u not in G and not any(b in G for b in base_forms(u))]
