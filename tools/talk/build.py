@@ -1,6 +1,6 @@
 import json, os
 out={}; v6w=set()
-for g in ['v6','g12','g34','g56']:   # (v278) v6 = 노션 v6 대화(상황 칸) — 먼저 넣어 단어마다 앞자리
+for g in ['v6','g56b','g12','g34','g56']:   # (v288) g56b = 고학년 새 대화(상황 칸) · (v278) v6 = 노션 v6 대화(상황 칸) — 먼저 넣어 단어마다 앞자리
     f=os.path.join(os.path.dirname(os.path.abspath(__file__)), g+'.txt')
     if not os.path.exists(f): continue
     for ln in open(f,encoding='utf8'):
