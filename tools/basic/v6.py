@@ -128,7 +128,7 @@ def check(path, level, K):
             if p == "—" or m == "—": continue
             items = [x.strip() for x in re.split(r"[,，]", m) if x.strip()]
             if len(items) > 2: warn.append(tag + f"{mk} 뜻이 {len(items)}개 (2개까지)")
-            dv = [x for x in items if re.search(r"다$", x)]
+            dv = [x for x in items if re.search(r"다$", x) and not re.search(r"바다$", x)]   # (v285) 바다·큰 바다는 명사
             if p == "동사" and len(dv) < len(items): bad.append(tag + f"{mk} '{m}' — 동사인데 '~다'가 아닌 뜻이 섞임 (품사 섞임?)")
             if p == "명사" and dv: bad.append(tag + f"{mk} '{m}' — 명사인데 '~다' 뜻이 섞임 (품사 섞임?)")
             if any(len(x) > 10 for x in items): warn.append(tag + f"{mk} 뜻이 김")
