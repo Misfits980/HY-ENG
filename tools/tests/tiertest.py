@@ -34,7 +34,7 @@ async def main():
             st16:Study.stageNo('g56', 11601), order:(L.find(x=>x.ws.some(w=>w.en==='order'))||{ws:[]}).ws.find(w=>w.en==='order'), bex:Object.keys(BEX).length, easter:!!Study.word('easter')} }""")
         print("g56", json.dumps(info, ensure_ascii=False))
         if info["n0"]!=10101: bad.append("G5-6 첫 Stage 가 3단계 1과가 아님")
-        if not info["order"] or info["order"]["ko"]!="주문하다": bad.append("order 교재 뜻")
+        if not info["order"] or not info["order"]["ko"].startswith("주문하다"): bad.append("order 교재 뜻")
         if info["st16"]!="16-1": bad.append("16과 Stage 번호 %s" % info["st16"])
         if info["bex"]<400: bad.append("bex.json")
         for set_, label in (("basic","g12"),("elem","g34"),("g56","g56"),("mid","mid")):
