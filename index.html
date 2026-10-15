@@ -1878,6 +1878,8 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .rdMas.pic{display:block;width:120px;height:132px;margin:12px auto 4px;font-size:0;background-image:url(assets/chars/char-cheer.webp);background-repeat:no-repeat;background-size:900% 100%}
 .rdMas.pic.por{background-image:url(assets/chars/char-portraits.webp);border-radius:50%;width:110px;height:110px}
 .rdBreak.perfect .rdT{color:#ffe08a;text-shadow:0 0 18px rgba(255,214,110,.6)}
+.stGo.soft{background:rgba(255,255,255,.08);color:#e9e2ff;box-shadow:none;border:1px solid rgba(255,255,255,.22);margin-top:10px}
+.stGo small{font-size:12px;opacity:.8;margin-left:4px}
 .stRetry{display:block;width:100%;appearance:none;border:2px solid rgba(255,211,122,.55);border-radius:16px;padding:12px;margin:10px 0 0;font:900 16px var(--font);cursor:pointer;
   background:rgba(255,211,122,.12);color:#ffe2a0}
 .rdSt{display:flex;justify-content:center;gap:14px;margin-top:10px;font-size:12px;color:#a99ed0;font-weight:800} .rdSt b{color:#ffd37a;font-size:15px}
@@ -11326,7 +11328,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v274";
+const GAME_VER = "v275";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12463,22 +12465,22 @@ const StudyUI = {
       h='<div class="stKind">🖼️ 그림에 맞는 단어는?</div><div class="stPrompt"><div class="stPic big">'+w.emoji+'</div></div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
     } else if(q.t==="talk"){                                            // (v259) 💬 대화 단문 (빈칸 1개)
-      const T=q.tk, ln=k=> k===T.k ? this.esc(T.pre)+'<u>＿＿＿</u>'+this.esc(T.post) : this.esc(T.lines[k]);
+      const T=q.tk, ln=k=> k===T.k ? this.esc(T.pre)+'<u>&nbsp;</u>'+this.esc(T.post) : this.esc(T.lines[k]);
       h='<div class="stKind">💬 빈칸에 들어갈 단어는?</div><div class="stPrompt sent">'+(q.opic && w.emoji?'<div class="stPic">'+w.emoji+'</div>':'')
         +'<div class="stTalk"><p><b>A</b><span>'+ln(0)+'</span></p><p><b>B</b><span>'+ln(1)+'</span></p></div></div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
     } else if(q.t==="sent2"){                                           // (v257) 시험 C — 두 문장에 같은 단어
-      h='<div class="stKind">📝 두 빈칸에 똑같이 들어갈 단어는?</div><div class="stPrompt sent">'+q.sts.map(st=>'<div class="stSent s2">'+this.esc(st.pre)+'<u>＿＿＿</u>'+this.esc(st.post)+'</div>').join("")+'</div>'
+      h='<div class="stKind">📝 두 빈칸에 똑같이 들어갈 단어는?</div><div class="stPrompt sent">'+q.sts.map(st=>'<div class="stSent s2">'+this.esc(st.pre)+'<u>&nbsp;</u>'+this.esc(st.post)+'</div>').join("")+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
     } else if(q.t==="sent"){
       const full=q.st.pre+(q.st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+q.st.post;
       h='<div class="stKind">'+(q.col?'🧩 자주 같이 쓰는 말 — 빈칸은?':q.aud?'👂 문장을 듣고 빈칸을 채워요':'📝 빈칸에 들어갈 단어는?')+'</div><div class="stPrompt sent">'+(q.opic && w.emoji?'<div class="stPic">'+w.emoji+'</div>':'')
-        +(q.aud?'<div class="stAudRow"><button class="stSay" data-say="'+this.esc(full)+'">🔊</button><button class="stSlow" data-slow="'+this.esc(full)+'">🐢 천천히</button></div>':'')+'<div class="stSent'+(q.col?' col':'')+'">'+this.esc(q.st.pre)+'<u>＿＿＿</u>'+this.esc(q.st.post)+'</div>'
+        +(q.aud?'<div class="stAudRow"><button class="stSay" data-say="'+this.esc(full)+'">🔊</button><button class="stSlow" data-slow="'+this.esc(full)+'">🐢 천천히</button></div>':'')+'<div class="stSent'+(q.col?' col':'')+'">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'
         +(q.st.ko && !q.noKo?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o.en)+'</button>').join("")+'</div>';
       if(q.aud) setTimeout(()=>{ if(this.qs[this.i]===q) this.say(full); }, 300);
     } else if(q.t==="sentp"){                                           // (v270) 과거형 빈칸
-      h='<div class="stKind">📝 빈칸에 알맞은 모양은? <small class="stPastTag">⏪ 지난 일</small></div><div class="stPrompt sent"><div class="stSent">'+this.esc(q.st.pre)+'<u>＿＿＿</u>'+this.esc(q.st.post)+'</div>'
+      h='<div class="stKind">📝 빈칸에 알맞은 모양은? <small class="stPastTag">⏪ 지난 일</small></div><div class="stPrompt sent"><div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'
         +(q.st.ko && !q.noKo?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o)+'</button>').join("")+'</div>';
     } else if(q.t==="past"){                                            // (v249) 과거형 짝
@@ -12532,7 +12534,7 @@ const StudyUI = {
     } else if(q.t==="form" || q.t==="conf"){                            // (v273) 💜 규칙 빈칸 (goes · boxes · took · taller) · 헷갈리는 짝 (quite · quiet)
       h='<div class="stKind">'+(q.t==="form"?'📏 빈칸에 알맞은 모양은?':'🤔 헷갈리는 짝 — 빈칸에 맞는 것은?')+'</div><div class="stPrompt sent">'
         +(q.t==="form"?'<div class="stFormB">기본 모양 <b>'+this.esc(w.en)+'</b> <span>'+this.esc(w.ko)+'</span></div>':'')
-        +'<div class="stSent">'+this.esc(q.st.pre)+'<u>＿＿＿</u>'+this.esc(q.st.post)+'</div>'+(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
+        +'<div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'+(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o)+'</button>').join("")+'</div>';
     } else if(q.t==="sfs"){                                             // (v273) 💜 G1-2 첫소리가 같은 단어
       h='<div class="stKind">👂 첫소리가 같은 단어는?</div><div class="stPrompt">'+pic+'<div class="stEn">'+this.wd(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div></div>'
@@ -12900,8 +12902,10 @@ const StudyUI = {
       +(wc?'<div class="stWc">🚩 '+(x.pn?'Stage 완성':'World 클리어')+' 보너스 💎 +'+wc+'</div>':'')
       +(chest?this.chestHtml(chest):'')
       +(miss.length?'<div class="stMiss"><small>다시 볼 단어</small>'+miss.map(en=>{ const w=(x.ws||[]).find(y=>y.en===en)||WORD_BANK.find(y=>y.en===en)||{en,ko:""}; return '<button data-say="'+this.esc(en)+'">🔊 '+this.esc(en)+' <i>'+this.esc(w.ko)+'</i></button>'; }).join("")+'</div>':'')
-      +(miss.length && !this.test && this._lastMiss.length ? '<button class="stRetry" data-retry="1">🔁 틀린 단어만 다시 ('+this._lastMiss.length+'단어 · 1분)</button>' : '')
-      +'<button class="stGo" id="stBack">스테이지로 돌아가기</button>'
+      /* (v275) '틀린 단어만 다시' → '다음 스테이지로 가기' (사용자: 틀리면 그 자리에서 바로 한 번 더 하니까 v272) */
+      +(()=>{ if(this.test) return ''; const L=Study.lessons(set), k=L.findIndex(y=>y.n===x.n), nx=k>=0 ? L[k+1] : null;
+          return nx ? '<button class="stGo" data-next="'+(k+1)+'">▶ 다음 스테이지로 가기 <small>Stage '+Study.stageNo(set,nx.n)+(nx.fin?' 🚩':'')+'</small></button>' : ''; })()
+      +'<button class="stGo soft" id="stBack">스테이지로 돌아가기</button>'
       +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl(x)+'</button>' : '');
     if(pass) try{ confetti(); }catch(e){}
     this.log(pass, acc);
@@ -12959,6 +12963,7 @@ const _stClick=e=>{
   if(t.closest("#stCheck")){ if(Date.now()<(StudyUI._guard||0)) return; StudyUI.check(); return; }   // (v234) 저절로 넘어간 바로 뒤의 손가락은 무시
   if(t.closest("[data-nosnd]")){ SFX.click(); const q=StudyUI.qs[StudyUI.i]; if(q) q.t="e2k"; StudyUI.show(); return; }
   if(t.closest("#stBack")){ SFX.click(); StudyUI.path(); return; }
+  const nxb=t.closest("[data-next]"); if(nxb){ SFX.select(); const k=+nxb.dataset.next, L=Study.lessons(StudyUI.set); if(L[k]){ Study.touch(StudyUI.set, L[k].n); StudyUI.start(k,false); } else StudyUI.path(); return; }   // (v275)
   if(t.closest("#stRun")){ SFX.select(); StudyUI.run(Study.lessons(StudyUI.set).findIndex(x=>x===StudyUI.les)); return; }
   if(t.closest("#stLesson") || t.closest("#stDone")) StudyUI.click(e);
 };

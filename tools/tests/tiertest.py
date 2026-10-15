@@ -93,6 +93,12 @@ async def main():
         print("resume", cur, cur2, ok)
         if not ok or cur[:2]!=cur2[:2] or cur2[2]!=3: bad.append(f"이어 하기 {cur} {cur2}")
         await play(pg)
+        # (v275) 결과 화면 '다음 스테이지로 가기' · 빈칸은 밑줄 하나
+        nx=await pg.evaluate("""()=>{ const b=document.querySelector('#stDoneIn [data-next]'), r=!!document.querySelector('#stDoneIn [data-retry]'); if(!b) return {b:null, r};
+            const t=b.textContent; b.click(); return {b:t, r, n:StudyUI.les.n, want:Study.lessons('elem')[1].n, blank:document.getElementById('stQ').innerHTML.indexOf('＿')} }""")
+        print("next", nx)
+        if not nx["b"] or nx["r"] or nx.get("n")!=nx.get("want") or nx.get("blank",-1)>=0: bad.append(f"다음 스테이지 {nx}")
+        await pg.evaluate("()=>document.getElementById('stQuit').click()")
         # 예전 ★3 옮기기
         await pg.evaluate("""()=>{ const s=Study.load(); const L=Study.lessons('elem').filter(x=>!x.fin); s.lv['elem-'+L[3].n]=3; delete s.tv; s.dp={}; Study.save(); }""")
         await pg.reload(); await pg.wait_for_timeout(1500)
