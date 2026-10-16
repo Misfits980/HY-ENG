@@ -2159,6 +2159,15 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
   #scSetup .tsec[data-step="3"] .itemBox{margin-bottom:10px}
   #scSetup .bkShelf{grid-template-columns:repeat(5,minmax(0,1fr))}
 }
+
+/* (v297) 길게 누르면 글자 선택·돋보기·'복사하기/찾아보기/번역' 메뉴가 뜨고 화면이 밀리던 것 (구형 iPad Air — -webkit- 접두 필요) */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+img{-webkit-user-drag:none}
+#c{touch-action:none}
+/* (v297) 태블릿에서 공부 화면 아래 버튼('복습 시작 ▶' 등)이 안 보이던 것 — 확대(zoom) 안의 position:fixed 를 구형 사파리가 화면 밖에 놓음 → 내용 바로 아래에 붙여 둔다 */
+body.tabP #scStudy .stFoot, body.tabL #scStudy .stFoot{position:sticky;bottom:0;margin:16px -16px 0}
+body.tabP #scStudy.vLesson .stWrap, body.tabL #scStudy.vLesson .stWrap{padding-bottom:16px}
 </style>
 </head>
 <body>
@@ -4256,22 +4265,22 @@ const READING = {
    월드 = {k: 저장 번호(n = k×10 + 순서, 바꾸지 않음), nm, emo, hl, st:[[소리 가족, 단어…]…] 또는 mix:단어, o: v242 예전 저장 열쇠} · 화면 순서는 배열 순서 */
 const PH_WORLDS = {
   abc:[
-    {"k":1,"nm":"b · c · d","emo":"🐻","hl":"c1","st":[["b","bag|bed|bus|bee|ball|bear|bird|book|boy"],["c (크)","cat|cup|cake|car|cow|cap|corn|coat|cook"],["d","dog|duck|doll|desk|door|drum|deer|dish|dad"]]},
-    {"k":2,"nm":"f · g · h","emo":"🐟","hl":"c1","st":[["f","fan|fish|fox|five|feet|fire|fork|farm|foot"],["g","gum|goat|game|gate|gift|girl|goose|guitar|garden"],["h","hat|hen|hand|horse|house|hill|hair|home|head"]]},
-    {"k":3,"nm":"j · k · l","emo":"🦁","hl":"c1","st":[["j","jam|jet|jump|juice|jog|jeans|jar|jacket|jungle"],["k","kid|king|kite|key|kitten|koala|kick|kangaroo|kiss"],["l","lion|leg|lamp|lip|log|leaf|lake|lemon|lunch"]]},
-    {"k":4,"nm":"m · n · p","emo":"🐵","hl":"c1","st":[["m","map|man|mug|moon|milk|monkey|mom|mouse|mask"],["n","net|nut|nose|nine|nest|nail|nurse|noodle|night"],["p","pig|pen|pan|pot|pup|pink|pie|pear|panda"]]},
-    {"k":5,"nm":"qu · r · s","emo":"🐍","hl":"c1","st":[["qu (쿠)","queen|quiz|quick|quiet|quilt|quit|quack|question"],["r","rat|red|ring|rock|rug|rain|rice|rose|robot"],["s","sun|sock|six|sand|seal|soap|sea|sad|sofa"]]},
-    {"k":6,"nm":"t · v · w","emo":"🐢","hl":"c1","st":[["t","top|ten|tent|tiger|toy|tooth|taxi|tea|table"],["v","van|vet|vest|vase|violin|video|volcano|vegetable"],["w","web|wet|window|wolf|watch|wig|worm|wing|wave"]]},
-    {"k":7,"nm":"x · y · z","emo":"🦓","hl":"c1x","st":[["x (끝소리 ks)","box|fox|six|ox|mix|fix|wax|relax"],["y","yes|yellow|yak|yarn|yogurt|yo-yo|yard|young|year"],["z","zoo|zebra|zero|zip|zigzag|zone"]]}
+    {"k":1,"nm":"b · c · d","emo":"🐻","hl":"c1","st":[["b","bag|bed|bus|bat|bug|bun"],["c (크)","cat|cup|cap|can|cut"],["d","dog|dad|dig|dot|duck"]]},
+    {"k":2,"nm":"f · g · h","emo":"🐟","hl":"c1","st":[["f","fan|fox|fig|fin|fun|fat"],["g","gum|gas|gift|golf"],["h","hat|hen|hot|hop|hug|hut|ham"]]},
+    {"k":3,"nm":"j · k · l","emo":"🦁","hl":"c1","st":[["j","jam|jet|jog|jug|jump"],["k","kid|kit|kiss|kick|king"],["l","lip|leg|log|lid|lamp"]]},
+    {"k":4,"nm":"m · n · p","emo":"🐵","hl":"c1","st":[["m","map|man|mug|mop|mat|mom"],["n","net|nut|nap|nod|nest"],["p","pig|pen|pan|pot|pup|pin|pet"]]},
+    {"k":5,"nm":"qu · r · s","emo":"🐍","hl":"c1","st":[["qu (쿠)","quiz|quit|quilt|quack"],["r","rat|red|rug|run|rock"],["s","sun|sit|six|sad|sand|sock"]]},
+    {"k":6,"nm":"t · v · w","emo":"🐢","hl":"c1","st":[["t","top|ten|tap|tag|tent"],["v","van|vet|vest"],["w","web|wet|wig|win|wind"]]},
+    {"k":7,"nm":"x · y · z","emo":"🦓","hl":"c1x","st":[["x (끝소리 ks)","box|fox|six|ox|mix|fix|wax"],["y","yes|yak|yell"],["z","zip|zigzag|zoo"]]}
   ],
   short:[
-    {"k":7,"nm":"첫소리 a · e · i · o · u","emo":"🍎","hl":"v1","st":[["a","apple|ant|alligator|ambulance|astronaut|animal|ankle|add"],["e","egg|elephant|elbow|elf|end|exit|elevator|engine"],["i","igloo|insect|ink|inch|itch|iguana|in|ill"],["o","octopus|ox|otter|olive|ostrich|on|off"],["u","umbrella|up|under|uncle|upset|us|ugly"]]},
-    {"k":1,"nm":"짧은 a","emo":"🐱","hl":"a","o":"short-1","st":[["-at","cat|hat|bat|mat|rat|fat|sat|flat"],["-an","man|fan|pan|can|van|ran|plan|candy"],["-ap · -ag · -am","map|cap|nap|tap|bag|tag|jam|ham"],["받침 두 개","hand|sand|lamp|camp|flag|clap|crab|fast|land"]]},
+    {"k":7,"nm":"첫소리 a · e · i · o · u","emo":"🍎","hl":"v1","st":[["a","apple|ant|add"],["e","egg|end|elf"],["i","in|it|ink|ill"],["o","ox|on|off"],["u","up|us|umbrella"]]},
+    {"k":1,"nm":"짧은 a","emo":"🐱","hl":"a","o":"short-1","st":[["-at","cat|hat|bat|mat|rat|fat|sat"],["-an","man|fan|pan|can|van|ran"],["-ap · -ag · -am","map|cap|nap|tap|bag|tag|jam|ham"],["받침 두 개","hand|sand|lamp|camp|flag|clap|crab"]]},
     {"k":2,"nm":"짧은 e","emo":"🥚","hl":"e","o":"short-2","st":[["-en · -ed","pen|hen|ten|men|bed|red|sled|fed"],["-et · -eg","net|wet|pet|vet|jet|leg|egg|set|get"],["-ell · -est","bell|shell|well|smell|vest|nest|best|test"],["받침 두 개","desk|neck|belt|help|dress|tent|melt|step|left"]]},
     {"k":3,"nm":"짧은 i","emo":"🐷","hl":"i","o":"short-3","st":[["-ig · -id","pig|big|dig|wig|kid|lid|hid|fig"],["-it · -ip · -in","sit|hit|kit|lip|ship|zip|pin|win|fin"],["-ix · -ilk · -im","six|fix|mix|milk|silk|swim|him|slim"],["-ing · -ish","ring|king|wing|sing|swing|thing|fish|dish|wish"]]},
-    {"k":4,"nm":"짧은 o","emo":"🐶","hl":"o","o":"short-4","st":[["-og · -ob","dog|log|frog|jog|fog|hog|job|lobster"],["-ox · -ot","fox|box|ox|hot|pot|dot|lot|spot"],["-op","top|hop|mop|stop|shop|drop|pop|chop"],["-ock · -ond","sock|rock|lock|clock|block|pocket|rocket|pond"]]},
-    {"k":5,"nm":"짧은 u","emo":"☀️","hl":"u","o":"short-5","st":[["-un · -us","sun|run|fun|bun|bus|plus|sunny|bunny"],["-ug · -ut","bug|hug|mug|rug|jug|cut|hut|nut|shut"],["-up · -um · -ump","cup|pup|up|gum|drum|plum|jump|pump"],["-uck · -unch","duck|truck|luck|stuck|bucket|lunch|punch|bunch"]]},
-    {"k":6,"nm":"섞어서","emo":"🎲","hl":"","o":"short-6","mix":"cat|map|hand|flag|bed|pen|ten|desk|pig|six|fish|milk|dog|box|frog|sock|sun|cup|duck|drum|apple|egg|octopus|umbrella"}
+    {"k":4,"nm":"짧은 o","emo":"🐶","hl":"o","o":"short-4","st":[["-og · -ob","dog|log|frog|jog|fog|hog|job"],["-ox · -ot","fox|box|ox|hot|pot|dot|lot|spot"],["-op","top|hop|mop|stop|shop|drop|pop|chop"],["-ock · -ond","sock|rock|lock|clock|block|pond"]]},
+    {"k":5,"nm":"짧은 u","emo":"☀️","hl":"u","o":"short-5","st":[["-un · -us","sun|run|fun|bun|bus|plus"],["-ug · -ut","bug|hug|mug|rug|jug|cut|hut|nut|shut"],["-up · -um · -ump","cup|pup|up|gum|drum|plum|jump|pump"],["-uck · -unch","duck|truck|luck|stuck|lunch|punch|bunch"]]},
+    {"k":6,"nm":"섞어서","emo":"🎲","hl":"","o":"short-6","mix":"cat|map|hand|flag|bed|pen|ten|desk|pig|six|fish|milk|dog|box|frog|sock|sun|cup|duck|drum|apple|egg|umbrella"}
   ],
   long:[
     {"k":1,"nm":"a_e","emo":"🎂","hl":"ae","o":"long-1","st":[["-ake","cake|lake|bake|snake|rake|shake|make|wake"],["-ame · -ace","name|game|same|frame|face|race|space|place"],["-ate · -ave","plate|gate|skate|late|cave|wave|save|brave"],["-ape · -ane · -ale · -ase","grape|shape|tape|plane|crane|whale|vase|case"]]},
@@ -5029,7 +5038,7 @@ function gameH(){ const H=scrH(), ih=Math.round(innerHeight||0);
       if(Math.abs(w-scrW())<=2 && s>h && s-h<=140) h=s; } }catch(e){}
   return h; }
 /* 메뉴 화면·캔버스·html 높이를 같은 값으로 (CSS --appH) — 위 gameH 와 같은 높이 */
-function applyAppH(){ try{ const H=scrH(), h=gameH(), r=document.documentElement; if(h>H) r.style.setProperty("--appH", h+"px"); else r.style.removeProperty("--appH"); }catch(e){} }
+function applyAppH(){ try{ const H=scrH(), h=gameH(), r=document.documentElement; if(h>H && navigator.standalone===true) r.style.setProperty("--appH", h+"px"); else r.style.removeProperty("--appH"); }catch(e){} }
 function fitCanvas(W,H){ renderer.setSize(W, H, false); try{ renderer.domElement.style.height = H+"px"; }catch(e){} applyAppH(); }
 /* (v272) 태블릿 배율 — 짧은 변이 600px 이상이면 태블릿. 세로는 휴대폰 화면(약 560×760)이 꽉 차게, 가로는 두 칸 화면(높이 약 600)이 꽉 차게 */
 function layoutTab(){
@@ -9064,15 +9073,18 @@ addEventListener("touchstart",e=>{
   if(!G.running||G.paused||stick.id!==null) return;
   const t=e.changedTouches[0], el=e.target;
   if(el && el.closest && (el.closest(".screen")||el.closest("#pauseBtn"))) return;
+  if(el && el.closest && el.closest("button,a,input,textarea,select,[data-tap]")) return;
   if(t.clientY < innerHeight*0.3) return;                 // 상단 문제판 영역은 제외
+  try{ if(e.cancelable) e.preventDefault(); }catch(er){}      // (v297) 구형 iPad: 길게 누르면 글자 선택 메뉴·돋보기·화면 밀림
   stick.id=t.identifier; stick.ox=t.clientX; stick.oy=t.clientY;
   const b=document.getElementById("stickBase");
   b.style.left=stick.ox+"px"; b.style.top=stick.oy+"px";
   stickEl().classList.add("on");
   const h=document.getElementById("touchHint"); h.style.opacity="0";
   stickSet(0,0);
-},{passive:true});
+},{passive:false});
 addEventListener("touchmove",e=>{
+  if(G.running && !G.paused){ const el=e.target; if(!(el && el.closest && el.closest(".screen,.sheet"))) try{ if(e.cancelable) e.preventDefault(); }catch(er){} }   // (v297) 달리는 중 화면이 밀리지 않게
   if(stick.id===null) return;
   for(let i=0;i<e.touches.length;i++){
     const t=e.touches[i];
@@ -9082,7 +9094,7 @@ addEventListener("touchmove",e=>{
     if(d>STICK_R){ dx=dx/d*STICK_R; dy=dy/d*STICK_R; }
     stickSet(dx,dy);
   }
-},{passive:true});
+},{passive:false});
 ["touchend","touchcancel"].forEach(ev=>addEventListener(ev,e=>{
   if(stick.id===null) return;
   for(let i=0;i<e.changedTouches.length;i++)
@@ -11881,7 +11893,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v296";
+const GAME_VER = "v297";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
