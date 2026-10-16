@@ -2206,6 +2206,16 @@ body.tabP #scStudy.vLesson .stWrap, body.tabL #scStudy.vLesson .stWrap{padding-b
 #scSetup .trap.t3 i:nth-child(2){background:#7ed957} #scSetup .trap.t3 i:nth-child(3){background:#ffc24a} #scSetup .trap.t3 i:nth-child(4){background:#ff6b5a}
 #scSetup .mb.mbAll.art{--art:url(assets/books/book-all.webp)}
 @media (max-height:560px) and (min-width:600px){ #scSetup .modeRow .tile.mtile b{top:22px} #scSetup .modeRow .tile.mtile small{top:48px} }
+
+/* (v300) 복습 '다음에 하기' */
+.stTwo{display:flex;gap:10px;width:min(448px,100%);margin:0 auto}
+.stTwo .stCheck{flex:2;width:auto;margin:0}
+.stLater{flex:1;appearance:none;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.07);color:#e9e2ff;font:800 15px var(--font);cursor:pointer;padding:12px 8px}
+.stLater:active{transform:translateY(2px)}
+.stRvRow{display:flex;gap:8px;align-items:stretch;width:min(420px,100%);margin:6px auto 10px}
+.stRvRow .stReview{flex:1;min-width:0;width:auto;margin:0}
+body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
+.stRvLater{flex:none;appearance:none;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.06);color:#cfc4f2;font:800 12.5px var(--font);padding:0 12px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -11931,7 +11941,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v299";
+const GAME_VER = "v300";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12544,7 +12554,8 @@ const Study = (function(){
   function bookWords(set){ const b=bookOf(set); if(!b || !BOOKS[b]) return null; if(bwC[b]) return bwC[b];
     const o={}; BOOKS[b].sets.forEach(st=>{ try{ lessons(st).forEach(x=>x.ws.forEach(w=>o[w.en]=1)); }catch(e){} }); return (bwC[b]=o); }
   function warmWords(exclude, set){
-    if(set && isKid(set)) return [];                                                     // (v296) 유치원은 판 처음 '먼저 복습' 없음 (사용자: 유치부가 못 풀어요) — 오늘의 복습 버튼으로만
+    if(set && isKid(set)) return [];
+    if(load().wuSkip===today()) return [];                                               // (v300) 오늘 '다음에 하기'를 눌렀으면 판 처음 복습은 내일                                                     // (v296) 유치원은 판 처음 '먼저 복습' 없음 (사용자: 유치부가 못 풀어요) — 오늘의 복습 버튼으로만
     const s=load(), t=today(), R=s.srs||{}, ex={}, B=set ? bookWords(set) : null; (exclude||[]).forEach(w=>ex[w.en]=1);
     return Object.keys(R).filter(en=>R[en][1]<=t && byEn[en] && !ex[en] && (!B || B[en])).sort((a,b)=>(R[a][0]-R[b][0]) || (R[a][1]-R[b][1])).slice(0,WUMAX).map(en=>byEn[en]);
   }
@@ -12927,8 +12938,9 @@ const StudyUI = {
       +subRow+'<b>'+U.emo+' '+U.nm+'</b> <span>'+U.sub+'</span><em>'+fin+' / '+tot+' Stage</em>'
       +'<div class="stHead2">'+(sk?'<span class="stFire">🔥 '+sk+'일째 공부 중</span>':'<span class="stFire off">🔥 오늘 한 Stage 하면 불이 붙어요</span>')+'</div>';
     const due=Study.due(this.set).length, rvDone=Wallet.paid("rv-"+Study.today());
-    let h = due>=3 ? '<button class="stReview" data-review="1"><i>🔁</i><span><b>오늘의 복습 · '+Math.min(due,10)+'단어</b><small>'
-      +(rvDone ? '오늘 보석은 받았어요 · 더 해도 좋아요' : '잊기 전에 한 번 더 · 💎 +2')+'</small></span></button>' : '';
+    const rvLater = Study.load().rvLater===Study.today();
+    let h = (due>=3 && !rvLater) ? '<div class="stRvRow"><button class="stReview" data-review="1"><i>🔁</i><span><b>오늘의 복습 · '+Math.min(due,10)+'단어</b><small>'
+      +(rvDone ? '오늘 보석은 받았어요 · 더 해도 좋아요' : '잊기 전에 한 번 더 · 💎 +2')+'</small></span></button><button class="stRvLater" data-rvlater="1">다음에</button></div>' : '';
     const zig=[0,38,58,38,0,-38,-58,-38];
     [this.set].forEach(st=>{ const L=Study.lessons(st), c=Study.cur(st), SPL=!PH_WORLDS[st] && !!(L[0] && L[0].pn), PW=PH_WORLDS[st] || (SPL ? true : null), RD=WORD_SETS[st].reading;   // (v249) 초등 나눈 과도 같은 길
       const cl=(x,i)=>{ const v=Study.lv(st,x.n); return (i===c ? "now" : v>=3 ? "deep" : v>0 ? "done" : "open")+(v===2 && Study.dpOpen(st,x.n) ? " dpo" : ""); };   // (v273) 💜 = 심화까지 · 보라 테두리 = 심화 열림
@@ -13057,7 +13069,7 @@ const StudyUI = {
     } else if(q.t==="intro" && q.hd==="wu"){                                    // (v242) 먼저 복습 — 복습할 때가 된 단어
       h='<div class="stKind">🔁 먼저 복습</div><div class="stCard"><div class="stWuT">지난번에 배운 단어 '+q.ws.length+'개</div><div class="stWuS">잊기 전에 한 번 더 떠올려 봐요</div>'
         +'<div class="stWu">'+q.ws.map(o=>'<span>'+this.esc(o.en)+'</span>').join("")+'</div></div>';
-      f.innerHTML='<button class="stCheck go" id="stCheck">복습 시작 ▶</button>';
+      f.innerHTML='<div class="stTwo"><button class="stLater" id="stLater">다음에 하기</button><button class="stCheck go" id="stCheck">복습 시작 ▶</button></div>';
     } else if(q.t==="intro" && q.ws && q.ws.length>1){                  // (v225) 새 단어 2~3개를 한 장에
       h='<div class="stKind">✨ 새 단어 '+q.ws.length+'개</div><div class="stCards">'+q.ws.map(o=>'<div class="stMini">'+(o.emoji?'<i>'+o.emoji+'</i>':'')
         +'<span><b>'+this.wd(o.en)+'</b><small>'+this.kp(o)+'</small>'+this.alt(o)+'</span><button class="stSay" data-say="'+this.esc(o.en)+'">🔊</button></div>').join("")+'</div>';
@@ -13461,6 +13473,12 @@ const StudyUI = {
   /* (v228) 10문제마다 라운드 — 짧게 쉬어 가며 (단어 수는 그대로) */
   RND:10,
   rounds(){ return Math.max(1, Math.ceil(this.total/this.RND)); },
+  /* (v300) 먼저 복습 '다음에 하기' — 이 판의 복습 문제를 빼고 바로 새 단어로. 오늘은 판 처음 복습을 다시 묻지 않는다 (단어는 내일 다시) */
+  skipWarm(){ const s=Study.load(); s.wuSkip=Study.today(); Study.save();
+    this.qs=this.qs.filter((q,k)=>k<this.i || !(q.wu || (q.t==="intro" && q.hd==="wu")));
+    this.total=Math.max(1, this.qs.filter(q=>q.t!=="intro").length);
+    if(this.i>=this.qs.length){ this.finish(); return; }
+    this.ticks(); this.bar(); this.show(); },
   next(){ clearTimeout(this._adv); this.i++;
     const r=Math.floor(this.done/this.RND);
     if(!this.test && !this.oly && this.done<this.total && r>=1 && r>(this._rd|0) && this.rounds()>1){ this._rd=r; this.roundBreak(r); return; }
@@ -13656,6 +13674,8 @@ const _stClick=e=>{
     try{ const U=StudyUI; if(U.t0 && U._lg!==U.t0 && (U.done||0)>0) U.log(false, U.acc1(), "quit"); }catch(er){}   // (v224) 중간에 그만둬도 '했다'는 기록은 남긴다
     StudyUI.path(); return; }
   if(t.closest("[data-retry]")){ SFX.select(); StudyUI.retry(); return; }
+  if(t.closest("#stLater")){ SFX.click(); StudyUI.skipWarm(); return; }   // (v300) 먼저 복습 — 다음에 하기
+  if(t.closest("[data-rvlater]")){ SFX.click(); try{ const s=Study.load(); s.rvLater=Study.today(); Study.save(); }catch(er){} StudyUI.path(); return; }
   if(t.closest("#stCheck")){ if(Date.now()<(StudyUI._guard||0)) return; StudyUI.check(); return; }   // (v234) 저절로 넘어간 바로 뒤의 손가락은 무시
   if(t.closest("[data-nosnd]")){ SFX.click(); const q=StudyUI.qs[StudyUI.i]; if(q) q.t="e2k"; StudyUI.show(); return; }
   if(t.closest("#stBack")){ SFX.click(); StudyUI.path(); return; }
