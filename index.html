@@ -1396,6 +1396,20 @@ details{display:none}
 .lc.all b{color:#fff;text-shadow:0 2px 0 #150c28}
 .lc.all small{color:#efe8ff}
 .lc.full{background:linear-gradient(180deg,#fff6c2,#ffd23a)}
+/* (v291) 달리기 책 고르기 */
+#selSet.off{display:none}
+.bkGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:min(56vh,440px);overflow-y:auto;padding:2px 2px 6px}
+.bk{appearance:none;display:flex;align-items:center;gap:8px;text-align:left;border:2px solid #150c28;border-radius:14px;background:linear-gradient(180deg,#ffe08a,#f0aa2c);
+  padding:9px 10px;font-family:var(--font);cursor:pointer;box-shadow:0 3px 0 #150c28;min-width:0;min-height:58px}
+.bk i{font-style:normal;font-size:24px;line-height:1;flex:none}
+.bk span{min-width:0;display:block}
+.bk b{display:block;font-size:15px;font-weight:900;color:#1b1030;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk small{display:block;font-size:10.5px;font-weight:800;color:#5a3a06;line-height:1.35}
+.bk small em{font-style:normal}
+.bk.all{grid-column:1/-1;background:linear-gradient(180deg,#c9b6ff,#8a68f0)}
+.bk.all b{color:#fff;text-shadow:0 2px 0 #150c28}
+.bk.all small{color:#efe8ff}
+.bk.sel{outline:3px solid #fff;outline-offset:1px}
 .lbNote{margin:8px 4px 0;font-size:11px;font-weight:700;color:#8d82b8;text-align:center}
 /* 준비 화면의 캐릭터 줄 — 옆으로 밀어서 */
 .charLab{font-size:12px;font-weight:900;color:#ffd37a;margin:2px 0 2px 8px;text-align:left}
@@ -2198,6 +2212,12 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
             <div class="tile" data-v="wrong"><i>📕</i><b>틀린 단어</b><small id="wrongCnt">0개</small></div>
             <div class="tile" data-v="all"><i>🌈</i><b>전체</b><small></small></div>
           </div>
+        </div>
+        <!-- (v291) 달리기 — 학년을 누르면 그 학년의 책(단어 묶음)을 고른다 · 🌈 전체 = 예전 학년 방식 -->
+        <div class="lessonBox bookBox" id="bookBox">
+          <div class="lbTop"><button class="lbBack" id="bkBack">◀ 학년 다시 고르기</button><span class="lbName" id="bkName"></span></div>
+          <div class="bkGrid" id="bookChips"></div>
+          <p class="lbNote">책을 고르면 그 책 단어만 나와요 · 앞쪽 과부터 차례로 섞여 나와요</p>
         </div>
         <!-- Daily 30 — 반·과 고르기 (v210) -->
         <div class="setGrid" id="selCourse">
@@ -4168,6 +4188,15 @@ const Rank = (function(){
       try{ WStat.rec(en, ok, conf); }catch(e){}
       if(ok && o[en]>=2 && !noDex && typeof Dex!=="undefined") try{ Dex.add(en); WStat.got(en); }catch(e){}   // 두 번 연달아 맞히면 도감에
     },
+    ofList(p){                                       // (v291) 단어 목록(책)의 등급
+      if(!p || !p.length) return null;
+      const o=load(); let n=0;
+      for(let k=0;k<p.length;k++) if((o[p[k]]||0)>=2) n++;
+      const pct=n/p.length; let i=0;
+      TIERS.forEach((t,k)=>{ if(pct>=t.at) i=k; });
+      const nx=TIERS[i+1]||null;
+      return {i, tier:TIERS[i], pct, learned:n, total:p.length, next:nx, need: nx ? Math.max(0, Math.ceil(nx.at*p.length)-n) : 0};
+    },
     of(id){
       const p=pool(id); if(!p || !p.length) return null;
       const o=load(); let n=0;
@@ -4469,8 +4498,48 @@ function customTags(){
   return out.slice(0,8);
 }
 
+/* (v291) 달리기 책(단어 묶음) — 학년마다 Daily 30 의 책을 그대로 쓴다. 단어 = 그 책 모든 과(Stage)의 단어.
+   달리는 동안 앞쪽 과부터 열리고 단계가 오를수록 뒤쪽 과가 섞인다 (교재 진도처럼). 교재 이름은 화면에 쓰지 않는다. */
+const RunBook = (function(){
+  const DEF = {
+    kinder:[["kinder","그림 단어","🖼️"],["abc","단자음","🔤"],["short","단모음","🅰️"],["long","장모음","🌟"],["digr","이중자음","🔗"],["vowel2","이중모음","🎵"],["sight","사이트 워드","👀"]],
+    basic: [["basic","1단계 Voca","📗"]],
+    elem:  [["elem","2단계 Voca","📘"]],
+    g56:   [["g56v","3단계 Voca","📙"],["g56h","고학년 단어","🧭"],["rd1","리딩 1","📖"],["rd2","리딩 2","📖"],["rd3","리딩 3","📖"]],
+    mid:   [["mv1","중등 Voca","📕"],["mid","중등 단어","🏫"]] };
+  const SRC = {g56v:["g56", x=>x.n>=10000], g56h:["g56", x=>x.n<10000]};
+  const cache={};
+  function lessons(id){
+    if(cache[id]) return cache[id];
+    const src=SRC[id] ? SRC[id][0] : id, keep=SRC[id] ? SRC[id][1] : ()=>true;
+    let L=[]; try{ L=Study.lessons(src).filter(x=>!x.fin && keep(x)).map(x=>x.ws.map(w=>w.en)); }catch(e){}
+    if(!L.length){ const S=WORD_SETS[src], C=S && S.course && COURSE[S.course]; if(C) L=Object.keys(C).map(n=>String(C[n]).split("|")); }
+    return (cache[id]=L.filter(a=>a.length));
+  }
+  function words(id){ const o={}, out=[]; lessons(id).forEach(a=>a.forEach(en=>{ if(!o[en]){ o[en]=1; out.push(en); } })); return out; }
+  const byEn=en=>{ if(!RunBook._by){ RunBook._by={}; WORD_BANK.forEach(w=>{ if(!RunBook._by[w.en]) RunBook._by[w.en]=w; }); } return RunBook._by[en]; };
+  function poolAt(id, stage){
+    const L=lessons(id), n=L.length; if(!n) return [];
+    let upto=Math.max(1, Math.min(n, Math.ceil(n*(0.2+Math.max(0,(stage||1)-1)/25))));   // 단계 1 = 앞 20% 과 · 단계 21쯤 = 모든 과
+    let out=[];
+    for(;;){ const o={}; out=[]; for(let i=0;i<upto;i++) L[i].forEach(en=>{ const w=byEn(en); if(w && !o[en]){ o[en]=1; out.push(w); } });
+      if(out.length>=12 || upto>=n) break; upto++; }
+    return out;
+  }
+  const BK="hyeng_bookbest_v1";
+  function bestAll(){ try{ return JSON.parse(localStorage.getItem(BK))||{}; }catch(e){ return {}; } }
+  return {
+    of(grade){ return (DEF[grade]||[]).map(([id,nm,emo])=>({id,nm,emo})).filter(b=>lessons(b.id).length); },
+    name(id){ for(const g in DEF){ const b=DEF[g].find(x=>x[0]===id); if(b) return b[1]; } return ""; },
+    emo(id){ for(const g in DEF){ const b=DEF[g].find(x=>x[0]===id); if(b) return b[2]; } return ""; },
+    lessons, words, poolAt,
+    best(id){ const v=bestAll()[id]; return v||0; },
+    saveBest(id, score){ if(!id) return false; const o=bestAll(); if(score>(o[id]||0)){ o[id]=score; try{ localStorage.setItem(BK, JSON.stringify(o)); }catch(e){} return true; } return false; }
+  };
+})();
 function pool(){
   if(G.words && G.words.length>=4){ const p=WORD_BANK.filter(w=>G.words.indexOf(w.en)>=0); if(p.length>=4) return p; }   // (v226) Daily 30 Stage 단어로 달리기
+  if(G.book){ const bw=RunBook.poolAt(G.book, G.stage); if(bw.length>=6) return bw; }   // (v291) 책 하나로 달리기 — 앞쪽 과부터
   if(G.tag){                                        // 교재 단원 세트가 선택된 경우
     const p = WORD_BANK.filter(w=>w.tag===G.tag);
     if(p.length>=4) return p;
@@ -9695,7 +9764,7 @@ function goStep(i){
     if(daily) document.querySelectorAll("#selCourse [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v===G.set));
     else document.querySelectorAll("#selSet [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v===G.set));
     $("stepTitle").textContent = daily ? "반을 고르세요" : STEPS[ST_WORDS].title;
-    hideLessons(); refreshRankTiles(); refreshWrongCount(); refreshTagTiles(); refreshSetCounts(); }
+    hideLessons(); hideBooks(); refreshRankTiles(); refreshWrongCount(); refreshTagTiles(); refreshSetCounts(); }
   if(step===ST_READY){ drawSummary(); CharPick.open(); }
   else { const st=$("btnStart"); if(st){ st.disabled=false; st.textContent="▶ START"; } }
   Attract.focus = (step===ST_READY);                   // 준비 단계에서 캐릭터 클로즈업
@@ -9738,7 +9807,8 @@ function drawSummary(){
     if(emo && b.indexOf(emo)===0) b=b.slice(emo.length).trim();      // (v289) QA: '🗺️ 🗺️ Adventure' — 이름에 이미 붙은 아이콘은 뺀다
     return {i:emo, b}; };
   const S=WORD_SETS[G.set]||WORD_SETS.elem, ps = G.tag ? {i:"📎", b:G.tag}
-     : G.rule==="daily" ? {i:S.emo, b:S.nm+(G.lesson?" "+G.lesson+"과":"")} : {i:S.icon, b:S.label};
+     : G.rule==="daily" ? {i:S.emo, b:S.nm+(G.lesson?" "+G.lesson+"과":"")}
+     : G.book ? {i:RunBook.emo(G.book), b:S.label+" · "+RunBook.name(G.book)} : {i:S.icon, b:S.label+" · 전체"};
   const parts=[pick("selRule"),pick("selDiff"),pick("selMode"),ps].filter(Boolean);
   $("summary").innerHTML = parts.map(p=>'<div class="sumItem"><i>'+p.i+'</i>'+p.b+'</div>').join("");
 }
@@ -9766,13 +9836,34 @@ addEventListener("orientationchange", ()=>setTimeout(laneNote,150));
 laneNote();
 pickers("selMode",v=>{ G.mode=v; });
 $("btnStepNext").addEventListener("click",()=>nextStep());
-pickers("selSet", v=>{                                // 기본 모드 — 학년만 고른다
-  G.set=v; G.tag=null; G.lesson=0;
+pickers("selSet", v=>{                                // 기본 모드 — 학년을 고르면 (v291) 그 학년의 책을 고른다
+  G.set=v; G.tag=null; G.lesson=0; G.book=null;
   if(v==="kinder"){ setToggle("tglPic", true); G.picture=true; }
-  laneNote(); nextStep();
+  laneNote();
+  if(RunBook.of(v).length){ showBooks(v); return; }
+  nextStep();
 });
+function showBooks(grade){
+  const S=WORD_SETS[grade], box=$("bookBox"); if(!box || !S) return;
+  const fmt=n=>Number(n||0).toLocaleString();
+  const rk=r=>r ? '<em style="color:'+(r.tier.col)+'">'+r.tier.name+'</em> '+Math.round(r.pct*100)+'%' : "";
+  const best=id=>{ const b=RunBook.best(id); return b ? ' · 최고 '+fmt(b) : ''; };
+  $("bkName").innerHTML=S.icon+' <b>'+S.label+'</b>';
+  let h='<button class="bk all'+(!G.book?' sel':'')+'" data-b=""><i>🌈</i><span><b>전체</b><small>'+(S.label)+' 단어를 고루 섞어서 · '+fmt(setCount(grade))+'개'+(Rank.of(grade)?' · '+rk(Rank.of(grade)):'')+best(grade)+'</small></span></button>';
+  RunBook.of(grade).forEach(B=>{ const ws=RunBook.words(B.id), r=Rank.ofList(ws);
+    h+='<button class="bk'+(G.book===B.id?' sel':'')+'" data-b="'+B.id+'"><i>'+B.emo+'</i><span><b>'+B.nm+'</b><small>'+RunBook.lessons(B.id).length+' Stage · '+fmt(ws.length)+'단어'+(r?'<br>'+rk(r):'')+best(B.id)+'</small></span></button>'; });
+  $("bookChips").innerHTML=h;
+  box.classList.add("on"); $("selSet").classList.add("off");
+  $("stepTitle").textContent="어떤 책으로 달릴까요?";
+}
+function hideBooks(){ const b=$("bookBox"); if(b) b.classList.remove("on"); const g=$("selSet"); if(g) g.classList.remove("off");
+  if(step===ST_WORDS && G.rule!=="daily") $("stepTitle").textContent=STEPS[ST_WORDS].title; }
+function booksOpen(){ const b=$("bookBox"); return !!(b && b.classList.contains("on")); }
+$("bookChips").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-b]"); if(!b) return;
+  G.book=b.dataset.b||null; SFX.select(); setTimeout(()=>goStep(ST_READY),180); });
+$("bkBack").addEventListener("click",()=>{ SFX.click(); hideBooks(); });
 pickers("selCourse", v=>{                             // Daily 30 — 반을 고르면 과를 고른다
-  G.set=v; G.tag=null; G.lesson=0;
+  G.set=v; G.tag=null; G.lesson=0; G.book=null;
   if(v==="kinder"){ setToggle("tglPic", true); G.picture=true; }
   laneNote();
   const S=WORD_SETS[v];
@@ -9929,7 +10020,7 @@ function refreshTagTiles(){
     el.addEventListener("click",()=>{
       (row.querySelectorAll("[data-v]")||[]).forEach(o=>o.classList.remove("sel"));
       el.classList.add("sel"); SFX.select();
-      G.tag=t.tag; G.set="all"; laneNote(); nextStep();
+      G.tag=t.tag; G.set="all"; G.book=null; laneNote(); nextStep();
     });
     box.appendChild(el);
   });
@@ -10949,6 +11040,7 @@ function titleZone(){
 function startGame(){
   try{ localStorage.setItem("hyeng_last_kind","run"); }catch(e){}
   G.words = G._nextWords || null; G._nextWords = null;      // (v226) Daily 30 → 이 Stage 단어로 달리기 (한 판만)
+  if(G.words || G.rule==="daily" || G.tag) G.book=null;      // (v291) 책 달리기는 기본 모드에서만
   G.practice = !!G._nextPractice; G._nextPractice = false;  // (v227) 같은 Stage 카드로 두 번째부터 = 연습 (보석·도감·랭킹 없음)
   G.runStart=Date.now(); G.quit=false; G.lastCause="";
   G.brake = BRAKE.MAX*perk("brake"); G.worldScale = 1;
@@ -11312,7 +11404,7 @@ function gameOver(){
   if(Boss.root) Boss.root.visible=false;
   $("oAcc").textContent= acc+"%";
   $("oRight").textContent=G.right; $("oWrong").textContent=G.wrong; $("oCombo").textContent=G.bestCombo;
-  $("oKick").innerHTML=rule().icon+" "+rule().label+" · "+DIFF[G.diff].label+" · "+WORD_SETS[G.set].label+" "+titleTag(myTitle());
+  $("oKick").innerHTML=rule().icon+" "+rule().label+" · "+DIFF[G.diff].label+" · "+WORD_SETS[G.set].label+(G.book?" · "+RunBook.name(G.book):"")+" "+titleTag(myTitle());
   $("oTitle").textContent =
       G.rule==="daily"   ? (G.solved>=RULES.daily.count ? "Daily Run 완주!" : "여기까지")
     : G.rule==="endless" ? (G.right>=15 ? G.right+"연속 기록!" : "여기까지")
@@ -11390,7 +11482,7 @@ function gameOver(){
     if(nt.length){ const names=nt.map(id=>{ const t=titleOf(id); if(t) return t.emo+" "+t.name; const pp=Pet.of(id); return pp ? pp.emo+" "+pp.name+"(동료)" : id; }).join(", ");
       const og=$("oGems"); let pl=og.querySelector(".gPills"); if(!pl){ og.insertAdjacentHTML("beforeend",'<div class="gPills"></div>'); pl=og.querySelector(".gPills"); }
       pl.insertAdjacentHTML("beforeend", '<button class="gPill new" data-go="title">🏷️ <b>'+names+'</b> 새로! ›</button>'); } }catch(e){}
-  LastSetup.save({rule:G.rule, diff:G.diff, mode:G.mode, set:G.set, lesson:G.lesson||0, char:G.char,
+  LastSetup.save({rule:G.rule, diff:G.diff, mode:G.mode, set:G.set, lesson:G.lesson||0, book:G.book||null, char:G.char,
                   voice:Voice.on, picture:G.picture, versus:false});
 
   /* 다시 볼 단어 — 발음을 바로 들을 수 있는 카드 */
@@ -11413,7 +11505,8 @@ function gameOver(){
   $("oHint").textContent = isTouch ? "" : "R 키를 누르면 바로 다시 시작합니다";
   const noRank = (G.set==="kinder") || !!G.testRun || !!G.practice;      // 유치원 단어·시험 주소는 랭킹에 넣지 않는다
   const rank = noRank ? 0 : Ranking.save({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage,
-    acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now()});
+    acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now(), book:G.book||""});
+  try{ if(!G.testRun && !G.practice && !G.words && G.rule==="normal") RunBook.saveBest(G.book||G.set, G.score); }catch(e){}   // (v291) 책별(🌈 전체 = 학년) 내 최고 기록
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
   $("oRank").innerHTML = noRank ? '<div class="note">'+(G.testRun?'시험 모드 기록은 랭킹에 올라가지 않아요':'유치원 단어는 랭킹에 기록되지 않아요')+'</div>'
     : '<div class="glab">'+DIFF[G.diff].label+' 랭킹 · '+rankTxt+'</div>'+rankRows(G.diff);
@@ -11438,7 +11531,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v290";
+const GAME_VER = "v291";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -11457,7 +11550,7 @@ function runReport(){
     clear:G.cleared ? (G.clearCh||1) : 0,                  // 완주한 장 (0 = 완주 못 함)
     end: G.cleared ? "clear" : (G.quit ? "quit" : "dead"),
     cause: G.cleared ? "" : (G.lastCause||""),             // 마지막으로 넘어진 이유
-    zone:(zone()||{}).name||"", set:G.set+(G.lesson?"-"+G.lesson:""), secs:Math.round((Date.now()-(G.runStart||Date.now()))/1000),
+    zone:(zone()||{}).name||"", set:G.set+(G.book?"/"+G.book:"")+(G.lesson?"-"+G.lesson:""), secs:Math.round((Date.now()-(G.runStart||Date.now()))/1000),
     dex, ver:GAME_VER, miss:(G.wrongWords||[]).map(x=>x.en).slice(0,25).join(", ")
   }, w);
 }
@@ -11520,6 +11613,7 @@ $("btnGo").addEventListener("click",()=>{
 $("btnBack").addEventListener("click",()=>{
   SFX.click();
   if(step===ST_WORDS && lessonsOpen()){ hideLessons(); return; }   // 과 고르기 → 반 고르기
+  if(step===ST_WORDS && booksOpen()){ hideBooks(); return; }       // (v291) 책 고르기 → 학년 고르기
   if(step>0){ goStep(step-1); return; }             // 한 단계씩 되돌아간다
   Attract.focus=false; show("scStart");
 });
@@ -11663,7 +11757,7 @@ function refreshResume(){
   el.style.display="block";
   const r = st.rule==="daily" ? RULES.daily : RULES.normal, S=WORD_SETS[st.set];
   el.innerHTML = '<span class="mico i1"></span>이어서 하기 <small style="display:block;font-size:11px;color:#a99ed0;font-weight:700">'
-    + r.icon+' '+r.label+' · '+DIFF[st.diff].label+' · '+(S?(st.rule==="daily" ? S.emo+S.nm+(st.lesson?' '+st.lesson+'과':'') : S.icon+S.label)+' · ':'')+ch.emoji+ch.name+'</small>';
+    + r.icon+' '+r.label+' · '+DIFF[st.diff].label+' · '+(S?(st.rule==="daily" ? S.emo+S.nm+(st.lesson?' '+st.lesson+'과':'') : (st.book && RunBook.name(st.book) ? RunBook.emo(st.book)+RunBook.name(st.book) : S.icon+S.label))+' · ':'')+ch.emoji+ch.name+'</small>';
 }
 $("btnResume").addEventListener("click",()=>{
   if($("btnResume").dataset.kind==="study"){ try{ SFX.wake(); SFX.click(); }catch(e){} StudyUI.go(); return; }
@@ -11677,6 +11771,7 @@ $("btnResume").addEventListener("click",()=>{
     G.mode = st.mode || "mix";
     G.set  = WORD_SETS[st.set] ? st.set : "elem";
     G.lesson = (G.rule==="daily" && st.lesson && lessonWords(G.set, st.lesson).length) ? st.lesson : 0;
+    G.book = (G.rule!=="daily" && st.book && RunBook.lessons(st.book).length) ? st.book : null;   // (v291)
     G.char = (CHARACTERS.filter(c=>c.id===st.char)[0] && Unlock.has(st.char)) ? st.char : "hero";
     Voice.on = st.voice!==false;
     G.picture = st.picture!==false;
