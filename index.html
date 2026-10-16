@@ -1977,7 +1977,7 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
 #scSetup #selRule{gap:14px;flex:1}
 #scSetup #selRule .tile.card, body.ui-skin #scSetup #selRule .tile.card{width:100%;height:clamp(190px,calc((var(--appH,100dvh) / var(--sz) - 270px)/2),280px);
   padding:0 16px 48px;justify-content:flex-end;border-radius:22px;border:2px solid rgba(255,255,255,.12) !important;
-  background-size:cover !important;background-position:center !important}
+  background-size:auto 118% !important;background-position:center !important}
 #scSetup #selRule .tile.card:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(8,5,20,.85));pointer-events:none}
 #scSetup #selRule .tile.card > *{position:relative;z-index:1}
 #scSetup #selRule .tile.card b{font-size:29px}
@@ -1997,7 +1997,7 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
 #scSetup #selDiff{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
 #scSetup #selDiff .tile.gbtn, body.ui-skin #scSetup #selDiff .tile.gbtn{width:auto;height:clamp(112px,calc((var(--appH,100dvh) / var(--sz) - 520px)/2),150px);
   padding:0 12px 10px;justify-content:flex-end;align-items:flex-start;border-radius:18px;border:2px solid rgba(255,255,255,.1);
-  background-size:cover !important;background-position:center !important}
+  background-size:100% 100%,auto 118% !important;background-position:center !important}
 #scSetup #selDiff [data-v=easy]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(8,5,20,.85)),url(assets/ui/card-meadow.webp)}
 #scSetup #selDiff [data-v=normal]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(8,5,20,.85)),url(assets/ui/card-desert.webp)}
 #scSetup #selDiff [data-v=hard]{background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(8,5,20,.85)),url(assets/ui/card-volcano.webp)}
@@ -2064,11 +2064,16 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
 #scSetup .bdPath:before{content:"";position:absolute;left:8px;right:8px;top:50%;height:4px;margin-top:-2px;border-radius:4px;background:linear-gradient(90deg,#5fe0b0 0 var(--p),rgba(255,255,255,.14) var(--p))}
 #scSetup .bdPath i{position:relative;width:15px;height:15px;border-radius:50%;background:#2a2155;border:2px solid rgba(255,255,255,.25)}
 #scSetup .bdPath i.on{background:#5fe0b0;border-color:#c9ffe9}
-#scSetup .bdPath i.me{width:22px;height:22px;background:#5fe0b0;border:3px solid #ffd37a;box-shadow:0 0 10px rgba(255,210,110,.7)}
+#scSetup .bdPath i.me{width:30px;height:30px;background:#241a4c url(assets/chars/char-portraits.webp) 0 0/900% 100% no-repeat;border:2px solid #ffd37a;box-shadow:0 0 10px rgba(255,210,110,.7);animation:bdMe 1.4s ease-in-out infinite}
+@keyframes bdMe{50%{transform:translateY(-3px)}}
+#scSetup .bdBest{margin-top:8px;font-size:11.5px;font-weight:800;color:#ffd37a}
+#scSetup .bdHint{margin-top:6px;text-align:center;font-size:10px;font-weight:700;color:#8d82b8}
 #scSetup .bdLab{display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;color:#a89ec4;margin:0 2px}
 #scSetup .bdLab b{color:#8ff0c8}
 #scSetup .bdWs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
-#scSetup .bdWs div{border-radius:10px;padding:6px 3px;text-align:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);min-width:0}
+#scSetup .bdWs button{appearance:none;font-family:inherit;cursor:pointer;border-radius:10px;padding:6px 3px;text-align:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);min-width:0}
+#scSetup .bdWs button:active,#scSetup .bdWs button.pop{background:rgba(95,224,176,.18);border-color:rgba(95,224,176,.5)}
+#scSetup .bdWs i{display:block;font-style:normal;font-size:20px;line-height:1.1;margin-bottom:2px}
 #scSetup .bdWs b{display:block;font-size:12px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #scSetup .bdWs small{display:block;font-size:10px;color:#b8aed6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #scSetup .bookBox.on .bkGo{margin-top:auto}
@@ -10185,11 +10190,14 @@ function drawBookDet(){
     $("bkGo").textContent="전부 섞어서 ▶"; return; }
   const up=Math.min(n, Math.max(1, Math.ceil(n*0.2))), pct=Math.round(up/n*100);
   const first=[]; (L[0]||[]).concat(L[1]||[]).forEach(en=>{ if(first.length<4){ const w=WORD_BANK.find(x=>x.en===en && !x.sw); if(w) first.push(w); } });
-  const nodes=[0,1,2,3,4,5].map(k=>'<i class="'+(k===0?'me':(k/5*100<=pct?'on':''))+'"></i>').join("");
+  const ci=Math.max(0, CHARACTERS.findIndex(c=>c.id===G.char)), best=RunBook.best(id);
+  const nodes=[0,1,2,3,4,5].map(k=>k===0 ? '<i class="me" style="background-position:'+(ci*12.5)+'% 0"></i>' : '<i class="'+(k/5*100<=pct?'on':'')+'"></i>').join("");
   el.innerHTML='<div class="bdHd"><b>'+RunBook.emo(id)+' '+RunBook.name(id)+'</b>'+tier+'</div>'
     +'<div class="bdPath" style="--p:'+pct+'%">'+nodes+'</div>'
     +'<div class="bdLab"><span><b>Stage 1</b> · 1~'+up+'과</span><span>Stage 25 · 전체 '+n+'과</span></div>'
-    +'<div class="bdWs">'+first.map(w=>'<div><b>'+w.en+'</b><small>'+String(w.ko).split(",")[0]+'</small></div>').join("")+'</div>';
+    +(best?'<div class="bdBest">🏆 이 책 최고 '+fmt(best)+'점</div>':'')
+    +'<div class="bdWs">'+first.map(w=>'<button data-say="'+w.en+'">'+(w.emoji?'<i>'+w.emoji+'</i>':'')+'<b>'+w.en+'</b><small>'+String(w.ko).split(",")[0]+'</small></button>').join("")+'</div>'
+    +'<p class="bdHint">🔊 단어를 누르면 소리가 나요</p>';
   $("bkGo").textContent="이 책으로 ▶";
 }
 function hideBooks(){ const b=$("bookBox"); if(b) b.classList.remove("on"); const g=$("selSet"); if(g) g.classList.remove("off");
@@ -10199,6 +10207,7 @@ $("bookChips").addEventListener("click",e=>{ const b=e.target.closest && e.targe
   const id=b.dataset.b||null; SFX.select();
   if(G.book===id && b.classList.contains("sel")){ setTimeout(()=>goStep(ST_READY),150); return; }   // 고른 책을 한 번 더 누르면 바로 출발 준비
   G.book=id; document.querySelectorAll("#bookChips [data-b]").forEach(o=>o.classList.toggle("sel", o===b)); drawBookDet(); });
+$("bkDet").addEventListener("click",e=>{ const b=e.target.closest && e.target.closest("[data-say]"); if(!b) return; try{ Voice.say(b.dataset.say); }catch(er){} b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); });
 $("bkGo").addEventListener("click",()=>{ SFX.select(); setTimeout(()=>goStep(ST_READY),150); });
 $("bkBack").addEventListener("click",()=>{ SFX.click(); hideBooks(); });
 pickers("selCourse", v=>{                             // Daily 30 — 반을 고르면 과를 고른다
@@ -11872,7 +11881,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v294";
+const GAME_VER = "v295";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
