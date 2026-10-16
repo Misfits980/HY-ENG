@@ -39,6 +39,10 @@ async def main():
                 v=await pg.evaluate("()=>[(document.getElementById('adBtWords')||{}).value, document.querySelector('#adTabs .on').dataset.t]"); print("weakBt", v)
                 if v[1]!="raid" or "home" not in (v[0] or ""): bad.append(f"약한 단어 → 배틀 칸 {v}")
                 await pg.screenshot(path=OUT+"class_raidtab.png")
+                await pg.click("[data-ad=btGo]"); await pg.wait_for_timeout(900)   # (v308) 배틀 방 만들기 버튼이 정말 방을 여는지
+                bt=await pg.evaluate("()=>[Battle.role, Battle.room, (Battle.cfg().words||[]).length]"); print("btGo", bt)
+                if bt[0]!="host" or not bt[1] or bt[2]<3: bad.append(f"배틀 방 만들기 버튼 {bt}")
+                await pg.evaluate("()=>Battle.leave()"); await pg.wait_for_timeout(300)
                 # 옛 서버 (v2) — 처음부터
                 await pg.reload(); await pg.wait_for_timeout(1000)
                 await pg.evaluate("(R)=>{ window._srvV=2; Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:2, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:false, err:'type'} : {ok:true}); localStorage.removeItem('hyeng_admin_rep'); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }", REP)

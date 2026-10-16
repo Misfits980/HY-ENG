@@ -333,8 +333,8 @@ function test(){
 /* ── (v306) 관리 화면 「📋 우리 반」 — 시트 요약 탭(수식이 계산한 것)을 보이는 글자 그대로 보낸다 (선생님 열쇠가 있어야) ── */
 function report_(){
   const ss = SpreadsheetApp.openById(SHEET_ID);
-  const g = (name, a1)=>{ const sh = ss.getSheetByName(name); if (!sh) return [];
-    return sh.getRange(a1).getDisplayValues().filter(r=>r.some(c=>String(c).trim() !== "")); };
+  const g = (name, a1)=>{ try { const sh = ss.getSheetByName(name); if (!sh) return [];
+    return sh.getRange(a1).getDisplayValues().filter(r=>r.some(c=>String(c).trim() !== "")); } catch(err){ return []; } };   // (v308) 탭 칸이 바뀌어도 나머지는 보냄
   return {
     head:  (g("🏠 한눈에", "A2:A2")[0] || [""])[0],
     check: g("확인 필요", "A4:D40"),
@@ -344,6 +344,7 @@ function report_(){
     weekly: g("주간 리포트", "A5:M80"),
     miss:  g("틀린 단어", "A5:C40"),
     lesson: g("수업 기록", "A3:I40"),
-    prog:  g("진도표", "A3:H80")
+    prog:  g("진도표", "A3:H80"),
+    nicks: g("기기별 이름", "B5:B300").map(r=>String(r[0]).trim()).filter(n=>n && !/^PLAYER$/i.test(n))   // (v308) 보내기 받는 아이 = 게임 이름(닉네임)
   };
 }
