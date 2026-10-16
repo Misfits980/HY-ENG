@@ -49,7 +49,7 @@ const NAME_COLS = [["date","날짜"], ["dev","기기"], ["old","전 이름"], ["
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 2;
+const SERVER_V = 3;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report)
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
@@ -85,7 +85,7 @@ function doPost(e){
   if (!d || d.key !== KEY) return json_({ok:false, err:"key"});
   if (d.type === "ack") return ackAct_(d);                          // (v222) 원격 조치 처리 확인
   if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
-  if (["check","notice","noticeOff","actAdd"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
+  if (["check","notice","noticeOff","actAdd","report"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
 
@@ -270,6 +270,7 @@ function teacher_(d){
   if (!want) return json_({ok:false, err:"nokey"});
   if (String(d.tk || "") !== want) return json_({ok:false, err:"badkey"});
   if (d.type === "check") return json_({ok:true, v:SERVER_V});
+  if (d.type === "report") return json_({ok:true, v:SERVER_V, at:Date.now(), rep:report_()});   // (v306) 우리 반 — 시트 요약 탭을 보이는 그대로
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -327,4 +328,22 @@ function archiveOld(){
 function test(){
   const out = doGet({parameter:{key:KEY, diff:"hard", range:"all", n:"5"}}).getContent();
   Logger.log(out);
+}
+
+/* ── (v306) 관리 화면 「📋 우리 반」 — 시트 요약 탭(수식이 계산한 것)을 보이는 글자 그대로 보낸다 (선생님 열쇠가 있어야) ── */
+function report_(){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const g = (name, a1)=>{ const sh = ss.getSheetByName(name); if (!sh) return [];
+    return sh.getRange(a1).getDisplayValues().filter(r=>r.some(c=>String(c).trim() !== "")); };
+  return {
+    head:  (g("🏠 한눈에", "A2:A2")[0] || [""])[0],
+    check: g("확인 필요", "A4:D40"),
+    week:  g("주간 체크", "A5:R80"),
+    weekOf: (g("주간 체크", "B2:B2")[0] || [""])[0],
+    today: g("오늘의 30 요약", "A5:H80"),
+    weekly: g("주간 리포트", "A5:M80"),
+    miss:  g("틀린 단어", "A5:C40"),
+    lesson: g("수업 기록", "A3:I40"),
+    prog:  g("진도표", "A3:H80")
+  };
 }

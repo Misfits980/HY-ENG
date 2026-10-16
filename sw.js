@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v305";
+const VERSION = "hyeng-v306";
 const CORE = [
   "./",
   "./index.html",
@@ -13,6 +13,7 @@ const CORE = [
 ];
 const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림은 assets/ 아래 갈래별 폴더
   "./versus.html", "./icon-maskable-512.png",
+  "./assets/boss/hb1.webp", "./assets/boss/hb2.webp", "./assets/boss/hb3.webp", "./assets/boss/hb4.webp", "./assets/boss/hb5.webp",
   "./assets/boss/boss-gate-bars.webp", "./assets/boss/boss-knight-2.webp", "./assets/boss/boss-knight-parts.webp", "./assets/boss/boss-knight.webp",
   "./assets/boss/boss-shield-2.webp", "./assets/boss/boss-shield.webp", "./assets/boss/boss-spike.webp", "./assets/boss/boss-warden.webp",
   "./assets/chars/char-archer.webp", "./assets/chars/char-cat.webp", "./assets/chars/char-cheer.webp", "./assets/chars/char-explorer.webp",
