@@ -36,7 +36,11 @@ async def main():
         print("ally dash", ad)
         if not ad: bad.append("친구가 공격해도 안 움직임")
         # 틀리기
-        await k0.wait_for_timeout(700); await k0.evaluate(ANS, False); await k0.wait_for_timeout(60)
+        await k0.wait_for_timeout(700)
+        for t in range(40):   # 문제가 준비될 때까지 (보스 공격·쉬는 중이면 기다림)
+            if await k0.evaluate("()=>{ const R=Raid; return !!(R.q && !R.q.done && !R.atk); }"): break
+            await k0.wait_for_timeout(150)
+        await k0.evaluate(ANS, False); await k0.wait_for_timeout(60)
         if not await k0.evaluate("()=>RaidStage.me.el.classList.contains('oops')"): bad.append("틀리면 비틀 없음")
         # 보스 공격: 예고 → 못 막음
         await k0.wait_for_timeout(1600)
