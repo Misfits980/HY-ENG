@@ -15,7 +15,7 @@ async def main():
         # 보기를 고르는 첫 문제까지
         for _ in range(60):
             t = await pg.evaluate("()=>{ const q=StudyUI.qs[StudyUI.i]; return q&&!StudyUI.locked&&!StudyUI._brk ? q.t : null }")
-            if t in ("e2k", "k2e", "listen", "sent", "spell"): break
+            if t in ("e2k", "k2e", "listen", "sent"): break   # (v302) 철자는 SOLVE 가 늘 맞게 풀어서 뺌
             await pg.evaluate(SOLVE, False); await pg.wait_for_timeout(450 if t == "drag" else 20)
         a = await pg.evaluate("()=>({i:StudyUI.i, n:StudyUI.qs.length, en:StudyUI.qs[StudyUI.i].w.en, t:StudyUI.qs[StudyUI.i].t, done:StudyUI.done})")
         await pg.evaluate(SOLVE, True); await pg.wait_for_timeout(100)

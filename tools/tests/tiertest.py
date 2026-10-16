@@ -49,7 +49,8 @@ async def main():
             lv1=await pg.evaluate(f"()=>Study.lv('{set_}',{n})")
             if lv1==0: await pg.evaluate(again); ty1+=await play(pg); lv1=await pg.evaluate(f"()=>Study.lv('{set_}',{n})")   # 25단어 = 두 판
             if t1!=1 or lv1!=1: bad.append(f"{label} ★1 tier {t1} lv {lv1}")
-            if any(x in ty1 for x in ("spell","dict","sentp","past")): bad.append(f"{label} ★1 판에 철자: {sorted(set(ty1))}")
+            if any(x in ty1 for x in ("dict","sentp","past")): bad.append(f"{label} ★1 판에 받아쓰기·과거형: {sorted(set(ty1))}")
+            if not all(x in ty1 for x in ("intro-guess","intro-once","spell")): bad.append(f"{label} ★1 6단계(짐작·만져 보기·한 번 더) 없음: {sorted(set(ty1))}")   # (v302)
             if label!="g12" and "intro-know" not in ty1: bad.append(f"{label} 아는 단어 빼기 카드 없음")
             if label=="mid" and "intro-sort" not in ty1: bad.append("중등 세 칸 나누기 없음")
             # 오늘은 확인 못 함 → 연습 (별 그대로)
