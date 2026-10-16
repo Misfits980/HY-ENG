@@ -12183,7 +12183,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v308";
+const GAME_VER = "v309";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13127,17 +13127,20 @@ const Study = (function(){
   const s3Of = w => { if(pos1(w)!=="동사" || !/^[a-z]+$/.test(w.en) || /^(be|have|can|will|must|may|shall)$/.test(w.en)) return null; return sForm(w) || null; };
   const cap1 = t => t.charAt(0).toUpperCase()+t.slice(1);
   const CTX_STOP={}; "that this with from they them their there were what when where which while would could should about after before because very just then than into your have been will also some many much more most only other such these those".split(" ").forEach(x=>CTX_STOP[x]=1);
+  /* (v309) G3-4 문법 문장 — be 동사 + 형용사/명사로 어색한 말 빼기 · s3 는 목적어 없어도 되는 동사만 */
+  const G34_NOBE={}; "every each other another any some all both many much few little more most best worst last next own same such only main whole half history breakfast lunch dinner skin middle music art math science homework money water milk bread rice weather information advice furniture luggage news work".split(" ").forEach(x=>G34_NOBE[x]=1);
+  const G34_INTR={}; "run walk swim sing dance sleep cry laugh jump smile talk work study play cook read write listen sit stand wait rest arrive come go fly fall grow live move shout swim ski skate climb draw paint shop travel exercise practice pray hike ride bake fish".split(" ").forEach(x=>G34_INTR[x]=1);
   function g34Q(t, w){
     const P=posOf(w), head='<b>'+w.en+'</b> <span>'+w.ko+'</span>';
     if(t==="be"){
-      if(pos1(w)==="형용사" && /^[a-z]+$/.test(w.en)){ const S=BE_S[Math.floor(Math.random()*BE_S.length)], r=Math.random(), qn=tierNow===3 && r<0.35, ng=tierNow===3 && !qn && r<0.65;
+      if(pos1(w)==="형용사" && /^[a-z]+$/.test(w.en) && !G34_NOBE[w.en] && !/est$/.test(w.en)){ const S=BE_S[Math.floor(Math.random()*BE_S.length)], r=Math.random(), qn=tierNow===3 && r<0.35, ng=tierNow===3 && !qn && r<0.65;
         if(qn){ const sj = S[0]==="I" ? "I" : /^(He|She|It|We|They|You)$/.test(S[0]) ? S[0].toLowerCase() : S[0].replace(/^My /,"my ");
           return {t:"gram", w, so:1, ans:cap1(S[1]), opts:shuffle(["Am","Is","Are"]), st:{pre:"", post:" "+sj+" "+w.en+"?", ko:"", cap:false}, x:{kind:"be", lbl:"❓ 묻는 문장 — 맨 앞에 알맞은 be동사는?", head, why:beWhy(S[1])+" · 물을 때는 be동사가 맨 앞 ("+cap1(S[1])+" "+sj+" ~?)"}}; }
         return {t:"gram", w, so:1, ans:S[1], opts:shuffle(["am","is","are"]), st:{pre:S[0]+" ", post:(ng?" not ":" ")+w.en+".", ko:"", cap:false}, x:{kind:"be", lbl:ng?"🚫 아니라고 할 때 — 빈칸의 be동사는?":"🟡 빈칸에 알맞은 be동사는?", head, why:beWhy(S[1])+(ng?" · 아니라고 할 때는 be동사 뒤에 not":"")}}; }
-      const pl=plOf(w); if(!pl) return null; const an=(/^[aeiou]/.test(w.en) && !/^(u[nr]i|use|usu|eu|one|once)/.test(w.en)) || /^(hour|honest|honor)/.test(w.en) ? "an" : "a", many=Math.random()<0.5;   // (v308) a uniform · an hour
+      const pl=plOf(w); if(!pl || !w.emoji || G34_NOBE[w.en]) return null; const an=(/^[aeiou]/.test(w.en) && !/^(u[nr]i|use|usu|eu|one|once)/.test(w.en)) || /^(hour|honest|honor)/.test(w.en) ? "an" : "a", many=Math.random()<0.5;   // (v308) a uniform · an hour
       const S = many ? (Math.random()<0.5 ? ["They","are"] : ["These","are"]) : (Math.random()<0.5 ? ["It","is"] : ["This","is"]);
       return {t:"gram", w, so:1, ans:S[1], opts:shuffle(["am","is","are"]), st:{pre:S[0]+" ", post:" "+(many?pl:an+" "+w.en)+".", ko:"", cap:false}, x:{kind:"be", lbl:"🟡 빈칸에 알맞은 be동사는?", head, why: many ? "🟡 여럿 ("+pl+") → are" : "🟡 하나 ("+an+" "+w.en+") → is"}}; }
-    if(t==="s3"){ const s3=s3Of(w); if(!s3) return null; const b=w.en, wr0 = /ies$/.test(s3) ? b+"s" : s3===b+"es" ? b+"s" : /e$/.test(b) ? null : b+"es", wr = wr0 && !byEn[wr0] ? wr0 : null;
+    if(t==="s3"){ const s3=s3Of(w); if(!s3 || !G34_INTR[w.en]) return null;   // (v309) 목적어 없이 말이 되는 동사만 ('She brings every day' X) const b=w.en, wr0 = /ies$/.test(s3) ? b+"s" : s3===b+"es" ? b+"s" : /e$/.test(b) ? null : b+"es", wr = wr0 && !byEn[wr0] ? wr0 : null;
       const S=["He","She","Tom","My dad","Amy"][Math.floor(Math.random()*5)];
       return {t:"gram", w, so:1, ans:s3, opts:shuffle([...new Set([s3, b, wr].filter(Boolean))]), st:{pre:S+" ", post:" every day.", ko:"", cap:false}, x:{kind:"s3", lbl:"🙋 한 사람이 할 때 — 동사 모양은?", head:'I <b>'+b+'</b> every day. → '+S+' ___', why:"🙋 he · she · 한 사람 + 동사 → "+(s3===b+"es"?"s · x · ch · sh · o 로 끝나면 -es":/ies$/.test(s3)?"자음 + y 는 y → ies":"-s")+" ("+b+" → "+s3+")"}}; }
     if(t==="pl"){ const pl=plOf(w); if(!pl) return null; const b=w.en, irr=pl!==b+"s" && pl!==b+"es" && !/ies$/.test(pl), wr0 = pl===b+"s" ? (/e$/.test(b) ? null : b+"es") : b+"s", wr = wr0 && !byEn[wr0] ? wr0 : null;
@@ -13188,7 +13191,11 @@ const Study = (function(){
       const L=shuffle(exAll(w).filter(x=>reW(w.en).test(x[0]) && x[0].split(/\s+/).length>=7 && x[0].split(/\s+/).length<=16));
       for(const x of L){ const toks=x[0].split(/\s+/), wi=toks.findIndex(tk=>tk.replace(/[^A-Za-z]/g,"").toLowerCase()===w.en); if(wi<0) continue;
         const prev=(toks[wi-1]||"").toLowerCase(), vow=/^[aeiou]/.test(w.en);
-        const sub=shuffle(bookList(load().set)).find(o=>/^[a-z]{4,}$/.test(o.en) && !near[o.en] && pos1(o)===p && /^[aeiou]/.test(o.en)===vow && !simSp(o.en,w.en) && o.ko!==w.ko); if(!sub) continue;
+        /* (v309) 바꿀 단어 — 같은 품사 중 '다른 주제' 단어: 이 문장의 내용어가 그 단어 예문에 하나도 없고, 명사는 구체(그림 있음)↔추상을 바꿔서 (faith·global 처럼 말이 되는 경우 줄이기) */
+        const cw=toks.map(tk=>tk.replace(/[^A-Za-z]/g,"").toLowerCase()).filter(c=>c.length>=4 && !CTX_STOP[c] && c!==w.en);
+        const pool0=shuffle(bookList(load().set)).filter(o=>/^[a-z]{4,}$/.test(o.en) && !near[o.en] && pos1(o)===p && /^[aeiou]/.test(o.en)===vow && !simSp(o.en,w.en) && o.ko!==w.ko).slice(0,60);
+        const far=o=>{ const tx=" "+exAll(o).map(e=>e[0]).join(" ").toLowerCase()+" "; return !cw.some(c=>tx.indexOf(c)>=0); };
+        const sub = pool0.find(o=>far(o) && (p!=="명사" || !!o.emoji!==!!w.emoji)) || pool0.find(far) || pool0[0]; if(!sub) continue;
         if(/^(a|an)$/.test(prev) && /^[aeiou]/.test(sub.en)!==vow) continue;
         const cand=toks.map((tk,i)=>({i, c:tk.replace(/[^A-Za-z]/g,"")})).filter(o=>o.i!==wi && o.c.length>=4 && !CTX_STOP[o.c.toLowerCase()]); if(cand.length<2) continue;
         const marks=[wi].concat(shuffle(cand).slice(0,2).map(o=>o.i)).sort((a,b)=>a-b), t2=toks.slice();
@@ -13324,7 +13331,7 @@ const Study = (function(){
     ws.forEach((w,k)=>{ let q=null;
       if(SP.length && k%4===3){ const t=SP[sp++%SP.length]; try{ q = (t==="pastc"||t==="syn"||t==="opp") ? chkQ(t, w, set, own) : mkDeep(t, w, gr, own); }catch(e){ q=null; } }
       if(!q) q=chkQ(bagT(CHK[gr]||CHK.g34, w, gr), w, set, own) || chkQ("k2e", w, set, own);
-      q.oly=1; q.wk=1; q.sec = q.t==="ctxq" ? 20 : q.t==="gram"||q.t==="def"||q.t==="frm" ? 15 : sec; q.tg="📝 주간 시험"; out.push(q); });
+      q.oly=1; q.wk=1; q.sec = q.t==="ctxq" ? 20 : (q.t==="spell"||q.t==="dict"||q.t==="make") ? (gr==="g12" ? 20 : 16) : q.t==="gram"||q.t==="def"||q.t==="frm" ? 15 : sec;   /* (v309) 철자는 시간 더 */ q.tg="📝 주간 시험"; out.push(q); });
     return [{t:"intro", hd:"wk", w:ws[0], ws, n:out.length, fresh:Math.min(W.fresh, ws.length)}].concat(out); }
   /* (v301) 확인은 내일 — 오늘은 같은 판을 알아보기로 연습만 (별·보석 없음) */
   function buildPrac(set, les){ ctx(set); const pool=les.ws, out=[];
@@ -13366,7 +13373,7 @@ const Study = (function(){
     ws.forEach(w=>{ const t=canSpell(w) ? "spell" : "k2e"; qs.push(makeQ(t, w, pool, 1)); });
     return qs;
   }
-  return { hasHomo, ctx, gvWallet, mig:()=>{ if(!m) load(); phMig(m); spMig(m); gvMig(m); tierMig(m); },
+  return { hasHomo, ctx, gvWallet, hasFlag:set=>!!SPLIT[set], mig:()=>{ if(!m) load(); phMig(m); spMig(m); gvMig(m); tierMig(m); },
     _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
@@ -13495,7 +13502,7 @@ const StudyUI = {
     else if(T===5){ lbl='🔁 연습하기 <small>(별 없음)</small>'; cls=" soft"; need='<p>⏳ <b>★2 확인은 내일</b> 열려요 — 하루 지나도 기억나는지 보는 시험이에요. 오늘은 다른 Stage 를 배워도 좋아요</p>'; }
     else if(T===4){ lbl='✅ ★2 확인 시작'; cls=" chk"; need='<p>배운 단어를 <b>힌트 없이 한 번씩</b> · 80% 맞히면 ★2 · 💎1 · 틀려도 다시 해 볼 수 있어요</p>'; }
     else if(T===2){ lbl = v>=2 ? '🔁 ★3 다시 하기' : '✍️ ★3 써 보기'; need = v>=2 ? '<p>💜 ★4 심화는 ★3 를 처음에 <b>90%</b> 넘게 맞히면 열려요'+(b2?' (지금까지 최고 '+b2+'%)':'')+'</p>' : '<p>쓰임 카드 + 철자·빈칸 · 처음에 80% 맞히면 ★3 · <b>90%</b> 넘으면 💜 ★4 심화가 열려요</p>'; }
-    else if(T===3){ cls=" deep"; lbl = v>=3 ? '💜 심화 다시 하기' : '💜 ★4 심화 도전'; need = v>=3 ? '<p>💜 ★4 까지 다 끝냄 · 큰 별 ★5 는 🚩 마지막 시험에서</p>' : '<p>어려운 문제 · 처음에 80% 맞히면 ★4 💜 · 처음 깨면 💎 10</p>'; }
+    else if(T===3){ cls=" deep"; lbl = v>=3 ? '💜 심화 다시 하기' : '💜 ★4 심화 도전'; need = v>=3 ? '<p>💜 ★4 까지 다 끝냄'+(Study.hasFlag(this.set)?' · 큰 별 ★5 는 🚩 마지막 시험에서':' · 📝 주간 시험으로 확인해요')+'</p>' : '<p>어려운 문제 · 처음에 80% 맞히면 ★4 💜 · 처음 깨면 💎 10</p>'; }
     btn='<button class="stGo'+cls+'" data-act="go" data-i="'+i+'">'+(oly ? (v>=1?'⏱ 다시 시험 보기':'⏱ 마지막 시험 시작') : lbl)+'</button>'
       +(oly ? '<p>★5 큰 별 시험 · 문제마다 시간 제한 · 다시 안 나와요<br>50점 Stage 완성 · 80점 🌟 · 90점 🌟✨</p>' : need)+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">'+this.runLbl(x)+'</button>':'');
     const P=Study.plan(this.set, x.n)||{}, qn=P.qn||Math.max(Study.N, Math.min(x.ws.length, Study.MAXW)), fresh=!P.nw && !x.ws.some(w=>seen[w.en]);
@@ -13518,7 +13525,7 @@ const StudyUI = {
   /* (v234) 틀린 단어만 다시 — 끝난 Stage에서 바로 (별·보석·기록 없음) */
   retry(){ const ws=(this._lastMiss||[]); const qs=Study.quick(ws); if(!qs) return;
     this.qs=qs; this.rv=false; this.wk=false; this.test=false; this.oly=false; this.retryMode=true; this.tier=0; this.begin(); },
-  begin(){ try{ $("scStudy").scrollTop=0; }catch(e){} this.wst={}; this._sp={}; this.i=0; this.done=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._act=0; this._ta=this.t0; this._lg=null; this._rd=0; this._brk=false; this._rm=0; this._fw=0;
+  begin(){ try{ $("scStudy").scrollTop=0; }catch(e){} this.wst={}; this._sp={}; this.i=0; this.done=0; this.nOk=0; this.first=0; this.wrong=0; this.missed={}; this.okW={}; this.combo=0; this.best=0; this.t0=Date.now(); this._act=0; this._ta=this.t0; this._lg=null; this._rd=0; this._brk=false; this._rm=0; this._fw=0;
     this.total=Math.max(1, this.qs.filter(q=>q.t!=="intro").length); this.view("stLesson"); this.ticks(); this.show(); },
   /* (v234) 진행 막대에 라운드 눈금 */
   ticks(){ const pr=$("stBar") && $("stBar").parentNode; if(!pr) return; pr.querySelectorAll(".stTick").forEach(x=>x.remove());
@@ -13526,7 +13533,7 @@ const StudyUI = {
   /* ── (v225) 이어 하기 — 푸는 중인 과를 저장해 두고 (3일), 길·첫 화면에서 그 문제부터 ── */
   CUR:"hyeng_study_cur_v1",
   saveCur(){ if(this.test || this.oly || this.wk || this.retryMode || !this.qs.length) return; const W=w=>w&&w.en;
-    const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, tier:this.tier|0, i:this.i, done:this.done, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW, fw:this._fw|0,
+    const o={set:this.set, n:this.les&&this.les.n, rv:this.rv, tier:this.tier|0, i:this.i, done:this.done, nOk:this.nOk|0, first:this.first, wrong:this.wrong, missed:this.missed, okW:this.okW, fw:this._fw|0,
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(), act:this.tk()|0, sp:this._sp||{},
       qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.so||q.t==="blend"||q.t==="past"||q.t==="sentp"||q.hd==="guess")?q.opts:q.opts.map(W)), so:q.so, ans:q.ans, x:q.x, tg:q.tg, nok:q.nok, aud:q.aud, noKo:q.noKo, col:q.col, dk:q.dk, use:q.use, sts:q.sts||null, tk:q.tk||null, ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
         pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased, form:q.form, retry:q.retry,
@@ -13544,7 +13551,7 @@ const StudyUI = {
       qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; if(!q.sts) delete q.sts; if(!q.tk) delete q.tk; });
       this.tier=c.tier|0; try{ Study.setTier(this.tier); }catch(e){}
       this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; if(!c.rv) this._from={set:c.set, i:Study.lessons(c.set).indexOf(les)}; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.wk=false; this.oly=false; this.test=false; this.retryMode=false; this.qs=qs;
-      ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.wst=c.wst||{}; this._sp=c.sp||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0; this._fw = c.fw!=null ? c.fw : Object.keys(c.missed||{}).length;   // (v263) 처음에 틀린 수도 이어서
+      ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.nOk = c.nOk!=null ? c.nOk : Math.max(0, (c.done|0)-(c.wrong|0)); this.wst=c.wst||{}; this._sp=c.sp||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0; this._fw = c.fw!=null ? c.fw : Object.keys(c.missed||{}).length;   // (v263) 처음에 틀린 수도 이어서
       this._act = c.act!=null ? c.act : 0; this._ta = Date.now();   // (v266) 실제로 푼 시간도 이어서 (예전 저장은 0부터)
       show("scStudy"); this.view("stLesson"); this.ticks(); this.show(); return true;
     }catch(e){ this.clearCur(); return false; } },
@@ -13970,7 +13977,7 @@ const StudyUI = {
     if(ok && !q.again){ this.combo++; this.best=Math.max(this.best,this.combo);
       if(this.combo%5===0){ bonus='<em class="stBonus">🔥 '+this.combo+' 콤보!</em>'; try{ SFX.tone(880,.18,"triangle",.05,1760); }catch(e){} } }   // (v226) 보석은 Stage를 끝낼 때만
     else if(!ok) this.combo=0;
-    if(ok){ this.done++; if(!q.again) this.first++; SFX.tone(660,.14,"triangle",.05,1320); if(!this.test && !this.oly && !q.chk && !q.kn && !q.sure && !q.once) this.adapt(q, true); if(q.kn) this.knownOk(q); if(q.sure) try{ Study.cfSet(q.w.en, 0); }catch(e){} }
+    if(ok){ this.done++; this.nOk=(this.nOk|0)+1; if(!q.again) this.first++; SFX.tone(660,.14,"triangle",.05,1320); if(!this.test && !this.oly && !q.chk && !q.kn && !q.sure && !q.once) this.adapt(q, true); if(q.kn) this.knownOk(q); if(q.sure) try{ Study.cfSet(q.w.en, 0); }catch(e){} }
     else { this.wrong++; this._rm=(this._rm|0)+1; if(!q.again) this._fw=(this._fw|0)+1; this.missed[q.w.en]=1; delete this.okW[q.w.en]; SFX.tone(180,.18,"square",.04);
       if(this.test){ if(this.wrong>2){ this.finish(false); return; } this.done++; }
       else if(this.oly || q.chk || q.kn || q.sure || q.once){ this.done++; if(q.sure) try{ Study.cfSet(q.w.en, 2); }catch(e){} }   // (v257) 시험은 다시 내지 않는다 · (v301) ★2 확인 · 아는 단어 · 확실해요 확인 (틀리면 '몰라요'로)
@@ -14037,8 +14044,10 @@ const StudyUI = {
   /* (v302) 유치원 새 단어 카드 — 같은 소리로 시작하는(파닉스면 같은 소리 글자가 든) 단어 2개 + 이어 듣기 (낱소리 녹음 대신: 단어 3개 · 글자 색 · 천천히) */
   kidSnd(w){ if(Study.BOOKS.k.sets.indexOf(this.set)<0 || Study.BOOKS.k.sets.indexOf(this.set)===Study.BOOKS.k.sets.indexOf("sight")) return '';
     const hl=this.les && this.les.hl, L=Study.firstL(w.en); if(!L) return '';
+    const snd=en=>/^kn/.test(en)?"n":/^wr/.test(en)?"r":/^c[eiy]/.test(en)?"s":/^g[eiy]/.test(en)?"j?":/^ph/.test(en)?"f":Study.firstL(en);   // (v309) 같은 '소리' (cat·city, kite·knee 는 다른 소리)
+    if(snd(w.en)!==L) return '';
     const mark=en=>hl ? this.wd(en) : '<b class="ksL">'+this.esc(en.slice(0,L.length))+'</b>'+this.esc(en.slice(L.length));
-    const same=x=>x && x.en!==w.en && /^[a-z]{2,8}$/.test(x.en) && (hl ? /<(b|i|span)/.test(this.wd(x.en)) && this.wd(x.en)!==this.esc(x.en) : x.en.slice(0,L.length)===L && Study.firstL(x.en)===L);
+    const same=x=>x && x.en!==w.en && /^[a-z]{2,8}$/.test(x.en) && (hl ? /<(b|i|span)/.test(this.wd(x.en)) && this.wd(x.en)!==this.esc(x.en) : x.en.slice(0,L.length)===L && Study.firstL(x.en)===L && snd(x.en)===L);
     const pool=(this.les.ws||[]).concat(shuffle(WORD_BANK.filter(x=>x.level<=1 && x.emoji)).slice(0,300));
     const fr=[]; pool.forEach(x=>{ if(fr.length<2 && same(x) && !fr.some(y=>y.en===x.en)) fr.push(x); }); if(fr.length<2) return '';
     const all=[w].concat(fr);
@@ -14230,7 +14239,7 @@ const StudyUI = {
       if(T===5){ title="🔁 연습 끝!"; sub="⏳ ★2 확인은 내일 열려요"; }
       if(T===2) sub = dpNew ? "💜 ★4 심화가 열렸어요! (처음에 "+acc+"% 맞힘)" : acc>=80 ? (nv>before ? "★3 · " : "")+"처음에 90% 넘으면 💜 ★4 심화가 열려요 (이번 "+acc+"%)" : "★3까지 조금 더! 처음에 80% 맞히면 돼요 (이번 "+acc+"%)";
       if(T===3){ if(acc<80){ title="💜 심화 — 조금만 더!"; sub="처음에 80% 맞히면 ★4 💜 (이번 "+acc+"%) · 틀린 단어를 보고 다시 도전해요"; }
-        else sub = dpGem ? "💜 ★4 심화를 처음 깼어요! · 큰 별 ★5 는 🚩 마지막 시험에서" : dpCap ? "오늘 심화 보석(하루 5번)은 다 받았어요 · 내일 다시 깨면 💎 10" : "💜 연습 완료"; }
+        else sub = dpGem ? "💜 ★4 심화를 처음 깼어요!"+(Study.hasFlag(this.set)?" · 큰 별 ★5 는 🚩 마지막 시험에서":"") : dpCap ? "오늘 심화 보석(하루 5번)은 다 받았어요 · 내일 다시 깨면 💎 10" : "💜 연습 완료"; }
       if(left>0) title="🎉 오늘 공부 끝!";
       if(this.oly){ const B5=k=>k>=3?"🌟✨ 큰 별 + 반짝":k>=2?"🌟 큰 별":k>=1?"Stage 완성":"";
         title = olv ? "⏱ 시험 "+acc+"점!" : "⏱ 조금만 더!";
@@ -14299,7 +14308,7 @@ const StudyUI = {
       let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
       const tl = this.tier===3 ? " ★4심화" : this.tier===2 ? " ★3" : this.tier===4 ? " ★2확인" : this.tier===5 ? " 연습" : this.oly ? " ★5시험" : "";   // (v273) 시트에서 어느 단계 판인지 · (v301) 별 5개 이름
-      Online.submit({nick, score:this.first*10, diff:"study", rule:this.wk?"study-weekly":this.rv?"study-review":this.test?"study-test":this.tier===3?"study-deep":this.tier===4?"study-check":"study", stage:(this.rv||this.wk)?0:Study.stageNo(this.set,this.les.n), acc, right:this.done, wrong:this.wrong,
+      Online.submit({nick, score:this.first*10, diff:"study", rule:this.wk?"study-weekly":this.rv?"study-review":this.test?"study-test":this.tier===3?"study-deep":this.tier===4?"study-check":"study", stage:(this.rv||this.wk)?0:Study.stageNo(this.set,this.les.n), acc, right:(this.nOk!=null ? this.nOk|0 : this.done), wrong:this.wrong,   /* (v309) 정답 수 = 맞힌 수 (시험·확인·주간은 틀린 것도 done 에 들어가 '푼 문제'가 부풀었음) */
         clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.wk?(Study.tag(this.set)+" 주간 시험"):this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)+tl), secs:this.secs(), dex, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER,   // (v277) 모은 보석도 — 공부만 하는 아이는 '보석 점검'에 0으로 나왔다
         miss:Object.keys(this.missed).slice(0,25).join(", ")});
     }catch(e){}
@@ -15345,6 +15354,7 @@ const FB = (function(){
     else return; h.dirty=1; }
   const emit=()=>L.forEach(h=>{ if(h.dirty){ h.dirty=0; try{ h.cb(h.tree); }catch(e){ console.error(e); } } });
   function local(){ mode="local"; try{ mem=JSON.parse(localStorage.getItem(LK))||{}; }catch(e){ mem={}; }
+    try{ let ch=0; ["raids","battle"].forEach(k=>{ const R=mem[k]||{}; Object.keys(R).forEach(r=>{ const m=((R[r]||{}).cfg||{}).made || ((R[r]||{}).st||{}).made || 0; if(Date.now()-m>3*3600e3){ delete R[r]; ch=1; } }); }); if(ch) localStorage.setItem(LK, JSON.stringify(mem)); }catch(e){}   // (v309) 이 기기 연습 방은 3시간 뒤 지움
     if(!bc){ try{ bc=new BroadcastChannel("hyeng-fb"); bc.onmessage=e=>{ const d=e.data||{}; mem=writeMem(mem, d.p, d.v, d.m); L.forEach(h=>applyTo(h, d.p, d.v, d.m)); emit(); }; }catch(e){} } }
   function writeMem(m, p, v, merge){ if(merge && v && typeof v==="object"){ Object.keys(v).forEach(k=>{ m=setAt(m, parts(p).concat(parts(k)).join("/"), v[k]); }); return m; } return setAt(m, p, v); }
   function ready(){ if(mode) return Promise.resolve(mode); if(probing) return probing;
@@ -15438,11 +15448,13 @@ const BOSS_ANIM_MS = 1140;   // 12프레임 (120·100·90·90·80·60·60·80·9
 const HyBoss = {
   CAP:300, RUN_CAP:100, ESC:0.4, CK:"hyeng_hb2",
   R:null, C:null, B:null, P:null, D:{}, PD:{}, subs:[], started:false, ok:false, _t:0, _p:null, _live:null,
-  dayOf(ts){ const d=new Date(ts); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); },
-  monday(ts){ const d=new Date(ts==null?Date.now():ts); d.setHours(12,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return this.dayOf(d.getTime()); },
-  kd(k){ const a=String(k).split("-"); return new Date(+a[0], +a[1]-1, +a[2], 12).getTime(); },
+  /* (v309) 날짜는 언제나 한국 시간 (태블릿 시간대가 달라도 같은 주·같은 날) */
+  KST:9*3600e3,
+  dayOf(ts){ const d=new Date(ts+this.KST); return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0"); },
+  monday(ts){ const t=(ts==null?Date.now():ts), d=new Date(t+this.KST), back=(d.getUTCDay()+6)%7; return this.dayOf(t-back*864e5); },
+  kd(k){ const a=String(k).split("-"); return Date.UTC(+a[0], +a[1]-1, +a[2], 12)-this.KST; },
   weeks(a, b){ return Math.round((this.kd(b)-this.kd(a))/(7*864e5)); },
-  daysLeft(){ return 7-((new Date().getDay()+6)%7); },   // 월 7 … 일 1
+  daysLeft(){ return 7-((new Date(Date.now()+this.KST).getUTCDay()+6)%7); },   // 월 7 … 일 1
   start(){ if(this.started) return; this.started=true;
     try{ const c=JSON.parse(localStorage.getItem(this.CK)); if(c && !window.HY_FB_LOCAL){ this.R=c.R||null; this.C=c.C||null; this.D=c.D||{}; this.PD=c.PD||{}; this.calc(); } }catch(e){}   // 인터넷이 안 돼도 카드는 보이게
     try{ document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) this.refresh(); }); }catch(e){}
