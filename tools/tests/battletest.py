@@ -26,9 +26,13 @@ async def main():
                 good = random.random()<skill[i]
                 await k.evaluate("(g)=>{ const q=Battle.q; if(!q||q.done) return; let i=q.opts.findIndex(o=>o.en===q.w.en); if(!g) i=(i+1)%q.opts.length; Battle.answer(i); }", good)
             if step==30: await host.screenshot(path=OUT+"bt_host_run.png"); await kids[1].screenshot(path=OUT+"bt_kid_run.png")
+            if step==40:   # (v305) 새로고침처럼 나갔다 다시 들어와도 점수 이어서
+                k=kids[0]; s0=await k.evaluate("()=>Battle.sc"); await k.evaluate("()=>{ const p=Battle.pick, r=Battle.room; Battle.leave(); Battle.join(r, p); Battle.FAST=0; }"); await k.wait_for_timeout(400)
+                s1=await k.evaluate("()=>[Battle.sc, (Battle.T().p||{})[Battle.me].sc]"); print("rejoin", s0, s1)
+                if s1[0]<s0 or s1[1]<s0: bad.append(f"다시 들어오면 점수 0 {s0} {s1}")
             await host.wait_for_timeout(60)
             if await host.evaluate("()=>Battle.st().s==='end'"): break
-        await host.wait_for_timeout(1200)
+        await host.wait_for_timeout(3500)
         res=[await k.evaluate("()=>[Battle.ended, Battle.sc, Battle.rank().indexOf(Battle.me)+1, Battle._gems]") for k in kids]
         print("res", res)
         await host.screenshot(path=OUT+"bt_host_end.png"); await kids[0].screenshot(path=OUT+"bt_kid_end.png")
