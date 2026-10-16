@@ -11881,7 +11881,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v295";
+const GAME_VER = "v296";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12347,7 +12347,7 @@ const Study = (function(){
   const IV=[0,1,2,4,7,15];
   const today=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5);
   function mark(en, ok){ const s=load(); s.srs=s.srs||{}; const r=s.srs[en]||[0,0]; r[0]= ok ? Math.min(5,r[0]+1) : 1; r[1]=today()+IV[r[0]]; s.srs[en]=r; save(); }
-  function due(){ const s=load(), t=today(), R=s.srs||{}; return Object.keys(R).filter(en=>R[en][1]<=t && byEn[en]); }
+  function due(set){ const s=load(), t=today(), R=s.srs||{}, B=set ? bookWords(set) : null; return Object.keys(R).filter(en=>R[en][1]<=t && byEn[en] && (!B || B[en])); }
   function streak(){ const d=load().days||{}, t=today(); return (d.last===t || d.last===t-1) ? (d.n||0) : 0; }
   function didToday(){ const s=load(); s.days=s.days||{}; const t=today(); if(s.days.last===t) return false;
     s.days.n = s.days.last===t-1 ? (s.days.n||0)+1 : 1; s.days.last=t; save(); return true; }
@@ -12489,13 +12489,18 @@ const Study = (function(){
       fam=fam.concat(shuffle(prev.slice(0, Math.max(need, FAMX)-fam.length))); }
     return fam;
   }
-  function warmWords(exclude){
-    const s=load(), t=today(), R=s.srs||{}, ex={}; (exclude||[]).forEach(w=>ex[w.en]=1);
-    return Object.keys(R).filter(en=>R[en][1]<=t && byEn[en] && !ex[en]).sort((a,b)=>(R[a][0]-R[b][0]) || (R[a][1]-R[b][1])).slice(0,WUMAX).map(en=>byEn[en]);
+  /* (v296) 복습은 같은 책(유치원 · G1-2 · …) 단어만 — 학원 태블릿을 같이 쓰면 다른 학년 단어가 유치원 판 처음에 '먼저 복습'으로 나왔다 */
+  const bwC={};
+  function bookWords(set){ const b=bookOf(set); if(!b || !BOOKS[b]) return null; if(bwC[b]) return bwC[b];
+    const o={}; BOOKS[b].sets.forEach(st=>{ try{ lessons(st).forEach(x=>x.ws.forEach(w=>o[w.en]=1)); }catch(e){} }); return (bwC[b]=o); }
+  function warmWords(exclude, set){
+    if(set && isKid(set)) return [];                                                     // (v296) 유치원은 판 처음 '먼저 복습' 없음 (사용자: 유치부가 못 풀어요) — 오늘의 복습 버튼으로만
+    const s=load(), t=today(), R=s.srs||{}, ex={}, B=set ? bookWords(set) : null; (exclude||[]).forEach(w=>ex[w.en]=1);
+    return Object.keys(R).filter(en=>R[en][1]<=t && byEn[en] && !ex[en] && (!B || B[en])).sort((a,b)=>(R[a][0]-R[b][0]) || (R[a][1]-R[b][1])).slice(0,WUMAX).map(en=>byEn[en]);
   }
   function plan(set,n){
     const les=lessons(set).find(x=>x.n===n); if(!les) return null;
-    const news=wantedNew(set,n), wu=warmWords(les.ws).length;
+    const news=wantedNew(set,n), wu=warmWords(les.ws, set).length;
     if(!news.length){ const T=tierOf(set,n), qn = T===2 ? les.ws.length*2 : T===3 ? 4+Math.max(10, Math.min(16, Math.round(les.ws.length*1.3))) : Math.max(N, Math.min(les.ws.length, MAXW));
       const w2 = T===3 ? 0 : (wu>=2?wu:0); return {nw:0, fam:0, wu:w2, qn:qn+w2, left:0, tier:T}; }
     const fam=famPick(set,n,news).length, unseen=les.ws.filter(w=>!load().seen[w.en]).length;
@@ -12527,8 +12532,8 @@ const Study = (function(){
   function stepQ(w, step, pool, phc, known, kid){ let t=stepType(w, step, phc, kid); if((t==="drag"||t==="match") && (!known || known.length<4)) t="k2e";
     const q=makeQ(t, w, (t==="drag"||t==="match") ? known : pool, 1, phc); q.step=Math.min(step,2); return q; }
   function famQ(w, pool, level, phc){ const lq = tierNow===1 ? 0 : Math.max(1,level); let t=pickType(w, lq, false, phc); if(t==="match" || (tierNow===1 && t==="past")) t="k2e"; const q=makeQ(t, w, pool, lq, phc); q.fam=1; return q; }
-  function warmUp(exclude){
-    const ws=warmWords(exclude); if(ws.length<2) return [];
+  function warmUp(exclude, set){
+    const ws=warmWords(exclude, set); if(ws.length<2) return [];
     const pool=ws.concat(shuffle(WORD_BANK.filter(x=>x.level===ws[0].level)).slice(0,30));
     const qs=[{t:"intro", hd:"wu", w:ws[0], ws}];
     ws.forEach(w=>{ let t=pickType(w,1,false); if(t==="match"||t==="drag"||t==="pic") t=Math.random()<0.5?"e2k":"k2e"; const q=makeQ(t, w, pool, 1); q.wu=1; qs.push(q); });
@@ -12554,9 +12559,9 @@ const Study = (function(){
     ctx(set);
     const L=lessons(set), i=L.findIndex(x=>x.n===n), les=L[i], level=test?3:lv(set,n);
     tierNow = test ? 0 : tierOf(set,n);                                                   // (v273) ★1 · ★2 · 💜 심화
-    if(tierNow>=2){ if(!wantedNew(set,n).length) return tierNow===2 ? warmUp(les.ws).concat(buildT2(set,les)) : buildT3(set,les); tierNow=1; }
+    if(tierNow>=2){ if(!wantedNew(set,n).length) return tierNow===2 ? warmUp(les.ws, set).concat(buildT2(set,les)) : buildT3(set,les); tierNow=1; }
     if(!test){                                                                            // (v242) 새 흐름
-      const phc0 = ((WORD_SETS[set]||{}).phonics || set==="basic") ? (les.hl||"") : null, news=wantedNew(set,n), wu=warmUp(les.ws);
+      const phc0 = ((WORD_SETS[set]||{}).phonics || set==="basic") ? (les.hl||"") : null, news=wantedNew(set,n), wu=warmUp(les.ws, set);
       if(news.length) return wu.concat(buildNew(set, les, news, level, phc0));
       if(wu.length) return wu.concat(buildOld());
     }
@@ -12813,9 +12818,13 @@ const Study = (function(){
         const x=lessons(set).find(y=>y.n===n); if(!x || x.fin) return; m.lv[k]=2; m.dp[k]=1; });
       m.tv=1; save(); }catch(e){} }
   /* 복습 한 판 — 때가 된 단어 최대 10개, 단어마다 1~2문제 (어려운 모양 위주) */
-  function buildReview(){ ctx(null);
-    const ws=shuffle(due()).slice(0,10).map(en=>byEn[en]).filter(Boolean); if(ws.length<3) return null;
+  function buildReview(set){ ctx(set||null);
+    const ws=shuffle(due(set)).slice(0,10).map(en=>byEn[en]).filter(Boolean); if(ws.length<3) return null;
     const pool=ws.concat(shuffle(WORD_BANK.filter(x=>x.level===ws[0].level)).slice(0,30)), qs=[];
+    if(set && isKid(set)){                                                               // (v296) 유치원 복습 = 그림·듣기·뜻 고르기만 (철자·문장 없음)
+      ws.forEach(w=>{ qs.push(makeQ(canPic(w) ? "pic" : (canHear() ? "listen" : "e2k"), w, pool, 1)); });
+      shuffle(ws).forEach(w=>{ qs.push(makeQ(canHear() && Math.random()<0.5 ? "listen" : "e2k", w, pool, 1)); });
+      return qs; }
     ws.forEach(w=>{ qs.push(makeQ(pickType(w,2,false), w, pool, 2)); });
     shuffle(ws).slice(0, Math.min(ws.length, 15-ws.length)).forEach(w=>{ let t=pickType(w,1,false); if(t==="match") t="k2e"; qs.push(makeQ(t, w, pool, 1)); });
     return qs.map(q=> q.t==="match" ? makeQ("e2k", q.w, pool, 2) : q);   // (끌어서 짝짓기는 복습에도 나온다)
@@ -12867,7 +12876,7 @@ const StudyUI = {
     $("stHead").innerHTML=(rc?'<button class="stResume" data-resume="1"><i>▶</i><span><b>이어 하기</b><small>'+rcS+'</small></span></button>':'')
       +subRow+'<b>'+U.emo+' '+U.nm+'</b> <span>'+U.sub+'</span><em>'+fin+' / '+tot+' Stage</em>'
       +'<div class="stHead2">'+(sk?'<span class="stFire">🔥 '+sk+'일째 공부 중</span>':'<span class="stFire off">🔥 오늘 한 Stage 하면 불이 붙어요</span>')+'</div>';
-    const due=Study.due().length, rvDone=Wallet.paid("rv-"+Study.today());
+    const due=Study.due(this.set).length, rvDone=Wallet.paid("rv-"+Study.today());
     let h = due>=3 ? '<button class="stReview" data-review="1"><i>🔁</i><span><b>오늘의 복습 · '+Math.min(due,10)+'단어</b><small>'
       +(rvDone ? '오늘 보석은 받았어요 · 더 해도 좋아요' : '잊기 전에 한 번 더 · 💎 +2')+'</small></span></button>' : '';
     const zig=[0,38,58,38,0,-38,-58,-38];
@@ -12964,7 +12973,7 @@ const StudyUI = {
   /* 첫 화면 '이어서 하기' — 푸는 중이면 그 문제부터, 아니면 📌 오늘 할 과를 바로 */
   go(){ try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     if(this.resume()) return; this.open(); const c=Study.cur(this.set); if(c>=0) this.start(c,false); },
-  review(){ const qs=Study.buildReview(); if(!qs){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
+  review(){ const qs=Study.buildReview(this.set); if(!qs){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
     this.qs=qs; this.rv=true; this.test=false; this.oly=false; this.retryMode=false; this.tier=0; this.les={n:0, ws:[]}; this.set=this.set||"basic"; this.begin(); },
   graded(){ return this.qs.filter(q=>q.t!=="intro" && !q.again).length; },
   bar(){ $("stBar").style.width=Math.min(100, Math.round(this.done/Math.max(1,this.total)*100))+"%";   // (v289) QA: 다시 나온 문제까지 세면 100% 를 넘었다
@@ -15656,6 +15665,10 @@ addEventListener("error", function(e){ if(e && e.target && e.target!==window) re
 addEventListener("unhandledrejection", function(e){ try{ console.warn("[HY ENG] promise", e && e.reason); }catch(_){} });   // 소리 재생 거절 같은 것은 창을 띄우지 않는다
 
 Voice.init();
+/* (v296) 아이폰 무음 스위치 — 아이폰은 소리를 '주변 소리(ambient)' 로 다뤄 무음 스위치를 켜면 효과음·발음이 안 났다 (iOS 17+).
+   'playback' 으로 바꾸면 무음이어도 들린다 (첫 터치 때 한 번) */
+(function(){ const go=()=>{ try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){} };
+  go(); ["pointerdown","touchend","keydown"].forEach(ev=>addEventListener(ev, go, {passive:true, capture:true})); })();
 /* (v289) QA: 보석·도감·공부 기록이 기기(localStorage)에만 있고 '지우지 마세요' 요청이 없었다 → 브라우저에 오래 보관을 부탁한다 (아이폰 사파리 7일 정리 대비) */
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p=>{ if(!p) return navigator.storage.persist(); }).catch(()=>{}); }catch(e){}
 refreshWrongCount();
