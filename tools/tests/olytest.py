@@ -10,7 +10,7 @@ async def main():
         pg=await br.new_page(viewport={"width":390,"height":844}, device_scale_factor=2, is_mobile=True, has_touch=True)
         pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route("**/*",route); await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(1200)
-        await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); StudyUI.open(); }"); await pg.wait_for_timeout(1500)
+        await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); StudyUI.FAST=0; StudyUI.open(); }"); await pg.wait_for_timeout(1500)
         for st in ['basic','elem','g56','mv1','rd1']:
             i=await pg.evaluate(f"()=>Study.lessons('{st}').findIndex(x=>x.fin)")
             await pg.evaluate(f"()=>{{ StudyUI.book='{BK[st]}'; StudyUI.set='{st}'; StudyUI.path(); StudyUI.pop({i}); }}"); await pg.wait_for_timeout(200)

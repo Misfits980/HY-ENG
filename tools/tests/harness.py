@@ -22,14 +22,16 @@ def real_errs(errs):
 async def boot(pg, news=True):
     await pg.route("**/*", route); await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(1200)
     if news: await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
+    await pg.evaluate("()=>{ try{ StudyUI.FAST=0; }catch(e){} }")   # (v301) 테스트는 '너무 빨리 누름' 막기를 끈다
 # Daily 30 문제 하나를 정답(wrongFirst=true 면 처음엔 오답)으로 푸는 코드 — page.evaluate(SOLVE, wrongFirst)
 SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('stCheck').click(); return 'brk'; }
   const q=U.qs[U.i]; if(!q) return 'none';
   if(U.locked){ document.getElementById('stCheck').click(); return 'cont'; }
+  if(q.t==='intro' && q.hd==='sort'){ q.pick=q.pick||{}; q.ws.forEach((w,k)=>{ if(!q.pick[w.en]) q.pick[w.en]=(k%3===0?'s':'c'); }); U.check(); return 'intro'; }   // (v301) 세 칸 나누기
   if(q.t==='intro'){ document.getElementById('stCheck').click(); return 'intro'; }
   if(q.so){ let k=q.opts.indexOf(q.ans); if(wrongFirst && !q.again) k=(k+1)%q.opts.length; document.querySelector('#stQ .stOpt[data-k="'+k+'"]').click(); return q.t; }
   if(q.t==='order'){ const used=[]; q.x.ch.forEach(c=>{ const k=q.tiles.findIndex((ci,j)=>q.x.ch[ci]===c && used.indexOf(j)<0); used.push(k); document.querySelector('.odT[data-o="'+k+'"]').click(); }); document.getElementById('stCheck').click(); return 'order'; }
-  if(q.t==='kdict'){ for(const c of q.w.en) document.querySelector('.kdK[data-kk="'+c+'"]').click(); document.getElementById('stCheck').click(); return 'kdict'; }
+  if(q.t==='kdict'){ for(const c of (q.kans||q.w.en)) document.querySelector('.kdK[data-kk="'+c+'"]').click(); document.getElementById('stCheck').click(); return 'kdict'; }
   if(q.t==='match'){ q.ws.forEach(w=>{ document.querySelector('.stM.en[data-en="'+w.en+'"]').click(); document.querySelector('.stM.ko[data-ko="'+w.en+'"]').click(); }); document.getElementById('stCheck').click(); return 'match'; }
   if(q.t==='drag'){ q.ws.forEach(w=>{ q.pick=document.querySelector('.dgChip[data-en="'+w.en+'"]'); document.querySelector('.dgT[data-en="'+w.en+'"]').click(); }); return 'drag'; }
   if(q.t==='blend'){ let k=q.opts.indexOf(q.mid); if(wrongFirst && !q.again) k=(k+1)%(q.t==='ox'?2:q.opts.length); document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'blend'; }

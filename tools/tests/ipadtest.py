@@ -13,7 +13,7 @@ async def main():
         await boot(pg); await pg.wait_for_timeout(300)
         # 철자: 4글자 넣고 두 번째 글자를 누르면 1글자만 남는다
         # (v273) 철자는 ★2 판부터 — 단어를 다 본 ★1 Stage 로
-        await pg.evaluate("()=>{ StudyUI.open(); StudyUI.book='g56'; StudyUI.path(); const x=Study.lessons('g56')[0]; x.ws.forEach(w=>Study.see(w.en)); Study.setLv('g56', x.n, 1); StudyUI.start(0,false); }"); await pg.wait_for_timeout(300)
+        await pg.evaluate("()=>{ StudyUI.open(); StudyUI.book='g56'; StudyUI.path(); const x=Study.lessons('g56')[0]; x.ws.forEach(w=>Study.see(w.en)); Study.setLv('g56', x.n, 1); Study.setCk('g56', x.n); StudyUI.start(0,false); }"); await pg.wait_for_timeout(300)
         for _ in range(200):
             t = await pg.evaluate("()=>{ const q=StudyUI.qs[StudyUI.i]; return q&&!StudyUI.locked&&!StudyUI._brk ? q.t : null }")
             if t == "spell": break

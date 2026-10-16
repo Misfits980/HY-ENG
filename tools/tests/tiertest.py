@@ -1,4 +1,5 @@
-"""(v273) 별 단계 — ★1(알아보기) → ★2(쓰임 카드 + 철자) → 95% 면 💜 심화 열림 → 심화 80% 면 💜 + 💎10.
+"""(v301) 별 5개 — ★1 배우기 → (다음 날) ★2 확인 80% · 💎1 → ★3 써 보기 80% (90% 면 심화 열림) → ★4 심화 80% · 💎10 · ★5 = 🚩.
+   (v273 원본) 별 단계 — ★1(알아보기) → ★2(쓰임 카드 + 철자) → 95% 면 💜 심화 열림 → 심화 80% 면 💜 + 💎10.
    학년마다(G1-2 · G3-4 · G5-6 · 중등) 한 Stage 씩 끝까지 풀어 본다. 예전 ★3 → ★2 + 심화 열림 옮기기도 확인.
    3단계 1~15과(Stage 1~15)가 G5-6 앞에 들어왔는지, 교재 뜻(order = 주문하다)도 본다."""
 import asyncio, json, sys, os
@@ -9,9 +10,9 @@ from playwright.async_api import async_playwright
 async def play(pg, shots=None, tag="", wrong_n=0):
     types=[]; seen=set(); wn=0
     for step in range(260):
-        t=await pg.evaluate("()=>{ const q=StudyUI.qs[StudyUI.i]; return q ? (q.t+(q.use?'-use':'')+(q.hd?'-'+q.hd:'')+(q.again?'*':'')) : null }")
+        t=await pg.evaluate("()=>{ const q=StudyUI.qs[StudyUI.i]; return q ? (q.t+(q.use?'-use':'')+(q.hd?'-'+q.hd:'')+(q.again?'*':'')+(StudyUI.locked||StudyUI._brk?'#':'')) : null }")
         if not t: break
-        ag=t.endswith("*"); t=t.rstrip("*")
+        lk=t.endswith("#"); t=t.rstrip("#"); ag=t.endswith("*") or lk; t=t.rstrip("*")   # (v301) 답한 뒤 '계속' 누르는 걸음은 틀릴 차례로 안 셈
         if shots is not None and t not in seen and t not in ("intro","e2k","k2e","listen"):
             seen.add(t); await pg.wait_for_timeout(60); await pg.screenshot(path=OUT+f"tier_{tag}_{t}.png")
         wr = wn<wrong_n and not ag and not t.startswith("intro") and t not in ("drag","match","ox")
@@ -38,50 +39,76 @@ async def main():
         if info["st16"]!="16-1": bad.append("16과 Stage 번호 %s" % info["st16"])
         if info["bex"]<400: bad.append("bex.json")
         for set_, label in (("basic","g12"),("elem","g34"),("g56","g56"),("mid","mid")):
-            await pg.evaluate(f"()=>{{ StudyUI.book=Study.bookOf('{set_}'); StudyUI.set='{set_}'; StudyUI.path(); }}")
+            await pg.evaluate(f"()=>{{ Study._day(0); StudyUI.book=Study.bookOf('{set_}'); StudyUI.set='{set_}'; StudyUI.path(); }}")
             n=await pg.evaluate(f"()=>Study.lessons('{set_}')[0].n")
             g0=await pg.evaluate("()=>Wallet.gems()")
-            # ★1
-            await pg.evaluate("()=>StudyUI.start(0,false)"); await pg.wait_for_timeout(200)
-            t1=await pg.evaluate("()=>StudyUI.tier"); ty1=await play(pg)
+            S=lambda: pg.evaluate(f"()=>({{lv:Study.lv('{set_}',{n}), ck:Study.ckOk('{set_}',{n}), dp:Study.dpOpen('{set_}',{n}), s:Study.starN('{set_}',Study.lessons('{set_}')[0]), gems:Wallet.gems(), txt:document.getElementById('stDoneIn').innerText.slice(0,200)}})")
+            again="()=>{ const b=document.getElementById('stBack'); if(b && document.getElementById('stDone').style.display!=='none') b.click(); StudyUI.start(0,false); return StudyUI.tier; }"
+            # ★1 배우기
+            t1=await pg.evaluate(again); ty1=await play(pg)
             lv1=await pg.evaluate(f"()=>Study.lv('{set_}',{n})")
-            # 한 판으로 다 못 만나면(25단어) 한 번 더
-            if lv1==0: await pg.evaluate("()=>{ document.getElementById('stBack').click(); StudyUI.start(0,false); }"); ty1+=await play(pg); lv1=await pg.evaluate(f"()=>Study.lv('{set_}',{n})")
+            if lv1==0: await pg.evaluate(again); ty1+=await play(pg); lv1=await pg.evaluate(f"()=>Study.lv('{set_}',{n})")   # 25단어 = 두 판
             if t1!=1 or lv1!=1: bad.append(f"{label} ★1 tier {t1} lv {lv1}")
-            if any(x in ty1 for x in ("spell","dict","sent","sentp","past")): bad.append(f"{label} ★1 판에 철자/빈칸: {sorted(set(ty1))}")
-            # ★2 (한 번 틀려서 95% 안 됨 → 심화 안 열림)
-            await pg.evaluate("()=>{ document.getElementById('stBack').click(); StudyUI.start(0,false); }"); await pg.wait_for_timeout(200)
-            t2=await pg.evaluate("()=>StudyUI.tier"); ty2=await play(pg, [], label+"2", wrong_n=(5 if set_=="mid" else 3))
-            st2=await pg.evaluate(f"()=>({{lv:Study.lv('{set_}',{n}), dp:Study.dpOpen('{set_}',{n}), txt:document.getElementById('stDoneIn').innerText.slice(0,160)}})")
-            if t2!=2: bad.append(f"{label} ★2 tier {t2}")
-            if "intro-use" not in ty2: bad.append(f"{label} ★2 쓰임 카드 없음")
-            if st2["lv"]!=2 or st2["dp"]: bad.append(f"{label} ★2 (두 개 틀림) → {st2}")
-            # ★2 다시 — 다 맞힘 → 심화 열림
-            await pg.evaluate("()=>{ document.getElementById('stBack').click(); StudyUI.start(0,false); }"); await pg.wait_for_timeout(200)
-            await play(pg)
-            st2b=await pg.evaluate(f"()=>({{lv:Study.lv('{set_}',{n}), dp:Study.dpOpen('{set_}',{n}), txt:document.getElementById('stDoneIn').innerText.slice(0,200)}})")
-            if st2b["lv"]!=2 or not st2b["dp"]: bad.append(f"{label} ★2 100% → {st2b}")
-            if "심화가 열렸어요" not in st2b["txt"]: bad.append(f"{label} 심화 열림 안내 없음")
-            # 길 · 팝업 보라 버튼
+            if any(x in ty1 for x in ("spell","dict","sentp","past")): bad.append(f"{label} ★1 판에 철자: {sorted(set(ty1))}")
+            if label!="g12" and "intro-know" not in ty1: bad.append(f"{label} 아는 단어 빼기 카드 없음")
+            if label=="mid" and "intro-sort" not in ty1: bad.append("중등 세 칸 나누기 없음")
+            # 오늘은 확인 못 함 → 연습 (별 그대로)
+            t5=await pg.evaluate(again); await play(pg); st5=await S()
+            if t5!=5 or st5["lv"]!=1 or st5["ck"]: bad.append(f"{label} 같은 날 확인 {t5} {st5}")
+            # 내일 — ★2 확인 (두세 개 틀림 → 80% 안 됨)
+            await pg.evaluate("()=>Study._day(1)")
+            t4=await pg.evaluate(again); nq=await pg.evaluate("()=>StudyUI.qs.filter(q=>q.t!=='intro').length")
+            ty4=await play(pg, wrong_n=nq//4+1); st4=await S(); a4=await pg.evaluate("()=>StudyUI.acc1()")
+            if t4!=4 or "intro-chk" not in ty4 or any(t.endswith("*") for t in ty4): bad.append(f"{label} 확인 판 {t4} {sorted(set(ty4))}")
+            if st4["ck"]!=(a4>=80): bad.append(f"{label} 확인 {nq}문제 {a4}% → {st4}")
+            if a4>=80: print(label, "확인 틀리기가 덜 됨", a4)
+            # 다시 — 다 맞힘 → ★2 · 💎1
+            if not st4["ck"]:
+                g4=await pg.evaluate("()=>Wallet.gems()")
+                await pg.evaluate(again); await play(pg); st4b=await S()
+                if not st4b["ck"] or st4b["s"]!=2 or "확인 통과" not in st4b["txt"]: bad.append(f"{label} 확인 통과 {st4b}")
+                if st4b["gems"]-g4<1: bad.append(f"{label} 확인 💎1 없음")
+            # ★3 써 보기 — 몇 개 틀림 → 규칙대로인지 (80% ★3 · 90% 심화 열림)
+            t2=await pg.evaluate(again); nq2=await pg.evaluate("()=>StudyUI.qs.filter(q=>q.t!=='intro').length")
+            ty2=await play(pg, [], label+"2", wrong_n=max(2, -(-nq2*13//100))); st2=await S(); a2=await pg.evaluate("()=>StudyUI.acc1()")
+            if t2!=2: bad.append(f"{label} ★3 tier {t2}")
+            if "intro-use" not in ty2: bad.append(f"{label} ★3 쓰임 카드 없음")
+            if (st2["lv"]==2)!=(a2>=80) or st2["dp"]!=(a2>=90) or st2["s"]!=(3 if a2>=80 else 2): bad.append(f"{label} ★3 {a2}% → {st2}")
+            if not st2["dp"]:
+                await pg.evaluate(again); await play(pg); st2b=await S()
+                if st2b["lv"]!=2 or not st2b["dp"]: bad.append(f"{label} ★3 100% → {st2b}")
+                if "심화가 열렸어요" not in st2b["txt"]: bad.append(f"{label} 심화 열림 안내 없음")
+            print(label, "★3 첫 판", a2, "%")
             await pg.evaluate("()=>{ document.getElementById('stBack').click(); }"); await pg.wait_for_timeout(200)
             await pg.evaluate("()=>StudyUI.pop(0)"); await pg.wait_for_timeout(100)
             popb=await pg.evaluate("()=>{ const b=document.querySelector('#stPop .stGo'); return b ? b.className+'|'+b.textContent : '' }")
             if "deep" not in popb: bad.append(f"{label} 심화 버튼 {popb}")
             await pg.screenshot(path=OUT+f"tier_{label}_pop.png")
-            # 💜 심화
+            # ★4 심화
             await pg.evaluate("()=>{ StudyUI.pop(null); StudyUI.start(0,false); }"); await pg.wait_for_timeout(200)
-            t3=await pg.evaluate("()=>StudyUI.tier"); ty3=await play(pg, [], label+"3")
-            st3=await pg.evaluate(f"()=>({{lv:Study.lv('{set_}',{n}), gems:Wallet.gems(), txt:document.getElementById('stDoneIn').innerText.slice(0,220)}})")
+            t3=await pg.evaluate("()=>StudyUI.tier"); ty3=await play(pg, [], label+"3"); st3=await S()
             await pg.screenshot(path=OUT+f"tier_{label}_done3.png")
-            if t3!=3 or st3["lv"]!=3: bad.append(f"{label} 심화 tier {t3} lv {st3['lv']}")
+            if t3!=3 or st3["lv"]!=3 or st3["s"]!=4: bad.append(f"{label} 심화 tier {t3} {st3}")
             deep=[t for t in ty3 if t not in ("intro","intro-deep","intro-rule","k2e","listen","e2k")]
-            print(label, "★1", sorted(set(ty1)), "| ★2", sorted(set(ty2)), st2["lv"], st2["dp"], "| 심화", sorted(set(ty3)), "| 💎", st3["gems"]-g0)
+            print(label, "★1", sorted(set(ty1)), "| 확인", sorted(set(ty4)), "| ★3", sorted(set(ty2)), "| 심화", sorted(set(ty3)), "| 💎", st3["gems"]-g0)
             if len(set(deep))<3: bad.append(f"{label} 심화 문제 종류가 적음 {sorted(set(deep))}")
             if "💎 +10" not in st3["txt"]: bad.append(f"{label} 심화 💎10 없음: {st3['txt'][:120]}")
             await pg.evaluate("()=>{ document.getElementById('stBack').click(); }")
-            # 💜 노드
             cls=await pg.evaluate("()=>{ const d=document.querySelector('#stMap .stDot[data-i=\"0\"]'); return d ? d.className+'|'+d.textContent : '' }")
             if "deep" not in cls: bad.append(f"{label} 길 노드 {cls}")
+            await pg.evaluate("()=>Study._day(0)")
+        # (v301) 저장 버그 — 카드만 보고 나가면 '본 단어'가 안 됨 · 이어 하기는 그대로
+        sv=await pg.evaluate("""()=>{ StudyUI.book='g34'; StudyUI.set='elem'; StudyUI.path(); const L=Study.lessons('elem'), k=L.findIndex(x=>!x.fin && x.ws.every(w=>!Study.load().seen[w.en]));
+            StudyUI.start(k,false); for(let j=0;j<6;j++){ const q=StudyUI.qs[StudyUI.i]; if(q.t==='intro'){ StudyUI.check(); continue; } StudyUI.i++; StudyUI.show(); }
+            const pend=Object.keys(StudyUI._sp||{}); StudyUI.saveCur(); const c=JSON.parse(localStorage.getItem('hyeng_study_cur_v1'));
+            document.getElementById('stQuit').click(); const S=Study.load().seen; return {pend:pend.length, saved:Object.keys(c.sp||{}).length, leaked:pend.filter(e=>S[e]).length}; }""")
+        print("seen", sv)
+        if not sv["pend"] or sv["leaked"] or sv["saved"]!=sv["pend"]: bad.append(f"본 단어 저장 {sv}")
+        # (v301) 엄격한 보기 — 🚩 시험 보기 중 같은 Stage 가 아닌 단어 (철자 비슷)
+        st=await pg.evaluate("""()=>{ const L=Study.lessons('elem'), f=L.find(x=>x.fin), q=Study.buildOly('elem', f).filter(q=>q.opts && q.opts[0] && q.opts[0].en), own={}; f.ws.forEach(w=>own[w.en]=1);
+            const out=q.map(x=>x.opts.filter(o=>!own[o.en]).length); return {n:q.length, outside:out.filter(k=>k>=2).length, ex:q.slice(0,3).map(x=>x.w.en+': '+x.opts.map(o=>o.en).join('/'))} }""")
+        print("strict", st)
+        if st["outside"] < st["n"]*0.6: bad.append(f"🚩 보기가 같은 Stage 위주 {st}")
         # 하루 5번 — 다섯 번 받았으니 다음 심화는 보석 대신 안내
         print("dg left", await pg.evaluate("()=>Study.dgLeft()"))
         # 이어 하기 — 심화 판 중간에 저장 · 다시 열기
