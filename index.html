@@ -918,6 +918,9 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
 .corner.left{left:calc(env(safe-area-inset-left,0px) + 16px)}
 .corner.right{right:calc(env(safe-area-inset-right,0px) + 16px)}
 .screen{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}   /* (v289) 아이폰 가로에서 노치가 화면 글자·뒤로 버튼을 가렸다 */
+/* (v293) 아이폰 홈 화면 앱 아래 빈 띠 — JS 가 실제 화면 높이를 --appH 로 주면 그 높이까지 (없으면 그대로) */
+html,body{min-height:var(--appH,100%)}
+.screen,#loading{bottom:auto;height:var(--appH,100%)}
 .corner.top{top:calc(env(safe-area-inset-top,0px) + 16px);bottom:auto;right:16px;
   width:44px;height:44px;padding:0;display:grid;place-items:center}
 .corner.top.off{display:none}
@@ -4807,8 +4810,15 @@ function scrH(){ const d=document.documentElement; return Math.round((d && d.cli
 /* (v289) 3D 캔버스 높이 — 아이폰 사파리는 아래 주소창이 접히면 화면이 커지는데 문서 높이(clientHeight)는 그대로라
    캔버스가 짧게 남아 맨 아래가 검게 잘렸다. 폭이 같을 때(돌린 직후의 옛 값이 아닐 때)만 더 큰 innerHeight 를 쓴다 */
 function gameH(){ const H=scrH(), ih=Math.round(innerHeight||0);
-  return (Math.abs(Math.round(innerWidth||0)-scrW())<=2 && ih>H && ih-H<=160) ? ih : H; }
-function fitCanvas(W,H){ renderer.setSize(W, H, false); try{ renderer.domElement.style.height = H+"px"; }catch(e){} }
+  let h=(Math.abs(Math.round(innerWidth||0)-scrW())<=2 && ih>H && ih-H<=160) ? ih : H;
+  /* (v293) 아이폰 홈 화면 앱(iOS 26): 화면 크기 고정 칸(inset:0)이 아래 약 46pt 짧게 잡혀 맨 아래가 검은 띠로 남았다
+     (사파리 26.1 고침 목록의 '아래 빈칸' 버그) → 홈 화면 앱에서는 기기 화면 높이(screen)까지 채운다 */
+  try{ if(navigator.standalone===true){ const sw=screen.width, sh=screen.height, land=innerWidth>innerHeight, s=land?Math.min(sw,sh):Math.max(sw,sh), w=land?Math.max(sw,sh):Math.min(sw,sh);
+      if(Math.abs(w-scrW())<=2 && s>h && s-h<=140) h=s; } }catch(e){}
+  return h; }
+/* 메뉴 화면·캔버스·html 높이를 같은 값으로 (CSS --appH) — 위 gameH 와 같은 높이 */
+function applyAppH(){ try{ const H=scrH(), h=gameH(), r=document.documentElement; if(h>H) r.style.setProperty("--appH", h+"px"); else r.style.removeProperty("--appH"); }catch(e){} }
+function fitCanvas(W,H){ renderer.setSize(W, H, false); try{ renderer.domElement.style.height = H+"px"; }catch(e){} applyAppH(); }
 /* (v272) 태블릿 배율 — 짧은 변이 600px 이상이면 태블릿. 세로는 휴대폰 화면(약 560×760)이 꽉 차게, 가로는 두 칸 화면(높이 약 600)이 꽉 차게 */
 function layoutTab(){
   const W=scrW(), H=scrH(), tab=Math.min(W,H)>=600, land=W>H;
@@ -11553,7 +11563,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v292";
+const GAME_VER = "v293";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14519,7 +14529,9 @@ const Admin = (function(){
     const go=e=>{ clearTimeout(t); t=setTimeout(open, 2000); }, stop=()=>clearTimeout(t);
     v.addEventListener("touchstart", go, {passive:true}); v.addEventListener("mousedown", go);
     ["touchend","touchcancel","mouseup","mouseleave"].forEach(n=>v.addEventListener(n, stop));
-    v.addEventListener("contextmenu", e=>e.preventDefault()); })();
+    v.addEventListener("contextmenu", e=>e.preventDefault()); 
+    let vs=0; v.addEventListener("click", ()=>{ if(vs){ v.textContent=GAME_VER; vs=0; return; } vs=1;   // (v293) 짧게 누르면 화면 크기 (아이폰 아래 띠 확인용)
+      try{ v.textContent=GAME_VER+" · "+scrW()+"×"+scrH()+" · in "+Math.round(innerHeight)+" · scr "+screen.height+" · "+gameH()+(navigator.standalone?" · 앱":""); }catch(e){} }); })();
   try{ if(new URLSearchParams(location.search).has("admin")) setTimeout(open, 300); }catch(e){}
   return { open, close, isOn:()=>ok, _srv:()=>srv, _tab:t=>{ tab=t; draw(); } };
 })();
