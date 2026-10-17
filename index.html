@@ -1340,6 +1340,28 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 #scOver #oReview .glab{margin:0 0 8px}
 #scOver #oRank .rrow{margin-bottom:5px}
 #scOver .rrDots{text-align:center;color:#8d82b8;font-weight:900;line-height:1;margin:-2px 0 3px}
+/* (v321) 이번 판 — 보석 · 보스 두 타일 */
+#scOver .resDuo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#scOver .resDuo:has(#oBoss:empty){grid-template-columns:1fr}
+#scOver .resDuo #oGems{display:contents}
+#scOver .resDuo .gPills{grid-column:1/-1;order:3;margin:0}
+#scOver .resDuo #oBoss{order:2;min-width:0} #scOver .resDuo .rwT.gem{order:1}
+#scOver .resDuo > #oGems > small{grid-column:1/-1}
+#scOver .rwT{position:relative;display:flex;flex-direction:column;gap:5px;min-width:0;height:100%;box-sizing:border-box;padding:10px 11px 11px;border-radius:16px;margin:0;color:#fff;font:inherit;
+  background:linear-gradient(160deg,rgba(255,110,150,.22),rgba(140,60,200,.14));border:1px solid rgba(255,150,185,.38)}
+#scOver .rwT.gem{background:linear-gradient(160deg,rgba(120,220,255,.18),rgba(150,120,255,.12));border-color:rgba(143,227,255,.35)}
+#scOver .rwT.off{opacity:.6;filter:saturate(.5)}
+#scOver .rwH{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#e9dcff;min-width:0;white-space:nowrap}
+#scOver .rwH em{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:900;color:#bff1ff;white-space:nowrap}
+#scOver .rwT:not(.gem) .rwH em{color:#ffd0dc}
+#scOver .rwImg{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))} #scOver .rwIco{font-size:20px;line-height:1}
+#scOver .rwN{font-size:30px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:#ffe08a;text-shadow:0 2px 0 rgba(0,0,0,.3)} #scOver .rwT.gem .rwN{color:#bff1ff}
+#scOver .rwS{font-size:11px;font-weight:700;color:#b7acdc}
+#scOver .rwT .gBar{height:7px;border-radius:7px;background:rgba(255,255,255,.1);overflow:hidden;margin:2px 0 0}
+#scOver .rwT .gBar i{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,#8fe3ff,#c9a8ff);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+#scOver .rwPip{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-top:2px} #scOver .rwPip i{height:7px;border-radius:4px;background:rgba(255,255,255,.12)} #scOver .rwPip i.on{background:linear-gradient(90deg,#ffd23f,#ff9a3c)}
+#scOver .rwGo{margin:auto 0 0;padding:7px 6px;border-radius:11px;font-size:13px;width:100%}
+#scOver .rwT.gemIn{animation:gemPop .6s cubic-bezier(.2,1.4,.4,1) .35s both}
 #scOver .resBar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:6px;padding:8px;border-radius:22px;background:rgba(14,9,32,.86);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);z-index:3}
 #scOver .resBar .play{margin:0;min-height:52px}
 .resGems{margin:10px auto 0;max-width:340px;padding:10px 14px;border-radius:14px;background:rgba(143,227,255,.07);border:1px solid rgba(143,227,255,.25)}
@@ -3036,8 +3058,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
   </div>
   <div class="resCard resRw">
     <div class="resCh">🎁 이번 판</div>
-    <div class="resGems" id="oGems"></div>
-    <div id="oBoss"></div>
+    <div class="resDuo"><div class="resGems" id="oGems"></div><div id="oBoss"></div></div>
     <div class="resTier" id="oTier"></div>
   </div>
   <div id="oReview" class="resCard"></div>
@@ -12416,17 +12437,17 @@ function gameOver(){
   /* (v312) 🏃 달리기 = 공격 기회 쌓기 (맞힌 단어 4개 = 1번, 🏃 10까지) */
   try{ if(!G.testRun && !G.practice && (G.right|0)>0){ const n=Math.ceil((G.right|0)/HyBoss.PER_RUN), ez=HyBoss.easy(G.set, G.book); HyBoss.start();
       HyBoss.refresh(true).then(()=>{ const B=HyBoss.B, me=Kid.me(), o=$("oBoss")||$("oReview"); if(!B || !me || !o || !HyBoss.on()) return;
-        if(ez){ o.insertAdjacentHTML("afterbegin", '<div class="ovBoss">🧸 유치원 단어는 ⚔️ 공격 기회가 안 쌓여요 — <b>G1-2부터</b> 쌓여요</div>'); return; }   /* (v319) */
+        /* (v321) 보스 칸 — 글 줄이고 타일로: 보스 얼굴 · +1 크게 · 🏃 기회 점 10개 · [⚔️ 공격하러] (사용자: 말이 많다) */
+        const img='<img class="rwImg" src="'+HyBoss.img(B)+'" alt="">', pips=k=>'<div class="rwPip">'+Array.from({length:HyBoss.STK},(_,i)=>'<i'+(i<k?' class="on"':'')+'></i>').join('')+'</div>';
+        if(ez){ o.innerHTML='<div class="ovBoss rwT off"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">🧸</b><small class="rwS">유치원 단어는 안 쌓여요</small></div>'; return; }   /* (v319) */
         const t=HyBoss.team(me.id, me), s=t && HyBoss.state(t), got = (s && s.dead) ? 0 : HyBoss.earn(me, "run", n), st=HyBoss.stock(me.id);
-        const tx = s && s.dead ? '🏠 '+Raid.esc(B.n)+' — 벌써 쓰러뜨렸어요! 보스 화면에서 보상 받기'
-          : got>0 ? '⚔️ 공격 기회 <b>+'+got+'</b> (🏃 '+st.r+'/'+HyBoss.STK+') — 🏠 '+Raid.esc(B.n)+'에게 휘둘러요!'
-          : got===0 ? '🏃 공격 기회가 가득 찼어요 ('+st.r+'/'+HyBoss.STK+') — 보스 화면에서 먼저 휘둘러요!' : '';
-        if(tx) o.insertAdjacentHTML("afterbegin", '<div class="ovBoss">'+tx+' <button class="ovBossSee" onclick="WeekBoss.open()">⚔️ 공격하러</button></div>');
+        o.innerHTML = s && s.dead ? '<div class="ovBoss rwT"><div class="rwH">'+img+'<span>주간 보스</span></div><b class="rwN">🎉</b><small class="rwS">쓰러뜨렸어요!</small><button class="ovBossSee rwGo" onclick="WeekBoss.open()">🎁 보상 받기</button></div>'
+          : got>=0 ? '<div class="ovBoss rwT"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">'+(got>0?'+'+got:'가득!')+'</b>'+pips(st.r)+'<small class="rwS">🏃 '+st.r+' / '+HyBoss.STK+'</small><button class="ovBossSee rwGo" onclick="WeekBoss.open()">⚔️ 공격하러</button></div>' : '';
         if(got>0) setTimeout(()=>{ try{ if($("scOver").classList.contains("on")) WeekBoss.gain(got, "run"); }catch(e){} }, 700); }); } }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v320";
+const GAME_VER = "v321";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17073,13 +17094,13 @@ function drawGemResult(r){
   if(!r){ el.innerHTML = G.testRun ? '<small>🧪 시험 모드에서는 보석을 받지 않아요</small>' : G.practice ? '<small>🏃 연습 달리기 — 이 Stage 카드로는 첫 달리기에서만 보석·도감·랭킹이 쌓여요</small>' : ""; return; }
   const pct=Math.round(r.pts/GEM.PER*100);
   /* (v272) 한 줄로 간추림: 💎 +1 [막대] 다음까지 20점 · 모은 467 / 아래에 눌러서 가는 작은 알약(도감 · 칭호) */
+  /* (v321) 보석 타일 — 💎 +n 크게 · 막대 · 다음까지 · 오른쪽 위에 모은 수 */
   el.innerHTML =
-    '<div class="gLine"><span class="gIco">💎</span><b class="gGain">'+(r.gain>0?'+'+r.gain:'+0')+'</b>'
-    +'<div class="gMid"><div class="gBar"><i style="width:0"></i></div><small>다음 💎까지 '+(GEM.PER-r.pts)+'점'+(r.boss?' · 문지기 +'+r.boss:'')+'</small></div>'
-    +'<span class="gTot">모은 <b>'+r.total+'</b></span></div>'
+    '<div class="rwT gem"><div class="rwH"><span class="rwIco">💎</span><span>보석</span><em>모은 '+Number(r.total).toLocaleString()+'</em></div><b class="rwN gGain">'+(r.gain>0?'+'+r.gain:'+0')+'</b>'
+    +'<div class="gBar"><i style="width:0"></i></div><small class="rwS">다음 💎까지 '+(GEM.PER-r.pts)+'점'+(r.boss?' · 문지기 +'+r.boss:'')+'</small></div>'
     +(r.dexNew ? '<div class="gPills"><button class="gPill" data-go="dex">📖 새 단어 <b>'+r.dexNew+'</b> ›</button></div>' : '');
   const bar=el.querySelector(".gBar i"); if(bar) setTimeout(()=>{ bar.style.width=pct+"%"; }, 450);
-  if(r.gain>0){ el.classList.remove("gemIn"); void el.offsetWidth; el.classList.add("gemIn"); try{ setTimeout(()=>SFX.tone(880,.18,"triangle",.05,1320), 500); }catch(e){} }
+  if(r.gain>0){ const tl=el.querySelector(".rwT")||el; tl.classList.remove("gemIn"); void tl.offsetWidth; tl.classList.add("gemIn"); try{ setTimeout(()=>SFX.tone(880,.18,"triangle",.05,1320), 500); }catch(e){} }
 }
 
 /* ── 상점 화면 ── */
