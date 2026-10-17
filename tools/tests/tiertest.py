@@ -78,7 +78,7 @@ async def main():
             if not st2["dp"]:
                 await pg.evaluate(again); await play(pg); st2b=await S()
                 if st2b["lv"]!=2 or not st2b["dp"]: bad.append(f"{label} ★3 100% → {st2b}")
-                if "심화가 열렸어요" not in st2b["txt"]: bad.append(f"{label} 심화 열림 안내 없음")
+                if "보라 별이 열렸어요" not in st2b["txt"] and "보라색으로 바뀌어요" not in st2b["txt"]: bad.append(f"{label} 심화 열림 안내 없음")
             print(label, "★3 첫 판", a2, "%")
             await pg.evaluate("()=>{ document.getElementById('stBack').click(); }"); await pg.wait_for_timeout(200)
             await pg.evaluate("()=>StudyUI.pop(0)"); await pg.wait_for_timeout(100)
