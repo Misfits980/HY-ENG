@@ -18,7 +18,14 @@ import json, os, re, sys, html
 R = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 H1 = ["영어","품사 1","뜻 1","설명 1","품사 2","뜻 2","설명 2","예문 1","해석 1","예문 2","해석 2","예문 2 뜻","변하는 모양","자주 쓰는 말","비슷한 말","반대말","헷갈리는 말"]
 H2 = ["영어","상황","A","B","A 해석","B 해석"]
-POS = {"명사","동사","형용사","부사","전치사","접속사","대명사","조동사","감탄사","표현"}
+POS = {"명사","동사","형용사","부사","전치사","접속사","대명사","조동사","감탄사","표현","동사 과거형"}   # (v322) 동사 과거형 = found '찾았다 (find)' 처럼 다른 동사의 지난 꼴
+TALK_SENSE = {}   # (v322) v6/talk_sense.txt — 프롬프트 규칙(대화 2 = 품사 2 뜻)을 안 지킨 대화의 실제 뜻 품사
+_tsf = os.path.join(os.path.dirname(os.path.abspath(__file__)), "v6", "talk_sense.txt")
+if os.path.exists(_tsf):
+    for _l in open(_tsf, encoding="utf8"):
+        _l = _l.strip()
+        if _l and not _l.startswith("#"): _w, _a, _p = _l.split("|"); TALK_SENSE[(_w.strip().lower(), _a.strip())] = _p.strip()
+SAME_POS_OK ={"work","post","back","party","keep","view"}   # (v322) 같은 품사인데 뜻이 정말 다른 단어 (일/작품, 우편/게시물, 등/뒤 …) — 같은 품사 두 줄 ⚠️ 에서 뺌
 NAMES = {"Minsu","Jiho","Yuna","Tom","Amy","Mina"}
 LEN_EX = {"L1":(4,8),"L2":(5,10),"L3":(7,14),"L4":(8,16)}
 LEN_TALK = {"L1":(3,7),"L2":(5,10),"L3":(5,10),"L4":(7,14)}      # 대화는 한 단계 쉽게
@@ -242,16 +249,35 @@ def report(path, res):
 RAW = {"L1": "kinder", "L2": "basic", "L3": "elem", "L4": "mv1"}      # 원본 과 이름 (COURSE)
 SETK = {"L1": "basic", "L2": "elem", "L3": "g56", "L4": "mv1"}       # 게임 반 (교재 뜻 COURSE_KO)
 LVL = {"L1": 1, "L2": 1, "L3": 2, "L4": 3}                            # 게임 단어 레벨 (★)
-ALB_KW = [("animal", "동물|곤충|새끼|물고기|짐승|뱀|벌레|날개|꼬리"), ("food", "음식|과일|채소|먹|마시|음료|빵|요리|맛"), ("body", "몸|병|아프|건강|약|치료|증상|뼈|피부"),
-          ("people", "사람|직업|가족|선수|사람이에요|하는 사람"), ("school", "학교|공부|수업|과목|책|시험|학기|글"), ("play", "운동|놀이|경기|악기|공연|게임|노래|그림"),
-          ("nature", "자연|날씨|하늘|바다|산|강|식물|꽃|나무|돌|흙|번개"), ("place", "장소|곳|건물|가게|탈것|차|배|비행기|길"), ("time", "시간|날|달|해|숫자|색|번|순서"),
-          ("society", "나라|사회|돈|회사|뉴스|법|정부|문화|대륙"), ("home", "물건|집|가구|옷|도구|가방|상자|그릇")]
+# (v322) 점검: 앨범 짐작이 자주 틀림 (일몰·칼날→time, 젓가락·찬장→food, 땅콩·올리브→mind2, 예약→body) →
+#        ① 뜻(ko)으로 먼저 짐작하고 설명은 그다음 ② 음식·시간을 먼저 ③ '해·날·달·번·약' 같은 한 글자 낱말은 빼고 낱말을 더 넣음
+ALB_KW = [("food", "음식|과일|채소|먹을|마시는|음료|빵|요리$|맛$|간식|과자|열매|콩$|땅콩|호두|올리브|코코넛|카카오|고기|치즈|소스|국수|쌀"),
+          ("time", "시간|시각|요일|날짜|달력|아침|저녁|오전|오후|계절|세기|숫자|번째|순서|[가-힣]색$|^색"),
+          ("animal", "동물|곤충|새끼|물고기|짐승|뱀|벌레|날개|꼬리|새$"),
+          ("body", "몸|병$|질병|아프|건강|약품|알약|치료|증상|뼈|피부|상처|눈썹|눈알|안구|손목|발목|머리$|하품|질식|복용|바이러스|백신|청력|혈액|격리|검역"),
+          ("home", "물건|가구|옷|도구|가방|상자|그릇|용기|의자|침대|매트리스|젓가락|숟가락|찬장|수납|냉동|냉장|세제|끈|장화|부츠|신발|모자|재킷|컴퓨터|기기|밸브|구슬|소포|굴뚝|히터|난방"),
+          ("people", "사람|직업|가족|선수|요정|인어|어부|상인|주의자|[가-힣]자$|꾼$"), ("school", "학교|공부|수업|과목|책$|시험|고사|학기|글$|[가-힣]학$|평가|비평|설명|묘사"),
+          ("play", "운동|놀이|경기|악기|공연|게임|노래|그림"),
+          ("nature", "자연|날씨|하늘|바다|산$|강$|식물|꽃|나무|돌$|흙|번개|햇빛|햇살|서리|일몰|해 질|수성|행성|별$|눈$|비$"),
+          ("place", "장소|곳$|건물|가게|탈것|자동차|자전거|유람선|트랙터|교통|배$|비행기|길$|도시|인도|보도|운하|수로|주택|거주|마을|캠프장|야영지|지붕|탑$|진료소|하수"),
+          ("society", "나라|사회|돈|회사|뉴스|법$|정부|문화|대륙|예약|약속|무기|요금|협회|허가|허락|회의|모임|노동|출판|비자|입국")]
+# (v322) 두 뜻이 같은 뜻인지 — 게임 index.html 의 koSame() 과 같은 규칙 (뜻 조각의 꼬리 '하다·한·의…'를 떼고 같거나 2글자 이상이 서로 들어 있으면)
+KO_SUF = re.compile(r"(스러운|적인|하다|하는|되다|해요|한|된|다|의|은|는|운|색|이|로)$")
+def ko_parts(k): return [y for y in (re.sub(r"[\s~·.…]", "", re.sub(r"\([^)]*\)", "", x)) for x in re.split(r"[,;/]", k or "")) if y]
+def ko_stem(p):
+    s = KO_SUF.sub("", p); return s if len(s) >= 2 else p
+def ko_same(a, b):
+    A = [ko_stem(x) for x in ko_parts(a)]; B = [ko_stem(x) for x in ko_parts(b)]
+    return any(x == y or (len(x) >= 2 and len(y) >= 2 and (x in y or y in x)) for x in A for y in B)
+ALB_CONCRETE ={"food", "animal", "body", "home", "nature", "place"}   # 설명 글로는 이것만 짐작 ('사람'·'시간'은 설명에 너무 자주 나옴)
 def guess_album(pos, ko, expl, level):
-    t = ko + " " + expl
     if pos == "동사": return ("act2" if level <= 2 else "act3"), False
     if pos in ("형용사", "부사"): return ("feel1" if level <= 1 else "feel2"), False
-    for a, kw in ALB_KW:
-        if re.search(kw, t): return a, True
+    parts = [re.sub(r"\(.*?\)", "", x).strip() for x in re.split(r"[,，]", ko) if x.strip()]
+    for a, kw in ALB_KW:               # 뜻 조각으로 먼저
+        if any(re.search(kw, p) for p in parts): return a, True
+    for a, kw in ALB_KW:               # 없으면 설명으로 (구체적인 앨범만)
+        if a in ALB_CONCRETE and re.search(kw, expl): return a, True
     return ("mind1" if level <= 1 else "mind2"), True
 
 def to_auto(results, levels, days):
@@ -262,7 +288,8 @@ def to_auto(results, levels, days):
     wb = {}
     for m in re.finditer(r'\{en:"([^"]+)",ko:"([^"]*)"', base): wb.setdefault(m.group(1), m.group(2))
     for en, w in A.get("words", {}).items(): wb.setdefault(en, w["ko"])
-    norm = lambda s: set(x.strip() for x in re.split(r"[,·/;]", re.sub(r"\(.*?\)", "", s)) if x.strip())
+    wb0 = dict(wb)
+    norm =lambda s: set(x.strip() for x in re.split(r"[,·/;]", re.sub(r"\(.*?\)", "", s)) if x.strip())
     A.setdefault("course", {}); A.setdefault("ko", {}); A.setdefault("words", {}); A.setdefault("album", [])
     have = {en for _, en in A["album"]}; added, guessed = [], []
     for res, lv, day in zip(results, levels, days):
@@ -284,6 +311,16 @@ def to_auto(results, levels, days):
                     if g: guessed.append(f"{en}→{alb}")
         if ko: A["ko"].setdefault(setk, {})[str(day)] = ko
         else: A["ko"].get(setk, {}).pop(str(day), None)
+    # (v322) 단어장 뜻이나 다른 반 교재 뜻(COURSE_KO)이 새 품사별 뜻(P)에 하나도 없으면 알림 — 게임은 그 Stage 에서 v6 예문·대화를 안 씀
+    #        (mean: 단어장 '의미하다' ↔ 리스닝 '못된'만 → 다른 뜻 예문으로 문제가 나왔다). 원본 md 에 그 뜻 품사 줄을 넣을 것.
+    bex = json.load(open(os.path.join(R, "data", "bex.json"), encoding="utf8")); lost = []
+    for res in results:
+        for d in res["rows"]:
+            en = d["영어"].lower(); P = (bex.get(en) or {}).get("P") or []
+            olds = [("단어장", wb0.get(en))] + [(f"{s} {dy}", m.get(en)) for s, D in A["ko"].items() for dy, m in D.items()]
+            for where, k in olds:
+                if k and P and not any(ko_same(k, p[1]) for p in P) and (en, k) not in [(x[0], x[2]) for x in lost]: lost.append((en, where, k, " / ".join(p[1] for p in P)))
+    for en, where, k, ps in lost: print(f"⚠️ 기존 뜻 사라짐: {en} — {where} '{k}' 이(가) 새 뜻에 없음 ({ps})")
     json.dump(A, open(AF, "w", encoding="utf8"), ensure_ascii=False, indent=1)
     import subprocess; subprocess.run([sys.executable, os.path.join(R, "tools", "words", "sync.py")], check=True)
     if added: print("새 게임 단어 %d개: %s" % (len(added), ", ".join(added)))
@@ -296,10 +333,13 @@ def apply(results):
     lvl = {}
     for m in re.finditer(r'\{en:"([^"]+)",ko:"[^"]*"[^}]*?level:(\d)', html_): lvl.setdefault(m.group(1), int(m.group(2)))
     talk_lines, newwords, done = [], [], {}
+    talk_rows = []   # (v322) [줄 칸들, 단어, 그 대화의 뜻 (품사, 뜻)] — 끝에 합친 P 에서 몇 번째 뜻인지 찾는다
     for res in results:
+        rowP = {}
         for d in res["rows"]:
             en = d["영어"]; key = en.lower()
             P = [[d["품사 1"], d["뜻 1"], d["설명 1"]]] + ([[d["품사 2"], d["뜻 2"], d["설명 2"]]] if d["품사 2"] != "—" else [])
+            rowP[key] = [p[:2] for p in P]
             x = [[d["예문 1"], d["해석 1"], 1], [d["예문 2"], d["해석 2"], int(d["예문 2 뜻"]) if d["예문 2 뜻"] in ("1","2") else 1]]
             if key in done:   # (v281) 같은 단어가 다른 DAY 에 또 나옴 (back: 등 → 뒤) — 뜻·예문을 합친다 (뒤 DAY 가 앞 DAY 를 덮지 않게)
                 P0, x0 = done[key]; idx = {}
@@ -332,6 +372,7 @@ def apply(results):
             D[0] = P[0][2]; D[1] = "·".join(dict.fromkeys(p[0] for p in P))
             if d["변하는 모양"] != "—": D[2] = d["변하는 모양"]
             old = [e for e in (D[3] or []) if e and e[0] not in (x[0][0], x[1][0])]
+            old.sort(key=lambda e: len(e) > 2)   # (v322) 뜻 번호가 없는 예전 사전 예문(We cycle to school.)을 먼저 남김 — 바뀐 v6 예문 찌꺼기 말고
             D[3] = [[e[0], e[1], e[2]] for e in x[:4]] + (old[:1] if len(x) <= 2 else [])
             if d["자주 쓰는 말"] != "—": D[6] = d["자주 쓰는 말"]
             rel = dict(D[7] or {})
@@ -342,9 +383,28 @@ def apply(results):
             elif str(D[8]).startswith("다른 뜻"): D[8] = ""          # 품사별 뜻(D[10])으로 보여 주므로
             D[10] = P
             dex[book][key] = D
+        nth = {}
         for t in res["talk"]:
             for k in ("A","B","A 해석","B 해석","상황"): assert "|" not in t[k]
-            talk_lines.append("|".join([t["영어"].lower(), t["A"], t["B"], t["A 해석"] + " / " + t["B 해석"], t["상황"]]))
+            key = t["영어"].lower(); nth[key] = nth.get(key, 0) + 1; rp = rowP.get(key) or [["", ""]]
+            # (v322) 대화의 뜻 — 프롬프트 규칙: 대화 1 = 품사 1 의 뜻, 품사 2 가 있으면 대화 2 = 품사 2 의 뜻 (게임이 Stage 뜻과 맞는 대화만 쓰게)
+            #        규칙을 안 지킨 대화는 v6/talk_sense.txt 에 (단어|A 앞부분|품사)
+            sp = rp[1] if nth[key] == 2 and len(rp) > 1 else rp[0]
+            fix = next((p for (w, a), p in TALK_SENSE.items() if w == key and t["A"].startswith(a)), None)
+            if fix:
+                m = [q for q in rp if q[0] == fix]
+                if m: sp = m[0]
+                else: print(f"⚠️ talk_sense.txt: {key} '{fix}' 품사가 그 DAY 줄에 없음")
+            talk_rows.append(([key, t["A"], t["B"], t["A 해석"] + " / " + t["B 해석"], t["상황"]], key, sp))
+    parts = lambda m: [s.strip() for s in m.split(",") if s.strip()]
+    for cells, key, sp in talk_rows:
+        P = done[key][0]
+        j = next((k for k, q in enumerate(P, 1) if q[0] == sp[0] and set(parts(q[1])) & set(parts(sp[1]))), 1)
+        talk_lines.append("|".join(cells + [str(j)]))
+    # (v322) 같은 품사 뜻이 두 줄로 갈림 (뜻 이름이 조금 달라 합쳐지지 않음: '(몸을) 떨다' / '떨다') → 원본 md 뜻을 맞출 것
+    for key, (P, _) in done.items():
+        ps = [p[0] for p in P]
+        if len(ps) != len(set(ps)) and key not in SAME_POS_OK: print(f"⚠️ 같은 품사 뜻 두 줄: {key} — " + " / ".join(p[0] + " " + p[1] for p in P))
     json.dump(bex, open(bexf, "w", encoding="utf8"), ensure_ascii=False, separators=(",", ":"))
     for bb in (1, 2, 3): json.dump(dex[bb], open(os.path.join(R, "data", f"dex{bb}.json"), "w", encoding="utf8"), ensure_ascii=False, separators=(",", ":"))
     tf = os.path.join(R, "tools", "talk", "v6.txt")

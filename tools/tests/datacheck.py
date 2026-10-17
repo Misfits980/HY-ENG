@@ -24,17 +24,38 @@ JS = r"""async (full)=>{
   R.info["검사한 단어"]=nd;
   // ③ 교재 반: 대화 · 같은 Stage 같은 뜻
   const sets=Study.SETS.filter(s=>!["kinder","abc","short","long","digr","vowel2","sight","phrase"].includes(s));
-  sets.forEach(set=>{ Study.lessons(set).forEach(x=>{ if(x.fin) return;
-    const ko={}; x.ws.forEach(w=>{ const k=String(w.ko).split(/[,(]/)[0].trim(); if(ko[k] && ko[k]!==w.en) R.bad.push(set+" Stage "+Study.stageNo(set,x.n)+": '"+ko[k]+"' 과 '"+w.en+"' 뜻이 같음 ("+k+")"); ko[k]=w.en; });
+  /* (v322) 같은 뜻 비교를 뜻 조각 전체로 (예전엔 첫 조각만: teeth '이, 이빨' · tooth '이빨' 을 못 봄) · 🚩 판도.
+     첫 뜻이 같으면 ❌, 다른 조각이 겹치면 ⚠️ (게임은 decoys 가 겹치는 조각을 보기에서 빼므로 문제는 안 되지만 볼 것) */
+  const seenP={};
+  sets.forEach(set=>{ Study.lessons(set).forEach(x=>{
+    const ko={}, kp={}; x.ws.forEach(w=>{ const k=String(w.ko).replace(/\([^)]*\)/g,"").split(/[,(]/)[0].trim(); if(k && ko[k] && ko[k]!==w.en){ const m=set+" Stage "+Study.stageNo(set,x.n)+": '"+ko[k]+"' 과 '"+w.en+"' 뜻이 같음 ("+k+")"; if(x.fin) W("🚩 판에 첫 뜻이 같은 단어 (보기에서는 서로 빠짐)", m); else R.bad.push(m); } ko[k]=w.en;
+      koParts(w.ko).forEach(p=>{ const o=kp[p]; if(o && o!==w.en){ const t=[o, w.en].sort().join(" · ")+" ("+p+")"; if(!seenP[t]){ seenP[t]=1; W("같은 Stage 에 뜻 조각이 겹침", set+" "+t); } } kp[p]=w.en; }); });
+    if(x.fin) return;
     if(["basic","elem","g56"].includes(set)) x.ws.forEach(w=>{ if((TALK[w.en]||[]).length<2) W("대화 2개 미만 ("+set+")", w.en); }); }); });
   // ④ Stage 문제 만들기 · 그리기 (★1 · ★2 · 💜 심화)
   const S=Study.load(), keep=JSON.stringify(S); let built=0, shown=0;
   const pick=set=>{ const L=Study.lessons(set).filter(x=>!x.fin); if(full) return L; if(set==="g56") return L.filter(x=>x.n<11600).concat(L.filter(x=>x.n>=11600).slice(0,3)); return L.slice(0,3); };
+  /* (v322) 보기에 뜻 조각이 정답과 겹치는 단어 (정답 둘) — 뜻·대화·문장 보기 (q.opts 가 단어일 때) */
+  const dupOpt=(q, where)=>{ if(!q || !q.w || !Array.isArray(q.opts) || !/^(k2e|e2k|sent|talk|listen|pic|opic)$/.test(q.t)) return; const P=koParts(q.w.ko);
+    q.opts.forEach(o=>{ if(o && typeof o==="object" && o.en!==q.w.en && koParts(o.ko).some(p=>P.indexOf(p)>=0)) R.bad.push(where+" "+q.t+" 보기 정답 둘: "+q.w.en+"("+q.w.ko+") · "+o.en+"("+o.ko+")"); }); };
+  /* (v322) 🚩 마지막 시험 판도 만들고 그려 본다 (기본은 반마다 앞 2개, --full 은 전부) */
+  let olyN=0;
+  for(const set of sets){ const F=Study.lessons(set).filter(x=>x.fin && Study.olyOn(set,x)); for(const x of (full ? F : F.slice(0,2))){
+    let qs=null; try{ qs=Study.buildOly(set, x); built++; olyN++; }catch(e){ R.bad.push(set+" 🚩 "+x.n+" 만들기 오류: "+e.message); continue; }
+    if(!qs || !qs.length){ R.bad.push(set+" 🚩 "+x.n+" 문제 0개"); continue; }
+    StudyUI.set=set; StudyUI.les=x; StudyUI.qs=qs; StudyUI.tier=0; StudyUI.test=false; StudyUI.oly=true; StudyUI.rv=false; StudyUI.retryMode=false; StudyUI.begin();
+    qs.forEach(q=>dupOpt(q, set+" 🚩 "+Study.stageNo(set,x.n)));
+    for(let i=0;i<qs.length;i++){ StudyUI.i=i; StudyUI.locked=false; StudyUI._brk=false;
+      try{ StudyUI.show(); shown++; const h=document.getElementById("stQ").innerHTML; if(/undefined|NaN|\[object Object\]/.test(h)) R.bad.push(set+" 🚩 "+x.n+" "+qs[i].t+" 화면에 undefined: "+(qs[i].w||{}).en); }
+      catch(e){ R.bad.push(set+" 🚩 "+x.n+" "+qs[i].t+" 그리기 오류: "+e.message+" ("+(qs[i].w||{}).en+")"); } }
+    try{ StudyUI.tStop(); }catch(e){} } }
+  R.info["🚩 판"]=olyN;
   for(const set of sets){ for(const x of pick(set)){
     for(const lv of [0,1,2]){
       const s=Study.load(); s.lv[Study.key(set,x.n)]=lv; if(lv>=1) x.ws.forEach(w=>s.seen[w.en]=1); else x.ws.forEach(w=>delete s.seen[w.en]); s.dp=s.dp||{}; s.dp[Study.key(set,x.n)]=lv>=2?1:0; Study.save();
       let qs=null; try{ qs=Study.build(set, x.n, false); built++; }catch(e){ R.bad.push(set+" "+x.n+" ★"+(lv+1)+" 만들기 오류: "+e.message); continue; }
       if(!qs || !qs.length){ R.bad.push(set+" "+x.n+" ★"+(lv+1)+" 문제 0개"); continue; }
+      qs.forEach(q=>dupOpt(q, set+" "+Study.stageNo(set,x.n)+" ★"+(lv+1)));
       const miss=x.ws.filter(w=>!qs.some(q=>q.w && q.w.en===w.en || (q.ws||[]).some(o=>o.en===w.en)));
       if(miss.length && !(lv===0 && x.ws.length>20)) W("판에 안 나온 단어 (★"+(lv+1)+")", set+" "+Study.stageNo(set,x.n)+": "+miss.map(w=>w.en).join(","));
       StudyUI.set=set; StudyUI.les=x; StudyUI.qs=qs; StudyUI.tier=Study.tierCur(); StudyUI.test=false; StudyUI.oly=false; StudyUI.rv=false; StudyUI.retryMode=false; StudyUI.begin();

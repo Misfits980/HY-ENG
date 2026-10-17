@@ -1,8 +1,10 @@
 ## 중등 (Junior) DAY 41 — Claude 작성 (2026-10-16)
 
+> (v322) 노션과 다름: found 에 품사 2 '동사 과거형 · 찾았다 (find)' 줄과 예문 2·대화 2 를 그 뜻으로 (게임 단어장 뜻 '찾았다'가 '설립하다' 예문으로 나오던 것)
+
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| found | 동사 | 설립하다, 세우다 | 학교·회사 같은 단체를 처음 만드는 것이에요. | — | — | — | My aunt hopes to found a small animal shelter in our town. | 이모는 우리 동네에 작은 동물 보호소를 세우고 싶어 해요. | Our school was founded by a kind doctor in 1950. | 우리 학교는 1950년에 한 친절한 의사 선생님이 세웠어요. | 1 | founds · founded · founded · founding | found a school (학교를 설립하다) · found a company (회사를 세우다) | establish (설립하다) | — | find (찾다) |
+| found | 동사 | 설립하다, 세우다 | 학교·회사 같은 단체를 처음 만드는 것이에요. | 동사 과거형 | 찾았다 (find) | find(찾다)의 지난 모양이에요. | My aunt hopes to found a small animal shelter in our town. | 이모는 우리 동네에 작은 동물 보호소를 세우고 싶어 해요. | I found my lost key under the sofa last night. | 어젯밤 소파 밑에서 잃어버린 열쇠를 찾았어요. | 2 | 동사 founds · founded · founded · founding | found a school (학교를 설립하다) · found a company (회사를 세우다) | establish (설립하다) | — | find (찾다) |
 | flu | 명사 | 독감 | 열이 나고 온몸이 아픈 심한 감기예요. | — | — | — | Many students get the flu in winter, so wash your hands often. | 겨울에는 독감에 걸리는 학생이 많으니 손을 자주 씻으세요. | Half of my class stayed home with the flu last December. | 지난 12월에 우리 반 절반이 독감 때문에 집에 있었어요. | 1 | — | catch the flu (독감에 걸리다) · a flu shot (독감 예방 주사) | — | — | flew (날았다, fly의 과거) |
 | improve | 동사 | 향상시키다, 나아지다 | 더 좋게 만들거나 더 좋아지는 것이에요. | — | — | — | Drinking enough water can improve your focus during the exam week. | 물을 충분히 마시면 시험 기간 동안 집중력이 좋아질 수 있어요. | Tom's swimming improved a lot after he joined the swim team. | 톰은 수영부에 들어간 뒤 수영 실력이 많이 늘었어요. | 1 | improves · improved · improved · improving | improve your skills (실력을 키우다) · improve a lot (많이 나아지다) | — | worsen (나빠지다) | approve (찬성하다) |
 | extinct | 형용사 | 멸종된, 사라진 | 그 종류가 모두 죽어 더는 없는 것이에요. | — | — | — | Dinosaurs became extinct about sixty-six million years ago, long before humans. | 공룡은 인류가 나타나기 훨씬 전인 약 6,600만 년 전에 멸종했어요. | Last week, we saw the bones of an extinct bird at the museum. | 지난주에 우리는 박물관에서 멸종된 새의 뼈를 봤어요. | 1 | — | become extinct (멸종하다) · an extinct animal (멸종 동물) | — | alive (살아 있는) | distinct (뚜렷한) |
@@ -40,7 +42,7 @@
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 |---|---|---|---|---|---|
 | found | 동아리를 만들고 싶을 때 | Our school doesn't have a club for people who love cooking. | Then let's found one together and ask a teacher to help. | 우리 학교에는 요리를 좋아하는 사람을 위한 동아리가 없어. | 그럼 우리가 같이 하나 만들고 선생님께 도와 달라고 하자. |
-| found | 회사 견학을 할 때 | When did this toy company start making robots? | Two friends decided to found it about thirty years ago. | 이 장난감 회사는 언제부터 로봇을 만들었어요? | 30년쯤 전에 두 친구가 이 회사를 세우기로 했단다. |
+| found | 잃어버린 걸 찾았을 때 | Did you find your science notebook this morning? | Yes, I found it under my bed at last. | 오늘 아침에 과학 공책 찾았어? | 응, 드디어 침대 밑에서 찾았어. |
 | flu | 예방 주사를 맞으러 갈 때 | Why do we have to go to the clinic today? | You need a shot so you don't get the flu. | 오늘 왜 병원에 가야 해요? | 독감에 안 걸리려면 주사를 맞아야 해. |
 | flu | 친구가 결석한 뒤 | Why weren't you at school for the last three days? | I had the flu with a high fever and a sore throat. | 지난 사흘 동안 왜 학교에 안 왔어? | 독감에 걸려서 열이 높고 목이 아팠어. |
 | improve | 영어 말하기가 걱정될 때 | My English speaking is still slow and full of mistakes. | Watch movies in English, and you will improve very fast. | 내 영어 말하기는 아직 느리고 틀린 게 많아. | 영어로 영화를 봐, 그러면 아주 빨리 늘 거야. |

@@ -1,5 +1,7 @@
 ## 2단계 (Starter) DAY 05 — Claude 작성 (2026-10-16)
 
+> (v322) 노션과 다름: coach 변하는 모양을 품사별로
+
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | practice | 동사 | 연습하다 | 잘하려고 여러 번 해 보는 것이에요. | 명사 | 연습 | 잘하려고 되풀이하는 일이에요. | I practice the piano every day. | 나는 매일 피아노를 연습해요. | Soccer practice ended late yesterday. | 어제 축구 연습이 늦게 끝났어요. | 2 | practices · practiced · practiced · practicing | practice hard (열심히 연습하다) · soccer practice (축구 연습) | — | — | — |
@@ -20,7 +22,7 @@
 | jog | 동사 | 천천히 달리다, 조깅하다 | 건강을 위해 가볍게 달리는 것이에요. | — | — | — | My mom likes to jog in the morning. | 엄마는 아침에 조깅하는 걸 좋아하세요. | We jogged around the lake yesterday. | 우리는 어제 호수 둘레를 천천히 달렸어요. | 1 | jogs · jogged · jogged · jogging | go jogging (조깅하러 가다) · jog in the park (공원에서 조깅하다) | run (달리다) | — | — |
 | pull | 동사 | 당기다, 끌다 | 무엇을 내 쪽으로 끌어오는 것이에요. | — | — | — | Pull the door to open it. | 문을 열려면 당기세요. | The dog pulled me down the street. | 개가 나를 끌고 길을 따라갔어요. | 1 | pulls · pulled · pulled · pulling | pull the rope (줄을 당기다) · pull the door (문을 당기다) | — | push (밀다) | — |
 | hobby | 명사 | 취미 | 시간이 날 때 즐겨 하는 일이에요. | — | — | — | My hobby is taking pictures. | 내 취미는 사진 찍기예요. | Dad's hobby was fishing when he was young. | 아빠가 어렸을 때 취미는 낚시였어요. | 1 | hobbies | my hobby (내 취미) · a fun hobby (재미있는 취미) | — | — | — |
-| coach | 명사 | 코치 | 운동을 가르치는 사람이에요. | 동사 | 지도하다 | 운동이나 기술을 가르치는 것이에요. | Our soccer coach is kind and funny. | 우리 축구 코치님은 친절하고 재미있어요. | My uncle coached a baseball team for years. | 삼촌은 몇 년 동안 야구팀을 지도했어요. | 2 | coaches · coached · coached · coaching | a soccer coach (축구 코치) · coach a team (팀을 지도하다) | — | — | — |
+| coach | 명사 | 코치 | 운동을 가르치는 사람이에요. | 동사 | 지도하다 | 운동이나 기술을 가르치는 것이에요. | Our soccer coach is kind and funny. | 우리 축구 코치님은 친절하고 재미있어요. | My uncle coached a baseball team for years. | 삼촌은 몇 년 동안 야구팀을 지도했어요. | 2 | 명사 coaches / 동사 coaches · coached · coached · coaching | a soccer coach (축구 코치) · coach a team (팀을 지도하다) | — | — | — |
 | quick | 형용사 | 빠른, 재빠른 | 짧은 시간에 하는 것이에요. | — | — | — | Let's eat a quick lunch now. | 지금 점심을 빨리 먹자. | The quick rabbit ran away from the fox. | 재빠른 토끼가 여우에게서 도망갔어요. | 1 | quicker · quickest | be quick (서둘러) · a quick look (잠깐 보기) | fast (빠른) | slow (느린) | — |
 | table tennis | 명사 | 탁구 | 탁자 위에서 작은 공을 치는 운동이에요. | — | — | — | We play table tennis after school. | 우리는 방과 후에 탁구를 쳐요. | I won a table tennis game yesterday. | 나는 어제 탁구 시합에서 이겼어요. | 1 | — | play table tennis (탁구를 치다) · a table tennis ball (탁구공) | — | — | — |
 | uniform | 명사 | 유니폼, 교복 | 같은 무리가 똑같이 입는 옷이에요. | — | — | — | Our team has a blue uniform. | 우리 팀은 파란 유니폼을 입어요. | I wore my school uniform on the trip. | 나는 여행에 교복을 입고 갔어요. | 1 | uniforms | a school uniform (교복) · a soccer uniform (축구 유니폼) | — | — | — |
