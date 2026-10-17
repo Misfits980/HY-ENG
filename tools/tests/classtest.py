@@ -32,7 +32,7 @@ async def main():
                 if want not in txt: bad.append(f"{name} 우리 반에 '{want}' 없음")
             tabs=await pg.evaluate("()=>{ const t=document.getElementById('adTabs'), b=[...t.querySelectorAll('button')]; return [b.length, new Set(b.map(x=>Math.round(x.getBoundingClientRect().top))).size, document.documentElement.scrollWidth<=innerWidth]; }")
             print(name, "tabs", tabs)
-            if tabs[0]!=7 or tabs[1]!=1: bad.append(f"{name} 탭이 한 줄이 아님 {tabs}")
+            if tabs[0]!=8 or tabs[1]!=1: bad.append(f"{name} 탭이 한 줄이 아님 {tabs}")
             await pg.screenshot(path=OUT+f"class_{name}.png", full_page=False)
             if name=="phone":
                 await pg.click("[data-ad=weakBt]"); await pg.wait_for_timeout(400)
