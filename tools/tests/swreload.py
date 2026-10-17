@@ -24,5 +24,26 @@ async def main():
         await pg.evaluate(fire); await pg.wait_for_timeout(2500); print('in run ->', await L(), await pg.evaluate("()=>G.running"))
         await pg.evaluate("()=>{ gameOver(); }"); await pg.wait_for_timeout(3000); print('result screen ->', await L())
         await pg.evaluate("()=>document.getElementById('btnMain').click()"); await pg.wait_for_timeout(2600); print('main menu ->', await L())
-        print(errs[:3]); await br.close()
+        print(errs[:3])
+        # (v322) 첫 화면이어도 보스 화면·이름 고르기·보상 창 위, 레이드 중(화면이 가려져도)에는 미뤄야 한다
+        ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
+        await ctx.add_init_script(FAKE.replace("window.__loads", "window.HY_FB_LOCAL=true; window.__loads", 1))
+        pg=await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e))); await boot(pg)
+        L=lambda: pg.evaluate("()=>window.__loads")
+        SETUP="""()=>FB.set('/hy/roster',{t:{},k:{k1:{n:'민준'}}}).then(()=>HyBoss.setup({on:true,team:false,split:'eq',restart:true})).then(()=>{ Kid.set({id:'k1',n:'민준',t:'all'}); HyBoss.earn(Kid.get(),'study',6); show('scStart'); })"""
+        cases=[("boss view", "()=>WeekBoss.open()", "()=>WeekBoss.close()"),
+               ("kid picker", "()=>KidPick.open()", "()=>KidPick.close()"),
+               ("gain popup", "()=>WeekBoss.gain(2,'study')", "()=>{ const d=document.getElementById('wbPop'); if(d) d.remove(); }"),
+               ("raid + hidden", "()=>{ Raid.role='host'; Object.defineProperty(document,'hidden',{get:()=>true,configurable:true}); document.dispatchEvent(new Event('visibilitychange')); }",
+                                 "()=>{ Raid.role=null; }")]
+        for name, op, cl in cases:
+            await pg.evaluate(SETUP); await pg.wait_for_timeout(300); n0=await L()
+            await pg.evaluate(op); await pg.wait_for_timeout(400); await pg.evaluate(fire); await pg.wait_for_timeout(2600)
+            n1=await L(); print(name, 'loads', n0, '->', n1)
+            if n1!=n0: print("BAD reloaded while", name)
+            await pg.evaluate(cl); await pg.wait_for_timeout(2600)
+            n2=await L(); print(name, 'closed -> loads', n2)
+            if n2==n1: print("BAD did not reload after closing", name)
+            await pg.wait_for_timeout(600); await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); try{ StudyUI.FAST=0; }catch(e){} }")
+        print('errs', real_errs(errs)[:3]); await br.close()
 asyncio.run(main())

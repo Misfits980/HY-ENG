@@ -1,6 +1,11 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
 const VERSION = "hyeng-v321";
+/* (v322) 그림(assets/)은 버전마다 다시 받지 않게 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 그림 130개(약 22MB)를 다시 받았다.
+   그림 파일을 '같은 이름으로' 새로 바꿨을 때만 아래 숫자를 올리세요 (새 이름의 그림은 그냥 올리면 됨). */
+const ART = "hyeng-art-v1";
+const isArt = u => new URL(u, self.location.href).pathname.indexOf("/assets/") >= 0;
+const isData = u => /\/data\/[^/]+\.json$/.test(new URL(u, self.location.href).pathname);
 const CORE = [
   "./",
   "./index.html",
@@ -39,14 +44,38 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림�
   "./assets/world/props-night.webp", "./assets/world/props-plaza.webp", "./assets/world/props-rampart.webp", "./assets/world/props-volcano.webp",
   "./assets/world/sign-castle.webp", "./assets/world/sign-desert.webp", "./assets/world/sign-hall.webp", "./assets/world/sign-ice.webp",
   "./assets/world/sign-meadow.webp", "./assets/world/sign-night.webp", "./assets/world/sign-plaza.webp", "./assets/world/sign-rampart.webp",
-  "./assets/world/sign-volcano.webp"
+  "./assets/world/sign-volcano.webp",
+  /* (v322) v298 뒤에 들어온 그림 — 첫 화면 카드·교재 표지·보스 공격 그림·달리기 캐릭터. (걷기 그림 walk/·이모지 emoji/ 는 쓸 때 받아 그림 캐시에 둔다) */
+  "./assets/world/world-desert.webp", "./assets/world/world-ice.webp", "./assets/world/world-meadow.webp", "./assets/world/world-night.webp",
+  "./assets/world/world-volcano.webp", "./assets/books/book-abc.webp", "./assets/books/book-all.webp", "./assets/books/book-basic.webp",
+  "./assets/books/book-digr.webp", "./assets/books/book-elem.webp", "./assets/books/book-g56h.webp", "./assets/books/book-g56v.webp",
+  "./assets/books/book-jl.webp", "./assets/books/book-kinder.webp", "./assets/books/book-long.webp", "./assets/books/book-mid.webp",
+  "./assets/books/book-mv1.webp", "./assets/books/book-rd1.webp", "./assets/books/book-rd2.webp", "./assets/books/book-rd3.webp",
+  "./assets/books/book-short.webp", "./assets/books/book-sight.webp", "./assets/books/book-vowel2.webp", "./assets/ui/mode-e2k.webp",
+  "./assets/ui/mode-k2e.webp", "./assets/ui/mode-mix.webp", "./assets/items/item-heart.webp", "./assets/items/item-hint.webp",
+  "./assets/items/item-shield.webp", "./assets/items/item-slow.webp", "./assets/chars/run-archer.webp", "./assets/chars/run-cat.webp",
+  "./assets/chars/run-explorer.webp", "./assets/chars/run-ghost.webp", "./assets/chars/run-hero.webp", "./assets/chars/run-knight.webp",
+  "./assets/chars/run-mage.webp", "./assets/chars/run-scholar.webp", "./assets/chars/run-wolf.webp", "./assets/boss/hb1-a.webp",
+  "./assets/boss/hb1-b.webp", "./assets/boss/hb1-c.webp", "./assets/boss/hb2-a.webp", "./assets/boss/hb2-b.webp",
+  "./assets/boss/hb2-c.webp", "./assets/boss/hb3-a.webp", "./assets/boss/hb3-b.webp", "./assets/boss/hb3-c.webp",
+  "./assets/boss/hb4-a.webp", "./assets/boss/hb4-b.webp", "./assets/boss/hb4-c.webp", "./assets/boss/hb5-a.webp",
+  "./assets/boss/hb5-b.webp", "./assets/boss/hb5-c.webp", "./assets/boss/hbS-a.webp", "./assets/boss/hbS-b.webp",
+  "./assets/boss/hbS-c.webp", "./assets/boss/hbS.webp"
 ];
 
+/* (v322) 설치할 때 HTTP 캐시(깃허브 페이지 max-age 10분)를 건너뛰고 서버에서 새로 받는다 (cache:'reload').
+   예전엔 새 버전 캐시에 옛 data/*.json 이 그대로 들어가서, 업데이트해도 단어·대화 자료가 옛것이었다 */
+const fresh = u => new Request(u, {cache: "reload"});
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
-    const c = await caches.open(VERSION);
-    await c.addAll(CORE);
-    for (const url of OPTIONAL) { try { await c.add(url); } catch (err) {} }
+    const c = await caches.open(VERSION), art = await caches.open(ART);
+    await c.addAll(CORE.map(fresh));
+    for (const url of OPTIONAL) {
+      try {
+        if (isArt(url)) { if (!(await art.match(url))) await art.add(fresh(url)); }   // 그림은 이미 있으면 건너뜀
+        else await c.add(fresh(url));
+      } catch (err) {}
+    }
     self.skipWaiting();
   })());
 });
@@ -54,7 +83,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)));
+    await Promise.all(keys.filter(k => k !== VERSION && k !== ART).map(k => caches.delete(k)));   // (v322) 그림 캐시는 남긴다
     self.clients.claim();
   })());
 });
@@ -67,17 +96,20 @@ self.addEventListener("fetch", e => {
   // 게임 화면(HTML)은 항상 새로 받아온다 — 올린 즉시 새 버전이 보이게.
   // 인터넷이 없을 때만 저장해 둔 것을 쓴다.
   const isPage = e.request.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("/");
-  if (isPage) {
+  /* (v322) data/*.json(단어·대화 자료)도 인터넷이 되면 새로 받는다 (바뀐 게 없으면 서버가 짧게 '그대로'라고만 답함). 안 되면 저장해 둔 것 */
+  if (isPage || (url.origin === self.location.origin && isData(e.request.url))) {
     e.respondWith((async () => {
       try {
-        const res = await fetch(e.request, {cache: "no-store"});
+        const res = await fetch(e.request, {cache: isPage ? "no-store" : "no-cache"});
         if (res && res.ok) {
           const c = await caches.open(VERSION);
           c.put(e.request, res.clone());
         }
         return res;
       } catch (err) {
-        return (await caches.match(e.request)) || (await caches.match("./index.html"));
+        const hit = await caches.match(e.request, {ignoreSearch: true});
+        if (hit) return hit;
+        return isPage ? (await caches.match("./index.html")) : Response.error();
       }
     })());
     return;
@@ -89,7 +121,7 @@ self.addEventListener("fetch", e => {
     try {
       const res = await fetch(e.request);
       if (res && (res.ok || res.type === "opaque")) {
-        const c = await caches.open(VERSION);
+        const c = await caches.open(url.origin === self.location.origin && isArt(e.request.url) ? ART : VERSION);   // (v322) 그림은 그림 캐시에
         c.put(e.request, res.clone());
       }
       return res;

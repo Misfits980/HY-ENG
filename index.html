@@ -1329,6 +1329,19 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 #scOver .resStats b{display:block;font-size:21px;font-weight:900;font-variant-numeric:tabular-nums;color:#fff}
 #scOver .resStats small{display:block;margin-top:2px;font-size:10.5px;font-weight:800;color:#9d92c8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #scOver .resStats .rsW.zero b:after{content:" 🎊";font-size:14px}
+#scOver .resStats small i{font-style:normal}
+#scOver #btnMain{white-space:nowrap}   /* (v322) 320 폭에서 '🏠 처 / 음' 으로 쪼개졌다 */
+/* (v322) 좁은 폰(320~359) — 4칸 이름의 그림 글자를 빼고 글씨를 조금 줄여 '스테… 최고…' 말줄임이 안 생기게 */
+@media (max-width:359px){ #scOver .resStats small i{display:none} #scOver .resStats small{font-size:10px;letter-spacing:-.02em} #scOver .resStats > div{padding-left:2px;padding-right:2px}
+  #scOver .resBar .play{white-space:nowrap;padding-left:6px !important;padding-right:6px !important} #scOver .resBar #btnRetry{font-size:18px !important}
+  #scOver .rwH{flex-wrap:wrap;row-gap:0} }
+/* (v322) 아이패드 세로 — 다른 화면(출발 준비·Daily 30)처럼 결과 화면도 같은 배율로 키운다 (결과 화면만 작았다) */
+body.tabP #scOver .resP{zoom:var(--stZ,1);min-height:calc(var(--appH,100dvh) / var(--stZ,1))}
+/* (v322) 휴대폰 가로(844×390) — 그림(왕관·캐릭터)이 첫 화면을 다 써서 4칸 기록이 안 보였다 → 그림 빼고 점수를 조금 작게 */
+@media (orientation:landscape) and (max-height:500px){
+  #scOver .resHero, #scOver #oStars{display:none}
+  #scOver .resP{padding-top:calc(env(safe-area-inset-top,0px) + 8px);gap:8px}
+  #scOver .resScore b{font-size:44px} #scOver #oTitle{font-size:17px} #scOver #oHighlight{margin-top:4px;padding:5px 12px;font-size:12px} #scOver .resKick{margin-top:5px} }
 #scOver .resCard{padding:12px 13px;border-radius:18px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09)}
 #scOver .resCard:empty{display:none}
 #scOver .resCh{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:900;color:#e6ddff;margin-bottom:8px}
@@ -1626,6 +1639,9 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 #scStudy:not(.on) ~ #stPop{display:none!important}
 .stPopIn{width:min(456px,100%);margin:0 auto;background:#241a4a;border:1px solid rgba(255,211,122,.35);border-radius:20px;padding:14px 14px 12px;
   box-shadow:0 -10px 30px rgba(0,0,0,.5);animation:stepIn .22s cubic-bezier(.2,.9,.3,1) both}
+/* (v322) Stage 창 닫기 ✕ — 예전엔 창 아래 빈 줄을 눌러야만 닫혀서 아이들이 닫는 법을 몰랐다 (길 화면 빈 곳을 눌러도 닫힘) */
+.stPopX{float:right;width:40px;height:40px;margin:-8px -8px 0 6px;border:0;border-radius:50%;background:rgba(255,255,255,.08);color:#d8cff5;font:900 17px var(--font);cursor:pointer}
+.stPopX:active{transform:scale(.94)}
 .stPopIn > b{font-size:20px;color:#ffd37a}
 .stPopIn > small{font-size:12px;color:#a99ed0;font-weight:800;margin-left:6px}
 .stPopIn p{margin:6px 0 0;font-size:11.5px;color:#a99ed0;text-align:center;font-weight:700}
@@ -2049,6 +2065,7 @@ body.tabP #scSetup{--sz:var(--stZ,1)}
 body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
 #scSetup .tsec.on{display:flex;flex-direction:column;min-height:calc((var(--appH,100dvh) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) / var(--sz) - 172px)}
 #scSetup .tsec.on > .stepNext, #scSetup .tsec.on > .startBanner{margin-top:auto}
+#scSetup .tsec.on > .startBanner{margin-top:auto !important} #scSetup .tsec.on > .rdLoad{margin-bottom:16px}   /* (v322) 아이템 칸을 숨기니 START 가 가운데 떠 있었다 (.startBanner 의 margin-top:16px !important) → 엄지 자리(아래)로 */
 #scSetup .stepNext, #scSetup .startBanner{width:100% !important;max-width:none;height:60px;border-radius:20px !important;font-size:20px;flex:none}
 #scSetup .tsec .stepNext{margin-top:auto}
 #scSetup .stepNote{margin-top:6px}
@@ -2197,6 +2214,7 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
 #scSetup .rl.rbk:before{background:rgba(10,6,24,.25)}
 #scSetup .rl small{display:block;font-size:8.5px;letter-spacing:.08em;color:#cfc6ef;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #scSetup .rl b{display:block;font-size:13px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#scSetup .itemBox[hidden]{display:none !important}   /* (v322) 아이템이 열리기 전엔 숨김 */
 #scSetup .itemBox{margin-top:10px;border-radius:16px;padding:9px 9px 10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,214,140,.3)}
 #scSetup .ibHd{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;letter-spacing:.14em;color:#ffd99a;margin:0 3px 7px}
 #scSetup .ibHd span{letter-spacing:0;font-size:10.5px;font-weight:700;color:#a89ec4}
@@ -2285,7 +2303,8 @@ body.tabP #scStudy.vLesson .stWrap, body.tabL #scStudy.vLesson .stWrap{padding-b
 #scSetup .trap.t2 i:nth-child(2){background:#7ed957} #scSetup .trap.t2 i:nth-child(3){background:#ffc24a}
 #scSetup .trap.t3 i:nth-child(2){background:#7ed957} #scSetup .trap.t3 i:nth-child(3){background:#ffc24a} #scSetup .trap.t3 i:nth-child(4){background:#ff6b5a}
 #scSetup .mb.mbAll.art{--art:url(assets/books/book-all.webp)}
-@media (max-height:560px) and (min-width:600px){ #scSetup .modeRow .tile.mtile b{top:22px} #scSetup .modeRow .tile.mtile small{top:48px} }
+@media (max-height:560px) and (min-width:600px){ #scSetup .modeRow .tile.mtile b{top:22px} #scSetup .modeRow .tile.mtile small{top:48px}
+  #scSetup .modeRow .tile.mtile, body.ui-skin #scSetup .modeRow .tile.mtile{height:80px} }   /* (v322) 위(134px)가 가로 휴대폰 높이(86px)를 덮어서 '다음' 버튼이 화면 밖으로 밀렸다 */
 
 /* (v300) 복습 '다음에 하기' */
 .stTwo{display:flex;gap:10px;width:min(448px,100%);margin:0 auto}
@@ -2496,6 +2515,9 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 /* (v310) 🎯 오늘의 미션 · 알림 한 줄 */
 .dmBtn{appearance:none;cursor:pointer;display:flex;align-items:center;gap:8px;width:min(310px,88vw);margin:2px auto;padding:8px 12px;border-radius:16px;border:2px solid rgba(255,210,63,.45);background:rgba(255,210,63,.1);color:#fff;font-family:var(--font);text-align:left}
 .dmBtn[hidden]{display:none} .dmBtn b{font-size:13.5px;font-weight:900;flex:1;min-width:0;white-space:nowrap} .dmBtn em{font-style:normal;font-size:11.5px;font-weight:900;color:#ffe9a8;white-space:nowrap}
+/* (v322) 누르는 칸은 40px 이상 — 뒤로(36px)·학년 다시 고르기(28px)·오늘의 미션(38px)·도감의 🏃 달리기·Daily 30 칩(22px)이 아이 손가락에 작았다 */
+.back{height:40px !important} .lbBack{min-height:40px} .dmBtn{min-height:40px}
+.wFind .c.run, .wFind .c.go{min-height:40px;padding:6px 12px;display:inline-flex;align-items:center}
 .dmBtn.rd{border-color:#ffd23f;background:rgba(255,210,63,.24);animation:dmPulse 1.2s ease-in-out infinite}
 @keyframes dmPulse{50%{box-shadow:0 0 18px rgba(255,210,63,.6);transform:scale(1.02)}}
 .dmDots{display:flex;gap:3px;flex:none} .dmDots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35)} .dmDots i.on{background:#5fe0b0;border-color:#5fe0b0}
@@ -2571,10 +2593,32 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .hbBan{appearance:none;cursor:pointer;display:flex;align-items:center;gap:10px;width:min(310px,88vw);margin:6px auto 2px;padding:8px 12px 8px 8px;border-radius:18px;border:2px solid rgba(255,140,170,.6);background:linear-gradient(160deg,rgba(255,90,130,.28),rgba(120,60,200,.3));color:#fff;font-family:var(--font);text-align:left;box-shadow:0 4px 0 rgba(0,0,0,.35);animation:hbGlow 2.6s ease-in-out infinite}
 .hbBan[hidden]{display:none}
 .hbBan img{width:46px;height:46px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5));animation:rsBreath 2.4s ease-in-out infinite}
-.hbI{flex:1;min-width:0;display:block} .hbI b{display:block;font-size:13.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .hbI small{display:block;font-size:11px;font-weight:800;color:#ffd9e3;margin-top:3px}
+.hbI{flex:1;min-width:0;display:block} .hbPre{font-style:normal} .hbI b{display:block;font-size:13.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .hbI small{display:block;font-size:11px;font-weight:800;color:#ffd9e3;margin-top:3px}
 .hbBar{display:block;height:7px;border-radius:9px;background:rgba(0,0,0,.45);overflow:hidden;margin-top:4px} .hbBar u{display:block;height:100%;background:linear-gradient(90deg,#ff5f7a,#ff9a4a);border-radius:9px}
 .hbBan em{font-style:normal;font-weight:900;font-size:12px;color:#ffe9a8;flex:none}
 @keyframes hbGlow{50%{box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 18px rgba(255,120,160,.45)}}
+/* (v322) 좁은 폰(320)·짧은 세로 폰 — 보스 알림·미션 칸이 메뉴보다 넓어 오른쪽으로 삐져나가 보스 이름이 잘렸고, 아래에 고정된 버전 글씨가 미션 칸 위에 겹쳤다 */
+@media (max-width:359px){
+  #scStart .menu{width:min(320px,92vw)}
+  #scStart .hbBan, #scStart .dmBtn{box-sizing:border-box}
+  body.ui-skin #scStart .menuDuo .mitem{font-size:17px}
+  #scStart .hbPre{display:none} }   /* 좁으면 '이번 주 보스 ·' 를 빼고 보스 이름만 */
+@media (max-width:359px), (orientation:portrait) and (max-height:700px){
+  #scStart .verTag{position:static;display:block;width:max-content;margin:-34px 14px 0 auto;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px)} }
+/* (v322) 휴대폰을 가로로 들면(844×390 등) 로고가 화면을 다 차지해 '게임 시작'이 아래로 밀려 안 보였다 → 로고 왼쪽 · 메뉴 오른쪽 두 칸 */
+@media (orientation:landscape) and (max-height:500px){
+  #scStart .titleWrap{flex-direction:row;gap:4vw;
+    padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 74px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 56px)}
+  #scStart .logoImg{width:min(40vw,64dvh)}
+  #scStart .logoMain{font-size:clamp(40px,9vw,80px)}
+  body.ui-skin #scStart .menu, #scStart .menu{margin-top:0;gap:7px !important;width:min(330px,48vw)}
+  body.ui-skin #scStart .menu > .mitem, body.ui-skin #scStart .menuDuo .mitem{min-height:46px;padding-top:6px;padding-bottom:6px;font-size:19px}
+  body.ui-skin #scStart .menu > .mitem{width:min(310px,46vw)}
+  #scStart .subRow .mitem{min-height:40px;padding-top:6px;padding-bottom:6px}
+  #scStart .menuDuo, #scStart .hbBan, #scStart .dmBtn{width:min(310px,46vw)}
+  #scStart .hbBan{margin:2px auto 0}
+  #scStart .rotateTip{display:none}
+}
 .stBossSee{appearance:none;border:0;cursor:pointer;font:900 11px var(--font);color:#3a2600;background:#ffd23f;border-radius:9px;padding:2px 7px;margin-left:4px;vertical-align:2px}
 .stBoss img{cursor:pointer}
 .ovBossSee{appearance:none;border:0;cursor:pointer;font:900 12px var(--font);color:#3a2600;background:#ffd23f;border-radius:9px;padding:3px 8px;margin-left:6px}
@@ -3074,10 +3118,10 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
     <p class="resKick" id="oKick">RESULT</p>
   </div>
   <div class="resStats">
-    <div><b id="oStage">1</b><small>🚪 스테이지</small></div>
-    <div><b id="oAcc">0%</b><small>🎯 <span id="oRight">0</span>/<span id="oTotal">0</span></small></div>
-    <div><b id="oCombo">0</b><small>🔥 최고 콤보</small></div>
-    <div class="rsW"><b id="oWrong">0</b><small>❌ 틀림</small></div>
+    <div><b id="oStage">1</b><small><i>🚪 </i>Stage</small></div><!-- (v322) 결과 4칸은 'Stage' 로 통일 · 좁은 폰에선 그림 글자(<i>)를 빼서 말줄임이 안 생기게 -->
+    <div><b id="oAcc">0%</b><small><i>🎯 </i><span id="oRight">0</span>/<span id="oTotal">0</span></small></div>
+    <div><b id="oCombo">0</b><small><i>🔥 </i>최고 콤보</small></div>
+    <div class="rsW"><b id="oWrong">0</b><small><i>❌ </i>틀림</small></div>
   </div>
   <div class="resCard resRw">
     <div class="resCh">🎁 이번 판</div>
@@ -5818,7 +5862,9 @@ const ArtLoad = {
     const ov=$("loading");
     if(ov){ ov.classList.add("done"); setTimeout(()=>{ ov.style.display="none"; }, 480); }
     try{ if(!G.running) applyZone(G.zone||0,false); }catch(e){}   // 늦게 온 그림까지 한 번에 반영
-    try{ TrapArt.preloadLazy(); }catch(e){}                        // 보스 그림은 이제 뒤에서 받는다
+    /* (v322) 보스·2장 그림은 첫 화면이 다 뜬 뒤 몇 초 쉬었다가(브라우저가 한가할 때) 받는다 — 느린 패드에서 첫 화면 버튼이 한참 안 눌렸다.
+       이 그림은 50단계 넘게 가야 쓰이므로, 바로 판을 시작해도 그 전에 다 받아진다 */
+    setTimeout(()=>{ const lz=()=>{ try{ TrapArt.preloadLazy(); }catch(e){} }; if(window.requestIdleCallback) requestIdleCallback(lz, {timeout:4000}); else lz(); }, 6000);
   },
   begin(){
     setTimeout(()=>{ const k=$("loadSkip"); if(k && !this.finished) k.style.display="inline-block"; }, 4000);
@@ -10715,7 +10761,7 @@ function drawReady(){
   const DN={easy:"Easy",normal:"Normal",hard:"Hard",extreme:"Expert"}, DS={easy:"★",normal:"★★",hard:"★★★",extreme:"★★★★"};
   const tg=$("rdTag"); if(tg) tg.textContent=w[1]+" · "+(DN[G.diff]||"");
   const S=WORD_SETS[G.set]||WORD_SETS.elem, rule=RULES[G.rule]||{}, MN={k2e:"뜻 → 단어", e2k:"단어 → 뜻", mix:"섞어서"};
-  const book = G.tag ? G.tag : G.rule==="daily" ? (S.nm+(G.lesson?" "+G.lesson+"과":"")) : G.book ? RunBook.name(G.book) : "All Books";
+  const book = G.tag ? G.tag : G.rule==="daily" ? (S.nm+(G.lesson?" "+G.lesson+"과":"")) : G.book ? RunBook.name(G.book) : "🌈 전부 섞기";   // (v322) 'All Books'·'전부 섞기'·'🌈 전체' 가 섞여 있던 것 → 아이에게 쉬운 '🌈 전부 섞기' 하나로
   const bl=G.book ? BOOK_LOOK[G.book] : null;
   const ld=$("rdLoad"); if(ld) ld.innerHTML=
       '<button class="rl w-meadow" data-go="0"><small>MODE</small><b>'+(rule.label||"Adventure")+'</b></button>'
@@ -10754,6 +10800,8 @@ const Items = (function(){
     hintOn(){ return !!(ON && run.hintLeft>0); },
     nextQ(){ if(run.slowLeft>0) run.slowLeft--; if(run.hintLeft>0) run.hintLeft--; },
     draw(){ const box=$("itemBox"); if(!box) return;
+      /* (v322) 아직 못 쓰는 아이템 4칸(전부 SOON)은 출발 준비 화면을 길게만 해서(START 가 홈 바에 붙음) 열 때까지 숨긴다 */
+      box.hidden=!ON; if(!ON){ box.innerHTML=""; return; }
       box.innerHTML='<div class="ibHd">ITEMS<span>'+(ON?'눌러서 챙겨요':'달리기를 도와주는 물건 · 곧 열려요')+'</span></div><div class="ibRow">'
         + DEFS.map(d=>'<button class="ib'+(eq[d.id]?' on':'')+(ON?'':' soon')+'" data-it="'+d.id+'"><i class="ic '+d.ic+'"></i><b>'+d.nm+'</b><small>'+d.sub+'</small>'
           +(ON?'<em>'+have(d.id)+'</em>':'<u>SOON</u>')+'</button>').join("")+'</div>'; }
@@ -10807,7 +10855,7 @@ function showBooks(grade){
   $("bkName").innerHTML=S.icon+' <b>'+S.label+'</b>';
   showBooks.grade=grade;
   const ra=Rank.of(grade), ba=RunBook.best(grade);
-  let h='<div class="bkShelf"><button class="mb mbAll'+(BOOK_ART?' art':'')+(!G.book?' sel':'')+'" data-b="" style="--b1:#6a45c9;--b2:#2a1a6a;--g:#c79bff'+(BOOK_ART?';--art:url(assets/books/book-all.webp)':'')+'">'+(ba?'<span class="mbBest">최고 '+fmt(ba)+'</span>':'')+'<span class="mbRune"></span><span class="mbGem"></span><b>전부 섞기</b><small>'+fmt(setCount(grade))+'단어</small></button>';
+  let h='<div class="bkShelf"><button class="mb mbAll'+(BOOK_ART?' art':'')+(!G.book?' sel':'')+'" data-b="" style="--b1:#6a45c9;--b2:#2a1a6a;--g:#c79bff'+(BOOK_ART?';--art:url(assets/books/book-all.webp)':'')+'">'+(ba?'<span class="mbBest">최고 '+fmt(ba)+'</span>':'')+'<span class="mbRune"></span><span class="mbGem"></span><b>🌈 전부 섞기</b><small>'+fmt(setCount(grade))+'단어</small></button>';
   RunBook.of(grade).forEach(B=>{ const best=RunBook.best(B.id);
     h+='<button class="mb'+(BOOK_ART?' art':'')+(G.book===B.id?' sel':'')+'" data-b="'+B.id+'" style="'+bookStyle(B.id)+'">'+(best?'<span class="mbBest">최고 '+fmt(best)+'</span>':'')+'<span class="mbRune"></span><span class="mbGem"></span><b>'+B.nm+'</b><small>'+RunBook.lessons(B.id).length+' Stage</small></button>'; });
   h+='</div>';
@@ -10821,7 +10869,7 @@ function drawBookDet(){
   const S=WORD_SETS[grade]||{}, id=G.book, L=id ? RunBook.lessons(id) : [], n=L.length;
   const ws=id ? RunBook.words(id) : [], r=id ? Rank.ofList(ws) : Rank.of(grade);
   const tier=r ? '<span class="bdTier" style="color:'+r.tier.col+'">'+r.tier.name+' '+Math.round(r.pct*100)+'%</span>' : '';
-  if(!id){ el.innerHTML='<div class="bdHd"><b>📚 전부 섞기 · '+(S.label||"")+'</b>'+tier+'</div><p class="bdTx">책 구분 없이 이 학년 단어 '+fmt(setCount(grade))+'개를 고루 섞어요 · 단계가 오를수록 어려운 단어가 늘어요</p>';
+  if(!id){ el.innerHTML='<div class="bdHd"><b>🌈 전부 섞기 · '+(S.label||"")+'</b>'+tier+'</div><p class="bdTx">책 구분 없이 이 학년 단어 '+fmt(setCount(grade))+'개를 고루 섞어요 · 단계가 오를수록 어려운 단어가 늘어요</p>';
     $("bkGo").textContent="전부 섞어서 ▶"; return; }
   const up=Math.min(n, Math.max(1, Math.ceil(n*0.2))), pct=Math.round(up/n*100);
   const first=[]; (L[0]||[]).concat(L[1]||[]).forEach(en=>{ if(first.length<4){ const w=WORD_BANK.find(x=>x.en===en && !x.sw); if(w) first.push(w); } });
@@ -12423,7 +12471,7 @@ function gameOver(){
     : G.rule==="endless" ? (G.right>=15 ? G.right+"연속 기록!" : "여기까지")
     : G.rule==="time"    ? (G.right>=15 ? "시간을 잘 벌었습니다" : "시간 종료")
     : G.cleared ? (G.clearCh===3 ? "왕궁 회랑 돌파!" : G.clearCh===2 ? "2장 완주!" : "모험 완주!")
-    : (G.right>=12 ? "잘 달렸습니다" : "여기까지");
+    : (G.right>=12 ? "잘 달렸어요" : "여기까지");   // (v322) 말투 통일 (해요체)
 
   /* 어린 학년에게는 숫자보다 별이 와닿는다 */
   const young = (G.set==="kinder" || G.set==="basic");
@@ -13991,7 +14039,7 @@ const StudyUI = {
       +(oly ? '<p>★5 큰 별 시험 · 문제마다 시간 제한 · 다시 안 나와요<br>50점 Stage 완성 · 80점 🌟 · 90점 🌟✨</p>' : need)+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">'+this.runLbl(x)+'</button>':'');
     const P=Study.plan(this.set, x.n)||{}, qn=P.qn||Math.max(Study.N, Math.min(x.ws.length, Study.MAXW)), fresh=!P.nw && !x.ws.some(w=>seen[w.en]);
     const rd=WORD_SETS[this.set].reading;   // (v233) 리딩은 Unit 이름을 보여 주지 않는다
-    box.innerHTML='<div class="stPopIn"><b>'+WORD_SETS[this.set].icon+' Stage '+Study.stageNo(this.set,x.n)+(x.title && !rd?' · '+x.title:'')+'</b>'+' <small>'+(oly?'🚩 '+x.ws.length+'문제 · ':'')+(P.nw && !oly?'✨ 새 단어 '+P.nw+'개 · ':'')+(P.wu && !oly?'🔁 복습 '+P.wu+' · ':'')+(oly?'':'약 '+qn+'문제 · ')+(oly ? (v>=3?'🌟✨':v>=2?'🌟':v>=1?'완성':'큰 별 ★5') : T ? '★ '+Study.starN(this.set,x)+' / 4' : (v>=3?'💜 다 끝냄':'★ '+v+' / 3'))+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
+    box.innerHTML='<div class="stPopIn"><button class="stPopX" type="button" data-popx aria-label="닫기">✕</button><b>'+WORD_SETS[this.set].icon+' Stage '+Study.stageNo(this.set,x.n)+(x.title && !rd?' · '+x.title:'')+'</b>'+' <small>'+(oly?'🚩 '+x.ws.length+'문제 · ':'')+(P.nw && !oly?'✨ 새 단어 '+P.nw+'개 · ':'')+(P.wu && !oly?'🔁 복습 '+P.wu+' · ':'')+(oly?'':'약 '+qn+'문제 · ')+(oly ? (v>=3?'🌟✨':v>=2?'🌟':v>=1?'완성':'큰 별 ★5') : T ? '★ '+Study.starN(this.set,x)+' / 4' : (v>=3?'💜 다 끝냄':'★ '+v+' / 3'))+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
     box.classList.add("on");
   },
   /* ── 한 과 ── */
@@ -14837,6 +14885,7 @@ const _stClick=e=>{
   const a=t.closest("[data-act]"); if(a){ const i=+a.dataset.i; SFX.select();
     if(a.dataset.act==="go") StudyUI.start(i,false); else if(a.dataset.act==="test") StudyUI.start(i,true); else if(a.dataset.act==="run") StudyUI.run(i); return; }
   if(t.closest("#stPop") && !t.closest(".stPopIn")){ StudyUI.pop(null); return; }
+  if(t.closest("[data-popx]")){ SFX.click(); StudyUI.pop(null); return; }   // (v322) Stage 창 ✕
   if(t.closest("#stQuit")){ SFX.click(); try{ Voice.stop(); }catch(er){}
     try{ const U=StudyUI; if(U.t0 && U._lg!==U.t0 && (U.done||0)>0) U.log(false, U.acc1(), "quit"); }catch(er){}   // (v224) 중간에 그만둬도 '했다'는 기록은 남긴다
     StudyUI.path(); return; }
@@ -14850,6 +14899,7 @@ const _stClick=e=>{
   const nxb=t.closest("[data-next]"); if(nxb){ SFX.select(); const k=+nxb.dataset.next, L=Study.lessons(StudyUI.set); if(L[k]){ Study.touch(StudyUI.set, L[k].n); StudyUI.start(k,false); } else StudyUI.path(); return; }   // (v275)
   if(t.closest("#stRun")){ SFX.select(); StudyUI.run(Study.lessons(StudyUI.set).findIndex(x=>x===StudyUI.les)); return; }
   if(t.closest("#stLesson") || t.closest("#stDone")) StudyUI.click(e);
+  else if($("stPop").classList.contains("on") && !t.closest("button, a, input, select, label, .stPopIn")) StudyUI.pop(null);   // (v322) 길 화면 빈 곳을 누르면 Stage 창 닫기
 };
 $("scStudy").addEventListener("click",_stClick); $("stPop").addEventListener("click",_stClick);
 
@@ -16282,13 +16332,20 @@ const WeekBoss = {
   /* 첫 화면 알림 — 보스가 있을 때만 */
   banner(){ const el=$("hbBan"); if(!el) return; const B=HyBoss.B; if(!B || !HyBoss.on()){ el.hidden=true; return; }
     const me=Kid.me(), v=this.view(B, me), pc=Math.round(v.pct*100), E=x=>Raid.esc(x);
-    const h='<img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+'><span class="hbI"><b>🏠 이번 주 보스 · '+E(B.n)+'</b><i class="hbBar"><u style="width:'+(v.dead?0:pc)+'%"></u></i><small>'+(v.dead?'🎉 쓰러뜨렸어요! 보상 받으러 가기':'⏰ '+this.left(B)+(me?' · ⚔️ 공격 기회 '+(()=>{ const k=HyBoss.stock(me.id); return k.r+k.s; })():''))+'</small></span><em>'+(me && !v.dead && (()=>{ const k=HyBoss.stock(me.id); return k.r+k.s>0; })() ? '⚔️ 공격 ›' : '보기 ›')+'</em>';
+    const h='<img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+'><span class="hbI"><b>🏠 <i class="hbPre">이번 주 보스 · </i>'+E(B.n)+'</b><i class="hbBar"><u style="width:'+(v.dead?0:pc)+'%"></u></i><small>'+(v.dead?'🎉 쓰러뜨렸어요! 보상 받으러 가기':'⏰ '+this.left(B)+(me?' · ⚔️ 공격 기회 '+(()=>{ const k=HyBoss.stock(me.id); return k.r+k.s; })():''))+'</small></span><em>'+(me && !v.dead && (()=>{ const k=HyBoss.stock(me.id); return k.r+k.s>0; })() ? '⚔️ 공격 ›' : '보기 ›')+'</em>';
     if(el._h!==h){ el._h=h; el.innerHTML=h; } el.hidden=false; }
 };
 HyBoss.onChange(()=>{ try{ if(WeekBoss.isOpen()) WeekBoss.draw(); WeekBoss.banner(); }catch(e){ console.error(e); } });
 setInterval(()=>{ try{ if($("scStart").classList.contains("on") && !document.hidden){ WeekBoss.banner(); DM.paint(); } }catch(e){} }, 60000);   // 남은 시간 · 날이 바뀌면 새 미션
 /* (v310) 작은 알림 한 줄 (어느 화면에서나) */
-function hyToast(msg, ms){ try{ let t=document.getElementById("hyToast"); if(!t){ t=document.createElement("div"); t.id="hyToast"; document.body.appendChild(t); }
+/* (v322) 미션 완료 같은 '기다려도 되는' 알림(wait=true)은 보상 창(#wbPop)·Daily 30 끝 화면(#stDone)·달리기 결과 화면이 떠 있으면
+   줄 세워 두었다가 창이 닫히면 보여 준다 — 위쪽 알림이 결과 제목·보물상자를 덮었다. 버튼을 눌러 바로 나오는 알림은 그대로 바로 */
+function hyToastBusy(){ try{ if($("wbPop")) return true; const so=$("scOver"); if(so && so.classList.contains("on")) return true;
+  const sd=$("stDone"), ss=$("scStudy"); if(sd && ss && ss.classList.contains("on") && sd.style.display!=="none") return true; }catch(e){} return false; }
+function hyToast(msg, ms, wait){ if(wait){ (hyToast.q=hyToast.q||[]).push([msg,ms]);   // 결과 화면이 같은 순간에 켜지기도 해서(달리기 끝) 잠깐 뒤에 살핀다
+    if(!hyToast.iv) hyToast.iv=setInterval(()=>{ if(hyToastBusy()) return; clearInterval(hyToast.iv); hyToast.iv=0; hyToast.q.splice(0).forEach((a,k)=>setTimeout(()=>hyToast(a[0],a[1]), k*300)); }, 400);
+    return; }
+  try{ let t=document.getElementById("hyToast"); if(!t){ t=document.createElement("div"); t.id="hyToast"; document.body.appendChild(t); }
   const e=document.createElement("div"); e.className="hyT"; e.innerHTML=msg; t.appendChild(e); while(t.children.length>3) t.firstChild.remove();
   setTimeout(()=>{ e.classList.add("out"); setTimeout(()=>e.remove(), 400); }, ms||2600); }catch(e){} }
 /* (v310) 🎯 오늘의 미션 + 보물상자 — 매일 0시(한국 시간) 새 미션 3개 (모두 같은 미션 · 날짜로 고름). 3개 다 하면 상자 💎5~10 (연속 날수만큼 더)
@@ -16316,7 +16373,7 @@ const DM = {
   /* 해낸 일 알리기 — k 칸에 n 더하기 (max 칸은 가장 큰 값) */
   add(k, n){ try{ if(!(n>0)) return; const s=this.load(); let fin=[];
     s.m.forEach(x=>{ const d=this.def(x.id); if(!d || d.k!==k) return; const was=x.n|0; x.n = d.max ? Math.max(was, n|0) : was+(n|0); if(was<d.goal && x.n>=d.goal) fin.push(d); });
-    this.save(); fin.forEach(d=>hyToast('🎯 미션 완료! <b>'+d.ic+' '+d.t+'</b>'+(this.ready()?'<br>🎁 보물상자를 열 수 있어요!':''))); this.paint(); }catch(e){ console.error(e); } },
+    this.save(); fin.forEach(d=>hyToast('🎯 미션 완료! <b>'+d.ic+' '+d.t+'</b>'+(this.ready()?'<br>🎁 보물상자를 열 수 있어요!':''), 0, true)); this.paint(); }catch(e){ console.error(e); } },
   reward(){ const s=this.load(), st=Math.min(5, (s.st|0)); return 5+st; },
   open(){ const s=this.load(); if(s.got || this.done()<3) return 0; const g=this.reward()*(Math.random()<0.15?2:1), pk="dm-"+s.day+"-"+this.key();
     if(Wallet.paid(pk)){ s.got=1; this.save(); return 0; } Wallet.pay(pk); Wallet.addGems(g, "오늘의 미션 상자"); s.got=1; s.g=g; s.st=(s.st|0)+1; this.save(); this.paint(); return g; },
@@ -17379,9 +17436,10 @@ function drawGemResult(r){
   const pct=Math.round(r.pts/GEM.PER*100);
   /* (v272) 한 줄로 간추림: 💎 +1 [막대] 다음까지 20점 · 모은 467 / 아래에 눌러서 가는 작은 알약(도감 · 칭호) */
   /* (v321) 보석 타일 — 💎 +n 크게 · 막대 · 다음까지 · 오른쪽 위에 모은 수 */
+  /* (v322) '다음 💎까지 20점' 은 아이가 몇 개 더 맞혀야 하는지 몰랐다 → 상점과 같은 계산으로 '정답 N개' */
   el.innerHTML =
     '<div class="rwT gem"><div class="rwH"><span class="rwIco">💎</span><span>보석</span><em>모은 '+Number(r.total).toLocaleString()+'</em></div><b class="rwN gGain">'+(r.gain>0?'+'+r.gain:'+0')+'</b>'
-    +'<div class="gBar"><i style="width:0"></i></div><small class="rwS">다음 💎까지 '+(GEM.PER-r.pts)+'점'+(r.boss?' · 문지기 +'+r.boss:'')+'</small></div>'
+    +'<div class="gBar"><i style="width:0"></i></div><small class="rwS">다음 💎까지 정답 '+Math.max(1, Math.ceil((GEM.PER-r.pts)/(GEM.PT[G.diff]||2)))+'개'+(r.boss?' · 문지기 +'+r.boss:'')+'</small></div>'
     +(r.dexNew ? '<div class="gPills"><button class="gPill" data-go="dex">📖 새 단어 <b>'+r.dexNew+'</b> ›</button></div>' : '');
   const bar=el.querySelector(".gBar i"); if(bar) setTimeout(()=>{ bar.style.width=pct+"%"; }, 450);
   if(r.gain>0){ const tl=el.querySelector(".rwT")||el; tl.classList.remove("gemIn"); void tl.offsetWidth; tl.classList.add("gemIn"); try{ setTimeout(()=>SFX.tone(880,.18,"triangle",.05,1320), 500); }catch(e){} }
@@ -18319,6 +18377,10 @@ if("serviceWorker" in navigator){
   let pendingReload = false;
   const safeNow = function(){
     try{
+      /* (v322) 레이드·배틀 중에는 화면이 가려져도(앱을 잠깐 내려도) 새로고침하지 않는다 — 방에서 튕겨 나갔다 */
+      if((typeof Raid!=="undefined" && Raid.role) || (typeof Battle!=="undefined" && Battle.role)) return false;
+      /* (v322) 첫 화면이어도 보스 화면·이름 고르기·보상 창·레이드 입장 창이 떠 있으면 미룬다 (보스 공격 중에 새로고침됐다) */
+      if(document.querySelector("#wbView, #kidPick, #wbPop, .rdJoin")) return false;
       if(G.running || G.paused) return false;            // (v289) QA: 달리는 중·일시정지 중에 화면을 내리면 바로 새로고침돼 판이 사라졌다 → 숨겨져 있어도 판 중이면 미룬다
       if($("scStudy").classList.contains("on") && $("stPath").style.display==="none") return false;   // 공부 문제 푸는 중
       if(document.hidden) return true;
