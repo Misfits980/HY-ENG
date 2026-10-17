@@ -38,7 +38,7 @@ async def main():
         s3=await E("()=>[HyBoss.B.id, HyBoss.stock('k1')]")
         ok(same and s3==[id0, s1], f"같은 주 끄고 켜기 = 그대로 {same} {s3}")
         # 3. 쓰러뜨리고 보상 안 받은 채 ↺ 다시 → 기회는 새 보스로, 옛 보상은 남음
-        await E("()=>{ HyBoss.CAP=1e9; HyBoss.add(Kid.get(), HyBoss.state('all').hp, 'study'); HyBoss.CAP=400; }"); await T.wait_for_timeout(300)
+        await E("()=>{ HyBoss.CAP=1e9; HyBoss.add(Kid.get(), HyBoss.state('all').hp, 'study', 3); HyBoss.CAP=400; }"); await T.wait_for_timeout(300)
         g0=await E("()=>HyBoss.reward(Kid.get())")
         await E("()=>HyBoss.setup({on:true, team:false, split:'eq', restart:true})"); await T.wait_for_timeout(400)
         r3=await E("()=>[HyBoss.B.id, HyBoss.stock('k1'), HyBoss.oldRewards(Kid.get()).map(x=>[x.B.id, x.g])]")
