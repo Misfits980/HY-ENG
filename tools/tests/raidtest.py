@@ -9,7 +9,7 @@ async def main():
     async with async_playwright() as p:
         br=await p.chromium.launch(); ctx=await br.new_context(viewport={"width":1024,"height":700}); errs=[]
         host=await ctx.new_page(); host.on("pageerror", lambda e: errs.append("H "+str(e)))
-        await boot(host); room=await host.evaluate("()=>Raid.host('g34',['vest','cap','glove','beard','belt'])"); print("room", room)
+        await boot(host); room=await host.evaluate("()=>{ Raid.MIN=1000; return Raid.host('g34',['vest','cap','glove','beard','belt'], 0, null, 250); }"); print("room", room)
         kids=[]
         for nm in ["민준","서연","지호"]:
             k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844})

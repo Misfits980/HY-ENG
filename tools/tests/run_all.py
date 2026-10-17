@@ -75,7 +75,7 @@ def main():
     print("  " + ("통과" if not bp else "\n  ".join("❌ " + x for x in bp)))
     print("== 테스트 %d개 (4개씩 동시에)" % len(names))
     fails = []
-    with ThreadPoolExecutor(max_workers=4) as ex:
+    with ThreadPoolExecutor(max_workers=int(os.environ.get("HY_WORKERS", "4"))) as ex:   # (v312) 코어가 적으면 HY_WORKERS=2
         for name, secs, probs in ex.map(run_test, names):
             print("  %s %-12s %4ds%s" % ("✅" if not probs else "❌", name, secs, "" if not probs else "  " + " | ".join(probs[:3])))
             if probs: fails.append(name)
