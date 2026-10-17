@@ -12379,7 +12379,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v315";
+const GAME_VER = "v316";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16653,7 +16653,7 @@ const Admin = (function(){
     const b=HyBoss.B; if(!B) return;
     const LN=$("adLine"); if(LN){ const TS=!!(b && b.test), i=b && !TS ? b.i%BOSS_LINE.length : -1;
       const nx = !b ? -1 : TS ? b.i%BOSS_LINE.length : (i+1)%BOSS_LINE.length;
-      const lh=(b?'<p class="adSmall adPickH">👇 <b>보스를 눌러 이번 주 보스를 바꿔요</b> · 아이들이 깎은 데미지는 이어지고, 다음 주는 그다음 보스예요</p>':'')+'<div class="adLine">'+(b ? '<button data-ad="wkTest" class="adLineB adLineT'+(TS?(HyBoss.allDead(b)?' now done':' now'):'')+'"><img src="assets/boss/'+BOSS_TEST.img+'.webp" alt=""><b>🧪 '+esc(BOSS_TEST.n)+'</b><small>체력 '+Math.round(BOSS_TEST.hp*((HyBoss.C||{}).hpx||1))+' · 💎'+BOSS_TEST.gems+'</small><i>'+(TS?(HyBoss.allDead(b)?'🎉 처치 · 누르면 끄기':'⚔️ 이번 주 · 누르면 끄기'):'이번 주만 시험')+'</i></button>' : '')+BOSS_LINE.map((x,k)=>{ const cls = i<0 ? '' : k===i ? (HyBoss.allDead(b)?' now done':' now') : '';   /* (v311) 눌러서 고르기 */
+      const lh=(!b?'<p class="adSmall adPickH">⚠️ <b>주간 보스가 꺼져 있어요</b> — 아래 「▶ 주간 보스 켜기」를 누르거나, <b>🧪 테스트 슬라임</b>을 누르면 켜면서 이번 주는 테스트로 시작해요</p>':'')+(b?'<p class="adSmall adPickH">👇 <b>보스를 눌러 이번 주 보스를 바꿔요</b> · 🧪 = 이번 주만 테스트 슬라임 · 아이들이 깎은 데미지는 이어지고, 다음 주는 그다음 보스예요</p>':'')+'<div class="adLine">'+(true ? '<button data-ad="wkTest" class="adLineB adLineT'+(TS?(HyBoss.allDead(b)?' now done':' now'):'')+'"><img src="assets/boss/'+BOSS_TEST.img+'.webp" alt=""><b>🧪 '+esc(BOSS_TEST.n)+'</b><small>체력 '+Math.round(BOSS_TEST.hp*((HyBoss.C||{}).hpx||1))+' · 💎'+BOSS_TEST.gems+'</small><i>'+(TS?(HyBoss.allDead(b)?'🎉 처치 · 누르면 끄기':'⚔️ 이번 주 · 누르면 끄기'):b?'이번 주만 시험':'눌러서 켜고 시험')+'</i></button>' : '')+BOSS_LINE.map((x,k)=>{ const cls = i<0 ? '' : k===i ? (HyBoss.allDead(b)?' now done':' now') : '';   /* (v311) 눌러서 고르기 */
           return '<'+(b?'button data-ad="wkPick" data-i="'+k+'"':'span')+' class="adLineB'+cls+(k===nx?' nx':'')+'"><img src="assets/boss/'+x.img+'.webp" alt=""'+(x.hue?' style="filter:hue-rotate('+x.hue+'deg) saturate(1.3)"':'')+'><b>'+(k+1)+'. '+esc(x.n)+'</b><small>'+x.per+'/명 · 💎'+x.gems+'</small><i>'+(k===i?(HyBoss.allDead(b)?'🎉 처치':'⚔️ 이번 주'):k===nx?'⏭ 다음 주':'')+'</i></'+(b?'button':'span')+'>'; }).join('')+'</div>';
       if(LN._h!==lh){ LN._h=lh; LN.innerHTML=lh; } }
     if(!b){ B.innerHTML='<p class="adSmall">'+((HyBoss.C||{}).on ? '⏳ 보스 준비 중…' : '주간 보스가 꺼져 있어요.')+'</p>'; return; }
@@ -16912,6 +16912,9 @@ const Admin = (function(){
     if(a==="wkOn"){ if((HyBoss.C||{}).on) return msg("벌써 켜져 있어요", true); HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, hpx:+(($("adWkH")||{}).value||1), restart:true}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("주간 보스를 켰어요 — 이번 주 1번 보스", true); return; }
     if(a==="wkSave"){ HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, hpx:+(($("adWkH")||{}).value||1)}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("저장했어요 (체력 배율은 이번 주 보스에도 바로)", true); return; }
     if(a==="wkTv"){ close(); WeekBoss.open(true); return; }
+    if(a==="wkTest" && !HyBoss.B){   /* (v316) 꺼져 있으면 — 켜면서 이번 주는 테스트 슬라임 */
+      if(!confirm("🧪 주간 보스를 켜고, 이번 주(일요일 밤 12시까지)는 「"+BOSS_TEST.n+"」으로 시험해 볼까요?\n\n· 체력 "+Math.round(BOSS_TEST.hp*(+(($("adWkH")||{}).value||1)))+" · 보상 💎"+BOSS_TEST.gems+"\n· 다음 주 월요일부터 1번 「"+BOSS_LINE[0].n+"」")) return;
+      HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, hpx:+(($("adWkH")||{}).value||1), restart:true}).then(()=>HyBoss.testWeek(true)).then(ok=>{ msg(ok ? "🧪 주간 보스를 켰어요 — 이번 주는 테스트 슬라임 (일요일까지)" : "켜는 중이에요 — 잠시 뒤 다시 눌러 주세요", true); if(tab==='raid'){ keepScroll=true; draw(); } }); return; }
     if(a==="wkTest"){ const b=HyBoss.B; if(!b) return msg("주간 보스를 먼저 켜 주세요", true); const on=!b.test, cur=HyBoss.lineOf(b), mon=HyBoss.nextOf(b);   /* (v315) 🧪 이번 주만 테스트 슬라임 */
       if(on && !confirm("🧪 이번 주(일요일 밤 12시까지)만 「"+BOSS_TEST.n+"」으로 시험해 볼까요?\n\n· 체력 "+Math.round(BOSS_TEST.hp*((HyBoss.C||{}).hpx||1))+" · 보상 💎"+BOSS_TEST.gems+" (며칠 안에 잡아 보며 공격 · 막기 · 결과 · 보상을 확인)\n· 아이들 공격 기회는 그대로 이어져요\n· 지금 보스(「"+cur.n+"」)는 다음 주 월요일에 다시 나와요")) return;
       if(!on && !confirm("🧪 테스트를 끝내고 이번 주 보스를 「"+mon.n+"」(으)로 돌릴까요?")) return;
