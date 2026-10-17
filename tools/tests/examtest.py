@@ -35,7 +35,7 @@ async def main():
         ok("20문제" in info and "Pre-Starter" in info and "A 7초 · B 8초 · C 11초" in info, "범위 · 단계 자동(G3-4 = Pre-Starter) · 시간표")
         await T.screenshot(path=OUT + "exam_admin_form.png")
         await T.evaluate("()=>document.querySelector('[data-ad=\"exOpen\"]').click()"); await T.wait_for_timeout(600)
-        cur = await T.evaluate("()=>FB.get('/hy/exam/cur')")
+        cur = await T.evaluate("()=>FB.get('/hy/exam/open').then(O=>Object.values(O||{}).sort((a,b)=>b.at-a.at)[0])")
         ok(cur and cur["st"] == "wait" and cur["mode"] == "live" and cur["n"] == 20 and cur["set"] == "elem", f"시험 열림 (기다림) {cur and cur['title']}")
         # 아이 — 곧 시험
         await K1.evaluate("()=>HyExam.check(true)"); await K1.wait_for_timeout(200)
@@ -54,7 +54,7 @@ async def main():
         print("kid1", q)
         ok(q["ex"] and q["oly"] and q["n"] == 20 and q["intro"] == "oly" and set(q["secs"]) <= {7, 8, 11} and "A" in q["ab"], f"시험 20문제 · 시간 {q['secs']} · 유형 {q['ab']}")
         await K1.screenshot(path=OUT + "exam_intro.png")
-        st = await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.c.id+'/k1')")
+        st = await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.L[HyExam.L.length-1].id+'/k1')")
         ok(st and st.get("st") == 1 and st.get("sc") is None, "시작하면 서버에 '보는 중'")
         # 같은 단어 (seed)
         await K2.evaluate("()=>document.querySelector('#exAsk [data-ex=\"go\"]').click()"); await K2.wait_for_timeout(3000)
@@ -75,7 +75,7 @@ async def main():
         ok("90" in done and "점" in done and "다시 볼 단어" in done, "민준 결과 화면 (18/20 = 90점)")
         await K1.screenshot(path=OUT + "exam_done.png")
         await T.wait_for_timeout(500)
-        r1 = await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.c.id+'/k1')")
+        r1 = await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.L[HyExam.L.length-1].id+'/k1')")
         ok(r1 and r1.get("sc") == 90 and r1.get("ok") == 18 and r1.get("tot") == 20 and r1.get("fin") == 1 and r1.get("miss"), f"서버 점수 {r1 and r1.get('sc')} · 틀린 단어 {r1 and r1.get('miss')}")
         # 서연: 5문제 풀고 그만두기 → 푼 것까지
         for i in range(30):
@@ -84,7 +84,7 @@ async def main():
             await K2.evaluate("()=>{ StudyUI._qAt=0; }"); await K2.evaluate(SOLVE, False); await K2.wait_for_timeout(760)
         await K2.evaluate("()=>{ if(StudyUI.locked) document.getElementById('stCheck').click(); }"); await K2.wait_for_timeout(300)
         await K2.evaluate("()=>document.getElementById('stQuit').click()"); await K2.wait_for_timeout(500)
-        r2 = await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.c.id+'/k2')")
+        r2 = await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.L[HyExam.L.length-1].id+'/k2')")
         print("k2", r2)
         ok(r2 and r2.get("fin") == 1 and r2.get("sc") is not None and r2["sc"] <= 30, f"그만두면 푼 것까지 점수 {r2 and r2.get('sc')}")
         # 다시 못 봄
@@ -94,7 +94,7 @@ async def main():
         ok(await K1.evaluate("()=>!StudyUI.ex && document.getElementById('stLesson').style.display==='none'"), "다시 시작 안 됨")
         # 선생님 결과표 · TV
         await T.wait_for_timeout(600)
-        tb = await T.evaluate("()=>document.getElementById('adExRes').innerText")
+        tb = await T.evaluate("()=>document.querySelector('[id^=adExRes_]').innerText")
         print("table", tb.replace("\n", " / ")[:200])
         ok("민준" in tb and "서연" in tb and "90" in tb and "평균" in tb, "선생님 결과표 (실시간)")
         await T.screenshot(path=OUT + "exam_admin_live.png")
@@ -105,7 +105,7 @@ async def main():
         await T.evaluate("()=>document.querySelector('#exTv [data-extvx]').click()")
         # ↺ 서연 다시 보게
         await T.evaluate("()=>document.querySelector('[data-ad=\"exReset\"][data-k=\"k2\"]').click()"); await T.wait_for_timeout(300)
-        ok(await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.c.id+'/k2').then(r=>r==null)"), "↺ 다시 보게 → 기록 지움")
+        ok(await T.evaluate("()=>FB.get('/hy/exam/res/'+HyExam.L[HyExam.L.length-1].id+'/k2').then(r=>r==null)"), "↺ 다시 보게 → 기록 지움")
         # 끝내기 → 아이 화면에서 사라짐 · 지난 시험
         await T.evaluate("()=>document.querySelector('[data-ad=\"exEnd\"]').click()"); await T.wait_for_timeout(700)
         await K2.evaluate("()=>{ show('scStart'); return HyExam.check(true); }"); await K2.wait_for_timeout(200)
@@ -115,7 +115,7 @@ async def main():
         # ⏰ 열어 두기 — 바로 열림
         await T.evaluate("()=>{ const s=document.getElementById('adExSet'); s.value='mid'; s.dispatchEvent(new Event('change')); document.getElementById('adExMode').value='open'; document.getElementById('adExMode').dispatchEvent(new Event('change')); document.getElementById('adExP').value='hj'; }")
         await T.evaluate("()=>document.querySelector('[data-ad=\"exOpen\"]').click()"); await T.wait_for_timeout(500)
-        cur = await T.evaluate("()=>FB.get('/hy/exam/cur')")
+        cur = await T.evaluate("()=>FB.get('/hy/exam/open').then(O=>Object.values(O||{}).sort((a,b)=>b.at-a.at)[0])")
         ok(cur["mode"] == "open" and cur["st"] == "run" and cur["until"] > 0 and cur["P"] == "hj", "열어 두기 = 바로 열림 · 마감 · High Junior")
         await K2.evaluate("()=>HyExam.check(true)"); await K2.wait_for_timeout(300)
         ask = await K2.evaluate("()=>{ const a=document.getElementById('exAsk'); return a ? a.innerText : ''; }")

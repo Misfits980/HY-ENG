@@ -751,6 +751,8 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 @media (max-width:440px){ .exChip{flex-direction:row;gap:6px;padding:7px 13px} .exChip small{display:none} .exChip.wait small{display:none} }
 .exAskP b{font-size:inherit;color:#ffd37a}
 .exAskIn{text-align:center;gap:8px}
+.dyTabs{display:flex;gap:6px;margin:-2px 0 8px} .dyTabs .mini.on{background:#6b5ad8;color:#fff}
+.dyT td small{font-size:10px;color:#b8acdf;font-weight:700}
 /* (v329) 📌 숙제 */
 .hwCard{flex:1 1 100%;box-sizing:border-box;width:100%;margin:0 0 2px;padding:10px 12px;border-radius:16px;border:2px solid #ffd37a;background:linear-gradient(160deg,rgba(255,211,122,.18),rgba(107,90,216,.2));color:#fff;font-family:var(--font);text-align:left}
 .hwCard.late{border-color:#ff8a8a} .hwCard.done{border-color:#7ed957;background:linear-gradient(160deg,rgba(126,217,87,.18),rgba(107,90,216,.15))}
@@ -12716,6 +12718,7 @@ function gameOver(){
           + (G.nick==="PLAYER" ? '<div class="note">설정 ⚙에서 이름을 정하면 랭킹에 내 이름이 나와요</div>' : '');
       });
   }
+  try{ if(!G.testRun && !TEST_STAGE) HyDay.add({r:1, rr:G.right|0, rw:G.wrong|0, rs:Math.max(0, Math.round((Date.now()-(G.runStart||Date.now())-(G.pauseMs||0))/1000))}, {b:G.score|0, bs:G.stage|0}); }catch(e){}   // (v330) 📅 오늘 한 아이
   /* (v305) 🏃 달리기도 🏠 주간 보스를 깎는다 — 맞힌 단어 1개 = ⚔️2, 하루 100 까지 (공부가 먼저라 공부보다 적게) */
   try{ if(!G.testRun && !G.practice && (G.right|0)>0){ if((G.right|0)>=HyBoss.PER_RUN) DM.add("run", 1); DM.add("rw", G.right|0); DM.add("combo", G.bestCombo|0); } }catch(e){}   // (v310) 🎯 오늘의 미션 · (v322) 짧은 판(맞힘 4 미만)은 '달리기 한 판'에 안 셈
   /* (v312) 🏃 달리기 = 공격 기회 쌓기 (맞힌 단어 4개 = 1번, 🏃 10까지)
@@ -12734,7 +12737,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v329";
+const GAME_VER = "v330";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12844,6 +12847,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-18b", date:"10월 18일", title:"📝 반마다 시험 · 📅 오늘 한 아이",
+   items:[
+     ["🏫","반마다 시험","선생님이 반을 정해 시험을 열어요 — 우리 반 시험만 보여요 · 반마다 책·범위가 달라도 돼요"],
+     ["🧒","내가 배운 단어 시험","각자 Daily 30 에서 배운 단어로 시험을 볼 수도 있어요"]
+   ]},
   {id:"2026-10-18a", date:"10월 18일", title:"📌 숙제 · 📝 시험 · 편해졌어요",
    items:[
      ["📌","숙제","선생님이 숙제를 내면 Daily 30 맨 위에 📌 카드 · 숙제 Stage 에 📌 · ▶ 숙제 하기로 바로"],
@@ -14057,7 +14065,7 @@ const Study = (function(){
     let r=(c.seed|0)||1; const rnd=()=>{ r=(r*1103515245+12345)&0x7fffffff; return r/0x7fffffff; };
     for(let i=ws.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [ws[i],ws[j]]=[ws[j],ws[i]]; }
     return ws.slice(0, c.n>0 ? c.n : ws.length); }
-  function buildExam(c){ if(!c || !WORD_SETS[c.set]) return null; const ws=examWords(c); if(ws.length<4) return null;
+  function buildExam(c){ if(!c || !WORD_SETS[c.set]) return null; const ws=c.ws ? c.ws.map(en=>byEn[en]).filter(Boolean) : examWords(c); if(ws.length<4) return null;   // (v330) c.ws = 🧒 각자 배운 단어
     const qs=buildOly(c.set, {n:0, ws}, c.P || olyProf(c.set)); if(qs[0]) Object.assign(qs[0], {hd:"oly", ex:1, exT:c.title||""}); qs.forEach(q=>{ q.ex=1; }); return qs; }
   function buildWeek(set){ ctx(set); const W=weekWords(set); if(W.ws.length<8) return null;
     const gr=gradeOf(set), ws=shuffle(W.ws).slice(0,20), own=bookList(set), out=[], sec = gr==="g56"||gr==="mid" ? 12 : 10;
@@ -15075,6 +15083,7 @@ const StudyUI = {
   secs(){ return Math.round(this.tk()/1000); },
   /* 공부 기록도 시트로 (방식=study · 단어장=반-과) */
   log(pass, acc, why){
+    try{ if(!TEST_STAGE && this._dy!==this.t0 && (this.done|0)>0){ this._dy=this.t0; HyDay.add({s:1, so:this.nOk|0, sw:this.wrong|0}); } }catch(e){}   // (v330) 📅 오늘 한 아이
     try{ if(!Online.on() || TEST_STAGE || this._lg===this.t0) return; this._lg=this.t0;   // 한 번 공부에 한 줄만
       /* (v277) 이어 하기로 다시 열고 바로 또 나가면 같은 '중간에 나감' 줄이 두 번 (시트 10-15 최선아 19-3) → 같은 판·같은 진도의 나감은 한 번만 */
       const lk=this.t0+":"+(this.done|0)+":"+(this.wrong|0);
@@ -16681,61 +16690,69 @@ const WeekBoss = {
 HyBoss.onChange(()=>{ try{ if(WeekBoss.isOpen()) WeekBoss.draw(); WeekBoss.banner(); }catch(e){ console.error(e); } });
 setInterval(()=>{ try{ if($("scStart").classList.contains("on") && !document.hidden){ WeekBoss.banner(); DM.paint(); } }catch(e){} }, 60000);   // 남은 시간 · 날이 바뀌면 새 미션
 setInterval(()=>{ try{ HyBoss.roll(); }catch(e){} }, 60000);   /* (v322) 월요일 0시가 지나면 열려 있는 화면·TV 도 새 주 보스로 */
-/* ══ (v328) 📝 선생님 시험 (사용자: 평소에는 안 보이고 선생님이 열 때만 · 보카 올림피아드 틀 · 수업 중 다 같이 / 열어 두기 둘 다 · 책 + Stage 범위) ══
-   /hy/exam/cur = {id, on, set, from, to, n, P, seed, title, mode:'live'|'open', st:'wait'|'run'|'end', at, t0, until}
-   /hy/exam/res/<id>/<아이> = {n, t, st:1(시작), p(푼 수), ok, tot, sc(점수, 끝나면), sec, ab:{A:[맞힘,문제]…}, miss, fin}
-   /hy/exam/hist/<id> = {title, set, n, mode, at, end}
-   아이 기기는 계속 붙어 있지 않음 — 첫 화면·Daily 30 에서 GET (평소 40초 · '곧 시작' 이면 4초). 선생님 관리 화면만 결과를 실시간(listen). */
+/* ══ (v328) 📝 선생님 시험 → (v330) 반마다 따로 (사용자: 반을 정해서 그 반만 · 아이마다 수준이 다름)
+   /hy/exam/open/<id> = {id, on, team('all'|반 id), rng:'stage'|'mine', set, from, to, n, P, seed, title, mode:'live'|'open', st:'wait'|'run'|'end', at, t0, until}
+     · 시험을 여러 개 동시에 열 수 있음 (반마다 다른 책·범위·단계) · 아이는 자기 반(또는 전체) 시험만 봄
+     · rng 'mine' = 🧒 각자 배운 단어 — 아이마다 지금 Daily 30 책에서 배운 단어(최근 것부터) n 개 · 단계도 그 책에 맞게
+   /hy/exam/res/<id>/<아이> = {n, t, st:1(시작), p(푼 수), ok, tot, sc(점수, 끝나면), sec, ab:{A:[맞힘,문제]…}, miss, fin, bk(각자 범위면 그 아이 책)}
+   /hy/exam/hist/<id> = {title, set, n, mode, team, at, end}
+   아이 기기는 계속 붙어 있지 않음 — 첫 화면·Daily 30 에서 GET (평소 38초 · '곧 시작' 이면 3.5초). 선생님 관리 화면만 결과를 실시간(listen). */
 const HyExam = {
-  c:null, _at:0, _pop:"", _lh:null, _tvh:null,
+  L:[], c:null, _at:0, _pop:{}, _lh:{}, _R:{},
   P_NM:{ps:"Pre-Starter",st:"Starter",ba:"Basic",jr:"Junior",hj:"High Junior"},
   me(){ let m=null; try{ m=Kid.me(); }catch(e){} if(m) return m;
     let d="", n=""; try{ d=localStorage.getItem("hyeng_dev")||""; n=localStorage.getItem("hyeng_nick")||""; }catch(e){}
     let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){} if(roster || !d) return null;   // 명단이 있으면 이름을 골라야
     return {id:"d"+d.replace(/[^a-z0-9]/gi,"").slice(0,16), n:(n||"플레이어").slice(0,10), t:"all"}; },
+  /* 내 반 시험만 — 반이 정해진 시험은 그 반 아이만 (이름을 안 골랐으면 '전체' 시험만) */
+  forMe(c, m){ if(!c || !c.on || c.st==="end") return false; if(!c.team || c.team==="all") return true; m=m||this.me(); return !m || m.t===c.team; },   // 아직 이름을 안 골랐으면 보여 주고, 누르면 이름 → 우리 반인지
+  tName(t){ if(!t || t==="all") return "전체"; try{ return String(HyBoss.tName(t)).trim(); }catch(e){ return t; } },
   avail(c){ c=c||this.c; return !!(c && c.on && c.st!=="end" && (c.mode==="live" ? c.st==="run" : (c.st==="run" && Date.now()<(c.until||0)))); },
   waiting(c){ c=c||this.c; return !!(c && c.on && c.mode==="live" && c.st==="wait"); },
   dk(id, kid){ return "hyeng_exdone_"+id+"_"+String(kid||"").slice(0,20); },
   isDone(c){ const m=this.me(); if(!c || !m) return false; try{ return !!localStorage.getItem(this.dk(c.id, m.id)); }catch(e){ return false; } },
-  /* 아이 화면에서 볼 곳 — 첫 화면 · Daily 30 길 (문제 푸는 중이면 X) */
+  /* 지금 아이에게 보일 시험 하나 — 볼 수 있고 안 본 것 먼저, 없으면 기다리는 것 */
+  pick(){ const m=this.me(), L=this.L.filter(c=>this.forMe(c, m)); return L.find(c=>this.avail(c) && !this.isDone(c)) || L.find(c=>this.waiting(c)) || null; },
   visible(){ try{ if(document.hidden) return false; const ad=$("shAdmin"); if(ad && ad.classList.contains("on")) return false;   // 선생님 관리 화면 위에는 안 띄움
       if($("scStart").classList.contains("on")) return true;
       return $("scStudy").classList.contains("on") && $("stLesson").style.display==="none" && !(StudyUI.ex); }catch(e){ return false; } },
   check(force){ if(this._busy) return Promise.resolve(this.c); if(!force && Date.now()-this._at < (this.waiting() ? 3500 : 38000)) return Promise.resolve(this.c);
     this._busy=1; this._at=Date.now();
-    return FB.get("/hy/exam/cur").then(c=>{ this._busy=0; this.c=(c && c.id) ? c : null; this.paint(); return this.c; }, ()=>{ this._busy=0; return this.c; }); },
-  /* 떠 있는 작은 버튼 + 처음 한 번 큰 알림 */
-  paint(){ const c=this.c; let b=$("exChip");
+    return FB.get("/hy/exam/open").then(O=>{ this._busy=0; this.L=Object.keys(O||{}).map(k=>Object.assign({id:k}, O[k])).filter(c=>c && c.on && c.st!=="end").sort((a,b)=>(a.at||0)-(b.at||0)); this.c=this.pick(); this.paint(); return this.c; }, ()=>{ this._busy=0; return this.c; }); },
+  paint(){ this.c=this.pick(); const c=this.c; let b=$("exChip");
     const show = this.visible() && c && ((this.avail(c) && !this.isDone(c)) || this.waiting(c));
     if(!show){ if(b) b.hidden=true; return; }
     if(!b){ b=document.createElement("button"); b.id="exChip"; b.className="exChip"; document.body.appendChild(b); b.addEventListener("click", ()=>{ try{ SFX.select(); }catch(e){} if(this.waiting()) return; this.ask(); }); }
     const w=this.waiting(c); b.hidden=false; b.classList.toggle("wait", w);
     b.innerHTML = w ? '📝 <b>곧 시험!</b> <small>선생님이 시작하면 열려요</small>' : '📝 <b>시험 보기</b> <small>'+Raid.esc(c.title||"")+'</small>';
-    if(!w && this._pop!==c.id){ this._pop=c.id; this.ask(); } },
+    if(!w && !this._pop[c.id]){ this._pop[c.id]=1; this.ask(); } },
   left(c){ const ms=(c.until||0)-Date.now(); if(ms<=0) return "곧 닫혀요"; const h=Math.floor(ms/3600e3), m=Math.ceil((ms%3600e3)/60e3); return (h?h+"시간 ":"")+(h<3?m+"분 ":"")+"남음"; },
   ask(){ const c=this.c; if(!this.avail(c) || $("exAsk")) return; const E=x=>Raid.esc(x), d=document.createElement("div"); d.className="rdJoin"; d.id="exAsk";
     d.innerHTML='<div class="rdJoinIn exAskIn"><div class="exAskT">📝 시험이 열렸어요!</div><b class="exAskN">'+E(c.title||"")+'</b>'
-      +'<p class="exAskP">'+(c.n|0)+'문제 · 문제마다 ⏱ 시간 제한 · <b>한 번만</b> 볼 수 있어요'+(c.mode==="open" ? '<br>⏰ '+this.left(c) : '<br>🏫 지금 다 같이')+'</p>'
+      +'<p class="exAskP">'+(c.rng==="mine" ? '내가 배운 단어로 ' : '')+(c.n|0)+'문제 · 문제마다 ⏱ 시간 제한 · <b>한 번만</b> 볼 수 있어요'+(c.mode==="open" ? '<br>⏰ '+this.left(c) : '<br>🏫 지금 다 같이')+'</p>'
       +'<div class="wbPopB"><button class="stBossBtn" data-ex="go">📝 시험 시작</button><button class="stBossBtn soft" data-ex="later">나중에</button></div></div>';
     document.body.appendChild(d);
     d.addEventListener("click", e=>{ const t=e.target.closest && e.target.closest("[data-ex]"); if(!t && e.target!==d) return; d.remove(); if(t && t.dataset.ex==="go") this.go(); }); },
-  /* 시작 — 이름 → 이미 봤는지 서버에서 → 데이터 준비 → 공부 화면 */
-  go(){ const c=this.c; if(!this.avail(c)) return hyToast("시험이 닫혔어요");
-    const m=this.me(); if(!m){ try{ return KidPick.open(()=>this.go()); }catch(e){ return; } }
+  /* 🧒 각자 배운 단어 — 지금 Daily 30 책에서 배운 단어 (최근에 배운 것부터) */
+  mineWords(c){ const S=Study.load(), set=WORD_SETS[S.set] ? S.set : "basic", seen=S.seen||{}, sd=S.sd||{}, have={}, L=[];
+    Study.lessons(set).forEach(x=>x.ws.forEach(w=>{ if(seen[w.en] && !have[w.en]){ have[w.en]=1; L.push(w.en); } }));
+    L.sort((a,b)=>(sd[b]|0)-(sd[a]|0)); return {set, ws:L.slice(0, c.n>0 ? c.n : L.length)}; },
+  go(){ const c=this.c; if(!this.avail(c)) return hyToast(this.L.length ? "지금 볼 수 있는 우리 반 시험이 없어요" : "시험이 닫혔어요");
+    const m=this.me(); if(!m){ try{ return KidPick.open(()=>{ this.check(true).then(()=>this.go()); }); }catch(e){ return; } }
+    if(!this.forMe(c, m)) return hyToast("다른 반 시험이에요");
     hyToast("📝 시험 준비 중…", 1500);
     FB.get("/hy/exam/res/"+c.id+"/"+m.id).then(r=>{
       if(r && r.sc!=null){ try{ localStorage.setItem(this.dk(c.id, m.id), "1"); }catch(e){} this.paint(); return hyToast("이미 봤어요 — "+r.sc+"점"); }
       if(r && r.st) return hyToast("시험을 이미 시작했어요 · 선생님께 다시 열어 달라고 해요", 3500);
-      FB.set("/hy/exam/res/"+c.id+"/"+m.id, {n:String(m.n||"").slice(0,10), t:m.t||"all", st:1, p:0, ok:0, tot:c.n|0, at:Date.now()});
-      return this.ready().then(()=>{ if(!StudyUI.exam(c, m)) FB.set("/hy/exam/res/"+c.id+"/"+m.id, null); const b=$("exChip"); if(b) b.hidden=true; }); }, ()=>hyToast("인터넷 연결을 확인해 주세요")); },
-  /* 예문·대화·도감이 다 와야 B·C 문제가 만들어짐 (최대 5초 기다림) */
+      let cc=c; if(c.rng==="mine"){ const W=this.mineWords(c); if(W.ws.length<8) return hyToast("아직 배운 단어가 적어요 ("+W.ws.length+"개) — Daily 30 을 먼저 해요", 3500); cc=Object.assign({}, c, {set:W.set, ws:W.ws, P:c.P||Study.olyProf(W.set)}); }
+      FB.set("/hy/exam/res/"+c.id+"/"+m.id, Object.assign({n:String(m.n||"").slice(0,10), t:m.t||"all", st:1, p:0, ok:0, tot:(cc.ws ? cc.ws.length : c.n)|0, at:Date.now()}, c.rng==="mine" ? {bk:Study.label(cc.set)} : {}));
+      return this.ready().then(()=>{ if(!StudyUI.exam(cc, m)) FB.set("/hy/exam/res/"+c.id+"/"+m.id, null); const b=$("exChip"); if(b) b.hidden=true; }); }, ()=>hyToast("인터넷 연결을 확인해 주세요")); },
   ready(){ try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
     return new Promise(res=>{ const t0=Date.now(); const tick=()=>{ let okd=true; try{ okd=[1,2,3].every(b=>DexData.st[b]==="ok" || DexData.st[b]==="err") && Object.keys(TALK).length>0; }catch(e){}
       if(okd || Date.now()-t0>5000) res(); else setTimeout(tick, 120); }; tick(); }); },
   started(U){ U._exP=0; },
   prog(U){ const c=U.ex; if(!c || !c.kid) return; const Q=U.qs.filter(q=>q.t!=="intro"), p=Q.filter(q=>q._r!=null).length, ok=Q.filter(q=>q._r===1).length;
     clearTimeout(this._pt); this._pt=setTimeout(()=>FB.update("/hy/exam/res/"+c.id+"/"+c.kid.id, {p, ok, tot:Q.length}), p>=Q.length ? 0 : 400); },
-  /* 끝 — 점수 · 유형별 · 틀린 단어 → 서버 · 화면 */
   done(U, full){ const c=U.ex, me=c.kid, Q=U.qs.filter(q=>q.t!=="intro"), tot=Q.length, ok=Q.filter(q=>q._r===1).length, sc=Math.round(ok/Math.max(1,tot)*100), ab={};
     Q.forEach(q=>{ const k=q.ab||"A"; ab[k]=ab[k]||[0,0]; ab[k][1]++; if(q._r===1) ab[k][0]++; });
     const miss=[...new Set(Q.filter(q=>q._r!==1).map(q=>q.w && q.w.en).filter(Boolean))], sec=U.secs ? U.secs() : 0;
@@ -16754,84 +16771,120 @@ const HyExam = {
 
   /* ── 선생님 (관리 화면 📝 시험 탭) ── */
   sets(){ const BK=Study.BOOKS; return [].concat(...Object.keys(BK).filter(k=>k!=="ph" && k!=="k").map(k=>BK[k].sets)).filter(st=>Study.lessons(st).length>0); },
-  pane(){ const E=x=>Raid.esc(x), c=this.c, cur = c && c.st!=="end" && c.on;
-    let h='<div class="adMsg full" id="adMsg"></div>';
-    if(cur){ const live=c.mode==="live";
-      h+='<section class="adCard exCur"><h3>📝 '+E(c.title)+'<small>'+(live?'🏫 수업 중 다 같이':'⏰ 열어 두기 · '+this.left(c))+' · '+(c.n|0)+'문제 · '+E(this.P_NM[c.P]||c.P)+'</small></h3>'
-        +'<div class="exSt '+c.st+'">'+(c.st==="wait"?'⏳ 아이들이 기다리는 중 — 다 들어오면 ▶ 시작':c.st==="run"?'✏️ 시험 중':'')+'</div>'
-        +'<div class="adRow">'+(live && c.st==="wait"?'<button class="play adGo" data-ad="exStart">▶ 시험 시작</button>':'')
-        +'<button class="mini" data-ad="exTv">📺 크게 보기</button><button class="mini warn" data-ad="exEnd">■ '+(live?'시험 끝내기':'닫기')+'</button></div>'
-        +'<div id="adExRes" class="exRes"></div></section>'; }
-    else {
-      const sopt=this.sets().map(st=>'<option value="'+st+'">'+E(Study.label(st))+'</option>').join('');
-      h+='<section class="adCard"><h3>📝 시험 열기<small>열 때만 아이들 화면에 「📝 시험 보기」가 떠요 · 보카 올림피아드 틀 (A 뜻 · B 빈칸 · C 두 문장) · 문제마다 시간</small></h3>'
-        +'<div class="adPinRow"><label class="adL">책</label><select id="adExSet">'+sopt+'</select></div>'
-        +'<div class="adPinRow"><label class="adL">Stage 부터</label><select id="adExFrom"></select></div><div class="adPinRow"><label class="adL">Stage 까지</label><select id="adExTo"></select></div>'
-        +'<div class="adPinRow"><label class="adL">단계</label><select id="adExP"><option value="">자동 (책에 맞게)</option>'+Object.keys(this.P_NM).map(k=>'<option value="'+k+'">'+this.P_NM[k]+'</option>').join('')+'</select></div>'
-        +'<div class="adPinRow"><label class="adL">문제 수</label><select id="adExN"><option value="20">20문제</option><option value="30">30문제</option><option value="50">50문제</option><option value="100" selected>100문제</option><option value="0">범위 단어 전부</option></select></div>'
-        +'<div class="adPinRow"><label class="adL">방식</label><select id="adExMode"><option value="live">🏫 수업 중 다 같이 (내가 ▶ 시작)</option><option value="open">⏰ 열어 두기 (각자 · 집에서도)</option></select></div>'
-        +'<div class="adPinRow" id="adExUntilRow" hidden><label class="adL">마감</label><select id="adExUntil"><option value="1">1시간 뒤</option><option value="tn" selected>오늘 밤 10시</option><option value="mn">내일 밤 10시</option><option value="7">일주일</option></select></div>'
-        +'<div class="adPinRow"><label class="adL">제목</label><input id="adExT" maxlength="30" placeholder="(비우면 자동 — 예: 중등 단어 1~3 시험)"></div>'
-        +'<p class="adSmall" id="adExInfo"></p>'
-        +'<button class="play adGo" data-ad="exOpen">📝 시험 열기</button></section>';
-      h+='<section class="adCard"><h3>📚 지난 시험<small>눌러서 결과 보기</small></h3><div id="adExHist" class="exHist"><p class="adSmall">불러오는 중…</p></div><div id="adExRes" class="exRes"></div></section>'; }
+  teamOpts(sel){ let T={}; try{ T=HyBoss.teams()||{}; }catch(e){} return '<option value="all"'+(sel==="all"?' selected':'')+'>👥 전체 (모든 아이)</option>'+Object.keys(T).map(k=>'<option value="'+Raid.esc(k)+'"'+(sel===k?' selected':'')+'>🏫 '+Raid.esc((T[k]||{}).n||k)+'</option>').join(''); },
+  curCard(c){ const E=x=>Raid.esc(x), live=c.mode==="live";
+    return '<section class="adCard exCur"><h3>📝 '+E(c.title)+'<small>'+(c.team && c.team!=="all" ? '🏫 '+E(this.tName(c.team))+'만 · ' : '👥 전체 · ')+(live?'🏫 수업 중 다 같이':'⏰ 열어 두기 · '+this.left(c))+' · '+(c.n|0)+'문제 · '+(c.rng==="mine" ? '🧒 각자 배운 단어' : E(this.P_NM[c.P]||c.P))+'</small></h3>'
+      +'<div class="exSt '+c.st+'">'+(c.st==="wait"?'⏳ 아이들이 기다리는 중 — 다 들어오면 ▶ 시작':c.st==="run"?'✏️ 시험 중':'')+'</div>'
+      +'<div class="adRow">'+(live && c.st==="wait"?'<button class="play adGo" data-ad="exStart" data-id="'+E(c.id)+'">▶ 시험 시작</button>':'')
+      +'<button class="mini" data-ad="exTv" data-id="'+E(c.id)+'">📺 크게 보기</button><button class="mini warn" data-ad="exEnd" data-id="'+E(c.id)+'">■ '+(live?'시험 끝내기':'닫기')+'</button></div>'
+      +'<div id="adExRes_'+E(c.id)+'" class="exRes"></div></section>'; },
+  pane(){ const E=x=>Raid.esc(x); let h='<div class="adMsg full" id="adMsg"></div>';
+    h+=this.L.map(c=>this.curCard(c)).join('');
+    const sopt=this.sets().map(st=>'<option value="'+st+'">'+E(Study.label(st))+'</option>').join('');
+    h+='<section class="adCard"><h3>📝 '+(this.L.length?'다른 반 시험 더 열기':'시험 열기')+'<small>열 때만 아이들 화면에 「📝 시험 보기」가 떠요 · 반마다 따로 열 수 있어요 (반마다 책·범위가 달라도 돼요) · 보카 올림피아드 틀 (A 뜻 · B 빈칸 · C 두 문장) · 문제마다 시간</small></h3>'
+      +'<div class="adPinRow"><label class="adL">반</label><select id="adExTeam">'+this.teamOpts("all")+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">범위</label><select id="adExRng"><option value="stage">📚 책 + Stage 정하기 (다 같은 단어)</option><option value="mine">🧒 각자 배운 단어 (아이마다 자기 책 · 최근 배운 것)</option></select></div>'
+      +'<div id="adExStageBox"><div class="adPinRow"><label class="adL">책</label><select id="adExSet">'+sopt+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">Stage 부터</label><select id="adExFrom"></select></div><div class="adPinRow"><label class="adL">Stage 까지</label><select id="adExTo"></select></div></div>'
+      +'<div class="adPinRow"><label class="adL">단계</label><select id="adExP"><option value="">자동 (책에 맞게)</option>'+Object.keys(this.P_NM).map(k=>'<option value="'+k+'">'+this.P_NM[k]+'</option>').join('')+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">문제 수</label><select id="adExN"><option value="20">20문제</option><option value="30">30문제</option><option value="50">50문제</option><option value="100" selected>100문제</option><option value="0">범위 단어 전부</option></select></div>'
+      +'<div class="adPinRow"><label class="adL">방식</label><select id="adExMode"><option value="live">🏫 수업 중 다 같이 (내가 ▶ 시작)</option><option value="open">⏰ 열어 두기 (각자 · 집에서도)</option></select></div>'
+      +'<div class="adPinRow" id="adExUntilRow" hidden><label class="adL">마감</label><select id="adExUntil"><option value="1">1시간 뒤</option><option value="tn" selected>오늘 밤 10시</option><option value="mn">내일 밤 10시</option><option value="7">일주일</option></select></div>'
+      +'<div class="adPinRow"><label class="adL">제목</label><input id="adExT" maxlength="30" placeholder="(비우면 자동 — 예: 중등 단어 1~3 시험)"></div>'
+      +'<p class="adSmall" id="adExInfo"></p>'
+      +'<button class="play adGo" data-ad="exOpen">📝 시험 열기</button></section>';
+    h+='<section class="adCard"><h3>📚 지난 시험<small>눌러서 결과 보기</small></h3><div id="adExHist" class="exHist"><p class="adSmall">불러오는 중…</p></div><div id="adExRes" class="exRes"></div></section>';
     return h; },
+  timeTbl(P){ return P==="hj" ? "A 7초 · B 12초 · C 15초" : (P==="ps"||P==="st") ? "A 7초 · B 8초 · C 11초" : "A 7초 · B 10초 · C 12초"; },
+  shownKey(){ return this.L.map(c=>c.id+":"+c.st).join("|"); },
+  wire(redraw){ const s=$("adExSet"); this._shown=this.shownKey();
+    if(redraw && Date.now()-this._at>4000) this.check(true).then(()=>{ if(this.shownKey()!==this._shown && document.querySelector("#adExSet,#adExRes")) redraw(); });
+    if(s){ const info=()=>{ const c=this.form(); if(!c) return; if(c.rng==="mine"){ $("adExInfo").textContent="아이마다 자기 Daily 30 책에서 배운 단어 최근 "+(c.n||"전부")+"개 · 단계는 "+(c.P?this.P_NM[c.P]:"아이 책에 맞게 자동")+" · 배운 단어가 8개보다 적은 아이는 못 봐요"; return; }
+          const n=Study.examWords(Object.assign({}, c, {n:0})).length; $("adExInfo").textContent="범위 단어 "+n+"개 → "+Math.min(n, c.n||n)+"문제 · 단계 "+(this.P_NM[c.P]||c.P)+" ("+this.timeTbl(c.P)+")"; };
+      const fill=()=>{ const L=Study.lessons(s.value), o=L.map((x,i)=>'<option value="'+i+'">Stage '+Study.stageNo(s.value,x.n)+(x.fin?' 🚩':'')+'</option>').join(''); $("adExFrom").innerHTML=o; $("adExTo").innerHTML=o; $("adExTo").value=String(Math.min(L.length-1, 2)); info(); };
+      s.addEventListener("change", fill); ["adExFrom","adExTo","adExP","adExN","adExTeam"].forEach(id=>$(id).addEventListener("change", info));
+      $("adExRng").addEventListener("change", ()=>{ $("adExStageBox").hidden = $("adExRng").value==="mine"; info(); });
+      $("adExMode").addEventListener("change", ()=>{ $("adExUntilRow").hidden = $("adExMode").value!=="open"; }); fill(); this.hist(); }
+    const ids=this.L.map(c=>c.id); Object.keys(this._lh).forEach(id=>{ if(ids.indexOf(id)<0) this.unlisten(id); }); ids.forEach(id=>this.listen(id)); },
+  form(){ const s=$("adExSet"); if(!s) return null; const rng=$("adExRng").value, team=$("adExTeam").value||"all", set=s.value, f=+$("adExFrom").value||0, t=Math.max(f, +$("adExTo").value||0), L=Study.lessons(set);
+    const P=$("adExP").value || (rng==="mine" ? "" : Study.olyProf(set)), n=+$("adExN").value, a=L[f], b=L[t], tn=team!=="all" ? this.tName(team)+" " : "";
+    const title=($("adExT").value||"").trim() || (rng==="mine" ? tn+"내가 배운 단어 시험" : tn+Study.label(set)+" "+(a?Study.stageNo(set,a.n):"")+(t>f && b?"~"+Study.stageNo(set,b.n):"")+" 시험");
+    return {rng, team, set, from:f, to:t, n, P, title:title.slice(0,30)}; },
+  untilOf(v){ const d=new Date(), at22=k=>{ const x=new Date(d.getFullYear(), d.getMonth(), d.getDate()+k, 22, 0, 0); return x.getTime(); };
+    return v==="1" ? Date.now()+3600e3 : v==="7" ? Date.now()+7*864e5 : v==="mn" ? at22(1) : (at22(0)>Date.now()+15*60e3 ? at22(0) : at22(1)); },
+  byId(id){ return this.L.find(c=>c.id===id) || null; },
+  act(a, el, msg, redraw){
+    if(a==="exOpen"){ const f=this.form(); if(!f) return true;
+      let n=f.n; if(f.rng!=="mine"){ const all=Study.examWords(Object.assign({}, f, {n:0})).length; if(all<4) return msg("범위에 단어가 너무 적어요 (4개 이상)", false), true; n=Math.min(all, f.n||all); } else n=f.n||100;
+      if(this.L.some(c=>(c.team||"all")===f.team) && !confirm("「"+this.tName(f.team)+"」에 열린 시험이 벌써 있어요. 하나 더 열까요?")) return true;
+      const mode=$("adExMode").value, id="x"+Date.now().toString(36), c=Object.assign(f, {id, on:1, seed:(Math.random()*2e9)|0, n, mode, st:mode==="live"?"wait":"run", at:Date.now(), t0:mode==="live"?0:Date.now(), until:mode==="open"?this.untilOf($("adExUntil").value):0});
+      FB.set("/hy/exam/open/"+id, c).then(()=>{ FB.set("/hy/exam/hist/"+id, {title:c.title, set:c.set, n:c.n, mode, team:c.team, at:c.at}); this.L.push(c); this._at=Date.now();
+        msg((c.team!=="all" ? "🏫 "+this.tName(c.team)+" — " : "")+(mode==="live" ? "열었어요 — 아이들 화면에 「곧 시험!」 · 다 들어오면 ▶ 시작" : "열었어요 — 아이들 화면에 「📝 시험 보기」"), true); redraw(); }); return true; }
+    const c=el && el.dataset.id ? this.byId(el.dataset.id) : null;
+    if(a==="exStart"){ if(!c) return true; c.st="run"; c.t0=Date.now(); FB.update("/hy/exam/open/"+c.id, {st:"run", t0:c.t0}).then(()=>{ msg("▶ 시작! 아이들 화면에 시험이 떠요", true); redraw(); }); return true; }
+    if(a==="exEnd"){ if(!c) return true; if(!confirm("「"+c.title+"」 시험을 끝낼까요?\n\n· 아직 푸는 아이는 지금까지 푼 것까지 저장돼요\n· 결과는 「지난 시험」에서 다시 볼 수 있어요")) return true;
+      FB.set("/hy/exam/open/"+c.id, null).then(()=>{ FB.update("/hy/exam/hist/"+c.id, {end:Date.now()}); this.L=this.L.filter(x=>x.id!==c.id); this.unlisten(c.id); msg("시험을 끝냈어요", true); redraw(); this.showRes(c.id, c.title); }); return true; }
+    if(a==="exReset"){ const k=el.dataset.k, id=el.dataset.x; if(!id || !k) return true; if(!confirm("이 아이가 시험을 다시 볼 수 있게 할까요? (지금 기록은 지워져요)")) return true; FB.set("/hy/exam/res/"+id+"/"+k, null); msg("다시 볼 수 있어요", true); return true; }
+    if(a==="exTv"){ if(c) this.tv(c.id); return true; }
+    if(a==="exHist"){ this.showRes(el.dataset.id, el.dataset.t); return true; }
+    return false; },
+  hist(){ FB.get("/hy/exam/hist").then(H=>{ const el=$("adExHist"); if(!el) return; const L=Object.keys(H||{}).map(k=>Object.assign({id:k}, H[k])).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,12), E=x=>Raid.esc(x);
+    el.innerHTML = L.length ? L.map(x=>'<button class="exH" data-ad="exHist" data-id="'+E(x.id)+'" data-t="'+E(x.title||"")+'"><b>'+E(x.title||"")+'</b><small>'+new Date(x.at||0).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"})+' · '+(x.n|0)+'문제 · '+(x.mode==="live"?"수업":"열어 두기")+(x.team && x.team!=="all" ? ' · 🏫 '+E(this.tName(x.team)) : '')+'</small></button>').join("") : '<p class="adSmall">아직 연 시험이 없어요</p>'; }); },
+  rows(R){ const L=Object.keys(R||{}).map(k=>Object.assign({k}, R[k])); L.sort((a,b)=>((b.sc!=null)-(a.sc!=null)) || ((b.sc|0)-(a.sc|0)) || ((b.p|0)-(a.p|0))); return L; },
+  table(R, id, teacher){ const E=x=>Raid.esc(x), L=this.rows(R), fin=L.filter(x=>x.sc!=null), avg=fin.length ? Math.round(fin.reduce((s,x)=>s+(x.sc|0),0)/fin.length) : 0, mc={};
+    fin.forEach(x=>String(x.miss||"").split(/\s*,\s*/).filter(Boolean).forEach(w=>mc[w]=(mc[w]||0)+1));
+    const top=Object.keys(mc).sort((a,b)=>mc[b]-mc[a]).slice(0,8), bk=L.some(x=>x.bk);
+    if(!L.length) return '<p class="adSmall">아직 들어온 아이가 없어요</p>';
+    return '<div class="exSum"><span>👥 '+L.length+'명</span><span>✅ 끝 '+fin.length+'명</span><span>📊 평균 <b>'+avg+'점</b></span></div>'
+      +'<table class="exT"><tr><th>#</th><th>이름</th>'+(bk?'<th>책</th>':'')+'<th>진행</th><th>점수</th><th>A·B·C</th>'+(teacher?'<th></th>':'')+'</tr>'
+      +L.map((x,i)=>{ const ab=x.ab||{}; return '<tr class="'+(x.sc!=null?'fin':'')+'"><td>'+(x.sc!=null?i+1:'')+'</td><td>'+E(x.n||"?")+'</td>'+(bk?'<td class="exAbT">'+E(x.bk||"")+'</td>':'')+'<td><i class="exP"><u style="width:'+Math.round((x.p|0)/Math.max(1,x.tot|0)*100)+'%"></u></i>'+(x.p|0)+'/'+(x.tot|0)+'</td>'
+        +'<td>'+(x.sc!=null?'<b>'+x.sc+'</b>':(x.fin?'—':'✏️'))+'</td><td class="exAbT">'+["A","B","C"].filter(k=>ab[k]).map(k=>ab[k][0]+'/'+ab[k][1]).join(' · ')+'</td>'
+        +(teacher?'<td><button class="adX" data-ad="exReset" data-x="'+E(id)+'" data-k="'+E(x.k)+'" title="다시 보게">↺</button></td>':'')+'</tr>'; }).join("")+'</table>'
+      +(top.length?'<p class="adSmall">❌ 많이 틀린 단어: '+top.map(w=>'<b>'+E(w)+'</b> '+mc[w]).join(' · ')+'</p>':''); },
+  listen(id){ if(this._lh[id]) return;
+    this._lh[id]=FB.listen("/hy/exam/res/"+id, R=>{ this._R[id]=R||{}; const el=$("adExRes_"+id); if(el) el.innerHTML=this.table(this._R[id], id, true); if(this._tv===id) this.tvDraw(); }); },
+  unlisten(id){ const ids = id ? [id] : Object.keys(this._lh); ids.forEach(k=>{ try{ this._lh[k] && this._lh[k].close(); }catch(e){} delete this._lh[k]; }); },
+  showRes(id, title){ FB.get("/hy/exam/res/"+id).then(R=>{ const el=$("adExRes"); if(!el) return; el.innerHTML='<h4 class="exRt">📝 '+Raid.esc(title||"")+'</h4>'+this.table(R||{}, id, false); try{ el.scrollIntoView({behavior:"smooth", block:"start"}); }catch(e){} }); },
   /* (v329) 우리 반 표에 쓸 — 가장 최근 시험 결과 */
   loadLast(){ return FB.get("/hy/exam/hist").then(H=>{ const L=Object.keys(H||{}).map(k=>Object.assign({id:k}, H[k])).sort((a,b)=>(b.at||0)-(a.at||0)); const x=L[0]; if(!x){ this._last=null; return; }
     return FB.get("/hy/exam/res/"+x.id).then(R=>{ this._last={id:x.id, t:String(x.title||"").replace(/ 시험$/,"").slice(0,14), R:R||{}}; }); }, ()=>{}); },
-  timeTbl(P){ return P==="hj" ? "A 7초 · B 12초 · C 15초" : (P==="ps"||P==="st") ? "A 7초 · B 8초 · C 11초" : "A 7초 · B 10초 · C 12초"; },
-  shownKey(){ const c=this.c; return (c && c.on && c.st!=="end") ? c.id+":"+c.st : ""; },
-  wire(redraw){ const s=$("adExSet"); this._shown=this.shownKey();
-    if(redraw && Date.now()-this._at>4000) this.check(true).then(()=>{ if(this.shownKey()!==this._shown && document.querySelector("#adExSet,#adExRes")) redraw(); });
-    if(s){ const fill=()=>{ const L=Study.lessons(s.value), o=L.map((x,i)=>'<option value="'+i+'">Stage '+Study.stageNo(s.value,x.n)+(x.fin?' 🚩':'')+'</option>').join(''); $("adExFrom").innerHTML=o; $("adExTo").innerHTML=o; $("adExTo").value=String(Math.min(L.length-1, 2)); info(); };
-      const info=()=>{ const c=this.form(); if(!c) return; const n=Study.examWords(Object.assign({}, c, {n:0})).length;
-        $("adExInfo").textContent="범위 단어 "+n+"개 → "+Math.min(n, c.n||n)+"문제 · 단계 "+(this.P_NM[c.P]||c.P)+" ("+this.timeTbl(c.P)+")"; };
-      s.addEventListener("change", fill); ["adExFrom","adExTo","adExP","adExN"].forEach(id=>$(id).addEventListener("change", info));
-      $("adExMode").addEventListener("change", ()=>{ $("adExUntilRow").hidden = $("adExMode").value!=="open"; }); fill(); this.hist(); }
-    if(this.c && this.c.on && this.c.st!=="end") this.listen(this.c.id); else this.unlisten(); },
-  form(){ const s=$("adExSet"); if(!s) return null; const set=s.value, f=+$("adExFrom").value||0, t=Math.max(f, +$("adExTo").value||0), L=Study.lessons(set);
-    const P=$("adExP").value || Study.olyProf(set), n=+$("adExN").value, a=L[f], b=L[t];
-    const title=($("adExT").value||"").trim() || (Study.label(set)+" "+(a?Study.stageNo(set,a.n):"")+(t>f && b?"~"+Study.stageNo(set,b.n):"")+" 시험");
-    return {set, from:f, to:t, n, P, title:title.slice(0,30)}; },
-  untilOf(v){ const d=new Date(), at22=k=>{ const x=new Date(d.getFullYear(), d.getMonth(), d.getDate()+k, 22, 0, 0); return x.getTime(); };
-    return v==="1" ? Date.now()+3600e3 : v==="7" ? Date.now()+7*864e5 : v==="mn" ? at22(1) : (at22(0)>Date.now()+15*60e3 ? at22(0) : at22(1)); },
-  act(a, el, msg, redraw){
-    if(a==="exOpen"){ const f=this.form(); if(!f) return; const n=Study.examWords(Object.assign({}, f, {n:0})).length; if(n<4) return msg("범위에 단어가 너무 적어요 (4개 이상)", false);
-      const mode=$("adExMode").value, id="x"+Date.now().toString(36), c=Object.assign(f, {id, on:1, seed:(Math.random()*2e9)|0, n:Math.min(n, f.n||n), mode, st:mode==="live"?"wait":"run", at:Date.now(), t0:mode==="live"?0:Date.now(), until:mode==="open"?this.untilOf($("adExUntil").value):0});
-      FB.set("/hy/exam/cur", c).then(()=>{ FB.set("/hy/exam/hist/"+id, {title:c.title, set:c.set, n:c.n, mode, at:c.at}); this.c=c; this._at=Date.now(); msg(mode==="live" ? "열었어요 — 아이들 화면에 「곧 시험!」 · 다 들어오면 ▶ 시작" : "열었어요 — 아이들 화면에 「📝 시험 보기」", true); redraw(); }); return true; }
-    if(a==="exStart"){ const c=this.c; if(!c) return true; c.st="run"; c.t0=Date.now(); FB.update("/hy/exam/cur", {st:"run", t0:c.t0}).then(()=>{ msg("▶ 시작! 아이들 화면에 시험이 떠요", true); redraw(); }); return true; }
-    if(a==="exEnd"){ const c=this.c; if(!c) return true; if(!confirm("시험을 끝낼까요?\n\n· 아직 푸는 아이는 지금까지 푼 것까지 저장돼요\n· 결과는 「지난 시험」에서 다시 볼 수 있어요")) return true;
-      FB.update("/hy/exam/cur", {st:"end", on:0}).then(()=>{ FB.update("/hy/exam/hist/"+c.id, {end:Date.now()}); c.st="end"; c.on=0; this.unlisten(); msg("시험을 끝냈어요", true); redraw(); this.showRes(c.id, c.title); }); return true; }
-    if(a==="exReset"){ const c=this.c, k=el.dataset.k; if(!c || !k) return true; if(!confirm("이 아이가 시험을 다시 볼 수 있게 할까요? (지금 기록은 지워져요)")) return true; FB.set("/hy/exam/res/"+c.id+"/"+k, null); msg("다시 볼 수 있어요", true); return true; }
-    if(a==="exTv"){ this.tv(); return true; }
-    if(a==="exHist"){ this.showRes(el.dataset.id, el.dataset.t); return true; }
-    return false; },
-  hist(){ FB.get("/hy/exam/hist").then(H=>{ const el=$("adExHist"); if(!el) return; const L=Object.keys(H||{}).map(k=>Object.assign({id:k}, H[k])).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,10), E=x=>Raid.esc(x);
-    el.innerHTML = L.length ? L.map(x=>'<button class="exH" data-ad="exHist" data-id="'+E(x.id)+'" data-t="'+E(x.title||"")+'"><b>'+E(x.title||"")+'</b><small>'+new Date(x.at||0).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"})+' · '+(x.n|0)+'문제 · '+(x.mode==="live"?"수업":"열어 두기")+'</small></button>').join("") : '<p class="adSmall">아직 연 시험이 없어요</p>'; }); },
-  rows(R){ const L=Object.keys(R||{}).map(k=>Object.assign({k}, R[k])); L.sort((a,b)=>((b.sc!=null)-(a.sc!=null)) || ((b.sc|0)-(a.sc|0)) || ((b.p|0)-(a.p|0))); return L; },
-  table(R, teacher){ const E=x=>Raid.esc(x), L=this.rows(R), fin=L.filter(x=>x.sc!=null), avg=fin.length ? Math.round(fin.reduce((s,x)=>s+(x.sc|0),0)/fin.length) : 0, mc={};
-    fin.forEach(x=>String(x.miss||"").split(/\s*,\s*/).filter(Boolean).forEach(w=>mc[w]=(mc[w]||0)+1));
-    const top=Object.keys(mc).sort((a,b)=>mc[b]-mc[a]).slice(0,8);
-    if(!L.length) return '<p class="adSmall">아직 들어온 아이가 없어요</p>';
-    return '<div class="exSum"><span>👥 '+L.length+'명</span><span>✅ 끝 '+fin.length+'명</span><span>📊 평균 <b>'+avg+'점</b></span></div>'
-      +'<table class="exT"><tr><th>#</th><th>이름</th><th>진행</th><th>점수</th><th>A·B·C</th>'+(teacher?'<th></th>':'')+'</tr>'
-      +L.map((x,i)=>{ const ab=x.ab||{}; return '<tr class="'+(x.sc!=null?'fin':'')+'"><td>'+(x.sc!=null?i+1:'')+'</td><td>'+E(x.n||"?")+'</td><td><i class="exP"><u style="width:'+Math.round((x.p|0)/Math.max(1,x.tot|0)*100)+'%"></u></i>'+(x.p|0)+'/'+(x.tot|0)+'</td>'
-        +'<td>'+(x.sc!=null?'<b>'+x.sc+'</b>':(x.fin?'—':'✏️'))+'</td><td class="exAbT">'+["A","B","C"].filter(k=>ab[k]).map(k=>ab[k][0]+'/'+ab[k][1]).join(' · ')+'</td>'
-        +(teacher?'<td><button class="adX" data-ad="exReset" data-k="'+E(x.k)+'" title="다시 보게">↺</button></td>':'')+'</tr>'; }).join("")+'</table>'
-      +(top.length?'<p class="adSmall">❌ 많이 틀린 단어: '+top.map(w=>'<b>'+E(w)+'</b> '+mc[w]).join(' · ')+'</p>':''); },
-  listen(id){ if(this._lid===id && this._lh) return; this.unlisten(); this._lid=id;
-    this._lh=FB.listen("/hy/exam/res/"+id, R=>{ this._R=R||{}; const el=$("adExRes"); if(el && this.c && this.c.id===id) el.innerHTML=this.table(this._R, true); this.tvDraw(); }); },
-  unlisten(){ try{ this._lh && this._lh.close(); }catch(e){} this._lh=null; this._lid=null; },
-  showRes(id, title){ FB.get("/hy/exam/res/"+id).then(R=>{ const el=$("adExRes"); if(!el) return; el.innerHTML='<h4 class="exRt">📝 '+Raid.esc(title||"")+'</h4>'+this.table(R||{}, false); try{ el.scrollIntoView({behavior:"smooth", block:"start"}); }catch(e){} }); },
-  /* 📺 크게 보기 — TV 에 띄우기 (진행 막대 · 점수 순위) */
-  tv(){ let d=$("exTv"); if(d) d.remove(); d=document.createElement("div"); d.id="exTv"; d.className="exTv"; document.body.appendChild(d);
-    d.addEventListener("click", e=>{ if(e.target.closest && e.target.closest("[data-extvx]")) { d.remove(); } }); this.tvDraw(); },
-  tvDraw(){ const d=$("exTv"), c=this.c; if(!d || !c) return; const E=x=>Raid.esc(x), L=this.rows(this._R||{}), fin=L.filter(x=>x.sc!=null), avg=fin.length ? Math.round(fin.reduce((s,x)=>s+(x.sc|0),0)/fin.length) : 0;
+  tv(id){ let d=$("exTv"); if(d) d.remove(); this._tv=id; this.listen(id); d=document.createElement("div"); d.id="exTv"; d.className="exTv"; document.body.appendChild(d);
+    d.addEventListener("click", e=>{ if(e.target.closest && e.target.closest("[data-extvx]")){ d.remove(); this._tv=null; } }); this.tvDraw(); },
+  tvDraw(){ const d=$("exTv"), c=this.byId(this._tv); if(!d || !c) return; const E=x=>Raid.esc(x), L=this.rows(this._R[c.id]||{}), fin=L.filter(x=>x.sc!=null), avg=fin.length ? Math.round(fin.reduce((s,x)=>s+(x.sc|0),0)/fin.length) : 0;
     d.innerHTML='<button class="exTvX" data-extvx="1">✕</button><div class="exTvH"><b>📝 '+E(c.title)+'</b><span>'+(c.st==="wait"?'⏳ 곧 시작':c.st==="run"?'✏️ 시험 중':'🏁 끝')+' · 👥 '+L.length+'명 · ✅ '+fin.length+'명'+(fin.length?' · 평균 '+avg+'점':'')+'</span></div>'
       +'<div class="exTvG">'+L.map((x,i)=>'<div class="exTvK'+(x.sc!=null?' fin':'')+'"><b>'+(x.sc!=null && i<3 ? ["🥇","🥈","🥉"][i]+' ' : '')+E(x.n||"?")+'</b><i class="exP big"><u style="width:'+Math.round((x.p|0)/Math.max(1,x.tot|0)*100)+'%"></u></i><em>'+(x.sc!=null ? x.sc+'점' : (x.p|0)+' / '+(x.tot|0))+'</em></div>').join("")+'</div>'; }
 };
 setInterval(()=>{ try{ if(HyExam.visible()) HyExam.check(); else { const b=$("exChip"); if(b) b.hidden=true; } }catch(e){} }, 3000);
 setTimeout(()=>{ try{ HyExam.check(true); }catch(e){} }, 2500);
+/* ══ (v330) 📅 오늘 한 아이 (사용자: 달리기 오늘 누가 했는지 보기가 너무 힘들어) — 판이 끝날 때마다 Firebase 에 아이별 하루 칸을 더함
+   /hy/day/<YYYY-MM-DD(한국)>/<아이> = {n, t, r(달리기 판), rr(맞힘), rw(틀림), rs(달린 초), b(오늘 최고 점수), bs(최고 단계), s(공부 판), so, sw, la(마지막 시각), lk('r'|'s')}
+   선생님 📋 우리 반 맨 위 카드 (시트가 없어도) — 오늘 / 어제 */
+const HyDay = {
+  D:{}, day:null,
+  key(ts){ try{ return HyBoss.dayOf(ts==null?Date.now():ts); }catch(e){ return new Date().toISOString().slice(0,10); } },
+  who(){ let m=null; try{ m=HyExam.me(); }catch(e){} if(m) return m;
+    let d="", n=""; try{ d=localStorage.getItem("hyeng_dev")||""; n=localStorage.getItem("hyeng_nick")||""; }catch(e){} if(!d) return null;
+    return {id:"d"+d.replace(/[^a-z0-9]/gi,"").slice(0,16), n:((n||"이름 없음")+(Kid.shared() ? " (이름 안 고름)" : "")).slice(0,16), t:"all"}; },
+  add(inc, best){ try{ const m=this.who(); if(!m) return; const day=this.key(), lb="hyeng_daybest_"+day+"_"+String(m.id).slice(0,20);
+      const plain={n:String(m.n||"").slice(0,16), t:m.t||"all", la:Date.now(), lk:inc.r ? "r" : "s"};
+      if(best){ let b={}; try{ b=JSON.parse(localStorage.getItem(lb))||{}; }catch(e){} let ch=false;
+        if((best.b|0)>(b.b|0)){ b.b=best.b|0; ch=true; } if((best.bs|0)>(b.bs|0)){ b.bs=best.bs|0; ch=true; }
+        if(ch){ try{ localStorage.setItem(lb, JSON.stringify(b)); }catch(e){} } plain.b=b.b|0; plain.bs=b.bs|0; }
+      FB.inc("/hy/day/"+day+"/"+m.id, inc, plain); }catch(e){} },
+  load(day){ day=day||this.day||this.key(); this.day=day; return FB.get("/hy/day/"+day).then(D=>{ this.D[day]=D||{}; return this.D[day]; }, ()=>this.D[day]||{}); },
+  card(){ const E=x=>Raid.esc(x), today=this.key(), yday=this.key(Date.now()-864e5), day=this.day||today, D=this.D[day];
+    const head='<div class="dyTabs"><button class="mini'+(day===today?' on':'')+'" data-ad="dayPick" data-d="'+today+'">오늘</button><button class="mini'+(day===yday?' on':'')+'" data-ad="dayPick" data-d="'+yday+'">어제</button><button class="mini" data-ad="dayPick" data-d="'+day+'">🔄</button></div>';
+    if(!D) return '<div class="full">'+'<section class="adCard"><h3>📅 오늘 한 아이<small>달리기 · 공부 · 보스 — 판이 끝날 때마다 바로</small></h3>'+head+'<p class="adSmall">불러오는 중…</p></section></div>';
+    const BD=(HyBoss.D||{}), L=Object.keys(D).map(k=>Object.assign({k}, D[k])).sort((a,b)=>(b.la||0)-(a.la||0)), run=L.filter(x=>(x.r|0)>0), st=L.filter(x=>(x.s|0)>0);
+    const tm=t=>{ if(!t) return ""; const d=new Date(t); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
+    const body = L.length ? '<div class="adTbl"><table class="dyT"><tr><th>아이</th><th>🏃 달리기</th><th>최고</th><th>정답률</th><th>📚 공부</th><th>⚔️ 보스</th><th>마지막</th></tr>'
+      +L.map(x=>{ const b=BD[x.k], bd=b && b.on ? (b.on[day]|0) : 0, tot=(x.rr|0)+(x.rw|0);
+        return '<tr><td>'+E(x.n||"?")+(x.t && x.t!=="all" ? ' <small>'+E(HyExam.tName(x.t))+'</small>' : '')+'</td><td class="'+((x.r|0)?'ok':'')+'">'+((x.r|0)?(x.r|0)+'판 <small>'+Math.round((x.rs|0)/60)+'분</small>':'-')+'</td>'
+          +'<td>'+((x.b|0)?(x.b|0).toLocaleString()+((x.bs|0)?' <small>'+(x.bs|0)+'단계</small>':''):'-')+'</td><td>'+(tot?Math.round((x.rr|0)/tot*100)+'%':'-')+'</td>'
+          +'<td class="'+((x.s|0)?'ok':'')+'">'+((x.s|0)?(x.s|0)+'판':'-')+'</td><td>'+(bd?'-'+bd.toLocaleString():'-')+'</td><td>'+tm(x.la)+' '+(x.lk==="r"?'🏃':'📚')+'</td></tr>'; }).join('')+'</table></div>'
+      : '<p class="adSmall">'+(day===today?'오늘은 아직 아무도 안 했어요':'이날은 기록이 없어요')+' <small>(v330 이상 기기만 보여요)</small></p>';
+    return '<div class="full"><section class="adCard"><h3>📅 '+(day===today?'오늘':day===yday?'어제':day)+' 한 아이<small>🏃 달리기 '+run.length+'명 · 📚 공부 '+st.length+'명 · 판이 끝날 때마다 바로 (새 버전 기기만)</small></h3>'+head+body+'</section></div>'; }
+};
 /* ══ (v329) 📌 숙제 (사용자: 숙제 지정) — 선생님이 책 + Stage 범위 + 목표 별 + 마감을 정하면 아이 Daily 30 길 맨 위에 📌 카드 · 범위 Stage 에 📌 표시
    /hy/hw/cur = {id, on, set, from, to, goal(1·3·4·6 = ★1·★3·💜1·💜3, 🚩 은 끝냄), due, title, at} · /hy/hw/res/<id>/<아이> = {n, t, done, tot, at} (아이가 길로 돌아올 때 바뀌었으면) */
 const HyHW = {
@@ -17813,7 +17866,7 @@ const Admin = (function(){
 
   function body(){
     if(!ok) return pinBox();
-    const f={class:klass, home, notice, send, fix, move, raid, exam:()=>HyExam.pane()+HyHW.pane()}[tab]||klass;   // (v328) 📝 시험
+    const f={class:()=>HyDay.card()+klass(), home, notice, send, fix, move, raid, exam:()=>HyExam.pane()+HyHW.pane()}[tab]||klass;   // (v328) 📝 시험
     return '<div class="adPane'+(tab==="class"||tab==="raid"?' wide':'')+'">'+f()+'</div>';
   }
   /* (v306) 알림은 화면 아래 떠오르는 글 (긴 화면 맨 아래 칸은 안 보였다) */
@@ -17828,7 +17881,7 @@ const Admin = (function(){
   let keepScroll=false;
   /* 입력 칸 연결 (글자 수 · 조치 종류별 안내 · 값 목록) */
   function wire(){
-    try{ if(ok && tab==="exam"){ HyExam.wire(()=>{ keepScroll=true; draw(); }); HyHW.wire(); } else HyExam.unlisten(); }catch(e){ console.error(e); }
+    try{ if(ok && tab==="exam"){ HyExam.wire(()=>{ keepScroll=true; draw(); }); HyHW.wire(); } else HyExam.unlisten(); }   /* (v330) 시험 여러 개 — 시험마다 결과 listen */catch(e){ console.error(e); }
     const bs=$("adBtSet"); if(bs){ const fill=()=>{ const L=Study.lessons(bs.value), o=L.map((x,i)=>'<option value="'+i+'">Stage '+Study.stageNo(bs.value,x.n)+(x.fin?' 🚩':'')+'</option>').join(''); $("adBtFrom").innerHTML=o; $("adBtTo").innerHTML=o; $("adBtTo").value=String(Math.min(L.length-1, 3)); };
       bs.addEventListener("change", fill); fill(); }   // (v304) 교실 배틀 Stage 범위
     const t=$("adNtText"); if(t){ const c=()=>{ $("adNtCnt").textContent=t.value.length; }; t.addEventListener("input", c); c(); }
@@ -17864,6 +17917,7 @@ const Admin = (function(){
       sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H){ ok=true; ss(SK,String(Date.now())); sha("hyeng-teacher:"+v).then(t=>{ tk=t; ss(TK,t); draw(); check(true); }); }
         else { msg(h?"비밀번호가 달라요":"이 브라우저에서는 확인할 수 없어요 (https 주소로 열어 주세요)"); $("adPin").value=""; } }); return; }
     if(!ok) return;
+    if(a==="dayPick"){ HyDay.load(el.dataset.d).then(()=>{ keepScroll=true; draw(); }); return; }   // (v330) 📅 오늘 / 어제
     try{ const rd=()=>{ keepScroll=true; draw(); }; if(HyExam.act(a, el, msg, rd) || HyHW.act(a, el, msg, rd)) return; }catch(e){ console.error(e); }   // (v328) 📝 시험
     if(a==="teAdd"){ const n=(($("adTeN")||{}).value||"").trim().slice(0,10); if(!n) return msg("반 이름을 넣어 주세요", false); if(Object.values(HyBoss.teams()).some(t=>t.n===n)) return msg("같은 이름의 반이 벌써 있어요", false); FB.set("/hy/roster/t/"+FB.id(), {n, e:($("adTeE")||{}).value||"🦁"}); $("adTeN").value=""; return; }
     if(a==="teDel"){ const t=el.dataset.t; if(!confirm("이 반을 지울까요? (아이 이름은 '반 없음'으로)")) return; FB.set("/hy/roster/t/"+t, null); const K=HyBoss.kids(); Object.keys(K).forEach(k=>{ if(K[k].t===t) FB.update("/hy/roster/k/"+k, {t:null}); }); return; }
@@ -17910,7 +17964,7 @@ const Admin = (function(){
       try{ $("shAdmin").classList.remove("on"); }catch(e){} const qt=[...document.querySelectorAll(".adBtQt")].filter(x=>x.checked).map(x=>x.value), mode=($("adBtMode")||{}).value||"score";
       const o={set, from:f, to:t, words:ws, dur:+$("adBtDur").value, team:$("adBtTeam").checked, mode, goal:+(($("adBtGoal")||{}).value||0), qt:qt.length?qt:["mean"], lbl};   /* (v310) 문제 종류 · 🚩 깃발 레이스 */ pre={bt:"", rd:""}; freeRoom().then(r=>Battle.host(o, r)); return; }   // (v308) v305 에서 빠졌던 것 되살림
     if(a==="raidGo"){ const b=($("adRdBook")||{}).value||"g34", w=wordsIn("adRdWords"), bi=+(($("adRdBoss")||{}).value||0), hp=+(($("adRdHp")||{}).value||900); pre={bt:"", rd:""}; try{ $("shAdmin").classList.remove("on"); }catch(e){} freeRoom().then(r=>Raid.host(b, w, bi, r, hp)); return; }
-    if(a==="tab"){ tab=el.dataset.t; ss(TB,tab); try{ SFX.click(); }catch(e){} draw(); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(tab==="notice"||tab==="send"||tab==="class") check(); if(tab==="class"){ loadRep(); HyBoss.refresh(true).then(()=>HyExam.loadLast()).then(()=>{ if(tab==="class"){ keepScroll=true; draw(); } }, ()=>{}); } if(tab==="exam") Promise.all([HyExam.check(true), HyHW.check(true)]).then(()=>{ if(tab==="exam") draw(); }); return; }
+    if(a==="tab"){ tab=el.dataset.t; ss(TB,tab); try{ SFX.click(); }catch(e){} draw(); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(tab==="notice"||tab==="send"||tab==="class") check(); if(tab==="class"){ loadRep(); HyBoss.refresh(true).then(()=>Promise.all([HyExam.loadLast(), HyDay.load(HyDay.key())])).then(()=>{ if(tab==="class"){ keepScroll=true; draw(); } }, ()=>{}); } if(tab==="exam") Promise.all([HyExam.check(true), HyHW.check(true)]).then(()=>{ if(tab==="exam") draw(); }); return; }
     if(a==="mkKey"){ const v=($("adPin2").value||"").trim();
       sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H) sha("hyeng-teacher:"+v).then(t=>{ tk=t; ss(TK,t); keepScroll=true; draw(); check(true); });
         else { msg("비밀번호가 달라요"); $("adPin2").value=""; } }); return; }
@@ -17968,7 +18022,7 @@ const Admin = (function(){
   /* 메뉴·상점 숫자 다시 그리기 */
   function refresh(){ try{ Unlock.paint(); }catch(e){} try{ if(typeof CharPick!=="undefined") CharPick.draw(); }catch(e){} }
   function open(){ if(ok && !fresh()){ ok=false; tk=""; ss(SK,null); ss(TK,null); } else if(ok) ss(SK,String(Date.now()));
-    draw(); $("shAdmin").classList.add("on"); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(ok){ check(); if(tab==="class"){ loadRep(); try{ HyBoss.refresh(true).then(()=>HyExam.loadLast()).then(()=>{ if(tab==="class" && $("shAdmin").classList.contains("on")){ keepScroll=true; draw(); } }, ()=>{}); }catch(e){} } } }
+    draw(); $("shAdmin").classList.add("on"); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(ok){ check(); if(tab==="class"){ loadRep(); try{ HyBoss.refresh(true).then(()=>Promise.all([HyExam.loadLast(), HyDay.load(HyDay.key())])).then(()=>{ if(tab==="class" && $("shAdmin").classList.contains("on")){ keepScroll=true; draw(); } }, ()=>{}); }catch(e){} } } }
   function close(){ $("shAdmin").classList.remove("on"); }
   ["adBody","adTabs"].forEach(id=>$(id).addEventListener("click", e=>{ const b=e.target.closest("[data-ad]"); if(b && !b.disabled) act(b.dataset.ad, b); }));
   $("btnAdminX").addEventListener("click", ()=>{ try{ SFX.click(); }catch(e){} close(); });
