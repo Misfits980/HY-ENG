@@ -32,7 +32,12 @@ async def main():
                     if await k.evaluate("()=>!!(Raid.atk && Raid.atk.shown)"): await k.screenshot(path=O+"36_kid_block.png"); break
             if c[3]=="end": break
         print("kinds", kinds, "final", c)
-        await host.wait_for_timeout(600); await host.screenshot(path=O+"37_host_end.png"); await kids[0].screenshot(path=O+"38_kid_end.png")
+        await host.wait_for_timeout(2600); await host.screenshot(path=O+"37_host_end.png"); await kids[0].screenshot(path=O+"38_kid_end.png")
+        # (v310) 🏆 시상식 — TV 가 상을 정해 적고, 아이 기기는 칭호 + 💎3
+        aw=await host.evaluate("()=>(Raid.awList(Raid.st())||[]).map(x=>[x.id,x.n])"); print("awards", aw)
+        mine=await kids[0].evaluate("()=>[(Raid._myAw||[]).map(x=>x.id), TITLES.filter(t=>/^t-r-/.test(t.id) && Wallet.owns(t.id)).map(t=>t.id), document.querySelectorAll('.rdAwC').length]"); print("kid0 aw", mine)
+        tot=0
+        for k in kids: tot+=await k.evaluate("()=>(Raid._myAw||[]).length")
         print("kid0", await kids[0].evaluate("()=>[Raid.dmg, Raid.blk, Raid.shk, Wallet.gems()]"))
         bad=[]
         n=await host.evaluate("()=>Object.keys(RaidNet.get().p||{}).length")
@@ -41,6 +46,10 @@ async def main():
         if c[3]!="end" or c[0]!=0: bad.append(f"끝 {c}")
         if not kinds.get('sh'): bad.append("방패 단어 없음")
         if not k0[3]: bad.append(f"보석 {k0}")
+        if len(aw)<4 or aw[0][0]!="mvp" or not any(x[0]=="last" for x in aw): bad.append(f"시상식 {aw}")
+        if tot!=len(aw): bad.append(f"아이 기기 상 {tot} != {len(aw)}")
+        if mine[2]<4: bad.append(f"아이 화면 시상식 카드 {mine}")
+        if not await host.evaluate("()=>!!document.querySelector('.rdAw.big .rdAwC')"): bad.append("TV 시상식")
         print("errs", errs[:5]); await br.close()
         print("결과:", "통과 ✅" if not bad and not errs else "실패 ❌"); [print(" BAD", b) for b in bad]
         if bad or errs: sys.exit(1)
