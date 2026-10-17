@@ -60,7 +60,7 @@ async def main():
         if pr!=[250,250,0]: bad.append(f"지난주 보상 {pr}")
         await k2.evaluate("()=>{ show('scStudy'); StudyUI.path(); }"); await k2.wait_for_timeout(300); await k2.screenshot(path=OUT+"week_card_new.png")
         # 2번 보스 조금만 깎고 → 그다음 주: 도망 보상
-        await k2.evaluate("()=>HyBoss.add(Kid.get(), 100, 'study')")
+        await k2.evaluate("()=>HyBoss.add(Kid.get(), 100, 'study', 3)")
         w2=await k2.evaluate(WEEK, 14); pe=await k2.evaluate("()=>{ const P=HyBoss.P, s=HyBoss.stateOf(P, HyBoss.PD, 'all'); return [!!s.dead, s.max, HyBoss.prevReward(Kid.get())]; }"); print("escape", w2, pe)
         if pe[0] or pe[2]<1 or pe[2]>10: bad.append(f"도망 보상 {pe}")
         await k2.evaluate("()=>StudyUI.bossCard()"); await k2.wait_for_timeout(100)
