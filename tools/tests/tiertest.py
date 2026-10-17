@@ -128,10 +128,10 @@ async def main():
         if not nx["b"] or nx["r"] or nx.get("n")!=nx.get("want") or nx.get("blank",-1)>=0: bad.append(f"다음 스테이지 {nx}")
         await pg.evaluate("()=>document.getElementById('stQuit').click()")
         # (v276) 시제·시간 전치사 빈칸 — 설명 한 줄이 붙는 것만
-        gq=await pg.evaluate("""()=>{ const a=Study._gram('tense','charge'), b=Study._gram('prep','tulip'), c=Study._gram('tense','arrest');
+        gq=await pg.evaluate("""()=>{ const a=Study._gram('tense','finish'), b=Study._gram('prep','tulip'), c=Study._gram('tense','arrest');
             return {a:a&&[a.ans,a.x.why], b:b&&[b.ans,b.x.why], c:c&&c.ans} }""")
         print("gram", gq)
-        if not gq["a"] or gq["a"][0]!="charged" or not gq["b"] or gq["b"][0]!="in" or gq["c"]: bad.append(f"문법 빈칸 {gq}")
+        if not gq["a"] or gq["a"][0]!="finished" or not gq["b"] or gq["b"][0]!="in" or gq["c"]: bad.append(f"문법 빈칸 {gq}")
         # (v277) 이어 하기 → 바로 나감을 두 번 해도 시트 줄은 한 번 · 모은 보석(earned)도 보냄
         lg=await pg.evaluate("""()=>{ const sent=[]; const on=Online.on, sub=Online.submit; Online.on=()=>true; Online.submit=r=>{ sent.push(r); return Promise.resolve({}); };
             try{ localStorage.removeItem('hyeng_study_lastquit'); }catch(e){}

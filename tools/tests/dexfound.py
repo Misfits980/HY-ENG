@@ -41,7 +41,7 @@ async def main():
         info = await pg.evaluate("()=>{ const f=document.querySelector('.wFind'); return f ? {txt:f.innerText, h:Math.round(f.getBoundingClientRect().height), run:f.querySelectorAll('[data-run]').length, st:f.querySelectorAll('[data-study]').length} : null }")
         print("found", info)
         await pg.screenshot(path=OUT + "dexf_found.png")
-        if not info or info['st'] > 4 or info['h'] > 200: bad.append("나오는 곳 길이")
+        if not info or info['st'] > 4 or info['h'] > 280: bad.append("나오는 곳 길이")   # (v322) 칩 40px 로 커짐
         # 달리기 칸 → 바로 달리기
         rid = await pg.evaluate("()=>document.querySelector('.wFind [data-run]').dataset.run")
         await pg.evaluate("()=>document.querySelector('.wFind [data-run]').click()"); await pg.wait_for_timeout(1500)
