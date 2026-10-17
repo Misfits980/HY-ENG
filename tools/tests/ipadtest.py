@@ -34,6 +34,13 @@ async def main():
             if not (v["tabsIn"] and v["topVis"]): bad.append("Daily 30 %dx%d" % (w, h))
             if v["canvas"] != [w, h]: bad.append("캔버스 %dx%d" % (w, h))
         await pg.screenshot(path=OUT + "ipad_path_land.png")
+        # (v322) 아이패드 세로 — 결과 화면도 다른 화면과 같은 배율(--stZ)
+        await pg.set_viewport_size({"width": 768, "height": 1024}); await pg.wait_for_timeout(1200)
+        z = await pg.evaluate("""()=>{ StudyUI.close&&StudyUI.close(); Online.on=()=>false; G.set='basic'; G.rule='normal'; G.diff='normal'; G.testRun=false; G.practice=false; G.quit=true;
+            G.score=300; G.stage=4; G.right=6; G.wrong=1; G.running=false; G.skipOutro=true; gameOver(); G.skipOutro=false;
+            return [getComputedStyle(document.querySelector('#scOver .resP')).zoom, getComputedStyle(document.documentElement).getPropertyValue('--stZ').trim(), document.body.classList.contains('tabP')] }""")
+        print("result zoom", z)
+        if z[2] and float(z[0]) != float(z[1] or 1): bad.append("결과 화면 배율 %s != %s" % (z[0], z[1]))
         e = real_errs(errs); print("errs", e)
         if e: bad.append("errors")
         if bad: print("BAD", bad)
