@@ -2659,6 +2659,25 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .wbHow li em{font-style:normal;font-weight:900;font-size:15px;color:#ffe17a;flex:none}
 .wbCap{font-size:12px!important;color:#ffd9e3!important}
 .wbGo{display:flex;gap:8px;margin-top:14px} .wbGo .play{flex:1;margin:0}
+/* (v322) 📡 오프라인 · 누른 칸 40px · 바닥 safe-area · 기회 쌓임 = 타일만 반짝 (큰 창 대신) · 👤 누구 이름 · 가로 폰 공격 칸 낮게 */
+.wbOff{font-size:11.5px;font-weight:900;color:#ffd9b0;background:rgba(255,120,60,.22);border:1px solid rgba(255,160,90,.5);border-radius:10px;padding:3px 8px;white-space:nowrap} .wbOff[hidden]{display:none}
+.wbOff:not([hidden]) + .wbLeft{margin-left:6px} .wbTop .wbOff{margin-left:auto} .wbTop b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.wb{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 24px)} .wbFight{bottom:env(safe-area-inset-bottom,0px)}
+.wbMeN .adX{min-width:40px;min-height:40px;font-size:17px}
+#scOver .rwGo{min-height:40px}
+#scOver .rwWho{display:block;font-size:11px;font-weight:800;color:#d9cdfa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbWho{font-size:11.5px;font-weight:800;color:#f3d6ff;opacity:.9}
+.stBossAdd .stBossBtn{display:inline-block;margin:4px 0 0 6px;padding:6px 12px;min-height:36px}
+@keyframes rwFlash{0%{box-shadow:0 0 0 0 rgba(255,215,90,0)} 40%{box-shadow:0 0 0 4px rgba(255,215,90,.85),0 0 24px rgba(255,190,80,.75)} 100%{box-shadow:0 0 0 0 rgba(255,215,90,0)}}
+#scOver .rwT.rwFlash,.stBossAdd.flash{animation:rwFlash 1.1s ease-out .35s 2}
+#scOver .rwT.rwFlash .rwN,.stBossAdd.flash b{display:inline-block;animation:gemPop .6s cubic-bezier(.2,1.4,.4,1) .35s both}
+.kaIn p{margin:6px 0 12px}
+@media (max-height:500px){
+  .wbHead small{display:none} .wb .rdHp.wbBar{height:22px} .wb .rdHp.wbBar span{line-height:22px;font-size:12px}
+  .wbFight{padding:4px 8px 6px;margin:4px -6px} .wbStk{flex-direction:row;gap:10px;margin:2px 0} .wbStkR{flex:1;min-width:0;gap:5px;font-size:11px} .wbStkR b{width:auto} .wbStkR em{min-width:30px} .wbPips{gap:2px} .wbPips i{height:8px}
+  .wbBtns{margin-top:4px} .wbSwing,.wbBlock{height:56px;padding:2px 6px} .wbSwing b{font-size:19px} .wbBlock b{font-size:15px} .wbSwing small,.wbBlock small{font-size:10px}
+  .wbFHint{margin-top:3px;font-size:11px} .wbFight.warn .wbFHint{font-size:12px}
+}
 .wbEmpty{text-align:center;padding:26px 10px;border-radius:18px;background:rgba(255,255,255,.06);margin:8px 0} .wbEmpty b{font-size:17px} .wbEmpty p{font-size:13px;color:#d9cdfa;margin-top:6px}
 .wbTv{display:flex;flex-direction:column;gap:3px;min-height:20px;margin:4px 0} .wbTk{font-size:14px;font-weight:800;color:#ffe9a8;animation:wbTk .5s ease-out} .wbTk b{color:#fff}
 @keyframes wbTk{from{opacity:0;transform:translateY(-6px)}}
@@ -12603,17 +12622,20 @@ function gameOver(){
       });
   }
   /* (v305) 🏃 달리기도 🏠 주간 보스를 깎는다 — 맞힌 단어 1개 = ⚔️2, 하루 100 까지 (공부가 먼저라 공부보다 적게) */
-  try{ if(!G.testRun && !G.practice && (G.right|0)>0){ DM.add("run", 1); DM.add("rw", G.right|0); DM.add("combo", G.bestCombo|0); } }catch(e){}   // (v310) 🎯 오늘의 미션
-  /* (v312) 🏃 달리기 = 공격 기회 쌓기 (맞힌 단어 4개 = 1번, 🏃 10까지) */
-  try{ if(!G.testRun && !G.practice && (G.right|0)>0){ const n=Math.ceil((G.right|0)/HyBoss.PER_RUN), ez=HyBoss.easy(G.set, G.book); HyBoss.start();
-      HyBoss.refresh(true).then(()=>{ const B=HyBoss.B, me=Kid.me(), o=$("oBoss")||$("oReview"); if(!B || !me || !o || !HyBoss.on()) return;
+  try{ if(!G.testRun && !G.practice && (G.right|0)>0){ if((G.right|0)>=HyBoss.PER_RUN) DM.add("run", 1); DM.add("rw", G.right|0); DM.add("combo", G.bestCombo|0); } }catch(e){}   // (v310) 🎯 오늘의 미션 · (v322) 짧은 판(맞힘 4 미만)은 '달리기 한 판'에 안 셈
+  /* (v312) 🏃 달리기 = 공격 기회 쌓기 (맞힌 단어 4개 = 1번, 🏃 10까지)
+     (v322) 나머지 맞힘은 모아 다음 판에 더함 (1단어 맞히고 그만두기를 되풀이해 기회를 무한히 못 쌓게) · 보스를 쓰러뜨린 뒤에도 쌓임 (다음 주로) · 쌓이면 큰 창 대신 타일만 반짝 */
+  try{ if(!G.testRun && !G.practice && (G.right|0)>0){ const right=G.right|0; let pw=null; try{ if(G.set==="wrong" || G.set==="all") pw=pool(); }catch(e){} const ez=HyBoss.easy(G.set, G.book, pw); HyBoss.start();
+      HyBoss.refresh(true).then(()=>{ const B=HyBoss.B, me=Kid.me(), o=$("oBoss")||$("oReview"); if(!B || !o || !HyBoss.on()) return;
         /* (v321) 보스 칸 — 글 줄이고 타일로: 보스 얼굴 · +1 크게 · 🏃 기회 점 10개 · [⚔️ 공격하러] (사용자: 말이 많다) */
-        const img='<img class="rwImg" src="'+HyBoss.img(B)+'" alt="">', pips=k=>'<div class="rwPip">'+Array.from({length:HyBoss.STK},(_,i)=>'<i'+(i<k?' class="on"':'')+'></i>').join('')+'</div>';
+        const img='<img class="rwImg" src="'+HyBoss.img(B)+'" alt="">', pips=k=>'<div class="rwPip">'+Array.from({length:HyBoss.STK},(_,i)=>'<i'+(i<k?' class="on"':'')+'></i>').join('')+'</div>', E=x=>Raid.esc(x);
+        if(!me){ if(Object.keys(HyBoss.kids()).length) o.innerHTML='<div class="ovBoss rwT off rwNo"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">👤</b><small class="rwS">이름을 고르면 공격 기회가 쌓여요</small><button class="ovBossSee rwGo" data-kidpick="1" onclick="KidPick.open()">👤 이름 고르기</button></div>'; return; }   /* (v322) 이름을 안 고른 아이 */
+        const who='<small class="rwWho">👤 '+E(me.n)+'</small>';   /* (v322) 공용 패드 — 누구 이름으로 쌓였는지 */
         if(ez){ o.innerHTML='<div class="ovBoss rwT off"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">🧸</b><small class="rwS">유치원 단어는 안 쌓여요</small></div>'; return; }   /* (v319) */
-        const t=HyBoss.team(me.id, me), s=t && HyBoss.state(t), got = (s && s.dead) ? 0 : HyBoss.earn(me, "run", n), st=HyBoss.stock(me.id);
-        o.innerHTML = s && s.dead ? '<div class="ovBoss rwT"><div class="rwH">'+img+'<span>주간 보스</span></div><b class="rwN">🎉</b><small class="rwS">쓰러뜨렸어요!</small><button class="ovBossSee rwGo" onclick="WeekBoss.open()">🎁 보상 받기</button></div>'
-          : got>=0 ? '<div class="ovBoss rwT"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">'+(got>0?'+'+got:'가득!')+'</b>'+pips(st.r)+'<small class="rwS">🏃 '+st.r+' / '+HyBoss.STK+'</small><button class="ovBossSee rwGo" onclick="WeekBoss.open()">⚔️ 공격하러</button></div>' : '';
-        if(got>0) setTimeout(()=>{ try{ if($("scOver").classList.contains("on")) WeekBoss.gain(got, "run"); }catch(e){} }, 700); }); } }catch(e){}
+        const n=HyBoss.chunk(me.id, "r", right, HyBoss.PER_RUN), t=HyBoss.myTeam(me.id, me), s=t && HyBoss.state(t), got = n>0 ? HyBoss.earn(me, "run", n) : 0, st=HyBoss.stock(me.id), rem=HyBoss.chunkLeft(me.id, "r");
+        const sub = n>0 ? '🏃 '+st.r+' / '+HyBoss.STK : '🏃 '+rem+'/'+HyBoss.PER_RUN+' 단어 · 다음 판에 이어서';
+        o.innerHTML = s && s.dead ? '<div class="ovBoss rwT'+(got>0?' rwFlash':'')+'"><div class="rwH">'+img+'<span>주간 보스</span></div><b class="rwN">🎉</b><small class="rwS">쓰러뜨렸어요!'+(got>0?' · ⚔️ +'+got:'')+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">🎁 보상 받기</button></div>'
+          : got>=0 ? '<div class="ovBoss rwT'+(got>0?' rwFlash':'')+'"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">'+(got>0?'+'+got:n>0?'가득!':'+0')+'</b>'+pips(st.r)+'<small class="rwS">'+sub+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">⚔️ 공격하러</button></div>' : ''; }); } }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
@@ -12712,7 +12734,7 @@ $("prompt") && $("prompt").addEventListener("click",()=>{
 });
 $("btnGo").addEventListener("click",()=>{
   SFX.wake(); SFX.click();
-  show("scSetup"); laneNote(); goStep(0);
+  try{ Kid.confirm(()=>{ show("scSetup"); laneNote(); goStep(0); }); }catch(e){ show("scSetup"); laneNote(); goStep(0); }   // (v322) 공용 패드 '민준 맞아요?'
 });
 $("btnBack").addEventListener("click",()=>{
   SFX.click();
@@ -13920,6 +13942,7 @@ const StudyUI = {
     this.book=s.book; const BK=Study.BOOKS[this.book];
     this.set = BK.sets.indexOf(s.set)>=0 ? s.set : ((s.sub||{})[this.book] && BK.sets.indexOf(s.sub[this.book])>=0 ? s.sub[this.book] : BK.sets[0]);
     try{ Study.gvWallet(); }catch(e){} try{ Voice.warm(); }catch(e){} try{ HyBoss.start(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
+    try{ Kid.confirm(()=>{ try{ this.bossCard(); }catch(e){} }); }catch(e){}   // (v322) 공용 패드 '민준 맞아요?' (3분 넘게 지났으면 한 번)
     show("scStudy"); this.path(); },
   close(){ SFX.click(); try{ Voice.stop(); }catch(e){} Attract.focus=false; show("scStart"); },
   view(v){ ["stPath","stLesson","stDone"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); $("scStudy").classList.toggle("vLesson", v==="stLesson"); if(v!=="stPath") this.pop(null); },
@@ -13995,16 +14018,17 @@ const StudyUI = {
   /* (v303) 👹 학원 보스 카드 — 남은 체력 · 내 공격 · 오늘 집 공부로 깎은 것 · 쓰러지면 보상 받기 */
   /* (v305) 🏠 주간 보스 카드 — 월요일에 새 보스, 일요일까지. 공부·달리기로 깎음 */
   bossCard(){ const el=$("stBossCard"); if(!el) return; try{ HyBoss.refresh(); }catch(e){} const B=HyBoss.B; el.closest(".stHub") && el.closest(".stHub").classList.toggle("noBoss", !B || !HyBoss.on()); if(!B || !HyBoss.on()){ el.innerHTML=''; return; }
-    const me=Kid.me(), roster=Object.keys(HyBoss.kids()).length>0, dl=HyBoss.daysLeft(), E=x=>this.esc(x);
+    const me=Kid.me(), roster=Object.keys(HyBoss.kids()).length>0, dl=HyBoss.daysLeft(), E=x=>this.esc(x);   // (v322) dl = 오늘 빼고 남은 날 (일요일 0)
     const img='<img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+' data-wbopen="1" onerror="this.src=\'assets/boss/boss-knight.webp\'">';
-    const hd='<div class="sbH"><b>🏠 이번 주 보스 · '+E(B.n)+'</b><i class="stBossNo">'+(dl<=1?'오늘까지!':'D-'+dl)+'</i></div>';
+    const hd='<div class="sbH"><b>🏠 이번 주 보스 · '+E(B.n)+'</b><i class="stBossNo">'+(dl<=0?'오늘까지!':'⏰ '+HyBoss.leftTxt(B))+'</i></div>';   /* (v322) 'D-2'(토요일) 대신 보스 화면과 같은 '⏰ 1일 9시간' */
     if(!me && roster && Kid.shared() && Date.now()-(this._askKid||0)>5*60000){ this._askKid=Date.now(); setTimeout(()=>{ if($("scStudy").classList.contains("on") && !Kid.get()) KidPick.open(()=>this.bossCard()); }, 300); }   // (v304) 공용 패드는 켤 때마다 이름부터
-    const t=me ? HyBoss.team(me.id, me) : (B.team ? null : "all"), st=HyBoss.state(t||Object.keys(B.max||{all:1})[0]), pc=Math.round(st.pct*100);
+    const t=me ? HyBoss.myTeam(me.id, me) : (B.team ? null : "all"), st=HyBoss.state(t||Object.keys(B.max||{all:1})[0]), pc=Math.round(st.pct*100);   // (v322) 데미지가 들어가는 반
     const hp='<div class="rdHp"><i style="width:'+(st.dead?0:pc)+'%"></i><span>'+(st.dead?'🎉 쓰러뜨렸어요!':st.hp.toLocaleString()+' / '+st.max.toLocaleString())+'</span></div>';
     let body='';
     if(!me) body='<small>'+(roster?'내 이름을 고르면 공부·달리기로 ⚔️ 공격 기회를 모아요':'선생님이 반 명단을 만들면 보스를 때릴 수 있어요')+'</small>'+(roster?'<button class="stBossBtn" data-kidpick="1">👤 내 이름 고르기</button>':'');
     else { const k=HyBoss.stock(me.id), n=k.r+k.s, pg=HyBoss.prevReward(me), P=HyBoss.P;
-      if(pg) body+='<button class="stBossBtn" data-bossclaim="prev">🎁 지난주 '+E(P.n)+(HyBoss.stateOf(P, HyBoss.PD, HyBoss.team(me.id, me, P)||"all").dead?' (쓰러뜨림)':' (도망 · 깎은 만큼)')+' 💎 '+pg+'</button>';
+      if(pg) body+='<button class="stBossBtn" data-bossclaim="prev">🎁 지난주 '+E(P.n)+(HyBoss.stateOf(P, HyBoss.PD, HyBoss.myTeam(me.id, me, P, HyBoss.PD)||"all").dead?' (쓰러뜨림)':' (도망 · 깎은 만큼)')+' 💎 '+pg+'</button>';
+      HyBoss.oldRewards(me).forEach(x=>{ body+='<button class="stBossBtn" data-bossclaim="o:'+E(x.B.id)+'">🎁 '+E(x.B.n)+' 💎 '+x.g+'</button>'; });   /* (v322) 다시 시작 전에 쓰러뜨린 보스 */
       if(!t) body+='<small>반이 정해지지 않았어요 — 선생님께 반을 알려 주세요</small>';
       else if(st.dead){ const g=HyBoss.reward(me), got=Wallet.paid(HyBoss.key(B, me)) || HyBoss.mine(me.id).c, nx=HyBoss.nextOf(B);
         body+=(g ? '<button class="stBossBtn" data-bossclaim="1">🎁 보상 받기 💎 '+g+'</button>' : got ? '<small>🎁 보상 받았어요</small>' : '<small>이번 보스엔 내 공격 기록이 없어요</small>')+'<small class="stBossNext">⏳ 다음 주 월요일 — <b>'+E(nx.n)+'</b> 등장!</small>'; }
@@ -14820,15 +14844,16 @@ const StudyUI = {
   /* (v303) 👹 집 공부도 학원 보스를 깎는다 — 처음에 맞힌 문제 × 3 (★2 확인 · 주간 시험 × 5), 하루 300 까지 */
   bossHit(per){ try{ DM.add("les", 1); DM.add("q", this.first|0); }catch(e){}   // (v310) 🎯 오늘의 미션
     /* (v312) ⚔️ 공부 = 공격 기회 쌓기 (처음에 맞힌 3문제 = 1번 · 주간 시험·★2 확인은 2문제 = 1번, 📚 10까지) → 보스 화면에서 휘두름 */
-    try{ const n=Math.ceil((this.first|0)/(per>=5 ? HyBoss.PER_TEST : HyBoss.PER_STUDY)); if(!(n>0)) return; HyBoss.start();
-    HyBoss.refresh(true).then(()=>{ if(!HyBoss.B || !HyBoss.on()) return; const me=Kid.me(), d=$("stDoneIn"), say=h=>{ if(d) d.insertAdjacentHTML("beforeend", '<div class="stBossAdd">'+h+'</div>'); };
-      if(!me){ if(Object.keys(HyBoss.kids()).length) say('🏠 이번 주 보스 — 👤 내 이름을 고르면 공부한 만큼 ⚔️ 공격 기회가 쌓여요'); return; }
-      if(HyBoss.easy(this.set)){ say('🧸 유치원 단어는 ⚔️ 공격 기회가 안 쌓여요 — <b>G1-2부터</b> 쌓여요'); return; }   /* (v319) 너무 쉬워서 (사용자) */
-      const t=HyBoss.team(me.id, me), s=t && HyBoss.state(t); if(s && s.dead){ say('🏠 이번 주 보스는 벌써 쓰러뜨렸어요! 보스 화면에서 보상 받기'); return; }
-      const got=HyBoss.earn(me, "study", n), st=HyBoss.stock(me.id);
-      if(got>0){ say('⚔️ 공격 기회 <b>+'+got+'</b> (📚 '+st.s+'/'+HyBoss.STK+') — 🏠 보스 화면에서 휘둘러요!'); setTimeout(()=>{ try{ if($("scStudy").classList.contains("on")) WeekBoss.gain(got, "study"); }catch(e){} }, 900); }
-      else if(got===0) say('📚 공격 기회가 가득 찼어요 ('+st.s+'/'+HyBoss.STK+') — 🏠 보스 화면에서 먼저 휘둘러요!');
-      else say('🏠 반이 정해지지 않았어요 — 선생님께 반을 알려 주세요'); try{ StudyUI.bossCard(); }catch(e){} }); }catch(e){} },
+    /* (v322) 내림 + 남은 맞힘은 모아 다음 공부에 (1~2문제만 풀고 그만두기로 무한히 못 쌓게) · 쓰러뜨린 뒤에도 쌓임 · 큰 창 대신 한 줄 타일만 반짝 · 👤 누구 이름으로 */
+    try{ const first=this.first|0, P=per>=5 ? HyBoss.PER_TEST : HyBoss.PER_STUDY; if(!(first>0)) return; HyBoss.start();
+    HyBoss.refresh(true).then(()=>{ if(!HyBoss.B || !HyBoss.on()) return; const me=Kid.me(), d=$("stDoneIn"), E=x=>this.esc(x), say=(h,c)=>{ if(d) d.insertAdjacentHTML("beforeend", '<div class="stBossAdd'+(c?' '+c:'')+'">'+h+'</div>'); };
+      if(!me){ if(Object.keys(HyBoss.kids()).length) say('👤 이름을 고르면 ⚔️ 공격 기회가 쌓여요 <button class="stBossBtn" data-kidpick="1">이름 고르기</button>'); return; }
+      if(HyBoss.easy(this.set)){ say('🧸 유치원 단어는 ⚔️ 기회가 안 쌓여요 · <b>G1-2부터</b>'); return; }   /* (v319) 너무 쉬워서 (사용자) */
+      const who='<small class="sbWho">👤 '+E(me.n)+'</small> ', n=HyBoss.chunk(me.id, "s", first, P), got = n>0 ? HyBoss.earn(me, "study", n) : 0, st=HyBoss.stock(me.id), t=HyBoss.myTeam(me.id, me), s=t && HyBoss.state(t);
+      if(got>0) say(who+'⚔️ 공격 기회 <b>+'+got+'</b> <small>📚 '+st.s+'/'+HyBoss.STK+'</small>'+(s && s.dead ? ' · 🎉 보스는 쓰러뜨렸어요' : ''), 'flash');
+      else if(got===0 && n>0) say(who+'📚 기회 가득 ('+st.s+'/'+HyBoss.STK+') · 🏠 보스 화면에서 휘둘러요');
+      else if(got===0) say(who+'⚔️ '+HyBoss.chunkLeft(me.id, "s")+'/'+P+'문제 · 다음 공부에 이어서');
+      else say('🏠 반이 정해지지 않았어요 — 선생님께 알려 주세요'); try{ StudyUI.bossCard(); }catch(e){} }); }catch(e){} },
   /* (v263) 한 번에 맞힘 % = 처음 푼 문제 중 맞힌 비율 (다시 나온 문제는 안 셈) — 중간에 그만둬도 틀린 것이 빠지지 않게 */
   acc1(){ return Math.round(this.first/Math.max(1,this.first+(this._fw|0))*100); },
   /* (v266) 실제로 푼 시간 — 손대고 있는 동안만 센다. 손대는 사이가 1분보다 길면 1분까지만 (화면 켜 둔 채 쉬거나 앱을 뒤로 보내 둔 시간은 빼기)
@@ -14877,7 +14902,7 @@ const _stClick=e=>{
   if(t.closest("[data-dm]")){ DM.view(); return; }
   if(t.closest("[data-wbopen]") || (t.closest(".stBoss img") && HyBoss.B)){ WeekBoss.open(); return; }   // (v310) 🏠 주간 보스 화면
   if(t.closest("[data-bossclaim]")){ const bt=t.closest("[data-bossclaim]"), me=Kid.me(); if(bt.disabled) return; bt.disabled=true; bt.textContent="받는 중…";
-    HyBoss.claimSafe(me, bt.dataset.bossclaim==="prev").then(g=>{ if(g){ try{ SFX.tone(880,.2,"triangle",.05,1760); confetti(); }catch(er){} } else hyToast("이미 받았어요"); StudyUI.bossCard(); }); return; }
+    HyBoss.claimSafe(me, bt.dataset.bossclaim).then(g=>{ HyBoss.claimMsg(g); StudyUI.bossCard(); }); return; }
   const ch=t.closest("[data-chest]"); if(ch){ StudyUI.openChest(ch); return; }
   if(t.closest("[data-resume]")){ SFX.select(); if(!StudyUI.resume()) StudyUI.path(); return; }
   const db=t.closest("[data-dexbook]"); if(db){ SFX.click(); DexUI.open(); return; }
@@ -15934,22 +15959,24 @@ const FB = (function(){
     q=q.filter((x,i)=>isInc(x[1]) || last[parts(x[0]).join("/")+"|"+(x[2]?1:0)]===i);
     flushing=true; const next=()=>{ const x=q.shift(); if(!x){ flushing=false; return; } send(...x).then(next, next); }; next(); }
   try{ addEventListener("online", ()=>setTimeout(flush, 800)); }catch(e){}   // 와이파이가 돌아오면 모아 둔 것을 보냄
-  function write(path, val, merge){ return ready().then(m=>{ L.forEach(h=>applyTo(h, path, val, merge)); emit();
+  function put(m, path, val, merge){ L.forEach(h=>applyTo(h, path, val, merge)); emit();
       if(m==="fb") return send(path, val, merge);
-      mem=writeMem(mem, path, val, merge); try{ localStorage.setItem(LK, JSON.stringify(mem)); }catch(e){} try{ bc && bc.postMessage({p:path, v:val, m:!!merge}); }catch(e){} return true; }); }
+      mem=writeMem(mem, path, val, merge); try{ localStorage.setItem(LK, JSON.stringify(mem)); }catch(e){} try{ bc && bc.postMessage({p:path, v:val, m:!!merge}); }catch(e){} return true; }
+  function write(path, val, merge){ return ready().then(m=>put(m, path, val, merge)); }
   /* strict = 인터넷 오류면 null 대신 실패 (없는 것과 못 읽은 것을 구별) */
   function get(path, strict){ return ready().then(m=> m==="fb" ? fetch(base+"/"+parts(path).join("/")+".json", {cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject(r.status)).catch(e=>strict?Promise.reject(e):null) : cp(getAt(mem, path))); }
   /* (v308) 한 번만 쓰기 — 이미 값이 있으면 false. 서버 ETag 로 두 기기가 동시에 해도 한 쪽만 (안 되면 읽고 확인) */
-  function once(path){ return ready().then(m=>{ const u=base+"/"+parts(path).join("/")+".json";
-      if(m!=="fb"){ if(getAt(mem, path)) return false; return write(path, 1, false).then(()=>true); }
+  function once(path, val){ if(val===undefined) val=1; const body=JSON.stringify(val);   /* (v322) 쓸 값을 줄 수 있음 (보스 쓰러짐 {at,by}) */
+    return ready().then(m=>{ const u=base+"/"+parts(path).join("/")+".json";
+      if(m!=="fb"){ if(getAt(mem, path)) return false; put(m, path, val, false); return true; }   // (v322) 읽기·쓰기를 한 번에 (두 번 불러도 하나만)
       return fetch(u, {cache:"no-store", headers:{"X-Firebase-ETag":"true"}}).then(r=>{ if(!r.ok) throw r.status; const et=r.headers.get("ETag"); return r.json().then(v=>[v,et]); })
-        .then(([v,et])=>{ if(v) return false; if(!et) return fetch(u, {method:"PUT", body:"1"}).then(r=>r.ok);
-          return fetch(u, {method:"PUT", body:"1", headers:{"if-match":et}}).then(r=>r.ok); })
-        .catch(()=>get(path, true).then(v=>v ? false : fetch(u, {method:"PUT", body:"1"}).then(r=>r.ok))); }); }
+        .then(([v,et])=>{ if(v) return false; if(!et) return fetch(u, {method:"PUT", body}).then(r=>r.ok);
+          return fetch(u, {method:"PUT", body, headers:{"if-match":et}}).then(r=>r.ok); })
+        .catch(()=>get(path, true).then(v=>v ? false : fetch(u, {method:"PUT", body}).then(r=>r.ok))); }); }
   /* (v305) 서버에서 더하기 — {키:더할 수} (+ 그냥 쓰는 값 plain). 두 기기·다시 보내기에도 값이 덮어써지지 않음 */
   function inc(path, add, plain){ return ready().then(m=>{
       if(m==="fb"){ const body=Object.assign({}, plain||{}); Object.keys(add).forEach(k=>{ body[k]={".sv":{"increment":add[k]}}; }); return send(path, body, true); }
-      const abs=Object.assign({}, plain||{}); Object.keys(add).forEach(k=>{ abs[k]=((getAt(mem, parts(path).concat(parts(k)).join("/"))|0)+add[k]); }); mem=writeMem(mem, path, abs, true); return write(path, abs, true); }); }   // (v322) 이 기기 연습 방: 바로 mem 에 적어서 연달아 더해도 하나가 사라지지 않게
+      const abs=Object.assign({}, plain||{}); Object.keys(add).forEach(k=>{ abs[k]=((getAt(mem, parts(path).concat(parts(k)).join("/"))|0)+add[k]); }); return put(m, path, abs, true); }); }   /* (v322) 이 기기 흉내: 읽고 바로 씀 (예전엔 쓰기가 한 박자 늦어 add 바로 뒤 earn 이 d 를 덮음) */
   /* (v305) 서버 시계와 이 기기 시계 차이 (태블릿 시계가 틀려도 배틀·레이드 시간이 맞게) — path 에 서버 시각을 써 보고 읽음 */
   function clock(path){ return ready().then(m=>{ if(m!=="fb") return 0; const a=Date.now();
       return fetch(base+"/"+parts(path).join("/")+".json", {method:"PUT", body:JSON.stringify({".sv":"timestamp"})}).then(r=>r.ok?r.json():null).then(ts=>{ const b=Date.now(); return (typeof ts==="number") ? Math.round(ts-(a+b)/2) : 0; }).catch(()=>0); }); }
@@ -15978,6 +16005,14 @@ const Kid = {
   get(){ try{ const v=JSON.parse(this.st().getItem("hyeng_kid"))||null; if(v && this.shared() && v.at && Date.now()-v.at>20*60000){ this.clear(); return null; } return v; }catch(e){ return null; } },
   set(v){ try{ this.st().setItem("hyeng_kid", JSON.stringify(Object.assign({}, v, {at:Date.now()}))); }catch(e){} },
   touch(){ const v=this.get(); if(v) this.set(v); },
+  /* (v322) 공용 패드 — Daily 30·달리기를 시작할 때 이름을 고른 지 3분 넘었으면 「민준 맞아요?」 한 번 (다음 아이가 앞 아이 이름으로 기회를 쌓지 않게) */
+  confirm(cb){ cb=cb||(()=>{}); const v=this.get(); let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){}
+    if(!v || !this.shared() || !roster || v.ok || Date.now()-(v.pk||v.at||0)<3*60000 || $("kidAsk") || $("kidPick")) return cb();
+    const d=document.createElement("div"); d.className="rdJoin"; d.id="kidAsk";
+    d.innerHTML='<div class="rdJoinIn kaIn"><b>👤 '+Raid.esc(v.n)+' 맞아요?</b><p>⚔️ 공격 기회가 이 이름으로 쌓여요</p><div class="wbPopB"><button class="stBossBtn" data-ka="y">네</button><button class="stLater" data-ka="c">바꾸기</button></div></div>';
+    document.body.appendChild(d);
+    d.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-ka]"); if(!b) return; d.remove(); try{ SFX.click(); }catch(er){}
+      if(b.dataset.ka==="y"){ const x=this.get(); if(x) this.set(Object.assign(x, {ok:1})); cb(); } else KidPick.open(()=>cb()); }); },
   clear(){ try{ this.st().removeItem("hyeng_kid"); }catch(e){} },
   /* 명단이 없으면 기기 그대로 */
   me(){ const g=this.get(); if(g) return g; const K=HyBoss.kids(); if(Object.keys(K).length) return null;
@@ -16008,16 +16043,28 @@ const HyBoss = {
   /* (v312) ⚔️ 공격 기회 — 공부·달리기는 데미지 대신 '공격 기회'를 쌓음 (📚 데일리 · 🏃 달리기 각각 10까지). 보스 화면에서 ⚔️ 공격! 한 번 = 기회 1개 = 8~12 (가끔 치명타 ×2)
      보스가 공격하면 🛡 막기 — 막으면 반격 15(기회 안 씀), 못 막으면 기회 -1. 기록은 이번 주 보스 칸 /hy/dmg/<보스>/<아이> 의 sr(달리기)·ss(데일리) — 보스가 바뀌면 지난주 칸에서 이어 받음 */
   /* (v319) 유치원 단어(그림 단어·파닉스·사이트 워드)는 공격 기회가 안 쌓임 — 너무 쉬워서 쌓기만 하는 걸 막기 (사용자) */
-  EASY_SETS:["kinder","abc","short","long","digr","vowel2","sight"], easy(set, book){ return this.EASY_SETS.indexOf(set)>=0 || (book!=null && this.EASY_SETS.indexOf(book)>=0); },
+  EASY_SETS:["kinder","abc","short","long","digr","vowel2","sight"], easy(set, book, words){ if(this.EASY_SETS.indexOf(set)>=0 || (book!=null && this.EASY_SETS.indexOf(book)>=0)) return true;
+    /* (v322) 틀린 단어·전체 판은 그 판 단어 출처를 봄 — 파닉스·사이트 워드에만 있는 단어가 절반 넘으면 유치원 판 (그림 단어는 G1-2 와 같은 단어라 못 가름) */
+    if(!words || !words.length || (set!=="wrong" && set!=="all")) return false; const ew=this.easyWords(); return words.filter(w=>ew[(w && w.en) || w]).length*2 > words.length; },
+  easyWords(){ if(this._ew) return this._ew; const o={}, other={}; try{ Object.keys(COURSE).forEach(c=>{ const easy=this.EASY_SETS.indexOf(c)>=0 && c!=="kinder"; Object.values(COURSE[c]||{}).forEach(s=>String(s).split("|").forEach(w=>{ if(!w) return; if(easy) o[w]=1; else other[w]=1; })); }); }catch(e){}
+    Object.keys(other).forEach(w=>{ delete o[w]; }); return (this._ew=o); },
   FLOOR:10, STK:10, SW_MIN:8, SW_MAX:12, CRIT:0.12, COUNTER:15, PER_STUDY:3, PER_TEST:2, PER_RUN:4,
-  R:null, C:null, B:null, P:null, D:{}, PD:{}, subs:[], started:false, ok:false, _t:0, _p:null, _live:null,
+  R:null, C:null, B:null, B0:null, P:null, O:[], D:{}, PD:{}, OD:{}, subs:[], started:false, ok:false, stale:0, _t:0, _p:null, _live:null,
   /* (v309) 날짜는 언제나 한국 시간 (태블릿 시간대가 달라도 같은 주·같은 날) */
   KST:9*3600e3,
   dayOf(ts){ const d=new Date(ts+this.KST); return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0"); },
   monday(ts){ const t=(ts==null?Date.now():ts), d=new Date(t+this.KST), back=(d.getUTCDay()+6)%7; return this.dayOf(t-back*864e5); },
   kd(k){ const a=String(k).split("-"); return Date.UTC(+a[0], +a[1]-1, +a[2], 12)-this.KST; },
   weeks(a, b){ return Math.round((this.kd(b)-this.kd(a))/(7*864e5)); },
-  daysLeft(){ return 7-((new Date(Date.now()+this.KST).getUTCDay()+6)%7); },   // 월 7 … 일 1
+  daysLeft(){ return 6-((new Date(Date.now()+this.KST).getUTCDay()+6)%7); },   // (v322) 오늘 빼고 남은 날 — 월 6 … 토 1 · 일 0 (예전엔 토요일에 D-2)
+  /* (v322) 남은 시간 한 줄 — '⏰ 1일 9시간' (보스 카드 · 관리 화면 같은 말) */
+  leftTxt(B){ B=B||this.B; if(!B) return ""; const ms=this.kd(B.wk)-12*3600e3+7*864e5-Date.now(), h=Math.max(0, Math.floor(ms/3600e3)), d=Math.floor(h/24);
+    return ms<=0 ? "곧 끝" : d>=1 ? d+"일 "+(h%24)+"시간" : h>=1 ? h+"시간" : Math.max(1, Math.ceil(ms/60e3))+"분"; },
+  endAt(B){ B=B||this.B; return B ? this.kd(B.wk)-12*3600e3+7*864e5 : 0; },
+  /* (v322) 월요일 0시가 지났는데 열린 화면·TV 가 지난주 보스를 들고 있으면 → 새 주로 (지난주 데미지는 P 로) */
+  roll(){ const b=this.B; if(!b || !this.C || b.wk===this.monday()) return false; const oid=b.id; this.calc();
+    if(!this._live){ this.PD = (this.P && this.P.id===oid) ? this.D : {}; this.D={}; this._t=0; this.refresh(true); }
+    this.relisten(); this.after(); return true; },
   start(){ if(this.started) return; this.started=true;
     try{ const c=JSON.parse(localStorage.getItem(this.CK)); if(c && !window.HY_FB_LOCAL){ this.R=c.R||null; this.C=c.C||null; this.D=c.D||{}; this.PD=c.PD||{}; this.calc(); } }catch(e){}   // 인터넷이 안 돼도 카드는 보이게
     try{ document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) this.refresh(); }); }catch(e){}
@@ -16027,8 +16074,10 @@ const HyBoss = {
   refresh(force){ if(this._live) return Promise.resolve(); if(!force && this._p && Date.now()-this._t<15000) return this._p; this._t=Date.now(); const t0=Date.now();
     this._p = FB.ready().then(m=>{ if(m!=="fb" && !window.HY_FB_LOCAL) return;
       return Promise.all([FB.get("/hy/roster", true), FB.get("/hy/boss", true)]).then(([r,c])=>{ this.ok=true; this.R=r||{}; this.C=(c && c.v===2) ? c : null; this.calc();   // (v308) 인터넷이 안 되면 저장해 둔 것 그대로
-        return Promise.all([this.B ? FB.get("/hy/dmg/"+this.B.id, true) : null, this.P ? FB.get("/hy/dmg/"+this.P.id, true) : null]).then(([d,pd])=>{ if((this._addAt||0)>=t0) return this.after();   // 읽는 동안 내가 깎았으면 옛 값으로 덮지 않음
-          this.D=d||{}; this.PD=pd||{}; this.after(); }); }); }).catch(e=>{ if(this.C) this.ok=true; this.ping(); });
+        const O=this.O||[];   /* (v322) 다시 시작하기 전 보스(c.old) — 안 받은 보상 */
+        return Promise.all([this.B ? FB.get("/hy/dmg/"+this.B.id, true) : null, this.P ? FB.get("/hy/dmg/"+this.P.id, true) : null].concat(O.map(o=>FB.get("/hy/dmg/"+o.id, true)))).then(([d,pd,...od])=>{ this.stale=0; const OD={}; O.forEach((o,i)=>{ OD[o.id]=od[i]||{}; }); this.OD=OD;
+          if((this._addAt||0)>=t0) return this.after();   // 읽는 동안 내가 깎았으면 옛 값으로 덮지 않음
+          this.D=d||{}; this.PD=pd||{}; this.after(); }); }); }).catch(e=>{ this.stale=1; if(this.C) this.ok=true; this.ping(); });   /* (v322) 못 읽음 = 오프라인 표시 (보상 받기는 기다리게) */
     return this._p; },
   /* 선생님 화면 — 실시간으로 (관리 화면 ⚔️ 탭 · 레이드/배틀 TV) */
   live(){ if(this._live) return; this._live={}; this.start();
@@ -16037,7 +16086,9 @@ const HyBoss = {
       L.c=FB.listen("/hy/boss", v=>{ this.C=(v && v.v===2) ? v : null; this.calc(); this.relisten(); this.after(); }); }); },
   relisten(){ const L=this._live; if(!L) return; const id=this.B && this.B.id, pid=this.P && this.P.id;
     if(L.bid!==id){ L.bid=id; if(L.d) L.d.close(); this.D={}; L.d = id ? FB.listen("/hy/dmg/"+id, d=>{ this.D=d||{}; this.after(); }) : null; }
-    if(L.pid!==pid){ L.pid=pid; if(L.pd) L.pd.close(); this.PD={}; L.pd = pid ? FB.listen("/hy/dmg/"+pid, d=>{ this.PD=d||{}; this.after(); }) : null; } },
+    if(L.pid!==pid){ L.pid=pid; if(L.pd) L.pd.close(); this.PD={}; L.pd = pid ? FB.listen("/hy/dmg/"+pid, d=>{ this.PD=d||{}; this.after(); }) : null; }
+    const O=this.O||[], oids=O.map(o=>o.id).join(",");   /* (v322) 다시 시작 전 보스(c.old) 기록은 한 번만 읽음 */
+    if(L.oids!==oids){ L.oids=oids; Promise.all(O.map(o=>FB.get("/hy/dmg/"+o.id))).then(a=>{ const OD={}; O.forEach((o,i)=>{ OD[o.id]=a[i]||{}; }); this.OD=OD; this.after(); }).catch(()=>{}); } },
   after(){ clearTimeout(this._sv); this._sv=setTimeout(()=>{ try{ localStorage.setItem(this.CK, JSON.stringify({R:this.R, C:this.C, D:this.D, PD:this.PD})); }catch(e){} }, 400);
     try{ this.check(); }catch(e){} this.ping(); },
   ping(){ this.subs.forEach(f=>{ try{ f(); }catch(e){ console.error(e); } }); }, onChange(f){ this.subs.push(f); },
@@ -16056,17 +16107,26 @@ const HyBoss = {
   /* (v311) 그 주 보스 번호 — 선생님이 고른 주(C.wp[월요일])가 있으면 그것, 아니면 마지막으로 고른 주부터 차례로 (없으면 시작한 주부터) */
   idxOf(wk){ const C=this.C||{}, W=C.wp||{}; if(W[wk]!=null) return W[wk]|0; let best=null; Object.keys(W).forEach(k=>{ if(k<wk && (!best || k>best)) best=k; });
     return best ? (W[best]|0)+this.weeks(best, wk) : this.weeks(C.from, wk); },
-  calc(){ const C=this.C; this.B=this.P=null; if(!C || !C.from) return; const wk=this.monday(), i=this.weeks(C.from, wk); if(i<0) return;
-    if(C.on) this.B=this.mk(this.idxOf(wk), wk);
+  calc(){ const C=this.C; this.B=this.P=this.B0=null; this.O=[]; if(!C || !C.from) return; const wk=this.monday(), i=this.weeks(C.from, wk); if(i<0) return;
+    this.B0=this.mk(this.idxOf(wk), wk); if(C.on) this.B=this.B0;   /* (v322) B0 = 꺼져 있어도 이번 주 보스 (다시 켤 때 기회 옮기기) */
     const pw=this.dayOf(this.kd(wk)-7*864e5);
     if(i>0) this.P=this.mk(this.idxOf(pw), pw, (C.pv && C.pv.wk===pw) ? C.pv.id : null);
-    else if(C.pv && C.pv.wk===pw) this.P=this.mk(C.pv.i|0, pw, C.pv.id); },   // (v308) 끄거나 다시 시작해도 지난주 보상은 받을 수 있게
+    else if(C.pv && C.pv.wk===pw) this.P=this.mk(C.pv.i|0, pw, C.pv.id);   // (v308) 끄거나 다시 시작해도 지난주 보상은 받을 수 있게
+    /* (v322) 같은 주에 다시 시작·바꾸기 전에 쓰러뜨린 보스 (c.old) — 안 받은 보상은 그대로 받을 수 있게 (이번 주 · 지난주 것만) */
+    this.O=(C.old||[]).filter(o=>o && o.id && o.wk>=pw && (!this.B || o.id!==this.B.id) && (!this.P || o.id!==this.P.id)).map(o=>Object.assign(this.mk(o.i|0, o.wk, o.id), o.n ? {n:o.n, gems:o.g|0, img:o.img||"hb1", test:!!o.test} : {})); },
+  /* (v322) 바뀌기 전 보스를 c.old 에 남김 — 쓰러뜨린 반이 있을 때만 (보상은 쓰러뜨려야 받으니까) */
+  keepOld(C, b){ if(!b || !Object.keys((C.dead||{})[b.id]||{}).length) return; const pw=this.dayOf(this.kd(this.monday())-7*864e5);
+    C.old=(C.old||[]).filter(o=>o && o.wk>=pw && o.id!==b.id).concat([{id:b.id, i:b.i, wk:b.wk, n:b.n, g:b.gems|0, img:b.img, test:!!b.test}]).slice(-6); },
   /* 이번 주 체력을 처음 본 기기가 적어 둠(명단이 바뀌어도 그 주 체력은 그대로) · 0 인데 안 찍힌 쓰러짐을 찍음 */
   check(){ const b=this.B; if(!b || !this.on()) return;
     if(!(this.C.max||{})[b.id] && this._mx!==b.id){ this._mx=b.id; FB.update("/hy/boss/max", {[b.id]:b.max}); this.C.max=Object.assign({}, this.C.max, {[b.id]:b.max}); if(!(this.C.sp||{})[b.id]) FB.update("/hy/boss/sp", {[b.id]:b.split}); }
-    if(b.team){ const T=this.teams(), K=this.kids(); Object.keys(T).forEach(t=>{ if(!b.max[t] && this._mt!==b.id+t){ this._mt=b.id+t; const v=Math.max(b.per*this.FLOOR, b.per*Math.max(1, Object.keys(K).filter(k=>K[k].t===t).length)); b.max[t]=v; FB.update("/hy/boss/max/"+b.id, {[t]:v}); } }); }   // (v308) 주 중간에 새 반
-    Object.keys(b.max).forEach(t=>{ const s=this.stateOf(b, this.D, t); if(s.hp<=0 && !s.dead && this._dk!==b.id+t){ this._dk=b.id+t; this.markDead(b, t, ""); } }); },
-  markDead(b, t, by){ const v={at:Date.now(), by:String(by||"").slice(0,10)}; FB.update("/hy/boss/dead/"+b.id, {[t]:v}); this.C.dead=this.C.dead||{}; this.C.dead[b.id]=Object.assign({}, this.C.dead[b.id], {[t]:v}); b.dead[t]=v; },
+    if(b.team){ const T=this.teams(), K=this.kids(); Object.keys(T).forEach(t=>{ if(!b.max[t] && this._mt!==b.id+t){ this._mt=b.id+t; const v=b.test ? Math.round(BOSS_TEST.hp*(this.C.hpx>0 ? this.C.hpx : 1)) : Math.max(b.per*this.FLOOR, b.per*Math.max(1, Object.keys(K).filter(k=>K[k].t===t).length)); b.max[t]=v; FB.update("/hy/boss/max/"+b.id, {[t]:v}); } }); }   // (v308) 주 중간에 새 반 · (v322) 테스트 슬라임이면 슬라임 체력
+    Object.keys(b.max).forEach(t=>{ const s=this.stateOf(b, this.D, t); if(s.hp<=0 && !s.dead && this._dk!==b.id+t){ this._dk=b.id+t;   /* (v322) 잡은 아이 기기가 '마지막 일격' 이름을 먼저 쓰게 3초 기다렸다가 (그래도 없으면 이름 없이) */
+      setTimeout(()=>{ const B=this.B; if(B && B.id===b.id && !((this.C.dead||{})[b.id]||{})[t] && this.state(t) && this.state(t).hp<=0) this.markDead(B, t, ""); }, 3000); } }); },
+  /* (v322) 쓰러짐은 한 번만 씀 — 두 태블릿이 같이 잡아도 먼저 쓴 '마지막 일격' 이름을 덮지 않게 (늦은 쪽은 서버 값으로 바꿈) */
+  markDead(b, t, by){ if(((this.C.dead||{})[b.id]||{})[t]) return; const v={at:Date.now(), by:String(by||"").slice(0,10)}, p="/hy/boss/dead/"+b.id+"/"+t;
+    this.C.dead=Object.assign({}, this.C.dead); this.C.dead[b.id]=Object.assign({}, this.C.dead[b.id], {[t]:v}); b.dead[t]=v;
+    FB.once(p, v).then(ok=>{ if(ok) return; return FB.get(p).then(x=>{ if(x && x.at && this.B && this.B.id===b.id){ this.C.dead[b.id]=Object.assign({}, this.C.dead[b.id], {[t]:x}); this.B.dead[t]=x; this.ping(); } }); }).catch(()=>{ this._dk=null; }); },
   img(b){ b=b||this.B; return "assets/boss/"+((b && b.img)||"boss-knight")+".webp"; },
   /* (v315) 보스 그림·공격 이름 줄 · 다음 주 보스 (테스트 주 다음은 원래 이번 주 보스) */
   lineOf(b){ b=b||this.B; return (b && b.L) || BOSS_LINE[((b && b.i)|0)%BOSS_LINE.length]; },
@@ -16074,6 +16134,8 @@ const HyBoss = {
   imgCss(b){ b=b||this.B; return (b && b.hue) ? ' style="filter:hue-rotate('+(b.hue|0)+'deg) saturate(1.3)"' : ''; },
   /* 아이의 반 — 반 대항전인데 반이 없으면 null (공격 안 됨) */
   team(kid, pick, b){ b=b||this.B; if(!b || !b.team) return "all"; const k=this.kids()[kid]; const t=(k && k.t) || (pick && pick.t); return (t && t!=="all" && b.max[t]) ? t : null; },
+  /* (v322) 이번 주에 데미지가 들어가는 반 — 주 중간에 반을 옮겨도 그 주 기록의 반(D[kid].t) 그대로. 데미지·보상·화면이 모두 이걸 씀 (보상이 두 반에서 나가지 않게) */
+  myTeam(kid, pick, B, D){ B=B||this.B; if(!B) return null; const c=((D || (B===this.B ? this.D : B===this.P ? this.PD : (this.OD||{})[B.id]))||{})[kid]; if(c && c.t && (B.max||{})[c.t]) return c.t; return this.team(kid, pick, B); },
   tName(t){ const T=this.teams()[t]; return T ? (T.e||"")+" "+T.n : "우리 반"; },
   stateOf(B, D, t){ if(!B || !t) return null; D=D||{}; const M=B.max||{}, max=Math.max(1, M[t]||M.all||1000);
     const sum=Object.keys(D).reduce((a,k)=>a+((t==="all" || D[k].t===t) ? (D[k].d|0) : 0),0), hp=Math.max(0, max-sum);
@@ -16084,29 +16146,53 @@ const HyBoss = {
   left(kid, kind){ const cur=this.mine(kid), day=this.dayOf(Date.now()), on=((cur.on||{})[day])|0, rn=((cur.r||{})[day])|0;
     return kind==="run" ? Math.max(0, Math.min(this.CAP-on, this.RUN_CAP-rn)) : Math.max(0, this.CAP-on); },
   /* 데미지 — 아이는 자기 칸만, 서버에서 더하기. kind: 'study' | 'run' */
-  add(pick, n, kind){ const b=this.B; if(!b || !pick || !(n>0) || !this.on()) return 0; const kid=pick.id, c0=this.mine(kid), t=(c0.t && b.max[c0.t]) ? c0.t : this.team(kid, pick); if(!t) return 0;   // (v308) 주 중간에 반을 옮겨도 이번 주 데미지는 처음 반에
+  add(pick, n, kind){ this.roll(); const b=this.B; if(!b || !pick || !(n>0) || !this.on() || Date.now()>=this.endAt(b)) return 0; const kid=pick.id, c0=this.mine(kid), t=this.myTeam(kid, pick); if(!t) return 0;   // (v308) 주 중간에 반을 옮겨도 이번 주 데미지는 처음 반에 · (v322) 일요일 밤 12시가 지나면 0
     const s0=this.state(t); if(!s0 || s0.dead) return 0;
     const add=Math.min(Math.round(n), this.left(kid, kind), s0.hp); if(!(add>0)) return 0;
     const day=this.dayOf(Date.now()), cur=this.mine(kid), inc={d:add, ["on/"+day]:add}; if(kind==="run") inc["r/"+day]=add;
     const nm=String(pick.n||"").slice(0,10);
-    FB.inc("/hy/dmg/"+b.id+"/"+kid, inc, Object.assign({n:nm, ch:String(G.char||"hero").slice(0,12)}, c0.t ? {} : {t}));   /* (v310) ch = 캐릭터 (c 는 '보상 받음' 표시라 따로) */ try{ Kid.touch(); }catch(e){}
+    FB.inc("/hy/dmg/"+b.id+"/"+kid, inc, Object.assign({n:nm, ch:String(G.char||"hero").slice(0,12)}, (c0.t && b.max[c0.t]) ? {} : {t}));   /* (v310) ch = 캐릭터 (c 는 '보상 받음' 표시라 따로) · (v322) 기록의 반이 이번 체력표에 없으면 반도 고쳐 씀 */ try{ Kid.touch(); }catch(e){}
     const on=Object.assign({}, cur.on, {[day]:((cur.on||{})[day]|0)+add}), r=Object.assign({}, cur.r); if(kind==="run") r[day]=(r[day]|0)+add;
     this.D=Object.assign({}, this.D, {[kid]:Object.assign({}, cur, {d:(cur.d|0)+add, n:nm, t, on, r, ch:G.char||"hero"})});
     this._addAt=Date.now(); if(s0.hp-add<=0) this.markDead(b, t, nm); try{ DM.add("boss", add); }catch(e){}
     this.after(); return add; },
   /* (v312) ⚔️ 공격 기회 */
-  stock(kid){ const a=(this.D||{})[kid], p=(this.PD||{})[kid], src=(a && a.sr!=null) ? a : (p && p.sr!=null) ? p : null; return {r: src ? Math.max(0, src.sr|0) : 0, s: src ? Math.max(0, src.ss|0) : 0}; },
-  setStock(pick, r, s){ const b=this.B; if(!b || !pick || !this.on()) return false; const kid=pick.id, cur=this.mine(kid), t=(cur.t && b.max[cur.t]) ? cur.t : this.team(kid, pick); if(!t) return false;
-    r=Math.max(0, Math.min(this.STK, r|0)); s=Math.max(0, Math.min(this.STK, s|0)); const nm=String(pick.n||"").slice(0,10);
-    FB.inc("/hy/dmg/"+b.id+"/"+kid, {d:0}, Object.assign({sr:r, ss:s, n:nm, ch:String(G.char||"hero").slice(0,12)}, cur.t ? {} : {t}));
-    this.D=Object.assign({}, this.D, {[kid]:Object.assign({}, cur, {sr:r, ss:s, n:nm, t, d:cur.d|0})}); this._addAt=Date.now(); this.after(); return true; },
-  /* 쌓기 — kind 'run'(🏃) | 'study'(📚). 돌려줌: 쌓인 개수 (가득이면 0, 반이 없으면 -1) */
-  earn(pick, kind, n){ const b=this.B; if(!b || !pick || !(n>0) || !this.on()) return 0; const st=this.stock(pick.id), k=kind==="run" ? "r" : "s", add=Math.min(this.STK-st[k], n|0);
-    if(add<=0) return 0; st[k]+=add; return this.setStock(pick, st.r, st.s) ? add : -1; },
+  /* (v322) 기회는 더하기만 하는 카운터 — 쌓은 수 er(🏃)·es(📚) · 쓴 수 ur·us (FB.inc). 기회 = 기준 sr/ss + 쌓은 − 쓴 (0~10)
+     같은 아이가 두 기기·오프라인 대기열로 같이 써도 값이 덮이지 않음. sr/ss = 예전(절대값) 기록 · 보스가 바뀔 때 옮긴 값 (그대로 이어받음) */
+  SK:["sr","ss","er","es","ur","us"],
+  hasStk(x){ return !!x && this.SK.some(k=>x[k]!=null); },
+  rawStk(x){ x=x||{}; return {r:(x.sr|0)+(x.er|0)-(x.ur|0), s:(x.ss|0)+(x.es|0)-(x.us|0)}; },
+  clampStk(v){ return {r:Math.max(0, Math.min(this.STK, v.r)), s:Math.max(0, Math.min(this.STK, v.s))}; },
+  stock(kid){ const a=(this.D||{})[kid], p=(this.PD||{})[kid], src=this.hasStk(a) ? a : this.hasStk(p) ? p : null; return src ? this.clampStk(this.rawStk(src)) : {r:0, s:0}; },
+  /* 기회 카운터 더하기 — inc {er|es|ur|us: n}. 이번 보스 칸에 처음 쓰면 지난 칸에서 이어받은 기회를 기준(sr/ss)으로 같이 씀 */
+  bump(pick, inc){ const b=this.B; if(!b || !pick || !this.on()) return false; const kid=pick.id, cur=this.mine(kid), t=this.myTeam(kid, pick); if(!t) return false;
+    const nm=String(pick.n||"").slice(0,10), plain=Object.assign({n:nm, ch:String(G.char||"hero").slice(0,12)}, (cur.t && b.max[cur.t]) ? {} : {t});
+    if(!this.hasStk(cur)){ const base=this.stock(kid); plain.sr=base.r; plain.ss=base.s; }
+    FB.inc("/hy/dmg/"+b.id+"/"+kid, Object.assign({d:0}, inc), plain);
+    const nx=Object.assign({}, cur, plain, {t:plain.t||cur.t, d:cur.d|0}); Object.keys(inc).forEach(k=>{ nx[k]=(cur[k]|0)+inc[k]; });
+    this.D=Object.assign({}, this.D, {[kid]:nx}); this._addAt=Date.now(); try{ Kid.touch(); }catch(e){} this.after(); return true; },
+  /* (예전 이름) 기회를 이 값으로 — 차이만큼 카운터로 */
+  setStock(pick, r, s){ const st=this.stock(pick.id), inc={}; r=Math.max(0, Math.min(this.STK, r|0)); s=Math.max(0, Math.min(this.STK, s|0));
+    if(r>st.r) inc.er=r-st.r; if(r<st.r) inc.ur=st.r-r; if(s>st.s) inc.es=s-st.s; if(s<st.s) inc.us=st.s-s; return this.bump(pick, inc); },
+  /* (v322) 맞힌 수 → 기회 개수 (내림) · 남은 맞힘은 이 기기에 모아 다음 판에 더함 — k 'r'(달리기) | 's'(공부) */
+  chunk(kid, k, right, per){ const key="hyeng_"+k+"rem_"+kid; let rem=0; try{ rem=Math.max(0, parseInt(localStorage.getItem(key),10)||0); }catch(e){}
+    const tot=rem+Math.max(0, right|0), n=Math.floor(tot/Math.max(1, per)); try{ localStorage.setItem(key, String(tot-n*per)); }catch(e){} return n; },
+  chunkLeft(kid, k){ try{ return Math.max(0, parseInt(localStorage.getItem("hyeng_"+k+"rem_"+kid),10)||0); }catch(e){ return 0; } },
+  /* 쌓기 — kind 'run'(🏃) | 'study'(📚). 돌려줌: 쌓인 개수 (가득이면 0, 반이 없으면 -1). (v322) 보스를 쓰러뜨린 뒤에도 쌓임 (다음 주로 이어짐) */
+  earn(pick, kind, n){ this.roll(); const b=this.B; if(!b || !pick || !(n>0) || !this.on()) return 0; const st=this.stock(pick.id), k=kind==="run" ? "r" : "s", add=Math.min(this.STK-st[k], n|0);
+    if(add<=0) return 0; const cur=this.mine(pick.id), raw=this.hasStk(cur) ? this.rawStk(cur)[k] : 0, debt=Math.max(0, -raw);   // 두 기기가 같이 써서 0 아래로 내려간 만큼은 메움
+    return this.bump(pick, {[k==="r"?"er":"es"]:add+debt}) ? add : -1; },
   /* 쓰기 — 많은 쪽부터 하나 */
-  use(pick){ const st=this.stock(pick.id); if(st.r+st.s<=0) return false; if(st.r>=st.s) st.r--; else st.s--; return this.setStock(pick, st.r, st.s); },
+  use(pick){ const st=this.stock(pick.id); if(st.r+st.s<=0) return false; const k=st.r>=st.s ? "r" : "s", cur=this.mine(pick.id), raw=this.hasStk(cur) ? this.rawStk(cur)[k] : 0, over=Math.max(0, raw-this.STK);   // 10 넘게 쌓인 만큼은 같이 뺌
+    return this.bump(pick, {[k==="r"?"ur":"us"]:1+over}); },
+  /* (v322) 보스가 바뀔 때(테스트 슬라임 · 보스 고르기 · 다시 시작) 아이들 기회를 새 보스 칸으로 — 옛 칸을 서버에서 읽어 지금 기회를 기준(sr/ss)으로, 카운터는 비움 */
+  moveStock(fromId, toId){ if(!fromId || !toId || fromId===toId) return Promise.resolve(); const PD=this.PD||{};
+    return FB.get("/hy/dmg/"+fromId).then(D0=>{ D0=D0||{}; const w=[];
+      Object.keys(D0).forEach(k=>{ const x=D0[k]||{}, src=this.hasStk(x) ? x : this.hasStk(PD[k]) ? PD[k] : null; if(!src) return; const v=this.clampStk(this.rawStk(src));
+        const o={sr:v.r, ss:v.s, er:null, es:null, ur:null, us:null}; if(x.n) o.n=x.n; if(x.t) o.t=x.t; if(x.ch) o.ch=x.ch; w.push(FB.update("/hy/dmg/"+toId+"/"+k, o)); });
+      return Promise.all(w); }).catch(()=>{}); },
   /* 보상 — 쓰러뜨림: 보상 전부 / 도망(지난주, 못 잡음): 깎은 % × 40% */
-  rewardOf(B, D, kid, pick){ if(!B) return 0; const t=this.team(kid, pick, B) || "all", s=this.stateOf(B, D, t); D=D||{}; const me=D[kid]; if(!s || !me || !(me.d>0)) return 0;
+  rewardOf(B, D, kid, pick){ if(!B) return 0; const t=this.myTeam(kid, pick, B, D||{}) || "all", s=this.stateOf(B, D, t); D=D||{}; const me=D[kid]; if(!s || !me || !(me.d>0)) return 0;   // (v322) 데미지가 들어간 반 기준
     const esc = !s.dead; if(esc && B!==this.P) return 0;   // 이번 주는 쓰러뜨려야, 지난주는 도망이어도
     const pool = esc ? Math.round((B.gems|0)*Math.min(1, s.sum/s.max)*this.ESC) : (B.gems|0);
     const L=Object.keys(D).filter(k=>(t==="all" || D[k].t===t) && D[k].d>0);
@@ -16114,36 +16200,56 @@ const HyBoss = {
   key(B, pick){ return "bs-"+B.id+"-"+pick.id; },
   can(B, D, pick){ if(!B || !pick) return 0; const me=(D||{})[pick.id]; if(!me || me.c || Wallet.paid(this.key(B, pick))) return 0; return this.rewardOf(B, D, pick.id, pick); },
   reward(pick){ return this.can(this.B, this.D, pick); }, prevReward(pick){ return this.can(this.P, this.PD, pick); },
-  claim(pick, prev){ const B = prev ? this.P : this.B, D = prev ? this.PD : this.D, g=this.can(B, D, pick); if(!g) return 0;
+  /* (v322) 다시 시작·바꾸기 전에 쓰러뜨린 보스의 안 받은 보상 — [{B, g}] */
+  oldRewards(pick){ return (this.O||[]).map(B=>({B, g:this.can(B, (this.OD||{})[B.id], pick)})).filter(x=>x.g>0); },
+  /* which: 이번 주('1'·false) · 지난주('prev'·true) · 옛 보스('o:<id>') → [B, D] */
+  src(which){ if(which===true || which==="prev") return [this.P, this.PD]; if(typeof which==="string" && which.indexOf("o:")===0){ const id=which.slice(2), B=(this.O||[]).find(o=>o.id===id); this.OD=this.OD||{}; return [B||null, B ? (this.OD[id]=this.OD[id]||{}) : {}]; } return [this.B, this.D]; },
+  claim(pick, prev){ const [B, D]=this.src(prev), g=this.can(B, D, pick); if(!g) return 0;
     Wallet.pay(this.key(B, pick)); Wallet.addGems(g, "주간 보스 "+B.n); FB.update("/hy/dmg/"+B.id+"/"+pick.id, {c:1}); D[pick.id]=Object.assign({}, D[pick.id], {c:1}); this.ping(); return g; },
-  /* (v308) 보상 받기 — 최신으로 읽고, 서버에 '받음' 을 한 번만 쓸 수 있을 때만 (같은 아이가 두 기기에서 두 번 받지 않게) */
-  claimSafe(pick, prev){ this._t=0; return this.refresh(true).then(()=>{ const B = prev ? this.P : this.B, D = prev ? this.PD : this.D, g=this.can(B, D, pick); if(!g) return 0;
+  /* (v308) 보상 받기 — 최신으로 읽고, 서버에 '받음' 을 한 번만 쓸 수 있을 때만 (같은 아이가 두 기기에서 두 번 받지 않게)
+     (v322) 인터넷이 안 되면 null (= '이미 받았어요' 가 아니라 '연결되면 받을 수 있어요') */
+  claimSafe(pick, prev){ this._t=0; return this.refresh(true).then(()=>{ if(this.stale) return null; const [B, D]=this.src(prev), g=this.can(B, D, pick); if(!g) return 0;
       return FB.once("/hy/dmg/"+B.id+"/"+pick.id+"/c").then(okc=>{ if(!okc){ D[pick.id]=Object.assign({}, D[pick.id], {c:1}); this.ping(); return 0; }
-        Wallet.pay(this.key(B, pick)); Wallet.addGems(g, "주간 보스 "+B.n); D[pick.id]=Object.assign({}, D[pick.id], {c:1}); this.ping(); return g; }); }).catch(()=>0); },
+        Wallet.pay(this.key(B, pick)); Wallet.addGems(g, "주간 보스 "+B.n); D[pick.id]=Object.assign({}, D[pick.id], {c:1}); this.ping(); return g; }, ()=>null); }).catch(()=>null); },
+  /* (v322) 보상 받기 버튼 결과 한 곳에서 — g>0 축하 · null 오프라인 · 0 이미 받음 */
+  claimMsg(g){ if(g){ try{ SFX.tone(880,.2,"triangle",.05,1760); confetti(); }catch(er){} } else hyToast(g===null ? "📡 인터넷이 연결되면 받을 수 있어요" : "이미 받았어요"); },
   /* 선생님 — 주간 보스 켜기 (이번 주 월요일부터 1번 보스) */
-  setup(o){ const c=Object.assign({}, this.C||{}, {v:2, on:o.on!==false, team:!!o.team, split:o.split==="prop"?"prop":"eq"});
-    if(o.hpx>0 && +o.hpx!==(+c.hpx||1)){ c.hpx=+o.hpx; if(this.B){ c.max=Object.assign({}, c.max); delete c.max[this.B.id]; this._mx=null; } }   /* (v312) 체력 배율은 이번 주 보스에도 바로 */
-    if(o.restart || !c.from){ const wk=this.monday(), B=this.B, P=this.P;
+  setup(o){ this.roll(); const c=Object.assign({}, this.C||{}, {v:2, on:o.on!==false, team:!!o.team, split:o.split==="prop"?"prop":"eq"});
+    if(o.on===false) c.offWk=this.monday();   /* (v322) 끈 주 — 같은 주에 다시 켜면 다시 시작하지 않고 그대로 (기회·보상 그대로) */
+    if(o.hpx>0 && +o.hpx!==(+c.hpx||1)){ c.hpx=+o.hpx; if(this.B){ c.max=Object.assign({}, c.max); c.max[this.B.id]=this.maxFor(this.B, c.hpx); this._mx=null; } }   /* (v312) 체력 배율은 이번 주 보스에도 바로 · (v322) 반 칸(all/반)은 그대로 두고 체력만 (반 대항전 바꾸기는 다음 주부터) */
+    const ob=this.B || this.B0; let mv=null;
+    if(o.restart || !c.from){ const wk=this.monday(), P=this.P;
       if(P) c.pv={id:P.id, i:P.i, wk:P.wk};   // 지난주 보스는 기억 (보상)
       if(c.from){ c.rs=(c.rsWk===wk ? (c.rs|0) : 0)+1; c.rsWk=wk; }   // 이번 주에 다시 시작 → 새 보스 번호 (앞 데미지를 물려받지 않게)
-      c.from=wk; c.wp={}; c.dead=Object.assign({}, c.dead); c.max=Object.assign({}, c.max); }   /* (v311) 다시 시작 → 고른 보스 기록도 처음부터 */
-    this._mx=null; this.C=c; this.calc(); return FB.set("/hy/boss", c).then(()=>this.refresh(true)); },
+      c.from=wk; c.wp={}; c.dead=Object.assign({}, c.dead); c.max=Object.assign({}, c.max); delete c.test;   /* (v311) 다시 시작 → 고른 보스 기록도 처음부터 */
+      if(ob && ob.wk===wk){ this.keepOld(c, ob); mv=ob.id; } }   /* (v322) 옛 보스의 안 받은 보상(c.old) · 아이들 기회는 새 보스로 옮김 */
+    this._mx=null; this.C=c; this.calc(); const nb=this.B0;
+    return (mv && nb ? this.moveStock(mv, nb.id) : Promise.resolve()).then(()=>FB.set("/hy/boss", c)).then(()=>this.refresh(true)); },
+  /* (v322) 같은 주에 끄고 다시 켜는지 — 그러면 다시 시작하지 않음 (아이들 기회·안 받은 보상 그대로) */
+  sameWeekOn(){ const C=this.C||{}, wk=this.monday(); return !!C.from && (C.offWk===wk || (C.offWk==null && C.from===wk)); },
+  /* (v322) 체력 배율을 바꿀 때 — 그 보스의 반 칸(all/반)은 그대로, 체력만 새로 (mk 와 같은 셈) */
+  maxFor(b, hpx){ const x=hpx>0 ? hpx : 1, round=Math.floor((b.i|0)/BOSS_LINE.length), L=b.test ? BOSS_TEST : BOSS_LINE[(b.i|0)%BOSS_LINE.length], per=Math.round(L.per*(1+0.2*round)*x), floor=b.test ? 1 : per*this.FLOOR, K=this.kids(), o={};
+    Object.keys(b.max||{all:1}).forEach(k=>{ o[k] = b.test ? Math.round(BOSS_TEST.hp*x) : Math.max(floor, per*Math.max(1, k==="all" ? (Object.keys(K).length || 15) : Object.keys(K).filter(z=>K[z].t===k).length)); }); return o; },
   /* (v311) 선생님 — 이번 주 보스 바꾸기. 아이들이 깎은 데미지는 그대로 이어지고(체력만 새 보스로 다시 정함), 다음 주는 고른 보스의 다음 보스 */
   pickWeek(k){ const cur=this.B; if(!cur) return Promise.resolve(false); const L=BOSS_LINE.length, abs=Math.floor(cur.i/L)*L+(((k|0)%L)+L)%L, wk=cur.wk;
     if(abs===cur.i && !cur.test) return Promise.resolve(false);
     if(cur.test && abs===cur.i) return this.testWeek(false);   /* (v315) 테스트 주에 원래 보스를 누르면 테스트 끝 */
-    const C=Object.assign({}, this.C); C.wp=Object.assign({}, C.wp, {[wk]:abs}); if(C.test && C.test.wk===wk){ if(C.test.wpSet && C.wp[C.test.wpSet]===cur.i) delete C.wp[C.test.wpSet]; delete C.test; } C.max=Object.assign({}, C.max); delete C.max[cur.id]; C.dead=Object.assign({}, C.dead); delete C.dead[cur.id];
-    this._mx=null; this._mt=null; this._dk=null; this.C=C; this.calc(); return FB.set("/hy/boss", C).then(()=>this.refresh(true)).then(()=>true); },
+    const C=Object.assign({}, this.C); C.wp=Object.assign({}, C.wp, {[wk]:abs}); if(C.test && C.test.wk===wk){ if(C.test.wpSet && C.wp[C.test.wpSet]===cur.i) delete C.wp[C.test.wpSet]; delete C.test; } C.max=Object.assign({}, C.max); C.dead=Object.assign({}, C.dead);
+    this._mx=null; this._mt=null; this._dk=null; this.C=C; this.calc(); const nb=this.B;
+    /* (v322) 테스트 슬라임에서 다른 보스로 → 보스 칸(id)이 바뀜: 슬라임 처치 보상은 c.old 로 남기고, 슬라임에서 쓴 기회를 새 칸으로 옮김 (옛 칸의 기회가 되살아나지 않게) */
+    if(nb && nb.id!==cur.id){ this.keepOld(C, cur); delete C.max[nb.id]; delete C.dead[nb.id]; this.calc();   // 돌아간 칸은 새 보스 체력으로 다시
+      return this.moveStock(cur.id, nb.id).then(()=>FB.set("/hy/boss", C)).then(()=>this.refresh(true)).then(()=>true); }
+    delete C.max[cur.id]; delete C.dead[cur.id]; this.calc();   // 같은 칸에서 보스만 바꿈 — 체력은 새 보스로 다시
+    return FB.set("/hy/boss", C).then(()=>this.refresh(true)).then(()=>true); },
   /* (v315) 🧪 이번 주만 테스트 보스 — 켜면 이번 주 일요일까지 테스트 슬라임 (데미지 칸 따로), 다음 주는 원래 이번 주 보스부터. 끄면 원래 보스로 */
   testWeek(on){ const cur=this.B; if(!cur) return Promise.resolve(false); const wk=cur.wk, C=Object.assign({}, this.C), nw=this.dayOf(this.kd(wk)+7*864e5);
     C.wp=Object.assign({}, C.wp); C.max=Object.assign({}, C.max); C.dead=Object.assign({}, C.dead);
     if(on){ if(cur.test) return Promise.resolve(false); C.tn=(C.tn|0)+1; C.test={wk, n:C.tn, at:Date.now()};   /* 켤 때마다 새 번호 (앞 테스트 처치 기록과 안 섞임) */ if(C.wp[nw]==null){ C.wp[nw]=cur.i; C.test.wpSet=nw; } }
     else { if(!C.test) return Promise.resolve(false); if(C.test.wpSet && C.wp[C.test.wpSet]===cur.i) delete C.wp[C.test.wpSet]; delete C.test; }
-    const D0=Object.assign({}, this.D);   /* 아이들 ⚔️ 공격 기회(sr·ss)는 새 보스 칸으로 옮겨 이어지게 */
+    this.keepOld(C, cur);   /* (v322) 쓰러뜨린 보스에서 슬라임으로 바꿔도 안 받은 보상은 남김 */
     this._mx=null; this._mt=null; this._dk=null; this.C=C; this.calc(); const nb=this.B;
-    return FB.set("/hy/boss", C).then(()=>{ if(!nb || nb.id===cur.id) return; const w=[];
-        Object.keys(D0).forEach(k=>{ const x=D0[k]||{}; if(x.sr==null && x.ss==null) return; const v={sr:x.sr|0, ss:x.ss|0}; if(x.n) v.n=x.n; if(x.t) v.t=x.t; if(x.ch) v.ch=x.ch; w.push(FB.update("/hy/dmg/"+nb.id+"/"+k, v)); });
-        return Promise.all(w); }).then(()=>this.refresh(true)).then(()=>true); },
+    /* 아이들 ⚔️ 공격 기회는 새 보스 칸으로 옮겨 이어지게 — (v322) 설정을 바꾸기 전에 옮김 (아이 기기가 새 칸에 먼저 쓴 기회를 덮지 않게) */
+    return (nb && nb.id!==cur.id ? this.moveStock(cur.id, nb.id) : Promise.resolve()).then(()=>FB.set("/hy/boss", C)).then(()=>this.refresh(true)).then(()=>true); },
   /* 수업 레이드 보스 고르기 (실시간 보스) — 체력은 레이드 방 안에서만 */
   pickRaid(i){ return BOSS_LINE[((i|0)%BOSS_LINE.length+BOSS_LINE.length)%BOSS_LINE.length]; }
 };
@@ -16158,7 +16264,7 @@ const KidPick = {
 };
 addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; const b=t.closest("[data-kp]"); if(!b) return;
   const id=b.dataset.kp, K=HyBoss.kids(); KidPick.close(); if(!id || !K[id]) return;
-  const v={id, n:K[id].n, t:K[id].t||"all"}; Kid.set(v); try{ SFX.select(); }catch(er){} const cb=KidPick.cb; KidPick.cb=null; if(cb) cb(v); });
+  const v={id, n:K[id].n, t:K[id].t||"all", pk:Date.now()}; Kid.set(v);   /* (v322) pk = 이름을 고른 때 (공용 패드 '민준 맞아요?') */ try{ SFX.select(); }catch(er){} const cb=KidPick.cb; KidPick.cb=null; if(cb) cb(v); });
 
 /* =====================================================================
    (v307) ⚔️ 레이드 무대 — 문제만 풀던 화면에 '싸우는 장면'
@@ -16173,12 +16279,14 @@ addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; co
 const WeekBoss = {
   host:false, _last:null, _hold:0, _busy:0, F:null,
   isOpen(){ return !!$("wbView"); },
-  open(host){ HyBoss.start(); this.host=!!host; if(host) HyBoss.live(); let d=$("wbView");
+  open(host){ HyBoss.start(); try{ HyBoss.roll(); }catch(e){} this.host=!!host; if(host) HyBoss.live(); let d=$("wbView");
     if(!d){ d=document.createElement("div"); d.id="wbView"; document.body.appendChild(d); d.addEventListener("click", e=>this.click(e)); }
     d.className="wb"+(host?" tv":""); this._last=null; this._hold=0; this._k=""; this._played=""; this.draw();
     if(!host) HyBoss.refresh(true).then(()=>{ if(this.isOpen()) this.draw(); });
     clearInterval(this._iv); this._iv=setInterval(()=>this.idle(), 8000); try{ SFX.select(); }catch(e){} },
   close(){ const d=$("wbView"); if(d) d.remove(); clearInterval(this._iv); this._k=""; this.endFight(true); this.banner(); },
+  /* (v322) 싸우는 동안 다른 태블릿이 깎은 체력을 다시 읽음 — 8초 넘게 안 읽었으면 */
+  fresh(){ return this.host || !!HyBoss._live || Date.now()-(HyBoss._t||0)<=8000; },
   /* 날짜 — 언제나 한국 시간 */
   md(k){ const a=String(k).split("-"); return (+a[1])+"/"+(+a[2]); },
   endAt(B){ return HyBoss.kd(B.wk)-12*3600e3+7*864e5; },   // 다음 월요일 0시
@@ -16186,17 +16294,19 @@ const WeekBoss = {
   left(B){ const ms=this.endAt(B)-Date.now(), h=Math.max(0, Math.floor(ms/3600e3)), d=Math.floor(h/24);
     return ms<=0 ? "곧 도망쳐요!" : d>=1 ? d+"일 "+(h%24)+"시간 남음" : h>=1 ? "오늘 밤 12시까지 · "+h+"시간 남음" : "오늘 밤 12시까지 · 곧 도망쳐요!"; },
   /* 지금 보여 줄 체력 — 아이: 내 반 · TV: 반이 여럿이면 모두 합친 것 */
-  view(B, me){ const ks=Object.keys(B.max||{all:1}), t = me ? HyBoss.team(me.id, me) : null, tt = t || (ks.length===1 ? ks[0] : null);
+  view(B, me){ const ks=Object.keys(B.max||{all:1}), t = me ? HyBoss.myTeam(me.id, me) : null, tt = t || (ks.length===1 ? ks[0] : null);   // (v322) 데미지가 들어가는 반
     if(tt) return Object.assign({t:tt}, HyBoss.state(tt));
     let m=0, h=0, dead=true; ks.forEach(k=>{ const s=HyBoss.state(k); m+=s.max; h+=s.hp; if(!s.dead) dead=false; });
     return {t:null, max:m, hp:h, pct:h/Math.max(1,m), dead:dead?{}:null}; },
   charOf(k, c){ const ok=CHARACTERS.map(x=>x.id); if(c && ok.indexOf(c)>=0) return c;
     let h=0; String(k).split("").forEach(ch=>{ h=(h*31+ch.charCodeAt(0))>>>0; }); return ok[h%ok.length]; },
+  /* (v322) 기회 모으는 법 한 줄 (안내 · 기회 없음 · 결과창 같은 말) */
+  howTo(){ return '📚 '+HyBoss.PER_STUDY+'문제 맞히면 ⚔️1 · 🏃 '+HyBoss.PER_RUN+'단어 맞히면 ⚔️1 ('+HyBoss.STK+'개까지)'; },
   /* 장소 · 방법 · 시간 안내 (아이 화면 · TV 같이) */
   guide(B){ const E=x=>Raid.esc(x), on=!!B, sp=B && B.split==="prop";   /* (v317) 짧게 (사용자: 간추리기) — 네 줄 */
     return '<div class="wbGuide wbGuide2">'
       +'<p><i>🗓</i><span><b>월요일 0시 ~ 일요일 밤 12시</b>'+(on?' <small>('+this.when(B)+')</small>':' <small>(선생님이 켜면 시작)</small>')+'</span></p>'
-      +'<p><i>⚔️</i><span>공격 기회 모으기: 📚 <b>Daily 30</b> 맞힌 '+HyBoss.PER_STUDY+'문제 = 1 · 🏃 <b>달리기</b> 맞힌 '+HyBoss.PER_RUN+'단어 = 1 <small>(각각 '+HyBoss.STK+'개까지 · 🧸 유치원 단어는 빼고)</small></span></p>'
+      +'<p><i>⚔️</i><span>'+this.howTo()+' <small>(🧸 유치원 단어는 빼고)</small></span></p>'   /* (v322) 짧게 */
       +'<p><i>🛡</i><span>보스가 ⚠️ 공격하면 <b>막기!</b> — 막으면 반격 ⚔️'+HyBoss.COUNTER+', 못 막으면 기회 -1</span></p>'
       +'<p><i>🎁</i><span>쓰러뜨리면 💎'+(on?(B.gems|0):'')+' '+(sp?'깎은 만큼':'똑같이')+' 나눠요 · 못 잡으면 <b>도망</b> (작은 보상)</span></p>'
       +'</div>'; },
@@ -16204,7 +16314,8 @@ const WeekBoss = {
     return '<div class="wbLine">'+(T ? '<span class="now"><img src="assets/boss/'+BOSS_TEST.img+'.webp" alt=""><b>'+E(BOSS_TEST.n)+'</b><small>이번 주 🧪</small></span>' : '')
       +BOSS_LINE.map((x,k)=>'<span class="'+(k===i?'now':k===nx?'nx':'')+'"><img src="assets/boss/'+x.img+'.webp" alt=""><b>'+E(x.n)+'</b><small>'+(k===i?'이번 주':k===nx?'다음 주':(k+1)+'번째')+'</small></span>').join('')+'</div>'; },
   draw(){ const d=$("wbView"); if(!d) return; const B=HyBoss.B, E=x=>Raid.esc(x), me=this.host ? null : Kid.me(), host=this.host;
-    const top='<div class="wbTop"><button class="wbX" data-wb="x" aria-label="닫기">◀</button><b>🏠 이번 주 보스</b>'+(B?'<span class="wbLeft">⏰ '+this.left(B)+'</span>':'')+'</div>';
+    const top='<div class="wbTop"><button class="wbX" data-wb="x" aria-label="닫기">◀</button><b>🏠 이번 주 보스</b><span class="wbOff" id="wbOff"'+(HyBoss.stale?'':' hidden')+'>📡 오프라인</span>'+(B?'<span class="wbLeft">⏰ '+this.left(B)+'</span>':'')+'</div>';
+    if(this.F && B && this.F.bid!==B.id) this.endFight(true);   /* (v322) 월요일이 되어 보스가 바뀌면 싸움은 끝 */
     if(!B || !HyBoss.on()){ this._k=""; d.innerHTML='<div class="wbIn">'+top+'<div class="wbEmpty"><b>아직 이번 주 보스가 없어요</b><p>선생님이 주간 보스를 켜면 여기에 나와요</p></div>'+this.guide(null)+'</div>'; return; }
     const v=this.view(B, me), D=HyBoss.D||{}, day=HyBoss.dayOf(Date.now()), my=me ? HyBoss.mine(me.id) : {}, today=((my.on||{})[day])|0, run=((my.r||{})[day])|0;
     const hpS=Math.min(v.max, v.hp+(this._hold|0)), pc=Math.round(hpS/Math.max(1,v.max)*100), nx=HyBoss.nextOf(B);
@@ -16230,9 +16341,10 @@ const WeekBoss = {
     if(!host){ if(!me) mh = Object.keys(HyBoss.kids()).length ? '<div class="wbMeRow"><span>👤 내 이름을 고르면 공부·달리기로 공격 기회를 모아 보스를 때려요</span><button class="stBossBtn" data-kidpick="1">👤 내 이름 고르기</button></div>' : '<div class="wbMeRow"><span>선생님이 반 명단을 만들면 내 이름으로 보스를 깎을 수 있어요</span></div>';
       else { const pg=HyBoss.prevReward(me), g=HyBoss.reward(me), P0=HyBoss.P;
         mh='<div class="wbMeRow wbMeS"><span class="wbMeN">👤 '+E(me.n)+' <button class="adX" data-kidpick="1" title="바꾸기">↺</button></span></div>'   /* (v317) 내 숫자 칸은 빼고 이름만 (바꾸기) */
+          +HyBoss.oldRewards(me).map(x=>'<button class="stBossBtn wbClaim" data-bossclaim="o:'+E(x.B.id)+'">🎁 '+E(x.B.n)+' 보상 💎 '+x.g+'</button>').join('')   /* (v322) 다시 시작 전에 쓰러뜨린 보스 */
           +(pg?'<button class="stBossBtn wbClaim" data-bossclaim="prev">🎁 지난주 '+E(P0.n)+' 보상 💎 '+pg+'</button>':'')
           +(g?'<button class="stBossBtn wbClaim" data-bossclaim="1">🎁 보상 받기 💎 '+g+'</button>':''); } }
-    $("wbMe").innerHTML=mh; if(!host) this.drawFight();
+    $("wbMe").innerHTML=mh; if(!host) this.drawFight(); const off=$("wbOff"); if(off) off.hidden=!HyBoss.stale;
     $("wbTeams").innerHTML = B.team ? '<div class="stBossTeams wbTeams">'+Object.keys(B.max||{}).map(t=>{ const s=HyBoss.state(t); return '<span class="'+(t===v.t?'me':'')+'">'+E(HyBoss.tName(t))+' '+(s.dead?'🎉':Math.round(s.pct*100)+'%')+'</span>'; }).join('')+'</div>' : '';
     $("wbTop5").innerHTML = L.length ? '<ol class="wbRank">'+L.slice(0, host?8:3).map((x,i)=>'<li class="'+(me && x===me.id?'me':'')+'"><b>'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</b><span>'+E(D[x].n||"?")+(B.team && D[x].t?' <small>'+E(HyBoss.tName(D[x].t))+'</small>':'')+'</span><em>⚔️ '+(D[x].d|0)+'</em><small>오늘 '+(((D[x].on||{})[day])|0)+'</small></li>').join('')+'</ol>' : '<p class="wbSmall">아직 아무도 안 깎았어요 — 첫 공격의 주인공이 되어 봐요!</p>'; },
   /* (v312) ⚔️ 공격 기회가 쌓였을 때 (공부·달리기 끝) — 작은 무대에서 내 캐릭터가 기를 모으고, 「지금 공격하기」 */
@@ -16258,12 +16370,13 @@ const WeekBoss = {
     const warn = F && F.phase==="warn"; el.classList.toggle("warn", !!warn); el.classList.toggle("empty", n<=0 && !warn);
     $("wbSwN").textContent = warn ? "지금은 막기!" : n>0 ? "남은 기회 "+n : "기회 없음";
     $("wbFHint").innerHTML = warn ? '⚠️ <b>'+Raid.esc(F.nm)+'</b>! 지금 <b>🛡 막기</b>를 눌러요!' : v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
-      : n<=0 ? '⚔️ 공격 기회가 없어요 — 📚 Daily 30 ('+HyBoss.PER_STUDY+'문제 = 1번) · 🏃 달리기 ('+HyBoss.PER_RUN+'단어 = 1번)로 모아요' : '보스가 ⚠️ 공격하려고 하면 🛡 막기! 못 막으면 공격 기회 -1'; },
-  swing(){ const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; const v=this.view(B, me); if(v.dead) return;
+      : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '보스가 ⚠️ 공격하려고 하면 🛡 막기! 못 막으면 공격 기회 -1'; },
+  swing(rd){ if(this._rf) return; if(!rd && !this.fresh()){ this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.isOpen()){ this.draw(); this.swing(1); } }, ()=>{ this._rf=0; }); return; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 (다른 태블릿이 쓰러뜨린 보스를 때려 기회를 날리지 않게) */
+    HyBoss.roll(); const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; const v=this.view(B, me); if(v.dead){ if(this.F) this.result(); return; }
     let F=this.F; if(F && (F.phase!=="idle" || Date.now()<F.lock)){ if(F.phase==="warn") this.nudge(".wbBlock"); return; }
     if(HyBoss.left(me.id, "study")<=0){ hyToast("오늘은 여기까지! 하루 ⚔️"+HyBoss.CAP+" — 내일 또 때려요"); return; }
     const st=HyBoss.stock(me.id); if(st.r+st.s<=0){ if(F) this.result(); else { this.nudge(".wbSwing"); hyToast("⚔️ 공격 기회가 없어요 — 공부·달리기로 모아요"); } return; }
-    if(!F) F=this.F={sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"idle", next:3+Math.floor(Math.random()*3), lock:0, at:0};
+    if(!F) F=this.F={bid:B.id, sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"idle", next:3+Math.floor(Math.random()*3), lock:0, at:0};
     if(!HyBoss.use(me)){ hyToast("반이 정해지지 않았어요 — 선생님께 반을 알려 주세요"); this.F=null; return; }
     const crit=Math.random()<HyBoss.CRIT, d=(HyBoss.SW_MIN+Math.floor(Math.random()*(HyBoss.SW_MAX-HyBoss.SW_MIN+1)))*(crit?2:1), add=HyBoss.add(me, d, "study");
     F.sw++; F.dmg+=add; F.lock=Date.now()+430; F.at=Date.now(); F.next--; try{ DM.add("swing", 1); }catch(e){}
@@ -16278,7 +16391,8 @@ const WeekBoss = {
   bossTurn(){ const F=this.F, B=HyBoss.B; if(!F || !B || !this.isOpen()) return; const L=HyBoss.lineOf(B), j=Math.floor(Math.random()*3);
     F.phase="warn"; F.k=L.img+"-"+"abc"[j]; F.nm=L.atk[j]; F.blocked=false; F.warnAt=Date.now();
     RaidStage.charge(F.nm); RaidStage.warn(true); try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>SFX.tone(330,.18,"sawtooth",.05,220), 300); }catch(e){}
-    this.drawFight(); clearTimeout(F.t); F.t=setTimeout(()=>this.strike(), 1600); },
+    this.drawFight(); clearTimeout(F.t); F.t=setTimeout(()=>this.strike(), this.BLOCK_MS); },
+  BLOCK_MS:2000,   /* (v322) 막기 시간 1.6 → 2.0초 (저학년 · 구형 iPad) */
   block(){ const F=this.F; if(!F || F.phase!=="warn"){ this.nudge(".wbBlock"); return; } if(Date.now()-F.warnAt<120) return;   // 미리 눌러 두는 것 막기
     F.blocked=true; clearTimeout(F.t); this.strike(); },
   strike(){ const F=this.F, me=Kid.me(); if(!F || F.phase!=="warn" || !me) return; F.phase="strike"; RaidStage.warn(false);
@@ -16288,7 +16402,8 @@ const WeekBoss = {
       else { F.hit++; HyBoss.use(me); try{ SFX.tone(160,.22,"square",.05); }catch(e){} }
       F.phase="idle"; F.next=3+Math.floor(Math.random()*3); F.at=Date.now(); this.drawFight(); this.after(); }, 980); },
   nudge(sel){ const b=document.querySelector("#wbFight "+sel); if(!b) return; b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); },
-  endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); this.F=null; try{ RaidStage.warn(false); }catch(e){} },
+  endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); this.F=null; try{ RaidStage.warn(false); }catch(e){}
+    if(F.phase==="warn" && !F.blocked && F.bid===(HyBoss.B||{}).id){ const me=Kid.me(); if(me) HyBoss.use(me); } },   /* (v322) ⚠️ 경고 중에 ◀ 닫아도 못 막은 것 (기회 -1 피하기 막기) */
   /* 기회를 다 쓰면 — 결과창 (깎은 체력 전 → 후) */
   result(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || F.done || !B || !me) return; F.done=1; this.endFight(); const d=$("wbView"); if(!d) return;
     const v=this.view(B, me), max=Math.max(1,v.max), h0=Math.min(max, F.hp0), h1=v.dead?0:v.hp, E=x=>Raid.esc(x), nx=HyBoss.nextOf(B), pc=h=>(h/max*100).toFixed(1);
@@ -16296,7 +16411,7 @@ const WeekBoss = {
     r.innerHTML='<div class="wbResIn"><h3>'+(v.dead?'🎉 '+E(B.n)+'를 쓰러뜨렸어요!':'⚔️ 공격 끝!')+'</h3>'
       +'<div class="stStat wbResS"><div><b>'+F.sw+'</b><small>휘두름</small></div><div><b>-'+F.dmg.toLocaleString()+'</b><small>깎은 체력</small></div><div><b>🛡 '+F.blk+'</b><small>막음</small></div><div><b>💥 '+F.hit+'</b><small>맞음 (기회 -'+F.hit+')</small></div></div>'
       +'<div class="rdHp wbBar wbResHp"><u style="width:'+pc(h0)+'%"></u><i style="width:'+pc(h0)+'%"></i><span>'+h0.toLocaleString()+' → '+h1.toLocaleString()+' / '+max.toLocaleString()+'</span></div>'
-      +'<p class="wbResP">'+(v.dead ? '보상은 아래 🎁 버튼에서 · 다음 주 월요일 <b>'+E(nx.n)+'</b> 등장!' : '남은 체력 <b>'+Math.round(h1/max*100)+'%</b> — 친구들과 같이 깎아요!<br>📚 Daily 30 ('+HyBoss.PER_STUDY+'문제 = 1번) · 🏃 달리기 ('+HyBoss.PER_RUN+'단어 = 1번)로 기회를 또 모아요')+'</p>'
+      +'<p class="wbResP">'+(v.dead ? '보상은 아래 🎁 버튼에서 · 다음 주 월요일 <b>'+E(nx.n)+'</b> 등장!' : '남은 체력 <b>'+Math.round(h1/max*100)+'%</b> — 친구들과 같이 깎아요!<br>'+this.howTo())+'</p>'
       +'<div class="wbPopB"><button class="stBossBtn" data-wb="study">📚 기회 모으기</button><button class="stLater" data-wbf="rx">닫기</button></div></div>';
     d.appendChild(r); setTimeout(()=>{ const i=r.querySelector(".wbResHp i"), u=r.querySelector(".wbResHp u"); if(i) i.style.width=pc(h1)+"%"; setTimeout(()=>{ if(u) u.style.width=pc(h1)+"%"; }, 700); }, 350);
     try{ if(v.dead) confetti(); SFX.tone(660,.15,"triangle",.05,990); }catch(e){} this.drawFight(); },
@@ -16317,7 +16432,8 @@ const WeekBoss = {
       if(tk){ const ln=document.createElement("div"); ln.className="wbTk"; ln.innerHTML='<b>'+Raid.esc(D[k].n||"?")+'</b> ⚔️ +'+dv; tk.prepend(ln); while(tk.children.length>5) tk.lastChild.remove(); } });
     },
   /* 가만히 있을 때 보스가 가끔 포효 (데미지 없음) */
-  idle(){ if(!this.isOpen() || this._busy || document.hidden || (this.F && Date.now()-(this.F.at||0)<7000)) return; const B=HyBoss.B; if(!B) return; const L=HyBoss.lineOf(B), v=this.view(B, this.host?null:Kid.me()); if(v.dead) return;
+  idle(){ if(this.isOpen() && this.F && !document.hidden && !this.fresh()) HyBoss.refresh(true);   /* (v322) 싸우는 동안 8초마다 체력 다시 읽기 */
+    if(!this.isOpen() || this._busy || document.hidden || (this.F && Date.now()-(this.F.at||0)<7000)) return; const B=HyBoss.B; if(!B) return; const L=HyBoss.lineOf(B), v=this.view(B, this.host?null:Kid.me()); if(v.dead) return;
     const j=Math.floor(Math.random()*3); RaidStage.bossAtk(L.img+"-"+"abc"[j], L.atk[j]); },
   click(e){ const t=e.target; if(!t || !t.closest) return; const f=t.closest("[data-wbf]");
     if(f){ const a=f.dataset.wbf; if(a==="swing") this.swing(); else if(a==="block") this.block(); else if(a==="rx"){ const r=$("wbRes"); if(r) r.remove(); } return; }
@@ -16328,15 +16444,16 @@ const WeekBoss = {
       return; }
     if(t.closest("[data-kidpick]")){ try{ SFX.click(); }catch(er){} KidPick.open(()=>{ this._k=""; this.draw(); try{ StudyUI.bossCard(); }catch(er){} }); return; }
     const bt=t.closest("[data-bossclaim]"); if(bt){ const me=Kid.me(); if(bt.disabled || !me) return; bt.disabled=true; bt.textContent="받는 중…";
-      HyBoss.claimSafe(me, bt.dataset.bossclaim==="prev").then(g=>{ if(g){ try{ SFX.tone(880,.2,"triangle",.05,1760); confetti(); }catch(er){} } else hyToast("이미 받았어요"); this.draw(); try{ StudyUI.bossCard(); }catch(er){} }); return; } },
+      HyBoss.claimSafe(me, bt.dataset.bossclaim).then(g=>{ HyBoss.claimMsg(g); this.draw(); try{ StudyUI.bossCard(); }catch(er){} }); return; } },   /* (v322) 오프라인이면 '연결되면 받을 수 있어요' */
   /* 첫 화면 알림 — 보스가 있을 때만 */
-  banner(){ const el=$("hbBan"); if(!el) return; const B=HyBoss.B; if(!B || !HyBoss.on()){ el.hidden=true; return; }
+  banner(){ const el=$("hbBan"); if(!el) return; try{ if(HyBoss.roll()) return; }catch(e){} const B=HyBoss.B; if(!B || !HyBoss.on()){ el.hidden=true; return; }   // (v322) 새 주면 roll → 다시 그림
     const me=Kid.me(), v=this.view(B, me), pc=Math.round(v.pct*100), E=x=>Raid.esc(x);
     const h='<img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+'><span class="hbI"><b>🏠 <i class="hbPre">이번 주 보스 · </i>'+E(B.n)+'</b><i class="hbBar"><u style="width:'+(v.dead?0:pc)+'%"></u></i><small>'+(v.dead?'🎉 쓰러뜨렸어요! 보상 받으러 가기':'⏰ '+this.left(B)+(me?' · ⚔️ 공격 기회 '+(()=>{ const k=HyBoss.stock(me.id); return k.r+k.s; })():''))+'</small></span><em>'+(me && !v.dead && (()=>{ const k=HyBoss.stock(me.id); return k.r+k.s>0; })() ? '⚔️ 공격 ›' : '보기 ›')+'</em>';
     if(el._h!==h){ el._h=h; el.innerHTML=h; } el.hidden=false; }
 };
 HyBoss.onChange(()=>{ try{ if(WeekBoss.isOpen()) WeekBoss.draw(); WeekBoss.banner(); }catch(e){ console.error(e); } });
 setInterval(()=>{ try{ if($("scStart").classList.contains("on") && !document.hidden){ WeekBoss.banner(); DM.paint(); } }catch(e){} }, 60000);   // 남은 시간 · 날이 바뀌면 새 미션
+setInterval(()=>{ try{ HyBoss.roll(); }catch(e){} }, 60000);   /* (v322) 월요일 0시가 지나면 열려 있는 화면·TV 도 새 주 보스로 */
 /* (v310) 작은 알림 한 줄 (어느 화면에서나) */
 /* (v322) 미션 완료 같은 '기다려도 되는' 알림(wait=true)은 보상 창(#wbPop)·Daily 30 끝 화면(#stDone)·달리기 결과 화면이 떠 있으면
    줄 세워 두었다가 창이 닫히면 보여 준다 — 위쪽 알림이 결과 제목·보물상자를 덮었다. 버튼을 눌러 바로 나오는 알림은 그대로 바로 */
@@ -17040,7 +17157,7 @@ const Admin = (function(){
       +'<div class="adPinRow"><label class="adL">💪 체력</label><select id="adWkH">'+[[0.5,"아주 쉬움 ×0.5"],[0.75,"쉬움 ×0.75"],[1,"보통 ×1"],[1.5,"어려움 ×1.5"],[2,"아주 어려움 ×2"]].map(o=>'<option value="'+o[0]+'"'+((+C.hpx||1)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></div>'
       +'<p class="adSmall">보통 = 1명 '+BOSS_LINE.map(x=>x.per).join('·')+' × 반 인원, <b>최소 '+BOSS_LINE.map(x=>(x.per*HyBoss.FLOOR).toLocaleString()).join('·')+'</b> (보스 차례 · 일주일 동안 같이 잡게). 아이 한 명이 공격 기회 20개를 다 쓰면 ⚔️ 200쯤. 체력 배율은 「설정 저장」을 누르면 <b>이번 주 보스에도 바로</b> 바뀌어요.</p>'
       +'<label class="adChk"><input type="checkbox" id="adWkT"'+(C.team?' checked':'')+'> 반 대항전 (반마다 자기 보스, 반 인원 × 체력)</label>'
-      +(C.on ? '<button class="play adGo" data-ad="wkTv">📺 TV에 주간 보스 띄우기 <small>(실시간 · 깎을 때마다 친구가 때려요)</small></button><div class="adPinRow"><button class="mini" data-ad="wkSave">설정 저장 (다음 주부터)</button><button class="mini warn" data-ad="wkOff">⏸ 주간 보스 끄기</button></div><button class="mini" data-ad="wkRestart">↺ 이번 주부터 1번 보스로 다시</button>'
+      +(C.on ? '<button class="play adGo" data-ad="wkTv">📺 TV에 주간 보스 띄우기 <small>(실시간 · 깎을 때마다 친구가 때려요)</small></button><div class="adPinRow"><button class="mini" data-ad="wkSave">설정 저장 <small>(체력 배율은 바로 · 나누기·반 대항전은 다음 주부터)</small></button><button class="mini warn" data-ad="wkOff">⏸ 주간 보스 끄기</button></div><button class="mini" data-ad="wkRestart">↺ 이번 주부터 1번 보스로 다시</button>'
         : '<button class="play adGo" data-ad="wkOn">▶ 주간 보스 켜기 (이번 주 1번 보스부터)</button>'));
     h+=card('👥 반 명단 (반 대항전 · 레이드 이름)', '<div id="adRoster"></div>'
       +'<div class="adPinRow"><select id="adTeE">'+TEMO.map(e=>'<option>'+e+'</option>').join('')+'</select><input id="adTeN" maxlength="10" placeholder="반 이름 (예: 사자반)" autocomplete="off"><button class="mini" data-ad="teAdd">반 만들기</button></div>'
@@ -17064,7 +17181,7 @@ const Admin = (function(){
     if(!b){ B.innerHTML='<p class="adSmall">'+((HyBoss.C||{}).on ? '⏳ 보스 준비 중…' : '주간 보스가 꺼져 있어요.')+'</p>'; return; }
     const D=HyBoss.D||{}, ks=Object.keys(b.max||{all:1}), P=HyBoss.P;
     let pv=''; if(P){ const pk=Object.keys(P.max||{all:1}); pv='<small class="adSmall">지난주 '+esc(P.n)+': '+pk.map(k=>{ const s=HyBoss.stateOf(P, HyBoss.PD, k); return esc(k==="all"?"":HyBoss.tName(k)+" ")+(s.dead?'🎉 처치':'🏃 도망 ('+Math.round((1-s.pct)*100)+'%)'); }).join(' · ')+'</small>'; }
-    B.innerHTML='<div class="adBossH"><b>🏠 이번 주 '+esc(b.n)+'</b><small>'+(b.team?'반 대항전':'반 전체')+' · 보상 💎'+(b.gems|0)+' '+(b.split==="prop"?'공격한 만큼':'똑같이')+' · 일요일까지 '+HyBoss.daysLeft()+'일</small></div>'
+    B.innerHTML='<div class="adBossH"><b>🏠 이번 주 '+esc(b.n)+'</b><small>'+(b.team?'반 대항전':'반 전체')+' · 보상 💎'+(b.gems|0)+' '+(b.split==="prop"?'공격한 만큼':'똑같이')+' · ⏰ '+HyBoss.leftTxt(b)+'</small></div>'
       +ks.map(k=>{ const s=HyBoss.state(k), pc=Math.round(s.pct*100), top=Object.keys(D).filter(x=>k==="all"||D[x].t===k).sort((x,y)=>(D[y].d|0)-(D[x].d|0));
         return '<div class="adBossT'+(s.dead?' dead':'')+'"><div class="adBossTn">'+esc(k==="all"?"반 전체":HyBoss.tName(k))+(s.dead?' · 🎉'+(s.dead.by?' '+esc(s.dead.by)+' 마지막 일격':' 쓰러뜨림'):'')+'</div><div class="rdHp"><i style="width:'+pc+'%"></i><span>'+s.hp.toLocaleString()+' / '+s.max.toLocaleString()+' · '+pc+'%</span></div>'
           +'<small>공격한 아이 '+top.length+'명'+(top.length?' · '+top.slice(0,6).map(x=>esc(D[x].n)+' '+(D[x].d|0)).join(' · '):'')+'</small></div>'; }).join('')+pv; }
@@ -17314,8 +17431,10 @@ const Admin = (function(){
     if(a==="weakBt" || a==="weakRd"){ const w=repWeak(a==="weakBt"?12:5); if(!w.length) return msg("약한 단어가 아직 없어요", false); if(a==="weakBt") pre.bt=w.join(", "); else pre.rd=w.join(", ");
       tab="raid"; ss(TB,tab); draw(); msg(a==="weakBt" ? "배틀 단어 칸에 넣었어요 — 🏫 배틀 방 만들기" : "레이드 방패 단어 칸에 넣었어요 — ⚔️ 레이드 방 만들기", true); return; }
     if(a==="weakIn"){ const inp=$(el.dataset.t), w=repWeak(+el.dataset.n||10); if(!w.length) return msg("약한 단어가 아직 없어요 (📋 우리 반을 한 번 열면 시트에서 가져와요)", false); if(inp) inp.value=w.join(", "); msg("반이 많이 틀린 단어 "+w.length+"개를 넣었어요", true); return; }
-    if(a==="wkOn"){ if((HyBoss.C||{}).on) return msg("벌써 켜져 있어요", true); HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, hpx:+(($("adWkH")||{}).value||1), restart:true}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("주간 보스를 켰어요 — 이번 주 1번 보스", true); return; }
-    if(a==="wkSave"){ HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, hpx:+(($("adWkH")||{}).value||1)}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("저장했어요 (체력 배율은 이번 주 보스에도 바로)", true); return; }
+    if(a==="wkOn"){ const C0=HyBoss.C||{}; if(C0.on) return msg("벌써 켜져 있어요", true);
+      const same=HyBoss.sameWeekOn();   /* (v322) 같은 주에 끄고 다시 켜면 다시 시작하지 않음 — 아이들 기회·안 받은 보상 그대로 */
+      HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, hpx:+(($("adWkH")||{}).value||1), restart:!same}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg(same ? "다시 켰어요 — 이번 주 보스 그대로 (기회·보상도 그대로)" : "주간 보스를 켰어요 — 이번 주 1번 보스", true); return; }
+    if(a==="wkSave"){ HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, hpx:+(($("adWkH")||{}).value||1)}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("저장했어요 — 체력 배율은 이번 주에도 바로 · 나누기·반 대항전은 다음 주부터", true); return; }
     if(a==="wkTv"){ close(); WeekBoss.open(true); return; }
     if(a==="wkTest" && !HyBoss.B){   /* (v316) 꺼져 있으면 — 켜면서 이번 주는 테스트 슬라임 */
       if(!confirm("🧪 주간 보스를 켜고, 이번 주(일요일 밤 12시까지)는 「"+BOSS_TEST.n+"」으로 시험해 볼까요?\n\n· 체력 "+Math.round(BOSS_TEST.hp*(+(($("adWkH")||{}).value||1)))+" · 보상 💎"+BOSS_TEST.gems+"\n· 다음 주 월요일부터 1번 「"+BOSS_LINE[0].n+"」")) return;
@@ -17330,8 +17449,8 @@ const Admin = (function(){
         HyBoss.pickWeek(k).then(ok=>{ if(ok) msg("이번 주 보스: "+L.n+" ✔", true); if(tab==='raid'){ keepScroll=true; draw(); } }); return; }
       if(!confirm("이번 주 보스를 「"+L.n+"」(으)로 바꿀까요?\n\n· 아이들이 지금까지 깎은 ⚔️"+sum.toLocaleString()+" 은 새 보스에 그대로 들어가요\n· 체력은 새 보스 기준으로 다시 정해요 (1명 "+L.per+" · 💎"+L.gems+")"+(HyBoss.allDead(b)?"\n· 이미 쓰러뜨린 보스예요 — 새 보스로 다시 시작해요":"")+"\n· 다음 주는 「"+nx.n+"」")) return;
       HyBoss.pickWeek(k).then(ok=>{ if(ok) msg("이번 주 보스: "+L.n+" ✔", true); if(tab==='raid'){ keepScroll=true; draw(); } }); return; }
-    if(a==="wkOff"){ if(!confirm("주간 보스를 끌까요? (아이들 화면에서 보스 카드가 사라져요)")) return; HyBoss.setup({on:false, team:$("adWkT").checked, split:$("adWkS").value}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("껐어요", true); return; }
-    if(a==="wkRestart"){ if(!confirm("이번 주부터 1번 보스로 다시 시작할까요? (이번 주 깎은 기록은 그대로 남지만 보스가 바뀌어요)")) return; HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, restart:true}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("1번 보스부터 다시", true); return; }
+    if(a==="wkOff"){ if(!confirm("주간 보스를 끌까요? (아이들 화면에서 보스 카드가 사라져요)\n\n· 이번 주 안에 다시 켜면 보스·기회·보상이 그대로 이어져요")) return; HyBoss.setup({on:false, team:$("adWkT").checked, split:$("adWkS").value}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("껐어요", true); return; }
+    if(a==="wkRestart"){ if(!confirm("이번 주부터 1번 보스로 다시 시작할까요?\n\n· 새 보스는 체력 가득 — 지금 보스에 깎은 데미지는 이어지지 않아요\n· 아이들 ⚔️ 공격 기회는 새 보스로 그대로 옮겨요\n· 이미 쓰러뜨린 보스의 안 받은 보상은 그대로 받을 수 있어요")) return; HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, restart:true}).then(()=>{ if(tab==='raid'){ keepScroll=true; draw(); } }); msg("1번 보스부터 다시", true); return; }
     if((a==="raidGo"||a==="btGo") && FB.mode()!=="fb" && !window.HY_FB_LOCAL && !confirm("학원 서버(인터넷)에 연결이 안 돼서 아이들 태블릿이 들어올 수 없어요.\n그래도 이 기기에서 만들까요?")) return;
     if(a==="btGo" && (($("adBtMode")||{}).value==="flag") && Object.keys(HyBoss.teams()).length<2 && !confirm("🚩 깃발 레이스는 반이 2개 이상일 때 재밌어요. 아래 👥 반 명단에 반이 "+Object.keys(HyBoss.teams()).length+"개예요.\n그래도 만들까요?")) return;
     if(a==="tvBack"){ try{ $("shAdmin").classList.remove("on"); }catch(e){} TvRoom.open().then(ok=>{ if(!ok){ hyToast("📺 그 방은 이제 없어요 · 새로 만들어요"); try{ open(); }catch(e){} } }); return; }   // (v322) TV 방 다시 열기
