@@ -1895,6 +1895,9 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .stStep.dp{letter-spacing:0;color:#d9a8ff;font-weight:900}
 .stDot.deep{background:linear-gradient(180deg,#e2b8ff,#9b4fe0);color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.35),0 0 16px rgba(196,120,255,.6)}
 .stDot.dpo{outline:3px solid #c98cff;outline-offset:3px}
+.odTrap{margin:-4px 0 8px;text-align:center;font-size:12.5px;font-weight:800;color:#ffcf8a}   /* (v326) 💜3 함정 조각 안내 */
+.stSlots span.kkCur{width:3px;height:34px;margin:3px 0 0 2px;border:0;border-radius:2px;background:#ffd37a;animation:kkBlink 1s steps(2) infinite}
+@keyframes kkBlink{50%{opacity:0}}
 /* (v325) Stage = 꾹 눌리는 돌 (사용자) — 회색 돌 · 노란 별 단계는 금빛 돌 · 보라 별 단계는 자수정 돌 · 보라 별 3개면 반짝 */
 .stDot{--spk:radial-gradient(circle at 30% 24%,rgba(255,255,255,.38) 0 7%,transparent 8%),radial-gradient(circle at 70% 66%,rgba(0,0,0,.16) 0 5%,transparent 6%),radial-gradient(circle at 36% 74%,rgba(0,0,0,.13) 0 4%,transparent 5%),radial-gradient(circle at 76% 30%,rgba(0,0,0,.1) 0 3%,transparent 4%);
   --edge:#2a2540;border-radius:42% 58% 47% 53% / 60% 46% 54% 40%;
@@ -12664,7 +12667,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v325";
+const GAME_VER = "v326";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12774,6 +12777,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-17i", date:"10월 17일", title:"💜3 더 어렵게!",
+   items:[
+     ["🧱","낱말 하나씩 문장 만들기","보라 별 3 문장 만들기는 낱말 조각으로 · 필요 없는 함정 조각 1개가 숨어 있어요"],
+     ["⌨️","글자 수 힌트 없음","뜻 보고 쓰기는 몇 글자인지 안 알려 줘요"]
+   ]},
   {id:"2026-10-17h", date:"10월 17일", title:"💜 보라 별 3개 · 돌 Stage!",
    items:[
      ["🪨","Stage 가 돌 버튼","꾹 누르는 돌 — 노란 별 단계는 금빛 돌, 보라 별 단계는 자수정 돌이 돼요"],
@@ -13643,7 +13651,7 @@ const Study = (function(){
   function kko(w, gr, pool){ if(/^[a-z]{3,12}$/.test(w.en) && !isProper(w.en) && !(gr==="g12" && w.en.length>6)) return {t:"kdict", w, kk:1};
     return canSpell(w) ? makeQ("spell", w, pool, 2) : makeQ("k2e", w, pool, 2); }
   function blankQ(w, gr, pool){ let q=null;
-    for(const t of shuffle(gr==="g12" ? ["sent"] : gr==="g34" ? ["form","sent","sent"] : ["tense","prep","form","sent","sent"])){
+    for(const t of shuffle(gr==="g12" ? ["sent"] : gr==="g34" ? ["form","sent","sent"] : ["tense","prep","form","tense","prep","sent"])){   // (v326) G5-6·중등은 문법 빈칸 먼저
       try{ q = t==="sent" ? (sentOf(w) ? makeQ("sent", w, pool, 2) : null) : (t==="tense"||t==="prep") ? gramQ(t, w) : mkDeep(t, w, gr, pool); }catch(e){ q=null; } if(q) return q; }
     return makeQ(sentOf(w) ? "sent" : "k2e", w, pool, 2); }
   function buildT3(set, les, dl){
@@ -13662,9 +13670,24 @@ const Study = (function(){
     ws.forEach(w=>{ A.push(canSpell(w) ? makeQ("spell", w, pool, gr==="g12" ? 1 : 2) : makeQ("k2e", w, pool, 2)); B.push(blankQ(w, gr, pool)); });
     const L=[]; const sa=shuffle(A), sb=shuffle(B); for(let k=0;k<Math.max(sa.length, sb.length);k++){ if(sa[k]) L.push(sa[k]); if(sb[k]) L.push(sb[k]); }
     L.slice(0, 20).forEach(q=>{ q.tg="💜2"; out.push(tmSec(q, gr)); }); return out; }
+  /* (v326) 💜3 문장 만들기 — 낱말 하나씩 조각 (10개 넘으면 10조각) + 함정 조각 1개 (그 단어의 다른 모양 · am/is/are 같은 짝 · 다른 단어) */
+  const TRAP_SW={is:"are", are:"is", was:"were", were:"was", has:"have", have:"has", does:"do", do:"does", a:"an", an:"a", this:"these", these:"this", that:"those", those:"that", am:"is"};
+  function hardOrder(q, w, pool){ if(!q || q.t!=="order") return q; const toks=q.x.full.trim().split(/\s+/), ch=toks.length>10 ? chunk(toks, 10) : toks.slice();
+    const bare=t=>t.toLowerCase().replace(/[^a-z']/g,""), lead=t=>(/^[^A-Za-z]*/.exec(t)||[""])[0], tail=t=>(/[^A-Za-z']*$/.exec(t)||[""])[0];
+    const dress=(src, word)=>lead(src)+(/^[A-Z]/.test(src.replace(/^[^A-Za-z]*/,"")) ? word.charAt(0).toUpperCase()+word.slice(1) : word)+tail(src);
+    const have={}; toks.forEach(t=>have[bare(t)]=1); let tr=null;
+    const fam=[w.en].concat(formsOf(w)||[]).map(f=>String(f).toLowerCase()).filter(f=>/^[a-z]+$/.test(f));
+    const hit=toks.find(t=>fam.indexOf(bare(t))>=0);
+    if(hit){ const b=bare(hit), C=fam.filter(f=>f!==b && !have[f]), sx=C.filter(f=>f===b+"s" || f===b+"es" || b===f+"s" || b===f+"es" || (/ies$/.test(f) && f.slice(0,-3)+"y"===b) || (/ies$/.test(b) && b.slice(0,-3)+"y"===f));
+      const o=shuffle(sx.length ? sx : C)[0]; if(o) tr=dress(hit, o); }   // 한 개·여러 개 / -s 짝을 먼저 (head → headed 같은 낯선 모양보다)
+    if(!tr){ const sw=shuffle(toks.filter(t=>TRAP_SW[bare(t)] && !have[TRAP_SW[bare(t)]]))[0]; if(sw) tr=dress(sw, TRAP_SW[bare(sw)]); }
+    if(!tr){ const d=shuffle(pool.filter(x=>x.en!==w.en && /^[a-z]+$/.test(x.en) && !have[x.en]))[0]; if(d) tr=d.en; }
+    if(!tr || ch.indexOf(tr)>=0) return null; let ord=ch.map((c,i)=>i).concat([ch.length]);
+    for(let z=0; z<8; z++){ ord=shuffle(ord); if(!ord.slice(0,ch.length).every((v,i)=>ch[v]===ch[i])) break; }
+    return Object.assign({}, q, {tiles:ord, x:Object.assign({}, q.x, {ch, tr, hard:1})}); }
   function buildD3(set, les){
     const gr=gradeOf(set), pool=les.ws, ws=shuffle(les.ws), out=[{t:"intro", hd:"deep", dl:3, w:ws[0], ws:les.ws}], L=[];
-    ws.forEach((w,k)=>{ let q=null; try{ q=mkDeep("order", w, gr, pool); }catch(e){ q=null; } L.push(q || blankQ(w, gr, pool));
+    ws.forEach((w,k)=>{ let q=null; try{ q=hardOrder(mkDeep("order", w, gr, pool), w, pool); }catch(e){ q=null; } L.push(q || blankQ(w, gr, pool));
       let r=null; if(gr==="mid" && k%2===0){ try{ r=mkDeep("def", w, gr, pool); }catch(e){ r=null; } } L.push(r || kko(w, gr, pool)); });
     L.slice(0, 18).forEach(q=>{ q.tg="💜3"; delete q.hint; out.push(q); }); return out; }
   function deepQ(w, gr, pool, last, cnt){
@@ -14430,7 +14453,7 @@ const StudyUI = {
     } else if(q.t==="order"){                                           // (v273) 💜 문장 순서 맞추기
       const X=q.x; q.pk=[];
       h='<div class="stKind">🧱 순서대로 눌러 문장을 만들어요</div><div class="stPrompt">'+(X.aud?'<button class="stBig sm" data-say="'+this.esc(X.full)+'">🔊</button>':'')+'<div class="stSentKo big">'+this.esc(X.ko)+'</div></div>'
-        +'<div class="odRow" id="odRow"></div><div class="odTiles">'+q.tiles.map((ci,k)=>'<button class="odT" data-o="'+k+'">'+this.esc(X.ch[ci])+'</button>').join("")+'</div>'
+        +(X.tr?'<p class="odTrap">⚠️ 필요 없는 조각이 하나 숨어 있어요</p>':'')+'<div class="odRow" id="odRow"></div><div class="odTiles">'+q.tiles.map((ci,k)=>'<button class="odT" data-o="'+k+'">'+this.esc(this.odTx(X,ci))+'</button>').join("")+'</div>'
         +'<button class="stUndo" id="stUndo">⌫ 지우기</button>';
       if(X.aud) setTimeout(()=>{ if(this.qs[this.i]===q) this.say(X.full); }, 300);
     } else if(q.t==="kdict"){                                           // (v273) 💜 자판으로 받아쓰기 · (v301) q.kans = 과거형 쓰기 (eat → ate)
@@ -14527,13 +14550,16 @@ const StudyUI = {
   /* (v273) 문장에서 그 단어(모양이 바뀐 것 포함)를 굵게 */
   hlw(sen, en){ const e=this.esc(sen); if(!/^[a-z]+$/i.test(en)) return e; const stem=en.length>3 ? en.replace(/(e|y)$/,"") : en;
     return e.replace(new RegExp("\\b("+stem+"[a-z]*)\\b","gi"), "<b>$1</b>"); },
+  odTx(X, ci){ return ci<X.ch.length ? X.ch[ci] : (X.tr||""); },   // (v326) 함정 조각 = ch 다음 번호
   odDraw(){ const q=this.qs[this.i]; if(!q || q.t!=="order") return; const X=q.x, row=$("odRow"); if(!row) return;
-    row.innerHTML = q.pk.length ? q.pk.map((k,j)=>'<button class="odP" data-p="'+j+'">'+this.esc(X.ch[q.tiles[k]])+'</button>').join("") : '<span class="odHint">아래 조각을 순서대로 눌러요</span>';
-    $("stQ").querySelectorAll(".odT").forEach(b=>{ b.disabled = q.pk.indexOf(+b.dataset.o)>=0; });
-    $("stCheck").disabled = q.pk.length<q.tiles.length; },
+    row.innerHTML = q.pk.length ? q.pk.map((k,j)=>'<button class="odP" data-p="'+j+'">'+this.esc(this.odTx(X, q.tiles[k]))+'</button>').join("") : '<span class="odHint">아래 조각을 순서대로 눌러요</span>';
+    const full=q.pk.length>=X.ch.length; $("stQ").querySelectorAll(".odT").forEach(b=>{ b.disabled = q.pk.indexOf(+b.dataset.o)>=0 || full; });
+    $("stCheck").disabled = q.pk.length<X.ch.length; },
   bitsPlay(en){ const box=$("stQ").querySelector('.usBits'); if(!box) return; const sp=[...box.querySelectorAll("span")];
     try{ DexDet.say(en, true); }catch(e){} sp.forEach((x,k)=>{ setTimeout(()=>{ sp.forEach(y=>y.classList.toggle("on", y===x)); }, 120+k*380); }); setTimeout(()=>sp.forEach(y=>y.classList.remove("on")), 200+sp.length*380); },
-  slots(){ const q=this.qs[this.i], A=q.kans||q.w.en; $("stSlots").innerHTML=A.split("").map((c,k)=>'<span class="'+(k<q.got.length?'f':'')+'"'+(k<q.got.length?' data-sk="'+k+'"':'')+'>'+(q.got[k]||'')+'</span>').join("");
+  slots(){ const q=this.qs[this.i], A=q.kans||q.w.en;
+    if(q.kk){ $("stSlots").innerHTML=q.got.split("").map((c,k)=>'<span class="f" data-sk="'+k+'">'+c+'</span>').join("")+'<span class="kkCur"></span>'; $("stCheck").disabled = q.got.length<1; return; }   // (v326) 💜3 — 글자 수 칸을 숨김
+    $("stSlots").innerHTML=A.split("").map((c,k)=>'<span class="'+(k<q.got.length?'f':'')+'"'+(k<q.got.length?' data-sk="'+k+'"':'')+'>'+(q.got[k]||'')+'</span>').join("");
     $("stCheck").disabled = q.got.length<A.length; },
   FAST:700,
   fastNote(){ const k=$("stQ").querySelector(".stKind"); if(!k || k.querySelector(".stFast")) return; k.insertAdjacentHTML("beforeend",'<small class="stFast">👀 문제를 먼저 읽어요</small>'); },
@@ -14547,10 +14573,10 @@ const StudyUI = {
     if(q.t==="intro" && q.hd==="guess"){ const g=t.closest("[data-g]"); if(g && q.gp==null){ q.gp=+g.dataset.g; SFX.tone(q.opts[q.gp]===q.w.ko?660:330,.12,"triangle",.04); this.show(); this.say(q.w.en); } return; }
     if(q.t==="intro" && q.hd==="know"){ const kw=t.closest("[data-kw]"); if(kw){ const en=kw.dataset.kw; if(q.pick[en]) delete q.pick[en]; else q.pick[en]=1; SFX.click(); this.show(); } return; }
     if(q.t==="intro" && q.hd==="sort"){ const sb=t.closest("[data-sr]"); if(sb){ q.pick[sb.dataset.sr]=sb.dataset.sv; SFX.click(); const y=$("scStudy").scrollTop; this.show(); try{ $("scStudy").scrollTop=y; }catch(er){} } return; }
-    if(q.t==="order"){ const ot=t.closest(".odT"); if(ot && !ot.disabled){ q.pk.push(+ot.dataset.o); SFX.click(); this.odDraw(); return; }
+    if(q.t==="order"){ const ot=t.closest(".odT"); if(ot && !ot.disabled && q.pk.length<q.x.ch.length){ q.pk.push(+ot.dataset.o); SFX.click(); this.odDraw(); return; }
       const op=t.closest(".odP"); if(op){ q.pk=q.pk.slice(0, +op.dataset.p); SFX.click(); this.odDraw(); return; }
       if(t.closest("#stUndo")){ q.pk.pop(); this.odDraw(); return; } }
-    if(q.t==="kdict"){ const kk=t.closest("[data-kk]"); if(kk){ if(q.got.length<(q.kans||q.w.en).length){ q.got+=kk.dataset.kk; SFX.click(); this.slots(); } return; }
+    if(q.t==="kdict"){ const kk=t.closest("[data-kk]"); if(kk){ if(q.got.length<(q.kk ? 16 : (q.kans||q.w.en).length)){ q.got+=kk.dataset.kk; SFX.click(); this.slots(); } return; }
       if(t.closest("[data-kb]")){ q.got=q.got.slice(0,-1); this.slots(); return; }
       const sk2=t.closest("[data-sk]"); if(sk2){ q.got=q.got.slice(0, +sk2.dataset.sk); SFX.click(); this.slots(); return; } }
     const o=t.closest(".stOpt");
@@ -14593,8 +14619,9 @@ const StudyUI = {
     else if(q.t==="past"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.w.en; conf = q.opts[this.sel]; }
     else if(q.t==="sentp"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.form; conf = null; }
     else if(q.so){ if(this.sel==null) return; ok = q.opts[this.sel]===q.ans; conf = q.t==="stk" ? null : q.opts[this.sel]; }   // (v273) 💜 글자 보기 문제
-    else if(q.t==="order"){ if(q.pk.length<q.tiles.length) return; ok = q.pk.map(k=>q.x.ch[q.tiles[k]]).join(" ")===q.x.ch.join(" "); conf=null; }
-    else if(q.t==="kdict"){ const A=q.kans||q.w.en; if(q.got.length<A.length) return; ok = q.got===A; conf = q.kans ? null : q.got; }
+    else if(q.t==="order"){ if(q.pk.length<q.x.ch.length) return; ok = q.pk.map(k=>this.odTx(q.x, q.tiles[k])).join(" ")===q.x.ch.join(" "); conf=null; }
+    else if(q.t==="kdict"){ const A=q.kans||q.w.en; if(q.got.length<(q.kk ? 1 : A.length)) return; ok = q.got===A; conf = q.kans ? null : q.got;
+      if(!ok && q.kk){ let o=null; try{ o=Study.word(q.got); }catch(e){} if(o && koKey(o.ko)===koKey(q.w.ko)){ q.got=""; this.slots(); hyToast("👍 "+o.en+" 도 맞는 뜻! 이 Stage 단어로 다시 써 봐요"); return; } } }   // (v326) 뜻이 같은 다른 단어(pants·trousers)는 틀림으로 안 셈
     else if(q.t==="find"){ if(this.sel==null) return; const tk=q.toks[this.sel]||{}; ok=!!tk.ok; conf=String(tk.t||"").replace(/[^A-Za-z'-]/g,""); }
     else { if(this.sel==null) return; const pick=q.opts[this.sel]; ok = pick.en===q.w.en; conf = q.t==="e2k" ? pick.ko : pick.en; }
     if(!q.retry) try{ Rank.record(q.w.en, ok, ok?null:conf, true); }catch(e){}   // (v272) 바로 다시 푸는 문제는 기록에 안 셈

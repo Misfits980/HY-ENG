@@ -65,7 +65,22 @@ async def main():
             q = await pg.evaluate("()=>({dl:StudyUI.dl, tg:[...new Set(StudyUI.qs.slice(1).map(q=>q.tg))], ts:[...new Set(StudyUI.qs.slice(1).map(q=>q.t))], hint:StudyUI.qs.some(q=>q.hint), tm:StudyUI.qs.some(q=>q.tm)})")
             print(set_, "💜3", q)
             ok(q["dl"] == 3 and q["tg"] == ["💜3"] and not q["hint"] and not q["tm"] and ("order" in q["ts"] or set_ == "basic") and ("kdict" in q["ts"] or "spell" in q["ts"] or "def" in q["ts"]), f"{set_} 💜3 판 {q['ts']}")
+            od = await pg.evaluate("""()=>StudyUI.qs.filter(q=>q.t==='order').map(q=>({n:q.x.full.trim().split(/\s+/).length, ch:q.x.ch.length, tl:q.tiles.length, tr:q.x.tr, word:q.x.ch.every(c=>!/\s/.test(c))}))""")
+            print(set_, "order", od[:3])
+            ok(od and all(o["tr"] and o["tl"] == o["ch"] + 1 and (o["word"] or o["n"] > 10) and o["tr"] not in [] for o in od), f"{set_} 💜3 문장 만들기 = 낱말 조각 + 함정 1개")
             await pg.evaluate("()=>document.getElementById('stCheck').click()"); await pg.wait_for_timeout(150)
+            if set_ == "elem":
+                for k in range(30):
+                    if await pg.evaluate("()=>{ const q=StudyUI.qs[StudyUI.i]; return q && q.t==='order'; }"): break
+                    await pg.evaluate(SOLVE, False); await pg.wait_for_timeout(60)
+                await pg.screenshot(path=OUT + "purple_d3_order.png")
+                for k in range(30):
+                    if await pg.evaluate("()=>{ const q=StudyUI.qs[StudyUI.i]; return q && q.kk && !StudyUI.locked; }"): break
+                    await pg.evaluate(SOLVE, False); await pg.wait_for_timeout(60)
+                sl = await pg.evaluate("()=>[document.querySelectorAll('#stSlots span').length, !!document.querySelector('#stSlots .kkCur'), document.getElementById('stCheck').disabled]")
+                ok(sl == [1, True, True], f"뜻 보고 쓰기: 글자 수 칸 없음 {sl}")
+                await pg.screenshot(path=OUT + "purple_d3_kk.png")
+                await pg.evaluate("()=>{ document.getElementById('stBack') ; StudyUI.start(0,false); document.getElementById('stCheck').click(); }"); await pg.wait_for_timeout(150)
             lbl = await pg.evaluate("()=>document.getElementById('stRnd').textContent")
             ok("❤️❤️❤️" in lbl, f"{set_} 하트 {lbl}")
             if set_ == "elem":
