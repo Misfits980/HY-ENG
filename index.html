@@ -6532,21 +6532,52 @@ function stylize(root, k){ toonify(root); addOutline(root, k); }
 /* --------- 텍스트 텍스처 --------- */
 function rr(x,a,b,w,h,r){ x.beginPath(); x.moveTo(a+r,b); x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r);
   x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); }
+/* (v322) 성능: 예전엔 큰 글자(약 350px)부터 4px 씩 줄이며 수십 번 font 를 바꾸고 쟀다(단어판 하나에 수 ms) →
+   한 번 재서 맞을 크기를 어림하고 그 근처만 2~3번 확인 (고르는 크기는 예전과 같다: start-4k 중 들어가는 가장 큰 것) */
 function fitFont(x,text,maxW,start,weight){
-  let s=start;
-  while(s>16){
-    x.font = weight+" "+s+"px 'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif";
-    if(x.measureText(text).width<=maxW) break;
-    s-=4;
-  }
+  const set=s=>{ x.font = weight+" "+s+"px 'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif"; return x.measureText(text).width; };
+  if(!(start>16)) return start;
+  const w0=set(start); if(w0<=maxW) return start;
+  const sMin=start-4*Math.floor((start-17)/4);                              // 16 보다 큰 가장 작은 후보
+  let s=Math.max(sMin, start-4*Math.max(1, Math.ceil((start-start*maxW/Math.max(1,w0))/4)));
+  while(s+4<start && set(s+4)<=maxW) s+=4;                                 // 어림이 작았으면 올리기
+  while(s>16){ if(set(s)<=maxW) return s; s-=4; }                           // 어림이 컸으면 내리기
   return s;
 }
 /* 밝은 판 + 어두운 글자 → material.color 로 초록/빨강 착색 가능 */
 const SIGN_W = 900, SIGN_H = 470;             // 간판을 세로로 크게 (글자 높이가 가독성을 좌우)
 const SIGN_SQUEEZE = 0.76;                    // 긴 단어는 가로로 이만큼까지 좁혀서라도 크게 쓴다
+/* (v322) 성능: 문제마다 단어판 3~5장을 900×470 캔버스에 새로 그렸다 (buildGate 11~19ms, spawnSet ~100ms) →
+   같은 단어·같은 판 그림이면 그려 둔 캔버스를 다시 쓴다 (텍스처는 문마다 새로 — 지우기(dispose)는 그대로 안전).
+   다음 문제(G.nextQ) 단어판은 쉬는 틈(requestIdleCallback)에 미리 그려 둔다 */
+const SignCache = {
+  m:new Map(), MAX:14,                                                     // 한 장 약 1.7MB — 너무 많이 들고 있지 않는다
+  get(k){ const c=this.m.get(k); if(c){ this.m.delete(k); this.m.set(k,c); } return c; },
+  put(k,c){ this.m.set(k,c); while(this.m.size>this.MAX) this.m.delete(this.m.keys().next().value); },
+  canvas(text){
+    const a=(typeof signArtFor==="function") ? signArtFor() : null, k=(a ? a.key : "-")+"|"+text;
+    let c=this.get(k);
+    if(!c){ c = a ? signCanvasArt(text, a.img, a.box) : signCanvasPlain(text); this.put(k, c); }
+    return {c, art:!!a};
+  },
+  _q:[], _on:false,
+  warm(texts){                                                             // 쉬는 틈에 한 장씩
+    (texts||[]).forEach(t=>{ if(t!=null && this._q.indexOf(String(t))<0) this._q.push(String(t)); });
+    if(this._on || !this._q.length) return; this._on=true;
+    const idle=window.requestIdleCallback ? (f=>requestIdleCallback(f, {timeout:900})) : (f=>setTimeout(f, 120));
+    const run=()=>{ const t=this._q.shift();
+      try{ if(t!=null && G.running) this.canvas(t); }catch(e){}
+      if(this._q.length && G.running) idle(run); else { this._q.length=0; this._on=false; } };
+    idle(run);
+  }
+};
 function signTexture(text){
-  { const a=(typeof signArtFor==="function") ? signArtFor() : null;
-    if(a) return signTextureArt(text, a.img, a.box); }
+  const s=SignCache.canvas(String(text));
+  const t=new THREE.CanvasTexture(s.c); t.anisotropy=8;
+  if(s.art){ if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding; t.userData={aspect:s.c.width/s.c.height}; }
+  return t;
+}
+function signCanvasPlain(text){
   const c=document.createElement("canvas"); c.width=SIGN_W; c.height=SIGN_H;
   const x=c.getContext("2d");
   x.fillStyle="#f3ece0"; rr(x,6,6,SIGN_W-12,SIGN_H-12,46); x.fill();
@@ -6563,7 +6594,7 @@ function signTexture(text){
   x.strokeStyle="#181030"; x.lineWidth=6;  x.strokeText(text,0,0);   // 진한 외곽선
   x.fillText(text,0,0);
   x.restore();
-  const t=new THREE.CanvasTexture(c); t.anisotropy=8; return t;
+  return c;
 }
 
 /* =====================================================================
@@ -6804,7 +6835,7 @@ function spawnSet(){
         if(!G._schTold){ G._schTold=true; setTimeout(()=>{ try{ if(G.running) TrapTip.show("📜 학자가 틀린 문 하나를 찾았어요 — ✕ 문은 정답이 아니에요"); }catch(e){} }, 300); } } } } }catch(e){}
 
   if(!pre){ const hb=new Set(Hazards.list); Hazards.spawnFor(group.position.z, q.answer, s.speed);   // 정답 레인은 항상 비워둔다
-    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z, q.answer, s.speed); }catch(e){}
+    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z, q.answer, s.speed, (q._bossFx||[]).indexOf("curse")>=0 ? (CURSE_SLOW[G.diff]||0.6) : 0); }catch(e){}
     try{ Hazards.decoyLane(group.position.z, q.answer, s.speed); }catch(e){} }
   G.sets.push(s);
   try{
@@ -6813,8 +6844,10 @@ function spawnSet(){
     Hazards.spawnAhead(group.position.z - G.spawnDist, G.nextQ.answer, s.speed);   // 다음 문제 함정 — 이 문 뒤편 (다음 단계의 지대로)
     G.preHazQ = G.nextQ;
     Boss.attack(group.position.z, G.nextQ.answer, q.answer);                      // 보스전 공격
-    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z - G.spawnDist, G.nextQ.answer, s.speed); }catch(e){}   // 함정 + 보스 공격을 합쳐 길 검사
+    const cs = (G.nextQ._bossFx||[]).indexOf("curse")>=0 ? (CURSE_SLOW[G.diff]||0.6) : 0;   // (v322) 다음 문제에 저주가 잡혔으면 느린 걸음으로 길 검사
+    try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z - G.spawnDist, G.nextQ.answer, s.speed, cs); }catch(e){}   // 함정 + 보스 공격을 합쳐 길 검사
     try{ Hazards.decoyLane(group.position.z - G.spawnDist, G.nextQ.answer, s.speed); }catch(e){}   // 빈 줄이 정답 하나뿐이지 않게
+    try{ SignCache.warm(G.nextQ.options); }catch(e){}   // (v322) 다음 문제 단어판은 쉬는 틈에 미리 그려 둔다
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
   G.groundSpeed = s.speed;
@@ -7303,7 +7336,7 @@ function mixHex(a,b,k){
   return (Math.round(ar+(br-ar)*k)<<16)|(Math.round(ag+(bg-ag)*k)<<8)|Math.round(ab+(bb-ab)*k);
 }
 /* 그림 단어판 — 판 그림 위, 안쪽 칸에 단어를 쓴다 */
-function signTextureArt(text, img, box){
+function signCanvasArt(text, img, box){   // (v322) 캔버스만 만든다 — 텍스처는 signTexture 가 (SignCache)
   const cw=900, ch=Math.round(900*img.height/img.width);
   const c=document.createElement("canvas"); c.width=cw; c.height=ch;
   const x=c.getContext("2d");
@@ -7331,15 +7364,12 @@ function signTextureArt(text, img, box){
   if(m && eff(m[1], bh*0.50) > eff(text, bh*0.86)*1.12){ line(m[1], by+bh*0.34+4, bh*0.50); line(m[2], by+bh*0.82+2, bh*0.28, true); }
   else if(sp && Math.min(eff(sp[0], bh*0.46), eff(sp[1], bh*0.46)) > eff(text, bh*0.86)*1.1){ line(sp[0], by+bh*0.29+4, bh*0.46); line(sp[1], by+bh*0.73+4, bh*0.46); }
   else line(text, by+bh/2+4, bh*0.86);
-  const t=new THREE.CanvasTexture(c); t.anisotropy=8;
-  if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding;
-  t.userData={aspect:cw/ch};
-  return t;
+  return c;
 }
 function signArtFor(){
   try{
     const zf=zoneArt(), t=TrapArt.tex["sign-"+zf];
-    if(t && t.image && t.image.width && SIGN_ART[zf]) return {img:t.image, box:SIGN_ART[zf]};
+    if(t && t.image && t.image.width && SIGN_ART[zf]) return {img:t.image, box:SIGN_ART[zf], key:zf+":"+t.image.width};   // (v322) key = SignCache 구분
   }catch(e){}
   return null;
 }
@@ -9044,8 +9074,11 @@ const Hazards = {
   /* 길 검사 — 한 문제 구간에 새로 놓인 함정(보스 공격 포함)으로 앞 문 → 정답 문 길이 막히면 하나씩 뺀다.
      보통(spawnFor)은 이런 검사가 없어서, 정답 줄 함정 + 옆 줄 함정 + 쇠창살·석상이 겹치면 지나갈 틈이 0.1초뿐인 문제가 생겼다 (v202 점검: 2·3장 보통 약 7%).
      한 칸 옮기는 시간은 어려움·극한 시간 줄 배치와 같은 "아이 반응 기준"(2.1배)으로 넉넉히 잡는다. 움직이는 함정(기사·방패 휘두르기·벌떼)과 구역(빙판·흔들다리)은 따지지 않는다 */
-  ensurePath(newH, gateZ, ans, spd){
+  ensurePath(newH, gateZ, ans, spd, slow){
     if(!newH || !newH.length || G.gentle) return 0;
+    /* (v322) 보스 저주(좌우 느려짐)가 걸릴 문제 — 한 칸 옮기는 데 그만큼 더 걸린다고 보고 검사 (slow = 저주 배율, 지금 저주 중이어도) */
+    try{ if(!(slow>0) && G.curseT>0) slow=CURSE_SLOW[G.diff]||0.6; }catch(e){}
+    if(!(slow>0 && slow<1)) slow=1;
     spd=Math.max(0.1, spd||G.groundSpeed||10);
     let prevZ=(typeof P!=="undefined")?P.z:0, exitLane=G.lane;
     G.sets.forEach(st=>{ const z=st.group.position.z; if(z>gateZ+1 && z<prevZ){ prevZ=z; exitLane=st.q.answer; } });
@@ -9066,7 +9099,7 @@ const Hazards = {
       groups.push({hs:[h]}); });
     groups.forEach(g=>{ g.t=(prevZ-zOf(g.hs[0]))/spd; g.ht=Math.max(...g.hs.map(halfT)); g.lanes=[].concat(...g.hs.map(lanesOf));
       g.pri = g.hs[0].type==="bars" ? 3 : g.hs.some(h=>h.ansEarly) ? 2 : 1; });   // 먼저 빼는 순서: 보통 함정 → 정답 줄 함정 → 쇠창살
-    const step=Math.max(0.28, 2.1*CFG.LANE_W/Math.max(6,CFG.MOVE_X));
+    const step=Math.max(0.28, 2.1*CFG.LANE_W/Math.max(6,CFG.MOVE_X))/slow;
     const ok=(G2)=>{ const blocked=(l,t)=>G2.some(g=>g.lanes.indexOf(l)>=0 && Math.abs(g.t-t)<g.ht);
       let cur=new Set([exitLane]);
       for(let t=0;t<tTotal;t+=step){ const nx=new Set(), t2=Math.min(tTotal,t+step);
@@ -9584,7 +9617,7 @@ function typingNow(e){
 addEventListener("keydown",e=>{
   if(typingNow(e)) return;
   keys[e.code]=true;
-  if(!e.repeat && (e.code==="KeyP"||e.code==="Escape")){ if(G.running) togglePause(); }
+  if(!e.repeat && (e.code==="KeyP"||e.code==="Escape")){ if(canPause()) togglePause(); }   // (v322) 넘어지는 연출 중에는 안 멈춤
   if(!e.repeat && e.code==="KeyF"){ if(typeof fsToggle==="function") fsToggle(); }
   if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Space"].indexOf(e.code)>=0) e.preventDefault();
 });
@@ -10107,6 +10140,7 @@ function loopBody(){
   if(!G.running){ Attract.update(dt); }
   if(G.running && !G.paused && G.versus){ VS.frame(dt); }               // 👥 2인용 — 세계 한 번 + 사람마다
   else if(G.running && !G.paused){
+    try{ FrameWatch.tick(performance.now()); }catch(e){}   // (v322) 느린 기기 → 자동 품질 한 번 낮춤
     /* 안전장치 — 어떤 이유로든 문이 사라지면 다시 만든다 */
     if(!G.falling && !G.dead && !G.finishing){
       const live = G.sets.some(s=>!s.judged);
@@ -10289,10 +10323,14 @@ const Stats = (function(){
 /* 그래픽 품질 — 기기에 맞춰 직접 고를 수 있게 */
 const Quality = {
   KEY:"hyeng_qual_v1", level:"auto",
-  load(){ try{ const v=localStorage.getItem(this.KEY); if(v) this.level=v; }catch(e){} return this.level; },
-  save(v){ this.level=v; try{ localStorage.setItem(this.KEY,v); }catch(e){} },
+  /* (v322) '자동'인데 달리기 3초 평균 프레임이 25ms 를 넘으면 한 번 '가볍게'로 내린다 (FrameWatch). 이 기기에 기억 — 설정에서 품질을 고르면 풀림 */
+  AKEY:"hyeng_qual_auto_v1", autoLow:false,
+  load(){ try{ const v=localStorage.getItem(this.KEY); if(v) this.level=v; this.autoLow = localStorage.getItem(this.AKEY)==="low"; }catch(e){} return this.level; },
+  save(v){ this.level=v; this.autoLow=false; try{ localStorage.setItem(this.KEY,v); localStorage.removeItem(this.AKEY); }catch(e){} },
+  setAutoLow(){ this.autoLow=true; try{ localStorage.setItem(this.AKEY,"low"); }catch(e){} },
   resolved(){
     if(this.level!=="auto") return this.level;
+    if(this.autoLow) return "low";
     const touch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
     return touch ? "mid" : "high";
   },
@@ -10810,6 +10848,14 @@ $("tglPic").addEventListener("click",()=>{
 /* ── 설정창 ── */
 function applyQualityChoice(v){
   Quality.save(v);
+  applyQualityNow();
+  ["selQual","setQual"].forEach(id=>{
+    const row=$(id); if(!row || !row.querySelectorAll) return;
+    row.querySelectorAll(".tile").forEach(t=>t.classList.toggle("sel", t.dataset.v===v));
+  });
+}
+/* (v322) 지금 품질을 화면에 바로 반영 — 설정에서 고를 때 · 자동으로 '가볍게' 내릴 때 함께 쓴다 */
+function applyQualityNow(){
   HQ = Quality.shadows();
   if(renderer) renderer.setPixelRatio(Math.min(devicePixelRatio, Quality.pixelRatio()));
   Weather.kind=null; Weather.build(zone().prop);
@@ -10820,11 +10866,29 @@ function applyQualityChoice(v){
     else { composer=null; bloomPass=null; }
     if(keyLight) keyLight.castShadow = !!(HQ && renderer && renderer.shadowMap.enabled);
   }catch(e){}
-  ["selQual","setQual"].forEach(id=>{
-    const row=$(id); if(!row || !row.querySelectorAll) return;
-    row.querySelectorAll(".tile").forEach(t=>t.classList.toggle("sel", t.dataset.v===v));
-  });
 }
+/* (v322) 달리는 동안 프레임 시간 — 3초 평균이 25ms(약 40fps)를 넘으면 '자동' 품질을 한 번 '가볍게'로 내리고 알린다.
+   사용자가 품질을 직접 고른 기기는 그대로. 자동 테스트(webdriver)는 기기마다 결과가 달라지지 않게 끔 (FrameWatch.force 로 켬) */
+const FrameWatch = {
+  WIN:3000, LIMIT:25, last:0, sum:0, n:0, force:false,
+  reset(){ this.last=0; this.sum=0; this.n=0; },
+  tick(now){
+    const d = this.last ? now-this.last : 0; this.last=now;
+    if(!(d>0) || d>250) return;                        // 멈춤·탭 전환 뒤 첫 프레임은 빼기
+    this.sum+=d; this.n++;
+    if(this.sum<this.WIN) return;
+    const avg=this.sum/this.n; this.sum=0; this.n=0;
+    if(avg>this.LIMIT) this.drop(avg);
+  },
+  drop(avg){
+    if(Quality.level!=="auto" || Quality.autoLow || Quality.resolved()==="low") return;
+    try{ if(navigator.webdriver && !this.force) return; }catch(e){}
+    Quality.setAutoLow(); this.lastAvg=Math.round(avg);
+    try{ applyQualityNow(); }catch(e){}
+    try{ ["selQual","setQual"].forEach(id=>{ const row=$(id); if(row && row.querySelectorAll) row.querySelectorAll(".tile").forEach(t=>t.classList.toggle("sel", t.dataset.v==="low")); }); }catch(e){}
+    try{ TrapTip.show("🪶 화면이 느려서 그래픽을 '가볍게'로 바꿨어요"); }catch(e){}
+  }
+};
 function syncSettings(){
   const b=Math.round(SoundPref.bgm*100), f=Math.round(SoundPref.sfx*100);
   if($("rngBgm")) $("rngBgm").value=b; if($("valBgm")) $("valBgm").textContent=b+"%";
@@ -11944,7 +12008,8 @@ function startGame(){
   G.words = G._nextWords || null; G._nextWords = null;      // (v226) Daily 30 → 이 Stage 단어로 달리기 (한 판만)
   if(G.words || G.rule==="daily" || G.tag) G.book=null;      // (v291) 책 달리기는 기본 모드에서만
   G.practice = !!G._nextPractice; G._nextPractice = false;  // (v227) 같은 Stage 카드로 두 번째부터 = 연습 (보석·도감·랭킹 없음)
-  G.runStart=Date.now(); G.quit=false; G.lastCause="";
+  G.runStart=Date.now(); G.quit=false; G.lastCause=""; G.pauseMs=0; G.pauseAt=0;   // (v322) 쉬는 시간은 '플레이(초)'에서 뺀다
+  try{ FrameWatch.reset(); }catch(e){}
   G.brake = BRAKE.MAX*perk("brake"); G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
   try{ const r0=Rank.of(G.set); G.rankBefore = r0 ? r0.i : null; }catch(e){ G.rankBefore=null; }
@@ -12297,6 +12362,7 @@ function gameOver(){
   if(G._overDone) return;                      // 한 판에 한 번만 — 늦게 도착한 두 번째 호출이 기록을 또 보내던 것 (시트에 같은 줄 두 번, v203)
   G._overDone=true;
   G.running=false;
+  pauseTally(); G.paused=false; try{ $("scPause").classList.remove("on"); }catch(e){}   // (v322) 멈춘 채 끝나도 결과 화면 위에 '잠깐 쉬는 중'이 남지 않게
   Rocks.stop(); Wind.reset(); Voice.stop(); BGM.stop();
   $("hud").classList.remove("on"); $("kbhint").style.display="none";
   $("touchHint").style.display="none"; stickEnd();
@@ -12325,7 +12391,11 @@ function gameOver(){
   /* 이번 판 한 줄 요약 — 지난 기록과 비교한다 */
   const best = Best.get(G.diff), prev = Best.last();
   let msg="", isBest=false;
-  if(total>0 && G.score > (best.score||0)){ msg="🏆 최고 기록! 지금까지 중 가장 잘했어요"; isBest=true; }
+  /* (v322) 책 달리기는 그 책의 내 최고 기록과 비교 (난이도 최고 기록은 다른 책·학년 판까지 섞여 있다) · 시험 주소 판은 최고 기록이 아님 */
+  const bookRun = !!G.book && !G.testRun && !G.practice && !G.words && G.rule==="normal";
+  let bookBest=0; try{ if(bookRun) bookBest=RunBook.best(G.book); }catch(e){}   // saveBest 보다 먼저 읽는다
+  isBest = !G.testRun && total>0 && G.score > (bookRun ? bookBest : (best.score||0));
+  if(isBest) msg = bookRun ? "🏆 "+RunBook.emo(G.book)+" "+RunBook.name(G.book)+" 최고 기록!" : "🏆 최고 기록! 지금까지 중 가장 잘했어요";
   else if(prev && G.stage > prev.stage) msg="↗ 지난번보다 "+(G.stage-prev.stage)+"스테이지 더 갔어요";
   else if(acc>=90 && total>=5) msg="🎯 정답률 "+acc+"% — 거의 다 맞혔어요";
   else if(G.bestCombo>=8) msg="🔥 "+G.bestCombo+"연속 정답을 이어갔어요";
@@ -12373,8 +12443,10 @@ function gameOver(){
     }
     if(isBest || (r2 && G.rankBefore!=null && r2.i>G.rankBefore)) confetti();
   }catch(e){}
-  Best.save(G.diff, {score:G.score, stage:G.stage, acc:acc});
-  Stats.addGame(G.right, G.wrong, G.wrongWords);
+  if(!G.testRun){   // (v322) 시험 주소(?stage=) 판은 내 최고 기록·Expert 열기·누적 판 수에 넣지 않는다
+    Best.save(G.diff, {score:G.score, stage:G.stage, acc:acc});
+    Stats.addGame(G.right, G.wrong, G.wrongWords);
+  }
   try{ drawGemResult(settleGems()); }catch(e){}
   try{ const nu=Unlock.check(); if(nu.length){
       const names=nu.map(id=>{ const c=CHARACTERS.filter(x=>x.id===id)[0]; return c ? c.emoji+" "+c.name : id; }).join(", ");
@@ -12411,22 +12483,28 @@ function gameOver(){
     acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now(), book:G.book||""});
   try{ if(!G.testRun && !G.practice && !G.words && G.rule==="normal") RunBook.saveBest(G.book||G.set, G.score); }catch(e){}   // (v291) 책별(🌈 전체 = 학년) 내 최고 기록
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
-  $("oRank").innerHTML = noRank ? '<div class="note">'+(G.testRun?'시험 모드 기록은 랭킹에 올라가지 않아요':'유치원 단어는 랭킹에 기록되지 않아요')+'</div>'
+  $("oRank").innerHTML = noRank ? '<div class="note">'+(G.testRun?'시험 모드 기록은 랭킹에 올라가지 않아요':G.practice?'연습 달리기는 랭킹에 안 올라가요':'유치원 단어는 랭킹에 기록되지 않아요')+'</div>'   /* (v322) 연습 문구 */
     : '<div class="resCh">'+DIFF[G.diff].label+' 랭킹 <b class="resMy">'+rankTxt+'</b></div>'+rankRows(G.diff)
       +(rank>3 ? '<div class="rrDots">⋯</div><div class="rrow me"><i>'+rank+'</i><b>'+String(G.nick||"나").replace(/[<>&"]/g,"")+' <em class="meTag">나</em></b><span>'+G.score.toLocaleString()+'</span></div>' : '');   /* (v320) TOP 3 + 나 */
-  if(!noRank && Online.on() && G.rule==="normal" && G.score>0){
-    const d0=G.diff;
+  /* (v322) 유치원 판·연습 달리기도 선생님이 볼 수 있게 시트에 줄을 남긴다 — 방식 칸을 "kinder"/"practice" 로 (시트 랭킹은 normal 만 센다). 시험 주소 판은 보내지 않음 */
+  if(!G.testRun && Online.on() && G.rule==="normal" && G.score>0){
+    const d0=G.diff, sheetRule = G.practice ? "practice" : (G.set==="kinder" ? "kinder" : G.rule);
     /* (v267) 첫 지대(초원)도 못 넘긴 짧은 판은 시트에 줄을 만들지 않는다 (보통에서 금방 그만두고 다시 하는 판이 많아 기록이 너무 늘었다)
-       대신 몇 판이었는지 세어 두었다가 다음에 보내는 줄의 '짧은 판' 칸에 함께 보낸다 */
-    const SK="hyeng_short_v1", short=!G.cleared && (G.zone|0)===0;
+       대신 몇 판이었는지 세어 두었다가 다음에 보내는 줄의 '짧은 판' 칸에 함께 보낸다
+       (v322) 공용 패드는 아이마다 따로 센다 (앞 아이의 짧은 판이 다음 아이 줄에 붙었다) */
+    let kidId=""; try{ const k=Kid.shared() && Kid.get(); if(k && k.id) kidId="_"+String(k.id).replace(/[^\w-]/g,"").slice(0,24); }catch(e){}
+    const SK="hyeng_short_v1"+kidId, short=!G.cleared && (G.zone|0)===0;
     let nShort=0; try{ nShort=parseInt(localStorage.getItem(SK),10)||0; }catch(e){}
+    const rec=Object.assign({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
+                   diff:d0, rule:sheetRule, char:G.char, short:nShort}, runReport());
+    const sentNick=String(Online.nickOf(rec)||G.nick||"").trim();   // (v322) 시트에 적힌 이름 — 공용 패드는 같은 기기 줄이 모두 me 라 이것으로 내 줄을 찾는다
     const send = short ? (()=>{ try{ localStorage.setItem(SK, String(nShort+1)); }catch(e){} return Promise.resolve(null); })()
-      : Online.submit(Object.assign({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage, acc: total?Math.round(G.right/total*100):0,
-                   diff:d0, rule:G.rule, char:G.char, short:nShort}, runReport())).then(r=>{ if(r && r.ok && nShort){ try{ localStorage.setItem(SK, String(Math.max(0,(parseInt(localStorage.getItem(SK),10)||0)-nShort))); }catch(e){} } return r; });
-    send
+      : Online.submit(rec).then(r=>{ if(r && (r.ok || r.queued) && nShort){ try{ localStorage.setItem(SK, String(Math.max(0,(parseInt(localStorage.getItem(SK),10)||0)-nShort))); }catch(e){} } return r; });   // (v322) 기기에 모아 둔 줄(queued)도 short 를 이미 담았다
+    if(!noRank) send
       .then(()=>Online.top(d0,"week"))
       .then(list=>{
         if(!list) return;
+        list=list.map(r=>Object.assign({}, r, {me: String(r.nick||"").trim()===sentNick}));
         const i=list.findIndex(r=>r.me);
         $("oRank").innerHTML='<div class="resCh">🏫 학원 '+DIFF[d0].label+' 이번 주 <b class="resMy">'+(i>=0?'내 순위 '+(i+1)+"위":"20위 밖")+'</b></div>'+onlineRows(list.slice(0,3))+(i>=3 ? '<div class="rrDots">⋯</div>'+onlineRows([list[i]]).replace('<i>1</i>','<i>'+(i+1)+'</i>') : '')   /* (v320) TOP 3 + 나 */
           + (G.nick==="PLAYER" ? '<div class="note">설정 ⚙에서 이름을 정하면 랭킹에 내 이름이 나와요</div>' : '');
@@ -12466,7 +12544,7 @@ function runReport(){
     clear:G.cleared ? (G.clearCh||1) : 0,                  // 완주한 장 (0 = 완주 못 함)
     end: G.cleared ? "clear" : (G.quit ? "quit" : "dead"),
     cause: G.cleared ? "" : (G.lastCause||""),             // 마지막으로 넘어진 이유
-    zone:(zone()||{}).name||"", set:G.set+(G.book?"/"+G.book:"")+(G.lesson?"-"+G.lesson:""), secs:Math.round((Date.now()-(G.runStart||Date.now()))/1000),
+    zone:(zone()||{}).name||"", set:G.set+(G.book?"/"+G.book:"")+(G.lesson?"-"+G.lesson:""), secs:Math.max(0, Math.round((Date.now()-(G.runStart||Date.now())-(G.pauseMs||0)-(G.pauseAt?Date.now()-G.pauseAt:0))/1000)),   // (v322) 쉬는 시간 뺌
     dex, ver:GAME_VER, miss:(G.wrongWords||[]).map(x=>x.en).slice(0,25).join(", ")
   }, w);
 }
@@ -12475,8 +12553,13 @@ function rankRows(diff){
   if(!top.length) return '<div class="note">아직 기록이 없습니다.</div>';
   return top.map((r,i)=>'<div class="rrow"><i>'+(i+1)+'</i><b>'+r.nick+titleTag(r.title)+'</b><span>'+r.score.toLocaleString()+'</span></div>').join("");
 }
+/* (v322) 넘어지는 0.62초 연출(overFade)·완주/장 넘김 연출(finishing) 중에는 새로 멈추지 않는다 — 결과 화면 위에 '잠깐 쉬는 중' 창이 겹쳤다. 이미 멈춘 것을 푸는 것은 언제나 된다 */
+function canPause(){ return !!G.running && (G.paused || (!G.overFade && !G.finishing)); }
+/* (v322) 시트 '플레이(초)'에서 쉬는 시간을 뺀다 — 멈춘 동안 시간을 따로 센다 */
+function pauseTally(){ if(G.pauseAt){ G.pauseMs=(G.pauseMs||0)+Math.max(0, Date.now()-G.pauseAt); G.pauseAt=0; } }
 function togglePause(){
   G.paused=!G.paused;
+  if(G.paused) G.pauseAt=Date.now(); else pauseTally();
   $("scPause").classList.toggle("on",G.paused);
   if(G.paused){
     const pi=$("pauseInfo");
@@ -12514,12 +12597,21 @@ setTimeout(()=>{ try{ DM.paint(); }catch(e){} }, 300);
 $("oReview").addEventListener("click", e=>{
   const spk = e.target.closest ? e.target.closest(".spk") : null;
   if(spk){ SFX.click(); Voice.say(spk.dataset.en, {keep:true}); return; }
-  if(e.target.id==="btnReview"){ SFX.click(); G.set="wrong"; startGame(); }
+  /* (v322) 책·교재 단원·과·Daily 30 카드 달리기 뒤에는 G.book·G.tag·G.lesson 이 남아 pool() 이 그 책 단어를 먼저 골랐다 → 틀린 단어가 안 나옴. 모두 비우고 시작 (LastSetup 도 함께) */
+  if(e.target.id==="btnReview"){ SFX.click(); G.set="wrong"; G.book=null; G.tag=null; G.lesson=0; G._nextWords=null; G._nextPractice=false;
+    try{ const ls=LastSetup.get(); if(ls) LastSetup.save(Object.assign({}, ls, {set:"wrong", book:null, lesson:0})); }catch(err){}
+    startGame(); }
 });
+/* (v322) ▶ 다시 하기 — Daily 30 카드로 달린 판이면 같은 Stage 단어로 한 번 더 (_nextWords 는 한 판만 쓰고 사라져 다른 단어 판이 됐다).
+   카드는 첫 판에 이미 '달림' 표시가 되므로 두 번째부터는 연습 */
+function retryRun(){
+  if(G.words && G.words.length){ G._nextWords=G.words.slice(); G._nextPractice=true; }
+  startGame();
+}
 addEventListener("keydown", e=>{
   if(typingNow(e)) return;
   if(!$("scOver").classList.contains("on")) return;
-  if(e.code==="KeyR"){ SFX.click(); startGame(); e.preventDefault(); }
+  if(e.code==="KeyR"){ SFX.click(); retryRun(); e.preventDefault(); }
 });
 
 $("prompt") && $("prompt").addEventListener("click",()=>{
@@ -17665,13 +17757,14 @@ addEventListener("keydown", e=>{
 });
 menuFocus(0);
 $("btnStart").addEventListener("click",startGame);
-$("btnRetry").addEventListener("click",startGame);
+$("btnRetry").addEventListener("click",()=>retryRun());   // (v322) Daily 30 카드 판은 같은 단어로
 $("btnMain").addEventListener("click",()=>{ Voice.stop(); Attract.focus=false; refreshResume(); titleZone(); show("scStart"); });
 $("btnWords").addEventListener("click",()=>$("shWords").classList.add("on"));
 $("btnSheetClose").addEventListener("click",()=>$("shWords").classList.remove("on"));
-$("btnUnpause").addEventListener("click",togglePause);
-$("btnGiveUp").addEventListener("click",()=>{ G.quit=true; G.paused=false; $("scPause").classList.remove("on"); gameOver(); });
-$("pauseBtn").addEventListener("click",()=>{ if(G.running) togglePause(); });
+$("btnUnpause").addEventListener("click",()=>{ if(G.paused) togglePause(); });   // (v322) 풀기 단추는 풀기만 (끝난 뒤 눌려도 다시 멈추지 않게)
+$("btnGiveUp").addEventListener("click",()=>{ if(!G.running) return;   // (v322) 결과 화면 뒤에 남은 창에서 눌러도 기록이 바뀌지 않게
+  G.quit=true; pauseTally(); G.paused=false; $("scPause").classList.remove("on"); gameOver(); });
+$("pauseBtn").addEventListener("click",()=>{ if(canPause()) togglePause(); });   // (v322) 넘어지는 연출 중에는 안 멈춤
 $("btnRankHome").addEventListener("click",()=>{ $("scStart").classList.remove("on"); showRank("easy"); });
 $("btnRankBack").addEventListener("click",()=>{ $("scRank").classList.remove("on"); $("scStart").classList.add("on"); });
 pickers("selRankDiff",v=>{ RANK_VIEW.diff=v; drawRankScreen(); });
@@ -17693,11 +17786,40 @@ const Online = {
     this._dev=d;
     return d;
   },
+  /* 시트에 실제로 적힐 닉네임 — (v304) 명단에서 고른 아이 → 시트에 실명 (👤 표시). (v322) 결과 화면 '내 순위'도 이 이름으로 찾는다 */
+  nickOf(rec){
+    try{ const k=(typeof Kid!=="undefined") && Kid.get(); if(k && rec && (rec.type==="buy" || (!rec.type && (/^study/.test(rec.rule||"") || Kid.shared())))) return "👤"+String(k.n).slice(0,9); }catch(e){}
+    return rec ? rec.nick : undefined;
+  },
   submit(rec){
     if(!this.on()) return Promise.resolve(null);
-    try{ const k=(typeof Kid!=="undefined") && Kid.get(); if(k && rec && (rec.type==="buy" || (!rec.type && (/^study/.test(rec.rule||"") || Kid.shared())))) rec=Object.assign({}, rec, {nick:"👤"+String(k.n).slice(0,9)}); }catch(e){}   // (v304) 명단에서 고른 아이 → 시트에 실명 (👤 표시)
-    return fetch(this.URL,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify(Object.assign({key:this.KEY, dev:this.dev()}, rec))}).then(r=>r.json()).catch(()=>null);
+    const nk=this.nickOf(rec); if(rec && nk!==rec.nick) rec=Object.assign({}, rec, {nick:nk});
+    const body=Object.assign({key:this.KEY, dev:this.dev()}, rec);
+    /* (v322) 인터넷이 끊기거나 서버가 바쁘면(busy) 그 판 기록이 사라졌다 → 기기에 모아 두었다가(hyeng_sheetq, 최대 30줄) 다음에 보낸다.
+       시트 줄을 만드는 기록(달리기·공부 = type 없음, 구매)만. 날짜는 서버가 받은 때로 적힌다 */
+    const keep = !body.type || body.type==="buy";
+    if(keep) this.flush();                                   // 밀린 줄부터 (지금 판은 기다리지 않고 함께)
+    return this.post(body).then(r=>{ if(keep && this.again(r)){ this.qAdd(body); return {ok:false, queued:true}; } return r; });
+  },
+  post(body){
+    return fetch(this.URL,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>null);
+  },
+  again(r){ return !r || (r.ok===false && r.err==="busy"); },   // 나중에 다시 보낼 실패 (key·type 오류는 다시 보내도 안 됨)
+  QK:"hyeng_sheetq", QMAX:30, _fl:null,
+  qGet(){ try{ const a=JSON.parse(localStorage.getItem(this.QK)); return Array.isArray(a) ? a.filter(x=>x && x.q && x.b) : []; }catch(e){ return []; } },
+  qSet(a){ try{ if(a.length) localStorage.setItem(this.QK, JSON.stringify(a.slice(-this.QMAX))); else localStorage.removeItem(this.QK); }catch(e){} },
+  qAdd(body){ const a=this.qGet(); a.push({q:Date.now().toString(36)+Math.random().toString(36).slice(2,7), b:body}); this.qSet(a); },
+  flush(){
+    if(this._fl) return this._fl;
+    if(!this.on() || this.qGet().length===0) return Promise.resolve(0);
+    try{ if(navigator.onLine===false) return Promise.resolve(0); }catch(e){}
+    let sent=0; const seen={};
+    const next=()=>{ const it=this.qGet()[0]; if(!it || seen[it.q]) return sent; seen[it.q]=1;   // 저장이 막힌 기기에서 같은 줄을 계속 보내지 않게
+      return this.post(it.b).then(r=>{ if(this.again(r)) return sent;                             // 아직 안 됨 — 다음 기회에
+        this.qSet(this.qGet().filter(x=>x.q!==it.q)); if(r && r.ok) sent++; return next(); }); };
+    const done=v=>{ this._fl=null; return v; };
+    this._fl=Promise.resolve().then(next).then(done, ()=>done(sent));
+    return this._fl;
   },
   BUY_LOG: true,             // 상점 구매 → 시트 "구매" 탭 (2026-10-13 새 Apps Script 배포 확인)
   buyLog(id, price, left){
@@ -17727,8 +17849,10 @@ const Online = {
     setTimeout(()=>{ this.top(d,"week"); }, 1500);
     setTimeout(()=>{ this.acts(); }, 2500);
     setTimeout(()=>{ try{ Notice.poll(true); }catch(e){} }, 3200);   // (v264) 선생님 공지
+    setTimeout(()=>{ try{ this.flush(); }catch(e){} }, 4500);         // (v322) 지난번에 못 보낸 기록
   }
 };
+addEventListener("online", ()=>{ try{ Online.flush(); }catch(e){} });   // (v322) 인터넷이 돌아오면 밀린 기록부터
 /* 원격 조치 처리 — 한 기기에서 한 줄은 한 번만 (hyeng_acts_v1). 처리하면 시트에 알리고, 첫 화면에 쪽지로 보여 준다 */
 const Acts = {
   KEY:"hyeng_acts_v1", last:0,
