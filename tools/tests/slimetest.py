@@ -25,7 +25,7 @@ async def main():
         await pg.wait_for_timeout(300)
         r = await pg.evaluate("()=>HyBoss.testWeek(true).then(()=>({id:HyBoss.B.id, test:HyBoss.B.test, n:HyBoss.B.n, img:HyBoss.B.img, max:HyBoss.B.max, nx:HyBoss.nextOf().n, line:HyBoss.lineOf().atk[0]}))")
         print("test on", r)
-        ok(r['test'] and r['img'] == 'hbS' and r['max'].get('all') == 300, "테스트 슬라임 · 체력 300")
+        ok(r['test'] and r['img'] == 'hbS' and r['max'].get('all') == 2000, "테스트 슬라임 · 체력 2000")
         ok(r['nx'] == b0['n'], f"다음 주 = 원래 이번 주 보스 ({r['nx']})")
         ok(r['line'] == "말랑 몸통 박치기", "공격 이름 = 슬라임")
         await pg.wait_for_timeout(500)
@@ -40,9 +40,10 @@ async def main():
         await pg.evaluate("()=>WeekBoss.open()"); await pg.wait_for_timeout(1500)
         await pg.screenshot(path=OUT + "slime_view.png")
         v = await pg.evaluate("()=>document.getElementById('wbView').innerText")
-        ok("슬라임" in v and "300" in v, "보스 화면에 슬라임 · 체력 300")
+        ok("슬라임" in v and "2,000" in v, "보스 화면에 슬라임 · 체력 2,000")
         # 휘둘러서 잡기 (기회를 넉넉히)
-        for i in range(60):
+        await pg.evaluate("()=>{ HyBoss.CAP=99999; HyBoss.SW_MIN=60; HyBoss.SW_MAX=80; }")   # 시험만: 하루 한도·한 번 데미지 크게
+        for i in range(400):
             if await pg.evaluate("()=>HyBoss.state('all').dead || !!document.getElementById('wbRes')"): break
             await pg.evaluate("()=>{ if(HyBoss.stock('k1').r+HyBoss.stock('k1').s<2) HyBoss.earn(Kid.get(),'study',5); if(WeekBoss.F){ WeekBoss.F.next=99; WeekBoss.F.lock=0; } WeekBoss.swing(); }")
             await pg.wait_for_timeout(180)
@@ -51,7 +52,7 @@ async def main():
         rs = await pg.evaluate("()=>document.getElementById('wbRes').innerText"); print("result", rs.replace("\n", " / "))
         ok("쓰러뜨렸어요" in rs and b0['n'] in rs, "쓰러뜨림 + 다음 주 원래 보스 안내")
         g = await pg.evaluate("()=>HyBoss.reward(Kid.get())")
-        ok(g == 10, f"보상 💎{g} (혼자 깎음 = 10)")
+        ok(g == 200, f"보상 💎{g} (혼자 깎음 = 200)")
         # 관리 화면 줄
         await pg.evaluate("()=>{ const r=document.getElementById('wbRes'); if(r) r.remove(); WeekBoss.close && WeekBoss.close(); }")
         # 끄기 → 원래 보스, 원래 데미지 그대로
@@ -62,7 +63,7 @@ async def main():
         ok(nx2[0] == nx2[1], f"끄면 다음 주는 다시 차례대로 {nx2}")
         # 다시 켜면 새 칸 (앞 테스트 처치 기록과 섞이지 않음)
         r3 = await pg.evaluate("()=>HyBoss.testWeek(true).then(()=>({id:HyBoss.B.id, dead:!!HyBoss.state('all').dead, hp:HyBoss.state('all').hp}))")
-        ok(r3['id'] != r['id'] and not r3['dead'] and r3['hp'] == 300, f"다시 켜면 새 테스트 {r3}")
+        ok(r3['id'] != r['id'] and not r3['dead'] and r3['hp'] == 2000, f"다시 켜면 새 테스트 {r3}")
         ok(not errs, "페이지 오류 없음 " + str(errs[:3]))
         await br.close()
     print("결과:", "통과" if not bad else f"실패 {len(bad)}")

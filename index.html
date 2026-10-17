@@ -12389,7 +12389,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v317";
+const GAME_VER = "v318";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -15688,16 +15688,17 @@ const Kid = {
       데미지는 서버에서 더하기(increment) — 두 기기·끊김에도 안 사라짐.
    ⚔️ 실시간 보스 = 수업 레이드(Raid) — 체력이 따로. 선생님이 방을 만들 때 BOSS_LINE 중 고름.
    그림은 assets/boss/<img>.webp — 사용자가 보낸 보스 그림이 오면 img 만 바꾸면 됨 */
+/* (v318) 보상 💎 = 최소 체력의 10% (사용자: 잡는 것에 비해 너무 짜다 — 테스트 슬라임 2000 = 💎200 기준) */
 const BOSS_LINE = [   // (v306) 사용자 보스 5마리 — 그림 hbN.webp(가만히) · hbN-a/b/c.webp(공격 12프레임 가로 띠, 256칸)
-  {n:"초원 수호자", img:"hb1", per:500, gems:60,  atk:["몸통 내려찍기","좌우 회전 휩쓸기","물방울 연속 발사"]},
-  {n:"사막 골렘",   img:"hb2", per:600, gems:70,  atk:["양팔 강타","좌우 팔 휩쓸기","바위 투척"]},
-  {n:"빙관 설원수", img:"hb3", per:700, gems:80,  atk:["앞발 연속 할퀴기","냉기 포효","얼음 뿔 돌진"]},
-  {n:"잿불 화룡",   img:"hb4", per:800, gems:90,  atk:["화염 브레스","꼬리 휩쓸기","앞발 강타"]},
-  {n:"문지기 기사", img:"hb5", per:1000, gems:120, atk:["창 내려찍기","좌우 창 휩쓸기","창 찌르기"]}
+  {n:"초원 수호자", img:"hb1", per:500, gems:500,  atk:["몸통 내려찍기","좌우 회전 휩쓸기","물방울 연속 발사"]},
+  {n:"사막 골렘",   img:"hb2", per:600, gems:600,  atk:["양팔 강타","좌우 팔 휩쓸기","바위 투척"]},
+  {n:"빙관 설원수", img:"hb3", per:700, gems:700,  atk:["앞발 연속 할퀴기","냉기 포효","얼음 뿔 돌진"]},
+  {n:"잿불 화룡",   img:"hb4", per:800, gems:800,  atk:["화염 브레스","꼬리 휩쓸기","앞발 강타"]},
+  {n:"문지기 기사", img:"hb5", per:1000, gems:1000, atk:["창 내려찍기","좌우 창 휩쓸기","창 찌르기"]}
 ];
 /* (v315) 🧪 테스트 보스 — 선생님이 '이번 주만' 켜면 그 주 일요일까지 이 보스 (보스 차례는 건너뛰지 않음: 다음 주는 원래 이번 주 보스).
    체력 = hp × 체력 배율 (최소 체력 규칙 없음 · 며칠 안에 잡아 보며 공격·막기·결과·보상까지 시험) */
-const BOSS_TEST = {n:"말랑 슬라임 (테스트)", img:"hbS", per:30, hp:300, gems:10, test:true, atk:["말랑 몸통 박치기","빙글빙글 휩쓸기","끈적 점액 발사"]};
+const BOSS_TEST = {n:"말랑 슬라임 (테스트)", img:"hbS", per:30, hp:2000, gems:200,   /* (v318) 사용자: 체력 2000 · 💎200 */ test:true, atk:["말랑 몸통 박치기","빙글빙글 휩쓸기","끈적 점액 발사"]};
 const BOSS_ANIM_MS = 1140;   // 12프레임 (120·100·90·90·80·60·60·80·90·100·120·150ms 합)
 const HyBoss = {
   CAP:400, RUN_CAP:400, ESC:0.4, CK:"hyeng_hb2",
@@ -15741,6 +15742,7 @@ const HyBoss = {
     const id=idOver || ("w"+wk+(TS ? "t"+(C.test.n|0) : (C.rs && C.rsWk===wk) ? "r"+C.rs : "")); let max=(C.max||{})[id];   /* (v308) 같은 주에 다시 시작하면 새 번호 */ const team = max ? !max.all : (!!C.team && Object.keys(T).length>1);   // 그 주에 정한 체력이 있으면 그대로
     const floor=TS ? 1 : per*this.FLOOR;   /* (v315) 테스트 보스는 최소 체력 없음 */ /* (v313) 일주일 동안 잡는 보스 — 최소 체력 = 1명 체력 × 10 (1번 보스 5,000 · 2번 6,000 … 5번 10,000) */
     const thp=Math.round(BOSS_TEST.hp*(C.hpx>0 ? C.hpx : 1));
+    if(TS && max){ max=Object.assign({}, max); Object.keys(max).forEach(k=>{ max[k]=thp; }); }   /* (v318) 테스트 보스는 언제나 지금 정한 체력 (켜 둔 뒤 체력을 바꿔도 바로) */
     if(!max){ max={}; if(team) Object.keys(T).forEach(t=>{ max[t]=TS ? thp : Math.max(floor, per*Math.max(1, Object.keys(K).filter(k=>K[k].t===t).length)); });
       else max.all=TS ? thp : Math.max(floor, per*Math.max(1, Object.keys(K).length || 15)); }
     else { max=Object.assign({}, max); Object.keys(max).forEach(k=>{ max[k]=Math.max(floor, max[k]|0); }); }   /* 예전에 적어 둔 낮은 체력도 최소까지 올림 (모든 기기가 같은 값) */
@@ -16163,7 +16165,7 @@ const RaidStage = {
       o.el.style.transform="translate("+Math.round(x*reach)+"px, "+(Math.abs(Math.sin(now/180+o.slot))*-3).toFixed(1)+"px)";
       if(!o.mine && o.bx!=null){ o.el.style.left=o.bx+"%"; o.el.style.bottom=o.by+"%"; } }); }
 };
-/* (v310) 🏆 수업 레이드 시상식 — 끝나면 선생님 TV 가 상을 정해서 /st/aw 에 적고, 아이 기기는 그걸 보고 칭호 + 💎3 (한 아이 상은 2개까지) */
+/* (v310) 🏆 수업 레이드 시상식 — 끝나면 선생님 TV 가 상을 정해서 /st/aw 에 적고, 아이 기기는 그걸 보고 칭호 + 💎10 (한 아이 상은 2개까지) */
 const RAID_AW = {
   mvp:  {e:"🗡️", n:"최강 공격수", d:"데미지 1등",              u:"⚔️",  title:"t-r-mvp"},
   last: {e:"⚡",  n:"마지막 일격", d:"보스를 쓰러뜨렸어요",     u:"",    title:"t-r-last"},
@@ -16208,9 +16210,9 @@ const Raid = {
     give("hard", p=>(p.h|0)+(p.m|0), 0);
     return out; },
   awList(st){ const a=st && st.aw; if(!a) return null; return (Array.isArray(a) ? a : Object.keys(a).sort((x,y)=>(+x)-(+y)).map(k=>a[k])).filter(x=>x && RAID_AW[x.id]); },
-  /* 아이 — 내가 받은 상 → 칭호 + 💎3 (한 번만) */
+  /* 아이 — 내가 받은 상 → 칭호 + 💎10 (한 번만) */
   grantAw(L){ if(this._awG || !L) return; this._awG=1; const st=this.st(), mine=L.filter(x=>x.k===this.me); this._myAw=mine;
-    mine.forEach(x=>{ const A=RAID_AW[x.id], key="aw-"+this.room+"-"+(st.t0||0)+"-"+x.id; if(Wallet.paid(key)) return; Wallet.pay(key); Wallet.addGems(3, "레이드 상 "+A.n); try{ if(A.title && !Wallet.owns(A.title)){ Wallet.give(A.title); x.newT=1; } }catch(e){} });
+    mine.forEach(x=>{ const A=RAID_AW[x.id], key="aw-"+this.room+"-"+(st.t0||0)+"-"+x.id; if(Wallet.paid(key)) return; Wallet.pay(key); Wallet.addGems(10, "레이드 상 "+A.n);   /* (v318) 💎3 → 10 */ try{ if(A.title && !Wallet.owns(A.title)){ Wallet.give(A.title); x.newT=1; } }catch(e){} });
     if(mine.length) try{ confetti(); SFX.tone(784,.15,"triangle",.06,1568); setTimeout(()=>SFX.tone(1046,.3,"triangle",.06,2092),160); }catch(e){} },
   awHtml(L, big){ if(!L || !L.length) return ''; const E=x=>this.esc(x);
     return '<div class="rdAw'+(big?' big':'')+'"><h3>🏆 오늘의 레이드 시상식</h3><div class="rdAwG">'+L.map((x,i)=>{ const A=RAID_AW[x.id], me=x.k===this.me && this.role==="kid";
@@ -16315,7 +16317,7 @@ const Raid = {
     if(now-(this._ping||0)>20000){ this._ping=now; RaidNet.write("/p/"+this.me, {at:now}, true); }
     this.drawKid(); },
   finish(){ this.ended=true; const c=this.calc(), st=this.st(), key="rd-"+this.room+"-"+(st.t0||0); let gems=0;
-    if(this.hits+this.blk>0 && !Wallet.paid(key)){ Wallet.pay(key); gems = this.boss() ? 3 : c.hp<=0 ? 8 : 5; Wallet.addGems(gems, "레이드 "+this.room); }   // (v303) 학원 보스면 참가 💎3 + 쓰러뜨리면 보상 나눔
+    if(this.hits+this.blk>0 && !Wallet.paid(key)){ Wallet.pay(key); gems = this.boss() ? 10 : c.hp<=0 ? 40 : 15; Wallet.addGems(gems, "레이드 "+this.room); }   // (v303) 학원 보스면 참가 💎 + 쓰러뜨리면 보상 나눔 · (v318) 3·8·5 → 10·40·15 (사용자: 잡는 것에 비해 짜다)
     try{ if(Online.on() && !Wallet.paid("s"+key) && (Wallet.pay("s"+key), true)) Online.submit({nick:(this.name||"PLAYER").toUpperCase().slice(0,10), score:this.dmg, diff:"study", rule:"study-raid", stage:0, acc:Math.round(this.hits/Math.max(1,this.hits+this.miss)*100), right:this.hits, wrong:this.miss,
       clear:c.hp<=0?1:0, end:"raid", set:"레이드 "+this.room+(this.boss() && this.boss().team ? " · "+HyBoss.tName(this.team) : ""), secs:0, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:""}); }catch(e){}
     this._gems=gems; if(this.boss() && c.hp<=0) setTimeout(()=>{ this._claim=HyBoss.claim(this.pick); this._hA=null; this.drawKid(); }, 800);
