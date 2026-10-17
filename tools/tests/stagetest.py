@@ -32,7 +32,9 @@ async def main():
                 await k0.wait_for_timeout(110); shots.append(await k0.screenshot(clip={"x":0,"y":0,"width":390,"height":470}))
             await k0.wait_for_timeout(500)
         # 친구 공격 → 친구 캐릭터가 달려감
-        ad=await k0.evaluate("()=>Object.values(RaidStage.al).some(a=>a.dashT && Date.now()-a.dashT<4000)")
+        await kids[1].evaluate(ANS, True)   # (v311) 바쁠 때도 — 바로 앞에서 한 번 더 공격하고 몇 초 기다림
+        try: await k0.wait_for_function("()=>Object.values(RaidStage.al).some(a=>a.dashT && Date.now()-a.dashT<4000)", timeout=6000); ad=True
+        except Exception: ad=False
         print("ally dash", ad)
         if not ad: bad.append("친구가 공격해도 안 움직임")
         # 틀리기

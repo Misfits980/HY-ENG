@@ -25,6 +25,13 @@ async def main():
         dm=await pg.evaluate("()=>DM.list().map(m=>[m.k, m.n, m.goal, m.done])"); print("missions", dm)
         runm=[m for m in dm if m[0] in ("run","rw","combo")]
         if not runm or not runm[0][3]: bad.append(f"달리기 미션 {dm}")
+        # (v311) 깎는 그 순간 — 작은 무대가 떠서 때림
+        await pg.wait_for_selector("#wbPop", timeout=5000); await pg.wait_for_timeout(700); await pg.screenshot(path=OUT+"wb_pop.png")
+        pt=await pg.evaluate("()=>document.getElementById('wbPop').innerText"); print("pop", pt.replace("\n"," / "))
+        if "달리기로" not in pt or "40" not in pt: bad.append(f"공격 장면 {pt}")
+        await pg.evaluate("()=>{ const b=document.querySelector('[data-wbp=x]'); if(b) b.click(); }"); await pg.wait_for_timeout(500)
+        if await pg.evaluate("()=>!!document.getElementById('wbPop')"): bad.append("공격 장면 닫기")
+        await pg.evaluate("()=>HyBoss.add(Kid.get(), 40, 'study')")   # 장면 없이 깎은 것 → 보스 화면에서 다시 보여 줌
         await pg.evaluate("()=>{ document.querySelector('.ovBossSee').click(); }"); await pg.wait_for_timeout(500)
         v=await pg.evaluate("()=>{ const d=document.getElementById('wbView'); return d ? d.innerText : ''; }")
         for need in ["월요일 0시", "일요일 밤 12시", "Daily 30", "⚔️3", "⚔️5", "⚔️2", "도망", "많이 깎은 친구", "보스 순서", "서연"]:
@@ -33,10 +40,15 @@ async def main():
         if hold!=40: bad.append(f"깎은 만큼 다시 보여 주기 {hold}")
         await pg.wait_for_timeout(1700); await pg.screenshot(path=OUT+"wb_replay.png"); await pg.wait_for_function("()=>WeekBoss._hold===0", timeout=15000)
         seen=await pg.evaluate("()=>[WeekBoss._hold, localStorage.getItem('hyeng_wbs_'+HyBoss.B.id+'_k1')]"); print("after", seen)
-        if seen!=[0,"40"]: bad.append(f"다시 보기 끝 {seen}")
+        if seen!=[0,"80"]: bad.append(f"다시 보기 끝 {seen}")
         await pg.evaluate("()=>{ WeekBoss.close(); WeekBoss._rp=0; WeekBoss.open(); }"); await pg.wait_for_timeout(300)
         if await pg.evaluate("()=>WeekBoss._rp|0")!=0: bad.append("본 데미지를 또 보여 줌")
         await pg.evaluate("()=>WeekBoss.close()")
+        # (v311) 선생님이 이번 주 보스 고르기 — 데미지는 이어지고 체력은 새 보스로, 다음 주는 그다음
+        pk=await pg.evaluate("()=>{ const s0=HyBoss.state('all').sum; return HyBoss.pickWeek(2).then(ok=>[ok, HyBoss.B.i, HyBoss.B.n, HyBoss.state('all').sum===s0, HyBoss.B.max.all, HyBoss.C.wp[HyBoss.B.wk]]); }"); print("pick", pk)
+        if pk[:5]!=[True,2,"빙관 설원수",True,1000]: bad.append(f"이번 주 보스 고르기 {pk}")
+        nw=await pg.evaluate("()=>{ const n0=Date.now; Date.now=()=>n0()+7*864e5; HyBoss.calc(); const r=[HyBoss.B.i, HyBoss.B.n, HyBoss.P.n]; Date.now=n0; HyBoss.calc(); return r; }"); print("next week", nw)
+        if nw!=[3,"잿불 화룡","빙관 설원수"]: bad.append(f"다음 주 {nw}")
         # 미션 다 하고 상자 — 한 번만
         await pg.evaluate("()=>{ DM.add('les',3); DM.add('q',40); DM.add('boss',50); DM.add('run',1); DM.add('rw',20); DM.add('combo',12); }")
         r=await pg.evaluate("()=>{ const g0=Wallet.gems(), a=DM.ready(), g=DM.open(), g2=DM.open(); return [a, g, g2, Wallet.gems()-g0, DM.s.st]; }"); print("chest", r)
