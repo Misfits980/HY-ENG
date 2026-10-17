@@ -1,5 +1,7 @@
 ## 3단계 (Basic) DAY 13 — Claude 작성 (2026-10-15)
 
+> (v322) 노션과 다름: cycle·pop 에 품사 2 동사 줄(자전거를 타다 · 펑 터지다)과 예문 2·대화 2 를 그 뜻으로 (게임 단어장 뜻)
+
 | 영어 | 품사 1 | 뜻 1 | 설명 1 | 품사 2 | 뜻 2 | 설명 2 | 예문 1 | 해석 1 | 예문 2 | 해석 2 | 예문 2 뜻 | 변하는 모양 | 자주 쓰는 말 | 비슷한 말 | 반대말 | 헷갈리는 말 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | cost | 동사 | (비용이) 들다 | 무엇을 사는 데 돈이 얼마 드는지 말해요. | 명사 | 비용 | 무엇을 하는 데 드는 돈이에요. | How much does this toy cost at the store? | 이 장난감은 가게에서 얼마예요? | The cost of the trip was very high last summer. | 지난여름 여행 비용이 아주 많이 들었어요. | 2 | costs · cost · cost · costing | cost a lot (돈이 많이 들다) · the cost of (~의 비용) | — | — | coast (해안) |
@@ -13,7 +15,7 @@
 | ripe | 형용사 | 익은 | 과일이 다 자라 먹기 좋은 것이에요. | — | — | — | The bananas in the bowl are ripe and yellow. | 그릇에 있는 바나나는 노랗게 익었어요. | The tomatoes were ripe in the garden last week. | 지난주 텃밭의 토마토가 익었어요. | 1 | riper · ripest | a ripe apple (익은 사과) · not ripe yet (아직 덜 익은) | — | — | — |
 | section | 명사 | 구역, 부분 | 전체를 나눈 한 부분이에요. | — | — | — | The books for children are in this section of the library. | 어린이 책은 도서관의 이 구역에 있어요. | We waited in the front section at the concert. | 우리는 음악회에서 앞쪽 구역에서 기다렸어요. | 1 | sections | the sports section (스포츠 면) · a quiet section (조용한 구역) | part (부분) | — | — |
 | easy | 형용사 | 쉬운 | 어렵지 않은 것이에요. | — | — | — | This puzzle is easy for my little sister. | 이 퍼즐은 내 여동생에게 쉬워요. | The test was easy for everyone in our class. | 그 시험은 우리 반 모두에게 쉬웠어요. | 1 | easier · easiest | easy to (~하기 쉬운) · take it easy (쉬엄쉬엄 해) | simple (간단한) | hard (어려운) | — |
-| cycle | 명사 | 순환, 주기 | 계속 돌고 도는 과정이에요. | — | — | — | Rain is part of the water cycle. | 비는 물의 순환의 한 부분이에요. | We learned about the life cycle of a frog. | 우리는 개구리의 한살이에 대해 배웠어요. | 1 | cycles | the water cycle (물의 순환) · the life cycle (한살이) | — | — | circle (원) |
+| cycle | 명사 | 순환, 주기 | 계속 돌고 도는 과정이에요. | 동사 | 자전거를 타다 | 자전거를 타고 다니는 것이에요. | Rain is part of the water cycle. | 비는 물의 순환의 한 부분이에요. | We cycled to the park together last Saturday. | 우리는 지난 토요일에 함께 자전거를 타고 공원에 갔어요. | 2 | 명사 cycles / 동사 cycles · cycled · cycled · cycling | the water cycle (물의 순환) · the life cycle (한살이) | — | — | circle (원) |
 | even | 부사 | 심지어, ~조차 | 놀라운 일을 더 강하게 말할 때 써요. | — | — | — | Even my little brother can swim in the deep pool. | 내 남동생조차 깊은 수영장에서 수영할 수 있어요. | It was cold, and it even snowed in April. | 날씨가 추워서 4월에 눈까지 왔어요. | 1 | — | even more (훨씬 더) · not even (~조차 아닌) | — | — | evening (저녁) |
 | opera | 명사 | 오페라 | 노래로 이야기를 꾸미는 공연이에요. | — | — | — | The singers in the opera wear big costumes. | 오페라 가수들은 큰 의상을 입어요. | We watched an opera at the theater last night. | 우리는 어젯밤 극장에서 오페라를 봤어요. | 1 | operas | an opera singer (오페라 가수) · go to the opera (오페라를 보러 가다) | — | — | — |
 | quit | 동사 | 그만두다 | 하던 일을 멈추고 더 하지 않을 때 써요. | — | — | — | Don't quit when the game gets hard. | 게임이 어려워져도 그만두지 마. | Tom didn't quit the race, so he finished it. | 톰은 경주를 포기하지 않아서 끝까지 달렸어요. | 1 | quits · quit · quit · quitting | quit a job (일을 그만두다) · never quit (절대 포기하지 않다) | give up (포기하다) | — | quite (꽤) |
@@ -26,7 +28,7 @@
 | far | 형용사 | 먼, 멀리 | 거리가 많이 떨어진 것이에요. | — | — | — | My school is not far from my house. | 우리 학교는 집에서 멀지 않아요. | We walked far into the forest last weekend. | 우리는 지난 주말 숲속 깊이 걸어 들어갔어요. | 1 | farther · farthest | far away (멀리 떨어진) · far from (~에서 먼) | — | near (가까운) | — |
 | customer | 명사 | 손님, 고객 | 가게에서 물건을 사는 사람이에요. | — | — | — | The store gives free candy to every customer. | 그 가게는 손님마다 사탕을 공짜로 줘요. | A customer asked about the price of the shoes. | 한 손님이 신발 가격을 물어보았어요. | 1 | customers | a happy customer (만족한 손님) · the first customer (첫 손님) | guest (손님) | — | — |
 | password | 명사 | 비밀번호 | 잠금을 열기 위한 비밀 글자나 숫자예요. | — | — | — | Don't tell your password to anyone at school. | 학교에서 아무에게도 비밀번호를 말하지 마세요. | I changed my password on the computer yesterday. | 저는 어제 컴퓨터 비밀번호를 바꿨어요. | 1 | passwords | a secret password (비밀 암호) · change the password (비밀번호를 바꾸다) | — | — | — |
-| pop | 명사 | 팝 음악 | 많은 사람이 즐겨 듣는 대중음악이에요. | — | — | — | My sister listens to pop music in her room. | 우리 언니는 방에서 팝 음악을 들어요. | We danced to pop songs at the party. | 우리는 파티에서 팝송에 맞춰 춤을 췄어요. | 1 | — | pop music (대중음악) · a pop singer (팝 가수) | — | — | — |
+| pop | 명사 | 팝 음악 | 많은 사람이 즐겨 듣는 대중음악이에요. | 동사 | 펑 터지다 | 풍선 같은 것이 '펑' 하고 터지는 거예요. | My sister listens to pop music in her room. | 우리 언니는 방에서 팝 음악을 들어요. | My red balloon popped with a loud bang yesterday. | 어제 내 빨간 풍선이 큰 소리를 내며 펑 터졌어요. | 2 | 동사 pops · popped · popped · popping | pop music (대중음악) · a pop singer (팝 가수) | — | — | — |
 | raise | 동사 | 들다, 올리다 | 손이나 물건을 위로 올릴 때 써요. | — | — | — | Raise your hand if you know the answer. | 답을 알면 손을 드세요. | We raised money for the animals last month. | 우리는 지난달 동물들을 위해 돈을 모았어요. | 1 | raises · raised · raised · raising | raise your hand (손을 들다) · raise money (돈을 모으다) | lift (들어 올리다) | — | rise (오르다) |
 | connect | 동사 | 연결하다 | 두 개를 이어 줄 때 써요. | — | — | — | Connect the numbers to make a picture. | 숫자를 이어서 그림을 만드세요. | Dad connected the printer to the computer yesterday. | 아빠가 어제 프린터를 컴퓨터에 연결하셨어요. | 1 | connects · connected · connected · connecting | connect two lines (두 선을 잇다) · connect to the internet (인터넷에 연결하다) | link (잇다) | — | — |
 | recipe | 명사 | 요리법 | 음식을 만드는 방법을 적은 것이에요. | — | — | — | This recipe needs two eggs and some milk. | 이 요리법에는 달걀 두 개와 우유가 조금 필요해요. | My grandmother shared her cookie recipe with me last week. | 할머니는 지난주 나에게 쿠키 요리법을 알려 주셨어요. | 1 | recipes | a cookie recipe (쿠키 요리법) · follow a recipe (요리법대로 하다) | — | — | — |
@@ -58,7 +60,7 @@
 | easy | 받아쓰기 시험이 끝난 뒤 | How was the spelling test? | It was easy! I knew every word. | 받아쓰기 시험 어땠어? | 쉬웠어! 낱말을 다 알았어. |
 | easy | 종이비행기를 접을 때 | Is it hard to fold a paper plane? | No, it's easy. I'll show you. | 종이비행기 접기 어려워? | 아니, 쉬워. 보여 줄게. |
 | cycle | 과학 그림을 볼 때 | First an egg, then a frog. Then? | Another egg. It's the life cycle! | 처음엔 알, 그다음 개구리. 그다음은? | 또 알이야. 그게 한살이야! |
-| cycle | 비가 오는 이유 | Where does rain come from? | From clouds. It's the water cycle. | 비는 어디서 와? | 구름에서. 물의 순환이야. |
+| cycle | 주말 일을 말할 때 | Did you cycle to the lake yesterday? | Yes, I rode my new bike there. | 어제 호수까지 자전거 타고 갔어? | 응, 새 자전거 타고 갔어. |
 | even | 매운 국을 먹을 때 | Is this soup very spicy? | Yes! Even Dad can't eat it. | 이 국 많이 매워? | 응! 아빠조차 못 드셔. |
 | even | 쉬운 문제를 볼 때 | Is this math question very hard? | No, even a baby can answer it! | 이 수학 문제 많이 어려워? | 아니, 아기도 풀 수 있겠어! |
 | opera | 공연 종류를 물을 때 | What show has people singing the whole story? | An opera! It's like a long song. | 사람들이 이야기 내내 노래하는 공연은 뭐야? | 오페라! 긴 노래 같아. |
@@ -84,7 +86,7 @@
 | password | 태블릿을 열 때 | Why can't I open this tablet? | You need the password first. | 이 태블릿이 왜 안 열려? | 먼저 비밀번호가 필요해. |
 | password | 비밀 기지에 들어갈 때 | Can I come into your secret club? | Yes, if you know the password! | 너희 비밀 모임에 들어가도 돼? | 응, 암호를 알면! |
 | pop | 좋아하는 음악을 물을 때 | What kind of music do you like? | I like pop songs the most. | 어떤 음악 좋아해? | 팝송을 제일 좋아해. |
-| pop | 장기 자랑을 준비할 때 | What song will you sing at the show? | A new pop song by my favorite band. | 장기 자랑에서 무슨 노래 부를 거야? | 내가 좋아하는 밴드의 새 팝송. |
+| pop | 풍선을 불 때 | Don't blow your balloon too big. | Oh no, it might pop! | 풍선을 너무 크게 불지 마. | 아이고, 펑 터질지도 몰라! |
 | raise | 수업 중 질문할 때 | Can I ask a question now? | Yes, but raise your hand first. | 지금 질문해도 돼요? | 그래, 하지만 먼저 손을 들어. |
 | raise | 파티 메뉴를 정할 때 | Who wants pizza for the party? | Raise your hand if you do! | 파티 때 피자 먹고 싶은 사람? | 먹고 싶으면 손을 들어! |
 | connect | 소리가 안 들릴 때 | Why can't I hear any sound? | Connect the headphones to the computer. | 왜 소리가 하나도 안 들려? | 헤드폰을 컴퓨터에 연결해. |
