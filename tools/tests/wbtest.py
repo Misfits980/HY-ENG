@@ -30,7 +30,7 @@ async def main():
         if "공격 기회 +5" not in pt or "5/10" not in pt: bad.append(f"기회 쌓임 장면 {pt}")
         await pg.evaluate("()=>{ const b=document.querySelector('[data-wbp=see]'); if(b) b.click(); }"); await pg.wait_for_timeout(600)
         v=await pg.evaluate("()=>{ const d=document.getElementById('wbView'); return d ? d.innerText : ''; }")
-        for need in ["월요일 0시", "일요일 밤 12시", "Daily 30", "공격 기회", "막기", "도망", "많이 깎은 친구", "보스 순서", "서연", "5/10"]:
+        for need in ["월요일 0시", "일요일 밤 12시", "Daily 30", "공격 기회", "막기", "도망", "TOP 3", "서연", "5/10"]:
             if need not in v: bad.append(f"보스 화면에 '{need}' 없음")
         await pg.evaluate("()=>HyBoss.earn(Kid.get(),'study',3)")
         # 휘두르기 — 기회 1개 = 8~12 (치명타 ×2)
