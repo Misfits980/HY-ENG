@@ -33,7 +33,7 @@ async def main():
             if c[3]=="end": break
         print("kinds", kinds, "final", c)
         await host.wait_for_timeout(2600); await host.screenshot(path=O+"37_host_end.png"); await kids[0].screenshot(path=O+"38_kid_end.png")
-        # (v310) 🏆 시상식 — TV 가 상을 정해 적고, 아이 기기는 칭호 + 💎3
+        # (v310) 🏆 시상식 — TV 가 상을 정해 적고, 아이 기기는 칭호 + 💎10 (v318)
         aw=await host.evaluate("()=>(Raid.awList(Raid.st())||[]).map(x=>[x.id,x.n])"); print("awards", aw)
         mine=await kids[0].evaluate("()=>[(Raid._myAw||[]).map(x=>x.id), TITLES.filter(t=>/^t-r-/.test(t.id) && Wallet.owns(t.id)).map(t=>t.id), document.querySelectorAll('.rdAwC').length]"); print("kid0 aw", mine)
         tot=0
