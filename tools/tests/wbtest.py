@@ -62,7 +62,7 @@ async def main():
         await pg.evaluate("()=>WeekBoss.close()")
         # (v311) 선생님이 이번 주 보스 고르기 — 데미지는 이어지고 체력은 새 보스로, 다음 주는 그다음
         pk=await pg.evaluate("()=>{ const s0=HyBoss.state('all').sum; return HyBoss.pickWeek(2).then(ok=>[ok, HyBoss.B.i, HyBoss.B.n, HyBoss.state('all').sum===s0, HyBoss.B.max.all, HyBoss.C.wp[HyBoss.B.wk]]); }"); print("pick", pk)
-        if pk[:5]!=[True,2,"빙관 설원수",True,1400]: bad.append(f"이번 주 보스 고르기 {pk}")
+        if pk[:5]!=[True,2,"빙관 설원수",True,7000]: bad.append(f"이번 주 보스 고르기 {pk}")
         nw=await pg.evaluate("()=>{ const n0=Date.now; Date.now=()=>n0()+7*864e5; HyBoss.calc(); const r=[HyBoss.B.i, HyBoss.B.n, HyBoss.P.n]; Date.now=n0; HyBoss.calc(); return r; }"); print("next week", nw)
         if nw!=[3,"잿불 화룡","빙관 설원수"]: bad.append(f"다음 주 {nw}")
         # 미션 다 하고 상자 — 한 번만

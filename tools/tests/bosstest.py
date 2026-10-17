@@ -18,7 +18,7 @@ async def main():
         await host.evaluate("""()=>{ HyBoss.live(); return FB.set('/hy/roster', {t:{ta:{n:'사자반',e:'🦁'}, tb:{n:'돌고래반',e:'🐬'}}, k:{k1:{n:'민준',t:'ta'}, k2:{n:'서연',t:'tb'}}}); }"""); await host.wait_for_timeout(300)
         await host.evaluate("()=>HyBoss.setup({on:true, team:false, split:'eq', restart:true})"); await host.wait_for_timeout(400)
         b=await host.evaluate("()=>[HyBoss.B.i, HyBoss.B.img, HyBoss.B.max.all, HyBoss.B.gems, HyBoss.B.team]"); print("week0", b)
-        if b!=[0,"hb1",1000,60,False]: bad.append(f"1번 보스 {b}")
+        if b!=[0,"hb1",5000,60,False]: bad.append(f"1번 보스 {b}")
         kids=[]
         for kid,nm,t in [("k1","민준","ta"),("k2","서연","tb")]:
             k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k)
@@ -43,7 +43,7 @@ async def main():
         if sk!='{"r":9,"s":9}': bad.append(f"다른 기기에서 공격 기회 {sk}")
         await k2.evaluate("()=>{ HyBoss.CAP=9999; }")
         a4=await k2.evaluate("()=>HyBoss.add(Kid.get(), 9999, 'study')"); print("kill", a4)
-        if a4!=600: bad.append(f"남은 체력만큼만 {a4}")
+        if a4!=4600: bad.append(f"남은 체력만큼만 {a4}")
         d=await k1.evaluate("()=>HyBoss.refresh(true).then(()=>[!!HyBoss.state('all').dead, HyBoss.state('all').dead.by, HyBoss.reward(Kid.get())])"); print("dead", d)
         if d!=[True,"서연",30]: bad.append(f"쓰러뜨림·보상 60÷2 {d}")
         await k1.evaluate("()=>{ show('scStudy'); StudyUI.path(); }"); await k1.wait_for_timeout(400)
@@ -70,7 +70,7 @@ async def main():
         # 반 대항전 — 반 없는 아이는 공격 안 됨
         await host.evaluate("()=>{ window._n0=null; HyBoss.setup({on:true, team:true, split:'eq', restart:true}); }"); await host.wait_for_timeout(400)
         tm=await host.evaluate("()=>[HyBoss.B.team, Object.keys(HyBoss.B.max).sort(), HyBoss.B.max.ta]"); print("team", tm)
-        if tm!=[True,["ta","tb"],500]: bad.append(f"반 대항 보스 {tm}")
+        if tm!=[True,["ta","tb"],5000]: bad.append(f"반 대항 보스 {tm}")
         k3=await ctx.new_page(); k3.on("pageerror", lambda e: errs.append("K3 "+str(e))); await boot(k3)
         nt=await k3.evaluate("()=>{ localStorage.setItem('hyeng_nick','한양패드'); Kid.set({id:'zz',n:'손님',t:'all'}); HyBoss.start(); return HyBoss.refresh(true).then(()=>[HyBoss.team('zz', Kid.get()), HyBoss.add(Kid.get(), 50, 'study')]); }"); print("no team", nt)
         if nt!=[None,0]: bad.append(f"반 없는 아이 {nt}")
