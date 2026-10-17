@@ -16,8 +16,8 @@ async def main():
         if not ban0: bad.append("보스가 없는데 알림이 보임")
         await pg.evaluate("""()=>{ HyBoss.live(); return FB.set('/hy/roster', {t:{}, k:{k1:{n:'민준'},k2:{n:'서연'}}}).then(()=>HyBoss.setup({on:true, team:false, split:'eq', restart:true})); }"""); await pg.wait_for_timeout(400)
         await pg.evaluate("()=>{ localStorage.setItem('hyeng_nick','한양패드'); Kid.set({id:'k2',n:'서연',t:'all'}); G.char='mage'; HyBoss.add(Kid.get(), 60, 'study'); Kid.set({id:'k1',n:'민준',t:'all'}); G.char='knight'; show('scStart'); }"); await pg.wait_for_timeout(300)
-        b=await pg.evaluate("()=>{ const e=document.getElementById('hbBan'); return [e.hidden, e.innerText]; }"); print("banner", b)
-        if b[0] or "초원 수호자" not in b[1] or "남음" not in b[1]: bad.append(f"첫 화면 알림 {b}")
+        b=await pg.evaluate("()=>{ const e=document.getElementById('hbBan'); return [e.hidden, e.getAttribute('aria-label')]; }"); print("banner", b)
+        if b[0] or "초원 수호자" not in b[1] or "시간" not in b[1] and "일" not in b[1]: bad.append(f"첫 화면 알림 {b}")
         # (v312) 달리기 한 판 → ⚔️ 공격 기회 +5 (20단어 ÷ 4) + 미션 · 쌓였을 때 작은 장면
         await pg.evaluate(END); await pg.wait_for_timeout(600)
         ov=await pg.evaluate("()=>{ const o=document.querySelector('.ovBoss'); return o?o.innerText:''; }"); print("over", ov)

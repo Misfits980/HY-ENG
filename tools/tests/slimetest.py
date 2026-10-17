@@ -35,7 +35,7 @@ async def main():
         ok(nxtw[0] == nxtw[1], f"다음 주 보스 번호 {nxtw}")
         # 첫 화면 알림 · 보스 화면
         await pg.evaluate("()=>show('scStart')"); await pg.wait_for_timeout(500)
-        ban = await pg.evaluate("()=>document.getElementById('hbBan').innerText"); print("banner", ban.replace("\n", " / "))
+        ban = await pg.evaluate("()=>document.getElementById('hbBan').getAttribute('aria-label')"); print("banner", ban.replace("\n", " / "))
         ok("슬라임" in ban, "첫 화면 알림에 슬라임")
         await pg.evaluate("()=>WeekBoss.open()"); await pg.wait_for_timeout(1500)
         await pg.screenshot(path=OUT + "slime_view.png")

@@ -939,7 +939,7 @@ html,body{min-height:var(--appH,100%)}
 .corner.top{top:calc(env(safe-area-inset-top,0px) + 16px);bottom:auto;right:16px;
   width:44px;height:44px;padding:0;display:grid;place-items:center}
 .corner.top.off{display:none}
-#btnFsHome{right:auto;left:16px}   /* (v289) QA: 첫 화면 톱니(오른쪽 위)와 겹쳐 설정 대신 전체화면이 켜졌다 → 왼쪽 위로 */
+#btnFsHome{left:auto;right:calc(env(safe-area-inset-right,0px) + 72px)}   /* (v327) 왼쪽 위는 보스 배지 → 톱니 왼쪽으로 (톱니와는 안 겹침) */   /* (v289) QA: 첫 화면 톱니(오른쪽 위)와 겹쳐 설정 대신 전체화면이 켜졌다 → 왼쪽 위로 */
 #scStart:not(.on) ~ #btnFsHome{display:none!important}
 .corner.top svg,#fsBtn svg{display:block;margin:auto}   /* (v259) 아이콘을 동그라미 가운데로 */
 .corner:active{background:rgba(255,255,255,.12)}
@@ -2624,6 +2624,22 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .hbBar{display:block;height:7px;border-radius:9px;background:rgba(0,0,0,.45);overflow:hidden;margin-top:4px} .hbBar u{display:block;height:100%;background:linear-gradient(90deg,#ff5f7a,#ff9a4a);border-radius:9px}
 .hbBan em{font-style:normal;font-weight:900;font-size:12px;color:#ffe9a8;flex:none}
 @keyframes hbGlow{50%{box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 18px rgba(255,120,160,.45)}}
+/* (v327) 왼쪽 위 동그란 보스 배지 (설정 톱니와 마주 보게) — 체력 고리 · ⚔️ 공격 기회 수 · 🎁 받을 보상 */
+#scStart .hbBan.hbCorner{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:calc(env(safe-area-inset-left,0px) + 10px);z-index:3;width:76px;margin:0;padding:0;
+  flex-direction:column;align-items:center;gap:1px;border:0;border-radius:0;background:none;box-shadow:none;animation:none;text-align:center}
+#scStart .hbBan.hbCorner[hidden]{display:none}
+.hbRing{position:relative;display:block;width:60px;height:60px;border-radius:50%;padding:4px;box-sizing:border-box;
+  background:conic-gradient(#ff5f7a calc(var(--hp)*1%), rgba(255,255,255,.14) 0);box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 0 2px rgba(255,140,170,.55)}
+.hbRing::before{content:"";position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#4a2f7e,#1d1438)}
+.hbRing.dead{background:conic-gradient(#7ed957 100%, transparent 0)}
+#scStart .hbCorner .hbRing img{position:relative;display:block;width:100%;height:100%;object-fit:contain;animation:rsBreath 2.4s ease-in-out infinite;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.hbChip{position:absolute;top:-2px;right:0;min-width:22px;padding:2px 6px;border-radius:11px;background:#ffd23f;color:#3a2600;font:900 12px/16px var(--font);box-shadow:0 2px 0 rgba(0,0,0,.35);white-space:nowrap}
+.hbChip.gift{background:#7ed957;font-size:13px}
+.hbCorner.hot .hbRing{animation:hbHot 1.4s ease-in-out infinite}
+@keyframes hbHot{50%{box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 0 2px rgba(255,140,170,.9),0 0 16px rgba(255,120,160,.75)}}
+.hbL{display:block;margin-top:3px;font:900 12px/1.1 var(--font);color:#fff;text-shadow:0 1px 3px #0d0a24,0 0 6px #0d0a24;white-space:nowrap}
+.hbT{display:block;font:800 10.5px/1.1 var(--font);color:#ffd9e3;text-shadow:0 1px 3px #0d0a24;white-space:nowrap}
+.hbCorner:active .hbRing{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35),0 0 0 2px rgba(255,140,170,.55)}
 /* (v322) 좁은 폰(320)·짧은 세로 폰 — 보스 알림·미션 칸이 메뉴보다 넓어 오른쪽으로 삐져나가 보스 이름이 잘렸고, 아래에 고정된 버전 글씨가 미션 칸 위에 겹쳤다 */
 @media (max-width:359px){
   #scStart .menu{width:min(320px,92vw)}
@@ -2642,8 +2658,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
   body.ui-skin #scStart .menu > .mitem, body.ui-skin #scStart .menuDuo .mitem{min-height:46px;padding-top:6px;padding-bottom:6px;font-size:19px}
   body.ui-skin #scStart .menu > .mitem{width:min(310px,46vw)}
   #scStart .subRow .mitem{min-height:40px;padding-top:6px;padding-bottom:6px}
-  #scStart .menuDuo, #scStart .hbBan, #scStart .dmBtn{width:min(310px,46vw)}
-  #scStart .hbBan{margin:2px auto 0}
+  #scStart .menuDuo, #scStart .dmBtn{width:min(310px,46vw)}
   #scStart .rotateTip{display:none}
 }
 .stBossSee{appearance:none;border:0;cursor:pointer;font:900 11px var(--font);color:#3a2600;background:#ffd23f;border-radius:9px;padding:2px 7px;margin-left:4px;vertical-align:2px}
@@ -2812,6 +2827,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 
 <!-- 타이틀 -->
 <div class="screen on" id="scStart">
+  <button class="hbBan hbCorner" id="hbBan" hidden></button><!-- (v310) 🏠 이번 주 보스 → (v327) 왼쪽 위 동그란 배지 (사용자: 메뉴 아래 긴 칸 때문에 스크롤이 생겨 불편) -->
   <button class="gearBtn" id="btnGear" aria-label="설정"><span class="hico gear"></span><span class="gz">⚙</span></button>
   <div class="titleWrap">
     <div class="logo">
@@ -2826,7 +2842,6 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
         <button class="mitem duo" id="btnDex"><span class="eico">📖</span>단어 도감<b class="mBadge" id="dexBadge" style="display:none"></b></button>
         <button class="mitem duo" id="btnShop"><span class="eico">💎</span>상점</button>
       </div>
-      <button class="hbBan" id="hbBan" hidden></button><!-- (v310) 🏠 이번 주 보스 알림 → 보스 화면 -->
       <button class="dmBtn" id="dmBtn" hidden></button><!-- (v310) 🎯 오늘의 미션 -->
       <button class="mitem" id="btnVersus" style="display:none"><span class="mico i6"></span>2인용 대결 <small style="display:block;font-size:11px;color:#a99ed0;font-weight:700">키보드 하나로 둘이 · PC</small></button>
       <div class="subRow">
@@ -12667,7 +12682,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v326";
+const GAME_VER = "v327";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12777,6 +12792,10 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-17j", date:"10월 17일", title:"🏠 주간 보스가 왼쪽 위로!",
+   items:[
+     ["👹","동그란 보스 배지","첫 화면 왼쪽 위 — 빨간 고리 = 남은 체력 · ⚔️ 숫자 = 내 공격 기회 · 🎁 = 받을 보상"]
+   ]},
   {id:"2026-10-17i", date:"10월 17일", title:"💜3 더 어렵게!",
    items:[
      ["🧱","낱말 하나씩 문장 만들기","보라 별 3 문장 만들기는 낱말 조각으로 · 필요 없는 함정 조각 1개가 숨어 있어요"],
@@ -16571,7 +16590,10 @@ const WeekBoss = {
   /* 첫 화면 알림 — 보스가 있을 때만 */
   banner(){ const el=$("hbBan"); if(!el) return; try{ if(HyBoss.roll()) return; }catch(e){} const B=HyBoss.B; if(!B || !HyBoss.on()){ el.hidden=true; return; }   // (v322) 새 주면 roll → 다시 그림
     const me=Kid.me(), v=this.view(B, me), pc=Math.round(v.pct*100), E=x=>Raid.esc(x);
-    const h='<img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+'><span class="hbI"><b>🏠 <i class="hbPre">이번 주 보스 · </i>'+E(B.n)+'</b><i class="hbBar"><u style="width:'+(v.dead?0:pc)+'%"></u></i><small>'+(v.dead?'🎉 쓰러뜨렸어요! 보상 받으러 가기':'⏰ '+this.left(B)+(me?' · ⚔️ 공격 기회 '+(()=>{ const k=HyBoss.stock(me.id); return k.r+k.s; })():''))+'</small></span><em>'+(me && !v.dead && (()=>{ const k=HyBoss.stock(me.id); return k.r+k.s>0; })() ? '⚔️ 공격 ›' : '보기 ›')+'</em>';
+    const st=me ? HyBoss.stock(me.id) : null, n=st ? st.r+st.s : 0, gift=!!(me && (()=>{ try{ return HyBoss.reward(me) || HyBoss.prevReward(me) || HyBoss.oldRewards(me).length; }catch(e){ return 0; } })());
+    const chip = gift ? '<b class="hbChip gift">🎁</b>' : (n>0 && !v.dead) ? '<b class="hbChip">⚔️'+n+'</b>' : '';   /* (v327) 왼쪽 위 배지 — 체력 고리 · 공격 기회 수 · 받을 보상 */
+    const h='<span class="hbRing'+(v.dead?' dead':'')+'" style="--hp:'+(v.dead?0:pc)+'"><img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+'></span>'+chip+'<span class="hbL">주간 보스</span><small class="hbT">'+(v.dead?'🎉 쓰러뜨림':'⏰ '+E(String(this.left(B)).replace(/ ?남음$/,'')))+'</small>';
+    el.setAttribute("aria-label", "이번 주 보스 · "+B.n+" · "+(v.dead?"쓰러뜨렸어요":this.left(B))+(me?" · 공격 기회 "+n:"")); el.title=el.getAttribute("aria-label"); el.classList.toggle("hot", n>0 || gift);
     if(el._h!==h){ el._h=h; el.innerHTML=h; } el.hidden=false; }
 };
 HyBoss.onChange(()=>{ try{ if(WeekBoss.isOpen()) WeekBoss.draw(); WeekBoss.banner(); }catch(e){ console.error(e); } });
