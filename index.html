@@ -12640,7 +12640,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v323";
+const GAME_VER = "v324";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12750,6 +12750,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-17g", date:"10월 17일", title:"🏫 중등 단어도 짧게!",
+   items:[
+     ["✂️","한 판이 짧아졌어요","중등 단어 25개 과를 다른 책처럼 9개 안팎 Stage 로 나눴어요 — 받은 별은 그대로!"],
+     ["🚩","과 마지막엔 모아서 복습","나눈 Stage 를 다 하면 그 과 전체 단어로 마지막 시험"]
+   ]},
   {id:"2026-10-17f", date:"10월 17일", title:"⚔️ 주간 보스 보상 규칙",
    items:[
      ["🎁","3번 이상 휘두르면 보상","보상을 똑같이 나눌 때는 ⚔️ 3번 이상 휘두른 친구만 받아요"]
@@ -12956,7 +12961,7 @@ $("btnResume").addEventListener("click",()=>{
 const Study = (function(){
   const KEY="hyeng_study_v1", SETS=["kinder","abc","short","long","digr","vowel2","sight","basic","elem","g56","rd1","rd2","rd3","mv1","jl","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
   let m=null;
-  function load(){ if(m) return m; try{ m=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ m={}; } m.lv=m.lv||{}; m.seen=m.seen||{}; if(!m.set) m.set="basic"; phMig(m); spMig(m); gvMig(m); tierMig(m); return m; }
+  function load(){ if(m) return m; try{ m=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ m={}; } m.lv=m.lv||{}; m.seen=m.seen||{}; if(!m.set) m.set="basic"; phMig(m); midMig(m); spMig(m); gvMig(m); tierMig(m); return m; }
   /* (v243) 예전 파닉스 Stage(짧은 a 20단어 = short-1 …)의 별 → 새 1-1 · 1-2 … 중 단어를 다 만난 Stage 로 옮긴다
      (v246) 장모음 o_e·u_e 를 나누고 ee·ea·ai·ay·oa 를 이중모음으로 옮김 → v243 저장(phv 1)의 별도 옮긴다 */
   function phMig(m){ if((m.phv|0)>=2) return; try{
@@ -12968,6 +12973,15 @@ const Study = (function(){
           if(x && x.ws.every(w=>m.seen[w.en])) m.lv[nk]=Math.max(m.lv[nk]||0, ov); }); }
       m.phv=2; save(); }catch(e){} }
   /* (v249) 초등 과를 나눔 — 예전 과 별(basic-3)은 그 과의 3-1 · 3-2 · 3-3 · 🚩 중 단어를 다 만난 곳으로 */
+  /* (v324) 중등 단어(mid, 25개 묶음)도 나눔 (사용자) — 예전 과 n 의 별·확인·심화·최고 점수·달린 표시를 나눈 Stage(n×100+1…)로 옮김. 🚩 모아서 복습은 새로 */
+  function midMig(m){ if((m.mdv|0)>=1) return; try{ const set="mid", P=["ck","d1","dp","b2"], R=(m.ran=m.ran||{});
+      const L=lessons(set), one=pn=>L.filter(y=>y.pn===pn).length===1;   // 12개 이하라 안 나뉜 과(🚩 하나)는 그대로 옮김
+      L.forEach(x=>{ if(!x.pn || (x.fin && !one(x.pn))) return; const ok=set+"-"+x.pn, nk=set+"-"+x.n;
+        if(m.lv[ok]) m.lv[nk]=Math.max(m.lv[nk]||0, m.lv[ok]);
+        P.forEach(f=>{ if(m[f] && m[f][ok]!=null && m[f][nk]==null) m[f][nk]=m[f][ok]; });
+        if(R[ok] && !R[nk]) R[nk]=R[ok]; });
+      if(m.last && m.last[set] && m.last[set]<100) m.last[set]=m.last[set]*100+1;
+      m.mdv=1; save(); }catch(e){} }
   function spMig(m){ if((m.spv|0)>=1) return; try{
       Object.keys(SPLIT).forEach(set=>{ lessons(set).forEach(x=>{ const ov=m.lv[set+"-"+x.pn]||0, k=set+"-"+x.n;
           if(ov && x.ws.every(w=>m.seen[w.en])) m.lv[k]=Math.max(m.lv[k]||0, ov); });
@@ -13036,7 +13050,7 @@ const Study = (function(){
   }
   /* (v249) 초등 — 교재 과(25~30단어)를 10단어 안팎으로 나눈다: Stage 3 → 3-1 · 3-2 · 3-3 · 🚩(과 전체 모아서 복습)
      저장 번호 n = 과×100 + 순서 (예전 과 번호와 겹치지 않음) · pn = 교재 과 번호 (달리기·리딩 뜻은 과 기준) */
-  const SPLIT={basic:1, elem:1, g56:1, rd1:1, rd2:1, rd3:1, mv1:1, jl:1};
+  const SPLIT={basic:1, elem:1, g56:1, rd1:1, rd2:1, rd3:1, mv1:1, jl:1, mid:1};   // (v324) 중등 단어도
   function splitL(out){ const R=[];
     out.forEach((x,i)=>{ const L=x.ws.length, parts=Math.max(1, Math.ceil(L/12)), sz=Math.ceil(L/parts);
       if(parts<2){ R.push(Object.assign({}, x, {n:x.n*100+1, pn:x.n, wd:i+1, fin:true})); return; }
@@ -13932,7 +13946,7 @@ const Study = (function(){
     ws.forEach(w=>{ const t=canSpell(w) ? "spell" : "k2e"; qs.push(makeQ(t, w, pool, 1)); });
     return qs;
   }
-  return { hasHomo, ctx, gvWallet, hasFlag:set=>!!SPLIT[set], mig:()=>{ if(!m) load(); phMig(m); spMig(m); gvMig(m); tierMig(m); },
+  return { hasHomo, ctx, gvWallet, hasFlag:set=>!!SPLIT[set], mig:()=>{ if(!m) load(); phMig(m); midMig(m); spMig(m); gvMig(m); tierMig(m); },
     _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
