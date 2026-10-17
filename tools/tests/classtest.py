@@ -42,7 +42,27 @@ async def main():
                 await pg.click("[data-ad=btGo]"); await pg.wait_for_timeout(900)   # (v308) 배틀 방 만들기 버튼이 정말 방을 여는지
                 bt=await pg.evaluate("()=>[Battle.role, Battle.room, (Battle.cfg().words||[]).length]"); print("btGo", bt)
                 if bt[0]!="host" or not bt[1] or bt[2]<3: bad.append(f"배틀 방 만들기 버튼 {bt}")
+                # (v322) 📺 TV 새로고침 → 관리 ⚔️ 탭 「방 다시 열기」 → 같은 방 (새로 쓰지 않음)
+                await pg.reload(); await pg.wait_for_timeout(1000)
+                await pg.evaluate("(R)=>{ Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:3, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:true, rep:R} : {ok:true}); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }", REP)
+                await pg.wait_for_timeout(500); await pg.click('#adTabs [data-t="raid"]'); await pg.wait_for_timeout(400)
+                has=await pg.evaluate("()=>!!document.querySelector('[data-ad=tvBack]')")
+                if not has: bad.append("📺 방 다시 열기 버튼 없음")
+                else:
+                    await pg.click("[data-ad=tvBack]"); await pg.wait_for_timeout(700)
+                    bt2=await pg.evaluate("()=>[Battle.role, Battle.room, (Battle.cfg().words||[]).length]"); print("tvBack", bt2)
+                    if bt2!=bt: bad.append(f"📺 다시 열기 {bt2} != {bt}")
                 await pg.evaluate("()=>Battle.leave()"); await pg.wait_for_timeout(300)
+                if await pg.evaluate("()=>!!TvRoom.get()"): bad.append("TV 를 닫았는데 다시 열기가 남음")
+                # (v322) 방패 단어 — 쉼표로만 나눔 ('put on' 그대로) · 없는 단어는 알려 줌
+                await pg.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }"); await pg.wait_for_timeout(400)
+                await pg.click('#adTabs [data-t="raid"]'); await pg.wait_for_timeout(300)
+                await pg.evaluate("()=>{ document.getElementById('adRdWords').value='put on, zzqx, home'; }")
+                await pg.click("[data-ad=raidGo]"); await pg.wait_for_timeout(900)
+                rd=await pg.evaluate("()=>[Raid.role, ((RaidNet.get().sh||{}).w)||[], (document.getElementById('hyToast')||{}).textContent||'', !!Study.word('put on')]"); print("raidGo", rd)
+                want=(["put on"] if rd[3] else [])+["home"]
+                if rd[0]!="host" or rd[1]!=want or "zzqx" not in rd[2]: bad.append(f"방패 단어 칸 {rd}")
+                await pg.evaluate("()=>Raid.leave()"); await pg.wait_for_timeout(300)
                 # 옛 서버 (v2) — 처음부터
                 await pg.reload(); await pg.wait_for_timeout(1000)
                 await pg.evaluate("(R)=>{ window._srvV=2; Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:2, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:false, err:'type'} : {ok:true}); localStorage.removeItem('hyeng_admin_rep'); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }", REP)

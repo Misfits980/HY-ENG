@@ -15,11 +15,18 @@ async def main():
         # 문제 만들기만 먼저 — 종류마다 정답 칸
         chk=await host.evaluate("""()=>{ Battle._ws=null; Battle.h={get:()=>({cfg:{set:'elem', from:0, to:3, qt:['spell','gap','ox','pic','lsn','mean']}})}; const seen={}, wrong=[];
           for(let i=0;i<400;i++){ const q=Battle.mkQ(); Battle.q=q; seen[q.t]=(seen[q.t]||0)+1;
-            if(q.t==='spell'){ if(q.lab[q.ans]!==q.w.en || new Set(q.lab).size!==q.lab.length || q.lab.length<3) wrong.push(['spell',q.lab,q.w.en]); }
-            if(q.t==='gap'){ if(q.gap.replace('_', q.lab[q.ans])!==q.w.en || new Set(q.lab).size!==4) wrong.push(['gap',q.gap,q.lab]); }
-            if(q.t==='ox'){ if((q.ko===q.w.ko)!==(q.ans===0)) wrong.push(['ox',q.ko,q.w.ko]); }
+            if(q.t==='spell'){ if(q.lab[q.ans]!==q.w.en || new Set(q.lab).size!==q.lab.length || q.lab.length<3) wrong.push(['spell',q.lab,q.w.en]);
+              if(q.lab.some(x=>x!==q.w.en && (x[0]!==q.w.en[0] || Battle.real(x)))) wrong.push(['spell 첫 글자·진짜 단어 (v322)',q.lab,q.w.en]); }
+            if(q.t==='gap'){ if(q.gap.replace('_', q.lab[q.ans])!==q.w.en || new Set(q.lab).size!==4) wrong.push(['gap',q.gap,q.lab]);
+              if(q.lab.some((x,i)=>i!==q.ans && Battle.real(q.gap.replace('_', x)))) wrong.push(['gap 다른 진짜 단어 (v322)',q.gap,q.lab]); }
+            if(q.t==='ox'){ if((q.ko===q.w.ko)!==(q.ans===0)) wrong.push(['ox',q.ko,q.w.ko]);
+              if(q.ans===1 && Battle.sameMean({ko:q.ko}, q.w)) wrong.push(['ox 뜻이 같은 짝 (v322)',q.w.en,q.ko,q.w.ko]); }
             if(q.t==='pic'){ if(q.opts[q.ans]!==q.w || !q.w.emoji) wrong.push(['pic',q.w.en]); }
             if(q.t==='lsn'){ if(q.lab[q.ans]!==q.w.ko) wrong.push(['lsn',q.w.en]); } }
+          const sm=[['on','above'],['travel','trip'],['under','below']].map(([a,b])=>{ const A=Study.word(a)||WORD_BANK.find(w=>w.en===a), B=Study.word(b)||WORD_BANK.find(w=>w.en===b); return A&&B ? Battle.sameMean(A,B) : true; });
+          if(sm.some(x=>!x)) wrong.push(['뜻이 같은 짝을 못 알아봄 (v322)', sm]);
+          Battle.h={get:()=>({cfg:{dur:300}})}; const g5=Battle.goal(); Battle.h={get:()=>({cfg:{dur:180}})}; const g3=Battle.goal(); Battle.h={get:()=>({cfg:{dur:300, goal:15}})}; const g15=Battle.goal();
+          if(g5!==30 || g3!==18 || g15!==15) wrong.push(['목표 자동 (분×6) (v322)', g5, g3, g15]);
           Battle.h=null; Battle.q=null; Battle._ws=null; return [seen, wrong.slice(0,5)]; }""")
         print("types", chk)
         for t in ["spell","gap","ox","pic","lsn"]:
@@ -30,6 +37,11 @@ async def main():
         for i,(kid,nm,t) in enumerate([("k1","민준","ta"),("k2","서연","ta"),("k3","지호","tb"),("k4","하린","tb")]):
             k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k)
             await k.evaluate(f"()=>{{ HyBoss.start(); return HyBoss.refresh(true).then(()=>{{ Battle.join('{room}', {{id:'{kid}', n:'{nm}', t:'{t}'}}); Battle.FAST=0; }}); }}"); kids.append(k)
+        # (v322) 들어오기만 하고 안 푸는 사자반 아이 · 반 없는 아이 — 반 평균을 깎지 않고, '반 없음' 레인은 안 보임
+        idle=[]
+        for kid,nm,t in [("k5","지민","ta"),("k6","무소속","")]:
+            k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k)
+            await k.evaluate(f"()=>{{ HyBoss.start(); return HyBoss.refresh(true).then(()=>{{ Battle.join('{room}', {{id:'{kid}', n:'{nm}', t:'{t}'}}); }}); }}"); idle.append(k)
         await host.wait_for_timeout(500); await host.screenshot(path=OUT+"flag_host_wait.png")
         await host.evaluate("()=>Battle.hostAct('start')"); await host.wait_for_timeout(3900)
         random.seed(3); kinds={}; shots=set()
@@ -44,6 +56,9 @@ async def main():
             await host.wait_for_timeout(40)
             if await host.evaluate("()=>Battle.st().s==='end'"): break
         st=await host.evaluate("()=>[Battle.st().s, Battle.st().win, Battle.teamsOf().map(a=>[a.t, Math.round(a.p*10)/10])]"); print("end", st, kinds)
+        ln=await host.evaluate("()=>[Battle.teamsOf().map(a=>[a.t, a.n, a.all]), !!document.querySelector('.btTeams')]"); print("lanes", ln)
+        if [x[0] for x in ln[0]]!=["ta","tb"] or ln[0][0][1]!=2 or ln[0][0][2]!=3: bad.append(f"깃발 레인 (푼 아이만 · 반 없음 빼기) {ln}")
+        if ln[1]: bad.append("깃발 레이스에 1인 평균 점수 줄")
         await host.wait_for_timeout(3200)
         res=[await k.evaluate("()=>[Battle.ended, Battle._win, Battle._gems, Battle.ok]") for k in kids]; print("res", res)
         await host.screenshot(path=OUT+"flag_host_end.png"); await kids[0].screenshot(path=OUT+"flag_kid_end.png")

@@ -32,7 +32,9 @@ async def main():
                 await k0.wait_for_timeout(110); shots.append(await k0.screenshot(clip={"x":0,"y":0,"width":390,"height":470}))
             await k0.wait_for_timeout(500)
         # 친구 공격 → 친구 캐릭터가 달려감
-        await kids[1].evaluate(ANS, True)   # (v311) 바쁠 때도 — 바로 앞에서 한 번 더 공격하고 몇 초 기다림
+        for i in range(12):   # (v311) 바쁠 때도 — 바로 앞에서 한 번 더 공격하고 몇 초 기다림 · (v322) 쉬는 중·공격 예고 중이면 문제가 나올 때까지 (가끔 실패하던 것)
+            if await kids[1].evaluate(ANS, True)!="none": break
+            await kids[1].wait_for_timeout(400)
         try: await k0.wait_for_function("()=>Object.values(RaidStage.al).some(a=>a.dashT && Date.now()-a.dashT<4000)", timeout=6000); ad=True
         except Exception: ad=False
         print("ally dash", ad)
