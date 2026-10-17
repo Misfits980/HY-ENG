@@ -12378,8 +12378,9 @@ function gameOver(){
   /* (v305) 🏃 달리기도 🏠 주간 보스를 깎는다 — 맞힌 단어 1개 = ⚔️2, 하루 100 까지 (공부가 먼저라 공부보다 적게) */
   try{ if(!G.testRun && !G.practice && (G.right|0)>0){ DM.add("run", 1); DM.add("rw", G.right|0); DM.add("combo", G.bestCombo|0); } }catch(e){}   // (v310) 🎯 오늘의 미션
   /* (v312) 🏃 달리기 = 공격 기회 쌓기 (맞힌 단어 4개 = 1번, 🏃 10까지) */
-  try{ if(!G.testRun && !G.practice && (G.right|0)>0){ const n=Math.ceil((G.right|0)/HyBoss.PER_RUN); HyBoss.start();
+  try{ if(!G.testRun && !G.practice && (G.right|0)>0){ const n=Math.ceil((G.right|0)/HyBoss.PER_RUN), ez=HyBoss.easy(G.set, G.book); HyBoss.start();
       HyBoss.refresh(true).then(()=>{ const B=HyBoss.B, me=Kid.me(), o=$("oReview"); if(!B || !me || !o || !HyBoss.on()) return;
+        if(ez){ o.insertAdjacentHTML("afterbegin", '<div class="ovBoss">🧸 유치원 단어는 ⚔️ 공격 기회가 안 쌓여요 — <b>G1-2부터</b> 쌓여요</div>'); return; }   /* (v319) */
         const t=HyBoss.team(me.id, me), s=t && HyBoss.state(t), got = (s && s.dead) ? 0 : HyBoss.earn(me, "run", n), st=HyBoss.stock(me.id);
         const tx = s && s.dead ? '🏠 '+Raid.esc(B.n)+' — 벌써 쓰러뜨렸어요! 보스 화면에서 보상 받기'
           : got>0 ? '⚔️ 공격 기회 <b>+'+got+'</b> (🏃 '+st.r+'/'+HyBoss.STK+') — 🏠 '+Raid.esc(B.n)+'에게 휘둘러요!'
@@ -12389,7 +12390,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v318";
+const GAME_VER = "v319";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14528,6 +14529,7 @@ const StudyUI = {
     try{ const n=Math.ceil((this.first|0)/(per>=5 ? HyBoss.PER_TEST : HyBoss.PER_STUDY)); if(!(n>0)) return; HyBoss.start();
     HyBoss.refresh(true).then(()=>{ if(!HyBoss.B || !HyBoss.on()) return; const me=Kid.me(), d=$("stDoneIn"), say=h=>{ if(d) d.insertAdjacentHTML("beforeend", '<div class="stBossAdd">'+h+'</div>'); };
       if(!me){ if(Object.keys(HyBoss.kids()).length) say('🏠 이번 주 보스 — 👤 내 이름을 고르면 공부한 만큼 ⚔️ 공격 기회가 쌓여요'); return; }
+      if(HyBoss.easy(this.set)){ say('🧸 유치원 단어는 ⚔️ 공격 기회가 안 쌓여요 — <b>G1-2부터</b> 쌓여요'); return; }   /* (v319) 너무 쉬워서 (사용자) */
       const t=HyBoss.team(me.id, me), s=t && HyBoss.state(t); if(s && s.dead){ say('🏠 이번 주 보스는 벌써 쓰러뜨렸어요! 보스 화면에서 보상 받기'); return; }
       const got=HyBoss.earn(me, "study", n), st=HyBoss.stock(me.id);
       if(got>0){ say('⚔️ 공격 기회 <b>+'+got+'</b> (📚 '+st.s+'/'+HyBoss.STK+') — 🏠 보스 화면에서 휘둘러요!'); setTimeout(()=>{ try{ if($("scStudy").classList.contains("on")) WeekBoss.gain(got, "study"); }catch(e){} }, 900); }
@@ -15704,6 +15706,8 @@ const HyBoss = {
   CAP:400, RUN_CAP:400, ESC:0.4, CK:"hyeng_hb2",
   /* (v312) ⚔️ 공격 기회 — 공부·달리기는 데미지 대신 '공격 기회'를 쌓음 (📚 데일리 · 🏃 달리기 각각 10까지). 보스 화면에서 ⚔️ 공격! 한 번 = 기회 1개 = 8~12 (가끔 치명타 ×2)
      보스가 공격하면 🛡 막기 — 막으면 반격 15(기회 안 씀), 못 막으면 기회 -1. 기록은 이번 주 보스 칸 /hy/dmg/<보스>/<아이> 의 sr(달리기)·ss(데일리) — 보스가 바뀌면 지난주 칸에서 이어 받음 */
+  /* (v319) 유치원 단어(그림 단어·파닉스·사이트 워드)는 공격 기회가 안 쌓임 — 너무 쉬워서 쌓기만 하는 걸 막기 (사용자) */
+  EASY_SETS:["kinder","abc","short","long","digr","vowel2","sight"], easy(set, book){ return this.EASY_SETS.indexOf(set)>=0 || (book!=null && this.EASY_SETS.indexOf(book)>=0); },
   FLOOR:10, STK:10, SW_MIN:8, SW_MAX:12, CRIT:0.12, COUNTER:15, PER_STUDY:3, PER_TEST:2, PER_RUN:4,
   R:null, C:null, B:null, P:null, D:{}, PD:{}, subs:[], started:false, ok:false, _t:0, _p:null, _live:null,
   /* (v309) 날짜는 언제나 한국 시간 (태블릿 시간대가 달라도 같은 주·같은 날) */
@@ -15891,7 +15895,7 @@ const WeekBoss = {
   guide(B){ const E=x=>Raid.esc(x), on=!!B, sp=B && B.split==="prop";   /* (v317) 짧게 (사용자: 간추리기) — 네 줄 */
     return '<div class="wbGuide wbGuide2">'
       +'<p><i>🗓</i><span><b>월요일 0시 ~ 일요일 밤 12시</b>'+(on?' <small>('+this.when(B)+')</small>':' <small>(선생님이 켜면 시작)</small>')+'</span></p>'
-      +'<p><i>⚔️</i><span>공격 기회 모으기: 📚 <b>Daily 30</b> 맞힌 '+HyBoss.PER_STUDY+'문제 = 1 · 🏃 <b>달리기</b> 맞힌 '+HyBoss.PER_RUN+'단어 = 1 <small>(각각 '+HyBoss.STK+'개까지)</small></span></p>'
+      +'<p><i>⚔️</i><span>공격 기회 모으기: 📚 <b>Daily 30</b> 맞힌 '+HyBoss.PER_STUDY+'문제 = 1 · 🏃 <b>달리기</b> 맞힌 '+HyBoss.PER_RUN+'단어 = 1 <small>(각각 '+HyBoss.STK+'개까지 · 🧸 유치원 단어는 빼고)</small></span></p>'
       +'<p><i>🛡</i><span>보스가 ⚠️ 공격하면 <b>막기!</b> — 막으면 반격 ⚔️'+HyBoss.COUNTER+', 못 막으면 기회 -1</span></p>'
       +'<p><i>🎁</i><span>쓰러뜨리면 💎'+(on?(B.gems|0):'')+' '+(sp?'깎은 만큼':'똑같이')+' 나눠요 · 못 잡으면 <b>도망</b> (작은 보상)</span></p>'
       +'</div>'; },
