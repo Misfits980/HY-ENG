@@ -25,12 +25,14 @@ async def main():
         dm=await pg.evaluate("()=>DM.list().map(m=>[m.k, m.n, m.goal, m.done])"); print("missions", dm)
         runm=[m for m in dm if m[0] in ("run","rw","combo")]
         if not runm or not runm[0][3]: bad.append(f"달리기 미션 {dm}")
-        await pg.wait_for_selector("#wbPop", timeout=5000); await pg.wait_for_timeout(900); await pg.screenshot(path=OUT+"wb_gain.png")
-        pt=await pg.evaluate("()=>document.getElementById('wbPop').innerText"); print("gain", pt.replace("\n"," / "))
-        if "공격 기회 +5" not in pt or "5/10" not in pt: bad.append(f"기회 쌓임 장면 {pt}")
-        await pg.evaluate("()=>{ const b=document.querySelector('[data-wbp=see]'); if(b) b.click(); }"); await pg.wait_for_timeout(600)
+        # (v322) 결과 화면에서는 큰 창(#wbPop) 대신 보스 타일만 반짝 + 👤 누구 이름으로 쌓였는지
+        await pg.wait_for_timeout(1500); await pg.screenshot(path=OUT+"wb_gain.png")
+        fl=await pg.evaluate("()=>[!!document.getElementById('wbPop'), !!document.querySelector('#oBoss .rwT.rwFlash'), (document.querySelector('#oBoss .rwWho')||{}).textContent||'', Math.round(document.querySelector('#oBoss .rwGo').getBoundingClientRect().height)]"); print("flash", fl)
+        if fl[0] or not fl[1] or "민준" not in fl[2]: bad.append(f"결과 타일 반짝·이름 (큰 창 없이) {fl}")
+        if fl[3]<40: bad.append(f"공격하러 버튼 40px {fl[3]}")
+        await pg.evaluate("()=>document.querySelector('#oBoss .rwGo').click()"); await pg.wait_for_timeout(600)
         v=await pg.evaluate("()=>{ const d=document.getElementById('wbView'); return d ? d.innerText : ''; }")
-        for need in ["월요일 0시", "일요일 밤 12시", "Daily 30", "공격 기회", "막기", "도망", "TOP 3", "서연", "5/10"]:
+        for need in ["월요일 0시", "일요일 밤 12시", "3문제 맞히면 ⚔️1", "4단어 맞히면 ⚔️1", "막기", "도망", "TOP 3", "서연", "5/10"]:
             if need not in v: bad.append(f"보스 화면에 '{need}' 없음")
         await pg.evaluate("()=>HyBoss.earn(Kid.get(),'study',3)")
         # 휘두르기 — 기회 1개 = 8~12 (치명타 ×2)
@@ -40,7 +42,7 @@ async def main():
         if not (8<=sw[0]-h0<=24) or sw[1]!='{"r":4,"s":3}' or sw[2]!=1: bad.append(f"한 번 휘두르기 {h0} {sw}")
         # 보스 공격 → 🛡 막기 (반격 15, 기회 그대로)
         await pg.evaluate("()=>{ WeekBoss.F.next=1; WeekBoss.swing(); }"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='warn'", timeout=4000)
-        await pg.wait_for_timeout(400); await pg.screenshot(path=OUT+"wb_warn.png")
+        await pg.evaluate("()=>clearTimeout(WeekBoss.F.t)"); await pg.wait_for_timeout(400); await pg.screenshot(path=OUT+"wb_warn.png")   # (v322) 스크린샷이 느려도 보스 공격이 먼저 끝나지 않게
         st1=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1'))]")
         await pg.evaluate("()=>WeekBoss.block()"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='idle'", timeout=4000)
         st2=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1')), WeekBoss.F.blk]"); print("block", st1, st2)
