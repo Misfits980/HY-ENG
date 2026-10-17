@@ -2,7 +2,7 @@
 
   python3 tools/basic/v6.py check  DAY01.md [DAY02.md …] [--level L3]
   python3 tools/basic/v6.py apply  DAY01.md [DAY02.md …] [--level L3] [--day N] [--no-course]
-        (DAY 번호는 파일 이름 DAYnn 에서. L1=G1-2 1단계 · L2=G3-4 2단계 · L3=G5-6 3단계 · L4=중등 voca — 과 목록·교재 뜻·새 단어는 tools/words/auto.json → sync.py)
+        (DAY 번호는 파일 이름 DAYnn 에서. listen/JLnn.md = 🎧 중등 리스닝 Stage nn (L4 규칙, 과 jl, 새 단어 src jl). L1=G1-2 1단계 · L2=G3-4 2단계 · L3=G5-6 3단계 · L4=중등 voca — 과 목록·교재 뜻·새 단어는 tools/words/auto.json → sync.py)
 
 DAYnn.md = 노션 DAY 페이지를 그대로 옮긴 글. 안에 [표 1] 학습 표(17칸), [표 2] 게임 대화 표(6칸), 자기 점검 줄이 있다.
 표는 마크다운(| … |)이든 노션 <table>이든 읽는다.
@@ -137,9 +137,12 @@ def check(path, level, K):
         for k in ("설명 1","설명 2"):
             if d[k] != "—" and len(d[k]) > 32: warn.append(tag + f"{k} {len(d[k])}자 (25자 안쪽)")
         ir = infl_re(en)
+        # (v314) 불규칙 모양(stole·kept·rose …)은 '변하는 모양' 칸에 적힌 꼴도 목표 단어로 친다
+        fm = {x.lower() for x in re.findall(r"[A-Za-z][A-Za-z'-]*", d["변하는 모양"]) if " " not in en}
+        fre = re.compile(r"(?<![A-Za-z'-])(" + "|".join(re.escape(x) for x in sorted(fm, key=len, reverse=True)) + r")(?![A-Za-z'-])", re.I) if fm else None
         for k in ("예문 1","예문 2"):
             s = d[k]
-            if not ir.search(s): bad.append(tag + f"{k}에 목표 단어가 없음: {s}")
+            if not ir.search(s) and not (fre and fre.search(s)): bad.append(tag + f"{k}에 목표 단어가 없음: {s}")
             n = len(words(s)); lo, hi = LEN_EX.get(level, (4, 16))
             if n < lo or n > hi: warn.append(tag + f"{k} {n}단어 ({level} {lo}~{hi})")
         if d["예문 2 뜻"] not in ("1","2"): bad.append(tag + f"예문 2 뜻 '{d['예문 2 뜻']}' (1·2)")
@@ -264,7 +267,8 @@ def to_auto(results, levels, days):
     have = {en for _, en in A["album"]}; added, guessed = [], []
     for res, lv, day in zip(results, levels, days):
         if day is None: print("⚠️ DAY 번호를 몰라 과 목록에 넣지 않음 (파일 이름 DAYnn 또는 --day)"); continue
-        raw, setk = RAW[lv], SETK[lv]
+        jl = lv == "JL"; lv = "L4" if jl else lv          # (v314) 🎧 중등 리스닝 = L4 규칙 · 자기 과(jl) · src jl
+        raw, setk = ("jl", "jl") if jl else (RAW[lv], SETK[lv])
         ws = [d["영어"].lower() for d in res["rows"]]
         A["course"].setdefault(raw, {})[str(day)] = ws
         ko = {}
@@ -273,7 +277,7 @@ def to_auto(results, levels, days):
             if en in wb and not (norm(wb[en]) & norm(m1)): ko[en] = m1
             if en not in wb:
                 A["words"][en] = {"ko": m1, "level": LVL[lv], "emoji": ""}
-                if lv == "L4": A["words"][en]["src"] = "mv1"
+                if lv == "L4": A["words"][en]["src"] = "jl" if jl else "mv1"
                 wb[en] = m1; added.append(en)
                 if en not in have:
                     alb, g = guess_album(d["품사 1"], m1, d["설명 1"], LVL[lv]); A["album"].append([alb, en]); have.add(en)
@@ -373,9 +377,10 @@ def main():
         apply(res)
         days = []
         for f in files:
-            m = re.search(r"DAY\s*0*(\d+)", os.path.basename(f), re.I)
+            m = re.search(r"(?:DAY|JL)\s*0*(\d+)", os.path.basename(f), re.I)
             days.append(int(a[a.index("--day") + 1]) if "--day" in a else (int(m.group(1)) if m else None))
-        if "--no-course" not in a: to_auto(res, [lv for _, lv in flv], days)
+        kinds = ["JL" if re.match(r"JL\d+", os.path.basename(f), re.I) else lv for f, lv in flv]   # (v314) listen/JLnn.md = 중등 리스닝 Stage nn
+        if "--no-course" not in a: to_auto(res, kinds, days)
 
 if __name__ == "__main__":
     main()
