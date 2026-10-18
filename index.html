@@ -754,7 +754,26 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 /* (v331) 지도 속 캠프 — 📌 지금 할 Stage 옆 길가에 상자·보스·표지판 (네모 칸·알약 없이 물건 그대로) */
 .cpAt{position:absolute;width:100px;transform:translateX(-50%);z-index:2;display:flex;justify-content:center}
 .cpRow{flex:1 1 100%;order:1;display:flex;justify-content:space-around;align-items:flex-end;gap:6px;margin:12px 0 8px}
-.cpRow .cpBossB img{width:66px;height:66px} .cpRow .cpMound{width:90px;height:40px;margin-left:-45px} .cpRow .cpHp{width:66px}
+/* (v331) 맨 위 한 줄 — 칸 3개 똑같이 · 그림 칸 60px 바닥 맞춤 · 글자 한 줄(22px)도 같은 높이 (사용자: 줄이 안 맞고 답답) */
+.cpRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:0 4px;margin:10px 0 12px}
+.cpRow .cpO{width:auto;min-width:0}
+.cpRow .cpO > b,.cpRow .cpSign b{height:22px;margin:0;line-height:22px;font-size:13px}
+.cpRow .cpRv{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:5px}
+.cpRow .cpChest{flex:0 0 100%;width:100%;height:60px}
+.cpRow .cpChest .cpChI,.cpRow .cpChest svg{width:100%;height:60px;object-fit:contain}
+.cpRow .cpChest em{top:-4px;right:calc(50% - 40px);min-width:20px;height:20px;font-size:11px;line-height:16px}
+.cpRow .cpRv.later .cpChest em{right:auto;left:calc(50% - 40px)}
+.cpRow .cpLater{height:20px;margin:0;padding:0 8px;font-size:11px;line-height:20px;border-radius:5px}
+.cpRow .cpBossB{height:60px;display:flex;align-items:flex-end;justify-content:center}
+.cpRow .cpBossB img{width:54px;height:54px}
+.cpRow .cpMound{width:76px;height:34px;margin-left:-38px;bottom:-4px}
+.cpRow .cpHp{width:54px;height:7px;margin:-3px 0 0;position:relative;z-index:2}
+.cpRow .cpBoss{flex-direction:column} .cpRow .cpBub{order:5;height:22px;margin:0;padding:0 9px;line-height:22px;font-size:11.5px;display:inline-flex;align-items:center;gap:3px}
+.cpRow .cpBub::after{display:none} .cpRow .cpBub small{display:inline;font-size:11px}
+.cpRow .cpBub ~ b{display:none}
+.cpRow .cpBub.hot{background:#ffd23f} .cpRow .cpBub.done{background:none;color:#c9ffb0;box-shadow:none;padding:0}
+.cpRow .cpSign .spBd{width:72px;height:60px;padding:0 0 19px 5px}
+.cpRow .qDots{gap:4px} .cpRow .qDots u{width:9px;height:9px}
 .cpO{position:relative;display:flex;flex-direction:column;align-items:center;width:100px;text-align:center;color:#fff;font-family:var(--font)}
 .cpO[hidden]{display:none}
 .cpO > b{margin-top:2px;max-width:100%;font-size:12.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #0d0a24,0 0 6px #0d0a24}
@@ -2842,7 +2861,8 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .stWeek{display:flex;align-items:center;gap:10px;width:min(420px,100%);margin:0 auto 10px;padding:11px 14px;border-radius:18px;border:0;cursor:pointer;text-align:left;background:linear-gradient(160deg,#ffd27a,#ff9a5a);color:#3a1a00;box-shadow:0 5px 0 #a8501f;font-family:var(--font)}
 .stWeek i{font-style:normal;font-size:26px} .stWeek b{display:block;font-size:15px;font-weight:900} .stWeek small{display:block;font-size:12px;font-weight:700;opacity:.85}
 /* (v322) 점검: 길 맨 위 카드 → 한 줄 칩 (390×844 에서 첫 Stage 가 보이게). 설명 줄은 숨기고 제목만 */
-.stTop{display:flex;flex-wrap:wrap;gap:6px;width:min(420px,100%);margin:2px auto 10px;align-items:stretch}
+.stTop{display:flex;flex-wrap:wrap;gap:6px;width:min(420px,100%);margin:2px auto 0;align-items:stretch}
+.stMap > .stTop + .stWBox{margin-top:0}   /* (v331) 맨 위와 첫 월드 사이 빈칸 줄임 (답답) */
 body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 @media (min-width:760px){ .stTop{width:min(860px,100%)} .stTop .stRvRow, .stTop .stHub, .stTop .stChkRow{flex:1 1 40%} .stTop .stWeek{flex:1 1 30%} }
 .stTop > *{margin:0!important;box-sizing:border-box}
@@ -14205,7 +14225,7 @@ const StudyUI = {
     $("stTabs").innerHTML=Object.keys(B).map(id=>{ const p=prog(id); return '<button class="stCat'+(id===bk?' on':'')+(p[0]>=p[1]&&p[1]?' full':'')+'" data-b="'+id+'"><i>'+B[id].emo+'</i><b>'+B[id].tab+'</b><small>'+p[0]+' / '+p[1]+'</small></button>'; }).join("");
     setTimeout(()=>{ const on=$("stTabs").querySelector(".on"); if(on && on.scrollIntoView) try{ on.scrollIntoView({inline:"center", block:"nearest"}); }catch(e){} }, 30);
     const [fin, tot] = progS(this.set), sk=Study.streak();
-    const subRow = '<div class="stSubs">'+BK.sets.map(st=>{ const u=Study.SUB[st]||{}, p=progS(st); return '<button class="stSubB'+(st===this.set?' on':'')+(p[0]>=p[1]&&p[1]?' full':'')+'" data-sub="'+st+'"><i>'+u.emo+'</i>'+u.nm+' <small>'+p[0]+'/'+p[1]+'</small></button>'; }).join("")+'</div>';
+    const subRow = BK.sets.length<2 ? '' : '<div class="stSubs">'+BK.sets.map(st=>{ const u=Study.SUB[st]||{}, p=progS(st); return '<button class="stSubB'+(st===this.set?' on':'')+(p[0]>=p[1]&&p[1]?' full':'')+'" data-sub="'+st+'"><i>'+u.emo+'</i>'+u.nm+' <small>'+p[0]+'/'+p[1]+'</small></button>'; }).join("")+'</div>';
     const rc=this.getCur(), rcS=rc ? (rc.rv ? '🔁 복습' : Study.label(rc.set)+' '+Study.stageName(rc.set, rc.n))+' · '+rc.done+' / '+rc.total : '';
     $("stHead").innerHTML=(rc?'<button class="stResume" data-resume="1"><i>▶</i><span><b>이어 하기</b><small>'+rcS+'</small></span></button>':'')
       +subRow+'<b>'+U.emo+' '+U.nm+'</b> <span>'+U.sub+'</span><em>Stage '+fin+' / '+tot+'</em>'
