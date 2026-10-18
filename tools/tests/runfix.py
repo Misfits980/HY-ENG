@@ -124,7 +124,7 @@ async def main():
         print("6 단어판", r); chk(r["same"] and r["other"] and not r["diff"], "6 단어판 캐시 / fitFont")
         r = await pg.evaluate("""()=>{ Quality.save('mid'); FrameWatch.force=true; FrameWatch.reset(); let t=1000; for(let i=0;i<120;i++){ t+=40; FrameWatch.tick(t); }
           const keep=Quality.resolved(); Quality.level='auto'; Quality.autoLow=false; localStorage.removeItem(Quality.AKEY); FrameWatch.reset(); t=1000; for(let i=0;i<60;i++){ t+=16; FrameWatch.tick(t); }
-          const fast=Quality.resolved(); for(let i=0;i<120;i++){ t+=40; FrameWatch.tick(t); }
+          const fast=Quality.resolved(); for(let i=0;i<300;i++){ t+=40; FrameWatch.tick(t); }   /* (v337) 처음 5초는 안 재고 3초 창 두 번 연속 느려야 내림 */
           const r={keep, fast, slow:Quality.resolved(), saved:localStorage.getItem(Quality.AKEY), tip:(document.getElementById('trapTip')||{}).textContent||''};
           Quality.save('auto'); FrameWatch.force=false; return r; }""")
         print("6 자동 품질", r); chk(r["keep"] == "mid" and r["fast"] != "low" and r["slow"] == "low" and r["saved"] == "low" and "가볍게" in r["tip"], "6 자동 품질")

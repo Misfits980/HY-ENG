@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 FAST = ["study3", "study4", "v243test", "v246test", "v249test", "uitest", "newstest", "homotest",
         "dexgr", "bingotest", "bingo2", "albumtest2", "olytest", "olyfail", "scrolltest2", "bottomtap",
-        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest", "tiertest", "voicetest", "v6test", "datacheck", "raidtest", "bosstest", "battletest", "walktest", "classtest", "stagetest", "flagtest", "wbtest", "jltest", "slimetest", "formscheck", "dexprac", "quiztest", "runfix", "sensetest", "raid2test", "swcache", "weektest", "swmin", "midsplit", "purpletest", "examtest", "polishtest", "examclass", "stocksync"]
+        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest", "tiertest", "voicetest", "v6test", "datacheck", "raidtest", "bosstest", "battletest", "walktest", "classtest", "stagetest", "flagtest", "wbtest", "jltest", "slimetest", "formscheck", "dexprac", "quiztest", "runfix", "sensetest", "raid2test", "swcache", "weektest", "swmin", "midsplit", "purpletest", "examtest", "polishtest", "examclass", "stocksync", "qa337"]
 SLOW = ["runsweep", "sweep1"]
 TIMEOUT = {"runsweep": 1800, "sweep1": 3600}
 

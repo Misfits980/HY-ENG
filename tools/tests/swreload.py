@@ -16,14 +16,14 @@ async def main():
         await pg.evaluate(fire); await pg.wait_for_timeout(2500); print('in lesson -> loads', await L())
         for k in range(3): await pg.evaluate(SOLVE, False); await pg.wait_for_timeout(50)
         await pg.wait_for_timeout(2200); print('still in lesson ->', await L())
-        await pg.evaluate("()=>document.getElementById('stQuit').click()"); await pg.wait_for_timeout(2600)
+        await pg.evaluate("()=>document.getElementById('stQuit').click()"); await pg.wait_for_timeout(5000)
         print('back to path ->', await L())
         # run game case
         await pg.wait_for_timeout(500)
         await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); G.set='basic'; G.diff='normal'; G.rule='normal'; startGame(); }"); await pg.wait_for_timeout(1500)
         await pg.evaluate(fire); await pg.wait_for_timeout(2500); print('in run ->', await L(), await pg.evaluate("()=>G.running"))
         await pg.evaluate("()=>{ gameOver(); }"); await pg.wait_for_timeout(3000); print('result screen ->', await L())
-        await pg.evaluate("()=>document.getElementById('btnMain').click()"); await pg.wait_for_timeout(2600); print('main menu ->', await L())
+        await pg.evaluate("()=>document.getElementById('btnMain').click()"); await pg.wait_for_timeout(5000); print('main menu ->', await L())
         print(errs[:3])
         # (v322) 첫 화면이어도 보스 화면·이름 고르기·보상 창 위, 레이드 중(화면이 가려져도)에는 미뤄야 한다
         ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
@@ -38,10 +38,10 @@ async def main():
                                  "()=>{ Raid.role=null; }")]
         for name, op, cl in cases:
             await pg.evaluate(SETUP); await pg.wait_for_timeout(300); n0=await L()
-            await pg.evaluate(op); await pg.wait_for_timeout(400); await pg.evaluate(fire); await pg.wait_for_timeout(2600)
+            await pg.evaluate(op); await pg.wait_for_timeout(400); await pg.evaluate(fire); await pg.wait_for_timeout(5000)
             n1=await L(); print(name, 'loads', n0, '->', n1)
             if n1!=n0: print("BAD reloaded while", name)
-            await pg.evaluate(cl); await pg.wait_for_timeout(2600)
+            await pg.evaluate(cl); await pg.wait_for_timeout(5000)
             n2=await L(); print(name, 'closed -> loads', n2)
             if n2==n1: print("BAD did not reload after closing", name)
             await pg.wait_for_timeout(600); await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); try{ StudyUI.FAST=0; }catch(e){} }")

@@ -80,7 +80,7 @@ self.addEventListener("install", e => {
     await c.addAll(CORE.map(fresh));
     for (const url of OPTIONAL) {
       try {
-        if (isArt(url)) { if (!(await art.match(url))) await art.add(fresh(url)); }   // 그림은 이미 있으면 건너뜀
+        if (isArt(url)) { if (!(await art.match(url))) await art.add(url); }   // 그림은 이미 있으면 건너뜀 · (v337) QA: 그림은 이름이 안 바뀌니 보통 요청 (첫 방문에 첫 화면이 받은 그림을 또 받던 것 — 39MB)
         else await c.add(fresh(url));
       } catch (err) {}
     }
@@ -108,12 +108,22 @@ self.addEventListener("fetch", e => {
   if (isPage || (url.origin === self.location.origin && isData(e.request.url))) {
     e.respondWith((async () => {
       try {
-        const res = await fetch(e.request, {cache: isPage ? "no-store" : "no-cache"});
-        if (res && res.ok) {
-          const c = await caches.open(VERSION);
-          c.put(e.request, res.clone());
+        /* (v337) QA: 켤 때마다 index.html(약 570KB)을 통째로 다시 받고(no-store) 기다리는 시간 제한이 없어 느린 학원 와이파이에서 첫 화면이 늦었다
+           → 바뀌었는지만 묻고(no-cache · 안 바뀌면 짧은 답) · 화면은 6초 넘게 걸리면 저장해 둔 것을 먼저 보여 줌 (받던 것은 끝까지 받아 저장) */
+        const net = fetch(e.request, {cache: "no-cache"}).then(res => {
+          if (res && res.ok) { const cp = res.clone(); caches.open(VERSION).then(c => c.put(e.request, cp)).catch(() => {}); }
+          return res; });
+        if (isPage) {
+          const hit = (await caches.match(e.request, {ignoreSearch: true})) || (await caches.match("./index.html"));
+          if (hit) {
+            const slow = new Promise(r => setTimeout(() => r(null), 6000));
+            const won = await Promise.race([net.catch(() => null), slow]);
+            if (won) return won;
+            e.waitUntil(net.catch(() => {}));
+            return hit;
+          }
         }
-        return res;
+        return await net;
       } catch (err) {
         const hit = await caches.match(e.request, {ignoreSearch: true});
         if (hit) return hit;
