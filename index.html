@@ -12921,7 +12921,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v337";
+const GAME_VER = "v338";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18056,6 +18056,16 @@ const Admin = (function(){
     return '<div class="adKeyBig"><small>열쇠를 만들려면 비밀번호를 한 번 더 넣어 주세요</small>'
       +'<div class="adPinRow"><input id="adPin2" type="password" inputmode="numeric" maxlength="12" autocomplete="off" aria-label="비밀번호"><button class="mini go" data-ad="mkKey">열쇠 만들기</button></div></div>';
   }
+  /* (v338) 사용자: 열쇠가 이미 ✅ 이면 설정 카드가 숨어서 「새 열쇠 만들기」가 안 보였다 (맨 아래 접힌 「설정 다시 보기」 안에만 있었음)
+     → 아직 비밀번호에서 만든 열쇠를 쓰면 📢 공지 · 📮 보내기 맨 위에 카드로 보여 줌 */
+  function keyUp(){
+    if(!ready() && myKey() && (!srv || srv.key===null)) return '<section class="adCard adSetupCard"><h3>🔐 새 열쇠</h3>'+keyBox()+'<p class="adSmall">복사해서 스크립트 속성 <code>ADMIN_KEY</code> 에 넣은 뒤 🔄 다시 확인</p><button class="mini" data-ad="recheck" style="width:100%;margin-top:8px">🔄 다시 확인</button></section>';   // 확인하는 동안에도 복사할 수 있게
+    if(!ready() || myKey()) return '';
+    return '<section class="adCard adSetupCard"><h3>🔐 열쇠를 더 안전하게 바꿔 주세요</h3>'
+      +'<p class="adSmall">지금 열쇠는 비밀번호에서 만들어져서, 비밀번호가 알려지면 열쇠도 알려져요 (반 보고서 · 보석 보내기 · 공지).</p>'
+      +'<ol class="adSteps"><li>아래 <b>🔐 새 열쇠 만들기</b></li><li>나오는 <b>🔑 열쇠 복사</b></li><li>Apps Script → ⚙ 프로젝트 설정 → 스크립트 속성 <code>ADMIN_KEY</code> 값을 붙여 넣고 저장</li><li>여기서 <b>🔄 다시 확인</b> → ✅</li></ol>'
+      +'<button class="play adGo" data-ad="newKey">🔐 새 열쇠 만들기</button>'
+      +'<details class="adSetup"><summary>다른 선생님 기기에서 이미 만들었어요</summary><div class="adPinRow"><input id="adKeyIn" type="password" autocomplete="off" aria-label="열쇠"><button class="mini go" data-ad="putKey">넣기</button></div></details></section>'; }
   function setup(){
     if(ready()) return '<details class="adSetup"><summary>설정 다시 보기</summary>'+keyBox()+'<button class="mini" data-ad="recheck">🔄 다시 확인</button></details>';
     return '';
@@ -18078,7 +18088,7 @@ const Admin = (function(){
   /* ── 📢 공지 ── */
   function notice(){
     const L=(srv && srv.notices)||[];
-    let h=srvLine()+setupCard();
+    let h=srvLine()+setupCard()+keyUp();
     h+=card('새 공지 쓰기', '<textarea id="adNtText" maxlength="300" rows="4" placeholder="예) 이번 주 금요일은 단어 시험이 있어요! 오늘의 30을 꼭 하고 오세요 📚"></textarea>'
       +'<div class="adCount"><span id="adNtCnt">0</span>/300</div>'
       +'<div class="adField"><label>보이는 기간</label><div class="adSeg" id="adNtDays">'
@@ -18096,7 +18106,7 @@ const Admin = (function(){
   const KINDS=[["보석","💎 보석 주기·빼기","+50 / -30"],["선물","🎁 물건 선물","물건 코드"],["회수","📦 물건 회수","물건 코드"],["환불회수","↩️ 회수 + 보석 돌려주기","물건 코드"],
                ["캐릭터","🔓 캐릭터 열기","캐릭터 코드"],["이름","✏️ 이름 바꾸기","새 이름"],["이름권","🎫 이름 변경권","장 수"]];
   function send(){
-    let h=srvLine()+setupCard();
+    let h=srvLine()+setupCard()+keyUp();
     h+=card('누구에게', '<div class="adSeg" id="adWhoSeg">'+[["all","모두"],["nick","이름"],["dev","기기 코드"]].map(([k,t],i)=>'<button type="button" data-ad="who" data-k="'+k+'" class="'+(i===1?'on':'')+'">'+t+'</button>').join('')+'</div>'
       +'<div class="adPinRow" id="adWhoRow"><input id="adWho" list="adWhoList" maxlength="30" placeholder="게임 이름 (예: SEOWON)" autocomplete="off"><button class="mini" data-ad="whoMe">이 기기</button></div>'
       +'<datalist id="adWhoList">'+repKids().map(n=>'<option value="'+esc(n)+'">').join('')+'</datalist><p class="adSmall">게임에 적은 이름(닉네임) 그대로 · 칸을 누르면 시트에 있는 이름이 나와요</p>');
@@ -18250,7 +18260,7 @@ const Admin = (function(){
       sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H) keyOf(v).then(t=>{ tk=t; ss(TK,t); keepScroll=true; draw(); check(true); });
         else { msg("비밀번호가 달라요"); $("adPin2").value=""; } }); return; }
     if(a==="newKey"){ if(!confirm("새 열쇠를 만들까요?\n\n· 만든 뒤 꼭 「열쇠 복사」 → Apps Script 스크립트 속성 ADMIN_KEY 값을 바꿔 주세요\n· 바꾸기 전까지는 공지·보내기·반 보고서가 안 돼요\n· 다른 선생님 기기에는 「다른 기기 열쇠 넣기」로 같은 열쇠를 넣어요")) return;
-      let k=""; try{ k=newKey(); localStorage.setItem(LKEY, k); }catch(e){ return msg("이 브라우저에서는 만들 수 없어요"); } tk=k; ss(TK,k); srv=null; keepScroll=true; draw(); msg("새 열쇠를 만들었어요 — 복사해서 ADMIN_KEY 에 넣어 주세요", true); return; }   /* (v337) 보안 */
+      let k=""; try{ k=newKey(); localStorage.setItem(LKEY, k); }catch(e){ return msg("이 브라우저에서는 만들 수 없어요"); } tk=k; ss(TK,k); srv=null; keepScroll=true; draw(); check(true); msg("새 열쇠를 만들었어요 — 복사해서 ADMIN_KEY 에 넣어 주세요", true); return; }   /* (v337) 보안 */
     if(a==="putKey"){ const k=(($("adKeyIn")||{}).value||"").trim().toLowerCase(); if(!goodKey(k)) return msg("열쇠가 맞지 않아요 (긴 영어·숫자 열쇠를 그대로 붙여 넣어요)");
       try{ localStorage.setItem(LKEY, k); }catch(e){} tk=k; ss(TK,k); srv=null; keepScroll=true; draw(); check(true); msg("열쇠를 넣었어요", true); return; }
     if(a==="copyKey"){ const inp=$("adKeyTxt"); try{ inp.focus(); inp.select(); inp.setSelectionRange(0, 999); }catch(e){} }

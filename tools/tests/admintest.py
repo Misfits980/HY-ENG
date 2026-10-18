@@ -106,6 +106,14 @@ async def main():
         g0 = await pg.evaluate("()=>Wallet.gems()"); await pg.click('[data-ad="g"][data-n="10"]'); await pg.wait_for_timeout(200)
         g1 = await pg.evaluate("()=>Wallet.gems()"); print("gems", g0, g1)
         if g1 != g0 + 10: bad.append("보석 고치기")
+        # (v338) 비밀번호에서 만든 열쇠를 쓰는 중 → 📢 공지 맨 위에 「새 열쇠 만들기」 카드 · 누르면 긴 열쇠가 바로 보임 (서버엔 아직 없어 ❌)
+        await pg.click('#adTabs [data-t="notice"]'); await pg.wait_for_timeout(900)
+        up = await pg.evaluate("()=>{ const b=document.querySelector('#adBody [data-ad=newKey]'); return b ? Math.round(b.getBoundingClientRect().top) : null; }")
+        await pg.evaluate("()=>{ window.confirm=()=>true; document.querySelector('#adBody [data-ad=newKey]').click(); }"); await pg.wait_for_timeout(1500)
+        nk = await pg.evaluate("()=>{ const i=document.getElementById('adKeyTxt'); return [i ? i.value.length : 0, localStorage.getItem('hyeng_admin_key')===(i&&i.value), !document.querySelector('#adBody [data-ad=newKey]')]; }")
+        print("new key", up, nk); await pg.screenshot(path=OUT + "ad_newkey.png")
+        if up is None or up > 700 or nk != [48, True, True]: bad.append("새 열쇠 카드")
+        await pg.evaluate("()=>{ localStorage.removeItem('hyeng_admin_key'); }")
 
         # 예전 서버(공지 모름): 보내기 단추가 막혀 있고 아무것도 안 보낸다
         st["v2"] = False; n0 = len(st["posts"])
