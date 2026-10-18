@@ -753,7 +753,8 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 .exAskIn{text-align:center;gap:8px}
 /* (v331) 지도 속 캠프 — 📌 지금 할 Stage 옆 길가에 상자·보스·표지판 (네모 칸·알약 없이 물건 그대로) */
 .cpAt{position:absolute;width:100px;transform:translateX(-50%);z-index:2;display:flex;justify-content:center}
-.cpRow{flex:1 1 100%;order:1;display:flex;justify-content:space-around;align-items:flex-end;gap:6px;margin-top:14px}
+.cpRow{flex:1 1 100%;order:1;display:flex;justify-content:space-around;align-items:flex-end;gap:6px;margin:12px 0 8px}
+.cpRow .cpBossB img{width:66px;height:66px} .cpRow .cpMound{width:90px;height:40px;margin-left:-45px} .cpRow .cpHp{width:66px}
 .cpO{position:relative;display:flex;flex-direction:column;align-items:center;width:100px;text-align:center;color:#fff;font-family:var(--font)}
 .cpO[hidden]{display:none}
 .cpO > b{margin-top:2px;max-width:100%;font-size:12.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #0d0a24,0 0 6px #0d0a24}
@@ -12889,11 +12890,10 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
-  {id:"2026-10-18c", date:"10월 18일", title:"🗺️ 지도 속에 보물상자와 보스가!",
-   items:[["🎁","복습 보물상자","지금 할 Stage 옆 길가에 복습 상자가 있어요 — 열면 복습 · '다음에'를 누르면 상자가 잠들어요"],
-     ["👹","길가의 보스","이번 주 보스가 길가에서 기다려요 — 말풍선을 눌러 공격하고 보상도 받아요"],
-     ["🪧","미션 표지판","오늘 미션은 길 건너 나무 표지판에 · ⚔️ 레이드는 🔥 옆으로"],
-     ["📌","지금 할 Stage 표시","빨간 핀이 다시 보여요 · 길가에 덤불·꽃·버섯도 생겼어요"]]},
+  {id:"2026-10-18c", date:"10월 18일", title:"🎁 Daily 30 맨 위가 그림으로 바뀌었어요",
+   items:[["🎁","복습 보물상자","열면 복습 · '다음에'를 누르면 상자가 잠들어요 (그래도 누르면 열려요)"],
+     ["👹","보스 · 🪧 미션 표지판","보스는 풀 언덕 위에서 기다려요 · 미션을 하면 표지판 점이 하나씩 켜져요"],
+     ["📌","지금 할 Stage 표시","빨간 핀이 다시 보여요 · 다른 월드 길가에 덤불·꽃·버섯도 생겼어요"]]},
   {id:"2026-10-18b", date:"10월 18일", title:"📝 반마다 시험 · 📅 오늘 한 아이",
    items:[
      ["🏫","반마다 시험","선생님이 반을 정해 시험을 열어요 — 우리 반 시험만 보여요 · 반마다 책·범위가 달라도 돼요"],
@@ -14177,7 +14177,7 @@ const IC_EMO={pin:'📌',flag:'🚩',target:'🎯',swords:'⚔️',gift:'🎁',s
 function ic(n, c){ return '<img class="ic'+(c?' '+c:'')+'" src="assets/ui/ic-'+n+'.webp" alt="'+IC_EMO[n]+'" draggable="false" onerror="this.replaceWith(this.alt)">'; }
 const StudyUI = {
   set:null, les:null, test:false, qs:[], i:0, done:0, first:0, wrong:0, missed:{}, t0:0, sel:null, locked:false,
-  book:"g12", combo:0, best:0, okW:{}, rv:false, total:20,
+  CAMP_IN_MAP:false, book:"g12", combo:0, best:0, okW:{}, rv:false, total:20,
   open(){ try{ Study.mig(); }catch(e){} const s=Study.load();
     if(s.book && !Study.BOOKS[s.book] && Study.SETS.indexOf(s.set)>=0){ s.book=Study.bookOf(s.set); Study.save(); }   // (v227) 예전 탭 이름(단모음 등) → 유치원 안으로
     if(!s.book || !Study.BOOKS[s.book]){                    // (v225) 처음엔 달리기에서 고른 Grade 로
@@ -14246,7 +14246,7 @@ const StudyUI = {
               let d='M'+xs[0]+' '+ys[0]; for(let j=1;j<xs.length;j++){ const my=(ys[j-1]+ys[j])/2; d+=' C'+xs[j-1]+' '+my+' '+xs[j]+' '+my+' '+xs[j]+' '+ys[j]; }
               /* (v331) 📌 지금 할 Stage 가 이 월드에 있으면 그 옆 빈 쪽(길이 안 지나가는 쪽)에 캠프 */
               const jc=c>=0 ? WL.indexOf(L[c]) : -1; let cp='', H2=H, campBox=[];
-              if(jc>=0 && camp.length){ campPut=true;
+              if(StudyUI.CAMP_IN_MAP && jc>=0 && camp.length){ campPut=true;   /* (v331) 사용자: 길가에 두니 난잡 → 다시 맨 위 한 줄 (CAMP_IN_MAP=false) */
                 const off=r=> r>=WL.length ? 0 : [0,A,0,-A][r%4], col= off(jc)>0 ? 'L' : off(jc)<0 ? 'R' : (jc%4===0 ? 'L' : 'R'), col2= col==='L' ? 'R' : 'L', fr=(cc,r)=> r>=0 && (cc==='L' ? off(r)>=0 : off(r)<=0);
                 /* 물건 키만큼 쌓기 — 그쪽에 Stage 돌(+이름)이 있는 높이는 건너뜀 */
                 const band=r=>[T+r*RH-6, T+r*RH+92], hit=(cc,y0,y1)=>WL.some((x,r)=>!fr(cc,r) && y1>band(r)[0] && y0<band(r)[1]);
@@ -14262,7 +14262,7 @@ const StudyUI = {
                 H2=Math.max(H, yMax+4); }
               /* (v331) 길가 장식 — 덤불·꽃·돌·나무·버섯·연못을 Stage 반대쪽 빈칸에 (같은 Stage 는 늘 같은 자리 · 캠프와 안 겹침) */
               const DECO=['bush','flowers','rock','tree','mushroom','pond'], hs=k=>{ let h=2166136261; for(const ch of k) h=Math.imul(h^ch.charCodeAt(0), 16777619); return h>>>0; };
-              const dc=jc>=0 ? '' : WL.map((x,r)=>{ const hv=hs(st+'|'+wd+'|'+r); if(hv%10<7) return ''; const o=[0,A,0,-A][r%4], sd= o>0 ? 'L' : o<0 ? 'R' : (hv>>4)%2 ? 'L' : 'R', dx=sd==='L' ? 34+(hv>>6)%22 : W-34-(hv>>6)%22, dy=T+r*RH+18+(hv>>9)%30, sz=40+(hv>>12)%14;
+              const dc=WL.map((x,r)=>{ const hv=hs(st+'|'+wd+'|'+r); if(hv%10<7) return ''; const o=[0,A,0,-A][r%4], sd= o>0 ? 'L' : o<0 ? 'R' : (hv>>4)%2 ? 'L' : 'R', dx=sd==='L' ? 34+(hv>>6)%22 : W-34-(hv>>6)%22, dy=T+r*RH+18+(hv>>9)%30, sz=40+(hv>>12)%14;
                 if(campBox.some(b=>Math.abs(b.x-dx)<70 && dy+sz>b.y0-6 && dy<b.y1+6)) return '';
                 return '<img class="stDeco" src="assets/ui/deco-'+DECO[(hv>>15)%DECO.length]+'.webp" alt="" draggable="false" onerror="this.remove()" style="left:'+dx+'px;top:'+dy+'px;width:'+sz+'px">'; }).join('');
               cp=dc+cp;
@@ -14309,7 +14309,7 @@ const StudyUI = {
     el.className='cpO cpBoss'+(claim?' gift':'')+(st.dead?' dead':'');
     el.setAttribute("aria-label", "이번 주 보스 · "+B.n+" · "+(st.dead?"쓰러뜨렸어요":"체력 "+pc+"%")+(me?" · 공격 기회 "+n:""));
     el.innerHTML=bub+'<button class="cpBossB" data-wbopen="1"><i class="cpMound"></i><img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+' onerror="this.src=\'assets/boss/boss-knight.webp\'"></button>'
-      +'<i class="cpHp'+(st.dead?' dead':'')+'"><u style="width:'+(st.dead?100:pc)+'%"></u></i>'; },   // (v331) 글자 줄임 — 이름·남은 날은 보스 화면에서
+      +'<i class="cpHp'+(st.dead?' dead':'')+'"><u style="width:'+(st.dead?100:pc)+'%"></u></i><b>보스</b>'; },   // (v331) 글자 줄임 — 이름·남은 날은 보스 화면에서
   /* (v331) 🎁 복습 상자 — 보물상자 그림 그대로 (파란 상자). go: 열려서 보석 반짝 · later: 닫혀서 쿨쿨 (그래도 누르면 복습) · done: 빈 상자 */
   rvChest(s){ return '<img class="cpChI" src="assets/ui/rv-chest-'+({go:'open', later:'sleep', done:'empty'}[s]||'open')+'.webp" alt="" draggable="false" onerror="this.outerHTML=StudyUI.chestSvg(1,'+(s!=='later')+')">'; },   // (v331) 그림 (안 나오면 예전 SVG)
   /* (v273) 별 — ★3 자리는 💜 (심화) */
@@ -17067,7 +17067,7 @@ const DM = {
   /* 첫 화면 단추 · Daily 30 띠 */
   chip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3;
     return '<span class="dmDots">'+L.map(m=>'<i class="'+(m.done?'on':'')+'"></i>').join('')+'</span><b>🎯 오늘의 미션 '+n+'/3</b><em>'+(s.got?'✅ 상자 열었어요':rd?'🎁 상자 열기!':'🎁 다 하면 상자')+'</em>'; },
-  qchip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3; return '<span class="spBd '+(s.got?'got':rd?'rdy':'go')+'"><span class="qDots">'+L.map(m=>'<u class="'+(m.done?'on':'')+'"></u>').join('')+'</span></span>'+(rd?'<b>선물 열기!</b>':''); },   // (v331) Daily 30 길가 표지판
+  qchip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3; return '<span class="spBd '+(s.got?'got':rd?'rdy':'go')+'"><span class="qDots">'+L.map(m=>'<u class="'+(m.done?'on':'')+'"></u>').join('')+'</span></span><b>'+(rd?'선물 열기!':s.got?'미션 끝':'미션')+'</b>'; },   // (v331) Daily 30 길가 표지판
   paint(){ try{ const rd=this.ready(); ["dmBtn","dmStrip"].forEach(id=>{ const el=$(id); if(!el) return; const h=id==="dmStrip" ? this.qchip() : this.chip(); if(el._h!==h){ el._h=h; el.innerHTML=h; } el.classList.toggle("rd", rd); el.hidden=false; }); if($("dmView")) this.draw(); }catch(e){} },
   view(){ let d=$("dmView"); if(!d){ d=document.createElement("div"); d.id="dmView"; d.className="rdJoin dmV"; document.body.appendChild(d); d.addEventListener("click", e=>this.click(e)); } this.draw(); try{ SFX.select(); }catch(e){} },
   close(){ const d=$("dmView"); if(d) d.remove(); },
