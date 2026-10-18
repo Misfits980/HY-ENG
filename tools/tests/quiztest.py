@@ -127,16 +127,20 @@ async def main():
         await pg.wait_for_timeout(500)
         await pg.evaluate("()=>{ scrollTo(0,0); document.querySelectorAll('#scStudy, #scStudy *').forEach(e=>{ if(e.scrollTop) e.scrollTop=0; }); }"); await pg.wait_for_timeout(100)
         r=await pg.evaluate("""()=>{ const em=document.querySelector('#stHead em'), d=document.querySelector('#stMap .stDot'), top=d.getBoundingClientRect().top;
-          return {em:em&&em.textContent, chk:!!document.querySelector('.stChkRow') && document.querySelector('.stChkRow').innerText.includes('확인할 단어'), rv:!!document.querySelector('.qT.rv[data-review]'), wk:!!document.querySelector('.stWeek'), top, h:innerHeight}; }""")
+          return {em:em&&em.textContent, chk:!!document.querySelector('.stChkRow') && document.querySelector('.stChkRow').innerText.includes('확인할 단어'), rv:!!document.querySelector('.stWMap .cpRv.go [data-review]'), wk:!!document.querySelector('.stWeek'), top, h:innerHeight}; }""")
         print('path', r)
         if r['em']!='Stage 1 / 24': bad.append('path: 머리말 '+str(r['em']))
         if not r['chk'] or not r['rv'] or not r['wk']: bad.append('path: 맨 위 칩 '+json.dumps(r))
         if r['top']+40>r['h']: bad.append('path: 첫 Stage 가 화면 밖 '+json.dumps(r))
         await pg.screenshot(path=OUT+"quiz_path.png")
-        # (v331) 복습은 작은 타일 하나 ('다음에' 없음)
-        r=await pg.evaluate("()=>{ const q=document.querySelector('.stQuick'); return {tiles:q?q.querySelectorAll('.qT:not([hidden])').length:0, h:q?Math.round(q.getBoundingClientRect().height):0}; }")
-        print('quick', r)
-        if r['tiles']<3 or r['h']>110: bad.append('맨 위 타일 줄: '+json.dumps(r))
+        # (v331) 지도 속 캠프 — 📌 Stage 옆 길가에 상자·보스·표지판, Stage 돌과 안 겹침 · '다음에' → 닫힌 상자 (그래도 누르면 복습)
+        OV="""()=>{ const R=e=>e.getBoundingClientRect(), A=[...document.querySelectorAll('.stWMap .cpAt > .cpO:not([hidden])')].map(R), D=[...document.querySelectorAll('.stWMap .stDot, .stWMap .stWT')].map(R), x=(a,b)=>a.left<b.right-2 && b.left<a.right-2 && a.top<b.bottom-2 && b.top<a.bottom-2;
+          let n=0; A.forEach((a,i)=>{ D.forEach(d=>{ if(x(a,d)) n++; }); A.forEach((b,j)=>{ if(j>i && x(a,b)) n++; }); }); return {objs:A.length, hit:n, later:!!document.querySelector('[data-rvlater]'), closed:!!document.querySelector('.cpRv.later [data-review]')}; }"""
+        r=await pg.evaluate(OV); print('camp', r)
+        if r['objs']<2 or r['hit'] or not r['later']: bad.append('캠프: '+json.dumps(r))
+        await pg.evaluate("()=>document.querySelector('[data-rvlater]').click()"); await pg.wait_for_timeout(200)
+        r=await pg.evaluate(OV); print('rvLater', r)
+        if r['later'] or not r['closed'] or r['hit']: bad.append('rvLater: '+json.dumps(r))
 
         for b in bad: print('BAD', b)
         print('errs', real_errs(errs)[:5])
