@@ -16424,8 +16424,17 @@ const HyBoss = {
         const O=this.O||[];   /* (v322) 다시 시작하기 전 보스(c.old) — 안 받은 보상 */
         return Promise.all([this.B ? FB.get("/hy/dmg/"+this.B.id, true) : null, this.P ? FB.get("/hy/dmg/"+this.P.id, true) : null].concat(O.map(o=>FB.get("/hy/dmg/"+o.id, true)))).then(([d,pd,...od])=>{ this.stale=0; const OD={}; O.forEach((o,i)=>{ OD[o.id]=od[i]||{}; }); this.OD=OD;
           if((this._addAt||0)>=t0) return this.after();   // 읽는 동안 내가 깎았으면 옛 값으로 덮지 않음
-          this.D=d||{}; this.PD=pd||{}; this.after(); }); }); }).catch(e=>{ this.stale=1; if(this.C) this.ok=true; this.ping(); });   /* (v322) 못 읽음 = 오프라인 표시 (보상 받기는 기다리게) */
+          this.D=this.keepMine(d||{}, this.B && this.B.id); this.PD=pd||{}; this.after(); }); }); }).catch(e=>{ this.stale=1; if(this.C) this.ok=true; this.ping(); });   /* (v322) 못 읽음 = 오프라인 표시 (보상 받기는 기다리게) */
     return this._p; },
+  /* (v336) 사용자: '공격 기회 +2' 를 보고 들어가니 0 — 판이 끝나자마자 「지금 공격하기」를 누르면 서버 더하기(inc)가 끝나기 전에 읽어서 옛 값으로 덮었다.
+     카운터(er·es·ur·us·d·sw · 날짜별 on·r)는 늘기만 하므로, 최근 1분 안에 이 기기에서 바꾼 아이는 서버 값과 이 기기 값 중 큰 것을 씀 */
+  touch(kid){ (this._mt=this._mt||{})[kid]=Date.now(); this._mtB=this.B && this.B.id; },
+  keepMine(d, bid){ const T=this._mt||{}, now=Date.now(); if(!bid || this._mtB!==bid) return d; const out=Object.assign({}, d);
+    Object.keys(T).forEach(kid=>{ if(now-T[kid]>60000) return; const a=(this.D||{})[kid]; if(!a) return; const s=out[kid]||{}, m=Object.assign({}, s);
+      ["er","es","ur","us","d","sw"].forEach(k=>{ const v=Math.max(a[k]|0, s[k]|0); if(v || a[k]!=null || s[k]!=null) m[k]=v; });
+      ["sr","ss","n","t","ch"].forEach(k=>{ if(m[k]==null && a[k]!=null) m[k]=a[k]; });
+      ["on","r"].forEach(k=>{ const A=a[k]||{}, S=s[k]||{}; if(Object.keys(A).length || Object.keys(S).length){ const o=Object.assign({}, S); Object.keys(A).forEach(x=>{ o[x]=Math.max(A[x]|0, S[x]|0); }); m[k]=o; } });
+      out[kid]=m; }); return out; },
   /* 선생님 화면 — 실시간으로 (관리 화면 ⚔️ 탭 · 레이드/배틀 TV) */
   live(){ if(this._live) return; this._live={}; this.start();
     FB.ready().then(m=>{ if(m!=="fb" && !window.HY_FB_LOCAL) return; this.ok=true; const L=this._live;
@@ -16505,7 +16514,7 @@ const HyBoss = {
     FB.inc("/hy/dmg/"+b.id+"/"+kid, inc, Object.assign({n:nm, ch:String(G.char||"hero").slice(0,12)}, (c0.t && b.max[c0.t]) ? {} : {t}));   /* (v310) ch = 캐릭터 (c 는 '보상 받음' 표시라 따로) · (v322) 기록의 반이 이번 체력표에 없으면 반도 고쳐 씀 */ try{ Kid.touch(); }catch(e){}
     const on=Object.assign({}, cur.on, {[day]:((cur.on||{})[day]|0)+add}), r=Object.assign({}, cur.r); if(kind==="run") r[day]=(r[day]|0)+add;
     this.D=Object.assign({}, this.D, {[kid]:Object.assign({}, cur, {d:(cur.d|0)+add, n:nm, t, on, r, ch:G.char||"hero"}, sw1>0 ? {sw:(cur.sw|0)+sw1} : {})});
-    this._addAt=Date.now(); if(s0.hp-add<=0) this.markDead(b, t, nm); try{ DM.add("boss", add); }catch(e){}
+    this._addAt=Date.now(); this.touch(kid); if(s0.hp-add<=0) this.markDead(b, t, nm); try{ DM.add("boss", add); }catch(e){}
     this.after(); return add; },
   /* (v312) ⚔️ 공격 기회 */
   /* (v322) 기회는 더하기만 하는 카운터 — 쌓은 수 er(🏃)·es(📚) · 쓴 수 ur·us (FB.inc). 기회 = 기준 sr/ss + 쌓은 − 쓴 (0~10)
@@ -16521,7 +16530,7 @@ const HyBoss = {
     if(!this.hasStk(cur)){ const base=this.stock(kid); plain.sr=base.r; plain.ss=base.s; }
     FB.inc("/hy/dmg/"+b.id+"/"+kid, Object.assign({d:0}, inc), plain);
     const nx=Object.assign({}, cur, plain, {t:plain.t||cur.t, d:cur.d|0}); Object.keys(inc).forEach(k=>{ nx[k]=(cur[k]|0)+inc[k]; });
-    this.D=Object.assign({}, this.D, {[kid]:nx}); this._addAt=Date.now(); try{ Kid.touch(); }catch(e){} this.after(); return true; },
+    this.D=Object.assign({}, this.D, {[kid]:nx}); this._addAt=Date.now(); this.touch(kid); try{ Kid.touch(); }catch(e){} this.after(); return true; },
   /* (예전 이름) 기회를 이 값으로 — 차이만큼 카운터로 */
   setStock(pick, r, s){ const st=this.stock(pick.id), inc={}; r=Math.max(0, Math.min(this.STK, r|0)); s=Math.max(0, Math.min(this.STK, s|0));
     if(r>st.r) inc.er=r-st.r; if(r<st.r) inc.ur=st.r-r; if(s>st.s) inc.es=s-st.s; if(s<st.s) inc.us=st.s-s; return this.bump(pick, inc); },
