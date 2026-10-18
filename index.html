@@ -17145,7 +17145,7 @@ const RaidStage = {
      궁수는 그림이 다 올 때까지 예전 달리기 그림 · 다른 캐릭터(마법사·학자·유령·고양이)를 고른 아이는 이름으로 넷 중 하나 */
   BS:["hero","knight","wolf"], FIVE:["hero","knight","wolf"],   // (v335) 사용자: 지금은 용사·기사·늑대만 (탐험가·궁수는 그림이 다 오면)
   bsId(cid, key){ if(this.FIVE.indexOf(cid)>=0) return cid; let h=0; String(key||cid||"x").split("").forEach(c=>{ h=(h*31+c.charCodeAt(0))>>>0; }); return this.BS[h%this.BS.length]; },
-  hero(id, cid, name, mine){ const h=document.createElement("div"), bid=this.bsId(cid, name||id), bs=this.BS.indexOf(bid)>=0; h.className="rsHero"+(mine?" me":"")+(bs?" bsH":"");
+  hero(id, cid, name, mine){ const wk=this.role==="wk", h=document.createElement("div"), bid=wk ? this.bsId(cid, name||id) : (CHARACTERS.some(c=>c.id===cid)?cid:"hero"), bs=wk && this.BS.indexOf(bid)>=0;   /* 새 그림은 🏠 주간 보스 화면에서만 (수업 레이드는 그대로) */ h.className="rsHero"+(mine?" me":"")+(bs?" bsH":"");
     h.innerHTML='<i class="rsSpr'+(bs?' bs':'')+'" style="background-image:url(assets/chars/'+(bs?'bs-':'run-')+bid+'.webp)"></i>'+(name?'<b class="rsName">'+Raid.esc(name)+'</b>':'');
     (mine ? this.el : this.el.querySelector(".rsAllies")).appendChild(h);
     const o={el:h, spr:h.firstChild, x:0, y:0, tx:0, f:Math.random()*6, ph:Math.random()*6, dash:0, back:0, hurt:0, mine:!!mine, slot:0, bs, atk:0};
