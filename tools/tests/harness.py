@@ -39,5 +39,5 @@ SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('s
   if(q.t==='past'){ let k=q.opts.indexOf(q.w.en); if(wrongFirst && !q.again) k=(k+1)%q.opts.length; document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'past'; }
   if(q.t==='find'){ let k=q.toks.findIndex(o=>o.ok); if(wrongFirst && !q.again) k=q.toks.findIndex(o=>!o.ok); document.querySelector('#stQ .stOpt[data-k="'+k+'"]').click(); return 'find'; }
   if(q.t==='spell'||q.t==='dict'){ for(const c of q.w.en.slice((q.got||'').length)){ const b=[...document.querySelectorAll('.stTile')].find(x=>!x.disabled && x.textContent===c); b.click(); } document.getElementById('stCheck').click(); document.getElementById('stCheck').click(); return q.t; }
-  let k= q.t==='ox' ? (q.truth?0:1) : q.opts.findIndex(o=>o.en===q.w.en); if(wrongFirst && !q.again) k=(k+1)%(q.t==='ox'?2:q.opts.length);
+  let k= (q.t==='ox'||q.t==='oxs') ? (q.truth?0:1) : q.opts.findIndex(o=>o.en===q.w.en); if(wrongFirst && !q.again) k=(k+1)%((q.t==='ox'||q.t==='oxs')?2:q.opts.length);
   document.querySelector('.stOpt[data-k="'+k+'"]').click(); return q.t; }"""
