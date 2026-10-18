@@ -52,6 +52,14 @@ def basic_checks():
     gv = re.search(r'const GAME_VER = "(v\d+)"', html); sv = re.search(r'VERSION = "hyeng-(v\d+)"', sw)
     if not gv or not sv or gv.group(1) != sv.group(1):
         probs.append("버전 불일치: GAME_VER=%s sw.js=%s" % (gv and gv.group(1), sv and sv.group(1)))
+    # (v337) QA: v336 을 올렸는데 버전이 v335 그대로였다 (둘이 같이 낡아서 위 검사는 통과) → main 과 게임 파일이 다르면 버전이 main 보다 커야 함
+    try:
+        mh = subprocess.run(["git", "-C", ROOT, "show", "main:index.html"], capture_output=True, text=True)
+        mv = re.search(r'const GAME_VER = "v(\d+)"', mh.stdout or "")
+        if mh.returncode == 0 and mv and gv and mh.stdout != html and int(gv.group(1)[1:]) <= int(mv.group(1)):
+            probs.append("버전을 올리세요: main 과 index.html 이 다른데 GAME_VER=%s (main v%s)" % (gv.group(1), mv.group(1)))
+    except Exception as e:
+        print("버전 비교 건너뜀:", e)
     js = ("const s=require('fs').readFileSync(%r,'utf8'); const m=s.match(/<script>([\\s\\S]*?)<\\/script>/g)||[];"
           "let bad=0; m.forEach((x,i)=>{ try{ new Function(x.replace(/^<script>|<\\/script>$/g,'')); }catch(e){ bad++; console.log('script '+i+': '+e.message); } });"
           "console.log('scripts '+m.length+' bad '+bad);") % os.path.join(ROOT, "index.html")

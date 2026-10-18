@@ -28,7 +28,7 @@ async def main():
             return HyBoss.refresh(true).then(()=>{ const b=HyBoss.stock('k1'); FB.get=g; return [a.r, b.r]; }); }); }""")
         ok(r == [1, 1], f"쓴 뒤 옛 값에도 1 그대로 {r}")
         # 1분 지나면 서버 값을 믿음 (다른 기기에서 쓴 것 반영)
-        r = await pg.evaluate("""()=>{ HyBoss._mt.k1=Date.now()-61000; const bid=HyBoss.B.id; return FB.update('/hy/dmg/'+bid+'/k1', {ur:2}).then(()=>HyBoss.refresh(true)).then(()=>HyBoss.stock('k1').r); }""")
+        r = await pg.evaluate("""()=>{ HyBoss._myT.k1=Date.now()-61000; const bid=HyBoss.B.id; return FB.update('/hy/dmg/'+bid+'/k1', {ur:2}).then(()=>HyBoss.refresh(true)).then(()=>HyBoss.stock('k1').r); }""")
         ok(r == 0, f"1분 뒤엔 서버 값 (다른 기기에서 하나 더 씀) {r}")
         ok(not errs, "오류 없음 " + str(errs[:3]))
         await br.close()

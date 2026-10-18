@@ -2830,6 +2830,28 @@ body:has(#scStudy.vLesson.on) #hyToast{top:calc(env(safe-area-inset-top,0px) + 7
   #scStart .subRow .mitem{min-height:40px;padding-top:6px;padding-bottom:6px}
   #scStart .menuDuo, #scStart .dmBtn{width:min(310px,46vw)}
   #scStart .rotateTip{display:none}
+  /* (v337) QA: 휴대폰 가로에서 메뉴가 오른쪽 여백을 넘어 「이어서 하기」 오른쪽이 전체화면 버튼·톱니 밑에 깔렸다 (누르면 전체화면이 켜짐)
+     → 전체화면 버튼은 톱니 아래로, 메뉴·로고는 남은 폭 안에서만 (로고가 줄어듦) */
+  #btnFsHome{right:calc(env(safe-area-inset-right,0px) + 13px);top:calc(env(safe-area-inset-top,0px) + 66px)}
+  #scStart .titleWrap{padding-right:calc(env(safe-area-inset-right,0px) + 70px);gap:3vw}
+  body.ui-skin #scStart .menu, #scStart .menu{width:min(330px,44vw)}
+  body.ui-skin #scStart .menu > .mitem, #scStart .menuDuo, #scStart .dmBtn{width:min(310px,44vw)}
+  #scStart .logoImg{width:min(40vw,64dvh,calc(100vw - 126px - 3vw - min(330px,44vw)))}
+}
+/* (v337) 아주 낮은 휴대폰 가로(568×320) — 아래 줄이 화면 밖으로 → 버튼 높이를 줄임 */
+@media (orientation:landscape) and (max-height:340px){
+  body.ui-skin #scStart .menu > .mitem, body.ui-skin #scStart .menuDuo .mitem{min-height:40px;padding-top:3px;padding-bottom:3px;font-size:17px}
+  body.ui-skin #scStart .menu, #scStart .menu{gap:5px !important}
+  #scStart .subRow .mitem{min-height:34px;padding-top:2px;padding-bottom:2px} }
+/* (v337) QA: PC·태블릿 가로(1366×768 · 크롬 창 1366×657 · iPad 1180×820) — 큰 로고 아래에 메뉴가 길게 이어져 첫 화면에 스크롤이 생겼다
+   (v327 '스크롤 없앰' 반대) → 휴대폰 가로처럼 로고 왼쪽 · 메뉴 오른쪽 두 칸 */
+@media (orientation:landscape) and (min-height:501px) and (max-height:1000px) and (min-aspect-ratio:5/4){
+  #scStart .titleWrap{flex-direction:row;gap:5vw;
+    padding:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-right,0px) + 80px) calc(env(safe-area-inset-bottom,0px) + 16px) calc(env(safe-area-inset-left,0px) + 64px)}
+  #scStart .logoImg{width:min(44vw,72dvh,600px)}
+  #scStart .logoMain{font-size:clamp(48px,7vw,110px)}
+  body.ui-skin #scStart .menu, #scStart .menu{margin-top:0}
+  #scStart .rotateTip{display:none}
 }
 .stBossSee{appearance:none;border:0;cursor:pointer;font:900 11px var(--font);color:#3a2600;background:#ffd23f;border-radius:9px;padding:2px 7px;margin-left:4px;vertical-align:2px}
 .stBoss img{cursor:pointer}
@@ -6433,9 +6455,9 @@ function applyZone(i, announce){
     applyFloorArt(ftex);                             // 바닥 그림이 있으면 그림, 없으면 무늬
   }
   if(scene.userData.landMat){
-    const lt = ftex.clone(); lt.needsUpdate=true; lt.wrapS=lt.wrapT=THREE.RepeatWrapping;
+    const lt = cloneTex(ftex); lt.wrapS=lt.wrapT=THREE.RepeatWrapping;
     lt.repeat.set(7,24);
-    scene.userData.landMat.map = lt;
+    setMap(scene.userData.landMat, lt);
     applyLandArt();                                 // 바닥 그림이 있으면 땅에도
     if(!announce) scene.userData.landMat.color.setHex(TrapArt.tex["floor-"+zoneArt(z)] ? mulHex(litHex(0x8a8a8a,z), artTint()) : 0x6e6e6e);
     scene.userData.landMat.needsUpdate = true;
@@ -6675,7 +6697,7 @@ function charWalk(id){
   const t = TrapArt.tex["run-"+id]; if(!t || !t.image || !t.image.width) return null;
   const im=t.image, cw=im.width/6, chh=im.height/3, body=(RUN_H[id]||2.13), H=body*chh/(RUN_PX[id]||chh-9), W=H*(cw/chh), foot=H*5/chh;
   const geo = new THREE.PlaneGeometry(W,H); geo.translate(0,H/2-foot,0);
-  const tex = t.clone(); tex.needsUpdate = true; tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  const tex = cloneTex(t); tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
   tex.repeat.set(1/6, 1/3); tex.offset.set(0, 2/3); tex.anisotropy = 8; tex.generateMipmaps=false; tex.minFilter=THREE.LinearFilter;
   if(THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
   const mat = new THREE.MeshBasicMaterial({map:tex, transparent:true, alphaTest:.1, side:THREE.DoubleSide, color:mulHex(0xffffff, artTint())});
@@ -6697,7 +6719,7 @@ function charSprite(id){
   const im = t.image, cw = (im && im.width) ? im.width/2 : 320, chh = (im && im.height) ? im.height : 384;
   const H = 2.25, W = H*(cw/chh);           // 칸 320x384 (스킨은 망토가 넓어 480x384 — 몸 크기는 같고 옆만 넓다)
   const geo = new THREE.PlaneGeometry(W,H); geo.translate(0,H/2,0);
-  const tex = t.clone(); tex.needsUpdate = true;
+  const tex = cloneTex(t);
   tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
   tex.repeat.set(0.5,1); tex.offset.set(0,0);
   tex.anisotropy = 8;
@@ -6826,7 +6848,7 @@ function setCharacter(id){
   const c = CHARACTERS.filter(x=>x.id===id)[0] || CHARACTERS[0];
   if(player){
     scene.remove(player);
-    player.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
+    player.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ const mm=o.material; if(mm.map && mm.map.userData && mm.map.userData.hyClone) mm.map.dispose(); mm.dispose(); } });   /* (v337) 캐릭터 그림 복제도 지움 */
   }
   player = charSprite(c.id) || c.build();          // 그림이 있으면 그림 캐릭터
   if(!player.userData.sprite){
@@ -7585,21 +7607,25 @@ function artFile(prefix){ const z=zone(); if(!z || !z.art) return null;
   return null; }
 
 /* 바닥 그림 — 칸마다 그림의 다른 부분을 붙여 같은 무늬가 줄지어 보이지 않게 한다 */
+/* (v337) QA: 텍스처 누수 — 판마다 바닥 그림을 레인마다 복제하고 옛것을 안 지워 그래픽 메모리가 쌓였다 (+11~20개/판).
+   복제한 그림(hyClone)은 바꿀 때 옛것을 dispose */
+function setMap(m, t){ const o=m.map; if(o && o!==t && o.userData && o.userData.hyClone){ try{ o.dispose(); }catch(e){} } m.map=t; }
+function cloneTex(src){ const t=src.clone(); t.needsUpdate=true; t.userData=Object.assign({}, t.userData, {hyClone:1}); return t; }
 function applyFloorArt(ftex){
   const mats = Ground.mats || (Ground.mat ? [Ground.mat] : []);
   const art = TrapArt.tex["floor-"+zoneArt()];
   const L = Ground.len || Ground.step, W = CFG.LANE_W;
   mats.forEach((m,k)=>{
     if(art){
-      const t = art.clone(); t.needsUpdate = true;
+      const t = cloneTex(art);
       t.wrapS = t.wrapT = THREE.RepeatWrapping;
       // 그림 한 장 = 한 칸 길이. 레인마다 가로 위치를 이어 붙여 큰 돌판도 끊기지 않는다
       t.repeat.set(W/L, 1); t.offset.set((k*W/L) % 1, 0);
       if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
-      m.map = t; m.color.setHex(mulHex(litHex(0xd2d2d2), artTint()));
+      setMap(m, t); m.color.setHex(mulHex(litHex(0xd2d2d2), artTint()));
       m.roughness = 1; m.metalness = 0;              // 칠한 그림에는 반사가 없어야 자연스럽다
     } else if(ftex){
-      m.map = ftex; m.color.setHex(0x8c8c8c);
+      setMap(m, ftex); m.color.setHex(0x8c8c8c);
       m.roughness = .62; m.metalness = .18;
     }
     m.needsUpdate = true;
@@ -7612,12 +7638,12 @@ function applyLandArt(){
   const lm = scene.userData.landMat; if(!lm) return;
   const art = TrapArt.tex["floor-"+zoneArt()];
   if(!art) return;
-  const t = art.clone(); t.needsUpdate = true;
+  const t = cloneTex(art);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(260/5, 900/5);
   if(THREE.sRGBEncoding) t.encoding = THREE.sRGBEncoding;
   t.anisotropy = 8;
-  lm.map = t; lm.color.setHex(mulHex(litHex(0x8a8a8a), artTint())); lm.needsUpdate = true;
+  setMap(lm, t); lm.color.setHex(mulHex(litHex(0x8a8a8a), artTint())); lm.needsUpdate = true;
   if(typeof ZoneFade!=="undefined" && ZoneFade.to) ZoneFade.to.land = lm.color.getHex();
 }
 
@@ -12882,7 +12908,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v335";
+const GAME_VER = "v337";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14391,7 +14417,7 @@ const StudyUI = {
       combo:this.combo, best:this.best, t0:this.t0, total:this.total, at:Date.now(), act:this.tk()|0, sp:this._sp||{},
       qs:this.qs.map(q=>({t:q.t, w:W(q.w), opts:q.opts&&((q.so||q.t==="blend"||q.t==="past"||q.t==="sentp"||q.hd==="guess")?q.opts:q.opts.map(W)), so:q.so, ans:q.ans, x:q.x, tg:q.tg, nok:q.nok, aud:q.aud, noKo:q.noKo, col:q.col, dk:q.dk, use:q.use, sts:q.sts||null, tk:q.tk||null, ws:q.ws&&q.ws.map(W), st:q.st||null, tiles:q.tiles||null, again:!!q.again,
         pre:q.pre, mid:q.mid, post:q.post, magic:q.magic, pic:q.pic, toks:q.toks, base:q.base, truth:q.truth, ko:q.ko, step:q.step, fam:q.fam, wu:q.wu, hd:q.hd, card:q.card, again2:q.again2, eased:q.eased, form:q.form, retry:q.retry,
-        chk:q.chk, kn:q.kn, sure:q.sure, d:q.d, kans:q.kans, n:q.n, once:q.once, hint:q.hint, kmk:q.kmk, gp:q.gp, tm:q.tm, sec:q.sec, kk:q.kk, dl:q.dl})), wst:this.wst||{}, dl:this.dl|0};
+        chk:q.chk, kn:q.kn, sure:q.sure, d:q.d, kans:q.kans, n:q.n, once:q.once, hint:q.hint, kmk:q.kmk, gp:q.gp, tm:q.tm, sec:q.sec, kk:q.kk, dl:q.dl, sent:q.sent, right:q.right, dw:W(q.dw), err:q.err, bad:q.bad, fix:q.fix, cz:q.cz})), wst:this.wst||{}, dl:this.dl|0, ai:this._ai===this.i ? this.i : -1};   /* (v337) QA: 💜 새 문제 칸 · ai = 이 문제는 이미 채점함 */
     try{ localStorage.setItem(this.CUR, JSON.stringify(o)); localStorage.setItem("hyeng_last_kind","study"); }catch(e){} },
   clearCur(){ try{ localStorage.removeItem(this.CUR); }catch(e){} },
   getCur(){ let c=null; try{ c=JSON.parse(localStorage.getItem(this.CUR)); }catch(e){}
@@ -14401,13 +14427,16 @@ const StudyUI = {
   resume(){ const c=this.getCur(); if(!c) return false;
     try{ const les = c.rv ? {n:0, ws:[]} : Study.lessons(c.set).find(x=>x.n===c.n); if(!les) throw 0;
       const wd=en=>{ const w=les.ws.find(x=>x.en===en) || Study.word(en); if(!w) throw 0; return w; };   // (v234) 리딩 뜻(교재 뜻)을 그대로
-      const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), opts:q.opts?((q.so||q.t==="blend"||q.t==="past"||q.t==="sentp"||q.hd==="guess")?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
-      qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; if(!q.sts) delete q.sts; if(!q.tk) delete q.tk; });
+      const qs=c.qs.map(q=>Object.assign({}, q, {w:wd(q.w), dw:q.dw?wd(q.dw):undefined, opts:q.opts?((q.so||q.t==="blend"||q.t==="past"||q.t==="sentp"||q.hd==="guess")?q.opts:q.opts.map(wd)):undefined, ws:q.ws?q.ws.map(wd):undefined}));
+      qs.forEach(q=>{ if(!q.opts) delete q.opts; if(!q.ws) delete q.ws; if(!q.st) delete q.st; if(!q.tiles) delete q.tiles; if(q.truth==null) delete q.truth; if(q.ko==null) delete q.ko; if(!q.sts) delete q.sts; if(!q.tk) delete q.tk; ["dw","sent","right","err","bad","fix","cz"].forEach(k=>{ if(q[k]==null) delete q[k]; }); });
       this.tier=c.tier|0; this.dl=c.dl|0; this._out=0; try{ Study.setTier(this.tier); }catch(e){}
       this.set=c.set; this.book=Study.bookOf(c.set); this.les=les; if(!c.rv) this._from={set:c.set, i:Study.lessons(c.set).indexOf(les)}; try{ Study.ctx(c.rv?null:c.set); }catch(e){} this.rv=!!c.rv; this.wk=false; this.ex=null; this.oly=false; this.test=false; this.retryMode=false; this.qs=qs;
       ["i","done","first","wrong","missed","okW","combo","best","t0","total"].forEach(k=>this[k]=c[k]); this.nOk = c.nOk!=null ? c.nOk : Math.max(0, (c.done|0)-(c.wrong|0)); this.wst=c.wst||{}; this._sp=c.sp||{}; this._lg=null; this._brk=false; this._rd=Math.floor(this.done/this.RND); this._rm=0; this._fw = c.fw!=null ? c.fw : Object.keys(c.missed||{}).length;   // (v263) 처음에 틀린 수도 이어서
       this._act = c.act!=null ? c.act : 0; this._ta = Date.now();   // (v266) 실제로 푼 시간도 이어서 (예전 저장은 0부터)
-      show("scStudy"); this.view("stLesson"); this.ticks(); this.show(); return true;
+      if(c.ai!=null && c.ai>=0 && c.ai===c.i) this.i=c.i+1;   /* (v337) QA: 채점한 뒤 닫았으면 그 문제는 지나감 (틀린 것도 그대로 셈 — '틀리고 닫기' 요령 막기) */
+      this._ai=-1; show("scStudy"); this.view("stLesson"); this.ticks();
+      if(this.tier===3 && this.dl===3 && (this.wrong|0)>2){ this._out=1; this.outEnd(); return true; }   // 💜3 하트를 다 쓴 채 닫았으면 바로 끝
+      this.show(); return true;
     }catch(e){ this.clearCur(); return false; } },
   /* 첫 화면 '이어서 하기' — 푸는 중이면 그 문제부터, 아니면 📌 오늘 할 과를 바로 */
   go(){ try{ Voice.warm(); }catch(e){} try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}
@@ -14769,6 +14798,16 @@ const StudyUI = {
     if(/^[A-Z][a-z]/.test(f) && !/^I'/.test(f)){ let k=null; try{ k=Study.word(f.toLowerCase()); }catch(e){} if(k || this.OD_LOW.test(f.replace(/'.*$/,""))) t=t.charAt(0).toLowerCase()+t.slice(1); }   // (v336) 점검: 단어장에 없는 흔한 말(Grandma·Everyone·Today…)도 소문자 — 이름(Tom·Mina)만 대문자
     return t; },
   OD_LOW:/^(grandma|grandpa|granny|mom|dad|mommy|daddy|mother|father|grandmother|grandfather|everyone|everybody|someone|somebody|nobody|anyone|today|tonight|yesterday|tomorrow|there|here|these|those|this|that|what|where|when|who|whom|whose|why|how|which|our|your|their|his|her|its|my|we|they|he|she|it|you|let|please|yes|no|oh|wow|okay|ok|hello|hi|sorry|thanks|thank|after|before|during|once|every|each|many|some|most|all|both|one|two|three|four|five|six|seven|eight|nine|ten|the|a|an|on|in|at|if|can|do|does|did|is|are|was|were|will|would|should|could|may|might|must|have|has|had|be|not|don|didn|let|look|maybe|sometimes|usually|always|never|then|now|so|but|and|because|while|until|since|as|after|with|without|from|to|for|of|by|about|people|kids|children|students|everything|nothing|something)$/i,
+  /* (v337) QA: 맞는 순서가 여럿 — 'A and B' 뒤바꾸기 · 쉼표 앞 말을 뒤로 (On hot days, I swim → I swim on hot days) · 끝의 때 말을 앞으로 (… today ↔ Today …) */
+  odAlts(full){ const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim(), base=norm(full), out=new Set([base]);
+    const W=base.split(" ");
+    W.forEach((w,k)=>{ if(w==="and" && k>0 && k<W.length-1){ const v=W.slice(); v[k-1]=W[k+1]; v[k+1]=W[k-1]; out.add(v.join(" ")); } });
+    const cm=String(full).indexOf(","); if(cm>0){ const a=norm(String(full).slice(0,cm)), b=norm(String(full).slice(cm+1)); if(a && b && a.split(" ").length<=6) out.add(b+" "+a); }
+    const TIME=/^(.*) (today|yesterday|tomorrow|tonight|now|every day|every morning|every night|every week|this morning|this afternoon|this evening|last (?:night|week|month|year|weekend|summer|winter|sunday|monday|tuesday|wednesday|thursday|friday|saturday)|next (?:week|month|year|weekend|summer|sunday|monday|tuesday|wednesday|thursday|friday|saturday)|(?:two|three|four|five) days ago|in the (?:morning|afternoon|evening))$/;
+    const m=base.match(TIME); if(m) out.add(m[2]+" "+m[1]);
+    const s=base.match(/^(today|yesterday|tomorrow|tonight|now) (.*)$/); if(s) out.add(s[2]+" "+s[1]);
+    return out; },
+  odOk(X, got){ const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim(); return this.odAlts(X.full).has(norm(got)); },
   odEnd(X){ return (String(X.full||"").trim().match(/[.!?]+["']?$/)||[""])[0]; },
   odDraw(){ const q=this.qs[this.i]; if(!q || q.t!=="order") return; const X=q.x, row=$("odRow"); if(!row) return;
     row.innerHTML = q.pk.length ? q.pk.map((k,j)=>'<button class="odP" data-p="'+j+'">'+this.esc(this.odShow(this.odTx(X, q.tiles[k])))+'</button>').join("")+(this.odEnd(X)?'<span class="odEnd">'+this.esc(this.odEnd(X))+'</span>':'') : '<span class="odHint">아래 조각을 순서대로 눌러요</span>';
@@ -14839,7 +14878,7 @@ const StudyUI = {
     else if(q.t==="past"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.w.en; conf = q.opts[this.sel]; }
     else if(q.t==="sentp"){ if(this.sel==null) return; ok = q.opts[this.sel]===q.form; conf = null; }
     else if(q.so){ if(this.sel==null) return; ok = q.opts[this.sel]===q.ans; conf = q.t==="stk" ? null : q.opts[this.sel]; }   // (v273) 💜 글자 보기 문제
-    else if(q.t==="order"){ if(q.pk.length<q.x.ch.length) return; ok = q.pk.map(k=>this.odShow(this.odTx(q.x, q.tiles[k]))).join(" ")===q.x.ch.map(c=>this.odShow(c)).join(" "); conf=null; }
+    else if(q.t==="order"){ if(q.pk.length<q.x.ch.length) return; ok = this.odOk(q.x, q.pk.map(k=>this.odShow(this.odTx(q.x, q.tiles[k]))).join(" ")); conf=null; }
     else if(q.t==="kdict"){ const A=q.kans||q.w.en; if(q.got.length<(q.kk ? 1 : A.length)) return; if(q.kk) q.got=q.got.replace(/\s+/g," ").trim(); ok = q.got===A; conf = q.kans ? null : q.got;
       if(!ok && q.kk){ let o=null; try{ o=Study.word(q.got); }catch(e){} if(o && koKey(o.ko)===koKey(q.w.ko)){ q.got=""; this.slots(); hyToast("👍 "+o.en+" 도 맞는 뜻! 이 Stage 단어로 다시 써 봐요"); return; } } }   // (v326) 뜻이 같은 다른 단어(pants·trousers)는 틀림으로 안 셈
     else if(q.t==="find"){ if(this.sel==null) return; const tk=q.toks[this.sel]||{}; ok=!!tk.ok; conf=String(tk.t||"").replace(/[^A-Za-z'-]/g,""); }
@@ -14851,7 +14890,8 @@ const StudyUI = {
   tStop(){ clearInterval(this._tm); this._tm=null; },
   tStart(q){ this.tStop(); const sec=q.sec||10, box=$("stQ"); box.insertAdjacentHTML("afterbegin",'<div class="stTimer"><i></i><b>⏱ '+sec+'</b></div>');
     const tm=box.querySelector(".stTimer"), bar=tm.querySelector("i"), lb=tm.querySelector("b"); let left=sec*1000, last=Date.now();
-    this._tm=setInterval(()=>{ const now=Date.now(), dt=now-last; last=now; if(document.hidden) return;
+    const exam=!!(this.ex || this.oly);   /* (v337) QA: 연습(💜2)은 숨기면 멈추고 돌아와도 한 번에 빼지 않음(한 칸 최대 0.25초) · 시험(📝·🚩)은 숨겨도 시간이 감 (사전 보고 오기 막기) */
+    this._tm=setInterval(()=>{ const now=Date.now(); let dt=now-last; last=now; if(!exam){ if(document.hidden) return; dt=Math.min(dt, 250); }
       if(this.qs[this.i]!==q || this.locked || $("stLesson").style.display==="none"){ this.tStop(); return; }
       left-=dt; bar.style.width=Math.max(0, left/(sec*10))+"%"; lb.textContent="⏱ "+Math.max(0, Math.ceil(left/1000)); if(left<=3000) tm.classList.add("hurry");
       if(left<=0){ this.tStop(); q.tout=1; this.sel=-1; try{ Rank.record(q.w.en, false, null, true); }catch(e){} this.result(false); } }, 100); },
@@ -14914,6 +14954,7 @@ const StudyUI = {
     if(ok){ const wait = 850 + (bonus||q.w.alt||((q.t==="ox"||q.t==="oxs")&&!q.truth) ? 700 : 0) + (q.t==="blend"||q.t==="spell"||q.t==="dict"||q.t==="kdict"||q.t==="sent" ? 450 : 0) + (q.t==="order"||q.t==="stk"||q.t==="gram" ? 1100 : 0) + (isMatch ? 250 : 0);
       const b=$("stCheck"); if(b){ b.classList.add("auto"); b.style.setProperty("--wait", wait+"ms"); }
       this._adv=setTimeout(()=>{ if(this.qs[this.i]===q && this.locked && $("stLesson").style.display!=="none"){ this._guard=Date.now()+350; this.next(); } }, wait); }
+    this._ai=this.i; this.saveCur();   /* (v337) QA: 채점 직후 저장 — 예전엔 문제를 보여 줄 때만 저장해서 틀리고 바로 닫으면 오답·하트가 지워졌다 */
   },
   /* (v272) 틀리면 정답을 보여 준 뒤 같은 문제를 바로 한 번 더 (보기·글자는 다시 섞음). 짝짓기·끌기·O/X 는 이미 그 자리에서 고치거나 답이 하나뿐이라 뺀다.
      바로 푸는 문제는 점수·진도·기록에 안 들어가고, 원래처럼 몇 문제 뒤에 또 나온다 */
@@ -16331,7 +16372,7 @@ const FB = (function(){
   try{ document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) setTimeout(reopen, 300); }); addEventListener("online", ()=>setTimeout(reopen, 800)); }catch(e){}
   const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   return { ready, listen, get, set:(p,v)=>write(p,v,false), update:(p,v)=>write(p,v,true), push:(p,v)=>write(p+"/"+id(), v, false), id,
-    mode:()=>mode, on:()=>mode==="fb", base:()=>base, retry:flush, pending:()=>PQ.length, inc, clock, once };
+    mode:()=>mode, on:()=>mode==="fb", base:()=>base, retry:flush, pending:()=>PQ.length+(flushing?1:0), inc, clock, once };
 })();
 /* 예전 이름 그대로 (방 하나 듣기) */
 /* (v322) 소식이 많을 때(25명이 1초에 몇 번씩) 받을 때마다 다시 그리면 TV 가 느려짐 → 0.15초에 한 번만 그림 (값은 언제나 최신 — get() 은 바로)
@@ -16352,13 +16393,14 @@ const Kid = {
   set(v){ try{ this.st().setItem("hyeng_kid", JSON.stringify(Object.assign({}, v, {at:Date.now()}))); }catch(e){} },
   touch(){ const v=this.get(); if(v) this.set(v); },
   /* (v322) 공용 패드 — Daily 30·달리기를 시작할 때 이름을 고른 지 3분 넘었으면 「민준 맞아요?」 한 번 (다음 아이가 앞 아이 이름으로 기회를 쌓지 않게) */
-  confirm(cb){ cb=cb||(()=>{}); const v=this.get(); let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){}
-    if(!v || !this.shared() || !roster || v.ok || Date.now()-(v.pk||v.at||0)<3*60000 || $("kidAsk") || $("kidPick")) return cb();
+  /* (v337) QA: strict = 주간 보스 화면 — 한 번 '네' 했어도 3분 넘었으면 다시 물음 (20분 안에 패드를 넘기면 다음 아이가 앞 아이 기회를 썼다) */
+  confirm(cb, strict){ cb=cb||(()=>{}); const v=this.get(); let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){}
+    if(!v || !this.shared() || !roster || (v.ok && !strict) || Date.now()-((strict && v.okAt) || v.pk || v.at || 0)<3*60000 || $("kidAsk") || $("kidPick")) return cb();
     const d=document.createElement("div"); d.className="rdJoin"; d.id="kidAsk";
     d.innerHTML='<div class="rdJoinIn kaIn"><b>👤 '+Raid.esc(v.n)+' 맞아요?</b><p>⚔️ 공격 기회가 이 이름으로 쌓여요</p><div class="wbPopB"><button class="stBossBtn" data-ka="y">네</button><button class="stLater" data-ka="c">바꾸기</button></div></div>';
     document.body.appendChild(d);
     d.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-ka]"); if(!b) return; d.remove(); try{ SFX.click(); }catch(er){}
-      if(b.dataset.ka==="y"){ const x=this.get(); if(x) this.set(Object.assign(x, {ok:1})); cb(); } else KidPick.open(()=>cb()); }); },
+      if(b.dataset.ka==="y"){ const x=this.get(); if(x) this.set(Object.assign(x, {ok:1, okAt:Date.now()})); cb(); } else KidPick.open(()=>cb()); }); },
   clear(){ try{ this.st().removeItem("hyeng_kid"); }catch(e){} },
   /* 명단이 없으면 기기 그대로 */
   me(){ const g=this.get(); if(g) return g; const K=HyBoss.kids(); if(Object.keys(K).length) return null;
@@ -16419,6 +16461,7 @@ const HyBoss = {
   on(){ return this.ok || FB.mode()==="fb" || !!window.HY_FB_LOCAL; },
   /* 읽기 (아이 기기) — 15초 안에 다시 부르면 그대로 */
   refresh(force){ if(this._live) return Promise.resolve(); if(!force && this._p && Date.now()-this._t<15000) return this._p; this._t=Date.now(); const t0=Date.now();
+    try{ if(FB.pending()>0) FB.retry(); }catch(e){}   /* (v337) QA: 다시 읽기 전에 쌓인 쓰기부터 보냄 (오프라인에 휘두른 기회가 서버에 늦게 가서 되살아나던 것) */
     this._p = FB.ready().then(m=>{ if(m!=="fb" && !window.HY_FB_LOCAL) return;
       return Promise.all([FB.get("/hy/roster", true), FB.get("/hy/boss", true)]).then(([r,c])=>{ this.ok=true; this.R=r||{}; this.C=(c && c.v===2) ? c : null; this.calc();   // (v308) 인터넷이 안 되면 저장해 둔 것 그대로
         const O=this.O||[];   /* (v322) 다시 시작하기 전 보스(c.old) — 안 받은 보상 */
@@ -16428,9 +16471,9 @@ const HyBoss = {
     return this._p; },
   /* (v336) 사용자: '공격 기회 +2' 를 보고 들어가니 0 — 판이 끝나자마자 「지금 공격하기」를 누르면 서버 더하기(inc)가 끝나기 전에 읽어서 옛 값으로 덮었다.
      카운터(er·es·ur·us·d·sw · 날짜별 on·r)는 늘기만 하므로, 최근 1분 안에 이 기기에서 바꾼 아이는 서버 값과 이 기기 값 중 큰 것을 씀 */
-  touch(kid){ (this._mt=this._mt||{})[kid]=Date.now(); this._mtB=this.B && this.B.id; },
-  keepMine(d, bid){ const T=this._mt||{}, now=Date.now(); if(!bid || this._mtB!==bid) return d; const out=Object.assign({}, d);
-    Object.keys(T).forEach(kid=>{ if(now-T[kid]>60000) return; const a=(this.D||{})[kid]; if(!a) return; const s=out[kid]||{}, m=Object.assign({}, s);
+  touch(kid){ (this._myT=this._myT||{})[kid]=Date.now(); this._mtB=this.B && this.B.id; },
+  keepMine(d, bid){ const T=this._myT||{}, now=Date.now(), pend=(()=>{ try{ return FB.pending()>0; }catch(e){ return false; } })(); if(!bid || this._mtB!==bid) return d; const out=Object.assign({}, d);
+    Object.keys(T).forEach(kid=>{ if(now-T[kid]>60000 && !pend) return;   /* (v337) QA: 인터넷이 끊겨 못 보낸 쓰기가 남아 있으면 시간과 상관없이 이 기기 값 유지 (기회가 되살아나 두 번 쓰지 않게) */ const a=(this.D||{})[kid]; if(!a) return; const s=out[kid]||{}, m=Object.assign({}, s);
       ["er","es","ur","us","d","sw"].forEach(k=>{ const v=Math.max(a[k]|0, s[k]|0); if(v || a[k]!=null || s[k]!=null) m[k]=v; });
       ["sr","ss","n","t","ch"].forEach(k=>{ if(m[k]==null && a[k]!=null) m[k]=a[k]; });
       ["on","r"].forEach(k=>{ const A=a[k]||{}, S=s[k]||{}; if(Object.keys(A).length || Object.keys(S).length){ const o=Object.assign({}, S); Object.keys(A).forEach(x=>{ o[x]=Math.max(A[x]|0, S[x]|0); }); m[k]=o; } });
@@ -16598,8 +16641,11 @@ const HyBoss = {
     const C=Object.assign({}, this.C); C.wp=Object.assign({}, C.wp, {[wk]:abs}); if(C.test && C.test.wk===wk){ if(C.test.wpSet && C.wp[C.test.wpSet]===cur.i) delete C.wp[C.test.wpSet]; delete C.test; } C.max=Object.assign({}, C.max); C.dead=Object.assign({}, C.dead);
     this._mx=null; this._mt=null; this._dk=null; this.C=C; this.calc(); const nb=this.B;
     /* (v322) 테스트 슬라임에서 다른 보스로 → 보스 칸(id)이 바뀜: 슬라임 처치 보상은 c.old 로 남기고, 슬라임에서 쓴 기회를 새 칸으로 옮김 (옛 칸의 기회가 되살아나지 않게) */
-    if(nb && nb.id!==cur.id){ this.keepOld(C, cur); delete C.max[nb.id]; delete C.dead[nb.id]; this.calc();   // 돌아간 칸은 새 보스 체력으로 다시
-      return this.moveStock(cur.id, nb.id).then(()=>FB.set("/hy/boss", C)).then(()=>this.refresh(true)).then(()=>true); }
+    if(nb && nb.id!==cur.id){ this.keepOld(C, cur); let tb=nb;
+      /* (v337) QA: 돌아간 칸이 이미 쓰러뜨린 보스 칸이면(보스 → 🧪 → 다른 보스) 그 칸을 지우면 처치 보상이 사라졌다 → 새 칸 번호 (v329 처럼) */
+      if(Object.keys(C.dead[nb.id]||{}).length){ C.rs=(C.rsWk===wk ? (C.rs|0) : 0)+1; C.rsWk=wk; this._mx=null; this._mt=null; this._dk=null; this.calc(); tb=this.B; }
+      else { delete C.max[nb.id]; delete C.dead[nb.id]; this.calc(); }   // 돌아간 칸은 새 보스 체력으로 다시
+      return this.moveStock(cur.id, tb.id).then(()=>FB.set("/hy/boss", C)).then(()=>this.refresh(true)).then(()=>true); }
     /* (v329) 이미 쓰러뜨린 보스를 바꾸면 — 같은 칸을 지우면 안 받은 처치 보상이 사라졌다 → 새 칸 번호(다시 시작처럼)로 바꾸고 옛 보스는 c.old 로 (보상 그대로) */
     if(this.allDead(cur)){ C.rs=(C.rsWk===wk ? (C.rs|0) : 0)+1; C.rsWk=wk; this.keepOld(C, cur); this._mx=null; this._mt=null; this._dk=null; this.calc(); const nb2=this.B;
       return (nb2 && nb2.id!==cur.id ? this.moveStock(cur.id, nb2.id) : Promise.resolve()).then(()=>FB.set("/hy/boss", C)).then(()=>this.refresh(true)).then(()=>true); }
@@ -16643,7 +16689,8 @@ addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; co
 const WeekBoss = {
   host:false, _last:null, _hold:0, _busy:0, F:null,
   isOpen(){ return !!$("wbView"); },
-  open(host){ HyBoss.start(); try{ HyBoss.roll(); }catch(e){} this.host=!!host; if(host) HyBoss.live(); let d=$("wbView");
+  open(host, sure){ if(!host && !sure && !this.isOpen()){ try{ return Kid.confirm(()=>this.open(host, true), true); }catch(e){} }   /* (v337) 공용 패드 '민준 맞아요?' */
+    HyBoss.start(); try{ HyBoss.roll(); }catch(e){} this.host=!!host; if(host) HyBoss.live(); let d=$("wbView");
     if(!d){ d=document.createElement("div"); d.id="wbView"; document.body.appendChild(d); d.addEventListener("click", e=>this.click(e)); }
     d.className="wb"+(host?" tv":""); this._last=null; this._hold=0; this._k=""; this._played=""; this.draw();
     if(!host) HyBoss.refresh(true).then(()=>{ if(this.isOpen()) this.draw(); });
