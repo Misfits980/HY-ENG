@@ -786,9 +786,14 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 .cpRow .cpBub{position:absolute;order:0;top:-2px;right:calc(50% - 52px);z-index:4;height:20px;padding:0 7px;font-size:11px;line-height:20px}
 .cpRow .cpBub.gift{right:auto;left:50%;transform:translateX(-50%);top:-4px} .cpRow .cpBub.done{background:#2b2350;padding:0 7px}
 .cpRow .cpBub ~ b{display:block}
-.cpRow .cpSign{height:72px;justify-content:center} .cpRow .cpSign .spBd{width:92px;height:77px;padding:0 0 28px 22px;flex-direction:column;gap:4px}
+.cpRow .cpSign{position:relative;height:72px;width:100%;justify-content:flex-end} .cpRow .cpSign .spBd{width:96px;height:80px;margin-bottom:-4px;padding:0 0 22px 16px;flex-direction:column}
+.cpRow .cpSign .spT{position:absolute;left:50%;bottom:1px;transform:translateX(-50%);z-index:3;white-space:nowrap;pointer-events:none}
 .spT{font-size:14px;font-weight:900;line-height:1;color:#fff;-webkit-text-stroke:3.5px #3a1d08;paint-order:stroke fill;text-shadow:0 2px 0 #3a1d08}
-.cpRow .qDots{gap:4px} .cpRow .qDots u{width:8px;height:8px}
+/* 미션 판: 별 3개 (하나씩 금색) */
+.cpRow .qDots{gap:0} .cpRow .qDots u{width:auto;height:auto;background:none;box-shadow:none;border-radius:0;font-size:18px;line-height:1;text-decoration:none}
+.cpRow .qDots u::before{content:"★";color:rgba(70,35,8,.5);text-shadow:0 1px 0 rgba(255,225,170,.35)}
+.cpRow .qDots u.on{background:none;box-shadow:none}
+.cpRow .qDots u.on::before{color:#ffd23f;-webkit-text-stroke:1.5px #7a4210;paint-order:stroke fill;text-shadow:0 0 8px rgba(255,210,63,.9)}
 .cpO{position:relative;display:flex;flex-direction:column;align-items:center;width:100px;text-align:center;color:#fff;font-family:var(--font)}
 .cpO[hidden]{display:none}
 .cpO > b{margin-top:2px;max-width:100%;font-size:12.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #0d0a24,0 0 6px #0d0a24}
@@ -17102,7 +17107,7 @@ const DM = {
   /* 첫 화면 단추 · Daily 30 띠 */
   chip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3;
     return '<span class="dmDots">'+L.map(m=>'<i class="'+(m.done?'on':'')+'"></i>').join('')+'</span><b>🎯 오늘의 미션 '+n+'/3</b><em>'+(s.got?'✅ 상자 열었어요':rd?'🎁 상자 열기!':'🎁 다 하면 상자')+'</em>'; },
-  qchip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3; return '<span class="spBd '+(s.got?'got':rd?'rdy':'go')+'"><b class="spT">'+(rd?'선물!':s.got?'끝!':'미션')+'</b><span class="qDots">'+L.map(m=>'<u class="'+(m.done?'on':'')+'"></u>').join('')+'</span></span>'; },   // (v331) Daily 30 길가 표지판
+  qchip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3; return '<span class="spBd '+(s.got?'got':rd?'rdy':'go')+'"><span class="qDots">'+L.map(m=>'<u class="'+(m.done?'on':'')+'"></u>').join('')+'</span></span><b class="spT">'+(rd?'선물!':s.got?'미션 끝':'미션')+'</b>'; },   // (v331) Daily 30 길가 표지판
   paint(){ try{ const rd=this.ready(); ["dmBtn","dmStrip"].forEach(id=>{ const el=$(id); if(!el) return; const h=id==="dmStrip" ? this.qchip() : this.chip(); if(el._h!==h){ el._h=h; el.innerHTML=h; } el.classList.toggle("rd", rd); el.hidden=false; }); if($("dmView")) this.draw(); }catch(e){} },
   view(){ let d=$("dmView"); if(!d){ d=document.createElement("div"); d.id="dmView"; d.className="rdJoin dmV"; document.body.appendChild(d); d.addEventListener("click", e=>this.click(e)); } this.draw(); try{ SFX.select(); }catch(e){} },
   close(){ const d=$("dmView"); if(d) d.remove(); },
