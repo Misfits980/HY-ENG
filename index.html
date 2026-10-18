@@ -13304,7 +13304,9 @@ const Study = (function(){
      PS·ST: A 그림→영단어(그림 없으면 뜻) · B 한글 뜻→영단어 · C 그림 + 빈칸 문장(해석)
      BA: A 한글 뜻 · B 빈칸 문장 1개 · C 같은 단어 빈칸 문장 2개 / JR: A 한글 뜻 · B 한글 문장 + 빈칸 영어 문장 · C 빈칸 문장 2개 */
   const olyOn=(set,x)=> !!(x && x.fin && x.pn && SPLIT[set]);
-  const olyProf=set=> set==="basic" ? "st" : set==="elem" ? "ps" : (set==="mv1" || set==="jl") ? "jr" : "ba";   // (v301) G1-2 = 한 단계 위 Starter 비율 (유치원과 같은 단어라 더 어렵게 — 사용자)
+  /* (v333) 사용자 기준: 시험은 보카 올림피아드 양식 — G1-2 = Pre-Starter · G3-4 = Starter · G5-6 = Basic · 중등(중등 단어·voca 1·리딩) = Junior
+     (예전 v301 은 G1-2 = Starter · G3-4 = Pre-Starter 로 뒤바뀌어 있었고 중등 단어는 Basic 이었음) */
+  const olyProf=set=> { const b=bookOf(set); return b==="g12" || b==="k" ? "ps" : b==="g34" ? "st" : b==="mid" ? "jr" : "ba"; };
   function sentsOf(w){
     const re=new RegExp("\\b("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")\\b","i"), E=EASY[w.en], L=[];
     let D=null; try{ D=DexData.of(w.en); }catch(e){}

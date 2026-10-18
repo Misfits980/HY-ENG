@@ -32,7 +32,7 @@ async def main():
         await T.evaluate("()=>{ const s=document.getElementById('adExSet'); s.value='elem'; s.dispatchEvent(new Event('change')); document.getElementById('adExTo').value='5'; document.getElementById('adExTo').dispatchEvent(new Event('change')); document.getElementById('adExN').value='20'; document.getElementById('adExN').dispatchEvent(new Event('change')); }"); await T.wait_for_timeout(200)
         info = await T.evaluate("()=>document.getElementById('adExInfo').textContent")
         print("info", info)
-        ok("20문제" in info and "Pre-Starter" in info and "A 7초 · B 8초 · C 11초" in info, "범위 · 단계 자동(G3-4 = Pre-Starter) · 시간표")
+        ok("20문제" in info and "Starter" in info and "Pre-Starter" not in info and "A 7초 · B 8초 · C 11초" in info, "범위 · 단계 자동(G3-4 = Starter, v333) · 시간표")
         await T.screenshot(path=OUT + "exam_admin_form.png")
         await T.evaluate("()=>document.querySelector('[data-ad=\"exOpen\"]').click()"); await T.wait_for_timeout(600)
         cur = await T.evaluate("()=>FB.get('/hy/exam/open').then(O=>Object.values(O||{}).sort((a,b)=>b.at-a.at)[0])")
