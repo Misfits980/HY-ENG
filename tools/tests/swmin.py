@@ -29,7 +29,7 @@ async def main():
         # 서연 화면 — 안내 글
         await pg.evaluate("()=>{ Kid.set({id:'k2',n:'서연',t:'all'}); show('scStudy'); StudyUI.path(); }"); await pg.wait_for_timeout(400)
         card = await pg.evaluate("()=>document.getElementById('stBossCard').innerText")
-        ok("2번 휘둘렀어요" in card and "3번 이상" in card, "카드 안내: " + card.replace("\n", " / ")[:160])
+        ok("쓰러뜨림" in card and "보상 받기" not in card, "카드: 쓰러뜨림 · 보상 버튼 없음 — " + card.replace("\n", " / ")[:160])   # (v331) 자세한 안내는 보스 화면
         await pg.evaluate("()=>WeekBoss.open()"); await pg.wait_for_timeout(600)
         me = await pg.evaluate("()=>(document.getElementById('wbMe')||{}).innerText||''")
         ok("3번 이상" in me and "지금 2번" in me and "보상 받기" not in me, "보스 화면 안내: " + me.replace("\n", " / "))

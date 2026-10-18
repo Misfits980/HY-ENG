@@ -48,7 +48,7 @@ async def main():
         if d!=[True,"서연",250]: bad.append(f"쓰러뜨림·보상 500÷2 {d}")
         await k1.evaluate("()=>{ show('scStudy'); StudyUI.path(); }"); await k1.wait_for_timeout(400)
         card=await k1.evaluate("()=>document.getElementById('stBossCard').innerText"); print("card", card.replace("\n"," / "))
-        if "보상 받기" not in card or "사막 골렘" not in card: bad.append("카드 보상·다음 보스")
+        if "보상 받기" not in card: bad.append("카드 보상")
         await k1.screenshot(path=OUT+"week_card_dead.png")
         g0=await k1.evaluate("()=>Wallet.gems()"); await k1.click("[data-bossclaim='1']"); await k1.wait_for_timeout(300)
         g1=await k1.evaluate("()=>[Wallet.gems(), HyBoss.claim(Kid.get())]"); print("claim", g0, g1)
@@ -65,7 +65,7 @@ async def main():
         if pe[0] or pe[2]<1 or pe[2]>10: bad.append(f"도망 보상 {pe}")
         await k2.evaluate("()=>StudyUI.bossCard()"); await k2.wait_for_timeout(100)
         card2=await k2.evaluate("()=>document.getElementById('stBossCard').innerText"); print("card2", card2.replace("\n"," / "))
-        if "도망" not in card2: bad.append("도망 보상 버튼")
+        if "보상 받기" not in card2 or not await k2.evaluate("()=>!!document.querySelector('#stBossCard [data-bossclaim=\"prev\"]')"): bad.append("도망 보상 버튼 (지난주)")
         await k2.screenshot(path=OUT+"week_card_escape.png")
         # 반 대항전 — 반 없는 아이는 공격 안 됨
         await host.evaluate("()=>{ window._n0=null; HyBoss.setup({on:true, team:true, split:'eq', restart:true}); }"); await host.wait_for_timeout(400)

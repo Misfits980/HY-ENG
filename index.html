@@ -751,6 +751,22 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 @media (max-width:440px){ .exChip{flex-direction:row;gap:6px;padding:7px 13px} .exChip small{display:none} .exChip.wait small{display:none} }
 .exAskP b{font-size:inherit;color:#ffd37a}
 .exAskIn{text-align:center;gap:8px}
+/* (v331) Daily 30 맨 위 작은 타일 한 줄 */
+.stQuick{flex:1 1 100%;order:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px;width:100%}
+.qT{appearance:none;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:74px;padding:7px 4px 6px;border-radius:16px;border:2px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);color:#fff;font-family:var(--font);cursor:pointer;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.3);min-width:0}
+.qT[hidden]{display:none}
+.qT:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.qT i{font-style:normal;font-size:22px;line-height:1.1} .qT b{font-size:13.5px;font-weight:900;white-space:nowrap} .qT small{font-size:10.5px;font-weight:800;color:#c9bff0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.qT.rv{border-color:rgba(111,214,255,.6);background:linear-gradient(160deg,rgba(111,214,255,.22),rgba(80,120,255,.14))} .qT.rv small{color:#bfefff} .qT.rv.done{border-color:rgba(255,255,255,.14)}
+.qT.dm{border-color:rgba(255,211,122,.5);background:linear-gradient(160deg,rgba(255,211,122,.16),rgba(255,150,80,.08))} .qT.dm.rd{animation:qPulse 1.4s ease-in-out infinite;border-color:#ffd37a}
+.qT.rd{border-color:rgba(255,140,170,.45);background:linear-gradient(160deg,rgba(255,110,150,.14),rgba(120,60,200,.12))}
+.qT.boss{padding:0;border-color:rgba(255,140,170,.55);background:linear-gradient(160deg,rgba(255,90,130,.2),rgba(120,60,200,.2))}
+.qT.boss.hot{animation:qPulse 1.4s ease-in-out infinite} .qT.boss.gift{border-color:#7ed957;background:linear-gradient(160deg,rgba(126,217,87,.25),rgba(60,160,90,.12));animation:qPulse 1.4s ease-in-out infinite}
+.qBoss{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:100%;height:100%;padding:5px 2px 6px;cursor:pointer;box-sizing:border-box}
+.qBoss .hbRing{width:40px;height:40px;padding:3px;box-shadow:none} .qBoss .hbRing::before{inset:3px} .qBoss .hbRing img{position:relative;display:block;width:100%;height:100%;object-fit:contain}
+.qBoss b em{font-style:normal;color:#ffe17a}
+@keyframes qPulse{50%{box-shadow:0 3px 0 rgba(0,0,0,.3),0 0 14px rgba(255,211,122,.55)}}
 .dyTabs{display:flex;gap:6px;margin:-2px 0 8px} .dyTabs .mini.on{background:#6b5ad8;color:#fff}
 .dyT td small{font-size:10px;color:#b8acdf;font-weight:700}
 /* (v329) 📌 숙제 */
@@ -12737,7 +12753,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v330";
+const GAME_VER = "v331";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -12847,6 +12863,8 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    새 업데이트를 알리고 싶으면 NEWS 맨 앞에 한 묶음을 추가하면 된다 (id가 바뀌면 다시 뜬다)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-18c", date:"10월 18일", title:"📚 Daily 30 위쪽이 깔끔해졌어요",
+   items:[["🧩","작은 타일 한 줄","복습 · 보스 · 미션 · 레이드가 한 줄 — Stage 가 바로 보여요 · 보스 보상은 타일을 눌러 바로 받기"]]},
   {id:"2026-10-18b", date:"10월 18일", title:"📝 반마다 시험 · 📅 오늘 한 아이",
    items:[
      ["🏫","반마다 시험","선생님이 반을 정해 시험을 열어요 — 우리 반 시험만 보여요 · 반마다 책·범위가 달라도 돼요"],
@@ -14164,11 +14182,12 @@ const StudyUI = {
     const rvLater = Study.load().rvLater===Study.today();
     /* (v322) 점검: 맨 위 카드(복습·미션·레이드·주간 시험·확인·보스)가 폰(390×844)에서 첫 Stage 를 가렸다 → 한 줄 칩으로 낮게 (.stTop 안) ·
        '다음에'를 누른 날에도 작은 '🔁 복습' 칩은 남긴다 (마음이 바뀌면 바로) */
-    let h = '<div class="stTop">'+(()=>{ try{ return HyHW.card(); }catch(e){ return ""; } })()+(due>=3 && !rvLater ? '<div class="stRvRow"><button class="stReview" data-review="1"><i>🔁</i><span><b>오늘의 복습 · '+Math.min(due,10)+'단어 <em class="stRvGem">'+(rvDone?'💎 받음':'💎 +3')+'</em></b><small>'
-      +(rvDone ? '오늘 보석은 받았어요 · 더 해도 좋아요' : '하고 싶을 때 · 잊기 전에 한 번 더')+'</small></span></button><button class="stRvLater" data-rvlater="1">다음에</button></div>'
-      : due>=3 ? '<button class="stRvMini" data-review="1">🔁 복습 '+Math.min(due,10)+'</button>' : '');
-    /* (v312) 맨 위 한 줄 — 🏠 보스(공격 기회 · 공격하러) | 🎯 미션 · ⚔️ 레이드 (빈칸 없이) */
-    h+='<div class="stHub"><div id="stBossCard" class="stHubB"></div><div class="stHubS"><button class="dmBtn dmStrip" id="dmStrip" data-dm="1">'+DM.chip()+'</button><button class="stRaidJoin" data-raidjoin="1"><b>⚔️ 수업 레이드</b><small>선생님이 열면 입장</small></button></div></div>';   // (v302) 수업 레이드 · (v303) 학원 보스 카드
+    /* (v331) 맨 위를 작은 타일 한 줄로 (사용자: 보스 카드·복습 카드가 커서 답답) — 🔁 복습 · 👹 보스 · 🎯 미션 · ⚔️ 레이드. 자세한 것은 눌러서 */
+    let h = '<div class="stTop">'+(()=>{ try{ return HyHW.card(); }catch(e){ return ""; } })();
+    h+='<div class="stQuick">'+(due>=3 ? '<button class="qT rv'+(rvDone?' done':'')+'" data-review="1"><i>🔁</i><b>복습 '+Math.min(due,10)+'</b><small>'+(rvDone?'💎 받음':'💎 +3')+'</small></button>' : '')
+      +'<div id="stBossCard" class="qT boss" hidden></div>'
+      +'<button class="qT dm" id="dmStrip" data-dm="1">'+DM.qchip()+'</button>'
+      +'<button class="qT rd" data-raidjoin="1"><i>⚔️</i><b>레이드</b><small>선생님이 열면</small></button></div>';
     /* (v302) 📝 주간 시험 버튼 — 이번 주에 배운 단어가 8개 넘으면 */
     if(Study.tierSet(this.set)){ const W=Study.weekWords(this.set), wb=Study.wkBest(this.set);
       if(W.ws.length>=8) h+='<button class="stWeek" data-weekly="1"><i>📝</i><span><b>이번 주 시험 · '+Math.min(20,W.ws.length)+'문제</b><small>'+(wb?'이번 주 최고 '+wb+'점 · 다시 봐도 좋아요':'이번 주에 배운 단어 '+W.fresh+'개 · 80점이면 💎5')+'</small></span></button>'; }
@@ -14213,25 +14232,21 @@ const StudyUI = {
   },
   /* (v303) 👹 학원 보스 카드 — 남은 체력 · 내 공격 · 오늘 집 공부로 깎은 것 · 쓰러지면 보상 받기 */
   /* (v305) 🏠 주간 보스 카드 — 월요일에 새 보스, 일요일까지. 공부·달리기로 깎음 */
-  bossCard(){ const el=$("stBossCard"); if(!el) return; try{ HyBoss.refresh(); }catch(e){} const B=HyBoss.B; el.closest(".stHub") && el.closest(".stHub").classList.toggle("noBoss", !B || !HyBoss.on()); if(!B || !HyBoss.on()){ el.innerHTML=''; return; }
-    const me=Kid.me(), roster=Object.keys(HyBoss.kids()).length>0, dl=HyBoss.daysLeft(), E=x=>this.esc(x);   // (v322) dl = 오늘 빼고 남은 날 (일요일 0)
-    const img='<img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+' data-wbopen="1" onerror="this.src=\'assets/boss/boss-knight.webp\'">';
-    const hd='<div class="sbH"><b>🏠 이번 주 보스 · '+E(B.n)+'</b><i class="stBossNo">'+(dl<=0?'오늘까지!':'⏰ '+HyBoss.leftTxt(B))+'</i></div>';   /* (v322) 'D-2'(토요일) 대신 보스 화면과 같은 '⏰ 1일 9시간' */
+  /* (v331) 🏠 주간 보스 — 작은 타일 (체력 고리 · 기회 수 · 받을 보상). 보상이 있으면 눌러서 바로 받기 · 아니면 보스 화면 (이름 고르기·공격·랭킹은 거기서) */
+  bossCard(){ const el=$("stBossCard"); if(!el) return; try{ HyBoss.refresh(); }catch(e){} const B=HyBoss.B; if(!B || !HyBoss.on()){ el.hidden=true; el.innerHTML=''; return; } el.hidden=false;
+    const me=Kid.me(), roster=Object.keys(HyBoss.kids()).length>0, E=x=>this.esc(x);
     if(!me && roster && Kid.shared() && Date.now()-(this._askKid||0)>5*60000){ this._askKid=Date.now(); setTimeout(()=>{ if($("scStudy").classList.contains("on") && !Kid.get()) KidPick.open(()=>this.bossCard()); }, 300); }   // (v304) 공용 패드는 켤 때마다 이름부터
-    const t=me ? HyBoss.myTeam(me.id, me) : (B.team ? null : "all"), st=HyBoss.state(t||Object.keys(B.max||{all:1})[0]), pc=Math.round(st.pct*100);   // (v322) 데미지가 들어가는 반
-    const hp='<div class="rdHp"><i style="width:'+(st.dead?0:pc)+'%"></i><span>'+(st.dead?'🎉 쓰러뜨렸어요!':st.hp.toLocaleString()+' / '+st.max.toLocaleString())+'</span></div>';
-    let body='';
-    if(!me) body='<small>'+(roster?'내 이름을 고르면 공부·달리기로 ⚔️ 공격 기회를 모아요':'선생님이 반 명단을 만들면 보스를 때릴 수 있어요')+'</small>'+(roster?'<button class="stBossBtn" data-kidpick="1">👤 내 이름 고르기</button>':'');
-    else { const k=HyBoss.stock(me.id), n=k.r+k.s, pg=HyBoss.prevReward(me), P=HyBoss.P;
-      if(pg) body+='<button class="stBossBtn" data-bossclaim="prev">🎁 지난주 '+E(P.n)+(HyBoss.stateOf(P, HyBoss.PD, HyBoss.myTeam(me.id, me, P, HyBoss.PD)||"all").dead?' (쓰러뜨림)':' (도망 · 깎은 만큼)')+' 💎 '+pg+'</button>';
-      HyBoss.oldRewards(me).forEach(x=>{ body+='<button class="stBossBtn" data-bossclaim="o:'+E(x.B.id)+'">🎁 '+E(x.B.n)+' 💎 '+x.g+'</button>'; });   /* (v322) 다시 시작 전에 쓰러뜨린 보스 */
-      if(!t) body+='<small>반이 정해지지 않았어요 — 선생님께 반을 알려 주세요</small>';
-      else if(st.dead){ const g=HyBoss.reward(me), got=Wallet.paid(HyBoss.key(B, me)) || HyBoss.mine(me.id).c, nx=HyBoss.nextOf(B);
-        body+=(g ? '<button class="stBossBtn" data-bossclaim="1">🎁 보상 받기 💎 '+g+'</button>' : got ? '<small>🎁 보상 받았어요</small>' : (HyBoss.mine(me.id).d|0)>0 && !HyBoss.swOk(B, HyBoss.mine(me.id)) ? '<small>⚔️ '+HyBoss.swOf(HyBoss.mine(me.id))+'번 휘둘렀어요 — 보상은 '+HyBoss.MIN_SW+'번 이상 휘두른 친구만</small>' : '<small>이번 보스엔 내 공격 기록이 없어요</small>')+'<small class="stBossNext">⏳ 다음 주 월요일 — <b>'+E(nx.n)+'</b> 등장!</small>'; }
-      else body+='<div class="sbK"><span>🏃 <b>'+k.r+'</b>/'+HyBoss.STK+'</span><span>📚 <b>'+k.s+'</b>/'+HyBoss.STK+'</span><span class="sbMe">'+E(me.n)+' <button class="adX" data-kidpick="1" title="바꾸기">↺</button></span></div>'
-        +'<button class="sbGo'+(n>0?' on':'')+'" data-wbopen="1">'+(n>0?'⚔️ 공격하러 가기 <b>'+n+'</b>':'🔍 보스 보기 · 잡는 법')+'</button>'; }
-    const tms = B.team ? '<div class="stBossTeams">'+Object.keys(B.max||{}).map(k=>{ const s=HyBoss.state(k); return '<span class="'+(k===t?'me':'')+'">'+E(HyBoss.tName(k))+' '+(s.dead?'🎉':Math.round(s.pct*100)+'%')+'</span>'; }).join('')+'</div>' : '';
-    el.innerHTML='<div class="stBoss'+(st.dead?' dead':'')+'">'+img+'<div class="stBossI">'+hd+hp+body+tms+'</div></div>'; },
+    const t=me ? HyBoss.myTeam(me.id, me) : (B.team ? null : "all"), st=HyBoss.state(t||Object.keys(B.max||{all:1})[0]), pc=st.dead ? 0 : Math.round(st.pct*100);
+    let claim=null, g=0;
+    if(me){ const pg=HyBoss.prevReward(me), cg=HyBoss.reward(me), og=HyBoss.oldRewards(me);
+      if(cg){ claim="1"; g=cg; } else if(pg){ claim="prev"; g=pg; } else if(og.length){ claim="o:"+og[0].B.id; g=og[0].g; } }
+    const k=me ? HyBoss.stock(me.id) : {r:0, s:0}, n=k.r+k.s;
+    const ring='<span class="hbRing'+(st.dead?' dead':'')+'" style="--hp:'+pc+'"><img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+' onerror="this.src=\'assets/boss/boss-knight.webp\'"></span>';
+    const sub = !me ? (roster ? '👤 이름 고르기' : '보스 보기') : st.dead ? (g ? '' : '🎉 쓰러뜨림') : '체력 '+pc+'%';
+    const attr = claim ? ' data-bossclaim="'+E(claim)+'"' : (!me && roster ? ' data-kidpick="1"' : ' data-wbopen="1"');
+    el.className='qT boss'+(claim?' gift':n>0 && !st.dead?' hot':'')+(st.dead?' dead':'');
+    el.setAttribute("role","button"); el.setAttribute("aria-label", "이번 주 보스 · "+B.n+" · "+(st.dead?"쓰러뜨렸어요":"체력 "+pc+"%")+(me?" · 공격 기회 "+n:""));
+    el.innerHTML='<div class="qBoss"'+attr+'>'+ring+(claim ? '<b>🎁 보상 받기</b><small>💎 '+g+'</small>' : '<b>보스'+(me && n>0 && !st.dead ? ' <em>⚔️'+n+'</em>' : '')+'</b><small>'+sub+'</small>')+'</div>'; },
   /* (v273) 별 — ★3 자리는 💜 (심화) */
   /* (v301) 별 5개 — 판(★1~★4)은 별 4칸 (4번째 = 💜 심화), 🚩 마지막 시험(★5 큰 별)은 50 완성 · 80 🌟 · 90 🌟✨. 유치원·파닉스·표현은 예전처럼 3칸 */
   stars(v, set, x){
@@ -16987,7 +17002,8 @@ const DM = {
   /* 첫 화면 단추 · Daily 30 띠 */
   chip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3;
     return '<span class="dmDots">'+L.map(m=>'<i class="'+(m.done?'on':'')+'"></i>').join('')+'</span><b>🎯 오늘의 미션 '+n+'/3</b><em>'+(s.got?'✅ 상자 열었어요':rd?'🎁 상자 열기!':'🎁 다 하면 상자')+'</em>'; },
-  paint(){ try{ const h=this.chip(), rd=this.ready(); ["dmBtn","dmStrip"].forEach(id=>{ const el=$(id); if(!el) return; if(el._h!==h){ el._h=h; el.innerHTML=h; } el.classList.toggle("rd", rd); el.hidden=false; }); if($("dmView")) this.draw(); }catch(e){} },
+  qchip(){ const L=this.list(), n=L.filter(m=>m.done).length, s=this.s, rd=!s.got && n>=3; return '<i>🎯</i><b>미션 '+n+'/3</b><small>'+(s.got?'✅ 상자 열었어요':rd?'🎁 상자 열기!':'다 하면 🎁')+'</small>'; },   // (v331) Daily 30 작은 타일
+  paint(){ try{ const rd=this.ready(); ["dmBtn","dmStrip"].forEach(id=>{ const el=$(id); if(!el) return; const h=id==="dmStrip" ? this.qchip() : this.chip(); if(el._h!==h){ el._h=h; el.innerHTML=h; } el.classList.toggle("rd", rd); el.hidden=false; }); if($("dmView")) this.draw(); }catch(e){} },
   view(){ let d=$("dmView"); if(!d){ d=document.createElement("div"); d.id="dmView"; d.className="rdJoin dmV"; document.body.appendChild(d); d.addEventListener("click", e=>this.click(e)); } this.draw(); try{ SFX.select(); }catch(e){} },
   close(){ const d=$("dmView"); if(d) d.remove(); },
   draw(){ const d=$("dmView"); if(!d) return; const L=this.list(), s=this.s, n=L.filter(m=>m.done).length, rd=!s.got && n>=3, E=x=>Raid.esc(x);
