@@ -61,6 +61,7 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림�
   "./assets/books/book-short.webp", "./assets/books/book-sight.webp", "./assets/books/book-vowel2.webp", "./assets/ui/mode-e2k.webp",
   "./assets/ui/mode-k2e.webp", "./assets/ui/mode-mix.webp", "./assets/items/item-heart.webp", "./assets/items/item-hint.webp",
   "./assets/items/item-shield.webp", "./assets/items/item-slow.webp", "./assets/chars/run-archer.webp", "./assets/chars/run-cat.webp",
+  "./assets/chars/bs-hero.webp", "./assets/chars/bs-knight.webp", "./assets/chars/bs-explorer.webp", "./assets/chars/bs-wolf.webp",   // (v335) 주간 보스 공격 그림
   "./assets/chars/run-explorer.webp", "./assets/chars/run-ghost.webp", "./assets/chars/run-hero.webp", "./assets/chars/run-knight.webp",
   "./assets/chars/run-mage.webp", "./assets/chars/run-scholar.webp", "./assets/chars/run-wolf.webp", "./assets/boss/hb1-a.webp",
   "./assets/boss/hb1-b.webp", "./assets/boss/hb1-c.webp", "./assets/boss/hb2-a.webp", "./assets/boss/hb2-b.webp",
