@@ -2533,6 +2533,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .rsTint{position:absolute;inset:0;pointer-events:none;z-index:5;transition:background .4s}
 .rs.rage .rsTint{background:radial-gradient(80% 70% at 75% 45%,rgba(255,40,40,.32),transparent 70%)}
 .rsBoss{position:absolute;right:3%;bottom:12%;width:48%;aspect-ratio:1;max-height:96%;z-index:2}
+.rs:has(.bsH) .rsBoss{width:60%;right:0;bottom:8%;max-height:100%}   /* (v335) 새 그림 무대는 보스를 더 크게 (사용자) */
 .rs.big .rsBoss{width:40%;right:6%}
 .rsBossIn{position:relative;width:100%;height:100%;animation:rsBreath 2.4s ease-in-out infinite;transform-origin:50% 90%}
 .rs.wait .rsBossIn{animation-duration:3.8s}
@@ -17103,9 +17104,15 @@ const RaidStage = {
     const ks=Object.keys(E||{}); if(Object.keys(this.seen).length>ks.length*2+200){ const s={}; ks.forEach(k=>{ if(this.seen[k]) s[k]=1; }); this.seen=s; }   // (v322) 지워진 소식은 기억에서도 뺌
     ks.forEach(k=>{ if(this.seen[k]) return; this.seen[k]=1; const e=E[k]; if(!e || now-(e.t||0)>6000) return;
       if(e.k!=="hit" && e.k!=="blk" && e.k!=="shield") return; if(this.role==="kid" && e.n===meName) return;
-      const a=Object.values(this.al).find(x=>x.n===e.n); if(a){ a.dash=1; a.dashT=now; a.atk=(e.v|0)>=40 ? 2 : Math.random()<0.5 ? 0 : 1; } this.bossHit(e.k==="shield"?0:(e.v|0), false, e.k==="shield"); }); },
+      const a=Object.values(this.al).find(x=>x.n===e.n); if(a){ a.dash=1; a.dashT=Date.now(); a.atk=(e.v|0)>=40 ? 2 : Math.random()<0.5 ? 0 : 1; }
+      const hv=e.k==="shield"?0:(e.v|0), hs=e.k==="shield"; if(a && a.bs) setTimeout(()=>this.bossHit(hv, false, hs), Math.round(this.BSG*1000)+140); else this.bossHit(hv, false, hs); }); },   // (v335) 친구도 휘두를 때 맞음
   /* 내 공격 */
-  attack(d, combo, sh){ if(!this.me) return; this.me.dash=1; this.me.dashT=Date.now(); this.me.atk = (combo|0)>=5 ? 2 : ((this.me.n2=(this.me.n2|0)+1)%2);   // (v335) 번갈아 · 콤보 5 넘으면 큰 공격 setTimeout(()=>this.bossHit(d, true, sh, combo), 130);
+  attack(d, combo, sh){ if(!this.me) return; const o=this.me, now=Date.now();
+    /* (v335) 새 그림: 이미 보스 앞에 있으면 돌아가지 않고 이어서 때림 (연타 = 연속 공격) · 맞는 순간(휘두를 때)에 보스가 움찔 */
+    let wait=130; if(o.bs){ const t=o.dash ? (now-o.dashT)/1000 : 9; if(t>=this.BSG*0.6 && t<this.BSG+this.BSH+this.BSR){ o.dashT=now-this.BSG*1000; wait=140; } else { o.dashT=now; wait=Math.round(this.BSG*1000)+140; } }
+    else o.dashT=now;
+    o.dash=1; o.atk = (combo|0)>=5 ? 2 : ((o.n2=(o.n2|0)+1)%2);   // 번갈아 · 콤보 5 넘으면 큰 공격
+    setTimeout(()=>this.bossHit(d, true, sh, combo), wait);
     const cb=this.el.querySelector(".rsCombo"); if(cb){ cb.textContent = combo>=3 ? "🔥 "+combo+" 콤보!" : ""; cb.className="rsCombo"+(combo>=3?" on":""); void cb.offsetWidth; } },
   bossHit(d, mine, sh, combo){ if(!this.el) return; const b=this.el.querySelector(".rsBossIn"); if(b && Date.now()-(this._fl||0)>260){ this._fl=Date.now(); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); }   // (v308) 많이 맞아도 하얗게 붙지 않게
     const big = mine && combo>=5;
@@ -17135,12 +17142,16 @@ const RaidStage = {
       p.style.cssText="left:"+(70+Math.random()*6)+"%;top:"+(42+Math.random()*10)+"%;--dx:"+Math.round(Math.cos(a)*r)+"px;--dy:"+Math.round(Math.sin(a)*r-20)+"px;background:"+col; this.fx.appendChild(p); setTimeout(()=>p.remove(), 700); } },
   slash(mine){ if(!this.fx) return; const s=document.createElement("i"); s.className="rsSlash"+(mine?"":" sm"); s.style.left=(64+Math.random()*8)+"%"; s.style.top=(26+Math.random()*16)+"%"; s.style.setProperty("--r", (Math.random()*60-30)+"deg"); this.fx.appendChild(s); setTimeout(()=>s.remove(), 420); },
   /* (v335) 새 공격 그림 — 가만히: 공격 줄 첫 칸 + 숨쉬기 · 공격: 달려가며 준비(1) → 휘두르기(2~5) → 돌아오기 · 맞음: 쓰러짐 줄 앞 3칸 비틀 */
-  stepBs(o, now, W){ let x=0, row=o.atk|0, fr=0;
-    if(o.dash){ const t=(now-o.dashT)/1000, go=0.16, hit=0.42, ret=0.28;
-      if(t<go){ x=t/go; fr=1; } else if(t<go+hit){ x=1; fr=2+Math.min(3, Math.floor((t-go)/hit*4)); } else if(t<go+hit+ret){ x=1-(t-go-hit)/ret; fr=5; } else o.dash=0; }
+  BSG:0.26, BSH:0.42, BSR:0.32,   // (v335) 다가가기(폴짝) · 때리기 · 돌아오기 (초)
+  stepBs(o, now, W){ let x=0, row=o.atk|0, fr=0, hop=0; const go=this.BSG, hit=this.BSH, ret=this.BSR;
+    if(o.dash){ const t=(now-o.dashT)/1000;
+      if(t<go){ const p=t/go; x=1-(1-p)*(1-p); hop=Math.sin(p*Math.PI)*16; fr=1; }                                   // 다가가며 폴짝 (공격 준비 자세)
+      else if(t<go+hit){ x=1; fr=2+Math.min(3, Math.floor((t-go)/hit*4)); }                                             // 때리기
+      else if(t<go+hit+ret){ const p=(t-go-hit)/ret; x=1-p*p; hop=Math.sin(p*Math.PI)*10; fr=5; }                    // 폴짝 돌아오기
+      else o.dash=0; }
     if(o.hurt){ const t=(now-o.hurtT)/1000; if(t<0.9){ row=3; fr=[0,1,2,2,1,0][Math.min(5, Math.floor(t/0.15))]; x=-0.12*(t<0.45 ? Math.sin(t/0.45*Math.PI/2) : Math.max(0, 1-(t-0.45)/0.45)); } else o.hurt=0; }
     if(o.f!==fr || o.row!==row){ o.f=fr; o.row=row; o.spr.style.backgroundPosition=(fr*20)+"% "+(row*100/3)+"%"; }
-    const reach=(o.mine ? 0.40 : 0.42)*W, bob = o.dash||o.hurt ? 0 : Math.abs(Math.sin(now/300+o.slot))*-2.5;
+    const reach=(o.mine ? 0.29 : 0.36)*W, bob = o.dash||o.hurt ? -hop : Math.abs(Math.sin(now/300+o.slot))*-2.5;
     o.el.style.transform="translate("+Math.round(x*reach)+"px, "+bob.toFixed(1)+"px)";
     if(!o.mine && o.bx!=null){ o.el.style.left=o.bx+"%"; o.el.style.bottom=o.by+"%"; } },
   /* 한 장면 — 달리기 그림 프레임 · 달려가기/돌아오기(뒷걸음질) · 밀려나기 */
