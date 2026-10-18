@@ -32,6 +32,12 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림�
   "./assets/traps/rocks.webp", "./assets/traps/salamander-volcano.webp", "./assets/traps/statue-castle.webp", "./assets/traps/sunflower.webp",
   "./assets/ui/card-desert.webp", "./assets/ui/card-ice.webp", "./assets/ui/card-meadow.webp", "./assets/ui/card-night.webp",
   "./assets/ui/card-volcano.webp", "./assets/ui/hud-icons.webp", "./assets/ui/logo.webp", "./assets/ui/menu-icons.webp",
+  "./assets/ui/rv-chest-open.webp", "./assets/ui/rv-chest-sleep.webp", "./assets/ui/rv-chest-empty.webp", "./assets/ui/sign-day.webp",
+  "./assets/ui/sign-day-ready.webp", "./assets/ui/sign-day-done.webp", "./assets/ui/boss-mound.webp", "./assets/ui/ic-pin.webp",
+  "./assets/ui/ic-flag.webp", "./assets/ui/ic-target.webp", "./assets/ui/ic-swords.webp", "./assets/ui/ic-gift.webp",
+  "./assets/ui/ic-sleep.webp", "./assets/ui/ic-fire.webp", "./assets/ui/ic-gem.webp", "./assets/ui/deco-bush.webp",
+  "./assets/ui/deco-flowers.webp", "./assets/ui/deco-rock.webp", "./assets/ui/deco-tree.webp", "./assets/ui/deco-mushroom.webp",
+  "./assets/ui/deco-pond.webp",   // (v331) 지도 속 캠프 그림
   "./assets/ui/result-badges.webp", "./assets/ui/ui-panel.webp", "./assets/ui/ui-round.webp", "./assets/ui/ui-wide.webp",
   "./assets/world/floor-castle.webp", "./assets/world/floor-desert.webp", "./assets/world/floor-hall.webp", "./assets/world/floor-ice.webp",
   "./assets/world/floor-meadow.webp", "./assets/world/floor-night.webp", "./assets/world/floor-plaza.webp", "./assets/world/floor-rampart.webp",
