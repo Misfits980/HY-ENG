@@ -2570,7 +2570,8 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 @media (max-height:500px){ .rs{height:118px;margin:4px 0} .rsAtkName{font-size:12px} .rsNum{font-size:18px} }   /* (v308) 가로 휴대폰 — 보기 버튼이 화면 안에 */
 .rdHostOn #rdC{position:sticky;bottom:0;z-index:5;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 8px);background:linear-gradient(180deg,rgba(11,7,22,0),#0b0716 35%)}
 .rsSpr{display:block;width:100%;height:100%;background-size:600% 300%;background-repeat:no-repeat;background-position:0 50%;filter:drop-shadow(0 6px 5px rgba(0,0,0,.45))}
-.rsHero.bsH{aspect-ratio:289/220;height:22%} .rsHero.me.bsH{height:30%;left:12%;bottom:8%}   /* 보스보다 작게 (사용자) */   /* (v335) 새 공격 그림 칸 (289×220) — 그림 둘레 빈칸이 있어 조금 크게 */
+.rsHero.bsH{aspect-ratio:289/220;height:22%} .rsHero.me.bsH{height:30%;left:12%;bottom:8%}
+@media (max-width:360px){ .rsHero.bsH{height:28%} .rsHero.me.bsH{height:38%;left:8%} }   /* (v336) 점검: 작은 폰은 무대가 낮아 캐릭터가 너무 작았음 */   /* 보스보다 작게 (사용자) */   /* (v335) 새 공격 그림 칸 (289×220) — 그림 둘레 빈칸이 있어 조금 크게 */
 .rsSpr.bs{background-size:600% 500%;background-position:0 0}   /* 6칸 × 5줄: 공격1 · 공격2 · 큰 공격 · 쓰러짐 · 걷기 */
 .rsName{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font:800 11px var(--font);background:rgba(0,0,0,.55);padding:1px 6px;border-radius:8px;white-space:nowrap;color:#fff}
 .rs.big .rsName{font-size:13px}
@@ -13359,7 +13360,7 @@ const Study = (function(){
     } else {
       const sB = P==="hj" ? 12 : 10, sC = P==="hj" ? 15 : 12;   // (v328) High Junior = A 7 · B 12 · C 15 (사용자 시간표)
       pick(n2, nC).forEach(w=>{ const L=shuffle(sentsOf(w)); C.push({t:"sent2", w, sts:L.slice(0,2), opts:bopts(w), sec:sC}); });
-      pick(n1, nB).forEach(w=>B.push(P==="ba" ? tq(w, {noKo:1, sec:sB}) : {t:"sent", w, st:one(w), opts:bopts(w), sec:sB}));
+      pick(n1, nB).forEach(w=>B.push(P==="ba" ? tq(w, {noKo:1, sec:sB}) : sentsOf(w).length ? {t:"sent", w, st:one(w), opts:bopts(w), sec:sB} : tq(w, {sec:sB})));   // (v336) 점검: 예문 없이 대화만 있는 단어(bounce·germ…)는 대화 빈칸 — 예전엔 st 가 비어 화면이 멈춤
       pick(all, n).forEach(w=>A.push({t:"k2e", w, opts:opts(w), sec:7}));
     }
     A.forEach(q=>q.ab="A"); B.forEach(q=>q.ab="B"); C.forEach(q=>q.ab="C");   // (v328) 시험 결과 유형별
@@ -13776,7 +13777,8 @@ const Study = (function(){
   function kko(w, gr, pool){ const L=w.en.replace(/ /g,"");
     if(/^[a-z]+( [a-z]+){0,2}$/.test(w.en) && L.length>=3 && w.en.length<=18 && !isProper(w.en) && !(gr==="g12" && L.length>6)) return {t:"kdict", w, kk:1};
     const c=czQ(w, gr, false, true); if(c) return c;
-    return canSpell(w) ? makeQ("spell", w, pool, 2) : makeQ("k2e", w, pool, 2); }
+    if(canSpell(w)) return makeQ("spell", w, pool, 2);
+    let s=null; try{ s=sentOf(w) ? makeQ("sent", w, pool, 2) : null; }catch(e){ s=null; } return s || makeQ("k2e", w, pool, 2); }   // (v336) 점검: 💜3 쉬운 고르기 대신 문장 빈칸 먼저
   /* (v334) 보라 별 새 문제 (사용자: 다 좋다) — 🔍 틀린 곳 찾기 · ✍️ 문장 빈칸 직접 쓰기 · 🎧 듣고 빈칸 쓰기 · ⭕❌ 그림/뜻과 맞는 문장일까? */
   function errQ(w){ for(const k of shuffle(["tense","prep"])){ let g=null; try{ g=gramQ(k, w); }catch(e){ g=null; } if(!g) continue;
       const b=w.en, wrong = k==="prep" ? shuffle(g.opts.filter(o=>o!==g.ans))[0] : (g.ans===b || /^will /.test(g.ans) ? pastOf(b) : b);
@@ -13787,9 +13789,13 @@ const Study = (function(){
       return {t:"find", err:1, w, toks, st:{ko:g.st.ko||""}, bad:wr, fix:cap(g.ans), right:g.st.pre+cap(g.ans)+g.st.post, x:{why:g.x.why, kind:g.x.kind}}; }
     return null; }
   function czQ(w, gr, aud, kk){ if(w.alt || !/^[a-z]+( [a-z]+)?$/.test(w.en) || w.en.length<2) return null; if(aud && !canHear()) return null;
-    const st=sentOf(w); if(!st) return null; return {t:"kdict", w, kans:w.en, cz:st, aud:aud?1:0, kk:kk?1:0}; }
+    const st=sentOf(w); if(!st) return null;
+    const re=new RegExp("\\b"+w.en.replace(/ /g,"\\s+")+"\\b","i"); if(re.test(st.pre+" "+st.post)) return null;   // (v336) 점검: 답이 문장에 또 있으면 (… speak Greek) 안 냄
+    return {t:"kdict", w, kans:w.en, cz:st, aud:aud?1:0, kk:kk?1:0}; }
   function oxsQ(w, pool){ if(w.alt) return null; const st=sentOf(w); if(!st) return null; const truth=Math.random()<0.5; let d=null;
-    if(!truth){ d=shuffle(pool.filter(x=>x.en!==w.en && /^[a-z]+$/.test(x.en) && x.ko!==w.ko && (!w.emoji || x.emoji)))[0]; if(!d) return null; }
+    if(!truth){ const P=x=>{ const p=String(posOf(x)||"").split(/[·,\/ ]/)[0].trim(); return p || null; }, pw=P(w);   // (v336) 점검: 같은 품사끼리만 바꿈 (The cat is right the bed · Drink your hands 같은 깨진 문장 막기)
+      const C=pool.filter(x=>x.en!==w.en && /^[a-z]+$/.test(x.en) && x.ko!==w.ko && (!w.emoji || x.emoji)), same=pw ? C.filter(x=>P(x)===pw) : [];
+      d=shuffle(same.length ? same : (pw ? [] : C))[0]; if(!d) return null; }
     const word=truth ? w.en : d.en, ww=st.cap ? word.charAt(0).toUpperCase()+word.slice(1) : word, wr=st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en;
     return {t:"oxs", w, st, truth, dw:d, sent:st.pre+ww+st.post, right:st.pre+wr+st.post}; }
   function blankQ(w, gr, pool){ let q=null;
@@ -14760,8 +14766,9 @@ const StudyUI = {
   odTx(X, ci){ return ci<X.ch.length ? X.ch[ci] : (X.tr||""); },   // (v326) 함정 조각 = ch 다음 번호
   /* (v334) 조각에 대문자(The)·문장부호(pants.)가 붙어 있으면 첫·끝 조각이 들킨다 (사용자: 애매) → 보여 줄 때와 맞는지 볼 때만 떼기 · I · 이름은 그대로 */
   odShow(s){ let t=String(s).replace(/^[^A-Za-z0-9']+/,"").replace(/[.!?,;:"]+$/,""); const f=t.split(" ")[0];
-    if(/^[A-Z][a-z]/.test(f) && !/^I'/.test(f)){ let k=null; try{ k=Study.word(f.toLowerCase()); }catch(e){} if(k) t=t.charAt(0).toLowerCase()+t.slice(1); }
+    if(/^[A-Z][a-z]/.test(f) && !/^I'/.test(f)){ let k=null; try{ k=Study.word(f.toLowerCase()); }catch(e){} if(k || this.OD_LOW.test(f.replace(/'.*$/,""))) t=t.charAt(0).toLowerCase()+t.slice(1); }   // (v336) 점검: 단어장에 없는 흔한 말(Grandma·Everyone·Today…)도 소문자 — 이름(Tom·Mina)만 대문자
     return t; },
+  OD_LOW:/^(grandma|grandpa|granny|mom|dad|mommy|daddy|mother|father|grandmother|grandfather|everyone|everybody|someone|somebody|nobody|anyone|today|tonight|yesterday|tomorrow|there|here|these|those|this|that|what|where|when|who|whom|whose|why|how|which|our|your|their|his|her|its|my|we|they|he|she|it|you|let|please|yes|no|oh|wow|okay|ok|hello|hi|sorry|thanks|thank|after|before|during|once|every|each|many|some|most|all|both|one|two|three|four|five|six|seven|eight|nine|ten|the|a|an|on|in|at|if|can|do|does|did|is|are|was|were|will|would|should|could|may|might|must|have|has|had|be|not|don|didn|let|look|maybe|sometimes|usually|always|never|then|now|so|but|and|because|while|until|since|as|after|with|without|from|to|for|of|by|about|people|kids|children|students|everything|nothing|something)$/i,
   odEnd(X){ return (String(X.full||"").trim().match(/[.!?]+["']?$/)||[""])[0]; },
   odDraw(){ const q=this.qs[this.i]; if(!q || q.t!=="order") return; const X=q.x, row=$("odRow"); if(!row) return;
     row.innerHTML = q.pk.length ? q.pk.map((k,j)=>'<button class="odP" data-p="'+j+'">'+this.esc(this.odShow(this.odTx(X, q.tiles[k])))+'</button>').join("")+(this.odEnd(X)?'<span class="odEnd">'+this.esc(this.odEnd(X))+'</span>':'') : '<span class="odHint">아래 조각을 순서대로 눌러요</span>';
