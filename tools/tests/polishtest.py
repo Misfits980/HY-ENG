@@ -77,7 +77,7 @@ async def main():
         ok("민준" in tb and "4/4" in tb, f"선생님 숙제 표 {tb[:60]!r}")
         await pg.screenshot(path=OUT + "hw_admin_res.png")
         tabs = await E("()=>{ const t=[...document.querySelectorAll('#adTabs button')].map(b=>b.getBoundingClientRect().top); return [t.length, new Set(t.map(Math.round)).size]; }")
-        ok(tabs == [8, 1], f"관리 탭 한 줄 {tabs}")
+        ok(tabs == [6, 1], f"관리 탭 한 줄 {tabs}")
         await E("()=>document.querySelector('[data-ad=\"hwEnd\"]').click()"); await pg.wait_for_timeout(400)
         ok(not (await E("()=>FB.get('/hy/hw/cur')"))["on"], "숙제 끝내기")
         ok(not errs, "오류 없음 " + str(errs[:3]))

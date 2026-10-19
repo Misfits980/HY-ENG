@@ -22,7 +22,7 @@ async def main():
         await pg.evaluate("""(nicks)=>{ Online.on=()=>true; Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:true, rep:{nicks}} : {ok:true}); Notice.fetch=()=>Promise.resolve({v:3, notices:[]});
             sessionStorage.setItem('hyeng_admin_ok', String(Date.now())); sessionStorage.setItem('hyeng_admin_tk', 'testkey'); window.confirm=()=>true; }""", nicks)
         await pg.evaluate("()=>{ Admin.open(); }"); await pg.wait_for_timeout(800)
-        await pg.evaluate("()=>document.querySelector('#adTabs [data-t=\"team\"]').click()"); await pg.wait_for_timeout(1200)
+        await pg.evaluate("()=>document.querySelector('#adTabs [data-t=\"class\"]').click()"); await pg.wait_for_timeout(1200)
         ok(await pg.evaluate("()=>!!document.getElementById('adTeN')"), "👥 반 탭이 있음")
         # 반 두 개 만들기
         for nm, e in (("사자반", "🦁"), ("돌고래반", "🐬")):
@@ -49,7 +49,7 @@ async def main():
         ok(f == ["MINJUN", "HAJUN"] or sorted(f) == ["HAJUN", "MINJUN"], f"찾기 ju → {f}")
         await pg.fill("#adTmQ", ""); await pg.wait_for_timeout(100)
         # 붙여 넣기 → 돌고래반
-        await pg.evaluate("()=>{ const s=document.getElementById('adTmTo'); const o=[...s.options].find(o=>o.textContent.indexOf('돌고래반')>=0); s.value=o.value; s.dispatchEvent(new Event('change')); document.querySelector('#adTmMany').closest('details').open=true; }")
+        await pg.evaluate("()=>{ const s=document.getElementById('adTmTo'); const o=[...s.options].find(o=>o.textContent.indexOf('돌고래반')>=0); s.value=o.value; s.dispatchEvent(new Event('change')); document.getElementById('adTmAdd').open=true; document.querySelector('#adTmMany').closest('details').open=true; }")
         await pg.evaluate("()=>{ document.getElementById('adTmMany').value='JIWOO, DOYUN\\nSUA'; document.querySelector('[data-ad=\"tmMany\"]').click(); }"); await pg.wait_for_timeout(500)
         cnt = await pg.evaluate("()=>{ const T=HyBoss.teams(), K=HyBoss.kids(); return Object.values(K).filter(k=>(T[k.t]||{}).n==='돌고래반').length; }")
         ok(cnt == 3, f"붙여 넣기 3명 ({cnt})")
@@ -69,6 +69,31 @@ async def main():
         r = await pg.evaluate("()=>{ const T=HyBoss.teams(), K=Object.values(HyBoss.kids()).filter(k=>k.n==='SEOWON'); return [K.length, (T[K[0].t]||{}).n]; }")
         ok(r == [1, "돌고래반"], f"이미 있는 이름 → 옮김 {r}")
         await pg.screenshot(path=OUT + "team_tab.png", full_page=False)
+        # (v341) 아이 카드 → 기록 · 💎 보내기 · 🎁 다른 것(보내기 칸에 이름) · 접는 칸이 보임
+        await pg.evaluate("()=>{ window._posts=[]; Online.submit=o=>{ window._posts.push(o); return Promise.resolve(o.type==='report' ? {ok:true, rep:{nicks:['SEOWON','MINJUN','HAJUN','JIWOO','DOYUN','SUA'], weekly:[['아이','들어온 날','오늘의 30','끝까지','공부(분)','정답률(%)','달리기 판','달리기 최고','짧은 판','새 도감','자주 틀린 단어','지난주보다 (공부)','학부모 문자'],['MINJUN','4','8','7','60','88','5','1200','1','3','apple','+10분','민준이는 잘했어요']]}} : {ok:true}); }; Admin._tab('key'); }")
+        await pg.wait_for_timeout(600); await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(800)
+        await pg.evaluate("()=>{ const b=document.querySelector('[data-ad=repLoad]'); b && b.click(); }"); await pg.wait_for_timeout(1000)
+        await pg.evaluate("()=>{ const b=[...document.querySelectorAll('#adTmList [data-ad=tmPick]')].find(b=>/MINJUN/.test(b.textContent)); b.click(); }"); await pg.wait_for_timeout(400)
+        info = await pg.evaluate("()=>{ const i=document.querySelector('.adKidInfo'); return i ? i.innerText : ''; }")
+        ok("88%" in info and "민준이는 잘했어요" in info and "apple" in info, "아이 카드 → 이번 주 기록 · 학부모 문자 " + info[:60].replace("\n"," / "))
+        await pg.evaluate("()=>{ window.confirm=()=>true; document.querySelector('.adKidInfo [data-ad=kdGem][data-n=\"30\"]').click(); }"); await pg.wait_for_timeout(500)
+        ps = await pg.evaluate("()=>window._posts.filter(p=>p.type==='actAdd')")
+        ok(ps and ps[-1]["who"] == "MINJUN" and ps[-1]["value"] == "+30" and ps[-1]["kind"] == "보석", f"💎 +30 보내기 {ps[-1:] }")
+        await pg.evaluate("()=>document.querySelector('.adKidInfo [data-ad=kdSend]').click()"); await pg.wait_for_timeout(600)
+        w = await pg.evaluate("()=>[(document.getElementById('adWho')||{}).value, document.querySelector('#adTabs .on').dataset.t, (document.querySelector('.adSub .on')||{}).dataset && document.querySelector('.adSub .on').dataset.s]")
+        ok(w == ["MINJUN", "set", "send"], f"🎁 다른 것 → 보내기 칸에 이름 {w}")
+        # 🏠 홈 바로가기 → 시험 · 숙제 칸으로
+        await pg.evaluate("()=>Admin._tab('home')"); await pg.wait_for_timeout(500)
+        q = await pg.evaluate("()=>document.querySelectorAll('#adBody .adQuick').length")
+        await pg.evaluate("()=>document.querySelector('#adBody .adQuick[data-sec=\"adBtSet\"]').click()"); await pg.wait_for_timeout(700)
+        t = await pg.evaluate("()=>[document.querySelector('#adTabs .on').dataset.t, !!document.getElementById('adBtSet')]")
+        ok(q >= 8 and t == ["play", True], f"홈 바로가기 {q}개 → 교실 배틀 {t}")
+        # 접는 칸(더 고르기 · ⓘ)이 보임 · 마지막 고른 값 기억
+        vis = await pg.evaluate("()=>[...document.querySelectorAll('#adBody details')].map(d=>d.getBoundingClientRect().height>0)")
+        ok(vis and all(vis), f"접는 칸 보임 {vis}")
+        await pg.evaluate("()=>{ const s=document.getElementById('adBtSet'); s.value='mid'; s.dispatchEvent(new Event('change')); const d=document.getElementById('adBtDur'); d.value='420'; d.dispatchEvent(new Event('change')); Admin._tab('home'); Admin._tab('play'); }"); await pg.wait_for_timeout(500)
+        pv = await pg.evaluate("()=>[document.getElementById('adBtSet').value, document.getElementById('adBtDur').value]")
+        ok(pv == ["mid", "420"], f"마지막 고른 값 기억 {pv}")
         # 게임 이름 = 명단 이름 → 그 기기는 자동으로 (공용 패드는 아님)
         r = await pg.evaluate("()=>{ Kid.clear(); localStorage.setItem('hyeng_nick','minjun'); const a=Kid.me(); Kid.clear(); localStorage.setItem('hyeng_nick','한양패드'); const b=Kid.me(); localStorage.setItem('hyeng_nick','PLAYER'); Kid.clear(); return [a && a.n, b]; }")
         ok(r == ["MINJUN", None], f"게임 이름이 명단과 같으면 자동 · 공용 패드는 고르기 {r}")

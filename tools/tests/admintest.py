@@ -68,17 +68,17 @@ async def main():
         await pg.reload(); await pg.wait_for_timeout(1500)
         await pg.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }"); await pg.wait_for_timeout(500)
         for t in ["home", "notice", "send", "fix", "move"]:
-            await pg.click('#adTabs [data-t="%s"]' % t); await pg.wait_for_timeout(700)
+            await pg.evaluate("(t)=>Admin._tab(t)", t); await pg.wait_for_timeout(700)
             await pg.screenshot(path=OUT + "ad_%s.png" % t)
             txt = await pg.evaluate("()=>document.getElementById('adBody').innerText.slice(0,120)")
             print(t, "|", txt.replace("\n", " / ")[:110])
         # 긴 화면을 내려도 탭 줄이 위에 붙어 있는지
-        await pg.click('#adTabs [data-t="home"]'); await pg.wait_for_timeout(300)
+        await pg.evaluate("()=>Admin._tab('home')"); await pg.wait_for_timeout(300)
         top = await pg.evaluate("()=>{ const s=document.querySelector('#shAdmin .sheetIn'); s.scrollTop=900; const a=document.querySelector('.adTop').getBoundingClientRect(), b=s.getBoundingClientRect(); return [Math.round(a.top-b.top), s.scrollTop] }")
         print("sticky top", top); await pg.screenshot(path=OUT + "ad_home_scrolled.png")
         if top[1] > 0 and abs(top[0]) > 2: bad.append("탭 줄이 안 붙음")
         # 공지 올리기
-        await pg.click('#adTabs [data-t="notice"]'); await pg.wait_for_timeout(600)
+        await pg.evaluate("()=>Admin._tab('notice')"); await pg.wait_for_timeout(600)
         print("srv", await pg.evaluate("()=>document.querySelector('.adSrv').innerText"))
         pg.on("dialog", lambda d: asyncio.ensure_future(d.accept()))
         await pg.fill("#adNtText", "내일은 쉬는 날이에요"); await pg.click('[data-ad="ntDays"][data-d="1"]')
@@ -92,7 +92,7 @@ async def main():
         await pg.click('.adNt [data-ad="ntOff"]'); await pg.wait_for_timeout(1500)
         print("after off", await pg.evaluate("()=>[...document.querySelectorAll('.adNt p')].map(p=>p.innerText)"))
         # 원격 조치
-        await pg.click('#adTabs [data-t="send"]'); await pg.wait_for_timeout(600)
+        await pg.evaluate("()=>Admin._tab('send')"); await pg.wait_for_timeout(600)
         await pg.fill("#adWho", "SEOWON"); await pg.select_option("#adKind", "보석"); await pg.fill("#adVal", "+50"); await pg.fill("#adMemo", "시험 1등!")
         await pg.click('[data-ad="sendGo"]'); await pg.wait_for_timeout(1200)
         ac = [x for x in st["posts"] if x.get("type") == "actAdd"]
@@ -102,12 +102,12 @@ async def main():
         print("gift list", await pg.evaluate("()=>document.querySelectorAll('#adValList option').length"))
         await pg.screenshot(path=OUT + "ad_send_filled.png")
         # 고치기: 보석 +10
-        await pg.click('#adTabs [data-t="fix"]'); await pg.wait_for_timeout(300)
+        await pg.evaluate("()=>Admin._tab('fix')"); await pg.wait_for_timeout(300)
         g0 = await pg.evaluate("()=>Wallet.gems()"); await pg.click('[data-ad="g"][data-n="10"]'); await pg.wait_for_timeout(200)
         g1 = await pg.evaluate("()=>Wallet.gems()"); print("gems", g0, g1)
         if g1 != g0 + 10: bad.append("보석 고치기")
         # (v338) 비밀번호에서 만든 열쇠를 쓰는 중 → 📢 공지 맨 위에 「새 열쇠 만들기」 카드 · 누르면 긴 열쇠가 바로 보임 (서버엔 아직 없어 ❌)
-        await pg.click('#adTabs [data-t="notice"]'); await pg.wait_for_timeout(900)
+        await pg.evaluate("()=>Admin._tab('key')"); await pg.wait_for_timeout(900)   # (v341) ⚙️ 설정 → 🔑 서버 열쇠
         up = await pg.evaluate("()=>{ const b=document.querySelector('#adBody [data-ad=newKey]'); return b ? Math.round(b.getBoundingClientRect().top) : null; }")
         await pg.evaluate("()=>{ window.confirm=()=>true; document.querySelector('#adBody [data-ad=newKey]').click(); }"); await pg.wait_for_timeout(1500)
         nk = await pg.evaluate("()=>{ const i=document.getElementById('adKeyTxt'); return [i ? i.value.length : 0, localStorage.getItem('hyeng_admin_key')===(i&&i.value), !document.querySelector('#adBody [data-ad=newKey]')]; }")
@@ -117,7 +117,7 @@ async def main():
 
         # 예전 서버(공지 모름): 보내기 단추가 막혀 있고 아무것도 안 보낸다
         st["v2"] = False; n0 = len(st["posts"])
-        await pg.click('#adTabs [data-t="notice"]'); await pg.evaluate("()=>{ document.querySelector('[data-ad=recheck]').click(); }"); await pg.wait_for_timeout(1200)
+        await pg.evaluate("()=>Admin._tab('notice')"); await pg.evaluate("()=>{ document.querySelector('[data-ad=recheck]').click(); }"); await pg.wait_for_timeout(1200)
         dis = await pg.evaluate("()=>document.querySelector('[data-ad=ntPost]').disabled")
         print("old server:", await pg.evaluate("()=>document.querySelector('.adSrv').innerText"), "| post disabled", dis, "| posts", len(st["posts"]) - n0)
         await pg.screenshot(path=OUT + "ad_notice_oldserver.png")
@@ -127,7 +127,7 @@ async def main():
         await pg.evaluate("()=>{ sessionStorage.removeItem('hyeng_admin_tk'); }")
         await pg.reload(); await pg.wait_for_timeout(1500)
         await pg.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }"); await pg.wait_for_timeout(300)
-        await pg.click('#adTabs [data-t="notice"]'); await pg.wait_for_timeout(900)
+        await pg.evaluate("()=>Admin._tab('notice')"); await pg.wait_for_timeout(900)
         card = await pg.evaluate("()=>{ const c=document.querySelector('.adSetupCard'); return c ? {vis: c.getBoundingClientRect().height>0, pin: !!document.getElementById('adPin2'), top: Math.round(c.getBoundingClientRect().top)} : null }")
         print("setup card (no key)", card)
         await pg.screenshot(path=OUT + "ad_setup_nokey.png")
