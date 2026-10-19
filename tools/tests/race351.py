@@ -81,6 +81,10 @@ async def main():
         print("exam battle", r["n"], r["t"], r["ab"], r["bad"][:3], r["code"][:3], r["err"][:2])
         ok(r["n"] > 400 and not r["bad"] and not r["code"] and not r["err"], f"시험처럼 문제 {r['n']}개: 정답 없음 {len(r['bad'])} · 코드 글 {len(r['code'])} · 오류 {len(r['err'])}")
         ok(all(r["t"].get(t, 0) > 0 for t in ["opic", "k2e", "talk", "sent", "sent2"]) and set(r["ab"]) == {"A", "B", "C"}, f"문제 종류 A·B·C 다 나옴 {r['t']}")
+        # 사용자: 예문 식 문제가 안 나옴 → 문장 문제(대화·문장 빈칸)가 반 이상
+        r = await K.evaluate("""()=>{ const out={}; ['elem','g56','mid','basic'].forEach(set=>{ Battle._ws=null; Battle._eq=null; Battle.q=null; Battle._last={cfg:{set, from:0, to:3, qt:['mean'], lvl:'exam', dur:300}, st:{s:'run', t0:Date.now()-1000}, p:{}};
+            let n=0, sn=0; for(let i=0;i<60;i++){ const q=Battle.mkQ(); Battle.q=q; n++; if(['talk','sent','sent2'].indexOf(q.t)>=0) sn++; } out[set]=Math.round(sn/n*100); }); Battle.q=null; return out; }""")
+        ok(all(v >= 50 for v in r.values()), f"문장 문제 비율 % {r}")
         # 화면: 대화 빈칸 + 시간 막대 · 시간이 지나면 틀린 것 → 다음 문제
         await K.evaluate("()=>{ Battle._ws=null; Battle._eq=null; Battle.q=null; Battle._last={cfg:{set:'elem', from:0, to:5, qt:['mean'], lvl:'exam', dur:300}, st:{s:'run', t0:Date.now()-1000}, p:{k1:{n:'민준',sc:0}}}; Battle.ng=0; Battle.loop(); }")
         await K.wait_for_timeout(500)
