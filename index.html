@@ -13008,7 +13008,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v354";
+const GAME_VER = "v355";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16448,7 +16448,7 @@ const Dex = (function(){
 /* (v303) projectId hy-eng-raid (사용자 사진 10/16) — 실시간 DB 위치를 몰라서 차례로 열어 봄 */
 const FB_URLS = ["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app", "https://hy-eng-raid-default-rtdb.firebaseio.com", "https://hy-eng-raid-default-rtdb.europe-west1.firebasedatabase.app"];
 const FB = (function(){
-  let base=null, mode=null, probing=null, bc=null, mem=null; const L=[], LK="hyeng_fb_local", QK="hyeng_fb_q", Q=[];
+  let base=null, mode=null, probing=null, bc=null, mem=null, lastErr=null;   /* (v355) 마지막 쓰기 실패 (선생님 화면에 「서버에 저장 못 함」) */ const L=[], LK="hyeng_fb_local", QK="hyeng_fb_q", Q=[];
   /* (v305) 학원 보스 데미지(hy/…)는 와이파이가 끊겨도 버리지 않고 기기에 모아 두었다가 다시 연결되면 보냄 */
   let PQ=[]; try{ PQ=JSON.parse(localStorage.getItem(QK))||[]; }catch(e){ PQ=[]; }
   const saveQ=()=>{ try{ localStorage.setItem(QK, JSON.stringify(PQ.slice(-200))); }catch(e){} };
@@ -16489,7 +16489,7 @@ const FB = (function(){
       else { h.tree=cp(getAt(mem, path)); h.up=true; h.dirty=1; emit(); } });
     return { get:()=>h.tree, up:()=>h.up, close(){ try{ h.es && h.es.close(); }catch(e){} const i=L.indexOf(h); if(i>=0) L.splice(i,1); } }; }
   function send(path, val, merge){ return fetch(base+"/"+parts(path).join("/")+".json", {method:merge?"PATCH":"PUT", body:JSON.stringify(val)})
-      .then(r=>{ if(!r.ok) throw r.status; return true; }).catch(e=>{ if(e!==401 && e!==400){ if(/^hy\//.test(parts(path).join("/"))){ PQ.push([path,val,merge]); saveQ(); } else Q.push([path,val,merge]); } return false; }); }
+      .then(r=>{ if(!r.ok) throw r.status; return true; }).catch(e=>{ lastErr={path:parts(path).join("/"), e:String(e && e.message || e), at:Date.now()}; if(e!==401 && e!==400){ if(/^hy\//.test(parts(path).join("/"))){ PQ.push([path,val,merge]); saveQ(); } else Q.push([path,val,merge]); } return false; }); }
   /* 와이파이가 돌아오면 모아 둔 것을 보냄 — (v308) 하나씩 차례로 · 더하기가 아닌 같은 경로 쓰기는 마지막 것만 */
   let flushing=false;
   function flush(){ if(mode!=="fb" || flushing) return; let q=Q.splice(0).concat(PQ.splice(0)); saveQ(); if(!q.length) return;
@@ -16524,7 +16524,7 @@ const FB = (function(){
   try{ document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) setTimeout(reopen, 300); }); addEventListener("online", ()=>setTimeout(reopen, 800)); }catch(e){}
   const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   return { ready, listen, get, set:(p,v)=>write(p,v,false), update:(p,v)=>write(p,v,true), push:(p,v)=>write(p+"/"+id(), v, false), id,
-    mode:()=>mode, on:()=>mode==="fb", base:()=>base, retry:flush, pending:()=>PQ.length+(flushing?1:0), inc, clock, once };
+    mode:()=>mode, on:()=>mode==="fb", base:()=>base, lastErr:()=>lastErr, retry:flush, pending:()=>PQ.length+(flushing?1:0), inc, clock, once };
 })();
 /* 예전 이름 그대로 (방 하나 듣기) */
 /* (v322) 소식이 많을 때(25명이 1초에 몇 번씩) 받을 때마다 다시 그리면 TV 가 느려짐 → 0.15초에 한 번만 그림 (값은 언제나 최신 — get() 은 바로)
@@ -17309,7 +17309,7 @@ const HyHW = {
     if(v.id && v.set){ this._legacy=true; return v.on ? [v] : []; }
     return Object.keys(v).map(k=>v[k]).filter(c=>c && typeof c==="object" && c.id && c.on && c.set).sort((a,b)=>(a.at||0)-(b.at||0)); },
   check(force){ if(this._busy) return Promise.resolve(this.c); if(!force && Date.now()-this._at<60000) return Promise.resolve(this.c); this._busy=1; this._at=Date.now();
-    return FB.get("/hy/hw/cur").then(v=>{ this._busy=0; const o=JSON.stringify(this.L)+"|"+JSON.stringify(this.mine()||null); this.L=this.norm(v); this.c=this.mine();
+    return FB.get("/hy/hw/cur", true).then(v=>{ this._busy=0;   /* (v355) 읽기 실패를 '숙제 없음'으로 보지 않음 (예전엔 null → 숙제가 사라진 것처럼) */ const o=JSON.stringify(this.L)+"|"+JSON.stringify(this.mine()||null); this.L=this.norm(v); this.c=this.mine();
       if(JSON.stringify(this.L)+"|"+JSON.stringify(this.c||null)!==o) this.redraw(); return this.c; }, ()=>{ this._busy=0; return this.c; }); },
   redraw(){ try{ if($("scStudy").classList.contains("on") && $("stPath").style.display!=="none") StudyUI.path(); }catch(e){} },
   live(c){ return !!(c && c.on && WORD_SETS[c.set] && Date.now() < (c.due||0)+864e5*3); },   // 마감 3일 뒤까지는 보임
@@ -17373,6 +17373,8 @@ const HyHW = {
     this.L.filter(c=>c.on).forEach(c=>{ this.paintRes(c); FB.get("/hy/hw/res/"+c.id).then(R=>{ this._R[c.id]=R||{}; this.paintRes(c); }); }); },
   /* 지금 숙제 모두를 새 모양(반마다)으로 다시 씀 */
   save(L){ const m={}; L.forEach(c=>{ m[c.id]=c; }); this._legacy=false; return FB.set("/hy/hw/cur", Object.keys(m).length ? m : null); },
+  /* (v355) 서버에 정말 있는지(on=true) / 없는지(on=false) 다시 읽어 확인 — 읽기 실패는 '모름' → 저장된 것으로 침 */
+  verify(id, on){ return FB.get("/hy/hw/cur", true).then(v=>{ const L=this.norm(v); this.L=L; return on ? L.some(c=>c.id===id) : !L.some(c=>c.id===id); }, ()=>true); },
   act(a, el, msg, redraw){
     if(a==="hwOpen"){ const set=$("adHwSet").value, f=+$("adHwFrom").value||0, t=Math.max(f, +$("adHwTo").value||0), L=Study.lessons(set), A=L[f], B=L[t], team=($("adHwTeam")||{}).value||"all";
       const title=(($("adHwT").value||"").trim() || (Study.label(set)+" "+(A?Study.stageNo(set,A.n):"")+(t>f && B?"~"+Study.stageNo(set,B.n):""))).slice(0,30);
@@ -17380,11 +17382,15 @@ const HyHW = {
       if(same.length && !confirm("「"+this.tName(team)+"」에 내 둔 숙제 「"+same.map(c=>c.title).join(", ")+"」가 있어요.\n\n새 숙제로 바꿀까요? (앞 숙제는 끝나요)")) return true;
       const c={id:"h"+Date.now().toString(36), on:1, team, set, from:f, to:t, goal:+$("adHwGoal").value||3, due:this.dueOf($("adHwDue").value), title, at:Date.now()};
       const next=this.L.filter(x=>x.on && (x.team||"all")!==team).concat([c]);
-      this.save(next).then(()=>{ this.L=next; this.c=this.mine(); this._at=Date.now(); msg("📌 "+(team!=="all" ? HyExam.tName(team)+"에 " : "")+"숙제를 냈어요 — 아이 Daily 30 맨 위에 보여요", true); redraw(); }); return true; }
+      /* (v355) 사용자: 숙제를 냈는데 나갔다 들어오면 사라짐 (끌 수도 없음) — 저장이 실패해도 화면에는 낸 것처럼 보였다 → 서버에서 다시 읽어 확인한 뒤에만 「냈어요」, 아니면 이유와 함께 알림 */
+      this.save(next).then(ok=>this.verify(c.id, true).then(v=>{
+        if(!v){ const E=FB.lastErr(); msg("⚠️ 숙제가 서버에 저장되지 않았어요"+(E && E.e ? " (오류 "+E.e+")" : "")+" — 와이파이를 확인하고 다시 눌러 주세요", false); this.check(true).then(redraw); return; }
+        this.L=next; this.c=this.mine(); this._at=Date.now(); msg("📌 "+(team!=="all" ? HyExam.tName(team)+"에 " : "")+"숙제를 냈어요 — 아이 Daily 30 맨 위에 보여요", true); redraw(); })); return true; }
     if(a==="hwEnd"){ const id=el && el.dataset.id, c=this.L.find(x=>x.id===id); if(!c) return true;
       if(!confirm("「"+c.title+"」 숙제를 끝낼까요? (아이 화면에서 📌 카드가 사라져요)")) return true;
       const next=this.L.filter(x=>x.id!==id && x.on);
-      this.save(next).then(()=>{ this.L=next; this.c=this.mine(); msg("숙제를 끝냈어요", true); redraw(); }); return true; }
+      this.save(next).then(()=>this.verify(id, false).then(v=>{ if(!v){ const E=FB.lastErr(); msg("⚠️ 서버에서 숙제를 끄지 못했어요"+(E && E.e ? " (오류 "+E.e+")" : "")+" — 다시 눌러 주세요", false); this.check(true).then(redraw); return; }
+        this.L=next; this.c=this.mine(); msg("숙제를 끝냈어요", true); redraw(); })); return true; }
     if(a==="hwCopy"){ const id=el && el.dataset.id, c=this.L.find(x=>x.id===id); if(!c) return true;
       const no=this.rows(c).filter(x=>!(x.tot>0 && x.done>=x.tot)).map(x=>x.n+(x.done?" ("+x.done+"/"+x.tot+")":""));
       const txt="📌 "+c.title+" — 아직 다 안 한 아이 "+no.length+"명\n"+no.join(", ");
