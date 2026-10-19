@@ -12921,7 +12921,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v338";
+const GAME_VER = "v339";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16644,7 +16644,7 @@ const HyBoss = {
   moveStock(fromId, toId){ if(!fromId || !toId || fromId===toId) return Promise.resolve(); const PD=this.PD||{};
     return FB.get("/hy/dmg/"+fromId).then(D0=>{ D0=D0||{}; const w=[];
       Object.keys(D0).forEach(k=>{ const x=D0[k]||{}, src=this.hasStk(x) ? x : this.hasStk(PD[k]) ? PD[k] : null; if(!src) return; const v=this.clampStk(this.rawStk(src));
-        const o={sr:v.r, ss:v.s, er:null, es:null, ur:null, us:null}; if(x.n) o.n=x.n; if(x.t) o.t=x.t; if(x.ch) o.ch=x.ch; w.push(FB.update("/hy/dmg/"+toId+"/"+k, o)); });
+        const o={sr:v.r, ss:v.s, er:null, es:null, ur:null, us:null}; if(x.n) o.n=x.n; if(x.t) o.t=x.t; if(x.ch) o.ch=x.ch; w.push(FB.inc("/hy/dmg/"+toId+"/"+k, {d:0}, o)); });   /* (v339) 서버 규칙이 d(숫자)를 요구 — 새 칸에 처음 쓸 때 d 가 없어 거절되던 것 (선생님이 보스를 바꾸면 기회가 안 옮겨짐) */
       return Promise.all(w); }).catch(()=>{}); },
   /* 보상 — 쓰러뜨림: 보상 전부 / 도망(지난주, 못 잡음): 깎은 % × 40% */
   rewardOf(B, D, kid, pick){ if(!B) return 0; const t=this.myTeam(kid, pick, B, D||{}) || "all", s=this.stateOf(B, D, t); D=D||{}; const me=D[kid]; if(!s || !me || !(me.d>0)) return 0;   // (v322) 데미지가 들어간 반 기준
