@@ -12963,7 +12963,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v346";
+const GAME_VER = "v347";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19501,7 +19501,7 @@ if("serviceWorker" in navigator){
   const hadOld = !!navigator.serviceWorker.controller;
   let reloaded = false;
   /* (v251) 새 버전이 오면 바로 새로고침하지 않는다 — 예전엔 달리기만 막아서 Daily 30 문제 푸는 중·결과 화면·일시정지·상점 창에서 갑자기 새로고침됐다.
-     첫 화면이나 Daily 30 길 화면에 창 없이 있을 때, 또는 앱이 뒤로 가 있을 때(안 보일 때)만 새로 고친다. */
+     (v347) 이제는 앱이 뒤로 가 있을 때(안 보일 때)만 새로 고친다. 보고 있는 화면은 절대 갑자기 다시 뜨지 않는다. */
   let pendingReload = false;
   const safeNow = function(){
     try{
@@ -19511,18 +19511,22 @@ if("serviceWorker" in navigator){
       if(document.querySelector("#wbView, #kidPick, #wbPop, .rdJoin")) return false;
       if(G.running || G.paused) return false;            // (v289) QA: 달리는 중·일시정지 중에 화면을 내리면 바로 새로고침돼 판이 사라졌다 → 숨겨져 있어도 판 중이면 미룬다
       if($("scStudy").classList.contains("on") && $("stPath").style.display==="none") return false;   // 공부 문제 푸는 중
-      if(document.hidden) return true;
-      if(document.querySelector(".sheet.on")) return false;
-      const sp=$("stPop"); if(sp && sp.classList.contains("on")) return false;
-      if($("scStart").classList.contains("on")) return true;
-      if($("scStudy").classList.contains("on") && $("stPath").style.display!=="none") return true;
+      /* (v347) 사용자: 자동 업데이트가 너무 자주 보임 — 화면을 보고 있을 때는(첫 화면·길 화면이어도) 새로고침하지 않는다.
+         앱을 내리거나 화면이 꺼질 때(안 보일 때)만 새 버전으로 바꾸고, 그 전에 끄면 다음에 켤 때 새 버전이 열린다 */
+      return document.hidden;
     }catch(e){}
     return false;
   };
   const tryReload = function(){ if(pendingReload && !reloaded && safeNow()){ reloaded = true; location.reload(); } };
   navigator.serviceWorker.addEventListener("controllerchange", function(){
     if(!hadOld || reloaded) return;
-    pendingReload = true; tryReload();
+    pendingReload = true;
+    /* (v347) 이 화면이 이미 새 버전이면(켤 때 새 화면을 받아 온 경우) 다시 고칠 필요가 없다 — 새 서비스워커에게 버전을 물어 같으면 취소 */
+    try{ const c=navigator.serviceWorker.controller; if(c && c.postMessage) c.postMessage("hyVer"); }catch(e){}
+    tryReload();
+  });
+  navigator.serviceWorker.addEventListener("message", function(e){
+    try{ if(e.data && e.data.hyVer && e.data.hyVer === "hyeng-"+GAME_VER) pendingReload = false; }catch(err){}
   });
   setInterval(tryReload, 2000);
   document.addEventListener("visibilitychange", tryReload);

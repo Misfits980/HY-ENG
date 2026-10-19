@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v346";
+const VERSION = "hyeng-v347";
 /* (v322) 그림(assets/)은 버전마다 다시 받지 않게 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 그림 130개(약 22MB)를 다시 받았다.
    그림 파일을 '같은 이름으로' 새로 바꿨을 때만 아래 숫자를 올리세요 (새 이름의 그림은 그냥 올리면 됨). */
 const ART = "hyeng-art-v1";
@@ -94,6 +94,11 @@ self.addEventListener("activate", e => {
     await Promise.all(keys.filter(k => k !== VERSION && k !== ART).map(k => caches.delete(k)));   // (v322) 그림 캐시는 남긴다
     self.clients.claim();
   })());
+});
+
+/* (v347) 화면이 「너 몇 버전이야?」 하고 물으면 답한다 — 화면이 이미 같은 버전이면 다시 고치지 않게 */
+self.addEventListener("message", e => {
+  try { if (e.data === "hyVer" && e.source) e.source.postMessage({hyVer: VERSION}); } catch (err) {}
 });
 
 self.addEventListener("fetch", e => {
