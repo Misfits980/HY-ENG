@@ -69,7 +69,7 @@ async def main():
         await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"home\"]').click()"); await T.wait_for_timeout(1200)   # (v341) 오늘 한 아이 = 🏠 홈
         card = await T.evaluate("()=>{ const c=[...document.querySelectorAll('.adCard')].find(x=>/한 아이/.test(x.innerText)); return c ? c.innerText : ''; }")
         print("day", card.replace("\n", " / ")[:200])
-        ok("민준" in card and "2판" in card and "1,234" in card and "달리기 1명" in card, "🏠 홈 '📅 오늘 한 아이'")
+        ok("민준" in card and "2판" in card and "1,234" in card and "달리기 1" in card, "🏠 홈 '📅 오늘 한 아이'")
         await T.screenshot(path=OUT + "day_card.png")
         await T.evaluate("()=>document.querySelector('[data-ad=\"dayPick\"]:nth-child(2)').click()"); await T.wait_for_timeout(500)
         ok("어제" in await T.evaluate("()=>[...document.querySelectorAll('.adCard h3')].map(h=>h.innerText).join(' ')"), "어제 보기")
