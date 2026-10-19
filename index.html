@@ -2612,6 +2612,9 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .rs.big .rsName{font-size:13px}
 .rsHero.oops .rsSpr{animation:rsWob .42s}
 .rsHero.ouch .rsSpr{animation:rsRed .55s}
+.rsHero.guardUp::after{content:"";position:absolute;inset:-4% 2%;border-radius:50%;border:3px solid #8fe3ff;box-shadow:0 0 18px #8fe3ff,inset 0 0 12px rgba(143,227,255,.5);animation:rsGuardP .6s ease-in-out infinite alternate;pointer-events:none}
+@keyframes rsGuardP{from{opacity:.55}to{opacity:1}}
+@keyframes rsGuardUp{from{transform:scale(.3) translateX(-30%);opacity:0}to{transform:none;opacity:1}}   /* (v343) 막기를 누르면 방패를 들고 기다림 */
 .rsHero.guard::after{content:"";position:absolute;inset:-6% 0;border-radius:50%;border:3px solid #8fe3ff;box-shadow:0 0 20px #8fe3ff,inset 0 0 14px rgba(143,227,255,.6);animation:rsGuard .65s forwards;pointer-events:none}
 .rsWarn{position:absolute;inset:0;pointer-events:none;z-index:6}
 .rs.warn .rsWarn{animation:rsWarn .55s ease-in-out infinite alternate}
@@ -12959,7 +12962,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v342";
+const GAME_VER = "v343";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16879,7 +16882,7 @@ const WeekBoss = {
     el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0);
     const warn = F && F.phase==="warn"; el.classList.toggle("warn", !!warn); el.classList.toggle("empty", n<=0 && !warn);
     $("wbSwN").textContent = warn ? "지금은 막기!" : n>0 ? "남은 기회 "+n : "기회 없음";
-    $("wbFHint").innerHTML = warn ? '⚠️ <b>'+Raid.esc(F.nm)+'</b>! 지금 <b>🛡 막기</b>를 눌러요!' : v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
+    $("wbFHint").innerHTML = warn && F.blocked ? '🛡 <b>방패를 들었어요!</b> 보스 공격을 막아요…' : warn ? '⚠️ <b>'+Raid.esc(F.nm)+'</b>! 보스가 공격해요 — <b>🛡 막기</b>!' : v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
       : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '보스가 ⚠️ 공격하려고 하면 🛡 막기! 못 막으면 공격 기회 -1'; },
   swing(rd){ if(this._rf) return; if(!rd && !this.fresh()){ this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.isOpen()){ this.draw(); this.swing(1); } }, ()=>{ this._rf=0; }); return; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 (다른 태블릿이 쓰러뜨린 보스를 때려 기회를 날리지 않게) */
     HyBoss.roll(); const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; const v=this.view(B, me); if(v.dead){ if(this.F) this.result(); return; }
@@ -16898,21 +16901,26 @@ const WeekBoss = {
     if(v.dead){ setTimeout(()=>this.result(), 1100); return; }
     if(st.r+st.s<=0){ setTimeout(()=>this.result(), 900); return; }
     if(F.next<=0){ F.phase="wait"; setTimeout(()=>this.bossTurn(), 650); } },
+  /* (v343) 사용자: 아이들이 보스 공격 모션을 보고 막아야 하는데, 막기를 누르면 그제야 공격 그림이 나오고 끝나면서 막았다(순서가 반대) →
+     경고와 함께 보스가 공격 동작을 시작 (느리게 · 맞는 순간 = 막기 시간 끝) · 막기를 누르면 🛡 방패를 들고 기다렸다가 맞는 순간에 막음 · 못 막으면 그 순간 맞음 */
+  IMPACT_MS:900,   // 공격 그림이 시작해서 맞는 순간까지 (느리게 튼 그림 기준)
   bossTurn(){ const F=this.F, B=HyBoss.B; if(!F || !B || !this.isOpen()) return; const L=HyBoss.lineOf(B), j=Math.floor(Math.random()*3);
     F.phase="warn"; F.k=L.img+"-"+"abc"[j]; F.nm=L.atk[j]; F.blocked=false; F.warnAt=Date.now();
     RaidStage.charge(F.nm); RaidStage.warn(true); try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>SFX.tone(330,.18,"sawtooth",.05,220), 300); }catch(e){}
-    this.drawFight(); clearTimeout(F.t); F.t=setTimeout(()=>this.strike(), this.BLOCK_MS); },
+    this.drawFight(); clearTimeout(F.t); clearTimeout(F.ta);
+    F.ta=setTimeout(()=>{ if(this.F===F && F.phase==="warn") RaidStage.windup(F.k, this.IMPACT_MS); }, Math.max(0, this.BLOCK_MS-this.IMPACT_MS));
+    F.t=setTimeout(()=>this.strike(), this.BLOCK_MS); },
   BLOCK_MS:2000,   /* (v322) 막기 시간 1.6 → 2.0초 (저학년 · 구형 iPad) */
   block(){ const F=this.F; if(!F || F.phase!=="warn"){ this.nudge(".wbBlock"); return; } if(Date.now()-F.warnAt<120) return;   // 미리 눌러 두는 것 막기
-    F.blocked=true; clearTimeout(F.t); this.strike(); },
+    if(F.blocked) return; F.blocked=true; RaidStage.guardUp(true); try{ SFX.tone(660,.08,"triangle",.05,990); }catch(e){} this.drawFight(); },   /* (v343) 방패를 들고 맞는 순간까지 기다림 */
   strike(){ const F=this.F, me=Kid.me(); if(!F || F.phase!=="warn" || !me) return; F.phase="strike"; RaidStage.warn(false);
-    const ok=F.blocked; RaidStage.strike(F.k, ok, ok ? HyBoss.COUNTER : null, "💥 공격 기회 -1");
+    const ok=F.blocked; RaidStage.impact(F.k, ok, ok ? HyBoss.COUNTER : null, "💥 공격 기회 -1");   /* (v343) 공격 그림은 이미 돌고 있음 — 지금이 맞는 순간 */
     setTimeout(()=>{ if(this.F!==F) return;
       if(ok){ F.blk++; const add=HyBoss.add(me, HyBoss.COUNTER, "study", 0); F.dmg+=add; try{ SFX.tone(880,.16,"triangle",.05,1760); }catch(e){} }
       else { F.hit++; HyBoss.use(me); try{ SFX.tone(160,.22,"square",.05); }catch(e){} }
       F.phase="idle"; F.next=3+Math.floor(Math.random()*3); F.at=Date.now(); this.drawFight(); this.after(); }, 980); },
   nudge(sel){ const b=document.querySelector("#wbFight "+sel); if(!b) return; b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); },
-  endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); this.F=null; try{ RaidStage.warn(false); }catch(e){}
+  endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); clearTimeout(F.ta); this.F=null; try{ RaidStage.warn(false); RaidStage.guardUp(false); }catch(e){}
     if((F.phase==="warn" || F.phase==="strike") && !F.blocked && F.bid===(HyBoss.B||{}).id){ const me=Kid.me(); if(me) HyBoss.use(me); } },   /* (v337) QA: 0.98초 '내려치기' 중에 닫아도 -1 */   /* (v322) ⚠️ 경고 중에 ◀ 닫아도 못 막은 것 (기회 -1 피하기 막기) */
   /* 기회를 다 쓰면 — 결과창 (깎은 체력 전 → 후) */
   result(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || F.done || !B || !me) return; F.done=1; this.endFight(); const d=$("wbView"); if(!d) return;
@@ -17352,6 +17360,16 @@ const RaidStage = {
     if(n){ n.textContent="💥 "+nm+"!"; n.classList.remove("on"); void n.offsetWidth; n.classList.add("on"); }
     setTimeout(()=>this.shake(), 520); },
   warn(on){ if(this.el) this.el.classList.toggle("warn", !!on); },
+  /* (v343) 공격 그림을 느리게 시작 — imp ms 뒤가 맞는 순간 (원래 그림은 0.56초가 맞는 순간) */
+  windup(key, imp){ if(!this.el) return; const a=this.el.querySelector(".rsAtk"), bi=this.el.querySelector(".rsBossIn"); if(!a) return; const f=Math.max(1, imp/560), dur=Math.round(BOSS_ANIM_MS*f);
+    a.style.backgroundImage="url(assets/boss/"+key+".webp)"; a.style.animationDuration=dur+"ms"; a.classList.remove("on"); void a.offsetWidth; a.classList.add("on"); bi.classList.add("atk");
+    clearTimeout(this._at); this._at=setTimeout(()=>{ a.classList.remove("on"); a.style.animationDuration=""; bi.classList.remove("atk"); }, dur);
+    setTimeout(()=>this.shake(), Math.round(imp*0.95)); },
+  guardUp(on){ if(this.me) this.me.el.classList.toggle("guardUp", !!on); },
+  /* 맞는 순간 — 그림은 이미 돌고 있으니 바로 막기/아야 (그림이 없으면 예전처럼 공격 그림부터) */
+  impact(key, ok, n, txt){ if(!this.el) return; const a=this.el.querySelector(".rsAtk"); this.guardUp(false);
+    if(!a || !a.classList.contains("on")) return this.strike(key, ok, n, txt);
+    ok ? this.block(n) : this.hurt(txt); },
   /* 아이 화면: 예고(이름 + 빨간 테두리) → 막기 문제 결과에 맞춰 공격 그림 → 맞는 순간(0.56초) 막기/아야 */
   charge(nm){ if(!this.el) return; const n=this.el.querySelector(".rsAtkName"); if(n){ n.textContent="⚠️ "+nm+"!"; n.classList.remove("on"); void n.offsetWidth; n.classList.add("on"); } },
   strike(key, ok, n, txt){ if(!this.el) return; const a=this.el.querySelector(".rsAtk"), bi=this.el.querySelector(".rsBossIn");
