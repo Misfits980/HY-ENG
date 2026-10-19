@@ -13007,7 +13007,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v353";
+const GAME_VER = "v354";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17105,6 +17105,7 @@ const HyExam = {
     clearTimeout(this._pt);
     if(me) FB.update("/hy/exam/res/"+c.id+"/"+me.id, {sc, ok, tot, p:Q.filter(q=>q._r!=null).length, sec, ab, miss:miss.slice(0,40).join(", "), fin:1, end:Date.now()});
     try{ if(me) localStorage.setItem(this.dk(c.id, me.id), String(sc)); }catch(e){}
+    try{ if(me && this._dy!==c.id+me.id){ this._dy=c.id+me.id; HyDay.add({c:1, ce:1}, null, me); } }catch(e){}   // (v354) 📅 오늘 한 아이
     const E=x=>Raid.esc(x), NM={A:"🔤 뜻 보고 단어", B:"📝 빈칸 문장", C:"📝📝 두 문장 · 대화"}, gr = sc>=90 ? "🌟✨ 아주 잘했어요!" : sc>=80 ? "🌟 잘했어요!" : sc>=50 ? "👍 통과!" : "📕 틀린 단어를 다시 봐요";
     U.view("stDone");
     $("stDoneIn").innerHTML='<div class="stBigT">📝 '+E(c.title||"시험")+'</div><div class="exScore"><b>'+sc+'</b><small>점</small></div><p>'+gr+(full===false && Q.some(q=>q._r==null) ? ' · 안 푼 문제는 틀린 것으로 셌어요' : '')+'</p>'
@@ -17214,8 +17215,10 @@ const HyDay = {
   who(){ let m=null; try{ m=HyExam.me(); }catch(e){} if(m) return m;
     let d="", n=""; try{ d=localStorage.getItem("hyeng_dev")||""; n=localStorage.getItem("hyeng_nick")||""; }catch(e){} if(!d) return null;
     return {id:"d"+d.replace(/[^a-z0-9]/gi,"").slice(0,16), n:((n||"이름 없음")+(Kid.shared() ? " (이름 안 고름)" : "")).slice(0,16), t:"all"}; },
-  add(inc, best){ try{ const m=this.who(); if(!m) return; const day=this.key(), lb="hyeng_daybest_"+day+"_"+String(m.id).slice(0,20);
-      const plain={n:String(m.n||"").slice(0,16), t:m.t||"all", la:Date.now(), lk:inc.r ? "r" : "s"};
+  /* (v354) 사용자: 오늘 한 아이가 안 나옴 — 교실 배틀·레이드·시험만 한 아이(박유범·빈…)는 기록이 없었다 → 수업 활동도 c(+cb 배틀 · cr 레이드 · ce 시험), who = 그 판에서 고른 아이 */
+  add(inc, best, who){ try{ const m=(who && who.id) ? who : this.who(); if(!m) return; const day=this.key(), lb="hyeng_daybest_"+day+"_"+String(m.id).slice(0,20);
+      let t=m.t||"all"; if(t==="all"){ try{ t=(HyBoss.kids()[m.id]||{}).t || "all"; }catch(e){} }
+      const plain={n:String(m.n||"").slice(0,16), t, la:Date.now(), lk:inc.r ? "r" : inc.c ? "c" : "s"};
       if(best){ let b={}; try{ b=JSON.parse(localStorage.getItem(lb))||{}; }catch(e){} let ch=false;
         if((best.b|0)>(b.b|0)){ b.b=best.b|0; ch=true; } if((best.bs|0)>(b.bs|0)){ b.bs=best.bs|0; ch=true; }
         if(ch){ try{ localStorage.setItem(lb, JSON.stringify(b)); }catch(e){} } plain.b=b.b|0; plain.bs=b.bs|0; }
@@ -17224,15 +17227,16 @@ const HyDay = {
   card(){ const E=x=>Raid.esc(x), today=this.key(), yday=this.key(Date.now()-864e5), day=this.day||today, D=this.D[day];
     const head='<div class="dyTabs"><button class="mini'+(day===today?' on':'')+'" data-ad="dayPick" data-d="'+today+'">오늘</button><button class="mini'+(day===yday?' on':'')+'" data-ad="dayPick" data-d="'+yday+'">어제</button><button class="mini" data-ad="dayPick" data-d="'+day+'">🔄</button></div>';
     if(!D) return '<div class="full">'+'<section class="adCard"><h3>📅 오늘 한 아이<small>달리기 · 공부 · 보스 — 판이 끝날 때마다 바로</small></h3>'+head+'<p class="adSmall">불러오는 중…</p></section></div>';
-    const BD=(HyBoss.D||{}), L=Object.keys(D).map(k=>Object.assign({k}, D[k])).sort((a,b)=>(b.la||0)-(a.la||0)), run=L.filter(x=>(x.r|0)>0), st=L.filter(x=>(x.s|0)>0);
+    const BD=(HyBoss.D||{}), L=Object.keys(D).map(k=>Object.assign({k}, D[k])).sort((a,b)=>(b.la||0)-(a.la||0)), run=L.filter(x=>(x.r|0)>0), st=L.filter(x=>(x.s|0)>0), cl=L.filter(x=>(x.c|0)>0);
+    const clT=x=>[(x.cb|0)?'배틀'+((x.cb|0)>1?' '+(x.cb|0):''):'', (x.cr|0)?'레이드'+((x.cr|0)>1?' '+(x.cr|0):''):'', (x.ce|0)?'시험':''].filter(Boolean).join(' · ');
     const tm=t=>{ if(!t) return ""; const d=new Date(t); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
-    const body = L.length ? '<div class="adTbl"><table class="dyT"><tr><th>아이</th><th>🏃 달리기</th><th>최고</th><th>정답률</th><th>📚 공부</th><th>⚔️ 보스</th><th>마지막</th></tr>'
+    const body = L.length ? '<div class="adTbl"><table class="dyT"><tr><th>아이</th><th>🏃 달리기</th><th>최고</th><th>정답률</th><th>📚 공부</th><th>🏫 수업</th><th>⚔️ 보스</th><th>마지막</th></tr>'
       +L.map(x=>{ const b=BD[x.k], bd=b && b.on ? (b.on[day]|0) : 0, tot=(x.rr|0)+(x.rw|0);
         return '<tr><td>'+E(x.n||"?")+(x.t && x.t!=="all" ? ' <small>'+E(HyExam.tName(x.t))+'</small>' : '')+'</td><td class="'+((x.r|0)?'ok':'')+'">'+((x.r|0)?(x.r|0)+'판 <small>'+Math.round((x.rs|0)/60)+'분</small>':'-')+'</td>'
           +'<td>'+((x.b|0)?(x.b|0).toLocaleString()+((x.bs|0)?' <small>'+(x.bs|0)+'단계</small>':''):'-')+'</td><td>'+(tot?Math.round((x.rr|0)/tot*100)+'%':'-')+'</td>'
-          +'<td class="'+((x.s|0)?'ok':'')+'">'+((x.s|0)?(x.s|0)+'판':'-')+'</td><td>'+(bd?'-'+bd.toLocaleString():'-')+'</td><td>'+tm(x.la)+' '+(x.lk==="r"?'🏃':'📚')+'</td></tr>'; }).join('')+'</table></div>'
+          +'<td class="'+((x.s|0)?'ok':'')+'">'+((x.s|0)?(x.s|0)+'판':'-')+'</td><td class="'+((x.c|0)?'ok':'')+'">'+((x.c|0)?E(clT(x)):'-')+'</td><td>'+(bd?'-'+bd.toLocaleString():'-')+'</td><td>'+tm(x.la)+' '+(x.lk==="r"?'🏃':x.lk==="c"?'🏫':'📚')+'</td></tr>'; }).join('')+'</table></div>'
       : '<p class="adSmall">'+(day===today?'오늘은 아직 아무도 안 했어요':'이날은 기록이 없어요')+' <small>(v330 이상 기기만 보여요)</small></p>';
-    return '<div class="full"><section class="adCard"><h3>📅 '+(day===today?'오늘':day===yday?'어제':day)+' 한 아이<small>🏃 달리기 '+run.length+'명 · 📚 공부 '+st.length+'명 · 판이 끝날 때마다 바로 (새 버전 기기만)</small></h3>'+head+body+'</section></div>'; }
+    return '<div class="full"><section class="adCard"><h3>📅 '+(day===today?'오늘':day===yday?'어제':day)+' 한 아이<small>'+L.length+'명 · 🏃 달리기 '+run.length+' · 📚 공부 '+st.length+' · 🏫 수업(배틀·레이드·시험) '+cl.length+' · 판이 끝날 때마다 바로</small></h3>'+head+body+'</section></div>'; }
 };
 /* ══ (v329) 📌 숙제 (사용자: 숙제 지정) — 선생님이 책 + Stage 범위 + 목표 별 + 마감을 정하면 아이 Daily 30 길 맨 위에 📌 카드 · 범위 Stage 에 📌 표시
    /hy/hw/cur = {id, on, set, from, to, goal(1·3·4·6 = ★1·★3·💜1·💜3, 🚩 은 끝냄), due, title, at} · /hy/hw/res/<id>/<아이> = {n, t, done, tot, at} (아이가 길로 돌아올 때 바뀌었으면) */
@@ -17748,6 +17752,7 @@ const Raid = {
       try{ SFX.tone(160,.2,"square",.05); }catch(e){} setTimeout(()=>{ this.atk=null; this.next(); this.drawKid(); }, 1500); this.drawKid(); }
     this.drawKid(); },
   finish(){ this.ended=true; const c=this.calc(), st=this.st(), key="rd-"+this.room+"-"+(st.t0||0); let gems=0;
+    try{ if(this.role==="kid" && this.pick && this.hits+this.miss+this.blk>0 && this._dy!==key){ this._dy=key; HyDay.add({c:1, cr:1}, null, this.pick); } }catch(e){}   // (v354) 📅 오늘 한 아이
     if(this.dmg+this.blk+this.shk+this.hits>0 && !Wallet.paid(key)){ /* (v322) 새로고침 뒤 안 풀었어도 깎은 데미지가 있으면 참가 💎 */ Wallet.pay(key); gems = this.boss() ? 10 : c.hp<=0 ? 40 : 15; Wallet.addGems(gems, "레이드 "+this.room); }   // (v303) 학원 보스면 참가 💎 + 쓰러뜨리면 보상 나눔 · (v318) 3·8·5 → 10·40·15 (사용자: 잡는 것에 비해 짜다)
     try{ if(Online.on() && !Wallet.paid("s"+key) && (Wallet.pay("s"+key), true)) Online.submit({nick:(this.name||"PLAYER").toUpperCase().slice(0,10), score:this.dmg, diff:"study", rule:"study-raid", stage:0, acc:Math.round(this.hits/Math.max(1,this.hits+this.miss)*100), right:this.hits, wrong:this.miss,
       clear:c.hp<=0?1:0, end:"raid", set:"레이드 "+this.room+(this.boss() && this.boss().team ? " · "+HyBoss.tName(this.team) : ""), secs:0, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:""}); }catch(e){}
@@ -18016,6 +18021,7 @@ const Battle = {
     const done=P=>{ this._finBusy=0; if(this.ended) return; if(P && typeof P==="object") this._finP=P; const fin=this.st().fin; this._finish(fin && fin.r && fin.r.indexOf(this.me)>=0 ? fin.r : this.rankOf(this.T().p)); };
     FB.get("/battle/"+this.room+"/p", true).then(done, ()=>done(null)); },
   _finish(R){ if(this.ended) return; this.ended=true; const i=R.indexOf(this.me), key="bt-"+this.room+"-"+(this.st().t0||0);
+    try{ if(this.ok+this.ng>0 && this._dy!==key){ this._dy=key; HyDay.add({c:1, cb:1}, null, this.pick); } }catch(e){}   // (v354) 📅 오늘 한 아이
     const flag=this.cfg().mode==="flag", mt=((this.T().p||{})[this.me]||{}).t||"_", st0=this.st(), win = flag && (st0.win ? st0.win===mt : (this.teamsOf()[0]||{}).t===mt); this._win=win;
     if(this.ok>0 && !Wallet.paid(key)){ Wallet.pay(key); this._gems = flag ? (win ? 4 : 2) : i===0 ? 5 : i===1 ? 3 : i===2 ? 2 : 1; Wallet.addGems(this._gems, "교실 배틀 "+this.room); }   // (v310) 🚩 깃발 레이스: 우승 반 💎4 · 나머지 💎2
     try{ if(Online.on() && !Wallet.paid("s"+key) && (Wallet.pay("s"+key), true)) Online.submit({nick:(this.pick.n||"PLAYER").slice(0,10), score:this.sc, diff:"study", rule:"study-battle", stage:i+1, acc:Math.round(this.ok/Math.max(1,this.ok+this.ng)*100), right:this.ok, wrong:this.ng,
