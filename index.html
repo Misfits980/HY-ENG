@@ -16503,7 +16503,9 @@ const FB = (function(){
       mem=writeMem(mem, path, val, merge); try{ localStorage.setItem(LK, JSON.stringify(mem)); }catch(e){} try{ bc && bc.postMessage({p:path, v:val, m:!!merge}); }catch(e){} return true; }
   function write(path, val, merge){ return ready().then(m=>put(m, path, val, merge)); }
   /* strict = 인터넷 오류면 null 대신 실패 (없는 것과 못 읽은 것을 구별) */
-  function get(path, strict){ return ready().then(m=> m==="fb" ? fetch(base+"/"+parts(path).join("/")+".json", {cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject(r.status)).catch(e=>strict?Promise.reject(e):null) : cp(getAt(mem, path))); }
+  /* (v355) 읽기 8초 제한 — 패드에서 요청이 대답 없이 멈추면 숙제·시험 목록이 영영 안 불러와졌다 (그 뒤 check 가 _busy 로 막힘) */
+  function get(path, strict){ return ready().then(m=>{ if(m!=="fb") return cp(getAt(mem, path)); let ac=null, tm=0; try{ ac=new AbortController(); tm=setTimeout(()=>{ try{ ac.abort(); }catch(e){} }, 8000); }catch(e){}
+      return fetch(base+"/"+parts(path).join("/")+".json", ac ? {cache:"no-store", signal:ac.signal} : {cache:"no-store"}).then(r=>{ clearTimeout(tm); return r.ok?r.json():Promise.reject(r.status); }).catch(e=>{ clearTimeout(tm); lastErr={path:parts(path).join("/"), e:"읽기 "+String(e && e.name==="AbortError" ? "시간 초과" : (e && e.message || e)), at:Date.now()}; return strict?Promise.reject(e):null; }); }); }
   /* (v308) 한 번만 쓰기 — 이미 값이 있으면 false. 서버 ETag 로 두 기기가 동시에 해도 한 쪽만 (안 되면 읽고 확인) */
   function once(path, val){ if(val===undefined) val=1; const body=JSON.stringify(val);   /* (v322) 쓸 값을 줄 수 있음 (보스 쓰러짐 {at,by}) */
     return ready().then(m=>{ const u=base+"/"+parts(path).join("/")+".json";
@@ -17309,8 +17311,8 @@ const HyHW = {
     if(v.id && v.set){ this._legacy=true; return v.on ? [v] : []; }
     return Object.keys(v).map(k=>v[k]).filter(c=>c && typeof c==="object" && c.id && c.on && c.set).sort((a,b)=>(a.at||0)-(b.at||0)); },
   check(force){ if(this._busy) return Promise.resolve(this.c); if(!force && Date.now()-this._at<60000) return Promise.resolve(this.c); this._busy=1; this._at=Date.now();
-    return FB.get("/hy/hw/cur", true).then(v=>{ this._busy=0;   /* (v355) 읽기 실패를 '숙제 없음'으로 보지 않음 (예전엔 null → 숙제가 사라진 것처럼) */ const o=JSON.stringify(this.L)+"|"+JSON.stringify(this.mine()||null); this.L=this.norm(v); this.c=this.mine();
-      if(JSON.stringify(this.L)+"|"+JSON.stringify(this.c||null)!==o) this.redraw(); return this.c; }, ()=>{ this._busy=0; return this.c; }); },
+    return FB.get("/hy/hw/cur", true).then(v=>{ this._busy=0; this.rdErr=0;   /* (v355) 읽기 실패를 '숙제 없음'으로 보지 않음 (예전엔 null → 숙제가 사라진 것처럼) */ const o=JSON.stringify(this.L)+"|"+JSON.stringify(this.mine()||null); this.L=this.norm(v); this.c=this.mine();
+      if(JSON.stringify(this.L)+"|"+JSON.stringify(this.c||null)!==o) this.redraw(); return this.c; }, ()=>{ this._busy=0; this.rdErr=1; this._at=0; return this.c; }); },
   redraw(){ try{ if($("scStudy").classList.contains("on") && $("stPath").style.display!=="none") StudyUI.path(); }catch(e){} },
   live(c){ return !!(c && c.on && WORD_SETS[c.set] && Date.now() < (c.due||0)+864e5*3); },   // 마감 3일 뒤까지는 보임
   /* 이 아이 숙제 — 우리 반 숙제 먼저, 없으면 전체 숙제 (이름을 안 골랐으면 전체 숙제만) */
@@ -17354,7 +17356,7 @@ const HyHW = {
     return '<div class="exSum"><span class="ok">✅ 다 함 '+fin.length+'</span><span class="mid">✏️ 하는 중 '+doing.length+'</span><span class="no">❌ 아직 '+none.length+'</span></div>'
       +'<div class="hwKids">'+L.map(x=>{ const f=x.tot>0 && x.done>=x.tot, cl=f?'ok':x.done?'mid':'no';
         return '<div class="hwK '+cl+'"><b>'+E(x.n||"?")+'</b><i class="exP"><u style="width:'+Math.round(x.done/Math.max(1,x.tot)*100)+'%"></u></i><small>'+(f?'✅':x.done+'/'+x.tot)+'</small></div>'; }).join('')+'</div>'; },
-  pane(){ const E=x=>Raid.esc(x), L=this.L.filter(c=>c.on); let h=L.map(c=>this.curCard(c)).join('');
+  pane(){ const E=x=>Raid.esc(x), L=this.L.filter(c=>c.on); let h=(this.rdErr ? '<div class="dyWarn"><b>⚠️ 서버에서 숙제 목록을 못 읽었어요</b><p>낸 숙제가 안 보일 수 있어요 (지워진 게 아니에요). <button class="mini" data-ad="hwReload">🔄 다시 불러오기</button></p></div>' : '')+L.map(c=>this.curCard(c)).join('');
     const sopt=HyExam.sets().map(st=>'<option value="'+st+'">'+E(Study.label(st))+'</option>').join('');
     h+='<section class="adCard"><h3>📌 '+(L.length?'다른 반 숙제 내기':'숙제 내기')+'<small>반마다 따로 낼 수 있어요 · 아이 Daily 30 맨 위에 📌 카드 · 범위 Stage 에 📌</small></h3>'
       +'<div class="adPinRow"><label class="adL">반</label><select id="adHwTeam">'+HyExam.teamOpts("all")+'</select></div>'
@@ -17386,6 +17388,7 @@ const HyHW = {
       this.save(next).then(ok=>this.verify(c.id, true).then(v=>{
         if(!v){ const E=FB.lastErr(); msg("⚠️ 숙제가 서버에 저장되지 않았어요"+(E && E.e ? " (오류 "+E.e+")" : "")+" — 와이파이를 확인하고 다시 눌러 주세요", false); this.check(true).then(redraw); return; }
         this.L=next; this.c=this.mine(); this._at=Date.now(); msg("📌 "+(team!=="all" ? HyExam.tName(team)+"에 " : "")+"숙제를 냈어요 — 아이 Daily 30 맨 위에 보여요", true); redraw(); })); return true; }
+    if(a==="hwReload"){ this.check(true).then(redraw); return true; }
     if(a==="hwEnd"){ const id=el && el.dataset.id, c=this.L.find(x=>x.id===id); if(!c) return true;
       if(!confirm("「"+c.title+"」 숙제를 끝낼까요? (아이 화면에서 📌 카드가 사라져요)")) return true;
       const next=this.L.filter(x=>x.id!==id && x.on);
