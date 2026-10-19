@@ -17919,9 +17919,10 @@ const Battle = {
     if(!this._eq || !this._eq.length){ this._eqFull=this.dataOk(); if(!this._eqFull) try{ HyExam.ready(); }catch(e){} let qs=null; try{ qs=Study.buildExam({set:c.set||"elem", ws:this.words().map(w=>w.en)}); }catch(e){}
       qs=(qs||[]).filter(q=>this.EXT.indexOf(q.t)>=0 && q.w && q.opts && q.opts.length>=2 && q.opts.some(o=>o && o.en===q.w.en) && (q.t!=="opic" || q.w.emoji) && (q.t!=="talk" || (q.tk && q.tk.lines)) && (q.t!=="sent" || q.st) && (q.t!=="sent2" || (q.sts && q.sts.length>=2)));
       if(qs.length<3) return null;
-      /* (v351) 사용자: 레이스 문제가 예문 식으로 안 나옴 → 문장 문제(대화·문장 빈칸)와 단어 문제를 번갈아 (반 이상 문장) · 문장 문제가 다 떨어지면 남은 단어 문제는 버리고 새로 만듦 */
+      /* (v351) 사용자: 레이스 문제가 예문 식으로 안 나옴 → 문장 문제(대화·문장 빈칸)를 섞음
+         (v352) 사용자: 3문제 중 2문제는 너무 빡셈 → 5문제 중 2문제 (단어·문장·단어·문장·단어 …) · 한쪽이 떨어지면 줄 끝 → 새로 만듦 */
       const S=shuffle(qs.filter(q=>q.t==="talk" || q.t==="sent" || q.t==="sent2")), W=shuffle(qs.filter(q=>q.t==="opic" || q.t==="k2e"));
-      if(S.length>=2){ const out=[]; S.forEach((q,i)=>{ out.push(q); if(i%2===1 && W.length) out.push(W.shift()); }); this._eq=out; } else this._eq=shuffle(qs); }
+      if(S.length>=2 && W.length>=3){ const out=[], P="WSWSW"; for(let i=0;; i++){ const L = P[i%5]==="S" ? S : W; if(!L.length) break; out.push(L.shift()); } this._eq=out; } else this._eq=shuffle(qs); }
     let q=this._eq.shift(); if(this.q && this.q.w && q.w.en===this.q.w.en && this._eq.length){ this._eq.push(q); q=this._eq.shift(); }
     return Object.assign({}, q, {exq:1, sec:Math.max(5, q.sec||10), done:0, pick:null, ok:null}); },
   qLeft(){ const q=this.q; return q && q.exq ? Math.max(0, q.sec*1000-(this.now()-this.qAt)) : 0; },
