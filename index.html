@@ -5286,6 +5286,10 @@ const EmojiFix = (function(){
   function fix(list){ let n=0; (list||[]).forEach(w=>{ const f=w && w.emoji && MAP[w.emoji]; if(f && !ok(w.emoji)){ w.emo0=w.emoji; w.emoji=img(f); n++; } }); return n; }
   return { ok, fix, n: fix(WORD_BANK) };
 })();
+/* (v350) 사용자: 개인 레이스에서 갑자기 4줄짜리 글이 나옴 — 학원 PC·옛 패드는 위 EmojiFix 가 이모지를 <img class="emj"…> 로 바꾸는데,
+   교실 배틀·수업 레이드는 그림 글자를 글자로 바꿔(esc) 넣어서 그 코드가 그대로 4줄 글로 보였다 → 우리가 만든 그림 태그만 그대로, 나머지는 글자로 */
+function emoHtml(e){ e=String(e==null?"":e); if(/^<img class="emj" src="assets\/emoji\/[0-9a-f-]+\.svg" alt="" draggable="false">$/.test(e)) return e;
+  return e.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 const PH_RE = { a:/a/, e:/e/, i:/i/, o:/o/, u:/u/, ae:/(a)([^aeiou]+)(e)$/, ie:/(i)([^aeiou]+)(e)$/, oue:/([ou])([^aeiou]+)(e)$/,
   ee:/(ee|ea)/, ai:/(ai|ay)/, sh:/(sh)/, ch:/(ch)/, th:/(th)/,
   mix:/([aiou])([^aeiou]+)(e)$/, dg:/nk|sh|ch|th|wh|ph|ck|ng|bl|cl|fl|gl|pl|sl|br|cr|dr|fr|gr|pr|tr|sk|sm|sn|sp|st|sw/,
@@ -12991,7 +12995,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v349";
+const GAME_VER = "v350";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17655,8 +17659,12 @@ const Raid = {
   mkQ(easy, word){ const P=this.pool(), set=this._set, kid=Study.BOOKS.k.sets.indexOf(set)>=0;
     let w=word || null; if(!w){ const ag=this.again.findIndex(a=>a.at<=this.now()); if(ag>=0){ w=this.again[ag].w; this.again.splice(ag,1); } else w=P[Math.floor(Math.random()*P.length)]; }
     const others=P.filter(x=>x.en!==w.en && x.ko!==w.ko), pick=n=>shuffle(others).filter((x,i,a)=>a.findIndex(y=>y.ko===x.ko)===i).slice(0,n);
-    const n = easy ? 2 : 3, ds=pick(n);
+    const n = easy ? 2 : 3; let ds=null;
     let t = (kid && w.emoji) ? "pic" : easy ? "e2k" : ["k2e","e2k","k2e"][Math.floor(Math.random()*3)];
+    /* (v350) 그림 문제 보기는 그림 있는 단어만 (그림 없는 단어가 빈 칸으로 나왔다 — 유치원 921건) · 같은 그림 안 겹치게 · 모자라면 뜻 고르기 */
+    if(t==="pic"){ const em=shuffle(others.filter(x=>x.emoji && x.emoji!==w.emoji)).filter((x,i,a)=>a.findIndex(y=>y.emoji===x.emoji)===i).slice(0,n);
+      if(em.length>=2) ds=em; else t="e2k"; }
+    if(!ds) ds=pick(n);
     let st=null; if(!easy && !kid && Math.random()<0.35){ try{ st=Study.sentOf(w); }catch(e){} if(st) t="sent"; }
     return {t, w, st, opts:shuffle([w].concat(ds)), easy:!!easy}; },
   next(){ const c=this.calc();
@@ -17785,7 +17793,7 @@ const Raid = {
       if(q){ const lab = A ? '🛡 막기 문제! '+Math.max(0,Math.ceil((A.until-now)/1000))+'초' : q.sh ? '💥 방패 단어를 깨요!' : q.t==="k2e" ? '영어로 골라 공격!' : q.t==="e2k" ? '뜻을 골라 공격!' : q.t==="pic" ? '그림을 골라 공격!' : '빈칸을 채워 공격!';
         const pr = q.t==="k2e" ? '<div class="stKo big">'+this.esc(q.w.ko)+'</div>' : q.t==="sent" ? '<div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>' : '<div class="stEn">'+this.esc(q.w.en)+' <button class="stSay" data-rdsay="'+this.esc(q.w.en)+'">🔊</button></div>';
         h='<div class="rdQ'+(A?' atk':q.sh?' sh':'')+'"><div class="rdQK">'+lab+(this.combo>=2&&!A?' <em>🔥 '+this.combo+'</em>':'')+'</div><div class="rdPr">'+pr+'</div><div class="rdOpts'+(q.t==="pic"?' pic':'')+'" id="rdOpts">'
-          +q.opts.map((o,k)=>'<button class="stOpt'+(q.done?(o.en===q.w.en?' ok':k===q.pick?' bad':''):'')+'" data-rdk="'+k+'">'+this.esc(q.t==="e2k"?o.ko:q.t==="pic"?o.emoji:o.en)+'</button>').join('')+'</div>'
+          +q.opts.map((o,k)=>'<button class="stOpt'+(q.done?(o.en===q.w.en?' ok':k===q.pick?' bad':''):'')+'" data-rdk="'+k+'">'+(q.t==="pic" ? emoHtml(o.emoji) : this.esc(q.t==="e2k"?o.ko:o.en))+'</button>').join('')+'</div>'
           +(q.done?'<div class="rdRes '+(q.ok?'ok':'bad')+'">'+(A ? (q.ok?'🛡 막았다! 반격 -20':'💥 맞았어요… ❤️ -1') : q.ok ? (q.sh?'💥 방패를 깼어요!':'⚔️ 공격!') : '정답: '+this.esc(q.w.en)+' = '+this.esc(q.w.ko)+' · 1분 뒤 또 나와요')+'</div>':'')+'</div>'; } }
     this.reg("rdB", h);
     this.reg("rdC", st.s==="run" && !this.ended ? '<div class="rdBub">'+[["hi","👋 안녕"],["go","🔥 가자"],["help","🙏 도와줘"],["good","👍 최고"]].map(b=>'<button data-rdb="'+b[0]+'">'+b[1]+'</button>').join('')+'</div>' : ''); },   // (v322) 뜻 고르기 문제가 저절로 소리 내던 것 뺌 (교실에서 25대가 한꺼번에) — 🔊 버튼만
@@ -18035,7 +18043,7 @@ const Battle = {
     else if(this.q){ const q=this.q, lock=now<this.lockTo, E=x=>this.esc(x);
       const pr = q.t==="k2e"||q.t==="spell" ? '<div class="stKo big">'+E(q.w.ko)+'</div>' : q.t==="sent" && q.st ? '<div class="stSent">'+E(q.st.pre)+'<u>&nbsp;</u>'+E(q.st.post)+'</div>' : q.t==="def" ? '<div class="stDef">'+E(q.d)+'</div>'
         : q.t==="gap" ? '<div class="stKo">'+E(q.w.ko)+'</div><div class="stEn btGap">'+E(q.gap).replace("_",'<u>?</u>')+'</div>' : q.t==="ox" ? '<div class="stEn">'+E(q.w.en)+'</div><div class="stKo big">= '+E(q.ko)+' ?</div>'
-        : q.t==="pic" && q.w.emoji ? '<div class="btPic">'+E(q.w.emoji)+'</div>' : q.t==="lsn" ? '<button class="btLsn" data-btsay="'+E(q.w.en)+'">🔊 다시 듣기</button>' : '<div class="stEn">'+E(q.w.en)+'</div>';
+        : q.t==="pic" && q.w.emoji ? '<div class="btPic">'+emoHtml(q.w.emoji)+'</div>' : q.t==="lsn" ? '<button class="btLsn" data-btsay="'+E(q.w.en)+'">🔊 다시 듣기</button>' : '<div class="stEn">'+E(q.w.en)+'</div>';
       const kq = {e2k:'뜻을 골라요', spell:'올바른 철자를 골라요', gap:'빈칸에 들어갈 글자', ox:'맞으면 ⭕ 틀리면 ❌', pic:'그림에 맞는 영어', lsn:'듣고 뜻을 골라요'}[q.t] || '영어로 골라요';
       const right = k => q.ans!=null ? k===q.ans : q.opts[k].en===q.w.en;
       h=(c.mode==="flag" ? this.flagHtml(false) : '')+'<div class="rdQ"><div class="rdQK">'+kq+(this.streak>=2?' <em>🔥 '+this.streak+'연속</em>':'')+'</div><div class="rdPr">'+pr+'</div><div class="rdOpts'+(q.t==="ox"?' ox':q.t==="gap"?' gap':'')+'" id="rdOpts">'
