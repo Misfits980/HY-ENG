@@ -44,7 +44,7 @@ async def main():
         await E("()=>{ const s=document.getElementById('adHwSet'); s.value='elem'; s.dispatchEvent(new Event('change')); document.getElementById('adHwTo').value='3'; document.getElementById('adHwGoal').value='1'; }")
         await pg.screenshot(path=OUT + "hw_admin.png")
         await E("()=>document.querySelector('[data-ad=\"hwOpen\"]').click()"); await pg.wait_for_timeout(500)
-        c = await E("()=>FB.get('/hy/hw/cur')")
+        c = await E("()=>FB.get('/hy/hw/cur').then(v=>v ? Object.values(v)[0] : null)")   # (v348) 반마다 숙제 — /hy/hw/cur = {<id>: 숙제}
         ok(c and c["on"] and c["set"] == "elem" and c["from"] == 0 and c["to"] == 3 and c["goal"] == 1 and c["due"] > 0, f"숙제 냄 {c and c['title']}")
         # 아이 화면
         await E("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); return HyHW.check(true); }")
@@ -73,13 +73,13 @@ async def main():
         # 선생님 표 · 끝내기
         await E("()=>{ Admin.open(); }"); await pg.wait_for_timeout(300)
         await E("()=>document.querySelector('#adTabs [data-t=\"exam\"]').click()"); await pg.wait_for_timeout(800)
-        tb = await E("()=>{ const e=document.getElementById('adHwRes'); return e ? e.innerText : ''; }")
-        ok("민준" in tb and "4/4" in tb, f"선생님 숙제 표 {tb[:60]!r}")
+        tb = await E("()=>{ const e=document.querySelector('[id^=adHwRes_]'); return e ? e.innerText : ''; }")
+        ok("민준" in tb and "✅" in tb and "다 함 1" in tb, f"선생님 숙제 표 {tb[:60]!r}")
         await pg.screenshot(path=OUT + "hw_admin_res.png")
         tabs = await E("()=>{ const t=[...document.querySelectorAll('#adTabs button')].map(b=>b.getBoundingClientRect().top); return [t.length, new Set(t.map(Math.round)).size]; }")
         ok(tabs == [6, 1], f"관리 탭 한 줄 {tabs}")
         await E("()=>document.querySelector('[data-ad=\"hwEnd\"]').click()"); await pg.wait_for_timeout(400)
-        ok(not (await E("()=>FB.get('/hy/hw/cur')"))["on"], "숙제 끝내기")
+        ok(not await E("()=>FB.get('/hy/hw/cur')"), "숙제 끝내기")
         ok(not errs, "오류 없음 " + str(errs[:3]))
         await ctx.close()
         # 3. 320×568 첫 화면 (이어서 하기 버튼까지)
