@@ -3000,6 +3000,14 @@ body:has(#scStudy.vLesson.on) #hyToast{top:calc(env(safe-area-inset-top,0px) + 7
 .wb.tv .wbIn{max-width:1400px} .wb.tv .wbName{font-size:32px} .wb.tv .wbTop b{font-size:22px} .wb.tv .wbLeft{font-size:16px} .wb.tv .rdHp.wbBar{height:38px} .wb.tv .rdHp.wbBar span{font-size:19px;line-height:38px} .wb.tv .wbRank li{font-size:16px} .wb.tv .wbTk{font-size:20px}
 .btTimer{margin:8px 0;padding:8px 12px;border-radius:14px;background:rgba(255,255,255,.07)} .btTimer b{font-size:18px} .btTimer.big b{font-size:30px} .btTimer .rdHp{height:12px} .btTimer .rdHp i{background:linear-gradient(90deg,#5fe0b0,#3aa0ff)}
 .btTimer.hurry b{color:#ff8a8a} .btTimer.hurry .rdHp i{background:linear-gradient(90deg,#ff5f7a,#ff9a4a)}
+.btLive{margin-top:10px;padding:8px 10px 6px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:4px}
+.btLvTip{font-size:14px;font-weight:800;color:#ffd37a;text-align:center;margin-bottom:2px} .btLvTip b{color:#fff;font-size:16px}
+.btLvFl{font-size:15px;font-weight:900;text-align:center;border-radius:10px;padding:4px 8px;animation:btLvP .5s ease-out} .btLvFl.dn{background:#ff5a4e;color:#fff} .btLvFl.up{background:#5fe0b0;color:#08321f}
+@keyframes btLvP{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+.btLvR{display:flex;align-items:center;gap:7px;font-size:14px;padding:2px 4px;border-radius:9px} .btLvR i{font-style:normal;width:24px;text-align:center;font-weight:900} .btLvR b{width:64px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.btLvR span{flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden} .btLvR u{display:block;height:100%;background:#8fd0ff;transition:width .4s} .btLvR em{font-style:normal;font-weight:900;min-width:34px;text-align:right}
+.btLvR.me{background:rgba(255,210,63,.18);outline:1px solid #ffd23f} .btLvR.me u{background:#ffd23f} .btLvGap{text-align:center;opacity:.5;line-height:.8} .btLvN{text-align:right;opacity:.6;font-size:11px}
+@media (prefers-reduced-motion:reduce){ .btLvFl{animation:none} }
 .btBoard{display:flex;flex-direction:column;gap:5px;margin-top:8px} .btRow{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:12px;background:rgba(255,255,255,.06)} .btRow.me{background:rgba(255,210,63,.2);border:1px solid #ffd23f} .btRow.idle{opacity:.5}
 .btRk{font-style:normal;width:26px;text-align:center;font-weight:900} .btRow b{width:86px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px} .btRow em{font-style:normal;font-weight:900;width:52px;text-align:right;color:#ffd37a}
 .btTrack{flex:1;position:relative;height:26px;border-radius:99px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0 18px,rgba(255,255,255,.02) 18px 36px)} .btTrack span{position:absolute;top:0;font-size:20px;transition:left .5s;transform:translateX(-10%)}
@@ -12999,7 +13007,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v352";
+const GAME_VER = "v353";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17963,7 +17971,7 @@ const Battle = {
       Promise.all(Object.keys(P).map(k=>FB.update("/battle/"+this.room+"/p/"+k, {sc:0, ok:0, ng:0}))).then(()=>FB.set("/battle/"+this.room+"/st", {s:"wait", made:now, rnd:(st.rnd|0)+1, fin:null})); }
     try{ SFX.click(); }catch(e){} },
   /* ══ 아이 ══ */
-  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0;
+  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0;
     this.pick=pick; this.me=pick.id; let em="🙂"; try{ em=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji; }catch(e){} const ch=String(G.char||"hero").slice(0,12);   /* (v342) 트랙에 내 캐릭터가 달리게 */
     const t=(pick.t && pick.t!=="all") ? pick.t : ((HyBoss.kids()[pick.id]||{}).t || "");
     this.h=this.listen(room); const dv=Raid.dev();   // (v322) dv = 이 기기 (같은 이름이 다른 기기에서 또 들어오는 것 막기)
@@ -18023,7 +18031,7 @@ const Battle = {
         FB.get("/battle/"+this.room+"/p", true).then(P=>{ if(P && typeof P==="object"){ this._finP=P; FB.update("/battle/"+this.room+"/st", {fin:{r:this.rankOf(P), at:Date.now()}}); } }, ()=>{ this._finW=0; }); }
       this.draw(); return; }
     if(this.role!=="kid") return;
-    if(st.s){ const rn=st.rnd|0; if(this._rnd==null) this._rnd=rn; else if(rn!==this._rnd){ this._rnd=rn; this.ended=false; this._fin=0; this._gems=0; this._win=0; this._finP=null; this._finBusy=0; this._eq=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.q=null; this.lockTo=0; this.draw(); } }   // (v348) 선생님 🔁 한 판 더
+    if(st.s){ const rn=st.rnd|0; if(this._rnd==null) this._rnd=rn; else if(rn!==this._rnd){ this._rnd=rn; this.ended=false; this._fin=0; this._gems=0; this._win=0; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.q=null; this.lockTo=0; this.draw(); } }   // (v348) 선생님 🔁 한 판 더
     if(st.s==="end" || (this.running() && this.left()<=0)){ if(!this._fin) this._fin=Date.now(); if(Date.now()-this._fin>=2500){ this.finish(); return; } this.draw(); return; }   // (v305) 끝나고 2.5초 기다려 다른 아이 마지막 점수까지 받은 뒤 순위·보석
     if((st.s==="run" || (st.s==="count" && now>=st.t0)) && !this.q){ this.q=this.mkQ(); this.qAt=now; }
     if(this.q && this.q.exq && !this.q.done && this.running() && this.qLeft()<=0) this.timeout();   // (v351) 문제마다 시간
@@ -18038,6 +18046,21 @@ const Battle = {
     if(this.h) this.h.close(); this.h=null; this._last=null; this.role=null; try{ $("scRaid").classList.remove("on"); }catch(e){} try{ StudyUI.open(); }catch(e){ show("scStart"); } },
   screen(){ show("scRaid"); $("scRaid").className="screen on btOn "+(this.role==="host"?"rdHostOn":"rdKidOn"); $("rdIn").innerHTML=""; ["rdA","rdB","rdC"].forEach(k=>Raid["_h"+k]=null); },
   lbl(){ const c=this.cfg(); return c.lbl || "교실 배틀"; },
+  /* (v353) 사용자: 문제 푸는 동안 상대가 몇 점인지·내가 몇 점인지 안 보여 긴장감이 없음 → 문제 아래에 실시간 순위 (1·2·3등 + 내 앞뒤)
+     · 「2등 민준까지 15점!」 · 누가 나를 앞지르면 「⚠️ 서연이 앞질렀어요!」 / 올라가면 「⬆️ 2등으로!」 (2.5초) · 내 점수는 이 기기 것(서버보다 빠름) · 문제 버튼과 다른 칸(rdC)이라 점수가 바뀌어도 버튼은 그대로 */
+  liveHtml(){ const P0=this.T().p||{}, P={}, me=this.me; Object.keys(P0).forEach(k=>{ P[k]=Object.assign({}, P0[k]); });
+    P[me]=Object.assign({n:(this.pick||{}).n||"나"}, P[me]||{}); P[me].sc=Math.max(P[me].sc|0, this.sc|0);
+    const R=this.rankOf(P), i=R.indexOf(me), n=R.length, my=P[me].sc|0, nm=k=>this.esc(String((P[k]||{}).n||"?").slice(0,8)), sc=k=>(P[k]||{}).sc|0;
+    if(this._lr!=null && i!==this._lr){ const up=i<this._lr, by=up ? null : R[i-1];   // 같은 점수끼리 자리만 바뀐 것(들어올 때 0점 등)은 알리지 않음
+      if(up ? (my>0 && (i===n-1 || my>sc(R[i+1]))) : (by && sc(by)>my)){ this._lrT=Date.now(); this._lrUp=up; this._lrBy=by; if(!up) try{ SFX.tone(330,.08,"square",.03); }catch(e){} } }
+    this._lr=i;
+    let tip; if(n<2) tip='친구가 들어오면 순위가 보여요';
+    else if(i===0){ const g=my-sc(R[1]); tip = g===0 ? '⚡ '+nm(R[1])+' 와(과) 같은 점수! 하나만 더!' : '👑 1등! '+nm(R[1])+' 이(가) '+g+'점 뒤에서 쫓아와요'; }
+    else { const a=R[i-1], g=sc(a)-my; tip = g===0 ? '⚡ '+nm(a)+' 와(과) 같은 점수! 하나만 더!' : '🔥 '+i+'등 '+nm(a)+' 까지 <b>'+g+'점</b>!'; }
+    const fl = Date.now()-(this._lrT||0)<2500 ? '<div class="btLvFl '+(this._lrUp?'up':'dn')+'">'+(this._lrUp ? '⬆️ '+(i+1)+'등으로 올라갔어요!' : '⚠️ '+(this._lrBy ? nm(this._lrBy)+' 이(가) ' : '')+'앞질렀어요! 지금 '+(i+1)+'등')+'</div>' : '';
+    const rows=[...new Set([0,1,2,i-1,i,i+1].filter(x=>x>=0 && x<n))].sort((a,b)=>a-b), top=Math.max(1, sc(R[0]));
+    return '<div class="btLive">'+fl+'<div class="btLvTip">'+tip+'</div>'+rows.map((j,x)=>(x>0 && j-rows[x-1]>1 ? '<div class="btLvGap">⋯</div>' : '')
+      +'<div class="btLvR'+(R[j]===me?' me':'')+'"><i>'+(j<3?["🥇","🥈","🥉"][j]:(j+1))+'</i><b>'+nm(R[j])+'</b><span><u style="width:'+Math.round(sc(R[j])/top*100)+'%"></u></span><em>'+sc(R[j])+'</em></div>').join('')+'<small class="btLvN">'+n+'명 중 '+(i+1)+'등</small></div>'; },
   bigRoom(){ return '<div class="rdBigRoom"><small>방 번호</small><b>'+this.esc(this.room)+'</b><small>Daily 30 위 ⚔️ 레이드 입장 → 이 번호</small></div>'; },
   miss(){ const P=this.T().p||{}; return RosterMiss.html(this.cfg().cls, Object.keys(P).map(k=>P[k].n)); },
   timerHtml(big){ const st=this.st(), c=this.cfg(), l=this.left(), tot=(c.dur||300)*1000, pc=Math.round(l/tot*100);
@@ -18085,7 +18108,7 @@ const Battle = {
         +q.opts.map((o,k)=>'<button class="stOpt'+(q.done?(right(k)?' ok':k===q.pick?' bad':''):'')+'" data-btk="'+k+'">'+E(q.lab ? q.lab[k] : q.t==="e2k" ? o.ko : q.exq ? dispEn(o.en) : o.en)+'</button>').join('')+'</div>'
         +(q.done && !q.ok ? '<div class="rdRes bad">'+(q.to ? '⏰ 시간 끝! ' : '')+'정답: '+E(q.w.en)+' = '+E(q.w.ko)+(lock?' · 잠깐 쉬어요':'')+'</div>' : '')+'</div>';
       if(q.t==="lsn" && !q._said){ q._said=1; try{ DexDet.say(q.w.en); }catch(e){} } }
-    Raid.reg("rdB", h); Raid.reg("rdC", ""); }
+    Raid.reg("rdB", h); Raid.reg("rdC", this.q && !this.ended && this.running() && c.mode!=="flag" ? this.liveHtml() : ""); }
 };
 addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest || !t.closest("#scRaid") || !Battle.role) return;
   const k=t.closest("[data-btk]"); if(k){ Battle.answer(+k.dataset.btk); return; }
