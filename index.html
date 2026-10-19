@@ -12963,7 +12963,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v344";
+const GAME_VER = "v345";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13550,7 +13550,16 @@ const Study = (function(){
   const BGS=[["c","k"],["ee","ea"],["ai","ay"],["oa","ow"],["ou","ow"],["oi","oy"],["er","ir","ur"],["s","c"],["ph","f"],["ck","k","c"],["igh","ie"],["ue","ew","oo"],["au","aw"]];
   /* (v337) QA: 유치원 그림 보기에 kill ☠️ · knife 🔪 이 나왔다 → 무섭거나 어른 말은 보기로 안 씀 */
   const KID_NO=/^(kill|killer|knife|gun|pistol|bomb|skull|blood|coffin|cigarette|smoke|wine|beer|poison|dagger|die|dead|death|drug|alcohol|grave|weapon|murder|bullet)$/, KID_NOE=["☠️","🔪","🔫","💣","⚰️","🚬","🍷","🍺","💀","🩸","🗡️","💉","🧨"];
+  /* (v345) 사용자: 이중자음 Stage 인데 「처음 글자」가 g · f 한 글자로 나왔다 (globe → g) — 다른 파닉스 판도 같은 문제
+     → 주제 소리가 있는 파닉스 판(단모음·장모음·이중자음·이중모음 · abc 첫소리 판 빼고)은 첫 글자 문제 대신 그 판 소리 문제(소리 합치기),
+        같은 첫소리 찾기는 이중자음이면 bl·gl 처럼 두 글자 소리로 */
+  let ONSET_BL=false;
+  const phTopic = phc => phc!=null && phc!=="g12" && !/^c1/.test(String(phc));
   function makeQ(t, w, pool, level, phc){
+    if(phTopic(phc) && (t==="bal" || t==="first") && blendSeg(w.en, phc)) t="blend";
+    if(phTopic(phc) && t==="sfs"){ const bl=/^(lb|rb|sb|dg)$/.test(phc) && /^(bl|cl|fl|gl|pl|sl|br|cr|dr|fr|gr|pr|tr|sk|sm|sn|sp|st|sw|sc|tw)/.test(w.en);
+      if(bl){ let q=null; ONSET_BL=true; try{ q=mkDeep("sfs", w, "g12", pool); }catch(e){ q=null; } ONSET_BL=false; if(q) return q; }
+      if(blendSeg(w.en, phc)) t="blend"; }
     /* (v302) 유치원 — 읽기 없이 소리로(hpic · bal) → 첫 글자 · 읽고 그림(first · rpic) → 만들기(make) */
     if(t==="hpic" || t==="rpic"){ if(canPic(w) && (t==="hpic" || kidRead(w))){ const used={}; used[w.emoji]=1; const wp=koParts(w.ko);   // (v322) 점검: 뜻이 같은 그림(rat/mouse · dish/bowl)은 보기에서 빼기
         const d=shuffle(pool.concat(EMO.slice())).filter(x=>x.en!==w.en && x.emoji && !used[x.emoji] && !KID_NO.test(x.en) && KID_NOE.indexOf(x.emoji)<0 && x.ko!==w.ko && !koParts(x.ko).some(p=>wp.some(q=>koOv(p,q))) && !near(w.en,x.en) && !homo(w.en,x.en) && relW(w.en,["f"]).indexOf(x.en)<0 && relW(x.en,["f"]).indexOf(w.en)<0 && (used[x.emoji]=1)).slice(0,2);   // 가족 말(puppy·dog)도
@@ -13729,7 +13738,7 @@ const Study = (function(){
     ws.forEach((w,k)=>{ let t;
       if(v<=1) t = kidRead(w) && canPic(w) ? (k%2 ? "rpic" : "first") : "first";
       else t = kidRead(w) ? (k%3===2 && canPic(w) ? "rpic" : "make") : (canPic(w) && k%2 ? "hpic" : "first");
-      const q=makeQ(t, w, pool, v); q.tg = v<=1 ? "★2 첫소리·읽기" : "★3 만들기"; out.push(q); });
+      const q=makeQ(t, w, pool, v, les.hl); q.tg = v<=1 ? "★2 첫소리·읽기" : "★3 만들기"; out.push(q); });   /* (v345) 파닉스 판 소리(les.hl)도 넘김 */
     return out; }
   /* 한 과의 20문제 만들기 */
   function build(set, n, test){
@@ -13947,7 +13956,7 @@ const Study = (function(){
     const q=makeQ(bagT({sent:3, spell:2, k2e:1}, w, gr), w, pool, 2); q.dk=q.t; return q; }
   function chunk(toks, k){ const out=[], n=toks.length; let i=0; for(let j=0;j<k;j++){ const sz=Math.round((n-i)/(k-j)); if(sz>0) out.push(toks.slice(i,i+sz).join(" ")); i+=sz; } return out; }
   /* 첫소리 — cat·kite 는 k, city 는 s, sh·ch·th 는 따로. 모음·y·x·q·말랑한 g 는 빼기 */
-  const onset = en => { if(!/^[a-z]{2,}$/.test(en)) return null; const m=en.match(/^(sh|ch|th|wh|ph|kn|wr)/);
+  const onset = en => { if(!/^[a-z]{2,}$/.test(en)) return null; if(ONSET_BL){ const b=en.match(/^(bl|cl|fl|gl|pl|sl|br|cr|dr|fr|gr|pr|tr|sk|sm|sn|sp|st|sw|sc|tw)/); if(b) return b[1]; } const m=en.match(/^(sh|ch|th|wh|ph|kn|wr)/);
     if(m) return ({ph:"f", kn:"n", wr:"r", wh:"w"})[m[1]] || m[1];
     const c=en[0], d=en[1]; if("aeiouyxq".indexOf(c)>=0) return null;
     if(c==="c") return /[eiy]/.test(d) ? "s" : "k"; if(c==="g") return /[eiy]/.test(d) ? null : "g"; return c; };
