@@ -2723,6 +2723,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .adKidAct{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px;padding:8px;border-radius:12px;background:rgba(255,211,122,.12)} .adKidAct b{margin-right:4px} .adKidAct select{flex:1 1 120px;min-width:0}
 .adTm h3{display:flex;align-items:center;gap:8px} .adTm h3 small{opacity:.7} .adTmBtns{margin-left:auto;display:flex;gap:6px}   /* (v340) 👥 반 탭 */
 #shAdmin .mini.armed{background:#ff5a4e;color:#fff;border-color:#ff5a4e;animation:armP .6s ease-in-out infinite alternate} @keyframes armP{to{transform:scale(1.06)}}
+.dyWarn{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(255,90,78,.14);border:1px solid #ff7a66;color:#ffd0c8;font-size:13px} .dyWarn b{display:block;color:#fff;font-size:14px;margin-bottom:4px} .dyWarn p{margin:0;line-height:1.5}
 .adTeam{border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:8px;margin:6px 0} .adTeamH{display:flex;align-items:center;gap:8px} .adTeamH small{opacity:.7} .adTeamH .mini{margin-left:auto}
 .adX,.adChipX{appearance:none;border:0;background:none;color:#ff9a9a;font-weight:900;cursor:pointer;padding:0 4px;min-width:28px;min-height:28px}
 .adL{flex:none;width:110px;font-size:13px;font-weight:800;align-self:center} .adChk{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:800;margin:6px 0}
@@ -17223,11 +17224,19 @@ const HyDay = {
         if((best.b|0)>(b.b|0)){ b.b=best.b|0; ch=true; } if((best.bs|0)>(b.bs|0)){ b.bs=best.bs|0; ch=true; }
         if(ch){ try{ localStorage.setItem(lb, JSON.stringify(b)); }catch(e){} } plain.b=b.b|0; plain.bs=b.bs|0; }
       FB.inc("/hy/day/"+day+"/"+m.id, inc, plain); }catch(e){} },
-  load(day){ day=day||this.day||this.key(); this.day=day; return FB.get("/hy/day/"+day).then(D=>{ this.D[day]=D||{}; return this.D[day]; }, ()=>this.D[day]||{}); },
+  /* (v354) 사용자 캡처: 오늘 아이들이 많이 했는데 「아무도 안 했어요」 — 서버 규칙(v339 server/firebase-rules.json)이 콘솔에 안 들어가 있으면 하루 기록 쓰기가 401 로 조용히 버려진다
+     → 비어 있으면 선생님 기기가 /hy/day/<날>/_probe 에 한 번 써 봄 (되면 바로 지움) · 401 이면 카드에 「서버 규칙」 안내 · 읽기 실패도 따로 */
+  probe(){ if(this._pr) return this._pr;
+    return (this._pr = FB.ready().then(m=>{ if(m!=="fb") return "local"; const u=FB.base()+"/hy/day/"+this.key()+"/_probe.json";
+      return fetch(u, {method:"PUT", body:JSON.stringify({n:"probe", la:Date.now()})}).then(r=>{ if(r.ok){ fetch(u, {method:"DELETE"}).catch(()=>{}); return "ok"; } return r.status===401 ? "deny" : "err"; }, ()=>"net"); }).catch(()=>"net")); },
+  load(day){ day=day||this.day||this.key(); this.day=day;
+    return FB.get("/hy/day/"+day, true).then(D=>{ this.D[day]=D||{}; this.rdErr=0;
+        if(day===this.key() && !Object.keys(this.D[day]).some(k=>k[0]!=="_")) return this.probe().then(s=>{ this.pst=s; return this.D[day]; });
+        return this.D[day]; }, ()=>{ this.rdErr=1; return (this.D[day]=this.D[day]||{}); }); },
   card(){ const E=x=>Raid.esc(x), today=this.key(), yday=this.key(Date.now()-864e5), day=this.day||today, D=this.D[day];
     const head='<div class="dyTabs"><button class="mini'+(day===today?' on':'')+'" data-ad="dayPick" data-d="'+today+'">오늘</button><button class="mini'+(day===yday?' on':'')+'" data-ad="dayPick" data-d="'+yday+'">어제</button><button class="mini" data-ad="dayPick" data-d="'+day+'">🔄</button></div>';
     if(!D) return '<div class="full">'+'<section class="adCard"><h3>📅 오늘 한 아이<small>달리기 · 공부 · 보스 — 판이 끝날 때마다 바로</small></h3>'+head+'<p class="adSmall">불러오는 중…</p></section></div>';
-    const BD=(HyBoss.D||{}), L=Object.keys(D).map(k=>Object.assign({k}, D[k])).sort((a,b)=>(b.la||0)-(a.la||0)), run=L.filter(x=>(x.r|0)>0), st=L.filter(x=>(x.s|0)>0), cl=L.filter(x=>(x.c|0)>0);
+    const BD=(HyBoss.D||{}), L=Object.keys(D).filter(k=>k[0]!=="_").map(k=>Object.assign({k}, D[k])).sort((a,b)=>(b.la||0)-(a.la||0)), run=L.filter(x=>(x.r|0)>0), st=L.filter(x=>(x.s|0)>0), cl=L.filter(x=>(x.c|0)>0);
     const clT=x=>[(x.cb|0)?'배틀'+((x.cb|0)>1?' '+(x.cb|0):''):'', (x.cr|0)?'레이드'+((x.cr|0)>1?' '+(x.cr|0):''):'', (x.ce|0)?'시험':''].filter(Boolean).join(' · ');
     const tm=t=>{ if(!t) return ""; const d=new Date(t); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
     const body = L.length ? '<div class="adTbl"><table class="dyT"><tr><th>아이</th><th>🏃 달리기</th><th>최고</th><th>정답률</th><th>📚 공부</th><th>🏫 수업</th><th>⚔️ 보스</th><th>마지막</th></tr>'
@@ -17235,7 +17244,9 @@ const HyDay = {
         return '<tr><td>'+E(x.n||"?")+(x.t && x.t!=="all" ? ' <small>'+E(HyExam.tName(x.t))+'</small>' : '')+'</td><td class="'+((x.r|0)?'ok':'')+'">'+((x.r|0)?(x.r|0)+'판 <small>'+Math.round((x.rs|0)/60)+'분</small>':'-')+'</td>'
           +'<td>'+((x.b|0)?(x.b|0).toLocaleString()+((x.bs|0)?' <small>'+(x.bs|0)+'단계</small>':''):'-')+'</td><td>'+(tot?Math.round((x.rr|0)/tot*100)+'%':'-')+'</td>'
           +'<td class="'+((x.s|0)?'ok':'')+'">'+((x.s|0)?(x.s|0)+'판':'-')+'</td><td class="'+((x.c|0)?'ok':'')+'">'+((x.c|0)?E(clT(x)):'-')+'</td><td>'+(bd?'-'+bd.toLocaleString():'-')+'</td><td>'+tm(x.la)+' '+(x.lk==="r"?'🏃':x.lk==="c"?'🏫':'📚')+'</td></tr>'; }).join('')+'</table></div>'
-      : '<p class="adSmall">'+(day===today?'오늘은 아직 아무도 안 했어요':'이날은 기록이 없어요')+' <small>(v330 이상 기기만 보여요)</small></p>';
+      : (this.rdErr ? '<p class="adSmall dyWarn">⚠️ 서버에서 기록을 읽지 못했어요 — 인터넷을 확인하고 🔄</p>'
+        : day===today && this.pst==="deny" ? '<div class="dyWarn"><b>⚠️ 서버가 「하루 기록」 저장을 막고 있어요</b><p>아이들이 해도 여기 안 쌓여요. Firebase 콘솔 → Realtime Database → 규칙에 새 규칙(server/firebase-rules.json)을 붙여 넣고 「게시」해 주세요. 시험 점수·숙제 결과도 같은 규칙이 필요해요.</p></div>'
+        : '<p class="adSmall">'+(day===today?'오늘은 아직 아무도 안 했어요':'이날은 기록이 없어요')+' <small>(v330 이상 기기만 보여요)</small></p>');
     return '<div class="full"><section class="adCard"><h3>📅 '+(day===today?'오늘':day===yday?'어제':day)+' 한 아이<small>'+L.length+'명 · 🏃 달리기 '+run.length+' · 📚 공부 '+st.length+' · 🏫 수업(배틀·레이드·시험) '+cl.length+' · 판이 끝날 때마다 바로</small></h3>'+head+body+'</section></div>'; }
 };
 /* ══ (v329) 📌 숙제 (사용자: 숙제 지정) — 선생님이 책 + Stage 범위 + 목표 별 + 마감을 정하면 아이 Daily 30 길 맨 위에 📌 카드 · 범위 Stage 에 📌 표시

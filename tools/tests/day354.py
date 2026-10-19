@@ -50,6 +50,18 @@ async def main():
         ok(r and "3명" in r[0] and "수업(배틀·레이드·시험) 3" in r[0], f"카드 위: 3명 · 수업 3 {r and r[0]}")
         ok(r and any("박유범" in x and "배틀" in x for x in r[1]) and any("빈" in x and "레이드" in x for x in r[1]) and any("서연" in x and "시험" in x for x in r[1]), "아이 줄에 배틀·레이드·시험")
         await T.screenshot(path=OUT + "day354.png")
+        # 서버 규칙이 하루 기록을 막으면(401) — 비어 있을 때 써 보고 안내
+        r = await T.evaluate("""()=>{ const f0=window.fetch, r0=FB.ready, b0=FB.base, g0=FB.get; window._calls=[];
+            FB.ready=()=>Promise.resolve('fb'); FB.base=()=>'https://x.test'; FB.get=()=>Promise.resolve(null);
+            window.fetch=(u,o)=>{ _calls.push([(o||{}).method||'GET', String(u)]); return Promise.resolve({ok:false, status:401}); };
+            HyDay._pr=null; HyDay.D={}; return HyDay.load(HyDay.key()).then(()=>{ const h=HyDay.card(); window.fetch=f0; FB.ready=r0; FB.base=b0; FB.get=g0; HyDay._pr=null; return [HyDay.pst, h.indexOf('저장을 막고')>=0, _calls.map(c=>c[0]+' '+c[1].replace(/.*\/hy\//,'hy/'))]; }); }""")
+        print("probe", r)
+        ok(r[0] == "deny" and r[1] and any("_probe" in c for c in r[2]), f"규칙이 막으면 카드에 안내 {r}")
+        r = await T.evaluate("""()=>{ const f0=window.fetch, r0=FB.ready, b0=FB.base, g0=FB.get; window._calls=[];
+            FB.ready=()=>Promise.resolve('fb'); FB.base=()=>'https://x.test'; FB.get=()=>Promise.resolve(null);
+            window.fetch=(u,o)=>{ _calls.push((o||{}).method||'GET'); return Promise.resolve({ok:true, status:200}); };
+            HyDay._pr=null; HyDay.pst=null; HyDay.D={}; return HyDay.load(HyDay.key()).then(()=>{ const h=HyDay.card(); window.fetch=f0; FB.ready=r0; FB.base=b0; FB.get=g0; HyDay._pr=null; return [HyDay.pst, h.indexOf('저장을 막고')>=0, _calls]; }); }""")
+        ok(r[0] == "ok" and not r[1] and r[2] == ["PUT", "DELETE"], f"규칙이 되면 써 보고 바로 지움 · 안내 없음 {r}")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()
     print("결과:", "통과" if not bad else "실패 " + str(bad))
