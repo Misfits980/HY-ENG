@@ -19,10 +19,12 @@ async def main():
         k0=kids[0]
         info=await k0.evaluate("()=>{ const s=document.getElementById('rdStage'); return [!!s.querySelector('.rsHero.me'), (s.querySelector('.rsHero.me .rsSpr')||{}).style.backgroundImage, s.querySelectorAll('.rsAllies .rsHero').length, !!s.querySelector('.rsBoss img')]; }")
         print("kid stage", info)
-        if not info[0] or "run-knight" not in (info[1] or "") or info[2]!=2 or not info[3]: bad.append(f"아이 무대 {info}")
+        if not info[0] or "bs-knight" not in (info[1] or "") or info[2]!=2 or not info[3]: bad.append(f"아이 무대 {info}")
         # 맞히기 → 달려감 · 숫자
         r=await k0.evaluate(ANS, True); await k0.wait_for_timeout(90)
-        d=await k0.evaluate("()=>[RaidStage.me.dash, (RaidStage.me.el.style.transform||'')]"); await k0.wait_for_timeout(120)
+        d=await k0.evaluate("()=>[RaidStage.me.dash, (RaidStage.me.el.style.transform||'')]")
+        try: await k0.wait_for_function("()=>document.querySelectorAll('#rdStage .rsNum').length>0", timeout=2500)   # (v342) 새 그림은 걸어가서 때림
+        except Exception: pass
         n=await k0.evaluate("()=>[document.querySelectorAll('#rdStage .rsNum').length, document.querySelector('#rdStage .rsBossIn').classList.contains('hit')]")
         print("hit", r, d, n)
         if not d[0] or n[0]<1 or not n[1]: bad.append(f"맞히면 달려가 때림 {d} {n}")

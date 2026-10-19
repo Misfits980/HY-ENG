@@ -2711,6 +2711,10 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .btFin{position:absolute;right:-6px;top:50%;transform:translateY(-50%);font-style:normal;font-size:20px}
 .btRunner{position:absolute;top:50%;transform:translate(-50%,-56%);transition:left .6s cubic-bezier(.3,1.4,.5,1);display:flex;align-items:flex-end;white-space:nowrap}
 .btRunner em{font-style:normal;font-size:22px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))} .btRunner u{text-decoration:none;font-size:16px;margin-left:-6px;animation:btWave .8s ease-in-out infinite alternate;display:inline-block;transform-origin:0 100%}
+.btChr{display:inline-block;flex:none;width:36px;height:36px;background-size:600% 800%;background-position:0 28.5714%;background-repeat:no-repeat;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}   /* (v342) 걷기 그림 오른쪽 줄 */
+.go .btChr{animation:rdAwWalk .6s steps(6) infinite} .btTrack span .btChr{margin-top:-8px} .btBoard.big .btTrack span .btChr{width:56px;height:56px;margin-top:-14px}
+.btRunner .btChr{width:42px;height:42px;margin-right:-18px} .btRunner .btChr.n1{margin-bottom:6px} .btRunner .btChr.n2{margin-bottom:-4px} .btRunner .btChr.n1,.btRunner .btChr.n2{transform:scale(.86)}
+.btFlag.big .btRunner .btChr{width:78px;height:78px;margin-right:-30px} .btLane.bump .btRunner .btChr{animation:btBump .5s}
 .btLv{font-style:normal;font-weight:900;font-size:16px;color:#ffe17a;min-width:52px;text-align:right} .btLv small{font-size:11px;color:#cfc3f0}
 .btLane.me{background:rgba(255,210,63,.12);border-radius:12px;outline:2px solid rgba(255,210,63,.55)} .btLane.win .btLT{background:linear-gradient(90deg,#ffd23f,#ff9a4a);border-color:#fff3c4} .btLane.bump .btRunner em{animation:btBump .5s}
 .btFlag.big{gap:12px;padding:14px} .btFlag.big .btLn{width:170px;font-size:22px} .btFlag.big .btLn small{font-size:14px} .btFlag.big .btLT{height:62px} .btFlag.big .btRunner em{font-size:44px} .btFlag.big .btRunner u{font-size:30px} .btFlag.big .btLv{font-size:28px;min-width:90px} .btFlag.big .btFin{font-size:34px}
@@ -12954,7 +12958,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v341";
+const GAME_VER = "v342";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17301,7 +17305,7 @@ const RaidStage = {
      궁수는 그림이 다 올 때까지 예전 달리기 그림 · 다른 캐릭터(마법사·학자·유령·고양이)를 고른 아이는 이름으로 넷 중 하나 */
   BS:["hero","knight","wolf"], FIVE:["hero","knight","wolf"],   // (v335) 사용자: 지금은 용사·기사·늑대만 (탐험가·궁수는 그림이 다 오면)
   bsId(cid, key){ if(this.FIVE.indexOf(cid)>=0) return cid; let h=0; String(key||cid||"x").split("").forEach(c=>{ h=(h*31+c.charCodeAt(0))>>>0; }); return this.BS[h%this.BS.length]; },
-  hero(id, cid, name, mine, key){ const wk=this.role==="wk", h=document.createElement("div"), bid=wk ? this.bsId(cid, key||name||id) : (CHARACTERS.some(c=>c.id===cid)?cid:"hero"), bs=wk && this.BS.indexOf(bid)>=0;   /* 새 그림은 🏠 주간 보스 화면에서만 (수업 레이드는 그대로) */ h.className="rsHero"+(mine?" me":"")+(bs?" bsH":"");
+  hero(id, cid, name, mine, key){ const wk=this.role==="wk", h=document.createElement("div"), bid=this.bsId(cid, key||name||(mine ? (Raid.name||id) : id)), bs=this.BS.indexOf(bid)>=0;   /* (v342) 사용자: 수업 레이드도 새 공격 동작 (예전엔 🏠 주간 보스 화면에서만) */ h.className="rsHero"+(mine?" me":"")+(bs?" bsH":"");
     h.innerHTML='<i class="rsSpr'+(bs?' bs':'')+'" style="background-image:url(assets/chars/'+(bs?'bs-':'run-')+bid+'.webp)"></i>'+(name?'<b class="rsName">'+Raid.esc(name)+'</b>':'');
     (mine ? this.el : this.el.querySelector(".rsAllies")).appendChild(h);
     const o={el:h, spr:h.firstChild, x:0, y:0, tx:0, f:Math.random()*6, ph:Math.random()*6, dash:0, back:0, hurt:0, mine:!!mine, slot:0, bs, atk:0};
@@ -17314,7 +17318,7 @@ const RaidStage = {
     if(ids.length>max) ids=ids.slice().sort((a,b)=>((P[b].la|0)-(P[a].la|0)) || (this.al[b]?1:0)-(this.al[a]?1:0) || (a<b?-1:1)).slice(0, max);
     Object.keys(this.al).forEach(k=>{ if(ids.indexOf(k)<0){ this.al[k].el.remove(); delete this.al[k]; } });
     const used={}; Object.keys(this.al).forEach(k=>{ used[this.al[k].slot]=1; });
-    ids.forEach(k=>{ let a=this.al[k]; if(!a){ a=this.al[k]=this.hero(k, P[k].c||"hero", (host||this.role==="wk")?P[k].n:"", false); let s=0; while(used[s]) s++; used[s]=1; a.slot=s; } a.n=P[k].n; });
+    ids.forEach(k=>{ let a=this.al[k]; if(!a){ a=this.al[k]=this.hero(k, P[k].c||"hero", (host||this.role==="wk")?P[k].n:"", false, P[k].n); let s=0; while(used[s]) s++; used[s]=1; a.slot=s; } a.n=P[k].n; });
     const n=Math.max(ids.length, ...Object.values(this.al).map(a=>a.slot+1), 0), cols = host ? Math.min(8, Math.max(1, Math.ceil(n/2))) : 4;
     ids.forEach(k=>{ const a=this.al[k], i=a.slot, r=Math.floor(i/cols), c=i%cols; a.bx = host ? 4+c*(46/cols)+(r?23/cols:0) : narrow ? 2+c*14 : 2+c*7; a.by = host ? (r? 24:6) : narrow ? 38+(c%2)*3 : 26+(c%2)*6; a.el.style.zIndex = host ? (r?2:3) : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow)); a.el.classList.toggle("rsNar", narrow); }); },
   /* 새 소식(다른 아이 공격) → 그 아이가 달려가 때림 */
@@ -17771,14 +17775,14 @@ const Battle = {
     try{ SFX.click(); }catch(e){} },
   /* ══ 아이 ══ */
   join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0;
-    this.pick=pick; this.me=pick.id; let em="🙂"; try{ em=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji; }catch(e){}
+    this.pick=pick; this.me=pick.id; let em="🙂"; try{ em=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji; }catch(e){} const ch=String(G.char||"hero").slice(0,12);   /* (v342) 트랙에 내 캐릭터가 달리게 */
     const t=(pick.t && pick.t!=="all") ? pick.t : ((HyBoss.kids()[pick.id]||{}).t || "");
     this.h=this.listen(room); const dv=Raid.dev();   // (v322) dv = 이 기기 (같은 이름이 다른 기기에서 또 들어오는 것 막기)
     /* (v305) 다시 들어오면 점수를 이어서 (0 으로 덮어쓰지 않음) · 서버 시계 차이 */
     FB.get("/battle/"+room+"/p/"+this.me, true).catch(()=>({keep:1})).then(old=>{ if(this.room!==room) return; const n=String(pick.n||"").slice(0,10);
-      if(old && old.keep) return FB.update("/battle/"+room+"/p/"+this.me, {n, e:em, t, dv, at:this.now()});   // (v308) 못 읽었으면 점수를 0 으로 덮지 않음
-      if(old && old.n){ this.sc=old.sc|0; this.ok=old.ok|0; this.ng=old.ng|0; return FB.update("/battle/"+room+"/p/"+this.me, {n, e:em, t, dv, at:this.now()}); }
-      return FB.update("/battle/"+room+"/p/"+this.me, {n, e:em, t, dv, sc:0, ok:0, ng:0, at:this.now()}); })
+      if(old && old.keep) return FB.update("/battle/"+room+"/p/"+this.me, {n, e:em, c:ch, t, dv, at:this.now()});   // (v308) 못 읽었으면 점수를 0 으로 덮지 않음
+      if(old && old.n){ this.sc=old.sc|0; this.ok=old.ok|0; this.ng=old.ng|0; return FB.update("/battle/"+room+"/p/"+this.me, {n, e:em, c:ch, t, dv, at:this.now()}); }
+      return FB.update("/battle/"+room+"/p/"+this.me, {n, e:em, c:ch, t, dv, sc:0, ok:0, ng:0, at:this.now()}); })
       .then(()=>FB.clock("/battle/"+room+"/p/"+this.me+"/ck")).then(o=>{ this.off=o|0; });
     this.screen(); this.loop(); },
   running(){ const st=this.st(); return st.s==="run" || (st.s==="count" && st.t0 && this.now()>=st.t0); },   // (v305) 선생님 화면이 늦게 바꿔도 시간이 되면 시작
@@ -17801,10 +17805,14 @@ const Battle = {
     if(Object.keys(agg).some(t=>t!=="_")) delete agg._;
     return Object.keys(agg).map(t=>{ const a=agg[t]; a.p=a.ok/Math.max(1,a.n); a.name=T[t] ? (T[t].e||"")+" "+T[t].n : "반 없음"; a.e=(T[t] && T[t].e)||"🏳️"; return a; }).sort((x,y)=>y.p-x.p || String(x.name).localeCompare(y.name)); },
   flagFx(){ this._fx=Date.now(); },
+  /* (v342) 사용자: 배틀·깃발 레이스도 캐릭터 — 이모지 대신 고른 캐릭터의 걷기 그림(옆모습 6칸)이 트랙을 달림 */
+  chr(c, cls){ const id=CHARACTERS.some(x=>x.id===c) ? c : null; return id ? '<i class="btChr'+(cls?' '+cls:'')+'" style="background-image:url(assets/chars/walk/walk-'+id+'.webp)"></i>' : ''; },
+  teamChr(t){ const P=this.T().p||{}, ks=Object.keys(P).filter(k=>(P[k].t||"_")===t && P[k].c).sort((x,y)=>(P[y].ok|0)-(P[x].ok|0)).slice(0,3);
+    return ks.map((k,i)=>this.chr(P[k].c, "n"+i)).join(''); },
   flagHtml(big){ const L=this.teamsOf(), g=this.goal(), st=this.st(), me=(this.T().p||{})[this.me], mt=me && (me.t||"_");
-    return '<div class="btFlag'+(big?' big':'')+'">'+L.map(a=>{ const pc=Math.min(100, a.p/g*100), bump = a.t===mt && Date.now()-(this._fx||0)<700;
+    return '<div class="btFlag'+(big?' big':'')+(st.s==="run"?' go':'')+'">'+L.map(a=>{ const pc=Math.min(100, a.p/g*100), bump = a.t===mt && Date.now()-(this._fx||0)<700;
       return '<div class="btLane'+(a.t===mt && this.role==="kid"?' me':'')+(st.win===a.t?' win':'')+(bump?' bump':'')+'"><b class="btLn">'+this.esc(a.name)+'<small>'+a.all+'명</small></b>'
-        +'<div class="btLT"><i class="btFin">🏁</i><span class="btRunner" style="left:'+pc.toFixed(1)+'%"><em>'+a.e+'</em><u>🚩</u></span></div><em class="btLv">'+(Math.round(a.p*10)/10)+'<small>/'+g+'</small></em></div>'; }).join('')+'</div>'; },
+        +'<div class="btLT"><i class="btFin">🏁</i><span class="btRunner" style="left:'+pc.toFixed(1)+'%">'+(this.teamChr(a.t) || '<em>'+a.e+'</em>')+'<u>🚩</u></span></div><em class="btLv">'+(Math.round(a.p*10)/10)+'<small>/'+g+'</small></em></div>'; }).join('')+'</div>'; },
   finish(){ if(this.ended) return; this.ended=true; const R=this.rank(), i=R.indexOf(this.me), key="bt-"+this.room+"-"+(this.st().t0||0);
     const flag=this.cfg().mode==="flag", mt=((this.T().p||{})[this.me]||{}).t||"_", st0=this.st(), win = flag && (st0.win ? st0.win===mt : (this.teamsOf()[0]||{}).t===mt); this._win=win;
     if(this.ok>0 && !Wallet.paid(key)){ Wallet.pay(key); this._gems = flag ? (win ? 4 : 2) : i===0 ? 5 : i===1 ? 3 : i===2 ? 2 : 1; Wallet.addGems(this._gems, "교실 배틀 "+this.room); }   // (v310) 🚩 깃발 레이스: 우승 반 💎4 · 나머지 💎2
@@ -17840,7 +17848,7 @@ const Battle = {
       const ks=Object.keys(agg).sort((a,b)=>agg[b].s/agg[b].n-agg[a].s/agg[a].n);
       teamH='<div class="btTeams">'+ks.map((t,i)=>'<span>'+(i===0?'🏆 ':'')+this.esc(T[t]?(T[t].e||"")+" "+T[t].n:"반 없음")+' <b>'+Math.round(agg[t].s/agg[t].n)+'</b><small>1인 평균 · '+agg[t].n+'명</small></span>').join('')+'</div>'; }
     return teamH+'<div class="btBoard'+(big?' big':'')+'">'+R.slice(0,n).map((k,i)=>{ const p=P[k], pc=Math.round((p.sc|0)/top*100), me=k===this.me;
-      return '<div class="btRow'+(me?' me':'')+(now-(p.at||0)>60000?' idle':'')+'"><i class="btRk">'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</i><b>'+this.esc(p.n)+'</b><div class="btTrack"><span style="left:'+Math.min(92,pc)+'%">'+(p.e||'🏃')+'</span></div><em>'+(p.sc|0)+'</em></div>'; }).join('')+'</div>'; },
+      return '<div class="btRow'+(me?' me':'')+(now-(p.at||0)>60000?' idle':'')+'"><i class="btRk">'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</i><b>'+this.esc(p.n)+'</b><div class="btTrack'+(this.st().s==="run"?' go':'')+'"><span style="left:'+Math.min(92,pc)+'%">'+(this.chr(p.c) || (p.e||'🏃'))+'</span></div><em>'+(p.sc|0)+'</em></div>'; }).join('')+'</div>'; },
   draw(){ if(!$("rdIn")) return; const st=this.st(), c=this.cfg(), now=this.now(), P=this.T().p||{};
     if(this.role==="host"){
       const flag=c.mode==="flag", qtl=(c.qt||["mean"]).map(x=>this.QT[x]||x).join(" · ");
