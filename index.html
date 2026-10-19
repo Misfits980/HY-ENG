@@ -1608,12 +1608,16 @@ details{display:none}
 /* (v348) Stage 범위를 눌러서 고르기 */
 .stgPick{margin:4px 0 10px;padding:8px 10px 10px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08)}
 .stgHd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px} .stgHd b{font-size:15px;color:#ffd37a} .stgHd small{font-size:12px;font-weight:700;color:#cfc6ef}
-.stgHd small.go{color:#7ee0ff}
 .stgL{max-height:228px;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:4px;padding-right:2px}
 .stgW{display:flex;align-items:center;gap:4px;flex-wrap:wrap} .stgW>span{min-width:26px;font:800 12px var(--font);color:#9f94c9;text-align:right;margin-right:2px}
 .stgC{appearance:none;cursor:pointer;min-width:40px;height:38px;padding:0 8px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font:800 14px var(--font)}
 .stgC.in{background:rgba(255,211,122,.28);border-color:rgba(255,211,122,.55)} .stgC.end{background:#ffd37a;color:#2a1a00;border-color:#ffd37a}
 .stgC.pend{outline:3px solid #7ee0ff;outline-offset:1px} .stgC.fin{font-size:13px}
+.stgL{max-height:300px}
+.stgW>.stgWB{appearance:none;cursor:pointer;min-width:44px;height:38px;margin-right:4px;border-radius:10px;border:1px dashed rgba(126,224,255,.5);background:rgba(126,224,255,.08);color:#9fe9ff;font:900 15px var(--font)}
+.stgWB.on{background:rgba(126,224,255,.25);border-style:solid;color:#fff} .stgWB.pend{outline:3px solid #7ee0ff;outline-offset:1px}
+.stgQ{display:flex;gap:6px;margin:2px 0 6px} .stgQ button{appearance:none;cursor:pointer;flex:1;min-height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;font:800 14px var(--font)}
+.stgQ button:disabled{opacity:.35;cursor:default} .stgTip{display:block;margin:0 0 6px;font-size:12px;font-weight:700;color:#7ee0ff}
 #shAdmin details{display:block}   /* (v341) 관리 화면의 접는 칸(설정 다시 보기 · 더 고르기 · ⓘ)이 맨 처음 규칙 때문에 아예 안 보였다 */
 
 /* 결과 */
@@ -17226,24 +17230,41 @@ const RosterMiss = {
     return '<div class="rsMiss"><b>⏳ 아직 '+L.length+'명</b>'+L.slice(0,40).map(n=>'<span>'+Raid.esc(n)+'</span>').join('')+(L.length>40 ? '<small>외 '+(L.length-40)+'명</small>' : '')+'</div>'; }
 };
 const StgPick = {
+  /* (v349) 사용자: 범위 고르기를 더 편하게 — ① 줄 번호(1·2·3…)를 누르면 그 줄 전체, 줄 번호 두 개 = 여러 줄 ② ◀ 앞 범위 · 다음 범위 ▶ (지난번 범위를 기억하니까 다음 주 숙제는 한 번) ③ 칸은 그대로 처음 → 끝 */
   attach(setId, fromId, toId){ const s=$(setId), f=$(fromId), t=$(toId); if(!s || !f || !t || f._sp) return; f._sp=1;
     const rF=f.closest(".adPinRow"), rT=t.closest(".adPinRow"); if(rF) rF.style.display="none"; if(rT) rT.style.display="none";
     const box=document.createElement("div"); box.className="stgPick"; box.id=fromId+"Pick"; (rT||t).after(box);
-    let pend=null, jump=true;
+    let pend=null, pendW=null, jump=true, W=[];
     const no=(set,x)=>String(Study.stageNo(set, x.n));
+    const put=(x, y, keepPend)=>{ const L=Study.lessons(s.value), n=L.length; x=Math.max(0, Math.min(n-1, x)); y=Math.max(x, Math.min(n-1, y));
+      f.value=String(x); t.value=String(y); if(!keepPend){ pend=null; pendW=null; } try{ SFX.click(); }catch(er){} f.dispatchEvent(new Event("change")); t.dispatchEvent(new Event("change")); paint(); };
     const paint=()=>{ const set=s.value, L=Study.lessons(set), a=Math.max(0, +f.value||0), b=Math.max(a, +t.value||0); if(!L.length){ box.innerHTML=""; return; }
-      const W=[]; L.forEach((x,i)=>{ const n=no(set,x), m=n.match(/^(\d+)-(\d+)$/), w=m ? m[1] : "", last=W[W.length-1];
+      W=[]; L.forEach((x,i)=>{ const n=no(set,x), m=n.match(/^(\d+)-(\d+)$/), w=m ? m[1] : "", last=W[W.length-1];
         const c={i, sub: x.fin ? "🚩" : (m ? m[2] : n), fin:x.fin}; if(last && last.w===w && w) last.c.push(c); else W.push({w, c:[c]}); });
       const span=b-a+1, ws=(()=>{ try{ return Study.examWords({set, from:a, to:b, n:0, seed:1}).length; }catch(e){ return 0; } })();
-      const old=box.querySelector(".stgL"), top=old ? old.scrollTop : 0;
-      box.innerHTML='<div class="stgHd"><b>Stage '+Raid.esc(no(set,L[a]))+(b>a ? ' ~ '+Raid.esc(no(set,L[b])) : '')+'</b><small>'+span+'칸'+(ws ? ' · 단어 '+ws+'개' : '')+'</small>'
-        +'<small class="go">'+(pend!=null ? '👉 끝 Stage를 눌러요 (같은 칸을 또 누르면 그 하나만)' : '처음 Stage → 끝 Stage 차례로 눌러요')+'</small></div>'
-        +'<div class="stgL">'+W.map(g=>'<div class="stgW">'+(g.w ? '<span>'+g.w+'</span>' : '')+g.c.map(c=>'<button type="button" class="stgC'+(c.i>=a && c.i<=b ? ' in' : '')+(c.i===a || c.i===b ? ' end' : '')+(pend===c.i ? ' pend' : '')+(c.fin ? ' fin' : '')+'" data-i="'+c.i+'" aria-pressed="'+(c.i>=a && c.i<=b)+'">'+c.sub+'</button>').join('')+'</div>').join('')+'</div>';
+      const old=box.querySelector(".stgL"), top=old ? old.scrollTop : 0, hasW=W.some(g=>g.w && g.c.length>1);
+      const tip = pend!=null ? '👉 끝 칸을 눌러요 (같은 칸을 또 누르면 그 하나만)' : pendW!=null ? '👉 다른 줄 번호를 누르면 거기까지 · 칸을 누르면 그 칸까지' : (hasW ? '줄 번호를 누르면 그 줄 전체 · 칸은 처음 → 끝' : '처음 칸 → 끝 칸 차례로 눌러요');
+      box.innerHTML='<div class="stgHd"><b>Stage '+Raid.esc(no(set,L[a]))+(b>a ? ' ~ '+Raid.esc(no(set,L[b])) : '')+'</b><small>'+span+'칸'+(ws ? ' · 단어 '+ws+'개' : '')+'</small></div>'
+        +'<div class="stgQ"><button type="button" data-q="prev"'+(a<=0?' disabled':'')+'>◀ 앞 범위</button><button type="button" data-q="next"'+(b>=L.length-1?' disabled':'')+'>다음 범위 ▶</button></div>'
+        +'<small class="stgTip">'+tip+'</small>'
+        +'<div class="stgL">'+W.map((g,gi)=>{ const gf=g.c[0].i, gl=g.c[g.c.length-1].i, all=gf>=a && gl<=b;
+          return '<div class="stgW">'+(g.w ? '<button type="button" class="stgWB'+(all?' on':'')+(pendW===gi?' pend':'')+'" data-w="'+gi+'" aria-label="'+g.w+'줄 전체">'+g.w+'</button>' : '')
+            +g.c.map(c=>'<button type="button" class="stgC'+(c.i>=a && c.i<=b ? ' in' : '')+(c.i===a || c.i===b ? ' end' : '')+(pend===c.i ? ' pend' : '')+(c.fin ? ' fin' : '')+'" data-i="'+c.i+'" aria-pressed="'+(c.i>=a && c.i<=b)+'">'+c.sub+'</button>').join('')+'</div>'; }).join('')+'</div>';
       const Ln=box.querySelector(".stgL"); if(jump){ jump=false; const e=Ln.querySelector(".stgC.end"); if(e) Ln.scrollTop=Math.max(0, e.offsetTop-Ln.offsetTop-40); } else Ln.scrollTop=top; };
-    box.addEventListener("click", e=>{ const c=e.target.closest && e.target.closest(".stgC"); if(!c) return; const i=+c.dataset.i;
-      if(pend==null){ pend=i; f.value=String(i); t.value=String(i); } else { f.value=String(Math.min(pend,i)); t.value=String(Math.max(pend,i)); pend=null; }
-      try{ SFX.click(); }catch(er){} f.dispatchEvent(new Event("change")); t.dispatchEvent(new Event("change")); paint(); });
-    s.addEventListener("change", ()=>{ pend=null; jump=true; setTimeout(paint, 0); }); f.addEventListener("change", ()=>setTimeout(paint, 0)); t.addEventListener("change", ()=>setTimeout(paint, 0));
+    const gb=gi=>{ const g=W[gi]; return [g.c[0].i, g.c[g.c.length-1].i]; };
+    box.addEventListener("click", e=>{ const el=e.target.closest && e.target.closest("button"); if(!el || !box.contains(el) || el.disabled) return;
+      const a=+f.value||0, b=Math.max(a, +t.value||0), span=b-a+1;
+      if(el.dataset.q==="next"){ jump=true; return put(b+1, b+span); }
+      if(el.dataset.q==="prev"){ jump=true; return put(Math.max(0, a-span), a-1); }
+      if(el.dataset.w!=null){ const gi=+el.dataset.w, [gf,gl]=gb(gi);
+        if(pendW!=null){ const [pf,pl]=gb(pendW); return put(Math.min(pf,gf), Math.max(pl,gl)); }
+        if(pend!=null) return put(Math.min(pend,gf), Math.max(pend,gl));
+        pendW=gi; return put(gf, gl, true); }
+      if(el.dataset.i!=null){ const i=+el.dataset.i;
+        if(pendW!=null){ const [pf,pl]=gb(pendW); return put(Math.min(pf,i), Math.max(pl,i)); }
+        if(pend==null){ pend=i; return put(i, i, true); }
+        const p0=pend; return put(Math.min(p0,i), Math.max(p0,i)); } });
+    s.addEventListener("change", ()=>{ pend=null; pendW=null; jump=true; setTimeout(paint, 0); }); f.addEventListener("change", ()=>setTimeout(paint, 0)); t.addEventListener("change", ()=>setTimeout(paint, 0));
     paint(); }
 };
 const HyHW = {
