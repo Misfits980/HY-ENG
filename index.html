@@ -2586,6 +2586,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .rsBossIn{position:relative;width:100%;height:100%;animation:rsBreath 2.4s ease-in-out infinite;transform-origin:50% 90%}
 .rs.wait .rsBossIn{animation-duration:3.8s}
 .rsBossIn img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 14px rgba(0,0,0,.55))}
+.rsBossIn.flip .rsAtk{scale:-1 1}   /* (v342) 오른쪽을 보는 보스 그림은 아이들 쪽으로 */
 .rsBossIn.hit img{animation:rsHitImg .26s}
 .rsBossIn.atk img{visibility:hidden}
 .rsAtk{position:absolute;inset:0;background-size:1200% 100%;background-repeat:no-repeat;opacity:0;pointer-events:none}
@@ -16624,7 +16625,10 @@ const HyBoss = {
   /* (v315) 보스 그림·공격 이름 줄 · 다음 주 보스 (테스트 주 다음은 원래 이번 주 보스) */
   lineOf(b){ b=b||this.B; return (b && b.L) || BOSS_LINE[((b && b.i)|0)%BOSS_LINE.length]; },
   nextOf(b){ b=b||this.B; const i=(b && b.i)|0; return BOSS_LINE[(b && b.test ? i : i+1)%BOSS_LINE.length]; },
-  imgCss(b){ b=b||this.B; return (b && b.hue) ? ' style="filter:hue-rotate('+(b.hue|0)+'deg) saturate(1.3)"' : ''; },
+  /* (v342) 사용자: 화룡이 뒤집혀서 공격을 안 하는 느낌 — 그림이 오른쪽(아이들 반대쪽)을 보고 불을 뿜었다 → 오른쪽을 보는 보스(설원수·화룡)는 좌우를 뒤집어 아이들 쪽으로
+     (scale 은 transform 과 따로라 맞을 때 흔들림 애니메이션과 같이 됨) */
+  FLIP:{hb3:1, hb4:1}, flip(b){ b=b||this.B; return !!(b && this.FLIP[b.img]); },
+  imgCss(b){ b=b||this.B; const st=((b && b.hue) ? 'filter:hue-rotate('+(b.hue|0)+'deg) saturate(1.3);' : '')+(this.flip(b) ? 'scale:-1 1;' : ''); return st ? ' style="'+st+'"' : ''; },
   /* 아이의 반 — 반 대항전인데 반이 없으면 null (공격 안 됨) */
   team(kid, pick, b){ b=b||this.B; if(!b || !b.team) return "all"; const k=this.kids()[kid]; const t=(k && k.t) || (pick && pick.t); return (t && t!=="all" && b.max[t]) ? t : null; },
   /* (v322) 이번 주에 데미지가 들어가는 반 — 주 중간에 반을 옮겨도 그 주 기록의 반(D[kid].t) 그대로. 데미지·보상·화면이 모두 이걸 씀 (보상이 두 반에서 나가지 않게) */
@@ -17292,7 +17296,7 @@ const RaidStage = {
     const bg=this.BG[b.img]||this.BG.hb1; box.dataset.k=key; box.className="rs "+(role==="host"?"big":"");
     box.style.setProperty("--sky", bg[1]); box.style.setProperty("--floor", bg[2]);
     box.innerHTML='<div class="rsMt" style="background-image:url(assets/world/mountains-'+bg[0]+'.webp)"></div><div class="rsFloor"></div><div class="rsTint"></div>'
-      +'<div class="rsBoss"><div class="rsBossIn"><img src="'+HyBoss.img(b)+'" alt=""'+HyBoss.imgCss(b)+'><i class="rsAtk"></i></div><div class="rsShield"></div><em class="rsAtkName"></em></div>'
+      +'<div class="rsBoss"><div class="rsBossIn'+(HyBoss.flip(b)?' flip':'')+'"><img src="'+HyBoss.img(b)+'" alt=""'+HyBoss.imgCss(b)+'><i class="rsAtk"></i></div><div class="rsShield"></div><em class="rsAtkName"></em></div>'
       +'<div class="rsAllies"></div><div class="rsFx"></div><div class="rsWarn"></div><b class="rsCombo"></b>';
     this.el=box; this.fx=box.querySelector(".rsFx"); this.al={}; this.me=null; this.seen={}; this._fed=0; this.t0=Date.now();
     if(role==="kid" || role==="wk") this.me=this.hero("me", G.char||"hero", role==="wk" && o.me ? o.me : "", true, o.key||o.me);
@@ -17591,7 +17595,7 @@ const Raid = {
   bossHtml(c, big){ const st=this.st(), pc=Math.round(c.pct*100), lv=c.rage?" rage":c.shield?" shield":"";
     const A=this.anim, ag = A && Date.now()-A.t0 < BOSS_ANIM_MS+200 ? Date.now()-A.t0 : -1;   // (v306) 보스 공격 그림 (다시 그려도 이어서 — 음수 지연)
     return '<div class="rdBoss'+lv+(big?' big':'')+'"><div class="rdBossImg'+(ag>=0?' atk':'')+'"><img src="'+HyBoss.img(this.rb())+'" alt=""'+HyBoss.imgCss(this.rb())+' onerror="this.style.display=\'none\'">'
-      +(ag>=0 ? '<i class="rdAtkAnim" style="background-image:url(assets/boss/'+A.k+'.webp);animation-delay:-'+Math.min(ag,BOSS_ANIM_MS-1)+'ms"></i><em class="rdAtkName">💥 '+this.esc(A.nm)+'!</em>' : '')+(c.shield?'<i class="rdShieldFx">🛡</i>':'')+(c.rage?'<i class="rdRageFx">😡</i>':'')+'</div>'
+      +(ag>=0 ? '<i class="rdAtkAnim" style="'+(HyBoss.flip(this.rb())?'scale:-1 1;':'')+'background-image:url(assets/boss/'+A.k+'.webp);animation-delay:-'+Math.min(ag,BOSS_ANIM_MS-1)+'ms"></i><em class="rdAtkName">💥 '+this.esc(A.nm)+'!</em>' : '')+(c.shield?'<i class="rdShieldFx">🛡</i>':'')+(c.rage?'<i class="rdRageFx">😡</i>':'')+'</div>'
       +'<div class="rdBossInfo"><b>'+this.esc((c.B && c.B.n) || this.rb().n)+(c.B && c.B.team && this.role==="kid" ? ' <small class="rdTeamT">'+this.esc(HyBoss.tName(this.team))+'</small>' : '')+'</b><div class="rdHp"><i style="width:'+pc+'%"></i><span>'+c.hp.toLocaleString()+' / '+c.max.toLocaleString()+' · '+pc+'%</span></div>'
       +'<small>'+(st.s==="wait"?'⏳ 기다리는 중':st.s==="pause"?'⏸ 잠깐 멈춤':st.s==="end"?'🏁 끝':'LIVE · 남은 시간 '+this.mmss(this.left()))+(c.shield?' · 🛡 방패! 반 약한 단어를 깨요':c.rage?' · 😡 분노! 데미지 2배':'')+'</small></div></div>'; },
   /* (v307) 무대 위 한 줄 — 보스 이름 · 체력 · 시간 (그림은 무대에) */
