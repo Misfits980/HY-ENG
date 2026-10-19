@@ -112,6 +112,32 @@ async def main():
         ok(c == "exam", f"방 설정 lvl {c}")
         hd = await T.evaluate("()=>document.getElementById('rdA') && document.getElementById('rdA').innerText")
         ok("시험처럼" in (hd or ""), "TV 위에 「시험처럼」")
+        # ④ 반 지우기 — 확인 창이 안 떠도(패드) 한 번 눌러서는 안 지워짐 · 두 번 = 지움 · 되돌리기
+        await T.evaluate("()=>{ window.confirm=()=>true; Battle.leave(); Admin.open(); }"); await T.wait_for_timeout(500)
+        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"class\"]').click()"); await T.wait_for_timeout(800)
+        DEL = "()=>{ const b=document.querySelector('#adTmList [data-ad=\"teDel\"][data-t=\"a\"]'); b.click(); return b.textContent; }"
+        lb = await T.evaluate(DEL); await T.wait_for_timeout(500)
+        r = await T.evaluate("()=>FB.get('/hy/roster').then(R=>[!!(R.t||{}).a, (R.k.k1||{}).t])")
+        ok(r == [True, "a"] and "한 번 더" in lb, f"한 번 누름: 안 지워짐 · 「{lb}」 {r}")
+        await T.screenshot(path=OUT + "race351_del.png")
+        await T.evaluate(DEL); await T.wait_for_timeout(600)
+        r = await T.evaluate("()=>FB.get('/hy/roster').then(R=>[!!(R.t||{}).a, (R.k.k1||{}).t||null, (R.k.k3||{}).t||null, !!document.querySelector('#adMsg [data-ad=\"undo\"]')])")
+        ok(r == [False, None, None, True], f"두 번 누름: 지움 · 되돌리기 버튼 {r}")
+        await T.evaluate("()=>document.querySelector('#adMsg [data-ad=\"undo\"]').click()"); await T.wait_for_timeout(600)
+        r = await T.evaluate("()=>FB.get('/hy/roster').then(R=>[((R.t||{}).a||{}).n, (R.k.k1||{}).t, (R.k.k3||{}).t])")
+        ok(r == ["초등반", "a", "a"], f"되돌리기: 반·아이들 그대로 {r}")
+        # 5초 지나면 다시 처음부터
+        await T.wait_for_timeout(300); await T.evaluate(DEL); await T.wait_for_timeout(5400); await T.evaluate(DEL); await T.wait_for_timeout(500)
+        r = await T.evaluate("()=>FB.get('/hy/roster').then(R=>!!(R.t||{}).a)")
+        ok(r, f"5초 넘게 쉬고 누르면 다시 한 번 더 물음 {r}")
+        # 아이 빼기도 두 번
+        await T.evaluate("()=>{ document.querySelector('#adTmList [data-ad=\"tmPick\"][data-k=\"k2\"]').click(); }"); await T.wait_for_timeout(400)
+        KD = "()=>{ const b=document.querySelector('#adTmList [data-ad=\"kdDel\"][data-k=\"k2\"]'); b.click(); }"
+        await T.evaluate(KD); await T.wait_for_timeout(400)
+        r1 = await T.evaluate("()=>FB.get('/hy/roster/k/k2').then(x=>!!x)")
+        await T.evaluate(KD); await T.wait_for_timeout(400)
+        r2 = await T.evaluate("()=>FB.get('/hy/roster/k/k2').then(x=>!!x)")
+        ok(r1 and not r2, f"아이 빼기: 한 번 = 그대로 · 두 번 = 뺌 {[r1, r2]}")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()
     print("결과:", "통과" if not bad else "실패 " + str(bad))

@@ -2722,6 +2722,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .adKid.on{background:#ffd37a;color:#2a1a00;border-color:#ffd37a} .adKid.in{opacity:.45} .adKid i{font-style:normal;font-size:12px}
 .adKidAct{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px;padding:8px;border-radius:12px;background:rgba(255,211,122,.12)} .adKidAct b{margin-right:4px} .adKidAct select{flex:1 1 120px;min-width:0}
 .adTm h3{display:flex;align-items:center;gap:8px} .adTm h3 small{opacity:.7} .adTmBtns{margin-left:auto;display:flex;gap:6px}   /* (v340) 👥 반 탭 */
+#shAdmin .mini.armed{background:#ff5a4e;color:#fff;border-color:#ff5a4e;animation:armP .6s ease-in-out infinite alternate} @keyframes armP{to{transform:scale(1.06)}}
 .adTeam{border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:8px;margin:6px 0} .adTeamH{display:flex;align-items:center;gap:8px} .adTeamH small{opacity:.7} .adTeamH .mini{margin-left:auto}
 .adX,.adChipX{appearance:none;border:0;background:none;color:#ff9a9a;font-weight:900;cursor:pointer;padding:0 4px;min-width:28px;min-height:28px}
 .adL{flex:none;width:110px;font-size:13px;font-weight:800;align-self:center} .adChk{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:800;margin:6px 0}
@@ -12998,7 +12999,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v351";
+const GAME_VER = "v352";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18567,7 +18568,8 @@ const Admin = (function(){
       else msg("보내지 못했어요. 인터넷을 확인하고 다시 눌러 주세요");
     });
   }
-  let ntDays=7, whoK="nick";
+  let ntDays=7, whoK="nick", armK="", armAt=0, undo=null;
+  function undoMsg(t){ msg(t, true); const m=$("adMsg"); if(m){ m.innerHTML=esc(t)+' <button class="mini go" data-ad="undo">↩️ 되돌리기</button>'; m.classList.add("good"); } }
   function act(a, el){ if(ok) ss(SK,String(Date.now()));   // (v308) 쓰는 동안은 10분 잠금이 안 걸리게
     if(a==="pin"){ const v=($("adPin").value||"").trim();
       sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H){ ok=true; ss(SK,String(Date.now())); keyOf(v).then(t=>{ tk=t; ss(TK,t); draw(); check(true); after(); }); }
@@ -18582,10 +18584,25 @@ const Admin = (function(){
     if(a==="tmMv"){ const t=($("adTmMv")||{}).value; if(t){ FB.update("/hy/roster/k/"+el.dataset.k, {t}); tmPick=""; msg("옮겼어요", true); } return; }
     if(a==="tmRn"){ const K=HyBoss.kids(), k=K[el.dataset.k]; if(!k) return; const n=(prompt("새 이름 (게임 이름과 같게 쓰면 그 기기에서 자동으로 골라져요)", k.n)||"").trim().slice(0,10); if(!n || n===k.n) return; FB.update("/hy/roster/k/"+el.dataset.k, {n}); msg("이름을 고쳤어요", true); return; }
     if(a==="teRn"){ const T=HyBoss.teams(), x=T[el.dataset.t]; if(!x) return; const n=(prompt("반 이름", x.n)||"").trim().slice(0,10); if(!n || n===x.n) return; FB.update("/hy/roster/t/"+el.dataset.t, {n}); return; }
-    if(a==="teDel"){ const t=el.dataset.t; if(!confirm("이 반을 지울까요? (아이 이름은 '반 없음'으로)")) return; FB.set("/hy/roster/t/"+t, null); const K=HyBoss.kids(); Object.keys(K).forEach(k=>{ if(K[k].t===t) FB.update("/hy/roster/k/"+k, {t:null}); }); return; }
+    /* (v351) 사용자: 반 「지우기」가 확인 없이 바로 지워짐 (패드에 따라 confirm 창이 안 뜨고 바로 '확인'이 됨) → 앱 안에서 두 번 누르기
+       첫 번째 = 버튼이 「한 번 더 누르면 지워요」로 바뀜(5초) · 두 번째 = 지움 · 지운 뒤 「↩️ 되돌리기」 (반 이름·아이들 반 그대로) */
+    if(a==="teDel" || a==="kdDel"){ const id=a+":"+(el.dataset.t||el.dataset.k), T=HyBoss.teams(), K=HyBoss.kids();
+      if(!(armK===id && Date.now()-armAt<5000)){ armK=id; armAt=Date.now(); clearTimeout(act._arm);
+        el.classList.add("armed"); el.dataset.lb=el.dataset.lb||el.textContent; el.textContent="한 번 더 누르면 지워요";
+        const nm = a==="teDel" ? ((T[el.dataset.t]||{}).n||"이 반") : ((K[el.dataset.k]||{}).n||"이 아이");
+        msg("「"+nm+"」 — 한 번 더 누르면 "+(a==="teDel" ? "반을 지워요 (아이들은 '반 없음'으로)" : "명단에서 빼요"), false);
+        act._arm=setTimeout(()=>{ armK=""; document.querySelectorAll("#shAdmin .armed").forEach(b=>{ b.classList.remove("armed"); if(b.dataset.lb) b.textContent=b.dataset.lb; }); }, 5000); return; }
+      armK=""; clearTimeout(act._arm);
+      if(a==="teDel"){ const t=el.dataset.t, x=T[t]; if(!x) return; const ks=Object.keys(K).filter(k=>K[k].t===t);
+        undo={kind:"te", t, x:Object.assign({}, x), ks}; FB.set("/hy/roster/t/"+t, null); ks.forEach(k=>FB.update("/hy/roster/k/"+k, {t:null}));
+        undoMsg("「"+x.n+"」 반을 지웠어요"+(ks.length ? " · "+ks.length+"명은 '반 없음'으로" : "")); return; }
+      const k=el.dataset.k, x=K[k]; if(!x) return; undo={kind:"kd", k, x:Object.assign({}, x)}; FB.set("/hy/roster/k/"+k, null); if(tmPick===k) tmPick=""; undoMsg("「"+x.n+"」 를 명단에서 뺐어요"); return; }
+    if(a==="undo"){ const u=undo; undo=null; if(!u) return;
+      if(u.kind==="te"){ FB.set("/hy/roster/t/"+u.t, u.x); u.ks.forEach(k=>FB.update("/hy/roster/k/"+k, {t:u.t})); }
+      else FB.set("/hy/roster/k/"+u.k, u.x);
+      const m=$("adMsg"); if(m) m.textContent=""; msg("되돌렸어요", true); return; }
     if(a==="kdAdd"){ const t=el.dataset.t, inp=$("adKn_"+t); const ns=((inp||{}).value||"").split(/[,\n]+/).map(x=>x.trim().slice(0,10)).filter(Boolean); if(!ns.length) return;
       const K=HyBoss.kids(); ns.forEach(n=>{ const ex=Object.keys(K).find(k=>K[k].n===n && (K[k].t||"")===t); /* (v305) 다른 반 동명이인은 따로 */ FB.set("/hy/roster/k/"+(ex||FB.id()), {n, t}); }); inp.value=""; return; }
-    if(a==="kdDel"){ const K=HyBoss.kids(), k=K[el.dataset.k]; if(!confirm((k?k.n:"이 아이")+" 를 명단에서 뺄까요?")) return; FB.set("/hy/roster/k/"+el.dataset.k, null); msg("뺐어요", true); return; }
     if(a==="repLoad"){ loadRep(true); keepScroll=true; draw(); return; }
     if(a==="copyTxt"){ const r=(klass._P||[])[+el.dataset.i]; if(!r) return; const t=String(r[12]||"");
       const old=()=>{ msg("복사가 안 돼요 — 시트 「주간 리포트」에서 복사해 주세요", false); };
