@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v359";
+const VERSION = "hyeng-v360";
 /* (v322) 그림(assets/)은 버전마다 다시 받지 않게 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 그림 130개(약 22MB)를 다시 받았다.
    그림 파일을 '같은 이름으로' 새로 바꿨을 때만 아래 숫자를 올리세요 (새 이름의 그림은 그냥 올리면 됨). */
 const ART = "hyeng-art-v1";
@@ -104,6 +104,12 @@ self.addEventListener("message", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
+  /* (v360) 큰 버그: 학원 서버(Firebase) 읽기도 아래 「그림·스크립트는 저장해 둔 것 먼저」에 걸려, 처음 읽은 값을 버전이 바뀔 때까지 계속 돌려줬다
+     (숙제가 사라졌다 나타남 · 숙제 끄기 실패 · 오늘 한 아이 0명 · 새로 넣은 아이가 일부 패드에 안 보임 · 배틀 「한 판 더」 옛 점수 · 실시간 연결이 옛 내용을 되풀이)
+     → 다른 주소는 CDN 스크립트만 저장하고 나머지(Firebase · 실시간 연결 · 그 밖)는 손대지 않음 */
+  const accept = (e.request.headers && e.request.headers.get("accept")) || "";
+  if (accept.indexOf("text/event-stream") >= 0) return;
+  if (url.origin !== self.location.origin && !/^(cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net|fonts\.(googleapis|gstatic)\.com)$/.test(url.hostname)) return;
   // 학원 랭킹(구글 시트)은 저장하지 않는다 — 항상 최신 순위
   if (url.hostname.indexOf("script.google") >= 0 || url.hostname.indexOf("googleusercontent") >= 0) return;
   // 게임 화면(HTML)은 항상 새로 받아온다 — 올린 즉시 새 버전이 보이게.
