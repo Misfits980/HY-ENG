@@ -13014,7 +13014,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v360";
+const GAME_VER = "v361";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18371,8 +18371,15 @@ const Admin = (function(){
       if(r && r.ok && r.rep){ rep={at:Date.now(), d:r.rep}; repErr=""; try{ localStorage.setItem(RK, JSON.stringify(rep)); }catch(e){} }
       else repErr = (r && r.err==="type") ? "old" : "net";
       if(ok && (tab==="class"||tab==="home")){ keepScroll=true; draw(); if(repErr==="net") msg("시트를 못 불러왔어요 · 인터넷 확인", false); } }); }
-  function repKids(){ if(rep && rep.d && Array.isArray(rep.d.nicks) && rep.d.nicks.length) return rep.d.nicks.filter(n=>n && !/^PLAYER$/i.test(n));   // (v308) 게임 이름(닉네임) — 보내기는 닉네임으로 찾음
-    const W=(rep && rep.d && rep.d.week)||[]; return W.slice(1).map(r=>r[0]).filter(n=>n && !/^🏫|^플레이어 /.test(n)); }
+  /* (v361) 사용자: 「반·아이 넣기」 목록에 구글 시트 아이들이 많이 없음 — 예전엔 「기기별 이름」(기기마다 마지막 이름 하나)만 써서,
+     공용 패드를 같이 쓰는 아이·이름을 바꾼 아이가 빠지고 👤김지후·김지후 처럼 겹쳤다 → 시트 여러 탭(주간 체크·주간 리포트·오늘의 30·진도표·기기별 이름)의 아이 이름을 모두 모아
+     👤 떼고 · 공용 패드(🏫·한양…·…패드)·PLAYER·플레이어 N 빼고 · 한 번씩 */
+  function repKids(){ const d=(rep && rep.d)||{}, out=[], seen={};
+    const add=n=>{ n=String(n==null?"":n).replace(/^👤\s*/,"").trim(); if(!n || n.length>20) return; if(/^(PLAYER|아이|이름|학생)$/i.test(n) || /^🏫|^플레이어\s*\d*$|^한양|패드$/.test(n)) return;
+      const k=n.toLowerCase(); if(seen[k]) return; seen[k]=1; out.push(n); };
+    ["week","weekly","today","prog"].forEach(t=>{ (Array.isArray(d[t]) ? d[t] : []).forEach((r,i)=>{ if(i===0 && /아이|이름/.test(String(r && r[0]))) return; add(r && r[0]); }); });
+    (Array.isArray(d.nicks) ? d.nicks : []).forEach(add);
+    return out; }
   function repWeak(n){ const M=(rep && rep.d && rep.d.miss)||[]; let w=M.filter(r=>r[0] && r[0]!=="단어").map(r=>String(r[0]).trim().toLowerCase()).filter(x=>Study.word(x));
     if(!w.length){ try{ w=Stats.topMiss(15).map(m=>m.en).filter(en=>Study.word(en)); }catch(e){} } return w.slice(0, n||10); }
   const cellCls=v=>/^✅/.test(v)?'ok':/^🔸/.test(v)?'mid':/^❌/.test(v)?'no':/^⭐/.test(v)?'we':'';
