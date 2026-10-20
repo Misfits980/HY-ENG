@@ -27,6 +27,12 @@ async def main():
         ok(len(r) == 9 and "⋯" not in r and r[7] == "아이8*", f"펼치면 9명 전부 {r}")
         await pg.evaluate("()=>document.querySelector('[data-wbrk]').click()"); await pg.wait_for_timeout(300)
         ok(len(await pg.evaluate(R)) == 7, "다시 접힘")
+        # (v363) 같은 이름(자기 기기 번호 + 명단 이름)은 한 줄로 합침
+        await pg.evaluate("""()=>{ const D={k1:{n:'김지후', d:833, on:{}}, dvx:{n:'김지후', d:521, on:{}}, k2:{n:'스트로베리', d:1378, on:{}}, dvy:{n:'👤스트로베리', d:295, on:{}}, k3:{n:'빈', d:100, on:{}}};
+            return FB.set('/hy/dmg/'+HyBoss.B.id, D).then(()=>HyBoss.refresh(true)); }""")
+        await pg.evaluate("()=>{ WeekBoss._rkAll=true; Kid.set({id:'dvx', n:'김지후', t:'all'}); WeekBoss.draw(); }"); await pg.wait_for_timeout(300)
+        r = await pg.evaluate("()=>[...document.querySelectorAll('#wbTop5 .wbRank li')].map(li=>li.querySelector('span').textContent+'|'+li.querySelector('em').textContent.replace(/\\D/g,'')+(li.classList.contains('me')?'*':''))")
+        ok(r == ["스트로베리|1673", "김지후|1354*", "빈|100"], f"같은 이름은 한 줄 · 공격 합침 · 내 줄 {r}")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()
     print("결과:", "통과" if not bad else "실패 " + str(bad))

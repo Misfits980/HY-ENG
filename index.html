@@ -13019,7 +13019,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v362";
+const GAME_VER = "v363";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16929,7 +16929,8 @@ const WeekBoss = {
         +this.guide(B)
         +(host?'':'<div class="wbGo"><button class="play" data-wb="study">📚 공부로 기회 모으기</button><button class="play ghost" data-wb="run">🏃 달리기로 모으기</button></div>')
         +'</div>';
-      const P={}; L.filter(x=>!me || x!==me.id).slice(0, host?16:4).forEach(x=>{ P[x]={n:D[x].n, c:this.charOf(x, D[x].ch)}; });
+      const P={}, seenN={}; if(me) seenN[String(me.n||"").replace(/^👤\s*/,"").trim().toLowerCase()]=1;   // (v363) 무대 위 친구도 같은 이름은 한 번만
+      L.filter(x=>{ if(me && x===me.id) return false; const k=String(D[x].n||"").replace(/^👤\s*/,"").trim().toLowerCase(); if(k && seenN[k]) return false; seenN[k]=1; return true; }).slice(0, host?16:4).forEach(x=>{ P[x]={n:D[x].n, c:this.charOf(x, D[x].ch)}; });
       RaidStage.ensure(host?"host":"wk", {box:$("wbStage"), boss:B, me: me ? me.n : ""}); RaidStage.allies(P, me?me.id:null);
       this._last={}; Object.keys(D).forEach(x=>{ this._last[x]=D[x].d|0; }); this._base=Object.keys(D).length>0; }
     else if(host) this.live(B, D);
@@ -16947,10 +16948,17 @@ const WeekBoss = {
     $("wbMe").innerHTML=mh; if(!host) this.drawFight(); const off=$("wbOff"); if(off) off.hidden=!HyBoss.stale;
     $("wbTeams").innerHTML = B.team ? '<div class="stBossTeams wbTeams">'+Object.keys(B.max||{}).map(t=>{ const s=HyBoss.state(t); return '<span class="'+(t===v.t?'me':'')+'">'+E(HyBoss.tName(t))+' '+(s.dead?'🎉':Math.round(s.pct*100)+'%')+'</span>'; }).join('')+'</div>' : '';
     /* (v358) 사용자: 1~3등만 보여 주는 건 너무함 → 5등까지 + 내 자리(밖이면 ⋯ 뒤에) + 「전체 순위 보기 (n명)」 펼치기 · TV 는 10명 */
-    const row=(x,i)=>'<li class="'+(me && x===me.id?'me':'')+'"><b>'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</b><span>'+E(D[x].n||"?")+(B.team && D[x].t?' <small>'+E(HyBoss.tName(D[x].t))+'</small>':'')+'</span><em>⚔️ '+(D[x].d|0)+'</em><small>오늘 '+(((D[x].on||{})[day])|0)+'</small></li>';
-    const lim=host?10:5, all=!!this._rkAll, mi=me ? L.indexOf(me.id) : -1, idx=(all ? L : L.slice(0, lim)).map((x,i)=>i); if(!all && mi>=lim) idx.push(-1, mi);
-    $("wbTop5").innerHTML = L.length ? '<ol class="wbRank">'+idx.map(i=>i<0 ? '<li class="wbGap">⋯</li>' : row(L[i], i)).join('')+'</ol>'
-      +(L.length>lim ? '<button class="wbRkMore" data-wbrk="1">'+(all ? '▴ 접기' : '▾ 전체 순위 보기 ('+L.length+'명)')+'</button>' : '')
+    /* (v363) 사용자 캡처: 같은 이름인데 순위가 나뉨 (김지후 833·521, 스트로베리 1378·295…) — 한 아이가 자기 기기(기기 번호)와 명단 이름(공용 패드·자동 맞춤)으로 따로 쌓였다
+       → 순위는 이름(👤 떼고, 대소문자 무시)이 같으면 한 줄로 합침 (공격 수·오늘 더함) · 내 줄 = 합친 줄에 내 번호가 있으면 */
+    const nk=x=>String((D[x]||{}).n||"").replace(/^👤\s*/,"").trim().toLowerCase(), G={}, GL=[];
+    L.forEach(x=>{ const k=nk(x)||("#"+x); let g=G[k]; if(!g){ g=G[k]={ids:[], n:String(D[x].n||"?").replace(/^👤\s*/,""), d:0, td:0, t:D[x].t}; GL.push(k); }
+      g.ids.push(x); g.d+=D[x].d|0; g.td+=((D[x].on||{})[day])|0; if(!g.t || g.t==="all") g.t=D[x].t || g.t; });
+    GL.sort((a,b)=>G[b].d-G[a].d);
+    const isMe=g=>!!(me && g.ids.indexOf(me.id)>=0);
+    const row=(k,i)=>{ const g=G[k]; return '<li class="'+(isMe(g)?'me':'')+'"><b>'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</b><span>'+E(g.n||"?")+(B.team && g.t && g.t!=="all"?' <small>'+E(HyBoss.tName(g.t))+'</small>':'')+'</span><em>⚔️ '+g.d+'</em><small>오늘 '+g.td+'</small></li>'; };
+    const lim=host?10:5, all=!!this._rkAll, mi=GL.findIndex(k=>isMe(G[k])), idx=(all ? GL : GL.slice(0, lim)).map((x,i)=>i); if(!all && mi>=lim) idx.push(-1, mi);
+    $("wbTop5").innerHTML = GL.length ? '<ol class="wbRank">'+idx.map(i=>i<0 ? '<li class="wbGap">⋯</li>' : row(GL[i], i)).join('')+'</ol>'
+      +(GL.length>lim ? '<button class="wbRkMore" data-wbrk="1">'+(all ? '▴ 접기' : '▾ 전체 순위 보기 ('+GL.length+'명)')+'</button>' : '')
       +(me && mi<0 ? '<p class="wbSmall">⚔️ 한 번만 휘둘러도 순위에 올라가요!</p>' : '')
       : '<p class="wbSmall">아직 아무도 안 깎았어요 — 첫 공격의 주인공이 되어 봐요!</p>'; },
   /* (v312) ⚔️ 공격 기회가 쌓였을 때 (공부·달리기 끝) — 작은 무대에서 내 캐릭터가 기를 모으고, 「지금 공격하기」 */
