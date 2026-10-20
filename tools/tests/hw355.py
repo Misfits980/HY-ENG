@@ -48,7 +48,7 @@ async def main():
         await T.goto(ORIGIN + "index.html"); await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }")
         async def open_exam():
-            await T.reload(); await T.wait_for_timeout(1800)
+            await T.reload(wait_until="domcontentloaded", timeout=60000); await T.wait_for_timeout(1800)
             await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); }"); await T.wait_for_timeout(500)
             await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"exam\"]').click()"); await T.wait_for_timeout(1500)
         async def cnt(): return await T.evaluate("()=>document.querySelectorAll('[data-ad=\"hwEnd\"]').length")
