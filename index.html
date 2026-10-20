@@ -16732,6 +16732,13 @@ const HyBoss = {
   /* (v323) 똑같이 나누기는 ⚔️ 3번 이상 휘두른 친구만 (사용자) — sw = 휘두른 수 (반격은 안 셈 · TV 레이드 공격은 셈). sw 칸이 없는 예전 기록은 깎은 체력 ÷ 8 로 어림 */
   MIN_SW:3, swOf(x){ x=x||{}; return x.sw!=null ? (x.sw|0) : Math.floor((x.d|0)/this.SW_MIN); },
   swOk(B, x){ return !B || B.split==="prop" || this.swOf(x)>=this.MIN_SW; },
+  /* (v363) 사용자: 보상 자격도 합쳐서 — 한 아이가 자기 기기 번호와 명단 이름으로 나뉘어 쌓여도, 같은 이름(👤 떼고·소문자)이면 한 아이로
+     group = {ids, d(합), sw(합), c(하나라도 받았으면), canon(받음 표시를 한 번만 쓸 대표 번호)} */
+  nkey(n){ return String(n==null?"":n).replace(/^👤\s*/,"").trim().toLowerCase(); },
+  group(D, kid, n){ D=D||{}; const key=this.nkey(n!=null && n!=="" ? n : (D[kid]||{}).n);
+    const ids=Object.keys(D).filter(k=>k===kid || (key && this.nkey((D[k]||{}).n)===key)); if(!ids.length) ids.push(kid);
+    const g={ids, d:0, sw:0, c:0, t:null}; ids.forEach(k=>{ const x=D[k]||{}; g.d+=x.d|0; g.sw+=this.swOf(x); if(x.c) g.c=1; if(!g.t || g.t==="all") g.t=x.t||g.t; });
+    g.canon=ids.slice().sort()[0]; return g; },
   add(pick, n, kind, sw){ this.roll(); const b=this.B; if(!b || !pick || !(n>0) || !this.on() || Date.now()>=this.endAt(b)) return 0; const kid=pick.id, c0=this.mine(kid), t=this.myTeam(kid, pick); if(!t) return 0;   // (v308) 주 중간에 반을 옮겨도 이번 주 데미지는 처음 반에 · (v322) 일요일 밤 12시가 지나면 0
     const s0=this.state(t); if(!s0 || s0.dead) return 0;
     const add=Math.min(Math.round(n), this.left(kid, kind), s0.hp); if(!(add>0)) return 0;
@@ -16779,26 +16786,28 @@ const HyBoss = {
         const o={sr:v.r, ss:v.s, er:null, es:null, ur:null, us:null}; if(x.n) o.n=x.n; if(x.t) o.t=x.t; if(x.ch) o.ch=x.ch; w.push(FB.inc("/hy/dmg/"+toId+"/"+k, {d:0}, o)); });   /* (v339) 서버 규칙이 d(숫자)를 요구 — 새 칸에 처음 쓸 때 d 가 없어 거절되던 것 (선생님이 보스를 바꾸면 기회가 안 옮겨짐) */
       return Promise.all(w); }).catch(()=>{}); },
   /* 보상 — 쓰러뜨림: 보상 전부 / 도망(지난주, 못 잡음): 깎은 % × 40% */
-  rewardOf(B, D, kid, pick){ if(!B) return 0; const t=this.myTeam(kid, pick, B, D||{}) || "all", s=this.stateOf(B, D, t); D=D||{}; const me=D[kid]; if(!s || !me || !(me.d>0)) return 0;   // (v322) 데미지가 들어간 반 기준
+  rewardOf(B, D, kid, pick){ if(!B) return 0; const t=this.myTeam(kid, pick, B, D||{}) || "all", s=this.stateOf(B, D, t); D=D||{}; const me=this.group(D, kid, pick && pick.n); if(!s || !(me.d>0)) return 0;   // (v322) 데미지가 들어간 반 기준 · (v363) 같은 이름 합침
     const esc = !s.dead; if(esc && B!==this.P) return 0;   // 이번 주는 쓰러뜨려야, 지난주는 도망이어도
     const pool = esc ? Math.round((B.gems|0)*Math.min(1, s.sum/s.max)*this.ESC) : (B.gems|0);
     if(!this.swOk(B, me)) return 0;   // (v323) 똑같이 나누기 — 3번 이상 휘두른 친구만
-    const L=Object.keys(D).filter(k=>(t==="all" || D[k].t===t) && D[k].d>0 && this.swOk(B, D[k]));
-    return B.split==="prop" ? Math.max(1, Math.round(pool*me.d/Math.max(1,s.sum))) : Math.max(1, Math.floor(pool/Math.max(1,L.length))); },
+    const seen={}; let n=0; Object.keys(D).forEach(k=>{ const x=D[k]||{}; if(!(t==="all" || x.t===t)) return; const nk=this.nkey(x.n)||("#"+k); if(seen[nk]) return; seen[nk]=1; const gg=this.group(D, k); if(gg.d>0 && this.swOk(B, gg)) n++; });   // 나눌 친구 수 = 이름 하나에 한 명
+    return B.split==="prop" ? Math.max(1, Math.round(pool*me.d/Math.max(1,s.sum))) : Math.max(1, Math.floor(pool/Math.max(1,n))); },
   key(B, pick){ return "bs-"+B.id+"-"+pick.id; },
-  can(B, D, pick){ if(!B || !pick) return 0; const me=(D||{})[pick.id]; if(!me || me.c || Wallet.paid(this.key(B, pick))) return 0; return this.rewardOf(B, D, pick.id, pick); },
+  can(B, D, pick){ if(!B || !pick) return 0; const me=this.group(D, pick.id, pick.n); if(!(me.d>0) || me.c || Wallet.paid(this.key(B, pick))) return 0; return this.rewardOf(B, D, pick.id, pick); },
+  markC(B, D, pick){ const g=this.group(D, pick.id, pick.n); g.ids.forEach(k=>{ if(k!==g.canon) try{ FB.update("/hy/dmg/"+B.id+"/"+k, {c:1}); }catch(e){} D[k]=Object.assign({}, D[k], {c:1}); }); return g; },
   reward(pick){ return this.can(this.B, this.D, pick); }, prevReward(pick){ return this.can(this.P, this.PD, pick); },
   /* (v322) 다시 시작·바꾸기 전에 쓰러뜨린 보스의 안 받은 보상 — [{B, g}] */
   oldRewards(pick){ return (this.O||[]).map(B=>({B, g:this.can(B, (this.OD||{})[B.id], pick)})).filter(x=>x.g>0); },
   /* which: 이번 주('1'·false) · 지난주('prev'·true) · 옛 보스('o:<id>') → [B, D] */
   src(which){ if(which===true || which==="prev") return [this.P, this.PD]; if(typeof which==="string" && which.indexOf("o:")===0){ const id=which.slice(2), B=(this.O||[]).find(o=>o.id===id); this.OD=this.OD||{}; return [B||null, B ? (this.OD[id]=this.OD[id]||{}) : {}]; } return [this.B, this.D]; },
   claim(pick, prev){ const [B, D]=this.src(prev), g=this.can(B, D, pick); if(!g) return 0;
-    Wallet.pay(this.key(B, pick)); Wallet.addGems(g, "주간 보스 "+B.n); FB.update("/hy/dmg/"+B.id+"/"+pick.id, {c:1}); D[pick.id]=Object.assign({}, D[pick.id], {c:1}); this.ping(); return g; },
+    Wallet.pay(this.key(B, pick)); Wallet.addGems(g, "주간 보스 "+B.n); const gr=this.group(D, pick.id, pick.n); FB.update("/hy/dmg/"+B.id+"/"+gr.canon, {c:1}); this.markC(B, D, pick); D[gr.canon]=Object.assign({}, D[gr.canon], {c:1}); this.ping(); return g; },
   /* (v308) 보상 받기 — 최신으로 읽고, 서버에 '받음' 을 한 번만 쓸 수 있을 때만 (같은 아이가 두 기기에서 두 번 받지 않게)
      (v322) 인터넷이 안 되면 null (= '이미 받았어요' 가 아니라 '연결되면 받을 수 있어요') */
   claimSafe(pick, prev){ this._t=0; return this.refresh(true).then(()=>{ if(this.stale) return null; const [B, D]=this.src(prev), g=this.can(B, D, pick); if(!g) return 0;
-      return FB.once("/hy/dmg/"+B.id+"/"+pick.id+"/c").then(okc=>{ if(!okc){ D[pick.id]=Object.assign({}, D[pick.id], {c:1}); this.ping(); return 0; }
-        Wallet.pay(this.key(B, pick)); Wallet.addGems(g, "주간 보스 "+B.n); D[pick.id]=Object.assign({}, D[pick.id], {c:1}); this.ping(); return g; }, ()=>null); }).catch(()=>null); },
+      const canon=this.group(D, pick.id, pick.n).canon;   // (v363) 같은 이름 여러 번호 → 대표 번호 하나에만 「받음」 (두 기기에서 두 번 받지 않게)
+      return FB.once("/hy/dmg/"+B.id+"/"+canon+"/c").then(okc=>{ if(!okc){ D[canon]=Object.assign({}, D[canon], {c:1}); this.markC(B, D, pick); this.ping(); return 0; }
+        Wallet.pay(this.key(B, pick)); Wallet.addGems(g, "주간 보스 "+B.n); D[canon]=Object.assign({}, D[canon], {c:1}); this.markC(B, D, pick); this.ping(); return g; }, ()=>null); }).catch(()=>null); },
   /* (v322) 보상 받기 버튼 결과 한 곳에서 — g>0 축하 · null 오프라인 · 0 이미 받음 */
   claimMsg(g){ if(g){ try{ SFX.tone(880,.2,"triangle",.05,1760); confetti(); }catch(er){} } else hyToast(g===null ? "📡 인터넷이 연결되면 받을 수 있어요" : "이미 받았어요"); },
   /* 선생님 — 주간 보스 켜기 (이번 주 월요일부터 1번 보스) */
@@ -16944,7 +16953,7 @@ const WeekBoss = {
           +HyBoss.oldRewards(me).map(x=>'<button class="stBossBtn wbClaim" data-bossclaim="o:'+E(x.B.id)+'">🎁 '+E(x.B.n)+' 보상 💎 '+x.g+'</button>').join('')   /* (v322) 다시 시작 전에 쓰러뜨린 보스 */
           +(pg?'<button class="stBossBtn wbClaim" data-bossclaim="prev">🎁 지난주 '+E(P0.n)+' 보상 💎 '+pg+'</button>':'')
           +(g?'<button class="stBossBtn wbClaim" data-bossclaim="1">🎁 보상 받기 💎 '+g+'</button>':'')
-          +(()=>{ const x=HyBoss.mine(me.id), n=HyBoss.swOf(x); if(HyBoss.swOk(B, x) || g || (x.c)) return ''; return '<p class="wbSwN">⚔️ <b>'+HyBoss.MIN_SW+'번 이상</b> 휘두른 친구만 보상을 받아요 <small>(지금 '+n+'번)</small></p>'; })(); } }   /* (v323) */
+          +(()=>{ const x=HyBoss.group(HyBoss.D, me.id, me.n), n=HyBoss.swOf(x); if(HyBoss.swOk(B, x) || g || (x.c)) return '';   /* (v363) 합친 휘두름 */ return '<p class="wbSwN">⚔️ <b>'+HyBoss.MIN_SW+'번 이상</b> 휘두른 친구만 보상을 받아요 <small>(지금 '+n+'번)</small></p>'; })(); } }   /* (v323) */
     $("wbMe").innerHTML=mh; if(!host) this.drawFight(); const off=$("wbOff"); if(off) off.hidden=!HyBoss.stale;
     $("wbTeams").innerHTML = B.team ? '<div class="stBossTeams wbTeams">'+Object.keys(B.max||{}).map(t=>{ const s=HyBoss.state(t); return '<span class="'+(t===v.t?'me':'')+'">'+E(HyBoss.tName(t))+' '+(s.dead?'🎉':Math.round(s.pct*100)+'%')+'</span>'; }).join('')+'</div>' : '';
     /* (v358) 사용자: 1~3등만 보여 주는 건 너무함 → 5등까지 + 내 자리(밖이면 ⋯ 뒤에) + 「전체 순위 보기 (n명)」 펼치기 · TV 는 10명 */
