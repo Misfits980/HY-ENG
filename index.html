@@ -13013,7 +13013,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v358";
+const GAME_VER = "v359";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16840,9 +16840,10 @@ const KidPick = {
   open(cb){ this.close(); const T=HyBoss.teams(), K=HyBoss.kids(), d=document.createElement("div"); d.className="rdJoin"; d.id="kidPick";
     const pt=Kid.padT(), one=t=>{ const ks=Object.keys(K).filter(k=>(K[k].t||"_")===t).sort((a,b)=>String(K[a].n).localeCompare(K[b].n)); if(!ks.length) return '';
       return '<div class="kpG'+(t===pt?' now':'')+'"><b>'+(t===pt?'🏫 지금 수업 · ':'')+(T[t]?Raid.esc((T[t].e||"")+" "+T[t].n):"반 없음")+'</b><div>'+ks.map(k=>'<button class="kpK" data-kp="'+Raid.esc(k)+'">'+Raid.esc(K[k].n)+'</button>').join('')+'</div></div>'; };
-    /* (v356) 지금 수업 반이 있으면 그 반 아이만 먼저 · 다른 반은 접어 둠 */
-    const rest=Object.keys(T).concat(["_"]).filter(t=>t!==pt).map(one).join('');
-    const grp = pt ? one(pt)+(rest ? '<details class="kpMore"><summary>▸ 다른 반 아이 (내 이름이 위에 없으면)</summary>'+rest+'</details>' : '') : rest;
+    /* (v356) 지금 수업 반이 있으면 그 반 아이 먼저
+       (v359) 사용자: 임시로 만든 아이가 패드 3대에서 안 떠 레이드에서 이름을 못 고름 — 다른 반을 접어 두니 못 찾았다 → 접지 않고 모두 펼침 (지금 수업 반은 맨 위·초록) */
+    const grp=(pt ? [pt] : []).concat(Object.keys(T).concat(["_"]).filter(t=>t!==pt)).map(one).join('');
+    if(!this._re){ const sig=JSON.stringify(K); try{ HyBoss.refresh(true).then(()=>{ if($("kidPick") && this.cb===cb && JSON.stringify(HyBoss.kids())!==sig){ this._re=1; try{ this.open(cb); }finally{ this._re=0; } } }); }catch(e){} }   /* (v359) 열 때마다 서버 명단 다시 — 방금 넣은 아이도 바로 */
     d.innerHTML='<div class="rdJoinIn"><b>👤 나는 누구?</b><p>내 이름을 눌러요 (선생님이 만든 명단)</p><div class="kpL">'+(grp||'<p>아직 명단이 없어요 — 선생님께 말해요</p>')+'</div><button class="stLater" data-kp="">닫기</button></div>';
     document.body.appendChild(d); this.cb=cb; },
   close(){ const d=$("kidPick"); if(d) d.remove(); }

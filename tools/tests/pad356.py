@@ -1,6 +1,6 @@
 """(v356) 사용자: 공용 패드를 반으로 지정 — 「🏫 지금 수업 반」 (선생님이 누르면 모든 공용 패드가 그 반, 3시간 뒤 저절로 풀림)
   ① 선생님 👥 우리 반 맨 위 버튼 → /hy/roster/now {t, until}
-  ② 공용 패드: 이름 고르기에 그 반 먼저(다른 반은 접힘) · 이름 안 골라도 그 반 숙제·시험 · 오늘 한 아이 줄에 그 반
+  ② 공용 패드: 이름 고르기에 그 반 먼저(v359: 다른 반도 펼친 채로) · 이름 안 골라도 그 반 숙제·시험 · 오늘 한 아이 줄에 그 반
   ③ 개인 기기는 그대로 · 수업 끝 / 시간 지나면 원래대로"""
 import asyncio, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -46,8 +46,15 @@ async def main():
         r = await K.evaluate("()=>HyDay.who()")
         ok(r and r.get("t") == "b" and "이름 안 고름" in r.get("n", ""), f"오늘 한 아이 줄에 중등반 {r}")
         await K.evaluate("()=>KidPick.open()"); await K.wait_for_timeout(200)
-        r = await K.evaluate("()=>{ const d=document.getElementById('kidPick'); const first=d.querySelector('.kpL > .kpG'); const more=d.querySelector('.kpMore'); return [first && first.innerText.replace(/\\s+/g,' '), !!more && more.getBoundingClientRect().height>20, more && !more.open, more && more.innerText.indexOf('다른 반')>=0]; }")
-        ok(r[0] and "지금 수업" in r[0] and "서연" in r[0] and "민준" not in r[0] and r[1] and r[2] and r[3], f"이름 고르기: 중등반 먼저 · 다른 반 접힘 {r}")
+        r = await K.evaluate("()=>{ const d=document.getElementById('kidPick'); const G=[...d.querySelectorAll('.kpL > .kpG')]; return [G.map(g=>g.querySelector('b').innerText.trim()), [...d.querySelectorAll('.kpK')].filter(b=>b.getBoundingClientRect().height>10).map(b=>b.textContent), !!d.querySelector('.kpMore')]; }")
+        ok(r[0][0].startswith("🏫 지금 수업") and "중등반" in r[0][0] and sorted(r[1]) == ["민준", "서연", "하준"] and r[1][0] == "서연" and not r[2], f"이름 고르기: 중등반 먼저 · 다른 반도 다 보임 (v359) {r}")
+        # (v359) 이름 고르기를 열어 둔 사이 선생님이 아이를 새로 넣으면 바로 보임
+        await K.evaluate("()=>KidPick.close()")
+        await T.evaluate("()=>FB.update('/hy/roster/k/k9', {n:'임시아이', t:'a'})"); await K.wait_for_timeout(200)
+        await K.evaluate("()=>{ delete HyBoss.R.k.k9; HyBoss._p=null; KidPick.open(); window._first=[...document.querySelectorAll('#kidPick .kpK')].map(b=>b.textContent); }"); await K.wait_for_timeout(700)
+        ok("임시아이" not in await K.evaluate("()=>window._first"), "(이 패드 명단이 옛것이었음)")
+        r = await K.evaluate("()=>[...document.querySelectorAll('#kidPick .kpK')].map(b=>b.textContent)")
+        ok("임시아이" in r, f"새로 넣은 아이가 이름 고르기에 바로 {r}")
         await K.screenshot(path=OUT + "pad356_pick.png")
         await K.evaluate("()=>KidPick.close()")
         # 개인 기기는 그대로
@@ -65,7 +72,7 @@ async def main():
         ok(r is None, f"3시간 지나면 저절로 풀림 {r}")
         # 명단 다른 기능은 그대로 (반·아이 수)
         r = await T.evaluate("()=>[Object.keys(HyBoss.teams()).length, Object.keys(HyBoss.kids()).length]")
-        ok(r == [2, 3], f"명단 그대로 {r}")
+        ok(r == [2, 4], f"명단 그대로 {r}")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()
     print("결과:", "통과" if not bad else "실패 " + str(bad))
