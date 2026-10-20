@@ -1944,6 +1944,7 @@ body.tabP .stTabs > :last-child, body.tabL .stTabs > :last-child{margin-right:au
 .btQT{height:6px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;margin:2px 0 8px} .btQT i{display:block;height:100%;width:100%;background:#5fe0b0;transition:width .2s linear} .btQT.hurry i{background:#ff7a66}
 .btAB{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:6px;font-size:13px;background:#7a6cff;color:#fff;vertical-align:1px} .btAB.abB{background:#ff9ad5;color:#3a1030} .btAB.abC{background:#ffd37a;color:#3a2a00}
 .btPic.sm{font-size:44px;margin-bottom:4px} .btPic.sm img.emj{width:52px;height:52px}
+.stEn u.onU{text-decoration:none;color:#ffd37a;border-bottom:4px solid #ffd37a}
 .stTalk{display:flex;flex-direction:column;gap:9px;text-align:left;margin-top:6px}
 .stTalk p{margin:0;display:flex;gap:9px;align-items:flex-start;font-size:18px;font-weight:800;line-height:1.45;color:#fff}
 .stTalk p b{flex:0 0 26px;height:26px;margin-top:2px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:#7a6cff;color:#fff}
@@ -13010,7 +13011,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v356";
+const GAME_VER = "v357";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14882,7 +14883,9 @@ const StudyUI = {
         +'<div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'+(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(o)+'</button>').join("")+'</div>';
     } else if(q.t==="sfs"){                                             // (v273) 💜 G1-2 첫소리가 같은 단어
-      h='<div class="stKind">👂 첫소리가 같은 단어는?</div><div class="stPrompt">'+pic+'<div class="stEn">'+this.wd(w.en)+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div></div>'
+      /* (v357) 사용자 사진: 「첫소리」 문제인데 G1-2 소리 강조가 head 의 ea 에 밑줄 → 헷갈림. 이 문제는 첫소리(q.x.on: h · bl · sh …)에만 밑줄 */
+      const on=String((q.x && q.x.on) || w.en.charAt(0)), en=String(w.en), wdOn = en.indexOf(on)===0 ? '<u class="onU">'+this.esc(on)+'</u>'+this.esc(en.slice(on.length)) : this.esc(en);
+      h='<div class="stKind">👂 첫소리가 같은 단어는?</div><div class="stPrompt">'+pic+'<div class="stEn">'+wdOn+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div></div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en sfs" data-k="'+k+'">'+(q.x.em[o]?'<i>'+q.x.em[o]+'</i>':'')+this.esc(o)+'</button>').join("")+'</div>';
       this.say(w.en);
     } else if(q.t==="famf"){                                            // (v273) 💜 품사 바꾸기 (happy → happiness)
