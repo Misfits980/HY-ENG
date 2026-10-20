@@ -3006,6 +3006,7 @@ body:has(#scStudy.vLesson.on) #hyToast{top:calc(env(safe-area-inset-top,0px) + 7
 .wb.tv .wbIn{max-width:1400px} .wb.tv .wbName{font-size:32px} .wb.tv .wbTop b{font-size:22px} .wb.tv .wbLeft{font-size:16px} .wb.tv .rdHp.wbBar{height:38px} .wb.tv .rdHp.wbBar span{font-size:19px;line-height:38px} .wb.tv .wbRank li{font-size:16px} .wb.tv .wbTk{font-size:20px}
 .btTimer{margin:8px 0;padding:8px 12px;border-radius:14px;background:rgba(255,255,255,.07)} .btTimer b{font-size:18px} .btTimer.big b{font-size:30px} .btTimer .rdHp{height:12px} .btTimer .rdHp i{background:linear-gradient(90deg,#5fe0b0,#3aa0ff)}
 .btTimer.hurry b{color:#ff8a8a} .btTimer.hurry .rdHp i{background:linear-gradient(90deg,#ff5f7a,#ff9a4a)}
+.btLag{display:block;text-align:center;font-size:12px;font-weight:800;color:#ffd37a;background:rgba(255,211,122,.12);border-radius:8px;padding:3px 8px;margin-bottom:6px}
 .btLive{margin-top:10px;padding:8px 10px 6px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:4px}
 .btLvTip{font-size:14px;font-weight:800;color:#ffd37a;text-align:center;margin-bottom:2px} .btLvTip b{color:#fff;font-size:16px}
 .btLvFl{font-size:15px;font-weight:900;text-align:center;border-radius:10px;padding:4px 8px;animation:btLvP .5s ease-out} .btLvFl.dn{background:#ff5a4e;color:#fff} .btLvFl.up{background:#5fe0b0;color:#08321f}
@@ -16486,15 +16487,21 @@ const FB = (function(){
       if(c && net>=C.length){ base=c; mode="fb"; return mode; }   // (v305) 전에 연결됐던 기기가 지금만 인터넷이 안 됨 → 그대로 fb (보낼 것은 모아 둠, 다시 연결되면 감)
       local(); return mode; })();
     return probing; }
-  function open1(h){ const path=h.path; try{ h.es=new EventSource(base+"/"+parts(path).join("/")+".json");
-          const on=(e,mg)=>{ try{ const d=JSON.parse(e.data); if(!d) return; applyTo(h, parts(path).concat(parts(d.path)).join("/"), d.data, mg); h.up=true; emit(); }catch(er){} };
-          h.es.addEventListener("put", e=>on(e,false)); h.es.addEventListener("patch", e=>on(e,true)); h.es.onerror=()=>{ h.up=false; }; h.es.onopen=()=>{ h.up=true; flush(); }; }catch(e){} }
+  /* (v359) 사용자 사진: 선생님 휴대폰 TV 에 아이들 점수가 멈춤(흐리게) · 아이 화면에 다른 아이가 안 보이고 0등 — 휴대폰(5G)·패드 잠깐 꺼짐에서 실시간 연결이 오류 없이 조용히 끊겨 다시 안 붙었다
+     → 모든 이벤트(서버가 30초마다 보내는 keep-alive 포함) 시각 h.at · 10초마다 검사해 닫혔거나 45초 넘게 소식이 없으면 다시 연결 · cancel(권한) 도 다시 */
+  function open1(h){ const path=h.path; h.at=Date.now(); try{ h.es=new EventSource(base+"/"+parts(path).join("/")+".json");
+          const on=(e,mg)=>{ h.at=Date.now(); try{ const d=JSON.parse(e.data); if(!d) return; applyTo(h, parts(path).concat(parts(d.path)).join("/"), d.data, mg); h.up=true; h.ev=Date.now(); emit(); }catch(er){} };
+          h.es.addEventListener("put", e=>on(e,false)); h.es.addEventListener("patch", e=>on(e,true)); h.es.addEventListener("keep-alive", ()=>{ h.at=Date.now(); });
+          h.es.addEventListener("cancel", ()=>{ h.up=false; h.at=0; }); h.es.onerror=()=>{ h.up=false; }; h.es.onopen=()=>{ h.up=true; h.at=Date.now(); flush(); }; }catch(e){} }
+  function watch(){ if(mode!=="fb") return; const now=Date.now(); L.forEach(h=>{ const dead = !h.es || h.es.readyState===2 || now-(h.at||0)>45000;
+      if(dead){ try{ h.es && h.es.close(); }catch(e){} h.es=null; h.up=false; open1(h); } }); }
+  try{ setInterval(watch, 10000); }catch(e){}
   function listen(path, cb){ const h={path, cb, tree:null, dirty:0, es:null, up:false};
     L.push(h);
     ready().then(m=>{ if(L.indexOf(h)<0) return;
       if(m==="fb") open1(h);
       else { h.tree=cp(getAt(mem, path)); h.up=true; h.dirty=1; emit(); } });
-    return { get:()=>h.tree, up:()=>h.up, close(){ try{ h.es && h.es.close(); }catch(e){} const i=L.indexOf(h); if(i>=0) L.splice(i,1); } }; }
+    return { get:()=>h.tree, up:()=>h.up, age:()=>Date.now()-(h.ev||h.at||0), close(){ try{ h.es && h.es.close(); }catch(e){} const i=L.indexOf(h); if(i>=0) L.splice(i,1); } }; }
   function send(path, val, merge){ return fetch(base+"/"+parts(path).join("/")+".json", {method:merge?"PATCH":"PUT", body:JSON.stringify(val)})
       .then(r=>{ if(!r.ok) throw r.status; return true; }).catch(e=>{ lastErr={path:parts(path).join("/"), e:String(e && e.message || e), at:Date.now()}; if(e!==401 && e!==400){ if(/^hy\//.test(parts(path).join("/"))){ PQ.push([path,val,merge]); saveQ(); } else Q.push([path,val,merge]); } return false; }); }
   /* 와이파이가 돌아오면 모아 둔 것을 보냄 — (v308) 하나씩 차례로 · 더하기가 아닌 같은 경로 쓰기는 마지막 것만 */
@@ -17942,8 +17949,13 @@ function freeRoom(){ const old=x=>!x || !(x.made>0) || Date.now()-x.made>3*3600e
 ===================================================================== */
 const Battle = {
   role:null, room:null, me:null, pick:null, h:null, t:null, q:null, qAt:0, lockTo:0, streak:0, sc:0, ok:0, ng:0, ended:false, FAST:700,
-  T(){ const t=(this.h && this.h.get())||this._last||{}; return this._finP ? Object.assign({}, t, {p:this._finP}) : t; }, st(){ return this.T().st||{}; }, cfg(){ return this.T().cfg||{}; },   /* (v351) _finP = 끝난 뒤 서버에서 새로 읽은 점수 (실시간 연결이 멈춘 패드도 같은 순위) */   // (v322) _last = 마지막으로 받은 방 (선생님이 끝난 방을 지워도 아이 화면 그대로)
-  listen(room){ this._last=null; return FB.listen("/battle/"+room, t=>{ if(t && typeof t==="object") this._last=t; this.draw(); }); },
+  T(){ let t=(this.h && this.h.get())||this._last||{}; if(this._poll && (this._pollAt||0) > (this._evAt||0)){ const lt=t; t=Object.assign({}, this._poll); if(lt.st && this.role==="host" && (lt.st.s!==(t.st||{}).s)) t.st=lt.st; }   // (v359) 직접 읽은 것이 더 새것이면 그것 (선생님 기기가 방금 쓴 st 는 이 기기 것 우선)
+    return this._finP ? Object.assign({}, t, {p:this._finP}) : t; }, st(){ return this.T().st||{}; }, cfg(){ return this.T().cfg||{}; },   /* (v351) _finP = 끝난 뒤 서버에서 새로 읽은 점수 (실시간 연결이 멈춘 패드도 같은 순위) */   // (v322) _last = 마지막으로 받은 방 (선생님이 끝난 방을 지워도 아이 화면 그대로)
+  listen(room){ this._last=null; this._poll=null; this._evAt=Date.now(); return FB.listen("/battle/"+room, t=>{ if(t && typeof t==="object"){ this._last=t; this._evAt=Date.now(); } this.draw(); }); },
+  /* (v359) 실시간 소식이 끊긴 것 같으면(진행 중 6초 · 기다리는 중 12초 소식 없음) 3초마다 서버에서 방을 직접 읽어 씀 — 연결이 돌아오면 다시 실시간 */
+  poll(now){ if(!this.room || this._pollBusy) return; const st=((this.h && this.h.get())||this._last||{}).st||{}, quiet = st.s==="run" || st.s==="count" ? 6000 : 12000;
+    if(now-(this._evAt||0) < quiet || now-(this._pollT||0) < 3000) return; this._pollT=now; this._pollBusy=1; const room=this.room;
+    FB.get("/battle/"+room, true).then(v=>{ this._pollBusy=0; if(this.room!==room || !v || typeof v!=="object") return; this._poll=v; this._pollAt=Date.now(); this.draw(); }, ()=>{ this._pollBusy=0; }); },
   now(){ return Date.now()+(this.off|0); }, esc(t){ return Raid.esc(t); },   // (v305) 서버 시계 기준 (태블릿 시계가 틀려도)
   left(){ const st=this.st(), c=this.cfg(); if(!st.t0) return (c.dur||300)*1000; return Math.max(0, (c.dur||300)*1000 - (this.now()-st.t0)); },
   /* 단어 묶음 — 모든 아이가 같은 묶음 (순서만 각자) */
@@ -18001,12 +18013,12 @@ const Battle = {
     if(!q || ["k2e","e2k","sent","listen","def","pic"].indexOf(q.t)<0 || !q.opts || !q.opts[0] || !q.opts[0].en) q={t:"k2e", w, opts:shuffle([w].concat(others(3)))};
     if(q.t==="listen") q.t="e2k"; return q; },
   /* ══ 선생님 ══ */
-  host(o, room){ room=room||String(1000+Math.floor(Math.random()*9000)); this.role="host"; this.room=room; this.ended=false; this._ws=null; this.off=0; this._won=0; this._finW=0; this._finP=null; try{ HyBoss.live(); }catch(e){}
+  host(o, room){ room=room||String(1000+Math.floor(Math.random()*9000)); this.role="host"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._ws=null; this.off=0; this._won=0; this._finW=0; this._finP=null; try{ HyBoss.live(); }catch(e){}
     this.h=this.listen(room); TvRoom.save("battle", room);
     FB.set("/battle/"+room, {cfg:{set:o.set, from:o.from|0, to:o.to|0, words:o.words||[], dur:o.dur||300, team:!!o.team || o.mode==="flag", mode:o.mode==="flag"?"flag":"score", goal:o.goal|0, qt:(o.qt && o.qt.length) ? o.qt : ["mean"], lvl:o.lvl==="exam"?"exam":"easy", lbl:o.lbl||"", cls:o.cls||"all", made:Date.now()}, st:{s:"wait", made:Date.now()}}).then(()=>FB.clock("/battle/"+room+"/cfg/ck")).then(o=>{ this.off=o|0; });
     this.screen(); this.loop(); return room; },
   /* (v322) 📺 TV 다시 열기 — 방을 새로 쓰지 않고 듣기만 */
-  reopen(room){ room=String(room); this.role="host"; this.room=room; this.ended=false; this._ws=null; this.off=0; this._won=0; try{ HyBoss.live(); }catch(e){}
+  reopen(room){ room=String(room); this.role="host"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._ws=null; this.off=0; this._won=0; try{ HyBoss.live(); }catch(e){}
     this.h=this.listen(room); TvRoom.save("battle", room); FB.clock("/battle/"+room+"/cfg/ck").then(o=>{ this.off=o|0; });
     this.screen(); this.loop(); return room; },
   hostAct(a){ const st=this.st(), now=this.now();
@@ -18017,7 +18029,7 @@ const Battle = {
       Promise.all(Object.keys(P).map(k=>FB.update("/battle/"+this.room+"/p/"+k, {sc:0, ok:0, ng:0}))).then(()=>FB.set("/battle/"+this.room+"/st", {s:"wait", made:now, rnd:(st.rnd|0)+1, fin:null})); }
     try{ SFX.click(); }catch(e){} },
   /* ══ 아이 ══ */
-  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0;
+  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0;
     this.pick=pick; this.me=pick.id; let em="🙂"; try{ em=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji; }catch(e){} const ch=String(G.char||"hero").slice(0,12);   /* (v342) 트랙에 내 캐릭터가 달리게 */
     const t=(pick.t && pick.t!=="all") ? pick.t : ((HyBoss.kids()[pick.id]||{}).t || "");
     this.h=this.listen(room); const dv=Raid.dev();   // (v322) dv = 이 기기 (같은 이름이 다른 기기에서 또 들어오는 것 막기)
@@ -18038,7 +18050,9 @@ const Battle = {
     else { this.streak=0; this.ng++; add={ng:1}; this.lockTo=this.now()+1500; try{ SFX.tone(200,.15,"square",.04); }catch(e){} }
     FB.inc("/battle/"+this.room+"/p/"+this.me, add, {at:this.now()});   // (v322) 서버에서 더하기 (절대값으로 쓰면 늦게 온 쓰기·두 기기가 점수를 덮어씀)
     this.draw(); setTimeout(()=>{ if(this.q===q){ this.q=this.mkQ(); this.qAt=this.now(); this.draw(); } }, ok?350:1500); },
-  rank(){ const fin=this.st().fin; if(this.ended && fin && fin.r) return fin.r.filter(k=>(this.T().p||{})[k]); return this.rankOf(this.T().p); },
+  rank(){ const fin=this.st().fin, P=this.T().p||{}; let R = this.ended && fin && fin.r ? fin.r.filter(k=>P[k]) : this.rankOf(P);
+    if(this.role==="kid" && this.me && R.indexOf(this.me)<0){ const Q=Object.assign({}, P); Q[this.me]=Object.assign({n:(this.pick||{}).n}, Q[this.me]||{}, {sc:this.sc|0, ng:this.ng|0}); R=this.rankOf(Q); }   // (v359) 내가 목록에 없으면 내 점수로 끼워 넣음 (0등 없음)
+    return R; },
   /* (v310) 🚩 반 깃발 레이스 — 반마다 깃발 하나. 칸 = 반 아이들 정답 합 ÷ 반 인원(들어온 아이) → 먼저 목표에 닿는 반이 우승 (시간이 끝나면 가장 멀리 간 반) */
   /* (v322) 목표를 안 고르면(자동) 시간에 맞게 — 1분에 6개 (5분 30 · 3분 18 · 7분 42) */
   goal(){ const c=this.cfg(); return Math.max(5, (c.goal|0) || Math.round((c.dur||300)/60*6)); },
@@ -18061,7 +18075,9 @@ const Battle = {
   finish(){ if(this.ended || this._finBusy) return; this._finBusy=1;
     const done=P=>{ this._finBusy=0; if(this.ended) return; if(P && typeof P==="object") this._finP=P; const fin=this.st().fin; this._finish(fin && fin.r && fin.r.indexOf(this.me)>=0 ? fin.r : this.rankOf(this.T().p)); };
     FB.get("/battle/"+this.room+"/p", true).then(done, ()=>done(null)); },
-  _finish(R){ if(this.ended) return; this.ended=true; const i=R.indexOf(this.me), key="bt-"+this.room+"-"+(this.st().t0||0);
+  _finish(R){ if(this.ended) return; this.ended=true;
+    if(R.indexOf(this.me)<0){ const P=Object.assign({}, this.T().p||{}); P[this.me]=Object.assign({n:(this.pick||{}).n}, P[this.me]||{}, {sc:Math.max(((P[this.me]||{}).sc|0), this.sc|0), ng:this.ng|0}); this._finP=P; R=this.rankOf(P); }   // (v359) 사용자: 0등 — 서버 목록에 내가 없어도 내 점수로 자리
+    const i=R.indexOf(this.me), key="bt-"+this.room+"-"+(this.st().t0||0);
     try{ if(this.ok+this.ng>0 && this._dy!==key){ this._dy=key; HyDay.add({c:1, cb:1}, null, this.pick); } }catch(e){}   // (v354) 📅 오늘 한 아이
     const flag=this.cfg().mode==="flag", mt=((this.T().p||{})[this.me]||{}).t||"_", st0=this.st(), win = flag && (st0.win ? st0.win===mt : (this.teamsOf()[0]||{}).t===mt); this._win=win;
     if(this.ok>0 && !Wallet.paid(key)){ Wallet.pay(key); this._gems = flag ? (win ? 4 : 2) : i===0 ? 5 : i===1 ? 3 : i===2 ? 2 : 1; Wallet.addGems(this._gems, "교실 배틀 "+this.room); }   // (v310) 🚩 깃발 레이스: 우승 반 💎4 · 나머지 💎2
@@ -18069,7 +18085,7 @@ const Battle = {
       clear:1, end:"battle", set:"교실 배틀 "+(this.cfg().lbl||this.room), secs:Math.round((this.cfg().dur||300)), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:""}); }catch(e){}
     if(flag ? win : i===0) try{ confetti(); }catch(e){} this.draw(); },
   loop(){ clearInterval(this.t); this.t=setInterval(()=>this.tick(), 200); },
-  tick(){ const st=this.st(), now=this.now();
+  tick(){ const st=this.st(), now=this.now(); try{ this.poll(Date.now()); }catch(e){}
     if(this.role==="host"){ if(st.s==="count" && now>=st.t0) FB.update("/battle/"+this.room+"/st", {s:"run"});
       const flag=this.cfg().mode==="flag", top = flag ? this.teamsOf()[0] : null;
       if(st.s==="run" && flag && top && top.p>=this.goal() && !this._won){ this._won=1; FB.update("/battle/"+this.room+"/st", {s:"end", endAt:now, win:top.t}); try{ confetti(); SFX.tone(784,.2,"triangle",.06,1568); }catch(e){} }   // 🚩 먼저 닿은 반
@@ -18123,7 +18139,8 @@ const Battle = {
   draw(){ if(!$("rdIn")) return; const st=this.st(), c=this.cfg(), now=this.now(), P=this.T().p||{};
     if(this.role==="host"){
       const flag=c.mode==="flag", qtl=c.lvl==="exam" ? "📝 시험처럼 (A·B·C · 문제마다 시간)" : (c.qt||["mean"]).map(x=>this.QT[x]||x).join(" · ");
-      Raid.reg("rdA", '<div class="rdTop"><button class="rdX" data-bt="leave">✕</button><span class="rdRoom big">'+(flag?'🚩 반 깃발 레이스':'🏫 교실 배틀')+' · 방 번호 <b>'+this.esc(this.room)+'</b></span><span class="rdMe">'+this.esc(this.lbl())+' · '+Math.round((c.dur||300)/60)+'분'+(flag?' · 목표 1인 '+this.goal()+'개':'')+'<br><small>'+this.esc(qtl)+'</small></span></div>'+this.timerHtml(true));
+      const lag = this._poll && (this._pollAt||0) > (this._evAt||0) ? '<span class="btLag">🔄 연결 다시 잡는 중 · 3초마다 새로</span>' : '';
+      Raid.reg("rdA", lag+'<div class="rdTop"><button class="rdX" data-bt="leave">✕</button><span class="rdRoom big">'+(flag?'🚩 반 깃발 레이스':'🏫 교실 배틀')+' · 방 번호 <b>'+this.esc(this.room)+'</b></span><span class="rdMe">'+this.esc(this.lbl())+' · '+Math.round((c.dur||300)/60)+'분'+(flag?' · 목표 1인 '+this.goal()+'개':'')+'<br><small>'+this.esc(qtl)+'</small></span></div>'+this.timerHtml(true));
       if(flag){ const L=this.teamsOf(), W=L.find(a=>a.t===st.win)||L[0];
         Raid.reg("rdB", st.s==="wait" ? '<div class="rdWait">'+this.bigRoom()+'<b>들어온 아이 '+Object.keys(P).length+'명</b>'+this.miss()+'<p>반마다 깃발 하나! 반 아이들 정답 합 ÷ 푼 아이 수 = 깃발이 가는 칸 · 먼저 🏁 '+this.goal()+'칸에 닿는 반이 우승</p><div class="rdPeople">'+Object.keys(P).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div></div>'+this.flagHtml(true)
           : (st.s==="end" && W ? '<div class="btWin">🏆 '+this.esc(W.name)+' 우승!</div>' : '')+this.flagHtml(true)+this.board(12, false));
