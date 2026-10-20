@@ -32,7 +32,7 @@ async def main():
         if fl[3]<40: bad.append(f"공격하러 버튼 40px {fl[3]}")
         await pg.evaluate("()=>document.querySelector('#oBoss .rwGo').click()"); await pg.wait_for_timeout(600)
         v=await pg.evaluate("()=>{ const d=document.getElementById('wbView'); return d ? d.innerText : ''; }")
-        for need in ["월요일 0시", "일요일 밤 12시", "3문제 맞히면 ⚔️1", "4단어 맞히면 ⚔️1", "막기", "도망", "TOP 3", "서연", "5/10"]:
+        for need in ["월요일 0시", "일요일 밤 12시", "3문제 맞히면 ⚔️1", "4단어 맞히면 ⚔️1", "막기", "도망", "이번 주 순위", "서연", "5/10"]:
             if need not in v: bad.append(f"보스 화면에 '{need}' 없음")
         await pg.evaluate("()=>HyBoss.earn(Kid.get(),'study',3)")
         # 휘두르기 — 기회 1개 = 8~12 (치명타 ×2)

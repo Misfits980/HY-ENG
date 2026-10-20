@@ -2942,6 +2942,8 @@ body:has(#scStudy.vLesson.on) #hyToast{top:calc(env(safe-area-inset-top,0px) + 7
 .wb{position:fixed;inset:0;z-index:58;overflow-y:auto;-webkit-overflow-scrolling:touch;background:radial-gradient(120% 70% at 50% 0%,#3a1f5e 0%,#160f2c 55%,#0d0a1c 100%);color:#fff;font-family:var(--font);
   padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 14px) 24px calc(env(safe-area-inset-left,0px) + 14px)}
 .wbIn{max-width:860px;margin:0 auto}
+.wbRank li.wbGap{justify-content:center;opacity:.5;background:none;padding:0;min-height:0;line-height:1}
+.wbRkMore{display:block;width:100%;margin-top:6px;padding:9px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#cfe8ff;font:800 14px var(--font);cursor:pointer}
 .wbTop{display:flex;align-items:center;gap:10px;margin:2px 0 6px} .wbTop b{font-size:17px;font-weight:900} .wbLeft{margin-left:auto;font-size:12px;font-weight:900;color:#ffe9a8;background:rgba(0,0,0,.35);border-radius:10px;padding:4px 9px;white-space:nowrap}
 .wbX{appearance:none;border:2px solid rgba(255,255,255,.25);background:rgba(28,19,58,.85);color:#fff;width:40px;height:40px;border-radius:14px;font-size:15px;cursor:pointer;flex:none}
 .wbHead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap} .wbName{font-size:22px;font-weight:900;color:#ffe17a;text-shadow:0 2px 0 #000} .wbHead small{font-size:12px;font-weight:800;color:#d9cdfa}
@@ -13011,7 +13013,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v357";
+const GAME_VER = "v358";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16910,7 +16912,7 @@ const WeekBoss = {
         +'<div class="wbHead"><b class="wbName">'+E(B.n)+'</b><small>'+this.when(B)+'</small></div>'
         +'<div class="rs" id="wbStage"></div><div id="wbHp"></div>'+(host?'':this.fightFrame())+'<div id="wbMe"></div><div id="wbTeams"></div>'
         +(host?'<div class="wbTv" id="wbTick"></div>':'')
-        +'<div class="wbCols"><div><h4 class="wbH">🏆 이번 주 TOP 3</h4><div id="wbTop5"></div></div></div>'   /* (v317) 랭킹은 1·2·3등만 · 보스 순서는 뺌 (사용자) */
+        +'<div class="wbCols"><div><h4 class="wbH">🏆 이번 주 순위</h4><div id="wbTop5"></div></div></div>'   /* (v317) 랭킹은 1·2·3등만 · 보스 순서는 뺌 (사용자) */
         +this.guide(B)
         +(host?'':'<div class="wbGo"><button class="play" data-wb="study">📚 공부로 기회 모으기</button><button class="play ghost" data-wb="run">🏃 달리기로 모으기</button></div>')
         +'</div>';
@@ -16931,8 +16933,15 @@ const WeekBoss = {
           +(()=>{ const x=HyBoss.mine(me.id), n=HyBoss.swOf(x); if(HyBoss.swOk(B, x) || g || (x.c)) return ''; return '<p class="wbSwN">⚔️ <b>'+HyBoss.MIN_SW+'번 이상</b> 휘두른 친구만 보상을 받아요 <small>(지금 '+n+'번)</small></p>'; })(); } }   /* (v323) */
     $("wbMe").innerHTML=mh; if(!host) this.drawFight(); const off=$("wbOff"); if(off) off.hidden=!HyBoss.stale;
     $("wbTeams").innerHTML = B.team ? '<div class="stBossTeams wbTeams">'+Object.keys(B.max||{}).map(t=>{ const s=HyBoss.state(t); return '<span class="'+(t===v.t?'me':'')+'">'+E(HyBoss.tName(t))+' '+(s.dead?'🎉':Math.round(s.pct*100)+'%')+'</span>'; }).join('')+'</div>' : '';
-    $("wbTop5").innerHTML = L.length ? '<ol class="wbRank">'+L.slice(0, host?8:3).map((x,i)=>'<li class="'+(me && x===me.id?'me':'')+'"><b>'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</b><span>'+E(D[x].n||"?")+(B.team && D[x].t?' <small>'+E(HyBoss.tName(D[x].t))+'</small>':'')+'</span><em>⚔️ '+(D[x].d|0)+'</em><small>오늘 '+(((D[x].on||{})[day])|0)+'</small></li>').join('')+'</ol>' : '<p class="wbSmall">아직 아무도 안 깎았어요 — 첫 공격의 주인공이 되어 봐요!</p>'; },
+    /* (v358) 사용자: 1~3등만 보여 주는 건 너무함 → 5등까지 + 내 자리(밖이면 ⋯ 뒤에) + 「전체 순위 보기 (n명)」 펼치기 · TV 는 10명 */
+    const row=(x,i)=>'<li class="'+(me && x===me.id?'me':'')+'"><b>'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</b><span>'+E(D[x].n||"?")+(B.team && D[x].t?' <small>'+E(HyBoss.tName(D[x].t))+'</small>':'')+'</span><em>⚔️ '+(D[x].d|0)+'</em><small>오늘 '+(((D[x].on||{})[day])|0)+'</small></li>';
+    const lim=host?10:5, all=!!this._rkAll, mi=me ? L.indexOf(me.id) : -1, idx=(all ? L : L.slice(0, lim)).map((x,i)=>i); if(!all && mi>=lim) idx.push(-1, mi);
+    $("wbTop5").innerHTML = L.length ? '<ol class="wbRank">'+idx.map(i=>i<0 ? '<li class="wbGap">⋯</li>' : row(L[i], i)).join('')+'</ol>'
+      +(L.length>lim ? '<button class="wbRkMore" data-wbrk="1">'+(all ? '▴ 접기' : '▾ 전체 순위 보기 ('+L.length+'명)')+'</button>' : '')
+      +(me && mi<0 ? '<p class="wbSmall">⚔️ 한 번만 휘둘러도 순위에 올라가요!</p>' : '')
+      : '<p class="wbSmall">아직 아무도 안 깎았어요 — 첫 공격의 주인공이 되어 봐요!</p>'; },
   /* (v312) ⚔️ 공격 기회가 쌓였을 때 (공부·달리기 끝) — 작은 무대에서 내 캐릭터가 기를 모으고, 「지금 공격하기」 */
+  rkToggle(){ this._rkAll=!this._rkAll; try{ this.draw(); }catch(e){} },
   gain(got, kind){ try{ const B=HyBoss.B, me=Kid.me(); if(!B || !me || !(got>0) || this.isOpen()) return; const E=x=>Raid.esc(x), st=HyBoss.stock(me.id), K=HyBoss.STK;
     let d=$("wbPop"); if(d) d.remove(); clearTimeout(this._pt);
     d=document.createElement("div"); d.id="wbPop"; d.className="wbPop";
@@ -18154,6 +18163,7 @@ addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest || !t.close
   if(t.closest("[data-bt='leave']")){ const s=Battle.st().s; if(Battle.role==="host" && (s==="run" || s==="count") && !confirm("배틀을 끝내고 닫을까요?")) return; Battle.leave(); return; }   // (v322) 닫으면 끝
 });
 
+addEventListener("click", e=>{ const t=e.target; if(t && t.closest && t.closest("[data-wbrk]")){ try{ WeekBoss.rkToggle(); SFX.click(); }catch(er){} } });   // (v358) 전체 순위 펼치기
 /* (v303) 학원 보스가 바뀌면 — 레이드 화면 · Daily 30 보스 카드 · 관리 화면을 다시 그림 */
 /* (v308) 공용 패드: 20분 만료는 '마지막으로 만진 때' 부터 (긴 공부·달리기 끝에 이름이 사라지지 않게) */
 try{ let _kt=0; addEventListener("pointerdown", ()=>{ const n=Date.now(); if(n-_kt>60000){ _kt=n; try{ if(Kid.shared()) Kid.touch(); }catch(e){} } }, {passive:true}); }catch(e){}
