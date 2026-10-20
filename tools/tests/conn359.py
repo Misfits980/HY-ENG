@@ -39,6 +39,18 @@ async def main():
         r = await T.evaluate("()=>[!!document.querySelector('.btLag'), [...document.querySelectorAll('.btRow b')].map(b=>b.textContent)]")
         ok(r[0] and "지우" in r[1], f"TV: 「연결 다시 잡는 중」 + 새 아이 보임 {r}")
         await T.evaluate("()=>{ Battle.role=null; clearInterval(Battle.t); }")
+        # 「한 판 더」 — 끝난 지 2초 넘어 바로 눌러도 다음 판 점수는 0 부터 (옛 점수를 붙잡지 않음) · 점수가 올라감
+        await T.evaluate("""()=>FB.set('/battle/4848', {cfg:{set:'elem', from:0, to:2, words:[], dur:300, qt:['mean'], lvl:'easy', made:Date.now()}, st:{s:'end', t0:Date.now()-300000, endAt:Date.now()-2500},
+            p:{a1:{n:'서연', sc:1412, ok:40, at:Date.now()}, a2:{n:'하준', sc:544, ok:20, at:Date.now()}}})""")
+        await T.evaluate("()=>{ Battle.reopen('4848'); }"); await T.wait_for_timeout(150)
+        await T.evaluate("()=>{ Battle.hostAct('again'); Battle.tick(); Battle.tick(); }"); await T.wait_for_timeout(1200)
+        r = await T.evaluate("()=>[Battle.st().s, Battle.st().rnd, Object.values(Battle.T().p||{}).map(x=>x.sc|0), !!Battle._finP]")
+        ok(r[0] == "wait" and r[1] == 1 and r[2] == [0, 0] and not r[3], f"한 판 더: 대기 · 점수 0 · 옛 점수 안 붙잡음 {r}")
+        await T.evaluate("()=>FB.update('/battle/4848/st', {s:'run', t0:Battle.now()-1000})"); await T.wait_for_timeout(300)
+        await T.evaluate("()=>FB.inc('/battle/4848/p/a1', {sc:10, ok:1})"); await T.wait_for_timeout(500)
+        r = await T.evaluate("()=>[(Battle.T().p.a1||{}).sc, [...document.querySelectorAll('.btRow em')].map(e=>e.textContent)]")
+        ok(r[0] == 10 and "10" in r[1], f"다음 판 점수가 0 에서 올라감 {r}")
+        await T.evaluate("()=>{ Battle.role=null; clearInterval(Battle.t); }")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()
     print("결과:", "통과" if not bad else "실패 " + str(bad))

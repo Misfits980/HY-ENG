@@ -18025,8 +18025,10 @@ const Battle = {
     if(a==="start" && st.s==="wait") FB.update("/battle/"+this.room+"/st", {s:"count", t0:now+3500});   // 3·2·1
     else if(a==="end" && st.s!=="end") FB.update("/battle/"+this.room+"/st", {s:"end", endAt:now});
     /* (v348) 🔁 같은 방 · 같은 설정으로 한 판 더 — 아이들은 방 번호를 다시 안 쳐도 됨 (점수 0 · 새 판 번호 rnd) */
-    else if(a==="again" && st.s==="end"){ const P=this.T().p||{}; this._won=0; this._finW=0; this._finP=null;
-      Promise.all(Object.keys(P).map(k=>FB.update("/battle/"+this.room+"/p/"+k, {sc:0, ok:0, ng:0}))).then(()=>FB.set("/battle/"+this.room+"/st", {s:"wait", made:now, rnd:(st.rnd|0)+1, fin:null})); }
+    /* (v359) 사용자: 「한 판 더」 했는데 점수가 0 부터가 아니고(1412…) 안 올라감 — 점수를 0 으로 지우는 동안 상태가 아직 「끝」이라
+       끝 순위 읽기(v351 fin)가 한 번 더 돌아 옛 점수를 _finP 로 붙잡고, 다음 판 내내 그 옛 점수를 보여 줬다 → 상태를 먼저 「대기·새 판」으로 바꾸고 점수를 지움 · 끝 순위 읽기는 그 판(rnd)이 그대로일 때만 */
+    else if(a==="again" && st.s==="end"){ const P=this.T().p||{}, rnd=(st.rnd|0)+1; this._won=0; this._finW=1; this._finP=null; this._poll=null;
+      FB.set("/battle/"+this.room+"/st", {s:"wait", made:now, rnd}).then(()=>Promise.all(Object.keys(P).map(k=>FB.update("/battle/"+this.room+"/p/"+k, {sc:0, ok:0, ng:0})))).then(()=>{ this._finW=0; this._finP=null; }); }
     try{ SFX.click(); }catch(e){} },
   /* ══ 아이 ══ */
   join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0;
@@ -18073,7 +18075,7 @@ const Battle = {
   /* (v351) 사용자 사진: 두 패드가 둘 다 1등 — 한 패드의 실시간 연결이 멈춰 상대 점수가 옛것(36x)이었다 → 끝나면 서버에서 점수를 새로 읽고, 선생님 TV 가 정한 순위(st.fin)가 있으면 그것으로 */
   rankOf(P){ P=P||{}; return Object.keys(P).sort((a,b)=>(P[b].sc|0)-(P[a].sc|0) || (P[a].ng|0)-(P[b].ng|0) || String(a).localeCompare(String(b))); },
   finish(){ if(this.ended || this._finBusy) return; this._finBusy=1;
-    const done=P=>{ this._finBusy=0; if(this.ended) return; if(P && typeof P==="object") this._finP=P; const fin=this.st().fin; this._finish(fin && fin.r && fin.r.indexOf(this.me)>=0 ? fin.r : this.rankOf(this.T().p)); };
+    const r0=this.st().rnd|0, done=P=>{ this._finBusy=0; if(this.ended || (this.st().rnd|0)!==r0) return; if(P && typeof P==="object") this._finP=P; const fin=this.st().fin; this._finish(fin && fin.r && fin.r.indexOf(this.me)>=0 ? fin.r : this.rankOf(this.T().p)); };
     FB.get("/battle/"+this.room+"/p", true).then(done, ()=>done(null)); },
   _finish(R){ if(this.ended) return; this.ended=true;
     if(R.indexOf(this.me)<0){ const P=Object.assign({}, this.T().p||{}); P[this.me]=Object.assign({n:(this.pick||{}).n}, P[this.me]||{}, {sc:Math.max(((P[this.me]||{}).sc|0), this.sc|0), ng:this.ng|0}); this._finP=P; R=this.rankOf(P); }   // (v359) 사용자: 0등 — 서버 목록에 내가 없어도 내 점수로 자리
@@ -18086,12 +18088,14 @@ const Battle = {
     if(flag ? win : i===0) try{ confetti(); }catch(e){} this.draw(); },
   loop(){ clearInterval(this.t); this.t=setInterval(()=>this.tick(), 200); },
   tick(){ const st=this.st(), now=this.now(); try{ this.poll(Date.now()); }catch(e){}
-    if(this.role==="host"){ if(st.s==="count" && now>=st.t0) FB.update("/battle/"+this.room+"/st", {s:"run"});
+    if(this.role==="host"){ if(st.s!=="end" && this._finP) this._finP=null;   // (v359) 끝이 아니면 끝 순위 점수는 안 씀
+      if(st.s==="count" && now>=st.t0) FB.update("/battle/"+this.room+"/st", {s:"run"});
       const flag=this.cfg().mode==="flag", top = flag ? this.teamsOf()[0] : null;
       if(st.s==="run" && flag && top && top.p>=this.goal() && !this._won){ this._won=1; FB.update("/battle/"+this.room+"/st", {s:"end", endAt:now, win:top.t}); try{ confetti(); SFX.tone(784,.2,"triangle",.06,1568); }catch(e){} }   // 🚩 먼저 닿은 반
       else if(st.s==="run" && this.left()<=0) FB.update("/battle/"+this.room+"/st", Object.assign({s:"end", endAt:now}, top ? {win:top.t} : {}));
-      if(st.s==="end" && !st.fin && !this._finW && now-(st.endAt||now)>=2000){ this._finW=1;   // (v351) 끝나고 2초 — 서버 점수를 새로 읽어 순위를 정해 둠 (아이 패드가 모두 같은 순위)
-        FB.get("/battle/"+this.room+"/p", true).then(P=>{ if(P && typeof P==="object"){ this._finP=P; FB.update("/battle/"+this.room+"/st", {fin:{r:this.rankOf(P), at:Date.now()}}); } }, ()=>{ this._finW=0; }); }
+      if(st.s==="end" && !st.fin && !this._finW && now-(st.endAt||now)>=2000){ this._finW=1; const r0=st.rnd|0, room=this.room;   // (v351) 끝나고 2초 — 서버 점수를 새로 읽어 순위를 정해 둠 (아이 패드가 모두 같은 순위)
+        FB.get("/battle/"+room+"/p", true).then(P=>{ const s2=this.st(); if(this.room!==room || s2.s!=="end" || (s2.rnd|0)!==r0) return;   /* (v359) 그사이 「한 판 더」 를 눌렀으면 버림 */
+          if(P && typeof P==="object"){ this._finP=P; FB.update("/battle/"+room+"/st", {fin:{r:this.rankOf(P), at:Date.now()}}); } }, ()=>{ this._finW=0; }); }
       this.draw(); return; }
     if(this.role!=="kid") return;
     if(st.s){ const rn=st.rnd|0; if(this._rnd==null) this._rnd=rn; else if(rn!==this._rnd){ this._rnd=rn; this.ended=false; this._fin=0; this._gems=0; this._win=0; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.q=null; this.lockTo=0; this.draw(); } }   // (v348) 선생님 🔁 한 판 더
