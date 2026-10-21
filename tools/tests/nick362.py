@@ -28,6 +28,8 @@ async def main():
         # 명단 아이 시트 이름 — 10글자 그대로
         r = await pg.evaluate("()=>{ Kid.set({id:'k1', n:'패트와 매트(패트)', t:'all'}); return Online.nickOf({rule:'study', nick:'X'}); }")
         ok(r == "👤패트와 매트(패트)", f"명단 이름 10글자 안 잘림 {r}")
+        r = await pg.evaluate("()=>{ Kid.set({id:'k2', n:'👤라언', t:'all'}); return Online.nickOf({rule:'study', nick:'X'}); }")
+        ok(r == "👤라언", f"(v366) 👤 두 번 안 붙음 {r}")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()
     print("결과:", "통과" if not bad else "실패 " + str(bad))
