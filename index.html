@@ -13023,7 +13023,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v364";
+const GAME_VER = "v365";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16680,6 +16680,13 @@ const HyBoss = {
   ping(){ this.subs.forEach(f=>{ try{ f(); }catch(e){ console.error(e); } }); }, onChange(f){ this.subs.push(f); },
   teams(){ return (this.R && this.R.t)||{}; }, kids(){ return (this.R && this.R.k)||{}; },
   /* (v356) 사용자: 공용 패드를 반으로 지정 → 「지금 수업 반」 /hy/roster/now = {t, at, until} — 선생님이 누르면 모든 공용 패드가 그 반 (3시간 뒤 저절로 풀림) */
+  /* (v365) 사용자 사진: 이름 고르기에 같은 아이가 두 번 (👤단우 · 단우) + 「반 없음」을 못 지움 — 예전 「반·아이 넣기」 목록의 「👤이름」을 누르면 👤 가 붙은 채 새 아이로 들어갔다
+     plainN = 👤 뗀 이름 · dupNoClass = 반 없는 아이 중 반 있는 아이와 이름이 같은 것 */
+  plainN(n){ return String(n==null?"":n).replace(/^👤\s*/,"").trim(); },
+  /* 같은 이름 — 똑같거나, 예전에 시트 이름이 9글자에서 잘린 것(「패트와 매트(패」 = 「패트와 매트(패트)」) */
+  sameN(a, b){ a=this.plainN(a).toLowerCase(); b=this.plainN(b).toLowerCase(); if(!a || !b) return false; if(a===b) return true; const s=a.length<b.length?a:b, l=a.length<b.length?b:a; return s.length>=8 && l.indexOf(s)===0; },
+  dupNoClass(){ const T=this.teams(), K=this.kids(), cls=Object.keys(K).filter(k=>T[K[k].t]);
+    return Object.keys(K).filter(k=>!T[K[k].t] && cls.some(c=>this.sameN(K[c].n, K[k].n))); },
   nowT(){ const n=(this.R && this.R.now)||null; return n && n.t && this.teams()[n.t] && Date.now() < (n.until||0) ? n.t : null; },
   /* 이번 주 보스(B) · 지난주 보스(P) 계산 — 설정 /hy/boss {v:2, on, from(시작 월요일), team, split, max:{id:{t:체력}}, dead:{id:{t:{at,by}}}} */
   mk(i, wk, idOver){ const C=this.C, TS=C.test && C.test.wk===wk && (!idOver || /t\d*$/.test(idOver)), L=TS ? BOSS_TEST : BOSS_LINE[i%BOSS_LINE.length], round=Math.floor(i/BOSS_LINE.length), per=Math.round(L.per*(1+0.2*round)*(C.hpx>0 ? C.hpx : 1)), T=this.teams(), K=this.kids();   /* (v312) C.hpx = 선생님 체력 배율 */
@@ -16867,8 +16874,9 @@ const HyBoss = {
 /* 나는 누구 고르기 창 */
 const KidPick = {
   open(cb){ this.close(); const T=HyBoss.teams(), K=HyBoss.kids(), d=document.createElement("div"); d.className="rdJoin"; d.id="kidPick";
-    const pt=Kid.padT(), one=t=>{ const ks=Object.keys(K).filter(k=>(K[k].t||"_")===t).sort((a,b)=>String(K[a].n).localeCompare(K[b].n)); if(!ks.length) return '';
-      return '<div class="kpG'+(t===pt?' now':'')+'"><b>'+(t===pt?'🏫 지금 수업 · ':'')+(T[t]?Raid.esc((T[t].e||"")+" "+T[t].n):"반 없음")+'</b><div>'+ks.map(k=>'<button class="kpK" data-kp="'+Raid.esc(k)+'">'+Raid.esc(K[k].n)+'</button>').join('')+'</div></div>'; };
+    const dup={}; HyBoss.dupNoClass().forEach(k=>{ dup[k]=1; });   // (v365) 반 있는 아이와 이름이 같은 「반 없음」 아이는 안 보임
+    const pt=Kid.padT(), gOf=k=>T[K[k].t] ? K[k].t : "_", one=t=>{ const ks=Object.keys(K).filter(k=>gOf(k)===t && !dup[k]).sort((a,b)=>HyBoss.plainN(K[a].n).localeCompare(HyBoss.plainN(K[b].n))); if(!ks.length) return '';
+      return '<div class="kpG'+(t===pt?' now':'')+'"><b>'+(t===pt?'🏫 지금 수업 · ':'')+(T[t]?Raid.esc((T[t].e||"")+" "+T[t].n):"반 없음")+'</b><div>'+ks.map(k=>'<button class="kpK" data-kp="'+Raid.esc(k)+'">'+Raid.esc(HyBoss.plainN(K[k].n))+'</button>').join('')+'</div></div>'; };
     /* (v356) 지금 수업 반이 있으면 그 반 아이 먼저
        (v359) 사용자: 임시로 만든 아이가 패드 3대에서 안 떠 레이드에서 이름을 못 고름 — 다른 반을 접어 두니 못 찾았다 → 접지 않고 모두 펼침 (지금 수업 반은 맨 위·초록) */
     const grp=(pt ? [pt] : []).concat(Object.keys(T).concat(["_"]).filter(t=>t!==pt)).map(one).join('');
@@ -16879,7 +16887,7 @@ const KidPick = {
 };
 addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; const b=t.closest("[data-kp]"); if(!b) return;
   const id=b.dataset.kp, K=HyBoss.kids(); KidPick.close(); if(!id || !K[id]) return;
-  const v={id, n:K[id].n, t:K[id].t||"all", pk:Date.now()}; Kid.set(v);   /* (v322) pk = 이름을 고른 때 (공용 패드 '민준 맞아요?') */ try{ SFX.select(); }catch(er){} const cb=KidPick.cb; KidPick.cb=null; if(cb) cb(v); });
+  const v={id, n:HyBoss.plainN(K[id].n), t:K[id].t||"all", pk:Date.now()}; Kid.set(v);   /* (v322) pk = 이름을 고른 때 (공용 패드 '민준 맞아요?') */ try{ SFX.select(); }catch(er){} const cb=KidPick.cb; KidPick.cb=null; if(cb) cb(v); });
 
 /* =====================================================================
    (v307) ⚔️ 레이드 무대 — 문제만 풀던 화면에 '싸우는 장면'
@@ -18355,8 +18363,11 @@ const Admin = (function(){
     const nowBar = Object.keys(T).length ? '<section class="adCard adNow'+(nt?' on':'')+'"><h3>🏫 지금 수업 반<small>공용 패드(한양…·…패드)가 이 반으로 — 이름 고르기에 이 반 먼저 · 이름을 안 골라도 이 반 숙제·시험</small></h3>'
       +(nt ? '<p class="adNowNow"><b>'+esc((T[nt].e||"")+" "+T[nt].n)+'</b> 수업 중 · '+hm(nw.until)+'까지 (저절로 풀려요)</p>' : '<p class="adSmall">지금은 지정 안 됨 — 공용 패드는 모든 반 아이가 다 보여요</p>')
       +'<div class="adNowB">'+Object.keys(T).map(t=>'<button class="mini'+(t===nt?' go':'')+'" data-ad="nowSet" data-t="'+esc(t)+'">'+esc((T[t].e||"")+" "+T[t].n)+'</button>').join('')+(nt?'<button class="mini warn" data-ad="nowOff">■ 수업 끝</button>':'')+'</div></section>' : '';
-    const lh = nowBar + (grp.length ? grp.map(t=>{ const ks=kidsOf(t);
-        return '<section class="adCard adTm"><h3>'+(t==="_" ? '❔ 반 없음' : esc((T[t].e||"")+" "+T[t].n))+'<small>'+ks.length+'명</small>'+(t!=="_" ? '<span class="adTmBtns"><button class="mini" data-ad="teRn" data-t="'+esc(t)+'">✏️</button><button class="mini warn" data-ad="teDel" data-t="'+esc(t)+'">지우기</button></span>' : '')+'</h3>'
+    /* (v365) 같은 아이가 두 번(👤 붙은 이름 · 반 없음에 같은 이름) → 맨 위 「🧹 정리하기」 · 반 없음 칸에 「모두 빼기」 */
+    const nDup = Object.keys(K).filter(k=>/^👤/.test(String(K[k].n||""))).length + HyBoss.dupNoClass().length;
+    const cleanBar = nDup ? '<div class="adCard dyWarn"><b>⚠️ 같은 아이가 두 번 들어가 있어요 ('+nDup+'명)</b><p>👤 가 붙은 이름은 떼고, 반 있는 아이와 이름이 같은 「반 없음」 아이는 빼요 (기록은 이름으로 이어져요). <button class="mini go" data-ad="rsClean">🧹 정리하기</button></p></div>' : '';
+    const lh = cleanBar + nowBar + (grp.length ? grp.map(t=>{ const ks=kidsOf(t);
+        return '<section class="adCard adTm"><h3>'+(t==="_" ? '❔ 반 없음' : esc((T[t].e||"")+" "+T[t].n))+'<small>'+ks.length+'명</small>'+(t!=="_" ? '<span class="adTmBtns"><button class="mini" data-ad="teRn" data-t="'+esc(t)+'">✏️</button><button class="mini warn" data-ad="teDel" data-t="'+esc(t)+'">지우기</button></span>' : (ks.length ? '<span class="adTmBtns"><button class="mini warn" data-ad="nocAll" data-t="_">모두 빼기</button></span>' : ''))+'</h3>'
           +'<div class="adKids">'+(ks.length ? ks.map(chip).join('') : '<span class="adSmall">아직 없어요 — 위 ➕ 반·아이 넣기</span>')+'</div>'
           +(ks.indexOf(tmPick)>=0 ? act(tmPick) : '')+'</section>'; }).join('')
       : '<p class="adSmall">아직 반이 없어요 — 위 <b>➕ 반·아이 넣기</b>에서 반을 만들어요</p>');
@@ -18369,8 +18380,8 @@ const Admin = (function(){
           +(L2.length>120 ? '<p class="adSmall">'+(L2.length-120)+'명 더 — 위에서 찾아요</p>' : '')+(q && !L2.length ? '<p class="adSmall">「'+esc(tmQ)+'」 게임 이름이 없어요 — 아래 붙여 넣기로 넣어요</p>' : '');
       if(N._h!==nh){ N._h=nh; N.innerHTML=nh; } } }
   function tmPut(names, t){ if(!t) return msg("먼저 반을 만들어요", false); const K=HyBoss.kids(); let n0=0, mv=0;
-    names.forEach(n=>{ n=String(n).trim().slice(0,10); if(!n) return; const ex=Object.keys(K).find(k=>String(K[k].n).toLowerCase()===n.toLowerCase());
-      if(ex){ if(K[ex].t!==t){ FB.update("/hy/roster/k/"+ex, {t}); mv++; } } else { FB.set("/hy/roster/k/"+FB.id(), {n, t}); n0++; } });
+    names.forEach(n=>{ n=HyBoss.plainN(n).slice(0,10);   /* (v365) 👤 떼고 */ if(!n) return; const ex=Object.keys(K).find(k=>HyBoss.plainN(K[k].n).toLowerCase()===n.toLowerCase());
+      if(ex){ if(HyBoss.plainN(K[ex].n)!==K[ex].n) FB.update("/hy/roster/k/"+ex, {n}); if(K[ex].t!==t){ FB.update("/hy/roster/k/"+ex, {t}); mv++; } } else { FB.set("/hy/roster/k/"+FB.id(), {n, t}); n0++; } });
     const T=HyBoss.teams(); msg((T[t] ? (T[t].e||"")+" "+T[t].n+" — " : "")+(n0 ? n0+"명 넣었어요" : "")+(mv ? (n0?" · ":"")+mv+"명 옮겼어요" : "")+(!n0 && !mv ? "이미 들어 있어요" : ""), true); }
   function paintRaid(){ if(ok && tab==="class"){ paintTeam(); return; } if(!ok || (tab!=="play" && tab!=="boss")) return; const st=$("adFbSt"), R=$("adRoster")||{}, B=$("adBossSt");
     if(st) st.innerHTML = FB.mode()==="fb" ? '🟢 학원 서버 연결됨 · 모든 태블릿이 같이 돼요' : FB.mode() ? '🔴 학원 서버(인터넷)에 연결이 안 돼요 — 지금 바꾼 명단·방은 이 기기 안에서만 돼요. 와이파이를 확인해 주세요' : '⏳ 연결 확인 중…';
@@ -18726,19 +18737,30 @@ const Admin = (function(){
     if(a==="teRn"){ const T=HyBoss.teams(), x=T[el.dataset.t]; if(!x) return; const n=(prompt("반 이름", x.n)||"").trim().slice(0,10); if(!n || n===x.n) return; FB.update("/hy/roster/t/"+el.dataset.t, {n}); return; }
     /* (v351) 사용자: 반 「지우기」가 확인 없이 바로 지워짐 (패드에 따라 confirm 창이 안 뜨고 바로 '확인'이 됨) → 앱 안에서 두 번 누르기
        첫 번째 = 버튼이 「한 번 더 누르면 지워요」로 바뀜(5초) · 두 번째 = 지움 · 지운 뒤 「↩️ 되돌리기」 (반 이름·아이들 반 그대로) */
-    if(a==="teDel" || a==="kdDel"){ const id=a+":"+(el.dataset.t||el.dataset.k), T=HyBoss.teams(), K=HyBoss.kids();
+    if(a==="teDel" || a==="kdDel" || a==="nocAll" || a==="rsClean"){ const id=a+":"+(el.dataset.t||el.dataset.k||""), T=HyBoss.teams(), K=HyBoss.kids();
       if(!(armK===id && Date.now()-armAt<5000)){ armK=id; armAt=Date.now(); clearTimeout(act._arm);
         el.classList.add("armed"); el.dataset.lb=el.dataset.lb||el.textContent; el.textContent="한 번 더 누르면 지워요";
-        const nm = a==="teDel" ? ((T[el.dataset.t]||{}).n||"이 반") : ((K[el.dataset.k]||{}).n||"이 아이");
-        msg("「"+nm+"」 — 한 번 더 누르면 "+(a==="teDel" ? "반을 지워요 (아이들은 '반 없음'으로)" : "명단에서 빼요"), false);
+        const nm = a==="teDel" ? ((T[el.dataset.t]||{}).n||"이 반") : a==="nocAll" ? "반 없음" : a==="rsClean" ? "정리" : ((K[el.dataset.k]||{}).n||"이 아이");
+        msg("「"+nm+"」 — 한 번 더 누르면 "+(a==="teDel" ? "반을 지워요 (아이들은 '반 없음'으로)" : a==="nocAll" ? "반 없는 아이를 모두 빼요" : a==="rsClean" ? "겹친 이름을 정리해요" : "명단에서 빼요"), false);
         act._arm=setTimeout(()=>{ armK=""; document.querySelectorAll("#shAdmin .armed").forEach(b=>{ b.classList.remove("armed"); if(b.dataset.lb) b.textContent=b.dataset.lb; }); }, 5000); return; }
       armK=""; clearTimeout(act._arm);
+      if(a==="nocAll" || a==="rsClean"){ const snap=JSON.parse(JSON.stringify(K)); let del=[], ren=[]; const full={};
+        if(a==="nocAll") del=Object.keys(K).filter(k=>!T[K[k].t]);
+        else { const has=k=>!!T[K[k].t];
+          Object.keys(K).forEach(k=>{ if(!/^👤/.test(String(K[k].n||"")) || del.indexOf(k)>=0) return; const others=Object.keys(K).filter(o=>o!==k && HyBoss.sameN(K[o].n, K[k].n) && del.indexOf(o)<0);
+            if(!has(k) && others.some(has)){ del.push(k); return; }
+            others.forEach(o=>{ const on=HyBoss.plainN(K[o].n); if(on.length>HyBoss.plainN(full[k]||K[k].n).length) full[k]=on; });   // 잘린 이름이면 긴 이름으로
+            others.filter(o=>!has(o) || K[o].t===K[k].t).forEach(o=>del.push(o)); ren.push(k); });
+          HyBoss.dupNoClass().forEach(k=>{ if(del.indexOf(k)<0 && ren.indexOf(k)<0) del.push(k); }); }
+        del.forEach(k=>FB.set("/hy/roster/k/"+k, null)); ren.forEach(k=>FB.update("/hy/roster/k/"+k, {n:full[k] || HyBoss.plainN(K[k].n)}));
+        undo={kind:"ks", x:snap}; undoMsg(a==="nocAll" ? "반 없는 아이 "+del.length+"명을 뺐어요" : "정리했어요 — 겹친 아이 "+del.length+"명 빼고 · 👤 이름 "+ren.length+"개 고침"); return; }
       if(a==="teDel"){ const t=el.dataset.t, x=T[t]; if(!x) return; const ks=Object.keys(K).filter(k=>K[k].t===t);
         undo={kind:"te", t, x:Object.assign({}, x), ks}; FB.set("/hy/roster/t/"+t, null); ks.forEach(k=>FB.update("/hy/roster/k/"+k, {t:null}));
         undoMsg("「"+x.n+"」 반을 지웠어요"+(ks.length ? " · "+ks.length+"명은 '반 없음'으로" : "")); return; }
       const k=el.dataset.k, x=K[k]; if(!x) return; undo={kind:"kd", k, x:Object.assign({}, x)}; FB.set("/hy/roster/k/"+k, null); if(tmPick===k) tmPick=""; undoMsg("「"+x.n+"」 를 명단에서 뺐어요"); return; }
     if(a==="undo"){ const u=undo; undo=null; if(!u) return;
       if(u.kind==="te"){ FB.set("/hy/roster/t/"+u.t, u.x); u.ks.forEach(k=>FB.update("/hy/roster/k/"+k, {t:u.t})); }
+      else if(u.kind==="ks") FB.set("/hy/roster/k", u.x);   // (v365) 정리·모두 빼기 되돌리기
       else FB.set("/hy/roster/k/"+u.k, u.x);
       const m=$("adMsg"); if(m) m.textContent=""; msg("되돌렸어요", true); return; }
     if(a==="kdAdd"){ const t=el.dataset.t, inp=$("adKn_"+t); const ns=((inp||{}).value||"").split(/[,\n]+/).map(x=>x.trim().slice(0,10)).filter(Boolean); if(!ns.length) return;
