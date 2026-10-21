@@ -13023,7 +13023,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v366";
+const GAME_VER = "v367";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19597,11 +19597,15 @@ const Online = {
   submit(rec){
     if(!this.on()) return Promise.resolve(null);
     const nk=this.nickOf(rec); if(rec && nk!==rec.nick) rec=Object.assign({}, rec, {nick:nk});
-    const body=Object.assign({key:this.KEY, dev:this.dev()}, rec);
+    const body=Object.assign({key:this.KEY, dev:this.dev(), at:Date.now()}, rec);   /* (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
     /* (v322) 인터넷이 끊기거나 서버가 바쁘면(busy) 그 판 기록이 사라졌다 → 기기에 모아 두었다가(hyeng_sheetq, 최대 30줄) 다음에 보낸다.
        시트 줄을 만드는 기록(달리기·공부 = type 없음, 구매)만. 날짜는 서버가 받은 때로 적힌다 */
     const keep = !body.type || body.type==="buy";
     if(keep) this.flush();                                   // 밀린 줄부터 (지금 판은 기다리지 않고 함께)
+    /* (v367) 사용자: 아이들이 안 왔는데 교실 배틀 기록이 생김 — 어제 배틀이 끝나는 순간 반 아이들이 한꺼번에 보내 시트 서버가 바빠(busy) 기기에 쌓였다가 오늘 보내졌다
+       → 배틀·레이드 끝 기록은 0~8초 사이 아무 때나 보내 한꺼번에 몰리지 않게 */
+    const spread = /^study-(battle|raid)$/.test(String(body.rule||"")) && !window.HY_FB_LOCAL ? Math.random()*8000 : 0;
+    if(spread) return new Promise(res=>setTimeout(res, spread)).then(()=>this.post(body)).then(r=>{ if(keep && this.again(r)){ this.qAdd(body); return {ok:false, queued:true}; } return r; });
     return this.post(body).then(r=>{ if(keep && this.again(r)){ this.qAdd(body); return {ok:false, queued:true}; } return r; });
   },
   post(body){

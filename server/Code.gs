@@ -88,14 +88,16 @@ function doPost(e){
   if (["check","notice","noticeOff","actAdd","report"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
+  /* (v367) 기기에 쌓였다가 늦게 온 기록은 실제로 판이 끝난 때(d.at)로 적는다 — 7일 안 · 미래는 안 됨. 그 밖에는 받은 때 */
+  const now = new Date(), at = Number(d.at), when = (at > now.getTime() - 7*864e5 && at <= now.getTime() + 60000) ? new Date(at) : now;
 
   const row = isBuy ? BUY_COLS.map(([k])=>{
-    if (k === "date") return new Date();
+    if (k === "date") return when;
     if (k === "nick") return txt_(d.nick, 20) || "PLAYER";
     if (k === "price" || k === "gems") return num_(d[k], 1000000);
     return txt_(d[k], 40);
   }) : COLS.map(([k])=>{
-    if (k === "date") return new Date();
+    if (k === "date") return when;
     if (k === "nick") return txt_(d.nick, 20) || "PLAYER";
     if (NUM[k])       return num_(d[k], k === "score" ? 10000000 : 1000000);
     if (k === "boss") return txt_(d.boss, 40).replace(/,/g, " · ");   // "50,80" 이 숫자 5080 으로 바뀌지 않게
