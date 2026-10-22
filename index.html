@@ -11234,7 +11234,7 @@ const BGM = {
 const RunVoice = {
   KEY:"hyeng_runvoice",
   ios(){ try{ const u=navigator.userAgent||""; return /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints>1); }catch(e){ return false; } },
-  on(){ try{ const v=localStorage.getItem(this.KEY); if(v==="1") return true; if(v==="0") return false; }catch(e){} return !this.ios(); },
+  on(){ try{ const v=localStorage.getItem(this.KEY); if(v==="1") return true; if(v==="0") return false; }catch(e){} return !this.ios() || Voice.audioOK(); },   // (v385) 미리 만든 발음 파일이 있으면 아이폰도 달리는 중에 읽음 (소리 장치로 틀어서 멈칫하지 않음)
   set(b){ try{ localStorage.setItem(this.KEY, b?"1":"0"); }catch(e){} }
 };
 const Voice = {
@@ -11243,7 +11243,41 @@ const Voice = {
   /* 영어 목소리 고르기 — en-US → en-GB → 다른 영어 (안드로이드는 en_US 처럼 밑줄) · 없으면 null (기기 기본 + lang en-US) */
   pickVoice(vs){ vs=vs||[]; const en=vs.filter(v=>/^en[-_]/i.test(v.lang||""));
     return en.find(v=>/^en[-_]US/i.test(v.lang) && v.localService) || en.find(v=>/^en[-_]US/i.test(v.lang)) || en.find(v=>/^en[-_]GB/i.test(v.lang)) || en[0] || null; },
-  canListen(){ return this.supported() && !this.broken && !this.noVoice; },
+  /* (v385) 미리 만든 발음 파일(audio/*.mp3, 단어 3,620개 · Kokoro 목소리) — 아이폰 읽기(speechSynthesis)는 몇 초마다 0.3초씩 화면이 멈췄다
+     → 파일이 있는 단어는 웹오디오로 틀고(멈춤 없음), 파일이 없는 말(문장 등)·받지 못했을 때만 예전 방식으로 읽는다 */
+  clipSet:null, clipOff:false, _bufs:new Map(), _src:null,
+  slug(t){ return String(t||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,""); },
+  loadClips(){ try{ fetch("audio/list.json").then(r=>r.ok?r.json():null).then(a=>{ if(a && a.length) this.clipSet=new Set(a); }).catch(()=>{}); }catch(e){} },
+  audioOK(){ return !this.clipOff && !!(this.clipSet && this.clipSet.size) && !!(window.AudioContext||window.webkitAudioContext); },
+  hasClip(t){ return this.audioOK() && this.clipSet.has(this.slug(t)); },
+  getBuf(slug){
+    let p=this._bufs.get(slug); if(p) return p;
+    const ctx=SFX.ctx; if(!ctx) return Promise.resolve(null);
+    p=fetch("audio/"+slug+".mp3").then(r=>r.ok?r.arrayBuffer():null).then(ab=>ab ? new Promise((ok,no)=>{ try{ const q=ctx.decodeAudioData(ab, ok, no); if(q && q.then) q.then(ok,no); }catch(e){ no(e); } }) : null).catch(()=>null)
+      .then(b=>{ if(!b) this._bufs.delete(slug); return b; });
+    this._bufs.set(slug, p);
+    if(this._bufs.size>300){ const k=this._bufs.keys().next().value; this._bufs.delete(k); }
+    return p;
+  },
+  stopClip(){ const s=this._src; this._src=null; if(s){ try{ s.onended=null; s.stop(); s.disconnect(); }catch(e){} } },
+  prefetch(list){ if(!this.audioOK()) return; try{ SFX.wake(); (list||[]).slice(0,12).forEach(w=>{ const k=this.slug(w); if(this.clipSet.has(k)) this.getBuf(k); }); }catch(e){} },
+  playClip(text, keep, rate){
+    SFX.wake(); const ctx=SFX.ctx; if(!ctx) return false;
+    const slug=this.slug(text), tok=++this._tok;
+    clearTimeout(this._gt); this.stopClip();
+    try{ if(ctx.state==="suspended" && ctx.resume) ctx.resume(); }catch(e){}
+    this.getBuf(slug).then(buf=>{
+      if(tok!==this._tok) return;                                   // 더 새 말이 왔으면 버림
+      if(!buf){ if(!(G.running && RunVoice.ios()) && this.supported()) this.speak(String(text).toLowerCase(), rate||0.85, keep ? {onend:()=>{ this.lockUntil=0; }} : null); else this.lockUntil=0; return; }
+      try{
+        const s=ctx.createBufferSource(); s.buffer=buf; s.connect(ctx.destination);
+        s.onended=()=>{ if(this._src===s){ this._src=null; if(keep) this.lockUntil=0; } };
+        this._src=s; s.start(); this.heardAt=Date.now(); this.fails=0; this.broken=false;
+      }catch(e){ this.lockUntil=0; }
+    });
+    return true;
+  },
+  canListen(){ return this.audioOK() || (this.supported() && !this.broken && !this.noVoice); },
   noVoice:false,   // (v289) QA: 목소리가 0개인 기기에서도 듣기 문제가 나왔다 → 켠 뒤 4초가 지나도 목소리가 하나도 없으면 듣기 문제를 뺀다
   /* (v220) 소리 내기 — 학원 태블릿에서 듣기가 안 나던 것:
      ① 끊고(cancel) 바로 말하면 안드로이드 크롬이 그 말을 버린다 → 말하는 중이면 끊고 80ms 뒤에
@@ -11283,7 +11317,8 @@ const Voice = {
   },
   fail(){ this.fails++; if(this.fails>=2) this.broken=true; },
   init(){
-    if(!this.supported()){ this.on=false; return; }
+    this.loadClips();
+    if(!this.supported()){ if(!(window.AudioContext||window.webkitAudioContext)) this.on=false; return; }
     const pick=()=>{
       const vs=speechSynthesis.getVoices()||[];
       this.voice = this.pickVoice(vs);              // (v289) 영어 목소리가 없으면 첫 목소리(대개 한국어)로 읽지 않고 기기 기본 + lang en-US 에 맡긴다
@@ -11295,7 +11330,9 @@ const Voice = {
   },
   /* 시작 버튼을 누를 때 무음으로 한 번 호출해 엔진을 깨운다 */
   warm(){
-    if(!this.on || !this.supported()) return;
+    if(!this.on) return;
+    if(this.audioOK()){ try{ SFX.wake(); const c=SFX.ctx; if(c && c.state==="suspended" && c.resume) c.resume(); }catch(e){} return; }   // (v385)
+    if(!this.supported()) return;
     try{
       const u=new SpeechSynthesisUtterance(" ");
       u.volume=0; u.rate=2;
@@ -11306,15 +11343,17 @@ const Voice = {
     }catch(e){}
   },
   say(text, opt){
-    if(!this.on || !this.supported() || !text) return;
+    if(!this.on || !text || !(this.supported() || this.audioOK())) return;
     if(G.running && !RunVoice.on()) return;    // (v379) 아이폰: 달리는 동안은 읽지 않음 (설정으로 켤 수 있음)
     const keep = !!(opt && opt.keep);          // 끝까지 읽어야 하는 말(정답 단어)
     const now = (typeof performance!=="undefined" ? performance.now() : Date.now());
     if(!keep && now < this.lockUntil) return;  // 정답을 읽는 중이면 건너뛴다
     if(keep) this.lockUntil = now + Math.min(1800, 420 + String(text).length*95);
+    if(this.hasClip(text) && this.playClip(text, keep, 0.85)) return;       // (v385) 미리 만든 발음
+    if(!this.supported()) return;
     this.speak(String(text).toLowerCase(), 0.85, keep ? {onend:()=>{ this.lockUntil=0; }} : null);
   },
-  stop(){ this.lockUntil=0; this._tok++; clearTimeout(this._gt); this._cx=Date.now(); try{ speechSynthesis.cancel(); }catch(e){} }
+  stop(){ this.lockUntil=0; this._tok++; clearTimeout(this._gt); this._cx=Date.now(); this.stopClip(); try{ speechSynthesis.cancel(); }catch(e){} }
 };
 
 function showQuestion(q, s){
@@ -11828,7 +11867,7 @@ $("setVoice").addEventListener("click",()=>{
 });
 $("setPic").addEventListener("click",()=>{ SFX.click(); G.picture=!G.picture; syncSettings(); });
 $("setRunVoice").addEventListener("click",()=>{ SFX.click(); if(!Voice.on) return; const b=!RunVoice.on(); RunVoice.set(b); syncSettings();
-  try{ if(b && RunVoice.ios()) TrapTip.show("🏃 아이폰·아이패드는 달릴 때 읽어 주면 가끔 0.3초씩 멈출 수 있어요"); }catch(e){} });
+  try{ if(b && RunVoice.ios() && !Voice.audioOK()) TrapTip.show("🏃 아이폰·아이패드는 달릴 때 읽어 주면 가끔 0.3초씩 멈출 수 있어요"); }catch(e){} });
 (function(){ const row=$("setQual"); if(!row || !row.querySelectorAll) return;
   row.querySelectorAll(".tile").forEach(t=>t.addEventListener("click",()=>{ SFX.click(); applyQualityChoice(t.dataset.v); })); })();
 /* 교재 단원(tag) 타일 — ＋단어에서 tag 를 넣으면 자동 생성 */
@@ -13389,7 +13428,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v384";
+const GAME_VER = "v385";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20348,6 +20387,8 @@ addEventListener("error", function(e){ if(e && e.target && e.target!==window) re
 addEventListener("unhandledrejection", function(e){ try{ console.warn("[HY ENG] promise", e && e.reason); }catch(_){} });   // 소리 재생 거절 같은 것은 창을 띄우지 않는다
 
 Voice.init();
+/* (v385) 발음 파일 3,620개(약 15MB)를 켠 지 15초 뒤 조용히 기기에 저장해 둔다 (이미 받은 것은 건너뜀 · 데이터 절약 모드면 안 함) */
+setTimeout(()=>{ try{ const nc=navigator.connection; if(nc && nc.saveData) return; if(navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(r=>{ try{ r.active && r.active.postMessage("hyAudio"); }catch(e){} }).catch(()=>{}); }catch(e){} }, 15000);
 try{ if(Perf.on && (Perf.exp.mute || Perf.exp.nosp)) Voice.on=false; if(Perf.on && (Perf.exp.mute || Perf.exp.nosfx)) SFX.on=false; }catch(e){}   // (v376) 측정 실험: 소리 끔 · (v377) 읽기만/효과음만
 /* (v296) 아이폰 무음 스위치 — 아이폰은 소리를 '주변 소리(ambient)' 로 다뤄 무음 스위치를 켜면 효과음·발음이 안 났다 (iOS 17+).
    'playback' 으로 바꾸면 무음이어도 들린다 (첫 터치 때 한 번) */

@@ -1,9 +1,23 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v384";
+const VERSION = "hyeng-v385";
 /* (v322) 그림(assets/)은 버전마다 다시 받지 않게 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 그림 130개(약 22MB)를 다시 받았다.
    그림 파일을 '같은 이름으로' 새로 바꿨을 때만 아래 숫자를 올리세요 (새 이름의 그림은 그냥 올리면 됨). */
 const ART = "hyeng-art-v1";
+/* (v385) 발음 파일(audio/*.mp3 · 15MB)은 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 다시 받지 않게. 같은 이름으로 새로 바꿨을 때만 숫자를 올리세요 */
+const AUDIO = "hyeng-audio-v1";
+const isAudio = u => /\/audio\/[^/]+\.mp3$/.test(new URL(u, self.location.href).pathname);
+async function fillAudio() {
+  try {
+    const list = await (await fetch("./audio/list.json", {cache: "no-cache"})).json();
+    const c = await caches.open(AUDIO);
+    const have = new Set((await c.keys()).map(r => new URL(r.url).pathname));
+    const todo = list.filter(k => !have.has(new URL("./audio/" + k + ".mp3", self.location.href).pathname));
+    let i = 0;
+    const work = async () => { while (i < todo.length) { const k = todo[i++]; try { const u = "./audio/" + k + ".mp3"; const r = await fetch(u); if (r && r.ok) await c.put(u, r); } catch (e) {} } };
+    await Promise.all([work(), work(), work(), work(), work(), work()]);
+  } catch (e) {}
+}
 const isArt = u => new URL(u, self.location.href).pathname.indexOf("/assets/") >= 0;
 const isData = u => /\/data\/[^/]+\.json$/.test(new URL(u, self.location.href).pathname);
 const CORE = [
@@ -17,7 +31,7 @@ const CORE = [
   "./lib/ShaderPass.js", "./lib/MaskPass.js", "./lib/UnrealBloomPass.js"
 ];
 const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림은 assets/ 아래 갈래별 폴더
-  "./versus.html", "./icon-maskable-512.png",
+  "./versus.html", "./icon-maskable-512.png", "./audio/list.json",
   "./assets/boss/hb1.webp", "./assets/boss/hb2.webp", "./assets/boss/hb3.webp", "./assets/boss/hb4.webp", "./assets/boss/hb5.webp",
   "./assets/boss/boss-gate-bars.webp", "./assets/boss/boss-knight-2.webp", "./assets/boss/boss-knight-parts.webp", "./assets/boss/boss-knight.webp",
   "./assets/boss/boss-shield-2.webp", "./assets/boss/boss-shield.webp", "./assets/boss/boss-spike.webp", "./assets/boss/boss-warden.webp",
@@ -91,7 +105,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== VERSION && k !== ART).map(k => caches.delete(k)));   // (v322) 그림 캐시는 남긴다
+    await Promise.all(keys.filter(k => k !== VERSION && k !== ART && k !== AUDIO).map(k => caches.delete(k)));   // (v322) 그림 캐시는 남긴다
     self.clients.claim();
   })());
 });
@@ -99,6 +113,7 @@ self.addEventListener("activate", e => {
 /* (v347) 화면이 「너 몇 버전이야?」 하고 물으면 답한다 — 화면이 이미 같은 버전이면 다시 고치지 않게 */
 self.addEventListener("message", e => {
   try { if (e.data === "hyVer" && e.source) e.source.postMessage({hyVer: VERSION}); } catch (err) {}
+  try { if (e.data === "hyAudio") e.waitUntil(fillAudio()); } catch (err) {}
 });
 
 self.addEventListener("fetch", e => {
@@ -140,6 +155,15 @@ self.addEventListener("fetch", e => {
         if (hit) return hit;
         return isPage ? (await caches.match("./index.html")) : Response.error();
       }
+    })());
+    return;
+  }
+  // (v385) 발음 파일 — 저장해 둔 것 먼저, 없으면 받아서 저장
+  if (url.origin === self.location.origin && isAudio(e.request.url)) {
+    e.respondWith((async () => {
+      const c = await caches.open(AUDIO), hit = await c.match(e.request);
+      if (hit) return hit;
+      try { const res = await fetch(e.request); if (res && res.ok) c.put(e.request, res.clone()); return res; } catch (err) { return Response.error(); }
     })());
     return;
   }

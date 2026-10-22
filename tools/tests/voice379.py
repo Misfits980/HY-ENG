@@ -7,7 +7,7 @@ from playwright.async_api import async_playwright
 
 IPH = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
 GAL = "Mozilla/5.0 (Linux; Android 14; SM-S921N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36"
-SPY = "()=>{ window._said=[]; const f=Voice.speak.bind(Voice); Voice.speak=function(t){ window._said.push(String(t)); return f.apply(this, arguments); }; Voice.broken=false; Voice.on=true; }"
+SPY = "()=>{ window._said=[]; const f=Voice.speak.bind(Voice); Voice.speak=function(t){ window._said.push(String(t)); return f.apply(this, arguments); }; Voice.broken=false; Voice.on=true; Voice.clipOff=true; }"
 RUN = """()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); G.set='elem'; G.diff='normal'; G.rule='normal'; G.lesson=null; G.tag=null; G.dir='e2k'; startGame();
   return new Promise(r=>setTimeout(()=>{ const s=G.sets.find(s=>!s.judged); G.lane=s.q.answer; P.x=laneX(s.q.answer, G.lanes); judge(s);
     setTimeout(()=>r([window._said.slice(), document.getElementById('plabel').innerHTML.indexOf('다시 듣기')>=0 || !!document.getElementById('prompt').__word]), 500); }, 900)); }"""
