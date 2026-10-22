@@ -6070,7 +6070,21 @@ const Perf = {
         S.cancel=function(){ Perf.ev("음성 끊기"); return cx(); }; } }catch(e){}
     }
   },
-  evs:[], _pids:null, down:0, mv:[],
+  evs:[], _pids:null, down:0, mv:[], gcN:0, gcS:0, _gh:[], _gw:[], _gy:null,
+  /* (v375) 홈 화면 앱도 320ms 멈춤 · 사이에 아무 사건 없음 → 자바스크립트 쓰레기 정리(GC)인지 가리기
+     - 4초 넘게 붙잡았다 놓은 물건이 사라지면 「큰 정리(GC)」 · 한 프레임 전 물건이 사라지면 「작은 정리」 */
+  gcTick(a){
+    if(typeof WeakRef==="undefined") return;
+    try{
+      if(this._gy && !this._gy.deref()){ this.gcS++; this.evs.push({n:"작은 정리(GC)", t:a}); }
+      this._gy=new WeakRef({y:[1,2,3]});
+      let gone=0; this._gw=this._gw.filter(w=>{ if(w.deref()) return true; gone++; return false; });
+      if(gone){ this.gcN++; this.evs.push({n:"큰 정리(GC)", t:a}); }
+      const now=a; if(!this._gt || now-this._gt>1000){ this._gt=now; this._gh.push({o:{a:new Array(32).fill(now)}, t:now}); }
+      while(this._gh.length && now-this._gh[0].t>4000){ this._gw.push(new WeakRef(this._gh.shift().o)); }
+      if(this._gw.length>40) this._gw.splice(0, this._gw.length-40);
+    }catch(e){}
+  },
   ev(n){ if(!this.on) return; this.evs.push({n, t:performance.now()}); if(this.evs.length>120) this.evs.shift(); },
   mark(t){ if(this.on) this.cur[t]=(this.cur[t]||0)+1; },
   gl(){ try{ const i=renderer.info; return {p:i.programs ? i.programs.length : 0, t:i.memory.textures, g:i.memory.geometries}; }catch(e){ return {p:0,t:0,g:0}; } },
@@ -6079,7 +6093,7 @@ const Perf = {
     this.run={t0:a, n:0, sum:0, dts:[], upd:[], ren:[], hit:[], small:0, big:0, worst:0, gl:this.gl(),
       info:{dpr:devicePixelRatio, pr:(renderer && renderer.getPixelRatio) ? renderer.getPixelRatio() : 0, w:c.width||0, h:c.height||0,
         q:Quality.resolved(), lv:Quality.level, comp:!!composer, ua:(navigator.userAgent.match(/(iPhone|iPad|Android)[^;)]*/)||[""])[0] || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints>1 ? "iPad" : "PC")}};
-    this.last=0; this.prevBody=null; this.cur={}; this.between=null;
+    this.last=0; this.prevBody=null; this.cur={}; this.between=null; this.gcN=0; this.gcS=0;
     if(!this._wr){ this._wr=1;                                    // (v370) 무거운 일은 걸린 시간도 적는다
       const W=(o, k, label)=>{ try{ const f=o[k]; if(typeof f!=="function") return; o[k]=function(){ const t=performance.now(); try{ return f.apply(this, arguments); } finally{ Perf.ms(label, performance.now()-t); } }; }catch(e){} };
       W(window,"judge","판정"); W(window,"spawnSet","문 생성"); W(window,"applyZone","지대 바꿈"); W(window,"buildGate","문 만들기");
@@ -6091,7 +6105,7 @@ const Perf = {
   ms(label, v){ if(this.on){ const k="⏱"+label; this.cur[k]=(this.cur[k]||0)+v; } },
   tagTxt(k, v){ return k.charAt(0)==="⏱" ? k.slice(1)+" "+(v<1?v.toFixed(1):Math.round(v))+"ms" : k+(v>1?"×"+v:""); },
   base(){ const d=this.run.dts; if(d.length<20) return 16.7; const a=d.slice(-120).slice().sort((x,y)=>x-y); return a[Math.floor(a.length*0.3)]; },
-  pre(a){ if(!this.on) return; this.between=this.cur; this.cur={}; this._a=a; this.r0=0; },
+  pre(a, ts){ if(!this.on) return; this.between=this.cur; this.cur={}; this._a=a; this.r0=0; this.gcTick(ts>0 ? ts : a); },
   frame(a, b, ts){
     if(!this.on) return;
     const T = ts>0 ? ts : a;
@@ -6150,7 +6164,7 @@ const Perf = {
     L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
     const ce={}; R.hit.filter(h=>h.dt>50).forEach(h=>{ const seen={}; (h.ev||[]).forEach(x=>{ const k=x.replace(/ \+?-?\d+$/,""); if(!seen[k]){ seen[k]=1; ce[k]=(ce[k]||0)+1; } }); });
     L.push("큰 끊김 사이에 브라우저에서 일어난 일: "+(Object.keys(ce).sort((a,b)=>ce[b]-ce[a]).map(k=>k+" "+ce[k]).join(" · ")||"없음")+" (큰 끊김 "+R.big+")");
-    try{ L.push("음성 "+(Voice.on?"켬":"끔")+" · 효과음 "+Math.round(SoundPref.sfx*100)+"%"); }catch(e){}
+    try{ L.push("음성 "+(Voice.on?"켬":"끔")+" · 효과음 "+Math.round(SoundPref.sfx*100)+"%"+(typeof WeakRef!=="undefined" ? " · 큰 정리(GC) "+this.gcN+"번 · 작은 정리 "+this.gcS+"번" : " · GC 못 잼")); }catch(e){}
     L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일 | 사이에 일어난 일 +ms)");
     top.forEach(h=>L.push(h.t.toFixed(1)+"s  "+Math.round(h.dt)+"ms  "+h.upd.toFixed(0)+"/"+h.ren.toFixed(0)+"  "+h.st+"단계  "+(Object.keys(h.tags).sort((x,y)=>(y.charAt(0)==="⏱")-(x.charAt(0)==="⏱") || (h.tags[y]-h.tags[x])).map(k=>this.tagTxt(k, h.tags[k])).join(", ")||"—")+((h.ev&&h.ev.length)?"  | "+h.ev.join(", "):"")));
     const txt=L.join("\n"); try{ localStorage.setItem(this.LKEY, txt); }catch(e){}
@@ -10828,7 +10842,7 @@ function playLater(fn, ms){ let left=ms, last=performance.now();
   setInterval(()=>{ if(G.running && !document.hidden) arm(); else if(!G.running && armed && !document.hidden){ armed=false; skip=true; try{ history.back(); }catch(e){ skip=false; } setTimeout(()=>{ skip=false; }, 1500); } }, 800);
   addEventListener("popstate", ()=>{ if(skip){ skip=false; return; } armed=false; if(G.running){ if(!G.paused && !G.overFade && !G.finishing) togglePause(); arm(); } });
 }catch(e){} })();
-function loop(time){ G._ft=time; const a=Perf.on?performance.now():0; Perf.pre(a); try{ loopBody(); }catch(e){ showErr(e && e.message); } if(Perf.on) Perf.frame(a, performance.now(), time); }
+function loop(time){ G._ft=time; const a=Perf.on?performance.now():0; Perf.pre(a, time); try{ loopBody(); }catch(e){ showErr(e && e.message); } if(Perf.on) Perf.frame(a, performance.now(), time); }
 function loopBody(){
   let dt=Math.min(clock.getDelta(),.05);
   /* (v370) 아이폰 측정: 계산 1ms 인데도 가끔 한 프레임(33ms)씩 늦음 → 그 순간 세상이 두 칸 뛰어 「툭」
@@ -13249,7 +13263,7 @@ function gameOver(){ Later.reset();
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v374";
+const GAME_VER = "v375";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
