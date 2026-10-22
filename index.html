@@ -6049,8 +6049,19 @@ const Perf = {
     try{ const q=new URLSearchParams(location.search).get("perf");
       if(q==="1") localStorage.setItem(this.KEY,"1"); else if(q==="0") localStorage.removeItem(this.KEY);
       this.on = localStorage.getItem(this.KEY)==="1"; }catch(e){ this.on=false; }
-    if(this.on){ const f0=window.fetch; if(f0) window.fetch=function(){ Perf.mark("네트워크"); return f0.apply(this, arguments); }; }
+    if(this.on){ const f0=window.fetch; if(f0) window.fetch=function(){ Perf.mark("네트워크"); Perf.ev("네트워크"); return f0.apply(this, arguments); };
+      /* (v372) 사파리 앱에서 아무 일 없이 320ms 멈춤이 자주 → 그 사이에 브라우저 쪽에서 일어난 일(터치·주소창·음성·소리)을 시각과 함께 적는다 */
+      const on=(o, ev, n)=>{ try{ o.addEventListener(ev, ()=>Perf.ev(n), {capture:true, passive:true}); }catch(e){} };
+      on(window,"touchstart","터치"); on(window,"touchend","손 뗌"); on(window,"resize","화면 크기 바뀜"); on(window,"scroll","스크롤");
+      on(document,"visibilitychange","화면 가림"); on(window,"blur","다른 창"); on(window,"orientationchange","돌림");
+      if(window.visualViewport){ on(visualViewport,"resize","주소창·화면 바뀜"); on(visualViewport,"scroll","화면 밀림"); }
+      try{ const S=window.speechSynthesis; if(S){ const sp=S.speak.bind(S), cx=S.cancel.bind(S);
+        S.speak=function(u){ Perf.ev("음성 말하기"); try{ u.addEventListener("start", ()=>Perf.ev("음성 소리 시작")); u.addEventListener("end", ()=>Perf.ev("음성 끝")); }catch(e){} return sp(u); };
+        S.cancel=function(){ Perf.ev("음성 끊기"); return cx(); }; } }catch(e){}
+    }
   },
+  evs:[], _pids:null,
+  ev(n){ if(!this.on) return; this.evs.push({n, t:performance.now()}); if(this.evs.length>120) this.evs.shift(); },
   mark(t){ if(this.on) this.cur[t]=(this.cur[t]||0)+1; },
   gl(){ try{ const i=renderer.info; return {p:i.programs ? i.programs.length : 0, t:i.memory.textures, g:i.memory.geometries}; }catch(e){ return {p:0,t:0,g:0}; } },
   start(a){
@@ -6078,7 +6089,8 @@ const Perf = {
     if(!this.run) this.start(T);
     const R=this.run, upd=(this.r0||b)-a, ren=this.r0 ? b-this.r0 : 0;
     const g=this.gl();
-    if(g.p>R.gl.p) this.cur["셰이더 새로"]=(g.p-R.gl.p);
+    if(g.p>R.gl.p){ let nm=""; try{ const P=renderer.info.programs; this._pids=this._pids||new Set(); P.forEach(q=>{ if(!this._pids.has(q.id)){ this._pids.add(q.id); nm=(q.name||"").replace("Material",""); } }); }catch(e){}
+      this.cur["셰이더 새로"+(nm?"("+nm+")":"")]=(g.p-R.gl.p); }
     if(g.t>R.gl.t) this.cur["텍스처 새로"]=(g.t-R.gl.t);
     if(g.g>R.gl.g+6) this.cur["모양 여러 개 새로"]=(g.g-R.gl.g);
     R.gl=g;
@@ -6091,7 +6103,8 @@ const Perf = {
         if(dt>Math.max(25, base*1.7)){
           const big=dt>50; if(big) R.big++; else R.small++; R.worst=Math.max(R.worst, dt);
           const tags=Object.assign({}, this.prevBody||{}); Object.keys(this.between||{}).forEach(k=>{ tags[k]=(tags[k]||0)+this.between[k]; });
-          if(R.hit.length<200) R.hit.push({t:(T-R.t0)/1000, dt, upd:this.prevUpd, ren:this.prevRen, st:G.stage, tags});
+          const p0=this.last, ev=this.evs.filter(e=>e.t>=p0-30 && e.t<=T+2).map(e=>e.n+" +"+Math.round(e.t-p0));
+          if(R.hit.length<200) R.hit.push({t:(T-R.t0)/1000, dt, upd:this.prevUpd, ren:this.prevRen, st:G.stage, tags, ev});
         }
       }
     }
@@ -6119,8 +6132,11 @@ const Perf = {
     L.push("끊김 "+R.small+" · 큰 끊김(50ms+) "+R.big+" · 가장 긴 "+Math.round(R.worst)+"ms");
     L.push("계산 보통 "+this.med(R.upd).toFixed(1)+" / 95% "+this.p95(R.upd).toFixed(1)+"ms · 그리기 보통 "+this.med(R.ren).toFixed(1)+" / 95% "+this.p95(R.ren).toFixed(1)+"ms");
     L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
-    L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일)");
-    top.forEach(h=>L.push(h.t.toFixed(1)+"s  "+Math.round(h.dt)+"ms  "+h.upd.toFixed(0)+"/"+h.ren.toFixed(0)+"  "+h.st+"단계  "+(Object.keys(h.tags).sort((x,y)=>(y.charAt(0)==="⏱")-(x.charAt(0)==="⏱") || (h.tags[y]-h.tags[x])).map(k=>this.tagTxt(k, h.tags[k])).join(", ")||"—")));
+    const ce={}; R.hit.filter(h=>h.dt>50).forEach(h=>{ const seen={}; (h.ev||[]).forEach(x=>{ const k=x.replace(/ \+-?\d+$/,""); if(!seen[k]){ seen[k]=1; ce[k]=(ce[k]||0)+1; } }); });
+    L.push("큰 끊김 사이에 브라우저에서 일어난 일: "+(Object.keys(ce).sort((a,b)=>ce[b]-ce[a]).map(k=>k+" "+ce[k]).join(" · ")||"없음")+" (큰 끊김 "+R.big+")");
+    try{ L.push("음성 "+(Voice.on?"켬":"끔")+" · 효과음 "+Math.round(SoundPref.sfx*100)+"%"); }catch(e){}
+    L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일 | 사이에 일어난 일 +ms)");
+    top.forEach(h=>L.push(h.t.toFixed(1)+"s  "+Math.round(h.dt)+"ms  "+h.upd.toFixed(0)+"/"+h.ren.toFixed(0)+"  "+h.st+"단계  "+(Object.keys(h.tags).sort((x,y)=>(y.charAt(0)==="⏱")-(x.charAt(0)==="⏱") || (h.tags[y]-h.tags[x])).map(k=>this.tagTxt(k, h.tags[k])).join(", ")||"—")+((h.ev&&h.ev.length)?"  | "+h.ev.join(", "):"")));
     const txt=L.join("\n"); try{ localStorage.setItem(this.LKEY, txt); }catch(e){}
     this.show(txt);
   },
@@ -10863,7 +10879,7 @@ const SFX = {
     try{ const C = window.AudioContext||window.webkitAudioContext; this.ctx = new C(); }catch(e){ this.on=false; }
   },
   tone(freq, dur, type, vol, slideTo){
-    if(!this.on) return; Perf.mark("효과음");
+    if(!this.on) return; Perf.mark("효과음"); Perf.ev("효과음");
     const vv=(vol||0.07)*SoundPref.sfxMul(); if(vv<0.0012) return;
     this.wake(); if(!this.ctx) return;
     try{
@@ -13196,7 +13212,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v371";
+const GAME_VER = "v372";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
