@@ -6166,7 +6166,7 @@ const Perf = {
     L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
     const ce={}; R.hit.filter(h=>h.dt>50).forEach(h=>{ const seen={}; (h.ev||[]).forEach(x=>{ const k=x.replace(/ \+?-?\d+$/,""); if(!seen[k]){ seen[k]=1; ce[k]=(ce[k]||0)+1; } }); });
     L.push("큰 끊김 사이에 브라우저에서 일어난 일: "+(Object.keys(ce).sort((a,b)=>ce[b]-ce[a]).map(k=>k+" "+ce[k]).join(" · ")||"없음")+" (큰 끊김 "+R.big+")");
-    const ex=[]; if(this.exp.noaa) ex.push("계단 부드럽게 끔"); if(this.exp.mute) ex.push("소리 끔"); if(this.exp.nosp) ex.push("영어 읽기 끔"); if(this.exp.nosfx) ex.push("효과음 끔"); if(this.exp.noka) ex.push("소리 붙잡기 끔");
+    const ex=[]; if(this.exp.noaa) ex.push("계단 부드럽게 끔"); if(this.exp.mute) ex.push("소리 끔"); if(this.exp.nosp) ex.push("영어 읽기 끔"); if(this.exp.nosfx) ex.push("효과음 끔"); if(this.exp.noka) ex.push("소리 붙잡기 끔"); if(this.exp.pass) ex.push("조이스틱 가볍게");
     L.push("🧪 실험: "+(ex.join(" · ")||"없음 (보통)"));
     try{ L.push("음성 "+(Voice.on?"켬":"끔")+" · 효과음 "+Math.round(SoundPref.sfx*100)+"%"+(typeof WeakRef!=="undefined" ? " · 큰 정리(GC) "+this.gcN+"번 · 작은 정리 "+this.gcS+"번" : " · GC 못 잼")); }catch(e){}
     L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일 | 사이에 일어난 일 +ms)");
@@ -6189,6 +6189,7 @@ const Perf = {
     tg("nosp", "🧪 영어 읽기만 끄고 다시", "🧪 영어 읽기 다시 켜기");
     tg("nosfx", "🧪 효과음만 끄고 다시", "🧪 효과음 다시 켜기");
     tg("noka", "🧪 소리 붙잡기(v377) 끄고 다시", "🧪 소리 붙잡기 다시 켜기");
+    tg("pass", "🧪 조이스틱 가볍게 하고 다시", "🧪 조이스틱 원래대로");
     d.appendChild(row2); }
 };
 Perf.init();
@@ -10285,6 +10286,8 @@ addEventListener("blur", releaseInput);
 document.addEventListener("visibilitychange", ()=>{ if(document.hidden) releaseInput(); });
 
 /* ---- 가상 조이스틱: 화면 아래쪽 아무 곳이나 누르면 그 자리에 생긴다 ---- */
+/* (v378) 사용자: 조이스틱 움직일 때 멈추는 것 같다 (측정: 멈춤 36번 중 22번이 손가락 누른 채 움직이던 중) — 실험: 터치를 막지 않는(passive) 조이스틱 */
+const JOY_PASSIVE = !!(Perf.on && Perf.exp && Perf.exp.pass);
 const stickEl=()=>document.getElementById("stick");
 let stick = {id:null, ox:0, oy:0};
 const STICK_R = 58;
@@ -10304,16 +10307,16 @@ addEventListener("touchstart",e=>{
   if(el && el.closest && (el.closest(".screen")||el.closest("#pauseBtn"))) return;
   if(el && el.closest && el.closest("button,a,input,textarea,select,[data-tap]")) return;
   if(t.clientY < innerHeight*0.3) return;                 // 상단 문제판 영역은 제외
-  try{ if(e.cancelable) e.preventDefault(); }catch(er){}      // (v297) 구형 iPad: 길게 누르면 글자 선택 메뉴·돋보기·화면 밀림
+  if(!JOY_PASSIVE) try{ if(e.cancelable) e.preventDefault(); }catch(er){}      // (v297) 구형 iPad: 길게 누르면 글자 선택 메뉴·돋보기·화면 밀림
   stick.id=t.identifier; stick.ox=t.clientX; stick.oy=t.clientY;
   const b=document.getElementById("stickBase");
   b.style.left=stick.ox+"px"; b.style.top=stick.oy+"px";
   stickEl().classList.add("on");
   const h=document.getElementById("touchHint"); h.style.opacity="0";
   stickSet(0,0);
-},{passive:false});
+},{passive:JOY_PASSIVE});
 addEventListener("touchmove",e=>{
-  if(G.running && !G.paused){ const el=e.target; if(!(el && el.closest && el.closest(".screen,.sheet"))) try{ if(e.cancelable) e.preventDefault(); }catch(er){} }   // (v297) 달리는 중 화면이 밀리지 않게
+  if(G.running && !G.paused && !JOY_PASSIVE){ const el=e.target; if(!(el && el.closest && el.closest(".screen,.sheet"))) try{ if(e.cancelable) e.preventDefault(); }catch(er){} }   // (v297) 달리는 중 화면이 밀리지 않게
   if(stick.id===null) return;
   for(let i=0;i<e.touches.length;i++){
     const t=e.touches[i];
@@ -10323,7 +10326,7 @@ addEventListener("touchmove",e=>{
     if(d>STICK_R){ dx=dx/d*STICK_R; dy=dy/d*STICK_R; }
     stickSet(dx,dy);
   }
-},{passive:false});
+},{passive:JOY_PASSIVE});
 ["touchend","touchcancel"].forEach(ev=>addEventListener(ev,e=>{
   if(stick.id===null) return;
   for(let i=0;i<e.changedTouches.length;i++)
@@ -13293,7 +13296,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v377";
+const GAME_VER = "v378";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
