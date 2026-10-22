@@ -6060,6 +6060,11 @@ const Perf = {
       try{ ["touchstart","touchend","touchcancel"].forEach(n=>window.addEventListener(n, td, {capture:true, passive:true}));
         window.addEventListener("touchmove", ()=>{ const t=performance.now(); Perf.mv.push(t); if(Perf.mv.length>60) Perf.mv.shift();
           const h=Perf._lh; if(h && !h._mvA && t>h._p0+5 && t-h._p0<3000){ h._mvA=1; h.ev.push("움직임 다시 +"+Math.round(t-h._p0)); } }, {capture:true, passive:true}); }catch(e){}
+      /* (v374) 서버 실시간 소식(EventSource) 처리 시간도 — 사파리 앱 멈춤이 이것인지 가리기 */
+      try{ const ES=window.EventSource && EventSource.prototype, ad=ES && ES.addEventListener;
+        if(ad) ES.addEventListener=function(type, fn, o){ if(typeof fn!=="function") return ad.call(this, type, fn, o);
+          const w=function(e){ const t=performance.now(); Perf.ev("서버 소식("+type+")"); try{ return fn.apply(this, arguments); } finally{ Perf.ms("서버 소식 처리", performance.now()-t); } };
+          return ad.call(this, type, w, o); }; }catch(e){}
       try{ const S=window.speechSynthesis; if(S){ const sp=S.speak.bind(S), cx=S.cancel.bind(S);
         S.speak=function(u){ Perf.ev("음성 말하기"); try{ u.addEventListener("start", ()=>Perf.ev("음성 소리 시작")); u.addEventListener("end", ()=>Perf.ev("음성 끝")); }catch(e){} return sp(u); };
         S.cancel=function(){ Perf.ev("음성 끊기"); return cx(); }; } }catch(e){}
@@ -6660,7 +6665,7 @@ const ZoneFade = {
 function applyZone(i, announce){
   const z = ZONES[i]; if(!z) return;
   G.zone = i;
-  if(announce){ ZoneFade.begin(z); BGM.tune(); }   // 진입할 때 색과 배경음이 함께 바뀐다
+  if(announce){ ZoneFade.begin(z); BGM.tune(); try{ setTimeout(()=>GLWarm.release(i), 1500); }catch(e){} }   // 진입할 때 색과 배경음이 함께 바뀐다 · (v374) 두 지대 전 그림 내려놓기
   else {
     ZoneFade.to = null;
     if(skyMat){
@@ -7466,7 +7471,8 @@ function spawnSet(){ Perf.mark("문 생성");
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
   G.groundSpeed = s.speed;
-  showQuestion(q, s);
+  if(Later.busy) Later.add(()=>{ if(G.sets.indexOf(s)>=0) showQuestion(q, s); });   // (v374) 문제 글자·읽기는 그다음 프레임
+  else showQuestion(q, s);
 }
 
 /* V3 확장 지점: Flash Word / Moving Gates / Gate Swap / Blink / Fake Shake /
@@ -7722,7 +7728,8 @@ function judge(s){ Perf.mark("판정");
     if(zi !== G.zone){ applyZone(zi, true); zoneHeal(); }   // 새 지대 진입 — 하트 하나 회복
     try{ for(let k=1;k<=3;k++){ const nz=zoneIndex(G.stage+k); if(nz!==G.zone){ GLWarm.zone(nz); break; } } }catch(e){}   // (v370) 다음 지대 그림 미리
     updateHUD();
-    spawnSet();                     // 흐름이 끊기지 않도록 즉시 다음 문제
+    if(G.versus) spawnSet();
+    else Later.add(()=>{ if(G.running && !G.dead && !G.finishing && !G.sets.some(x=>!x.judged)) spawnSet(); });   // (v374) 다음 문제는 다음 프레임에 (흐름은 그대로 — 0.02초 뒤)
   } else {
     G.wrong++; G.combo=0; SFX.wrong(); G.breather = true; G.solved++; G._schPend = true;   // (학자) 틀린 다음 문제에 한 번 더
     let conf=null; try{ const j=s.gates.findIndex(g=>laneOfGate(g)===G.lane); if(j>=0){ conf=String(s.q.options[j]); if(/[A-Za-z]/.test(conf)) conf=conf.toLowerCase(); } }catch(e){}   // 어떤 단어와 헷갈렸는지
@@ -10710,8 +10717,25 @@ const FxPool = {
     try{ if(!(m.geometry && m.geometry.userData && m.geometry.userData.shared)) m.geometry.dispose(); m.material.dispose(); }catch(e){}
   }
 };
+/* (v374) 아이폰 측정: 정답 순간 한 프레임에 판정·효과·다음 문·문제 글자·읽기가 몰려 40~60ms → 다음 프레임들로 한 가지씩 나눈다
+   (판마다 gen 이 바뀌어, 끝난 판의 일은 버린다) */
+const Later = {
+  q:[], gen:0, busy:false,
+  add(fn){ this.q.push({fn, g:this.gen}); },
+  reset(){ this.gen++; this.q.length=0; },
+  run(){ if(!this.q.length) return; const x=this.q.shift(); if(x.g!==this.gen) return;
+    this.busy=true; try{ x.fn(); }catch(e){ try{ showErr(e && e.message); }catch(_){} } finally{ this.busy=false; } },
+  flush(){ let n=0; while(this.q.length && n++<20) this.run(); }
+};
 const GLWarm = {
   _zd:{},
+  /* (v374) 지나온 지대(두 지대 전) 그림은 GPU 에서 내려놓는다 — 사파리 앱 메모리 줄이기 (다시 필요하면 저절로 다시 올림) */
+  release(zi){ try{
+    const keep=new Set([zoneArt(ZONES[zi]), zoneArt(ZONES[zi+1]||ZONES[zi]), zoneArt(ZONES[zi+2]||ZONES[zi])]);
+    for(let j=0;j<zi-1;j++){ const a=zoneArt(ZONES[j]); if(!a || keep.has(a)) continue;
+      Object.keys(TrapArt.tex).forEach(k=>{ if(k===a || k.endsWith("-"+a)){ const t=TrapArt.tex[k]; try{ if(t && t.dispose) t.dispose(); }catch(e){} } });
+      delete this._zd[j]; Perf.mark("지난 지대 그림 내려놓음"); }
+  }catch(e){} },
   /* (v370) 새 지대 들어갈 때 그 지대 그림(문틀·바닥·나무·함정…)을 처음 GPU 에 올리느라 판정 순간 100ms 멈춤 (아이폰 측정)
      → 두 단계 전부터 쉬는 틈에 한 장씩 미리 올림 */
   zone(zi){ try{
@@ -10820,6 +10844,7 @@ function loopBody(){
   if(G.running && !G.paused && G.versus){ VS.frame(dt); }               // 👥 2인용 — 세계 한 번 + 사람마다
   else if(G.running && !G.paused){
     try{ FrameWatch.tick(performance.now()); }catch(e){}   // (v322) 느린 기기 → 자동 품질 한 번 낮춤
+    Later.run();                                            // (v374) 미뤄 둔 일 하나
     /* 안전장치 — 어떤 이유로든 문이 사라지면 다시 만든다 */
     if(!G.falling && !G.dead && !G.finishing){
       const live = G.sets.some(s=>!s.judged);
@@ -11172,7 +11197,8 @@ function showQuestion(q, s){
     card.__word = q.promptIsEn ? q.word.en : null;              // 뜻 문제는 다시 듣기 없음
   }
   if(card){                                                    // 새 문제가 왔다는 신호
-    card.classList.remove("fresh"); void card.offsetWidth; card.classList.add("fresh");
+    /* (v374) void offsetWidth(강제 배치 계산)가 다른 글자가 막 바뀐 프레임에서 사파리 41ms → 클래스를 빼고 다음 프레임에 다시 붙인다 */
+    card.classList.remove("fresh"); requestAnimationFrame(()=>card.classList.add("fresh"));
   }
   if(q.promptIsEn) Voice.say(q.word.en);                       // 영어가 문제면 읽어준다
 }
@@ -12696,7 +12722,7 @@ function titleZone(){
     Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   }catch(e){}
 }
-function startGame(){
+function startGame(){ Later.reset();
   try{ localStorage.setItem("hyeng_last_kind","run"); }catch(e){}
   G.words = G._nextWords || null; G._nextWords = null;      // (v226) Daily 30 → 이 Stage 단어로 달리기 (한 판만)
   if(G.words || G.rule==="daily" || G.tag) G.book=null;      // (v291) 책 달리기는 기본 모드에서만
@@ -13034,7 +13060,7 @@ function confetti(){
     document.body.appendChild(d); setTimeout(()=>{ if(d.parentNode) d.parentNode.removeChild(d); }, 3000);
   }
 }
-function gameOver(){
+function gameOver(){ Later.reset();
   if(G.versus) return VS.finish();                 // 2인용 — 승자 화면
   if(G.overFade) return;                       // 중복 호출 방지
   // 마지막 순간을 잠깐 늘렸다가 결과를 보여준다
@@ -13223,7 +13249,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v373";
+const GAME_VER = "v374";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){

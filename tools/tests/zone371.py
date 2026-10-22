@@ -25,9 +25,11 @@ async def main():
         r2 = await pg.evaluate("""(o)=>{ const keys=[...SignCache.m.keys()]; return o.opts.map(t=>[t, keys.some(k=>k===o.desert+'|'+t), keys.some(k=>k.indexOf('|'+t)>0 && !k.startsWith(o.desert))]); }""", r)
         ok(all(x[1] and x[2] for x in r2), f"다음 문제 단어판을 지금 지대·사막 둘 다 미리 그림 {r2}")
         # 맞혀서 사막으로 → 그 자리에서 단어판을 새로 그리지 않음
-        r3 = await pg.evaluate("""()=>{ let n=0; const f=window.signCanvasArt, g=window.signCanvasPlain; window.signCanvasArt=function(){ n++; return f.apply(this, arguments); }; window.signCanvasPlain=function(){ n++; return g.apply(this, arguments); };
-            const s=G.sets.find(s=>!s.judged); G.lane=s.q.answer; P.x=laneX(s.q.answer, G.lanes); judge(s); window.signCanvasArt=f; window.signCanvasPlain=g; return {n, zone:zoneArt(), stage:G.stage}; }""")
-        ok(r3["zone"] == "desert" and r3["n"] == 0, f"사막에 들어서도 단어판을 새로 그리지 않음 {r3}")
+        r3 = await pg.evaluate("""()=>{ let n=0, inS=0; const f=window.signCanvasArt, g=window.signCanvasPlain, sp=window.spawnSet; window.spawnSet=function(){ inS=1; try{ return sp.apply(this, arguments); } finally{ inS=0; } };
+            window.signCanvasArt=function(){ if(inS) n++; return f.apply(this, arguments); }; window.signCanvasPlain=function(){ if(inS) n++; return g.apply(this, arguments); };
+            const s=G.sets.find(s=>!s.judged); G.lane=s.q.answer; P.x=laneX(s.q.answer, G.lanes); judge(s);
+            return new Promise(r=>setTimeout(()=>{ window.signCanvasArt=f; window.signCanvasPlain=g; window.spawnSet=sp; r({n, zone:zoneArt(), stage:G.stage, sets:G.sets.filter(x=>!x.judged).length}); }, 400)); }""")
+        ok(r3["zone"] == "desert" and r3["n"] == 0 and r3["sets"] == 1, f"사막에 들어서도 단어판을 새로 그리지 않음 {r3}")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()
     print("결과:", "통과" if not bad else "실패 " + str(bad))
