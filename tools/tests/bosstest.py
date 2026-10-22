@@ -79,7 +79,7 @@ async def main():
             await k3.set_viewport_size({"width":w,"height":700}); await k3.evaluate("()=>{ RaidJoin.close(); RaidJoin.open(1); }"); await k3.wait_for_timeout(150)
             r=await k3.evaluate("()=>{ const b=document.querySelector('.rdJoinIn').getBoundingClientRect(); return [Math.round(b.left), Math.round(b.right)]; }"); print("join", w, r)
             if r[0]<0 or r[1]>w: bad.append(f"입장 창이 화면 밖 {w} {r}")
-        await k3.evaluate("()=>{ document.getElementById('rdRoomIn').value='4321'; document.querySelector('[data-rj=go]').click(); }"); await k3.wait_for_timeout(500)
+        await k3.evaluate("()=>{ RaidJoin.pick=Kid.get(); document.getElementById('rdRoomIn').value='4321'; document.querySelector('[data-rj=go]').click(); }"); await k3.wait_for_timeout(500)   # (v383) 공용 패드는 이름을 먼저 골라야 함
         jm=await k3.evaluate("()=>[!!document.getElementById('rdJoin'), (document.getElementById('rdJoinMsg')||{}).textContent]"); print("no room", jm)
         if not jm[0] or "확인" not in (jm[1] or ""): bad.append(f"없는 방 {jm}")
         await k3.screenshot(path=OUT+"join_320.png")
