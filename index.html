@@ -6166,7 +6166,7 @@ const Perf = {
     L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
     const ce={}; R.hit.filter(h=>h.dt>50).forEach(h=>{ const seen={}; (h.ev||[]).forEach(x=>{ const k=x.replace(/ \+?-?\d+$/,""); if(!seen[k]){ seen[k]=1; ce[k]=(ce[k]||0)+1; } }); });
     L.push("큰 끊김 사이에 브라우저에서 일어난 일: "+(Object.keys(ce).sort((a,b)=>ce[b]-ce[a]).map(k=>k+" "+ce[k]).join(" · ")||"없음")+" (큰 끊김 "+R.big+")");
-    const ex=[]; if(this.exp.noaa) ex.push("계단 부드럽게 끔"); if(this.exp.mute) ex.push("소리 끔");
+    const ex=[]; if(this.exp.noaa) ex.push("계단 부드럽게 끔"); if(this.exp.mute) ex.push("소리 끔"); if(this.exp.nosp) ex.push("영어 읽기 끔"); if(this.exp.nosfx) ex.push("효과음 끔"); if(this.exp.noka) ex.push("소리 붙잡기 끔");
     L.push("🧪 실험: "+(ex.join(" · ")||"없음 (보통)"));
     try{ L.push("음성 "+(Voice.on?"켬":"끔")+" · 효과음 "+Math.round(SoundPref.sfx*100)+"%"+(typeof WeakRef!=="undefined" ? " · 큰 정리(GC) "+this.gcN+"번 · 작은 정리 "+this.gcS+"번" : " · GC 못 잼")); }catch(e){}
     L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일 | 사이에 일어난 일 +ms)");
@@ -6186,6 +6186,9 @@ const Perf = {
       b.onclick=()=>{ const e=Object.assign({}, this.exp); if(e[k]) delete e[k]; else e[k]=1; try{ localStorage.setItem("hyeng_exp", JSON.stringify(e)); }catch(_){} location.reload(); }; row2.appendChild(b); };
     tg("noaa", "🧪 계단 부드럽게 끄고 다시", "🧪 계단 부드럽게 다시 켜기");
     tg("mute", "🧪 소리 끄고 다시", "🧪 소리 다시 켜기");
+    tg("nosp", "🧪 영어 읽기만 끄고 다시", "🧪 영어 읽기 다시 켜기");
+    tg("nosfx", "🧪 효과음만 끄고 다시", "🧪 효과음 다시 켜기");
+    tg("noka", "🧪 소리 붙잡기(v377) 끄고 다시", "🧪 소리 붙잡기 다시 켜기");
     d.appendChild(row2); }
 };
 Perf.init();
@@ -10936,7 +10939,24 @@ const SFX = {
   ctx:null, on:true,
   wake(){
     if(this.ctx) return;
-    try{ const C = window.AudioContext||window.webkitAudioContext; this.ctx = new C(); }catch(e){ this.on=false; }
+    try{ const C = window.AudioContext||window.webkitAudioContext; this.ctx = new C();
+      try{ this.ctx.onstatechange=()=>{ try{ Perf.ev("소리 장치 "+this.ctx.state); }catch(e){} }; }catch(e){} }catch(e){ this.on=false; }
+  },
+  /* (v377) 아이폰 측정: 소리를 끄면 320ms 멈춤이 사라짐 (계단 부드럽게는 상관없음).
+     효과음이 끝나 조용해지면 아이폰이 소리 장치를 껐다가, 다음 소리에 다시 켜느라 브라우저가 0.3초 멈추는 것으로 보임
+     → 달리는 동안은 들리지 않는 아주 작은 소리를 계속 틀어 소리 장치를 켠 채로 둔다 (판이 끝나면 멈춤) */
+  _ka:null,
+  keep(on){
+    if(!on){ if(this._ka){ try{ this._ka.o.stop(); this._ka.o.disconnect(); this._ka.g.disconnect(); }catch(e){} this._ka=null; try{ Perf.ev("소리 붙잡기 끝"); }catch(e){} } return; }
+    if(this._ka || !this.on) return;
+    this.wake(); if(!this.ctx) return;
+    try{
+      if(this.ctx.state==="suspended" && this.ctx.resume) this.ctx.resume();
+      const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+      o.type="sine"; o.frequency.value=40; g.gain.value=0.00008;          // 사람 귀에 안 들림 (-80dB)
+      o.connect(g); g.connect(this.ctx.destination); o.start();
+      this._ka={o, g}; try{ Perf.ev("소리 붙잡기 시작"); }catch(e){}
+    }catch(e){ this._ka=null; }
   },
   tone(freq, dur, type, vol, slideTo){
     if(!this.on) return; Perf.mark("효과음"); Perf.ev("효과음");
@@ -12746,7 +12766,7 @@ function titleZone(){
     Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   }catch(e){}
 }
-function startGame(){ Later.reset();
+function startGame(){ Later.reset(); try{ SFX.keep(!(Perf.on && Perf.exp.noka)); }catch(e){}
   try{ localStorage.setItem("hyeng_last_kind","run"); }catch(e){}
   G.words = G._nextWords || null; G._nextWords = null;      // (v226) Daily 30 → 이 Stage 단어로 달리기 (한 판만)
   if(G.words || G.rule==="daily" || G.tag) G.book=null;      // (v291) 책 달리기는 기본 모드에서만
@@ -12997,7 +13017,7 @@ const VS = {
     G.hitStop=0.4; const fade=$("fade"); if(fade) fade.style.opacity="0.6";
     try{ SFX.tone(330,.6,"sawtooth",.05,160); }catch(e){}
     setTimeout(()=>{ if(fade) fade.style.opacity="0";
-      G.running=false; Rocks.stop(); Wind.reset(); Voice.stop(); try{ BGM.stop(); }catch(e){}
+      G.running=false; Rocks.stop(); Wind.reset(); Voice.stop(); try{ BGM.stop(); }catch(e){} try{ SFX.keep(false); }catch(e){}
       $("hud").classList.remove("on"); $("kbhint").style.display="none"; $("touchHint").style.display="none";
       this.result(); show("scVsOver"); }, 650);
   },
@@ -13084,7 +13104,7 @@ function confetti(){
     document.body.appendChild(d); setTimeout(()=>{ if(d.parentNode) d.parentNode.removeChild(d); }, 3000);
   }
 }
-function gameOver(){ Later.reset();
+function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   if(G.versus) return VS.finish();                 // 2인용 — 승자 화면
   if(G.overFade) return;                       // 중복 호출 방지
   // 마지막 순간을 잠깐 늘렸다가 결과를 보여준다
@@ -13273,7 +13293,7 @@ function gameOver(){ Later.reset();
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v376";
+const GAME_VER = "v377";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20115,7 +20135,7 @@ addEventListener("error", function(e){ if(e && e.target && e.target!==window) re
 addEventListener("unhandledrejection", function(e){ try{ console.warn("[HY ENG] promise", e && e.reason); }catch(_){} });   // 소리 재생 거절 같은 것은 창을 띄우지 않는다
 
 Voice.init();
-try{ if(Perf.on && Perf.exp.mute){ Voice.on=false; SFX.on=false; } }catch(e){}   // (v376) 측정 실험: 소리 끔
+try{ if(Perf.on && (Perf.exp.mute || Perf.exp.nosp)) Voice.on=false; if(Perf.on && (Perf.exp.mute || Perf.exp.nosfx)) SFX.on=false; }catch(e){}   // (v376) 측정 실험: 소리 끔 · (v377) 읽기만/효과음만
 /* (v296) 아이폰 무음 스위치 — 아이폰은 소리를 '주변 소리(ambient)' 로 다뤄 무음 스위치를 켜면 효과음·발음이 안 났다 (iOS 17+).
    'playback' 으로 바꾸면 무음이어도 들린다 (첫 터치 때 한 번) */
 (function(){ const go=()=>{ try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){} };
