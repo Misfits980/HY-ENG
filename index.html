@@ -6059,13 +6059,23 @@ const Perf = {
       info:{dpr:devicePixelRatio, pr:(renderer && renderer.getPixelRatio) ? renderer.getPixelRatio() : 0, w:c.width||0, h:c.height||0,
         q:Quality.resolved(), lv:Quality.level, comp:!!composer, ua:(navigator.userAgent.match(/(iPhone|iPad|Android)[^;)]*/)||[""])[0] || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints>1 ? "iPad" : "PC")}};
     this.last=0; this.prevBody=null; this.cur={}; this.between=null;
+    if(!this._wr){ this._wr=1;                                    // (v370) 무거운 일은 걸린 시간도 적는다
+      const W=(o, k, label)=>{ try{ const f=o[k]; if(typeof f!=="function") return; o[k]=function(){ const t=performance.now(); try{ return f.apply(this, arguments); } finally{ Perf.ms(label, performance.now()-t); } }; }catch(e){} };
+      W(window,"judge","판정"); W(window,"spawnSet","문 생성"); W(window,"applyZone","지대 바꿈"); W(window,"buildGate","문 만들기");
+      W(window,"newQuestion","문제 고르기"); W(window,"showQuestion","문제 표시"); W(window,"updateHUD","HUD");
+      try{ W(Hazards,"spawnFor","함정"); W(Hazards,"spawnAhead","다음 함정"); W(Hazards,"ensurePath","길 검사"); }catch(e){}
+      try{ W(Voice,"speak","음성"); }catch(e){}
+    }
   },
+  ms(label, v){ if(this.on){ const k="⏱"+label; this.cur[k]=(this.cur[k]||0)+v; } },
+  tagTxt(k, v){ return k.charAt(0)==="⏱" ? k.slice(1)+" "+(v<1?v.toFixed(1):Math.round(v))+"ms" : k+(v>1?"×"+v:""); },
   base(){ const d=this.run.dts; if(d.length<20) return 16.7; const a=d.slice(-120).slice().sort((x,y)=>x-y); return a[Math.floor(a.length*0.3)]; },
   pre(a){ if(!this.on) return; this.between=this.cur; this.cur={}; this._a=a; this.r0=0; },
-  frame(a, b){
+  frame(a, b, ts){
     if(!this.on) return;
+    const T = ts>0 ? ts : a;
     if(!G.running || G.paused || G.versus){ if(this.run && !G.paused) this.finish(); if(G.paused) this.last=0; this.cur={}; return; }
-    if(!this.run) this.start(a);
+    if(!this.run) this.start(T);
     const R=this.run, upd=(this.r0||b)-a, ren=this.r0 ? b-this.r0 : 0;
     const g=this.gl();
     if(g.p>R.gl.p) this.cur["셰이더 새로"]=(g.p-R.gl.p);
@@ -6073,7 +6083,7 @@ const Perf = {
     if(g.g>R.gl.g+6) this.cur["모양 여러 개 새로"]=(g.g-R.gl.g);
     R.gl=g;
     if(this.last){
-      const dt=a-this.last;
+      const dt=T-this.last;
       if(dt>0 && dt<1000 && !document.hidden){
         const base=this.base();
         R.n++; R.sum+=dt; R.dts.push(dt); if(R.dts.length>600) R.dts.shift();
@@ -6081,11 +6091,11 @@ const Perf = {
         if(dt>Math.max(25, base*1.7)){
           const big=dt>50; if(big) R.big++; else R.small++; R.worst=Math.max(R.worst, dt);
           const tags=Object.assign({}, this.prevBody||{}); Object.keys(this.between||{}).forEach(k=>{ tags[k]=(tags[k]||0)+this.between[k]; });
-          if(R.hit.length<200) R.hit.push({t:(a-R.t0)/1000, dt, upd:this.prevUpd, ren:this.prevRen, st:G.stage, tags});
+          if(R.hit.length<200) R.hit.push({t:(T-R.t0)/1000, dt, upd:this.prevUpd, ren:this.prevRen, st:G.stage, tags});
         }
       }
     }
-    this.last=a; this.prevBody=this.cur; this.cur={}; this.prevUpd=upd; this.prevRen=ren;
+    this.last=T; this.prevBody=this.cur; this.cur={}; this.prevUpd=upd; this.prevRen=ren;
     if(b-this._paint>500){ this._paint=b; this.paintLive(); }
   },
   med(a){ if(!a.length) return 0; const s=a.slice().sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; },
@@ -6099,7 +6109,7 @@ const Perf = {
   finish(){
     const R=this.run; this.run=null; this.last=0; if(!R || R.n<30) return;
     const secs=R.sum/1000, md=this.med(R.dts), hz= md<10 ? "120Hz" : md<20 ? "60Hz" : md<40 ? "30Hz (저전력 모드?)" : "느림";
-    const cnt={}; R.hit.forEach(h=>Object.keys(h.tags).forEach(k=>{ cnt[k]=(cnt[k]||0)+1; }));
+    const cnt={}; R.hit.forEach(h=>Object.keys(h.tags).forEach(k=>{ if(k.charAt(0)!=="⏱") cnt[k]=(cnt[k]||0)+1; }));
     const none=R.hit.filter(h=>!Object.keys(h.tags).length).length;
     const top=R.hit.slice().sort((x,y)=>y.dt-x.dt).slice(0,10).sort((x,y)=>x.t-y.t);
     const L=[];
@@ -6110,7 +6120,7 @@ const Perf = {
     L.push("계산 보통 "+this.med(R.upd).toFixed(1)+" / 95% "+this.p95(R.upd).toFixed(1)+"ms · 그리기 보통 "+this.med(R.ren).toFixed(1)+" / 95% "+this.p95(R.ren).toFixed(1)+"ms");
     L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
     L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일)");
-    top.forEach(h=>L.push(h.t.toFixed(1)+"s  "+Math.round(h.dt)+"ms  "+h.upd.toFixed(0)+"/"+h.ren.toFixed(0)+"  "+h.st+"단계  "+(Object.keys(h.tags).map(k=>k+(h.tags[k]>1?"×"+h.tags[k]:"")).join(", ")||"—")));
+    top.forEach(h=>L.push(h.t.toFixed(1)+"s  "+Math.round(h.dt)+"ms  "+h.upd.toFixed(0)+"/"+h.ren.toFixed(0)+"  "+h.st+"단계  "+(Object.keys(h.tags).sort((x,y)=>(y.charAt(0)==="⏱")-(x.charAt(0)==="⏱") || (h.tags[y]-h.tags[x])).map(k=>this.tagTxt(k, h.tags[k])).join(", ")||"—")));
     const txt=L.join("\n"); try{ localStorage.setItem(this.LKEY, txt); }catch(e){}
     this.show(txt);
   },
@@ -7309,17 +7319,17 @@ function buildGate(text, lane, n){
   const tex = signTexture(text);
   const sw = Math.min(CFG.LANE_W*0.97, W*1.18);
   const sasp = (tex.userData && tex.userData.aspect) || (SIGN_W/SIGN_H);   // 그림 판은 제 비율대로
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(sw, sw/sasp),
+  const sign = new THREE.Mesh(FxPool.shared("sg"+sw.toFixed(3)+"_"+(sw/sasp).toFixed(3), ()=>new THREE.PlaneGeometry(sw, sw/sasp)),
     new THREE.MeshBasicMaterial({map:tex, transparent:true, side:THREE.DoubleSide}));
   const sy=signY(); sign.position.set(0, sy, 0); root.add(sign);
 
   // 단어판 뒤 은은한 빛 번짐 — 멀리서도 눈에 띈다
-  const halo = new THREE.Mesh(new THREE.PlaneGeometry(sw*1.9, sw*1.9*SIGN_H/SIGN_W),
+  const halo = new THREE.Mesh(FxPool.shared("hl"+sw.toFixed(3), ()=>new THREE.PlaneGeometry(sw*1.9, sw*1.9*SIGN_H/SIGN_W)),
     new THREE.MeshBasicMaterial({map:glowTexture(), color:COL.frame, transparent:true,
       opacity:.34, blending:THREE.AdditiveBlending, depthWrite:false}));
   halo.position.set(0, sy, -0.05); root.add(halo);
 
-  return {root, sign, tex, frameMat, halo, lane};
+  return {root, sign, tex, frameMat, halo, lane, sw};
 }
 
 /* 철자 지뢰 문제 — 한 문에만 틀린 철자를 적는다 */
@@ -7535,6 +7545,10 @@ function updateGates(dt){
         const g=s.gates[k];
         g.sign.rotation.y = Math.atan2(camera.position.x - g.root.position.x,
                                        camera.position.z - s.group.position.z);
+        /* (v370) 사용자: 첫 번째 문 단어가 가려짐 — 바깥 문 단어판이 카메라 쪽으로 돌면 안쪽 끝이 뒤로 들어가
+           제 문틀·옆 문틀 그림(z -0.12) 뒤로 숨었다 → 돈 만큼 단어판을 앞으로 내어 판 전체가 문틀보다 앞에 */
+        const fz = Math.max(0, (g.sw||3.2)*0.5*Math.abs(Math.sin(g.sign.rotation.y)) - 0.06);
+        if(Math.abs(g.sign.position.z-fz)>0.002){ g.sign.position.z = fz; if(g.halo) g.halo.position.z = fz-0.05; }
       }
     }
 
@@ -7676,6 +7690,7 @@ function judge(s){ Perf.mark("판정");
     Boss.check();                                   // 50단계에 닿으면 보스 등장
     const zi = zoneIndex(G.stage);
     if(zi !== G.zone){ applyZone(zi, true); zoneHeal(); }   // 새 지대 진입 — 하트 하나 회복
+    try{ for(let k=1;k<=3;k++){ const nz=zoneIndex(G.stage+k); if(nz!==G.zone){ GLWarm.zone(nz); break; } } }catch(e){}   // (v370) 다음 지대 그림 미리
     updateHUD();
     spawnSet();                     // 흐름이 끊기지 않도록 즉시 다음 문제
   } else {
@@ -7972,7 +7987,7 @@ function artArch(root){
   try{ t=TrapArt.tex["gate-"+zoneArt()]; }catch(e){}
   if(!t) return null;
   const aw=CFG.LANE_W*0.98, ah=aw*2;
-  const geo=new THREE.PlaneGeometry(aw,ah); geo.translate(0,ah/2,0);
+  const geo=FxPool.shared("ar"+aw.toFixed(3), ()=>{ const g=new THREE.PlaneGeometry(aw,ah); g.translate(0,ah/2,0); return g; });   // (v370) 문마다 새로 만들지 않고 같이 씀
   const am=new THREE.MeshBasicMaterial({map:t, transparent:true, alphaTest:.3, side:THREE.DoubleSide});
   const arch=new THREE.Mesh(geo,am); arch.position.z=-0.12; root.add(arch);
   return artFrameProxy(am);
@@ -10651,7 +10666,7 @@ const fx=[];
    → 모양은 같이 쓰고 · 다 쓴 조각은 모아 두었다 다시 쓰고 · 한 번 만든 셰이더는 지우지 않고 · 판 시작 때 미리 컴파일 */
 const FxPool = {
   geo:{}, free:[], MAX:260, made:0,
-  shared(k, mk){ let g=this.geo[k]; if(!g){ g=mk(); g.userData=g.userData||{}; g.userData.shared=true; this.geo[k]=g; } return g; },
+  shared(k, mk){ let g=this.geo[k]; if(!g){ g=mk(); g.userData=g.userData||{}; g.userData.shared=true; g.dispose=function(){}; this.geo[k]=g; } return g; },   // 같이 쓰는 모양은 지우지 않음 (문 치울 때 traverse dispose 해도)
   box(w,h,d){ return this.shared("b"+w+"_"+h+"_"+d, ()=>new THREE.BoxGeometry(w,h,d)); },
   mesh(geo, color){
     let m=this.free.pop();
@@ -10666,6 +10681,16 @@ const FxPool = {
   }
 };
 const GLWarm = {
+  _zd:{},
+  /* (v370) 새 지대 들어갈 때 그 지대 그림(문틀·바닥·나무·함정…)을 처음 GPU 에 올리느라 판정 순간 100ms 멈춤 (아이폰 측정)
+     → 두 단계 전부터 쉬는 틈에 한 장씩 미리 올림 */
+  zone(zi){ try{
+    const z=ZONES[zi]; if(!z || this._zd[zi] || !renderer || !renderer.initTexture) return; this._zd[zi]=1;
+    const art=zoneArt(z); if(!art) return;
+    const L=Object.keys(TrapArt.tex).filter(k=>k===art || k.endsWith("-"+art)).map(k=>TrapArt.tex[k]).filter(t=>t && t.image && t.image.width);
+    const step=()=>{ if(!L.length || !G.running) return; const t=L.shift(); try{ renderer.initTexture(t); Perf.mark("다음 지대 그림 미리 올림"); }catch(e){} setTimeout(step, 90); };
+    setTimeout(step, 60);
+  }catch(e){} },
   /* 셰이더 프로그램은 재질이 모두 지워져도 남겨 둔다 (몇십 개뿐) — 같은 모양 재질이 다시 오면 바로 씀 */
   keep(){ try{ const P=renderer && renderer.info && renderer.info.programs; if(!P) return;
     for(let i=0;i<P.length;i++){ const q=P[i]; if(q && !q._hyKeep){ q._hyKeep=1; q.usedTimes++; } } }catch(e){} },
@@ -10749,9 +10774,16 @@ function playLater(fn, ms){ let left=ms, last=performance.now();
   setInterval(()=>{ if(G.running && !document.hidden) arm(); else if(!G.running && armed && !document.hidden){ armed=false; skip=true; try{ history.back(); }catch(e){ skip=false; } setTimeout(()=>{ skip=false; }, 1500); } }, 800);
   addEventListener("popstate", ()=>{ if(skip){ skip=false; return; } armed=false; if(G.running){ if(!G.paused && !G.overFade && !G.finishing) togglePause(); arm(); } });
 }catch(e){} })();
-function loop(){ const a=Perf.on?performance.now():0; Perf.pre(a); try{ loopBody(); }catch(e){ showErr(e && e.message); } if(Perf.on) Perf.frame(a, performance.now()); }
+function loop(time){ G._ft=time; const a=Perf.on?performance.now():0; Perf.pre(a); try{ loopBody(); }catch(e){ showErr(e && e.message); } if(Perf.on) Perf.frame(a, performance.now(), time); }
 function loopBody(){
   let dt=Math.min(clock.getDelta(),.05);
+  /* (v370) 아이폰 측정: 계산 1ms 인데도 가끔 한 프레임(33ms)씩 늦음 → 그 순간 세상이 두 칸 뛰어 「툭」
+     → 화면 갱신 시각(rAF time)으로 dt 를 재고 · 달리는 동안은 살짝 부드럽게 (튀는 한 프레임을 몇 프레임에 나눠 줌, 전체 시간은 같음) */
+  if(G.running && !G.paused){
+    const ft=G._ft, pf=G._ftP; G._ftP=ft;
+    if(ft>0 && pf>0){ const d=(ft-pf)/1000;
+      if(d>0.002 && d<0.25){ dt=Math.min(d,.05); G._dtS = (G._dtS>0) ? G._dtS + (dt-G._dtS)*0.35 : dt; dt = G._dtS; } }
+  } else { G._ftP=G._ft; G._dtS=0; }
   G.rawDt=dt;                                       // 보스 변신 연출은 멎은 시간 속에서도 제 속도로
   if(G.hitStop>0){ G.hitStop-=dt; dt*=0.08; }      // 충돌 순간 시간이 멎는다
   if(!G.running){ Attract.update(dt); }
@@ -13161,7 +13193,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v369";
+const GAME_VER = "v370";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
