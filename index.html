@@ -6055,12 +6055,17 @@ const Perf = {
       on(window,"touchstart","터치"); on(window,"touchend","손 뗌"); on(window,"resize","화면 크기 바뀜"); on(window,"scroll","스크롤");
       on(document,"visibilitychange","화면 가림"); on(window,"blur","다른 창"); on(window,"orientationchange","돌림");
       if(window.visualViewport){ on(visualViewport,"resize","주소창·화면 바뀜"); on(visualViewport,"scroll","화면 밀림"); }
+      /* (v373) 사파리 앱 320ms 멈춤 사이에 사건이 없음 → 손가락을 누른 채였는지 · 손가락 움직임(touchmove) 소식이 언제 끊겼다 다시 왔는지 */
+      const td=e=>{ try{ Perf.down=e.touches ? e.touches.length : 0; }catch(x){} };
+      try{ ["touchstart","touchend","touchcancel"].forEach(n=>window.addEventListener(n, td, {capture:true, passive:true}));
+        window.addEventListener("touchmove", ()=>{ const t=performance.now(); Perf.mv.push(t); if(Perf.mv.length>60) Perf.mv.shift();
+          const h=Perf._lh; if(h && !h._mvA && t>h._p0+5 && t-h._p0<3000){ h._mvA=1; h.ev.push("움직임 다시 +"+Math.round(t-h._p0)); } }, {capture:true, passive:true}); }catch(e){}
       try{ const S=window.speechSynthesis; if(S){ const sp=S.speak.bind(S), cx=S.cancel.bind(S);
         S.speak=function(u){ Perf.ev("음성 말하기"); try{ u.addEventListener("start", ()=>Perf.ev("음성 소리 시작")); u.addEventListener("end", ()=>Perf.ev("음성 끝")); }catch(e){} return sp(u); };
         S.cancel=function(){ Perf.ev("음성 끊기"); return cx(); }; } }catch(e){}
     }
   },
-  evs:[], _pids:null,
+  evs:[], _pids:null, down:0, mv:[],
   ev(n){ if(!this.on) return; this.evs.push({n, t:performance.now()}); if(this.evs.length>120) this.evs.shift(); },
   mark(t){ if(this.on) this.cur[t]=(this.cur[t]||0)+1; },
   gl(){ try{ const i=renderer.info; return {p:i.programs ? i.programs.length : 0, t:i.memory.textures, g:i.memory.geometries}; }catch(e){ return {p:0,t:0,g:0}; } },
@@ -6104,7 +6109,13 @@ const Perf = {
           const big=dt>50; if(big) R.big++; else R.small++; R.worst=Math.max(R.worst, dt);
           const tags=Object.assign({}, this.prevBody||{}); Object.keys(this.between||{}).forEach(k=>{ tags[k]=(tags[k]||0)+this.between[k]; });
           const p0=this.last, ev=this.evs.filter(e=>e.t>=p0-30 && e.t<=T+2).map(e=>e.n+" +"+Math.round(e.t-p0));
-          if(R.hit.length<200) R.hit.push({t:(T-R.t0)/1000, dt, upd:this.prevUpd, ren:this.prevRen, st:G.stage, tags, ev});
+          if(this.down>0) ev.unshift("손가락 누른 채");
+          const mb=this.mv.filter(t=>t<p0+5), ma=this.mv.filter(t=>t>p0+5);
+          if(mb.length) ev.push("움직임 끝 "+Math.round(mb[mb.length-1]-p0));
+          const hh={t:(T-R.t0)/1000, dt, upd:this.prevUpd, ren:this.prevRen, st:G.stage, tags, ev, _p0:p0};
+          if(ma.length){ hh._mvA=1; ev.push("움직임 다시 +"+Math.round(ma[0]-p0)); }
+          this._lh = this.down>0 ? hh : null;          // 누른 채면, 움직임 소식이 다시 올 때 적는다
+          if(R.hit.length<200) R.hit.push(hh);
         }
       }
     }
@@ -6127,12 +6138,12 @@ const Perf = {
     const top=R.hit.slice().sort((x,y)=>y.dt-x.dt).slice(0,10).sort((x,y)=>x.t-y.t);
     const L=[];
     L.push("📊 프레임 측정 · "+GAME_VER+" · "+new Date().toLocaleString("ko-KR"));
-    L.push(R.info.ua+" · 화면 "+R.info.w+"×"+R.info.h+" (dpr "+R.info.dpr+" · 그림 "+R.info.pr+") · 품질 "+R.info.lv+"→"+R.info.q+(R.info.comp?" · 빛번짐":""));
+    L.push((((navigator.standalone)||(window.matchMedia && matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches)) ? "🏠 홈 화면 앱 · " : "🌐 브라우저 · ")+R.info.ua+" · 화면 "+R.info.w+"×"+R.info.h+" (dpr "+R.info.dpr+" · 그림 "+R.info.pr+") · 품질 "+R.info.lv+"→"+R.info.q+(R.info.comp?" · 빛번짐":""));
     L.push("시간 "+secs.toFixed(0)+"초 · 프레임 "+R.n+" · 평균 "+Math.round(1000*R.n/R.sum)+"fps · 보통 한 프레임 "+md.toFixed(1)+"ms ("+hz+")");
     L.push("끊김 "+R.small+" · 큰 끊김(50ms+) "+R.big+" · 가장 긴 "+Math.round(R.worst)+"ms");
     L.push("계산 보통 "+this.med(R.upd).toFixed(1)+" / 95% "+this.p95(R.upd).toFixed(1)+"ms · 그리기 보통 "+this.med(R.ren).toFixed(1)+" / 95% "+this.p95(R.ren).toFixed(1)+"ms");
     L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
-    const ce={}; R.hit.filter(h=>h.dt>50).forEach(h=>{ const seen={}; (h.ev||[]).forEach(x=>{ const k=x.replace(/ \+-?\d+$/,""); if(!seen[k]){ seen[k]=1; ce[k]=(ce[k]||0)+1; } }); });
+    const ce={}; R.hit.filter(h=>h.dt>50).forEach(h=>{ const seen={}; (h.ev||[]).forEach(x=>{ const k=x.replace(/ \+?-?\d+$/,""); if(!seen[k]){ seen[k]=1; ce[k]=(ce[k]||0)+1; } }); });
     L.push("큰 끊김 사이에 브라우저에서 일어난 일: "+(Object.keys(ce).sort((a,b)=>ce[b]-ce[a]).map(k=>k+" "+ce[k]).join(" · ")||"없음")+" (큰 끊김 "+R.big+")");
     try{ L.push("음성 "+(Voice.on?"켬":"끔")+" · 효과음 "+Math.round(SoundPref.sfx*100)+"%"); }catch(e){}
     L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일 | 사이에 일어난 일 +ms)");
@@ -13212,7 +13223,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v372";
+const GAME_VER = "v373";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19078,6 +19089,8 @@ const Admin = (function(){
     v.addEventListener("touchstart", go, {passive:true}); v.addEventListener("mousedown", go);
     ["touchend","touchcancel","mouseup","mouseleave"].forEach(n=>v.addEventListener(n, stop));
     v.addEventListener("contextmenu", e=>e.preventDefault()); 
+    let taps=[]; v.addEventListener("click", ()=>{ const n=Date.now(); taps=taps.filter(x=>n-x<2500); taps.push(n);   // (v373) 5번 빨리 누르면 📊 측정기 켜고/끄기 (홈 화면 앱은 주소를 못 바꿔서)
+      if(taps.length>=5){ taps=[]; try{ if(localStorage.getItem("hyeng_perf")==="1") localStorage.removeItem("hyeng_perf"); else localStorage.setItem("hyeng_perf","1"); }catch(e){} location.reload(); } });
     let vs=0; v.addEventListener("click", ()=>{ if(vs){ v.textContent=GAME_VER; vs=0; return; } vs=1;   // (v293) 짧게 누르면 화면 크기 (아이폰 아래 띠 확인용)
       try{ v.textContent=GAME_VER+" · "+scrW()+"×"+scrH()+" · in "+Math.round(innerHeight)+" · scr "+screen.height+" · "+gameH()+(navigator.standalone?" · 앱":""); }catch(e){} }); })();
   try{ if(new URLSearchParams(location.search).has("admin")) setTimeout(open, 300); }catch(e){}
