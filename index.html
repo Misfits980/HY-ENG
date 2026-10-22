@@ -6039,6 +6039,90 @@ function layoutTab(){
 }
 layoutTab();
 ["resize","orientationchange"].forEach(ev=>addEventListener(ev, ()=>{ layoutTab(); setTimeout(layoutTab,300); setTimeout(layoutTab,1000); }));
+/* (v369) 📊 프레임 측정기 — 사용자: 아이폰에서 달리기가 툭툭 끊김 → 진짜 기기에서 멈칫한 순간과 그때 일어난 일을 기록
+   켜기: 주소 끝에 ?perf=1 (이 기기에 기억 · 홈 화면 앱으로 열어도 켜짐) · 끄기: ?perf=0 또는 보고서의 「측정 끄기」
+   달리는 동안: 왼쪽 위 작은 줄 · 판이 끝나면: 보고서(캡처해서 보내 주세요) */
+const Perf = {
+  on:false, KEY:"hyeng_perf", LKEY:"hyeng_perf_last",
+  cur:{}, between:null, prevBody:null, prevUpd:0, prevRen:0, last:0, run:null, r0:0, el:null, _paint:0,
+  init(){
+    try{ const q=new URLSearchParams(location.search).get("perf");
+      if(q==="1") localStorage.setItem(this.KEY,"1"); else if(q==="0") localStorage.removeItem(this.KEY);
+      this.on = localStorage.getItem(this.KEY)==="1"; }catch(e){ this.on=false; }
+    if(this.on){ const f0=window.fetch; if(f0) window.fetch=function(){ Perf.mark("네트워크"); return f0.apply(this, arguments); }; }
+  },
+  mark(t){ if(this.on) this.cur[t]=(this.cur[t]||0)+1; },
+  gl(){ try{ const i=renderer.info; return {p:i.programs ? i.programs.length : 0, t:i.memory.textures, g:i.memory.geometries}; }catch(e){ return {p:0,t:0,g:0}; } },
+  start(a){
+    const c=(renderer && renderer.domElement) || {};
+    this.run={t0:a, n:0, sum:0, dts:[], upd:[], ren:[], hit:[], small:0, big:0, worst:0, gl:this.gl(),
+      info:{dpr:devicePixelRatio, pr:(renderer && renderer.getPixelRatio) ? renderer.getPixelRatio() : 0, w:c.width||0, h:c.height||0,
+        q:Quality.resolved(), lv:Quality.level, comp:!!composer, ua:(navigator.userAgent.match(/(iPhone|iPad|Android)[^;)]*/)||[""])[0] || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints>1 ? "iPad" : "PC")}};
+    this.last=0; this.prevBody=null; this.cur={}; this.between=null;
+  },
+  base(){ const d=this.run.dts; if(d.length<20) return 16.7; const a=d.slice(-120).slice().sort((x,y)=>x-y); return a[Math.floor(a.length*0.3)]; },
+  pre(a){ if(!this.on) return; this.between=this.cur; this.cur={}; this._a=a; this.r0=0; },
+  frame(a, b){
+    if(!this.on) return;
+    if(!G.running || G.paused || G.versus){ if(this.run && !G.paused) this.finish(); if(G.paused) this.last=0; this.cur={}; return; }
+    if(!this.run) this.start(a);
+    const R=this.run, upd=(this.r0||b)-a, ren=this.r0 ? b-this.r0 : 0;
+    const g=this.gl();
+    if(g.p>R.gl.p) this.cur["셰이더 새로"]=(g.p-R.gl.p);
+    if(g.t>R.gl.t) this.cur["텍스처 새로"]=(g.t-R.gl.t);
+    if(g.g>R.gl.g+6) this.cur["모양 여러 개 새로"]=(g.g-R.gl.g);
+    R.gl=g;
+    if(this.last){
+      const dt=a-this.last;
+      if(dt>0 && dt<1000 && !document.hidden){
+        const base=this.base();
+        R.n++; R.sum+=dt; R.dts.push(dt); if(R.dts.length>600) R.dts.shift();
+        R.upd.push(upd); R.ren.push(ren); if(R.upd.length>600){ R.upd.shift(); R.ren.shift(); }
+        if(dt>Math.max(25, base*1.7)){
+          const big=dt>50; if(big) R.big++; else R.small++; R.worst=Math.max(R.worst, dt);
+          const tags=Object.assign({}, this.prevBody||{}); Object.keys(this.between||{}).forEach(k=>{ tags[k]=(tags[k]||0)+this.between[k]; });
+          if(R.hit.length<200) R.hit.push({t:(a-R.t0)/1000, dt, upd:this.prevUpd, ren:this.prevRen, st:G.stage, tags});
+        }
+      }
+    }
+    this.last=a; this.prevBody=this.cur; this.cur={}; this.prevUpd=upd; this.prevRen=ren;
+    if(b-this._paint>500){ this._paint=b; this.paintLive(); }
+  },
+  med(a){ if(!a.length) return 0; const s=a.slice().sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; },
+  p95(a){ if(!a.length) return 0; const s=a.slice().sort((x,y)=>x-y); return s[Math.floor(s.length*0.95)]; },
+  box(){ if(this.el) return this.el; const d=document.createElement("div"); d.id="perfBox";
+    d.style.cssText="position:fixed;left:6px;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:99999;font:11px/1.35 ui-monospace,Menlo,monospace;color:#fff;background:rgba(10,8,30,.78);padding:4px 7px;border-radius:7px;pointer-events:none;max-width:calc(100vw - 12px);white-space:pre-wrap";
+    document.body.appendChild(d); this.el=d; return d; },
+  paintLive(){ const R=this.run; if(!R || !R.n) return; const d=this.box(); d.style.pointerEvents="none";
+    const fps=Math.round(1000*R.n/R.sum);
+    d.textContent="📊 "+fps+"fps · 끊김 "+R.small+" · 큰 끊김 "+R.big+" · 계산 "+this.med(R.upd).toFixed(1)+"ms · 그리기 "+this.med(R.ren).toFixed(1)+"ms"; },
+  finish(){
+    const R=this.run; this.run=null; this.last=0; if(!R || R.n<30) return;
+    const secs=R.sum/1000, md=this.med(R.dts), hz= md<10 ? "120Hz" : md<20 ? "60Hz" : md<40 ? "30Hz (저전력 모드?)" : "느림";
+    const cnt={}; R.hit.forEach(h=>Object.keys(h.tags).forEach(k=>{ cnt[k]=(cnt[k]||0)+1; }));
+    const none=R.hit.filter(h=>!Object.keys(h.tags).length).length;
+    const top=R.hit.slice().sort((x,y)=>y.dt-x.dt).slice(0,10).sort((x,y)=>x.t-y.t);
+    const L=[];
+    L.push("📊 프레임 측정 · "+GAME_VER+" · "+new Date().toLocaleString("ko-KR"));
+    L.push(R.info.ua+" · 화면 "+R.info.w+"×"+R.info.h+" (dpr "+R.info.dpr+" · 그림 "+R.info.pr+") · 품질 "+R.info.lv+"→"+R.info.q+(R.info.comp?" · 빛번짐":""));
+    L.push("시간 "+secs.toFixed(0)+"초 · 프레임 "+R.n+" · 평균 "+Math.round(1000*R.n/R.sum)+"fps · 보통 한 프레임 "+md.toFixed(1)+"ms ("+hz+")");
+    L.push("끊김 "+R.small+" · 큰 끊김(50ms+) "+R.big+" · 가장 긴 "+Math.round(R.worst)+"ms");
+    L.push("계산 보통 "+this.med(R.upd).toFixed(1)+" / 95% "+this.p95(R.upd).toFixed(1)+"ms · 그리기 보통 "+this.med(R.ren).toFixed(1)+" / 95% "+this.p95(R.ren).toFixed(1)+"ms");
+    L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
+    L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일)");
+    top.forEach(h=>L.push(h.t.toFixed(1)+"s  "+Math.round(h.dt)+"ms  "+h.upd.toFixed(0)+"/"+h.ren.toFixed(0)+"  "+h.st+"단계  "+(Object.keys(h.tags).map(k=>k+(h.tags[k]>1?"×"+h.tags[k]:"")).join(", ")||"—")));
+    const txt=L.join("\n"); try{ localStorage.setItem(this.LKEY, txt); }catch(e){}
+    this.show(txt);
+  },
+  show(txt){ const d=this.box(); d.style.pointerEvents="auto"; d.style.fontSize="11px"; d.style.maxHeight="70vh"; d.style.overflow="auto";
+    d.innerHTML=""; const pre=document.createElement("div"); pre.textContent=txt; d.appendChild(pre);
+    const row=document.createElement("div"); row.style.cssText="display:flex;gap:8px;margin-top:6px";
+    const mk=(t,f)=>{ const b=document.createElement("button"); b.textContent=t; b.style.cssText="font:12px sans-serif;padding:5px 10px;border-radius:7px;border:0;background:#ffd37a;color:#241a3d"; b.onclick=f; row.appendChild(b); };
+    mk("닫기", ()=>{ d.remove(); this.el=null; });
+    mk("측정 끄기", ()=>{ try{ localStorage.removeItem(this.KEY); }catch(e){} this.on=false; d.remove(); this.el=null; });
+    d.appendChild(row); }
+};
+Perf.init();
 function boot(){
   renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:true, powerPreference:"high-performance"});
   Quality.load();
@@ -7060,7 +7144,7 @@ function signTexMake(s){
   c._hyTex=t; return t;
 }
 function signTexDrop(c){ const t=c && c._hyTex; if(t && !t._dead && !(t._ref>0)){ t._dead=true; try{ t._free(); }catch(e){} } }
-function signTexWarm(text){
+function signTexWarm(text){ Perf.mark("단어판 미리 올림");
   const t=signTexMake(SignCache.canvas(String(text)));
   try{ if(renderer && renderer.initTexture && !t._up){ renderer.initTexture(t); t._up=1; } }catch(e){}
 }
@@ -7259,7 +7343,7 @@ function makeMineQuestion(n){
 }
 
 function newQuestion(){ return (G.rule==="mine") ? makeMineQuestion(G.lanes) : makeQuestion(); }
-function spawnSet(){
+function spawnSet(){ Perf.mark("문 생성");
   // 다음 문제를 한 문제 미리 만들어 두고, 그 함정은 지금 문 뒤편에 깔아 둔다
   //  → 모든 함정이 멀리서 다가온다 (문을 지나자마자 코앞에 생기지 않는다)
   let q, pre=false;
@@ -7497,7 +7581,7 @@ function updateWordFade(s, dt){
 function activeSet(){ for(let i=0;i<G.sets.length;i++) if(!G.sets[i].judged) return G.sets[i]; return null; }
 
 /* ---------- 정답 판정: Lane + Trigger ---------- */
-function judge(s){
+function judge(s){ Perf.mark("판정");
   // 철자 지뢰 — 지뢰 칸만 아니면 통과
   if(s.q.isMine){
     s.judged = true; s.hideAt = s.t0 + 0.6;
@@ -9969,6 +10053,7 @@ const Wind = {
         const side = (this.type==="left"||this.type==="right");
         const w=CFG.LANE_W*G.lanes;
         const dusty = zone().prop==="pillar";          // 사막은 모래 먼지 색
+        Perf.mark("바람");
         const m=FxPool.mesh(FxPool.box(side?(dusty?2.4:1.8):0.1, dusty?.12:.07, side?(dusty?.16:0.1):2.4), dusty?0xd9bb84:0xbfe6ff);
         m.position.set((Math.random()-.5)*w, .4+Math.random()*2.6, P.z - Math.random()*24);
         scene.add(m);
@@ -10467,7 +10552,7 @@ const SpeedLines = {
 
 /* 문을 지날 때 퍼지는 링 */
 /* 정답 문이 빛나며 부서지는 연출 */
-function shatterGate(gate, z, color){
+function shatterGate(gate, z, color){ Perf.mark("문 부서짐");
   if(!gate) return;
   const g=gate.sign;
   g.material.color.setHex(0xffffff);
@@ -10500,7 +10585,7 @@ function comboStep(){
   }
 }
 
-function popScore(text, sub, color, topPct){
+function popScore(text, sub, color, topPct){ Perf.mark("글자 띄움");
   const layer=$("popLayer"); if(!layer) return;
   const el=document.createElement("div");
   el.className = /^(GOOD|GREAT|EXCELLENT|AMAZING)/.test(text) ? "pop big" : "pop";
@@ -10621,7 +10706,7 @@ function updateMarks(dt, speed){
   }
 }
 /* 작은 먼지 한 뭉치 */
-function puff(x,y,z,color,n,power){
+function puff(x,y,z,color,n,power){ Perf.mark("먼지");
   for(let i=0;i<(n||5);i++){
     const m=FxPool.mesh(FxPool.box(.12,.12,.12), color||0xbfae8a);
     m.position.set(x+(Math.random()-.5)*1.2, y+Math.random()*.5, z+(Math.random()-.5)*1.2);
@@ -10631,7 +10716,7 @@ function puff(x,y,z,color,n,power){
   }
 }
 
-function burst(x,y,z,color,n){
+function burst(x,y,z,color,n){ Perf.mark("조각 효과");
   for(let i=0;i<n;i++){
     const m=FxPool.mesh(FxPool.box(.17,.17,.17), color);
     m.position.set(x+(Math.random()-.5)*1.6, y+Math.random()*1.4, z+(Math.random()-.5)*1.2);
@@ -10664,7 +10749,7 @@ function playLater(fn, ms){ let left=ms, last=performance.now();
   setInterval(()=>{ if(G.running && !document.hidden) arm(); else if(!G.running && armed && !document.hidden){ armed=false; skip=true; try{ history.back(); }catch(e){ skip=false; } setTimeout(()=>{ skip=false; }, 1500); } }, 800);
   addEventListener("popstate", ()=>{ if(skip){ skip=false; return; } armed=false; if(G.running){ if(!G.paused && !G.overFade && !G.finishing) togglePause(); arm(); } });
 }catch(e){} })();
-function loop(){ try{ loopBody(); }catch(e){ showErr(e && e.message); } }
+function loop(){ const a=Perf.on?performance.now():0; Perf.pre(a); try{ loopBody(); }catch(e){ showErr(e && e.message); } if(Perf.on) Perf.frame(a, performance.now()); }
 function loopBody(){
   let dt=Math.min(clock.getDelta(),.05);
   G.rawDt=dt;                                       // 보스 변신 연출은 멎은 시간 속에서도 제 속도로
@@ -10716,6 +10801,7 @@ function loopBody(){
     updateAmbience(dt);
     updateCamera(dt);
   }
+  if(Perf.on) Perf.r0=performance.now();
   if(composer) composer.render();
   else renderer.render(scene,camera);
   GLWarm.keep();
@@ -10742,7 +10828,7 @@ const SFX = {
     try{ const C = window.AudioContext||window.webkitAudioContext; this.ctx = new C(); }catch(e){ this.on=false; }
   },
   tone(freq, dur, type, vol, slideTo){
-    if(!this.on) return;
+    if(!this.on) return; Perf.mark("효과음");
     const vv=(vol||0.07)*SoundPref.sfxMul(); if(vv<0.0012) return;
     this.wake(); if(!this.ctx) return;
     try{
@@ -10942,7 +11028,7 @@ const Voice = {
      ③ 끝까지 소리가 시작되지 않으면(onstart 없음) 실패로 세고, 두 번 연달아면 "이 기기는 소리가 안 남"(broken) → 듣기 문제를 빼고 안내 */
   /* (v274) 한꺼번에 여러 번 부르면(보기 누름 → 바로 정답 읽기) 80ms 뒤로 미룬 말이 뒤늦게 또 나와 소리가 겹치던 것 → 마지막 말만 낸다 (_tok) */
   _tok:0, _gt:null, _cx:0,
-  speak(text, rate, opt){
+  speak(text, rate, opt){ Perf.mark("음성");
     if(!this.supported() || !text) return false;
     opt=opt||{};
     const tok=++this._tok;
@@ -11028,7 +11114,7 @@ function showQuestion(q, s){
   }
   if(q.promptIsEn) Voice.say(q.word.en);                       // 영어가 문제면 읽어준다
 }
-function updateHUD(){
+function updateHUD(){ Perf.mark("HUD");
   if(G.versus) return VS.hud();
   const lab=$("uLifeLab");
   if(lab) lab.textContent = G.rule==="time" ? "TIME"
@@ -11069,7 +11155,7 @@ function updateHUD(){
   c.style.color = G.combo>=5 ? comboColor(G.combo) : "";
   c.style.transform = G.combo>=10 ? "scale(1.12)" : "";
 }
-function verdict(main,sub,hex,flash){
+function verdict(main,sub,hex,flash){ Perf.mark("판정 글자");
   if(G.versus && typeof VS!=="undefined" && VS.cur!=null) main = VS.NAME[VS.cur]+"  "+main;   // 2인용 — 누구 일인지
   const v=$("verdict");
   $("vmain").textContent=main;
@@ -13075,7 +13161,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v368";
+const GAME_VER = "v369";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
