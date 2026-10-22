@@ -7125,19 +7125,19 @@ const SignCache = {
   get(k){ const c=this.m.get(k); if(c){ this.m.delete(k); this.m.set(k,c); } return c; },
   put(k,c){ this.m.set(k,c); while(this.m.size>this.MAX){ const k0=this.m.keys().next().value, c0=this.m.get(k0); this.m.delete(k0); signTexDrop(c0); } },
   has(c){ for(const v of this.m.values()) if(v===c) return true; return false; },
-  canvas(text){
-    const a=(typeof signArtFor==="function") ? signArtFor() : null, k=(a ? a.key : "-")+"|"+text;
+  canvas(text, z){
+    const a=(typeof signArtFor==="function") ? signArtFor(z) : null, k=(a ? a.key : "-")+"|"+text;
     let c=this.get(k);
     if(!c){ c = a ? signCanvasArt(text, a.img, a.box) : signCanvasPlain(text); this.put(k, c); }
     return {c, art:!!a};
   },
   _q:[], _on:false,
-  warm(texts){                                                             // 쉬는 틈에 한 장씩
-    (texts||[]).forEach(t=>{ if(t!=null && this._q.indexOf(String(t))<0) this._q.push(String(t)); });
+  warm(texts, z){                                                          // 쉬는 틈에 한 장씩 · (v371) z = 그 문제가 나올 지대 (지대가 바뀌면 단어판 그림도 바뀜)
+    (texts||[]).forEach(t=>{ if(t==null) return; t=String(t); if(!this._q.some(x=>x.t===t && x.z===z)) this._q.push({t, z}); });
     if(this._on || !this._q.length) return; this._on=true;
     const idle=window.requestIdleCallback ? (f=>requestIdleCallback(f, {timeout:900})) : (f=>setTimeout(f, 120));
-    const run=()=>{ const t=this._q.shift();
-      try{ if(t!=null && G.running) signTexWarm(t); }catch(e){}
+    const run=()=>{ const x=this._q.shift();
+      try{ if(x && G.running) signTexWarm(x.t, x.z); }catch(e){}
       if(this._q.length && G.running) idle(run); else { this._q.length=0; this._on=false; } };
     idle(run);
   }
@@ -7154,8 +7154,8 @@ function signTexMake(s){
   c._hyTex=t; return t;
 }
 function signTexDrop(c){ const t=c && c._hyTex; if(t && !t._dead && !(t._ref>0)){ t._dead=true; try{ t._free(); }catch(e){} } }
-function signTexWarm(text){ Perf.mark("단어판 미리 올림");
-  const t=signTexMake(SignCache.canvas(String(text)));
+function signTexWarm(text, z){ Perf.mark("단어판 미리 올림");
+  const t=signTexMake(SignCache.canvas(String(text), z));
   try{ if(renderer && renderer.initTexture && !t._up){ renderer.initTexture(t); t._up=1; } }catch(e){}
 }
 function signTexture(text){
@@ -7432,7 +7432,10 @@ function spawnSet(){ Perf.mark("문 생성");
     const cs = (G.nextQ._bossFx||[]).indexOf("curse")>=0 ? (CURSE_SLOW[G.diff]||0.6) : 0;   // (v322) 다음 문제에 저주가 잡혔으면 느린 걸음으로 길 검사
     try{ Hazards.ensurePath(Hazards.list.filter(h=>!hb.has(h)), group.position.z - G.spawnDist, G.nextQ.answer, s.speed, cs); }catch(e){}   // 함정 + 보스 공격을 합쳐 길 검사
     try{ Hazards.decoyLane(group.position.z - G.spawnDist, G.nextQ.answer, s.speed); }catch(e){}   // 빈 줄이 정답 하나뿐이지 않게
-    try{ SignCache.warm(G.nextQ.options); }catch(e){}   // (v322) 다음 문제 단어판은 쉬는 틈에 미리 그려 둔다
+    try{ SignCache.warm(G.nextQ.options);
+      /* (v371) 아이폰 측정: 사막 들어갈 때 판정 27ms(문 만들기 19ms)+그리기 44ms — 다음 문제가 새 지대에서 나오면 그 지대 단어판으로 다시 그려 올리느라.
+         → 맞혀서 지대가 바뀔 다음 문제는 새 지대 그림으로도 미리 */
+      const zn=ZONES[zoneIndex(G.stage+1)]; if(zn && zn!==zone() && zoneArt(zn)!==zoneArt()) SignCache.warm(G.nextQ.options, zn); }catch(e){}   // (v322) 다음 문제 단어판은 쉬는 틈에 미리 그려 둔다
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
   G.groundSpeed = s.speed;
@@ -7960,9 +7963,9 @@ function signCanvasArt(text, img, box){   // (v322) 캔버스만 만든다 — �
   else line(text, by+bh/2+4, bh*0.86);
   return c;
 }
-function signArtFor(){
+function signArtFor(z){
   try{
-    const zf=zoneArt(), t=TrapArt.tex["sign-"+zf];
+    const zf=zoneArt(z), t=TrapArt.tex["sign-"+zf];
     if(t && t.image && t.image.width && SIGN_ART[zf]) return {img:t.image, box:SIGN_ART[zf], key:zf+":"+t.image.width};   // (v322) key = SignCache 구분
   }catch(e){}
   return null;
@@ -13193,7 +13196,7 @@ function gameOver(){
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v370";
+const GAME_VER = "v371";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
