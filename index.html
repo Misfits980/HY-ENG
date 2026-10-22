@@ -6049,6 +6049,8 @@ const Perf = {
     try{ const q=new URLSearchParams(location.search).get("perf");
       if(q==="1") localStorage.setItem(this.KEY,"1"); else if(q==="0") localStorage.removeItem(this.KEY);
       this.on = localStorage.getItem(this.KEY)==="1"; }catch(e){ this.on=false; }
+    /* (v376) 실험 스위치 — 측정기가 켜진 기기에서만: noaa = 계단 부드럽게(안티에일리어싱) 끔 · mute = 소리 끔 */
+    this.exp={}; if(this.on){ try{ this.exp=JSON.parse(localStorage.getItem("hyeng_exp"))||{}; }catch(e){ this.exp={}; } }
     if(this.on){ const f0=window.fetch; if(f0) window.fetch=function(){ Perf.mark("네트워크"); Perf.ev("네트워크"); return f0.apply(this, arguments); };
       /* (v372) 사파리 앱에서 아무 일 없이 320ms 멈춤이 자주 → 그 사이에 브라우저 쪽에서 일어난 일(터치·주소창·음성·소리)을 시각과 함께 적는다 */
       const on=(o, ev, n)=>{ try{ o.addEventListener(ev, ()=>Perf.ev(n), {capture:true, passive:true}); }catch(e){} };
@@ -6164,6 +6166,8 @@ const Perf = {
     L.push("끊길 때 같이 있던 일: "+(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>k+" "+cnt[k]).join(" · ")||"없음")+(none?" · 아무 일 없음 "+none:""));
     const ce={}; R.hit.filter(h=>h.dt>50).forEach(h=>{ const seen={}; (h.ev||[]).forEach(x=>{ const k=x.replace(/ \+?-?\d+$/,""); if(!seen[k]){ seen[k]=1; ce[k]=(ce[k]||0)+1; } }); });
     L.push("큰 끊김 사이에 브라우저에서 일어난 일: "+(Object.keys(ce).sort((a,b)=>ce[b]-ce[a]).map(k=>k+" "+ce[k]).join(" · ")||"없음")+" (큰 끊김 "+R.big+")");
+    const ex=[]; if(this.exp.noaa) ex.push("계단 부드럽게 끔"); if(this.exp.mute) ex.push("소리 끔");
+    L.push("🧪 실험: "+(ex.join(" · ")||"없음 (보통)"));
     try{ L.push("음성 "+(Voice.on?"켬":"끔")+" · 효과음 "+Math.round(SoundPref.sfx*100)+"%"+(typeof WeakRef!=="undefined" ? " · 큰 정리(GC) "+this.gcN+"번 · 작은 정리 "+this.gcS+"번" : " · GC 못 잼")); }catch(e){}
     L.push("── 가장 긴 끊김 10개 (초 · 길이 · 계산/그리기 · 단계 · 같이 있던 일 | 사이에 일어난 일 +ms)");
     top.forEach(h=>L.push(h.t.toFixed(1)+"s  "+Math.round(h.dt)+"ms  "+h.upd.toFixed(0)+"/"+h.ren.toFixed(0)+"  "+h.st+"단계  "+(Object.keys(h.tags).sort((x,y)=>(y.charAt(0)==="⏱")-(x.charAt(0)==="⏱") || (h.tags[y]-h.tags[x])).map(k=>this.tagTxt(k, h.tags[k])).join(", ")||"—")+((h.ev&&h.ev.length)?"  | "+h.ev.join(", "):"")));
@@ -6175,12 +6179,18 @@ const Perf = {
     const row=document.createElement("div"); row.style.cssText="display:flex;gap:8px;margin-top:6px";
     const mk=(t,f)=>{ const b=document.createElement("button"); b.textContent=t; b.style.cssText="font:12px sans-serif;padding:5px 10px;border-radius:7px;border:0;background:#ffd37a;color:#241a3d"; b.onclick=f; row.appendChild(b); };
     mk("닫기", ()=>{ d.remove(); this.el=null; });
-    mk("측정 끄기", ()=>{ try{ localStorage.removeItem(this.KEY); }catch(e){} this.on=false; d.remove(); this.el=null; });
-    d.appendChild(row); }
+    mk("측정 끄기", ()=>{ try{ localStorage.removeItem(this.KEY); localStorage.removeItem("hyeng_exp"); }catch(e){} this.on=false; d.remove(); this.el=null; });
+    d.appendChild(row);
+    const row2=document.createElement("div"); row2.style.cssText="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap";
+    const tg=(k, on, off)=>{ const b=document.createElement("button"); b.textContent=(this.exp[k]?off:on); b.style.cssText="font:12px sans-serif;padding:5px 10px;border-radius:7px;border:0;background:#9fe8ff;color:#241a3d";
+      b.onclick=()=>{ const e=Object.assign({}, this.exp); if(e[k]) delete e[k]; else e[k]=1; try{ localStorage.setItem("hyeng_exp", JSON.stringify(e)); }catch(_){} location.reload(); }; row2.appendChild(b); };
+    tg("noaa", "🧪 계단 부드럽게 끄고 다시", "🧪 계단 부드럽게 다시 켜기");
+    tg("mute", "🧪 소리 끄고 다시", "🧪 소리 다시 켜기");
+    d.appendChild(row2); }
 };
 Perf.init();
 function boot(){
-  renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:true, powerPreference:"high-performance"});
+  renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:!(Perf.exp && Perf.exp.noaa), powerPreference:"high-performance"});
   Quality.load();
   renderer.setPixelRatio(Math.min(devicePixelRatio, Quality.pixelRatio()));
   fitCanvas(scrW(), gameH());           // 캔버스 겉 크기는 CSS(100%)가 정한다 → 돌려도 오른쪽이 검게 남지 않음
@@ -13263,7 +13273,7 @@ function gameOver(){ Later.reset();
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v375";
+const GAME_VER = "v376";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20105,6 +20115,7 @@ addEventListener("error", function(e){ if(e && e.target && e.target!==window) re
 addEventListener("unhandledrejection", function(e){ try{ console.warn("[HY ENG] promise", e && e.reason); }catch(_){} });   // 소리 재생 거절 같은 것은 창을 띄우지 않는다
 
 Voice.init();
+try{ if(Perf.on && Perf.exp.mute){ Voice.on=false; SFX.on=false; } }catch(e){}   // (v376) 측정 실험: 소리 끔
 /* (v296) 아이폰 무음 스위치 — 아이폰은 소리를 '주변 소리(ambient)' 로 다뤄 무음 스위치를 켜면 효과음·발음이 안 났다 (iOS 17+).
    'playback' 으로 바꾸면 무음이어도 들린다 (첫 터치 때 한 번) */
 (function(){ const go=()=>{ try{ if(navigator.audioSession && navigator.audioSession.type!=="playback") navigator.audioSession.type="playback"; }catch(e){} };
