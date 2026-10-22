@@ -362,6 +362,7 @@ body.ui-skin .menu .mitem small{flex-basis:100%;text-align:center}
 @keyframes rhBob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
 .rhName{margin-top:2px;font-size:14px;font-weight:900;color:#ffd37a;letter-spacing:.04em}
 /* ── 6단계: 켜고 끄기는 스위치 줄 ── */
+#setRunVoice.off{opacity:.45}
 .toggleCol{flex-direction:column !important;align-items:stretch !important;gap:8px !important;width:100%}
 .toggleCol .tile{width:auto !important;height:48px;display:flex !important;flex-direction:row !important;
   justify-content:flex-start !important;align-items:center;gap:10px;padding:0 70px 0 16px !important;position:relative;
@@ -3281,6 +3282,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
   <input type="range" class="setRange" id="rngSfx" min="0" max="100" step="5" value="85">
   <div class="tileRow toggleCol" style="margin-top:14px">
     <div class="tile" id="setVoice"><i>🔊</i><b>발음 듣기</b></div>
+    <div class="tile" id="setRunVoice"><i>🏃</i><b>달리는 중에도 발음 듣기</b></div>
     <div class="tile" id="setPic"><i>🖼️</i><b>그림 힌트</b></div>
   </div>
   <div class="tlab" style="margin-top:14px">그래픽 품질</div>
@@ -11148,6 +11150,15 @@ const BGM = {
   toggle(){ this.on=!this.on; if(this.on && G.running) this.start(); else this.stop(); return this.on; }
 };
 
+/* (v379) 아이폰 측정(v378): 영어 읽기(speechSynthesis)를 쓰면 몇 초마다 0.3초씩 화면·터치가 멈춤 → 끄면 큰 끊김 2번(최대 60ms).
+   아이폰·아이패드는 달리는 동안 읽기를 기본으로 끈다 (문제·문 단어는 글자로 보임) · 설정 「달리는 중에도 발음 듣기」로 켤 수 있음 · 공부 화면은 그대로 읽음
+   갤럭시·컴퓨터는 그대로 읽음 */
+const RunVoice = {
+  KEY:"hyeng_runvoice",
+  ios(){ try{ const u=navigator.userAgent||""; return /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints>1); }catch(e){ return false; } },
+  on(){ try{ const v=localStorage.getItem(this.KEY); if(v==="1") return true; if(v==="0") return false; }catch(e){} return !this.ios(); },
+  set(b){ try{ localStorage.setItem(this.KEY, b?"1":"0"); }catch(e){} }
+};
 const Voice = {
   on:true, voice:null, ready:false, lockUntil:0, fails:0, broken:false, heardAt:0, _t:null,
   supported(){ return typeof speechSynthesis !== "undefined" && typeof SpeechSynthesisUtterance !== "undefined"; },
@@ -11218,6 +11229,7 @@ const Voice = {
   },
   say(text, opt){
     if(!this.on || !this.supported() || !text) return;
+    if(G.running && !RunVoice.on()) return;    // (v379) 아이폰: 달리는 동안은 읽지 않음 (설정으로 켤 수 있음)
     const keep = !!(opt && opt.keep);          // 끝까지 읽어야 하는 말(정답 단어)
     const now = (typeof performance!=="undefined" ? performance.now() : Date.now());
     if(!keep && now < this.lockUntil) return;  // 정답을 읽는 중이면 건너뛴다
@@ -11232,7 +11244,7 @@ function showQuestion(q, s){
   const warn = (s && s.hideMode)
     ? ' · <b style="color:var(--coral)">'+(s.hideMode==="flash"?"곧 사라짐":"가까워지면 사라짐")+'</b>'
     : '';
-  const canSpeak = !!(q.promptIsEn && Voice.on);
+  const canSpeak = !!(q.promptIsEn && Voice.on && RunVoice.on());
   $("plabel").innerHTML = base + warn + (canSpeak ? ' <span class="spk">🔊 다시 듣기</span>' : '');
   const el=$("ptext");
   const pic = G.picture && q.word.emoji && !q.promptIsEn;      // 그림 힌트
@@ -11241,7 +11253,7 @@ function showQuestion(q, s){
   const card=$("prompt");
   if(card){
     card.classList.toggle("speak", canSpeak);
-    card.__word = q.promptIsEn ? q.word.en : null;              // 뜻 문제는 다시 듣기 없음
+    card.__word = (q.promptIsEn && canSpeak) ? q.word.en : null;              // 뜻 문제는 다시 듣기 없음
   }
   if(card){                                                    // 새 문제가 왔다는 신호
     /* (v374) void offsetWidth(강제 배치 계산)가 다른 글자가 막 바뀐 프레임에서 사파리 41ms → 클래스를 빼고 다음 프레임에 다시 붙인다 */
@@ -11655,6 +11667,7 @@ function syncSettings(){
   if($("rngBgm")) $("rngBgm").value=b; if($("valBgm")) $("valBgm").textContent=b+"%";
   if($("rngSfx")) $("rngSfx").value=f; if($("valSfx")) $("valSfx").textContent=f+"%";
   setToggle("setVoice", Voice.on); setToggle("tglVoice", Voice.on);
+  setToggle("setRunVoice", Voice.on && RunVoice.on()); try{ $("setRunVoice").classList.toggle("off", !Voice.on); }catch(e){}
   setToggle("setPic", G.picture); setToggle("tglPic", G.picture);
   setToggle("tglBgm", BGM.on && SoundPref.bgm>0);
   const q=Quality.resolved();
@@ -11736,6 +11749,8 @@ $("setVoice").addEventListener("click",()=>{
   SFX.click(); Voice.on=!Voice.on; syncSettings(); if(Voice.on) Voice.say("hello"); else Voice.stop();
 });
 $("setPic").addEventListener("click",()=>{ SFX.click(); G.picture=!G.picture; syncSettings(); });
+$("setRunVoice").addEventListener("click",()=>{ SFX.click(); if(!Voice.on) return; const b=!RunVoice.on(); RunVoice.set(b); syncSettings();
+  try{ if(b && RunVoice.ios()) TrapTip.show("🏃 아이폰·아이패드는 달릴 때 읽어 주면 가끔 0.3초씩 멈출 수 있어요"); }catch(e){} });
 (function(){ const row=$("setQual"); if(!row || !row.querySelectorAll) return;
   row.querySelectorAll(".tile").forEach(t=>t.addEventListener("click",()=>{ SFX.click(); applyQualityChoice(t.dataset.v); })); })();
 /* 교재 단원(tag) 타일 — ＋단어에서 tag 를 넣으면 자동 생성 */
@@ -12780,7 +12795,7 @@ function startGame(){ Later.reset(); try{ SFX.keep(!(Perf.on && Perf.exp.noka));
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
   try{ const r0=Rank.of(G.set); G.rankBefore = r0 ? r0.i : null; }catch(e){ G.rankBefore=null; }
   Attract.focus=false; Attract.clear();
-  SFX.start(); Voice.warm(); BGM.start();
+  SFX.start(); if(RunVoice.on()) Voice.warm(); BGM.start();
   G.nick = ($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase() || "PLAYER";
   G.gentle = !!WORD_SETS[G.set].gentle;             // 유치원: 완만한 전용 난이도
   G.lanes = G.gentle ? (GENTLE[G.diff]||GENTLE.normal).lanes : lanesFor(G.diff);
@@ -13296,7 +13311,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v378";
+const GAME_VER = "v379";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
