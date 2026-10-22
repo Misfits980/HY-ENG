@@ -2740,6 +2740,12 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .kpL{max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:8px 0} .kpG b{font-size:14px} .kpG div{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .kpK,.kpMe{appearance:none;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;border-radius:12px;padding:9px 12px;font:900 15px var(--font);cursor:pointer}
 .kpMe{width:100%} .kpMe small{opacity:.7;font-weight:700}
+/* (v383) 수업 입장 — 반 → 이름 */
+.rjCls{display:flex;flex-wrap:wrap;gap:6px} .rjC{appearance:none;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;border-radius:99px;padding:7px 12px;font:900 14px var(--font);cursor:pointer}
+.rjC.on{background:#6c4cff;border-color:#a99bff} .rjC.now small{color:#7ee2a8;font-size:11px}
+.rjKids{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;margin-top:6px;max-height:34vh;overflow:auto}
+.rjN{appearance:none;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;border-radius:12px;min-height:42px;padding:6px 4px;font:900 15px var(--font);cursor:pointer;word-break:keep-all}
+.rjN.on{background:rgba(126,226,168,.22);border-color:#7ee2a8;box-shadow:0 0 0 2px #7ee2a8 inset}
 /* (v382) 수업 입장 숫자판 */
 .kpMe.on{border-color:#7ee2a8;background:rgba(126,226,168,.14)} .rdJoinIn b small{font-size:12px;opacity:.7;font-weight:700;margin-left:4px} .rdJoinIn p small{opacity:.75}
 .rjPad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px}
@@ -13383,7 +13389,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v382";
+const GAME_VER = "v383";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18334,16 +18340,27 @@ addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest || !t.close
 const RaidJoin = {
   open(re){ HyBoss.start(); if(!re){ const had=Object.keys(HyBoss.kids()).length>0; HyBoss.refresh(true).then(()=>{ if($("rdJoin") && had!==(Object.keys(HyBoss.kids()).length>0)){ const v=($("rdRoomIn")||{}).value||""; this.close(); this.open(1); try{ $("rdRoomIn").value=v; }catch(e){} } }); }
     let nm=""; try{ nm=localStorage.getItem("hyeng_raid_name")||localStorage.getItem("hyeng_nick")||""; }catch(e){} if(/^PLAYER$/i.test(nm)) nm="";
-    const roster=Object.keys(HyBoss.kids()).length>0, me=Kid.get(); this.pick=me; const last=this.last();
+    let sh=false; try{ sh=Kid.shared(); }catch(e){}
+    const roster=Object.keys(HyBoss.kids()).length>0, me=sh ? null : Kid.get(); this.pick=me; this.cls=null; const last=this.last();   // (v383) 공용 패드는 지난 아이 이름을 미리 고르지 않음 (다른 아이가 그 이름으로 들어가지 않게)
     const d=document.createElement("div"); d.className="rdJoin"; d.id="rdJoin";
     /* (v382) 사용자: 교실 배틀 입장이 번거로움 (방 번호는 비밀번호라 그대로 넣어야 함) → 이름을 먼저(명단·지난 이름 기억) · 번호는 큰 숫자판 · 4자리를 다 누르면 바로 들어감 */
     d.innerHTML='<div class="rdJoinIn"><b>⚔️ 수업 입장 <small>교실 배틀 · 레이드</small></b>'+(last?'<button class="kpMe" data-rj="back">↩ 방 '+Raid.esc(last.r)+' 다시 들어가기</button>':'')
-      +(roster ? '<p>① 나는 누구?</p><button class="kpMe'+(me?' on':'')+'" data-rj="who" id="rdWho">'+(me?'👤 '+Raid.esc(me.n)+' <small>(바꾸기)</small>':'👤 내 이름 고르기')+'</button>'
+      +(roster ? '<p>① 우리 반 → 내 이름</p><div id="rjPick">'+this.pickHtml()+'</div>'
         : '<p>① 내 이름 <small>(같이 쓰는 패드면 꼭 바꿔요)</small></p><input id="rdNameIn" maxlength="10" value="'+Raid.esc(nm)+'" placeholder="이름" autocomplete="off">')
       +'<p>② 선생님 화면의 방 번호 4자리</p><input id="rdRoomIn" inputmode="none" maxlength="4" placeholder="0000" autocomplete="off">'
       +'<div class="rjPad">'+["1","2","3","4","5","6","7","8","9","⌫","0","✓"].map(k=>'<button class="rjK'+(k==="✓"?' go':k==="⌫"?' bk':'')+'" data-rjk="'+k+'">'+k+'</button>').join('')+'</div>'
       +'<div class="adMsg" id="rdJoinMsg"></div><div class="stTwo"><button class="stLater" data-rj="x">닫기</button><button class="stCheck go" data-rj="go">들어가기 ▶</button></div></div>';
     document.body.appendChild(d); },
+  /* (v383) 사용자: 공용 패드라 이름 고르기를 많이 씀 → 창 안에서 반을 누르면 그 반 아이 이름이 바로 나옴 (지금 수업 반 · 내 반이 먼저 열림) */
+  groups(){ const T=HyBoss.teams(), K=HyBoss.kids(), dup={}; try{ HyBoss.dupNoClass().forEach(k=>{ dup[k]=1; }); }catch(e){}
+    const gOf=k=>T[K[k].t] ? K[k].t : "_", G={}; Object.keys(K).forEach(k=>{ if(dup[k]) return; (G[gOf(k)]=G[gOf(k)]||[]).push(k); });
+    Object.keys(G).forEach(t=>G[t].sort((a,b)=>HyBoss.plainN(K[a].n).localeCompare(HyBoss.plainN(K[b].n)))); return G; },
+  pickHtml(){ const T=HyBoss.teams(), K=HyBoss.kids(), G=this.groups(), ks=Object.keys(T).filter(t=>G[t]).concat(G._ ? ["_"] : []), pt=Kid.padT(), me=this.pick;
+    if(!this.cls || !G[this.cls]) this.cls = (me && G[me.t] && G[me.t].indexOf(me.id)>=0) ? me.t : (pt && G[pt]) ? pt : ks[0];
+    const nm=t=>t==="_" ? "반 없음" : ((T[t].e||"")+" "+T[t].n).trim();
+    return '<div class="rjCls">'+ks.map(t=>'<button class="rjC'+(t===this.cls?' on':'')+(t===pt?' now':'')+'" data-rjc="'+Raid.esc(t)+'">'+Raid.esc(nm(t))+(t===pt?' <small>수업 중</small>':'')+'</button>').join('')+'</div>'
+      +'<div class="rjKids">'+(G[this.cls]||[]).map(k=>'<button class="rjN'+(me && me.id===k?' on':'')+'" data-rjn="'+Raid.esc(k)+'">'+Raid.esc(HyBoss.plainN(K[k].n))+'</button>').join('')+'</div>'; },
+  drawPick(){ const d=$("rjPick"); if(d) d.innerHTML=this.pickHtml(); },
   /* (v382) 숫자판 — 4자리를 다 누르면 이름이 있을 때 바로 들어가기 */
   key(k){ const ri=$("rdRoomIn"); if(!ri) return; let v=String(ri.value||"").replace(/\D/g,"");
     if(k==="⌫") v=v.slice(0,-1); else if(k==="✓"){ const g=document.querySelector("[data-rj=go]"); if(g) g.click(); return; } else if(v.length<4) v+=k;
@@ -18363,7 +18380,10 @@ const TvRoom = { K:"hyeng_tv_room",
   open(){ const v=this.get(); if(!v) return Promise.resolve(false); const base=(v.k==="battle"?"/battle/":"/raids/")+v.r;
     return FB.get(base+"/st").then(st=>{ if(!st){ this.save(null); return false; } if(v.k==="battle") Battle.reopen(v.r); else Raid.reopen(v.r); return true; }).catch(()=>false); }
 };
-addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; const pk=t.closest("[data-rjk]"); if(pk){ RaidJoin.key(pk.dataset.rjk); return; } const j=t.closest("[data-rj]"); if(!j) return;
+addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; const pk=t.closest("[data-rjk]"); if(pk){ RaidJoin.key(pk.dataset.rjk); return; }
+  const pc=t.closest("[data-rjc]"); if(pc){ RaidJoin.cls=pc.dataset.rjc; RaidJoin.drawPick(); try{ SFX.click(); }catch(er){} return; }   // (v383) 반 누르면 그 반 이름
+  const pn=t.closest("[data-rjn]"); if(pn){ const id=pn.dataset.rjn, K=HyBoss.kids(); if(!K[id]) return; const v={id, n:HyBoss.plainN(K[id].n), t:K[id].t||"all", pk:Date.now()}; Kid.set(v); RaidJoin.pick=v; RaidJoin.drawPick(); try{ SFX.select(); }catch(er){}
+    const ri=$("rdRoomIn"); if(ri && /^\d{4}$/.test(ri.value||"")){ const g=document.querySelector("[data-rj=go]"); if(g) setTimeout(()=>g.click(), 150); } return; } const j=t.closest("[data-rj]"); if(!j) return;
   if(j.dataset.rj==="x"){ RaidJoin.close(); return; }
   if(j.dataset.rj==="back"){ const v=RaidJoin.last(), ri=$("rdRoomIn"); if(v && ri){ ri.value=v.r; const g=document.querySelector("[data-rj=go]"); if(g) g.click(); } return; }
   if(j.dataset.rj==="who"){ KidPick.open(v=>{ RaidJoin.pick=v; const b=$("rdWho"); if(b){ b.innerHTML='👤 '+Raid.esc(v.n)+' <small>(바꾸기)</small>'; b.classList.add("on"); } }); return; }
