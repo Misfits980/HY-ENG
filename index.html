@@ -13389,7 +13389,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v383";
+const GAME_VER = "v384";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18447,8 +18447,14 @@ const Battle = {
   tName(t){ if(this.auto()) return this.AUTO_T[t] ? this.AUTO_T[t].e+" "+this.AUTO_T[t].n : "팀 고르는 중"; const T=HyBoss.teams(); return T[t] ? (T[t].e||"")+" "+T[t].n : "반 없음"; },
   /* (v382) 🔥 마지막 30초 점수 2배 (3분 이상 판) */
   dbl(){ const c=this.cfg(), l=this.left(); return this.running() && (c.dur||300)>=120 && l>0 && l<=30000; },
-  /* (v382) ⚡ 번개 문제 — 6문제마다 하나 · 점수 3배 */
-  nextQ(){ const q=this.mkQ(); this._qn=(this._qn|0)+1; if(q && this._qn>=5 && this._qn%6===0) q.zap=1; return q; },
+  /* (v382) ⚡ 번개 문제 — 점수 3배
+     (v384) 사용자: 순위가 낮은 아이에게 조금 더 자주 (너무 자주면 안 됨) → 순위로 간격: 위 ⅓ 7문제마다 · 가운데 6 · 아래 ⅓ 5 · 맨 끝이고 1등과 2배 넘게 차이 나면 4 (3명 안 되면 6) · 처음 4문제는 없음 */
+  zapGap(){ if(this.role!=="kid") return 6; const P=Object.assign({}, this.T().p||{}); P[this.me]=Object.assign({}, P[this.me]||{}, {sc:Math.max(((P[this.me]||{}).sc|0), this.sc|0)});
+    const R=this.rankOf(P), n=R.length, i=R.indexOf(this.me); if(n<3 || i<0) return 6;
+    const f=i/(n-1), top=(P[R[0]]||{}).sc|0, me=this.sc|0;
+    return f>=0.999 && top>=60 && me*2<top ? 4 : f>=0.67 ? 5 : f>=0.34 ? 6 : 7; },
+  nextQ(){ const q=this.mkQ(); this._qn=(this._qn|0)+1; this._zg=(this._zg|0)+1; let g=6; try{ g=this.zapGap(); }catch(e){}
+    if(q && this._qn>=5 && this._zg>=g){ q.zap=1; this._zg=0; } return q; },
   /* (v322) 문제 품질 — 진짜 단어인지 (철자 오답·빈칸 글자가 다른 진짜 단어가 되면 정답이 둘) · 뜻 핵심이 같은 짝 (on/above '위에', travel/trip '여행') */
   real(x){ if(!this._wb){ this._wb={}; try{ WORD_BANK.forEach(w=>{ this._wb[w.en]=1; }); }catch(e){} } return !!this._wb[x] || !!Study.word(x); },
   cores(ko){ return String(ko||"").split(/[,;/·]/).map(s=>s.replace(/\([^)]*\)/g,"").replace(/[~\s.…!?'"]/g,"").replace(/(하다|되다|하는|스러운|적인|한|은|는|인|의|게|히|다|에서|에게|에|을|를|으로|로)$/,"")).filter(Boolean); },
@@ -18523,7 +18529,7 @@ const Battle = {
     Object.keys(P).forEach(k=>{ const m=P[k].tm||this._asg[k]; if(m==="r"||m==="b") cnt[m]++; });
     Object.keys(P).filter(k=>!(P[k].tm==="r"||P[k].tm==="b") && !this._asg[k]).forEach(k=>{ const m=cnt.r<=cnt.b?"r":"b"; cnt[m]++; this._asg[k]=m; FB.update("/battle/"+this.room+"/p/"+k, {tm:m}); }); },
   /* ══ 아이 ══ */
-  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0; this._qn=0;
+  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0; this._qn=0; this._zg=0;
     this.pick=pick; this.me=pick.id; let em="🙂"; try{ em=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji; }catch(e){} const ch=String(G.char||"hero").slice(0,12);   /* (v342) 트랙에 내 캐릭터가 달리게 */
     const t=(pick.t && pick.t!=="all") ? pick.t : ((HyBoss.kids()[pick.id]||{}).t || "");
     this.h=this.listen(room); const dv=Raid.dev();   // (v322) dv = 이 기기 (같은 이름이 다른 기기에서 또 들어오는 것 막기)

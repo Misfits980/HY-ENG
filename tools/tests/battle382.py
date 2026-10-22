@@ -57,8 +57,13 @@ async def main():
             out.base=go(false,false,false); out.fast=go(false,false,true); out.dbl=go(false,true,false); out.zap=go(true,false,false); return out; }""")
         b = r["base"]
         ok(r["fast"] == b + 3 and r["dbl"] == b * 2 and r["zap"] == b * 3, f"빠름 +3 · 2배 · 번개 3배 {r}")
-        r = await K[0].evaluate("()=>{ let n=0; Battle._qn=0; for(let i=0;i<18;i++){ const q=Battle.nextQ(); if(q.zap) n++; } return n; }")
-        ok(r == 3, f"번개 문제 6문제마다 하나 {r}")
+        # (v384) 번개 문제 간격 = 순위 (위 7 · 가운데 6 · 아래 5 · 맨 끝이고 많이 뒤지면 4) · 처음 4문제는 없음
+        r = await K[0].evaluate("""()=>{ const P=Battle.T().p||{}, ks=Object.keys(P), me=Battle.me, sv=Battle.sc, out={};
+            const cnt=(mySc, others)=>{ Battle._poll=null; const fake={}; ks.forEach((k,i)=>{ fake[k]=Object.assign({}, P[k], {sc: k===me ? mySc : others[i%others.length]}); }); const t0=Battle.T; Battle.T=()=>Object.assign({}, t0.call(Battle), {p:fake}); Battle.sc=mySc;
+              let n=0, first=99; Battle._qn=0; Battle._zg=0; for(let i=0;i<60;i++){ const q=Battle.nextQ(); if(q.zap){ n++; first=Math.min(first, i+1); } } Battle.T=t0; return [n, first, Battle.zapGap ? (Battle.T=()=>Object.assign({}, t0.call(Battle), {p:fake}), (()=>{ const g=Battle.zapGap(); Battle.T=t0; return g; })()) : 0]; };
+            out.top=cnt(500,[100,90,80,70]); out.mid=cnt(85,[100,90,80,70]); out.low=cnt(60,[100,90,80,70]); out.far=cnt(10,[300,200,150,120]); Battle.sc=sv; return out; }""")
+        print("zap", r)
+        ok(r["top"][2] == 7 and r["low"][2] == 5 and r["far"][2] == 4 and r["top"][0] < r["low"][0] < r["far"][0] and r["far"][0] <= 15 and min(v[1] for v in r.values()) >= 5, f"번개 문제: 순위 낮을수록 조금 더 자주 (60문제에 위 {r['top'][0]} · 아래 {r['low'][0]} · 맨 끝 {r['far'][0]}) · 처음 4문제는 없음 {r}")
         r = await K[0].evaluate("""()=>{ const c=Battle.cfg(); const t0=Battle.st().t0, d=c.dur; Battle._dl=Battle.left; Battle.left=()=>20000; const a=Battle.dbl(); Battle.left=()=>60000; const b=Battle.dbl(); Battle.left=Battle._dl; return [a,b]; }""")
         ok(r == [True, False], f"마지막 30초만 2배 {r}")
         # ④ 새 문제
