@@ -17,7 +17,7 @@ async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch(); ctx = await br.new_context(viewport={"width": 1024, "height": 768})
         await ctx.add_init_script("window.HY_FB_LOCAL=true; try{ sessionStorage.setItem('hyeng_admin_ok', String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }catch(e){}")
-        T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T)
+        T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T); await T.evaluate('()=>{ Battle.FR=false; }')
         # ⑤ 관리: 반 명단 없음 안내 · 방식 3가지
         await T.evaluate("()=>{ Admin.open(); Admin._tab('play'); }"); await T.wait_for_timeout(800)
         r = await T.evaluate("()=>{ const m=[...document.querySelectorAll('#adBtMode option')].map(o=>o.value); const tx=document.getElementById('shAdmin').innerText; return {m, hint:tx.indexOf('반 명단이 아직 없어요')>=0, last:!!document.querySelector('[data-ad=btLast]'), fun:!!document.getElementById('adBtFun'), cls:!!document.getElementById('adBtCls')}; }")
@@ -30,7 +30,7 @@ async def main():
         # ① 아이 입장 — 이름 먼저 · 숫자판 4자리면 바로
         K = []
         for i, nm in enumerate(["민준", "서연", "지호", "하린", "도윤"]):
-            k = await ctx.new_page(); k.on("pageerror", lambda e, n=nm: errs.append(n + " " + str(e))); await k.set_viewport_size({"width": 390, "height": 844}); await boot(k)
+            k = await ctx.new_page(); k.on("pageerror", lambda e, n=nm: errs.append(n + " " + str(e))); await k.set_viewport_size({"width": 390, "height": 844}); await boot(k); await k.evaluate('()=>{ Battle.FR=false; }')
             await k.evaluate("()=>RaidJoin.open()"); await k.wait_for_timeout(150)
             await k.evaluate(f"()=>{{ document.getElementById('rdNameIn').value='{nm}'; }}")
             for d in room: await k.evaluate(f"()=>document.querySelector('[data-rjk=\"{d}\"]').click()")
