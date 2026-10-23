@@ -77,7 +77,7 @@ async def main():
         ok(r is False, f"레이드: 시작 전엔 싸움 버튼 없음 {r}")
         await T.evaluate("()=>Raid.hostAct('start')"); await K.wait_for_timeout(1200)
         r = await K.evaluate("()=>[BossLive.on(), [...document.querySelectorAll('#bpCtl [data-bp]')].map(b=>b.dataset.bp).join(','), !!(Raid.q && !Raid.q.done)]")
-        ok(r == [True, "L,R,shield", True], f"레이드: 시작하면 ◀ 🛡 ▶ (공격은 문제로) · 문제도 그대로 {r}")
+        ok(r == [True, "L,R,shield,atk", True], f"레이드: 시작하면 아레나 ◀ 🛡 ▶ ⚔️ (⚡ 에너지) · 문제(주문)도 그대로 {r}")
         d0 = await K.evaluate("()=>[Raid.dmg, Raid.blk, Raid.hearts]")
         a = await K.evaluate(LAUNCH, 0.01)
         await K.evaluate("([t])=>{ BossLive.S.cd=0; BossLive.press('shield', t-40); BossLive.tick(t+1); }", [a["t"][0]])

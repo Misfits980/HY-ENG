@@ -14,7 +14,7 @@ async def main():
         kids=[]
         for nm,ch in [("민준","knight"),("서연","wolf"),("지호","mage")]:
             k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k)
-            await k.evaluate(f"()=>{{ G.char='{ch}'; Raid.FAST=0; Raid.join('{room}','{nm}'); }}"); kids.append(k)
+            await k.evaluate(f"()=>{{ G.char='{ch}'; Raid.FAST=0; Raid.ARENA=false; Raid.join('{room}','{nm}'); }}"); kids.append(k)
         await host.wait_for_timeout(600); await host.evaluate("()=>Raid.hostAct('start')"); await host.wait_for_timeout(800)
         k0=kids[0]
         info=await k0.evaluate("()=>{ const s=document.getElementById('rdStage'); return [!!s.querySelector('.rsHero.me'), (s.querySelector('.rsHero.me .rsSpr')||{}).style.backgroundImage, s.querySelectorAll('.rsAllies .rsHero').length, !!s.querySelector('.rsBoss img')]; }")
