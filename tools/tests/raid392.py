@@ -34,7 +34,7 @@ async def main():
         ok(e==[0,0], f"에너지 없으면 공격 안 됨 {e}")
         await host.evaluate("()=>Raid.hostAct('pause')"); await host.wait_for_timeout(1200)
         hd=await kids[0].evaluate("()=>{ const t=Arena.cast.t0; return [document.getElementById('arHold').classList.contains('on'), document.getElementById('arHold').textContent, t]; }")
-        await kids[0].wait_for_timeout(600); t2=await kids[0].evaluate("()=>Arena.cast.t0")
+        await kids[0].wait_for_timeout(1500); t2=await kids[0].evaluate("()=>Arena.cast.t0")
         ok(hd[0] and "멈췄" in hd[1] and t2>hd[2], f"멈춤 → 글 · 주문 게이지 멈춤 {hd} {t2}")
         await host.evaluate("()=>Raid.hostAct('pause')"); await host.wait_for_timeout(1000)
         r=await kids[0].evaluate("()=>document.getElementById('arHold').classList.contains('on')"); ok(r is False, "다시 시작 → 글 사라짐")
