@@ -41,6 +41,7 @@ async def main():
         await pg.wait_for_timeout(900)
         r = await pg.evaluate("()=>[...document.querySelectorAll('#stMap .grWN')].map(b=>[b.querySelector('[data-gram]').dataset.gram, b.classList.contains('lock')])")
         ok(len(r) == 8 and r[0] == ["g34-1", False] and all(x[1] for x in r[1:]), f"G3-4 길: 문법 돌 8개 · 첫째만 열림 {r[:3]}")
+        ok(await pg.evaluate("()=>[...document.querySelectorAll('#stMap .grWN .stDot')].every(d=>getComputedStyle(d).boxShadow==='none')"), "(v388) 문법 돌: 검은 둥근 그림자 링 없음 (빛으로만)")
         ok(await pg.evaluate("()=>!!document.querySelector('[data-gnote=g34]')"), "📒 문법 노트 버튼")
         await pg.evaluate("()=>document.querySelector('[data-gram=\"g34-2\"]').click()"); await pg.wait_for_timeout(300)
         ok(await pg.evaluate("()=>document.getElementById('stGram').style.display==='none'"), "잠긴 문법은 열리지 않음")
