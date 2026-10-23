@@ -3308,6 +3308,36 @@ body.bpOn .wbFight{display:none}   /* (v392 시제품) ⚔️ 전투 화면 */
 .frItem em{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font:900 12px var(--font);font-style:normal;background:#3a2205;color:#ffe58f;padding:2px 9px;border-radius:9px;white-space:nowrap}
 .frItem img{width:58px;height:58px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}.frItem.empty{background:radial-gradient(circle at 50% 35%,#4a4470,#1c1838);border-color:#8a84aa}.frItem.empty img{opacity:.75}.frItem.ready{animation:frReady .6s infinite alternate}.frItem.roll{animation:frRoll .1s infinite}
 @keyframes frReady{to{transform:scale(1.07);box-shadow:0 6px 0 rgba(0,0,0,.4),0 0 34px rgba(255,210,90,.95)}}@keyframes frRoll{50%{transform:scale(1.06) rotate(4deg)}}
+/* (v392) 레인 N개 · 주자 크기 --s (레인 높이에 맞춤) · 아이 무리 · TV */
+#frun .frTrack.oth{filter:saturate(.9) brightness(.95)}
+#frun .frTrack .frRun{bottom:28%}
+#frun .frTrack .frSpr{left:calc(var(--s) * -.5);width:var(--s);height:var(--s)}
+#frun .frTrack .frShd{left:calc(var(--s) * -.36);width:calc(var(--s) * .72);height:calc(var(--s) * .16);bottom:calc(var(--s) * -.07)}
+#frun .frTrack .frFlag{left:calc(var(--s) * -.56);bottom:calc(var(--s) * .55);height:calc(var(--s) * .82)}
+#frun .frTrack .frFlag span{font-size:calc(var(--s) * .2);line-height:1.3}
+#frun .frLbl{top:50%;right:34px;transform:translateY(-50%);font-size:11px;padding:2px 8px;opacity:.95}
+#frun .frTrack.front .frLbl{top:-12px;transform:none;font-size:12px}
+.frPack{position:absolute;bottom:0;left:0;width:0;height:0}
+.frKid{position:absolute;bottom:0;background-size:600% 800%;background-position:0 28.571%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3));transition:left .3s}
+.frMore{position:absolute;bottom:2px;font:900 12px var(--font);color:#fff;background:rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.6);border-radius:9px;padding:1px 6px;white-space:nowrap;z-index:2}
+.frMain{flex:1 1 auto;display:flex;gap:10px;min-height:0}
+.frMain .frStage{flex:1 1 auto}
+/* 📺 TV — 무대 + 옆 판 (순위 · 점수왕 · 소식) */
+#frun.tv{padding:14px 16px}
+#frun.tv .frTop{gap:14px}.frTvT{font:900 24px var(--font);color:#fff}#frun.tv .frTime{font-size:26px;margin-left:auto}
+#frun.tv .frStage{background:linear-gradient(180deg,#7cc6ff 0%,#d4f0ff 16%,#76c46a 17%,#4f9e48 100%)}
+#frun.tv .frMt{top:2%;height:15%}#frun.tv .frStands{bottom:75%;height:8%}
+#frun.tv .frLbl{font-size:15px;padding:3px 12px}#frun.tv .frTick b{font-size:14px}
+#frun.tv .frFeed{display:none}
+#frun.tv .frBan{font-size:24px;top:12%}
+.frSide{flex:0 0 300px;display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:18px;background:rgba(0,0,0,.3);color:#fff;overflow:hidden}
+.frSide h4{margin:6px 0 2px;font:900 16px var(--font);color:#ffe58f}
+.frRk{position:relative;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.08);overflow:hidden}
+.frRk>b{font-size:22px;width:28px;text-align:center}.frRk span{flex:1;font:900 16px var(--font);z-index:1}.frRk small{display:block;font:700 12px var(--font);opacity:.85}
+.frRk i{position:absolute;left:0;top:0;bottom:0;width:var(--w);background:linear-gradient(90deg,transparent,var(--tc));opacity:.45;transition:width .4s}.frRk em{font:900 16px var(--font);font-style:normal;z-index:1}
+.frMv{display:flex;align-items:center;gap:8px;font:800 15px var(--font)}.frMv b{width:22px;text-align:center;color:#ffe58f}.frMv span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frMv em{font-style:normal;color:#ffe58f}
+#frNews{display:flex;flex-direction:column;gap:4px}#frNews .frFd{font-size:14px;padding:4px 10px}.frFd.it{background:#5a3a90}
+@media (max-width:900px){ .frSide{display:none} }
 #arena{position:fixed;inset:0;z-index:65;background:radial-gradient(ellipse at 50% 0%,#3b2c74,#140c2a 70%);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 0}
 .arTop{display:flex;align-items:center;gap:10px;height:52px;flex:none}
 .arX{width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font:900 18px var(--font)}
@@ -19329,50 +19359,83 @@ function freeRoom(){ const old=x=>!x || !(x.made>0) || Date.now()-x.made>3*3600e
    아이템: 🚀 부스터(우리 반 +½칸) · 🛡 방패(날아오는 것 한 번 막기) · 상대 반에 던지기 = 🧊 얼음(두 번 눌러 깨기) · 🌑 어둠(눌러서 보기) · 🌀 섞기 · 🪞 거울 · 💨 바람 */
 const FlagRun = {
   o:null, q:null, st:0, item:null, shield:0, ord:null, _raf:0, _busy:0, _sos:0, got:null, v:0, _t:0, ph:null, sc:0, _qn:0, _dbl:0,
-  /* 속도 (칸/초): 쉬엄쉬엄 0.012 · 시작 0.03 · 최고 0.09 · 정답 +0.012 (3초 안 +0.018) · 오답 −0.022 · 가만히 있으면 초마다 −0.0012 */
+  /* 속도 (칸/초): 쉬엄쉬엄 0.012 · 시작 0.03 · 최고 0.09 · 정답 = 점수 × 0.0009 · 오답 −0.022 · 가만히 있으면 초마다 −0.0012 */
   SP:{min:0.012, base:0.03, max:0.09, up:0.012, fast:0.018, down:0.022, decay:0.0012},
   IT:{boost:["🚀","부스터"], shield:["🛡","방패"], snail:["🐌","달팽이"], ice:["🧊","얼음"], dark:["🌑","어둠"], shuf:["🌀","섞기"], mirror:["🪞","거울"], wind:["💨","바람"]},
   KIND:{e2k:'뜻을 골라요', k2e:'영어로 골라요', spell:'올바른 철자를 골라요', gap:'빈칸에 들어갈 글자', ox:'맞으면 ⭕ 틀리면 ❌', pic:'그림에 맞는 영어', opic:'그림에 맞는 영어', mean:'뜻을 골라요', lsn:'듣고 뜻을 골라요', sent:'📝 빈칸에 들어갈 단어', sent2:'📝 두 빈칸에 똑같이 들어갈 단어', talk:'💬 빈칸에 들어갈 단어', def:'📖 설명에 맞는 단어', flash:'👀 잠깐 보이는 단어의 뜻'},
   GOLD:["sent","sent2","talk","def"],
   X(p){ return 6+Math.min(1, p/this.o.goal)*84; },
-  open(o){ this.close(); this.o=o; this.st=0; this.item=null; this.shield=0; this._sos=0; this.got={us:{}, them:{}}; this.v=this.SP.base; this._t=0; this.ph={us:0, them:0}; this.sc=0; this._qn=0; this._dbl=0;
-    ["us","them"].forEach(k=>{ const T=o[k]; T.mates=T.mates||[]; T.fx=0; T.slow=0; T.v=T.v||this.SP.base; }); o.boxes=o.boxes||[2,4,6]; const E=x=>Raid.esc(x);
-    const d=document.createElement("div"); d.id="frun";
-    const ticks=k=>{ let h=''; for(let i=1;i<o.goal;i++) h+='<i class="frTick" style="left:'+this.X(i)+'%">'+(k==="us"?'<b>'+i+'</b>':'')+'</i>'; return h; };
-    const trk=(k,T)=>'<div class="frTrack '+k+'" style="--tc:'+T.c+'"><i class="frStart"></i>'+ticks(k)
+  T(k){ return this.o.L.find(t=>t.k===k); },
+  us(){ return this.o.L.find(t=>t.k===this.o.mine) || this.o.L[0]; },
+  /* 상대 = 나보다 앞선 반 중 가장 가까운 반 (없으면 바로 뒤 반) */
+  foe(){ const u=this.us(), O=this.o.L.filter(t=>t!==u); if(!O.length) return u; const ah=O.filter(t=>t.p>=u.p).sort((a,b)=>a.p-b.p); return ah[0] || O.sort((a,b)=>b.p-a.p)[0]; },
+  open(o){ this.close(); this.o=o; this.st=0; this.item=null; this.shield=0; this._sos=0; this.got={}; this.v=this.SP.base; this._t=0; this.ph={}; this.sc=0; this._qn=0; this._dbl=0;
+    o.L.forEach(T=>{ T.mates=T.mates||[]; T.kids=T.kids||[]; T.fx=0; T.slow=0; T.v=T.v||this.SP.base; this.got[T.k]={}; this.ph[T.k]=0; }); o.boxes=o.boxes||[2,4,6]; const E=x=>Raid.esc(x), tv=!!o.tv;
+    /* 레인 순서: 뒤(위) = 다른 반 · 앞(아래) = 우리 반 (TV 는 순서대로 같은 크기) */
+    const order = tv ? o.L.slice() : o.L.filter(t=>t.k!==o.mine).concat([this.us()]);
+    const d=document.createElement("div"); d.id="frun"; if(tv) d.className="tv";
+    const front=order[order.length-1];
+    const trk=T=>'<div class="frTrack '+(T===front?'front ':'')+(tv||T.k===o.mine?'me':'oth')+'" id="frT'+T.k+'" style="--tc:'+T.c+'"><i class="frStart"></i>'
+      +Array.from({length:o.goal-1},(x,i)=>'<i class="frTick" style="left:'+this.X(i+1)+'%">'+(T===front?'<b>'+(i+1)+'</b>':'')+'</i>').join('')
       +o.boxes.map(b=>'<i class="frBox" data-b="'+b+'" style="left:'+this.X(b)+'%"><span>?</span></i>').join('')
-      +'<span class="frLbl">'+E(T.n)+' <b id="frP'+k+'"></b><i class="frSv" id="frV'+k+'"></i></span>'
-      +'<div class="frRun" id="frR'+k+'"><i class="frShd"></i><i class="frSpr" style="background-image:url(assets/chars/walk/walk-'+(CHARACTERS.some(c=>c.id===T.ch)?T.ch:'hero')+'.webp)"></i><b class="frFlag"><span>'+E(T.e)+'</span></b></div></div>';
-    d.innerHTML='<div class="frTop"><button class="arX" data-fr="x">✕</button><b class="frTime" id="frTime"></b><b class="frSc" id="frSc">⭐ 0</b><span class="frMe" style="--tc:'+o.us.c+'">나는 '+E(o.us.n)+'</span></div>'
-      +'<div class="frStage" id="frStage"><div class="frMt"></div><div class="frStands"><i></i></div>'+trk("them", o.them)+'<div class="frMid"></div>'+trk("us", o.us)
+      +'<span class="frLbl">'+E(T.n)+' <b id="frP'+T.k+'"></b><i class="frSv" id="frV'+T.k+'"></i></span>'
+      +'<div class="frRun" id="frR'+T.k+'"><div class="frPack" id="frK'+T.k+'"></div><i class="frShd"></i><i class="frSpr" style="background-image:url(assets/chars/walk/walk-'+this.cid(T.ch)+'.webp)"></i><b class="frFlag"><span>'+E(T.e)+'</span></b></div></div>';
+    d.innerHTML='<div class="frTop"><button class="arX" data-fr="x">✕</button>'+(tv ? '<b class="frTvT">🚩 반 깃발 레이스'+(o.room?' · 방 '+E(o.room):'')+'</b>' : '')+'<b class="frTime" id="frTime"></b>'
+        +(tv ? '' : '<b class="frSc" id="frSc">⭐ 0</b><span class="frMe" style="--tc:'+this.us().c+'">나는 '+E(this.us().n)+'</span>')+'</div>'
+      +'<div class="frMain"><div class="frStage" id="frStage"><div class="frMt"></div><div class="frStands"><i></i></div>'+order.map(trk).join('')
       +'<div class="frGoal" style="left:'+this.X(o.goal)+'%"><b>🏁</b></div>'
-      +'<div class="frQ" id="frQ"></div><div class="frFeed" id="frFeed"></div><div class="frBan" id="frBan"></div><div class="frFx" id="frFx"></div></div>'
-      +'<div class="frCards" id="frCards"></div>'
-      +'<div class="frBot"><div class="frGW"><div class="frMeter" id="frMeter"><i></i><span></span></div><div class="frGauge" id="frGauge"></div></div><button class="frItem" id="frItem" data-fr="item"></button></div>';
+      +(tv ? '' : '<div class="frQ" id="frQ"></div>')+'<div class="frFeed" id="frFeed"></div><div class="frBan" id="frBan"></div><div class="frFx" id="frFx"></div></div>'
+      +(tv ? '<aside class="frSide"><h4>🏁 순위</h4><div id="frRank"></div><h4>⭐ 점수왕</h4><div id="frMvp"></div><h4>📣 소식</h4><div id="frNews"></div></aside>' : '')+'</div>'
+      +(tv ? '' : '<div class="frCards" id="frCards"></div><div class="frBot"><div class="frGW"><div class="frMeter" id="frMeter"><i></i><span></span></div><div class="frGauge" id="frGauge"></div></div><button class="frItem" id="frItem" data-fr="item"></button></div>');
     document.body.appendChild(d); document.body.classList.add("arOn");
     d.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-fr]"); if(!b) return; if(b.dataset.fr==="x") this.close(); else if(b.dataset.fr==="item") this.use(); });
-    $("frCards").addEventListener("pointerdown", e=>{ const c=e.target.closest && e.target.closest(".frCard"); if(!c) return; e.preventDefault(); this.tap(+c.dataset.k); });
-    this.pos(true); this.gauge(); this.next();
+    if(!tv) $("frCards").addEventListener("pointerdown", e=>{ const c=e.target.closest && e.target.closest(".frCard"); if(!c) return; e.preventDefault(); this.tap(+c.dataset.k); });
+    this._order=order; this.layout(); this._rs=()=>this.layout(); addEventListener("resize", this._rs);
+    this.pos(true); if(!tv){ this.gauge(); this.next(); } else this.side(true);
     const loop=()=>{ if(!$("frun")) return; this.frame(performance.now()); this._raf=requestAnimationFrame(loop); }; this._raf=requestAnimationFrame(loop); },
-  close(){ cancelAnimationFrame(this._raf); clearInterval(this._sim); const d=$("frun"); if(d) d.remove(); document.body.classList.remove("arOn"); this.q=null; },
-  /* 반 속도 = (나 + 반 친구들) 평균 × 🚀(1.6) × 🐌(0.55) */
-  teamV(k, now){ const o=this.o, T=o[k], a=(k==="us" ? [this.v] : []).concat(T.mates); let v=a.length ? a.reduce((x,y)=>x+y,0)/a.length : this.SP.base;
+  cid(c){ return CHARACTERS.some(x=>x.id===c) ? c : "hero"; },
+  /* 레인 자리·크기 — 반이 몇 개든 경기장 안 · 주자 크기는 레인 높이에 맞춤 */
+  layout(){ const o=this.o, st=$("frStage"); if(!o || !st) return; const H=st.clientHeight||400, ord=this._order, n=ord.length, tv=!!o.tv;
+    ord.forEach((T,i)=>{ const el=$("frT"+T.k); if(!el) return; let b, h;
+      if(tv){ const z0=4, z1=72, g=n>2?2:3; h=Math.min(24, (z1-z0-(n-1)*g)/n); b=z0+(n-1-i)*(h+g); }
+      else if(i===n-1){ b=5; h=n>3?19:n>2?21:24; }
+      else { const z0=n>2?28:31, z1=55, g=n>3?1.5:2, m=n-1; h=Math.min(17, (z1-z0-(m-1)*g)/m); b=z0+(m-1-i)*(h+g); }
+      el.style.bottom=b+"%"; el.style.height=h+"%";
+      const s=Math.round(Math.max(30, Math.min(tv?150:110, H*h/100*(tv?1.35:i===n-1?1.45:1.5)))); el.style.setProperty("--s", s+"px"); T._s=s; });
+    this.packs(true); },
+  /* 아이 무리 — 깃발 주자 뒤에 작게 (최대 6명 + 「+N」) · 출발선 앞에서는 촘촘히 겹쳐서 경기장 밖으로 안 나감 */
+  packs(fresh){ const o=this.o, st=$("frStage"); if(!st) return; const W=st.clientWidth||600;
+    o.L.forEach(T=>{ const P=$("frK"+T.k); if(!P) return; const ks=(T.kids||[]).slice().sort((a,b)=>(b.sc|0)-(a.sc|0)), show=ks.slice(0, o.tv?6:3), more=ks.length-show.length, s=T._s||60, ks2=Math.round(s*0.62);
+      if(fresh || P.childElementCount!==show.length+(more>0?1:0)) P.innerHTML=show.map(k=>'<i class="frKid" style="background-image:url(assets/chars/walk/walk-'+this.cid(k.ch)+'.webp)"></i>').join('')+(more>0?'<b class="frMore">+'+more+'</b>':'');
+      const x=Math.max(s*0.62+18, W*this.X(T.p)/100), room=Math.max(0, x-s*0.42-4), want=ks2*0.62, sp=show.length ? Math.min(want, room/show.length) : 0;
+      [...P.children].forEach((c,i)=>{ if(c.classList.contains("frMore")){ c.style.left=Math.round(-s*0.42-sp)+"px"; c.style.bottom=Math.round(ks2*0.92)+"px"; return; }
+        c.style.left=Math.round(-s*0.42-(i+1)*sp)+"px"; c.style.width=c.style.height=ks2+"px"; }); }); },
+  close(){ cancelAnimationFrame(this._raf); clearInterval(this._sim); if(this._rs) removeEventListener("resize", this._rs); const d=$("frun"); if(d) d.remove(); document.body.classList.remove("arOn"); this.q=null; },
+  /* 반 속도 = 반 아이들 속도 평균 × 🚀(1.6) × 🐌(0.55) */
+  teamV(T, now){ const o=this.o, a=(!o.tv && T.k===o.mine ? [this.v] : []).concat(T.mates); let v=a.length ? a.reduce((x,y)=>x+y,0)/a.length : this.SP.base;
     if(T.fx>now) v*=1.6; if(T.slow>now) v*=0.55; return v; },
   frame(now){ const o=this.o, S=this.SP, dt=this._t ? Math.min(0.1, (now-this._t)/1000) : 0; this._t=now;
-    if(!o.stop){ this.v=Math.max(S.min, this.v-S.decay*dt); ["us","them"].forEach(k=>{ const T=o[k]; T.mates=T.mates.map(x=>Math.max(S.min, x-S.decay*dt)); T.v=this.teamV(k, now); T.p=Math.min(o.goal, T.p+T.v*dt); }); this.pos(); }
-    ["us","them"].forEach(k=>{ const T=o[k], r=$("frR"+k); if(!r) return; this.ph[k]+=dt*(5+T.v*160); const s=r.querySelector(".frSpr"); if(s) s.style.backgroundPositionX=(Math.floor(this.ph[k])%6*20)+"%";
+    if(!o.stop){ this.v=Math.max(S.min, this.v-S.decay*dt); o.L.forEach(T=>{ T.mates=T.mates.map(x=>Math.max(S.min, x-S.decay*dt)); T.v=this.teamV(T, now); T.p=Math.min(o.goal, T.p+T.v*dt); }); this.pos(); this.packs(); }
+    o.L.forEach(T=>{ const r=$("frR"+T.k); if(!r) return; this.ph[T.k]+=dt*(5+T.v*160); const f=(Math.floor(this.ph[T.k])%6*20)+"%", s=r.querySelector(".frSpr"); if(s) s.style.backgroundPositionX=f;
+      r.querySelectorAll(".frKid").forEach((c,i)=>{ c.style.backgroundPositionX=((Math.floor(this.ph[T.k])+i*2)%6*20)+"%"; });
       const lv=Math.min(5, Math.max(1, Math.round(T.v/S.max*5))); r.classList.toggle("fast", T.v>=0.055); r.classList.toggle("slow", T.v<=0.018); r.classList.toggle("rocket", T.fx>now); r.classList.toggle("snail", T.slow>now);
-      const sv=$("frV"+k); if(sv) sv.textContent="⚡".repeat(lv); });
+      const sv=$("frV"+T.k); if(sv) sv.textContent="⚡".repeat(lv); });
     const M=$("frMeter"); if(M){ const pc=Math.round((this.v-S.min)/(S.max-S.min)*100); M.firstChild.style.width=pc+"%"; M.className="frMeter"+(pc>=70?" hot":pc<=15?" low":""); M.lastChild.textContent=pc>=70?"🔥 내 속도 최고!":pc<=15?"🐢 느려지는 중… 문제를 풀어요!":"🏃 내 속도"; }
     if(this.dbl() && !this._dbl){ this._dbl=1; this.ban("🔥 2배 타임! 마지막 30초", "good"); }
     const t=$("frTime"); if(t && o.end){ const l=Math.max(0, o.end-Date.now()); t.textContent="⏱ "+Raid.mmss(l); t.classList.toggle("hurry", l<=15000); }
-    /* 🆘 역전 찬스 — 2칸 넘게 뒤지면 20초에 한 번 */
-    if(!this.item && o.them.p-o.us.p>=2 && now>this._sos){ this._sos=now+20000; this.ban("🆘 역전 찬스! 🎁 아이템", "good"); this.roll(Math.random()<0.6 ? "boost" : null); } },
+    if(o.tv){ if(!this._sd || now-this._sd>500){ this._sd=now; this.side(); } return; }
+    /* 🆘 역전 찬스 — 1등 반보다 2칸 넘게 뒤지면 20초에 한 번 */
+    const top=Math.max(...o.L.map(T=>T.p)); if(!this.item && top-this.us().p>=2 && now>this._sos){ this._sos=now+20000; this.ban("🆘 역전 찬스! 🎁 아이템", "good"); this.roll(Math.random()<0.6 ? "boost" : null); } },
+  /* TV 옆 판 — 반 순위 · 점수왕 · 소식 */
+  side(){ const o=this.o, R=$("frRank"), M=$("frMvp"); if(!R) return; const E=x=>Raid.esc(x), S=this.SP;
+    R.innerHTML=o.L.slice().sort((a,b)=>b.p-a.p).map((T,i)=>'<div class="frRk" style="--tc:'+T.c+'"><b>'+(["🥇","🥈","🥉"][i]||(i+1))+'</b><span>'+E(T.n)+'<small>'+(T.kids||[]).length+'명 · '+"⚡".repeat(Math.min(5, Math.max(1, Math.round(T.v/S.max*5))))+'</small></span><i style="--w:'+Math.round(T.p/o.goal*100)+'%"></i><em>'+(Math.floor(T.p*10)/10)+'칸</em></div>').join('');
+    const all=[].concat(...o.L.map(T=>(T.kids||[]).map(k=>({n:k.n, sc:k.sc|0, e:T.e})))).sort((a,b)=>b.sc-a.sc).slice(0,5);
+    if(M) M.innerHTML=all.map((k,i)=>'<div class="frMv"><b>'+(i+1)+'</b><span>'+E(k.e+" "+k.n)+'</span><em>'+k.sc+'</em></div>').join(''); },
   /* 깃발 자리 + ❓ 상자 */
-  pos(first){ const o=this.o; ["us","them"].forEach(k=>{ const T=o[k], r=$("frR"+k), p=$("frP"+k); if(r) r.style.left=this.X(T.p).toFixed(2)+"%"; if(p) p.textContent=(Math.floor(T.p*10)/10)+" / "+o.goal+"칸";
-      o.boxes.forEach(b=>{ if(T.p<b || this.got[k][b]) return; this.got[k][b]=1; const bx=document.querySelector('#frun .frTrack.'+k+' .frBox[data-b="'+b+'"]'); if(bx) bx.classList.add("open"); if(first) return;
-        if(k==="us"){ this.ban("❓ 상자! "+o.us.n+" 모두 🎁", "good"); if(!this.item) setTimeout(()=>this.roll(), 500); }
-        else this.ban("❓ "+o.them.n+"이 상자를 열었어요!", ""); }); }); },
+  pos(first){ const o=this.o, u=this.us(); o.L.forEach(T=>{ const r=$("frR"+T.k), p=$("frP"+T.k); if(r) r.style.left="max("+Math.round((T._s||60)*0.62+18)+"px, "+this.X(T.p).toFixed(2)+"%)";   /* 출발선에서도 그림이 왼쪽 끝 밖으로 안 나감 */ if(p) p.textContent=(Math.floor(T.p*10)/10)+" / "+o.goal+"칸";
+      o.boxes.forEach(b=>{ if(T.p<b || this.got[T.k][b]) return; this.got[T.k][b]=1; const bx=document.querySelector('#frT'+T.k+' .frBox[data-b="'+b+'"]'); if(bx) bx.classList.add("open"); if(first) return;
+        if(!o.tv && T===u){ this.ban("❓ 상자! "+u.n+" 모두 🎁", "good"); if(!this.item) setTimeout(()=>this.roll(), 500); }
+        else this.ban("❓ "+T.n+"이 상자를 열었어요!", ""); }); }); },
   /* 문제 = 전광판 */
   next(){ const q=this.q=this.o.q(), E=x=>Raid.esc(x), Q=$("frQ"); if(!Q) return; q.ice=-1; q.ih=0; q.dark=-1; q.t0=performance.now();
     q.gold = this.GOLD.indexOf(q.t)>=0 || Math.random()<0.1; this._qn++;
@@ -19396,47 +19459,50 @@ const FlagRun = {
     C.className="frCards n"+n+(C.classList.contains("mirror")?" mirror":"")+(C.classList.contains("wind")?" wind":""); C.style.setProperty("--n", n===4?2:n);
     if(fresh) C.innerHTML=this.ord.map(k=>'<button class="frCard'+(q.t==="ox"?' ox':'')+'" data-k="'+k+'"><span>'+Raid.esc(this.lab(k))+'</span></button>').join('');
     [...C.children].forEach(c=>{ const k=+c.dataset.k; c.classList.toggle("ice", q.ice===k); c.dataset.ih = q.ice===k ? q.ih : ""; c.classList.toggle("dark", q.dark===k); }); },
-  tap(k){ const q=this.q, now=performance.now(); if(!q || q.done || now<this._busy) return; const c=document.querySelector('#frCards [data-k="'+k+'"]');
+  tap(k){ const q=this.q, now=performance.now(); if(!q || q.done || now<this._busy) return; const c=document.querySelector('#frCards [data-k="'+k+'"]'), u=this.us();
     if(q.ice===k){ q.ih--; if(c){ c.classList.remove("nope"); void c.offsetWidth; c.classList.add("nope"); } try{ SFX.tone(900,.05,"square",.03,1200); }catch(e){}
       if(q.ih<=0){ q.ice=-1; this.pop(c, "🧊 쨍!"); } this.cards(); this._busy=now+150; return; }
     if(q.dark===k){ q.dark=-1; this.cards(); this._busy=now+250; return; }
     q.done=1; const ok=this.right(k), o=this.o;
     if(ok){ this.st++; c.classList.add("ok"); const fast=now-(q.t0||now)<3000, S=this.SP;
       let g=10+Math.min(10, (this.st-1)*2); if(q.zap) g*=3; else if(this.dbl()) g*=2; if(fast) g+=3; this.add(g);
-      this.v=Math.min(S.max, this.v+g*0.0009); if(q.zap) o.us.fx=Math.max(o.us.fx, performance.now()+2500); this.dash("us", !!q.zap);
-      this.big(c, "+"+g+(q.zap?" ⚡3배":this.dbl()?" 🔥2배":"")+(this.st>=2?" · 🔥"+this.st+"연속":""), q.zap?"zap":""); this.feed("us", o.me||"나", g, this.st); try{ SFX.tone(880,.1,"triangle",.06,1320); }catch(e){}
+      this.v=Math.min(S.max, this.v+g*0.0009); if(q.zap) u.fx=Math.max(u.fx, performance.now()+2500); this.dash(u.k, !!q.zap);
+      this.big(c, "+"+g+(q.zap?" ⚡3배":this.dbl()?" 🔥2배":"")+(this.st>=2?" · 🔥"+this.st+"연속":""), q.zap?"zap":""); this.feed(u.k, o.me||"나", g, this.st); try{ SFX.tone(880,.1,"triangle",.06,1320); }catch(e){}
       if(!this.item && (q.gold || this.st>=3)){ if(q.gold) this.ban("⭐ 황금 문제 성공! 🎁", "good"); else this.st=0; this.roll(); } }
-    else { this.st=0; this.v=Math.max(this.SP.min, this.v-this.SP.down); this.hit("us"); this.pop($("frRus"), "💦 휘청…"); c.classList.add("bad"); const a=document.querySelector('#frCards [data-k="'+this.ord.find(x=>this.right(x))+'"]'); if(a) a.classList.add("ans"); try{ SFX.tone(200,.15,"square",.04); }catch(e){} }
+    else { this.st=0; this.v=Math.max(this.SP.min, this.v-this.SP.down); this.hit(u.k); this.pop($("frR"+u.k), "💦 휘청…"); c.classList.add("bad"); const a=document.querySelector('#frCards [data-k="'+this.ord.find(x=>this.right(x))+'"]'); if(a) a.classList.add("ans"); try{ SFX.tone(200,.15,"square",.04); }catch(e){} }
     this.gauge(); setTimeout(()=>{ if(this.q===q && $("frun")) this.next(); }, ok ? 650 : 1400); },
   dbl(){ const o=this.o; return !!(o && o.end && o.end-Date.now()<=30000 && o.end>Date.now()); },
   /* ⭐ 내 점수 — 올라가는 숫자 */
   add(g){ const from=this.sc, to=this.sc+=g, el=$("frSc"); if(!el) return; const t0=performance.now();
     const step=()=>{ const k=Math.min(1, (performance.now()-t0)/500); el.textContent="⭐ "+Math.round(from+(to-from)*k).toLocaleString(); if(k<1) requestAnimationFrame(step); }; step();
     el.classList.remove("up"); void el.offsetWidth; el.classList.add("up"); },
-  /* 큰 점수 글자 (카드 위에서 튀어 오름) */
-  big(el, t, cls){ const F=$("frun"); if(!F || !el) return; const st=$("frStage").getBoundingClientRect(), s=document.createElement("b"); s.className="frBig "+(cls||""); s.textContent=t; s.style.left=(st.left+st.width/2)+"px"; s.style.top=(st.top+st.height*0.62)+"px";   /* 무대 가운데 (카드·화면 끝에 안 잘리게) */ F.appendChild(s); setTimeout(()=>s.remove(), 1300); },
-  /* 반 소식 줄 — 「🦁 서연 +19 🔥4」 (최근 3개) */
-  feed(k, who, g, sk){ const F=$("frFeed"); if(!F) return; const T=this.o[k], d=document.createElement("div"); d.className="frFd "+k; d.style.setProperty("--tc", T.c);
-    d.textContent=T.e+" "+who+" +"+g+(sk>=2?" 🔥"+sk:""); F.prepend(d); while(F.children.length>3) F.lastChild.remove(); },
+  /* 큰 점수 글자 (무대 가운데 — 카드·화면 끝에 안 잘리게) */
+  big(el, t, cls){ const F=$("frun"); if(!F) return; const st=$("frStage").getBoundingClientRect(), s=document.createElement("b"); s.className="frBig "+(cls||""); s.textContent=t; s.style.left=(st.left+st.width/2)+"px"; s.style.top=(st.top+st.height*0.62)+"px"; F.appendChild(s); setTimeout(()=>s.remove(), 1300); },
+  /* 반 소식 — 아이: 무대 왼쪽 3줄 · TV: 옆 판 6줄 */
+  feed(k, who, g, sk){ const tv=this.o.tv, F=$(tv?"frNews":"frFeed"); if(!F) return; const T=this.T(k), d=document.createElement("div"); d.className="frFd"; d.style.setProperty("--tc", T.c);
+    d.textContent=T.e+" "+who+" +"+g+(sk>=2?" 🔥"+sk:""); F.prepend(d); while(F.children.length>(tv?6:3)) F.lastChild.remove(); },
   gauge(){ const G=$("frGauge"), B=$("frItem"); if(!G || !B) return; const it=this.item && this.item!=="?" && this.IT[this.item];
     G.innerHTML='<div class="pp">'+[0,1,2].map(i=>'<i class="'+(i<this.st?'on':'')+'">'+(i<this.st?'🔥':'')+'</i>').join('')+'</div>'
       +(it ? '<small class="go">👉 아이템을 눌러 써요!</small>' : '<small>🎁 얻는 법: <b>🔥3연속</b> <b>⭐황금 문제</b> <b>❓상자 칸</b> <b>🆘역전</b></small>');
     if(this.item==="?") return; B.className="frItem"+(it?" ready":" empty"); B.innerHTML=(it ? it[0] : '<img src="assets/ui/ic-gift.webp" alt="">')+'<em>'+(it ? it[1] : '아이템')+'</em>'; },
-  /* 🎁 룰렛 — 뒤처진 반은 🚀·던지기가 더 잘 나옴 */
-  roll(fix){ const B=$("frItem"), ks=Object.keys(this.IT), o=this.o, behind=o.us.p<o.them.p; let n=0; if(!B || this.item) return;
+  /* 🎁 룰렛 — 뒤처진 반은 🚀·🐌가 더 잘 나옴 */
+  roll(fix){ const B=$("frItem"), ks=Object.keys(this.IT), o=this.o, u=this.us(), behind=o.L.some(T=>T!==u && T.p>u.p); let n=0; if(!B || this.item) return;
     const pool = behind ? ["boost","boost","snail","ice","dark","shuf","mirror","wind","shield"] : ["ice","dark","shuf","mirror","wind","snail","shield","boost"];
     const k=fix || pool[Math.floor(Math.random()*pool.length)]; this.item="?";
     const spin=()=>{ if(!B.isConnected) return; const r=ks[n%ks.length]; B.className="frItem roll"; B.innerHTML=this.IT[r][0]+'<em>🎁 …</em>'; try{ SFX.tone(500+(n%4)*120,.04,"square",.02); }catch(e){}
       if(++n<12) setTimeout(spin, 60+n*12); else { this.item=k; this.gauge(); try{ SFX.tone(1046,.15,"triangle",.06,1568); }catch(e){} } }; spin(); },
-  use(){ const k=this.item, o=this.o; if(!k || k==="?") return; this.item=null; this.gauge(); const it=this.IT[k];
-    if(k==="boost"){ o.us.fx=performance.now()+4000; this.dash("us", true); this.ban("🚀 부스터! 4초 동안 우리 반 쌩쌩", "good"); return; }
-    if(k==="shield"){ this.shield=1; $("frRus").classList.add("shield"); this.ban("🛡 방패! 날아오는 걸 한 번 막아요", "good"); return; }
-    this.shot(it[0], "us", "them", ()=>{ this.hit("them"); if(k==="snail") o.them.slow=performance.now()+4000; this.ban(it[0]+" "+it[1]+" → "+o.them.n+"!", "good"); if(o.send) o.send(k); }); },
-  /* 상대 반 아이가 던진 것 (실제: FB /battle/<방>/fx) */
-  incoming(k, who){ const it=this.IT[k];
-    this.shot(it[0], "them", "us", ()=>{
-      if(this.shield){ this.shield=0; $("frRus").classList.remove("shield"); this.ban("🛡 막았다! ("+who+"의 "+it[1]+")", "good"); try{ SFX.tone(1200,.08,"triangle",.05,1800); }catch(e){} return; }
-      this.hit("us"); this.ban(who+"의 "+it[0]+" "+it[1]+" 공격!", "bad"); if(k==="snail") this.o.us.slow=performance.now()+4000; else this.apply(k); }); },
+  /* 던지기 = 나보다 앞선 가장 가까운 반 (반이 셋 이상이어도 한 반만) */
+  use(){ const k=this.item, o=this.o, u=this.us(); if(!k || k==="?") return; this.item=null; this.gauge(); const it=this.IT[k];
+    if(k==="boost"){ u.fx=performance.now()+4000; this.dash(u.k, true); this.ban("🚀 부스터! 4초 동안 우리 반 쌩쌩", "good"); return; }
+    if(k==="shield"){ this.shield=1; $("frR"+u.k).classList.add("shield"); this.ban("🛡 방패! 날아오는 걸 한 번 막아요", "good"); return; }
+    const F=this.foe(); this.shot(it[0], u.k, F.k, ()=>{ this.hit(F.k); if(k==="snail") F.slow=performance.now()+4000; this.ban(it[0]+" "+it[1]+" → "+F.n+"!", "good"); if(o.send) o.send(k, F.k); }); },
+  /* 다른 반 아이가 던진 것 (실제: FB /battle/<방>/fx) — TV 에서는 날아가는 것만 */
+  incoming(k, who, from, to){ const it=this.IT[k], o=this.o, u=this.us(); from=from||this.foe().k; to=to||u.k;
+    this.shot(it[0], from, to, ()=>{ const T=this.T(to);
+      if(o.tv){ this.hit(to); if(k==="snail") T.slow=performance.now()+4000; this.feedTxt(it[0]+" "+who+" → "+T.n); return; }
+      if(this.shield){ this.shield=0; $("frR"+u.k).classList.remove("shield"); this.ban("🛡 막았다! ("+who+"의 "+it[1]+")", "good"); try{ SFX.tone(1200,.08,"triangle",.05,1800); }catch(e){} return; }
+      this.hit(u.k); this.ban(who+"의 "+it[0]+" "+it[1]+" 공격!", "bad"); if(k==="snail") u.slow=performance.now()+4000; else this.apply(k); }); },
+  feedTxt(t){ const F=$(this.o.tv?"frNews":"frFeed"); if(!F) return; const d=document.createElement("div"); d.className="frFd it"; d.textContent=t; F.prepend(d); while(F.children.length>(this.o.tv?6:3)) F.lastChild.remove(); },
   apply(k){ const q=this.q, C=$("frCards"); if(!q || q.done || !C) return; const ans=this.ord.find(x=>this.right(x)), wrong=this.ord.filter(x=>x!==ans), pick=a=>a[Math.floor(Math.random()*a.length)];
     if(k==="ice"){ q.ice=Math.random()<0.6 ? ans : pick(wrong); q.ih=2; }
     else if(k==="dark"){ q.dark=Math.random()<0.6 ? ans : pick(wrong); }
@@ -19450,18 +19516,26 @@ const FlagRun = {
   ban(t, cls){ const b=$("frBan"); if(!b) return; b.textContent=t; b.className="frBan"; void b.offsetWidth; b.className="frBan on "+(cls||""); },
   rel(el){ const s=$("frStage").getBoundingClientRect(), r=el.getBoundingClientRect(); return {x:r.left+r.width/2-s.left, y:r.top+r.height/2-s.top}; },
   pop(el, t){ const F=$("frFx"); if(!F || !el) return; const p=this.rel(el), s=document.createElement("b"); s.className="frPop"; s.textContent=t; s.style.left=p.x+"px"; s.style.top=(p.y-40)+"px"; F.appendChild(s); setTimeout(()=>s.remove(), 1100); },
-  shot(emo, from, to, done){ const F=$("frFx"), a=$("frR"+from), b=$("frR"+to); if(!F || !a || !b){ if(done) done(); return; }
+  shot(emo, from, to, done){ const F=$("frFx"), a=$("frR"+from), b=$("frR"+to); if(!F || !a || !b || a===b){ if(done) done(); return; }
     const p=this.rel(a.querySelector(".frSpr")), q=this.rel(b.querySelector(".frSpr")), s=document.createElement("span"); s.className="frShot"; s.textContent=emo; F.appendChild(s);
     const mid={x:(p.x+q.x)/2, y:Math.min(p.y,q.y)-90};
     const an=s.animate([{transform:'translate('+p.x+'px,'+p.y+'px) translate(-50%,-50%) scale(.6) rotate(0)'},{transform:'translate('+mid.x+'px,'+mid.y+'px) translate(-50%,-50%) scale(1.3) rotate(200deg)'},{transform:'translate('+q.x+'px,'+q.y+'px) translate(-50%,-50%) scale(1) rotate(400deg)'}], {duration:this.FLY||750, easing:"ease-in-out", fill:"forwards"});
     an.onfinish=()=>{ s.remove(); const x=document.createElement("i"); x.className="frBoom"; x.style.left=q.x+"px"; x.style.top=q.y+"px"; F.appendChild(x); setTimeout(()=>x.remove(), 500); if(done) done(); }; },
-  /* 반 친구들 · 상대 반이 맞힐 때 (실제: FB 점수) */
-  mate(k, who, ok){ const o=this.o, T=o[k], S=this.SP, i=Math.floor(Math.random()*T.mates.length); if(ok===undefined) ok=Math.random()<0.75;
-    if(T.mates.length) T.mates[i]=ok ? Math.min(S.max, T.mates[i]+S.up) : Math.max(S.min, T.mates[i]-S.down); if(ok){ this.dash(k); const sk=1+Math.floor(Math.random()*5), g=10+Math.min(10,(sk-1)*2)+(Math.random()<0.5?3:0); this.feed(k, who, g, sk); } },
-  sim(){ clearInterval(this._sim); const M=["서연","지호","하린","도윤","유나"]; this._sim=setInterval(()=>{ if(!$("frun")) return clearInterval(this._sim); this.mate(Math.random()<0.5?"us":"them", M[Math.floor(Math.random()*M.length)]); }, 900); },
-  /* 시험·미리 보기 */
-  demo(sim, qt){ Battle._ws=null; Battle._eq=null; Battle.h={get:()=>({cfg:{set:'elem', from:0, to:3, qt:qt||['pic','spell','gap','ox','mean']}, st:{}})};
-    this.open({goal:8, per:0.34, me:"민준", end:Date.now()+116000, us:{n:"🦁 사자반", e:"🦁", c:"#ff8a3d", ch:G.char||"hero", p:3.1, mates:[0.04,0.035,0.05]}, them:{n:"🐬 돌고래반", e:"🐬", c:"#3da5ff", ch:"wolf", p:3.6, mates:[0.045,0.04,0.03,0.05]}, q:()=>Battle.mkQ()}); if(sim) this.sim(); }
+  /* 반 친구들 · 다른 반이 맞힐 때 (실제: FB 점수) */
+  mate(k, who, ok){ const o=this.o, T=this.T(k), S=this.SP, i=Math.floor(Math.random()*Math.max(1,T.mates.length)); if(ok===undefined) ok=Math.random()<0.75;
+    if(T.mates.length) T.mates[i]=ok ? Math.min(S.max, T.mates[i]+S.up) : Math.max(S.min, T.mates[i]-S.down);
+    if(ok){ this.dash(k); const sk=1+Math.floor(Math.random()*5), g=10+Math.min(10,(sk-1)*2)+(Math.random()<0.5?3:0), kid=T.kids[i]; if(kid){ kid.sc=(kid.sc|0)+g; who=kid.n; } this.feed(k, who, g, sk); } },
+  sim(){ clearInterval(this._sim); const M=["서연","지호","하린","도윤","유나"], o=this.o; this._sim=setInterval(()=>{ if(!$("frun")) return clearInterval(this._sim);
+      const T=o.L[Math.floor(Math.random()*o.L.length)]; this.mate(T.k, M[Math.floor(Math.random()*M.length)]);
+      if(o.tv && Math.random()<0.08 && o.L.length>1){ const A=o.L[Math.floor(Math.random()*o.L.length)], B=o.L.filter(x=>x!==A)[0], ks=["ice","snail","dark","wind"]; this.incoming(ks[Math.floor(Math.random()*ks.length)], A.e+" "+(A.kids[0]||{n:"친구"}).n, A.k, B.k); } }, o.tv ? 350 : 900); },
+  /* 시험·미리 보기 — FlagRun.demo(sim, {teams:2~4, kids:반마다 몇 명, tv:true}) */
+  demo(sim, opt){ opt=opt||{}; Battle._ws=null; Battle._eq=null; Battle.h={get:()=>({cfg:{set:'elem', from:0, to:3, qt:opt.qt||['pic','spell','gap','ox','mean']}, st:{}})};
+    const TM=[["🦁 사자반","🦁","#ff8a3d"],["🐬 돌고래반","🐬","#3da5ff"],["🐰 토끼반","🐰","#ff6fae"],["🐻 곰돌이반","🐻","#3fbf6a"]], CH=["hero","knight","wolf","cat","mage","archer","explorer","scholar","ghost"], NM="민준 서연 지호 하린 도윤 유나 시우 하윤 지우 수아 예준 서준 은우 지아 건우 소율 우진 채원 현우 다은".split(" ");
+    const nt=opt.teams||2, nk=opt.kids||4; let c=0;
+    const L=TM.slice(0,nt).map((t,i)=>({k:"t"+i, n:t[0], e:t[1], c:t[2], ch:CH[(i*3+(i?1:5))%CH.length], p:opt.p!=null ? opt.p+(i*0.3) : 3.1+i*0.5,
+      kids:Array.from({length:nk},(x,j)=>({n:NM[(c++)%NM.length]+(c>NM.length?Math.floor(c/NM.length):""), ch:CH[(i+j)%CH.length], sc:Math.floor(Math.random()*120)})), mates:Array.from({length:Math.max(1,nk-(opt.tv?0:1))},()=>0.03+Math.random()*0.02)}));
+    if(!opt.tv) L[0].ch=G.char||"hero";
+    this.open({goal:8, me:"민준", mine:"t0", tv:!!opt.tv, room:opt.tv?"5738":"", end:Date.now()+(opt.left||116000), L, q:()=>Battle.mkQ()}); if(sim) this.sim(); }
 };
 const RunRace = {
   PUSH:1500, _at:0, _ls:-1, _rk:0, _el:null, _v:null, _p:null,
