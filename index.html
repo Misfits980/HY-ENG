@@ -2668,6 +2668,11 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .rsHero.me{left:7%;bottom:3%;height:66%;z-index:4}
 .rsAllies .rsHero{height:40%;opacity:.96;filter:brightness(.92)}
 .rs.big .rsAllies .rsHero{height:28%;filter:none}
+.rs.big .rsAllies .rsHero.bsH.rsR0{height:26%}.rs.big .rsAllies .rsHero.bsH.rsR1{height:21%;filter:brightness(.95)}.rs.big .rsAllies .rsHero.bsH.rsR2{height:17%;filter:brightness(.9)}
+.rs.big .rsHero.rsR1 .rsName,.rs.big .rsHero.rsR2 .rsName{font-size:12px;padding:0 5px}
+#arena #arStage .rsAllies .rsHero{height:9%;filter:brightness(.9) saturate(.9)}#arena #arStage .rsAllies .rsHero .rsName{display:none}
+.rsMore{position:absolute;left:10px;bottom:8px;z-index:6;font:900 13px var(--font);color:#fff;background:rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.5);padding:3px 10px;border-radius:12px}
+.rs.big .rsMore{font-size:17px;padding:4px 14px}#arena .rsMore{left:auto;right:10px;top:10px;bottom:auto;font-size:11px}
 @media (max-height:500px){ .rs{height:118px;margin:4px 0} .rsAtkName{font-size:12px} .rsNum{font-size:18px} }   /* (v308) 가로 휴대폰 — 보기 버튼이 화면 안에 */
 .rdHostOn #rdC{position:sticky;bottom:0;z-index:5;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 8px);background:linear-gradient(180deg,rgba(11,7,22,0),#0b0716 35%)}
 .rsSpr{display:block;width:100%;height:100%;background-size:600% 300%;background-repeat:no-repeat;background-position:0 50%;filter:drop-shadow(0 6px 5px rgba(0,0,0,.45))}
@@ -18888,14 +18893,24 @@ const RaidStage = {
   /* 친구들 자리 — 선생님 TV 는 모두, 아이 화면은 4명까지 (뒤쪽에 작게) */
   /* (v322) TV 는 16명까지 — 이름 순 앞 16명이 아니라 '최근에 공격한' 16명 (P.la = 마지막 공격 시각). 이미 선 친구는 자리 그대로 (새로 들어온 아이만 빈자리로) · 뒷줄은 이름을 머리 위에 (앞줄에 가려지지 않게) */
   /* (v337) QA: 360px 에서 친구 4명이 겹치고 이름표가 잘렸다 → 좁은 무대(480px 미만)는 3명까지 · 간격을 넓히고 두 줄로 엇갈리게 */
-  allies(P, meId){ if(!this.el) return; P=P||{}; const host=this.role==="host", narrow=!host && (this.el.clientWidth||999)<480, max=host?16:narrow?3:4;
+  /* (v392) 사용자: 레이드는 여럿이 때리니 들어오는 아이마다 자리를 정해 줘야 — TV 는 3줄 × 8명 = 24명(앞줄 크게 · 뒷줄 작게 · 엇갈리게) + 「+N명」 ·
+     아레나(아이 화면)는 보스 뒤쪽 언덕 한 줄에 작게 4명 (카드·내 캐릭터·보스를 안 가림) · 최근에 때린 아이부터 */
+  allies(P, meId){ if(!this.el) return; P=P||{}; const host=this.role==="host", arena=this.el.id==="arStage", narrow=!host && !arena && (this.el.clientWidth||999)<480, max=host?24:arena?4:narrow?3:4;
+    const total=Object.keys(P).filter(k=>k!==meId).length;
     let ids=Object.keys(P).filter(k=>k!==meId).sort();
     if(ids.length>max) ids=ids.slice().sort((a,b)=>((P[b].la|0)-(P[a].la|0)) || (this.al[b]?1:0)-(this.al[a]?1:0) || (a<b?-1:1)).slice(0, max);
     Object.keys(this.al).forEach(k=>{ if(ids.indexOf(k)<0){ this.al[k].el.remove(); delete this.al[k]; } });
     const used={}; Object.keys(this.al).forEach(k=>{ used[this.al[k].slot]=1; });
     ids.forEach(k=>{ let a=this.al[k]; if(!a){ a=this.al[k]=this.hero(k, P[k].c||"hero", (host||this.role==="wk")?P[k].n:"", false, P[k].n); let s=0; while(used[s]) s++; used[s]=1; a.slot=s; } a.n=P[k].n; });
-    const n=Math.max(ids.length, ...Object.values(this.al).map(a=>a.slot+1), 0), cols = host ? Math.min(8, Math.max(1, Math.ceil(n/2))) : 4;
-    ids.forEach(k=>{ const a=this.al[k], i=a.slot, r=Math.floor(i/cols), c=i%cols; a.bx = host ? 4+c*(46/cols)+(r?23/cols:0) : narrow ? 2+c*14 : 2+c*7; a.by = host ? (r? 24:6) : narrow ? 38+(c%2)*3 : 26+(c%2)*6; a.el.style.zIndex = host ? (r?2:3) : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow)); a.el.classList.toggle("rsNar", narrow); }); },
+    const n=Math.max(ids.length, ...Object.values(this.al).map(a=>a.slot+1), 0), cols = host ? Math.min(8, Math.max(3, Math.ceil(n/3))) : 4;
+    ids.forEach(k=>{ const a=this.al[k], i=a.slot, r=host ? Math.min(2, Math.floor(i/cols)) : 0, c=host ? i-r*cols : i;
+      if(host){ a.bx=3+c*(52/cols)+(r===1?26/cols:0); a.by=[3,19,33][r]; }
+      else if(arena){ a.bx=4+c*13; a.by=47+(c%2)*2; }
+      else { a.bx = narrow ? 2+c*14 : 2+c*7; a.by = narrow ? 38+(c%2)*3 : 26+(c%2)*6; }
+      a.el.style.zIndex = host ? 3-r : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow || arena)); a.el.classList.toggle("rsNar", narrow); a.el.classList.toggle("rsArena", arena);
+      ["rsR0","rsR1","rsR2"].forEach((x,j)=>a.el.classList.toggle(x, host && r===j)); });
+    let mo=this.el.querySelector(".rsMore"); const more=total-ids.length;
+    if(more>0){ if(!mo){ mo=document.createElement("b"); mo.className="rsMore"; this.el.appendChild(mo); } mo.textContent="+"+more+"명 같이 싸우는 중"; } else if(mo) mo.remove(); },
   /* 새 소식(다른 아이 공격) → 그 아이가 달려가 때림 */
   feed(E, meName){ if(!this.el) return; const now=Raid.now();
     if(!this._fed){ this._fed=1; Object.keys(E||{}).forEach(k=>{ this.seen[k]=1; }); return; }   // (v308) 들어오기 전 소식은 모두 넘김 (태블릿 시계가 틀려도)
