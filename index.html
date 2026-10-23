@@ -3167,7 +3167,24 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 .rs.bpFin .rsTint{background:rgba(70,0,25,.55)}
 .wbHp{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:#ffd9e3}.wbHp b{display:flex;gap:2px}.wbHp i,.wbHp u{width:14px;height:13px;display:inline-block;background:#ff5f7a;clip-path:path("M7 13 L1 6.5 A3.4 3.4 0 0 1 7 2.4 A3.4 3.4 0 0 1 13 6.5 Z")}.wbHp u{background:rgba(255,255,255,.22)}.wbHp em{font-style:normal;color:#ffd76a;margin-left:6px}
 .rdWarn.bp{border-color:#ff5f7a}
-body.bpOn .wbFight{display:none}   /* (v391) 공격 패턴 중에는 싸움 칸을 숨김 (빈 칸 · 가로 폰에서 무대를 가림) — 아래 큰 버튼과 안내만 */
+body.bpOn .wbFight{display:none}   /* (v392) 실시간 보스전 — 아래 버튼 4개(◀ ⚔️ 🛡 ▶)는 늘 그대로 */
+body.blOn .wbFight{display:none} body.blOn .wb{padding-bottom:180px} body.blOn #rdIn{padding-bottom:150px}
+#bpCtl.bl .bpBtns{width:min(620px,100%);gap:8px}
+#bpCtl.bl button{height:84px;font-size:24px}
+#bpCtl.bl button.mv{flex:0 0 74px;background:linear-gradient(180deg,#ffe58f,#ffae3d);color:#3a1600;font-size:30px}
+#bpCtl.bl button.at{flex:1.2;background:linear-gradient(180deg,#ffd76a,#ff8a3d);color:#3a1600;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+#bpCtl.bl button.at small{font-size:12px;font-weight:900;opacity:.85}
+#bpCtl.bl button.sh.wait{filter:grayscale(.6) brightness(.8)}
+#bpCtl.bl button.cool{animation:wbNudge .3s}
+#bpCtl.bl{padding-top:10px}
+#bpCtl.bl .blEnd{position:absolute;right:10px;top:-30px;pointer-events:auto;height:28px;flex:none;padding:0 12px;border-radius:999px;font-size:13px;font-weight:900;background:rgba(30,10,40,.85);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,.35)}
+#bpCtl.bl .bpHint{font-size:13px}
+.blMark{position:absolute;height:34px;margin-bottom:-12px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(10,0,5,.85),rgba(150,0,30,.6) 55%,rgba(255,60,80,0) 74%);box-shadow:0 0 0 2px rgba(255,90,110,.55);pointer-events:none;z-index:4;transform-origin:center;opacity:.35}
+.blMark.fin{height:30px;background:radial-gradient(ellipse at center,rgba(40,0,20,.85),rgba(160,0,60,.5) 60%,rgba(255,60,80,0) 75%)}
+.blBand{position:absolute;height:64px;border-radius:40%;background:linear-gradient(90deg,rgba(255,40,60,.25),rgba(255,40,60,.75));pointer-events:none;z-index:3}
+.rsHero.blShield::after{content:"🛡";position:absolute;left:62%;top:30%;font-size:30px;filter:drop-shadow(0 0 8px #8fdcff);pointer-events:none}
+@media (max-height:520px){ #bpCtl.bl button{height:58px;font-size:19px} #bpCtl.bl button.mv{flex-basis:60px} body.blOn .wb{padding-bottom:110px} body.blOn #rdIn{padding-bottom:100px} }
+/* (v391) 공격 패턴 중에는 싸움 칸을 숨김 (빈 칸 · 가로 폰에서 무대를 가림) — 아래 큰 버튼과 안내만 */
 body.bpOn .wb{padding-bottom:170px}
 #bpCtl .bpHint{background:rgba(30,10,40,.88);border:1.5px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 14px}
 #bpCtl .bpRes{background:rgba(30,10,40,.7);border-radius:12px;padding:0 10px}#bpCtl .bpRes:not(.on){background:none}
@@ -13584,7 +13601,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v391";
+const GAME_VER = "v392";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13695,6 +13712,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    ⚠️ (v332 사용자) 공지는 아이가 신날 소식만 — 새 보스 · 새 캐릭터·스킨 · 새 놀이·이벤트 · 새 보상. 그림 바꿈 · 화면 정리 · 선생님 기능(시험·숙제·관리) · 버그 고침은 공지하지 않는다 (매일 '뭐 했다'가 뜨면 안 됨)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-23e", date:"10월 23일", title:"⚔️ 보스와 진짜로 싸워요!",
+   items:[
+     ["🎮","버튼 4개 그대로","◀ 이동 · ⚔️ 공격 · 🛡 막기 · 이동 ▶ — 보스는 아무 때나 공격해요"],
+     ["👀","보스를 잘 봐요","바닥 그림자는 옆으로 피하고 · 휩쓸기는 뒤로 · 날아오는 공은 막거나 피해요"],
+     ["✨","맞는 순간 🛡","딱 맞춰 막으면 완벽 반격! · 욕심내서 때리다 보면 맞을 수 있어요"]]},
   {id:"2026-10-23d", date:"10월 23일", title:"⚔️ 보스가 진짜로 공격해요!",
    items:[
      ["🛡","타이밍 막기","노란 원이 점선 원에 닿는 순간 막으면 ✨ 완벽! · 반격이 두 배"],
@@ -17859,51 +17881,51 @@ const WeekBoss = {
     this._pt=setTimeout(()=>{ if(!document.body.contains(d) || d._keep) return; d.classList.add("out"); setTimeout(()=>d.remove(), 350); }, 5200); }catch(e){ console.error(e); } },
   pipRow(lb, n, nw){ const K=HyBoss.STK; let h=''; for(let i=0;i<K;i++) h+='<i class="'+(i<n?(i>=n-nw?'on nw':'on'):'')+'"></i>'; return '<div class="wbStkR"><b>'+lb+'</b><span class="wbPips">'+h+'</span><em>'+n+'/'+K+'</em></div>'; },
   /* ── 공격 화면 (아이) ── */
-  fightFrame(){ return '<div class="wbFight" id="wbFight"><div class="wbStk" id="wbStk"></div><div class="wbBtns"><button class="wbSwing" data-wbf="swing"><b>⚔️ 공격!</b><small id="wbSwN"></small></button><button class="wbBlock" data-wbf="block"><b>🛡 막기</b><small>보스 공격 때</small></button></div><p class="wbFHint" id="wbFHint"></p></div>'; },
+  fightFrame(){ return '<div class="wbFight" id="wbFight"><div class="wbStk" id="wbStk"></div><div class="wbBtns one"><button class="wbSwing" data-wbf="fight"><b>⚔️ 싸우기!</b><small id="wbSwN"></small></button></div><p class="wbFHint" id="wbFHint"></p></div>'; },
   drawFight(){ const el=$("wbFight"); if(!el) return; const B=HyBoss.B, me=Kid.me(); if(!B || !me){ el.hidden=true; return; } const v=this.view(B, me), st=HyBoss.stock(me.id), n=st.r+st.s, F=this.F, left=HyBoss.left(me.id, "study");
-    el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0)+(F && F.combo>=2 ? '<div class="wbHp"><em>🔥 '+F.combo+' 콤보 · 공격 +'+Math.min(10,F.combo)+'</em></div>' : '');
-    const warn = F && F.phase==="warn"; el.classList.toggle("warn", !!warn); el.classList.toggle("empty", n<=0 && !warn);
-    $("wbSwN").textContent = warn ? "지금은 막기!" : n>0 ? "남은 기회 "+n : "기회 없음";
-    $("wbFHint").innerHTML = warn ? '⚠️ <b>'+Raid.esc(F.nm)+'</b>! 아래 큰 버튼으로 막거나 피해요' : v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
-      : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '보스 공격은 타이밍 막기 · 피하기 연습! 막으면 반격 + 🔥 콤보 (맞아도 손해 없어요)'; },
-  swing(rd){ if(this._rf) return; if(!rd && !this.fresh()){ this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.isOpen()){ this.draw(); this.swing(1); } }, ()=>{ this._rf=0; }); return; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 (다른 태블릿이 쓰러뜨린 보스를 때려 기회를 날리지 않게) */
-    HyBoss.roll(); const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; const v=this.view(B, me); if(v.dead){ if(this.F) this.result(); return; }
-    let F=this.F; if(F && (F.phase!=="idle" || Date.now()<F.lock)){ if(F.phase==="warn") this.nudge(".wbBlock"); return; }
-    if(HyBoss.left(me.id, "study")<=0){ hyToast("오늘은 여기까지! 하루 ⚔️"+HyBoss.CAP+" — 내일 또 때려요"); return; }
-    const st=HyBoss.stock(me.id); if(st.r+st.s<=0){ if(F) this.result(); else { this.nudge(".wbSwing"); hyToast("⚔️ 공격 기회가 없어요 — 공부·달리기로 모아요"); } return; }
-    if(!F) F=this.F={bid:B.id, sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"idle", next:3+Math.floor(Math.random()*3), lock:0, at:0, hp:this.HEARTS, combo:0};
-    if(!HyBoss.use(me)){ hyToast("반이 정해지지 않았어요 — 선생님께 반을 알려 주세요"); this.F=null; return; }
-    const crit=Math.random()<HyBoss.CRIT, d=(HyBoss.SW_MIN+Math.floor(Math.random()*(HyBoss.SW_MAX-HyBoss.SW_MIN+1)))*(crit?2:1)+Math.min(10, F.combo|0), add=HyBoss.add(me, d, "study");   /* (v390) 막기·피하기 콤보만큼 더 세게 (10까지) */
-    F.sw++; F.dmg+=add; F.lock=Date.now()+430; F.at=Date.now(); F.next--; try{ DM.add("swing", 1); }catch(e){}
-    RaidStage.attack(add, F.combo|0, false); if(crit) setTimeout(()=>RaidStage.num("💥 치명타!", "crit"), 140);
-    try{ SFX.tone(crit?780:560,.08,"square",.05,crit?300:260); }catch(e){}
-    this.drawFight(); this.after(); },
-  /* 휘두른 뒤 — 쓰러뜨림 / 기회 끝 / 보스 차례 */
-  after(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || !B || !me) return; const v=this.view(B, me), st=HyBoss.stock(me.id);
-    if(v.dead){ setTimeout(()=>this.result(), 1100); return; }
-    if(st.r+st.s<=0){ setTimeout(()=>this.result(), 900); return; }
-    if(F.next<=0){ F.phase="wait"; setTimeout(()=>this.bossTurn(), 650); } },
-  /* (v343) 사용자: 아이들이 보스 공격 모션을 보고 막아야 하는데, 막기를 누르면 그제야 공격 그림이 나오고 끝나면서 막았다(순서가 반대) →
-     경고와 함께 보스가 공격 동작을 시작 (느리게 · 맞는 순간 = 막기 시간 끝) · 막기를 누르면 🛡 방패를 들고 기다렸다가 맞는 순간에 막음 · 못 막으면 그 순간 맞음 */
-  IMPACT_MS:900,   // 공격 그림이 시작해서 맞는 순간까지 (느리게 튼 그림 기준)
-  /* (v390) 보스 차례 = 공격 패턴 (BossPat) — 사용자: 주간 보스는 패턴 연습용 · 맞아도 하트·기회는 안 깎음 (콤보만 끊김) · 막고 피하면 반격 + 콤보
-     분노(보스 체력 50% 아래): 더 자주 · 경고가 짧고 · 가끔 두 번 이어서 · 필살기(20% 아래): 한 판에 한 번 */
+    el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0);
+    el.classList.remove("warn"); el.classList.toggle("empty", n<=0);
+    $("wbSwN").textContent = n>0 ? "남은 기회 "+n : "기회 없음";
+    const bn=$("blN"); if(bn) bn.textContent = n+(F && F.combo>=2 ? " · 🔥"+F.combo : "");
+    $("wbFHint").innerHTML = v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
+      : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '⚔️ 싸우기 → 아래 버튼으로 공격 · 이동 · 막기! 보스는 아무 때나 공격해요 (연습이라 맞아도 괜찮아요)'; },
+  /* (v392) 실시간 싸움 — 「싸우기」를 누르면 BossLive 시작 · 기회를 다 쓰거나 「그만」이면 결과창 */
   HEARTS:5,
   book(){ try{ const s=Study.load(); return s.book || "g34"; }catch(e){ return "g34"; } },
-  bossTurn(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || !B || !this.isOpen() || BossPat.on()) return; const L=HyBoss.lineOf(B), v=this.view(B, me), pct=v.max ? v.hp/v.max : 1, rage=pct<0.5, fin=pct<0.2 && !F.fin, j=Math.floor(Math.random()*3);
-    if(fin) F.fin=1; F.phase="warn"; F.k=L.img+"-"+"abc"[j]; F.nm=L.atk[j]; F.warnAt=Date.now(); this.drawFight();
-    BossPat.run({j, rage, fin, k:F.k, nm:F.nm, book:this.book(), practice:true, done:res=>this.patDone(F, res, rage)}); },
-  patDone(F, res, rage){ if(this.F!==F) return; const me=Kid.me(); if(!me) return;
-    const cnt=res.perf*HyBoss.COUNTER*2 + res.good*HyBoss.COUNTER;   // 반격: 완벽 30 · 막기·피하기 15
+  pct(){ const B=HyBoss.B; if(!B) return 1; const v=this.view(B, Kid.me()); return v.max ? v.hp/v.max : 1; },
+  fight(rd){ if(this._rf) return; if(!rd && !this.fresh()){ this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.isOpen()){ this.draw(); this.fight(1); } }, ()=>{ this._rf=0; }); return; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 */
+    HyBoss.roll(); const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; const v=this.view(B, me); if(v.dead) return;
+    if(HyBoss.left(me.id, "study")<=0){ hyToast("오늘은 여기까지! 하루 ⚔️"+HyBoss.CAP+" — 내일 또 때려요"); return; }
+    const st=HyBoss.stock(me.id); if(st.r+st.s<=0){ this.nudge(".wbSwing"); hyToast("⚔️ 공격 기회가 없어요 — 공부·달리기로 모아요"); return; }
+    if(BossLive.on() && this.F) return;
+    const F=this.F={bid:B.id, sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"live", lock:0, at:Date.now(), combo:0};
+    BossLive.start({book:this.book(), practice:true, boss:()=>HyBoss.lineOf(HyBoss.B), rage:()=>this.pct()<0.5,
+      fin:()=>{ if(this.F===F && !F.fin && this.pct()<0.2){ F.fin=1; return true; } return false; },
+      attack:()=>this.hit(), onHit:n=>{ if(this.F!==F) return; F.hit+=n; F.combo=0; F.at=Date.now(); this.drawFight(); },
+      onOk:r=>this.okHit(F, r), end:()=>this.result()});
+    this.drawFight(); },
+  /* ⚔️ 한 번 = 공격 기회 1 · 데미지 8~12 (치명타 ×2) + 막기·피하기 콤보 (10까지) */
+  hit(rd){ if(!rd && !this.fresh()){ if(this._rf) return false; this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.F && BossLive.on()) this.hit(1); }, ()=>{ this._rf=0; }); return true; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 (다른 태블릿이 쓰러뜨린 보스에 기회를 날리지 않게) */
+    const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || !B || !me) return false; const v=this.view(B, me); if(v.dead){ setTimeout(()=>this.result(), 600); return false; }
+    if(HyBoss.left(me.id, "study")<=0){ hyToast("오늘은 여기까지! 하루 ⚔️"+HyBoss.CAP+" — 내일 또 때려요"); setTimeout(()=>this.result(), 600); return false; }
+    const st=HyBoss.stock(me.id); if(st.r+st.s<=0){ this.result(); return false; }
+    if(!HyBoss.use(me)){ hyToast("반이 정해지지 않았어요 — 선생님께 반을 알려 주세요"); return false; }
+    const crit=Math.random()<HyBoss.CRIT, d=(HyBoss.SW_MIN+Math.floor(Math.random()*(HyBoss.SW_MAX-HyBoss.SW_MIN+1)))*(crit?2:1)+Math.min(10, F.combo|0), add=HyBoss.add(me, d, "study");
+    F.sw++; F.dmg+=add; F.at=Date.now(); try{ DM.add("swing", 1); }catch(e){}
+    RaidStage.attack(add, F.combo|0, false); if(crit) setTimeout(()=>RaidStage.num("💥 치명타!", "crit"), 140);
+    try{ SFX.tone(crit?780:560,.08,"square",.05,crit?300:260); }catch(e){}
+    this.drawFight();
+    const v2=this.view(B, me), st2=HyBoss.stock(me.id); if(v2.dead) setTimeout(()=>this.result(), 1100); else if(st2.r+st2.s<=0) setTimeout(()=>{ if(this.F===F) this.result(); }, 1500);   // 마지막 기회 — 잠깐 보고 결과
+    return true; },
+  /* 막음·피함 — 완벽 반격 30 · 막기 15 · 피하기는 콤보만 */
+  okHit(F, r){ if(this.F!==F) return; const me=Kid.me(); if(!me) return; F.blk++; F.combo=(F.combo|0)+1; F.at=Date.now();
+    const cnt = r==="perf" ? HyBoss.COUNTER*2 : r==="good" ? HyBoss.COUNTER : 0;
     if(cnt>0){ const add=HyBoss.add(me, cnt, "study", 0); F.dmg+=add; try{ RaidStage.attack(add, F.combo|0, false); }catch(e){} }
-    F.blk+=res.ok; if(res.hurt){ F.hit+=res.hurt; F.combo=0; } else F.combo=(F.combo|0)+res.ok;
-    F.phase="idle"; F.at=Date.now();
-    if(rage && !res.hurt && !F.chain && Math.random()<0.35){ F.chain=1; this.drawFight(); setTimeout(()=>{ if(this.F===F){ F.phase="idle"; this.bossTurn(); } }, 450); return; }   // 분노: 이어서 한 번 더
-    F.chain=0; F.next=(rage?2:3)+Math.floor(Math.random()*(rage?2:3)); this.drawFight(); this.after(); },
-  block(){ if(BossPat.on()){ BossPat.press("shield"); return; } this.nudge(".wbBlock"); },
+    this.drawFight(); },
+  swing(){ if(!(BossLive.on() && this.F)) this.fight(); if(BossLive.on() && this.F) this.hit(); },   // (예전 이름 = 한 번 때리기 · 싸움이 없으면 시작하고)
+  block(){ if(BossLive.on()) BossLive.press("shield"); },
   nudge(sel){ const b=document.querySelector("#wbFight "+sel); if(!b) return; b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); },
-  endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); clearTimeout(F.ta); this.F=null; const pat=BossPat.on(); BossPat.stop(); try{ RaidStage.warn(false); RaidStage.guardUp(false); }catch(e){}
-    if(false && (F.phase==="warn" || F.phase==="strike" || pat) && F.bid===(HyBoss.B||{}).id){   /* (v390) 연습용 — 공격 중에 닫아도 손해 없음 */ const me=Kid.me(); if(me) HyBoss.use(me); } },   /* (v337) QA: 0.98초 '내려치기' 중에 닫아도 -1 */   /* (v322) ⚠️ 경고 중에 ◀ 닫아도 못 막은 것 (기회 -1 피하기 막기) */
+  endFight(quiet){ const F=this.F; if(!F) return; this.F=null; BossLive.stop(); try{ RaidStage.warn(false); RaidStage.guardUp(false); }catch(e){} },   /* (v390~) 연습용 — 싸우다 닫아도 손해 없음 */
   /* 기회를 다 쓰면 — 결과창 (깎은 체력 전 → 후) */
   result(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || F.done || !B || !me) return; F.done=1; this.endFight(); const d=$("wbView"); if(!d) return;
     const v=this.view(B, me), max=Math.max(1,v.max), h0=Math.min(max, F.hp0), h1=v.dead?0:v.hp, E=x=>Raid.esc(x), nx=HyBoss.nextOf(B), pc=h=>(h/max*100).toFixed(1);
@@ -17933,10 +17955,10 @@ const WeekBoss = {
     },
   /* 가만히 있을 때 보스가 가끔 포효 (데미지 없음) */
   idle(){ if(this.isOpen() && this.F && !document.hidden && !this.fresh()) HyBoss.refresh(true);   /* (v322) 싸우는 동안 8초마다 체력 다시 읽기 */
-    if(!this.isOpen() || this._busy || document.hidden || (this.F && Date.now()-(this.F.at||0)<7000)) return; const B=HyBoss.B; if(!B) return; const L=HyBoss.lineOf(B), v=this.view(B, this.host?null:Kid.me()); if(v.dead) return;
+    if(!this.isOpen() || this._busy || document.hidden || BossLive.on() || (this.F && Date.now()-(this.F.at||0)<7000)) return;   /* (v392) 싸우는 중엔 가짜 포효 없음 (진짜 공격과 헷갈림) */ const B=HyBoss.B; if(!B) return; const L=HyBoss.lineOf(B), v=this.view(B, this.host?null:Kid.me()); if(v.dead) return;
     const j=Math.floor(Math.random()*3); RaidStage.bossAtk(L.img+"-"+"abc"[j], L.atk[j]); },
   click(e){ const t=e.target; if(!t || !t.closest) return; const f=t.closest("[data-wbf]");
-    if(f){ const a=f.dataset.wbf; if(a==="swing") this.swing(); else if(a==="block") this.block(); else if(a==="rx"){ const r=$("wbRes"); if(r) r.remove(); } return; }
+    if(f){ const a=f.dataset.wbf; if(a==="fight") this.fight(); else if(a==="swing") this.swing(); else if(a==="block") this.block(); else if(a==="rx"){ const r=$("wbRes"); if(r) r.remove(); } return; }
     const w=t.closest("[data-wb]");
     if(w){ const a=w.dataset.wb; try{ SFX.click(); }catch(er){} this.close();
       if(a==="study"){ try{ $("shSettings").classList.remove("on"); }catch(er){} StudyUI.open(); }
@@ -18389,94 +18411,96 @@ const DM = {
       if(a==="study"){ StudyUI.open(); return; }
       if($("scStudy").classList.contains("on")) StudyUI.close(); show("scStart"); setTimeout(()=>{ try{ $("btnGo").click(); }catch(er){} }, 60); } }
 };
-/* (v390) ⚔️ 보스 공격 패턴 — 사용자: 보스전이 그냥 두들겨 패는 느낌 · 체력 깎는 패턴도 타이밍 방어도 없음 (주간 보스 · 수업 레이드 둘 다)
-   보스 공격 3가지(BOSS_LINE atk 순서) = 패턴 3가지 · 보스 체력 20% 아래면 한 판에 한 번 필살기
-     slam  내려찍기  → 🛡 타이밍 막기: 줄어드는 노란 원이 점선 원(방패)에 닿는 순간 · 완벽 / 막기 / 너무 빨라요(맞음)
-     sweep 휩쓸기    → ◀ ▶ 피하기: (사용자: 빨간 쪽이 계속 보이면 그냥 누르기) 맞기 직전에 빨간 쪽이 한 번만 짧게 번쩍 → 그 뒤에 반대로
-                       번쩍이기 전에 누르면 = 너무 빨라요(보스가 따라옴, 맞음) · 번쩍 뒤 0.45초 안이면 완벽
-     burst 연속 발사 → 🛡 리듬 막기 3번 (탁·탁·탁 · 공마다 원)
-     fin   필살기    → 완벽 막기만 버팀 (그냥 막기 ❤️-1 · 못 막음 ❤️-2)
-   판정 시간은 학년별 (유치원·G1-2 넓게 · 중등 좁게) · 결과 {perf, good, ok, hurt} → 부르는 쪽(주간 보스·레이드)이 반격·하트를 정함
-   버튼은 화면 아래 큰 칸(#bpCtl, 누르는 순간 pointerdown) · 키보드 Space·←·→ 도 됨 */
-const BossPat = {
-  A:null,
+/* (v392) ⚔️ 실시간 보스전 (BossLive) — 사용자: 막기·이동 버튼이 늘 한 화면에 있어야 · 공격이 올 때 막기가 켜지는 건 넌센스 · 주간 보스가 게임이 아니라 시뮬레이션
+   버튼은 처음부터 끝까지 그대로: ◀ 이동 · ⚔️ 공격(주간 보스) · 🛡 막기 · 이동 ▶ — 공격이 오는지는 보스 몸짓·무대 표시로만 알 수 있음
+   내 자리 3칸(0 뒤 · 1 가운데 · 2 앞=보스 쪽, 피하기용). 보스는 내가 때리는 것과 상관없이 2~4.5초마다(분노 1.4~3초) 공격:
+     내려찍기  → 공격이 시작될 때 내 칸 바닥에 그림자 → 옆 칸으로 피하거나 맞는 순간 🛡
+     휩쓸기    → 가운데·앞 칸 (맞기 직전에만 빨갛게 번쩍) → 뒤 칸으로 물러나거나 맞는 순간 🛡
+     연속 발사 → 공 3개 · 공을 쏘는 순간 내 칸으로 날아옴 → 움직여 피하거나 공마다 🛡
+     필살기    → 모든 칸 · 맞는 순간 딱 맞춘 🛡(완벽)만 버팀 (보스 20% 아래 한 번)
+   🛡 = 누르는 순간 방패 · 판정 = 맞는 순간과의 차이 (학년별 WIN) · 다시 누르려면 잠깐 (연타 막기)
+   ⚔️ = 공격 기회 1 (맨 뒤 칸이면 한 칸 앞으로) · 휘두르는 0.45초 동안은 움직이거나 막을 수 없음 (욕심내면 맞음) */
+const BossPat = {   // (v390 → v392) 판정 시간만 남김
   WIN:{low:{p:190, g:420}, mid:{p:150, g:340}, high:{p:120, g:280}},
-  win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; },
-  KIND:["slam","sweep","burst"],
-  HINT:{slam:"🟡 노란 원이 점선 원에 닿을 때 🛡 막기!", sweep:"👀 빨간 쪽이 번쩍! 하는 순간 반대로 피해요", burst:"💧 탁·탁·탁 — 공이 올 때마다 🛡 3번!", fin:"💀 필살기! 원이 닿는 순간 딱 맞춰 막아야 버텨요"},
-  /* (v391) 공격이 시작되면 무대(보스·내 캐릭터)가 화면에 보이게 — 가로 폰에서 아래 큰 버튼·싸움 칸에 무대가 가려 원·번쩍이 안 보이던 것 */
+  win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; }
+};
+const BossLive = {
+  S:null, STEP:70,
+  on(){ return !!this.S; },
+  lead(W){ return W.g>=400 ? 1350 : W.g<300 ? 900 : 1100; },
+  start(o){ this.stop(); const now=performance.now(), W=BossPat.win(o.book), S=this.S={o, W, lead:this.lead(W), pos:1, sh:-1e9, cd:0, busy:0, next:now+1800, A:null, hold:false};
+    this.ui(S); document.body.classList.add("blOn"); this.place(S);
+    setTimeout(()=>{ if(this.S===S) this.show(); }, 40);
+    const loop=()=>{ if(this.S!==S) return; try{ this.tick(); }catch(e){ console.error(e); } S.raf=requestAnimationFrame(loop); }; S.raf=requestAnimationFrame(loop);
+    S.iv=setInterval(()=>{ if(this.S===S) this.tick(); }, 120);   // 탭이 가려져 그림이 멈춰도 판정은 됨
+    return S; },
+  stop(){ const S=this.S; this.S=null; if(!S) return; cancelAnimationFrame(S.raf); clearInterval(S.iv); const c=$("bpCtl"); if(c) c.remove(); document.body.classList.remove("blOn");
+    document.querySelectorAll(".blMark,.blBand,.bpBall").forEach(e=>e.remove());
+    try{ RaidStage.warn(false); if(RaidStage.el) RaidStage.el.classList.remove("bpFin"); if(RaidStage.me){ RaidStage.me.el.style.marginLeft=""; RaidStage.me.el.classList.remove("blShield"); } }catch(e){} },
+  /* 레이드 쉬기·멈춤 — 공격만 멈춤 (버튼은 그대로) */
+  hold(on){ const S=this.S; if(!S || S.hold===!!on) return; S.hold=!!on; if(on && S.A){ this.clear(); S.A=null; try{ RaidStage.warn(false); }catch(e){} } if(!on) S.next=performance.now()+1800; },
+  tick(now){ const S=this.S; if(!S) return; now=now||performance.now();
+    if(!S.A && !S.hold && now>=S.next && !(S.o.quiet && S.o.quiet())) this.launch(now);
+    const A=S.A; if(A){ A.hits.forEach((h,i)=>{ if(!A.done[i] && now>=h.t) this.judge(A, i); });
+      if(this.S===S && S.A===A && A.done.every(x=>x)){ this.clear(); S.A=null; try{ RaidStage.warn(false); if(RaidStage.el) RaidStage.el.classList.remove("bpFin"); }catch(e){} const r=S.o.rage && S.o.rage(); S.next=now+(r ? 1400+Math.random()*1600 : 2000+Math.random()*2500); } }
+    if(this.S===S) this.paint(now); },
+  launch(now){ const S=this.S, o=S.o, b=o.boss(), fin=!!(o.fin && o.fin()), j=fin ? 0 : Math.floor(Math.random()*3), kind=fin ? "fin" : ["slam","sweep","burst"][j], L=S.lead, k=b.img+"-"+"abc"[j];
+    const A=S.A={kind, k, nm:(b.atk||[])[j]||"공격", t0:now, hits:[], done:[]};
+    if(kind==="slam") A.hits=[{t:now+L, z:[S.pos]}];
+    else if(kind==="sweep") A.hits=[{t:now+L+150, z:[1,2], rv:now+L+150-(S.W.g>=400 ? 700 : S.W.g<300 ? 450 : 550)}];
+    else if(kind==="fin") A.hits=[{t:now+L+700, z:[0,1,2]}];
+    else { const gap=(o.rage && o.rage()) ? 430 : 560; A.hits=[0,1,2].map(i=>({t:now+L+i*gap, z:null})); }
+    A.done=A.hits.map(()=>0);
+    try{ RaidStage.charge((fin?"💀 필살기 · ":"")+A.nm); RaidStage.warn(true); if(RaidStage.el) RaidStage.el.classList.toggle("bpFin", fin); }catch(e){}
+    try{ SFX.tone(fin?220:330,.16,"sawtooth",.045,fin?140:220); }catch(e){}
+    const first=A.hits[0].t; setTimeout(()=>{ if(this.S===S && S.A===A) try{ RaidStage.windup(k, Math.max(300, first-performance.now())); }catch(e){} }, Math.max(0, first-now-900));
+    if(kind==="slam" || kind==="fin") A.hits[0].mk=this.mark(A.hits[0].z, kind); },
+  judge(A, i){ const S=this.S, h=A.hits[i], W=S.W, z = A.kind==="burst" ? [h.aim==null ? S.pos : h.aim] : h.z, d=h.t-S.sh;   // d = 방패를 들고 몇 ms 뒤에 맞았나
+    let r = z.indexOf(S.pos)<0 ? "dodge" : Math.abs(d)<=W.p ? "perf" : (d>=0 && d<=W.g) ? "good" : "hit";
+    let hurt = r==="hit" ? (A.kind==="fin" ? 2 : 1) : 0; if(A.kind==="fin" && r==="good"){ r="hit"; hurt=1; }   // 필살기: 그냥 막기는 반만
+    A.done[i]=r; if(h.ball){ h.ball.remove(); h.ball=null; } if(h.mk){ h.mk.remove(); h.mk=null; }
+    this.fx(A, r, hurt);
+    try{ if(hurt){ if(S.o.onHit) S.o.onHit(hurt, A.kind); } else if(S.o.onOk) S.o.onOk(r, A.kind); }catch(e){ console.error(e); } },
+  /* 누름 — "L" "R" 이동 · "shield" 막기 · "atk" 공격 (t = 누른 시각, 시험용) */
+  press(k, t){ const S=this.S; if(!S) return false; const now=t||performance.now(), o=S.o;
+    if(k==="L" || k==="R"){ if(now<S.busy) return true; const p=Math.max(0, Math.min(2, S.pos+(k==="R"?1:-1))); if(p!==S.pos){ S.pos=p; this.place(S); try{ SFX.tone(520,.05,"triangle",.035,700); }catch(e){} } return true; }
+    if(k==="shield"){ if(now<S.cd || now<S.busy){ this.flash("shield", "cool"); return true; } S.sh=now; S.cd=now+S.W.g+380; this.guard(); this.flash("shield", "hit"); return true; }
+    if(k==="atk" && o.attack){ if(now<S.busy) return true; if(S.pos===0){ S.pos=1; this.place(S); } if(o.attack()!==false){ S.busy=now+450; this.flash("atk", "hit"); } return true; }
+    return false; },
+  /* ── 그림 ── */
+  ui(S){ const o=S.o, c=document.createElement("div"); c.id="bpCtl"; c.className="bl"+(o.attack?" atk":"");
+    c.innerHTML=(o.end?'<button class="blEnd" data-bp="end">그만 ✕</button>':'')+'<div class="bpRes" id="bpRes"></div><div class="bpHint">👀 그림자는 옆으로 · 휩쓸기는 뒤로 · 맞는 순간 🛡</div><div class="bpBtns">'
+      +'<button class="mv" data-bp="L">◀</button>'+(o.attack ? '<button class="at" data-bp="atk">⚔️ 공격<small id="blN"></small></button>' : '')+'<button class="sh" data-bp="shield">🛡 막기</button><button class="mv" data-bp="R">▶</button></div>';
+    c.addEventListener("pointerdown", e=>{ const b=e.target.closest && e.target.closest("[data-bp]"); if(!b) return; e.preventDefault(); const k=b.dataset.bp; if(k==="end"){ if(o.end) o.end(); return; } this.press(k); });
+    document.body.appendChild(c); },
+  flash(k, cls){ const b=document.querySelector('#bpCtl [data-bp="'+k+'"]'); if(!b) return; b.classList.remove("hit","cool"); void b.offsetWidth; b.classList.add(cls); },
   show(){ const st=RaidStage.el; if(!st || !st.getBoundingClientRect) return; const r=st.getBoundingClientRect(), bar=$("bpCtl"), bh=bar ? bar.getBoundingClientRect().height : 140;
     if(r.top<0 || r.bottom>innerHeight-bh){ try{ st.scrollIntoView({block:"start", behavior:"smooth"}); }catch(e){ st.scrollIntoView(true); } } },
-  on(){ return !!this.A; },
-  run(o){ this.stop(); const now=performance.now(), kind=o.fin ? "fin" : this.KIND[(o.j|0)%3], W=this.win(o.book), lead=o.fin ? 2600 : o.rage ? 1500 : 2000;
-    const A=this.A={o, W, kind, t0:now, lead, gap:o.rage?440:580, res:{kind, perf:0, good:0, ok:0, hurt:0}, hits:[], done:[], side:null, dodge:null, dodgeAt:0};
-    A.hits = kind==="burst" ? [0,1,2].map(i=>now+lead+i*A.gap) : [now+lead]; A.done=A.hits.map(()=>0);
-    if(kind==="sweep"){ A.side = Math.random()<0.5 ? "L" : "R"; A.rv = A.hits[0] - (W.g>=400 ? 900 : W.g<300 ? 550 : 700); }   // 번쩍이는 때 (학년별)
-    this.ui(A); document.body.classList.add("bpOn"); setTimeout(()=>{ if(this.A===A) this.show(); }, 30);
-    try{ RaidStage.charge((kind==="fin"?"💀 필살기 · ":"")+(o.nm||"공격")); RaidStage.warn(true); if(RaidStage.el) RaidStage.el.classList.toggle("bpFin", kind==="fin"); }catch(e){}
-    try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>{ try{ SFX.tone(330,.18,"sawtooth",.05,220); }catch(e){} }, 300); }catch(e){}
-    A.wt=setTimeout(()=>{ if(this.A===A) try{ RaidStage.windup(o.k, Math.max(300, A.hits[0]-performance.now())); }catch(e){} }, Math.max(0, lead-900));
-    const loop=()=>{ if(this.A!==A) return; try{ this.tick(); }catch(e){ console.error(e); } A.raf=requestAnimationFrame(loop); }; A.raf=requestAnimationFrame(loop);
-    A.iv=setInterval(()=>{ if(this.A===A) this.tick(); }, 120);   // 탭이 가려져 그림이 멈춰도 판정은 됨
-    return A; },
-  tick(now){ const A=this.A; if(!A) return; now=now||performance.now();
-    A.hits.forEach((h,i)=>{ if(!A.done[i] && now>h+A.W.g) this.judge(i, null, now); });
-    if(this.A===A) this.paint(A, now); },
-  /* 누름 — kind: "shield" | "L" | "R" · t = 누른 시각 (시험용) */
-  press(kind, t){ const A=this.A; if(!A) return false; const now=t||performance.now();
-    if(A.kind==="sweep"){ if(kind!=="L" && kind!=="R"){ this.say("◀ ▶ 로 피해요!"); return true; } if(A.dodge || now-A.t0<150) return true;
-      A.dodge=kind; A.dodgeAt=now; A.early = now < A.rv; this.move(kind); try{ SFX.tone(520,.06,"triangle",.04,780); }catch(e){}
-      if(A.early){ this.say("😣 너무 빨라요 — 보스가 따라와요!"); this.judge(0, null, now); } return true; }
-    if(kind!=="shield"){ this.say("🛡 막기!"); return true; }
-    if(now-A.t0<150) return true;   // 경고가 뜨자마자 눌러 둔 것은 무시
-    const i=A.done.findIndex(x=>!x); if(i<0) return true;
-    this.judge(i, now-A.hits[i], now); return true; },
-  judge(i, d, now){ const A=this.A; if(!A || A.done[i]) return; const W=A.W; let r;
-    if(A.kind==="sweep"){ const ok=A.dodge && !A.early && A.dodge!==A.side; r = A.early ? "early" : ok ? (A.dodgeAt-A.rv<=450 ? "perf" : "good") : "miss"; }
-    else if(d==null) r="miss";
-    else r = d < -W.g ? "early" : Math.abs(d)<=W.p ? "perf" : Math.abs(d)<=W.g ? "good" : "miss";
-    const hurt = A.kind==="fin" ? (r==="perf" ? 0 : r==="good" ? 1 : 2) : (r==="perf" || r==="good") ? 0 : 1;
-    A.done[i]=r; if(!hurt){ A.res.ok++; if(r==="perf") A.res.perf++; else A.res.good++; } A.res.hurt+=hurt;
-    this.fx(A, i, r, hurt);
-    if(A.done.every(x=>x)){ clearTimeout(A.et); A.et=setTimeout(()=>this.finish(A), 650); } },
-  finish(A){ if(this.A!==A) return; const cb=A.o.done; this.stop(); try{ if(cb) cb(A.res); }catch(e){ console.error(e); } },
-  stop(){ const A=this.A; this.A=null; if(!A) return; cancelAnimationFrame(A.raf); clearInterval(A.iv); clearTimeout(A.wt); clearTimeout(A.et);
-    ["bpCtl"].forEach(id=>{ const e=$(id); if(e) e.remove(); }); document.body.classList.remove("bpOn"); document.querySelectorAll(".bpRing,.bpTgt,.bpSw,.bpBall").forEach(e=>e.remove());
-    try{ RaidStage.warn(false); if(RaidStage.el) RaidStage.el.classList.remove("bpFin"); if(RaidStage.me){ RaidStage.me.el.style.marginLeft=""; RaidStage.me.el.classList.remove("bpDodge"); } }catch(e){} },
-  /* ── 그림 ── */
-  ui(A){ const c=document.createElement("div"); c.id="bpCtl"; c.className="bp "+A.kind;
-    c.innerHTML='<div class="bpRes" id="bpRes"></div><div class="bpHint">'+this.HINT[A.kind]+'</div><div class="bpBtns">'
-      +(A.kind==="sweep" ? '<button class="dg" data-bp="L">◀ 피하기</button><button class="dg" data-bp="R">피하기 ▶</button>' : '<button data-bp="shield">🛡 막기</button>')+'</div>';
-    c.addEventListener("pointerdown", e=>{ const b=e.target.closest && e.target.closest("[data-bp]"); if(!b) return; e.preventDefault(); this.press(b.dataset.bp); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); });
-    document.body.appendChild(c); this.attach(A); },
-  attach(A){ const me=RaidStage.me; if(!me || !me.el) return; const h=me.el;
-    if(A.kind==="sweep"){ if(!h.querySelector(".bpSw")){ const z=document.createElement("div"); z.className="bpSw "+A.side; z.innerHTML='<b>⚠️</b>'; h.appendChild(z); } }
-    else { if(!h.querySelector(".bpTgt")){ const g=document.createElement("div"); g.className="bpTgt"; g.textContent="🛡"; h.appendChild(g); } if(!h.querySelector(".bpRing")){ const r=document.createElement("div"); r.className="bpRing"; h.appendChild(r); } } },
-  paint(A, now){ const me=RaidStage.me; if(!me || !me.el) return; if(!me.el.querySelector(A.kind==="sweep" ? ".bpSw" : ".bpRing")) this.attach(A);
-    if(A.kind==="sweep"){ const z=me.el.querySelector(".bpSw"); if(z) z.classList.toggle("on", now>=A.rv && now<A.rv+350); return; }   // 한 번만 짧게 번쩍
-    const i=A.done.findIndex(x=>!x), r=me.el.querySelector(".bpRing"); if(!r) return;
-    if(i<0){ r.style.opacity="0"; return; }
-    const from = i>0 ? Math.max(A.hits[i-1], A.t0) : A.t0, span=Math.max(200, A.hits[i]-from), dt=A.hits[i]-now, s=1+Math.max(0, Math.min(1, dt/span))*2.2;
-    r.style.opacity="1"; r.style.transform="scale("+s.toFixed(3)+")"; r.classList.toggle("near", Math.abs(dt)<=A.W.g);
-    if(A.kind==="burst") this.balls(A, now); },
-  /* 연속 발사 — 보스에서 내 캐릭터로 날아오는 공 */
-  balls(A, now){ const st=RaidStage.el, fx=RaidStage.fx, me=RaidStage.me; if(!st || !fx || !me) return; const sr=st.getBoundingClientRect(), hr=me.el.getBoundingClientRect(); if(!sr.width) return;
-    const hx=(hr.left+hr.width/2-sr.left)/sr.width*100, hy=(hr.top+hr.height*0.42-sr.top)/sr.height*100, TR=800;
-    A.balls=A.balls||[];
-    A.hits.forEach((h,i)=>{ let b=A.balls[i]; const p=1-(h-now)/TR;
-      if(A.done[i] || p<0){ if(b && A.done[i]){ b.remove(); A.balls[i]=null; } return; }
-      if(!b){ b=A.balls[i]=document.createElement("i"); b.className="bpBall"; fx.appendChild(b); }
-      const q=Math.min(1, p); b.style.left=(72+(hx-72)*q).toFixed(1)+"%"; b.style.top=(34+(hy-34)*q-Math.sin(q*Math.PI)*8).toFixed(1)+"%"; }); },
-  move(side){ const me=RaidStage.me; if(!me) return; me.el.classList.add("bpDodge"); me.el.style.marginLeft = side==="L" ? "-64px" : "64px"; },
-  say(t){ const e=$("bpRes"); if(!e) return; e.textContent=t; e.className="bpRes on"; void e.offsetWidth; },
-  fx(A, i, r, hurt){ const TX={perf:"✨ 완벽!", good:A.kind==="sweep" ? "💨 피했다!" : "🛡 막았다!", early:"😣 너무 빨라요!", miss:A.kind==="sweep" ? "💥 못 피했어요" : "💥 맞았어요"};
-    const pr=!!A.o.practice, ht = hurt && !pr ? " ❤️-"+hurt : "";   /* (v391) 주간 보스 = 연습 — 하트 글자 없이 */
-    const e=$("bpRes"); if(e){ e.textContent=TX[r]+ht+(hurt && pr ? " · 다시 해 봐요!" : ""); e.className="bpRes on "+(hurt ? "bad" : r); }
-    try{ if(!hurt){ const s=RaidStage.me && RaidStage.me.el; if(s){ s.classList.remove("guard"); void s.offsetWidth; s.classList.add("guard"); } RaidStage.num(TX[r], r==="perf" ? "crit" : "blk", true); SFX.tone(r==="perf"?1046:880,.14,"triangle",.05,r==="perf"?2093:1760); }
-      else { RaidStage.hurt(pr ? "💥 앗!" : "💥 ❤️-"+hurt); SFX.tone(160,.2,"square",.05); } if(A.kind!=="burst" || i===0) RaidStage.shake(); }catch(err){}
-    if(A.balls && A.balls[i]){ A.balls[i].remove(); A.balls[i]=null; } }
+  base(){ const me=RaidStage.me; if(!me || !me.el) return null; const e=me.el, m=parseFloat(e.style.marginLeft)||0; return {x:e.offsetLeft-m+e.offsetWidth/2, b:(e.parentNode.clientHeight||0)-(e.offsetTop+e.offsetHeight)}; },
+  place(S){ const me=RaidStage.me; if(!me || !me.el) return; me.el.classList.add("bpDodge"); me.el.style.marginLeft=((S.pos-1)*this.STEP)+"px"; },
+  guard(){ const me=RaidStage.me; if(!me || !me.el) return; me.el.classList.add("blShield"); try{ RaidStage.guardUp(true); }catch(e){} clearTimeout(this._gt); this._gt=setTimeout(()=>{ try{ if(RaidStage.me){ RaidStage.me.el.classList.remove("blShield"); RaidStage.guardUp(false); } }catch(e){} }, 420); },
+  mark(z, kind){ const st=RaidStage.el, B=this.base(); if(!st || !B) return null; const m=document.createElement("i"); m.className="blMark"+(kind==="fin"?" fin":"");
+    const x = kind==="fin" ? B.x : B.x+(z[0]-1)*this.STEP, w = kind==="fin" ? this.STEP*3.4 : this.STEP*1.25;
+    m.style.cssText="left:"+Math.round(x-w/2)+"px;width:"+Math.round(w)+"px;bottom:"+Math.max(0, Math.round(B.b-10))+"px"; st.appendChild(m); return m; },
+  clear(){ document.querySelectorAll(".blMark,.blBand,.bpBall").forEach(e=>e.remove()); },
+  paint(now){ const S=this.S, A=S.A, st=RaidStage.el; if(!st) return; const sb=$("bpCtl") && $("bpCtl").querySelector('[data-bp="shield"]'); if(sb) sb.classList.toggle("wait", now<S.cd);
+    if(!A) return;
+    A.hits.forEach((h,i)=>{ if(A.done[i]) return; const p=Math.max(0, Math.min(1, (now-A.t0)/Math.max(1, h.t-A.t0)));
+      if(h.mk){ h.mk.style.transform="scale("+(0.35+0.65*p).toFixed(3)+")"; h.mk.style.opacity=(0.35+0.65*p).toFixed(2); }
+      if(A.kind==="sweep"){ let bd=st.querySelector(".blBand"); const on=now>=h.rv && now<h.t+120;
+        if(on && !bd){ const B=this.base(); if(B){ bd=document.createElement("i"); bd.className="blBand"; bd.style.cssText="left:"+Math.round(B.x-this.STEP*0.55)+"px;width:"+Math.round(this.STEP*2.1)+"px;bottom:"+Math.max(0, Math.round(B.b-14))+"px"; st.appendChild(bd); } }
+        if(bd && !on) bd.remove(); }
+      if(A.kind==="burst"){ const TR=800; if(now<h.t-TR) return; if(h.aim==null) h.aim=S.pos;
+        const B=this.base(); if(!B || !st.clientWidth) return; let bl=h.ball; if(!bl){ bl=h.ball=document.createElement("i"); bl.className="bpBall"; st.appendChild(bl); }
+        const q=Math.min(1, 1-(h.t-now)/TR), tx=(B.x+(h.aim-1)*this.STEP)/st.clientWidth*100, ty=100-(B.b+(RaidStage.me.el.offsetHeight*0.5))/st.clientHeight*100;
+        bl.style.left=(72+(tx-72)*q).toFixed(1)+"%"; bl.style.top=(34+(ty-34)*q-Math.sin(q*Math.PI)*10).toFixed(1)+"%"; } }); },
+  fx(A, r, hurt){ const pr=!!this.S.o.practice, TX={perf:"✨ 완벽!", good:"🛡 막았다!", dodge:"💨 피했다!", hit:pr ? "💥 앗!" : "💥 ❤️-"+hurt};
+    const e=$("bpRes"); if(e){ e.textContent=TX[r]; e.className="bpRes on "+(hurt ? "bad" : r); }
+    try{ if(!hurt){ if(r!=="dodge"){ const s=RaidStage.me && RaidStage.me.el; if(s){ s.classList.remove("guard"); void s.offsetWidth; s.classList.add("guard"); } } RaidStage.num(TX[r], r==="perf" ? "crit" : "blk", true); SFX.tone(r==="perf"?1046:r==="dodge"?740:880,.12,"triangle",.05,r==="perf"?2093:1480); }
+      else { RaidStage.hurt(TX.hit); SFX.tone(160,.2,"square",.05); } if(A.kind!=="burst" || r==="hit") RaidStage.shake(); }catch(err){} }
 };
-addEventListener("keydown", e=>{ if(!BossPat.on()) return; const k=e.key; if(k===" " || k==="Enter"){ e.preventDefault(); BossPat.press("shield"); } else if(k==="ArrowLeft"){ e.preventDefault(); BossPat.press("L"); } else if(k==="ArrowRight"){ e.preventDefault(); BossPat.press("R"); } });
+addEventListener("keydown", e=>{ if(!BossLive.on() || e.repeat) return; const k=e.key;
+  if(k===" "){ e.preventDefault(); BossLive.press("shield"); } else if(k==="ArrowLeft"){ e.preventDefault(); BossLive.press("L"); } else if(k==="ArrowRight"){ e.preventDefault(); BossLive.press("R"); } else if(k==="Enter" || k==="a" || k==="A"){ e.preventDefault(); BossLive.press("atk"); } });
 const RaidStage = {
   BG:{hbS:["meadow","#9be8a0","#2c6b3a"], hb1:["meadow","#7cc6ff","#2c6b3a"], hb2:["desert","#ffcf8a","#a8743a"], hb3:["ice","#bfe6ff","#6fa3c8"], hb4:["volcano","#ff9a6a","#4a2020"], hb5:["castle","#9aa6ff","#3a3560"]},
   el:null, me:null, al:{}, fx:null, raf:0, seen:{}, t0:0,
@@ -18735,7 +18759,13 @@ const Raid = {
     this.drawKid(); setTimeout(()=>{ if(this.q===q){ this.next(); this.drawKid(); } }, ok?650:1500); },
   /* (v322) 내 점수는 서버에서 '더하기' — 절대값으로 쓰면 새로고침·두 기기·늦게 도착한 쓰기가 앞 값을 덮어씀. d·b·h·m·sh 모두 */
   bump(add, plain){ const now=this.now(); return RaidNet.inc("/p/"+this.me, add, Object.assign({at:now}, plain||{})); },
-  /* (v390) 패턴 끝 — 막은·피한 것만큼 반격 (완벽 25 · 막기 15) · 맞은 만큼 하트 -1 · 하트 0 이면 10초 쉬기 */
+  live(){ const cfg=RaidNet.get().cfg||{};
+    BossLive.start({book:cfg.book||"g34", boss:()=>this.rb(), rage:()=>!!this.calc().rage,
+      fin:()=>{ const c=this.calc(); if(c.pct<0.2 && c.hp>0 && !this._fin2){ this._fin2=1; return true; } return false; },
+      quiet:()=>{ const c=this.calc(); return !!c.shield || c.hp<=0 || this.st().s!=="run"; },
+      onHit:n=>{ this.hearts=Math.max(0, this.hearts-n); this.combo=0; if(!this.hearts){ this.restTo=this.now()+10000; this.hearts=3; } this.drawKid(); },
+      onOk:r=>{ this.blk++; const d = r==="perf" ? 25 : r==="good" ? 15 : 0, c=this.calc(); if(d>0 && !c.shield && this.st().s==="run"){ this.addDmg(d, "blk", {b:1}); try{ RaidStage.attack(d, this.combo, false); }catch(e){} } else this.bump({b:1}); this.drawKid(); }}); },
+  /* (v390) 패턴 끝 — (v392 부터 안 씀) */
   patDone(A, res){ if(this.atk!==A) return; const c=this.calc();
     if(res.ok){ this.blk+=res.ok; const d=res.perf*25+res.good*15; if(!c.shield && d>0 && this.st().s==="run"){ this.addDmg(d, "blk", {b:res.ok}); try{ RaidStage.attack(d, this.combo, false); }catch(e){} } else this.bump({b:res.ok}); }
     if(res.hurt){ this.hearts=Math.max(0, this.hearts-res.hurt); this.combo=0; if(!this.hearts){ this.restTo=this.now()+10000; this.hearts=3; } }
@@ -18773,30 +18803,28 @@ const Raid = {
     if(this.role!=="kid") return;
     if(st.s==="end" || (this.boss() && this.calc().hp<=0) || (st.s==="run" && st.t0 && this.now()-(st.t0+(st.dur||this.DUR)+(st.ex|0)+(st.pt|0))>10000)){ if(!this.ended) this.finish(); return; }   // (v305) 선생님 화면이 닫혀도 시간 지나면 끝
     if(now-(this._ping||0)>20000 && RaidNet.get().cfg){ this._ping=now; RaidNet.write("/p/"+this.me, {at:now}, true); }   // (v322) 기다리는 중·멈춤에도 '접속 중' 표시 (같은 이름 막기)
-    if(st.s==="pause"){ if(!this._pz) this._pz=now; if(!this.ended && now-(st.pa||this._pz)>10*60000){ this.finish(); return; }   // (v322) 멈춤 10분 넘으면 끝 (선생님 TV 가 멈춘 채 닫히면 아이들이 갇히던 것)
+    if(st.s==="pause"){ BossLive.hold(true); if(!this._pz) this._pz=now; if(!this.ended && now-(st.pa||this._pz)>10*60000){ this.finish(); return; }   // (v322) 멈춤 10분 넘으면 끝 (선생님 TV 가 멈춘 채 닫히면 아이들이 갇히던 것)
       this.drawKid(); return; }
     if(this._pz){ const d=now-this._pz; this._pz=0; if(this.atk){ this.atk.warnUntil+=d; this.atk.until+=d; } if(this.nextAtk) this.nextAtk+=d; if(this.restTo>now-d) this.restTo+=d; }   // (v308) 멈춘 동안 공격 시간도 멈춤
-    if(st.s!=="run"){ this.drawKid(); return; }
+    if(st.s!=="run"){ if(st.s!=="pause") BossLive.stop(); this.drawKid(); return; }
     if(!this.q && !this.atk && now>=this.restTo) { this.next(); this.drawKid(); }
     const c=this.calc();
     if(!this.nextAtk) this.nextAtk = now + 6000 + Math.random()*4000;
-    /* (v390) 보스 공격 = 패턴 (BossPat) — 문제 대신 타이밍 막기·피하기 · 레이드 하트 ❤️3 */
-    if(!this.atk && now>=this.nextAtk && now>=this.restTo && !c.shield && !BossPat.on()){ const b=this.rb(), j=Math.floor(Math.random()*3), fin=c.pct<0.2 && c.hp>0 && !this._fin2; if(fin) this._fin2=1;
-      const A=this.atk={pat:1, k:b.img+"-"+"abc"[j], nm:(b.atk||[])[j]||"공격"}; this.anim={k:A.k, nm:A.nm, t0:Date.now()};
-      BossPat.run({j, rage:!!c.rage, fin, k:A.k, nm:A.nm, book:(RaidNet.get().cfg||{}).book||"g34", done:res=>this.patDone(A, res)});
-      this.nextAtk = now + (c.rage ? this.RAGE_ATK : this.ATK_MS) + Math.random()*2000; this.drawKid(); }
+    /* (v392) 보스 공격 = 실시간 (BossLive) — 문제는 계속 풀고, 아래 ◀ 🛡 ▶ 는 늘 그대로 · 하트 ❤️3 (0 이면 10초 쉬기) */
+    if(!BossLive.on()) this.live();
+    BossLive.hold(this.restTo>now);
     if(this.atk && this.atk.q && !this.atk.res && now>=this.atk.warnUntil && !this.atk.shown){ this.atk.shown=1; this.qAt=now; this.drawKid(); }
     if(this.atk && this.atk.q && !this.atk.res && now>=this.atk.until){ this.atk.q.done=1; this.atk.res="hit"; try{ RaidStage.strike(this.atk.k, false); }catch(e){} this.hearts=Math.max(0,this.hearts-1); if(!this.hearts){ this.restTo=now+10000; this.hearts=3; }
       try{ SFX.tone(160,.2,"square",.05); }catch(e){} setTimeout(()=>{ this.atk=null; this.next(); this.drawKid(); }, 1500); this.drawKid(); }
     this.drawKid(); },
-  finish(){ this.ended=true; const c=this.calc(), st=this.st(), key="rd-"+this.room+"-"+(st.t0||0); let gems=0;
+  finish(){ this.ended=true; BossLive.stop(); const c=this.calc(), st=this.st(), key="rd-"+this.room+"-"+(st.t0||0); let gems=0;
     try{ if(this.role==="kid" && this.pick && this.hits+this.miss+this.blk>0 && this._dy!==key){ this._dy=key; HyDay.add({c:1, cr:1}, null, this.pick); } }catch(e){}   // (v354) 📅 오늘 한 아이
     if(this.dmg+this.blk+this.shk+this.hits>0 && !Wallet.paid(key)){ /* (v322) 새로고침 뒤 안 풀었어도 깎은 데미지가 있으면 참가 💎 */ Wallet.pay(key); gems = this.boss() ? 10 : c.hp<=0 ? 40 : 15; Wallet.addGems(gems, "레이드 "+this.room); }   // (v303) 학원 보스면 참가 💎 + 쓰러뜨리면 보상 나눔 · (v318) 3·8·5 → 10·40·15 (사용자: 잡는 것에 비해 짜다)
     try{ if(Online.on() && !Wallet.paid("s"+key) && (Wallet.pay("s"+key), true)) Online.submit({nick:(this.name||"PLAYER").toUpperCase().slice(0,10), score:this.dmg, diff:"study", rule:"study-raid", stage:0, acc:Math.round(this.hits/Math.max(1,this.hits+this.miss)*100), right:this.hits, wrong:this.miss,
       clear:c.hp<=0?1:0, end:"raid", set:"레이드 "+this.room+(this.boss() && this.boss().team ? " · "+HyBoss.tName(this.team) : ""), secs:0, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:""}); }catch(e){}
     this._gems=gems; if(this.boss() && c.hp<=0) setTimeout(()=>{ this._claim=HyBoss.claim(this.pick); this._hA=null; this.drawKid(); }, 800);
     this.drawKid(); try{ if(c.hp<=0) confetti(); }catch(e){} setTimeout(()=>{ if(this.role==="kid") this.drawKid(); }, 6500); },   // (v310) 시상식 — TV 가 없어도 6초 뒤 내 기기에서
-  leave(){ clearInterval(this.t); this.t=null;
+  leave(){ clearInterval(this.t); this.t=null; BossLive.stop();
     if(this.role==="kid" && this.ended) RaidJoin.saveLast(null);   // (v322) 끝난 방은 「다시 들어가기」에서 뺌
     if(this.role==="host"){ TvRoom.save(null); const st=this.st(), r=this.room;   // (v322) 선생님이 닫으면 = 레이드 끝 (멈춤 중이어도) · 시상식을 바로 적고, 20초 뒤 방을 지움 (아이 화면은 마지막 모습 그대로)
       if(st.s==="run" || st.s==="pause"){ const now=this.now(), L=this.awards(RaidNet.get().p, st); RaidNet.write("/st", {s:"end", endAt:now, aw:L.length ? L : 0}, true); }
@@ -18814,7 +18842,7 @@ const Raid = {
   /* (v307) 무대 위 한 줄 — 보스 이름 · 체력 · 시간 (그림은 무대에) */
   hpHtml(c){ const st=this.st(), pc=Math.round(c.pct*100);
     return '<div class="rdHpRow"><b>👹 '+this.esc(this.rb().n)+'</b><div class="rdHp"><i style="width:'+pc+'%"></i><span>'+c.hp.toLocaleString()+' / '+c.max.toLocaleString()+'</span></div><small>'+(st.s==="wait"||!st.s?'⏳ 기다리는 중':st.s==="pause"?'⏸ 멈춤':st.s==="end"?'🏁 끝':'⏱ '+this.mmss(this.left()))+(c.shield?' · 🛡 방패':c.rage?' · 😡 분노':'')+'</small></div>'; },
-  stageSync(c, st){ if(!RaidStage.ensure(this.role)) return; RaidStage.state(c, st); RaidStage.allies(c.P, this.role==="kid"?this.me:null); RaidStage.feed(RaidNet.get().ev, this.name); RaidStage.warn(this.role==="kid" && this.atk && !this.atk.shown && !this.atk.res); },
+  stageSync(c, st){ if(!RaidStage.ensure(this.role)) return; RaidStage.state(c, st); RaidStage.allies(c.P, this.role==="kid"?this.me:null); RaidStage.feed(RaidNet.get().ev, this.name); RaidStage.warn(this.role==="kid" && !!(BossLive.S && BossLive.S.A)); },   // (v392) 경고 빛 = 실시간 보스 공격 중
   /* (v322) 최근 소식 — 새로 온 것만 보고 30개만 들고 있음 (그리기마다 수천 개를 정렬하던 것) · 시작 뒤 '들어옴' 은 TV 의 '보스 체력 +' 소식으로 */
   feed(n){ const E=RaidNet.get().ev||{}, S=this._evS||(this._evS={}), t0=this.st().t0||0; let L=this._evL||(this._evL=[]), add=0;
     const ks=Object.keys(E); ks.forEach(k=>{ if(S[k]) return; S[k]=1; const e=E[k]; if(e && e.t && !(e.k==="join" && t0 && e.t>=t0)){ L.push(e); add=1; } });
@@ -18843,7 +18871,6 @@ const Raid = {
         +'<p>우리 반 모두 '+c.sum.toLocaleString()+' 데미지</p>'+(this._gems?'<div class="stGem">💎 +'+this._gems+(win && !c.B?' (쓰러뜨림)':' (참가)')+'</div>':'')+(this._claim?'<div class="stGem">🎁 학원 보스 보상 💎 +'+this._claim+'</div>':'')
         +(c.B && c.hp>0 ? '<p class="rdHint">못 쓰러뜨려도 괜찮아요! 집에서 Daily 30 공부로 계속 깎아요 (하루 300까지) · 쓰러뜨리면 다 같이 보석</p>' : '')+'<button class="stGo" data-rd="leave">나가기</button></div></div>'; }
     else if(this.restTo>now) h='<div class="rdWait rest"><b>💫 잠깐 쉬어요 '+Math.ceil((this.restTo-now)/1000)+'초</b><p>하트가 다 없어졌어요 · 곧 다시 싸워요!</p></div>';
-    else if(this.atk && this.atk.pat) h='<div class="rdWarn bp"><b>⚠️ '+this.esc(this.atk.nm)+'!</b><p>아래 큰 버튼으로 막거나 피해요</p></div>';   // (v390)
     else if(this.atk && !this.atk.shown) h='<div class="rdWarn"><b>⚠️ '+this.esc((this.anim||{}).nm||'보스 공격')+' 준비!</b><p>'+Math.max(1,Math.ceil((this.atk.warnUntil-now)/1000))+'초 뒤 공격 — 맞혀서 막아요</p></div>';
     else { const A=this.atk, q=A ? A.q : this.q;
       if(q){ const lab = A ? '🛡 막기 문제! '+Math.max(0,Math.ceil((A.until-now)/1000))+'초' : q.sh ? '💥 방패 단어를 깨요!' : q.t==="k2e" ? '영어로 골라 공격!' : q.t==="e2k" ? '뜻을 골라 공격!' : q.t==="pic" ? '그림을 골라 공격!' : '빈칸을 채워 공격!';

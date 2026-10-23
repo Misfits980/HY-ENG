@@ -3,7 +3,7 @@ import asyncio, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
 from playwright.async_api import async_playwright
-ANS="(good)=>{ if(Raid.atk && Raid.atk.pat) return BossPat.A ? (patSolve(good), 'atk') : 'none'; const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; let k=q.opts.findIndex(o=>o.en===q.w.en); if(!good) k=(k+1)%q.opts.length; R.answer(k); return R.atk?'atk':'q'; }"
+ANS="(good)=>{ if(BossLive.S && BossLive.S.A) patSolve(good); const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; let k=q.opts.findIndex(o=>o.en===q.w.en); if(!good) k=(k+1)%q.opts.length; R.answer(k); return R.atk?'atk':'q'; }"
 async def main():
     bad=[]; errs=[]; shots=[]
     async with async_playwright() as p:
@@ -50,7 +50,7 @@ async def main():
         if not await k0.evaluate("()=>RaidStage.me.el.classList.contains('oops')"): bad.append("틀리면 비틀 없음")
         # 보스 공격: 예고 → 못 막음
         await k0.wait_for_timeout(1600)
-        await k0.evaluate("()=>{ Raid.atk=null; Raid.nextAtk=1; Raid.restTo=0; }"); await k0.wait_for_timeout(400)
+        await k0.evaluate("()=>{ Raid.restTo=0; liveAtk(); }"); await k0.wait_for_timeout(400)
         w=await k0.evaluate("()=>[document.getElementById('rdStage').classList.contains('warn'), (document.querySelector('#rdStage .rsAtkName')||{}).textContent]"); print("warn", w)
         if not w[0] or "⚠️" not in (w[1] or ""): bad.append(f"공격 예고 {w}")
         for j in range(4): await k0.wait_for_timeout(250); shots.append(await k0.screenshot(clip={"x":0,"y":0,"width":390,"height":470}))

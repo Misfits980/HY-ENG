@@ -24,11 +24,12 @@ async def boot(pg, news=True):
     if news: await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
     await pg.evaluate("()=>{ try{ StudyUI.FAST=0; }catch(e){} }")   # (v301) 테스트는 '너무 빨리 누름' 막기를 끈다
     await pg.evaluate(PAT_SOLVE)   # (v390) 보스 공격 패턴을 푸는 도우미 window.patSolve(good)
-# (v390) ⚔️ 보스 공격 패턴(BossPat) 한 번에 풀기 — good: 맞는 순간에 막기 · 반대쪽으로 피하기 / 아니면 너무 빨리 누르기 · 같은 쪽
-PAT_SOLVE="""()=>{ window.patSolve=(good)=>{ const A=BossPat.A; if(!A) return 'none';
-  if(A.kind==='sweep'){ BossPat.press(good ? (A.side==='L'?'R':'L') : A.side, A.rv+150); BossPat.tick(A.hits[0]+A.W.g+1); }
-  else A.hits.forEach((h,i)=>{ if(!A.done[i]) BossPat.press('shield', good ? h : h-A.W.g-60); });
-  return A.kind; }; }"""
+# (v392) ⚔️ 실시간 보스전(BossLive) — liveAtk(): 보스 공격을 지금 시작 · patSolve(good): 지금 공격을 한 번에 (good = 맞는 순간 🛡 / 아니면 방패 없이 그 칸에 서 있기)
+PAT_SOLVE="""()=>{ window.liveAtk=()=>{ const S=BossLive.S; if(!S) return false; S.hold=false; S.A=null; BossLive.clear(); BossLive.launch(performance.now()); return !!S.A; };   // 하던 공격은 버리고 새로
+  window.patSolve=(good)=>{ const S=BossLive.S, A=S && S.A; if(!A) return 'none';
+  if(!good && A.kind==='sweep') S.pos=1;
+  A.hits.forEach((h,i)=>{ if(A.done[i]) return; if(A.kind==='burst' && h.aim==null) h.aim=S.pos; if(!good && A.kind==='slam') S.pos=h.z[0]; S.sh = good ? h.t : -1e9; BossLive.judge(A, i); });
+  BossLive.tick(A.hits[A.hits.length-1].t+1); return A.kind; }; }"""
 # Daily 30 문제 하나를 정답(wrongFirst=true 면 처음엔 오답)으로 푸는 코드 — page.evaluate(SOLVE, wrongFirst)
 SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('stCheck').click(); return 'brk'; }
   const q=U.qs[U.i]; if(!q) return 'none';

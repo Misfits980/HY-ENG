@@ -105,10 +105,10 @@ async def main():
         # 9. ⚠️ 경고 중에 ◀ 닫기 → (v390) 주간 보스는 패턴 연습용이라 손해 없음 (예전엔 기회 -1) · 패턴 버튼도 사라짐
         await A.evaluate("()=>{ Kid.set({id:'k1',n:'민준',t:'all'}); HyBoss.earn(Kid.get(),'study',5); WeekBoss.open(); }"); await A.wait_for_timeout(600)
         await A.evaluate("()=>{ WeekBoss.swing(); }"); await A.wait_for_timeout(500)
-        await A.evaluate("()=>{ WeekBoss.F.next=0; WeekBoss.F.lock=0; WeekBoss.swing(); }"); await A.wait_for_timeout(900)
-        w9=await A.evaluate("()=>{ const ph=WeekBoss.F && WeekBoss.F.phase, k=HyBoss.stock('k1'); WeekBoss.close(); const k2=HyBoss.stock('k1'); return [ph, k.r+k.s, k2.r+k2.s, !!BossPat.A, !!document.getElementById('bpCtl')]; }")
-        ok(w9[0]=="warn" and w9[2]==w9[1] and not w9[3] and not w9[4], f"(v390) 경고 중 닫기 = 연습이라 손해 없음 · 패턴 정리 {w9}")
-        ok(await A.evaluate("()=>{ const P=BossPat.run({j:0,k:'hb1-a',nm:'x',book:'g34'}); const l=P.hits[0]-P.t0; BossPat.stop(); return l; }")>=2000, "(v390) 막기 준비 시간 2초 (패턴 경고 → 맞는 순간)")
+        await A.evaluate("()=>liveAtk()"); await A.wait_for_timeout(300)
+        w9=await A.evaluate("()=>{ const at=!!(BossLive.S && BossLive.S.A), k=HyBoss.stock('k1'); WeekBoss.close(); const k2=HyBoss.stock('k1'); return [at, k.r+k.s, k2.r+k2.s, BossLive.on(), !!document.getElementById('bpCtl')]; }")
+        ok(w9[0] and w9[2]==w9[1] and not w9[3] and not w9[4], f"(v392) 보스 공격 중 닫기 = 연습이라 손해 없음 · 싸움 정리 {w9}")
+        ok(await A.evaluate("()=>[BossLive.lead(BossPat.win('kinder')), BossLive.lead(BossPat.win('g34')), BossLive.lead(BossPat.win('mid'))]")==[1350,1100,900], "(v392) 보스 공격 준비 시간 (유치원 1.35초 · 보통 1.1초 · 중등 0.9초)")
         # 10. 'D-2' 대신 남은 시간 · 토요일 = 1일
         dl=await A.evaluate("()=>{ const n0=Date.now, mon=HyBoss.kd(HyBoss.monday())-12*3600e3; Date.now=()=>mon+5*864e5+12*3600e3; const r=[HyBoss.daysLeft(), HyBoss.leftTxt(HyBoss.B||HyBoss.B0)]; Date.now=n0; return r; }")
         ok(dl[0]==1 and dl[1].startswith("1일 12"), f"토요일 낮 = 1일 남음 {dl}")
