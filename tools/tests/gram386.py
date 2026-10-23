@@ -1,6 +1,6 @@
 """(v386) 📒 문법 쉬어 가기 — G3-4 8개 · G5-6 8개 (data/gram.json)
   · 단어 길(elem · g56) 중간 돌(1-2) 옆 땅에 문법 돌 + 샛길 · 첫 문법은 열림, 나머지는 앞 문법 ★1 · 붙은 Stage 시작(★1)이면 열림
-  · 별 6개 · 별마다 💎5 · ★1 배우기(설명 전부 → 같이 해 보기 → 5문제, 💡 힌트) · ★2부터 「기억나요?」 → 문제 (단계마다 어렵게)
+  · 별 6개 · 별마다 💎5 · ★1 배우기(설명 → 확인 문제 → 설명 → … → 5문제, 💡 힌트) · ★2부터 「기억나요?」 → 문제 (단계마다 어렵게)
   · ★2 연습 6 · ★3 순서 포함 8 · ★4 틀린 단어 찾기 8 · ★5 앞 문법 섞어 10 · ★6 어려운 문제 10 (90%)
   · 못 넘으면 별 없음 · 모든 문제를 실제 화면으로 풀어 봄"""
 import asyncio, sys, os, json
@@ -26,7 +26,7 @@ async def main():
     D = json.load(open(os.path.join(SITE, "data", "gram.json"), encoding="utf-8"))
     ok(len(D["g34"]) == 8 and len(D["g56"]) == 8, "문법 G3-4 8개 · G5-6 8개")
     ok(all(sum(1 for q in g["qs"] if q.get("hd")) >= 3 and sum(1 for q in g["qs"] if q["k"] == "fix") >= 2 for g in D["g34"] + D["g56"]), "문법마다 어려운 문제 3 · 틀린 단어 찾기 2 이상")
-    ok(any(c.get("h", "").startswith("누가") for c in next(g for g in D["g34"] if g["id"] == "g34-3")["cards"]), "be동사: 누가(주어) 바꾸기 카드")
+    ok(any("Mina and I" in json.dumps(c["ex"]) and "we" in json.dumps(c["ex"]) for c in next(g for g in D["g34"] if g["id"] == "g34-3")["cards"]), "be동사: 누가(주어) 바꾸기 카드")
     ok(any("지금 vs 매일" in c.get("h", "") for c in next(g for g in D["g56"] if g["id"] == "g56-1")["cards"]), "-ing: 언제 써요(지금 vs 매일) 카드")
     sw = open(os.path.join(SITE, "sw.js"), encoding="utf-8").read()
     ok("./data/gram.json" in sw, "서비스워커: 문법 자료 저장")
@@ -48,14 +48,20 @@ async def main():
         await pg.evaluate("()=>document.querySelector('[data-gram=\"g34-1\"]').click()"); await pg.wait_for_timeout(400)
         ok(await pg.evaluate("()=>GramUI.tier===1 && GramUI.mode==='cards' && !!document.querySelector('#stGram .grCard')"), "★1: 설명 카드부터")
         await pg.evaluate("()=>document.querySelector('#stGram [data-gr=peek]').click()")
-        ok(await pg.evaluate("()=>document.querySelectorAll('#stGram .grPeek .grCard').length") == 3, "📒 규칙: 설명 카드 3장")
+        ok(await pg.evaluate("()=>document.querySelectorAll('#stGram .grPeek .grCard').length") == 3 and await pg.evaluate("()=>GramUI.cards().every(c=>c.q)"), "📒 규칙: 설명 카드 3장 · 카드마다 확인 문제")
         await pg.evaluate("()=>document.querySelector('#stGram [data-gr=unpeek]').click()")
         n = await pg.evaluate("()=>GramUI.cards().length")
-        for i in range(n - 1): await pg.evaluate("()=>document.querySelector('#stGram [data-gr=next]').click()")
+        ok(await pg.evaluate("()=>!!document.querySelector('#stGram [data-gr=chk]')"), "설명 카드 밑에 「확인 문제」 버튼")
+        await pg.evaluate("()=>document.querySelector('#stGram [data-gr=chk]').click()")
+        ok(await pg.evaluate("()=>GramUI.ck && !document.querySelector('#stGram .grHint')"), "확인 문제: 처음엔 힌트 없이")
         await pg.evaluate(ANS, True)
-        ok(await pg.evaluate("()=>GramUI.cur().res===null && !!document.querySelector('#stGram .stOpt.bad')"), "같이 해 보기: 틀리면 다시 고를 수 있음")
-        for i in range(2):
-            await pg.evaluate(ANS, False); await pg.evaluate("()=>document.querySelector('#stGram [data-gr=tnext]').click()")
+        ok(await pg.evaluate("()=>GramUI.cur().res===null && !!document.querySelector('#stGram .stOpt.bad') && !!document.querySelector('#stGram .grHint') && !!document.querySelector('#stGram [data-gr=uncheck]')"), "확인 문제 틀리면: 다시 고르기 · 💡 힌트 · 설명 다시 보기")
+        await pg.evaluate("()=>document.querySelector('#stGram [data-gr=uncheck]').click()")
+        ok(await pg.evaluate("()=>!GramUI.ck && !!document.querySelector('#stGram .grCard')"), "설명 다시 보기 → 같은 설명 카드")
+        for i in range(n):
+            await pg.evaluate("()=>{ const b=document.querySelector('#stGram [data-gr=chk]'); if(b) b.click(); }")
+            await pg.evaluate(ANS, False)
+            await pg.evaluate("()=>document.querySelector('#stGram [data-gr=cnext]').click()")
         r = await pg.evaluate("()=>[GramUI.mode, GramUI.qs.length, GramUI.qs.every(q=>q.k==='pick'||q.k==='ox'), GramUI.qs.some(q=>q.hd), !!document.querySelector('#stGram .grHint')]")
         ok(r == ["quiz", 5, True, False, True], f"★1: 쉬운 5문제(고르기·OX) · 💡 힌트 보임 {r}")
         g0 = await pg.evaluate("()=>Wallet.gems()")
@@ -64,6 +70,7 @@ async def main():
         ok(r[0] == "end" and r[1] == 4 and r[2] == 1 and r[3] == 5 and r[4] - g0 == 5, f"★1: 4/5 → 별 1 · 💎5 {r}")
         sub = await pg.evaluate("()=>window._subs.slice(-1)[0]")
         ok(sub and sub.get("rule") == "study-grammar" and "G3-4 문법 · a / an ★1" in sub.get("set", "") and sub.get("clear") == 1, f"기록 전송 {sub and sub.get('set')}")
+        ok("📒규칙 1번" in sub.get("miss", "") and "설명✗ 1" in sub.get("miss", ""), f"기록: 규칙 연 횟수 · 막힌 설명 번호 {sub.get('miss')}")
         ok(await pg.evaluate("()=>!!document.querySelector('#stGram [data-gram=\"g34-2\"]')"), "★1 받으면 다음 문법도 열림")
         # ── ★2: 「기억나요?」 먼저
         await pg.evaluate("()=>document.querySelector('#stGram [data-gr=again]').click()"); await pg.wait_for_timeout(300)
@@ -131,7 +138,11 @@ async def main():
         await pg.evaluate("()=>{ Gram.put('g56-1',{s:3}); GramUI.start('g56-1'); }"); await pg.wait_for_timeout(300)
         await pg.screenshot(path=OUT + "gram386_recap.png")
         await pg.evaluate("()=>{ GramUI.start('g34-3', true); }"); await pg.wait_for_timeout(300)
-        await pg.evaluate("()=>{ GramUI.ci=3; GramUI.draw(); }"); await pg.screenshot(path=OUT + "gram386_who.png")
+        await pg.evaluate("()=>{ GramUI.ci=3; GramUI.ck=false; GramUI.draw(); }"); await pg.screenshot(path=OUT + "gram386_who.png")
+        await pg.evaluate("()=>{ GramUI.ck=true; GramUI.draw(); }"); await pg.screenshot(path=OUT + "gram386_check.png")
+        # 설명 글: G3-4 는 '동사' 같은 말 없이 · 카드당 짧게
+        r = await pg.evaluate("()=>{ const o=[]; Gram.list('g34').forEach(g=>g.cards.forEach(c=>{ if(/동사|자음|모음|원래 모양/.test(c.h+c.p)) o.push(g.id+' '+c.h); })); return o; }")
+        ok(r == [], f"G3-4 설명에 어려운 말 없음 {r[:3]}")
         ok(not real_errs(errs), f"스크립트 오류 없음 {errs[:2]}")
         await br.close()
     print("\nFAIL" if bad else "\nALL OK", bad)

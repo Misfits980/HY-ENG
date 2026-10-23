@@ -3141,6 +3141,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 .grRecap{border-color:rgba(255,211,122,.5)} .grExR.rc span>b{font-size:16.5px} .grRcH{display:block;color:#7ff0c4!important;font-weight:900;font-size:12px!important;margin:0 0 2px!important}
 .grGoal{max-width:448px;margin:4px auto 0;padding:12px 14px;border-radius:14px;background:rgba(143,208,255,.12);color:#cfe9ff;font-weight:900;font-size:14.5px;text-align:center;box-sizing:border-box}
 .grGoal small{display:block;color:#ffe1a0;font-size:12.5px;margin-top:3px}
+.grMini{max-width:448px;margin:0 auto 10px;padding:8px 12px;border-radius:12px;background:rgba(127,240,196,.1);color:#c8ffe9;font-size:14px;text-align:center;box-sizing:border-box}
 .grFrom{max-width:448px;margin:0 auto 8px;text-align:center;color:#d9a3ff;font-weight:900;font-size:13px}
 .grO.none{font-size:15px}
 .grEndS i,.grEndS u{font-size:inherit}
@@ -13615,6 +13616,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    ⚠️ (v332 사용자) 공지는 아이가 신날 소식만 — 새 보스 · 새 캐릭터·스킨 · 새 놀이·이벤트 · 새 보상. 그림 바꿈 · 화면 정리 · 선생님 기능(시험·숙제·관리) · 버그 고침은 공지하지 않는다 (매일 '뭐 했다'가 뜨면 안 됨)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-23a", date:"10월 23일", title:"📒 문법 쉬어 가기가 생겼어요!",
+   items:[
+     ["🪨","길 옆 초록 돌","Daily 30 · G3-4 · G5-6 단어 길 중간에 반짝이는 초록 돌이 생겼어요 · 눌러 보세요!"],
+     ["🧩","쉬운 설명 → 문제 하나","그림 설명을 보고 바로 한 문제씩 · 틀려도 괜찮아요"],
+     ["⭐","별 6개 · 별마다 💎5","별이 올라갈수록 조금씩 어려워져요 · 별 6개를 다 모으면 마스터!"]]},
   {id:"2026-10-22a", date:"10월 22일", title:"⚔️ 교실 배틀이 더 신나졌어요!",
    items:[
      ["⚡","번개 문제 · 점수 3배","가끔 노랗게 빛나는 번개 문제가 나와요 · 빨리 맞히면 +3, 마지막 30초는 점수 2배!"],
@@ -15982,7 +15988,7 @@ const StudyUI = {
 /* (v386) 📒 문법 쉬어 가기 — Daily 30 단어 길 중간(1-2) 옆 땅에 놓인 문법 돌 (G3-4 8개 · G5-6 8개, data/gram.json)
    사용자: 문법은 설명이 없으면 아이들이 힘들다 · 칸을 따로 만들기보다 옆에 빠져서 나오는 쉬는 Stage · 🚩 피니시 옆은 부담 · 용어(형식 등)는 중등
    사용자: 별 6개 · 별 하나 통과마다 💎5 · 별이 오를수록 어렵게 · 처음은 설명 위주 · 누가(주어) 바꾸기 · 언제 쓰는지 설명 · ★1 뒤에도 바로 문제가 나오면 당황 → 「기억나요?」 먼저
-   ★1 배우기: 설명 카드 전부 → 같이 해 보기(틀려도 다시) → 5문제(💡 힌트 보임) · 60%
+   ★1 배우기: 설명 카드마다 확인 문제 1개(틀려도 다시 · 틀리면 💡 · 설명 다시 보기) → 5문제(💡 힌트 보임) · 60%
    ★2 연습 6문제 · ★3 문장 만들기 8 · ★4 고치기 8(틀린 단어 찾기) · ★5 섞어서 10(앞에서 배운 문법 4) · 80%
    ★6 마스터 10(어려운 문제 3) · 90% · ★2부터는 「기억나요?」 요약 카드(📒 자세히 = 설명 전부) → 문제
    틀리면 3문제 뒤에 한 번 더(점수엔 안 들어감) · 📒 규칙은 문제 중 언제든 · 열림: 첫 문법 · 앞 문법 ★1 · 붙은 단어 Stage 시작(★1) */
@@ -16018,7 +16024,7 @@ const Gram = {
 };
 
 const GramUI = {
-  g:null, mode:"cards", ci:0, ti:0, qs:[], qi:0, first:0, n:0, miss:[], t0:0, done:false, peek:false, tier:1, full:false,
+  g:null, mode:"cards", ci:0, ck:false, qs:[], qi:0, first:0, n:0, miss:[], t0:0, done:false, peek:false, tier:1, full:false, cm:[], pkN:0,
   E(t){ return String(t==null?"":t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
   hl(t){ return this.E(t).replace(/\{([^}]*)\}/g, '<b class="grHl">$1</b>'); },
   plain(t){ return String(t||"").replace(/[{}]/g, ""); },
@@ -16029,8 +16035,8 @@ const GramUI = {
   start(id, full){ Gram.load().then(()=>{ const g=Gram.get(id); if(!g){ hyToast("📡 문법 자료를 못 불러왔어요 — 인터넷을 확인해 주세요"); return; }
       if(!Gram.open(id)){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} const L=Gram.list(Gram.bookOf(id)), k=L.indexOf(g); hyToast("🔒 Stage "+g.at+" 을 시작하거나 앞 문법("+(L[k-1]||{}).t+")을 끝내면 열려요"); return; }
       this.g=g; this.tier=Math.min(Gram.MAX, Gram.stars(id)+1); this.full=!!full || this.tier===1;
-      this.mode = this.full ? "cards" : "recap"; this.ci=0; this.ti=0; this.done=false; this.t0=Date.now(); this.peek=false;
-      this.cards().forEach(c=>{ if(c.k==="try") c.q.forEach(q=>this.prep(q)); });
+      this.mode = this.full ? "cards" : "recap"; this.ci=0; this.ck=false; this.done=false; this.t0=Date.now(); this.peek=false; this.cm=[]; this.pkN=0;
+      this.cards().forEach(c=>{ if(c.q){ this.prep(c.q); c.q.tried=0; } });
       StudyUI.view("stGram"); this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} }); },
   /* 문제 고르기 — 별 단계마다 섞는 비율이 다르다 (Gram.TIER) */
   build(){ const T=this.T(), Q=this.g.qs, by=f=>this.shuf(Q.filter(f)), src={
@@ -16044,7 +16050,7 @@ const GramUI = {
     out=out.map(q=>[rank(q)+Math.random()*0.9, q]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
     this.qs=out.map(q=>this.prep(Object.assign({}, q))); this.qi=0; this.first=0; this.n=this.qs.length; this.miss=[]; this.mode="quiz"; },
   prep(q){ if(q.k==="pick") q.opts = q.o.indexOf("-")>=0 ? q.o.slice() : this.shuf(q.o); if(q.k==="order"){ q.tiles=this.shuf(q.w.map((w,i)=>i)); if(q.tiles.every((t,i)=>t===i) && q.w.length>1) q.tiles.reverse(); q.pickd=[]; } q.res=null; q.pk=null; return q; },
-  cards(){ return this.g.cards; },
+  cards(){ return this.g.cards.filter(c=>c.k==="rule"); },
   optTxt(o){ return o==="-" ? "안 붙여요" : o; },
   /* ── 그리기 ── */
   top(pct, label){ return '<div class="stTop"><button class="stX" data-gr="quit" aria-label="그만하기">✕</button><div class="stProg"><i style="width:'+Math.round(pct*100)+'%"></i></div>'
@@ -16063,12 +16069,13 @@ const GramUI = {
     if(this.peek){ el.innerHTML='<div class="grPeek"><div class="grPeekH"><b>📒 '+this.E(this.g.t)+' 규칙</b><button class="stX" data-gr="unpeek" aria-label="닫기">✕</button></div>'
         +this.cards().filter(c=>c.k==="rule").map(c=>this.ruleCard(c)).join('')+'<button class="stCheck" data-gr="unpeek">돌아가기</button></div>'; return; }
     if(this.mode==="recap"){ el.innerHTML=this.recapHtml(); return; }
-    if(this.mode==="cards"){ const C=this.cards(), c=C[this.ci], nC=C.length, pct=(this.ci)/(nC+this.T().n);
-      if(c.k==="rule"){ el.innerHTML=this.top(pct, "설명 "+(this.ci+1)+" / "+(nC-1))+this.ruleCard(c, true)+'<p class="grTip">예문을 누르면 읽어 줘요</p>'
-          +'<div class="grFoot">'+(this.ci>0?'<button class="grBack" data-gr="prev">◀</button>':'')+'<button class="stCheck" data-gr="next">'+(C[this.ci+1] && C[this.ci+1].k==="try" ? '같이 해 보기 ▶' : '다음 ▶')+'</button></div>'; return; }
-      const q=c.q[this.ti]; el.innerHTML=this.top(pct, "같이 해 보기 "+(this.ti+1)+" / "+c.q.length+" · 틀려도 괜찮아요")
-        +'<div class="grHint">💡 '+this.E(q.w||"")+'</div>'+this.qHtml(q, true)
-        +'<div class="grFoot">'+(q.res==="ok" ? '<button class="stCheck" data-gr="tnext">'+(this.ti+1<c.q.length?'다음 ▶':'이제 혼자 풀어 봐요 ▶')+'</button>' : '<button class="grBack" data-gr="prev">◀ 설명</button>')+'</div>'; return; }
+    /* (v386c) 설명 하나 → 확인 문제 하나 (사용자: 설명이 어렵지 않을까 · 문제도 있어야) — 처음 한 번은 힌트 없이, 틀리면 💡 힌트 + 설명 다시 보기 */
+    if(this.mode==="cards"){ const C=this.cards(), c=C[this.ci], nC=C.length, pct=(this.ci*2+(this.ck?1:0))/(nC*2+this.T().n), last=this.ci+1>=nC;
+      if(!this.ck){ el.innerHTML=this.top(pct, "설명 "+(this.ci+1)+" / "+nC)+this.ruleCard(c, true)+'<p class="grTip">예문을 누르면 읽어 줘요</p>'
+          +'<div class="grFoot">'+(this.ci>0?'<button class="grBack" data-gr="prev">◀</button>':'')+'<button class="stCheck" data-gr="chk">확인 문제 ▶</button></div>'; return; }
+      const q=c.q; el.innerHTML=this.top(pct, "설명 "+(this.ci+1)+" 확인 · 틀려도 괜찮아요")
+        +'<div class="grMini"><b>'+this.E(c.h)+'</b></div>'+(q.tried && q.w ? '<div class="grHint">💡 '+this.E(q.w)+'</div>' : '')+this.qHtml(q, true)
+        +'<div class="grFoot">'+(q.res==="ok" ? '<button class="stCheck" data-gr="cnext">'+(last?'이제 혼자 풀어 봐요 ▶':'다음 설명 ▶')+'</button>' : '<button class="grBack" data-gr="uncheck">◀ 설명 다시 보기</button>')+'</div>'; return; }
     if(this.mode==="quiz"){ const q=this.qs[this.qi], nC=this.full?this.cards().length:0, pct=(nC+this.qi)/(nC+this.qs.length);
       el.innerHTML=this.top(pct, "★"+this.tier+" "+this.T().nm+" · "+Math.min(this.qi+1, this.qs.length)+" / "+this.qs.length+(q.again?" · 다시 한 번":""))
         +(q.from?'<div class="grFrom">🔁 앞에서 배운 「'+this.E(q.from)+'」</div>':'')+(this.T().hint && !q.res && q.w?'<div class="grHint">💡 '+this.E(q.w)+'</div>':'')+this.qHtml(q, false)+this.fbHtml(q); return; }
@@ -16099,7 +16106,7 @@ const GramUI = {
       +'</div><div class="grFoot"><button class="stCheck" data-gr="qnext">'+(this.qi+1<this.qs.length?'다음 ▶':'끝 ▶')+'</button></div>'; },
   /* ── 답하기 ── */
   judge(q, ok, pk){ const tr=this.mode==="cards"; q.pk=pk;
-    if(tr){ if(ok){ q.res="ok"; try{ SFX.tone(880,.12,"triangle",.05,1320); }catch(e){} this.say(this.right(q)); } else { q.res=null; try{ SFX.tone(220,.12,"square",.03); }catch(e){} } this.draw(); return; }
+    if(tr){ if(ok){ q.res="ok"; try{ SFX.tone(880,.12,"triangle",.05,1320); }catch(e){} this.say(this.right(q)); } else { q.res=null; if(!q.tried && this.cm.indexOf(this.ci+1)<0) this.cm.push(this.ci+1); q.tried=1; try{ SFX.tone(220,.12,"square",.03); }catch(e){} } this.draw(); return; }
     q.res = ok ? "ok" : "bad";
     if(ok){ if(!q.again) this.first++; try{ SFX.tone(880,.12,"triangle",.05,1320); }catch(e){} }
     else { try{ SFX.tone(220,.14,"square",.03); }catch(e){} if(!q.again){ this.miss.push(this.right(q)); const c=this.prep(Object.assign({}, q, {again:1})); this.qs.splice(Math.min(this.qs.length, this.qi+3), 0, c); } }
@@ -16111,10 +16118,12 @@ const GramUI = {
   untile(j){ const q=this.cur(); if(!q || q.res) return; q.pickd.splice(j, 1); this.draw(); },
   ochk(){ const q=this.cur(); if(!q || q.res || q.pickd.length!==q.w.length) return; const ok=q.pickd.map(i=>q.w[i]).join(" ")===q.w.join(" ");
     if(!ok && this.mode==="cards"){ q.pickd=[]; } this.judge(q, ok, null); },
-  cur(){ if(this.mode==="cards"){ const c=this.cards()[this.ci]; return c && c.k==="try" ? c.q[this.ti] : null; } return this.mode==="quiz" ? this.qs[this.qi] : null; },
-  next(){ const C=this.cards(); if(this.ci+1<C.length){ this.ci++; this.ti=0; const c=C[this.ci]; if(c.k==="try") c.q.forEach(q=>this.prep(q)); } this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} },
-  prev(){ if(this.ci>0){ this.ci--; this.ti=0; } this.draw(); },
-  tnext(){ const c=this.cards()[this.ci]; if(this.ti+1<c.q.length){ this.ti++; this.draw(); return; } this.build(); this.draw(); },
+  cur(){ if(this.mode==="cards"){ const c=this.cards()[this.ci]; return c && this.ck ? c.q : null; } return this.mode==="quiz" ? this.qs[this.qi] : null; },
+  top0(){ try{ $("scStudy").scrollTop=0; }catch(e){} },
+  chk(){ this.ck=true; this.draw(); this.top0(); },
+  uncheck(){ this.ck=false; this.draw(); this.top0(); },
+  cnext(){ const C=this.cards(); if(this.ci+1<C.length){ this.ci++; this.ck=false; this.draw(); this.top0(); return; } this.build(); this.draw(); this.top0(); },
+  prev(){ if(this.ci>0){ this.ci--; this.ck=false; } this.draw(); },
   qnext(){ if(this.qi+1<this.qs.length){ this.qi++; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} return; } this.finish(); },
   /* ── 끝 ── */
   finish(){ const g=this.g, T=this.T(), pct=this.n ? this.first/this.n : 1, need=Math.ceil(this.n*T.pass-1e-9), pass=this.first>=need, before=Gram.stars(g.id); let gem=0, up=false;
@@ -16124,7 +16133,7 @@ const GramUI = {
     try{ if(up){ SFX.tone(660,.12,"triangle",.05,990); setTimeout(()=>{ try{ SFX.tone(990,.18,"triangle",.05,1480); }catch(e){} }, 140); if(this.tier>=3) confetti(); } }catch(e){}
     try{ let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       Online.submit({nick, score:this.first*10, diff:"study", rule:"study-grammar", stage:0, acc:Math.round(pct*100), right:this.first, wrong:this.n-this.first, total:this.n,
-        clear:pass?1:0, end:pass?"clear":"fail", set:(this.bk()==="g56"?"G5-6":"G3-4")+" 문법 · "+g.t+" ★"+this.tier, secs:Math.round((Date.now()-this.t0)/1000), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:this.miss.slice(0,10).join(" / ")}); }catch(e){} },
+        clear:pass?1:0, end:pass?"clear":"fail", set:(this.bk()==="g56"?"G5-6":"G3-4")+" 문법 · "+g.t+" ★"+this.tier, secs:Math.round((Date.now()-this.t0)/1000), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:((this.pkN?"📒규칙 "+this.pkN+"번 · ":"")+(this.cm.length?"설명✗ "+this.cm.join(",")+" · ":"")+this.miss.slice(0,10).join(" / "))}); }catch(e){} },   // (v386c) 어느 설명에서 막히는지 — 규칙 연 횟수 · 확인 문제를 처음에 틀린 설명 번호
   endHtml(){ const r=this.res, g=this.g, L=Gram.list(this.bk()), k=L.indexOf(g), nx=L[k+1], E=s=>this.E(s), s=Gram.stars(g.id), nxOpen = nx && Gram.open(nx.id);
     const head = r.up ? (r.tier>=6 ? '마스터!' : r.tier>=3 ? '완벽해요!' : '잘했어요!') : r.pass ? '이번에도 통과!' : '조금만 더!';
     const msg = r.up ? '★'+r.tier+' '+Gram.TIER[r.tier].nm+' 통과' : r.pass ? '★'+r.tier+' 은 이미 받았어요' : r.need-this.first+'개만 더 맞히면 ★'+r.tier+' · 📒 규칙을 보고 다시 해 봐요';
@@ -16156,13 +16165,14 @@ const GramUI = {
     const b=t.closest("[data-gr]"); if(!b) return; const a=b.dataset.gr;
     if(a==="quit"){ SFX.click(); if(this.mode==="quiz" && !confirm("그만할까요? 지금까지 푼 것은 저장되지 않아요.")) return; this.home(); return; }
     if(a==="home"){ SFX.click(); this.home(); return; }
-    if(a==="peek"){ SFX.click(); this.peek=true; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} return; }
+    if(a==="peek"){ SFX.click(); this.peek=true; this.pkN++; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} return; }
     if(a==="unpeek"){ SFX.click(); this.peek=false; this.draw(); return; }
     if(a==="go"){ SFX.select ? SFX.select() : SFX.click(); this.build(); this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} return; }
     if(a==="full"){ SFX.click(); this.start(this.g.id, true); return; }
-    if(a==="next"){ SFX.click(); this.next(); return; }
+    if(a==="chk"){ SFX.click(); this.chk(); return; }
+    if(a==="uncheck"){ SFX.click(); this.uncheck(); return; }
+    if(a==="cnext"){ SFX.click(); this.cnext(); return; }
     if(a==="prev"){ SFX.click(); this.prev(); return; }
-    if(a==="tnext"){ SFX.click(); this.tnext(); return; }
     if(a==="qnext"){ SFX.click(); this.qnext(); return; }
     if(a==="ochk"){ this.ochk(); return; }
     if(a==="again"){ SFX.click(); this.start(this.g.id); return; } },
