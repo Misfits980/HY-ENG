@@ -3217,6 +3217,7 @@ body.bpOn .wbFight{display:none}   /* (v392 시제품) ⚔️ 전투 화면 */
 .frBig{position:fixed;transform:translate(-50%,-100%);z-index:80;pointer-events:none;font:900 26px var(--font);color:#fff;-webkit-text-stroke:1.5px #a85a00;text-shadow:0 3px 0 #a85a00,0 0 12px rgba(255,200,60,.9);white-space:nowrap;animation:frBig 1.3s ease-out forwards}
 .frBig.zap{font-size:34px;color:#fff36a;-webkit-text-stroke:2px #8a5a00;text-shadow:0 0 18px #ffe600,0 3px 0 #8a5a00}
 @keyframes frBig{0%{opacity:0;transform:translate(-50%,-60%) scale(.4)}15%{opacity:1;transform:translate(-50%,-100%) scale(1.25)}30%{transform:translate(-50%,-100%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-190%)}}
+.arX.frEnd{width:auto;padding:0 14px;font-size:15px}
 .frSay{margin:4px 0;padding:8px 18px;border-radius:14px;border:0;background:linear-gradient(180deg,#7a6cff,#4a3ad0);color:#fff;font:900 18px var(--font);box-shadow:0 4px 0 #2c1f8a}
 .frFlash{animation:frFlash 1.6s forwards}@keyframes frFlash{0%,60%{opacity:1}100%{opacity:0}}
 .frFeed{position:absolute;left:6px;bottom:57%;display:flex;flex-direction:column-reverse;gap:3px;z-index:5;pointer-events:none;max-width:46%}
@@ -19449,7 +19450,7 @@ const FlagRun = {
       +o.boxes.map(b=>'<i class="frBox" data-b="'+b+'" style="left:'+this.X(b)+'%"><span>?</span></i>').join('')
       +'<span class="frLbl">'+E(T.n)+' <b id="frP'+T.k+'"></b><i class="frSv" id="frV'+T.k+'"></i></span>'
       +'<div class="frRun" id="frR'+T.k+'"><div class="frPack" id="frK'+T.k+'"></div><i class="frShd"></i><i class="frSpr" style="background-image:url(assets/chars/walk/walk-'+this.cid(T.ch)+'.webp)"></i><b class="frFlag"><span>'+E(T.e)+'</span></b></div></div>';
-    d.innerHTML='<div class="frTop"><button class="arX" data-fr="x">'+(tv && o.onX ? '🏁' : '✕')+'</button>'+(tv ? '<b class="frTvT">🚩 '+E(o.title||"반 깃발 레이스")+(o.room?' · 방 '+E(o.room):'')+'</b>' : '')+'<b class="frTime" id="frTime"></b>'
+    d.innerHTML='<div class="frTop"><button class="arX'+(tv && o.onX ? ' frEnd' : '')+'" data-fr="x">'+(tv && o.onX ? '🏁 끝내기' : '✕')+'</button>'+(tv ? '<b class="frTvT">🚩 '+E(o.title||"반 깃발 레이스")+(o.room?' · 방 '+E(o.room):'')+'</b>' : '')+'<b class="frTime" id="frTime"></b>'
         +(tv ? '' : '<b class="frSc" id="frSc">⭐ 0</b><span class="frMe" style="--tc:'+this.us().c+'">나는 '+E(this.us().n)+'</span>')+'</div>'
       +'<div class="frMain"><div class="frStage" id="frStage"><div class="frMt"></div><div class="frStands"><i></i></div>'+order.map(trk).join('')
       +'<div class="frGoal" style="left:'+this.X(o.goal)+'%"><b>🏁</b></div>'
@@ -19484,6 +19485,7 @@ const FlagRun = {
     if(T.fx>now) v*=1.6; if(T.slow>now) v*=0.55; return v; },
   frame(now){ const o=this.o, S=this.SP, dt=this._t ? Math.min(0.1, (now-this._t)/1000) : 0; this._t=now;
     if(o.fixed){ o.L.forEach(T=>{ if(T.tp!=null){ const d=T.tp-T.p; T.p+=d*Math.min(1, dt*3); } }); this.pos(); this.packs(); }   /* (v392) 워드 게이트 레이스 TV: 거리는 점수로 */
+    else if(o.ext && o.tv){ o.L.forEach(T=>{ T.v=this.teamV(T, now); }); this.pos(); this.packs(); }   /* (v392) 교실 TV: 거리는 Battle.frSync 가 잼 (TV 화면이 뒤로 가도 레이스는 계속) */
     else if(!o.stop){ this.v=Math.max(S.min, this.v-S.decay*dt); o.L.forEach(T=>{ T.mates=T.mates.map(x=>Math.max(S.min, x-S.decay*dt)); T.v=this.teamV(T, now); T.p=Math.min(o.goal, T.p+T.v*dt*(o.k||1)); }); this.pos(); this.packs(); }
     o.L.forEach(T=>{ const r=$("frR"+T.k); if(!r) return; this.ph[T.k]+=dt*(5+T.v*160); const f=(Math.floor(this.ph[T.k])%6*20)+"%", s=r.querySelector(".frSpr"); if(s) s.style.backgroundPositionX=f;
       r.querySelectorAll(".frKid").forEach((c,i)=>{ c.style.backgroundPositionX=((Math.floor(this.ph[T.k])+i*2)%6*20)+"%"; });
@@ -19831,6 +19833,8 @@ const Battle = {
       Object.assign(FlagRun, keep); if(!host){ FlagRun.gauge(); FlagRun.add(0); }
       if(!this._fxS){ this._fxS={}; Object.keys(this.T().fx||{}).forEach(k=>{ this._fxS[k]=1; }); } }
     const O=FlagRun.o; O.end=Date.now()+this.left();
+    if(host){ const pn=performance.now(), dt=this._frT ? Math.min(2, (pn-this._frT)/1000) : 0; this._frT=pn;   /* TV = 거리 재는 곳 (200ms 마다 · 화면 그림과 따로) */
+      O.L.forEach(T=>{ const l=L.find(x=>x.k===T.k); if(l) T.mates=l.mates; T.v=FlagRun.teamV(T, pn); T.p=Math.min(goal, T.p+T.v*dt*(O.k||1)); }); }
     L.forEach(l=>{ const T=FlagRun.T(l.k); if(!T) return; T.kids=l.kids; T.mates=l.mates; T.n=l.n; const f=((st.fp)||{})[l.k];
       if(!host && f!=null){ const d=+f-T.p; T.p = Math.abs(d)>1.5 ? +f : T.p+d*0.25; } });   // 아이: TV 거리 쪽으로 부드럽게
     /* 아이템 소식 */
