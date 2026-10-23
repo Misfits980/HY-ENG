@@ -3143,6 +3143,21 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 @keyframes stChkG{0%,100%{filter:drop-shadow(0 0 3px rgba(111,214,255,.95)) drop-shadow(0 4px 3px rgba(0,0,0,.4))}50%{filter:drop-shadow(0 0 10px rgba(111,214,255,1)) drop-shadow(0 4px 3px rgba(0,0,0,.4))}}
 .stWMap .stDot.ph img.ic.fl{width:30px;height:30px;-webkit-text-stroke:0;filter:none}
 
+/* (v389) 🏃 달리기 레이스 — 머리 위 순위 배지 · 두 팀 막대 */
+#rrBadge{position:fixed;left:0;top:0;z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 11px 5px;border-radius:14px;background:rgba(20,14,40,.8);border:2px solid rgba(255,211,122,.9);color:#fff;font-weight:800;line-height:1.15;white-space:nowrap;transform:translate(50vw,38vh) translate(-50%,-100%);box-shadow:0 4px 10px rgba(0,0,0,.35)}
+#rrBadge .rrRk{display:flex;flex-direction:column;align-items:center}
+#rrBadge b{font-size:19px;display:inline-block}#rrBadge span{font-size:11px;opacity:.8;font-weight:700}
+#rrBadge .rrTi{font-size:11px;color:#ffd37a;font-style:normal}#rrBadge.hurry .rrTi{color:#ff8a8a}
+#rrBadge .rrTm{font-size:11px;font-weight:700}#rrBadge .rrTm.r{color:#ff9a9a}#rrBadge .rrTm.b{color:#9ac0ff}
+#rrBadge.up b{animation:rrUp .7s ease-out}#rrBadge.dn b{animation:rrDn .5s ease-out}
+@keyframes rrUp{0%{transform:scale(1)}40%{transform:scale(1.45);color:#8ff07a}100%{transform:scale(1)}}
+@keyframes rrDn{0%,100%{transform:none}30%{transform:translateX(-4px);color:#ff8a8a}60%{transform:translateX(4px)}}
+.rrBar{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.rrT{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.06)}
+.rrT small{grid-column:1/-1;opacity:.7;font-size:11px}.rrT em{font-style:normal;font-weight:800;font-size:18px}
+.rrTk{height:12px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}.rrTk i{display:block;height:100%;border-radius:6px;transition:width .6s}
+.rrT.r .rrTk i{background:linear-gradient(90deg,#ff8a8a,#e04848)}.rrT.b .rrTk i{background:linear-gradient(90deg,#8ab8ff,#4878e0)}
+.rrBar.big .rrT{padding:10px 14px}.rrBar.big .rrT b,.rrBar.big .rrT em{font-size:24px}.rrBar.big .rrTk{height:18px}
 /* (v386) 📒 문법 곁가지 */
 .stWMap .grRd{stroke:rgba(95,224,176,.13);stroke-width:20}
 .stWMap .grRdm{fill:none;stroke:rgba(127,240,196,.6);stroke-width:4;stroke-dasharray:2 10;stroke-linecap:round}
@@ -11100,6 +11115,7 @@ function loopBody(){
       if(G.timeLeft<=0){ G.timeLeft=0; updateHUD(); gameOver(); }
       else if(Math.floor(G.timeLeft*2)!==G._tShown){ G._tShown=Math.floor(G.timeLeft*2); updateHUD(); }
     }
+    if(G.race){ try{ RunRace.frame(); }catch(e){} }   // (v389) 🏃 달리기 레이스 — 머리 위 순위 자리 · 시간 끝
     updatePlayer(dt);
     updateFx(dt);
     try{ Trail.update(dt, G.groundSpeed*(G.worldScale||1)); }catch(e){}
@@ -13536,10 +13552,11 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
         const sub = n>0 ? '🏃 '+st.r+' / '+HyBoss.STK : '🏃 '+rem+'/'+HyBoss.PER_RUN+' 단어 · 다음 판에 이어서';
         o.innerHTML = s && s.dead ? '<div class="ovBoss rwT'+(got>0?' rwFlash':'')+'"><div class="rwH">'+img+'<span>주간 보스</span></div><b class="rwN">🎉</b><small class="rwS">쓰러뜨렸어요!'+(got>0?' · ⚔️ +'+got:'')+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">🎁 보상 받기</button></div>'
           : got>=0 ? '<div class="ovBoss rwT'+(got>0?' rwFlash':'')+'"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">'+(got>0?'+'+got:n>0?'가득!':'+0')+'</b>'+pips(st.r)+'<small class="rwS">'+sub+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">⚔️ 공격하러</button></div>' : ''; }); } }catch(e){}
+  if(G.race){ try{ RunRace.done(); }catch(e){ console.error(e); $("scOver").classList.add("on"); } return; }   // (v389) 달리기 레이스 → 결과 화면 대신 배틀 순위 화면
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v388";
+const GAME_VER = "v389";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13650,6 +13667,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    ⚠️ (v332 사용자) 공지는 아이가 신날 소식만 — 새 보스 · 새 캐릭터·스킨 · 새 놀이·이벤트 · 새 보상. 그림 바꿈 · 화면 정리 · 선생님 기능(시험·숙제·관리) · 버그 고침은 공지하지 않는다 (매일 '뭐 했다'가 뜨면 안 됨)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-23c", date:"10월 23일", title:"🏃 달리기 레이스가 생겼어요!",
+   items:[
+     ["🏁","다 같이 달리기","선생님이 레이스를 열면 반 친구들과 같은 단어로 동시에 출발해요"],
+     ["🥇","머리 위에 내 순위","달리는 동안 머리 위에 지금 몇 등인지 보여요 · 친구를 앞지르면 순위가 쑥!"],
+     ["🔴","빨강 팀 vs 파랑 팀","팀 레이스는 팀 1인 평균 점수로 승부 · 이긴 팀 💎4"]]},
   {id:"2026-10-23b", date:"10월 23일", title:"📕 중등 단어가 늘었어요!",
    items:[
      ["📕","중등 voca 1 · DAY 58~70","단어 390개가 들어왔어요 · 중등 칸에서 만나 보세요!"],
@@ -18807,6 +18829,49 @@ function freeRoom(){ const old=x=>!x || !(x.made>0) || Date.now()-x.made>3*3600e
    · 점수: 맞힘 10 + 연속 보너스(2씩, 최대 +10) · 틀리면 1.5초 쉬기 · 0.7초 안에 누르면 무효 · 끝나면 1·2·3등 💎5·3·2, 참가 💎1
    DB /battle/<방> {cfg:{set,from,to,words,dur,team,lbl}, st:{s:wait|count|run|end, t0}, p:{아이:{n,e,t,sc,ok,ng,at}}}
 ===================================================================== */
+/* (v389) 🏃 달리기 레이스 (사용자: 워드 게이트 러너를 대결로 · 교실 전체 + 빨강 vs 파랑 · 서로 안 보여도 머리 위에 1등·2등만 바뀌면 됨)
+   교실 배틀 방(cfg.kind "run") — 선생님이 「레이스 시작」 → 아이 패드마다 같은 단어 칸·같은 난이도로 러너 출발, 같은 시간에 끝(서버 시계).
+   점수는 바뀌었을 때 1.5초마다 방에 씀(FB update) · 머리 위 배지 = 지금 내 순위 / 인원 (+ 두 팀이면 우리 팀 앞섬·따라감) · 남은 시간
+   하트를 다 잃으면 그 점수로 끝 → 배틀 화면에서 친구들 기다림 · 시간이 끝나면 교실 배틀과 같은 순위·💎 (두 팀: 이긴 팀 💎4 · 진 팀 💎2) */
+const RunRace = {
+  PUSH:1500, _at:0, _ls:-1, _rk:0, _el:null, _v:null, _p:null,
+  start(){ const B=Battle, c=B.cfg(); if(G.race || G.running) return;
+    G.set = WORD_SETS[c.rset] ? c.rset : "elem"; G.diff = DIFF[c.diff] ? c.diff : "normal"; G.rule="normal"; G.lesson=0; G.tag=null; G.book=null; G._nextWords=null; G._nextPractice=false;
+    G.race={room:B.room, rnd:B.st().rnd|0, base:B.sc|0}; this._at=0; this._ls=-1; this._rk=0; this._v=null;
+    try{ $("scRaid").classList.remove("on"); }catch(e){}
+    try{ startGame(); }catch(e){ console.error(e); G.race=null; B._raced=1; B.screen(); return; }
+    this.badge(); },
+  score(){ return Math.max(G.race ? G.race.base : 0, G.score|0); },
+  push(force){ if(!G.race) return; const B=Battle, sc=this.score(), now=Date.now();
+    B.sc=sc; B.ok=G.right|0; B.ng=G.wrong|0;
+    if(!force && (sc===this._ls || now-this._at<this.PUSH)) return; this._ls=sc; this._at=now;
+    try{ FB.update("/battle/"+B.room+"/p/"+B.me, {sc, ok:B.ok, ng:B.ng, at:B.now()}); }catch(e){} },
+  rank(){ const B=Battle, P=Object.assign({}, B.T().p||{}); P[B.me]=Object.assign({n:(B.pick||{}).n}, P[B.me]||{}, {sc:this.score()}); const R=B.rankOf(P); return {i:R.indexOf(B.me)+1, n:R.length, P}; },
+  badge(){ if(!G.race) return; let el=this._el; const B=Battle;
+    if(!el || !el.isConnected){ el=this._el=document.createElement("div"); el.id="rrBadge"; el.innerHTML='<div class="rrRk"></div><i class="rrTi"></i>'; document.body.appendChild(el); this._v=null; }
+    el.style.display = G.paused ? "none" : "";
+    const r=this.rank(); let tm="";
+    if(B.auto()){ const m=(r.P[B.me]||{}).tm, a=B.runTeams(r.P); if(a[m]){ const o=m==="r"?"b":"r", d=a[m].a-a[o].a; tm='<small class="rrTm '+m+'">'+B.AUTO_T[m].e+' '+(d>0?'우리 팀 앞서는 중':d<0?'우리 팀 따라가는 중':'팀 동점')+'</small>'; } }
+    const k=r.i+"/"+r.n+tm;
+    if(k!==this._v){ const up=this._rk && r.i<this._rk, dn=this._rk && r.i>this._rk; this._v=k; this._rk=r.i;
+      const rk=el.querySelector(".rrRk"); rk.innerHTML='<b>'+(r.i>=1 && r.i<=3 ? ["🥇","🥈","🥉"][r.i-1]+' ' : '')+r.i+'등</b><span>/ '+r.n+'명</span>'+tm;
+      if(up || dn){ el.classList.remove("up","dn"); void el.offsetWidth; el.classList.add(up?"up":"dn"); } }
+    const ti=el.querySelector(".rrTi"), l=B.left(); if(ti) ti.textContent='⏱ '+Raid.mmss(l); el.classList.toggle("hurry", l<=15000); },
+  frame(){ if(!G.race) return;
+    if(this.overNow()){ this.over(); return; }
+    const el=this._el; if(!el || typeof player==="undefined" || !player || !camera) return;
+    try{ const v=this._p||(this._p=new THREE.Vector3()); v.set(player.position.x, player.position.y+2.4, player.position.z); v.project(camera);
+      if(!isFinite(v.x) || !isFinite(v.y)) return;
+      el.style.transform='translate('+Math.round((v.x+1)/2*innerWidth)+'px,'+Math.round((1-v.y)/2*innerHeight)+'px) translate(-50%,-100%)'; }catch(e){} },
+  overNow(){ const B=Battle, st=B.st(); return !!G.race && (B.role!=="kid" || st.s==="end" || B.left()<=0 || (st.rnd|0)!==G.race.rnd); },
+  over(){ if(!G.race || G._overDone || G.overFade || !G.running) return; G.lastCause="race";
+    if(G.paused){ G.paused=false; try{ $("scPause").classList.remove("on"); }catch(e){} } G.skipOutro=false; gameOver(); },
+  /* gameOver 끝 (결과 화면 대신) — 마지막 점수를 쓰고 배틀 화면으로 */
+  done(){ const B=Battle; this.push(true); B._raced=1; G.race=null; this.hide();
+    if(B.role==="kid" && B.room){ try{ FB.update("/battle/"+B.room+"/p/"+B.me, {dn:1}); }catch(e){} B.screen(); B.draw(); } else { try{ $("scOver").classList.add("on"); }catch(e){} } },
+  abort(){ if(!G.race) return; G.race=null; this.hide(); },
+  hide(){ if(this._el){ this._el.remove(); this._el=null; } this._v=null; this._rk=0; }
+};
 const Battle = {
   role:null, room:null, me:null, pick:null, h:null, t:null, q:null, qAt:0, lockTo:0, streak:0, sc:0, ok:0, ng:0, ended:false, FAST:700,
   T(){ let t=(this.h && this.h.get())||this._last||{}; if(this._poll && (this._pollAt||0) > (this._evAt||0)){ const lt=t; t=Object.assign({}, this._poll); if(lt.st && this.role==="host" && (lt.st.s!==(t.st||{}).s)) t.st=lt.st; }   // (v359) 직접 읽은 것이 더 새것이면 그것 (선생님 기기가 방금 쓴 st 는 이 기기 것 우선)
@@ -18829,6 +18894,13 @@ const Battle = {
   /* (v382) 🔴🔵 두 팀 대결 — 반 명단이 없어도 들어온 아이를 선생님 화면이 자동으로 두 팀(tm r·b)에. 반 대항(tmode class)은 명단의 반(t) */
   AUTO_T:{r:{n:"빨강 팀", e:"🔴"}, b:{n:"파랑 팀", e:"🔵"}},
   auto(){ return this.cfg().tmode==="auto"; },
+  /* (v389) 🏃 달리기 레이스 (cfg.kind "run") — 문제 대신 워드 게이트 러너를 다 같이 달림 · 두 팀 점수 = 팀 1인 평균 (인원이 달라도 공정) */
+  isRun(){ return this.cfg().kind==="run"; },
+  runTeams(P){ P=P||this.T().p||{}; const a={r:{s:0,n:0,a:0}, b:{s:0,n:0,a:0}}; Object.keys(P).forEach(k=>{ const m=P[k] && P[k].tm; if(a[m]){ a[m].s+=P[k].sc|0; a[m].n++; } }); ["r","b"].forEach(m=>{ a[m].a=a[m].n?Math.round(a[m].s/a[m].n):0; }); return a; },
+  runWin(P){ const a=this.runTeams(P); return a.r.a===a.b.a ? "" : a.r.a>a.b.a ? "r" : "b"; },
+  runBar(big){ const a=this.runTeams(this._finP||null), top=Math.max(1, a.r.a, a.b.a); return '<div class="rrBar'+(big?' big':'')+'">'+["r","b"].map(m=>'<div class="rrT '+m+'"><b>'+this.AUTO_T[m].e+' '+this.AUTO_T[m].n+'</b><div class="rrTk"><i style="width:'+Math.round(a[m].a/top*100)+'%"></i></div><em>'+a[m].a+'</em><small>1인 평균 점수 · '+a[m].n+'명</small></div>').join('')+'</div>'; },
+  runWinHtml(){ const w=this.runWin(this._finP||null); return '<div class="btWin">'+(w ? '🏆 '+this.AUTO_T[w].e+' '+this.AUTO_T[w].n+' 승리!' : '🤝 비겼어요!')+'</div>'+this.runBar(true); },
+  runLbl(){ const c=this.cfg(), D={easy:"쉬움", normal:"보통", hard:"어려움"}; return ((WORD_SETS[c.rset]||{}).label||"")+" · "+(D[c.diff]||"보통"); },
   tk(p){ return (this.auto() ? (p && p.tm) : (p && p.t)) || "_"; },
   tName(t){ if(this.auto()) return this.AUTO_T[t] ? this.AUTO_T[t].e+" "+this.AUTO_T[t].n : "팀 고르는 중"; const T=HyBoss.teams(); return T[t] ? (T[t].e||"")+" "+T[t].n : "반 없음"; },
   /* (v382) 🔥 마지막 30초 점수 2배 (3분 이상 판) */
@@ -18894,7 +18966,7 @@ const Battle = {
   /* ══ 선생님 ══ */
   host(o, room){ room=room||String(1000+Math.floor(Math.random()*9000)); this.role="host"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._ws=null; this.off=0; this._won=0; this._finW=0; this._finP=null; this._asg={}; this._pv=null; this._fd=[]; try{ HyBoss.live(); }catch(e){}
     this.h=this.listen(room); TvRoom.save("battle", room);
-    FB.set("/battle/"+room, {cfg:{set:o.set, from:o.from|0, to:o.to|0, words:o.words||[], dur:o.dur||300, team:!!o.team || o.mode==="flag" || o.mode==="auto", mode:(o.mode==="flag"||o.mode==="auto")?"flag":"score", tmode:o.mode==="auto"?"auto":o.mode==="flag"?"class":"solo", fun:o.fun===false?0:1, goal:o.goal|0, qt:(o.qt && o.qt.length) ? o.qt : ["mean"], lvl:o.lvl==="exam"?"exam":"easy", lbl:o.lbl||"", cls:o.cls||"all", made:Date.now()}, st:{s:"wait", made:Date.now()}}).then(()=>FB.clock("/battle/"+room+"/cfg/ck")).then(o=>{ this.off=o|0; });
+    FB.set("/battle/"+room, {cfg:{set:o.set, from:o.from|0, to:o.to|0, words:o.words||[], dur:o.dur||300, team:!!o.team || o.mode==="flag" || o.mode==="auto", mode:o.kind==="run"?"score":(o.mode==="flag"||o.mode==="auto")?"flag":"score", kind:o.kind==="run"?"run":"q", rset:o.rset||"", diff:o.diff||"normal", tmode:o.mode==="auto"?"auto":o.mode==="flag"?"class":"solo", fun:o.fun===false?0:1, goal:o.goal|0, qt:(o.qt && o.qt.length) ? o.qt : ["mean"], lvl:o.lvl==="exam"?"exam":"easy", lbl:o.lbl||"", cls:o.cls||"all", made:Date.now()}, st:{s:"wait", made:Date.now()}}).then(()=>FB.clock("/battle/"+room+"/cfg/ck")).then(o=>{ this.off=o|0; });
     this.screen(); this.loop(); return room; },
   /* (v322) 📺 TV 다시 열기 — 방을 새로 쓰지 않고 듣기만 */
   reopen(room){ room=String(room); this.role="host"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._ws=null; this.off=0; this._won=0; try{ HyBoss.live(); }catch(e){}
@@ -18915,7 +18987,7 @@ const Battle = {
     Object.keys(P).forEach(k=>{ const m=P[k].tm||this._asg[k]; if(m==="r"||m==="b") cnt[m]++; });
     Object.keys(P).filter(k=>!(P[k].tm==="r"||P[k].tm==="b") && !this._asg[k]).forEach(k=>{ const m=cnt.r<=cnt.b?"r":"b"; cnt[m]++; this._asg[k]=m; FB.update("/battle/"+this.room+"/p/"+k, {tm:m}); }); },
   /* ══ 아이 ══ */
-  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0; this._qn=0; this._zg=0;
+  join(room, pick){ this.role="kid"; this.room=room; this.ended=false; this._poll=null; this._pollAt=0; this._rnd=null; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; try{ HyExam.ready(); }catch(e){}   /* (v351) 시험처럼 문제의 예문·대화 자료를 미리 */ this._ws=null; this.q=null; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.lockTo=0; this._gems=0; this._fin=0; this.off=0; this._qn=0; this._zg=0; this._raced=0;
     this.pick=pick; this.me=pick.id; let em="🙂"; try{ em=(CHARACTERS.find(c=>c.id===G.char)||CHARACTERS[0]).emoji; }catch(e){} const ch=String(G.char||"hero").slice(0,12);   /* (v342) 트랙에 내 캐릭터가 달리게 */
     const t=(pick.t && pick.t!=="all") ? pick.t : ((HyBoss.kids()[pick.id]||{}).t || "");
     this.h=this.listen(room); const dv=Raid.dev();   // (v322) dv = 이 기기 (같은 이름이 다른 기기에서 또 들어오는 것 막기)
@@ -18969,10 +19041,11 @@ const Battle = {
     const i=R.indexOf(this.me), key="bt-"+this.room+"-"+(this.st().t0||0);
     try{ if(this.ok+this.ng>0 && this._dy!==key){ this._dy=key; HyDay.add({c:1, cb:1}, null, this.pick); } }catch(e){}   // (v354) 📅 오늘 한 아이
     const flag=this.cfg().mode==="flag", mt=this.tk((this.T().p||{})[this.me]), st0=this.st(), win = flag && (st0.win ? st0.win===mt : (this.teamsOf()[0]||{}).t===mt); this._win=win;
-    if(this.ok>0 && !Wallet.paid(key)){ Wallet.pay(key); this._gems = flag ? (win ? 4 : 2) : i===0 ? 5 : i===1 ? 3 : i===2 ? 2 : 1; Wallet.addGems(this._gems, "교실 배틀 "+this.room); }   // (v310) 🚩 깃발 레이스: 우승 반 💎4 · 나머지 💎2
-    try{ if(Online.on() && !Wallet.paid("s"+key) && (Wallet.pay("s"+key), true)) Online.submit({nick:(this.pick.n||"PLAYER").slice(0,10), score:this.sc, diff:"study", rule:"study-battle", stage:i+1, acc:Math.round(this.ok/Math.max(1,this.ok+this.ng)*100), right:this.ok, wrong:this.ng,
+    if(this.isRun() && this.auto()){ const rw=this.runWin(this._finP||null); this._win = !!rw && rw===mt; }   // (v389) 두 팀 달리기: 1인 평균이 높은 팀
+    if((this.ok>0 || (this.isRun() && this.sc>0)) && !Wallet.paid(key)){ Wallet.pay(key); this._gems = (flag || (this.isRun() && this.auto())) ? (this._win ? 4 : 2) : i===0 ? 5 : i===1 ? 3 : i===2 ? 2 : 1; Wallet.addGems(this._gems, "교실 배틀 "+this.room); }   // (v310) 🚩 깃발 레이스: 우승 반 💎4 · 나머지 💎2
+    try{ if(Online.on() && !this.isRun() && !Wallet.paid("s"+key) && (Wallet.pay("s"+key), true)) Online.submit({nick:(this.pick.n||"PLAYER").slice(0,10), score:this.sc, diff:"study", rule:"study-battle", stage:i+1, acc:Math.round(this.ok/Math.max(1,this.ok+this.ng)*100), right:this.ok, wrong:this.ng,
       clear:1, end:"battle", set:"교실 배틀 "+(this.cfg().lbl||this.room), secs:Math.round((this.cfg().dur||300)), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:""}); }catch(e){}
-    if(flag ? win : i===0) try{ confetti(); }catch(e){} this.draw(); },
+    if((flag || (this.isRun() && this.auto())) ? this._win : i===0) try{ confetti(); }catch(e){} this.draw(); },
   loop(){ clearInterval(this.t); this.t=setInterval(()=>this.tick(), 200); },
   tick(){ const st=this.st(), now=this.now(); try{ this.poll(Date.now()); }catch(e){}
     if(this.role==="host"){ if(st.s!=="end" && this._finP) this._finP=null;   // (v359) 끝이 아니면 끝 순위 점수는 안 씀
@@ -18986,8 +19059,14 @@ const Battle = {
           if(P && typeof P==="object"){ this._finP=P; FB.update("/battle/"+room+"/st", {fin:{r:this.rankOf(P), at:Date.now()}}); } }, ()=>{ this._finW=0; }); }
       this.draw(); return; }
     if(this.role!=="kid") return;
-    if(st.s){ const rn=st.rnd|0; if(this._rnd==null) this._rnd=rn; else if(rn!==this._rnd){ this._rnd=rn; this.ended=false; this._fin=0; this._gems=0; this._win=0; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.q=null; this.lockTo=0; this.draw(); } }   // (v348) 선생님 🔁 한 판 더
+    if(st.s){ const rn=st.rnd|0; if(this._rnd==null) this._rnd=rn; else if(rn!==this._rnd){ this._rnd=rn; this.ended=false; this._fin=0; this._gems=0; this._win=0; this._finP=null; this._finBusy=0; this._eq=null; this._lr=null; this._lrT=0; this.sc=0; this.ok=0; this.ng=0; this.streak=0; this.q=null; this.lockTo=0; this._raced=0; try{ RunRace.abort(); }catch(e){} this.draw(); } }   // (v348) 선생님 🔁 한 판 더
+    if(G.race && this.isRun() && (st.s==="end" || (this.running() && this.left()<=0))) RunRace.over();   // (v389) 시간 끝 · 선생님이 끝냄 → 러너도 끝
     if(st.s==="end" || (this.running() && this.left()<=0)){ if(!this._fin) this._fin=Date.now(); if(Date.now()-this._fin>=2500){ this.finish(); return; } this.draw(); return; }   // (v305) 끝나고 2.5초 기다려 다른 아이 마지막 점수까지 받은 뒤 순위·보석
+    if(this.isRun()){   // (v389) 🏃 달리기 레이스 — 시작 시간이 되면 러너 출발 · 달리는 동안 점수 보내기·머리 위 순위만 (배틀 화면은 안 그림)
+      if(this.running() && this.left()>1500 && !this._raced && !G.race && !G.running && !G.versus) RunRace.start();
+      if(G.race){ RunRace.push(); RunRace.badge(); return; }
+      if(now-(this._ping||0)>20000 && this.cfg().made){ this._ping=now; FB.update("/battle/"+this.room+"/p/"+this.me, {at:now}); }
+      this.draw(); return; }
     if((st.s==="run" || (st.s==="count" && now>=st.t0)) && !this.q){ this.q=this.nextQ(); this.qAt=now; }
     if(this.q && this.q.exq && !this.q.done && this.running() && this.qLeft()<=0) this.timeout();   // (v351) 문제마다 시간
     if(this.q && this.q.exq){ const b=$("btQTi"); if(b){ const l=this.q.done ? 0 : this.qLeft(); b.style.width=(l/(this.q.sec*1000)*100).toFixed(1)+"%"; b.parentNode.classList.toggle("hurry", l<3000); } }
@@ -19040,30 +19119,31 @@ const Battle = {
       return '<div class="btRow'+(me?' me':'')+(now-(p.at||0)>60000?' idle':'')+'"><i class="btRk">'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</i><b>'+this.esc(p.n)+'</b><div class="btTrack'+(this.st().s==="run"?' go':'')+'"><span style="left:'+Math.min(92,pc)+'%">'+(this.chr(p.c) || (p.e||'🏃'))+'</span></div><em>'+(p.sc|0)+'</em></div>'; }).join('')+'</div>'; },
   draw(){ if(!$("rdIn")) return; const st=this.st(), c=this.cfg(), now=this.now(), P=this.T().p||{};
     if(this.role==="host"){
-      const flag=c.mode==="flag", qtl=c.lvl==="exam" ? "📝 시험처럼 (A·B·C · 문제마다 시간)" : (c.qt||["mean"]).map(x=>this.QT[x]||x).join(" · ");
+      const flag=c.mode==="flag", rt=this.isRun() && this.auto(), qtl=this.isRun() ? "🏃 "+this.runLbl() : c.lvl==="exam" ? "📝 시험처럼 (A·B·C · 문제마다 시간)" : (c.qt||["mean"]).map(x=>this.QT[x]||x).join(" · ");
       const lag = this._poll && (this._pollAt||0) > (this._evAt||0) ? '<span class="btLag">🔄 연결 다시 잡는 중 · 3초마다 새로</span>' : '';
-      Raid.reg("rdA", lag+'<div class="rdTop"><button class="rdX" data-bt="leave">✕</button><span class="rdRoom big">'+(flag?(this.auto()?'🔴🔵 두 팀 대결':'🚩 반 깃발 레이스'):'🏫 교실 배틀')+' · 방 번호 <b>'+this.esc(this.room)+'</b></span><span class="rdMe">'+this.esc(this.lbl())+' · '+Math.round((c.dur||300)/60)+'분'+(flag?' · 목표 1인 '+this.goal()+'개':'')+'<br><small>'+this.esc(qtl)+'</small></span></div>'+this.timerHtml(true));
+      Raid.reg("rdA", lag+'<div class="rdTop"><button class="rdX" data-bt="leave">✕</button><span class="rdRoom big">'+(this.isRun()?(this.auto()?'🏃 달리기 · 🔴🔵 두 팀':'🏃 달리기 레이스'):flag?(this.auto()?'🔴🔵 두 팀 대결':'🚩 반 깃발 레이스'):'🏫 교실 배틀')+' · 방 번호 <b>'+this.esc(this.room)+'</b></span><span class="rdMe">'+this.esc(this.lbl())+' · '+Math.round((c.dur||300)/60)+'분'+(flag?' · 목표 1인 '+this.goal()+'개':'')+'<br><small>'+this.esc(qtl)+'</small></span></div>'+this.timerHtml(true));
       if(flag){ const L=this.teamsOf(), W=L.find(a=>a.t===st.win)||L[0];
         const au=this.auto();
         Raid.reg("rdB", st.s==="wait" ? '<div class="rdWait">'+this.bigRoom()+'<b>들어온 아이 '+Object.keys(P).length+'명</b>'+(au?'':this.miss())+'<p>'+(au?'들어오면 빨강·파랑 팀으로 자동으로 나눠요 · 팀 정답 합 ÷ 푼 아이 수 = 깃발이 가는 칸':'반마다 깃발 하나! 반 아이들 정답 합 ÷ 푼 아이 수 = 깃발이 가는 칸')+' · 먼저 🏁 '+this.goal()+'칸에 닿는 '+(au?'팀':'반')+'이 우승</p>'+(au ? this.teamCols() : '<div class="rdPeople">'+Object.keys(P).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div>')+'</div>'+this.flagHtml(true)
           : st.s==="end" ? (W ? '<div class="btWin">🏆 '+this.esc(W.name)+' 우승!</div>' : '')+this.flagHtml(true)+this.podium()+this.board(12, false)
           : this.dblHtml()+this.flagHtml(true)+'<div class="btTvRow">'+this.tvTop()+this.board(12, false)+'</div>');
       } else
-      Raid.reg("rdB", st.s==="wait" ? '<div class="rdWait">'+this.bigRoom()+'<b>들어온 아이 '+Object.keys(P).length+'명</b><div class="rdPeople">'+Object.keys(P).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div>'+this.miss()+'</div>'
-        : st.s==="end" ? this.podium()+this.board(30,true)
-        : this.tvTop()+this.board(30, true));
-      Raid.reg("rdC", '<div class="rdCtl">'+(st.s==="wait"?(flag && this.auto() ? '<button class="stGo soft" data-bth="shuffle">🔀 팀 다시 섞기</button>' : '')+'<button class="stGo big" data-bth="start">▶ 배틀 시작 (3·2·1)</button><p class="rdHint">아이들: Daily 30 위 ⚔️ 배틀·레이드 → 방 번호 '+this.esc(this.room)+'</p>'
+      Raid.reg("rdB", st.s==="wait" ? '<div class="rdWait">'+this.bigRoom()+'<b>들어온 아이 '+Object.keys(P).length+'명</b>'+(rt ? '<p>들어오면 빨강·파랑 팀으로 자동으로 나눠요 · 팀 점수 = 1인 평균</p>'+this.teamCols() : '<div class="rdPeople">'+Object.keys(P).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div>')+this.miss()+'</div>'
+        : st.s==="end" ? (rt ? this.runWinHtml() : '')+this.podium()+this.board(30,true)
+        : (rt ? this.runBar(true) : '')+this.tvTop()+this.board(30, true));
+      Raid.reg("rdC", '<div class="rdCtl">'+(st.s==="wait"?((flag || this.isRun()) && this.auto() ? '<button class="stGo soft" data-bth="shuffle">🔀 팀 다시 섞기</button>' : '')+'<button class="stGo big" data-bth="start">'+(this.isRun()?'▶ 레이스 시작 (3·2·1)':'▶ 배틀 시작 (3·2·1)')+'</button><p class="rdHint">아이들: Daily 30 위 ⚔️ 배틀·레이드 → 방 번호 '+this.esc(this.room)+'</p>'
         : st.s==="end" ? '<button class="stGo" data-bth="again">🔁 같은 설정으로 한 판 더</button><button class="stGo soft" data-bt="leave">닫기</button><p class="rdHint">한 판 더: 아이들은 그대로 이 방에서 기다려요 (방 번호 다시 안 쳐도 돼요)</p>' : '<button class="warn" data-bth="end">🏁 지금 끝내기</button>')+'</div>');
       return; }
     if(this.role!=="kid") return;
     const R=this.rank(), my=R.indexOf(this.me)+1, myT=this.tk(P[this.me]);
-    Raid.reg("rdA", '<div class="rdTop"><button class="rdX" data-bt="leave">✕</button><span class="rdRoom">🏫 '+this.esc(this.lbl())+'</span><span class="rdMe">'+(myT!=="_" && c.mode==="flag" ? '<i class="btMyT">'+this.esc(this.tName(myT).split(" ")[0])+'</i> ' : '')+this.esc(this.pick.n)+' · <b>'+this.sc+'점</b>'+(my?' · '+my+'등':'')+'</span></div>'+this.timerHtml());
+    Raid.reg("rdA", '<div class="rdTop"><button class="rdX" data-bt="leave">✕</button><span class="rdRoom">'+(this.isRun()?'🏃 ':'🏫 ')+this.esc(this.lbl())+'</span><span class="rdMe">'+(myT!=="_" && (c.mode==="flag" || (this.isRun() && this.auto())) ? '<i class="btMyT">'+this.esc(this.tName(myT).split(" ")[0])+'</i> ' : '')+this.esc(this.pick.n)+' · <b>'+this.sc+'점</b>'+(my?' · '+my+'등':'')+'</span></div>'+this.timerHtml());
     let h='';
-    if(this.ended){ const fl=c.mode==="flag";
-      h='<div class="rdEnd"><div class="rdEndT">'+(fl ? (this._win?'🚩 우리 반 우승!':'🚩 잘 달렸어요!') : my===1?'🥇 1등!':my===2?'🥈 2등!':my===3?'🥉 3등!':'🏁 '+my+'등')+'</div>'+(fl?this.flagHtml(false):'')+'<div class="stStat"><div><b>'+this.sc+'</b><small>점수</small></div><div><b>'+this.ok+'</b><small>맞힘</small></div><div><b>'+Math.round(this.ok/Math.max(1,this.ok+this.ng)*100)+'%</b><small>정답률</small></div></div>'
+    if(this.ended){ const fl=c.mode==="flag", rt=this.isRun() && this.auto();
+      h='<div class="rdEnd"><div class="rdEndT">'+(fl ? (this._win?'🚩 우리 반 우승!':'🚩 잘 달렸어요!') : rt ? (this._win?'🏆 우리 팀 승리!':'🏁 잘 달렸어요!')+' <small>'+my+'등</small>' : my===1?'🥇 1등!':my===2?'🥈 2등!':my===3?'🥉 3등!':'🏁 '+my+'등')+'</div>'+(fl?this.flagHtml(false):rt?this.runBar(false):'')+'<div class="stStat"><div><b>'+this.sc+'</b><small>점수</small></div><div><b>'+this.ok+'</b><small>맞힘</small></div><div><b>'+Math.round(this.ok/Math.max(1,this.ok+this.ng)*100)+'%</b><small>정답률</small></div></div>'
         +(this._gems?'<div class="stGem">💎 +'+this._gems+'</div>':'')+this.board(5)+'<button class="stGo" data-bt="leave">나가기</button></div>'; }
-    else if(st.s==="wait" || !st.s) h='<div class="rdWait">'+(c.mode==="flag" && myT!=="_" ? '<div class="btMyTeam '+myT+'">나는 '+this.esc(this.tName(myT))+'!</div>' : '')+'<b>선생님이 시작하면 바로 시작해요</b><p>'+this.esc(this.lbl())+' · '+Math.round((c.dur||300)/60)+'분 동안 많이 맞히기!</p><div class="rdPeople">'+Object.keys(P).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div></div>';
+    else if(st.s==="wait" || !st.s) h='<div class="rdWait">'+((c.mode==="flag" || (this.isRun() && this.auto())) && myT!=="_" ? '<div class="btMyTeam '+myT+'">나는 '+this.esc(this.tName(myT))+'!</div>' : '')+'<b>선생님이 시작하면 바로 시작해요</b><p>'+this.esc(this.lbl())+' · '+Math.round((c.dur||300)/60)+'분 동안 '+(this.isRun()?'달리면서 많이 맞히기! 🏃 (머리 위에 지금 순위가 보여요)':'많이 맞히기!')+'</p><div class="rdPeople">'+Object.keys(P).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div></div>';
     else if(st.s==="count" && now<st.t0) h='<div class="btCount">'+Math.max(1, Math.ceil((st.t0-now)/1000))+'</div>';
+    else if(this.isRun()) h = this._raced ? '<div class="rdWait"><b>🏁 다 달렸어요!</b><p>친구들이 끝날 때까지 기다려요 · 점수 '+this.sc+'</p></div>'+(this.auto()?this.runBar(false):'')+this.board(30) : '<div class="btCount">🏃</div>';   // (v389)
     else if(this.q){ const q=this.q, lock=now<this.lockTo, E=x=>this.esc(x);
       const pr = q.t==="flash" ? '<div class="stEn btFlash">'+E(dispEn(q.w.en))+'</div>' : q.t==="lsp" ? '<button class="btLsn" data-btsay="'+E(q.w.en)+'">🔊 다시 듣기</button>' : q.t==="k2e"||q.t==="spell" ? '<div class="stKo big">'+E(q.w.ko)+'</div>' : q.t==="sent" && q.st ? (q.opic && q.w.emoji ? '<div class="btPic sm">'+emoHtml(q.w.emoji)+'</div>' : '')+'<div class="stSent">'+E(q.st.pre)+'<u>&nbsp;</u>'+E(q.st.post)+'</div>'+(q.exq && q.st.ko && !q.noKo ? '<div class="stSentKo">'+E(q.st.ko)+'</div>' : '') : q.t==="def" ? '<div class="stDef">'+E(q.d)+'</div>'
         : q.t==="gap" ? '<div class="stKo">'+E(q.w.ko)+'</div><div class="stEn btGap">'+E(q.gap).replace("_",'<u>?</u>')+'</div>' : q.t==="ox" ? '<div class="stEn">'+E(q.w.en)+'</div><div class="stKo big">= '+E(q.ko)+' ?</div>'
@@ -19137,6 +19217,13 @@ const Admin = (function(){
     let h='<div id="adFbSt" class="adSmall full"></div><div class="adMsg full" id="adMsg"></div>';
     const tv=TvRoom.get(); if(tv && part==="play") h+='<button class="play adGo" data-ad="tvBack">📺 방 '+esc(tv.r)+' 다시 열기 <small>('+(tv.k==="battle"?"교실 배틀":"수업 레이드")+' · 새로고침해도 아이들 점수 그대로)</small></button>';   // (v322) TV 가 새로고침·닫혀도 방을 되찾기
     const sets=[].concat(...Object.keys(BK).filter(k=>k!=="ph").map(k=>BK[k].sets)), sopt=sets.map(st=>'<option value="'+st+'"'+(st==="g56"?' selected':'')+'>'+esc(Study.label(st))+'</option>').join('');
+    /* (v389) 🏃 달리기 레이스 — 교실 배틀 방을 kind "run" 으로 */
+    if(part==="play") h+=card('🏃 달리기 레이스 (워드 게이트 러너로 대결)', info('다 같이 달리기 · 같은 단어 · 같은 난이도 · 같은 시간 · 아이 머리 위에 지금 순위(🥇 1등 · 4등 / 12명)만 보여요 · 두 팀이면 팀 1인 평균 점수로 승부 · 1·2·3등 💎5·3·2 (두 팀: 이긴 팀 💎4 · 진 팀 💎2)')
+      +'<div class="adPinRow"><label class="adL">단어</label><select id="adRrSet">'+["basic","elem","g56","mid","mv1","all"].filter(k=>WORD_SETS[k]).map(k=>'<option value="'+k+'"'+(k==="elem"?' selected':'')+'>'+esc(WORD_SETS[k].label)+'</option>').join('')+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">방식</label><select id="adRrMode"><option value="score">🏃 개인 레이스 (반 전체 순위)</option><option value="auto">🔴🔵 빨강 vs 파랑 (자동으로 나눠요)</option></select></div>'
+      +'<div class="adPinRow"><label class="adL">시간</label><select id="adRrDur"><option value="120">2분</option><option value="180" selected>3분</option><option value="300">5분</option></select></div>'
+      +'<div class="adPinRow"><label class="adL">난이도</label><select id="adRrDiff"><option value="easy">🐣 쉬움</option><option value="normal" selected>⚡ 보통</option><option value="hard">🔥 어려움</option></select></div>'
+      +'<button class="play adGo" data-ad="rrGo">🏃 레이스 방 만들기</button>');
     if(part==="play") h+=card('🏫 교실 배틀 (5분 타임어택)', info('같은 단어 묶음으로 정해진 시간 동안 누가 많이 맞히나 · TV 에 순위와 달리기 트랙 · 1·2·3등 💎5·3·2, 참가 💎1')
       +(btLast() ? '<button class="play adGo soft" data-ad="btLast">⚡ 지난번처럼 바로 만들기 <small>('+esc(btLast().lbl||'')+' · '+Math.round((btLast().dur||300)/60)+'분 · '+({score:'개인',auto:'두 팀',flag:'반 대항'}[btLast().mode]||'개인')+')</small></button>' : '')
       +'<div class="adPinRow"><label class="adL">책</label><select id="adBtSet">'+sopt+'</select></div>'
@@ -19707,11 +19794,13 @@ const Admin = (function(){
       HyBoss.pickWeek(k).then(ok=>{ if(ok) msg("이번 주 보스: "+L.n+" ✔", true); if(tab==='boss'){ keepScroll=true; draw(); } }); return; }
     if(a==="wkOff"){ if(!confirm("주간 보스를 끌까요? (아이들 화면에서 보스 카드가 사라져요)\n\n· 이번 주 안에 다시 켜면 보스·기회·보상이 그대로 이어져요")) return; HyBoss.setup({on:false, team:$("adWkT").checked, split:$("adWkS").value}).then(()=>{ if(tab==='boss'){ keepScroll=true; draw(); } }); msg("껐어요", true); return; }
     if(a==="wkRestart"){ if(!confirm("이번 주부터 1번 보스로 다시 시작할까요?\n\n· 새 보스는 체력 가득 — 지금 보스에 깎은 데미지는 이어지지 않아요\n· 아이들 ⚔️ 공격 기회는 새 보스로 그대로 옮겨요\n· 이미 쓰러뜨린 보스의 안 받은 보상은 그대로 받을 수 있어요")) return; HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, restart:true}).then(()=>{ if(tab==='boss'){ keepScroll=true; draw(); } }); msg("1번 보스부터 다시", true); return; }
-    if((a==="raidGo"||a==="btGo"||a==="btLast") && FB.mode()!=="fb" && !window.HY_FB_LOCAL && !confirm("학원 서버(인터넷)에 연결이 안 돼서 아이들 태블릿이 들어올 수 없어요.\n그래도 이 기기에서 만들까요?")) return;
+    if((a==="raidGo"||a==="btGo"||a==="btLast"||a==="rrGo") && FB.mode()!=="fb" && !window.HY_FB_LOCAL && !confirm("학원 서버(인터넷)에 연결이 안 돼서 아이들 태블릿이 들어올 수 없어요.\n그래도 이 기기에서 만들까요?")) return;
     if(a==="btGo" && (($("adBtMode")||{}).value==="flag") && Object.keys(HyBoss.teams()).length<2 && !confirm("🚩 깃발 레이스는 반이 2개 이상일 때 재밌어요. 아래 👥 반 명단에 반이 "+Object.keys(HyBoss.teams()).length+"개예요.\n그래도 만들까요?")) return;
     if(a==="tvBack"){ try{ $("shAdmin").classList.remove("on"); }catch(e){} TvRoom.open().then(ok=>{ if(!ok){ hyToast("📺 그 방은 이제 없어요 · 새로 만들어요"); try{ open(); }catch(e){} } }); return; }   // (v322) TV 방 다시 열기
     /* (v322) 단어 칸 — 배틀·방패 둘 다 쉼표로만 나눔 ('put on' 처럼 띄어 쓴 단어 그대로) · 없는 단어는 알려 줌 */
     const wordsIn=id=>{ const all=(($(id)||{}).value||"").split(/[,\n]+/).map(x=>x.trim().toLowerCase().replace(/\s+/g," ")).filter(Boolean), ok=all.filter(x=>Study.word(x)), no=all.filter(x=>!Study.word(x)); if(no.length) hyToast("⚠️ 없는 단어는 뺐어요: "+no.slice(0,6).join(", ")+(no.length>6?" 외 "+(no.length-6)+"개":""), 4000); return ok; };
+    if(a==="rrGo"){ const rset=($("adRrSet")||{}).value||"elem", o={kind:"run", rset, diff:($("adRrDiff")||{}).value||"normal", dur:+(($("adRrDur")||{}).value||180), mode:($("adRrMode")||{}).value||"score", set:"elem", words:[], lbl:"달리기 · "+((WORD_SETS[rset]||{}).label||rset), cls:"all"};
+      try{ $("shAdmin").classList.remove("on"); }catch(e){} pre={bt:"", rd:""}; freeRoom().then(r=>Battle.host(o, r)); return; }   // (v389) 🏃 달리기 레이스
     if(a==="btLast"){ const o=btLast(); if(!o) return; try{ $("shAdmin").classList.remove("on"); }catch(e){} pre={bt:"", rd:""}; freeRoom().then(r=>Battle.host(o, r)); return; }
     if(a==="btGo"){ const set=$("adBtSet").value, f=+$("adBtFrom").value, t=Math.max(f, +$("adBtTo").value), L=Study.lessons(set), ws=wordsIn("adBtWords");
       const lbl = ws.length ? "직접 고른 단어 "+ws.length+"개" : Study.tag(set)+" Stage "+Study.stageNo(set,L[f].n)+(t>f?"~"+Study.stageNo(set,L[t].n):"");
