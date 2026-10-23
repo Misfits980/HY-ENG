@@ -29,7 +29,7 @@ async def main():
         await T.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }"); await T.reload(); await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); }"); await T.wait_for_timeout(400)
         await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"class\"]').click()"); await T.wait_for_timeout(900)
-        r = await T.evaluate("()=>{ const b=document.querySelector('#adTmList .dyWarn'); return b ? b.innerText : ''; }")
+        r = await T.evaluate("()=>{ const b=[...document.querySelectorAll('#adTmList .dyWarn')].find(x=>/두 번/.test(x.innerText)); return b ? b.innerText : ''; }")   # (v387) 위에 📱 패드 이름 안내가 먼저 나올 수 있음
         ok("두 번" in r and "8명" in r, f"맨 위 안내 {r[:40]}")
         await T.screenshot(path=OUT + "dup365_admin.png")
         CL = "()=>document.querySelector('[data-ad=\"rsClean\"]').click()"
