@@ -19,7 +19,7 @@ async def main():
         await ctx.add_init_script("window.HY_FB_LOCAL=true; try{ sessionStorage.setItem('hyeng_admin_ok', String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }catch(e){}")
         T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T); await T.evaluate('()=>{ Battle.FR=false; }')
         # ⑤ 관리: 반 명단 없음 안내 · 방식 3가지
-        await T.evaluate("()=>{ Admin.open(); Admin._tab('play'); }"); await T.wait_for_timeout(800)
+        await T.evaluate("()=>{ Admin.open(); Admin._tab('play'); }"); await T.wait_for_timeout(800); await T.evaluate("()=>document.querySelector('[data-ad=nowEdit][data-k=bt]').click()"); await T.wait_for_timeout(500)
         r = await T.evaluate("()=>{ const m=[...document.querySelectorAll('#adBtMode option')].map(o=>o.value); const tx=document.getElementById('shAdmin').innerText; return {m, hint:tx.indexOf('반 명단이 아직 없어요')>=0, last:!!document.querySelector('[data-ad=btLast]'), fun:!!document.getElementById('adBtFun'), cls:!!document.getElementById('adBtCls')}; }")
         ok(r["m"] == ["score", "auto", "flag"] and r["hint"] and not r["last"] and r["fun"] and r["cls"], f"배틀 설정: 개인·두 팀·반 대항 · 반 명단 없음 안내 {r}")
         await T.evaluate("()=>{ const m=document.getElementById('adBtMode'); m.value='auto'; m.dispatchEvent(new Event('change')); const d=document.getElementById('adBtDur'); d.value='180'; document.querySelector('[data-ad=btGo]').click(); }")

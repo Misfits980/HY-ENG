@@ -14,8 +14,8 @@ async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch(); ctx = await br.new_context(viewport={"width": 390, "height": 844})
         await ctx.add_init_script("window.HY_FB_LOCAL=true;")
-        T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T)
-        K = await ctx.new_page(); K.on("pageerror", lambda e: errs.append("K " + str(e))); await boot(K)
+        T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T); await T.evaluate('()=>{ Battle.FR=false; }')
+        K = await ctx.new_page(); K.on("pageerror", lambda e: errs.append("K " + str(e))); await boot(K); await K.evaluate('()=>{ Battle.FR=false; }')
         await T.evaluate("""()=>FB.set('/battle/5353', {cfg:{set:'elem', from:0, to:2, words:[], dur:300, qt:['mean'], lvl:'easy', made:Date.now()}, st:{s:'run', t0:Date.now()-3000},
             p:{a1:{n:'서연', sc:40, ok:4, ng:0, at:Date.now()}, a2:{n:'하준', sc:20, ok:2, ng:0, at:Date.now()}, a3:{n:'지우', sc:10, ok:1, ng:0, at:Date.now()}, a4:{n:'도윤', sc:0, ok:0, ng:0, at:Date.now()}}})""")
         await K.evaluate("()=>{ Battle.join('5353', {id:'k1', n:'민준', t:'a'}); }"); await K.wait_for_timeout(1500)

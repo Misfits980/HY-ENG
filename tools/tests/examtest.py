@@ -28,7 +28,7 @@ async def main():
         ok(await K1.evaluate("()=>!document.getElementById('exChip') || document.getElementById('exChip').hidden"), "평소에는 시험 버튼 없음")
         # 선생님 — 관리 화면 📝 시험 탭
         await T.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }"); await T.wait_for_timeout(500)
-        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"exam\"]').click()"); await T.wait_for_timeout(600)
+        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"work\"]').click()"); await T.wait_for_timeout(600)
         await T.evaluate("()=>{ const s=document.getElementById('adExSet'); s.value='elem'; s.dispatchEvent(new Event('change')); document.getElementById('adExTo').value='5'; document.getElementById('adExTo').dispatchEvent(new Event('change')); document.getElementById('adExN').value='20'; document.getElementById('adExN').dispatchEvent(new Event('change')); }"); await T.wait_for_timeout(200)
         info = await T.evaluate("()=>document.getElementById('adExInfo').textContent")
         print("info", info)

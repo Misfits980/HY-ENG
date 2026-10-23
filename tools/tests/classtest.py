@@ -32,12 +32,12 @@ async def main():
                 if want not in txt: bad.append(f"{name} 우리 반에 '{want}' 없음")
             tabs=await pg.evaluate("()=>{ const t=document.getElementById('adTabs'), b=[...t.querySelectorAll('button')]; return [b.length, new Set(b.map(x=>Math.round(x.getBoundingClientRect().top))).size, document.documentElement.scrollWidth<=innerWidth]; }")
             print(name, "tabs", tabs)
-            if tabs[0]!=6 or tabs[1]!=1: bad.append(f"{name} 탭이 한 줄이 아님 {tabs}")
+            if tabs[0]!=4 or tabs[1]!=1: bad.append(f"{name} 탭이 한 줄이 아님 {tabs}")
             await pg.screenshot(path=OUT+f"class_{name}.png", full_page=False)
             if name=="phone":
                 await pg.click("[data-ad=weakBt]"); await pg.wait_for_timeout(400)
                 v=await pg.evaluate("()=>[(document.getElementById('adBtWords')||{}).value, document.querySelector('#adTabs .on').dataset.t]"); print("weakBt", v)
-                if v[1]!="play" or "home" not in (v[0] or ""): bad.append(f"약한 단어 → 배틀 칸 {v}")
+                if v[1]!="now" or "home" not in (v[0] or ""): bad.append(f"약한 단어 → 배틀 칸 (🏫 지금 수업) {v}")
                 await pg.screenshot(path=OUT+"class_raidtab.png")
                 await pg.click("[data-ad=btGo]"); await pg.wait_for_timeout(900)   # (v308) 배틀 방 만들기 버튼이 정말 방을 여는지
                 bt=await pg.evaluate("()=>[Battle.role, Battle.room, (Battle.cfg().words||[]).length]"); print("btGo", bt)
@@ -45,7 +45,7 @@ async def main():
                 # (v322) 📺 TV 새로고침 → 관리 ⚔️ 탭 「방 다시 열기」 → 같은 방 (새로 쓰지 않음)
                 await pg.reload(); await pg.wait_for_timeout(1000)
                 await pg.evaluate("(R)=>{ Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:3, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:true, rep:R} : {ok:true}); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }", REP)
-                await pg.wait_for_timeout(500); await pg.click('#adTabs [data-t="play"]'); await pg.wait_for_timeout(400)
+                await pg.wait_for_timeout(500); await pg.click('#adTabs [data-t="now"]'); await pg.wait_for_timeout(400)
                 has=await pg.evaluate("()=>!!document.querySelector('[data-ad=tvBack]')")
                 if not has: bad.append("📺 방 다시 열기 버튼 없음")
                 else:
@@ -56,7 +56,7 @@ async def main():
                 if await pg.evaluate("()=>!!TvRoom.get()"): bad.append("TV 를 닫았는데 다시 열기가 남음")
                 # (v322) 방패 단어 — 쉼표로만 나눔 ('put on' 그대로) · 없는 단어는 알려 줌
                 await pg.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }"); await pg.wait_for_timeout(400)
-                await pg.click('#adTabs [data-t="play"]'); await pg.wait_for_timeout(300)
+                await pg.click('#adTabs [data-t="now"]'); await pg.wait_for_timeout(300)
                 await pg.evaluate("()=>{ document.getElementById('adRdWords').value='put on, zzqx, home'; }")
                 await pg.click("[data-ad=raidGo]"); await pg.wait_for_timeout(900)
                 rd=await pg.evaluate("()=>[Raid.role, ((RaidNet.get().sh||{}).w)||[], (document.getElementById('hyToast')||{}).textContent||'', !!Study.word('put on')]"); print("raidGo", rd)

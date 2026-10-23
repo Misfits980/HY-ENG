@@ -30,7 +30,7 @@ async def main():
         await B.evaluate("()=>{ const s=Study.load(); s.set='mid'; s.book='mid'; const L=Study.lessons('mid'); const ws=[].concat(...L.slice(0,4).map(x=>x.ws)); ws.forEach((w,i)=>{ s.seen[w.en]=1; s.sd=s.sd||{}; s.sd[w.en]=Study.today()-(i<10?0:3); }); Study.save(); }")
         # 선생님 — 반 A: G3-4 시험 · 반 B: 각자 배운 단어
         await T.evaluate("()=>{ Admin.open(); }"); await T.wait_for_timeout(400)
-        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"exam\"]').click()"); await T.wait_for_timeout(700)
+        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"work\"]').click()"); await T.wait_for_timeout(700)
         opts = await T.evaluate("()=>[...document.querySelectorAll('#adExTeam option')].map(o=>o.textContent)")
         ok(any("초등반" in o for o in opts) and any("중등반" in o for o in opts), f"반 고르기 {opts}")
         await T.evaluate("()=>{ const t=document.getElementById('adExTeam'); t.value='a'; t.dispatchEvent(new Event('change')); const s=document.getElementById('adExSet'); s.value='elem'; s.dispatchEvent(new Event('change')); document.getElementById('adExN').value='20'; document.getElementById('adExMode').value='open'; document.getElementById('adExMode').dispatchEvent(new Event('change')); }")
@@ -66,7 +66,7 @@ async def main():
         await A.wait_for_timeout(300)
         d = await T.evaluate("()=>FB.get('/hy/day/'+HyDay.key()+'/k1')")
         ok(d and d["r"] == 2 and d["rr"] == 17 and d["b"] == 1234 and d["s"] == 1 and d["n"] == "민준", f"하루 칸 {d}")
-        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"home\"]').click()"); await T.wait_for_timeout(1200)   # (v341) 오늘 한 아이 = 🏠 홈
+        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"now\"]').click()"); await T.wait_for_timeout(1200)   # (v341) 오늘 한 아이 = 🏠 홈
         card = await T.evaluate("()=>{ const c=[...document.querySelectorAll('.adCard')].find(x=>/한 아이/.test(x.innerText)); return c ? c.innerText : ''; }")
         print("day", card.replace("\n", " / ")[:200])
         ok("민준" in card and "2판" in card and "1,234" in card and "달리기 1" in card, "🏠 홈 '📅 오늘 한 아이'")

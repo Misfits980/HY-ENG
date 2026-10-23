@@ -104,7 +104,7 @@ async def main():
         # 선생님 양식: 📝 시험처럼 기본 · cfg.lvl
         await T.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }"); await T.reload(); await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); }"); await T.wait_for_timeout(400)
-        await T.evaluate("()=>{ const b=document.querySelector('#adTabs [data-t=\"play\"]'); if(b) b.click(); }"); await T.wait_for_timeout(600)
+        await T.evaluate("()=>{ const b=document.querySelector('#adTabs [data-t=\"now\"]'); if(b) b.click(); }"); await T.wait_for_timeout(600)
         lv = await T.evaluate("()=>{ const s=document.getElementById('adBtLvl'); return s ? s.value : null; }")
         ok(lv == "exam", f"배틀 만들기 기본 = 시험처럼 {lv}")
         await T.evaluate("()=>document.querySelector('[data-ad=\"btGo\"]').click()"); await T.wait_for_timeout(1500)

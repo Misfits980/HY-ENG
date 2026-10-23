@@ -46,7 +46,7 @@ async def main():
         # 선생님 홈
         T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T)
         await T.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }"); await T.reload(); await T.wait_for_timeout(1500)
-        await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); }"); await T.wait_for_timeout(1200)
+        await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); Admin._tab('class'); }"); await T.wait_for_timeout(1200)   # (v392) 진짜 상품 = 👥 아이들
         r = await T.evaluate("()=>{ const c=document.getElementById('adPrize'); return c ? c.innerText.replace(/\\s+/g,' ') : ''; }")
         ok("빼빼로 산 아이 1명" in r and "라언" in r and "줘야 할 아이 1명" in r, f"선생님 홈: 산 아이 {r[:80]}")
         await T.screenshot(path=OUT + "prize364_admin.png", full_page=False)

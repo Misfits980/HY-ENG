@@ -114,7 +114,7 @@ async def main():
         await E("()=>{ const d=document.getElementById('exTv'); if(d) d.remove(); HyExam._tv=null; }")
 
         # ── ③ 배틀 (사자반) ──
-        await E("()=>Admin._tab('play')"); await T.wait_for_timeout(700)
+        await E("()=>Admin._tab('play')"); await T.wait_for_timeout(700); await E("()=>document.querySelector('[data-ad=nowEdit][data-k=bt]').click()"); await T.wait_for_timeout(500)
         await T.select_option("#adBtCls", "a")
         await E("()=>{ const s=document.getElementById('adBtSet'); s.value='g56'; s.dispatchEvent(new Event('change')); document.getElementById('adBtDur').value='180'; }"); await T.wait_for_timeout(200)
         await T.click("#adBtFromPick .stgGB[data-g='0']"); await T.click("#adBtFromPick .stgGB[data-g='0']"); await T.click("#adBtFromPick .stgC[data-e='2']")
@@ -158,7 +158,7 @@ async def main():
         await E("()=>{ Battle.leave && Battle.leave(); }"); await T.wait_for_timeout(300)
 
         # ── ③ 레이드 (돌고래반) 기다리는 화면 ──
-        await E("()=>{ Admin.open(); Admin._tab('play'); }"); await T.wait_for_timeout(700)
+        await E("()=>{ Admin.open(); Admin._tab('play'); }"); await T.wait_for_timeout(700); await E("()=>{ const b=document.querySelector('[data-ad=nowEdit][data-k=rd]'); if(!document.querySelector('#adForms[data-open=rd]')) b.click(); }"); await T.wait_for_timeout(500)
         await T.select_option("#adRdCls", "b")
         await T.click('[data-ad="raidGo"]'); await T.wait_for_timeout(1500)
         w = await E("()=>document.getElementById('rdIn').innerText")

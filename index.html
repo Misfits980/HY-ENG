@@ -906,6 +906,8 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .adForms .adForm{display:none}.adForms[data-open="rr"] #adF_rr,.adForms[data-open="bt"] #adF_bt,.adForms[data-open="rd"] #adF_rd{display:block}
 .adForms[data-open=""]{display:none}.adForms .adForm .adCard{border:2px solid rgba(255,211,106,.4)}
 .adTvBack{min-height:56px}
+.adTabs button{position:relative}.adTabN{position:absolute;top:3px;right:calc(50% - 30px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ff4a6a;color:#fff;font:900 11px/18px var(--font);font-style:normal}
+.adTdLine{display:flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border-radius:14px;border:2px solid rgba(255,211,106,.5);background:rgba(255,211,106,.1);color:#ffe9a8;font:800 15px var(--font);text-align:left}.adTdLine b{color:#fff}
 .adCol{display:flex;flex-direction:column;gap:10px;min-width:0}.adColH{margin:2px 4px;font:900 18px var(--font);color:#fff}
 .adSetH{display:flex;align-items:center;gap:10px;font:900 18px var(--font);color:#fff}.adSetH small{font-size:12.5px;color:#b9b0e0;font-weight:700}.adSetH .mini{margin-left:auto}
 @media (min-width:760px){ .sheetIn.adIn{width:min(1180px,97vw)!important;max-width:1180px!important} }
@@ -19247,7 +19249,7 @@ const Raid = {
       this.drawKid(); return; }
     if(this._pz){ const d=now-this._pz; this._pz=0; if(this.atk){ this.atk.warnUntil+=d; this.atk.until+=d; } if(this.nextAtk) this.nextAtk+=d; if(this.restTo>now-d) this.restTo+=d; }   // (v308) 멈춘 동안 공격 시간도 멈춤
     if(st.s!=="run"){ if(st.s!=="pause"){ if(Arena.o && Arena.o.raid===this) Arena.close(); BossLive.stop(); } this.drawKid(); return; }
-    if(this.arenaOn()){ if(!Arena.o || Arena.o.raid!==this) this.arena(); this.drawKid(); return; }
+    if(this.arenaOn()){ if(!Arena.o || Arena.o.raid!==this) this.arena(); BossLive.hold(this.restTo>now); this.drawKid(); return; }   // 쉬는 동안 보스 공격 멈춤 (화면 그림과 따로)
     if(!this.q && !this.atk && now>=this.restTo) { this.next(); this.drawKid(); }
     const c=this.calc();
     if(!this.nextAtk) this.nextAtk = now + 6000 + Math.random()*4000;
@@ -20502,7 +20504,12 @@ const Admin = (function(){
       +'<p class="adTileS" id="adSum_'+k+'">…</p><div class="adTileB"><button class="play adStart" data-ad="'+go+'">▶ 바로 시작</button><button class="adEdit" data-ad="nowEdit" data-k="'+k+'">'+(nowOpen===k?'▲ 접기':'⚙ 바꾸기')+'</button></div></div>').join('')+'</div>';
     h+='<div class="full adForms'+(nowOpen?' on':'')+'" id="adForms" data-open="'+nowOpen+'">'+raid("play")+'</div>';
     try{ h+='<div class="full">'+HyDay.card()+'</div>'; }catch(e){}
+    const tn=tdCount(); if(tn) h='<button class="full adTdLine" data-ad="tab" data-t="class">🗒 오늘 할 일 <b>'+tn+'</b>개 — 👥 아이들에서 보기 ›</button>'+h;
     return h; }
+  function checkCard(){ const D=rep && rep.d ? canonRep(rep.d) : null, CK=D ? (D.check||[]).filter(r=>r[0] && r[0]!=="종류" && r[0]!=="✅") : [];
+    if(D && !CK.length) return '';
+    return card('<span id="adCheck"></span>📌 확인 필요'+(CK.length?' '+CK.length+'건':''), !D ? '<p class="adSmall">'+(ready()?'시트에서 불러오는 중…':'시트 연결이 되면 여기 나와요')+'</p>' : '<div class="adChk2">'+CK.slice(0,8).map(r=>'<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+(r[2]?' — '+esc(r[2]):'')+'</span></div>').join('')+'</div>'+(CK.length>8?'<p class="adSmall">'+(CK.length-8)+'건 더 — 📊 시트 「확인 필요」</p>':'')); }
+  const tdCount=()=>{ try{ const m=/class="tdN">(\d+)/.exec(todo(rep && rep.d ? canonRep(rep.d) : null)); return m ? +m[1] : 0; }catch(e){ return 0; } };
   /* 타일 아래 한 줄 = 지금 설정 (펼친 칸의 고른 값 그대로) */
   function paintTiles(){ const tx=id=>{ const e=$(id); return e && e.selectedOptions && e.selectedOptions[0] ? e.selectedOptions[0].textContent.replace(/\s*\(.*\)\s*$/,"").trim() : ""; }, put=(k,t)=>{ const e=$("adSum_"+k); if(e) e.textContent=t; };
     put("rr", [tx("adRrSet"), tx("adRrMode"), tx("adRrDur"), tx("adRrDiff")].filter(Boolean).join(" · "));
@@ -20535,11 +20542,11 @@ const Admin = (function(){
     return nav+({notice, send, key:keyPane, dev, fix, move}[sub])(); }
   function body(){
     if(!ok) return pinBox();
-    const f={now:nowPane, class:()=>'<div class="full" id="adTodoW">'+todo(rep && rep.d ? canonRep(rep.d) : null)+'</div>'+team()+Prize.adminCard(), send:sendPane, work:()=>'<div class="adCol">'+HyExam.pane()+HyHW.pane()+'</div><div class="adCol">'+raid("boss")+'</div>', set:setPane}[tab]||nowPane;
+    const f={now:nowPane, class:()=>'<div class="full" id="adTodoW">'+todo(rep && rep.d ? canonRep(rep.d) : null)+'</div>'+checkCard()+team()+Prize.adminCard(), send:sendPane, work:()=>'<div class="adCol">'+HyExam.pane()+HyHW.pane()+'</div><div class="adCol">'+raid("boss")+'</div>', set:setPane}[tab]||nowPane;
     return '<div class="adPane wide adP_'+tab+'">'+(tab==="set" ? '<div class="full adSetH">⚙️ 설정 <small>서버 열쇠 · 이 기기 · 고치기 · 옮기기 (반 명단은 👥 아이들)</small><button class="mini" data-ad="tab" data-t="now">← 지금 수업</button></div>' : '')+f()+'</div>';
   }
   /* 탭을 열 때 필요한 것 불러오기 */
-  function after(){ if(needSrv()) check(); if(tab==="class"||tab==="now"){ loadRep(); try{ HyBoss.refresh(true).then(()=>Promise.all([HyExam.loadLast(), HyDay.load(HyDay.key())].concat(tab==="class" ? [HyHW.check(true)] : []))).then(()=>{ if((tab==="class"||tab==="home") && $("shAdmin").classList.contains("on")){ keepScroll=true; draw(); } }, ()=>{}); }catch(e){} }
+  function after(){ if(needSrv()) check(); if(tab==="class"||tab==="now"){ loadRep(); try{ HyBoss.refresh(true).then(()=>Promise.all([HyExam.loadLast(), HyDay.load(HyDay.key()), HyHW.check(true)])).then(()=>{ if((tab==="class"||tab==="now") && $("shAdmin").classList.contains("on")){ keepScroll=true; draw(); } }, ()=>{}); }catch(e){} }
     if(tab==="work") Promise.all([HyExam.check(true), HyHW.check(true)]).then(()=>{ if(tab==="work") draw(); }); }
   let sendWho="";
   const needSrv=()=>tab==="now"||tab==="class"||tab==="send"||(tab==="set" && sub==="key");
@@ -20549,7 +20556,8 @@ const Admin = (function(){
     el.textContent=t; el.className="adToast on"+(good===true?" good":good===false?" bad":""); clearTimeout(msg._t); msg._t=setTimeout(()=>{ el.className="adToast"; }, 2600); }
   function draw(){ const sc=$("shAdmin").querySelector(".sheetIn"), top=sc?sc.scrollTop:0;
     const tb=$("adTabs"); tb.style.display = ok ? "" : "none"; try{ $("adLockBtn").style.display = $("adGearBtn").style.display = ok ? "" : "none"; $("adGearBtn").classList.toggle("on", tab==="set"); }catch(e){}
-    tb.innerHTML = ok ? TABS.map(([k,i,t])=>'<button role="tab" data-ad="tab" data-t="'+k+'" class="'+(k===tab?'on':'')+'" aria-selected="'+(k===tab)+'"><span>'+i+'</span>'+t+'</button>').join('') : '';
+    const tdn = ok ? tdCount() : 0;
+    tb.innerHTML = ok ? TABS.map(([k,i,t])=>'<button role="tab" data-ad="tab" data-t="'+k+'" class="'+(k===tab?'on':'')+'" aria-selected="'+(k===tab)+'"><span>'+i+'</span>'+t+(k==="class" && tdn ? '<em class="adTabN">'+tdn+'</em>' : '')+'</button>').join('') : '';
     $("adBody").innerHTML=body(); const p=$("adPin"); if(p) setTimeout(()=>{ try{ p.focus(); }catch(e){} },50);
     wire(); if(sc && keepScroll) sc.scrollTop=top; keepScroll=false; }
   let keepScroll=false;
@@ -20658,7 +20666,7 @@ const Admin = (function(){
         try{ navigator.clipboard.writeText(t).then(()=>msg("Code.gs 를 복사했어요 ("+t.split("\n").length+"줄) — Apps Script 에 붙여 넣으세요", true), ()=>{ try{ ta.focus(); ta.select(); document.execCommand("copy"); msg("복사했어요", true); }catch(e){ msg("아래 칸을 길게 눌러 전체 선택 → 복사", false); } }); }catch(e){ msg("아래 칸을 길게 눌러 전체 선택 → 복사", false); } })
         .catch(()=>msg("못 가져왔어요 · 인터넷 확인", false)); return; }
     if(a==="weakBt" || a==="weakRd"){ const w=repWeak(a==="weakBt"?12:5); if(!w.length) return msg("약한 단어가 아직 없어요", false); if(a==="weakBt") pre.bt=w.join(", "); else pre.rd=w.join(", ");
-      tab="play"; ss(TB,tab); draw(); setTimeout(()=>{ const f=$(a==="weakBt"?"adBtWords":"adRdWords"); if(f){ const d=f.closest("details"); if(d) d.open=true; try{ f.scrollIntoView({block:"center"}); }catch(e){} } }, 60); msg(a==="weakBt" ? "배틀 단어 칸에 넣었어요 — 🏫 배틀 방 만들기" : "레이드 방패 단어 칸에 넣었어요 — ⚔️ 레이드 방 만들기", true); return; }
+      tab="now"; nowOpen = a==="weakBt" ? "bt" : "rd"; ss(TB,tab); draw(); setTimeout(()=>{ const f=$(a==="weakBt"?"adBtWords":"adRdWords"); if(f){ const d=f.closest("details"); if(d) d.open=true; try{ f.scrollIntoView({block:"center"}); }catch(e){} } }, 60); msg(a==="weakBt" ? "배틀 단어 칸에 넣었어요 — 🏫 배틀 방 만들기" : "레이드 방패 단어 칸에 넣었어요 — ⚔️ 레이드 방 만들기", true); return; }
     if(a==="weakIn"){ const inp=$(el.dataset.t), w=repWeak(+el.dataset.n||10); if(!w.length) return msg("약한 단어가 아직 없어요 (📋 우리 반을 한 번 열면 시트에서 가져와요)", false); if(inp) inp.value=w.join(", "); msg("반이 많이 틀린 단어 "+w.length+"개를 넣었어요", true); return; }
     if(a==="wkOn"){ const C0=HyBoss.C||{}; if(C0.on) return msg("벌써 켜져 있어요", true);
       const same=HyBoss.sameWeekOn();   /* (v322) 같은 주에 끄고 다시 켜면 다시 시작하지 않음 — 아이들 기회·안 받은 보상 그대로 */
@@ -20707,7 +20715,7 @@ const Admin = (function(){
       const old=()=>{ msg("복사가 안 돼요 — 시트 「주간 리포트」에서 복사해 주세요", false); }; try{ navigator.clipboard.writeText(t).then(()=>{ flash(el,"✅ 복사됨"); }, old); }catch(e){ old(); } return; }
     if(a==="kdGem"){ const K=HyBoss.kids(), x=K[el.dataset.k], n=+el.dataset.n; if(!x) return; if(!ready()) return msg("서버 열쇠가 ✅ 이어야 보낼 수 있어요 (⚙️ 설정 → 🔑)", false);
       if(!confirm("「"+x.n+"」에게 💎 +"+n+" 보낼까요?\n(그 아이 게임이 켜질 때 들어가요)")) return; post({type:"actAdd", who:x.n, kind:"보석", value:"+"+n, memo:""}, ()=>{ msg("「"+x.n+"」에게 💎 +"+n+" 보냈어요", true); }); return; }
-    if(a==="kdSend"){ const K=HyBoss.kids(), x=K[el.dataset.k]; if(!x) return; sendWho=x.n; tab="set"; sub="send"; ss(TB,tab); ss("hyeng_admin_sub",sub); draw(); after(); return; }
+    if(a==="kdSend"){ const K=HyBoss.kids(), x=K[el.dataset.k]; if(!x) return; sendWho=x.n; tab="send"; ss(TB,tab); draw(); after(); return; }
     if(a==="mkKey"){ const v=($("adPin2").value||"").trim();
       sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H) keyOf(v).then(t=>{ tk=t; ss(TK,t); keepScroll=true; draw(); check(true); });
         else { msg("비밀번호가 달라요"); $("adPin2").value=""; } }); return; }

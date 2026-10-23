@@ -50,7 +50,7 @@ async def main():
         async def open_exam():
             await T.reload(wait_until="domcontentloaded", timeout=60000); await T.wait_for_timeout(1800)
             await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); }"); await T.wait_for_timeout(500)
-            await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"exam\"]').click()"); await T.wait_for_timeout(1500)
+            await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"work\"]').click()"); await T.wait_for_timeout(1500)
         async def cnt(): return await T.evaluate("()=>document.querySelectorAll('[data-ad=\"hwEnd\"]').length")
         async def toast(): return await T.evaluate("()=>{ const m=document.getElementById('adToast'); return m ? m.textContent : ''; }")
         await open_exam()
