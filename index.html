@@ -19483,7 +19483,8 @@ const FlagRun = {
   teamV(T, now){ const o=this.o, a=(!o.tv && T.k===o.mine ? [this.v] : []).concat(T.mates); let v=a.length ? a.reduce((x,y)=>x+y,0)/a.length : (o.ext ? 0 : this.SP.base);   /* (v392) 교실: 아무도 안 푼 반은 서 있음 */
     if(T.fx>now) v*=1.6; if(T.slow>now) v*=0.55; return v; },
   frame(now){ const o=this.o, S=this.SP, dt=this._t ? Math.min(0.1, (now-this._t)/1000) : 0; this._t=now;
-    if(!o.stop){ this.v=Math.max(S.min, this.v-S.decay*dt); o.L.forEach(T=>{ T.mates=T.mates.map(x=>Math.max(S.min, x-S.decay*dt)); T.v=this.teamV(T, now); T.p=Math.min(o.goal, T.p+T.v*dt*(o.k||1)); }); this.pos(); this.packs(); }
+    if(o.fixed){ o.L.forEach(T=>{ if(T.tp!=null){ const d=T.tp-T.p; T.p+=d*Math.min(1, dt*3); } }); this.pos(); this.packs(); }   /* (v392) 워드 게이트 레이스 TV: 거리는 점수로 */
+    else if(!o.stop){ this.v=Math.max(S.min, this.v-S.decay*dt); o.L.forEach(T=>{ T.mates=T.mates.map(x=>Math.max(S.min, x-S.decay*dt)); T.v=this.teamV(T, now); T.p=Math.min(o.goal, T.p+T.v*dt*(o.k||1)); }); this.pos(); this.packs(); }
     o.L.forEach(T=>{ const r=$("frR"+T.k); if(!r) return; this.ph[T.k]+=dt*(5+T.v*160); const f=(Math.floor(this.ph[T.k])%6*20)+"%", s=r.querySelector(".frSpr"); if(s) s.style.backgroundPositionX=f;
       r.querySelectorAll(".frKid").forEach((c,i)=>{ c.style.backgroundPositionX=((Math.floor(this.ph[T.k])+i*2)%6*20)+"%"; });
       const lv=Math.min(5, Math.max(1, Math.round(T.v/S.max*5))); r.classList.toggle("fast", T.v>=0.055); r.classList.toggle("slow", T.v<=0.018); r.classList.toggle("rocket", T.fx>now); r.classList.toggle("snail", T.slow>now);
@@ -19496,11 +19497,11 @@ const FlagRun = {
     const top=Math.max(...o.L.map(T=>T.p)); if(!this.item && top-this.us().p>=2 && now>this._sos){ this._sos=now+20000; this.ban("🆘 역전 찬스! 🎁 아이템", "good"); this.roll(Math.random()<0.6 ? "boost" : null); } },
   /* TV 옆 판 — 반 순위 · 점수왕 · 소식 */
   side(){ const o=this.o, R=$("frRank"), M=$("frMvp"); if(!R) return; const E=x=>Raid.esc(x), S=this.SP;
-    R.innerHTML=o.L.slice().sort((a,b)=>b.p-a.p).map((T,i)=>'<div class="frRk" style="--tc:'+T.c+'"><b>'+(["🥇","🥈","🥉"][i]||(i+1))+'</b><span>'+E(T.n)+'<small>'+(T.kids||[]).length+'명 · '+"⚡".repeat(Math.min(5, Math.max(1, Math.round(T.v/S.max*5))))+'</small></span><i style="--w:'+Math.round(T.p/o.goal*100)+'%"></i><em>'+(Math.floor(T.p*10)/10)+'칸</em></div>').join('');
-    const all=[].concat(...o.L.map(T=>(T.kids||[]).map(k=>({n:k.n, sc:k.sc|0, e:T.e})))).sort((a,b)=>b.sc-a.sc).slice(0,5);
+    R.innerHTML=o.L.slice().sort((a,b)=>b.p-a.p).map((T,i)=>'<div class="frRk" style="--tc:'+T.c+'"><b>'+(["🥇","🥈","🥉"][i]||(i+1))+'</b><span>'+E(T.n)+'<small>'+((T.kids||[]).length ? (T.kids||[]).length+'명 · ' : '')+"⚡".repeat(Math.min(5, Math.max(1, Math.round(T.v/S.max*5))))+'</small></span><i style="--w:'+Math.round(T.p/o.goal*100)+'%"></i><em>'+(o.fixed ? (T.sc|0).toLocaleString()+'점' : (Math.floor(T.p*10)/10)+'칸')+'</em></div>').join('');
+    const all=(o.mvp ? o.mvp() : [].concat(...o.L.map(T=>(T.kids||[]).map(k=>({n:k.n, sc:k.sc|0, e:T.e}))))).sort((a,b)=>b.sc-a.sc).slice(0, o.mvp ? 8 : 5);
     if(M) M.innerHTML=all.map((k,i)=>'<div class="frMv"><b>'+(i+1)+'</b><span>'+E(k.e+" "+k.n)+'</span><em>'+k.sc+'</em></div>').join(''); },
   /* 깃발 자리 + ❓ 상자 */
-  pos(first){ const o=this.o, u=this.us(); o.L.forEach(T=>{ const r=$("frR"+T.k), p=$("frP"+T.k); if(r) r.style.left="max("+Math.round((T._s||60)*0.62+18)+"px, "+this.X(T.p).toFixed(2)+"%)";   /* 출발선에서도 그림이 왼쪽 끝 밖으로 안 나감 */ if(p) p.textContent=(Math.floor(T.p*10)/10)+" / "+o.goal+"칸";
+  pos(first){ const o=this.o, u=this.us(); o.L.forEach(T=>{ const r=$("frR"+T.k), p=$("frP"+T.k); if(r) r.style.left="max("+Math.round((T._s||60)*0.62+18)+"px, "+this.X(T.p).toFixed(2)+"%)";   /* 출발선에서도 그림이 왼쪽 끝 밖으로 안 나감 */ if(p) p.textContent= o.fixed ? (T.sc|0).toLocaleString()+"점" : (Math.floor(T.p*10)/10)+" / "+o.goal+"칸";
       o.boxes.forEach(b=>{ if(T.p<b || this.got[T.k][b]) return; this.got[T.k][b]=1; const bx=document.querySelector('#frT'+T.k+' .frBox[data-b="'+b+'"]'); if(bx) bx.classList.add("open"); if(first) return;
         if(!o.tv && T===u){ this.ban("❓ 상자! "+u.n+" 모두 🎁", "good"); if(!this.item) setTimeout(()=>this.roll(), 500); }
         else this.ban("❓ "+T.n+"이 상자를 열었어요!", ""); }); }); },
@@ -19844,6 +19845,25 @@ const Battle = {
     else { this.streak=0; this.ng++; FB.inc("/battle/"+this.room+"/p/"+this.me, {ng:1}, {at:now, sk:0}); } },
   frSend(kind, to){ const mt=this.tk((this.T().p||{})[this.me]); FB.push("/battle/"+this.room+"/fx", {k:kind, f:mt, t:to, n:String((this.pick||{}).n||"").slice(0,10), at:this.now(), by:this.me}); },
   frClose(){ if(FlagRun.o && FlagRun.o.bt===this) FlagRun.close(); },
+  /* (v392) 사용자: 워드 게이트(달리기) 대결도 TV 를 경기장으로 — 거리 = 점수 (1등이 시간에 맞춰 🏁 로, 나머지는 1등 점수에 비례)
+     🔴🔵 두 팀 = 팀 레인 2줄 + 아이 무리 (팀 1인 평균 점수) · 개인 = 점수 높은 5명 레인 + 옆 판 점수왕 8명 */
+  rrTv(){ const P=this.T().p||{}, au=this.auto(), c=this.cfg(), goal=10, el=Math.max(0.02, Math.min(1, 1-this.left()/((c.dur||180)*1000))), now=this.now();
+    let L;
+    if(au){ const a=this.runTeams(P), top=Math.max(1, a.r.a, a.b.a);
+      L=["b","r"].map(m=>{ const ks=Object.keys(P).filter(k=>P[k].tm===m), tk=ks.slice().sort((x,y)=>(P[y].sc|0)-(P[x].sc|0))[0];
+        return {k:m, n:this.AUTO_T[m].e+" "+this.AUTO_T[m].n, e:this.AUTO_T[m].e, c:m==="r"?"#ff4a5a":"#3d8bff", ch:(tk && P[tk].c)||"hero", tp:goal*el*(a[m].a/top), sc:Math.round(a[m].a), kids:ks.map(k=>({n:P[k].n, ch:P[k].c, sc:P[k].sc|0}))}; }); }
+    else { const R=this.rankOf(P).slice(0,5), top=Math.max(1, ...R.map(k=>P[k].sc|0));
+      L=R.slice().sort().map((k,i)=>({k:"k"+k, n:P[k].n, e:"🏃", c:this.FRC[i%this.FRC.length], ch:P[k].c||"hero", tp:goal*el*((P[k].sc|0)/top), sc:P[k].sc|0, kids:[]})); }
+    const key=L.map(l=>l.k).join("|"), o=FlagRun.o;
+    if(!L.length) return this.frClose();
+    if(!(o && o.bt===this && o._key===key)){ const keepP={}; if(o && o.bt===this) o.L.forEach(T=>{ keepP[T.k]=T.p; });
+      L.forEach(l=>{ l.p = keepP[l.k]!=null ? keepP[l.k] : l.tp*0.9; });
+      FlagRun.open({bt:this, _key:key, tv:true, fixed:true, ext:true, room:this.room, title:au ? "워드 게이트 레이스 · 빨강 vs 파랑" : "워드 게이트 레이스", goal, end:Date.now()+this.left(), L, boxes:[],
+        mvp:()=>{ const Q=this.T().p||{}; return Object.keys(Q).map(k=>({n:Q[k].n, sc:Q[k].sc|0, e:au ? ((this.AUTO_T[Q[k].tm]||{}).e||"🏃") : "🏃"})); },
+        onX:()=>{ if(confirm("레이스를 끝낼까요?")) this.hostAct("end"); }}); }
+    const O=FlagRun.o; O.end=Date.now()+this.left(); const pv=this._rrPv||(this._rrPv={});
+    L.forEach(l=>{ const T=FlagRun.T(l.k); if(!T) return; T.tp=l.tp; T.sc=l.sc; T.kids=l.kids; T.v=0.03+Math.min(0.06, Math.max(0, (l.sc-(pv[l.k]||l.sc))/40)); pv[l.k]=l.sc; });
+    Object.keys(P).forEach(k=>{ const was=(this._rrS||(this._rrS={}))[k], sc=P[k].sc|0; this._rrS[k]=sc; if(was!=null && sc>was+30){ const t=au ? P[k].tm : "k"+k; if(FlagRun.T(t)) FlagRun.feed(t, P[k].n, sc-was, 0); } }); },
   /* (v342) 사용자: 배틀·깃발 레이스도 캐릭터 — 이모지 대신 고른 캐릭터의 걷기 그림(옆모습 6칸)이 트랙을 달림 */
   chr(c, cls){ const id=CHARACTERS.some(x=>x.id===c) ? c : null; return id ? '<i class="btChr'+(cls?' '+cls:'')+'" style="background-image:url(assets/chars/walk/walk-'+id+'.webp)"></i>' : ''; },
   teamChr(t){ const P=this.T().p||{}, ks=Object.keys(P).filter(k=>this.tk(P[k])===t && P[k].c).sort((x,y)=>(P[y].ok|0)-(P[x].ok|0)).slice(0,3);
@@ -19873,6 +19893,7 @@ const Battle = {
       try{ this.assign(); }catch(e){}   // (v382) 두 팀 대결: 새로 온 아이 팀 정하기
       if(st.s==="count" && now>=st.t0) FB.update("/battle/"+this.room+"/st", {s:"run"});
       if(this.frOn()){ if(st.s==="run" && this.left()>0) this.frSync(); else this.frClose(); }   // (v392) 📺 속도형 깃발 레이스 TV
+      else if(this.isRun() && this.FR){ if(st.s==="run" && this.left()>0) this.rrTv(); else this.frClose(); }   // (v392) 📺 워드 게이트 레이스 TV
       const flag=this.cfg().mode==="flag", top = flag ? this.teamsOf()[0] : null;
       if(st.s==="run" && flag && top && top.p>=this.goal() && !this._won){ this._won=1; FB.update("/battle/"+this.room+"/st", {s:"end", endAt:now, win:top.t}); try{ confetti(); SFX.tone(784,.2,"triangle",.06,1568); }catch(e){} }   // 🚩 먼저 닿은 반
       else if(st.s==="run" && this.left()<=0) FB.update("/battle/"+this.room+"/st", Object.assign({s:"end", endAt:now}, top ? {win:top.t} : {}));
