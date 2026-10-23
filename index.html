@@ -13695,7 +13695,7 @@ const NEWS = [
    items:[
      ["🛡","타이밍 막기","노란 원이 점선 원에 닿는 순간 막으면 ✨ 완벽! · 반격이 두 배"],
      ["💨","피하기 · 연속 막기","빨간 쪽 반대로 ◀ ▶ 피하고, 탁·탁·탁 날아오는 공은 박자에 맞춰 막아요"],
-     ["❤️","내 하트","맞으면 하트가 줄어요 · 다 잃으면 기절! · 보스가 약해지면 💀 필살기도 와요"]]},
+     ["❤️","수업 레이드는 하트 3개","레이드에서 맞으면 하트가 줄어요 · 🏠 주간 보스는 연습이라 맞아도 괜찮아요 · 보스가 약해지면 💀 필살기!"]]},
   {id:"2026-10-23c", date:"10월 23일", title:"🏃 달리기 레이스가 생겼어요!",
    items:[
      ["🏁","다 같이 달리기","선생님이 레이스를 열면 반 친구들과 같은 단어로 동시에 출발해요"],
@@ -17857,11 +17857,11 @@ const WeekBoss = {
   /* ── 공격 화면 (아이) ── */
   fightFrame(){ return '<div class="wbFight" id="wbFight"><div class="wbStk" id="wbStk"></div><div class="wbBtns"><button class="wbSwing" data-wbf="swing"><b>⚔️ 공격!</b><small id="wbSwN"></small></button><button class="wbBlock" data-wbf="block"><b>🛡 막기</b><small>보스 공격 때</small></button></div><p class="wbFHint" id="wbFHint"></p></div>'; },
   drawFight(){ const el=$("wbFight"); if(!el) return; const B=HyBoss.B, me=Kid.me(); if(!B || !me){ el.hidden=true; return; } const v=this.view(B, me), st=HyBoss.stock(me.id), n=st.r+st.s, F=this.F, left=HyBoss.left(me.id, "study");
-    el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0)+(F ? '<div class="wbHp">❤️ <b>'+'❤️'.repeat(Math.max(0,F.hp|0)).replace(/❤️/g,'<i></i>')+'</b>'+'<u></u>'.repeat(Math.max(0,this.HEARTS-(F.hp|0)))+(F.combo>=2?' <em>🔥 '+F.combo+' 콤보 · 공격 +'+Math.min(10,F.combo)+'</em>':'')+'</div>' : '');
+    el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0)+(F && F.combo>=2 ? '<div class="wbHp"><em>🔥 '+F.combo+' 콤보 · 공격 +'+Math.min(10,F.combo)+'</em></div>' : '');
     const warn = F && F.phase==="warn"; el.classList.toggle("warn", !!warn); el.classList.toggle("empty", n<=0 && !warn);
     $("wbSwN").textContent = warn ? "지금은 막기!" : n>0 ? "남은 기회 "+n : "기회 없음";
     $("wbFHint").innerHTML = warn ? '⚠️ <b>'+Raid.esc(F.nm)+'</b>! 아래 큰 버튼으로 막거나 피해요' : v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
-      : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '보스 공격은 타이밍 막기 · 피하기! ❤️ 다 잃으면 😵 기절 (공격 기회 -1)'; },
+      : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '보스 공격은 타이밍 막기 · 피하기 연습! 막으면 반격 + 🔥 콤보 (맞아도 손해 없어요)'; },
   swing(rd){ if(this._rf) return; if(!rd && !this.fresh()){ this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.isOpen()){ this.draw(); this.swing(1); } }, ()=>{ this._rf=0; }); return; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 (다른 태블릿이 쓰러뜨린 보스를 때려 기회를 날리지 않게) */
     HyBoss.roll(); const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; const v=this.view(B, me); if(v.dead){ if(this.F) this.result(); return; }
     let F=this.F; if(F && (F.phase!=="idle" || Date.now()<F.lock)){ if(F.phase==="warn") this.nudge(".wbBlock"); return; }
@@ -17882,7 +17882,7 @@ const WeekBoss = {
   /* (v343) 사용자: 아이들이 보스 공격 모션을 보고 막아야 하는데, 막기를 누르면 그제야 공격 그림이 나오고 끝나면서 막았다(순서가 반대) →
      경고와 함께 보스가 공격 동작을 시작 (느리게 · 맞는 순간 = 막기 시간 끝) · 막기를 누르면 🛡 방패를 들고 기다렸다가 맞는 순간에 막음 · 못 막으면 그 순간 맞음 */
   IMPACT_MS:900,   // 공격 그림이 시작해서 맞는 순간까지 (느리게 튼 그림 기준)
-  /* (v390) 보스 차례 = 공격 패턴 (BossPat) · 내 하트 ❤️5 — 맞으면 하트 -1 (필살기 -2) · 0 이면 😵 기절 = 공격 기회 -1 · 판 끝
+  /* (v390) 보스 차례 = 공격 패턴 (BossPat) — 사용자: 주간 보스는 패턴 연습용 · 맞아도 하트·기회는 안 깎음 (콤보만 끊김) · 막고 피하면 반격 + 콤보
      분노(보스 체력 50% 아래): 더 자주 · 경고가 짧고 · 가끔 두 번 이어서 · 필살기(20% 아래): 한 판에 한 번 */
   HEARTS:5,
   book(){ try{ const s=Study.load(); return s.book || "g34"; }catch(e){ return "g34"; } },
@@ -17892,21 +17892,20 @@ const WeekBoss = {
   patDone(F, res, rage){ if(this.F!==F) return; const me=Kid.me(); if(!me) return;
     const cnt=res.perf*HyBoss.COUNTER*2 + res.good*HyBoss.COUNTER;   // 반격: 완벽 30 · 막기·피하기 15
     if(cnt>0){ const add=HyBoss.add(me, cnt, "study", 0); F.dmg+=add; try{ RaidStage.attack(add, F.combo|0, false); }catch(e){} }
-    F.blk+=res.ok; if(res.hurt){ F.hit+=res.hurt; F.hp=Math.max(0, (F.hp==null?this.HEARTS:F.hp)-res.hurt); F.combo=0; } else F.combo=(F.combo|0)+res.ok;
+    F.blk+=res.ok; if(res.hurt){ F.hit+=res.hurt; F.combo=0; } else F.combo=(F.combo|0)+res.ok;
     F.phase="idle"; F.at=Date.now();
-    if(F.hp<=0){ F.faint=1; HyBoss.use(me); try{ RaidStage.num("😵 기절!", "hurt", true); SFX.tone(140,.35,"sawtooth",.05,90); }catch(e){} this.drawFight(); setTimeout(()=>this.result(), 1100); return; }
     if(rage && !res.hurt && !F.chain && Math.random()<0.35){ F.chain=1; this.drawFight(); setTimeout(()=>{ if(this.F===F){ F.phase="idle"; this.bossTurn(); } }, 450); return; }   // 분노: 이어서 한 번 더
     F.chain=0; F.next=(rage?2:3)+Math.floor(Math.random()*(rage?2:3)); this.drawFight(); this.after(); },
   block(){ if(BossPat.on()){ BossPat.press("shield"); return; } this.nudge(".wbBlock"); },
   nudge(sel){ const b=document.querySelector("#wbFight "+sel); if(!b) return; b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); },
   endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); clearTimeout(F.ta); this.F=null; const pat=BossPat.on(); BossPat.stop(); try{ RaidStage.warn(false); RaidStage.guardUp(false); }catch(e){}
-    if((F.phase==="warn" || F.phase==="strike" || pat) && F.bid===(HyBoss.B||{}).id){ const me=Kid.me(); if(me) HyBoss.use(me); } },   /* (v337) QA: 0.98초 '내려치기' 중에 닫아도 -1 */   /* (v322) ⚠️ 경고 중에 ◀ 닫아도 못 막은 것 (기회 -1 피하기 막기) */
+    if(false && (F.phase==="warn" || F.phase==="strike" || pat) && F.bid===(HyBoss.B||{}).id){   /* (v390) 연습용 — 공격 중에 닫아도 손해 없음 */ const me=Kid.me(); if(me) HyBoss.use(me); } },   /* (v337) QA: 0.98초 '내려치기' 중에 닫아도 -1 */   /* (v322) ⚠️ 경고 중에 ◀ 닫아도 못 막은 것 (기회 -1 피하기 막기) */
   /* 기회를 다 쓰면 — 결과창 (깎은 체력 전 → 후) */
   result(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || F.done || !B || !me) return; F.done=1; this.endFight(); const d=$("wbView"); if(!d) return;
     const v=this.view(B, me), max=Math.max(1,v.max), h0=Math.min(max, F.hp0), h1=v.dead?0:v.hp, E=x=>Raid.esc(x), nx=HyBoss.nextOf(B), pc=h=>(h/max*100).toFixed(1);
     const r=document.createElement("div"); r.id="wbRes"; r.className="wbRes";
-    r.innerHTML='<div class="wbResIn"><h3>'+(v.dead?'🎉 '+E(B.n)+'를 쓰러뜨렸어요!':F.faint?'😵 기절했어요!':'⚔️ 공격 끝!')+'</h3>'
-      +'<div class="stStat wbResS"><div><b>'+F.sw+'</b><small>휘두름</small></div><div><b>-'+F.dmg.toLocaleString()+'</b><small>깎은 체력</small></div><div><b>🛡 '+F.blk+'</b><small>막음</small></div><div><b>❤️ -'+F.hit+'</b><small>'+(F.faint?'😵 기절 (기회 -1)':'맞음')+'</small></div></div>'
+    r.innerHTML='<div class="wbResIn"><h3>'+(v.dead?'🎉 '+E(B.n)+'를 쓰러뜨렸어요!':'⚔️ 공격 끝!')+'</h3>'
+      +'<div class="stStat wbResS"><div><b>'+F.sw+'</b><small>휘두름</small></div><div><b>-'+F.dmg.toLocaleString()+'</b><small>깎은 체력</small></div><div><b>🛡 '+F.blk+'</b><small>막음</small></div><div><b>💥 '+F.hit+'</b><small>맞음 (연습)</small></div></div>'
       +'<div class="rdHp wbBar wbResHp"><u style="width:'+pc(h0)+'%"></u><i style="width:'+pc(h0)+'%"></i><span>'+h0.toLocaleString()+' → '+h1.toLocaleString()+' / '+max.toLocaleString()+'</span></div>'
       +'<p class="wbResP">'+(v.dead ? '보상은 아래 🎁 버튼에서 · 다음 주 월요일 <b>'+E(nx.n)+'</b> 등장!' : '남은 체력 <b>'+Math.round(h1/max*100)+'%</b> — 친구들과 같이 깎아요!<br>'+this.howTo())+'</p>'
       +'<div class="wbPopB"><button class="stBossBtn" data-wb="study">📚 기회 모으기</button><button class="stLater" data-wbf="rx">닫기</button></div></div>';

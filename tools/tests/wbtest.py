@@ -50,13 +50,12 @@ async def main():
         st2=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1')), WeekBoss.F.hp, WeekBoss.F.blk, WeekBoss.F.combo]"); print("block", k, st1, st2)
         n=3 if k=="burst" else 1
         if st2[0]-st1[0]!=30*n or st2[1]!=st1[1] or st2[2]!=st1[2] or st2[3]!=n or st2[4]!=n: bad.append(f"완벽 막기 반격 {k} {st1} {st2}")
-        # 못 막음 → 하트 -1 (기회는 그대로)
+        # (v390) 주간 보스 = 연습 — 못 막아도 기회 그대로
         await pg.evaluate("()=>{ WeekBoss.F.next=1; WeekBoss.F.lock=0; WeekBoss.swing(); }"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='warn' && BossPat.A", timeout=4000)
         st3=await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return [k.r+k.s, WeekBoss.F.hp]; }")
         k=await pg.evaluate("()=>patSolve(false)"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='idle' && !BossPat.A", timeout=6000)
         st4=await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return [k.r+k.s, WeekBoss.F.hp, WeekBoss.F.combo]; }"); print("miss", k, st3, st4)
-        n=3 if k=="burst" else 1
-        if st4!=[st3[0], st3[1]-n, 0]: bad.append(f"못 막으면 하트 -1 · 기회 그대로 · 콤보 0 {k} {st3} {st4}")
+        if st4!=[st3[0], st3[1], 0]: bad.append(f"(연습) 못 막아도 기회·하트 그대로 · 콤보 0 {k} {st3} {st4}")
         # 다 쓰면 결과창
         for i in range(12):
             if await pg.evaluate("()=>!!document.getElementById('wbRes')"): break
