@@ -43,7 +43,7 @@ async def main():
         # (v392) 실시간 보스전 — 버튼 4개(◀ ⚔️ 🛡 ▶)는 늘 그대로 · 보스 공격 → 맞는 순간 🛡 = 완벽 (반격 30 · 기회 그대로)
         g=await pg.evaluate("()=>[BossLive.on(), [...document.querySelectorAll('#bpCtl [data-bp]')].map(b=>b.dataset.bp).join(',')]")
         if g!=[True, "end,L,R,shield,atk"]: bad.append(f"싸움 중 버튼 4개 + 그만 {g}")
-        await pg.evaluate("()=>liveAtk()"); await pg.wait_for_timeout(400); await pg.screenshot(path=OUT+"wb_warn.png")
+        await pg.evaluate("()=>liveAtk()")
         g2=await pg.evaluate("()=>[...document.querySelectorAll('#bpCtl [data-bp]')].map(b=>b.dataset.bp).join(',')")
         if g2!=g[1]: bad.append(f"공격이 와도 버튼은 그대로 {g2}")
         st1=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1'))]")

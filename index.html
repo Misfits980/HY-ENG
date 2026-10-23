@@ -18490,7 +18490,7 @@ const BossLive = {
   /* 레이드 쉬기·멈춤 — 공격만 멈춤 (버튼은 그대로) */
   hold(on){ const S=this.S; if(!S || S.hold===!!on) return; S.hold=!!on; if(on && S.A){ this.clear(); S.A=null; try{ RaidStage.warn(false); }catch(e){} } if(!on) S.next=performance.now()+1800; },
   tick(now){ const S=this.S; if(!S) return; now=now||performance.now();
-    if(!S.A && !S.hold && now>=S.next && !(S.o.quiet && S.o.quiet())) this.launch(now);
+    if(!S.A && !S.hold && !this.manual && now>=S.next && !(S.o.quiet && S.o.quiet())) this.launch(now);   // manual = 시험 (보스가 저절로 공격하지 않음)
     const A=S.A; if(A){ A.hits.forEach((h,i)=>{ if(!A.done[i] && now>=h.t) this.judge(A, i); });
       if(this.S===S && S.A===A && A.done.every(x=>x)){ this.clear(); S.A=null; try{ RaidStage.warn(false); if(RaidStage.el) RaidStage.el.classList.remove("bpFin"); }catch(e){} const r=S.o.rage && S.o.rage(); S.next=now+(r ? 1400+Math.random()*1600 : 2000+Math.random()*2500); } }
     if(this.S===S) this.paint(now); },

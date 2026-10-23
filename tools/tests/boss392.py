@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
 from playwright.async_api import async_playwright
 
-LAUNCH = """(x)=>{ const S=BossLive.S; S.A=null; S.sh=-1e9; S.cd=0; document.querySelectorAll('.blMark,.blBand,.bpBall').forEach(e=>e.remove()); const r=Math.random; Math.random=()=>x; S.next=0; BossLive.tick(); Math.random=r; const A=S.A; return A ? {kind:A.kind, n:A.hits.length, t0:A.t0, t:A.hits.map(h=>h.t), z:A.hits.map(h=>h.z), rv:A.hits[0].rv||0, mark:!!document.querySelector('.blMark')} : null; }"""
+LAUNCH = """(x)=>{ const S=BossLive.S; S.A=null; S.sh=-1e9; S.cd=0; document.querySelectorAll('.blMark,.blBand,.bpBall').forEach(e=>e.remove()); const r=Math.random; Math.random=()=>x; BossLive.launch(performance.now()); Math.random=r; const A=S.A; return A ? {kind:A.kind, n:A.hits.length, t0:A.t0, t:A.hits.map(h=>h.t), z:A.hits.map(h=>h.z), rv:A.hits[0].rv||0, mark:!!document.querySelector('.blMark')} : null; }"""
 
 async def main():
     bad = []; errs = []

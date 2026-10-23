@@ -25,7 +25,7 @@ async def boot(pg, news=True):
     await pg.evaluate("()=>{ try{ StudyUI.FAST=0; }catch(e){} }")   # (v301) 테스트는 '너무 빨리 누름' 막기를 끈다
     await pg.evaluate(PAT_SOLVE)   # (v390) 보스 공격 패턴을 푸는 도우미 window.patSolve(good)
 # (v392) ⚔️ 실시간 보스전(BossLive) — liveAtk(): 보스 공격을 지금 시작 · patSolve(good): 지금 공격을 한 번에 (good = 맞는 순간 🛡 / 아니면 방패 없이 그 칸에 서 있기)
-PAT_SOLVE="""()=>{ window.liveAtk=()=>{ const S=BossLive.S; if(!S) return false; S.hold=false; S.A=null; BossLive.clear(); BossLive.launch(performance.now()); return !!S.A; };   // 하던 공격은 버리고 새로
+PAT_SOLVE="""()=>{ try{ BossLive.manual=true; }catch(e){} window.liveAtk=()=>{ const S=BossLive.S; if(!S) return false; S.hold=false; S.A=null; BossLive.clear(); BossLive.launch(performance.now()); return !!S.A; };   // 하던 공격은 버리고 새로
   window.patSolve=(good)=>{ const S=BossLive.S, A=S && S.A; if(!A) return 'none';
   if(!good && A.kind==='sweep') S.pos=1;
   A.hits.forEach((h,i)=>{ if(A.done[i]) return; if(A.kind==='burst' && h.aim==null) h.aim=S.pos; if(!good && A.kind==='slam') S.pos=h.z[0]; S.sh = good ? h.t : -1e9; BossLive.judge(A, i); });
