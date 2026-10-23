@@ -3210,7 +3210,9 @@ body.bpOn .wbFight{display:none}   /* (v392 시제품) ⚔️ 전투 화면 */
 .frMeter span{position:relative;display:block;font:900 12px/18px var(--font);color:#fff;text-align:center;text-shadow:0 1px 2px #000}
 .frMeter.hot{box-shadow:0 0 12px #ff8a3d;border-color:#ffd84a}.frMeter.low{border-color:#ff7b7b;animation:frBlink .6s infinite alternate}
 .frShd{position:absolute;bottom:-6px;left:-26px;width:52px;height:12px;border-radius:50%;background:rgba(0,0,0,.28)}.us .frShd{left:-34px;width:68px;height:14px}
-.frSpr{position:absolute;bottom:0;left:-36px;width:72px;height:72px;background-size:600% 300%;background-position:0 50%;filter:drop-shadow(0 4px 2px rgba(0,0,0,.35))}
+.frSpr{position:absolute;bottom:0;left:-36px;width:72px;height:72px;background-size:600% 800%;background-position:0 28.571%;filter:drop-shadow(0 4px 2px rgba(0,0,0,.35));transform-origin:50% 100%;animation:frBounce .32s ease-in-out infinite alternate}
+.frRun.fast .frSpr{animation-duration:.18s;transform:rotate(6deg)}.frRun.slow .frSpr{animation-duration:.5s}
+@keyframes frBounce{to{translate:0 -4px}}
 .us .frSpr{left:-48px;width:96px;height:96px}
 .frFlag{position:absolute;bottom:40px;left:-40px;width:3px;height:62px;background:#5a3a1a;border-radius:2px}
 .us .frFlag{bottom:56px;left:-54px;height:76px}
@@ -19304,7 +19306,7 @@ const FlagRun = {
     const trk=(k,T)=>'<div class="frTrack '+k+'" style="--tc:'+T.c+'"><i class="frStart"></i>'+ticks(k)
       +o.boxes.map(b=>'<i class="frBox" data-b="'+b+'" style="left:'+this.X(b)+'%"><span>?</span></i>').join('')
       +'<span class="frLbl">'+E(T.n)+' <b id="frP'+k+'"></b><i class="frSv" id="frV'+k+'"></i></span>'
-      +'<div class="frRun" id="frR'+k+'"><i class="frShd"></i><i class="frSpr" style="background-image:url(assets/chars/run-'+T.ch+'.webp)"></i><b class="frFlag"><span>'+E(T.e)+'</span></b></div></div>';
+      +'<div class="frRun" id="frR'+k+'"><i class="frShd"></i><i class="frSpr" style="background-image:url(assets/chars/walk/walk-'+(CHARACTERS.some(c=>c.id===T.ch)?T.ch:'hero')+'.webp)"></i><b class="frFlag"><span>'+E(T.e)+'</span></b></div></div>';
     d.innerHTML='<div class="frTop"><button class="arX" data-fr="x">✕</button><b class="frTime" id="frTime"></b><span class="frMe" style="--tc:'+o.us.c+'">나는 '+E(o.us.n)+'</span></div>'
       +'<div class="frStage" id="frStage"><div class="frMt"></div><div class="frStands"><i></i></div>'+trk("them", o.them)+'<div class="frMid"></div>'+trk("us", o.us)
       +'<div class="frGoal" style="left:'+this.X(o.goal)+'%"><b>🏁</b></div>'
