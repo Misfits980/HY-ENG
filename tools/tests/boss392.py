@@ -27,7 +27,7 @@ async def main():
         ok(r == [True, False, False], f"주간 보스: 「⚔️ 싸우기!」 하나 (막기 버튼은 싸움 안에서만) {r}")
         await pg.evaluate("()=>document.querySelector('[data-wbf=fight]').click()"); await pg.wait_for_timeout(400)
         r = await pg.evaluate("()=>[BossLive.on(), [...document.querySelectorAll('#bpCtl [data-bp]')].map(b=>b.dataset.bp).join(','), getComputedStyle(document.getElementById('wbFight')).display, BossLive.S.pos, !!BossLive.S.A]")
-        ok(r == [True, "end,L,atk,shield,R", "none", 1, False], f"싸우기 → 아래 버튼 4개 + 그만 · 가운데 칸에서 시작 · 바로 공격하지 않음 {r}")
+        ok(r == [True, "end,L,R,shield,atk", "none", 1, False], f"싸우기 → 아래 버튼 4개 + 그만 · 가운데 칸에서 시작 · 바로 공격하지 않음 {r}")
         # 이동
         r = await pg.evaluate("()=>{ BossLive.press('L'); BossLive.press('L'); const a=[BossLive.S.pos, RaidStage.me.el.style.marginLeft]; BossLive.press('R'); BossLive.press('R'); BossLive.press('R'); return a.concat([BossLive.S.pos, RaidStage.me.el.style.marginLeft]); }")
         ok(r == [0, "-70px", 2, "70px"], f"◀ ▶ 로 3칸 이동 (끝에서 멈춤) {r}")
@@ -77,7 +77,7 @@ async def main():
         ok(r is False, f"레이드: 시작 전엔 싸움 버튼 없음 {r}")
         await T.evaluate("()=>Raid.hostAct('start')"); await K.wait_for_timeout(1200)
         r = await K.evaluate("()=>[BossLive.on(), [...document.querySelectorAll('#bpCtl [data-bp]')].map(b=>b.dataset.bp).join(','), !!(Raid.q && !Raid.q.done)]")
-        ok(r == [True, "L,shield,R", True], f"레이드: 시작하면 ◀ 🛡 ▶ (공격은 문제로) · 문제도 그대로 {r}")
+        ok(r == [True, "L,R,shield", True], f"레이드: 시작하면 ◀ 🛡 ▶ (공격은 문제로) · 문제도 그대로 {r}")
         d0 = await K.evaluate("()=>[Raid.dmg, Raid.blk, Raid.hearts]")
         a = await K.evaluate(LAUNCH, 0.01)
         await K.evaluate("([t])=>{ BossLive.S.cd=0; BossLive.press('shield', t-40); BossLive.tick(t+1); }", [a["t"][0]])
