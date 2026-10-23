@@ -29,8 +29,10 @@ async def main():
         r = await pg.evaluate("()=>[BossLive.on(), [...document.querySelectorAll('#bpCtl [data-bp]')].map(b=>b.dataset.bp).join(','), getComputedStyle(document.getElementById('wbFight')).display, BossLive.S.pos, !!BossLive.S.A]")
         ok(r == [True, "end,L,R,shield,atk", "none", 1, False], f"싸우기 → 아래 버튼 4개 + 그만 · 가운데 칸에서 시작 · 바로 공격하지 않음 {r}")
         # 이동
-        r = await pg.evaluate("()=>{ BossLive.press('L'); BossLive.press('L'); const a=[BossLive.S.pos, RaidStage.me.el.style.marginLeft]; BossLive.press('R'); BossLive.press('R'); BossLive.press('R'); return a.concat([BossLive.S.pos, RaidStage.me.el.style.marginLeft]); }")
-        ok(r == [0, "-70px", 2, "70px"], f"◀ ▶ 로 3칸 이동 (끝에서 멈춤) {r}")
+        r = await pg.evaluate("()=>{ BossLive.press('L'); BossLive.press('L'); const a=[BossLive.S.pos, RaidStage.me.el.style.marginLeft]; BossLive.press('R'); BossLive.press('R'); BossLive.press('R'); return a.concat([BossLive.S.pos, RaidStage.me.el.style.marginLeft, BossLive.STEP]); }")
+        ok(r[:4] == [0, f"-{r[4]}px", 2, f"{r[4]}px"] and r[4] >= 70, f"◀ ▶ 로 3칸 이동 (끝에서 멈춤 · 싸움 화면 칸 넓이 {r[4]}) {r}")
+        r = await pg.evaluate("()=>[!!document.getElementById('wba'), document.getElementById('wba') && document.getElementById('wbaStage').contains(RaidStage.me.el)]")
+        ok(r == [True, True], f"(v392) 싸우기 = 꽉 찬 싸움 화면 (대기실과 따로) {r}")
         # 공격 — 맨 뒤면 한 칸 앞으로 · 휘두르는 동안 못 움직임
         r = await pg.evaluate("()=>{ BossLive.press('L'); BossLive.press('L'); const s0=HyBoss.stock('k1'), d0=HyBoss.mine('k1').d|0; BossLive.S.busy=0; BossLive.press('atk'); const p1=BossLive.S.pos; BossLive.press('R'); const s1=HyBoss.stock('k1'); return [p1, BossLive.S.pos, (s0.r+s0.s)-(s1.r+s1.s), (HyBoss.mine('k1').d|0)-d0>=8]; }")
         ok(r == [1, 1, 1, True], f"⚔️ 공격 = 기회 1 · 맨 뒤면 한 칸 앞으로 · 휘두르는 동안 못 움직임 {r}")

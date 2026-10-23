@@ -3375,6 +3375,18 @@ body.bpOn .wbFight{display:none}   /* (v392 시제품) ⚔️ 전투 화면 */
 }
 .arHold{position:absolute;inset:0;z-index:9;display:none;place-items:center;background:rgba(10,6,24,.55);color:#fff;font:900 20px var(--font);text-align:center;padding:20px;text-shadow:0 2px 4px #000}.arHold.on{display:grid}
 .arQ .arSh{display:block;font:900 12px var(--font);color:#fff;background:linear-gradient(90deg,#ff7a1a,#ff3d6a);border-radius:9px;padding:1px 8px;margin-bottom:3px}
+#wba{position:fixed;inset:0;z-index:65;background:radial-gradient(ellipse at 50% 0%,#4a1c3c,#140c2a 70%);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 0}
+#wba #wbaStage{flex:1;height:auto;margin:6px 0 calc(env(safe-area-inset-bottom,0px) + 168px);border-radius:18px}
+#wba #wbaStage .rsHero.me{left:30%;height:min(16%,24vw);bottom:10%}#wba #wbaStage .rsBoss{width:min(66%,42vh);right:-2%;bottom:24%}
+#wba #wbaStage .rsAllies .rsHero{height:9%;filter:brightness(.9)}#wba #wbaStage .rsAllies .rsHero .rsName{display:none}
+#wba .wbRes{position:absolute;z-index:80}
+.wbaSp{position:relative;height:22px;margin:2px 4px 0;border-radius:11px;background:rgba(0,0,0,.4);border:2px solid rgba(255,140,90,.5);overflow:hidden;flex:none}
+.wbaSp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff8a3d,#ff3d6a);transition:width .3s}
+.wbaSp span{position:relative;display:block;text-align:center;font:900 12px/18px var(--font);color:#fff;text-shadow:0 1px 2px #000}
+.wbaSp.full{border-color:#ffe58f;box-shadow:0 0 16px #ff8a3d;animation:frBlink .5s infinite alternate}
+#bpCtl.bl .blB.at.spReady{box-shadow:0 6px 16px rgba(0,0,0,.55),0 0 34px #ff6a3d;animation:frReady .5s infinite alternate}
+#bpCtl.bl .blB.at.spReady::after{content:"💥×3";position:absolute;top:-10px;left:-6px;font:900 13px var(--font);color:#fff;background:#ff3d6a;border-radius:9px;padding:1px 6px}
+@media (max-height:520px) and (orientation:landscape){ #wba #wbaStage{margin-bottom:calc(env(safe-area-inset-bottom,0px) + 122px)} #wba #wbaStage .rsHero.me{height:34%;bottom:6%} #wba .wbaSp{height:16px} #wba .wbaSp span{font-size:10px;line-height:12px} }
 #arena{position:fixed;inset:0;z-index:65;background:radial-gradient(ellipse at 50% 0%,#3b2c74,#140c2a 70%);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 0}
 .arTop{display:flex;align-items:center;gap:10px;height:52px;flex:none}
 .arX{width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font:900 18px var(--font)}
@@ -13994,6 +14006,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    ⚠️ (v332 사용자) 공지는 아이가 신날 소식만 — 새 보스 · 새 캐릭터·스킨 · 새 놀이·이벤트 · 새 보상. 그림 바꿈 · 화면 정리 · 선생님 기능(시험·숙제·관리) · 버그 고침은 공지하지 않는다 (매일 '뭐 했다'가 뜨면 안 됨)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-24b", date:"10월 24일", title:"🏠 주간 보스 싸움 화면이 따로 생겼어요!",
+   items:[
+     ["⚔️","싸우기를 누르면","보스와 나만 있는 큰 싸움 화면 · 순위와 보상은 대기실에서 봐요"],
+     ["💥","필살 게이지","딱 맞춰 막거나 피하면 게이지가 차요 · 다 차면 다음 ⚔️ 공격이 ×3!"],
+     ["◀","그만하고 싶으면","왼쪽 위 ◀ 를 누르면 결과를 보고 대기실로 돌아가요"]]},
   {id:"2026-10-24a", date:"10월 24일", title:"🔮 레이드 · 🚩 깃발 레이스가 새로워졌어요!",
    items:[
      ["🔮","보스가 주문을 외워요","말풍선이 주문이에요 · 정답 카드를 누르면 ✨ 스킬로 주문을 끊어요 · 다 외우면 💥 주문 폭발!"],
@@ -18072,7 +18089,7 @@ const WeekBoss = {
     d.className="wb"+(host?" tv":""); this._last=null; this._hold=0; this._k=""; this._played=""; this.draw();
     if(!host) HyBoss.refresh(true).then(()=>{ if(this.isOpen()) this.draw(); });
     clearInterval(this._iv); this._iv=setInterval(()=>this.idle(), 8000); try{ SFX.select(); }catch(e){} },
-  close(){ const d=$("wbView"); if(d) d.remove(); clearInterval(this._iv); this._k=""; this.endFight(true); this.banner(); },
+  close(){ const d=$("wbView"); if(d) d.remove(); const a=$("wba"); if(a){ a.remove(); document.body.classList.remove("arOn"); } clearInterval(this._iv); this._k=""; this.endFight(true); this.banner(); },
   /* (v322) 싸우는 동안 다른 태블릿이 깎은 체력을 다시 읽음 — 8초 넘게 안 읽었으면 */
   fresh(){ return this.host || !!HyBoss._live || Date.now()-(HyBoss._t||0)<=8000; },
   /* 날짜 — 언제나 한국 시간 */
@@ -18169,7 +18186,7 @@ const WeekBoss = {
   pipRow(lb, n, nw){ const K=HyBoss.STK; let h=''; for(let i=0;i<K;i++) h+='<i class="'+(i<n?(i>=n-nw?'on nw':'on'):'')+'"></i>'; return '<div class="wbStkR"><b>'+lb+'</b><span class="wbPips">'+h+'</span><em>'+n+'/'+K+'</em></div>'; },
   /* ── 공격 화면 (아이) ── */
   fightFrame(){ return '<div class="wbFight" id="wbFight"><div class="wbStk" id="wbStk"></div><div class="wbBtns one"><button class="wbSwing" data-wbf="fight"><b>⚔️ 싸우기!</b><small id="wbSwN"></small></button></div><p class="wbFHint" id="wbFHint"></p></div>'; },
-  drawFight(){ const el=$("wbFight"); if(!el) return; const B=HyBoss.B, me=Kid.me(); if(!B || !me){ el.hidden=true; return; } const v=this.view(B, me), st=HyBoss.stock(me.id), n=st.r+st.s, F=this.F, left=HyBoss.left(me.id, "study");
+  drawFight(){ try{ this.wbaHud(); }catch(e){} const el=$("wbFight"); if(!el) return; const B=HyBoss.B, me=Kid.me(); if(!B || !me){ el.hidden=true; return; } const v=this.view(B, me), st=HyBoss.stock(me.id), n=st.r+st.s, F=this.F, left=HyBoss.left(me.id, "study");
     el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0);
     el.classList.remove("warn"); el.classList.toggle("empty", n<=0);
     $("wbSwN").textContent = n>0 ? "남은 기회 "+n : "기회 없음";
@@ -18185,19 +18202,38 @@ const WeekBoss = {
     if(HyBoss.left(me.id, "study")<=0){ hyToast("오늘은 여기까지! 하루 ⚔️"+HyBoss.CAP+" — 내일 또 때려요"); return; }
     const st=HyBoss.stock(me.id); if(st.r+st.s<=0){ this.nudge(".wbSwing"); hyToast("⚔️ 공격 기회가 없어요 — 공부·달리기로 모아요"); return; }
     if(BossLive.on() && this.F) return;
-    const F=this.F={bid:B.id, sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"live", lock:0, at:Date.now(), combo:0};
-    BossLive.start({book:this.book(), practice:true, boss:()=>HyBoss.lineOf(HyBoss.B), rage:()=>this.pct()<0.5,
+    const F=this.F={bid:B.id, sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"live", lock:0, at:Date.now(), combo:0, sp:0};
+    this.arenaOpen(F); const box=$("wbaStage");
+    BossLive.start({book:this.book(), practice:true, step:box ? Math.round(Math.min(box.clientWidth*0.25, 170)) : 70, boss:()=>HyBoss.lineOf(HyBoss.B), rage:()=>this.pct()<0.5,
       fin:()=>{ if(this.F===F && !F.fin && this.pct()<0.2){ F.fin=1; return true; } return false; },
       attack:()=>this.hit(), onHit:n=>{ if(this.F!==F) return; F.hit+=n; F.combo=0; F.at=Date.now(); this.drawFight(); },
       onOk:r=>this.okHit(F, r), end:()=>this.result()});
     this.drawFight(); },
+  /* (v392) 사용자: 주간 보스가 순위·기회·싸움이 한 화면이라 복잡 — 🏠 대기실(이번 주 보스 · 순위 · 기회 · 보상) / ⚔️ 싸움 화면(꽉 찬 무대) 나눔
+     싸움 화면: 보스 체력 · 남은 기회 · 💥 필살 게이지 (막기·피하기로 참 → 다 차면 다음 ⚔️ 가 ×3) · 아래 ◀ 🛡 ⚔️ ▶ · 끝나면 결과 → 닫기 = 대기실 */
+  arenaOpen(F){ const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; let d=$("wba"); if(d) d.remove(); d=document.createElement("div"); d.id="wba";
+    d.innerHTML='<div class="arTop"><button class="arX" data-wbf="quit" aria-label="대기실로">◀</button><div class="arBoss"><b id="wbaN"></b><div class="arHp"><i id="wbaHpI"></i><span id="wbaHpT"></span></div></div><div class="arMe" id="wbaMe"></div></div>'
+      +'<div class="wbaSp" id="wbaSp"><i></i><span></span></div><div class="rs wbaStage" id="wbaStage"></div>';
+    document.body.appendChild(d); document.body.classList.add("arOn"); d.addEventListener("click", e=>this.click(e));
+    RaidStage.ensure("wk", {box:$("wbaStage"), boss:B, me:me.n, key:me.id});
+    const D=HyBoss.D||{}, P={}, seen={}; seen[String(me.n||"").replace(/^👤\s*/,"").trim().toLowerCase()]=1;
+    Object.keys(D).filter(k=>k!==me.id && (D[k].d|0)>0).sort((a,b)=>(D[b].d|0)-(D[a].d|0)).filter(k=>{ const n=String(D[k].n||"").replace(/^👤\s*/,"").trim().toLowerCase(); if(!n || seen[n]) return false; seen[n]=1; return true; }).slice(0,4).forEach(k=>{ P[k]={n:D[k].n, c:this.charOf(k, D[k].ch), la:1}; });
+    RaidStage.allies(P, me.id); this.wbaHud(); },
+  arenaClose(){ const d=$("wba"); if(d){ d.remove(); document.body.classList.remove("arOn"); this._k=""; try{ this.draw(); }catch(e){} } },
+  wbaHud(){ const F=this.F||this._lastF, B=HyBoss.B, me=Kid.me(); if(!$("wba") || !B || !me) return; const v=this.view(B, me), st=HyBoss.stock(me.id), n=st.r+st.s, pc=v.max ? Math.max(0, v.hp)/v.max*100 : 0, sp=F ? F.sp|0 : 0;
+    $("wbaN").textContent=B.n||""; $("wbaHpI").style.width=pc.toFixed(1)+"%"; $("wbaHpT").textContent=v.dead ? "🎉 쓰러뜨렸어요!" : Math.max(0,v.hp).toLocaleString()+" / "+v.max.toLocaleString();
+    $("wbaMe").innerHTML='<b>⚔️ '+n+'</b>'+(F && F.combo>=2 ? ' <em class="arCombo">🔥'+F.combo+'</em>' : '');
+    const S=$("wbaSp"); S.classList.toggle("full", sp>=100); S.firstChild.style.width=Math.min(100, sp)+"%"; S.lastChild.textContent = sp>=100 ? "💥 필살 준비! 다음 ⚔️ 는 ×3" : "💥 필살 게이지 — 딱 맞춰 막거나 피하면 차요";
+    const at=document.querySelector('#bpCtl .blB.at'); if(at) at.classList.toggle("spReady", sp>=100); },
   /* ⚔️ 한 번 = 공격 기회 1 · 데미지 8~12 (치명타 ×2) + 막기·피하기 콤보 (10까지) */
   hit(rd){ if(!rd && !this.fresh()){ if(this._rf) return false; this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.F && BossLive.on()) this.hit(1); }, ()=>{ this._rf=0; }); return true; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 (다른 태블릿이 쓰러뜨린 보스에 기회를 날리지 않게) */
     const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || !B || !me) return false; const v=this.view(B, me); if(v.dead){ setTimeout(()=>this.result(), 600); return false; }
     if(HyBoss.left(me.id, "study")<=0){ hyToast("오늘은 여기까지! 하루 ⚔️"+HyBoss.CAP+" — 내일 또 때려요"); setTimeout(()=>this.result(), 600); return false; }
     const st=HyBoss.stock(me.id); if(st.r+st.s<=0){ this.result(); return false; }
     if(!HyBoss.use(me)){ hyToast("반이 정해지지 않았어요 — 선생님께 반을 알려 주세요"); return false; }
-    const crit=Math.random()<HyBoss.CRIT, d=(HyBoss.SW_MIN+Math.floor(Math.random()*(HyBoss.SW_MAX-HyBoss.SW_MIN+1)))*(crit?2:1)+Math.min(10, F.combo|0), add=HyBoss.add(me, d, "study");
+    const sp=(F.sp|0)>=100; if(sp) F.sp=0;
+    const crit=Math.random()<HyBoss.CRIT, d=((HyBoss.SW_MIN+Math.floor(Math.random()*(HyBoss.SW_MAX-HyBoss.SW_MIN+1)))*(crit?2:1)+Math.min(10, F.combo|0))*(sp?3:1), add=HyBoss.add(me, d, "study");
+    if(sp) setTimeout(()=>RaidStage.num("💥 필살 일격!", "crit"), 120);
     F.sw++; F.dmg+=add; F.at=Date.now(); try{ DM.add("swing", 1); }catch(e){}
     RaidStage.attack(add, F.combo|0, false); if(crit) setTimeout(()=>RaidStage.num("💥 치명타!", "crit"), 140);
     try{ SFX.tone(crit?780:560,.08,"square",.05,crit?300:260); }catch(e){}
@@ -18206,6 +18242,7 @@ const WeekBoss = {
     return true; },
   /* 막음·피함 — 완벽 반격 30 · 막기 15 · 피하기는 콤보만 */
   okHit(F, r){ if(this.F!==F) return; const me=Kid.me(); if(!me) return; F.blk++; F.combo=(F.combo|0)+1; F.at=Date.now();
+    const was=F.sp|0; F.sp=Math.min(100, was+(r==="perf" ? 34 : r==="good" ? 20 : 12)); if(was<100 && F.sp>=100){ try{ RaidStage.num("💥 필살 준비!", "crit"); SFX.tone(990,.15,"triangle",.06,1480); }catch(e){} }
     const cnt = r==="perf" ? HyBoss.COUNTER*2 : r==="good" ? HyBoss.COUNTER : 0;
     if(cnt>0){ const add=HyBoss.add(me, cnt, "study", 0); F.dmg+=add; try{ RaidStage.attack(add, F.combo|0, false); }catch(e){} }
     this.drawFight(); },
@@ -18214,7 +18251,7 @@ const WeekBoss = {
   nudge(sel){ const b=document.querySelector("#wbFight "+sel); if(!b) return; b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); },
   endFight(quiet){ const F=this.F; if(!F) return; this.F=null; BossLive.stop(); try{ RaidStage.warn(false); RaidStage.guardUp(false); }catch(e){} },   /* (v390~) 연습용 — 싸우다 닫아도 손해 없음 */
   /* 기회를 다 쓰면 — 결과창 (깎은 체력 전 → 후) */
-  result(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || F.done || !B || !me) return; F.done=1; this.endFight(); const d=$("wbView"); if(!d) return;
+  result(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || F.done || !B || !me) return; F.done=1; this._lastF=F; this.endFight(); const d=$("wba")||$("wbView"); if(!d) return;
     const v=this.view(B, me), max=Math.max(1,v.max), h0=Math.min(max, F.hp0), h1=v.dead?0:v.hp, E=x=>Raid.esc(x), nx=HyBoss.nextOf(B), pc=h=>(h/max*100).toFixed(1);
     const r=document.createElement("div"); r.id="wbRes"; r.className="wbRes";
     r.innerHTML='<div class="wbResIn"><h3>'+(v.dead?'🎉 '+E(B.n)+'를 쓰러뜨렸어요!':'⚔️ 공격 끝!')+'</h3>'
@@ -18245,7 +18282,8 @@ const WeekBoss = {
     if(!this.isOpen() || this._busy || document.hidden || BossLive.on() || (this.F && Date.now()-(this.F.at||0)<7000)) return;   /* (v392) 싸우는 중엔 가짜 포효 없음 (진짜 공격과 헷갈림) */ const B=HyBoss.B; if(!B) return; const L=HyBoss.lineOf(B), v=this.view(B, this.host?null:Kid.me()); if(v.dead) return;
     const j=Math.floor(Math.random()*3); RaidStage.bossAtk(L.img+"-"+"abc"[j], L.atk[j]); },
   click(e){ const t=e.target; if(!t || !t.closest) return; const f=t.closest("[data-wbf]");
-    if(f){ const a=f.dataset.wbf; if(a==="fight") this.fight(); else if(a==="swing") this.swing(); else if(a==="block") this.block(); else if(a==="rx"){ const r=$("wbRes"); if(r) r.remove(); } return; }
+    if(f){ const a=f.dataset.wbf; if(a==="fight") this.fight(); else if(a==="swing") this.swing(); else if(a==="block") this.block(); else if(a==="rx"){ const r=$("wbRes"); if(r) r.remove(); this.arenaClose(); }
+      else if(a==="quit"){ if(this.F && !this.F.done) this.result(); else this.arenaClose(); } return; }
     const w=t.closest("[data-wb]");
     if(w){ const a=w.dataset.wb; try{ SFX.click(); }catch(er){} this.close();
       if(a==="study"){ try{ $("shSettings").classList.remove("on"); }catch(er){} StudyUI.open(); }
