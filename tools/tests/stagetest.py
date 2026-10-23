@@ -3,7 +3,7 @@ import asyncio, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
 from playwright.async_api import async_playwright
-ANS="(good)=>{ const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; let k=q.opts.findIndex(o=>o.en===q.w.en); if(!good) k=(k+1)%q.opts.length; R.answer(k); return R.atk?'atk':'q'; }"
+ANS="(good)=>{ if(Raid.atk && Raid.atk.pat) return BossPat.A ? (patSolve(good), 'atk') : 'none'; const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; let k=q.opts.findIndex(o=>o.en===q.w.en); if(!good) k=(k+1)%q.opts.length; R.answer(k); return R.atk?'atk':'q'; }"
 async def main():
     bad=[]; errs=[]; shots=[]
     async with async_playwright() as p:

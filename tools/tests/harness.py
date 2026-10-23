@@ -23,6 +23,12 @@ async def boot(pg, news=True):
     await pg.route("**/*", route); await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(1200)
     if news: await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
     await pg.evaluate("()=>{ try{ StudyUI.FAST=0; }catch(e){} }")   # (v301) 테스트는 '너무 빨리 누름' 막기를 끈다
+    await pg.evaluate(PAT_SOLVE)   # (v390) 보스 공격 패턴을 푸는 도우미 window.patSolve(good)
+# (v390) ⚔️ 보스 공격 패턴(BossPat) 한 번에 풀기 — good: 맞는 순간에 막기 · 반대쪽으로 피하기 / 아니면 너무 빨리 누르기 · 같은 쪽
+PAT_SOLVE="""()=>{ window.patSolve=(good)=>{ const A=BossPat.A; if(!A) return 'none';
+  if(A.kind==='sweep'){ BossPat.press(good ? (A.side==='L'?'R':'L') : A.side, A.hits[0]-200); BossPat.tick(A.hits[0]+A.W.g+1); }
+  else A.hits.forEach((h,i)=>{ if(!A.done[i]) BossPat.press('shield', good ? h : h-A.W.g-60); });
+  return A.kind; }; }"""
 # Daily 30 문제 하나를 정답(wrongFirst=true 면 처음엔 오답)으로 푸는 코드 — page.evaluate(SOLVE, wrongFirst)
 SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('stCheck').click(); return 'brk'; }
   const q=U.qs[U.i]; if(!q) return 'none';

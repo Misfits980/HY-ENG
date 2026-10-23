@@ -9,7 +9,7 @@ import asyncio, json, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
 from playwright.async_api import async_playwright
-ANS="""(ok)=>{ const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; let k=q.opts.findIndex(o=>o.en===q.w.en); if(!ok) k=(k+1)%q.opts.length; R.answer(k); return (R.atk?'blk':q.sh?'sh':(ok?'hit':'miss')); }"""
+ANS="""(ok)=>{ if(Raid.atk && Raid.atk.pat) return BossPat.A ? (patSolve(ok), 'blk') : 'none'; const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; let k=q.opts.findIndex(o=>o.en===q.w.en); if(!ok) k=(k+1)%q.opts.length; R.answer(k); return (R.atk?'blk':q.sh?'sh':(ok?'hit':'miss')); }"""
 ME="""()=>{ const P=RaidNet.get().p||{}; const k=Object.keys(P).find(x=>P[x].n==='민준'); const p=P[k]||{}; return [p.d|0, p.b|0, p.h|0, p.m|0]; }"""
 async def main():
     bad=[]; errs=[]

@@ -40,21 +40,23 @@ async def main():
         await pg.evaluate("()=>{ WeekBoss.swing(); }"); await pg.wait_for_timeout(500)
         sw=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1')), WeekBoss.F.sw]"); print("swing", h0, sw)
         if not (8<=sw[0]-h0<=24) or sw[1]!='{"r":4,"s":3}' or sw[2]!=1: bad.append(f"한 번 휘두르기 {h0} {sw}")
-        # 보스 공격 → 🛡 막기 (반격 15, 기회 그대로)
-        await pg.evaluate("()=>{ WeekBoss.F.next=1; WeekBoss.swing(); }"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='warn'", timeout=4000)
-        await pg.evaluate("()=>clearTimeout(WeekBoss.F.t)"); await pg.wait_for_timeout(400); await pg.screenshot(path=OUT+"wb_warn.png")   # (v322) 스크린샷이 느려도 보스 공격이 먼저 끝나지 않게
-        st1=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1'))]")
-        g=await pg.evaluate("()=>{ WeekBoss.block(); return [WeekBoss.F.phase, RaidStage.me.el.classList.contains('guardUp')]; }")   # (v343) 막기 = 방패를 들고 맞는 순간까지 기다림
-        if g!=["warn", True]: bad.append(f"막기 → 방패 들고 기다림 {g}")
-        await pg.evaluate("()=>WeekBoss.strike()"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='idle'", timeout=4000)
-        st2=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1')), WeekBoss.F.blk]"); print("block", st1, st2)
-        if st2[0]-st1[0]!=15 or st2[1]!=st1[1] or st2[2]!=1: bad.append(f"막기 반격 {st1} {st2}")
-        # 못 막음 → 기회 -1
-        await pg.evaluate("()=>{ WeekBoss.F.next=1; WeekBoss.swing(); }"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='warn'", timeout=4000)
-        st3=await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return k.r+k.s; }")
-        await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='idle'", timeout=6000)
-        st4=await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return [k.r+k.s, WeekBoss.F.hit]; }"); print("miss", st3, st4)
-        if st4!=[st3-1, 1]: bad.append(f"못 막으면 기회 -1 {st3} {st4}")
+        # (v390) 보스 공격 = 패턴 (BossPat) → 맞는 순간 막기·피하기 = 완벽 (반격 30 · 기회 그대로 · 하트 그대로)
+        await pg.evaluate("()=>{ WeekBoss.F.next=1; WeekBoss.swing(); }"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='warn' && BossPat.A", timeout=4000)
+        await pg.wait_for_timeout(400); await pg.screenshot(path=OUT+"wb_warn.png")
+        g=await pg.evaluate("()=>[!!document.getElementById('bpCtl'), document.querySelectorAll('#bpCtl [data-bp]').length, BossPat.A.kind]")
+        if not g[0] or g[1] not in (1,2): bad.append(f"보스 공격 → 아래 큰 버튼 {g}")
+        st1=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1')), WeekBoss.F.hp]")
+        k=await pg.evaluate("()=>patSolve(true)"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='idle' && !BossPat.A", timeout=4000)
+        st2=await pg.evaluate("()=>[HyBoss.mine('k1').d|0, JSON.stringify(HyBoss.stock('k1')), WeekBoss.F.hp, WeekBoss.F.blk, WeekBoss.F.combo]"); print("block", k, st1, st2)
+        n=3 if k=="burst" else 1
+        if st2[0]-st1[0]!=30*n or st2[1]!=st1[1] or st2[2]!=st1[2] or st2[3]!=n or st2[4]!=n: bad.append(f"완벽 막기 반격 {k} {st1} {st2}")
+        # 못 막음 → 하트 -1 (기회는 그대로)
+        await pg.evaluate("()=>{ WeekBoss.F.next=1; WeekBoss.F.lock=0; WeekBoss.swing(); }"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='warn' && BossPat.A", timeout=4000)
+        st3=await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return [k.r+k.s, WeekBoss.F.hp]; }")
+        k=await pg.evaluate("()=>patSolve(false)"); await pg.wait_for_function("()=>WeekBoss.F && WeekBoss.F.phase==='idle' && !BossPat.A", timeout=6000)
+        st4=await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return [k.r+k.s, WeekBoss.F.hp, WeekBoss.F.combo]; }"); print("miss", k, st3, st4)
+        n=3 if k=="burst" else 1
+        if st4!=[st3[0], st3[1]-n, 0]: bad.append(f"못 막으면 하트 -1 · 기회 그대로 · 콤보 0 {k} {st3} {st4}")
         # 다 쓰면 결과창
         for i in range(12):
             if await pg.evaluate("()=>!!document.getElementById('wbRes')"): break

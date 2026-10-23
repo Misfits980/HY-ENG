@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
 from playwright.async_api import async_playwright
 O=OUT
-ANS="""()=>{ const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; const k=q.opts.findIndex(o=>o.en===q.w.en); R.answer(k); return (R.atk?'blk':q.sh?'sh':'hit'); }"""
+ANS="""()=>{ if(Raid.atk && Raid.atk.pat) return BossPat.A ? (patSolve(true), 'blk') : 'none'; const R=Raid, q=R.atk ? R.atk.q : R.q; if(!q || q.done || (R.atk && !R.atk.shown)) return 'none'; const k=q.opts.findIndex(o=>o.en===q.w.en); R.answer(k); return (R.atk?'blk':q.sh?'sh':'hit'); }"""
 async def main():
     async with async_playwright() as p:
         br=await p.chromium.launch(); ctx=await br.new_context(viewport={"width":1024,"height":700}); errs=[]
@@ -26,10 +26,10 @@ async def main():
             c=await host.evaluate("()=>{ const c=Raid.calc(); return [c.hp, c.shield, c.rage, Raid.st().s] }")
             if step==5: await host.screenshot(path=O+"33_host_run.png")
             if c[1] and not kinds.get('shot'): kinds['shot']=1; await kids[1].wait_for_timeout(700); await kids[1].screenshot(path=O+"34_kid_shield.png"); await host.screenshot(path=O+"35_host_shield.png")
-            if any([await k.evaluate("()=>!!(Raid.atk && Raid.atk.shown && !Raid.atk.res)") for k in kids]) and not kinds.get('ashot'):
+            if any([await k.evaluate("()=>!!(Raid.atk && (Raid.atk.pat || (Raid.atk.shown && !Raid.atk.res)))") for k in kids]) and not kinds.get('ashot'):
                 kinds['ashot']=1
                 for k in kids:
-                    if await k.evaluate("()=>!!(Raid.atk && Raid.atk.shown)"): await k.screenshot(path=O+"36_kid_block.png"); break
+                    if await k.evaluate("()=>!!(Raid.atk && (Raid.atk.pat || Raid.atk.shown))"): await k.screenshot(path=O+"36_kid_block.png"); break
             if c[3]=="end": break
         print("kinds", kinds, "final", c)
         await host.wait_for_timeout(2600); await host.screenshot(path=O+"37_host_end.png"); await kids[0].screenshot(path=O+"38_kid_end.png")

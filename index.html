@@ -3143,6 +3143,30 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 @keyframes stChkG{0%,100%{filter:drop-shadow(0 0 3px rgba(111,214,255,.95)) drop-shadow(0 4px 3px rgba(0,0,0,.4))}50%{filter:drop-shadow(0 0 10px rgba(111,214,255,1)) drop-shadow(0 4px 3px rgba(0,0,0,.4))}}
 .stWMap .stDot.ph img.ic.fl{width:30px;height:30px;-webkit-text-stroke:0;filter:none}
 
+/* (v390) ⚔️ 보스 공격 패턴 — 아래 큰 버튼 · 원(타이밍) · 빨간 쪽(피하기) · 공(연속) */
+#bpCtl{position:fixed;left:0;right:0;bottom:0;z-index:70;padding:14px 12px calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(180deg,rgba(40,8,24,0),rgba(40,8,24,.94) 34%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+#bpCtl .bpHint{font-weight:900;color:#fff;font-size:15px;text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.55)}
+#bpCtl .bpRes{font-weight:900;font-size:22px;min-height:28px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.6);opacity:0}
+#bpCtl .bpRes.on{opacity:1;animation:bpPop .35s ease-out}#bpCtl .bpRes.perf{color:#ffe66a}#bpCtl .bpRes.good{color:#8fe3ff}#bpCtl .bpRes.bad{color:#ff8a8a}
+#bpCtl .bpBtns{display:flex;gap:12px;width:min(560px,100%);pointer-events:auto}
+#bpCtl button{flex:1;height:88px;border:0;border-radius:22px;font:900 26px var(--font);color:#06223a;background:linear-gradient(180deg,#9fe4ff,#3a8fd9);box-shadow:0 6px 0 rgba(0,0,0,.45),0 0 22px rgba(143,220,255,.55);touch-action:none;-webkit-user-select:none;user-select:none;cursor:pointer}
+#bpCtl button.dg{background:linear-gradient(180deg,#ffe58f,#ffae3d);color:#3a1600;box-shadow:0 6px 0 rgba(0,0,0,.45),0 0 22px rgba(255,200,90,.5)}
+#bpCtl button.hit{animation:bpHit .18s}
+@keyframes bpHit{50%{transform:translateY(4px) scale(.97);box-shadow:0 2px 0 rgba(0,0,0,.45)}}
+@keyframes bpPop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.bpTgt,.bpRing{position:absolute;left:50%;top:40%;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;pointer-events:none}
+.bpTgt{z-index:4;border:3px dashed rgba(255,255,255,.85);display:grid;place-items:center;font-size:24px;background:rgba(80,160,255,.18)}
+.bpRing{z-index:5;border:5px solid #ffd23f;box-shadow:0 0 14px rgba(255,210,63,.8);will-change:transform}
+.bpRing.near{border-color:#7dff8a;box-shadow:0 0 18px rgba(125,255,138,.95)}
+.bpSw{position:absolute;top:-30%;bottom:-6%;width:110px;pointer-events:none;z-index:3;animation:bpSwF .28s ease-in-out infinite alternate;border-radius:40%}
+.bpSw.L{right:50%;background:linear-gradient(270deg,rgba(255,40,60,.15),rgba(255,40,60,.7))}.bpSw.R{left:50%;background:linear-gradient(90deg,rgba(255,40,60,.15),rgba(255,40,60,.7))}
+.bpSw b{position:absolute;top:4%;left:50%;transform:translateX(-50%);font-size:13px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+@keyframes bpSwF{from{opacity:.5}to{opacity:1}}
+.rsHero.bpDodge{transition:margin-left .16s ease-out}
+.bpBall{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#7fd8ff 45%,#2a7bd0);box-shadow:0 0 14px #7fd8ff;z-index:6;pointer-events:none}
+.rs.bpFin .rsTint{background:rgba(70,0,25,.55)}
+.wbHp{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:#ffd9e3}.wbHp b{display:flex;gap:2px}.wbHp i,.wbHp u{width:14px;height:13px;display:inline-block;background:#ff5f7a;clip-path:path("M7 13 L1 6.5 A3.4 3.4 0 0 1 7 2.4 A3.4 3.4 0 0 1 13 6.5 Z")}.wbHp u{background:rgba(255,255,255,.22)}.wbHp em{font-style:normal;color:#ffd76a;margin-left:6px}
+.rdWarn.bp{border-color:#ff5f7a}
 /* (v389) 🏃 달리기 레이스 — 머리 위 순위 배지 · 두 팀 막대 */
 #rrBadge{position:fixed;left:0;top:0;z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 11px 5px;border-radius:14px;background:rgba(20,14,40,.8);border:2px solid rgba(255,211,122,.9);color:#fff;font-weight:800;line-height:1.15;white-space:nowrap;transform:translate(50vw,38vh) translate(-50%,-100%);box-shadow:0 4px 10px rgba(0,0,0,.35)}
 #rrBadge .rrRk{display:flex;flex-direction:column;align-items:center}
@@ -13556,7 +13580,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v389";
+const GAME_VER = "v390";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13667,6 +13691,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    ⚠️ (v332 사용자) 공지는 아이가 신날 소식만 — 새 보스 · 새 캐릭터·스킨 · 새 놀이·이벤트 · 새 보상. 그림 바꿈 · 화면 정리 · 선생님 기능(시험·숙제·관리) · 버그 고침은 공지하지 않는다 (매일 '뭐 했다'가 뜨면 안 됨)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-23d", date:"10월 23일", title:"⚔️ 보스가 진짜로 공격해요!",
+   items:[
+     ["🛡","타이밍 막기","노란 원이 점선 원에 닿는 순간 막으면 ✨ 완벽! · 반격이 두 배"],
+     ["💨","피하기 · 연속 막기","빨간 쪽 반대로 ◀ ▶ 피하고, 탁·탁·탁 날아오는 공은 박자에 맞춰 막아요"],
+     ["❤️","내 하트","맞으면 하트가 줄어요 · 다 잃으면 기절! · 보스가 약해지면 💀 필살기도 와요"]]},
   {id:"2026-10-23c", date:"10월 23일", title:"🏃 달리기 레이스가 생겼어요!",
    items:[
      ["🏁","다 같이 달리기","선생님이 레이스를 열면 반 친구들과 같은 단어로 동시에 출발해요"],
@@ -17828,21 +17857,21 @@ const WeekBoss = {
   /* ── 공격 화면 (아이) ── */
   fightFrame(){ return '<div class="wbFight" id="wbFight"><div class="wbStk" id="wbStk"></div><div class="wbBtns"><button class="wbSwing" data-wbf="swing"><b>⚔️ 공격!</b><small id="wbSwN"></small></button><button class="wbBlock" data-wbf="block"><b>🛡 막기</b><small>보스 공격 때</small></button></div><p class="wbFHint" id="wbFHint"></p></div>'; },
   drawFight(){ const el=$("wbFight"); if(!el) return; const B=HyBoss.B, me=Kid.me(); if(!B || !me){ el.hidden=true; return; } const v=this.view(B, me), st=HyBoss.stock(me.id), n=st.r+st.s, F=this.F, left=HyBoss.left(me.id, "study");
-    el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0);
+    el.hidden = !!v.dead && !F; $("wbStk").innerHTML=this.pipRow("🏃 달리기", st.r, 0)+this.pipRow("📚 데일리", st.s, 0)+(F ? '<div class="wbHp">❤️ <b>'+'❤️'.repeat(Math.max(0,F.hp|0)).replace(/❤️/g,'<i></i>')+'</b>'+'<u></u>'.repeat(Math.max(0,this.HEARTS-(F.hp|0)))+(F.combo>=2?' <em>🔥 '+F.combo+' 콤보 · 공격 +'+Math.min(10,F.combo)+'</em>':'')+'</div>' : '');
     const warn = F && F.phase==="warn"; el.classList.toggle("warn", !!warn); el.classList.toggle("empty", n<=0 && !warn);
     $("wbSwN").textContent = warn ? "지금은 막기!" : n>0 ? "남은 기회 "+n : "기회 없음";
-    $("wbFHint").innerHTML = warn && F.blocked ? '🛡 <b>방패를 들었어요!</b> 보스 공격을 막아요…' : warn ? '⚠️ <b>'+Raid.esc(F.nm)+'</b>! 보스가 공격해요 — <b>🛡 막기</b>!' : v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
-      : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '보스가 ⚠️ 공격하려고 하면 🛡 막기! 못 막으면 공격 기회 -1'; },
+    $("wbFHint").innerHTML = warn ? '⚠️ <b>'+Raid.esc(F.nm)+'</b>! 아래 큰 버튼으로 막거나 피해요' : v.dead ? '🎉 쓰러뜨렸어요!' : left<=0 ? '오늘은 여기까지! (하루 ⚔️'+HyBoss.CAP+') 내일 또 때려요'
+      : n<=0 ? '⚔️ 공격 기회가 없어요 — '+this.howTo() : '보스 공격은 타이밍 막기 · 피하기! ❤️ 다 잃으면 😵 기절 (공격 기회 -1)'; },
   swing(rd){ if(this._rf) return; if(!rd && !this.fresh()){ this._rf=1; HyBoss.refresh(true).then(()=>{ this._rf=0; if(this.isOpen()){ this.draw(); this.swing(1); } }, ()=>{ this._rf=0; }); return; }   /* (v322) 8초 넘게 안 읽었으면 먼저 읽고 (다른 태블릿이 쓰러뜨린 보스를 때려 기회를 날리지 않게) */
     HyBoss.roll(); const B=HyBoss.B, me=Kid.me(); if(!B || !me) return; const v=this.view(B, me); if(v.dead){ if(this.F) this.result(); return; }
     let F=this.F; if(F && (F.phase!=="idle" || Date.now()<F.lock)){ if(F.phase==="warn") this.nudge(".wbBlock"); return; }
     if(HyBoss.left(me.id, "study")<=0){ hyToast("오늘은 여기까지! 하루 ⚔️"+HyBoss.CAP+" — 내일 또 때려요"); return; }
     const st=HyBoss.stock(me.id); if(st.r+st.s<=0){ if(F) this.result(); else { this.nudge(".wbSwing"); hyToast("⚔️ 공격 기회가 없어요 — 공부·달리기로 모아요"); } return; }
-    if(!F) F=this.F={bid:B.id, sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"idle", next:3+Math.floor(Math.random()*3), lock:0, at:0};
+    if(!F) F=this.F={bid:B.id, sw:0, dmg:0, blk:0, hit:0, hp0:v.hp, phase:"idle", next:3+Math.floor(Math.random()*3), lock:0, at:0, hp:this.HEARTS, combo:0};
     if(!HyBoss.use(me)){ hyToast("반이 정해지지 않았어요 — 선생님께 반을 알려 주세요"); this.F=null; return; }
-    const crit=Math.random()<HyBoss.CRIT, d=(HyBoss.SW_MIN+Math.floor(Math.random()*(HyBoss.SW_MAX-HyBoss.SW_MIN+1)))*(crit?2:1), add=HyBoss.add(me, d, "study");
+    const crit=Math.random()<HyBoss.CRIT, d=(HyBoss.SW_MIN+Math.floor(Math.random()*(HyBoss.SW_MAX-HyBoss.SW_MIN+1)))*(crit?2:1)+Math.min(10, F.combo|0), add=HyBoss.add(me, d, "study");   /* (v390) 막기·피하기 콤보만큼 더 세게 (10까지) */
     F.sw++; F.dmg+=add; F.lock=Date.now()+430; F.at=Date.now(); F.next--; try{ DM.add("swing", 1); }catch(e){}
-    RaidStage.attack(add, 0, false); if(crit) setTimeout(()=>RaidStage.num("💥 치명타!", "crit"), 140);
+    RaidStage.attack(add, F.combo|0, false); if(crit) setTimeout(()=>RaidStage.num("💥 치명타!", "crit"), 140);
     try{ SFX.tone(crit?780:560,.08,"square",.05,crit?300:260); }catch(e){}
     this.drawFight(); this.after(); },
   /* 휘두른 뒤 — 쓰러뜨림 / 기회 끝 / 보스 차례 */
@@ -17853,30 +17882,31 @@ const WeekBoss = {
   /* (v343) 사용자: 아이들이 보스 공격 모션을 보고 막아야 하는데, 막기를 누르면 그제야 공격 그림이 나오고 끝나면서 막았다(순서가 반대) →
      경고와 함께 보스가 공격 동작을 시작 (느리게 · 맞는 순간 = 막기 시간 끝) · 막기를 누르면 🛡 방패를 들고 기다렸다가 맞는 순간에 막음 · 못 막으면 그 순간 맞음 */
   IMPACT_MS:900,   // 공격 그림이 시작해서 맞는 순간까지 (느리게 튼 그림 기준)
-  bossTurn(){ const F=this.F, B=HyBoss.B; if(!F || !B || !this.isOpen()) return; const L=HyBoss.lineOf(B), j=Math.floor(Math.random()*3);
-    F.phase="warn"; F.k=L.img+"-"+"abc"[j]; F.nm=L.atk[j]; F.blocked=false; F.warnAt=Date.now();
-    RaidStage.charge(F.nm); RaidStage.warn(true); try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>SFX.tone(330,.18,"sawtooth",.05,220), 300); }catch(e){}
-    this.drawFight(); clearTimeout(F.t); clearTimeout(F.ta);
-    F.ta=setTimeout(()=>{ if(this.F===F && F.phase==="warn") RaidStage.windup(F.k, this.IMPACT_MS); }, Math.max(0, this.BLOCK_MS-this.IMPACT_MS));
-    F.t=setTimeout(()=>this.strike(), this.BLOCK_MS); },
-  BLOCK_MS:2000,   /* (v322) 막기 시간 1.6 → 2.0초 (저학년 · 구형 iPad) */
-  block(){ const F=this.F; if(!F || F.phase!=="warn"){ this.nudge(".wbBlock"); return; } if(Date.now()-F.warnAt<120) return;   // 미리 눌러 두는 것 막기
-    if(F.blocked) return; F.blocked=true; RaidStage.guardUp(true); try{ SFX.tone(660,.08,"triangle",.05,990); }catch(e){} this.drawFight(); },   /* (v343) 방패를 들고 맞는 순간까지 기다림 */
-  strike(){ const F=this.F, me=Kid.me(); if(!F || F.phase!=="warn" || !me) return; F.phase="strike"; RaidStage.warn(false);
-    const ok=F.blocked; RaidStage.impact(F.k, ok, ok ? HyBoss.COUNTER : null, "💥 공격 기회 -1");   /* (v343) 공격 그림은 이미 돌고 있음 — 지금이 맞는 순간 */
-    setTimeout(()=>{ if(this.F!==F) return;
-      if(ok){ F.blk++; const add=HyBoss.add(me, HyBoss.COUNTER, "study", 0); F.dmg+=add; try{ SFX.tone(880,.16,"triangle",.05,1760); }catch(e){} }
-      else { F.hit++; HyBoss.use(me); try{ SFX.tone(160,.22,"square",.05); }catch(e){} }
-      F.phase="idle"; F.next=3+Math.floor(Math.random()*3); F.at=Date.now(); this.drawFight(); this.after(); }, 980); },
+  /* (v390) 보스 차례 = 공격 패턴 (BossPat) · 내 하트 ❤️5 — 맞으면 하트 -1 (필살기 -2) · 0 이면 😵 기절 = 공격 기회 -1 · 판 끝
+     분노(보스 체력 50% 아래): 더 자주 · 경고가 짧고 · 가끔 두 번 이어서 · 필살기(20% 아래): 한 판에 한 번 */
+  HEARTS:5,
+  book(){ try{ const s=Study.load(); return s.book || "g34"; }catch(e){ return "g34"; } },
+  bossTurn(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || !B || !this.isOpen() || BossPat.on()) return; const L=HyBoss.lineOf(B), v=this.view(B, me), pct=v.max ? v.hp/v.max : 1, rage=pct<0.5, fin=pct<0.2 && !F.fin, j=Math.floor(Math.random()*3);
+    if(fin) F.fin=1; F.phase="warn"; F.k=L.img+"-"+"abc"[j]; F.nm=L.atk[j]; F.warnAt=Date.now(); this.drawFight();
+    BossPat.run({j, rage, fin, k:F.k, nm:F.nm, book:this.book(), done:res=>this.patDone(F, res, rage)}); },
+  patDone(F, res, rage){ if(this.F!==F) return; const me=Kid.me(); if(!me) return;
+    const cnt=res.perf*HyBoss.COUNTER*2 + res.good*HyBoss.COUNTER;   // 반격: 완벽 30 · 막기·피하기 15
+    if(cnt>0){ const add=HyBoss.add(me, cnt, "study", 0); F.dmg+=add; try{ RaidStage.attack(add, F.combo|0, false); }catch(e){} }
+    F.blk+=res.ok; if(res.hurt){ F.hit+=res.hurt; F.hp=Math.max(0, (F.hp==null?this.HEARTS:F.hp)-res.hurt); F.combo=0; } else F.combo=(F.combo|0)+res.ok;
+    F.phase="idle"; F.at=Date.now();
+    if(F.hp<=0){ F.faint=1; HyBoss.use(me); try{ RaidStage.num("😵 기절!", "hurt", true); SFX.tone(140,.35,"sawtooth",.05,90); }catch(e){} this.drawFight(); setTimeout(()=>this.result(), 1100); return; }
+    if(rage && !res.hurt && !F.chain && Math.random()<0.35){ F.chain=1; this.drawFight(); setTimeout(()=>{ if(this.F===F){ F.phase="idle"; this.bossTurn(); } }, 450); return; }   // 분노: 이어서 한 번 더
+    F.chain=0; F.next=(rage?2:3)+Math.floor(Math.random()*(rage?2:3)); this.drawFight(); this.after(); },
+  block(){ if(BossPat.on()){ BossPat.press("shield"); return; } this.nudge(".wbBlock"); },
   nudge(sel){ const b=document.querySelector("#wbFight "+sel); if(!b) return; b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); },
-  endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); clearTimeout(F.ta); this.F=null; try{ RaidStage.warn(false); RaidStage.guardUp(false); }catch(e){}
-    if((F.phase==="warn" || F.phase==="strike") && !F.blocked && F.bid===(HyBoss.B||{}).id){ const me=Kid.me(); if(me) HyBoss.use(me); } },   /* (v337) QA: 0.98초 '내려치기' 중에 닫아도 -1 */   /* (v322) ⚠️ 경고 중에 ◀ 닫아도 못 막은 것 (기회 -1 피하기 막기) */
+  endFight(quiet){ const F=this.F; if(!F) return; clearTimeout(F.t); clearTimeout(F.ta); this.F=null; const pat=BossPat.on(); BossPat.stop(); try{ RaidStage.warn(false); RaidStage.guardUp(false); }catch(e){}
+    if((F.phase==="warn" || F.phase==="strike" || pat) && F.bid===(HyBoss.B||{}).id){ const me=Kid.me(); if(me) HyBoss.use(me); } },   /* (v337) QA: 0.98초 '내려치기' 중에 닫아도 -1 */   /* (v322) ⚠️ 경고 중에 ◀ 닫아도 못 막은 것 (기회 -1 피하기 막기) */
   /* 기회를 다 쓰면 — 결과창 (깎은 체력 전 → 후) */
   result(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || F.done || !B || !me) return; F.done=1; this.endFight(); const d=$("wbView"); if(!d) return;
     const v=this.view(B, me), max=Math.max(1,v.max), h0=Math.min(max, F.hp0), h1=v.dead?0:v.hp, E=x=>Raid.esc(x), nx=HyBoss.nextOf(B), pc=h=>(h/max*100).toFixed(1);
     const r=document.createElement("div"); r.id="wbRes"; r.className="wbRes";
-    r.innerHTML='<div class="wbResIn"><h3>'+(v.dead?'🎉 '+E(B.n)+'를 쓰러뜨렸어요!':'⚔️ 공격 끝!')+'</h3>'
-      +'<div class="stStat wbResS"><div><b>'+F.sw+'</b><small>휘두름</small></div><div><b>-'+F.dmg.toLocaleString()+'</b><small>깎은 체력</small></div><div><b>🛡 '+F.blk+'</b><small>막음</small></div><div><b>💥 '+F.hit+'</b><small>맞음 (기회 -'+F.hit+')</small></div></div>'
+    r.innerHTML='<div class="wbResIn"><h3>'+(v.dead?'🎉 '+E(B.n)+'를 쓰러뜨렸어요!':F.faint?'😵 기절했어요!':'⚔️ 공격 끝!')+'</h3>'
+      +'<div class="stStat wbResS"><div><b>'+F.sw+'</b><small>휘두름</small></div><div><b>-'+F.dmg.toLocaleString()+'</b><small>깎은 체력</small></div><div><b>🛡 '+F.blk+'</b><small>막음</small></div><div><b>❤️ -'+F.hit+'</b><small>'+(F.faint?'😵 기절 (기회 -1)':'맞음')+'</small></div></div>'
       +'<div class="rdHp wbBar wbResHp"><u style="width:'+pc(h0)+'%"></u><i style="width:'+pc(h0)+'%"></i><span>'+h0.toLocaleString()+' → '+h1.toLocaleString()+' / '+max.toLocaleString()+'</span></div>'
       +'<p class="wbResP">'+(v.dead ? '보상은 아래 🎁 버튼에서 · 다음 주 월요일 <b>'+E(nx.n)+'</b> 등장!' : '남은 체력 <b>'+Math.round(h1/max*100)+'%</b> — 친구들과 같이 깎아요!<br>'+this.howTo())+'</p>'
       +'<div class="wbPopB"><button class="stBossBtn" data-wb="study">📚 기회 모으기</button><button class="stLater" data-wbf="rx">닫기</button></div></div>';
@@ -18356,6 +18386,88 @@ const DM = {
       if(a==="study"){ StudyUI.open(); return; }
       if($("scStudy").classList.contains("on")) StudyUI.close(); show("scStart"); setTimeout(()=>{ try{ $("btnGo").click(); }catch(er){} }, 60); } }
 };
+/* (v390) ⚔️ 보스 공격 패턴 — 사용자: 보스전이 그냥 두들겨 패는 느낌 · 체력 깎는 패턴도 타이밍 방어도 없음 (주간 보스 · 수업 레이드 둘 다)
+   보스 공격 3가지(BOSS_LINE atk 순서) = 패턴 3가지 · 보스 체력 20% 아래면 한 판에 한 번 필살기
+     slam  내려찍기  → 🛡 타이밍 막기: 줄어드는 노란 원이 점선 원(방패)에 닿는 순간 · 완벽 / 막기 / 너무 빨라요(맞음)
+     sweep 휩쓸기    → ◀ ▶ 피하기: 빨갛게 번쩍이는 쪽 반대로 · 맞기 직전(0.45초 안)에 피하면 완벽
+     burst 연속 발사 → 🛡 리듬 막기 3번 (탁·탁·탁 · 공마다 원)
+     fin   필살기    → 완벽 막기만 버팀 (그냥 막기 ❤️-1 · 못 막음 ❤️-2)
+   판정 시간은 학년별 (유치원·G1-2 넓게 · 중등 좁게) · 결과 {perf, good, ok, hurt} → 부르는 쪽(주간 보스·레이드)이 반격·하트를 정함
+   버튼은 화면 아래 큰 칸(#bpCtl, 누르는 순간 pointerdown) · 키보드 Space·←·→ 도 됨 */
+const BossPat = {
+  A:null,
+  WIN:{low:{p:190, g:420}, mid:{p:150, g:340}, high:{p:120, g:280}},
+  win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; },
+  KIND:["slam","sweep","burst"],
+  HINT:{slam:"🟡 노란 원이 점선 원에 닿을 때 🛡 막기!", sweep:"🔴 빨간 쪽 반대로 피해요!", burst:"💧 탁·탁·탁 — 공이 올 때마다 🛡 3번!", fin:"💀 필살기! 원이 닿는 순간 딱 맞춰 막아야 버텨요"},
+  on(){ return !!this.A; },
+  run(o){ this.stop(); const now=performance.now(), kind=o.fin ? "fin" : this.KIND[(o.j|0)%3], W=this.win(o.book), lead=o.fin ? 2600 : o.rage ? 1500 : 2000;
+    const A=this.A={o, W, kind, t0:now, lead, gap:o.rage?440:580, res:{kind, perf:0, good:0, ok:0, hurt:0}, hits:[], done:[], side:null, dodge:null, dodgeAt:0};
+    A.hits = kind==="burst" ? [0,1,2].map(i=>now+lead+i*A.gap) : [now+lead]; A.done=A.hits.map(()=>0);
+    if(kind==="sweep") A.side = Math.random()<0.5 ? "L" : "R";
+    this.ui(A);
+    try{ RaidStage.charge((kind==="fin"?"💀 필살기 · ":"")+(o.nm||"공격")); RaidStage.warn(true); if(RaidStage.el) RaidStage.el.classList.toggle("bpFin", kind==="fin"); }catch(e){}
+    try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>{ try{ SFX.tone(330,.18,"sawtooth",.05,220); }catch(e){} }, 300); }catch(e){}
+    A.wt=setTimeout(()=>{ if(this.A===A) try{ RaidStage.windup(o.k, Math.max(300, A.hits[0]-performance.now())); }catch(e){} }, Math.max(0, lead-900));
+    const loop=()=>{ if(this.A!==A) return; try{ this.tick(); }catch(e){ console.error(e); } A.raf=requestAnimationFrame(loop); }; A.raf=requestAnimationFrame(loop);
+    A.iv=setInterval(()=>{ if(this.A===A) this.tick(); }, 120);   // 탭이 가려져 그림이 멈춰도 판정은 됨
+    return A; },
+  tick(now){ const A=this.A; if(!A) return; now=now||performance.now();
+    A.hits.forEach((h,i)=>{ if(!A.done[i] && now>h+A.W.g) this.judge(i, null, now); });
+    if(this.A===A) this.paint(A, now); },
+  /* 누름 — kind: "shield" | "L" | "R" · t = 누른 시각 (시험용) */
+  press(kind, t){ const A=this.A; if(!A) return false; const now=t||performance.now();
+    if(A.kind==="sweep"){ if(kind!=="L" && kind!=="R"){ this.say("◀ ▶ 로 피해요!"); return true; } if(A.dodge || now-A.t0<150) return true;
+      A.dodge=kind; A.dodgeAt=now; this.move(kind); try{ SFX.tone(520,.06,"triangle",.04,780); }catch(e){} return true; }
+    if(kind!=="shield"){ this.say("🛡 막기!"); return true; }
+    if(now-A.t0<150) return true;   // 경고가 뜨자마자 눌러 둔 것은 무시
+    const i=A.done.findIndex(x=>!x); if(i<0) return true;
+    this.judge(i, now-A.hits[i], now); return true; },
+  judge(i, d, now){ const A=this.A; if(!A || A.done[i]) return; const W=A.W; let r;
+    if(A.kind==="sweep"){ const ok=A.dodge && A.dodge!==A.side; r = ok ? (A.hits[i]-A.dodgeAt<=450 ? "perf" : "good") : "miss"; }
+    else if(d==null) r="miss";
+    else r = d < -W.g ? "early" : Math.abs(d)<=W.p ? "perf" : Math.abs(d)<=W.g ? "good" : "miss";
+    const hurt = A.kind==="fin" ? (r==="perf" ? 0 : r==="good" ? 1 : 2) : (r==="perf" || r==="good") ? 0 : 1;
+    A.done[i]=r; if(!hurt){ A.res.ok++; if(r==="perf") A.res.perf++; else A.res.good++; } A.res.hurt+=hurt;
+    this.fx(A, i, r, hurt);
+    if(A.done.every(x=>x)){ clearTimeout(A.et); A.et=setTimeout(()=>this.finish(A), 650); } },
+  finish(A){ if(this.A!==A) return; const cb=A.o.done; this.stop(); try{ if(cb) cb(A.res); }catch(e){ console.error(e); } },
+  stop(){ const A=this.A; this.A=null; if(!A) return; cancelAnimationFrame(A.raf); clearInterval(A.iv); clearTimeout(A.wt); clearTimeout(A.et);
+    ["bpCtl"].forEach(id=>{ const e=$(id); if(e) e.remove(); }); document.querySelectorAll(".bpRing,.bpTgt,.bpSw,.bpBall").forEach(e=>e.remove());
+    try{ RaidStage.warn(false); if(RaidStage.el) RaidStage.el.classList.remove("bpFin"); if(RaidStage.me){ RaidStage.me.el.style.marginLeft=""; RaidStage.me.el.classList.remove("bpDodge"); } }catch(e){} },
+  /* ── 그림 ── */
+  ui(A){ const c=document.createElement("div"); c.id="bpCtl"; c.className="bp "+A.kind;
+    c.innerHTML='<div class="bpRes" id="bpRes"></div><div class="bpHint">'+this.HINT[A.kind]+'</div><div class="bpBtns">'
+      +(A.kind==="sweep" ? '<button class="dg" data-bp="L">◀ 피하기</button><button class="dg" data-bp="R">피하기 ▶</button>' : '<button data-bp="shield">🛡 막기</button>')+'</div>';
+    c.addEventListener("pointerdown", e=>{ const b=e.target.closest && e.target.closest("[data-bp]"); if(!b) return; e.preventDefault(); this.press(b.dataset.bp); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); });
+    document.body.appendChild(c); this.attach(A); },
+  attach(A){ const me=RaidStage.me; if(!me || !me.el) return; const h=me.el;
+    if(A.kind==="sweep"){ if(!h.querySelector(".bpSw")){ const z=document.createElement("div"); z.className="bpSw "+A.side; z.innerHTML='<b>⚠️ 위험!</b>'; h.appendChild(z); } }
+    else { if(!h.querySelector(".bpTgt")){ const g=document.createElement("div"); g.className="bpTgt"; g.textContent="🛡"; h.appendChild(g); } if(!h.querySelector(".bpRing")){ const r=document.createElement("div"); r.className="bpRing"; h.appendChild(r); } } },
+  paint(A, now){ const me=RaidStage.me; if(!me || !me.el) return; if(!me.el.querySelector(A.kind==="sweep" ? ".bpSw" : ".bpRing")) this.attach(A);
+    if(A.kind==="sweep") return;
+    const i=A.done.findIndex(x=>!x), r=me.el.querySelector(".bpRing"); if(!r) return;
+    if(i<0){ r.style.opacity="0"; return; }
+    const from = i>0 ? Math.max(A.hits[i-1], A.t0) : A.t0, span=Math.max(200, A.hits[i]-from), dt=A.hits[i]-now, s=1+Math.max(0, Math.min(1, dt/span))*2.2;
+    r.style.opacity="1"; r.style.transform="scale("+s.toFixed(3)+")"; r.classList.toggle("near", Math.abs(dt)<=A.W.g);
+    if(A.kind==="burst") this.balls(A, now); },
+  /* 연속 발사 — 보스에서 내 캐릭터로 날아오는 공 */
+  balls(A, now){ const st=RaidStage.el, fx=RaidStage.fx, me=RaidStage.me; if(!st || !fx || !me) return; const sr=st.getBoundingClientRect(), hr=me.el.getBoundingClientRect(); if(!sr.width) return;
+    const hx=(hr.left+hr.width/2-sr.left)/sr.width*100, hy=(hr.top+hr.height*0.42-sr.top)/sr.height*100, TR=800;
+    A.balls=A.balls||[];
+    A.hits.forEach((h,i)=>{ let b=A.balls[i]; const p=1-(h-now)/TR;
+      if(A.done[i] || p<0){ if(b && A.done[i]){ b.remove(); A.balls[i]=null; } return; }
+      if(!b){ b=A.balls[i]=document.createElement("i"); b.className="bpBall"; fx.appendChild(b); }
+      const q=Math.min(1, p); b.style.left=(72+(hx-72)*q).toFixed(1)+"%"; b.style.top=(34+(hy-34)*q-Math.sin(q*Math.PI)*8).toFixed(1)+"%"; }); },
+  move(side){ const me=RaidStage.me; if(!me) return; me.el.classList.add("bpDodge"); me.el.style.marginLeft = side==="L" ? "-64px" : "64px"; },
+  say(t){ const e=$("bpRes"); if(!e) return; e.textContent=t; e.className="bpRes on"; void e.offsetWidth; },
+  fx(A, i, r, hurt){ const TX={perf:"✨ 완벽!", good:A.kind==="sweep" ? "💨 피했다!" : "🛡 막았다!", early:"😣 너무 빨라요!", miss:A.kind==="sweep" ? "💥 못 피했어요" : "💥 맞았어요"};
+    const e=$("bpRes"); if(e){ e.textContent=TX[r]+(hurt ? " ❤️-"+hurt : ""); e.className="bpRes on "+(hurt ? "bad" : r); }
+    try{ if(!hurt){ const s=RaidStage.me && RaidStage.me.el; if(s){ s.classList.remove("guard"); void s.offsetWidth; s.classList.add("guard"); } RaidStage.num(TX[r], r==="perf" ? "crit" : "blk", true); SFX.tone(r==="perf"?1046:880,.14,"triangle",.05,r==="perf"?2093:1760); }
+      else { RaidStage.hurt("💥 ❤️-"+hurt); SFX.tone(160,.2,"square",.05); } if(A.kind!=="burst" || i===0) RaidStage.shake(); }catch(err){}
+    if(A.balls && A.balls[i]){ A.balls[i].remove(); A.balls[i]=null; } }
+};
+addEventListener("keydown", e=>{ if(!BossPat.on()) return; const k=e.key; if(k===" " || k==="Enter"){ e.preventDefault(); BossPat.press("shield"); } else if(k==="ArrowLeft"){ e.preventDefault(); BossPat.press("L"); } else if(k==="ArrowRight"){ e.preventDefault(); BossPat.press("R"); } });
 const RaidStage = {
   BG:{hbS:["meadow","#9be8a0","#2c6b3a"], hb1:["meadow","#7cc6ff","#2c6b3a"], hb2:["desert","#ffcf8a","#a8743a"], hb3:["ice","#bfe6ff","#6fa3c8"], hb4:["volcano","#ff9a6a","#4a2020"], hb5:["castle","#9aa6ff","#3a3560"]},
   el:null, me:null, al:{}, fx:null, raf:0, seen:{}, t0:0,
@@ -18614,6 +18726,11 @@ const Raid = {
     this.drawKid(); setTimeout(()=>{ if(this.q===q){ this.next(); this.drawKid(); } }, ok?650:1500); },
   /* (v322) 내 점수는 서버에서 '더하기' — 절대값으로 쓰면 새로고침·두 기기·늦게 도착한 쓰기가 앞 값을 덮어씀. d·b·h·m·sh 모두 */
   bump(add, plain){ const now=this.now(); return RaidNet.inc("/p/"+this.me, add, Object.assign({at:now}, plain||{})); },
+  /* (v390) 패턴 끝 — 막은·피한 것만큼 반격 (완벽 25 · 막기 15) · 맞은 만큼 하트 -1 · 하트 0 이면 10초 쉬기 */
+  patDone(A, res){ if(this.atk!==A) return; const c=this.calc();
+    if(res.ok){ this.blk+=res.ok; const d=res.perf*25+res.good*15; if(!c.shield && d>0 && this.st().s==="run"){ this.addDmg(d, "blk", {b:res.ok}); try{ RaidStage.attack(d, this.combo, false); }catch(e){} } else this.bump({b:res.ok}); }
+    if(res.hurt){ this.hearts=Math.max(0, this.hearts-res.hurt); this.combo=0; if(!this.hearts){ this.restTo=this.now()+10000; this.hearts=3; } }
+    this.atk=null; if(!this.q) this.next(); this.drawKid(); },
   addDmg(d, kind, ex){ this.dmg+=d; const now=this.now(), P=RaidNet.get().p||{}, seen=((P[this.me]||{}).d|0);
     this.bump(Object.assign({d}, ex||{}), {la:now});   // (v310) h·m = 맞힘·틀림 (🎯 정확왕 · 🔥 끈기왕) · (v322) la = 마지막 공격 (TV 무대 16명)
     RaidNet.push("/ev", {n:this.name, k:kind, v:d, t:now});
@@ -18654,9 +18771,13 @@ const Raid = {
     if(!this.q && !this.atk && now>=this.restTo) { this.next(); this.drawKid(); }
     const c=this.calc();
     if(!this.nextAtk) this.nextAtk = now + 6000 + Math.random()*4000;
-    if(!this.atk && now>=this.nextAtk && now>=this.restTo && !c.shield){ this.boom(); this.atk={warnUntil:now+2000, q:this.mkQ(true), until:now+2000+6000, k:(this.anim||{}).k}; this.nextAtk = now + (c.rage ? this.RAGE_ATK : this.ATK_MS) + Math.random()*2000; this.drawKid(); }
-    if(this.atk && !this.atk.res && now>=this.atk.warnUntil && !this.atk.shown){ this.atk.shown=1; this.qAt=now; this.drawKid(); }
-    if(this.atk && !this.atk.res && now>=this.atk.until){ this.atk.q.done=1; this.atk.res="hit"; try{ RaidStage.strike(this.atk.k, false); }catch(e){} this.hearts=Math.max(0,this.hearts-1); if(!this.hearts){ this.restTo=now+10000; this.hearts=3; }
+    /* (v390) 보스 공격 = 패턴 (BossPat) — 문제 대신 타이밍 막기·피하기 · 레이드 하트 ❤️3 */
+    if(!this.atk && now>=this.nextAtk && now>=this.restTo && !c.shield && !BossPat.on()){ const b=this.rb(), j=Math.floor(Math.random()*3), fin=c.pct<0.2 && c.hp>0 && !this._fin2; if(fin) this._fin2=1;
+      const A=this.atk={pat:1, k:b.img+"-"+"abc"[j], nm:(b.atk||[])[j]||"공격"}; this.anim={k:A.k, nm:A.nm, t0:Date.now()};
+      BossPat.run({j, rage:!!c.rage, fin, k:A.k, nm:A.nm, book:(RaidNet.get().cfg||{}).book||"g34", done:res=>this.patDone(A, res)});
+      this.nextAtk = now + (c.rage ? this.RAGE_ATK : this.ATK_MS) + Math.random()*2000; this.drawKid(); }
+    if(this.atk && this.atk.q && !this.atk.res && now>=this.atk.warnUntil && !this.atk.shown){ this.atk.shown=1; this.qAt=now; this.drawKid(); }
+    if(this.atk && this.atk.q && !this.atk.res && now>=this.atk.until){ this.atk.q.done=1; this.atk.res="hit"; try{ RaidStage.strike(this.atk.k, false); }catch(e){} this.hearts=Math.max(0,this.hearts-1); if(!this.hearts){ this.restTo=now+10000; this.hearts=3; }
       try{ SFX.tone(160,.2,"square",.05); }catch(e){} setTimeout(()=>{ this.atk=null; this.next(); this.drawKid(); }, 1500); this.drawKid(); }
     this.drawKid(); },
   finish(){ this.ended=true; const c=this.calc(), st=this.st(), key="rd-"+this.room+"-"+(st.t0||0); let gems=0;
@@ -18713,6 +18834,7 @@ const Raid = {
         +'<p>우리 반 모두 '+c.sum.toLocaleString()+' 데미지</p>'+(this._gems?'<div class="stGem">💎 +'+this._gems+(win && !c.B?' (쓰러뜨림)':' (참가)')+'</div>':'')+(this._claim?'<div class="stGem">🎁 학원 보스 보상 💎 +'+this._claim+'</div>':'')
         +(c.B && c.hp>0 ? '<p class="rdHint">못 쓰러뜨려도 괜찮아요! 집에서 Daily 30 공부로 계속 깎아요 (하루 300까지) · 쓰러뜨리면 다 같이 보석</p>' : '')+'<button class="stGo" data-rd="leave">나가기</button></div></div>'; }
     else if(this.restTo>now) h='<div class="rdWait rest"><b>💫 잠깐 쉬어요 '+Math.ceil((this.restTo-now)/1000)+'초</b><p>하트가 다 없어졌어요 · 곧 다시 싸워요!</p></div>';
+    else if(this.atk && this.atk.pat) h='<div class="rdWarn bp"><b>⚠️ '+this.esc(this.atk.nm)+'!</b><p>아래 큰 버튼으로 막거나 피해요</p></div>';   // (v390)
     else if(this.atk && !this.atk.shown) h='<div class="rdWarn"><b>⚠️ '+this.esc((this.anim||{}).nm||'보스 공격')+' 준비!</b><p>'+Math.max(1,Math.ceil((this.atk.warnUntil-now)/1000))+'초 뒤 공격 — 맞혀서 막아요</p></div>';
     else { const A=this.atk, q=A ? A.q : this.q;
       if(q){ const lab = A ? '🛡 막기 문제! '+Math.max(0,Math.ceil((A.until-now)/1000))+'초' : q.sh ? '💥 방패 단어를 깨요!' : q.t==="k2e" ? '영어로 골라 공격!' : q.t==="e2k" ? '뜻을 골라 공격!' : q.t==="pic" ? '그림을 골라 공격!' : '빈칸을 채워 공격!';
