@@ -3167,8 +3167,11 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 .rs.bpFin .rsTint{background:rgba(70,0,25,.55)}
 .wbHp{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:#ffd9e3}.wbHp b{display:flex;gap:2px}.wbHp i,.wbHp u{width:14px;height:13px;display:inline-block;background:#ff5f7a;clip-path:path("M7 13 L1 6.5 A3.4 3.4 0 0 1 7 2.4 A3.4 3.4 0 0 1 13 6.5 Z")}.wbHp u{background:rgba(255,255,255,.22)}.wbHp em{font-style:normal;color:#ffd76a;margin-left:6px}
 .rdWarn.bp{border-color:#ff5f7a}
-body.bpOn .wbBtns{visibility:hidden}   /* 공격 패턴 중에는 아래 큰 버튼만 (막기 버튼 두 개 헷갈림) */
-body.bpOn .wb{padding-bottom:150px}
+body.bpOn .wbFight{display:none}   /* (v391) 공격 패턴 중에는 싸움 칸을 숨김 (빈 칸 · 가로 폰에서 무대를 가림) — 아래 큰 버튼과 안내만 */
+body.bpOn .wb{padding-bottom:170px}
+#bpCtl .bpHint{background:rgba(30,10,40,.88);border:1.5px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 14px}
+#bpCtl .bpRes{background:rgba(30,10,40,.7);border-radius:12px;padding:0 10px}#bpCtl .bpRes:not(.on){background:none}
+@media (max-height:520px){ #bpCtl{padding:6px 12px calc(env(safe-area-inset-bottom,0px) + 6px);gap:4px} #bpCtl button{height:58px;font-size:21px;border-radius:16px} #bpCtl .bpHint{font-size:13px;padding:3px 12px} #bpCtl .bpRes{font-size:17px;min-height:22px} body.bpOn .wb{padding-bottom:110px} }
 /* (v389) 🏃 달리기 레이스 — 머리 위 순위 배지 · 두 팀 막대 */
 #rrBadge{position:fixed;left:0;top:0;z-index:25;pointer-events:none;display:flex;align-items:center;padding:2px 9px 3px;border-radius:12px;background:rgba(20,14,40,.72);border:2px solid rgba(255,211,122,.85);color:#fff;font-weight:800;line-height:1.1;white-space:nowrap;transform:translate(50vw,38vh) translate(-50%,-100%);box-shadow:0 3px 8px rgba(0,0,0,.3)}
 #rrBadge .rrRk{display:flex;align-items:baseline;gap:2px}#rrBadge b{font-size:16px;display:inline-block}#rrBadge span{font-size:11px;opacity:.75;font-weight:700}
@@ -13581,7 +13584,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v390";
+const GAME_VER = "v391";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17889,7 +17892,7 @@ const WeekBoss = {
   book(){ try{ const s=Study.load(); return s.book || "g34"; }catch(e){ return "g34"; } },
   bossTurn(){ const F=this.F, B=HyBoss.B, me=Kid.me(); if(!F || !B || !this.isOpen() || BossPat.on()) return; const L=HyBoss.lineOf(B), v=this.view(B, me), pct=v.max ? v.hp/v.max : 1, rage=pct<0.5, fin=pct<0.2 && !F.fin, j=Math.floor(Math.random()*3);
     if(fin) F.fin=1; F.phase="warn"; F.k=L.img+"-"+"abc"[j]; F.nm=L.atk[j]; F.warnAt=Date.now(); this.drawFight();
-    BossPat.run({j, rage, fin, k:F.k, nm:F.nm, book:this.book(), done:res=>this.patDone(F, res, rage)}); },
+    BossPat.run({j, rage, fin, k:F.k, nm:F.nm, book:this.book(), practice:true, done:res=>this.patDone(F, res, rage)}); },
   patDone(F, res, rage){ if(this.F!==F) return; const me=Kid.me(); if(!me) return;
     const cnt=res.perf*HyBoss.COUNTER*2 + res.good*HyBoss.COUNTER;   // 반격: 완벽 30 · 막기·피하기 15
     if(cnt>0){ const add=HyBoss.add(me, cnt, "study", 0); F.dmg+=add; try{ RaidStage.attack(add, F.combo|0, false); }catch(e){} }
@@ -18401,12 +18404,15 @@ const BossPat = {
   win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; },
   KIND:["slam","sweep","burst"],
   HINT:{slam:"🟡 노란 원이 점선 원에 닿을 때 🛡 막기!", sweep:"👀 빨간 쪽이 번쩍! 하는 순간 반대로 피해요", burst:"💧 탁·탁·탁 — 공이 올 때마다 🛡 3번!", fin:"💀 필살기! 원이 닿는 순간 딱 맞춰 막아야 버텨요"},
+  /* (v391) 공격이 시작되면 무대(보스·내 캐릭터)가 화면에 보이게 — 가로 폰에서 아래 큰 버튼·싸움 칸에 무대가 가려 원·번쩍이 안 보이던 것 */
+  show(){ const st=RaidStage.el; if(!st || !st.getBoundingClientRect) return; const r=st.getBoundingClientRect(), bar=$("bpCtl"), bh=bar ? bar.getBoundingClientRect().height : 140;
+    if(r.top<0 || r.bottom>innerHeight-bh){ try{ st.scrollIntoView({block:"start", behavior:"smooth"}); }catch(e){ st.scrollIntoView(true); } } },
   on(){ return !!this.A; },
   run(o){ this.stop(); const now=performance.now(), kind=o.fin ? "fin" : this.KIND[(o.j|0)%3], W=this.win(o.book), lead=o.fin ? 2600 : o.rage ? 1500 : 2000;
     const A=this.A={o, W, kind, t0:now, lead, gap:o.rage?440:580, res:{kind, perf:0, good:0, ok:0, hurt:0}, hits:[], done:[], side:null, dodge:null, dodgeAt:0};
     A.hits = kind==="burst" ? [0,1,2].map(i=>now+lead+i*A.gap) : [now+lead]; A.done=A.hits.map(()=>0);
     if(kind==="sweep"){ A.side = Math.random()<0.5 ? "L" : "R"; A.rv = A.hits[0] - (W.g>=400 ? 900 : W.g<300 ? 550 : 700); }   // 번쩍이는 때 (학년별)
-    this.ui(A); document.body.classList.add("bpOn");
+    this.ui(A); document.body.classList.add("bpOn"); setTimeout(()=>{ if(this.A===A) this.show(); }, 30);
     try{ RaidStage.charge((kind==="fin"?"💀 필살기 · ":"")+(o.nm||"공격")); RaidStage.warn(true); if(RaidStage.el) RaidStage.el.classList.toggle("bpFin", kind==="fin"); }catch(e){}
     try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>{ try{ SFX.tone(330,.18,"sawtooth",.05,220); }catch(e){} }, 300); }catch(e){}
     A.wt=setTimeout(()=>{ if(this.A===A) try{ RaidStage.windup(o.k, Math.max(300, A.hits[0]-performance.now())); }catch(e){} }, Math.max(0, lead-900));
@@ -18464,9 +18470,10 @@ const BossPat = {
   move(side){ const me=RaidStage.me; if(!me) return; me.el.classList.add("bpDodge"); me.el.style.marginLeft = side==="L" ? "-64px" : "64px"; },
   say(t){ const e=$("bpRes"); if(!e) return; e.textContent=t; e.className="bpRes on"; void e.offsetWidth; },
   fx(A, i, r, hurt){ const TX={perf:"✨ 완벽!", good:A.kind==="sweep" ? "💨 피했다!" : "🛡 막았다!", early:"😣 너무 빨라요!", miss:A.kind==="sweep" ? "💥 못 피했어요" : "💥 맞았어요"};
-    const e=$("bpRes"); if(e){ e.textContent=TX[r]+(hurt ? " ❤️-"+hurt : ""); e.className="bpRes on "+(hurt ? "bad" : r); }
+    const pr=!!A.o.practice, ht = hurt && !pr ? " ❤️-"+hurt : "";   /* (v391) 주간 보스 = 연습 — 하트 글자 없이 */
+    const e=$("bpRes"); if(e){ e.textContent=TX[r]+ht+(hurt && pr ? " · 다시 해 봐요!" : ""); e.className="bpRes on "+(hurt ? "bad" : r); }
     try{ if(!hurt){ const s=RaidStage.me && RaidStage.me.el; if(s){ s.classList.remove("guard"); void s.offsetWidth; s.classList.add("guard"); } RaidStage.num(TX[r], r==="perf" ? "crit" : "blk", true); SFX.tone(r==="perf"?1046:880,.14,"triangle",.05,r==="perf"?2093:1760); }
-      else { RaidStage.hurt("💥 ❤️-"+hurt); SFX.tone(160,.2,"square",.05); } if(A.kind!=="burst" || i===0) RaidStage.shake(); }catch(err){}
+      else { RaidStage.hurt(pr ? "💥 앗!" : "💥 ❤️-"+hurt); SFX.tone(160,.2,"square",.05); } if(A.kind!=="burst" || i===0) RaidStage.shake(); }catch(err){}
     if(A.balls && A.balls[i]){ A.balls[i].remove(); A.balls[i]=null; } }
 };
 addEventListener("keydown", e=>{ if(!BossPat.on()) return; const k=e.key; if(k===" " || k==="Enter"){ e.preventDefault(); BossPat.press("shield"); } else if(k==="ArrowLeft"){ e.preventDefault(); BossPat.press("L"); } else if(k==="ArrowRight"){ e.preventDefault(); BossPat.press("R"); } });

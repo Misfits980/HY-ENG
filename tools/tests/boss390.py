@@ -84,7 +84,14 @@ async def main():
         s0 = await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return k.r+k.s; }")
         for i in range(3):
             await pg.evaluate("()=>{ WeekBoss.F.next=1; WeekBoss.F.lock=0; WeekBoss.F.next=0; WeekBoss.bossTurn(); }"); await pg.wait_for_function("()=>BossPat.A", timeout=4000)
-            await pg.evaluate("()=>patSolve(false)"); await pg.wait_for_function("()=>!BossPat.A && WeekBoss.F && WeekBoss.F.phase==='idle'", timeout=5000)
+            if i == 0:
+                r = await pg.evaluate("()=>[document.body.classList.contains('bpOn'), getComputedStyle(document.getElementById('wbFight')).display]")
+                ok(r == [True, "none"], f"(v391) 공격 중엔 싸움 칸 숨김 (빈 칸·가로 폰 무대 가림) {r}")
+            await pg.evaluate("()=>patSolve(false)")
+            if i == 0:
+                r = await pg.evaluate("()=>document.getElementById('bpRes').innerText")
+                ok("❤️" not in r and "다시" in r, f"(v391) 주간 보스(연습)는 맞아도 하트 글자 없음 {r!r}")
+            await pg.wait_for_function("()=>!BossPat.A && WeekBoss.F && WeekBoss.F.phase==='idle'", timeout=5000)
         r = await pg.evaluate("()=>{ const k=HyBoss.stock('k1'); return [k.r+k.s, WeekBoss.F.combo, WeekBoss.F.hit>=3, !document.getElementById('wbRes'), document.getElementById('wbFHint').innerText]; }")
         ok(r[0] == s0 and r[1] == 0 and r[2] and r[3], f"주간 보스 연습: 맞아도 기회 그대로 · 기절 없음 · 콤보 0 {s0} {r[:4]}")
         await pg.evaluate("()=>{ WeekBoss.F.next=0; WeekBoss.bossTurn(); }"); await pg.wait_for_function("()=>BossPat.A", timeout=4000)
