@@ -12,7 +12,7 @@ RUN = """async ([j, fin, book, plan])=>{ let box=document.getElementById('tbox')
   RaidStage.ensure('wk', {box, boss:BOSS_LINE[0], me:'', key:'x'}); window._r=null;
   const A=BossPat.run({j, fin, k:'hb1-a', nm:'시험', book, done:r=>{ window._r=r; }});
   const ui={ctl:!!document.getElementById('bpCtl'), btn:document.querySelectorAll('#bpCtl [data-bp]').length, ring:!!document.querySelector('.rsHero.me .bpRing'), sw:!!document.querySelector('.rsHero.me .bpSw'), kind:A.kind, n:A.hits.length, W:A.W};
-  plan.forEach(([k, off])=>{ if(k==='L'||k==='R'){ const side = off==='safe' ? (A.side==='L'?'R':'L') : A.side; BossPat.press(side, A.hits[0]-200); BossPat.tick(A.hits[0]+A.W.g+1); } else { const i=A.done.findIndex(x=>!x); if(i>=0) BossPat.press('shield', A.hits[i]+off); } });
+  plan.forEach(([k, off])=>{ if(k==='L'||k==='R'){ const side = off==='safe' ? (A.side==='L'?'R':'L') : A.side; BossPat.press(side, A.rv+150); BossPat.tick(A.hits[0]+A.W.g+1); } else { const i=A.done.findIndex(x=>!x); if(i>=0) BossPat.press('shield', A.hits[i]+off); } });
   if(BossPat.A===A) BossPat.tick(A.hits[A.hits.length-1]+A.W.g+1);
   for(let t=0;t<30 && !window._r;t++) await new Promise(r=>setTimeout(r,100));
   return Object.assign(ui, {res:window._r, done:A.done, left:!!document.getElementById('bpCtl') || !!document.querySelector('.bpRing')}); }"""
@@ -46,6 +46,13 @@ async def main():
         ok(r["kind"] == "sweep" and r["btn"] == 2 and r["sw"] and r["res"]["perf"] == 1 and r["res"]["hurt"] == 0, f"휩쓸기: ◀ ▶ 두 버튼 · 빨간 쪽 · 반대로 피함(직전) = 완벽 {r}")
         r = await pg.evaluate(RUN, [1, False, "g34", [["L", "same"]]])
         ok(r["res"]["hurt"] == 1, f"같은 쪽으로 = 맞음 {r['res']}")
+        r = await pg.evaluate("""async ()=>{ const A=BossPat.run({j:1, k:'hb1-a', nm:'x', book:'g34', done:r=>{ window._r=r; }}); window._r=null; await new Promise(r=>setTimeout(r,300));
+          const z=document.querySelector('.rsHero.me .bpSw'), early=[!!z, z && z.classList.contains('on'), A.rv-A.t0];
+          BossPat.tick(A.rv+50); const flash=z.classList.contains('on'); BossPat.tick(A.rv+500); const after=z.classList.contains('on');
+          BossPat.press(A.side==='L'?'R':'L', A.rv-100); for(let t=0;t<20 && !window._r;t++) await new Promise(r=>setTimeout(r,100));
+          return {early, flash, after, done:A.done, res:window._r}; }""")
+        ok(r["early"][0] and not r["early"][1] and r["early"][2] == 1300 and r["flash"] and not r["after"], f"빨간 쪽은 처음엔 안 보이고 맞기 0.7초 전에 한 번만 짧게 번쩍 {r['early']} {r['flash']} {r['after']}")
+        ok(r["done"] == ["early"] and r["res"]["hurt"] == 1, f"번쩍이기 전에 피하면 = 너무 빨라요(맞음) {r['done']}")
         # 연속 발사
         r = await pg.evaluate(RUN, [2, False, "g34", [["s", 0], ["s", 30], ["s", 300]]])
         ok(r["kind"] == "burst" and r["n"] == 3 and r["res"]["perf"] == 2 and r["res"]["good"] == 1 and r["res"]["hurt"] == 0, f"연속 발사: 공 3개 · 박자마다 막기 {r['res']}")

@@ -26,7 +26,7 @@ async def boot(pg, news=True):
     await pg.evaluate(PAT_SOLVE)   # (v390) 보스 공격 패턴을 푸는 도우미 window.patSolve(good)
 # (v390) ⚔️ 보스 공격 패턴(BossPat) 한 번에 풀기 — good: 맞는 순간에 막기 · 반대쪽으로 피하기 / 아니면 너무 빨리 누르기 · 같은 쪽
 PAT_SOLVE="""()=>{ window.patSolve=(good)=>{ const A=BossPat.A; if(!A) return 'none';
-  if(A.kind==='sweep'){ BossPat.press(good ? (A.side==='L'?'R':'L') : A.side, A.hits[0]-200); BossPat.tick(A.hits[0]+A.W.g+1); }
+  if(A.kind==='sweep'){ BossPat.press(good ? (A.side==='L'?'R':'L') : A.side, A.rv+150); BossPat.tick(A.hits[0]+A.W.g+1); }
   else A.hits.forEach((h,i)=>{ if(!A.done[i]) BossPat.press('shield', good ? h : h-A.W.g-60); });
   return A.kind; }; }"""
 # Daily 30 문제 하나를 정답(wrongFirst=true 면 처음엔 오답)으로 푸는 코드 — page.evaluate(SOLVE, wrongFirst)

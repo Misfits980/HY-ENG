@@ -3158,7 +3158,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 .bpTgt{z-index:4;border:3px dashed rgba(255,255,255,.85);display:grid;place-items:center;font-size:24px;background:rgba(80,160,255,.18)}
 .bpRing{z-index:5;border:5px solid #ffd23f;box-shadow:0 0 14px rgba(255,210,63,.8);will-change:transform}
 .bpRing.near{border-color:#7dff8a;box-shadow:0 0 18px rgba(125,255,138,.95)}
-.bpSw{position:absolute;top:-30%;bottom:-6%;width:110px;pointer-events:none;z-index:3;animation:bpSwF .28s ease-in-out infinite alternate;border-radius:40%}
+.bpSw{position:absolute;top:-30%;bottom:-6%;width:110px;pointer-events:none;z-index:3;border-radius:40%;opacity:0}.bpSw.on{opacity:1}
 .bpSw.L{right:50%;background:linear-gradient(270deg,rgba(255,40,60,.15),rgba(255,40,60,.7))}.bpSw.R{left:50%;background:linear-gradient(90deg,rgba(255,40,60,.15),rgba(255,40,60,.7))}
 .bpSw b{position:absolute;top:4%;left:50%;transform:translateX(-50%);font-size:13px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 2px 0 rgba(0,0,0,.6)}
 @keyframes bpSwF{from{opacity:.5}to{opacity:1}}
@@ -18389,7 +18389,8 @@ const DM = {
 /* (v390) ⚔️ 보스 공격 패턴 — 사용자: 보스전이 그냥 두들겨 패는 느낌 · 체력 깎는 패턴도 타이밍 방어도 없음 (주간 보스 · 수업 레이드 둘 다)
    보스 공격 3가지(BOSS_LINE atk 순서) = 패턴 3가지 · 보스 체력 20% 아래면 한 판에 한 번 필살기
      slam  내려찍기  → 🛡 타이밍 막기: 줄어드는 노란 원이 점선 원(방패)에 닿는 순간 · 완벽 / 막기 / 너무 빨라요(맞음)
-     sweep 휩쓸기    → ◀ ▶ 피하기: 빨갛게 번쩍이는 쪽 반대로 · 맞기 직전(0.45초 안)에 피하면 완벽
+     sweep 휩쓸기    → ◀ ▶ 피하기: (사용자: 빨간 쪽이 계속 보이면 그냥 누르기) 맞기 직전에 빨간 쪽이 한 번만 짧게 번쩍 → 그 뒤에 반대로
+                       번쩍이기 전에 누르면 = 너무 빨라요(보스가 따라옴, 맞음) · 번쩍 뒤 0.45초 안이면 완벽
      burst 연속 발사 → 🛡 리듬 막기 3번 (탁·탁·탁 · 공마다 원)
      fin   필살기    → 완벽 막기만 버팀 (그냥 막기 ❤️-1 · 못 막음 ❤️-2)
    판정 시간은 학년별 (유치원·G1-2 넓게 · 중등 좁게) · 결과 {perf, good, ok, hurt} → 부르는 쪽(주간 보스·레이드)이 반격·하트를 정함
@@ -18399,12 +18400,12 @@ const BossPat = {
   WIN:{low:{p:190, g:420}, mid:{p:150, g:340}, high:{p:120, g:280}},
   win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; },
   KIND:["slam","sweep","burst"],
-  HINT:{slam:"🟡 노란 원이 점선 원에 닿을 때 🛡 막기!", sweep:"🔴 빨간 쪽 반대로 피해요!", burst:"💧 탁·탁·탁 — 공이 올 때마다 🛡 3번!", fin:"💀 필살기! 원이 닿는 순간 딱 맞춰 막아야 버텨요"},
+  HINT:{slam:"🟡 노란 원이 점선 원에 닿을 때 🛡 막기!", sweep:"👀 빨간 쪽이 번쩍! 하는 순간 반대로 피해요", burst:"💧 탁·탁·탁 — 공이 올 때마다 🛡 3번!", fin:"💀 필살기! 원이 닿는 순간 딱 맞춰 막아야 버텨요"},
   on(){ return !!this.A; },
   run(o){ this.stop(); const now=performance.now(), kind=o.fin ? "fin" : this.KIND[(o.j|0)%3], W=this.win(o.book), lead=o.fin ? 2600 : o.rage ? 1500 : 2000;
     const A=this.A={o, W, kind, t0:now, lead, gap:o.rage?440:580, res:{kind, perf:0, good:0, ok:0, hurt:0}, hits:[], done:[], side:null, dodge:null, dodgeAt:0};
     A.hits = kind==="burst" ? [0,1,2].map(i=>now+lead+i*A.gap) : [now+lead]; A.done=A.hits.map(()=>0);
-    if(kind==="sweep") A.side = Math.random()<0.5 ? "L" : "R";
+    if(kind==="sweep"){ A.side = Math.random()<0.5 ? "L" : "R"; A.rv = A.hits[0] - (W.g>=400 ? 900 : W.g<300 ? 550 : 700); }   // 번쩍이는 때 (학년별)
     this.ui(A); document.body.classList.add("bpOn");
     try{ RaidStage.charge((kind==="fin"?"💀 필살기 · ":"")+(o.nm||"공격")); RaidStage.warn(true); if(RaidStage.el) RaidStage.el.classList.toggle("bpFin", kind==="fin"); }catch(e){}
     try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>{ try{ SFX.tone(330,.18,"sawtooth",.05,220); }catch(e){} }, 300); }catch(e){}
@@ -18418,13 +18419,14 @@ const BossPat = {
   /* 누름 — kind: "shield" | "L" | "R" · t = 누른 시각 (시험용) */
   press(kind, t){ const A=this.A; if(!A) return false; const now=t||performance.now();
     if(A.kind==="sweep"){ if(kind!=="L" && kind!=="R"){ this.say("◀ ▶ 로 피해요!"); return true; } if(A.dodge || now-A.t0<150) return true;
-      A.dodge=kind; A.dodgeAt=now; this.move(kind); try{ SFX.tone(520,.06,"triangle",.04,780); }catch(e){} return true; }
+      A.dodge=kind; A.dodgeAt=now; A.early = now < A.rv; this.move(kind); try{ SFX.tone(520,.06,"triangle",.04,780); }catch(e){}
+      if(A.early){ this.say("😣 너무 빨라요 — 보스가 따라와요!"); this.judge(0, null, now); } return true; }
     if(kind!=="shield"){ this.say("🛡 막기!"); return true; }
     if(now-A.t0<150) return true;   // 경고가 뜨자마자 눌러 둔 것은 무시
     const i=A.done.findIndex(x=>!x); if(i<0) return true;
     this.judge(i, now-A.hits[i], now); return true; },
   judge(i, d, now){ const A=this.A; if(!A || A.done[i]) return; const W=A.W; let r;
-    if(A.kind==="sweep"){ const ok=A.dodge && A.dodge!==A.side; r = ok ? (A.hits[i]-A.dodgeAt<=450 ? "perf" : "good") : "miss"; }
+    if(A.kind==="sweep"){ const ok=A.dodge && !A.early && A.dodge!==A.side; r = A.early ? "early" : ok ? (A.dodgeAt-A.rv<=450 ? "perf" : "good") : "miss"; }
     else if(d==null) r="miss";
     else r = d < -W.g ? "early" : Math.abs(d)<=W.p ? "perf" : Math.abs(d)<=W.g ? "good" : "miss";
     const hurt = A.kind==="fin" ? (r==="perf" ? 0 : r==="good" ? 1 : 2) : (r==="perf" || r==="good") ? 0 : 1;
@@ -18442,10 +18444,10 @@ const BossPat = {
     c.addEventListener("pointerdown", e=>{ const b=e.target.closest && e.target.closest("[data-bp]"); if(!b) return; e.preventDefault(); this.press(b.dataset.bp); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); });
     document.body.appendChild(c); this.attach(A); },
   attach(A){ const me=RaidStage.me; if(!me || !me.el) return; const h=me.el;
-    if(A.kind==="sweep"){ if(!h.querySelector(".bpSw")){ const z=document.createElement("div"); z.className="bpSw "+A.side; z.innerHTML='<b>⚠️ 위험!</b>'; h.appendChild(z); } }
+    if(A.kind==="sweep"){ if(!h.querySelector(".bpSw")){ const z=document.createElement("div"); z.className="bpSw "+A.side; z.innerHTML='<b>⚠️</b>'; h.appendChild(z); } }
     else { if(!h.querySelector(".bpTgt")){ const g=document.createElement("div"); g.className="bpTgt"; g.textContent="🛡"; h.appendChild(g); } if(!h.querySelector(".bpRing")){ const r=document.createElement("div"); r.className="bpRing"; h.appendChild(r); } } },
   paint(A, now){ const me=RaidStage.me; if(!me || !me.el) return; if(!me.el.querySelector(A.kind==="sweep" ? ".bpSw" : ".bpRing")) this.attach(A);
-    if(A.kind==="sweep") return;
+    if(A.kind==="sweep"){ const z=me.el.querySelector(".bpSw"); if(z) z.classList.toggle("on", now>=A.rv && now<A.rv+350); return; }   // 한 번만 짧게 번쩍
     const i=A.done.findIndex(x=>!x), r=me.el.querySelector(".bpRing"); if(!r) return;
     if(i<0){ r.style.opacity="0"; return; }
     const from = i>0 ? Math.max(A.hits[i-1], A.t0) : A.t0, span=Math.max(200, A.hits[i]-from), dt=A.hits[i]-now, s=1+Math.max(0, Math.min(1, dt/span))*2.2;
