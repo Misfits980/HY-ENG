@@ -33,7 +33,8 @@ async def main():
         ok(len(await pg.evaluate("()=>window._said")) == 1, "문장은 예전 방식으로 읽음")
         # 달리는 중
         await pg.evaluate("()=>{ window._said=[]; window._clip=0; const b=document.getElementById('btnNewsOk'); if(b) b.click(); G.set='elem'; G.diff='normal'; G.rule='normal'; G.lesson=null; G.tag=null; G.dir='e2k'; startGame(); }")
-        await pg.wait_for_timeout(1500)
+        try: await pg.wait_for_function("()=>window._clip>=1 || window._said.length>0", timeout=4000)   # (v390) 첫 문 단어가 나올 때까지 (1.5초 고정은 가끔 모자람)
+        except Exception: pass
         r = await pg.evaluate("()=>[window._said, window._clip]")
         ok(r[0] == [] and r[1] >= 1, f"아이폰 달리기: 읽기 엔진 없이 파일로 읽음 {r}")
         await pg.evaluate("()=>{ G.quit=true; G.skipOutro=true; gameOver(); }"); await pg.wait_for_timeout(300)

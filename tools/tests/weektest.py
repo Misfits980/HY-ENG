@@ -1,7 +1,7 @@
 """(v322) 🏠 주간 보스 점검 고친 것 — 이 기기 안 Firebase 흉내(HY_FB_LOCAL)
    테스트 슬라임 중 보스 바꾸기 → 기회가 되살아나지 않음 · 같은 주 끄고 켜기 = 그대로 · ↺ 다시 = 기회 옮김 + 쓰러뜨린 보스 보상 남음
    주 중간 반 옮기기 → 데미지 반 = 보이는 반 = 보상 반 · 두 태블릿: 오래된 화면은 먼저 읽고 때림 · 쓰러짐 이름 안 덮음
-   같은 아이 두 기기 기회(더하기 카운터) · 1단어 그만두기 = 내림 + 다음 판에 이어서 · 월요일 0시 넘으면 새 보스 · 경고 중 닫기 = 기회 -1"""
+   같은 아이 두 기기 기회(더하기 카운터) · 1단어 그만두기 = 내림 + 다음 판에 이어서 · 월요일 0시 넘으면 새 보스 · 경고 중 닫기 = (v390) 손해 없음"""
 import asyncio, json, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
@@ -102,13 +102,13 @@ async def main():
         w8=await B.evaluate("()=>{ const old=HyBoss.B.id; HyBoss.CAP=1e9; const a=HyBoss.add(Kid.get(), 10, 'study'); return [old, HyBoss.B.id, HyBoss.B.wk===HyBoss.monday(), a, HyBoss.P && HyBoss.P.id]; }")
         ok(w8[1]!=w8[0] and w8[2] and w8[4]==w8[0], f"월요일 0시 → 새 주 보스로 {w8}")
         await B.evaluate("()=>WeekBoss.close()")
-        # 9. ⚠️ 경고 중에 ◀ 닫기 → 못 막은 것 (기회 -1)
+        # 9. ⚠️ 경고 중에 ◀ 닫기 → (v390) 주간 보스는 패턴 연습용이라 손해 없음 (예전엔 기회 -1) · 패턴 버튼도 사라짐
         await A.evaluate("()=>{ Kid.set({id:'k1',n:'민준',t:'all'}); HyBoss.earn(Kid.get(),'study',5); WeekBoss.open(); }"); await A.wait_for_timeout(600)
         await A.evaluate("()=>{ WeekBoss.swing(); }"); await A.wait_for_timeout(500)
         await A.evaluate("()=>{ WeekBoss.F.next=0; WeekBoss.F.lock=0; WeekBoss.swing(); }"); await A.wait_for_timeout(900)
-        w9=await A.evaluate("()=>{ const ph=WeekBoss.F && WeekBoss.F.phase, k=HyBoss.stock('k1'); WeekBoss.close(); const k2=HyBoss.stock('k1'); return [ph, k.r+k.s, k2.r+k2.s]; }")
-        ok(w9[0]=="warn" and w9[2]==w9[1]-1, f"경고 중 닫기 = 기회 -1 {w9}")
-        ok(await A.evaluate("()=>WeekBoss.BLOCK_MS")>=2000, "막기 시간 2초")
+        w9=await A.evaluate("()=>{ const ph=WeekBoss.F && WeekBoss.F.phase, k=HyBoss.stock('k1'); WeekBoss.close(); const k2=HyBoss.stock('k1'); return [ph, k.r+k.s, k2.r+k2.s, !!BossPat.A, !!document.getElementById('bpCtl')]; }")
+        ok(w9[0]=="warn" and w9[2]==w9[1] and not w9[3] and not w9[4], f"(v390) 경고 중 닫기 = 연습이라 손해 없음 · 패턴 정리 {w9}")
+        ok(await A.evaluate("()=>{ const P=BossPat.run({j:0,k:'hb1-a',nm:'x',book:'g34'}); const l=P.hits[0]-P.t0; BossPat.stop(); return l; }")>=2000, "(v390) 막기 준비 시간 2초 (패턴 경고 → 맞는 순간)")
         # 10. 'D-2' 대신 남은 시간 · 토요일 = 1일
         dl=await A.evaluate("()=>{ const n0=Date.now, mon=HyBoss.kd(HyBoss.monday())-12*3600e3; Date.now=()=>mon+5*864e5+12*3600e3; const r=[HyBoss.daysLeft(), HyBoss.leftTxt(HyBoss.B||HyBoss.B0)]; Date.now=n0; return r; }")
         ok(dl[0]==1 and dl[1].startswith("1일 12"), f"토요일 낮 = 1일 남음 {dl}")
