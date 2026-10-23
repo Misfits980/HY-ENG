@@ -13,7 +13,7 @@ RUN = """async ([j, fin, book, plan])=>{ let box=document.getElementById('tbox')
   const A=BossPat.run({j, fin, k:'hb1-a', nm:'시험', book, done:r=>{ window._r=r; }});
   const ui={ctl:!!document.getElementById('bpCtl'), btn:document.querySelectorAll('#bpCtl [data-bp]').length, ring:!!document.querySelector('.rsHero.me .bpRing'), sw:!!document.querySelector('.rsHero.me .bpSw'), kind:A.kind, n:A.hits.length, W:A.W};
   plan.forEach(([k, off])=>{ if(k==='L'||k==='R'){ const side = off==='safe' ? (A.side==='L'?'R':'L') : A.side; BossPat.press(side, A.hits[0]-200); BossPat.tick(A.hits[0]+A.W.g+1); } else { const i=A.done.findIndex(x=>!x); if(i>=0) BossPat.press('shield', A.hits[i]+off); } });
-  if(!plan.length) BossPat.tick(A.hits[A.hits.length-1]+A.W.g+1);
+  if(BossPat.A===A) BossPat.tick(A.hits[A.hits.length-1]+A.W.g+1);
   for(let t=0;t<30 && !window._r;t++) await new Promise(r=>setTimeout(r,100));
   return Object.assign(ui, {res:window._r, done:A.done, left:!!document.getElementById('bpCtl') || !!document.querySelector('.bpRing')}); }"""
 
