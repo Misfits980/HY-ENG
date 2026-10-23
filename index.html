@@ -891,6 +891,22 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .adCard h3 small{font-size:10.5px;font-weight:700;color:#8d82b8}
 .adPinRow[hidden]{display:none!important}
 .adCard h3{flex-wrap:wrap} .adCard h3 small{flex:1 1 220px;min-width:0}   /* (v329) 긴 설명이 제목을 세로로 쪼개던 것 */
+/* (v387) 🗒 오늘 할 일 · 🎁 보스 보상 현황표 */
+.tdCard{border-color:rgba(255,211,122,.35);background:linear-gradient(180deg,rgba(255,211,122,.09),rgba(255,255,255,.03))}
+.tdCard.clear{border-color:rgba(120,230,160,.3);background:rgba(120,230,160,.06)}
+.tdCard h3{font-size:15px;margin-bottom:8px} .tdN{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#ffd37a;color:#2a1600;font-size:12px;font-weight:900}
+.tdList{display:flex;flex-direction:column;gap:6px}
+.tdRow{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:rgba(10,6,26,.35)}
+.tdRow.hot{box-shadow:inset 3px 0 0 #ffd37a}
+.tdIc{flex:none;font-size:20px;line-height:1} .tdTx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tdTx b{font-size:13.5px;color:#fff;word-break:keep-all} .tdTx small{font-size:11.5px;color:#bfb3ec;line-height:1.4;overflow-wrap:anywhere}
+.tdRow .mini{flex:none;white-space:nowrap}
+.tdOk{margin:0;font-size:14px;font-weight:800;color:#b9ffcf} .tdOk small{font-size:11px;color:#8d82b8;font-weight:700}
+.rwPick{flex-wrap:wrap;gap:6px;margin-bottom:8px} .rwN{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:3px;border-radius:9px;background:#ff7a66;color:#fff;font-size:11px}
+.rwHead{margin:0 0 8px;font-size:12.5px;color:#cfc4f2;line-height:1.5} .rwHead b{color:#fff}
+.rwSum{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px} .rwSum span{padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,255,255,.06);color:#e8e1ff}
+.rwSum .ok{background:rgba(80,200,120,.18)} .rwSum .no{background:rgba(255,90,110,.2);color:#ffd0d6} .rwSum .mid{background:rgba(255,200,80,.16)}
+.rwTell{margin-bottom:8px;line-height:1.5} .rwTbl td small{font-size:10.5px;color:#cfc4f2}
 .adMe{padding:14px;border-radius:18px;background:linear-gradient(135deg,rgba(143,227,255,.16),rgba(160,120,255,.12));border:1px solid rgba(143,227,255,.25)}
 .adMeName small,.adMeDev small{display:block;font-size:10.5px;font-weight:800;color:#a9c9e8}
 .adMeName b{display:block;font-size:22px;font-weight:900;color:#fff;margin:2px 0 10px;word-break:break-all}
@@ -13505,7 +13521,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v386";
+const GAME_VER = "v387";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -13567,7 +13583,7 @@ document.addEventListener("visibilitychange", ()=>{
   }catch(e){}
 });
 
-const show = id => { ["scStart","scSetup","scOver","scRank","scPause","scStudy","scVs","scVsOver","scRaid"].forEach(x=>$(x).classList.toggle("on", x===id));
+const show = id => { ["scStart","scSetup","scOver","scRank","scPause","scStudy","scVs","scVsOver","scRaid"].forEach(x=>$(x).classList.toggle("on", x===id)); document.querySelectorAll(".dgChip.ghost").forEach(g=>g.remove());   // (v387)
   if(id==="scSetup") try{ Unlock.paint(); }catch(e){}
   if(id==="scStart") try{ WeekBoss.banner(); DM.paint(); }catch(e){} };
 $("hbBan").addEventListener("click", ()=>{ try{ WeekBoss.open(); }catch(e){ console.error(e); } });
@@ -14910,7 +14926,7 @@ const StudyUI = {
     try{ Kid.confirm(()=>{ try{ this.bossCard(); }catch(e){} }); }catch(e){}   // (v322) 공용 패드 '민준 맞아요?' (3분 넘게 지났으면 한 번)
     show("scStudy"); this.path(); },
   close(){ SFX.click(); try{ Voice.stop(); }catch(e){} Attract.focus=false; show("scStart"); },
-  view(v){ ["stPath","stLesson","stDone","stGram"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); $("scStudy").classList.toggle("vLesson", v==="stLesson"); $("scStudy").classList.toggle("vGram", v==="stGram"); if(v!=="stPath") this.pop(null); },
+  view(v){ ["stPath","stLesson","stDone","stGram"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); $("scStudy").classList.toggle("vLesson", v==="stLesson"); $("scStudy").classList.toggle("vGram", v==="stGram"); if(v!=="stPath") this.pop(null); if(v!=="stLesson") this.dgClean(); },
   /* ── 길 ── */
   path(){ this.ex=null;   // (v328) 📝 시험이 끝나 길로 돌아오면 시험 판 표시는 지움
     try{ HyHW.report(); }catch(e){}   // (v329) 📌 숙제 진행 → 선생님
@@ -15171,7 +15187,7 @@ const StudyUI = {
     if(!cheer && !por) return '<span class="'+(big?'rdMas':'stMas')+'">'+c.emoji+'</span>';
     return '<span class="'+(big?'rdMas':'stMas')+' pic '+(cheer?'cheer':'por')+(ok?'':' sad')+'" style="background-position:'+(ci/8*100)+'% '+(cheer?'100%':'0')+'"></span>'; },
   alt(o){ return o && o.alt ? '<small class="stAlt">다른 뜻: '+this.esc(o.alt)+(o.altPos ? ' <em class="stPos">'+this.esc(o.altPos)+'</em>' : '')+'</small>' : ''; },
-  show(){ (this._chT||[]).forEach(clearTimeout); this._chT=[];   // (v308) '같은 소리 이어 듣기' 소리가 다음 문제까지 나오지 않게
+  show(){ (this._chT||[]).forEach(clearTimeout); this._chT=[]; this.dgClean();   // (v387) 끌던 단어 조각(그림자)이 다음 카드 위에 남지 않게   // (v308) '같은 소리 이어 듣기' 소리가 다음 문제까지 나오지 않게
     const q=this.qs[this.i]; if(!q){ this.finish(true); return; }
     if(q.t==="listen" && !Voice.canListen()) q.t="e2k";                 // 소리가 안 나는 기기 — 듣기 문제는 글자로
     this.saveCur();
@@ -15471,8 +15487,10 @@ const StudyUI = {
     if(q.t==="drag") this.dragInit(q);
   },
   /* (v228) 끌어서 짝짓기 — 끌어다 놓기 · 눌러서 고르고 눌러서 놓기 둘 다 */
+  /* (v387) 버그: 두 손가락으로 조각 두 개를 잡거나 손가락 신호가 끊기면 끌던 조각 그림자가 화면에 남아 다음 카드(새 단어) 위를 가렸다 */
+  dgClean(){ document.querySelectorAll(".dgChip.ghost").forEach(g=>g.remove()); document.querySelectorAll(".dgChip.lift").forEach(c=>c.classList.remove("lift")); },
   dragInit(q){
-    const box=$("stQ").querySelector(".dgWrap"); if(!box) return; const self=this;
+    const box=$("stQ").querySelector(".dgWrap"); if(!box) return; const self=this; this.dgClean();
     const place=(chip, tgt)=>{
       if(!chip || !tgt || q.done[chip.dataset.en] || self.locked) return;
       if(tgt.dataset.en===chip.dataset.en && !tgt.classList.contains("ok")){
@@ -15485,7 +15503,7 @@ const StudyUI = {
     let drag=null;
     const hov=(x,y)=>{ const el=document.elementFromPoint(x,y), t=el && el.closest && el.closest(".dgT"); box.querySelectorAll(".dgT").forEach(o=>o.classList.toggle("hov", o===t)); return t; };
     box.querySelectorAll(".dgChip").forEach(ch=>{
-      ch.addEventListener("pointerdown",e=>{ if(ch.disabled || self.locked) return; e.preventDefault();
+      ch.addEventListener("pointerdown",e=>{ if(ch.disabled || self.locked) return; e.preventDefault(); if(drag) return;   // (v387) 한 번에 한 조각만
         const r=ch.getBoundingClientRect(), gh=ch.cloneNode(true); gh.className="dgChip ghost"; gh.style.left=r.left+"px"; gh.style.top=r.top+"px"; gh.style.width=r.width+"px";
         { const z=parseFloat(getComputedStyle(box.closest(".stWrap")||box).zoom)||1; if(Math.abs(z-1)>.01){ gh.style.width=(r.width/z)+"px"; gh.style.transformOrigin="0 0"; gh.style.transform="scale("+(z*1.08)+") rotate(-3deg)"; } }   // (v271) 아이패드 확대 화면
         document.body.appendChild(gh); drag={ch, gh, dx:e.clientX-r.left, dy:e.clientY-r.top, x0:e.clientX, y0:e.clientY, moved:false}; ch.classList.add("lift");
@@ -15499,7 +15517,9 @@ const StudyUI = {
           box.querySelectorAll(".dgChip").forEach(o=>o.classList.toggle("sel", o===ch)); q.pick=ch; box.classList.add("picking"); self.say(ch.dataset.en); return; }
         if(t) place(ch, t); };
       ch.addEventListener("pointerup", end);
-      ch.addEventListener("pointercancel",()=>{ if(drag && drag.ch===ch){ drag.gh.remove(); drag=null; ch.classList.remove("lift"); } });
+      const drop=()=>{ if(drag && drag.ch===ch){ drag.gh.remove(); drag=null; ch.classList.remove("lift"); } };
+      ch.addEventListener("pointercancel", drop);
+      ch.addEventListener("lostpointercapture",()=>setTimeout(drop,0));   // (v387) pointerup 이 먼저 오면 이미 정리돼 있음
     });
     box.querySelectorAll(".dgT").forEach(t=>t.addEventListener("click",()=>{ if(q.pick){ const c=q.pick; q.pick=null; c.classList.remove("sel"); box.classList.remove("picking"); place(c, t); } }));
   },
@@ -15767,7 +15787,7 @@ const StudyUI = {
     if(this.i>=this.qs.length){ this.finish(); return; }
     this.ticks(); this.bar(); this.show(); },
   outEnd(){ if(this._out!==1) return; this._out=2; clearTimeout(this._outT); clearTimeout(this._adv); this.finish(false); },   // (v325) 💜3 ❤️ 다 씀
-  next(){ if(this._out){ this.outEnd(); return; } clearTimeout(this._adv); this.i++;
+  next(){ if(this._out){ this.outEnd(); return; } clearTimeout(this._adv); this.i++; this.dgClean();
     const r=Math.floor(this.done/this.RND);
     if(!this.test && !this.oly && !this.chk && this.done<this.total && r>=1 && r>(this._rd|0) && this.rounds()>1){ this._rd=r; this.roundBreak(r); return; }
     this.show(); },
@@ -17551,6 +17571,26 @@ const HyBoss = {
   reward(pick){ return this.can(this.B, this.D, pick); }, prevReward(pick){ return this.can(this.P, this.PD, pick); },
   /* (v322) 다시 시작·바꾸기 전에 쓰러뜨린 보스의 안 받은 보상 — [{B, g}] */
   oldRewards(pick){ return (this.O||[]).map(B=>({B, g:this.can(B, (this.OD||{})[B.id], pick)})).filter(x=>x.g>0); },
+  /* (v387) 사용자: 보스 보상 현황표 — 선생님이 누가 보상을 받았는지 · 안 받았는지 한눈에. 보상은 아이가 자기 화면에서 「🎁 보상 받기」를 눌러야 들어감
+     rwBosses = 보상 볼 수 있는 보스 [{B, D, wh:'이번 주'|'지난주'|'바꾸기 전'}] · rwRows = 아이(이름 하나 = 한 명)마다 {n, t, d, sw, g, st}
+     st: got 받음 · wait 받을 수 있는데 안 받음 · sw 3번 못 채움 · fight 아직 싸우는 중 · none 안 싸움 */
+  rwBosses(){ const L=[]; if(this.B) L.push({B:this.B, D:this.D||{}, wh:"이번 주"}); if(this.P) L.push({B:this.P, D:this.PD||{}, wh:"지난주"});
+    (this.O||[]).forEach(B=>L.push({B, D:(this.OD||{})[B.id]||{}, wh:"바꾸기 전"})); return L; },
+  rwRows(B, D){ D=D||{}; if(!B) return []; const out=[], seen={}, K=this.kids(), T=this.teams(), ORD={wait:0, sw:1, fight:2, got:3, none:4};
+    Object.keys(D).forEach(k=>{ const x=D[k]||{}, nk=this.nkey(x.n)||("#"+k); if(seen[nk]) return; seen[nk]=1;
+      const g=this.group(D, k), pick={id:k, n:x.n}, t=this.myTeam(k, pick, B, D)||g.t||"all", s=this.stateOf(B, D, t);
+      const open = !!(s && (s.dead || B===this.P)), amt = g.d>0 ? this.rewardOf(B, D, k, pick) : 0;
+      const st = !(g.d>0) ? "none" : g.c ? "got" : amt>0 ? "wait" : !this.swOk(B, g) ? "sw" : (open || B!==this.B) ? "none" : "fight";
+      const rk=K[k] ? k : Object.keys(K).find(o=>this.sameN(K[o].n, x.n));   // 반 칸 = 명단의 반 (반 대항전이 아니면 기록에 반이 없음)
+      out.push({n:this.plainN(x.n)||"?", t:(t!=="all" ? t : (rk && K[rk].t) || "all"), d:g.d, sw:g.sw, g:amt, st}); });
+    Object.keys(K).forEach(k=>{ const x=K[k]||{}, nk=this.nkey(x.n); if(!nk || seen[nk] || this.padN(x.n)) return; if(B.team && !(B.max||{})[x.t]) return; seen[nk]=1;
+      out.push({n:this.plainN(x.n), t:x.t||"all", d:0, sw:0, g:0, st:"none"}); });
+    return out.sort((a,b)=>ORD[a.st]-ORD[b.st] || b.d-a.d || String(a.n).localeCompare(b.n)); },
+  /* 안 받은 보상 — [{n, g, wh, bn}] (선생님 「오늘 할 일」) */
+  rwWait(){ const o=[]; this.rwBosses().forEach(x=>this.rwRows(x.B, x.D).forEach(r=>{ if(r.st==="wait") o.push({n:r.n, g:r.g, wh:x.wh, bn:x.B.n}); })); return o; },
+  /* (v387) 공용 패드 이름(「한양 나눔」·「…패드」)이 아이처럼 명단에 들어간 것 — Kid.shared 와 같은 규칙 */
+  padN(n){ return /^한양|패드$/.test(this.plainN(n)); },
+  padKids(){ const K=this.kids(); return Object.keys(K).filter(k=>this.padN(K[k].n)); },
   /* which: 이번 주('1'·false) · 지난주('prev'·true) · 옛 보스('o:<id>') → [B, D] */
   src(which){ if(which===true || which==="prev") return [this.P, this.PD]; if(typeof which==="string" && which.indexOf("o:")===0){ const id=which.slice(2), B=(this.O||[]).find(o=>o.id===id); this.OD=this.OD||{}; return [B||null, B ? (this.OD[id]=this.OD[id]||{}) : {}]; } return [this.B, this.D]; },
   claim(pick, prev){ const [B, D]=this.src(prev), g=this.can(B, D, pick); if(!g) return 0;
@@ -19108,6 +19148,7 @@ const Admin = (function(){
       +'<label class="adChk"><input type="checkbox" id="adWkT"'+(C.team?' checked':'')+'> 반 대항전 (반마다 자기 보스, 반 인원 × 체력)</label>'
       +(C.on ? '<button class="play adGo" data-ad="wkTv">📺 TV에 주간 보스 띄우기 <small>(실시간 · 깎을 때마다 친구가 때려요)</small></button><div class="adPinRow"><button class="mini" data-ad="wkSave">설정 저장 <small>(체력 배율은 바로 · 나누기·반 대항전은 다음 주부터)</small></button><button class="mini warn" data-ad="wkOff">⏸ 주간 보스 끄기</button></div><button class="mini" data-ad="wkRestart">↺ 이번 주부터 1번 보스로 다시</button>'
         : '<button class="play adGo" data-ad="wkOn">▶ 주간 보스 켜기 (이번 주 1번 보스부터)</button>'));
+    if(part==="boss") h+=card('🎁 보스 보상 현황표', '<div id="adBossRw"></div>', '누가 받았는지 · 안 받았는지 (보상은 아이가 자기 화면에서 「🎁 보상 받기」를 눌러야 들어가요)');   // (v387)
     setTimeout(paintRaid, 0); return h; }
   /* ── (v340) 👥 반 — 사용자: 반 만들기가 너무 불편 (⚔️ 수업 맨 아래라 찾기 힘듦 · 이름을 하나씩 침 · 치려면 화면이 올라감 · 반 옮기기·이름 고치기 안 됨 · 기기(게임) 이름으로 찾아야 함)
      → 따로 탭 · 시트의 게임 이름(기기별 이름)을 눌러 바로 넣기 + 찾기 · 여러 명 붙여 넣기 · 아이 이름을 누르면 옮기기/고치기/빼기 · 서버 소식이 와도 입력 칸은 다시 그리지 않음 */
@@ -19171,7 +19212,8 @@ const Admin = (function(){
     /* (v365) 같은 아이가 두 번(👤 붙은 이름 · 반 없음에 같은 이름) → 맨 위 「🧹 정리하기」 · 반 없음 칸에 「모두 빼기」 */
     const nDup = Object.keys(K).filter(k=>/^👤/.test(String(K[k].n||""))).length + HyBoss.dupNoClass().length;
     const cleanBar = nDup ? '<div class="adCard dyWarn"><b>⚠️ 같은 아이가 두 번 들어가 있어요 ('+nDup+'명)</b><p>👤 가 붙은 이름은 떼고, 반 있는 아이와 이름이 같은 「반 없음」 아이는 빼요 (기록은 이름으로 이어져요). <button class="mini go" data-ad="rsClean">🧹 정리하기</button></p></div>' : '';
-    const lh = cleanBar + nowBar + (grp.length ? grp.map(t=>{ const ks=kidsOf(t);
+    const PK=HyBoss.padKids(), padBar = PK.length ? '<div class="adCard dyWarn"><b>📱 공용 패드 이름이 아이처럼 들어가 있어요 ('+PK.length+'개)</b><p>'+PK.map(k=>esc(HyBoss.plainN(K[k].n))).join(' · ')+' — 패드 이름은 명단에 없어도 돼요 (패드에서 아이 이름을 고르면 그 아이 기록으로 가요). <button class="mini go" data-ad="padClean">🧹 모두 빼기</button></p></div>' : '';   // (v387)
+    const lh = padBar + cleanBar + nowBar + (grp.length ? grp.map(t=>{ const ks=kidsOf(t);
         return '<section class="adCard adTm"><h3>'+(t==="_" ? '❔ 반 없음' : esc((T[t].e||"")+" "+T[t].n))+'<small>'+ks.length+'명</small>'+(t!=="_" ? '<span class="adTmBtns"><button class="mini" data-ad="teRn" data-t="'+esc(t)+'">✏️</button><button class="mini warn" data-ad="teDel" data-t="'+esc(t)+'">지우기</button></span>' : (ks.length ? '<span class="adTmBtns"><button class="mini warn" data-ad="nocAll" data-t="_">모두 빼기</button></span>' : ''))+'</h3>'
           +'<div class="adKids">'+(ks.length ? ks.map(chip).join('') : '<span class="adSmall">아직 없어요 — 위 ➕ 반·아이 넣기</span>')+'</div>'
           +(ks.indexOf(tmPick)>=0 ? act(tmPick) : '')+'</section>'; }).join('')
@@ -19188,7 +19230,24 @@ const Admin = (function(){
     names.forEach(n=>{ n=HyBoss.plainN(n).slice(0,10);   /* (v365) 👤 떼고 */ if(!n) return; const ex=Object.keys(K).find(k=>HyBoss.plainN(K[k].n).toLowerCase()===n.toLowerCase());
       if(ex){ if(HyBoss.plainN(K[ex].n)!==K[ex].n) FB.update("/hy/roster/k/"+ex, {n}); if(K[ex].t!==t){ FB.update("/hy/roster/k/"+ex, {t}); mv++; } } else { FB.set("/hy/roster/k/"+FB.id(), {n, t}); n0++; } });
     const T=HyBoss.teams(); msg((T[t] ? (T[t].e||"")+" "+T[t].n+" — " : "")+(n0 ? n0+"명 넣었어요" : "")+(mv ? (n0?" · ":"")+mv+"명 옮겼어요" : "")+(!n0 && !mv ? "이미 들어 있어요" : ""), true); }
-  function paintRaid(){ if(ok && tab==="class"){ paintTeam(); return; } if(!ok || (tab!=="play" && tab!=="boss")) return; const st=$("adFbSt"), R=$("adRoster")||{}, B=$("adBossSt");
+  /* (v387) 🎁 보스 보상 현황표 — 보스 고르기(이번 주 · 지난주 · 바꾸기 전) + 아이마다 상태 */
+  let rwSel="";
+  const RW_ST={wait:["🎁 아직 안 받음","no"], got:["✅ 받음","ok"], sw:["⚔️ 3번 못 채움","mid"], fight:["⏳ 싸우는 중",""], none:["—",""]};
+  function rwHtml(){ const L=HyBoss.rwBosses(); if(!L.length) return '<p class="adSmall">'+((HyBoss.C||{}).on ? '⏳ 보스 기록 불러오는 중…' : '주간 보스가 꺼져 있어요 — 켜면 여기서 아이마다 보상을 봐요')+'</p>';
+    const cur=L.find(x=>x.B.id===rwSel) || L.find(x=>HyBoss.rwRows(x.B, x.D).some(r=>r.st==="wait")) || L[0], R=HyBoss.rwRows(cur.B, cur.D), T=HyBoss.teams();
+    const cnt=k=>R.filter(r=>r.st===k).length, W=R.filter(r=>r.st==="wait");
+    const ks=Object.keys(cur.B.max||{all:1}), dead=ks.filter(k=>HyBoss.stateOf(cur.B, cur.D, k).dead);
+    const how = cur.B===HyBoss.P ? (dead.length===ks.length ? '🎉 쓰러뜨림' : '🏃 '+(dead.length?'일부 반 도망':'도망')+' — 깎은 만큼 작은 보상') : dead.length ? (dead.length===ks.length ? '🎉 쓰러뜨림' : '🎉 '+dead.map(k=>HyBoss.tName(k)).join(' · ')+' 쓰러뜨림') : '⏳ 아직 싸우는 중 — 쓰러뜨리면 받을 수 있어요';
+    return (L.length>1 ? '<div class="adRow rwPick">'+L.map(x=>{ const n=HyBoss.rwRows(x.B, x.D).filter(r=>r.st==="wait").length; return '<button class="mini'+(x===cur?' go':'')+'" data-ad="rwSel" data-id="'+esc(x.B.id)+'">'+esc(x.wh)+' · '+esc(x.B.n)+(n?' <b class="rwN">'+n+'</b>':'')+'</button>'; }).join('')+'</div>' : '')
+      +'<p class="rwHead"><b>'+esc(cur.wh)+' '+esc(cur.B.n)+'</b> · 💎'+(cur.B.gems|0)+' '+(cur.B.split==="prop"?'공격한 만큼':'똑같이 나눔 (⚔️3번 이상)')+' · '+how+'</p>'
+      +'<div class="rwSum"><span class="ok">✅ 받음 '+cnt("got")+'</span><span class="no">🎁 안 받음 '+cnt("wait")+'</span><span class="mid">⚔️ 3번 못 채움 '+cnt("sw")+'</span>'+(cnt("fight")?'<span>⏳ 싸우는 중 '+cnt("fight")+'</span>':'')+'</div>'
+      +(W.length ? '<div class="adNote rwTell">🎁 <b>'+W.map(r=>esc(r.n)).join(' · ')+'</b> — 아이 화면 Daily 30 맨 위 👹 보스 카드에서 「🎁 보상 받기」를 누르게 알려 주세요'+(cur.B===HyBoss.P?' (지난주 보상은 이번 주 일요일까지)':'')+'</div>' : '')
+      +(R.length ? '<div class="adTbl"><table class="rwTbl"><tr><th>아이</th><th>반</th><th>⚔️ 휘두름</th><th>깎은 체력</th><th>보상</th><th>상태</th></tr>'
+        +R.map(r=>'<tr><td>'+esc(r.n)+'</td><td>'+(r.t && T[r.t] ? esc((T[r.t].e||"")+" "+T[r.t].n) : '-')+'</td><td>'+(r.d>0 ? r.sw+'번' : '-')+'</td><td>'+(r.d>0 ? (r.d|0).toLocaleString() : '-')+'</td><td>'+(r.g>0 ? '💎'+r.g : '-')+'</td><td class="'+RW_ST[r.st][1]+'">'+RW_ST[r.st][0]+(r.st==="sw" ? ' <small>('+r.sw+'/'+HyBoss.MIN_SW+')</small>' : '')+'</td></tr>').join('')+'</table></div>'
+        : '<p class="adSmall">아직 공격한 아이가 없어요</p>'); }
+  function paintRw(){ const el=$("adBossRw"); if(!el) return; const h=rwHtml(); if(el._h!==h){ el._h=h; el.innerHTML=h; } }
+  function paintTodo(){ const el=$("adTodo"); if(!el) return; const h=todo(rep && rep.d ? canonRep(rep.d) : null); if(el._h===h) return; const sc=$("shAdmin").querySelector(".sheetIn"), top=sc?sc.scrollTop:0; el.outerHTML=h; const n=$("adTodo"); if(n) n._h=h; if(sc) sc.scrollTop=top; }   // (v387) 서버 소식이 오면 「오늘 할 일」만 다시
+  function paintRaid(){ if(ok && tab==="home"){ paintTodo(); return; } if(ok && tab==="class"){ paintTeam(); return; } if(!ok || (tab!=="play" && tab!=="boss")) return; const st=$("adFbSt"), R=$("adRoster")||{}, B=$("adBossSt");
     if(st) st.innerHTML = FB.mode()==="fb" ? '🟢 학원 서버 연결됨 · 모든 태블릿이 같이 돼요' : FB.mode() ? '🔴 학원 서버(인터넷)에 연결이 안 돼요 — 지금 바꾼 명단·방은 이 기기 안에서만 돼요. 와이파이를 확인해 주세요' : '⏳ 연결 확인 중…';
     const T=HyBoss.teams(), K=HyBoss.kids();
     const rh = (Object.keys(T).length ? Object.keys(T).map(t=>{ const ks=Object.keys(K).filter(k=>K[k].t===t);
@@ -19197,6 +19256,7 @@ const Admin = (function(){
         +'<div class="adPinRow"><input id="adKn_'+esc(t)+'" maxlength="60" placeholder="이름 넣기 (쉼표로 여러 명)"><button class="mini" data-ad="kdAdd" data-t="'+esc(t)+'">➕</button></div></div>'; }).join('')
       : '<p class="adSmall">아직 반이 없어요. 아래에서 반을 만들고 이름을 넣어요.</p>');
     if(R._h!==rh){ R._h=rh; R.innerHTML=rh; }   // 같은 내용이면 그대로 (치는 중인 이름 칸이 지워지지 않게)
+    paintRw();
     const b=HyBoss.B; if(!B) return;
     const LN=$("adLine"); if(LN){ const TS=!!(b && b.test), i=b && !TS ? b.i%BOSS_LINE.length : -1;
       const nx = !b ? -1 : TS ? b.i%BOSS_LINE.length : (i+1)%BOSS_LINE.length;
@@ -19433,10 +19493,32 @@ const Admin = (function(){
   }
 
   /* (v341) 🏠 홈 — 서버 상태 · 바로가기 · 오늘 한 아이 · 확인 필요 · 주간 보스 한 줄 */
+  /* (v387) 사용자: 관리 편의 — 🏠 홈 맨 위 「오늘 할 일」: 지금 손볼 것만 모아 한 줄씩 + 바로 가는 버튼 (없으면 ✅ 하나) */
+  function todo(D){ const T=[], it=(ic,t,sub,btn,cls)=>T.push('<div class="tdRow'+(cls?' '+cls:'')+'"><span class="tdIc">'+ic+'</span><div class="tdTx"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'+(btn||'')+'</div>');
+    const go=(lb,t,sec,s2)=>'<button class="mini go" data-ad="go" data-t="'+t+'"'+(sec?' data-sec="'+sec+'"':'')+(s2?' data-s="'+s2+'"':'')+'>'+lb+'</button>';
+    const C=HyBoss.C||{}, nm=a=>a.slice(0,5).map(esc).join(' · ')+(a.length>5?' 외 '+(a.length-5)+'명':'');
+    /* 🎁 보스 보상 안 받은 아이 */
+    const W=HyBoss.rwWait(); if(W.length) it('🎁', '보스 보상을 안 받은 아이 '+W.length+'명', nm(W.map(x=>x.n))+' — 아이가 보스 카드에서 「보상 받기」를 눌러야 들어가요', go('현황표','boss','adBossRw'), 'hot');
+    else if(!C.on && HyBoss.ok) it('👹', '주간 보스가 꺼져 있어요', '켜면 아이들이 집에서도 같이 잡아요', go('켜기','boss'));
+    /* 🎁 진짜 상품 — 줘야 할 아이 */
+    try{ const R=HyBoss.R||{}; PRIZES.forEach(p=>{ const L=Object.keys((R.pz||{})[p.id]||{}).map(k=>R.pz[p.id][k]).filter(x=>x && !x.g); if(L.length) it(p.emo, esc(p.name)+' 줘야 할 아이 '+L.length+'명', nm(L.map(x=>x.n||"?")), '<button class="mini go" data-ad="tdSec" data-sec="adPrize">보기</button>', 'hot'); }); }catch(e){}
+    /* 📌 숙제 — 오늘 마감 · 마감 지남(아직 켜져 있음) */
+    try{ const now=Date.now(), dk=HyBoss.dayOf(now); (HyHW.L||[]).filter(c=>c && c.on).forEach(c=>{ const late=(c.due||0)<now, today=!late && HyBoss.dayOf(c.due||0)===dk; if(!late && !today) return;
+      it('📌', '숙제 「'+esc(c.title||Study.label(c.set))+'」 '+(late?'마감이 지났어요':'오늘 마감'), (c.team && HyBoss.teams()[c.team] ? esc(HyBoss.tName(c.team))+' · ' : '')+(late?'끄거나 새 숙제를 내요 (마감 3일 뒤엔 아이 화면에서 저절로 사라져요)':'오늘까지예요'), go('숙제','exam','adHwSet')); }); }catch(e){}
+    /* 👥 명단 정리 — 공용 패드 이름 · 같은 아이 두 번 */
+    const PK=HyBoss.padKids(), K=HyBoss.kids(); if(PK.length) it('📱', '명단에 공용 패드 이름이 '+PK.length+'개 있어요', nm(PK.map(k=>HyBoss.plainN(K[k].n)))+' — 아이가 아니라 패드라서 빼는 게 좋아요', '<button class="mini go" data-ad="padClean">🧹 빼기</button>');
+    const nDup=Object.keys(K).filter(k=>/^👤/.test(String(K[k].n||""))).length + HyBoss.dupNoClass().length; if(nDup) it('👥', '같은 아이가 두 번 들어가 있어요 ('+nDup+'명)', '👤 붙은 이름 · 반 없음에 같은 이름', '<button class="mini go" data-ad="rsClean">🧹 정리</button>');
+    /* 😴 이번 주 아직 안 들어온 아이 (수요일부터) */
+    try{ const wd=(new Date(Date.now()+HyBoss.KST).getUTCDay()+6)%7; if(D && wd>=2){ const R=(D.weekly||[]).filter(r=>r[0] && r[0]!=="아이" && !/^🏫/.test(r[0]) && !HyBoss.padN(r[0]) && !(parseFloat(r[1])>0)).map(r=>String(r[0]).trim());
+      if(R.length) it('😴', '이번 주 아직 안 들어온 아이 '+R.length+'명', nm(R), go('우리 반','class')); } }catch(e){}
+    /* 📌 시트 확인 필요 */
+    const CK=D ? (D.check||[]).filter(r=>r[0] && r[0]!=="종류" && r[0]!=="✅") : []; if(CK.length) it('🔎', '시트에서 확인할 것 '+CK.length+'건', esc(CK[0][0])+(CK[0][1]?' — '+esc(CK[0][1]):'')+(CK.length>1?' 외 '+(CK.length-1)+'건':''), '<button class="mini go" data-ad="tdSec" data-sec="adCheck">보기</button>');
+    return '<section class="adCard full tdCard'+(T.length?'':' clear')+'" id="adTodo"><h3>🗒 오늘 할 일'+(T.length?'<span class="tdN">'+T.length+'</span>':'')+'</h3>'
+      +(T.length ? '<div class="tdList">'+T.join('')+'</div>' : '<p class="tdOk">✅ 지금 손볼 것이 없어요'+(D?'':' <small>(시트 기록은 불러오는 중)</small>')+'</p>')+'</section>'; }
   function dash(){ HyBoss.live(); try{ loadRep(); }catch(e){}
     const B=HyBoss.B, C=HyBoss.C||{}, tv=TvRoom.get(), D=rep && rep.d ? canonRep(rep.d) : null;
     const Q=(ic,t,a,extra,cls)=>'<button class="adQuick'+(cls?' '+cls:'')+'" data-ad="'+a+'"'+(extra||'')+'><span>'+ic+'</span>'+t+'</button>';
-    let h='<div class="full">'+srvLine()+'</div><div class="adMsg full" id="adMsg"></div>';
+    let h='<div class="full">'+srvLine()+'</div><div class="adMsg full" id="adMsg"></div>'+todo(D);
     if(tv) h+='<button class="play adGo full" data-ad="tvBack">📺 방 '+esc(tv.r)+' 다시 열기 <small>('+(tv.k==="battle"?"교실 배틀":"수업 레이드")+' · 새로고침해도 점수 그대로)</small></button>';
     h+='<div class="full adQuickRow">'
       +Q('📝','시험 열기','go',' data-t="exam"')+Q('📌','숙제 내기','go',' data-t="exam" data-sec="adHwSet"')
@@ -19447,7 +19529,7 @@ const Admin = (function(){
     h+=Prize.adminCard();   // (v364) 🎁 진짜 상품 산 아이
     h+=HyDay.card();
     const CK=D ? (D.check||[]).filter(r=>r[0] && r[0]!=="종류" && r[0]!=="✅") : [];
-    h+=card('📌 확인 필요'+(CK.length?' '+CK.length+'건':''), !D ? '<p class="adSmall">'+(ready()?'시트에서 불러오는 중…':'시트 연결이 되면 여기 나와요')+'</p>' : CK.length ? '<div class="adChk2">'+CK.slice(0,8).map(r=>'<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+(r[2]?' — '+esc(r[2]):'')+'</span></div>').join('')+'</div>'+(CK.length>8?'<p class="adSmall">'+(CK.length-8)+'건 더 — 👥 우리 반</p>':'') : '<p class="adSmall">✅ 지금 확인할 것이 없어요</p>');
+    h+=card('<span id="adCheck"></span>📌 확인 필요'+(CK.length?' '+CK.length+'건':''), !D ? '<p class="adSmall">'+(ready()?'시트에서 불러오는 중…':'시트 연결이 되면 여기 나와요')+'</p>' : CK.length ? '<div class="adChk2">'+CK.slice(0,8).map(r=>'<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+(r[2]?' — '+esc(r[2]):'')+'</span></div>').join('')+'</div>'+(CK.length>8?'<p class="adSmall">'+(CK.length-8)+'건 더 — 👥 우리 반</p>':'') : '<p class="adSmall">✅ 지금 확인할 것이 없어요</p>');
     h+=card('👹 주간 보스', B ? (()=>{ const s=HyBoss.state ? (Object.keys(B.max||{all:1}).length===1 ? HyBoss.state(Object.keys(B.max||{all:1})[0]) : null) : null; const pct=s && s.max ? Math.round(s.hp/s.max*100) : null;
         return '<p><b>'+esc(B.n)+'</b> · ⏰ '+esc(HyBoss.leftTxt(B))+(pct!=null ? ' · 남은 체력 '+pct+'%' : '')+(s && s.dead ? ' · 🎉 쓰러뜨림' : '')+'</p><button class="mini" data-ad="go" data-t="boss">👹 보스 바꾸기 · 설정</button>'; })()
       : '<p class="adSmall">꺼져 있어요</p><button class="mini" data-ad="go" data-t="boss">👹 주간 보스 켜기</button>');
@@ -19463,7 +19545,7 @@ const Admin = (function(){
     return '<div class="adPane'+(tab==="class"||tab==="play"||tab==="home"?' wide':'')+'">'+f()+'</div>';
   }
   /* 탭을 열 때 필요한 것 불러오기 */
-  function after(){ if(needSrv()) check(); if(tab==="class"||tab==="home"){ loadRep(); try{ HyBoss.refresh(true).then(()=>Promise.all([HyExam.loadLast(), HyDay.load(HyDay.key())])).then(()=>{ if((tab==="class"||tab==="home") && $("shAdmin").classList.contains("on")){ keepScroll=true; draw(); } }, ()=>{}); }catch(e){} }
+  function after(){ if(needSrv()) check(); if(tab==="class"||tab==="home"){ loadRep(); try{ HyBoss.refresh(true).then(()=>Promise.all([HyExam.loadLast(), HyDay.load(HyDay.key())].concat(tab==="home" ? [HyHW.check(true)] : []))).then(()=>{ if((tab==="class"||tab==="home") && $("shAdmin").classList.contains("on")){ keepScroll=true; draw(); } }, ()=>{}); }catch(e){} }
     if(tab==="exam") Promise.all([HyExam.check(true), HyHW.check(true)]).then(()=>{ if(tab==="exam") draw(); }); }
   let sendWho="";
   const needSrv=()=>tab==="home"||tab==="class"||(tab==="set" && (sub==="notice"||sub==="send"||sub==="key"));
@@ -19542,15 +19624,18 @@ const Admin = (function(){
     if(a==="teRn"){ const T=HyBoss.teams(), x=T[el.dataset.t]; if(!x) return; const n=(prompt("반 이름", x.n)||"").trim().slice(0,10); if(!n || n===x.n) return; FB.update("/hy/roster/t/"+el.dataset.t, {n}); return; }
     /* (v351) 사용자: 반 「지우기」가 확인 없이 바로 지워짐 (패드에 따라 confirm 창이 안 뜨고 바로 '확인'이 됨) → 앱 안에서 두 번 누르기
        첫 번째 = 버튼이 「한 번 더 누르면 지워요」로 바뀜(5초) · 두 번째 = 지움 · 지운 뒤 「↩️ 되돌리기」 (반 이름·아이들 반 그대로) */
-    if(a==="teDel" || a==="kdDel" || a==="nocAll" || a==="rsClean"){ const id=a+":"+(el.dataset.t||el.dataset.k||""), T=HyBoss.teams(), K=HyBoss.kids();
+    if(a==="rwSel"){ rwSel=el.dataset.id||""; try{ SFX.click(); }catch(e){} paintRw(); return; }   // (v387) 보상 현황표 — 보스 고르기
+    if(a==="tdSec"){ const t=$(el.dataset.sec); if(t){ const c=t.closest(".adCard")||t; try{ c.scrollIntoView({block:"start", behavior:"smooth"}); }catch(e){} c.classList.add("adFlash"); setTimeout(()=>c.classList.remove("adFlash"), 1400); } return; }
+    if(a==="teDel" || a==="kdDel" || a==="nocAll" || a==="rsClean" || a==="padClean"){ const id=a+":"+(el.dataset.t||el.dataset.k||""), T=HyBoss.teams(), K=HyBoss.kids();
       if(!(armK===id && Date.now()-armAt<5000)){ armK=id; armAt=Date.now(); clearTimeout(act._arm);
         el.classList.add("armed"); el.dataset.lb=el.dataset.lb||el.textContent; el.textContent="한 번 더 누르면 지워요";
-        const nm = a==="teDel" ? ((T[el.dataset.t]||{}).n||"이 반") : a==="nocAll" ? "반 없음" : a==="rsClean" ? "정리" : ((K[el.dataset.k]||{}).n||"이 아이");
-        msg("「"+nm+"」 — 한 번 더 누르면 "+(a==="teDel" ? "반을 지워요 (아이들은 '반 없음'으로)" : a==="nocAll" ? "반 없는 아이를 모두 빼요" : a==="rsClean" ? "겹친 이름을 정리해요" : "명단에서 빼요"), false);
+        const nm = a==="teDel" ? ((T[el.dataset.t]||{}).n||"이 반") : a==="nocAll" ? "반 없음" : a==="rsClean" ? "정리" : a==="padClean" ? "공용 패드 이름" : ((K[el.dataset.k]||{}).n||"이 아이");
+        msg("「"+nm+"」 — 한 번 더 누르면 "+(a==="teDel" ? "반을 지워요 (아이들은 '반 없음'으로)" : a==="nocAll" ? "반 없는 아이를 모두 빼요" : a==="rsClean" ? "겹친 이름을 정리해요" : a==="padClean" ? "명단에서 패드 이름 "+HyBoss.padKids().length+"개를 빼요 (아이 기록은 그대로)" : "명단에서 빼요"), false);
         act._arm=setTimeout(()=>{ armK=""; document.querySelectorAll("#shAdmin .armed").forEach(b=>{ b.classList.remove("armed"); if(b.dataset.lb) b.textContent=b.dataset.lb; }); }, 5000); return; }
       armK=""; clearTimeout(act._arm);
-      if(a==="nocAll" || a==="rsClean"){ const snap=JSON.parse(JSON.stringify(K)); let del=[], ren=[]; const full={};
+      if(a==="nocAll" || a==="rsClean" || a==="padClean"){ const snap=JSON.parse(JSON.stringify(K)); let del=[], ren=[]; const full={};
         if(a==="nocAll") del=Object.keys(K).filter(k=>!T[K[k].t]);
+        else if(a==="padClean") del=HyBoss.padKids();   // (v387) 공용 패드 이름(한양 나눔 · …패드) 빼기
         else { const has=k=>!!T[K[k].t];
           Object.keys(K).forEach(k=>{ if(!/^👤/.test(String(K[k].n||"")) || del.indexOf(k)>=0) return; const others=Object.keys(K).filter(o=>o!==k && HyBoss.sameN(K[o].n, K[k].n) && del.indexOf(o)<0);
             if(!has(k) && others.some(has)){ del.push(k); return; }
@@ -19558,7 +19643,7 @@ const Admin = (function(){
             others.filter(o=>!has(o) || K[o].t===K[k].t).forEach(o=>del.push(o)); ren.push(k); });
           HyBoss.dupNoClass().forEach(k=>{ if(del.indexOf(k)<0 && ren.indexOf(k)<0) del.push(k); }); }
         del.forEach(k=>FB.set("/hy/roster/k/"+k, null)); ren.forEach(k=>FB.update("/hy/roster/k/"+k, {n:full[k] || HyBoss.plainN(K[k].n)}));
-        undo={kind:"ks", x:snap}; undoMsg(a==="nocAll" ? "반 없는 아이 "+del.length+"명을 뺐어요" : "정리했어요 — 겹친 아이 "+del.length+"명 빼고 · 👤 이름 "+ren.length+"개 고침"); return; }
+        undo={kind:"ks", x:snap}; undoMsg(a==="nocAll" ? "반 없는 아이 "+del.length+"명을 뺐어요" : a==="padClean" ? "공용 패드 이름 "+del.length+"개를 명단에서 뺐어요" : "정리했어요 — 겹친 아이 "+del.length+"명 빼고 · 👤 이름 "+ren.length+"개 고침"); return; }
       if(a==="teDel"){ const t=el.dataset.t, x=T[t]; if(!x) return; const ks=Object.keys(K).filter(k=>K[k].t===t);
         undo={kind:"te", t, x:Object.assign({}, x), ks}; FB.set("/hy/roster/t/"+t, null); ks.forEach(k=>FB.update("/hy/roster/k/"+k, {t:null}));
         undoMsg("「"+x.n+"」 반을 지웠어요"+(ks.length ? " · "+ks.length+"명은 '반 없음'으로" : "")); return; }
