@@ -48,8 +48,8 @@ async def main():
         await T.wait_for_timeout(1500)
         r = [await k.evaluate("()=>{ RunRace.badge(); const b=document.getElementById('rrBadge'); return b.querySelector('.rrRk b').innerText; }") for k in K]
         ok(r[0].endswith("1등") and "🥇" in r[0] and r[1].endswith("2등") and r[2].endswith("3등") and r[3] == "4등", f"머리 위 순위 {r}")
-        r = await K[3].evaluate("()=>[document.querySelector('#rrBadge .rrRk span').innerText, (document.querySelector('#rrBadge .rrTm')||{}).innerText||'', document.querySelector('#rrBadge .rrTi').innerText]")
-        ok(r[0] == "/ 4명" and "팀" in r[1] and r[2].startswith("⏱"), f"배지: 인원 · 우리 팀 · 남은 시간 {r}")
+        r = await K[3].evaluate("()=>[document.querySelector('#rrBadge .rrRk span').innerText, (document.querySelector('#rrInfo .rrTm')||{}).innerText||'', document.querySelector('#rrInfo .rrTi').innerText, !!document.querySelector('#rrBadge .rrTi')]")
+        ok(r[0] == "/4" and "팀" in r[1] and r[2].startswith("🏁") and not r[3], f"머리 위 = 순위만 · 아래 줄 = 남은 시간 · 우리 팀 {r}")
         # 역전 → 위로 (up)
         await K[3].evaluate("()=>{ G.score=900; RunRace.push(true); RunRace.badge(); }")
         r = await K[3].evaluate("()=>[document.querySelector('#rrBadge .rrRk b').innerText, document.getElementById('rrBadge').classList.contains('up')]")

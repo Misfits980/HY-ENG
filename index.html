@@ -3167,15 +3167,16 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 .rs.bpFin .rsTint{background:rgba(70,0,25,.55)}
 .wbHp{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:#ffd9e3}.wbHp b{display:flex;gap:2px}.wbHp i,.wbHp u{width:14px;height:13px;display:inline-block;background:#ff5f7a;clip-path:path("M7 13 L1 6.5 A3.4 3.4 0 0 1 7 2.4 A3.4 3.4 0 0 1 13 6.5 Z")}.wbHp u{background:rgba(255,255,255,.22)}.wbHp em{font-style:normal;color:#ffd76a;margin-left:6px}
 .rdWarn.bp{border-color:#ff5f7a}
+body.bpOn .wbBtns{visibility:hidden}   /* 공격 패턴 중에는 아래 큰 버튼만 (막기 버튼 두 개 헷갈림) */
+body.bpOn .wb{padding-bottom:150px}
 /* (v389) 🏃 달리기 레이스 — 머리 위 순위 배지 · 두 팀 막대 */
-#rrBadge{position:fixed;left:0;top:0;z-index:25;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 11px 5px;border-radius:14px;background:rgba(20,14,40,.8);border:2px solid rgba(255,211,122,.9);color:#fff;font-weight:800;line-height:1.15;white-space:nowrap;transform:translate(50vw,38vh) translate(-50%,-100%);box-shadow:0 4px 10px rgba(0,0,0,.35)}
-#rrBadge .rrRk{display:flex;flex-direction:column;align-items:center}
-#rrBadge b{font-size:19px;display:inline-block}#rrBadge span{font-size:11px;opacity:.8;font-weight:700}
-#rrBadge .rrTi{font-size:11px;color:#ffd37a;font-style:normal}#rrBadge.hurry .rrTi{color:#ff8a8a}
-#rrBadge .rrTm{font-size:11px;font-weight:700}#rrBadge .rrTm.r{color:#ff9a9a}#rrBadge .rrTm.b{color:#9ac0ff}
+#rrBadge{position:fixed;left:0;top:0;z-index:25;pointer-events:none;display:flex;align-items:center;padding:2px 9px 3px;border-radius:12px;background:rgba(20,14,40,.72);border:2px solid rgba(255,211,122,.85);color:#fff;font-weight:800;line-height:1.1;white-space:nowrap;transform:translate(50vw,38vh) translate(-50%,-100%);box-shadow:0 3px 8px rgba(0,0,0,.3)}
+#rrBadge .rrRk{display:flex;align-items:baseline;gap:2px}#rrBadge b{font-size:16px;display:inline-block}#rrBadge span{font-size:11px;opacity:.75;font-weight:700}
 #rrBadge.up b{animation:rrUp .7s ease-out}#rrBadge.dn b{animation:rrDn .5s ease-out}
-@keyframes rrUp{0%{transform:scale(1)}40%{transform:scale(1.45);color:#8ff07a}100%{transform:scale(1)}}
+@keyframes rrUp{0%{transform:scale(1)}40%{transform:scale(1.5);color:#8ff07a}100%{transform:scale(1)}}
 @keyframes rrDn{0%,100%{transform:none}30%{transform:translateX(-4px);color:#ff8a8a}60%{transform:translateX(4px)}}
+#rrInfo{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 34px);transform:translateX(-50%);z-index:25;pointer-events:none;display:flex;gap:10px;align-items:center;padding:4px 12px;border-radius:999px;background:rgba(20,14,40,.72);color:#ffd37a;font-weight:800;font-size:13px;white-space:nowrap}
+#rrInfo .rrTi{font-style:normal}#rrInfo.hurry .rrTi{color:#ff8a8a}#rrInfo .rrTm{font-size:12px}#rrInfo .rrTm.r{color:#ff9a9a}#rrInfo .rrTm.b{color:#9ac0ff}#rrInfo .rrTmS:empty{display:none}
 .rrBar{display:flex;flex-direction:column;gap:6px;margin:8px 0}
 .rrT{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.06)}
 .rrT small{grid-column:1/-1;opacity:.7;font-size:11px}.rrT em{font-style:normal;font-weight:800;font-size:18px}
@@ -17782,7 +17783,7 @@ const WeekBoss = {
     return '<div class="wbGuide wbGuide2">'
       +'<p><i>🗓</i><span><b>월요일 0시 ~ 일요일 밤 12시</b>'+(on?' <small>('+this.when(B)+')</small>':' <small>(선생님이 켜면 시작)</small>')+'</span></p>'
       +'<p><i>⚔️</i><span>'+this.howTo()+' <small>(🧸 유치원 단어는 빼고)</small></span></p>'   /* (v322) 짧게 */
-      +'<p><i>🛡</i><span>보스가 ⚠️ 공격하면 <b>막기!</b> — 막으면 반격 ⚔️'+HyBoss.COUNTER+', 못 막으면 기회 -1</span></p>'
+      +'<p><i>🛡</i><span>보스 공격은 <b>타이밍 막기 · 피하기 연습!</b> — 완벽 반격 ⚔️'+(HyBoss.COUNTER*2)+' · 막기 ⚔️'+HyBoss.COUNTER+' · 맞아도 손해 없어요</span></p>'
       +'<p><i>🎁</i><span>쓰러뜨리면 💎'+(on?(B.gems|0):'')+' '+(sp?'깎은 만큼':'똑같이')+' 나눠요'+(sp?'':' <small>(⚔️ '+HyBoss.MIN_SW+'번 이상 휘두른 친구)</small>')+' · 못 잡으면 <b>도망</b> (작은 보상)</span></p>'
       +'</div>'; },
   line(B){ const T=!!(B && B.test), i=B && !T ? B.i%BOSS_LINE.length : -1, nx=B ? (T ? B.i%BOSS_LINE.length : (i+1)%BOSS_LINE.length) : -1, E=x=>Raid.esc(x);   /* (v315) 테스트 주: 슬라임이 이번 주 · 원래 보스가 다음 주 */
@@ -18404,7 +18405,7 @@ const BossPat = {
     const A=this.A={o, W, kind, t0:now, lead, gap:o.rage?440:580, res:{kind, perf:0, good:0, ok:0, hurt:0}, hits:[], done:[], side:null, dodge:null, dodgeAt:0};
     A.hits = kind==="burst" ? [0,1,2].map(i=>now+lead+i*A.gap) : [now+lead]; A.done=A.hits.map(()=>0);
     if(kind==="sweep") A.side = Math.random()<0.5 ? "L" : "R";
-    this.ui(A);
+    this.ui(A); document.body.classList.add("bpOn");
     try{ RaidStage.charge((kind==="fin"?"💀 필살기 · ":"")+(o.nm||"공격")); RaidStage.warn(true); if(RaidStage.el) RaidStage.el.classList.toggle("bpFin", kind==="fin"); }catch(e){}
     try{ SFX.tone(330,.18,"sawtooth",.05,220); setTimeout(()=>{ try{ SFX.tone(330,.18,"sawtooth",.05,220); }catch(e){} }, 300); }catch(e){}
     A.wt=setTimeout(()=>{ if(this.A===A) try{ RaidStage.windup(o.k, Math.max(300, A.hits[0]-performance.now())); }catch(e){} }, Math.max(0, lead-900));
@@ -18432,7 +18433,7 @@ const BossPat = {
     if(A.done.every(x=>x)){ clearTimeout(A.et); A.et=setTimeout(()=>this.finish(A), 650); } },
   finish(A){ if(this.A!==A) return; const cb=A.o.done; this.stop(); try{ if(cb) cb(A.res); }catch(e){ console.error(e); } },
   stop(){ const A=this.A; this.A=null; if(!A) return; cancelAnimationFrame(A.raf); clearInterval(A.iv); clearTimeout(A.wt); clearTimeout(A.et);
-    ["bpCtl"].forEach(id=>{ const e=$(id); if(e) e.remove(); }); document.querySelectorAll(".bpRing,.bpTgt,.bpSw,.bpBall").forEach(e=>e.remove());
+    ["bpCtl"].forEach(id=>{ const e=$(id); if(e) e.remove(); }); document.body.classList.remove("bpOn"); document.querySelectorAll(".bpRing,.bpTgt,.bpSw,.bpBall").forEach(e=>e.remove());
     try{ RaidStage.warn(false); if(RaidStage.el) RaidStage.el.classList.remove("bpFin"); if(RaidStage.me){ RaidStage.me.el.style.marginLeft=""; RaidStage.me.el.classList.remove("bpDodge"); } }catch(e){} },
   /* ── 그림 ── */
   ui(A){ const c=document.createElement("div"); c.id="bpCtl"; c.className="bp "+A.kind;
@@ -18969,19 +18970,21 @@ const RunRace = {
     try{ FB.update("/battle/"+B.room+"/p/"+B.me, {sc, ok:B.ok, ng:B.ng, at:B.now()}); }catch(e){} },
   rank(){ const B=Battle, P=Object.assign({}, B.T().p||{}); P[B.me]=Object.assign({n:(B.pick||{}).n}, P[B.me]||{}, {sc:this.score()}); const R=B.rankOf(P); return {i:R.indexOf(B.me)+1, n:R.length, P}; },
   badge(){ if(!G.race) return; let el=this._el; const B=Battle;
-    if(!el || !el.isConnected){ el=this._el=document.createElement("div"); el.id="rrBadge"; el.innerHTML='<div class="rrRk"></div><i class="rrTi"></i>'; document.body.appendChild(el); this._v=null; }
-    el.style.display = G.paused ? "none" : "";
+    if(!el || !el.isConnected){ el=this._el=document.createElement("div"); el.id="rrBadge"; el.innerHTML='<div class="rrRk"></div>'; document.body.appendChild(el); this._v=null; }
+    /* (v389) 머리 위는 순위만 작게 (멀리서 오는 문 글자를 가리지 않게) · 남은 시간·우리 팀은 아래 줄(#rrInfo) */
+    let inf=this._inf; if(!inf || !inf.isConnected){ inf=this._inf=document.createElement("div"); inf.id="rrInfo"; inf.innerHTML='<i class="rrTi"></i><span class="rrTmS"></span>'; document.body.appendChild(inf); }
+    el.style.display = inf.style.display = G.paused ? "none" : "";
     const r=this.rank(); let tm="";
     if(B.auto()){ const m=(r.P[B.me]||{}).tm, a=B.runTeams(r.P); if(a[m]){ const o=m==="r"?"b":"r", d=a[m].a-a[o].a; tm='<small class="rrTm '+m+'">'+B.AUTO_T[m].e+' '+(d>0?'우리 팀 앞서는 중':d<0?'우리 팀 따라가는 중':'팀 동점')+'</small>'; } }
     const k=r.i+"/"+r.n+tm;
     if(k!==this._v){ const up=this._rk && r.i<this._rk, dn=this._rk && r.i>this._rk; this._v=k; this._rk=r.i;
-      const rk=el.querySelector(".rrRk"); rk.innerHTML='<b>'+(r.i>=1 && r.i<=3 ? ["🥇","🥈","🥉"][r.i-1]+' ' : '')+r.i+'등</b><span>/ '+r.n+'명</span>'+tm;
+      const rk=el.querySelector(".rrRk"); rk.innerHTML='<b>'+(r.i>=1 && r.i<=3 ? ["🥇","🥈","🥉"][r.i-1]+' ' : '')+r.i+'등</b><span>/'+r.n+'</span>'; const ts=inf.querySelector(".rrTmS"); if(ts) ts.innerHTML=tm;
       if(up || dn){ el.classList.remove("up","dn"); void el.offsetWidth; el.classList.add(up?"up":"dn"); } }
-    const ti=el.querySelector(".rrTi"), l=B.left(); if(ti) ti.textContent='⏱ '+Raid.mmss(l); el.classList.toggle("hurry", l<=15000); },
+    const ti=inf.querySelector(".rrTi"), l=B.left(); if(ti) ti.textContent='🏁 '+Raid.mmss(l); inf.classList.toggle("hurry", l<=15000); },
   frame(){ if(!G.race) return;
     if(this.overNow()){ this.over(); return; }
     const el=this._el; if(!el || typeof player==="undefined" || !player || !camera) return;
-    try{ const v=this._p||(this._p=new THREE.Vector3()); v.set(player.position.x, player.position.y+2.4, player.position.z); v.project(camera);
+    try{ const v=this._p||(this._p=new THREE.Vector3()); v.set(player.position.x, player.position.y+2.1, player.position.z); v.project(camera);
       if(!isFinite(v.x) || !isFinite(v.y)) return;
       el.style.transform='translate('+Math.round((v.x+1)/2*innerWidth)+'px,'+Math.round((1-v.y)/2*innerHeight)+'px) translate(-50%,-100%)'; }catch(e){} },
   overNow(){ const B=Battle, st=B.st(); return !!G.race && (B.role!=="kid" || st.s==="end" || B.left()<=0 || (st.rnd|0)!==G.race.rnd); },
@@ -18991,7 +18994,7 @@ const RunRace = {
   done(){ const B=Battle; this.push(true); B._raced=1; G.race=null; this.hide();
     if(B.role==="kid" && B.room){ try{ FB.update("/battle/"+B.room+"/p/"+B.me, {dn:1}); }catch(e){} B.screen(); B.draw(); } else { try{ $("scOver").classList.add("on"); }catch(e){} } },
   abort(){ if(!G.race) return; G.race=null; this.hide(); },
-  hide(){ if(this._el){ this._el.remove(); this._el=null; } this._v=null; this._rk=0; }
+  hide(){ if(this._el){ this._el.remove(); this._el=null; } if(this._inf){ this._inf.remove(); this._inf=null; } this._v=null; this._rk=0; }
 };
 const Battle = {
   role:null, room:null, me:null, pick:null, h:null, t:null, q:null, qAt:0, lockTo:0, streak:0, sc:0, ok:0, ng:0, ended:false, FAST:700,
