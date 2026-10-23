@@ -3136,6 +3136,14 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 .grWN.done .stDot.grSt{box-shadow:inset 0 4px 0 rgba(255,255,255,.26),inset 0 -6px 0 rgba(0,0,0,.24),0 6px 0 #1d6b50,0 0 16px rgba(127,240,196,.55)}
 .grWT{color:#c8ffe9!important} .grWT em{display:block;font-style:normal;font-size:10.5px;color:#7ff0c4} .grWT i{display:block;font-style:normal;font-size:10.5px;color:#b9b0e0}
 .grNew{font-size:11px;color:#7ff0c4;font-weight:900}
+.grSY{font-style:normal;color:#ffd37a} .grSP{font-style:normal;color:#d9a3ff} .grSP0{text-decoration:none;color:rgba(217,163,255,.3)}
+.stWS .grSY,.stWS .grSP{font-size:inherit}
+.grRecap{border-color:rgba(255,211,122,.5)} .grExR.rc span>b{font-size:16.5px} .grRcH{display:block;color:#7ff0c4!important;font-weight:900;font-size:12px!important;margin:0 0 2px!important}
+.grGoal{max-width:448px;margin:4px auto 0;padding:12px 14px;border-radius:14px;background:rgba(143,208,255,.12);color:#cfe9ff;font-weight:900;font-size:14.5px;text-align:center;box-sizing:border-box}
+.grGoal small{display:block;color:#ffe1a0;font-size:12.5px;margin-top:3px}
+.grFrom{max-width:448px;margin:0 auto 8px;text-align:center;color:#d9a3ff;font-weight:900;font-size:13px}
+.grO.none{font-size:15px}
+.grEndS i,.grEndS u{font-size:inherit}
 .stRaid.stGN{background:rgba(95,224,176,.16);color:#7ff0c4}
 #stGram{padding:0 2px 34px}
 .grRuleB{appearance:none;flex:none;border:0;border-radius:99px;padding:7px 12px;background:rgba(95,224,176,.18);color:#7ff0c4;font:900 13px var(--font);cursor:pointer}
@@ -14978,7 +14986,7 @@ const StudyUI = {
               cp=dc+cp;
               return '<div class="stWMap" style="height:'+H2+'px">'+cp+(WL.length>1?'<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><path class="rd" d="'+d+'"/><path class="rdm" d="'+d+'"/>'+(gd?'<path class="rd grRd" d="'+gd+'"/><path class="grRdm" d="'+gd+'"/>':'')+'</svg>':'')
                 +(gq ? '<div class="stWN grWN'+(gq.on?'':' lock')+(gq.s?' done':'')+'" style="left:'+gx+'px;top:'+(gy-28)+'px"><button class="stDot ph grSt" data-gram="'+gq.g.id+'" aria-label="쉬어 가기 · 문법 '+gq.g.t+'">'+(gq.on?gq.g.emo:'🔒')+'</button>'
-                  +'<small class="stWT grWT"><em>📒 쉬어 가기</em>'+gq.g.t+(gq.on||gq.s?'':'<i>Stage '+wd+' 하면 열려요</i>')+'</small><span class="stWS">'+(gq.s?'★'.repeat(gq.s)+'<u>'+'★'.repeat(3-gq.s)+'</u>':gq.on?'<b class="grNew">NEW</b>':'')+'</span></div>' : '')
+                  +'<small class="stWT grWT"><em>📒 쉬어 가기</em>'+gq.g.t+(gq.on||gq.s?'':'<i>Stage '+wd+' 하면 열려요</i>')+'</small><span class="stWS">'+(gq.s?Gram.starHtml(gq.s):gq.on?'<b class="grNew">NEW</b>':'')+'</span></div>' : '')
                 +WL.map((x,j)=>{ const i=L.indexOf(x), v=Study.lv(st,x.n), k=cl(x,i), sn=Study.stageNo(st,x.n);
                   return '<div class="stWN'+(x.fin?' fin':'')+'" style="left:'+xs[j]+'px;top:'+(ys[j]-28)+'px">'+(/^now/.test(k)?'<div class="stWNow">'+ic('pin')+'</div>':'')
                     +'<button class="stDot ph '+k+'" data-s="'+st+'" data-i="'+i+'">'+(x.fin?ic('flag','fl'):sn)+'</button>'
@@ -15971,75 +15979,106 @@ const StudyUI = {
     startGame();
   }
 };
-/* (v386) 📒 문법 곁가지 — Daily 30 단어 길 옆으로 빠지는 작은 Stage (G3-4 8개 · G5-6 8개, data/gram.json)
-   사용자: 문법은 설명이 없으면 아이들이 힘들다 · 칸을 따로 만들기보다 옆에 빠져서 나오는 개념 · 용어(형식 등)는 나중(중등)
-   한 곁가지 = 설명 카드(그림으로 보기 → 주의 → 같이 해 보기, 틀려도 감점 없음) → 혼자 풀기 8문제(고르기 · 맞아요/틀려요 · 순서 · 틀린 단어 찾기)
-   틀리면 3문제 뒤에 한 번 더 · 📒 규칙은 문제 중 언제든 · 처음 한 번에 맞힌 비율로 별 (90 ★3 · 70 ★2 · 끝까지 ★1)
-   열림: 첫 곁가지 · 앞 곁가지를 끝냄 · 붙은 단어 Stage 를 시작함(★1) 중 하나 · 💎 처음 끝내면 3 · 처음 ★3 이면 2 더 */
+/* (v386) 📒 문법 쉬어 가기 — Daily 30 단어 길 중간(1-2) 옆 땅에 놓인 문법 돌 (G3-4 8개 · G5-6 8개, data/gram.json)
+   사용자: 문법은 설명이 없으면 아이들이 힘들다 · 칸을 따로 만들기보다 옆에 빠져서 나오는 쉬는 Stage · 🚩 피니시 옆은 부담 · 용어(형식 등)는 중등
+   사용자: 별 6개 · 별 하나 통과마다 💎5 · 별이 오를수록 어렵게 · 처음은 설명 위주 · 누가(주어) 바꾸기 · 언제 쓰는지 설명 · ★1 뒤에도 바로 문제가 나오면 당황 → 「기억나요?」 먼저
+   ★1 배우기: 설명 카드 전부 → 같이 해 보기(틀려도 다시) → 5문제(💡 힌트 보임) · 60%
+   ★2 연습 6문제 · ★3 문장 만들기 8 · ★4 고치기 8(틀린 단어 찾기) · ★5 섞어서 10(앞에서 배운 문법 4) · 80%
+   ★6 마스터 10(어려운 문제 3) · 90% · ★2부터는 「기억나요?」 요약 카드(📒 자세히 = 설명 전부) → 문제
+   틀리면 3문제 뒤에 한 번 더(점수엔 안 들어감) · 📒 규칙은 문제 중 언제든 · 열림: 첫 문법 · 앞 문법 ★1 · 붙은 단어 Stage 시작(★1) */
 const Gram = {
-  D:null, _ld:null, KEY:"hyeng_gram_v1",
+  D:null, _ld:null, KEY:"hyeng_gram_v1", MAX:6, GEM:5,
   MAIN:{g34:"elem", g56:"g56"},
+  TIER:[null,
+    {nm:"배우기",     n:5,  pass:0.6, mix:{pick:3, ox:2}, hint:1},
+    {nm:"연습",       n:6,  pass:0.8, mix:{pick:4, ox:2}},
+    {nm:"문장 만들기", n:8,  pass:0.8, mix:{pick:3, ox:2, order:3}},
+    {nm:"고치기",     n:8,  pass:0.8, mix:{pick:2, hard:1, ox:2, order:1, fix:2}},
+    {nm:"섞어서",     n:10, pass:0.8, mix:{pick:2, hard:1, ox:1, order:1, fix:1, old:4}},
+    {nm:"마스터",     n:10, pass:0.9, mix:{hard:3, pick:2, ox:2, order:1, fix:2}}],
   load(){ if(this.D) return Promise.resolve(this.D); if(this._ld) return this._ld;
     this._ld=fetch("data/gram.json").then(r=>r.ok?r.json():null).then(d=>{ this._ld=null; if(d && d.g34){ this.D=d; try{ if($("scStudy").classList.contains("on") && $("stPath").style.display!=="none") StudyUI.path(); }catch(e){} } return this.D; }).catch(()=>{ this._ld=null; return null; });
     return this._ld; },
   list(bk){ return (this.D && this.D[bk]) || []; },
-  get(id){ const bk=String(id).split("-")[0]; return this.list(bk).find(g=>g.id===id) || null; },
+  get(id){ return this.list(this.bookOf(id)).find(g=>g.id===id) || null; },
   bookOf(id){ return String(id).split("-")[0]; },
   all(){ try{ return JSON.parse(localStorage.getItem(this.KEY)||"{}")||{}; }catch(e){ return {}; } },
   st(id){ return this.all()[id] || null; },
-  stars(id){ const s=this.st(id); return s ? (s.s|0) : 0; },
+  stars(id){ const s=this.st(id); return s ? Math.min(this.MAX, s.s|0) : 0; },
   put(id, o){ const a=this.all(); a[id]=Object.assign({}, a[id]||{}, o); try{ localStorage.setItem(this.KEY, JSON.stringify(a)); }catch(e){} },
   worldStarted(bk, wd){ try{ const st=this.MAIN[bk]; return Study.lessons(st).some(x=>x.wd==wd && Study.lv(st, x.n)>0); }catch(e){ return false; } },
   open(id){ const g=this.get(id); if(!g) return false; const L=this.list(this.bookOf(id)), k=L.indexOf(g);
     return k<=0 || this.stars(L[k-1].id)>0 || this.stars(id)>0 || this.worldStarted(this.bookOf(id), g.at); },
   done(bk){ return this.list(bk).filter(g=>this.stars(g.id)>0).length; },
-  /* 단어 길 — 이 Stage(wd) 🚩 옆 땅에 놓이는 「쉬어 가기」 돌 · {g, on, s} */
+  /* 별 6개 — 칸 3개: 노란 ★ 3개를 채우면 보라 ★ (Daily 30 Stage 와 같은 모양) */
+  starHtml(s){ s=s|0; if(s<=3) return '<i class="grSY">'+'★'.repeat(s)+'</i><u>'+'★'.repeat(3-s)+'</u>'; const k=s-3; return '<i class="grSP">'+'★'.repeat(k)+'</i><u class="grSP0">'+'★'.repeat(3-k)+'</u>'; },
+  /* 단어 길 — 이 Stage(wd) 에 놓이는 문법 돌 · {g, on, s} */
   at(set, wd){ const bk=Object.keys(this.MAIN).find(k=>this.MAIN[k]===set); if(!bk || !this.D) return null; const g=this.list(bk).find(x=>x.at==wd); if(!g) return null;
     return {g, on:this.open(g.id), s:this.stars(g.id)}; }
 };
 
 const GramUI = {
-  g:null, mode:"cards", ci:0, ti:0, qs:[], qi:0, first:0, n:0, miss:[], t0:0, ans:null, done:false, peek:false, sel:[], tl:null,
+  g:null, mode:"cards", ci:0, ti:0, qs:[], qi:0, first:0, n:0, miss:[], t0:0, done:false, peek:false, tier:1, full:false,
   E(t){ return String(t==null?"":t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
   hl(t){ return this.E(t).replace(/\{([^}]*)\}/g, '<b class="grHl">$1</b>'); },
   plain(t){ return String(t||"").replace(/[{}]/g, ""); },
   shuf(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; },
   say(t){ try{ Voice.speak(this.plain(t).replace(/___/g, ""), 0.85); }catch(e){} },
   bk(){ return this.g ? Gram.bookOf(this.g.id) : "g34"; },
-  start(id){ Gram.load().then(()=>{ const g=Gram.get(id); if(!g){ hyToast("📡 문법 자료를 못 불러왔어요 — 인터넷을 확인해 주세요"); return; }
+  T(){ return Gram.TIER[this.tier]; },
+  start(id, full){ Gram.load().then(()=>{ const g=Gram.get(id); if(!g){ hyToast("📡 문법 자료를 못 불러왔어요 — 인터넷을 확인해 주세요"); return; }
       if(!Gram.open(id)){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} const L=Gram.list(Gram.bookOf(id)), k=L.indexOf(g); hyToast("🔒 Stage "+g.at+" 을 시작하거나 앞 문법("+(L[k-1]||{}).t+")을 끝내면 열려요"); return; }
-      this.g=g; this.mode="cards"; this.ci=0; this.ti=0; this.done=false; this.t0=Date.now(); this.ans=null; this.peek=false;
+      this.g=g; this.tier=Math.min(Gram.MAX, Gram.stars(id)+1); this.full=!!full || this.tier===1;
+      this.mode = this.full ? "cards" : "recap"; this.ci=0; this.ti=0; this.done=false; this.t0=Date.now(); this.peek=false;
+      this.cards().forEach(c=>{ if(c.k==="try") c.q.forEach(q=>this.prep(q)); });
       StudyUI.view("stGram"); this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} }); },
-  /* 혼자 풀기 8문제 — G3-4 고르기 4 · OX 2 · 순서 2 / G5-6 고르기 3 · OX 2 · 순서 2 · 틀린 단어 1 (섞어서) */
-  build(){ const Q=this.g.qs, by=k=>this.shuf(Q.filter(q=>q.k===k)), P=by("pick"), O=by("ox"), R=by("order"), F=by("fix");
-    const tpl = this.bk()==="g56" ? ["pick","pick","ox","order","pick","ox","fix","order"] : ["pick","pick","ox","pick","order","ox","pick","order"], src={pick:P, ox:O, order:R, fix:F};
-    this.qs=tpl.map(k=>src[k].shift()).filter(Boolean).map(q=>this.prep(Object.assign({}, q)));
-    this.qi=0; this.first=0; this.n=this.qs.length; this.miss=[]; },
-  prep(q){ if(q.k==="pick") q.opts=this.shuf(q.o); if(q.k==="order"){ q.tiles=this.shuf(q.w.map((w,i)=>i)); if(q.tiles.every((t,i)=>t===i) && q.w.length>1) q.tiles.reverse(); q.pickd=[]; } q.res=null; return q; },
+  /* 문제 고르기 — 별 단계마다 섞는 비율이 다르다 (Gram.TIER) */
+  build(){ const T=this.T(), Q=this.g.qs, by=f=>this.shuf(Q.filter(f)), src={
+      pick:by(q=>q.k==="pick" && !q.hd), hard:by(q=>q.k==="pick" && q.hd), ox:by(q=>q.k==="ox"), order:by(q=>q.k==="order"), fix:by(q=>q.k==="fix") };
+    let out=[]; Object.keys(T.mix).forEach(k=>{ if(k==="old") return; for(let i=0;i<T.mix[k];i++){ const q=src[k].shift() || src.pick.shift() || src.hard.shift(); if(q) out.push(q); } });
+    if(T.mix.old){ const L=Gram.list(this.bk()), prev=L.slice(0, L.indexOf(this.g)).filter(x=>Gram.stars(x.id)>0);
+      const pool=this.shuf([].concat(...prev.map(x=>x.qs.filter(q=>q.k!=="order").map(q=>Object.assign({}, q, {from:x.t})))));
+      for(let i=0;i<T.mix.old;i++){ const q=pool.shift() || src.pick.shift() || src.ox.shift() || src.hard.shift(); if(q) out.push(q); } }
+    /* 쉬운 것 → 어려운 것: 고르기 · OX → 순서 → 틀린 단어 · 섞어서 문제는 사이사이 */
+    const rank=q=>({pick:0, ox:1, order:2, fix:3}[q.k]||0)+(q.hd?1.5:0)+(q.from?Math.random()*3:0);
+    out=out.map(q=>[rank(q)+Math.random()*0.9, q]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+    this.qs=out.map(q=>this.prep(Object.assign({}, q))); this.qi=0; this.first=0; this.n=this.qs.length; this.miss=[]; this.mode="quiz"; },
+  prep(q){ if(q.k==="pick") q.opts = q.o.indexOf("-")>=0 ? q.o.slice() : this.shuf(q.o); if(q.k==="order"){ q.tiles=this.shuf(q.w.map((w,i)=>i)); if(q.tiles.every((t,i)=>t===i) && q.w.length>1) q.tiles.reverse(); q.pickd=[]; } q.res=null; q.pk=null; return q; },
   cards(){ return this.g.cards; },
+  optTxt(o){ return o==="-" ? "안 붙여요" : o; },
   /* ── 그리기 ── */
   top(pct, label){ return '<div class="stTop"><button class="stX" data-gr="quit" aria-label="그만하기">✕</button><div class="stProg"><i style="width:'+Math.round(pct*100)+'%"></i></div>'
       +'<button class="grRuleB" data-gr="peek">📒 규칙</button></div><div class="grHead"><i>'+this.g.emo+'</i><b>'+this.E(this.g.t)+'</b><small>'+this.E(label)+'</small></div>'; },
   ruleCard(c, big){ return '<div class="grCard'+(c.x?' x':'')+(big?' big':'')+'"><div class="grCH">'+(c.x?'<em>주의</em>':'')+'<b>'+this.E(c.h)+'</b></div><p class="grCP">'+this.E(c.p)+'</p>'
-      +'<div class="grEx">'+c.ex.map(e=>'<button class="grExR" data-say="'+this.E(this.plain(e[2]))+'"><i>'+e[0]+'</i><span>'+(e[1]?'<s>'+this.hl(e[1])+'</s><u>→</u>':'')+'<b>'+this.hl(e[2])+'</b><small>'+this.E(e[3])+'</small></span><em>🔊</em></button>').join('')+'</div></div>'; },
+      +'<div class="grEx">'+c.ex.map(e=>'<button class="grExR" data-say="'+this.E(this.plain(e[2]).replace(/^→\s*/, ""))+'"><i>'+e[0]+'</i><span>'+(e[1]?'<s>'+this.hl(e[1])+'</s><u>'+(/^→/.test(e[2])?'':'→')+'</u>':'')+'<b>'+this.hl(e[2])+'</b><small>'+this.E(e[3])+'</small></span><em>🔊</em></button>').join('')+'</div></div>'; },
+  goal(){ const T=this.T(); return '★'+this.tier+' '+T.nm+' · '+T.n+'문제 · '+Math.ceil(T.n*T.pass-1e-9)+'개 맞히면 ★'+this.tier; },
+  /* 「기억나요?」 — 설명 카드마다 제목 + 첫 예문 한 줄 */
+  recapHtml(){ const R=this.cards().filter(c=>c.k==="rule"), s=Gram.stars(this.g.id);
+    return '<div class="stTop"><button class="stX" data-gr="home" aria-label="길로">◀</button><div class="stTitle">'+this.g.emo+' '+this.E(this.g.t)+'</div><div class="stSub">'+Gram.starHtml(s)+'</div></div>'
+      +'<div class="grCard grRecap"><div class="grCH"><b>🤔 기억나요?</b></div><p class="grCP">문제 풀기 전에 규칙을 한 번 더 봐요. 예문을 누르면 읽어 줘요.</p>'
+      +'<div class="grEx">'+R.map(c=>{ const e=c.ex[0]; return '<button class="grExR rc" data-say="'+this.E(this.plain(e[2]).replace(/^→\s*/, ""))+'"><i>'+e[0]+'</i><span><small class="grRcH">'+this.E(c.h)+'</small><b>'+(e[1]?'<s>'+this.hl(e[1])+'</s> '+(/^→/.test(e[2])?'':'→ '):'')+this.hl(e[2])+'</b></span><em>🔊</em></button>'; }).join('')+'</div></div>'
+      +'<div class="grGoal">'+this.E(this.goal())+(this.tier===5?'<small>앞에서 배운 문법 문제도 섞여 나와요</small>':this.tier===6?'<small>어려운 문제가 나와요 · 90% 넘어야 해요</small>':this.tier===4?'<small>새 문제: 틀린 단어 찾기</small>':this.tier===3?'<small>새 문제: 순서대로 문장 만들기</small>':'')+'</div>'
+      +'<div class="grFoot"><button class="grBack" data-gr="full">📒 자세히</button><button class="stCheck" data-gr="go">시작 ▶</button></div>'; },
   draw(){ const el=$("stGram"); if(!el || !this.g) return;
     if(this.peek){ el.innerHTML='<div class="grPeek"><div class="grPeekH"><b>📒 '+this.E(this.g.t)+' 규칙</b><button class="stX" data-gr="unpeek" aria-label="닫기">✕</button></div>'
-        +this.cards().filter(c=>c.k==="rule").map(c=>this.ruleCard(c)).join('')+'<button class="stCheck" data-gr="unpeek">문제로 돌아가기</button></div>'; return; }
-    if(this.mode==="cards"){ const C=this.cards(), c=C[this.ci], nC=C.length, pct=(this.ci)/(nC+8);
+        +this.cards().filter(c=>c.k==="rule").map(c=>this.ruleCard(c)).join('')+'<button class="stCheck" data-gr="unpeek">돌아가기</button></div>'; return; }
+    if(this.mode==="recap"){ el.innerHTML=this.recapHtml(); return; }
+    if(this.mode==="cards"){ const C=this.cards(), c=C[this.ci], nC=C.length, pct=(this.ci)/(nC+this.T().n);
       if(c.k==="rule"){ el.innerHTML=this.top(pct, "설명 "+(this.ci+1)+" / "+(nC-1))+this.ruleCard(c, true)+'<p class="grTip">예문을 누르면 읽어 줘요</p>'
           +'<div class="grFoot">'+(this.ci>0?'<button class="grBack" data-gr="prev">◀</button>':'')+'<button class="stCheck" data-gr="next">'+(C[this.ci+1] && C[this.ci+1].k==="try" ? '같이 해 보기 ▶' : '다음 ▶')+'</button></div>'; return; }
       const q=c.q[this.ti]; el.innerHTML=this.top(pct, "같이 해 보기 "+(this.ti+1)+" / "+c.q.length+" · 틀려도 괜찮아요")
         +'<div class="grHint">💡 '+this.E(q.w||"")+'</div>'+this.qHtml(q, true)
         +'<div class="grFoot">'+(q.res==="ok" ? '<button class="stCheck" data-gr="tnext">'+(this.ti+1<c.q.length?'다음 ▶':'이제 혼자 풀어 봐요 ▶')+'</button>' : '<button class="grBack" data-gr="prev">◀ 설명</button>')+'</div>'; return; }
-    if(this.mode==="quiz"){ const q=this.qs[this.qi], pct=(this.cards().length+this.qi)/(this.cards().length+this.qs.length);
-      el.innerHTML=this.top(pct, "혼자 풀기 "+Math.min(this.qi+1, this.qs.length)+" / "+this.qs.length+(q.again?" · 다시 한 번":""))+this.qHtml(q, false)+this.fbHtml(q); return; }
+    if(this.mode==="quiz"){ const q=this.qs[this.qi], nC=this.full?this.cards().length:0, pct=(nC+this.qi)/(nC+this.qs.length);
+      el.innerHTML=this.top(pct, "★"+this.tier+" "+this.T().nm+" · "+Math.min(this.qi+1, this.qs.length)+" / "+this.qs.length+(q.again?" · 다시 한 번":""))
+        +(q.from?'<div class="grFrom">🔁 앞에서 배운 「'+this.E(q.from)+'」</div>':'')+(this.T().hint && !q.res && q.w?'<div class="grHint">💡 '+this.E(q.w)+'</div>':'')+this.qHtml(q, false)+this.fbHtml(q); return; }
     if(this.mode==="end") el.innerHTML=this.endHtml(); },
   kindLabel(q){ return {pick:"알맞은 말을 골라요", ox:"이 문장이 맞을까요?", order:"순서대로 눌러 문장을 만들어요", fix:"틀린 단어 하나를 눌러요"}[q.k]; },
   qHtml(q, tr){ const E=s=>this.E(s), res=q.res, lock=!!res && (!tr || res==="ok");
     let h='<div class="grQ"><small class="grQK">'+this.kindLabel(q)+'</small>';
-    if(q.k==="pick"){ const fill = res ? '<b class="grBl ok">'+E(q.a)+'</b>' : '<b class="grBl">&nbsp;?&nbsp;</b>';
-      h+=(q.h?'<div class="grQH">'+E(q.h)+'</div>':'')+'<div class="grS"'+(res?' data-say="'+E(q.s.replace("___", q.a))+'"':'')+'>'+E(q.s).replace("___", fill)+'</div>'
-        +'<div class="grOpts">'+q.opts.map((o,k)=>'<button class="stOpt en grO'+(res && o===q.a?' ok':'')+(q.pk===o && o!==q.a?' bad':'')+'" data-gk="'+k+'"'+(lock?' disabled':'')+'>'+E(o)+'</button>').join('')+'</div>'; }
+    if(q.k==="pick"){ const fill = res ? '<b class="grBl ok">'+(q.a==="-"?'✕':E(q.a))+'</b>' : '<b class="grBl">&nbsp;?&nbsp;</b>';
+      h+=(q.h?'<div class="grQH">'+E(q.h)+'</div>':'')+'<div class="grS"'+(res?' data-say="'+E(this.right(q))+'"':'')+'>'+E(q.s).replace("___", fill)+'</div>'
+        +'<div class="grOpts">'+q.opts.map((o,k)=>'<button class="stOpt en grO'+(o==="-"?' none':'')+(res && o===q.a?' ok':'')+(q.pk===o && o!==q.a?' bad':'')+'" data-gk="'+k+'"'+(lock?' disabled':'')+'>'+E(this.optTxt(o))+'</button>').join('')+'</div>'; }
     else if(q.k==="ox"){ h+='<div class="grS" data-say="'+E(q.s)+'">'+E(q.s)+'</div><div class="grOpts ox">'
         +[["o","⭕ 맞아요",true],["x","❌ 틀려요",false]].map(([v,t,b])=>'<button class="stOpt grO'+(res && b===q.ok?' ok':'')+(q.pk===v && b!==q.ok?' bad':'')+'" data-gox="'+v+'"'+(lock?' disabled':'')+'>'+t+'</button>').join('')+'</div>'; }
     else if(q.k==="order"){ const done=q.pickd.length===q.w.length;
@@ -16049,62 +16088,65 @@ const GramUI = {
     else if(q.k==="fix"){ const toks=q.s.split(" "), st=t=>t.replace(/[.,!?]/g,"");
       h+='<div class="grFix">'+toks.map((t,k)=>'<button class="grFT'+(res && st(t)===q.bad?' ok':'')+(q.pk===k && st(t)!==q.bad?' bad':'')+'" data-gf="'+k+'"'+(lock?' disabled':'')+'>'+E(t)+'</button>').join('')+'</div>'; }
     return h+'</div>'; },
-  right(q){ if(q.k==="pick") return q.s.replace("___", q.a); if(q.k==="ox") return q.ok ? q.s : q.fix; if(q.k==="order") return q.w.join(" ");
+  right(q){ if(q.k==="pick") return q.a==="-" ? q.s.replace(/ ?___ ?/, " ").replace(/\s+([.,!?])/g, "$1").trim() : q.s.replace("___", q.a);
+    if(q.k==="ox") return q.ok ? q.s : q.fix; if(q.k==="order") return q.w.join(" ");
     if(q.k==="fix"){ const st=t=>t.replace(/[.,!?]/g,""); return q.s.split(" ").map(t=> st(t)===q.bad ? (q.a ? t.replace(q.bad, q.a) : "") : t).filter(Boolean).join(" "); } return ""; },
   fbHtml(q){ if(!q.res) return ''; const ok=q.res==="ok", E=s=>this.E(s);
     const fx = q.k==="fix" ? '<p class="grFx"><s>'+E(q.bad)+'</s> → <b>'+(q.a?E(q.a):'빼요')+'</b></p>' : '';
     return '<div class="grFb '+(ok?'ok':'bad')+'"><div class="grFbH">'+(ok ? (q.again ? '👍 이번엔 맞았어요!' : ['🎉 정답!','👏 잘했어요!','✨ 맞아요!'][this.qi%3]) : '🤔 아쉬워요')+'</div>'+fx
       +'<button class="grFbS" data-say="'+E(this.right(q))+'">🔊 '+E(this.right(q))+'</button><small>'+E(q.ko)+'</small>'
-      +(!ok && q.w ? '<p class="grFbW">💡 '+E(q.w)+'</p>' : '')+(!ok ? '<button class="grRuleB in" data-gr="peek">📒 규칙 다시 보기</button>' : '')
+      +(q.w && (!ok || q.hd) ? '<p class="grFbW">💡 '+E(q.w)+'</p>' : '')+(!ok ? '<button class="grRuleB in" data-gr="peek">📒 규칙 다시 보기</button>' : '')
       +'</div><div class="grFoot"><button class="stCheck" data-gr="qnext">'+(this.qi+1<this.qs.length?'다음 ▶':'끝 ▶')+'</button></div>'; },
   /* ── 답하기 ── */
   judge(q, ok, pk){ const tr=this.mode==="cards"; q.pk=pk;
     if(tr){ if(ok){ q.res="ok"; try{ SFX.tone(880,.12,"triangle",.05,1320); }catch(e){} this.say(this.right(q)); } else { q.res=null; try{ SFX.tone(220,.12,"square",.03); }catch(e){} } this.draw(); return; }
     q.res = ok ? "ok" : "bad";
     if(ok){ if(!q.again) this.first++; try{ SFX.tone(880,.12,"triangle",.05,1320); }catch(e){} }
-    else { try{ SFX.tone(220,.14,"square",.03); }catch(e){} if(!q.again){ this.miss.push(this.right(q)); const c=this.prep(Object.assign({}, q, {again:1, pk:null})); this.qs.splice(Math.min(this.qs.length, this.qi+3), 0, c); } }
+    else { try{ SFX.tone(220,.14,"square",.03); }catch(e){} if(!q.again){ this.miss.push(this.right(q)); const c=this.prep(Object.assign({}, q, {again:1})); this.qs.splice(Math.min(this.qs.length, this.qi+3), 0, c); } }
     this.say(this.right(q)); this.draw(); },
   pick(k){ const q=this.cur(); if(!q || (q.res && this.mode==="quiz") || q.res==="ok") return; const o=q.opts[k]; this.judge(q, o===q.a, o); },
   ox(v){ const q=this.cur(); if(!q || q.res) return; this.judge(q, (v==="o")===q.ok, v); },
   fixTap(k){ const q=this.cur(); if(!q || q.res) return; const t=q.s.split(" ")[k]||""; this.judge(q, t.replace(/[.,!?]/g,"")===q.bad, k); },
-  tile(ti){ const q=this.cur(); if(!q || q.res || q.pickd.indexOf(ti)>=0) return; q.pickd.push(ti); try{ SFX.click(); }catch(e){}
-    if(this.mode==="cards" && q.pickd.length===q.w.length) return this.ochk(); this.draw(); },
+  tile(ti){ const q=this.cur(); if(!q || q.res || q.pickd.indexOf(ti)>=0) return; q.pickd.push(ti); try{ SFX.click(); }catch(e){} this.draw(); },
   untile(j){ const q=this.cur(); if(!q || q.res) return; q.pickd.splice(j, 1); this.draw(); },
   ochk(){ const q=this.cur(); if(!q || q.res || q.pickd.length!==q.w.length) return; const ok=q.pickd.map(i=>q.w[i]).join(" ")===q.w.join(" ");
     if(!ok && this.mode==="cards"){ q.pickd=[]; } this.judge(q, ok, null); },
   cur(){ if(this.mode==="cards"){ const c=this.cards()[this.ci]; return c && c.k==="try" ? c.q[this.ti] : null; } return this.mode==="quiz" ? this.qs[this.qi] : null; },
-  next(){ const C=this.cards(); if(this.ci+1<C.length){ this.ci++; this.ti=0; const c=C[this.ci]; if(c.k==="try") c.q.forEach(q=>this.prep(q)); } this.draw(); },
+  next(){ const C=this.cards(); if(this.ci+1<C.length){ this.ci++; this.ti=0; const c=C[this.ci]; if(c.k==="try") c.q.forEach(q=>this.prep(q)); } this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} },
   prev(){ if(this.ci>0){ this.ci--; this.ti=0; } this.draw(); },
-  tnext(){ const c=this.cards()[this.ci]; if(this.ti+1<c.q.length){ this.ti++; this.draw(); return; } this.build(); this.mode="quiz"; this.draw(); },
+  tnext(){ const c=this.cards()[this.ci]; if(this.ti+1<c.q.length){ this.ti++; this.draw(); return; } this.build(); this.draw(); },
   qnext(){ if(this.qi+1<this.qs.length){ this.qi++; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} return; } this.finish(); },
   /* ── 끝 ── */
-  finish(){ const g=this.g, pct=this.n ? this.first/this.n : 1, s = pct>=0.9 ? 3 : pct>=0.7 ? 2 : 1, before=Gram.stars(g.id); let gem=0;
-    Gram.put(g.id, {s:Math.max(before, s), n:((Gram.st(g.id)||{}).n|0)+1, at:Date.now(), last:Math.round(pct*100)});
-    if(!Wallet.paid("gr-"+g.id)){ Wallet.pay("gr-"+g.id); gem+=3; }
-    if(s>=3 && !Wallet.paid("gr3-"+g.id)){ Wallet.pay("gr3-"+g.id); gem+=2; }
-    if(gem) Wallet.addGems(gem, "문법 "+g.t);
-    this.res={s, pct, gem, first:before===0}; this.mode="end"; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){}
-    try{ if(s>=2){ SFX.tone(660,.12,"triangle",.05,990); setTimeout(()=>{ try{ SFX.tone(990,.18,"triangle",.05,1480); }catch(e){} }, 140); } if(s>=3) confetti(); }catch(e){}
+  finish(){ const g=this.g, T=this.T(), pct=this.n ? this.first/this.n : 1, need=Math.ceil(this.n*T.pass-1e-9), pass=this.first>=need, before=Gram.stars(g.id); let gem=0, up=false;
+    if(pass && this.tier>before){ up=true; Gram.put(g.id, {s:this.tier}); const key="gr-"+g.id+"-"+this.tier; if(!Wallet.paid(key)){ Wallet.pay(key); gem=Gram.GEM; Wallet.addGems(gem, "문법 "+g.t+" ★"+this.tier); } }
+    Gram.put(g.id, {n:((Gram.st(g.id)||{}).n|0)+1, at:Date.now(), last:Math.round(pct*100)});
+    this.res={pass, up, pct, gem, need, tier:this.tier}; this.mode="end"; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){}
+    try{ if(up){ SFX.tone(660,.12,"triangle",.05,990); setTimeout(()=>{ try{ SFX.tone(990,.18,"triangle",.05,1480); }catch(e){} }, 140); if(this.tier>=3) confetti(); } }catch(e){}
     try{ let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       Online.submit({nick, score:this.first*10, diff:"study", rule:"study-grammar", stage:0, acc:Math.round(pct*100), right:this.first, wrong:this.n-this.first, total:this.n,
-        clear:1, end:"clear", set:(this.bk()==="g56"?"G5-6":"G3-4")+" 문법 · "+g.t, secs:Math.round((Date.now()-this.t0)/1000), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:this.miss.slice(0,10).join(" / ")}); }catch(e){} },
-  endHtml(){ const r=this.res, g=this.g, L=Gram.list(this.bk()), k=L.indexOf(g), nx=L[k+1], E=s=>this.E(s);
-    const nxOpen = nx && Gram.open(nx.id);
-    return '<div class="grEnd"><div class="grEndI">'+g.emo+'</div><h2>'+(r.s>=3?'완벽해요!':r.s>=2?'잘했어요!':'끝까지 했어요!')+'</h2><div class="grEndS"><i>'+'★'.repeat(r.s)+'</i><u>'+'★'.repeat(3-r.s)+'</u></div>'
-      +'<p>한 번에 맞힘 <b>'+this.first+' / '+this.n+'</b>'+(r.s<3?' · 90% 넘으면 ★3':'')+'</p>'+(r.gem?'<div class="stGem">💎 +'+r.gem+'</div>':'')
-      +'<p class="grEndN">📒 「'+E(g.t)+'」 규칙이 문법 노트에 붙었어요</p>'
-      +(nx ? '<p class="grEndNx">'+(nxOpen ? '다음 문법 「'+E(nx.t)+'」 이 열렸어요' : '다음 문법 「'+E(nx.t)+'」 은 Stage '+nx.at+' 에서 만나요')+'</p>' : '<p class="grEndNx">🎉 이 학년 문법을 다 만났어요!</p>')
-      +'<div class="grEndB">'+(nx && nxOpen ? '<button class="stCheck" data-gram="'+nx.id+'">다음 문법 ▶</button>' : '')
-      +'<button class="stCheck ghost" data-gr="again">다시 하기</button><button class="stCheck ghost" data-gr="home">길로 돌아가기</button></div></div>'; },
+        clear:pass?1:0, end:pass?"clear":"fail", set:(this.bk()==="g56"?"G5-6":"G3-4")+" 문법 · "+g.t+" ★"+this.tier, secs:Math.round((Date.now()-this.t0)/1000), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:this.miss.slice(0,10).join(" / ")}); }catch(e){} },
+  endHtml(){ const r=this.res, g=this.g, L=Gram.list(this.bk()), k=L.indexOf(g), nx=L[k+1], E=s=>this.E(s), s=Gram.stars(g.id), nxOpen = nx && Gram.open(nx.id);
+    const head = r.up ? (r.tier>=6 ? '마스터!' : r.tier>=3 ? '완벽해요!' : '잘했어요!') : r.pass ? '이번에도 통과!' : '조금만 더!';
+    const msg = r.up ? '★'+r.tier+' '+Gram.TIER[r.tier].nm+' 통과' : r.pass ? '★'+r.tier+' 은 이미 받았어요' : r.need-this.first+'개만 더 맞히면 ★'+r.tier+' · 📒 규칙을 보고 다시 해 봐요';
+    const after = s>=Gram.MAX ? '🎉 이 문법 별 6개를 다 모았어요!' : '다음은 ★'+(s+1)+' '+Gram.TIER[s+1].nm+' — '+Gram.TIER[s+1].n+'문제';
+    return '<div class="grEnd"><div class="grEndI">'+(r.pass?g.emo:'💪')+'</div><h2>'+head+'</h2><div class="grEndS">'+Gram.starHtml(s)+'</div>'
+      +'<p>한 번에 맞힘 <b>'+this.first+' / '+this.n+'</b> · '+E(msg)+'</p>'+(r.gem?'<div class="stGem">💎 +'+r.gem+'</div>':'')
+      +(r.up && r.tier===1 ? '<p class="grEndN">📒 「'+E(g.t)+'」 규칙이 문법 노트에 붙었어요</p>' : '')
+      +'<p class="grEndNx">'+E(after)+'</p>'
+      +(r.up && r.tier===1 && nx ? '<p class="grEndNx">'+(nxOpen ? '다음 문법 「'+E(nx.t)+'」 도 열렸어요' : '다음 문법 「'+E(nx.t)+'」 은 Stage '+nx.at+' 에서 만나요')+'</p>' : '')
+      +'<div class="grEndB">'+(!r.pass ? '<button class="stCheck" data-gr="full">📒 규칙 보고 다시 하기</button><button class="stCheck ghost" data-gr="again">바로 다시 하기</button>'
+          : s<Gram.MAX ? '<button class="stCheck" data-gr="again">★'+(s+1)+' 도전 ▶</button>' : '<button class="stCheck ghost" data-gr="again">한 번 더 하기</button>')
+      +(r.up && r.tier===1 && nx && nxOpen ? '<button class="stCheck ghost" data-gram="'+nx.id+'">다음 문법 「'+E(nx.t)+'」</button>' : '')
+      +'<button class="stCheck ghost" data-gr="home">길로 돌아가기</button></div></div>'; },
   /* ── 📒 문법 노트 — 이 학년 문법 모아 보기 ── */
   note(bk){ Gram.load().then(()=>{ const L=Gram.list(bk); if(!L.length){ hyToast("📡 문법 자료를 못 불러왔어요"); return; } this.g=null; this.mode="note"; this.nbk=bk; StudyUI.view("stGram"); const E=s=>this.E(s);
       $("stGram").innerHTML='<div class="stTop"><button class="stX" data-gr="home" aria-label="길로">◀</button><div class="stTitle">📒 문법 노트</div><div class="stSub">'+(bk==="g56"?"Grade 5-6":"Grade 3-4")+' · '+Gram.done(bk)+' / '+L.length+'</div></div>'
-        +'<p class="grNoteP">단어 길 옆 ◆ 곁가지에서 배운 규칙이 여기 모여요. 눌러서 다시 볼 수 있어요.</p>'
-        +'<div class="grNote">'+L.map((g,i)=>{ const on=Gram.open(g.id), s=Gram.stars(g.id);
-          return '<button class="grNR'+(on?'':' lock')+(s?' done':'')+'" data-gram="'+g.id+'"><i>'+(on?g.emo:'🔒')+'</i><span><b>'+E(g.t)+'</b><small>'+(on ? E(g.sub) : 'Stage '+g.at+' 을 시작하면 열려요')+'</small></span><em>'+(s?'<i>'+'★'.repeat(s)+'</i><u>'+'★'.repeat(3-s)+'</u>':on?'NEW':'')+'</em></button>'; }).join('')+'</div>';
+        +'<p class="grNoteP">단어 길 옆 「쉬어 가기」 돌에서 배운 규칙이 여기 모여요. 별 하나마다 💎'+Gram.GEM+' · 별 6개까지 갈수록 어려워져요.</p>'
+        +'<div class="grNote">'+L.map(g=>{ const on=Gram.open(g.id), s=Gram.stars(g.id);
+          return '<button class="grNR'+(on?'':' lock')+(s?' done':'')+'" data-gram="'+g.id+'"><i>'+(on?g.emo:'🔒')+'</i><span><b>'+E(g.t)+'</b><small>'+(on ? E(g.sub) : 'Stage '+g.at+' 을 시작하면 열려요')+'</small></span><em>'+(s?Gram.starHtml(s):on?'NEW':'')+'</em></button>'; }).join('')+'</div>';
       try{ $("scStudy").scrollTop=0; }catch(e){} }); },
   click(e){ const t=e.target; if(!t.closest) return;
-    const sy=t.closest("[data-say]"); if(sy && !t.closest("button.grO") ){ this.say(sy.dataset.say); if(!t.closest("[data-gr],[data-gk],[data-gox],[data-gt],[data-gu],[data-gf]")) return; }
+    const sy=t.closest("[data-say]"); if(sy){ this.say(sy.dataset.say); if(!t.closest("[data-gr],[data-gk],[data-gox],[data-gt],[data-gu],[data-gf]")) return; }
     const gm=t.closest("[data-gram]"); if(gm){ SFX.click(); this.start(gm.dataset.gram); return; }
     const k=t.closest("[data-gk]"); if(k){ this.pick(+k.dataset.gk); return; }
     const o=t.closest("[data-gox]"); if(o){ this.ox(o.dataset.gox); return; }
@@ -16116,6 +16158,8 @@ const GramUI = {
     if(a==="home"){ SFX.click(); this.home(); return; }
     if(a==="peek"){ SFX.click(); this.peek=true; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} return; }
     if(a==="unpeek"){ SFX.click(); this.peek=false; this.draw(); return; }
+    if(a==="go"){ SFX.select ? SFX.select() : SFX.click(); this.build(); this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} return; }
+    if(a==="full"){ SFX.click(); this.start(this.g.id, true); return; }
     if(a==="next"){ SFX.click(); this.next(); return; }
     if(a==="prev"){ SFX.click(); this.prev(); return; }
     if(a==="tnext"){ SFX.click(); this.tnext(); return; }
@@ -16125,7 +16169,6 @@ const GramUI = {
   home(){ const bk=this.g ? this.bk() : this.nbk; this.g=null; this.mode="cards"; this.peek=false; try{ Voice.stop(); }catch(e){}
     try{ if(bk && Study.BOOKS[bk] && StudyUI.book!==bk){ StudyUI.book=bk; } }catch(e){} StudyUI.path(); }
 };
-
 const _stClick=e=>{
   const t=e.target; if(!t.closest) return;
   if(t.closest("#stGram")){ GramUI.click(e); return; }   // (v386) 📒 문법 곁가지
