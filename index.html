@@ -2668,7 +2668,19 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .rsHero.me{left:7%;bottom:3%;height:66%;z-index:4}
 .rsAllies .rsHero{height:40%;opacity:.96;filter:brightness(.92)}
 .rs.big .rsAllies .rsHero{height:28%;filter:none}
-.rs.big .rsAllies .rsHero.bsH.rsR0{height:26%}.rs.big .rsAllies .rsHero.bsH.rsR1{height:21%;filter:brightness(.95)}.rs.big .rsAllies .rsHero.bsH.rsR2{height:17%;filter:brightness(.9)}
+.rs.big .rsAllies .rsHero.bsH.rsR0,.rs.big .rsAllies .rsHero.bsH.rsR1,.rs.big .rsAllies .rsHero.bsH.rsR2{height:15%}.rs.big .rsAllies .rsHero.bsH.rsR1{filter:brightness(.96)}.rs.big .rsAllies .rsHero.bsH.rsR2{filter:brightness(.92)}   /* (사용자: 크기가 제각각) 친구는 모두 같은 크기 */
+/* (v392) 📺 레이드 TV — 화면을 꽉: 왼쪽 큰 무대 · 오른쪽 접속·방패 단어·소식 (끝나면 예전처럼 한 줄) */
+@media (min-width:1000px) and (orientation:landscape){
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) .rdWrap{max-width:none;height:100vh;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,27vw,440px);grid-template-rows:auto minmax(0,1fr) auto;gap:8px 14px;padding:10px 16px 6px}
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) #rdA{grid-column:1/-1}
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) #rdStage{grid-column:1;grid-row:2;min-height:0;height:100%!important}
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) #rdB{grid-column:2;grid-row:2;min-height:0;overflow-y:auto;overflow-x:hidden}
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) #rdC{grid-column:1/-1;grid-row:3;position:static;padding:4px 0}
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) .rdHostRow{grid-template-columns:1fr;margin-top:0}
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) .rdPlayers{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+  #scRaid.rdHostOn:not(.btOn):not(.rdEndOn) .rdP b{font-size:16px}#scRaid.rdHostOn:not(.btOn):not(.rdEndOn) .rdP span{font-size:14px}
+}
+.rs.big .rsMore{bottom:auto;top:12px}
 .rs.big .rsHero.rsR1 .rsName,.rs.big .rsHero.rsR2 .rsName{font-size:12px;padding:0 5px}
 #arena #arStage .rsAllies .rsHero{height:9%;filter:brightness(.9) saturate(.9)}#arena #arStage .rsAllies .rsHero .rsName{display:none}
 .rsMore{position:absolute;left:10px;bottom:8px;z-index:6;font:900 13px var(--font);color:#fff;background:rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.5);padding:3px 10px;border-radius:12px}
@@ -3315,6 +3327,9 @@ body.bpOn .wbFight{display:none}   /* (v392 시제품) ⚔️ 전투 화면 */
 @keyframes frReady{to{transform:scale(1.07);box-shadow:0 6px 0 rgba(0,0,0,.4),0 0 34px rgba(255,210,90,.95)}}@keyframes frRoll{50%{transform:scale(1.06) rotate(4deg)}}
 /* (v392) 레인 N개 · 주자 크기 --s (레인 높이에 맞춤) · 아이 무리 · TV */
 #frun .frTrack.oth{filter:saturate(.9) brightness(.95)}
+#frun:not(.tv) .frTrack.me{box-shadow:0 7px 0 #8c3522,0 0 0 3px #ffe58f,0 0 18px rgba(255,220,100,.7)}
+#frun:not(.tv) .frTrack.me .frLbl::before{content:"나 ";color:#ffe58f}
+.frKid{filter:drop-shadow(0 3px 2px rgba(0,0,0,.3)) brightness(.93)}
 #frun .frTrack .frRun{bottom:28%}
 #frun .frTrack .frSpr{left:calc(var(--s) * -.5);width:var(--s);height:var(--s)}
 #frun .frTrack .frShd{left:calc(var(--s) * -.36);width:calc(var(--s) * .72);height:calc(var(--s) * .16);bottom:calc(var(--s) * -.07)}
@@ -18904,7 +18919,7 @@ const RaidStage = {
     ids.forEach(k=>{ let a=this.al[k]; if(!a){ a=this.al[k]=this.hero(k, P[k].c||"hero", (host||this.role==="wk")?P[k].n:"", false, P[k].n); let s=0; while(used[s]) s++; used[s]=1; a.slot=s; } a.n=P[k].n; });
     const n=Math.max(ids.length, ...Object.values(this.al).map(a=>a.slot+1), 0), cols = host ? Math.min(8, Math.max(3, Math.ceil(n/3))) : 4;
     ids.forEach(k=>{ const a=this.al[k], i=a.slot, r=host ? Math.min(2, Math.floor(i/cols)) : 0, c=host ? i-r*cols : i;
-      if(host){ a.bx=3+c*(52/cols)+(r===1?26/cols:0); a.by=[3,19,33][r]; }
+      if(host){ a.bx=3+c*(54/cols)+(r===1?27/cols:0); a.by=[4,19,34][r]; }
       else if(arena){ a.bx=4+c*13; a.by=47+(c%2)*2; }
       else { a.bx = narrow ? 2+c*14 : 2+c*7; a.by = narrow ? 38+(c%2)*3 : 26+(c%2)*6; }
       a.el.style.zIndex = host ? 3-r : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow || arena)); a.el.classList.toggle("rsNar", narrow); a.el.classList.toggle("rsArena", arena);
@@ -19413,14 +19428,13 @@ const FlagRun = {
   layout(){ const o=this.o, st=$("frStage"); if(!o || !st) return; const H=st.clientHeight||400, ord=this._order, n=ord.length, tv=!!o.tv;
     ord.forEach((T,i)=>{ const el=$("frT"+T.k); if(!el) return; let b, h;
       if(tv){ const z0=4, z1=72, g=n>2?2:3; h=Math.min(24, (z1-z0-(n-1)*g)/n); b=z0+(n-1-i)*(h+g); }
-      else if(i===n-1){ b=5; h=n>3?19:n>2?21:24; }
-      else { const z0=n>2?28:31, z1=55, g=n>3?1.5:2, m=n-1; h=Math.min(17, (z1-z0-(m-1)*g)/m); b=z0+(m-1-i)*(h+g); }
+      else { const z0=5, z1=55, g=2; h=Math.min(22, (z1-z0-(n-1)*g)/n); b=z0+(n-1-i)*(h+g); }   /* (사용자: 캐릭터 크기가 제각각) 레인 높이 모두 같게 — 우리 반은 맨 앞 + 빛나는 테두리 */
       el.style.bottom=b+"%"; el.style.height=h+"%";
-      const s=Math.round(Math.max(30, Math.min(tv?150:110, H*h/100*(tv?1.35:i===n-1?1.45:1.5)))); el.style.setProperty("--s", s+"px"); T._s=s; });
+      const s=Math.round(Math.max(30, Math.min(tv?150:110, H*h/100*(tv?1.35:1.45)))); el.style.setProperty("--s", s+"px"); T._s=s; });
     this.packs(true); },
   /* 아이 무리 — 깃발 주자 뒤에 작게 (최대 6명 + 「+N」) · 출발선 앞에서는 촘촘히 겹쳐서 경기장 밖으로 안 나감 */
   packs(fresh){ const o=this.o, st=$("frStage"); if(!st) return; const W=st.clientWidth||600;
-    o.L.forEach(T=>{ const P=$("frK"+T.k); if(!P) return; const ks=(T.kids||[]).slice().sort((a,b)=>(b.sc|0)-(a.sc|0)), show=ks.slice(0, o.tv?6:3), more=ks.length-show.length, s=T._s||60, ks2=Math.round(s*0.62);
+    o.L.forEach(T=>{ const P=$("frK"+T.k); if(!P) return; const ks=(T.kids||[]).slice().sort((a,b)=>(b.sc|0)-(a.sc|0)), show=ks.slice(0, o.tv?6:T.k===o.mine?3:0), more=(o.tv||T.k===o.mine) ? ks.length-show.length : 0, s=T._s||60, ks2=Math.round(s*0.86);
       if(fresh || P.childElementCount!==show.length+(more>0?1:0)) P.innerHTML=show.map(k=>'<i class="frKid" style="background-image:url(assets/chars/walk/walk-'+this.cid(k.ch)+'.webp)"></i>').join('')+(more>0?'<b class="frMore">+'+more+'</b>':'');
       const x=Math.max(s*0.62+18, W*this.X(T.p)/100), room=Math.max(0, x-s*0.42-4), want=ks2*0.62, sp=show.length ? Math.min(want, room/show.length) : 0;
       [...P.children].forEach((c,i)=>{ if(c.classList.contains("frMore")){ c.style.left=Math.round(-s*0.42-sp)+"px"; c.style.bottom=Math.round(ks2*0.92)+"px"; return; }
