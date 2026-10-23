@@ -19509,7 +19509,7 @@ const FlagRun = {
       const lv=Math.min(5, Math.max(1, Math.round(T.v/S.max*5))); r.classList.toggle("fast", T.v>=0.055); r.classList.toggle("slow", T.v<=0.018); r.classList.toggle("rocket", T.fx>now); r.classList.toggle("snail", T.slow>now);
       const sv=$("frV"+T.k); if(sv) sv.textContent="⚡".repeat(lv); });
     const M=$("frMeter"); if(M){ const pc=Math.round((this.v-S.min)/(S.max-S.min)*100); M.firstChild.style.width=pc+"%"; M.className="frMeter"+(pc>=70?" hot":pc<=15?" low":""); M.lastChild.textContent=pc>=70?"🔥 내 속도 최고!":pc<=15?"🐢 느려지는 중… 문제를 풀어요!":"🏃 내 속도"; }
-    if(this.dbl() && !this._dbl){ this._dbl=1; this.ban("🔥 2배 타임! 마지막 30초", "good"); }
+    if(!o.fixed && this.dbl() && !this._dbl){ this._dbl=1; this.ban("🔥 2배 타임! 마지막 30초", "good"); }
     const t=$("frTime"); if(t && o.end){ const l=Math.max(0, o.end-Date.now()); t.textContent="⏱ "+Raid.mmss(l); t.classList.toggle("hurry", l<=15000); }
     if(o.tv){ if(!this._sd || now-this._sd>500){ this._sd=now; this.side(); } return; }
     /* 🆘 역전 찬스 — 1등 반보다 2칸 넘게 뒤지면 20초에 한 번 */
@@ -19861,7 +19861,7 @@ const Battle = {
     if(host){ if(now-(this._fpW||0)>=1000){ this._fpW=now; const fp={}; O.L.forEach(T=>{ fp[T.k]=Math.round(T.p*1000)/1000; }); FB.update("/battle/"+this.room+"/st", {fp}); }
       if(now-(this._fxGc||0)>15000){ this._fxGc=now; const del={}; Object.keys(E).forEach(id=>{ if(now-((E[id]||{}).at||0)>20000) del[id]=null; }); if(Object.keys(del).length) FB.update("/battle/"+this.room+"/fx", del); } }
     else if(now-(this._vW||0)>=1000){ const v=Math.round(FlagRun.v*10000)/10000; if(v!==this._vL || now-(this._vW||0)>5000){ this._vL=v; this._vW=now; FB.update("/battle/"+this.room+"/p/"+this.me, {v, vt:now, at:now}); } } },
-  frAns(ok, g, q){ const now=this.now(); try{ Rank.record(q.w.en, ok, null, true); }catch(e){}
+  frAns(ok, g, q){ const now=this.now(); if(!this.running() || this.left()<=0 || this.ended) return; try{ Rank.record(q.w.en, ok, null, true); }catch(e){}
     if(ok){ this.streak++; this.ok++; this.sc+=g; FB.inc("/battle/"+this.room+"/p/"+this.me, {sc:g, ok:1}, {at:now, sk:this.streak}); }
     else { this.streak=0; this.ng++; FB.inc("/battle/"+this.room+"/p/"+this.me, {ng:1}, {at:now, sk:0}); } },
   frSend(kind, to){ const mt=this.tk((this.T().p||{})[this.me]); FB.push("/battle/"+this.room+"/fx", {k:kind, f:mt, t:to, n:String((this.pick||{}).n||"").slice(0,10), at:this.now(), by:this.me}); },
