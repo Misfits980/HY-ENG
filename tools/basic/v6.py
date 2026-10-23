@@ -18,7 +18,7 @@ import json, os, re, sys, html
 R = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 H1 = ["영어","품사 1","뜻 1","설명 1","품사 2","뜻 2","설명 2","예문 1","해석 1","예문 2","해석 2","예문 2 뜻","변하는 모양","자주 쓰는 말","비슷한 말","반대말","헷갈리는 말"]
 H2 = ["영어","상황","A","B","A 해석","B 해석"]
-POS = {"명사","동사","형용사","부사","전치사","접속사","대명사","조동사","감탄사","표현","동사 과거형"}   # (v322) 동사 과거형 = found '찾았다 (find)' 처럼 다른 동사의 지난 꼴
+POS = {"명사","동사","형용사","부사","전치사","접속사","대명사","조동사","감탄사","표현","동사 과거형","접두사"}   # (v388 semi)  (v322) 동사 과거형 = found '찾았다 (find)' 처럼 다른 동사의 지난 꼴
 TALK_SENSE = {}   # (v322) v6/talk_sense.txt — 프롬프트 규칙(대화 2 = 품사 2 뜻)을 안 지킨 대화의 실제 뜻 품사
 _tsf = os.path.join(os.path.dirname(os.path.abspath(__file__)), "v6", "talk_sense.txt")
 if os.path.exists(_tsf):
