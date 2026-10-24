@@ -31,7 +31,7 @@
 | woodland | 명사 | 숲지대 | 나무가 많이 자라는 땅이에요. | — | — | — | The woodland behind our school is quieter than the busy street. | 우리 학교 뒤의 숲지대는 붐비는 거리보다 더 조용해요. | We walked through the woodland and saw many mushrooms last autumn. | 지난가을에 우리는 숲지대를 지나 걸으며 많은 버섯을 봤어요. | 1 | woodlands | a woodland path (숲길) · woodland animals (숲속 동물) | forest (숲) | grassland (초원) | wooden (나무로 된) |
 | pretzel | 명사 | 프레첼 | 밀가루 반죽을 꼬아 구운 짭짤한 과자예요. | — | — | — | Mina is going to buy a soft pretzel at the school fair. | 미나는 학교 축제에서 부드러운 프레첼을 사려고 해요. | Tom shared his salty pretzel with us at the park yesterday. | 톰은 어제 공원에서 짭짤한 프레첼을 우리와 나눠 먹었어요. | 1 | pretzels | soft pretzel (부드러운 프레첼) · salty pretzel (짭짤한 프레첼) | — | — | — |
 | reply | 명사 | 대답, 답장 | 물어본 말이나 편지에 돌려주는 말이에요. | 동사 | 대답하다 | 물어본 말에 말이나 글로 답할 때 써요. | I'm still waiting for a reply from my English teacher. | 저는 영어 선생님의 답장을 아직 기다리고 있어요. | Amy replied to my question about homework in just a few minutes yesterday. | 에이미는 어제 숙제에 대한 제 질문에 몇 분 만에 대답했어요. | 2 | 명사 replies / 동사 replies · replied · replied · replying | reply to (~에 답하다) · in reply (대답으로) | answer (대답) | question (질문) | replay (다시 재생) |
-| avenue | 명사 | 큰길 | 양쪽에 가게나 나무가 있는 넓은 길이에요. | — | — | — | Tall trees grow on both sides of the avenue near our school. | 우리 학교 근처 큰길 양쪽에는 키 큰 나무들이 자라요. | A big parade went down the avenue in the city last Friday. | 지난 금요일에 큰 퍼레이드가 도시의 큰길을 따라 지나갔어요. | 1 | avenues | walk down the avenue (큰길을 따라 걷다) · a tree-lined avenue (가로수 길) | street (거리) | — | venue (장소) |
+| avenue | 명사 | 큰길, 대로 | 양쪽에 가게나 나무가 있는 넓은 길이에요. | — | — | — | Tall trees grow on both sides of the avenue near our school. | 우리 학교 근처 큰길 양쪽에는 키 큰 나무들이 자라요. | A big parade went down the avenue in the city last Friday. | 지난 금요일에 큰 퍼레이드가 도시의 큰길을 따라 지나갔어요. | 1 | avenues | walk down the avenue (큰길을 따라 걷다) · a tree-lined avenue (가로수 길) | street (거리) | — | venue (장소) |
 
 어려운 말: tighten (조이다), harbor (항구), parade (퍼레이드), mushroom (버섯), confident (자신 있는), nervous (긴장한), muddy (진흙투성이의), thunder (천둥), lightning (번개), shrimp (새우), marathon (마라톤), costume (의상)
 
@@ -40,7 +40,7 @@
 | --- | --- | --- | --- | --- | --- |
 | supermarket | 장을 보러 가는 길 | Where can I buy milk, eggs, and bread on the way home? | Stop at the supermarket next to the bus station. | 집에 가는 길에 우유랑 달걀, 빵을 어디서 살 수 있을까? | 버스 정류장 옆에 있는 슈퍼마켓에 들러 봐. |
 | supermarket | 주말 장보기 이야기 | Did you carry all those heavy food bags from the big grocery store alone? | No, my dad helped me carry the bags from the supermarket to the car. | 그 무거운 식료품 가방을 전부 큰 식료품점에서 혼자 들고 왔어? | 아니, 아빠가 슈퍼마켓에서 차까지 가방 나르는 걸 도와주셨어. |
-| decrease | 그래프를 보는 중 | The graph says the bees will go up next year, right? | No, they will decrease because there are fewer flowers. | 그래프에서 내년엔 벌이 늘어난다고 하는데, 맞지? | 아니, 꽃이 줄어서 벌도 줄어들 거야. |
+| decrease | 그래프를 보는 중 | The graph says the number of bees will go up next year, right? | No, it will decrease because there are fewer flowers. | 그래프에서 내년엔 벌의 수가 늘어난다고 하는데, 맞지? | 아니, 꽃이 줄어서 벌의 수는 줄어들 거야. |
 | decrease | 교실 온도 실험 | Did the water temperature decrease after we put the ice in? | Yes, it went down from twenty degrees to ten degrees in five minutes. | 얼음을 넣은 뒤에 물 온도가 내려갔어? | 응, 5분 만에 20도에서 10도로 내려갔어. |
 | simply | 친구에게 설명 부탁 | That long story confused me. Can you say it in an easy way? | Sure. Simply put, we must finish the project by Friday. | 그 긴 이야기가 헷갈렸어. 쉽게 말해 줄 수 있어? | 물론이지. 간단히 말해서 우리는 금요일까지 프로젝트를 끝내야 해. |
 | simply | 가방을 고른 이유 | Why did you choose that old bag yesterday? Was there a reason? | No special reason. I simply liked its color. | 어제 왜 그 낡은 가방을 골랐어? 무슨 이유가 있었어? | 특별한 이유는 없어. 그냥 색깔이 마음에 들었어. |
@@ -65,7 +65,7 @@
 | smelly | 체육 후 탈의실 | Open the window, please. This room is so smelly! | Sorry, my wet sneakers have been in my bag since Monday. | 창문 좀 열어 줘. 이 방 냄새가 너무 심해! | 미안, 젖은 운동화가 월요일부터 내 가방에 있었어. |
 | smelly | 냉장고 청소하기 | What was that terrible smell in the kitchen this morning? | Dad left some smelly fish in the fridge for a week. | 오늘 아침 부엌에서 나던 그 지독한 냄새는 뭐였어? | 아빠가 냄새나는 생선을 냉장고에 일주일 동안 두셨어. |
 | sponsor | 대회 준비 회의 | We need money for the new uniforms. Who can help us? | A local store may sponsor our team and print its name on shirts. | 새 유니폼 살 돈이 필요해. 누가 우리를 도와줄 수 있을까? | 동네 가게가 우리 팀을 후원해서 셔츠에 가게 이름을 넣어 줄지도 몰라. |
-| sponsor | 학교 마라톤 후원 | Did a company sponsor the school marathon last year? | Yes, it gave water bottles and shirts to every runner. | 작년에 어떤 회사가 학교 마라톤을 후원했어? | 응, 모든 달리기 참가자에게 물병이랑 셔츠를 줬어. |
+| sponsor | 학교 마라톤 이야기 | Did a company sponsor the school marathon last year? | Yes, it gave water bottles and shirts to every runner. | 작년에 어떤 회사가 학교 마라톤을 후원했어? | 응, 모든 달리기 참가자에게 물병이랑 셔츠를 줬어. |
 | pudding | 급식 후식 시간 | What's for dessert today? I hope it's sweet and soft. | Lucky you! It's vanilla pudding with strawberries on top. | 오늘 후식은 뭐야? 달콤하고 부드러웠으면 좋겠어. | 넌 운이 좋네! 위에 딸기가 올라간 바닐라 푸딩이야. |
 | pudding | 집에서 간식 만들기 | Did you make a dessert with milk and eggs yesterday? | Yes, Mom and I cooked pudding and cooled it in the fridge. | 어제 우유랑 달걀로 후식 만들었어? | 응, 엄마랑 내가 푸딩을 만들어서 냉장고에서 식혔어. |
 | worldwide | 세계 대회 이야기 | Is this contest only for our city or for the whole world? | It's a worldwide contest, and students from fifty countries joined. | 이 대회는 우리 도시만 나가는 거야, 아니면 전 세계가 나가는 거야? | 전 세계 대회야. 쉰 개 나라의 학생들이 참가했어. |

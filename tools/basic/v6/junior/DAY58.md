@@ -39,9 +39,9 @@
 | 영어 | 상황 | A | B | A 해석 | B 해석 |
 | --- | --- | --- | --- | --- | --- |
 | stock | 신발 가게에서 | Do you have any more blue sneakers in my size? | Sorry, they're sold out, but new stock arrives on Friday. | 내 사이즈 파란 운동화 더 있어요? | 죄송해요, 다 팔렸는데 금요일에 새 재고가 들어와요. |
-| stock | 빈 선반을 보고 | Why were the shelves empty when we visited yesterday? | The shop ran out of stock because of the sale. | 어제 우리가 갔을 때 왜 선반이 비어 있었어? | 세일 때문에 가게에 재고가 다 떨어졌거든. |
+| stock | 빈 선반을 보고 | Why were the shelves empty when we visited yesterday? | The sale emptied them, but workers will stock them again today. | 어제 우리가 갔을 때 왜 선반이 비어 있었어? | 세일 때문에 다 비었는데, 오늘 직원들이 다시 채워 놓을 거야. |
 | pile | 친구 책상을 보고 | What is that tall pile of papers on your desk? | Those are old tests that I need to throw away. | 네 책상 위에 있는 저 높은 종이 더미는 뭐야? | 저건 내가 버려야 하는 옛날 시험지야. |
-| pile | 빨래를 찾을 때 | Where did you put the dirty clothes from the trip? | I left a pile of them next to the washing machine. | 여행 때 입은 더러운 옷은 어디에 뒀어? | 세탁기 옆에 한 무더기 놓아 뒀어. |
+| pile | 빨래를 찾을 때 | What should I do with the dirty clothes from the trip? | Pile them next to the washing machine, and I'll wash them later. | 여행 때 입은 더러운 옷은 어떻게 할까? | 세탁기 옆에 쌓아 둬, 내가 나중에 빨게. |
 | refundable | 여행 표를 살 때 | Can I get my money back if I cancel? | Yes, this ticket is refundable until the day before. | 취소하면 돈을 돌려받을 수 있어요? | 네, 이 표는 전날까지 환불이 가능해요. |
 | refundable | 여행이 바뀐 뒤 | Did you cancel your plane ticket after the trip changed? | Yes, luckily it was refundable, so I got all my money back. | 여행이 바뀐 뒤에 비행기 표를 취소했어? | 응, 다행히 환불이 돼서 돈을 전부 돌려받았어. |
 | visible | 멀리 섬을 볼 때 | Can you see the small island from here? | Yes, it is visible far away across the water. | 여기서 그 작은 섬이 보여? | 응, 물 건너 멀리 보여. |
@@ -72,7 +72,7 @@
 | source | 보고서를 쓸 때 | Where did you get that fact about space yesterday? | I forgot the source, so I will look it up again. | 어제 우주에 관한 그 사실은 어디서 얻었어? | 출처를 잊어버려서 다시 찾아볼 거야. |
 | skillful | 종이접기를 볼 때 | Wow, she folds paper boats so fast! | She is very skillful because she practices every day. | 와, 그 애는 종이배를 정말 빨리 접어! | 매일 연습해서 아주 능숙하거든. |
 | skillful | 그림을 구경할 때 | Who painted this picture on the wall last year? | A skillful artist from our town did it. | 작년에 이 벽 그림은 누가 그렸어? | 우리 동네의 솜씨 좋은 화가가 그렸어. |
-| earphone | 버스 안에서 | I want to listen to music, but the bus is quiet. | Put in your earphone so nobody else hears it. | 음악을 듣고 싶은데 버스가 조용해. | 이어폰을 꽂아, 그러면 다른 사람은 못 들어. |
+| earphone | 버스 안에서 | I want to listen to music, but I don't want to miss my stop. | Use just one earphone so you can still hear the announcements. | 음악을 듣고 싶은데 내릴 정류장을 놓치기 싫어. | 이어폰을 한쪽만 껴, 그러면 안내 방송도 들을 수 있어. |
 | earphone | 소파 밑을 볼 때 | Why are you looking under the sofa? | I dropped my earphone there a few minutes ago. | 왜 소파 밑을 보고 있어? | 몇 분 전에 거기에 이어폰을 떨어뜨렸어. |
 | greenfield | 학교 공사를 볼 때 | Are they building the school on old buildings? | No, it's a greenfield project, built on empty land where nothing stood before. | 그 학교를 낡은 건물 자리에 짓는 거야? | 아니, 예전에 아무것도 없던 빈 땅에 짓는 새 사업이야. |
 | greenfield | 들판을 지나며 | Why did the builders pick that field last year? | It was a greenfield site, empty land with no buildings, so they started fresh. | 작년에 건설 회사가 왜 저 들판을 골랐어? | 건물이 없는 빈 땅인 미개발 부지여서 처음부터 새로 시작했어. |

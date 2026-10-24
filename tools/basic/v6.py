@@ -301,7 +301,9 @@ def to_auto(results, levels, days):
         ko = {}
         for d in res["rows"]:
             en = d["영어"].lower(); m1 = d["뜻 1"]
-            if en in wb and not (norm(wb[en]) & norm(m1)): ko[en] = m1
+            # (v394) 중등(L4·리스닝): 단어장 뜻에 없는 뜻 조각이 md 뜻 1 에 있어도 교재 뜻으로 (nut 견과 → '견과, 너트' — 예문이 가르치는 뜻이 화면에 보이게)
+            #        초등 반은 단어장의 쉬운 뜻을 그대로 (사발·조 같은 어려운 말이 늘지 않게)
+            if en in wb and (not (norm(wb[en]) & norm(m1)) or (lv == "L4" and any(not ko_same(p, wb[en]) for p in ko_parts(m1)))): ko[en] = m1
             if en not in wb:
                 A["words"][en] = {"ko": m1, "level": LVL[lv], "emoji": ""}
                 if lv == "L4": A["words"][en]["src"] = "jl" if jl else "mv1"
@@ -373,7 +375,8 @@ def apply(results):
             if d["변하는 모양"] != "—": D[2] = d["변하는 모양"]
             old = [e for e in (D[3] or []) if e and e[0] not in (x[0][0], x[1][0])]
             old.sort(key=lambda e: len(e) > 2)   # (v322) 뜻 번호가 없는 예전 사전 예문(We cycle to school.)을 먼저 남김 — 바뀐 v6 예문 찌꺼기 말고
-            D[3] = [[e[0], e[1], e[2]] for e in x[:4]] + (old[:1] if len(x) <= 2 else [])
+            # (v394) 예전 사전 예문은 더 남기지 않음 — 뜻 번호가 없고 짧아서 ("I see a ___.", 톱 saw 수업에 "I ___ a rainbow.") 다른 보기도 정답이 됐다 (단어 QA)
+            D[3] = [[e[0], e[1], e[2]] for e in x[:4]]
             if d["자주 쓰는 말"] != "—": D[6] = d["자주 쓰는 말"]
             rel = dict(D[7] or {})
             if d["비슷한 말"] != "—": rel["s"] = d["비슷한 말"]

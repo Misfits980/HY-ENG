@@ -40,7 +40,7 @@
 | --- | --- | --- | --- | --- | --- |
 | seaweed | 바닷가 바위 옆에서 | What is the green thing floating near the rocks in the sea? | That is seaweed. It grows in the ocean and fish hide in it. | 바다 바위 근처에 떠 있는 저 초록색 건 뭐야? | 저건 해초야. 바다에서 자라고 물고기들이 그 안에 숨어. |
 | seaweed | 생일 식사를 물을 때 | Did you eat anything special on your birthday last week? | Yes, my mom made a bowl of hot seaweed soup. | 지난주 네 생일에 특별한 거 먹었어? | 응, 엄마가 따뜻한 미역국 한 그릇을 끓여 줬어. |
-| speech | 발표 전날 대화 | Are you nervous about talking in front of the whole school tomorrow? | A little, but I practiced my speech with my family last night. | 내일 전교생 앞에서 말하는 게 긴장돼? | 조금, 그래도 어젯밤에 가족 앞에서 연설 연습을 했어. |
+| speech | 전교생 앞에 서기 전날 | Are you nervous about talking in front of the whole school tomorrow? | A little, but I practiced my speech with my family last night. | 내일 전교생 앞에서 말하는 게 긴장돼? | 조금, 그래도 어젯밤에 가족 앞에서 연설 연습을 했어. |
 | speech | 강당 행사가 끝난 뒤 | The principal stood on the stage and talked for ten minutes. | I liked her speech about being kind to our classmates. | 교장 선생님이 무대에 서서 10분 동안 말씀하셨어. | 나는 반 친구들에게 친절하자는 그 연설이 좋았어. |
 | tray | 식당에서 음식을 받고 | How can I carry soup, rice, and a drink to the table? | Use a tray, or you might spill everything on the floor. | 국, 밥, 음료를 식탁까지 어떻게 들고 가지? | 쟁반을 써, 안 그러면 바닥에 다 쏟을 수도 있어. |
 | tray | 식당 종업원을 본 뒤 | Did the waiter drop the dishes in the restaurant yesterday? | No, he held the tray with both hands and walked slowly. | 어제 식당에서 종업원이 접시를 떨어뜨렸어? | 아니, 두 손으로 쟁반을 잡고 천천히 걸었어. |
