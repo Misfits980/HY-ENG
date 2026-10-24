@@ -50,6 +50,8 @@ async def main():
         ok(await pg.evaluate("()=>DexDet._q.mode==='sp' && !!document.querySelector('#wQuiz [data-qj]')"), "🔤 철자로 돌아감")
         # (v322) 📝 빈칸: 수 단서가 없으면 한 개·여러 개 짝을 보기에 안 냄 (I eat ___ every day: salad/salads) · 빈칸은 먼저 나오는 모양 (fried … frying pan)
         await pg.evaluate("()=>['salad','fry','eiffel tower','monday','found'].forEach(en=>Dex.add(en, true))")
+        # (v394) 예전 사전 예문을 안 남겨서 데이터에 수 단서 없는 문장이 없어짐 → 검사용으로 넣음 (빈칸 규칙 검사)
+        await pg.evaluate("()=>{ const D=DexData.of('salad'); if(D && !D[3].some(e=>e[0].startsWith('I eat salad'))) D[3].push(['I eat salad every day.','나는 매일 샐러드를 먹어요.']); }")
         r = await pg.evaluate("""()=>{ const out=[]; DexDet.tab='p'; DexDet._qm='bl'; DexDet.show('salad', true);
             for(let k=0;k<6;k++){ DexDet.quizBl('salad', k); const Q=DexDet._q; out.push([Q.c.x[0], Q.ans, [...document.querySelectorAll('#wQuiz [data-qb]')].map(b=>b.dataset.qb.toLowerCase())]); } return out; }""")
         noCue = [x for x in r if x[0].startswith("I eat salad")]
