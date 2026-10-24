@@ -50,6 +50,14 @@ async def main():
         res=[await k.evaluate("()=>[Battle.ended, Battle._win, Battle._gems, !!document.getElementById('frun')]") for k in kids]; print("res", res)
         ok([x[1] for x in res]==[True,True,False,False] and [x[2] for x in res]==[4,4,2,2] and not any(x[3] for x in res), f"보석 우승 반 4 · 나머지 2 · 무대 닫힘 {res}")
         await host.screenshot(path=OUT+"flag392_end.png")
+        # (v393) QA: 「한 판 더」 → 다시 시작하면 TV·아이 모두 무대가 다시 열림 · 보내기 탭
+        await host.evaluate("()=>Battle.hostAct('again')"); await host.wait_for_timeout(1500)
+        await host.evaluate("()=>Battle.hostAct('start')"); await host.wait_for_timeout(4500)
+        r=[await host.evaluate("()=>!!document.getElementById('frun')")]+[await k.evaluate("()=>!!document.getElementById('frun') && !!FlagRun.q") for k in kids]
+        ok(all(r), f"한 판 더 → 무대 다시 열림 (TV·아이) {r}")
+        await kids[0].evaluate("()=>Battle.leave()"); await kids[0].wait_for_timeout(500)
+        await kids[0].evaluate("()=>{ Battle.join(Battle.room||'"+room+"', {id:'k1', n:'민준', t:'ta'}); }") if False else None
+        r=await kids[1].evaluate("()=>{ const q=FlagRun.q; return !!q; }"); ok(r, "다른 아이는 계속")
         ok(not errs, f"스크립트 오류 없음 {errs[:3]}")
         await br.close()
     print("\nALL OK" if not bad else "\nFAIL", bad)
