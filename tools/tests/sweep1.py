@@ -18,7 +18,7 @@ async def main():
             errs=[]; pg=await br.new_page(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
             pg.on("pageerror", lambda e: errs.append(str(e))); pg.on("console", lambda m: errs.append('C:'+m.text) if m.type=='error' else None)
             await pg.route("**/*",route); await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(1000)
-            await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); StudyUI.open(); Voice.canListen=()=>true; }"); await pg.wait_for_timeout(1200)
+            await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); StudyUI.open(); Voice.canListen=()=>true; StudyUI.FAST=0; }"); await pg.wait_for_timeout(1200)
             n=await pg.evaluate(f"()=>Study.lessons('{st}').length"); bads=[]; steps=0; incomplete=[]
             for i in range(n):
                 try:
@@ -36,6 +36,7 @@ async def main():
                 if not done: incomplete.append(i)
             print(st, 'stages',n,'steps',steps,'bad',len(bads),'incomplete',incomplete,'errs',[e for e in errs if 'Failed to load' not in e and 'unknown error' not in e][:3]); 
             for b in bads[:6]: print('  ',b)
+            if incomplete or bads: print('BAD', st, '끝까지 못 푼 Stage' , incomplete, '문제', len(bads))   # (v399) 마지막 시험까지 모두 풀려야 함
             await pg.close()
         await br.close()
 asyncio.run(main())

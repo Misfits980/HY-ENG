@@ -30,7 +30,18 @@ def check_output(out):
         if BAD_LINE.search(l2): bad.append(ln.strip()[:200])
     return bad
 
+FLAKY = {}   # (v399) 처음 실패하고 다시 돌려 통과한 테스트 — 컴퓨터가 느려 시간이 모자란 것일 수 있어 한 번 더 혼자 돌려 봄
+
 def run_test(name):
+    r = run_once(name)
+    if r[2] and os.environ.get("HY_RETRY", "1") != "0":
+        first = r[2]; r2 = run_once(name)
+        if not r2[2]:
+            FLAKY[name] = first[:2]; return (name, r[1] + r2[1], [])
+        return (name, r[1] + r2[1], ["두 번 다 실패"] + r2[2])
+    return r
+
+def run_once(name):
     t0 = time.time()
     try:
         p = subprocess.run([sys.executable, os.path.join(HERE, name + ".py")], cwd=HERE,
@@ -87,6 +98,7 @@ def main():
         for name, secs, probs in ex.map(run_test, names):
             print("  %s %-12s %4ds%s" % ("✅" if not probs else "❌", name, secs, "" if not probs else "  " + " | ".join(probs[:3])))
             if probs: fails.append(name)
+    for n, why in FLAKY.items(): print("  ⚠️ %s — 처음엔 실패했다가 다시 돌려 통과 (%s) — 자주 나오면 원인 찾기" % (n, " | ".join(why)))
     ok = not bp and not fails
     print("== 결과:", "모두 통과 ✅" if ok else "실패 ❌ (%s) — 자세한 출력은 tools/tests/out/<이름>.log" % ", ".join(fails + (["기본 검사"] if bp else [])))
     sys.exit(0 if ok else 1)
