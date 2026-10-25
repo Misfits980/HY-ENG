@@ -100,7 +100,7 @@ async def main():
         ok(sorted(P) == sorted(["민준", "하준", "수아"]), f"☑ 여러 명 💎+30 {P}")
         await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(1500)
         b = await pg.evaluate("()=>{ const b=document.querySelector('[data-ad=copyAllTxt]'); if(!b) return null; b.click(); return b.textContent; }"); await pg.wait_for_timeout(300)
-        ok(b is not None and "민준이는 잘했어요" in await pg.evaluate("()=>window._clip") and "서연이도" in await pg.evaluate("()=>window._clip"), "💬 학부모 문자 모두 복사")
+        ok(b is not None and "[민준]" in await pg.evaluate("()=>window._clip") and "[서연]" in await pg.evaluate("()=>window._clip") and "학생은 이번 주" in await pg.evaluate("()=>window._clip"), "💬 학부모 문자 모두 복사")
         # ── 📝 다음 숙제 · 숙제 범위로 시험 ──
         await pg.evaluate("()=>FB.set('/hy/hw/cur', {ha:{id:'ha', on:1, team:'ta', set:'elem', from:0, to:3, goal:3, due:Date.now()+3*864e5, title:'초등 1~4', at:1}})"); await pg.wait_for_timeout(300)
         await pg.evaluate("()=>Admin._tab('work')"); await pg.wait_for_timeout(1500)
