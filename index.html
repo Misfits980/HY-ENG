@@ -2907,6 +2907,15 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .crsBtn{appearance:none;cursor:pointer;display:flex;align-items:center;gap:9px;width:min(310px,88vw);min-height:46px;box-sizing:border-box;margin:3px auto;padding:8px 12px;border-radius:16px;border:2px solid rgba(120,230,150,.55);background:linear-gradient(180deg,rgba(80,200,120,.22),rgba(80,200,120,.1));color:#fff;font-family:var(--font);text-align:left}
 .crsBtn[hidden]{display:none} .crsBtn b{font-size:14px;font-weight:900;white-space:nowrap} .crsBtn em{font-style:normal;font-size:12px;font-weight:900;color:#c9ffd9;margin-left:auto;white-space:nowrap}
 .crsDots{display:inline-flex;gap:4px} .crsDots i{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.4);display:block} .crsDots i.on{background:#7be39a;border-color:#d8ffe4;box-shadow:0 0 6px rgba(123,227,154,.8)}
+.cupHd{font-size:15px;font-weight:900;margin:2px 0 8px}.cupHd small{display:block;font-size:11.5px;font-weight:700;color:#a99ed0;margin-top:2px}
+.cpT{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:9px 10px;margin:5px 0;border-radius:14px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1)}
+.cpT.me{border-color:#7be39a;background:rgba(123,227,154,.12)} .cpT b{font-size:14px;white-space:nowrap} .cpT em{font-style:normal;font-size:11.5px;font-weight:800;color:#d8cff5;white-space:nowrap}
+.cpBar{height:14px;border-radius:8px;background:rgba(255,255,255,.1);overflow:hidden;display:block} .cpBar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#ffd23f,#ff9f43)}
+.cpMe,.cpHero,.cpPrize{margin:8px 0;padding:9px 11px;border-radius:12px;font-size:13px;font-weight:800;background:rgba(255,255,255,.07)} .cpPrize{background:rgba(255,210,63,.18);border:1.5px solid #ffd23f}
+.cpCh{margin-top:10px} .cpCh h4{margin:0 0 6px;font-size:13.5px} .cpCh .who,.cpCh .emo{display:flex;flex-wrap:wrap;gap:6px}
+.cpCh button{appearance:none;cursor:pointer;min-height:40px;padding:6px 12px;border-radius:12px;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;font:800 13.5px var(--font)} .cpCh button.on{border-color:#7be39a;background:rgba(123,227,154,.2)} .cpCh .emo button{font-size:22px;padding:4px 12px}
+.cpIn{display:block;margin:4px 0;font-size:13px;font-weight:800}
+#btnRankHome.cheerNew::after{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5a6e;margin-left:5px;vertical-align:super}
 .crsBtn.fin{border-color:#ffd23f;background:rgba(255,210,63,.16)} .crsBtn.fin em{color:#ffe9a8}
 .dmBtn.rd{border-color:#ffd23f;background:rgba(255,210,63,.24);animation:dmPulse 1.2s ease-in-out infinite}
 @keyframes dmPulse{50%{box-shadow:0 0 18px rgba(255,210,63,.6);transform:scale(1.02)}}
@@ -4058,6 +4067,7 @@ body.bpOn .wb{padding-bottom:170px}
     <div class="opt" data-v="hard"><i>🔥</i><b>Hard</b></div>
     <div class="opt" data-v="extreme"><i>⚔️</i><b>Expert</b></div>
     <div class="opt" data-v="dex"><i>📖</i><b>단어 수집</b></div>
+    <div class="opt" data-v="cup"><i>🏫</i><b>반 대항</b></div><!-- (v398) -->
   </div></div>
   <div class="group"><div class="opts" id="selRankRange" style="display:none">
     <div class="opt sel" data-v="week"><b>이번 주</b></div>
@@ -13946,7 +13956,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v397";
+const GAME_VER = "v398";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14010,7 +14020,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 const show = id => { ["scStart","scSetup","scOver","scRank","scPause","scStudy","scVs","scVsOver","scRaid"].forEach(x=>$(x).classList.toggle("on", x===id)); document.querySelectorAll(".dgChip.ghost").forEach(g=>g.remove());   // (v387)
   if(id==="scSetup") try{ Unlock.paint(); }catch(e){}
-  if(id==="scStart") try{ WeekBoss.banner(); DM.paint(); }catch(e){} };
+  if(id==="scStart") try{ WeekBoss.banner(); DM.paint(); Cup.badge(); }catch(e){} };
 $("hbBan").addEventListener("click", ()=>{ try{ WeekBoss.open(); }catch(e){ console.error(e); } });
 $("dmBtn").addEventListener("click", ()=>{ try{ DM.view(); }catch(e){ console.error(e); } });
 $("crsBtn").addEventListener("click", ()=>{ try{ SFX.select(); }catch(e){} try{ Course.go(); }catch(e){ console.error(e); } });
@@ -18852,6 +18862,75 @@ const Course = {
       if(x && (this.load().s|0)>0 && !((S.ran||{})[Study.key(set,x.n)])){ StudyUI.set=set; StudyUI.run(i); return; } }catch(e){ console.error(e); }
     try{ $("btnGo").click(); }catch(e){} }
 };
+/* (v398) 🏫 집에서 하는 반 대항전 + 💌 응원 — 사용자 QA 제안: 수업 시간 말고 집에서도 할 이유 · 친구와 이어져야 오래 한다
+   점수 = 이번 주(월~일) 반 아이들이 맞힌 문제 (공부 한 번에 맞힘 + 달리기 맞힘, /hy/day 의 so + rr) → 반 1인 평균 (못 한 아이도 사람 수에 들어가 인원이 달라도 공정)
+   지난주 우승 반 아이(지난주 1문제 이상)는 💎10 한 번 · 아이마다 반 영웅 3명만 이름을 보임 (꼴찌 이름은 안 보임)
+   응원 = 정해진 이모티콘 6개만 (글자 없음) · 같은 반 친구에게 · 하루 5번 · 같은 친구에게 하루 한 번 · /hy/cheer/<받는 아이>/<날>/<id> {f, fid, e, at} */
+const Cup = {
+  EM:["👏","👍","🔥","💪","🎉","⭐"], MAXD:5, PRIZE:10, _c:{}, _sel:null, _bt:0,
+  E(x){ return Raid.esc(x); },
+  addDay(d, n){ const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return d; return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]+n)).toISOString().slice(0,10); },
+  /* 한 주(월요일 날짜) 아이별 점수 {아이id: 맞힌 문제} — 지난 주는 한 번 읽으면 기기에 남김 */
+  week(mon){ const today=HyBoss.dayOf(Date.now()), cur=HyBoss.monday(), old=mon<cur, ck="hyeng_cup_"+mon;
+    if(old){ try{ const c=JSON.parse(localStorage.getItem(ck)); if(c && c.pts) return Promise.resolve(c.pts); }catch(e){} }
+    const m=this._c[mon]; if(m && Date.now()-m.at<90000) return Promise.resolve(m.pts);
+    const ds=[]; for(let i=0;i<7;i++){ const d=this.addDay(mon, i); if(d<=today) ds.push(d); }
+    return Promise.all(ds.map(d=>FB.get("/hy/day/"+d, true))).then(L=>{ const pts={};
+      L.forEach(D=>{ Object.keys(D||{}).forEach(k=>{ if(k[0]==="_") return; const x=D[k]||{}; const n=(x.so|0)+(x.rr|0); if(n>0) pts[k]=(pts[k]|0)+n; }); });
+      this._c[mon]={at:Date.now(), pts}; if(old){ try{ localStorage.setItem(ck, JSON.stringify({pts})); }catch(e){} } return pts; }); },
+  /* 반 순위 — [{t, n, e, total, avg, size, top:[[이름,점수]…]}] 1인 평균 큰 순 */
+  rank(pts){ const T=HyBoss.teams(), K=HyBoss.kids(), L=Object.keys(T).map(t=>{ const ms=Object.keys(K).filter(k=>K[k].t===t), total=ms.reduce((a,k)=>a+(pts[k]|0),0);
+      return {t, n:T[t].n||"반", e:T[t].e||"", total, size:ms.length, avg:ms.length ? total/ms.length : 0, top:ms.filter(k=>(pts[k]|0)>0).sort((a,b)=>(pts[b]|0)-(pts[a]|0)).slice(0,3).map(k=>[K[k].n, pts[k]|0])}; });
+    return L.filter(x=>x.size>0).sort((a,b)=>b.avg-a.avg); },
+  winners(R){ if(!R.length || !(R[0].total>0)) return []; return R.filter(x=>Math.abs(x.avg-R[0].avg)<1e-9 && x.total>0).map(x=>x.t); },
+  /* 지난주 우승 반 💎 (아이마다 한 번) */
+  prize(me, pts){ const mon=HyBoss.monday(Date.now()-7*864e5), R=this.rank(pts), W=this.winners(R); if(!me || !me.t || W.indexOf(me.t)<0 || !((pts[me.id]|0)>0)) return null;
+    const key="cup-"+mon+"-"+me.id; if(Wallet.paid(key)) return null; Wallet.pay(key); Wallet.addGems(this.PRIZE, "반 대항전 우승 "+mon); const t=R.find(x=>x.t===me.t); return {gem:this.PRIZE, t}; },
+  draw(box){ const want=()=>RANK_VIEW.diff==="cup"; const T=HyBoss.teams();
+    box.innerHTML='<div class="note">반 대항전을 불러오는 중…</div>';
+    try{ HyBoss.start(); }catch(e){}
+    HyBoss.refresh(true).then(()=>{ if(!want()) return;
+      const T2=HyBoss.teams(), ids=Object.keys(T2); if(ids.length<2){ box.innerHTML='<div class="cupHd">🏫 반 대항전</div><div class="note">반이 두 개 이상이면 열려요 — 선생님께 알려 주세요</div>'; return; }
+      const mon=HyBoss.monday(), last=HyBoss.monday(Date.now()-7*864e5), me=(()=>{ try{ return Kid.me(); }catch(e){ return null; } })();
+      return Promise.all([this.week(mon), this.week(last)]).then(([pts, lp])=>{ if(!want()) return;
+        const R=this.rank(pts), mx=Math.max(1, ...R.map(x=>x.avg)), E=x=>this.E(x), W=this.winners(R); let h='';
+        let pz=null; try{ pz=this.prize(me, lp); }catch(e){ console.error(e); }
+        if(pz) h+='<div class="cpPrize">🏆 지난주 우승! '+E((pz.t.e||"")+" "+pz.t.n)+' · 💎 +'+pz.gem+' 받았어요</div>';
+        h+='<div class="cupHd">🏫 이번 주 반 대항전<small>월~일 · 반 1인 평균 맞힌 문제 · 공부와 달리기 모두</small></div>';
+        h+=R.map((x,i)=>'<div class="cpT'+(me && me.t===x.t?' me':'')+'"><b>'+(x.total>0 ? ["🥇","🥈","🥉"][i]||"" : "")+' '+E((x.e||"")+" "+x.n)+'</b><span class="cpBar"><i style="width:'+Math.round(x.avg/mx*100)+'%"></i></span><em>평균 '+Math.round(x.avg)+' · '+x.size+'명</em></div>').join("");
+        if(me){ const mine=pts[me.id]|0, mt=R.find(x=>x.t===me.t), rk=mt ? R.indexOf(mt)+1 : 0;
+          h+='<div class="cpMe">👤 '+E(me.n)+' · 내가 맞힌 문제 <b>'+mine+'</b>'+(mt ? ' · 우리 반 '+R.length+'반 중 '+rk+'등' : '')+'</div>';
+          if(mt && mt.top.length) h+='<div class="cpHero">🦸 우리 반 영웅 '+mt.top.map(a=>E(a[0])+' '+a[1]).join(' · ')+'</div>'; }
+        else h+='<div class="cpMe">👤 이름을 고르면 내 점수가 보여요 <button class="mini" data-kidpick="1">이름 고르기</button></div>';
+        h+='<div class="note">'+(W.length ? '지금 1등은 '+W.map(t=>E((T2[t].e||"")+" "+T2[t].n)).join(', ')+' · 일요일에 마감해요 (우승 반 💎'+this.PRIZE+')' : '이번 주 첫 점수를 내 보세요!')+'</div>';
+        box.innerHTML=h;
+        if(me && me.t) this.cheerUI(box, me); });
+    }).catch(()=>{ if(want()) box.innerHTML='<div class="note">인터넷을 확인해 주세요 · 반 대항전을 불러오지 못했어요</div>'; }); },
+  /* ── 💌 응원 ── */
+  dk(me){ return "hyeng_cheer_d_"+String(me.id).slice(0,20); },
+  today(me){ const day=HyBoss.dayOf(Date.now()); let c=null; try{ c=JSON.parse(localStorage.getItem(this.dk(me))); }catch(e){} if(!c || c.day!==day) c={day, n:0, to:[]}; return c; },
+  seenK(me){ return "hyeng_cheer_seen_"+String(me.id).slice(0,20); },
+  inbox(me){ const t0=Date.now()-7*864e5;
+    return FB.get("/hy/cheer/"+me.id, true).then(D=>{ const L=[]; Object.keys(D||{}).forEach(d=>{ const X=D[d]||{}; Object.keys(X).forEach(k=>{ const x=X[k]||{}; if(x.e && (+x.at||0)>t0) L.push(x); }); }); return L.sort((a,b)=>(+b.at||0)-(+a.at||0)).slice(0,30); }); },
+  cheerUI(box, me){ const K=HyBoss.kids(), mates=Object.keys(K).filter(k=>K[k].t===me.t && k!==me.id), c=this.today(me), E=x=>this.E(x); let left=Math.max(0, this.MAXD-c.n);
+    const div=document.createElement("div"); div.className="cpCh"; box.appendChild(div);
+    const paint=(inb)=>{ const sel=this._sel;
+      div.innerHTML='<h4>💌 친구 응원하기 <small>(오늘 '+left+'번 남음 · 같은 친구에게는 하루 한 번)</small></h4>'
+        +(mates.length ? '<div class="who">'+mates.map(k=>'<button data-cup="who" data-k="'+E(k)+'" class="'+(sel===k?'on':'')+'"'+(c.to.indexOf(k)>=0?' disabled':'')+'>'+E(K[k].n)+(c.to.indexOf(k)>=0?' ✓':'')+'</button>').join("")+'</div>' : '<p class="adSmall">같은 반 친구가 아직 없어요</p>')
+        +(sel && left>0 ? '<div class="emo" style="margin-top:8px">'+this.EM.map(e=>'<button data-cup="emo" data-e="'+e+'">'+e+'</button>').join("")+'</div>' : '')
+        +'<h4 style="margin-top:12px">📬 받은 응원</h4>'+(inb && inb.length ? inb.slice(0,8).map(x=>'<span class="cpIn">'+E(x.e)+' '+E(x.f)+'</span>').join("") : '<p class="adSmall">'+(inb ? '아직 없어요 — 친구에게 먼저 보내 보세요!' : '불러오는 중…')+'</p>'); };
+    this._sel=null; paint(null);
+    div.onclick=ev=>{ const b=ev.target.closest && ev.target.closest("button[data-cup]"); if(!b) return; try{ SFX.select(); }catch(e){}
+      if(b.dataset.cup==="who"){ this._sel=this._sel===b.dataset.k ? null : b.dataset.k; paint(this._inb); return; }
+      if(b.dataset.cup==="emo" && this._sel){ const to=this._sel; this._sel=null; this.send(me, to, b.dataset.e).then(r=>{ if(r==="ok"){ c.n++; c.to.push(to); left=Math.max(0, this.MAXD-c.n); try{ localStorage.setItem(this.dk(me), JSON.stringify(c)); }catch(e){} hyToast('💌 응원을 보냈어요! '+b.dataset.e); } else hyToast(r==="limit" ? '오늘은 응원을 다 보냈어요' : '응원을 못 보냈어요 — 선생님께 서버 규칙을 알려 주세요'); paint(this._inb); }); } };
+    this.inbox(me).then(L=>{ this._inb=L; paint(L); try{ const mx=L.reduce((a,x)=>Math.max(a,+x.at||0),0); if(mx) localStorage.setItem(this.seenK(me), String(mx)); }catch(e){} try{ this.badge(true); }catch(e){} }, ()=>{ this._inb=[]; paint([]); }); },
+  send(me, to, emo){ const c=this.today(me); if(c.n>=this.MAXD || c.to.indexOf(to)>=0 || this.EM.indexOf(emo)<0) return Promise.resolve("limit");
+    const day=HyBoss.dayOf(Date.now()), t0=Date.now(); return FB.push("/hy/cheer/"+to+"/"+day, {f:String(me.n||"").slice(0,10), fid:String(me.id).slice(0,20), e:emo, at:t0}).then(()=>{ const er=FB.lastErr && FB.lastErr(); return (er && (+er.at||0)>=t0 && /cheer/.test(er.path||"")) ? "fail" : "ok"; }, ()=>"fail"); },
+  /* 🏆 랭킹 단추에 새 응원 점 (첫 화면에 올 때 3분에 한 번만 읽음) */
+  badge(force){ try{ const me=Kid.me(); const b=$("btnRankHome"); if(!b) return; if(!me){ b.classList.remove("cheerNew"); return; }
+      if(!force && Date.now()-this._bt<180000) return; this._bt=Date.now();
+      this.inbox(me).then(L=>{ let seen=0; try{ seen=+localStorage.getItem(this.seenK(me))||0; }catch(e){} const n=L.filter(x=>(+x.at||0)>seen).length; b.classList.toggle("cheerNew", n>0); b.dataset.n=n>0?String(n):""; }, ()=>{}); }catch(e){} }
+};
 const BossPat = {   // (v390 → v392) 판정 시간만 남김
   WIN:{low:{p:190, g:420}, mid:{p:150, g:340}, high:{p:120, g:280}},
   win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; }
@@ -21948,6 +22027,7 @@ let RANK_VIEW={diff:"easy", range:"week"};
 function drawRankScreen(){
   const box=$("rankList"), v=RANK_VIEW;
   const rr=$("selRankRange"); if(rr) rr.style.display = Online.on() ? "" : "none";
+  if(v.diff==="cup"){ if(rr) rr.style.display="none"; try{ Cup.draw(box); }catch(e){ console.error(e); box.innerHTML='<div class="note">반 대항전을 불러오지 못했어요</div>'; } return; }   // (v398) 🏫 집에서 하는 반 대항전 · 응원
   const dex=v.diff==="dex";
   if(!Online.on() || v.range==="local"){ box.innerHTML = dex ? dexLocalRow() : rankRows(v.diff); return; }
   const cached=Online.cacheGet(v.diff, v.range);
