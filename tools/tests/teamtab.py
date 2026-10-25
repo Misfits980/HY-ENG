@@ -75,7 +75,7 @@ async def main():
         await pg.evaluate("()=>{ const b=document.querySelector('[data-ad=repLoad]'); b && b.click(); }"); await pg.wait_for_timeout(1000)
         await pg.evaluate("()=>{ const b=[...document.querySelectorAll('#adTmList [data-ad=tmPick]')].find(b=>/MINJUN/.test(b.textContent)); b.click(); }"); await pg.wait_for_timeout(400)
         info = await pg.evaluate("()=>{ const i=document.querySelector('.adKidInfo'); return i ? i.innerText : ''; }")
-        ok("88%" in info and "민준이는 잘했어요" in info and "apple" in info, "아이 카드 → 이번 주 기록 · 학부모 문자 " + info[:60].replace("\n"," / "))
+        ok("88%" in info and "학생은 이번 주 4일" in info and "apple" in info, "아이 카드 → 이번 주 기록 · 학부모 문자 " + info[:60].replace("\n"," / "))
         await pg.evaluate("()=>{ window.confirm=()=>true; document.querySelector('.adKidInfo [data-ad=kdGem][data-n=\"30\"]').click(); }"); await pg.wait_for_timeout(500)
         ps = await pg.evaluate("()=>window._posts.filter(p=>p.type==='actAdd')")
         ok(ps and ps[-1]["who"] == "MINJUN" and ps[-1]["value"] == "+30" and ps[-1]["kind"] == "보석", f"💎 +30 보내기 {ps[-1:] }")
