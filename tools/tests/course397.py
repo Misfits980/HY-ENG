@@ -19,6 +19,9 @@ async def main():
         await pg.evaluate("()=>{ Voice.canListen=()=>true; show('scStart'); Course.s=null; DM.paint(); }"); await pg.wait_for_timeout(300)
         r=await txt(pg); ok(r and "공부부터" in r[0] and r[1]==2 and r[2]==0, f"처음: 공부부터 · 점 2 {r}")
         await pg.screenshot(path=OUT+"crs_start.png")
+        # (v402) 코스 + 미션 = 한 칸 (같은 줄) · 「공유 → 홈 화면에 추가」 줄 없음
+        q=await pg.evaluate("()=>{ const a=document.getElementById('crsBtn').getBoundingClientRect(), b=document.getElementById('dmBtn').getBoundingClientRect(), t=document.getElementById('tdBar'); return [t && !t.hidden && t.contains(document.getElementById('dmBtn')), Math.abs(a.top-b.top)<2, a.height>=44 && b.height>=44, b.width>=90, !document.getElementById('rotTip') && !document.getElementById('scStart').innerText.includes('홈 화면에 추가')]; }")
+        ok(all(q), f"코스·미션 한 칸 · 같은 줄 · 누르는 칸 44px 이상 · 공유 안내 없음 {q}")
         g0=await pg.evaluate("()=>Wallet.gems()")
         # 공부
         await pg.evaluate("()=>document.getElementById('crsBtn').click()"); await pg.wait_for_timeout(600)
