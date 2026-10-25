@@ -7121,8 +7121,8 @@ function updateLand(){
   const z = camera.position.z;
   // 대지의 안쪽 끝을 트랙 가장자리에 딱 붙여 사이가 벌어지지 않게 한다
   const inner = CFG.LANE_W*G.lanes/2 - 0.15;
-  if(landL){ landL.position.set(-(inner+130), -0.18, z-300); }
-  if(landR){ landR.position.set( (inner+130), -0.18, z-300); }
+  if(landL){ landL.position.set(-(inner+130), -0.04, z-300); }   /* (v403) -0.18 → 나무 밑동(0)이 땅에서 떠 보였다 */
+  if(landR){ landR.position.set( (inner+130), -0.04, z-300); }
   for(let i=0;i<hills.length;i++) hills[i].position.z = z - 190 - (i%4)*95;
   HorizonArt.update();
 }
@@ -7446,7 +7446,7 @@ const Props = {
           const m=this.make(kind);
           m.position.set(side*(edgeX + 0.9 + Math.random()*1.6), 0,
                          VIEW.camZ+10 - k*gap - Math.random()*gap);
-          m.scale.setScalar(0.3 + Math.random()*0.22);
+          m.scale.setScalar(0.42 + Math.random()*0.26);   /* (v403) 0.3~0.52 → 주인공(2.1)보다 작은 장난감 나무처럼 보였다 */
           scene.add(m);
           this.list.push({mesh:m, logicZ:m.position.z});
         }
@@ -7455,6 +7455,10 @@ const Props = {
   },
   update(dt,speed){
     const back = camera.position.z + 12;
+    /* (v403) 사용자 QA: 길 옆으로 지나가는 느낌이 이상하다 — 양옆 땅(landL/R)은 카메라를 따라다니며 무늬가 멈춰 있고 나무만 다가와서
+       나무가 땅 위를 미끄러지듯 보였다 → 땅 무늬를 달린 거리만큼 같이 흘려보낸다 (무늬 한 장 = 5칸, applyLandArt 의 repeat 와 같음) */
+    try{ const lm=scene.userData.landMat; if(lm && lm.map && speed>0){ lm.map.offset.y = (lm.map.offset.y + speed*dt/5) % 1; } }catch(e){}
+    const cx=camera.position.x, cz=camera.position.z;
     // 돌풍이 불면 나무·기둥이 바람 쪽으로 눕는다
     const w = (typeof Wind!=="undefined" && Wind.t>0) ? Wind.pushX()/WIND.PUSH : 0;
     const wz = (typeof Wind!=="undefined" && Wind.t>0) ? Wind.pushZ()/WIND.PUSH_Z : 0;
@@ -7464,6 +7468,8 @@ const Props = {
       p.logicZ += speed*dt;
       if(p.logicZ > back) p.logicZ -= this.span;
       p.mesh.position.z = p.logicZ;
+      /* (v403) 그림판 나무는 늘 카메라 쪽으로 돌아선다 — 옆을 지날 때 종이처럼 얇아지지 않게 */
+      if(p.mesh.userData.sprite) p.mesh.rotation.y = Math.atan2(cx - p.mesh.position.x, cz - p.logicZ);
       const k=Math.min(1, dt*2.4), sway=Math.sin(performance.now()*0.002 + i)*0.02*(w?1:0.35);
       p.mesh.rotation.z += ((tiltZ+sway) - p.mesh.rotation.z)*k;
       p.mesh.rotation.x += (tiltX - p.mesh.rotation.x)*k;
@@ -13970,7 +13976,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v402";
+const GAME_VER = "v403";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
