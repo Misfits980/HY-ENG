@@ -13939,7 +13939,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v395";
+const GAME_VER = "v396";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -15350,7 +15350,7 @@ const Study = (function(){
     deepLv, dlCur:()=>dlNow, DL_MAX, buildExam, examWords, olyProf, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
-    setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); },
+    setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
     see(en){ const s=load(); if(!s.seen[en]){ s.seen[en]=1; s.sd=s.sd||{}; s.sd[en]=today(); save(); } },   // (v302) 배운 날 (주간 시험)
     weekStart, weekWords, buildWeek, wkBest:set=>((load().wk||{})[bookOf(set)+"-"+weekStart()]|0), wkSet:(set,acc)=>{ const s=load(); s.wk=s.wk||{}; const k=bookOf(set)+"-"+weekStart(); if((s.wk[k]|0)<acc){ s.wk[k]=acc; save(); } } };
 })();
@@ -18648,6 +18648,7 @@ const HyHW = {
     StudyUI.book=Study.bookOf(c.set); StudyUI.set=c.set; try{ const s=Study.load(); s.book=StudyUI.book; s.set=c.set; Study.save(); }catch(e){}
     StudyUI.path(); setTimeout(()=>{ try{ StudyUI.pop(k); }catch(e){} }, 60); },
   /* 아이 진행 → 서버 (바뀌었을 때만) */
+  reportSoon(){ clearTimeout(this._rt); this._rt=setTimeout(()=>{ try{ this.report(); }catch(e){} }, 500); },   // (v396) 별이 오른 직후 (여러 Stage 가 한꺼번에 올라도 한 번)
   report(){ if(!this.on()) return; let me=null; try{ me=HyExam.me(); }catch(e){} if(!me) return; const [f,t]=this.prog(), k="hyeng_hwrep_"+this.c.id+"_"+String(me.id).slice(0,20);
     let last=""; try{ last=localStorage.getItem(k)||""; }catch(e){} if(last===f+"/"+t) return; try{ localStorage.setItem(k, f+"/"+t); }catch(e){}
     FB.set("/hy/hw/res/"+this.c.id+"/"+me.id, {n:String(me.n||"").slice(0,10), t:me.t||"all", done:f, tot:t, at:Date.now()}); },
