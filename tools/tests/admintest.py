@@ -79,7 +79,7 @@ async def main():
         if top[1] > 0 and abs(top[0]) > 2: bad.append("탭 줄이 안 붙음")
         # 공지 올리기
         await pg.evaluate("()=>Admin._tab('notice')"); await pg.wait_for_timeout(600)
-        print("srv", await pg.evaluate("()=>document.querySelector('.adSrv').innerText"))
+        print("srv", await pg.evaluate("()=>{ const e=document.querySelector('.adSrv'); return e ? e.innerText : '(v395) 잘 되면 줄 없음'; }"))
         pg.on("dialog", lambda d: asyncio.ensure_future(d.accept()))
         await pg.fill("#adNtText", "내일은 쉬는 날이에요"); await pg.click('[data-ad="ntDays"][data-d="1"]')
         await pg.click('[data-ad="ntPost"]'); await pg.wait_for_timeout(1500)

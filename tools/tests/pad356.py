@@ -21,14 +21,15 @@ async def main():
         await T.evaluate(ROSTER)
         await T.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }"); await T.reload(); await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); }"); await T.wait_for_timeout(500)
-        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"class\"]').click()"); await T.wait_for_timeout(900)
-        r = await T.evaluate("()=>[...document.querySelectorAll('[data-ad=\"nowSet\"]')].map(b=>b.textContent.trim())")
-        ok(r == ["초등반", "중등반"], f"지금 수업 반 버튼 {r}")
-        await T.evaluate("()=>document.querySelector('[data-ad=\"nowSet\"][data-t=\"b\"]').click()"); await T.wait_for_timeout(700)
+        # (v395) 지금 수업 반 = 🏫 지금 수업 탭 「어느 반 수업?」 (반 고르기가 공용 패드 반까지)
+        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"now\"]').click()"); await T.wait_for_timeout(900)
+        r = await T.evaluate("()=>[...document.querySelectorAll('[data-ad=\"nowCls\"]')].map(b=>b.textContent.trim())")
+        ok([x.split(" ")[-1] for x in r] == ["전체", "초등반", "중등반"], f"지금 수업 반 버튼 {r}")
+        await T.evaluate("()=>document.querySelector('[data-ad=\"nowCls\"][data-c=\"b\"]').click()"); await T.wait_for_timeout(900)
         n = await T.evaluate("()=>FB.get('/hy/roster/now')")
         ok(n and n.get("t") == "b" and n["until"] - n["at"] == 3 * 3600 * 1000, f"서버에 지금 수업 반 {n}")
-        r = await T.evaluate("()=>{ const e=document.querySelector('.adNow .adNowNow'); return e ? e.innerText : ''; }")
-        ok("중등반" in r and "수업 중" in r, f"선생님 화면 표시 {r}")
+        r = await T.evaluate("()=>{ const e=document.querySelector('.adClsSub'); return e ? e.innerText : ''; }")
+        ok("중등반" in r and "공용 패드" in r, f"선생님 화면 표시 {r}")
         await T.screenshot(path=OUT + "pad356_admin.png")
         # 숙제·시험 — 초등반·중등반 따로
         await T.evaluate("""()=>Promise.all([FB.set('/hy/hw/cur', {ha:{id:'ha', on:1, team:'a', set:'elem', from:0, to:1, goal:3, due:Date.now()+864e5, title:'초등 숙제', at:1}, hb:{id:'hb', on:1, team:'b', set:'mid', from:0, to:1, goal:3, due:Date.now()+864e5, title:'중등 숙제', at:2}}),
@@ -63,7 +64,7 @@ async def main():
         r = await P.evaluate("()=>[Kid.padT(), HyBoss.nowT()]")
         ok(r == [None, "b"], f"개인 기기는 반 지정 안 받음 {r}")
         # 수업 끝
-        await T.evaluate("()=>document.querySelector('[data-ad=\"nowOff\"]').click()"); await T.wait_for_timeout(500)
+        await T.evaluate("()=>document.querySelector('[data-ad=\"nowCls\"][data-c=\"all\"]').click()"); await T.wait_for_timeout(500)
         r = await K.evaluate("()=>HyBoss.refresh(true).then(()=>[Kid.padT(), HyHW.mine() && HyHW.mine().title])")
         ok(r[0] is None and r[1] is None, f"수업 끝 → 공용 패드 원래대로 (반 숙제 안 보임) {r}")
         # 시간 지나면 저절로
