@@ -13956,7 +13956,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v399";
+const GAME_VER = "v400";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18882,33 +18882,39 @@ const Cup = {
   /* (v399) 이름 있는 아이 = 명단(roster)에 있는 아이 (같은 아이가 두 번 들어간 「반 없음」은 뺌) */
   named(){ const K=HyBoss.kids(), dup={}; try{ HyBoss.dupNoClass().forEach(k=>{ dup[k]=1; }); }catch(e){}
     return Object.keys(K).filter(k=>!dup[k] && String(K[k].n||"").trim()).sort(); },
+  /* (v400) 사용자: 유치부 애들은 섞으면 힘들어 → 유치부는 유치부끼리, 나머지는 나머지끼리 따로 팀·순위. 유치부 = 반 이름(또는 반 이모지)에 아래 글자가 들어간 반 */
+  YOUNG_RE:/유치|씨앗|킨더|새싹반|kinder|seed|🧸|🌰/i,
+  grp(k){ try{ const x=HyBoss.kids()[k], t=x && HyBoss.teams()[x.t]; return t && this.YOUNG_RE.test((t.e||"")+" "+(t.n||"")) ? "y" : "o"; }catch(e){ return "o"; } },
   TN:[["🦁","사자팀"],["🐬","돌고래팀"],["🐯","호랑이팀"],["🦊","여우팀"],["🐼","판다팀"],["🐲","용팀"]],
   hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h>>>0; },
   /* 한 주의 랜덤 팀 — 월요일 날짜로 섞어서(같은 명단이면 모든 기기가 같은 팀) 번갈아 나눔 → 인원이 거의 같음. 4명 미만이면 열지 않음 */
-  teams(mon){ const ids=this.named(); if(ids.length<4) return [];
-    const n=Math.max(2, Math.min(this.TN.length, Math.round(ids.length/6))), order=ids.slice().sort((a,b)=>(this.hash(mon+"|"+a)-this.hash(mon+"|"+b)) || (a<b?-1:1)), T=[];
-    for(let i=0;i<n;i++) T.push({t:"r"+i, e:this.TN[i][0], n:this.TN[i][1], ids:[]});
-    order.forEach((k,i)=>T[i%n].ids.push(k)); return T; },
+  teams(mon, g){ const all=this.named(), out=[];
+    ["y","o"].forEach(gg=>{ if(g && g!==gg) return; const ids=all.filter(k=>this.grp(k)===gg); if(ids.length<4) return;
+      const n=Math.max(2, Math.min(this.TN.length, Math.round(ids.length/6))), order=ids.slice().sort((a,b)=>(this.hash(mon+"|"+a)-this.hash(mon+"|"+b)) || (a<b?-1:1)), T=[];
+      for(let i=0;i<n;i++) T.push({t:gg+i, g:gg, e:this.TN[i][0], n:this.TN[i][1], ids:[]});
+      order.forEach((k,i)=>T[i%n].ids.push(k)); T.forEach(x=>out.push(x)); });
+    return out; },
   /* 팀 순위 — [{t, n, e, total, avg, size, ids, top:[[이름,점수]…]}] 1인 평균 큰 순 */
-  rank(pts, mon){ const K=HyBoss.kids(), L=this.teams(mon||HyBoss.monday()).map(x=>{ const total=x.ids.reduce((a,k)=>a+(pts[k]|0),0);
-      return {t:x.t, n:x.n, e:x.e, ids:x.ids, total, size:x.ids.length, avg:x.ids.length ? total/x.ids.length : 0, top:x.ids.filter(k=>(pts[k]|0)>0).sort((a,b)=>(pts[b]|0)-(pts[a]|0)).slice(0,3).map(k=>[K[k].n, pts[k]|0])}; });
+  rank(pts, mon, g){ const K=HyBoss.kids(), L=this.teams(mon||HyBoss.monday(), g).map(x=>{ const total=x.ids.reduce((a,k)=>a+(pts[k]|0),0);
+      return {t:x.t, g:x.g, n:x.n, e:x.e, ids:x.ids, total, size:x.ids.length, avg:x.ids.length ? total/x.ids.length : 0, top:x.ids.filter(k=>(pts[k]|0)>0).sort((a,b)=>(pts[b]|0)-(pts[a]|0)).slice(0,3).map(k=>[K[k].n, pts[k]|0])}; });
     return L.sort((a,b)=>b.avg-a.avg); },
   myTeam(R, me){ return me ? (R.find(x=>x.ids.indexOf(me.id)>=0) || null) : null; },
   winners(R){ if(!R.length || !(R[0].total>0)) return []; return R.filter(x=>Math.abs(x.avg-R[0].avg)<1e-9 && x.total>0).map(x=>x.t); },
   /* 지난주 우승 팀 💎 (아이마다 한 번) */
-  prize(me, pts){ const mon=HyBoss.monday(Date.now()-7*864e5), R=this.rank(pts, mon), W=this.winners(R), mt=this.myTeam(R, me); if(!me || !mt || W.indexOf(mt.t)<0 || !((pts[me.id]|0)>0)) return null;
+  prize(me, pts){ const mon=HyBoss.monday(Date.now()-7*864e5), R0=this.rank(pts, mon), mt=this.myTeam(R0, me), R=mt ? this.rank(pts, mon, mt.g) : R0, W=this.winners(R); if(!me || !mt || W.indexOf(mt.t)<0 || !((pts[me.id]|0)>0)) return null;
     const key="cup-"+mon+"-"+me.id; if(Wallet.paid(key)) return null; Wallet.pay(key); Wallet.addGems(this.PRIZE, "팀 대항전 우승 "+mon); return {gem:this.PRIZE, t:mt}; },
   draw(box){ const want=()=>RANK_VIEW.diff==="cup";
     box.innerHTML='<div class="note">팀 대항전을 불러오는 중…</div>';
     try{ HyBoss.start(); }catch(e){}
     HyBoss.refresh(true).then(()=>{ if(!want()) return;
       const mon=HyBoss.monday(), last=HyBoss.monday(Date.now()-7*864e5), me=(()=>{ try{ return Kid.me(); }catch(e){ return null; } })();
-      if(this.teams(mon).length<2){ box.innerHTML='<div class="cupHd">🎲 이번 주 팀 대항전</div><div class="note">이름이 등록된 친구가 4명 이상이면 열려요 — 선생님께 알려 주세요</div>'; return; }
+      const g=me ? this.grp(me.id) : "o", young=g==="y";
+      if(this.teams(mon, g).length<2){ box.innerHTML='<div class="cupHd">🎲 이번 주 팀 대항전'+(young?' · 유치부':'')+'</div><div class="note">'+(young?'유치부 ':'')+'이름이 등록된 친구가 4명 이상이면 열려요 — 선생님께 알려 주세요</div>'; return; }
       return Promise.all([this.week(mon), this.week(last)]).then(([pts, lp])=>{ if(!want()) return;
-        const R=this.rank(pts, mon), mx=Math.max(1, ...R.map(x=>x.avg)), E=x=>this.E(x), W=this.winners(R), mt=this.myTeam(R, me); let h='';
+        const R=this.rank(pts, mon, g), mx=Math.max(1, ...R.map(x=>x.avg)), E=x=>this.E(x), W=this.winners(R), mt=this.myTeam(R, me); let h='';
         let pz=null; try{ pz=this.prize(me, lp); }catch(e){ console.error(e); }
         if(pz) h+='<div class="cpPrize">🏆 지난주 우승! '+E((pz.t.e||"")+" "+pz.t.n)+' · 💎 +'+pz.gem+' 받았어요</div>';
-        h+='<div class="cupHd">🎲 이번 주 팀 대항전<small>월~일 · 팀은 주마다 새로 섞여요 · 팀 1인 평균 맞힌 문제 · 공부와 달리기 모두</small></div>';
+        h+='<div class="cupHd">🎲 이번 주 팀 대항전'+(young?' · 유치부':'')+'<small>월~일 · 팀은 주마다 새로 섞여요 · 팀 1인 평균 맞힌 문제 · 공부와 달리기 모두</small></div>';
         h+=R.map((x,i)=>'<div class="cpT'+(mt && mt.t===x.t?' me':'')+'"><b>'+(x.total>0 ? ["🥇","🥈","🥉"][i]||"" : "")+' '+E((x.e||"")+" "+x.n)+'</b><span class="cpBar"><i style="width:'+Math.round(x.avg/mx*100)+'%"></i></span><em>평균 '+Math.round(x.avg)+' · '+x.size+'명</em></div>').join("");
         if(me && mt){ const mine=pts[me.id]|0, rk=R.indexOf(mt)+1;
           h+='<div class="cpMe">👤 '+E(me.n)+' · 내가 맞힌 문제 <b>'+mine+'</b> · 우리 팀은 '+E((mt.e||"")+" "+mt.n)+' · '+R.length+'팀 중 '+rk+'등</div>';
