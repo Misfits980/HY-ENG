@@ -13956,7 +13956,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v400";
+const GAME_VER = "v401";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18882,14 +18882,19 @@ const Cup = {
   /* (v399) 이름 있는 아이 = 명단(roster)에 있는 아이 (같은 아이가 두 번 들어간 「반 없음」은 뺌) */
   named(){ const K=HyBoss.kids(), dup={}; try{ HyBoss.dupNoClass().forEach(k=>{ dup[k]=1; }); }catch(e){}
     return Object.keys(K).filter(k=>!dup[k] && String(K[k].n||"").trim()).sort(); },
-  /* (v400) 사용자: 유치부 애들은 섞으면 힘들어 → 유치부는 유치부끼리, 나머지는 나머지끼리 따로 팀·순위. 유치부 = 반 이름(또는 반 이모지)에 아래 글자가 들어간 반 */
-  YOUNG_RE:/유치|씨앗|킨더|새싹반|kinder|seed|🧸|🌰/i,
-  grp(k){ try{ const x=HyBoss.kids()[k], t=x && HyBoss.teams()[x.t]; return t && this.YOUNG_RE.test((t.e||"")+" "+(t.n||"")) ? "y" : "o"; }catch(e){ return "o"; } },
+  /* (v401) 사용자: 6세는 애매하고 반 대항은 초등으로 따로 / 공용 패드(스트로베리 반 …)도 생각해서.
+     구분 3가지 — k 유치부 · e 초등 · m 중등. 반마다 선생님이 정함(👥 아이들 → 반 제목의 구분 단추, 서버 /hy/roster/t/<반>/g) — 안 정한 반은 이름으로 짐작(유치·씨앗 → 유치부 / 중등·중학 → 중등 / 나머지 초등).
+     아이의 구분 = 그 아이가 속한 반의 구분 (공용 패드 구분이 아님). 반 없는 아이 = 초등. 구분마다 따로 팀·순위·우승 💎. */
+  GR:[["k","🧸","유치부"],["e","🎒","초등"],["m","🏫","중등"]],
+  YOUNG_RE:/유치|씨앗|킨더|새싹반|kinder|seed|🧸|🌰/i, MID_RE:/중등|중학|고등|middle/i,
+  grpT(t){ try{ const x=HyBoss.teams()[t]; if(!x) return "e"; if(x.g==="k"||x.g==="e"||x.g==="m") return x.g; const nm=(x.e||"")+" "+(x.n||""); return this.YOUNG_RE.test(nm) ? "k" : this.MID_RE.test(nm) ? "m" : "e"; }catch(e){ return "e"; } },
+  grp(k){ try{ const x=HyBoss.kids()[k]; return this.grpT(x && x.t); }catch(e){ return "e"; } },
+  grName(g){ const r=this.GR.find(x=>x[0]===g)||this.GR[1]; return r[1]+" "+r[2]; },
   TN:[["🦁","사자팀"],["🐬","돌고래팀"],["🐯","호랑이팀"],["🦊","여우팀"],["🐼","판다팀"],["🐲","용팀"]],
   hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h>>>0; },
   /* 한 주의 랜덤 팀 — 월요일 날짜로 섞어서(같은 명단이면 모든 기기가 같은 팀) 번갈아 나눔 → 인원이 거의 같음. 4명 미만이면 열지 않음 */
   teams(mon, g){ const all=this.named(), out=[];
-    ["y","o"].forEach(gg=>{ if(g && g!==gg) return; const ids=all.filter(k=>this.grp(k)===gg); if(ids.length<4) return;
+    this.GR.map(r=>r[0]).forEach(gg=>{ if(g && g!==gg) return; const ids=all.filter(k=>this.grp(k)===gg); if(ids.length<4) return;
       const n=Math.max(2, Math.min(this.TN.length, Math.round(ids.length/6))), order=ids.slice().sort((a,b)=>(this.hash(mon+"|"+a)-this.hash(mon+"|"+b)) || (a<b?-1:1)), T=[];
       for(let i=0;i<n;i++) T.push({t:gg+i, g:gg, e:this.TN[i][0], n:this.TN[i][1], ids:[]});
       order.forEach((k,i)=>T[i%n].ids.push(k)); T.forEach(x=>out.push(x)); });
@@ -18905,16 +18910,19 @@ const Cup = {
     const key="cup-"+mon+"-"+me.id; if(Wallet.paid(key)) return null; Wallet.pay(key); Wallet.addGems(this.PRIZE, "팀 대항전 우승 "+mon); return {gem:this.PRIZE, t:mt}; },
   draw(box){ const want=()=>RANK_VIEW.diff==="cup";
     box.innerHTML='<div class="note">팀 대항전을 불러오는 중…</div>';
+    /* (v401) 공용 패드 — 앞 아이 이름이 남아 있을 수 있어서 「○○ 맞아요?」 한 번 (우승 💎·내 팀이 엉뚱한 아이로 가지 않게) */
+    let sh=false; try{ sh=Kid.shared() && !!Kid.get(); }catch(e){} if(sh && !this._okDraw){ this._okDraw=1; try{ Kid.confirm(()=>{ this._okDraw=0; if(want()) this.draw(box); }); return; }catch(e){ this._okDraw=0; } }
     try{ HyBoss.start(); }catch(e){}
     HyBoss.refresh(true).then(()=>{ if(!want()) return;
       const mon=HyBoss.monday(), last=HyBoss.monday(Date.now()-7*864e5), me=(()=>{ try{ return Kid.me(); }catch(e){ return null; } })();
-      const g=me ? this.grp(me.id) : "o", young=g==="y";
-      if(this.teams(mon, g).length<2){ box.innerHTML='<div class="cupHd">🎲 이번 주 팀 대항전'+(young?' · 유치부':'')+'</div><div class="note">'+(young?'유치부 ':'')+'이름이 등록된 친구가 4명 이상이면 열려요 — 선생님께 알려 주세요</div>'; return; }
+      let g="e"; try{ g = me ? this.grp(me.id) : (Kid.padT() ? this.grpT(Kid.padT()) : "e"); }catch(e){}
+      const gl=this.grName(g);
+      if(this.teams(mon, g).length<2){ box.innerHTML='<div class="cupHd">🎲 이번 주 팀 대항전 · '+gl+'</div><div class="note">'+gl+' 친구 중 이름이 등록된 아이가 4명 이상이면 열려요 — 선생님께 알려 주세요</div>'; return; }
       return Promise.all([this.week(mon), this.week(last)]).then(([pts, lp])=>{ if(!want()) return;
         const R=this.rank(pts, mon, g), mx=Math.max(1, ...R.map(x=>x.avg)), E=x=>this.E(x), W=this.winners(R), mt=this.myTeam(R, me); let h='';
         let pz=null; try{ pz=this.prize(me, lp); }catch(e){ console.error(e); }
         if(pz) h+='<div class="cpPrize">🏆 지난주 우승! '+E((pz.t.e||"")+" "+pz.t.n)+' · 💎 +'+pz.gem+' 받았어요</div>';
-        h+='<div class="cupHd">🎲 이번 주 팀 대항전'+(young?' · 유치부':'')+'<small>월~일 · 팀은 주마다 새로 섞여요 · 팀 1인 평균 맞힌 문제 · 공부와 달리기 모두</small></div>';
+        h+='<div class="cupHd">🎲 이번 주 팀 대항전 · '+gl+'<small>월~일 · 팀은 주마다 새로 섞여요 · 팀 1인 평균 맞힌 문제 · 공부와 달리기 모두</small></div>';
         h+=R.map((x,i)=>'<div class="cpT'+(mt && mt.t===x.t?' me':'')+'"><b>'+(x.total>0 ? ["🥇","🥈","🥉"][i]||"" : "")+' '+E((x.e||"")+" "+x.n)+'</b><span class="cpBar"><i style="width:'+Math.round(x.avg/mx*100)+'%"></i></span><em>평균 '+Math.round(x.avg)+' · '+x.size+'명</em></div>').join("");
         if(me && mt){ const mine=pts[me.id]|0, rk=R.indexOf(mt)+1;
           h+='<div class="cpMe">👤 '+E(me.n)+' · 내가 맞힌 문제 <b>'+mine+'</b> · 우리 팀은 '+E((mt.e||"")+" "+mt.n)+' · '+R.length+'팀 중 '+rk+'등</div>';
@@ -18941,12 +18949,13 @@ const Cup = {
     this._sel=null; paint(null);
     div.onclick=ev=>{ const b=ev.target.closest && ev.target.closest("button[data-cup]"); if(!b) return; try{ SFX.select(); }catch(e){}
       if(b.dataset.cup==="who"){ this._sel=this._sel===b.dataset.k ? null : b.dataset.k; paint(this._inb); return; }
-      if(b.dataset.cup==="emo" && this._sel){ const to=this._sel; this._sel=null; this.send(me, to, b.dataset.e).then(r=>{ if(r==="ok"){ c.n++; c.to.push(to); left=Math.max(0, this.MAXD-c.n); try{ localStorage.setItem(this.dk(me), JSON.stringify(c)); }catch(e){} hyToast('💌 응원을 보냈어요! '+b.dataset.e); } else hyToast(r==="limit" ? '오늘은 응원을 다 보냈어요' : '응원을 못 보냈어요 — 선생님께 서버 규칙을 알려 주세요'); paint(this._inb); }); } };
+      if(b.dataset.cup==="emo" && this._sel){ const to=this._sel; this._sel=null; const emo=b.dataset.e; const go=()=>this.send(me, to, emo).then(r=>{ if(r==="ok"){ c.n++; c.to.push(to); left=Math.max(0, this.MAXD-c.n); try{ localStorage.setItem(this.dk(me), JSON.stringify(c)); }catch(e){} hyToast('💌 응원을 보냈어요! '+emo); } else hyToast(r==="limit" ? '오늘은 응원을 다 보냈어요' : '응원을 못 보냈어요 — 선생님께 서버 규칙을 알려 주세요'); paint(this._inb); });
+        let sh=false; try{ sh=Kid.shared(); }catch(e){} if(sh){ try{ Kid.confirm(go); }catch(e){ go(); } } else go(); } };   /* (v401) 공용 패드 — 이름 확인 뒤에 보냄 */
     this.inbox(me).then(L=>{ this._inb=L; paint(L); try{ const mx=L.reduce((a,x)=>Math.max(a,+x.at||0),0); if(mx) localStorage.setItem(this.seenK(me), String(mx)); }catch(e){} try{ this.badge(true); }catch(e){} }, ()=>{ this._inb=[]; paint([]); }); },
   send(me, to, emo){ const c=this.today(me); if(c.n>=this.MAXD || c.to.indexOf(to)>=0 || this.EM.indexOf(emo)<0) return Promise.resolve("limit");
     const day=HyBoss.dayOf(Date.now()), t0=Date.now(); return FB.push("/hy/cheer/"+to+"/"+day, {f:String(me.n||"").slice(0,10), fid:String(me.id).slice(0,20), e:emo, at:t0}).then(()=>{ const er=FB.lastErr && FB.lastErr(); return (er && (+er.at||0)>=t0 && /cheer/.test(er.path||"")) ? "fail" : "ok"; }, ()=>"fail"); },
   /* 🏆 랭킹 단추에 새 응원 점 (첫 화면에 올 때 3분에 한 번만 읽음) */
-  badge(force){ try{ const me=Kid.me(); const b=$("btnRankHome"); if(!b) return; if(!me){ b.classList.remove("cheerNew"); return; }
+  badge(force){ try{ const me=Kid.me(); const b=$("btnRankHome"); if(!b) return; if(!me || Kid.shared()){   /* (v401) 공용 패드는 앞 아이 이름일 수 있어 빨간 점 없음 */ b.classList.remove("cheerNew"); return; }
       if(!force && Date.now()-this._bt<180000) return; this._bt=Date.now();
       this.inbox(me).then(L=>{ let seen=0; try{ seen=+localStorage.getItem(this.seenK(me))||0; }catch(e){} const n=L.filter(x=>(+x.at||0)>seen).length; b.classList.toggle("cheerNew", n>0); b.dataset.n=n>0?String(n):""; }, ()=>{}); }catch(e){} }
 };
@@ -20478,7 +20487,7 @@ const Admin = (function(){
     const nSel=Object.keys(sel).filter(k=>sel[k] && K[k]).length;
     const selBar = selMode ? '<div class="adSelBar"><b>'+nSel+'명 골랐어요</b><button class="mini" data-ad="selAll">'+(q?'찾은 아이 모두':'모두')+'</button>'+[10,30,50].map(n=>'<button class="mini go" data-ad="selGem" data-n="'+n+'"'+(nSel?'':' disabled')+'>💎+'+n+'</button>').join('')+'<button class="mini" data-ad="selMode">취소</button></div>' : '';
     const lh = padBar + cleanBar + (grp.length ? grp.map(t=>{ const ks=kidsOf(t); if(q && !ks.length) return '';
-        return '<section class="adCard adTm"><h3>'+(t==="_" ? '❔ 반 없음' : esc((T[t].e||"")+" "+T[t].n))+'<small>'+ks.length+'명</small>'+(t!=="_" ? '<span class="adTmBtns"><button class="mini" data-ad="teRn" data-t="'+esc(t)+'">✏️</button><button class="mini warn" data-ad="teDel" data-t="'+esc(t)+'">지우기</button></span>' : (ks.length ? '<span class="adTmBtns"><button class="mini warn" data-ad="nocAll" data-t="_">모두 빼기</button></span>' : ''))+'</h3>'
+        return '<section class="adCard adTm"><h3>'+(t==="_" ? '❔ 반 없음' : esc((T[t].e||"")+" "+T[t].n))+'<small>'+ks.length+'명</small>'+(t!=="_" ? '<span class="adTmBtns"><button class="mini" data-ad="teGrp" data-t="'+esc(t)+'" title="팀 대항전 구분 — 누르면 바뀜">'+esc(Cup.grName(Cup.grpT(t)))+'</button><button class="mini" data-ad="teRn" data-t="'+esc(t)+'">✏️</button><button class="mini warn" data-ad="teDel" data-t="'+esc(t)+'">지우기</button></span>' : (ks.length ? '<span class="adTmBtns"><button class="mini warn" data-ad="nocAll" data-t="_">모두 빼기</button></span>' : ''))+'</h3>'
           +'<div class="adKids">'+(ks.length ? ks.map(chip).join('') : '<span class="adSmall">아직 없어요 — 위 ➕ 반·아이 넣기</span>')+'</div>'
           +(ks.indexOf(tmPick)>=0 && !selMode ? act(tmPick) : '')+'</section>'; }).join('')+(q && !grp.some(t=>kidsOf(t).length) ? '<p class="adSmall">「'+esc(kQ)+'」 아이가 없어요</p>' : '')
       : '<p class="adSmall">아직 반이 없어요 — 위 <b>➕ 반·아이 넣기</b>에서 반을 만들어요</p>') + selBar;
@@ -20999,6 +21008,7 @@ const Admin = (function(){
     if(a==="pzOff"){ const id=el.dataset.id, off=!!(((HyBoss.R||{}).pzoff||{})[id]); FB.set("/hy/roster/pzoff/"+id, off ? null : 1); msg(off ? "다시 팔아요" : "판매를 멈췄어요 — 아이 상점에서 사라져요", true); return; }
     if(a==="nowSet"){ const t=el.dataset.t, T=HyBoss.teams(); if(!T[t]) return; const now=Date.now(); FB.set("/hy/roster/now", {t, at:now, until:now+3*3600e3}); msg("🏫 지금 수업: "+((T[t].e||"")+" "+T[t].n).trim()+" — 공용 패드가 이 반으로 (3시간)", true); return; }   // (v356)
     if(a==="nowOff"){ FB.set("/hy/roster/now", null); msg("수업 끝 — 공용 패드는 다시 모든 반", true); return; }
+    if(a==="teGrp"){ const t=el.dataset.t, T=HyBoss.teams(); if(!T[t]) return; const ord=Cup.GR.map(r=>r[0]), nx=ord[(ord.indexOf(Cup.grpT(t))+1)%ord.length]; FB.update("/hy/roster/t/"+t, {g:nx}); msg("🎲 팀 대항전: 「"+((T[t].e||"")+" "+T[t].n).trim()+"」 = "+Cup.grName(nx)+" 끼리 팀을 짜요", true); return; }
     if(a==="teRn"){ const T=HyBoss.teams(), x=T[el.dataset.t]; if(!x) return; const n=(prompt("반 이름", x.n)||"").trim().slice(0,10); if(!n || n===x.n) return; FB.update("/hy/roster/t/"+el.dataset.t, {n}); return; }
     /* (v351) 사용자: 반 「지우기」가 확인 없이 바로 지워짐 (패드에 따라 confirm 창이 안 뜨고 바로 '확인'이 됨) → 앱 안에서 두 번 누르기
        첫 번째 = 버튼이 「한 번 더 누르면 지워요」로 바뀜(5초) · 두 번째 = 지움 · 지운 뒤 「↩️ 되돌리기」 (반 이름·아이들 반 그대로) */
