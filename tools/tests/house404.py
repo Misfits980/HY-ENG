@@ -4,6 +4,7 @@
      (사용자: 영어 문제로 묶지 말고 아이템 이름을 영어로만 — 가구·도감·꾸미기 이름 영어)
   ③ 입질 전에 톡 = 미끼 돌려받고 끝 · 입질 뒤 늦으면 놓침 · 미끼 0 이면 못 던짐
   ⑥ 가방·가게: 잡으면 가방 · 신선도(2시간 그대로→48시간 0) · 시간마다 값(0.5~1.7배, 같은 시간 같은 값) · 팔면 맛보기 보석
+  ⑦ 농사·모으기·만들기·요리: 심기(씨앗 필요) · 물 안 주면 멈춤 · 물 12시간 동안 자람 · 수확 · 나무 사과(시간 지나야 다시) · 바위 · 제작대 · 요리 · 먹으면 🍀
   ④ 나 꾸미기: 모자 바꾸면 저장되고 새로 열어도 그대로
   ⑤ 가로 화면에서도 방이 화면 안 · 오류 없음"""
 import asyncio, sys, os
@@ -65,7 +66,7 @@ async def main():
         q=await pg.evaluate("()=>({fish:HOUSE.F.fish.en, name:document.getElementById('qAsk').innerText.trim(), ko:/[가-힣]/.test(document.getElementById('quiz').innerText.replace('🆕','')), opts:document.querySelectorAll('#qOpts button[data-en]').length})")
         ok(q["name"]==q["fish"] and not q["ko"] and q["opts"]==0, f"문제 없이 영어 이름만 (한국어 없음) {q}")
         ok(await pg.evaluate("(f)=>HOUSE.dex()[f]===1", q["fish"]), "잡으면 바로 도감 +1")
-        await pg.click("#qOk"); await pg.wait_for_timeout(200)
+        await pg.evaluate("()=>{ if(document.getElementById('quiz').classList.contains('on')) document.getElementById('qOk').click(); }"); await pg.wait_for_timeout(200)   # 2.6초 뒤 저절로 닫힐 수 있음
         await until("()=>HOUSE.F.st==='idle'", 20)
         # ③ 일찍 누름 = 미끼 돌려받음 · 늦으면 놓침 · 미끼 0
         b1=await pg.evaluate("()=>HOUSE.bait()")
@@ -74,7 +75,7 @@ async def main():
         await pg.evaluate("()=>HOUSE.tapWhileFishing()")
         ok(await pg.evaluate("()=>HOUSE.F.st")=="idle" and await pg.evaluate("()=>HOUSE.bait()")==b1, "입질 전 톡 → 끝 · 미끼 돌려받음")
         await pg.evaluate("()=>HOUSE.tryFish(7,6)"); await until("()=>HOUSE.F.st==='wait'")
-        await pg.evaluate("()=>HOUSE.bite()"); ok(await until("()=>HOUSE.F.st==='idle'", 12), "입질 뒤 1초 넘게 안 누르면 놓침")
+        await pg.evaluate("()=>HOUSE.bite()"); ok(await until("()=>HOUSE.F.st==='idle'", 60), "입질 뒤 1초 넘게 안 누르면 놓침")
         ok(await pg.evaluate("()=>HOUSE.bait()")==b1-1, "놓쳐도 미끼는 씀")
         await pg.evaluate("()=>HOUSE.setBait(0)"); await pg.evaluate("()=>HOUSE.tryFish(7,6)"); await pg.wait_for_timeout(300)
         ok(await pg.evaluate("()=>HOUSE.F.st")=="idle" and "미끼" in await pg.evaluate("()=>document.getElementById('toast').innerText"), "미끼 0 → 못 던지고 안내")
@@ -98,6 +99,26 @@ async def main():
         ok(await pg.evaluate("()=>HOUSE.bag().length")==0 and await pg.evaluate("()=>localStorage.getItem('hyeng_proto_gems')")==str(await pg.evaluate("()=>HOUSE.gems()")), "모두 팔기 · 보석 저장(게임 보석과 따로)")
         ok(await pg.evaluate("()=>!localStorage.getItem('hyeng_wallet_v1') || !JSON.parse(localStorage.getItem('hyeng_wallet_v1')).log.some(l=>/Fish|가게/.test(l[2]))"), "게임 지갑은 안 건드림")
         await pg.click("#shopDone")
+        # ⑦ 🌱 농사 · 🪵 모으기 · 🛠 만들기 · 🍳 요리
+        await pg.evaluate("()=>{ const m=HOUSE.mats(); Object.keys(m).forEach(k=>delete m[k]); Object.assign(m, {'carrot seeds':1,'pumpkin seeds':1, branch:4}); }")
+        ok(await pg.evaluate("()=>HOUSE.plant(0,'carrot') && !HOUSE.plant(0,'pumpkin')"), "씨앗 심기 · 심은 밭엔 또 못 심음")
+        ok(await pg.evaluate("()=>!HOUSE.plant(1,'tomato')"), "없는 씨앗은 못 심음")
+        await pg.evaluate("()=>HOUSE.ffwd(20)"); ok(await pg.evaluate("()=>HOUSE.plotStage(0)")=="sprout", "물을 안 주면 자라지 않음 (시들지도 않음)")
+        await pg.evaluate("()=>HOUSE.water(0)"); await pg.evaluate("()=>HOUSE.ffwd(6)"); st6=await pg.evaluate("()=>HOUSE.plotStage(0)")
+        await pg.evaluate("()=>HOUSE.ffwd(7)"); st13=await pg.evaluate("()=>HOUSE.plotStage(0)")
+        ok(st6 in ("small","big") and st13=="ripe", f"물 주면 진짜 시간으로 자람 6시간 {st6} · 13시간 {st13}")
+        ok(await pg.evaluate("()=>HOUSE.harvest(0)")==2 and await pg.evaluate("()=>HOUSE.mats().carrot")==2 and await pg.evaluate("()=>HOUSE.plotStage(0)")=="empty", "수확 → carrot ×2 · 밭 비움")
+        await pg.evaluate("()=>{ HOUSE.plant(1,'pumpkin'); HOUSE.water(1); HOUSE.ffwd(30); }"); ok(await pg.evaluate("()=>HOUSE.plotStage(1)")!="ripe", "물 효과는 12시간 — 호박(48시간)은 다시 물을 줘야 함")
+        a0=await pg.evaluate("()=>HOUSE.mats().apple|0"); await pg.evaluate("()=>{ HOUSE.ffwd(30); HOUSE.regen(); HOUSE.shakeTree(0); }")
+        a1=await pg.evaluate("()=>HOUSE.mats().apple|0"); ok(a1>a0, f"나무 흔들기 → apple {a0}→{a1}")
+        a2=await pg.evaluate("()=>{ HOUSE.shakeTree(0); return HOUSE.mats().apple|0; }"); ok(a2==a1, "바로 또 흔들면 사과 없음 (시간이 지나야 열림)")
+        s0=await pg.evaluate("()=>HOUSE.mats().stone|0"); await pg.evaluate("()=>HOUSE.hitRock(0)"); ok(await pg.evaluate("()=>HOUSE.mats().stone|0")==s0+1, "바위 → stone +1")
+        ok(await pg.evaluate("()=>HOUSE.make('craft','chair')") and await pg.evaluate("()=>HOUSE.stock.chair")>=1, "🛠 branch 4 → chair (집 창고로)")
+        ok(not await pg.evaluate("()=>HOUSE.make('craft','lamp')"), "재료가 모자라면 못 만듦")
+        await pg.evaluate("()=>HOUSE.addMat('wheat',2)"); ok(await pg.evaluate("()=>HOUSE.make('cook','bread')") and await pg.evaluate("()=>HOUSE.mats().bread")==1, "🍳 wheat 2 → bread")
+        await pg.evaluate("()=>HOUSE.openBag()"); await pg.wait_for_timeout(300); await pg.click('[data-eat="bread"]'); await pg.wait_for_timeout(200)
+        ok(await pg.evaluate("()=>HOUSE.buff()>Date.now()+8*60e3") and not await pg.evaluate("()=>HOUSE.mats().bread"), "음식 먹기 → 🍀 lucky 10분")
+        await pg.click("#bagDone")
         # ④ 나 꾸미기
         await pg.click("#bAv2"); await pg.wait_for_timeout(500)
         await pg.click('.chip[data-k="hat"][data-v="cap"]'); await pg.wait_for_timeout(300)

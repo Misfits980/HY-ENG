@@ -83,6 +83,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .fBar{display:inline-block;width:54px;height:7px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden;text-decoration:none} .fBar s{display:block;height:100%;background:linear-gradient(90deg,#ff7a7a,#ffd23f,#7be39a);text-decoration:none}
 .sEmpty{text-align:center;color:var(--sub);font-weight:800;padding:14px 0}
 .shopFoot{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.bH{margin:10px 0 6px;font-size:13px;color:var(--sub)} .bH small{color:var(--sub)}
+.bChips{display:flex;flex-wrap:wrap;gap:6px}
+.bChip{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.08);font-weight:800;font-size:13.5px}
+.btn.sm2{min-height:36px;padding:4px 10px;font-size:13px}
+.need{text-decoration:none;display:inline-block;margin:2px 4px 0 0;padding:1px 6px;border-radius:8px;background:rgba(123,227,154,.18)} .need.no{background:rgba(255,107,122,.2)}
 .dexGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
 .dexC{border-radius:14px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);padding:8px 4px;text-align:center;min-height:96px}
 .dexC i{font-style:normal;font-size:34px;display:block}
@@ -106,7 +111,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 </div>
 <div class="bar bot">
   <div class="grp" id="gRoom"><button class="btn" id="bOut">🚪 마당</button><button class="btn" id="bEdit">✏️ 가구</button><button class="btn" id="bWall">🎨</button><button class="btn" id="bFloor">🟫</button><button class="btn" id="bAv1">👕 나</button></div>
-  <div class="grp" id="gYard"><button class="btn" id="bIn">🏠 집</button><button class="btn" id="bBait">🪱 0</button><button class="btn" id="bShop">🏪 0</button><button class="btn" id="bAv2">👕 나</button></div>
+  <div class="grp" id="gYard"><button class="btn" id="bIn">🏠 집</button><button class="btn" id="bBait">🪱 0</button><button class="btn" id="bShop">🎒 0</button><button class="btn" id="bAv2">👕 나</button></div>
   <div class="grp" id="gFish"><button class="btn" id="bStop">✋ 그만</button></div>
 </div>
 <div id="drawer">
@@ -117,8 +122,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 <div class="sheet" id="shopP"><div class="hd"><b>🏪 Fish Shop</b><button class="btn" id="shopDone">닫기</button></div>
   <div class="shopTop" id="shopTop"></div>
   <div class="shopMkt" id="shopMkt"></div>
-  <div id="shopBag"></div>
+  <div id="shopBag"></div><div id="shopMats"></div>
   <div class="shopFoot"><button class="btn on" id="sellAll">모두 팔기</button><button class="btn" id="ffwd">⏩ +3시간 <small>(맛보기)</small></button></div></div>
+<div class="sheet" id="craftP"><div class="hd"><b id="craftT">🛠 Workbench</b><button class="btn" id="craftDone">닫기</button></div><div id="craftBody"></div></div>
+<div class="sheet" id="seedP"><div class="hd"><b>🌰 무엇을 심을까요?</b><button class="btn" id="seedDone">닫기</button></div><div class="row" id="seedBody" style="display:flex;gap:8px;overflow-x:auto"></div></div>
+<div class="sheet" id="bagP"><div class="hd"><b>🎒 가방</b><button class="btn" id="bagShop">🏪 가게로</button><button class="btn" id="bagDone">닫기</button></div><div id="bagBody"></div><div class="shopFoot"><button class="btn" id="bagFf">⏩ +3시간 <small>(맛보기)</small></button></div></div>
 <div class="sheet" id="dexP"><div class="hd"><b>🐟 물고기 도감 <small id="dexN"></small></b><button class="btn" id="dexDone">닫기</button></div><div class="dexGrid" id="dexBody"></div></div>
 <div id="place"><button class="btn" id="pRot">↻ 돌리기</button><button class="btn on" id="pOk">✅ 놓기</button><button class="btn" id="pNo">✕</button></div>
 <div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻</button><button class="btn sm" id="mMove" aria-label="옮기기">✋</button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦</button></div>
@@ -266,7 +274,10 @@ const isWater=(x,z)=>x>=POND.x0&&x<=POND.x1&&z>=POND.z0&&z<=POND.z1;
 const isHouse=(x,z)=>HOUSE_T.some(t=>t[0]===x&&t[1]===z);
 const STALL_T=[[6,1],[7,1]], STALL_FRONT=[[6,2],[7,2]];   // (L0-3) 🏪 물고기 가게
 const isStall=(x,z)=>STALL_T.some(t=>t[0]===x&&t[1]===z);
-function yardBlocked(x,z){ return isWater(x,z) || isHouse(x,z) || isStall(x,z) || TREES.some(t=>t[0]===x&&t[1]===z); }
+/* (L0-4) 🌱 밭 6칸 · 🛠 제작대 · 🍳 요리 냄비 · 🪨 바위 2 */
+const PLOTS=[[1,5],[2,5],[3,5],[1,6],[2,6],[3,6]], BENCH=[3,1], POT=[4,2], ROCKS=[[7,9],[9,6]];
+const at=(L,x,z)=>L.findIndex(t=>t[0]===x&&t[1]===z);
+function yardBlocked(x,z){ return isWater(x,z) || isHouse(x,z) || isStall(x,z) || TREES.some(t=>t[0]===x&&t[1]===z) || at(PLOTS,x,z)>=0 || (x===BENCH[0]&&z===BENCH[1]) || (x===POT[0]&&z===POT[1]) || at(ROCKS,x,z)>=0; }
 const WL = 0.035;   // 물 높이
 {
   const grass=canvasTex(256,256,(g,w,h)=>{ g.fillStyle="#7cc96a"; g.fillRect(0,0,w,h); for(let i=0;i<1400;i++){ g.fillStyle=Math.random()<.5?"rgba(255,255,255,.06)":"rgba(30,90,30,.10)"; const x=Math.random()*w, y=Math.random()*h; g.fillRect(x,y,2,5); } },[YN/2.5,YN/2.5]);
@@ -292,10 +303,28 @@ const WL = 0.035;   // 물 높이
   part(H, rbox(0.3,0.5,0.3,0.02), M(0xb05040), 0.8,2.2,-0.2);                // 굴뚝
   scene.userData.houseObj=H;
   // 나무
-  TREES.forEach(([x,z],i)=>{ const T=new THREE.Group(); T.position.set(x+0.5,0,z+0.5); yardG.add(T); const s=0.85+((i*37)%10)/30;
+  scene.userData.trees=[];
+  TREES.forEach(([x,z],i)=>{ const T=new THREE.Group(); T.position.set(x+0.5,0,z+0.5); yardG.add(T); scene.userData.trees[i]=T; T.userData.fruit=(i%3!==2); T.userData.s=0.85+((i*37)%10)/30; const s=T.userData.s;
     part(T, cyl(0.09*s,0.13*s,0.7*s,10), M(0x8a5a34), 0,0.35*s,0);
     if(i%3===2){ for(let k=0;k<3;k++) part(T, cone(0.5*s-k*0.1*s,0.6*s,10), M(0x3f9a58), 0,0.9*s+k*0.35*s,0); }
     else { [[0,1.05,0,0.42],[0.25,0.9,0.1,0.3],[-0.22,0.92,-0.08,0.32],[0.02,1.3,0.05,0.3]].forEach(([a,b,c,r])=>part(T, sph(r*s), M(i%2?0x5cbf5a:0x6fcf62), a*s,b*s,c*s)); } });
+  // 🪨 바위
+  scene.userData.rocks=ROCKS.map(([x,z],i)=>{ const R=new THREE.Group(); R.position.set(x+0.5,0,z+0.5); yardG.add(R);
+    const a=part(R, new THREE.IcosahedronGeometry(0.36,0), M(0xa9a39a,{flatShading:true}), 0,0.22,0); a.scale.set(1,0.75,0.9);
+    const b=part(R, new THREE.IcosahedronGeometry(0.2,0), M(0x8f897f,{flatShading:true}), 0.24,0.12,0.15); return R; });
+  // 🛠 제작대
+  { const B=new THREE.Group(); B.position.set(BENCH[0]+0.5,0,BENCH[1]+0.5); yardG.add(B); scene.userData.benchObj=B;
+    part(B, rbox(0.9,0.1,0.62,0.03), M(0xb07a4a), 0,0.6,0); [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>part(B, rbox(0.08,0.56,0.08,0.02), M(0x8a5a34), a*0.36,0.28,b*0.22));
+    part(B, rbox(0.3,0.05,0.12,0.02), M(0x9aa3ad,{metalness:.4}), -0.15,0.68,0.05); part(B, cyl(0.025,0.025,0.32,8), M(0x8a5a34), 0.18,0.68,-0.05).rotation.z=Math.PI/2; part(B, rbox(0.12,0.08,0.08,0.02), M(0x666b73), 0.32,0.69,-0.05); }
+  // 🍳 요리 냄비 (모닥불)
+  { const K=new THREE.Group(); K.position.set(POT[0]+0.5,0,POT[1]+0.5); yardG.add(K); scene.userData.potObj=K;
+    for(let i=0;i<5;i++){ const st=part(K, sph(0.09), M(0x9a948a), Math.cos(i/5*Math.PI*2)*0.3,0.05,Math.sin(i/5*Math.PI*2)*0.3); st.scale.y=0.6; }
+    [0,1.1,2.2].forEach(a=>{ const l=part(K, cyl(0.045,0.045,0.5,8), M(0x7a4a26), 0,0.08,0); l.rotation.z=Math.PI/2; l.rotation.y=a; });
+    part(K, sph(0.11), M(0xff8a3d,{emissive:0xff6a00, emissiveIntensity:.7}), 0,0.16,0);
+    const pot=new THREE.Mesh(new THREE.SphereGeometry(0.26,18,12,0,Math.PI*2,Math.PI*0.35,Math.PI*0.65), M(0x3a3a44,{metalness:.3, side:THREE.DoubleSide})); pot.position.y=0.42; pot.castShadow=true; K.add(pot);
+    part(K, cyl(0.24,0.24,0.02,18), M(0xe8a35a), 0,0.5,0); }
+  // 🌱 밭 (모양은 drawPlot 이 그림)
+  scene.userData.plotG=PLOTS.map(([x,z])=>{ const P=new THREE.Group(); P.position.set(x+0.5,0,z+0.5); yardG.add(P); return P; });
   // 꽃 (밟을 수 있음)
   const FC=[0xff7aa8,0xffd23f,0xffffff,0xb28dff,0xff8a65];
   for(let i=0;i<26;i++){ const x=Math.floor(Math.random()*YN), z=Math.floor(Math.random()*YN); if(yardBlocked(x,z) || (x===DOOR[0]&&z===DOOR[1])) continue;
@@ -478,6 +507,116 @@ function fresh(it){ if(FISH_BY[it.en].noRot) return 1; const h=(now()-it.at)/360
 function freshTag(v){ return v>0.75?["✨","fresh"]:v>0.4?["🙂","good"]:v>0.05?["😕","old"]:["🤢","rotten"]; }
 function price(it){ return Math.max(1, Math.round(FISH_BY[it.en].p * mkt(it.en) * (0.15+0.85*fresh(it)))); }
 function saveBag(){ store("hyeng_proto_bag", bag); store("hyeng_proto_gems", gems); }
+/* ═════════ 🌾 재료 · 🌱 밭 · 🛠 만들기 · 🍳 요리 (L0-4) ═════════ */
+const MAT={ apple:{e:"🍎",p:2}, branch:{e:"🪵",p:1}, stone:{e:"🪨",p:1},
+  carrot:{e:"🥕",p:3}, wheat:{e:"🌾",p:2}, potato:{e:"🥔",p:3}, tomato:{e:"🍅",p:4}, strawberry:{e:"🍓",p:5}, pumpkin:{e:"🎃",p:8},
+  bread:{e:"🍞",p:8,food:1}, fries:{e:"🍟",p:10,food:1}, "apple pie":{e:"🥧",p:15,food:1}, "pumpkin pie":{e:"🎃",p:22,food:1}, "fish stew":{e:"🍲",p:18,food:1}, pasta:{e:"🍝",p:14,food:1}, "fruit salad":{e:"🥗",p:12,food:1}, jam:{e:"🍯",p:14,food:1} };
+const SEEDS={ carrot:{p:2,h:12,y:2}, wheat:{p:1,h:12,y:3}, potato:{p:2,h:24,y:2}, tomato:{p:3,h:24,y:2}, strawberry:{p:4,h:24,y:2}, pumpkin:{p:6,h:48,y:1} };
+const WATER_H=12;
+let mats = store("hyeng_proto_mats") || {apple:2, branch:3, stone:2, "carrot seeds":3, "wheat seeds":3, "potato seeds":2, "tomato seeds":2, "strawberry seeds":2, "pumpkin seeds":1};
+let plots = store("hyeng_proto_plots") || PLOTS.map(()=>({s:null}));
+let res = store("hyeng_proto_res") || {t:TREES.map(()=>({a:2, at:Date.now(), b:0})), r:ROCKS.map(()=>({n:3, at:Date.now()}))};
+let buffUntil = store("hyeng_proto_buff") || 0, rod2 = !!store("hyeng_proto_rod2");
+function saveFarm(){ store("hyeng_proto_mats", mats); store("hyeng_proto_plots", plots); store("hyeng_proto_res", res); store("hyeng_proto_buff", buffUntil); store("hyeng_proto_rod2", rod2); store("hyeng_proto_gems", gems); }
+function addMat(n, k){ mats[n]=(mats[n]|0)+(k==null?1:k); if(mats[n]<=0) delete mats[n]; saveFarm(); }
+const has=(n,k)=>(mats[n]|0)>=k;
+const matE=n=>(MAT[n]||{}).e || (/ seeds$/.test(n)?"🌰":"❔");
+const matP=n=>Math.max(1, Math.round(((MAT[n]||{}).p||1)*mkt(n)));
+/* 밭 — 물을 주면 12시간 동안 자람 (안 주면 멈춤, 시들지 않음) */
+function grow(pl){ if(!pl.s || !pl.wt) return; const t=now(), end=pl.wt+WATER_H*3600e3, from=Math.max(pl.le||pl.wt, pl.wt), to=Math.min(t,end); if(to>from) pl.g=(pl.g||0)+(to-from)/3600e3; pl.le=t; if(t>=end){ pl.wt=0; pl.le=0; } }
+function plotStage(pl){ if(!pl.s) return "empty"; grow(pl); const k=(pl.g||0)/SEEDS[pl.s].h; return k>=1?"ripe":k>=0.66?"big":k>=0.33?"small":"sprout"; }
+function plotDry(pl){ return pl.s && !pl.wt && plotStage(pl)!=="ripe"; }
+function drawPlot(i){ const P=scene.userData.plotG[i], pl=plots[i]; while(P.children.length) P.remove(P.children[0]);
+  const st=plotStage(pl), wet=!!pl.wt;
+  const soil=part(P, rbox(0.9,0.08,0.9,0.03), M(wet?0x5a3a22:0x8a5e3c), 0,0.04,0); soil.castShadow=false;
+  for(let r=0;r<3;r++){ const fur=part(P, rbox(0.8,0.02,0.06,0.01), M(wet?0x4a2e1a:0x76502f), 0,0.085,-0.28+r*0.28); fur.castShadow=false; }
+  if(!pl.s){ P.userData.st="empty"; dirty=true; return; }
+  const G=0x5dbb63;
+  if(st==="sprout"){ [[-0.08,0],[0.08,0.02]].forEach(([x,z])=>{ const l=part(P, sph(0.06), M(G), x,0.13,z); l.scale.set(1,0.6,1.3); }); }
+  else if(st==="small"||(st==="big")){ const n=st==="small"?3:5, h=st==="small"?0.18:0.3; for(let k=0;k<n;k++){ const a=k/n*Math.PI*2, l=part(P, cone(0.07,h,6), M(G), Math.cos(a)*0.12,0.08+h/2,Math.sin(a)*0.12); l.rotation.z=Math.cos(a)*0.3; l.rotation.x=-Math.sin(a)*0.3; } }
+  else { const c=pl.s;
+    if(c==="carrot"){ [[-0.15,0],[0.15,0.05],[0,-0.18]].forEach(([x,z])=>{ part(P, cone(0.07,0.12,8), M(0xff8a2a), x,0.12,z).rotation.x=Math.PI; for(let k=0;k<3;k++) part(P, cone(0.03,0.2,5), M(G), x+(k-1)*0.03,0.26,z).rotation.z=(k-1)*0.4; }); }
+    if(c==="wheat"){ for(let k=0;k<9;k++){ const x=((k%3)-1)*0.22, z=(Math.floor(k/3)-1)*0.22; part(P, cyl(0.012,0.012,0.45,4), M(0xc9a64a), x,0.3,z); const e=part(P, sph(0.04), M(0xe8c35a), x,0.55,z); e.scale.y=2; } }
+    if(c==="potato"){ for(let k=0;k<5;k++){ const a=k/5*Math.PI*2; part(P, sph(0.11), M(G), Math.cos(a)*0.15,0.2,Math.sin(a)*0.15); } [[-0.25,0.2],[0.22,-0.2]].forEach(([x,z])=>part(P, sph(0.08), M(0xb88a52), x,0.1,z)); }
+    if(c==="tomato"){ part(P, cyl(0.015,0.015,0.7,5), M(0x8a5a34), 0,0.38,0); part(P, sph(0.18), M(G), 0,0.45,0); [[0.12,0.4,0.12],[-0.1,0.5,0.1],[0.05,0.32,-0.14]].forEach(([x,y,z])=>part(P, sph(0.07), M(0xe8402a), x,y,z)); }
+    if(c==="strawberry"){ for(let k=0;k<4;k++){ const a=k/4*Math.PI*2; const l=part(P, sph(0.1), M(G), Math.cos(a)*0.17,0.13,Math.sin(a)*0.17); l.scale.y=0.5; } [[0.1,0.1],[-0.12,-0.05],[0.02,-0.15]].forEach(([x,z])=>part(P, cone(0.05,0.09,8), M(0xe83a4a), x,0.12,z).rotation.x=Math.PI); }
+    if(c==="pumpkin"){ const b=part(P, sph(0.3), M(0xff8a1a), 0,0.24,0); b.scale.set(1.1,0.75,1.1); part(P, cyl(0.03,0.04,0.12,6), M(0x5a7a2a), 0,0.5,0); for(let k=0;k<3;k++){ const l=part(P, sph(0.09), M(G), 0.25*Math.cos(k*2),0.1,0.25*Math.sin(k*2)); l.scale.y=0.4; } }
+    const sp=part(P, sph(0.035), M(0xffffff,{emissive:0xffffaa, emissiveIntensity:1}), 0.3,0.6,0.3); sp.userData.spark=true; }
+  if(plotDry(pl)){ const d=part(P, sph(0.07), new THREE.MeshBasicMaterial({color:0x4fb8ff}), 0,0.62,0); d.scale.y=1.3; d.userData.drop=true; }
+  P.userData.st=st+(wet?"w":"d"); dirty=true; }
+function drawPlots(){ plots.forEach((_,i)=>drawPlot(i)); }
+function checkPlots(){ let ch=false; plots.forEach((pl,i)=>{ const P=scene.userData.plotG[i], k=plotStage(pl)+(pl.wt?"w":"d"); if(P.userData.st!==k){ drawPlot(i); ch=true; } }); if(ch) saveFarm(); }
+/* 나무 · 바위 다시 열림 */
+function regen(){ const t=now();
+  res.t.forEach((r,i)=>{ if(!scene.userData.trees[i].userData.fruit){ r.a=0; return; } const n=Math.floor((t-r.at)/(8*3600e3)); if(n>0){ r.a=Math.min(3,r.a+n); r.at+=n*8*3600e3; if(r.a>=3) r.at=t; } });
+  res.r.forEach(r=>{ const n=Math.floor((t-r.at)/(6*3600e3)); if(n>0){ r.n=Math.min(3,r.n+n); r.at+=n*6*3600e3; if(r.n>=3) r.at=t; } }); }
+function drawFruit(){ scene.userData.trees.forEach((T,i)=>{ T.children.filter(c=>c.userData.apple).forEach(c=>T.remove(c)); const s=T.userData.s, n=res.t[i].a|0;
+  [[0.3,0.95,0.25],[-0.28,1.0,0.2],[0.05,1.2,0.33]].slice(0,n).forEach(([x,y,z])=>{ const a=part(T, sph(0.07), M(0xe8402a), x*s,y*s,z*s); a.userData.apple=true; }); }); dirty=true; }
+let shakeT=[]; function wobble(obj){ shakeT.push({o:obj, t:0}); }
+function updWobble(dt){ for(let i=shakeT.length-1;i>=0;i--){ const w=shakeT[i]; w.t+=dt; w.o.rotation.z=Math.sin(w.t*40)*0.08*Math.max(0,1-w.t/0.6); if(w.t>0.6){ w.o.rotation.z=0; shakeT.splice(i,1); } } return shakeT.length>0; }
+function act(kind){ hero.act=kind; hero.actT=0; setTimeout(()=>{ if(hero.act===kind) hero.act="idle"; }, 500); }
+function gotList(L){ const t=L.filter(x=>x[1]>0).map(([n,k])=>matE(n)+" "+n+" +"+k).join(" · "); if(t){ toast(t); say(L.find(x=>x[1]>0)[0]); } else toast("지금은 없어요 — 조금 있다 다시 와요"); }
+function shakeTree(i){ regen(); const T=scene.userData.trees[i], r=res.t[i]; wobble(T); act("reel"); const got=[];
+  if(r.a>0){ got.push(["apple", r.a]); addMat("apple", r.a); r.a=0; r.at=now(); }
+  if(now()-(r.b||0) > 4*3600e3){ got.push(["branch", 1]); addMat("branch", 1); r.b=now(); }
+  saveFarm(); drawFruit(); gotList(got); }
+function hitRock(i){ regen(); const r=res.r[i]; wobble(scene.userData.rocks[i]); act("reel");
+  if(r.n>0){ r.n--; if(r.n===2) r.at=now(); addMat("stone",1); gotList([["stone",1]]); } else gotList([]); saveFarm(); }
+function plant(i, seed){ const pl=plots[i]; if(pl.s || !has(seed+" seeds",1)) return false; addMat(seed+" seeds",-1); plots[i]={s:seed, g:0, wt:0}; saveFarm(); drawPlot(i); say(seed); return true; }
+function water(i){ const pl=plots[i]; if(!pl.s || pl.wt || plotStage(pl)==="ripe") return false; grow(pl); pl.wt=now(); pl.le=pl.wt; act("reel"); saveFarm(); drawPlot(i); splash(i); return true; }
+function harvest(i){ const pl=plots[i]; if(plotStage(pl)!=="ripe") return 0; const y=SEEDS[pl.s].y; addMat(pl.s, y); const n=pl.s; plots[i]={s:null}; act("yay"); saveFarm(); drawPlot(i); gotList([[n,y]]); return y; }
+function splash(i){ const [x,z]=PLOTS[i]; for(let k=0;k<3;k++) setTimeout(()=>ring(x+0.5+rnd(-0.2,0.2), z+0.5+rnd(-0.2,0.2)), k*90); }
+function onPlot(i){ const pl=plots[i], st=plotStage(pl);
+  if(!pl.s){ openSeeds(i); return; }
+  if(st==="ripe"){ harvest(i); return; }
+  if(!pl.wt){ water(i); toast("💧 물을 줬어요 — 12시간 동안 자라요"); return; }
+  const left=Math.max(0, SEEDS[pl.s].h-(pl.g||0)), wl=Math.max(0,(pl.wt+WATER_H*3600e3-now())/3600e3);
+  toast(MAT[pl.s].e+" "+pl.s+" · "+Math.ceil(left)+"시간 더 자라야 해요<br><small>💧 물 효과 "+wl.toFixed(1)+"시간 남음</small>", 2200); }
+/* 레시피 — 🛠 제작대 · 🍳 냄비 */
+const CRAFT=[ {id:"chair", e:"🪑", nm:"chair", need:{branch:4}, give:()=>{ stock.chair=(stock.chair|0)+1; }, to:"🏠 창고"},
+  {id:"plant", e:"🪴", nm:"plant", need:{stone:2, branch:1}, give:()=>{ stock.plant=(stock.plant|0)+1; }, to:"🏠 창고"},
+  {id:"lamp", e:"💡", nm:"lamp", need:{stone:2, branch:2}, give:()=>{ stock.lamp=(stock.lamp|0)+1; }, to:"🏠 창고"},
+  {id:"rod", e:"🎣", nm:"good rod", need:{branch:5, stone:3}, give:()=>{ rod2=true; }, to:"드문 물고기 ↑", once:()=>rod2} ];
+const COOK=[ {id:"bread", need:{wheat:2}}, {id:"fries", need:{potato:2}}, {id:"apple pie", need:{apple:2, wheat:1}}, {id:"pumpkin pie", need:{pumpkin:1, wheat:1}},
+  {id:"fish stew", need:{"🐟":1, tomato:1}}, {id:"pasta", need:{wheat:1, tomato:2}}, {id:"fruit salad", need:{apple:1, strawberry:1}}, {id:"jam", need:{strawberry:2}} ];
+const fishFood=()=>bag.map((b,i)=>({b,i})).filter(x=>!FISH_BY[x.b.en].noRot).sort((a,b)=>fresh(a.b)-fresh(b.b));   // 요리엔 가장 오래된 물고기부터
+const haveN=n=>n==="🐟" ? fishFood().length : (mats[n]|0);
+function canMake(r){ return Object.keys(r.need).every(n=>haveN(n)>=r.need[n]) && !(r.once && r.once()); }
+function make(kind, id){ const L=kind==="craft"?CRAFT:COOK, r=L.find(x=>x.id===id); if(!r || !canMake(r)) return false;
+  Object.keys(r.need).forEach(n=>{ if(n==="🐟"){ for(let k=0;k<r.need[n];k++){ const f=fishFood()[0]; bag.splice(f.i,1); } saveBag(); updBagBtn(); } else addMat(n, -r.need[n]); });
+  if(kind==="craft"){ r.give(); drawInv(); toast(r.e+" "+r.nm+" → "+r.to); say(r.nm==="good rod"?"fishing rod":r.nm); }
+  else { addMat(id, 1); toast(MAT[id].e+" "+id+"! 🍽"); say(id); }
+  act("yay"); saveFarm(); return true; }
+let craftKind="craft";
+function drawCraft(){ const L=craftKind==="craft"?CRAFT:COOK;
+  $("craftT").textContent=craftKind==="craft"?"🛠 Workbench":"🍳 Cooking";
+  $("craftBody").innerHTML=L.map(r=>{ const e=craftKind==="craft"?r.e:MAT[r.id].e, nm=craftKind==="craft"?r.nm:r.id, done=r.once&&r.once(), ok=canMake(r);
+    return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+(craftKind==="cook"?' <small style="display:inline">💎'+matP(r.id)+'</small>':'')+'</b><small>'+Object.keys(r.need).map(n=>{ const h=haveN(n), k=r.need[n]; return '<u class="need'+(h>=k?'':' no')+'">'+(n==="🐟"?"🐟 fish":matE(n)+' '+n)+' '+Math.min(h,k)+'/'+k+'</u>'; }).join(' ')+'</small></span>'
+      +'<button class="btn'+(ok?' on':'')+'" data-make="'+r.id+'"'+(ok?'':' disabled')+'>'+(done?'✅':'make')+'</button></div>'; }).join(""); }
+function openCraft(kind){ if(F.st!=="idle") return; craftKind=kind; drawCraft(); $("craftP").classList.add("on"); }
+$("craftBody").addEventListener("click", e=>{ const b=e.target.closest("[data-make]"); if(!b || b.disabled) return; make(craftKind, b.dataset.make); drawCraft(); });
+$("craftDone").onclick=()=>$("craftP").classList.remove("on");
+let seedPlot=-1;
+function openSeeds(i){ seedPlot=i; const L=Object.keys(SEEDS).filter(n=>has(n+" seeds",1));
+  if(!L.length){ toast("🌰 씨앗이 없어요 — 가게에서 사요", 2000); return; }
+  $("seedBody").innerHTML=L.map(n=>'<button class="card" data-seed="'+n+'"><i>'+MAT[n].e+'</i><span>'+n+'</span><em>×'+mats[n+" seeds"]+' · '+SEEDS[n].h+'h</em></button>').join(""); $("seedP").classList.add("on"); }
+$("seedBody").addEventListener("click", e=>{ const b=e.target.closest("[data-seed]"); if(!b) return; $("seedP").classList.remove("on"); if(plant(seedPlot, b.dataset.seed)) toast("🌱 "+b.dataset.seed+" — 물을 주면 자라요 (밭을 다시 눌러요)", 2200); });
+$("seedDone").onclick=()=>$("seedP").classList.remove("on");
+/* 🎒 가방 — 재료 · 음식(먹기) · 씨앗 */
+function drawBagP(){ const keys=Object.keys(mats).filter(n=>mats[n]>0), grp=(f)=>keys.filter(f);
+  const chip=n=>'<span class="bChip">'+matE(n)+' '+n+' <b>×'+mats[n]+'</b>'+(MAT[n]&&MAT[n].food?' <button class="btn sm2" data-eat="'+n+'">eat</button>':'')+'</span>';
+  const sec=(t,L)=>L.length?'<h4 class="bH">'+t+'</h4><div class="bChips">'+L.map(chip).join("")+'</div>':'';
+  $("bagBody").innerHTML='<h4 class="bH">🐟 fish <small>'+bag.length+'/'+BAG_MAX+'</small></h4><div class="bChips">'+(bag.length?Object.entries(bag.reduce((a,b)=>(a[b.en]=(a[b.en]|0)+1,a),{})).map(([n,k])=>'<span class="bChip">'+FISH_BY[n].e+' '+n+' <b>×'+k+'</b></span>').join(""):'<span class="bChip">—</span>')+'</div>'
+    +sec("🍽 food", grp(n=>MAT[n]&&MAT[n].food))+sec("🌾 crops", grp(n=>SEEDS[n]))+sec("🪵 materials", grp(n=>["apple","branch","stone"].includes(n)))+sec("🌰 seeds", grp(n=>/ seeds$/.test(n)))
+    +(buffUntil>now()?'<p class="bH">🍀 lucky — '+Math.ceil((buffUntil-now())/60e3)+'분 남음</p>':'')+(rod2?'<p class="bH">🎣 good rod</p>':''); }
+function openBag(){ if(F.st!=="idle") return; drawBagP(); $("bagP").classList.add("on"); }
+$("bagBody").addEventListener("click", e=>{ const b=e.target.closest("[data-eat]"); if(!b) return; const n=b.dataset.eat; if(!has(n,1)) return; addMat(n,-1); buffUntil=Math.max(buffUntil,now())+10*60e3; saveFarm(); act("yay"); say(n); toast("😋 "+n+"! 🍀 lucky 10분 — 드문 물고기가 더 잘 잡혀요", 2400); drawBagP(); });
+$("bagDone").onclick=()=>$("bagP").classList.remove("on"); $("bagShop").onclick=()=>{ $("bagP").classList.remove("on"); goShop(); };
+$("bagFf").onclick=()=>{ tShift+=3*3600e3; regen(); drawFruit(); checkPlots(); drawBagP(); toast("⏩ 3시간 뒤로 (맛보기) — 밭·나무·신선도가 바뀌어요"); };
+/* 가까이 가서 하기 */
+function faceTo(tx,tz){ const p=hero.g.position; hero.face=Math.atan2(tx+0.5-p.x, tz+0.5-p.z); }
+function useTile(tx,tz, fn){ if(F.st!=="idle") return; const adj=(x,z)=>Math.max(Math.abs(x-tx),Math.abs(z-tz))===1;
+  if(adj(hero.cx,hero.cz)){ faceTo(tx,tz); fn(); return; } const s=nearestFree(tx,tz,adj); if(!s){ toast("갈 수 없어요"); return; } walkTo(s[0],s[1],()=>{ faceTo(tx,tz); fn(); }); }
 function sell(i){ const it=bag[i]; if(!it) return 0; const v=price(it); bag.splice(i,1); gems+=v; saveBag(); return v; }
 let bait = store("hyeng_proto_bait"); if(typeof bait!=="number") bait=10;
 function setBait(n){ bait=Math.max(0,Math.min(30,n)); store("hyeng_proto_bait", bait); $("bBait").textContent="🪱 "+bait; }
@@ -504,7 +643,8 @@ function cast(wx, wz){
   F.from=new THREE.Vector3(); setTimeout(()=>{ hero.tip.getWorldPosition(F.from); }, 0);
   hint("찌가 쑥 들어가면 화면을 톡!");
 }
-function pickFish(){ const tot=FISH.reduce((a,f)=>a+f.r,0); let x=Math.random()*tot; for(const f of FISH){ x-=f.r; if(x<=0) return f; } return FISH[0]; }
+function fishW(f){ let w=f.r; if(f.r<=4 && buffUntil>now()) w*=3; if(f.r<=6 && rod2) w*=1.6; return w; }   // 🍀 행운 · 🎣 좋은 낚싯대
+function pickFish(){ const tot=FISH.reduce((a,f)=>a+fishW(f),0); let x=Math.random()*tot; for(const f of FISH){ x-=fishW(f); if(x<=0) return f; } return FISH[0]; }
 function bite(){ F.st="bite"; F.t=0; ring(bobber.position.x, bobber.position.z); ring(bobber.position.x+0.05, bobber.position.z-0.03); try{ navigator.vibrate && navigator.vibrate(90); }catch(e){} $("bang").classList.add("on"); }
 function tapWhileFishing(){
   if(F.st==="cast") return;   // 던지는 중에는 무시
@@ -555,7 +695,7 @@ function quiz(f){
 function closeCatch(){ if(F.st!=="quiz") return; clearTimeout(F._qt); $("quiz").classList.remove("on"); F.st="idle"; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; }, 500); setGroups(); dirty=true; }
 $("qOpts").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; if(b.id==="qSay"){ say(F.fish.en); clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600); } else closeCatch(); });
 $("quiz").addEventListener("click", e=>{ if(e.target===$("quiz")) closeCatch(); });
-function updBagBtn(){ const b=$("bShop"); if(b) b.textContent="🏪 "+bag.length; }
+function updBagBtn(){ const b=$("bShop"); if(b) b.textContent="🎒 "+(bag.length+Object.values(mats||{}).reduce((a,k)=>a+(k|0),0)); }
 let shopTick=0;
 function drawShop(){
   const h=hourIx(), left=3600e3-((now()+9*3600e3)%3600e3), mm=Math.floor(left/60e3), ss=Math.floor(left%60e3/1000);
@@ -567,12 +707,19 @@ function drawShop(){
   $("shopBag").innerHTML=rows.length ? rows.map(r=>{ const f=FISH_BY[r.it.en], t=freshTag(r.fr);
     return '<div class="sRow'+(r.fr<=0.05?' rot':'')+'"><i>'+f.e+'</i><span><b>'+f.en+'</b><small>'+(f.noRot?'♾️ never rots':t[0]+' '+t[1])+(f.noRot?'':' <u class="fBar"><s style="width:'+Math.round(r.fr*100)+'%"></s></u>')+'</small></span><em>💎 '+r.v+'</em><button class="btn" data-sell="'+r.i+'">sell</button></div>'; }).join("")
     : '<p class="sEmpty">🎒 가방이 비었어요 — 연못에서 낚아 와요</p>';
-  const tot=rows.reduce((a,r)=>a+r.v,0); $("sellAll").disabled=!rows.length; $("sellAll").textContent="모두 팔기 💎 "+tot;
+  const tot=rows.reduce((a,r)=>a+r.v,0); $("sellAll").disabled=!rows.length; $("sellAll").textContent="🐟 모두 팔기 💎 "+tot;
+  const mk=Object.keys(mats).filter(n=>mats[n]>0 && MAT[n]).sort((a,b)=>matP(b)-matP(a));
+  $("shopMats").innerHTML=(mk.length?'<h4 class="bH">🌾 crops · 🍽 food · 🪵 materials</h4>'+mk.map(n=>'<div class="sRow"><i>'+MAT[n].e+'</i><span><b>'+n+'</b><small>×'+mats[n]+(MAT[n].food?' · 🍽':'')+'</small></span><em>💎 '+matP(n)+'</em><button class="btn" data-sellm="'+n+'">sell</button></div>').join(""):'')
+    +'<h4 class="bH">🌰 seeds — buy</h4><div class="bChips">'+Object.keys(SEEDS).map(n=>'<button class="btn sm2" data-buy="'+n+'"'+(gems>=SEEDS[n].p?'':' disabled')+'>'+MAT[n].e+' '+n+' 💎'+SEEDS[n].p+'</button>').join("")+'</div>';
 }
 function openShop(){ if(F.st!=="idle") return; closeAv(); drawShop(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if($("shopP").classList.contains("on")) drawShop(); else clearInterval(shopTick); }, 1000); }
 function goShop(){ if(F.st!=="idle") return; const near=STALL_FRONT.some(t=>t[0]===hero.cx&&t[1]===hero.cz); if(near){ hero.face=Math.PI; openShop(); return; }
   const t=STALL_FRONT.slice().sort((a,b)=>Math.hypot(a[0]-hero.cx,a[1]-hero.cz)-Math.hypot(b[0]-hero.cx,b[1]-hero.cz))[0]; walkTo(t[0], t[1], ()=>{ hero.face=Math.PI; openShop(); }); }
 $("shopBag").addEventListener("click", e=>{ const b=e.target.closest("[data-sell]"); if(!b) return; const v=sell(+b.dataset.sell); if(v){ toast("💎 +"+v); try{ navigator.vibrate&&navigator.vibrate(20); }catch(er){} } drawShop(); updBagBtn(); });
+$("shopMats").addEventListener("click", e=>{ const s=e.target.closest("[data-sellm]"), b=e.target.closest("[data-buy]");
+  if(s){ const n=s.dataset.sellm; if(!has(n,1)) return; const v=matP(n); addMat(n,-1); gems+=v; saveBag(); toast("💎 +"+v); }
+  if(b && !b.disabled){ const n=b.dataset.buy; if(gems<SEEDS[n].p) return; gems-=SEEDS[n].p; addMat(n+" seeds",1); saveBag(); toast("🌰 "+n+" seeds +1"); }
+  drawShop(); });
 $("sellAll").onclick=()=>{ let t=0; while(bag.length) t+=sell(0); if(t) toast("💎 +"+t+" — 모두 팔았어요!"); drawShop(); updBagBtn(); };
 $("ffwd").onclick=()=>{ tShift+=3*3600e3; drawShop(); toast("⏩ 3시간 뒤로 (맛보기) — 신선도·값이 바뀌어요"); };
 $("shopDone").onclick=()=>$("shopP").classList.remove("on");
@@ -647,13 +794,14 @@ const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), floorPlane=new THREE.P
 function cellAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const hit=new THREE.Vector3(); if(!ray.ray.intersectPlane(floorPlane, hit)) return null; const x=Math.floor(hit.x), z=Math.floor(hit.z); return (x>=0&&z>=0&&x<place.N&&z<place.N)?[x,z]:null; }
 function itemAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const h=ray.intersectObjects(placed.map(p=>p.obj), true); return h.length ? h[0].object.userData.p : null; }
 function hitHouse(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.houseObj, true).length>0; }
-function sheetOpen(){ return ["avP","dexP","shopP"].some(id=>$(id).classList.contains("on")); }
+function sheetOpen(){ return ["avP","dexP","shopP","craftP","seedP","bagP"].some(id=>$(id).classList.contains("on")); }
+function hitObj(e, o){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(o, true).length>0; }
 function hitStall(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.stallObj, true).length>0; }
 let down=null;
 $("cv").addEventListener("pointerdown", e=>{ down={x:e.clientX, y:e.clientY}; if(F.st!=="idle" && F.st!=="quiz" && F.st!=="reel"){ tapWhileFishing(); down=null; } });
 $("cv").addEventListener("pointerup", e=>{
   if(!down || Math.hypot(e.clientX-down.x, e.clientY-down.y)>14){ down=null; return; } down=null;
-  if(sheetOpen()){ closeAv(); $("dexP").classList.remove("on"); $("shopP").classList.remove("on"); return; }
+  if(sheetOpen()){ closeAv(); ["dexP","shopP","craftP","seedP","bagP"].forEach(id=>$(id).classList.remove("on")); return; }
   if(place===PL.room){
     if(ghost){ const c=cellAt(e); if(c){ const [w,d]=fp(ghost.id,ghost.r); ghost.x=Math.min(Math.max(0,c[0]-Math.floor((w-1)/2)),RN-w); ghost.z=Math.min(Math.max(0,c[1]-Math.floor((d-1)/2)),RN-d); updGhost(); } return; }
     if(edit){ const p=itemAt(e); if(p) selectP(p); else unselect(); return; }
@@ -662,10 +810,19 @@ $("cv").addEventListener("pointerup", e=>{
   // 마당
   if(F.st!=="idle") return;
   if(hitStall(e)){ goShop(); return; }
+  if(hitObj(e, scene.userData.benchObj)){ useTile(BENCH[0],BENCH[1],()=>openCraft("craft")); return; }
+  if(hitObj(e, scene.userData.potObj)){ useTile(POT[0],POT[1],()=>openCraft("cook")); return; }
+  { const ti=scene.userData.trees.findIndex(T=>hitObj(e,T)); if(ti>=0){ useTile(TREES[ti][0],TREES[ti][1],()=>shakeTree(ti)); return; } }
+  { const ri=scene.userData.rocks.findIndex(R=>hitObj(e,R)); if(ri>=0){ useTile(ROCKS[ri][0],ROCKS[ri][1],()=>hitRock(ri)); return; } }
   if(hitHouse(e)){ walkTo(DOOR[0], DOOR[1], ()=>go("room")); return; }
   const c=cellAt(e); if(!c) return;
   if(isWater(c[0], c[1])){ tryFish(c[0], c[1]); return; }
   if(isStall(c[0], c[1])){ goShop(); return; }
+  { const pi=at(PLOTS,c[0],c[1]); if(pi>=0){ useTile(c[0],c[1],()=>onPlot(pi)); return; } }
+  { const ti=at(TREES,c[0],c[1]); if(ti>=0){ useTile(c[0],c[1],()=>shakeTree(ti)); return; } }
+  { const ri=at(ROCKS,c[0],c[1]); if(ri>=0){ useTile(c[0],c[1],()=>hitRock(ri)); return; } }
+  if(c[0]===BENCH[0]&&c[1]===BENCH[1]){ useTile(c[0],c[1],()=>openCraft("craft")); return; }
+  if(c[0]===POT[0]&&c[1]===POT[1]){ useTile(c[0],c[1],()=>openCraft("cook")); return; }
   if(isHouse(c[0], c[1])){ walkTo(DOOR[0], DOOR[1], ()=>go("room")); return; }
   walkTo(c[0], c[1]);
 });
@@ -682,19 +839,20 @@ $("bCam").onclick=()=>{ yawTo+=Math.PI/2; unselect(); };
 $("bOut").onclick=()=>go("yard"); $("bIn").onclick=()=>walkTo(DOOR[0], DOOR[1], ()=>go("room"));
 $("bAv1").onclick=openAv; $("bAv2").onclick=openAv; $("avDone").onclick=closeAv;
 $("bDex").onclick=()=>{ if(F.st!=="idle") return; drawDex(); $("dexP").classList.add("on"); }; $("dexDone").onclick=()=>$("dexP").classList.remove("on");
-$("bShop").onclick=goShop;
+$("bShop").onclick=openBag;
 $("bBait").onclick=()=>{ setBait(bait+5); toast("🪱 미끼 +5 (맛보기)<br><small>게임에서는 공부해야 생겨요 · Daily 30 한 판 = 5개</small>", 2400); };
 $("bStop").onclick=()=>{ if(F.st==="wait"||F.st==="cast") endFish("그만했어요 — 미끼는 돌려받았어요", true); else if(F.st==="bite") endFish(null,false); };
 
 /* ═════════ 시작 ═════════ */
 makeHero();
 [["rug",2,2,0],["bed",0,0,0],["shelf",2,0,0],["plant",5,0,0],["desk",3,0,0],["chair",3,1,2]].forEach(([id,x,z,r])=>{ if(fits(id,x,z,r)){ addPlaced(id,x,z,r); stock[id]--; } });
-drawInv(); setBait(bait); updBagBtn(); setShadow(); resize(); setGroups();
-let last=performance.now(), fN=0, fT=0, idleT=0;
+regen(); drawPlots(); drawFruit(); drawInv(); setBait(bait); updBagBtn(); setShadow(); resize(); setGroups();
+let last=performance.now(), fN=0, fT=0, idleT=0, farmT=0;
 function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  let anim=updateHero(dt); if(updateFish(dt)) anim=true;
+  let anim=updateHero(dt); if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true;
+  farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(updCam(dt)) anim=true;
   // 마당 물결 (가만히 있어도 1초에 8번만)
@@ -705,7 +863,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
+window.HOUSE = {mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
 </html>
