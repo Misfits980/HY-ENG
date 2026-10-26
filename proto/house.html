@@ -67,7 +67,7 @@ button{font-family:inherit}
 .dk span{white-space:nowrap}
 
 /* ── 시트 (종이 패널) ── */
-#drawer,.sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--paper);border-top:3px solid var(--line2);border-radius:26px 26px 0 0;padding:16px 14px max(14px,env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.9,.3,1.1);max-height:76vh;overflow-y:auto;box-shadow:0 -8px 24px rgba(60,40,20,.18)}
+#drawer,.sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--paper);border-top:3px solid var(--line2);border-radius:26px 26px 0 0;padding:16px 14px max(14px,env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.9,.3,1.1),visibility 0s .28s;max-height:76vh;overflow-y:auto;box-shadow:0 -8px 24px rgba(60,40,20,.18);visibility:hidden}
 #drawer::before,.sheet::before{content:"";position:absolute;left:50%;top:6px;width:46px;height:5px;margin-left:-23px;border-radius:3px;background:var(--line)}
 #drawer.on,.sheet.on{transform:none}
 .hd{display:flex;align-items:center;gap:8px;margin:2px 0 12px}
@@ -351,6 +351,17 @@ button{font-family:inherit}
 #coach,#fc{bottom:calc(108px + env(safe-area-inset-bottom))}
 #hint{bottom:calc(108px + env(safe-area-inset-bottom))}
 @media (max-width:370px){ .bar.bot .dk{min-width:52px} .bar.bot .dk i{width:40px;height:38px;padding:5px 6px} .bar.bot .grp{padding:7px 6px 6px} .tool{width:44px} .tool .ic,.tool > i{width:24px;height:24px} }
+
+/* (v413) 다듬기 — 시트 머리 아이콘 칸 · 창고 머리 줄바꿈 · 아이콘 단추 */
+.hd b .hdI{flex:none;display:block;width:34px;height:34px;padding:4px;border-radius:11px;background:var(--paper2);box-shadow:inset 0 -2px 0 rgba(90,60,30,.12)}
+.hd b{min-width:0;white-space:nowrap}
+#drawer .hd b{overflow:hidden} #drawer .hd b span{display:flex;flex-direction:column;line-height:1.15;min-width:0} #drawer .hd b span small{font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.btn.icb{padding:5px;width:42px;min-width:42px} .btn.icb i{display:block;width:26px;height:26px}
+#drawer.on,.sheet.on{visibility:visible;transition:transform .28s cubic-bezier(.2,.9,.3,1.1),visibility 0s}
+
+.btn.icb.wide{width:auto;padding:5px 12px 5px 7px;gap:4px} .btn.icb.wide i{width:24px;height:24px}
+/* (v413) ⏩ 시간 당기기는 시험용 — 아이 화면에서는 숨김 (작물·신선도를 바로 바꿀 수 있어서) · 주소에 ?dev */
+.btn.dev{display:none} body.dev .btn.dev{display:inline-flex}
 </style>
 
 </head>
@@ -372,33 +383,33 @@ button{font-family:inherit}
   <div class="grp" id="gFish"><button class="dk warn" id="bStop"><i data-ic="hand"></i><span>그만</span></button></div>
 </div>
 <div id="drawer">
-  <div class="hd"><b>📦 창고 <small>눌러서 방에 놓아요</small></b><button class="btn sm2" id="bScore">🏅</button><button class="btn sm2" id="bBuy">🛒 가게</button><button class="btn on" id="bDone">✅ 다 했어요</button></div>
+  <div class="hd"><b><i class="hdI" data-ic="box"></i><span>창고<small>눌러서 놓아요</small></span></b><button class="btn sm2 icb" id="bScore" aria-label="꾸미기 도장"><i data-ic="medal"></i></button><button class="btn sm2 icb wide" id="bBuy"><i data-ic="shop"></i>가게</button><button class="btn on" id="bDone">✅ 다 했어요</button></div>
   <div class="row" id="inv"></div>
 </div>
-<div class="sheet" id="avP"><div class="hd"><b>👕 나 꾸미기</b><button class="btn on" id="avDone">✅ 다 했어요</button></div><div id="avBody"></div></div>
-<div class="sheet" id="shopP"><div class="hd"><b>🏪 Fish Shop</b><button class="x" id="shopDone" aria-label="닫기">✕</button></div>
+<div class="sheet" id="avP"><div class="hd"><b><i class="hdI" data-ic="shirt"></i>나 꾸미기</b><button class="btn on" id="avDone">✅ 다 했어요</button></div><div id="avBody"></div></div>
+<div class="sheet" id="shopP"><div class="hd"><b><i class="hdI" data-ic="shop"></i>Fish Shop</b><button class="x" id="shopDone" aria-label="닫기">✕</button></div>
   <div class="shopTop" id="shopTop"></div>
   <div class="shopMkt" id="shopMkt"></div>
   <div id="shopBag"></div><div id="shopMats"></div>
-  <div class="shopFoot"><button class="btn on" id="sellAll">모두 팔기</button><button class="btn" id="ffwd">⏩ +3시간 <small>(맛보기)</small></button></div></div>
-<div class="sheet" id="craftP"><div class="hd"><b id="craftT">🛠 Workbench</b><button class="x" id="craftDone" aria-label="닫기">✕</button></div><div id="craftBody"></div></div>
-<div class="sheet" id="seedP"><div class="hd"><b>🌰 무엇을 심을까요?</b><button class="x" id="seedDone" aria-label="닫기">✕</button></div><div class="row" id="seedBody" style="display:flex;gap:8px;overflow-x:auto"></div></div>
-<div class="sheet" id="bagP"><div class="hd"><b>🎒 가방 <small id="bagCnt"></small></b><button class="btn sm2" id="bagSort">정리</button><button class="btn sm2" id="bagShop">🏪</button><button class="x" id="bagDone" aria-label="닫기">✕</button></div>
+  <div class="shopFoot"><button class="btn on" id="sellAll">모두 팔기</button><button class="btn dev" id="ffwd">⏩ +3시간 <small>(시험용)</small></button></div></div>
+<div class="sheet" id="craftP"><div class="hd"><b><i class="hdI" id="craftI" data-ic="hammer"></i><span id="craftT">Workbench</span></b><button class="x" id="craftDone" aria-label="닫기">✕</button></div><div id="craftBody"></div></div>
+<div class="sheet" id="seedP"><div class="hd"><b><i class="hdI" data-ic="sprout"></i>무엇을 심을까요?</b><button class="x" id="seedDone" aria-label="닫기">✕</button></div><div class="row" id="seedBody" style="display:flex;gap:8px;overflow-x:auto"></div></div>
+<div class="sheet" id="bagP"><div class="hd"><b><i class="hdI" data-ic="bag"></i>가방 <small id="bagCnt"></small></b><button class="btn sm2" id="bagSort">정리</button><button class="btn sm2 icb" id="bagShop" aria-label="가게"><i data-ic="shop"></i></button><button class="x" id="bagDone" aria-label="닫기">✕</button></div>
   <div class="bTabs" id="bagTabs"></div><div class="inv" id="bagGrid"></div><div class="bInfo" id="bagInfo"></div>
-  <div class="shopFoot"><button class="btn sm2" id="bagFf">⏩ +3시간 <small>(맛보기)</small></button></div></div>
+  <div class="shopFoot"><button class="btn sm2 dev" id="bagFf">⏩ +3시간 <small>(시험용)</small></button></div></div>
 <div id="dlg"><div class="dChoices" id="dlgCh"></div><div class="dSeeds" id="dlgSeeds"></div>
   <div class="dBox" id="dlgBox"><span id="dlgName" class="npc">Mia</span><button id="dlgX" aria-label="대화 끝">✕</button><p id="dlgEn"></p><p id="dlgKo"></p><i id="dlgMore">▼</i></div></div>
 <div class="sheet" id="stoP"><div class="hd"><b id="stoT">🧊 Fridge</b><small id="stoCnt" class="hdN"></small><button class="btn sm2" id="stoUp"></button><button class="x" id="stoDone" aria-label="닫기">✕</button></div>
   <p class="stoTip" id="stoTip"></p><div class="inv" id="stoGrid"></div>
   <h4 class="bH">🎒 가방 <small>— 누르면 넣어요 · 위 칸을 누르면 꺼내요</small></h4><div class="inv" id="stoBag"></div></div>
-<div class="sheet" id="furnP"><div class="hd"><b>🛒 가게</b><span class="hdGem" id="furnGem"></span><button class="x" id="furnDone" aria-label="닫기">✕</button></div>
+<div class="sheet" id="furnP"><div class="hd"><b><i class="hdI" data-ic="sofa"></i>가구 가게</b><span class="hdGem" id="furnGem"></span><button class="x" id="furnDone" aria-label="닫기">✕</button></div>
   <div class="bTabs" id="furnTabs"></div><div id="furnBody"></div></div>
-<div class="sheet" id="frP"><div class="hd"><b>👫 친구 · 놀러 가기</b><button class="x" id="frDone" aria-label="닫기">✕</button></div><div id="frBody"></div></div>
-<div class="sheet" id="scP"><div class="hd"><b>🏅 꾸미기 도장</b><button class="x" id="scDone" aria-label="닫기">✕</button></div><div id="scBody"></div></div>
+<div class="sheet" id="frP"><div class="hd"><b><i class="hdI" data-ic="friends"></i>친구 · 놀러 가기</b><button class="x" id="frDone" aria-label="닫기">✕</button></div><div id="frBody"></div></div>
+<div class="sheet" id="scP"><div class="hd"><b><i class="hdI" data-ic="medal"></i>꾸미기 도장</b><button class="x" id="scDone" aria-label="닫기">✕</button></div><div id="scBody"></div></div>
 <div id="ask"><div class="box"><p id="askT"></p><div class="askB"><button class="btn" id="askNo">아니요</button><button class="btn on" id="askOk">네!</button></div></div></div>
-<div class="sheet" id="mapP"><div class="hd"><b>🗺 지도</b><button class="x" id="mapDone" aria-label="닫기">✕</button></div><div class="mapG" id="mapBody"></div>
+<div class="sheet" id="mapP"><div class="hd"><b><i class="hdI" data-ic="map"></i>지도</b><button class="x" id="mapDone" aria-label="닫기">✕</button></div><div class="mapG" id="mapBody"></div>
   <p class="bHint" style="margin:10px 0 0">잠긴 곳은 게임에서 공부하면 열려요 · 맛보기는 ⛏ 광산도 열어 뒀어요 (게임에선 큰 별 15개)</p></div>
-<div class="sheet" id="dexP"><div class="hd"><b>🐟 물고기 도감 <small id="dexN"></small></b><button class="x" id="dexDone" aria-label="닫기">✕</button></div><div class="dexGrid" id="dexBody"></div></div>
+<div class="sheet" id="dexP"><div class="hd"><b><i class="hdI" data-ic="dex"></i>물고기 도감 <small id="dexN"></small></b><button class="x" id="dexDone" aria-label="닫기">✕</button></div><div class="dexGrid" id="dexBody"></div></div>
 <div id="place"><button class="btn" id="pRot">↻ 돌리기</button><button class="btn on" id="pOk">✅ 놓기</button><button class="btn" id="pNo">✕</button></div>
 <div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻</button><button class="btn sm" id="mMove" aria-label="옮기기">✋</button><button class="btn sm" id="mCol" aria-label="색 바꾸기">🎨</button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦</button></div>
 <div id="quiz"><div class="box"><div class="fishBig" id="qFish">🐟</div><p id="qAsk"></p><div class="opts" id="qOpts"></div><div class="res" id="qRes"></div></div></div>
@@ -407,7 +418,7 @@ button{font-family:inherit}
 <div id="coach"><span class="cMas">🧑‍🌾</span><div class="cTx"><div class="cNm">Mia<small id="coachN"></small><button id="coachSkip">안내 그만</button></div><p id="coachT"></p><div class="cB"><button class="btn on sm2" id="coachNext">다음 ▶</button></div></div></div>
 <div id="fc"></div><div id="bobL">찌</div>
 <div id="info"><div class="box"><div id="infoT"></div><button class="btn on" id="infoOk">알겠어요</button></div></div>
-<div class="sheet" id="qP"><div class="hd"><b>📋 할 일</b><button class="x" id="qDone" aria-label="닫기">✕</button></div><div id="qBody"></div></div>
+<div class="sheet" id="qP"><div class="hd"><b><i class="hdI" data-ic="list"></i>할 일</b><button class="x" id="qDone" aria-label="닫기">✕</button></div><div id="qBody"></div></div>
 <div id="who"><div class="box"><h3>👤 나는 누구?</h3><p class="wSub">같이 쓰는 패드예요 — 내 이름을 누르면 <b>내 집</b>으로 들어가요</p><div id="whoBody"><p class="wSub">명단을 불러오는 중…</p></div><a class="btn" href="../index.html">◀ 게임으로</a></div></div>
 <div id="hint"></div>
 <div id="toast"></div>
@@ -440,6 +451,12 @@ const IC={
   star:`<path d="M16 4l3.6 7.4 8.1 1.2-5.9 5.7 1.4 8.1L16 22.6l-7.2 3.8 1.4-8.1-5.9-5.7 8.1-1.2z" fill="#ffd23f" ${ICS}/>`,
   addf:`<circle cx="12" cy="11" r="4.6" fill="#ffd27a" ${ICS}/><path d="M3.5 26.5c0-5 3.8-8 8.5-8s8.5 3 8.5 8z" fill="#9fd3ff" ${ICS}/><path d="M25 8.5v9M20.5 13h9" stroke="#3e8e3d" stroke-width="3.2" stroke-linecap="round"/>`,
   hand:`<path d="M9 17.5V10a2 2 0 0 1 4 0v5.5-8a2 2 0 0 1 4 0v8-7a2 2 0 0 1 4 0V16v-3.5a2 2 0 0 1 4 0V19c0 5-3.5 8.5-8.5 8.5-4 0-6.5-2-8.5-5L5 18a2 2 0 0 1 3.4-2.2z" fill="#ffd9b5" ${ICS}/>`,
+  shop:`<path d="M5.5 13v14h21V13" fill="#fff8ea" ${ICS}/><rect x="12" y="18" width="8" height="9" fill="#7cc6ff" ${ICS}/><path d="M4 6.5h24l-2 6.5H6z" fill="#ff8466" ${ICS}/><path d="M10.5 6.5L9.5 13M16 6.5V13M21.5 6.5l1 6.5" fill="none" ${ICS}/>`,
+  hammer:'<path d="M17 13L7.5 26.5" stroke="#4b3527" stroke-width="5" stroke-linecap="round"/><path d="M17 13L7.5 26.5" stroke="#c98a52" stroke-width="2.6" stroke-linecap="round"/><path d="M11.5 7.5l6.5-3.5 8.5 8.5-3.5 6.5z" fill="#b9c3cf" stroke="#4b3527" stroke-width="2.2" stroke-linejoin="round"/>',
+  pot:`<path d="M12 10c0-2 2-2.5 2-4.5M18 10c0-2 2-2.5 2-4.5" fill="none" ${ICS}/><path d="M5 14h22v5.5a7.5 7.5 0 0 1-7.5 7.5h-7A7.5 7.5 0 0 1 5 19.5z" fill="#ff8466" ${ICS}/><path d="M3 14h26" fill="none" ${ICS}/>`,
+  box:`<path d="M5 11l11-5 11 5v13l-11 5-11-5z" fill="#e0b070" ${ICS}/><path d="M5 11l11 5 11-5M16 16v13" fill="none" ${ICS}/>`,
+  medal:`<path d="M10.5 4l5.5 8.5L21.5 4" fill="#7cc6ff" ${ICS}/><circle cx="16" cy="20" r="7.5" fill="#ffd23f" ${ICS}/><path d="M16 15.8l1.3 2.7 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4z" fill="#fff"/>`,
+  sprout:`<path d="M16 27.5V15.5M9 27.5h14" fill="none" ${ICS}/><path d="M16 17.5c-6 0-9-4-9-9.5 6 0 9 3.5 9 9.5z" fill="#6cc46a" ${ICS}/><path d="M16 15.5c0-5.5 3-8.5 9-8.5 0 5.5-3 8.5-9 8.5z" fill="#8fd67a" ${ICS}/>`,
   me:`<circle cx="16" cy="11" r="5" fill="#ffd27a" ${ICS}/><path d="M6 27.5c0-6 4.5-9 10-9s10 3 10 9z" fill="#9fd3ff" ${ICS}/>`,
   list:`<rect x="7" y="6" width="18" height="22" rx="3" fill="#fff8ea" ${ICS}/><rect x="11" y="3.5" width="10" height="5" rx="1.5" fill="#d9a35a" ${ICS}/><path d="M11 14h10M11 19h10M11 24h6" fill="none" ${ICS}/>`
 };
@@ -1279,7 +1296,7 @@ function make(kind, id){ const L=kind==="craft"?CRAFT:COOK, r=L.find(x=>x.id===i
   act("yay"); saveFarm(); return true; }
 let craftKind="craft";
 function drawCraft(){ const L=craftKind==="craft"?CRAFT:COOK;
-  $("craftT").textContent=craftKind==="craft"?"🛠 Workbench":"🍳 Cooking";
+  $("craftT").textContent=craftKind==="craft"?"Workbench":"Cooking"; $("craftI").innerHTML=ic(craftKind==="craft"?"hammer":"pot");
   $("craftBody").innerHTML=L.map(r=>{ const e=craftKind==="craft"?r.e:MAT[r.id].e, nm=craftKind==="craft"?r.nm:r.id, done=r.once&&r.once(), ok=canMake(r);
     return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b>'+(craftKind==="cook"?'<small class="pr">재료 💎'+r.base+' → <b>💎'+MAT[r.id].p+'</b></small>':'')+'<small>'+Object.keys(r.need).map(n=>{ const h=haveN(n), k=r.need[n]; return '<u class="need'+(h>=k?'':' no')+'">'+(n==="🐟"?"🐟 fish":matE(n)+' '+n)+' '+Math.min(h,k)+'/'+k+'</u>'; }).join(' ')+'</small></span>'
       +'<button class="btn'+(ok?' on':'')+'" data-make="'+r.id+'"'+(ok?'':' disabled')+'>'+(done?'✅':'make')+'</button></div>'; }).join(""); }
@@ -1721,7 +1738,7 @@ function drawShop(){
     : '<p class="sEmpty">🎒 가방이 비었어요 — 연못에서 낚아 와요</p>';
   const tot=simPay(rows.map(r=>r.v)); $("sellAll").disabled=!rows.length; $("sellAll").textContent="🐟 모두 팔기 💎 "+tot;
   const mk=Object.keys(mats).filter(n=>mats[n]>0 && MAT[n]).sort((a,b)=>matP(b)-matP(a));
-  $("shopMats").innerHTML=(mk.length?'<h4 class="bH">🌾 crops · 🍽 food · 🪵 materials</h4>'+mk.map(n=>{ const v=matP(n); return '<div class="sRow"><i>'+MAT[n].e+'</i><span><b>'+n+'</b><small>×'+mats[n]+(MAT[n].food?' · 🍽':MAT[n].ore?' · ⛏':'')+'</small></span><em>'+pay(v,simPay([v]))+'</em><button class="btn" data-sellm="'+n+'">sell</button>'+(mats[n]>1?'<button class="btn sm2" data-sellall="'+n+'">×'+mats[n]+'</button>':'')+'</div>'; }).join(""):'')
+  $("shopMats").innerHTML=(mk.length?'<h4 class="bH">🌾 crops · 🍽 food · 🪵 materials</h4>'+mk.map(n=>{ const v=matP(n); return '<div class="sRow"><i>'+MAT[n].e+'</i><span><b>'+n+'</b><small>×'+mats[n]+(MAT[n].food?' · 🍽':MAT[n].ore?' · ⛏':'')+'</small></span><em>'+pay(v,simPay([v]))+'</em><button class="btn" data-sellm="'+n+'">sell</button>'+(mats[n]>1?'<button class="btn sm2" data-sellall="'+n+'">모두 '+mats[n]+'</button>':'')+'</div>'; }).join(""):'')
     +'<h4 class="bH">🌰 seeds — buy</h4><div class="bChips">'+Object.keys(SEEDS).map(n=>'<button class="btn sm2" data-buy="'+n+'"'+(gems>=SEEDS[n].p?'':' disabled')+'>'+MAT[n].e+' '+n+' 💎'+SEEDS[n].p+'</button>').join("")+'</div>';
 }
 function openShop(){ if(F.st!=="idle") return; closeAv(); drawShop(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if($("shopP").classList.contains("on")) drawShop(); else clearInterval(shopTick); }, 1000); }
@@ -2206,7 +2223,7 @@ function fcDraw(st, msg){ const el=$("fc"); if(!st){ el.classList.remove("on","g
   el.classList.add("on"); el.classList.toggle("go", st==="bite"); }
 function bobLabel(t){ const el=$("bobL"); if(!bobber.visible){ el.classList.remove("on"); return; } const v=bobber.position.clone(); v.y+=0.22; v.project(camera);
   if(el.textContent!==t) el.textContent=t; el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=((1-v.y)/2*innerHeight)+"px"; el.classList.add("on"); }
-if(/fps/.test(location.search)) document.body.classList.add("dbg");
+if(/fps/.test(location.search)) document.body.classList.add("dbg"); if(/dev/.test(location.search)) document.body.classList.add("dev");
 drawLabels(); updQ();
 /* (v411) 👤 공용 패드 — 나는 누구? (반 명단 = 게임과 같은 /hy/roster) · 고르면 그 아이 칸으로 다시 열기 */
 let whoCls="";
