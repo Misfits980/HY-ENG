@@ -158,7 +158,7 @@ async def main():
         # ③-2 이름을 바꿔도 번호로 알아봄 · 새 기기에서 같은 아이 = 같은 번호·같은 집
         await B.evaluate("()=>{ localStorage.setItem('hyeng_kid', JSON.stringify({id:'서연', n:'딸기', t:'A1'})); return HOUSE.publish(); }")
         await A.evaluate("()=>HOUSE.loadSocial().then(()=>HOUSE.drawFr())"); await A.wait_for_timeout(400)
-        t=await A.evaluate("()=>document.getElementById('frBody').innerText")
+        t=await A.evaluate("()=>document.getElementById('frBody').textContent")
         ok(("딸기#"+tagB) in t, "서연 → 딸기로 이름을 바꿔도 같은 #번호로 보임")
         C=await kid("민준","A1","0006")
         ok(await C.evaluate("()=>HOUSE.myTag()")==tagA and await C.evaluate("()=>HOUSE.myCode()")==codeA and await C.evaluate("()=>HOUSE.RN()")==8 and await C.evaluate("()=>HOUSE.placed.some(p=>p.id==='tank')"), "새 기기에서 민준을 고르면 같은 #번호 · 내 집을 불러옴")
