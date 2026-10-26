@@ -60,7 +60,7 @@ async def main():
         ok(r["bar"] == 2 and r["a"]["r"]["a"] == round(exp["r"] / cnt["r"]) and r["a"]["b"]["a"] == round(exp["b"] / cnt["b"]), f"TV: 두 팀 1인 평균 막대 {r} 기대 {exp}")
         # 지호: 하트 다 잃음 → 결과 화면 대신 배틀 화면에서 기다림
         await K[2].evaluate("()=>{ G.lives=0; gameOver(); }"); await K[2].wait_for_timeout(1200)
-        r = await K[2].evaluate("()=>[!!G.race, G.running, document.getElementById('scRaid').classList.contains('on'), document.getElementById('scOver').classList.contains('on'), !!document.getElementById('rrBadge'), document.getElementById('rdIn').innerText.indexOf('다 달렸어요')>=0, Battle._raced]")
+        r = await K[2].evaluate("()=>[!!G.race, G.running, document.getElementById('scRaid').classList.contains('on'), document.getElementById('scOver').classList.contains('on'), !!document.getElementById('rrBadge'), /다 달렸어요|넘어졌어요/.test(document.getElementById('rdIn').innerText), Battle._raced]")   # (v409) 시간이 남으면 '넘어졌어요 · 다시 달리기'
         ok(r == [False, False, True, False, False, True, 1], f"먼저 끝난 아이: 배틀 화면에서 기다림 (결과 화면 X · 배지 X) {r}")
         await K[2].wait_for_timeout(500)
         r = await K[2].evaluate("()=>[!!G.race, G.running]")
@@ -86,8 +86,8 @@ async def main():
         await T.evaluate("()=>{ Battle.leave(); }"); await T.wait_for_timeout(600)
         await T.evaluate("()=>{ Admin.open(); Admin._tab('play'); }"); await T.wait_for_timeout(600)
         await T.evaluate("()=>{ document.getElementById('adRrMode').value='score'; document.querySelector('[data-ad=rrGo]').click(); }"); await T.wait_for_timeout(1200)
-        r = await T.evaluate("()=>[Battle.cfg().kind, Battle.cfg().tmode, Battle.cfg().rset, Battle.cfg().dur, Battle.auto()]")
-        ok(r == ["run", "solo", "elem", 180, False], f"개인 레이스 (기본 3분 · G3-4) {r}")
+        r = await T.evaluate("()=>[Battle.cfg().kind, Battle.cfg().tmode, Battle.cfg().rng, Battle.cfg().dur, Battle.auto()]")
+        ok(r == ["run", "solo", "stg", 180, False], f"개인 레이스 (기본 3분 · (v409) 🎯 책·Stage 골라서) {r}")
         await br.close()
     e = real_errs(errs)
     ok(not e, f"스크립트 오류 없음 {e[:3]}")
