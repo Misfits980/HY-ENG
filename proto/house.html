@@ -329,27 +329,47 @@ button{font-family:inherit}
 #who .wKids{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
 #who .wKids button{min-width:84px;min-height:52px;padding:6px 14px;border-radius:16px;border:2px solid var(--line2);background:#fff;font:18px var(--kr);color:var(--ink);box-shadow:0 3px 0 var(--line2);cursor:pointer}
 #who .wKids button:active{transform:translateY(2px)}
+
+/* (v412) 위 도구 · 아래 독 정리 — 이모지 대신 한 벌의 그림 · 단추마다 글자 · 이동(초록) | 할 일 구분 · 돌리기는 방에서만 오른쪽에 */
+.ic{display:block;width:100%;height:100%}
+.bar.top .btn.back{width:44px;height:44px;min-width:44px;padding:9px}
+.tools{display:flex;gap:2px;padding:3px 4px;border-radius:20px;background:rgba(255,248,234,.95);border:3px solid var(--line2);box-shadow:0 3px 0 rgba(90,60,30,.18)}
+.tool{position:relative;appearance:none;border:0;background:none;width:52px;height:52px;padding:3px 0 2px;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--ink);font:12px var(--kr);cursor:pointer}
+.tool .ic{width:28px;height:28px} .tool > i{display:block;width:28px;height:28px}
+.tool:active{background:var(--paper2);transform:translateY(1px)}
+.tool .dot{position:absolute;right:7px;top:4px;width:11px;height:11px;border-radius:50%;background:var(--coral);border:2px solid #fff}
+.camB{position:fixed;right:12px;top:calc(80px + env(safe-area-inset-top));z-index:3;display:none;flex-direction:column;align-items:center;gap:2px;width:60px;padding:7px 0 6px;border-radius:18px;border:3px solid var(--line2);background:rgba(255,248,234,.95);color:var(--ink);font:12px var(--kr);box-shadow:0 3px 0 rgba(90,60,30,.18);cursor:pointer}
+.camB.on{display:flex} .camB > i{display:block;width:28px;height:28px} .camB:active{transform:translateY(1px)}
+.pill > i[data-ic]{width:22px;height:22px;display:block}
+.bar.bot .grp{gap:2px;padding:8px 10px 7px;border-radius:26px;background:linear-gradient(180deg,#fffaf0,#f7ead2);border:3px solid var(--line2);box-shadow:0 5px 0 rgba(90,60,30,.22),0 12px 26px rgba(90,60,30,.14)}
+.bar.bot .dk{min-width:62px;height:66px;gap:3px;font-size:13px;border-radius:16px}
+.bar.bot .dk i{width:46px;height:42px;padding:6px 8px;border-radius:14px;background:#f3e3c6;box-shadow:inset 0 -3px 0 rgba(90,60,30,.13)}
+.bar.bot .dk.go i{background:#d6efcb;box-shadow:inset 0 -3px 0 rgba(62,142,61,.28)}
+.bar.bot .dk.warn i{background:#ffe1d8}
+.bar.bot .dk:active i{transform:translateY(2px) scale(.96)}
+.bar.bot .grp .sep{flex:none;align-self:stretch;width:2px;margin:9px 4px 16px;border-radius:2px;background:var(--line)}
+#coach,#fc{bottom:calc(108px + env(safe-area-inset-bottom))}
+#hint{bottom:calc(108px + env(safe-area-inset-bottom))}
+@media (max-width:370px){ .bar.bot .dk{min-width:52px} .bar.bot .dk i{width:40px;height:38px;padding:5px 6px} .bar.bot .grp{padding:7px 6px 6px} .tool{width:44px} .tool .ic,.tool > i{width:24px;height:24px} }
 </style>
 
 </head>
 <body>
 <canvas id="cv"></canvas>
 <div class="bar top">
-  <a class="btn sm" href="../index.html" aria-label="게임으로">◀</a>
+  <a class="btn sm back" href="../index.html" aria-label="게임으로"><i data-ic="back"></i></a>
   <div class="ttl" id="ttl"><span class="sign">🏠 내 집<small>맛보기</small></span></div>
-  <button class="btn sm" id="bFr" aria-label="친구">👫<i class="dot" id="frDot" hidden></i></button>
-  <button class="btn sm" id="bMap" aria-label="지도">🗺</button>
-  <button class="btn sm" id="bDex" aria-label="물고기 도감">🐟</button>
-  <button class="btn sm" id="bCam" aria-label="돌리기">🔄</button>
+  <div class="tools"><button class="tool" id="bFr" aria-label="친구"><i data-ic="friends"></i><span>친구</span><b class="dot" id="frDot" hidden></b></button><button class="tool" id="bMap" aria-label="지도"><i data-ic="map"></i><span>지도</span></button><button class="tool" id="bDex" aria-label="물고기 도감"><i data-ic="dex"></i><span>도감</span></button></div>
 </div>
-<div id="hud"><span class="pill" id="hGem"><img src="../assets/ui/ic-gem.webp" alt=""><b>0</b></span><button class="pill tap" id="hBait" aria-label="미끼란?"><i>🪱</i><b>0</b></button><span class="pill buff" id="hBuff" hidden><i>🍀</i><b></b></span><button class="pill tap" id="hWho" hidden><i>👤</i><b></b></button><button class="pill tap qp" id="hQ"><i>📋</i><b>할 일</b><u id="hQn" hidden></u></button></div>
+<button class="camB" id="bCam" aria-label="방 돌리기"><i data-ic="rotate"></i><span>돌리기</span></button>
+<div id="hud"><span class="pill" id="hGem"><img src="../assets/ui/ic-gem.webp" alt=""><b>0</b></span><button class="pill tap" id="hBait" aria-label="미끼란?"><i data-ic="worm"></i><b>0</b></button><span class="pill buff" id="hBuff" hidden><i>🍀</i><b></b></span><button class="pill tap" id="hWho" hidden><i data-ic="me"></i><b></b></button><button class="pill tap qp" id="hQ"><i data-ic="list"></i><b>할 일</b><u id="hQn" hidden></u></button></div>
 <div class="bar bot">
-  <div class="grp" id="gRoom"><button class="dk go" id="bOut"><i>🚪</i><span>나가기</span></button><button class="dk" id="bEdit"><i>🛋️</i><span>가구</span></button><button class="dk" id="bWall"><i>🎨</i><span>벽지</span></button><button class="dk" id="bFloor"><i>🟫</i><span>바닥</span></button><button class="dk" id="bAv1"><i>👕</i><span>나</span></button></div>
-  <div class="grp" id="gYard"><button class="dk go" id="bIn"><i>🏠</i><span>집</span></button><button class="dk go" id="bVill"><i>🏘</i><span>마을</span></button><button class="dk" id="bBait"><i>🪱</i><span>미끼</span></button><button class="dk" id="bShop"><i>🎒</i><span>가방</span></button><button class="dk" id="bAv2"><i>👕</i><span>나</span></button></div>
-  <div class="grp" id="gVill"><button class="dk go" id="bYard2"><i>🌳</i><span>마당</span></button><button class="dk go" id="bMine"><i>⛏</i><span>광산</span></button><button class="dk" id="bBag2"><i>🎒</i><span>가방</span></button><button class="dk" id="bAv3"><i>👕</i><span>나</span></button></div>
-  <div class="grp" id="gMine"><button class="dk go" id="bVill2"><i>🏘</i><span>마을</span></button><button class="dk" id="bBag3"><i>🎒</i><span>가방</span></button><button class="dk" id="bAv4"><i>👕</i><span>나</span></button></div>
-  <div class="grp" id="gVisit"><button class="dk go" id="bVLeave"><i>🚪</i><span>나가기</span></button><button class="dk" id="bVLike"><i>❤️</i><span>좋아요</span></button><button class="dk" id="bVStk"><i>🌟</i><span>스티커</span></button><button class="dk" id="bVAdd"><i>➕</i><span>친구</span></button></div>
-  <div class="grp" id="gFish"><button class="dk warn" id="bStop"><i>✋</i><span>그만</span></button></div>
+  <div class="grp" id="gRoom"><button class="dk go" id="bOut"><i data-ic="door"></i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bEdit"><i data-ic="sofa"></i><span>가구</span></button><button class="dk" id="bWall"><i data-ic="roller"></i><span>벽지</span></button><button class="dk" id="bFloor"><i data-ic="floor"></i><span>바닥</span></button><button class="dk" id="bAv1"><i data-ic="shirt"></i><span>나</span></button></div>
+  <div class="grp" id="gYard"><button class="dk go" id="bIn"><i data-ic="home"></i><span>집</span></button><button class="dk go" id="bVill"><i data-ic="village"></i><span>마을</span></button><b class="sep"></b><button class="dk" id="bBait"><i data-ic="worm"></i><span>미끼</span></button><button class="dk" id="bShop"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv2"><i data-ic="shirt"></i><span>나</span></button></div>
+  <div class="grp" id="gVill"><button class="dk go" id="bYard2"><i data-ic="tree"></i><span>마당</span></button><button class="dk go" id="bMine"><i data-ic="pick"></i><span>광산</span></button><b class="sep"></b><button class="dk" id="bBag2"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv3"><i data-ic="shirt"></i><span>나</span></button></div>
+  <div class="grp" id="gMine"><button class="dk go" id="bVill2"><i data-ic="village"></i><span>마을</span></button><b class="sep"></b><button class="dk" id="bBag3"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv4"><i data-ic="shirt"></i><span>나</span></button></div>
+  <div class="grp" id="gVisit"><button class="dk go" id="bVLeave"><i data-ic="door"></i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bVLike"><i data-ic="heart"></i><span>좋아요</span></button><button class="dk" id="bVStk"><i data-ic="star"></i><span>스티커</span></button><button class="dk" id="bVAdd"><i data-ic="addf"></i><span>친구</span></button></div>
+  <div class="grp" id="gFish"><button class="dk warn" id="bStop"><i data-ic="hand"></i><span>그만</span></button></div>
 </div>
 <div id="drawer">
   <div class="hd"><b>📦 창고 <small>눌러서 방에 놓아요</small></b><button class="btn sm2" id="bScore">🏅</button><button class="btn sm2" id="bBuy">🛒 가게</button><button class="btn on" id="bDone">✅ 다 했어요</button></div>
@@ -397,6 +417,34 @@ button{font-family:inherit}
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
+/* (v412) 아이콘 — 이모지(기기마다 모양이 다름) 대신 같은 선·같은 색의 그림 한 벌 */
+const ICS='stroke="#4b3527" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"';
+const IC={
+  back:'<path d="M20 6L10 16l10 10" fill="none" stroke="#4b3527" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  friends:`<circle cx="11" cy="11" r="4.6" fill="#ffd27a" ${ICS}/><circle cx="21.5" cy="12" r="4.1" fill="#9fd3ff" ${ICS}/><path d="M15.5 26.5c.4-4.4 2.9-7 6-7 3.3 0 5.8 2.8 6 7z" fill="#7cc6ff" ${ICS}/><path d="M3.5 26.5c0-5 3.4-8 7.5-8s7.5 3 7.5 8z" fill="#ffb37a" ${ICS}/>`,
+  map:`<path d="M4 8l7-3 10 3 7-3v19l-7 3-10-3-7 3z" fill="#e9f6de" ${ICS}/><path d="M11 5v19M21 8v19" fill="none" ${ICS}/><path d="M16 9c-2.3 0-3.8 1.7-3.8 3.7 0 2.8 3.8 6.3 3.8 6.3s3.8-3.5 3.8-6.3C19.8 10.7 18.3 9 16 9z" fill="#ff8466" ${ICS}/><circle cx="16" cy="12.8" r="1.3" fill="#fff"/>`,
+  dex:`<path d="M4 16c4-6.5 10.5-8.5 16.5-5L25 7v18l-4.5-4c-6 3.5-12.5 1.5-16.5-5z" fill="#7cc6ff" ${ICS}/><circle cx="10" cy="14.6" r="1.5" fill="#4b3527"/><path d="M14.5 11.8c1.3 2.8 1.3 5.6 0 8.4" fill="none" ${ICS}/>`,
+  rotate:`<path d="M25.5 13A10 10 0 0 0 7.8 9.6" fill="none" ${ICS}/><path d="M6.5 19a10 10 0 0 0 17.7 3.4" fill="none" ${ICS}/><path d="M6.5 4.5v6h6" fill="none" ${ICS}/><path d="M25.5 27.5v-6h-6" fill="none" ${ICS}/>`,
+  door:`<path d="M5 28h22" fill="none" ${ICS}/><rect x="8.5" y="4" width="15" height="24" rx="2" fill="#c98a52" ${ICS}/><rect x="11.5" y="7.5" width="9" height="7" rx="1" fill="#e6b07a" ${ICS}/><circle cx="20" cy="18.5" r="1.5" fill="#ffd23f" ${ICS}/>`,
+  sofa:`<path d="M7 13v-3a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v3" fill="#f7b8a8" ${ICS}/><path d="M7 22v3.5M25 22v3.5" fill="none" ${ICS}/><path d="M4 14a2.5 2.5 0 0 1 5 0v3h14v-3a2.5 2.5 0 0 1 5 0v8H4z" fill="#f29d8b" ${ICS}/>`,
+  roller:`<path d="M23 8.5h3.5v6.5H15v4" fill="none" ${ICS}/><rect x="4.5" y="5" width="18.5" height="7.5" rx="2.5" fill="#ffd23f" ${ICS}/><rect x="12.5" y="18.5" width="5" height="9.5" rx="1.5" fill="#b07a4a" ${ICS}/>`,
+  floor:`<path d="M4 12v6.5l12 7 12-7V12" fill="#c98a52" ${ICS}/><path d="M16 5l12 7-12 7-12-7z" fill="#e8bd7e" ${ICS}/><path d="M10 8.5l12 7M22 8.5l-12 7" fill="none" ${ICS}/>`,
+  shirt:`<path d="M11 5L4.5 9l3 5.5L11 12.5V27h10V12.5l3.5 2 3-5.5L21 5c-1 2-3 3.2-5 3.2S12 7 11 5z" fill="#7cc6ff" ${ICS}/>`,
+  home:`<path d="M8 13.5V27h16V13.5" fill="#fff1d6" ${ICS}/><path d="M4 15.5L16 5.5l12 10" fill="none" stroke="#e46a5a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="13.5" y="18" width="5" height="9" rx="1" fill="#c98a52" ${ICS}/>`,
+  village:`<path d="M3 17.5l6-5 6 5V27H3z" fill="#ffd1c4" ${ICS}/><path d="M14 14l7.5-7 7.5 7v13H14z" fill="#bfe0ff" ${ICS}/><rect x="19.5" y="19" width="4" height="8" fill="#c98a52" ${ICS}/><rect x="7.5" y="21" width="3" height="6" fill="#c98a52" ${ICS}/>`,
+  worm:'<path d="M6 22c0-4 4-4.5 6-2.4s5 2 5-2-1-6 2-8 6.3 0 6.3 3" fill="none" stroke="#4b3527" stroke-width="6.6" stroke-linecap="round"/><path d="M6 22c0-4 4-4.5 6-2.4s5 2 5-2-1-6 2-8 6.3 0 6.3 3" fill="none" stroke="#ff9db0" stroke-width="3.6" stroke-linecap="round"/><circle cx="25.6" cy="12.6" r="1" fill="#4b3527"/>',
+  bag:`<path d="M12 9.5V7.5a4 4 0 0 1 8 0v2" fill="none" ${ICS}/><rect x="6" y="9.5" width="20" height="18" rx="5" fill="#f2b33d" ${ICS}/><rect x="11" y="16.5" width="10" height="7" rx="2" fill="#ffd27a" ${ICS}/>`,
+  tree:`<rect x="14" y="18" width="4" height="9.5" rx="1" fill="#a06a3a" ${ICS}/><circle cx="16" cy="12.5" r="8.5" fill="#6cc46a" ${ICS}/><circle cx="12.5" cy="10.5" r="1.7" fill="#ff6b6b"/><circle cx="19.2" cy="14.5" r="1.7" fill="#ff6b6b"/>`,
+  pick:'<path d="M16 9.5L10 27.5" stroke="#4b3527" stroke-width="5" stroke-linecap="round"/><path d="M16 9.5L10 27.5" stroke="#c98a52" stroke-width="2.6" stroke-linecap="round"/><path d="M5.5 11c5-5.5 16-5.5 21 0-5.5-2.2-15.5-2.2-21 0z" fill="#b9c3cf" stroke="#4b3527" stroke-width="2.2" stroke-linejoin="round"/>',
+  heart:`<path d="M16 26.5S5 20 5 12.5a5.5 5.5 0 0 1 11-2 5.5 5.5 0 0 1 11 2c0 7.5-11 14-11 14z" fill="#ff8a9a" ${ICS}/>`,
+  star:`<path d="M16 4l3.6 7.4 8.1 1.2-5.9 5.7 1.4 8.1L16 22.6l-7.2 3.8 1.4-8.1-5.9-5.7 8.1-1.2z" fill="#ffd23f" ${ICS}/>`,
+  addf:`<circle cx="12" cy="11" r="4.6" fill="#ffd27a" ${ICS}/><path d="M3.5 26.5c0-5 3.8-8 8.5-8s8.5 3 8.5 8z" fill="#9fd3ff" ${ICS}/><path d="M25 8.5v9M20.5 13h9" stroke="#3e8e3d" stroke-width="3.2" stroke-linecap="round"/>`,
+  hand:`<path d="M9 17.5V10a2 2 0 0 1 4 0v5.5-8a2 2 0 0 1 4 0v8-7a2 2 0 0 1 4 0V16v-3.5a2 2 0 0 1 4 0V19c0 5-3.5 8.5-8.5 8.5-4 0-6.5-2-8.5-5L5 18a2 2 0 0 1 3.4-2.2z" fill="#ffd9b5" ${ICS}/>`,
+  me:`<circle cx="16" cy="11" r="5" fill="#ffd27a" ${ICS}/><path d="M6 27.5c0-6 4.5-9 10-9s10 3 10 9z" fill="#9fd3ff" ${ICS}/>`,
+  list:`<rect x="7" y="6" width="18" height="22" rx="3" fill="#fff8ea" ${ICS}/><rect x="11" y="3.5" width="10" height="5" rx="1.5" fill="#d9a35a" ${ICS}/><path d="M11 14h10M11 19h10M11 24h6" fill="none" ${ICS}/>`
+};
+function ic(n){ return '<svg class="ic" viewBox="0 0 32 32" aria-hidden="true">'+(IC[n]||"")+'</svg>'; }
+document.querySelectorAll("[data-ic]").forEach(e=>{ e.innerHTML=ic(e.dataset.ic); });
 const LOW = (navigator.hardwareConcurrency||4) <= 4;
 const WALL_H = 2.7;
 let dirty = true;
@@ -1575,7 +1623,7 @@ function useTile(tx,tz, fn){ if(F.st!=="idle") return; const adj=(x,z)=>Math.max
 function sell(i){ const it=bag[i]; if(!it) return 0; const v=price(it); bag.splice(i,1); const g=payout(v); saveBag(); return g; }
 let bait = store("hyeng_proto_bait"); if(typeof bait!=="number") bait=10;
 let casts = store("hyeng_proto_casts")|0;   // (v407) 던진 횟수 — 처음 몇 번은 쉽게
-function setBait(n){ bait=Math.max(0,Math.min(30,n)); store("hyeng_proto_bait", bait); $("bBait").innerHTML='<i>🪱</i><span>미끼 '+bait+'</span>'; }
+function setBait(n){ bait=Math.max(0,Math.min(30,n)); store("hyeng_proto_bait", bait); $("bBait").innerHTML='<i>'+ic("worm")+'</i><span>미끼 '+bait+'</span>'; }
 const F = {st:"idle", _qt:0, t:0, T:0, nib:[], target:null, fish:null, bob:null, line:null, shadow:null, rings:[]};
 const bobber = (()=>{ const g=new THREE.Group(); const top=new THREE.Mesh(new THREE.SphereGeometry(0.075,16,10,0,Math.PI*2,0,Math.PI/2), M(0xe84a4a)); const bot=new THREE.Mesh(new THREE.SphereGeometry(0.075,16,10,0,Math.PI*2,Math.PI/2,Math.PI/2), M(0xffffff)); g.add(top); g.add(bot); g.visible=false; scene.add(g); return g; })();
 const line = (()=>{ const geo=new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute([0,0,0,0,0,0],3)); const l=new THREE.Line(geo, new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:.8})); l.visible=false; l.frustumCulled=false; scene.add(l); return l; })();
@@ -1583,7 +1631,7 @@ const shadowFish = (()=>{ const m=new THREE.Mesh(new THREE.CircleGeometry(0.18,1
 function ring(x,z){ const r=new THREE.Mesh(new THREE.RingGeometry(0.06,0.09,24), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.8, depthWrite:false})); r.rotation.x=-Math.PI/2; r.position.set(x,WL+0.006,z); r.renderOrder=4; scene.add(r); F.rings.push({m:r, t:0}); }
 function nextToWater(x,z){ return [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].some(([a,b])=>isWater(x+a,z+b)); }
 function hint(t){ const h=$("hint"); if(t){ h.textContent=t; h.classList.add("on"); } else h.classList.remove("on"); }
-function setGroups(){ $("gRoom").classList.toggle("on", place===PL.room && F.st==="idle"); $("gYard").classList.toggle("on", place===PL.yard && F.st==="idle"); $("gVill").classList.toggle("on", place===PL.village && F.st==="idle"); $("gMine").classList.toggle("on", place===PL.mine && F.st==="idle"); $("gVisit").classList.toggle("on", place===PL.visit && F.st==="idle"); $("gFish").classList.toggle("on", F.st!=="idle" && F.st!=="quiz"); try{ updUI(); }catch(e){} }
+function setGroups(){ $("bCam").classList.toggle("on", (place===PL.room || place===PL.visit) && F.st==="idle"); $("gRoom").classList.toggle("on", place===PL.room && F.st==="idle"); $("gYard").classList.toggle("on", place===PL.yard && F.st==="idle"); $("gVill").classList.toggle("on", place===PL.village && F.st==="idle"); $("gMine").classList.toggle("on", place===PL.mine && F.st==="idle"); $("gVisit").classList.toggle("on", place===PL.visit && F.st==="idle"); $("gFish").classList.toggle("on", F.st!=="idle" && F.st!=="quiz"); try{ updUI(); }catch(e){} }
 function tryFish(wx, wz){   // 물 칸(wx,wz)을 누름
   if(F.st!=="idle") return;
   if(bait<=0){ toast("🪱 미끼가 없어요<br><small>아래 🪱 미끼 단추를 누르면 받아요 (맛보기)<br>게임에서는 공부하면 생겨요 · Daily 30 한 판 = 🪱 5개</small>", 3200); return; }
@@ -1655,7 +1703,7 @@ function quiz(f){
 function closeCatch(){ if(F.st!=="quiz") return; clearTimeout(F._qt); $("quiz").classList.remove("on"); F.st="idle"; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; }, 500); setGroups(); dirty=true; }
 $("qOpts").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; if(b.id==="qSay"){ say(F.fish.en); clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600); } else closeCatch(); });
 $("quiz").addEventListener("click", e=>{ if(e.target===$("quiz")) closeCatch(); });
-function updBagBtn(){ const t='<i>🎒</i><span>가방 '+slots().length+'/'+bagCap+'</span>'; ["bShop","bBag2","bBag3"].forEach(id=>{ const b=$(id); if(b) b.innerHTML=t; }); }
+function updBagBtn(){ const t='<i>'+ic("bag")+'</i><span>가방 '+slots().length+'/'+bagCap+'</span>'; ["bShop","bBag2","bBag3"].forEach(id=>{ const b=$(id); if(b) b.innerHTML=t; }); }
 let shopTick=0;
 function drawShop(){
   const h=hourIx(), left=3600e3-((now()+9*3600e3)%3600e3), mm=Math.floor(left/60e3), ss=Math.floor(left%60e3/1000);
@@ -2085,7 +2133,7 @@ function drawLabels(){ const box=$("tls"); box.innerHTML="";
   updLabels(); updUI(); }
 function updLabels(){ const W=innerWidth, H=innerHeight;
   LBL.forEach(L=>{ if(L.d.show && !L.d.show()){ L.el.style.display="none"; return; } L.v.set(L.d.p[0],L.d.p[1],L.d.p[2]).project(camera);
-    const x=(L.v.x+1)/2*W, y=(1-L.v.y)/2*H, off=L.v.z>1 || x<-30 || x>W+30 || y<110 || y>H-96; L.el.style.display=off?"none":"";
+    const x=(L.v.x+1)/2*W, y=(1-L.v.y)/2*H, off=L.v.z>1 || x<-30 || x>W+30 || y<110 || y>H-106; L.el.style.display=off?"none":"";
     if(!off){ const hw=(L.el.offsetWidth||80)/2; let lx=Math.max(hw+4,Math.min(W-hw-4,x)); L.el.style.left=lx+"px"; L.el.style.top=y+"px"; } }); }
 function uiBusy(){ return sheetOpen() || edit || !!ghost || F.st!=="idle" || !!dlg || avOpen || trip.busy || $("info").classList.contains("on") || $("drawer").classList.contains("on"); }
 function updUI(){ const b=uiBusy(); $("tls").classList.toggle("off", b); drawCoach(b); }
