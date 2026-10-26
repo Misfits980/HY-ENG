@@ -88,6 +88,27 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .bChip{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.08);font-weight:800;font-size:13.5px}
 .btn.sm2{min-height:36px;padding:4px 10px;font-size:13px}
 .need{text-decoration:none;display:inline-block;margin:2px 4px 0 0;padding:1px 6px;border-radius:8px;background:rgba(123,227,154,.18)} .need.no{background:rgba(255,107,122,.2)}
+.bTabs{display:flex;gap:6px;margin-bottom:10px}
+.bTab{flex:1;min-height:40px;border-radius:12px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer}
+.bTab.on{border-color:var(--gold);background:rgba(255,210,63,.18)}
+.inv{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:8px;border-radius:16px;background:rgba(0,0,0,.28);box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}
+.slot{position:relative;aspect-ratio:1;border-radius:12px;border:2px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;color:#fff;font-family:inherit}
+.slot i{font-style:normal;font-size:clamp(22px,7.5vw,34px);line-height:1;filter:drop-shadow(0 2px 1px rgba(0,0,0,.35))}
+.slot b{position:absolute;right:4px;bottom:2px;font-size:13px;font-weight:900;text-shadow:0 1px 0 #000,0 0 3px #000}
+.slot u{position:absolute;left:5px;right:5px;bottom:4px;height:4px;border-radius:2px;background:rgba(0,0,0,.4);overflow:hidden;text-decoration:none}
+.slot u::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--f);background:linear-gradient(90deg,#ff7a7a,#ffd23f,#7be39a)}
+.slot.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(255,210,63,.4),inset 0 -3px 0 rgba(0,0,0,.25);transform:translateY(-2px)}
+.slot s.mini{position:absolute;left:4px;top:3px;font-size:15px;text-decoration:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.slot.empty{cursor:default;background:rgba(255,255,255,.03);border-style:dashed;box-shadow:none}
+.slot.c-fish{background:linear-gradient(180deg,rgba(110,195,255,.24),rgba(110,195,255,.06))} .slot.c-food{background:linear-gradient(180deg,rgba(255,180,90,.26),rgba(255,180,90,.06))}
+.slot.c-crop{background:linear-gradient(180deg,rgba(123,227,154,.24),rgba(123,227,154,.06))} .slot.c-seed{background:linear-gradient(180deg,rgba(200,160,110,.24),rgba(200,160,110,.05))}
+.bInfo{margin-top:10px;min-height:84px;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.07)}
+.bHint{margin:22px 0;text-align:center;color:var(--sub);font-weight:800;font-size:13px}
+.iTop{display:flex;align-items:center;gap:10px} .iTop i{font-style:normal;font-size:40px} .iTop div{flex:1} .iTop b{display:block;font-size:20px} .iTop small{color:var(--sub);font-weight:800}
+.iTop em{font-style:normal;font-weight:900;color:var(--gold);font-size:17px;white-space:nowrap} .iTop em .up{color:#7be39a} .iTop em .dn{color:#ff8a9a}
+.iRow{margin-top:6px;font-size:13px;font-weight:800;color:var(--sub)}
+.iBtns{display:flex;gap:8px;margin-top:8px}
+@media (orientation:landscape) and (max-height:500px){ .inv{grid-template-columns:repeat(10,1fr)} .slot i{font-size:24px} }
 .dexGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
 .dexC{border-radius:14px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);padding:8px 4px;text-align:center;min-height:96px}
 .dexC i{font-style:normal;font-size:34px;display:block}
@@ -126,7 +147,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
   <div class="shopFoot"><button class="btn on" id="sellAll">모두 팔기</button><button class="btn" id="ffwd">⏩ +3시간 <small>(맛보기)</small></button></div></div>
 <div class="sheet" id="craftP"><div class="hd"><b id="craftT">🛠 Workbench</b><button class="btn" id="craftDone">닫기</button></div><div id="craftBody"></div></div>
 <div class="sheet" id="seedP"><div class="hd"><b>🌰 무엇을 심을까요?</b><button class="btn" id="seedDone">닫기</button></div><div class="row" id="seedBody" style="display:flex;gap:8px;overflow-x:auto"></div></div>
-<div class="sheet" id="bagP"><div class="hd"><b>🎒 가방</b><button class="btn" id="bagShop">🏪 가게로</button><button class="btn" id="bagDone">닫기</button></div><div id="bagBody"></div><div class="shopFoot"><button class="btn" id="bagFf">⏩ +3시간 <small>(맛보기)</small></button></div></div>
+<div class="sheet" id="bagP"><div class="hd"><b>🎒 가방 <small id="bagCnt"></small></b><button class="btn sm2" id="bagSort">정리</button><button class="btn sm2" id="bagShop">🏪</button><button class="btn sm2" id="bagDone">닫기</button></div>
+  <div class="bTabs" id="bagTabs"></div><div class="inv" id="bagGrid"></div><div class="bInfo" id="bagInfo"></div>
+  <div class="shopFoot"><button class="btn sm2" id="bagFf">⏩ +3시간 <small>(맛보기)</small></button></div></div>
 <div class="sheet" id="dexP"><div class="hd"><b>🐟 물고기 도감 <small id="dexN"></small></b><button class="btn" id="dexDone">닫기</button></div><div class="dexGrid" id="dexBody"></div></div>
 <div id="place"><button class="btn" id="pRot">↻ 돌리기</button><button class="btn on" id="pOk">✅ 놓기</button><button class="btn" id="pNo">✕</button></div>
 <div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻</button><button class="btn sm" id="mMove" aria-label="옮기기">✋</button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦</button></div>
@@ -497,7 +520,8 @@ let dex = store("hyeng_proto_fish") || {};
    시세: 한국 시간 1시간마다 · 물고기마다 다른 물결(모든 기기 같은 값) 0.5~1.7배 · 맛보기 보석은 게임 보석과 따로(hyeng_proto_gems) */
 const FISH_BY={}; FISH.forEach(f=>FISH_BY[f.en]=f);
 let bag = store("hyeng_proto_bag") || [], gems = store("hyeng_proto_gems") || 0, tShift = 0;
-const BAG_MAX=20, FRESH_H=2, ROT_H=48;
+const FRESH_H=2, ROT_H=48, FISH_STACK=10, MAT_STACK=30;   /* (L0-5) 가방 = 칸(슬롯) — 같은 것은 겹쳐 담음(물고기 10 · 나머지 30) · 칸 20개(👜 큰 가방을 만들면 30) */
+let bagCap = store("hyeng_proto_cap") || 20;
 const now=()=>Date.now()+tShift;
 function hashf(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return (h>>>0)/4294967296; }
 function hourIx(t){ return Math.floor(((t==null?now():t)+9*3600e3)/3600e3); }
@@ -557,14 +581,15 @@ function updWobble(dt){ for(let i=shakeT.length-1;i>=0;i--){ const w=shakeT[i]; 
 function act(kind){ hero.act=kind; hero.actT=0; setTimeout(()=>{ if(hero.act===kind) hero.act="idle"; }, 500); }
 function gotList(L){ const t=L.filter(x=>x[1]>0).map(([n,k])=>matE(n)+" "+n+" +"+k).join(" · "); if(t){ toast(t); say(L.find(x=>x[1]>0)[0]); } else toast("지금은 없어요 — 조금 있다 다시 와요"); }
 function shakeTree(i){ regen(); const T=scene.userData.trees[i], r=res.t[i]; wobble(T); act("reel"); const got=[];
-  if(r.a>0){ got.push(["apple", r.a]); addMat("apple", r.a); r.a=0; r.at=now(); }
-  if(now()-(r.b||0) > 4*3600e3){ got.push(["branch", 1]); addMat("branch", 1); r.b=now(); }
+  if(r.a>0){ if(!canAdd("apple", r.a)){ fullMsg(); return; } got.push(["apple", r.a]); addMat("apple", r.a); r.a=0; r.at=now(); }
+  if(now()-(r.b||0) > 4*3600e3 && canAdd("branch",1)){ got.push(["branch", 1]); addMat("branch", 1); r.b=now(); }
   saveFarm(); drawFruit(); gotList(got); }
 function hitRock(i){ regen(); const r=res.r[i]; wobble(scene.userData.rocks[i]); act("reel");
+  if(r.n>0 && !canAdd("stone",1)){ fullMsg(); return; }
   if(r.n>0){ r.n--; if(r.n===2) r.at=now(); addMat("stone",1); gotList([["stone",1]]); } else gotList([]); saveFarm(); }
 function plant(i, seed){ const pl=plots[i]; if(pl.s || !has(seed+" seeds",1)) return false; addMat(seed+" seeds",-1); plots[i]={s:seed, g:0, wt:0}; saveFarm(); drawPlot(i); say(seed); return true; }
 function water(i){ const pl=plots[i]; if(!pl.s || pl.wt || plotStage(pl)==="ripe") return false; grow(pl); pl.wt=now(); pl.le=pl.wt; act("reel"); saveFarm(); drawPlot(i); splash(i); return true; }
-function harvest(i){ const pl=plots[i]; if(plotStage(pl)!=="ripe") return 0; const y=SEEDS[pl.s].y; addMat(pl.s, y); const n=pl.s; plots[i]={s:null}; act("yay"); saveFarm(); drawPlot(i); gotList([[n,y]]); return y; }
+function harvest(i){ const pl=plots[i]; if(plotStage(pl)!=="ripe") return 0; const y=SEEDS[pl.s].y; if(!canAdd(pl.s,y)){ fullMsg(); return 0; } addMat(pl.s, y); const n=pl.s; plots[i]={s:null}; act("yay"); saveFarm(); drawPlot(i); gotList([[n,y]]); return y; }
 function splash(i){ const [x,z]=PLOTS[i]; for(let k=0;k<3;k++) setTimeout(()=>ring(x+0.5+rnd(-0.2,0.2), z+0.5+rnd(-0.2,0.2)), k*90); }
 function onPlot(i){ const pl=plots[i], st=plotStage(pl);
   if(!pl.s){ openSeeds(i); return; }
@@ -576,13 +601,18 @@ function onPlot(i){ const pl=plots[i], st=plotStage(pl);
 const CRAFT=[ {id:"chair", e:"🪑", nm:"chair", need:{branch:4}, give:()=>{ stock.chair=(stock.chair|0)+1; }, to:"🏠 창고"},
   {id:"plant", e:"🪴", nm:"plant", need:{stone:2, branch:1}, give:()=>{ stock.plant=(stock.plant|0)+1; }, to:"🏠 창고"},
   {id:"lamp", e:"💡", nm:"lamp", need:{stone:2, branch:2}, give:()=>{ stock.lamp=(stock.lamp|0)+1; }, to:"🏠 창고"},
-  {id:"rod", e:"🎣", nm:"good rod", need:{branch:5, stone:3}, give:()=>{ rod2=true; }, to:"드문 물고기 ↑", once:()=>rod2} ];
+  {id:"rod", e:"🎣", nm:"good rod", need:{branch:5, stone:3}, give:()=>{ rod2=true; }, to:"드문 물고기 ↑", once:()=>rod2},
+  {id:"bag", e:"👜", nm:"big bag", need:{branch:6, stone:4, apple:2}, give:()=>{ bagCap=30; store("hyeng_proto_cap", 30); updBagBtn(); }, to:"가방 30칸", once:()=>bagCap>=30} ];
 const COOK=[ {id:"bread", need:{wheat:2}}, {id:"fries", need:{potato:2}}, {id:"apple pie", need:{apple:2, wheat:1}}, {id:"pumpkin pie", need:{pumpkin:1, wheat:1}},
   {id:"fish stew", need:{"🐟":1, tomato:1}}, {id:"pasta", need:{wheat:1, tomato:2}}, {id:"fruit salad", need:{apple:1, strawberry:1}}, {id:"jam", need:{strawberry:2}} ];
+/* (L0-5) 사용자: 음식은 팔면 조금 더 비싸게 → 음식 기준 값 = 재료 기준 값 합 × 1.3 (올림) · 🐟 재료는 fish 값(4)으로 셈 */
+const ingBase=n=>n==="🐟"?FISH_BY.fish.p:((MAT[n]||{}).p||1);
+COOK.forEach(r=>{ r.base=Object.keys(r.need).reduce((a,n)=>a+ingBase(n)*r.need[n],0); MAT[r.id].p=Math.ceil(r.base*1.3); });
 const fishFood=()=>bag.map((b,i)=>({b,i})).filter(x=>!FISH_BY[x.b.en].noRot).sort((a,b)=>fresh(a.b)-fresh(b.b));   // 요리엔 가장 오래된 물고기부터
 const haveN=n=>n==="🐟" ? fishFood().length : (mats[n]|0);
 function canMake(r){ return Object.keys(r.need).every(n=>haveN(n)>=r.need[n]) && !(r.once && r.once()); }
 function make(kind, id){ const L=kind==="craft"?CRAFT:COOK, r=L.find(x=>x.id===id); if(!r || !canMake(r)) return false;
+  if(kind==="cook" && !canAdd(id,1) && !Object.keys(r.need).some(n=>n!=="🐟" && mats[n]===r.need[n])){ fullMsg(); return false; }
   Object.keys(r.need).forEach(n=>{ if(n==="🐟"){ for(let k=0;k<r.need[n];k++){ const f=fishFood()[0]; bag.splice(f.i,1); } saveBag(); updBagBtn(); } else addMat(n, -r.need[n]); });
   if(kind==="craft"){ r.give(); drawInv(); toast(r.e+" "+r.nm+" → "+r.to); say(r.nm==="good rod"?"fishing rod":r.nm); }
   else { addMat(id, 1); toast(MAT[id].e+" "+id+"! 🍽"); say(id); }
@@ -591,7 +621,7 @@ let craftKind="craft";
 function drawCraft(){ const L=craftKind==="craft"?CRAFT:COOK;
   $("craftT").textContent=craftKind==="craft"?"🛠 Workbench":"🍳 Cooking";
   $("craftBody").innerHTML=L.map(r=>{ const e=craftKind==="craft"?r.e:MAT[r.id].e, nm=craftKind==="craft"?r.nm:r.id, done=r.once&&r.once(), ok=canMake(r);
-    return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+(craftKind==="cook"?' <small style="display:inline">💎'+matP(r.id)+'</small>':'')+'</b><small>'+Object.keys(r.need).map(n=>{ const h=haveN(n), k=r.need[n]; return '<u class="need'+(h>=k?'':' no')+'">'+(n==="🐟"?"🐟 fish":matE(n)+' '+n)+' '+Math.min(h,k)+'/'+k+'</u>'; }).join(' ')+'</small></span>'
+    return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+(craftKind==="cook"?' <small style="display:inline">재료 💎'+r.base+' → <b style="display:inline;color:var(--gold)">💎'+MAT[r.id].p+'</b></small>':'')+'</b><small>'+Object.keys(r.need).map(n=>{ const h=haveN(n), k=r.need[n]; return '<u class="need'+(h>=k?'':' no')+'">'+(n==="🐟"?"🐟 fish":matE(n)+' '+n)+' '+Math.min(h,k)+'/'+k+'</u>'; }).join(' ')+'</small></span>'
       +'<button class="btn'+(ok?' on':'')+'" data-make="'+r.id+'"'+(ok?'':' disabled')+'>'+(done?'✅':'make')+'</button></div>'; }).join(""); }
 function openCraft(kind){ if(F.st!=="idle") return; craftKind=kind; drawCraft(); $("craftP").classList.add("on"); }
 $("craftBody").addEventListener("click", e=>{ const b=e.target.closest("[data-make]"); if(!b || b.disabled) return; make(craftKind, b.dataset.make); drawCraft(); });
@@ -602,17 +632,48 @@ function openSeeds(i){ seedPlot=i; const L=Object.keys(SEEDS).filter(n=>has(n+" 
   $("seedBody").innerHTML=L.map(n=>'<button class="card" data-seed="'+n+'"><i>'+MAT[n].e+'</i><span>'+n+'</span><em>×'+mats[n+" seeds"]+' · '+SEEDS[n].h+'h</em></button>').join(""); $("seedP").classList.add("on"); }
 $("seedBody").addEventListener("click", e=>{ const b=e.target.closest("[data-seed]"); if(!b) return; $("seedP").classList.remove("on"); if(plant(seedPlot, b.dataset.seed)) toast("🌱 "+b.dataset.seed+" — 물을 주면 자라요 (밭을 다시 눌러요)", 2200); });
 $("seedDone").onclick=()=>$("seedP").classList.remove("on");
-/* 🎒 가방 — 재료 · 음식(먹기) · 씨앗 */
-function drawBagP(){ const keys=Object.keys(mats).filter(n=>mats[n]>0), grp=(f)=>keys.filter(f);
-  const chip=n=>'<span class="bChip">'+matE(n)+' '+n+' <b>×'+mats[n]+'</b>'+(MAT[n]&&MAT[n].food?' <button class="btn sm2" data-eat="'+n+'">eat</button>':'')+'</span>';
-  const sec=(t,L)=>L.length?'<h4 class="bH">'+t+'</h4><div class="bChips">'+L.map(chip).join("")+'</div>':'';
-  $("bagBody").innerHTML='<h4 class="bH">🐟 fish <small>'+bag.length+'/'+BAG_MAX+'</small></h4><div class="bChips">'+(bag.length?Object.entries(bag.reduce((a,b)=>(a[b.en]=(a[b.en]|0)+1,a),{})).map(([n,k])=>'<span class="bChip">'+FISH_BY[n].e+' '+n+' <b>×'+k+'</b></span>').join(""):'<span class="bChip">—</span>')+'</div>'
-    +sec("🍽 food", grp(n=>MAT[n]&&MAT[n].food))+sec("🌾 crops", grp(n=>SEEDS[n]))+sec("🪵 materials", grp(n=>["apple","branch","stone"].includes(n)))+sec("🌰 seeds", grp(n=>/ seeds$/.test(n)))
-    +(buffUntil>now()?'<p class="bH">🍀 lucky — '+Math.ceil((buffUntil-now())/60e3)+'분 남음</p>':'')+(rod2?'<p class="bH">🎣 good rod</p>':''); }
+/* 🎒 가방 — (L0-5) 사용자: "가방이 아쉬워 · 다른 게임처럼" → 칸 격자(동숲 주머니·마크 인벤토리) · 종류 탭 · 칸을 누르면 자세히(🔊 · 지금 값 · 쓰임 · 먹기/심기) · 정리 */
+const CAT={fish:["🐟","물고기"], food:["🍽","음식"], crop:["🌾","작물"], mat:["🪵","재료"], seed:["🌰","씨앗"]};
+function catOf(n){ if(FISH_BY[n]) return "fish"; if(/ seeds$/.test(n)) return "seed"; if(MAT[n]&&MAT[n].food) return "food"; if(SEEDS[n]) return "crop"; return "mat"; }
+let bagOrder = store("hyeng_proto_border") || [];   // 칸 순서 (처음 얻은 순서 · 정리하면 종류별)
+function slots(){ const cnt={}; bag.forEach(b=>cnt[b.en]=(cnt[b.en]|0)+1); Object.keys(mats).forEach(m=>{ if(mats[m]>0) cnt[m]=mats[m]; });
+  Object.keys(cnt).forEach(n=>{ if(bagOrder.indexOf(n)<0) bagOrder.push(n); }); bagOrder=bagOrder.filter(n=>cnt[n]>0);
+  const S=[]; bagOrder.forEach(n=>{ const st=FISH_BY[n]?FISH_STACK:MAT_STACK; let k=cnt[n]; while(k>0){ S.push({n, k:Math.min(st,k), cat:catOf(n)}); k-=st; } }); return S; }
+function canAdd(n, k){ const st=FISH_BY[n]?FISH_STACK:MAT_STACK, cur=FISH_BY[n]?bag.filter(b=>b.en===n).length:(mats[n]|0); return slots().length-Math.ceil(cur/st)+Math.ceil((cur+k)/st) <= bagCap; }
+function fullMsg(){ toast("🎒 가방이 꽉 찼어요 — 가게에서 팔거나 요리해요", 2200); }
+let bagTab="all", bagSel=null;
+const matE2=n=>FISH_BY[n]?FISH_BY[n].e:matE(n);
+function valNow(n){ return FISH_BY[n] ? Math.max(1,Math.round(FISH_BY[n].p*mkt(n))) : matP(n); }
+const USES=n=>COOK.filter(r=>r.need[n] || (FISH_BY[n]&&!FISH_BY[n].noRot&&r.need["🐟"])).map(r=>MAT[r.id].e+" "+r.id).concat(CRAFT.filter(r=>r.need[n]).map(r=>r.e+" "+r.nm));
+function drawBagP(){ const S=slots(), L=S.filter(x=>bagTab==="all"||x.cat===bagTab);
+  $("bagCnt").textContent=S.length+" / "+bagCap+"칸";
+  $("bagTabs").innerHTML=[["all","전체"]].concat(Object.keys(CAT).map(k=>[k,CAT[k][0]])).map(([k,t])=>'<button class="bTab'+(bagTab===k?' on':'')+'" data-tab="'+k+'">'+t+'</button>').join("");
+  const cells=L.map(x=>{ const fr=FISH_BY[x.n] ? bag.filter(b=>b.en===x.n).reduce((a,b)=>Math.max(a,fresh(b)),0) : null;
+    return '<button class="slot'+(bagSel===x.n?' on':'')+' c-'+x.cat+'" data-slot="'+x.n+'" aria-label="'+x.n+'"><i>'+matE2(x.n)+'</i>'+(x.cat==="seed"?'<s class="mini">'+MAT[x.n.replace(/ seeds$/,"")].e+'</s>':'')+(x.k>1?'<b>'+x.k+'</b>':'')+(fr!=null && !FISH_BY[x.n].noRot?'<u style="--f:'+Math.round(fr*100)+'%"></u>':'')+'</button>'; });
+  if(bagTab==="all") for(let i=S.length;i<bagCap;i++) cells.push('<span class="slot empty"></span>');
+  $("bagGrid").innerHTML=cells.join("") || '<p class="sEmpty">비었어요</p>';
+  drawInfo(); }
+function drawInfo(){ const n=bagSel, el=$("bagInfo");
+  if(!n || !(FISH_BY[n]?bag.some(b=>b.en===n):mats[n]>0)){ bagSel=null; el.innerHTML='<p class="bHint">칸을 누르면 자세히 볼 수 있어요'+(buffUntil>now()?' · 🍀 lucky '+Math.ceil((buffUntil-now())/60e3)+'분':'')+(rod2?' · 🎣 good rod':'')+'</p>'; return; }
+  const c=catOf(n), cnt=FISH_BY[n]?bag.filter(b=>b.en===n).length:mats[n], m=mkt(n), m0=mkt(n,hourIx()-1), arrow=m>m0+0.01?'▲':m<m0-0.01?'▼':'';
+  let fr=''; if(FISH_BY[n] && !FISH_BY[n].noRot){ const t={}; bag.filter(b=>b.en===n).forEach(b=>{ const g=freshTag(fresh(b)); t[g[0]+' '+g[1]]=(t[g[0]+' '+g[1]]|0)+1; }); fr='<div class="iRow">'+Object.entries(t).map(([k,v])=>k+' ×'+v).join(' · ')+'</div>'; }
+  const uses=USES(n), btns=[];
+  if(c==="food") btns.push('<button class="btn on" data-act="eat">😋 eat</button>'); if(c==="seed") btns.push('<button class="btn on" data-act="plant">🌱 plant</button>');
+  btns.push('<button class="btn" data-act="say">🔊</button>');
+  el.innerHTML='<div class="iTop"><i>'+matE2(n)+'</i><div><b>'+n+'</b><small>'+CAT[c][0]+' '+CAT[c][1]+' · ×'+cnt+'</small></div><em>💎 '+valNow(n)+' <small class="'+(arrow==='▲'?'up':arrow==='▼'?'dn':'')+'">'+arrow+'</small></em></div>'+fr
+    +(uses.length?'<div class="iRow">🛠 '+uses.join(' · ')+'</div>':'')+(c==="food"?'<div class="iRow">먹으면 🍀 lucky 10분 · 팔면 재료보다 비싸요</div>':'')+'<div class="iBtns">'+btns.join("")+'</div>'; }
 function openBag(){ if(F.st!=="idle") return; drawBagP(); $("bagP").classList.add("on"); }
-$("bagBody").addEventListener("click", e=>{ const b=e.target.closest("[data-eat]"); if(!b) return; const n=b.dataset.eat; if(!has(n,1)) return; addMat(n,-1); buffUntil=Math.max(buffUntil,now())+10*60e3; saveFarm(); act("yay"); say(n); toast("😋 "+n+"! 🍀 lucky 10분 — 드문 물고기가 더 잘 잡혀요", 2400); drawBagP(); });
+$("bagTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-tab]"); if(!b) return; bagTab=b.dataset.tab; drawBagP(); });
+$("bagGrid").addEventListener("click", e=>{ const b=e.target.closest("[data-slot]"); if(!b) return; bagSel=b.dataset.slot; try{ navigator.vibrate&&navigator.vibrate(8); }catch(er){} drawBagP(); });
+$("bagInfo").addEventListener("click", e=>{ const b=e.target.closest("[data-act]"); if(!b || !bagSel) return; const n=bagSel, a=b.dataset.act;
+  if(a==="say") say(n.replace(/ seeds$/,""));
+  if(a==="eat" && has(n,1)){ addMat(n,-1); buffUntil=Math.max(buffUntil,now())+10*60e3; saveFarm(); act("yay"); say(n); toast("😋 "+n+"! 🍀 lucky 10분 — 드문 물고기가 더 잘 잡혀요", 2400); }
+  if(a==="plant"){ const i=plots.findIndex(pl=>!pl.s); if(i<0){ toast("빈 밭이 없어요"); } else { $("bagP").classList.remove("on"); const [x,z]=PLOTS[i], sd=n.replace(/ seeds$/,""); useTile(x,z,()=>{ if(plant(i, sd)) toast("🌱 "+sd+" — 밭을 다시 눌러 물을 줘요", 2000); }); return; } }
+  updBagBtn(); drawBagP(); });
+$("bagSort").onclick=()=>{ const ord=["fish","food","crop","mat","seed"]; slots(); bagOrder.sort((a,b)=>ord.indexOf(catOf(a))-ord.indexOf(catOf(b)) || valNow(b)-valNow(a)); store("hyeng_proto_border", bagOrder); drawBagP(); };
+
 $("bagDone").onclick=()=>$("bagP").classList.remove("on"); $("bagShop").onclick=()=>{ $("bagP").classList.remove("on"); goShop(); };
-$("bagFf").onclick=()=>{ tShift+=3*3600e3; regen(); drawFruit(); checkPlots(); drawBagP(); toast("⏩ 3시간 뒤로 (맛보기) — 밭·나무·신선도가 바뀌어요"); };
+$("bagFf").onclick=()=>{ tShift+=3*3600e3; regen(); drawFruit(); checkPlots(); drawBagP(); store("hyeng_proto_border", bagOrder); toast("⏩ 3시간 뒤로 (맛보기) — 밭·나무·신선도가 바뀌어요"); };
 /* 가까이 가서 하기 */
 function faceTo(tx,tz){ const p=hero.g.position; hero.face=Math.atan2(tx+0.5-p.x, tz+0.5-p.z); }
 function useTile(tx,tz, fn){ if(F.st!=="idle") return; const adj=(x,z)=>Math.max(Math.abs(x-tx),Math.abs(z-tz))===1;
@@ -685,9 +746,9 @@ function tts(en){ try{ const u=new SpeechSynthesisUtterance(en); u.lang="en-US";
 function quiz(f){
   F.st="quiz"; setGroups(); bobber.visible=false; line.visible=false; shadowFish.visible=false;
   const first=!dex[f.en]; dex[f.en]=(dex[f.en]|0)+1; store("hyeng_proto_fish", dex);
-  const full=bag.length>=BAG_MAX; if(!full){ bag.push({en:f.en, at:now()}); saveBag(); }
+  const full=!canAdd(f.en,1); if(!full){ bag.push({en:f.en, at:now()}); saveBag(); }
   $("qFish").textContent=f.e; $("qAsk").innerHTML='<span class="enBig">'+f.en+'</span>';
-  $("qRes").innerHTML=(first?"🆕 NEW! ":"")+(full?"<br><small>🎒 가방이 꽉 찼어요 — 가게에서 팔아요 (놓아줬어요)</small>":"<small>🎒 "+bag.length+"/"+BAG_MAX+"</small>"); updBagBtn();
+  $("qRes").innerHTML=(first?"🆕 NEW! ":"")+(full?"<br><small>🎒 가방이 꽉 찼어요 — 가게에서 팔아요 (놓아줬어요)</small>":"<small>🎒 "+slots().length+"/"+bagCap+"칸</small>"); updBagBtn();
   $("qOpts").innerHTML='<button class="btn" id="qSay">🔊</button><button class="btn on" id="qOk">OK</button>';
   $("quiz").classList.add("on"); hero.act="yay"; hero.actT=0; say(f.en);
   clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600);
@@ -695,7 +756,7 @@ function quiz(f){
 function closeCatch(){ if(F.st!=="quiz") return; clearTimeout(F._qt); $("quiz").classList.remove("on"); F.st="idle"; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; }, 500); setGroups(); dirty=true; }
 $("qOpts").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; if(b.id==="qSay"){ say(F.fish.en); clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600); } else closeCatch(); });
 $("quiz").addEventListener("click", e=>{ if(e.target===$("quiz")) closeCatch(); });
-function updBagBtn(){ const b=$("bShop"); if(b) b.textContent="🎒 "+(bag.length+Object.values(mats||{}).reduce((a,k)=>a+(k|0),0)); }
+function updBagBtn(){ const b=$("bShop"); if(b) b.textContent="🎒 "+slots().length+"/"+bagCap; }
 let shopTick=0;
 function drawShop(){
   const h=hourIx(), left=3600e3-((now()+9*3600e3)%3600e3), mm=Math.floor(left/60e3), ss=Math.floor(left%60e3/1000);
@@ -718,7 +779,7 @@ function goShop(){ if(F.st!=="idle") return; const near=STALL_FRONT.some(t=>t[0]
 $("shopBag").addEventListener("click", e=>{ const b=e.target.closest("[data-sell]"); if(!b) return; const v=sell(+b.dataset.sell); if(v){ toast("💎 +"+v); try{ navigator.vibrate&&navigator.vibrate(20); }catch(er){} } drawShop(); updBagBtn(); });
 $("shopMats").addEventListener("click", e=>{ const s=e.target.closest("[data-sellm]"), b=e.target.closest("[data-buy]");
   if(s){ const n=s.dataset.sellm; if(!has(n,1)) return; const v=matP(n); addMat(n,-1); gems+=v; saveBag(); toast("💎 +"+v); }
-  if(b && !b.disabled){ const n=b.dataset.buy; if(gems<SEEDS[n].p) return; gems-=SEEDS[n].p; addMat(n+" seeds",1); saveBag(); toast("🌰 "+n+" seeds +1"); }
+  if(b && !b.disabled){ const n=b.dataset.buy; if(gems<SEEDS[n].p) return; if(!canAdd(n+" seeds",1)){ fullMsg(); return; } gems-=SEEDS[n].p; addMat(n+" seeds",1); saveBag(); toast("🌰 "+n+" seeds +1"); }
   drawShop(); });
 $("sellAll").onclick=()=>{ let t=0; while(bag.length) t+=sell(0); if(t) toast("💎 +"+t+" — 모두 팔았어요!"); drawShop(); updBagBtn(); };
 $("ffwd").onclick=()=>{ tShift+=3*3600e3; drawShop(); toast("⏩ 3시간 뒤로 (맛보기) — 신선도·값이 바뀌어요"); };
@@ -863,7 +924,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
+window.HOUSE = {slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
 </html>

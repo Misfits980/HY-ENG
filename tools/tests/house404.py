@@ -5,6 +5,7 @@
   ③ 입질 전에 톡 = 미끼 돌려받고 끝 · 입질 뒤 늦으면 놓침 · 미끼 0 이면 못 던짐
   ⑥ 가방·가게: 잡으면 가방 · 신선도(2시간 그대로→48시간 0) · 시간마다 값(0.5~1.7배, 같은 시간 같은 값) · 팔면 맛보기 보석
   ⑦ 농사·모으기·만들기·요리: 심기(씨앗 필요) · 물 안 주면 멈춤 · 물 12시간 동안 자람 · 수확 · 나무 사과(시간 지나야 다시) · 바위 · 제작대 · 요리 · 먹으면 🍀
+  ⑧ 가방 칸(겹치기·꽉 참·큰 가방) · 음식 값 = 재료 × 1.3
   ④ 나 꾸미기: 모자 바꾸면 저장되고 새로 열어도 그대로
   ⑤ 가로 화면에서도 방이 화면 안 · 오류 없음"""
 import asyncio, sys, os
@@ -63,7 +64,7 @@ async def main():
         ok(await pg.evaluate("()=>document.getElementById('bang').classList.contains('on')"), "입질 → ! 표시")
         await pg.evaluate("()=>HOUSE.tapWhileFishing()")
         ok(await until("()=>document.getElementById('quiz').classList.contains('on')", 20), "톡 → 잡음 카드")
-        q=await pg.evaluate("()=>({fish:HOUSE.F.fish.en, name:document.getElementById('qAsk').innerText.trim(), ko:/[가-힣]/.test(document.getElementById('quiz').innerText.replace('🆕','')), opts:document.querySelectorAll('#qOpts button[data-en]').length})")
+        q=await pg.evaluate("()=>({fish:HOUSE.F.fish.en, name:document.getElementById('qAsk').innerText.trim(), ko:/[가-힣]/.test(document.getElementById('qAsk').innerText+document.getElementById('qFish').innerText), opts:document.querySelectorAll('#qOpts button[data-en]').length})")
         ok(q["name"]==q["fish"] and not q["ko"] and q["opts"]==0, f"문제 없이 영어 이름만 (한국어 없음) {q}")
         ok(await pg.evaluate("(f)=>HOUSE.dex()[f]===1", q["fish"]), "잡으면 바로 도감 +1")
         await pg.evaluate("()=>{ if(document.getElementById('quiz').classList.contains('on')) document.getElementById('qOk').click(); }"); await pg.wait_for_timeout(200)   # 2.6초 뒤 저절로 닫힐 수 있음
@@ -116,9 +117,21 @@ async def main():
         ok(await pg.evaluate("()=>HOUSE.make('craft','chair')") and await pg.evaluate("()=>HOUSE.stock.chair")>=1, "🛠 branch 4 → chair (집 창고로)")
         ok(not await pg.evaluate("()=>HOUSE.make('craft','lamp')"), "재료가 모자라면 못 만듦")
         await pg.evaluate("()=>HOUSE.addMat('wheat',2)"); ok(await pg.evaluate("()=>HOUSE.make('cook','bread')") and await pg.evaluate("()=>HOUSE.mats().bread")==1, "🍳 wheat 2 → bread")
-        await pg.evaluate("()=>HOUSE.openBag()"); await pg.wait_for_timeout(300); await pg.click('[data-eat="bread"]'); await pg.wait_for_timeout(200)
+        await pg.evaluate("()=>HOUSE.openBag()"); await pg.wait_for_timeout(300); await pg.click('[data-slot="bread"]'); await pg.wait_for_timeout(200)
+        info=await pg.evaluate("()=>document.getElementById('bagInfo').innerText")
+        ok("bread" in info and "💎" in info, "가방 칸을 누르면 자세히 (이름·값)")
+        await pg.click('#bagInfo [data-act="eat"]'); await pg.wait_for_timeout(200)
         ok(await pg.evaluate("()=>HOUSE.buff()>Date.now()+8*60e3") and not await pg.evaluate("()=>HOUSE.mats().bread"), "음식 먹기 → 🍀 lucky 10분")
         await pg.click("#bagDone")
+        # ⑧ 가방 칸 — 같은 것은 겹침(물고기 10 · 나머지 30) · 20칸 꽉 차면 못 담음 · 👜 큰 가방 30칸 · 음식 값 = 재료 × 1.3
+        fp=await pg.evaluate("()=>HOUSE.COOK.map(r=>[r.id, r.base, HOUSE.MAT[r.id].p])")
+        ok(all(p_==-(-b_*13//10) and p_>b_ for _,b_,p_ in fp), f"음식 기준 값 = 재료 합 × 1.3 (조금 더 비쌈) {fp[:3]}")
+        await pg.evaluate("()=>{ const m=HOUSE.mats(); Object.keys(m).forEach(k=>delete m[k]); HOUSE.bag().length=0; HOUSE.addMat('wheat',45); }")
+        ok(await pg.evaluate("()=>HOUSE.slots().length")==2, "wheat 45 = 2칸 (30씩 겹침)")
+        await pg.evaluate("()=>{ ['apple','branch','stone','carrot','tomato','potato','strawberry','pumpkin','bread','fries','pasta','jam','fruit salad','apple pie','pumpkin pie','fish stew','carrot seeds','tomato seeds'].forEach(n=>HOUSE.addMat(n,1)); }")
+        ok(await pg.evaluate("()=>HOUSE.slots().length")==20 and not await pg.evaluate("()=>HOUSE.canAdd('wheat seeds',1)") and await pg.evaluate("()=>HOUSE.canAdd('apple',5)"), "20칸 꽉 → 새 것은 못 담고, 있는 칸엔 겹쳐 담음")
+        await pg.evaluate("()=>HOUSE.addMat('branch',6)"); await pg.evaluate("()=>{ HOUSE.addMat('stone',4); HOUSE.addMat('apple',2); }")
+        ok(await pg.evaluate("()=>HOUSE.make('craft','bag')") and await pg.evaluate("()=>HOUSE.bagCap()")==30 and await pg.evaluate("()=>HOUSE.canAdd('wheat seeds',1)"), "👜 big bag 만들면 30칸")
         # ④ 나 꾸미기
         await pg.click("#bAv2"); await pg.wait_for_timeout(500)
         await pg.click('.chip[data-k="hat"][data-v="cap"]'); await pg.wait_for_timeout(300)
