@@ -58,7 +58,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 4;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그
+const SERVER_V = 5;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기)
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
@@ -157,12 +157,13 @@ function doGet(e){
   if (diff === "dex") return json_({ok:true, list:dexRank_(sh, last, since, n, dev)});   // (v221) 단어 수집 랭킹
   const rows = sh.getRange(2, 1, last - 1, COLS.length).getValues();   // (v404) 태그 칸(맨 끝)까지
 
-  const best = {};                                                  // 태그(없으면 닉네임) → 최고 기록 — (v404) 같은 이름이 둘이어도 안 섞이고, 이름을 바꿔도 한 줄
+  const best = {}, P = people_(rows);                               // 태그(없으면 닉네임) → 최고 기록 — (v404) 같은 이름이 둘이어도 안 섞이고, 이름을 바꿔도 한 줄 · (v416) 👤 뗀 이름으로 묶음
   rows.forEach(r=>{
     if (String(r[C.diff]) !== diff) return;
     if (r[C.rule] && String(r[C.rule]) !== "normal") return;
     const t = time_(r[C.date]); if (t < since) return;
-    const nick = String(r[C.nick] || "PLAYER"), score = Number(r[C.score]) || 0, tg = tag_(r[C.tag]), id = tg ? "#" + tg : nick;
+    if (P.hide(r)) return;
+    const nick = plain_(r[C.nick]) || "PLAYER", score = Number(r[C.score]) || 0, tg = P.tag(r), id = P.id(r);
     let b = best[id];
     if (!b){ b = best[id] = {nick, tag:tg, score:0, stage:0, title:"", tt:0, nt:0, me:false}; }
     if (t >= b.nt){ b.nick = nick; b.nt = t; }                      // 가장 최근 이름
@@ -179,14 +180,19 @@ function doGet(e){
 
 /* (v221) 단어 수집 랭킹 — 닉네임마다 '도감' 칸의 가장 큰 값 (모든 방식·난이도·공부 기록 포함)
    이번 주 = 이번 주에 기록이 있는 사람만 (값은 그때까지 모은 전체 단어 수) */
+/* (v416) 사용자 QA 「분신술」 — 같은 아이가 「김지후」(달리기)·「👤김지후」(공부)로 두 줄 · 공용 패드에서 한 판 하면 그 패드 단어 수(1·6·17)로 또 한 줄
+   → 사람마다 한 줄(태그 → 👤 뗀 이름) · 이번 주 = 이번 주에 기록이 있는 아이, 값 = 지금까지 자기 기기에서 모은 가장 큰 단어 수 (공용 패드의 단어 수는 그 아이 것이 아니라 안 셈) */
 function dexRank_(sh, last, since, n, dev){
   const rows = sh.getRange(2, 1, last - 1, COLS.length).getValues();
-  const best = {};
+  const best = {}, P = people_(rows), on = {};
+  rows.forEach(r=>{ if (!P.hide(r) && time_(r[C.date]) >= since) on[P.id(r)] = 1; });
   rows.forEach(r=>{
-    const t = time_(r[C.date]); if (t < since) return;
-    const nick = String(r[C.nick] || "PLAYER"), dex = Number(r[C.dex]) || 0, tg = tag_(r[C.tag]), id = tg ? "#" + tg : nick;
+    if (P.hide(r)) return;
+    const t = time_(r[C.date]), id = P.id(r); if (!on[id]) return;
+    const nick = plain_(r[C.nick]) || "PLAYER", dex = P.sharedDev(r) ? 0 : (Number(r[C.dex]) || 0), tg = P.tag(r);
     let b = best[id]; if (!b){ b = best[id] = {nick, tag:tg, score:0, title:"", tt:0, nt:0, me:false}; }
     if (t >= b.nt){ b.nick = nick; b.nt = t; }
+    if (tg && !b.tag) b.tag = tg;
     if (dex > b.score) b.score = dex;
     if (r[C.title] && t >= b.tt){ b.title = String(r[C.title]); b.tt = t; }
     if (dev && String(r[C.dev]) === dev) b.me = true;
@@ -194,6 +200,29 @@ function dexRank_(sh, last, since, n, dev){
   return Object.keys(best).map(k=>best[k]).filter(b=>b.score>0)
     .sort((a,b)=>b.score - a.score).slice(0, n)
     .map(b=>({nick:b.nick, tag:b.tag, score:b.score, stage:0, title:b.title, me:b.me}));
+}
+
+/* (v416) 랭킹에서 「한 사람」 찾기
+   · plain_ = 이름 앞 👤 떼기 (명단에서 고른 이름은 👤 를 붙여 적음)
+   · id = 태그(#1234) → 없으면 그 이름에 붙은 태그(이름 하나에 태그가 하나일 때만) → 없으면 👤 뗀 이름(대문자)
+   · sharedDev = 그 기기가 공용 패드인가: 달리기 기록에 👤 이름이 있음(공용 패드에서만 그렇게 적힘) 또는 👤 이름이 두 아이 이상
+   · hide = 선생님(#0000 · HIDE_NICKS) — 아이 랭킹에서 뺌 */
+const HIDE_NICKS = ["영어선생님"];
+function plain_(n){ return String(n === undefined || n === null ? "" : n).replace(/^(👤\s*)+/, "").trim(); }
+function people_(rows){
+  const nameTag = {}, devP = {}, devPad = {};
+  rows.forEach(r=>{ const p = plain_(r[C.nick]).toUpperCase(), tg = tag_(r[C.tag]); if (!p || !tg || tg === "0000") return;
+    if (!nameTag[p]) nameTag[p] = tg; else if (nameTag[p] !== tg) nameTag[p] = "x"; });   // 같은 이름에 태그가 둘 = 다른 아이 → 이름으로 안 묶음
+  const tagOf = r=>{ const tg = tag_(r[C.tag]); if (tg) return tg; const t = nameTag[plain_(r[C.nick]).toUpperCase()]; return t && t !== "x" ? t : ""; };
+  const idOf = r=>{ const tg = tagOf(r); return tg ? "#" + tg : (plain_(r[C.nick]).toUpperCase() || "PLAYER"); };
+  rows.forEach(r=>{ const d = String(r[C.dev] || ""), nk = String(r[C.nick] || ""); if (!d || nk.indexOf("👤") !== 0) return;
+    if (String(r[C.diff]) !== "study") devPad[d] = 1;                 // 달리기 줄에 👤 = 공용 패드 (내 기기 달리기는 기기 이름 그대로)
+    (devP[d] = devP[d] || {})[idOf(r)] = 1; });
+  return {
+    id: idOf, tag: tagOf,
+    hide(r){ return tag_(r[C.tag]) === "0000" || HIDE_NICKS.indexOf(plain_(r[C.nick])) >= 0; },
+    sharedDev(r){ const d = String(r[C.dev] || ""); return !!d && (!!devPad[d] || Object.keys(devP[d] || {}).length > 1); }
+  };
 }
 
 /* ── (v222) 원격 조치 ── */

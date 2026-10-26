@@ -14036,7 +14036,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
       .then(()=>Online.top(d0,"week"))
       .then(list=>{
         if(!list) return;
-        const myT=Tag.pad()?"":Tag.get(); list=list.map(r=>Object.assign({}, r, {me: (myT && r.tag) ? r.tag===myT : String(r.nick||"").trim()===sentNick}));   // (v404) 태그가 있으면 태그로 내 줄
+        const myT=Tag.pad()?"":Tag.get(), pl=x=>String(x||"").replace(/^(👤\s*)+/,"").trim().toUpperCase(); list=rankMerge(list).map(r=>Object.assign({}, r, {me: (myT && r.tag) ? r.tag===myT : pl(r.nick)===pl(sentNick)}));   // (v404) 태그가 있으면 태그로 내 줄 · (v416) 👤 뗀 이름으로 (분신 한 줄)
         const i=list.findIndex(r=>r.me);
         $("oRank").innerHTML='<div class="resCh">🏫 학원 '+DIFF[d0].label+' 이번 주 <b class="resMy">'+(i>=0?'내 순위 '+(i+1)+"위":"20위 밖")+'</b></div>'+onlineRows(list.slice(0,3))+(i>=3 ? '<div class="rrDots">⋯</div>'+onlineRows([list[i]]).replace('<i>1</i>','<i>'+(i+1)+'</i>') : '')   /* (v320) TOP 3 + 나 */
           + (G.nick==="PLAYER" ? '<div class="note">설정 ⚙에서 이름을 정하면 랭킹에 내 이름이 나와요</div>' : '');
@@ -14062,7 +14062,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v411";
+const GAME_VER = "v416";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -22200,7 +22200,8 @@ const Online = {
   submit(rec){
     if(!this.on()) return Promise.resolve(null);
     const nk=this.nickOf(rec); if(rec && nk!==rec.nick) rec=Object.assign({}, rec, {nick:nk});
-    const body=Object.assign({key:this.KEY, dev:this.dev(), at:Date.now(), tag:Tag.pad() ? "" : Tag.get()}, rec);   /* (v404) 🏷 태그 칸 — 공용 패드는 여러 아이가 쓰므로 비움(👤 이름으로) · (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
+    const body=Object.assign({key:this.KEY, dev:this.dev(), at:Date.now(), tag:Tag.pad() ? "" : Tag.get()}, rec);
+    try{ if(Kid.shared() && "dex" in body) body.dex=""; }catch(e){}   /* (v416) 공용 패드의 도감 = 여러 아이가 모은 단어 → 그 아이 단어 수로 안 보냄 (랭킹 「분신술」) */   /* (v404) 🏷 태그 칸 — 공용 패드는 여러 아이가 쓰므로 비움(👤 이름으로) · (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
     /* (v322) 인터넷이 끊기거나 서버가 바쁘면(busy) 그 판 기록이 사라졌다 → 기기에 모아 두었다가(hyeng_sheetq, 최대 30줄) 다음에 보낸다.
        시트 줄을 만드는 기록(달리기·공부 = type 없음, 구매)만. 날짜는 서버가 받은 때로 적힌다 */
     const keep = !body.type || body.type==="buy";
@@ -22344,7 +22345,19 @@ const Notice = {
 };
 $("btnNoticeOk").addEventListener("click",()=>{ try{ SFX.click(); }catch(e){} Notice.close(); });
 $("shNotice").addEventListener("click",e=>{ if(e.target===$("shNotice")) Notice.close(); });
+/* (v416) 사용자 QA 「분신술」 — 같은 아이가 「김지후」(달리기) · 「👤김지후」(공부·공용 패드) 두 줄 → 👤 뗀 이름이 같으면 한 줄 (태그가 서로 다르면 다른 아이) · 선생님 줄 빼기
+   (서버 Code.gs v5 도 같은 일을 함 — 서버를 바꾸기 전에도 화면은 한 줄) */
+const RANK_HIDE=["영어선생님"];
+function rankMerge(list){ const out=[], by={};
+  (list||[]).forEach(r=>{ const nm=String(r.nick==null?"":r.nick).replace(/^(👤\s*)+/,"").trim(); if(!nm || RANK_HIDE.indexOf(nm)>=0 || r.tag==="0000") return;
+    const k=nm.toUpperCase(), tg=/^\d{4}$/.test(r.tag||"")?r.tag:""; let b=by[k];
+    if(b && b.tag && tg && b.tag!==tg){ b=null; }
+    if(!b){ b=Object.assign({}, r, {nick:nm, tag:tg}); if(!by[k]) by[k]=b; out.push(b); return; }
+    if(Number(r.score)>Number(b.score)){ b.score=r.score; if(r.stage) b.stage=r.stage; }
+    if(tg && !b.tag) b.tag=tg; if(!b.title && r.title) b.title=r.title; if(r.me) b.me=true; });
+  return out.sort((a,b)=>Number(b.score)-Number(a.score)); }
 function onlineRows(list, dex){
+  list=rankMerge(list);
   if(!list || !list.length) return dex
     ? '<div class="note">아직 단어 수집 순위가 없어요. 한 판 하고 오면 올라가요!</div>'+dexLocalRow()
     : '<div class="note">아직 기록이 없습니다. 첫 번째 주인공이 되어 보세요!</div>';
