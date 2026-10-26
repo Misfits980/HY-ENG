@@ -51,7 +51,7 @@ async def main():
         ok(await pg.evaluate("()=>HOUSE.ownW().includes(3) && HOUSE.wallIx()===3 && HOUSE.gems()===167"), "🎨 bricks 벽지 💎8 → 바로 바뀜")
         await pg.click('[data-ft="up"]'); await pg.wait_for_timeout(200)
         ups=await pg.evaluate("()=>[...document.querySelectorAll('#furnBody .sRow b')].map(e=>e.innerText)")
-        ok(len(ups)==5, f"🏡 늘리기 5가지(집 넓히기 포함) {ups}")
+        ok(len(ups)==6 and "새 땅 (마당)" in ups, f"🏡 늘리기 6가지(집 넓히기 · (v415) 새 땅 포함) {ups}")
         await pg.click("#furnDone"); await pg.wait_for_timeout(200)
         ok(await pg.evaluate("()=>document.getElementById('drawer').classList.contains('on')"), "가게 닫으면 창고로 돌아옴")
         await pg.click('.card[data-id="fridge"]'); await pg.wait_for_timeout(300)

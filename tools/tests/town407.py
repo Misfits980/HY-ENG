@@ -52,7 +52,7 @@ async def main():
         ok(await until("()=>!HOUSE.hero().slide && !HOUSE.trip().busy"), "걸어 나오기 끝")
         ok(await E("()=>HOUSE.tut().s")==3, "마당에 오면 안내가 낚시로 건너뜀 (가구 안내 건너뛰어도 따라감)")
         L = await E("()=>HOUSE.LBL().map(l=>l.d.k)")
-        ok(L == ["house", "pond", "shop", "bench", "pot", "farm", "gate"], f"마당 이름표 7 {L}")
+        ok(L == ["house", "pond", "shop", "bench", "pot", "farm", "gate", "parc0", "parc1", "parc2"], f"마당 이름표 7 + (v415) 🌱 새 땅 3 {L}")
         ok(await E("()=>{ const e=document.querySelector('#tls .tl[data-k=pond]'); return e.classList.contains('hot'); }"), "안내 중인 곳(🎣 낚시) 이름표가 반짝")
         # ── 🪱 미끼 카드 → 🎣 낚시 코치
         await E("()=>document.querySelector('#tls .tl[data-k=pond]').click()"); await pg.wait_for_timeout(300)
