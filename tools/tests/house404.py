@@ -1,6 +1,7 @@
 """(v404) 🏡 생활 모드 맛보기 (proto/house.html) — 진짜 3D(swiftshader)
   ① 집: 가구 6개 · 뒤쪽 벽 2개 · 내 아바타 · 누른 칸까지 걸어감(가구 피함) · 가구 놓기/창고 넣기
-  ② 마당: 연못을 누르면 연못 옆으로 걸어가 찌를 던짐 → 입질 → 톡 → 영어 이름 3개 중 맞히기 → 물고기 도감 +1 · 미끼 −1
+  ② 마당: 연못을 누르면 연못 옆으로 걸어가 찌를 던짐 → 입질 → 톡 → 잡음(영어 이름만 · 문제 없음) → 물고기 도감 +1 · 미끼 −1
+     (사용자: 영어 문제로 묶지 말고 아이템 이름을 영어로만 — 가구·도감·꾸미기 이름 영어)
   ③ 입질 전에 톡 = 미끼 돌려받고 끝 · 입질 뒤 늦으면 놓침 · 미끼 0 이면 못 던짐
   ④ 나 꾸미기: 모자 바꾸면 저장되고 새로 열어도 그대로
   ⑤ 가로 화면에서도 방이 화면 안 · 오류 없음"""
@@ -44,6 +45,8 @@ async def main():
         await pg.click('.card[data-id="sofa"]'); await pg.wait_for_timeout(300); await pg.click("#pOk"); await pg.wait_for_timeout(300)
         ok(await pg.evaluate("()=>HOUSE.stock.sofa===0 && HOUSE.placed.length===7"), "소파 놓기")
         ok(not await pg.evaluate("()=>HOUSE.fits('sofa',0,0,0)") and await pg.evaluate("()=>HOUSE.fits('chair',2,2,0)"), "침대 자리엔 못 놓음 · 러그 위엔 놓음")
+        names=await pg.evaluate("()=>[...document.querySelectorAll('#inv .card span')].map(e=>e.innerText)")
+        ok(names and all(not any('가'<=ch<='힣' for ch in n) for n in names), f"창고 가구 이름 = 영어 {names}")
         await pg.click("#bDone"); await pg.wait_for_timeout(300)
         # ② 마당 · 낚시
         await pg.click("#bOut"); await pg.wait_for_timeout(800)
@@ -57,11 +60,11 @@ async def main():
         await pg.evaluate("()=>HOUSE.bite()"); await pg.wait_for_timeout(100)
         ok(await pg.evaluate("()=>document.getElementById('bang').classList.contains('on')"), "입질 → ! 표시")
         await pg.evaluate("()=>HOUSE.tapWhileFishing()")
-        ok(await until("()=>document.getElementById('quiz').classList.contains('on')", 20), "톡 → 단어 문제")
-        q=await pg.evaluate("()=>({fish:HOUSE.F.fish.en, opts:[...document.querySelectorAll('#qOpts button')].map(b=>b.dataset.en)})")
-        ok(len(q["opts"])==3 and q["fish"] in q["opts"] and len(set(q["opts"]))==3, f"보기 3개 중 정답 있음 {q}")
-        await pg.click(f'#qOpts button[data-en="{q["fish"]}"]'); await pg.wait_for_timeout(300)
-        ok(await pg.evaluate("(f)=>HOUSE.dex()[f]===1", q["fish"]), "맞히면 도감 +1")
+        ok(await until("()=>document.getElementById('quiz').classList.contains('on')", 20), "톡 → 잡음 카드")
+        q=await pg.evaluate("()=>({fish:HOUSE.F.fish.en, name:document.getElementById('qAsk').innerText.trim(), ko:/[가-힣]/.test(document.getElementById('quiz').innerText.replace('🆕','')), opts:document.querySelectorAll('#qOpts button[data-en]').length})")
+        ok(q["name"]==q["fish"] and not q["ko"] and q["opts"]==0, f"문제 없이 영어 이름만 (한국어 없음) {q}")
+        ok(await pg.evaluate("(f)=>HOUSE.dex()[f]===1", q["fish"]), "잡으면 바로 도감 +1")
+        await pg.click("#qOk"); await pg.wait_for_timeout(200)
         await until("()=>HOUSE.F.st==='idle'", 20)
         # ③ 일찍 누름 = 미끼 돌려받음 · 늦으면 놓침 · 미끼 0
         b1=await pg.evaluate("()=>HOUSE.bait()")

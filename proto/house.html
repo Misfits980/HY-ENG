@@ -63,8 +63,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #quiz .fishBig{font-size:76px;line-height:1.1;animation:pop .35s ease-out}
 @keyframes pop{from{transform:scale(.3) rotate(-20deg)}to{transform:none}}
 #quiz p{margin:6px 0 12px;font-weight:800}
-#quiz .opts{display:flex;flex-direction:column;gap:8px}
-#quiz .opts .btn{font-size:20px;min-height:52px;width:100%}
+#quiz .opts{display:flex;gap:8px;justify-content:center}
+#quiz .enBig{font-size:34px;font-weight:900;letter-spacing:.5px;color:#fff}
+#quiz .opts .btn{font-size:20px;min-height:52px;min-width:88px}
 #quiz .opts .btn.right{background:rgba(60,160,90,.95);border-color:var(--ok)}
 #quiz .opts .btn.wrong{background:rgba(170,50,70,.95);border-color:var(--bad)}
 #quiz .res{font-size:17px;font-weight:900;margin-top:10px;min-height:24px}
@@ -77,7 +78,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 @media (orientation:landscape) and (max-height:500px){
   .bar.top{padding-top:6px} .bar.bot{padding-bottom:6px} .btn{min-height:40px;font-size:14px;padding:6px 12px}
   #place{bottom:calc(128px + env(safe-area-inset-bottom))}
-  #quiz .fishBig{font-size:54px} #quiz .box{padding:12px} #quiz .opts{flex-direction:row} #quiz .opts .btn{font-size:17px}
+  #quiz .fishBig{font-size:54px} #quiz .box{padding:12px} #quiz .enBig{font-size:28px}
 }
 </style>
 </head>
@@ -102,7 +103,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 <div class="sheet" id="dexP"><div class="hd"><b>🐟 물고기 도감 <small id="dexN"></small></b><button class="btn" id="dexDone">닫기</button></div><div class="dexGrid" id="dexBody"></div></div>
 <div id="place"><button class="btn" id="pRot">↻ 돌리기</button><button class="btn on" id="pOk">✅ 놓기</button><button class="btn" id="pNo">✕</button></div>
 <div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻</button><button class="btn sm" id="mMove" aria-label="옮기기">✋</button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦</button></div>
-<div id="quiz"><div class="box"><div class="fishBig" id="qFish">🐟</div><p id="qAsk">영어로 뭘까요?</p><div class="opts" id="qOpts"></div><div class="res" id="qRes"></div></div></div>
+<div id="quiz"><div class="box"><div class="fishBig" id="qFish">🐟</div><p id="qAsk"></p><div class="opts" id="qOpts"></div><div class="res" id="qRes"></div></div></div>
 <div id="bang">!</div>
 <div id="hint"></div>
 <div id="toast"></div>
@@ -154,15 +155,15 @@ function cone(r,h,s){ const k="n"+[r,h,s]; return geoCache[k] || (geoCache[k]=ne
 const RN = 6;
 const roomG = new THREE.Group(); scene.add(roomG);
 const FLOORS = [
-  {nm:"나무 마루", draw(g,w,h){ const cols=["#c98f5a","#bf8450","#d29a64","#b97d4a"], ph=h/4;
+  {nm:"wood floor", draw(g,w,h){ const cols=["#c98f5a","#bf8450","#d29a64","#b97d4a"], ph=h/4;
       for(let i=0;i<4;i++){ g.fillStyle=cols[i%4]; g.fillRect(0,i*ph,w,ph); g.fillStyle="rgba(80,45,20,.35)"; g.fillRect(0,i*ph,w,3); g.fillRect((i*97)%w,i*ph,3,ph); g.fillStyle="rgba(255,255,255,.06)"; g.fillRect(0,i*ph+6,w,4); } }},
-  {nm:"체크 타일", draw(g,w,h){ const s=w/4; for(let y=0;y<4;y++) for(let x=0;x<4;x++){ g.fillStyle=(x+y)%2?"#f3e6c9":"#8fc3b5"; g.fillRect(x*s,y*s,s,s); } }},
-  {nm:"폭신 카펫", draw(g,w,h){ g.fillStyle="#b9a2e0"; g.fillRect(0,0,w,h); for(let i=0;i<900;i++){ g.fillStyle=Math.random()<.5?"rgba(255,255,255,.07)":"rgba(70,40,120,.08)"; g.fillRect(Math.random()*w,Math.random()*h,2,2); } }}
+  {nm:"tiles", draw(g,w,h){ const s=w/4; for(let y=0;y<4;y++) for(let x=0;x<4;x++){ g.fillStyle=(x+y)%2?"#f3e6c9":"#8fc3b5"; g.fillRect(x*s,y*s,s,s); } }},
+  {nm:"carpet", draw(g,w,h){ g.fillStyle="#b9a2e0"; g.fillRect(0,0,w,h); for(let i=0;i<900;i++){ g.fillStyle=Math.random()<.5?"rgba(255,255,255,.07)":"rgba(70,40,120,.08)"; g.fillRect(Math.random()*w,Math.random()*h,2,2); } }}
 ];
 const WALLS = [
-  {nm:"크림 줄무늬", draw(g,w,h){ g.fillStyle="#fbefd8"; g.fillRect(0,0,w,h); g.fillStyle="#f2dcb6"; for(let x=0;x<w;x+=32) g.fillRect(x,0,14,h); }},
-  {nm:"하늘 물방울", draw(g,w,h){ g.fillStyle="#cfe9f7"; g.fillRect(0,0,w,h); g.fillStyle="#fff"; for(let y=16;y<h;y+=40) for(let x=(y/40%2)*20+10;x<w;x+=40){ g.beginPath(); g.arc(x,y,6,0,7); g.fill(); } }},
-  {nm:"민트 별", draw(g,w,h){ g.fillStyle="#d4f3e1"; g.fillRect(0,0,w,h); g.fillStyle="#9ad8b6"; g.font="22px sans-serif"; for(let y=26;y<h;y+=48) for(let x=(y/48%2)*24+8;x<w;x+=48) g.fillText("★",x,y); }}
+  {nm:"stripes", draw(g,w,h){ g.fillStyle="#fbefd8"; g.fillRect(0,0,w,h); g.fillStyle="#f2dcb6"; for(let x=0;x<w;x+=32) g.fillRect(x,0,14,h); }},
+  {nm:"polka dots", draw(g,w,h){ g.fillStyle="#cfe9f7"; g.fillRect(0,0,w,h); g.fillStyle="#fff"; for(let y=16;y<h;y+=40) for(let x=(y/40%2)*20+10;x<w;x+=40){ g.beginPath(); g.arc(x,y,6,0,7); g.fill(); } }},
+  {nm:"stars", draw(g,w,h){ g.fillStyle="#d4f3e1"; g.fillRect(0,0,w,h); g.fillStyle="#9ad8b6"; g.font="22px sans-serif"; for(let y=26;y<h;y+=48) for(let x=(y/48%2)*24+8;x<w;x+=48) g.fillText("★",x,y); }}
 ];
 let floorIx=0, wallIx=0;
 const floorMat = new THREE.MeshStandardMaterial({roughness:.85}), wallMat = new THREE.MeshStandardMaterial({roughness:.95}), trimMat = M(0xffffff,{roughness:.7});
@@ -187,20 +188,20 @@ const gridLines = (()=>{ const pts=[]; for(let i=0;i<=RN;i++) pts.push(i,0.012,0
 /* 가구 — sz = [가로, 세로] 칸 · 앞 = +z */
 const WOOD=0xb07a4a, WOOD2=0x8a5a34, CREAM=0xfff3dd;
 const ITEMS = {
-  bed:{nm:"침대", ic:"🛏️", sz:[1,2], build(){ const g=new THREE.Group();
+  bed:{nm:"bed", ic:"🛏️", sz:[1,2], build(){ const g=new THREE.Group();
     part(g, rbox(0.96,0.32,1.96,0.06), M(WOOD), 0,0.2,0); part(g, rbox(0.9,0.2,1.86,0.08), M(0xffffff), 0,0.44,0);
     part(g, rbox(0.92,0.16,1.2,0.07), M(0x6ec3ff), 0,0.52,0.36); part(g, rbox(0.6,0.14,0.34,0.07), M(CREAM), 0,0.6,-0.68);
     part(g, rbox(0.98,0.9,0.12,0.05), M(WOOD), 0,0.45,-0.95); return g; }},
-  desk:{nm:"책상", ic:"🗄️", sz:[2,1], build(){ const g=new THREE.Group(), w=1.9, d=0.8;
+  desk:{nm:"desk", ic:"🗄️", sz:[2,1], build(){ const g=new THREE.Group(), w=1.9, d=0.8;
     part(g, rbox(w,0.08,d,0.03), M(WOOD), 0,0.76,0);
     [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>part(g, rbox(0.08,0.72,0.08,0.02), M(WOOD2), a*(w/2-0.08),0.36,b*(d/2-0.08)));
     part(g, rbox(0.6,0.24,0.7,0.03), M(WOOD), 0.55,0.6,0); part(g, sph(0.035), M(0xffd23f,{metalness:.4}), 0.55,0.6,0.37);
     part(g, rbox(0.34,0.24,0.04,0.02), M(0x333344), -0.45,0.92,-0.15); part(g, rbox(0.34,0.02,0.24,0.01), M(0x555566), -0.45,0.81,0.0); return g; }},
-  chair:{nm:"의자", ic:"🪑", sz:[1,1], build(){ const g=new THREE.Group();
+  chair:{nm:"chair", ic:"🪑", sz:[1,1], build(){ const g=new THREE.Group();
     part(g, rbox(0.52,0.08,0.52,0.04), M(0xff8a65), 0,0.46,0);
     [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>part(g, rbox(0.06,0.44,0.06,0.02), M(WOOD2), a*0.2,0.22,b*0.2));
     part(g, rbox(0.52,0.5,0.07,0.04), M(0xff8a65), 0,0.75,-0.23); return g; }},
-  shelf:{nm:"책장", ic:"📚", sz:[1,1], build(){ const g=new THREE.Group(), z0=-0.22, D=0.42;
+  shelf:{nm:"bookshelf", ic:"📚", sz:[1,1], build(){ const g=new THREE.Group(), z0=-0.22, D=0.42;
     part(g, rbox(0.9,1.8,0.04,0.01), M(WOOD2), 0,0.9,z0-D/2+0.02);
     part(g, rbox(0.06,1.8,D,0.02), M(WOOD), -0.42,0.9,z0); part(g, rbox(0.06,1.8,D,0.02), M(WOOD), 0.42,0.9,z0);
     part(g, rbox(0.9,0.06,D,0.02), M(WOOD), 0,1.8,z0); part(g, rbox(0.9,0.08,D,0.02), M(WOOD), 0,0.04,z0);
@@ -208,16 +209,16 @@ const ITEMS = {
     for(let s=0;s<3;s++){ const y=0.08+s*0.58; if(s) part(g, rbox(0.8,0.04,D-0.04,0.01), M(WOOD), 0,y,z0);
       for(let b=0;b<6;b++){ const h=0.3+((b*7+s*3)%4)*0.04; part(g, rbox(0.1,h,0.3,0.015), M(COL[(b+s)%5]), -0.31+b*0.123, y+0.02+h/2, z0+0.02); } }
     return g; }},
-  rug:{nm:"러그", ic:"🟣", sz:[2,2], rug:true, build(){ const g=new THREE.Group();
+  rug:{nm:"rug", ic:"🟣", sz:[2,2], rug:true, build(){ const g=new THREE.Group();
     const t=canvasTex(128,128,(c,w,h)=>{ c.fillStyle="#f6b8c8"; c.fillRect(0,0,w,h); c.strokeStyle="#fff"; c.lineWidth=8; c.strokeRect(12,12,w-24,h-24); c.fillStyle="#ffd7e2"; c.beginPath(); c.arc(w/2,h/2,26,0,7); c.fill(); });
     const m=new THREE.Mesh(rbox(1.8,0.03,1.8,0.012), new THREE.MeshStandardMaterial({map:t, roughness:1})); m.position.y=0.016; m.receiveShadow=true; g.add(m); return g; }},
-  plant:{nm:"화분", ic:"🪴", sz:[1,1], build(){ const g=new THREE.Group();
+  plant:{nm:"plant", ic:"🪴", sz:[1,1], build(){ const g=new THREE.Group();
     part(g, cyl(0.2,0.15,0.34), M(0xd8794a), 0,0.17,0); part(g, cyl(0.21,0.21,0.05), M(0xc0663c), 0,0.34,0);
     [[0,0.62,0,0.22],[0.13,0.5,0.06,0.15],[-0.12,0.52,-0.05,0.16],[0.02,0.8,0.02,0.15]].forEach(([x,y,z,r])=>part(g, sph(r), M(0x5dbb63), x,y,z)); return g; }},
-  lamp:{nm:"램프", ic:"💡", sz:[1,1], build(){ const g=new THREE.Group();
+  lamp:{nm:"lamp", ic:"💡", sz:[1,1], build(){ const g=new THREE.Group();
     part(g, cyl(0.18,0.2,0.05), M(0x444455), 0,0.025,0); part(g, cyl(0.025,0.025,1.2,10), M(0x444455), 0,0.62,0);
     part(g, cyl(0.16,0.27,0.3), M(0xfff2b3,{emissive:0xffd66b, emissiveIntensity:.55}), 0,1.3,0); return g; }},
-  sofa:{nm:"소파", ic:"🛋️", sz:[2,1], build(){ const g=new THREE.Group(), C=0x7d8ff0;
+  sofa:{nm:"sofa", ic:"🛋️", sz:[2,1], build(){ const g=new THREE.Group(), C=0x7d8ff0;
     part(g, rbox(1.9,0.3,0.86,0.1), M(C), 0,0.25,0); part(g, rbox(1.9,0.62,0.24,0.1), M(C), 0,0.56,-0.31);
     part(g, rbox(0.22,0.46,0.86,0.1), M(C), -0.84,0.42,0); part(g, rbox(0.22,0.46,0.86,0.1), M(C), 0.84,0.42,0);
     part(g, rbox(0.7,0.16,0.6,0.08), M(0x98a8ff), -0.36,0.46,0.06); part(g, rbox(0.7,0.16,0.6,0.08), M(0x98a8ff), 0.36,0.46,0.06); return g; }}
@@ -289,10 +290,10 @@ const WL = 0.035;   // 물 높이
 /* ═════════ 내 아바타 (코드로 만든 블록 인형) ═════════ */
 const AV_OPT = {
   skin:["#ffe0c2","#f3c79a","#c98b5a","#8d5524"],
-  hair:[["short","짧은"],["long","긴"],["spiky","삐죽"],["bun","똥머리"]],
+  hair:[["short","short"],["long","long"],["spiky","spiky"],["bun","bun"]],
   hc:["#3b2a20","#7a4a26","#e8c26b","#d9573b","#2c2c3a","#9b7be8"],
   top:["#ff7a7a","#6ec3ff","#7be39a","#ffd23f","#b28dff","#ffffff"],
-  hat:[["none","없음"],["cap","모자"],["straw","밀짚"],["beanie","털모자"]]
+  hat:[["none","none"],["cap","cap"],["straw","straw hat"],["beanie","beanie"]]
 };
 let av = Object.assign({skin:0, hair:"short", hc:1, top:1, hat:"straw"}, store("hyeng_proto_av")||{});
 if(typeof av.hair!=="string") av.hair="short"; if(typeof av.hat!=="string") av.hat="straw";
@@ -405,7 +406,7 @@ const FISH = [   // r = 희귀도 무게 · 모두 게임 발음 파일(audio/*.
 let dex = store("hyeng_proto_fish") || {};
 let bait = store("hyeng_proto_bait"); if(typeof bait!=="number") bait=10;
 function setBait(n){ bait=Math.max(0,Math.min(30,n)); store("hyeng_proto_bait", bait); $("bBait").textContent="🪱 "+bait; }
-const F = {st:"idle", t:0, T:0, nib:[], target:null, fish:null, bob:null, line:null, shadow:null, rings:[]};
+const F = {st:"idle", _qt:0, t:0, T:0, nib:[], target:null, fish:null, bob:null, line:null, shadow:null, rings:[]};
 const bobber = (()=>{ const g=new THREE.Group(); const top=new THREE.Mesh(new THREE.SphereGeometry(0.075,16,10,0,Math.PI*2,0,Math.PI/2), M(0xe84a4a)); const bot=new THREE.Mesh(new THREE.SphereGeometry(0.075,16,10,0,Math.PI*2,Math.PI/2,Math.PI/2), M(0xffffff)); g.add(top); g.add(bot); g.visible=false; scene.add(g); return g; })();
 const line = (()=>{ const geo=new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute([0,0,0,0,0,0],3)); const l=new THREE.Line(geo, new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:.8})); l.visible=false; l.frustumCulled=false; scene.add(l); return l; })();
 const shadowFish = (()=>{ const m=new THREE.Mesh(new THREE.CircleGeometry(0.18,16), new THREE.MeshBasicMaterial({color:0x0a2a40, transparent:true, opacity:.0, depthWrite:false})); m.rotation.x=-Math.PI/2; m.scale.set(1,0.5,1); m.position.y=WL+0.002; m.renderOrder=3; m.visible=false; scene.add(m); return m; })();
@@ -465,24 +466,22 @@ function updRings(dt){ for(let i=F.rings.length-1;i>=0;i--){ const r=F.rings[i];
 /* 단어 문제 — 그림 보고 영어 고르기 (보기 3개) */
 function say(en){ try{ const a=new Audio("../audio/"+en.toLowerCase().replace(/[^a-z0-9]+/g,"_")+".mp3"); a.play().catch(()=>tts(en)); }catch(e){ tts(en); } }
 function tts(en){ try{ const u=new SpeechSynthesisUtterance(en); u.lang="en-US"; u.rate=.9; speechSynthesis.speak(u); }catch(e){} }
+/* (L0-2) 사용자: 영어 문제로 묶지 말자 — 잡으면 그냥 내 것 · 이름은 영어로만 보여 주고 소리를 들려줌 */
 function quiz(f){
-  F.st="quiz"; setGroups(); bobber.visible=false; line.visible=false; shadowFish.visible=false; hero.act="idle";
-  const others=FISH.filter(x=>x!==f).sort(()=>Math.random()-.5).slice(0,2), opts=[f].concat(others).sort(()=>Math.random()-.5);
-  $("qFish").textContent=f.e; $("qAsk").textContent="낚았다! 영어로 뭘까요?"; $("qRes").textContent="";
-  $("qOpts").innerHTML=opts.map(o=>'<button class="btn" data-en="'+o.en+'">'+o.en+'</button>').join("");
-  $("quiz").classList.add("on"); F.answered=false;
+  F.st="quiz"; setGroups(); bobber.visible=false; line.visible=false; shadowFish.visible=false;
+  const first=!dex[f.en]; dex[f.en]=(dex[f.en]|0)+1; store("hyeng_proto_fish", dex);
+  $("qFish").textContent=f.e; $("qAsk").innerHTML='<span class="enBig">'+f.en+'</span>'; $("qRes").innerHTML=first?"🆕 NEW!":"×"+dex[f.en];
+  $("qOpts").innerHTML='<button class="btn" id="qSay">🔊</button><button class="btn on" id="qOk">OK</button>';
+  $("quiz").classList.add("on"); hero.act="yay"; hero.actT=0; say(f.en);
+  clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600);
 }
-$("qOpts").addEventListener("click", e=>{ const b=e.target.closest("button[data-en]"); if(!b || F.answered) return; F.answered=true; const f=F.fish, okA=b.dataset.en===f.en;
-  [...$("qOpts").children].forEach(x=>{ if(x.dataset.en===f.en) x.classList.add("right"); else if(x===b) x.classList.add("wrong"); });
-  say(f.en);
-  if(okA){ const first=!dex[f.en]; dex[f.en]=(dex[f.en]|0)+1; store("hyeng_proto_fish", dex);
-    $("qRes").innerHTML="🎣 <b>"+f.en+"</b> · "+f.ko+(first?" — 🆕 도감에 새로!":" 잡았어요!"); hero.act="yay"; hero.actT=0; }
-  else $("qRes").innerHTML="아깝다! 정답은 <b>"+f.en+"</b> ("+f.ko+") — 물고기가 도망갔어요";
-  setTimeout(()=>{ $("quiz").classList.remove("on"); F.st="idle"; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; }, 900); setGroups(); dirty=true; }, okA?1700:2300);
-});
+function closeCatch(){ if(F.st!=="quiz") return; clearTimeout(F._qt); $("quiz").classList.remove("on"); F.st="idle"; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; }, 500); setGroups(); dirty=true; }
+$("qOpts").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; if(b.id==="qSay"){ say(F.fish.en); clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600); } else closeCatch(); });
+$("quiz").addEventListener("click", e=>{ if(e.target===$("quiz")) closeCatch(); });
 function drawDex(){ const n=FISH.filter(f=>dex[f.en]).length; $("dexN").textContent=" "+n+" / "+FISH.length;
   $("dexBody").innerHTML=FISH.map(f=>{ const c=dex[f.en]|0, st="★".repeat(f.r>=12?1:f.r>=6?2:f.r>=3?3:4);
-    return '<div class="dexC'+(c?'':' no')+'"><i>'+f.e+'</i><b>'+(c?f.en:'?')+'</b><small>'+(c?f.ko+' · '+c+'마리':st)+'</small></div>'; }).join(""); }
+    return '<div class="dexC'+(c?'':' no')+'"'+(c?' data-say="'+f.en+'"':'')+'><i>'+f.e+'</i><b>'+(c?f.en:'?')+'</b><small>'+(c?'×'+c:st)+'</small></div>'; }).join(""); }
+$("dexBody").addEventListener("click", e=>{ const c=e.target.closest("[data-say]"); if(c) say(c.dataset.say); });   // 도감 칸을 누르면 발음
 
 /* ═════════ 카메라 · 장소 바꾸기 ═════════ */
 let yaw=Math.PI/4, yawTo=yaw, avOpen=false;
@@ -519,7 +518,7 @@ function go(key, at){
 /* ═════════ 가구 꾸미기 (집) ═════════ */
 let edit=false, sel=null, ghost=null, ghostPad=null;
 const ghostMats={ok:new THREE.MeshBasicMaterial({color:0x7be39a, transparent:true, opacity:.55, depthWrite:false}), bad:new THREE.MeshBasicMaterial({color:0xff4d5e, transparent:true, opacity:.6, depthWrite:false})};
-function drawInv(){ $("inv").innerHTML=Object.keys(ITEMS).map(id=>'<button class="card" data-id="'+id+'"'+(stock[id]>0?'':' disabled')+'><i>'+ITEMS[id].ic+'</i><span>'+ITEMS[id].nm+'</span><em>'+(stock[id]>0?stock[id]+'개':'다 놓음')+'</em></button>').join(""); }
+function drawInv(){ $("inv").innerHTML=Object.keys(ITEMS).map(id=>'<button class="card" data-id="'+id+'"'+(stock[id]>0?'':' disabled')+'><i>'+ITEMS[id].ic+'</i><span>'+ITEMS[id].nm+'</span><em>'+(stock[id]>0?'×'+stock[id]:'—')+'</em></button>').join(""); }
 function setEdit(on){ if(edit===on && !on) return; edit=on; $("drawer").classList.toggle("on", on); document.querySelector(".bar.bot").style.visibility=on?"hidden":"visible"; gridLines.visible=on; cancelGhost(); unselect(); drawInv(); dirty=true; }
 function firstFree(id, r){ for(let z=0;z<RN;z++) for(let x=0;x<RN;x++) if(fits(id,x,z,r)) return [x,z]; return null; }
 function startGhost(id, from){ cancelGhost(); unselect(); let r=from?from.r:0, at=from?[from.x,from.z]:firstFree(id,r);
@@ -530,7 +529,7 @@ function updGhost(){ if(!ghost) return; posObj(ghost.obj, ghost.id, ghost.x, gho
   const ok=fits(ghost.id,ghost.x,ghost.z,ghost.r,ghost.from); ghostPad.material=ok?ghostMats.ok:ghostMats.bad; $("pOk").disabled=!ok; dirty=true; }
 function cancelGhost(){ if(!ghost) return; roomG.remove(ghost.obj); roomG.remove(ghostPad); if(ghost.from) ghost.from.obj.visible=true; ghost=null; ghostPad=null; $("place").classList.remove("on"); if(edit) $("drawer").classList.add("on"); dirty=true; }
 function okGhost(){ if(!ghost) return; const g=ghost; if(!fits(g.id,g.x,g.z,g.r,g.from)){ toast("빨간 칸에는 못 놓아요"); return; }
-  if(g.from) removePlaced(g.from); else stock[g.id]--; addPlaced(g.id,g.x,g.z,g.r); cancelGhost(); drawInv(); toast(ITEMS[g.id].ic+" "+ITEMS[g.id].nm+" 놓았어요!"); }
+  if(g.from) removePlaced(g.from); else stock[g.id]--; addPlaced(g.id,g.x,g.z,g.r); cancelGhost(); drawInv(); toast(ITEMS[g.id].ic+" "+ITEMS[g.id].nm); say(ITEMS[g.id].nm); }
 function selectP(p){ unselect(); sel=p; p.obj.traverse(m=>{ if(m.isMesh && m.material && m.material.emissive){ m.userData.em=m.material; m.material=m.material.clone(); m.material.emissive=new THREE.Color(0x553300); } }); placeMenu(); dirty=true; }
 function unselect(){ if(!sel) return; sel.obj.traverse(m=>{ if(m.userData.em){ m.material.dispose(); m.material=m.userData.em; delete m.userData.em; } }); sel=null; $("menu").classList.remove("on"); dirty=true; }
 function placeMenu(){ if(!sel) return; const [w,d]=fp(sel.id,sel.r), v=new THREE.Vector3(sel.x+w/2,1.6,sel.z+d/2).project(camera); const el=$("menu"); el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=Math.max(70,(1-v.y)/2*innerHeight)+"px"; el.classList.add("on"); }
