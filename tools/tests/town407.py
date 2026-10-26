@@ -67,7 +67,7 @@ async def main():
         await E("()=>HOUSE.bite()"); await pg.wait_for_timeout(150)
         ok(await E("()=>document.getElementById('fc').classList.contains('go') && /지금/.test(document.getElementById('fc').innerText)"), "입질 → ③ 지금 톡!")
         await E("()=>HOUSE.tapWhileFishing()")
-        ok(await until("()=>HOUSE.F.st==='quiz'"), "톡 → 잡음")
+        ok(await until("()=>{ if(HOUSE.F.st==='fight') HOUSE.winFight(); return HOUSE.F.st==='quiz'; }"), "톡 → (줄다리기) → 잡음")
         ok(await E("()=>!document.getElementById('fc').classList.contains('on') && HOUSE.tut().s===4"), "잡으면 코치 닫힘 · 안내 다음 (가게에서 팔기)")
         await E("()=>document.getElementById('qOk').click()"); await pg.wait_for_timeout(300)
         # ── 📋 할 일

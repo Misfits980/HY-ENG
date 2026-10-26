@@ -64,7 +64,7 @@ async def main():
         await pg.evaluate("()=>HOUSE.bite()"); await pg.wait_for_timeout(100)
         ok(await pg.evaluate("()=>document.getElementById('bang').classList.contains('on')"), "입질 → ! 표시")
         await pg.evaluate("()=>HOUSE.tapWhileFishing()")
-        ok(await until("()=>document.getElementById('quiz').classList.contains('on')", 20), "톡 → 잡음 카드")
+        ok(await until("()=>{ if(HOUSE.F.st==='fight') HOUSE.winFight(); return document.getElementById('quiz').classList.contains('on'); }", 40), "톡 → (줄다리기) → 잡음 카드")
         q=await pg.evaluate("()=>({fish:HOUSE.F.fish.en, name:document.getElementById('qAsk').innerText.trim(), ko:/[가-힣]/.test(document.getElementById('qAsk').innerText+document.getElementById('qFish').innerText), opts:document.querySelectorAll('#qOpts button[data-en]').length})")
         ok(q["name"]==q["fish"] and not q["ko"] and q["opts"]==0, f"문제 없이 영어 이름만 (한국어 없음) {q}")
         ok(await pg.evaluate("(f)=>HOUSE.dex()[f]===1", q["fish"]), "잡으면 바로 도감 +1")
