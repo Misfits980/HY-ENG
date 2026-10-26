@@ -6,6 +6,7 @@
   ⑥ 가방·가게: 잡으면 가방 · 신선도(2시간 그대로→48시간 0) · 시간마다 값(0.5~1.7배, 같은 시간 같은 값) · 팔면 맛보기 보석
   ⑦ 농사·모으기·만들기·요리: 심기(씨앗 필요) · 물 안 주면 멈춤 · 물 12시간 동안 자람 · 수확 · 나무 사과(시간 지나야 다시) · 바위 · 제작대 · 요리 · 먹으면 🍀
   ⑧ 가방 칸(겹치기·꽉 참·큰 가방) · 음식 값 = 재료 × 1.3
+  ⑨ 마을·NPC·지도: 길로 이동 · NPC 돌아다님 · 말 걸기(영어+한국어) · 하루 부탁 → 💎·❤️ · 다음 날 새 부탁 · 지도(잠긴 구역)
   ④ 나 꾸미기: 모자 바꾸면 저장되고 새로 열어도 그대로
   ⑤ 가로 화면에서도 방이 화면 안 · 오류 없음"""
 import asyncio, sys, os
@@ -132,6 +133,35 @@ async def main():
         ok(await pg.evaluate("()=>HOUSE.slots().length")==20 and not await pg.evaluate("()=>HOUSE.canAdd('wheat seeds',1)") and await pg.evaluate("()=>HOUSE.canAdd('apple',5)"), "20칸 꽉 → 새 것은 못 담고, 있는 칸엔 겹쳐 담음")
         await pg.evaluate("()=>HOUSE.addMat('branch',6)"); await pg.evaluate("()=>{ HOUSE.addMat('stone',4); HOUSE.addMat('apple',2); }")
         ok(await pg.evaluate("()=>HOUSE.make('craft','bag')") and await pg.evaluate("()=>HOUSE.bagCap()")==30 and await pg.evaluate("()=>HOUSE.canAdd('wheat seeds',1)"), "👜 big bag 만들면 30칸")
+        # ⑨ 🏘 마을 · NPC · 지도
+        await pg.evaluate("()=>HOUSE.walkTo(9,8)"); await arrive()
+        await pg.evaluate("()=>HOUSE.go('village')"); await pg.wait_for_timeout(900)
+        ok(await pg.evaluate("()=>HOUSE.place()")=="village" and await pg.evaluate("()=>HOUSE.npcs.length")==4, "마당 오른쪽 아래 길 → 🏘 마을 · NPC 4명")
+        p0=await pg.evaluate("()=>HOUSE.npcs.map(c=>[c.cx,c.cz])")
+        p1=p0
+        for _ in range(12):
+            await pg.evaluate("()=>HOUSE.npcs.forEach(c=>{ if(!c.moving) c.wait=Math.min(c.wait,0.05); })"); await pg.wait_for_timeout(1500)
+            p1=await pg.evaluate("()=>HOUSE.npcs.map(c=>[c.cx,c.cz])")
+            if p1!=p0: break   # 느린 그래픽(swiftshader)이라 기다림을 줄여서 확인
+        ok(p0!=p1, f"NPC 가 돌아다님 {p0}→{p1}")
+        ok(await pg.evaluate("()=>[HOUSE.enCount('carrot',2),HOUSE.enCount('wheat',3),HOUSE.enCount('apple',1),HOUSE.enCount('bread',1),HOUSE.enCount('potato',2)].join('|')")=="2 carrots|3 wheat|an apple|some bread|2 potatoes", "부탁 영어 개수 말 (2 carrots · 3 wheat · an apple · some bread)")
+        mia=await pg.evaluate("()=>HOUSE.npcs[0].n.id"); await pg.evaluate("()=>HOUSE.talkTo(HOUSE.npcs[0])"); await pg.wait_for_timeout(300)
+        tl=await pg.evaluate("()=>document.getElementById('talkLine').innerText")
+        ok("Mia" in tl and any('가'<=ch<='힣' for ch in tl), f"처음 말 걸면 자기소개 (영어 + 한국어 작게) {tl[:40]!r}")
+        r=await pg.evaluate("()=>HOUSE.todayReq(HOUSE.npcs[0].n)")
+        await pg.evaluate("(r)=>{ HOUSE.addMat(r[0], r[1]); }", r); await pg.evaluate("()=>{ HOUSE.closeTalk(); HOUSE.talkTo(HOUSE.npcs[0]); }"); await pg.wait_for_timeout(200)
+        g0=await pg.evaluate("()=>HOUSE.gems()"); h0=await pg.evaluate("()=>HOUSE.npcSt().mia.h")
+        await pg.click("#talkGive"); await pg.wait_for_timeout(300)
+        ok(await pg.evaluate("()=>HOUSE.gems()")>g0 and await pg.evaluate("()=>HOUSE.npcSt().mia.h")==h0+1, f"부탁 들어주면 💎 + ❤️ {r}")
+        ok(not await pg.evaluate("()=>HOUSE.giveReq(HOUSE.npcs[0].n)"), "같은 날 또는 안 됨")
+        d0=await pg.evaluate("()=>HOUSE.dayKey()"); await pg.evaluate("()=>HOUSE.ffwd(24)"); d1=await pg.evaluate("()=>HOUSE.dayKey()")
+        ok(d0!=d1 and await pg.evaluate("()=>HOUSE.npcSt().mia.done!==HOUSE.dayKey()"), "다음 날 = 새 부탁")
+        await pg.evaluate("()=>HOUSE.closeTalk()")
+        await pg.click("#bMap"); await pg.wait_for_timeout(300)
+        mp=await pg.evaluate("()=>[...document.querySelectorAll('#mapBody .mapC')].map(b=>[b.dataset.go,b.disabled])")
+        ok(len(mp)==6 and [m[1] for m in mp]==[False,False,False,True,True,True], f"🗺 지도: 집·마당·마을 열림 · 숲·바닷가·광산 잠김 {mp}")
+        await pg.click('#mapBody [data-go="yard"]'); await pg.wait_for_timeout(900)
+        ok(await pg.evaluate("()=>HOUSE.place()")=="yard", "지도에서 마당으로")
         # ④ 나 꾸미기
         await pg.click("#bAv2"); await pg.wait_for_timeout(500)
         await pg.click('.chip[data-k="hat"][data-v="cap"]'); await pg.wait_for_timeout(300)
