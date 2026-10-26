@@ -14062,7 +14062,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v410";
+const GAME_VER = "v411";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16913,7 +16913,7 @@ const Unlock = (function(){
   }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} }
   return {
-    has(id){ return FREE.indexOf(id)>=0 || !!load().got[id]; },
+    has(id){ if(FREE.indexOf(id)>=0 || !!load().got[id]) return true; try{ return Kid.shared(); }catch(e){ return false; } },   /* (v411) 공용 패드 = 캐릭터 모두 열림 (여러 아이가 같이 써서 기기 기록으로 열 수 없음) */
     daily(){ return load().daily||0; },
     addDaily(){ const a=load(); a.daily=(a.daily||0)+1; save(); if(a.daily>=5) this.give("ghost"); },   // Daily 30 공부 한 과 = 1번
     give(id){ const a=load(); if(this.has(id)) return false; a.got[id]=1; save(); return true; },
@@ -19693,7 +19693,7 @@ const Raid = {
     let h="";
     if(!this.ended && (st.s==="wait"||!st.s)){ const P=c.P, td=RaidTut.done(); h='<div class="rdWait"><b>선생님이 시작하면 바로 시작해요</b><div class="rdPeople">'+Object.keys(P).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div>'
         +Battle.chRow()+'<button class="rtOpen'+(td?'':' new')+'" data-rdtut="1">🎓 싸우는 법 연습'+(td?'':'<small>처음이면 꼭 해 봐요!</small>')+'</button></div>';
-      if(!td && !RaidTut._auto && !navigator.webdriver){ RaidTut._auto=1; setTimeout(()=>{ if(this.role==="kid" && this.st().s!=="run" && !Arena.o) RaidTut.open(); }, 900); } }   /* (v407) 이 기기에서 처음이면 저절로 한 번 */
+      if(!td && RaidTut._auto!==this.me && !navigator.webdriver){ RaidTut._auto=this.me; setTimeout(()=>{ if(this.role==="kid" && this.st().s!=="run" && !Arena.o) RaidTut.open(); }, 900); } }   /* (v407) 이 기기에서 처음이면 저절로 한 번 */
     else if(st.s==="pause" && !this.ended) h='<div class="rdWait"><b>⏸ 선생님이 잠깐 멈췄어요</b></div>';
     else if(st.s==="end" || this.ended){ const win=c.hp<=0;
       if(!this._endAt) this._endAt=Date.now(); let AW=this.awList(st); if(!AW && Date.now()-this._endAt>6000) AW=this.awards(c.P, st);   // 선생님 TV 가 닫혀 있으면 내 기기에서 정함
@@ -19733,7 +19733,9 @@ const Raid = {
    단계: 정답 카드 = 스킬 → ⚔️ 공격 → 👣 그림자 피하기 → 🌊 휩쓸기 피하기 → 🔮 공 3개 막기 → 🎭 가짜 카드 → 끝 · 선생님이 시작하면 바로 진짜 아레나로 바뀜 */
 const RaidTut = {
   KEY:"hyeng_raidtut", o:null, s:0, iv:0, tries:0, res:null, hurt:0,
-  done(){ try{ return !!localStorage.getItem(this.KEY); }catch(e){ return true; } },
+  /* (v411) 공용 패드는 아이마다 한 번 (패드 첫 아이만 보던 것) */
+  key(){ let sh=false; try{ sh=Kid.shared(); }catch(e){} return this.KEY+(sh ? ":"+((Raid.pick && Raid.pick.id) || Raid.me || "") : ""); },
+  done(){ try{ return !!localStorage.getItem(this.key()); }catch(e){ return true; } },
   ST:[
     {t:'🎓 <b>레이드 연습</b>!<br><small>연습이라 맞아도 괜찮아요 · 선생님이 시작하면 바로 진짜로 바뀌어요</small>', btn:"시작 ▶"},
     {t:'보스가 🔮 <b>주문</b>을 외워요 (보라 막대)<br>뜻에 맞는 <b>단어 카드</b>를 톡! = ✨ 스킬', wait:"hit"},
@@ -19773,7 +19775,7 @@ const RaidTut = {
     else if(++this.tries>=3){ this.show('괜찮아요! 진짜 싸움에서 또 해 봐요', null); setTimeout(()=>{ if(this.o && this.s===i) this.step(i+1); }, 1500); }
     else { this.show('앗! 다시 해 봐요 💪<br><small>'+st.t.split("<br>")[1].replace(/<[^>]+>/g,"")+'</small>', null); setTimeout(()=>{ if(this.o && this.s===i) this.fire(); }, 1600); } },
   close(arena){ clearInterval(this.iv); const d=$("rtBox"); if(d) d.remove(); this.hot(null);
-    if(this.o){ BossLive.manual=this._man; try{ localStorage.setItem(this.KEY, "1"); }catch(e){} if(arena && Arena.o===this.o) Arena.close(); }
+    if(this.o){ BossLive.manual=this._man; try{ localStorage.setItem(this.key(), "1"); }catch(e){} if(arena && Arena.o===this.o) Arena.close(); }
     this.o=null; this.res=null; try{ Raid.drawKid(); }catch(e){} }
 };
 /* (v409) 🧑 캐릭터 고르기 · 🏃 다시 달리기 */

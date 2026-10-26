@@ -316,6 +316,19 @@ button{font-family:inherit}
 .qRow span{flex:1;font-size:15px} .qRow span small{color:var(--sub)}
 .qRow em{font-style:normal;font-size:14px} .qRow em.r{color:var(--sub);font:800 13px var(--en)}
 .qRow.done{border-color:#a8dca0;background:#f1fbec} .qRow.got{opacity:.55}
+
+/* (v411) 👤 공용 패드 — 나는 누구? */
+#who{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(60,40,20,.55);padding:16px}
+#who.on{display:flex}
+#who .box{width:min(560px,100%);max-height:86vh;overflow-y:auto;background:var(--paper);border:3px solid var(--line2);border-radius:26px;padding:18px 16px 14px;text-align:center;box-shadow:0 8px 0 rgba(90,60,30,.25)}
+#who h3{margin:0 0 4px;font-size:22px;font-weight:400} #who .wSub{margin:0 0 12px;color:var(--sub);font-size:14px} #who .wSub b{color:var(--coralD);font-weight:400}
+#who .wCls{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:10px}
+#who .wCls button{min-height:40px;padding:4px 14px;border-radius:999px;border:2px solid var(--line);background:var(--card);font:15px var(--kr);color:var(--ink);cursor:pointer}
+#who .wCls button.on{background:var(--leaf);border-color:var(--leafD);color:#fff}
+#who .wCls button small{font-size:11px;opacity:.85}
+#who .wKids{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+#who .wKids button{min-width:84px;min-height:52px;padding:6px 14px;border-radius:16px;border:2px solid var(--line2);background:#fff;font:18px var(--kr);color:var(--ink);box-shadow:0 3px 0 var(--line2);cursor:pointer}
+#who .wKids button:active{transform:translateY(2px)}
 </style>
 
 </head>
@@ -329,7 +342,7 @@ button{font-family:inherit}
   <button class="btn sm" id="bDex" aria-label="물고기 도감">🐟</button>
   <button class="btn sm" id="bCam" aria-label="돌리기">🔄</button>
 </div>
-<div id="hud"><span class="pill" id="hGem"><img src="../assets/ui/ic-gem.webp" alt=""><b>0</b></span><button class="pill tap" id="hBait" aria-label="미끼란?"><i>🪱</i><b>0</b></button><span class="pill buff" id="hBuff" hidden><i>🍀</i><b></b></span><button class="pill tap qp" id="hQ"><i>📋</i><b>할 일</b><u id="hQn" hidden></u></button></div>
+<div id="hud"><span class="pill" id="hGem"><img src="../assets/ui/ic-gem.webp" alt=""><b>0</b></span><button class="pill tap" id="hBait" aria-label="미끼란?"><i>🪱</i><b>0</b></button><span class="pill buff" id="hBuff" hidden><i>🍀</i><b></b></span><button class="pill tap" id="hWho" hidden><i>👤</i><b></b></button><button class="pill tap qp" id="hQ"><i>📋</i><b>할 일</b><u id="hQn" hidden></u></button></div>
 <div class="bar bot">
   <div class="grp" id="gRoom"><button class="dk go" id="bOut"><i>🚪</i><span>나가기</span></button><button class="dk" id="bEdit"><i>🛋️</i><span>가구</span></button><button class="dk" id="bWall"><i>🎨</i><span>벽지</span></button><button class="dk" id="bFloor"><i>🟫</i><span>바닥</span></button><button class="dk" id="bAv1"><i>👕</i><span>나</span></button></div>
   <div class="grp" id="gYard"><button class="dk go" id="bIn"><i>🏠</i><span>집</span></button><button class="dk go" id="bVill"><i>🏘</i><span>마을</span></button><button class="dk" id="bBait"><i>🪱</i><span>미끼</span></button><button class="dk" id="bShop"><i>🎒</i><span>가방</span></button><button class="dk" id="bAv2"><i>👕</i><span>나</span></button></div>
@@ -375,6 +388,7 @@ button{font-family:inherit}
 <div id="fc"></div><div id="bobL">찌</div>
 <div id="info"><div class="box"><div id="infoT"></div><button class="btn on" id="infoOk">알겠어요</button></div></div>
 <div class="sheet" id="qP"><div class="hd"><b>📋 할 일</b><button class="x" id="qDone" aria-label="닫기">✕</button></div><div id="qBody"></div></div>
+<div id="who"><div class="box"><h3>👤 나는 누구?</h3><p class="wSub">같이 쓰는 패드예요 — 내 이름을 누르면 <b>내 집</b>으로 들어가요</p><div id="whoBody"><p class="wSub">명단을 불러오는 중…</p></div><a class="btn" href="../index.html">◀ 게임으로</a></div></div>
 <div id="hint"></div>
 <div id="toast"></div>
 <div id="fps"></div>
@@ -387,7 +401,25 @@ const LOW = (navigator.hardwareConcurrency||4) <= 4;
 const WALL_H = 2.7;
 let dirty = true;
 function toast(t, ms){ const el=$("toast"); el.innerHTML=t; el.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("on"), ms||1800); }
-function store(k, v){ try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)||"null"); localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
+/* (v411) 사용자: 공용 패드에서 My Town 집·가방·보석이 아이들끼리 섞임 → 공용 패드(이름 한양…/…패드)는 「나는 누구?」(반 명단)로 들어와
+   그 아이 칸(hyeng_proto_@<아이>_…)에 저장 · 서버 /hy/life/sv/<아이> 에 통째로(4초 뒤) → 다른 공용 패드에서도 이어서 · 내 기기(공용 아님)는 예전 그대로 */
+const PAD=(()=>{ let nick=""; try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} const shared=/^한양|패드$/.test(nick); let kid=null;
+  if(shared){ try{ kid=JSON.parse(sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} if(kid && (!kid.id || (kid.at && Date.now()-kid.at>20*60000))) kid=null; }   // 게임과 같음: 20분 쉬면 다시 고름
+  const id=kid ? String(kid.id).replace(/[^\w-]/g,"").slice(0,40) : "";
+  return {shared, kid, id, ns: shared ? (id ? "@"+id+"_" : "@_guest_") : ""}; })();
+function skey(k){ return PAD.ns && k.indexOf("hyeng_proto_")===0 ? "hyeng_proto_"+PAD.ns+k.slice(12) : k; }
+function store(k, v){ const kk=skey(k); try{ if(v===undefined) return JSON.parse(localStorage.getItem(kk)||"null"); localStorage.setItem(kk, JSON.stringify(v)); if(PAD.kid) padSave(); }catch(e){ return null; } }
+let padT=0;
+function padSave(){ if(!PAD.ready) return;   /* 처음 열 때 기본값을 쓰는 것은 '고친 것'이 아님 (서버 것을 받아야 함) */ try{ localStorage.setItem("hyeng_proto_"+PAD.ns+"_mt", String(Date.now())); PAD.kid.at=Date.now(); sessionStorage.setItem("hyeng_kid", JSON.stringify(PAD.kid)); }catch(e){} clearTimeout(padT); padT=setTimeout(()=>padPush(), 4000); }
+function padDump(){ const pre="hyeng_proto_"+PAD.ns, o={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(pre)===0 && k.charAt(pre.length)!=="_") o[k.slice(pre.length)]=localStorage.getItem(k); } return o; }
+const padPath=()=>"/hy/life/sv/"+encodeURIComponent(PAD.id);
+async function padPush(){ if(!PAD.kid) return false; try{ await NET.put(padPath(), {at:Date.now(), n:String(PAD.kid.n||"").slice(0,12), d:JSON.stringify(padDump())}); return true; }catch(e){ return false; } }
+/* 들어올 때 — 서버 것이 이 패드 것보다 새것이면 받아서 한 번 다시 열기 (다른 패드에서 놀다 온 아이) */
+async function padPull(){ if(!PAD.kid) return 0; let v=null; try{ v=await NET.get(padPath()); }catch(e){ return 0; } if(!v || !v.d) return 0;
+  const pre="hyeng_proto_"+PAD.ns, mt=+(localStorage.getItem(pre+"_mt")||0); if(!(v.at>mt)) return 0; let o=null; try{ o=JSON.parse(v.d); }catch(e){ return 0; }
+  const del=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(pre)===0 && k.charAt(pre.length)!=="_" && !(k.slice(pre.length) in o)) del.push(k); } del.forEach(k=>localStorage.removeItem(k));
+  Object.keys(o).forEach(k=>{ try{ localStorage.setItem(pre+k, o[k]); }catch(e){} }); localStorage.setItem(pre+"_mt", String(v.at));
+  const g="hyeng_pad_pulled_"+PAD.id+"_"+v.at; if(!sessionStorage.getItem(g)){ sessionStorage.setItem(g, "1"); location.reload(); } return 1; }
 const rnd=(a,b)=>a+Math.random()*(b-a);
 
 /* ───────── 렌더러 · 장면 · 빛 ───────── */
@@ -1397,7 +1429,7 @@ const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.f
   return {ready, on:()=>mode==="fb", get:p=>req("GET",p), put:(p,v)=>req("PUT",p,v), del:p=>req("DELETE",p), query};
 })();
 const CODE_CH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-function kidInfo(){ let k=null, nick=""; try{ k=JSON.parse(localStorage.getItem("hyeng_kid")||sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){}
+function kidInfo(){ let k=null, nick=""; try{ k=PAD.shared ? PAD.kid : JSON.parse(localStorage.getItem("hyeng_kid")||sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){}
   return {n:String((k&&k.n)||nick||"친구").slice(0,10), t:String((k&&k.t)||""), rid:String((k&&k.id)||"").slice(0,40), shared:/^한양|패드$/.test(nick)}; }
 let myCode=store("hyeng_proto_code"); if(!myCode){ myCode=""; for(let k=0;k<5;k++) myCode+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; store("hyeng_proto_code", myCode); }
 let SOC={req:{}, fr:{}, lk:{}, gb:{}, cls:{}, hot:{}, err:""}, pubT=0, hostDoll=null, myRoom=null, visitFrom=null;
@@ -2128,6 +2160,26 @@ function bobLabel(t){ const el=$("bobL"); if(!bobber.visible){ el.classList.remo
   if(el.textContent!==t) el.textContent=t; el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=((1-v.y)/2*innerHeight)+"px"; el.classList.add("on"); }
 if(/fps/.test(location.search)) document.body.classList.add("dbg");
 drawLabels(); updQ();
+/* (v411) 👤 공용 패드 — 나는 누구? (반 명단 = 게임과 같은 /hy/roster) · 고르면 그 아이 칸으로 다시 열기 */
+let whoCls="";
+async function openWho(force){ const W=$("who"); W.classList.add("on");
+  let R=null; try{ R=await NET.get("/hy/roster"); }catch(e){}
+  if(!R || !R.k){ $("whoBody").innerHTML='<p class="wSub">'+(R ? '아직 반 명단이 없어요 — 선생님께 말해요' : '인터넷(서버)에 연결이 안 돼요 — 와이파이를 확인해 봐요')+'</p>'+(force?'<button class="btn" id="whoX">닫기</button>':''); const x=$("whoX"); if(x) x.onclick=()=>W.classList.remove("on"); return; }
+  const T=R.t||{}, K=R.k, now=Date.now(), nt=(R.now && R.now.until>now && T[R.now.t]) ? R.now.t : "", plain=n=>String(n||"").replace(/^👤\s*/,"");
+  const G={}; Object.keys(K).forEach(k=>{ const t=T[K[k].t] ? K[k].t : "_"; (G[t]=G[t]||[]).push(k); });
+  const cls=Object.keys(T).filter(t=>G[t]).concat(G._ ? ["_"] : []); if(!whoCls || !G[whoCls]) whoCls = nt && G[nt] ? nt : (PAD.kid && G[PAD.kid.t] ? PAD.kid.t : cls[0]);
+  const draw=()=>{ $("whoBody").innerHTML='<div class="wCls">'+cls.map(t=>'<button data-wc="'+esc(t)+'" class="'+(t===whoCls?'on':'')+'">'+esc(t==="_" ? "반 없음" : ((T[t].e||"")+" "+T[t].n).trim())+(t===nt?' <small>수업 중</small>':'')+'</button>').join('')+'</div>'
+      +'<div class="wKids">'+(G[whoCls]||[]).sort((a,b)=>plain(K[a].n).localeCompare(plain(K[b].n))).map(k=>'<button data-wk="'+esc(k)+'">'+esc(plain(K[k].n))+'</button>').join('')+'</div>'
+      +'<p class="wSub">명단에 내 이름이 없으면 게임 첫 화면 Daily 30 에서 「🙋 내 이름이 없어요」</p>'+(force && PAD.kid?'<button class="btn" id="whoX">그대로 할게요</button>':'');
+    const x=$("whoX"); if(x) x.onclick=()=>W.classList.remove("on"); };
+  draw();
+  $("whoBody").onclick=e=>{ const c=e.target.closest("[data-wc]"); if(c){ whoCls=c.dataset.wc; draw(); return; } const b=e.target.closest("[data-wk]"); if(!b) return; const k=b.dataset.wk, x=K[k]; if(!x) return;
+    try{ sessionStorage.setItem("hyeng_kid", JSON.stringify({id:k, n:plain(x.n), t:x.t||"all", pk:Date.now(), at:Date.now()})); }catch(er){}
+    b.textContent="🏠 …"; location.reload(); }; }
+PAD.ready=true;
+if(PAD.shared){ const w=$("hWho"); w.hidden=false; w.querySelector("b").textContent=PAD.kid ? String(PAD.kid.n||"").slice(0,8) : "누구?"; w.onclick=async()=>{ if(PAD.kid) await padPush(); openWho(true); };
+  if(!PAD.kid) setTimeout(()=>openWho(false), 300); else setTimeout(()=>padPull(), 200);
+  const flush=()=>{ if(PAD.kid && padT){ clearTimeout(padT); padT=0; padPush(); } }; addEventListener("pagehide", flush); document.addEventListener("visibilitychange", ()=>{ if(document.hidden) flush(); }); }   // 나갈 때 바로 서버에
 let last=performance.now(), fN=0, fT=0, idleT=0, farmT=0, hudT=0, hudK="";
 function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Math.ceil(bl/60e3); if(k===hudK) return; hudK=k;
   $("hGem").querySelector("b").textContent=gems; $("hBait").querySelector("b").textContent=bait; $("hBuff").hidden=!(bl>0); if(bl>0) $("hBuff").querySelector("b").textContent=Math.ceil(bl/60e3)+"분"; }
@@ -2148,7 +2200,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
+window.HOUSE = {PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
