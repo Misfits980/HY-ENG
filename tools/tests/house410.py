@@ -106,7 +106,7 @@ async def main():
         ok(await A.evaluate("()=>{ document.getElementById('bEdit').click(); return !document.getElementById('drawer').classList.contains('on'); }"), "남의 집에선 가구 꾸미기 안 됨")
         await A.click("#bVLike"); await A.wait_for_timeout(200)
         ok("좋아요" in await A.evaluate("()=>document.getElementById('toast').innerText"), "❤️ 좋아요")
-        await A.click("#bVLeave"); await A.wait_for_timeout(1000)
+        await A.click("#bVLeave"); await until(A, "()=>!HOUSE.visiting() && !HOUSE.trip().busy", 160); await A.wait_for_timeout(400)
         ok(await A.evaluate("()=>HOUSE.place()==='room' && !HOUSE.visiting() && HOUSE.RN()===8 && HOUSE.placed.some(p=>p.id==='robot') && HOUSE.wplaced.length===5"), "🚪 나가기 → 내 집 그대로 돌아옴")
         # ③ 👫 친구 — 서연 집 코드로 요청 → 수락 → 놀러 가기 · 좋아요 · 스티커 · 우리 반
         B=await kid("서연","A1","0007")
@@ -148,7 +148,7 @@ async def main():
         ok(len(gb)==1 and gb[0]["e"]=="💖" and gb[0]["n"]=="민준", "🌟 스티커 방명록 💖")
         ok(await A.evaluate("()=>HOUSE.saveRoom() || JSON.parse(localStorage.getItem('hyeng_proto_room')).rn")==8, "놀러 간 동안 내 방 저장은 안 바뀜")
         await A.screenshot(path=OUT+"life_visit.png")
-        await A.click("#bVLeave"); await A.wait_for_timeout(1000)
+        await A.click("#bVLeave"); await until(A, "()=>!HOUSE.visiting() && !HOUSE.trip().busy", 160); await A.wait_for_timeout(400)
         ok(await A.evaluate("()=>HOUSE.place()==='room' && HOUSE.RN()===8"), "나가면 내 집")
         # 서연: 방명록 · 좋아요 보임
         await B.evaluate("()=>HOUSE.openFr()"); await until(B,"()=>/방명록/.test(document.getElementById('frBody').innerText)")

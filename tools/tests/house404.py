@@ -53,7 +53,7 @@ async def main():
         ok(names and all(not any('가'<=ch<='힣' for ch in n) for n in names), f"창고 가구 이름 = 영어 {names}")
         await pg.click("#bDone"); await pg.wait_for_timeout(300)
         # ② 마당 · 낚시
-        await pg.click("#bOut"); await pg.wait_for_timeout(800)
+        await pg.click("#bOut"); await until("()=>HOUSE.place()==='yard' && !HOUSE.trip().busy", 160); await pg.wait_for_timeout(300)   # (v407) 문까지 걸어가 문 열고 나감
         ok(await pg.evaluate("()=>HOUSE.place()")=="yard", "🚪 → 마당")
         ok(await pg.evaluate("()=>HOUSE.findPath(HOUSE.hero().cx,HOUSE.hero().cz,7,6)")==None, "연못 칸으로는 못 걸어감")
         b0=await pg.evaluate("()=>HOUSE.bait()")
@@ -75,7 +75,9 @@ async def main():
         await pg.evaluate("()=>HOUSE.tryFish(7,6)"); await until("()=>HOUSE.F.st==='wait'")
         await pg.evaluate("()=>{ HOUSE.F.nib=[]; HOUSE.F.T=99; }"); await pg.wait_for_timeout(100)
         await pg.evaluate("()=>HOUSE.tapWhileFishing()")
-        ok(await pg.evaluate("()=>HOUSE.F.st")=="idle" and await pg.evaluate("()=>HOUSE.bait()")==b1, "입질 전 톡 → 끝 · 미끼 돌려받음")
+        ok(await pg.evaluate("()=>HOUSE.F.st")=="wait" and "아직" in await pg.evaluate("()=>document.getElementById('fc').innerText"), "(v407) 입질 전 톡 → 끝내지 않고 '아직이에요' 알려 줌")
+        await pg.click("#bStop"); await pg.wait_for_timeout(200)
+        ok(await pg.evaluate("()=>HOUSE.F.st")=="idle" and await pg.evaluate("()=>HOUSE.bait()")==b1, "✋ 그만 → 끝 · 미끼 돌려받음")
         await pg.evaluate("()=>HOUSE.tryFish(7,6)"); await until("()=>HOUSE.F.st==='wait'")
         await pg.evaluate("()=>HOUSE.bite()"); ok(await until("()=>HOUSE.F.st==='idle'", 60), "입질 뒤 1초 넘게 안 누르면 놓침")
         ok(await pg.evaluate("()=>HOUSE.bait()")==b1-1, "놓쳐도 미끼는 씀")
