@@ -1329,17 +1329,18 @@ const errT=e=>e==="off"?"인터넷(서버)에 연결이 안 돼요 — 🏘 마�
 function pubSoon(){ clearTimeout(pubT); pubT=setTimeout(publish, 2500); }
 /* (L0-11) 사용자: "아이디마다 태그 — 스트로베리#0001 → 이름을 바꿔도 알 수 있잖아"
    태그 = 4자리 번호, 아이마다 하나(서버 /hy/life/tag/<번호> = 집 키, 한 번 쓰면 못 바꿈) · 화면엔 늘 "지금 이름#번호" · 친구 추가는 #번호 · 친구 이름은 그 집에서 지금 이름을 읽어 옴 */
-let myTag=store("hyeng_proto_tag")||"";
-async function ensureTag(){ if(myTag) return myTag; if(kidInfo().shared) return "";
-  for(let k=0;k<12;k++){ const t=String(1+Math.floor(Math.random()*9999)).padStart(4,"0");
-    try{ const v=await NET.get("/hy/life/tag/"+t); if(v) continue; await NET.put("/hy/life/tag/"+t, myCode); if(await NET.get("/hy/life/tag/"+t)===myCode){ myTag=t; store("hyeng_proto_tag", t); return t; } }catch(e){ if(e==="off") return ""; } }
-  return ""; }
-/* 아이(반 명단 id)마다 태그 하나 — /hy/life/kid/<명단 id> = {c:집 키, g:태그}. 새 기기에서 같은 이름을 고르면 같은 태그 · 이 기기에 꾸민 방이 없으면 서버의 내 집을 불러옴 */
-async function linkKid(){ const K=kidInfo(); if(K.shared || !K.rid || visiting) return false; let v=null; const key="/hy/life/kid/"+encodeURIComponent(K.rid).replace(/\./g,"%2E");
+/* (v404) 태그 = 게임의 아이 번호(hyeng_tag — 이름을 처음 정할 때 시트 서버가 줌, #0000 선생님 · #0001~5 공용 패드 · 아이 #0006~) — 생활 모드는 그 번호를 그대로 씀
+   /hy/life/tag/<번호> = 집 키 · 새 기기(선생님이 태그를 옮김)에서 같은 번호면 그 집 키를 이어 쓰고, 이 기기에 꾸민 방이 없으면 서버의 집을 불러옴 */
+const gameTag=()=>{ try{ const t=(localStorage.getItem("hyeng_tag")||"").replace(/\D/g,""); return t.length===4?t:""; }catch(e){ return ""; } };
+let myTag=gameTag();
+async function adoptCode(c){ if(!/^[A-Z2-9]{5}$/.test(c) || c===myCode) return; const fresh=!store("hyeng_proto_room"); myCode=c; store("hyeng_proto_code", c);
+  if(fresh){ try{ const h=await NET.get("/hy/life/h/"+c); if(h && h.p){ loadRoomData(h); toast("🏠 "+esc(kidInfo().n)+(myTag?"#"+myTag:"")+" 의 집을 불러왔어요", 2400); } }catch(e){} } }
+async function ensureTag(){ myTag=gameTag(); if(!myTag || kidInfo().shared) return myTag;
+  try{ const v=await NET.get("/hy/life/tag/"+myTag); if(!v) await NET.put("/hy/life/tag/"+myTag, myCode); else if(v!==myCode) await adoptCode(v); }catch(e){} return myTag; }
+async function linkKid(){ await ensureTag(); const K=kidInfo(); if(K.shared || !K.rid || visiting) return false; const key="/hy/life/kid/"+encodeURIComponent(K.rid).replace(/\./g,"%2E"); let v=null;
   try{ v=await NET.get(key); }catch(e){ return false; }
-  if(v && v.c && /^[A-Z2-9]{5}$/.test(v.c)){ if(v.c!==myCode){ const fresh=!store("hyeng_proto_room"); myCode=v.c; myTag=v.g||""; store("hyeng_proto_code", myCode); store("hyeng_proto_tag", myTag);
-      if(fresh){ try{ const h=await NET.get("/hy/life/h/"+myCode); if(h && h.p){ loadRoomData(h); toast("🏠 "+esc(K.n)+"#"+myTag+" 의 집을 불러왔어요", 2400); } }catch(e){} } } return true; }
-  await ensureTag(); if(myTag){ try{ await NET.put(key, {c:myCode, g:myTag}); }catch(e){} } return true; }
+  if(v && v.c){ if(!myTag) await adoptCode(v.c); return true; }
+  if(myTag){ try{ await NET.put(key, {c:myCode, g:myTag}); }catch(e){} } return true; }
 const tagOf=h=>h && h.g ? '<u class="tg">#'+esc(h.g)+'</u>' : '';
 const nmTag=(h)=>esc((h&&h.n)||"친구")+tagOf(h);
 async function publish(){ const K=kidInfo(); if(K.shared || visiting) return false; await ensureTag();
@@ -1356,7 +1357,7 @@ const STK=["🌟","💖","👍","🎉","🌈","🐟","🌸","😍"];
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function frRow(code, h, btns){ h=Object.assign({}, h||{}, (SOC.who||{})[code]||{}); return '<div class="sRow frR"><i>🧒</i><span><b>'+nmTag(h)+'</b><small>'+(h.t?esc(h.t)+'반':'')+'</small></span>'+btns+'</div>'; }
 function drawFr(){ const K=kidInfo(), today=dayKey(); const lk=SOC.lk||{}, nT=Object.values(lk).filter(d=>d===today).length, gb=Object.entries(SOC.gb||{}).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
-  let h='<div class="myCode"><div><small>나</small><b class="myTag">'+esc(K.n)+'<u class="tg">#'+(myTag||'····')+'</u></b><small>'+(myTag?'친구에게 <b>#'+myTag+'</b> 를 알려 줘요 — 이름을 바꿔도 번호는 그대로':'인터넷에 연결되면 번호가 생겨요')+'</small></div><div class="lkBox">❤️ <b>'+nT+'</b><small>오늘 · 모두 '+Object.keys(lk).length+'</small></div></div>';
+  let h='<div class="myCode"><div><small>나</small><b class="myTag">'+esc(K.n)+'<u class="tg">#'+(myTag||'····')+'</u></b><small>'+(myTag?'친구에게 <b>#'+myTag+'</b> 를 알려 줘요 — 이름을 바꿔도 번호는 그대로':'게임 ⚙ 설정에서 이름을 정하면 번호(태그)가 생겨요')+'</small></div><div class="lkBox">❤️ <b>'+nT+'</b><small>오늘 · 모두 '+Object.keys(lk).length+'</small></div></div>';
   if(K.shared) h+='<p class="frNote">👥 같이 쓰는 패드예요 — 내 집은 올라가지 않고 구경만 할 수 있어요</p>';
   if(SOC.err) h+='<p class="frNote">⚠️ '+SOC.err+'</p>';
   const rq=Object.entries(SOC.req||{}); if(rq.length) h+='<h4 class="bH">🔔 친구 요청</h4>'+rq.map(([c,v])=>frRow(c,v,'<button class="btn on sm2" data-acc="'+c+'">✅ 수락</button><button class="btn sm2" data-dec="'+c+'">✕</button>')).join("");

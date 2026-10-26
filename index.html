@@ -2137,6 +2137,8 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 /* v225 이름 */
 .nickIn.locked{opacity:.85;border-color:#5a4a8a;background:#1a1338}
 .nmRow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px}
+.nmTag{flex-basis:100%;display:flex;flex-direction:column;gap:2px;margin-top:4px;padding:8px 12px;border-radius:12px;background:rgba(255,210,63,.12);border:1px solid rgba(255,210,63,.35)} .nmTag b{font-size:15px;color:#fff} .nmTag b i{font-style:normal;color:#ffd23f;margin-left:3px;font-weight:900;letter-spacing:.5px} .nmTag small{color:#c9bff0;font-size:11.5px}
+.rkTag{text-decoration:none;font-size:11px;color:#b7a9f0;margin-left:3px;font-weight:700}
 .nmRow small{flex-basis:100%;font-size:11px;color:#a99ed0;font-weight:700;line-height:1.4}
 .nmBtn{border:1px solid rgba(255,211,122,.4);background:rgba(255,211,122,.1);color:#ffe6b8;font-family:inherit;font-weight:800;font-size:12.5px;
   padding:7px 12px;border-radius:10px;cursor:pointer}
@@ -12350,7 +12352,8 @@ const NameCard = {
   clean(v){ return Array.from(String(v||"").normalize("NFC").replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ]/g,"").replace(/\s+/g," ").trim()).slice(0, this.MAX).join("").trim(); },
   write(v, how){ const old=this.cur(); try{ localStorage.setItem("hyeng_nick", v); }catch(e){} const el=$("nick"); if(el) el.value=v;
     try{ G.nick=v.toUpperCase(); }catch(e){}
-    try{ if(Online.on() && !TEST_STAGE) Online.submit({type:"name", nick:v, old, how, ver:GAME_VER}); }catch(e){} },
+    try{ if(Online.on() && !TEST_STAGE) Online.submit({type:"name", nick:v, old, how, ver:GAME_VER}); }catch(e){}
+    try{ setTimeout(()=>Tag.sync(), 600); }catch(e){} },   // (v404) 🏷 이름을 처음 정하면 태그가 생김 (바꿔도 태그는 그대로)
   /* 바꾸기 — 성공하면 "" · 아니면 아이에게 보일 말 */
   change(raw, force){
     const v=this.clean(raw), old=this.cur(), s=this.st();
@@ -12378,6 +12381,9 @@ const NameCard = {
       : this.editing
       ? '<button class="nmBtn go" data-nm="ok">바꾸기 · '+cost+'</button><button class="nmBtn" data-nm="no">그만두기</button><small id="nmMsg">한글·영어·숫자 8글자까지</small>'
       : '<button class="nmBtn" data-nm="edit">✏️ 이름 바꾸기 · '+cost+'</button>';
+    /* (v404) 🏷 태그 — 이름 옆 #번호 · 아이는 못 바꿈 */
+    let tg=""; try{ tg=Tag.get(); }catch(e){}
+    if(!first) row.insertAdjacentHTML("beforeend", '<div class="nmTag">'+(tg ? '<b>🏷 '+String(nm).replace(/[<>&"]/g,"")+'<i>#'+tg+'</i></b><small>태그는 나만의 번호예요 — 이름을 바꿔도 그대로예요</small>' : '<small>🏷 태그(나만의 번호)를 받는 중… 인터넷이 연결되면 생겨요</small>')+'</div>');
   },
   click(a){
     if(a==="edit"){ SFX.click(); this.editing=true; this.draw(); const el=$("nick"); try{ el.focus(); el.select(); }catch(e){} return; }
@@ -13950,7 +13956,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
       .then(()=>Online.top(d0,"week"))
       .then(list=>{
         if(!list) return;
-        list=list.map(r=>Object.assign({}, r, {me: String(r.nick||"").trim()===sentNick}));
+        const myT=Tag.pad()?"":Tag.get(); list=list.map(r=>Object.assign({}, r, {me: (myT && r.tag) ? r.tag===myT : String(r.nick||"").trim()===sentNick}));   // (v404) 태그가 있으면 태그로 내 줄
         const i=list.findIndex(r=>r.me);
         $("oRank").innerHTML='<div class="resCh">🏫 학원 '+DIFF[d0].label+' 이번 주 <b class="resMy">'+(i>=0?'내 순위 '+(i+1)+"위":"20위 밖")+'</b></div>'+onlineRows(list.slice(0,3))+(i>=3 ? '<div class="rrDots">⋯</div>'+onlineRows([list[i]]).replace('<i>1</i>','<i>'+(i+1)+'</i>') : '')   /* (v320) TOP 3 + 나 */
           + (G.nick==="PLAYER" ? '<div class="note">설정 ⚙에서 이름을 정하면 랭킹에 내 이름이 나와요</div>' : '');
@@ -13976,7 +13982,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v403";
+const GAME_VER = "v404";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20614,9 +20620,22 @@ const Admin = (function(){
     h+=card('💬 학부모 문자 (이번 주)', P.length ? '<button class="mini go adCopyAll" data-ad="copyAllTxt">📋 '+P.length+'명 모두 한 번에 복사</button><div class="adParent">'+P.map((r,i)=>'<div><b>'+esc(r[0])+'</b><span>'+esc(pmOf(r))+'</span><button class="mini" data-ad="copyTxt" data-i="'+i+'">복사</button></div>').join('')+'</div>' : '<p class="adSmall">아직 없어요</p>', '복사 → 문자에 붙여 넣기');
     const L=(D.lesson||[]).filter(r=>r[0] && r[0]!=="날짜" && !/^아직/.test(r[0]));
     h+=card('🏫 최근 수업 (배틀·레이드)', L.length ? '<div class="adTbl"><table><tr><th>날짜</th><th>아이</th><th>종류</th><th>점수</th><th>순위</th></tr>'+L.slice(0,15).map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[2])+'</td><td>'+esc(r[3])+'</td><td>'+esc(r[4])+'</td><td>'+esc(r[5])+'</td></tr>').join('')+'</table></div>' : '<p class="adSmall">아직 없어요 — ⚔️ 수업 탭에서 배틀·레이드를 하면 쌓여요</p>');
+    h+='<div class="full">'+tagCard()+'</div>';
     const G=D.prog||[]; if(G.length>1) h+='<div class="full">'+card('🚩 진도표 (책마다 마지막으로 끝낸 Stage)', '<div class="adTbl"><table><tr>'+G[0].map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr>'+G.slice(1).filter(r=>r[0]).map(r=>'<tr>'+r.map((x,i)=>'<td'+(i?' class="st"':'')+'>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</table></div>')+'</div>';
     return h;
   }
+  /* (v404) 🏷 태그 카드 — 시트 '태그' 탭 (서버 v4 tags) · 찾기 · 새 기기로 옮기기 */
+  let tagL=null, tagBusy=false, tagQ="";
+  function loadTags(force){ if(!ready() || tagBusy) return; if(tagL && !force) return; tagBusy=true;
+    Online.submit({type:"tags", tk}).then(r=>{ tagBusy=false; tagL = (r && r.ok && Array.isArray(r.list)) ? r.list : (r && r.err==="type" ? "old" : tagL); if(ok && (tab==="class"||tab==="now")){ keepScroll=true; draw(); } }); }
+  function tagCard(){ if(srv && srv.v>0 && srv.v<4) return card('🏷 태그 (아이 번호)', '<p class="adSmall">태그를 쓰려면 <b>Code.gs 를 한 번 더 바꿔</b> 주세요 — 위 설정의 「📋 새 Code.gs 복사」 → 붙여 넣기 → 배포 관리 → 새 버전</p>');
+    if(tagL==null){ loadTags(); return card('🏷 태그 (아이 번호)', '<p class="adSmall">'+(tagBusy?'불러오는 중…':'<button class="mini" data-ad="tagLoad">불러오기</button>')+'</p>'); }
+    if(tagL==="old") return card('🏷 태그', '<p class="adSmall">서버(Code.gs)가 옛날 것이에요 — 새 Code.gs 를 붙여 넣어 주세요</p>');
+    const q=tagQ.trim().toLowerCase(), L=tagL.filter(x=>!q || x.tag.indexOf(q.replace(/^#/,""))>=0 || (x.nick+" "+x.first).toLowerCase().indexOf(q)>=0);
+    return card('🏷 태그 (아이 번호) · '+tagL.filter(x=>x.dev && Number(x.tag)>=6).length+'명', '<div class="adPinRow"><input id="adTagQ" maxlength="20" placeholder="🔍 이름이나 #번호" value="'+esc(tagQ)+'" autocomplete="off"><button class="mini" data-ad="tagLoad">🔄</button></div>'
+      +'<div class="adTbl"><table><tr><th>태그</th><th>지금 이름</th><th>처음 이름</th><th>기기</th></tr>'+L.slice(0,200).map(x=>'<tr><td><b>#'+esc(x.tag)+'</b></td><td>'+esc(x.nick||(x.memo||''))+'</td><td>'+esc(x.first)+'</td><td><small>'+esc(x.dev?x.dev.slice(0,8)+'…':'(비어 있음)')+'</small></td></tr>').join('')+'</table></div>'
+      +'<details class="adMore"><summary>▸ 아이가 새 기기로 바꿨어요 (태그 옮기기)</summary><p class="adSmall">새 기기의 관리 화면 「📊 이 기기」에서 기기 코드를 복사해 오세요. 옮기면 새 기기가 그 태그·이름을 이어 써요 (보석·물건은 기기마다 따로)</p><div class="adPinRow"><input id="adTagT" maxlength="5" inputmode="numeric" placeholder="#0006"><input id="adTagD" maxlength="30" placeholder="새 기기 코드"><button class="mini go" data-ad="tagMove">옮기기</button></div></details>',
+      '#0000 = 선생님 · #0001~#0005 = 공용 패드 · 아이는 #0006 부터 (이름을 처음 정할 때) · 아이는 태그를 못 바꿔요'); }
   /* (v337) QA: 시트 칸을 번호로 읽어서 선생님이 칸을 하나 넣거나 옮기면 학부모 문자·정답률이 다른 칸 값으로 바뀌었다 → 머리 줄('아이' 줄)의 칸 제목으로 찾아 늘 같은 순서로 맞춤 (제목이 없으면 예전 번호) */
   const REP_COLS={
     weekly:[/^아이$/,/^들어온/,/^오늘의 ?30/,/^끝까지/,/^공부 ?\(분\)/,/^정답률/,/^달리기 판/,/^달리기 최고/,/^짧은/,/^새 도감/,/^자주 틀린/,/^지난주보다/,/^학부모/],
@@ -20640,6 +20659,7 @@ const Admin = (function(){
     let sk=0; try{ sk=Study.streak(); }catch(e){}
     let h='<section class="adMe"><div class="adMeName"><small>이 기기 아이</small><b>'+esc(nick||"이름 없음")+'</b></div>'
       +'<div class="adMeDev"><small>기기 코드 <i>(시트 명단·조치에 쓰는 값)</i></small><code id="adDev">'+esc(dev)+'</code><button class="mini" data-ad="copyDev">복사</button></div>'
+      +'<div class="adMeDev adMeTag"><small>🏷 태그 <i>(아이 번호 · 이름을 바꿔도 그대로)</i></small><code>'+(Tag.get()?'#'+Tag.get():'아직 없음')+'</code>'+(Tag.get()==="0000"?'<span class="adSmall">👑 선생님(나)</span>':'<button class="mini" data-ad="tagMe">이 기기 = #0000 (나)</button>')+'</div>'
       +'<div class="adMeMeta">이름 무료권 '+(nc.free|0)+'장 · 이름 바꾼 횟수 '+(nc.n|0)+' · '+GAME_VER+'</div></section>';
     h+=card('오늘', '<div class="adStats">'
       +stat(td.games|0,'달리기 판')+stat(tt?Math.round(td.right/tt*100)+'%':'-','달리기 정답률')+stat(sk?'🔥 '+sk+'일':'-','연속 공부')
@@ -20966,6 +20986,7 @@ const Admin = (function(){
     setTimeout(prefs, 0);
     setTimeout(()=>{ try{ [["adBtSet","adBtFrom","adBtTo"],["adExSet","adExFrom","adExTo"],["adHwSet","adHwFrom","adHwTo"]].forEach(a=>StgPick.attach(a[0], a[1], a[2])); }catch(e){ console.error(e); } }, 0);   /* (v348) Stage 눌러 고르기 (prefs 다음) */
     if(ok && tab==="send" && sendWho){ const w=$("adWho"); if(w){ w.value=sendWho; try{ w.focus(); }catch(e){} } sendWho=""; }
+    if(ok && (tab==="class"||tab==="now")){ const tq=$("adTagQ"); if(tq) tq.addEventListener("input", ()=>{ tagQ=tq.value; keepScroll=true; const p=tq.selectionStart; draw(); const n=$("adTagQ"); if(n){ n.focus(); try{ n.setSelectionRange(p,p); }catch(e){} } }); }   // (v404) 🏷 태그 찾기
     if(ok && tab==="class"){ const q=$("adTmQ"); if(q) q.addEventListener("input", ()=>{ tmQ=q.value; paintTeam(); }); const kq=$("adKQ"); if(kq) kq.addEventListener("input", ()=>{ kQ=kq.value; paintTeam(); });
       const to=$("adTmTo"); if(to) to.addEventListener("change", ()=>{ tmTo=to.value; }); setTimeout(paintTeam, 0); }   /* (v340) */
     if(ok && tab==="now"){ setTimeout(paintTiles, 30); const F=$("adForms"); if(F) F.addEventListener("change", ()=>setTimeout(paintTiles, 0)); rmSync(true); } else rmSync(false);   // (v395) 📡
@@ -21143,6 +21164,12 @@ const Admin = (function(){
       const old=()=>{ let okc=false; try{ okc=document.execCommand("copy"); }catch(e){} flash(el, okc?"복사됨 ✅":"길게 눌러 복사"); };
       try{ navigator.clipboard.writeText(t).then(()=>flash(el,"복사됨 ✅"),old); }catch(e){ old(); } return; }
     if(a==="recheck"){ msg("확인 중…"); srv=null; check(true); return; }
+    /* (v404) 🏷 태그 — #0000 = 선생님 · 태그 옮기기(아이가 새 기기로) */
+    if(a==="tagMe"){ if(!confirm("이 기기를 #0000 (선생님)으로 할까요?\n원래 #0000 이던 기기는 #0000 이 풀려요")) return; post({type:"tagMe", dev:Online.dev(), nick:get("hyeng_nick")||"선생님"}, r=>{ Tag.set("0000"); keepScroll=true; draw(); msg("이 기기 = #0000 👑", true); }); return; }
+    if(a==="tagMove"){ const t=($("adTagT").value||"").replace(/\D/g,""), d=($("adTagD").value||"").trim(); if(t.length!==4 || !d) return msg("태그 4자리와 새 기기 코드를 넣어 주세요");
+      if(!confirm("#"+t+" 태그를 기기 「"+d+"」로 옮길까요?\n(그 아이가 새 기기에서 게임을 켜면 #"+t+" 가 돼요)")) return;
+      post({type:"tagSet", tag:t, dev:d}, ()=>{ msg("#"+t+" → 새 기기로 옮겼어요. 그 기기에서 게임을 다시 켜면 돼요", true); loadTags(true); }); return; }
+    if(a==="tagLoad"){ loadTags(true); return; }
     if(a==="ntDays"){ ntDays=+el.dataset.d; el.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===el)); return; }
     if(a==="ntPost"){ const text=($("adNtText").value||"").trim(); if(text.length<2) return msg("공지 내용을 적어 주세요");
       if(!confirm("모든 아이에게 이 공지를 올릴까요?\n\n"+text)) return;
@@ -21898,6 +21925,19 @@ pickers("selRankRange",v=>{ RANK_VIEW.range=v; drawRankScreen(); });
    학원 온라인 랭킹 — 구글 시트에 점수를 모은다
    URL 이 비어 있으면 예전처럼 이 기기 기록만 쓴다
 ===================================================================== */
+/* (v404) 🏷 태그 — 사용자: "이름 바꿀 때 태그를 부여 — 구글 시트도 애들도 다 · #0000 나 · #0001~#0005 공용 패드 · 이름만 바꾸고 태그는 못 바꾸게"
+   이름을 처음 정하면(또는 이미 이름이 있는 아이는 켤 때) 시트 서버가 겹치지 않는 4자리를 줌 → 기기에 hyeng_tag · 모든 기록에 tag 칸
+   공용 패드(이름 한양…·…패드)는 #0001~#0005 · 선생님 기기는 관리 화면에서 #0000 · 아이가 새 기기로 바꾸면 선생님이 관리 화면에서 태그를 옮김 */
+const Tag = { KEY:"hyeng_tag", _busy:null,
+  get(){ try{ const t=(localStorage.getItem(this.KEY)||"").replace(/\D/g,""); return t.length===4 ? t : ""; }catch(e){ return ""; } },
+  set(t){ try{ localStorage.setItem(this.KEY, t); }catch(e){} try{ NameCard.draw(); }catch(e){} },
+  pad(){ try{ return Kid.shared(); }catch(e){ return false; } },
+  sync(){ if(this._busy) return this._busy; if(!Online.on() || TEST_STAGE) return Promise.resolve(this.get());
+    const nick=NameCard.cur(); if(!nick || /^PLAYER$/i.test(nick)) return Promise.resolve(this.get());
+    this._busy=Online.post({key:Online.KEY, type:"tag", dev:Online.dev(), nick, pad:this.pad()?1:0, ver:GAME_VER})
+      .then(r=>{ this._busy=null; if(r && r.ok && /^\d{4}$/.test(r.tag||"") && r.tag!==this.get()) this.set(r.tag); return this.get(); }, ()=>{ this._busy=null; return this.get(); });
+    return this._busy; },
+  label(){ const t=this.get(); return t ? "#"+t : ""; } };
 const Online = {
   URL: "https://script.google.com/macros/s/AKfycbyOcgwtafpMTXOo8Wtn40a-pnpbELhgDRogjrHXdGck78fy_IpzmmHVSMOZDBc7pWll/exec",   // 구글 시트 "웹 앱" 주소
   KEY: "HYENG",              // 학원 코드 — 시트 코드의 KEY 와 같아야 한다
@@ -21918,7 +21958,7 @@ const Online = {
   submit(rec){
     if(!this.on()) return Promise.resolve(null);
     const nk=this.nickOf(rec); if(rec && nk!==rec.nick) rec=Object.assign({}, rec, {nick:nk});
-    const body=Object.assign({key:this.KEY, dev:this.dev(), at:Date.now()}, rec);   /* (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
+    const body=Object.assign({key:this.KEY, dev:this.dev(), at:Date.now(), tag:Tag.pad() ? "" : Tag.get()}, rec);   /* (v404) 🏷 태그 칸 — 공용 패드는 여러 아이가 쓰므로 비움(👤 이름으로) · (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
     /* (v322) 인터넷이 끊기거나 서버가 바쁘면(busy) 그 판 기록이 사라졌다 → 기기에 모아 두었다가(hyeng_sheetq, 최대 30줄) 다음에 보낸다.
        시트 줄을 만드는 기록(달리기·공부 = type 없음, 구매)만. 날짜는 서버가 받은 때로 적힌다 */
     const keep = !body.type || body.type==="buy";
@@ -21968,13 +22008,14 @@ const Online = {
   acts(){
     if(!this.on() || TEST_STAGE) return Promise.resolve(0);
     let nick=""; try{ nick=(($("nick").value||"").trim().slice(0,10).toUpperCase()); }catch(e){}
-    const u=this.URL+"?key="+encodeURIComponent(this.KEY)+"&act=1&dev="+encodeURIComponent(this.dev())+"&nick="+encodeURIComponent(nick);
+    const u=this.URL+"?key="+encodeURIComponent(this.KEY)+"&act=1&dev="+encodeURIComponent(this.dev())+"&nick="+encodeURIComponent(nick)+"&tag="+encodeURIComponent(Tag.pad()?"":Tag.get());
     return fetch(u).then(r=>r.json()).then(j=>{ const L=(j && j.ok && Array.isArray(j.list)) ? j.list : []; return Acts.apply(L, nick); }).catch(()=>0);
   },
   warm(){                                             // 켤 때 한 번 불러서 구글 서버를 깨워 둔다
     if(!this.on()) return;
     let d="easy"; try{ const ls=JSON.parse(localStorage.getItem("hyeng_setup_v1")||"null"); if(ls && ls.diff) d=ls.diff; }catch(e){}
     setTimeout(()=>{ this.top(d,"week"); }, 1500);
+    setTimeout(()=>{ try{ Tag.sync(); }catch(e){} }, 2000);          // (v404) 🏷 태그 (이미 이름이 있는 아이도 켤 때 받음 · 선생님이 옮긴 태그도 여기서)
     setTimeout(()=>{ this.acts(); }, 2500);
     setTimeout(()=>{ try{ Notice.poll(true); }catch(e){} }, 3200);   // (v264) 선생님 공지
     setTimeout(()=>{ try{ this.flush(); }catch(e){} }, 4500);         // (v322) 지난번에 못 보낸 기록
@@ -22065,7 +22106,7 @@ function onlineRows(list, dex){
   if(!list || !list.length) return dex
     ? '<div class="note">아직 단어 수집 순위가 없어요. 한 판 하고 오면 올라가요!</div>'+dexLocalRow()
     : '<div class="note">아직 기록이 없습니다. 첫 번째 주인공이 되어 보세요!</div>';
-  return list.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><i>'+(i+1)+'</i><b>'+String(r.nick).replace(/[<>&"]/g,"")+
+  return list.map((r,i)=>'<div class="rrow'+(r.me?' me':'')+'"><i>'+(i+1)+'</i><b>'+String(r.nick).replace(/[<>&"]/g,"")+(r.tag && /^\d{4}$/.test(r.tag) ? '<u class="rkTag">#'+r.tag+'</u>' : '')+
     (r.title && titleOf(r.title) ? titleTag(r.title) : '')+(r.me?' <em class="meTag">나</em>':'')+'</b><span>'+Number(r.score).toLocaleString()+(dex?'<small> 단어</small>':'')+'</span></div>').join("");
 }
 /* (v221) 단어 수집 랭킹 — 기기 도감 수 (시트 GET diff=dex: 닉네임마다 가장 큰 '도감' 값) */

@@ -43,13 +43,13 @@ async def main():
         if not c: bad.append(m)
     async with async_playwright() as p:
         br=await p.chromium.launch(args=["--use-gl=swiftshader","--enable-unsafe-swiftshader"])
-        async def kid(name, t):
+        async def kid(name, t, tag=""):
             ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
             pg=await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(name+": "+str(e)))
             await pg.route("**/*", fb); await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(1500)
-            await pg.evaluate("(a)=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_kid', JSON.stringify({id:a[0], n:a[0], t:a[1]})); localStorage.setItem('hyeng_nick', a[0]); }", [name, t])
+            await pg.evaluate("(a)=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_kid', JSON.stringify({id:a[0], n:a[0], t:a[1]})); localStorage.setItem('hyeng_nick', a[0]); if(a[2]) localStorage.setItem('hyeng_tag', a[2]); }", [name, t, tag])
             await pg.reload(); await pg.wait_for_timeout(3500); return pg
-        A=await kid("민준","A1")
+        A=await kid("민준","A1","0006")
         async def until(pg, js, n=60):
             for _ in range(n):
                 if await pg.evaluate(js): return True
@@ -109,12 +109,12 @@ async def main():
         await A.click("#bVLeave"); await A.wait_for_timeout(1000)
         ok(await A.evaluate("()=>HOUSE.place()==='room' && !HOUSE.visiting() && HOUSE.RN()===8 && HOUSE.placed.some(p=>p.id==='robot') && HOUSE.wplaced.length===5"), "🚪 나가기 → 내 집 그대로 돌아옴")
         # ③ 👫 친구 — 서연 집 코드로 요청 → 수락 → 놀러 가기 · 좋아요 · 스티커 · 우리 반
-        B=await kid("서연","A1")
+        B=await kid("서연","A1","0007")
         await B.evaluate("()=>{ HOUSE.setGems(200); HOUSE.addStock('piano'); }")
         await B.wait_for_timeout(500)
         codeA=await A.evaluate("()=>HOUSE.myCode()"); codeB=await B.evaluate("()=>HOUSE.myCode()")
         tagA=await A.evaluate("()=>HOUSE.ensureTag()"); tagB=await B.evaluate("()=>HOUSE.ensureTag()")
-        ok(re.match(r"^\d{4}$", tagA) and re.match(r"^\d{4}$", tagB) and tagA!=tagB and DB["hy"]["life"]["tag"][tagA]==codeA, f"태그 4자리 민준#{tagA} · 서연#{tagB} (서버에 하나씩)")
+        ok(re.match(r"^\d{4}$", tagA) and re.match(r"^\d{4}$", tagB) and tagA=="0006" and tagB=="0007" and DB["hy"]["life"]["tag"][tagA]==codeA, f"게임 태그 그대로 (시트 서버가 준 번호) 민준#{tagA} · 서연#{tagB} (서버에 하나씩)")
         ok(DB["hy"]["life"]["kid"]["민준"]=={"c":codeA,"g":tagA}, "반 명단 아이 = 태그 하나 (kid/<id>)")
         await A.evaluate("()=>HOUSE.publish()"); await B.evaluate("()=>HOUSE.publish()")
         h=DB.get("hy",{}).get("life",{}).get("h",{})
@@ -160,7 +160,7 @@ async def main():
         await A.evaluate("()=>HOUSE.loadSocial().then(()=>HOUSE.drawFr())"); await A.wait_for_timeout(400)
         t=await A.evaluate("()=>document.getElementById('frBody').innerText")
         ok(("딸기#"+tagB) in t, "서연 → 딸기로 이름을 바꿔도 같은 #번호로 보임")
-        C=await kid("민준","A1")
+        C=await kid("민준","A1","0006")
         ok(await C.evaluate("()=>HOUSE.myTag()")==tagA and await C.evaluate("()=>HOUSE.myCode()")==codeA and await C.evaluate("()=>HOUSE.RN()")==8 and await C.evaluate("()=>HOUSE.placed.some(p=>p.id==='tank')"), "새 기기에서 민준을 고르면 같은 #번호 · 내 집을 불러옴")
         # ④ 공용 패드 = 집을 올리지 않음
         await B.evaluate("()=>{ localStorage.setItem('hyeng_nick','한양패드'); }")
