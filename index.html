@@ -13982,7 +13982,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v404";
+const GAME_VER = "v405";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20633,8 +20633,8 @@ const Admin = (function(){
     if(tagL==="old") return card('🏷 태그', '<p class="adSmall">서버(Code.gs)가 옛날 것이에요 — 새 Code.gs 를 붙여 넣어 주세요</p>');
     const q=tagQ.trim().toLowerCase(), L=tagL.filter(x=>!q || x.tag.indexOf(q.replace(/^#/,""))>=0 || (x.nick+" "+x.first).toLowerCase().indexOf(q)>=0);
     return card('🏷 태그 (아이 번호) · '+tagL.filter(x=>x.dev && Number(x.tag)>=6).length+'명', '<div class="adPinRow"><input id="adTagQ" maxlength="20" placeholder="🔍 이름이나 #번호" value="'+esc(tagQ)+'" autocomplete="off"><button class="mini" data-ad="tagLoad">🔄</button></div>'
-      +'<div class="adTbl"><table><tr><th>태그</th><th>지금 이름</th><th>처음 이름</th><th>기기</th></tr>'+L.slice(0,200).map(x=>'<tr><td><b>#'+esc(x.tag)+'</b></td><td>'+esc(x.nick||(x.memo||''))+'</td><td>'+esc(x.first)+'</td><td><small>'+esc(x.dev?x.dev.slice(0,8)+'…':'(비어 있음)')+'</small></td></tr>').join('')+'</table></div>'
-      +'<details class="adMore"><summary>▸ 아이가 새 기기로 바꿨어요 (태그 옮기기)</summary><p class="adSmall">새 기기의 관리 화면 「📊 이 기기」에서 기기 코드를 복사해 오세요. 옮기면 새 기기가 그 태그·이름을 이어 써요 (보석·물건은 기기마다 따로)</p><div class="adPinRow"><input id="adTagT" maxlength="5" inputmode="numeric" placeholder="#0006"><input id="adTagD" maxlength="30" placeholder="새 기기 코드"><button class="mini go" data-ad="tagMove">옮기기</button></div></details>',
+      +'<div class="adTbl"><table><tr><th>태그</th><th>지금 이름</th><th>처음 이름</th><th>기기</th></tr>'+L.slice(0,200).map(x=>'<tr><td><b>#'+esc(x.tag)+'</b></td><td>'+esc(x.nick||(x.memo||''))+'</td><td>'+esc(x.first)+'</td><td><small>'+esc(x.dev?(x.dev.split(', ').length>1?x.dev.split(', ').length+'대':x.dev.slice(0,8)+'…'):'(비어 있음)')+'</small></td></tr>').join('')+'</table></div>'
+      +'<details class="adMore"><summary>▸ 태그에 기기 더하기 (새 기기 · 잘못 받은 번호 · 공용 패드)</summary><p class="adSmall">그 기기의 관리 화면 「📊 이 기기」에서 기기 코드를 복사해 오세요. 더하면 그 기기도 같은 태그가 돼요 (원래 기기도 그대로 · 그 기기가 받았던 다른 번호에서는 빠짐 · 보석·물건은 기기마다 따로). 공용 패드는 #0001~#0005 에 더하면 돼요</p><div class="adPinRow"><input id="adTagT" maxlength="5" inputmode="numeric" placeholder="#0006"><input id="adTagD" maxlength="30" placeholder="새 기기 코드"><button class="mini go" data-ad="tagMove">더하기</button></div></details>',
       '#0000 = 선생님 · #0001~#0005 = 공용 패드 · 아이는 #0006 부터 (이름을 처음 정할 때) · 아이는 태그를 못 바꿔요'); }
   /* (v337) QA: 시트 칸을 번호로 읽어서 선생님이 칸을 하나 넣거나 옮기면 학부모 문자·정답률이 다른 칸 값으로 바뀌었다 → 머리 줄('아이' 줄)의 칸 제목으로 찾아 늘 같은 순서로 맞춤 (제목이 없으면 예전 번호) */
   const REP_COLS={
@@ -21165,10 +21165,10 @@ const Admin = (function(){
       try{ navigator.clipboard.writeText(t).then(()=>flash(el,"복사됨 ✅"),old); }catch(e){ old(); } return; }
     if(a==="recheck"){ msg("확인 중…"); srv=null; check(true); return; }
     /* (v404) 🏷 태그 — #0000 = 선생님 · 태그 옮기기(아이가 새 기기로) */
-    if(a==="tagMe"){ if(!confirm("이 기기를 #0000 (선생님)으로 할까요?\n원래 #0000 이던 기기는 #0000 이 풀려요")) return; post({type:"tagMe", dev:Online.dev(), nick:get("hyeng_nick")||"선생님"}, r=>{ Tag.set("0000"); keepScroll=true; draw(); msg("이 기기 = #0000 👑", true); }); return; }
+    if(a==="tagMe"){ if(!confirm("이 기기를 #0000 (선생님)으로 할까요?\n(선생님 기기가 여러 대면 기기마다 한 번씩)")) return; post({type:"tagMe", dev:Online.dev(), nick:get("hyeng_nick")||"선생님"}, r=>{ Tag.set("0000"); keepScroll=true; draw(); msg("이 기기 = #0000 👑", true); }); return; }
     if(a==="tagMove"){ const t=($("adTagT").value||"").replace(/\D/g,""), d=($("adTagD").value||"").trim(); if(t.length!==4 || !d) return msg("태그 4자리와 새 기기 코드를 넣어 주세요");
-      if(!confirm("#"+t+" 태그를 기기 「"+d+"」로 옮길까요?\n(그 아이가 새 기기에서 게임을 켜면 #"+t+" 가 돼요)")) return;
-      post({type:"tagSet", tag:t, dev:d}, ()=>{ msg("#"+t+" → 새 기기로 옮겼어요. 그 기기에서 게임을 다시 켜면 돼요", true); loadTags(true); }); return; }
+      if(!confirm("기기 「"+d+"」를 #"+t+" 에 더할까요?\n(그 기기에서 게임을 다시 켜면 #"+t+" 가 돼요)")) return;
+      post({type:"tagSet", tag:t, dev:d}, ()=>{ msg("#"+t+" 에 기기를 더했어요. 그 기기에서 게임을 다시 켜면 돼요", true); loadTags(true); }); return; }
     if(a==="tagLoad"){ loadTags(true); return; }
     if(a==="ntDays"){ ntDays=+el.dataset.d; el.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===el)); return; }
     if(a==="ntPost"){ const text=($("adNtText").value||"").trim(); if(text.length<2) return msg("공지 내용을 적어 주세요");

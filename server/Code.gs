@@ -265,6 +265,8 @@ function tagSheet_(){
   }
   return sh;
 }
+/* (v404b) 기기 칸에 여러 기기 (쉼표·띄어쓰기로) — 한 아이가 기기 여러 대 · 선생님 기기 2대도 #0000 하나 */
+function devs_(v){ return String(v || "").split(/[\s,]+/).map(x=>x.trim()).filter(x=>x); }
 function tagRows_(sh){ const last = sh.getLastRow(); return last < 2 ? [] : sh.getRange(2, 1, last - 1, TAG_COLS.length).getValues(); }
 /* 이 기기 태그 — 있으면 그대로(지금 이름·마지막 날만 고침) · 없으면: 공용 패드 = 0001~0005 중 빈 것 · 아이 = 지금 가장 큰 번호 + 1 (0006 부터) · 이름이 없으면 안 줌 */
 function tagFor_(d){
@@ -275,7 +277,7 @@ function tagFor_(d){
     lock.waitLock(10000);
     const sh = tagSheet_(), rows = tagRows_(sh), now = new Date();
     for (let i = 0; i < rows.length; i++){
-      if (String(rows[i][1]).trim() !== dev) continue;
+      if (devs_(rows[i][1]).indexOf(dev) < 0) continue;
       const tg = tag_(rows[i][0]);
       if (nick && String(rows[i][3]) !== nick) sh.getRange(i + 2, 4).setValue(nick);
       sh.getRange(i + 2, 6).setValue(now).setNumberFormat("yyyy-mm-dd hh:mm");
@@ -283,7 +285,7 @@ function tagFor_(d){
     }
     if (!nick || /^PLAYER$/i.test(nick)) return json_({ok:false, err:"noname"});   // 이름을 정해야 태그가 생김
     let row = -1, tg = "";
-    if (d.pad){ for (let i = 0; i < rows.length; i++){ const t = tag_(rows[i][0]); if (TAG_PADS.indexOf(t) >= 0 && !String(rows[i][1]).trim()){ row = i + 2; tg = t; break; } }
+    if (d.pad){ for (let i = 0; i < rows.length; i++){ const t = tag_(rows[i][0]); if (TAG_PADS.indexOf(t) >= 0 && !devs_(rows[i][1]).length){ row = i + 2; tg = t; break; } }
       if (row < 0) return json_({ok:false, err:"nopad"}); }
     else { let mx = TAG_FIRST_KID - 1; rows.forEach(r=>{ const t = Number(tag_(r[0])); if (t > mx) mx = t; }); if (mx >= 9999) return json_({ok:false, err:"full"});
       tg = ("0000" + (mx + 1)).slice(-4); row = sh.getLastRow() + 1; sh.getRange(row, 1).setNumberFormat("@").setValue(tg); }
@@ -292,22 +294,23 @@ function tagFor_(d){
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
 }
-/* 선생님: 태그를 이 기기로 (#0000 = 나 · 아이가 새 기기로 바꿨을 때 그 아이 태그를 새 기기로) — 그 기기가 갖고 있던 다른 태그 줄은 기기 칸을 비움 */
+/* 선생님: 이 기기를 그 태그에 더함 (#0000 = 나 · 아이가 새 기기를 쓰면 그 아이 태그에) — 그 기기는 다른 태그 줄에서 빠짐 · 원래 기기들은 그대로 */
 function tagSet_(tg, dev, d){
   if (!tg) return json_({ok:false, err:"tag"}); if (!dev) return json_({ok:false, err:"dev"});
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
     const sh = tagSheet_(), rows = tagRows_(sh); let hit = -1;
-    rows.forEach((r, i)=>{ const t = tag_(r[0]); if (t === tg) hit = i + 2; else if (String(r[1]).trim() === dev) sh.getRange(i + 2, 2).setValue(""); });
+    rows.forEach((r, i)=>{ const t = tag_(r[0]), L = devs_(r[1]); if (t === tg) hit = i; else if (L.indexOf(dev) >= 0) sh.getRange(i + 2, 2).setValue(L.filter(x=>x !== dev).join(", ")); });
     if (hit < 0) return json_({ok:false, err:"none"});
-    sh.getRange(hit, 2).setValue(dev); if (d && d.nick) sh.getRange(hit, 4).setValue(txt_(d.nick, 20));
+    const L = devs_(rows[hit][1]); if (L.indexOf(dev) < 0) L.push(dev); hit += 2;
+    sh.getRange(hit, 2).setValue(L.join(", ")); if (d && d.nick) sh.getRange(hit, 4).setValue(txt_(d.nick, 20));
     sh.getRange(hit, 6).setValue(new Date()).setNumberFormat("yyyy-mm-dd hh:mm");
     return json_({ok:true, tag:tg});
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
 }
-function tagList_(){ return tagRows_(tagSheet_()).map(r=>({tag:tag_(r[0]), dev:String(r[1] || ""), first:String(r[2] || ""), nick:String(r[3] || ""), at:time_(r[5]), memo:String(r[6] || "")})).filter(x=>x.tag); }
+function tagList_(){ return tagRows_(tagSheet_()).map(r=>({tag:tag_(r[0]), dev:devs_(r[1]).join(", "), first:String(r[2] || ""), nick:String(r[3] || ""), at:time_(r[5]), memo:String(r[6] || "")})).filter(x=>x.tag); }
 
 /* ── (v264) 공지 ── */
 function noticeSheet_(){

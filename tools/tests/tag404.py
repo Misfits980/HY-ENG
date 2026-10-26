@@ -63,7 +63,7 @@ async def main():
         await pg.evaluate("()=>{ const d=document.querySelector('.adMore summary'); document.querySelectorAll('details.adMore').forEach(x=>x.open=true); }")
         await pg.fill("#adTagT", "0007"); await pg.fill("#adTagD", "newdevB"); await pg.click('[data-ad="tagMove"]'); await pg.wait_for_timeout(500)
         mv=[x for x in await pg.evaluate("()=>_posts") if x.get("type")=="tagSet"]
-        ok(mv and mv[-1]["tag"]=="0007" and mv[-1]["dev"]=="newdevB", "태그 옮기기 (#0007 → 새 기기)")
+        ok(mv and mv[-1]["tag"]=="0007" and mv[-1]["dev"]=="newdevB", "태그에 기기 더하기 (#0007 ← 새 기기)")
         await pg.screenshot(path=OUT+"tag_admin.png", full_page=False)
         e=real_errs(errs); ok(not e, "오류 없음 "+str(e[:2]))
         await br.close()

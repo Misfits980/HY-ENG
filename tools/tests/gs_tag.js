@@ -35,7 +35,11 @@ for(let i=2;i<=5;i++) post({type:"tag", dev:"pad"+i, nick:"패드"+i, pad:1});
 r=post({type:"tag", dev:"pad6", nick:"한양패드6", pad:1}); ok(!r.ok && r.err==="nopad", "공용 패드 자리는 5개뿐");
 r=post({type:"tagMe", dev:"teach", tk:"X"}); ok(!r.ok && r.err==="badkey", "#0000 은 선생님 열쇠가 있어야");
 r=post({type:"tagMe", dev:"teach", tk:"K"}); ok(r.ok && r.tag==="0000" && post({type:"tag", dev:"teach", nick:"선생님"}).tag==="0000", "선생님 기기 = #0000");
-r=post({type:"tagSet", tk:"K", tag:"0007", dev:"devB2", nick:"민준"}); ok(r.ok && post({type:"tag", dev:"devB2", nick:"민준"}).tag==="0007" && post({type:"tag", dev:"devB", nick:"민준"}).tag==="0008", "태그 옮기기: 민준 새 기기 = #0007 (옛 기기는 새로 받음)");
+r=post({type:"tagSet", tk:"K", tag:"0007", dev:"devB2", nick:"민준"}); ok(r.ok && post({type:"tag", dev:"devB2", nick:"민준"}).tag==="0007" && post({type:"tag", dev:"devB", nick:"민준"}).tag==="0007", "태그에 기기 더하기: 민준 새 기기도 #0007 (옛 기기도 그대로)");
+r=post({type:"tagMe", dev:"teach2", tk:"K"}); ok(post({type:"tag", dev:"teach", nick:"선생님"}).tag==="0000" && post({type:"tag", dev:"teach2", nick:"선생님"}).tag==="0000", "선생님 기기 2대 모두 #0000");
+const k0=post({type:"tag", dev:"kidX", nick:"딸기"}).tag; post({type:"tagSet", tk:"K", tag:"0006", dev:"kidX"}); ok(k0==="0008" && post({type:"tag", dev:"kidX", nick:"딸기"}).tag==="0006" && book["태그"].d.some(row=>row[0]===k0 && row[1]===""), "잘못 받은 태그 → 맞는 태그에 더하면 잘못 받은 줄은 기기가 빠짐");
+book["태그"].d[4][1]="padPre"; ok(post({type:"tag", dev:"padPre", nick:"루아"}).tag==="0003", "태그 탭에 패드 기기를 미리 적어 두면 그 번호 (패드 이름이 '루아' 여도)");
+book["태그"].d[1][1]="tA, tB"; ok(post({type:"tag", dev:"tB", nick:"선생님"}).tag==="0000", "기기 칸에 쉼표로 여러 기기");
 r=post({type:"tags", tk:"K"}); ok(r.ok && r.list.some(x=>x.tag==="0006" && x.nick==="딸기"), "태그 목록");
 // 기록·랭킹
 post({nick:"스트로베리", score:500, diff:"easy", rule:"normal", tag:"0006"}); post({nick:"딸기", score:800, diff:"easy", rule:"normal", tag:"6"});
