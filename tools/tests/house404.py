@@ -3,6 +3,7 @@
   ② 마당: 연못을 누르면 연못 옆으로 걸어가 찌를 던짐 → 입질 → 톡 → 잡음(영어 이름만 · 문제 없음) → 물고기 도감 +1 · 미끼 −1
      (사용자: 영어 문제로 묶지 말고 아이템 이름을 영어로만 — 가구·도감·꾸미기 이름 영어)
   ③ 입질 전에 톡 = 미끼 돌려받고 끝 · 입질 뒤 늦으면 놓침 · 미끼 0 이면 못 던짐
+  ⑥ 가방·가게: 잡으면 가방 · 신선도(2시간 그대로→48시간 0) · 시간마다 값(0.5~1.7배, 같은 시간 같은 값) · 팔면 맛보기 보석
   ④ 나 꾸미기: 모자 바꾸면 저장되고 새로 열어도 그대로
   ⑤ 가로 화면에서도 방이 화면 안 · 오류 없음"""
 import asyncio, sys, os
@@ -78,6 +79,25 @@ async def main():
         await pg.evaluate("()=>HOUSE.setBait(0)"); await pg.evaluate("()=>HOUSE.tryFish(7,6)"); await pg.wait_for_timeout(300)
         ok(await pg.evaluate("()=>HOUSE.F.st")=="idle" and "미끼" in await pg.evaluate("()=>document.getElementById('toast').innerText"), "미끼 0 → 못 던지고 안내")
         await pg.screenshot(path=OUT+"life_yard.png")
+        # ⑥ 🎒 가방 · 🏪 가게 — 잡은 건 가방으로 · 신선도 · 시간별 값 · 팔면 보석
+        ok(await pg.evaluate("(f)=>HOUSE.bag().some(it=>it.en===f)", q["fish"]), "잡은 물고기는 가방에")
+        await pg.evaluate("()=>{ const n=Date.now(); const b=HOUSE.bag(); b.length=0; b.push({en:'shark',at:n},{en:'shark',at:n-47*3600e3},{en:'boot',at:n-200*3600e3}); }")
+        pr=await pg.evaluate("()=>HOUSE.bag().map(it=>[HOUSE.price(it), HOUSE.fresh(it)])")
+        ok(pr[0][1]==1 and pr[1][1]<0.05 and pr[0][0]>pr[1][0]*3, f"오래된 상어는 값이 크게 떨어짐 {pr}")
+        ok(pr[2][1]==1, "장화는 안 상함")
+        m=await pg.evaluate("()=>{ const h=HOUSE.hourIx(); const L=[]; for(let i=0;i<24;i++) L.push(+HOUSE.mkt('shark',h+i).toFixed(3)); return L; }")
+        ok(len(set(m))>12 and min(m)>=0.5 and max(m)<=1.7, f"시세가 시간마다 바뀜 (0.5~1.7) {min(m)}~{max(m)}")
+        ok(await pg.evaluate("()=>HOUSE.mkt('crab',123456)===HOUSE.mkt('crab',123456)"), "같은 시간 = 같은 값 (모든 기기)")
+        f0=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])"); await pg.evaluate("()=>HOUSE.ffwd(30)"); f1=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])")
+        ok(f1<f0, f"시간이 지나면 신선도 내려감 {f0}→{f1:.2f}")
+        await pg.evaluate("()=>HOUSE.goShop()"); ok(await until("()=>document.getElementById('shopP').classList.contains('on')"), "🏪 → 가게까지 걸어가 열림")
+        g0=await pg.evaluate("()=>HOUSE.gems()"); v=await pg.evaluate("()=>HOUSE.price(HOUSE.bag()[0])")
+        await pg.click('#shopBag [data-sell="0"]'); await pg.wait_for_timeout(200)
+        ok(await pg.evaluate("()=>HOUSE.gems()")==g0+v and await pg.evaluate("()=>HOUSE.bag().length")==2, f"sell → 💎 +{v}")
+        await pg.click("#sellAll"); await pg.wait_for_timeout(200)
+        ok(await pg.evaluate("()=>HOUSE.bag().length")==0 and await pg.evaluate("()=>localStorage.getItem('hyeng_proto_gems')")==str(await pg.evaluate("()=>HOUSE.gems()")), "모두 팔기 · 보석 저장(게임 보석과 따로)")
+        ok(await pg.evaluate("()=>!localStorage.getItem('hyeng_wallet_v1') || !JSON.parse(localStorage.getItem('hyeng_wallet_v1')).log.some(l=>/Fish|가게/.test(l[2]))"), "게임 지갑은 안 건드림")
+        await pg.click("#shopDone")
         # ④ 나 꾸미기
         await pg.click("#bAv2"); await pg.wait_for_timeout(500)
         await pg.click('.chip[data-k="hat"][data-v="cap"]'); await pg.wait_for_timeout(300)

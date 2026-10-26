@@ -69,6 +69,20 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #quiz .opts .btn.right{background:rgba(60,160,90,.95);border-color:var(--ok)}
 #quiz .opts .btn.wrong{background:rgba(170,50,70,.95);border-color:var(--bad)}
 #quiz .res{font-size:17px;font-weight:900;margin-top:10px;min-height:24px}
+.shopTop{display:flex;justify-content:space-between;gap:8px;font-weight:800;font-size:14px;margin:-2px 0 8px}
+.shopTop b{font-size:18px;color:var(--gold)}
+.shopMkt{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;scrollbar-width:none}
+.mk{flex:none;font-size:12px;font-weight:800;padding:5px 8px;border-radius:10px;background:rgba(255,255,255,.07);white-space:nowrap}
+.mk.up{background:rgba(90,200,120,.2);color:#b8ffcb} .mk.dn{background:rgba(230,90,110,.2);color:#ffc2cb}
+.sRow{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:14px;background:rgba(255,255,255,.06);margin-bottom:6px}
+.sRow i{font-style:normal;font-size:30px;width:38px;text-align:center}
+.sRow span{flex:1;min-width:0} .sRow b{display:block;font-size:15px} .sRow small{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px}
+.sRow em{font-style:normal;font-weight:900;color:var(--gold);white-space:nowrap}
+.sRow .btn{min-height:40px;padding:6px 12px}
+.sRow.rot i{filter:hue-rotate(70deg) saturate(.6) brightness(.85)}
+.fBar{display:inline-block;width:54px;height:7px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden;text-decoration:none} .fBar s{display:block;height:100%;background:linear-gradient(90deg,#ff7a7a,#ffd23f,#7be39a);text-decoration:none}
+.sEmpty{text-align:center;color:var(--sub);font-weight:800;padding:14px 0}
+.shopFoot{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
 .dexGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
 .dexC{border-radius:14px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);padding:8px 4px;text-align:center;min-height:96px}
 .dexC i{font-style:normal;font-size:34px;display:block}
@@ -92,7 +106,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 </div>
 <div class="bar bot">
   <div class="grp" id="gRoom"><button class="btn" id="bOut">🚪 마당</button><button class="btn" id="bEdit">✏️ 가구</button><button class="btn" id="bWall">🎨</button><button class="btn" id="bFloor">🟫</button><button class="btn" id="bAv1">👕 나</button></div>
-  <div class="grp" id="gYard"><button class="btn" id="bIn">🏠 집</button><button class="btn" id="bBait">🪱 0</button><button class="btn" id="bAv2">👕 나</button></div>
+  <div class="grp" id="gYard"><button class="btn" id="bIn">🏠 집</button><button class="btn" id="bBait">🪱 0</button><button class="btn" id="bShop">🏪 0</button><button class="btn" id="bAv2">👕 나</button></div>
   <div class="grp" id="gFish"><button class="btn" id="bStop">✋ 그만</button></div>
 </div>
 <div id="drawer">
@@ -100,6 +114,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
   <div class="row" id="inv"></div>
 </div>
 <div class="sheet" id="avP"><div class="hd"><b>👕 나 꾸미기</b><button class="btn" id="avDone">✅ 다 했어요</button></div><div id="avBody"></div></div>
+<div class="sheet" id="shopP"><div class="hd"><b>🏪 Fish Shop</b><button class="btn" id="shopDone">닫기</button></div>
+  <div class="shopTop" id="shopTop"></div>
+  <div class="shopMkt" id="shopMkt"></div>
+  <div id="shopBag"></div>
+  <div class="shopFoot"><button class="btn on" id="sellAll">모두 팔기</button><button class="btn" id="ffwd">⏩ +3시간 <small>(맛보기)</small></button></div></div>
 <div class="sheet" id="dexP"><div class="hd"><b>🐟 물고기 도감 <small id="dexN"></small></b><button class="btn" id="dexDone">닫기</button></div><div class="dexGrid" id="dexBody"></div></div>
 <div id="place"><button class="btn" id="pRot">↻ 돌리기</button><button class="btn on" id="pOk">✅ 놓기</button><button class="btn" id="pNo">✕</button></div>
 <div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻</button><button class="btn sm" id="mMove" aria-label="옮기기">✋</button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦</button></div>
@@ -245,7 +264,9 @@ const POND = {x0:6, z0:5, x1:8, z1:7};      // 3×3 칸
 const TREES = [[0,6],[0,9],[4,0],[9,0],[9,3],[5,9],[9,9],[3,7]];
 const isWater=(x,z)=>x>=POND.x0&&x<=POND.x1&&z>=POND.z0&&z<=POND.z1;
 const isHouse=(x,z)=>HOUSE_T.some(t=>t[0]===x&&t[1]===z);
-function yardBlocked(x,z){ return isWater(x,z) || isHouse(x,z) || TREES.some(t=>t[0]===x&&t[1]===z); }
+const STALL_T=[[6,1],[7,1]], STALL_FRONT=[[6,2],[7,2]];   // (L0-3) 🏪 물고기 가게
+const isStall=(x,z)=>STALL_T.some(t=>t[0]===x&&t[1]===z);
+function yardBlocked(x,z){ return isWater(x,z) || isHouse(x,z) || isStall(x,z) || TREES.some(t=>t[0]===x&&t[1]===z); }
 const WL = 0.035;   // 물 높이
 {
   const grass=canvasTex(256,256,(g,w,h)=>{ g.fillStyle="#7cc96a"; g.fillRect(0,0,w,h); for(let i=0;i<1400;i++){ g.fillStyle=Math.random()<.5?"rgba(255,255,255,.06)":"rgba(30,90,30,.10)"; const x=Math.random()*w, y=Math.random()*h; g.fillRect(x,y,2,5); } },[YN/2.5,YN/2.5]);
@@ -281,6 +302,16 @@ const WL = 0.035;   // 물 높이
     const f=new THREE.Group(); f.position.set(x+rnd(0.2,0.8),0,z+rnd(0.2,0.8)); part(f, cyl(0.012,0.012,0.16,5), M(0x3f9a58), 0,0.08,0); part(f, sph(0.05), M(FC[i%5]), 0,0.17,0); yardG.add(f); }
   // 디딤돌 (문 → 연못)
   [[1.5,3.6],[2.3,4.2],[3.2,4.7],[4.2,5.2],[5.2,5.7]].forEach(([x,z])=>{ const s=new THREE.Mesh(cyl(0.24,0.26,0.04,12), M(0xd8d2c4)); s.position.set(x,0.02,z); s.receiveShadow=true; yardG.add(s); });
+  // 🏪 물고기 가게 — 계산대 · 기둥 · 줄무늬 차양 · 간판
+  { const S=new THREE.Group(); S.position.set(7,0,1.5); yardG.add(S); scene.userData.stallObj=S;
+    part(S, rbox(1.9,0.72,0.7,0.06), M(0xc98f5a), 0,0.36,0.05); part(S, rbox(1.96,0.08,0.78,0.03), M(0xf3e2c0), 0,0.75,0.05);
+    [[-0.9,-0.32],[0.9,-0.32],[-0.9,0.38],[0.9,0.38]].forEach(([x,z])=>part(S, cyl(0.04,0.04,1.75,8), M(0x8a5a34), x,0.88,z));
+    const aw=canvasTex(128,32,(g,w,h)=>{ for(let i=0;i<8;i++){ g.fillStyle=i%2?"#ffffff":"#3fa7d6"; g.fillRect(i*w/8,0,w/8,h); } });
+    const awn=new THREE.Mesh(rbox(2.1,0.06,1.0,0.02), new THREE.MeshStandardMaterial({map:aw, roughness:.8})); awn.position.set(0,1.78,0.08); awn.rotation.x=0.18; awn.castShadow=true; S.add(awn);
+    const sg=canvasTex(256,64,(g,w,h)=>{ g.fillStyle="#fff7e6"; g.fillRect(0,0,w,h); g.strokeStyle="#8a5a34"; g.lineWidth=6; g.strokeRect(3,3,w-6,h-6); g.fillStyle="#2a6f97"; g.font="bold 34px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🐟 FISH SHOP",w/2,h/2+2); });
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.3,0.32), new THREE.MeshBasicMaterial({map:sg})); sign.position.set(0,1.98,0.62); sign.rotation.x=-0.15; S.add(sign);
+    [[-0.5,"🐟"],[0.0,"🦀"],[0.5,"🦑"]].forEach(([x])=>{ const b=part(S, rbox(0.34,0.1,0.26,0.04), M(0x9fd8ff), x,0.83,0.12); });
+  }
   // 울타리 (뒤쪽 두 변)
   const fm=M(0xf6e7c8); for(let i=0;i<=YN;i++){ part(yardG, rbox(0.1,0.55,0.1,0.03), fm, i,0.27,-0.08); part(yardG, rbox(0.1,0.55,0.1,0.03), fm, -0.08,0.27,i); }
   part(yardG, rbox(YN,0.07,0.05,0.02), fm, YN/2,0.4,-0.08); part(yardG, rbox(0.05,0.07,YN,0.02), fm, -0.08,0.4,YN/2);
@@ -297,36 +328,61 @@ const AV_OPT = {
 };
 let av = Object.assign({skin:0, hair:"short", hc:1, top:1, hat:"straw"}, store("hyeng_proto_av")||{});
 if(typeof av.hair!=="string") av.hair="short"; if(typeof av.hat!=="string") av.hat="straw";
+/* (L0-3) 사용자: 캐릭터 조금만 더 예쁘게 — 둥근 머리(2.5등신) · 큰 눈(하이라이트 2개 · 깜빡임) · 웃는 입 · 귀 · 둥근 머리카락(앞머리·옆머리)
+   · 만화 그림자(MeshToonMaterial 3단) · 얇은 외곽선(뒷면을 살짝 크게 · 동물의 숲/로블록스 느낌) */
+const TOON_GRAD=(()=>{ const t=new THREE.DataTexture(new Uint8Array([110,185,255]),3,1,THREE.LuminanceFormat); t.minFilter=t.magFilter=THREE.NearestFilter; t.generateMipmaps=false; t.needsUpdate=true; return t; })();
+const toonCache={};
+function TM(col){ const k=String(col); return toonCache[k]||(toonCache[k]=new THREE.MeshToonMaterial({color:new THREE.Color(col), gradientMap:TOON_GRAD})); }
+const OUTLINE=new THREE.MeshBasicMaterial({color:0x3b2b3f, side:THREE.BackSide});
+function tp(g, geo, col, x,y,z, ol){ const m=part(g, geo, TM(col), x,y,z); if(ol){ const o=new THREE.Mesh(geo, OUTLINE); o.scale.setScalar(ol); o.userData.ol=true; m.add(o); } return m; }
+function hemi(r){ const k="h"+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,24,14,0,Math.PI*2,0,Math.PI*0.52)); }
+function torus(r,t,a){ const k="t"+[r,t,a]; return geoCache[k] || (geoCache[k]=new THREE.TorusGeometry(r,t,8,18,a||Math.PI*2)); }
+function shade(hex, k){ const c=new THREE.Color(hex); c.offsetHSL(0,0,k); return "#"+c.getHexString(); }
 function buildAvatar(c){
-  const skin=M(AV_OPT.skin[c.skin]), hairM=M(AV_OPT.hc[c.hc]), topM=M(AV_OPT.top[c.top]), pants=M(0x4a5a8a), shoe=M(0x5a3a2a);
-  const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
-  const P={g, body};
-  // 다리 (엉덩이에서 돌아감)
-  [-1,1].forEach(s=>{ const L=new THREE.Group(); L.position.set(s*0.11,0.32,0); body.add(L); part(L, rbox(0.15,0.26,0.17,0.06), pants, 0,-0.13,0); part(L, rbox(0.17,0.08,0.22,0.035), shoe, 0,-0.28,0.02); P[s<0?"legL":"legR"]=L; });
-  part(body, rbox(0.42,0.12,0.28,0.05), pants, 0,0.36,0);
-  part(body, rbox(0.44,0.34,0.3,0.1), topM, 0,0.53,0);
-  // 팔 (어깨에서 돌아감)
-  [-1,1].forEach(s=>{ const A=new THREE.Group(); A.position.set(s*0.27,0.64,0); body.add(A); part(A, rbox(0.12,0.2,0.14,0.05), topM, 0,-0.08,0); part(A, sph(0.065), skin, 0,-0.23,0); P[s<0?"armL":"armR"]=A; });
+  const SK=AV_OPT.skin[c.skin], HC=AV_OPT.hc[c.hc], TOP=AV_OPT.top[c.top], PANTS="#4f5f96", SHOE="#6a4430";
+  const g=new THREE.Group(), body=new THREE.Group(); g.add(body); const P={g, body};
+  // 다리 · 신발
+  [-1,1].forEach(s=>{ const L=new THREE.Group(); L.position.set(s*0.095,0.26,0); body.add(L);
+    tp(L, rbox(0.13,0.18,0.15,0.06), PANTS, 0,-0.08,0, 1.08);
+    tp(L, rbox(0.16,0.09,0.21,0.045), SHOE, 0,-0.205,0.025, 1.08); tp(L, rbox(0.165,0.022,0.215,0.01), "#f4ead8", 0,-0.245,0.025);
+    P[s<0?"legL":"legR"]=L; });
+  // 몸통 · 옷깃 · 단추
+  tp(body, rbox(0.36,0.1,0.26,0.05), PANTS, 0,0.28,0, 1.06);
+  tp(body, rbox(0.4,0.3,0.29,0.13), TOP, 0,0.44,0, 1.05);
+  const col=tp(body, torus(0.1,0.026,Math.PI*2), shade(TOP,0.18), 0,0.585,0.01); col.rotation.x=Math.PI/2;
+  [0.5,0.42].forEach(y=>{ const b=tp(body, sph(0.018), shade(TOP,-0.25), 0,y,0.148); b.castShadow=false; });
+  // 팔 · 손
+  [-1,1].forEach(s=>{ const A=new THREE.Group(); A.position.set(s*0.235,0.55,0); body.add(A);
+    tp(A, rbox(0.11,0.16,0.13,0.05), TOP, 0,-0.06,0, 1.08); tp(A, sph(0.058), SK, 0,-0.18,0, 1.1); P[s<0?"armL":"armR"]=A; });
   // 머리
-  const head=new THREE.Group(); head.position.y=0.98; body.add(head); P.head=head;
-  part(head, rbox(0.56,0.5,0.48,0.2), skin, 0,0,0);
-  const eye=M(0x2a1e1a); [-1,1].forEach(s=>{ const e=part(head, sph(0.045), eye, s*0.11,-0.01,0.235); e.scale.set(1,1.25,0.5); const hl=part(head, sph(0.014), M(0xffffff,{emissive:0xffffff, emissiveIntensity:.6}), s*0.11+0.015,0.012,0.258); hl.castShadow=false; });
-  [-1,1].forEach(s=>{ const ch=new THREE.Mesh(new THREE.CircleGeometry(0.045,16), new THREE.MeshBasicMaterial({color:0xff9aa8, transparent:true, opacity:.7})); ch.position.set(s*0.18,-0.08,0.242); head.add(ch); });
-  part(head, rbox(0.07,0.025,0.02,0.01), M(0x8a3b2e), 0,-0.11,0.24);
-  // 머리카락
-  part(head, rbox(0.6,0.22,0.52,0.1), hairM, 0,0.2,-0.01);
-  part(head, rbox(0.5,0.09,0.1,0.04), hairM, 0,0.15,0.2);
-  if(c.hair==="long") part(head, rbox(0.62,0.58,0.14,0.07), hairM, 0,-0.05,-0.22); else part(head, rbox(0.6,0.32,0.12,0.06), hairM, 0,0.05,-0.22);
-  if(c.hat==="none" && c.hair==="spiky") [[0,0.38,0],[0.15,0.34,0.05],[-0.15,0.34,0.03],[0.07,0.36,-0.14],[-0.08,0.35,-0.12]].forEach(([x,y,z])=>part(head, cone(0.08,0.2,6), hairM, x,y,z));
-  if(c.hat==="none" && c.hair==="bun") part(head, sph(0.13), hairM, 0,0.38,-0.08);
+  const head=new THREE.Group(); head.position.y=0.9; body.add(head); P.head=head;
+  const hm=tp(head, sph(0.3), SK, 0,0,0, 1.035); hm.scale.set(1.06,0.96,0.98);
+  [-1,1].forEach(s=>{ const e=tp(head, sph(0.06), SK, s*0.31,-0.03,0, 1.12); e.scale.set(0.55,1,0.8); });
+  // 눈 (깜빡임용 묶음)
+  const eyes=new THREE.Group(); head.add(eyes); P.eyes=eyes;
+  [-1,1].forEach(s=>{ const e=new THREE.Mesh(sph(0.05), new THREE.MeshBasicMaterial({color:0x2a1c22})); e.position.set(s*0.105,-0.01,0.268); e.scale.set(0.78,1.15,0.42); eyes.add(e);
+    const h1=new THREE.Mesh(sph(0.017), new THREE.MeshBasicMaterial({color:0xffffff})); h1.position.set(s*0.105+0.016,0.02,0.29); eyes.add(h1);
+    const h2=new THREE.Mesh(sph(0.009), new THREE.MeshBasicMaterial({color:0xffffff})); h2.position.set(s*0.105-0.012,-0.03,0.288); eyes.add(h2); });
+  [-1,1].forEach(s=>{ const ch=new THREE.Mesh(new THREE.CircleGeometry(0.05,18), new THREE.MeshBasicMaterial({color:0xff8fa3, transparent:true, opacity:.55})); ch.position.set(s*0.175,-0.085,0.255); ch.rotation.y=s*0.5; head.add(ch); });
+  const mouth=new THREE.Mesh(torus(0.03,0.009,Math.PI), new THREE.MeshBasicMaterial({color:0x7a3030})); mouth.position.set(0,-0.095,0.283); mouth.rotation.z=Math.PI; head.add(mouth);
+  // 머리카락 — 둥근 모자 모양 + 앞머리 3갈래 + 옆머리
+  const cap=tp(head, hemi(0.322), HC, 0,0.0,-0.01, 1.035); cap.scale.set(1.06,0.98,1.0); cap.rotation.x=-0.22;
+  const capHat = c.hat==="cap" || c.hat==="beanie", by = capHat ? 0.075 : 0.16, bz = capHat ? 0.285 : 0.255;   // 모자를 쓰면 앞머리는 챙 아래로 살짝만
+  [[-0.12,by,bz,0.35],[0.0,by+0.015,bz+0.015,0],[0.12,by,bz,-0.35]].forEach(([x,y,z,rz])=>{ const b=tp(head, rbox(0.15,capHat?0.07:0.1,0.07,0.03), HC, x,y,z); b.rotation.z=rz; b.rotation.x=-0.25; });
+  const sideH = c.hair==="long" ? 0.34 : 0.17;
+  [-1,1].forEach(s=>{ tp(head, rbox(0.075,sideH,0.13,0.035), HC, s*0.3,0.06-sideH/2+0.04,0.07, 1.06); });
+  if(c.hair==="long") tp(head, rbox(0.52,0.5,0.12,0.06), HC, 0,-0.08,-0.235, 1.05); else tp(head, rbox(0.5,0.26,0.12,0.06), HC, 0,0.02,-0.24, 1.05);
+  if(c.hat==="none" && c.hair==="spiky") [[0,0.33,-0.02],[0.13,0.29,0.03],[-0.13,0.29,0.02],[0.07,0.3,-0.14],[-0.08,0.3,-0.13]].forEach(([x,y,z])=>tp(head, cone(0.075,0.18,8), HC, x,y,z, 1.08));
+  if(c.hat==="none" && c.hair==="bun") tp(head, sph(0.12), HC, 0,0.3,-0.13, 1.06);
   // 모자
-  if(c.hat==="cap"){ part(head, rbox(0.62,0.2,0.56,0.1), M(0xe85d5d), 0,0.27,0); part(head, rbox(0.42,0.03,0.24,0.015), M(0xe85d5d), 0,0.18,0.34); }
-  if(c.hat==="straw"){ part(head, cyl(0.5,0.5,0.03,28), M(0xe8c873), 0,0.22,0); part(head, cyl(0.26,0.3,0.2,20), M(0xe8c873), 0,0.33,0); part(head, cyl(0.305,0.305,0.05,20), M(0xd9573b), 0,0.26,0); }
-  if(c.hat==="beanie"){ part(head, rbox(0.62,0.26,0.56,0.12), M(0x6ec3ff), 0,0.27,0); part(head, sph(0.08), M(0xffffff), 0,0.44,0); }
-  // 낚싯대 (몸에 붙어 있고 낚시할 때만 보임) — 아래 끝이 손, 위로 뻗음 (rotation.x + = 앞으로 기욺)
-  const rod=new THREE.Group(); rod.position.set(0.3,0.42,0.12); body.add(rod); part(rod, cyl(0.018,0.026,1.35,8), M(0x8a5a34), 0,0.67,0); part(rod, cyl(0.04,0.04,0.08,10), M(0x444455), 0,0.12,0);
+  if(c.hat==="cap"){ const k=tp(head, hemi(0.335), "#e85d5d", 0,0.04,0, 1.04); k.scale.set(1.04,0.82,1.0); const b=tp(head, rbox(0.36,0.03,0.2,0.015), "#e85d5d", 0,0.1,0.31, 1.06); b.rotation.x=0.18; tp(head, sph(0.03), "#ffffff", 0,0.31,0); }
+  if(c.hat==="straw"){ tp(head, cyl(0.5,0.5,0.025,28), "#ecd27f", 0,0.16,0, 1.03); tp(head, cyl(0.24,0.29,0.18,20), "#ecd27f", 0,0.26,0, 1.04); tp(head, cyl(0.292,0.292,0.045,20), "#d9573b", 0,0.19,0); }
+  if(c.hat==="beanie"){ const k=tp(head, hemi(0.338), "#6ec3ff", 0,0.0,0, 1.04); k.scale.set(1.05,0.95,1.0); tp(head, cyl(0.335,0.335,0.07,24), "#9fd8ff", 0,0.03,0); tp(head, sph(0.075), "#ffffff", 0,0.34,0, 1.08); }
+  // 낚싯대 (낚시할 때만) — 아래 끝이 손
+  const rod=new THREE.Group(); rod.position.set(0.27,0.36,0.12); body.add(rod); part(rod, cyl(0.018,0.026,1.35,8), M(0x8a5a34), 0,0.67,0); part(rod, cyl(0.04,0.04,0.08,10), M(0x444455), 0,0.12,0);
   const tip=new THREE.Object3D(); tip.position.y=1.35; rod.add(tip); rod.visible=false; P.rod=rod; P.tip=tip;
-  g.traverse(m=>{ if(m.isMesh) m.userData.av=true; });
+  g.traverse(m=>{ if(m.isMesh){ m.userData.av=true; if(m.userData.ol) m.castShadow=false; } });
+  P.blinkT=rnd(1.5,4);
   return P;
 }
 
@@ -388,6 +444,8 @@ function updateHero(dt){
   else if(hero.act==="yay"){ la=ra=-2.8+Math.sin(t*14)*0.15; hop=Math.abs(Math.sin(t*9))*0.12; anim=true; }
   else { la=Math.sin(t*1.8)*0.04; ra=-la; bob=Math.sin(t*2)*0.008; }
   hero.actT+=dt;
+  hero.blinkT-=dt; const bl = hero.blinkT<0 && hero.blinkT>-0.13; if(hero.blinkT<-0.13) hero.blinkT=rnd(2,4.5); hero.eyes.scale.y = bl ? 0.12 : 1; if(bl || hero.blinkT>-0.2 && hero.blinkT<0) anim=true;
+  if(hero.blinkT<0.15 && hero.blinkT>-0.2) anim=true;
   const k=Math.min(1,dt*14);
   hero.legL.rotation.x+= (ll-hero.legL.rotation.x)*k; hero.legR.rotation.x+=(lr-hero.legR.rotation.x)*k;
   hero.armL.rotation.x+= (la-hero.armL.rotation.x)*k; hero.armR.rotation.x+=(ra-hero.armR.rotation.x)*k;
@@ -399,11 +457,28 @@ function updateHero(dt){
 
 /* ═════════ 🎣 낚시 ═════════ */
 const FISH = [   // r = 희귀도 무게 · 모두 게임 발음 파일(audio/*.mp3)이 있는 단어
-  {en:"fish", ko:"물고기", e:"🐟", r:22}, {en:"frog", ko:"개구리", e:"🐸", r:16}, {en:"snail", ko:"달팽이", e:"🐌", r:14}, {en:"shell", ko:"조개껍데기", e:"🐚", r:12}, {en:"boot", ko:"장화", e:"👢", r:10},
-  {en:"crab", ko:"게", e:"🦀", r:9}, {en:"shrimp", ko:"새우", e:"🦐", r:8}, {en:"turtle", ko:"거북", e:"🐢", r:7}, {en:"squid", ko:"오징어", e:"🦑", r:6},
-  {en:"lobster", ko:"바닷가재", e:"🦞", r:4}, {en:"octopus", ko:"문어", e:"🐙", r:3}, {en:"shark", ko:"상어", e:"🦈", r:2}, {en:"whale", ko:"고래", e:"🐳", r:1}
+  // p = 기준 값(💎) · noRot = 안 상함
+  {en:"fish", ko:"물고기", e:"🐟", r:22, p:4}, {en:"frog", ko:"개구리", e:"🐸", r:16, p:5}, {en:"snail", ko:"달팽이", e:"🐌", r:14, p:3}, {en:"shell", ko:"조개껍데기", e:"🐚", r:12, p:3, noRot:1}, {en:"boot", ko:"장화", e:"👢", r:10, p:1, noRot:1},
+  {en:"crab", ko:"게", e:"🦀", r:9, p:9}, {en:"shrimp", ko:"새우", e:"🦐", r:8, p:8}, {en:"turtle", ko:"거북", e:"🐢", r:7, p:12}, {en:"squid", ko:"오징어", e:"🦑", r:6, p:11},
+  {en:"lobster", ko:"바닷가재", e:"🦞", r:4, p:20}, {en:"octopus", ko:"문어", e:"🐙", r:3, p:25}, {en:"shark", ko:"상어", e:"🦈", r:2, p:45}, {en:"whale", ko:"고래", e:"🐳", r:1, p:100}
 ];
 let dex = store("hyeng_proto_fish") || {};
+/* (L0-3) 🎒 가방 · 🏪 가게 — 사용자: 잡은 걸 보석으로 팔기 · 상하면 값이 떨어짐 · 시간마다 값이 바뀜
+   가방 칸 = {en, at(잡은 시각)} · 신선도: 잡고 2시간은 그대로 → 48시간에 0 (값은 15%까지만 떨어짐) · 장화·조개껍데기는 안 상함
+   시세: 한국 시간 1시간마다 · 물고기마다 다른 물결(모든 기기 같은 값) 0.5~1.7배 · 맛보기 보석은 게임 보석과 따로(hyeng_proto_gems) */
+const FISH_BY={}; FISH.forEach(f=>FISH_BY[f.en]=f);
+let bag = store("hyeng_proto_bag") || [], gems = store("hyeng_proto_gems") || 0, tShift = 0;
+const BAG_MAX=20, FRESH_H=2, ROT_H=48;
+const now=()=>Date.now()+tShift;
+function hashf(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return (h>>>0)/4294967296; }
+function hourIx(t){ return Math.floor(((t==null?now():t)+9*3600e3)/3600e3); }
+function mkt(en, h){ h=h==null?hourIx():h; const a=hashf(en+"|a"), b=hashf(en+"|b"), c=hashf(en+"|"+h);
+  return Math.max(0.5, Math.min(1.7, 1 + 0.42*Math.sin(2*Math.PI*(h/(14+a*16) + b)) + (c-0.5)*0.32)); }
+function fresh(it){ if(FISH_BY[it.en].noRot) return 1; const h=(now()-it.at)/3600e3; return Math.max(0, Math.min(1, 1-(h-FRESH_H)/(ROT_H-FRESH_H))); }
+function freshTag(v){ return v>0.75?["✨","fresh"]:v>0.4?["🙂","good"]:v>0.05?["😕","old"]:["🤢","rotten"]; }
+function price(it){ return Math.max(1, Math.round(FISH_BY[it.en].p * mkt(it.en) * (0.15+0.85*fresh(it)))); }
+function saveBag(){ store("hyeng_proto_bag", bag); store("hyeng_proto_gems", gems); }
+function sell(i){ const it=bag[i]; if(!it) return 0; const v=price(it); bag.splice(i,1); gems+=v; saveBag(); return v; }
 let bait = store("hyeng_proto_bait"); if(typeof bait!=="number") bait=10;
 function setBait(n){ bait=Math.max(0,Math.min(30,n)); store("hyeng_proto_bait", bait); $("bBait").textContent="🪱 "+bait; }
 const F = {st:"idle", _qt:0, t:0, T:0, nib:[], target:null, fish:null, bob:null, line:null, shadow:null, rings:[]};
@@ -470,7 +545,9 @@ function tts(en){ try{ const u=new SpeechSynthesisUtterance(en); u.lang="en-US";
 function quiz(f){
   F.st="quiz"; setGroups(); bobber.visible=false; line.visible=false; shadowFish.visible=false;
   const first=!dex[f.en]; dex[f.en]=(dex[f.en]|0)+1; store("hyeng_proto_fish", dex);
-  $("qFish").textContent=f.e; $("qAsk").innerHTML='<span class="enBig">'+f.en+'</span>'; $("qRes").innerHTML=first?"🆕 NEW!":"×"+dex[f.en];
+  const full=bag.length>=BAG_MAX; if(!full){ bag.push({en:f.en, at:now()}); saveBag(); }
+  $("qFish").textContent=f.e; $("qAsk").innerHTML='<span class="enBig">'+f.en+'</span>';
+  $("qRes").innerHTML=(first?"🆕 NEW! ":"")+(full?"<br><small>🎒 가방이 꽉 찼어요 — 가게에서 팔아요 (놓아줬어요)</small>":"<small>🎒 "+bag.length+"/"+BAG_MAX+"</small>"); updBagBtn();
   $("qOpts").innerHTML='<button class="btn" id="qSay">🔊</button><button class="btn on" id="qOk">OK</button>';
   $("quiz").classList.add("on"); hero.act="yay"; hero.actT=0; say(f.en);
   clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600);
@@ -478,6 +555,27 @@ function quiz(f){
 function closeCatch(){ if(F.st!=="quiz") return; clearTimeout(F._qt); $("quiz").classList.remove("on"); F.st="idle"; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; }, 500); setGroups(); dirty=true; }
 $("qOpts").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; if(b.id==="qSay"){ say(F.fish.en); clearTimeout(F._qt); F._qt=setTimeout(closeCatch, 2600); } else closeCatch(); });
 $("quiz").addEventListener("click", e=>{ if(e.target===$("quiz")) closeCatch(); });
+function updBagBtn(){ const b=$("bShop"); if(b) b.textContent="🏪 "+bag.length; }
+let shopTick=0;
+function drawShop(){
+  const h=hourIx(), left=3600e3-((now()+9*3600e3)%3600e3), mm=Math.floor(left/60e3), ss=Math.floor(left%60e3/1000);
+  const seen=FISH.filter(f=>dex[f.en] || bag.some(b=>b.en===f.en));
+  $("shopTop").innerHTML='<span>💎 <b>'+gems+'</b></span><span>⏱ '+mm+':'+String(ss).padStart(2,"0")+' 뒤 값이 바뀌어요</span>';
+  $("shopMkt").innerHTML=seen.length ? seen.map(f=>{ const m=mkt(f.en,h), m0=mkt(f.en,h-1), up=m>m0+0.01, dn=m<m0-0.01;
+    return '<span class="mk'+(up?' up':dn?' dn':'')+'">'+f.e+' '+f.en+' <b>×'+m.toFixed(2)+'</b> '+(up?'▲':dn?'▼':'–')+'</span>'; }).join("") : '<span class="mk">아직 잡은 게 없어요</span>';
+  const rows=bag.map((it,i)=>({it,i,v:price(it),fr:fresh(it)})).sort((a,b)=>b.v-a.v);
+  $("shopBag").innerHTML=rows.length ? rows.map(r=>{ const f=FISH_BY[r.it.en], t=freshTag(r.fr);
+    return '<div class="sRow'+(r.fr<=0.05?' rot':'')+'"><i>'+f.e+'</i><span><b>'+f.en+'</b><small>'+(f.noRot?'♾️ never rots':t[0]+' '+t[1])+(f.noRot?'':' <u class="fBar"><s style="width:'+Math.round(r.fr*100)+'%"></s></u>')+'</small></span><em>💎 '+r.v+'</em><button class="btn" data-sell="'+r.i+'">sell</button></div>'; }).join("")
+    : '<p class="sEmpty">🎒 가방이 비었어요 — 연못에서 낚아 와요</p>';
+  const tot=rows.reduce((a,r)=>a+r.v,0); $("sellAll").disabled=!rows.length; $("sellAll").textContent="모두 팔기 💎 "+tot;
+}
+function openShop(){ if(F.st!=="idle") return; closeAv(); drawShop(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if($("shopP").classList.contains("on")) drawShop(); else clearInterval(shopTick); }, 1000); }
+function goShop(){ if(F.st!=="idle") return; const near=STALL_FRONT.some(t=>t[0]===hero.cx&&t[1]===hero.cz); if(near){ hero.face=Math.PI; openShop(); return; }
+  const t=STALL_FRONT.slice().sort((a,b)=>Math.hypot(a[0]-hero.cx,a[1]-hero.cz)-Math.hypot(b[0]-hero.cx,b[1]-hero.cz))[0]; walkTo(t[0], t[1], ()=>{ hero.face=Math.PI; openShop(); }); }
+$("shopBag").addEventListener("click", e=>{ const b=e.target.closest("[data-sell]"); if(!b) return; const v=sell(+b.dataset.sell); if(v){ toast("💎 +"+v); try{ navigator.vibrate&&navigator.vibrate(20); }catch(er){} } drawShop(); updBagBtn(); });
+$("sellAll").onclick=()=>{ let t=0; while(bag.length) t+=sell(0); if(t) toast("💎 +"+t+" — 모두 팔았어요!"); drawShop(); updBagBtn(); };
+$("ffwd").onclick=()=>{ tShift+=3*3600e3; drawShop(); toast("⏩ 3시간 뒤로 (맛보기) — 신선도·값이 바뀌어요"); };
+$("shopDone").onclick=()=>$("shopP").classList.remove("on");
 function drawDex(){ const n=FISH.filter(f=>dex[f.en]).length; $("dexN").textContent=" "+n+" / "+FISH.length;
   $("dexBody").innerHTML=FISH.map(f=>{ const c=dex[f.en]|0, st="★".repeat(f.r>=12?1:f.r>=6?2:f.r>=3?3:4);
     return '<div class="dexC'+(c?'':' no')+'"'+(c?' data-say="'+f.en+'"':'')+'><i>'+f.e+'</i><b>'+(c?f.en:'?')+'</b><small>'+(c?'×'+c:st)+'</small></div>'; }).join(""); }
@@ -549,12 +647,13 @@ const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), floorPlane=new THREE.P
 function cellAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const hit=new THREE.Vector3(); if(!ray.ray.intersectPlane(floorPlane, hit)) return null; const x=Math.floor(hit.x), z=Math.floor(hit.z); return (x>=0&&z>=0&&x<place.N&&z<place.N)?[x,z]:null; }
 function itemAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const h=ray.intersectObjects(placed.map(p=>p.obj), true); return h.length ? h[0].object.userData.p : null; }
 function hitHouse(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.houseObj, true).length>0; }
-function sheetOpen(){ return $("avP").classList.contains("on") || $("dexP").classList.contains("on"); }
+function sheetOpen(){ return ["avP","dexP","shopP"].some(id=>$(id).classList.contains("on")); }
+function hitStall(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.stallObj, true).length>0; }
 let down=null;
 $("cv").addEventListener("pointerdown", e=>{ down={x:e.clientX, y:e.clientY}; if(F.st!=="idle" && F.st!=="quiz" && F.st!=="reel"){ tapWhileFishing(); down=null; } });
 $("cv").addEventListener("pointerup", e=>{
   if(!down || Math.hypot(e.clientX-down.x, e.clientY-down.y)>14){ down=null; return; } down=null;
-  if(sheetOpen()){ closeAv(); $("dexP").classList.remove("on"); return; }
+  if(sheetOpen()){ closeAv(); $("dexP").classList.remove("on"); $("shopP").classList.remove("on"); return; }
   if(place===PL.room){
     if(ghost){ const c=cellAt(e); if(c){ const [w,d]=fp(ghost.id,ghost.r); ghost.x=Math.min(Math.max(0,c[0]-Math.floor((w-1)/2)),RN-w); ghost.z=Math.min(Math.max(0,c[1]-Math.floor((d-1)/2)),RN-d); updGhost(); } return; }
     if(edit){ const p=itemAt(e); if(p) selectP(p); else unselect(); return; }
@@ -562,9 +661,11 @@ $("cv").addEventListener("pointerup", e=>{
   }
   // 마당
   if(F.st!=="idle") return;
+  if(hitStall(e)){ goShop(); return; }
   if(hitHouse(e)){ walkTo(DOOR[0], DOOR[1], ()=>go("room")); return; }
   const c=cellAt(e); if(!c) return;
   if(isWater(c[0], c[1])){ tryFish(c[0], c[1]); return; }
+  if(isStall(c[0], c[1])){ goShop(); return; }
   if(isHouse(c[0], c[1])){ walkTo(DOOR[0], DOOR[1], ()=>go("room")); return; }
   walkTo(c[0], c[1]);
 });
@@ -581,13 +682,14 @@ $("bCam").onclick=()=>{ yawTo+=Math.PI/2; unselect(); };
 $("bOut").onclick=()=>go("yard"); $("bIn").onclick=()=>walkTo(DOOR[0], DOOR[1], ()=>go("room"));
 $("bAv1").onclick=openAv; $("bAv2").onclick=openAv; $("avDone").onclick=closeAv;
 $("bDex").onclick=()=>{ if(F.st!=="idle") return; drawDex(); $("dexP").classList.add("on"); }; $("dexDone").onclick=()=>$("dexP").classList.remove("on");
+$("bShop").onclick=goShop;
 $("bBait").onclick=()=>{ setBait(bait+5); toast("🪱 미끼 +5 (맛보기)<br><small>게임에서는 공부해야 생겨요 · Daily 30 한 판 = 5개</small>", 2400); };
 $("bStop").onclick=()=>{ if(F.st==="wait"||F.st==="cast") endFish("그만했어요 — 미끼는 돌려받았어요", true); else if(F.st==="bite") endFish(null,false); };
 
 /* ═════════ 시작 ═════════ */
 makeHero();
 [["rug",2,2,0],["bed",0,0,0],["shelf",2,0,0],["plant",5,0,0],["desk",3,0,0],["chair",3,1,2]].forEach(([id,x,z,r])=>{ if(fits(id,x,z,r)){ addPlaced(id,x,z,r); stock[id]--; } });
-drawInv(); setBait(bait); setShadow(); resize(); setGroups();
+drawInv(); setBait(bait); updBagBtn(); setShadow(); resize(); setGroups();
 let last=performance.now(), fN=0, fT=0, idleT=0;
 function loop(now){
   requestAnimationFrame(loop);
@@ -603,7 +705,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
+window.HOUSE = {bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
 </html>
