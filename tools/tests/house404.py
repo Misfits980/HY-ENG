@@ -24,7 +24,7 @@ async def main():
         ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
         pg=await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route("**/*", route); await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(2500)
-        await pg.evaluate("()=>{ localStorage.removeItem('hyeng_proto_av'); localStorage.removeItem('hyeng_proto_fish'); localStorage.removeItem('hyeng_proto_bait'); }")
+        await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); }")
         await pg.reload(); await pg.wait_for_timeout(2500)
         async def arrive():
             for _ in range(80):
@@ -37,7 +37,7 @@ async def main():
             return False
         # ① 집
         st=await pg.evaluate("()=>({n:HOUSE.placed.length, place:HOUSE.place(), av:!!HOUSE.hero().head, legs:!!HOUSE.hero().legL})")
-        ok(st["n"]==6 and st["place"]=="room" and st["av"] and st["legs"], f"집 · 가구 6 · 아바타 {st}")
+        ok(st["n"]==7 and st["place"]=="room" and st["av"] and st["legs"], f"집 · 가구 7(📦 보관함 포함) · 아바타 {st}")
         wv=await pg.evaluate("()=>HOUSE.scene.children.filter(c=>c.type==='Group')[0].children.filter(c=>c.userData.normal).map(w=>w.visible)")
         ok(wv.count(True)==2, f"벽 2개만 보임 {wv}")
         await pg.evaluate("()=>HOUSE.walkTo(5,5)"); await arrive()
@@ -47,9 +47,9 @@ async def main():
         ok(path and not clash, f"길은 가구 칸을 피함 {path}")
         await pg.click("#bEdit"); await pg.wait_for_timeout(300)
         await pg.click('.card[data-id="sofa"]'); await pg.wait_for_timeout(300); await pg.click("#pOk"); await pg.wait_for_timeout(300)
-        ok(await pg.evaluate("()=>HOUSE.stock.sofa===0 && HOUSE.placed.length===7"), "소파 놓기")
+        ok(await pg.evaluate("()=>HOUSE.stock.sofa===0 && HOUSE.placed.length===8"), "소파 놓기")
         ok(not await pg.evaluate("()=>HOUSE.fits('sofa',0,0,0)") and await pg.evaluate("()=>HOUSE.fits('chair',2,2,0)"), "침대 자리엔 못 놓음 · 러그 위엔 놓음")
-        names=await pg.evaluate("()=>[...document.querySelectorAll('#inv .card span')].map(e=>e.innerText)")
+        names=await pg.evaluate("()=>[...document.querySelectorAll('#inv .card[data-id] span')].map(e=>e.innerText)")
         ok(names and all(not any('가'<=ch<='힣' for ch in n) for n in names), f"창고 가구 이름 = 영어 {names}")
         await pg.click("#bDone"); await pg.wait_for_timeout(300)
         # ② 마당 · 낚시
@@ -89,7 +89,7 @@ async def main():
         ok(pr[0][1]==1 and pr[1][1]<0.05 and pr[0][0]>pr[1][0]*3, f"오래된 상어는 값이 크게 떨어짐 {pr}")
         ok(pr[2][1]==1, "장화는 안 상함")
         m=await pg.evaluate("()=>{ const h=HOUSE.hourIx(); const L=[]; for(let i=0;i<24;i++) L.push(+HOUSE.mkt('shark',h+i).toFixed(3)); return L; }")
-        ok(len(set(m))>12 and min(m)>=0.5 and max(m)<=1.7, f"시세가 시간마다 바뀜 (0.5~1.7) {min(m)}~{max(m)}")
+        ok(len(set(m))>12 and min(m)>=0.65 and max(m)<=1.45, f"시세가 시간마다 바뀜 (0.65~1.45) {min(m)}~{max(m)}")
         ok(await pg.evaluate("()=>HOUSE.mkt('crab',123456)===HOUSE.mkt('crab',123456)"), "같은 시간 = 같은 값 (모든 기기)")
         f0=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])"); await pg.evaluate("()=>HOUSE.ffwd(30)"); f1=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])")
         ok(f1<f0, f"시간이 지나면 신선도 내려감 {f0}→{f1:.2f}")
@@ -175,11 +175,12 @@ async def main():
         await pg.evaluate("()=>HOUSE.closeTalk()")
         await pg.click("#bMap"); await pg.wait_for_timeout(300)
         mp=await pg.evaluate("()=>[...document.querySelectorAll('#mapBody .mapC')].map(b=>[b.dataset.go,b.disabled])")
-        ok(len(mp)==6 and [m[1] for m in mp]==[False,False,False,True,True,True], f"🗺 지도: 집·마당·마을 열림 · 숲·바닷가·광산 잠김 {mp}")
+        ok(len(mp)==6 and [m[1] for m in mp]==[False,False,False,True,True,False], f"🗺 지도: 집·마당·마을·광산(맛보기) 열림 · 숲·바닷가 잠김 {mp}")
         await pg.click('#mapBody [data-go="yard"]'); await pg.wait_for_timeout(900)
         ok(await pg.evaluate("()=>HOUSE.place()")=="yard", "지도에서 마당으로")
         # ④ 나 꾸미기
         await pg.click("#bAv2"); await pg.wait_for_timeout(500)
+        await pg.click('[data-avt="hat"]'); await pg.wait_for_timeout(200)
         await pg.click('.chip[data-k="hat"][data-v="cap"]'); await pg.wait_for_timeout(300)
         ok(await pg.evaluate("()=>HOUSE.av().hat")=="cap", "모자 바꾸기")
         await pg.screenshot(path=OUT+"life_av.png")
