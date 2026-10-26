@@ -145,14 +145,30 @@ async def main():
             if p1!=p0: break   # 느린 그래픽(swiftshader)이라 기다림을 줄여서 확인
         ok(p0!=p1, f"NPC 가 돌아다님 {p0}→{p1}")
         ok(await pg.evaluate("()=>[HOUSE.enCount('carrot',2),HOUSE.enCount('wheat',3),HOUSE.enCount('apple',1),HOUSE.enCount('bread',1),HOUSE.enCount('potato',2)].join('|')")=="2 carrots|3 wheat|an apple|some bread|2 potatoes", "부탁 영어 개수 말 (2 carrots · 3 wheat · an apple · some bread)")
-        mia=await pg.evaluate("()=>HOUSE.npcs[0].n.id"); await pg.evaluate("()=>HOUSE.talkTo(HOUSE.npcs[0])"); await pg.wait_for_timeout(300)
-        tl=await pg.evaluate("()=>document.getElementById('talkLine').innerText")
-        ok("Mia" in tl and any('가'<=ch<='힣' for ch in tl), f"처음 말 걸면 자기소개 (영어 + 한국어 작게) {tl[:40]!r}")
+        async def to_choices():
+            for _ in range(12):
+                if await pg.evaluate("()=>document.getElementById('dlgCh').classList.contains('on')"): return True
+                await pg.evaluate("()=>HOUSE.tapDlg()"); await pg.wait_for_timeout(250)
+            return False
         r=await pg.evaluate("()=>HOUSE.todayReq(HOUSE.npcs[0].n)")
-        await pg.evaluate("(r)=>{ HOUSE.addMat(r[0], r[1]); }", r); await pg.evaluate("()=>{ HOUSE.closeTalk(); HOUSE.talkTo(HOUSE.npcs[0]); }"); await pg.wait_for_timeout(200)
+        await pg.evaluate("(r)=>{ HOUSE.addMat(r[0], r[1]); }", r)
+        await pg.evaluate("()=>HOUSE.talkTo(HOUSE.npcs[0])"); await pg.wait_for_timeout(300)
+        ok(await pg.evaluate("()=>document.getElementById('dlg').classList.contains('on') && document.getElementById('dlgName').textContent==='Mia'"), "말 걸면 대화창 + 이름표")
+        await pg.evaluate("()=>HOUSE.tapDlg()"); await pg.wait_for_timeout(100)   # 글자 다 보이기
+        tl=await pg.evaluate("()=>document.getElementById('dlgEn').textContent+' | '+document.getElementById('dlgKo').textContent")
+        ok("Mia" in tl and any('가'<=ch<='힣' for ch in tl), f"처음엔 자기소개 (영어 + 한국어 작게) {tl[:50]!r}")
+        ok(await to_choices(), "▼ 넘기면 내 대답 고르기")
+        ch=await pg.evaluate("()=>[...document.querySelectorAll('#dlgCh .dch')].map(b=>b.dataset.ch)")
+        ok(ch[:2]==["mood","help"] and "give" in ch and "seeds" in ch and ch[-1]=="bye", f"대답: 안부·도와줄까·주기·씨앗(Mia)·잘 있어 {ch}")
         g0=await pg.evaluate("()=>HOUSE.gems()"); h0=await pg.evaluate("()=>HOUSE.npcSt().mia.h")
-        await pg.click("#talkGive"); await pg.wait_for_timeout(300)
-        ok(await pg.evaluate("()=>HOUSE.gems()")>g0 and await pg.evaluate("()=>HOUSE.npcSt().mia.h")==h0+1, f"부탁 들어주면 💎 + ❤️ {r}")
+        await pg.click('#dlgCh [data-ch="give"]'); await pg.wait_for_timeout(300)
+        ok(await pg.evaluate("()=>HOUSE.gems()")>g0 and await pg.evaluate("()=>HOUSE.npcSt().mia.h")==h0+1, f"🎁 Here you are! → 💎 + ❤️ {r}")
+        ok(await to_choices() and "give" not in await pg.evaluate("()=>[...document.querySelectorAll('#dlgCh .dch')].map(b=>b.dataset.ch)"), "준 뒤엔 주기 대답이 없어짐")
+        await pg.click('#dlgCh [data-ch="bye"]'); await pg.wait_for_timeout(200)
+        for _ in range(8):
+            if not await pg.evaluate("()=>!!HOUSE.dlg()"): break
+            await pg.evaluate("()=>HOUSE.tapDlg()"); await pg.wait_for_timeout(400)
+        ok(not await pg.evaluate("()=>!!HOUSE.dlg()") and not await pg.evaluate("()=>document.getElementById('dlg').classList.contains('on')"), "👋 Bye → 대화 끝")
         ok(not await pg.evaluate("()=>HOUSE.giveReq(HOUSE.npcs[0].n)"), "같은 날 또는 안 됨")
         d0=await pg.evaluate("()=>HOUSE.dayKey()"); await pg.evaluate("()=>HOUSE.ffwd(24)"); d1=await pg.evaluate("()=>HOUSE.dayKey()")
         ok(d0!=d1 and await pg.evaluate("()=>HOUSE.npcSt().mia.done!==HOUSE.dayKey()"), "다음 날 = 새 부탁")

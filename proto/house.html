@@ -109,6 +109,25 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .iRow{margin-top:6px;font-size:13px;font-weight:800;color:var(--sub)}
 .iBtns{display:flex;gap:8px;margin-top:8px}
 @media (orientation:landscape) and (max-height:500px){ .inv{grid-template-columns:repeat(10,1fr)} .slot i{font-size:24px} }
+.dBox{position:relative;margin:0 auto;width:min(560px,94vw);min-height:128px;padding:26px 20px 18px;border-radius:30px;background:#fffaf0;color:#3a2a20;box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 4px rgba(255,255,255,.6);cursor:pointer}
+#dlg{position:fixed;left:0;right:0;bottom:0;z-index:7;padding:0 0 max(14px,env(safe-area-inset-bottom));display:none}
+#dlg.on{display:block}
+#dlgName{position:absolute;left:22px;top:-16px;padding:5px 16px;border-radius:16px;font-weight:900;font-size:16px;color:#fff;background:#e88a3a;transform:rotate(-3deg);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+#dlgName.mia{background:#5cb85c} #dlgName.leo{background:#3f8fd6} #dlgName.rosa{background:#e8607a} #dlgName.max{background:#c98f3a} #dlgName.me{background:#8a7ae0}
+#dlgX{position:absolute;right:10px;top:8px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.08);color:#7a6a5a;font-size:16px;cursor:pointer}
+#dlgEn{margin:0;font-size:21px;font-weight:800;line-height:1.35;min-height:28px}
+#dlgKo{margin:6px 0 0;font-size:13.5px;font-weight:700;color:#9a7a5a;min-height:18px}
+#dlgMore{position:absolute;right:22px;bottom:10px;font-style:normal;color:#e88a3a;opacity:0;animation:dmore 0.8s ease-in-out infinite}
+#dlgMore.on{opacity:1} @keyframes dmore{50%{transform:translateY(4px)}}
+.dChoices{display:none;flex-direction:column;align-items:flex-end;gap:7px;width:min(560px,94vw);margin:0 auto 10px}
+.dChoices.on{display:flex}
+.dch{min-width:190px;max-width:80vw;text-align:left;padding:9px 16px;border-radius:20px 20px 6px 20px;border:2px solid #8a7ae0;background:#f4f0ff;color:#3a2a60;font-family:inherit;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.18);animation:dpop .2s ease-out both}
+.dch b{display:block;font-size:16px} .dch small{display:block;font-size:12px;font-weight:700;color:#8a7aa8}
+.dch:nth-child(2){animation-delay:.04s} .dch:nth-child(3){animation-delay:.08s} .dch:nth-child(4){animation-delay:.12s} .dch:nth-child(5){animation-delay:.16s} .dch:nth-child(6){animation-delay:.2s}
+@keyframes dpop{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.dSeeds{display:none;flex-wrap:wrap;gap:6px;justify-content:center;width:min(560px,94vw);margin:0 auto 10px;padding:10px;border-radius:18px;background:rgba(32,24,58,.92)}
+.dSeeds.on{display:flex} .dGem{align-self:center;font-weight:900;color:var(--gold);margin-left:6px}
+@media (orientation:landscape) and (max-height:500px){ .dBox{min-height:96px;padding:20px 16px 12px} #dlgEn{font-size:18px} .dChoices{position:fixed;right:10px;bottom:120px;width:auto} .dch{padding:6px 12px} .dch b{font-size:14px} }
 .tLine{position:relative;margin:2px 0 10px;padding:12px 14px;border-radius:18px;background:#fff7e6;color:#3a2a20}
 .tLine b{display:block;font-size:19px;line-height:1.35} .tLine small{display:block;margin-top:4px;font-size:13px;font-weight:700;color:#8a6a50}
 .tLine::before{content:"";position:absolute;left:26px;top:-10px;border:10px solid transparent;border-bottom-color:#fff7e6;border-top:0}
@@ -160,8 +179,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 <div class="sheet" id="bagP"><div class="hd"><b>🎒 가방 <small id="bagCnt"></small></b><button class="btn sm2" id="bagSort">정리</button><button class="btn sm2" id="bagShop">🏪</button><button class="btn sm2" id="bagDone">닫기</button></div>
   <div class="bTabs" id="bagTabs"></div><div class="inv" id="bagGrid"></div><div class="bInfo" id="bagInfo"></div>
   <div class="shopFoot"><button class="btn sm2" id="bagFf">⏩ +3시간 <small>(맛보기)</small></button></div></div>
-<div class="sheet" id="talkP"><div class="hd"><b id="talkHd"></b><button class="btn sm2" id="talkSay">🔊</button><button class="btn sm2" id="talkDone">닫기</button></div>
-  <div class="tLine" id="talkLine"></div><div id="talkReq"></div><div id="talkShop"></div></div>
+<div id="dlg"><div class="dChoices" id="dlgCh"></div><div class="dSeeds" id="dlgSeeds"></div>
+  <div class="dBox" id="dlgBox"><span id="dlgName" class="npc">Mia</span><button id="dlgX" aria-label="대화 끝">✕</button><p id="dlgEn"></p><p id="dlgKo"></p><i id="dlgMore">▼</i></div></div>
 <div class="sheet" id="mapP"><div class="hd"><b>🗺 지도</b><button class="btn" id="mapDone">닫기</button></div><div class="mapG" id="mapBody"></div>
   <p class="bHint" style="margin:10px 0 0">잠긴 곳은 게임에서 공부하면 열려요 (맛보기는 집·마당·마을)</p></div>
 <div class="sheet" id="dexP"><div class="hd"><b>🐟 물고기 도감 <small id="dexN"></small></b><button class="btn" id="dexDone">닫기</button></div><div class="dexGrid" id="dexBody"></div></div>
@@ -865,6 +884,7 @@ function boxC(c, r, y0, y1){ const L=[]; for(const x of [c.x-r,c.x+r]) for(const
 /* 무엇을 보여 줄지 — 집: 방 전체 · 마당: 나를 따라가며 7칸쯤 · 나 꾸미기: 나를 크게(화면 위쪽) */
 function focus(){ const N=place.N, p=hero ? hero.g.position : new THREE.Vector3(N/2,0,N/2);
   if(avOpen){ const c=new THREE.Vector3(p.x,0.62,p.z); return {c, C:boxC(c,0.55,0,1.4), b:[0.7,0.06,0.97], pitch:0.32}; }
+  if(talkN){ const q=talkN.g.position, c=new THREE.Vector3((p.x+q.x)/2,0.7,(p.z+q.z)/2), r=Math.max(0.8, Math.hypot(p.x-q.x,p.z-q.z)/2+0.42); return {c, C:boxC(c,r,0,1.75), b:[0.78,-0.12,0.95], pitch:0.3}; }   /* 대화 — 두 사람에게 다가감 */
   if(place.follow){ const m=2.9, c=new THREE.Vector3(clamp(p.x,m,N-m),0.4,clamp(p.z,m,N-m)); return {c, C:boxC(c,2.9,0,1.4), b:[0.94,-0.72,0.72], pitch:place.pitch}; }
   const c=new THREE.Vector3(N/2,0.5,N/2), C=[]; for(const x of [0,N]) for(const y of [0,place.h]) for(const z of [0,N]) C.push(new THREE.Vector3(x,y,z)); return {c, C, b:[0.94,-0.74,0.74], pitch:place.pitch}; }
 let camPitch=0.62;
@@ -877,14 +897,14 @@ function updCam(dt){ const f=focus(), d=fitFor(f); const k=camSnap?1:Math.min(1,
   const cx=Math.sin(yaw), cz=Math.cos(yaw); walls.forEach(w=>{ const n=w.userData.normal; w.visible=(n[0]*cx+n[1]*cz)>0; });
   return moving; }
 function placeCamera(){ camSnap=true; updCam(0); dirty=true; }
-function viewOff(){ const w=innerWidth, h=innerHeight; camera.setViewOffset(w,h,0,h*(avOpen?0.26:0.04),w,h); camera.updateProjectionMatrix(); }
+function viewOff(){ const w=innerWidth, h=innerHeight; camera.setViewOffset(w,h,0,h*(avOpen?0.26:talkN?0.15:0.04),w,h); camera.updateProjectionMatrix(); }
 function setShadow(){ const N=place.N, s=sun.shadow.camera; sun.position.set(N/2-N*0.9, N*1.4, N/2-N*0.45); sun.target.position.set(N/2,0,N/2); s.left=-N*0.85; s.right=N*0.85; s.top=N*0.85; s.bottom=-N*0.85; s.near=1; s.far=N*4; s.updateProjectionMatrix(); }
 function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; viewOff(); placeCamera(); }
 addEventListener("resize", resize);
 function go(key, at){
   if(F.st!=="idle") return; setEdit(false);
   $("fade").classList.add("on");
-  setTimeout(()=>{ place=PL[key]; roomG.visible=place===PL.room; yardG.visible=place===PL.yard; villageG.visible=place===PL.village; scene.background=new THREE.Color(place.sky||0x2a2147); try{ closeTalk(); }catch(e){}
+  setTimeout(()=>{ place=PL[key]; roomG.visible=place===PL.room; yardG.visible=place===PL.yard; villageG.visible=place===PL.village; clearFade(); scene.background=new THREE.Color(place.sky||0x2a2147); try{ closeTalk(); }catch(e){}
     const s=at||place.start; hero.cx=s[0]; hero.cz=s[1]; hero.path=[]; hero.moving=false; hero.g.position.set(s[0]+0.5,0,s[1]+0.5);
     $("ttl").innerHTML=place.name+"<small>맛보기</small>"; setShadow(); placeCamera(); setGroups(); $("fade").classList.remove("on"); }, 230);
 }
@@ -923,13 +943,14 @@ const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), floorPlane=new THREE.P
 function cellAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const hit=new THREE.Vector3(); if(!ray.ray.intersectPlane(floorPlane, hit)) return null; const x=Math.floor(hit.x), z=Math.floor(hit.z); return (x>=0&&z>=0&&x<place.N&&z<place.N)?[x,z]:null; }
 function itemAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const h=ray.intersectObjects(placed.map(p=>p.obj), true); return h.length ? h[0].object.userData.p : null; }
 function hitHouse(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.houseObj, true).length>0; }
-function sheetOpen(){ return ["avP","dexP","shopP","craftP","seedP","bagP","talkP","mapP"].some(id=>$(id).classList.contains("on")); }
+function sheetOpen(){ return ["avP","dexP","shopP","craftP","seedP","bagP","mapP"].some(id=>$(id).classList.contains("on")); }
 function hitObj(e, o){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(o, true).length>0; }
 function hitStall(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.stallObj, true).length>0; }
 let down=null;
 $("cv").addEventListener("pointerdown", e=>{ down={x:e.clientX, y:e.clientY}; if(F.st!=="idle" && F.st!=="quiz" && F.st!=="reel"){ tapWhileFishing(); down=null; } });
 $("cv").addEventListener("pointerup", e=>{
   if(!down || Math.hypot(e.clientX-down.x, e.clientY-down.y)>14){ down=null; return; } down=null;
+  if(dlg){ tapDlg(); return; }
   if(sheetOpen()){ closeAv(); closeTalk(); ["dexP","shopP","craftP","seedP","bagP","mapP"].forEach(id=>$(id).classList.remove("on")); return; }
   if(place===PL.room){
     if(ghost){ const c=cellAt(e); if(c){ const [w,d]=fp(ghost.id,ghost.r); ghost.x=Math.min(Math.max(0,c[0]-Math.floor((w-1)/2)),RN-w); ghost.z=Math.min(Math.max(0,c[1]-Math.floor((d-1)/2)),RN-d); updGhost(); } return; }
@@ -1059,32 +1080,97 @@ function updateNpcs(dt){ if(place!==PL.village) return false; let anim=false;
         if(!blocked(tx,tz) && !(tx===hero.cx&&tz===hero.cz) && !npcs.some(o=>o!==c && o.cx===tx && o.cz===tz)){ const P=findPath(c.cx,c.cz,tx,tz); if(P && P.length && P.length<9){ c.path=P; c.moving=true; } } } }
     if(animChar(c, dt)) anim=true; });
   return anim; }
-/* 말 걸기 */
-let talkN=null;
-function talkTo(c){ talkN=c; c.talking=true; c.path=[]; c.moving=false; const p=c.g.position, h=hero.g.position; c.face=Math.atan2(h.x-p.x, h.z-p.z); hero.face=Math.atan2(p.x-h.x, p.z-h.z);
-  const st=nst(c.n.id); c.act="wave"; c.actT=0; setTimeout(()=>{ if(c.act==="wave") c.act="idle"; }, 1200);
-  let line; if(!st.met){ st.met=1; line=c.n.hi; store("hyeng_proto_npc", npcSt); } else if(st.done===dayKey()) line=["Thanks for today! See you tomorrow.","오늘 고마웠어! 내일 또 봐."]; else line=c.n.talk[Math.floor(rnd(0,c.n.talk.length))];
-  drawTalk(line); $("talkP").classList.add("on"); say(line[0]); }
-function drawTalk(line){ const c=talkN, n=c.n, st=nst(n.id), r=todayReq(n), have=haveReq(r), done=st.done===dayKey(), e=FISH_BY[r[0]]?FISH_BY[r[0]].e:matE(r[0]);
-  $("talkHd").innerHTML=n.e+' '+n.nm+' <small>'+n.job+' · '+'❤️'.repeat(st.h)+'🤍'.repeat(5-st.h)+'</small>';
-  if(line) $("talkLine").innerHTML='<b>'+line[0]+'</b><small>'+line[1]+'</small>';
-  const ask=["Can you bring me "+enCount(r[0], r[1])+"?", r[0]+" "+r[1]+"개 가져다줄래?"];
-  $("talkReq").innerHTML=done ? '<p class="bHint" style="margin:6px 0">✅ 오늘 부탁은 끝 — 내일 새 부탁</p>'
-    : '<div class="sRow"><i>'+e+'</i><span><b>📋 '+ask[0]+'</b><small>'+ask[1]+' · 🎒 '+Math.min(have,r[1])+'/'+r[1]+' · 💎 '+reqReward(r)+(st.h<5?' · ❤️ +1':'')+'</small></span><button class="btn'+(have>=r[1]?' on':'')+'" id="talkGive"'+(have>=r[1]?'':' disabled')+'>give</button></div>';
-  $("talkShop").innerHTML = n.id==="mia" ? '<h4 class="bH">🌰 seeds</h4><div class="bChips">'+Object.keys(SEEDS).map(s=>'<button class="btn sm2" data-buy="'+s+'"'+(gems>=SEEDS[s].p?'':' disabled')+'>'+MAT[s].e+' '+s+' 💎'+SEEDS[s].p+'</button>').join("")+'</div><p class="bHint" style="margin:6px 0">💎 '+gems+'</p>' : ''; }
-$("talkP").addEventListener("click", e=>{ const t=e.target;
-  if(t.closest("#talkSay")){ const L=$("talkLine").querySelector("b"); if(L) say(L.textContent); return; }
-  if(t.closest("#talkGive") && talkN){ const m=giveReq(talkN.n); if(m){ talkN.act="yay"; talkN.actT=0; setTimeout(()=>{ if(talkN && talkN.act==="yay") talkN.act="idle"; },1200); act("yay"); toast("🎉 "+m, 2600); refreshTag(talkN); drawTalk(["Thank you so much!","정말 고마워!"]); say("Thank you so much!"); } return; }
-  const b=t.closest("[data-buy]"); if(b && !b.disabled){ const s=b.dataset.buy; if(gems<SEEDS[s].p) return; if(!canAdd(s+" seeds",1)){ fullMsg(); return; } gems-=SEEDS[s].p; addMat(s+" seeds",1); saveBag(); toast("🌰 "+s+" seeds +1"); drawTalk(null); updBagBtn(); }
-});
-function closeTalk(){ $("talkP").classList.remove("on"); if(talkN){ talkN.talking=false; talkN.wait=rnd(1,3); talkN=null; } }
-$("talkDone").onclick=closeTalk;
+/* 말 걸기 — (L0-7) 사용자: "NPC 랑 이야기하는 느낌이 아니네" → 동물의 숲식 대화
+   · 카메라가 두 사람에게 다가감(위쪽에 크게) · 아래 대화창: 이름표 · 글자가 한 글자씩 + 옹알이 소리(NPC 마다 다른 높이) · 다 나오면 한국어 작게 · ▼ 눌러 넘기기
+   · 내 대답 고르기(영어 + 한국어 작게) · NPC 감정 말풍선(🎵 ❤️ ❗ 💦 💡) · 손 흔들기·만세 · 부탁 주고받기도 대화로 */
+let talkN=null, dlg=null;
+const VOICE={mia:520, leo:330, rosa:610, max:260};
+let actx=null;
+function blip(n){ try{ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime;
+  o.type="triangle"; o.frequency.value=(VOICE[n]||440)*(0.85+Math.random()*0.35); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.06,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.07);
+  o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.08); }catch(e){} }
+/* 감정 말풍선 (머리 위 그림) */
+function emote(c, e){ if(c.emo){ c.g.remove(c.emo.s); c.emo.s.material.map.dispose(); }
+  const cv=document.createElement("canvas"); cv.width=cv.height=128; const g=cv.getContext("2d");
+  g.fillStyle="#fff"; g.beginPath(); g.arc(64,58,50,0,7); g.fill(); g.beginPath(); g.moveTo(52,100); g.lineTo(64,124); g.lineTo(76,100); g.fill();
+  g.font="56px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(e,64,60);
+  const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false})); s.renderOrder=11; s.position.y=2.05; s.scale.set(0.01,0.01,1); c.g.add(s); c.emo={s, t:0}; dirty=true; }
+function updEmotes(dt){ let a=false; npcs.concat([hero]).forEach(c=>{ if(!c || !c.emo) return; const E=c.emo; E.t+=dt; const k=E.t<0.18 ? E.t/0.18*1.15 : E.t<0.3 ? 1.15-(E.t-0.18)/0.12*0.15 : 1; E.s.scale.set(0.5*k,0.5*k,1);
+  if(E.t>1.8){ c.g.remove(E.s); E.s.material.map.dispose(); c.emo=null; } a=true; }); return a; }
+/* 대화 진행 — 줄 = {en, ko, emo, anim, who:'npc'|'me'} */
+function speakLines(lines, after){ dlg.queue=lines.slice(); dlg.after=after||null; nextLine(); }
+function nextLine(){ const L=dlg.queue.shift(); if(!L){ const f=dlg.after; dlg.after=null; if(f) f(); else showChoices(); return; }
+  hideChoices(); dlg.line=L; dlg.i=0; dlg.typing=true; const c=talkN;
+  $("dlgName").textContent = L.who==="me" ? "나" : c.n.nm; $("dlgName").className = L.who==="me" ? "me" : "npc "+c.n.id;
+  $("dlgEn").textContent=""; $("dlgKo").textContent=""; $("dlgMore").classList.remove("on");
+  if(L.emo) emote(L.who==="me"?hero:c, L.emo);
+  if(L.anim){ const who=L.who==="me"?hero:c; who.act=L.anim; who.actT=0; setTimeout(()=>{ if(who.act===L.anim) who.act="idle"; }, 1300); }
+  clearInterval(dlg.tm); dlg.tm=setInterval(typeStep, 28); }
+function typeStep(){ const L=dlg.line; if(!L) return; dlg.i++; $("dlgEn").textContent=L.en.slice(0,dlg.i); const ch=L.en[dlg.i-1];
+  if(L.who!=="me" && ch && /[a-z]/i.test(ch) && dlg.i%2) blip(talkN.n.id);
+  if(dlg.i>=L.en.length) finishLine(); }
+function finishLine(){ clearInterval(dlg.tm); const L=dlg.line; dlg.typing=false; $("dlgEn").textContent=L.en; $("dlgKo").textContent=L.ko||""; $("dlgMore").classList.add("on"); if(L.say!==false) say(L.en); }
+function tapDlg(){ if(!dlg) return; if(dlg.typing){ finishLine(); return; } if($("dlgCh").classList.contains("on")) return; nextLine(); }
+const N_=(en,ko,emo,anim)=>({en,ko,emo,anim,who:"npc"}), ME=(en,ko,emo,anim)=>({en,ko,emo,anim,who:"me",say:false});
+const MOOD={mia:[["I'm great! My tomatoes are growing.","좋아! 토마토가 쑥쑥 자라."],["A little tired. Farming is hard work!","조금 피곤해. 농사는 힘들거든!"]],
+  leo:[["Great! I caught a big fish this morning.","최고야! 아침에 큰 물고기를 잡았어."],["Not bad. The fish are sleepy today.","그럭저럭. 오늘은 물고기들이 졸려 해."]],
+  rosa:[["I'm happy! I'm baking bread.","행복해! 빵을 굽고 있거든."],["I'm hungry. Cooking makes me hungry!","배고파. 요리하면 배가 고파져!"]],
+  max:[["I'm busy! I'm making a chair.","바빠! 의자를 만들고 있어."],["Good! I love the smell of wood.","좋아! 나무 냄새가 정말 좋아."]]};
+function choices(){ const c=talkN, n=c.n, st=nst(n.id), r=todayReq(n), done=st.done===dayKey(), L=[];
+  L.push(["mood","😊 How are you?","잘 지내?"]);
+  L.push(["help", done?"📋 Anything else?":"📋 Can I help you?", done?"또 도와줄 거 있어?":"도와줄 거 있어?"]);
+  if(!done && haveReq(r)>=r[1]) L.push(["give","🎁 Here you are!","여기 있어! ("+r[0]+" ×"+r[1]+")"]);
+  L.push(["tip","💡 Any tips?","좋은 방법 있어?"]);
+  if(n.id==="mia") L.push(["seeds","🌰 Seeds, please!","씨앗 주세요!"]);
+  L.push(["bye","👋 Bye!","잘 있어!"]);
+  return L; }
+function showChoices(){ const L=choices(); $("dlgCh").innerHTML=L.map(([k,en,ko])=>'<button class="dch" data-ch="'+k+'"><b>'+en+'</b><small>'+ko+'</small></button>').join(""); $("dlgCh").classList.add("on"); $("dlgMore").classList.remove("on"); }
+function hideChoices(){ $("dlgCh").classList.remove("on"); $("dlgSeeds").classList.remove("on"); }
+const AGAIN=()=>N_("Anything else?","또 할 말 있어?");
+function choose(k){ const c=talkN, n=c.n, st=nst(n.id), r=todayReq(n), done=st.done===dayKey(), e=FISH_BY[r[0]]?FISH_BY[r[0]].e:matE(r[0]);
+  const me=choices().find(x=>x[0]===k); if(!me) return; hideChoices();
+  const myLine=ME(me[1].replace(/^\S+\s/,""), me[2], null, k==="bye"?"wave":null);
+  if(k==="mood"){ const m=MOOD[n.id][Math.floor(rnd(0,MOOD[n.id].length))]; speakLines([myLine, N_(m[0],m[1],"🎵"), AGAIN()]); }
+  else if(k==="tip"){ const t=n.talk[Math.floor(rnd(0,n.talk.length))]; speakLines([myLine, N_(t[0],t[1],"💡"), AGAIN()]); }
+  else if(k==="help"){ if(done) speakLines([myLine, N_("You already helped me today. Thank you!","오늘은 벌써 도와줬어. 고마워!","❤️"), AGAIN()]);
+    else { const have=haveReq(r); speakLines([myLine, N_("Yes! Can you bring me "+enCount(r[0],r[1])+"? "+e, r[0]+" "+r[1]+"개 가져다줄래? (가방에 "+Math.min(have,r[1])+"/"+r[1]+")", "❗"),
+      have>=r[1] ? N_("Oh! You have "+(r[1]>1?"them":"it")+"!","어! 가지고 있구나!","❗") : N_("No hurry. Come back later!","천천히 해. 나중에 와!","🎵")]); } }
+  else if(k==="give"){ const m=giveReq(n); if(!m){ speakLines([N_("Hmm?","응?","💦")]); return; } refreshTag(c);
+    const gi=m.split(" · 🎁 ")[1]; const L=[myLine, N_("Wow! Thank you so much!","와! 정말 고마워!","❤️","yay")];
+    if(gi) L.push(N_("This is for you! "+gi.split(" ")[0],"이건 너한테 주는 선물이야! "+gi,"🎁","yay"));
+    L.push(AGAIN()); act("yay"); toast("🎉 "+m, 2600); speakLines(L); }
+  else if(k==="seeds"){ speakLines([myLine, N_("Sure! Which seeds do you want?","좋아! 무슨 씨앗 줄까?","🌰")], ()=>{ drawSeedsDlg(); $("dlgSeeds").classList.add("on"); showChoices(); }); }
+  else if(k==="bye"){ speakLines([myLine, N_("See you! Come again!","또 봐! 또 와!","👋","wave")], ()=>setTimeout(closeTalk, 500)); } }
+function drawSeedsDlg(){ $("dlgSeeds").innerHTML=Object.keys(SEEDS).map(s=>'<button class="btn sm2" data-buy="'+s+'"'+(gems>=SEEDS[s].p?'':' disabled')+'>'+MAT[s].e+' '+s+' 💎'+SEEDS[s].p+'</button>').join("")+'<span class="dGem">💎 '+gems+'</span>'; }
+function talkTo(c){ if(talkN && talkN!==c) closeTalk(); talkN=c; c.talking=true; c.path=[]; c.moving=false; const p=c.g.position, h=hero.g.position;
+  c.face=angTo(Math.atan2(h.x-p.x, h.z-p.z), yaw, 0.45); hero.face=angTo(Math.atan2(p.x-h.x, p.z-h.z), yaw, 0.45);   // 서로 보면서 카메라 쪽으로 반쯤 (얼굴이 보이게)
+  const st=nst(c.n.id); dlg={queue:[], tm:0}; $("dlg").classList.add("on"); document.querySelector(".bar.bot").style.visibility="hidden"; viewOff();
+  if(!st.met){ st.met=1; store("hyeng_proto_npc", npcSt); speakLines([N_(c.n.hi[0], c.n.hi[1], "❗", "wave"), N_("Nice to meet you!","만나서 반가워!","🎵")]); }
+  else if(st.done===dayKey()) speakLines([N_("Hi again! Thanks for today.","또 왔구나! 오늘 고마웠어.","❤️","wave")]);
+  else speakLines([N_(["Hi there!","Hello!","Hey, friend!"][Math.floor(rnd(0,3))], ["안녕!","안녕하세요!","안녕, 친구!"][0], "🎵", "wave")]); }
+function closeTalk(){ if(dlg){ clearInterval(dlg.tm); dlg=null; } $("dlg").classList.remove("on"); hideChoices(); document.querySelector(".bar.bot").style.visibility="visible";
+  if(talkN){ talkN.talking=false; talkN.wait=rnd(1,3); talkN=null; } viewOff(); }
+$("dlgBox").addEventListener("click", tapDlg);
+$("dlgCh").addEventListener("click", e=>{ const b=e.target.closest("[data-ch]"); if(b) choose(b.dataset.ch); });
+$("dlgSeeds").addEventListener("click", e=>{ const b=e.target.closest("[data-buy]"); if(!b || b.disabled) return; const s=b.dataset.buy; if(gems<SEEDS[s].p) return; if(!canAdd(s+" seeds",1)){ fullMsg(); return; } gems-=SEEDS[s].p; addMat(s+" seeds",1); saveBag(); updBagBtn(); emote(talkN,"🌰"); blip(talkN.n.id); drawSeedsDlg(); toast("🌰 "+s+" seeds +1"); });
+$("dlgX").onclick=closeTalk;
 /* 🗺 지도 — 구역 이동 (잠긴 구역은 열리는 조건만 보여 줌) */
 const AREAS=[["room","🏠","내 집",""],["yard","🌳","마당",""],["village","🏘","마을",""],["forest","🌲","숲","공부한 날 5일"],["beach","🏖","바닷가","큰 별 5개"],["mine","⛏","광산","큰 별 15개"]];
 function drawMap(){ $("mapBody").innerHTML=AREAS.map(([k,e,nm,lock])=>'<button class="mapC'+(lock?' lock':'')+(place.key===k?' here':'')+'" data-go="'+k+'"'+(lock?' disabled':'')+'><i>'+e+'</i><b>'+nm+'</b><small>'+(lock?'🔒 '+lock:place.key===k?'📍 여기':'가기')+'</small></button>').join(""); }
 $("mapBody").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(!b || b.disabled) return; $("mapP").classList.remove("on"); const k=b.dataset.go; if(k!==place.key) go(k); });
 $("bMap").onclick=()=>{ if(F.st!=="idle") return; drawMap(); $("mapP").classList.add("on"); };
 $("mapDone").onclick=()=>$("mapP").classList.remove("on");
+/* 가리는 것 흐리게 — (L0-7) 대화 장면이 집에 가려 안 보였다 → 카메라와 나(·대화 상대) 사이에 있는 집·나무 등을 반투명으로 (게임에서 흔한 방식) */
+const faded=new Map();
+function setFade(obj,on){ if(on){ if(faded.has(obj)) return; const L=[]; obj.traverse(m=>{ if((m.isMesh||m.isSprite) && m.material && !m.material.isLineBasicMaterial){ L.push([m,m.material]); const c=m.material.clone(); c.transparent=true; c.opacity=0.25; c.depthWrite=false; m.material=c; m.castShadow=m.castShadow; } }); faded.set(obj,L); }
+  else { const L=faded.get(obj); if(!L) return; L.forEach(([m,mat])=>{ m.material.dispose(); m.material=mat; }); faded.delete(obj); } }
+function clearFade(){ [...faded.keys()].forEach(o=>setFade(o,false)); }
+const occRc=new THREE.Raycaster(); occRc.camera=camera; let occT=0;   // 그림판(이름표)을 맞출 때 카메라가 필요
+function updOcclude(dt){ occT+=dt; if(occT<0.1) return false; occT=0; const g=place.g; if(!hero || !g.visible) return false;
+  const targets=[hero.g].concat(talkN?[talkN.g]:[]), hit=new Set();
+  targets.forEach(t=>[0.45,1.15].forEach(hy=>{ const to=t.position.clone(); to.y+=hy; const dir=to.clone().sub(camera.position), dist=dir.length(); occRc.set(camera.position, dir.normalize()); occRc.far=Math.max(0.1,dist-0.35);
+    occRc.intersectObject(g,true).forEach(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; if(o.parent===g && !o.userData.npc && !o.userData.noFade) hit.add(o); }); }));
+  let ch=false; [...faded.keys()].forEach(o=>{ if(!hit.has(o)){ setFade(o,false); ch=true; } }); hit.forEach(o=>{ if(!faded.has(o)){ setFade(o,true); ch=true; } }); return ch; }
 /* ═════════ 시작 ═════════ */
 makeHero();
 [["rug",2,2,0],["bed",0,0,0],["shelf",2,0,0],["plant",5,0,0],["desk",3,0,0],["chair",3,1,2]].forEach(([id,x,z,r])=>{ if(fits(id,x,z,r)){ addPlaced(id,x,z,r); stock[id]--; } });
@@ -1093,7 +1179,7 @@ let last=performance.now(), fN=0, fT=0, idleT=0, farmT=0;
 function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  let anim=updateHero(dt); if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true;
+  let anim=updateHero(dt); if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(updCam(dt)) anim=true;
@@ -1106,7 +1192,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
+window.HOUSE = {choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
 </html>
