@@ -2400,11 +2400,16 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
 
 /* 1단계 — 두 장의 큰 카드 */
 #scSetup #selRule{gap:14px;flex:1}
-#scSetup #selRule .tile.card, body.ui-skin #scSetup #selRule .tile.card{width:100%;height:clamp(190px,calc((var(--appH,100dvh) / var(--sz) - 270px)/2),280px);
+#scSetup #selRule .tile.card, body.ui-skin #scSetup #selRule .tile.card{width:100%;height:clamp(160px,calc((var(--appH,100dvh) / var(--sz) - 410px)/2),280px);
   padding:0 16px 48px;justify-content:flex-end;border-radius:22px;border:2px solid rgba(255,255,255,.12) !important;
   background-size:cover !important;background-position:center 62% !important}
 #scSetup #selRule .tile.card[data-v=normal]{background-image:url(assets/world/world-meadow.webp) !important}
 #scSetup #selRule .tile.card[data-v=daily]{background-image:url(assets/world/world-night.webp) !important}
+/* (v406) 🏡 My Town (생활 맛보기) — 사용자: "Adventure · Daily 30 밑에 카테고리 · 공지 없이 아이들이 스스로" → 작은 세 번째 카드 */
+#scSetup #selRule .tile.card[data-v=town], body.ui-skin #scSetup #selRule .tile.card[data-v=town]{height:118px;flex:none;padding:0 16px 14px;background-image:url(assets/world/world-town.webp) !important;background-position:center 40% !important}
+#scSetup #selRule .tile.card[data-v=town] b{font-size:23px} #scSetup #selRule .tile.card[data-v=town] small{font-size:11.5px}
+@media (max-height:620px){ #scSetup #selRule .tile.card, body.ui-skin #scSetup #selRule .tile.card{height:140px} #scSetup #selRule .tile.card[data-v=town], body.ui-skin #scSetup #selRule .tile.card[data-v=town]{height:100px} }
+#scSetup .townTag{position:absolute !important;top:10px;right:10px;font-size:11px;font-weight:800;color:#2f5a1f;background:rgba(255,248,220,.92);padding:3px 9px;border-radius:99px}
 #scSetup #selRule .tile.card:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(8,5,20,.85));pointer-events:none}
 #scSetup #selRule .tile.card > *{position:relative;z-index:1}
 #scSetup #selRule .tile.card b{font-size:29px}
@@ -2579,6 +2584,7 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
   #scSetup .setBoard, body.ui-skin #scSetup .setBoard{width:min(760px,100%)}
   #scSetup #selRule{flex-direction:row} #scSetup #selRule .tile.card, body.ui-skin #scSetup #selRule .tile.card{width:auto;flex:1}
   #scSetup #selRule .tile.card, body.ui-skin #scSetup #selRule .tile.card{height:200px}
+  #scSetup #selRule .tile.card[data-v=town], body.ui-skin #scSetup #selRule .tile.card[data-v=town]{height:200px;flex:.8;padding-bottom:16px}
   #scSetup #selDiff{grid-template-columns:repeat(4,1fr)} #scSetup #selDiff .tile.gbtn, body.ui-skin #scSetup #selDiff .tile.gbtn{height:96px}
   #scSetup .modeRow .tile.mtile, body.ui-skin #scSetup .modeRow .tile.mtile{height:86px} #scSetup .mGs,#scSetup .mIc,#scSetup .mEx{display:none}
   #scSetup .tsec[data-step="3"].on{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-content:start}
@@ -3881,6 +3887,7 @@ body.bpOn .wb{padding-bottom:170px}
         <div class="cardCol" id="selRule">
           <div class="tile card c-meadow sel" data-v="normal"><span class="mHero" id="ruleHero"></span><span class="mTag" id="ruleTag"></span><b>🗺️ Adventure</b><small>목숨 3개로 끝까지 달리기</small><span class="mStat" id="ruleStatN"></span></div>
           <div class="tile card c-night" data-v="daily"><span class="mRing" id="ruleRing"></span><b>📚 Daily 30</b><small>달리기 전에 단어 공부 · Stage마다 30단어</small><span class="mStat" id="ruleStatD"></span></div>
+          <div class="tile card c-town" data-v="town"><span class="townTag">🌱 맛보기</span><b>🏡 My Town</b><small>낚시 · 농사 · 광산 · 집 꾸미기 · 친구 집 놀러 가기</small></div>
         </div>
       </div>
 
@@ -12154,6 +12161,7 @@ $("itemBox").addEventListener("click",e=>{ const b=e.target.closest && e.target.
   if(!Items.toggle(b.dataset.it)){ SFX.tone(220,.08,"square",.03); b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); } else SFX.click(); });
 
 pickers("selRule", v=>{
+  if(v==="town"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); return; }   // (v406) 🏡 My Town
   if(v==="daily"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; StudyUI.open(); return; }   // Daily 30 = 공부 화면 (v212)
   G.rule=v; nextStep(); });
 function refreshExtremeTile(){
@@ -13982,7 +13990,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v405";
+const GAME_VER = "v406";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){

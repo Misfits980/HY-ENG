@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v405";
+const VERSION = "hyeng-v406";
 /* (v322) 그림(assets/)은 버전마다 다시 받지 않게 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 그림 130개(약 22MB)를 다시 받았다.
    그림 파일을 '같은 이름으로' 새로 바꿨을 때만 아래 숫자를 올리세요 (새 이름의 그림은 그냥 올리면 됨). */
 const ART = "hyeng-art-v1";
@@ -67,7 +67,7 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림�
   "./assets/world/sign-meadow.webp", "./assets/world/sign-night.webp", "./assets/world/sign-plaza.webp", "./assets/world/sign-rampart.webp",
   "./assets/world/sign-volcano.webp",
   /* (v322) v298 뒤에 들어온 그림 — 첫 화면 카드·교재 표지·보스 공격 그림·달리기 캐릭터. (걷기 그림 walk/·이모지 emoji/ 는 쓸 때 받아 그림 캐시에 둔다) */
-  "./assets/world/world-desert.webp", "./assets/world/world-ice.webp", "./assets/world/world-meadow.webp", "./assets/world/world-night.webp",
+  "./assets/world/world-desert.webp", "./assets/world/world-ice.webp", "./assets/world/world-meadow.webp", "./assets/world/world-night.webp", "./assets/world/world-town.webp",
   "./assets/world/world-volcano.webp", "./assets/books/book-abc.webp", "./assets/books/book-all.webp", "./assets/books/book-basic.webp",
   "./assets/books/book-digr.webp", "./assets/books/book-elem.webp", "./assets/books/book-g56h.webp", "./assets/books/book-g56v.webp",
   "./assets/books/book-jl.webp", "./assets/books/book-kinder.webp", "./assets/books/book-long.webp", "./assets/books/book-mid.webp",
