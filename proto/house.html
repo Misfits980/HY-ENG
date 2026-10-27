@@ -1857,8 +1857,15 @@ const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.f
     const C=(c&&URLS.includes(c)?[c]:[]).concat(URLS.filter(u=>u!==c));
     probing=(async()=>{ for(const u of C){ try{ const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),5000); const r=await fetch(u+"/hy/ok.json",{cache:"no-store",signal:ac.signal}); clearTimeout(tm);
           if(r.ok||r.status===401){ base=u; mode="fb"; try{ localStorage.setItem("hyeng_fb_url",u); }catch(e){} return mode; } }catch(e){} } mode="off"; return mode; })(); return probing; }
-  async function req(method, p, v){ await ready(); if(mode!=="fb") throw "off"; const r=await fetch(base+p+".json",{method, cache:"no-store", body:v===undefined?undefined:JSON.stringify(v)}); if(!r.ok) throw r.status; return r.json(); }
-  async function query(p, qs){ await ready(); if(mode!=="fb") throw "off"; const r=await fetch(base+p+".json?"+qs,{cache:"no-store"}); if(!r.ok) throw r.status; return r.json(); }
+  /* (v419) 🔐 게임과 같은 로그인 토큰 (FB_API_KEY 가 있으면) — 게임이 받아 둔 hyeng_fb_auth · 끝나 가면 새로 */
+  const AK=()=>{ try{ return localStorage.getItem("hyeng_fb_key")||""; }catch(e){ return ""; } };
+  async function tok(){ const key=AK(); if(!key) return ""; let o=null; try{ o=JSON.parse(localStorage.getItem("hyeng_fb_auth")); }catch(e){} if(o && o.t && Date.now()<o.e-5*60000) return o.t;
+    try{ let r, j; if(o && o.r){ r=await fetch("https://securetoken.googleapis.com/v1/token?key="+encodeURIComponent(key),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(o.r)}); if(r.ok){ j=await r.json(); o={t:j.id_token, e:Date.now()+(+j.expires_in||3600)*1000, u:j.user_id, r:j.refresh_token||o.r}; } }
+      if(!j){ r=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key="+encodeURIComponent(key),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({returnSecureToken:true})}); if(!r.ok) return ""; j=await r.json(); o={t:j.idToken, e:Date.now()+(+j.expiresIn||3600)*1000, u:j.localId, r:j.refreshToken}; }
+      localStorage.setItem("hyeng_fb_auth", JSON.stringify(o)); return o.t; }catch(e){ return (o&&o.t)||""; } }
+  async function U(p, qs){ const t=await tok(); return base+p+".json"+(qs||t?"?":"")+(qs||"")+(qs&&t?"&":"")+(t?"auth="+encodeURIComponent(t):""); }
+  async function req(method, p, v){ await ready(); if(mode!=="fb") throw "off"; const r=await fetch(await U(p),{method, cache:"no-store", body:v===undefined?undefined:JSON.stringify(v)}); if(!r.ok) throw r.status; return r.json(); }
+  async function query(p, qs){ await ready(); if(mode!=="fb") throw "off"; const r=await fetch(await U(p, qs),{cache:"no-store"}); if(!r.ok) throw r.status; return r.json(); }
   return {ready, on:()=>mode==="fb", get:p=>req("GET",p), put:(p,v)=>req("PUT",p,v), del:p=>req("DELETE",p), query};
 })();
 const CODE_CH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

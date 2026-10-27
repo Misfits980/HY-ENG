@@ -59,7 +59,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 6;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸
+const SERVER_V = 7;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸 · (v419) 7 = 🔐 선생님 기기 등록(fbTeacher)
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
@@ -371,6 +371,15 @@ function txtMulti_(v, n){
   if (/^[=+\-@]/.test(s)) s = "'" + s;
   return s;
 }
+/* (v419) 🔐 선생님 기기 등록 — 열쇠(ADMIN_KEY)가 맞으면 Firebase /hy/teachers/<uid> 에 적음
+   스크립트 속성 FB_SECRET = Firebase 콘솔 → 프로젝트 설정 → 서비스 계정 → 데이터베이스 비밀번호(Database secrets) · FB_DB = 데이터베이스 주소(없으면 아시아) */
+function fbTeacher_(d){
+  const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const uid = String(d.uid || ""); if (!/^[A-Za-z0-9]{10,40}$/.test(uid)) return json_({ok:false, err:"uid"});
+  if (!sec) return json_({ok:false, err:"FB_SECRET 없음"});
+  const r = UrlFetchApp.fetch(db + "/hy/teachers/" + uid + ".json?auth=" + encodeURIComponent(sec), {method:"put", contentType:"application/json", payload:JSON.stringify({at:Date.now(), n:txt_(d.nick, 20)}), muteHttpExceptions:true});
+  return json_({ok:r.getResponseCode() === 200, err:r.getResponseCode() === 200 ? "" : "firebase " + r.getResponseCode()});
+}
 /* 선생님 관리 화면 — 스크립트 속성 ADMIN_KEY 와 같은 열쇠만 */
 function teacher_(d){
   const want = PropertiesService.getScriptProperties().getProperty("ADMIN_KEY");
@@ -380,6 +389,7 @@ function teacher_(d){
   if (d.type === "report") return json_({ok:true, v:SERVER_V, at:Date.now(), rep:report_()});   // (v306) 우리 반 — 시트 요약 탭을 보이는 그대로
   if (d.type === "tags") return json_({ok:true, list:tagList_()});                                 // (v404) 🏷 태그 목록
   if (d.type === "tagMe" || d.type === "tagSet") return tagSet_(d.type === "tagMe" ? TAG_ME : tag_(d.tag), String(d.dev || ""), d);
+  if (d.type === "fbTeacher") return fbTeacher_(d);                                                // (v419) 🔐 Firebase 선생님 기기
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
