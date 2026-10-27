@@ -1,4 +1,4 @@
-"""(v424) 🎲 영어 보드게임 — 🪑 둘러앉기 (한 패드 2~4명) · 🏁 주사위 레이스 · 🧸 유아 판 / ⚔️ 초등 던전 판
+"""(v424) 🎲 영어 보드게임 (규칙 · 3D 없이 — 3D 화면은 board428) — 🪑 둘러앉기 (한 패드 2~4명) · 🏁 주사위 레이스 · 🧸 유아 판 / ⚔️ 초등 던전 판
   사용자: "보드게임처럼 영어를 해 보는 건? 애들 문제 푸는 거" · "유아용 보드 초등 보드 따로"
   ① 시작 화면 🎲 카드 → 설정(판 · 범위 · 문제 종류 · 시간 · 2~4명 명단에서)
   ② 차례: 문제 → 맞히면 🎲 → 이동 · 틀리면 다음 친구 · 시간 끝 = 틀림
@@ -36,7 +36,7 @@ async def main():
         ok("k1" not in sel and "k2" not in sel, "이미 고른 아이는 다른 자리 목록에서 빠짐")
         await E("()=>{ Board._seats[2]={n:'손님', id:'', ch:4}; Board.seats(); document.querySelector('[data-sk=k]').click(); }")
         await E("()=>document.querySelector('[data-bd=go]').click()"); await pg.wait_for_timeout(1500)
-        r = await E("()=>[!!Board.o, Board.o.cfg.sk, Board.o.P.map(p=>p.n), document.querySelectorAll('.bdT').length, document.querySelectorAll('.bdT img').length, !!document.querySelector('.bdQ'), Board.o.cur]")
+        r = await E("()=>[!!Board.o, Board.o.cfg.sk, Board.o.P.map(p=>p.n), Array.from({length:Board.N},(x,i)=>Board.tile(i)).length, Array.from({length:Board.N},(x,i)=>Board.tile(i)).filter(Boolean).length, !!document.querySelector('.bdQ'), Board.o.cur]")
         ok(r[0] and r[1] == "k" and r[2] == ["루아", "주호", "손님"] and r[3] == 30 and r[4] == 14 and r[5] and r[6] == 0, f"🧸 유아 판 30칸 (특별 칸 그림 14) · 루아 차례 문제 {r}")
         await pg.screenshot(path=OUT + "board424_q.png")
         # ② 맞히면 🎲
@@ -106,7 +106,7 @@ async def main():
         await E("()=>document.querySelector('[data-bd=again]').click()"); await pg.wait_for_timeout(600)
         ok(await E("()=>Board.o && !Board.o.fin && Board.o.P.every(p=>p.pos===0)"), "🔁 한 판 더 = 같은 사람 · 처음부터")
         await E("()=>Board.begin(Object.assign({}, Board.o.cfg, {sk:'e'}))"); await pg.wait_for_timeout(1200)
-        ok(await E("()=>document.getElementById('bdBoard').style.backgroundImage.indexOf('board/e/')>=0 && document.querySelector('.bdT.up img').src.indexOf('board/e/')>=0"), "⚔️ 초등 던전 판 · 던전 그림 칸")
+        ok(await E("()=>Board.o.SK.bg.indexOf('board/e/')>=0 && Board.o.SK.ic.indexOf('board/e/')>=0 && !!document.getElementById('bdStage')"), "⚔️ 초등 던전 판 · 던전 그림")
         await pg.screenshot(path=OUT + "board424_e.png")
         await E("()=>{ Board.o.fin=true; document.querySelector('[data-bd=quit]').click(); }")
         ok(await E("()=>!document.getElementById('board') && !document.body.classList.contains('arOn')"), "나가기 → 원래 화면")
