@@ -92,7 +92,7 @@ async def main():
         v = await E("()=>{ const h=HOUSE.hero(); return [h.cx, h.cz, h.g.position.x<1.5]; }")
         ok(v[0] == 1 and v[1] == 6 and v[2], f"마을 왼쪽 길 끝에서 걸어 들어옴 {v}")
         await until("()=>!HOUSE.trip().busy && !HOUSE.hero().slide")
-        ok(await E("()=>HOUSE.LBL().map(l=>l.d.k).join()") == "gate,east,board", "마을 이름표: 마당 · 광산 · 부탁")
+        ok(await E("()=>HOUSE.LBL().map(l=>l.d.k).join()") == "gate,east,tower,board", "마을 이름표: 마당 · 광산 · (v422) 🗼 타워 · 부탁")
         ok(await E("()=>HOUSE.tut().s") == 7 and await E("()=>/영어로/.test(document.getElementById('coachT').innerText)"), "마을 안내 (마을 사람 = 영어로)")
         await E("()=>document.getElementById('coachSkip').click()")
         ok(await E("()=>HOUSE.tut().s>=HOUSE.TUT.length && !document.getElementById('coach').classList.contains('on')"), "안내 그만 보기")
