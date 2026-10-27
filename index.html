@@ -3729,6 +3729,12 @@ body.tcOn #frun.tv{padding-bottom:74px}
 .rdPeople.tcLine{gap:10px 8px}.rdPeople.tcLine span{display:inline-flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px 5px;border-radius:14px;background:rgba(255,255,255,.07);animation:tcJoin .45s cubic-bezier(.2,.9,.3,1.3)}
 .rdPeople.tcLine .btChr{width:52px;height:52px}.rdPeople.tcLine b{font:900 14px var(--font);color:#fff}
 @keyframes tcJoin{0%{transform:translateY(16px) scale(.6);opacity:0}100%{transform:none;opacity:1}}
+
+/* (v417) 🧸 패드 주인 · 📦 수업 보석 · 🎓 가져오기 */
+.adPadNow{margin:0 0 6px;font-size:15px} .adPadNow b{color:#ffd37a}
+.adPadL{display:grid;gap:4px;margin-top:8px} .adPadL div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.06);font-size:13px} .adPadL b{color:#ffd37a}
+#actNote .gfFrom{font-size:12px;opacity:.75;margin:-4px 0 8px}
+#moveAsk .mvWarn{color:#ffb4a0;font-size:13px}
 </style>
 </head>
 <body>
@@ -6034,14 +6040,14 @@ function phonicsMark(en, code){
 
 /* 틀린 단어 저장소 — 기기에 남겨 두고 "틀린 단어" 세트로 다시 풀 수 있게 한다 */
 const WrongBook = (function(){
-  const KEY="hyeng_wrong_v1";
+  const KEY="hyeng_wrong_v1"; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */
   let mem=[], ls=false;
   try{ localStorage.setItem(KEY+"_t","1"); localStorage.removeItem(KEY+"_t"); ls=true; }catch(e){}
   function load(){
-    if(ls){ try{ const v=JSON.parse(localStorage.getItem(KEY)); if(Array.isArray(v)) return v; }catch(e){} }   // (v289) 배열이 아니면 무시 (QA)
+    if(ls){ try{ const v=JSON.parse(localStorage.getItem(KEYf())); if(Array.isArray(v)) return v; }catch(e){} }   // (v289) 배열이 아니면 무시 (QA)
     return mem;
   }
-  function save(a){ mem=a.slice(); if(!ls) return; try{ localStorage.setItem(KEY, JSON.stringify(a)); }catch(e){} }
+  function save(a){ mem=a.slice(); if(!ls) return; try{ localStorage.setItem(KEYf(), JSON.stringify(a)); }catch(e){} }
   return {
     /* (v329) ez = 유치원 판(그림 단어·파닉스·사이트 워드)에서 틀린 단어 — 그림 단어는 G1-2 와 같은 단어라 '틀린 단어' 판에서 구분이 안 됐다 (주간 보스 기회 빈틈) */
     add(en, ez){ const a=load(); if(a.indexOf(en)<0){ a.push(en); if(a.length>300) a.shift(); save(a); }
@@ -6060,9 +6066,9 @@ const WrongBook = (function(){
 ===================================================================== */
 /* 단어별 기록 (v204 도감 자세히) — 맞힘 r · 틀림 w · 최근 5번 l("10110") · 처음 모은 날 f · 마지막 만난 날 d · 헷갈린 단어 c */
 const WStat = (function(){
-  const KEY="hyeng_wstat_v1"; let m=null;
-  function load(){ if(m) return m; try{ m=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ m={}; } return m; }
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(m)); }catch(e){} }
+  const KEY="hyeng_wstat_v1"; let m=null, mK=null; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */
+  function load(){ const K=KEYf(); if(m && mK===K) return m; mK=K; try{ m=JSON.parse(localStorage.getItem(K))||{}; }catch(e){ m={}; } return m; }
+  function save(){ try{ localStorage.setItem(mK||KEYf(), JSON.stringify(m)); }catch(e){} }
   const today=()=>Math.floor((Date.now()+9*3600e3)/864e5);           // 한국 날짜 번호
   return {
     rec(en, ok, conf){ if(!en) return; const o=load(), s=o[en]||(o[en]={r:0,w:0,l:""});
@@ -6073,7 +6079,7 @@ const WStat = (function(){
   };
 })();
 const Rank = (function(){
-  const KEY="hyeng_rank_v1";
+  const KEY="hyeng_rank_v1"; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */
   const TIERS=[
     {name:"BEGINNER", ko:"첫걸음", at:0,    col:"#d49a5c"},
     {name:"STARTER",  ko:"출발",   at:0.20, col:"#d6dceb"},
@@ -6083,8 +6089,8 @@ const Rank = (function(){
   ];
   let mem={}, ls=false;
   try{ localStorage.setItem(KEY+"_t","1"); localStorage.removeItem(KEY+"_t"); ls=true; }catch(e){}
-  function load(){ if(ls){ try{ const v=JSON.parse(localStorage.getItem(KEY)); if(v) return v; }catch(e){} } return mem; }
-  function save(o){ mem=o; if(!ls) return; try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
+  let memK=null; function load(){ const K=KEYf(); if(memK!==K){ memK=K; mem={}; } if(ls){ try{ const v=JSON.parse(localStorage.getItem(K)); if(v) return v; }catch(e){} } return mem; }
+  function save(o){ mem=o; if(!ls) return; try{ localStorage.setItem(KEYf(), JSON.stringify(o)); }catch(e){} }
   function pool(id){
     const S=WORD_SETS[id]; if(!S || S.review) return null;
     if((S.phonics || S.reading || S.sight || S.sense) && COURSE[S.course]){ const o={}; Object.keys(COURSE[S.course]).forEach(n=>COURSE[S.course][n].split("|").forEach(en=>o[en]=1)); return Object.keys(o); }
@@ -12233,6 +12239,7 @@ $("itemBox").addEventListener("click",e=>{ const b=e.target.closest && e.target.
   if(!Items.toggle(b.dataset.it)){ SFX.tone(220,.08,"square",.03); b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); } else SFX.click(); });
 
 pickers("selRule", v=>{
+  if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); return; }   // (v406) 🏡 My Town
   if(v==="daily"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; StudyUI.open(); return; }   // Daily 30 = 공부 화면 (v212)
   G.rule=v; nextStep(); });
@@ -12436,6 +12443,7 @@ const NameCard = {
     try{ setTimeout(()=>Tag.sync(), 600); }catch(e){} },   // (v404) 🏷 이름을 처음 정하면 태그가 생김 (바꿔도 태그는 그대로)
   /* 바꾸기 — 성공하면 "" · 아니면 아이에게 보일 말 */
   change(raw, force){
+    try{ if(!force && Kid.shared()) return "공용 패드 이름은 선생님이 관리 화면에서 바꿔요"; }catch(e){}   /* (v417) 「…패드」 이름이 바뀌면 공용 패드가 아니게 됨 */
     const v=this.clean(raw), old=this.cur(), s=this.st();
     if(!force && /[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ]/.test(String(raw||"").trim())) return "한글·영어·숫자만 쓸 수 있어요 (기호·이모지 빼고)";   // (v362)
     if(!force && Array.from(String(raw||"").trim()).length>this.MAX) return "이름은 "+this.MAX+"글자까지예요";
@@ -14062,7 +14070,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v416";
+const GAME_VER = "v417";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14343,9 +14351,9 @@ $("btnResume").addEventListener("click",()=>{
    맞힘·틀림은 Rank.record 로 기록되어 도감·등급·약한 단어에 그대로 쓰인다
 ===================================================================== */
 const Study = (function(){
-  const KEY="hyeng_study_v1", SETS=["kinder","abc","short","long","digr","vowel2","sight","basic","elem","g56","rd1","rd2","rd3","mv1","jl","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
+  const KEY="hyeng_study_v1"; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */ let mK=null; const SETS=["kinder","abc","short","long","digr","vowel2","sight","basic","elem","g56","rd1","rd2","rd3","mv1","jl","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
   let m=null;
-  function load(){ if(m) return m; try{ m=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ m={}; } m.lv=m.lv||{}; m.seen=m.seen||{}; if(!m.set) m.set="basic"; phMig(m); midMig(m); spMig(m); gvMig(m); tierMig(m); return m; }
+  function load(){ const K=KEYf(); if(m && mK===K) return m; mK=K; try{ m=JSON.parse(localStorage.getItem(K))||{}; }catch(e){ m={}; } m.lv=m.lv||{}; m.seen=m.seen||{}; if(!m.set) m.set="basic"; phMig(m); midMig(m); spMig(m); gvMig(m); tierMig(m); return m; }
   /* (v243) 예전 파닉스 Stage(짧은 a 20단어 = short-1 …)의 별 → 새 1-1 · 1-2 … 중 단어를 다 만난 Stage 로 옮긴다
      (v246) 장모음 o_e·u_e 를 나누고 ee·ea·ai·ay·oa 를 이중모음으로 옮김 → v243 저장(phv 1)의 별도 옮긴다 */
   function phMig(m){ if((m.phv|0)>=2) return; try{
@@ -14393,7 +14401,7 @@ const Study = (function(){
   function gvWallet(){ const s=load(); if(s.gvw) return; try{
       Wallet.remap(k=>{ const r=/^(st|stt|wc)-(basic|elem)-(\d+)(.*)$/.exec(k); if(!r) return k; const t=gvSet(r[2], +r[3]); return r[1]+"-"+t[0]+"-"+t[1]+r[4]; });
       s.gvw=1; save(); }catch(e){} }
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(m)); }catch(e){} }
+  function save(){ try{ localStorage.setItem(mK||KEYf(), JSON.stringify(m)); }catch(e){} }
   const byEn={}; WORD_BANK.forEach(w=>{ if(!byEn[w.en]) byEn[w.en]=w; });
   const lcache={};
   /* (v246) 사이트 워드에서는 이 뜻으로 (단어장 뜻이 다른 단어) */
@@ -15474,7 +15482,7 @@ const Study = (function(){
     deepLv, dlCur:()=>dlNow, DL_MAX, buildExam, examWords, olyProf, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
-    setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
+    setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} try{ Gift.add({st:[set,n,v]}); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
     see(en){ const s=load(); if(!s.seen[en]){ s.seen[en]=1; s.sd=s.sd||{}; s.sd[en]=today(); save(); } },   // (v302) 배운 날 (주간 시험)
     weekStart, weekWords, buildWeek, wkBest:set=>((load().wk||{})[bookOf(set)+"-"+weekStart()]|0), wkSet:(set,acc)=>{ const s=load(); s.wk=s.wk||{}; const k=bookOf(set)+"-"+weekStart(); if((s.wk[k]|0)<acc){ s.wk[k]=acc; save(); } } };
 })();
@@ -15680,7 +15688,7 @@ const StudyUI = {
   ticks(){ const pr=$("stBar") && $("stBar").parentNode; if(!pr) return; pr.querySelectorAll(".stTick").forEach(x=>x.remove());
     if(this.test || this.oly || this.chk) return; const R=this.rounds(); for(let k=1;k<R;k++){ const t=document.createElement("span"); t.className="stTick"; t.style.left=(k*this.RND/this.total*100)+"%"; pr.appendChild(t); } },
   /* ── (v225) 이어 하기 — 푸는 중인 과를 저장해 두고 (3일), 길·첫 화면에서 그 문제부터 ── */
-  CUR:"hyeng_study_cur_v1",
+  get CUR(){ try{ return Kid.k("hyeng_study_cur_v1"); }catch(e){ return "hyeng_study_cur_v1"; } },   /* (v417) 이어 하기도 아이마다 (수업 모드) */
   /* (v337) QA: 📝 선생님 시험 중 새로고침·앱 종료 → 다시 들어가면 「이미 시작했어요」로 막혔다 (선생님이 ↺ 하면 푼 답도 지워짐)
      → 시험은 따로 저장(EXCUR)해 두었다가 같은 시험·같은 아이면 그 자리부터 이어서 (푼 답·점수 그대로, 채점한 문제는 지나감) */
   EXCUR:"hyeng_exam_cur",
@@ -16962,23 +16970,23 @@ function perk(k){ try{ return CHAR_PERK[k](G.char); }
 const GEM = { PER:20, PT:{easy:2, normal:2, hard:3, extreme:4}, BOSS:{50:3, 80:5}, PAGE:2, LINE:2, ALBUM_MIN:10,
   ROW:1, COL:1, BOARD:2, CARD_PT:5 };   // (v220) 빙고판: 가로·세로 한 줄 1 · 판 완성 2 · 카드 한 장 열기 = 점수 5 (보석 ¼)   // 도감: 한 줄(5칸) 2 · 앨범 완성 단어수÷5 (최소 10)
 const Wallet = (function(){
-  const KEY="hyeng_wallet_v1";
-  let mem=null;
+  const KEY="hyeng_wallet_v1"; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */
+  let mem=null, memK=null;
   function load(){
-    if(mem) return mem;
+    const K=KEYf(); if(mem && memK===K) return mem; memK=K;
     mem={gems:0, pts:0, owned:[], wear:{}, paid:{}, earned:0};
-    try{ const v=JSON.parse(localStorage.getItem(KEY)); if(v && typeof v==="object") Object.assign(mem, v); }catch(e){}
+    try{ const v=JSON.parse(localStorage.getItem(K)); if(v && typeof v==="object") Object.assign(mem, v); }catch(e){}
     if(!Array.isArray(mem.owned)) mem.owned=[]; mem.wear=mem.wear||{}; mem.paid=mem.paid||{};
     return mem;
   }
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(load())); }catch(e){} }
+  function save(){ try{ const a=load(); localStorage.setItem(memK||KEYf(), JSON.stringify(a)); }catch(e){} }
   /* 보석 기록 — [시각, 변화, 이유, 남은 보석] 최근 200줄 (관리자 화면에서 본다) */
   function note(a, d, why){ a.log=a.log||[]; a.log.push([Date.now(), d, why||"", a.gems]); if(a.log.length>200) a.log.splice(0, a.log.length-200); }
   return {
     gems(){ return load().gems|0; },
     pts(){ return load().pts|0; },
-    addGems(n, why){ if(!(n>0)) return; const a=load(); a.gems+=n; a.earned=(a.earned||0)+n; note(a, n, why); save(); },
-    addPts(p){ const a=load(); a.pts=(a.pts|0)+p; let g=0; while(a.pts>=GEM.PER){ a.pts-=GEM.PER; g++; } a.gems+=g; a.earned=(a.earned||0)+g; if(g) note(a, g, "달리기 점수 "+p); save(); return g; },
+    addGems(n, why){ if(!(n>0)) return; const a=load(); a.gems+=n; a.earned=(a.earned||0)+n; note(a, n, why); save(); try{ Gift.add({g:n}); }catch(e){} },   /* (v417) 수업 모드 = 그 아이 기기로 배달 */
+    addPts(p){ try{ Gift.add({p}); }catch(e){} const a=load(); a.pts=(a.pts|0)+p; let g=0; while(a.pts>=GEM.PER){ a.pts-=GEM.PER; g++; } a.gems+=g; a.earned=(a.earned||0)+g; if(g) note(a, g, "달리기 점수 "+p); save(); return g; },
     log(){ return (load().log||[]).slice(); },
     /* 관리자 — 보석을 직접 고친다 (누적 획득에는 넣지 않음) */
     adjust(d, why){ const a=load(); d=Math.max(-a.gems, d|0); if(!d) return; a.gems+=d; note(a, d, why||"관리자"); save(); },
@@ -16989,7 +16997,7 @@ const Wallet = (function(){
     paidFor(id){ const L=load().log||[]; for(let i=L.length-1;i>=0;i--) if(L[i][2]==="구매 "+id) return -L[i][1]; return 0; },
     raw(){ return load(); },
     owns(id){ return load().owned.indexOf(id)>=0; },
-    give(id){ const a=load(); if(a.owned.indexOf(id)<0){ a.owned.push(id); save(); } },
+    give(id){ const a=load(); if(a.owned.indexOf(id)<0){ a.owned.push(id); save(); try{ Gift.add({i:id}); }catch(e){} } },
     buy(id, price){ const a=load(); if(a.owned.indexOf(id)>=0) return true; if(a.gems<price) return false;
       a.gems-=price; a.owned.push(id); note(a, -price, "구매 "+id); save();
       try{ if(typeof Online!=="undefined") Online.buyLog(id, price, a.gems); }catch(e){}       // 학원 시트 "구매" 탭에 한 줄
@@ -17630,22 +17638,22 @@ function mixUp(albs){
   });
 }
 const Dex = (function(){
-  const KEY="hyeng_dex_v1", PAGE=20;
+  const KEY="hyeng_dex_v1", PAGE=20; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */ let memK=null;
   const BOOKS=[{lv:1, name:"1권 · 기초 단어"}, {lv:2, name:"2권 · 초등 고학년"}, {lv:3, name:"3권 · 중등"}];
   let mem=null, lists=null, albs=null; const where={};
   function load(){
-    if(mem) return mem;
+    const K=KEYf(); if(mem && memK===K) return mem; memK=K;
     mem={got:{}};
-    try{ const v=JSON.parse(localStorage.getItem(KEY)); if(v && v.got) mem=v; }catch(e){}
+    try{ const v=JSON.parse(localStorage.getItem(K)); if(v && v.got) mem=v; }catch(e){}
     mem.open=mem.open||{};
-    if(!mem.ov){ Object.keys(mem.got||{}).forEach(en=>{ mem.open[en]=1; }); mem.ov=1; try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} }   // (v220) 이미 모은 단어는 열린 카드로
+    if(!mem.ov){ Object.keys(mem.got||{}).forEach(en=>{ mem.open[en]=1; }); mem.ov=1; try{ localStorage.setItem(K, JSON.stringify(mem)); }catch(e){} }   // (v220) 이미 모은 단어는 열린 카드로
     if(!mem.seeded){                                   // 처음 한 번 — 지금까지의 학습 기록(두 번 연달아 맞힌 단어)을 옮겨 온다
       try{ const r=JSON.parse(localStorage.getItem("hyeng_rank_v1"))||{}; Object.keys(r).forEach(en=>{ if(r[en]>=2){ mem.got[en]=1; mem.open[en]=1; } }); }catch(e){}
       mem.seeded=1; save();
     }
     return mem;
   }
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} }
+  function save(){ try{ localStorage.setItem(memK||KEYf(), JSON.stringify(mem)); }catch(e){} }
   function list(b){
     if(!lists){ lists={}; BOOKS.forEach(B=>{ const seen={}; lists[B.lv]=DEX_BASE.filter(w=>w.level===B.lv && !seen[w.en] && (seen[w.en]=1)); }); }
     return lists[b]||[];
@@ -17655,7 +17663,7 @@ const Dex = (function(){
     has(en){ return !!load().got[en]; },
     add(en, opened){ const a=load(); if(!en || a.got[en]) return false;
       if(!DEX_BASE.some(w=>w.en===en)) return false;
-      a.got[en]=1; if(opened) a.open[en]=1; if(a.tg) a.tg=a.tg.filter(x=>x!==en); save(); G.dexNew=(G.dexNew||0)+1; return true; },
+      a.got[en]=1; if(opened) a.open[en]=1; if(a.tg) a.tg=a.tg.filter(x=>x!==en); save(); G.dexNew=(G.dexNew||0)+1; try{ Gift.add({dx:en}); }catch(e){} return true; },
     /* (v220) 카드 — 달리기로 모은 새 단어는 뒤집힌 카드(✨). 눌러서 열고 뜻 한 문제를 풀어야 빙고에 들어간다 */
     opened(en){ const a=load(); return !!a.got[en] && !!a.open[en]; },
     sealed(en){ const a=load(); return !!a.got[en] && !a.open[en]; },
@@ -17901,20 +17909,29 @@ const Kid = {
   padT(){ try{ return this.shared() ? HyBoss.nowT() : null; }catch(e){ return null; } },   // (v356) 공용 패드 = 지금 수업 반
   /* (v305) 공용 패드는 20분 동안 아무것도 안 하면 이름을 다시 고름 (다음 아이 공부가 앞 아이 이름으로 가지 않게) */
   get(){ try{ const v=JSON.parse(this.st().getItem("hyeng_kid"))||null; if(v && this.shared() && v.at && Date.now()-v.at>20*60000){ this.clear(); return null; } return v; }catch(e){ return null; } },
-  set(v){ try{ this.st().setItem("hyeng_kid", JSON.stringify(Object.assign({}, v, {at:Date.now()}))); }catch(e){} },
+  set(v){ try{ const o=this.get(); if(o && v && o.id!==v.id) Gift.flush(); }catch(e){} try{ this.st().setItem("hyeng_kid", JSON.stringify(Object.assign({}, v, {at:Date.now()}))); }catch(e){} },
+  /* (v417) 🧸 패드 주인 — 사용자: "유치부는 아직 자기 패드가 없어 (루아·주호·단우·경훈·라언) · 늘 자기 패드를 사용 · 보석은 우리 애들이 썼으면"
+     공용 패드 한 대 = 유치부 아이 한 명의 패드. 주인이 하면(이름을 안 골라도) 내 기기처럼 · 다른 아이가 이름을 고르면 수업 모드:
+     진도·보석·도감은 이 패드 주인 것과 따로(…@아이 칸) + 받은 💎·별·단어·물건은 서버로 → 그 아이 기기가 켤 때 받음 (Gift) */
+  owner(){ if(!this.shared()) return null; try{ const o=JSON.parse(localStorage.getItem("hyeng_pad_owner")); return o && o.k ? o : null; }catch(e){ return null; } },
+  setOwner(o){ try{ if(o && (o.k||o.id)) localStorage.setItem("hyeng_pad_owner", JSON.stringify({k:o.k||o.id, n:String(o.n||"").replace(/^👤\s*/,"").slice(0,12), t:o.t||"all", at:Date.now()})); else localStorage.removeItem("hyeng_pad_owner"); }catch(e){} },
+  guest(){ if(!this.shared()) return null; const v=this.get(); if(!v || !v.id) return null; const o=this.owner(); return (!o || v.id!==o.k) ? v : null; },
+  ownerMode(){ const o=this.owner(); if(!o) return false; const v=this.get(); return !v || v.id===o.k; },
+  k(base){ const g=this.guest(); return g ? base+"@"+String(g.id).replace(/[^\w-]/g,"").slice(0,24) : base; },
   touch(){ const v=this.get(); if(v) this.set(v); },
   /* (v322) 공용 패드 — Daily 30·달리기를 시작할 때 이름을 고른 지 3분 넘었으면 「민준 맞아요?」 한 번 (다음 아이가 앞 아이 이름으로 기회를 쌓지 않게) */
   /* (v337) QA: strict = 주간 보스 화면 — 한 번 '네' 했어도 3분 넘었으면 다시 물음 (20분 안에 패드를 넘기면 다음 아이가 앞 아이 기회를 썼다) */
   confirm(cb, strict){ cb=cb||(()=>{}); const v=this.get(); let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){}
-    if(!v || !this.shared() || !roster || (v.ok && !strict) || Date.now()-((strict && v.okAt) || v.pk || v.at || 0)<3*60000 || $("kidAsk") || $("kidPick")) return cb();
-    const d=document.createElement("div"); d.className="rdJoin"; d.id="kidAsk";
-    d.innerHTML='<div class="rdJoinIn kaIn"><b>👤 '+Raid.esc(v.n)+' 맞아요?</b><p>⚔️ 공격 기회가 이 이름으로 쌓여요</p><div class="wbPopB"><button class="stBossBtn" data-ka="y">네</button><button class="stLater" data-ka="c">바꾸기</button></div></div>';
+    const own=!v && roster && this.shared() && this.owner();   /* (v417) 🧸 주인 패드 — 이름을 안 골랐으면 「루아 맞아요?」(다른 친구면 바꾸기) */
+    if(!own && (!v || !this.shared() || !roster || (v.ok && !strict) || Date.now()-((strict && v.okAt) || v.pk || v.at || 0)<3*60000) || $("kidAsk") || $("kidPick")) return cb();
+    const d=document.createElement("div"); d.className="rdJoin"; d.id="kidAsk"; const nm=own ? own.n : v.n;
+    d.innerHTML='<div class="rdJoinIn kaIn"><b>👤 '+Raid.esc(nm)+' 맞아요?</b><p>'+(own?'🧸 이 패드 주인이에요 — 다른 친구면 「바꾸기」':'⚔️ 공격 기회가 이 이름으로 쌓여요')+'</p><div class="wbPopB"><button class="stBossBtn" data-ka="y">네</button><button class="stLater" data-ka="c">바꾸기</button></div></div>';
     document.body.appendChild(d);
     d.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-ka]"); if(!b) return; d.remove(); try{ SFX.click(); }catch(er){}
-      if(b.dataset.ka==="y"){ const x=this.get(); if(x) this.set(Object.assign(x, {ok:1, okAt:Date.now()})); cb(); } else KidPick.open(()=>cb()); }); },
+      if(b.dataset.ka==="y"){ const x=this.get(); if(x) this.set(Object.assign(x, {ok:1, okAt:Date.now()})); else if(own) this.set({id:own.k, n:own.n, t:own.t||"all", pk:Date.now(), ok:1, okAt:Date.now()}); cb(); } else KidPick.open(()=>cb()); }); },
   clear(){ try{ this.st().removeItem("hyeng_kid"); }catch(e){} },
   /* 명단이 없으면 기기 그대로 */
-  me(){ const g=this.get(); if(g) return g; const K=HyBoss.kids();
+  me(){ const g=this.get(); if(g) return g; const o=this.owner(); if(o) return {id:o.k, n:o.n, t:o.t||"all", own:1}; const K=HyBoss.kids();
     /* (v340) 선생님이 명단에 게임 이름(기기 이름) 그대로 넣었으면 — 그 아이 기기(공용 패드 말고)는 이름을 안 골라도 자동으로 */
     if(Object.keys(K).length && !this.shared()){ let n=""; try{ n=(localStorage.getItem("hyeng_nick")||"").trim().toLowerCase(); }catch(e){}
       const hit = n && !/^player$/.test(n) ? Object.keys(K).filter(k=>String(K[k].n).trim().toLowerCase()===n) : [];
@@ -17922,6 +17939,79 @@ const Kid = {
     if(Object.keys(K).length) return null;
     let d="", n=""; try{ d=localStorage.getItem("hyeng_dev")||""; n=localStorage.getItem("hyeng_nick")||""; }catch(e){} if(!d || this.shared()) return null;
     return {id:"d"+d.replace(/[^a-z0-9]/gi,"").slice(0,16), n:(!n||/^PLAYER$/i.test(n))?"플레이어":n, t:"all"}; }
+};
+
+/* (v417) 🎁 수업 보석 배달 — 공용 패드 수업 모드에서 받은 💎·달리기 점수·별·도감 단어·물건 → /hy/gift/<아이>/<id> → 그 아이 기기(또는 주인 패드)가 켤 때 받음 */
+const Gift = {
+  q:{}, t:0, DONE:"hyeng_gift_done",
+  add(o){ let g=null; try{ g=Kid.guest(); }catch(e){} if(!g) return false; const id=String(g.id), p=this.q[id]||(this.q[id]={n:g.n, g:0, p:0, i:[], st:{}, dx:[]});
+    if(o.g>0) p.g+=o.g|0; if(o.p>0) p.p+=o.p|0; if(o.i && p.i.indexOf(o.i)<0) p.i.push(String(o.i).slice(0,40));
+    if(o.st){ const k=o.st[0]+"|"+o.st[1]; p.st[k]=Math.max(p.st[k]|0, o.st[2]|0); } if(o.dx && p.dx.indexOf(o.dx)<0 && p.dx.length<400) p.dx.push(o.dx);
+    clearTimeout(this.t); this.t=setTimeout(()=>this.flush(), 3000); return true; },
+  flush(){ clearTimeout(this.t); const Q=this.q; this.q={}; let pad=""; try{ pad=(localStorage.getItem("hyeng_nick")||"").slice(0,14); }catch(e){}
+    Object.keys(Q).forEach(id=>{ const p=Q[id], st=Object.keys(p.st); if(!p.g && !p.p && !p.i.length && !st.length && !p.dx.length) return;
+      const v={at:Date.now(), from:pad, n:String(p.n||"").slice(0,12)}; if(p.g) v.g=p.g; if(p.p) v.p=p.p; if(p.i.length) v.i=p.i.join(","); if(st.length) v.st=JSON.stringify(p.st); if(p.dx.length) v.dx=p.dx.join(",");
+      try{ FB.push("/hy/gift/"+this.sid(id), v); }catch(e){} }); },
+  sid(id){ return String(id).replace(/[.#$\[\]\/]/g,"_").slice(0,40); },
+  async recv(){ if(TEST_STAGE) return 0; let me=null; try{ me=Kid.me(); if(Kid.guest() || (Kid.shared() && !Kid.ownerMode())) return 0; }catch(e){ return 0; } if(!me || !me.id) return 0;
+    let all=null; try{ await FB.ready(); all=await FB.get("/hy/gift/"+this.sid(me.id)); }catch(e){ return 0; } if(!all || typeof all!=="object") return 0;
+    let done={}; try{ done=JSON.parse(localStorage.getItem(this.DONE))||{}; }catch(e){}
+    const S={g:0, i:0, st:0, dx:0, from:{}};
+    Object.keys(all).forEach(k=>{ const v=all[k]; if(!v || typeof v!=="object") return; if(!done[k]){ done[k]=Date.now();
+        if(v.g>0){ Wallet.addGems(Math.min(5000, v.g|0), "🎁 수업 보석 ("+String(v.from||"공용 패드").slice(0,14)+")"); S.g+=Math.min(5000, v.g|0); }
+        if(v.p>0) S.g+=Wallet.addPts(Math.min(200000, v.p|0));
+        if(v.i) String(v.i).split(",").forEach(id=>{ if(id && !Wallet.owns(id)){ Wallet.give(id); S.i++; } });
+        if(v.st){ try{ const o=JSON.parse(v.st); Object.keys(o).forEach(kk=>{ const a=kk.split("|"), n=+a[1]; if(!a[0] || !(n>0)) return; if((o[kk]|0)>Study.lv(a[0],n)){ Study.setLv(a[0],n,Math.min(4,o[kk]|0)); S.st++; } }); }catch(e){} }
+        if(v.dx) String(v.dx).split(",").forEach(en=>{ if(en && Dex.add(en, true)) S.dx++; });
+        if(v.from) S.from[String(v.from).slice(0,14)]=1; }
+      try{ FB.set("/hy/gift/"+this.sid(me.id)+"/"+k, null); }catch(e){} });
+    const nd={}; Object.keys(done).sort((a,b)=>done[b]-done[a]).slice(0,300).forEach(k=>nd[k]=done[k]); try{ localStorage.setItem(this.DONE, JSON.stringify(nd)); }catch(e){}
+    if(S.g||S.i||S.st||S.dx) this.show(S); return S.g; },
+  show(S){ const el=$("actNote"); if(!el) return; const L=[];
+    if(S.g) L.push('💎 보석 <b>+'+S.g+'</b>'); if(S.st) L.push('⭐ Daily 30 별 <b>'+S.st+'</b>개 Stage'); if(S.dx) L.push('📖 도감 단어 <b>+'+S.dx+'</b>'); if(S.i) L.push('🎁 물건 <b>'+S.i+'</b>개');
+    el.innerHTML='<div class="anIn"><b>📦 수업에서 받은 것</b><p class="gfFrom">'+Object.keys(S.from).map(x=>String(x).replace(/[<>&"]/g,"")).join(" · ")+'</p>'+L.map(t=>'<p>'+t+'</p>').join("")+'<button>받았어요!</button></div>';
+    el.classList.add("on"); try{ SFX.tone(784,.12,"triangle",.05,1175); }catch(e){} try{ $("shopGems") && ($("shopGems").textContent=Wallet.gems()); }catch(e){} }
+};
+try{ addEventListener("pagehide", ()=>{ try{ Gift.flush(); }catch(e){} }); document.addEventListener("visibilitychange", ()=>{ if(document.hidden) try{ Gift.flush(); }catch(e){} }); }catch(e){}
+/* (v417) 🎓 졸업 · 주인 바꾸기 — 주인 패드의 기록을 /hy/move/<아이> 에 맡김 → 그 아이 새 기기에서 이름을 고르면 「가져올까요?」 */
+const Move = {
+  SKIP:/^(hyeng_dev|hyeng_admin_key|hyeng_nick|hyeng_tag|hyeng_pad_owner|hyeng_fb_url|hyeng_fb_q|hyeng_fb_local|hyeng_sheetq|hyeng_kid|hyeng_acts_v1|hyeng_gift_done|hyeng_move_seen|hyeng_hb2)$/,
+  keys(){ const out=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(hyeng|wgr)_/.test(k)) out.push(k); } }catch(e){} return out; },
+  /* 주인 패드 → 주인 것만 (다른 아이 수업 칸 @… · 다른 아이 이름이 붙은 칸은 뺌) */
+  pack(o){ const sid=String(o.k).replace(/[^\w-]/g,""), other=Object.keys((()=>{ try{ return HyBoss.kids(); }catch(e){ return {}; } })()).filter(k=>k!==o.k).map(k=>String(k).replace(/[^\w-]/g,"")), d={};
+    this.keys().forEach(k=>{ if(this.SKIP.test(k)) return; if(k.indexOf("@")>=0 && k.indexOf("@"+sid)<0) return; if(other.some(x=>x && (k.endsWith("_"+x) || k.endsWith(":"+x)))) return; try{ d[k]=localStorage.getItem(k); }catch(e){} });
+    return d; },
+  /* 새 기기에 넣을 때 — 주인 이름이 붙은 칸은 이름을 떼서 내 기기 칸으로 */
+  unpack(id, data){ const sid=String(id).replace(/[^\w-]/g,""), out={}, own={};   /* 주인 이름이 붙은 칸(공용 패드에서 그 아이 것)이 이름 없는 칸보다 먼저 */
+    Object.keys(data||{}).forEach(k=>{ const v=data[k]; if(typeof v!=="string" || !/^(hyeng|wgr)_/.test(k) || this.SKIP.test(k)) return; let nk=k;
+      if(nk.indexOf("hyeng_proto_@"+sid+"_")===0) nk="hyeng_proto_"+nk.slice(("hyeng_proto_@"+sid+"_").length);
+      else if(nk.indexOf("@")>=0){ if(!nk.endsWith("@"+sid)) return; nk=nk.slice(0, -("@"+sid).length); }
+      else if(nk.endsWith("_"+sid)) nk=nk.slice(0, -("_"+sid).length); else if(nk.endsWith(":"+sid)) nk=nk.slice(0, -(":"+sid).length);
+      if(nk.indexOf("hyeng_proto_@")===0) return; (nk!==k ? own : out)[nk]=v; }); return Object.assign(out, own); },
+  async grad(){ const o=Kid.owner(); if(!o) return {err:"주인이 없어요"}; const data=this.pack(o); let pad=""; try{ pad=localStorage.getItem("hyeng_nick")||""; }catch(e){}
+    const body={at:Date.now(), from:pad.slice(0,20), n:String(o.n).slice(0,12), v:GAME_VER, d:JSON.stringify({hyeng:GAME_VER, data})};
+    try{ await FB.ready(); const r=await FB.set("/hy/move/"+Gift.sid(o.k), body); if(r===false) return {err:"서버에 못 보냈어요"}; }catch(e){ return {err:"서버에 못 보냈어요 — 인터넷을 확인해요"}; }
+    let chk=null; try{ chk=await FB.get("/hy/move/"+Gift.sid(o.k)+"/at", true); }catch(e){} if(chk!==body.at) return {err:"서버에 저장됐는지 확인이 안 돼요 — 잠시 뒤 다시"};
+    this.keys().forEach(k=>{ if(!/^(hyeng_dev|hyeng_admin_key|hyeng_nick|hyeng_tag|hyeng_fb_url)$/.test(k)) try{ localStorage.removeItem(k); }catch(e){} });
+    try{ sessionStorage.removeItem("hyeng_kid"); }catch(e){} try{ FB.set("/hy/pads/"+Online.dev(), null); }catch(e){}
+    return {ok:1, n:o.n, kb:Math.round(body.d.length/1024)}; },
+  async check(){ if(TEST_STAGE) return; try{ if(Kid.shared()) return; }catch(e){ return; } let me=null; try{ me=Kid.me(); }catch(e){} if(!me || !me.id) return;
+    let d=null; try{ await FB.ready(); d=await FB.get("/hy/move/"+Gift.sid(me.id)); }catch(e){ return; } if(!d || d.done || !d.d) return;
+    let seen=""; try{ seen=localStorage.getItem("hyeng_move_seen")||""; }catch(e){} if(seen===String(d.at)) return;
+    this.ask(me, d); },
+  ask(me, d){ if($("moveAsk")) return; const el=document.createElement("div"); el.id="moveAsk"; el.className="rdJoin";
+    let has=false; try{ has=Wallet.gems()>0 || Object.keys(Study.load().lv||{}).length>0; }catch(e){}
+    el.innerHTML='<div class="rdJoinIn kaIn"><b>🎓 '+Raid.esc(d.n||me.n)+' 기록 가져오기</b><p>「'+Raid.esc(d.from||"학원 패드")+'」에서 쓰던 💎 보석·👕 옷·📖 도감·⭐ 공부·🏡 My Town 을 이 기기로 가져올까요?</p>'
+      +(has?'<p class="mvWarn">⚠️ 이 기기에 있던 기록은 가져온 기록으로 바뀌어요</p>':'')+'<div class="wbPopB"><button class="stBossBtn" data-mv="y">📥 가져오기</button><button class="stLater" data-mv="n">나중에</button></div></div>';
+    document.body.appendChild(el);
+    el.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-mv]"); if(!b) return; el.remove();
+      if(b.dataset.mv==="n"){ try{ localStorage.setItem("hyeng_move_seen", String(d.at)); }catch(er){} hyToast("관리 화면 💾 옮기기에서 다시 가져올 수 있어요"); return; }
+      this.apply(me, d); }); },
+  apply(me, d){ let o=null; try{ o=JSON.parse(d.d); }catch(e){} const data=this.unpack(me.id, (o && o.data) || {}); if(!Object.keys(data).length){ hyToast("가져올 기록이 없어요"); return false; }
+    this.keys().forEach(k=>{ if(!this.SKIP.test(k)) try{ localStorage.removeItem(k); }catch(e){} });
+    Object.keys(data).forEach(k=>{ try{ localStorage.setItem(k, data[k]); }catch(e){} });
+    try{ FB.update("/hy/move/"+Gift.sid(me.id), {done:Date.now(), dev:Online.dev()}); }catch(e){}
+    if(!this.noReload) setTimeout(()=>location.reload(), 600); return true; }
 };
 /* (v305) 보스 두 종류
    🏠 주간 보스 (HyBoss) — 월요일마다 자동으로 나옴. Daily 30 공부 + 🏃 달리기로만 깎음 (아이 한 명 하루 300, 그중 달리기 100).
@@ -18900,7 +18990,7 @@ const DM_POOL = [
   [{id:"swing10", ic:"⚔️", t:"주간 보스에게 10번 휘두르기", k:"swing", goal:10, go:"boss", need:"boss"}, {id:"les2", ic:"📚", t:"Daily 30 공부 2번 끝내기", k:"les", goal:2, go:"study"}, {id:"q30", ic:"🎯", t:"공부에서 한 번에 맞히기 30문제", k:"q", goal:30, go:"study"}]
 ];
 const DM = {
-  key(){ const me=Kid.shared() ? Kid.get() : null; return "hyeng_dm"+(me && me.id ? "_"+String(me.id).slice(0,20) : ""); },
+  key(){ const me=Kid.shared() ? (Kid.get() || (Kid.ownerMode() ? Kid.me() : null)) : null; return "hyeng_dm"+(me && me.id ? "_"+String(me.id).slice(0,20) : ""); },
   day(){ return HyBoss.dayOf(Date.now()); },
   seed(s){ let h=2166136261; String(s).split("").forEach(c=>{ h=Math.imul(h^c.charCodeAt(0), 16777619)>>>0; }); return h; },
   pick(day){ const bossOk = !!(HyBoss.B && HyBoss.on()); let h=this.seed(day);
@@ -18959,7 +19049,7 @@ const DM = {
    핵심(공부·달리기·보스)을 다 하면 오늘의 코스 완주 💎5 (하루 한 번 · 아이마다) · 하루 경계·아이 구분은 오늘의 미션(DM)과 같음 */
 const Course = {
   BONUS:5, s:null, _k:"",
-  key(){ let me=null; try{ me=Kid.shared() ? Kid.get() : null; }catch(e){} return "hyeng_crs"+(me && me.id ? "_"+String(me.id).slice(0,20) : ""); },
+  key(){ let me=null; try{ me=Kid.shared() ? (Kid.get() || (Kid.ownerMode() ? Kid.me() : null)) : null; }catch(e){} return "hyeng_crs"+(me && me.id ? "_"+String(me.id).slice(0,20) : ""); },
   load(){ const d=DM.day(), k=this.key(); if(this.s && this.s.day===d && this._k===k) return this.s; this._k=k; let s=null; try{ s=JSON.parse(localStorage.getItem(k)); }catch(e){}
     if(!s || s.day!==d) s={day:d, s:0, r:0, b:0, got:0}; this.s=s; return s; },
   save(){ try{ localStorage.setItem(this._k||this.key(), JSON.stringify(this.s)); }catch(e){} },
@@ -20883,6 +20973,13 @@ const Admin = (function(){
       o[k]=rows.map(r=>ix.map(j=>r[j])); });
     return o; }
   /* ── 📊 이 기기 ── */
+  /* (v417) 🧸 공용 패드 주인 — 이 패드에서 정함 · 🎓 졸업 */
+  let padList=null;
+  function padCard(){ if(!Kid.shared()) return ''; const o=Kid.owner();
+    const L=padList ? '<div class="adPadL">'+(Object.keys(padList).length ? Object.keys(padList).map(d=>{ const p=padList[d]||{}; return '<div><span>'+esc(p.pad||d.slice(0,6))+'</span><b>'+esc(p.n||"?")+'</b></div>'; }).join("") : '<p class="adSmall">아직 정한 패드가 없어요</p>')+'</div>' : '<button class="mini" data-ad="padList">📋 모든 공용 패드 주인 보기</button>';
+    return card('🧸 이 패드 주인', '<p class="adPadNow">'+(o ? '지금 주인: <b>'+esc(o.n)+'</b>' : '아직 주인이 없어요')+'</p>'
+      +'<p class="adSmall">주인(유치부 아이)이 하면 내 기기처럼 💎·⭐·📖·🏡 가 이 패드에 쌓여요. 다른 아이가 이름을 고르면 <b>수업 모드</b> — 받은 💎·⭐·📖 는 그 아이 기기로 배달돼요.</p>'
+      +'<div class="adRow"><button class="mini go" data-ad="padOwn">👤 '+(o?'주인 바꾸기 (기록은 그대로)':'주인 정하기')+'</button>'+(o?'<button class="mini" data-ad="padGrad">🎓 졸업 · 기록 맡기기</button><button class="mini warn" data-ad="padNone">주인 없애기</button>':'')+'</div>'+L); }
   function dev(){
     const W=Wallet.raw(), st=Stats.all(), td=Stats.today(), S=Study.load();
     const okK={}; try{ Study.SETS.forEach(st=>Study.lessons(st).forEach(x=>{ okK[Study.key(st,x.n)]=1; })); }catch(e){}   /* (v337) QA: 중등 나눔 전 옛 칸은 세지 않음 */
@@ -20893,7 +20990,7 @@ const Admin = (function(){
     const nick=get("hyeng_nick")||"", dev=get("hyeng_dev")||"-", nc=NameCard.st();
     const tot=st.right+st.wrong, acc=tot?Math.round(st.right/tot*100):0, tt=td.right+td.wrong;
     let sk=0; try{ sk=Study.streak(); }catch(e){}
-    let h='<section class="adMe"><div class="adMeName"><small>이 기기 아이</small><b>'+esc(nick||"이름 없음")+'</b></div>'
+    let h=padCard()+'<section class="adMe"><div class="adMeName"><small>이 기기 아이</small><b>'+esc(nick||"이름 없음")+'</b></div>'
       +'<div class="adMeDev"><small>기기 코드 <i>(시트 명단·조치에 쓰는 값)</i></small><code id="adDev">'+esc(dev)+'</code><button class="mini" data-ad="copyDev">복사</button></div>'
       +'<div class="adMeDev adMeTag"><small>🏷 태그 <i>(아이 번호 · 이름을 바꿔도 그대로)</i></small><code>'+(Tag.get()?'#'+Tag.get():'아직 없음')+'</code>'+(Tag.get()==="0000"?'<span class="adSmall">👑 선생님(나)</span>':'<button class="mini" data-ad="tagMe">이 기기 = #0000 (나)</button>')+'</div>'
       +'<div class="adMeMeta">이름 무료권 '+(nc.free|0)+'장 · 이름 바꾼 횟수 '+(nc.n|0)+' · '+GAME_VER+'</div></section>';
@@ -21412,6 +21509,12 @@ const Admin = (function(){
       if(!confirm("기기 「"+d+"」를 #"+t+" 에 더할까요?\n(그 기기에서 게임을 다시 켜면 #"+t+" 가 돼요)")) return;
       post({type:"tagSet", tag:t, dev:d}, ()=>{ msg("#"+t+" 에 기기를 더했어요. 그 기기에서 게임을 다시 켜면 돼요", true); loadTags(true); }); return; }
     if(a==="tagLoad"){ loadTags(true); return; }
+    if(a==="padList"){ FB.get("/hy/pads").then(v=>{ padList=v||{}; keepScroll=true; draw(); }).catch(()=>msg("못 불러왔어요")); return; }
+    if(a==="padOwn"){ KidPick.open(v=>{ if(!v || !v.id) return; Kid.setOwner(v); try{ FB.set("/hy/pads/"+Online.dev(), {k:v.id, n:HyBoss.plainN(v.n).slice(0,12), t:v.t||"all", pad:(get("hyeng_nick")||"").slice(0,20), at:Date.now()}); }catch(e){} padList=null; msg("🧸 이 패드 주인 = "+HyBoss.plainN(v.n), true); keepScroll=true; draw(); }); return; }
+    if(a==="padNone"){ if(!confirm("이 패드 주인을 없앨까요?\n(기록은 지워지지 않아요)")) return; Kid.setOwner(null); try{ FB.set("/hy/pads/"+Online.dev(), null); }catch(e){} padList=null; keepScroll=true; draw(); return; }
+    if(a==="padGrad"){ const o=Kid.owner(); if(!o) return;
+      if(!confirm("🎓 "+o.n+" 졸업\n\n이 패드의 "+o.n+" 기록(💎 보석·👕 옷·📖 도감·⭐ 공부·🏡 My Town)을 서버에 맡기고 패드를 비워요.\n"+o.n+" 새 기기에서 이름을 고르면 「가져올까요?」가 떠요.\n\n계속할까요?")) return;
+      msg("서버에 맡기는 중…"); Move.grad().then(r=>{ if(!r || !r.ok){ msg("⚠️ "+((r&&r.err)||"실패")+" — 패드는 그대로예요"); return; } Kid.setOwner(null); padList=null; alert("🎓 "+r.n+" 기록을 서버에 맡겼어요 ("+r.kb+"KB).\n패드는 비었어요 — 새 주인을 정해 주세요."); location.reload(); }); return; }
     if(a==="ntDays"){ ntDays=+el.dataset.d; el.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===el)); return; }
     if(a==="ntPost"){ const text=($("adNtText").value||"").trim(); if(text.length<2) return msg("공지 내용을 적어 주세요");
       if(!confirm("모든 아이에게 이 공지를 올릴까요?\n\n"+text)) return;
@@ -21535,6 +21638,7 @@ const Prize = {
   act(a, id){ const p=PRIZES.find(x=>x.id===id); if(!p || !this.on(p)) return; const msg=t=>{ const m=$("shopMsg"); if(m) m.textContent=t; };
     const w=this.who(); if(!w){ let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){}
       if(roster){ try{ KidPick.open(()=>{ ShopUI.draw(); }); }catch(e){} msg("👤 먼저 내 이름을 골라요"); } else msg("먼저 첫 화면에서 내 이름을 정해요"); return; }
+    try{ if(Kid.guest()) return msg("🎁 진짜 상품은 내 패드(내 기기)에서 사요 — 수업에서 받은 💎 는 내 패드로 가요"); }catch(e){}   /* (v417) 수업 모드 */
     if(this.bought(p, w)) return msg("이미 샀어요 — 한 사람 1번이에요");
     if(a==="pzarm"){ if(Wallet.gems()<p.price){ msg("보석이 "+(p.price-Wallet.gems())+"개 더 필요해요"); try{ SFX.tone(220,.12,"square",.03); }catch(e){} return; }
       this.arm=id; try{ SFX.click(); }catch(e){} ShopUI.draw(); return; }
@@ -21558,7 +21662,7 @@ const Prize = {
 const ShopUI = {
   arm:null, tab:"fx",
   TABS:[["outfit","👕 옷"],["fx","✨ 달리기"],["hit","🎆 정답"],["title","🏷️ 칭호"]],   // 🐾 동료는 그림이 준비될 때까지 닫아 둠 (PETS hidden)
-  open(){ SFX.click(); this.arm=null; Prize.arm=null; this.draw(); $("shShop").classList.add("on"); try{ HyBoss.refresh(true).then(()=>{ if($("shShop").classList.contains("on")) this.draw(); }); }catch(e){}
+  open(){ try{ if(Kid.guest()){ hyToast("🛍 상점은 <b>내 패드</b>에서 해요<br><small>오늘 받은 💎 는 내 패드로 가요</small>"); return; } }catch(e){} SFX.click(); this.arm=null; Prize.arm=null; this.draw(); $("shShop").classList.add("on"); try{ HyBoss.refresh(true).then(()=>{ if($("shShop").classList.contains("on")) this.draw(); }); }catch(e){}
     OUTFITS.forEach(o=>Outfit.probe(o, ()=>this.draw())); PETS.forEach(p=>Pet.probe(p, ()=>this.draw())); },
   /* 한정판·정답 효과·동료·칭호·달리기 — 같은 모양의 카드 */
   gcard(o, slot){
@@ -22194,14 +22298,14 @@ const Online = {
   },
   /* 시트에 실제로 적힐 닉네임 — (v304) 명단에서 고른 아이 → 시트에 실명 (👤 표시). (v322) 결과 화면 '내 순위'도 이 이름으로 찾는다 */
   nickOf(rec){
-    try{ const k=(typeof Kid!=="undefined") && Kid.get(); if(k && rec && (rec.type==="buy" || (!rec.type && (/^study/.test(rec.rule||"") || Kid.shared())))) return "👤"+HyBoss.plainN(k.n).slice(0,10); }catch(e){}   /* (v366) 시트에 「👤👤라언」 처럼 두 번 붙던 것 (명단 이름에 👤 가 들어 있었음) */   /* (v362) 9 → 10 (명단 이름 10글자까지라 잘려서 「패트와 매트(패트」로 갈렸다 · 서버는 20글자까지) */
+    try{ let k=(typeof Kid!=="undefined") && Kid.get(); if(!k && Kid.ownerMode()) k=Kid.me(); if(k && rec && (rec.type==="buy" || (!rec.type && (/^study/.test(rec.rule||"") || Kid.shared())))) return "👤"+HyBoss.plainN(k.n).slice(0,10); }catch(e){}   /* (v366) 시트에 「👤👤라언」 처럼 두 번 붙던 것 (명단 이름에 👤 가 들어 있었음) */   /* (v362) 9 → 10 (명단 이름 10글자까지라 잘려서 「패트와 매트(패트」로 갈렸다 · 서버는 20글자까지) */
     return rec ? rec.nick : undefined;
   },
   submit(rec){
     if(!this.on()) return Promise.resolve(null);
     const nk=this.nickOf(rec); if(rec && nk!==rec.nick) rec=Object.assign({}, rec, {nick:nk});
     const body=Object.assign({key:this.KEY, dev:this.dev(), at:Date.now(), tag:Tag.pad() ? "" : Tag.get()}, rec);
-    try{ if(Kid.shared() && "dex" in body) body.dex=""; }catch(e){}   /* (v416) 공용 패드의 도감 = 여러 아이가 모은 단어 → 그 아이 단어 수로 안 보냄 (랭킹 「분신술」) */   /* (v404) 🏷 태그 칸 — 공용 패드는 여러 아이가 쓰므로 비움(👤 이름으로) · (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
+    try{ if(Kid.shared()){ if(Kid.ownerMode()) body.own=1; else if("dex" in body) body.dex=""; } }catch(e){}   /* (v417) 🧸 주인 패드는 주인 단어 수 */   /* (v416) 공용 패드의 도감 = 여러 아이가 모은 단어 → 그 아이 단어 수로 안 보냄 (랭킹 「분신술」) */   /* (v404) 🏷 태그 칸 — 공용 패드는 여러 아이가 쓰므로 비움(👤 이름으로) · (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
     /* (v322) 인터넷이 끊기거나 서버가 바쁘면(busy) 그 판 기록이 사라졌다 → 기기에 모아 두었다가(hyeng_sheetq, 최대 30줄) 다음에 보낸다.
        시트 줄을 만드는 기록(달리기·공부 = type 없음, 구매)만. 날짜는 서버가 받은 때로 적힌다 */
     const keep = !body.type || body.type==="buy";
@@ -22260,6 +22364,7 @@ const Online = {
     setTimeout(()=>{ this.top(d,"week"); }, 1500);
     setTimeout(()=>{ try{ Tag.sync(); }catch(e){} }, 2000);          // (v404) 🏷 태그 (이미 이름이 있는 아이도 켤 때 받음 · 선생님이 옮긴 태그도 여기서)
     setTimeout(()=>{ this.acts(); }, 2500);
+    setTimeout(()=>{ try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} }, 3200);   // (v417) 📦 수업 보석 · 🎓 학원 패드 기록
     setTimeout(()=>{ try{ Notice.poll(true); }catch(e){} }, 3200);   // (v264) 선생님 공지
     setTimeout(()=>{ try{ this.flush(); }catch(e){} }, 4500);         // (v322) 지난번에 못 보낸 기록
   }
@@ -22297,7 +22402,7 @@ const Acts = {
     el.classList.add("on"); try{ SFX.tone(660,.15,"triangle",.05,990); }catch(e){}
     try{ ShopUI && $("shopGems") && ($("shopGems").textContent=Wallet.gems()); }catch(e){} },
   /* 첫 화면으로 돌아올 때도 가끔 (1분에 한 번까지) */
-  poll(){ const now=Date.now(); if(now-this.last<60000) return; this.last=now; Online.acts(); }
+  poll(){ const now=Date.now(); if(now-this.last<60000) return; this.last=now; Online.acts(); try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} }
 };
 /* (v264) 📢 선생님 공지 — 관리 화면(또는 시트 「공지」 탭)에서 쓴 글을 모든 아이 게임에 보여 준다
    - GET ?notice=1 → {ok, v:2, notices:[{id, text, date, until}]} (Apps Script v2 이상만 notices 를 준다)

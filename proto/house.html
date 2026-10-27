@@ -412,6 +412,12 @@ body.night #tint{display:block}   /* (v414) 밤 = 화면 가장자리가 어둑�
 #drawer.yard .card.on{border-color:var(--leafD);background:#eaffdf;box-shadow:0 3px 0 var(--leafD)}
 #drawer.yard .yHint{margin:2px 2px 0;font-size:12px;color:var(--sub)}
 #drawer.yard .avRow{margin:0 0 6px} #drawer.yard .avRow h4{margin:0 0 4px;font-size:13px;color:var(--sub);font-weight:400}
+
+/* (v417) 🧸 주인 패드 — 수업 모드 아이 */
+#padBlock{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(40,28,20,.55);padding:16px}
+#padBlock .pbIn{width:min(340px,100%);padding:22px 18px 18px;border-radius:26px;background:var(--paper);border:3px solid var(--line2);text-align:center;box-shadow:0 6px 0 rgba(90,60,30,.25)}
+#padBlock .pbBig{font-size:54px;line-height:1} #padBlock b{display:block;font-size:19px;margin:6px 0} #padBlock b u{text-decoration:none;color:var(--leafD)} #padBlock p{margin:0 0 14px;color:var(--sub)}
+#padBlock .btn{width:100%;margin-top:8px}
 </style>
 
 </head>
@@ -524,9 +530,14 @@ function toast(t, ms){ const el=$("toast"); el.innerHTML=t; el.classList.add("on
 /* (v411) 사용자: 공용 패드에서 My Town 집·가방·보석이 아이들끼리 섞임 → 공용 패드(이름 한양…/…패드)는 「나는 누구?」(반 명단)로 들어와
    그 아이 칸(hyeng_proto_@<아이>_…)에 저장 · 서버 /hy/life/sv/<아이> 에 통째로(4초 뒤) → 다른 공용 패드에서도 이어서 · 내 기기(공용 아님)는 예전 그대로 */
 const PAD=(()=>{ let nick=""; try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} const shared=/^한양|패드$/.test(nick); let kid=null;
-  if(shared){ try{ kid=JSON.parse(sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} if(kid && (!kid.id || (kid.at && Date.now()-kid.at>20*60000))) kid=null; }   // 게임과 같음: 20분 쉬면 다시 고름
+  let owner=null, blocked=null;
+  if(shared){ try{ kid=JSON.parse(sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} if(kid && (!kid.id || (kid.at && Date.now()-kid.at>20*60000))) kid=null;   // 게임과 같음: 20분 쉬면 다시 고름
+    try{ owner=JSON.parse(localStorage.getItem("hyeng_pad_owner")||"null"); if(owner && !owner.k) owner=null; }catch(e){}
+    /* (v417) 🧸 주인 패드 — 이름을 안 골랐으면 주인 · 다른 아이(수업 모드)는 My Town 을 내 패드에서 */
+    if(owner && !kid) kid={id:owner.k, n:owner.n, t:owner.t||"all", own:1};
+    else if(owner && kid && kid.id!==owner.k){ blocked=kid; kid=null; } }
   const id=kid ? String(kid.id).replace(/[^\w-]/g,"").slice(0,40) : "";
-  return {shared, kid, id, ns: shared ? (id ? "@"+id+"_" : "@_guest_") : ""}; })();
+  return {shared, kid, id, owner, blocked, ns: shared ? (id ? "@"+id+"_" : "@_guest_") : ""}; })();
 function skey(k){ return PAD.ns && k.indexOf("hyeng_proto_")===0 ? "hyeng_proto_"+PAD.ns+k.slice(12) : k; }
 function store(k, v){ const kk=skey(k); try{ if(v===undefined) return JSON.parse(localStorage.getItem(kk)||"null"); localStorage.setItem(kk, JSON.stringify(v)); if(PAD.kid) padSave(); }catch(e){ return null; } }
 let padT=0;
@@ -2761,7 +2772,10 @@ async function openWho(force){ const W=$("who"); W.classList.add("on");
     try{ sessionStorage.setItem("hyeng_kid", JSON.stringify({id:k, n:plain(x.n), t:x.t||"all", pk:Date.now(), at:Date.now()})); }catch(er){}
     b.textContent="🏠 …"; location.reload(); }; }
 PAD.ready=true;
-if(PAD.shared){ const w=$("hWho"); w.hidden=false; w.querySelector("b").textContent=PAD.kid ? String(PAD.kid.n||"").slice(0,8) : "누구?"; w.onclick=async()=>{ if(PAD.kid) await padPush(); openWho(true); };
+if(PAD.blocked){ const d=document.createElement("div"); d.id="padBlock"; d.innerHTML='<div class="pbIn"><div class="pbBig">🏡</div><b>My Town 은 <u>내 패드</u>에서 해요</b><p>👤 '+esc(PAD.blocked.n||"")+' — 지금은 수업 모드예요<br><small>수업에서 받은 💎 는 내 패드로 가요</small></p>'
+    +'<button class="btn on" id="pbBack">🎮 게임으로</button><button class="btn" id="pbOwn">🧸 나는 '+esc(PAD.owner.n||"")+'</button></div>'; document.body.appendChild(d);
+  $("pbBack").onclick=()=>{ location.href="../index.html"; }; $("pbOwn").onclick=()=>{ try{ sessionStorage.setItem("hyeng_kid", JSON.stringify({id:PAD.owner.k, n:PAD.owner.n, t:PAD.owner.t||"all", pk:Date.now(), at:Date.now(), ok:1})); }catch(e){} location.reload(); }; }
+if(PAD.shared && !PAD.blocked){ const w=$("hWho"); w.hidden=false; w.querySelector("b").textContent=PAD.kid ? String(PAD.kid.n||"").slice(0,8) : "누구?"; w.onclick=async()=>{ if(PAD.kid) await padPush(); openWho(true); };
   if(!PAD.kid) setTimeout(()=>openWho(false), 300); else setTimeout(()=>padPull(), 200);
   const flush=()=>{ if(PAD.kid && padT){ clearTimeout(padT); padT=0; padPush(); } }; addEventListener("pagehide", flush); document.addEventListener("visibilitychange", ()=>{ if(document.hidden) flush(); }); }   // 나갈 때 바로 서버에
 /* (v414) 🕐 하늘·빛 = 실제 한국 시간 (아침·낮·저녁·밤) · 🌧 비 · ✨ 황금 물고기 떼 알림 */
@@ -2800,7 +2814,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
+window.HOUSE = {PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>

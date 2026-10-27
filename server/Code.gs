@@ -32,7 +32,8 @@ const COLS = [
   ["outfit","옷"], ["fx","달리기효과"], ["hit","정답효과"], ["ver","버전"],
   ["owned","가진 물건"], ["earned","모은 보석"], ["miss","틀린 단어"],
   ["short","짧은 판"],                                              // (v267) 이 줄 전에 초원에서 끝나 기록하지 않은 판 수
-  ["tag","태그"]                                                    // (v404) 아이 태그 4자리 (이름을 바꿔도 그대로)
+  ["tag","태그"],                                                   // (v404) 아이 태그 4자리 (이름을 바꿔도 그대로)
+  ["own","주인 패드"]                                               // (v417) 🧸 공용 패드에서 주인(유치부 아이)이 한 판 = 1 → 그 패드 단어 수를 주인 것으로 셈
 ];
 const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1};
 /* 구매 탭 열 순서 */
@@ -58,7 +59,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 5;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기)
+const SERVER_V = 6;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
@@ -189,7 +190,7 @@ function dexRank_(sh, last, since, n, dev){
   rows.forEach(r=>{
     if (P.hide(r)) return;
     const t = time_(r[C.date]), id = P.id(r); if (!on[id]) return;
-    const nick = plain_(r[C.nick]) || "PLAYER", dex = P.sharedDev(r) ? 0 : (Number(r[C.dex]) || 0), tg = P.tag(r);
+    const nick = plain_(r[C.nick]) || "PLAYER", dex = (P.sharedDev(r) && !String(r[C.own] || "")) ? 0 : (Number(r[C.dex]) || 0), tg = P.tag(r);   // (v417) 주인 패드 줄은 셈
     let b = best[id]; if (!b){ b = best[id] = {nick, tag:tg, score:0, title:"", tt:0, nt:0, me:false}; }
     if (t >= b.nt){ b.nick = nick; b.nt = t; }
     if (tg && !b.tag) b.tag = tg;

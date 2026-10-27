@@ -44,7 +44,7 @@ r=post({type:"tags", tk:"K"}); ok(r.ok && r.list.some(x=>x.tag==="0006" && x.nic
 // 기록·랭킹
 post({nick:"스트로베리", score:500, diff:"easy", rule:"normal", tag:"0006"}); post({nick:"딸기", score:800, diff:"easy", rule:"normal", tag:"6"});
 post({nick:"민준", score:300, diff:"easy", rule:"normal", tag:"0007"}); post({nick:"민준", score:700, diff:"easy", rule:"normal", tag:"0008"});
-const sc=book.scores.d; ok(sc[0][sc[0].length-1]==="태그" && sc[2][sc[0].length-1]==="#0006", "scores 맨 끝 '태그' 칸 (6 → #0006, 글자라 0 이 안 없어짐)");
+const sc=book.scores.d, ti=sc[0].indexOf("태그"); ok(ti>=0 && sc[2][ti]==="#0006" && sc[0][sc[0].length-1]==="주인 패드", "scores '태그' 칸 (6 → #0006, 글자라 0 이 안 없어짐) · (v417) 맨 끝은 「주인 패드」");
 const L=get({diff:"easy", range:"all"}).list; console.log(JSON.stringify(L));
 ok(L.length===3 && L[0].nick==="딸기" && L[0].tag==="0006" && L[0].score===800, "랭킹: 이름을 바꾼 아이는 한 줄 (가장 최근 이름 · 최고 점수)");
 ok(L.filter(x=>x.nick==="민준").length===2, "같은 이름 민준 둘 = 태그가 달라 두 줄");

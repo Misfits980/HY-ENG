@@ -11,7 +11,7 @@
         },
         "ev": {
           "$e": {
-            ".validate": "newData.child('n').isString() && newData.child('n').val().length <= 12"
+            ".validate": "newData.child('n').isString() && newData.child('n').val().length <= 40"
           }
         },
         "$other": {
@@ -29,7 +29,7 @@
           }
         },
         "$other": {
-          ".validate": "$other.matches(/^(cfg|st)$/)"
+          ".validate": "$other.matches(/^(cfg|st|fx)$/)"
         }
       }
     },
@@ -159,6 +159,26 @@
             ".write": true,
             ".validate": "$rid.length <= 60 && newData.child('at').isNumber() && newData.child('d').isString() && newData.child('d').val().length < 300000 && newData.child('n').isString() && newData.child('n').val().length <= 12"
           }
+        }
+      },
+      "pads": {
+        "$dev": {
+          ".write": true,
+          ".validate": "$dev.matches(/^[a-z0-9]{6,40}$/) && (!newData.exists() || (newData.child('k').isString() && newData.child('k').val().length <= 40 && newData.child('n').isString() && newData.child('n').val().length <= 12))"
+        }
+      },
+      "gift": {
+        "$kid": {
+          "$id": {
+            ".write": true,
+            ".validate": "!newData.exists() || (newData.child('at').isNumber() && (!newData.child('g').exists() || (newData.child('g').isNumber() && newData.child('g').val() >= 0 && newData.child('g').val() <= 500)) && (!newData.child('from').exists() || newData.child('from').val().length <= 20))"
+          }
+        }
+      },
+      "move": {
+        "$kid": {
+          ".write": true,
+          ".validate": "!newData.exists() || (newData.child('at').isNumber() && newData.child('d').isString() && newData.child('d').val().length < 4000000)"
         }
       }
     }
