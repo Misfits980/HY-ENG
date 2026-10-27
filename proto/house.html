@@ -275,6 +275,7 @@ button{font-family:inherit}
 .tl i{font-style:normal;font-size:16px;width:26px;height:26px;border-radius:50%;background:var(--paper2);display:flex;align-items:center;justify-content:center}
 .tl::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-6px;border:6px solid transparent;border-top:7px solid var(--line2);border-bottom:0}
 .tl:active{transform:translate(-50%,calc(-100% - 6px))}
+.tl{transition:opacity .25s, scale .25s}.tl.far{opacity:0;scale:.6;pointer-events:none}.tl.hot.far{opacity:1;scale:1;pointer-events:auto}
 .tl.hot{border-color:var(--leafD);background:#eaffdf;color:var(--leafD);animation:tlHop 1s ease-in-out infinite;z-index:1}
 .tl.hot i{background:#c9efbd}
 .tl.hot::before{content:"👇";position:absolute;left:50%;top:-30px;transform:translateX(-50%);font-size:22px}
@@ -3103,15 +3104,15 @@ const LBL_DEF={
   room:()=>[{k:"door", ic:"🚪", t:"나가기", p:[0.12,1.3,RN-0.5], act:exitRoom, show:()=>walls[3].visible}],
   visit:()=>[{k:"door", ic:"🚪", t:"나가기", p:[0.12,1.3,RN-0.5], act:exitRoom, show:()=>walls[3].visible}],
   yvisit:()=>[{k:"house", ic:"🚪", t:"친구 집", p:[1.5,1.25,3.0], act:yVisitHouse}, {k:"gate", ic:"🏠", t:"나가기", p:[Y_GATE[0]+0.5,1.55,Y_GATE[1]+0.5], act:leaveVisit}],
-  yard:()=>[{k:"house", ic:"🚪", t:"집", p:[1.5,1.25,3.0], act:enterHouse}, {k:"pond", ic:"🎣", t:"낚시", p:[7.5,0.45,6.5], act:()=>{ const b=PS.filter(o=>o.st==="swim").sort((x,y)=>y.rad-x.rad)[0]; b ? fishTap(7,6,b.g.position.x,b.g.position.z) : fishTap(7,6); }},
-    {k:"shop", ic:"🏪", t:"가게", p:[7,2.15,1.5], act:goShop}, {k:"bench", ic:"🛠", t:"만들기", p:[BENCH[0]+0.5,1.15,BENCH[1]+0.5], act:()=>useTile(BENCH[0],BENCH[1],()=>openCraft("craft"))},
-    {k:"pot", ic:"🍳", t:"요리", p:[POT[0]+0.5,1.0,POT[1]+0.5], act:()=>useTile(POT[0],POT[1],()=>openCraft("cook"))}, {k:"farm", ic:"🌱", t:"밭", p:[2.5,0.45,6.0], act:farmGo},
+  yard:()=>[{k:"house", ic:"🚪", t:"집", p:[1.5,1.25,3.0], act:enterHouse}, {k:"pond", ic:"🎣", t:"낚시", p:[7.5,0.45,6.5], r:3.1, act:()=>{ const b=PS.filter(o=>o.st==="swim").sort((x,y)=>y.rad-x.rad)[0]; b ? fishTap(7,6,b.g.position.x,b.g.position.z) : fishTap(7,6); }},
+    {k:"shop", ic:"🏪", t:"가게", p:[7,2.15,1.5], r:2.8, act:goShop}, {k:"bench", ic:"🛠", t:"만들기", p:[BENCH[0]+0.5,1.15,BENCH[1]+0.5], act:()=>useTile(BENCH[0],BENCH[1],()=>openCraft("craft"))},
+    {k:"pot", ic:"🍳", t:"요리", p:[POT[0]+0.5,1.0,POT[1]+0.5], act:()=>useTile(POT[0],POT[1],()=>openCraft("cook"))}, {k:"farm", ic:"🌱", t:"밭", p:[2.5,0.45,6.0], r:2.2, act:farmGo},
     {k:"gate", ic:"🏘", t:"마을", p:[Y_GATE[0]+0.5,1.55,Y_GATE[1]+0.5], act:yardToVillage}].concat(PARC.map((P,i)=>({k:"parc"+i, ic:"🌱", t:"새 땅", p:[P.sign[0]+0.5,1.45,P.sign[1]+0.5], act:()=>useTile(P.sign[0],P.sign[1],()=>yParcAsk(i)), show:()=>!(yd && yd.pc[i])}))),
-  village:()=>[{k:"gate", ic:"🌳", t:"마당", p:[V_GATE[0]+0.5,1.85,V_GATE[1]+0.5], act:villageToYard}, {k:"east", ic:"⛏", t:"광산", p:[V_EAST[0]+0.5,1.85,V_EAST[1]+0.5], act:villageToMine}, {k:"tower", ic:"🗼", t:"타워", p:[TW_AT[0]+1,4.3,TW_AT[1]+1], act:()=>towerGo()},
+  village:()=>[{k:"gate", ic:"🌳", t:"마당", p:[V_GATE[0]+0.5,1.85,V_GATE[1]+0.5], act:villageToYard}, {k:"east", ic:"⛏", t:"광산", p:[V_EAST[0]+0.5,1.85,V_EAST[1]+0.5], act:villageToMine}, {k:"tower", ic:"🗼", t:"타워", p:[TW_AT[0]+1,4.3,TW_AT[1]+1], r:3.4, act:()=>towerGo()},
     {k:"board", ic:"📋", t:"부탁", p:[V_BOARD[0]+0.5,1.65,V_BOARD[1]+0.5], act:()=>useTile(V_BOARD[0],V_BOARD[1],showBoard)}],
   mine:()=>[{k:"gate", ic:"🏘", t:"마을", p:[M_GATE[0]+0.5,1.85,M_GATE[1]+0.5], act:mineToVillage}]
 };
-let LBL=[];
+let LBL=[]; const LBL_NEAR={yard:1, yvisit:1, village:1, mine:1};
 function farmGo(){ let i=plots.findIndex((p,j)=>j<plotN && plotStage(p)==="ripe"); if(i<0) i=plots.findIndex((p,j)=>j<plotN && !p.s); if(i<0) i=0; useTile(PLOTS[i][0],PLOTS[i][1],()=>onPlot(i)); }
 function drawLabels(){ const box=$("tls"); box.innerHTML="";
   LBL=(LBL_DEF[place.key]||(()=>[]))().map(d=>{ const el=document.createElement("button"); el.className="tl"; el.dataset.k=d.k; el.innerHTML='<i>'+d.ic+'</i>'+d.t;
@@ -3120,6 +3121,8 @@ function drawLabels(){ const box=$("tls"); box.innerHTML="";
 function updLabels(){ const W=innerWidth, H=innerHeight;
   LBL.forEach(L=>{ if(L.d.show && !L.d.show()){ L.el.style.display="none"; return; } L.v.set(L.d.p[0],L.d.p[1],L.d.p[2]).project(camera);
     const x=(L.v.x+1)/2*W, y=(1-L.v.y)/2*H, off=L.v.z>1 || x<-30 || x>W+30 || y<110 || y>H-106; L.el.style.display=off?"none":"";
+    /* (v437) 사용자: "가까이 가야 이름표가 뜨게" — 바깥(마당·마을·광산)은 가까이 갔을 때만 · 안내 중(👇)인 것은 늘 보임 · 가장자리에서 깜빡이지 않게 여유 0.5 */
+    if(LBL_NEAR[place.key] && hero){ const r=L.d.r||2.4, dd=Math.hypot(hero.g.position.x-L.d.p[0], hero.g.position.z-L.d.p[2]); L.near = dd<r || (L.near && dd<r+0.5); L.el.classList.toggle("far", !L.near && !L.el.classList.contains("hot")); }
     if(!off){ const hw=(L.el.offsetWidth||80)/2; let lx=Math.max(hw+4,Math.min(W-hw-4,x)); L.el.style.left=lx+"px"; L.el.style.top=y+"px"; } }); }
 function uiBusy(){ return sheetOpen() || edit || !!ghost || F.st!=="idle" || !!dlg || avOpen || trip.busy || $("info").classList.contains("on") || $("drawer").classList.contains("on"); }
 function updUI(){ const b=uiBusy(); $("tls").classList.toggle("off", b); drawCoach(b); const eo=(place===PL.yard || place===PL.village || place===PL.mine || place===PL.yvisit) && !b && !coachOn && !TW.on; $("bEmo").classList.toggle("on", eo); if(!eo) $("emoBar").classList.remove("on"); }

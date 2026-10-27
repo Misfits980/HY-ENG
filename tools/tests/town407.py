@@ -53,7 +53,8 @@ async def main():
         ok(await E("()=>HOUSE.tut().s")==3, "마당에 오면 안내가 낚시로 건너뜀 (가구 안내 건너뛰어도 따라감)")
         L = await E("()=>HOUSE.LBL().map(l=>l.d.k)")
         ok(L == ["house", "pond", "shop", "bench", "pot", "farm", "gate", "parc0", "parc1", "parc2"], f"마당 이름표 7 + (v415) 🌱 새 땅 3 {L}")
-        ok(await E("()=>{ const e=document.querySelector('#tls .tl[data-k=pond]'); return e.classList.contains('hot'); }"), "안내 중인 곳(🎣 낚시) 이름표가 반짝")
+        await pg.wait_for_timeout(500)
+        ok(await E("()=>{ const e=document.querySelector('#tls .tl[data-k=pond]'); return e.classList.contains('hot') && !e.classList.contains('far') && getComputedStyle(e).opacity==='1'; }"), "안내 중인 곳(🎣 낚시) 이름표가 반짝 · (v437) 멀어도 보임")
         # ── 🪱 미끼 카드 → 🎣 낚시 코치
         await E("()=>document.querySelector('#tls .tl[data-k=pond]').click()"); await pg.wait_for_timeout(300)
         ok(await E("()=>document.getElementById('info').classList.contains('on') && /공부하면 생겨요/.test(document.getElementById('infoT').innerText)"), "처음 연못 → 🪱 미끼 카드 (밥 · 1번에 1개 · 공부하면 생겨요)")
