@@ -3734,7 +3734,7 @@ body.tcOn #frun.tv{padding-bottom:74px}
 .adPadNow{margin:0 0 6px;font-size:15px} .adPadNow b{color:#ffd37a}
 .adPadL{display:grid;gap:4px;margin-top:8px} .adPadL div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.06);font-size:13px} .adPadL b{color:#ffd37a}
 #actNote .gfFrom{font-size:12px;opacity:.75;margin:-4px 0 8px}
-#moveAsk .mvWarn{color:#ffb4a0;font-size:13px}
+#moveAsk .mvWarn{color:#ffb4a0;font-size:13px} #moveAsk .mvSum{font-size:15px;color:#ffd37a}
 </style>
 </head>
 <body>
@@ -14070,7 +14070,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v417";
+const GAME_VER = "v418";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18013,6 +18013,42 @@ const Move = {
     try{ FB.update("/hy/move/"+Gift.sid(me.id), {done:Date.now(), dev:Online.dev()}); }catch(e){}
     if(!this.noReload) setTimeout(()=>location.reload(), 600); return true; }
 };
+
+/* (v418) ☁️ 아이 기록 서버 백업 — 사용자: "힘든 것도 다 해 버리자" (아이 기록을 서버에 · 보안은 다음 단계)
+   자기 기기·🧸 주인 패드: 💎·옷·도감·⭐ 공부·🏡 My Town 을 /hy/acct/<아이> 에 (바뀌었을 때만 · 3분마다 · 앱을 내릴 때)
+   새 기기·기록이 지워진 기기(사파리 정리 등): 그 아이 이름이 되면 「☁️ 예전 기록을 가져올까요?」 · 선생님 💾 옮기기에서 아이 기록 되살리기 */
+const Cloud = {
+  H:"hyeng_cloud_h", SEEN:"hyeng_cloud_seen", busy:false,
+  who(){ try{ if(Kid.guest()) return null; if(Kid.shared() && !Kid.ownerMode()) return null; const me=Kid.me(); return me && me.id ? me : null; }catch(e){ return null; } },
+  pack(){ const o=Kid.shared() ? Kid.owner() : null; if(o) return Move.pack(o);
+    const d={}; Move.keys().forEach(k=>{ if(Move.SKIP.test(k) || /^hyeng_(cloud_|move_)/.test(k)) return; if(k.indexOf("@")>=0 && k.indexOf("hyeng_proto_@")!==0) return; try{ d[k]=localStorage.getItem(k); }catch(e){} }); return d; },
+  hash(t){ let h=2166136261; for(let i=0;i<t.length;i++){ h^=t.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h.toString(36)+"."+t.length; },
+  sum(){ const o={}; try{ const W=Wallet.raw(); o.g=W.gems|0; o.e=W.earned|0; }catch(e){} try{ const S=Study.load(); o.st=Object.keys(S.lv||{}).filter(k=>S.lv[k]>0).length; }catch(e){} try{ o.dx=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){} return o; },
+  async save(force){ if(TEST_STAGE || this.busy) return false; const me=this.who(); if(!me) return false; const data=this.pack(), t=JSON.stringify(data), h=this.hash(t);
+    let last=""; try{ last=localStorage.getItem(this.H)||""; }catch(e){} if(!force && last===h) return false; if(t.length>3500000) return false;
+    const body={at:Date.now(), dev:Online.dev(), n:String(HyBoss.plainN(me.n||"")).slice(0,12), v:GAME_VER, sm:this.sum(), d:JSON.stringify({hyeng:GAME_VER, data})};
+    this.busy=true; try{ await FB.ready(); const r=await FB.set("/hy/acct/"+Gift.sid(me.id), body); if(r===false) return false; try{ localStorage.setItem(this.H, h); }catch(e){} return true; }catch(e){ return false; } finally{ this.busy=false; } },
+  empty(){ try{ const W=Wallet.raw(), S=Study.load(); return !(W.earned>0) && !(W.gems>0) && !Object.keys(S.lv||{}).some(k=>S.lv[k]>0) && (Dex.count(1)+Dex.count(2)+Dex.count(3))===0; }catch(e){ return false; } },
+  async get(id){ try{ await FB.ready(); return await FB.get("/hy/acct/"+Gift.sid(id)); }catch(e){ return null; } },
+  /* 켤 때 — 이 기기가 비어 있고 서버에 그 아이 기록이 있으면 묻기 (자기 기기만) */
+  async check(){ if(TEST_STAGE) return; try{ if(Kid.shared()) return; }catch(e){ return; } const me=this.who(); if(!me || !this.empty()) return;
+    const d=await this.get(me.id); if(!d || !d.d || d.dev===Online.dev()) return; let seen=""; try{ seen=localStorage.getItem(this.SEEN)||""; }catch(e){} if(seen===String(d.at)) return;
+    this.ask(me, d); },
+  ask(me, d, cb){ if($("moveAsk")) return; const el=document.createElement("div"); el.id="moveAsk"; el.className="rdJoin"; const sm=d.sm||{}, dt=new Date(d.at||0);
+    el.innerHTML='<div class="rdJoinIn kaIn"><b>☁️ '+Raid.esc(d.n||me.n)+' 예전 기록</b><p>서버에 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일에 저장한 기록이 있어요 — 가져올까요?</p>'
+      +'<p class="mvSum">💎 '+(sm.g|0)+' · ⭐ Stage '+(sm.st|0)+' · 📖 '+(sm.dx|0)+'</p>'+(!this.empty()?'<p class="mvWarn">⚠️ 이 기기에 있던 기록은 가져온 기록으로 바뀌어요</p>':'')
+      +'<div class="wbPopB"><button class="stBossBtn" data-mv="y">📥 가져오기</button><button class="stLater" data-mv="n">아니요</button></div></div>';
+    document.body.appendChild(el);
+    el.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-mv]"); if(!b) return; el.remove();
+      if(b.dataset.mv==="n"){ try{ localStorage.setItem(this.SEEN, String(d.at)); }catch(er){} if(cb) cb(false); return; }
+      const ok=this.apply(me, d); if(cb) cb(ok); }); },
+  apply(me, d){ let o=null; try{ o=JSON.parse(d.d); }catch(e){} const data=Move.unpack(me.id, (o && o.data) || {}); if(!Object.keys(data).length){ hyToast("가져올 기록이 없어요"); return false; }
+    Move.keys().forEach(k=>{ if(!Move.SKIP.test(k)) try{ localStorage.removeItem(k); }catch(e){} });
+    Object.keys(data).forEach(k=>{ try{ localStorage.setItem(k, data[k]); }catch(e){} }); try{ localStorage.setItem(this.H, ""); }catch(e){}
+    try{ Kid.set({id:me.id, n:me.n, t:me.t||"all", pk:Date.now(), auto:1}); }catch(e){}
+    if(!Move.noReload) setTimeout(()=>location.reload(), 600); return true; }
+};
+try{ setInterval(()=>{ if(!document.hidden) Cloud.save(); }, 180000); document.addEventListener("visibilitychange", ()=>{ if(document.hidden) Cloud.save(); }); }catch(e){}
 /* (v305) 보스 두 종류
    🏠 주간 보스 (HyBoss) — 월요일마다 자동으로 나옴. Daily 30 공부 + 🏃 달리기로만 깎음 (아이 한 명 하루 300, 그중 달리기 100).
       일요일까지 쓰러뜨리면 보상(다 같이), 못 잡으면 도망 — 깎은 % 만큼 작은 보상. 다음 주 월요일 다음 보스 (BOSS_LINE 5마리 차례로, 한 바퀴 돌면 체력 +20%).
@@ -21135,6 +21171,8 @@ const Admin = (function(){
       +'<div class="adRow"><button class="mini" data-ad="exp">📤 내보내기 (복사)</button><button class="mini" data-ad="imp">📥 붙여 넣어 불러오기</button></div>'
       +'<textarea id="adData" rows="4" placeholder="내보낸 글이 여기에 나와요 / 다른 기기의 글을 여기에 붙여 넣어요"></textarea>'
       +'<p class="adSmall">보석·옷·도감·공부·학습 기록이 모두 옮겨져요. 기기 코드는 그대로라 시트 명단에서 새 기기 코드를 그 아이 줄에 더해 주세요.</p>');
+    h+=card('☁️ 아이 기록 되살리기 (서버 백업)', '<p class="adSmall">자기 기기·주인 패드의 기록은 서버에 저장돼요 (바뀌면 3분마다). 기기를 잃어버렸거나 기록이 지워졌으면 그 아이를 고르고 가져와요.</p>'
+      +'<div class="adRow"><button class="mini go" data-ad="cloudPick">👤 아이 고르고 가져오기</button><button class="mini" data-ad="cloudNow">☁️ 지금 저장</button></div>');
     h+=card('이 기기 지우기', '<button class="mini warn" data-ad="wipe">🗑 이 기기 기록 모두 지우기</button><p class="adSmall">두 번 물어봐요. 되돌릴 수 없어요 (먼저 내보내기 해 두세요).</p>');
     h+='<div class="adMsg" id="adMsg"></div><button class="mini adLockBtn" data-ad="lock">🔒 관리자 잠그기</button>';
     return h;
@@ -21509,6 +21547,8 @@ const Admin = (function(){
       if(!confirm("기기 「"+d+"」를 #"+t+" 에 더할까요?\n(그 기기에서 게임을 다시 켜면 #"+t+" 가 돼요)")) return;
       post({type:"tagSet", tag:t, dev:d}, ()=>{ msg("#"+t+" 에 기기를 더했어요. 그 기기에서 게임을 다시 켜면 돼요", true); loadTags(true); }); return; }
     if(a==="tagLoad"){ loadTags(true); return; }
+    if(a==="cloudNow"){ msg("저장 중…"); Cloud.save(true).then(ok=>msg(ok?"☁️ 서버에 저장했어요":"저장할 아이가 없거나(이름 · 수업 모드) 서버가 안 돼요", ok)); return; }
+    if(a==="cloudPick"){ if(Kid.shared() && !Kid.owner()) return msg("공용 패드는 🧸 주인을 먼저 정해요"); KidPick.open(v=>{ if(!v || !v.id) return; msg("불러오는 중…"); Cloud.get(v.id).then(d=>{ if(!d || !d.d) return msg(HyBoss.plainN(v.n)+" — 서버에 저장된 기록이 없어요"); close(); Cloud.ask({id:v.id, n:HyBoss.plainN(v.n), t:v.t}, d); }); }); return; }
     if(a==="padList"){ FB.get("/hy/pads").then(v=>{ padList=v||{}; keepScroll=true; draw(); }).catch(()=>msg("못 불러왔어요")); return; }
     if(a==="padOwn"){ KidPick.open(v=>{ if(!v || !v.id) return; Kid.setOwner(v); try{ FB.set("/hy/pads/"+Online.dev(), {k:v.id, n:HyBoss.plainN(v.n).slice(0,12), t:v.t||"all", pad:(get("hyeng_nick")||"").slice(0,20), at:Date.now()}); }catch(e){} padList=null; msg("🧸 이 패드 주인 = "+HyBoss.plainN(v.n), true); keepScroll=true; draw(); }); return; }
     if(a==="padNone"){ if(!confirm("이 패드 주인을 없앨까요?\n(기록은 지워지지 않아요)")) return; Kid.setOwner(null); try{ FB.set("/hy/pads/"+Online.dev(), null); }catch(e){} padList=null; keepScroll=true; draw(); return; }
@@ -22364,7 +22404,8 @@ const Online = {
     setTimeout(()=>{ this.top(d,"week"); }, 1500);
     setTimeout(()=>{ try{ Tag.sync(); }catch(e){} }, 2000);          // (v404) 🏷 태그 (이미 이름이 있는 아이도 켤 때 받음 · 선생님이 옮긴 태그도 여기서)
     setTimeout(()=>{ this.acts(); }, 2500);
-    setTimeout(()=>{ try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} }, 3200);   // (v417) 📦 수업 보석 · 🎓 학원 패드 기록
+    setTimeout(()=>{ try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} try{ Cloud.check(); }catch(e){} }, 3200);
+    setTimeout(()=>{ try{ Cloud.save(); }catch(e){} }, 30000);   // (v418) ☁️ 켜고 30초 뒤 한 번 (바뀐 것만)   // (v417) 📦 수업 보석 · 🎓 학원 패드 기록
     setTimeout(()=>{ try{ Notice.poll(true); }catch(e){} }, 3200);   // (v264) 선생님 공지
     setTimeout(()=>{ try{ this.flush(); }catch(e){} }, 4500);         // (v322) 지난번에 못 보낸 기록
   }
