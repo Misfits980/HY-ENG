@@ -29,6 +29,9 @@ async def main():
         await E("()=>FB.set('/hy/roster',{t:{a1:{n:'유치부',e:'🧸'}}, k:{k1:{n:'루아',t:'a1'}, k2:{n:'주호',t:'a1'}, k3:{n:'라언',t:'a1'}}}).then(()=>HyBoss.refresh(true))")
         ok(await E("()=>(Kid.me()||{}).id") == "k1", "이 기기 = 루아")
         ok(await E("()=>document.querySelector('#selRule [data-v=board]').offsetHeight===0"), "(v427) 시작 화면 🎲 카드는 아직 숨김")
+        # (v430) 새 3D 아이콘 그림 — 카드·상점·명단에 그림으로
+        r = await E("()=>Promise.all(['blue','red','duel','event','shop','star','start','trap','mush','lock','swap','mag','coins','dice','trophy','gift'].flatMap(n=>['k','e'].map(s=>fetch('assets/board/'+s+'/'+n+'.webp').then(x=>x.ok)))).then(a=>a.every(Boolean))")
+        ok(r, "아이콘 16개 × 판 2개 그림 파일")
         # ① 설정
         await E("()=>Board.setup()"); await pg.wait_for_timeout(500)
         r = await E("()=>[!!document.getElementById('bdSetup'), document.querySelectorAll('.bdSkB').length, document.querySelectorAll('.bdSeat').length, document.getElementById('bdFrom').options.length>0, [...document.querySelectorAll('#bdRnd option')].map(o=>+o.value)]")
@@ -41,8 +44,8 @@ async def main():
         await E("()=>{ Board._seats[2]={n:'손님', id:'', ch:4}; Board.seats(); document.querySelector('[data-sk=k]').click(); document.getElementById('bdRnd').value='3'; }")
         await E("()=>document.querySelector('[data-bd=go]').click()")
         r = await E("""()=>{ const o=Board.o, c={}; o.T.forEach(k=>c[k]=(c[k]||0)+1); return [o.cfg.sk, o.R, o.N, c, o.P.map(p=>[p.n,p.coin,p.star]), o.T[o.star]]; }""")
-        ok(r[0] == "k" and r[1] == 3 and r[2] == 30 and r[4] == [["루아", 10, 0], ["주호", 10, 0], ["손님", 10, 0]] and r[5] == "blue", f"🧸 판 · 3 라운드 · 30칸 · 모두 🪙10 · ⭐ 는 파란 칸 위 {r}")
-        ok(r[3] == {"start": 1, "shop": 2, "duel": 3, "event": 4, "red": 6, "blue": 14}, f"칸: 🚩1 🏪2 ⚔️3 ❓4 🔴6 🔵14 {r[3]}")
+        ok(r[0] == "k" and r[1] == 3 and r[2] == 29 and r[4] == [["루아", 10, 0], ["주호", 10, 0], ["손님", 10, 0]] and r[5] == "blue", f"🧸 판 · 3 라운드 · 29칸(새 그림) · 모두 🪙10 · ⭐ 는 파란 칸 위 {r}")
+        ok(r[3] == {"start": 1, "shop": 2, "duel": 3, "event": 4, "red": 6, "blue": 13}, f"칸: 🚩1 🏪2 ⚔️3 ❓4 🔴6 🔵13 {r[3]}")
         ok(await E("()=>{ const T=Board.o.T; return T.every((k,i)=>k==='blue'||k==='start'||k==='shop'|| (T[(i+1)%T.length]!==k)); }"), "같은 특별 칸이 붙어 있지 않음")
         # ② 차례 → 🎲 → 🔵 +3
         ok(await until("()=>!!document.querySelector('[data-bd=roll]')"), "루아 차례 · 🎲 굴리기")
@@ -74,6 +77,9 @@ async def main():
             o.cur=0; B.turnMenu(); R.bag=!!document.querySelector('[data-bd=bag]'); B.bag(); B.use('mush'); R.two=document.querySelector('.bdRoll').textContent;
             p.pos=10; for(let i=11;i<=15;i++) o.T[i]='blue'; o.force=2; B.roll(); await w(2500); clearTimeout(B._to); R.pos=p.pos; R.it2=p.it.length; return R; }""" % (S,))
         ok(r["dis"] == 0 and r["it"] == ["mush"] and r["coin"] == 15, f"🏪 상점에서 🍄 사기 (🪙 −5) {r}")
+        await E("()=>{ clearTimeout(Board._to); Board.o.cur=0; Board.o.rolling=0; Board.turnMenu(); return 1; }")
+        r2 = await E("()=>[document.querySelectorAll('.bdRoll img.bdIc[src$=\"dice.webp\"]').length, document.querySelectorAll('#bdPl img.bdIc[src$=\"star.webp\"]').length]")
+        ok(r2[0] == 1 and r2[1] == 3, f"🎲 단추 · 명단 별 = 그림 아이콘 {r2}")
         ok(r["bag"] and "두 번" in r["two"] and r["pos"] == 14 and r["it2"] == 0, f"🎒 🍄 쓰면 주사위 2개 (2+2 = 4칸) {r}")
         # 🔒 함정
         r = await E("""async()=>{ %s const R={}; o.cur=0; const a=o.P[0], b=o.P[1]; a.it=['trap']; a.pos=12; o.T[12]='blue'; a.coin=5; b.coin=9;
@@ -156,7 +162,7 @@ async def main():
         await E("()=>document.querySelector('[data-bd=again]').click()"); await pg.wait_for_timeout(400)
         ok(await E("()=>Board.o && !Board.o.fin && Board.o.rnd===1 && Board.o.P.every(p=>p.pos===0 && p.coin===10 && p.star===0)"), "🔁 한 판 더 = 같은 사람 · 처음부터")
         await E("()=>Board.begin(Object.assign({}, Board.o.cfg, {sk:'e'}))"); await pg.wait_for_timeout(800)
-        ok(await E("()=>Board.o.SK.bg.indexOf('board/e/')>=0 && !!document.getElementById('bdStage')"), "⚔️ 초등 던전 판")
+        ok(await E("()=>Board.o.SK.bg.indexOf('board/e/')>=0 && Board.o.N===30 && !!document.getElementById('bdStage')"), "⚔️ 초등 던전 판 (30칸)")
         await E("()=>{ Board.o.fin=true; document.querySelector('[data-bd=quit]').click(); }")
         ok(await E("()=>!document.getElementById('board') && !document.body.classList.contains('arOn')"), "나가기 → 원래 화면")
         ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))

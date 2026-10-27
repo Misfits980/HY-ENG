@@ -24,9 +24,11 @@ async def main():
             return False
         await E("()=>Board.begin({sk:'k', set:'elem', from:0, to:2, qt:['mean'], sec:0, rounds:3, star:12, P:[{n:'루아',id:'',ch:0},{n:'주호',id:'',ch:3}]})")
         r = await E("()=>[!!B3.R, !!document.querySelector('#bdStage canvas'), B3.TP.length, B3.pc.length, B3.mode, B3.tg.length]")
-        ok(r[0] and r[1] and r[2] == 30 and r[3] == 2 and r[4] == "intro" and r[5] == 30, f"3D 판 · 칸 30 · 말 2 · 처음엔 판 전체 {r}")
+        ok(r[0] and r[1] and r[2] == 29 and r[3] == 2 and r[4] == "intro" and r[5] == 29, f"3D 판 · 칸 29(새 그림) · 말 2 · 처음엔 판 전체 {r}")
         r = await E("()=>B3.TP.every((v,i)=>{ const P=Board.SK.k.P[i]; return Math.abs(v.x-(P[0]-0.5)*B3.BW)<1e-6 && Math.abs(v.z-(P[1]-0.5)*B3.BH)<1e-6; })")
         ok(r, "칸 자리 = 그림의 길 좌표 그대로")
+        r = await E("()=>[+(B3.BH).toFixed(1), B3.rTs.length, Math.min(...B3.rTs).toFixed(2), Math.max(...B3.rTs).toFixed(2), B3.starM.isSprite]")
+        ok(r[0] > 25 and r[1] == 29 and 0.4 < float(r[2]) < float(r[3]) < 0.8 and r[4], f"(v430) 비스듬한 그림 → 세로로 펴서 칸이 동그랗게 · 칸 크기 = 그림 칸 크기(먼 칸 작게) · ⭐ = 별 그림 {r}")
         r = await E("()=>Board.o.T.every((k,i)=>{ const side=B3.tg[i].children[0].material.color, want=new THREE.Color(B3.TOP[k][1]).multiplyScalar(0.72); return Math.abs(side.r-want.r)+Math.abs(side.g-want.g)+Math.abs(side.b-want.b)<0.01; })")
         ok(r, "칸 색 = 칸 종류 (파랑 · 빨강 · 주황 · 보라 · 초록 · 흰 출발)")
         await until("()=>{ const s=B3.starM.position, T=B3.TP[12]; return Math.hypot(s.x-T.x, s.z-T.z)<0.1 && s.y>1.2; }", 40)
