@@ -117,7 +117,7 @@ async def main():
         ok(r == [15, 5, 1], f"⚔️ 이긴 루아가 🪙5 가져옴 {r}")
         # 🎮 라운드 끝 = 미니게임 (모두) → 🪙 10·5·2
         await until("()=>Board.o.cur===1", 30)
-        await E("""()=>{ %s o.P.forEach(p=>p.coin=0); o.cur=2; B.endTurn(); }""" % (S,))
+        await E("""()=>{ %s o.P.forEach(p=>p.coin=0); o.mgOnly='buzz'; o.cur=2; B.endTurn(); }""" % (S,))
         ok(await until("()=>!!document.querySelector('#bdMG .mgZ') && !document.querySelector('.mgIntro')", 50), "라운드 끝 → 🎮 미니게임")
         r = await E("()=>[document.querySelectorAll('#bdMG .mgZ').length, [...document.querySelectorAll('#bdMG .mgZ')].map(z=>z.classList.contains('flip')), MG.o.cfg.n]")
         ok(r == [3, [True, True, False], 5], f"3명 = 위 두 자리(거꾸로) + 아래 · 5문제 {r}")
