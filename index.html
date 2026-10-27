@@ -14070,7 +14070,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v420";
+const GAME_VER = "v421";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18044,6 +18044,17 @@ const Move = {
     if(!this.noReload) setTimeout(()=>location.reload(), 600); return true; }
 };
 
+/* (v421) 🧸 공용 패드 주인 저절로 — 사용자: "루아 배려패드 · 주호 행복이패드 · 라언 정직이패드 · 경훈 나눔이패드 · 단우 책임이패드"
+   켤 때: 서버 /hy/pads/<기기> 에 주인이 있으면 그것(선생님이 다른 데서 바꿔도 따라감) · 없으면 이 표(기기 코드 = 시트 「태그」 #0001~#0005) → 명단에서 그 이름 (없으면 새 아이로 넣음) */
+const PAD_OWN0={axqr06lvmv8tpb58:"루아", cu6cwhh3mv8tywyr:"주호", wulmbcaimv8xcopg:"라언", "2i9lv370mv8uglcb":"경훈", zg8xy1himv8tvpts:"단우"};
+async function padAutoOwner(){ let sh=false; try{ sh=Kid.shared(); }catch(e){} if(!sh || TEST_STAGE) return null; const dev=Online.dev(), cur=Kid.owner();
+  let p=null; try{ await FB.ready(); p=await FB.get("/hy/pads/"+dev); }catch(e){}
+  if(p && p.k){ if(!cur || cur.k!==p.k) Kid.setOwner({k:p.k, n:p.n, t:p.t}); return Kid.owner(); }
+  if(cur) return cur; const nm=PAD_OWN0[dev]; if(!nm) return null;
+  try{ await HyBoss.refresh(true); }catch(e){} const K=HyBoss.kids(); let id=Object.keys(K).find(k=>HyBoss.plainN(K[k].n)===nm);
+  if(!id){ id=FB.id(); try{ await FB.set("/hy/roster/k/"+id, {n:nm, t:"", nw:Date.now()}); }catch(e){} }
+  const t=(K[id] && K[id].t) || "all"; Kid.setOwner({k:id, n:nm, t}); let pad=""; try{ pad=(localStorage.getItem("hyeng_nick")||"").slice(0,20); }catch(e){}
+  try{ FB.set("/hy/pads/"+dev, {k:id, n:nm, t, pad, at:Date.now()}); }catch(e){} return Kid.owner(); }
 /* (v418) ☁️ 아이 기록 서버 백업 — 사용자: "힘든 것도 다 해 버리자" (아이 기록을 서버에 · 보안은 다음 단계)
    자기 기기·🧸 주인 패드: 💎·옷·도감·⭐ 공부·🏡 My Town 을 /hy/acct/<아이> 에 (바뀌었을 때만 · 3분마다 · 앱을 내릴 때)
    새 기기·기록이 지워진 기기(사파리 정리 등): 그 아이 이름이 되면 「☁️ 예전 기록을 가져올까요?」 · 선생님 💾 옮기기에서 아이 기록 되살리기 */
@@ -22438,7 +22449,7 @@ const Online = {
     setTimeout(()=>{ this.top(d,"week"); }, 1500);
     setTimeout(()=>{ try{ Tag.sync(); }catch(e){} }, 2000);          // (v404) 🏷 태그 (이미 이름이 있는 아이도 켤 때 받음 · 선생님이 옮긴 태그도 여기서)
     setTimeout(()=>{ this.acts(); }, 2500);
-    setTimeout(()=>{ try{ Gift.retry(); }catch(e){} try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} try{ Cloud.check(); }catch(e){} }, 3200);
+    setTimeout(()=>{ try{ Gift.retry(); }catch(e){} try{ padAutoOwner().then(()=>{ try{ Gift.recv(); }catch(e){} }); }catch(e){} try{ Move.check(); }catch(e){} try{ Cloud.check(); }catch(e){} }, 3200);   // (v421) 🧸 주인 먼저
     setTimeout(()=>{ try{ Cloud.save(); }catch(e){} }, 30000);   // (v418) ☁️ 켜고 30초 뒤 한 번 (바뀐 것만)   // (v417) 📦 수업 보석 · 🎓 학원 패드 기록
     setTimeout(()=>{ try{ Notice.poll(true); }catch(e){} }, 3200);   // (v264) 선생님 공지
     setTimeout(()=>{ try{ this.flush(); }catch(e){} }, 4500);         // (v322) 지난번에 못 보낸 기록
