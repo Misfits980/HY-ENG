@@ -23,8 +23,8 @@ async def main():
         await E("()=>FB.set('/hy/roster',{t:{a1:{n:'유치부',e:'🧸'}}, k:{k1:{n:'루아',t:'a1'}, k2:{n:'주호',t:'a1'}, k3:{n:'라언',t:'a1'}}}).then(()=>HyBoss.refresh(true))")
         ok(await E("()=>(Kid.me()||{}).id") == "k1", "이 기기 = 루아")
         # ① 시작 화면 카드
-        ok(await E("()=>!!document.querySelector('#selRule [data-v=board]')"), "시작 화면에 🎲 보드게임 카드 (My Town 옆)")
-        await E("()=>document.querySelector('#selRule [data-v=board]').click()"); await pg.wait_for_timeout(500)
+        ok(await E("()=>document.querySelector('#selRule [data-v=board]').offsetHeight===0"), "(v427) 시작 화면 🎲 카드는 숨김 (다시 만드는 중)")
+        await E("()=>Board.setup()"); await pg.wait_for_timeout(500)
         r = await E("()=>[!!document.getElementById('bdSetup'), document.querySelectorAll('.bdSkB').length, document.querySelectorAll('.bdSeat').length, document.getElementById('bdFrom').options.length>0]")
         ok(r == [True, 2, 2, True], f"설정: 판 2개(유아·초등) · 기본 2명 · Stage 고르기 {r}")
         await E("()=>{ document.querySelector('[data-bd=add]').click(); }")
