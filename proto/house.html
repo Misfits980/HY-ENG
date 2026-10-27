@@ -520,7 +520,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <div id="twUI"><div id="twTouch"></div><div id="twJoy"><i id="twKnob"></i></div>
   <div class="twTop"><button id="twBack" aria-label="타워에서 나가기">🏳️</button><div class="twInfo"><b id="twFloor">1 / 6층</b><small id="twSec"></small><span id="twTime">0:00.0</span></div><button id="twRe" aria-label="깃발로 돌아가기">🚩</button></div>
   <div id="twMeter"><i id="twBar"></i></div><button id="twJump" aria-label="점프">⬆️<span>JUMP</span></button>
-  <div class="twHelp">왼쪽 아래 동그라미 = 움직이기 · JUMP = 점프<br>🪜 사다리 기둥은 밀면 올라가요 · 오른쪽 끌기 = 둘러보기</div></div>
+  <div class="twHelp">왼쪽 아래 동그라미 = 움직이기 · JUMP = 점프<br>화면 끌기 = 둘러보기 (좌우·위아래) · 🪜 기둥은 밀면 올라가요</div></div>
 <div id="toast"></div>
 <div id="fps"></div>
 <div id="fade"></div>
@@ -1591,7 +1591,7 @@ const TW_SECS={
     twLocalBox(F,7.6,7.95,-0.9,0.9, y-0.05,y+0.3,"solid",F.col); return y+0.3; }
 };
 const TW_EASY=["steps","gaps","lava","mover","fade","bounce","word","beam"], TW_HARD=["gaps","lava","mover","spinner","fade","bounce","conveyor","beam","word","steps","spinner","mover"];
-function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0]; towerG.remove(c); } TW.S=[]; TW.cps=[]; TW.words=[]; TW.mode=mode;
+function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0]; towerG.remove(c); } TW.S=[]; TW.cps=[]; TW.words=[]; TW.mode=mode; TW.hitL=[];
   TW.secR=[]; const R=twRand("tower|"+(TW.seed||dayKey())+"|"+mode), n=mode==="hard"?10:6, pool=(mode==="hard"?TW_HARD:TW_EASY).slice(); const list=[];
   let bag=[]; for(let i=0;i<n;i++){ if(!bag.length){ bag=pool.slice(); } let j, g=0; do{ j=Math.floor(R()*bag.length); g++; }while(g<9 && list.length && bag[j]===list[list.length-1]); list.push(bag.splice(j,1)[0]); }   // 섞어서 차례로 (같은 것 덜 겹치게)
   if(!list.includes("word")) list[Math.floor(n/2)]="word"; TW.secs=list;
@@ -1603,7 +1603,7 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   TW.top=TW.cps[TW.cps.length-1]; TW.hy=y; TW.ys=ys;
   // 가운데 네온 기둥 (부딪힘 상자 하나 + 층마다 색 띠)
   twBox([TWC-TCORE,-0.5,TWC-TCORE],[TWC+TCORE,y+3,TWC+TCORE],"solid",null).mesh.visible=false;
-  for(let i=0;i<ys.length-1;i++){ const h=ys[i+1]-ys[i], m=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2, h, TCORE*2), twMat(TCOL[i%10],{emissiveIntensity:.35, roughness:.8})); m.position.set(TWC, ys[i]+h/2, TWC); towerG.add(m);
+  for(let i=0;i<ys.length-1;i++){ const h=ys[i+1]-ys[i], m=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2, h, TCORE*2), twMat(TCOL[i%10],{emissiveIntensity:.35, roughness:.8})); m.position.set(TWC, ys[i]+h/2, TWC); towerG.add(m); TW.hitL.push(m);
     const e=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2+0.08, 0.14, TCORE*2+0.08), new THREE.MeshBasicMaterial({color:0xffffff})); e.position.set(TWC, ys[i], TWC); towerG.add(e); }
   { const m=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2, ys[0]+0.5, TCORE*2), twMat("#ffffff")); m.position.set(TWC, (ys[0]-0.5)/2, TWC); towerG.add(m); }
   const capT=new THREE.Mesh(new THREE.ConeGeometry(TCORE*1.5, 2.6, 4), twMat("#ffd23f",{emissiveIntensity:.4})); capT.rotation.y=Math.PI/4; capT.position.set(TWC, y+4.3, TWC); towerG.add(capT);
@@ -1613,7 +1613,7 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   // 구름
   for(let k=0;k<16;k++){ const c=new THREE.Group(); const a=k/16*Math.PI*2, r=16+(k%3)*4; c.position.set(TWC+Math.cos(a)*r, 1+k*(y+4)/16, TWC+Math.sin(a)*r); [[0,0,0,1],[0.9,-0.1,0.2,0.75],[-0.9,-0.1,-0.1,0.7]].forEach(([x,yy,z,s])=>{ const m=new THREE.Mesh(sph(0.9*s), new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:.9})); m.position.set(x,yy,z); c.add(m); }); towerG.add(c); }
   // 그림자 원 (발 밑)
-  TW.blob=new THREE.Mesh(new THREE.CircleGeometry(0.3,20), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.35, depthWrite:false})); TW.blob.rotation.x=-Math.PI/2; TW.blob.renderOrder=3; towerG.add(TW.blob);
+  TW.blob=new THREE.Mesh(new THREE.CircleGeometry(0.38,20), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.4, depthWrite:false})); TW.blob.rotation.x=-Math.PI/2; TW.blob.renderOrder=3; towerG.add(TW.blob);
   towerG.traverse(m=>{ if(m.isMesh) m.castShadow=false; });
 }
 /* ── 들어가기 · 나가기 ── */
@@ -1625,7 +1625,7 @@ function towerAsk(){ const r=TW.rec[dayKey()]||{}, b=k=>r[k]&&r[k].best ? '🏆 
 function towerGo(){ if(F.st!=="idle" || trip.busy) return; walkTo(TW_DOOR[0], TW_DOOR[1], ()=>{ hero.face=Math.PI; towerAsk(); }); }
 function twEnterGo(mode){ TW.mode=mode; go("tower", [6,6], ()=>{ twBuild(mode); }); }
 function twEnter(){ TW.on=true; TW.fin=false; TW.cp=0; TW.t0=performance.now(); TW.tEnd=0; TW.dead=0; TW.fall=0; TW.inp.x=TW.inp.y=0; TW.key={}; TW.ladTold=0;
-  twRespawn(true); TW.yaw=TW.yawTo; TW.camY=TW.p.y; $("twUI").classList.add("on"); document.body.classList.add("twOn"); twJoyHome(); twHud(); camera.fov=50; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){}
+  twRespawn(true); TW.yaw=TW.yawTo; TW.camY=TW.p.y; TW.pit=0.42; TW.camD=null; TW.snap=0; $("twUI").classList.add("on"); document.body.classList.add("twOn"); twJoyHome(); twHud(); camera.fov=50; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){}
   $("twUI").classList.add("help"); clearTimeout(twEnter._h); twEnter._h=setTimeout(()=>$("twUI").classList.remove("help"), 7000);
   toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="hard"?"🔴 어려움 10층":"🟢 쉬움 6층")+"<br><small>1층 "+TW_NM[TW.secs[0]]+"</small>", 2400); tEv("tower"); }
 function twExit(){ TW.on=false; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
@@ -1633,7 +1633,7 @@ function twLeave(){ if(!TW.on) return; go("village", [TW_DOOR[0], TW_DOOR[1]]); 
 /* ── 몸 ── */
 function twRespawn(first){ const c=TW.cps[TW.cp]||TW.cps[0], ctr=c.mesh.position; TW.p.set(ctr.x, c.max.y+0.001, ctr.z); TW.v.set(0,0,0); TW.onG=true; TW.gnd=c; TW.coy=0; TW.buf=0; TW.climb=false;
   hero.g.position.copy(TW.p); { const d=TDIR[TW.cp%4]; hero.face=Math.atan2(d[0],d[1]); hero.g.rotation.y=hero.face; } if(!first){ TW.dead++; try{ SND.plop(); }catch(e){} TW.flash=0.5; }
-  TW.side=twFrame(TW.cp).n.slice(); TW.yawTo=twYawSide(); }
+  TW.side=twFrame(TW.cp).n.slice(); { const d=TDIR[TW.cp%4]; TW.yawTo=Math.atan2(-d[0],-d[1]); if(!TW.bot){ TW.snap=1; if(first) TW.yaw=TW.yawTo; } } }
 function twYawSide(){ return Math.atan2(TW.side[0], TW.side[1]); }   // 카메라 = 그 면의 바깥에서 안쪽을 봄 (옆에서 보는 발판 게임)
 function twSideUpd(){ const dx=TW.p.x-TWC, dz=TW.p.z-TWC, ax=Math.abs(dx), az=Math.abs(dz), cur=TW.side;
   const curA = cur[0] ? ax : az, othA = cur[0] ? az : ax; if(othA > curA + 1.2){ TW.side = cur[0] ? [0, Math.sign(dz)||1] : [Math.sign(dx)||1, 0]; TW.yawTo=twYawSide(); }
@@ -1653,7 +1653,7 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   // 입력 → 카메라 기준
   let ix=TW.inp.x, iy=TW.inp.y; const K=TW.key; if(K.l) ix-=1; if(K.r) ix+=1; if(K.u) iy+=1; if(K.d) iy-=1; const il=Math.hypot(ix,iy); if(il>1){ ix/=il; iy/=il; }
   const fx=-Math.sin(TW.yaw), fz=-Math.cos(TW.yaw), rx=-fz, rz=fx;   // 앞 = 카메라가 보는 쪽
-  const tx=(rx*ix+fx*iy)*TSPD, tz=(rz*ix+fz*iy)*TSPD, acc=Math.min(1, dt*(TW.onG?16:7));
+  const tx=(rx*ix+fx*iy)*TSPD, tz=(rz*ix+fz*iy)*TSPD, acc=Math.min(1, dt*(TW.onG?16:10));
   v.x+=(tx-v.x)*acc; v.z+=(tz-v.z)*acc;
   if(TW.onG && TW.gnd && TW.gnd.push){ p.x+=TW.gnd.push[0]*dt; p.z+=TW.gnd.push[1]*dt; }
   // 🪜 사다리: 옆에 붙어서 그쪽으로 밀면 올라감
@@ -1679,18 +1679,18 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
     if(g.kind==="glass" && !g.said){ g.said=1; if(g.ok){ try{ SND.win(); }catch(e){} say(g.word); g.mesh.material.color.setHex(0x7be39a); toast("⭕ <b>"+g.word+"</b>", 900); } else { g.on=false; try{ SND.snap(); }catch(e){} toast("💥 "+g.word+" — 아니에요!", 1200); twShatter(g); TW.onG=false; } }
     if(g.kind==="floor" && TW.cp>0){ twRespawn(); return; }
     if((g.kind==="cp"||g.kind==="top") && g.i>TW.cp){ TW.cp=g.i; if(g.flag) g.flag.material.color.setHex(0xffd23f); try{ SND.sparkle(); }catch(e){}
-      if(g.kind==="top") twWin(); else toast("🚩 <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); twHud(); TW.side=twFrame(g.i).n.slice(); TW.yawTo=twYawSide(); }
+      if(g.kind==="top") twWin(); else toast("🚩 <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); twHud(); TW.side=twFrame(g.i).n.slice(); }
   }
   // 위험
   for(const s of TW.S){ if(s.kind==="kill" && twOverlap(s,p.x,p.y,p.z,0.06)){ twRespawn(); return; }
     if(s.kind==="spin" && p.y+THY>s.y0 && p.y<s.y1){ const a=-s.mesh.rotation.y, ex=Math.cos(a), ez=Math.sin(a), dx=p.x-s.c[0], dz=p.z-s.c[1], t=Math.max(-s.len, Math.min(s.len, dx*ex+dz*ez)), qx=dx-ex*t, qz=dz-ez*t; if(Math.hypot(qx,qz)<0.09+THX){ twRespawn(); return; } } }
   const cpY=(TW.cps[TW.cp]||TW.cps[0]).max.y; if(p.y<cpY-3.5 || p.y<-6){ twRespawn(); return; }
-  if(!TW.onG || Math.hypot(v.x,v.z)>0.3) twSideUpd();
+  /* (v435) 옆 카메라 자동 돌리기 없앰 */
   // 몸 그리기
   hero.g.position.copy(p); if(Math.hypot(v.x,v.z)>0.4) hero.face=Math.atan2(v.x, v.z);
   hero.act = TW.climb ? "climb" : !TW.onG ? "air" : Math.hypot(v.x,v.z)>0.6 ? "run" : "idle";
   // 그림자 원 = 바로 아래 발판 위
-  let gy=-0.5; for(const s of sol){ if(p.x>s.min.x && p.x<s.max.x && p.z>s.min.z && p.z<s.max.z && s.max.y<=p.y+0.05 && s.max.y>gy) gy=s.max.y; } TW.blob.position.set(p.x, gy+0.015, p.z); const hh=Math.max(0, p.y-gy); TW.blob.scale.setScalar(Math.max(0.5, 1-hh*0.08)); TW.blob.material.opacity=Math.max(0.12, 0.38-hh*0.025);
+  let gy=-0.5; for(const s of sol){ if(p.x>s.min.x && p.x<s.max.x && p.z>s.min.z && p.z<s.max.z && s.max.y<=p.y+0.05 && s.max.y>gy) gy=s.max.y; } TW.blob.position.set(p.x, gy+0.015, p.z); const hh=Math.max(0, p.y-gy); TW.blob.scale.setScalar(Math.max(0.5, 1-hh*0.08)); TW.blob.material.opacity=Math.max(0.2, 0.45-hh*0.02);
 }
 function twShatter(s){ const c=s.mesh.position.clone(); s.mesh.visible=false; if(s.lab) s.lab.visible=false; for(let k=0;k<8;k++){ const m=new THREE.Mesh(rbox(0.3,0.05,0.3,0.02), s.mesh.material); m.position.set(c.x+rnd(-0.6,0.6), c.y, c.z+rnd(-0.6,0.6)); m.userData.v=new THREE.Vector3(rnd(-1,1), rnd(0,2), rnd(-1,1)); m.userData.shard=1; towerG.add(m); } }
 function twShards(dt){ towerG.children.filter(m=>m.userData.shard).forEach(m=>{ m.userData.v.y-=TG*dt; m.position.addScaledVector(m.userData.v, dt); m.rotation.x+=dt*5; if(m.position.y<-8) towerG.remove(m); }); }
@@ -1706,10 +1706,18 @@ function twConfetti(){ const c=TW.top.mesh.position; for(let k=0;k<40;k++){ cons
 const twTime=s=>{ s=Math.max(0,s); const m=Math.floor(s/60), ss=s-m*60; return m+":"+(ss<10?"0":"")+ss.toFixed(1); };
 function twHud(){ const n=TW.cps.length-1; $("twFloor").textContent=Math.min(TW.cp+(TW.fin?0:1), n)+" / "+n+"층"; $("twSec").textContent=TW.fin?"🏆 꼭대기!":(TW_NM[TW.secs[TW.cp]]||""); $("twBar").style.height=Math.round(Math.max(0,Math.min(1,(TW.p.y)/(TW.hy||1)))*100)+"%"; }
 /* 카메라 — 바깥 옆에서 멀리 (내가 끌면 돌림 · 2.5초 뒤 그 면으로) · 화면이 좁으면 더 멀리 (발판 7칸이 보이게) */
-function twCam(dt){ if(performance.now()-TW.dragAt>2500 && !TW.cam){ let d=((TW.yawTo-TW.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; TW.yaw+=d*Math.min(1,dt*2.2); }
-  TW.camY += (TW.p.y-TW.camY)*Math.min(1, dt*(Math.abs(TW.p.y-TW.camY)>2.5?6:3));
-  const asp=innerWidth/Math.max(1,innerHeight), tv=Math.tan(camera.fov*Math.PI/360), dist=Math.max(10, Math.min(17, 3.6/(asp*tv)+2.5)), pit=0.36;
-  const p=TW.p, ld=Math.min(2.2, 0.6*dist*asp*tv), c=new THREE.Vector3(p.x+Math.cos(TW.yaw)*ld, TW.camY+1.0, p.z-Math.sin(TW.yaw)*ld);   /* 가는 쪽(오른쪽)을 더 보이게 */ camera.position.set(c.x+Math.sin(TW.yaw)*Math.cos(pit)*dist, c.y+Math.sin(pit)*dist, c.z+Math.cos(TW.yaw)*Math.cos(pit)*dist); camera.lookAt(c); camera.updateMatrixWorld(); }
+/* (v435) 🎥 뒤에서 따라가는 카메라 (로블록스 타워처럼) — 사용자: "카메라가 저절로 돈다 · 뒤에서 따라가기"
+   · 돌리기는 손으로만(오른쪽이든 어디든 끌기: 좌우 = 돌리기, 위아래 = 높이) · 다시 시작(🚩·떨어짐)할 때만 가는 쪽 뒤로 맞춤
+   · 기둥·발판에 가리면 카메라를 앞으로 당겨 옴 */
+const twRay=new THREE.Raycaster();
+function twCam(dt){ TW.camY += (TW.p.y-TW.camY)*Math.min(1, dt*(Math.abs(TW.p.y-TW.camY)>2.5?7:4.5));
+  if(TW.yawTo!=null && TW.snap){ let d=((TW.yawTo-TW.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; TW.yaw+=d*Math.min(1,dt*9); if(Math.abs(d)<0.01) TW.snap=0; }
+  const asp=innerWidth/Math.max(1,innerHeight), want=asp<0.8 ? 8.6 : asp<1.2 ? 7.4 : 6.6, pit=TW.pit==null?0.42:TW.pit;
+  const c=new THREE.Vector3(TW.p.x, TW.camY+1.05, TW.p.z), dir=new THREE.Vector3(Math.sin(TW.yaw)*Math.cos(pit), Math.sin(pit), Math.cos(TW.yaw)*Math.cos(pit));
+  let d=want; twRay.set(c, dir); twRay.far=want; const L=(TW.hitL||[]).filter(m=>m.visible); const h=L.length ? twRay.intersectObjects(L, false)[0] : null; if(h) d=Math.max(1.6, h.distance-0.35);
+  TW.camD = TW.camD==null ? d : (d<TW.camD ? d : TW.camD+(d-TW.camD)*Math.min(1, dt*3));
+  camera.position.copy(c).addScaledVector(dir, TW.camD); camera.lookAt(c.x, c.y+0.25, c.z); camera.updateMatrixWorld();
+}
 let twAcc=0;
 function twTick(dt){ if(!TW.on) return false; twAcc+=Math.min(0.1, dt); let n=0; while(twAcc>=1/90 && n<9){ if(!TW.fin && !TW.bot) twStep(1/90); twAcc-=1/90; n++; } twShards(dt); twCam(dt); TW.hT=(TW.hT||0)+dt; if(TW.hT>0.1){ TW.hT=0; twHud(); if(!TW.fin) $("twTime").textContent=twTime((performance.now()-TW.t0)/1000); }
   if(TW.flash>0){ TW.flash-=dt; $("twUI").classList.toggle("hurt", TW.flash>0); } return true; }
@@ -1717,11 +1725,12 @@ function twTick(dt){ if(!TW.on) return false; twAcc+=Math.min(0.1, dt); let n=0;
 function twJoyHome(){ const J=$("twJoy"), r=J.getBoundingClientRect(); TW.home=[r.left+r.width/2, r.top+r.height/2]; J.style.transform=""; $("twKnob").style.transform="translate(-50%,-50%)"; }
 function twInput(){ const L=$("twTouch"), J=$("twJoy"), K=$("twKnob");
   const start=(e)=>{ if(!TW.on) return; e.preventDefault(); if(!TW.home) twJoyHome();
-    if(e.clientX<innerWidth*0.5 && !TW.joy){ let cx=TW.home[0], cy=TW.home[1]; if(Math.hypot(e.clientX-cx, e.clientY-cy)>80){ J.style.transform="translate("+(e.clientX-cx)+"px,"+(e.clientY-cy)+"px)"; cx=e.clientX; cy=e.clientY; }
-      TW.joy={id:e.pointerId, x:cx, y:cy}; J.classList.add("on"); move(e); }
-    else if(!TW.cam) TW.cam={id:e.pointerId, x:e.clientX, y0:TW.yaw}; try{ e.target.setPointerCapture(e.pointerId); }catch(er){} };
+    /* (v435) 사용자: "화면 돌리다가 조이스틱이 눌려짐 · 조작감" → 조이스틱 = 동그라미 근처(110px)에서 누를 때만 · 그 밖은 어디든 카메라 */
+    const cx=TW.home[0], cy=TW.home[1];
+    if(!TW.joy && Math.hypot(e.clientX-cx, e.clientY-cy)<110){ TW.joy={id:e.pointerId, x:cx, y:cy}; J.classList.add("on"); move(e); }
+    else if(!TW.cam) TW.cam={id:e.pointerId, x:e.clientX, y:e.clientY, y0:TW.yaw, p0:TW.pit}; try{ e.target.setPointerCapture(e.pointerId); }catch(er){} };
   const move=e=>{ if(TW.joy && e.pointerId===TW.joy.id){ let dx=e.clientX-TW.joy.x, dy=e.clientY-TW.joy.y; const R=50, d=Math.hypot(dx,dy); if(d>R){ dx*=R/d; dy*=R/d; } K.style.transform="translate(calc(-50% + "+dx+"px), calc(-50% + "+dy+"px))"; const k=d<8?0:1; TW.inp.x=dx/R*k; TW.inp.y=-dy/R*k; }
-    else if(TW.cam && e.pointerId===TW.cam.id){ TW.yaw=TW.cam.y0-(e.clientX-TW.cam.x)*0.008; TW.dragAt=performance.now(); } };
+    else if(TW.cam && e.pointerId===TW.cam.id){ TW.yaw=TW.cam.y0-(e.clientX-TW.cam.x)*0.009; TW.pit=Math.max(0.1, Math.min(1.05, TW.cam.p0+(e.clientY-TW.cam.y)*0.006)); TW.dragAt=performance.now(); } };
   const up=e=>{ if(TW.joy && e.pointerId===TW.joy.id){ TW.joy=null; TW.inp.x=TW.inp.y=0; J.classList.remove("on"); J.style.transform=""; K.style.transform="translate(-50%,-50%)"; } if(TW.cam && e.pointerId===TW.cam.id){ TW.cam=null; TW.dragAt=performance.now(); } };
   [L, J].forEach(el=>{ el.addEventListener("pointerdown", start); el.addEventListener("pointermove", move); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up); });
   addEventListener("resize", ()=>{ TW.home=null; });
@@ -3229,7 +3238,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {TW, THX, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
+window.HOUSE = {TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
