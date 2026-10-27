@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#cfe6f5;font:11px sans-serif}#lb div{position:absolute;color:#222;background:rgba(255,255,255,.8);padding:0 3px}</style>
+<canvas id="c"></canvas><div id="lb"></div>
+<script src="../../three.min.js"></script><script src="kk.js"></script>
+<script>
+KK.base="../../"; const pack=(location.hash.slice(1)||"nature"), W=innerWidth, H=innerHeight;
+const R=new THREE.WebGLRenderer({canvas:c, antialias:true}); R.setSize(W,H); R.outputEncoding=THREE.sRGBEncoding; R.setScissorTest(true);
+KK.load(pack).then(P=>{ const N=P.names.sort(), cols=Math.ceil(Math.sqrt(N.length*W/H)), rows=Math.ceil(N.length/cols), cw=W/cols, ch=H/rows;
+  const sc=new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xffffff,0x667788,0.9)); const d=new THREE.DirectionalLight(0xffffff,0.8); d.position.set(3,5,4); sc.add(d);
+  const cam=new THREE.PerspectiveCamera(30, cw/ch, 0.01, 100);
+  setTimeout(()=>{ N.forEach((k,i)=>{ const m=P.mesh(k); sc.add(m); const bb=m.geometry.boundingBox, ctr=new THREE.Vector3(), sz=new THREE.Vector3(); bb.getCenter(ctr); bb.getSize(sz); const r=Math.max(sz.x,sz.y,sz.z);
+      cam.position.copy(ctr).add(new THREE.Vector3(1,0.8,1.2).normalize().multiplyScalar(r*2.3)); cam.lookAt(ctr); const x=(i%cols)*cw, y=H-(Math.floor(i/cols)+1)*ch;
+      R.setViewport(x,y,cw,ch); R.setScissor(x,y,cw,ch); R.setClearColor(i%2?0xd8ecf8:0xcfe6f5); R.clear(); R.render(sc,cam); sc.remove(m);
+      const l=document.createElement("div"); l.textContent=k+" "+sz.x.toFixed(2)+"×"+sz.y.toFixed(2)+"×"+sz.z.toFixed(2); l.style.left=x+"px"; l.style.top=(H-y-ch)+"px"; lb.appendChild(l); }); window.done=1; }, 600); });
+</script>

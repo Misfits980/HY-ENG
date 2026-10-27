@@ -622,6 +622,30 @@ function part(g, geo, mat, x,y,z){ const m=new THREE.Mesh(geo, mat); m.position.
 function cyl(rt,rb,h,seg){ const k="c"+[rt,rb,h,seg]; return geoCache[k] || (geoCache[k]=new THREE.CylinderGeometry(rt,rb,h,seg||20)); }
 function sph(r){ const k="s"+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,18,14)); }
 function cone(r,h,s){ const k="n"+[r,h,s]; return geoCache[k] || (geoCache[k]=new THREE.ConeGeometry(r,h,s||10)); }
+/* ═════════ (v434) 🎨 그래픽 손보기 — 사용자: "마이타운 그래픽 개선 · 1~3 해 줘"
+   ③ KayKit(CC0, Kay Lousberg — www.kaylousberg.com) 로우폴리 모델: assets/town/kk/<묶음>.json·.bin·.webp (tools/kk/pack.py)
+   · 위치 int16 · 법선 int8 · UV uint16 · 한 묶음 = 텍스처·재료 하나 · 처음에 미리 읽고, 다 읽기 전에 만든 물건은 읽은 뒤 채움 */
+const KK={ P:{}, R:{},
+  load(name){ if(this.P[name]) return this.P[name]; const b="../assets/town/kk/"+name;
+    return this.P[name]=Promise.all([fetch(b+".json").then(r=>r.json()), fetch(b+".bin").then(r=>r.arrayBuffer())]).then(([j,buf])=>{
+      const tex=new THREE.TextureLoader().load("../assets/town/kk/"+j.tex, ()=>{ dirty=true; }); tex.encoding=THREE.sRGBEncoding; tex.flipY=false; tex.anisotropy=4;
+      const mat=new THREE.MeshStandardMaterial({map:tex, roughness:.85, metalness:0}), G={};
+      Object.keys(j.m).forEach(k=>{ const m=j.m[k], q=new Int16Array(buf, m.p, m.v*3), pos=new Float32Array(m.v*3);
+        for(let i=0;i<m.v;i++) for(let a=0;a<3;a++) pos[i*3+a]=m.mn[a]+(q[i*3+a]+32768)/65535*(m.mx[a]-m.mn[a]);
+        const g=new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos,3)); g.setAttribute("normal", new THREE.BufferAttribute(new Int8Array(buf, m.n, m.v*3),3,true));
+        g.setAttribute("uv", new THREE.BufferAttribute(new Uint16Array(buf, m.u, m.v*2),2,true)); g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, m.x, m.i),1)); g.computeBoundingBox(); g.computeBoundingSphere(); G[k]=g; });
+      return (this.R[name]={G, mat, tex}); }).catch(e=>{ console.warn("KK", name, e); return null; }); },
+  /* 모델 하나 — o: {s 크기 · fit:[가로,깊이] 칸에 맞춤 · y · cast · fog} → 바닥 가운데가 (0,0,0) */
+  mesh(name, k, o){ const R=this.R[name]; if(!R || !R.G[k]) return null; o=o||{}; const g=R.G[k], bb=g.boundingBox, w=bb.max.x-bb.min.x, d=bb.max.z-bb.min.z; let s=o.s||1;
+    if(o.fit) s=Math.min(s, o.fit[0]/Math.max(1e-3,w), o.fit[1]/Math.max(1e-3,d));
+    const m=new THREE.Mesh(g, o.mat||R.mat); m.scale.setScalar(s); m.position.set(-(bb.min.x+bb.max.x)/2*s, -bb.min.y*s+(o.y||0), -(bb.min.z+bb.max.z)/2*s); m.castShadow=o.cast!==false; m.receiveShadow=true; m.name="kk:"+k; return m; },
+  /* 묶음을 다 읽은 뒤 g 에 넣음 (이미 있으면 바로) — 고르기·숨기기용 userData 는 부모 것을 그대로 */
+  fill(g, name, k, o, then){ const go=()=>{ const m=this.mesh(name, k, o); if(!m) return; m.userData=Object.assign({}, g.userData); const W=new THREE.Group(); W.add(m); W.userData=m.userData; if(o && o.ry) W.rotation.y=o.ry; g.add(W); if(then) then(W); try{ dirty=true; }catch(e){} };
+    if(this.R[name]) go(); else this.load(name).then(go); }
+};
+KK.load("nature"); KK.load("furniture");
+/* ② 질감 그림 자리 — assets/town/tex/<이름>.webp 가 있으면 그 그림, 없으면 지금 그림(캔버스) 그대로 (GPT 그림: claude/hy-eng-art-order-town.md) */
+function texFile(t, name){ if(!t || !t.image) return t; const im=new Image(); im.onload=()=>{ t.image=im; t.needsUpdate=true; try{ dirty=true; }catch(e){} }; im.src="../assets/town/tex/"+name+".webp"; return t; }
 
 /* ═════════ 장소 1: 🏠 집 (6×6) ═════════ */
 let RN = 6;   // (L0-10) 집 늘리기 6 → 8 → 10
@@ -646,9 +670,24 @@ const WALLS = [
 const FW_PRICE=8;   // 새 바닥·벽지 하나 💎8 (처음 3개씩은 공짜)
 let ownF=[0,1,2], ownW=[0,1,2];
 let floorIx=0, wallIx=0;
+/* (v434) ② 그림 바닥·벽지 — assets/town/tex/<이름>.webp (GPT 질감, claude/hy-eng-art-order-town.md) · 그림이 오기 전엔 코드 그림 */
+const TEXI=(nm, file, fb)=>{ const e={nm, file, draw(g,w,h){ if(e.im && e.im.complete && e.im.naturalWidth) g.drawImage(e.im,0,0,w,h); else fb(g,w,h); }}; const im=new Image();
+  im.onload=()=>{ e.im=im; try{ if(typeof floorIx!=="undefined" && FLOORS[floorIx]===e) setFloor(floorIx); if(typeof wallIx!=="undefined" && WALLS[wallIx]===e) setWall(wallIx); swCache && Object.keys(swCache).forEach(k=>delete swCache[k]); }catch(er){} };
+  im.src="../assets/town/tex/"+file+".webp"; return e; };
+FLOORS.push(
+  TEXI("oak planks", "floor_oak", (g,w,h)=>{ const ph=h/6; for(let i=0;i<6;i++){ g.fillStyle=["#e2b583","#d9a874","#e8bf8f"][i%3]; g.fillRect(0,i*ph,w,ph); g.fillStyle="rgba(120,70,30,.28)"; g.fillRect(0,i*ph,w,2); g.fillRect((i*83+40)%w,i*ph,2,ph);
+    g.strokeStyle="rgba(150,95,45,.18)"; g.lineWidth=1.5; for(let k=0;k<3;k++){ g.beginPath(); g.moveTo(0,i*ph+8+k*9); g.bezierCurveTo(w*0.3,i*ph+4+k*9,w*0.6,i*ph+14+k*9,w,i*ph+8+k*9); g.stroke(); } } }),
+  TEXI("herringbone", "floor_herring", (g,w,h)=>{ g.fillStyle="#b9824e"; g.fillRect(0,0,w,h); const L=64, T=21; for(let y=-L;y<h+L;y+=T*2) for(let x=-L;x<w+L;x+=L){ [[0,0],[1,1]].forEach(([a])=>{ g.save(); g.translate(x+(a?T:0),y+(a?T:0)); g.rotate(a?-Math.PI/4:Math.PI/4); g.fillStyle=["#c99460","#bd8752","#d4a06c"][Math.abs((x+y+a*7)/3|0)%3]; g.fillRect(0,0,L*0.7,T*0.9); g.restore(); }); } }),
+  TEXI("pastel tiles", "floor_tile", (g,w,h)=>{ g.fillStyle="#e9e2d6"; g.fillRect(0,0,w,h); const s=w/4; for(let y=0;y<4;y++) for(let x=0;x<4;x++){ g.fillStyle=["#fbe3e8","#e1f1fb","#fff3cf","#e3f6e3"][(x+y*2)%4]; g.fillRect(x*s+3,y*s+3,s-6,s-6); } })
+);
+WALLS.push(
+  TEXI("flower paper", "wall_flower", (g,w,h)=>{ g.fillStyle="#fff4e8"; g.fillRect(0,0,w,h); for(let y=20;y<h;y+=42) for(let x=(y/42%2)*21+10;x<w;x+=42){ g.fillStyle="#f7b3c2"; for(let k=0;k<5;k++){ g.beginPath(); g.arc(x+Math.cos(k*1.256)*5,y+Math.sin(k*1.256)*5,4,0,7); g.fill(); } g.fillStyle="#ffd56b"; g.beginPath(); g.arc(x,y,2.5,0,7); g.fill(); } }),
+  TEXI("wood panel", "wall_wood", (g,w,h)=>{ g.fillStyle="#f6ead2"; g.fillRect(0,0,w,h); for(let x=0;x<w;x+=32){ g.fillStyle=["#c99a6a","#bf8f5f"][(x/32)%2]; g.fillRect(x,h*0.5,32,h*0.5); g.fillStyle="rgba(90,50,20,.3)"; g.fillRect(x,h*0.5,2,h*0.5); } g.fillStyle="#9c6d40"; g.fillRect(0,h*0.5-6,w,8); }),
+  TEXI("night stars", "wall_star", (g,w,h)=>{ g.fillStyle="#2a3566"; g.fillRect(0,0,w,h); for(let i=0;i<60;i++){ g.fillStyle=i%5?"rgba(255,255,255,.75)":"#ffe58a"; g.beginPath(); g.arc((i*97)%w,(i*57)%h,i%5?1.6:3,0,7); g.fill(); } })
+);
 const floorMat = new THREE.MeshStandardMaterial({roughness:.85}), wallMat = new THREE.MeshStandardMaterial({roughness:.95}), trimMat = M(0xffffff,{roughness:.7});
-function setFloor(i){ floorIx=i; if(floorMat.map) floorMat.map.dispose(); floorMat.map=canvasTex(256,256,FLOORS[i].draw,[RN/2,RN/2]); floorMat.needsUpdate=true; dirty=true; }
-function setWall(i){ wallIx=i; if(wallMat.map) wallMat.map.dispose(); wallMat.map=canvasTex(256,256,WALLS[i].draw,[RN/2,WALL_H/2]); wallMat.needsUpdate=true; dirty=true; }
+function setFloor(i){ floorIx=i; if(floorMat.map) floorMat.map.dispose(); const z=FLOORS[i].file?512:256; floorMat.map=canvasTex(z,z,FLOORS[i].draw.bind(FLOORS[i]),[RN/2,RN/2]); floorMat.needsUpdate=true; dirty=true; }
+function setWall(i){ wallIx=i; if(wallMat.map) wallMat.map.dispose(); const z=WALLS[i].file?512:256; wallMat.map=canvasTex(z,z,WALLS[i].draw.bind(WALLS[i]),[RN/2,WALL_H/2]); wallMat.needsUpdate=true; dirty=true; }
 /* (L0-10) 방 껍데기(바닥·벽 4·격자)를 크기 n 으로 다시 만듦 — 벽에 건 물건(wplaced)은 새 벽에 다시 붙임 · 벽 안쪽 = 벽 그룹의 +z */
 const walls = [], wplaced = []; let slabM=null, gridLines=null; const WT=0.18;
 /* (v407) 🚪 문 — 방: 왼쪽 벽(side 3) 맨 앞 칸 · 마당: 집 앞 · 누르면 걸어가서 문이 열리고 걸어 나감 */
@@ -860,6 +899,25 @@ Object.assign(PRICE_ADD={}, {washer:25, microwave:15, fan:12, aircon:30, compute
 /* 가구 값(💎) — 🛒 가구 가게에서 삼 · 몇 개는 🛠 재료로도 만듦 */
 var PRICE_ADD; const vc=(id,c)=>{ const L=ITEMS[id].cols; return L[((c|0)%L.length+L.length)%L.length]; };
 const PRICE={stool:4, plant:4, vase:4, chair:6, lamp:8, bear:8, rug:10, rug2:10, table:10, chest:12, clock:15, shelf:15, desk:18, closet:20, stove:20, fridge:25, sofa:25, bed:25, tv:30, piano:45}; Object.assign(PRICE, PRICE_ADD);
+/* (v434) ③ 새 가구 = KayKit 모델 (색 = 모델 종류) — 한 칸 = KayKit 약 1.8 → 0.55배, 칸보다 크면 칸에 맞춤 */
+const KKF=(L, o)=>function(c){ const g=new THREE.Group(), k=L[((c|0)%L.length+L.length)%L.length]; KK.fill(g, "furniture", k, Object.assign({s:0.55, fit:[this.sz[0]*0.96, this.sz[1]*0.96]}, o||{})); return g; };
+Object.assign(ITEMS, {
+  kk_armchair:{nm:"armchair", ic:"🛋️", sz:[1,1], sit:0.42, cols:[0x6ec3ff,0xffd23f], build:KKF(["armchair","armchair_pillows"])},
+  kk_couch:{nm:"couch", ic:"🛋️", sz:[2,1], sit:0.42, cols:[0x6ec3ff,0xffd23f], build:KKF(["couch","couch_pillows"])},
+  kk_bed1:{nm:"cozy bed", ic:"🛏️", sz:[1,2], sit:"sleep", cols:[0x6ec3ff,0xb07a4a], build:KKF(["bed_single_A","bed_single_B"])},
+  kk_bed2:{nm:"big bed", ic:"🛏️", sz:[2,2], sit:"sleep", cols:[0x6ec3ff,0xb07a4a], build:KKF(["bed_double_A","bed_double_B"])},
+  kk_chair:{nm:"wood chair", ic:"🪑", sz:[1,1], sit:0.48, cols:[0x6ec3ff,0xb07a4a,0x5aa0d8,0x8a5a34,0x7fc3f0], build:KKF(["chair_A","chair_A_wood","chair_B","chair_B_wood","chair_C"])},
+  kk_stool:{nm:"round stool", ic:"🪑", sz:[1,1], sit:0.42, cols:[0x6ec3ff,0xb07a4a], build:KKF(["chair_stool","chair_stool_wood"])},
+  kk_table:{nm:"wood table", ic:"🍽️", sz:[1,1], cols:[0x6ec3ff,0xb07a4a], build:KKF(["table_small","table_medium"])},
+  kk_tlong:{nm:"long table", ic:"🍽️", sz:[2,1], build:KKF(["table_medium_long"])},
+  kk_drawers:{nm:"drawers", ic:"🗄️", sz:[2,1], cols:[0xffd23f,0xb07a4a], build:KKF(["cabinet_medium_decorated","cabinet_medium"])},
+  kk_night:{nm:"nightstand", ic:"🗄️", sz:[1,1], cols:[0xffd23f,0xb07a4a], build:KKF(["cabinet_small_decorated","cabinet_small"])},
+  kk_flamp:{nm:"floor lamp", ic:"💡", sz:[1,1], build:KKF(["lamp_standing"])},
+  kk_cactus:{nm:"cactus", ic:"🌵", sz:[1,1], cols:[0x5cbf5a,0x7bd06a,0x3f9a58,0x8fd47a], build:KKF(["cactus_medium_A","cactus_medium_B","cactus_small_A","cactus_small_B"])},
+  kk_rug:{nm:"soft rug", ic:"🟦", sz:[2,2], rug:true, cols:[0xffd23f,0x6ec3ff,0xffe08a,0x9fd4f5], build:KKF(["rug_oval_A","rug_oval_B","rug_rectangle_stripes_A","rug_rectangle_stripes_B"], {s:0.62, y:0.004, cast:false})},
+  kk_books:{nm:"book pile", ic:"📚", sz:[1,1], build:KKF(["book_set"], {s:1.1})}
+});
+Object.assign(PRICE, {kk_books:4, kk_stool:5, kk_cactus:6, kk_chair:7, kk_night:10, kk_rug:12, kk_table:12, kk_flamp:12, kk_tlong:16, kk_drawers:18, kk_armchair:20, kk_bed1:24, kk_couch:30, kk_bed2:38});
 const stock = {bed:1, desk:1, chair:2, shelf:2, rug:1, plant:2, lamp:1, sofa:1, chest:1};
 const placed = []; let visiting = null;   // (L0-10) 남의 집에 놀러 간 동안 = {code, n, …} (내 방 저장·꾸미기 막음)
 function fp(id, r){ const s=ITEMS[id].sz; return (r%2) ? [s[1], s[0]] : [s[0], s[1]]; }
@@ -997,6 +1055,19 @@ const OUT={
       const b=new THREE.Mesh(rbox(0.22,0.2,0.22,0.03), new THREE.MeshStandardMaterial({color:0xfff1b0, emissive:0xffb03a, emissiveIntensity:0.1})); b.position.y=0.77; g.add(b); g.userData.bulb=b; const r=part(g, cone(0.3,0.2,4), s, 0,0.97,0); r.rotation.y=Math.PI/4; return g; }},
 };
 const OUT_PRICE={fence:1, hedge:2, flowers:3, bush:3, mushroom:3, sunflower:4, sign:5, flag:5, sapling:6, pine:6, obench:6, mailbox:6, birdhouse:6, parasol:8, lamp:8, arch:8, scarecrow:8, lantern:10, picnic:12, sandbox:12, well:14, tent:14, swing:15, statue:16, slide:18, trampoline:20, windmill:20, fountain:30};
+/* (v434) ③ 마당 꾸미기 = KayKit 모델 */
+const KKO=(L, o)=>function(c){ const g=new THREE.Group(), k=L[((c|0)%L.length+L.length)%L.length]; KK.fill(g, "nature", k, Object.assign({fit:[this.sz[0]*0.96, this.sz[1]*0.96]}, o||{})); return g; };
+Object.assign(OUT, {
+  kk_pine:{nm:"tall pine", ic:"🌲", sz:[1,1], cat:"nat", cols:["#2f9a6a","#3fae7a"], build:KKO(["tree_single_A","tree_single_B"], {s:1.35})},
+  kk_rock:{nm:"big rock", ic:"🪨", sz:[1,1], cat:"nat", cols:["#9aa0a6","#b0b4b8","#8a9096"], build:KKO(["rock_single_C","rock_single_E","rock_single_B"], {s:2.2})},
+  kk_barrel:{nm:"barrel", ic:"🛢️", sz:[1,1], cat:"furn", build:KKO(["barrel"], {s:2.6})},
+  kk_crate:{nm:"crate", ic:"📦", sz:[1,1], cat:"furn", build:KKO(["crate_A_big"], {s:2.6})},
+  kk_sack:{nm:"flour sack", ic:"🌾", sz:[1,1], cat:"furn", build:KKO(["sack"], {s:3.2})},
+  kk_cart:{nm:"wheelbarrow", ic:"🛒", sz:[1,1], cat:"furn", build:KKO(["wheelbarrow"], {s:1.9})},
+  kk_well:{nm:"stone well", ic:"⛲", sz:[1,1], cat:"deco", build:KKO(["building_well_blue"], {s:1.5})},
+  kk_mill:{nm:"tall windmill", ic:"🌬️", sz:[2,2], cat:"deco", build:KKO(["building_windmill_blue"], {s:1.7})}
+});
+Object.assign(OUT_PRICE, {kk_sack:3, kk_barrel:4, kk_crate:4, kk_rock:5, kk_cart:7, kk_pine:8, kk_well:16, kk_mill:28});
 const OUT_CAT=[["all","전체"],["nat","🌷 자연"],["fence","🪵 울타리"],["furn","🪑 바깥 가구"],["play","🎠 놀이"],["deco","⛲ 장식"]];
 const yIT=id=>OUT[id];
 function yFp(id, r){ const s=OUT[id].sz; return (r%2) ? [s[1], s[0]] : [s[0], s[1]]; }
@@ -1197,6 +1268,7 @@ function yInit(){ yFlowersInit(); ystock=Object.assign({flowers:2, fence:6, lamp
 
 {
   const grass=canvasTex(256,256,(g,w,h)=>{ g.fillStyle="#7cc96a"; g.fillRect(0,0,w,h); for(let i=0;i<1400;i++){ g.fillStyle=Math.random()<.5?"rgba(255,255,255,.06)":"rgba(30,90,30,.10)"; const x=Math.random()*w, y=Math.random()*h; g.fillRect(x,y,2,5); } },[YN/2.5,YN/2.5]);
+  texFile(grass, "grass");   /* (v434) ② */
   const ground=new THREE.Mesh(new THREE.BoxGeometry(YN,0.25,YN), new THREE.MeshStandardMaterial({map:grass, roughness:1})); ground.position.set(YN/2,-0.125,YN/2); ground.receiveShadow=true; yardG.add(ground);
   const edge=new THREE.Mesh(new THREE.BoxGeometry(YN+0.02,0.5,YN+0.02), M(0x8a5a34)); edge.position.set(YN/2,-0.5,YN/2); yardG.add(edge);   // 흙 단면
   // 연못: 모래 테두리 + 물 + 돌
@@ -1368,6 +1440,7 @@ function treeAt(G, x, z, i){ const T=new THREE.Group(); T.position.set(x+0.5,0,z
   else [[0,1.05,0,0.42],[0.25,0.9,0.1,0.3],[-0.22,0.92,-0.08,0.32],[0.02,1.3,0.05,0.3]].forEach(([a,b,c,r])=>part(T, sph(r*s), M(0x6fcf62), a*s,b*s,c*s)); return T; }
 {
   const pave=canvasTex(256,256,(g,w,h)=>{ g.fillStyle="#e9dcc2"; g.fillRect(0,0,w,h); g.strokeStyle="rgba(150,120,90,.35)"; g.lineWidth=3; const s=w/4; for(let y=0;y<4;y++) for(let x=0;x<4;x++){ g.strokeRect(x*s+((y%2)*s/2),y*s,s,s); } },[VN/2,VN/2]);
+  texFile(pave, "cobble");   /* (v434) ② */
   const ground=new THREE.Mesh(new THREE.BoxGeometry(VN,0.25,VN), new THREE.MeshStandardMaterial({map:pave, roughness:1})); ground.position.set(VN/2,-0.125,VN/2); ground.receiveShadow=true; villageG.add(ground);
   const edge=new THREE.Mesh(new THREE.BoxGeometry(VN+0.02,0.5,VN+0.02), M(0x8a5a34)); edge.position.set(VN/2,-0.5,VN/2); villageG.add(edge);
   // 잔디 띠 (가장자리)
@@ -3095,7 +3168,7 @@ function envApply(force){ const out=place===PL.yard || place===PL.village || pla
   envRuWas=ru; updEnvPill(out, ti, rn, ru); try{ if(yNightOn!==(ti==="n"||ti==="e")) yNight(ti==="n"||ti==="e"); }catch(e){} const k=place.key+ti+rn+ru; if(k===envK && !force) return; envK=k;
   const E=out ? ENV[ti] : ENV.d; let sky=out ? (E.sky||place.sky||0x8fd3f0) : (place.sky||0xf1e2c8); if(rn) sky=new THREE.Color(sky).lerp(new THREE.Color(0x8796aa), 0.45).getHex();
   scene.background=new THREE.Color(sky); hemiL.intensity=out ? E.h*(rn?0.85:1) : 0.75; sun.color.setHex(out ? E.s : 0xffe2b8); sun.intensity=out ? E.si*(rn?0.7:1) : 0.85;
-  document.body.classList.toggle("rain", rn); document.body.classList.toggle("night", out && ti==="n"); dirty=true; }
+  document.body.classList.toggle("rain", rn); document.body.classList.toggle("night", out && ti==="n"); try{ townEnv(out, ti, rn); }catch(e){ console.warn(e); } dirty=true; }
 function updEnvPill(out, ti, rn, ru){ const p=$("hEnv"); if(!p) return; p.hidden=!out; if(!out) return; const r=rush(); p.querySelector("b").innerHTML=TOD[ti][0]+(rn?"🌧":"")+(r?' <u>✨ '+Raid_mmss(r.en-now())+'</u>':'')+' <small>'+TOD[ti][1]+'</small>'; p.classList.toggle("ru", !!r); }
 const Raid_mmss=ms=>{ const s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
 function envCard(){ const ti=tod(), rn=rainy(), ru=rush(), td=todaySp(), nowL=FISH.filter(f=>{ const S=SPEC[f.en]||{}; return (S.t||S.rain||S.ev) && canAppear(f) && (!S.rain || rn); });
@@ -3103,6 +3176,38 @@ function envCard(){ const ti=tod(), rn=rainy(), ru=rush(), td=todaySp(), nowL=FI
     +'<div class="iBox">⭐ <b>오늘의 물고기</b> '+td.e+' '+(dex[td.en]?td.en:'?')+'<br><small>오늘은 3배 잘 나와요</small></div>'
     +(nowL.length?'<small>지금만 나오는 것: '+nowL.map(f=>dex[f.en]?f.e:'❓').join(' ')+'</small><br>':'')
     +(ru?'<b>✨ 황금 물고기 떼!</b> <small>'+Raid_mmss(ru.en-now())+' 남음 — 반짝이 물고기가 잔뜩</small>':'<small>✨ 황금 물고기 떼는 가끔 5분 동안 와요 · 🌙 밤 · 🌅 아침 · 🌇 저녁 · 🌧 비마다 다른 물고기</small>'), "알겠어요", null); }
+/* ═════════ (v434) ① 하늘 · 먼 풍경 · 안개 — 바깥(마당·마을)이 '책상 위 판'이 아니라 들판 위 마을로
+   · 하늘 = 위아래 색이 다른 큰 공(시간마다 색: 아침·낮·저녁·밤, 비 오면 회색 섞음) · 섬 둘레 = 들판 + 숲(가까이) + 산(멀리) + 구름
+   · 안개 = 지평선 색으로 멀수록 흐리게 (카메라 거리에 맞춰) · 마을 집 4채 · 마당 바위 = KayKit 모델로 */
+const SKY={a:[0x9cc8f0,0xffdcc0], d:[0x5fb3ee,0xd6f1fb], e:[0x6f6cc4,0xffb47c], n:[0x0b1534,0x26386a]};
+const skyGeo=new THREE.SphereGeometry(160, 32, 20); skyGeo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(skyGeo.attributes.position.count*3),3));
+const skyDome=new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.BackSide, fog:false, depthWrite:false})); skyDome.renderOrder=-10; skyDome.visible=false; skyDome.frustumCulled=false; scene.add(skyDome);
+const FOG=new THREE.Fog(0xd6f1fb, 30, 90), cloudMat=new THREE.MeshLambertMaterial({color:0xffffff, emissive:0xdfe8ff, emissiveIntensity:.45, fog:false});
+let skyKey="";
+function skyPaint(top, hor){ const k=top+"|"+hor; if(k===skyKey) return; skyKey=k; const P=skyGeo.attributes.position, C=skyGeo.attributes.color, A=new THREE.Color(top).convertSRGBToLinear(), B=new THREE.Color(hor).convertSRGBToLinear(), X=new THREE.Color();
+  for(let i=0;i<P.count;i++){ const t=Math.max(0, Math.min(1, (P.getY(i)/160+0.02)/0.55)); X.copy(B).lerp(A, Math.pow(t, 0.8)); C.setXYZ(i, X.r, X.g, X.b); } C.needsUpdate=true; }
+function townEnv(out, ti, rn){ const tw=place===PL.tower;
+  if(!out && !tw){ skyDome.visible=false; scene.fog=null; return; }
+  let [top, hor]=SKY[tw ? "d" : ti]||SKY.d; if(rn){ top=new THREE.Color(top).lerp(new THREE.Color(0x8796aa), 0.5).getHex(); hor=new THREE.Color(hor).lerp(new THREE.Color(0xa9b4c2), 0.55).getHex(); }
+  skyPaint(top, hor); skyDome.visible=true; scene.background=new THREE.Color(hor).convertSRGBToLinear(); scene.fog = tw ? null : FOG; FOG.color.setHex(hor).convertSRGBToLinear();
+  cloudMat.color.setHex(ti==="n" && !tw ? 0x55608a : ti==="e" && !tw ? 0xffd2c0 : 0xffffff); cloudMat.emissiveIntensity = ti==="n" && !tw ? 0.08 : 0.45; dirty=true; }
+/* 섬 둘레 — 들판 + 숲 + 산 + 구름 (씨앗 = 늘 같은 자리) */
+function farLand(G, N, seed){ const F=new THREE.Group(); F.name="farLand"; G.add(F); const c=N/2; let r=seed; const R=()=>{ r=(r*9301+49297)%233280; return r/233280; };
+  const mead=new THREE.Mesh(new THREE.CircleGeometry(150, 48), new THREE.MeshStandardMaterial({color:new THREE.Color(0x4f9e40).convertSRGBToLinear(), roughness:1})); mead.rotation.x=-Math.PI/2; mead.position.set(c,-0.8,c); F.add(mead);
+  KK.load("nature").then(R0=>{ if(!R0) return; const put=(k,a,dist,sc,y,mat)=>{ const m=KK.mesh("nature",k,{s:sc, cast:false, mat}); if(!m) return; const W=new THREE.Group(); W.add(m); W.position.set(c+Math.cos(a)*dist, y==null?-0.8:y, c+Math.sin(a)*dist); W.rotation.y=R()*6.283; F.add(W); };
+    const near=["trees_A_large","trees_B_large","trees_A_medium","hills_A_trees","trees_B_medium","hills_C_trees","trees_A_small","hills_B_trees"], far=["mountain_A_grass_trees","mountain_B_grass_trees","mountain_C_grass_trees","mountain_A_grass","mountain_C_grass"];
+    for(let i=0;i<30;i++) put(near[i%near.length], i/30*6.283+R()*0.1, N*0.72+3.2+R()*4, 1.15+R()*0.5);
+    for(let i=0;i<14;i++) put(far[i%far.length], i/14*6.283+R()*0.25, N*0.72+16+R()*12, 5.5+R()*4);
+    for(let i=0;i<9;i++) put(i%2?"cloud_big":"cloud_small", R()*6.283, 34+R()*30, 2.4+R()*2.2, 13+R()*10, cloudMat);
+    dirty=true; });
+  return F; }
+farLand(yardG, YN, 17); farLand(villageG, VN, 41);
+/* 마을 집 4채 · 마당 바위 = KayKit 모델 (누르기·문 자리는 그대로) */
+KK.load("nature").then(R0=>{ if(!R0) return;
+  ["building_home_A_blue","building_home_A_red","building_home_A_yellow","building_home_A_green"].forEach((k,i)=>{ const H=scene.userData.vHouses[i], r=V_HOUSES[i]; if(!H) return; H.children.forEach(m=>m.visible=false);
+    KK.fill(H, "nature", k, {s:3, fit:[r[2]-0.15, r[3]-0.2], ry:Math.PI/2}); });
+  (scene.userData.rocks||[]).forEach((G,i)=>{ G.children.forEach(m=>m.visible=false); KK.fill(G, "nature", ["rock_single_E","rock_single_C","rock_single_B"][i%3], {s:2.1, fit:[0.95,0.95]}); });
+  dirty=true; });
 let last=performance.now(), fN=0, fT=0, idleT=0, farmT=0, hudT=0, hudK="";
 function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Math.ceil(bl/60e3); if(k===hudK) return; hudK=k;
   $("hGem").querySelector("b").textContent=gems; $("hBait").querySelector("b").textContent=bait; $("hBuff").hidden=!(bl>0); if(bl>0) $("hBuff").querySelector("b").textContent=Math.ceil(bl/60e3)+"분"; }
@@ -3119,6 +3224,7 @@ function loop(now){
   if(place===PL.yard){ const w=scene.userData.water; w.material.color.setHSL(envRu?0.12:0.54, envRu?0.8:0.62, (envRu?0.62:0.6)+Math.sin(now*(envRu?0.004:0.0012))*(envRu?0.05:0.025)); idleT+=dt; if(idleT>0.05){ idleT=0; dirty=true; } }   // (v414) 물고기 그림자가 부드럽게 (초당 20번) · ✨ 황금 떼 = 금빛 물
   if(anim) dirty=true;
   if(!dirty){ fT+=dt; if(fT>1){ $("fps").textContent="멈춤 — 안 그림"; fT=0; fN=0; } return; }
+  if(skyDome.visible) skyDome.position.copy(camera.position); if(scene.fog){ FOG.near=camD+place.N*1.3; FOG.far=FOG.near+95; }   /* (v434) */
   renderer.render(scene, camera); dirty=false; updLabels();
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }

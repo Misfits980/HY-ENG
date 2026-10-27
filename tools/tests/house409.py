@@ -43,7 +43,7 @@ async def main():
         await pg.click("#bEdit"); await pg.wait_for_timeout(200); await pg.click("#bBuy"); await pg.wait_for_timeout(300)
         ok(await pg.evaluate("()=>document.getElementById('furnP').classList.contains('on')"), "📦 창고 → 🛒 가게")
         n=await pg.evaluate("()=>document.querySelectorAll('#furnBody [data-bf]').length")
-        ok(n==35, f"가구·가전·벽 35가지 {n}")
+        ok(n==49, f"가구·가전·벽 49가지 (v434 KayKit 가구 14 더함) {n}")
         await pg.click('#furnBody [data-bf="fridge"]'); await pg.wait_for_timeout(200)
         ok(await pg.evaluate("()=>HOUSE.gems()")==175 and await pg.evaluate("()=>HOUSE.stock.fridge")==1, "🧊 fridge 💎25 → 창고")
         await pg.click('[data-ft="wall"]'); await pg.wait_for_timeout(200)
