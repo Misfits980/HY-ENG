@@ -52,16 +52,19 @@ async def main():
         g = await E("()=>FB.get('/hy/gift/k2')")
         v = list((g or {}).values())
         ok(len(v) == 1 and v[0].get("g") == 7 and v[0].get("p") == 45 and "basic|2" in v[0].get("st", "") and word in v[0].get("dx", ""), f"🎁 서버 /hy/gift/k2 (💎7 · 점수45 · ⭐ · 📖) {v}")
+        # (v420) 서버가 안 받으면 패드에 두었다가 다시
+        r = await E("""async()=>{ Kid.set({id:'k2', n:'민준', t:'a1', pk:Date.now()}); const s0=FB.set; FB.set=()=>Promise.resolve(false); Gift.add({g:3}); Gift.flush(); await new Promise(r=>setTimeout(r,200)); FB.set=s0; const a=Gift.pend().length; const n=await Gift.retry(); Kid.set({id:'k1', n:'루아', t:'a1', pk:Date.now()}); return [a, n, Gift.pend().length]; }""")
+        ok(r == [1, 1, 0], f"(v420) 서버가 안 받으면 패드에 두었다가 다시 보냄 {r}")
         fb = await E("()=>localStorage.getItem('hyeng_fb_local')")
         # B = 민준 자기 기기
         B = await dev("민준", fb, "B")
         await B.evaluate("()=>HyBoss.refresh(true)")
         r = await B.evaluate("(w)=>Gift.recv().then(n=>[n, Wallet.gems(), Study.lv('basic',2), Dex.has(w), document.getElementById('actNote').classList.contains('on'), document.getElementById('actNote').innerText])", word)
-        ok(r[1] == 9 and r[2] == 2 and r[3] and r[4] and "수업" in r[5], f"📦 민준 기기: 수업에서 받은 것 💎9 · ⭐ · 📖 {r[:5]}")
+        ok(r[1] == 12 and r[2] == 2 and r[3] and r[4] and "수업" in r[5], f"📦 민준 기기: 수업에서 받은 것 💎9+3 · ⭐ · 📖 {r[:5]}")
         await B.screenshot(path=OUT + "pad417_gift.png")
         ok(await B.evaluate("()=>FB.get('/hy/gift/k2').then(v=>!v || !Object.keys(v).length)"), "받으면 서버에서 지움")
         r = await B.evaluate("()=>Gift.recv().then(()=>Wallet.gems())")
-        ok(r == 9, "두 번 받지 않음")
+        ok(r == 12, "두 번 받지 않음")
         # A → 🎓 졸업
         await E("""()=>{ localStorage.setItem('hyeng_dm_k1', JSON.stringify({d:'x', n:3})); localStorage.setItem('hyeng_proto_@k1_gems', '55'); localStorage.setItem('hyeng_proto_@k2_gems', '99'); localStorage.setItem('hyeng_raidtut:k2','1'); }""")
         r = await E("()=>Move.grad()")

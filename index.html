@@ -14070,7 +14070,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v419";
+const GAME_VER = "v420";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17976,7 +17976,12 @@ const Gift = {
   flush(){ clearTimeout(this.t); const Q=this.q; this.q={}; let pad=""; try{ pad=(localStorage.getItem("hyeng_nick")||"").slice(0,14); }catch(e){}
     Object.keys(Q).forEach(id=>{ const p=Q[id], st=Object.keys(p.st); if(!p.g && !p.p && !p.i.length && !st.length && !p.dx.length) return;
       const v={at:Date.now(), from:pad, n:String(p.n||"").slice(0,12)}; if(p.g) v.g=p.g; if(p.p) v.p=p.p; if(p.i.length) v.i=p.i.join(","); if(st.length) v.st=JSON.stringify(p.st); if(p.dx.length) v.dx=p.dx.join(",");
-      try{ FB.push("/hy/gift/"+this.sid(id), v); }catch(e){} }); },
+      this.send("/hy/gift/"+this.sid(id)+"/"+FB.id(), v); }); },
+  /* (v420) 서버가 받지 않으면(규칙을 아직 안 올렸거나 인터넷) 버리지 않고 이 패드에 두었다가 다음에 다시 (최대 300개) */
+  PK:"hyeng_gift_pend",
+  pend(){ try{ const a=JSON.parse(localStorage.getItem(this.PK)); return Array.isArray(a) ? a : []; }catch(e){ return []; } },
+  send(path, v){ return Promise.resolve().then(()=>FB.set(path, v)).then(ok=>{ if(ok===false){ const a=this.pend(); if(!a.some(x=>x[0]===path)){ a.push([path, v]); try{ localStorage.setItem(this.PK, JSON.stringify(a.slice(-300))); }catch(e){} } } return ok; }).catch(()=>false); },
+  async retry(){ const a=this.pend(); if(!a.length) return 0; try{ localStorage.removeItem(this.PK); }catch(e){} let n=0; for(const [p, v] of a){ if(await this.send(p, v)!==false) n++; } return n; },
   sid(id){ return String(id).replace(/[.#$\[\]\/]/g,"_").slice(0,40); },
   async recv(){ if(TEST_STAGE) return 0; let me=null; try{ me=Kid.me(); if(Kid.guest() || (Kid.shared() && !Kid.ownerMode())) return 0; }catch(e){ return 0; } if(!me || !me.id) return 0;
     let all=null; try{ await FB.ready(); all=await FB.get("/hy/gift/"+this.sid(me.id)); }catch(e){ return 0; } if(!all || typeof all!=="object") return 0;
@@ -22433,7 +22438,7 @@ const Online = {
     setTimeout(()=>{ this.top(d,"week"); }, 1500);
     setTimeout(()=>{ try{ Tag.sync(); }catch(e){} }, 2000);          // (v404) 🏷 태그 (이미 이름이 있는 아이도 켤 때 받음 · 선생님이 옮긴 태그도 여기서)
     setTimeout(()=>{ this.acts(); }, 2500);
-    setTimeout(()=>{ try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} try{ Cloud.check(); }catch(e){} }, 3200);
+    setTimeout(()=>{ try{ Gift.retry(); }catch(e){} try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} try{ Cloud.check(); }catch(e){} }, 3200);
     setTimeout(()=>{ try{ Cloud.save(); }catch(e){} }, 30000);   // (v418) ☁️ 켜고 30초 뒤 한 번 (바뀐 것만)   // (v417) 📦 수업 보석 · 🎓 학원 패드 기록
     setTimeout(()=>{ try{ Notice.poll(true); }catch(e){} }, 3200);   // (v264) 선생님 공지
     setTimeout(()=>{ try{ this.flush(); }catch(e){} }, 4500);         // (v322) 지난번에 못 보낸 기록
@@ -22472,7 +22477,7 @@ const Acts = {
     el.classList.add("on"); try{ SFX.tone(660,.15,"triangle",.05,990); }catch(e){}
     try{ ShopUI && $("shopGems") && ($("shopGems").textContent=Wallet.gems()); }catch(e){} },
   /* 첫 화면으로 돌아올 때도 가끔 (1분에 한 번까지) */
-  poll(){ const now=Date.now(); if(now-this.last<60000) return; this.last=now; Online.acts(); try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} }
+  poll(){ const now=Date.now(); if(now-this.last<60000) return; this.last=now; Online.acts(); try{ Gift.retry(); }catch(e){} try{ Gift.recv(); }catch(e){} try{ Move.check(); }catch(e){} }
 };
 /* (v264) 📢 선생님 공지 — 관리 화면(또는 시트 「공지」 탭)에서 쓴 글을 모든 아이 게임에 보여 준다
    - GET ?notice=1 → {ok, v:2, notices:[{id, text, date, until}]} (Apps Script v2 이상만 notices 를 준다)
