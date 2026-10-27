@@ -975,6 +975,7 @@ let plotN = store("hyeng_proto_plotn") || 6;
 const at=(L,x,z)=>L.findIndex(t=>t[0]===x&&t[1]===z);
 function yardBlocked(x,z){ return isWater(x,z) || isHouse(x,z) || isStall(x,z) || TREES.some(t=>t[0]===x&&t[1]===z) || at(PLOTS,x,z)>=0 || (x===BENCH[0]&&z===BENCH[1]) || (x===POT[0]&&z===POT[1]) || at(ROCKS,x,z)>=0 || yBlk(x,z) || PARC.some(p=>p.sign[0]===x&&p.sign[1]===z && !(yd && yd.pc[PARC.indexOf(p)])); }
 const WL = 0.035;   // 물 높이
+const Y_STEPS=[[1.5,3.6],[2.3,4.2],[3.2,4.7],[4.2,5.2],[5.2,5.7]];   // 디딤돌 (문 → 연못)
 /* ═════════ (v415) 🌳 내 땅 꾸미기 — 사용자: "집 콘텐츠는? 자기 땅을 어떻게 꾸밀지"
    · 마당 10×10 → 14×14 : 오른쪽(동쪽 숲)·오른쪽 아래(언덕)·아래(들판) 3구역은 처음엔 풀숲 🌾 → 🪧 팻말에서 열기(맛보기 💎, 게임은 공부한 날)
      → 열면 잡초·돌·그루터기가 덮여 있음 → 하나씩 치우면(재료가 나옴) 내 땅
@@ -1107,19 +1108,31 @@ function yReachOK(add, skip, skipFixed){ const key=(x,z)=>x+","+z, A={}; (add||[
   if(!PARC.every((p,i)=>(yd && yd.pc[i]) || adj(p.sign[0],p.sign[1]))) return false;
   return true; }
 /* ── 그리기 ── */
-const yGeo={ tuft:cone(0.085,0.26,5), weed:cone(0.05,0.18,5), stump:cyl(0.17,0.2,0.2,10), stone:new THREE.IcosahedronGeometry(0.17,0) };
+const yGeo={ bush:new THREE.IcosahedronGeometry(0.2,1), blade:cone(0.024,0.34,3), tuft:cone(0.085,0.26,5), weed:cone(0.05,0.18,5), stump:cyl(0.17,0.2,0.2,10), stone:new THREE.IcosahedronGeometry(0.17,0) };
 let yTuftM=null, yTuftList=[];
 function yDrawWild(){ // 🌾 잠긴 땅 풀숲 (InstancedMesh 하나) · 팻말
   if(yTuftM){ ywG.remove(yTuftM); yTuftM.dispose && yTuftM.dispose(); } while(ywG.children.length) ywG.remove(ywG.children[0]);
-  const L=[]; for(let x=0;x<YN;x++) for(let z=0;z<YN;z++) if(yLocked(x,z) && !PARC.some(p=>p.sign[0]===x&&p.sign[1]===z)) for(let k=0;k<4;k++){ const h=hashf("tuft|"+x+"|"+z+"|"+k); L.push([x+0.2+((k%2)*0.5)+h*0.15, z+0.2+(k>>1)*0.5+((h*7)%1)*0.15, 0.8+((h*13)%1)*0.7, (h*29)%1]); }
-  if(L.length){ const m=new THREE.InstancedMesh(yGeo.tuft, new THREE.MeshStandardMaterial({color:0x6fae4f, roughness:1, flatShading:true}), L.length), d=new THREE.Object3D(), col=new THREE.Color();
-    L.forEach(([x,z,s,h],i)=>{ d.position.set(x,0.15*s,z); d.scale.set(s*1.4,s,s*1.4); d.rotation.set(0,h*6,(h-0.5)*0.3); d.updateMatrix(); m.setMatrixAt(i,d.matrix); m.setColorAt(i, col.setHSL(0.25+h*0.07,0.5,0.5+h*0.12)); });
+  /* (v436) 뾰족 원뿔(어두운 가시처럼 보임) → 동그란 덤불 + 긴 풀 + 들꽃 · 안 연 땅은 땅 색을 조금 진하게 */
+  const L=[], Bl=[], Fw=[]; for(let x=0;x<YN;x++) for(let z=0;z<YN;z++) if(yLocked(x,z) && !PARC.some(p=>p.sign[0]===x&&p.sign[1]===z)){ const h=hashf("tuft|"+x+"|"+z);
+    const nb=1+(h>0.45?1:0); for(let k=0;k<nb;k++){ const q=hashf("wb|"+x+"|"+z+"|"+k); L.push([x+0.25+q*0.5, z+0.25+((q*7)%1)*0.5, 0.8+((q*13)%1)*0.6, q]); }
+    for(let k=0;k<6;k++){ const q=hashf("wl|"+x+"|"+z+"|"+k); Bl.push([x+0.1+q*0.8, z+0.1+((q*11)%1)*0.8, 0.8+((q*5)%1)*0.7, q]); }
+    if(h<0.4){ const q=hashf("wf|"+x+"|"+z); Fw.push([x+0.2+q*0.6, z+0.2+((q*3)%1)*0.6, q]); } }
+  const d=new THREE.Object3D(), col=new THREE.Color();
+  if(L.length){ const m=new THREE.InstancedMesh(yGeo.bush, new THREE.MeshStandardMaterial({color:0xffffff, roughness:1, flatShading:true}), L.length);
+    L.forEach(([x,z,s,h],i)=>{ d.position.set(x,0.13*s,z); d.scale.set(s,s*0.78,s); d.rotation.set(0,h*6,0); d.updateMatrix(); m.setMatrixAt(i,d.matrix); m.setColorAt(i, col.set([0x5aab4e,0x67b958,0x4f9f46,0x74c262][Math.floor(h*4)%4])); });
     m.castShadow=true; m.receiveShadow=true; ywG.add(m); yTuftM=m; }
+  if(Bl.length){ const m=new THREE.InstancedMesh(yGeo.blade, new THREE.MeshStandardMaterial({color:0xffffff, roughness:1}), Bl.length);
+    Bl.forEach(([x,z,s,h],i)=>{ d.position.set(x,0.17*s,z); d.scale.set(1,s,1); d.rotation.set((h-0.5)*0.5,h*6,((h*7)%1-0.5)*0.5); d.updateMatrix(); m.setMatrixAt(i,d.matrix); m.setColorAt(i, col.set([0x8cc95a,0x9fd46a,0x7dbb4f][Math.floor(h*3)%3])); });
+    m.castShadow=false; ywG.add(m); }
+  if(Fw.length){ const m=new THREE.InstancedMesh(sph(0.055), new THREE.MeshStandardMaterial({color:0xffffff, roughness:.6}), Fw.length);
+    Fw.forEach(([x,z,h],i)=>{ d.position.set(x,0.3,z); d.scale.setScalar(1); d.rotation.set(0,0,0); d.updateMatrix(); m.setMatrixAt(i,d.matrix); m.setColorAt(i, col.set([0xff7aa8,0xffd23f,0xffffff,0xb28dff][Math.floor(h*4)%4])); }); ywG.add(m); }
+  PARC.forEach((p,i)=>{ if(yd && yd.pc[i]) return; const t=new THREE.Mesh(new THREE.PlaneGeometry(p.x1-p.x0+1, p.z1-p.z0+1), new THREE.MeshBasicMaterial({color:0x2f6a26, transparent:true, opacity:.16, depthWrite:false})); t.rotation.x=-Math.PI/2; t.position.set((p.x0+p.x1+1)/2, 0.004, (p.z0+p.z1+1)/2); t.renderOrder=1; ywG.add(t); });
   PARC.forEach((p,i)=>{ if(yd && yd.pc[i]) return; const S=new THREE.Group(); S.position.set(p.sign[0]+0.5,0,p.sign[1]+0.5); ywG.add(S); S.userData.parc=i;
     part(S, rbox(0.1,1.0,0.1,0.03), M(YC.wood2), 0,0.5,0); part(S, rbox(0.9,0.42,0.06,0.03), M(YC.wood), 0,0.92,0);
     const t=canvasTex(256,120,(x,W,H)=>{ x.fillStyle="#fff7e6"; x.fillRect(0,0,W,H); x.fillStyle="#3e8e3d"; x.font="bold 44px sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText("NEW LAND",W/2,H/2-14); x.fillStyle="#6a4430"; x.font="bold 30px sans-serif"; x.fillText("🌱 "+p.nm,W/2,H/2+30); });
     const pl=new THREE.Mesh(new THREE.PlaneGeometry(0.82,0.38), new THREE.MeshBasicMaterial({map:t, side:THREE.DoubleSide})); pl.position.set(0,0.92,0.035); S.add(pl); });
   dirty=true; }
+ywG.userData.noFade=true;
 const yDebObj={};
 function yDrawDeb(){ Object.keys(yDebObj).forEach(k=>{ if(!yd.db[k]){ ydbG.remove(yDebObj[k]); delete yDebObj[k]; } });
   Object.keys(yd.db).forEach(k=>{ if(yDebObj[k]) return; const [x,z]=k.split(",").map(Number), t=yd.db[k], h=hashf("deb|"+k), G=new THREE.Group(); G.position.set(x+0.5,0,z+0.5); G.userData.deb=k;
@@ -1145,7 +1158,16 @@ const yFlw=[];
 function yFlowersInit(){ const FC=[0xff7aa8,0xffd23f,0xffffff,0xb28dff,0xff8a65];
   for(let i=0;i<60;i++){ const h=hashf("flw|"+i), x=Math.floor(h*YN), z=Math.floor(((h*97)%1)*YN); const f=new THREE.Group(); f.position.set(x+0.2+((h*13)%1)*0.6,0,z+0.2+((h*31)%1)*0.6);
     part(f, cyl(0.012,0.012,0.16,5), M(0x3f9a58), 0,0.08,0); part(f, sph(0.05), M(FC[i%5]), 0,0.17,0); yardG.add(f); yFlw.push({x,z,f}); } }
-function yFlowersUpd(){ yFlw.forEach(o=>{ const {x,z}=o; o.f.visible=!(yardBlocked(x,z) || (x===DOOR[0]&&z===DOOR[1]) || (yd && yd.g[x+","+z]) || isRoad(x,z) || at(STALL_FRONT,x,z)>=0); }); }
+function yFlowersUpd(){ const hide=(x,z)=>yardBlocked(x,z) || (x===DOOR[0]&&z===DOOR[1]) || (yd && yd.g[x+","+z]) || isRoad(x,z) || at(STALL_FRONT,x,z)>=0;
+  yFlw.forEach(o=>{ const {x,z}=o; o.f.visible=!hide(x,z); });
+  /* (v436) 풀포기 */ const G=yGrassM; if(G){ const d=new THREE.Object3D(); G.userData.L.forEach(([x,z,px,pz,s,r],i)=>{ const on=!hide(x,z) && !yLocked(x,z) && !isHouse(x,z) && !Y_STEPS.some(([a,b])=>Math.hypot(px-a,pz-b)<0.42) && !(px>POND.x0-0.35 && px<POND.x1+1.35 && pz>POND.z0-0.35 && pz<POND.z1+1.35); d.position.set(px,0,pz); d.rotation.set(0,r,0); d.scale.setScalar(on?s:0.0001); d.updateMatrix(); G.setMatrixAt(i,d.matrix); }); G.instanceMatrix.needsUpdate=true; } }
+let yGrassM=null;
+function yGrassInit(){ /* 풀잎 3장 = 한 포기 (InstancedMesh 하나) */ const P=[], T=[0,1,2].map(k=>{ const g=cone(0.026,0.2,3).clone(); g.translate(0,0.1,0); g.rotateZ((k-1)*0.38); g.rotateY(k*2.1); return g; });
+  const pos=[], nor=[]; T.forEach(g=>{ const q=g.toNonIndexed(); pos.push(...q.attributes.position.array); nor.push(...q.attributes.normal.array); });
+  const geo=new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor,3));
+  for(let x=0;x<YN;x++) for(let z=0;z<YN;z++) for(let k=0;k<2;k++){ const h=hashf("gr|"+x+"|"+z+"|"+k); P.push([x, z, x+0.12+h*0.76, z+0.12+((h*17)%1)*0.76, 0.7+((h*5)%1)*0.6, h*6]); }
+  const m=new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({color:0xffffff, roughness:1}), P.length), col=new THREE.Color(); m.userData.L=P; m.userData.noFade=true; m.name="yGrass";
+  P.forEach((q,i)=>m.setColorAt(i, col.set([0x6fbd58,0x82c962,0x5fae4d][i%3]))); m.castShadow=false; m.receiveShadow=true; yardG.add(m); yGrassM=m; }
 /* 물건 */
 function yAdd(id, x, z, r, c){ const o=OUT[id].build(c|0, 0); yPos(o,id,x,z,r); ydG.add(o); const p={id,x,z,r:r|0,c:c|0,obj:o,y:1}; o.traverse(m=>{ m.userData.yp=p; }); yplaced.push(p); dirty=true; return p; }
 function yRemove(p){ p.obj.parent && p.obj.parent.remove(p.obj); yplaced.splice(yplaced.indexOf(p),1); dirty=true; }
@@ -1153,10 +1175,10 @@ function yRebuild(p){ const cn=OUT[p.id].fence ? yFenceMask(p) : 0, o=OUT[p.id].
 function yFenceMask(p){ const F=(x,z)=>{ const o=yItemAt(x,z); return o && OUT[o.id].fence; }; return (F(p.x,p.z-1)?1:0)|(F(p.x+1,p.z)?2:0)|(F(p.x,p.z+1)?4:0)|(F(p.x-1,p.z)?8:0); }
 function yFences(){ yplaced.filter(p=>OUT[p.id].fence).forEach(p=>{ const m=yFenceMask(p); if(p.obj.userData.cn!==m){ yRebuild(p); p.obj.userData.cn=m; } }); }
 function yTick(dt){ if((place!==PL.yard && place!==PL.yvisit) || !yplaced.length) return false; const t=performance.now()/1000; let a=false; yplaced.forEach(p=>{ const f=p.obj.userData.tick; if(f && f(dt,t)) a=true; }); return a; }
-function yNight(on){ yNightOn=on; yplaced.forEach(p=>{ const u=p.obj.userData; if(u.bulb){ u.bulb.material.emissiveIntensity=on?1.6:0.12; } if(u.glow) u.glow.material.opacity=on?0.32:0; }); dirty=true; }
+function yNight(on){ yNightOn=on; if(scene.userData.wallLamp) scene.userData.wallLamp.material.emissiveIntensity=on?1.8:0.15; yplaced.forEach(p=>{ const u=p.obj.userData; if(u.bulb){ u.bulb.material.emissiveIntensity=on?1.6:0.12; } if(u.glow) u.glow.material.opacity=on?0.32:0; }); dirty=true; }
 function yHouseColors(){ const H=scene.userData.houseObj; if(!H) return; const hx=yd.hx||{};
   if(scene.userData.houseRoof) scene.userData.houseRoof.material=M(HXC.r[hx.r|0]); if(scene.userData.houseWall) scene.userData.houseWall.material=M(HXC.w[hx.w|0]);
-  if(houseDoor) houseDoor.traverse(m=>{ if(m.isMesh && m.userData.door) m.material=M(HXC.d[hx.d|0]); }); dirty=true; }
+  if(houseDoor) houseDoor.traverse(m=>{ if(m.isMesh && m.userData.door) m.material=M(HXC.d[hx.d|0]); }); H.traverse(m=>{ if(m.userData.shutter) m.material=M(HXC.d[hx.d|0]); }); dirty=true; }
 function yMoveFixedTo(s, x, z){ const P=yFixedXY(s); P[0]=x; P[1]=z; const o=yFixedObj(s); o.position.set(x+0.5,0,z+0.5); dirty=true; }
 /* 저장 · 불러오기 */
 function yData(){ return {v:1, p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
@@ -1253,7 +1275,7 @@ function yStamps(){ const ids=new Set(yplaced.map(p=>p.id)), nat=yplaced.filter(
   return [["y_garden","🌷 정원사", nat>=5, "꽃·나무 5개 심기"], ["y_path","🛤 길 만들기", Object.keys(yd.g).length>=10, "🛤 길 10칸 칠하기"], ["y_play","🎠 놀이터", play>=2, "놀이 기구 2가지"],
     ["y_land","🌱 개척자", yd.pc.some(Boolean) && !Object.keys(yd.db).some(k=>PARC.some((p,i)=>yd.pc[i])), "새 땅을 열고 다 치우기"], ["y_house","🏠 우리 집 색", !!(yd.hx.r||yd.hx.w||yd.hx.d), "집 지붕·벽·문 색 바꾸기"],
     ["y_night","💡 밤 산책", ids.has("lamp")||ids.has("lantern"), "가로등 놓기"], ["y_fence","🪵 울타리", yplaced.filter(p=>p.id==="fence").length>=6, "울타리 6개 잇기"]]; }
-function yInit(){ yFlowersInit(); ystock=Object.assign({flowers:2, fence:6, lamp:1, sign:1}, {}); const d=store("hyeng_proto_yard"); if(d){ ystock=Object.assign({}, d.s||{}); ownGP=Array.isArray(d.gp)&&d.gp.length?d.gp:["dirt"]; } yLoad(d);
+function yInit(){ yFlowersInit(); yGrassInit(); ystock=Object.assign({flowers:2, fence:6, lamp:1, sign:1}, {}); const d=store("hyeng_proto_yard"); if(d){ ystock=Object.assign({}, d.s||{}); ownGP=Array.isArray(d.gp)&&d.gp.length?d.gp:["dirt"]; } yLoad(d);
   // 바닥 단추 / 시트 연결
   $("bDeco").onclick=()=>{ if(F.st!=="idle" || visiting) return; setEdit(true); };
   $("inv").addEventListener("click", e=>{ if(place!==PL.yard) return; e.stopImmediatePropagation();
@@ -1267,7 +1289,13 @@ function yInit(){ yFlowersInit(); ystock=Object.assign({flowers:2, fence:6, lamp
 }
 
 {
-  const grass=canvasTex(256,256,(g,w,h)=>{ g.fillStyle="#7cc96a"; g.fillRect(0,0,w,h); for(let i=0;i<1400;i++){ g.fillStyle=Math.random()<.5?"rgba(255,255,255,.06)":"rgba(30,90,30,.10)"; const x=Math.random()*w, y=Math.random()*h; g.fillRect(x,y,2,5); } },[YN/2.5,YN/2.5]);
+  /* (v436) 🌱 잔디 — 한 색 → 밝고 어두운 얼룩 + 풀잎 + 클로버 (사용자: "자기 땅을 더 이쁘게") */
+  const grass=canvasTex(512,512,(g,w,h)=>{ g.fillStyle="#7cc96a"; g.fillRect(0,0,w,h); let sd=11; const R=()=>(sd=(sd*16807)%2147483647)/2147483647;
+    const blot=(x,y,r,c)=>{ for(const ox of [-w,0,w]) for(const oy of [-h,0,h]){ const X=x+ox, Y=y+oy; if(X+r<0||X-r>w||Y+r<0||Y-r>h) continue; const gr=g.createRadialGradient(X,Y,0,X,Y,r); gr.addColorStop(0,c); gr.addColorStop(1,"rgba(0,0,0,0)"); g.fillStyle=gr; g.fillRect(X-r,Y-r,r*2,r*2); } };
+    for(let i=0;i<30;i++) blot(R()*w, R()*h, 50+R()*100, i%3 ? "rgba(165,225,125,.34)" : "rgba(70,150,60,.13)");
+    g.lineWidth=1.5; for(let i=0;i<4200;i++){ const x=R()*w, y=R()*h, l=3+R()*6; g.strokeStyle=R()<.55?"rgba(255,255,255,.09)":"rgba(40,100,35,.08)"; g.beginPath(); g.moveTo(x,y); g.lineTo(x+(R()-.5)*3, y-l); g.stroke(); }
+    for(let i=0;i<60;i++){ const x=R()*w, y=R()*h; g.fillStyle="rgba(80,160,65,.55)"; for(let k=0;k<3;k++){ g.beginPath(); g.arc(x+Math.cos(k*2.1)*2.4, y+Math.sin(k*2.1)*2.4, 2.4, 0, 7); g.fill(); } }
+    for(let i=0;i<26;i++){ g.fillStyle=["rgba(255,255,255,.75)","rgba(255,230,120,.7)"][i%2]; g.beginPath(); g.arc(R()*w, R()*h, 1.6, 0, 7); g.fill(); } },[YN/4,YN/4]);
   texFile(grass, "grass");   /* (v434) ② */
   const ground=new THREE.Mesh(new THREE.BoxGeometry(YN,0.25,YN), new THREE.MeshStandardMaterial({map:grass, roughness:1})); ground.position.set(YN/2,-0.125,YN/2); ground.receiveShadow=true; yardG.add(ground);
   const edge=new THREE.Mesh(new THREE.BoxGeometry(YN+0.02,0.5,YN+0.02), M(0x8a5a34)); edge.position.set(YN/2,-0.5,YN/2); yardG.add(edge);   // 흙 단면
@@ -1288,6 +1316,17 @@ function yInit(){ yFlowersInit(); ystock=Object.assign({flowers:2, fence:6, lamp
   houseDoor=makeDoor(0.62,1.0,0x8a5a34,false); houseDoor.position.set(0,0.02,1.36); H.add(houseDoor); houseDoor.userData.pv.children[0].userData.door=1;   // 문 (앞 = +z) · (v407) 열림
   part(H, rbox(0.6,0.5,0.08,0.03), M(0xaee3ff), -0.9,0.95,1.36); part(H, rbox(0.6,0.5,0.08,0.03), M(0xaee3ff), 0.9,0.95,1.36);
   part(H, rbox(0.3,0.5,0.3,0.02), M(0xb05040), 0.8,2.2,-0.2);                // 굴뚝
+  /* (v436) 🌷 집 앞 꾸밈 — 창 화분 · 창살 · 덧문(문 색을 따라감) · 돌계단 · 발판 · 벽등 · 덤불 */
+  { const FC=[0xff7aa8,0xffd23f,0xffffff,0xff8a65,0xb28dff]; H.userData.deco=1;
+    [-0.9,0.9].forEach((x,j)=>{ part(H, rbox(0.66,0.13,0.17,0.03), M(0x9a6a40), x,0.63,1.45);
+      for(let k=0;k<5;k++){ part(H, sph(0.055), M(0x4f9e48), x-0.24+k*0.12,0.71,1.45).scale.y=0.8; part(H, sph(0.045), M(FC[(k+j*2)%5]), x-0.22+k*0.12,0.77,1.49); }
+      part(H, rbox(0.035,0.5,0.1,0.01), M(0xffffff), x,0.95,1.38); part(H, rbox(0.6,0.035,0.1,0.01), M(0xffffff), x,0.95,1.38); part(H, rbox(0.72,0.05,0.13,0.02), M(0xffffff), x,1.22,1.4);
+      [-1,1].forEach(sg=>{ const sh=part(H, rbox(0.15,0.52,0.04,0.015), M(0x8a5a34), x+sg*0.39,0.95,1.39); sh.userData.shutter=1; }); });
+    const st=part(H, rbox(0.95,0.07,0.36,0.03), M(0xcfc8b8), 0,0.035,1.54); st.castShadow=false;
+    const mat=part(H, rbox(0.5,0.015,0.24,0.01), M(0xd9673f), 0,0.075,1.56); mat.castShadow=false;
+    part(H, rbox(0.1,0.14,0.08,0.02), M(0x3a3a44), 0.5,1.3,1.4);
+    const bulb=new THREE.Mesh(sph(0.055), new THREE.MeshStandardMaterial({color:0xfff1b0, emissive:0xffc960, emissiveIntensity:.15})); bulb.position.set(0.5,1.2,1.42); H.add(bulb); scene.userData.wallLamp=bulb;
+    [[-1.2,1.47],[1.2,1.47]].forEach(([x,z],j)=>{ part(H, sph(0.21), M(0x55a84c), x,0.15,z).scale.set(1,0.85,0.9); part(H, sph(0.14), M(0x68bd5c), x+(j?-0.17:0.17),0.1,z+0.04); part(H, sph(0.04), M(FC[j*2]), x+(j?-0.05:0.05),0.33,z+0.1); part(H, sph(0.035), M(FC[1]), x+(j?0.08:-0.08),0.27,z+0.14); }); }
   scene.userData.houseObj=H;
   // 나무
   scene.userData.trees=[];
@@ -1316,7 +1355,8 @@ function yInit(){ yFlowersInit(); ystock=Object.assign({flowers:2, fence:6, lamp
   const FC=[0xff7aa8,0xffd23f,0xffffff,0xb28dff,0xff8a65];
   /* (v415) 들꽃은 yFlowersInit — 물건·길 칸에서는 숨김 */
   // 디딤돌 (문 → 연못)
-  [[1.5,3.6],[2.3,4.2],[3.2,4.7],[4.2,5.2],[5.2,5.7]].forEach(([x,z])=>{ const s=new THREE.Mesh(cyl(0.24,0.26,0.04,12), M(0xd8d2c4)); s.position.set(x,0.02,z); s.receiveShadow=true; yardG.add(s); });
+  Y_STEPS.forEach(([x,z],i)=>{ const h=hashf("step|"+i), s=new THREE.Mesh(cyl(0.25,0.27,0.05,7), M(i%2?0x8c8576:0x9a9283,{flatShading:true})); s.scale.set(1+h*0.22, 1, 0.82+((h*7)%1)*0.22); s.rotation.y=h*6; s.position.set(x,0.02,z); s.receiveShadow=true; s.name="step"; yardG.add(s);
+    for(let k=0;k<2;k++){ const a=h*9+k*2.6, pb=part(yardG, sph(0.045), M(0xb3aa98,{flatShading:true}), x+Math.cos(a)*0.36, 0.015, z+Math.sin(a)*0.33); pb.scale.y=0.5; pb.castShadow=false; } });
   // 🏪 물고기 가게 — 계산대 · 기둥 · 줄무늬 차양 · 간판
   { const S=new THREE.Group(); S.position.set(7,0,1.5); yardG.add(S); scene.userData.stallObj=S;
     part(S, rbox(1.9,0.72,0.7,0.06), M(0xc98f5a), 0,0.36,0.05); part(S, rbox(1.96,0.08,0.78,0.03), M(0xf3e2c0), 0,0.75,0.05);
@@ -1331,6 +1371,14 @@ function yInit(){ yFlowersInit(); ystock=Object.assign({flowers:2, fence:6, lamp
   const fm=M(0xf6e7c8); for(let i=0;i<=YN;i++){ part(yardG, rbox(0.1,0.55,0.1,0.03), fm, i,0.27,-0.08); part(yardG, rbox(0.1,0.55,0.1,0.03), fm, -0.08,0.27,i); }
   part(yardG, rbox(YN,0.07,0.05,0.02), fm, YN/2,0.4,-0.08); part(yardG, rbox(0.05,0.07,YN,0.02), fm, -0.08,0.4,YN/2);
   part(yardG, rbox(YN,0.07,0.05,0.02), fm, YN/2,0.18,-0.08); part(yardG, rbox(0.05,0.07,YN,0.02), fm, -0.08,0.18,YN/2);
+  /* (v436) 🌳 뒤 울타리 밖 덤불 줄 (꽃 섞임) — 칸 밖이라 놓기·걷기와 상관없음 */
+  { const D=new THREE.Group(); D.name="yHedge"; D.userData.noFade=true; yardG.add(D); const B=[], Fl=[];
+    for(let i=0;i<YN*2+2;i++){ const t=i/2-0.5, h=hashf("hedge|"+i), h2=hashf("hedge2|"+i); B.push([t+0.25, -0.42-h*0.08, 0.9+h*0.45, h]); B.push([-0.42-h2*0.08, t+0.25, 0.9+h2*0.45, h2]); }
+    const bm=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.27,1), new THREE.MeshStandardMaterial({color:0xffffff, roughness:.95, flatShading:true}), B.length), d=new THREE.Object3D(), col=new THREE.Color();
+    B.forEach(([x,z,sc,h],i)=>{ d.position.set(x, 0.17*sc, z); d.scale.set(sc, sc*0.82, sc); d.rotation.set(0, h*6, 0); d.updateMatrix(); bm.setMatrixAt(i, d.matrix); bm.setColorAt(i, col.set([0x4f9d47,0x5aad4f,0x66b85a,0x4a9444][Math.floor(h*4)%4])); if(h>0.55) Fl.push([x+(h-0.7)*0.3, 0.17*sc*1.75, z+0.1, h]); });
+    bm.castShadow=true; bm.receiveShadow=true; D.add(bm);
+    const fm2=new THREE.InstancedMesh(sph(0.05), new THREE.MeshStandardMaterial({color:0xffffff, roughness:.6}), Fl.length);
+    Fl.forEach(([x,y,z,h],i)=>{ d.position.set(x,y,z); d.scale.setScalar(1); d.rotation.set(0,0,0); d.updateMatrix(); fm2.setMatrixAt(i, d.matrix); fm2.setColorAt(i, col.set([0xff7aa8,0xffd23f,0xffffff,0xff8a65][Math.floor(h*97)%4])); }); D.add(fm2); }
 }
 
 /* ═════════ 내 아바타 (코드로 만든 블록 인형) ═════════ */
@@ -1929,8 +1977,9 @@ const matP=n=>Math.max(1, Math.round(((MAT[n]||{}).p||1)*mkt(n)));
 function grow(pl){ if(!pl.s || !pl.wt) return; const t=now(), end=pl.wt+WATER_H*3600e3, from=Math.max(pl.le||pl.wt, pl.wt), to=Math.min(t,end); if(to>from) pl.g=(pl.g||0)+(to-from)/3600e3; pl.le=t; if(t>=end){ pl.wt=0; pl.le=0; } }
 function plotStage(pl){ if(!pl.s) return "empty"; grow(pl); const k=(pl.g||0)/SEEDS[pl.s].h; return k>=1?"ripe":k>=0.66?"big":k>=0.33?"small":"sprout"; }
 function plotDry(pl){ return pl.s && !pl.wt && plotStage(pl)!=="ripe"; }
-function drawLot(i, P){ const fm=M(0xe9d29a); [[0,-0.44,0.9,0.05],[0,0.44,0.9,0.05],[-0.44,0,0.05,0.9],[0.44,0,0.05,0.9]].forEach(([x,z,w,d])=>{ const b=part(P, rbox(w,0.03,d,0.01), fm, x,0.015,z); b.castShadow=false; });
-  [[-0.42,-0.42],[0.42,-0.42],[-0.42,0.42],[0.42,0.42]].forEach(([x,z])=>part(P, cyl(0.025,0.03,0.22,6), M(0xb07a4a), x,0.11,z));
+function drawLot(i, P){ /* (v436) 흰 줄 틀 → 고른 흙 자리 (살 수 있는 밭) */ const sp=part(P, rbox(0.86,0.03,0.86,0.06), M(0x8a6c48), 0,0.015,0); sp.castShadow=false;
+  for(let r=0;r<3;r++){ const f=part(P, rbox(0.7,0.012,0.05,0.005), M(0x735638), 0,0.033,-0.26+r*0.26); f.castShadow=false; }
+  [[-0.4,-0.4],[0.4,-0.4],[-0.4,0.4],[0.4,0.4]].forEach(([x,z])=>part(P, cyl(0.022,0.028,0.16,6), M(0xb07a4a), x,0.08,z));
   if((i-6)%2===0){ const L=LAND.find(l=>l.n>plotN), next=L && i<L.n; if(next){ const sg=scene.userData.lotTex || (scene.userData.lotTex=canvasTex(128,80,(g,w,h)=>{ g.fillStyle="#fff7e6"; g.fillRect(0,0,w,h); g.strokeStyle="#8a5a34"; g.lineWidth=6; g.strokeRect(3,3,w-6,h-6); g.fillStyle="#3f7a3a"; g.font="bold 24px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🌱 FOR",w/2,h/2-13); g.fillText("SALE",w/2,h/2+15); }));
       part(P, cyl(0.03,0.03,0.7,6), M(0x8a5a34), 0,0.35,0.3); const s=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.32), new THREE.MeshBasicMaterial({map:sg, side:THREE.DoubleSide})); s.position.set(0,0.7,0.33); P.add(s); } }
   P.userData.st="lot"+plotN; dirty=true; }
