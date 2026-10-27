@@ -28,8 +28,8 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
     const g=T.gnd, gp=gap(tg,p), rise=tg.max.y-(g?g.max.y:p.y);
     if(T.onG && g && g!==tg){
       const nx=p.x+dx*0.35, nz=p.z+dz*0.35, leaving=!inXZ(g,nx,nz);
-      const R=tg.move?1.1:2.0; if(leaving && (gp>R || rise>1.45)){ dx=dz=0; }   // 기다림 (움직이는 발판)
-      else if((leaving || rise>0.06) && gp<R && rise<1.5 && (leaving || gp<1.1)) T.buf=0.16;
+      const R=tg.move?1.1:2.0; if(tg.climb){ if(leaving && gp>0.12) T.buf=0.16; } else if(leaving && (gp>R || rise>1.45)){ dx=dz=0; }   // 기다림 (움직이는 발판)
+      else if(!tg.climb && (leaving || rise>0.06) && gp<R && rise<1.5 && (leaving || gp<1.1)) T.buf=0.16;
     }
     for(const s of T.S){ if(s.kind==="spin" && T.onG){ const a=-s.mesh.rotation.y, ex=Math.cos(a), ez=Math.sin(a), qx=p.x-s.c[0], qz=p.z-s.c[1], u=Math.max(-s.len,Math.min(s.len,qx*ex+qz*ez)), d=Math.hypot(qx-ex*u, qz-ez*u); if(d<0.75) T.buf=0.16; } }
     T.inp.x=dx; T.inp.y=-dz; H.twStep(dt);
@@ -70,7 +70,7 @@ async def main():
         await E("()=>{ HOUSE.TW.seed='2026-10-07'; document.getElementById('twE').click(); }")
         ok(await until("()=>HOUSE.place()==='tower' && HOUSE.TW.on"), "🟢 쉬움 → 타워 안")
         r = await E("()=>[HOUSE.TW.cps.length-1, HOUSE.TW.secs.includes('word'), document.getElementById('twUI').classList.contains('on'), getComputedStyle(document.querySelector('.bar.bot')).display, document.getElementById('twFloor').textContent, HOUSE.TW.cp]")
-        ok(r[0] == 6 and r[1] and r[2] and r[3] == "none" and r[4].startswith("0 /") and r[5] == 0, f"6층 · 🔤 단어 다리 꼭 · 조이스틱·점프 화면 (아래 독 숨김) {r}")
+        ok(r[0] == 6 and r[1] and r[2] and r[3] == "none" and r[4].startswith("1 / 6") and r[5] == 0, f"6층 · 🔤 단어 다리 꼭 · 조이스틱·점프 화면 (아래 독 숨김) {r}")
         await pg.wait_for_timeout(800); await pg.screenshot(path=OUT + "tower422_in.png")
         # ② 몸 — 시간이 멈춘 채로 직접 계산 (TW.bot)
         r = await E("""()=>{ const T=HOUSE.TW; T.bot=true; HOUSE.twRespawn(true); const y0=T.p.y, a=[T.onG, T.p.x, T.p.z]; T.yaw=0; T.inp.x=0; T.inp.y=0;
@@ -87,16 +87,23 @@ async def main():
         r = await E("""()=>{ const T=HOUSE.TW, G=T.S.filter(s=>s.kind==='glass'), good=G.find(s=>s.ok), bad=G.find(s=>!s.ok);
             const put=s=>{ T.p.set((s.min.x+s.max.x)/2, s.max.y+0.02, (s.min.z+s.max.z)/2); T.v.set(0,0,0); for(let i=0;i<4;i++) HOUSE.twStep(1/90); };
             put(good); const a=[good.on, T.onG, good.said]; put(bad); return a.concat([bad.on, bad.mesh.visible, G.filter(s=>s.ok).length, T.words.length]); }""")
-        ok(r[0] and r[1] and r[2] == 1 and r[3] is False and r[4] is False and r[5] == 2 and r[6] == 2, f"🔤 맞는 단어 유리 = 튼튼 · 틀린 유리 = 깨짐 (2줄) {r}")
+        ok(r[0] and r[1] and r[2] == 1 and r[3] is False and r[4] is False and r[5] == 3 and r[6] == 3, f"🔤 유리 다리: 맞는 단어 = 튼튼 · 틀린 단어 = 깨짐 (짝 3개) {r}")
+        # (v423) 🪜 사다리 기둥 · 카메라 면
+        r = await E("""()=>{ const T=HOUSE.TW; T.cp=0; HOUSE.twRespawn(true); const pad=T.cps[1], a=T.secR[0], last=T.S.slice(a[0],a[1]).filter(s=>s.kind!=='kill' && !s.move && s.kind!=='glass').pop();
+            const s0=T.side.slice(); T.p.set((last.min.x+last.max.x)/2, last.max.y+0.001, (last.min.z+last.max.z)/2); T.v.set(0,0,0);
+            const cx=(pad.min.x+pad.max.x)/2-T.p.x, cz=(pad.min.z+pad.max.z)/2-T.p.z, L=Math.hypot(cx,cz); T.yaw=0; T.inp.x=cx/L; T.inp.y=-cz/L; let climbed=0;
+            for(let i=0;i<360 && T.cp<1;i++){ HOUSE.twStep(1/90); if(T.climb) climbed=1; } T.inp.x=T.inp.y=0;
+            return [pad.climb, +(pad.max.y-last.max.y).toFixed(2), climbed, T.cp, s0.join(), T.side.join()]; }""")
+        ok(r[0] and r[1] > 1.6 and r[2] == 1 and r[3] == 1 and r[4] != r[5], f"🪜 사다리 기둥: 밀면 올라가서 🚩 2층 · 카메라가 다음 면으로 {r}")
         # ③ 날마다
         r = await E("""()=>{ const T=HOUSE.TW, sig=()=>T.secs.join()+'|'+T.S.length+'|'+T.hy.toFixed(2); T.seed='2026-10-07'; HOUSE.twBuild('hard'); const a=sig(); HOUSE.twBuild('hard'); const b=sig(); T.seed='2026-10-08'; HOUSE.twBuild('hard'); const c=sig(); return [a===b, a!==c, T.cps.length-1]; }""")
         ok(r[0] and r[1] and r[2] == 10, f"같은 날 = 같은 타워 · 다른 날 = 다른 타워 · 🔴 10층 {r}")
         r = await E("""()=>{ const T=HOUSE.TW, bad=[]; const solid=s=>s.min && s.kind!=='spin' && s.kind!=='floor';
-            for(const mode of ['easy','hard']) for(let d=1; d<=12; d++){ T.seed='2026-09-'+d; HOUSE.twBuild(mode); const own=new Map(); T.secR.forEach(([a,b],i)=>{ for(let j=a;j<b;j++) own.set(T.S[j], i); });
+            for(const mode of ['easy','hard']) for(let d=1; d<=12; d++){ T.seed='2026-09-'+d; HOUSE.twBuild(mode); const own=new Map(); T.secR.forEach(([a,b],i)=>{ for(let j=a;j<b;j++) own.set(T.S[j], i); }); T.cps.forEach((c,i)=>own.set(c, 'cp'+i));
               const L=T.S.filter(solid).filter(s=>own.has(s)); for(let i=0;i<L.length;i++) for(let j=i+1;j<L.length;j++){ const A=L[i], B=L[j]; if(own.get(A)===own.get(B)) continue;
                 const o=k=>Math.min(A.max[k],B.max[k])-Math.max(A.min[k],B.min[k]); if(o('x')>0.02 && o('y')>0.02 && o('z')>0.02) bad.push([mode,d,own.get(A),own.get(B),A.kind,B.kind]); } }
             return bad; }""")
-        ok(not r, f"층과 층의 발판이 겹치지 않음 (24개 타워) {r[:3]}")
+        ok(not r, f"층과 층의 발판·사다리 기둥이 겹치지 않음 (24개 타워) {r[:3]}")
         res = []
         for mode in ["easy", "hard"]:
             for seed in ["2026-11-%02d" % d for d in range(1, 9)]:
