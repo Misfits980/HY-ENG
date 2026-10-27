@@ -18,7 +18,7 @@ async def main():
             await pg.evaluate("()=>{ show('scSetup'); goStep(0); }"); await pg.wait_for_timeout(500)
             r=await pg.evaluate("""()=>{ const L=[...document.querySelectorAll('#selRule .tile.card')]; return L.map(t=>{ const b=t.getBoundingClientRect(); return [t.dataset.v, Math.round(b.top), Math.round(b.bottom), Math.round(b.left), Math.round(b.right), getComputedStyle(t).backgroundImage.indexOf('world-town')>=0]; }); }""")
             vs=[x[0] for x in r]; inside=all(x[1]>=0 and x[2]<=vw["height"]+1 and x[3]>=0 and x[4]<=vw["width"]+1 for x in r)
-            ok(vs==["normal","daily","town"] and inside and r[2][5], f"{vw['width']}×{vw['height']} 카드 3장 모두 화면 안 · 마을 그림 {r}")
+            ok(vs==["normal","daily","town","board"] and inside and r[2][5] and r[3][2]-r[3][1]>=90 and r[3][1]==r[2][1], f"{vw['width']}×{vw['height']} 카드 4장 모두 화면 안 · 마을 그림 · (v424) 🎲 보드게임 = My Town 옆 {r}")
             if vw["width"]==390:
                 await pg.screenshot(path=OUT+"town_card.png")
                 await pg.route("**/proto/house.html", lambda r: r.fulfill(status=200, content_type="text/html", body="<p>town</p>"))
