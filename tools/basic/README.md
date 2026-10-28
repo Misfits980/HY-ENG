@@ -18,4 +18,9 @@ build.py → COURSE(게임 코드는 손으로) · data/bex.json(교재 예문) 
    - w[en] = {d 영어 풀이 · hint 영어 힌트 · fam 짝 단어 · idm 숙어(pre/post) · fs/form/fpre/fpost/fopt 모양 바꿔 쓰기}
    - st[DAY] = [{t 제목 · ws 단어 · s 문장 6 [영,한] · ox [[영,한,참거짓]]×2 · tc 제목 고르기 · sm 요약(첫째가 답) · q 생각 질문 · ex 예시 답}]
 3. 게임: mv1 Stage 의 `pn` = DAY 번호 → `Study.storyFor` 가 그 DAY 짧은 글 중 안 읽은 것
-- 노션 Junior DAY 01~35 (QA 가 새로 만든 페이지) 는 아직 게임에 없음
+
+## (v443) 중등 voca 1 (mv0) = Junior DAY 01~35 · voca 2 (mv1) = DAY 36~70
+- DAY 01~35 는 노션 페이지 전체(표 1·2·3·짧은 글)를 `v6/junior/DAYnn.md` 한 파일로 (x/ 없음 — xtra.py 가 그 파일에서 [표 3]·짧은 글을 읽음)
+- v6.py: L4 이고 DAY ≤ 35 면 과 이름·교재 뜻 칸이 mv0. 적용은 늘 전체 한 번에:
+  `python3 tools/basic/v6.py apply --level L1 tools/basic/v6/ps/DAY*.md --level L2 tools/basic/v6/starter/DAY*.md --level L3 tools/basic/v6/basic/DAY*.md --level L4 tools/basic/v6/junior/DAY*.md tools/basic/v6/listen/JL*.md` → `python3 tools/talk/build.py` → `python3 tools/basic/xtra.py apply`
+- 새 게임 단어가 생기면 auto.json album 뒤쪽 앨범 짐작을 꼭 고칠 것 (v443: 490개 중 192개 고침)

@@ -23,7 +23,7 @@ async def main():
             if await E("()=>Object.keys(XT.w).length>500 && !!MIDX && Object.keys(XT.st).length>10"): break
             await pg.wait_for_timeout(250)
         r = await E("()=>[Object.keys(XT.w).length, Object.keys(XT.st).length, XT.st['36'].length, Study.lessons('mv1')[0].pn, Study.lessons('mv1')[0].n]")
-        ok(r[0] > 1000 and r[1] == 35 and r[2] == 2, f"① xtra.json: 단어 {r[0]} · DAY {r[1]} · DAY36 짧은 글 {r[2]}편 · mv1 첫 Stage pn/n {r[3:]}")
+        ok(r[0] > 1000 and r[1] >= 35 and r[2] == 2, f"① xtra.json: 단어 {r[0]} · DAY {r[1]} · DAY36 짧은 글 {r[2]}편 · mv1 첫 Stage pn/n {r[3:]}")
         # ② 문제 만들기
         r = await E("""()=>{ Study.ctx('mv1'); const L=Study.lessons('mv1').filter(x=>!x.fin), out={xfam:0, xidm:0, xfrm:0, bad:[]};
             L.forEach(les=>les.ws.forEach(w=>['xfam','xidm','xfrm'].forEach(t=>{ const q=Study.xQ(t, w, 'mv1', les.ws); if(!q) return; out[t]++;
