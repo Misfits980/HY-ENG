@@ -69,3 +69,141 @@
 | flexible | 형용사 | 유연한, 융통성 있는 | 잘 구부러지거나 상황에 맞게 바꿀 수 있는 것이에요. | — | — | — | A rubber band is flexible, so it can stretch easily. | 고무줄은 유연해서 쉽게 늘어나요. | Our teacher was flexible about the deadline for the art project. | 선생님은 미술 과제 마감일에 대해 융통성 있게 대해 주셨어요. | 1 | more flexible · most flexible | flexible about (에 융통성 있는) · a flexible schedule (유연한 일정) | — | — | — |
 
 어려운 말: bit (물었다, bite의 과거), cage (새장), centimeters (센티미터), character (등장인물), cheek (볼), circus (서커스), clinic (병원), deadline (마감일), dentist (치과 의사), drill (대피 훈련), earthquake (지진), flood (홍수), held (안았다, hold의 과거), icy (얼어붙은), indoors (실내에서), loose (흔들리는), midnight (자정), pond (연못), praise (칭찬하다), rode (탔다, ride의 과거), schedule (일정), shook (흔들렸다, shake의 과거), statue (동상), stretch (늘어나다), whisper (속삭이다), wore (입었다, wear의 과거), zookeeper (사육사)
+
+## [표 2] 게임 대화 표
+
+| 영어 | 상황 | A | B | A 해석 | B 해석 |
+| --- | --- | --- | --- | --- | --- |
+| since | 취미를 물어볼 때 | How long have you played the violin, Amy? | I have played it since I was seven years old. | 에이미, 바이올린 얼마나 오래 쳤어? | 일곱 살 때부터 쳐 왔어. |
+| since | 어제 결석한 이유 | Why didn't you come to the park yesterday? | Since my head hurt, I stayed home and slept all day. | 어제 왜 공원에 안 왔어? | 머리가 아파서 집에 있으면서 하루 종일 잤어. |
+| while | 전화를 못 받았을 때 | Why didn't you answer my call last night? | I was in the shower while you were calling. | 어젯밤에 왜 내 전화 안 받았어? | 네가 전화하는 동안 나는 샤워 중이었어. |
+| while | 도서관에서 조용히 | Why are you speaking so quietly in the library, Tom? | Others are studying, so we should whisper while we stay here. | 톰, 도서관에서 왜 그렇게 조용히 말해? | 다른 사람들이 공부하고 있으니까 여기 있는 동안은 속삭여야 해. |
+| discuss | 파티 계획을 세운 뒤 | Did you discuss the party plan with your parents, Mina? | Yes, they agreed, and I can invite five friends. | 미나, 파티 계획을 부모님과 의논했어? | 응, 좋다고 하셨고 친구 다섯 명을 초대해도 돼. |
+| discuss | 수학 문제가 어려울 때 | I don't understand this math question at all. | Let's discuss it together, and then I'll show you. | 이 수학 문제를 하나도 모르겠어. | 같이 이야기해 보자, 그러고 나서 내가 알려 줄게. |
+| detail | 보고서를 쓴 다음 날 | Did you finish the report for science class last night? | Almost, but I forgot one detail, so I stayed up late. | 어젯밤에 과학 시간 보고서 다 끝냈어? | 거의, 근데 세부 내용 하나를 잊어서 늦게까지 깨어 있었어. |
+| detail | 잃어버린 가방을 찾을 때 | Can you describe your lost bag in more detail? | Sure, it is blue and has a small star on it. | 잃어버린 가방을 더 자세히 설명해 줄 수 있나요? | 네, 파란색이고 작은 별이 하나 붙어 있어요. |
+| assembly | 아침 체육관에서 | Why were all the students in the gym this morning? | We had a special assembly about school safety rules. | 오늘 아침에 왜 학생들이 다 체육관에 있었어? | 학교 안전 규칙에 대한 특별 조회가 있었거든. |
+| assembly | 월요일 아침 모임 | Where do all the students gather on Monday mornings? | We meet in the big gym for assembly at nine. | 월요일 아침마다 학생들은 어디에 모여? | 우리는 아홉 시에 큰 체육관에 모여서 조회를 해. |
+| elegant | 학교 음악회가 끝난 뒤 | How was the school concert last Friday, Tom? | Great! Mina wore a long dress and looked really elegant. | 톰, 지난 금요일 학교 음악회는 어땠어? | 좋았어! 미나가 긴 드레스를 입었는데 정말 우아해 보였어. |
+| elegant | 가방을 고를 때 | Do you like this red bag or the black one? | The black one looks more elegant, so I choose it. | 이 빨간 가방이 좋아, 아니면 검은 가방이 좋아? | 검은 게 더 우아해 보여서 그걸로 고를래. |
+| oppose | 학급 투표가 끝난 뒤 | Did anyone oppose the new club rule yesterday? | No, everyone agreed, so the vote ended quickly. | 어제 새 동아리 규칙에 반대한 사람 있었어? | 아니, 다들 찬성해서 투표가 빨리 끝났어. |
+| oppose | 공원 공사 소식 | Why do you oppose building a parking lot here, Amy? | We need this green space for the children to play. | 에이미, 왜 여기에 주차장 짓는 걸 반대해? | 아이들이 놀 수 있게 이 초록 공간이 필요해서야. |
+| behavior | 선생님께 칭찬받은 뒤 | Why did the teacher praise you in front of everyone? | She liked my kind behavior toward the new student. | 선생님이 왜 모두 앞에서 너를 칭찬하셨어? | 내가 전학생에게 친절하게 행동한 걸 좋게 보셨어. |
+| behavior | 강아지를 훈련할 때 | My puppy bites the sofa and barks at night. | Your puppy's behavior will improve after a few training lessons. | 우리 강아지가 소파를 물어뜯고 밤에 짖어. | 강아지 행동은 몇 번 훈련을 받으면 나아질 거야. |
+| assure | 시험에 관해 물을 때 | Did the teacher assure you that the test is easy? | Yes, she said we only need to review chapter two. | 선생님이 시험이 쉽다고 안심시켜 주셨어? | 응, 2단원만 복습하면 된다고 하셨어. |
+| assure | 개가 무서울 때 | Are you sure the dog is friendly and safe? | Yes, I can assure you he never bites anyone. | 그 개 정말 순하고 안전한 거 맞아? | 응, 그 개는 절대 아무도 물지 않는다고 장담해. |
+| vaccination | 병원에 다녀온 뒤 | Why did you go to the clinic after school yesterday? | I needed a vaccination before our school trip next month. | 어제 방과 후에 왜 병원에 갔어? | 다음 달 학교 여행 전에 예방 접종이 필요했어. |
+| vaccination | 주사를 맞을 때 | Does it hurt a lot when you get a shot? | Only a little, and the vaccination keeps you healthy. | 주사 맞을 때 많이 아파? | 조금만 아파, 그리고 예방 접종은 너를 건강하게 지켜 줘. |
+| snow | 아침에 창밖을 볼 때 | Did it rain or snow in the city last night? | It was snowing, so the roads looked white this morning. | 어젯밤 도시에 비가 왔어, 눈이 왔어? | 눈이 와서 오늘 아침 길이 하얗게 보였어. |
+| snow | 겨울을 기다릴 때 | Why are you so excited about winter? | I love to play in the snow and make a snowman. | 너 왜 이렇게 겨울이 기대돼? | 눈 속에서 놀고 눈사람 만드는 게 정말 좋아. |
+| inch | 키를 재는 날 | How much taller did you get over the summer? | About one inch, and my pants look too short now. | 여름 동안 키가 얼마나 컸어? | 1인치쯤, 그래서 바지가 이제 너무 짧아 보여. |
+| inch | 나무 막대를 자를 때 | How long should I cut this wooden stick? | Cut it one inch shorter than the red line. | 이 나무 막대를 얼마나 길게 잘라야 해? | 빨간 선보다 1인치 짧게 잘라. |
+| jet | 집 위로 큰 소리가 날 때 | What was that loud sound over our house? | A jet passed above us, and the windows shook. | 우리 집 위에서 난 저 큰 소리는 뭐였어? | 제트기가 우리 위로 지나가서 창문이 흔들렸어. |
+| jet | 공항 견학 중에 | What kind of airplane can fly faster than sound? | A jet can, but a small plane cannot. | 소리보다 빨리 날 수 있는 비행기는 어떤 종류야? | 제트기는 할 수 있지만 작은 비행기는 못 해. |
+| nest | 나무 아래를 살필 때 | What did you find under the tree yesterday, Amy? | I found a tiny nest with three blue eggs. | 에이미, 어제 나무 아래에서 뭘 찾았어? | 파란 알이 세 개 든 작은 둥지를 찾았어. |
+| nest | 새를 관찰할 때 | Where do these birds live in the spring? | They make a nest on the high branches. | 이 새들은 봄에 어디에 살아? | 높은 나뭇가지 위에 둥지를 만들어. |
+| communication | 경기에 진 뒤 | Why did your group lose the game yesterday? | We had bad communication, so nobody heard the plan. | 어제 너희 모둠은 왜 경기에서 졌어? | 의사소통이 안 돼서 아무도 작전을 못 들었어. |
+| communication | 동아리 문제를 풀 때 | How can we avoid problems in our club? | Clear communication and careful listening can fix most of them. | 우리 동아리에서 문제를 어떻게 피할 수 있을까? | 분명한 의사소통과 주의 깊게 듣기가 대부분을 해결할 수 있어. |
+| hotline | 학교가 쉰 날에 | How did you find out about the school closing yesterday? | I called the hotline, and a kind person answered quickly. | 어제 학교가 쉰다는 걸 어떻게 알았어? | 직통 전화에 걸었더니 친절한 분이 빨리 받아 주셨어. |
+| hotline | 길을 잃었을 때 | Who should I call if I get lost in the city? | Dial the city hotline, and a worker will help you. | 도시에서 길을 잃으면 누구에게 전화해야 해요? | 시 직통 전화에 걸면 직원이 도와줄 거야. |
+| infant | 가게에서 아기가 울었을 때 | Who was crying so loudly in the store yesterday? | A hungry infant, but his mother held him gently. | 어제 가게에서 누가 그렇게 크게 울었어? | 배고픈 아기였는데 엄마가 부드럽게 안아 줬어. |
+| infant | 아기에게 간식을 줄 때 | Can I feed this baby some candy? | No, an infant is too young for hard food. | 이 아기한테 사탕 좀 먹여도 돼? | 안 돼, 영아는 딱딱한 음식을 먹기엔 너무 어려. |
+| disaster | 태풍이 지나간 다음 날 | Did the big storm hurt many people last night? | Not many, but the disaster broke some old roofs. | 어젯밤 큰 폭풍으로 많은 사람이 다쳤어? | 많진 않지만 그 재난으로 낡은 지붕 몇 개가 부서졌어. |
+| disaster | 지진 대비 수업에서 | What should we do during an earthquake at school? | Listen carefully in every disaster drill, and follow the teacher. | 학교에서 지진이 나면 우리는 뭘 해야 해요? | 모든 재난 훈련에서 잘 듣고 선생님을 따르렴. |
+| collar | 강아지가 머리를 흔들 때 | Why did the puppy shake his head so much? | His new collar was a bit tight around his neck. | 강아지가 왜 머리를 그렇게 많이 흔들었어? | 새 목걸이가 목에 조금 꽉 꼈거든. |
+| collar | 고양이 방울을 볼 때 | Where is the small bell on your cat? | It hangs from her pink collar near her neck. | 네 고양이의 작은 방울은 어디에 있어? | 목 가까이에 있는 분홍색 목걸이에 달려 있어. |
+| veterinarian | 토끼를 데려간 날 아침 | Where did you take your sick rabbit this morning? | I took him to the veterinarian, and he feels better. | 오늘 아침에 아픈 토끼를 어디로 데려갔어? | 수의사에게 데려갔는데 이제 좀 나아졌어. |
+| veterinarian | 개 다리가 아플 때 | Who can help my dog with his hurt leg? | A veterinarian can check it and tell you what to do. | 다친 우리 개 다리를 누가 도와줄 수 있어요? | 수의사가 살펴보고 어떻게 해야 할지 알려 줄 거야. |
+| tooth | 치과에 다녀온 날 | Why did you go to the dentist after school? | My back tooth hurt, so I wanted to check it. | 방과 후에 왜 치과에 갔어? | 어금니가 아파서 살펴보고 싶었어. |
+| tooth | 친구가 입을 만질 때 | Why does Amy keep touching her mouth? | She has a loose tooth, and it feels strange. | 에이미는 왜 계속 입을 만져? | 이가 흔들려서 느낌이 이상하대. |
+| medical | 경기가 끝난 뒤 | Where did the hurt player go after the game? | He went to the medical room, and a nurse helped. | 다친 선수는 경기 후에 어디로 갔어? | 의무실로 가서 간호사 선생님이 도와줬어. |
+| medical | 장래희망을 물을 때 | What do you want to be in the future? | I want to study medical science and help sick people. | 너는 나중에 뭐가 되고 싶어? | 나는 의학을 공부해서 아픈 사람들을 돕고 싶어. |
+| kiss | 할머니를 만났을 때 | What did Grandma do when she saw you yesterday? | She hugged me tightly and wanted to kiss my cheek. | 어제 할머니가 너를 보고 뭐 하셨어? | 나를 꼭 안아 주시고 볼에 뽀뽀하고 싶어 하셨어. |
+| kiss | 강아지가 얼굴을 핥을 때 | Why is your puppy licking your face so much? | He wants to kiss me because he is so happy. | 네 강아지는 왜 얼굴을 그렇게 많이 핥아? | 너무 기뻐서 나한테 뽀뽀하고 싶은 거야. |
+| clown | 서커스를 다녀온 뒤 | What did you see at the circus on Saturday? | A clown rode a tiny bike, and everyone laughed. | 토요일에 서커스에서 뭘 봤어? | 광대가 아주 작은 자전거를 탔는데 모두 웃었어. |
+| clown | 생일 파티를 준비할 때 | Who will make the kids laugh at the party? | A clown is coming, and he has many funny tricks. | 파티에서 누가 아이들을 웃게 해 줄까? | 광대가 올 건데 웃긴 재주가 많대. |
+| fuel | 버스가 멈춘 다음 날 | Why did the bus stop on the road yesterday? | The driver forgot to check the fuel before the trip. | 어제 버스가 왜 길에서 멈췄어? | 기사님이 여행 전에 연료를 확인하는 걸 깜빡했어. |
+| fuel | 자동차 비용을 아낄 때 | How can our family save money on the car? | Drive slowly, because fast driving uses more fuel. | 우리 가족이 자동차에 드는 돈을 어떻게 아낄 수 있을까? | 천천히 운전해, 빨리 달리면 연료가 더 들거든. |
+| liberty | 새가 날아간 뒤 | Why did the bird fly out so quickly yesterday? | It got its liberty after a long time in the cage. | 어제 새가 왜 그렇게 빨리 날아갔어? | 새장에 오래 있다가 자유를 얻었거든. |
+| liberty | 동상을 구경할 때 | What does that famous statue in New York stand for? | It stands for liberty and hope for all people. | 뉴욕에 있는 저 유명한 동상은 무엇을 뜻해요? | 모든 사람을 위한 자유와 희망을 뜻한단다. |
+| relate | 과학 수업이 끝난 뒤 | Did the science lesson make sense to you yesterday? | Yes, the teacher could relate each idea to daily life. | 어제 과학 수업이 이해가 됐어? | 응, 선생님이 모든 개념을 일상생활과 연결해 주셨어. |
+| relate | 책 이야기를 할 때 | Why do you like that book so much, Mina? | I can relate to the main character, because we both feel shy. | 미나, 그 책이 왜 그렇게 좋아? | 주인공한테 공감이 돼, 우리 둘 다 수줍음이 많거든. |
+| anytime | 선생님 방에 가기 전에 | Did the teacher say when you could visit her office? | Yes, she told me to come anytime after lunch. | 선생님이 언제 교무실에 와도 되는지 말씀하셨어? | 응, 점심 후엔 언제든 오라고 하셨어. |
+| anytime | 도움을 청할 때 | When is the best time to ask you for help? | Anytime! My phone is always on, so just call. | 언제 도움을 부탁하는 게 제일 좋아? | 언제든지! 내 전화는 항상 켜져 있으니까 그냥 전화해. |
+| leash | 개가 도망간 다음 날 | Why did the dog run away from you yesterday? | I dropped the leash when a cat jumped out. | 어제 개가 왜 너한테서 도망갔어? | 고양이가 튀어나올 때 내가 목줄을 놓쳤어. |
+| leash | 산책을 준비할 때 | Do I need anything to walk my dog outside? | Yes, take a strong leash and some water. | 개를 밖에서 산책시키려면 뭐가 필요해요? | 응, 튼튼한 목줄이랑 물을 챙겨 가. |
+| flexible | 춤 수업이 끝난 뒤 | Why did the dance teacher praise Yuna yesterday? | She was so flexible that she touched her toes easily. | 어제 춤 선생님이 왜 유나를 칭찬하셨어? | 몸이 아주 유연해서 발끝을 쉽게 만졌거든. |
+| flexible | 약속 시간을 바꿀 때 | Can we change the meeting time to Friday? | Sure, my schedule is flexible this week. | 모임 시간을 금요일로 바꿀 수 있을까? | 물론, 이번 주는 내 일정이 유연해. |
+
+## [표 3] 추가 단어 표
+
+| 영어 | 가족 단어 | 숙어 | 영어 힌트 | 바뀐 모양 예문 | 바뀐 모양 해석 |
+| --- | --- | --- | --- | --- | --- |
+| since | — | since then (그때부터 쭉) | from a time in the past until now | — | — |
+| while | — | once in a while (가끔) | during the time that something else is happening | — | — |
+| discuss | discussion (토론) | — | to talk about a topic with other people | Many families have discussed ways to save water at home this year. | 올해 많은 가족이 집에서 물을 아끼는 방법을 의논했어요. |
+| detail | detailed (자세한) | go into detail (자세히 말하다) | one small fact or part of a bigger thing | Mom wrote down the details of the party on a small card. | 엄마는 파티의 세부 내용을 작은 카드에 적어 두셨어요. |
+| assembly | assemble (모으다, 조립하다) | — | a meeting where many people come together in one place | Both assemblies in October were about sharing and being kind to others. | 10월에 있었던 두 번의 조회는 모두 나눔과 친절에 관한 것이었어요. |
+| elegant | elegance (우아함) · elegantly (우아하게) | — | beautiful and graceful in a way that shows good taste | The new concert hall is more elegant than the old gym. | 새 음악회장은 옛 체육관보다 더 우아해요. |
+| oppose | opposition (반대) · opponent (상대) | — | to say that you do not agree with a plan | Several neighbors are opposing the plan to cut down the old tree. | 여러 이웃이 오래된 나무를 베려는 계획에 반대하고 있어요. |
+| behavior | behave (행동하다) · behavioral (행동의) | on your best behavior (예의 바르게 행동하는) | the way a person or animal acts in different places | — | — |
+| assure | assurance (보장) · reassure (다시 안심시키다) | — | to tell someone that everything will be fine | We were assured that the museum would be open on Sunday. | 우리는 박물관이 일요일에 문을 열 거라는 확실한 말을 들었어요. |
+| vaccination | vaccine (백신) · vaccinate (예방 접종을 하다) | — | a shot that helps your body fight a sickness | Yuna's little brother needed two vaccinations before he could start school. | 유나의 어린 남동생은 학교를 시작하기 전에 예방 접종을 두 번 맞아야 했어요. |
+| snow | snowy (눈이 오는) · snowman (눈사람) | — | white, cold, soft pieces of ice that fall in winter | It is snowing outside, so let's wear our warm boots. | 밖에 눈이 오니까 따뜻한 부츠를 신어요. |
+| inch | — | — | a small unit used to measure how long something is | The ruler was twelve inches long, so it fit in my pencil case. | 그 자는 길이가 12인치여서 내 필통에 쏙 들어갔어요. |
+| jet | — | — | a fast airplane with very strong engines | Two jets flew over the stadium and left long white lines in the sky. | 제트기 두 대가 경기장 위를 날아가며 하늘에 긴 흰 선을 남겼어요. |
+| nest | — | — | a home that a bird builds for its eggs | Small nests made of grass and mud were under the bridge. | 풀과 진흙으로 만든 작은 둥지들이 다리 아래에 있었어요. |
+| communication | communicate (의사소통하다) · communicative (말을 잘 나누는) | — | the act of sharing ideas or news with other people | — | — |
+| hotline | — | — | a phone number that gives quick help or information | Many cities now have hotlines that give help in several languages. | 요즘 많은 도시에는 여러 언어로 도움을 주는 직통 전화가 있어요. |
+| infant | infancy (유아기) | — | a very young child who cannot walk or talk yet | Nurses at the clinic take care of sick infants every day. | 병원의 간호사들은 매일 아픈 영아들을 돌봐요. |
+| disaster | disastrous (끔찍한) | a recipe for disaster (실패가 뻔한 일) | a sudden event that causes great damage or loss | Volunteers helped the villages after two big disasters last year. | 자원봉사자들은 작년에 큰 재난이 두 번 지나간 뒤 마을들을 도왔어요. |
+| collar | collarbone (쇄골) | white-collar worker (사무직 직원) | the part of a shirt that goes around the neck | The coats had big collars that kept our necks warm in the wind. | 그 코트에는 바람 속에서 우리 목을 따뜻하게 해 주는 큰 옷깃이 달려 있었어요. |
+| veterinarian | veterinary (수의학의) | — | a doctor who takes care of sick animals | Two veterinarians at the animal clinic checked every dog on Monday. | 동물 병원의 수의사 두 분이 월요일에 모든 개를 살펴보셨어요. |
+| tooth | toothache (치통) · toothbrush (칫솔) | the tooth fairy (이빨 요정) | one of the hard white parts in your mouth for eating | My teeth felt too cold when I drank the ice water. | 얼음물을 마셨더니 이가 너무 시렸어요. |
+| medical | medicine (약, 의학) · medication (약물) | — | related to doctors, nurses, and the care of sick people | — | — |
+| kiss | — | — | to touch someone softly with your lips to say hello | The mother kissed her son goodbye at the school gate this morning. | 엄마는 오늘 아침 학교 정문에서 아들에게 작별 뽀뽀를 해 주었어요. |
+| clown | clownish (광대 같은) | class clown (반에서 웃기는 아이) | a funny performer in a bright costume at a circus | Three clowns juggled colorful balls in front of the happy children. | 광대 세 명이 행복한 아이들 앞에서 알록달록한 공을 저글링했어요. |
+| fuel | refuel (연료를 다시 채우다) | add fuel to the fire (불난 데 부채질하다) | gas or oil that makes an engine or heater work | — | — |
+| liberty | liberate (자유롭게 하다) | at liberty (마음대로 해도 되는) | the right to act and speak without being stopped | Students have some liberties at this school, such as choosing their own seats. | 이 학교의 학생들은 자기 자리를 직접 고르는 것 같은 몇 가지 자유를 누려요. |
+| relate | relation (관계) · relative (친척) | — | to connect two things or ideas in your mind | This lesson is related to what we learned about plants last week. | 이 수업은 지난주에 우리가 식물에 대해 배운 것과 관련돼 있어요. |
+| anytime | — | — | at any moment that you want | — | — |
+| leash | — | — | a long strap used to walk a dog | The pet shop sells bright leashes in red, green, and yellow. | 그 반려동물 가게는 빨강, 초록, 노랑의 밝은 색 목줄을 팔아요. |
+| flexible | flexibility (유연성) · flexibly (유연하게) | — | able to bend easily or change when needed | Young trees are more flexible than old ones, so they bend in the wind. | 어린 나무는 오래된 나무보다 더 유연해서 바람에 휘어요. |
+
+## [짧은 글 1]
+
+| 항목 | 영어 | 한국어 | 답 |
+| --- | --- | --- | --- |
+| 제목 | The Safety Assembly | 안전 조회 | — |
+| 쓴 단어 | assembly, assure, disaster, discuss, hotline | — | — |
+| 문장 1 | Last Monday morning, the whole school met in the gym for a safety assembly. | 지난 월요일 아침, 전교생이 체육관에 모여 안전 조회를 했어요. | — |
+| 문장 2 | First, the principal assured the students that the disaster drill was only practice. | 먼저 교장 선생님은 학생들에게 재난 대피 훈련이 연습일 뿐이라고 안심시켜 주셨어요. | — |
+| 문장 3 | Then the classes walked outside in a line and waited quietly on the field. | 그다음에 반별로 줄을 서서 밖으로 나가 운동장에서 조용히 기다렸어요. | — |
+| 문장 4 | After that, Mina's class discussed what to do in a real emergency. | 그 뒤에 미나네 반은 진짜 위급한 상황이 생기면 무엇을 해야 할지 의논했어요. | — |
+| 문장 5 | Finally, the teacher showed them a hotline number to call for help. | 마지막으로 선생님은 도움을 청할 때 걸 수 있는 직통 전화번호를 보여 주셨어요. | — |
+| 문장 6 | Everyone felt ready, and Mina wrote the number in her notebook. | 모두 준비가 된 느낌이었고, 미나는 그 번호를 공책에 적었어요. | — |
+| OX 1 | The students stayed inside their classrooms during the drill. | 학생들은 훈련 동안 교실 안에 머물렀어요. | X · 3 |
+| OX 2 | Mina's class talked about what to do in an emergency. | 미나네 반은 위급한 상황에서 무엇을 해야 할지 이야기했어요. | O · 4 |
+| 제목 고르기 | The Safety Assembly / A Day at the Zoo / Tom's New Bike | — | 1 |
+| 요약 고르기 | The school had a safety assembly, practiced a drill, and learned who to call. / The students canceled the drill because of rain. / Mina forgot her notebook and missed the assembly. | — | 1 |
+| 생각 질문 | Who would you ask for help at school? | 학교에서 너라면 누구에게 도움을 청할래? | — |
+| 예시 답 | I would ask my teacher first, and then I would call the hotline. | 나는 먼저 선생님께 부탁하고, 그다음에 직통 전화에 걸 거예요. | — |
+
+## [짧은 글 2]
+
+| 항목 | 영어 | 한국어 | 답 |
+| --- | --- | --- | --- |
+| 제목 | A Walk in the Park | 공원에서 한 산책 | — |
+| 쓴 단어 | leash, nest, jet, inch, anytime | — | — |
+| 문장 1 | Last Saturday, Tom took his dog to the park with a red leash. | 지난 토요일 톰은 빨간 목줄을 한 강아지를 데리고 공원에 갔어요. | — |
+| 문장 2 | First, they walked by the pond, and Tom found a tiny nest in a low tree. | 먼저 두 사람은 연못 옆을 걸었고, 톰은 낮은 나무에서 작은 둥지를 발견했어요. | — |
+| 문장 3 | Then a jet flew over the park, and the dog barked at the loud sound. | 그다음에 제트기 한 대가 공원 위로 날아갔고, 강아지는 큰 소리에 짖었어요. | — |
+| 문장 4 | After that, Tom saw a small snail that was only one inch long. | 그 뒤에 톰은 길이가 겨우 1인치밖에 안 되는 작은 달팽이를 보았어요. | — |
+| 문장 5 | Finally, they met Tom's mother at the gate, and she said they could visit the park anytime. | 마지막으로 두 사람은 문 앞에서 톰의 엄마를 만났고, 엄마는 언제든지 공원에 와도 된다고 말했어요. | — |
+| 문장 6 | Tom smiled, and the dog wagged its tail all the way home. | 톰은 활짝 웃었고, 강아지는 집에 가는 내내 꼬리를 흔들었어요. | — |
+| OX 1 | Tom went to the park without his dog. | 톰은 강아지 없이 공원에 갔어요. | X · 1 |
+| OX 2 | A jet flew over the park. | 제트기 한 대가 공원 위로 날아갔어요. | O · 3 |
+| 제목 고르기 | A Walk in the Park / The Lost Library Book / Amy's Birthday Party | — | 1 |
+| 요약 고르기 | Tom and his dog walked in the park, saw a nest and a jet, and were told they could return. / Tom lost his dog near the pond and went home alone. / Tom stayed home because of heavy rain. | — | 1 |
+| 생각 질문 | What would you like to see in a park? | 공원에서 너라면 무엇을 보고 싶어? | — |
+| 예시 답 | I would like to see a little bird sitting in its nest. | 나는 둥지에 앉아 있는 작은 새를 보고 싶어요. | — |
