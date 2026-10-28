@@ -146,6 +146,7 @@ def check(path, level, K):
         ir = infl_re(en)
         # (v314) 불규칙 모양(stole·kept·rose …)은 '변하는 모양' 칸에 적힌 꼴도 목표 단어로 친다
         fm = {x.lower() for x in re.findall(r"[A-Za-z][A-Za-z'-]*", d["변하는 모양"]) if " " not in en}
+        if " " in en: fm = {re.sub(r"^(명사|동사|형용사)\s+", "", x).strip().lower() for x in re.split(r"[·/]", d["변하는 모양"]) if re.search(r"[A-Za-z]", x)}   # (v443) got rid of
         fre = re.compile(r"(?<![A-Za-z'-])(" + "|".join(re.escape(x) for x in sorted(fm, key=len, reverse=True)) + r")(?![A-Za-z'-])", re.I) if fm else None
         for k in ("예문 1","예문 2"):
             s = d[k]

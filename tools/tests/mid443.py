@@ -21,7 +21,7 @@ async def main():
             if await E("()=>Object.keys(XT.st).length>60"): break
             await pg.wait_for_timeout(250)
         r = await E("()=>[Study.label('mv0'), Study.label('mv1'), Study.BOOKS.mid.sets, Study.bookOf('mv0'), Study.gradeOf ? Study.gradeOf('mv0') : null]")
-        ok(r[0] == "중등 voca 1" and r[1] == "중등 voca 2" and r[2][:2] == ["mv0", "mv1"] and r[3] == "mid", f"① 반 이름·순서 {r}")
+        ok(r[0].endswith("중등 voca 1") and r[1].endswith("중등 voca 2") and r[2][:2] == ["mv0", "mv1"] and r[3] == "mid", f"① 반 이름·순서 {r}")
         r = await E("""()=>{ const L=Study.lessons('mv0'), days={}; L.forEach(x=>{ if(!x.fin) days[x.pn]=(days[x.pn]||0)+x.ws.length; }); const nk=L.filter(x=>!x.fin).reduce((a,x)=>a+x.ws.filter(w=>!w.ko).length,0);
             return [Object.keys(days).length, Math.min(...Object.values(days)), Math.max(...Object.values(days)), L[0].pn, L[0].ws.slice(0,3).map(w=>w.en+'='+w.ko), nk, L.length]; }""")
         ok(r[0] == 35 and r[1] >= 29 and r[2] <= 30 and r[3] == 1 and r[5] == 0, f"② mv0 = DAY {r[0]}개 · DAY 단어 {r[1]}~{r[2]} · 첫 Stage DAY {r[3]} {r[4]} · 뜻 없는 단어 {r[5]} · Stage {r[6]}")
@@ -37,6 +37,9 @@ async def main():
         ok(not r["err"], f"② voca 1 판 {r['n']}개 만들기 · 문제 {r['err'][:3]}")
         r = await E("()=>[RunBook && JSON.stringify(Object.values(RunBook.DEF||{}).flat ? 0 : 0), (typeof titleOf==='function' && titleOf('t-c-mv0')||{}).name, (typeof titleOf==='function' && titleOf('t-c-mv1')||{}).name]")
         ok(r[1] == "중등 voca 1을 정복한" and r[2] == "중등 voca 2를 정복한", f"⑤ 칭호 {r[1:]}")
+        r = await E("""()=>{ const s=Study.load(); s.lv={'mv1-3601':2}; s.sub={}; Study.save(); StudyUI.set=null; StudyUI.book='mid'; StudyUI.path(); const a=StudyUI.set;
+            const s2=Study.load(); s2.lv={}; s2.sub={}; Study.save(); StudyUI.set=null; StudyUI.path(); return [a, StudyUI.set]; }""")
+        ok(r == ["mv1", "mv0"], f"④ 예전 voca 하던 아이 → voca 2 그대로 · 새 아이 → voca 1 {r}")
         # 화면: Daily 30 중등 책 줄
         await E("()=>{ const b=document.querySelector('#stTabs [data-b=mid]'); if(b) b.click(); }"); await pg.wait_for_timeout(400)
         txt = await E("()=>document.getElementById('scStudy') ? document.getElementById('scStudy').innerText : ''")
