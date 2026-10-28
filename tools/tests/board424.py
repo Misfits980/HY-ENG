@@ -28,7 +28,7 @@ async def main():
             return False
         await E("()=>FB.set('/hy/roster',{t:{a1:{n:'유치부',e:'🧸'}}, k:{k1:{n:'루아',t:'a1'}, k2:{n:'주호',t:'a1'}, k3:{n:'라언',t:'a1'}}}).then(()=>HyBoss.refresh(true))")
         ok(await E("()=>(Kid.me()||{}).id") == "k1", "이 기기 = 루아")
-        ok(await E("()=>{ const c=document.querySelector('#selRule [data-v=board]'); return !c.hidden && c.classList.contains('bdFix') && /점검/.test(c.textContent); }"), "(v440) 시작 화면 🎲 카드 = 🔧 점검 중 (보이지만 안 열림)")
+        ok(await E("()=>{ const c=document.querySelector('#selRule [data-v=join]'); return !!c && !document.querySelector('#selRule [data-v=board]') && /수업 게임/.test(c.textContent); }"), "(v441) 보드 카드 자리 = 🎮 수업 게임")
         # (v430) 새 3D 아이콘 그림 — 카드·상점·명단에 그림으로
         r = await E("()=>Promise.all(['blue','red','duel','event','shop','star','start','trap','mush','lock','swap','mag','coins','dice','trophy','gift'].flatMap(n=>['k','e'].map(s=>fetch('assets/board/'+s+'/'+n+'.webp').then(x=>x.ok)))).then(a=>a.every(Boolean))")
         ok(r, "아이콘 16개 × 판 2개 그림 파일")

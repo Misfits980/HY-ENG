@@ -3985,9 +3985,9 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
 /* 시작 화면 카드 (My Town 옆) */
 #scSetup .tRow2{display:flex;gap:10px;width:100%;flex:none}
 #scSetup #selRule .tile.card[data-v=board][hidden]{display:none !important}
-#scSetup #selRule .tile.card.bdFix{filter:saturate(.45) brightness(.9)} #scSetup #selRule .tile.card.bdFix .bdFixTag{color:#7a4a00;background:rgba(255,214,120,.95)}   /* (v440) 🔧 점검 중 (아이 화면) */   /* (v427) 사용자: "보드게임 아직 안 보여야 할 것 같은데" — 다시 만들 때까지 숨김 (Board.setup() 은 그대로) */
+#scSetup #selRule .tile.card .joinFix{display:inline-block;white-space:nowrap;line-height:1.4;font-style:normal;font-size:.9em;padding:0 5px;border-radius:99px;background:rgba(255,214,120,.9);color:#6a4200}   /* (v441) 🎮 수업 게임 카드 안 보드 = 점검 중 */   /* (v427) 사용자: "보드게임 아직 안 보여야 할 것 같은데" — 다시 만들 때까지 숨김 (Board.setup() 은 그대로) */
 #scSetup .tRow2>.tile.card, #scSetup #selRule .tRow2>.tile.card{flex:1 1 0 !important;min-width:0;width:auto !important}
-#scSetup #selRule .tile.card[data-v=board], body.ui-skin #scSetup #selRule .tile.card[data-v=board]{height:118px;flex:1 1 0;padding:0 14px 14px;background-image:url(assets/board/e/board.webp) !important;background-size:cover;background-position:center}
+#scSetup #selRule .tile.card[data-v=join], body.ui-skin #scSetup #selRule .tile.card[data-v=join]{height:118px;flex:1 1 0;padding:0 14px 14px;background-image:url(assets/board/e/board.webp) !important;background-size:cover;background-position:center}
 #scSetup #selRule .tRow2>.tile.card{padding:0 12px 12px !important;align-items:flex-start;text-align:left}
 #scSetup #selRule .tRow2>.tile.card b{font-size:min(21px, 5.4vw) !important;white-space:nowrap;line-height:1.15}
 #scSetup #selRule .tRow2>.tile.card small{font-size:11px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -4223,7 +4223,7 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
           <div class="tile card c-meadow sel" data-v="normal"><span class="mHero" id="ruleHero"></span><span class="mTag" id="ruleTag"></span><b>🗺️ Adventure</b><small>목숨 3개로 끝까지 달리기</small><span class="mStat" id="ruleStatN"></span></div>
           <div class="tile card c-night" data-v="daily"><span class="mRing" id="ruleRing"></span><b>📚 Daily 30</b><small>달리기 전에 단어 공부 · Stage마다 30단어</small><span class="mStat" id="ruleStatD"></span></div>
           <div class="tRow2"><div class="tile card c-town" data-v="town"><span class="townTag">🌱 맛보기</span><b>🏡 My Town</b><small>낚시 · 농사 · 집 꾸미기</small></div>
-          <div class="tile card c-board bdFix" data-v="board"><span class="townTag bdFixTag">🔧 점검 중</span><b>🎲 보드게임</b><small>서비스 점검 중이에요 · 곧 열려요!</small></div></div>
+          <div class="tile card c-board" data-v="join"><span class="townTag">🔢 방 번호</span><b>🎮 수업 게임</b><small>배틀 · 레이드 · 보드</small></div></div>
         </div>
       </div>
 
@@ -12498,11 +12498,13 @@ $("itemBox").addEventListener("click",e=>{ const b=e.target.closest && e.target.
   if(!Items.toggle(b.dataset.it)){ SFX.tone(220,.08,"square",.03); b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); } else SFX.click(); });
 
 /* (v428) 🎲 보드게임 미리 해 보기 — 주소 끝에 #board 를 붙여 열면 이 기기에서만 카드가 보임 (다시 숨기기: #noboard) */
-try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); if(localStorage.getItem("hyeng_board_try")){ const bc=document.querySelector('#selRule [data-v=board]'); if(bc){ bc.hidden=false; bc.classList.remove("bdFix"); bc.querySelector(".townTag").textContent="🧪 시범"; bc.querySelector("small").textContent="선생님 기기 · 시범으로 열기"; } } }catch(e){}
+try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); /* (v441) 보드게임 카드 자리는 🎮 수업 게임 — 선생님 시범은 관리자 「🎲 영어 파티 보드 시범」 */ }catch(e){}
 pickers("selRule", v=>{
   if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); return; }   // (v406) 🏡 My Town
   if(v==="daily"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; StudyUI.open(); return; }
+  /* (v441) 사용자: "Daily 30 이 게임 들어가는 발사대 같음 · 보드게임 자리에서 들어가게" → 🎮 수업 게임 카드 = 바로 이름·방 번호 (배틀·레이드·레이스·보드 수업판은 방 번호로 저절로 구분) */
+  if(v==="join"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ SFX.select(); }catch(e){} RaidJoin.open(); return; }
   if(v==="board"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal";
     /* (v440) 사용자: "애들한테 보이게 하는데 서비스 점검 중" — 아이 화면은 카드만 보이고 열리지 않음 · 선생님은 관리자 「🎲 영어 파티 보드 시범」(또는 #board 기기) */
     let tr=false; try{ tr=!!localStorage.getItem("hyeng_board_try"); }catch(e){} if(!tr){ try{ SFX.click(); }catch(e){} hyToast("🔧 🎲 보드게임은 지금 점검 중이에요<br><small>곧 열려요! 조금만 기다려 주세요</small>", 2200); return; }
@@ -14335,7 +14337,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v440";
+const GAME_VER = "v441";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14447,6 +14449,11 @@ $("btnHelp").addEventListener("click",()=>{ SFX.click(); $("shHelp").classList.a
    ⚠️ (v332 사용자) 공지는 아이가 신날 소식만 — 새 보스 · 새 캐릭터·스킨 · 새 놀이·이벤트 · 새 보상. 그림 바꿈 · 화면 정리 · 선생님 기능(시험·숙제·관리) · 버그 고침은 공지하지 않는다 (매일 '뭐 했다'가 뜨면 안 됨)
    ===================================================================== */
 const NEWS = [
+  {id:"2026-10-28a", date:"10월 28일", title:"🎮 수업 게임 들어가는 곳이 바뀌었어요!",
+   items:[
+     ["🎮","첫 화면 🎮 수업 게임","게임 시작 → 아래 🎮 수업 게임 → 이름 · 방 번호 4자리"],
+     ["📚","Daily 30 은 공부만","⚔️ 배틀·레이드 단추는 Daily 30 에서 빠졌어요"],
+     ["🎲","보드게임","지금은 점검 중 · 곧 열려요!"]]},
   {id:"2026-10-24b", date:"10월 24일", title:"🏠 주간 보스 싸움 화면이 따로 생겼어요!",
    items:[
      ["⚔️","싸우기를 누르면","보스와 나만 있는 큰 싸움 화면 · 순위와 보상은 대기실에서 봐요"],
@@ -15801,7 +15808,7 @@ const StudyUI = {
     const rc=this.getCur(), rcS=rc ? (rc.rv ? '🔁 복습' : Study.label(rc.set)+' '+Study.stageName(rc.set, rc.n))+' · '+rc.done+' / '+rc.total : '';
     $("stHead").innerHTML=(rc?'<button class="stResume" data-resume="1"><i>▶</i><span><b>이어 하기</b><small>'+rcS+'</small></span></button>':'')
       +subRow+'<b>'+U.emo+' '+U.nm+'</b> <span>'+U.sub+'</span><em>Stage '+fin+' / '+tot+'</em>'
-      +'<div class="stHead2">'+(sk?'<span class="stFire">'+ic('fire')+' '+sk+'일째 공부 중</span>':'<span class="stFire off">'+ic('fire')+' 오늘 한 Stage 하면 불이 붙어요</span>')+'<button class="stRaid" data-raidjoin="1">'+ic('swords')+' 배틀·레이드</button>'+(Gram.MAIN[bk] ? '<button class="stRaid stGN" data-gnote="'+bk+'">📒 문법 '+(Gram.D ? Gram.done(bk)+'/'+Gram.list(bk).length : '')+'</button>' : '')+'</div>';   // (v386)
+      +'<div class="stHead2">'+(sk?'<span class="stFire">'+ic('fire')+' '+sk+'일째 공부 중</span>':'<span class="stFire off">'+ic('fire')+' 오늘 한 Stage 하면 불이 붙어요</span>')+(Gram.MAIN[bk] ? '<button class="stRaid stGN" data-gnote="'+bk+'">📒 문법 '+(Gram.D ? Gram.done(bk)+'/'+Gram.list(bk).length : '')+'</button>' : '')+'</div>';   // (v386)
     if(Gram.MAIN[bk] && !Gram.D) Gram.load();
     const due=Study.due(this.set).length, rvDone=Wallet.paid("rv-"+Study.today());
     const rvLater = Study.load().rvLater===Study.today();
@@ -20177,7 +20184,7 @@ const Raid = {
       +'<div class="rdSide"><h4>🛡 방패 단어 (반 약한 단어)</h4><div class="rdSW">'+(c.SW.length?c.SW.map(w=>'<span class="'+(c.SB[w]?'br':'')+'">'+this.esc(w)+(c.SB[w]?' · '+this.esc(c.SB[w]):'')+'</span>').join(''):'<small>없음</small>')+'</div>'
       +'<h4>지금</h4><div class="rdFeed col">'+this.feed(8).map(e=>'<span>'+this.evTxt(e)+'</span>').join('')+'</div></div></div>');
     const s=st.s||"wait";
-    this.reg("rdC", '<div class="rdCtl">'+(s==="wait"?'<button class="stGo big" data-rdh="start">▶ 레이드 시작</button><p class="rdHint">아이들: Daily 30 위 ⚔️ 배틀·레이드 → 방 번호 '+this.esc(this.room)+'</p>'
+    this.reg("rdC", '<div class="rdCtl">'+(s==="wait"?'<button class="stGo big" data-rdh="start">▶ 레이드 시작</button><p class="rdHint">아이들: 첫 화면 🎮 수업 게임 → 방 번호 '+this.esc(this.room)+'</p>'
       : s==="end" ? '<div class="rdEndT">'+(c.hp<=0?'🎉 쓰러뜨림! 마지막 일격: '+this.esc(st.kill||''):'🏁 끝 · 남은 체력 '+Math.round(c.pct*100)+'%')+'</div><button class="stGo soft" data-rd="leave">닫기</button>'
       : '<button data-rdh="pause">'+(s==="pause"?'▶ 다시':'⏸ 멈춤')+'</button><button data-rdh="rage">'+(st.rage?'😌 분노 끄기':'⚡ 분노 시작')+'</button><button data-rdh="plus">➕ 3분</button><button class="warn" data-rdh="end">🏁 끝내기</button>')+'</div>'); }
 };
@@ -21687,7 +21694,7 @@ const Battle = {
       +'<div class="btFeed">'+(F.length ? F.map(x=>'<div class="btFd'+(x.d>=30?' big':'')+'">'+(au && this.AUTO_T[x.tm] ? this.AUTO_T[x.tm].e+' ' : '')+'<b>'+this.esc(x.n)+'</b> +'+x.d+(x.d>=30?' ⚡':'')+(x.sk>=3?' <small>🔥'+x.sk+'연속</small>':'')+'</div>').join('') : '<div class="btFd idle">맞히면 여기에 떠요</div>')+'</div></div>'; },
   podium(){ const P=this.T().p||{}; return '<div class="btPodium">'+this.rank().slice(0,3).map((k,i)=>'<div class="btP p'+(i+1)+'">'+(this.chr(P[k].c,'big') || '<i>'+(P[k].e||'🙂')+'</i>')+'<b>'+this.esc(P[k].n)+'</b><em>'+(P[k].sc|0)+'점</em><span>'+["🥇","🥈","🥉"][i]+'</span></div>').join('')+'</div>'; },
   teamCols(){ const P=this.T().p||{}; return '<div class="btCols">'+["r","b"].map(m=>'<div class="btCol '+m+'"><b>'+this.AUTO_T[m].e+' '+this.AUTO_T[m].n+' <small>'+Object.keys(P).filter(k=>P[k].tm===m).length+'명</small></b><div>'+Object.keys(P).filter(k=>P[k].tm===m).map(k=>'<span>'+(P[k].e||'🙂')+' '+this.esc(P[k].n)+'</span>').join('')+'</div></div>').join('')+'</div>'; },
-  bigRoom(){ return '<div class="rdBigRoom"><small>방 번호</small><b>'+this.esc(this.room)+'</b><small>Daily 30 위 ⚔️ 배틀·레이드 → 이 번호</small></div>'; },
+  bigRoom(){ return '<div class="rdBigRoom"><small>방 번호</small><b>'+this.esc(this.room)+'</b><small>첫 화면 🎮 수업 게임 → 이 번호</small></div>'; },
   miss(){ const P=this.T().p||{}; return RosterMiss.html(this.cfg().cls, Object.keys(P).map(k=>P[k].n)); },
   timerHtml(big){ const st=this.st(), c=this.cfg(), l=this.left(), tot=(c.dur||300)*1000, pc=Math.round(l/tot*100);
     const cd = st.s==="count" ? Math.max(1, Math.ceil((st.t0-this.now())/1000)) : 0;
@@ -21713,7 +21720,7 @@ const Battle = {
       Raid.reg("rdB", st.s==="wait" ? '<div class="rdWait">'+this.bigRoom()+'<b>들어온 아이 '+Object.keys(P).length+'명</b>'+(rt ? '<p>들어오면 빨강·파랑 팀으로 자동으로 나눠요 · 팀 점수 = 1인 평균</p>'+this.teamCols() : '<div class="rdPeople tcLine go">'+Object.keys(P).map(k=>'<span>'+(this.chr(P[k].c)||(P[k].e||'🙂'))+'<b>'+this.esc(P[k].n)+'</b></span>').join('')+'</div>')+this.miss()+'</div>'   /* (v410) 📺 들어온 아이 캐릭터가 제자리 걸음 */
         : st.s==="end" ? (rt ? this.runWinHtml() : '')+this.podium()+this.board(30,true)
         : (rt ? this.runBar(true) : '')+this.tvTop()+this.board(30, true));
-      Raid.reg("rdC", '<div class="rdCtl">'+(st.s==="wait"?((flag || this.isRun()) && this.auto() ? '<button class="stGo soft" data-bth="shuffle">🔀 팀 다시 섞기</button>' : '')+'<button class="stGo big" data-bth="start">'+(this.isRun()?'▶ 레이스 시작 (3·2·1)':'▶ 배틀 시작 (3·2·1)')+'</button><p class="rdHint">아이들: Daily 30 위 ⚔️ 배틀·레이드 → 방 번호 '+this.esc(this.room)+'</p>'
+      Raid.reg("rdC", '<div class="rdCtl">'+(st.s==="wait"?((flag || this.isRun()) && this.auto() ? '<button class="stGo soft" data-bth="shuffle">🔀 팀 다시 섞기</button>' : '')+'<button class="stGo big" data-bth="start">'+(this.isRun()?'▶ 레이스 시작 (3·2·1)':'▶ 배틀 시작 (3·2·1)')+'</button><p class="rdHint">아이들: 첫 화면 🎮 수업 게임 → 방 번호 '+this.esc(this.room)+'</p>'
         : st.s==="end" ? '<button class="stGo" data-bth="again">🔁 같은 설정으로 한 판 더</button><button class="stGo soft" data-bt="leave">닫기</button><p class="rdHint">한 판 더: 아이들은 그대로 이 방에서 기다려요 (방 번호 다시 안 쳐도 돼요)</p>' : '<button class="warn" data-bth="end">🏁 지금 끝내기</button>')+'</div>');
       return; }
     if(this.role!=="kid") return;

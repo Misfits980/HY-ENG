@@ -43,9 +43,11 @@ async def main():
           # ① 관리자에만
           c0 = await br.new_context(viewport={"width": 1180, "height": 820}); await c0.add_init_script("window.HY_FB_LOCAL=true;")
           pg = await c0.new_page(); pg.on("pageerror", lambda e: errs.append(str(e))); await boot(pg)
-          r = await pg.evaluate("""async ()=>{ localStorage.removeItem('hyeng_board_try'); const c=document.querySelector('#selRule [data-v=board]'); const vis=!!c && !c.hidden && getComputedStyle(c).display!=='none';
-              c.click(); await new Promise(z=>setTimeout(z,500)); return [vis, c.innerText.replace(/\\n/g,' '), !!document.getElementById('board'), (document.querySelector('.hyToast, #hyToast, .toast')||{}).innerText||document.body.innerText.indexOf('점검 중')>=0]; }""")
-          ok(r[0] and "점검" in r[1] and not r[2] and r[3], f"① 아이 화면: 🎲 보드게임 카드는 보이지만 「🔧 점검 중」 · 눌러도 안 열림 {r}")
+          r = await pg.evaluate("""async ()=>{ document.getElementById('btnGo').click(); await new Promise(z=>setTimeout(z,500)); const c=document.querySelector('#selRule [data-v=join]'); const vis=!!c && getComputedStyle(c).display!=='none' && c.offsetHeight>60;
+              c.click(); await new Promise(z=>setTimeout(z,600)); const rj=document.querySelector('.rdJoin'); const out=[vis, c.innerText.replace(/\\n/g,' '), !!rj && rj.offsetHeight>0, !!document.getElementById('board'), !!document.querySelector('#selRule [data-v=board]')]; try{ RaidJoin.close(); }catch(e){} return out; }""")
+          ok(r[0] and "수업 게임" in r[1] and r[2] and not r[3] and not r[4], f"① (v441) 첫 화면 🎮 수업 게임 카드 → 바로 이름·방 번호 창 {r}")
+          r = await pg.evaluate("()=>{ StudyUI.open(); return !!document.querySelector('[data-raidjoin]'); }")
+          ok(r is False, "① (v441) Daily 30 에서 ⚔️ 배틀·레이드 단추 빠짐")
           await pg.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok', String(Date.now())); sessionStorage.setItem('hyeng_admin_tk', 'testkey'); }")
           await pg.reload(); await pg.wait_for_timeout(1500)
           await pg.evaluate("()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); window.confirm=()=>true; Admin.open(); }"); await pg.wait_for_timeout(1200)
