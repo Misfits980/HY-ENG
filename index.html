@@ -920,6 +920,8 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .adFavE{flex:0 0 auto}.adFavTip{margin:0;padding:10px 14px;border-radius:14px;border:1px dashed rgba(255,211,106,.35);color:#b9b0e0;font-size:13px}.adFavTip b{color:#ffe9a8}
 .adFavSave{width:100%;margin-top:8px;min-height:42px}
 .adQRow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.adBdTry{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;text-align:left;padding:12px 16px;border-radius:16px;border:2px dashed #b48cff;background:rgba(180,140,255,.12);color:inherit;font:inherit;cursor:pointer;min-height:56px}
+.adBdTry span{grid-row:span 2;font-size:30px}.adBdTry b{font-size:16px}.adBdTry b i{font-style:normal;font-size:12px;padding:1px 7px;border-radius:99px;background:#b48cff;color:#fff;margin-left:6px;vertical-align:2px}.adBdTry small{opacity:.75;font-size:12px}
 .adQ{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:64px;padding:8px 4px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font:800 13.5px var(--font);cursor:pointer}.adQ span{font-size:22px;line-height:1}
 .adRm{border:2px solid rgba(143,227,255,.45);background:linear-gradient(180deg,rgba(60,140,200,.18),rgba(255,255,255,.03))}
 .adRm.s_run,.adRm.s_count{border-color:rgba(120,230,160,.6);background:linear-gradient(180deg,rgba(60,180,110,.18),rgba(255,255,255,.03))}
@@ -3982,7 +3984,8 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
 .mgCnt{font-size:80px;font-weight:900;color:#ffd23f;animation:bdPop .7s infinite}
 /* 시작 화면 카드 (My Town 옆) */
 #scSetup .tRow2{display:flex;gap:10px;width:100%;flex:none}
-#scSetup #selRule .tile.card[data-v=board][hidden]{display:none !important}   /* (v427) 사용자: "보드게임 아직 안 보여야 할 것 같은데" — 다시 만들 때까지 숨김 (Board.setup() 은 그대로) */
+#scSetup #selRule .tile.card[data-v=board][hidden]{display:none !important}
+#scSetup #selRule .tile.card.bdFix{filter:saturate(.45) brightness(.9)} #scSetup #selRule .tile.card.bdFix .bdFixTag{color:#7a4a00;background:rgba(255,214,120,.95)}   /* (v440) 🔧 점검 중 (아이 화면) */   /* (v427) 사용자: "보드게임 아직 안 보여야 할 것 같은데" — 다시 만들 때까지 숨김 (Board.setup() 은 그대로) */
 #scSetup .tRow2>.tile.card, #scSetup #selRule .tRow2>.tile.card{flex:1 1 0 !important;min-width:0;width:auto !important}
 #scSetup #selRule .tile.card[data-v=board], body.ui-skin #scSetup #selRule .tile.card[data-v=board]{height:118px;flex:1 1 0;padding:0 14px 14px;background-image:url(assets/board/e/board.webp) !important;background-size:cover;background-position:center}
 #scSetup #selRule .tRow2>.tile.card{padding:0 12px 12px !important;align-items:flex-start;text-align:left}
@@ -4220,7 +4223,7 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
           <div class="tile card c-meadow sel" data-v="normal"><span class="mHero" id="ruleHero"></span><span class="mTag" id="ruleTag"></span><b>🗺️ Adventure</b><small>목숨 3개로 끝까지 달리기</small><span class="mStat" id="ruleStatN"></span></div>
           <div class="tile card c-night" data-v="daily"><span class="mRing" id="ruleRing"></span><b>📚 Daily 30</b><small>달리기 전에 단어 공부 · Stage마다 30단어</small><span class="mStat" id="ruleStatD"></span></div>
           <div class="tRow2"><div class="tile card c-town" data-v="town"><span class="townTag">🌱 맛보기</span><b>🏡 My Town</b><small>낚시 · 농사 · 집 꾸미기</small></div>
-          <div class="tile card c-board" data-v="board" hidden><span class="townTag">✨ NEW</span><b>🎲 보드게임</b><small>2~4명 · 맞히면 주사위!</small></div></div>
+          <div class="tile card c-board bdFix" data-v="board"><span class="townTag bdFixTag">🔧 점검 중</span><b>🎲 보드게임</b><small>서비스 점검 중이에요 · 곧 열려요!</small></div></div>
         </div>
       </div>
 
@@ -12495,12 +12498,15 @@ $("itemBox").addEventListener("click",e=>{ const b=e.target.closest && e.target.
   if(!Items.toggle(b.dataset.it)){ SFX.tone(220,.08,"square",.03); b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); } else SFX.click(); });
 
 /* (v428) 🎲 보드게임 미리 해 보기 — 주소 끝에 #board 를 붙여 열면 이 기기에서만 카드가 보임 (다시 숨기기: #noboard) */
-try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); if(localStorage.getItem("hyeng_board_try")){ const bc=document.querySelector('#selRule [data-v=board]'); if(bc) bc.hidden=false; } }catch(e){}
+try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); if(localStorage.getItem("hyeng_board_try")){ const bc=document.querySelector('#selRule [data-v=board]'); if(bc){ bc.hidden=false; bc.classList.remove("bdFix"); bc.querySelector(".townTag").textContent="🧪 시범"; bc.querySelector("small").textContent="선생님 기기 · 시범으로 열기"; } } }catch(e){}
 pickers("selRule", v=>{
   if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); return; }   // (v406) 🏡 My Town
   if(v==="daily"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; StudyUI.open(); return; }
-  if(v==="board"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; Board.setup(); return; }   // (v424) 🎲 보드게임   // Daily 30 = 공부 화면 (v212)
+  if(v==="board"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal";
+    /* (v440) 사용자: "애들한테 보이게 하는데 서비스 점검 중" — 아이 화면은 카드만 보이고 열리지 않음 · 선생님은 관리자 「🎲 영어 파티 보드 시범」(또는 #board 기기) */
+    let tr=false; try{ tr=!!localStorage.getItem("hyeng_board_try"); }catch(e){} if(!tr){ try{ SFX.click(); }catch(e){} hyToast("🔧 🎲 보드게임은 지금 점검 중이에요<br><small>곧 열려요! 조금만 기다려 주세요</small>", 2200); return; }
+    Board.setup(); return; }   // (v424) 🎲 보드게임   // Daily 30 = 공부 화면 (v212)
   G.rule=v; nextStep(); });
 function refreshExtremeTile(){
   const t=$("tileExtreme"), sub=$("extremeSub"); if(!t) return;
@@ -14329,7 +14335,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v439";
+const GAME_VER = "v440";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20333,7 +20339,10 @@ const TvRoom = { K:"hyeng_tv_room",
   save(k, r){ const v = k ? JSON.stringify({k, r:String(r), at:Date.now()}) : null; [sessionStorage, localStorage].forEach(s=>{ try{ v ? s.setItem(this.K, v) : s.removeItem(this.K); }catch(e){} }); },
   get(){ for(const s of [sessionStorage, localStorage]){ try{ const v=JSON.parse(s.getItem(this.K)); if(v && v.r && Date.now()-(v.at||0)<3*3600e3) return v; }catch(e){} } return null; },
   /* 방이 아직 있으면 듣기만 다시 (방을 새로 쓰지 않음 — 아이들 점수 그대로) */
-  open(){ const v=this.get(); if(!v) return Promise.resolve(false); const base=(v.k==="battle"?"/battle/":"/raids/")+v.r;
+  open(){ const v=this.get(); if(!v) return Promise.resolve(false);
+    /* (v440) 점검: 📺 보드 수업판은 판이 TV 기억에만 있어 이어 갈 수 없음 → 패드에 「끝났어요」를 보내고 새로 만들게 (전에는 레이드 방으로 착각, 패드는 옛 카드에 멈춤) */
+    if(v.k==="board"){ try{ FB.update("/battle/"+v.r+"/st", {s:"end", bye:1, end:null, req:null, mg:null}); }catch(e){} this.save(null); return Promise.resolve(false); }
+    const base=(v.k==="battle"?"/battle/":"/raids/")+v.r;
     return FB.get(base+"/st").then(st=>{ if(!st){ this.save(null); return false; } if(v.k==="battle") Battle.reopen(v.r); else Raid.reopen(v.r); return true; }).catch(()=>false); }
 };
 /* (v395) 사용자: 관리 화면 편하게 + 기능 — 📡 수업 중 리모컨. TV 기기(방을 만든 기기)가 /hy/roster/live/<방> 에 방을 적고(만들 때 · 상태가 바뀔 때만 — 아이 기기도 명단을 들으니 자주 안 씀)
@@ -20547,7 +20556,7 @@ const Board = {
   bag(){ const p=this.me(); this.act('<div class="bdCard bdShop"><b>🎒 '+this.esc(p.n)+'의 아이템</b><div class="bdShopL">'+p.it.map(k=>'<button data-bd="use" data-k="'+k+'"><i>'+this.ic(k)+'</i><b>'+this.IT[k][1]+'</b><small>'+this.IT[k][2]+'</small></button>').join('')+'</div><button class="bdSkip" data-bd="back">← 그냥 굴릴래요</button></div>'); },
   use(k){ const o=this.o, p=this.me(), j=p.it.indexOf(k); if(j<0) return; const others=o.P.filter(x=>x!==p);
     if(k==="mush"){ p.it.splice(j,1); o.mush=1; this.ban("🍄 주사위 2개!", "good"); this.pl(); this.turnMenu(); return; }
-    if(k==="trap"){ if(o.T[p.pos]==="start" || o.T[p.pos]==="shop" || o.trap[p.pos]!=null){ hyToast("여기는 함정을 놓을 수 없어요", 1600); return; } p.it.splice(j,1); o.trap[p.pos]=p.i; try{ B3.tiles(); }catch(e){} this.ban("🔒 함정을 놓았어요!", "good"); this.pl(); this.turnMenu(); return; }
+    if(k==="trap"){ if(o.T[p.pos]==="start" || o.T[p.pos]==="shop" || o.trap[p.pos]!=null){ this.ban("🔒 여기는 함정을 놓을 수 없어요", "bad", 1400); this.turnMenu(); return; }   /* (v440) 점검: TV 모드에서 카드가 다시 안 가서 멈췄음 */ p.it.splice(j,1); o.trap[p.pos]=p.i; try{ B3.tiles(); }catch(e){} this.ban("🔒 함정을 놓았어요!", "good"); this.pl(); this.turnMenu(); return; }
     o.pick={k, j}; this.act('<div class="bdCard"><b>'+this.ic(k,"sm")+' 누구에게?</b><div class="bdTg">'+others.map(x=>'<button data-bd="tgt" data-i="'+x.i+'" style="--pc:'+x.col+'">'+this.pfh(x)+this.esc(x.n)+' <small>🪙'+x.coin+'</small></button>').join('')+'</div><button class="bdSkip" data-bd="back">← 취소</button></div>'); },
   tgt(i){ const o=this.o, p=this.me(), t=o.P[i], pk=o.pick; if(!pk || !t) return; o.pick=null;
     if(pk.k==="duel"){ this.duel(t); return; }
@@ -20647,7 +20656,7 @@ const Board = {
     let me=null; try{ me=Kid.me(); }catch(e){} let pad=""; try{ pad=(localStorage.getItem("hyeng_nick")||"").slice(0,14); }catch(e){}
     let K={}; try{ K=HyBoss.kids()||{}; }catch(e){}
     const one=(id, n, g)=>{ if((L.n[id]|0)>=this.DAYMAX) return 0; L.n[id]=(L.n[id]|0)+1;
-      if(me && me.id===id) try{ Wallet.addGems(g, "board"); }catch(e){}
+      if(me && me.id===id && !(this.o && this.o.tv)) try{ Wallet.addGems(g, "board"); }catch(e){}   /* (v440) 점검: 📺 TV 기기에 고른 이름이 남아 있으면 그 아이 보석이 TV 지갑으로 갔음 → TV 모드는 모두 선물로 */
       else try{ Gift.send("/hy/gift/"+Gift.sid(id)+"/"+FB.id(), {at:Date.now(), from:pad, n:String(n).slice(0,12), g}); }catch(e){}
       return g; };
     const out=R.map((x,i)=>{ const g=(this.GEMS[i]||3);
@@ -20698,8 +20707,9 @@ const BoardTV = {
       $("lbKids").innerHTML='<div class="lbTeams n'+n+'">'+Array.from({length:n},(x,t)=>'<div class="lbTeam" style="--pc:'+Board.COL[t]+'"><b>'+this.TEAMS[t][1]+' '+this.TEAMS[t][0]+' <small>'+K.filter(k=>tm[k.id]===t).length+'명</small></b>'
         +K.filter(k=>tm[k.id]===t).map(k=>'<button class="lbKid" data-lb="kid" data-id="'+E(k.id)+'">'+pf(k)+E(k.n)+'</button>').join('')+'</div>').join('')+'</div>'; }
     else $("lbKids").innerHTML=K.length ? '<div class="lbSolo">'+K.map((k,i)=>'<span class="lbKid" style="--pc:'+(Board.COL[i]||"#888")+'">'+pf(k)+E(k.n)+'</span>').join('')+'</div>' : '';
-    const ok = m==="team" ? K.length>=2 : (K.length>=2 && K.length<=8);
-    $("lbMsg").textContent = !K.length ? "아이들을 기다려요…" : K.length<2 ? "2명부터 시작할 수 있어요" : (m==="solo" && K.length>8) ? "개인전은 8명까지예요 — 👥 팀전으로 해요" : (m==="team" ? "아이 이름을 누르면 다른 팀으로 옮겨요" : K.length>6 ? "사람이 많아요 — 팀전이 더 빨라요" : "");
+    const tmN = m==="team" ? (()=>{ const tm=this.assign(); return new Set(K.map(k=>tm[k.id]).filter(t=>t!=null)).size; })() : 0;   /* (v440) 점검: 모두 한 팀이면 상대가 없어 결투·바꾸기에서 멈췄음 → 두 팀 이상 사람이 있어야 시작 */
+    const ok = m==="team" ? (K.length>=2 && tmN>=2) : (K.length>=2 && K.length<=8);
+    $("lbMsg").textContent = !K.length ? "아이들을 기다려요…" : K.length<2 ? "2명부터 시작할 수 있어요" : (m==="solo" && K.length>8) ? "개인전은 8명까지예요 — 👥 팀전으로 해요" : (m==="team" ? (tmN<2 && K.length>=2 ? "⚠️ 두 팀 이상에 아이가 있어야 시작해요" : "아이 이름을 누르면 다른 팀으로 옮겨요") : K.length>6 ? "사람이 많아요 — 팀전이 더 빨라요" : "");
     $("lbGo").disabled=!ok; $("lbGo").textContent="▶ 시작 ("+K.length+"명)";
     this.push(true); },
   /* ── 시작 ── */
@@ -20721,9 +20731,11 @@ const BoardTV = {
   /* ── Board.act → 패드 요청 ── */
   req(h){ const o=Board.o; if(!o) return; const A=$("bdAct");
     if(!h || o.fin || /class="bdEnd"/.test(h)){ this.rq=null; if(A) delete A.dataset.who; this.push(); return; }
-    const p=o.P[o.cur], isQ=/class="bdQ"/.test(h), mem=(p.mem||[]).map(m=>m.id), btn=/data-bd="(roll|use|buy|tgt|star|skip|back|bag|opt)"/.test(h);
-    const who = isQ ? mem : (o.ro ? [o.ro] : mem.slice(0,1));
-    this.rq={id:++this.rid, who, h:h.replace(/<span class="bdTm">.*?<\/span>/,""), q:isQ?1:0, multi:isQ && who.length>1, at:Date.now(), to: isQ ? (o.cfg.qsec||20)*1000 : (btn ? 15000 : 0), say:(isQ && o.q && /^(lsn|lsp)$/.test(o.q.t)) ? o.q.w.en : ""};
+    const p=o.P[o.cur], isQ=/class="bdQ"/.test(h), mem0=(p.mem||[]).map(m=>m.id), btn=/data-bd="(roll|use|buy|tgt|star|skip|back|bag|opt)"/.test(h);
+    /* (v440) 점검: 나갔거나 패드가 잠든(45초 소식 없음) 아이에게도 차례·문제를 보내 한 번에 15~20초씩 기다렸음 → 살아 있는 아이에게만 · 아무도 없으면 4초 뒤 대신 */
+    const PP=this.P||{}, live=id=>{ const x=PP[id]; return !!x && !x.out && Date.now()-(x.at||0)<45000; }, mem=mem0.filter(live), gone=!mem.length;
+    const who = isQ ? (gone ? mem0 : mem) : (o.ro && live(o.ro) ? [o.ro] : (gone ? mem0 : mem).slice(0,1));
+    this.rq={id:++this.rid, who, h:h.replace(/<span class="bdTm">.*?<\/span>/,""), q:isQ?1:0, multi:isQ && who.length>1, at:Date.now(), to: gone ? (btn||isQ ? 4000 : 0) : isQ ? (o.cfg.qsec||20)*1000 : (btn ? 15000 : 0), say:(isQ && o.q && /^(lsn|lsp)$/.test(o.q.t)) ? o.q.w.en : ""};
     this.votes={}; if(A && btn) A.dataset.who = isQ && who.length>1 ? "👥 "+p.n+" 모두" : (o.roN||p.n); else if(A) delete A.dataset.who;
     this.push(); },
   /* ── 패드에서 온 것 ── */
@@ -20735,7 +20747,10 @@ const BoardTV = {
       if(x.ch && x.ch.at && x.ch.at!==this.cheerAt[id]){ const first=this.cheerAt[id]==null; this.cheerAt[id]=x.ch.at; if(!first || Date.now()-x.ch.at<4000) this.cheer(x.ch.e, x.n); }
       const a=x.a, rq=this.rq; if(!a || !rq || a.r!==rq.id || this.seen[id+":"+a.r]) return; this.seen[id+":"+a.r]=1; if(rq.who.indexOf(id)<0) return;
       if(rq.multi){ if(a.a==="opt"){ this.votes[id]=+a.k; if(rq.who.every(w=>this.votes[w]!=null)) this.finish(); } return; }
-      this.rq=null; this.push(); Board.cmd(a.a, {k:a.k, i:a.i}); });
+      const A0=$("bdAct"), h0=A0 ? A0.innerHTML : "", rid0=this.rid;
+      this.rq=null; this.push(); Board.cmd(a.a, {k:a.k, i:a.i});
+      /* (v440) 점검: 아무 일도 안 일어난 누름(살 수 없는 물건·놓을 수 없는 자리 등)이면 같은 카드를 다시 보냄 — 아니면 패드에 단추가 없어 판이 멈춤 */
+      setTimeout(()=>{ const A=$("bdAct"); if(Board.o && !Board.o.fin && !this.rq && !this.mgO && this.rid===rid0 && A && A.innerHTML===h0 && /data-bd=/.test(h0)) this.req(h0); }, 400); });
     if(this.mgO) this.mgDraw(); },
   /* 팀원 모두 문제 → 절반 이상 맞히면 성공 */
   finish(){ const o=Board.o, rq=this.rq; if(!o || !rq || !o.q) return; this.rq=null; const q=o.q, ids=rq.who, V=this.votes;
@@ -20760,7 +20775,8 @@ const BoardTV = {
     d.innerHTML='<div class="tmHd"><img src="'+A+'em_'+kind+'.webp" alt=""><span><b>'+this.esc(this.mgS.t)+'</b><small>'+this.esc(N[1])+' · 📱 각자 패드로!</small></span><em id="tmT">3</em></div><div class="tmBars" id="tmBars"></div>';
     document.body.appendChild(d); this.mgDraw(); this.push(true); try{ TvCast.say("🎮 "+this.mgS.t+" — 모두 패드를 봐요!", 1); TvCast.ding("go"); }catch(e){} },
   mgSc(){ const m=this.mgO, P=this.P||{}, sc={};
-    m.P.forEach(p=>{ const L=(p.mem||[]).map(x=>{ const g=(P[x.id]||{}).mg; return g && g.id===m.id ? +g.sc||0 : 0; }); sc[p.i]= L.length ? Math.round(L.reduce((a,b)=>a+b,0)/L.length*10)/10 : 0; }); return sc; },
+    /* (v440) 점검: 안 들어온·나간 팀원의 0점까지 평균에 넣어 팀이 손해 → 이번 게임 점수를 보낸 팀원만 (아무도 없으면 0) */
+    m.P.forEach(p=>{ const L=(p.mem||[]).map(x=>{ const g=(P[x.id]||{}).mg; return g && g.id===m.id ? +g.sc||0 : null; }).filter(v=>v!=null); sc[p.i]= L.length ? Math.round(L.reduce((a,b)=>a+b,0)/L.length*10)/10 : 0; }); return sc; },
   mgDraw(){ const m=this.mgO, B=$("tmBars"); if(!m || !B) return; const sc=this.mgSc(), mx=Math.max(5, ...Object.values(sc)), E=x=>this.esc(x), R=m.P.slice().sort((a,b)=>sc[b.i]-sc[a.i]);
     B.innerHTML=R.map((p,r)=>'<div class="tmBar" style="--pc:'+p.col+'"><span>'+(r===0 && sc[p.i]>0 ? '👑 ' : '')+Board.pfh(p)+E(p.n)+(p.mem && p.mem.length>1 ? ' <small>'+p.mem.length+'명 평균</small>' : '')+'</span><i style="width:'+Math.max(2, sc[p.i]/mx*100)+'%"></i><em>'+sc[p.i]+'</em></div>').join(''); },
   mgTick(){ const m=this.mgO, el=(Date.now()-m.t0)/1000, T=$("tmT"), P=this.P||{};
@@ -22263,6 +22279,8 @@ const Admin = (function(){
     h+='<div class="full adTiles">'+TILES.map(([k,ic,nm,go,sub])=>'<div class="adTile'+(nowOpen===k?' open':'')+'" data-k="'+k+'"><div class="adTileH"><span class="adTileI">'+ic+'</span><div><b>'+nm+'</b><small>'+sub+'</small></div></div>'
       +'<p class="adTileS" id="adSum_'+k+'">…</p><div class="adTileB"><button class="play adStart" data-ad="'+go+'">▶ 바로 시작</button><button class="adEdit" data-ad="nowEdit" data-k="'+k+'">'+(nowOpen===k?'▲ 접기':'⚙ 바꾸기')+'</button></div></div>').join('')+'</div>';
     h+='<div class="full adForms'+(nowOpen?' on':'')+'" id="adForms" data-open="'+nowOpen+'">'+raid("play")+'</div>';
+    /* (v440) 🎲 보드게임 — 아이 화면에는 아직 숨김 · 관리자 화면에서만 시범 (사용자: "관리자 모드에만") */
+    h+='<button class="full adBdTry" data-ad="bdTry"><span>🎲</span><b>영어 파티 보드 <i>시범</i></b><small>한 패드 · 📺 TV + 각자 패드 — 아이 화면에는 「🔧 점검 중」으로만 보여요</small></button>';
     const C=HyBoss.C||{};
     h+='<div class="full adQRow">'+[["📝","시험 열기","go",' data-t="work" data-sec="adExSet"'],["📌","숙제 내기","go",' data-t="work" data-sec="adHwSet"'],["📢","공지","go",' data-t="send" data-sec="adNtText"'],["💎","보석·선물","go",' data-t="send"'],
       C.on ? ["📺","TV 주간 보스","wkTv",""] : ["👹","주간 보스","go",' data-t="work" data-sec="adWkS"']].map(([i,t,a,x])=>'<button class="adQ" data-ad="'+a+'"'+x+'><span>'+i+'</span>'+t+'</button>').join('')+'</div>';
@@ -22544,6 +22562,8 @@ const Admin = (function(){
     if(a==="wkRestart"){ if(!confirm("이번 주부터 1번 보스로 다시 시작할까요?\n\n· 새 보스는 체력 가득 — 지금 보스에 깎은 데미지는 이어지지 않아요\n· 아이들 ⚔️ 공격 기회는 새 보스로 그대로 옮겨요\n· 이미 쓰러뜨린 보스의 안 받은 보상은 그대로 받을 수 있어요")) return; HyBoss.setup({on:true, team:$("adWkT").checked, split:$("adWkS").value, restart:true}).then(()=>{ if(tab==='work'){ keepScroll=true; draw(); } }); msg("1번 보스부터 다시", true); return; }
     if(a==="tvBack"){ try{ $("shAdmin").classList.remove("on"); }catch(e){} TvRoom.open().then(ok=>{ if(!ok){ hyToast("📺 그 방은 이제 없어요 · 새로 만들어요"); try{ open(); }catch(e){} } }); return; }   // (v322) TV 방 다시 열기
     /* (v395) 방 만들기 = cfgOf(설정 칸) → startCfg (⭐ 즐겨찾기 · 🕘 최근 · ⚡ 지난번처럼 도 같은 길) */
+    if(a==="bdTry"){ if(BoardTV.room && Board.o && !Board.o.fin){ if(!confirm("진행 중인 📺 보드 수업판을 끝내고 새로 열까요?")) return; try{ BoardTV.stop(); }catch(e){} }
+      try{ $("shAdmin").classList.remove("on"); }catch(e){} try{ Board.setup(); }catch(e){ hyToast("🎲 보드게임을 열지 못했어요"); } return; }
     if(a==="rrGo"||a==="btGo"||a==="raidGo"){ startCfg(cfgOf({rrGo:"rr", btGo:"bt", raidGo:"rd"}[a])); return; }
     if(a==="btLast"){ const o=btLast(); if(o) startCfg({k:"bt", nm:"🏫 "+(o.lbl||"지난 배틀")+" "+Math.round((o.dur||300)/60)+"분", o}); return; }
     if(a==="favSave"){ const c=cfgOf(el.dataset.k); if(!c) return; const nm=(prompt("즐겨찾기 이름 (예: 목요일 3시 사자반 배틀)", c.nm.replace(/^\S+\s/,""))||"").trim().slice(0,30); if(!nm) return;
@@ -23719,6 +23739,7 @@ if("serviceWorker" in navigator){
     try{
       /* (v322) 레이드·배틀 중에는 화면이 가려져도(앱을 잠깐 내려도) 새로고침하지 않는다 — 방에서 튕겨 나갔다 */
       if((typeof Raid!=="undefined" && Raid.role) || (typeof Battle!=="undefined" && Battle.role)) return false;
+      if((typeof Board!=="undefined" && Board.o) || (typeof BoardTV!=="undefined" && BoardTV.room) || (typeof BoardPad!=="undefined" && BoardPad.room)) return false;   /* (v440) 점검: 보드게임 중 화면이 꺼지면 새 버전으로 바뀌며 판이 사라졌음 */
       /* (v322) 첫 화면이어도 보스 화면·이름 고르기·보상 창·레이드 입장 창이 떠 있으면 미룬다 (보스 공격 중에 새로고침됐다) */
       if(document.querySelector("#wbView, #kidPick, #wbPop, .rdJoin")) return false;
       if(G.running || G.paused) return false;            // (v289) QA: 달리는 중·일시정지 중에 화면을 내리면 바로 새로고침돼 판이 사라졌다 → 숨겨져 있어도 판 중이면 미룬다
