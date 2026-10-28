@@ -2087,6 +2087,50 @@ details.rdAgain,details.rdEx,details.bdMore{display:block}   /* (v442) 맨 위 d
 .stDue b{color:#ffe0b8}
 .stNext2 .stGo{word-break:keep-all}   /* (v444) "배우\n기" 처럼 글자 중간에서 줄바꿈 */
 @media (prefers-reduced-motion:reduce){.stGem.gpop{animation:none}}
+/* ── (v445) Stage 끝 화면 = 게임 승리 HUD (달리기 결과창 그림: 메달 result-badges · 응원 char-cheer · HUD 별 hud-icons · 금테 판) ── */
+.vTop{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;overflow:hidden;padding-top:4px;isolation:isolate}
+.vRays{position:absolute;left:50%;top:84px;width:400px;height:400px;margin:-200px 0 0 -200px;border-radius:50%;z-index:-1;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,rgba(255,214,110,.20) 0 9deg,rgba(255,214,110,0) 9deg 22.5deg);
+  -webkit-mask:radial-gradient(circle,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 18%,transparent 62%);animation:vSpin 40s linear infinite}
+.vTop.fail .vRays{background:repeating-conic-gradient(from 0deg,rgba(150,170,255,.10) 0 9deg,transparent 9deg 22.5deg)}
+@keyframes vSpin{to{transform:rotate(360deg)}}
+.vHero{height:150px;margin:0 auto -6px}
+.vHero .vHeroEmo{display:none}
+body:not(.cheer-ok) .vHero .resCheer{display:none} body:not(.cheer-ok) .vHero .vHeroEmo{display:block;position:absolute;left:50%;top:6px;margin-left:4px}
+body:not(.res-ok) .vHero .resMedal{display:none} body:not(.res-ok) .vHero .vHeroEmo{margin-left:-36px}
+.vHero.noMedal .resCheer{margin-left:-62px}
+.vHero.fail{height:auto;margin-bottom:4px}
+.vRib{position:relative;margin:2px auto 4px;padding:9px 26px 11px;max-width:calc(100% - 64px);z-index:1;
+  background:linear-gradient(180deg,#fff0a8 0%,#ffd04a 45%,#e8a023 100%);border:3px solid #150c28;border-radius:14px;
+  box-shadow:0 5px 0 #150c28,inset 0 3px 0 rgba(255,255,255,.65),inset 0 -4px 0 rgba(160,80,0,.35);animation:vRib .55s cubic-bezier(.2,1.5,.4,1) both}
+.vRib::before,.vRib::after{content:"";position:absolute;top:14px;bottom:-12px;width:34px;z-index:-1;background:linear-gradient(180deg,#e09a22,#b06a10);border:3px solid #150c28}
+.vRib::before{left:-24px;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,30% 50%);border-right:0}
+.vRib::after{right:-24px;clip-path:polygon(0 0,100% 0,70% 50%,100% 100%,0 100%);border-left:0}
+.vRib .stBigT{display:block;font-size:22px;line-height:1.2;color:#4a2600;text-shadow:0 1px 0 rgba(255,255,255,.6);letter-spacing:-.01em;word-break:keep-all}
+.vTop.fail .vRib{background:linear-gradient(180deg,#e6ecff,#a9b8e8 55%,#7c8cc4)} .vTop.fail .vRib::before,.vTop.fail .vRib::after{background:linear-gradient(180deg,#8d9bd0,#5d6aa0)}
+.vTop.fail .vRib .stBigT{color:#1c2350}
+@keyframes vRib{from{transform:scale(.4) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+.vStars{display:flex;justify-content:center;gap:4px;margin:8px 0 2px;font-size:0;letter-spacing:0}
+.vS{width:58px;height:58px;background:url(assets/ui/hud-icons.webp) no-repeat;background-size:800% 100%;background-position:71.43% 0;filter:grayscale(1) brightness(.32) drop-shadow(0 3px 0 rgba(0,0,0,.4))}
+.vS:nth-child(2){width:70px;height:70px;margin-top:-10px}
+.vS.on{filter:drop-shadow(0 4px 0 rgba(0,0,0,.35)) drop-shadow(0 0 10px rgba(255,210,80,.55));animation:vStar .5s cubic-bezier(.2,1.7,.4,1) var(--d) both}
+.vS.on.pu{filter:hue-rotate(225deg) saturate(1.6) drop-shadow(0 4px 0 rgba(0,0,0,.35)) drop-shadow(0 0 12px rgba(200,140,255,.7))}
+@keyframes vStar{0%{transform:scale(0) rotate(-60deg);opacity:0}70%{transform:scale(1.25) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+body:not(.hud-ok) .vS{background:none;font-size:52px;line-height:58px;filter:none;color:#4a3f6a} body:not(.hud-ok) .vS::before{content:"★"} body:not(.hud-ok) .vS.on{color:#ffd37a} body:not(.hud-ok) .vS.on.pu{color:#c98cff}
+.vSub{margin:4px 12px 10px!important;font-size:14px;font-weight:800;color:#e3dbff!important;max-width:340px}
+.vStreak{margin:0 0 8px!important}
+.vStat{border-image:url(assets/ui/ui-wide.webp) 56 fill / 16px 18px / 2px stretch;background:none!important;gap:0!important;padding:8px 6px 10px;width:min(360px,100%);box-sizing:border-box}
+.vStat > div{background:none!important;border:0!important;box-shadow:none!important;position:relative}
+.vStat > div + div::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:1px;background:rgba(201,162,74,.35)}
+.vI{display:block;width:30px;height:30px;margin:0 auto 2px;background:url(assets/ui/hud-icons.webp) no-repeat;background-size:800% 100%}
+.vI.st{background-position:71.43% 0} .vI.fi{background-position:100% 0} .vI.ck{background-position:57.14% 0}
+body:not(.hud-ok) .vI{display:none}
+.vGem{display:inline-block;width:34px;height:34px;background:url(assets/ui/ic-gem.webp) center/contain no-repeat;vertical-align:middle}
+.vSec{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:10px}
+.vSec > *{margin:0!important;width:auto!important;min-width:0;word-break:keep-all;font-size:15px!important;padding:12px 6px!important;line-height:1.25}
+.vSec > :only-child{grid-column:1 / -1}
+@media (prefers-reduced-motion:reduce){.vRays,.vRib,.vS.on{animation:none}}
+
 .stMiss{width:100%;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px}
 .stMiss small{width:100%;font-size:11.5px;color:#a99ed0;font-weight:800}
 .stMiss button{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;border-radius:10px;padding:6px 9px;font:800 13px var(--font);cursor:pointer}
@@ -14405,7 +14449,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v444";
+const GAME_VER = "v445";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16837,6 +16881,25 @@ const StudyUI = {
       const t=box.querySelector("b"); if(t) t.textContent = g>=5?'대박! 가장 큰 보물이에요!':g>=3?'와, 보석이 많이 나왔어요!':'보석을 찾았어요!';
       try{ SFX.tone(880,.2,"triangle",.05,1760); confetti(); }catch(e){} }, 650); },
   /* (v227) Stage 카드로 달리기 — 첫 번째만 보석·도감·랭킹, 그다음은 연습 */
+  /* (v445) 사용자: "끝 화면 싹 갈아엎자 · 조금 더 멋지게 · 우리 UI HUD 로" — 달리기 결과창과 같은 HUD 그림(메달·응원 캐릭터·HUD 별·금테 판)
+     별 상태: [노란 별 수, 보라 별 수] — 노란 3개를 채우면 칸이 보라로 (v325) */
+  vicStars(v, set, x){ let y=0, p=0;
+    if(set && x && Study.tierLes(set,x)){ const n=Study.starN(set,x); if(n<=3) y=n; else { y=3; p=Math.min(3, n-3); } }
+    else if(set && Study.BOOKS.k.sets.indexOf(set)>=0) y=Math.min(3, v);
+    else { y=Math.min(3, v); if(v>=3) p=1; }
+    return [y, p]; },
+  vicHead(pass, title, sub, v, set, x, oly){
+    const [y, p]=this.vicStars(v, set, x), medal = !pass ? -1 : p>=3 ? 3 : p>0 ? 2 : y-1;   // 0 동 · 1 은 · 2 금 · 3 왕관
+    const ci=Math.max(0, CHARACTERS.findIndex(c=>c.id===G.char)), wo=Wallet.wearing(G.char);
+    const chS = (wo && Outfit.ready[wo]!==false) ? 'background-image:url('+AP("outfit-"+wo+"-card.webp")+'),url('+AP("char-cheer.webp")+');background-size:contain,900% 100%;background-position:center bottom,'+(ci/8*100)+'% 0' : 'background-position:'+(ci/8*100)+'% 0';
+    const hero = pass ? '<div class="resHero vHero'+(medal<0?' noMedal':'')+'">'+(medal>=0?'<div class="resMedal pop" style="background-position:'+(medal/3*100)+'% 0"></div>':'')+'<div class="resCheer jump" style="'+chS+'"></div><div class="vHeroEmo">'+this.mas(true, true)+'</div></div>'
+                      : '<div class="vHero fail">'+this.mas(false, true)+'</div>';
+    const st = oly ? '<div class="stStars">'+this.stars(v, set, x)+'</div>'
+      : '<div class="stStars vStars">'+[0,1,2].map(i=>{ const pu=i<p, on=pu || i<y; return '<i class="vS'+(on?' on':'')+(pu?' pu':'')+'" style="--d:'+(0.45+i*0.28)+'s"></i>'; }).join('')+'</div>';
+    if(pass && !oly) [0,1,2].forEach(i=>{ if(i<y || i<p) setTimeout(()=>{ try{ SFX.tone(660+i*170, .12, "triangle", .05, 1320+i*200); }catch(e){} }, 450+i*280); });
+    return '<div class="vTop'+(pass?'':' fail')+'"><div class="vRays"></div>'+hero
+      +'<div class="vRib"><b class="stBigT">'+title+'</b></div>'+st+(sub?'<p class="vSub">'+sub+'</p>':'')+'</div>'; },
+  vicStat(acc){ return '<div class="stStat vStat"><div><i class="vI st"></i><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><i class="vI fi"></i><b>'+this.best+'</b><small>최고 콤보</small></div><div><i class="vI ck"></i><b>'+this.secs()+'초</b><small>걸린 시간</small></div></div>'; },
   runLbl(x){ const ran=((Study.load().ran)||{})[Study.key(this.set,x.n)];
     return ran ? '🏃 배운 단어로 달리기 <small>(연습)</small>' : '🏃 배운 단어로 달리기'; },   // (v243) 짧게
   /* (v226) 도감은 달리기에서만 모은다 — 공부는 '이제 달리면 도감 카드가 모여요'로 이어 준다 */
@@ -16946,15 +17009,15 @@ const StudyUI = {
     this.view("stDone");
     const v=Study.lv(set,x.n), miss=Object.keys(this.missed);
     this._lastMiss = miss.map(en=>(x.ws||[]).find(y=>y.en===en)||Study.word(en)).filter(Boolean);
-    $("stDoneIn").innerHTML=(pass ? '<div class="stDoneHero">'+this.mas(true, true)+'</div>' : '')+'<div class="stBigT">'+title+'</div><div class="stStars">'+this.stars(v, set, x)+'</div>'+(sub?'<p>'+sub+'</p>':'')   /* (v444) 사용자: 끝 화면 개선 — 내 캐릭터가 축하 */
-      +(fresh && sk>1 ? '<p class="stFireP">🔥 '+sk+'일째 공부 중!</p>' : '')
-      +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div><div><b>'+this.secs()+'초</b><small>걸린 시간</small></div></div>'
+    $("stDoneIn").innerHTML=this.vicHead(pass, title, sub, v, set, x, this.oly)   /* (v445) 끝 화면 새로 — HUD 메달·응원 캐릭터·리본·HUD 별 */
+      +(fresh && sk>1 ? '<p class="stFireP vStreak">🔥 '+sk+'일째 공부 중!</p>' : '')
+      +this.vicStat(acc)
       +(this.test ? '' : (()=>{ const tot=(x.ws||[]).length, met=tot-Study.unseenLeft(set,x.n), tm=Study.dueOn(Study.today()+1);   // (v242) Stage 단어 진행 · 내일 복습
           return (met<tot ? '<div class="stDProg">이 Stage 단어 '+met+' / '+tot+' 만남<span class="stPgBar"><span style="width:'+Math.round(met/Math.max(1,tot)*100)+'%"></span></span></div>' : '')   // (v444) 다 만났으면 막대는 뺌
             +(tm?'<p class="stDue">🔁 내일 복습 단어 <b>'+tm+'</b>개 · 💎+3</p>':''); })())
       +(()=>{ if(!pass || this.test || this.oly || !(this.tier===2 || this.tier===3)) return ''; const rd=Study.storyFor(set, x); if(!rd) return ''; this._rdx=x;   /* (v442) 📖 짧은 글 (중등) */
           return '<button class="stGo rdGo" data-read="1">📖 짧은 글 읽기 <small>「'+this.esc(rd.st.t[0])+'」 · 처음이면 💎1</small></button>'; })()
-      +(gems?'<div class="stGem gpop">💎 +'+gems+'</div>':'')
+      +(gems?'<div class="stGem gpop"><i class="vGem"></i>+'+gems+'</div>':'')
       +(dpGem?'<div class="stGem dp">💜 보라 별 보상 💎 +'+dpGem+'</div>':'')
       +(dpNew?'<div class="stDpNew">💜 심화가 열렸어요! 아래 보라색 <b>심화 도전</b>으로 바로 할 수 있어요</div>':'')
       +(conq?'<div class="stConq">🏷️ 새 칭호 <b>'+conq.emo+' '+this.esc(conq.name)+'</b> — 상점 칭호에서 골라요</div>':'')
@@ -16972,8 +17035,8 @@ const StudyUI = {
               : (T2===3 && lv2<Study.DL_MAX) ? '<button class="stGo same deep" data-same="'+k+'">💜 보라 별 '+Study.deepLv(set,x.n)+' 도전 <small>같은 Stage</small></button>' : ''; }
           const nb = nx ? '<button class="stGo'+(same?' nx':'')+'" data-next="'+(k+1)+'">▶ 다음 스테이지 <small>Stage '+Study.stageNo(set,nx.n)+(nx.fin?' 🚩':'')+'</small></button>' : '';
           return same && nb ? '<div class="stNext2">'+same+nb+'</div>' : same+nb; })()
-      +'<button class="stGo soft" id="stBack">스테이지로 돌아가기</button>'
-      +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl(x)+'</button>' : '');
+      +'<div class="vSec">'+'<button class="stGo soft" id="stBack">🗺️ 스테이지로</button>'   /* (v445) 아래 두 단추는 한 줄 */
+      +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl(x)+'</button>' : '')+'</div>';
     if(pass) try{ confetti(); }catch(e){}
     this.bossHit(this.tier===4 ? 5 : 3);
     this.log(pass, acc);
