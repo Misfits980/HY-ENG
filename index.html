@@ -14326,7 +14326,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v437";
+const GAME_VER = "v438";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -14907,7 +14907,7 @@ const Study = (function(){
   const canHear = () => Voice.canListen();
   /* 문제 모양 고르기 — 과 단계(⭐)가 오를수록 철자·듣기가 많아진다 */
   /* (v246) 사이트 워드 — 그림·뜻보다 '보자마자 읽기': 듣고 고르기 · 문장 빈칸 · 문장에서 들리는 단어 찾기(find) */
-  let swCtx=false, easyCtx=true, kidCtx=false, hiCtx=false, shortCtx=false; const ctx=set=>{ swCtx=!!(WORD_SETS[set]||{}).sight; const s2=set||load().set; shortCtx = s2==="short"; kidCtx = BOOKS.k.sets.indexOf(s2)>=0; easyCtx = kidCtx || s2==="basic"; hiCtx = ["g56","mid"].indexOf(bookOf(s2))>=0; }, isSW=w=>swCtx || !!(w && w.sw);   // 복습·다시 하기는 마지막으로 공부한 반 기준
+  let ctxSet=null, swCtx=false, easyCtx=true, kidCtx=false, hiCtx=false, shortCtx=false; const ctx=set=>{ swCtx=!!(WORD_SETS[set]||{}).sight; const s2=set||load().set; ctxSet=s2; shortCtx = s2==="short"; kidCtx = BOOKS.k.sets.indexOf(s2)>=0; easyCtx = kidCtx || s2==="basic"; hiCtx = ["g56","mid"].indexOf(bookOf(s2))>=0; }, isSW=w=>swCtx || !!(w && w.sw);   // 복습·다시 하기는 마지막으로 공부한 반 기준
   function swFix(bag, w){ if(!canSpell(w)){ delete bag.spell; delete bag.dict; } if(!canHear()){ delete bag.listen; delete bag.dict; delete bag.find; }
     if(!sentOf(w)){ delete bag.sent; delete bag.find; } if(!Object.keys(bag).length) bag.listen=1; return bag; }
   function pickType(w, level, test, phc){
@@ -14995,6 +14995,13 @@ const Study = (function(){
         같은 첫소리 찾기는 이중자음이면 bl·gl 처럼 두 글자 소리로 */
   let ONSET_BL=false;
   const phTopic = phc => phc!=null && phc!=="g12" && !/^c1/.test(String(phc));
+  /* (v438) 📈 보기 품질 — 시트 기록: 새 단어 판 정답률 90%대 · 문제당 3~4초 = '아는 단어 지우기'로 찍힘 (claude/hy-eng-ideas-daily30.md A1)
+     G3-4·G5-6·중등의 두 번째 만남부터: ①(level 1) 헷갈리는 짝/철자 비슷한 말 1개 + 같은 Stage 단어 ②(level 2~) ★2 확인과 같은 엄격한 보기(헷갈리는 짝·비슷한 철자 2 + 같은 Stage 1 + 같은 품사)
+     유치원·G1-2·사이트 워드·처음 보는 단계(level 0)는 그대로 */
+  function lOpts(w, pool, field, avoid, level){ const plain=()=>shuffle([w].concat(decoys(w, pool, 3, field, avoid)));
+    if(easyCtx || swCtx || !(level>=1) || !ctxSet || w.sw) return plain();
+    let P=null; try{ const sp=strictPool(w, ctxSet, pool); P = level>=2 ? sp : sp.slice(0,1).concat(shuffle(pool.slice()), sp.slice(1)); }catch(e){ P=null; }
+    if(!P) return plain(); const d=decoys(w, P, 3, field, avoid, true); return d.length>=3 ? shuffle([w].concat(d)) : plain(); }
   function makeQ(t, w, pool, level, phc){
     if(t==="vhear"){ const q=vhearQ(w, phc); if(q) return q; t="first"; }   // (v380)
     if(t==="svs"){ const q=svsQ(w, phc, pool); if(q) return q; t="first"; }
@@ -15039,9 +15046,9 @@ const Study = (function(){
         const toks=full.split(/\s+/).filter(Boolean).map(x=>({t:x, ok:x.replace(/[^A-Za-z'-]/g,"").toLowerCase()===lw}));
         if(toks.some(x=>x.ok) && toks.length>=3) return {t, w, st, toks}; }
       t="listen"; }
-    if(t==="sent"){ const st=sentOf(w); if(st) return {t, w, st, opts:shuffle([w].concat(decoys(w,pool,3,"en",blankAvoid(w))))};   // (v322) 빈칸에 같이 들어가는 말은 빼기
-      return {t:"k2e", w, opts:shuffle([w].concat(decoys(w,pool,3,"en")))}; }
-    return {t, w, opts:shuffle([w].concat(decoys(w,pool,3, t==="e2k"?"ko":"en")))};
+    if(t==="sent"){ const st=sentOf(w); if(st) return {t, w, st, opts:lOpts(w, pool, "en", blankAvoid(w), level)};   // (v322) 빈칸에 같이 들어가는 말은 빼기
+      return {t:"k2e", w, opts:lOpts(w, pool, "en", null, level)}; }
+    return {t, w, opts:lOpts(w, pool, t==="e2k"?"ko":"en", null, level)};
   }
   /* ── (v242) Daily 30 공부 흐름 ──
      ① 새 단어는 한 판에 최대 20개, 5개씩 묶어서 (동시에 익히는 단어 5개까지)
@@ -15645,6 +15652,11 @@ const Study = (function(){
      학년마다 (설계도 10/16): G1-2 영어로·듣기·철자 / G3-4 + 반대말 1 / G5-6 + 비슷한 말 1 · 과거형 1 / 중등 + 비슷한 말 · 헷갈리는 짝 · 영영풀이, '헷갈려요·몰라요' 단어는 한 번 더 ══ */
   const CHK = { g12:{k2e:5, listen:3, spell:2}, g34:{k2e:4, sent:3, listen:2, e2k:1}, g56:{k2e:3, sent:4, e2k:1, listen:1}, mid:{k2e:3, sent:4, e2k:1, def:2} };
   const CHK_SP = { g12:[], g34:["opp"], g56:["syn","pastc"], mid:["syn","conf2","def"] };
+  /* (v438) ⏱ 판 시간 짐작 — 시트 '오늘의 30 기록'(10/21~28, 끝까지 한 판)에서 잰 문제당 초. 새 단어 판(카드 포함) · ★3 · 💜 · ★2 확인 · 🚩 시험
+     중등 새 단어 판이 가장 김(문제당 9~10초 · 30~42문제 = 5~7분) */
+  const SEC_Q = { kid:[7,6,8,5,4], g12:[6,6,8,5,4], g34:[7,7,8,5,4], g56:[6,7,8,5,4], mid:[10,9,9,6,4] };
+  function estMin(set, T, qn, oly){ const gr=isKid(set) ? "kid" : (gradeOf(set)||"g34"), a=SEC_Q[gr]||SEC_Q.g34, i = oly ? 4 : T===2 ? 1 : T===3 ? 2 : (T===4||T===5) ? 3 : 0;
+    return Math.max(1, Math.round((qn|0)*a[i]/60)); }
   function cfWords(les){ const C=load().cf||{}; return les.ws.filter(w=>C[w.en]); }
   function cfSet(en, v){ const s=load(); s.cf=s.cf||{}; if(v) s.cf[en]=v; else delete s.cf[en]; save(); }
   function chkQ(t, w, set, own){
@@ -15735,7 +15747,7 @@ const Study = (function(){
     return qs;
   }
   return { hasHomo, ctx, gvWallet, hasFlag:set=>!!SPLIT[set], mig:()=>{ if(!m) load(); phMig(m); midMig(m); spMig(m); gvMig(m); tierMig(m); },
-    deepLv, dlCur:()=>dlNow, DL_MAX, buildExam, examWords, olyProf, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
+    deepLv, dlCur:()=>dlNow, DL_MAX, estMin, buildExam, examWords, olyProf, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} try{ Gift.add({st:[set,n,v]}); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
@@ -15919,8 +15931,9 @@ const StudyUI = {
     btn='<button class="stGo'+cls+'" data-act="go" data-i="'+i+'">'+(oly ? (v>=1?'⏱ 다시 시험 보기':'⏱ 마지막 시험 시작') : lbl)+'</button>'
       +(oly ? '<p>★5 큰 별 시험 · 문제마다 시간 제한 · 다시 안 나와요<br>50점 Stage 완성 · 80점 🌟 · 90점 🌟✨</p>' : need)+(v>0?'<button class="stRun" data-act="run" data-i="'+i+'">'+this.runLbl(x)+'</button>':'');
     const P=Study.plan(this.set, x.n)||{}, qn=P.qn||Math.max(Study.N, Math.min(x.ws.length, Study.MAXW)), fresh=!P.nw && !x.ws.some(w=>seen[w.en]);
+    const mn=Study.estMin(this.set, P.nw ? 1 : T, oly ? x.ws.length : qn, oly);   // (v438) ⏱ 걸리는 시간 (시트 기록으로 잰 문제당 초)
     const rd=WORD_SETS[this.set].reading;   // (v233) 리딩은 Unit 이름을 보여 주지 않는다
-    box.innerHTML='<div class="stPopIn"><button class="stPopX" type="button" data-popx aria-label="닫기">✕</button><b>'+WORD_SETS[this.set].icon+' Stage '+Study.stageNo(this.set,x.n)+(x.title && !rd?' · '+x.title:'')+'</b>'+' <small>'+(oly?'🚩 '+x.ws.length+'문제 · ':'')+(P.nw && !oly?'✨ 새 단어 '+P.nw+'개 · ':'')+(P.wu && !oly?'🔁 복습 '+P.wu+' · ':'')+(oly?'':'약 '+qn+'문제 · ')+(oly ? (v>=3?'🌟✨':v>=2?'🌟':v>=1?'완성':'큰 별 ★5') : T ? (n=>n<=3 ? '⭐ '+n+' / 3' : '💜 '+Math.min(3,n-3)+' / 3')(Study.starN(this.set,x)) : (v>=3?'💜 다 끝냄':'★ '+v+' / 3'))+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
+    box.innerHTML='<div class="stPopIn"><button class="stPopX" type="button" data-popx aria-label="닫기">✕</button><b>'+WORD_SETS[this.set].icon+' Stage '+Study.stageNo(this.set,x.n)+(x.title && !rd?' · '+x.title:'')+'</b>'+' <small>'+(oly?'🚩 '+x.ws.length+'문제 · ':'')+(P.nw && !oly?'✨ 새 단어 '+P.nw+'개 · ':'')+(P.wu && !oly?'🔁 복습 '+P.wu+' · ':'')+(oly?'':'약 '+qn+'문제 · ')+'⏱ 약 '+mn+'분 · '+(oly ? (v>=3?'🌟✨':v>=2?'🌟':v>=1?'완성':'큰 별 ★5') : T ? (n=>n<=3 ? '⭐ '+n+' / 3' : '💜 '+Math.min(3,n-3)+' / 3')(Study.starN(this.set,x)) : (v>=3?'💜 다 끝냄':'★ '+v+' / 3'))+(fresh?' · ✨ 새 단어':'')+'</small>'+btn+'</div>';
     box.classList.add("on");
   },
   /* ── 한 과 ── */
