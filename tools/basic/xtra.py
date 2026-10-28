@@ -67,7 +67,12 @@ def t1(day):
 
 def build():
     bad, warn, W, ST = [], [], {}, {}
-    for p in sorted(glob.glob(os.path.join(XD, "DAY*.md"))):
+    xs = {int(re.search(r"DAY(\d+)", q).group(1)): q for q in glob.glob(os.path.join(XD, "DAY*.md"))}
+    # (v443) DAY 1~35 는 노션 페이지 전체를 v6/junior/DAYnn.md 한 파일로 옮김 ([표 3]·짧은 글이 그 안에) — x/ 에 없으면 그 파일
+    for q in glob.glob(os.path.join(os.path.dirname(XD), "DAY*.md")):
+        d = int(re.search(r"DAY(\d+)", q).group(1))
+        if d not in xs and "[표 3]" in open(q, encoding="utf8").read(): xs[d] = q
+    for p in [xs[d] for d in sorted(xs)]:
         day = int(re.search(r"DAY(\d+)", p).group(1)); text = open(p, encoding="utf8").read(); T1 = t1(day)
         tag = "DAY%02d" % day
         X = rows(text, "[표 3] 추가 단어 표")

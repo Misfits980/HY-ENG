@@ -149,7 +149,9 @@ def check(path, level, K):
         fre = re.compile(r"(?<![A-Za-z'-])(" + "|".join(re.escape(x) for x in sorted(fm, key=len, reverse=True)) + r")(?![A-Za-z'-])", re.I) if fm else None
         for k in ("예문 1","예문 2"):
             s = d[k]
-            if not ir.search(s) and not (fre and fre.search(s)): bad.append(tag + f"{k}에 목표 단어가 없음: {s}")
+            if not ir.search(s) and not (fre and fre.search(s)):
+                if re.search(r"(?<![A-Za-z'-])" + re.escape(en) + r"'s\b", s, re.I): warn.append(tag + f"{k}: 목표 단어가 ~'s 꼴 (빈칸 문제에서 빠질 수 있음): {s}")   # (v443) puppet's
+                else: bad.append(tag + f"{k}에 목표 단어가 없음: {s}")
             n = len(words(s)); lo, hi = LEN_EX.get(level, (4, 16))
             if n < lo or n > hi: warn.append(tag + f"{k} {n}단어 ({level} {lo}~{hi})")
         if d["예문 2 뜻"] not in ("1","2"): bad.append(tag + f"예문 2 뜻 '{d['예문 2 뜻']}' (1·2)")
@@ -160,7 +162,7 @@ def check(path, level, K):
             warn.append(tag + "예문 1이 원형이 아님 (기본 빈칸 문제를 못 만듦)")
         if "→" in d["변하는 모양"]: bad.append(tag + "변하는 모양에 화살표")
         if d["품사 1"] == "동사" and d["변하는 모양"] != "—":
-            g = d["변하는 모양"].split(" / ")[0]; g = re.sub(r"^(명사|동사|형용사)\s+", "", g)
+            gs = d["변하는 모양"].split(" / "); g = next((x for x in gs if x.startswith("동사 ")), gs[0]); g = re.sub(r"^(명사|동사|형용사)\s+", "", g)   # (v443) '명사 … / 동사 …' 순서여도 동사 칸
             if len([x for x in g.split("·") if x.strip()]) != 4: bad.append(tag + f"동사 모양이 4개가 아님: {d['변하는 모양']}")
         if d["자주 쓰는 말"] != "—":
             cs = [c for c in d["자주 쓰는 말"].split(" · ") if c.strip()]
@@ -296,6 +298,7 @@ def to_auto(results, levels, days):
         if day is None: print("⚠️ DAY 번호를 몰라 과 목록에 넣지 않음 (파일 이름 DAYnn 또는 --day)"); continue
         jl = lv == "JL"; lv = "L4" if jl else lv          # (v314) 🎧 중등 리스닝 = L4 규칙 · 자기 과(jl) · src jl
         raw, setk = ("jl", "jl") if jl else (RAW[lv], SETK[lv])
+        if lv == "L4" and not jl and int(day) <= 35: raw = setk = "mv0"   # (v443) 중등 voca 1 = Junior DAY 1~35 · voca 2(mv1) = DAY 36~70
         ws = [d["영어"].lower() for d in res["rows"]]
         A["course"].setdefault(raw, {})[str(day)] = ws
         ko = {}

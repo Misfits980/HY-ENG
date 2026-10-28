@@ -5945,7 +5945,8 @@ const WORD_SETS = {
   /* (v231) 📖 리딩 1·2·3 — Daily 30 G5-6 아래 줄 · '이 Stage 단어로 달리기'에서만 쓴다 */
   rd1:   {label:"리딩 1",     icon:"📖", nm:"리딩 1", emo:"📖", grade:"초등 5~6학년", levels:[1,2,3], course:"rd1", reading:true},
   rd2:   {label:"리딩 2",     icon:"📖", nm:"리딩 2", emo:"📖", grade:"초등 5~6학년", levels:[1,2,3], course:"rd2", reading:true},
-  mv1:   {label:"중등 voca 1", icon:"🏫", nm:"중등 voca 1", emo:"📕", grade:"중등", levels:[2,3], course:"mv1", sense:true, dayT:true},   // (v256) 중학교 단어장 DAY
+  mv0:   {label:"중등 voca 1", icon:"🏫", nm:"중등 voca 1", emo:"📗", grade:"중등", levels:[2,3], course:"mv0", sense:true, dayT:true},   // (v443) 노션 Junior DAY 1~35 (사용자: voca1 · voca2 로 나눠)
+  mv1:   {label:"중등 voca 2", icon:"🏫", nm:"중등 voca 2", emo:"📕", grade:"중등", levels:[2,3], course:"mv1", sense:true, dayT:true},   // (v256) 중학교 단어장 DAY
   jl:    {label:"중등 리스닝", icon:"🎧", nm:"중등 리스닝", emo:"🎧", grade:"중등", levels:[1,2,3], course:"jl", sense:true,   // (v314) 듣기 교재 Unit = Stage (15단어)
           tt:["인사 / 자기소개","소개하기","묘사하기","일과 묻고 답하기","날씨 / 시간 표현","상태 표현","기쁨 / 즐거움","소망","불평 / 분노 / 슬픔","칭찬 / 축하","자신의 의견 표현","의견 묻고 답하기","도움 요청 / 제안","상대방 걱정하기","제의 / 제안 / 초대","보고 / 전달","사실 확인","정보 묻고 답하기","지시, 명령","경고, 충고","혼내기, 금지하기","물건 사기 / 음식 주문","길 묻고 안내","사건 묘사"]},
   rd3:   {label:"리딩 3",     icon:"📖", nm:"리딩 3", emo:"📖", grade:"초등 5~6학년", levels:[1,2,3], course:"rd3", reading:true},                 // level 0 = 표현(구문)만
@@ -6045,6 +6046,9 @@ const COURSE = {
    예전엔 한 칸씩 내려가 있었다 (1단계 = 유치원 그림 단어 · 2단계 = G1-2 · 3단계 = G3-4).
    유치원 '그림 단어'는 1단계 그대로 두고 (사용자: 그대로), G1-2 도 1단계. G5-6 '고학년 단어' 앞에 3단계(16~30과). 화면에는 교재 이름을 쓰지 않는다 */
 (function(){ const s1=COURSE.kinder, s2=COURSE.basic, s3=COURSE.elem; COURSE.basic=s1; COURSE.elem=s2; COURSE.g56=s3; })();
+COURSE.mv0 = {   /* (v443) 중등 voca 1 = Junior DAY 1~35 (tools/basic/v6/junior/DAY01~35.md → v6.py apply → sync) */
+    1:"film"
+};
 COURSE.mv1 = {
     36:"sculpture|vinegar|wind|apart|produce|scientific|versus|unusual|sting|punch|bumpy|futuristic|herbivore|crispy|gentleman|interior|mash|comprehend|needy|lately|coil|response|advertise|deceive|permit|boring|boundary|fellow|altogether|congress",
     37:"speed|aluminum|package|imagine|cheetah|gardener|instructor|paddle|approve|nightmare|visitor|bend|sir|sever|detective|illegal|crosswalk|recruitment|demand|bless|yard|compete|marry|architecture|bitter|careful|warrant|conflict|hopeful|pat",
@@ -6693,7 +6697,7 @@ const RunBook = (function(){
     basic: [["basic","1단계 Voca","📗"]],
     elem:  [["elem","2단계 Voca","📘"]],
     g56:   [["g56v","3단계 Voca","📙"],["g56h","고학년 단어","🧭"],["rd1","리딩 1","📖"],["rd2","리딩 2","📖"],["rd3","리딩 3","📖"]],
-    mid:   [["mv1","중등 Voca","📕"],["jl","중등 리스닝","🎧"],["mid","중등 단어","🏫"]] };
+    mid:   [["mv0","중등 Voca 1","📗"],["mv1","중등 Voca 2","📕"],["jl","중등 리스닝","🎧"],["mid","중등 단어","🏫"]] };
   const SRC = {g56v:["g56", x=>x.n>=10000], g56h:["g56", x=>x.n<10000]};
   const cache={};
   function lessons(id){
@@ -12552,7 +12556,7 @@ pickers("selSet", v=>{                                // 기본 모드 — 학�
 const BOOK_LOOK = { kinder:["#4f9fe0","#1f4f8a","#ffe36a"], abc:["#d8433a","#7a1814","#ff8a7a"], short:["#f08a2c","#8a3a0c","#ffc46b"], long:["#e0b02a","#7a5a0c","#fff1a0"],
   digr:["#2fa88a","#0f4a3a","#6ff0c8"], vowel2:["#8a52d6","#3a1a7a","#d6b0ff"], sight:["#e06a9a","#7a1f48","#ffb0d0"], basic:["#4caa3a","#1c5a14","#b0ff8a"],
   elem:["#3a6ad8","#142a6a","#8ab4ff"], g56v:["#c2551e","#6e2a0c","#ffb347"], g56h:["#2f8a6a","#124232","#5fe0b0"], rd1:["#3256b8","#16245c","#7fb2ff"],
-  rd2:["#6a3bb5","#2c1460","#c79bff"], rd3:["#a8326a","#4c0f2c","#ff8fc0"], mv1:["#a82a2a","#4a0c0c","#ff8a7a"], jl:["#1f8a9a","#0a3a44","#7ff0ff"], mid:["#2a3a7a","#0c1438","#d0e0ff"] };
+  rd2:["#6a3bb5","#2c1460","#c79bff"], rd3:["#a8326a","#4c0f2c","#ff8fc0"], mv0:["#2f8a4a","#0c3a18","#9ff0b0"], mv1:["#a82a2a","#4a0c0c","#ff8a7a"], jl:["#1f8a9a","#0a3a44","#7ff0ff"], mid:["#2a3a7a","#0c1438","#d0e0ff"] };
 const BOOK_ART = true;    // 마법책 그림(assets/books/book-<id>.webp)이 들어오면 true
 function bookStyle(id){ const L=BOOK_LOOK[id]||["#6a52d6","#2a1a6a","#ffd37a"];
   return '--b1:'+L[0]+';--b2:'+L[1]+';--g:'+L[2]+(BOOK_ART?';--art:url(assets/books/book-'+id+'.webp)':''); }
@@ -14639,7 +14643,7 @@ $("btnResume").addEventListener("click",()=>{
    맞힘·틀림은 Rank.record 로 기록되어 도감·등급·약한 단어에 그대로 쓰인다
 ===================================================================== */
 const Study = (function(){
-  const KEY="hyeng_study_v1"; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */ let mK=null; const SETS=["kinder","abc","short","long","digr","vowel2","sight","basic","elem","g56","rd1","rd2","rd3","mv1","jl","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
+  const KEY="hyeng_study_v1"; const KEYf=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };   /* (v417) 공용 패드 수업 모드 아이는 따로 칸 */ let mK=null; const SETS=["kinder","abc","short","long","digr","vowel2","sight","basic","elem","g56","rd1","rd2","rd3","mv0","mv1","jl","mid","phrase"], N=20, MAXW=30;   // (v225) 한 판에 과 단어를 모두 (30개까지)
   let m=null;
   function load(){ const K=KEYf(); if(m && mK===K) return m; mK=K; try{ m=JSON.parse(localStorage.getItem(K))||{}; }catch(e){ m={}; } m.lv=m.lv||{}; m.seen=m.seen||{}; if(!m.set) m.set="basic"; phMig(m); midMig(m); spMig(m); gvMig(m); tierMig(m); return m; }
   /* (v243) 예전 파닉스 Stage(짧은 a 20단어 = short-1 …)의 별 → 새 1-1 · 1-2 … 중 단어를 다 만난 Stage 로 옮긴다
@@ -14733,7 +14737,7 @@ const Study = (function(){
   }
   /* (v249) 초등 — 교재 과(25~30단어)를 10단어 안팎으로 나눈다: Stage 3 → 3-1 · 3-2 · 3-3 · 🚩(과 전체 모아서 복습)
      저장 번호 n = 과×100 + 순서 (예전 과 번호와 겹치지 않음) · pn = 교재 과 번호 (달리기·리딩 뜻은 과 기준) */
-  const SPLIT={basic:1, elem:1, g56:1, rd1:1, rd2:1, rd3:1, mv1:1, jl:1, mid:1};   // (v324) 중등 단어도
+  const SPLIT={basic:1, elem:1, g56:1, rd1:1, rd2:1, rd3:1, mv0:1, mv1:1, jl:1, mid:1};   // (v324) 중등 단어도
   function splitL(out){ const R=[];
     out.forEach((x,i)=>{ const L=x.ws.length, parts=Math.max(1, Math.ceil(L/12)), sz=Math.ceil(L/parts);
       if(parts<2){ R.push(Object.assign({}, x, {n:x.n*100+1, pn:x.n, wd:i+1, fin:true})); return; }
@@ -14909,7 +14913,7 @@ const Study = (function(){
                 g12:{nm:"Grade 1-2", tab:"G1-2",   emo:"🍎", sets:["basic"]},
                 g34:{nm:"Grade 3-4", tab:"G3-4",   emo:"🎒", sets:["elem"]},
                 g56:{nm:"Grade 5-6", tab:"G5-6",   emo:"🧭", sets:["g56","rd1","rd2","rd3"]},
-                mid:{nm:"중등",      tab:"중등",   emo:"🏫", sets:["mv1","jl","mid"]},
+                mid:{nm:"중등",      tab:"중등",   emo:"🏫", sets:["mv0","mv1","jl","mid"]},
                 ph: {nm:"표현",      tab:"표현",   emo:"🗣️", sets:["phrase"]} };
   const SUB={ kinder:{nm:"그림 단어", emo:"🖼️", sub:"그림으로 배우는 첫 단어"},
               abc:   {nm:"단자음",   emo:"🔤", sub:"첫소리 b · c · d … z"},
@@ -14924,7 +14928,8 @@ const Study = (function(){
               rd1:   {nm:"리딩 1",   emo:"📖", sub:"리딩책 1권 단어"},
               rd2:   {nm:"리딩 2",   emo:"📖", sub:"리딩책 2권 단어"},
               rd3:   {nm:"리딩 3",   emo:"📖", sub:"리딩책 3권 단어"},
-              mv1:   {nm:"중등 voca 1", emo:"📕", sub:"중학교 단어 · DAY 36~"},
+              mv0:   {nm:"중등 voca 1", emo:"📗", sub:"중학교 단어 · DAY 1~35"},
+              mv1:   {nm:"중등 voca 2", emo:"📕", sub:"중학교 단어 · DAY 36~70"},
               jl:    {nm:"중등 리스닝", emo:"🎧", sub:"듣기 대화 단어 · 24 Stage"},
               mid:   {nm:"중등 단어",  emo:"📙", sub:"중학교 필수 단어"},
               phrase:{nm:"표현",     emo:"🗣️", sub:"두 단어 이상 표현"} };
@@ -17627,7 +17632,8 @@ const TITLES = [
   {id:"t-c-rd1",   name:"리딩 1을 정복한",     emo:"💜", goal:"리딩 1 모든 Stage 💜 심화 깨기"},
   {id:"t-c-rd2",   name:"리딩 2를 정복한",     emo:"💜", goal:"리딩 2 모든 Stage 💜 심화 깨기"},
   {id:"t-c-rd3",   name:"리딩 3을 정복한",     emo:"💜", goal:"리딩 3 모든 Stage 💜 심화 깨기"},
-  {id:"t-c-mv1",   name:"중등 voca 1을 정복한", emo:"💜", goal:"중등 voca 1 모든 Stage 💜 심화 깨기"},
+  {id:"t-c-mv0",   name:"중등 voca 1을 정복한", emo:"💜", goal:"중등 voca 1 모든 Stage 💜 심화 깨기"},
+  {id:"t-c-mv1",   name:"중등 voca 2를 정복한", emo:"💜", goal:"중등 voca 2 모든 Stage 💜 심화 깨기"},
   {id:"t-c-jl",    name:"중등 리스닝을 정복한", emo:"💜", goal:"중등 리스닝 모든 Stage 💜 심화 깨기"},
   {id:"t-c-mid",   name:"중등을 정복한",       emo:"💜", goal:"중등 단어 모든 Stage 💜 심화 깨기"},
   /* (v310) 🏆 수업 레이드 시상식 칭호 — 레이드가 끝나면 상 받은 아이에게 */
@@ -18077,7 +18083,7 @@ const Dex = (function(){
          10단어도 안 되는 주제는 '여러 단어' 한 권으로 모은다. 다음 단계 칸 섞기(mixUp)는 학년을 섞게 되므로 쓰지 않는다 */
       const gOf={}, BK=Study.BOOKS, GIDS=Object.keys(BK);
       /* (v256) 교재 단계가 먼저 (1단계 = G1-2 · 2단계 = G3-4 · 3단계 = G5-6 · 중학교 단어장 = 중등) → 파닉스·그림 단어 → 리딩 · 나머지 */
-      const PRI=["basic","elem","g56","mv1","jl","abc","short","long","digr","vowel2","sight","kinder","rd1","rd2","rd3","mid","phrase"];
+      const PRI=["basic","elem","g56","mv0","mv1","jl","abc","short","long","digr","vowel2","sight","kinder","rd1","rd2","rd3","mid","phrase"];
       try{ PRI.forEach(st=>{ const g=Study.bookOf(st); Study.lessons(st).forEach(l=>l.ws.forEach(w=>{ if(!gOf[w.en]) gOf[w.en]=g; })); }); }catch(e){}
       const gradeOf=w=>gOf[w.en] || ({0:"k",1:"g12",2:"g56",3:"mid"})[w.level] || "g12";
       const TG={act1:"act",act2:"act",act3:"act",feel1:"feel",feel2:"feel",mind1:"mind",mind2:"mind"}, TN={act:["🏃","움직임"],feel:["😊","느낌·모양"],mind:["💬","생각·말"]};
@@ -19628,7 +19634,7 @@ const Cup = {
 };
 const BossPat = {   // (v390 → v392) 판정 시간만 남김
   WIN:{low:{p:190, g:420}, mid:{p:150, g:340}, high:{p:120, g:280}},
-  win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; }
+  win(book){ const b=String(book||""); return /^(k|g12|kinder|basic|abc|short|long|digr|vowel2|sight)$/.test(b) ? this.WIN.low : /^(mid|mv0|mv1|jl)$/.test(b) ? this.WIN.high : this.WIN.mid; }
 };
 const BossLive = {
   S:null, STEP:70,
@@ -21893,7 +21899,7 @@ const Admin = (function(){
     const sets=[].concat(...Object.keys(BK).filter(k=>k!=="ph").map(k=>BK[k].sets)), sopt=sets.map(st=>'<option value="'+st+'"'+(st==="g56"?' selected':'')+'>'+esc(Study.label(st))+'</option>').join('');
     /* (v389) 🏃 달리기 레이스 — 교실 배틀 방을 kind "run" 으로 */
     if(part==="play") h+='<div class="adForm" id="adF_rr">'+card('🏃 달리기 레이스 (워드 게이트 러너로 대결)', info('다 같이 달리기 · 같은 단어 · 같은 난이도 · 같은 시간 · 아이 머리 위에 지금 순위(🥇 1등 · 4등 / 12명)만 보여요 · 두 팀이면 팀 1인 평균 점수로 승부 · 1·2·3등 💎5·3·2 (두 팀: 이긴 팀 💎4 · 진 팀 💎2)')
-      +'<div class="adPinRow"><label class="adL">단어</label><select id="adRrSet"><option value="stg" selected>🎯 책 · Stage 골라서 (몇 과까지)</option>'+["basic","elem","g56","mid","mv1","all"].filter(k=>WORD_SETS[k]).map(k=>'<option value="'+k+'">'+esc(WORD_SETS[k].label)+' 전체</option>').join('')+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">단어</label><select id="adRrSet"><option value="stg" selected>🎯 책 · Stage 골라서 (몇 과까지)</option>'+["basic","elem","g56","mid","mv0","mv1","all"].filter(k=>WORD_SETS[k]).map(k=>'<option value="'+k+'">'+esc(WORD_SETS[k].label)+' 전체</option>').join('')+'</select></div>'
       +'<div id="adRrStg"><div class="adPinRow"><label class="adL">책</label><select id="adRrBk">'+sopt+'</select></div><div class="adPinRow"><label class="adL">Stage 부터</label><select id="adRrFrom"></select></div><div class="adPinRow"><label class="adL">Stage 까지</label><select id="adRrTo"></select></div></div>'
       +'<div class="adPinRow"><label class="adL">방식</label><select id="adRrMode"><option value="score">🏃 개인 레이스 (반 전체 순위)</option><option value="auto">🔴🔵 빨강 vs 파랑 (자동으로 나눠요)</option></select></div>'
       +'<div class="adPinRow"><label class="adL">시간</label><select id="adRrDur"><option value="120">2분</option><option value="180" selected>3분</option><option value="300">5분</option><option value="420">7분</option><option value="600">10분</option><option value="3600">⏹ 선생님이 끝낼 때까지</option></select></div>'
