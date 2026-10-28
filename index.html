@@ -14329,7 +14329,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v438";
+const GAME_VER = "v439";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16027,8 +16027,8 @@ const StudyUI = {
       : (R>1 && !this.test && !this.oly && !this.chk && !this.rv) ? "라운드 "+Math.min(R, Math.floor(this.done/this.RND)+1)+"/"+R : ""; }
     const c=$("stCombo"); if(c){ c.textContent = this.combo>=2 ? "🔥 "+this.combo : ""; c.className="stCombo"+(this.combo>=5?" hot":""); } },
   esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
-  /* (v439) 낮은 학년 도움 — G1-2·G3-4(·유치원) 배우는 판의 문장·대화 빈칸: 해석을 보여 주고 빈칸 단어 뜻에 밑줄 (시험·★2 확인·주간 시험·💜·해석 숨김 문제는 그대로) */
-  koHelp(q){ if(!q || q.oly || q.chk || q.wk || q.ex || q.noKo || this.tier===3 || this.oly || this.test || this.wk) return false; let g=""; try{ g=Study.isKid && Study.isKid(this.set) ? "kid" : Study.gradeOf(this.set); }catch(e){} return g==="g12" || g==="g34" || g==="kid"; },
+  /* (v439) 낮은 학년 도움 — G1-2·G3-4(·유치원) 배우는 판의 문장·대화 빈칸: 해석을 보여 주고 빈칸 단어 뜻에 밑줄 (사용자: 별 3개(★1·★2 확인·★3)까지 · 💜·🚩·주간 시험·해석 숨김 문제는 그대로) */
+  koHelp(q){ if(!q || q.oly || q.wk || q.ex || q.noKo || this.tier===3 || this.oly || this.test || this.wk) return false; let g=""; try{ g=Study.isKid && Study.isKid(this.set) ? "kid" : Study.gradeOf(this.set); }catch(e){} return g==="g12" || g==="g34" || g==="kid"; },
   koStems(w){ return koParts(w.ko).map(p=>p.replace(/(하다|되다|이다|다)$/,"")).filter(p=>p.length>=1).sort((a,b)=>b.length-a.length); },
   koHit(ko, w){ const k=String(ko||""); return this.koStems(w).some(p=>k.indexOf(p)>=0); },
   koMark(ko, w){ const k=String(ko||""); for(const p of this.koStems(w)){ const i=k.indexOf(p); if(i>=0) return this.esc(k.slice(0,i))+'<u class="koU">'+this.esc(p)+'</u>'+this.esc(k.slice(i+p.length)); } return this.esc(k); },
