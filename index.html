@@ -2080,6 +2080,13 @@ details.rdAgain,details.rdEx,details.bdMore{display:block}   /* (v442) 맨 위 d
 .stStat b{display:block;font-size:20px;color:#fff3d6}
 .stStat small{font-size:11px;color:#a99ed0;font-weight:800}
 .stGem{font-size:20px;font-weight:900;color:#8fe3ff;margin-bottom:12px}
+.stGem.gpop{display:inline-flex;align-items:center;gap:6px;font-size:26px;padding:6px 18px;border-radius:99px;background:rgba(143,227,255,.12);border:2px solid rgba(143,227,255,.45);box-shadow:0 0 18px rgba(143,227,255,.25);animation:gemPop .6s cubic-bezier(.2,1.6,.4,1) .35s both}
+@keyframes gemPop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.stDoneHero{display:flex;justify-content:center;margin-bottom:-6px}.stDoneHero .rdMas{margin:0 auto}.stDoneHero .rdMas:not(.pic){font-size:72px}
+.stDue{display:inline-block;margin:8px auto 0;padding:5px 12px;border-radius:99px;background:rgba(255,176,112,.12);border:1px solid rgba(255,176,112,.35);color:#ffc89a!important;font-size:13px!important;font-weight:800}
+.stDue b{color:#ffe0b8}
+.stNext2 .stGo{word-break:keep-all}   /* (v444) "배우\n기" 처럼 글자 중간에서 줄바꿈 */
+@media (prefers-reduced-motion:reduce){.stGem.gpop{animation:none}}
 .stMiss{width:100%;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px}
 .stMiss small{width:100%;font-size:11.5px;color:#a99ed0;font-weight:800}
 .stMiss button{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;border-radius:10px;padding:6px 9px;font:800 13px var(--font);cursor:pointer}
@@ -3246,6 +3253,17 @@ body.tabL #scStudy.vPath .stMap.wm > .stTop{grid-column:1/-1}
 .stOpt.balO::after{content:"";position:absolute;bottom:-18px;left:50%;width:1px;height:18px;background:rgba(255,255,255,.5)}
 .stOpt.balO b{font-size:34px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
 .stOpt.balO.ok{animation:balPop .45s ease-out forwards}
+/* (v444) 사용자: 풍선 그림 — 미니게임 🧸 풍선 그림(assets/mg/k/b0~3) 을 그대로 (그라데이션 타원 → 반짝이는 풍선) */
+.stOpts.bal{gap:10px}
+.stOpt.balO.img{width:80px;height:118px;border-radius:0;border:0;box-shadow:none;background:center top/118px 118px no-repeat;filter:drop-shadow(0 8px 10px rgba(0,0,0,.35));place-items:start center}
+.stOpt.balO.img::after{display:none}
+.stOpt.balO.img b{margin-top:22px;font-size:36px;text-shadow:0 2px 0 rgba(0,0,0,.35),0 0 8px rgba(0,0,0,.25)}
+.stOpt.balO.img:nth-child(1){background-image:url(assets/mg/k/b0.webp)} .stOpt.balO.img:nth-child(2){background-image:url(assets/mg/k/b1.webp)}
+.stOpt.balO.img:nth-child(3){background-image:url(assets/mg/k/b3.webp)} .stOpt.balO.img:nth-child(4){background-image:url(assets/mg/k/b2.webp)}
+.stOpt.balO.img:nth-child(3) b{color:#7a4a00;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.stOpt.balO.img.bad{animation:balNo .4s}
+@keyframes balNo{25%{transform:translateX(-6px) rotate(-6deg)}75%{transform:translateX(6px) rotate(6deg)}}
+@media (min-width:600px){.stOpt.balO.img{width:104px;height:154px;background-size:154px 154px}.stOpt.balO.img b{margin-top:30px;font-size:44px}}
 @keyframes balUp{from{transform:translateY(10px)}to{transform:translateY(-14px)}}
 @keyframes balPop{50%{transform:scale(1.25)}100%{transform:scale(0);opacity:0}}
 .stOpts.ltr{grid-template-columns:repeat(3,1fr)} .stOpt.ltrO b{font-size:34px}
@@ -14387,7 +14405,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v443";
+const GAME_VER = "v444";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16327,7 +16345,7 @@ const StudyUI = {
       const bal=q.t==="bal";
       h='<div class="stKind">'+(bal?'🎈 처음 소리 글자 풍선을 눌러요':'🔤 처음 글자는 무엇일까요?')+'</div><div class="stPrompt">'+(!bal && w.emoji?'<div class="stPic big">'+w.emoji+'</div>':'')
         +'<button class="stBig'+(bal?'':' sm')+'" data-say="'+this.esc(w.en)+'">🔊</button>'+(bal?'<button class="stSlow" data-slow="'+this.esc(w.en)+'">🐢 천천히</button>':'')+'</div>'
-        +'<div class="stOpts '+(bal?'bal':'ltr')+'">'+q.opts.map((o,k)=>'<button class="stOpt '+(bal?'balO':'ltrO')+'" data-k="'+k+'" style="--d:'+(k*0.35)+'s"><b>'+this.esc(o)+'</b></button>').join("")+'</div>';
+        +'<div class="stOpts '+(bal?'bal':'ltr')+'">'+q.opts.map((o,k)=>'<button class="stOpt '+(bal?'balO img':'ltrO')+'" data-k="'+k+'" style="--d:'+(k*0.35)+'s"><b>'+this.esc(o)+'</b></button>').join("")+'</div>';
       setTimeout(()=>{ if(this.qs[this.i]===q && !this.locked) this.say(w.en); }, 250);
     } else if(q.t==="pic"){
       h='<div class="stKind">🖼️ 알맞은 그림을 골라요</div><div class="stPrompt"><div class="stEn">'+this.esc(dispEn(w.en))+' <button class="stSay" data-say="'+this.esc(w.en)+'">🔊</button></div></div>'
@@ -16901,9 +16919,10 @@ const StudyUI = {
       const pk="st-"+K+"-"+nv; if(nv>before && !Wallet.paid(pk)){ Wallet.pay(pk); if(!dpGem) gems = (x.pn && !x.fin) ? 1 : 3; }   // (v249) 초등 나눈 Stage 는 💎1, 🚩 모아서 복습은 💎3   // (v226) 별이 오를 때만 💎3
       if(T===3 && nv>=3){ try{ if(Study.conquered(set)){ const tid="t-c-"+set; if(titleOf(tid) && !Wallet.owns(tid)){ Wallet.give(tid); conq=titleOf(tid); } } }catch(e){} }
       try{ Unlock.addDaily(); }catch(e){}
-      const sn="Stage "+Study.stageNo(set,x.n); title = T===3 && dpass ? "💜 "+sn+" 보라 별 "+dl+"!" : nv>=3 ? "💜 "+sn+" 완벽!" : "🎉 "+sn+" 끝!";
+      const sn="Stage "+Study.stageNo(set,x.n); const kid=Study.bookOf(set)==="k";   // (v444) 유치원은 보라 별이 없음 — 💜 대신 🌟
+      title = T===3 && dpass ? "💜 "+sn+" 보라 별 "+dl+"!" : nv>=3 ? (kid?"🌟 ":"💜 ")+sn+" 완벽!" : "🎉 "+sn+" 끝!";
       sub = left>0 ? "새 단어 "+Math.min(20,left)+"개가 남았어요 · 다음 판에 이어서 배워요"
-          : nv>before ? "★ "+nv+" / 3" : before>=3 ? "연습 완료" : "★"+want+"까지 조금 더! 처음에 "+NEED[want]+"% 맞히면 돼요 (이번 "+acc+"%)";
+          : nv>before ? (kid ? "" : "★ "+nv+" / 3") : before>=3 ? "연습 완료" : "★"+want+"까지 조금 더! 처음에 "+NEED[want]+"% 맞히면 돼요 (이번 "+acc+"%)";
       if(T===1 && left<=0) sub = nv>before ? "★1 · 내일 ★2 확인 — 하루 지나도 기억나는지 봐요" : "연습 완료";
       if(T===4){ title = acc>=80 ? "✅ "+sn+" 확인 통과!" : "✅ 확인 — 조금만 더!";
         sub = acc>=80 ? (ckNew ? "★2 · 다음은 ✍️ ★3 써 보기 — 쓰임을 배우고 철자까지" : "확인 연습 완료") : "80% 맞히면 ★2 (이번 "+acc+"%) · 틀린 단어를 보고 다시 해 봐요"; }
@@ -16927,15 +16946,15 @@ const StudyUI = {
     this.view("stDone");
     const v=Study.lv(set,x.n), miss=Object.keys(this.missed);
     this._lastMiss = miss.map(en=>(x.ws||[]).find(y=>y.en===en)||Study.word(en)).filter(Boolean);
-    $("stDoneIn").innerHTML='<div class="stBigT">'+title+'</div><div class="stStars">'+this.stars(v, set, x)+'</div><p>'+sub+'</p>'
+    $("stDoneIn").innerHTML=(pass ? '<div class="stDoneHero">'+this.mas(true, true)+'</div>' : '')+'<div class="stBigT">'+title+'</div><div class="stStars">'+this.stars(v, set, x)+'</div>'+(sub?'<p>'+sub+'</p>':'')   /* (v444) 사용자: 끝 화면 개선 — 내 캐릭터가 축하 */
       +(fresh && sk>1 ? '<p class="stFireP">🔥 '+sk+'일째 공부 중!</p>' : '')
       +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div><div><b>'+this.secs()+'초</b><small>걸린 시간</small></div></div>'
       +(this.test ? '' : (()=>{ const tot=(x.ws||[]).length, met=tot-Study.unseenLeft(set,x.n), tm=Study.dueOn(Study.today()+1);   // (v242) Stage 단어 진행 · 내일 복습
-          return '<div class="stDProg">이 Stage 단어 '+met+' / '+tot+' 만남<span class="stPgBar"><span style="width:'+Math.round(met/Math.max(1,tot)*100)+'%"></span></span></div>'
-            +(tm?'<p class="stFireP">🔁 내일 복습할 때가 되는 단어 '+tm+'개 · 오늘의 복습 💎+3</p>':''); })())
+          return (met<tot ? '<div class="stDProg">이 Stage 단어 '+met+' / '+tot+' 만남<span class="stPgBar"><span style="width:'+Math.round(met/Math.max(1,tot)*100)+'%"></span></span></div>' : '')   // (v444) 다 만났으면 막대는 뺌
+            +(tm?'<p class="stDue">🔁 내일 복습 단어 <b>'+tm+'</b>개 · 💎+3</p>':''); })())
       +(()=>{ if(!pass || this.test || this.oly || !(this.tier===2 || this.tier===3)) return ''; const rd=Study.storyFor(set, x); if(!rd) return ''; this._rdx=x;   /* (v442) 📖 짧은 글 (중등) */
           return '<button class="stGo rdGo" data-read="1">📖 짧은 글 읽기 <small>「'+this.esc(rd.st.t[0])+'」 · 처음이면 💎1</small></button>'; })()
-      +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')
+      +(gems?'<div class="stGem gpop">💎 +'+gems+'</div>':'')
       +(dpGem?'<div class="stGem dp">💜 보라 별 보상 💎 +'+dpGem+'</div>':'')
       +(dpNew?'<div class="stDpNew">💜 심화가 열렸어요! 아래 보라색 <b>심화 도전</b>으로 바로 할 수 있어요</div>':'')
       +(conq?'<div class="stConq">🏷️ 새 칭호 <b>'+conq.emo+' '+this.esc(conq.name)+'</b> — 상점 칭호에서 골라요</div>':'')
@@ -16965,8 +16984,8 @@ const StudyUI = {
     /* (v322) 내림 + 남은 맞힘은 모아 다음 공부에 (1~2문제만 풀고 그만두기로 무한히 못 쌓게) · 쓰러뜨린 뒤에도 쌓임 · 큰 창 대신 한 줄 타일만 반짝 · 👤 누구 이름으로 */
     try{ const first=this.first|0, P=per>=5 ? HyBoss.PER_TEST : HyBoss.PER_STUDY; if(!(first>0)) return; HyBoss.start();
     HyBoss.refresh(true).then(()=>{ if(!HyBoss.B || !HyBoss.on()) return; const me=Kid.me(), d=$("stDoneIn"), E=x=>this.esc(x), say=(h,c)=>{ if(d) d.insertAdjacentHTML("beforeend", '<div class="stBossAdd'+(c?' '+c:'')+'">'+h+'</div>'); };
-      if(!me){ if(Object.keys(HyBoss.kids()).length) say('👤 이름을 고르면 ⚔️ 공격 기회가 쌓여요 <button class="stBossBtn" data-kidpick="1">이름 고르기</button>'); return; }
-      if(HyBoss.easy(this.set)){ say('🧸 유치원 단어는 ⚔️ 기회가 안 쌓여요 · <b>G1-2부터</b>'); return; }   /* (v319) 너무 쉬워서 (사용자) */
+      if(HyBoss.easy(this.set)) return;   /* (v444) 유치원 단어는 ⚔️ 기회가 안 쌓임 — 「이름을 고르면 공격 기회」 안내가 거짓이었음 */
+      if(!me){ if(Object.keys(HyBoss.kids()).length) say('👤 이름을 고르면 ⚔️ 공격 기회가 쌓여요 <button class="stBossBtn" data-kidpick="1">이름 고르기</button>'); return; }   /* (v319) 너무 쉬워서 (사용자) */
       const who='<small class="sbWho">👤 '+E(me.n)+'</small> ', n=HyBoss.chunk(me.id, "s", first, P), got = n>0 ? HyBoss.earn(me, "study", n) : 0, st=HyBoss.stock(me.id), t=HyBoss.myTeam(me.id, me), s=t && HyBoss.state(t);
       if(got>0) say(who+'⚔️ 공격 기회 <b>+'+got+'</b> <small>📚 '+st.s+'/'+HyBoss.STK+'</small>'+(s && s.dead ? ' · 🎉 보스는 쓰러뜨렸어요' : ''), 'flash');
       else if(got===0 && n>0) say(who+'📚 기회 가득 ('+st.s+'/'+HyBoss.STK+') · 🏠 보스 화면에서 휘둘러요');
