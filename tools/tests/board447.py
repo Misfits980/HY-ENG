@@ -98,7 +98,7 @@ async def main():
             await E("()=>{ if(MG.o && MG.o.inst){ MG.o.inst[0].auto(); MG.o.inst[0].auto(); MG.o.inst[1].auto(); } }"); await pg.wait_for_timeout(100)
         ok(await until("()=>!!document.getElementById('bdPod')", 80), "② 🏆 시상대")
         r = await E("()=>[document.querySelector('#bdPod .podT').innerText, document.querySelector('#bdPod .podC.r1 b').innerText, document.querySelector('#bdPod .podC.r1 small') && document.querySelector('#bdPod .podC.r1 small').innerText]")
-        ok("연타" in r[0] and r[1] == "루아" and "+🪙10" in (r[2] or ""), f"② 1등 루아 +🪙10 {r}")
+        ok("연타" in r[0] and r[1] == "루아" and ("+🪙10" in (r[2] or "") or "+10" in (r[2] or "")), f"② 1등 루아 +🪙10 {r}")
         await pg.screenshot(path=OUT + "board447_pod.png")
         ok(await until("()=>!document.getElementById('bdPod')", 40), "② 시상대 끝")
         r = await E("()=>[Board.o.P.map(p=>p.coin), Board.o.rnd]")

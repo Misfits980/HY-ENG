@@ -4099,7 +4099,14 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
 .mgOxE,.mgOxK{width:100%;text-align:center;overflow:hidden;white-space:nowrap}.mgOxE{font-size:46px;font-weight:900}.mgOxK{font-size:30px;font-weight:800}
 .mgOxB{flex:none;height:38%;min-height:70px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mgOxB button{border-radius:22px;border:0;background:rgba(0,0,0,.18);touch-action:manipulation;display:flex;align-items:center;justify-content:center;min-height:0;padding:4px}.mgOxB img{height:100%;max-height:120px;max-width:90%;object-fit:contain;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35));pointer-events:none}.mgOxB button:active img{transform:scale(.92)}
-.mgCnt{font-size:80px;font-weight:900;color:#ffd23f;animation:bdPop .7s infinite}
+.mgCnt{font-size:80px;font-weight:900;color:#ffd23f;animation:bdPop .7s infinite;min-height:1.1em;line-height:1.1}.mgCnt:empty{animation:none}
+/* (v451) 게임 시작 전 3줄 설명 */
+.mgHow{list-style:none;margin:6px 0 2px;padding:0;display:flex;flex-direction:column;gap:8px;width:min(92%,460px)}
+.mgHow li{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.22);border-radius:16px;padding:10px 14px;font-size:clamp(16px,4.4vw,21px);font-weight:800;line-height:1.3;text-align:left;animation:mgHowIn .35s both}
+.mgHow li:nth-child(2){animation-delay:.12s}.mgHow li:nth-child(3){animation-delay:.24s}
+@keyframes mgHowIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.mgIntro.how::after{content:"👆 화면을 누르면 바로 시작";font-size:14px;opacity:.7;margin-top:4px}
+.tmHow{flex:none;display:flex}#bdTvMG.kh .tmHow{display:none}.tmHow .mgHow{flex-direction:row;width:100%;margin:0}.tmHow .mgHow li{flex:1;font-size:clamp(14px,1.6vw,22px)}
 /* ── (v447) 새 미니게임 — 🎈 내 색 풍선 · 🔨 두더지(금·폭탄) · 💪 연타 · 🚦 신호등 · 🎨 땅따먹기 · 🎣 단어 낚시 ── */
 .mgMine{gap:6px!important;border:3px solid var(--me);font-weight:900;font-size:17px}.mgMine img{width:30px;height:30px;object-fit:contain}
 .g-balloon .mgB{width:clamp(70px,24%,124px)}
@@ -14600,7 +14607,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v450";
+const GAME_VER = "v451";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20839,7 +20846,7 @@ const Board = {
     d.innerHTML='<div class="bdSet" id="bdSetup"><div class="bdSetHd"><button class="bdX" data-bd="x" aria-label="나가기">✕</button><b>🎲 영어 파티 보드</b></div>'
       +'<div class="bdModeT"><button data-mode="pad"'+(P.mode!=="tv"?' class="on"':'')+'>🪑 한 패드<small>둘러앉아 2~4명</small></button><button data-mode="tv"'+(P.mode==="tv"?' class="on"':'')+'>📺 TV + 각자 패드<small>수업 · 개인전 / 팀전</small></button></div>'
       +'<div class="bdSetBody">'
-      +'<p class="bdHow">⭐ 별을 가장 많이 모으면 우승! · ⭐ = 🪙10 + 영어 한 문제 · 🪙 = 🔵 칸 · 🎮 미니게임 1등</p>'
+      +'<p class="bdHow">⭐ 별을 가장 많이 모으면 우승! · ⭐ = '+this.ic("coins")+'10 + 영어 한 문제 · '+this.ic("coins")+' = 🔵 칸 · 🎮 미니게임 1등</p>'
       +'<h4>판</h4><div class="bdSk">'+Object.keys(this.SK).map(k=>'<button class="bdSkB'+((P.sk||"e")===k?' on':'')+'" data-sk="'+k+'" style="background-image:url('+this.SK[k].bg+')"><b>'+this.SK[k].nm+'</b></button>').join('')+'</div>'
       +'<h4>범위</h4><div class="bdRange"><b id="bdRangeT"></b><button data-bd="rng">바꾸기</button></div>'
       +'<div id="bdRangeE" hidden><div class="bdRow"><select id="bdSet">'+sets.map(s=>'<option value="'+s+'"'+(s===(P.set||"elem")?' selected':'')+'>'+E(Study.label(s))+'</option>').join('')+'</select></div>'
@@ -20920,7 +20927,7 @@ const Board = {
        ["coins","🪙 코인 모으기","🔵 칸 +3 · 🎮 미니게임 1등 +10 (2등 +5) · 🔴 칸 −3 (영어 맞히면 지켜요) · 🚩 출발 지나가면 +2"],
        ["shop","🎒 아이템으로 작전!","🏪 상점: 🎯 황금 주사위 = 숫자 골라 ⭐ 칸에 딱 · 🍄 주사위 2개 · 🔄 자리 바꾸기 · 🧲 친구 ⭐ 뺏기"],
        ["gift","🔥 마지막 3라운드 뒤집기","🔵 🪙 두 배 · ⭐ 값 🪙5 · 미니게임 🪙 두 배 · 끝나면 보너스 ⭐ 3개 (정답왕 · 결투왕 · 부자)"]],
-  howHtml(i){ const H=this.HOW[i]; if(!H) return ''; return '<div class="bdHowIn"><div class="bdHowI">'+this.ic(H[0],"big")+'</div><b>'+H[1]+'</b><p>'+H[2]+'</p><div class="bdHowD">'+this.HOW.map((x,k)=>'<i'+(k===i?' class="on"':'')+'></i>').join('')+'</div></div>'; },
+  howHtml(i){ const H=this.HOW[i]; if(!H) return ''; return this.fx('<div class="bdHowIn"><div class="bdHowI">'+this.ic(H[0],"big")+'</div><b>'+H[1]+'</b><p>'+H[2]+'</p><div class="bdHowD">'+this.HOW.map((x,k)=>'<i'+(k===i?' class="on"':'')+'></i>').join('')+'</div></div>'); },
   howTo(cb){ const o=this.o; if(!o || window.HY_NOHOW){ cb && cb(); return; }   /* HY_NOHOW = 예전 테스트용 */ let i=0, gone=0; const tv=!!o.tv;
     const d=document.createElement("div"); d.id="bdHow"; d.innerHTML='<div class="bdHowBox"></div><button class="bdHowSkip" data-how="skip">알겠어요 ▶</button>'; document.body.appendChild(d);
     const show=()=>{ if(!this.o || gone) return; if(i>=this.HOW.length){ end(); return; } d.firstChild.innerHTML=this.howHtml(i); try{ SFX.tone(660+i*60,.1,"triangle",.05); }catch(e){} if(tv) try{ BoardTV.how=i; BoardTV.push(true); TvCast.say(this.HOW[i][1]); }catch(e){} clearTimeout(this._ht); this._ht=setTimeout(()=>{ i++; show(); }, 3400); };
@@ -20941,8 +20948,9 @@ const Board = {
   pl(){ const o=this.o, E=x=>this.esc(x); if(!o || !$("bdPl")) return;
     $("bdPl").innerHTML=o.P.map(p=>'<div class="bdPlI'+(p.i===o.cur && !o.fin?' on':'')+'" style="--pc:'+p.col+'"><i class="bdPf" '+this.pf(p.ch)+'></i><span><b>'+E(p.n)+'</b><small><em>'+this.ic("star")+p.star+'</em> '+this.ic("coins")+p.coin+(p.it.length?' '+p.it.map(k=>this.ic(k)).join(''):'')+'</small></span></div>').join('');
     if($("bdRnd")) $("bdRnd").textContent=Math.min(o.rnd,o.R)+" / "+o.R; if(o.tv) try{ BoardTV.push(); }catch(e){} },
-  ban(t, cls, ms){ if(this.o && this.o.tv) try{ TvCast.say(String(t).replace(/<[^>]+>/g,"").trim()); }catch(e){} const b=$("bdBan"); if(!b) return; b.innerHTML=t; b.className="bdBan on "+(cls||""); clearTimeout(this._bt); this._bt=setTimeout(()=>{ if($("bdBan")) $("bdBan").className="bdBan"; }, ms||1400); },
-  act(h){ const a=$("bdAct"); if(a){ a.innerHTML=h; a.classList.remove("bdIn"); void a.offsetWidth; a.classList.add("bdIn"); try{ const c=a.firstElementChild, st=$("bdStage"); B3.padB = (c && st && !c.classList.contains("bdEnd")) ? Math.min(0.6, c.offsetHeight/Math.max(1, st.clientHeight)) : 0; }catch(e){} }
+  fx(s){ return String(s).replace(/🪙/g, this.ic("coins","cn")); },   /* (v451) 🪙 이모지 → 금 코인 그림 (컴퓨터에서 깨짐) */
+  ban(t, cls, ms){ if(this.o && this.o.tv) try{ TvCast.say(String(t).replace(/<[^>]+>/g,"").trim()); }catch(e){} const b=$("bdBan"); if(!b) return; b.innerHTML=this.fx(t); b.className="bdBan on "+(cls||""); clearTimeout(this._bt); this._bt=setTimeout(()=>{ if($("bdBan")) $("bdBan").className="bdBan"; }, ms||1400); },
+  act(h){ const a=$("bdAct"); if(a){ a.innerHTML=this.fx(h); a.classList.remove("bdIn"); void a.offsetWidth; a.classList.add("bdIn"); try{ const c=a.firstElementChild, st=$("bdStage"); B3.padB = (c && st && !c.classList.contains("bdEnd")) ? Math.min(0.6, c.offsetHeight/Math.max(1, st.clientHeight)) : 0; }catch(e){} }
     if(this.o && this.o.tv) try{ BoardTV.req(h); }catch(e){ console.error(e); } },
   me(){ return this.o.P[this.o.cur]; },
   pfh(p){ return '<i class="bdPf" '+this.pf(p.ch)+'></i>'; },
@@ -20983,8 +20991,8 @@ const Board = {
       const from=p.pos; p.pos=(p.pos+1)%o.N; p.vis=p.pos; o.left--; this.pl(); try{ SFX.tone(560+(n-o.left)*50,.06,"triangle",.045); }catch(e){}
       const after=()=>{ if(!this.o) return; if(p.pos===0 && o.left>0) this.coin(p, 2);
         if(p.pos===o.star){ o.cont=()=>{ o.cont=null; this._to=setTimeout(step, 120); }; this.starAsk(); return; }
-        this._to=setTimeout(step, 40); };
-      if(B3.R) B3.hop(p.i, from, p.pos, 0.22, after); else { this.place(); this._to=setTimeout(after, 220); } };
+        this._to=setTimeout(step, 70); };
+      if(B3.R) B3.hop(p.i, from, p.pos, 0.3, after); else { this.place(); this._to=setTimeout(after, 220); } };
     step(); },
   cont(){ const o=this.o; this.act(''); if(o && o.cont) o.cont(); },
   /* ⭐ 별 */
@@ -21058,7 +21066,7 @@ const Board = {
   /* (v447) 🏆 미니게임 시상대 — 사용자: "누가 그 미니게임에서 이겼는지 확인이 안 됨" · TV·한 패드 모두 · 📺 수업판이면 아이 패드에도 같은 화면 (BoardTV.pod) */
   podium(title, L, cb){ const o=this.o; L.forEach((x,i)=>{ x.r = i>0 && x.sc===L[i-1].sc ? L[i-1].r : i+1; });
     const D=L.map(x=>({n:x.p.n, col:x.p.col, ch:x.p.ch, sc:x.sc, c:x.c, r:x.r, i:x.p.i})), old=$("bdPod"); if(old) old.remove();
-    const d=document.createElement("div"); d.id="bdPod"; d.innerHTML=this.podHtml(title, D); document.body.appendChild(d);
+    const d=document.createElement("div"); d.id="bdPod"; d.innerHTML=this.fx(this.podHtml(title, D)); document.body.appendChild(d);
     try{ SFX.tone(523,.16,"triangle",.06); setTimeout(()=>SFX.tone(784,.16,"triangle",.06),140); setTimeout(()=>SFX.tone(1046,.3,"triangle",.06),280); }catch(e){}
     const tv=!!(o && o.tv); if(tv) try{ BoardTV.pod={id:++BoardTV.rid, t:title, L:D}; BoardTV.push(true); TvCast.say("🏆 "+title+" — "+(L[0] ? L[0].p.n : "")+" 1등!"); }catch(e){}
     let gone=0; const done=()=>{ if(gone) return; gone=1; clearTimeout(this._pt2); const x=$("bdPod"); if(x) x.remove(); if(tv) try{ BoardTV.pod=null; BoardTV.push(true); }catch(e){} cb && cb(); };
@@ -21207,25 +21215,25 @@ const BoardTV = {
   /* ── 미니게임 / 결투 = 패드마다 동시에 ── */
   open(cfg, done){ const o=Board.o; let kind=cfg.kind, sec=cfg.sec; if(!MiniG.L[kind]){ kind="ox"; sec=15; }
     const who=[].concat(...cfg.P.map(p=>(p.mem||[]).map(m=>m.id))); let ws=[]; try{ ws=cfg.ctx.words(); }catch(e){} const S=MiniG.seq(ws, kind), N=MiniG.nm(kind, o.cfg.sk);
-    const go=this.now()+4500;   /* (v447) 사용자: "애들마다 시간이 제각각 · 누구는 끝났는데 누구는 계속" → 서버 시각으로 시작·끝을 정해 보냄 (늦게 받은 패드도 같은 순간에 끝) */
+    const go=this.now()+4500+MiniG.HOWMS;   /* (v447) 사용자: "애들마다 시간이 제각각 · 누구는 끝났는데 누구는 계속" → 서버 시각으로 시작·끝을 정해 보냄 (늦게 받은 패드도 같은 순간에 끝) */
     this.rq=null; this.mgS={id:++this.rid, kind, sec, who, sk:o.cfg.sk, t:cfg.title && /결투/.test(cfg.title) ? "⚔️ 결투 · "+N[0] : N[0], how:N[1], L:S.list.map(w=>w.en), tf:S.tf.map(x=>x?1:0), dk:S.dk, r:S.r, go, end:go+sec*1000};
     this.mgO={cfg, done, kind, sec, who, P:cfg.P, t0:Date.now(), go, end:go+sec*1000, id:this.mgS.id, sc:{}};
     if(kind==="paint"){ const id=this.mgO.id, N0=MiniG.PT[0]*MiniG.PT[1]; this.mgO.pt=Array(N0).fill(-1); if(this._pth) this._pth.close();
       this._pth=FB.listen("/battle/"+this.room+"/pt/"+id, t=>{ const m=this.mgO; if(!m || m.id!==id) return; for(let i=0;i<N0;i++){ const v=t && t[i]; m.pt[i] = (v==null || v==="") ? -1 : +v; } this.mgDraw(); }); }
     const A=MiniG.A(o.cfg.sk), d=document.createElement("div"); d.id="bdTvMG"; d.className="sk-"+(o.cfg.sk==="k"?"k":"e"); d.style.setProperty("--mgParty", "url("+A+"bg_"+MiniG.bg(kind)+".webp)");
-    d.innerHTML='<div class="tmHd"><img src="'+A+'em_'+MiniG.em(kind)+'.webp" alt=""><span><b>'+this.esc(this.mgS.t)+'</b><small>'+this.esc(N[1])+' · 📱 각자 패드로!</small></span><em id="tmT">5</em></div><div class="tmBody'+(kind==="paint"?' pt':'')+'">'+(kind==="paint" ? '<div class="tmPt" id="tmPt" style="grid-template-columns:repeat('+MiniG.PT[0]+',1fr)"></div>' : '')+'<div class="tmBars" id="tmBars"></div></div>';
+    d.innerHTML='<div class="tmHd"><img src="'+A+'em_'+MiniG.em(kind)+'.webp" alt=""><span><b>'+this.esc(this.mgS.t)+'</b><small>'+this.esc(N[1])+' · 📱 각자 패드로!</small></span><em id="tmT">5</em></div><div class="tmHow" id="tmHow">'+MiniG.howHtml(kind, o.cfg.sk)+'</div><div class="tmBody'+(kind==="paint"?' pt':'')+'">'+(kind==="paint" ? '<div class="tmPt" id="tmPt" style="grid-template-columns:repeat('+MiniG.PT[0]+',1fr)"></div>' : '')+'<div class="tmBars" id="tmBars"></div></div>';
     document.body.appendChild(d); this.mgDraw(); this.push(true); if(!this.kid) try{ TvCast.say("🎮 "+this.mgS.t+" — 모두 패드를 봐요!", 1); TvCast.ding("go"); }catch(e){}
     if(this.kid && who.indexOf(this.kid.id)>=0) this.khPlay(d, S); },
   /* (v448) 방장 패드도 미니게임 — TV 점수판 대신 내 게임 (점수는 작은 막대로 위에) · 같은 서버 시각으로 시작·끝 · 점수는 내 자리(p/<방장>)에 */
   khPlay(d, S){ const m=this.mgS, id=this.kid.id, mi=Board.o.P.findIndex(p=>(p.mem||[]).some(x=>x.id===id)), me={i:Math.max(0,mi), k:Math.max(0,mi)%4, col:Board.COL[Math.max(0,mi)]};
     d.classList.add("kh"); const B=$("tmBars"); if(B) B.classList.add("mini");
-    d.insertAdjacentHTML("beforeend", '<div class="khMG"><div class="bpMgHd"><em id="khSc">0</em><span id="khT"></span></div><div class="mgG" id="khG"></div><div class="bpMgIn" id="khIn"><img class="mgEm" src="'+MiniG.A(m.sk)+'em_'+MiniG.em(m.kind)+'.webp" alt=""><b>'+this.esc(m.t)+'</b><small>'+this.esc(m.how||"")+'</small><div class="mgCnt" id="khCnt">5</div></div></div>');
+    d.insertAdjacentHTML("beforeend", '<div class="khMG"><div class="bpMgHd"><em id="khSc">0</em><span id="khT"></span></div><div class="mgG" id="khG"></div><div class="bpMgIn" id="khIn"><img class="mgEm" src="'+MiniG.A(m.sk)+'em_'+MiniG.em(m.kind)+'.webp" alt=""><b>'+this.esc(m.t)+'</b><small>'+this.esc(m.how||"")+'</small>'+MiniG.howHtml(m.kind, m.sk)+'<div class="mgCnt" id="khCnt"></div></div></div>');
     if(m.kind==="paint"){ S.share=BoardPad.fbShare("/battle/"+this.room+"/pt/"+m.id, MiniG.PT[0]*MiniG.PT[1]); this._khSh=S.share; }
     const goL=m.go-(this.off|0), endL=m.end-(this.off|0); let g=null, last=0, sentAt=0, sent=-1, lastC="";
     const send=fin=>{ sent=g.sc; sentAt=Date.now(); FB.update("/battle/"+this.room+"/p/"+id, {mg:{id:m.id, sc:g.sc, fin:fin?1:0}, at:Date.now()}); };
     const loop=now=>{ if(!this.mgO || this.mgO.id!==m.id){ if(g) g.dead=1; if(this._khSh){ this._khSh.close(); this._khSh=null; } return; } this._khRaf=requestAnimationFrame(loop);
       const left=goL-Date.now(), C=$("khCnt");
-      if(!g){ if(left>0){ const t=String(Math.ceil(left/1000)); if(C && t!==lastC){ lastC=t; C.textContent=t; try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} } return; }
+      if(!g){ if(left>0){ const t=MiniG.cnt(left); if(C && t!==lastC){ lastC=t; C.textContent=t; if(t) try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} } return; }
         const I=$("khIn"); if(I) I.remove(); g=MiniG.mount($("khG"), m.kind, S, m.sk, me); send(0); last=now; return; }
       if(g.dead) return; const dt=Math.min(0.05,(now-last)/1000); last=now; g.step(dt); const T=(endL-Date.now())/1000;
       const sc=$("khSc"), tt=$("khT"); if(sc && sc.textContent!==String(g.sc)) sc.textContent=g.sc; if(tt) tt.textContent="⏱ "+Math.max(0,Math.ceil(T));
@@ -21241,7 +21249,7 @@ const BoardTV = {
     B.innerHTML=R.map((p,r)=>'<div class="tmBar" style="--pc:'+p.col+'"><span>'+(r===0 && sc[p.i]>0 ? '👑 ' : '')+Board.pfh(p)+E(p.n)+(p.mem && p.mem.length>1 ? ' <small>'+p.mem.length+'명 평균</small>' : '')+'</span><i style="width:'+Math.max(2, sc[p.i]/mx*100)+'%"></i><em>'+sc[p.i]+'</em></div>').join(''); },
   mgTick(){ const m=this.mgO, now=this.now(), T=$("tmT"), P=this.P||{}, pre=now<m.go;
     if(T){ const s=pre ? Math.max(1, Math.ceil((m.go-now)/1000)) : Math.max(0, Math.ceil((m.end-now)/1000)); T.textContent = pre ? s : now>=m.end ? "⏱ 끝!" : "⏱ "+s; T.classList.toggle("hurry", !pre && s<=5); }
-    this.mgDraw(); const fin=m.who.every(id=>{ const g=(P[id]||{}).mg; return (g && g.id===m.id && g.fin) || !P[id] || Date.now()-(P[id].at||0)>60000; });
+    if(!pre){ const H=$("tmHow"); if(H) H.remove(); } this.mgDraw(); const fin=m.who.every(id=>{ const g=(P[id]||{}).mg; return (g && g.id===m.id && g.fin) || !P[id] || Date.now()-(P[id].at||0)>60000; });
     /* (v447) 끝 = 모두 같은 서버 시각 · 마지막 점수가 올 때까지 조금 (다 왔으면 0.8초 · 아니면 4초) */
     if(now>m.end+4000 || (now>m.end+800 && fin)){ const sc=this.mgSc(), cb=m.done; if(this._pth){ this._pth.close(); this._pth=null; } this.mgO=null; this.mgS=null; this.push(true); const d=$("bdTvMG"); if(d){ d.classList.add("end"); setTimeout(()=>d.remove(), 900); } cb && cb(sc); } },
   cheer(e, n){ if(!/^(👏|😆|😮|🔥|💪|❤️)$/.test(String(e||""))) return; const s=document.createElement("div"); s.className="bdCheer"; s.innerHTML='<b>'+e+'</b><small>'+this.esc(String(n||"").slice(0,10))+'</small>'; s.style.left=(8+Math.random()*80)+"%"; document.body.appendChild(s); setTimeout(()=>s.remove(), 2600); },
@@ -21297,34 +21305,34 @@ const BoardPad = {
     $("bpRnd").textContent = s.s==="play" ? (s.rnd||1)+" / "+(s.R||5) : "";
     /* (v447) 🏆 미니게임 시상대 — TV 와 같은 화면 */
     let hw=$("bpHow"); if(s.how!=null && s.s==="play"){ if(!hw){ hw=document.createElement("div"); hw.id="bpHow"; $("board").appendChild(hw); } if(hw.dataset.i!==String(s.how)){ hw.dataset.i=String(s.how); hw.innerHTML='<div class="bdHowBox">'+Board.howHtml(+s.how)+'</div>'; } } else if(hw) hw.remove();
-    let pd=$("bpPod"); if(s.pod && s.pod.L){ if(!pd){ pd=document.createElement("div"); pd.id="bpPod"; $("board").appendChild(pd); } if(pd.dataset.id!==String(s.pod.id)){ pd.dataset.id=String(s.pod.id); pd.innerHTML=Board.podHtml(s.pod.t, s.pod.L, mi); try{ SFX.tone(784,.2,"triangle",.06,1175); }catch(e){} } } else if(pd) pd.remove();
+    let pd=$("bpPod"); if(s.pod && s.pod.L){ if(!pd){ pd=document.createElement("div"); pd.id="bpPod"; $("board").appendChild(pd); } if(pd.dataset.id!==String(s.pod.id)){ pd.dataset.id=String(s.pod.id); pd.innerHTML=Board.fx(Board.podHtml(s.pod.t, s.pod.L, mi)); try{ SFX.tone(784,.2,"triangle",.06,1175); }catch(e){} } } else if(pd) pd.remove();
     $("bpMe").innerHTML = me ? '<i class="bdPf" '+Board.pf(me.ch)+' style="border-color:'+me.col+'"></i><span><b>'+E(me.n)+(me.mem.length>1?' · '+E(this.nm):'')+'</b><small>'+Board.ic("star")+me.star+' '+Board.ic("coins")+me.coin+(me.it&&me.it.length?' '+me.it.map(k=>Board.ic(k)).join(''):'')+'</small></span>' : '<span><b>'+E(this.nm)+'</b></span>';
     if(s.bye && s.s==="end" && !s.end){ B.innerHTML='<div class="bpMsg"><b>👋 수업판이 끝났어요</b><small>고마워요!</small></div>'; return; }
     /* 미니게임 */
     const m=s.mg; if(m && m.who && m.who.indexOf(this.me)>=0){ if(this.mgId!==m.id) this.mg(m); return; } else if(this.g && !m) this.mgStop();
     if(s.s==="wait"){ const tm=s.tm && s.tm[this.me]!=null ? s.tn[s.tm[this.me]] : ""; B.innerHTML='<div class="bpMsg"><b>🙌 들어왔어요!</b><small>'+(tm ? '나는 <b>'+E(tm)+'</b> · ' : '')+'선생님이 시작하면 시작해요</small></div>'+this.cheers(); return; }
     if(s.s==="end" && s.end){ const r=s.end.findIndex(x=>(x.mem||[]).indexOf(this.me)>=0);
-      B.innerHTML='<div class="bpMsg"><b>'+(r===0?'🏆 우승!':r>=0?(r+1)+'등!':'끝!')+'</b>'+(r>=0 && s.end[r].g>0 ? '<small>💎 +'+s.end[r].g+' 🎁 선물함으로 가요</small>' : '')+'</div><div class="bpRank">'+s.end.map((x,i)=>'<div style="--pc:'+x.col+'"><em>'+(["🥇","🥈","🥉"][i]||(i+1))+'</em><b>'+E(x.n)+'</b><span>⭐'+x.star+' · 🪙'+x.coin+'</span></div>').join('')+'</div>'; return; }
+      B.innerHTML='<div class="bpMsg"><b>'+(r===0?'🏆 우승!':r>=0?(r+1)+'등!':'끝!')+'</b>'+(r>=0 && s.end[r].g>0 ? '<small>💎 +'+s.end[r].g+' 🎁 선물함으로 가요</small>' : '')+'</div><div class="bpRank">'+s.end.map((x,i)=>'<div style="--pc:'+x.col+'"><em>'+(["🥇","🥈","🥉"][i]||(i+1))+'</em><b>'+E(x.n)+'</b><span>⭐'+x.star+' · '+Board.ic("coins")+x.coin+'</span></div>').join('')+'</div>'; return; }
     const rq=s.req; if(rq && rq.who && rq.who.indexOf(this.me)>=0){
       if(this.ans===rq.id){ B.innerHTML='<div class="bpMsg"><b>✅ 보냈어요!</b><small>'+(rq.multi?'팀 친구들을 기다려요':'TV 를 봐요')+'</small></div>'+this.cheers(); return; }
       if(B.dataset.rq!==String(rq.id)){ B.dataset.rq=String(rq.id); B.innerHTML='<div class="bdAct bpAct bdIn">'+rq.h+'</div>'; if(rq.say) try{ DexDet.say(rq.say); }catch(e){} try{ navigator.vibrate && navigator.vibrate(60); }catch(e){} try{ SFX.select(); }catch(e){} } return; }
     B.dataset.rq=""; const c=P[s.cur]||{}; const R=P.map((p,i)=>Object.assign({i},p)).sort((a,b)=>b.star-a.star || b.coin-a.coin);
     B.innerHTML='<div class="bpMsg"><b>'+(c.n ? '<i class="bdPf" '+Board.pf(c.ch)+'></i>'+E(c.n)+' 차례' : '')+'</b><small>📺 TV 를 봐요'+(mi===s.cur ? ' — 곧 내 차례!' : '')+'</small></div>'
-      +'<div class="bpRank">'+R.map((p,r)=>'<div style="--pc:'+p.col+'"'+(p.i===mi?' class="me"':'')+'><em>'+(r+1)+'</em><b>'+E(p.n)+'</b><span>⭐'+p.star+' · 🪙'+p.coin+'</span></div>').join('')+'</div>'+this.cheers(); },
+      +'<div class="bpRank">'+R.map((p,r)=>'<div style="--pc:'+p.col+'"'+(p.i===mi?' class="me"':'')+'><em>'+(r+1)+'</em><b>'+E(p.n)+'</b><span>⭐'+p.star+' · '+Board.ic("coins")+p.coin+'</span></div>').join('')+'</div>'+this.cheers(); },
   cheers(){ return '<div class="bpCheer">'+["👏","😆","😮","🔥","💪","❤️"].map(e=>'<button data-bp="ch" data-e="'+e+'">'+e+'</button>').join('')+'</div>'; },
   cheer(e){ const n=Date.now(); if(n-(this._ch||0)<1500) return; this._ch=n; try{ SFX.click(); }catch(er){} FB.update("/battle/"+this.room+"/p/"+this.me, {ch:{e, at:n}, at:n}); },
   /* 미니게임 — 패드 한 장 가득 */
   mg(m){ this.mgStop(); this.mgId=m.id; const H=$("bpMG"), B=$("bpBody"); if(!H) return; B.innerHTML=''; H.hidden=false; const A=MiniG.A(m.sk);
-    H.innerHTML='<div class="bpMgIn"><img class="mgEm" src="'+A+'em_'+MiniG.em(m.kind)+'.webp" alt=""><b>'+Raid.esc(m.t)+'</b><small>'+Raid.esc(m.how||"")+'</small><div class="mgCnt" id="bpCnt">3</div></div><div class="bpMgHd"><em id="bpSc">0</em><span id="bpT"></span></div><div class="mgG" id="bpG"></div>';
+    H.innerHTML='<div class="bpMgIn"><img class="mgEm" src="'+A+'em_'+MiniG.em(m.kind)+'.webp" alt=""><b>'+Raid.esc(m.t)+'</b><small>'+Raid.esc(m.how||"")+'</small>'+MiniG.howHtml(m.kind, m.sk)+'<div class="mgCnt" id="bpCnt"></div></div><div class="bpMgHd"><em id="bpSc">0</em><span id="bpT"></span></div><div class="mgG" id="bpG"></div>';
     const W=en=>{ let w=null; try{ w=Study.word(en); }catch(e){} return w || WORD_BANK.find(x=>x.en===en) || {en, ko:en}; }; const L=(m.L||[]).map(W), seen={}, ws=L.filter(w=>!seen[w.en] && (seen[w.en]=1));
     const S={ws, list:L, tf:(m.tf||[]).map(x=>!!x), dk:m.dk||[], r:m.r||[]}; const C=$("bpCnt");
     const mi=this.mine(), PP=(this.st.P||[])[mi]||{}, me={i:Math.max(0,mi), k:Math.max(0,mi)%4, col:PP.col||Board.COL[Math.max(0,mi)]};
     if(m.kind==="paint"){ S.share=this.fbShare("/battle/"+this.room+"/pt/"+m.id, MiniG.PT[0]*MiniG.PT[1]); this._sh=S.share; }
     /* (v447) 시작 = TV 가 정한 서버 시각 (m.go) — 늦게 받은 패드는 카운트다운을 줄이거나 바로 시작 · 끝도 m.end 로 모두 같게 */
-    const goL = m.go ? m.go-(this.off|0) : Date.now()+2100, endL = m.end ? m.end-(this.off|0) : goL+(m.sec||20)*1000; let last="";
+    const goL = m.go ? m.go-(this.off|0) : Date.now()+2100+MiniG.HOWMS, endL = m.end ? m.end-(this.off|0) : goL+(m.sec||20)*1000; let last="";
     const tick=()=>{ if(this.mgId!==m.id){ clearInterval(this._ct); return; } const left=goL-Date.now();
       if(left<=0){ clearInterval(this._ct); if(C) C.textContent="GO!"; try{ SFX.tone(990,.1,"triangle",.05); }catch(e){} const I=H.querySelector(".bpMgIn"); if(I) setTimeout(()=>I.remove(), 250); this.mgRun(m, S, me, endL); return; }
-      const t=String(Math.ceil(left/1000)); if(t!==last){ last=t; if(C) C.textContent=t; try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} } };
+      const t=MiniG.cnt(left); if(t!==last){ last=t; if(C) C.textContent=t; if(t) try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} } };
     this._ct=setInterval(tick, 80); tick(); },
   mgRun(m, S, me, endL){ const g=this.g=MiniG.mount($("bpG"), m.kind, S, m.sk, me); endL=endL||Date.now()+m.sec*1000; let t=(endL-Date.now())/1000, last=0, sent=-1, sentAt=0; const send=(fin)=>{ sent=g.sc; sentAt=Date.now(); FB.update("/battle/"+this.room+"/p/"+this.me, {mg:{id:m.id, sc:g.sc, fin:fin?1:0}, at:Date.now()}); };
     send(0); const loop=(now)=>{ if(this.g!==g || g.dead) return; const dt=last ? Math.min(0.05,(now-last)/1000) : 0.016; last=now; this._raf=requestAnimationFrame(loop); g.step(dt); t=(endL-Date.now())/1000;
@@ -21365,6 +21373,26 @@ const MiniG = {
   A(sk){ return "assets/mg/"+(sk==="k"?"k":"e")+"/"; },
   EM:{tug:"game", light:"game", paint:"game", fish:"balloon", stop:"game", num:"game", fruit:"game", stack:"game", jump:"game"}, BG:{tug:"party", light:"party", paint:"memory", fish:"balloon", stop:"party", num:"memory", fruit:"balloon", stack:"party", jump:"mole"},   /* 그림이 없는 새 게임은 비슷한 엠블럼·배경 */
   em(kind){ return this.EM[kind]||kind; }, bg(kind){ return this.BG[kind]||kind; },
+  /* (v451) 사용자: "게임 들어가기 전에 짧은 설명이 있으면" → 게임마다 3줄 (뭘 누르나 · 점수 · 조심) — 시작 전에 HOWMS 동안 크게 보여 줌 */
+  HOWMS:4200,
+  HOW:{balloon:["👆 내 색 풍선만 톡톡!","🚫 다른 색을 누르면 −1점","⏱ 시간 안에 점수가 가장 높으면 1등"],
+       mole:["👆 올라온 두더지를 톡!","👑 금두더지 +3 · 💣 폭탄은 −2점","⏱ 시간 안에 점수가 가장 높으면 1등"],
+       tug:["👆 버튼을 아주 빠르게 연타!","한 번 누를 때마다 +1점","가장 많이 누른 친구가 1등"],
+       light:["🟢 초록불이 켜지는 순간 톡!","🔴 빨간불에 누르면 −1점","빨리 누를수록 좋아요"],
+       paint:["👆 칸을 눌러 내 색으로 칠해요","친구 칸도 눌러서 뺏을 수 있어요","끝났을 때 내 칸이 가장 많으면 1등"],
+       stop:["⏱ 숫자가 올라가요 — 10.00초에 딱 멈춰요!","3초 뒤엔 숫자가 숨어요 · 속으로 세기 🤫","10초에 가까울수록 높은 점수 (최대 100)"],
+       num:["🔢 1부터 차례대로 톡톡톡!","틀린 숫자를 누르면 잠깐 멈춰요","끝까지 누르면 보너스 +3, 새 판이 나와요"],
+       fruit:["👆 손가락으로 바구니를 좌우로 움직여요","🍎 과일 +1 · ⭐ 황금 과일 +3","💣 폭탄을 받으면 −2점!"],
+       stack:["👆 화면을 톡! 움직이는 블록을 쌓아요","딱 맞게 쌓으면 +2점 (✨)","빗나가면 탑이 무너져서 처음부터"],
+       jump:["👆 화면을 톡 누르면 점프!","장애물을 넘을 때마다 +1점","부딪히면 잠깐 멈추고, 갈수록 빨라져요"],
+       ox:["⚡ 영어 = 뜻이 맞으면 ⭕, 다르면 ❌","맞힐 때마다 +1점","틀리면 잠깐 쉬어요"],
+       memory:["👆 카드를 눌러 뒤집어요","영어 카드와 뜻 카드 짝을 찾으면 +1점","모두 맞히면 보너스 +2점"],
+       fish:["🎣 위에 나온 뜻에 맞는 영어 물고기를 톡!","맞히면 +1점","틀린 물고기를 누르면 잠깐 쉬어요"]},
+  HOWE:{balloon:["👆 내 색 랜턴만 톡톡!","🚫 다른 색을 누르면 −1점","⏱ 시간 안에 점수가 가장 높으면 1등"],
+        mole:["👆 올라온 고블린을 쾅!","👑 금고블린 +3 · 💣 폭탄은 −2점","⏱ 시간 안에 점수가 가장 높으면 1등"]},
+  howHtml(kind, sk){ const H=(sk!=="k" && this.HOWE[kind]) || this.HOW[kind]; return H ? '<ul class="mgHow">'+H.map(s=>'<li>'+this.esc(s)+'</li>').join('')+'</ul>' : ''; },
+  /* 시작 전 카운트다운 숫자 — 설명 시간(HOWMS) 동안은 비워 둠, 마지막 3초만 3·2·1 */
+  cnt(left){ return left>3000 ? "" : String(Math.max(1, Math.ceil(left/1000))); },
   LE:{balloon:["🏮 내 색 랜턴","내 색 랜턴만 톡! · 다른 색은 −1"], mole:["👺 고블린 잡기","고블린을 쾅! · 👑 금고블린 +3 · 💣 폭탄은 −2"]},
   nm(kind, sk){ const L=this.L[kind]; if(!L) return null; const e=sk!=="k" && this.LE[kind]; return e ? [e[0], e[1], L[2], L[3]] : L; },
   hint(w){ return '<span class="mgHint">'+(w.emoji ? '<span class="mgEmo">'+emoHtml(w.emoji)+'</span>' : '')+'<span class="mgKo">'+this.esc(w.ko)+'</span></span>'; },
@@ -21617,14 +21645,16 @@ const MG = {
   open(cfg, done){ this.close(true); const P=cfg.P, n=P.length, E=x=>Raid.esc(x), game=!!MiniG.L[cfg.kind]; const o=this.o={game, cfg, done, P, sc:{}, qi:0, q:null, lock:{}, fin:false};
     P.forEach(p=>o.sc[p.i]=0);
     const sk=cfg.sk==="k"?"k":"e", A=MiniG.A(sk); o.sk=sk; const d=document.createElement("div"); d.id="bdMG"; d.className="mg n"+n+(game?" game":"")+" sk-"+sk; d.style.setProperty("--mgParty", "url("+A+"bg_party.webp)");
-    d.innerHTML='<div class="mgIntro"><img class="mgEm" src="'+A+'em_'+(game?MiniG.em(cfg.kind):"game")+'.webp" alt=""><b>'+cfg.title+'</b><small>'+cfg.sub+'</small><div class="mgWho">'+P.map(p=>'<span style="--pc:'+p.col+'">'+Board.pfh(p)+E(p.n)+'</span>').join('<i>vs</i>')+'</div><div class="mgCnt" id="mgCnt">3</div></div>'
+    d.innerHTML='<div class="mgIntro"><img class="mgEm" src="'+A+'em_'+(game?MiniG.em(cfg.kind):"game")+'.webp" alt=""><b>'+cfg.title+'</b><small>'+cfg.sub+'</small>'+(game?MiniG.howHtml(cfg.kind, sk):'')+'<div class="mgWho">'+P.map(p=>'<span style="--pc:'+p.col+'">'+Board.pfh(p)+E(p.n)+'</span>').join('<i>vs</i>')+'</div><div class="mgCnt" id="mgCnt"></div></div>'
       +P.map((p,k)=>'<div class="mgZ z'+k+(this.flip(k,n)?' flip':'')+'" id="mgZ'+p.i+'" style="--pc:'+p.col+'"><div class="mgH">'+Board.pfh(p)+'<b>'+E(p.n)+'</b><em id="mgS'+p.i+'">0</em></div>'+(game ? '<div class="mgG" id="mgG'+p.i+'"></div>' : '<div class="mgQ" id="mgQ'+p.i+'"></div><div class="mgO" id="mgO'+p.i+'"></div>')+'</div>').join('')
       +'<div class="mgMid" id="mgMid"></div>';
     document.body.appendChild(d);
     d.addEventListener("pointerdown", e=>{ const b=e.target.closest && e.target.closest("[data-mg]"); if(!b) return; e.preventDefault(); this.tap(+b.dataset.p, +b.dataset.k); });
     d.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-bd=say]"); if(b && o.q) try{ DexDet.say(o.q.w.en); }catch(er){} });
-    let c=3; try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} this._ct=setInterval(()=>{ c--; const C=$("mgCnt"); if(C) C.textContent=c>0?c:"GO!"; try{ SFX.tone(c>0?660:990,.1,"triangle",.05); }catch(e){}
-      if(c<=0){ clearInterval(this._ct); setTimeout(()=>{ const I=d.querySelector(".mgIntro"); if(I) I.remove(); if(game) this.go(); else this.next(); }, 500); } }, 700); },
+    /* (v451) 게임이면 설명(HOWMS) 먼저 → 3·2·1 · 영어 퀴즈(옛 buzz)는 바로 3·2·1 · HY_NOHOW(테스트) = 설명 건너뜀 */
+    const lead = game && !window.HY_NOHOW ? MiniG.HOWMS : 0, cd=()=>{ let c=3; const C0=$("mgCnt"); if(C0) C0.textContent=c; try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} this._ct=setInterval(()=>{ c--; const C=$("mgCnt"); if(C) C.textContent=c>0?c:"GO!"; try{ SFX.tone(c>0?660:990,.1,"triangle",.05); }catch(e){}
+      if(c<=0){ clearInterval(this._ct); setTimeout(()=>{ const I=d.querySelector(".mgIntro"); if(I) I.remove(); if(game) this.go(); else this.next(); }, 500); } }, 700); };
+    if(lead){ const I=d.querySelector(".mgIntro"), go2=()=>{ const I2=d.querySelector(".mgIntro"); if(!I2 || !I2.classList.contains("how")) return; clearTimeout(this._ht); I2.classList.remove("how"); cd(); }; if(I){ I.classList.add("how"); I.addEventListener("click", go2); } this._ht=setTimeout(go2, lead); } else cd(); },
   /* (v431) 게임 모드 — 자리마다 MiniG 하나 · 같은 단어 순서 · 시간 끝 = 점수 */
   go(){ const o=this.o; if(!o) return; const c=o.cfg; let ws=[]; try{ ws=c.ctx.words(); }catch(e){} const S=MiniG.seq(ws, c.kind);
     if(c.kind==="paint") S.share=MiniG.share(MiniG.PT[0]*MiniG.PT[1]);   /* (v447) 🎨 땅따먹기 = 자리마다 같은 칸 판 */
@@ -21655,7 +21685,7 @@ const MG = {
     $("mgMid").innerHTML='<div class="mgEnd"><b>'+(o.sc[R[0].i]>(R[1]?o.sc[R[1].i]:-1) ? '<img class="mgCrown" src="'+MiniG.A(o.sk||"e")+'crown.webp" alt="">'+E(R[0].n)+'!' : '🤝 비겼어요!')+'</b>'+R.map(p=>'<span style="--pc:'+p.col+'">'+Board.pfh(p)+E(p.n)+' <em>'+o.sc[p.i]+'</em></span>').join('')+'</div>';
     try{ SFX.tone(784,.2,"triangle",.06,1175); }catch(e){}
     this._qt=setTimeout(()=>{ const sc=o.sc, cb=o.done; this.close(true); cb && cb(sc); }, 2200); },
-  close(){ clearInterval(this._ct); clearTimeout(this._qt); cancelAnimationFrame(this._raf); if(this.o && this.o.inst) this.o.inst.forEach(g=>g.dead=1); const d=$("bdMG"); if(d) d.remove(); this.o=null; }
+  close(){ clearInterval(this._ct); clearTimeout(this._ht); clearTimeout(this._qt); cancelAnimationFrame(this._raf); if(this.o && this.o.inst) this.o.inst.forEach(g=>g.dead=1); const d=$("bdMG"); if(d) d.remove(); this.o=null; }
 };
 
 /* ═════════ (v428→v429) 🎲 보드게임 3D 화면 — 🎬 3D 보드 (사용자 고름) · v429 파티 보드: 색 칸 · ⭐ 별 · 🔒 함정 · 코인 숫자
@@ -21690,8 +21720,15 @@ const B3 = {
     if(this.R){ this.R.dispose(); try{ this.R.forceContextLoss(); }catch(e){} if(this.R.domElement.parentNode) this.R.domElement.parentNode.removeChild(this.R.domElement); } this.R=null; this.S=null; this.o=null; this.dot=null; this.topTex=null; this.tg=[]; },
   resize(){ if(!this.R || !this.host) return; const w=this.host.clientWidth||300, h=this.host.clientHeight||200; this.R.setSize(w, h, false); this.R.domElement.style.width=w+"px"; this.R.domElement.style.height=h+"px"; this.C.aspect=w/h; this.C.updateProjectionMatrix(); this._pbW=0; },
   cv(w,h,draw){ const c=document.createElement("canvas"); c.width=w; c.height=h; draw(c.getContext("2d"), w, h); const t=new THREE.CanvasTexture(c); if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding; t.anisotropy=4; return t; },
-  label(txt, bg, fg, fs){ return this.cv(256,96,(g,W,H)=>{ g.font="bold "+(fs||40)+"px sans-serif"; const w=Math.min(W-8, g.measureText(txt).width+36); if(bg){ g.fillStyle=bg; g.beginPath(); if(g.roundRect) g.roundRect((W-w)/2,14,w,H-28,30); else g.rect((W-w)/2,14,w,H-28); g.fill(); g.lineWidth=5; g.strokeStyle="rgba(255,255,255,.9)"; g.stroke(); }
-    else { g.lineWidth=10; g.strokeStyle="rgba(0,0,0,.55)"; g.strokeText(txt,W/2-g.measureText(txt).width/2,H/2+14); } g.fillStyle=fg; g.textAlign="center"; g.textBaseline="middle"; g.fillText(txt,W/2,H/2+2); }); },
+  /* (v451) 🪙 이모지는 컴퓨터(윈도우)에서 깨지거나 은색으로 나와서 → 글자 옆에 금 코인 그림을 직접 그린다 */
+  label(txt, bg, fg, fs){ const co=/🪙/.test(txt); if(co) txt=txt.replace(/\s*🪙\s*/g,"");
+    const draw=(g,W,H,im)=>{ g.clearRect(0,0,W,H); g.font="bold "+(fs||40)+"px sans-serif"; const cs=co?(fs||40)*1.05:0, tw=g.measureText(txt).width, w=Math.min(W-8, tw+cs+36), cx=W/2-(co?cs/2:0)+0;
+      if(bg){ g.fillStyle=bg; g.beginPath(); if(g.roundRect) g.roundRect((W-w)/2,14,w,H-28,30); else g.rect((W-w)/2,14,w,H-28); g.fill(); g.lineWidth=5; g.strokeStyle="rgba(255,255,255,.9)"; g.stroke(); }
+      else { g.lineWidth=10; g.strokeStyle="rgba(0,0,0,.55)"; g.strokeText(txt,cx-tw/2,H/2+14); } g.fillStyle=fg; g.textAlign="center"; g.textBaseline="middle"; g.fillText(txt,cx,H/2+2);
+      if(co && im) g.drawImage(im, cx+tw/2+4, H/2-cs/2+2, cs, cs); };
+    const tex=this.cv(256,96,(g,W,H)=>draw(g,W,H,null));
+    if(co) this.icImg("coins", im=>{ try{ draw(tex.image.getContext("2d"),256,96,im); tex.needsUpdate=true; }catch(e){} });
+    return tex; },
   /* 칸 — 색 = 종류 · 윗면 글자(+3 −3 VS ? SHOP GO) · 🔒 함정 표 */
   TOP:{blue:["+3","#2f8cff","#ffffff"], red:["−3","#ff4d5e","#ffffff"], duel:["VS","#ff8a1a","#ffffff"], event:["?","#9b6bff","#ffffff"], shop:["SHOP","#2fd27a","#ffffff"], start:["GO","#ffffff","#1b7a3a"]},
   /* 아이콘 텍스처 (판마다 assets/board/<k|e>/<이름>.webp) */
@@ -21722,7 +21759,7 @@ const B3 = {
   face(c, dx, dz){ const v=new THREE.Vector3(dx,0,dz); if(v.lengthSq()<1e-6) return; v.applyQuaternion(this.C.quaternion.clone().invert()); const a=Math.atan2(v.x, -v.z); c.row=((Math.round(a/(Math.PI/4))%8)+8)%8; },
   frameOf(c){ c.t.offset.set(c.f/6, 1-(c.row+1)/8); },
   hop(pi, from, to, d, cb){ if(!this.R){ cb && setTimeout(cb,0); return; } const c=this.pc[pi], a=this.slot(pi), A=this.TP[from], B=this.TP[to], dist=Math.hypot(B.x-A.x, B.z-A.z); this.face(c, B.x-A.x, B.z-A.z);
-    c.anim={k:dist>3?"fly":"hop", a:c.g.position.clone(), b:a, t:0, d:Math.max(d||0.26, dist*0.06), h:dist>3?2.6:0.55, up:1, cb}; this.focusI=pi; },
+    c.anim={k:dist>3?"fly":"hop", a:c.g.position.clone(), b:a, t:0, d:Math.max(d||0.26, dist*0.06), h:dist>3?2.6:0.3, up:1, cb}; this.focusI=pi; },
   fly(pi, cb, up){ if(!this.R){ cb && setTimeout(cb,0); return; } const c=this.pc[pi], b=this.slot(pi); this.face(c, b.x-c.g.position.x, b.z-c.g.position.z); c.anim={k:"fly", a:c.g.position.clone(), b, t:0, d:1.1, h:up?4.2:2.2, up, cb}; this.focusI=pi; },
   focus(pi){ this.focusI=pi; if(this.mode!=="intro") this.mode="follow"; },
   overview(ms){ this.mode="over"; clearTimeout(this._ov); this._ov=setTimeout(()=>{ if(this.mode==="over") this.mode="follow"; }, ms||2600); },
