@@ -650,7 +650,7 @@ const KK={ P:{}, R:{},
   fill(g, name, k, o, then){ const go=()=>{ const m=this.mesh(name, k, o); if(!m) return; m.userData=Object.assign({}, g.userData); const W=new THREE.Group(); W.add(m); W.userData=m.userData; if(o && o.ry) W.rotation.y=o.ry; g.add(W); if(then) then(W); try{ dirty=true; }catch(e){} };
     if(this.R[name]) go(); else this.load(name).then(go); }
 };
-KK.load("nature"); KK.load("furniture");   /* (v456) town · city 는 마을에서 */
+KK.load("nature"); KK.load("furniture"); KK.load("hw").then(()=>{ try{ drawPlots(); }catch(e){} });   /* (v456) town · city 는 마을에서 · (v457) hw = 할로윈 비트(호박·등불) */
 /* ② 질감 그림 자리 — assets/town/tex/<이름>.webp 가 있으면 그 그림, 없으면 지금 그림(캔버스) 그대로 (GPT 그림: claude/hy-eng-art-order-town.md) */
 function texFile(t, name){ if(!t || !t.image) return t; const im=new Image(); im.onload=()=>{ t.image=im; t.needsUpdate=true; try{ dirty=true; }catch(e){} }; im.src="../assets/town/tex/"+name+".webp"; return t; }
 
@@ -1185,7 +1185,7 @@ function yTick(dt){ if((place!==PL.yard && place!==PL.yvisit) || !yplaced.length
 function yNight(on){ yNightOn=on; if(scene.userData.wallLamp) scene.userData.wallLamp.material.emissiveIntensity=on?1.8:0.15; yplaced.forEach(p=>{ const u=p.obj.userData; if(u.bulb){ u.bulb.material.emissiveIntensity=on?1.6:0.12; } if(u.glow) u.glow.material.opacity=on?0.32:0; }); dirty=true; }
 function yHouseColors(){ const H=scene.userData.houseObj; if(!H) return; const hx=yd.hx||{};
   if(scene.userData.houseRoof) scene.userData.houseRoof.material=M(HXC.r[hx.r|0]); if(scene.userData.houseWall) scene.userData.houseWall.material=M(HXC.w[hx.w|0]);
-  if(houseDoor) houseDoor.traverse(m=>{ if(m.isMesh && m.userData.door) m.material=M(HXC.d[hx.d|0]); }); H.traverse(m=>{ if(m.userData.shutter) m.material=M(HXC.d[hx.d|0]); }); dirty=true; }
+  if(houseDoor) houseDoor.traverse(m=>{ if(m.isMesh && m.userData.door) m.material=M(HXC.d[hx.d|0]); }); H.traverse(m=>{ if(m.userData.shutter) m.material=M(HXC.d[hx.d|0]); }); try{ kkHouse(); }catch(e){} dirty=true; }
 function yMoveFixedTo(s, x, z){ const P=yFixedXY(s); P[0]=x; P[1]=z; const o=yFixedObj(s); o.position.set(x+0.5,0,z+0.5); dirty=true; }
 /* 저장 · 불러오기 */
 function yData(){ return {v:1, p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
@@ -1503,13 +1503,21 @@ function treeAt(G, x, z, i){ const T=new THREE.Group(); T.position.set(x+0.5,0,z
   [[VN/2,0.3,VN,0.6],[0.3,VN/2,0.6,VN]].forEach(([x,z,w,d])=>{ const g=new THREE.Mesh(new THREE.BoxGeometry(w,0.02,d), M(0x7cc96a)); g.position.set(x,0.01,z); g.receiveShadow=true; villageG.add(g); });
   // ⛲ 분수
   const F0=new THREE.Group(); F0.position.set(6,0,6); villageG.add(F0);
-  part(F0, cyl(0.95,1.0,0.32,28), M(0xd8d2c4), 0,0.16,0); const fw=new THREE.Mesh(cyl(0.82,0.82,0.04,28), new THREE.MeshStandardMaterial({color:0x4fb8e0, roughness:.2, transparent:true, opacity:.85})); fw.position.y=0.3; F0.add(fw); scene.userData.fwater=fw;
-  part(F0, cyl(0.12,0.16,0.8,12), M(0xd8d2c4), 0,0.6,0); part(F0, cyl(0.38,0.3,0.1,20), M(0xd8d2c4), 0,1.0,0); const top=part(F0, sph(0.1), M(0x9fd8ff,{emissive:0x6ec3ff, emissiveIntensity:.4}), 0,1.12,0);
+  /* (v457) ⛲ 분수 다시 — 팔각 돌 연못(테두리 두 겹) · 두 층 접시 · 물기둥 · 물방울 고리 */
+  { const ST=M(0xcfc6b4,{flatShading:true}), ST2=M(0xe3dccd,{flatShading:true});
+    part(F0, cyl(1.02,1.08,0.26,8), ST, 0,0.13,0).rotation.y=Math.PI/8; part(F0, cyl(1.1,1.1,0.08,8), ST2, 0,0.3,0).rotation.y=Math.PI/8;
+    const fw=new THREE.Mesh(cyl(0.9,0.9,0.04,8), new THREE.MeshStandardMaterial({color:0x4fb8e0, roughness:.15, transparent:true, opacity:.85})); fw.position.y=0.28; fw.rotation.y=Math.PI/8; F0.add(fw); scene.userData.fwater=fw;
+    part(F0, cyl(0.16,0.22,0.75,8), ST, 0,0.62,0); part(F0, cyl(0.5,0.36,0.12,12), ST2, 0,0.98,0); const w1=new THREE.Mesh(cyl(0.44,0.44,0.02,12), new THREE.MeshStandardMaterial({color:0x6cc8ec, roughness:.15, transparent:true, opacity:.85})); w1.position.y=1.045; F0.add(w1);
+    part(F0, cyl(0.07,0.1,0.35,8), ST, 0,1.2,0); part(F0, cyl(0.24,0.16,0.08,10), ST2, 0,1.38,0);
+    const jet=new THREE.Mesh(cyl(0.035,0.05,0.3,8), new THREE.MeshStandardMaterial({color:0xbfeeff, transparent:true, opacity:.7, emissive:0x6ec3ff, emissiveIntensity:.25})); jet.position.y=1.55; F0.add(jet);
+    for(let k=0;k<8;k++){ const a=k/8*Math.PI*2, d=new THREE.Mesh(sph(0.035), new THREE.MeshStandardMaterial({color:0xbfeeff, transparent:true, opacity:.8})); d.position.set(Math.cos(a)*0.5,0.95,Math.sin(a)*0.5); F0.add(d); }
+    [[-1.25,-1.25],[1.25,-1.25],[-1.25,1.25],[1.25,1.25]].forEach(([x,z])=>{ const pt=new THREE.Group(); pt.position.set(x*0.78,0,z*0.78); F0.add(pt); part(pt, rbox(0.34,0.22,0.34,0.03), M(0x9a6a40), 0,0.11,0); [0,1,2,3,4].forEach(k=>{ part(pt, sph(0.07), M(0x4f9e48), Math.cos(k*1.3)*0.08,0.26,Math.sin(k*1.3)*0.08); part(pt, sph(0.045), M([0xff7aa8,0xffd23f,0xffffff,0xb28dff,0xff8a65][k]), Math.cos(k*1.3)*0.1,0.32,Math.sin(k*1.3)*0.1); }); }); }
   // 집 3채
   scene.userData.vHouses=[makeHouseAt(villageG, V_HOUSES[0], 0xffe4c4, 0x5b8ad8), makeHouseAt(villageG, V_HOUSES[1], 0xe8f4d8, 0xd85b7a), makeHouseAt(villageG, V_HOUSES[2], 0xfff1b8, 0x7a5bd8), makeHouseAt(villageG, V_HOUSES[3], 0xe0f0ff, 0x5db95a)];   // (L0-10) Mia · Rosa · Leo · Max — 누르면 놀러 감
   // 📋 게시판
   { const B=new THREE.Group(); B.position.set(V_BOARD[0]+0.5,0,V_BOARD[1]+0.5); villageG.add(B); scene.userData.boardObj=B;
-    [-0.35,0.35].forEach(x=>part(B, cyl(0.04,0.04,1.2,8), M(0x8a5a34), x,0.6,0)); part(B, rbox(0.9,0.6,0.06,0.02), M(0xb07a4a), 0,0.95,0);
+    [-0.4,0.4].forEach(x=>part(B, rbox(0.08,1.45,0.08,0.02), M(0x7a4a2a), x,0.72,0)); part(B, rbox(0.94,0.66,0.06,0.02), M(0xb07a4a), 0,0.95,0); part(B, rbox(0.86,0.58,0.02,0.01), M(0xd9b98a), 0,0.95,0.035);
+    /* (v457) 📋 게시판 작은 지붕 · 받침 */ [-1,1].forEach(s=>{ const r=part(B, rbox(0.56,0.05,0.34,0.02), M(0x5b8ad8), s*0.24,1.5,0); r.rotation.z=-s*0.45; }); part(B, rbox(0.06,0.06,0.36,0.02), M(0x4a6fb8), 0,1.6,0); part(B, rbox(1.0,0.06,0.2,0.02), M(0x7a4a2a), 0,0.6,0.05);
     [[-0.2,1.0,0xfff7e6],[0.18,0.92,0xffe08a],[-0.05,0.82,0xcfe9f7]].forEach(([x,y,c])=>part(B, rbox(0.24,0.2,0.02,0.005), M(c), x,y,0.04)); }
   // 🌰 씨앗 수레 (Mia)
   { const C=new THREE.Group(); C.position.set(2,0,9.5); villageG.add(C); scene.userData.cartObj=C;
@@ -2111,17 +2119,25 @@ const matP=n=>Math.max(1, Math.round(((MAT[n]||{}).p||1)*mkt(n)));
 function grow(pl){ if(!pl.s || !pl.wt) return; const t=now(), end=pl.wt+WATER_H*3600e3, from=Math.max(pl.le||pl.wt, pl.wt), to=Math.min(t,end); if(to>from) pl.g=(pl.g||0)+(to-from)/3600e3; pl.le=t; if(t>=end){ pl.wt=0; pl.le=0; } }
 function plotStage(pl){ if(!pl.s) return "empty"; grow(pl); const k=(pl.g||0)/SEEDS[pl.s].h; return k>=1?"ripe":k>=0.66?"big":k>=0.33?"small":"sprout"; }
 function plotDry(pl){ return pl.s && !pl.wt && plotStage(pl)!=="ripe"; }
-function drawLot(i, P){ /* (v436) 흰 줄 틀 → 고른 흙 자리 (살 수 있는 밭) */ const sp=part(P, rbox(0.86,0.03,0.86,0.06), M(0x8a6c48), 0,0.015,0); sp.castShadow=false;
-  for(let r=0;r<3;r++){ const f=part(P, rbox(0.7,0.012,0.05,0.005), M(0x735638), 0,0.033,-0.26+r*0.26); f.castShadow=false; }
-  [[-0.4,-0.4],[0.4,-0.4],[-0.4,0.4],[0.4,0.4]].forEach(([x,z])=>part(P, cyl(0.022,0.028,0.16,6), M(0xb07a4a), x,0.08,z));
+/* (v457) 🌱 밭 모양 — 나무 틀(진한 나무, 모서리 말뚝) · 흙(알갱이 무늬) · 이랑 */
+function plotFrame(P){ const W=M(0x7a5232), C=M(0x5e3e24); [[0,-0.44,0.92,0.08],[0,0.44,0.92,0.08],[-0.44,0,0.08,0.8],[0.44,0,0.08,0.8]].forEach(([x,z,w,d])=>{ const b=part(P, rbox(w,0.12,d,0.02), W, x,0.06,z); b.castShadow=false; });
+  [[-0.44,-0.44],[0.44,-0.44],[-0.44,0.44],[0.44,0.44]].forEach(([x,z])=>part(P, rbox(0.11,0.16,0.11,0.02), C, x,0.08,z).castShadow=false); }
+function plotSoilTex(){ return scene.userData.soilTex || (scene.userData.soilTex=canvasTex(128,128,(g,w,h)=>{ g.fillStyle="#ffffff"; g.fillRect(0,0,w,h); let s=7; const R=()=>(s=(s*16807)%2147483647)/2147483647;
+  for(let i=0;i<700;i++){ g.fillStyle=R()<0.5?"rgba(0,0,0,.16)":"rgba(255,255,255,.12)"; const r=0.6+R()*1.8; g.beginPath(); g.arc(R()*w,R()*h,r,0,7); g.fill(); } })); }
+function plotSoilM(wet){ const k=wet?"soilW":"soilD"; return scene.userData[k] || (scene.userData[k]=new THREE.MeshStandardMaterial({color:new THREE.Color(wet?0x3a2416:0x6e4a2e).convertSRGBToLinear(), map:plotSoilTex(), roughness:wet?0.5:0.95})); }
+function plotRowM(wet){ const k=wet?"rowW":"rowD"; return scene.userData[k] || (scene.userData[k]=new THREE.MeshStandardMaterial({color:new THREE.Color(wet?0x2e1c10:0x5a3a22).convertSRGBToLinear(), map:plotSoilTex(), roughness:wet?0.45:0.95})); }
+function drawLot(i, P){ /* (v436) 흰 줄 틀 → 고른 흙 자리 · (v457) 풀밭 + 말뚝 4개 = 아직 안 산 땅 */ const sp=part(P, rbox(0.88,0.02,0.88,0.04), M(0x6aa84f), 0,0.01,0); sp.castShadow=false;
+  [[-0.4,-0.4],[0.4,-0.4],[-0.4,0.4],[0.4,0.4]].forEach(([x,z])=>part(P, cyl(0.025,0.03,0.26,6), M(0xb07a4a), x,0.13,z));
+  /* 밧줄은 안 씀 — (v436) 사용자가 "철사 같다"고 한 흰 줄과 비슷해 보임 */
   if((i-6)%2===0){ const L=LAND.find(l=>l.n>plotN), next=L && i<L.n; if(next){ const sg=scene.userData.lotTex || (scene.userData.lotTex=canvasTex(128,80,(g,w,h)=>{ g.fillStyle="#fff7e6"; g.fillRect(0,0,w,h); g.strokeStyle="#8a5a34"; g.lineWidth=6; g.strokeRect(3,3,w-6,h-6); g.fillStyle="#3f7a3a"; g.font="bold 24px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🌱 FOR",w/2,h/2-13); g.fillText("SALE",w/2,h/2+15); }));
       part(P, cyl(0.03,0.03,0.7,6), M(0x8a5a34), 0,0.35,0.3); const s=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.32), new THREE.MeshBasicMaterial({map:sg, side:THREE.DoubleSide})); s.position.set(0,0.7,0.33); P.add(s); } }
   P.userData.st="lot"+plotN; dirty=true; }
 function drawPlot(i){ const P=scene.userData.plotG[i], pl=plots[i]; while(P.children.length) P.remove(P.children[0]);
   if(i>=plotN){ drawLot(i, P); return; }
   const st=plotStage(pl), wet=!!pl.wt;
-  const soil=part(P, rbox(0.9,0.08,0.9,0.03), M(wet?0x5a3a22:0x8a5e3c), 0,0.04,0); soil.castShadow=false;
-  for(let r=0;r<3;r++){ const fur=part(P, rbox(0.8,0.02,0.06,0.01), M(wet?0x4a2e1a:0x76502f), 0,0.085,-0.28+r*0.28); fur.castShadow=false; }
+  /* (v457) 사용자: "밭이랑" — 나무판처럼 보이던 밭 → 나무 틀 + 흙 + 둥근 이랑 (물 주면 진하고 반짝) */
+  plotFrame(P); const soil=part(P, rbox(0.82,0.07,0.82,0.02), plotSoilM(wet), 0,0.05,0); soil.castShadow=false;
+  for(let r=0;r<3;r++){ const fur=part(P, cyl(0.075,0.075,0.74,10), plotRowM(wet), 0,0.07,-0.26+r*0.26); fur.rotation.z=Math.PI/2; fur.castShadow=false; }
   if(!pl.s){ P.userData.st="empty"; dirty=true; return; }
   const G=0x5dbb63;
   if(st==="sprout"){ [[-0.08,0],[0.08,0.02]].forEach(([x,z])=>{ const l=part(P, sph(0.06), M(G), x,0.13,z); l.scale.set(1,0.6,1.3); }); }
@@ -2132,7 +2148,8 @@ function drawPlot(i){ const P=scene.userData.plotG[i], pl=plots[i]; while(P.chil
     if(c==="potato"){ for(let k=0;k<5;k++){ const a=k/5*Math.PI*2; part(P, sph(0.11), M(G), Math.cos(a)*0.15,0.2,Math.sin(a)*0.15); } [[-0.25,0.2],[0.22,-0.2]].forEach(([x,z])=>part(P, sph(0.08), M(0xb88a52), x,0.1,z)); }
     if(c==="tomato"){ part(P, cyl(0.015,0.015,0.7,5), M(0x8a5a34), 0,0.38,0); part(P, sph(0.18), M(G), 0,0.45,0); [[0.12,0.4,0.12],[-0.1,0.5,0.1],[0.05,0.32,-0.14]].forEach(([x,y,z])=>part(P, sph(0.07), M(0xe8402a), x,y,z)); }
     if(c==="strawberry"){ for(let k=0;k<4;k++){ const a=k/4*Math.PI*2; const l=part(P, sph(0.1), M(G), Math.cos(a)*0.17,0.13,Math.sin(a)*0.17); l.scale.y=0.5; } [[0.1,0.1],[-0.12,-0.05],[0.02,-0.15]].forEach(([x,z])=>part(P, cone(0.05,0.09,8), M(0xe83a4a), x,0.12,z).rotation.x=Math.PI); }
-    if(c==="pumpkin"){ const b=part(P, sph(0.3), M(0xff8a1a), 0,0.24,0); b.scale.set(1.1,0.75,1.1); part(P, cyl(0.03,0.04,0.12,6), M(0x5a7a2a), 0,0.5,0); for(let k=0;k<3;k++){ const l=part(P, sph(0.09), M(G), 0.25*Math.cos(k*2),0.1,0.25*Math.sin(k*2)); l.scale.y=0.4; } }
+    if(c==="pumpkin" && KK.R.hw){ const m=KK.mesh("hw","pumpkin_orange",{s:0.5, y:0.08}); if(m) P.add(m); for(let k=0;k<3;k++){ const l=part(P, sph(0.09), M(G), 0.28*Math.cos(k*2),0.12,0.28*Math.sin(k*2)); l.scale.y=0.4; } }
+    else if(c==="pumpkin"){ const b=part(P, sph(0.3), M(0xff8a1a), 0,0.24,0); b.scale.set(1.1,0.75,1.1); part(P, cyl(0.03,0.04,0.12,6), M(0x5a7a2a), 0,0.5,0); for(let k=0;k<3;k++){ const l=part(P, sph(0.09), M(G), 0.25*Math.cos(k*2),0.1,0.25*Math.sin(k*2)); l.scale.y=0.4; } }
     if(c==="corn"){ [[-0.2,-0.15],[0.2,-0.1],[0,0.2]].forEach(([x,z])=>{ part(P, cyl(0.025,0.03,0.7,6), M(0x6aa84f), x,0.4,z); [-1,1].forEach(s=>{ const l=part(P, cone(0.05,0.36,5), M(G), x+s*0.07,0.42,z); l.rotation.z=s*0.7; }); const c2=part(P, cyl(0.055,0.045,0.2,8), M(0xf5d33d), x+0.05,0.56,z+0.03); c2.rotation.z=-0.25; part(P, cone(0.06,0.12,6), M(0x8ccf6a), x+0.03,0.5,z+0.03).rotation.z=-0.25; }); }
     if(c==="watermelon"){ const wm=scene.userData.wmMat || (scene.userData.wmMat=new THREE.MeshStandardMaterial({roughness:.6, map:canvasTex(128,64,(g,w,h)=>{ g.fillStyle="#4fae5a"; g.fillRect(0,0,w,h); g.fillStyle="#256b33"; for(let x=0;x<w;x+=16){ g.beginPath(); g.moveTo(x,0); for(let y=0;y<=h;y+=8) g.lineTo(x+4+Math.sin(y*0.5)*2,y); g.lineTo(x+8,h); g.lineTo(x+6,0); g.fill(); } })}));
       const b=part(P, sph(0.28), wm, 0,0.22,0); b.scale.set(1.15,0.85,0.95); for(let k=0;k<3;k++){ const l=part(P, sph(0.08), M(G), 0.3*Math.cos(k*2.1),0.08,0.3*Math.sin(k*2.1)); l.scale.y=0.4; } }
@@ -3404,6 +3421,9 @@ KK.load("nature").then(R0=>{ if(!R0) return;
     KK.fill(H, "nature", k, {s:3, fit:[r[2]-0.15, r[3]-0.2], ry:Math.PI/2}); });
   (scene.userData.rocks||[]).forEach((G,i)=>{ G.children.forEach(m=>m.visible=false); KK.fill(G, "nature", ["rock_single_E","rock_single_C","rock_single_B"][i%3], {s:2.1, fit:[0.95,0.95]}); });
   dirty=true; });
+/* (v457) 🌷 마을 꽃밭 — 벤치·가로등·HOME 문 옆 (밟고 지나가도 됨, 작음) */
+{ const FC=[0xff7aa8,0xffd23f,0xffffff,0xb28dff,0xff8a65], spots=[[3.15,4.15],[3.85,4.85],[7.15,8.85],[7.85,8.2],[4.3,3.7],[8.3,3.7],[3.7,8.3],[0.75,5.3],[0.75,6.75],[6,4.55],[4.55,6],[7.45,6],[6,7.45]];
+  spots.forEach(([x,z],i)=>{ for(let k=0;k<5;k++){ const a=k*1.25+i, r=0.06+((k*37+i*11)%10)/100; part(villageG, cyl(0.008,0.008,0.12,4), M(0x4f9e48), x+Math.cos(a)*r,0.06,z+Math.sin(a)*r).castShadow=false; part(villageG, sph(0.035), M(FC[(i+k)%5]), x+Math.cos(a)*r,0.13,z+Math.sin(a)*r).castShadow=false; } }); }
 /* (v456) 🏘 마을 꾸미기 — 사용자: "이제 마을을 꾸며야 하는데 저 도형들을 어떻게 할 수 없나"
    → 도형으로 만든 🗼 타워 건물 · 🌰 Mia 수레 · 가로등 · 벤치 · 나무를 KayKit(CC0) 모델로 · 빈 구석에 통·상자·자루·깃발·덤불 (V_DECO = 막힌 칸)
    묶음: town = 중세 헥사곤 팩(타워·시장 가판대·소품, 텍스처는 nature.webp 같이 씀) · city = 시티 빌더 비트(가로등·벤치·덤불·소화전) */
@@ -3423,7 +3443,30 @@ Promise.all([KK.load("nature"), KK.load("town"), KK.load("city")]).then(([N0,T0,
            "3,11":[["city","bush",-0.22,0.05,{s:2.1}],["city","bush",0.2,0.2,{s:1.7}],["town","flag_yellow",0.25,-0.25,{s:2}]]};
   V_DECO.forEach(([x,z])=>(D[x+","+z]||[]).forEach(([pk,k,dx,dz,o])=>{ if((pk==="town"&&T0)||(pk==="city"&&C0)) put(x+0.5+dx, z+0.5+dz, pk, k, o); }));
   if(T0) [[0.2,0.2],[11.8,0.2],[0.2,11.8]].forEach(([x,z],i)=>put(x, z, "town", ["flag_blue","flag_red","flag_yellow"][i], {s:2.6}));
+  /* (v457) 🪵 마을 가장자리 나무 울타리 (왼쪽 · 뒤쪽 — 길·집 자리는 비움) */
+  if(T0){ for(let z=1;z<VN-1;z++){ if(z===V_GATE[1] || z===V_GATE[1]-1 && false) continue; if(at(V_TREES,0,z)>=0) continue; put(0.06, z+0.5, "town", "fence_wood_straight", {s:1.75}); }
+    for(let x=4;x<8;x++) put(x+0.5, 0.06, "town", "fence_wood_straight", {s:1.75, ry:Math.PI/2}); put(11.5, 0.06, "town", "fence_wood_straight", {s:1.75, ry:Math.PI/2}); }
   dirty=true; });
+/* (v457) 🏠 내 집 = KayKit 2층 집 — 사용자: "자기 자신 집도 그렇게 해야 하는 거 아니야?"
+   · 모델 색은 그림 한 장(조각 색)에서 오므로, 꼭짓점마다 그 색을 읽어 파란 지붕 → 내 지붕 색 · 흰 벽 → 내 벽 색 (🎨 꾸미기 색 그대로 씀) · 나머지(나무·돌)는 그대로
+   · 예전 도형 집은 숨김 (누르기·문 자리 그대로) · 모델을 못 읽으면 예전 집 */
+function kkRecolor(pack, k, roofHex, wallHex){ const R=KK.R[pack]; if(!R || !R.G[k]) return null; const img=R.tex && R.tex.image; if(!img || !img.width) return null;
+  if(!kkRecolor.px){ const cv=document.createElement("canvas"); cv.width=img.width; cv.height=img.height; const g=cv.getContext("2d"); g.drawImage(img,0,0); kkRecolor.px=g.getImageData(0,0,cv.width,cv.height).data; kkRecolor.W=cv.width; kkRecolor.H=cv.height; }
+  const px=kkRecolor.px, W=kkRecolor.W, H=kkRecolor.H, G=R.G[k], uv=G.attributes.uv, n=uv.count, col=new Float32Array(n*3), c=new THREE.Color(), hsl={}, roof=new THREE.Color(roofHex), wall=new THREE.Color(wallHex);
+  const un=uv.normalized ? 1/65535 : 1;   /* r128: 정규화 속성도 getX 는 날 값 */
+  for(let i=0;i<n;i++){ const x=Math.min(W-1,Math.max(0,Math.floor(uv.getX(i)*un*W))), y=Math.min(H-1,Math.max(0,Math.floor(uv.getY(i)*un*H))), o=(y*W+x)*4; c.setRGB(px[o]/255,px[o+1]/255,px[o+2]/255); c.getHSL(hsl);
+    if(hsl.s>0.35 && hsl.h>0.52 && hsl.h<0.7 && hsl.l>0.15){ const f=Math.max(0.55, Math.min(1.25, hsl.l/0.5)); c.copy(roof).multiplyScalar(f); }
+    else if(hsl.s<0.14 && hsl.l>0.78){ c.copy(wall).multiplyScalar(Math.min(1.05, hsl.l/0.92)); }
+    else c.convertSRGBToLinear();
+    col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b; }
+  const g2=G.clone(); g2.setAttribute("color", new THREE.BufferAttribute(col,3)); return g2; }
+function kkHouse(){ const H=scene.userData.houseObj; if(!H || !KK.R.town || !(KK.R.town.tex && KK.R.town.tex.image && KK.R.town.tex.image.width)) return false; const hx=yd.hx||{};
+  const g2=kkRecolor("town","building_home_B_blue", HXC.r[hx.r|0], HXC.w[hx.w|0]); if(!g2) return false;
+  let W=H.userData.kk; if(!W){ const m=KK.mesh("town","building_home_B_blue",{s:3, fit:[2.75,2.95]}); if(!m) return false; m.material=new THREE.MeshStandardMaterial({vertexColors:true, roughness:.85}); W=new THREE.Group(); W.add(m); W.rotation.y=KK_HOUSE_RY; W.position.z=0.05; W.userData=Object.assign({}, H.userData); H.add(W); H.userData.kk=W;
+    H.children.forEach(c=>{ if(c!==W) c.visible=false; }); }
+  const m=W.children[0]; if(m.geometry!==KK.R.town.G["building_home_B_blue"]) m.geometry.dispose(); m.geometry=g2; dirty=true; return true; }
+const KK_HOUSE_RY=0;
+KK.load("town").then(R=>{ if(!R) return; const go=()=>{ if(!kkHouse()) setTimeout(go, 400); }; go(); });
 let last=performance.now(), fN=0, fT=0, idleT=0, farmT=0, hudT=0, hudK="";
 function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Math.ceil(bl/60e3); if(k===hudK) return; hudK=k;
   $("hGem").querySelector("b").textContent=gems; $("hBait").querySelector("b").textContent=bait; $("hBuff").hidden=!(bl>0); if(bl>0) $("hBuff").querySelector("b").textContent=Math.ceil(bl/60e3)+"분"; }
@@ -3445,7 +3488,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
+window.HOUSE = {drawPlots, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
