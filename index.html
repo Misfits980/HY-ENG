@@ -14637,7 +14637,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v458";
+const GAME_VER = "v459";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19560,14 +19560,21 @@ const HyDay = {
     return FB.get("/hy/day/"+day, true).then(D=>{ this.D[day]=D||{}; this.rdErr=0;
         if(day===this.key() && !Object.keys(this.D[day]).some(k=>k[0]!=="_")) return this.probe().then(s=>{ this.pst=s; return this.D[day]; });
         return this.D[day]; }, ()=>{ this.rdErr=1; return (this.D[day]=this.D[day]||{}); }); },
+  /* (v459) 사용자 캡처: 「김지후」가 두 줄 (자기 패드 = 기기 번호 · 선생님 패드에서 고름 = 명단 번호) → 같은 이름(👤 떼고·소문자)은 한 줄로 합침 · 반은 아는 반을 씀 */
+  merge(D){ const G={}, SUM=["r","rr","rw","rs","s","so","sw","c","cb","cr","ce"], tm=(()=>{ try{ return HyBoss.teams()||{}; }catch(e){ return {}; } })();
+    Object.keys(D||{}).filter(k=>k[0]!=="_").forEach(k=>{ const x=D[k]||{}, key=(()=>{ try{ return HyBoss.nkey(x.n)||k; }catch(e){ return k; } })(), g=G[key];
+      if(!g){ G[key]=Object.assign({k, ks:[k]}, x); return; } g.ks.push(k); if(/^👤/.test(String(g.n||"")) && x.n && !/^👤/.test(String(x.n))) g.n=x.n;
+      SUM.forEach(f=>{ if(x[f]!=null) g[f]=(g[f]|0)+(x[f]|0); }); ["b","bs"].forEach(f=>{ if((x[f]|0)>(g[f]|0)) g[f]=x[f]|0; });
+      if((x.la||0)>(g.la||0)){ g.la=x.la; g.lk=x.lk; } if(x.t && x.t!=="all" && tm[x.t] && !tm[g.t]) g.t=x.t; });
+    return Object.values(G); },
   card(){ const E=x=>Raid.esc(x), today=this.key(), yday=this.key(Date.now()-864e5), day=this.day||today, D=this.D[day];
     const head='<div class="dyTabs"><button class="mini'+(day===today?' on':'')+'" data-ad="dayPick" data-d="'+today+'">오늘</button><button class="mini'+(day===yday?' on':'')+'" data-ad="dayPick" data-d="'+yday+'">어제</button><button class="mini" data-ad="dayPick" data-d="'+day+'">🔄</button></div>';
     if(!D) return '<div class="full">'+'<section class="adCard"><h3>📅 오늘 한 아이<small>달리기 · 공부 · 보스 — 판이 끝날 때마다 바로</small></h3>'+head+'<p class="adSmall">불러오는 중…</p></section></div>';
-    const BD=(HyBoss.D||{}), L=Object.keys(D).filter(k=>k[0]!=="_").map(k=>Object.assign({k}, D[k])).sort((a,b)=>(b.la||0)-(a.la||0)), run=L.filter(x=>(x.r|0)>0), st=L.filter(x=>(x.s|0)>0), cl=L.filter(x=>(x.c|0)>0);
+    const BD=(HyBoss.D||{}), L=this.merge(D).sort((a,b)=>(b.la||0)-(a.la||0)), run=L.filter(x=>(x.r|0)>0), st=L.filter(x=>(x.s|0)>0), cl=L.filter(x=>(x.c|0)>0);
     const clT=x=>[(x.cb|0)?'배틀'+((x.cb|0)>1?' '+(x.cb|0):''):'', (x.cr|0)?'레이드'+((x.cr|0)>1?' '+(x.cr|0):''):'', (x.ce|0)?'시험':''].filter(Boolean).join(' · ');
     const tm=t=>{ if(!t) return ""; const d=new Date(t); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
     const body = L.length ? '<div class="adTbl"><table class="dyT"><tr><th>아이</th><th>🏃 달리기</th><th>최고</th><th>정답률</th><th>📚 공부</th><th>🏫 수업</th><th>⚔️ 보스</th><th>마지막</th></tr>'
-      +L.map(x=>{ const b=BD[x.k], bd=b && b.on ? (b.on[day]|0) : 0, tot=(x.rr|0)+(x.rw|0);
+      +L.map(x=>{ const bd=x.ks.reduce((s,k)=>{ const b=BD[k]; return s+(b && b.on ? (b.on[day]|0) : 0); }, 0), tot=(x.rr|0)+(x.rw|0);
         return '<tr><td>'+E(x.n||"?")+(x.t && x.t!=="all" ? ' <small>'+E(HyExam.tName(x.t))+'</small>' : '')+'</td><td class="'+((x.r|0)?'ok':'')+'">'+((x.r|0)?(x.r|0)+'판 <small>'+Math.round((x.rs|0)/60)+'분</small>':'-')+'</td>'
           +'<td>'+((x.b|0)?(x.b|0).toLocaleString()+((x.bs|0)?' <small>'+(x.bs|0)+'단계</small>':''):'-')+'</td><td>'+(tot?Math.round((x.rr|0)/tot*100)+'%':'-')+'</td>'
           +'<td class="'+((x.s|0)?'ok':'')+'">'+((x.s|0)?(x.s|0)+'판':'-')+'</td><td class="'+((x.c|0)?'ok':'')+'">'+((x.c|0)?E(clT(x)):'-')+'</td><td>'+(bd?'-'+bd.toLocaleString():'-')+'</td><td>'+tm(x.la)+' '+(x.lk==="r"?'🏃':x.lk==="c"?'🏫':'📚')+'</td></tr>'; }).join('')+'</table></div>'
