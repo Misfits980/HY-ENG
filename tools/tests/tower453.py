@@ -66,13 +66,13 @@ async def main():
         await E("()=>{ HOUSE.TW.seed='2026-10-07'; HOUSE.twEnterGo('easy'); }")
         ok(await until(A, "()=>HOUSE.place()==='tower' && HOUSE.TW.on"), "🟢 쉬움 → 타워 안")
         r = await E("()=>[document.getElementById('twRe').hidden, document.getElementById('twPeers').textContent, document.getElementById('twFloor').textContent]")
-        ok(r[0] and r[1] == "👥 0" and r[2].startswith("1 / 6"), f"🚩 단추 없음 · 👥 0 · 1층 {r}")
+        ok(r[0] and r[1] == "👥 0" and r[2].startswith("1 / 10"), f"🚩 단추 없음 · 👥 0 · 1층 {r}")
         # ② 떨어지면 그 자리 (사람)
         r = await E("""()=>{ const T=HOUSE.TW; T.bot=false; T.cp=3; T.best=3; const c=T.cps[3]; T.p.set((c.min.x+c.max.x)/2, c.max.y+0.01, (c.min.z+c.max.z)/2); T.v.set(0,0,0); for(let i=0;i<20;i++) HOUSE.twStep(1/90);
             const hud=(HOUSE.twTick(0.2), document.getElementById('twFloor').textContent), d0=T.dead, f0=T.fall, y0=T.p.y;
             const F=HOUSE.TWC; T.p.set(F+7.5, y0+0.5, F+7.5); T.v.set(0,0,0); for(let i=0;i<900 && !(T.onG && T.p.y<y0-2);i++) HOUSE.twStep(1/90); for(let i=0;i<30;i++) HOUSE.twStep(1/90);
             return [hud, T.dead-d0, T.fall-f0, +(y0-T.p.y).toFixed(1), T.onG, T.cp, Math.hypot(T.p.x-(c.min.x+c.max.x)/2, T.p.z-(c.min.z+c.max.z)/2)>1]; }""")
-        ok(r[0].startswith("4 / 6") and r[1] == 0 and r[2] >= 1 and r[3] > 2 and r[4] and r[6], f"② 4층에서 떨어짐 → 떨어진 곳에 그대로 (체크포인트로 안 감) · ⬇️ 횟수 {r}")
+        ok(r[0].startswith("4 / 10") and r[1] == 0 and r[2] >= 1 and r[3] > 2 and r[4] and r[6], f"② 4층에서 떨어짐 → 떨어진 곳에 그대로 (체크포인트로 안 감) · ⬇️ 횟수 {r}")
         r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<60 && !T.S.some(s=>s.kind==='kill'); d++){ T.seed='2026-12-'+d; HOUSE.twBuild('easy'); } T.cp=3; T.best=3; const b=T.cps[0]; const lava=T.S.find(s=>s.kind==='kill'); if(!lava) return 'nolava'; T.p.set((lava.min.x+lava.max.x)/2, lava.max.y+0.05, (lava.min.z+lava.max.z)/2); T.v.set(0,-1,0); for(let i=0;i<10;i++) HOUSE.twStep(1/90);
             const atBottom=Math.hypot(T.p.x-(b.min.x+b.max.x)/2, T.p.z-(b.min.z+b.max.z)/2)<0.1 && Math.abs(T.p.y-b.max.y)<0.05; T.p.y=-20; HOUSE.twStep(1/90); const again=Math.abs(T.p.y-b.max.y)<0.05;
             return [atBottom, again, T.cp]; }""")
