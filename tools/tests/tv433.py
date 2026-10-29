@@ -16,7 +16,7 @@ async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch()
         ctx = await br.new_context(viewport={"width": 1280, "height": 720}, service_workers="block")
-        await ctx.add_init_script("window.HY_FB_LOCAL=true;")
+        await ctx.add_init_script("window.HY_FB_LOCAL=true; window.HY_NOHOW=true;")
         T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T)
         async def until(pg, js, n=60):
             for _ in range(n):
@@ -27,12 +27,12 @@ async def main():
         # ① 쉬운 설정
         await T.evaluate("()=>Board.setup()"); await T.wait_for_timeout(400)
         r = await T.evaluate("()=>[document.querySelectorAll('[data-mode]').length, document.getElementById('bdRangeE').hidden, document.getElementById('bdRangeT').textContent, document.querySelectorAll('[data-len]').length, document.querySelector('[data-len].on').dataset.len, !!document.querySelector('details.bdMore'), document.querySelector('details.bdMore').open]")
-        ok(r[0] == 2 and r[1] and "Stage" in r[2] and r[3] == 3 and r[4] == "5" and r[5] and not r[6], f"설정: 모드 2 · 범위 요약(펼침 숨김) · 길이 3단추(보통) · 더 보기 접힘 {r}")
+        ok(r[0] == 2 and r[1] and "Stage" in r[2] and r[3] == 3 and r[4] == "15" and r[5] and not r[6], f"설정: 모드 2 · 범위 요약(펼침 숨김) · 길이 3단추(보통) · 더 보기 접힘 {r}")
         await T.evaluate("()=>{ document.querySelector('[data-bd=rng]').click(); }")
         ok(await T.evaluate("()=>!document.getElementById('bdRangeE').hidden"), "범위 「바꾸기」 → 고르는 칸이 펼쳐짐")
-        await T.evaluate("()=>{ document.querySelector('[data-len=\"3\"]').click(); document.querySelector('[data-mode=tv]').click(); }")
+        await T.evaluate("()=>{ document.querySelector('[data-len=\"10\"]').click(); document.querySelector('[data-mode=tv]').click(); }")
         r = await T.evaluate("()=>[document.getElementById('bdRnd').value, document.getElementById('bdPadOnly').hidden, document.getElementById('bdTvOnly').hidden, document.getElementById('bdGo').textContent]")
-        ok(r == ["3", True, False, "📺 방 만들기"], f"⚡ 짧게 = 3라운드 · 📺 TV 모드 = 자리 고르기 숨김 · 「방 만들기」 {r}")
+        ok(r == ["10", True, False, "📺 방 만들기"], f"⚡ 짧게 = 10라운드 · 📺 TV 모드 = 자리 고르기 숨김 · 「방 만들기」 {r}")
         await T.screenshot(path=OUT + "tv433_setup.png")
         await T.evaluate("()=>{ document.querySelector('[data-sk=k]').click(); document.getElementById('bdGo').click(); }")
         ok(await until(T, "()=>/^\\d{4}$/.test((document.getElementById('lbRoom')||{}).textContent||'')"), "📺 로비: 방 번호 4자리")
@@ -114,15 +114,16 @@ async def main():
         await T.screenshot(path=OUT + "tv433_tvmg.png")
         for pg in K:
             await pg.evaluate("()=>{ }")
-        await T.evaluate("()=>{ BoardTV.mgO.t0=Date.now()-60000; }")
+        await T.evaluate("()=>{ BoardTV.mgO.end=BoardTV.now()-1000; }")
         for pg in K:
             await pg.evaluate("()=>{ if(BoardPad.g){ BoardPad.g.dead=1; FB.update('/battle/'+BoardPad.room+'/p/'+BoardPad.me, {mg:{id:BoardPad.mgId, sc:BoardPad.g.sc, fin:1}}); } }")
         ok(await until(T, "()=>!document.getElementById('bdTvMG') && !BoardTV.mgS", 40), "끝 → TV 판으로")
-        await T.wait_for_timeout(500)
+        ok(await until(T, "()=>!!document.getElementById('bdPod')", 20), "(v447) 🏆 시상대")
+        await until(T, "()=>!document.getElementById('bdPod')", 60); await T.wait_for_timeout(500)
         r = await T.evaluate("()=>Board.o.P.map(p=>[p.mem[0].id, p.coin])")
         d = dict(r)
         ok(d["k1"] == 10 and d["k2"] == 5, f"🥇 루아 🪙10 · 🥈 주호 🪙5 {r}")
-        ok(await until(K[0], "()=>!BoardPad.g && !/끝!/.test(document.getElementById('bpBody').innerText)", 30), "패드도 판 화면으로")
+        ok(await until(K[0], "()=>!BoardPad.g && !document.getElementById('bpPod') && !/끝!/.test(document.getElementById('bpBody').innerText)", 30), "패드도 판 화면으로")
         # 🏆 → 패드에 순위 · 💎
         await T.evaluate("()=>{ clearTimeout(Board._to); const o=Board.o; o.P.forEach((p,i)=>{ p.star=3-i; }); Board.win(); }")
         ok(await until(K[0], "()=>/우승|등!/.test(document.getElementById('bpBody').innerText)", 30), "끝 → 패드에 순위")

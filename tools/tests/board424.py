@@ -18,7 +18,7 @@ async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch()
         ctx = await br.new_context(viewport={"width": 1024, "height": 768}, service_workers="block")
-        await ctx.add_init_script("window.HY_FB_LOCAL=true; try{ if(!localStorage.getItem('hyeng_t0')){ localStorage.clear(); localStorage.setItem('hyeng_t0','1'); localStorage.setItem('hyeng_nick','루아'); } }catch(e){}")
+        await ctx.add_init_script("window.HY_FB_LOCAL=true; window.HY_NOHOW=true; try{ if(!localStorage.getItem('hyeng_t0')){ localStorage.clear(); localStorage.setItem('hyeng_t0','1'); localStorage.setItem('hyeng_nick','루아'); } }catch(e){}")
         pg = await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
         await boot(pg); E = pg.evaluate
         async def until(js, n=60):
@@ -35,16 +35,16 @@ async def main():
         # ① 설정
         await E("()=>Board.setup()"); await pg.wait_for_timeout(500)
         r = await E("()=>[!!document.getElementById('bdSetup'), document.querySelectorAll('.bdSkB').length, document.querySelectorAll('.bdSeat').length, document.getElementById('bdFrom').options.length>0, [...document.querySelectorAll('#bdRnd option')].map(o=>+o.value)]")
-        ok(r == [True, 2, 2, True, [3, 5, 7]], f"설정: 판 2개 · 기본 2명 · Stage · 라운드 3/5/7 {r}")
+        ok(r == [True, 2, 2, True, [10, 15, 20]], f"설정: 판 2개 · 기본 2명 · Stage · (v447) 라운드 10/15/20 {r}")
         await E("()=>document.querySelector('[data-bd=add]').click()")
         await E("""()=>{ const S=[...document.querySelectorAll('.bdSeat select')]; S[0].value='k1'; S[0].dispatchEvent(new Event('change',{bubbles:true})); }""")
         await E("""()=>{ const S=[...document.querySelectorAll('.bdSeat select')]; S[1].value='k2'; S[1].dispatchEvent(new Event('change',{bubbles:true})); }""")
         sel = await E("()=>[...document.querySelectorAll('.bdSeat select')][2].innerHTML")
         ok("k1" not in sel and "k2" not in sel, "이미 고른 아이는 다른 자리 목록에서 빠짐")
-        await E("()=>{ Board._seats[2]={n:'손님', id:'', ch:4}; Board.seats(); document.querySelector('[data-sk=k]').click(); document.getElementById('bdRnd').value='3'; }")
+        await E("()=>{ Board._seats[2]={n:'손님', id:'', ch:4}; Board.seats(); document.querySelector('[data-sk=k]').click(); document.getElementById('bdRnd').value='10'; }")
         await E("()=>document.querySelector('[data-bd=go]').click()")
         r = await E("""()=>{ const o=Board.o, c={}; o.T.forEach(k=>c[k]=(c[k]||0)+1); return [o.cfg.sk, o.R, o.N, c, o.P.map(p=>[p.n,p.coin,p.star]), o.T[o.star]]; }""")
-        ok(r[0] == "k" and r[1] == 3 and r[2] == 29 and r[4] == [["루아", 10, 0], ["주호", 10, 0], ["손님", 10, 0]] and r[5] == "blue", f"🧸 판 · 3 라운드 · 29칸(새 그림) · 모두 🪙10 · ⭐ 는 파란 칸 위 {r}")
+        ok(r[0] == "k" and r[1] == 10 and r[2] == 29 and r[4] == [["루아", 10, 0], ["주호", 10, 0], ["손님", 10, 0]] and r[5] == "blue", f"🧸 판 · 10 라운드 · 29칸(새 그림) · 모두 🪙10 · ⭐ 는 파란 칸 위 {r}")
         ok(r[3] == {"start": 1, "shop": 2, "duel": 3, "event": 4, "red": 6, "blue": 13}, f"칸: 🚩1 🏪2 ⚔️3 ❓4 🔴6 🔵13 {r[3]}")
         ok(await E("()=>{ const T=Board.o.T; return T.every((k,i)=>k==='blue'||k==='start'||k==='shop'|| (T[(i+1)%T.length]!==k)); }"), "같은 특별 칸이 붙어 있지 않음")
         # ② 차례 → 🎲 → 🔵 +3
@@ -76,7 +76,7 @@ async def main():
             B.shop(); await w(100); R.dis=[...document.querySelectorAll('.bdShop [data-bd=buy]')].filter(b=>b.disabled).length; B.buy('mush'); await w(200); clearTimeout(B._to); R.it=p.it.slice(); R.coin=p.coin;
             o.cur=0; B.turnMenu(); R.bag=!!document.querySelector('[data-bd=bag]'); B.bag(); B.use('mush'); R.two=document.querySelector('.bdRoll').textContent;
             p.pos=10; for(let i=11;i<=15;i++) o.T[i]='blue'; o.force=2; B.roll(); await w(2500); clearTimeout(B._to); R.pos=p.pos; R.it2=p.it.length; return R; }""" % (S,))
-        ok(r["dis"] == 0 and r["it"] == ["mush"] and r["coin"] == 15, f"🏪 상점에서 🍄 사기 (🪙 −5) {r}")
+        ok(r["dis"] == 1 and r["it"] == ["mush"] and r["coin"] == 15, f"🏪 상점에서 🍄 사기 (🪙 −5) · (v447) 🧲 별 자석(28)은 못 삼 {r}")
         await E("()=>{ clearTimeout(Board._to); Board.o.cur=0; Board.o.rolling=0; Board.turnMenu(); return 1; }")
         r2 = await E("()=>[document.querySelectorAll('.bdRoll img.bdIc[src$=\"dice.webp\"]').length, document.querySelectorAll('#bdPl img.bdIc[src$=\"star.webp\"]').length]")
         ok(r2[0] == 1 and r2[1] == 3, f"🎲 단추 · 명단 별 = 그림 아이콘 {r2}")
@@ -86,11 +86,11 @@ async def main():
             B.use('trap'); R.trap=o.trap[12]; clearTimeout(B._to); o.cur=1; b.pos=12; B.land(); await w(2900); clearTimeout(B._to); R.c=[a.coin, b.coin, o.trap[12]]; return R; }""" % (S,))
         ok(r["trap"] == 0 and r["c"] == [10, 7, None], f"🔒 함정: 친구가 밟으면 🪙5 가져옴 (+🔵3 은 밟은 친구) {r}")
         # 🔄 자리 바꾸기 · 🧲 자석
-        r = await E("""async()=>{ %s const R={}; o.cur=0; const a=o.P[0], b=o.P[2]; a.pos=3; b.pos=20; a.it=['swap','mag']; a.coin=0; b.coin=8;
+        r = await E("""async()=>{ %s const R={}; o.cur=0; const a=o.P[0], b=o.P[2]; a.pos=3; b.pos=20; a.it=['swap','mag']; a.coin=0; b.coin=8; a.star=0; b.star=1; o.P[1].star=0;
             B.use('swap'); R.tg=[...document.querySelectorAll('[data-bd=tgt]')].map(x=>+x.dataset.i); B.tgt(2); R.sw=[a.pos, b.pos]; await w(200); clearTimeout(B._to);
-            B.use('mag'); B.tgt(2); R.mg=[a.coin, b.coin, a.it.length]; clearTimeout(B._to); return R; }""" % (S,))
+            B.use('mag'); B.tgt(2); R.mg=[a.star, b.star, a.it.length]; clearTimeout(B._to); return R; }""" % (S,))
         ok(r["tg"] == [1, 2] and r["sw"] == [20, 3], f"🔄 친구 골라 자리 바꾸기 {r}")
-        ok(r["mg"] == [3, 5, 0], f"🧲 친구 🪙3 끌어오기 {r['mg']}")
+        ok(r["mg"] == [1, 0, 0], f"(v447) 🧲 별 자석 = 친구 ⭐ 1개 {r['mg']}")
         # ❓ 깜짝
         r = await E("""async()=>{ %s const R={}; const P=o.P; P.forEach(p=>{ p.coin=10; p.star=0; }); o.cur=0;
             B.event('rain'); await w(1700); clearTimeout(B._to); R.rain=P[0].coin;
@@ -131,12 +131,13 @@ async def main():
                 await E("()=>{ const q=MG.o.q, a=q.ans!=null?q.ans:q.opts.findIndex((x,i)=>MG.right(q,i)); MG.o.P.forEach(p=>MG.tap(p.i,(a+1)%q.opts.length)); }")
             await until("()=>!MG.o || MG.o.won!=null", 20)
         ok(await until("()=>!document.getElementById('bdMG')", 60), "미니게임 끝")
-        await pg.wait_for_timeout(300)
+        ok(await until("()=>!!document.getElementById('bdPod')", 30), "(v447) 🏆 시상대")
+        await until("()=>!document.getElementById('bdPod') && Board.o.rnd===2", 60)
         r = await E("()=>[Board.o.P.map(p=>p.coin), Board.o.rnd]")
         ok(r == [[0, 5, 10], 2], f"🎮 1등 🪙10 · 2등 🪙5 · 0점은 없음 · 라운드 2 {r}")
         # ⑤ 마지막 라운드 → 🎁 보너스 별 → 🏆
         await until("()=>Board.o.cur===0 && !!document.querySelector('[data-bd=roll]')", 40)
-        await E("""()=>{ %s const P=o.P; o.rnd=3; P[0].star=2; P[1].star=2; P[2].star=1; P[0].ok=5; P[1].ok=3; P[2].ok=3; P[0].dw=0; P[1].dw=2; P[2].dw=0; P[0].coin=4; P[1].coin=9; P[2].coin=20; o.cur=2;
+        await E("""()=>{ %s const P=o.P; o.rnd=10; P[0].star=2; P[1].star=2; P[2].star=1; P[0].ok=5; P[1].ok=3; P[2].ok=3; P[0].dw=0; P[1].dw=2; P[2].dw=0; P[0].coin=4; P[1].coin=9; P[2].coin=20; o.cur=2;
             o.P.forEach(p=>p.it=[]); B.endTurn(); }""" % (S,))
         await until("()=>!!document.querySelector('#bdMG .mgZ') && !document.querySelector('.mgIntro')", 50)
         await E("()=>{ MG.o.cfg.n=0; }")
@@ -144,7 +145,7 @@ async def main():
             await until("()=>!MG.o || (MG.o.q && MG.o.won==null)", 40)
             if not await E("()=>!!MG.o"): break
             await E("()=>{ const q=MG.o.q, a=q.ans!=null?q.ans:q.opts.findIndex((x,i)=>MG.right(q,i)); MG.o.P.forEach(p=>MG.tap(p.i,(a+1)%q.opts.length)); }")
-        ok(await until("()=>!!document.querySelector('.bdEnd')", 80), "마지막 미니게임 → 🎁 보너스 별 → 🏆")
+        ok(await until("()=>!!document.querySelector('.bdEnd')", 160), "마지막 미니게임 → 🎁 보너스 별 → 🏆")
         r = await E("()=>[Board.o.P.map(p=>p.star), document.querySelector('.bdEnd').innerText]")
         ok(r[0] == [3, 3, 2], f"🧠 정답왕 루아 · ⚔️ 결투왕 주호 · 🪙 부자 손님 = 별 +1씩 {r[0]}")
         txt = r[1]
