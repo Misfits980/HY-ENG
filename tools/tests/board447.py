@@ -26,7 +26,7 @@ async def main():
             const P=[{n:'루아',ch:0},{n:'주호',ch:3},{n:'라언',ch:4},{n:'단우',ch:7}].slice(0,np).map((p,i)=>Object.assign(p,{i,col:Board.COL[i]}));
             window._r=null; MG.open({title:MiniG.L[k][0], sub:MiniG.L[k][1], P, ctx:x, kind:k, sec}, sc=>window._r=sc); }"""
         r = await E("()=>[MiniG.ACT, MiniG.ENG, Object.keys(MiniG.L)]")
-        ok(r[0] == ["balloon","mole","tug","light","paint"] and r[1] == ["ox","memory","fish"] and "spell" not in r[2], f"① 액션 5 · 영어 3 · 철자 조립 뺌 {r}")
+        ok(r[0][:5] == ["balloon","mole","tug","light","paint"] and len(r[0]) == 10 and r[1] == ["ox","memory","fish"] and "spell" not in r[2], f"① 액션 5(+v448 5) · 영어 3 · 철자 조립 뺌 {r}")
         for k in ["balloon","mole","tug","light","paint","ox","memory","fish"]:
             await E(OPEN, [k, 3, 6])
             ok(await until("()=>!document.querySelector('.mgIntro') && MG.o && MG.o.inst && MG.o.inst.length===3"), f"{k}: 자리 3개")
