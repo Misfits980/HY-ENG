@@ -650,7 +650,7 @@ const KK={ P:{}, R:{},
   fill(g, name, k, o, then){ const go=()=>{ const m=this.mesh(name, k, o); if(!m) return; m.userData=Object.assign({}, g.userData); const W=new THREE.Group(); W.add(m); W.userData=m.userData; if(o && o.ry) W.rotation.y=o.ry; g.add(W); if(then) then(W); try{ dirty=true; }catch(e){} };
     if(this.R[name]) go(); else this.load(name).then(go); }
 };
-KK.load("nature"); KK.load("furniture");
+KK.load("nature"); KK.load("furniture");   /* (v456) town · city 는 마을에서 */
 /* ② 질감 그림 자리 — assets/town/tex/<이름>.webp 가 있으면 그 그림, 없으면 지금 그림(캔버스) 그대로 (GPT 그림: claude/hy-eng-art-order-town.md) */
 function texFile(t, name){ if(!t || !t.image) return t; const im=new Image(); im.onload=()=>{ t.image=im; t.needsUpdate=true; try{ dirty=true; }catch(e){} }; im.src="../assets/town/tex/"+name+".webp"; return t; }
 
@@ -1481,9 +1481,10 @@ const villageG = new THREE.Group(); scene.add(villageG); villageG.visible=false;
 const V_GATE=[0,6], Y_GATE=[13,8];   // (v415) 마당이 14×14 — 마을 길도 오른쪽 끝으로                         // 마을 왼쪽 길 ↔ 마당 오른쪽 아래 길
 const V_FOUNT=[[5,5],[6,5],[5,6],[6,6]], V_HOUSES=[[1,0,3,2],[8,0,3,2],[9,8,3,3],[5,9,3,2]], V_BOARD=[4,1], V_CART=[[1,9],[2,9]];
 const V_TREES=[[0,0],[11,4],[0,11],[8,11],[11,11],[4,9]], V_BENCH=[[7,8],[3,4]];
+const V_DECO=[[11,1],[0,9],[0,3],[11,7],[3,11]];   /* (v456) 🛢 소품 자리 (막힌 칸) */
 const TW_AT=[9,3,2,2], TW_DOOR=[10,5];   // (v422) 🗼 하늘 타워 건물
 function inRect(x,z,r){ return x>=r[0]&&x<r[0]+r[2]&&z>=r[1]&&z<r[1]+r[3]; }
-function villageBlocked(x,z){ return at(V_FOUNT,x,z)>=0 || V_HOUSES.some(r=>inRect(x,z,r)) || (x===V_BOARD[0]&&z===V_BOARD[1]) || at(V_CART,x,z)>=0 || at(V_TREES,x,z)>=0 || at(V_BENCH,x,z)>=0 || inRect(x,z,TW_AT); }
+function villageBlocked(x,z){ return at(V_FOUNT,x,z)>=0 || V_HOUSES.some(r=>inRect(x,z,r)) || (x===V_BOARD[0]&&z===V_BOARD[1]) || at(V_CART,x,z)>=0 || at(V_TREES,x,z)>=0 || at(V_BENCH,x,z)>=0 || inRect(x,z,TW_AT) || at(V_DECO,x,z)>=0; }
 function makeHouseAt(G, r, wall, roof){ const H=new THREE.Group(); H.position.set(r[0]+r[2]/2,0,r[1]+r[3]/2); G.add(H); const w=r[2]-0.2, d=r[3]-0.25;
   part(H, rbox(w,1.4,d,0.06), M(wall), 0,0.7,0);
   const sh=new THREE.Shape(); sh.moveTo(-w/2-0.2,0); sh.lineTo(0,0.95); sh.lineTo(w/2+0.2,0); sh.lineTo(-w/2-0.2,0);
@@ -1514,10 +1515,10 @@ function treeAt(G, x, z, i){ const T=new THREE.Group(); T.position.set(x+0.5,0,z
   { const C=new THREE.Group(); C.position.set(2,0,9.5); villageG.add(C); scene.userData.cartObj=C;
     part(C, rbox(1.6,0.45,0.7,0.05), M(0xc98f5a), 0,0.55,0); [-0.6,0.6].forEach(x=>{ const w=part(C, cyl(0.25,0.25,0.08,16), M(0x6a4430), x,0.25,0.38); w.rotation.x=Math.PI/2; });
     [[-0.5,0xb88a52],[0,0x9a7a4a],[0.5,0xc9a64a]].forEach(([x,c])=>{ const b=part(C, sph(0.2), M(c), x,0.86,0); b.scale.y=0.8; }); }
-  V_TREES.forEach(([x,z],i)=>treeAt(villageG,x,z,i));
-  V_BENCH.forEach(([x,z])=>{ const B=new THREE.Group(); B.position.set(x+0.5,0,z+0.5); villageG.add(B); part(B, rbox(0.9,0.08,0.35,0.03), M(0xb07a4a), 0,0.38,0); part(B, rbox(0.9,0.3,0.06,0.03), M(0xb07a4a), 0,0.58,-0.15); [-0.38,0.38].forEach(a=>part(B, rbox(0.06,0.38,0.3,0.02), M(0x555a66), a,0.19,0)); });
+  scene.userData.vTrees=V_TREES.map(([x,z],i)=>treeAt(villageG,x,z,i));
+  scene.userData.vBench=[]; V_BENCH.forEach(([x,z])=>{ const B=new THREE.Group(); B.position.set(x+0.5,0,z+0.5); villageG.add(B); scene.userData.vBench.push(B); part(B, rbox(0.9,0.08,0.35,0.03), M(0xb07a4a), 0,0.38,0); part(B, rbox(0.9,0.3,0.06,0.03), M(0xb07a4a), 0,0.58,-0.15); [-0.38,0.38].forEach(a=>part(B, rbox(0.06,0.38,0.3,0.02), M(0x555a66), a,0.19,0)); });
   // 가로등
-  [[4,4],[8,4],[4,8],[8,7]].forEach(([x,z])=>{ part(villageG, cyl(0.04,0.05,1.6,8), M(0x444a55), x,0.8,z); part(villageG, sph(0.12), M(0xfff2b3,{emissive:0xffd66b, emissiveIntensity:.7}), x,1.65,z); });
+  scene.userData.vLamp=[[4,4],[8,4],[4,8],[8,7]].map(([x,z])=>{ const L=new THREE.Group(); L.position.set(x,0,z); villageG.add(L); part(L, cyl(0.04,0.05,1.6,8), M(0x444a55), 0,0.8,0); part(L, sph(0.12), M(0xfff2b3,{emissive:0xffd66b, emissiveIntensity:.7}), 0,1.65,0); return L; });
   // 마당 가는 길 (왼쪽)
   { const A=new THREE.Group(); A.position.set(0.5,0,V_GATE[1]+0.5); villageG.add(A); [-0.6,0.6].forEach(z=>part(A, rbox(0.14,1.4,0.14,0.04), M(0x8a5a34), 0,0.7,z)); part(A, rbox(0.2,0.14,1.4,0.05), M(0x8a5a34), 0,1.42,0);
     const sg=canvasTex(128,48,(g,w,h)=>{ g.fillStyle="#fff7e6"; g.fillRect(0,0,w,h); g.fillStyle="#3f7a3a"; g.font="bold 26px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("← 🌳 HOME",w/2,h/2+1); });
@@ -1929,7 +1930,7 @@ $("twEmoBar").addEventListener("pointerdown", e=>{ e.preventDefault(); e.stopPro
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(0.42,0.26), new THREE.MeshBasicMaterial({color:0xff4d6d, side:THREE.DoubleSide})); fl.position.set(0.22,4.45,0); B.add(fl);
   part(B, rbox(0.5,0.85,0.08,0.03), M(0x8a5a34), -0.0,0.6,0.7); part(B, sph(0.04), M(0xffd23f), 0.15,0.62,0.75);
   const sg=canvasTex(200,64,(g,w,h)=>{ g.fillStyle="#fff7e6"; g.fillRect(0,0,w,h); g.fillStyle="#7a5bd8"; g.font="bold 34px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🗼 TOWER",w/2,h/2+2); });
-  const s=new THREE.Mesh(new THREE.PlaneGeometry(0.95,0.3), new THREE.MeshBasicMaterial({map:sg})); s.position.set(0,1.25,0.8); B.add(s); }
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(0.95,0.3), new THREE.MeshBasicMaterial({map:sg})); s.position.set(0,1.25,0.8); s.userData.keep=1; B.add(s); }
 
 twInput();
 
@@ -3402,6 +3403,26 @@ KK.load("nature").then(R0=>{ if(!R0) return;
   ["building_home_A_blue","building_home_A_red","building_home_A_yellow","building_home_A_green"].forEach((k,i)=>{ const H=scene.userData.vHouses[i], r=V_HOUSES[i]; if(!H) return; H.children.forEach(m=>m.visible=false);
     KK.fill(H, "nature", k, {s:3, fit:[r[2]-0.15, r[3]-0.2], ry:Math.PI/2}); });
   (scene.userData.rocks||[]).forEach((G,i)=>{ G.children.forEach(m=>m.visible=false); KK.fill(G, "nature", ["rock_single_E","rock_single_C","rock_single_B"][i%3], {s:2.1, fit:[0.95,0.95]}); });
+  dirty=true; });
+/* (v456) 🏘 마을 꾸미기 — 사용자: "이제 마을을 꾸며야 하는데 저 도형들을 어떻게 할 수 없나"
+   → 도형으로 만든 🗼 타워 건물 · 🌰 Mia 수레 · 가로등 · 벤치 · 나무를 KayKit(CC0) 모델로 · 빈 구석에 통·상자·자루·깃발·덤불 (V_DECO = 막힌 칸)
+   묶음: town = 중세 헥사곤 팩(타워·시장 가판대·소품, 텍스처는 nature.webp 같이 씀) · city = 시티 빌더 비트(가로등·벤치·덤불·소화전) */
+Promise.all([KK.load("nature"), KK.load("town"), KK.load("city")]).then(([N0,T0,C0])=>{ const U=scene.userData;
+  const swap=(G, pack, k, o)=>{ if(!G) return; G.children.forEach(m=>{ if(!m.userData.keep) m.visible=false; }); KK.fill(G, pack, k, o); };
+  if(T0){ swap(U.towerObj, "town", "building_tower_A_blue", {s:3, fit:[1.75,1.75]});
+    const sg=U.towerObj && U.towerObj.children.find(m=>m.userData.keep); if(sg){ sg.position.set(0,0.62,1.02); }
+    swap(U.cartObj, "town", "building_market_green", {s:2, fit:[1.95,1.25], ry:Math.PI}); }
+  if(C0){ (U.vLamp||[]).forEach(L=>swap(L, "city", "streetlight", {s:1.85})); }   /* 벤치는 예전 모양(등받이 있음)이 더 나아서 그대로 */
+  if(N0){ (U.vTrees||[]).forEach((T,i)=>swap(T, "nature", i%2?"tree_single_B":"tree_single_A", {s:2.4, fit:[0.95,0.95]})); }
+  /* 구석 소품 */
+  const put=(x,z,pack,k,o)=>{ const G=new THREE.Group(); G.position.set(x,0,z); villageG.add(G); KK.fill(G, pack, k, o||{}); return G; };
+  const D={"11,1":[["town","barrel",-0.18,-0.15,{s:1.6}],["town","barrel",0.2,-0.2,{s:1.5}],["town","crate_A_big",0.05,0.22,{s:1.8, ry:0.4}]],
+           "0,9":[["town","sack",-0.15,-0.1,{s:2}],["town","crate_B_small",0.18,0.15,{s:2.2}],["town","wheelbarrow",0.0,-0.25,{s:1.3, ry:1.2}]],
+           "0,3":[["town","flag_red",-0.1,0,{s:2.4}],["town","barrel",0.18,0.18,{s:1.4}],["town","bucket_water",0.22,-0.2,{s:1.6}]],
+           "11,7":[["city","bush",-0.15,-0.1,{s:2.2}],["city","bush",0.18,0.15,{s:1.8}],["city","firehydrant",0.2,-0.25,{s:2}]],
+           "3,11":[["city","bush",-0.22,0.05,{s:2.1}],["city","bush",0.2,0.2,{s:1.7}],["town","flag_yellow",0.25,-0.25,{s:2}]]};
+  V_DECO.forEach(([x,z])=>(D[x+","+z]||[]).forEach(([pk,k,dx,dz,o])=>{ if((pk==="town"&&T0)||(pk==="city"&&C0)) put(x+0.5+dx, z+0.5+dz, pk, k, o); }));
+  if(T0) [[0.2,0.2],[11.8,0.2],[0.2,11.8]].forEach(([x,z],i)=>put(x, z, "town", ["flag_blue","flag_red","flag_yellow"][i], {s:2.6}));
   dirty=true; });
 let last=performance.now(), fN=0, fT=0, idleT=0, farmT=0, hudT=0, hudK="";
 function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Math.ceil(bl/60e3); if(k===hudK) return; hudK=k;
