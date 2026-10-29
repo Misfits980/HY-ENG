@@ -70,7 +70,7 @@ async def main():
         await E("()=>{ HOUSE.TW.seed='2026-10-07'; document.getElementById('twE').click(); }")
         ok(await until("()=>HOUSE.place()==='tower' && HOUSE.TW.on"), "🟢 쉬움 → 타워 안")
         r = await E("()=>[HOUSE.TW.cps.length-1, HOUSE.TW.secs.includes('word'), document.getElementById('twUI').classList.contains('on'), getComputedStyle(document.querySelector('.bar.bot')).display, document.getElementById('twFloor').textContent, HOUSE.TW.cp]")
-        ok(r[0] == 6 and r[1] and r[2] and r[3] == "none" and r[4].startswith("1 / 6") and r[5] == 0, f"6층 · 🔤 단어 다리 꼭 · 조이스틱·점프 화면 (아래 독 숨김) {r}")
+        ok(r[0] == 6 and not r[1] and r[2] and r[3] == "none" and r[4].startswith("1 / 6") and r[5] == 0, f"6층 · (v453) 🔤 단어 다리 없음 · 조이스틱·점프 화면 (아래 독 숨김) {r}")
         await pg.wait_for_timeout(800); await pg.screenshot(path=OUT + "tower422_in.png")
         # ② 몸 — 시간이 멈춘 채로 직접 계산 (TW.bot)
         r = await E("""()=>{ const T=HOUSE.TW; T.bot=true; HOUSE.twRespawn(true); const y0=T.p.y, a=[T.onG, T.p.x, T.p.z]; T.yaw=0; T.inp.x=0; T.inp.y=0;
@@ -84,10 +84,7 @@ async def main():
             T.cp=1; HOUSE.twRespawn(true); const c=T.p.clone(); T.p.set((lava.min.x+lava.max.x)/2, lava.max.y+0.05, (lava.min.z+lava.max.z)/2); T.v.set(0,-1,0); for(let i=0;i<10;i++) HOUSE.twStep(1/90);
             const back=T.p.distanceTo(c)<0.05; const d1=T.dead; T.p.y-=20; HOUSE.twStep(1/90); return [T.dead-d0, back, T.dead-d1, T.p.distanceTo(c)<0.05]; }""")
         ok(r != "nolava" and r[0] >= 1 and r[1] and r[2] == 1 and r[3], f"🔥 용암 → 🚩 체크포인트로 · 떨어져도 체크포인트로 {r}")
-        r = await E("""()=>{ const T=HOUSE.TW, G=T.S.filter(s=>s.kind==='glass'), good=G.find(s=>s.ok), bad=G.find(s=>!s.ok);
-            const put=s=>{ T.p.set((s.min.x+s.max.x)/2, s.max.y+0.02, (s.min.z+s.max.z)/2); T.v.set(0,0,0); for(let i=0;i<4;i++) HOUSE.twStep(1/90); };
-            put(good); const a=[good.on, T.onG, good.said]; put(bad); return a.concat([bad.on, bad.mesh.visible, G.filter(s=>s.ok).length, T.words.length]); }""")
-        ok(r[0] and r[1] and r[2] == 1 and r[3] is False and r[4] is False and r[5] == 3 and r[6] == 3, f"🔤 유리 다리: 맞는 단어 = 튼튼 · 틀린 단어 = 깨짐 (짝 3개) {r}")
+        # (v453) 🔤 유리 단어 다리는 뺌 (tower453 이 확인)
         # (v423) 🪜 사다리 기둥 · 카메라 면
         r = await E("""()=>{ const T=HOUSE.TW; T.cp=0; HOUSE.twRespawn(true); const pad=T.cps[1], a=T.secR[0], last=T.S.slice(a[0],a[1]).filter(s=>s.kind!=='kill' && !s.move && s.kind!=='glass').pop();
             const s0=T.side.slice(); T.p.set((last.min.x+last.max.x)/2, last.max.y+0.001, (last.min.z+last.max.z)/2); T.v.set(0,0,0);

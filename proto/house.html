@@ -442,6 +442,9 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 .twHelp{position:fixed;left:50%;transform:translateX(-50%);top:calc(78px + env(safe-area-inset-top));z-index:6;color:#fff;font-size:13px;background:rgba(40,30,90,.7);padding:6px 12px;border-radius:12px;max-width:calc(100vw - 40px);pointer-events:none;text-align:center;display:none}
 #twUI.help .twHelp{display:block}
 .twInfo small{display:block;font-size:12px;color:#7a5bd8;font-weight:700}
+#twPeers{pointer-events:none;min-width:50px;height:50px;border-radius:16px;border:3px solid #fff;background:rgba(122,91,216,.55);color:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 8px;opacity:.75}
+#twPeers.on{background:rgba(47,180,110,.92);opacity:1}
+#twRe[hidden]{display:none}
 #twUI.hurt::after{content:"";position:fixed;inset:0;background:rgba(255,80,80,.25);z-index:6;pointer-events:none}
 .twPick{display:flex;gap:8px;justify-content:center;margin:12px 0 8px}.twPick .btn{display:flex;flex-direction:column;align-items:center;min-width:110px}.twPick small{font-size:11px;opacity:.8}
 #bEmo{position:fixed;right:12px;bottom:calc(112px + env(safe-area-inset-bottom));z-index:3;width:54px;height:54px;border-radius:50%;border:3px solid var(--line2);background:rgba(255,248,234,.96);font-size:26px;line-height:1;display:none;box-shadow:0 3px 0 rgba(0,0,0,.12);padding:0}
@@ -519,9 +522,9 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <div id="who"><div class="box"><h3>👤 나는 누구?</h3><p class="wSub">같이 쓰는 패드예요 — 내 이름을 누르면 <b>내 집</b>으로 들어가요</p><div id="whoBody"><p class="wSub">명단을 불러오는 중…</p></div><a class="btn" href="../index.html">◀ 게임으로</a></div></div>
 <div id="hint"></div>
 <div id="twUI"><div id="twTouch"></div><div id="twJoy"><i id="twKnob"></i></div>
-  <div class="twTop"><button id="twBack" aria-label="타워에서 나가기">🏳️</button><div class="twInfo"><b id="twFloor">1 / 6층</b><small id="twSec"></small><span id="twTime">0:00.0</span></div><button id="twRe" aria-label="깃발로 돌아가기">🚩</button></div>
+  <div class="twTop"><button id="twBack" aria-label="타워에서 나가기">🏳️</button><div class="twInfo"><b id="twFloor">1 / 6층</b><small id="twSec"></small><span id="twTime">0:00.0</span></div><span id="twPeers" aria-label="같이 있는 친구">👥 0</span><button id="twRe" aria-label="처음으로" hidden>🚩</button></div>
   <div id="twMeter"><i id="twBar"></i></div><button id="twJump" aria-label="점프">⬆️<span>JUMP</span></button>
-  <div class="twHelp">왼쪽 아래 동그라미 = 움직이기 · JUMP = 점프<br>화면 끌기 = 둘러보기 (좌우·위아래) · 🪜 기둥은 밀면 올라가요</div></div>
+  <div class="twHelp">왼쪽 아래 동그라미 = 움직이기 · JUMP = 점프<br>화면 끌기 = 둘러보기 (좌우·위아래) · 🪜 기둥은 밀면 올라가요<br>🚫 체크포인트 없음 — 떨어지면 거기서 다시 · 🔥 용암은 맨 아래로!</div></div>
 <div id="toast"></div>
 <div id="fps"></div>
 <div id="fade"></div>
@@ -1561,6 +1564,10 @@ function mineBlocked(x,z){ return at(ORE_AT,x,z)>=0 || at(M_CART,x,z)>=0 || at(M
   const s=new THREE.Mesh(new THREE.PlaneGeometry(0.95,0.3), new THREE.MeshBasicMaterial({map:sg, side:THREE.DoubleSide})); s.position.set(0,0.95,0.06); A.add(s);
   /* (v415) 흙길(yDrawGround)이 대신 */ }
 
+/* (v453) 사용자: "타워를 잼못타(잼민이는 못 깨는 타워)를 카피해서 · 영어는 넣지 말고 · 애들이 같이 할 수 있게 · 체크포인트가 있으면 안 되더라"
+   → 🔤 단어 다리 뺌 · 🚩 체크포인트 없음(떨어지면 떨어진 곳에서 다시 올라감 · 🔥 용암·빙글 막대에 닿으면 맨 아래로) · 시간 제한 없음
+   · 👥 그냥 같이: 같은 날 같은 타워(쉬움/어려움)에 들어온 친구들이 화면에 보임 (/hy/day/tw<날짜><e|h>/<집 키> — 규칙 그대로 쓸 수 있는 곳)
+   · 움직이는 발판·막대 = 시계 기준(모든 기기 같은 박자) · 🤖 시험 선수(TW.bot)는 예전처럼 층 발판에서 다시 (타워가 깰 수 있는지 확인용) */
 /* ═════════ 🗼 하늘 타워 — (v422) 사용자: "마이타운에 로블록스 타워 같은 것도" → (v423) "너무 캐릭터 중심이라 조종하기 어렵고 로블록스 타워 느낌이 아니야"
    (v423) Tower of Hell 처럼: 가운데 네온 기둥(벽) 둘레로 층이 위로 쌓임 · 층 끝마다 🪜 사다리 기둥(밀면 올라감) 위에 🚩
    · 카메라 = 바깥 옆에서 멀리(2.5D 발판 게임처럼 — 틈이 옆에서 보임) · 내가 끌 때만 돌고, 모서리 🚩 에서만 다음 면으로 돎
@@ -1596,10 +1603,11 @@ let twLadTex=null;
 function twLadder(h){ if(!twLadTex) twLadTex=canvasTex(64,64,(g,W,H)=>{ g.fillStyle="#f4f4f8"; g.fillRect(0,0,W,H); g.fillStyle="#ff3b6b"; g.fillRect(0,0,8,H); g.fillRect(W-8,0,8,H); g.fillRect(0,26,W,12); });
   const t=twLadTex.clone(); t.needsUpdate=true; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2, Math.max(1, Math.round(h/0.55))); return new THREE.MeshStandardMaterial({map:t, roughness:.6}); }
 /* 체크포인트 발판 (모서리) — (v423) 0층이 아니면 아래가 🪜 사다리 기둥 (옆을 밀면 올라감) */
-function twPad(F, y, i, top, yLow){ const s=twLocalBox(F, -1.0,1.0, -1.0,1.0, (yLow!=null ? yLow : y-0.4), y, top?"top":"cp", top?"#ffd23f":"#7be39a", {i, pad:1, climb:yLow!=null && y-yLow>0.7});
-  if(s.climb){ const h=y-0.4-yLow; s.mesh.geometry=new THREE.BoxGeometry(1.96,h,1.96); s.mesh.position.y=yLow+h/2; s.mesh.material=twLadder(h); const cap=new THREE.Mesh(rbox(2.02,0.4,2.02,0.06), twMat(top?"#ffd23f":"#7be39a")); cap.position.set(s.mesh.position.x, y-0.2, s.mesh.position.z); towerG.add(cap); }
-  const ring=new THREE.Mesh(new THREE.RingGeometry(0.55,0.75,28), new THREE.MeshBasicMaterial({color:top?0xffffff:0x1b7a3a, transparent:true, opacity:.75, side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; const c=F.P(0,0); ring.position.set(c[0],y+0.012,c[1]); towerG.add(ring);
-  if(!top){ const f=new THREE.Group(); f.position.set(c[0],y,c[1]); towerG.add(f); part(f, cyl(0.03,0.03,1.3,6), M(0xffffff), 0.75,0.65,0.75).castShadow=false; const fl=new THREE.Mesh(new THREE.PlaneGeometry(0.4,0.26), new THREE.MeshBasicMaterial({color:0x5cbf5a, side:THREE.DoubleSide})); fl.position.set(0.96,1.18,0.75); f.add(fl); s.flag=fl; }
+function twPad(F, y, i, top, yLow){ const pc=top?"#ffd23f":(TCOL[i%10]||"#ffffff"); const s=twLocalBox(F, -1.0,1.0, -1.0,1.0, (yLow!=null ? yLow : y-0.4), y, top?"top":"cp", pc, {i, pad:1, climb:yLow!=null && y-yLow>0.7});
+  if(s.climb){ const h=y-0.4-yLow; s.mesh.geometry=new THREE.BoxGeometry(1.96,h,1.96); s.mesh.position.y=yLow+h/2; s.mesh.material=twLadder(h); const cap=new THREE.Mesh(rbox(2.02,0.4,2.02,0.06), twMat(pc)); cap.position.set(s.mesh.position.x, y-0.2, s.mesh.position.z); towerG.add(cap); }
+  const c=F.P(0,0);
+  if(top){ const ring=new THREE.Mesh(new THREE.RingGeometry(0.55,0.75,28), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.75, side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; ring.position.set(c[0],y+0.012,c[1]); towerG.add(ring); }
+  if(!top && TW.bot){ const f=new THREE.Group(); f.position.set(c[0],y,c[1]); towerG.add(f); part(f, cyl(0.03,0.03,1.3,6), M(0xffffff), 0.75,0.65,0.75).castShadow=false; const fl=new THREE.Mesh(new THREE.PlaneGeometry(0.4,0.26), new THREE.MeshBasicMaterial({color:0x5cbf5a, side:THREE.DoubleSide})); fl.position.set(0.96,1.18,0.75); f.add(fl); s.flag=fl; }
   else { const T=new THREE.Group(); T.position.set(c[0],y,c[1]); towerG.add(T); part(T, cyl(0.18,0.24,0.18,12), M(0xffd23f,{metalness:.4}), 0,0.09,0); part(T, cyl(0.06,0.06,0.3,8), M(0xffd23f,{metalness:.4}), 0,0.33,0);
     const cup=new THREE.Mesh(new THREE.SphereGeometry(0.3,16,10,0,Math.PI*2,Math.PI/2,Math.PI/2), M(0xffd23f,{metalness:.5, side:THREE.DoubleSide})); cup.position.y=0.78; cup.rotation.x=Math.PI; T.add(cup); s.trophy=T; }
   return s; }
@@ -1639,11 +1647,11 @@ const TW_SECS={
       TW.words.push({ans:ans[0], row}); }
     twLocalBox(F,7.6,7.95,-0.9,0.9, y-0.05,y+0.3,"solid",F.col); return y+0.3; }
 };
-const TW_EASY=["steps","gaps","lava","mover","fade","bounce","word","beam"], TW_HARD=["gaps","lava","mover","spinner","fade","bounce","conveyor","beam","word","steps","spinner","mover"];
+const TW_EASY=["steps","gaps","lava","mover","fade","bounce","beam","gaps"], TW_HARD=["gaps","lava","mover","spinner","fade","bounce","conveyor","beam","steps","spinner","mover","lava"];   /* (v453) 🔤 단어 다리 뺌 */
 function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0]; towerG.remove(c); } TW.S=[]; TW.cps=[]; TW.words=[]; TW.mode=mode; TW.hitL=[];
   TW.secR=[]; const R=twRand("tower|"+(TW.seed||dayKey())+"|"+mode), n=mode==="hard"?10:6, pool=(mode==="hard"?TW_HARD:TW_EASY).slice(); const list=[];
   let bag=[]; for(let i=0;i<n;i++){ if(!bag.length){ bag=pool.slice(); } let j, g=0; do{ j=Math.floor(R()*bag.length); g++; }while(g<9 && list.length && bag[j]===list[list.length-1]); list.push(bag.splice(j,1)[0]); }   // 섞어서 차례로 (같은 것 덜 겹치게)
-  if(!list.includes("word")) list[Math.floor(n/2)]="word"; TW.secs=list;
+  TW.secs=list;
   const fl=twBox([TWC-9,-0.5,TWC-9],[TWC+9,0,TWC+9],"floor","#7c6cf0"); fl.mesh.material=twMat("#8f84f5",{emissiveIntensity:.05});   // 로비 바닥
   const F0=twFrame(0); TW.cps.push(twPad(F0, 0.4, 0, false)); let y=0.4; const ys=[0.4];
   list.forEach((k,i)=>{ const F=twFrame(i); F.i=i; F.col=TCOL[i%10]; const a0=TW.S.length; const yEnd=TW_SECS[k](F, y, R, mode==="hard"); TW.secR.push([a0, TW.S.length]); const Fn=twFrame(i+1);
@@ -1669,20 +1677,22 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
 function towerAsk(){ const r=TW.rec[dayKey()]||{}, b=k=>r[k]&&r[k].best ? '🏆 '+twTime(r[k].best) : '';
   info('<div class="iBig">🗼</div><b>오늘의 하늘 타워</b><br><small>날마다 바뀌어요 · 꼭대기까지 올라가요!</small>'
     +'<div class="twPick"><button class="btn on" id="twE">🟢 쉬움 <small>6층 '+b("easy")+'</small></button><button class="btn" id="twH">🔴 어려움 <small>10층 '+b("hard")+'</small></button></div>'
-    +'<div class="twBd" id="twBd">'+twBoard()+'</div><small>왼쪽 아래 = 움직이기 · JUMP = 점프 · 🪜 사다리는 밀면 올라가요</small>', "나중에", null); twBoardLoad();
+    +'<div class="twBd" id="twBd">'+twBoard()+'</div><small>🚫 체크포인트 없음 — 떨어지면 떨어진 곳에서 다시! · 🔥 용암은 맨 아래로<br>👥 지금 타워에 있는 친구들이 같이 보여요</small>', "나중에", null); twBoardLoad();
   setTimeout(()=>{ const e=$("twE"), h=$("twH"); if(e) e.onclick=()=>{ $("info").classList.remove("on"); twEnterGo("easy"); }; if(h) h.onclick=()=>{ $("info").classList.remove("on"); twEnterGo("hard"); }; }, 0); }
 function towerGo(){ if(F.st!=="idle" || trip.busy) return; walkTo(TW_DOOR[0], TW_DOOR[1], ()=>{ hero.face=Math.PI; towerAsk(); }); }
 function twEnterGo(mode){ TW.mode=mode; go("tower", [6,6], ()=>{ twBuild(mode); }); }
-function twEnter(){ TW.on=true; TW.fin=false; TW.cp=0; TW.t0=performance.now(); TW.tEnd=0; TW.dead=0; TW.fall=0; TW.inp.x=TW.inp.y=0; TW.key={}; TW.ladTold=0;
+function twEnter(){ TW.on=true; TW.fin=false; TW.cp=0; TW.best=0; TW.lastGY=null; TW.t0=performance.now(); TW.tEnd=0; TW.dead=0; TW.fall=0; if(!TW.bot) TW.clk=(Date.now()%864e5)/1000; TW.inp.x=TW.inp.y=0; TW.key={}; TW.ladTold=0;
   twRespawn(true); TW.yaw=TW.yawTo; TW.camY=TW.p.y; TW.pit=0.42; TW.camD=null; TW.snap=0; $("twUI").classList.add("on"); document.body.classList.add("twOn"); twJoyHome(); twHud(); camera.fov=50; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){}
   $("twUI").classList.add("help"); clearTimeout(twEnter._h); twEnter._h=setTimeout(()=>$("twUI").classList.remove("help"), 7000);
-  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="hard"?"🔴 어려움 10층":"🟢 쉬움 6층")+"<br><small>1층 "+TW_NM[TW.secs[0]]+"</small>", 2400); tEv("tower"); }
-function twExit(){ TW.on=false; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
+  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="hard"?"🔴 어려움 10층":"🟢 쉬움 6층")+"<br><small>🚫 체크포인트 없음 · 떨어지면 거기서 다시!</small>", 2600); tEv("tower"); try{ twNetStart(); }catch(e){} }
+function twExit(){ try{ twNetStop(); }catch(e){} TW.on=false; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
 function twLeave(){ if(!TW.on) return; go("village", [TW_DOOR[0], TW_DOOR[1]]); }
 /* ── 몸 ── */
 function twRespawn(first){ const c=TW.cps[TW.cp]||TW.cps[0], ctr=c.mesh.position; TW.p.set(ctr.x, c.max.y+0.001, ctr.z); TW.v.set(0,0,0); TW.onG=true; TW.gnd=c; TW.coy=0; TW.buf=0; TW.climb=false;
   hero.g.position.copy(TW.p); { const d=TDIR[TW.cp%4]; hero.face=Math.atan2(d[0],d[1]); hero.g.rotation.y=hero.face; } if(!first){ TW.dead++; try{ SND.plop(); }catch(e){} TW.flash=0.5; }
   TW.side=twFrame(TW.cp).n.slice(); { const d=TDIR[TW.cp%4]; TW.yawTo=Math.atan2(-d[0],-d[1]); if(!TW.bot){ TW.snap=1; if(first) TW.yaw=TW.yawTo; } } }
+/* (v453) 🔥 용암·🌀 막대 = 맨 아래 1층부터 (체크포인트 없음) · 🤖 시험 선수는 예전처럼 층 발판 */
+function twDie(msg){ if(TW.bot){ twRespawn(); return; } const keep=TW.cp; TW.cp=0; twRespawn(); TW.cp=keep; TW.lastGY=null; if(msg) toast(msg+" <b>맨 아래</b>부터 다시!", 1500); }
 function twYawSide(){ return Math.atan2(TW.side[0], TW.side[1]); }   // 카메라 = 그 면의 바깥에서 안쪽을 봄 (옆에서 보는 발판 게임)
 function twSideUpd(){ const dx=TW.p.x-TWC, dz=TW.p.z-TWC, ax=Math.abs(dx), az=Math.abs(dz), cur=TW.side;
   const curA = cur[0] ? ax : az, othA = cur[0] ? az : ax; if(othA > curA + 1.2){ TW.side = cur[0] ? [0, Math.sign(dz)||1] : [Math.sign(dx)||1, 0]; TW.yawTo=twYawSide(); }
@@ -1726,14 +1736,16 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
     if(g.kind==="bounce"){ v.y=g.pow||16; TW.onG=false; try{ SND.sparkle(); }catch(e){} }
     if(g.kind==="fade" && g.ft<=0 && g.on) g.ft=0.7;
     if(g.kind==="glass" && !g.said){ g.said=1; if(g.ok){ try{ SND.win(); }catch(e){} say(g.word); g.mesh.material.color.setHex(0x7be39a); toast("⭕ <b>"+g.word+"</b>", 900); } else { g.on=false; try{ SND.snap(); }catch(e){} toast("💥 "+g.word+" — 아니에요!", 1200); twShatter(g); TW.onG=false; } }
-    if(g.kind==="floor" && TW.cp>0){ twRespawn(); return; }
+    if(g.kind==="floor" && TW.cp>0 && TW.bot){ twRespawn(); return; }
     if((g.kind==="cp"||g.kind==="top") && g.i>TW.cp){ TW.cp=g.i; if(g.flag) g.flag.material.color.setHex(0xffd23f); try{ SND.sparkle(); }catch(e){}
-      if(g.kind==="top") twWin(); else toast("🚩 <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); twHud(); TW.side=twFrame(g.i).n.slice(); }
+      if(g.kind==="top") twWin(); else if(TW.bot || g.i>(TW.best|0)) toast("⬆️ <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); TW.best=Math.max(TW.best|0, g.i); twHud(); TW.side=twFrame(g.i).n.slice(); }
+    /* (v453) 높은 데서 뚝 떨어져 내려앉음 = ⬇️ (체크포인트 없음 — 거기서 다시 올라가요) */
+    if(!TW.bot){ if(TW.lastGY!=null && TW.lastGY-g.max.y>2.2){ TW.fall++; if(performance.now()-(TW.fallT||0)>2500){ TW.fallT=performance.now(); toast("⬇️ 앗! 떨어졌어요 — 여기서 다시 올라가요", 1300); try{ SND.plop(); }catch(e){} } } TW.lastGY=g.max.y; }
   }
   // 위험
-  for(const s of TW.S){ if(s.kind==="kill" && twOverlap(s,p.x,p.y,p.z,0.06)){ twRespawn(); return; }
-    if(s.kind==="spin" && p.y+THY>s.y0 && p.y<s.y1){ const a=-s.mesh.rotation.y, ex=Math.cos(a), ez=Math.sin(a), dx=p.x-s.c[0], dz=p.z-s.c[1], t=Math.max(-s.len, Math.min(s.len, dx*ex+dz*ez)), qx=dx-ex*t, qz=dz-ez*t; if(Math.hypot(qx,qz)<0.09+THX){ twRespawn(); return; } } }
-  const cpY=(TW.cps[TW.cp]||TW.cps[0]).max.y; if(p.y<cpY-3.5 || p.y<-6){ twRespawn(); return; }
+  for(const s of TW.S){ if(s.kind==="kill" && twOverlap(s,p.x,p.y,p.z,0.06)){ twDie("🔥 용암!"); return; }
+    if(s.kind==="spin" && p.y+THY>s.y0 && p.y<s.y1){ const a=-s.mesh.rotation.y, ex=Math.cos(a), ez=Math.sin(a), dx=p.x-s.c[0], dz=p.z-s.c[1], t=Math.max(-s.len, Math.min(s.len, dx*ex+dz*ez)), qx=dx-ex*t, qz=dz-ez*t; if(Math.hypot(qx,qz)<0.09+THX){ twDie("🌀 쾅!"); return; } } }
+  const cpY=(TW.cps[TW.cp]||TW.cps[0]).max.y; if(TW.bot ? (p.y<cpY-3.5 || p.y<-6) : p.y<-6){ if(TW.bot) twRespawn(); else twDie(""); return; }
   /* (v435) 옆 카메라 자동 돌리기 없앰 */
   // 몸 그리기
   hero.g.position.copy(p); if(Math.hypot(v.x,v.z)>0.4) hero.face=Math.atan2(v.x, v.z);
@@ -1748,12 +1760,13 @@ function twWin(){ if(TW.fin) return; TW.fin=true; const t=(performance.now()-TW.
   const all=TW.rec; Object.keys(all).sort().slice(0,-14).forEach(k=>delete all[k]); store("hyeng_proto_tower", all); TW.tEnd=t;
   try{ SND.big(); }catch(e){} act("yay"); emote(hero,"🏆"); say("I did it!"); twConfetti();
   setTimeout(()=>info('<div class="iBig">🏆</div><b>꼭대기!</b> '+(TW.mode==="hard"?"🔴 어려움":"🟢 쉬움")+'<br><span class="twT">⏱ '+twTime(t)+'</span>'+(rec?'<br><b class="twRec">🎉 새 기록!</b>':first?'':'<br><small>오늘 최고 '+twTime(m.best)+'</small>')
-    +'<br><small>🚩 다시 한 횟수 '+TW.dead+'</small>'+(g?'<div class="iBox">💎 +'+g+' <small>(오늘 처음)</small></div>':'')+(TW.mode==="easy"?'<br><small>🔴 어려움도 해 볼까요?</small>':''), "🏘 마을로", ()=>twLeave()), 1100);
+    +'<br><small>⬇️ 떨어진 횟수 '+(TW.fall+TW.dead)+'</small>'+(g?'<div class="iBox">💎 +'+g+' <small>(오늘 처음)</small></div>':'')+(TW.mode==="easy"?'<br><small>🔴 어려움도 해 볼까요?</small>':''), "🏘 마을로", ()=>twLeave()), 1100);
   if(first || rec){ twSocT=0; try{ publish().catch(()=>{}); }catch(e){} }
   twHud(); }
 function twConfetti(){ const c=TW.top.mesh.position; for(let k=0;k<40;k++){ const m=new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), new THREE.MeshBasicMaterial({color:new THREE.Color(TCOL[k%10]), side:THREE.DoubleSide})); m.position.set(c.x+rnd(-0.5,0.5), TW.top.max.y+0.5, c.z+rnd(-0.5,0.5)); m.userData.v=new THREE.Vector3(rnd(-2.5,2.5), rnd(4,8), rnd(-2.5,2.5)); m.userData.shard=1; towerG.add(m); } }
 const twTime=s=>{ s=Math.max(0,s); const m=Math.floor(s/60), ss=s-m*60; return m+":"+(ss<10?"0":"")+ss.toFixed(1); };
-function twHud(){ const n=TW.cps.length-1; $("twFloor").textContent=Math.min(TW.cp+(TW.fin?0:1), n)+" / "+n+"층"; $("twSec").textContent=TW.fin?"🏆 꼭대기!":(TW_NM[TW.secs[TW.cp]]||""); $("twBar").style.height=Math.round(Math.max(0,Math.min(1,(TW.p.y)/(TW.hy||1)))*100)+"%"; }
+function twFloorAt(){ const ys=TW.ys||[]; let f=0; for(let i=0;i<ys.length-1;i++) if(TW.p.y>=ys[i]-0.35) f=i; return f; }   /* (v453) 지금 몸 높이의 층 (0부터) */
+function twHud(){ const n=TW.cps.length-1, f=TW.bot ? TW.cp : twFloorAt(); $("twFloor").textContent=Math.min(f+(TW.fin?0:1), n)+" / "+n+"층"; $("twSec").textContent=TW.fin?"🏆 꼭대기!":(TW_NM[TW.secs[f]]||""); { const pe=$("twPeers"); if(pe){ const k=twNetCount(); pe.textContent="👥 "+k; pe.classList.toggle("on", k>0); } } $("twBar").style.height=Math.round(Math.max(0,Math.min(1,(TW.p.y)/(TW.hy||1)))*100)+"%"; }
 /* 카메라 — 바깥 옆에서 멀리 (내가 끌면 돌림 · 2.5초 뒤 그 면으로) · 화면이 좁으면 더 멀리 (발판 7칸이 보이게) */
 /* (v435) 🎥 뒤에서 따라가는 카메라 (로블록스 타워처럼) — 사용자: "카메라가 저절로 돈다 · 뒤에서 따라가기"
    · 돌리기는 손으로만(오른쪽이든 어디든 끌기: 좌우 = 돌리기, 위아래 = 높이) · 다시 시작(🚩·떨어짐)할 때만 가는 쪽 뒤로 맞춤
@@ -1768,7 +1781,7 @@ function twCam(dt){ TW.camY += (TW.p.y-TW.camY)*Math.min(1, dt*(Math.abs(TW.p.y-
   camera.position.copy(c).addScaledVector(dir, TW.camD); camera.lookAt(c.x, c.y+0.25, c.z); camera.updateMatrixWorld();
 }
 let twAcc=0;
-function twTick(dt){ if(!TW.on) return false; twAcc+=Math.min(0.1, dt); let n=0; while(twAcc>=1/90 && n<9){ if(!TW.fin && !TW.bot) twStep(1/90); twAcc-=1/90; n++; } twShards(dt); twCam(dt); TW.hT=(TW.hT||0)+dt; if(TW.hT>0.1){ TW.hT=0; twHud(); if(!TW.fin) $("twTime").textContent=twTime((performance.now()-TW.t0)/1000); }
+function twTick(dt){ if(!TW.on) return false; try{ twNetTick(dt); }catch(e){} twAcc+=Math.min(0.1, dt); let n=0; while(twAcc>=1/90 && n<9){ if(!TW.fin && !TW.bot) twStep(1/90); twAcc-=1/90; n++; } twShards(dt); twCam(dt); TW.hT=(TW.hT||0)+dt; if(TW.hT>0.1){ TW.hT=0; twHud(); if(!TW.fin) $("twTime").textContent=twTime((performance.now()-TW.t0)/1000); }
   if(TW.flash>0){ TW.flash-=dt; $("twUI").classList.toggle("hurt", TW.flash>0); } return true; }
 /* 입력 — 왼쪽 아래 조이스틱(늘 그 자리 · 멀리 누르면 그 자리로 옮겨 감) · 오른쪽 = 카메라 · JUMP */
 function twJoyHome(){ const J=$("twJoy"), r=J.getBoundingClientRect(); TW.home=[r.left+r.width/2, r.top+r.height/2]; J.style.transform=""; $("twKnob").style.transform="translate(-50%,-50%)"; }
@@ -1790,6 +1803,44 @@ function twInput(){ const L=$("twTouch"), J=$("twJoy"), K=$("twKnob");
   addEventListener("keydown", e=>{ if(!TW.on) return; if(map[e.code]){ TW.key[map[e.code]]=1; e.preventDefault(); } if(e.code==="Space"){ TW.buf=0.16; e.preventDefault(); } });
   addEventListener("keyup", e=>{ if(map[e.code]) TW.key[map[e.code]]=0; });
   addEventListener("blur", ()=>{ TW.key={}; TW.inp.x=TW.inp.y=0; TW.joy=null; $("twJoy").classList.remove("on"); }); }
+/* (v453) 👥 그냥 같이 — 같은 날 · 같은 타워(쉬움/어려움)에 들어와 있는 친구들이 보임
+   · 쓰기: /hy/day/tw<날짜><e|h>/<집 키>/i = {n, av} (들어갈 때 한 번) · /p = [x,y,z,방향,동작,시각] (움직일 때 0.2초마다, 가만히 있으면 2초마다)
+   · 읽기: 같은 곳을 EventSource 로 계속 받음 (안 되면 1.2초마다 읽기) · 12초 동안 소식이 없으면 안 보임 · 나가면 지움
+   · 친구 모습 = buildAvatar(그 친구 av) + 이름표 · 위치는 부드럽게 따라감 */
+const TWN={tree:{}, peers:{}, es:null, poll:0, sendT:0, sent:null, path:"", on:false, g:null, seen:{}};
+function twNetPath(){ return "/hy/day/tw"+dayKey().replace(/\D/g,"")+(TW.mode==="hard"?"h":"e"); }
+function twNetCount(){ return Object.values(TWN.peers).filter(c=>c.g.visible).length; }
+function twNetApply(path, data, patch){ const P=String(path||"/").split("/").filter(Boolean), now=performance.now();
+  if(!P.length){ if(patch) Object.assign(TWN.tree, data||{}); else TWN.tree=Object.assign({}, data||{}); Object.keys(data||{}).forEach(k=>TWN.seen[k]=now); return; }
+  const k=P[0]; TWN.seen[k]=now;
+  if(P.length===1){ if(data==null) delete TWN.tree[k]; else TWN.tree[k]=patch ? Object.assign(TWN.tree[k]||{}, data) : data; return; }
+  const o=TWN.tree[k]||(TWN.tree[k]={}); if(data==null) delete o[P[1]]; else o[P[1]]=data; }
+function twNetStart(){ twNetStop(); if(TW.bot) return; const K=kidInfo(); TWN.on=true; TWN.path=twNetPath(); TWN.tree={}; TWN.seen={};
+  if(!TWN.g){ TWN.g=new THREE.Group(); scene.add(TWN.g); } TWN.g.visible=true;
+  const me=TWN.path+"/"+myCode;
+  NET.put(me+"/i", {n:K.n, av:av||{}, at:Date.now()}).catch(()=>{});
+  const poll=()=>{ if(!TWN.on) return; NET.get(TWN.path).then(d=>{ if(!TWN.on || TWN.es) return; twNetApply("/", d||{}); }).catch(()=>{}); };
+  const go=()=>{ if(!TWN.on) return; if(NET.stream){ NET.stream(TWN.path, (k, m)=>{ if(TWN.on) twNetApply(m.path, m.data, k==="patch"); }).then(es=>{ if(!TWN.on){ try{ es.close(); }catch(e){} return; } TWN.es=es; es.onerror=()=>{ try{ es.close(); }catch(e){} if(TWN.es===es) TWN.es=null; }; }).catch(()=>{}); } };
+  go(); poll(); TWN.poll=setInterval(()=>{ if(!TWN.es){ poll(); if(Math.random()<0.15) go(); } }, 1200); }
+function twNetStop(){ const was=TWN.on; TWN.on=false; clearInterval(TWN.poll); if(TWN.es){ try{ TWN.es.close(); }catch(e){} TWN.es=null; }
+  if(was && TWN.path) NET.del(TWN.path+"/"+myCode).catch(()=>{});
+  Object.values(TWN.peers).forEach(c=>{ if(c.g.parent) c.g.parent.remove(c.g); }); TWN.peers={}; TWN.sent=null; if(TWN.g) TWN.g.visible=false; }
+addEventListener("pagehide", ()=>{ try{ if(TWN.on && TWN.path) NET.del(TWN.path+"/"+myCode); }catch(e){} });
+function twNetSend(dt){ if(!TWN.on || TW.bot) return; TWN.sendT+=dt; const p=TW.p, s=TWN.sent, f=+hero.face.toFixed(2), a=TW.fin?"win":hero.act;
+  const moved=!s || Math.abs(s[0]-p.x)+Math.abs(s[1]-p.y)+Math.abs(s[2]-p.z)>0.04 || s[3]!==a;
+  if((moved && TWN.sendT>0.2) || TWN.sendT>2){ TWN.sendT=0; const v=[+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2), f, a, Date.now()]; TWN.sent=[v[0],v[1],v[2],a]; NET.put(TWN.path+"/"+myCode+"/p", v).catch(()=>{}); } }
+function twNameTag(n){ const t=canvasTex(256,64,(g,W,H)=>{ g.clearRect(0,0,W,H); g.font="bold 34px sans-serif"; const w=Math.min(W-6, g.measureText(n).width+30); g.fillStyle="rgba(40,30,90,.78)"; g.beginPath(); if(g.roundRect) g.roundRect((W-w)/2,6,w,H-12,22); else g.rect((W-w)/2,6,w,H-12); g.fill(); g.fillStyle="#fff"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(n,W/2,H/2+1); });
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthWrite:false, depthTest:false})); s.scale.set(1.1,0.28,1); s.position.y=1.45; s.renderOrder=6; return s; }
+function twNetTick(dt){ if(!TWN.on) return false; twNetSend(dt); const now=performance.now(), wall=Date.now(); let anim=false;
+  Object.keys(TWN.tree).forEach(k=>{ if(k===myCode) return; const d=TWN.tree[k]; if(!d || !d.p || !d.i) return; let c=TWN.peers[k];
+    if(!c){ const A=buildAvatar((d.i&&d.i.av)||{}); c=TWN.peers[k]=Object.assign(A, {face:0, t:0, moving:false, act:"idle", blinkT:2, tgt:new THREE.Vector3(), nm:""}); c.g.scale.setScalar(0.92); TWN.g.add(c.g); c.g.position.set(d.p[0], d.p[1], d.p[2]); }
+    if(c.nm!==(d.i.n||"")){ c.nm=d.i.n||""; if(c.tag) c.g.remove(c.tag); c.tag=twNameTag(c.nm||"친구"); c.g.add(c.tag); }
+    const fresh=now-(TWN.seen[k]||0)<12000 && Math.abs(wall-(+d.p[5]||0))<10*60000; c.g.visible=fresh;
+    c.tgt.set(+d.p[0]||0, +d.p[1]||0, +d.p[2]||0); c.face=+d.p[3]||0; const a=d.p[4]||"idle";
+    if(a==="win" && !c.won){ c.won=1; toast("🏆 <b>"+esc(c.nm||"친구")+"</b> 꼭대기 도착!", 1800); } });
+  Object.keys(TWN.peers).forEach(k=>{ if(!TWN.tree[k] || !TWN.tree[k].p){ const c=TWN.peers[k]; if(c.g.parent) c.g.parent.remove(c.g); delete TWN.peers[k]; } });
+  Object.values(TWN.peers).forEach(c=>{ if(!c.g.visible) return; const P=c.g.position, d=P.distanceTo(c.tgt); if(d>6) P.copy(c.tgt); else P.lerp(c.tgt, Math.min(1, dt*9)); c.moving=d>0.06; if(animChar(c, dt)) anim=true; anim=true; });
+  return anim; }
 /* 마을의 타워 건물 */
 { const B=new THREE.Group(); B.position.set(TW_AT[0]+1, 0, TW_AT[1]+1); villageG.add(B); scene.userData.towerObj=B;
   part(B, rbox(1.5,0.5,1.5,0.06), M(0xffffff), 0,0.25,0); ["#ff4fa3","#3fa9ff","#2fd27a","#ffc21a","#9b6bff"].forEach((c,k)=>part(B, rbox(1.3-k*0.08,0.6,1.3-k*0.08,0.05), M(c), 0,0.8+k*0.6,0));
@@ -2299,7 +2350,9 @@ const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.f
   async function U(p, qs){ const t=await tok(); return base+p+".json"+(qs||t?"?":"")+(qs||"")+(qs&&t?"&":"")+(t?"auth="+encodeURIComponent(t):""); }
   async function req(method, p, v){ await ready(); if(mode!=="fb") throw "off"; const r=await fetch(await U(p),{method, cache:"no-store", body:v===undefined?undefined:JSON.stringify(v)}); if(!r.ok) throw r.status; return r.json(); }
   async function query(p, qs){ await ready(); if(mode!=="fb") throw "off"; const r=await fetch(await U(p, qs),{cache:"no-store"}); if(!r.ok) throw r.status; return r.json(); }
-  return {ready, on:()=>mode==="fb", get:p=>req("GET",p), put:(p,v)=>req("PUT",p,v), del:p=>req("DELETE",p), query};
+  /* (v453) 계속 받기 (Firebase REST 스트리밍) — cb("put"|"patch", {path, data}) */
+  async function stream(p, cb){ await ready(); if(mode!=="fb" || typeof EventSource==="undefined") throw "off"; const es=new EventSource(await U(p)); ["put","patch"].forEach(k=>es.addEventListener(k, e=>{ try{ cb(k, JSON.parse(e.data)); }catch(er){} })); return es; }
+  return {ready, on:()=>mode==="fb", get:p=>req("GET",p), put:(p,v)=>req("PUT",p,v), del:p=>req("DELETE",p), query, stream};
 })();
 const CODE_CH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function kidInfo(){ let k=null, nick=""; try{ k=PAD.shared ? PAD.kid : JSON.parse(localStorage.getItem("hyeng_kid")||sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){}
@@ -3290,7 +3343,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
+window.HOUSE = {TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
