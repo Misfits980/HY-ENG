@@ -81,7 +81,7 @@ async def main():
         await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ clearTimeout(Board._to); BoardTV.rq=null; Board.o.mgOnly='tug'; Board.act(''); Board.mini(); }")
         await K[2].evaluate("()=>{ BoardPad.h.close(); }")
-        await T.wait_for_timeout(6500)
+        await T.wait_for_timeout(6500 + 4200)   # (v451) 시작 전 설명 4.2초 (MiniG.HOWMS)
         await K[2].evaluate("()=>{ window._st=null; BoardPad.h=FB.listen('/battle/'+BoardPad.room+'/st', s=>{ BoardPad.st=s||{}; BoardPad.draw(); }); }")
         ok(await until(K[2], "()=>!!BoardPad.g", 30), "① 늦게 받은 패드도 바로 시작")
         r = await K[2].evaluate("()=>{ const m=BoardPad.st.mg; return m ? [(m.end-BoardPad.now())/1000] : null; }")

@@ -18,7 +18,7 @@ async def main():
             await pg.evaluate("()=>{ show('scSetup'); goStep(0); }"); await pg.wait_for_timeout(500)
             r=await pg.evaluate("""()=>{ const L=[...document.querySelectorAll('#selRule .tile.card')]; return L.map(t=>{ const b=t.getBoundingClientRect(); return [t.dataset.v, Math.round(b.top), Math.round(b.bottom), Math.round(b.left), Math.round(b.right), getComputedStyle(t).backgroundImage.indexOf('world-town')>=0]; }); }""")
             vs=[x[0] for x in r]; inside=all(x[1]>=0 and x[2]<=vw["height"]+1 and x[3]>=0 and x[4]<=vw["width"]+1 for x in r)
-            r=[x for x in r if x[0]!="board" or x[2]>x[1]]; vs=[x[0] for x in r]; inside=all(x[1]>=0 and x[2]<=vw["height"]+1 and x[3]>=0 and x[4]<=vw["width"]+1 for x in r)
+            r=[x for x in r if (x[0]!="board" or x[2]>x[1]) and x[0]!="join"]; vs=[x[0] for x in r];   # (v448) 「친구랑 보드게임」 카드(join)는 따로 inside=all(x[1]>=0 and x[2]<=vw["height"]+1 and x[3]>=0 and x[4]<=vw["width"]+1 for x in r)
             ok(vs==["normal","daily","town"] and inside and r[2][5], f"{vw['width']}×{vw['height']} 카드 3장 모두 화면 안 · 마을 그림 · (v427) 🎲 보드게임 카드는 숨김 {r}")
             if vw["width"]==390:
                 await pg.screenshot(path=OUT+"town_card.png")
