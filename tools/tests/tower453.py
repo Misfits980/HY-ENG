@@ -104,7 +104,7 @@ async def main():
         ok(await until(A, "()=>HOUSE.place()==='village' && !HOUSE.TW.on"), "④ A 마을로")
         ok(await until(B, "()=>HOUSE.twNetCount()===0", 60), "④ A 가 나가면 B 화면에서 사라짐 · 👥 0")
         r = db_get("/hy/day")
-        ok(r and all("AAAAA" not in v for v in r.values()), f"④ 나가면 서버에서 내 자리 지움 {list((r or {}).keys())}")
+        ok(r and all("AAAAA" not in v for k, v in r.items() if k.startswith("tw")), f"④ 나가면 서버(타워 자리)에서 내 자리 지움 — 마을 자리(vl, v473)는 마을에 있으니 남음 {list((r or {}).keys())}")
         await B.evaluate("()=>HOUSE.twLeave()")
         await br.close()
     r = real_errs(errs)

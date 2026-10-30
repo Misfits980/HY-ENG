@@ -2795,14 +2795,17 @@ const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.f
   return {ready, on:()=>mode==="fb", get:p=>req("GET",p), put:(p,v)=>req("PUT",p,v), patch:(p,v)=>req("PATCH",p,v), del:p=>req("DELETE",p), query, stream};
 })();
 const CODE_CH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-function kidInfo(){ let k=null, nick=""; try{ k=PAD.shared ? PAD.kid : JSON.parse(localStorage.getItem("hyeng_kid")||sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){}
+/* (v476) 게임(index.html Kid)과 같은 규칙: 🧑‍🏫 선생님 기기 = 아이 이름은 이번에만(sessionStorage · 20분) · 이름에서 저절로 붙은 연결은 이름이 달라지면 버림 */
+function kidInfo(){ let k=null, nick=""; try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} const tch=(()=>{ try{ return !/^한양|패드$/.test(nick) && localStorage.getItem("hyeng_teacher_dev")==="1"; }catch(e){ return false; } })(), nk=s=>String(s||"").replace(/^👤\s*/,"").replace(/\s+/g,"").toLowerCase();
+  try{ k=PAD.shared ? PAD.kid : JSON.parse((tch ? null : localStorage.getItem("hyeng_kid"))||sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){}
+  if(k && !PAD.shared && ((tch && k.at && Date.now()-k.at>20*60000) || (k.auto && nk(k.n)!==nk(nick)))) k=null;
   return {n:String((k&&k.n)||nick||"친구").slice(0,10), t:String((k&&k.t)||""), rid:String((k&&k.id)||"").slice(0,40), shared:/^한양|패드$/.test(nick)}; }
 let myCode=store("hyeng_proto_code"); if(!myCode){ myCode=""; for(let k=0;k<5;k++) myCode+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; store("hyeng_proto_code", myCode); }
 /* (v474) ⏰ My Town 시간 기록 — 사용자: "애들이 마이타운은 몇 시에 들어갔는지 · 나갔는지" → 들어온 때 ~ 마지막으로 있던 때 (1분마다 · 화면을 끌 때)
    /hy/day/<날>/<아이>/tl/m<시작> = [시작초, 끝초] + n·t·la·lk="m" → 선생님 관리 ⏰ 언제 했나 (게임 index.html 의 HyDay 와 같은 자리 · 이름이 같으면 한 줄) */
 const MTL={a:0, last:0, id:"", force:false};
 function mtId(){ const K=kidInfo(); if(K.rid) return K.rid.replace(/[.#$\[\]\/]/g,"").slice(0,40); if(K.shared) return ""; let d=""; try{ d=localStorage.getItem("hyeng_dev")||""; }catch(e){} return d ? "d"+d.replace(/[^a-z0-9]/gi,"").slice(0,16) : ""; }
-function mtLog(final){ if(navigator.webdriver && !MTL.force) return; const id=mtId(); if(!id) return; const nowT=Date.now(); if(id!==MTL.id){ MTL.id=id; MTL.a=0; MTL.last=0; } if(!MTL.a) MTL.a=nowT; if(!final && nowT-MTL.last<55000) return; MTL.last=nowT;
+function mtLog(final){ if(navigator.webdriver && !MTL.force) return; try{ if(localStorage.getItem("hyeng_teacher_dev")==="1") return; }catch(e){} const id=mtId(); if(!id) return;   /* (v476) 🧑‍🏫 선생님 기기는 기록 안 함 */ const nowT=Date.now(); if(id!==MTL.id){ MTL.id=id; MTL.a=0; MTL.last=0; } if(!MTL.a) MTL.a=nowT; if(!final && nowT-MTL.last<55000) return; MTL.last=nowT;
   const K=kidInfo(), a=Math.round(MTL.a/1000), b=Math.round(nowT/1000), body={n:K.n, la:nowT, lk:"m"}; if(K.t) body.t=K.t; body["tl/m"+a.toString(36)]=[a, b];
   NET.patch("/hy/day/"+new Date(nowT+9*3600e3).toISOString().slice(0,10)+"/"+id, body).catch(()=>{}); }
 setTimeout(()=>mtLog(true), 4000); setInterval(()=>{ if(!document.hidden) mtLog(false); }, 15000);

@@ -18,6 +18,8 @@ async def main():
             pg = await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(name + ": " + str(e))); await boot(pg); return pg
         A = await dev("한양 배려", "axqr06lvmv8tpb58", "A")
         await A.evaluate("()=>FB.set('/hy/roster',{t:{y:{n:'유치부'}}, k:{r1:{n:'루아',t:'y'}, k2:{n:'민준',t:'y'}}}).then(()=>HyBoss.refresh(true))")
+        await A.wait_for_timeout(1500)   # (v476) 켤 때 저절로 도는 padAutoOwner(명단 넣기 전)가 만든 주인·임시 루아를 지우고 다시 — 테스트 순서 문제
+        await A.evaluate("()=>{ Kid.setOwner(null); return Promise.all([FB.set('/hy/pads/axqr06lvmv8tpb58', null), FB.set('/hy/roster',{t:{y:{n:'유치부'}}, k:{r1:{n:'루아',t:'y'}, k2:{n:'민준',t:'y'}}})]).then(()=>HyBoss.refresh(true)); }")
         r = await A.evaluate("()=>padAutoOwner().then(o=>[o, (Kid.me()||{}).n, Kid.ownerMode()])")
         ok(r[0] and r[0]["k"] == "r1" and r[0]["n"] == "루아" and r[1] == "루아" and r[2], f"배려 패드 = 루아 (명단의 루아) {r}")
         ok(await A.evaluate("()=>FB.get('/hy/pads/axqr06lvmv8tpb58').then(v=>v && v.k==='r1')"), "서버 /hy/pads 에도")
