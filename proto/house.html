@@ -527,7 +527,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <div id="twUI"><div id="twTouch"></div><div id="twJoy"><i id="twKnob"></i></div>
   <div class="twTop"><button id="twBack" aria-label="타워에서 나가기">🏳️</button><div class="twInfo"><b id="twFloor">1 / 6층</b><small id="twSec"></small><span id="twTime">0:00.0</span></div><span id="twPeers" aria-label="같이 있는 친구">👥 0</span><button id="twRe" aria-label="처음으로" hidden>🚩</button></div>
   <div id="twMeter"><i id="twBar"></i></div><button id="twJump" aria-label="점프">⬆️<span>JUMP</span></button><button id="twEmo" aria-label="감정 표현">😀</button><div id="twEmoBar"></div>
-  <div class="twHelp">왼쪽 아래 동그라미 = 움직이기 · JUMP = 점프<br>화면 끌기 = 둘러보기 (좌우·위아래) · 🪜 기둥은 밀면 올라가요<br>🚫 체크포인트 없음 — 떨어지면 거기서 다시 · 🔥 용암은 아래 🏝 땅으로!</div></div>
+  <div class="twHelp">왼쪽 아래 동그라미 = 움직이기 · JUMP = 점프<br>화면 끌기 = 둘러보기 (좌우·위아래) · 🪜 기둥은 밀면 올라가요<br><span id="twHelpCp">🚫 체크포인트 없음 — 떨어지면 거기서 다시 · 🔥 용암은 아래 🏝 땅으로!</span></div></div>
 <div id="toast"></div>
 <div id="fps"></div>
 <div id="fade"></div>
@@ -1654,7 +1654,7 @@ function twPad(F, y, i, top, yLow){ const pc=top?"#ffd23f":(TCOL[i%10]||"#ffffff
   if(s.climb){ const h=y-0.4-yLow; s.mesh.geometry=new THREE.BoxGeometry(1.96,h,1.96); s.mesh.position.y=yLow+h/2; s.mesh.material=twLadder(h); const cap=new THREE.Mesh(rbox(2.02,0.4,2.02,0.06), twMat(pc)); cap.position.set(s.mesh.position.x, y-0.2, s.mesh.position.z); towerG.add(cap); }
   const c=F.P(0,0);
   if(top){ const ring=new THREE.Mesh(new THREE.RingGeometry(0.55,0.75,28), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.75, side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; ring.position.set(c[0],y+0.012,c[1]); towerG.add(ring); }
-  if(!top && TW.bot){ const f=new THREE.Group(); f.position.set(c[0],y,c[1]); towerG.add(f); part(f, cyl(0.03,0.03,1.3,6), M(0xffffff), 0.75,0.65,0.75).castShadow=false; const fl=new THREE.Mesh(new THREE.PlaneGeometry(0.4,0.26), new THREE.MeshBasicMaterial({color:0x5cbf5a, side:THREE.DoubleSide})); fl.position.set(0.96,1.18,0.75); f.add(fl); s.flag=fl; }
+  if(!top && (TW.bot || (TW.mode==="kid" && i>=1 && i<=TW_PRACTICE && TW.secs[i]!=="ground"))){ const f=new THREE.Group(); f.position.set(c[0],y,c[1]); towerG.add(f); part(f, cyl(0.03,0.03,1.3,6), M(0xffffff), 0.75,0.65,0.75).castShadow=false; const fl=new THREE.Mesh(new THREE.PlaneGeometry(0.4,0.26), new THREE.MeshBasicMaterial({color:0x5cbf5a, side:THREE.DoubleSide})); fl.position.set(0.96,1.18,0.75); f.add(fl); s.flag=fl; if(!TW.bot){ f.scale.setScalar(1.5); fl.material.color.setHex(0x3fbf5a); } }
   else { const T=new THREE.Group(); T.position.set(c[0],y,c[1]); towerG.add(T); part(T, cyl(0.18,0.24,0.18,12), M(0xffd23f,{metalness:.4}), 0,0.09,0); part(T, cyl(0.06,0.06,0.3,8), M(0xffd23f,{metalness:.4}), 0,0.33,0);
     const cup=new THREE.Mesh(new THREE.SphereGeometry(0.3,16,10,0,Math.PI*2,Math.PI/2,Math.PI/2), M(0xffd23f,{metalness:.5, side:THREE.DoubleSide})); cup.position.y=0.78; cup.rotation.x=Math.PI; T.add(cup); s.trophy=T; }
   return s; }
@@ -1699,17 +1699,17 @@ function twLaserPos(s, T){ const u=s.u+Math.sin(T*s.sp+s.ph)*s.amp, a=s.F.P(u-0.
 /* 장애물 구간들 — 각 함수는 (F, y, R, hard) → 마지막 발판 높이 (그다음 🪜 사다리 기둥) */
 const TW_SECS={
   steps(F,y,R,h){ const n=5, w=h?1.0:1.25; let yy=y; for(let k=1;k<=n;k++){ yy=y+k*0.62; const u=k*1.5-0.1, ww=(k%2?0.5:-0.5)*(h?1:0.6); twLocalBox(F,u-w/2,u+w/2, ww-w/2,ww+w/2, yy-0.35,yy, "solid", F.col); } return yy; },
-  gaps(F,y,R,h){ const lv=F.lv||0, L=h?0.9-0.22*lv:1.3, g=(7-3*L)/4; let u=1+g, yy=y; for(let k=0;k<3;k++){ yy+=0.3; const ww=(k%2?0.6:-0.6)*(h?1:0.5), wd=h?0.5-0.1*lv:0.65; twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.35,yy, "solid", F.col); u+=L+g; }
+  gaps(F,y,R,h){ const lv=F.lv||0, L=h?0.9-0.22*lv:F.ez?1.55:1.3, g=(7-3*L)/4; let u=1+g, yy=y; for(let k=0;k<3;k++){ yy+=F.ez?0.2:0.3; const ww=(k%2?0.6:-0.6)*(h?1:F.ez?0.25:0.5), wd=h?0.5-0.1*lv:F.ez?0.85:0.65; twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.35,yy, "solid", F.col); u+=L+g; }
     twLocalBox(F,7.2,7.95,-0.7,0.7, yy-0.35,yy,"solid",F.col); return yy; },
-  lava(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.6,1.6, y-0.55,y-0.3, "kill"); const st=h?0.8-0.18*(F.lv||0):1.0; let yy=y+0.1; [[1.8,-0.5],[3.0,0.6],[4.2,-0.5],[5.4,0.8],[6.6,-0.4]].forEach(([u,w],k)=>{ yy=y+0.1+k*0.18; twLocalBox(F,u-st/2,u+st/2,w-st/2,w+st/2, yy-0.3,yy, "solid", "#5a4a42"); }); twLocalBox(F,7.3,7.95,-0.6,0.6, yy+0.05,yy+0.4,"solid",F.col); return yy+0.4; },
-  mover(F,y,R,h){ twLocalBox(F,1.0,2.0,-0.8,0.8, y-0.35,y+0.2,"solid",F.col); const sp=h?1.3+0.7*(F.lv||0):0.9;
+  lava(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.6,1.6, y-0.55,y-0.3, "kill"); const st=h?0.8-0.18*(F.lv||0):F.ez?1.25:1.0; let yy=y+0.1; [[1.8,-0.5],[3.0,0.6],[4.2,-0.5],[5.4,0.8],[6.6,-0.4]].forEach(([u,w],k)=>{ yy=y+0.1+k*0.18; twLocalBox(F,u-st/2,u+st/2,w-st/2,w+st/2, yy-0.3,yy, "solid", "#5a4a42"); }); twLocalBox(F,7.3,7.95,-0.6,0.6, yy+0.05,yy+0.4,"solid",F.col); return yy+0.4; },
+  mover(F,y,R,h){ twLocalBox(F,1.0,2.0,-0.8,0.8, y-0.35,y+0.2,"solid",F.col); const sp=h?1.3+0.7*(F.lv||0):F.ez?0.65:0.9;
     [[3.6,0],[6.0,Math.PI]].forEach(([u,ph],k)=>{ const yy=y+0.4+k*0.4; twLocalBox(F,u-0.8,u+0.8,-0.8,0.8, yy-0.3,yy,"solid","#ffb84d",{move:{F, u, w:0, amp:1.6, sp, ph, y0:yy-0.3, y1:yy}}); });
     twLocalBox(F,7.2,7.95,-0.8,0.8, y+0.9,y+1.3,"solid",F.col); return y+1.3; },
   spinner(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.8,1.8, y-0.35,y,"solid",F.col); const c=F.P(4.5,0); const bar=new THREE.Group(); bar.position.set(c[0],y,c[1]); towerG.add(bar);
     part(bar, cyl(0.25,0.3,0.6,12), M(0x8a8f99), 0,0.3,0).castShadow=false; const b=part(bar, rbox(3.6,0.18,0.18,0.06), new THREE.MeshStandardMaterial({color:0xff3b30, emissive:0xff1a00, emissiveIntensity:.7}), 0,0.42,0); b.castShadow=false;
     TW.S.push({kind:"spin", mesh:bar, c, y0:y+0.3, y1:y+0.56, len:1.8, sp:h?2.4:1.6, on:true, min:new THREE.Vector3(), max:new THREE.Vector3()});
     twLocalBox(F,6.7,7.4,-0.8,0.8, y+0.2,y+0.6,"solid",F.col); twLocalBox(F,7.4,7.95,-0.8,0.8, y+0.6,y+1.1,"solid",F.col); return y+1.1; },
-  fade(F,y,R,h){ let yy=y; for(let k=0;k<5;k++){ yy=y+0.2+k*0.25; const u=1.8+k*1.4, ww=(k%2?0.5:-0.5); twLocalBox(F,u-0.6,u+0.6,ww-0.6,ww+0.6, yy-0.25,yy,"fade",null,{ft:0, gone:0, ftd:0.7}); } return yy; },
+  fade(F,y,R,h){ let yy=y; for(let k=0;k<5;k++){ yy=y+0.2+k*0.25; const u=1.8+k*1.4, ww=(k%2?0.5:-0.5); twLocalBox(F,u-0.6,u+0.6,ww-0.6,ww+0.6, yy-0.25,yy,"fade",null,{ft:0, gone:0, ftd:F.ez?1.2:0.7}); } return yy; },
   bounce(F,y,R,h){ twLocalBox(F,1.0,3.4,-1,1, y-0.35,y,"solid",F.col); const pad=twLocalBox(F,3.5,4.6,-0.55,0.55, y-0.35,y+0.05,"bounce","#ff4fa3"); pad.pow=h?15.5:16.5;
     const c=F.P(4.05,0); const spr=part(towerG, cyl(0.4,0.4,0.06,16), M(0xffffff), c[0],y+0.08,c[1]); spr.castShadow=false;
     twLocalBox(F,5.6,7.95,-1,1, y+2.7,y+3.05,"solid",F.col); return y+3.05; },
@@ -1717,7 +1717,7 @@ const TW_SECS={
     const sh=new THREE.Shape(); sh.moveTo(0,0.24); sh.lineTo(0.22,-0.1); sh.lineTo(0.07,-0.1); sh.lineTo(0.07,-0.26); sh.lineTo(-0.07,-0.26); sh.lineTo(-0.07,-0.1); sh.lineTo(-0.22,-0.1); sh.lineTo(0,0.24); const ag=new THREE.ShapeGeometry(sh), am=new THREE.MeshBasicMaterial({color:0xffd23f});
     for(let k=0;k<4;k++){ const a=new THREE.Mesh(ag, am), c=F.P(1.8+k*1.7,0); a.rotation.x=-Math.PI/2; a.rotation.z=Math.atan2(-F.n[0]*Math.sign(pw),-F.n[1]*Math.sign(pw)); a.position.set(c[0], y+0.012, c[1]); towerG.add(a); s.arrows=(s.arrows||[]).concat(a); }
     twLocalBox(F,7.4,7.95,-0.7,0.7, y+0.3,y+0.65,"solid",F.col); return y+0.65; },
-  beam(F,y,R,h){ const bw=h?0.42-0.1*(F.lv||0):0.6; twLocalBox(F,1.0,4.0,-bw/2,bw/2, y-0.25,y,"solid","#b07a4a"); twLocalBox(F,3.6,4.4,-1.2,1.2, y-0.25+0.3,y+0.3,"solid",F.col); twLocalBox(F,4.2,7.6,-bw/2+0.8,bw/2+0.8, y+0.3-0.25,y+0.3,"solid","#b07a4a"); twLocalBox(F,7.2,7.95,-0.4,1.2, y+0.35,y+0.7,"solid",F.col); return y+0.7; },
+  beam(F,y,R,h){ const bw=h?0.42-0.1*(F.lv||0):F.ez?0.85:0.6; twLocalBox(F,1.0,4.0,-bw/2,bw/2, y-0.25,y,"solid","#b07a4a"); twLocalBox(F,3.6,4.4,-1.2,1.2, y-0.25+0.3,y+0.3,"solid",F.col); twLocalBox(F,4.2,7.6,-bw/2+0.8,bw/2+0.8, y+0.3-0.25,y+0.3,"solid","#b07a4a"); twLocalBox(F,7.2,7.95,-0.4,1.2, y+0.35,y+0.7,"solid",F.col); return y+0.7; },
   /* (v454) 🧗 벽 점프 — 마주 보는 두 벽(A: 위에 매달려 밑으로 들어감 · B: 큰 벽, 위가 다음 길) · 공중에서 벽에 닿고 JUMP = 반대쪽 위로 튀어 오름 · 벽에 붙으면 천천히 미끄러짐 */
   wall(F,y,R,h){ const top=h?3.7:2.9; twLocalBox(F,1.0,4.4,-1.0,1.0, y-0.35,y,"solid",F.col);
     const A=twLocalBox(F,2.95,3.22,-1.0,1.0, y+1.35,y+top+0.7,"wall","#e8e4ff",{noWalk:1}); const B=twLocalBox(F,4.4,7.95,-1.0,1.0, y-0.35,y+top,"wall",F.col,{wallTop:1});
@@ -1725,12 +1725,12 @@ const TW_SECS={
     return y+top; },
   /* (v454) 🔴 움직이는 레이저 — 긴 길 위를 앞뒤로 오가는 낮은 빨간 막대 · 점프로 넘기 · 닿으면 맨 아래 */
   laser(F,y,R,h){ twLocalBox(F,1.0,7.95,-1.1,1.1, y-0.35,y,"solid",F.col); const lv=F.lv||0, n=h?2:1;
-    for(let k=0;k<n;k++){ const u=n===1?4.5:(k?5.6:3.2), amp=n===1?2.2:1.0, sp=(h?1.5+0.9*lv:1.1)*(k?1.15:1), ph=R()*6.28;
+    for(let k=0;k<n;k++){ const u=n===1?4.5:(k?5.6:3.2), amp=n===1?2.2:1.0, sp=(h?1.5+0.9*lv:F.ez?0.75:1.1)*(k?1.15:1), ph=R()*6.28;
       const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({color:0xff2a3d, emissive:0xff0a1a, emissiveIntensity:1.1, transparent:true, opacity:.9})); towerG.add(m);
       const s={kind:"laser", mesh:m, F, u, amp, sp, ph, y0:y+0.08, y1:y+0.36, on:true, min:new THREE.Vector3(), max:new THREE.Vector3()}; TW.S.push(s); twLaserPos(s, 0); }
     twLocalBox(F,7.2,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v454) 🧊 얼음 바닥 — 미끄러워서 잘 안 멈춤 · 아래는 용암 · 틈은 점프 */
-  ice(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.6,1.6, y-0.55,y-0.3, "kill"); twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const wd=h?0.55-0.12*(F.lv||0):0.75; let yy=y;
+  ice(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.6,1.6, y-0.55,y-0.3, "kill"); twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const wd=h?0.55-0.12*(F.lv||0):F.ez?0.9:0.75; let yy=y;
     [[2.2,3.7,0.3],[4.3,5.8,-0.3],[6.4,7.95,0.2]].forEach(([u0,u1,w],k)=>{ yy=y+0.15*(k+1); twLocalBox(F,u0,u1, w-wd,w+wd, yy-0.3,yy,"ice","#8fd8ff"); }); return yy; },
   /* (v455) 👀 투명 발판 — 가까이 가야 보임 (멀면 거의 안 보임) */
   ghost(F,y,R,h){ twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const wd=h?0.5:0.65; let yy=y, u=2.4;
@@ -1738,16 +1738,16 @@ const TW_SECS={
     twLocalBox(F,Math.min(7.2,u),7.95,-0.7,0.7, yy-0.3,yy+0.05,"solid",F.col); return yy+0.05; },
   /* (v455) 🟥 킬브릭 바닥 — 바둑판에서 흰 칸만 안전 · 빨간 칸(조금 낮음)은 밟으면 맨 아래로 */
   brick(F,y,R,h){ twLocalBox(F,1.0,1.9,-1.2,1.2, y-0.35,y,"solid",F.col); const C=6, Rw=3, cu=(7.6-1.9)/C, cw=2.4/Rw, safe={}; let r=Math.floor(R()*Rw), path=[];
-    for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.75:0.55)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
+    for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.75:F.ez?0.35:0.55)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
     path.forEach(([c,rr])=>{ const u0=1.9+c*cu, w0=-1.2+rr*cw; twLocalBox(F,u0+0.02,u0+cu-0.02, w0+0.02,w0+cw-0.02, y-0.35,y,"solid","#f4f4ff"); });
     for(let c=0;c<C;c++) for(let rr=0;rr<Rw;rr++){ if(safe[c+","+rr]) continue; const u0=1.9+c*cu, w0=-1.2+rr*cw; twLocalBox(F,u0+0.02,u0+cu-0.02, w0+0.02,w0+cw-0.02, y-0.47,y-0.14,"kill"); }
     twLocalBox(F,7.6,7.95,-1.0,1.0, y-0.35,y+0.3,"solid",F.col); return y+0.3; },
   /* (v455) 🍂 무너지는 발판 — 밟으면 흔들리다 떨어짐 (멈추지 말고 계속!) · 3초 뒤 다시 */
   crumble(F,y,R,h){ twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const L=1.0, wd=h?0.45:0.6; let yy=y;
-    for(let k=0;k<5;k++){ const u=2.0+k*(L+0.12), ww=Math.sin(k*1.3)*(h?0.6:0.3); yy=y+k*0.08; twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.3,yy,"fade","#e0a060",{ft:0, gone:0, ftd:h?0.5:0.65, crumble:1}); }
+    for(let k=0;k<5;k++){ const u=2.0+k*(L+0.12), ww=Math.sin(k*1.3)*(h?0.6:0.3); yy=y+k*0.08; twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.3,yy,"fade","#e0a060",{ft:0, gone:0, ftd:h?0.5:F.ez?1.0:0.65, crumble:1}); }
     twLocalBox(F,7.95-0.6,7.95,-0.7,0.7, yy-0.3,yy+0.2,"solid",F.col); return yy+0.2; },
   /* (v455) 🎠 빙글 원판 — 올라타면 같이 돌아감 · 내릴 때를 잘 보고 */
-  turn(F,y,R,h){ twLocalBox(F,1.0,2.6,-0.9,0.9, y-0.35,y,"solid",F.col); const c=F.P(4.4,0), rr=1.45, w=(R()<0.5?1:-1)*(h?1.5:0.9);
+  turn(F,y,R,h){ twLocalBox(F,1.0,2.6,-0.9,0.9, y-0.35,y,"solid",F.col); const c=F.P(4.4,0), rr=1.45, w=(R()<0.5?1:-1)*(h?1.5:F.ez?0.6:0.9);
     const s=twBox([c[0]-rr,y-0.3,c[1]-rr],[c[0]+rr,y+0.12,c[1]+rr],"solid","#ffffff",{rot:{c, w}}); s.mesh.geometry=new THREE.CylinderGeometry(rr*1.08, rr*1.08, 0.42, 32); s.mesh.material=twMat(F.col,{emissiveIntensity:.18});
     const st=new THREE.Mesh(new THREE.BoxGeometry(rr*2, 0.03, 0.18), new THREE.MeshBasicMaterial({color:0xffffff})); st.position.y=0.22; s.mesh.add(st); const st2=st.clone(); st2.rotation.y=Math.PI/2; s.mesh.add(st2);
     twLocalBox(F,6.2,7.95,-0.8,0.8, y-0.2,y+0.25,"solid",F.col); return y+0.25; },
@@ -1760,7 +1760,7 @@ const TW_SECS={
     return y; },
   /* 🦶 진짜 발판 찾기 — 똑같이 생긴 칸 중 가짜는 밟으면 사라짐 → 아래 🕸 그물 → 이 층 처음 발판으로 (가짜는 사라진 채 = 길이 보임) */
   tiptoe(F,y,R,h){ twLocalBox(F,1.0,1.9,-1.2,1.2, y-0.35,y,"solid",F.col); const C=6, Rw=3, cu=(7.6-1.9)/C, cw=2.4/Rw, safe={}; let r=Math.floor(R()*Rw), path=[];
-    for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.8:0.5)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
+    for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.8:F.ez?0.3:0.5)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
     const tm=twMat("#bfe9ff",{emissiveIntensity:.15}); path.forEach(([c,rr])=>{ const u0=1.9+c*cu, w0=-1.2+rr*cw, s=twLocalBox(F,u0+0.03,u0+cu-0.03, w0+0.03,w0+cw-0.03, y-0.3,y,"solid",null); s.mesh.material=tm; });
     for(let c=0;c<C;c++) for(let rr=0;rr<Rw;rr++){ if(safe[c+","+rr]) continue; const u0=1.9+c*cu, w0=-1.2+rr*cw, s=twLocalBox(F,u0+0.03,u0+cu-0.03, w0+0.03,w0+cw-0.03, y-0.3,y,"solid",null,{fake:1, noWalk:1}); s.mesh.material=tm; }
     const net=twLocalBox(F,1.0,7.95,-1.6,1.6, y-2.0,y-1.85,"solid",null,{net:F.i, noWalk:1}); net.mesh.material=new THREE.MeshStandardMaterial({color:0xff9ec0, transparent:true, opacity:.55, roughness:.8});
@@ -1770,7 +1770,7 @@ const TW_SECS={
     us.forEach((u,k)=>{ const c=F.P(u,0), G=new THREE.Group(); G.position.set(c[0], py, c[1]); towerG.add(G); const rad=h?0.46:0.4;
       const arm=new THREE.Group(); G.add(arm); part(arm, cyl(0.03,0.03,L,6), M(0x8a8f99), 0,-L/2,0).castShadow=false; const ball=part(arm, sph(rad), M(k%2?0xff4f6d:0xff9a3d,{roughness:.4}), 0,-L,0); ball.castShadow=false;
       part(arm, cyl(rad*1.02,rad*1.02,0.12,16), M(0xffffff), 0,-L,0).castShadow=false; part(G, sph(0.12), M(0x666b73), 0,0,0).castShadow=false;
-      const sp=h?2.0+0.8*lv:1.5, s={kind:"pend", F, u, G, arm, L, rad, py, amp:h?1.0:0.85, sp, ph:k*1.9+R()*0.8, on:true, hitT:0, min:new THREE.Vector3(), max:new THREE.Vector3()}; TW.S.push(s); });
+      const sp=h?2.0+0.8*lv:F.ez?1.15:1.5, s={kind:"pend", F, u, G, arm, L, rad, py, amp:h?1.0:F.ez?0.72:0.85, sp, ph:k*1.9+R()*0.8, on:true, hitT:0, min:new THREE.Vector3(), max:new THREE.Vector3()}; TW.S.push(s); });
     const a=F.P(us[0]-0.4,0), b=F.P(us[us.length-1]+0.4,0); const beam=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(a[0]-b[0])+0.12, 0.12, Math.abs(a[1]-b[1])+0.12), M(0x8a5a34)); beam.position.set((a[0]+b[0])/2, py+0.05, (a[1]+b[1])/2); towerG.add(beam);
     twLocalBox(F,7.4,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v464) 🕐 시계 막대 — 사용자: "그 돌아가는 시계 같은 막대기가 밀어내는 거" · 둥근 시계판 위를 바늘(낮은 막대)이 돌며 밀어냄 (죽지 않음 · 떨어질 수는 있음) · 점프로 넘기 */
@@ -1783,10 +1783,10 @@ const TW_SECS={
     const hand=part(bar, rbox(L,0.2,0.2,0.06), new THREE.MeshStandardMaterial({color:0xff4f6d, emissive:0xa01030, emissiveIntensity:.35}), L/2,0.3,0); hand.castShadow=false;
     const tip=part(bar, new THREE.ConeGeometry(0.17,0.32,4), M(0xff4f6d), L+0.08,0.3,0); tip.rotation.z=-Math.PI/2; tip.castShadow=false;
     const two=h && lv>0.55;   /* 가운데 노란 기둥 위는 안전 (바늘 뿌리) */ if(two){ const h2=part(bar, rbox(L*0.75,0.2,0.2,0.06), new THREE.MeshStandardMaterial({color:0x6b5bd6, emissive:0x2a1a80, emissiveIntensity:.3}), -L*0.75/2,0.3,0); h2.castShadow=false; }
-    TW.S.push({kind:"sweep", mesh:bar, c, y0:y+0.2, y1:y+0.4, len:L+0.15, len2:two?L*0.75:0, sp:(R()<0.5?1:-1)*(h?1.7+0.8*lv:1.2), on:true, hitT:0, min:new THREE.Vector3(), max:new THREE.Vector3()});
+    TW.S.push({kind:"sweep", mesh:bar, c, y0:y+0.2, y1:y+0.4, len:L+0.15, len2:two?L*0.75:0, sp:(R()<0.5?1:-1)*(h?1.7+0.8*lv:F.ez?0.9:1.2), on:true, hitT:0, min:new THREE.Vector3(), max:new THREE.Vector3()});
     twLocalBox(F,6.15,7.95,-0.9,0.9, y-0.35,y,"solid",F.col); twLocalBox(F,7.4,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v465) 🕐🕐🕐 세 바늘 — 넓은 판 위 삼각형(앞 1 · 뒤 2)으로 바늘 3개 · 서로 반대로 돌아서 이리 퉁 저리 퉁 · 뒤 두 바늘은 거울처럼 같이 움직임 → 둘 다 바깥을 볼 때 사이로 통과 · 가운데 기둥은 안전 */
-  sweep3(F,y,R,h){ twClockMake(); twLocalBox(F,1.0,1.75,-0.9,0.9, y-0.35,y,"solid",F.col); const lv=F.lv||0, base=h?1.6+0.6*lv:1.1, dir=R()<0.5?1:-1;
+  sweep3(F,y,R,h){ twClockMake(); twLocalBox(F,1.0,1.75,-0.9,0.9, y-0.35,y,"solid",F.col); const lv=F.lv||0, base=h?1.6+0.6*lv:F.ez?0.85:1.1, dir=R()<0.5?1:-1;
     /* (v466) 사용자: "왜 네모판이 있지? 동그라미 시계로만 해서 애들이 떨어져야" → 둥근 시계판 3개만 (서로 살짝 겹침 · 둘레 밖은 낭떠러지) */
     const aD=Math.atan2(F.d[1],F.d[0]), A=F.P(2.95,0), B=F.P(4.95,-1.05), C=F.P(4.95,1.05), phB=R()*6.28, side=twMat("#ffd9a0");
     [[A,1.3],[B,1.1],[C,1.1]].forEach(([c,r])=>{ const s=twRound(c, y-0.35, y, r); s.mesh.material=[side, new THREE.MeshStandardMaterial({map:twClockTex||null, roughness:.6}), side]; });
@@ -1821,7 +1821,9 @@ const TW_SECS={
 const TW_EASY=["steps","gaps","lava","mover","fade","bounce","beam","gaps","ice","laser","turn","crumble","brick","door","tiptoe","pend","sweep","sweep3"], TW_HARD=["gaps","lava","mover","spinner","fade","bounce","conveyor","beam","steps","spinner","mover","lava","wall","laser","ice","wall","laser","ghost","brick","crumble","turn","ghost","door","tiptoe","pend","pend","sweep","sweep","sweep3","sweep3"];   /* (v463) 🚪 🦶 🔨 */   /* (v455) 👀 🟥 🍂 🎠 */   /* (v453) 🔤 단어 다리 뺌 · (v454) 🧗 🔴 🧊 */
 const TW_N={easy:10, hard:30, sky:40, kid:30}, TW_GROUND=[9,19,29], TW_GND={sky:[9,19,29], kid:[9,19]};
 /* (v462) 🟢 kid = 쉬움 30층 — 사용자: "쉬움 버전도 30층까지 · 유치부 애들이 어려움 도전하기 전에" · 1~9 = 아주 쉬운 것만(용암·레이저·킬브릭·얼음·무너짐 없음) · 🏝 10층 · 11~30 = 쉬움 전부 · 🏝 20층 */
-const TW_GENTLE=["steps","gaps","mover","bounce","beam","fade","turn","door"];   /* (v459) 🗼 sky = 쉬움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 10 (사용자: "저번 10층부터 이번 30층까지 붙여 줘") */   /* (v454) 사용자: "어려움이 쉽다 · 10층까지는 아직 쉽대 · 최소 30층" */
+const TW_GENTLE=["steps","gaps","mover","bounce","beam","fade","turn","door"];
+/* (v467) 사용자: "쉬움은 조금 더 쉽게 · 초반 진짜 연습하는 것처럼 체크포인트 있게" — 🟢 쉬움 1~10층 = 🚩 연습 구간: 층마다 깃발 = 체크포인트 (떨어지거나 용암이면 마지막 깃발로) · 11층부터는 🏝 땅 (10층 땅도 체크포인트) */
+const TW_PRACTICE=9;   /* 발판 1~8 = 🚩 깃발 · 9 = 🏝 10층 땅 */   /* (v459) 🗼 sky = 쉬움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 10 (사용자: "저번 10층부터 이번 30층까지 붙여 줘") */   /* (v454) 사용자: "어려움이 쉽다 · 10층까지는 아직 쉽대 · 최소 30층" */
 function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0]; towerG.remove(c); } TW.stars=[]; TW.hiG=null; TW.S=[]; TW.cps=[]; TW.words=[]; TW.mode=mode; TW.hitL=[];
   TW.secR=[]; TW.grounds=[]; TW.flatAt=[]; const R=twRand("tower|"+(TW.seed||dayKey())+"|"+mode), n=TW_N[mode]||10, pool=(mode==="hard"?TW_HARD:TW_EASY).slice(); const list=[];
   if(mode==="sky" || mode==="kid"){ const bags={}, GL=TW_GND[mode]; for(let i=0;i<n;i++){ if(GL.indexOf(i)>=0){ list.push("ground"); continue; } const nm=mode==="kid" ? (i<10?"g":"e") : (i<10?"e":"h"), P0=nm==="g"?TW_GENTLE:nm==="e"?TW_EASY:TW_HARD; let bag=bags[nm]; if(!bag || !bag.length) bag=bags[nm]=P0.slice();
@@ -1830,11 +1832,11 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   TW.secs=list; const hardAt=i=>mode==="hard" || (mode==="sky" && i>=10);
   const fl=twBox([TWC-9,-0.5,TWC-9],[TWC+9,0,TWC+9],"floor","#7c6cf0"); fl.mesh.material=twMat("#8f84f5",{emissiveIntensity:.05});   // 로비 바닥
   const F0=twFrame(0); TW.cps.push(twPad(F0, 0.4, 0, false)); let y=0.4; const ys=[0.4];
-  list.forEach((k,i)=>{ const F=twFrame(i); F.i=i; F.col=TCOL[i%10]; F.lv=mode==="hard" ? i/Math.max(1,n-1) : mode==="sky" && i>=10 ? (i-10)/Math.max(1,n-11) : 0; const a0=TW.S.length; const yEnd=TW_SECS[k](F, y, R, hardAt(i)); if(k!=="ground") twStarAt(F, y, i); TW.secR.push([a0, TW.S.length]); const Fn=twFrame(i+1);
+  list.forEach((k,i)=>{ const F=twFrame(i); F.i=i; F.col=TCOL[i%10]; F.ez=mode==="kid"; F.lv=mode==="hard" ? i/Math.max(1,n-1) : mode==="sky" && i>=10 ? (i-10)/Math.max(1,n-11) : 0; const a0=TW.S.length; const yEnd=TW_SECS[k](F, y, R, hardAt(i)); if(k!=="ground") twStarAt(F, y, i); TW.secR.push([a0, TW.S.length]); const Fn=twFrame(i+1);
     /* (v466) 사용자: "하드치고는 레일이 비슷한 길이 같아서 아쉽다" → 🗼 도전 11층부터: 30% = 사다리 없이 모서리를 돌아 바로 이어 달리기(두 층이 한 길) · 15% = 높은 사다리 */
     const rv=(mode==="sky" && hardAt(i) && k!=="ground" && list[i+1] && list[i+1]!=="ground") ? R() : 1, flat=rv<0.3 && TW.flatAt.indexOf(i)<0 && (i<3 || yEnd-ys[i-2]>=1.8), tall=rv>=0.3 && rv<0.45;   /* 이어 달리기는 두 번 연속 안 함 · 같은 면 아래층(4층 아래)의 끝 사다리보다 1.8 이상 높을 때만 */
     if(flat) (TW.flatAt=TW.flatAt||[]).push(i+1);
-    const yp=flat ? yEnd+0.02 : Math.max(y+1.2, yEnd+(k==="ground" ? 2.6 : list[i+1]==="ground" ? 2.8 : tall ? 3.4 : hardAt(i)?2.2:1.7));   /* (v463) 🏝 땅 바로 위 층도 머리 위 여유 (용암 판이 머리에 닿지 않게) */   // 🪜 사다리로 올라가는 만큼 (🏝 땅 바로 아래 층은 머리 위가 넉넉하게)
+    const yp=flat ? yEnd+0.02 : Math.max(y+1.2, yEnd+(k==="ground" ? 2.6 : list[i+1]==="ground" ? 2.8 : tall ? 3.4 : hardAt(i)?2.2:mode==="kid"?1.5:1.7));   /* (v463) 🏝 땅 바로 위 층도 머리 위 여유 (용암 판이 머리에 닿지 않게) */   // 🪜 사다리로 올라가는 만큼 (🏝 땅 바로 아래 층은 머리 위가 넉넉하게)
     TW.cps.push(twPad(Fn, yp, i+1, i===n-1, yEnd-0.4)); y=yp; ys.push(y); });
   TW.top=TW.cps[TW.cps.length-1]; TW.hy=y; TW.ys=ys;
   // 가운데 네온 기둥 (부딪힘 상자 하나 + 층마다 색 띠)
@@ -1855,15 +1857,16 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
 /* ── 들어가기 · 나가기 ── */
 function towerAsk(){ const r=TW.rec[dayKey()]||{}, b=k=>r[k]&&r[k].best ? '🏆 '+twTime(r[k].best) : '';
   info('<div class="iBig">🗼</div><b>오늘의 하늘 타워</b><br><small>날마다 바뀌어요 · 꼭대기까지 올라가요!</small>'
-    +'<div class="twPick"><button class="btn" id="twK">🟢 쉬움 <small>'+TW_N.kid+'층 · 처음이면 여기부터 '+b("kid")+'</small></button><button class="btn on" id="twS">🗼 도전 <small>'+TW_N.sky+'층 · 올라갈수록 어려워요 '+b("sky")+'</small></button></div>'
+    +'<div class="twPick"><button class="btn" id="twK">🟢 쉬움 <small>'+TW_N.kid+'층 · 1~10층 🚩 연습(체크포인트) '+b("kid")+'</small></button><button class="btn on" id="twS">🗼 도전 <small>'+TW_N.sky+'층 · 올라갈수록 어려워요 '+b("sky")+'</small></button></div>'
     +'<div class="twBd" id="twBd">'+twBoard()+'</div><small>🏝 10층마다 넓은 땅 (위에서 떨어지면 여기로) · 🚫 체크포인트 없음<br>🔥 용암·레이저에 닿으면 아래 🏝 땅부터 · 👥 지금 타워에 있는 친구들이 같이 보여요</small>', "나중에", null); twBoardLoad();
   setTimeout(()=>{ const s=$("twS"), k=$("twK"); if(s) s.onclick=()=>{ $("info").classList.remove("on"); twEnterGo("sky"); }; if(k) k.onclick=()=>{ $("info").classList.remove("on"); twEnterGo("kid"); }; }, 0); }
 function towerGo(){ if(F.st!=="idle" || trip.busy) return; walkTo(TW_DOOR[0], TW_DOOR[1], ()=>{ hero.face=Math.PI; towerAsk(); }); }
 function twEnterGo(mode){ TW.mode=mode; go("tower", [6,6], ()=>{ twBuild(mode); }); }
 function twEnter(){ TW.on=true; TW.fin=false; TW.cp=0; TW.best=0; TW.wallTold=0; TW.kick=0; TW.wallT=0; TW.starN=0; TW.maxY=0; try{ twHiLine(); }catch(e){} TW.lastGY=null; TW.t0=performance.now(); TW.tEnd=0; TW.dead=0; TW.fall=0; if(!TW.bot) TW.clk=(Date.now()%864e5)/1000; TW.inp.x=TW.inp.y=0; TW.key={}; TW.ladTold=0;
   twRespawn(true); TW.yaw=TW.yawTo; TW.camY=TW.p.y; TW.pit=0.42; TW.camD=null; TW.snap=0; $("twUI").classList.add("on"); document.body.classList.add("twOn"); twJoyHome(); twHud(); camera.fov=50; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){}
+  { const hc=$("twHelpCp"); if(hc) hc.textContent = TW.mode==="kid" ? "🚩 1~9층 깃발 = 체크포인트 (떨어지면 깃발에서) · 10층부터 🏝 땅" : "🚫 체크포인트 없음 — 떨어지면 거기서 다시 · 🔥 용암은 아래 🏝 땅으로!"; }
   $("twUI").classList.add("help"); clearTimeout(twEnter._h); twEnter._h=setTimeout(()=>$("twUI").classList.remove("help"), 7000);
-  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="sky"?TW_N.sky+"층 · 🏝 10·20·30층 넓은 땅":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층 · 🏝 10·20층 넓은 땅":TW.mode==="hard"?"🔴 어려움 "+TW_N.hard+"층":"🟢 쉬움 "+TW_N.easy+"층")+"<br><small>🚫 체크포인트 없음 · 떨어지면 거기서 다시!</small>", 2600); TW.gSeen={}; tEv("tower"); try{ twNetStart(); }catch(e){} }
+  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="sky"?TW_N.sky+"층 · 🏝 10·20·30층 넓은 땅":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층 · 1~10층은 🚩 연습 (깃발 = 체크포인트)":TW.mode==="hard"?"🔴 어려움 "+TW_N.hard+"층":"🟢 쉬움 "+TW_N.easy+"층")+"<br><small>"+(TW.mode==="kid"?"🚩 깃발에 닿으면 체크포인트 · 떨어지면 깃발에서 다시":"🚫 체크포인트 없음 · 떨어지면 거기서 다시!")+"</small>", 2600); TW.gSeen={}; tEv("tower"); try{ twNetStart(); }catch(e){} }
 function twExit(){ try{ twHiSave(); }catch(e){} try{ twNetStop(); }catch(e){} $("twEmoBar").classList.remove("on"); TW.on=false; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
 function twLeave(){ if(!TW.on) return; go("village", [TW_DOOR[0], TW_DOOR[1]]); }
 /* ── 몸 ── */
@@ -1873,7 +1876,10 @@ function twRespawn(first){ const c=TW.cps[TW.cp]||TW.cps[0], ctr=c.mesh.position
 /* (v453) 🔥 용암·🌀 막대 = 맨 아래 1층부터 (체크포인트 없음) · 🤖 시험 선수는 예전처럼 층 발판 */
 /* (v459) 🏝 내 발 아래에서 가장 높은 넓은 땅 (sky 만) — 용암·레이저·🚩 = 거기부터 (없으면 맨 아래) */
 function twGroundBelow(){ let c=0; const GL=TW_GND[TW.mode]; if(!GL) return 0; GL.forEach(gi=>{ const p=TW.cps[gi]; if(p && TW.secs[gi]==="ground" && TW.p.y>=p.max.y-0.3) c=gi; }); return c; }
-function twDie(msg){ if(TW.bot){ twRespawn(); return; } const keep=TW.cp, gi=twGroundBelow(); TW.cp=gi; twRespawn(); TW.cp=keep; TW.lastGY=null; if(msg) toast(msg+" "+(gi?"<b>🏝 "+(gi+1)+"층 땅</b>":"<b>맨 아래</b>")+"부터 다시!", 1500); }
+/* (v467) 다시 시작할 발판 — 🏝 내 아래 땅 · 🟢 쉬움이면 연습 구간 🚩 마지막 깃발(1~10층)도 */
+function twSafeIdx(){ let gi=twGroundBelow(); if(TW.mode==="kid") gi=Math.max(gi, Math.min(TW.cp|0, TW_PRACTICE)); return gi; }
+function twDie(msg){ if(TW.bot){ twRespawn(); return; } const keep=TW.cp, gi=twSafeIdx(), flag=TW.mode==="kid" && gi>0 && gi<=TW_PRACTICE && TW.secs[gi]!=="ground"; TW.cp=gi; twRespawn(); TW.cp=keep; TW.lastGY=null;
+  if(msg!=null) toast((msg?msg+" ":"")+(flag?"<b>🚩 "+(gi+1)+"층 깃발</b>":gi?"<b>🏝 "+(gi+1)+"층 땅</b>":"<b>맨 아래</b>")+"부터 다시!", 1500); }
 function twGroundHit(gi){ if(TW.bot || (TW.gSeen=TW.gSeen||{})[gi]) return; TW.gSeen[gi]=1; const d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}), L=m.gd||(m.gd=[]); let gem=0; if(L.indexOf(gi)<0){ L.push(gi); gem=2; gems+=2; saveBag(); store("hyeng_proto_tower", TW.rec); }
   try{ SND.sparkle(); }catch(e){} toast("🏝 <b>"+(gi+1)+"층 넓은 땅!</b> 잠깐 쉬어 가요<br><small>여기서부터는 떨어져도 이 땅으로 와요</small>"+(gem?" · 💎 +2":""), 2200); }
 function twYawSide(){ return Math.atan2(TW.side[0], TW.side[1]); }   // 카메라 = 그 면의 바깥에서 안쪽을 봄 (옆에서 보는 발판 게임)
@@ -1944,7 +1950,7 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
     if(g.kind==="floor" && TW.cp>0 && TW.bot){ twRespawn(); return; }
     if(g.ground!=null) twGroundHit(g.ground);
     if((g.kind==="cp"||g.kind==="top") && g.i>TW.cp){ TW.cp=g.i; if(g.flag) g.flag.material.color.setHex(0xffd23f); try{ SND.sparkle(); }catch(e){}
-      if(g.kind==="top") twWin(); else if(TW.bot || g.i>(TW.best|0)) toast("⬆️ <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); TW.best=Math.max(TW.best|0, g.i); twHud(); TW.side=twFrame(g.i).n.slice(); }
+      if(g.kind==="top") twWin(); else if(TW.mode==="kid" && !TW.bot && g.i<=TW_PRACTICE && TW.secs[g.i]!=="ground") toast("🚩 <b>체크포인트!</b> "+(g.i+1)+"층 — 떨어져도 여기서 다시<br><small>"+TW_NM[TW.secs[g.i]]+"</small>", 1700); else if(TW.bot || g.i>(TW.best|0)) toast("⬆️ <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); TW.best=Math.max(TW.best|0, g.i); twHud(); TW.side=twFrame(g.i).n.slice(); }
     /* (v453) 높은 데서 뚝 떨어져 내려앉음 = ⬇️ (체크포인트 없음 — 거기서 다시 올라가요) */
     if(!TW.bot){ if(TW.lastGY!=null && TW.lastGY-g.max.y>2.2){ TW.fall++; if(performance.now()-(TW.fallT||0)>2500){ TW.fallT=performance.now(); toast("⬇️ 앗! 떨어졌어요 — 여기서 다시 올라가요", 1300); try{ SND.plop(); }catch(e){} try{ twEmote("😱"); }catch(e){} } } TW.lastGY=g.max.y; }
   }
@@ -1956,6 +1962,7 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
     if(s.kind==="pend" && s.bx!=null && !s.hitT){ const qx=Math.max(p.x-THX,Math.min(p.x+THX,s.bx)), qy=Math.max(p.y,Math.min(p.y+THY,s.by)), qz=Math.max(p.z-THX,Math.min(p.z+THX,s.bz));   /* (v463) 🔨 퉁! */
       if(Math.hypot(qx-s.bx,qy-s.by,qz-s.bz)<s.rad){ const sg=Math.sign(s.vth)||1, n=s.F.n, pw=s.sp>1.8?6.0:4.8; v.x=n[0]*sg*pw-s.F.d[0]*1.2; v.z=n[1]*sg*pw-s.F.d[1]*1.2; v.y=Math.max(v.y,4.2); TW.onG=false; TW.kick=0.45; s.hitT=0.5; try{ SND.plop(); }catch(e){} if(!TW.bot){ try{ twEmote("😱"); }catch(e){} } } }
     if(s.kind==="spin" && p.y+THY>s.y0 && p.y<s.y1){ const a=-s.mesh.rotation.y, ex=Math.cos(a), ez=Math.sin(a), dx=p.x-s.c[0], dz=p.z-s.c[1], t=Math.max(-s.len, Math.min(s.len, dx*ex+dz*ez)), qx=dx-ex*t, qz=dz-ez*t; if(Math.hypot(qx,qz)<0.09+THX){ twDie("🌀 쾅!"); return; } } }
+  if(!TW.bot && TW.mode==="kid" && TW.cp>0 && TW.cp<=TW_PRACTICE && TW.secs[TW.cp]!=="ground" && p.y<TW.cps[TW.cp].max.y-3.0 && !TW.onG){ twDie(""); return; }   /* (v467) 🚩 연습 구간: 떨어지면 마지막 깃발로 */
   const cpY=(TW.cps[TW.cp]||TW.cps[0]).max.y; if(TW.bot ? (p.y<cpY-3.5 || p.y<-6) : p.y<-6){ if(TW.bot) twRespawn(); else twDie(""); return; }
   /* (v435) 옆 카메라 자동 돌리기 없앰 */
   // 몸 그리기
@@ -2009,7 +2016,7 @@ function twInput(){ const L=$("twTouch"), J=$("twJoy"), K=$("twKnob");
   addEventListener("resize", ()=>{ TW.home=null; });
   $("twJump").addEventListener("pointerdown", e=>{ e.preventDefault(); e.stopPropagation(); TW.buf=0.16; });
   $("twBack").onclick=()=>{ if(TW.fin){ twLeave(); return; } ask("🗼 타워에서 나갈까요?<br><small>처음부터 다시 해야 해요</small>", ()=>twLeave()); };
-  $("twRe").onclick=()=>{ if(TW.fin) return; if(TW.bot){ twRespawn(true); return; } const keep=TW.cp; TW.cp=twGroundBelow(); twRespawn(true); TW.cp=keep; TW.lastGY=null; };   /* (v459) 🚩 = 내 아래 🏝 땅 (가장 높이 간 발판으로 순간 이동하던 것 막음) */
+  $("twRe").onclick=()=>{ if(TW.fin) return; if(TW.bot){ twRespawn(true); return; } const keep=TW.cp; TW.cp=twSafeIdx(); twRespawn(true); TW.cp=keep; TW.lastGY=null; };   /* (v459) 🚩 = 내 아래 🏝 땅 (가장 높이 간 발판으로 순간 이동하던 것 막음) */
   const map={ArrowLeft:"l",KeyA:"l",ArrowRight:"r",KeyD:"r",ArrowUp:"u",KeyW:"u",ArrowDown:"d",KeyS:"d"};
   addEventListener("keydown", e=>{ if(!TW.on) return; if(map[e.code]){ TW.key[map[e.code]]=1; e.preventDefault(); } if(e.code==="Space"){ TW.buf=0.16; e.preventDefault(); } });
   addEventListener("keyup", e=>{ if(map[e.code]) TW.key[map[e.code]]=0; });
@@ -3638,7 +3645,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {drawPlots, buildAvatar, animChar, emote, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
+window.HOUSE = {drawPlots, buildAvatar, animChar, emote, twFrame, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>

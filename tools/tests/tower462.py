@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
 from playwright.async_api import async_playwright
 BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; T.clk=0; H.twBuild(opt.mode); T.on=true; T.fin=false; T.cp=0; T.dead=0; T.t0=performance.now(); H.twRespawn(true); T.yaw=0;
-  const walk=s=>s.on && ["solid","cp","top","bounce","conv","fade","glass","ice","wall"].includes(s.kind) && !s.noWalk && !(s.kind==="glass" && !s.ok);
+  const walk=s=>(s.on || s.kind==="fade") && ["solid","cp","top","bounce","conv","fade","glass","ice","wall"].includes(s.kind) && !s.noWalk && !(s.kind==="glass" && !s.ok);
   const wps=i=>T.S.slice(T.secR[i][0], T.secR[i][1]).filter(walk).concat([T.cps[i+1]]);
   const gap=(s,p)=>{ const dx=Math.max(s.min.x-(p.x+X), (p.x-X)-s.max.x, 0), dz=Math.max(s.min.z-(p.z+X), (p.z-X)-s.max.z, 0); return Math.hypot(dx,dz); };
   const inXZ=(s,x,z)=>x>s.min.x && x<s.max.x && z>s.min.z && z<s.max.z;
@@ -24,7 +24,7 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
     if(k>=W.length) k=W.length-1; let tg=W[k]; while(!tg.on && k<W.length-1){ k++; tg=W[k]; }
     const m=Math.min(0.45,(tg.max.x-tg.min.x)/2-0.02), n=Math.min(0.45,(tg.max.z-tg.min.z)/2-0.02);
     const cx=Math.max(tg.min.x+m,Math.min(tg.max.x-m,p.x)), cz=Math.max(tg.min.z+n,Math.min(tg.max.z-n,p.z));
-    let dx=cx-p.x, dz=cz-p.z; const L=Math.hypot(dx,dz); if(L>0.05){ dx/=L; dz/=L; } else { dx=dz=0; }
+    let dx=cx-p.x, dz=cz-p.z; const L=Math.hypot(dx,dz); if(L>0.05){ dx/=L; dz/=L; } else { dx=dz=0; } if(L<=0.05 && T.onG && k<W.length-1) k++;   // (v467) 겹친 발판 위 = 이미 도착
     if(T.onG && T.gnd && T.gnd.push && (dx||dz)){ dx=dx*4.4-T.gnd.push[0]; dz=dz*4.4-T.gnd.push[1]; const q=Math.hypot(dx,dz); dx/=q; dz/=q; }
     const g=T.gnd, gp=gap(tg,p), rise=tg.max.y-(g?g.max.y:p.y);
     if(T.onG && g && g!==tg){
@@ -96,7 +96,7 @@ async def main():
         await E("()=>{ HOUSE.setWx(false); HOUSE.go('village'); }"); await until("()=>HOUSE.place()==='village'")
         await E("()=>HOUSE.towerAsk()"); await until("()=>!!document.getElementById('twK')")
         r = await E("()=>[!!document.getElementById('twK'), !!document.getElementById('twS'), document.getElementById('infoT').innerText]")
-        ok(r[0] and r[1] and "30층" in r[2] and "40층" in r[2] and "처음이면" in r[2], f"🟢 쉬움 30층 + 🗼 도전 40층 {r[2][:120]!r}")
+        ok(r[0] and r[1] and "30층" in r[2] and "40층" in r[2] and "연습" in r[2], f"🟢 쉬움 30층 + 🗼 도전 40층 {r[2][:120]!r}")
         await pg.screenshot(path=OUT + "tower462_ask.png")
         await E("()=>{ HOUSE.TW.seed='2026-10-30'; document.getElementById('twK').click(); }")
         ok(await until("()=>HOUSE.place()==='tower' && HOUSE.TW.on"), "🟢 → 타워 안")
