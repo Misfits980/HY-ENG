@@ -45,6 +45,7 @@ async def main():
         T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T)
         await T.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }"); await T.reload(); await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); }"); await T.wait_for_timeout(1500)
+        await T.evaluate("()=>{ const b=document.querySelector('#adTabs [data-t=\"class\"]'); if(b) b.click(); }"); await T.wait_for_timeout(1500)   # (v474) 📅 = 👥 아이들
         r = await T.evaluate("()=>{ const t=document.querySelector('.dyT'); const h=t && t.closest('.adCard').querySelector('h3'); return t ? [h.innerText, [...t.querySelectorAll('tr')].map(x=>x.innerText.replace(/\\s+/g,' '))] : null; }")
         print("card", r)
         ok(r and "3명" in r[0] and "수업(배틀·레이드·시험) 3" in r[0], f"카드 위: 3명 · 수업 3 {r and r[0]}")

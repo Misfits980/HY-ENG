@@ -66,7 +66,7 @@ async def main():
         await A.wait_for_timeout(300)
         d = await T.evaluate("()=>FB.get('/hy/day/'+HyDay.key()+'/k1')")
         ok(d and d["r"] == 2 and d["rr"] == 17 and d["b"] == 1234 and d["s"] == 1 and d["n"] == "민준", f"하루 칸 {d}")
-        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"now\"]').click()"); await T.wait_for_timeout(1200)   # (v341) 오늘 한 아이 = 🏠 홈
+        await T.evaluate("()=>document.querySelector('#adTabs [data-t=\"class\"]').click()"); await T.wait_for_timeout(1200)   # (v474) 오늘 한 아이 = 👥 아이들
         card = await T.evaluate("()=>{ const c=[...document.querySelectorAll('.adCard')].find(x=>/한 아이/.test(x.innerText)); return c ? c.innerText : ''; }")
         print("day", card.replace("\n", " / ")[:200])
         ok("민준" in card and "2판" in card and "1,234" in card and "달리기 1" in card, "🏠 홈 '📅 오늘 한 아이'")
