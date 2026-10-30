@@ -1970,9 +1970,6 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   const rndOut=s=>{ const dx=p.x-s.rnd[0], dz=p.z-s.rnd[1], d=Math.hypot(dx,dz)||1, R=s.rnd[2]+THX*0.75+0.002; p.x=s.rnd[0]+dx/d*R; p.z=s.rnd[1]+dz/d*R; };
   p.x+=v.x*dt; for(const s of sol){ if(s.on && twOverlap(s,p.x,p.y,p.z) && !(p.y>=s.max.y-0.08)){ if(doorHit(s)) continue; if(s.rnd){ rndOut(s); continue; } const a=p.x+THX-s.min.x, b=s.max.x-(p.x-THX); p.x = a<b ? s.min.x-THX-0.001 : s.max.x+THX+0.001; wallHit(s, [a<b?-1:1, 0]); v.x=0; } }
   p.z+=v.z*dt; for(const s of sol){ if(s.on && twOverlap(s,p.x,p.y,p.z) && !(p.y>=s.max.y-0.08)){ if(doorHit(s)) continue; if(s.rnd){ rndOut(s); continue; } const a=p.z+THX-s.min.z, b=s.max.z-(p.z-THX); p.z = a<b ? s.min.z-THX-0.001 : s.max.z+THX+0.001; wallHit(s, [0, a<b?-1:1]); v.z=0; } }
-  if(!TW.onG && !TW.climb && TW.kick<=0.05){ for(const s of sol){ if(s.kind!=="wall") continue; const e=0.14; if(p.y+THY>s.min.y && p.y<s.max.y-0.1 && p.x+THX+e>s.min.x && p.x-THX-e<s.max.x && p.z+THX+e>s.min.z && p.z-THX-e<s.max.z){   /* (v469) 🧗 가까이 가면 저절로 붙음 (밀지 않아도) */
-      const dx=Math.min(Math.abs(p.x+THX-s.min.x), Math.abs(s.max.x-(p.x-THX))), dz=Math.min(Math.abs(p.z+THX-s.min.z), Math.abs(s.max.z-(p.z-THX)));
-      const n = dx<dz ? [Math.abs(p.x+THX-s.min.x)<Math.abs(s.max.x-(p.x-THX))?-1:1, 0] : [0, Math.abs(p.z+THX-s.min.z)<Math.abs(s.max.z-(p.z-THX))?-1:1]; TW.wallN=n; TW.wallT=Math.max(TW.wallT,0.3); TW.wallS=s; break; } } }
   if(TW.wallT>0.1 && v.y<-2.6) v.y=-2.6;   /* 벽에 붙으면 천천히 미끄러짐 */
   if(TW.wallT>0.1 && !TW.wallTold && !TW.bot){ TW.wallTold=1; toast("🧗 벽에 붙었어요 — 지금 <b>JUMP</b>! 반대쪽 벽으로 튀어 올라요", 2200); }
   TW.onG=false; TW.gnd=null;

@@ -81,7 +81,7 @@ async def main():
             for(let n=0;n<500 && !top;n++){ HOUSE.twStep(1/90); HOUSE.twTick(0); if(T.wallT>0 && !T.onG && !stuck){ stuck=true; glow=document.getElementById('twJump').classList.contains('glow'); sv(0,0); }
               if(stuck && jumps===0 && T.wallT>0){ T.buf=0.16; jumps=1; } if(jumps===1 && T.kick<=0 && T.v.y<3) sv(0,1); if(T.onG && T.gnd===B) top=true; }
             sv(0,0); return [w, stuck, glow, jumps, top, +(B.max.y-y).toFixed(2)]; }""")
-        ok(all(x == "37" for x in r[0]) and r[1] and r[2] and r[3] == 1 and r[4] and r[5] < 2.5, f"🧗 벽 점프 = 38층에만 (12일) · 큰 벽에 다가가 점프 → 붙음 · JUMP 반짝 · 한 번 차고 다시 벽 쪽 → 꼭대기 {r[1:]} {r[0][:4]}")
+        ok(all(x == "37" for x in r[0]) and r[1] and r[2] and r[3] == 1 and r[4] and r[5] < 2.5, f"🧗 벽 점프 = 38층에만 (12일) · 큰 벽 쪽으로 밀며 점프 → 붙음 · JUMP 반짝 · 한 번 차고 다시 벽 쪽 → 꼭대기 {r[1:]} {r[0][:4]}")
         ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))
         await br.close()
     print("결과:", "통과" if not bad else f"실패 {len(bad)}")
