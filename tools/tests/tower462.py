@@ -13,9 +13,10 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
   const wps=i=>T.S.slice(T.secR[i][0], T.secR[i][1]).filter(walk).concat([T.cps[i+1]]);
   const gap=(s,p)=>{ const dx=Math.max(s.min.x-(p.x+X), (p.x-X)-s.max.x, 0), dz=Math.max(s.min.z-(p.z+X), (p.z-X)-s.max.z, 0); return Math.hypot(dx,dz); };
   const inXZ=(s,x,z)=>x>s.min.x && x<s.max.x && z>s.min.z && z<s.max.z;
-  let k=0, sec=-1, dead=T.dead, t=0, log=[], stuck=0, lastCp=0, secT=0; const dt=1/90;
+  let k=0, sec=-1, dead=T.dead, fallN=T.fall, t=0, log=[], stuck=0, lastCp=0, secT=0; const dt=1/90;
   while(t<opt.max && !T.fin){ t+=dt; secT+=dt;
-    if(T.cp!==sec || T.dead!==dead){ if(T.cp!==sec){ log.push([sec, +secT.toFixed(1), T.dead]); secT=0; } sec=T.cp; dead=T.dead; k=0; }
+    if(T.onG && T.gnd && T.gnd.ground!=null && T.cp>T.gnd.ground) T.cp=T.gnd.ground;   // (v463) 🏝 땅에 떨어지면 거기서 다시 올라감
+    if(T.cp!==sec || T.dead!==dead || T.fall!==fallN){ if(T.cp!==sec){ log.push([sec, +secT.toFixed(1), T.dead]); secT=0; } sec=T.cp; dead=T.dead; fallN=T.fall; k=0; }
     if(sec>=T.cps.length-1) break;
     const W=wps(sec), p=T.p; for(let j=W.length-1;j>=0;j--){ if(T.onG && T.gnd===W[j]){ k=Math.max(k,j+1); break; } }
     if(W[k] && W[k].kind==="bounce" && T.v.y>8 && inXZ(W[k],p.x,p.z)) k++;
@@ -27,8 +28,8 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
     const g=T.gnd, gp=gap(tg,p), rise=tg.max.y-(g?g.max.y:p.y);
     if(T.onG && g && g!==tg){
       const nx=p.x+dx*0.35, nz=p.z+dz*0.35, leaving=!inXZ(g,nx,nz);
-      const R=tg.move?1.1:2.0; if(tg.climb){ if(leaving && gp>0.12) T.buf=0.16; } else if(leaving && (gp>R || rise>1.45)){ dx=dz=0; }   // 기다림 (움직이는 발판)
-      else if(!tg.climb && (leaving || rise>0.06) && gp<R && rise<1.5 && (leaving || gp<1.1)) T.buf=0.16;
+      const R=tg.move?1.1:2.0; if(tg.climb){ if(leaving && gp>0.12) T.buf=0.16; } else if(leaving && (gp>R || rise>1.45) && !g.crumble){ dx=dz=0; }   // (v463) 🍂 무너지는 발판 위에서는 기다리지 않음   // 기다림 (움직이는 발판)
+      else if(!tg.climb && (leaving || rise>(tg.crumble?0.25:0.06)) && gp<R && rise<1.5 && (leaving || gp<1.1)) T.buf=0.16;
     }
     for(const s of T.S){ if(s.kind==="spin" && T.onG && Math.abs(p.y-s.y0)<1.2){ const qx=p.x-s.c[0], qz=p.z-s.c[1], rr=Math.hypot(qx,qz); if(rr<s.len+0.5){   // (v454) 막대가 올 때를 계산해서 점프 (빨라진 막대)
         const a=-s.mesh.rotation.y, ph=Math.atan2(qz,qx), d=(((a-ph)%Math.PI)+Math.PI)%Math.PI, tt=d/s.sp; if(tt>0.2 && tt<0.36) T.buf=0.16; } } }
@@ -40,6 +41,11 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
         else if(T.onG){ const ex=(B.min.x+B.max.x)/2-p.x, ez=(B.min.z+B.max.z)/2-p.z, q=Math.hypot(ex,ez)||1; dx=ex/q; dz=ez/q; T.buf = gap(B,p)<0.3 ? 0.16 : 0; }
         else if(T._wd){ dx=T._wd[0]; dz=T._wd[1]; }
         T._wd=[dx,dz]; } }
+    if(T.onG && T.gnd && T.gnd.ground!=null && (dx||dz)){ const C=6, ax=p.x-C, az=p.z-C, bx=cx-C, bz=cz-C; let hit=false; for(let q=0;q<=20;q++){ const x=ax+(bx-ax)*q/20, z=az+(bz-az)*q/20; if(Math.abs(x)<2.75 && Math.abs(z)<2.75) hit=true; }   // (v463) 🏝 땅 위: 가운데 기둥을 돌아서
+      if(hit){ const a1=Math.atan2(az,ax), a2=Math.atan2(bz,bx); let da=((a2-a1+Math.PI*3)%(Math.PI*2))-Math.PI; const sg=da>=0?1:-1, r=Math.hypot(ax,az), tx=-az*sg/r, tz=ax*sg/r, out=(r<3.6?0.5:0); dx=tx+ax/r*out; dz=tz+az/r*out; const q=Math.hypot(dx,dz); dx/=q; dz/=q; } }
+    if(T.secs[sec]==="door" && T.onG){ const d=H.TDIR[sec%4], D=T.S.slice(T.secR[sec][0],T.secR[sec][1]).filter(s=>s.kind==="door" && s.fake).map(s=>{ const cx=(s.min.x+s.max.x)/2, cz=(s.min.z+s.max.z)/2, al=(cx-p.x)*d[0]+(cz-p.z)*d[1], lx=cx-p.x-d[0]*al, lz=cz-p.z-d[1]*al; return {cx,cz,al,lat:Math.hypot(lx,lz),lx,lz}; }).filter(o=>o.al>-0.15);   // (v463) 🚪 가짜 문 쪽으로
+      if(D.length){ const a0=Math.min(...D.map(o=>o.al)), o=D.filter(o=>o.al<a0+0.3).sort((x,y)=>x.lat-y.lat)[0]; if(o.lat>0.12 && o.al<0.75){ dx=o.lx/o.lat; dz=o.lz/o.lat; } else { const ex=o.cx+d[0]*0.6-p.x, ez=o.cz+d[1]*0.6-p.z, q=Math.hypot(ex,ez)||1; dx=ex/q; dz=ez/q; } T.buf=0; } }
+    for(const s of T.S){ if(s.kind!=="pend" || s.bx==null || !T.onG || Math.abs(p.y-(s.py-3.4))>1.2) continue; const al=(s.G.position.x-p.x)*s.F.d[0]+(s.G.position.z-p.z)*s.F.d[1]; if(al>0.75 && al<1.45){ const wb=Math.sin(s.th)*s.L; if(!(Math.abs(wb)>0.95 && wb*s.vth>0)){ dx=dz=0; T.buf=0; } } }   // (v463) 🔨 공이 멀어질 때 지나감
     T.inp.x=dx; T.inp.y=-dz; H.twStep(dt);
   }
   log.push([sec, +secT.toFixed(1), T.dead]);
@@ -77,7 +83,7 @@ async def main():
         r = await E("()=>[HOUSE.TW.mode, HOUSE.TW.cps.length-1, document.getElementById('twFloor').textContent, HOUSE.twNetPath().slice(-1)]")
         ok(r[0] == "kid" and r[1] == 30 and r[2].startswith("1 / 30") and r[3] == "k", f"30층 · 1 / 30층 · 경로 k {r}")
         await pg.screenshot(path=OUT + "tower462_in.png")
-        r = await E("""()=>{ const T=HOUSE.TW, G=["steps","gaps","mover","bounce","beam","fade","turn"], EZ=["steps","gaps","lava","mover","fade","bounce","beam","ice","laser","turn","crumble","brick"], out=[];
+        r = await E("""()=>{ const T=HOUSE.TW, G=["steps","gaps","mover","bounce","beam","fade","turn","door"], EZ=["steps","gaps","lava","mover","fade","bounce","beam","ice","laser","turn","crumble","brick","door","tiptoe","pend"], out=[];
             for(let d=1; d<=8; d++){ T.seed='2026-12-'+d; HOUSE.twBuild('kid'); const s=T.secs, rise=[]; for(let i=1;i<T.ys.length;i++) if(s[i-1]!=='ground' && s[i]!=='ground') rise.push(T.ys[i]-T.ys[i-1]);
               out.push([s.length, s[9], s[19], s.filter(k=>k==='ground').length, s.slice(0,9).every(k=>G.includes(k)), s.every(k=>k==='ground' || EZ.includes(k)), T.S.filter(x=>x.kind==='spin').length]); }
             HOUSE.twBuild('sky'); const skyH=T.hy; HOUSE.twBuild('kid'); return [out, +T.hy.toFixed(1), +skyH.toFixed(1)]; }""")

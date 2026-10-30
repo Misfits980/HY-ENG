@@ -1627,7 +1627,7 @@ const TW={on:false, mode:"easy", secs:[], S:[], cps:[], p:new THREE.Vector3(), v
   inp:{x:0,y:0}, key:{}, joy:null, cam:null, dead:0, fall:0, words:[], top:null, rec:store("hyeng_proto_tower")||{}, hy:0, best:0, side:[0,-1], camY:0, climb:false};
 const TG=26, TJV=9.3, TSPD=4.4, THX=0.24, THY=1.15, TCLIMB=3.8, TCORE=2.3;
 const TCOL=["#ff4fa3","#3fa9ff","#2fd27a","#ffc21a","#9b6bff","#ff7a1a","#18d6c4","#ff5d6c","#5b8cff","#8ad61a"];   // 네온 (층마다 한 색)
-const TW_NM={steps:"🪜 계단 오르기", gaps:"🦘 점프 점프", lava:"🔥 용암 건너기", mover:"↔️ 움직이는 발판", spinner:"🌀 빙글 막대", fade:"👻 사라지는 발판", bounce:"🚀 점프대", conveyor:"➡️ 미는 길", beam:"🪵 좁은 다리", word:"🔤 단어 유리 다리", wall:"🧗 벽 점프", laser:"🔴 움직이는 레이저", ice:"🧊 얼음 바닥", ghost:"👀 투명 발판", brick:"🟥 킬브릭 바닥", crumble:"🍂 무너지는 발판", turn:"🎠 빙글 원판", ground:"🏝 넓은 땅 — 쉬어 가요"};
+const TW_NM={steps:"🪜 계단 오르기", gaps:"🦘 점프 점프", lava:"🔥 용암 건너기", mover:"↔️ 움직이는 발판", spinner:"🌀 빙글 막대", fade:"👻 사라지는 발판", bounce:"🚀 점프대", conveyor:"➡️ 미는 길", beam:"🪵 좁은 다리", word:"🔤 단어 유리 다리", wall:"🧗 벽 점프", laser:"🔴 움직이는 레이저", ice:"🧊 얼음 바닥", ghost:"👀 투명 발판", brick:"🟥 킬브릭 바닥", crumble:"🍂 무너지는 발판", turn:"🎠 빙글 원판", ground:"🏝 넓은 땅 — 쉬어 가요", door:"🚪 문 부수기", tiptoe:"🦶 진짜 발판 찾기", pend:"🔨 흔들 공"};
 function twRand(seed){ let h=(hashf(seed)*4294967296>>>0)||12345; return ()=>{ h^=h<<13; h>>>=0; h^=h>>>17; h^=h<<5; h>>>=0; return (h%100000)/100000; }; }
 function twMat(col, o){ return new THREE.MeshStandardMaterial(Object.assign({color:col, roughness:.45, emissive:col, emissiveIntensity:.12}, o||{})); }
 /* 상자 하나 (세상 좌표 min/max) */
@@ -1742,6 +1742,28 @@ const TW_SECS={
     const s=twBox([c[0]-rr,y-0.3,c[1]-rr],[c[0]+rr,y+0.12,c[1]+rr],"solid","#ffffff",{rot:{c, w}}); s.mesh.geometry=new THREE.CylinderGeometry(rr*1.08, rr*1.08, 0.42, 32); s.mesh.material=twMat(F.col,{emissiveIntensity:.18});
     const st=new THREE.Mesh(new THREE.BoxGeometry(rr*2, 0.03, 0.18), new THREE.MeshBasicMaterial({color:0xffffff})); st.position.y=0.22; s.mesh.add(st); const st2=st.clone(); st2.rotation.y=Math.PI/2; s.mesh.add(st2);
     twLocalBox(F,6.2,7.95,-0.8,0.8, y-0.2,y+0.25,"solid",F.col); return y+0.25; },
+  /* (v463) 🎪 사용자: "폴가이즈에 있는 장애물도 넣어 보는 거 어때?"
+     🚪 문 부수기 — 문이 한 줄에 3개, 그중 가짜 문은 몸으로 밀면 와장창 (진짜 문은 꽉 막힘 · 너무 높아서 못 넘음) · 쉬움 = 줄 2개(가짜 2) · 어려움 = 줄 3개(가짜 1) */
+  door(F,y,R,h){ twLocalBox(F,1.0,7.95,-1.3,1.3, y-0.35,y,"solid",F.col); const rows=h?[2.7,4.5,6.3]:[3.0,5.5], W=[[-1.3,-0.44],[-0.43,0.43],[0.44,1.3]];
+    rows.forEach((u,ri)=>{ const fk=[0,1,2].sort(()=>R()-0.5).slice(0, h?1:2);
+      W.forEach(([w0,w1],j)=>{ const s=twLocalBox(F,u-0.12,u+0.12, w0+0.02,w1-0.02, y,y+2.2,"door",null,{fake:fk.indexOf(j)>=0, row:ri});
+        s.mesh.material=twMat(["#ffd23f","#6ec3ff","#ff7aa8"][j],{emissiveIntensity:.18}); const c=F.P(u,(w0+w1)/2), nb=new THREE.Mesh(sph(0.06), M(0xffffff)); nb.position.set(c[0]-F.d[0]*0.14, y+1.0, c[1]-F.d[1]*0.14); towerG.add(nb); s.knob=nb; }); });
+    return y; },
+  /* 🦶 진짜 발판 찾기 — 똑같이 생긴 칸 중 가짜는 밟으면 사라짐 → 아래 🕸 그물 → 이 층 처음 발판으로 (가짜는 사라진 채 = 길이 보임) */
+  tiptoe(F,y,R,h){ twLocalBox(F,1.0,1.9,-1.2,1.2, y-0.35,y,"solid",F.col); const C=6, Rw=3, cu=(7.6-1.9)/C, cw=2.4/Rw, safe={}; let r=Math.floor(R()*Rw), path=[];
+    for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.8:0.5)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
+    const tm=twMat("#bfe9ff",{emissiveIntensity:.15}); path.forEach(([c,rr])=>{ const u0=1.9+c*cu, w0=-1.2+rr*cw, s=twLocalBox(F,u0+0.03,u0+cu-0.03, w0+0.03,w0+cw-0.03, y-0.3,y,"solid",null); s.mesh.material=tm; });
+    for(let c=0;c<C;c++) for(let rr=0;rr<Rw;rr++){ if(safe[c+","+rr]) continue; const u0=1.9+c*cu, w0=-1.2+rr*cw, s=twLocalBox(F,u0+0.03,u0+cu-0.03, w0+0.03,w0+cw-0.03, y-0.3,y,"solid",null,{fake:1, noWalk:1}); s.mesh.material=tm; }
+    const net=twLocalBox(F,1.0,7.95,-1.6,1.6, y-2.0,y-1.85,"solid",null,{net:F.i, noWalk:1}); net.mesh.material=new THREE.MeshStandardMaterial({color:0xff9ec0, transparent:true, opacity:.55, roughness:.8});
+    twLocalBox(F,7.6,7.95,-1.0,1.0, y-0.35,y+0.3,"solid",F.col); return y+0.3; },
+  /* 🔨 흔들 공 — 큰 공이 길을 가로질러 흔들림 · 맞으면 옆으로 퉁 (떨어질 수도) · 공이 멀리 갔을 때 지나가기 */
+  pend(F,y,R,h){ twLocalBox(F,1.0,7.95,-1.3,1.3, y-0.35,y,"solid",F.col); const lv=F.lv||0, us=h?[2.6,4.6,6.6]:[3.1,5.7], L=2.9, py=y+3.4;
+    us.forEach((u,k)=>{ const c=F.P(u,0), G=new THREE.Group(); G.position.set(c[0], py, c[1]); towerG.add(G); const rad=h?0.46:0.4;
+      const arm=new THREE.Group(); G.add(arm); part(arm, cyl(0.03,0.03,L,6), M(0x8a8f99), 0,-L/2,0).castShadow=false; const ball=part(arm, sph(rad), M(k%2?0xff4f6d:0xff9a3d,{roughness:.4}), 0,-L,0); ball.castShadow=false;
+      part(arm, cyl(rad*1.02,rad*1.02,0.12,16), M(0xffffff), 0,-L,0).castShadow=false; part(G, sph(0.12), M(0x666b73), 0,0,0).castShadow=false;
+      const sp=h?2.0+0.8*lv:1.5, s={kind:"pend", F, u, G, arm, L, rad, py, amp:h?1.0:0.85, sp, ph:k*1.9+R()*0.8, on:true, hitT:0, min:new THREE.Vector3(), max:new THREE.Vector3()}; TW.S.push(s); });
+    const a=F.P(us[0]-0.4,0), b=F.P(us[us.length-1]+0.4,0); const beam=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(a[0]-b[0])+0.12, 0.12, Math.abs(a[1]-b[1])+0.12), M(0x8a5a34)); beam.position.set((a[0]+b[0])/2, py+0.05, (a[1]+b[1])/2); towerG.add(beam);
+    twLocalBox(F,7.4,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v459) 🏝 넓은 땅 — 사용자: "10층/20/30층마다 넓은 땅 · 토네이도식 · 20층쯤에서 떨어지면 10층에 떨어질 수도"
      타워 전체를 덮는 풀밭 (위로 갈수록 조금씩 넓어짐 = 토네이도 모양) · 그 위 층에서 떨어지면 여기로 · 들어오는 🪜 사다리 옆만 구멍 (머리가 안 부딪히게)
      · 낭떠러지 끝에 낮은 울타리 · 아래층에 있을 때는 투명해져서 가리지 않음 */
@@ -1766,10 +1788,10 @@ const TW_SECS={
       TW.words.push({ans:ans[0], row}); }
     twLocalBox(F,7.6,7.95,-0.9,0.9, y-0.05,y+0.3,"solid",F.col); return y+0.3; }
 };
-const TW_EASY=["steps","gaps","lava","mover","fade","bounce","beam","gaps","ice","laser","turn","crumble","brick"], TW_HARD=["gaps","lava","mover","spinner","fade","bounce","conveyor","beam","steps","spinner","mover","lava","wall","laser","ice","wall","laser","ghost","brick","crumble","turn","ghost"];   /* (v455) 👀 🟥 🍂 🎠 */   /* (v453) 🔤 단어 다리 뺌 · (v454) 🧗 🔴 🧊 */
+const TW_EASY=["steps","gaps","lava","mover","fade","bounce","beam","gaps","ice","laser","turn","crumble","brick","door","tiptoe","pend"], TW_HARD=["gaps","lava","mover","spinner","fade","bounce","conveyor","beam","steps","spinner","mover","lava","wall","laser","ice","wall","laser","ghost","brick","crumble","turn","ghost","door","tiptoe","pend","pend"];   /* (v463) 🚪 🦶 🔨 */   /* (v455) 👀 🟥 🍂 🎠 */   /* (v453) 🔤 단어 다리 뺌 · (v454) 🧗 🔴 🧊 */
 const TW_N={easy:10, hard:30, sky:40, kid:30}, TW_GROUND=[9,19,29], TW_GND={sky:[9,19,29], kid:[9,19]};
 /* (v462) 🟢 kid = 쉬움 30층 — 사용자: "쉬움 버전도 30층까지 · 유치부 애들이 어려움 도전하기 전에" · 1~9 = 아주 쉬운 것만(용암·레이저·킬브릭·얼음·무너짐 없음) · 🏝 10층 · 11~30 = 쉬움 전부 · 🏝 20층 */
-const TW_GENTLE=["steps","gaps","mover","bounce","beam","fade","turn"];   /* (v459) 🗼 sky = 쉬움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 10 (사용자: "저번 10층부터 이번 30층까지 붙여 줘") */   /* (v454) 사용자: "어려움이 쉽다 · 10층까지는 아직 쉽대 · 최소 30층" */
+const TW_GENTLE=["steps","gaps","mover","bounce","beam","fade","turn","door"];   /* (v459) 🗼 sky = 쉬움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 9 + 🏝 + 어려움 10 (사용자: "저번 10층부터 이번 30층까지 붙여 줘") */   /* (v454) 사용자: "어려움이 쉽다 · 10층까지는 아직 쉽대 · 최소 30층" */
 function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0]; towerG.remove(c); } TW.stars=[]; TW.hiG=null; TW.S=[]; TW.cps=[]; TW.words=[]; TW.mode=mode; TW.hitL=[];
   TW.secR=[]; TW.grounds=[]; const R=twRand("tower|"+(TW.seed||dayKey())+"|"+mode), n=TW_N[mode]||10, pool=(mode==="hard"?TW_HARD:TW_EASY).slice(); const list=[];
   if(mode==="sky" || mode==="kid"){ const bags={}, GL=TW_GND[mode]; for(let i=0;i<n;i++){ if(GL.indexOf(i)>=0){ list.push("ground"); continue; } const nm=mode==="kid" ? (i<10?"g":"e") : (i<10?"e":"h"), P0=nm==="g"?TW_GENTLE:nm==="e"?TW_EASY:TW_HARD; let bag=bags[nm]; if(!bag || !bag.length) bag=bags[nm]=P0.slice();
@@ -1779,7 +1801,7 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   const fl=twBox([TWC-9,-0.5,TWC-9],[TWC+9,0,TWC+9],"floor","#7c6cf0"); fl.mesh.material=twMat("#8f84f5",{emissiveIntensity:.05});   // 로비 바닥
   const F0=twFrame(0); TW.cps.push(twPad(F0, 0.4, 0, false)); let y=0.4; const ys=[0.4];
   list.forEach((k,i)=>{ const F=twFrame(i); F.i=i; F.col=TCOL[i%10]; F.lv=mode==="hard" ? i/Math.max(1,n-1) : mode==="sky" && i>=10 ? (i-10)/Math.max(1,n-11) : 0; const a0=TW.S.length; const yEnd=TW_SECS[k](F, y, R, hardAt(i)); if(k!=="ground") twStarAt(F, y, i); TW.secR.push([a0, TW.S.length]); const Fn=twFrame(i+1);
-    const yp=Math.max(y+1.2, yEnd+(list[i+1]==="ground" ? 2.8 : hardAt(i)?2.2:1.7));   // 🪜 사다리로 올라가는 만큼 (🏝 땅 바로 아래 층은 머리 위가 넉넉하게)
+    const yp=Math.max(y+1.2, yEnd+(k==="ground" ? 2.6 : list[i+1]==="ground" ? 2.8 : hardAt(i)?2.2:1.7));   /* (v463) 🏝 땅 바로 위 층도 머리 위 여유 (용암 판이 머리에 닿지 않게) */   // 🪜 사다리로 올라가는 만큼 (🏝 땅 바로 아래 층은 머리 위가 넉넉하게)
     TW.cps.push(twPad(Fn, yp, i+1, i===n-1, yEnd-0.4)); y=yp; ys.push(y); });
   TW.top=TW.cps[TW.cps.length-1]; TW.hy=y; TW.ys=ys;
   // 가운데 네온 기둥 (부딪힘 상자 하나 + 층마다 색 띠)
@@ -1826,7 +1848,7 @@ function twSideUpd(){ const dx=TW.p.x-TWC, dz=TW.p.z-TWC, ax=Math.abs(dx), az=Ma
   const curA = cur[0] ? ax : az, othA = cur[0] ? az : ax; if(othA > curA + 1.2){ TW.side = cur[0] ? [0, Math.sign(dz)||1] : [Math.sign(dx)||1, 0]; TW.yawTo=twYawSide(); }
   else if(cur[0] && Math.sign(dx)!==cur[0] && ax>1.5){ TW.side=[Math.sign(dx),0]; TW.yawTo=twYawSide(); } else if(cur[1] && Math.sign(dz)!==cur[1] && az>1.5){ TW.side=[0,Math.sign(dz)]; TW.yawTo=twYawSide(); } }
 function twOverlap(s, px,py,pz, sh){ sh=sh||0; return px+THX-sh>s.min.x && px-THX+sh<s.max.x && py+THY>s.min.y && py<s.max.y && pz+THX-sh>s.min.z && pz-THX+sh<s.max.z; }
-function twSolid(s){ return s.on && (s.kind==="ice"||s.kind==="wall"||s.kind==="solid"||s.kind==="floor"||s.kind==="cp"||s.kind==="top"||s.kind==="bounce"||s.kind==="conv"||s.kind==="fade"||s.kind==="glass"); }
+function twSolid(s){ return s.on && (s.kind==="door"||s.kind==="ice"||s.kind==="wall"||s.kind==="solid"||s.kind==="floor"||s.kind==="cp"||s.kind==="top"||s.kind==="bounce"||s.kind==="conv"||s.kind==="fade"||s.kind==="glass"); }
 function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   (TW.grounds||[]).forEach(G=>{ const lo=p.y<G.y-0.3, o=lo?0.18:1; if(G.mat.opacity!==o){ G.mat.opacity=o; G.mat.depthWrite=!lo; G.rim.opacity=lo?0.15:1; G.rim.depthWrite=!lo; G.D.visible=!lo; } });   /* (v459) 🏝 밑에서는 비쳐 보이게 */
   // 움직이는 것들
@@ -1834,6 +1856,8 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
       s.min.set(Math.min(a[0],b[0]), m.y0, Math.min(a[1],b[1])); s.max.set(Math.max(a[0],b[0]), m.y1, Math.max(a[1],b[1])); s.mesh.position.set((s.min.x+s.max.x)/2,(m.y0+m.y1)/2,(s.min.z+s.max.z)/2); s.dx=s.min.x-ox; s.dz=s.min.z-oz; }
     if(s.kind==="spin") s.mesh.rotation.y=T*s.sp;
     if(s.kind==="laser") twLaserPos(s, T);
+    if(s.kind==="pend"){ const th=s.amp*Math.sin(T*s.sp+s.ph), n=s.F.n; s.th=th; s.vth=s.amp*s.sp*Math.cos(T*s.sp+s.ph); s.arm.rotation.set(0,0,0); s.arm.rotateOnWorldAxis(new THREE.Vector3(s.F.d[0],0,s.F.d[1]), th*(n[0]*s.F.d[1]-n[1]*s.F.d[0]>0?1:-1));
+      s.bx=s.G.position.x+n[0]*Math.sin(th)*s.L; s.bz=s.G.position.z+n[1]*Math.sin(th)*s.L; s.by=s.py-Math.cos(th)*s.L; s.hitT=Math.max(0,s.hitT-dt); }
     if(s.kind==="fade" && s.crumble){ const c0=s.c0||(s.c0=s.mesh.position.clone());   /* (v455) 🍂 흔들리다 뚝 */
       if(s.ft>0){ s.ft-=dt; s.mesh.position.set(c0.x+Math.sin(T*55)*0.04, c0.y, c0.z+Math.cos(T*47)*0.04); if(s.ft<=0){ s.on=false; s.gone=3; s.fv=0; } }
       else if(!s.on){ s.gone-=dt; s.fv=(s.fv||0)+TG*0.5*dt; s.mesh.position.y-=s.fv*dt; s.mesh.visible=s.gone>2; if(s.gone<=0 && !twOverlap(s,p.x,p.y,p.z)){ s.on=true; s.mesh.visible=true; s.mesh.position.copy(c0); } } }
@@ -1863,9 +1887,10 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   if(!TW.climb) v.y=Math.max(-28, v.y-TG*dt);
   // 축마다 움직이고 부딪힘
   const sol=TW.S.filter(twSolid);
+  const doorHit=s=>{ if(s.kind!=="door" || !s.fake || !s.on) return false; s.on=false; twShatter(s); if(s.knob) s.knob.visible=false; try{ SND.snap(); }catch(e){} if(!TW.bot && !TW.doorTold){ TW.doorTold=1; toast("🚪 와장창! 가짜 문이었어요", 1100); } return true; };   /* (v463) 🚪 */
   const wallHit=(s,n)=>{ if(s.kind==="wall" && !TW.onG){ TW.wallN=n; TW.wallT=0.15; TW.wallS=s; } };
-  p.x+=v.x*dt; for(const s of sol){ if(twOverlap(s,p.x,p.y,p.z) && !(p.y>=s.max.y-0.08)){ const a=p.x+THX-s.min.x, b=s.max.x-(p.x-THX); p.x = a<b ? s.min.x-THX-0.001 : s.max.x+THX+0.001; wallHit(s, [a<b?-1:1, 0]); v.x=0; } }
-  p.z+=v.z*dt; for(const s of sol){ if(twOverlap(s,p.x,p.y,p.z) && !(p.y>=s.max.y-0.08)){ const a=p.z+THX-s.min.z, b=s.max.z-(p.z-THX); p.z = a<b ? s.min.z-THX-0.001 : s.max.z+THX+0.001; wallHit(s, [0, a<b?-1:1]); v.z=0; } }
+  p.x+=v.x*dt; for(const s of sol){ if(twOverlap(s,p.x,p.y,p.z) && !(p.y>=s.max.y-0.08)){ if(doorHit(s)) continue; const a=p.x+THX-s.min.x, b=s.max.x-(p.x-THX); p.x = a<b ? s.min.x-THX-0.001 : s.max.x+THX+0.001; wallHit(s, [a<b?-1:1, 0]); v.x=0; } }
+  p.z+=v.z*dt; for(const s of sol){ if(twOverlap(s,p.x,p.y,p.z) && !(p.y>=s.max.y-0.08)){ if(doorHit(s)) continue; const a=p.z+THX-s.min.z, b=s.max.z-(p.z-THX); p.z = a<b ? s.min.z-THX-0.001 : s.max.z+THX+0.001; wallHit(s, [0, a<b?-1:1]); v.z=0; } }
   if(TW.wallT>0.1 && v.y<-2.6) v.y=-2.6;   /* 벽에 붙으면 천천히 미끄러짐 */
   if(TW.wallT>0.1 && !TW.wallTold && !TW.bot){ TW.wallTold=1; toast("🧗 벽에 붙었어요 — 지금 <b>JUMP</b>! 반대쪽 벽으로 튀어 올라요", 2200); }
   TW.onG=false; TW.gnd=null;
@@ -1876,6 +1901,8 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   const g=TW.gnd; if(g && TW.onG){
     if(g.kind==="bounce"){ v.y=g.pow||16; TW.onG=false; try{ SND.sparkle(); }catch(e){} }
     if(g.kind==="fade" && g.ft<=0 && g.on) g.ft=g.ftd||0.7;
+    for(const f of TW.S){ if(f.fake && f.kind==="solid" && f.on && Math.abs(p.y-f.max.y)<0.05 && p.x>f.min.x && p.x<f.max.x && p.z>f.min.z && p.z<f.max.z){ f.on=false; twShatter(f); TW.onG=false; try{ SND.snap(); }catch(e){} break; } }   /* (v463) 🦶 가짜 발판 (발 가운데가 올라가면) */
+    if(g.net!=null){ const keep=TW.cp; TW.cp=g.net; twRespawn(true); TW.cp=keep; TW.fall++; TW.lastGY=null; if(!TW.bot) toast("🕸 그물! 이 층 처음부터 — 사라진 칸은 피해요", 1500); return; }
     if(g.kind==="glass" && !g.said){ g.said=1; if(g.ok){ try{ SND.win(); }catch(e){} say(g.word); g.mesh.material.color.setHex(0x7be39a); toast("⭕ <b>"+g.word+"</b>", 900); } else { g.on=false; try{ SND.snap(); }catch(e){} toast("💥 "+g.word+" — 아니에요!", 1200); twShatter(g); TW.onG=false; } }
     if(g.kind==="floor" && TW.cp>0 && TW.bot){ twRespawn(); return; }
     if(g.ground!=null) twGroundHit(g.ground);
@@ -1887,6 +1914,8 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   // 위험
   for(const s of TW.S){ if(s.kind==="kill" && twOverlap(s,p.x,p.y,p.z,0.06)){ twDie("🔥 용암!"); return; }
     if(s.kind==="laser" && twOverlap(s,p.x,p.y,p.z,0.05)){ twDie("🔴 레이저!"); return; }
+    if(s.kind==="pend" && s.bx!=null && !s.hitT){ const qx=Math.max(p.x-THX,Math.min(p.x+THX,s.bx)), qy=Math.max(p.y,Math.min(p.y+THY,s.by)), qz=Math.max(p.z-THX,Math.min(p.z+THX,s.bz));   /* (v463) 🔨 퉁! */
+      if(Math.hypot(qx-s.bx,qy-s.by,qz-s.bz)<s.rad){ const sg=Math.sign(s.vth)||1, n=s.F.n, pw=s.sp>1.8?6.0:4.8; v.x=n[0]*sg*pw-s.F.d[0]*1.2; v.z=n[1]*sg*pw-s.F.d[1]*1.2; v.y=Math.max(v.y,4.2); TW.onG=false; TW.kick=0.45; s.hitT=0.5; try{ SND.plop(); }catch(e){} if(!TW.bot){ try{ twEmote("😱"); }catch(e){} } } }
     if(s.kind==="spin" && p.y+THY>s.y0 && p.y<s.y1){ const a=-s.mesh.rotation.y, ex=Math.cos(a), ez=Math.sin(a), dx=p.x-s.c[0], dz=p.z-s.c[1], t=Math.max(-s.len, Math.min(s.len, dx*ex+dz*ez)), qx=dx-ex*t, qz=dz-ez*t; if(Math.hypot(qx,qz)<0.09+THX){ twDie("🌀 쾅!"); return; } } }
   const cpY=(TW.cps[TW.cp]||TW.cps[0]).max.y; if(TW.bot ? (p.y<cpY-3.5 || p.y<-6) : p.y<-6){ if(TW.bot) twRespawn(); else twDie(""); return; }
   /* (v435) 옆 카메라 자동 돌리기 없앰 */
