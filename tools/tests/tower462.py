@@ -1,0 +1,110 @@
+"""(v462) 🟢 쉬움 30층 — 사용자: "쉬움 버전도 30층까지 잘 만들어 줘 · 유치부 애들이 어려움 도전하기 전에 할 수 있게"
+  ① 고르기 창 = 🟢 쉬움 30층 + 🗼 도전 40층 · 쉬움 → 1 / 30층
+  ② 1~9 = 아주 쉬운 것만(🔥 용암·🔴 레이저·🟥 킬브릭·🧊 얼음·🍂 무너짐 없음) · 10·20 = 🏝 땅 · 11~30 = 쉬움 · 어려움 장애물 없음 · 사다리 낮음
+  ③ 용암 → 아래 🏝 땅 · 친구 보기 경로 따로(k) · 꼭대기 💎 12 · 친구 기록 🟢
+  ④ 🤖 자동 선수가 30층 꼭대기까지 (6일)"""
+import asyncio, sys, os, json
+os.environ["HY_REAL3D"] = "1"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from harness import *
+from playwright.async_api import async_playwright
+BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; T.clk=0; H.twBuild(opt.mode); T.on=true; T.fin=false; T.cp=0; T.dead=0; T.t0=performance.now(); H.twRespawn(true); T.yaw=0;
+  const walk=s=>s.on && ["solid","cp","top","bounce","conv","fade","glass","ice","wall"].includes(s.kind) && !s.noWalk && !(s.kind==="glass" && !s.ok);
+  const wps=i=>T.S.slice(T.secR[i][0], T.secR[i][1]).filter(walk).concat([T.cps[i+1]]);
+  const gap=(s,p)=>{ const dx=Math.max(s.min.x-(p.x+X), (p.x-X)-s.max.x, 0), dz=Math.max(s.min.z-(p.z+X), (p.z-X)-s.max.z, 0); return Math.hypot(dx,dz); };
+  const inXZ=(s,x,z)=>x>s.min.x && x<s.max.x && z>s.min.z && z<s.max.z;
+  let k=0, sec=-1, dead=T.dead, t=0, log=[], stuck=0, lastCp=0, secT=0; const dt=1/90;
+  while(t<opt.max && !T.fin){ t+=dt; secT+=dt;
+    if(T.cp!==sec || T.dead!==dead){ if(T.cp!==sec){ log.push([sec, +secT.toFixed(1), T.dead]); secT=0; } sec=T.cp; dead=T.dead; k=0; }
+    if(sec>=T.cps.length-1) break;
+    const W=wps(sec), p=T.p; for(let j=W.length-1;j>=0;j--){ if(T.onG && T.gnd===W[j]){ k=Math.max(k,j+1); break; } }
+    if(W[k] && W[k].kind==="bounce" && T.v.y>8 && inXZ(W[k],p.x,p.z)) k++;
+    if(k>=W.length) k=W.length-1; let tg=W[k]; while(!tg.on && k<W.length-1){ k++; tg=W[k]; }
+    const m=Math.min(0.45,(tg.max.x-tg.min.x)/2-0.02), n=Math.min(0.45,(tg.max.z-tg.min.z)/2-0.02);
+    const cx=Math.max(tg.min.x+m,Math.min(tg.max.x-m,p.x)), cz=Math.max(tg.min.z+n,Math.min(tg.max.z-n,p.z));
+    let dx=cx-p.x, dz=cz-p.z; const L=Math.hypot(dx,dz); if(L>0.05){ dx/=L; dz/=L; } else { dx=dz=0; }
+    if(T.onG && T.gnd && T.gnd.push && (dx||dz)){ dx=dx*4.4-T.gnd.push[0]; dz=dz*4.4-T.gnd.push[1]; const q=Math.hypot(dx,dz); dx/=q; dz/=q; }
+    const g=T.gnd, gp=gap(tg,p), rise=tg.max.y-(g?g.max.y:p.y);
+    if(T.onG && g && g!==tg){
+      const nx=p.x+dx*0.35, nz=p.z+dz*0.35, leaving=!inXZ(g,nx,nz);
+      const R=tg.move?1.1:2.0; if(tg.climb){ if(leaving && gp>0.12) T.buf=0.16; } else if(leaving && (gp>R || rise>1.45)){ dx=dz=0; }   // 기다림 (움직이는 발판)
+      else if(!tg.climb && (leaving || rise>0.06) && gp<R && rise<1.5 && (leaving || gp<1.1)) T.buf=0.16;
+    }
+    for(const s of T.S){ if(s.kind==="spin" && T.onG && Math.abs(p.y-s.y0)<1.2){ const qx=p.x-s.c[0], qz=p.z-s.c[1], rr=Math.hypot(qx,qz); if(rr<s.len+0.5){   // (v454) 막대가 올 때를 계산해서 점프 (빨라진 막대)
+        const a=-s.mesh.rotation.y, ph=Math.atan2(qz,qx), d=(((a-ph)%Math.PI)+Math.PI)%Math.PI, tt=d/s.sp; if(tt>0.2 && tt<0.36) T.buf=0.16; } } }
+    for(const s of T.S){ if(s.kind==="laser" && T.onG && Math.abs(p.y-s.y0)<0.5 && gap(s,p)<0.55) T.buf=0.16; }   // (v454) 🔴 레이저 = 점프로 넘기
+    if(T.secs[sec]==="wall"){ const B=T.S.slice(T.secR[sec][0],T.secR[sec][1]).find(s=>s.wallTop);   // (v454) 🧗 벽 점프: B 쪽으로 → 벽에 닿으면 반대쪽으로 JUMP
+      if(T.onG && T.gnd && T.gnd.kind==="cp" && T.gnd.i===sec) T.buf=0;   // 처음 발판 → 길은 이어져 있으니 걸어감 (점프하면 A 벽에 부딪힘)
+      if(B && !(T.onG && (T.gnd===B || T.gnd.kind==="cp" || T.gnd.kind==="top"))){
+        if(!T.onG && T.wallT>0 && T.wallN){ dx=T.wallN[0]; dz=T.wallN[1]; T.buf=0.16; }
+        else if(T.onG){ const ex=(B.min.x+B.max.x)/2-p.x, ez=(B.min.z+B.max.z)/2-p.z, q=Math.hypot(ex,ez)||1; dx=ex/q; dz=ez/q; T.buf = gap(B,p)<0.3 ? 0.16 : 0; }
+        else if(T._wd){ dx=T._wd[0]; dz=T._wd[1]; }
+        T._wd=[dx,dz]; } }
+    T.inp.x=dx; T.inp.y=-dz; H.twStep(dt);
+  }
+  log.push([sec, +secT.toFixed(1), T.dead]);
+  const r={fin:T.fin, t:+t.toFixed(1), dead:T.dead, cp:T.cp, n:T.cps.length-1, secs:T.secs, log}; T.bot=false; T.inp.x=T.inp.y=0; return r; }
+"""
+
+async def main():
+    bad = []; errs = []
+    def ok(c, m):
+        print(("OK  " if c else "FAIL ") + m)
+        if not c: bad.append(m)
+    async with async_playwright() as p:
+        br = await p.chromium.launch(args=["--use-gl=swiftshader", "--enable-unsafe-swiftshader"])
+        ctx = await br.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+        pg = await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.route("**/*", route); await pg.goto(ORIGIN + "proto/house.html"); await pg.wait_for_timeout(800)
+        await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); localStorage.setItem('hyeng_proto_baitok','1'); }")
+        await pg.reload(); await pg.wait_for_timeout(2500)
+        E = pg.evaluate
+        async def until(js, n=60):
+            for _ in range(n):
+                try:
+                    if await E(js): return True
+                except Exception: pass
+                await pg.wait_for_timeout(200)
+            return False
+        await E("()=>{ HOUSE.setWx(false); HOUSE.go('village'); }"); await until("()=>HOUSE.place()==='village'")
+        await E("()=>HOUSE.towerAsk()"); await until("()=>!!document.getElementById('twK')")
+        r = await E("()=>[!!document.getElementById('twK'), !!document.getElementById('twS'), document.getElementById('infoT').innerText]")
+        ok(r[0] and r[1] and "30층" in r[2] and "40층" in r[2] and "처음이면" in r[2], f"🟢 쉬움 30층 + 🗼 도전 40층 {r[2][:120]!r}")
+        await pg.screenshot(path=OUT + "tower462_ask.png")
+        await E("()=>{ HOUSE.TW.seed='2026-10-30'; document.getElementById('twK').click(); }")
+        ok(await until("()=>HOUSE.place()==='tower' && HOUSE.TW.on"), "🟢 → 타워 안")
+        await pg.wait_for_timeout(600)
+        r = await E("()=>[HOUSE.TW.mode, HOUSE.TW.cps.length-1, document.getElementById('twFloor').textContent, HOUSE.twNetPath().slice(-1)]")
+        ok(r[0] == "kid" and r[1] == 30 and r[2].startswith("1 / 30") and r[3] == "k", f"30층 · 1 / 30층 · 경로 k {r}")
+        await pg.screenshot(path=OUT + "tower462_in.png")
+        r = await E("""()=>{ const T=HOUSE.TW, G=["steps","gaps","mover","bounce","beam","fade","turn"], EZ=["steps","gaps","lava","mover","fade","bounce","beam","ice","laser","turn","crumble","brick"], out=[];
+            for(let d=1; d<=8; d++){ T.seed='2026-12-'+d; HOUSE.twBuild('kid'); const s=T.secs, rise=[]; for(let i=1;i<T.ys.length;i++) if(s[i-1]!=='ground' && s[i]!=='ground') rise.push(T.ys[i]-T.ys[i-1]);
+              out.push([s.length, s[9], s[19], s.filter(k=>k==='ground').length, s.slice(0,9).every(k=>G.includes(k)), s.every(k=>k==='ground' || EZ.includes(k)), T.S.filter(x=>x.kind==='spin').length]); }
+            HOUSE.twBuild('sky'); const skyH=T.hy; HOUSE.twBuild('kid'); return [out, +T.hy.toFixed(1), +skyH.toFixed(1)]; }""")
+        ok(all(x[0] == 30 and x[1] == x[2] == "ground" and x[3] == 2 and x[4] and x[5] and x[6] == 0 for x in r[0]), f"1~9 아주 쉬움 · 🏝 10·20 · 어려움 장애물 없음(빙글 막대 0) (8일) {r[0][:2]} 높이 쉬움 {r[1]} / 도전 {r[2]}")
+        # 용암 → 아래 땅
+        r = await E("""()=>{ const T=HOUSE.TW; T.seed='2026-10-30'; HOUSE.twBuild('kid'); T.mode='kid'; T.bot=false; T.on=true; T.fin=false; const c=T.cps[15]; T.p.set((c.min.x+c.max.x)/2, c.max.y+0.01, (c.min.z+c.max.z)/2); T.v.set(0,0,0); HOUSE.twStep(1/90); T.cp=15;
+            const L={kind:'kill', on:true, min:new THREE.Vector3(T.p.x-1,T.p.y-0.2,T.p.z-1), max:new THREE.Vector3(T.p.x+1,T.p.y+0.5,T.p.z+1), mesh:new THREE.Object3D()}; T.S.push(L); HOUSE.twStep(1/90); T.S.pop();
+            return [+(T.p.y-T.cps[9].max.y).toFixed(2), document.getElementById('toast').innerText]; }""")
+        ok(abs(r[0]) < 0.05 and "10층 땅" in r[1], f"16층 용암 → 🏝 10층 땅부터 {r}")
+        res = []
+        for seed in ["2026-11-%02d" % d for d in range(1, 7)]:
+            r = await E(BOT, {"mode": "kid", "seed": seed, "max": 1100})
+            res.append((seed, r["fin"], r["t"], r["dead"]) + (() if r["fin"] else (r["cp"], r["secs"][r["cp"]] if r["cp"] < len(r["secs"]) else "-")))
+        fails = [x for x in res if not x[1]]
+        ok(not fails, f"🤖 자동 선수가 쉬움 30층 꼭대기까지 (6일) {fails[:3]} 평균 {sum(x[2] for x in res)/len(res):.0f}초")
+        # 꼭대기 💎 12
+        await E("()=>{ HOUSE.TW.rec={}; Object.keys(localStorage).filter(k=>k.indexOf('hyeng_proto_tower')>=0).forEach(k=>localStorage.removeItem(k)); }")
+        await E("()=>{ const T=HOUSE.TW; T.bot=false; T.seed=null; HOUSE.twBuild('kid'); T.on=true; T.fin=false; T.mode='kid'; T.t0=performance.now()-300000; T.cp=0; HOUSE.twRespawn(true); HOUSE.setGems(0); }")
+        r = await E("""()=>{ const T=HOUSE.TW, top=T.top; T.bot=true; T.p.set((top.min.x+top.max.x)/2, top.max.y+0.3, (top.min.z+top.max.z)/2); T.v.set(0,0,0); for(let i=0;i<40;i++) HOUSE.twStep(1/90); T.bot=false; return [T.fin, HOUSE.gems()]; }""")
+        await pg.wait_for_timeout(1300)
+        t = await E("()=>document.getElementById('infoT').innerText")
+        ok(r[0] and r[1] == 12 and "쉬움 30층" in t and "40층 도전" in t, f"🏆 쉬움 꼭대기 → 💎 12 · 「40층 도전도」 {r} {t[:80]!r}")
+        r = await E("""()=>{ const d=HOUSE.dayKey(); const s=HOUSE.SOC(); s.cls={AAAAA:{n:'루아', tw:{d, k:301.2}}}; s.who={}; HOUSE.towerAsk(); return document.getElementById('twBd').innerText; }""")
+        ok("루아" in r and "🟢" in r, f"친구 기록 🟢 쉬움 줄 {r!r}")
+        ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))
+        await br.close()
+    print("결과:", "통과" if not bad else f"실패 {len(bad)}")
+    sys.exit(1 if bad else 0)
+
+asyncio.run(main())
