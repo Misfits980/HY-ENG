@@ -74,7 +74,7 @@ async def main():
         ok(r == [7, 3], "못 보낸 쓰기가 있으면 쓴 기회 유지 (없으면 서버 값)")
 
         # ⑦ 공용 패드 — 보스 화면을 열 때 3분 넘었으면 '민준 맞아요?' (한 번 '네' 했어도)
-        r = await pg.evaluate("""()=>{ localStorage.setItem('hyeng_nick','한양패드'); Kid.set({id:'k1',n:'민준',t:'all',pk:Date.now()-10*60000, ok:1, okAt:Date.now()-10*60000});
+        r = await pg.evaluate("""()=>{ try{ KidPick.close(); }catch(e){} localStorage.setItem('hyeng_nick','한양패드'); Kid.set({id:'k1',n:'민준',t:'all',pk:Date.now()-10*60000, ok:1, okAt:Date.now()-10*60000});
             WeekBoss.open(); const ask=!!document.getElementById('kidAsk'), open0=WeekBoss.isOpen(); const y=document.querySelector('#kidAsk [data-ka=y]'); if(y) y.click();
             const open1=WeekBoss.isOpen(); WeekBoss.close(); WeekBoss.open(); const ask2=!!document.getElementById('kidAsk'); WeekBoss.close(); localStorage.setItem('hyeng_nick','민준폰'); return [ask, open0, open1, ask2]; }""")
         print("shared pad", r)

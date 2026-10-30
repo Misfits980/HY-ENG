@@ -3192,7 +3192,12 @@ function drawShop(){
   $("shopMats").innerHTML=(mk.length?'<h4 class="bH">🌾 crops · 🍽 food · 🪵 materials</h4>'+mk.map(n=>{ const v=matP(n); return '<div class="sRow"><i>'+MAT[n].e+'</i><span><b>'+n+'</b><small>×'+mats[n]+(MAT[n].food?' · 🍽':MAT[n].ore?' · ⛏':'')+'</small></span><em>'+pay(v,simPay([v]))+'</em><button class="btn" data-sellm="'+n+'">sell</button>'+(mats[n]>1?'<button class="btn sm2" data-sellall="'+n+'">모두 '+mats[n]+'</button>':'')+'</div>'; }).join(""):'')
     +'<h4 class="bH">🌰 seeds — buy</h4><div class="bChips">'+Object.keys(SEEDS).map(n=>'<button class="btn sm2" data-buy="'+n+'"'+(gems>=SEEDS[n].p?'':' disabled')+'>'+MAT[n].e+' '+n+' 💎'+SEEDS[n].p+'</button>').join("")+'</div>';
 }
-function openShop(){ if(F.st!=="idle") return; closeAv(); drawShop(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if($("shopP").classList.contains("on")) drawShop(); else clearInterval(shopTick); }, 1000); }
+/* (v477) 가게가 1초마다 목록 전체를 다시 그려서, 누르는 사이에 단추가 바뀌면 「팔기」가 안 눌렸다 → 1초마다는 ⏱ 시간 글자만 · 값이 바뀌는 정각에만 목록 다시 (누르는 중이면 미룸) */
+let shopH=-1, shopPress=0;
+function shopTimer(){ const el=$("shopTop") && $("shopTop").querySelectorAll("span")[1]; if(!el) return; const left=3600e3-((now()+9*3600e3)%3600e3), mm=Math.floor(left/60e3), ss=Math.floor(left%60e3/1000); el.textContent="⏱ "+mm+":"+String(ss).padStart(2,"0")+" 뒤 값이 바뀌어요"; }
+function openShop(){ if(F.st!=="idle") return; closeAv(); drawShop(); shopH=hourIx(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if(!$("shopP").classList.contains("on")){ clearInterval(shopTick); return; }
+    if(hourIx()!==shopH && Date.now()-shopPress>800){ shopH=hourIx(); drawShop(); } else shopTimer(); }, 1000); }
+$("shopP").addEventListener("pointerdown", ()=>{ shopPress=Date.now(); }, true);
 function goShop(){ if(F.st!=="idle") return; const near=STALL_FRONT.some(t=>t[0]===hero.cx&&t[1]===hero.cz); if(near){ hero.face=Math.PI; openShop(); return; }
   const t=STALL_FRONT.slice().sort((a,b)=>Math.hypot(a[0]-hero.cx,a[1]-hero.cz)-Math.hypot(b[0]-hero.cx,b[1]-hero.cz))[0]; walkTo(t[0], t[1], ()=>{ hero.face=Math.PI; openShop(); }); }
 $("shopBag").addEventListener("click", e=>{ const b=e.target.closest("[data-sell]"); if(!b) return; const v=sell(+b.dataset.sell); if(v){ toast("💎 +"+v); try{ navigator.vibrate&&navigator.vibrate(20); }catch(er){} } drawShop(); updBagBtn(); });
