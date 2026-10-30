@@ -65,6 +65,12 @@ async def main():
             T.bot=false; return [R.length, inn, out, sq, fl, Math.min(...rise), Math.max(...rise)]; }""")
         ok(r[0] == 3 and abs(r[1]) < 0.05 and r[2] < -0.5 and max(r[3]) < 4.5, f"🕐🕐🕐 둥근 판 3개만 (네모 판 없음) · 판 안 = 서 있음 · 둥근 판 밖(네모였으면 서 있던 곳) = 떨어짐 {r[:4]}")
         ok(all(x >= 3 for x in r[4]) and r[5] < 0.6 and r[6] > 3.0, f"🗼 도전 11층부터: 사다리 없이 이어지는 층 (타워마다 {r[4]}) · 높은 사다리 · 층 높이 {r[5]}~{r[6]}")
+        # (v468) 🎨 장애물마다 다른 무늬 · 층 시작 표지판 · 진짜/가짜 칸은 똑같이
+        r = await E("""()=>{ const T=HOUSE.TW; T.seed='2027-11-1'; HOUSE.twBuild('sky'); const pat={}; T.secs.forEach((k,i)=>{ const L=T.S.slice(T.secR[i][0],T.secR[i][1]); const ds=L.filter(s=>s.decal).map(s=>s.decal.material.map.image); pat[k]=pat[k]||new Set(); ds.forEach(im=>pat[k].add(im)); });
+            const kinds=['steps','gaps','lava','beam','ice','crumble','fade','mover','laser','tiptoe','pend'].filter(k=>pat[k]), first={}; kinds.forEach(k=>first[k]=[...pat[k]][0]);
+            const uniq=new Set(kinds.map(k=>first[k])).size; const i=T.secs.indexOf('tiptoe'), L=T.S.slice(T.secR[i][0],T.secR[i][1]); const real=L.filter(s=>s.decal && !s.fake), fake=L.filter(s=>s.decal && s.fake);
+            return [kinds.length, uniq, real.length>0 && fake.length>0 && real[0].decal.material.map.image===fake[0].decal.material.map.image]; }""")
+        ok(r[0] >= 8 and r[1] >= r[0] - 1 and r[2], f"🎨 장애물마다 다른 윗면 무늬 ({r[0]}종 · 무늬 {r[1]}개) · 🦶 진짜·가짜 칸 무늬 같음 {r}")
         ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))
         await br.close()
     print("결과:", "통과" if not bad else f"실패 {len(bad)}")
