@@ -1403,9 +1403,11 @@ const AV_OPT = {
   pc:["#4f5f96","#3b3b48","#8a5a34","#e8c26b","#5db95a","#ff8fa3"],
   sc:["#6a4430","#e85d5d","#f4ead8","#2c2c3a","#6ec3ff","#ffd23f"],
   hat:[["none","none"],["cap","cap"],["straw","straw hat"],["beanie","beanie"],["crown","crown"]],
-  acc:[["none","none"],["glasses","glasses"],["ribbon","ribbon"],["flower","flower"],["backpack","backpack"]]
+  acc:[["none","none"],["glasses","glasses"],["ribbon","ribbon"],["flower","flower"],["backpack","backpack"]],
+  /* (v461) 사용자: "표정이랑 선택해서" — 평소 표정 고르기 */
+  expr:[["smile","😊 방긋"],["grin","😄 활짝"],["wink","😉 윙크"],["wow","😮 깜짝"],["cat","😺 고양이"],["cool","😏 새침"]]
 };
-const AV_DEF={skin:0, hair:"short", hc:1, style:"tee", top:1, pc:0, sc:0, hat:"straw", acc:"none"};
+const AV_DEF={skin:0, hair:"short", hc:1, style:"tee", top:1, pc:0, sc:0, hat:"straw", acc:"none", expr:"smile"};
 let av = Object.assign({}, AV_DEF, store("hyeng_proto_av")||{});
 if(typeof av.hair!=="string") av.hair="short"; if(typeof av.hat!=="string") av.hat="straw";
 /* (L0-3) 사용자: 캐릭터 조금만 더 예쁘게 — 둥근 머리(2.5등신) · 큰 눈(하이라이트 2개 · 깜빡임) · 웃는 입 · 귀 · 둥근 머리카락(앞머리·옆머리)
@@ -1418,44 +1420,43 @@ const OUTLINE=new THREE.MeshBasicMaterial({color:0x3b2b3f, side:THREE.BackSide})
 function tp(g, geo, col, x,y,z, ol){ const m=part(g, geo, TM(col), x,y,z); if(ol){ const o=new THREE.Mesh(geo, OUTLINE); o.scale.setScalar(ol); o.userData.ol=true; m.add(o); } return m; }
 function hemi(r){ const k="h"+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,24,14,0,Math.PI*2,0,Math.PI*0.52)); }
 function torus(r,t,a){ const k="t"+[r,t,a]; return geoCache[k] || (geoCache[k]=new THREE.TorusGeometry(r,t,8,18,a||Math.PI*2)); }
+/* (v461) 몸통 = 돌림체 (네모 상자 → 어깨가 둥글고 허리가 살짝 들어간 몸) */
+const LATHE={};
+function lathe(key, pts){ return LATHE[key] || (LATHE[key]=new THREE.LatheGeometry(pts.map(([x,y])=>new THREE.Vector2(x,y)), 22)); }
+const TORSO_PTS=[[0.001,-0.155],[0.17,-0.155],[0.198,-0.125],[0.2,-0.06],[0.19,0.0],[0.193,0.05],[0.185,0.1],[0.15,0.14],[0.09,0.158],[0.001,0.162]];
+const HIP_PTS=[[0.001,-0.055],[0.165,-0.055],[0.185,-0.03],[0.188,0.02],[0.178,0.06],[0.001,0.062]];
 function shade(hex, k){ const c=new THREE.Color(hex); c.offsetHSL(0,0,k); return "#"+c.getHexString(); }
 function buildAvatar(c){ c=Object.assign({}, AV_DEF, c);
   const SK=AV_OPT.skin[c.skin], HC=AV_OPT.hc[c.hc]||AV_OPT.hc[0], TOP=AV_OPT.top[c.top]||AV_OPT.top[0], PANTS=AV_OPT.pc[c.pc]||AV_OPT.pc[0], SHOE=AV_OPT.sc[c.sc]||AV_OPT.sc[0], DRESS=c.style==="dress";
   const g=new THREE.Group(), body=new THREE.Group(); g.add(body); const P={g, body};
   // 다리 · 신발
   [-1,1].forEach(s=>{ const L=new THREE.Group(); L.position.set(s*0.095,0.26,0); body.add(L);
-    tp(L, rbox(0.13,0.18,0.15,0.06), DRESS?SK:PANTS, 0,-0.08,0, 1.08);
+    tp(L, cyl(0.064,0.056,0.19,14), DRESS?SK:PANTS, 0,-0.075,0, 1.08);
     tp(L, rbox(0.16,0.09,0.21,0.045), SHOE, 0,-0.205,0.025, 1.08); tp(L, rbox(0.165,0.022,0.215,0.01), "#f4ead8", 0,-0.245,0.025);
     P[s<0?"legL":"legR"]=L; });
   // 몸통 · 옷깃 · 단추
   if(DRESS){ const sk=tp(body, cyl(0.17,0.29,0.28,20), TOP, 0,0.25,0, 1.05); sk.scale.z=0.85; tp(body, cyl(0.292,0.292,0.03,20), shade(TOP,0.2), 0,0.12,0).scale.z=0.85; }
-  else tp(body, rbox(0.36,0.1,0.26,0.05), PANTS, 0,0.28,0, 1.06);
-  tp(body, rbox(0.4,0.3,0.29,0.13), TOP, 0,0.44,0, 1.05);
+  else tp(body, lathe("hip", HIP_PTS), PANTS, 0,0.29,0, 1.06).scale.z=0.76;
+  tp(body, lathe("torso", TORSO_PTS), TOP, 0,0.44,0, 1.05).scale.z=0.76;
   const col=tp(body, torus(0.1,0.026,Math.PI*2), shade(TOP,0.18), 0,0.585,0.01); col.rotation.x=Math.PI/2;
   if(c.style==="tee") [0.5,0.42].forEach(y=>{ const b=tp(body, sph(0.018), shade(TOP,-0.25), 0,y,0.148); b.castShadow=false; });
   if(c.style==="hoodie"){ const hd=tp(body, torus(0.15,0.06,Math.PI*2), TOP, 0,0.6,-0.08, 1.05); hd.rotation.x=Math.PI/2.4; hd.scale.set(1,1,0.8);
     [-0.05,0.05].forEach(x=>tp(body, rbox(0.016,0.11,0.016,0.006), "#ffffff", x,0.52,0.15)); tp(body, rbox(0.22,0.08,0.02,0.02), shade(TOP,-0.12), 0,0.37,0.148); }
-  if(c.style==="overalls"){ tp(body, rbox(0.42,0.17,0.3,0.06), PANTS, 0,0.37,0, 1.05); tp(body, rbox(0.24,0.17,0.04,0.02), PANTS, 0,0.48,0.13);
+  if(c.style==="overalls"){ tp(body, cyl(0.206,0.214,0.17,22), PANTS, 0,0.37,0, 1.05).scale.z=0.78; tp(body, rbox(0.22,0.17,0.04,0.02), PANTS, 0,0.48,0.13);
     [-0.09,0.09].forEach(x=>{ tp(body, rbox(0.045,0.2,0.32,0.015), PANTS, x,0.53,0); tp(body, sph(0.022), "#ffd23f", x,0.54,0.155); }); tp(body, rbox(0.09,0.06,0.02,0.01), shade(PANTS,0.15), 0,0.45,0.155); }
   // 팔 · 손
   [-1,1].forEach(s=>{ const A=new THREE.Group(); A.position.set(s*0.235,0.55,0); body.add(A);
-    tp(A, rbox(0.11,0.16,0.13,0.05), TOP, 0,-0.06,0, 1.08); tp(A, sph(0.058), SK, 0,-0.18,0, 1.1); P[s<0?"armL":"armR"]=A; });
+    tp(A, sph(0.068), TOP, 0,-0.005,0, 1.08); tp(A, cyl(0.06,0.056,0.13,14), TOP, 0,-0.075,0, 1.08); tp(A, sph(0.056), SK, 0,-0.17,0, 1.1); P[s<0?"armL":"armR"]=A; });
   // 머리
   const head=new THREE.Group(); head.position.y=0.9; body.add(head); P.head=head;
   const hm=tp(head, sph(0.3), SK, 0,0,0, 1.035); hm.scale.set(1.06,0.96,0.98);
   [-1,1].forEach(s=>{ const e=tp(head, sph(0.06), SK, s*0.31,-0.03,0, 1.12); e.scale.set(0.55,1,0.8); });
   // 눈 (깜빡임용 묶음)
-  const eyes=new THREE.Group(); head.add(eyes); P.eyes=eyes;
-  [-1,1].forEach(s=>{ const e=new THREE.Mesh(sph(0.05), new THREE.MeshBasicMaterial({color:0x2a1c22})); e.position.set(s*0.105,-0.01,0.268); e.scale.set(0.78,1.15,0.42); eyes.add(e);
-    const h1=new THREE.Mesh(sph(0.017), new THREE.MeshBasicMaterial({color:0xffffff})); h1.position.set(s*0.105+0.016,0.02,0.29); eyes.add(h1);
-    const h2=new THREE.Mesh(sph(0.009), new THREE.MeshBasicMaterial({color:0xffffff})); h2.position.set(s*0.105-0.012,-0.03,0.288); eyes.add(h2); });
-  { const dk=new THREE.MeshBasicMaterial({color:new THREE.Color(shade(HC,-0.22)).convertSRGBToLinear()}), lash=new THREE.MeshBasicMaterial({color:0x1a1016});
-    [-1,1].forEach(s=>{ const br=new THREE.Mesh(torus(0.042,0.0095,Math.PI*0.62), dk); br.position.set(s*0.108,0.078,0.279); br.rotation.set(-0.2,s*0.25,Math.PI*0.19); eyes.add(br);   /* (v460) 눈썹 */
-      const l=new THREE.Mesh(torus(0.041,0.009,Math.PI*0.9), lash); l.position.set(s*0.105,0.0,0.285); l.rotation.set(-0.15,s*0.3,Math.PI*0.05); l.scale.set(0.95,1.2,1); eyes.add(l);   /* 속눈썹 테 */
-      const f=new THREE.Mesh(rbox(0.026,0.008,0.006,0.003), lash); f.position.set(s*0.148,0.035,0.27); f.rotation.set(0,s*0.5,s*0.6); eyes.add(f); });
+  const eyes=new THREE.Group(); head.add(eyes); P.eyes=eyes; const mouthG=new THREE.Group(); head.add(mouthG); const brows=new THREE.Group(); head.add(brows);
+  { P.browC=new THREE.Color(shade(HC,-0.22)).convertSRGBToLinear(); P.eyesG=eyes; P.mouthG=mouthG; P.brows=brows; P.setExpr=k=>avExpr(P, k); P.expr0=c.expr||"smile"; P.noBrow=(c.hat==="cap"||c.hat==="beanie"); avExpr(P, P.expr0);
     const ns=new THREE.Mesh(sph(0.014), TM(shade(SK,-0.035))); ns.position.set(0,-0.048,0.293); ns.scale.set(1.2,0.8,0.7); head.add(ns); }
   [-1,1].forEach(s=>{ const ch=new THREE.Mesh(new THREE.CircleGeometry(0.05,18), new THREE.MeshBasicMaterial({color:0xff8fa3, transparent:true, opacity:.55})); ch.position.set(s*0.175,-0.085,0.255); ch.rotation.y=s*0.5; head.add(ch); });
-  const mouth=new THREE.Mesh(torus(0.03,0.009,Math.PI), new THREE.MeshBasicMaterial({color:0x7a3030})); mouth.position.set(0,-0.095,0.283); mouth.rotation.z=Math.PI; head.add(mouth);
+
   // 머리카락 — 둥근 모자 모양 + 앞머리 3갈래 + 옆머리
   const cap=tp(head, hemi(0.322), HC, 0,0.0,-0.01, 1.035); cap.scale.set(1.06,0.98,1.0); cap.rotation.x=-0.46;   /* (v460) 앞쪽 테를 올려서 이마 = 앞머리 다발이 덮음 (바가지 머리 줄 없앰) */
   const capHat = c.hat==="cap" || c.hat==="beanie", by = capHat ? 0.075 : 0.16, bz = capHat ? 0.285 : 0.255; if(capHat) cap.rotation.x=-0.22;   // 모자를 쓰면 앞머리는 챙 아래로 살짝만
@@ -1469,7 +1470,7 @@ function buildAvatar(c){ c=Object.assign({}, AV_DEF, c);
   // 모자
   if(c.hat==="cap"){ const k=tp(head, hemi(0.33), "#e85d5d", 0,0.06,-0.01, 1.04); k.scale.set(1.06,0.86,1.03); k.rotation.x=-0.1; tp(head, cyl(0.335,0.335,0.04,24), "#c94848", 0,0.075,-0.01).scale.z=0.99; const b=tp(head, rbox(0.34,0.026,0.22,0.012), "#e85d5d", 0,0.095,0.33, 1.06); b.rotation.x=0.12; tp(head, sph(0.028), "#ffffff", 0,0.31,-0.03); }
   if(c.hat==="straw"){ tp(head, cyl(0.5,0.5,0.025,28), "#ecd27f", 0,0.16,0, 1.03); tp(head, cyl(0.24,0.29,0.18,20), "#ecd27f", 0,0.26,0, 1.04); tp(head, cyl(0.292,0.292,0.045,20), "#d9573b", 0,0.19,0); }
-  if(c.hat==="beanie"){ const k=tp(head, hemi(0.338), "#6ec3ff", 0,0.0,0, 1.04); k.scale.set(1.05,0.95,1.0); tp(head, cyl(0.335,0.335,0.07,24), "#9fd8ff", 0,0.03,0); tp(head, sph(0.075), "#ffffff", 0,0.34,0, 1.08); }
+  if(c.hat==="beanie"){ const BN=new THREE.Group(); BN.position.set(0,0.03,-0.01); BN.rotation.x=-0.26; head.add(BN); const k=tp(BN, hemi(0.338), "#6ec3ff", 0,0.0,0, 1.04); k.scale.set(1.05,0.95,1.0); tp(BN, cyl(0.338,0.338,0.07,24), "#9fd8ff", 0,0.03,0).scale.x=1.03; tp(BN, sph(0.075), "#ffffff", 0,0.34,0, 1.08); }   /* (v461) 뒤로 살짝 써서 눈을 안 가림 */
   if(c.hair==="pigtails" && c.hat!=="beanie") [-1,1].forEach(s=>{ tp(head, sph(0.1), HC, s*0.33,0.02,-0.1, 1.06); const t=tp(head, cone(0.08,0.24,10), HC, s*0.38,-0.14,-0.12, 1.06); t.rotation.z=s*0.35; tp(head, sph(0.035), "#ff7a7a", s*0.31,0.08,-0.06); });
   if(c.hat==="crown"){ const C=new THREE.Group(); C.position.y=0.27; head.add(C); const gold=M(0xffd23f,{metalness:.15, roughness:.35, emissive:0x8a5a00, emissiveIntensity:.35});
     part(C, cyl(0.2,0.2,0.1,6), gold, 0,0,0); for(let k=0;k<6;k++){ const a=k/6*Math.PI*2+Math.PI/6; part(C, cone(0.055,0.13,4), gold, Math.sin(a)*0.18,0.1,Math.cos(a)*0.18); part(C, sph(0.025), M(k%2?0x6ec3ff:0xff4d6d,{emissive:k%2?0x2a6aa0:0xa01030, emissiveIntensity:.4}), Math.sin(a)*0.2,0.0,Math.cos(a)*0.2); } }
@@ -1485,6 +1486,29 @@ function buildAvatar(c){ c=Object.assign({}, AV_DEF, c);
   P.blinkT=rnd(1.5,4);
   return P;
 }
+
+/* (v461) 😊 표정 — 눈(깜빡임 묶음) · 입 · 눈썹을 다시 그림
+   smile 방긋 · grin 활짝(^ ^ + 벌린 입) · wink 윙크 · wow 깜짝(큰 눈 + o 입) · cat 고양이(ω 입) · cool 새침(반쯤 감은 눈 + 한쪽 입꼬리) */
+const EXM={dark:new THREE.MeshBasicMaterial({color:0x2a1c22}), lash:new THREE.MeshBasicMaterial({color:0x1a1016}), hi:new THREE.MeshBasicMaterial({color:0xffffff}), mouth:new THREE.MeshBasicMaterial({color:0x7a3030}), inner:new THREE.MeshBasicMaterial({color:0x8a2a36, side:THREE.DoubleSide}), tongue:new THREE.MeshBasicMaterial({color:0xff8c9e, side:THREE.DoubleSide})};
+function avExpr(P, k){ const E=P.eyesG, Mo=P.mouthG, B=P.brows; if(!E) return; [E,Mo,B].forEach(G=>{ while(G.children.length) G.remove(G.children[0]); }); P.expr=k; E.scale.y=1;
+  const add=(G, geo, mat, x,y,z, rx,ry,rz, sx,sy,sz)=>{ const m=new THREE.Mesh(geo, mat); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,rz||0); if(sx!=null) m.scale.set(sx,sy,sz); m.userData.av=true; G.add(m); return m; };
+  const openEye=(s, big, half)=>{ const sc=big?1.18:1; add(E, sph(0.05), EXM.dark, s*0.105,-0.01,0.268, 0,0,0, 0.78*sc, (half?0.62:1.15)*sc, 0.42);
+      if(!half){ add(E, sph(0.017*sc), EXM.hi, s*0.105+0.016,0.02*sc,0.29); add(E, sph(0.009*sc), EXM.hi, s*0.105-0.012,-0.03,0.288); } else add(E, sph(0.013), EXM.hi, s*0.105+0.014,-0.005,0.29);
+      add(E, torus(0.041*sc,0.009,Math.PI*0.9), EXM.lash, s*0.105,(half?-0.02:0.0),0.285, -0.15,s*0.3,half?0:Math.PI*0.05, 0.95, half?0.55:1.2, 1);   /* 속눈썹 테 */
+      add(E, rbox(0.026,0.008,0.006,0.003), EXM.lash, s*0.148*sc, half?0.0:0.035*sc, 0.27, 0,s*0.5,s*0.6); };
+  const happyEye=s=>add(E, torus(0.036,0.011,Math.PI), EXM.lash, s*0.105,-0.03,0.282, -0.12,s*0.3,0);   /* ∩ 웃는 눈 */
+  const brow=(s, dy, rz)=>P.noBrow ? null : add(B, torus(0.042,0.0095,Math.PI*0.62), new THREE.MeshBasicMaterial({color:P.browC}), s*0.108,0.078+(dy||0),0.279, -0.2,s*0.25,Math.PI*0.19+(rz||0)*s);
+  const smileM=(w,x)=>add(Mo, torus(w||0.03,0.009,Math.PI), EXM.mouth, x||0,-0.095,0.283, 0,0,Math.PI);
+  if(k==="grin"){ happyEye(-1); happyEye(1); brow(-1,0.01); brow(1,0.01);
+    add(Mo, new THREE.CircleGeometry(0.042,20,Math.PI,Math.PI), EXM.inner, 0,-0.09,0.285, -0.1,0,0, 1,0.9,1); add(Mo, new THREE.CircleGeometry(0.022,14,Math.PI,Math.PI), EXM.tongue, 0,-0.112,0.287, -0.1,0,0); }
+  else if(k==="wink"){ openEye(-1); happyEye(1); brow(-1); brow(1,0.008); smileM(0.034, 0.008); }
+  else if(k==="wow"){ openEye(-1,true); openEye(1,true); brow(-1,0.028,-0.1); brow(1,0.028,-0.1); add(Mo, sph(0.024), EXM.inner, 0,-0.105,0.278, 0,0,0, 0.85,1.15,0.4); }
+  else if(k==="cat"){ openEye(-1); openEye(1); brow(-1); brow(1); smileM(0.018,-0.017); smileM(0.018,0.017); }
+  else if(k==="cool"){ openEye(-1,false,true); openEye(1,false,true); brow(-1,-0.012,0.12); brow(1,-0.004,-0.05); add(Mo, torus(0.028,0.008,Math.PI*0.6), EXM.mouth, 0.012,-0.098,0.283, 0,0,Math.PI*1.25); }
+  else { openEye(-1); openEye(1); brow(-1); brow(1); smileM(); }
+  try{ dirty=true; }catch(e){} }
+/* 감정 표현 → 잠깐 그 표정 (말풍선이 사라지면 원래 표정) */
+const EMO_EXPR={"😆":"grin","👋":"grin","🎉":"grin","🏆":"grin","⭐":"grin","❤️":"wink","👍":"wink","💪":"cool","😱":"wow","😮":"wow","💃":"grin"};
 
 /* ═════════ 장소 3: 🏘 마을 (12×12) — (L0-6) 사용자: "맵도 늘리고 NPC 도" ═════════ */
 const VN = 12;
@@ -2979,7 +3003,7 @@ function drawAv(){
     return '<button class="chip'+(isCol?' col':'')+(on?' on':'')+'" data-k="'+k+'" data-v="'+val+'"'+(isCol?' style="background:'+v+'" aria-label="색 '+(i+1)+'"':'')+'>'+(isCol?'':v[1])+'</button>'; }).join("")+'</div></div>';
   const hats=AV_OPT.hat.filter(h=>h[0]!=="crown" || crown);   /* (L0-9) 줄이 많아져 탭 3개로 — 시트가 낮아야 위에 내 모습이 보임 */
   const tabs='<div class="bTabs avTabs">'+[["face","🙂 얼굴·머리"],["wear","👕 옷"],["hat","🎩 모자·꾸미기"]].map(([k,t])=>'<button class="bTab'+(avTab===k?' on':'')+'" data-avt="'+k+'">'+t+'</button>').join("")+'</div>';
-  $("avBody").innerHTML=tabs+(avTab==="face" ? row("skin","피부",AV_OPT.skin,true)+row("hair","머리 모양",AV_OPT.hair)+row("hc","머리 색",AV_OPT.hc,true)
+  $("avBody").innerHTML=tabs+(avTab==="face" ? row("expr","표정",AV_OPT.expr)+row("skin","피부",AV_OPT.skin,true)+row("hair","머리 모양",AV_OPT.hair)+row("hc","머리 색",AV_OPT.hc,true)
     : avTab==="wear" ? row("style","옷 모양",AV_OPT.style)+row("top","옷 색",AV_OPT.top,true)+(av.style==="dress"?"":row("pc","바지 색",AV_OPT.pc,true))+row("sc","신발 색",AV_OPT.sc,true)
     : row("hat","모자",hats)+row("acc","꾸미기",AV_OPT.acc)+(crown?'':'<p class="bHint" style="margin:4px 0 0">👑 왕관은 ⛏ 광산의 🪙 gold 3 + 💠 diamond 1 로 🛠 만들어요</p>'));
 }
@@ -3197,9 +3221,10 @@ function emote(c, e){ if(c.emo){ c.g.remove(c.emo.s); c.emo.s.material.map.dispo
   const cv=document.createElement("canvas"); cv.width=cv.height=128; const g=cv.getContext("2d");
   g.fillStyle="#fff"; g.beginPath(); g.arc(64,58,50,0,7); g.fill(); g.beginPath(); g.moveTo(52,100); g.lineTo(64,124); g.lineTo(76,100); g.fill();
   emoDraw(g, e, 64, 58, 62);
-  const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false})); s.renderOrder=11; s.position.y=2.05; s.scale.set(0.01,0.01,1); c.g.add(s); c.emo={s, t:0}; dirty=true; }
+  const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false})); s.renderOrder=11; s.position.y=2.05; s.scale.set(0.01,0.01,1); c.g.add(s); c.emo={s, t:0}; dirty=true;
+  try{ const x=EMO_EXPR[e]; if(x && c.setExpr && c.expr!==x){ c.setExpr(x); c.exprTmp=1; } }catch(er){} }
 function updEmotes(dt){ let a=false; npcs.concat([hero, hostDoll], (typeof TWN!=="undefined" && TWN.peers) ? Object.values(TWN.peers) : []).forEach(c=>{ if(!c || !c.emo) return; const E=c.emo; E.t+=dt; const k=E.t<0.18 ? E.t/0.18*1.15 : E.t<0.3 ? 1.15-(E.t-0.18)/0.12*0.15 : 1; E.s.scale.set(0.5*k,0.5*k,1);
-  if(E.t>1.8){ c.g.remove(E.s); E.s.material.map.dispose(); c.emo=null; } a=true; }); return a; }
+  if(E.t>1.8){ c.g.remove(E.s); E.s.material.map.dispose(); c.emo=null; if(c.exprTmp && c.setExpr){ c.exprTmp=0; c.setExpr(c.expr0||"smile"); } } a=true; }); return a; }
 /* 대화 진행 — 줄 = {en, ko, emo, anim, who:'npc'|'me'} */
 function speakLines(lines, after){ dlg.queue=lines.slice(); dlg.after=after||null; nextLine(); }
 function nextLine(){ const L=dlg.queue.shift(); if(!L){ const f=dlg.after; dlg.after=null; if(f) f(); else showChoices(); return; }
@@ -3543,7 +3568,7 @@ function loop(now){
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
-window.HOUSE = {drawPlots, buildAvatar, animChar, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
+window.HOUSE = {drawPlots, buildAvatar, animChar, emote, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
 </body>
