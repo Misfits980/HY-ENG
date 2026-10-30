@@ -22,8 +22,8 @@ async def main():
         await pg.evaluate("()=>{ localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); localStorage.setItem('hyeng_proto_baitok','1'); }")
         await pg.reload(); await pg.wait_for_timeout(2500)
         E = pg.evaluate
-        r = await E("""()=>{ const T=HOUSE.TW, c={sky:{}, kid:{}}; for(const m of ['sky','kid']) for(let d=1; d<=12; d++){ T.seed='2027-03-'+d; HOUSE.twBuild(m); T.secs.forEach((k,i)=>{ if(['door','tiptoe','pend','sweep'].includes(k)) c[m][k+(m==='kid'&&i<9?'<10':'')]=(c[m][k+(m==='kid'&&i<9?'<10':'')]||0)+1; }); } return c; }""")
-        ok(all(r["sky"].get(k, 0) > 0 for k in ["door", "tiptoe", "pend", "sweep"]) and r["kid"].get("door<10", 0) > 0 and not r["kid"].get("tiptoe<10") and not r["kid"].get("pend<10") and not r["kid"].get("sweep<10"), f"🗼 도전·🟢 쉬움에 새 장애물 · 쉬움 1~9층엔 🚪 만 {r}")
+        r = await E("""()=>{ const T=HOUSE.TW, c={sky:{}, kid:{}}; for(const m of ['sky','kid']) for(let d=1; d<=12; d++){ T.seed='2027-03-'+d; HOUSE.twBuild(m); T.secs.forEach((k,i)=>{ if(['door','tiptoe','pend','sweep','sweep3'].includes(k)) c[m][k+(m==='kid'&&i<9?'<10':'')]=(c[m][k+(m==='kid'&&i<9?'<10':'')]||0)+1; }); } return c; }""")
+        ok(all(r["sky"].get(k, 0) > 0 for k in ["door", "tiptoe", "pend", "sweep", "sweep3"]) and r["kid"].get("door<10", 0) > 0 and not r["kid"].get("tiptoe<10") and not r["kid"].get("pend<10") and not r["kid"].get("sweep<10") and not r["kid"].get("sweep3<10"), f"🗼 도전·🟢 쉬움에 새 장애물 · 쉬움 1~9층엔 🚪 만 {r}")
         # 🚪
         r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<80; d++){ T.seed='2027-04-'+d; HOUSE.twBuild('sky'); if(T.secs.indexOf('door')>=10) break; } const i=T.secs.indexOf('door'); T.mode='sky'; T.bot=true; T.on=true; T.fin=false;
             const D=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='door'), rows=new Set(D.map(s=>s.row)).size, fk=D.filter(s=>s.fake).length, h=+(D[0].max.y-D[0].min.y).toFixed(2), F=T.S.slice(T.secR[i][0],T.secR[i][1])[0];
@@ -49,6 +49,13 @@ async def main():
             a=-S.mesh.rotation.y; at(0.05, a); S.hitT=0; HOUSE.twStep(1/90); const hub=+Math.hypot(T.v.x,T.v.z).toFixed(1);
             a=-S.mesh.rotation.y; at(1.0, a+Math.PI*0.9); S.hitT=0; HOUSE.twStep(1/90); const far=+Math.hypot(T.v.x,T.v.z).toFixed(1); T.bot=false; return [T.secs[i], hit, hub, far, S.len2]; }""")
         ok(r[0] == "sweep" and r[1][0] > 3 and r[1][1] > 3 and r[2] < 0.5 and r[3] < 0.5 and r[4] == 0, f"🕐 바늘에 닿으면 퉁 (죽지 않음) · 가운데 기둥 위 = 안전 · 바늘 반대쪽 = 안 맞음 · 쉬움 = 바늘 1개 {r}")
+        # (v465) 🕐🕐🕐 세 바늘
+        r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<80; d++){ T.seed='2027-08-'+d; HOUSE.twBuild('sky'); if(T.secs.includes('sweep3')) break; } const i=T.secs.indexOf('sweep3'); T.bot=true; T.clk=0; HOUSE.twStep(1/90);
+            const y=T.ys[i], SW=T.S.filter(s=>s.kind==='sweep' && Math.abs(s.y0-(y+0.2))<0.01), d=HOUSE.TDIR[i%4], aD=Math.atan2(d[1],d[0]), out=[];
+            for(let n=0;n<5;n++){ for(let k=0;k<37;k++) HOUSE.twStep(1/90); const aB=-SW[1].mesh.rotation.y, aC=-SW[2].mesh.rotation.y, m=((aB+aC-2*aD)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI; out.push(+Math.abs(m).toFixed(3)); }
+            const c=SW.map(s=>s.c), tri=[Math.hypot(c[0][0]-c[1][0],c[0][1]-c[1][1]), Math.hypot(c[1][0]-c[2][0],c[1][1]-c[2][1]), Math.hypot(c[0][0]-c[2][0],c[0][1]-c[2][1])].map(v=>+v.toFixed(2));
+            T.bot=false; return [SW.length, out, tri, Math.sign(SW[0].sp)!==Math.sign(SW[1].sp)]; }""")
+        ok(r[0] == 3 and max(r[1]) < 0.01 and abs(r[2][0] - r[2][2]) < 0.01 and r[3], f"🕐🕐🕐 바늘 3개 · 삼각형(앞 1·뒤 2) · 뒤 두 바늘은 거울처럼 · 앞과 뒤는 반대로 {r}")
         ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))
         await br.close()
     print("결과:", "통과" if not bad else f"실패 {len(bad)}")
