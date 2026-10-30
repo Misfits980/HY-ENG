@@ -71,6 +71,17 @@ async def main():
             const uniq=new Set(kinds.map(k=>first[k])).size; const i=T.secs.indexOf('tiptoe'), L=T.S.slice(T.secR[i][0],T.secR[i][1]); const real=L.filter(s=>s.decal && !s.fake), fake=L.filter(s=>s.decal && s.fake);
             return [kinds.length, uniq, real.length>0 && fake.length>0 && real[0].decal.material.map.image===fake[0].decal.material.map.image]; }""")
         ok(r[0] >= 8 and r[1] >= r[0] - 1 and r[2], f"🎨 장애물마다 다른 윗면 무늬 ({r[0]}종 · 무늬 {r[1]}개) · 🦶 진짜·가짜 칸 무늬 같음 {r}")
+        # (v469) 🧗 벽 점프 = 🗼 도전 38층에만 · 쉽게 (가까이 가면 붙음 · 한 번 차면 올라감 · JUMP 반짝)
+        r = await E("""()=>{ const T=HOUSE.TW, w=[]; for(let d=1; d<=12; d++){ T.seed='2027-12-'+d; HOUSE.twBuild('sky'); w.push(T.secs.map((k,i)=>k==='wall'?i:-1).filter(i=>i>=0).join()); }
+            const i=37, S=T.S.slice(T.secR[i][0],T.secR[i][1]), B=S.find(s=>s.wallTop), y=T.ys[i], d=HOUSE.TDIR[i%4]; T.bot=false; T.mode='sky'; T.on=true; T.fin=false; T.cp=i; T.kick=0;
+            const bc=[(B.min.x+B.max.x)/2,(B.min.z+B.max.z)/2], al=(bc[0]-0)*0, toB=[d[0],d[1]];
+            const st=S.find(s=>s.kind==='solid'); const sx=(st.min.x+st.max.x)/2, sz=(st.min.z+st.max.z)/2; const face=(B.min.x+B.max.x)/2-d[0]*((B.max.x-B.min.x)/2) , facez=(B.min.z+B.max.z)/2-d[1]*((B.max.z-B.min.z)/2);
+            T.p.set(face-d[0]*0.45 + (d[0]?0:sx-face), y+0.001, facez-d[1]*0.45 + (d[1]?0:sz-facez)); T.v.set(0,0,0); T.onG=true; T.yaw=Math.atan2(-d[0],-d[1]);
+            const sv=(ix,iy)=>{ T.inp.x=ix; T.inp.y=iy; }; sv(0,1); T.buf=0.16; let stuck=false, glow=false, top=false, jumps=0;
+            for(let n=0;n<500 && !top;n++){ HOUSE.twStep(1/90); HOUSE.twTick(0); if(T.wallT>0 && !T.onG && !stuck){ stuck=true; glow=document.getElementById('twJump').classList.contains('glow'); sv(0,0); }
+              if(stuck && jumps===0 && T.wallT>0){ T.buf=0.16; jumps=1; } if(jumps===1 && T.kick<=0 && T.v.y<3) sv(0,1); if(T.onG && T.gnd===B) top=true; }
+            sv(0,0); return [w, stuck, glow, jumps, top, +(B.max.y-y).toFixed(2)]; }""")
+        ok(all(x == "37" for x in r[0]) and r[1] and r[2] and r[3] == 1 and r[4] and r[5] < 2.5, f"🧗 벽 점프 = 38층에만 (12일) · 큰 벽에 다가가 점프 → 붙음 · JUMP 반짝 · 한 번 차고 다시 벽 쪽 → 꼭대기 {r[1:]} {r[0][:4]}")
         ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))
         await br.close()
     print("결과:", "통과" if not bad else f"실패 {len(bad)}")
