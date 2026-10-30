@@ -1735,7 +1735,7 @@ function twFloorSign(F, y, k){ const nm=TW_NM[k]||""; if(!nm || k==="ground") re
 /* 장애물 구간들 — 각 함수는 (F, y, R, hard) → 마지막 발판 높이 (그다음 🪜 사다리 기둥) */
 const TW_SECS={
   steps(F,y,R,h){ const n=5, w=h?1.0:1.25; let yy=y; for(let k=1;k<=n;k++){ yy=y+k*0.62; const u=k*1.5-0.1, ww=(k%2?0.5:-0.5)*(h?1:0.6); twLocalBox(F,u-w/2,u+w/2, ww-w/2,ww+w/2, yy-0.35,yy, "solid", F.col); } return yy; },
-  gaps(F,y,R,h){ const lv=F.lv||0, L=h?0.9-0.22*lv:F.ez?1.55:1.3, g=(7-3*L)/4; let u=1+g, yy=y; for(let k=0;k<3;k++){ yy+=F.ez?0.2:0.3; const ww=(k%2?0.6:-0.6)*(h?1:F.ez?0.25:0.5), wd=h?0.5-0.1*lv:F.ez?0.85:0.65; twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.35,yy, "solid", F.col); u+=L+g; }
+  gaps(F,y,R,h){ const lv=F.lv||0, L=h?0.9-0.22*lv:F.ez?1.55:1.3, g=(7-3*L)/4; let u=1+g, yy=y; for(let k=0;k<3;k++){ yy+=F.ez?0.2:0.3; const ww=(k%2?0.6:-0.6)*(h?1.6:F.ez?0.25:0.5), wd=h?0.5-0.1*lv:F.ez?0.85:0.65; twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.35,yy, "solid", F.col); u+=L+g; }
     twLocalBox(F,7.2,7.95,-0.7,0.7, yy-0.35,yy,"solid",F.col); return yy; },
   lava(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.6,1.6, y-0.55,y-0.3, "kill"); const st=h?0.8-0.18*(F.lv||0):F.ez?1.25:1.0; let yy=y+0.1; [[1.8,-0.5],[3.0,0.6],[4.2,-0.5],[5.4,0.8],[6.6,-0.4]].forEach(([u,w],k)=>{ yy=y+0.1+k*0.18; twLocalBox(F,u-st/2,u+st/2,w-st/2,w+st/2, yy-0.3,yy, "solid", "#5a4a42"); }); twLocalBox(F,7.3,7.95,-0.6,0.6, yy+0.05,yy+0.4,"solid",F.col); return yy+0.4; },
   mover(F,y,R,h){ twLocalBox(F,1.0,2.0,-0.8,0.8, y-0.35,y+0.2,"solid",F.col); const sp=h?1.3+0.7*(F.lv||0):F.ez?0.65:0.9;
@@ -1749,7 +1749,9 @@ const TW_SECS={
   bounce(F,y,R,h){ twLocalBox(F,1.0,3.4,-1,1, y-0.35,y,"solid",F.col); const pad=twLocalBox(F,3.5,4.6,-0.55,0.55, y-0.35,y+0.05,"bounce","#ff4fa3"); pad.pow=h?15.5:16.5;
     const c=F.P(4.05,0); const spr=part(towerG, cyl(0.4,0.4,0.06,16), M(0xffffff), c[0],y+0.08,c[1]); spr.castShadow=false;
     twLocalBox(F,5.6,7.95,-1,1, y+2.7,y+3.05,"solid",F.col); return y+3.05; },
-  conveyor(F,y,R,h){ const s=twLocalBox(F,1.0,7.6,-0.8,0.8, y-0.3,y,"conv","#6b7280"); const pw=(R()<0.5?1:-1)*(h?1.4+0.7*(F.lv||0):1.0); s.push=[F.n[0]*pw, F.n[1]*pw];
+  conveyor(F,y,R,h){ const s=twLocalBox(F,1.0,7.6,-0.8,0.8, y-0.3,y,"conv","#6b7280"); const pw=(R()<0.5?1:-1)*(h?1.4+0.7*(F.lv||0):1.0), back=h?1.5:0; s.push=[F.n[0]*pw-F.d[0]*back, F.n[1]*pw-F.d[1]*back];
+    /* (v471) 사용자: "미는 길은 점프 3번이면 뚫려서 의미 없음" → 어려움: 머리 위 빨간 막대(점프하면 닿음 → 맨 아래/땅) + 뒤로도 밀어서 달려서 버텨야 함 */
+    if(h) [2.3,3.9,5.5].forEach(u=>{ const b=twLocalBox(F,u-0.08,u+0.08,-0.95,0.95, y+1.28,y+1.5,"kill"); b.noJump=1; });
     const sh=new THREE.Shape(); sh.moveTo(0,0.24); sh.lineTo(0.22,-0.1); sh.lineTo(0.07,-0.1); sh.lineTo(0.07,-0.26); sh.lineTo(-0.07,-0.26); sh.lineTo(-0.07,-0.1); sh.lineTo(-0.22,-0.1); sh.lineTo(0,0.24); const ag=new THREE.ShapeGeometry(sh), am=new THREE.MeshBasicMaterial({color:0xffd23f});
     for(let k=0;k<4;k++){ const a=new THREE.Mesh(ag, am), c=F.P(1.8+k*1.7,0); a.rotation.x=-Math.PI/2; a.rotation.z=Math.atan2(-F.n[0]*Math.sign(pw),-F.n[1]*Math.sign(pw)); a.position.set(c[0], y+0.012, c[1]); towerG.add(a); s.arrows=(s.arrows||[]).concat(a); }
     twLocalBox(F,7.4,7.95,-0.7,0.7, y+0.3,y+0.65,"solid",F.col); return y+0.65; },
@@ -1833,7 +1835,7 @@ const TW_SECS={
   /* (v459) 🏝 넓은 땅 — 사용자: "10층/20/30층마다 넓은 땅 · 토네이도식 · 20층쯤에서 떨어지면 10층에 떨어질 수도"
      타워 전체를 덮는 풀밭 (위로 갈수록 조금씩 넓어짐 = 토네이도 모양) · 그 위 층에서 떨어지면 여기로 · 들어오는 🪜 사다리 옆만 구멍 (머리가 안 부딪히게)
      · 낭떠러지 끝에 낮은 울타리 · 아래층에 있을 때는 투명해져서 가리지 않음 */
-  ground(F,y,R,h){ const gi=F.i, Ro=7.6+0.3*Math.floor(gi/10), C=TWC, Fp=twFrame(gi-1), a=Fp.P(7.2,-1.35), b=Fp.P(8.02,1.35), hx0=Math.min(a[0],b[0]), hx1=Math.max(a[0],b[0]), hz0=Math.min(a[1],b[1]), hz1=Math.max(a[1],b[1]);
+  ground(F,y,R,h){ const gi=F.i, Ro=F.smallG?7.0:7.6+0.3*Math.floor(gi/10), C=TWC, Fp=F.prevF||twFrame(gi-1), a=Fp.P(7.2,-1.35), b=Fp.P(8.02,1.35), hx0=Math.min(a[0],b[0]), hx1=Math.max(a[0],b[0]), hz0=Math.min(a[1],b[1]), hz1=Math.max(a[1],b[1]);
     const mat=new THREE.MeshStandardMaterial({color:0x2f9a2c, roughness:.9, emissive:0x0d3a0a, emissiveIntensity:.15, transparent:true, opacity:1}), y0=y-0.4;
     [[C-Ro,hx0,C-Ro,C+Ro],[hx1,C+Ro,C-Ro,C+Ro],[hx0,hx1,C-Ro,hz0],[hx0,hx1,hz1,C+Ro]].forEach(([x0,x1,z0,z1])=>{ if(x1-x0<0.05 || z1-z0<0.05) return; const s=twBox([x0,y0,z0],[x1,y,z1],"solid",null,{ground:gi, noWalk:1}); s.mesh.material=mat; });
     const D=new THREE.Group(); towerG.add(D); const rim=new THREE.MeshStandardMaterial({color:0xfff6e0, roughness:.7, transparent:true, opacity:1});
@@ -1855,7 +1857,7 @@ const TW_SECS={
     twLocalBox(F,7.6,7.95,-0.9,0.9, y-0.05,y+0.3,"solid",F.col); return y+0.3; }
 };
 const TW_EASY=["steps","gaps","lava","mover","fade","bounce","beam","gaps","ice","laser","turn","crumble","brick","door","tiptoe","pend","sweep","sweep3"], TW_HARD=["gaps","lava","mover","spinner","fade","bounce","conveyor","beam","steps","spinner","mover","lava","wall","laser","ice","wall","laser","ghost","brick","crumble","turn","ghost","door","tiptoe","pend","pend","sweep","sweep","sweep3","sweep3"];   /* (v463) 🚪 🦶 🔨 */   /* (v455) 👀 🟥 🍂 🎠 */   /* (v453) 🔤 단어 다리 뺌 · (v454) 🧗 🔴 🧊 */
-const TW_N={easy:10, hard:30, sky:40, kid:30}, TW_GROUND=[9,19,29], TW_GND={sky:[9,19,29], kid:[9,19]};
+const TW_N={easy:10, hard:30, sky:40, kid:30}, TW_GROUND=[9,19,29], TW_GND={sky:[19], kid:[9,19]};   /* (v471) 사용자: "어려움은 층마다 있을 필요 없음 · 20층에 한 번 작게 낙사 막아 주는 게 좋을 듯" */
 /* (v462) 🟢 kid = 쉬움 30층 — 사용자: "쉬움 버전도 30층까지 · 유치부 애들이 어려움 도전하기 전에" · 1~9 = 아주 쉬운 것만(용암·레이저·킬브릭·얼음·무너짐 없음) · 🏝 10층 · 11~30 = 쉬움 전부 · 🏝 20층 */
 const TW_GENTLE=["steps","gaps","mover","bounce","beam","fade","turn","door"];
 /* (v467) 사용자: "쉬움은 조금 더 쉽게 · 초반 진짜 연습하는 것처럼 체크포인트 있게" — 🟢 쉬움 1~10층 = 🚩 연습 구간: 층마다 깃발 = 체크포인트 (떨어지거나 용암이면 마지막 깃발로) · 11층부터는 🏝 땅 (10층 땅도 체크포인트) */
@@ -1866,14 +1868,23 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
       let j, g=0; do{ j=Math.floor(R()*bag.length); g++; }while(g<9 && list.length && bag[j]===list[list.length-1]); list.push(bag.splice(j,1)[0]); } }
   else { let bag=[]; for(let i=0;i<n;i++){ if(!bag.length){ bag=pool.slice(); } let j, g=0; do{ j=Math.floor(R()*bag.length); g++; }while(g<9 && list.length && bag[j]===list[list.length-1]); list.push(bag.splice(j,1)[0]); } }   // 섞어서 차례로 (같은 것 덜 겹치게)
   TW.secs=list; const hardAt=i=>mode==="hard" || (mode==="sky" && i>=10);
+  /* (v471) 사용자: "함정이 하나씩만 나와서 매우 쉽게 느껴짐 · 동선이 짧아" → 🗼 도전 11층부터 한 층 = 장애물 2개, 모서리를 돌아 두 면을 이어 달림 (가운데 모서리 발판은 체크포인트 아님) */
+  TW.secsB=[]; if(mode==="sky"){ let bag=[]; list.forEach((k,i)=>{ if(!hardAt(i) || k==="ground" || k==="wall") return; if(!bag.length) bag=TW_HARD.filter(x=>x!=="wall"); let j, g=0; do{ j=Math.floor(R()*bag.length); g++; }while(g<12 && bag[j]===k); TW.secsB[i]=bag.splice(j,1)[0]; }); }
   const fl=twBox([TWC-9,-0.5,TWC-9],[TWC+9,0,TWC+9],"floor","#7c6cf0"); fl.mesh.material=twMat("#8f84f5",{emissiveIntensity:.05});   // 로비 바닥
-  const F0=twFrame(0); TW.cps.push(twPad(F0, 0.4, 0, false)); let y=0.4; const ys=[0.4];
-  list.forEach((k,i)=>{ const F=twFrame(i); F.i=i; F.col=TCOL[i%10]; F.ez=mode==="kid"; F.easyWall=mode==="sky"; F.lv=mode==="hard" ? i/Math.max(1,n-1) : mode==="sky" && i>=10 ? (i-10)/Math.max(1,n-11) : 0; const a0=TW.S.length; const yEnd=TW_SECS[k](F, y, R, hardAt(i)); try{ twSkin(k, TW.S.slice(a0)); twFloorSign(F, y, k); }catch(e){ console.warn("skin", k, e); } if(k!=="ground") twStarAt(F, y, i); TW.secR.push([a0, TW.S.length]); const Fn=twFrame(i+1);
+  const F0=twFrame(0); TW.cps.push(twPad(F0, 0.4, 0, false)); let y=0.4; const ys=[0.4]; let fi=0; TW.fr=[0]; TW.frEnd=[]; const frTop={};
+  const tag=(a,F)=>{ for(let j=a;j<TW.S.length;j++){ const s=TW.S[j]; if(!s.seg) s.seg=F; if(s.max) frTop[F.fi]=Math.max(frTop[F.fi]==null?-99:frTop[F.fi], s.max.y); } };
+  list.forEach((k,i)=>{ const F=twFrame(fi); F.fi=fi; F.kind=k; if(k==="ground"){ F.prevF=twFrame(TW.frEnd[i-1]!=null?TW.frEnd[i-1]:fi-1); F.smallG=mode==="sky"; } F.i=i; F.col=TCOL[i%10]; F.ez=mode==="kid"; F.easyWall=mode==="sky"||mode==="hard"; F.lv=mode==="hard" ? i/Math.max(1,n-1) : mode==="sky" && i>=10 ? (i-10)/Math.max(1,n-11) : 0; const a0=TW.S.length; let yEnd=TW_SECS[k](F, y, R, hardAt(i)); try{ twSkin(k, TW.S.slice(a0)); twFloorSign(F, y, k); }catch(e){ console.warn("skin", k, e); } if(k!=="ground") twStarAt(F, y, i); tag(a0, F); if(TW.cps[i] && !TW.cps[i].seg) TW.cps[i].seg=F;   /* 층 시작 발판 = 첫 장애물 쪽 */
+    let lastF=fi; const kb=TW.secsB[i];
+    if(kb){ const F2=twFrame(fi+1); F2.fi=fi+1; F2.kind=kb; F2.i=i; F2.col=F.col; F2.ez=F.ez; F2.easyWall=F.easyWall; F2.lv=F.lv; const yc=yEnd+0.02, c0=TW.S.length;
+      const con=twLocalBox(F2,-1.0,1.0,-1.0,1.0, yEnd-0.38, yc, "solid", F.col, {pad:1, conn:1}); con.mesh.material=twMat("#ffffff",{emissiveIntensity:.1});   /* 모서리 이음 발판 (체크포인트 아님) */
+      const b0=TW.S.length; yEnd=TW_SECS[kb](F2, yc, R, true); try{ twSkin(kb, TW.S.slice(b0)); twFloorSign(F2, yc, kb); }catch(e){ console.warn("skin", kb, e); } tag(c0, F2); lastF=fi+1; }
+    TW.secR.push([a0, TW.S.length]); TW.frEnd[i]=lastF; fi=lastF+1; TW.fr[i+1]=fi; const Fn=twFrame(fi);
     /* (v466) 사용자: "하드치고는 레일이 비슷한 길이 같아서 아쉽다" → 🗼 도전 11층부터: 30% = 사다리 없이 모서리를 돌아 바로 이어 달리기(두 층이 한 길) · 15% = 높은 사다리 */
-    const rv=(mode==="sky" && hardAt(i) && k!=="ground" && list[i+1] && list[i+1]!=="ground") ? R() : 1, flat=rv<0.3 && TW.flatAt.indexOf(i)<0 && (i<3 || yEnd-ys[i-2]>=1.8), tall=rv>=0.3 && rv<0.45;   /* 이어 달리기는 두 번 연속 안 함 · 같은 면 아래층(4층 아래)의 끝 사다리보다 1.8 이상 높을 때만 */
+    const rv=1,   /* (v471) 이어 달리기·높은 사다리는 「한 층 = 두 면」으로 바뀜 */ flat=rv<0.3 && TW.flatAt.indexOf(i)<0 && (i<3 || yEnd-ys[i-2]>=1.8), tall=rv>=0.3 && rv<0.45;   /* 이어 달리기는 두 번 연속 안 함 · 같은 면 아래층(4층 아래)의 끝 사다리보다 1.8 이상 높을 때만 */
     if(flat) (TW.flatAt=TW.flatAt||[]).push(i+1);
     const yp=flat ? yEnd+0.02 : Math.max(y+1.2, yEnd+(k==="ground" ? 2.6 : list[i+1]==="ground" ? 2.8 : tall ? 3.4 : hardAt(i)?2.2:mode==="kid"?1.5:1.7));   /* (v463) 🏝 땅 바로 위 층도 머리 위 여유 (용암 판이 머리에 닿지 않게) */   // 🪜 사다리로 올라가는 만큼 (🏝 땅 바로 아래 층은 머리 위가 넉넉하게)
-    TW.cps.push(twPad(Fn, yp, i+1, i===n-1, yEnd-0.4)); y=yp; ys.push(y); });
+    let yq=yp; if(mode==="sky") [fi-4, fi-3].forEach(f=>{ if(frTop[f]!=null) yq=Math.max(yq, frTop[f]+2.9); });   /* 같은 면 아래층과 머리 위 여유 */
+    TW.cps.push(twPad(Fn, yq, i+1, i===n-1, yEnd-0.4)); y=yq; ys.push(y); });
   TW.top=TW.cps[TW.cps.length-1]; TW.hy=y; TW.ys=ys;
   // 가운데 네온 기둥 (부딪힘 상자 하나 + 층마다 색 띠)
   twBox([TWC-TCORE,-0.5,TWC-TCORE],[TWC+TCORE,y+3,TWC+TCORE],"solid",null).mesh.visible=false;
@@ -1894,7 +1905,7 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
 function towerAsk(){ const r=TW.rec[dayKey()]||{}, b=k=>r[k]&&r[k].best ? '🏆 '+twTime(r[k].best) : '';
   info('<div class="iBig">🗼</div><b>오늘의 하늘 타워</b><br><small>날마다 바뀌어요 · 꼭대기까지 올라가요!</small>'
     +'<div class="twPick"><button class="btn" id="twK">🟢 쉬움 <small>'+TW_N.kid+'층 · 1~10층 🚩 연습(체크포인트) '+b("kid")+'</small></button><button class="btn on" id="twS">🗼 도전 <small>'+TW_N.sky+'층 · 올라갈수록 어려워요 '+b("sky")+'</small></button></div>'
-    +'<div class="twBd" id="twBd">'+twBoard()+'</div><small>🏝 10층마다 넓은 땅 (위에서 떨어지면 여기로) · 🚫 체크포인트 없음<br>🔥 용암·레이저에 닿으면 아래 🏝 땅부터 · 👥 지금 타워에 있는 친구들이 같이 보여요</small>', "나중에", null); twBoardLoad();
+    +'<div class="twBd" id="twBd">'+twBoard()+'</div><small>🏝 넓은 땅 (쉬움 10·20층 · 도전 20층) — 위에서 떨어지면 여기로 · 🚫 체크포인트 없음<br>🔥 용암·레이저에 닿으면 아래 🏝 땅부터 · 👥 지금 타워에 있는 친구들이 같이 보여요</small>', "나중에", null); twBoardLoad();
   setTimeout(()=>{ const s=$("twS"), k=$("twK"); if(s) s.onclick=()=>{ $("info").classList.remove("on"); twEnterGo("sky"); }; if(k) k.onclick=()=>{ $("info").classList.remove("on"); twEnterGo("kid"); }; }, 0); }
 function towerGo(){ if(F.st!=="idle" || trip.busy) return; walkTo(TW_DOOR[0], TW_DOOR[1], ()=>{ hero.face=Math.PI; towerAsk(); }); }
 function twEnterGo(mode){ TW.mode=mode; go("tower", [6,6], ()=>{ twBuild(mode); }); }
@@ -1902,18 +1913,19 @@ function twEnter(){ TW.on=true; TW.fin=false; TW.cp=0; TW.best=0; TW.wallTold=0;
   twRespawn(true); TW.yaw=TW.yawTo; TW.camY=TW.p.y; TW.pit=0.42; TW.camD=null; TW.snap=0; $("twUI").classList.add("on"); document.body.classList.add("twOn"); twJoyHome(); twHud(); camera.fov=50; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){}
   { const hc=$("twHelpCp"); if(hc) hc.textContent = TW.mode==="kid" ? "🚩 1~9층 깃발 = 체크포인트 (떨어지면 깃발에서) · 10층부터 🏝 땅" : "🚫 체크포인트 없음 — 떨어지면 거기서 다시 · 🔥 용암은 아래 🏝 땅으로!"; }
   $("twUI").classList.add("help"); clearTimeout(twEnter._h); twEnter._h=setTimeout(()=>$("twUI").classList.remove("help"), 7000);
-  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="sky"?TW_N.sky+"층 · 🏝 10·20·30층 넓은 땅":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층 · 1~10층은 🚩 연습 (깃발 = 체크포인트)":TW.mode==="hard"?"🔴 어려움 "+TW_N.hard+"층":"🟢 쉬움 "+TW_N.easy+"층")+"<br><small>"+(TW.mode==="kid"?"🚩 깃발에 닿으면 체크포인트 · 떨어지면 깃발에서 다시":"🚫 체크포인트 없음 · 떨어지면 거기서 다시!")+"</small>", 2600); TW.gSeen={}; tEv("tower"); try{ twNetStart(); }catch(e){} }
+  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="sky"?TW_N.sky+"층 · 11층부터 한 층에 장애물 2개 · 🏝 20층 넓은 땅":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층 · 1~10층은 🚩 연습 (깃발 = 체크포인트)":TW.mode==="hard"?"🔴 어려움 "+TW_N.hard+"층":"🟢 쉬움 "+TW_N.easy+"층")+"<br><small>"+(TW.mode==="kid"?"🚩 깃발에 닿으면 체크포인트 · 떨어지면 깃발에서 다시":"🚫 체크포인트 없음 · 떨어지면 거기서 다시!")+"</small>", 2600); TW.gSeen={}; tEv("tower"); try{ twNetStart(); }catch(e){} }
 function twExit(){ try{ twHiSave(); }catch(e){} try{ twNetStop(); }catch(e){} $("twEmoBar").classList.remove("on"); TW.on=false; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
 function twLeave(){ if(!TW.on) return; go("village", [TW_DOOR[0], TW_DOOR[1]]); }
 /* ── 몸 ── */
 function twRespawn(first){ const c=TW.cps[TW.cp]||TW.cps[0], ctr=c.mesh.position; TW.p.set(ctr.x, c.max.y+0.001, ctr.z); TW.v.set(0,0,0); TW.onG=true; TW.gnd=c; TW.coy=0; TW.buf=0; TW.climb=false;
-  hero.g.position.copy(TW.p); { const d=TDIR[TW.cp%4]; hero.face=Math.atan2(d[0],d[1]); hero.g.rotation.y=hero.face; } if(!first){ TW.dead++; try{ SND.plop(); }catch(e){} TW.flash=0.5; }
-  TW.side=twFrame(TW.cp).n.slice(); { const d=TDIR[TW.cp%4]; TW.yawTo=Math.atan2(-d[0],-d[1]); if(!TW.bot){ TW.snap=1; if(first) TW.yaw=TW.yawTo; } } }
+  hero.g.position.copy(TW.p); { const d=TDIR[twFi(TW.cp)%4]; hero.face=Math.atan2(d[0],d[1]); hero.g.rotation.y=hero.face; } if(!first){ TW.dead++; try{ SND.plop(); }catch(e){} TW.flash=0.5; }
+  TW.side=twFrame(twFi(TW.cp)).n.slice(); { const d=TDIR[twFi(TW.cp)%4]; TW.yawTo=Math.atan2(-d[0],-d[1]); if(!TW.bot){ TW.snap=1; if(first) TW.yaw=TW.yawTo; } } }
 /* (v453) 🔥 용암·🌀 막대 = 맨 아래 1층부터 (체크포인트 없음) · 🤖 시험 선수는 예전처럼 층 발판 */
 /* (v459) 🏝 내 발 아래에서 가장 높은 넓은 땅 (sky 만) — 용암·레이저·🚩 = 거기부터 (없으면 맨 아래) */
 function twGroundBelow(){ let c=0; const GL=TW_GND[TW.mode]; if(!GL) return 0; GL.forEach(gi=>{ const p=TW.cps[gi]; if(p && TW.secs[gi]==="ground" && TW.p.y>=p.max.y-0.3) c=gi; }); return c; }
 /* (v467) 다시 시작할 발판 — 🏝 내 아래 땅 · 🟢 쉬움이면 연습 구간 🚩 마지막 깃발(1~10층)도 */
 function twSafeIdx(){ let gi=twGroundBelow(); if(TW.mode==="kid") gi=Math.max(gi, Math.min(TW.cp|0, TW_PRACTICE)); return gi; }
+function twFi(i){ return (TW.fr && TW.fr[i]!=null) ? TW.fr[i] : i; }   /* (v471) 층 → 첫 면 번호 */
 function twDie(msg){ if(TW.bot){ twRespawn(); return; } const keep=TW.cp, gi=twSafeIdx(), flag=TW.mode==="kid" && gi>0 && gi<=TW_PRACTICE && TW.secs[gi]!=="ground"; TW.cp=gi; twRespawn(); TW.cp=keep; TW.lastGY=null;
   if(msg!=null) toast((msg?msg+" ":"")+(flag?"<b>🚩 "+(gi+1)+"층 깃발</b>":gi?"<b>🏝 "+(gi+1)+"층 땅</b>":"<b>맨 아래</b>")+"부터 다시!", 1500); }
 function twGroundHit(gi){ if(TW.bot || (TW.gSeen=TW.gSeen||{})[gi]) return; TW.gSeen[gi]=1; const d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}), L=m.gd||(m.gd=[]); let gem=0; if(L.indexOf(gi)<0){ L.push(gi); gem=2; gems+=2; saveBag(); store("hyeng_proto_tower", TW.rec); }
@@ -1986,7 +1998,7 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
     if(g.kind==="floor" && TW.cp>0 && TW.bot){ twRespawn(); return; }
     if(g.ground!=null) twGroundHit(g.ground);
     if((g.kind==="cp"||g.kind==="top") && g.i>TW.cp){ TW.cp=g.i; if(g.flag) g.flag.material.color.setHex(0xffd23f); try{ SND.sparkle(); }catch(e){}
-      if(g.kind==="top") twWin(); else if(TW.mode==="kid" && !TW.bot && g.i<=TW_PRACTICE && TW.secs[g.i]!=="ground") toast("🚩 <b>체크포인트!</b> "+(g.i+1)+"층 — 떨어져도 여기서 다시<br><small>"+TW_NM[TW.secs[g.i]]+"</small>", 1700); else if(TW.bot || g.i>(TW.best|0)) toast("⬆️ <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); TW.best=Math.max(TW.best|0, g.i); twHud(); TW.side=twFrame(g.i).n.slice(); }
+      if(g.kind==="top") twWin(); else if(TW.mode==="kid" && !TW.bot && g.i<=TW_PRACTICE && TW.secs[g.i]!=="ground") toast("🚩 <b>체크포인트!</b> "+(g.i+1)+"층 — 떨어져도 여기서 다시<br><small>"+TW_NM[TW.secs[g.i]]+"</small>", 1700); else if(TW.bot || g.i>(TW.best|0)) toast("⬆️ <b>"+(g.i+1)+"층</b> "+TW_NM[TW.secs[g.i]], 1600); TW.best=Math.max(TW.best|0, g.i); twHud(); TW.side=twFrame(twFi(g.i)).n.slice(); }
     /* (v453) 높은 데서 뚝 떨어져 내려앉음 = ⬇️ (체크포인트 없음 — 거기서 다시 올라가요) */
     if(!TW.bot){ if(TW.lastGY!=null && TW.lastGY-g.max.y>2.2){ TW.fall++; if(performance.now()-(TW.fallT||0)>2500){ TW.fallT=performance.now(); toast("⬇️ 앗! 떨어졌어요 — 여기서 다시 올라가요", 1300); try{ SND.plop(); }catch(e){} try{ twEmote("😱"); }catch(e){} } } TW.lastGY=g.max.y; }
   }
@@ -2020,7 +2032,7 @@ function twWin(){ if(TW.fin) return; TW.fin=true; try{ twHiSave(); twEmote("🎉
 function twConfetti(){ const c=TW.top.mesh.position; for(let k=0;k<40;k++){ const m=new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), new THREE.MeshBasicMaterial({color:new THREE.Color(TCOL[k%10]), side:THREE.DoubleSide})); m.position.set(c.x+rnd(-0.5,0.5), TW.top.max.y+0.5, c.z+rnd(-0.5,0.5)); m.userData.v=new THREE.Vector3(rnd(-2.5,2.5), rnd(4,8), rnd(-2.5,2.5)); m.userData.shard=1; towerG.add(m); } }
 const twTime=s=>{ s=Math.max(0,s); const m=Math.floor(s/60), ss=s-m*60; return m+":"+(ss<10?"0":"")+ss.toFixed(1); };
 function twFloorAt(){ const ys=TW.ys||[]; let f=0; for(let i=0;i<ys.length-1;i++) if(TW.p.y>=ys[i]-0.35) f=i; return f; }   /* (v453) 지금 몸 높이의 층 (0부터) */
-function twHud(){ const n=TW.cps.length-1, f=TW.bot ? TW.cp : twFloorAt(); $("twFloor").textContent=Math.min(f+(TW.fin?0:1), n)+" / "+n+"층"; $("twSec").textContent=TW.fin?"🏆 꼭대기!":(TW_NM[TW.secs[f]]||"")+((TW.starN|0)?"  ⭐"+TW.starN:""); { const pe=$("twPeers"); if(pe){ const k=twNetCount(); pe.textContent="👥 "+k; pe.classList.toggle("on", k>0); } } $("twBar").style.height=Math.round(Math.max(0,Math.min(1,(TW.p.y)/(TW.hy||1)))*100)+"%"; }
+function twHud(){ const n=TW.cps.length-1, f=TW.bot ? TW.cp : twFloorAt(); $("twFloor").textContent=Math.min(f+(TW.fin?0:1), n)+" / "+n+"층"; $("twSec").textContent=TW.fin?"🏆 꼭대기!":(TW_NM[TW.secs[f]]||"")+(TW.secsB&&TW.secsB[f]?" + "+(TW_NM[TW.secsB[f]]||"").split(" ")[0]:"")+((TW.starN|0)?"  ⭐"+TW.starN:""); { const pe=$("twPeers"); if(pe){ const k=twNetCount(); pe.textContent="👥 "+k; pe.classList.toggle("on", k>0); } } $("twBar").style.height=Math.round(Math.max(0,Math.min(1,(TW.p.y)/(TW.hy||1)))*100)+"%"; }
 /* 카메라 — 바깥 옆에서 멀리 (내가 끌면 돌림 · 2.5초 뒤 그 면으로) · 화면이 좁으면 더 멀리 (발판 7칸이 보이게) */
 /* (v435) 🎥 뒤에서 따라가는 카메라 (로블록스 타워처럼) — 사용자: "카메라가 저절로 돈다 · 뒤에서 따라가기"
    · 돌리기는 손으로만(오른쪽이든 어디든 끌기: 좌우 = 돌리기, 위아래 = 높이) · 다시 시작(🚩·떨어짐)할 때만 가는 쪽 뒤로 맞춤

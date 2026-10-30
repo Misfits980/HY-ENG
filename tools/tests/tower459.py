@@ -52,7 +52,7 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
         T._wd=[dx,dz]; } }
     if(T.onG && T.gnd && T.gnd.ground!=null && (dx||dz)){ const C=6, ax=p.x-C, az=p.z-C, bx=cx-C, bz=cz-C; let hit=false; for(let q=0;q<=20;q++){ const x=ax+(bx-ax)*q/20, z=az+(bz-az)*q/20; if(Math.abs(x)<2.75 && Math.abs(z)<2.75) hit=true; }   // (v463) 🏝 땅 위: 가운데 기둥을 돌아서
       if(hit){ const a1=Math.atan2(az,ax), a2=Math.atan2(bz,bx); let da=((a2-a1+Math.PI*3)%(Math.PI*2))-Math.PI; const sg=da>=0?1:-1, r=Math.hypot(ax,az), tx=-az*sg/r, tz=ax*sg/r, out=(r<3.6?0.5:0); dx=tx+ax/r*out; dz=tz+az/r*out; const q=Math.hypot(dx,dz); dx/=q; dz/=q; } }
-    if(T.secs[sec]==="sweep" && T.onG && T.gnd && T.gnd.kind!=="floor"){ const S=T.S.slice(T.secR[sec][0],T.secR[sec][1]), sw=S.find(s=>s.kind==="sweep"), SL=S.filter(s=>s.kind==="solid" && !s.noWalk);   // (v464) 🕐 입구 → (바늘이 멀 때) 가운데 → (바늘이 멀 때) 출구
+    if((T.secs[sec]==="sweep" || (T.secsB&&T.secsB[sec]==="sweep")) && T.onG && T.gnd && T.gnd.kind!=="floor"){ const S0=T.S.slice(T.secR[sec][0],T.secR[sec][1]), sw0=S0.find(s=>s.kind==="sweep" && (!s.seg || !s.seg.kind || s.seg.kind==="sweep")), S=sw0 ? S0.filter(s=>s.seg===sw0.seg && !s.conn) : [], SL=S.filter(s=>s.kind==="solid" && !s.noWalk), sw=(sw0 && (!sw0.seg || !T.gnd.seg || T.gnd.seg===sw0.seg)) ? sw0 : null;   // (v464) 🕐 입구 → (바늘이 멀 때) 가운데 → (바늘이 멀 때) 출구
       if(sw && Math.abs(p.y-sw.y0)<1.0){ const C=sw.c, rC=Math.hypot(p.x-C[0],p.z-C[1]), arr=ph=>{ const a=-sw.mesh.rotation.y, M=sw.len2>0?Math.PI:Math.PI*2, d=sw.sp>0?(((a-ph)%M)+M)%M:(((ph-a)%M)+M)%M; return d/Math.abs(sw.sp); }, ok=ph=>{ const M=(sw.len2>0?Math.PI:Math.PI*2)/Math.abs(sw.sp), t0=arr(ph); return t0>0.5 && M-t0>0.3; };
         const ex=SL[2], exC=[(ex.min.x+ex.max.x)/2,(ex.min.z+ex.max.z)/2], exAng=Math.atan2(exC[1]-C[1],exC[0]-C[0]), toEx=((p.x-C[0])*(exC[0]-C[0])+(p.z-C[1])*(exC[1]-C[1]))>0;
         let goal=null, safe=true;
@@ -61,14 +61,14 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
         else if(T.gnd===SL[1] && rC<=0.28){ goal=exC; safe=ok(exAng); }
         else if(T.gnd===SL[1]){ goal=exC; }
         if(goal){ const gx=goal[0]-p.x, gz=goal[1]-p.z, q=Math.hypot(gx,gz)||1; if(safe && q>0.05){ dx=gx/q; dz=gz/q; } else { dx=dz=0; } T.buf=0; } } }
-    if(T.secs[sec]==="sweep3" && T.onG && T.gnd && T.gnd.kind!=="floor"){ const S=T.S.slice(T.secR[sec][0],T.secR[sec][1]), SW=S.filter(s=>s.kind==="sweep"), d=H.TDIR[sec%4];   // (v465) 🕐🕐🕐 앞 바늘 가운데 → (세 바늘 모두 멀 때) 뒤 두 바늘 사이 → 출구
+    if((T.secs[sec]==="sweep3" || (T.secsB&&T.secsB[sec]==="sweep3")) && T.onG && T.gnd && T.gnd.kind!=="floor"){ const S=T.S.slice(T.secR[sec][0],T.secR[sec][1]), SW=S.filter(s=>s.kind==="sweep" && (!s.seg || !s.seg.kind || s.seg.kind==="sweep3")), d=(SW[0]&&SW[0].seg)?SW[0].seg.d:H.TDIR[sec%4]; if(SW[0] && SW[0].seg && T.gnd.seg && T.gnd.seg!==SW[0].seg) SW.length=0;   // (v465) 🕐🕐🕐 앞 바늘 가운데 → (세 바늘 모두 멀 때) 뒤 두 바늘 사이 → 출구
       const A=SW[0], B=SW[1], Cc=SW[2]; if(A && Math.abs(p.y-A.y0)<1.0){ const arr=(sw,ph)=>{ const a=-sw.mesh.rotation.y, M=Math.PI*2, dd=sw.sp>0?(((a-ph)%M)+M)%M:(((ph-a)%M)+M)%M; return dd/Math.abs(sw.sp); }, ok=(sw,ph,tm)=>{ const M=Math.PI*2/Math.abs(sw.sp), t0=arr(sw,ph); return t0>tm && M-t0>0.3; }, ang=(c,q)=>Math.atan2(q[1]-c[1],q[0]-c[0]);
         const G=[(B.c[0]+Cc.c[0])/2,(B.c[1]+Cc.c[1])/2], al=q=>(q[0]-p.x)*d[0]+(q[1]-p.z)*d[1], rA=Math.hypot(p.x-A.c[0],p.z-A.c[1]); let goal=null, safe=true;
         if(rA<=0.28){ goal=[G[0]+d[0]*1.3, G[1]+d[1]*1.3]; safe=ok(A,ang(A.c,G),0.5) && ok(B,ang(B.c,G),0.95) && ok(Cc,ang(Cc.c,G),0.95); }
         else if(al(A.c)>0.05){ goal=A.c; safe=rA<1.45 || ok(A,ang(A.c,[p.x,p.z]),0.55); }
         else if(al(G)>-1.0){ goal=[G[0]+d[0]*1.3, G[1]+d[1]*1.3]; }
         if(goal){ const gx=goal[0]-p.x, gz=goal[1]-p.z, q=Math.hypot(gx,gz)||1; if(safe && q>0.05){ dx=gx/q; dz=gz/q; } else { dx=dz=0; } T.buf=0; } } }
-    if(T.secs[sec]==="door" && T.onG && T.gnd && T.gnd.kind!=="floor"){ const d=H.TDIR[sec%4], D=T.S.slice(T.secR[sec][0],T.secR[sec][1]).filter(s=>s.kind==="door" && s.fake).map(s=>{ const cx=(s.min.x+s.max.x)/2, cz=(s.min.z+s.max.z)/2, al=(cx-p.x)*d[0]+(cz-p.z)*d[1], lx=cx-p.x-d[0]*al, lz=cz-p.z-d[1]*al; return {cx,cz,al,lat:Math.hypot(lx,lz),lx,lz}; }).filter(o=>o.al>-0.15);   // (v463) 🚪 가짜 문 쪽으로
+    if((T.secs[sec]==="door" || (T.secsB&&T.secsB[sec]==="door")) && T.onG && T.gnd && T.gnd.kind!=="floor" && (()=>{ const dd=T.S.slice(T.secR[sec][0],T.secR[sec][1]).find(s=>s.kind==="door"); return !dd || !dd.seg || !T.gnd.seg || T.gnd.seg===dd.seg; })()){ const d0=T.S.slice(T.secR[sec][0],T.secR[sec][1]).find(s=>s.kind==="door"), d=(d0&&d0.seg)?d0.seg.d:H.TDIR[sec%4], D=T.S.slice(T.secR[sec][0],T.secR[sec][1]).filter(s=>s.kind==="door" && s.fake).map(s=>{ const cx=(s.min.x+s.max.x)/2, cz=(s.min.z+s.max.z)/2, al=(cx-p.x)*d[0]+(cz-p.z)*d[1], lx=cx-p.x-d[0]*al, lz=cz-p.z-d[1]*al; return {cx,cz,al,lat:Math.hypot(lx,lz),lx,lz}; }).filter(o=>o.al>-0.15);   // (v463) 🚪 가짜 문 쪽으로
       if(D.length){ const a0=Math.min(...D.map(o=>o.al)), o=D.filter(o=>o.al<a0+0.3).sort((x,y)=>x.lat-y.lat)[0]; if(o.lat>0.12 && o.al<0.75){ dx=o.lx/o.lat; dz=o.lz/o.lat; } else { const ex=o.cx+d[0]*0.6-p.x, ez=o.cz+d[1]*0.6-p.z, q=Math.hypot(ex,ez)||1; dx=ex/q; dz=ez/q; } T.buf=0; } }
     for(const s of T.S){ if(s.kind!=="pend" || s.bx==null || !T.onG || Math.abs(p.y-(s.py-3.4))>1.2) continue; const al=(s.G.position.x-p.x)*s.F.d[0]+(s.G.position.z-p.z)*s.F.d[1]; if(al>0.75 && al<1.45){ const wb=Math.sin(s.th)*s.L; if(!(Math.abs(wb)>0.95 && wb*s.vth>0)){ dx=dz=0; T.buf=0; } } }   // (v463) 🔨 공이 멀어질 때 지나감
     T.inp.x=dx; T.inp.y=-dz; H.twStep(dt);
@@ -110,24 +110,24 @@ async def main():
         ok(r[0] == "sky" and r[1] == 40 and r[2].startswith("1 / 40") and r[3] == "s", f"40층 · 1 / 40층 · 친구 보기 경로 따로(s) {r}")
         # ②
         r = await E("""()=>{ const T=HOUSE.TW, E0=["steps","gaps","lava","mover","fade","bounce","beam","ice","laser","turn","crumble","brick","door","tiptoe","pend","sweep","sweep3"], out=[];
-            for(let d=1; d<=6; d++){ T.seed='2026-11-'+d; HOUSE.twBuild('sky'); const s=T.secs; out.push([s.length, s[9], s[19], s[29], s.slice(0,9).every(k=>E0.includes(k)), s.filter(k=>k==='ground').length, T.ys.every((y,i)=>!i || y>T.ys[i-1])]); }
+            for(let d=1; d<=6; d++){ T.seed='2026-11-'+d; HOUSE.twBuild('sky'); const s=T.secs; out.push([s.length, s[19], s.slice(0,9).every(k=>E0.includes(k)), s.filter(k=>k==='ground').length, T.ys.every((y,i)=>!i || y>T.ys[i-1]), T.secsB.slice(10).filter((b,j)=>b && s[10+j]!=='ground' && s[10+j]!=='wall').length]); }
             T.seed='2026-11-01'; HOUSE.twBuild('sky'); const a=T.secs.join()+T.hy.toFixed(2); HOUSE.twBuild('sky'); return [out, a===T.secs.join()+T.hy.toFixed(2), +T.hy.toFixed(1)]; }""")
-        ok(all(x[0] == 40 and x[1] == x[2] == x[3] == "ground" and x[4] and x[5] == 3 and x[6] for x in r[0]) and r[1], f"1~9 쉬움 · 10·20·30 🏝 · 높이 계속 올라감 · 같은 날 같음 (6일) 높이 {r[2]} {r[0][:2]}")
+        ok(all(x[0] == 40 and x[1] == "ground" and x[2] and x[3] == 1 and x[4] and x[5] == 28 for x in r[0]) and r[1], f"(v471) 1~9 쉬움 · 🏝 땅은 20층 하나 · 11층부터 한 층 = 장애물 2개(28층) · 높이 계속 올라감 · 같은 날 같음 (6일) 높이 {r[2]} {r[0][:2]}")
         # ③ 땅
         r = await E("""()=>{ const T=HOUSE.TW; T.seed='2026-10-30'; HOUSE.twBuild('sky'); const G=T.grounds, sz=G.map(g=>{ const L=T.S.filter(s=>s.ground===g.gi); return +(Math.max(...L.map(s=>s.max.x))-Math.min(...L.map(s=>s.min.x))).toFixed(1); });
             return [G.map(g=>g.gi), sz, G.map(g=>+(g.y-T.cps[g.gi].max.y).toFixed(2))]; }""")
-        ok(r[0] == [9, 19, 29] and r[1][0] < r[1][1] < r[1][2] and r[1][0] > 14.5 and r[2] == [0, 0, 0], f"🏝 땅 3개 · 위로 갈수록 넓어짐(토네이도) · 땅 높이 = 그 층 발판 {r}")
+        ok(r[0] == [19] and 13.5 < r[1][0] < 14.5 and r[2] == [0], f"(v471) 🏝 땅 = 20층 하나 · 작게(14) · 땅 높이 = 그 층 발판 {r}")
         # 위층(15층쯤) 바깥에서 떨어짐 → 🏝 10층 땅
-        r = await E("""()=>{ const T=HOUSE.TW; T.bot=false; T.on=true; T.fin=false; T.gSeen={}; T.cp=14; HOUSE.setGems(0); const G=T.grounds[0], C=6; let res=[];
-            const y0=T.ys[14]+0.5, free=[]; for(let a=0;a<64 && free.length<4;a++){ const ang=a/64*Math.PI*2+0.05, dx=Math.cos(ang)*6.9, dz=Math.sin(ang)*6.9, x=C+dx, z=C+dz; if(!T.S.some(s=>s.min && s.ground==null && s.kind!=='floor' && x+0.3>s.min.x && x-0.3<s.max.x && z+0.3>s.min.z && z-0.3<s.max.z && s.max.y>G.y+0.01 && s.min.y<y0+2)) free.push([dx,dz]); }
-            for(const [dx,dz] of free){ T.p.set(C+dx, T.ys[14]+0.5, C+dz); T.v.set(0,0,0); T.lastGY=null; T.onG=false; T.gnd=null; let n=0; HOUSE.twStep(1/90); while(!(T.onG) && n<900){ HOUSE.twStep(1/90); n++; }
+        r = await E("""()=>{ const T=HOUSE.TW; T.bot=false; T.on=true; T.fin=false; T.gSeen={}; T.cp=24; HOUSE.setGems(0); const G=T.grounds[0], C=6; let res=[];
+            const y0=T.ys[24]+0.5, free=[]; for(let a=0;a<64 && free.length<4;a++){ const ang=a/64*Math.PI*2+0.05, dx=Math.cos(ang)*6.9, dz=Math.sin(ang)*6.9, x=C+dx, z=C+dz; if(!T.S.some(s=>s.min && s.ground==null && s.kind!=='floor' && x+0.3>s.min.x && x-0.3<s.max.x && z+0.3>s.min.z && z-0.3<s.max.z && s.max.y>G.y+0.01 && s.min.y<y0+2)) free.push([dx,dz]); }
+            for(const [dx,dz] of free){ T.p.set(C+dx, T.ys[24]+0.5, C+dz); T.v.set(0,0,0); T.lastGY=null; T.onG=false; T.gnd=null; let n=0; HOUSE.twStep(1/90); while(!(T.onG) && n<900){ HOUSE.twStep(1/90); n++; }
               res.push([T.gnd && T.gnd.ground, +(T.p.y-G.y).toFixed(2)]); } return [res, HOUSE.gems(), document.getElementById('toast').innerText]; }""")
-        ok(len(r[0]) >= 3 and all(x[0] == 9 and abs(x[1]) < 0.03 for x in r[0]) and r[1] == 2 and "10층 넓은 땅" in r[2], f"15층 바깥에서 뚝 → 🏝 10층 땅에 내려앉음 (4쪽) · 💎 +2 처음만 {r}")
+        ok(len(r[0]) >= 3 and all(x[0] == 19 and abs(x[1]) < 0.03 for x in r[0]) and r[1] == 2 and "20층 넓은 땅" in r[2], f"25층 바깥에서 뚝 → 🏝 20층 땅에 내려앉음 · 💎 +2 처음만 {r}")
         await pg.wait_for_timeout(300); await pg.screenshot(path=OUT + "tower459_ground.png")
         # 밑에서는 투명
-        r = await E("""()=>{ const T=HOUSE.TW, G=T.grounds[0], c=T.cps[5]; T.p.set((c.min.x+c.max.x)/2, c.max.y+0.01, (c.min.z+c.max.z)/2); T.v.set(0,0,0); HOUSE.twStep(1/90); const lo=G.mat.opacity;
-            const g=T.cps[9]; T.p.set((g.min.x+g.max.x)/2, g.max.y+0.01, (g.min.z+g.max.z)/2); HOUSE.twStep(1/90); return [lo, G.mat.opacity, G.D.visible]; }""")
-        ok(r[0] < 0.3 and r[1] == 1 and r[2], f"6층에서 = 땅이 비침 · 땅 위 = 보임 {r}")
+        r = await E("""()=>{ const T=HOUSE.TW, G=T.grounds[0], c=T.cps[15]; T.p.set((c.min.x+c.max.x)/2, c.max.y+0.01, (c.min.z+c.max.z)/2); T.v.set(0,0,0); HOUSE.twStep(1/90); const lo=G.mat.opacity;
+            const g=T.cps[19]; T.p.set((g.min.x+g.max.x)/2, g.max.y+0.01, (g.min.z+g.max.z)/2); HOUSE.twStep(1/90); return [lo, G.mat.opacity, G.D.visible]; }""")
+        ok(r[0] < 0.3 and r[1] == 1 and r[2], f"16층에서 = 땅이 비침 · 땅 위 = 보임 {r}")
         await pg.wait_for_timeout(300); await pg.screenshot(path=OUT + "tower459_onground.png")
         # ④ 레이저 · 🚩
         r = await E("""()=>{ const T=HOUSE.TW; T.bot=false; const c=T.cps[24]; T.p.set((c.min.x+c.max.x)/2, c.max.y+0.01, (c.min.z+c.max.z)/2); T.v.set(0,0,0); HOUSE.twStep(1/90); T.cp=24;

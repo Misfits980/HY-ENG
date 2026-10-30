@@ -57,14 +57,14 @@ async def main():
             T.bot=false; return [SW.length, out, tri, Math.sign(SW[0].sp)!==Math.sign(SW[1].sp)]; }""")
         ok(r[0] == 3 and max(r[1]) < 0.01 and abs(r[2][0] - r[2][2]) < 0.01 and r[3], f"🕐🕐🕐 바늘 3개 · 삼각형(앞 1·뒤 2) · 뒤 두 바늘은 거울처럼 · 앞과 뒤는 반대로 {r}")
         # (v466) 둥근 시계판만 · 🗼 도전 층 길이 들쭉날쭉
-        r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<80; d++){ T.seed='2027-08-'+d; HOUSE.twBuild('sky'); if(T.secs.includes('sweep3')) break; } const i=T.secs.indexOf('sweep3'), y=T.ys[i]; T.bot=true;
-            const R=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.rnd), A=R[0], c=[A.rnd[0],A.rnd[1]], r=A.rnd[2], d=HOUSE.TDIR[i%4], n=[-d[1],d[0]];
+        r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<80; d++){ T.seed='2027-08-'+d; HOUSE.twBuild('sky'); if(T.secs.includes('sweep3')||T.secsB.includes('sweep3')) break; } const i=T.secs.indexOf('sweep3')>=0?T.secs.indexOf('sweep3'):T.secsB.indexOf('sweep3'); T.bot=true;
+            const R=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.rnd && s.seg && s.seg.kind==='sweep3'), A=R[0], c=[A.rnd[0],A.rnd[1]], r=A.rnd[2], d=A.seg.d, n=[-d[1],d[0]]; const y=A.max.y;
             const drop=(k)=>{ T.S.forEach(s=>{ if(s.kind==='sweep') s.hitT=99; }); T.p.set(c[0]+n[0]*r*k*0.7071-d[0]*r*k*0.7071, y+0.3, c[1]+n[1]*r*k*0.7071-d[1]*r*k*0.7071); T.v.set(0,0,0); T.onG=false; for(let q=0;q<40;q++) HOUSE.twStep(1/90); return +(T.p.y-y).toFixed(2); };
-            const inn=drop(0.8), out=drop(1.25); const sq=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='solid' && !s.rnd && !s.noWalk).map(s=>+((s.max.x-s.min.x)*(s.max.z-s.min.z)).toFixed(1));
-            const fl=[], rise=[]; for(let dd=1; dd<=8; dd++){ T.seed='2027-10-'+dd; HOUSE.twBuild('sky'); fl.push(T.flatAt.length); for(let j=11;j<T.ys.length;j++) rise.push(+(T.ys[j]-T.ys[j-1]).toFixed(1)); }
+            const inn=drop(0.8), out=drop(1.25); const sq=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='solid' && !s.rnd && !s.noWalk && !s.conn && s.seg===A.seg).map(s=>+((s.max.x-s.min.x)*(s.max.z-s.min.z)).toFixed(1));
+            const fl=[], rise=[]; for(let dd=1; dd<=8; dd++){ T.seed='2027-10-'+dd; HOUSE.twBuild('sky'); fl.push(T.secsB.filter(Boolean).length); for(let j=11;j<T.ys.length;j++) rise.push(+(T.ys[j]-T.ys[j-1]).toFixed(1)); }
             T.bot=false; return [R.length, inn, out, sq, fl, Math.min(...rise), Math.max(...rise)]; }""")
         ok(r[0] == 3 and abs(r[1]) < 0.05 and r[2] < -0.5 and max(r[3]) < 4.5, f"🕐🕐🕐 둥근 판 3개만 (네모 판 없음) · 판 안 = 서 있음 · 둥근 판 밖(네모였으면 서 있던 곳) = 떨어짐 {r[:4]}")
-        ok(all(x >= 3 for x in r[4]) and r[5] < 0.6 and r[6] > 3.0, f"🗼 도전 11층부터: 사다리 없이 이어지는 층 (타워마다 {r[4]}) · 높은 사다리 · 층 높이 {r[5]}~{r[6]}")
+        ok(all(x == 28 for x in r[4]) and r[6] > 4.0, f"(v471) 🗼 도전 11층부터 한 층 = 장애물 2개 (타워마다 {r[4]}층) · 층 높이 {r[5]}~{r[6]}")
         # (v468) 🎨 장애물마다 다른 무늬 · 층 시작 표지판 · 진짜/가짜 칸은 똑같이
         r = await E("""()=>{ const T=HOUSE.TW; T.seed='2027-11-1'; HOUSE.twBuild('sky'); const pat={}; T.secs.forEach((k,i)=>{ const L=T.S.slice(T.secR[i][0],T.secR[i][1]); const ds=L.filter(s=>s.decal).map(s=>s.decal.material.map.image); pat[k]=pat[k]||new Set(); ds.forEach(im=>pat[k].add(im)); });
             const kinds=['steps','gaps','lava','beam','ice','crumble','fade','mover','laser','tiptoe','pend'].filter(k=>pat[k]), first={}; kinds.forEach(k=>first[k]=[...pat[k]][0]);
@@ -73,7 +73,7 @@ async def main():
         ok(r[0] >= 8 and r[1] >= r[0] - 1 and r[2], f"🎨 장애물마다 다른 윗면 무늬 ({r[0]}종 · 무늬 {r[1]}개) · 🦶 진짜·가짜 칸 무늬 같음 {r}")
         # (v469) 🧗 벽 점프 = 🗼 도전 38층에만 · 쉽게 (가까이 가면 붙음 · 한 번 차면 올라감 · JUMP 반짝)
         r = await E("""()=>{ const T=HOUSE.TW, w=[]; for(let d=1; d<=12; d++){ T.seed='2027-12-'+d; HOUSE.twBuild('sky'); w.push(T.secs.map((k,i)=>k==='wall'?i:-1).filter(i=>i>=0).join()); }
-            const i=37, S=T.S.slice(T.secR[i][0],T.secR[i][1]), B=S.find(s=>s.wallTop), y=T.ys[i], d=HOUSE.TDIR[i%4]; T.bot=false; T.mode='sky'; T.on=true; T.fin=false; T.cp=i; T.kick=0;
+            const i=37, S=T.S.slice(T.secR[i][0],T.secR[i][1]), B=S.find(s=>s.wallTop), y=T.ys[i], d=B.seg.d; T.bot=false; T.mode='sky'; T.on=true; T.fin=false; T.cp=i; T.kick=0;
             const bc=[(B.min.x+B.max.x)/2,(B.min.z+B.max.z)/2], al=(bc[0]-0)*0, toB=[d[0],d[1]];
             const st=S.find(s=>s.kind==='solid'); const sx=(st.min.x+st.max.x)/2, sz=(st.min.z+st.max.z)/2; const face=(B.min.x+B.max.x)/2-d[0]*((B.max.x-B.min.x)/2) , facez=(B.min.z+B.max.z)/2-d[1]*((B.max.z-B.min.z)/2);
             T.p.set(face-d[0]*0.45 + (d[0]?0:sx-face), y+0.001, facez-d[1]*0.45 + (d[1]?0:sz-facez)); T.v.set(0,0,0); T.onG=true; T.yaw=Math.atan2(-d[0],-d[1]);
