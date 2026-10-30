@@ -957,6 +957,12 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .adCard{padding:13px 14px;border-radius:18px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
 .adCard h3{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;font-size:13px;font-weight:900;color:#e8e1ff}
 .adCard h3 small{font-size:10.5px;font-weight:700;color:#8d82b8}
+.adVcBar{display:flex;align-items:center;gap:8px;margin-bottom:8px}.adVcBar b{flex:1;text-align:center;color:#fff}.adVcBar b small{color:#8d82b8;font-size:11px;margin-left:4px}
+.adVcList{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto}
+.adVcRow{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.04);font-size:13px;color:#e8e1ff}
+.adVcRow.bad{background:rgba(255,74,106,.16);box-shadow:inset 0 0 0 1px rgba(255,74,106,.45)}
+.adVcT{color:#8d82b8;font-variant-numeric:tabular-nums;flex:none}.adVcRow b{flex:none;color:#ffd36a}.adVcM{flex:1;word-break:break-all}.adVcM small{display:block;color:#ff8a9a;font-size:11.5px}
+.adVcRow .mini{flex:none}
 .adPinRow[hidden]{display:none!important}
 .adCard h3{flex-wrap:wrap} .adCard h3 small{flex:1 1 220px;min-width:0}   /* (v329) 긴 설명이 제목을 세로로 쪼개던 것 */
 /* (v387) 🗒 오늘 할 일 · 🎁 보스 보상 현황표 */
@@ -14637,7 +14643,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v472";
+const GAME_VER = "v473";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19537,6 +19543,29 @@ setTimeout(()=>{ try{ HyExam.check(true); }catch(e){} }, 2500);
 /* ══ (v330) 📅 오늘 한 아이 (사용자: 달리기 오늘 누가 했는지 보기가 너무 힘들어) — 판이 끝날 때마다 Firebase 에 아이별 하루 칸을 더함
    /hy/day/<YYYY-MM-DD(한국)>/<아이> = {n, t, r(달리기 판), rr(맞힘), rw(틀림), rs(달린 초), b(오늘 최고 점수), bs(최고 단계), s(공부 판), so, sw, la(마지막 시각), lk('r'|'s')}
    선생님 📋 우리 반 맨 위 카드 (시트가 없어도) — 오늘 / 어제 */
+/* (v473) 💬 마을 대화 — 선생님(관리자 → 🏫 지금 수업): 아이들이 My Town 마을에서 한 말 · 날짜 ◀ ▶ · ⚠️ 나쁜 말·전화번호로 *** 가 된 말은 빨갛게 + 원래 글 · 🗑 지우기(모두 화면에서 사라짐)
+   서버: /hy/day/vc<YYYYMMDD>/<id> = {c, n, m, at, b?, r?} (proto/house.html vcSay) */
+const HyVc = {
+  d:0, list:null, busy:false, err:"", del:"",
+  E(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]); },
+  ymd(off){ return new Date(Date.now()+9*3600e3-(off|0)*86400e3).toISOString().slice(0,10).replace(/\D/g,""); },
+  load(){ this.busy=true; this.paint(); const k=this.ymd(this.d); return FB.get("/hy/day/vc"+k).then(v=>{ if(k!==this.ymd(this.d)) return; this.list=Object.keys(v||{}).sort().map(id=>Object.assign({id}, v[id]||{})).filter(x=>x.m); this.err=""; }).catch(()=>{ this.err="불러오지 못했어요 · 인터넷 확인"; }).then(()=>{ this.busy=false; this.paint(); }); },
+  html(){ const k=this.ymd(this.d), L=this.list, day=k.slice(4,6)+"/"+k.slice(6), bad=L ? L.filter(x=>x.b).length : 0, who=L ? new Set(L.map(x=>x.c)).size : 0;
+    let h='<section class="adCard full adVc"><h3>💬 마을 대화 <small>My Town 마을에서 아이들이 한 말 · 나쁜 말은 *** 로 바뀌어 보였어요</small></h3>'
+      +'<div class="adVcBar"><button class="mini" data-ad="vcDay" data-v="1">◀</button><b>'+(this.d===0?"오늘":this.d===1?"어제":day)+' <small>'+day+'</small></b><button class="mini" data-ad="vcDay" data-v="-1"'+(this.d===0?' disabled':'')+'>▶</button><button class="mini go" data-ad="vcLoad">'+(this.busy?"…":L?"↻ 새로":"불러오기")+'</button></div>';
+    if(this.err) h+='<p class="adSmall" style="color:#ff8a9a">'+this.E(this.err)+'</p>';
+    if(L){ h+='<p class="adSmall">말 '+L.length+'개 · 아이 '+who+'명'+(bad?' · <b style="color:#ff8a9a">⚠️ 나쁜 말 '+bad+'개</b>':'')+'</p>';
+      h+=L.length ? '<div class="adVcList">'+L.slice().reverse().slice(0,200).map(x=>{ const tm=new Date((+x.at||0)+9*3600e3).toISOString().slice(11,16);
+        return '<div class="adVcRow'+(x.b?' bad':'')+'"><span class="adVcT">'+tm+'</span><b>'+this.E(String(x.n||"?").slice(0,12))+'</b><span class="adVcM">'+this.E(x.m)+(x.b && x.r ? '<small>원래: '+this.E(x.r)+'</small>' : '')+'</span>'
+          +'<button class="mini" data-ad="vcDel" data-id="'+this.E(x.id)+'">'+(this.del===x.id?'정말?':'🗑')+'</button></div>'; }).join('')+'</div>' : '<p class="adSmall">이날은 마을에서 한 말이 없어요</p>'; }
+    return h+'</section>'; },
+  paint(){ const el=document.getElementById("adVc"); if(el) el.innerHTML=this.html(); },
+  act(a, el){ if(a==="vcLoad"){ this.load(); return true; }
+    if(a==="vcDay"){ this.d=Math.max(0, this.d+(+el.dataset.v||0)); this.list=null; this.del=""; this.load(); return true; }
+    if(a==="vcDel"){ const id=el.dataset.id; if(this.del!==id){ this.del=id; this.paint(); setTimeout(()=>{ if(this.del===id){ this.del=""; this.paint(); } }, 4000); return true; }
+      this.del=""; const k=this.ymd(this.d); FB.set("/hy/day/vc"+k+"/"+id, null).then(()=>{ this.list=(this.list||[]).filter(x=>x.id!==id); this.paint(); }).catch(()=>{ this.err="지우지 못했어요"; this.paint(); }); return true; }
+    return false; }
+};
 const HyDay = {
   D:{}, day:null,
   key(ts){ try{ return HyBoss.dayOf(ts==null?Date.now():ts); }catch(e){ return new Date().toISOString().slice(0,10); } },
@@ -22997,6 +23026,7 @@ const Admin = (function(){
     h+='<div class="full adCls"><b>어느 반 수업?</b>'+[["all","👥 전체"]].concat(Object.keys(T).map(t=>[t,(T[t].e||"")+" "+T[t].n])).map(([k,n])=>'<button class="adClsB'+(k===cur?' on':'')+'" data-ad="nowCls" data-c="'+esc(k)+'">'+esc(n)+'</button>').join('')
       +(Object.keys(T).length ? '<small class="adClsSub">📱 공용 패드: '+(nt && T[nt] ? '<b>'+esc((T[nt].e||"")+" "+T[nt].n)+'</b> 아이 먼저 · '+hm(nw.until)+'까지' : '모든 반 아이')+'</small>' : '<button class="mini" data-ad="go" data-t="class">➕ 반 만들기</button>')+'</div>';
     h+='<div class="full" id="adFav">'+favHtml()+'</div>';
+    h+='<div class="full" id="adVc">'+HyVc.html()+'</div>';   /* (v473) 💬 */
     h+='<div class="full adTiles">'+TILES.map(([k,ic,nm,go,sub])=>'<div class="adTile'+(nowOpen===k?' open':'')+'" data-k="'+k+'"><div class="adTileH"><span class="adTileI">'+ic+'</span><div><b>'+nm+'</b><small>'+sub+'</small></div></div>'
       +'<p class="adTileS" id="adSum_'+k+'">…</p><div class="adTileB"><button class="play adStart" data-ad="'+go+'">▶ 바로 시작</button><button class="adEdit" data-ad="nowEdit" data-k="'+k+'">'+(nowOpen===k?'▲ 접기':'⚙ 바꾸기')+'</button></div></div>').join('')+'</div>';
     h+='<div class="full adForms'+(nowOpen?' on':'')+'" id="adForms" data-open="'+nowOpen+'">'+raid("play")+'</div>';
@@ -23192,7 +23222,7 @@ const Admin = (function(){
         else { msg(h?"비밀번호가 달라요":"이 브라우저에서는 확인할 수 없어요 (https 주소로 열어 주세요)"); $("adPin").value=""; } }); return; }
     if(!ok) return;
     if(a==="dayPick"){ HyDay.load(el.dataset.d).then(()=>{ keepScroll=true; draw(); }); return; }   // (v330) 📅 오늘 / 어제
-    try{ const rd=()=>{ keepScroll=true; draw(); }; if(HyExam.act(a, el, msg, rd) || HyHW.act(a, el, msg, rd)) return; }catch(e){ console.error(e); }   // (v328) 📝 시험
+    try{ const rd=()=>{ keepScroll=true; draw(); }; if(HyExam.act(a, el, msg, rd) || HyHW.act(a, el, msg, rd) || HyVc.act(a, el)) return; }catch(e){ console.error(e); }   // (v328) 📝 시험
     if(a==="teAdd"){ const n=(($("adTeN")||{}).value||"").trim().slice(0,10); if(!n) return msg("반 이름을 넣어 주세요", false); if(Object.values(HyBoss.teams()).some(t=>t.n===n)) return msg("같은 이름의 반이 벌써 있어요", false); const id=FB.id(); FB.set("/hy/roster/t/"+id, {n, e:($("adTeE")||{}).value||"🦁"}); tmTo=id; $("adTeN").value=""; msg("「"+n+"」 반을 만들었어요 — 아래에서 아이를 넣어요", true); return; }
     if(a==="tmAdd"){ tmPut([el.dataset.n], tmTo); return; }
     if(a==="tmMany"){ const ta=$("adTmMany"), ns=((ta||{}).value||"").split(/[,\n]+/).map(x=>x.trim()).filter(Boolean); if(!ns.length) return msg("이름을 적어 주세요", false); tmPut(ns, tmTo); ta.value=""; return; }
