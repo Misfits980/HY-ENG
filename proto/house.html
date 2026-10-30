@@ -449,6 +449,8 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 #twPeers{pointer-events:none;min-width:50px;height:50px;border-radius:16px;border:3px solid #fff;background:rgba(122,91,216,.55);color:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 8px;opacity:.75}
 #twPeers.on{background:rgba(47,180,110,.92);opacity:1}
 #twRe[hidden]{display:none}
+#twView{position:relative;margin-right:auto;margin-left:8px;font-size:18px;line-height:1;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center}#twView small{font-size:10px;font-weight:800;color:#fff;margin-top:2px}
+#twView.fp{background:rgba(47,180,110,.92)}
 #twUI.hurt::after{content:"";position:fixed;inset:0;background:rgba(255,80,80,.25);z-index:6;pointer-events:none}
 .twPick{display:flex;gap:8px;justify-content:center;margin:12px 0 8px}.twPick .btn{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;flex:1 1 0;height:auto;min-height:62px;white-space:normal;line-height:1.25;padding:8px 10px}.twPick small{display:block;font-size:11px;opacity:.85;white-space:normal;margin-top:2px}#infoT .twPick small{color:inherit;font-size:11px}#infoT .twPick .btn.on small{color:#fff;opacity:.95}
 #bEmo{position:fixed;right:12px;bottom:calc(112px + env(safe-area-inset-bottom));z-index:3;width:54px;height:54px;border-radius:50%;border:3px solid var(--line2);background:rgba(255,248,234,.96);font-size:26px;line-height:1;display:none;box-shadow:0 3px 0 rgba(0,0,0,.12);padding:0}
@@ -526,7 +528,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <div id="who"><div class="box"><h3>👤 나는 누구?</h3><p class="wSub">같이 쓰는 패드예요 — 내 이름을 누르면 <b>내 집</b>으로 들어가요</p><div id="whoBody"><p class="wSub">명단을 불러오는 중…</p></div><a class="btn" href="../index.html">◀ 게임으로</a></div></div>
 <div id="hint"></div>
 <div id="twUI"><div id="twTouch"></div><div id="twJoy"><i id="twKnob"></i></div>
-  <div class="twTop"><button id="twBack" aria-label="타워에서 나가기">🏳️</button><div class="twInfo"><b id="twFloor">1 / 6층</b><small id="twSec"></small><span id="twTime">0:00.0</span></div><span id="twPeers" aria-label="같이 있는 친구">👥 0</span><button id="twRe" aria-label="처음으로" hidden>🚩</button></div>
+  <div class="twTop"><button id="twBack" aria-label="타워에서 나가기">🏳️</button><button id="twView" aria-label="1인칭 3인칭 바꾸기">🎥<small>3인칭</small></button><div class="twInfo"><b id="twFloor">1 / 6층</b><small id="twSec"></small><span id="twTime">0:00.0</span></div><span id="twPeers" aria-label="같이 있는 친구">👥 0</span><button id="twRe" aria-label="처음으로" hidden>🚩</button></div>
   <div id="twMeter"><i id="twBar"></i></div><button id="twJump" aria-label="점프">⬆️<span>JUMP</span></button><button id="twEmo" aria-label="감정 표현">😀</button><div id="twEmoBar"></div>
   <div class="twHelp">왼쪽 아래 동그라미 = 움직이기 · JUMP = 점프<br>화면 끌기 = 둘러보기 (좌우·위아래) · 🪜 기둥은 밀면 올라가요<br><span id="twHelpCp">🚫 체크포인트 없음 — 떨어지면 거기서 다시 · 🔥 용암은 아래 🏝 땅으로!</span></div></div>
 <div id="toast"></div>
@@ -1751,7 +1753,7 @@ const TW_SECS={
     twLocalBox(F,5.6,7.95,-1,1, y+2.7,y+3.05,"solid",F.col); return y+3.05; },
   conveyor(F,y,R,h){ const s=twLocalBox(F,1.0,7.6,-0.8,0.8, y-0.3,y,"conv","#6b7280"); const pw=(R()<0.5?1:-1)*(h?1.4+0.7*(F.lv||0):1.0), back=h?1.5:0; s.push=[F.n[0]*pw-F.d[0]*back, F.n[1]*pw-F.d[1]*back];
     /* (v471) 사용자: "미는 길은 점프 3번이면 뚫려서 의미 없음" → 어려움: 머리 위 빨간 막대(점프하면 닿음 → 맨 아래/땅) + 뒤로도 밀어서 달려서 버텨야 함 */
-    if(h) [2.3,3.9,5.5].forEach(u=>{ const b=twLocalBox(F,u-0.08,u+0.08,-0.95,0.95, y+1.28,y+1.5,"kill"); b.noJump=1; });
+    if(h){ F.noJ=1; } if(h) [2.3,3.9,5.5].forEach(u=>{ const b=twLocalBox(F,u-0.08,u+0.08,-0.95,0.95, y+1.28,y+1.5,"kill"); b.noJump=1; });
     const sh=new THREE.Shape(); sh.moveTo(0,0.24); sh.lineTo(0.22,-0.1); sh.lineTo(0.07,-0.1); sh.lineTo(0.07,-0.26); sh.lineTo(-0.07,-0.26); sh.lineTo(-0.07,-0.1); sh.lineTo(-0.22,-0.1); sh.lineTo(0,0.24); const ag=new THREE.ShapeGeometry(sh), am=new THREE.MeshBasicMaterial({color:0xffd23f});
     for(let k=0;k<4;k++){ const a=new THREE.Mesh(ag, am), c=F.P(1.8+k*1.7,0); a.rotation.x=-Math.PI/2; a.rotation.z=Math.atan2(-F.n[0]*Math.sign(pw),-F.n[1]*Math.sign(pw)); a.position.set(c[0], y+0.012, c[1]); towerG.add(a); s.arrows=(s.arrows||[]).concat(a); }
     twLocalBox(F,7.4,7.95,-0.7,0.7, y+0.3,y+0.65,"solid",F.col); return y+0.65; },
@@ -1768,17 +1770,18 @@ const TW_SECS={
       const s={kind:"laser", mesh:m, F, u, amp, sp, ph, y0:y+0.08, y1:y+0.36, on:true, min:new THREE.Vector3(), max:new THREE.Vector3()}; TW.S.push(s); twLaserPos(s, 0); }
     twLocalBox(F,7.2,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v454) 🧊 얼음 바닥 — 미끄러워서 잘 안 멈춤 · 아래는 용암 · 틈은 점프 */
-  ice(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.6,1.6, y-0.55,y-0.3, "kill"); twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const wd=h?0.55-0.12*(F.lv||0):F.ez?0.9:0.75; let yy=y;
-    [[2.2,3.7,0.3],[4.3,5.8,-0.3],[6.4,7.95,0.2]].forEach(([u0,u1,w],k)=>{ yy=y+0.15*(k+1); twLocalBox(F,u0,u1, w-wd,w+wd, yy-0.3,yy,"ice","#8fd8ff"); }); return yy; },
+  ice(F,y,R,h){ twLocalBox(F,1.0,8.0,-1.6,1.6, y-0.55,y-0.3, "kill"); twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const sk=TW.mode==="sky"&&h, wd=sk?0.48-0.1*(F.lv||0):h?0.55-0.12*(F.lv||0):F.ez?0.9:0.75, slip=sk?1.3:h?1.4:F.ez?1.8:1.6; let yy=y;   /* (v472) 사용자: "얼음은 그냥 멈춰지니까 조금 더 미끄럽게" */
+    (sk?[[2.2,3.9,0.45],[4.3,6.0,-0.45],[6.4,7.95,0.3]]:[[2.2,3.7,0.3],[4.3,5.8,-0.3],[6.4,7.95,0.2]]).forEach(([u0,u1,w],k)=>{ yy=y+0.15*(k+1); twLocalBox(F,u0,u1, w-wd,w+wd, yy-0.3,yy,"ice","#8fd8ff",{slip}); }); return yy; },
   /* (v455) 👀 투명 발판 — 가까이 가야 보임 (멀면 거의 안 보임) */
   ghost(F,y,R,h){ twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const wd=h?0.5:0.65; let yy=y, u=2.4;
     for(let k=0;k<4;k++){ yy+=0.22; const ww=(R()<0.5?-1:1)*(h?0.7:0.45), L=h?0.85:1.05; const s=twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.3,yy,"solid","#dff6ff"); s.inv=1; s.mesh.material=new THREE.MeshStandardMaterial({color:0xdff6ff, transparent:true, opacity:.06, roughness:.2, emissive:0x88ccff, emissiveIntensity:.3}); u+=L+(h?0.55:0.45); }
     twLocalBox(F,Math.min(7.2,u),7.95,-0.7,0.7, yy-0.3,yy+0.05,"solid",F.col); return yy+0.05; },
   /* (v455) 🟥 킬브릭 바닥 — 바둑판에서 흰 칸만 안전 · 빨간 칸(조금 낮음)은 밟으면 맨 아래로 */
   brick(F,y,R,h){ twLocalBox(F,1.0,1.9,-1.2,1.2, y-0.35,y,"solid",F.col); const C=6, Rw=3, cu=(7.6-1.9)/C, cw=2.4/Rw, safe={}; let r=Math.floor(R()*Rw), path=[];
-    for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.75:F.ez?0.35:0.55)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
+    for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.9:F.ez?0.35:0.55)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
     path.forEach(([c,rr])=>{ const u0=1.9+c*cu, w0=-1.2+rr*cw; twLocalBox(F,u0+0.02,u0+cu-0.02, w0+0.02,w0+cw-0.02, y-0.35,y,"solid","#f4f4ff"); });
     for(let c=0;c<C;c++) for(let rr=0;rr<Rw;rr++){ if(safe[c+","+rr]) continue; const u0=1.9+c*cu, w0=-1.2+rr*cw; twLocalBox(F,u0+0.02,u0+cu-0.02, w0+0.02,w0+cw-0.02, y-0.47,y-0.14,"kill"); }
+    if(h && TW.mode==="sky"){ /* (v472) 사용자: "점프 한 번이면 그냥 넘어가" → 머리 위 빨간 막대: 점프하면 닿아요 · 하얀 길을 걸어서만 */ F.noJ=1; [2.4,3.8,5.2,6.6].forEach(u=>{ const b=twLocalBox(F,u-0.08,u+0.08,-1.25,1.25, y+1.28,y+1.5,"kill"); b.noJump=1; }); twLocalBox(F,7.6,7.95,-1.0,1.0, y-0.35,y,"solid",F.col); return y; }
     twLocalBox(F,7.6,7.95,-1.0,1.0, y-0.35,y+0.3,"solid",F.col); return y+0.3; },
   /* (v455) 🍂 무너지는 발판 — 밟으면 흔들리다 떨어짐 (멈추지 말고 계속!) · 3초 뒤 다시 */
   crumble(F,y,R,h){ twLocalBox(F,1.0,1.9,-0.9,0.9, y-0.35,y,"solid",F.col); const L=1.0, wd=h?0.45:0.6; let yy=y;
@@ -1791,13 +1794,19 @@ const TW_SECS={
     twLocalBox(F,6.2,7.95,-0.8,0.8, y-0.2,y+0.25,"solid",F.col); return y+0.25; },
   /* (v463) 🎪 사용자: "폴가이즈에 있는 장애물도 넣어 보는 거 어때?"
      🚪 문 부수기 — 문이 한 줄에 3개, 그중 가짜 문은 몸으로 밀면 와장창 (진짜 문은 꽉 막힘 · 너무 높아서 못 넘음) · 쉬움 = 줄 2개(가짜 2) · 어려움 = 줄 3개(가짜 1) */
-  door(F,y,R,h){ twLocalBox(F,1.0,7.95,-1.3,1.3, y-0.35,y,"solid",F.col); const rows=h?[2.7,4.5,6.3]:[3.0,5.5], W=[[-1.3,-0.44],[-0.43,0.43],[0.44,1.3]];
+  door(F,y,R,h){ twLocalBox(F,1.0,2.25,-1.3,1.3, y-0.35,y,"solid",F.col); twLocalBox(F,2.25,6.75,-1.3,1.3, y-0.35,y,"solid",F.col); twLocalBox(F,6.75,7.95,-1.3,1.3, y-0.35,y,"solid",F.col);   /* (v472) 바닥 3조각 — 가운데는 안쪽 문 줄까지 꽉 (예전엔 안쪽 문이 바닥 밖으로 삐져나옴) */ const rows=h?[2.7,4.5,6.3]:[3.0,5.5], W=[[-1.3,-0.44],[-0.43,0.43],[0.44,1.3]];
     rows.forEach((u,ri)=>{ const fk=[0,1,2].sort(()=>R()-0.5).slice(0, h?1:2);
       W.forEach(([w0,w1],j)=>{ const s=twLocalBox(F,u-0.12,u+0.12, w0+0.02,w1-0.02, y,y+2.2,"door",null,{fake:fk.indexOf(j)>=0, row:ri});
         s.mesh.material=twMat(["#ffd23f","#6ec3ff","#ff7aa8"][j],{emissiveIntensity:.18}); const c=F.P(u,(w0+w1)/2), nb=new THREE.Mesh(sph(0.06), M(0xffffff)); nb.position.set(c[0]-F.d[0]*0.14, y+1.0, c[1]-F.d[1]*0.14); towerG.add(nb); s.knob=nb; }); });
     return y; },
   /* 🦶 진짜 발판 찾기 — 똑같이 생긴 칸 중 가짜는 밟으면 사라짐 → 아래 🕸 그물 → 이 층 처음 발판으로 (가짜는 사라진 채 = 길이 보임) */
-  tiptoe(F,y,R,h){ twLocalBox(F,1.0,1.9,-1.2,1.2, y-0.35,y,"solid",F.col); const C=6, Rw=3, cu=(7.6-1.9)/C, cw=2.4/Rw, safe={}; let r=Math.floor(R()*Rw), path=[];
+  tiptoe(F,y,R,h){ twLocalBox(F,1.0,1.9,-1.2,1.2, y-0.35,y,"solid",F.col);
+    if(h && TW.mode==="sky"){ /* (v472) 사용자: "진짜 발판 찾기는 점프만 하면 끝나" → 줄 2개를 멀리 띄움 (점프 한 번 = 한 줄 · 두 줄은 못 건넘) · 줄마다 3칸 중 진짜 1칸 · 줄마다 0.35씩 높아짐 */
+      const tm=twMat("#bfe9ff",{emissiveIntensity:.15}), cw=0.8, rows=[[2.75,3.55,0.3],[6.0,6.75,0.65]];
+      rows.forEach(([u0,u1,dy])=>{ const r=Math.floor(R()*3); for(let rr=0;rr<3;rr++){ const w0=-1.2+rr*cw, s=twLocalBox(F,u0,u1, w0+0.04,w0+cw-0.04, y+dy-0.3,y+dy,"solid",null, rr===r?null:{fake:1, noWalk:1}); s.mesh.material=tm; } });
+      const net=twLocalBox(F,2.2,7.2,-1.6,1.6, y-1.25,y-1.1,"solid",null,{net:F.i, noWalk:1}); net.mesh.material=new THREE.MeshStandardMaterial({color:0xff9ec0, transparent:true, opacity:.55, roughness:.8});
+      twLocalBox(F,7.6,7.95,-1.0,1.0, y+0.65,y+1.0,"solid",F.col); return y+1.0; }
+    const C=6, Rw=3, cu=(7.6-1.9)/C, cw=2.4/Rw, safe={}; let r=Math.floor(R()*Rw), path=[];
     for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.8:F.ez?0.3:0.5)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
     const tm=twMat("#bfe9ff",{emissiveIntensity:.15}); path.forEach(([c,rr])=>{ const u0=1.9+c*cu, w0=-1.2+rr*cw, s=twLocalBox(F,u0+0.03,u0+cu-0.03, w0+0.03,w0+cw-0.03, y-0.3,y,"solid",null); s.mesh.material=tm; });
     for(let c=0;c<C;c++) for(let rr=0;rr<Rw;rr++){ if(safe[c+","+rr]) continue; const u0=1.9+c*cu, w0=-1.2+rr*cw, s=twLocalBox(F,u0+0.03,u0+cu-0.03, w0+0.03,w0+cw-0.03, y-0.3,y,"solid",null,{fake:1, noWalk:1}); s.mesh.material=tm; }
@@ -1875,16 +1884,17 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   const tag=(a,F)=>{ for(let j=a;j<TW.S.length;j++){ const s=TW.S[j]; if(!s.seg) s.seg=F; if(s.max) frTop[F.fi]=Math.max(frTop[F.fi]==null?-99:frTop[F.fi], s.max.y); } };
   list.forEach((k,i)=>{ const F=twFrame(fi); F.fi=fi; F.kind=k; if(k==="ground"){ F.prevF=twFrame(TW.frEnd[i-1]!=null?TW.frEnd[i-1]:fi-1); F.smallG=mode==="sky"; } F.i=i; F.col=TCOL[i%10]; F.ez=mode==="kid"; F.easyWall=mode==="sky"||mode==="hard"; F.lv=mode==="hard" ? i/Math.max(1,n-1) : mode==="sky" && i>=10 ? (i-10)/Math.max(1,n-11) : 0; const a0=TW.S.length; let yEnd=TW_SECS[k](F, y, R, hardAt(i)); try{ twSkin(k, TW.S.slice(a0)); twFloorSign(F, y, k); }catch(e){ console.warn("skin", k, e); } if(k!=="ground") twStarAt(F, y, i); tag(a0, F); if(TW.cps[i] && !TW.cps[i].seg) TW.cps[i].seg=F;   /* 층 시작 발판 = 첫 장애물 쪽 */
     let lastF=fi; const kb=TW.secsB[i];
-    if(kb){ const F2=twFrame(fi+1); F2.fi=fi+1; F2.kind=kb; F2.i=i; F2.col=F.col; F2.ez=F.ez; F2.easyWall=F.easyWall; F2.lv=F.lv; const yc=yEnd+0.02, c0=TW.S.length;
+    /* (v472) 사용자: "층마다 길이 늘어나야 해 · 점프 한 번이면 넘어감" → 🗼 도전 11층부터 한 층 = 한 바퀴(네 면): 함정 A 두 면 이어서 → 함정 B 두 면 이어서 · 모서리 흰 발판은 체크포인트 아님 */
+    if(kb) [k, kb, kb].forEach((kk,j)=>{ const f2=fi+1+j, F2=twFrame(f2); F2.fi=f2; F2.kind=kk; F2.i=i; F2.col=F.col; F2.ez=F.ez; F2.easyWall=F.easyWall; F2.lv=Math.min(1,(F.lv||0)+(j===1?0:0.15)); F2.part=j; const st=Math.min(0.85, Math.max(0, 2.4-(yEnd-y))/(3-j)), yc=yEnd+0.02+st, c0=TW.S.length;   /* 한 바퀴 돌아 같은 모서리로 오니까 — 모서리 발판을 한 칸씩 올려서(점프) 바퀴 끝이 층 시작보다 2.4 이상 높게 */
       const con=twLocalBox(F2,-1.0,1.0,-1.0,1.0, yEnd-0.38, yc, "solid", F.col, {pad:1, conn:1}); con.mesh.material=twMat("#ffffff",{emissiveIntensity:.1});   /* 모서리 이음 발판 (체크포인트 아님) */
-      const b0=TW.S.length; yEnd=TW_SECS[kb](F2, yc, R, true); try{ twSkin(kb, TW.S.slice(b0)); twFloorSign(F2, yc, kb); }catch(e){ console.warn("skin", kb, e); } tag(c0, F2); lastF=fi+1; }
+      const b0=TW.S.length; yEnd=TW_SECS[kk](F2, yc, R, true); try{ twSkin(kk, TW.S.slice(b0)); if(j===1) twFloorSign(F2, yc, kk); }catch(e){ console.warn("skin", kk, e); } tag(c0, F2); lastF=f2; });
     TW.secR.push([a0, TW.S.length]); TW.frEnd[i]=lastF; fi=lastF+1; TW.fr[i+1]=fi; const Fn=twFrame(fi);
     /* (v466) 사용자: "하드치고는 레일이 비슷한 길이 같아서 아쉽다" → 🗼 도전 11층부터: 30% = 사다리 없이 모서리를 돌아 바로 이어 달리기(두 층이 한 길) · 15% = 높은 사다리 */
     const rv=1,   /* (v471) 이어 달리기·높은 사다리는 「한 층 = 두 면」으로 바뀜 */ flat=rv<0.3 && TW.flatAt.indexOf(i)<0 && (i<3 || yEnd-ys[i-2]>=1.8), tall=rv>=0.3 && rv<0.45;   /* 이어 달리기는 두 번 연속 안 함 · 같은 면 아래층(4층 아래)의 끝 사다리보다 1.8 이상 높을 때만 */
     if(flat) (TW.flatAt=TW.flatAt||[]).push(i+1);
     const yp=flat ? yEnd+0.02 : Math.max(y+1.2, yEnd+(k==="ground" ? 2.6 : list[i+1]==="ground" ? 2.8 : tall ? 3.4 : hardAt(i)?2.2:mode==="kid"?1.5:1.7));   /* (v463) 🏝 땅 바로 위 층도 머리 위 여유 (용암 판이 머리에 닿지 않게) */   // 🪜 사다리로 올라가는 만큼 (🏝 땅 바로 아래 층은 머리 위가 넉넉하게)
-    let yq=yp; if(mode==="sky") [fi-4, fi-3].forEach(f=>{ if(frTop[f]!=null) yq=Math.max(yq, frTop[f]+2.9); });   /* 같은 면 아래층과 머리 위 여유 */
-    TW.cps.push(twPad(Fn, yq, i+1, i===n-1, yEnd-0.4)); y=yq; ys.push(y); });
+    let yq=yp; if(mode==="sky"){ const sp=TW.secsB[i+1]?4:1; for(let f=fi-4; f<=fi-4+sp; f++) if(frTop[f]!=null) yq=Math.max(yq, frTop[f]+2.9); }   /* 같은 면 아래층과 머리 위 여유 */
+    TW.cps.push(twPad(Fn, yq, i+1, i===n-1, kb ? Math.max(yEnd-0.4, y+2.95) : yEnd-0.4)); y=yq;   /* (v472) 한 바퀴 층: 사다리 기둥 밑이 이 층 시작 발판 머리 위(2.95)보다 높게 */ ys.push(y); });
   TW.top=TW.cps[TW.cps.length-1]; TW.hy=y; TW.ys=ys;
   // 가운데 네온 기둥 (부딪힘 상자 하나 + 층마다 색 띠)
   twBox([TWC-TCORE,-0.5,TWC-TCORE],[TWC+TCORE,y+3,TWC+TCORE],"solid",null).mesh.visible=false;
@@ -1910,11 +1920,11 @@ function towerAsk(){ const r=TW.rec[dayKey()]||{}, b=k=>r[k]&&r[k].best ? '🏆 
 function towerGo(){ if(F.st!=="idle" || trip.busy) return; walkTo(TW_DOOR[0], TW_DOOR[1], ()=>{ hero.face=Math.PI; towerAsk(); }); }
 function twEnterGo(mode){ TW.mode=mode; go("tower", [6,6], ()=>{ twBuild(mode); }); }
 function twEnter(){ TW.on=true; TW.fin=false; TW.cp=0; TW.best=0; TW.wallTold=0; TW.kick=0; TW.wallT=0; TW.starN=0; TW.maxY=0; try{ twHiLine(); }catch(e){} TW.lastGY=null; TW.t0=performance.now(); TW.tEnd=0; TW.dead=0; TW.fall=0; if(!TW.bot) TW.clk=(Date.now()%864e5)/1000; TW.inp.x=TW.inp.y=0; TW.key={}; TW.ladTold=0;
-  twRespawn(true); TW.yaw=TW.yawTo; TW.camY=TW.p.y; TW.pit=0.42; TW.camD=null; TW.snap=0; $("twUI").classList.add("on"); document.body.classList.add("twOn"); twJoyHome(); twHud(); camera.fov=50; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){}
+  twRespawn(true); TW.yaw=TW.yawTo; TW.camY=TW.p.y; TW.pit=0.42; TW.camD=null; TW.snap=0; twViewSet(store("hyeng_proto_twfp")===1); $("twUI").classList.add("on"); document.body.classList.add("twOn"); twJoyHome(); twHud(); camera.fov=50; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){}
   { const hc=$("twHelpCp"); if(hc) hc.textContent = TW.mode==="kid" ? "🚩 1~9층 깃발 = 체크포인트 (떨어지면 깃발에서) · 10층부터 🏝 땅" : "🚫 체크포인트 없음 — 떨어지면 거기서 다시 · 🔥 용암은 아래 🏝 땅으로!"; }
   $("twUI").classList.add("help"); clearTimeout(twEnter._h); twEnter._h=setTimeout(()=>$("twUI").classList.remove("help"), 7000);
-  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="sky"?TW_N.sky+"층 · 11층부터 한 층에 장애물 2개 · 🏝 20층 넓은 땅":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층 · 1~10층은 🚩 연습 (깃발 = 체크포인트)":TW.mode==="hard"?"🔴 어려움 "+TW_N.hard+"층":"🟢 쉬움 "+TW_N.easy+"층")+"<br><small>"+(TW.mode==="kid"?"🚩 깃발에 닿으면 체크포인트 · 떨어지면 깃발에서 다시":"🚫 체크포인트 없음 · 떨어지면 거기서 다시!")+"</small>", 2600); TW.gSeen={}; tEv("tower"); try{ twNetStart(); }catch(e){} }
-function twExit(){ try{ twHiSave(); }catch(e){} try{ twNetStop(); }catch(e){} $("twEmoBar").classList.remove("on"); TW.on=false; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
+  toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="sky"?TW_N.sky+"층 · 11층부터 한 층 = 한 바퀴 (함정 2개) · 🏝 20층 작은 땅":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층 · 1~10층은 🚩 연습 (깃발 = 체크포인트)":TW.mode==="hard"?"🔴 어려움 "+TW_N.hard+"층":"🟢 쉬움 "+TW_N.easy+"층")+"<br><small>"+(TW.mode==="kid"?"🚩 깃발에 닿으면 체크포인트 · 떨어지면 깃발에서 다시":"🚫 체크포인트 없음 · 떨어지면 거기서 다시!")+"</small>", 2600); TW.gSeen={}; tEv("tower"); try{ twNetStart(); }catch(e){} }
+function twExit(){ try{ twHiSave(); }catch(e){} try{ twNetStop(); }catch(e){} $("twEmoBar").classList.remove("on"); TW.on=false; hero.g.visible=true; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
 function twLeave(){ if(!TW.on) return; go("village", [TW_DOOR[0], TW_DOOR[1]]); }
 /* ── 몸 ── */
 function twRespawn(first){ const c=TW.cps[TW.cp]||TW.cps[0], ctr=c.mesh.position; TW.p.set(ctr.x, c.max.y+0.001, ctr.z); TW.v.set(0,0,0); TW.onG=true; TW.gnd=c; TW.coy=0; TW.buf=0; TW.climb=false;
@@ -1925,6 +1935,7 @@ function twRespawn(first){ const c=TW.cps[TW.cp]||TW.cps[0], ctr=c.mesh.position
 function twGroundBelow(){ let c=0; const GL=TW_GND[TW.mode]; if(!GL) return 0; GL.forEach(gi=>{ const p=TW.cps[gi]; if(p && TW.secs[gi]==="ground" && TW.p.y>=p.max.y-0.3) c=gi; }); return c; }
 /* (v467) 다시 시작할 발판 — 🏝 내 아래 땅 · 🟢 쉬움이면 연습 구간 🚩 마지막 깃발(1~10층)도 */
 function twSafeIdx(){ let gi=twGroundBelow(); if(TW.mode==="kid") gi=Math.max(gi, Math.min(TW.cp|0, TW_PRACTICE)); return gi; }
+function twViewSet(on){ TW.fp=!!on; camera.fov=TW.fp?70:50; camera.updateProjectionMatrix(); const b=$("twView"); if(b){ b.classList.toggle("fp", TW.fp); b.querySelector("small").textContent=TW.fp?"1인칭":"3인칭"; } }
 function twFi(i){ return (TW.fr && TW.fr[i]!=null) ? TW.fr[i] : i; }   /* (v471) 층 → 첫 면 번호 */
 function twDie(msg){ if(TW.bot){ twRespawn(); return; } const keep=TW.cp, gi=twSafeIdx(), flag=TW.mode==="kid" && gi>0 && gi<=TW_PRACTICE && TW.secs[gi]!=="ground"; TW.cp=gi; twRespawn(); TW.cp=keep; TW.lastGY=null;
   if(msg!=null) toast((msg?msg+" ":"")+(flag?"<b>🚩 "+(gi+1)+"층 깃발</b>":gi?"<b>🏝 "+(gi+1)+"층 땅</b>":"<b>맨 아래</b>")+"부터 다시!", 1500); }
@@ -1963,7 +1974,7 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   let ix=TW.inp.x, iy=TW.inp.y; const K=TW.key; if(K.l) ix-=1; if(K.r) ix+=1; if(K.u) iy+=1; if(K.d) iy-=1; const il=Math.hypot(ix,iy); if(il>1){ ix/=il; iy/=il; }
   const fx=-Math.sin(TW.yaw), fz=-Math.cos(TW.yaw), rx=-fz, rz=fx;   // 앞 = 카메라가 보는 쪽
   const onIce=TW.onG && TW.gnd && TW.gnd.kind==="ice";   /* (v454) 🧊 얼음 = 미끄러움 */
-  TW.kick=Math.max(0,(TW.kick||0)-dt); const tx=(rx*ix+fx*iy)*TSPD*(onIce?1.15:1), tz=(rz*ix+fz*iy)*TSPD*(onIce?1.15:1), acc=Math.min(1, dt*(onIce?2.2:TW.onG?16:10))*(TW.kick>0?0.12:1);
+  TW.kick=Math.max(0,(TW.kick||0)-dt); const tx=(rx*ix+fx*iy)*TSPD*(onIce?1.15:1), tz=(rz*ix+fz*iy)*TSPD*(onIce?1.15:1), acc=Math.min(1, dt*(onIce?(TW.gnd.slip||2.2):TW.onG?16:10))*(TW.kick>0?0.12:1);
   v.x+=(tx-v.x)*acc; v.z+=(tz-v.z)*acc;
   if(TW.onG && TW.gnd && TW.gnd.push){ p.x+=TW.gnd.push[0]*dt; p.z+=TW.gnd.push[1]*dt; }
   // 🪜 사다리: 옆에 붙어서 그쪽으로 밀면 올라감
@@ -1988,6 +1999,7 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
   p.y+=v.y*dt; for(const s of sol){ if(twOverlap(s,p.x,p.y,p.z)){ if(v.y<=0 && p.y-v.y*dt>=s.max.y-0.12){ p.y=s.max.y; v.y=0; TW.onG=true; TW.gnd=s; } else if(v.y>0 && !TW.climb){ p.y=s.min.y-THY-0.001; v.y=0; } } }
   if(!TW.onG){ for(const s of sol){ if(Math.abs(p.y-s.max.y)<0.03 && twOnTop(s,p.x,p.z) && v.y<=0){ TW.onG=true; TW.gnd=s; break; } } }
   if(TW.climb && !TW.onG && v.y>0) v.y=Math.min(v.y, TCLIMB);
+  if(TW.onG && TW.gnd && TW.gnd.seg && TW.gnd.seg.noJ && !TW.njTold && !TW.bot){ TW.njTold=1; toast("⛔ 머리 위 <b>빨간 막대</b> — 점프하면 닿아요!<br><small>걸어서 지나가요</small>", 2000); }   /* (v472) */
   // 밟은 것
   const g=TW.gnd; if(g && TW.onG){
     if(g.kind==="bounce"){ v.y=g.pow||16; TW.onG=false; try{ SND.sparkle(); }catch(e){} }
@@ -2041,6 +2053,9 @@ const twRay=new THREE.Raycaster();
 function twCam(dt){ TW.camY += (TW.p.y-TW.camY)*Math.min(1, dt*(Math.abs(TW.p.y-TW.camY)>2.5?7:4.5));
   if(TW.yawTo!=null && TW.snap){ let d=((TW.yawTo-TW.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; TW.yaw+=d*Math.min(1,dt*9); if(Math.abs(d)<0.01) TW.snap=0; }
   const asp=innerWidth/Math.max(1,innerHeight), want=asp<0.8 ? 8.6 : asp<1.2 ? 7.4 : 6.6, pit=TW.pit==null?0.42:TW.pit;
+  /* (v472) 사용자: "아이들이 1인칭 3인칭 전환을 요구" → 👁 1인칭 = 눈 높이에서 보는 쪽 그대로 (화면 끌기 위아래 = 고개) · 내 캐릭터는 숨김 */
+  if(TW.fp){ if(hero.g.visible) hero.g.visible=false; const fy=TW.p.y+0.98, lk=pit*1.1-0.12; camera.position.set(TW.p.x, fy, TW.p.z); camera.lookAt(TW.p.x-Math.sin(TW.yaw)*Math.cos(lk), fy-Math.sin(lk), TW.p.z-Math.cos(TW.yaw)*Math.cos(lk)); camera.updateMatrixWorld(); return; }
+  if(!hero.g.visible) hero.g.visible=true;
   const c=new THREE.Vector3(TW.p.x, TW.camY+1.05, TW.p.z), dir=new THREE.Vector3(Math.sin(TW.yaw)*Math.cos(pit), Math.sin(pit), Math.cos(TW.yaw)*Math.cos(pit));
   let d=want; twRay.set(c, dir); twRay.far=want; const L=(TW.hitL||[]).filter(m=>m.visible); const h=L.length ? twRay.intersectObjects(L, false)[0] : null; if(h) d=Math.max(1.6, h.distance-0.35);
   TW.camD = TW.camD==null ? d : (d<TW.camD ? d : TW.camD+(d-TW.camD)*Math.min(1, dt*3));
@@ -2055,13 +2070,15 @@ function twInput(){ const L=$("twTouch"), J=$("twJoy"), K=$("twKnob");
   const start=(e)=>{ if(!TW.on) return; e.preventDefault(); if(!TW.home) twJoyHome();
     /* (v435) 사용자: "화면 돌리다가 조이스틱이 눌려짐 · 조작감" → 조이스틱 = 동그라미 근처(110px)에서 누를 때만 · 그 밖은 어디든 카메라 */
     const cx=TW.home[0], cy=TW.home[1];
-    if(!TW.joy && Math.hypot(e.clientX-cx, e.clientY-cy)<140){ TW.joy={id:e.pointerId, x:cx, y:cy}; J.classList.add("on"); move(e); }
-    else if(!TW.cam) TW.cam={id:e.pointerId, x:e.clientX, y:e.clientY, y0:TW.yaw, p0:TW.pit}; try{ e.target.setPointerCapture(e.pointerId); }catch(er){} };
-  const move=e=>{ if(TW.joy && e.pointerId===TW.joy.id){ let dx=e.clientX-TW.joy.x, dy=e.clientY-TW.joy.y; const R=64, d=Math.hypot(dx,dy); if(d>R){ dx*=R/d; dy*=R/d; } K.style.transform="translate(calc(-50% + "+dx+"px), calc(-50% + "+dy+"px))"; const k=d<8?0:1; TW.inp.x=dx/R*k; TW.inp.y=-dy/R*k; }
-    else if(TW.cam && e.pointerId===TW.cam.id){ TW.yaw=TW.cam.y0-(e.clientX-TW.cam.x)*0.009; TW.pit=Math.max(0.1, Math.min(1.05, TW.cam.p0+(e.clientY-TW.cam.y)*0.006)); TW.dragAt=performance.now(); } };
+    if((!TW.joy || performance.now()-(TW.joy.t||0)>1500) && Math.hypot(e.clientX-cx, e.clientY-cy)<140){ TW.joy={id:e.pointerId, x:cx, y:cy, t:performance.now()}; J.classList.add("on"); move(e); }
+    else if(!TW.cam || performance.now()-(TW.cam.t||0)>1500){ TW.snap=0; TW.cam={id:e.pointerId, x:e.clientX, y:e.clientY, y0:TW.yaw, p0:TW.pit, t:performance.now()}; }   /* (v472) 손가락 뗀 게 안 잡혀도 1.5초 지나면 새로 끌기 */ try{ e.target.setPointerCapture(e.pointerId); }catch(er){} };
+  const move=e=>{ if(TW.joy && e.pointerId===TW.joy.id){ TW.joy.t=performance.now(); let dx=e.clientX-TW.joy.x, dy=e.clientY-TW.joy.y; const R=64, d=Math.hypot(dx,dy); if(d>R){ dx*=R/d; dy*=R/d; } K.style.transform="translate(calc(-50% + "+dx+"px), calc(-50% + "+dy+"px))"; const k=d<8?0:1; TW.inp.x=dx/R*k; TW.inp.y=-dy/R*k; }
+    else if(TW.cam && e.pointerId===TW.cam.id){ TW.cam.t=performance.now(); if(TW.snap){ TW.snap=0; TW.cam.y0=TW.yaw; TW.cam.x=e.clientX; }   /* (v472) 사용자: "떨어지면 화면이 안 돌아가는 프리징" = 다시 시작할 때 카메라가 저절로 도는 중에 끌면 서로 싸움 → 끌면 바로 내 손이 이김 */
+      TW.yaw=TW.cam.y0-(e.clientX-TW.cam.x)*0.009; TW.pit=Math.max(0.1, Math.min(1.05, TW.cam.p0+(e.clientY-TW.cam.y)*0.006)); TW.dragAt=performance.now(); } };
   const up=e=>{ if(TW.joy && e.pointerId===TW.joy.id){ TW.joy=null; TW.inp.x=TW.inp.y=0; J.classList.remove("on"); J.style.transform=""; K.style.transform="translate(-50%,-50%)"; } if(TW.cam && e.pointerId===TW.cam.id){ TW.cam=null; TW.dragAt=performance.now(); } };
   [L, J].forEach(el=>{ el.addEventListener("pointerdown", start); el.addEventListener("pointermove", move); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up); });
   addEventListener("resize", ()=>{ TW.home=null; });
+  $("twView").onclick=()=>{ twViewSet(!TW.fp); store("hyeng_proto_twfp", TW.fp?1:0); toast(TW.fp?"👁 1인칭 — 내 눈으로 봐요":"🎥 3인칭 — 뒤에서 봐요", 1000); };
   $("twJump").addEventListener("pointerdown", e=>{ e.preventDefault(); e.stopPropagation(); TW.buf=0.16; });
   $("twBack").onclick=()=>{ if(TW.fin){ twLeave(); return; } ask("🗼 타워에서 나갈까요?<br><small>처음부터 다시 해야 해요</small>", ()=>twLeave()); };
   $("twRe").onclick=()=>{ if(TW.fin) return; if(TW.bot){ twRespawn(true); return; } const keep=TW.cp; TW.cp=twSafeIdx(); twRespawn(true); TW.cp=keep; TW.lastGY=null; };   /* (v459) 🚩 = 내 아래 🏝 땅 (가장 높이 간 발판으로 순간 이동하던 것 막음) */
@@ -3419,8 +3436,8 @@ $("bMap").onclick=()=>{ if(F.st!=="idle") return; drawMap(); $("mapP").classList
 $("mapDone").onclick=()=>$("mapP").classList.remove("on");
 /* 가리는 것 흐리게 — (L0-7) 대화 장면이 집에 가려 안 보였다 → 카메라와 나(·대화 상대) 사이에 있는 집·나무 등을 반투명으로 (게임에서 흔한 방식) */
 const faded=new Map();
-function setFade(obj,on){ if(on){ if(faded.has(obj)) return; const L=[]; obj.traverse(m=>{ if((m.isMesh||m.isSprite) && m.material && !m.material.isLineBasicMaterial){ L.push([m,m.material]); const c=m.material.clone(); c.transparent=true; c.opacity=0.25; c.depthWrite=false; m.material=c; m.castShadow=m.castShadow; } }); faded.set(obj,L); }
-  else { const L=faded.get(obj); if(!L) return; L.forEach(([m,mat])=>{ m.material.dispose(); m.material=mat; }); faded.delete(obj); } }
+function setFade(obj,on){ if(on){ if(faded.has(obj)) return; const L=[]; obj.traverse(m=>{ if((m.isMesh||m.isSprite) && m.material && !m.material.isLineBasicMaterial){ L.push([m,m.material]); const fc=x=>{ const c=x.clone(); c.transparent=true; c.opacity=0.25; c.depthWrite=false; return c; }; m.material=Array.isArray(m.material)?m.material.map(fc):fc(m.material); } }); faded.set(obj,L); }   /* (v472) 여러 재질 모델도 */
+  else { const L=faded.get(obj); if(!L) return; L.forEach(([m,mat])=>{ [].concat(m.material).forEach(x=>x.dispose&&x.dispose()); m.material=mat; }); faded.delete(obj); } }
 function clearFade(){ [...faded.keys()].forEach(o=>setFade(o,false)); }
 const occRc=new THREE.Raycaster(); occRc.camera=camera; let occT=0;   // 그림판(이름표)을 맞출 때 카메라가 필요
 function updOcclude(dt){ occT+=dt; if(occT<0.1) return false; occT=0; const g=place.g; if(!hero || !g.visible) return false;

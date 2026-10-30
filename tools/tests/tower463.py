@@ -26,8 +26,8 @@ async def main():
         ok(all(r["sky"].get(k, 0) > 0 for k in ["door", "tiptoe", "pend", "sweep", "sweep3"]) and r["kid"].get("door<10", 0) > 0 and not r["kid"].get("tiptoe<10") and not r["kid"].get("pend<10") and not r["kid"].get("sweep<10") and not r["kid"].get("sweep3<10"), f"🗼 도전·🟢 쉬움에 새 장애물 · 쉬움 1~9층엔 🚪 만 {r}")
         # 🚪
         r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<80; d++){ T.seed='2027-04-'+d; HOUSE.twBuild('sky'); if(T.secs.indexOf('door')>=10) break; } const i=T.secs.indexOf('door'); T.mode='sky'; T.bot=true; T.on=true; T.fin=false;
-            const D=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='door'), rows=new Set(D.map(s=>s.row)).size, fk=D.filter(s=>s.fake).length, h=+(D[0].max.y-D[0].min.y).toFixed(2), F=T.S.slice(T.secR[i][0],T.secR[i][1])[0];
-            const go=(s)=>{ const cx=(s.min.x+s.max.x)/2, cz=(s.min.z+s.max.z)/2, d=HOUSE.TDIR[i%4]; T.p.set(cx-d[0]*0.9, s.min.y+0.001, cz-d[1]*0.9); T.v.set(0,0,0); T.onG=true; T.yaw=Math.atan2(-d[0],-d[1]); T.inp.x=0; T.inp.y=1; for(let n=0;n<90;n++) HOUSE.twStep(1/90); T.inp.y=0; const al=(T.p.x-cx)*d[0]+(T.p.z-cz)*d[1]; return [s.on, +al.toFixed(2)]; };
+            const D0=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='door'), D=D0.filter(s=>s.seg===D0[0].seg), rows=new Set(D.map(s=>s.row)).size, fk=D.filter(s=>s.fake).length, h=+(D[0].max.y-D[0].min.y).toFixed(2), F=T.S.slice(T.secR[i][0],T.secR[i][1])[0];
+            const go=(s)=>{ const cx=(s.min.x+s.max.x)/2, cz=(s.min.z+s.max.z)/2, d=s.seg.d; T.p.set(cx-d[0]*0.9, s.min.y+0.001, cz-d[1]*0.9); T.v.set(0,0,0); T.onG=true; T.yaw=Math.atan2(-d[0],-d[1]); T.inp.x=0; T.inp.y=1; for(let n=0;n<90;n++) HOUSE.twStep(1/90); T.inp.y=0; const al=(T.p.x-cx)*d[0]+(T.p.z-cz)*d[1]; return [s.on, +al.toFixed(2)]; };
             const real=D.find(s=>!s.fake && s.row===0), fake=D.find(s=>s.fake && s.row===0); const a=go(real), b=go(fake); T.bot=false; return [rows, fk, h, a, b]; }""")
         ok(r[0] == 3 and r[1] == 3 and r[2] >= 2.0 and r[3][0] and r[3][1] < -0.2 and not r[4][0] and r[4][1] > 0.3, f"🚪 어려움: 줄 3 · 가짜 3(줄마다 1) · 높이 2.2 · 진짜 문 = 막힘 · 가짜 문 = 와장창 지나감 {r}")
         # 🦶
@@ -58,13 +58,13 @@ async def main():
         ok(r[0] == 3 and max(r[1]) < 0.01 and abs(r[2][0] - r[2][2]) < 0.01 and r[3], f"🕐🕐🕐 바늘 3개 · 삼각형(앞 1·뒤 2) · 뒤 두 바늘은 거울처럼 · 앞과 뒤는 반대로 {r}")
         # (v466) 둥근 시계판만 · 🗼 도전 층 길이 들쭉날쭉
         r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<80; d++){ T.seed='2027-08-'+d; HOUSE.twBuild('sky'); if(T.secs.includes('sweep3')||T.secsB.includes('sweep3')) break; } const i=T.secs.indexOf('sweep3')>=0?T.secs.indexOf('sweep3'):T.secsB.indexOf('sweep3'); T.bot=true;
-            const R=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.rnd && s.seg && s.seg.kind==='sweep3'), A=R[0], c=[A.rnd[0],A.rnd[1]], r=A.rnd[2], d=A.seg.d, n=[-d[1],d[0]]; const y=A.max.y;
+            const R0=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.rnd && s.seg && s.seg.kind==='sweep3'), R=R0.filter(s=>s.seg===R0[0].seg), A=R[0], c=[A.rnd[0],A.rnd[1]], r=A.rnd[2], d=A.seg.d, n=[-d[1],d[0]]; const y=A.max.y;
             const drop=(k)=>{ T.S.forEach(s=>{ if(s.kind==='sweep') s.hitT=99; }); T.p.set(c[0]+n[0]*r*k*0.7071-d[0]*r*k*0.7071, y+0.3, c[1]+n[1]*r*k*0.7071-d[1]*r*k*0.7071); T.v.set(0,0,0); T.onG=false; for(let q=0;q<40;q++) HOUSE.twStep(1/90); return +(T.p.y-y).toFixed(2); };
             const inn=drop(0.8), out=drop(1.25); const sq=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='solid' && !s.rnd && !s.noWalk && !s.conn && s.seg===A.seg).map(s=>+((s.max.x-s.min.x)*(s.max.z-s.min.z)).toFixed(1));
             const fl=[], rise=[]; for(let dd=1; dd<=8; dd++){ T.seed='2027-10-'+dd; HOUSE.twBuild('sky'); fl.push(T.secsB.filter(Boolean).length); for(let j=11;j<T.ys.length;j++) rise.push(+(T.ys[j]-T.ys[j-1]).toFixed(1)); }
             T.bot=false; return [R.length, inn, out, sq, fl, Math.min(...rise), Math.max(...rise)]; }""")
         ok(r[0] == 3 and abs(r[1]) < 0.05 and r[2] < -0.5 and max(r[3]) < 4.5, f"🕐🕐🕐 둥근 판 3개만 (네모 판 없음) · 판 안 = 서 있음 · 둥근 판 밖(네모였으면 서 있던 곳) = 떨어짐 {r[:4]}")
-        ok(all(x == 28 for x in r[4]) and r[6] > 4.0, f"(v471) 🗼 도전 11층부터 한 층 = 장애물 2개 (타워마다 {r[4]}층) · 층 높이 {r[5]}~{r[6]}")
+        ok(all(x == 28 for x in r[4]) and r[6] > 4.0, f"(v472) 🗼 도전 11층부터 한 층 = 한 바퀴 · 함정 2개 (타워마다 {r[4]}층) · 층 높이 {r[5]}~{r[6]}")
         # (v468) 🎨 장애물마다 다른 무늬 · 층 시작 표지판 · 진짜/가짜 칸은 똑같이
         r = await E("""()=>{ const T=HOUSE.TW; T.seed='2027-11-1'; HOUSE.twBuild('sky'); const pat={}; T.secs.forEach((k,i)=>{ const L=T.S.slice(T.secR[i][0],T.secR[i][1]); const ds=L.filter(s=>s.decal).map(s=>s.decal.material.map.image); pat[k]=pat[k]||new Set(); ds.forEach(im=>pat[k].add(im)); });
             const kinds=['steps','gaps','lava','beam','ice','crumble','fade','mover','laser','tiptoe','pend'].filter(k=>pat[k]), first={}; kinds.forEach(k=>first[k]=[...pat[k]][0]);
