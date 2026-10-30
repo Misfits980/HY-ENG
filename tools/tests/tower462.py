@@ -30,15 +30,17 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
     if(T.onG && g && g!==tg){
       const nx=p.x+dx*0.35, nz=p.z+dz*0.35, leaving=!inXZ(g,nx,nz);
       const R=tg.move?1.1:2.0; if(tg.climb){ if(leaving && gp>0.12) T.buf=0.16; } else if(leaving && (gp>R || rise>1.45) && !g.crumble){ dx=dz=0; }   // (v463) 🍂 무너지는 발판 위에서는 기다리지 않음   // 기다림 (움직이는 발판)
+      else if(leaving && gp<0.12 && Math.abs(rise)<0.12){ }   // (v466) 바로 붙은 발판은 걸어서
       else if(!tg.climb && (leaving || rise>(tg.crumble?0.25:0.06)) && gp<R && rise<1.5 && (leaving || gp<1.1)) T.buf=0.16;
     }
     for(const s of T.S){ if(s.kind==="spin" && T.onG && Math.abs(p.y-s.y0)<1.2){ const qx=p.x-s.c[0], qz=p.z-s.c[1], rr=Math.hypot(qx,qz); if(rr<s.len+0.5){   // (v454) 막대가 올 때를 계산해서 점프 (빨라진 막대)
     for(const s of T.S){ if(s.kind==="sweep" && T.onG && Math.abs(p.y-s.y0)<1.0){ const qx=p.x-s.c[0], qz=p.z-s.c[1], rr=Math.hypot(qx,qz); if(rr<s.len+0.6){   // (v464) 🕐 바늘이 올 때 점프
         const a=-s.mesh.rotation.y, ph=Math.atan2(qz,qx), M=s.len2>0?Math.PI:Math.PI*2, d=s.sp>0?(((a-ph)%M)+M)%M:(((ph-a)%M)+M)%M, tt=d/Math.abs(s.sp); if(tt>0.12 && tt<0.3) T.buf=0.16; } } }
-        const a=-s.mesh.rotation.y, ph=Math.atan2(qz,qx), d=(((a-ph)%Math.PI)+Math.PI)%Math.PI, tt=d/s.sp; if(tt>0.2 && tt<0.36) T.buf=0.16; } } }
+        const a=-s.mesh.rotation.y, ph=Math.atan2(qz,qx), d=(((a-ph)%Math.PI)+Math.PI)%Math.PI, tt=d/s.sp; if((tt>0.2 && tt<0.36) || rr<0.9) T.buf=0.16; } } }   // (v466) 가운데(막대 뿌리)는 콩콩 뛰어서
     for(const s of T.S){ if(s.kind==="laser" && T.onG && Math.abs(p.y-s.y0)<0.5 && gap(s,p)<0.55) T.buf=0.16; }   // (v454) 🔴 레이저 = 점프로 넘기
     if(T.secs[sec]==="wall"){ const B=T.S.slice(T.secR[sec][0],T.secR[sec][1]).find(s=>s.wallTop);   // (v454) 🧗 벽 점프: B 쪽으로 → 벽에 닿으면 반대쪽으로 JUMP
-      if(T.onG && T.gnd && T.gnd.kind==="cp" && T.gnd.i===sec) T.buf=0;   // 처음 발판 → 길은 이어져 있으니 걸어감 (점프하면 A 벽에 부딪힘)
+      if(T.onG && T.gnd && T.gnd.kind==="cp" && T.gnd.i===sec) T.buf=0;
+      if(T.onG && T.gnd && T.gnd.wallTop) T.buf=0;   // (v466) 벽 위에 올라서면 멈춰서 다음 발판으로 걸어감   // 처음 발판 → 길은 이어져 있으니 걸어감 (점프하면 A 벽에 부딪힘)
       if(B && !(T.onG && (T.gnd===B || T.gnd.kind==="cp" || T.gnd.kind==="top"))){
         if(!T.onG && T.wallT>0 && T.wallN){ dx=T.wallN[0]; dz=T.wallN[1]; T.buf=0.16; }
         else if(T.onG){ const ex=(B.min.x+B.max.x)/2-p.x, ez=(B.min.z+B.max.z)/2-p.z, q=Math.hypot(ex,ez)||1; dx=ex/q; dz=ez/q; T.buf = gap(B,p)<0.3 ? 0.16 : 0; }

@@ -56,6 +56,15 @@ async def main():
             const c=SW.map(s=>s.c), tri=[Math.hypot(c[0][0]-c[1][0],c[0][1]-c[1][1]), Math.hypot(c[1][0]-c[2][0],c[1][1]-c[2][1]), Math.hypot(c[0][0]-c[2][0],c[0][1]-c[2][1])].map(v=>+v.toFixed(2));
             T.bot=false; return [SW.length, out, tri, Math.sign(SW[0].sp)!==Math.sign(SW[1].sp)]; }""")
         ok(r[0] == 3 and max(r[1]) < 0.01 and abs(r[2][0] - r[2][2]) < 0.01 and r[3], f"🕐🕐🕐 바늘 3개 · 삼각형(앞 1·뒤 2) · 뒤 두 바늘은 거울처럼 · 앞과 뒤는 반대로 {r}")
+        # (v466) 둥근 시계판만 · 🗼 도전 층 길이 들쭉날쭉
+        r = await E("""()=>{ const T=HOUSE.TW; for(let d=1; d<80; d++){ T.seed='2027-08-'+d; HOUSE.twBuild('sky'); if(T.secs.includes('sweep3')) break; } const i=T.secs.indexOf('sweep3'), y=T.ys[i]; T.bot=true;
+            const R=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.rnd), A=R[0], c=[A.rnd[0],A.rnd[1]], r=A.rnd[2], d=HOUSE.TDIR[i%4], n=[-d[1],d[0]];
+            const drop=(k)=>{ T.S.forEach(s=>{ if(s.kind==='sweep') s.hitT=99; }); T.p.set(c[0]+n[0]*r*k*0.7071-d[0]*r*k*0.7071, y+0.3, c[1]+n[1]*r*k*0.7071-d[1]*r*k*0.7071); T.v.set(0,0,0); T.onG=false; for(let q=0;q<40;q++) HOUSE.twStep(1/90); return +(T.p.y-y).toFixed(2); };
+            const inn=drop(0.8), out=drop(1.25); const sq=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='solid' && !s.rnd && !s.noWalk).map(s=>+((s.max.x-s.min.x)*(s.max.z-s.min.z)).toFixed(1));
+            const fl=[], rise=[]; for(let dd=1; dd<=8; dd++){ T.seed='2027-10-'+dd; HOUSE.twBuild('sky'); fl.push(T.flatAt.length); for(let j=11;j<T.ys.length;j++) rise.push(+(T.ys[j]-T.ys[j-1]).toFixed(1)); }
+            T.bot=false; return [R.length, inn, out, sq, fl, Math.min(...rise), Math.max(...rise)]; }""")
+        ok(r[0] == 3 and abs(r[1]) < 0.05 and r[2] < -0.5 and max(r[3]) < 4.5, f"🕐🕐🕐 둥근 판 3개만 (네모 판 없음) · 판 안 = 서 있음 · 둥근 판 밖(네모였으면 서 있던 곳) = 떨어짐 {r[:4]}")
+        ok(all(x >= 3 for x in r[4]) and r[5] < 0.6 and r[6] > 3.0, f"🗼 도전 11층부터: 사다리 없이 이어지는 층 (타워마다 {r[4]}) · 높은 사다리 · 층 높이 {r[5]}~{r[6]}")
         ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))
         await br.close()
     print("결과:", "통과" if not bad else f"실패 {len(bad)}")
