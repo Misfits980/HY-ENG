@@ -21,7 +21,7 @@ async def main():
             r = await E("""()=>{ const set='kinder', L=Study.lessons(set), les=L[0]; Study.ctx(set); let q=null;
                 const w=les.ws[0], L0=w.en[0]; q={t:'bal', w, so:1, ans:L0, opts:[L0].concat(['u','v','l','m'].filter(c=>c!==L0).slice(0,3)), x:{mode:'bal'}};
                 StudyUI.set=set; StudyUI.book='k'; StudyUI.les=les; StudyUI.qs=[q]; StudyUI.retryMode=true; StudyUI.begin();
-                const bs=[...document.querySelectorAll('#stQ .stOpt.balO')]; return bs.map(b=>{ const c=getComputedStyle(b), r=b.getBoundingClientRect(); return [c.backgroundImage.slice(-14,-2), Math.round(r.width), Math.round(r.right)]; }); }""")
+                const bs=[...document.querySelectorAll('#stQ .stOpt.balO')]; return bs.map(b=>{ const c=getComputedStyle(b), r=b.getBoundingClientRect(); return [((c.backgroundImage.match(/[a-z0-9_]+\.webp/)||[''])[0]), Math.round(r.width), Math.round(r.right)]; }); }""")
             ok(isinstance(r, list) and len(r) == 4 and all("webp" in x[0] for x in r) and max(x[2] for x in r) <= vw, f"① {tag} 풍선 그림 4개 · 화면 안 {r}")
             await pg.wait_for_timeout(400); await pg.screenshot(path=OUT + f"done444_bal_{tag}.png")
             # ② 유치원 ★3 완벽 끝 화면
