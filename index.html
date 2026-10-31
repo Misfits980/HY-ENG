@@ -1978,6 +1978,8 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stTiles{display:flex;justify-content:center;flex-wrap:wrap;gap:7px}
 .stTile{appearance:none;width:44px;height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.18);background:#2e2560;color:#fff;font:900 22px var(--font);cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
 .stTile:disabled{opacity:.2;box-shadow:none}
+.stSlots span.hn{color:#ffe08a}
+.stIdk.hint{border-style:solid;border-color:rgba(255,224,138,.4)}
 .stIdk{display:block;margin:2px auto 0;appearance:none;border:2px dashed rgba(255,224,138,.55);border-radius:14px;background:rgba(255,224,138,.08);color:#ffe08a;font:800 14px var(--font);padding:10px 16px;min-height:44px;cursor:pointer}
 .stSlots span.idk{color:#ffe08a;border-color:#ffe08a;animation:idkPop .35s ease-out both}.stSlots span.idk:nth-child(2n){animation-delay:.05s}
 @keyframes idkPop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
@@ -14678,7 +14680,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v481";
+const GAME_VER = "v482";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16830,9 +16832,10 @@ const StudyUI = {
   bitsPlay(en){ const box=$("stQ").querySelector('.usBits'); if(!box) return; const sp=[...box.querySelectorAll("span")];
     try{ DexDet.say(en, true); }catch(e){} sp.forEach((x,k)=>{ setTimeout(()=>{ sp.forEach(y=>y.classList.toggle("on", y===x)); }, 120+k*380); }); setTimeout(()=>sp.forEach(y=>y.classList.remove("on")), 200+sp.length*380); },
   slots(){ const q=this.qs[this.i], A=q.kans||q.w.en;
-    if(q.kk){ $("stSlots").innerHTML=q.got.split("").map((c,k)=>'<span class="f'+(c===" "?" sp":"")+'" data-sk="'+k+'">'+(c===" "?"&nbsp;":c)+'</span>').join("")+'<span class="kkCur"></span>'; $("stCheck").disabled = q.got.length<1; return; }   // (v326) 💜3 — 글자 수 칸을 숨김
+    if(q.kk){ $("stSlots").innerHTML=q.got.split("").map((c,k)=>'<span class="f'+(c===" "?" sp":"")+'" data-sk="'+k+'">'+(c===" "?"&nbsp;":c)+'</span>').join("")+'<span class="kkCur"></span>'; $("stCheck").disabled = q.got.length<1; this.idkSync(q); return; }   // (v326) 💜3 — 글자 수 칸을 숨김
     $("stSlots").innerHTML=A.split("").map((c,k)=>'<span class="'+(k<q.got.length?'f':'')+(c===" "?" sp":"")+'"'+(k<q.got.length?' data-sk="'+k+'"':'')+'>'+(q.got[k]&&q.got[k]!==" "?q.got[k]:'')+'</span>').join("");
-    $("stCheck").disabled = q.got.length<A.length; },
+    $("stCheck").disabled = q.got.length<A.length; this.idkSync(q); },
+  idkSync(q){ try{ const b=$("stIdk"); if(!b || this.locked) return; const n=this.idkB(q); if(n && b.outerHTML!==n) b.outerHTML=n; }catch(e){} },   /* (v481) 힌트 단추 글자 = 지금 쓸 수 있는 힌트 */
   FAST:700,
   fastNote(){ const k=$("stQ").querySelector(".stKind"); if(!k || k.querySelector(".stFast")) return; k.insertAdjacentHTML("beforeend",'<small class="stFast">👀 문제를 먼저 읽어요</small>'); },
   click(e){
@@ -17019,11 +17022,27 @@ const StudyUI = {
      철자·받아쓰기에서 글자를 마구 누르는 대신: 답을 칸에 채워 보여 주고 소리 → 같은 문제(글자 다시 섞음)를 이 판 맨 마지막에 → 그때 맞히면 진행
      기록 = 틀림(복습 칸·약한 단어로) · 하트·콤보 깎는 '틀림'은 아님 · 시험·확인·💜3(하트)·같은 문제 두 번째 모르겠어요(맨 끝 반복 막기)에서는 안 보임 */
   idkOK(q){ return !!q && (q.t==="spell" || q.t==="dict") && !this.test && !this.oly && !this.ex && !q.chk && !q.kn && !q.sure && !q.once && !(this.tier===3 && this.dl===3) && (q.idk|0)<2; },
-  idkB(q){ return this.idkOK(q) ? '<button class="stIdk" id="stIdk">🤔 모르겠어요 · 답 보기</button>' : ''; },
-  idk(){ const q=this.qs[this.i]; if(!q || this.locked || !this.idkOK(q)) return; this.tStop(); this.locked=true; const A=q.kans||q.w.en;
+  /* (v481) Daily 30 점검: 「모르겠어요」= 바로 정답 → 힌트 사다리 (스스로 떠올리게): 💡 한 글자 더 → 💡 절반까지 → 🤔 답 보기(맨 마지막에 다시)
+     힌트를 쓰면 맞혀도 '도움 받아 맞힘'(again) — 콤보·한 번에 맞힘에 안 들고 복습 칸으로 · 마지막 한 글자는 꼭 스스로 */
+  hintPre(q){ const A=q.kans||q.w.en; let p=0; while(p<q.got.length && q.got[p]===A[p]) p++; return p; },
+  hintOK(q){ const A=q.kans||q.w.en; return (q.hn|0)<2 && Array.isArray(q.tiles) && A.length - this.hintPre(q) > 1; },
+  idkB(q){ if(!this.idkOK(q)) return ''; const h=this.hintOK(q) ? ((q.hn|0)===0 ? '💡 힌트 · 한 글자' : '💡 힌트 · 절반까지') : '🤔 모르겠어요 · 답 보기';
+    return '<button class="stIdk'+(this.hintOK(q)?' hint':'')+'" id="stIdk">'+h+'</button>'; },
+  hint(q){ const A=q.kans||q.w.en, hn=q.hn|0, Q=$("stQ"), p=this.hintPre(q);
+    q.used.splice(p).forEach(u=>{ const b=Q.querySelector('.stTile[data-t="'+u+'"]'); if(b) b.disabled=false; }); q.got=q.got.slice(0,p);   // 틀린 글자는 지움
+    const want = hn===0 ? p+1 : Math.max(p+1, Math.min(A.length-1, Math.ceil(A.length/2)));
+    while(q.got.length<want){ const ch=A[q.got.length], k=q.tiles.findIndex((c,j)=>c===ch && q.used.indexOf(String(j))<0); if(k<0) break;
+      q.got+=ch; q.used.push(String(k)); const b=Q.querySelector('.stTile[data-t="'+k+'"]'); if(b) b.disabled=true; }
+    q.hn=hn+1; q.again=true; q.hu=1; this.slots();
+    const sl=$("stSlots"); if(sl) [...sl.children].forEach((s,k)=>{ if(k<q.got.length && k>=p) s.classList.add("hn"); });
+    const b=$("stIdk"); if(b) b.outerHTML=this.idkB(q);
+    this.say(A); try{ SFX.tone(520,.1,"triangle",.035,780); }catch(e){} this.saveCur(); },
+  idk(){ const q=this.qs[this.i]; if(!q || this.locked || !this.idkOK(q)) return;
+    if(this.hintOK(q)){ this.hint(q); return; }
+    this.tStop(); this.locked=true; const A=q.kans||q.w.en;
     try{ Rank.record(q.w.en, false, null, true); }catch(e){} try{ Study.mark(q.w.en, false); }catch(e){}
     this.missed[q.w.en]=1; delete this.okW[q.w.en]; this.combo=0; this.nIdk=(this.nIdk|0)+1;
-    const c=Object.assign({}, q, {again:true, idk:(q.idk|0)+1, retry:0, tout:0, got:"", used:[]}); if(Array.isArray(q.tiles)) c.tiles=shuffle(q.tiles.slice());
+    const c=Object.assign({}, q, {again:true, idk:(q.idk|0)+1, retry:0, tout:0, got:"", used:[], hn:0, hu:0}); if(Array.isArray(q.tiles)) c.tiles=shuffle(q.tiles.slice());
     this.qs.push(c);                                                    // 맨 마지막
     const sl=$("stSlots"); if(sl) sl.innerHTML=A.split("").map(ch=>'<span class="f idk'+(ch===" "?" sp":"")+'">'+(ch===" "?"&nbsp;":this.esc(ch))+'</span>').join("");
     $("stQ").querySelectorAll(".stTile, .kdK, [data-kk], [data-kb]").forEach(b=>{ b.disabled=true; }); ["stUndo","stIdk"].forEach(id=>{ const b=$(id); if(b) b.style.visibility="hidden"; });

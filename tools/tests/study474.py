@@ -27,8 +27,8 @@ async def main():
         en, n0, k0 = r
         await pg.wait_for_timeout(300)
         r = await E("()=>[!!document.getElementById('stIdk'), document.getElementById('stIdk') && document.getElementById('stIdk').innerText]")
-        ok(r[0] and "모르겠어요" in r[1], f"① 철자 문제에 🤔 모르겠어요 단추 {r}")
-        await E("()=>document.getElementById('stIdk').click()"); await pg.wait_for_timeout(300)
+        ok(r[0] and "힌트" in r[1], f"① (v481) 철자 문제에 💡 힌트 → 🤔 모르겠어요 단추 {r}")
+        await E("()=>{ for(let k=0;k<4;k++){ const b=document.getElementById('stIdk'); if(!b) return; const last=/모르겠어요/.test(b.innerText); b.click(); if(last) return; } }"); await pg.wait_for_timeout(300)
         r = await E("""(en)=>{ const U=StudyUI, last=U.qs[U.qs.length-1]; return [document.getElementById('stSlots').innerText.replace(/\\s+/g,''), document.getElementById('stFoot').innerText, U.qs.length, last.t, last.w.en, last.idk, last.again, last.got, U.locked, U.wrong, U.missed[en]===1]; }""", en)
         ok(r[0] == en.replace(" ", "") and "맨 마지막" in r[1] and r[2] == n0 + 1 and r[3] == "spell" and r[4] == en and r[5] == 1 and r[6] and r[7] == "" and r[8] and r[9] == 0 and r[10],
            f"① 답이 칸에 · 「맨 마지막에 다시」 · 판 맨 끝에 같은 문제(idk 1) · 틀림 숫자 0 · 복습엔 틀림 {r}")
@@ -42,7 +42,7 @@ async def main():
             await E(SOLVE, False); await pg.wait_for_timeout(120)
         r = await E("()=>{ const U=StudyUI, q=U.qs[U.i]; return [U.i, U.qs.length, q && q.t, q && q.w.en, q && q.idk, !!document.getElementById('stIdk')]; }")
         ok(r[0] == r[1] - 1 and r[2] == "spell" and r[3] == en and r[4] == 1 and r[5], f"② 맨 끝 문제 = 모르겠어요 한 철자 문제 (한 번 더 모르겠어요 가능) {r}")
-        await E("()=>document.getElementById('stIdk').click()"); await pg.wait_for_timeout(250)
+        await E("()=>{ for(let k=0;k<4;k++){ const b=document.getElementById('stIdk'); if(!b) return; const last=/모르겠어요/.test(b.innerText); b.click(); if(last) return; } }"); await pg.wait_for_timeout(250)
         r = await E("()=>{ const U=StudyUI, last=U.qs[U.qs.length-1]; return [last.idk, U.qs.length]; }")
         await E("()=>document.getElementById('stCheck').click()"); await pg.wait_for_timeout(250)
         r2 = await E("()=>{ const U=StudyUI, q=U.qs[U.i]; return [q && q.idk, !!document.getElementById('stIdk')]; }")
