@@ -105,9 +105,31 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);
 #approach{height:3px;border-radius:99px;background:rgba(0,0,0,.4);margin-top:3px;overflow:hidden;
   border:0;width:70%;margin-left:auto;margin-right:auto}
 #approach i{display:block;height:100%;width:100%;background:var(--mint);border-radius:99px}
-#comboTag{margin-top:4px;display:inline-block;font-size:11px;font-weight:800;color:#2a1b00;opacity:0;transition:opacity .2s;
-  background:var(--amber);display:inline-block;padding:2px 10px;border-radius:99px}
+#comboTag{margin-top:4px;display:inline-block;font-size:13px;font-weight:900;color:#2a1b00;opacity:0;transition:opacity .2s;
+  background:var(--amber);display:inline-block;padding:3px 12px;border-radius:99px;letter-spacing:.02em;box-shadow:0 2px 0 rgba(0,0,0,.28)}
 #comboTag.on{opacity:1;animation:pump .35s ease}
+/* (v491) 콤보 단계 — 글자는 늘 진하게, 배경만 바뀐다 (예전: 5연속부터 노란 배경에 노란 글자라 안 보였음) */
+#comboTag.t5{background:#5fe0b0}
+#comboTag.t10{background:linear-gradient(90deg,#ffe58f,#ffae3d);box-shadow:0 0 12px rgba(255,200,90,.8),0 2px 0 rgba(0,0,0,.28)}
+#comboTag.t15{background:linear-gradient(90deg,#ff9a5c,#ff5a48);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:0 0 14px rgba(255,110,70,.9),0 2px 0 rgba(0,0,0,.28)}
+#comboTag em{font-style:normal;font-weight:800;margin-left:6px;padding-left:6px;border-left:1px solid rgba(0,0,0,.28)}
+#comboTag.t15 em{border-left-color:rgba(255,255,255,.55)}
+#rushTag,#lootTag{display:none;margin:4px 0 0 6px;font-size:12px;font-weight:900;padding:3px 10px;border-radius:99px;vertical-align:top;box-shadow:0 2px 0 rgba(0,0,0,.28)}
+#rushTag{background:#7ad7ff;color:#05263a}
+#lootTag{background:rgba(24,18,46,.86);color:#fff;border:1px solid rgba(255,255,255,.3)}
+#rushTag.on,#lootTag.on{display:inline-block}
+#feverBar{height:6px;border-radius:99px;background:rgba(0,0,0,.45);margin-top:5px;overflow:hidden}
+#feverBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd37a,#ff7a3c);border-radius:99px;transition:width .25s}
+#feverBar.full i{width:100%!important;animation:fvB .45s linear infinite alternate}
+@keyframes fvB{from{filter:brightness(1)}to{filter:brightness(1.7)}}
+#rushFx,#feverFx{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0}
+#rushFx{background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,255,255,0) 0deg 5deg,rgba(255,255,255,.26) 5.5deg 6.1deg,rgba(255,255,255,0) 6.6deg 11deg);
+  -webkit-mask:radial-gradient(ellipse 62% 52% at 50% 44%,transparent 45%,#000 100%);mask:radial-gradient(ellipse 62% 52% at 50% 44%,transparent 45%,#000 100%)}
+#feverFx{transition:opacity .3s;background:radial-gradient(120% 90% at 50% 45%,rgba(0,0,0,0) 42%,rgba(255,120,40,.5) 100%)}
+body.fever #feverFx{opacity:1;animation:fvP .55s ease-in-out infinite alternate}
+@keyframes fvP{from{opacity:.6}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){ body.fever #feverFx{animation:none} #rushFx{display:none} }
+.lootSh{font-size:16px;margin-left:4px;vertical-align:middle;filter:drop-shadow(0 0 4px rgba(120,200,255,.95))}
 @keyframes pump{0%{transform:scale(.7)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
 
 /* 판정 연출 */
@@ -1608,6 +1630,7 @@ body.ui-skin .menu .menuDuo .mitem.duo{width:auto;flex:1 1 0}
 #scOver .resStats small{display:block;margin-top:2px;font-size:10.5px;font-weight:800;color:#9d92c8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #scOver .resStats .rsW.zero b:after{content:" 🎊";font-size:14px}
 #scOver .resStats small i{font-style:normal}
+#oLoot{margin:8px 2px 0;text-align:center;font-size:12.5px;font-weight:800;color:#e8dcff;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:7px 8px;line-height:1.5}
 #scOver #btnMain{white-space:nowrap}   /* (v322) 320 폭에서 '🏠 처 / 음' 으로 쪼개졌다 */
 /* (v322) 좁은 폰(320~359) — 4칸 이름의 그림 글자를 빼고 글씨를 조금 줄여 '스테… 최고…' 말줄임이 안 생기게 */
 @media (max-width:360px){ #scOver .resStats small i{display:none} #scOver .resStats small{font-size:10px;letter-spacing:-.02em} #scOver .resStats > div{padding-left:2px;padding-right:2px}
@@ -4706,7 +4729,7 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
   <div class="top">
     <div>
       <div class="chip"><small><span class="hico flag"></span><span id="uZone">초원</span></small><b id="uStage">1</b></div>
-      <div class="chip" id="chipScore" style="margin-top:6px"><small><span class="hico star"></span>SCORE</small><b id="uScore">0</b></div>
+      <div class="chip" id="chipScore" style="margin-top:6px"><small><span class="hico star"></span>SCORE</small><b id="uScore">0</b><div id="feverBar" hidden><i></i></div></div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
       <div style="display:flex;gap:6px;pointer-events:auto">
@@ -4723,11 +4746,11 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
       <div id="ptext">－</div>
       <div id="approach"><i id="approachBar"></i></div>
     </div>
-    <div><span id="comboTag">2 COMBO</span></div>
+    <div><span id="comboTag">2 COMBO</span><span id="rushTag"></span><span id="lootTag"></span></div>
   </div>
 </div>
 
-<div id="vignette"></div>
+<div id="vignette"></div><div id="rushFx"></div><div id="feverFx"></div>
 <div id="popLayer"></div>
 <div id="zoneTag"></div>
 <div id="chFlash"></div><div id="chTag"></div>
@@ -5112,6 +5135,7 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
     <div><b id="oCombo">0</b><small><i>🔥 </i>최고 콤보</small></div>
     <div class="rsW"><b id="oWrong">0</b><small><i>❌ </i>틀림</small></div>
   </div>
+  <div id="oLoot"></div><!-- (v491) ⭐ 별 · ❓ 상자 · 🔥 FEVER · 💗 연속 회복 -->
   <div class="resCard resRw">
     <div class="resCh">🎁 이번 판</div>
     <div class="resDuo"><div class="resGems" id="oGems"></div><div id="oBoss"></div></div>
@@ -9213,6 +9237,7 @@ function spawnSet(){ Perf.mark("문 생성");
       const zn=ZONES[zoneIndex(G.stage+1)]; if(zn && zn!==zone() && zoneArt(zn)!==zoneArt()) SignCache.warm(G.nextQ.options, zn); }catch(e){}   // (v322) 다음 문제 단어판은 쉬는 틈에 미리 그려 둔다
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
+  try{ Loot.onSet(s); }catch(e){}                   // (v491) ⭐ 별 줄 · ❓ 상자 · 🐢 천천히
   G.groundSpeed = s.speed;
   if(Later.busy) Later.add(()=>{ if(G.sets.indexOf(s)>=0) showQuestion(q, s); });   // (v374) 문제 글자·읽기는 그다음 프레임
   else showQuestion(q, s);
@@ -9449,13 +9474,15 @@ function judge(s){ Perf.mark("판정");
     const rush = clamp(P.z/CFG.Z_FORWARD, 0, 1);            // 앞으로 나간 정도
     const bonus = Math.round(rush*CFG.RUSH_BONUS);
     const memo  = s.hideMode ? CFG.GIMMICK_BONUS : 0;        // 기억 기믹 보너스
-    const gain = Math.round((CFG.SCORE_BASE + (G.combo-1)*CFG.COMBO_STEP + bonus + memo) * DIFF[G.diff].scoreMul);
+    let lm=1; try{ lm=Loot.mul(); }catch(e){}                // (v491) 🔥 FEVER 동안 정답 점수 2배
+    const gain = Math.round((CFG.SCORE_BASE + (G.combo-1)*CFG.COMBO_STEP + bonus + memo) * DIFF[G.diff].scoreMul * lm);
     G.score += gain;
     burst(P.x, 1.4, P.z+0.5, COL.mint, 22);
     try{ HitFx.play(); }catch(e){}                   // 상점 정답 효과
-    popScore("+"+gain, (bonus?"RUSH ":"")+(memo?"MEMORY ":"")+(G.combo>=2?G.combo+" COMBO":""),
+    popScore("+"+gain, (lm>1?"🔥 FEVER ":"")+(bonus?"RUSH ":"")+(memo?"MEMORY ":"")+(G.combo>=2?G.combo+" COMBO":""),
              comboColor(G.combo), 44);
     comboStep();
+    try{ Loot.onRight(); }catch(e){}                         // (v491) 💗 연속 정답 회복 · 🔥 게이지
     verdict("Correct!", "+"+gain+"점"+(bonus?" <em>RUSH +"+bonus+"</em>":"")+(memo?" <em>MEMORY +"+memo+"</em>":""),
             COL.mint, "rgba(95,224,176,.2)");
     if(WORD_SETS[G.set].review) WrongBook.remove(s.q.word.en);
@@ -9475,6 +9502,7 @@ function judge(s){ Perf.mark("판정");
     else Later.add(()=>{ if(G.running && !G.dead && !G.finishing && !G.sets.some(x=>!x.judged)) spawnSet(); });   // (v374) 다음 문제는 다음 프레임에 (흐름은 그대로 — 0.02초 뒤)
   } else {
     G.wrong++; G.combo=0; SFX.wrong(); G.breather = true; G.solved++; G._schPend = true;   // (학자) 틀린 다음 문제에 한 번 더
+    try{ Loot.onWrong(); }catch(e){}
     let conf=null; try{ const j=s.gates.findIndex(g=>laneOfGate(g)===G.lane); if(j>=0){ conf=String(s.q.options[j]); if(/[A-Za-z]/.test(conf)) conf=conf.toLowerCase(); } }catch(e){}   // 어떤 단어와 헷갈렸는지
     Rank.record(s.q.word && s.q.word.en, false, conf, !!G.practice);
     onRuleWrong(); Boss.taunt();
@@ -11445,7 +11473,7 @@ const Hazards = {
     h.mesh.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
     this.list.splice(i,1);
   },
-  clear(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); if(typeof G!=="undefined"){ G.preHazQ=null; } },
+  clear(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); if(typeof G!=="undefined"){ G.preHazQ=null; } try{ Loot.clearItems(); }catch(e){} },   // (v491) 별·상자도 함께
   /* 길 검사 — 한 문제 구간에 새로 놓인 함정(보스 공격 포함)으로 앞 문 → 정답 문 길이 막히면 하나씩 뺀다.
      보통(spawnFor)은 이런 검사가 없어서, 정답 줄 함정 + 옆 줄 함정 + 쇠창살·석상이 겹치면 지나갈 틈이 0.1초뿐인 문제가 생겼다 (v202 점검: 2·3장 보통 약 7%).
      한 칸 옮기는 시간은 어려움·극한 시간 줄 배치와 같은 "아이 반응 기준"(2.1배)으로 넉넉히 잡는다. 움직이는 함정(기사·방패 휘두르기·벌떼)과 구역(빙판·흔들다리)은 따지지 않는다 */
@@ -11954,7 +11982,8 @@ function onDead(){
     playLater(()=>{ if(G.timeLeft<=0) gameOver(); else respawn(); }, 260);
     return;
   }
-  if(Items.blockLoss()){                           // (v294) 1회 실드 — 목숨 대신 실드가 깨진다 (지금은 꺼짐)
+  let lsh=false; try{ lsh=Loot.blockLoss(); }catch(e){}   // (v491) ❓ 상자에서 얻은 방패
+  if(Items.blockLoss() || lsh){                    // (v294) 1회 실드 — 목숨 대신 실드가 깨진다 (지금은 꺼짐)
     G.dead = true; verdict("🛡️ 실드!", "목숨을 지켰어요", COL.mint, "rgba(95,224,176,.2)"); updateHUD();
     playLater(()=>respawn(), 420); return; }
   G.dead = true; G.lives--;
@@ -12372,6 +12401,228 @@ function comboColor(c){
 function comboWord(c){
   return c>=20 ? "AMAZING!" : c>=15 ? "EXCELLENT!" : c>=10 ? "GREAT!" : "GOOD!";
 }
+/* =====================================================================
+   (v491) 달리기 손맛 — 사용자: "개선사항 1~4번까지 하고 5·6번은 시안만"
+   ① 💗 연속 정답 10개마다 하트 +1 (보통 이상 · 최대치까지) — 1장 '지대 회복 없음' 규칙은 그대로 두고, 꾸준히 맞히는 아이에게만
+   ② ⚡ RUSH 보이기 — 앞으로 나가면 화면 가장자리 속도선 + 「⚡ RUSH +n」 (보너스는 원래 있었는데 도움말에만 적혀 있었음)
+   ③ ❓ 상자 — 🐢 천천히(다음 문 3개 느리게) · 🧲 별 자석 · 🔥 게이지 +40 · (쉬움·유치원·2장부터) 💗 하트 · 🛡️ 방패 — 정답을 알려 주는 효과는 없음
+   ④ ⭐ 별 줄 — 문이 생길 때 그 문까지 길의 앞쪽 절반에 한 줄 (줄은 정답과 상관없이 무작위 → 정답 힌트가 아님 · 함정 자리는 비움)
+      별·정답이 🔥 게이지를 채움 → 가득 차면 🔥 FEVER 7초: 정답 점수 2배 · 별 2배 · 함정에 안 걸림 (오답은 그대로 넘어짐)
+   ⑤ 콤보 단계 빛 — 5(민트)·10(금)·15(주황)·FEVER(빨강) 캐릭터 뒤 빛
+   2인용·레이스·보스전에는 별·상자를 놓지 않는다. 문 앞 마지막 40% 구간은 늘 비워 두어 단어 고르기에 집중
+===================================================================== */
+var Loot = (function(){
+  const HEAL_EVERY=10, FEVER_MAX=100, FEVER_T=7, STAR_N=5, STAR_PTS=10, G_STAR=1, G_RIGHT=5;   // 별 다 줍고 다 맞히면 문 10개쯤에 한 번 FEVER
+  const S={list:[], gauge:0, fever:0, shield:0, slow:0, magnet:0, boxCD:3, chain:0, chainT:0,
+           stars:0, boxes:0, fevers:0, heals:0, told:{}, aura:null, auraC:-1, auraT:0, fT:0, tx:null, mats:{}};
+  const can = ()=> !!(G.running && G.rule==="normal" && !G.versus && !G.race);
+  const bossOn = ()=>{ try{ return typeof Boss!=="undefined" && !!Boss.active; }catch(e){ return false; } };
+  function tip(key, txt){
+    if(S.told[key]) return; S.told[key]=1;
+    try{ const k="hyeng_tip_"+key, n=parseInt(localStorage.getItem(k),10)||0; if(n>=3) return; localStorage.setItem(k, String(n+1)); }catch(e){}
+    try{ TrapTip.show(txt); }catch(e){}
+  }
+  function enc(t){ if(THREE.sRGBEncoding) t.encoding=THREE.sRGBEncoding; return t; }
+  function tex(){
+    if(S.tx) return S.tx;
+    const T={}, mk=()=>{ const c=document.createElement("canvas"); c.width=c.height=128; return [c, c.getContext("2d")]; };
+    let [c,x]=mk();
+    if(x){                                                     // ⭐ 두꺼운 갈색 테두리 + 금색 (게임 그림체)
+      x.translate(64,67); x.beginPath();
+      for(let i=0;i<10;i++){ const r=i%2?23:54, a=-Math.PI/2+i*Math.PI/5; x.lineTo(Math.cos(a)*r, Math.sin(a)*r); }
+      x.closePath(); x.lineJoin="round"; x.lineWidth=11; x.strokeStyle="#5a3000"; x.stroke();
+      const g=x.createLinearGradient(0,-54,0,54); g.addColorStop(0,"#fff6c2"); g.addColorStop(.45,"#ffd23f"); g.addColorStop(1,"#ff9a1a");
+      x.fillStyle=g; x.fill();
+      x.fillStyle="rgba(255,255,255,.8)"; x.beginPath(); x.ellipse(-11,-17,7,12,-.55,0,Math.PI*2); x.fill();
+    }
+    T.star=enc(new THREE.CanvasTexture(c));
+    [c,x]=mk();
+    if(x){                                                     // ❓ 보라 선물 상자 + 금 리본
+      const rr=(X,Y,W,H,R)=>{ x.beginPath(); x.moveTo(X+R,Y); x.arcTo(X+W,Y,X+W,Y+H,R); x.arcTo(X+W,Y+H,X,Y+H,R); x.arcTo(X,Y+H,X,Y,R); x.arcTo(X,Y,X+W,Y,R); x.closePath(); };
+      rr(14,18,100,98,16);
+      const g=x.createLinearGradient(0,18,0,116); g.addColorStop(0,"#c39bff"); g.addColorStop(1,"#5b2bbf"); x.fillStyle=g; x.fill();
+      x.fillStyle="#ffd23f"; x.fillRect(56,20,16,94); x.fillRect(16,56,96,14);
+      rr(14,18,100,98,16); x.lineWidth=9; x.strokeStyle="#2a1046"; x.stroke();
+      x.font="900 66px 'Pretendard','Noto Sans CJK KR',Arial,sans-serif"; x.textAlign="center"; x.textBaseline="middle";
+      x.lineJoin="round"; x.lineWidth=12; x.strokeStyle="#2a1046"; x.strokeText("?",64,70); x.fillStyle="#fff"; x.fillText("?",64,70);
+    }
+    T.box=enc(new THREE.CanvasTexture(c));
+    S.tx=T; return T;
+  }
+  function mat(type){
+    if(!S.mats[type]) S.mats[type]=new THREE.SpriteMaterial({map:tex()[type], transparent:true, depthWrite:false});
+    return S.mats[type];
+  }
+  function add(type, x, z){
+    const sp=new THREE.Sprite(mat(type)), s=type==="box"?1.4:0.95;
+    sp.scale.set(s,s,1); sp.position.set(x, type==="box"?1.0:0.8, z); scene.add(sp);
+    S.list.push({type, x, z, mesh:sp, ph:Math.random()*6});
+  }
+  function rm(i){ const it=S.list[i]; if(!it) return; try{ scene.remove(it.mesh); }catch(e){} S.list.splice(i,1); }
+  function hzZ(h){ return h.tile ? h.tile.logicZ : (h.z!=null ? h.z : (h.mesh && h.mesh.position ? h.mesh.position.z : null)); }
+  function hzX(h){ if(h.cx!=null) return h.cx; if(h.lane!=null) return laneX(h.lane, G.lanes); return null; }
+  function blocked(x, z){                                       // 함정 자리에는 별·상자를 두지 않는다
+    try{ return Hazards.list.some(h=>{
+      if(!h || h.type==="ice" || h.type==="puddle") return false;
+      const hz=hzZ(h); if(hz==null || Math.abs(hz-z) > (h.len||2)/2+1.3) return false;
+      const hx=hzX(h); return hx==null || Math.abs(hx-x) < (h.halfW||CFG.LANE_W*0.5)+0.55; }); }catch(e){ return false; }
+  }
+  function heartAnim(){ setTimeout(()=>{ try{ const el=document.getElementById("uLives"); if(el){ el.classList.remove("gain"); void el.offsetWidth; el.classList.add("gain"); } }catch(e){} }, 60); }
+  const API = {
+    S, HEAL_EVERY, FEVER_MAX, FEVER_T, STAR_N,
+    healOn(){ return can() && G.diff!=="easy"; },
+    healLeft(){ if(!this.healOn() || G.lives>=G.maxLives) return 0; return HEAL_EVERY - (G.combo % HEAL_EVERY); },
+    mul(){ return (can() && S.fever>0) ? 2 : 1; },
+    shieldOn(){ return can() && !!S.shield; },
+    blockLoss(){ if(!can() || !S.shield) return false; S.shield=0; return true; },
+    stats(){ return {stars:S.stars, boxes:S.boxes, fevers:S.fevers, heals:S.heals}; },
+    /* 문이 생길 때 — 이 문까지 가는 길 앞쪽에 별 줄 · 가끔 상자 */
+    onSet(s){
+      if(!can() || bossOn() || !s || !s.q || s.q.isMine) return;
+      if(S.slow>0){ S.slow--; s.time*=1.3; s.speed=G.spawnDist/s.time; }       // 🐢 이 문은 느리게
+      const gz=s.group.position.z, D=G.spawnDist, n=G.lanes;
+      if(G.stage>=2){
+        const lane=Math.floor(Math.random()*n), x=laneX(lane,n); let put=0;   // 줄은 정답과 상관없이 무작위
+        for(let k=0;k<STAR_N;k++){ const z=gz + D*(0.44 + 0.36*k/(STAR_N-1)); if(blocked(x,z)) continue; add("star", x, z); put++; }
+        if(put) tip("star", "⭐ 별을 모으면 🔥 게이지가 차요 — 가득 차면 FEVER! 점수 2배");
+      }
+      if(--S.boxCD<=0 && G.stage>=4){
+        S.boxCD = 4+Math.floor(Math.random()*4);
+        const L=[]; for(let l=0;l<n;l++) L.push(l); L.sort(()=>Math.random()-.5);
+        const z=gz+D*0.62;
+        for(const l of L){ const x=laneX(l,n);
+          if(blocked(x,z) || S.list.some(it=>Math.abs(it.x-x)<0.6 && Math.abs(it.z-z)<1.6)) continue;
+          add("box", x, z); tip("box", "❓ 상자를 주우면 선물이 나와요!"); break; }
+      }
+    },
+    update(dt, speed, rdt){
+      if(!G.running) return;
+      rdt = rdt||dt;
+      const back=camera.position.z+3, hw=CFG.LANE_W*0.5;
+      for(let i=S.list.length-1;i>=0;i--){
+        const it=S.list[i];
+        it.z += (speed||0)*dt;
+        if(S.magnet>0 && it.type==="star" && it.z < P.z+1 && it.z > P.z-12){ it.x += (P.x-it.x)*Math.min(1, rdt*7); it.z += (P.z-it.z)*Math.min(1, rdt*3); }
+        it.ph += rdt*4;
+        it.mesh.position.set(it.x, (it.type==="box"?1.0:0.8) + Math.sin(it.ph)*0.12, it.z);
+        if(!G.falling && !G.dead && P.y>-0.3 && Math.abs(P.x-it.x)<hw*0.95 && Math.abs(P.z-it.z)<0.95){ this.pick(it); rm(i); continue; }
+        if(it.z>back) rm(i);
+      }
+      if(S.chainT>0){ S.chainT-=rdt; if(S.chainT<=0) S.chain=0; }
+      if(S.magnet>0){ S.magnet=Math.max(0, S.magnet-rdt); }
+      if(S.fever>0){
+        S.fever-=rdt; G.passSafe=Math.max(G.passSafe||0, 0.15);                 // 🔥 FEVER — 함정에 안 걸림
+        S.fT-=rdt; if(S.fT<=0 && !G.falling){ S.fT=0.09; try{ puff(P.x, .25, P.z+.25, 0xff7a3c, 2, 1.8); }catch(e){} }
+        if(S.fever<=0) this.endFever();
+      }
+      this.rush();
+      this.aura(rdt);
+      S.hT=(S.hT||0)-rdt; if(S.hT<=0){ S.hT=0.25; this.hud(); }
+    },
+    pick(it){
+      if(it.type==="star"){
+        S.stars++; S.chain=(S.chainT>0 ? S.chain+1 : 1); S.chainT=0.8;
+        const m=S.fever>0?2:1; G.score += STAR_PTS*m;
+        if(S.fever<=0) this.gain(G_STAR);
+        try{ SFX.tone(880+Math.min(S.chain,8)*90, .07, "triangle", .045, 1500+S.chain*90); }catch(e){}
+        try{ burst(it.x, 0.9, it.z, 0xffd23f, 6); }catch(e){}
+        if(S.chain===STAR_N){ try{ popScore("⭐ 별 줄 완성!", "+"+(STAR_PTS*STAR_N*m)+"점", "#ffd23f", 38); }catch(e){} }
+        updateHUD(); return;
+      }
+      S.boxes++;
+      /* 하트·방패는 쉬움·유치원과 2장부터만 — 보통 이상 1장은 '회복 없음'(사용자 결정)을 지킨다.
+         계산(정답률 90% 아이가 50단계까지 갈 확률): 예전 10% · 연속 회복만 28% · 상자 하트·방패까지 넣으면 52% (너무 쉬워짐) */
+      let surv=false; try{ surv = G.diff==="easy" || !!G.gentle || !!zone().ch; }catch(e){}
+      const o=[]; if(surv){ if(G.lives<G.maxLives) o.push("heart","heart"); if(!S.shield) o.push("shield","shield"); }
+      o.push("slow"); if(S.magnet<=0) o.push("magnet"); if(S.fever<=0) o.push("boost");
+      const k=o[Math.floor(Math.random()*o.length)] || "slow";
+      if(k==="heart"){ G.lives=Math.min(G.maxLives, G.lives+1); heartAnim(); popScore("💗 하트 +1", "선물 상자", "#ff7aa8", 38); }
+      else if(k==="shield"){ S.shield=1; popScore("🛡️ 방패!", "한 번 넘어져도 하트가 그대로", "#7ad7ff", 38); }
+      else if(k==="slow"){ S.slow=3; popScore("🐢 천천히", "다음 문 3개가 느리게 와요", "#9be27a", 38); }
+      else if(k==="boost"){ popScore("🔥 게이지 +40", "FEVER 가 가까워요", "#ff9a5c", 38); this.gain(40); }
+      else { S.magnet=8; popScore("🧲 별 자석", "8초 동안 별이 날아와요", "#ffd23f", 38); }
+      try{ SFX.tone(660,.1,"triangle",.06,990); setTimeout(()=>{ try{ SFX.tone(990,.18,"triangle",.06,1320); }catch(e){} },90); }catch(e){}
+      try{ burst(it.x, 1.0, it.z, 0xb98bff, 14); }catch(e){}
+      updateHUD();
+    },
+    gain(v){ if(S.fever>0) return; S.gauge=Math.min(FEVER_MAX, S.gauge+v); if(S.gauge>=FEVER_MAX) this.startFever(); },
+    startFever(){
+      S.fever=FEVER_T; S.fevers++; S.gauge=0; S.fT=0;
+      try{ document.body.classList.add("fever"); }catch(e){}
+      try{ popScore("🔥 FEVER!", FEVER_T+"초 동안 점수 2배", "#ff7a3c", 32); }catch(e){}
+      try{ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>{ try{ SFX.tone(f,.12,"square",.045); }catch(e){} }, i*70)); }catch(e){}
+      G.shake=Math.max(G.shake||0, .25);
+      this.hud();
+    },
+    endFever(){ S.fever=0; try{ document.body.classList.remove("fever"); }catch(e){} this.hud(); },
+    onRight(){
+      if(!can()) return;
+      this.gain(G_RIGHT);
+      if(this.healOn() && G.combo>0 && G.combo%HEAL_EVERY===0 && G.lives<G.maxLives){
+        G.lives++; S.heals++; heartAnim(); updateHUD();
+        const c=G.combo; setTimeout(()=>{ try{ popScore("💗 하트 +1", c+"연속 정답!", "#ff7aa8", 36); }catch(e){} }, 420);
+      }
+      if(this.healOn() && G.combo===3 && G.lives<G.maxLives) tip("heal", "💗 10개 연속으로 맞히면 하트가 하나 차요");
+    },
+    onWrong(){ S.gauge=Math.round(S.gauge*0.6); this.hud(); },
+    rush(){
+      const fx=document.getElementById("rushFx"), tg=document.getElementById("rushTag"); if(!fx || !tg) return;
+      const on=can(), r=(on && !G.falling && activeSet()) ? (G.rush||0) : 0;
+      const k=S.fever>0 ? Math.max(0.6, r) : r, op = k>0.18 ? Math.min(1,(k-0.18)/0.6)*0.8 : 0;
+      if(Math.abs((S.rOp||0)-op)>0.02 || (op===0 && S.rOp)){ S.rOp=op; fx.style.opacity=op.toFixed(2); }
+      const pts=Math.round(r*CFG.RUSH_BONUS*DIFF[G.diff].scoreMul*(S.fever>0?2:1)), show=r>0.18 && pts>0;
+      if(show!==!!S.rOn){ S.rOn=show; tg.classList.toggle("on", show); }
+      if(show && pts!==S.rPts){ S.rPts=pts; tg.textContent="⚡ RUSH +"+pts; }
+      if(on && G.stage>=3 && G.solved>=2 && r<0.05 && !S.told.rush) tip("rush", "⬆️ 조이스틱을 위로 밀면 앞으로! 문을 빨리 지나면 ⚡ RUSH 점수");
+    },
+    aura(dt){
+      let tier = S.fever>0 ? 4 : G.combo>=15 ? 3 : G.combo>=10 ? 2 : G.combo>=5 ? 1 : 0;
+      if(!can() || G.falling || G.dead) tier=0;
+      if(!S.aura){ if(!tier) return;
+        S.aura=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTexture(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0}));
+        S.aura.scale.set(2.4,2.4,1); scene.add(S.aura); }
+      const col=[0x5fe0b0, 0x5fe0b0, 0xffc94a, 0xff7a3c, 0xff4a2a][tier];
+      if(tier && S.auraC!==col){ S.auraC=col; try{ S.aura.material.color.setHex(col); }catch(e){} }
+      S.auraT += dt*(tier>=3 ? 7 : 4);
+      const m=S.aura.material, want=tier ? Math.min(0.95, 0.55+tier*0.1) : 0;
+      m.opacity += (want-m.opacity)*Math.min(1, dt*6); S.aura.visible = m.opacity>0.02;
+      const sc=(2.3+tier*0.35)*(1+Math.sin(S.auraT)*0.07);
+      S.aura.scale.set(sc*1.2, sc*0.8, 1);                  // 옆으로 넓게 — 몸 양옆·발밑으로 빛이 보이게
+      S.aura.position.set(P.x, P.y+0.62, P.z-0.3);
+      if(!S.ring){                                             // 발밑 빛 고리 — 밝은 바닥에서도 단계가 보이게
+        S.ring=new THREE.Mesh(new THREE.RingGeometry(0.62,0.86,40), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0, depthWrite:false, side:THREE.DoubleSide}));
+        S.ring.rotation.x=-Math.PI/2; scene.add(S.ring); }
+      const rm2=S.ring.material; if(tier) try{ rm2.color.setHex(col); }catch(e){}
+      rm2.opacity += ((tier ? 0.85 : 0)-rm2.opacity)*Math.min(1, dt*6); S.ring.visible = rm2.opacity>0.02;
+      const rs=(1+tier*0.12)*(1+Math.sin(S.auraT*1.3)*0.08); S.ring.scale.set(rs,rs,rs);
+      S.ring.position.set(P.x, 0.07, P.z);
+    },
+    hud(){
+      const on=can(), fb=document.getElementById("feverBar"), lt=document.getElementById("lootTag");
+      if(fb){ if(fb.hidden===on) fb.hidden=!on;
+        if(on){ const i=fb.firstChild, w=(S.fever>0 ? 100 : Math.round(S.gauge/FEVER_MAX*100))+"%"; if(i && i.style.width!==w) i.style.width=w; fb.classList.toggle("full", S.fever>0); } }
+      if(lt){ const p=[];
+        if(on){ if(S.fever>0) p.push("🔥 FEVER "+Math.ceil(S.fever)+"초"); if(S.slow>0) p.push("🐢 "+S.slow); if(S.magnet>0) p.push("🧲 "+Math.ceil(S.magnet)+"초"); }
+        const t=p.join(" · "); if(t!==S.lt){ S.lt=t; lt.textContent=t; lt.classList.toggle("on", !!t); } }
+    },
+    clearItems(){ for(let i=S.list.length-1;i>=0;i--) rm(i); },
+    endRun(){
+      this.clearItems(); S.fever=0;
+      try{ document.body.classList.remove("fever"); }catch(e){}
+      const fx=document.getElementById("rushFx"), tg=document.getElementById("rushTag"), lt=document.getElementById("lootTag"), fb=document.getElementById("feverBar");
+      if(fx) fx.style.opacity="0"; if(tg) tg.classList.remove("on"); if(lt){ lt.classList.remove("on"); lt.textContent=""; } if(fb) fb.hidden=true;
+      S.rOp=0; S.rOn=false; S.lt="";
+      if(S.aura){ S.aura.visible=false; S.aura.material.opacity=0; } if(S.ring){ S.ring.visible=false; S.ring.material.opacity=0; }
+    },
+    reset(){
+      this.endRun();
+      Object.assign(S, {gauge:0, fever:0, shield:0, slow:0, magnet:0, boxCD:3, chain:0, chainT:0, stars:0, boxes:0, fevers:0, heals:0, told:{}, rPts:-1});
+      this.hud();
+    }
+  };
+  return API;
+})();
+
 function comboStep(){
   const c=G.combo;
   if(c===5 || c===10 || c===15 || (c>15 && c%10===0)){
@@ -12617,6 +12868,7 @@ function loopBody(){
     Ground.update(wdt, G.groundSpeed);
     Props.update(wdt, G.groundSpeed);
     Hazards.update(wdt, G.groundSpeed);
+    try{ Loot.update(wdt, G.groundSpeed, dt); }catch(e){}   // (v491) ⭐ ❓ 🔥
     Rocks.update(wdt);      // 등장·대기 관리는 모듈 안에서 처리
     Wind.update(dt);
     Boss.update(G.rawDt||dt);
@@ -13042,6 +13294,7 @@ function updateHUD(){ Perf.mark("HUD");
     for(let i=0;i<(G.maxLives||CFG.LIVES);i++)
       h += img ? '<span class="hico '+(i<G.lives?'full':'empty')+'"></span>'
                : (i<G.lives ? "♥" : '<span class="off">♥</span>');
+    try{ if(Loot.shieldOn()) h += '<span class="lootSh" title="방패">🛡️</span>'; }catch(e){}   // (v491) ❓ 상자에서 얻은 방패
     $("uLives").innerHTML = h;
   }
   const vg=$("vignette");                         // 위기일 때 화면이 붉게 맥동한다
@@ -13052,10 +13305,13 @@ function updateHUD(){ Perf.mark("HUD");
     BGM.volume(danger ? 0.055 : 0.035);
   }
   const c=$("comboTag");
-  c.textContent = G.combo+" COMBO";
-  c.className = G.combo>=2 ? "on" : "";
-  c.style.color = G.combo>=5 ? comboColor(G.combo) : "";
+  /* (v491) 글자는 진한 색 그대로 · 단계(5·10·15)마다 배경만 바뀜 · 하트가 비었으면 「💗 n」 = 하트까지 남은 연속 정답 */
+  let ht=""; try{ const k=Loot.healLeft(); if(k>0) ht='<em>💗 '+k+'</em>'; }catch(e){}
+  if(G.combo>=2) c.innerHTML = G.combo+" COMBO"+ht;   // 끊기면 글자는 그대로 두고 조용히 사라짐 (「0 COMBO」가 잠깐 보이지 않게)
+  c.className = (G.combo>=2 ? "on" : "") + (G.combo>=15 ? " t15" : G.combo>=10 ? " t10" : G.combo>=5 ? " t5" : "");
+  c.style.color = "";
   c.style.transform = G.combo>=10 ? "scale(1.12)" : "";
+  try{ Loot.hud(); }catch(e){}
 }
 function verdict(main,sub,hex,flash){ Perf.mark("판정 글자");
   if(G.versus && typeof VS!=="undefined" && VS.cur!=null) main = VS.NAME[VS.cur]+"  "+main;   // 2인용 — 누구 일인지
@@ -14535,7 +14791,7 @@ const TrapTip = {
 /* 완주 엔딩 — 쉬움·유치원은 밤하늘 50단계를 마치면 모험이 끝난다 (보통 이상은 문지기와 다음 장으로) */
 const FINISH_STAGE = 50;
 function finishRun(ch){
-  if(G.versus) return VS.finish();
+  if(G.versus) return VS.finish(); try{ Loot.endRun(); }catch(e){}
   G.finishing=true; G.cleared=true; G.clearCh=ch||1; G.spawning=false;
   clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset();
   updateHUD();
@@ -14591,7 +14847,7 @@ function startGame(){ Later.reset(); try{ SFX.keep(!(Perf.on && Perf.exp.noka));
   applyZone(zoneIndex(G.stage), false);            // 시작 지대 (시험 주소면 그 단계의 지대)
   reviewQueue.length=0; recent.length=0;
   Voice.stop();
-  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); Chapter.reset(); try{ Trail.clear(); HitFx.clear(); }catch(e){} G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
+  clearSets(); Hazards.clear(); Rocks.stop(); Wind.reset(); Boss.reset(); TrapTip.reset(); Chapter.reset(); try{ Trail.clear(); HitFx.clear(); }catch(e){} try{ Loot.reset(); }catch(e){} G.finishing=false; G.cleared=false; G.bossWins=0; G.bossName="";
   applyView(); Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   P.x=laneX(G.lane,G.lanes); P.y=0; P.vy=0; P.z=0; P.vx=0; P.vz=0;
   input.x=0; input.y=0; stick.id=null;
@@ -14894,7 +15150,7 @@ function confetti(){
     document.body.appendChild(d); setTimeout(()=>{ if(d.parentNode) d.parentNode.removeChild(d); }, 3000);
   }
 }
-function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
+function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.endRun(); }catch(e){}
   if(G.versus) return VS.finish();                 // 2인용 — 승자 화면
   if(G.overFade) return;                       // 중복 호출 방지
   // 마지막 순간을 잠깐 늘렸다가 결과를 보여준다
@@ -14926,7 +15182,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("oStage").textContent=G.stage;
   if(Boss.root) Boss.root.visible=false;
   $("oAcc").textContent= acc+"%";
-  $("oRight").textContent=G.right; $("oWrong").textContent=G.wrong; $("oCombo").textContent=G.bestCombo; try{ $("oTotal").textContent=total; $("oBoss").innerHTML=""; document.querySelector("#scOver .rsW").classList.toggle("zero", total>0 && !G.wrong); }catch(e){}
+  $("oRight").textContent=G.right; $("oWrong").textContent=G.wrong; $("oCombo").textContent=G.bestCombo; try{ const L=Loot.stats(), t=[]; if(G.rule==="normal" && !G.versus){ if(L.stars) t.push("⭐ 별 "+L.stars); if(L.boxes) t.push("❓ 상자 "+L.boxes); if(L.fevers) t.push("🔥 FEVER "+L.fevers+"번"); if(L.heals) t.push("💗 연속 회복 "+L.heals+"번"); } const el=$("oLoot"); el.textContent=t.join("  ·  "); el.hidden=!t.length; }catch(e){} try{ $("oTotal").textContent=total; $("oBoss").innerHTML=""; document.querySelector("#scOver .rsW").classList.toggle("zero", total>0 && !G.wrong); }catch(e){}
   $("oKick").innerHTML='<span>'+rule().icon+" "+rule().label+'</span><span>'+DIFF[G.diff].label+'</span><span>'+WORD_SETS[G.set].label+(G.book?" · "+RunBook.name(G.book):"")+'</span>'+titleTag(myTitle());
   $("oTitle").textContent =
       G.rule==="daily"   ? (G.solved>=RULES.daily.count ? "Daily Run 완주!" : "여기까지")
