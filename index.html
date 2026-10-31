@@ -2072,6 +2072,15 @@ details.rdAgain,details.rdEx,details.bdMore{display:block}   /* (v442) 맨 위 d
 .stTimer b{position:absolute;right:0;top:-19px;font-size:12px;font-weight:900;color:#ffd37a}
 .stTimer.hurry i{background:linear-gradient(90deg,#ff7a66,#ffb36b)} .stTimer.hurry b{color:#ff9a8a;animation:dGlow .6s ease-in-out infinite}
 .stPic.big{font-size:88px}
+/* (v483) 단어 그림 = 스티커 카드 (유치원 · G1-2) — 흰 카드 · 진한 테두리 · 살짝 기울임 */
+.stPic{display:inline-grid;place-items:center;min-width:1.5em;min-height:1.5em;padding:.08em .16em;background:#fff;border:3px solid #3b2414;border-radius:22px;box-shadow:0 5px 0 #3b2414,0 10px 18px rgba(0,0,0,.25);transform:rotate(-3deg);margin:4px auto 10px}
+.stPic.big{border-radius:28px;border-width:4px;box-shadow:0 6px 0 #3b2414,0 12px 22px rgba(0,0,0,.28)}
+.stOpt.pic{background:#fff;border:3px solid #3b2414;box-shadow:0 4px 0 #3b2414}
+.stOpt.pic.sel{background:#e3f3ff;border-color:#2d8ef0;box-shadow:0 4px 0 #1d5fa8,0 0 0 4px rgba(143,208,255,.5)}
+.stOpt.pic.ok{background:#e6fadf;border-color:#2fae4f;box-shadow:0 4px 0 #1d7a35,0 0 0 4px rgba(143,240,122,.45)}
+.stOpt.pic.bad{background:#ffe8eb;border-color:#e0465c;box-shadow:0 4px 0 #9c2335}
+.stMini i{display:inline-grid;place-items:center;width:46px;height:46px;background:#fff;border:2px solid #3b2414;border-radius:12px;box-shadow:0 3px 0 #3b2414;transform:rotate(-3deg);flex:none}
+.usEmo{display:inline-grid;place-items:center;width:1.5em;height:1.5em;background:#fff;border:2px solid #3b2414;border-radius:12px;box-shadow:0 3px 0 #3b2414;transform:rotate(-3deg);vertical-align:middle}
 .btQT{height:6px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;margin:2px 0 8px} .btQT i{display:block;height:100%;width:100%;background:#5fe0b0;transition:width .2s linear} .btQT.hurry i{background:#ff7a66}
 .btAB{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:6px;font-size:13px;background:#7a6cff;color:#fff;vertical-align:1px} .btAB.abB{background:#ff9ad5;color:#3a1030} .btAB.abC{background:#ffd37a;color:#3a2a00}
 .btPic.sm{font-size:44px;margin-bottom:4px} .btPic.sm img.emj{width:52px;height:52px}
@@ -14680,7 +14689,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v482";
+const GAME_VER = "v483";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -15065,6 +15074,7 @@ const Study = (function(){
       const k = set==="phrase" ? 20 : 25; let gn=0;
       for(let i=0;i<L.length;i+=k) out.push({n:++gn, ws:L.slice(i,i+k)});
     }
+    try{ if(NOPIC_BOOK[bookOf(set)]) out.forEach(x=>{ x.ws=x.ws.map(w=>w.emoji ? Object.assign({}, w, {emoji:null}) : w); }); }catch(e){}   // (v483) G3-6 · 중등은 단어 그림 없이 (사용자) — 유치원·G1-2 만 그림(스티커 카드)
     if(set==="basic") out.forEach(x=>{ x.hl="g12"; });   // (v249) G1-2 도 소리 글자(ee·sh·a_e…)를 노랗게 — 파닉스에서 이어지게
     return (lcache[set] = SPLIT[set] ? splitL(out) : out);
   }
@@ -15267,6 +15277,7 @@ const Study = (function(){
               mid:   {nm:"중등 단어",  emo:"📙", sub:"중학교 필수 단어"},
               phrase:{nm:"표현",     emo:"🗣️", sub:"두 단어 이상 표현"} };
   const bookOf = set => Object.keys(BOOKS).find(b=>BOOKS[b].sets.indexOf(set)>=0) || "g12";
+  const NOPIC_BOOK = {g34:1, g56:1, mid:1};
   const label = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; return b ? b.emo+" "+b.nm+(u && b.sets.length>1 ? " · "+u.nm : "") : set; };
   const tag = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; if(!b) return set; const show = u && set!=="g56" && (b.sets.length>1 || /권/.test(u.nm));
     return show ? (u.nm.indexOf(b.tab)===0 ? u.nm : b.tab+" "+u.nm) : b.tab; };   // (v262) '중등 중등 voca 1' 처럼 겹치지 않게   // 시트용 짧은 이름
