@@ -1679,9 +1679,15 @@ function twBox(min, max, kind, col, o){ const sx=max[0]-min[0], sy=max[1]-min[1]
   const m=new THREE.Mesh(rbox(Math.max(0.05,sx),Math.max(0.05,sy),Math.max(0.05,sz),Math.min(0.08,sy/2-0.005,sx/2-0.005,sz/2-0.005)), mat); m.position.set((min[0]+max[0])/2,(min[1]+max[1])/2,(min[2]+max[2])/2); m.receiveShadow=true; towerG.add(m);
   const s=Object.assign({min:new THREE.Vector3(...min), max:new THREE.Vector3(...max), kind, mesh:m, on:true}, o||{}); TW.S.push(s); return s; }
 /* 구간(층) — 가운데 기둥 둘레 정사각형: 모서리 C(i) 에서 다음 모서리로 방향 d 를 따라 u(0~9), 바깥쪽 w, 높이 y */
-const TQ=4.5, TDIR=[[0,1],[1,0],[0,-1],[-1,0]], TCOR=[[-TQ,-TQ],[-TQ,TQ],[TQ,TQ],[TQ,-TQ]];   // (v423) 바깥에서 보면 늘 오른쪽으로 감
+/* (v479) 사용자: "타워는 칸이 정해져 있어서 길이가 안 늘어나? → 타워 자체를 키우기" — 한 면 9칸 → 12칸 (TQ 4.5 → 6)
+   장애물은 예전처럼 u 0~9 로 만들고, 그릴 때 길이 방향만 늘림: u 1~7.95 → 1~10.95 (TS ≈ 1.43배) · 모서리 발판(u ±1)·사다리 자리는 그대로 */
+const TQ=6, TDIR=[[0,1],[1,0],[0,-1],[-1,0]], TCOR=[[-TQ,-TQ],[-TQ,TQ],[TQ,TQ],[TQ,-TQ]];   // (v423) 바깥에서 보면 늘 오른쪽으로 감
+const TX=TQ*2-9, TS=1+TX/6.95;   /* 늘어난 길이 · 늘림 배수 */
+function twMu(u){ return u<=1 ? u : u<7.95 ? 1+(u-1)*TS : u+TX; }
+function twIu(v){ return v<=1 ? v : v<7.95+TX ? 1+(v-1)/TS : v-TX; }
+function twAt(u0, d){ return twIu(twMu(u0)+d); }   /* u0 자리(늘린 뒤)에서 예전 거리 d 만큼 — 둥근 판처럼 크기를 그대로 둘 때 */
 function twFrame(i){ const d=TDIR[i%4], c=TCOR[i%4], n=[-d[1], d[0]]; const out=(c[0]*n[0]+c[1]*n[1])>0 ? n : [-n[0],-n[1]];   // n = 바깥쪽
-  return {d, c, n:out, P:(u,w)=>[TWC+c[0]+d[0]*u+out[0]*w, TWC+c[1]+d[1]*u+out[1]*w]}; }
+  return {d, c, n:out, mu:twMu, P:(u,w)=>{ const v=twMu(u); return [TWC+c[0]+d[0]*v+out[0]*w, TWC+c[1]+d[1]*v+out[1]*w]; }}; }
 function twLocalBox(F, u0,u1, w0,w1, y0,y1, kind, col, o){ if((u0<2.2 || u1>6.8) && w0<-1.0) w0=-1.0;   // 모서리 근처는 안쪽으로 1칸까지만 (앞·뒤 층과 겹치지 않게)
   if(!(o && o.pad) && u1>7.95) u1=7.95;   // (v423) 끝 = 🪜 사다리 기둥 바로 앞
   const a=F.P(u0,w0), b=F.P(u1,w1); return twBox([Math.min(a[0],b[0]),y0,Math.min(a[1],b[1])],[Math.max(a[0],b[0]),y1,Math.max(a[1],b[1])], kind, col, o); }
@@ -1796,8 +1802,8 @@ const TW_SECS={
     twLocalBox(F,7.4,7.95,-0.7,0.7, y+0.3,y+0.65,"solid",F.col); return y+0.65; },
   beam(F,y,R,h){ const bw=h?0.42-0.1*(F.lv||0):F.ez?0.85:0.6; twLocalBox(F,1.0,4.0,-bw/2,bw/2, y-0.25,y,"solid","#b07a4a"); twLocalBox(F,3.6,4.4,-1.2,1.2, y-0.25+0.3,y+0.3,"solid",F.col); twLocalBox(F,4.2,7.6,-bw/2+0.8,bw/2+0.8, y+0.3-0.25,y+0.3,"solid","#b07a4a"); twLocalBox(F,7.2,7.95,-0.4,1.2, y+0.35,y+0.7,"solid",F.col); return y+0.7; },
   /* (v454) 🧗 벽 점프 — 마주 보는 두 벽(A: 위에 매달려 밑으로 들어감 · B: 큰 벽, 위가 다음 길) · 공중에서 벽에 닿고 JUMP = 반대쪽 위로 튀어 오름 · 벽에 붙으면 천천히 미끄러짐 */
-  wall(F,y,R,h){ const top=F.easyWall?2.25:h?3.7:2.9;   /* (v469) 🗼 도전 38층 벽 = 한 번 차면 올라감 */ twLocalBox(F,1.0,4.4,-1.0,1.0, y-0.35,y,"solid",F.col);
-    const A=twLocalBox(F,2.95,3.22,-1.0,1.0, y+1.35,y+top+0.7,"wall","#e8e4ff",{noWalk:1}); const B=twLocalBox(F,4.4,7.95,-1.0,1.0, y-0.35,y+top,"wall",F.col,{wallTop:1});
+  wall(F,y,R,h){ const top=F.easyWall?2.25:h?3.7:2.9;   /* (v469) 🗼 도전 38층 벽 = 한 번 차면 올라감 */ twLocalBox(F,1.0,twIu(twMu(3.22)+1.18),-1.0,1.0, y-0.35,y,"solid",F.col);
+    const A=twLocalBox(F,2.95,3.22,-1.0,1.0, y+1.35,y+top+0.7,"wall","#e8e4ff",{noWalk:1}); const B=twLocalBox(F,twIu(twMu(3.22)+1.18),7.95,-1.0,1.0, y-0.35,y+top,"wall",F.col,{wallTop:1});   /* (v479) 두 벽 사이는 그대로 */
     [A,B].forEach(s=>{ const e=new THREE.Mesh(new THREE.BoxGeometry(s.max.x-s.min.x+0.03, 0.08, s.max.z-s.min.z+0.03), new THREE.MeshBasicMaterial({color:0xffffff})); e.position.set((s.min.x+s.max.x)/2, s.max.y, (s.min.z+s.max.z)/2); towerG.add(e); });
     return y+top; },
   /* (v454) 🔴 움직이는 레이저 — 긴 길 위를 앞뒤로 오가는 낮은 빨간 막대 · 점프로 넘기 · 닿으면 맨 아래 */
@@ -1825,10 +1831,10 @@ const TW_SECS={
     for(let k=0;k<5;k++){ const u=2.0+k*(L+0.12), ww=Math.sin(k*1.3)*(h?0.6:0.3); yy=y+k*0.08; twLocalBox(F,u,u+L, ww-wd,ww+wd, yy-0.3,yy,"fade","#e0a060",{ft:0, gone:0, ftd:h?0.5:F.ez?1.0:0.65, crumble:1}); }
     twLocalBox(F,7.95-0.6,7.95,-0.7,0.7, yy-0.3,yy+0.2,"solid",F.col); return yy+0.2; },
   /* (v455) 🎠 빙글 원판 — 올라타면 같이 돌아감 · 내릴 때를 잘 보고 */
-  turn(F,y,R,h){ twLocalBox(F,1.0,2.6,-0.9,0.9, y-0.35,y,"solid",F.col); const c=F.P(4.4,0), rr=1.45, w=(R()<0.5?1:-1)*(h?1.5:F.ez?0.6:0.9);
+  turn(F,y,R,h){ twLocalBox(F,1.0,twAt(4.4,-1.8),-0.9,0.9, y-0.35,y,"solid",F.col); const c=F.P(4.4,0), rr=1.45, w=(R()<0.5?1:-1)*(h?1.5:F.ez?0.6:0.9);
     const s=twBox([c[0]-rr,y-0.3,c[1]-rr],[c[0]+rr,y+0.12,c[1]+rr],"solid","#ffffff",{rot:{c, w}}); s.mesh.geometry=new THREE.CylinderGeometry(rr*1.08, rr*1.08, 0.42, 32); s.mesh.material=twMat(F.col,{emissiveIntensity:.18});
     const st=new THREE.Mesh(new THREE.BoxGeometry(rr*2, 0.03, 0.18), new THREE.MeshBasicMaterial({color:0xffffff})); st.position.y=0.22; s.mesh.add(st); const st2=st.clone(); st2.rotation.y=Math.PI/2; s.mesh.add(st2);
-    twLocalBox(F,6.2,7.95,-0.8,0.8, y-0.2,y+0.25,"solid",F.col); return y+0.25; },
+    twLocalBox(F,twAt(4.4,1.8),7.95,-0.8,0.8, y-0.2,y+0.25,"solid",F.col); return y+0.25; },   /* (v479) 원판 크기 그대로 · 앞뒤 길만 늘어남 */
   /* (v463) 🎪 사용자: "폴가이즈에 있는 장애물도 넣어 보는 거 어때?"
      🚪 문 부수기 — 문이 한 줄에 3개, 그중 가짜 문은 몸으로 밀면 와장창 (진짜 문은 꽉 막힘 · 너무 높아서 못 넘음) · 쉬움 = 줄 2개(가짜 2) · 어려움 = 줄 3개(가짜 1) */
   door(F,y,R,h){ twLocalBox(F,1.0,2.25,-1.3,1.3, y-0.35,y,"solid",F.col); twLocalBox(F,2.25,6.75,-1.3,1.3, y-0.35,y,"solid",F.col); twLocalBox(F,6.75,7.95,-1.3,1.3, y-0.35,y,"solid",F.col);   /* (v472) 바닥 3조각 — 가운데는 안쪽 문 줄까지 꽉 (예전엔 안쪽 문이 바닥 밖으로 삐져나옴) */ const rows=h?[2.7,4.5,6.3]:[3.0,5.5], W=[[-1.3,-0.44],[-0.43,0.43],[0.44,1.3]];
@@ -1839,10 +1845,10 @@ const TW_SECS={
   /* 🦶 진짜 발판 찾기 — 똑같이 생긴 칸 중 가짜는 밟으면 사라짐 → 아래 🕸 그물 → 이 층 처음 발판으로 (가짜는 사라진 채 = 길이 보임) */
   tiptoe(F,y,R,h){ twLocalBox(F,1.0,1.9,-1.2,1.2, y-0.35,y,"solid",F.col);
     if(h && TW.mode==="sky"){ /* (v472) 사용자: "진짜 발판 찾기는 점프만 하면 끝나" → 줄 2개를 멀리 띄움 (점프 한 번 = 한 줄 · 두 줄은 못 건넘) · 줄마다 3칸 중 진짜 1칸 · 줄마다 0.35씩 높아짐 */
-      const tm=twMat("#bfe9ff",{emissiveIntensity:.15}), cw=0.8, rows=[[2.75,3.55,0.3],[6.0,6.75,0.65]];
+      const tm=twMat("#bfe9ff",{emissiveIntensity:.15}), cw=0.8, r1=twIu(twMu(2.75)+0.8), r2=twIu(twMu(r1)+2.45), rows=[[2.75,r1,0.3],[r2,twIu(twMu(r2)+0.75),0.65]];   /* (v479) 칸 크기·두 줄 사이 거리는 예전 그대로 (늘리면 못 건넘) */
       rows.forEach(([u0,u1,dy])=>{ const r=Math.floor(R()*3); for(let rr=0;rr<3;rr++){ const w0=-1.2+rr*cw, s=twLocalBox(F,u0,u1, w0+0.04,w0+cw-0.04, y+dy-0.3,y+dy,"solid",null, rr===r?null:{fake:1, noWalk:1}); s.mesh.material=tm; } });
       const net=twLocalBox(F,2.2,7.2,-1.6,1.6, y-1.25,y-1.1,"solid",null,{net:F.i, noWalk:1}); net.mesh.material=new THREE.MeshStandardMaterial({color:0xff9ec0, transparent:true, opacity:.55, roughness:.8});
-      twLocalBox(F,7.6,7.95,-1.0,1.0, y+0.65,y+1.0,"solid",F.col); return y+1.0; }
+      twLocalBox(F,twIu(twMu(rows[1][1])+0.85),7.95,-1.0,1.0, y+0.65,y+1.0,"solid",F.col); return y+1.0; }   /* (v479) 끝 발판도 예전 거리 */
     const C=6, Rw=3, cu=(7.6-1.9)/C, cw=2.4/Rw, safe={}; let r=Math.floor(R()*Rw), path=[];
     for(let c=0;c<C;c++){ path.push([c,r]); safe[c+","+r]=1; if(c<C-1 && R()<(h?0.8:F.ez?0.3:0.5)){ const r2=Math.max(0,Math.min(Rw-1, r+(R()<0.5?-1:1))); if(r2!==r){ r=r2; path.push([c,r]); safe[c+","+r]=1; } } }
     const tm=twMat("#bfe9ff",{emissiveIntensity:.15}); path.forEach(([c,rr])=>{ const u0=1.9+c*cu, w0=-1.2+rr*cw, s=twLocalBox(F,u0+0.03,u0+cu-0.03, w0+0.03,w0+cw-0.03, y-0.3,y,"solid",null); s.mesh.material=tm; });
@@ -1858,7 +1864,7 @@ const TW_SECS={
     const a=F.P(us[0]-0.4,0), b=F.P(us[us.length-1]+0.4,0); const beam=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(a[0]-b[0])+0.12, 0.12, Math.abs(a[1]-b[1])+0.12), M(0x8a5a34)); beam.position.set((a[0]+b[0])/2, py+0.05, (a[1]+b[1])/2); towerG.add(beam);
     twLocalBox(F,7.4,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v464) 🕐 시계 막대 — 사용자: "그 돌아가는 시계 같은 막대기가 밀어내는 거" · 둥근 시계판 위를 바늘(낮은 막대)이 돌며 밀어냄 (죽지 않음 · 떨어질 수는 있음) · 점프로 넘기 */
-  sweep(F,y,R,h){ twLocalBox(F,1.0,2.75,-0.9,0.9, y-0.35,y,"solid",F.col); const c=F.P(4.45,0), rr=1.62, lv=F.lv||0;
+  sweep(F,y,R,h){ twLocalBox(F,1.0,twAt(4.45,-1.7),-0.9,0.9, y-0.35,y,"solid",F.col); const c=F.P(4.45,0), rr=1.62, lv=F.lv||0;
     const s0=twRound(c, y-0.35, y, rr);
     if(!twClockTex) twClockTex=canvasTex(256,256,(g,W,H)=>{ g.fillStyle="#fffaf0"; g.beginPath(); g.arc(W/2,H/2,W/2-2,0,7); g.fill(); g.lineWidth=12; g.strokeStyle="#ffb84d"; g.stroke(); g.fillStyle="#5a4a6a"; for(let k=0;k<12;k++){ const a=k/12*Math.PI*2, r1=W/2-22, r2=k%3?W/2-34:W/2-46; g.save(); g.translate(W/2,H/2); g.rotate(a); g.fillRect(-4,-r1,8,r1-r2); g.restore(); } });
     s0.mesh.material=[twMat("#ffd9a0"), new THREE.MeshStandardMaterial({map:twClockTex, roughness:.6}), twMat("#ffd9a0")];
@@ -1868,20 +1874,20 @@ const TW_SECS={
     const tip=part(bar, new THREE.ConeGeometry(0.17,0.32,4), M(0xff4f6d), L+0.08,0.3,0); tip.rotation.z=-Math.PI/2; tip.castShadow=false;
     const two=h && lv>0.55;   /* 가운데 노란 기둥 위는 안전 (바늘 뿌리) */ if(two){ const h2=part(bar, rbox(L*0.75,0.2,0.2,0.06), new THREE.MeshStandardMaterial({color:0x6b5bd6, emissive:0x2a1a80, emissiveIntensity:.3}), -L*0.75/2,0.3,0); h2.castShadow=false; }
     TW.S.push({kind:"sweep", mesh:bar, c, y0:y+0.2, y1:y+0.4, len:L+0.15, len2:two?L*0.75:0, sp:(R()<0.5?1:-1)*(h?1.7+0.8*lv:F.ez?0.9:1.2), on:true, hitT:0, min:new THREE.Vector3(), max:new THREE.Vector3()});
-    twLocalBox(F,6.15,7.95,-0.9,0.9, y-0.35,y,"solid",F.col); twLocalBox(F,7.4,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
+    twLocalBox(F,twAt(4.45,1.7),7.95,-0.9,0.9, y-0.35,y,"solid",F.col); twLocalBox(F,7.4,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v465) 🕐🕐🕐 세 바늘 — 넓은 판 위 삼각형(앞 1 · 뒤 2)으로 바늘 3개 · 서로 반대로 돌아서 이리 퉁 저리 퉁 · 뒤 두 바늘은 거울처럼 같이 움직임 → 둘 다 바깥을 볼 때 사이로 통과 · 가운데 기둥은 안전 */
-  sweep3(F,y,R,h){ twClockMake(); twLocalBox(F,1.0,1.75,-0.9,0.9, y-0.35,y,"solid",F.col); const lv=F.lv||0, base=h?1.6+0.6*lv:F.ez?0.85:1.1, dir=R()<0.5?1:-1;
+  sweep3(F,y,R,h){ twClockMake(); twLocalBox(F,1.0,twAt(3.95,-2.2),-0.9,0.9, y-0.35,y,"solid",F.col); const lv=F.lv||0, base=h?1.6+0.6*lv:F.ez?0.85:1.1, dir=R()<0.5?1:-1;
     /* (v466) 사용자: "왜 네모판이 있지? 동그라미 시계로만 해서 애들이 떨어져야" → 둥근 시계판 3개만 (서로 살짝 겹침 · 둘레 밖은 낭떠러지) */
-    const aD=Math.atan2(F.d[1],F.d[0]), A=F.P(2.95,0), B=F.P(4.95,-1.05), C=F.P(4.95,1.05), phB=R()*6.28, side=twMat("#ffd9a0");
+    const aD=Math.atan2(F.d[1],F.d[0]), A=F.P(twAt(3.95,-1.0),0), B=F.P(twAt(3.95,1.0),-1.05), C=F.P(twAt(3.95,1.0),1.05), phB=R()*6.28, side=twMat("#ffd9a0");
     [[A,1.3],[B,1.1],[C,1.1]].forEach(([c,r])=>{ const s=twRound(c, y-0.35, y, r); s.mesh.material=[side, new THREE.MeshStandardMaterial({map:twClockTex||null, roughness:.6}), side]; });
-    twLocalBox(F,5.75,7.95,-0.85,0.85, y-0.35,y,"solid",F.col);
+    twLocalBox(F,twAt(3.95,1.8),7.95,-0.85,0.85, y-0.35,y,"solid",F.col);   /* (v479) 세 시계판 크기·거리 그대로 · 앞뒤 길만 늘어남 */
     twSweeper(A, y, 1.12, -dir*base*1.1, R()*6.28, 0xffd23f, false);
     twSweeper(B, y, 0.92, dir*base, phB, 0x6ec3ff, false); twSweeper(C, y, 0.92, -dir*base, -2*aD-phB+Math.PI*2*0, 0x6ec3ff, true);   /* C = B 의 거울 (길 방향 축) */
     twLocalBox(F,7.4,7.95,-0.8,0.8, y,y+0.35,"solid",F.col); return y+0.35; },
   /* (v459) 🏝 넓은 땅 — 사용자: "10층/20/30층마다 넓은 땅 · 토네이도식 · 20층쯤에서 떨어지면 10층에 떨어질 수도"
      타워 전체를 덮는 풀밭 (위로 갈수록 조금씩 넓어짐 = 토네이도 모양) · 그 위 층에서 떨어지면 여기로 · 들어오는 🪜 사다리 옆만 구멍 (머리가 안 부딪히게)
      · 낭떠러지 끝에 낮은 울타리 · 아래층에 있을 때는 투명해져서 가리지 않음 */
-  ground(F,y,R,h){ const gi=F.i, Ro=F.smallG?7.0:7.6+0.3*Math.floor(gi/10), C=TWC, Fp=F.prevF||twFrame(gi-1), a=Fp.P(7.2,-1.35), b=Fp.P(8.02,1.35), hx0=Math.min(a[0],b[0]), hx1=Math.max(a[0],b[0]), hz0=Math.min(a[1],b[1]), hz1=Math.max(a[1],b[1]);
+  ground(F,y,R,h){ const gi=F.i, Ro=(F.smallG?7.0:7.6+0.3*Math.floor(gi/10))+(TQ-4.5), C=TWC, Fp=F.prevF||twFrame(gi-1), a=Fp.P(7.2,-1.35), b=Fp.P(8.02,1.35), hx0=Math.min(a[0],b[0]), hx1=Math.max(a[0],b[0]), hz0=Math.min(a[1],b[1]), hz1=Math.max(a[1],b[1]);
     const mat=new THREE.MeshStandardMaterial({color:0x2f9a2c, roughness:.9, emissive:0x0d3a0a, emissiveIntensity:.15, transparent:true, opacity:1}), y0=y-0.4;
     [[C-Ro,hx0,C-Ro,C+Ro],[hx1,C+Ro,C-Ro,C+Ro],[hx0,hx1,C-Ro,hz0],[hx0,hx1,hz1,C+Ro]].forEach(([x0,x1,z0,z1])=>{ if(x1-x0<0.05 || z1-z0<0.05) return; const s=twBox([x0,y0,z0],[x1,y,z1],"solid",null,{ground:gi, noWalk:1}); s.mesh.material=mat; });
     const D=new THREE.Group(); towerG.add(D); const rim=new THREE.MeshStandardMaterial({color:0xfff6e0, roughness:.7, transparent:true, opacity:1});
@@ -1916,7 +1922,7 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   TW.secs=list; const hardAt=i=>mode==="hard" || (mode==="sky" && i>=10);
   /* (v471) 사용자: "함정이 하나씩만 나와서 매우 쉽게 느껴짐 · 동선이 짧아" → 🗼 도전 11층부터 한 층 = 장애물 2개, 모서리를 돌아 두 면을 이어 달림 (가운데 모서리 발판은 체크포인트 아님) */
   TW.secsB=[]; if(mode==="sky"){ let bag=[]; list.forEach((k,i)=>{ if(!hardAt(i) || k==="ground" || k==="wall") return; if(!bag.length) bag=TW_HARD.filter(x=>x!=="wall"); let j, g=0; do{ j=Math.floor(R()*bag.length); g++; }while(g<12 && bag[j]===k); TW.secsB[i]=bag.splice(j,1)[0]; }); }
-  const fl=twBox([TWC-9,-0.5,TWC-9],[TWC+9,0,TWC+9],"floor","#7c6cf0"); fl.mesh.material=twMat("#8f84f5",{emissiveIntensity:.05});   // 로비 바닥
+  const fl=twBox([TWC-TQ-4.5,-0.5,TWC-TQ-4.5],[TWC+TQ+4.5,0,TWC+TQ+4.5],"floor","#7c6cf0"); fl.mesh.material=twMat("#8f84f5",{emissiveIntensity:.05});   // 로비 바닥
   const F0=twFrame(0); TW.cps.push(twPad(F0, 0.4, 0, false)); let y=0.4; const ys=[0.4]; let fi=0; TW.fr=[0]; TW.frEnd=[]; const frTop={};
   const tag=(a,F)=>{ for(let j=a;j<TW.S.length;j++){ const s=TW.S[j]; if(!s.seg) s.seg=F; if(s.max) frTop[F.fi]=Math.max(frTop[F.fi]==null?-99:frTop[F.fi], s.max.y); } };
   list.forEach((k,i)=>{ const F=twFrame(fi); F.fi=fi; F.kind=k; if(k==="ground"){ F.prevF=twFrame(TW.frEnd[i-1]!=null?TW.frEnd[i-1]:fi-1); F.smallG=mode==="sky"; } F.i=i; F.col=TCOL[i%10]; F.ez=mode==="kid"; F.easyWall=mode==="sky"||mode==="hard"; F.lv=mode==="hard" ? i/Math.max(1,n-1) : mode==="sky" && i>=10 ? (i-10)/Math.max(1,n-11) : 0; const a0=TW.S.length; let yEnd=TW_SECS[k](F, y, R, hardAt(i)); try{ twSkin(k, TW.S.slice(a0)); twFloorSign(F, y, k); }catch(e){ console.warn("skin", k, e); } if(k!=="ground") twStarAt(F, y, i); tag(a0, F); if(TW.cps[i] && !TW.cps[i].seg) TW.cps[i].seg=F;   /* 층 시작 발판 = 첫 장애물 쪽 */
@@ -1940,10 +1946,10 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   { const m=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2, ys[0]+0.5, TCORE*2), twMat("#ffffff")); m.position.set(TWC, (ys[0]-0.5)/2, TWC); towerG.add(m); }
   const capT=new THREE.Mesh(new THREE.ConeGeometry(TCORE*1.5, 2.6, 4), twMat("#ffd23f",{emissiveIntensity:.4})); capT.rotation.y=Math.PI/4; capT.position.set(TWC, y+4.3, TWC); towerG.add(capT);
   // 모서리 네 기둥 (탑 모양) · 2층마다 테
-  const PH=y+3.2; [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([a,b])=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(0.22, PH+0.5, 0.22), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.55})); m.position.set(TWC+a*6.9, PH/2-0.25, TWC+b*6.9); towerG.add(m); });
-  for(let i=0;i<ys.length;i+=2){ [[0,-1],[1,0],[0,1],[-1,0]].forEach(([a,b])=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(a?0.08:13.8, 0.08, a?13.8:0.08), new THREE.MeshBasicMaterial({color:new THREE.Color(TCOL[i%10]), transparent:true, opacity:.6})); m.position.set(TWC+a*6.9, ys[i]+2.4, TWC+b*6.9); towerG.add(m); }); }
+  const PH=y+3.2; [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([a,b])=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(0.22, PH+0.5, 0.22), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.55})); m.position.set(TWC+a*(TQ+2.4), PH/2-0.25, TWC+b*(TQ+2.4)); towerG.add(m); });
+  for(let i=0;i<ys.length;i+=2){ [[0,-1],[1,0],[0,1],[-1,0]].forEach(([a,b])=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(a?0.08:2*(TQ+2.4), 0.08, a?2*(TQ+2.4):0.08), new THREE.MeshBasicMaterial({color:new THREE.Color(TCOL[i%10]), transparent:true, opacity:.6})); m.position.set(TWC+a*(TQ+2.4), ys[i]+2.4, TWC+b*(TQ+2.4)); towerG.add(m); }); }
   // 구름
-  for(let k=0;k<16;k++){ const c=new THREE.Group(); const a=k/16*Math.PI*2, r=16+(k%3)*4; c.position.set(TWC+Math.cos(a)*r, 1+k*(y+4)/16, TWC+Math.sin(a)*r); [[0,0,0,1],[0.9,-0.1,0.2,0.75],[-0.9,-0.1,-0.1,0.7]].forEach(([x,yy,z,s])=>{ const m=new THREE.Mesh(sph(0.9*s), new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:.9})); m.position.set(x,yy,z); c.add(m); }); towerG.add(c); }
+  for(let k=0;k<16;k++){ const c=new THREE.Group(); const a=k/16*Math.PI*2, r=16+(TQ-4.5)*2+(k%3)*4; c.position.set(TWC+Math.cos(a)*r, 1+k*(y+4)/16, TWC+Math.sin(a)*r); [[0,0,0,1],[0.9,-0.1,0.2,0.75],[-0.9,-0.1,-0.1,0.7]].forEach(([x,yy,z,s])=>{ const m=new THREE.Mesh(sph(0.9*s), new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:.9})); m.position.set(x,yy,z); c.add(m); }); towerG.add(c); }
   // 그림자 원 (발 밑)
   TW.blob=new THREE.Mesh(new THREE.CircleGeometry(0.38,20), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.4, depthWrite:false})); TW.blob.rotation.x=-Math.PI/2; TW.blob.renderOrder=3; towerG.add(TW.blob);
   towerG.traverse(m=>{ if(m.isMesh) m.castShadow=false; });

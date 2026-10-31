@@ -46,7 +46,7 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
     if(T.onG && T.gnd && T.gnd.seg && (LZ.length||SZ.length) && (dx||dz)){ const LS=LZ.filter(s=>s.seg===T.gnd.seg && Math.abs(p.y-s.y0)<0.5), SP=SZ.filter(s=>s.seg===T.gnd.seg && Math.abs(p.y-(s.y0-0.3))<0.6); if(LS.length||SP.length){   // (v472) 🔴 레이저·🌀 막대: 0.3초 달리기 → 안 되면 점프 → 안 되면 기다리기 (앞날 계산)
       const F=T.gnd.seg, d=F.d, T0=T.clk||0, vf=T.v.x*dx+T.v.z*dz, dist=(q,a)=>4.4*q-(4.4-vf)*(1-Math.exp(-a*q))/a;
       const hit=(f,dur)=>{ for(let q=0;q<=dur;q+=1/60){ const [s1,h]=f(q), x=p.x+dx*s1, z=p.z+dz*s1;
-          for(const s of LS){ const u=(x-H.TWC-F.c[0])*d[0]+(z-H.TWC-F.c[1])*d[1], ul=s.u+Math.sin((T0+q)*s.sp+s.ph)*s.amp; if(Math.abs(ul-u)<0.4 && h<0.45) return true; }
+          for(const s of LS){ const u=(x-H.TWC-F.c[0])*d[0]+(z-H.TWC-F.c[1])*d[1], ul=(F.mu||(v=>v))(s.u+Math.sin((T0+q)*s.sp+s.ph)*s.amp); if(Math.abs(ul-u)<0.4 && h<0.45) return true; }
           for(const s of SP){ if(h>=0.62) continue; const a=-((T0+q)*s.sp+(s.ph||0)), ex=Math.cos(a), ez=Math.sin(a), rx=x-s.c[0], rz=z-s.c[1], tt=Math.max(-s.len,Math.min(s.len,rx*ex+rz*ez)); if(Math.hypot(rx-ex*tt, rz-ez*tt)<0.42) return true; } } return false; };
       const run=q=>[dist(q,16),0], jmp=q=>[dist(q,10), Math.max(0,9.3*q-13*q*q)], wait=q=>[vf*(1-Math.exp(-16*q))/16,0];
       const back=q=>[vf*(1-Math.exp(-16*q))/16-4.4*(q-(1-Math.exp(-16*q))/16),0];
@@ -69,6 +69,7 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
         else if(T.gnd===SL[1] && rC>0.28 && !toEx){ goal=C; }
         else if(T.gnd===SL[1] && rC<=0.28){ goal=exC; safe=ok(exAng); }
         else if(T.gnd===SL[1]){ goal=exC; }
+        if(goal && !safe && T.gnd===SL[0] && rC<sw.len+0.5){ dx=(p.x-C[0])/rC; dz=(p.z-C[1])/rC; T.buf=0; goal=null; }   // (v479) 기다릴 때는 바늘이 닿지 않는 곳까지 물러섬
         if(goal){ const gx=goal[0]-p.x, gz=goal[1]-p.z, q=Math.hypot(gx,gz)||1; if(safe && q>0.05){ dx=gx/q; dz=gz/q; } else { dx=dz=0; } T.buf=0; } } }
     if((T.secs[fl]==="sweep3" || (T.secsB&&T.secsB[fl]==="sweep3")) && T.onG && T.gnd && T.gnd.kind!=="floor"){ const S=T.S.slice(T.secR[fl][0],T.secR[fl][1]), SW=S.filter(s=>s.kind==="sweep" && (!s.seg || !s.seg.kind || (s.seg.kind==="sweep3" && (!T.gnd.seg || s.seg===T.gnd.seg)))), d=(SW[0]&&SW[0].seg)?SW[0].seg.d:H.TDIR[sec%4]; if(SW[0] && SW[0].seg && T.gnd.seg && T.gnd.seg!==SW[0].seg) SW.length=0;   // (v465) 🕐🕐🕐 앞 바늘 가운데 → (세 바늘 모두 멀 때) 뒤 두 바늘 사이 → 출구
       const A=SW[0], B=SW[1], Cc=SW[2]; if(A && Math.abs(p.y-A.y0)<1.0){ const arr=(sw,ph)=>{ const a=-sw.mesh.rotation.y, M=Math.PI*2, dd=sw.sp>0?(((a-ph)%M)+M)%M:(((ph-a)%M)+M)%M; return dd/Math.abs(sw.sp); }, ok=(sw,ph,tm)=>{ const M=Math.PI*2/Math.abs(sw.sp), t0=arr(sw,ph); return t0>tm && M-t0>0.3; }, ang=(c,q)=>Math.atan2(q[1]-c[1],q[0]-c[0]);
@@ -126,10 +127,10 @@ async def main():
         # ③ 땅
         r = await E("""()=>{ const T=HOUSE.TW; T.seed='2026-10-30'; HOUSE.twBuild('sky'); const G=T.grounds, sz=G.map(g=>{ const L=T.S.filter(s=>s.ground===g.gi); return +(Math.max(...L.map(s=>s.max.x))-Math.min(...L.map(s=>s.min.x))).toFixed(1); });
             return [G.map(g=>g.gi), sz, G.map(g=>+(g.y-T.cps[g.gi].max.y).toFixed(2))]; }""")
-        ok(r[0] == [19] and 13.5 < r[1][0] < 14.5 and r[2] == [0], f"(v471) 🏝 땅 = 20층 하나 · 작게(14) · 땅 높이 = 그 층 발판 {r}")
+        ok(r[0] == [19] and 16.5 < r[1][0] < 17.5 and r[2] == [0], f"(v471) 🏝 땅 = 20층 하나 · 작게(17 · v479 큰 타워) · 땅 높이 = 그 층 발판 {r}")
         # 위층(15층쯤) 바깥에서 떨어짐 → 🏝 10층 땅
         r = await E("""()=>{ const T=HOUSE.TW; T.bot=false; T.on=true; T.fin=false; T.gSeen={}; T.cp=24; HOUSE.setGems(0); const G=T.grounds[0], C=6; let res=[];
-            const y0=T.ys[24]+0.5, free=[]; for(let a=0;a<64 && free.length<4;a++){ const ang=a/64*Math.PI*2+0.05, dx=Math.cos(ang)*6.9, dz=Math.sin(ang)*6.9, x=C+dx, z=C+dz; if(!T.S.some(s=>s.min && s.ground==null && s.kind!=='floor' && x+0.3>s.min.x && x-0.3<s.max.x && z+0.3>s.min.z && z-0.3<s.max.z && s.max.y>G.y+0.01 && s.min.y<y0+2)) free.push([dx,dz]); }
+            const y0=T.ys[24]+0.5, free=[]; for(let a=0;a<64 && free.length<4;a++){ const ang=a/64*Math.PI*2+0.05, dx=Math.cos(ang)*8.1, dz=Math.sin(ang)*8.1, x=C+dx, z=C+dz; if(!T.S.some(s=>s.min && s.ground==null && s.kind!=='floor' && x+0.3>s.min.x && x-0.3<s.max.x && z+0.3>s.min.z && z-0.3<s.max.z && s.max.y>G.y+0.01 && s.min.y<y0+2)) free.push([dx,dz]); }
             for(const [dx,dz] of free){ T.p.set(C+dx, T.ys[24]+0.5, C+dz); T.v.set(0,0,0); T.lastGY=null; T.onG=false; T.gnd=null; let n=0; HOUSE.twStep(1/90); while(!(T.onG) && n<900){ HOUSE.twStep(1/90); n++; }
               res.push([T.gnd && T.gnd.ground, +(T.p.y-G.y).toFixed(2)]); } return [res, HOUSE.gems(), document.getElementById('toast').innerText]; }""")
         ok(len(r[0]) >= 3 and all(x[0] == 19 and abs(x[1]) < 0.03 for x in r[0]) and r[1] == 2 and "20층 넓은 땅" in r[2], f"25층 바깥에서 뚝 → 🏝 20층 땅에 내려앉음 · 💎 +2 처음만 {r}")

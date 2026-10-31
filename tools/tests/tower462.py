@@ -42,7 +42,7 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
     if(T.onG && T.gnd && T.gnd.seg && (LZ.length||SZ.length) && (dx||dz)){ const LS=LZ.filter(s=>s.seg===T.gnd.seg && Math.abs(p.y-s.y0)<0.5), SP=SZ.filter(s=>s.seg===T.gnd.seg && Math.abs(p.y-(s.y0-0.3))<0.6); if(LS.length||SP.length){   // (v472) 🔴 레이저·🌀 막대: 0.3초 달리기 → 안 되면 점프 → 안 되면 기다리기 (앞날 계산)
       const F=T.gnd.seg, d=F.d, T0=T.clk||0, vf=T.v.x*dx+T.v.z*dz, dist=(q,a)=>4.4*q-(4.4-vf)*(1-Math.exp(-a*q))/a;
       const hit=(f,dur)=>{ for(let q=0;q<=dur;q+=1/60){ const [s1,h]=f(q), x=p.x+dx*s1, z=p.z+dz*s1;
-          for(const s of LS){ const u=(x-H.TWC-F.c[0])*d[0]+(z-H.TWC-F.c[1])*d[1], ul=s.u+Math.sin((T0+q)*s.sp+s.ph)*s.amp; if(Math.abs(ul-u)<0.4 && h<0.45) return true; }
+          for(const s of LS){ const u=(x-H.TWC-F.c[0])*d[0]+(z-H.TWC-F.c[1])*d[1], ul=(F.mu||(v=>v))(s.u+Math.sin((T0+q)*s.sp+s.ph)*s.amp); if(Math.abs(ul-u)<0.4 && h<0.45) return true; }
           for(const s of SP){ if(h>=0.62) continue; const a=-((T0+q)*s.sp+(s.ph||0)), ex=Math.cos(a), ez=Math.sin(a), rx=x-s.c[0], rz=z-s.c[1], tt=Math.max(-s.len,Math.min(s.len,rx*ex+rz*ez)); if(Math.hypot(rx-ex*tt, rz-ez*tt)<0.42) return true; } } return false; };
       const run=q=>[dist(q,16),0], jmp=q=>[dist(q,10), Math.max(0,9.3*q-13*q*q)], wait=q=>[vf*(1-Math.exp(-16*q))/16,0];
       const back=q=>[vf*(1-Math.exp(-16*q))/16-4.4*(q-(1-Math.exp(-16*q))/16),0];
@@ -65,6 +65,7 @@ BOT = r"""(opt)=>{ const H=HOUSE, T=H.TW, X=H.THX; T.bot=true; T.seed=opt.seed; 
         else if(T.gnd===SL[1] && rC>0.28 && !toEx){ goal=C; }
         else if(T.gnd===SL[1] && rC<=0.28){ goal=exC; safe=ok(exAng); }
         else if(T.gnd===SL[1]){ goal=exC; }
+        if(goal && !safe && T.gnd===SL[0] && rC<sw.len+0.5){ dx=(p.x-C[0])/rC; dz=(p.z-C[1])/rC; T.buf=0; goal=null; }   // (v479) 기다릴 때는 바늘이 닿지 않는 곳까지 물러섬
         if(goal){ const gx=goal[0]-p.x, gz=goal[1]-p.z, q=Math.hypot(gx,gz)||1; if(safe && q>0.05){ dx=gx/q; dz=gz/q; } else { dx=dz=0; } T.buf=0; } } }
     if((T.secs[fl]==="sweep3" || (T.secsB&&T.secsB[fl]==="sweep3")) && T.onG && T.gnd && T.gnd.kind!=="floor"){ const S=T.S.slice(T.secR[fl][0],T.secR[fl][1]), SW=S.filter(s=>s.kind==="sweep" && (!s.seg || !s.seg.kind || (s.seg.kind==="sweep3" && (!T.gnd.seg || s.seg===T.gnd.seg)))), d=(SW[0]&&SW[0].seg)?SW[0].seg.d:H.TDIR[sec%4]; if(SW[0] && SW[0].seg && T.gnd.seg && T.gnd.seg!==SW[0].seg) SW.length=0;   // (v465) 🕐🕐🕐 앞 바늘 가운데 → (세 바늘 모두 멀 때) 뒤 두 바늘 사이 → 출구
       const A=SW[0], B=SW[1], Cc=SW[2]; if(A && Math.abs(p.y-A.y0)<1.0){ const arr=(sw,ph)=>{ const a=-sw.mesh.rotation.y, M=Math.PI*2, dd=sw.sp>0?(((a-ph)%M)+M)%M:(((ph-a)%M)+M)%M; return dd/Math.abs(sw.sp); }, ok=(sw,ph,tm)=>{ const M=Math.PI*2/Math.abs(sw.sp), t0=arr(sw,ph); return t0>tm && M-t0>0.3; }, ang=(c,q)=>Math.atan2(q[1]-c[1],q[0]-c[0]);

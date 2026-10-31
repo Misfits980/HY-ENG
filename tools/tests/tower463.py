@@ -63,7 +63,7 @@ async def main():
             const inn=drop(0.8), out=drop(1.25); const sq=T.S.slice(T.secR[i][0],T.secR[i][1]).filter(s=>s.kind==='solid' && !s.rnd && !s.noWalk && !s.conn && s.seg===A.seg).map(s=>+((s.max.x-s.min.x)*(s.max.z-s.min.z)).toFixed(1));
             const fl=[], rise=[]; for(let dd=1; dd<=8; dd++){ T.seed='2027-10-'+dd; HOUSE.twBuild('sky'); fl.push(T.secsB.filter(Boolean).length); for(let j=11;j<T.ys.length;j++) rise.push(+(T.ys[j]-T.ys[j-1]).toFixed(1)); }
             T.bot=false; return [R.length, inn, out, sq, fl, Math.min(...rise), Math.max(...rise)]; }""")
-        ok(r[0] == 3 and abs(r[1]) < 0.05 and r[2] < -0.5 and max(r[3]) < 4.5, f"🕐🕐🕐 둥근 판 3개만 (네모 판 없음) · 판 안 = 서 있음 · 둥근 판 밖(네모였으면 서 있던 곳) = 떨어짐 {r[:4]}")
+        ok(r[0] == 3 and abs(r[1]) < 0.05 and r[2] < -0.5 and max(r[3]) < 7.5, f"🕐🕐🕐 둥근 판 3개만 (네모 판 없음 · v479 앞뒤 길은 길어짐) · 판 안 = 서 있음 · 둥근 판 밖(네모였으면 서 있던 곳) = 떨어짐 {r[:4]}")
         ok(all(x == 28 for x in r[4]) and r[6] > 4.0, f"(v472) 🗼 도전 11층부터 한 층 = 한 바퀴 · 함정 2개 (타워마다 {r[4]}층) · 층 높이 {r[5]}~{r[6]}")
         # (v468) 🎨 장애물마다 다른 무늬 · 층 시작 표지판 · 진짜/가짜 칸은 똑같이
         r = await E("""()=>{ const T=HOUSE.TW; T.seed='2027-11-1'; HOUSE.twBuild('sky'); const pat={}; T.secs.forEach((k,i)=>{ const L=T.S.slice(T.secR[i][0],T.secR[i][1]); const ds=L.filter(s=>s.decal).map(s=>s.decal.material.map.image); pat[k]=pat[k]||new Set(); ds.forEach(im=>pat[k].add(im)); });
