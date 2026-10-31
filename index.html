@@ -108,7 +108,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);
 #comboTag{margin-top:4px;display:inline-block;font-size:13px;font-weight:900;color:#2a1b00;opacity:0;transition:opacity .2s;
   background:var(--amber);display:inline-block;padding:3px 12px;border-radius:99px;letter-spacing:.02em;box-shadow:0 2px 0 rgba(0,0,0,.28)}
 #comboTag.on{opacity:1;animation:pump .35s ease}
-/* (v491) 콤보 단계 — 글자는 늘 진하게, 배경만 바뀐다 (예전: 5연속부터 노란 배경에 노란 글자라 안 보였음) */
+/* (v492) 콤보 단계 — 글자는 늘 진하게, 배경만 바뀐다 (예전: 5연속부터 노란 배경에 노란 글자라 안 보였음) */
 #comboTag.t5{background:#5fe0b0}
 #comboTag.t10{background:linear-gradient(90deg,#ffe58f,#ffae3d);box-shadow:0 0 12px rgba(255,200,90,.8),0 2px 0 rgba(0,0,0,.28)}
 #comboTag.t15{background:linear-gradient(90deg,#ff9a5c,#ff5a48);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:0 0 14px rgba(255,110,70,.9),0 2px 0 rgba(0,0,0,.28)}
@@ -5135,7 +5135,7 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
     <div><b id="oCombo">0</b><small><i>🔥 </i>최고 콤보</small></div>
     <div class="rsW"><b id="oWrong">0</b><small><i>❌ </i>틀림</small></div>
   </div>
-  <div id="oLoot"></div><!-- (v491) ⭐ 별 · ❓ 상자 · 🔥 FEVER · 💗 연속 회복 -->
+  <div id="oLoot"></div><!-- (v492) ⭐ 별 · ❓ 상자 · 🔥 FEVER · 💗 연속 회복 -->
   <div class="resCard resRw">
     <div class="resCh">🎁 이번 판</div>
     <div class="resDuo"><div class="resGems" id="oGems"></div><div id="oBoss"></div></div>
@@ -9237,7 +9237,7 @@ function spawnSet(){ Perf.mark("문 생성");
       const zn=ZONES[zoneIndex(G.stage+1)]; if(zn && zn!==zone() && zoneArt(zn)!==zoneArt()) SignCache.warm(G.nextQ.options, zn); }catch(e){}   // (v322) 다음 문제 단어판은 쉬는 틈에 미리 그려 둔다
   }catch(e){ G.nextQ=null; G.preHazQ=null; }
   if(typeof Rocks!=="undefined" && Rocks.dodgeAnswer) try{ Rocks.dodgeAnswer(s); }catch(e){}
-  try{ Loot.onSet(s); }catch(e){}                   // (v491) ⭐ 별 줄 · ❓ 상자 · 🐢 천천히
+  try{ Loot.onSet(s); }catch(e){}                   // (v492) ⭐ 별 줄 · ❓ 상자 · 🐢 천천히
   G.groundSpeed = s.speed;
   if(Later.busy) Later.add(()=>{ if(G.sets.indexOf(s)>=0) showQuestion(q, s); });   // (v374) 문제 글자·읽기는 그다음 프레임
   else showQuestion(q, s);
@@ -9474,7 +9474,7 @@ function judge(s){ Perf.mark("판정");
     const rush = clamp(P.z/CFG.Z_FORWARD, 0, 1);            // 앞으로 나간 정도
     const bonus = Math.round(rush*CFG.RUSH_BONUS);
     const memo  = s.hideMode ? CFG.GIMMICK_BONUS : 0;        // 기억 기믹 보너스
-    let lm=1; try{ lm=Loot.mul(); }catch(e){}                // (v491) 🔥 FEVER 동안 정답 점수 2배
+    let lm=1; try{ lm=Loot.mul(); }catch(e){}                // (v492) 🔥 FEVER 동안 정답 점수 2배
     const gain = Math.round((CFG.SCORE_BASE + (G.combo-1)*CFG.COMBO_STEP + bonus + memo) * DIFF[G.diff].scoreMul * lm);
     G.score += gain;
     burst(P.x, 1.4, P.z+0.5, COL.mint, 22);
@@ -9482,7 +9482,7 @@ function judge(s){ Perf.mark("판정");
     popScore("+"+gain, (lm>1?"🔥 FEVER ":"")+(bonus?"RUSH ":"")+(memo?"MEMORY ":"")+(G.combo>=2?G.combo+" COMBO":""),
              comboColor(G.combo), 44);
     comboStep();
-    try{ Loot.onRight(); }catch(e){}                         // (v491) 💗 연속 정답 회복 · 🔥 게이지
+    try{ Loot.onRight(); }catch(e){}                         // (v492) 💗 연속 정답 회복 · 🔥 게이지
     verdict("Correct!", "+"+gain+"점"+(bonus?" <em>RUSH +"+bonus+"</em>":"")+(memo?" <em>MEMORY +"+memo+"</em>":""),
             COL.mint, "rgba(95,224,176,.2)");
     if(WORD_SETS[G.set].review) WrongBook.remove(s.q.word.en);
@@ -11473,7 +11473,7 @@ const Hazards = {
     h.mesh.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); });
     this.list.splice(i,1);
   },
-  clear(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); if(typeof G!=="undefined"){ G.preHazQ=null; } try{ Loot.clearItems(); }catch(e){} },   // (v491) 별·상자도 함께
+  clear(){ for(let i=this.list.length-1;i>=0;i--) this.remove(i); if(typeof G!=="undefined"){ G.preHazQ=null; } try{ Loot.clearItems(); }catch(e){} },   // (v492) 별·상자도 함께
   /* 길 검사 — 한 문제 구간에 새로 놓인 함정(보스 공격 포함)으로 앞 문 → 정답 문 길이 막히면 하나씩 뺀다.
      보통(spawnFor)은 이런 검사가 없어서, 정답 줄 함정 + 옆 줄 함정 + 쇠창살·석상이 겹치면 지나갈 틈이 0.1초뿐인 문제가 생겼다 (v202 점검: 2·3장 보통 약 7%).
      한 칸 옮기는 시간은 어려움·극한 시간 줄 배치와 같은 "아이 반응 기준"(2.1배)으로 넉넉히 잡는다. 움직이는 함정(기사·방패 휘두르기·벌떼)과 구역(빙판·흔들다리)은 따지지 않는다 */
@@ -11982,7 +11982,7 @@ function onDead(){
     playLater(()=>{ if(G.timeLeft<=0) gameOver(); else respawn(); }, 260);
     return;
   }
-  let lsh=false; try{ lsh=Loot.blockLoss(); }catch(e){}   // (v491) ❓ 상자에서 얻은 방패
+  let lsh=false; try{ lsh=Loot.blockLoss(); }catch(e){}   // (v492) ❓ 상자에서 얻은 방패
   if(Items.blockLoss() || lsh){                    // (v294) 1회 실드 — 목숨 대신 실드가 깨진다 (지금은 꺼짐)
     G.dead = true; verdict("🛡️ 실드!", "목숨을 지켰어요", COL.mint, "rgba(95,224,176,.2)"); updateHUD();
     playLater(()=>respawn(), 420); return; }
@@ -12402,7 +12402,7 @@ function comboWord(c){
   return c>=20 ? "AMAZING!" : c>=15 ? "EXCELLENT!" : c>=10 ? "GREAT!" : "GOOD!";
 }
 /* =====================================================================
-   (v491) 달리기 손맛 — 사용자: "개선사항 1~4번까지 하고 5·6번은 시안만"
+   (v492) 달리기 손맛 — 사용자: "개선사항 1~4번까지 하고 5·6번은 시안만"
    ① 💗 연속 정답 10개마다 하트 +1 (보통 이상 · 최대치까지) — 1장 '지대 회복 없음' 규칙은 그대로 두고, 꾸준히 맞히는 아이에게만
    ② ⚡ RUSH 보이기 — 앞으로 나가면 화면 가장자리 속도선 + 「⚡ RUSH +n」 (보너스는 원래 있었는데 도움말에만 적혀 있었음)
    ③ ❓ 상자 — 🐢 천천히(다음 문 3개 느리게) · 🧲 별 자석 · 🔥 게이지 +40 · (쉬움·유치원·2장부터) 💗 하트 · 🛡️ 방패 — 정답을 알려 주는 효과는 없음
@@ -12413,7 +12413,7 @@ function comboWord(c){
 ===================================================================== */
 var Loot = (function(){
   const HEAL_EVERY=10, FEVER_MAX=100, FEVER_T=7, STAR_N=5, STAR_PTS=10, G_STAR=1, G_RIGHT=5;
-  const BOX_ON=false;   // (v491) 사용자: "아이템은 아직 끄자" — ❓ 상자는 만들어 두고 꺼 둠 (true 로 바꾸면 켜짐)   // 별 다 줍고 다 맞히면 문 10개쯤에 한 번 FEVER
+  const BOX_ON=false;   // (v492) 사용자: "아이템은 아직 끄자" — ❓ 상자는 만들어 두고 꺼 둠 (true 로 바꾸면 켜짐)   // 별 다 줍고 다 맞히면 문 10개쯤에 한 번 FEVER
   const S={list:[], gauge:0, fever:0, shield:0, slow:0, magnet:0, boxCD:3, chain:0, chainT:0,
            stars:0, boxes:0, fevers:0, heals:0, told:{}, aura:null, auraC:-1, auraT:0, fT:0, tx:null, mats:{}};
   const can = ()=> !!(G.running && G.rule==="normal" && !G.versus && !G.race);
@@ -12869,7 +12869,7 @@ function loopBody(){
     Ground.update(wdt, G.groundSpeed);
     Props.update(wdt, G.groundSpeed);
     Hazards.update(wdt, G.groundSpeed);
-    try{ Loot.update(wdt, G.groundSpeed, dt); }catch(e){}   // (v491) ⭐ ❓ 🔥
+    try{ Loot.update(wdt, G.groundSpeed, dt); }catch(e){}   // (v492) ⭐ ❓ 🔥
     Rocks.update(wdt);      // 등장·대기 관리는 모듈 안에서 처리
     Wind.update(dt);
     Boss.update(G.rawDt||dt);
@@ -13295,7 +13295,7 @@ function updateHUD(){ Perf.mark("HUD");
     for(let i=0;i<(G.maxLives||CFG.LIVES);i++)
       h += img ? '<span class="hico '+(i<G.lives?'full':'empty')+'"></span>'
                : (i<G.lives ? "♥" : '<span class="off">♥</span>');
-    try{ if(Loot.shieldOn()) h += '<span class="lootSh" title="방패">🛡️</span>'; }catch(e){}   // (v491) ❓ 상자에서 얻은 방패
+    try{ if(Loot.shieldOn()) h += '<span class="lootSh" title="방패">🛡️</span>'; }catch(e){}   // (v492) ❓ 상자에서 얻은 방패
     $("uLives").innerHTML = h;
   }
   const vg=$("vignette");                         // 위기일 때 화면이 붉게 맥동한다
@@ -13306,7 +13306,7 @@ function updateHUD(){ Perf.mark("HUD");
     BGM.volume(danger ? 0.055 : 0.035);
   }
   const c=$("comboTag");
-  /* (v491) 글자는 진한 색 그대로 · 단계(5·10·15)마다 배경만 바뀜 · 하트가 비었으면 「💗 n」 = 하트까지 남은 연속 정답 */
+  /* (v492) 글자는 진한 색 그대로 · 단계(5·10·15)마다 배경만 바뀜 · 하트가 비었으면 「💗 n」 = 하트까지 남은 연속 정답 */
   let ht=""; try{ const k=Loot.healLeft(); if(k>0) ht='<em>💗 '+k+'</em>'; }catch(e){}
   if(G.combo>=2) c.innerHTML = G.combo+" COMBO"+ht;   // 끊기면 글자는 그대로 두고 조용히 사라짐 (「0 COMBO」가 잠깐 보이지 않게)
   c.className = (G.combo>=2 ? "on" : "") + (G.combo>=15 ? " t15" : G.combo>=10 ? " t10" : G.combo>=5 ? " t5" : "");
@@ -15343,7 +15343,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v491";
+const GAME_VER = "v492";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
