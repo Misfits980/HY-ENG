@@ -19,49 +19,27 @@ async def main():
         br = await p.chromium.launch()
         pg = await br.new_page(viewport={"width": 430, "height": 900}); pg.on("pageerror", lambda e: errs.append(str(e)))
         await boot(pg); E = pg.evaluate
-        R = """(nick)=>{ localStorage.setItem('hyeng_nick', nick); localStorage.removeItem('hyeng_kid'); localStorage.removeItem('hyeng_teacher_dev'); localStorage.removeItem('hyeng_boss_pend'); localStorage.removeItem('hyeng_kp_ask');
+        R = """(nick)=>{ localStorage.setItem('hyeng_nick', nick); localStorage.removeItem('hyeng_kid'); localStorage.removeItem('hyeng_teacher_dev'); localStorage.removeItem('hyeng_boss_pend'); localStorage.removeItem('hyeng_kp_ask'); localStorage.removeItem('hyeng_me');
             HyBoss.R=Object.assign(HyBoss.R||{}, {t:{a:{n:'초원', e:'🌱'}}, k:{k1:{n:'박유범', t:'a'}, k2:{n:'김지후', t:'a'}, k3:{n:'👤이서연', t:'a'}}}); HyBoss.refresh=()=>Promise.resolve(); }"""
-        # ①
-        await E(R, "김 지후"); r = await E("()=>{ const m=Kid.me(); return m && [m.id, m.n]; }")
-        ok(r == ["k2", "김지후"], f"① 「김 지후」 → 명단 김지후 저절로 {r}")
-        await E(R, "이서연"); r = await E("()=>{ const m=Kid.me(); return m && m.id; }")
+        # ① (v478: 개인 기기는 저절로 묶임 — 이름 맞추기 규칙은 그대로)
+        await E(R, "김 지후"); r = await E("()=>{ HyBoss.ok=true; localStorage.removeItem('hyeng_me'); const m=Kid.me(); return m && [m.id, m.n]; }")
+        ok(r == ["k2", "김 지후"], f"① 「김 지후」 → 명단 김지후 저절로 {r}")
+        await E(R, "이서연"); r = await E("()=>{ localStorage.removeItem('hyeng_me'); const m=Kid.me(); return m && m.id; }")
         ok(r == "k3", f"① 「이서연」 → 명단 「👤이서연」 저절로 {r}")
-        # ②
-        await E(R, "지후"); r = await E("()=>[Kid.me(), Kid.guess()]")
-        ok(r == [None, ["k2"]], f"② 「지후」 = 저절로는 안 붙고 후보 김지후 {r}")
-        await E("()=>KidPick.open(()=>{})"); await pg.wait_for_timeout(200)
+        # ② ③ 설정에서 「명단에 내 이름이 따로 있어요」로 열 때(bind)
+        await E(R, "지후"); r = await E("()=>Kid.guess()"); ok(r == ["k2"], f"② 「지후」 후보 김지후 {r}")
+        await E("()=>KidPick.open(()=>{}, {bind:true})"); await pg.wait_for_timeout(200)
         r = await E("()=>{ const g=document.querySelector('#kidPick .kpGuess'); return g && [g.innerText.replace(/\\s+/g,' '), [...g.querySelectorAll('[data-kp]')].map(b=>b.dataset.kp)]; }")
         ok(r and "혹시 이 이름" in r[0] and r[1] == ["k2"], f"② 이름 고르기 맨 위 「혹시 이 이름? 김지후」 {r}")
-        await E("()=>document.querySelector('#kidPick .kpGuess [data-kp]').click()"); await pg.wait_for_timeout(200)
-        r = await E("()=>[!!document.getElementById('kidPick'), Kid.me() && Kid.me().id]")
-        ok(r == [True, None], f"② 「지후」≠「김지후」라 한 번 확인 창 {r}")
-        await E("()=>document.querySelector('#kidPick [data-sure]').click()"); await pg.wait_for_timeout(200)
-        r = await E("()=>[!!document.getElementById('kidPick'), Kid.me() && Kid.me().id]")
-        ok(r == [False, "k2"], f"② 「네」 → 김지후 {r}")
-        # ③
-        await E(R, "지후"); await E("()=>KidPick.open(()=>{})"); await pg.wait_for_timeout(200)
         await E("()=>document.querySelector('#kidPick .kpL [data-kp=\"k1\"]:not(.kpGuess *)').click()"); await pg.wait_for_timeout(200)
-        r = await E("()=>[document.querySelector('#kidPick').innerText.replace(/\\s+/g,' '), Kid.me()]")
-        ok("박유범" in r[0] and "정말 나예요" in r[0] and "지후" in r[0] and r[1] is None, f"③ 다른 아이 → 「정말 나예요?」 {r[0][:80]}")
+        r = await E("()=>document.querySelector('#kidPick').innerText.replace(/\\s+/g,' ')")
+        ok("박유범" in r and "정말 나예요" in r, f"③ 다른 아이 → 「정말 나예요?」 {r[:80]}")
         await E("()=>document.querySelector('#kidPick [data-kpback]').click()"); await pg.wait_for_timeout(200)
-        r = await E("()=>[!!document.querySelector('#kidPick .kpL'), Kid.me()]")
-        ok(r == [True, None], f"③ 「다시 고르기」 → 명단으로 (아직 안 골라짐) {r}")
+        ok(await E("()=>!!document.querySelector('#kidPick .kpL')"), "③ 「다시 고르기」 → 명단으로")
         await E("()=>KidPick.close()")
-        # ④ 미뤄 둔 공부 (보스는 흉내)
-        await E(R, "지후")
-        r = await E("""async ()=>{ const H=HyBoss; H.B=H.B||{n:'테스트 보스'}; const on0=H.on, earn0=H.earn; H.on=()=>true; let got=[]; H.earn=(me,k,n)=>{ got.push([me.id,k,n]); return n; };
-            H.pendAdd('s', 25, 10); H.pendAdd('r', 9, 4); const n0=H.pendN();
-            Kid.set({id:'k2', n:'김지후', t:'a', pk:Date.now()}); await new Promise(r=>setTimeout(r,700)); const n1=H.pendN(); H.on=on0; H.earn=earn0; return [n0, n1, got, H.chunkLeft('k2','s'), H.chunkLeft('k2','r')]; }""")
-        ok(r[0] == 34 and r[1] == 0 and r[2] == [["k2", "study", 2], ["k2", "run", 2]] and r[3] == 5 and r[4] == 1, f"④ 이름 없을 때 한 것(📚25·🏃9) → 김지후 고르면 ⚔️ 📚2 · 🏃2 · 남은 것 이어서 {r}")
-        r = await E("()=>{ localStorage.setItem('hyeng_nick','한양패드1'); HyBoss.pendAdd('s', 10, 10); const n=HyBoss.pendN(); localStorage.setItem('hyeng_nick','지후'); return n; }")
+        # ④ 공용 패드는 미루지 않음 (미룬 것 쌓기는 who478 ⑤)
+        r = await E("()=>{ localStorage.removeItem('hyeng_boss_pend'); localStorage.setItem('hyeng_nick','한양패드1'); HyBoss.pendAdd('s', 10, 10); const n=HyBoss.pendN(); localStorage.setItem('hyeng_nick','지후'); return n; }")
         ok(r == 0, f"④ 공용 패드는 미루지 않음 (따로 흐름) {r}")
-        # ⑤
-        await E(R, "지후")
-        await E("()=>{ const s=Study.load(); s.book='g34'; s.set='elem'; Study.save(); StudyUI.open(); }"); await pg.wait_for_timeout(1200)
-        r = await E("()=>[!!document.getElementById('kidPick'), localStorage.getItem('hyeng_kp_ask')]")
-        ok(r[0] and r[1], f"⑤ 개인 패드 Daily 30 열 때 이름 고르기 (하루 한 번) {r}")
-        await E("()=>{ KidPick.close(); StudyUI.path(); }"); await pg.wait_for_timeout(900)
-        r = await E("()=>!!document.getElementById('kidPick')"); ok(r is False, "⑤ 같은 날 다시 열면 안 물음")
         # ⑥
         await E("()=>localStorage.setItem('hyeng_nick','지후')")
         r = await E("()=>[NameCard.change('한양이', false), NameCard.change('내패드', false), localStorage.getItem('hyeng_nick')]")

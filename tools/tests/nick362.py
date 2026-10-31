@@ -26,7 +26,7 @@ async def main():
         r = await pg.evaluate("()=>[NameCard.change('서연(2반)', '조치'), NameCard.cur()]")
         ok(r == ["", "서연2반"], f"선생님 조치는 기호만 빼고 정함 {r}")
         # 명단 아이 시트 이름 — 10글자 그대로
-        r = await pg.evaluate("()=>{ Kid.set({id:'k1', n:'패트와 매트(패트)', t:'all'}); return Online.nickOf({rule:'study', nick:'X'}); }")
+        r = await pg.evaluate("()=>{ localStorage.setItem('hyeng_nick','한양패드'); Kid.set({id:'k1', n:'패트와 매트(패트)', t:'all'}); return Online.nickOf({rule:'study', nick:'X'}); }")
         ok(r == "👤패트와 매트(패트)", f"명단 이름 10글자 안 잘림 {r}")
         r = await pg.evaluate("()=>{ Kid.set({id:'k2', n:'👤라언', t:'all'}); return Online.nickOf({rule:'study', nick:'X'}); }")
         ok(r == "👤라언", f"(v366) 👤 두 번 안 붙음 {r}")

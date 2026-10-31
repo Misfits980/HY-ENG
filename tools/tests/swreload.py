@@ -57,7 +57,7 @@ async def main():
         # 4) 보스 화면·이름 고르기·보상 창·레이드는 내려도 미루고, 닫은 뒤 내려 있으면 새로고침
         SETUP="""()=>FB.set('/hy/roster',{t:{},k:{k1:{n:'민준'}}}).then(()=>HyBoss.setup({on:true,team:false,split:'eq',restart:true})).then(()=>{ Kid.set({id:'k1',n:'민준',t:'all'}); HyBoss.earn(Kid.get(),'study',6); show('scStart'); })"""
         cases=[("보스 화면", "()=>WeekBoss.open()", "()=>WeekBoss.close()"),
-               ("이름 고르기", "()=>KidPick.open()", "()=>KidPick.close()"),
+               ("이름 고르기", "()=>KidPick.open(null, {bind:true})", "()=>KidPick.close()"),
                ("보상 창", "()=>WeekBoss.gain(2,'study')", "()=>{ const d=document.getElementById('wbPop'); if(d) d.remove(); }"),
                ("레이드", "()=>{ Raid.role='host'; }", "()=>{ Raid.role=null; }")]
         for name, op, cl in cases:

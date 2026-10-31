@@ -76,7 +76,7 @@ async def main():
         L = await E("()=>HyHW.L.map(c=>[c.team||'all', c.set, c.from, c.to])")
         ok(sorted(L) == sorted([["all", "elem", 0, 1], ["a", "elem", 0, 3], ["b", "g56", 0, 1]]), f"숙제 3개 (전체 · 사자반 · 돌고래반) {L}")
         # 아이 쪽 — 반마다 자기 숙제
-        mine = await E("""()=>{ const r={}; [['k1','민준','a'],['k3','하준','b']].forEach(([id,n,t])=>{ Kid.set({id,n,t}); r[n]=HyHW.mine() && [HyHW.mine().team, HyHW.mine().set]; }); Kid.clear(); r['none']=HyHW.mine() && (HyHW.mine().team||'all'); return r; }""")
+        mine = await E("""()=>{ const nk0=localStorage.getItem('hyeng_nick'); localStorage.setItem('hyeng_nick','한양패드'); /* (v478) 이름을 고르는 건 공용 패드뿐 */ const r={}; [['k1','민준','a'],['k3','하준','b']].forEach(([id,n,t])=>{ Kid.set({id,n,t}); r[n]=HyHW.mine() && [HyHW.mine().team, HyHW.mine().set]; }); Kid.clear(); const pt=HyBoss.nowT; HyBoss.nowT=()=>null; r['none']=HyHW.mine() && (HyHW.mine().team||'all'); HyBoss.nowT=pt; if(nk0!=null) localStorage.setItem('hyeng_nick', nk0); else localStorage.removeItem('hyeng_nick'); return r; }""")
         ok(mine == {"민준": ["a", "elem"], "하준": ["b", "g56"], "none": "all"}, f"아이마다 자기 반 숙제 · 이름 없으면 전체 숙제 {mine}")
         # 서연(사자반) 2/4 · 민준 4/4 → 선생님 표: 지우 아직
         await E("()=>{ const id=HyHW.L.find(c=>c.team==='a').id; FB.set('/hy/hw/res/'+id+'/k1',{n:'민준',t:'a',done:4,tot:4,at:1}); FB.set('/hy/hw/res/'+id+'/k2',{n:'서연',t:'a',done:2,tot:4,at:1}); }")

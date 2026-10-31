@@ -30,7 +30,7 @@ async def main():
         # (v363) 같은 이름(자기 기기 번호 + 명단 이름)은 한 줄로 합침
         await pg.evaluate("""()=>{ const D={k1:{n:'김지후', d:833, on:{}}, dvx:{n:'김지후', d:521, on:{}}, k2:{n:'스트로베리', d:1378, on:{}}, dvy:{n:'👤스트로베리', d:295, on:{}}, k3:{n:'빈', d:100, on:{}}};
             return FB.set('/hy/dmg/'+HyBoss.B.id, D).then(()=>HyBoss.refresh(true)); }""")
-        await pg.evaluate("()=>{ WeekBoss._rkAll=true; Kid.set({id:'dvx', n:'김지후', t:'all'}); WeekBoss.draw(); }"); await pg.wait_for_timeout(300)
+        await pg.evaluate("()=>{ WeekBoss._rkAll=true; localStorage.setItem('hyeng_nick','한양패드'); /* (v478) 고르기 = 공용 패드 */ Kid.set({id:'dvx', n:'김지후', t:'all'}); WeekBoss.draw(); }"); await pg.wait_for_timeout(300)
         r = await pg.evaluate("()=>[...document.querySelectorAll('#wbTop5 .wbRank li')].map(li=>li.querySelector('span').textContent+'|'+li.querySelector('em').textContent.replace(/\\D/g,'')+(li.classList.contains('me')?'*':''))")
         ok(r == ["스트로베리|1673", "김지후|1354*", "빈|100"], f"같은 이름은 한 줄 · 공격 합침 · 내 줄 {r}")
         # (v363) 보상 자격(3번 이상 휘두름)도 같은 이름 합쳐서 · 받음 표시는 한 번만

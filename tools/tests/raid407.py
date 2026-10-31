@@ -68,7 +68,7 @@ async def main():
         await host.evaluate("()=>Raid.hostAct('end')"); await k.wait_for_timeout(500)
 
         # ④ 🙋 명단에 없는 아이
-        await E("()=>{ try{ Raid.leave(); }catch(e){} Kid.clear(); return FB.set('/hy/roster', {t:{a1:{n:'A1',e:'🍎'}, b2:{n:'B2',e:'🍊'}}, k:{k1:{n:'민준',t:'a1'}}}).then(()=>HyBoss.refresh(true)); }"); await k.wait_for_timeout(500)
+        await E("()=>{ try{ Raid.leave(); }catch(e){} localStorage.setItem('hyeng_nick','한양패드'); /* (v478) 이름 고르기 = 공용 패드 */ Kid.clear(); return FB.set('/hy/roster', {t:{a1:{n:'A1',e:'🍎'}, b2:{n:'B2',e:'🍊'}}, k:{k1:{n:'민준',t:'a1'}}}).then(()=>HyBoss.refresh(true)); }"); await k.wait_for_timeout(500)
         await E("()=>{ window._kp=null; KidPick.open(v=>{ window._kp=v; }); }"); await k.wait_for_timeout(200)
         ok(await E("()=>!!document.querySelector('#kidPick [data-kpnew]')"), "이름 고르기에 🙋 내 이름이 없어요")
         await E("()=>document.querySelector('#kidPick [data-kpnew]').click()"); await k.wait_for_timeout(200)

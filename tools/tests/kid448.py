@@ -48,7 +48,7 @@ async def main():
         ok(r[0] and r[1], f"🏃 톡 = 점프 · 장애물이 나옴 {r}")
         await H.evaluate("()=>{ window._g.dead=1; document.getElementById('tg').remove(); }")
         # ① 🎮 수업 게임 창
-        await H.evaluate("()=>RaidJoin.open()"); await H.wait_for_timeout(500)
+        await H.evaluate("()=>{ localStorage.setItem('hyeng_nick','한양패드'); RaidJoin.open(); }"); await H.wait_for_timeout(500)   # (v478) 이름을 고르는 건 공용 패드뿐
         r = await H.evaluate("()=>[!!document.querySelector('[data-rj=bdhost]'), !!document.querySelector('[data-rj=bdpad]')]")
         ok(r == [True, False], f"① 「방 만들기」 있음 · 「한 패드」는 꺼져 있어 안 보임 {r}")
         await H.screenshot(path=OUT + "kid448_join.png")

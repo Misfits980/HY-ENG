@@ -95,7 +95,7 @@ async def main():
         pv = await pg.evaluate("()=>[document.getElementById('adBtSet').value, document.getElementById('adBtDur').value]")
         ok(pv == ["mid", "420"], f"마지막 고른 값 기억 {pv}")
         # 게임 이름 = 명단 이름 → 그 기기는 자동으로 (공용 패드는 아님)
-        r = await pg.evaluate("()=>{ Kid.clear(); localStorage.setItem('hyeng_nick','minjun'); const a=Kid.me(); Kid.clear(); localStorage.setItem('hyeng_nick','한양패드'); const b=Kid.me(); localStorage.setItem('hyeng_nick','PLAYER'); Kid.clear(); return [a && a.n, b]; }")
+        r = await pg.evaluate("()=>{ Kid.clear(); localStorage.setItem('hyeng_nick','minjun'); const a=Kid.me(); Kid.clear(); localStorage.setItem('hyeng_nick','한양패드'); const b=Kid.me(); localStorage.setItem('hyeng_nick','PLAYER'); Kid.clear(); return [a && (a.rn||a.n), b]; }")   # (v478) 보이는 이름 = 설정 이름 · 명단 이름은 rn
         ok(r == ["MINJUN", None], f"게임 이름이 명단과 같으면 자동 · 공용 패드는 고르기 {r}")
         e = real_errs(errs); print("errs", e[:3]); ok(not e, "오류 없음")
         await br.close()

@@ -2797,7 +2797,7 @@ const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.f
 const CODE_CH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 /* (v476) 게임(index.html Kid)과 같은 규칙: 🧑‍🏫 선생님 기기 = 아이 이름은 이번에만(sessionStorage · 20분) · 이름에서 저절로 붙은 연결은 이름이 달라지면 버림 */
 function kidInfo(){ let k=null, nick=""; try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} const tch=(()=>{ try{ return !/^한양|패드$/.test(nick) && localStorage.getItem("hyeng_teacher_dev")==="1"; }catch(e){ return false; } })(), nk=s=>String(s||"").replace(/^👤\s*/,"").replace(/\s+/g,"").toLowerCase();
-  try{ k=PAD.shared ? PAD.kid : JSON.parse((tch ? null : localStorage.getItem("hyeng_kid"))||sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){}
+  try{ if(PAD.shared) k=PAD.kid; else if(tch) k=JSON.parse(sessionStorage.getItem("hyeng_kid")||"null"); else { const o=JSON.parse(localStorage.getItem("hyeng_me")||"null"); k=o && o.id ? {id:o.id, n:nick||"친구", t:o.t||""} : null; } }catch(e){}   /* (v478) 📱 내 기기 = hyeng_me (게임에서 정함) · 이름은 늘 설정 이름 */
   if(k && !PAD.shared && ((tch && k.at && Date.now()-k.at>20*60000) || (k.auto && nk(k.n)!==nk(nick)))) k=null;
   return {n:String((k&&k.n)||nick||"친구").slice(0,10), t:String((k&&k.t)||""), rid:String((k&&k.id)||"").slice(0,40), shared:/^한양|패드$/.test(nick)}; }
 let myCode=store("hyeng_proto_code"); if(!myCode){ myCode=""; for(let k=0;k<5;k++) myCode+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; store("hyeng_proto_code", myCode); }

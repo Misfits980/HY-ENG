@@ -47,7 +47,7 @@ async def main():
             ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
             pg=await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(name+": "+str(e)))
             await pg.route("**/*", fb); await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(1500)
-            await pg.evaluate("(a)=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_kid', JSON.stringify({id:a[0], n:a[0], t:a[1]})); localStorage.setItem('hyeng_nick', a[0]); if(a[2]) localStorage.setItem('hyeng_tag', a[2]); }", [name, t, tag])
+            await pg.evaluate("(a)=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_kid', JSON.stringify({id:a[0], n:a[0], t:a[1]})); localStorage.setItem('hyeng_me', JSON.stringify({id:a[0], t:a[1]})); localStorage.setItem('hyeng_nick', a[0]); if(a[2]) localStorage.setItem('hyeng_tag', a[2]); }", [name, t, tag])
             await pg.reload(); await pg.wait_for_timeout(3500); return pg
         A=await kid("민준","A1","0006")
         async def until(pg, js, n=60):
@@ -160,7 +160,7 @@ async def main():
         ok("💖" in t and "민준" in t and "❤️" in t, "서연: 방명록 💖 민준 · ❤️ 좋아요 수")
         await B.screenshot(path=OUT+"life_friends.png")
         # ③-2 이름을 바꿔도 번호로 알아봄 · 새 기기에서 같은 아이 = 같은 번호·같은 집
-        await B.evaluate("()=>{ localStorage.setItem('hyeng_kid', JSON.stringify({id:'서연', n:'딸기', t:'A1'})); return HOUSE.publish(); }")
+        await B.evaluate("()=>{ localStorage.setItem('hyeng_kid', JSON.stringify({id:'서연', n:'딸기', t:'A1'})); localStorage.setItem('hyeng_nick','딸기'); /* (v478) 이름 = 설정 이름 */ return HOUSE.publish(); }")
         await A.evaluate("()=>HOUSE.loadSocial().then(()=>HOUSE.drawFr())"); await A.wait_for_timeout(400)
         t=await A.evaluate("()=>document.getElementById('frBody').textContent")
         ok(("딸기#"+tagB) in t, "서연 → 딸기로 이름을 바꿔도 같은 #번호로 보임")

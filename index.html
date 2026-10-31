@@ -2255,7 +2255,7 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .nmRow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px}
 .kwBox{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:8px;padding:9px 11px;border-radius:14px;background:rgba(255,255,255,.06);font-size:12.5px;color:#e8e1ff}
 .kwBox b{flex-basis:100%;font-size:13px}.kwBox span{flex:1;color:#cfc6f3}.kwBox small{color:#a99ed0}.kwBox.warn{background:rgba(255,190,80,.14);box-shadow:inset 0 0 0 1px rgba(255,190,80,.45)}.kwBox.tch{background:rgba(120,200,255,.12)}
-.kpTch{margin-top:6px}.kpGuess{background:rgba(255,224,138,.12);border-radius:14px;padding:6px 8px}.kpGuess > b{color:#ffe08a}.kpTchN{margin:8px 0 0;font-size:12px;color:#9fd8ff}
+.kpTch{margin-top:6px}.kwTch{opacity:.75;font-size:11.5px}.kpGuess{background:rgba(255,224,138,.12);border-radius:14px;padding:6px 8px}.kpGuess > b{color:#ffe08a}.kpTchN{margin:8px 0 0;font-size:12px;color:#9fd8ff}
 .nmTag{flex-basis:100%;display:flex;flex-direction:column;gap:2px;margin-top:4px;padding:8px 12px;border-radius:12px;background:rgba(255,210,63,.12);border:1px solid rgba(255,210,63,.35)} .nmTag b{font-size:15px;color:#fff} .nmTag b i{font-style:normal;color:#ffd23f;margin-left:3px;font-weight:900;letter-spacing:.5px} .nmTag small{color:#c9bff0;font-size:11.5px}
 .rkTag{text-decoration:none;font-size:11px;color:#b7a9f0;margin-left:3px;font-weight:700}
 .nmRow small{flex-basis:100%;font-size:11px;color:#a99ed0;font-weight:700;line-height:1.4}
@@ -14656,6 +14656,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
         if(!me){ if(Object.keys(HyBoss.kids()).length) o.innerHTML='<div class="ovBoss rwT off rwNo"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">👤</b><small class="rwS">이름을 고르면 공격 기회가 쌓여요</small><button class="ovBossSee rwGo" data-kidpick="1" onclick="KidPick.open()">👤 이름 고르기</button></div>'; return; }   /* (v322) 이름을 안 고른 아이 */
         const who='<small class="rwWho">👤 '+E(me.n)+'</small>';   /* (v322) 공용 패드 — 누구 이름으로 쌓였는지 */
         if(ez){ o.innerHTML='<div class="ovBoss rwT off"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">🧸</b><small class="rwS">유치원 단어는 안 쌓여요</small></div>'; return; }   /* (v319) */
+        if(!HyBoss.myTeam(me.id, me)){ HyBoss.pendAdd("r", right, HyBoss.PER_RUN); o.innerHTML='<div class="ovBoss rwT off rwNo"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">🏫</b><small class="rwS">선생님이 우리 반을 정해 주면 쌓여요 (지금 한 것도)</small></div>'; return; }   /* (v478) */
         const n=HyBoss.chunk(me.id, "r", right, HyBoss.PER_RUN), t=HyBoss.myTeam(me.id, me), s=t && HyBoss.state(t), got = n>0 ? HyBoss.earn(me, "run", n) : 0, st=HyBoss.stock(me.id), rem=HyBoss.chunkLeft(me.id, "r");
         const sub = n>0 ? '🏃 '+st.r+' / '+HyBoss.STK : '🏃 '+rem+'/'+HyBoss.PER_RUN+' 단어 · 다음 판에 이어서';
         o.innerHTML = s && s.dead ? '<div class="ovBoss rwT'+(got>0?' rwFlash':'')+'"><div class="rwH">'+img+'<span>주간 보스</span></div><b class="rwN">🎉</b><small class="rwS">쓰러뜨렸어요!'+(got>0?' · ⚔️ +'+got:'')+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">🎁 보상 받기</button></div>'
@@ -14664,7 +14665,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){}
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v477";
+const GAME_VER = "v478";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17292,6 +17293,7 @@ const StudyUI = {
     HyBoss.refresh(true).then(()=>{ if(!HyBoss.B || !HyBoss.on()) return; const me=Kid.me(), d=$("stDoneIn"), E=x=>this.esc(x), say=(h,c)=>{ if(d) d.insertAdjacentHTML("beforeend", '<div class="stBossAdd'+(c?' '+c:'')+'">'+h+'</div>'); };
       if(HyBoss.easy(this.set)) return;   /* (v444) 유치원 단어는 ⚔️ 기회가 안 쌓임 — 「이름을 고르면 공격 기회」 안내가 거짓이었음 */
       if(!me){ if(Object.keys(HyBoss.kids()).length){ HyBoss.pendAdd("s", first, P); say('👤 이름을 고르면 ⚔️ 공격 기회가 쌓여요'+(Kid.shared()?'':' <small>(지금 한 것도 같이)</small>')+' <button class="stBossBtn" data-kidpick="1">이름 고르기</button>'); } return; }   /* (v319) 너무 쉬워서 (사용자) */
+      if(HyBoss.B && HyBoss.on() && !HyBoss.myTeam(me.id, me)){ HyBoss.pendAdd("s", first, P); say(me.amb ? '👤 명단에 같은 이름이 여럿 — 설정에서 내 이름을 한 번 고르면 ⚔️ 공격 기회가 쌓여요 <small>(지금 한 것도 같이)</small> <button class="stBossBtn" data-kidpick="1">내 이름 고르기</button>' : '🏫 선생님이 우리 반을 정해 주면 ⚔️ 공격 기회가 쌓여요 <small>(지금 한 것도 같이)</small>'); return; }   /* (v478) 새로 들어온 아이(반 없음) */
       const who='<small class="sbWho">👤 '+E(me.n)+'</small> ', n=HyBoss.chunk(me.id, "s", first, P), got = n>0 ? HyBoss.earn(me, "study", n) : 0, st=HyBoss.stock(me.id), t=HyBoss.myTeam(me.id, me), s=t && HyBoss.state(t);
       if(got>0) say(who+'⚔️ 공격 기회 <b>+'+got+'</b> <small>📚 '+st.s+'/'+HyBoss.STK+'</small>'+(s && s.dead ? ' · 🎉 보스는 쓰러뜨렸어요' : ''), 'flash');
       else if(got===0 && n>0) say(who+'📚 기회 가득 ('+st.s+'/'+HyBoss.STK+') · 🏠 보스 화면에서 휘둘러요');
@@ -17540,7 +17542,7 @@ const _stClick=e=>{
   if(t.closest("[data-weekly]")){ SFX.select(); StudyUI.weekly(); return; }
   if(t.closest("[data-hw]")){ SFX.select(); HyHW.go(); return; }   // (v329) 📌 숙제
   if(t.closest("[data-raidjoin]")){ SFX.select(); RaidJoin.open(); return; }
-  if(t.closest("[data-kidpick]")){ SFX.click(); KidPick.open(()=>StudyUI.bossCard()); return; }
+  if(t.closest("[data-kidpick]")){ SFX.click(); KidPick.open(()=>StudyUI.bossCard(), {bind:true}); return; }   /* (v478) 개인 기기는 「같은 이름 여럿」일 때만 이 버튼 */
   if(t.closest("[data-dm]")){ DM.view(); return; }
   if(t.closest("[data-wbopen]") || (t.closest(".stBoss img") && HyBoss.B)){ WeekBoss.open(); return; }   // (v310) 🏠 주간 보스 화면
   if(t.closest("[data-bossclaim]")){ const bt=t.closest("[data-bossclaim]"), me=Kid.me(); if(bt.disabled) return; bt.disabled=true; bt.textContent="받는 중…";
@@ -18692,23 +18694,53 @@ const Kid = {
   st(){ return (this.shared() || this.teacher()) ? sessionStorage : localStorage; },
   /* 선생님 기기로 (on) · 아이 기기로 (off) — 켤 때 남아 있던 아이 연결을 풀고, 이 기기가 그 아이 이름으로 올린 ☁️ 백업은 지움 (그 아이 기기가 다시 올림) */
   setTeacher(on){ try{ if(!on){ localStorage.removeItem("hyeng_teacher_dev"); try{ sessionStorage.removeItem("hyeng_kid"); }catch(e){} return null; }
-      localStorage.setItem("hyeng_teacher_dev","1"); let k=null; try{ k=JSON.parse(localStorage.getItem("hyeng_kid")); }catch(e){} localStorage.removeItem("hyeng_kid"); if(k && k.id) this.unhook(k); return k; }catch(e){ return null; } },
+      localStorage.setItem("hyeng_teacher_dev","1"); let k=null; try{ k=JSON.parse(localStorage.getItem("hyeng_kid")); }catch(e){} localStorage.removeItem("hyeng_kid");
+      /* (v478) 내 기기 연결(hyeng_me)도 풂 · 이 기기가 저절로 만든 🆕 줄(선생님 이름)은 명단에서 지움 */
+      try{ const o=JSON.parse(localStorage.getItem("hyeng_me")||"null"); localStorage.removeItem("hyeng_me"); if(o && o.id){ const K=HyBoss.kids()||{}, r=K[o.id];
+        if(o.mk && r && r.nw && !r.t){ try{ FB.set("/hy/roster/k/"+o.id, null); delete HyBoss.R.k[o.id]; }catch(e){} }
+        else if(!k && r) k={id:o.id, n:HyBoss.plainN(r.n)}; } }catch(e){}
+      if(k && k.id) this.unhook(k); return k; }catch(e){ return null; } },
   unhook(k){ try{ const p="/hy/acct/"+Gift.sid(k.id); FB.get(p).then(d=>{ if(d && d.dev===Online.dev()) FB.set(p, null); }).catch(()=>{}); }catch(e){}
     let g=0; try{ (Wallet.raw().log||[]).forEach(r=>{ if(/^🎁 수업 보석/.test(String(r[2]||""))) g+=(r[1]|0); }); }catch(e){}
     try{ localStorage.setItem("hyeng_unhook", JSON.stringify({n:k.n, id:k.id, g, at:Date.now()})); }catch(e){}
     try{ hyToast("🧑‍🏫 선생님 기기 — 「"+Raid.esc(k.n||"")+"」 이름 연결을 풀었어요"+(g ? "<br><small>이 기기가 그 이름으로 받은 수업 보석 💎 "+g+" — 📢 보내기에서 "+Raid.esc(k.n||"")+"에게 다시 보내 주세요</small>" : ""), 5200); }catch(e){} },
   /* 플레이어 이름을 바꾸면 — 이름이 다른 명단 연결은 풂 (같은 이름 명단 아이가 있으면 me() 가 저절로 다시 붙임) */
   /* (v477) 명단에서 내 이름과 비슷한 아이 (성 빼고 이름만 · 같은 이름) — 이름 고르기 창 맨 위 「혹시 이 이름?」 */
+  near(r, n){ return r.length>=2 && n.length>=2 && r!==n && (r.endsWith(n) || n.endsWith(r)); },
   guess(){ let K={}; try{ K=HyBoss.kids()||{}; }catch(e){} const n=this.nk(this.nick()); if(!n || n.length<2 || /^player$/.test(n)) return [];
     const ex=Object.keys(K).filter(k=>this.nk(K[k].n)===n); if(ex.length) return ex;
-    return Object.keys(K).filter(k=>{ const r=this.nk(K[k].n); return r.length>=2 && (r.endsWith(n) || n.endsWith(r) || (n.length>=2 && r.slice(-2)===n.slice(-2) && r.length===3 && n.length===2)); }).slice(0,3); },
+    return Object.keys(K).filter(k=>this.near(this.nk(K[k].n), n)).slice(0,3); },
+  /* (v478) 📱 내 기기(개인 패드·휴대폰) = 이 기기가 곧 그 아이 — 사용자: "자기 패드나 휴대폰은 이름 고르기가 필요 없게 · 공용 패드만 따로 · Daily 30·주간 레이드에서도 확실하게 선택 안 하게"
+     처음 한 번(서버 명단을 받은 뒤 · 설정 이름이 있을 때): ① 예전 연결(이름이 같거나 비슷할 때만) ② 명단에 같은 이름 하나 ③ 비슷한 이름(성 빼고) 하나 ④ 없으면 명단에 새로(🆕 · 반 없음 → 선생님이 반 정함)
+     → localStorage hyeng_me = {id} · 그 뒤로는 고르기 없음 · 이름 = 설정 이름(바꾸면 따라감) · 반 = 선생님 명단의 반 · 선생님이 그 줄을 지우면 다시 찾음 */
+  personal(){ return !this.shared() && !this.teacher(); },
+  devId(){ let d=""; try{ d=localStorage.getItem("hyeng_dev")||""; }catch(e){} return d.replace(/[^a-z0-9]/gi,"").slice(0,16); },
+  bound(){ try{ const o=JSON.parse(localStorage.getItem("hyeng_me")); return o && o.id ? o : null; }catch(e){ return null; } },
+  dev(){ let o=this.bound(); const nick=this.nick(), nm=(!nick || /^player$/i.test(nick)) ? "플레이어" : nick; let K={}, ok=false; try{ K=HyBoss.kids()||{}; ok=!!HyBoss.ok; }catch(e){}
+    if(o && ok && Object.keys(K).length && !K[o.id] && !/^d/.test(o.id)){ try{ localStorage.removeItem("hyeng_me"); }catch(e){} o=null; }   // 선생님이 그 줄을 지움 → 다시 찾기
+    if(!o && this.bind()) o=this.bound();
+    if(o){ try{ if(localStorage.getItem("hyeng_kid")) localStorage.removeItem("hyeng_kid"); }catch(e){} const k=K[o.id];   /* 예전 고르기 기록은 지움 */
+      if(k && (k.t||"")!==(o.t||"")) try{ localStorage.setItem("hyeng_me", JSON.stringify(Object.assign({}, o, {t:k.t||""}))); }catch(e){}   /* My Town 이 「우리 반」을 알게 */ return {id:o.id, n:nm, t:(k && k.t) || "all", dev:1, rn:k ? HyBoss.plainN(k.n) : "", nw:!!(k && k.nw)}; }
+    const d=this.devId(); return d ? {id:"d"+d, n:nm, t:"all", dev:1, tmp:1, amb:this.amb?1:0} : null; },
+  bind(){ if(!this.personal()) return false; const nick=this.nick(); if(!nick || /^player$/i.test(nick)) return false; let ok=false, K={}; try{ ok=!!HyBoss.ok; K=HyBoss.kids()||{}; }catch(e){} if(!ok) return false;
+    const n=this.nk(nick); let id=null;
+    try{ const old=JSON.parse(localStorage.getItem("hyeng_kid")); if(old && old.id && K[old.id]){ const r=this.nk(K[old.id].n); if(r===n || this.near(r, n)) id=old.id; } }catch(e){}
+    let mk=0; this.amb=0;
+    if(!id){ const ex=Object.keys(K).filter(k=>this.nk(K[k].n)===n); if(ex.length===1) id=ex[0]; else if(ex.length>1){ this.amb=1; return false; } }   /* 같은 이름이 둘 이상 → 새로 만들지 않고 설정에서 내 줄 고르기 */
+    if(!id){ const g=Object.keys(K).filter(k=>this.near(this.nk(K[k].n), n)); if(g.length===1) id=g[0]; else if(g.length>1){ this.amb=1; return false; } }
+    if(!id){ id=FB.id(); mk=1; const v={n:nick.slice(0,10), t:"", nw:Date.now()}; try{ FB.set("/hy/roster/k/"+id, v); }catch(e){} try{ if(!HyBoss.R) HyBoss.R={}; if(!HyBoss.R.k) HyBoss.R.k={}; HyBoss.R.k[id]=v; }catch(e){} }
+    try{ localStorage.setItem("hyeng_me", JSON.stringify(mk ? {id, at:Date.now(), mk:1} : {id, at:Date.now()})); localStorage.removeItem("hyeng_kid"); }catch(e){}
+    setTimeout(()=>{ try{ HyBoss.pendApply(this.me()); }catch(e){} }, 300); return true; },
+  bindTo(id){ try{ localStorage.setItem("hyeng_me", JSON.stringify({id, at:Date.now()})); localStorage.removeItem("hyeng_kid"); }catch(e){} setTimeout(()=>{ try{ HyBoss.pendApply(this.me()); }catch(e){} }, 300); },
   relink(nv){ if(this.shared()) return; try{ const k=JSON.parse(localStorage.getItem("hyeng_kid")); if(k && this.nk(k.n)!==this.nk(nv)) localStorage.removeItem("hyeng_kid"); }catch(e){} },
   padT(){ try{ return this.shared() ? HyBoss.nowT() : null; }catch(e){ return null; } },   // (v356) 공용 패드 = 지금 수업 반
   /* (v305) 공용 패드는 20분 동안 아무것도 안 하면 이름을 다시 고름 (다음 아이 공부가 앞 아이 이름으로 가지 않게) */
-  get(){ try{ const v=JSON.parse(this.st().getItem("hyeng_kid"))||null; if(v && (this.shared() || this.teacher()) && v.at && Date.now()-v.at>20*60000){ this.clear(); return null; }
+  get(){ if(this.personal()) return this.dev();   /* (v478) 📱 내 기기 */
+    try{ const v=JSON.parse(this.st().getItem("hyeng_kid"))||null; if(v && (this.shared() || this.teacher()) && v.at && Date.now()-v.at>20*60000){ this.clear(); return null; }
       if(v && v.auto && !this.shared() && this.nk(v.n)!==this.nk(this.nick())){ this.clear(); return null; }   /* (v476) 이름에서 저절로 붙은 연결인데 이름이 바뀜 */
       return v; }catch(e){ return null; } },
-  set(v){ try{ if(v && v.id && !this.shared()) setTimeout(()=>{ try{ HyBoss.pendApply(this.me()); }catch(e){} }, 400); }catch(e){}   /* (v477) */
+  set(v){ if(this.personal()){ if(v && v.id && !/^[dt]/.test(v.id)) this.bindTo(v.id); return; }   /* (v478) 📱 내 기기 = 고른 것이 아니라 묶기 (옮기기·설정 「명단에서 찾기」) */
+    try{ if(v && v.id && !this.shared()) setTimeout(()=>{ try{ HyBoss.pendApply(this.me()); }catch(e){} }, 400); }catch(e){}   /* (v477) */
     try{ const o=this.get(); if(o && v && o.id!==v.id) Gift.flush(); }catch(e){} try{ this.st().setItem("hyeng_kid", JSON.stringify(Object.assign({}, v, {at:Date.now()}))); }catch(e){} },
   /* (v417) 🧸 패드 주인 — 사용자: "유치부는 아직 자기 패드가 없어 (루아·주호·단우·경훈·라언) · 늘 자기 패드를 사용 · 보석은 우리 애들이 썼으면"
      공용 패드 한 대 = 유치부 아이 한 명의 패드. 주인이 하면(이름을 안 골라도) 내 기기처럼 · 다른 아이가 이름을 고르면 수업 모드:
@@ -18718,7 +18750,7 @@ const Kid = {
   guest(){ if(!this.shared()) return null; const v=this.get(); if(!v || !v.id) return null; const o=this.owner(); return (!o || v.id!==o.k) ? v : null; },
   ownerMode(){ const o=this.owner(); if(!o) return false; const v=this.get(); return !v || v.id===o.k; },
   k(base){ const g=this.guest(); return g ? base+"@"+String(g.id).replace(/[^\w-]/g,"").slice(0,24) : base; },
-  touch(){ const v=this.get(); if(v) this.set(v); },
+  touch(){ if(this.personal()) return; const v=this.get(); if(v) this.set(v); },
   /* (v322) 공용 패드 — Daily 30·달리기를 시작할 때 이름을 고른 지 3분 넘었으면 「민준 맞아요?」 한 번 (다음 아이가 앞 아이 이름으로 기회를 쌓지 않게) */
   /* (v337) QA: strict = 주간 보스 화면 — 한 번 '네' 했어도 3분 넘었으면 다시 물음 (20분 안에 패드를 넘기면 다음 아이가 앞 아이 기회를 썼다) */
   confirm(cb, strict){ cb=cb||(()=>{}); const v=this.get(); let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){}
@@ -18729,9 +18761,10 @@ const Kid = {
     document.body.appendChild(d);
     d.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-ka]"); if(!b) return; d.remove(); try{ SFX.click(); }catch(er){}
       if(b.dataset.ka==="y"){ const x=this.get(); if(x) this.set(Object.assign(x, {ok:1, okAt:Date.now()})); else if(own) this.set({id:own.k, n:own.n, t:own.t||"all", pk:Date.now(), ok:1, okAt:Date.now()}); cb(); } else KidPick.open(()=>cb()); }); },
-  clear(){ try{ this.st().removeItem("hyeng_kid"); }catch(e){} },
+  clear(){ if(this.personal()) return; try{ this.st().removeItem("hyeng_kid"); }catch(e){} },
   /* 명단이 없으면 기기 그대로 */
-  me(){ const g=this.get(); if(g) return g; const o=this.owner(); if(o) return {id:o.k, n:o.n, t:o.t||"all", own:1};
+  me(){ if(this.personal()) return this.dev();   /* (v478) */
+    const g=this.get(); if(g) return g; const o=this.owner(); if(o) return {id:o.k, n:o.n, t:o.t||"all", own:1};
     if(this.teacher()){ let d=""; try{ d=localStorage.getItem("hyeng_dev")||""; }catch(e){} return {id:"t"+(d.replace(/[^a-z0-9]/gi,"").slice(0,16)||"0"), n:this.nick()||"선생님", t:"all", teacher:1}; }   /* (v476) 🧑‍🏫 */
     const K=HyBoss.kids();
     /* (v340) 선생님이 명단에 게임 이름(기기 이름) 그대로 넣었으면 — 그 아이 기기(공용 패드 말고)는 이름을 안 골라도 자동으로 */
@@ -19065,7 +19098,7 @@ const HyBoss = {
   pendAdd(k, right, per){ try{ if(Kid.shared() || Kid.teacher() || !(right>0)) return; const wk=this.monday(); let p=null; try{ p=JSON.parse(localStorage.getItem(this.PEND)); }catch(e){} if(!p || p.wk!==wk) p={wk};
       const a=p[k]||[0, per]; p[k]=[(a[0]|0)+(right|0), per]; localStorage.setItem(this.PEND, JSON.stringify(p)); }catch(e){} },
   pendN(){ try{ const p=JSON.parse(localStorage.getItem(this.PEND)); if(!p || p.wk!==this.monday()) return 0; return ((p.s||[0])[0]|0)+((p.r||[0])[0]|0); }catch(e){ return 0; } },
-  pendApply(me){ if(!me || !me.id || me.teacher) return 0; let p=null; try{ if(Kid.shared()) return 0; p=JSON.parse(localStorage.getItem(this.PEND)); }catch(e){} if(!p) return 0; if(p.wk===this.monday() && (!this.B || !this.on())) return 0;   /* 보스를 아직 못 받았으면 다음에 */
+  pendApply(me){ if(!me || !me.id || me.teacher || me.tmp) return 0; if(this.B && this.on() && !this.myTeam(me.id, me)) return 0;   /* (v478) 반이 없으면 기다림 */ let p=null; try{ if(Kid.shared()) return 0; p=JSON.parse(localStorage.getItem(this.PEND)); }catch(e){} if(!p) return 0; if(p.wk===this.monday() && (!this.B || !this.on())) return 0;   /* 보스를 아직 못 받았으면 다음에 */
     try{ localStorage.removeItem(this.PEND); }catch(e){} if(p.wk!==this.monday()) return 0; let got=0;
     ["s","r"].forEach(k=>{ const a=p[k]; if(!a || !(a[0]>0)) return; const n=this.chunk(me.id, k, a[0], a[1]||1); if(n>0){ const g=this.earn(me, k==="r"?"run":"study", n); if(g>0) got+=g; } });
     if(got>0) try{ hyToast("⚔️ 이름을 고르기 전에 한 공부·달리기 — 「"+Raid.esc(me.n)+"」 공격 기회 <b>+"+got+"</b>", 2600); StudyUI.bossCard(); }catch(e){} return got; },
@@ -19179,17 +19212,26 @@ const HyBoss = {
 const KidWho = {
   draw(){ const el=$("kwRow"); if(!el) return; let me=null, lk=null; try{ me=Kid.me(); }catch(e){} try{ lk=Kid.get(); }catch(e){} const nick=Kid.nick(), E=x=>Raid.esc(String(x||""));
     if(Kid.shared()){ el.innerHTML=''; return; }
+    if(Kid.personal()){ const T=(()=>{ try{ return HyBoss.teams()||{}; }catch(e){ return {}; } })(), tn=me && T[me.t] ? ((T[me.t].e||"")+" "+T[me.t].n).trim() : "";
+      el.innerHTML = me && me.tmp && me.amb ? '<div class="kwBox warn"><b>📱 내 기기 — 명단에 「'+E(me.n)+'」 같은 이름이 여럿</b><span>한 번만 내 이름을 골라 주세요</span><button class="nmBtn go" data-kw="find">명단에서 내 이름 고르기</button></div>'
+        : !me || me.tmp ? '<div class="kwBox"><b>📱 내 기기</b><span>이름을 정하면 학원 명단에 저절로 이어져요</span></div>'
+        : '<div class="kwBox"><b>📱 내 기기 — 이름 고르기 없이 늘 「'+E(me.n)+'」</b><span>학원 명단: '+E(me.rn||me.n)+(me.nw?' 🆕':'')+' · 반: '+(tn?E(tn):'선생님이 정해 줘요')+'</span>'
+          +(me.nw && Object.keys((()=>{ try{ return HyBoss.kids()||{}; }catch(e){ return {}; } })()).length>1 ? '<button class="nmBtn" data-kw="find">명단에 내 이름이 따로 있어요</button>' : '')+'<button class="nmBtn kwTch" data-kw="tch">🧑‍🏫 선생님이에요</button></div>';
+      return; }
     if(Kid.teacher()) el.innerHTML='<div class="kwBox tch"><b>🧑‍🏫 선생님 기기</b><span>기록 이름: '+E(me?me.n:nick)+(lk?' <small>(지금 「'+E(lk.n)+'」 고름 · 20분)</small>':'')+'</span><button class="nmBtn" data-kw="kid">아이 기기로 바꾸기</button></div>';
     else if(lk && Kid.nk(lk.n)!==Kid.nk(nick)) el.innerHTML='<div class="kwBox warn"><b>👤 기록이 쌓이는 이름: '+E(lk.n)+'</b><span>보스·Daily 30·My Town 이 이 이름으로 가요. 내 이름이 아니면 👉</span><button class="nmBtn go" data-kw="clear">'+E(nick||"내 이름")+'(으)로 하기</button></div>';
     else if(me && me.id && !/^d/.test(me.id)) el.innerHTML='<div class="kwBox"><b>👤 명단: '+E(me.n)+' ✓</b></div>';
     else el.innerHTML=''; },
-  click(a){ if(a==="clear"){ try{ Kid.clear(); localStorage.removeItem("hyeng_kid"); }catch(e){} try{ SFX.select(); }catch(e){} const me=Kid.me(); hyToast(me ? "👤 이제 「"+Raid.esc(me.n)+"」 이름으로 해요" : "👤 연결을 풀었어요 — 보스에서 내 이름을 고르면 돼요"); }
+  click(a){ if(a==="tch"){ try{ SFX.click(); }catch(e){} KidPick.open(()=>{ this.draw(); }, {bind:true}); KidPick.tchForm(); return; }
+    if(a==="find"){ try{ SFX.click(); }catch(e){} KidPick.open(()=>{ this.draw(); try{ StudyUI.bossCard(); }catch(e){} }, {bind:true}); return; }
+    if(a==="clear"){ try{ Kid.clear(); localStorage.removeItem("hyeng_kid"); }catch(e){} try{ SFX.select(); }catch(e){} const me=Kid.me(); hyToast(me ? "👤 이제 「"+Raid.esc(me.n)+"」 이름으로 해요" : "👤 연결을 풀었어요 — 보스에서 내 이름을 고르면 돼요"); }
     if(a==="kid"){ Kid.setTeacher(false); try{ SFX.click(); }catch(e){} hyToast("📱 아이 기기로 바꿨어요"); }
     this.draw(); try{ StudyUI.bossCard(); }catch(e){} }
 };
 try{ $("kwRow").addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-kw]"); if(b) KidWho.click(b.dataset.kw); }); }catch(e){}
 const KidPick = {
-  open(cb){ this.close(); const T=HyBoss.teams(), K=HyBoss.kids(), d=document.createElement("div"); d.className="rdJoin"; d.id="kidPick";
+  open(cb, o){ this.close(); if(Kid.personal() && !(o && o.bind)){ const me=Kid.me(); if(me){ if(cb) cb(me); return; } }   /* (v478) 📱 내 기기 = 이름 고르기 없음 */
+    this.bindMode=!!(o && o.bind); const T=HyBoss.teams(), K=HyBoss.kids(), d=document.createElement("div"); d.className="rdJoin"; d.id="kidPick";
     const dup={}; HyBoss.dupNoClass().forEach(k=>{ dup[k]=1; });   // (v365) 반 있는 아이와 이름이 같은 「반 없음」 아이는 안 보임
     const pt=Kid.padT(), gOf=k=>T[K[k].t] ? K[k].t : "_", one=t=>{ const ks=Object.keys(K).filter(k=>gOf(k)===t && !dup[k]).sort((a,b)=>HyBoss.plainN(K[a].n).localeCompare(HyBoss.plainN(K[b].n))); if(!ks.length) return '';
       return '<div class="kpG'+(t===pt?' now':'')+'"><b>'+(t===pt?'🏫 지금 수업 · ':'')+(T[t]?Raid.esc((T[t].e||"")+" "+T[t].n):"반 없음")+'</b><div>'+ks.map(k=>'<button class="kpK" data-kp="'+Raid.esc(k)+'">'+Raid.esc(HyBoss.plainN(K[k].n))+'</button>').join('')+'</div></div>'; };
@@ -19229,7 +19271,7 @@ addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest || !t.close
   if(t.closest("[data-kpok]")){ KidPick.addNew(); return; }
   if(t.closest("[data-kptch]")){ try{ SFX.click(); }catch(er){} KidPick.tchForm(); return; }
   if(t.closest("[data-kptok]")){ KidPick.tchOk(); return; }
-  if(t.closest("[data-kpback]")){ const cb=KidPick.cb; KidPick.open(cb); return; } });
+  if(t.closest("[data-kpback]")){ const cb=KidPick.cb, bm=KidPick.bindMode; KidPick.open(cb, {bind:bm}); return; } });   /* (v478) 「다시 고르기」도 같은 모드로 */
 addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; const b=t.closest("[data-kp]"); if(!b) return;
   const id=b.dataset.kp, K=HyBoss.kids(); if(!id || !K[id]) return;
   /* (v477) 사용자: "이름을 잘못 골라서 다른 아이 기록으로 됨" → 개인 패드에서 설정 이름과 다른 아이를 누르면 한 번 더 묻기 */
@@ -19315,7 +19357,7 @@ const WeekBoss = {
     let mh='';
     if(!host){ if(!me) mh = Object.keys(HyBoss.kids()).length ? '<div class="wbMeRow"><span>👤 내 이름을 고르면 공부·달리기로 공격 기회를 모아 보스를 때려요</span><button class="stBossBtn" data-kidpick="1">👤 내 이름 고르기</button></div>' : '<div class="wbMeRow"><span>선생님이 반 명단을 만들면 내 이름으로 보스를 깎을 수 있어요</span></div>';
       else { const pg=HyBoss.prevReward(me), g=HyBoss.reward(me), P0=HyBoss.P;
-        mh='<div class="wbMeRow wbMeS"><span class="wbMeN">👤 '+E(me.n)+' <button class="adX" data-kidpick="1" title="바꾸기">↺</button></span></div>'   /* (v317) 내 숫자 칸은 빼고 이름만 (바꾸기) */
+        mh='<div class="wbMeRow wbMeS"><span class="wbMeN">👤 '+E(me.n)+' <button class="adX" data-kidpick="1" title="바꾸기"'+(Kid.personal()?' hidden':'')+'>↺</button></span></div>'   /* (v317) 내 숫자 칸은 빼고 이름만 (바꾸기) */
           +HyBoss.oldRewards(me).map(x=>'<button class="stBossBtn wbClaim" data-bossclaim="o:'+E(x.B.id)+'">🎁 '+E(x.B.n)+' 보상 💎 '+x.g+'</button>').join('')   /* (v322) 다시 시작 전에 쓰러뜨린 보스 */
           +(pg?'<button class="stBossBtn wbClaim" data-bossclaim="prev">🎁 지난주 '+E(P0.n)+' 보상 💎 '+pg+'</button>':'')
           +(g?'<button class="stBossBtn wbClaim" data-bossclaim="1">🎁 보상 받기 💎 '+g+'</button>':'')
@@ -20891,7 +20933,8 @@ const RaidJoin = {
     const d=document.createElement("div"); d.className="rdJoin"; d.id="rdJoin";
     /* (v382) 사용자: 교실 배틀 입장이 번거로움 (방 번호는 비밀번호라 그대로 넣어야 함) → 이름을 먼저(명단·지난 이름 기억) · 번호는 큰 숫자판 · 4자리를 다 누르면 바로 들어감 */
     d.innerHTML='<div class="rdJoinIn"><b>🎮 수업 게임 <small>배틀 · 레이드 · 보드</small></b>'+(last?'<button class="kpMe" data-rj="back">↩ 방 '+Raid.esc(last.r)+' 다시 들어가기</button>':'')
-      +(roster ? '<p>① 우리 반 → 내 이름</p><div id="rjPick">'+this.pickHtml()+'</div>'
+      +(me && Kid.personal() && !me.tmp ? '<p>① 👤 <b>'+Raid.esc(me.n)+'</b> <small>(내 기기 — 이름 고르기 없음)</small></p>'   /* (v478) 📱 */
+        : roster ? '<p>① 우리 반 → 내 이름</p><div id="rjPick">'+this.pickHtml()+'</div>'
         : '<p>① 내 이름 <small>(같이 쓰는 패드면 꼭 바꿔요)</small></p><input id="rdNameIn" maxlength="10" value="'+Raid.esc(nm)+'" placeholder="이름" autocomplete="off">')
       +'<p>② 선생님 화면의 방 번호 4자리</p><input id="rdRoomIn" inputmode="none" maxlength="4" placeholder="0000" autocomplete="off">'
       +'<div class="rjPad">'+["1","2","3","4","5","6","7","8","9","⌫","0","✓"].map(k=>'<button class="rjK'+(k==="✓"?' go':k==="⌫"?' bk':'')+'" data-rjk="'+k+'">'+k+'</button>').join('')+'</div>'
@@ -24295,7 +24338,7 @@ const Online = {
   },
   /* 시트에 실제로 적힐 닉네임 — (v304) 명단에서 고른 아이 → 시트에 실명 (👤 표시). (v322) 결과 화면 '내 순위'도 이 이름으로 찾는다 */
   nickOf(rec){
-    try{ let k=(typeof Kid!=="undefined") && Kid.get(); if(!k && Kid.ownerMode()) k=Kid.me(); if(k && rec && (rec.type==="buy" || (!rec.type && (/^study/.test(rec.rule||"") || Kid.shared())))) return "👤"+HyBoss.plainN(k.n).slice(0,10); }catch(e){}   /* (v366) 시트에 「👤👤라언」 처럼 두 번 붙던 것 (명단 이름에 👤 가 들어 있었음) */   /* (v362) 9 → 10 (명단 이름 10글자까지라 잘려서 「패트와 매트(패트」로 갈렸다 · 서버는 20글자까지) */
+    try{ let k=(typeof Kid!=="undefined") && Kid.get(); if(!k && Kid.ownerMode()) k=Kid.me(); if(k && rec && (rec.type==="buy" || (!rec.type && (/^study/.test(rec.rule||"") || Kid.shared())))) return "👤"+HyBoss.plainN(k.rn||k.n).slice(0,10); }catch(e){}   /* (v478) 📱 내 기기 = 선생님 명단 이름(rn)으로 시트에 */   /* (v366) 시트에 「👤👤라언」 처럼 두 번 붙던 것 (명단 이름에 👤 가 들어 있었음) */   /* (v362) 9 → 10 (명단 이름 10글자까지라 잘려서 「패트와 매트(패트」로 갈렸다 · 서버는 20글자까지) */
     return rec ? rec.nick : undefined;
   },
   submit(rec){
