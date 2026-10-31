@@ -50,6 +50,7 @@ async def main():
         ok(r["stats"]["fevers"] >= 1, f"FEVER 가 한 번 이상 {r['stats']}")
         ok(r["bad"] == 0, f"별·상자가 함정 자리에 없음 {r['badx']}")
         ok(r["fb"], "🔥 게이지 막대가 보임")
+        ok(r["stats"]["boxes"] == 0, f"❓ 상자는 아직 꺼져 있음 (사용자: 아이템은 아직 끄자) {r['stats']}")
 
         # ② 별 줄 ↔ 정답 줄 독립
         r = await pg.evaluate("""()=>{ let same=0, tot=0, n=0; const keep=G.stage;

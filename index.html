@@ -12412,7 +12412,8 @@ function comboWord(c){
    2인용·레이스·보스전에는 별·상자를 놓지 않는다. 문 앞 마지막 40% 구간은 늘 비워 두어 단어 고르기에 집중
 ===================================================================== */
 var Loot = (function(){
-  const HEAL_EVERY=10, FEVER_MAX=100, FEVER_T=7, STAR_N=5, STAR_PTS=10, G_STAR=1, G_RIGHT=5;   // 별 다 줍고 다 맞히면 문 10개쯤에 한 번 FEVER
+  const HEAL_EVERY=10, FEVER_MAX=100, FEVER_T=7, STAR_N=5, STAR_PTS=10, G_STAR=1, G_RIGHT=5;
+  const BOX_ON=false;   // (v491) 사용자: "아이템은 아직 끄자" — ❓ 상자는 만들어 두고 꺼 둠 (true 로 바꾸면 켜짐)   // 별 다 줍고 다 맞히면 문 10개쯤에 한 번 FEVER
   const S={list:[], gauge:0, fever:0, shield:0, slow:0, magnet:0, boxCD:3, chain:0, chainT:0,
            stars:0, boxes:0, fevers:0, heals:0, told:{}, aura:null, auraC:-1, auraT:0, fT:0, tx:null, mats:{}};
   const can = ()=> !!(G.running && G.rule==="normal" && !G.versus && !G.race);
@@ -12469,7 +12470,7 @@ var Loot = (function(){
   }
   function heartAnim(){ setTimeout(()=>{ try{ const el=document.getElementById("uLives"); if(el){ el.classList.remove("gain"); void el.offsetWidth; el.classList.add("gain"); } }catch(e){} }, 60); }
   const API = {
-    S, HEAL_EVERY, FEVER_MAX, FEVER_T, STAR_N,
+    S, HEAL_EVERY, FEVER_MAX, FEVER_T, STAR_N, BOX_ON,
     healOn(){ return can() && G.diff!=="easy"; },
     healLeft(){ if(!this.healOn() || G.lives>=G.maxLives) return 0; return HEAL_EVERY - (G.combo % HEAL_EVERY); },
     mul(){ return (can() && S.fever>0) ? 2 : 1; },
@@ -12486,7 +12487,7 @@ var Loot = (function(){
         for(let k=0;k<STAR_N;k++){ const z=gz + D*(0.44 + 0.36*k/(STAR_N-1)); if(blocked(x,z)) continue; add("star", x, z); put++; }
         if(put) tip("star", "⭐ 별을 모으면 🔥 게이지가 차요 — 가득 차면 FEVER! 점수 2배");
       }
-      if(--S.boxCD<=0 && G.stage>=4){
+      if(BOX_ON && --S.boxCD<=0 && G.stage>=4){
         S.boxCD = 4+Math.floor(Math.random()*4);
         const L=[]; for(let l=0;l<n;l++) L.push(l); L.sort(()=>Math.random()-.5);
         const z=gz+D*0.62;
