@@ -16135,7 +16135,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v528";
+const GAME_VER = "v529";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16565,7 +16565,7 @@ const Study = (function(){
   const enIn=(a,b)=>{ a=String(a).toLowerCase(); b=String(b).toLowerCase(); if(a===b) return true; const s=a.length<=b.length ? a : b, l=s===a ? b : a;
     if(s.length<3 || !/^[a-z]+$/.test(s)) return false; if(l.indexOf(s)>=0) return true; const st=s.replace(/e$/,""); return st.length>=4 && st!==s && l.indexOf(st)===0; };
   /* (v503) QA: 그림 보기에 같은 종류 그림(🍰 cake ↔ 🎂 birthday)이 나와 정답이 둘처럼 보이던 것 */
-  const EMO_SIM=["🎂🍰🧁","🐶🐕🐩","🐱🐈","🚗🚙🚕","🏠🏡","🌸🌼🌺🌷🌻🏵️","🌳🌲🌴","😀😃😄😁😊🙂","📖📚📕📗📘","🎩👒🧢","👟👞🥾","⚽🏀🏈🎾🏐","🐦🐤🐥","🐛🐜🐞","🌙🌕🌛","☀️🌞","🌧️☔","❄️☃️","🍞🥖🥐","🥤🧃","☕🍵","👦👧🧒","👨👩🧑","🐭🐁","🐰🐇","🐮🐄","🐷🐖"].map(g=>Array.from(g.replace(/\uFE0F/g,"")));
+  const EMO_SIM=["🎂🍰🧁","🐶🐕🐩","🐱🐈","🚗🚙🚕","🏠🏡","🌸🌼🌺🌷🌻🏵️","🌳🌲🌴","😀😃😄😁😊🙂","📖📚📕📗📘","🎩👒🧢","👟👞🥾","⚽🏀🏈🎾🏐","🐦🐤🐥","🐛🐜🐞","🌙🌕🌛","☀️🌞","🌧️☔","❄️☃️","🍞🥖🥐","🥤🧃","☕🍵","👦👧🧒","👨👩🧑","🐭🐁","🐰🐇","🐮🐄","🐷🐖","👄💋👅"].map(g=>Array.from(g.replace(/\uFE0F/g,"")));
   const emoSim=(a,b)=>{ if(!a || !b || a.indexOf("<")>=0 || b.indexOf("<")>=0) return false; if(a===b) return true; const A=a.replace(/\uFE0F/g,""), B=b.replace(/\uFE0F/g,""); return EMO_SIM.some(g=>g.indexOf(A)>=0 && g.indexOf(B)>=0); };
   function decoys(w, pool, n, field, avoid, ordered){
     const used={}; used[w.en]=1; const kos={}, k1=koKey, kp=koParts(w.ko).slice(), ue=[w.en]; kos[w.ko]=1; kos[k1(w.ko)]=1; koParts(w.ko).forEach(p=>kos[p]=1); const out=[]; let relax=false;   // (v289) 뜻 조각이 하나라도 겹치면 보기에서 뺀다
@@ -18572,7 +18572,7 @@ const StudyUI = {
     const f=$("stFoot"); f.className="stFoot "+(ok?"good":"bad"); try{ this.bt(ok); }catch(e){} setTimeout(()=>{ try{ this.fitQ(); }catch(e){} }, 30);
     const mc=this.mas(ok);
     const cheer = ok ? (this.combo>=5 ? ["멈추지 마!","불붙었어! 🔥","천재인데?","계속 가자!"] : ["정답! ✨","잘했어요! 🎉","맞았어요! 👍","최고예요! ⭐"])
-                     : ["괜찮아, 다시 해 보자!","아깝다!","거의 다 왔어!","다음엔 맞힐 거야!"];
+                     : ["괜찮아, 다시 해 보자!","정답을 같이 봐요","다시 들어 봐요!","다음엔 맞힐 거야!"];
     if((q.t==="sent" && q.st) || q.t==="sent2" || q.t==="talk") $("stQ").querySelectorAll(".stSent u:not(.koU), .stTalk u:not(.koU)").forEach(s2=>{ s2.textContent=q.w.en; s2.className=ok?"ok":"bad"; });   /* (v512) 해석 줄 뜻 칸(koU)은 영어로 덮지 않음 */
     this.talkKo(q);
     f.innerHTML='<div class="stMsg">'+mc+(ok ? '<b>'+cheer[Math.floor(Math.random()*cheer.length)]+'</b>'+bonus+this.alt(q.w)+this.why(q)
