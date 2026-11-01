@@ -5060,6 +5060,22 @@ body:has(#scStudy.on.thM) #dmView .dmGo{background:#3d5afe;color:#fff;border:0} 
 #scStudy.thK .stOxKo{color:#7a3b00} #scStudy.thK .stOxKo.yes{color:#1e7a2e}
 #scStudy.thML .stOxKo{color:var(--mBlue)} #scStudy.thML .stOxKo.yes{color:var(--mGreen)}
 #scStudy.thK .stOpt.ox{font-size:30px;gap:8px;line-height:1} #scStudy.thK .stOpt.ox b{font-size:15px;line-height:1.1}
+/* (v505) G5-6 지도 — 화면에 고정된 지도 한 장 위로 Stage 가 미끄러지던 것 → 구역마다 그 땅 그림을 Stage 상자 뒤에 */
+#scStudy.thB6.vPath{background:#e6cf9c url(assets/d30/g36/mapz_desert.webp) center top/100% auto repeat-y;background-attachment:local}
+#scStudy.thB6 .stWBox{background:url(assets/d30/g36/mapz_forest.webp) center top/100% auto repeat-y;border-radius:18px;box-shadow:0 0 0 2px rgba(90,66,32,.35),0 6px 18px rgba(60,40,10,.25)}
+#scStudy.thB6 .stWBox.zb-ice{background-image:url(assets/d30/g36/mapz_snow.webp)}
+#scStudy.thB6 .stWBox.zb-lava{background-image:url(assets/d30/g36/mapz_lava.webp)}
+#scStudy.thB6 .stWBox.zb-swamp{background-image:linear-gradient(rgba(40,70,30,.28),rgba(60,30,80,.22)),url(assets/d30/g36/mapz_forest.webp)}
+#scStudy.thB6 .stWBox.zb-sky{background-image:linear-gradient(rgba(255,240,200,.25),rgba(120,160,230,.18)),url(assets/d30/g36/mapz_snow.webp)}
+#scStudy.thB6 .stWBox.zb-castle{background-image:linear-gradient(rgba(50,20,80,.35),rgba(50,20,80,.35)),url(assets/d30/g36/mapz_lava.webp)}
+/* (v505) 문제 화면 채우기 (fillQ) */
+#stQ.fillQ{display:flex;flex-direction:column}
+#scStudy.fillOn .stWrap{padding-bottom:0!important}
+#stQ.fillQ>.stPrompt{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;margin-bottom:14px;min-height:0}
+#stQ.fillQ>.stRight,#stQ.fillQ>.stOpts{margin-top:auto}
+#stQ.fillQ .stOpt:not(.pic):not(.ox){min-height:74px}
+#stQ.fillQ>.stPrompt .stKo.big{font-size:clamp(30px,9vw,40px)}
+#stQ.fillQ>.stPrompt .stEn{font-size:clamp(30px,9vw,42px)}
 </style>
 </head>
 <body>
@@ -15688,7 +15704,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v504";
+const GAME_VER = "v505";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17204,7 +17220,9 @@ const StudyUI = {
     S.classList.toggle("thB", ob); S.classList.toggle("thB4", ob && this.book==="g34"); S.classList.toggle("thB6", ob && this.book==="g56");
     if(ob && v==="stPath") try{ $("stMap").querySelectorAll(".stDot[data-i]:not(.grSt)").forEach(d=>{ const m=this.monFor(d.dataset.s, +d.dataset.i); d.style.setProperty("--mon","url("+m.img+")"); if(m.pt) d.style.setProperty("--pt","url("+m.pt+")"); d.classList.toggle("flipM", !!m.flip && !m.pt); d.classList.toggle("zbM", !!m.zb); d.classList.toggle("eliteM", !!m.elite); });
       /* (v501) 구역이 바뀌는 Stage 상자 위에 구역 이름표 */
-      $("stMap").querySelectorAll(".stWBox").forEach(bx=>{ const d=bx.querySelector(".stDot[data-i]"); if(!d || bx.previousElementSibling && bx.previousElementSibling.classList.contains("zBan")) return; const m=this.monFor(d.dataset.s, +d.dataset.i), L=Study.lessons(d.dataset.s), x=L[+d.dataset.i]; const z=this.zoneOf(d.dataset.s, x);
+      $("stMap").querySelectorAll(".stWBox").forEach(bx=>{ const d=bx.querySelector(".stDot[data-i]"); if(!d) return; const m=this.monFor(d.dataset.s, +d.dataset.i), L=Study.lessons(d.dataset.s), x=L[+d.dataset.i]; const z=this.zoneOf(d.dataset.s, x);
+        bx.classList.add("zb-"+m.ar);   /* (v505) G5-6 지도: Stage 상자 뒤 지도 그림 = 그 구역 땅 (숲·눈·화산 …) */
+        if(bx.previousElementSibling && bx.previousElementSibling.classList.contains("zBan")) return;
         if(z.sIn!==0) return; const e=document.createElement("div"); e.className="zBan z-"+m.ar; e.innerHTML='<i>'+m.ze+'</i><b>'+m.zn+' 구역</b><small>Stage '+z.wd+'~'+(z.wd+4)+' · 보스 '+'<img src="'+this.mon(this.ZONES[z.zi].boss).pt+'" alt=""></small>'; bx.parentNode.insertBefore(e, bx); }); }catch(e){} },
   /* (v501) 몬스터 구역 — Stage 5개 = 구역 1곳 (일반 3마리가 돌아가며) · Stage 마지막 시험 = 구역 정예(크게·붉게) · 구역 5번째 Stage 마지막 = 구역 보스
      G3-4 = 숲 → 얼음 → 화산 · G5-6 = 늪 → 하늘 → 성 → 숲 … (돌아가며). 그림이 아직 없는 몬스터는 빼고 씀 (HAVE) */
@@ -17216,7 +17234,7 @@ const StudyUI = {
          {nm:"어둠의 성",emo:"🏰",ar:"castle",m:["hb5","armor","batw"],boss:"overlord",elite:"knight"}],
   HAVE:{hb1:1,hb2:1,hb3:1,hb4:1,hb5:1,hbS:1,knight:1,mush:1,wolf:1,blizz:1,peng:1,frog:1,vine:1,bog:1,batw:1,eagle:1,cloud:1,fox:1,hydra:1,griffin:1,overlord:1},
   FLIP:{hb4:1,mush:1},
-  zoneOf(set, x){ const wd=(x && (x.wd||x.pn))||1, g56=Study.BOOKS.g56.sets.indexOf(set)>=0, zi=((g56?3:0)+Math.floor((wd-1)/5))%(g56?6:3); return {zi, sIn:(wd-1)%5, wd}; },
+  zoneOf(set, x){ const wd=(x && (x.wd||x.pn))||1, g56=Study.BOOKS.g56.sets.indexOf(set)>=0, zi=Math.floor((wd-1)/5)%(g56?6:3);   /* (v505) 사용자: G5-6 도 지도 순서대로 숲부터 */ return {zi, sIn:(wd-1)%5, wd}; },
   mon(k){ const B="assets/boss/", P="assets/d30/g36/pt_", old=/^hb/.test(k);
     return {k, img: k==="knight" ? B+"boss-knight.webp" : old ? B+k+".webp" : B+"m_"+k+".webp", pt:P+k+".webp", atk: old ? B+k+"-a.webp" : null, flip:!!this.FLIP[k]}; },
   monFor(set, i){ let L=[]; try{ L=Study.lessons(set)||[]; }catch(e){} const x=L[i]||{};
@@ -17231,10 +17249,19 @@ const StudyUI = {
   fitDone(){ const S=$("scStudy"), D=$("stDoneIn"); if(!S || !D || !S.classList.contains("vDone")) return; D.style.zoom="";   /* (v491) 끝 화면도 스크롤 없이 */
     const o=S.scrollHeight-S.clientHeight; if(o<=2) return; const h=D.offsetHeight; if(h>0) D.style.zoom=String(Math.max(.62, (h-o-6)/h)); },
   fitQ(){ const S=$("scStudy"), Q=$("stQ"); if(!S || !Q || !S.classList.contains("vLesson")) return;
-    S.classList.remove("fit1","fit2"); Q.style.zoom="";
+    S.classList.remove("fit1","fit2"); Q.style.zoom=""; Q.classList.remove("fillQ"); Q.style.minHeight=""; S.classList.remove("fillOn");
     const F=$("stFoot"), over=()=>{ let o=S.scrollHeight-S.clientHeight; try{ if(F && F.offsetHeight && getComputedStyle(F).position==="fixed"){ const kids=[...Q.querySelectorAll(".stOpt,.stTile,.stOpts,.stPrompt")]; const qb=kids.length ? Math.max(...kids.map(e=>e.getBoundingClientRect().bottom)) : Q.getBoundingClientRect().bottom; o=Math.max(o, qb-F.getBoundingClientRect().top+4); } }catch(e){} return o; };   /* (v504) QA: 틀린 뒤 커진 확인 띠가 아래 보기를 가리던 것도 넘침으로 셈 */
-    if(over()<=2) return; S.classList.add("fit1"); if(over()<=2) return; S.classList.add("fit2"); const o=over(); if(o<=2) return;
+    if(over()<=2){ this.fillQ(); return; } S.classList.add("fit1"); if(over()<=2) return; S.classList.add("fit2"); const o=over(); if(o<=2) return;
     const h=Q.offsetHeight; if(h>0) Q.style.zoom=String(Math.max(.7, (h-o-4)/h)); },
+  /* (v505) 사용자 B안: 휴대폰 문제 화면 아래 절반이 비던 것 → 문제 카드가 남는 칸을 채우고(글자 크게) 보기는 확인 버튼 바로 위(엄지 자리) · 유치원·G1-2 강가 화면은 그대로 */
+  fillQ(){ const S=$("scStudy"), Q=$("stQ"), F=$("stFoot"); if(!S || !Q || !F || S.classList.contains("thK")) return;
+    if(!Q.querySelector(":scope > .stPrompt") || !Q.querySelector(":scope > .stRight, :scope > .stOpts")) return;
+    if(getComputedStyle(F).position!=="fixed") return;
+    S.classList.add("fillOn");   /* 확인 띠 자리만큼 비워 두던 아래 여백을 빼고 잼 */
+    let h=Math.floor(F.getBoundingClientRect().top-Q.getBoundingClientRect().top-12); if(h < Q.offsetHeight+48){ S.classList.remove("fillOn"); return; }
+    Q.style.minHeight=h+"px"; Q.classList.add("fillQ");
+    const o=S.scrollHeight-S.clientHeight; if(o>2){ h-=o+2; Q.style.minHeight=h+"px"; }
+    if(S.scrollHeight-S.clientHeight>2){ Q.classList.remove("fillQ"); Q.style.minHeight=""; S.classList.remove("fillOn"); } },
   btIdle(){ const B=$("stBt"); if(!B) return; let i=0; try{ i=Study.lessons(this.set).findIndex(y=>y.n===(this.les&&this.les.n)); }catch(e){} const m=this.monFor(this.set, Math.max(0,i));
     B.className="stBt ar-"+m.ar+(m.flip?" flipM":"")+(m.boss?" bossM":"")+(m.big?" bigM":"")+(m.zb?" zbM":"")+(m.elite?" eliteM":"")+(m.atk?" hasAtk":"")+" mk-"+m.k;
     B.style.setProperty("--mon","url("+m.img+")"); B.style.setProperty("--atk", m.atk ? "url("+m.atk+")" : "none"); this._bm=m;
