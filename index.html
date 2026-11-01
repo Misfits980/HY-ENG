@@ -5393,6 +5393,17 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 .stBar .stResume small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stBar .stResume.other b::after{content:""}
 .stBar .stResume.other small::before{content:"다른 책 · ";font-weight:800}
+/* (v521) G5-6 뒤 배경 하나 (고정) + 구역 따라 스르르 */
+#g6Bg{display:none}
+#scStudy.thB6.vPath #g6Bg{display:block;position:fixed;inset:0;z-index:0;pointer-events:none}
+#g6Bg i{position:absolute;inset:0;background:#e9d6a8 center top/100% auto repeat-y;opacity:0;transition:opacity .6s ease}
+#g6Bg i.on{opacity:1}
+#g6Bg::after{content:"";position:absolute;inset:0;background:rgba(244,232,205,.34)}
+#scStudy.thB6.vPath > .stWrap{position:relative;z-index:1}
+#scStudy.thB6.vPath{background:#e9d6a8!important}
+#scStudy.thB6 .stWBox{background:none!important;box-shadow:none!important}
+#scStudy.thB6 .stWBox::after{display:none!important}
+@media (prefers-reduced-motion:reduce){#g6Bg i{transition:none}}
 </style>
 </head>
 <body class="hudC">
@@ -16106,7 +16117,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v520";
+const GAME_VER = "v521";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17786,6 +17797,7 @@ const StudyUI = {
     h=h.replace('<!--CAMP-->', !campPut && camp.length ? '<div class="cpRow'+(camp.length<3 ? ' n'+camp.length : '')+'">'+camp.map(x=>x[1]).join('')+'</div>' : '');
     $("stMap").innerHTML=h; $("stMap").className="stMap"+($("stMap").querySelector(".stWBox")?" wm":""); this.bossCard(); try{ this.thUpd(); }catch(e){}
     try{ this.barBuild(); }catch(e){ console.error(e); }   /* (v520) 위 한 줄 바 */
+    try{ this.g6Bg(true); }catch(e){}   /* (v521) G5-6 뒤 배경 */
     this.pop(null);
     /* (v251) 방금 한 Stage 자리로 돌아온다 — 예전엔 📌(맨 앞의 안 한 Stage)나 맨 위로 끌려 올라갔다 */
     const fr=this._from && this._from.set===this.set ? $("stMap").querySelector('.stDot[data-i="'+this._from.i+'"]') : null;
@@ -17855,6 +17867,17 @@ const StudyUI = {
     const k=t.dataset.sbk, q=sel=>document.querySelector(sel);
     const tgt = k==="rv" ? T && T.querySelector(".cpRv .cpChest") : k==="dm" ? $("dmStrip") : k==="boss" ? (q("#stBossCard .cpBub[data-bossclaim], #stBossCard .cpBub[data-kidpick]") || q("#stBossCard .cpBossB")) : k==="gram" ? q("#stHead [data-gnote]") : k==="week" ? T && T.querySelector(".stWeek") : k==="chk" ? T && (T.querySelector(".stChkB") || T.querySelector(".stChkRow")) : null;
     if(tgt) tgt.click(); },
+  /* (v521) 사용자: G5-6 도 G3-4 처럼 뒤에 한 배경이 고정 — 대신 화면 가운데 있는 구역에 따라 배경이 스르르 바뀜 (숲 → 얼음 → 화산 → 늪 → 하늘 → 성) */
+  G6BG:{forest:"mapz_forest4", ice:"mapz_snow4", lava:"mapz_lava4", swamp:"mapz_swamp", sky:"mapz_sky", castle:"mapz_castle"},
+  g6Bg(force){ const S=$("scStudy"); if(!S) return; let G=$("g6Bg");
+    if(!G){ G=document.createElement("div"); G.id="g6Bg"; G.setAttribute("aria-hidden","true"); G.innerHTML='<i></i><i></i>'; S.insertBefore(G, S.firstChild);
+      S.addEventListener("scroll", ()=>{ if(this._g6r) return; this._g6r=requestAnimationFrame(()=>{ this._g6r=0; try{ this.g6Bg(); }catch(e){} }); }, {passive:true}); }
+    if(!(S.classList.contains("thB6") && S.classList.contains("vPath"))) return;
+    const mid=S.clientHeight*0.5; let ar="forest";
+    for(const bx of S.querySelectorAll("#stMap .stWBox")){ const r=bx.getBoundingClientRect(); if(r.bottom>=mid){ const m=/zb-(\w+)/.exec(bx.className); if(m) ar=m[1]; break; } }
+    if(!force && G.dataset.ar===ar) return; G.dataset.ar=ar;
+    const L=G.children, on=G.dataset.on==="1" ? 1 : 0, nx=1-on; L[nx].style.backgroundImage="url(assets/d30/g36/"+(this.G6BG[ar]||this.G6BG.forest)+".webp)";
+    L[nx].classList.add("on"); L[on].classList.remove("on"); G.dataset.on=String(nx); },
   /* (v500) 중등 — 캐릭터 없는 학습 로드맵: 진행 고리 · 이번 주 막대 · Stage 줄(지금 할 줄만 파랑 + 시작하기) */
   midMap(st, L, c, cl, stars){ const E=x=>this.esc(x), wds=[]; L.forEach(x=>{ if(wds.indexOf(x.wd)<0) wds.push(x.wd); });
     const G={}; L.forEach(x=>{ const g=G[x.wd]||(G[x.wd]={ok:true}); if(!x.fin && !(Study.lv(st,x.n)>0)) g.ok=false; }); const fin=wds.filter(w=>G[w].ok).length, tot=wds.length, pc=tot ? Math.round(fin/tot*100) : 0;
