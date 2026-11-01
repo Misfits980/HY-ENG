@@ -5404,6 +5404,13 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 #scStudy.thB6 .stWBox{background:none!important;box-shadow:none!important}
 #scStudy.thB6 .stWBox::after{display:none!important}
 @media (prefers-reduced-motion:reduce){#g6Bg i{transition:none}}
+/* (v522) 책 고르기 서랍 = 바 안 (어디까지 내려가 있어도 바로 아래에 펼쳐짐) */
+#stPath:not(.sbOpen) .sbDrop{display:none}
+#stPath.sbOpen .sbDrop{display:block;margin-top:8px;max-height:58vh;overflow-y:auto;animation:hdIn .18s ease-out}
+.sbDrop #stTabs,.sbDrop #stHead{display:flex!important}
+.sbDrop #stTabs{margin:0 -12px;padding:2px 12px 6px}
+.sbDrop #stHead{margin:6px 0 0}
+.sbDrop #stHead .stHead2{display:none}
 </style>
 </head>
 <body class="hudC">
@@ -16117,7 +16124,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v521";
+const GAME_VER = "v522";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17844,13 +17851,16 @@ const StudyUI = {
   /* (v520) 사용자: 위쪽 틀을 버리고 가볍게 — 맨 위 한 줄(✕ · 책 고르기 ▾ · 진행 막대 · 🔥) + 그 아래 작은 칩 줄(복습 · 미션 · 보스 · 문법 · 주간 시험 · 확인).
      칩은 원래 칸(복습 상자·보스·미션 표지판 …)을 숨겨 두고 그걸 대신 눌러 줌 → 기존 동작 그대로. 책 고르기 ▾ 를 누르면 책 탭 · 권 칩이 펼쳐짐 */
   barBuild(){ const P=$("stPath"); if(!P) return; let B=$("sbBar");   /* (v520) id 는 sbBar — stBar 는 문제 화면 진행 막대 */
-    if(!B){ B=document.createElement("div"); B.id="sbBar"; B.className="stBar"; P.insertBefore(B, P.firstChild); B.addEventListener("click", e=>this.barClick(e)); }
+    if(!B){ B=document.createElement("div"); B.id="sbBar"; B.className="stBar"; B.innerHTML='<div class="sbMain"></div><div class="sbDrop"></div>'; P.insertBefore(B, P.firstChild); B.addEventListener("click", e=>this.barClick(e));
+      /* (v522) 사용자: 아래로 내린 뒤 ▾ 를 누르면 책 탭이 맨 위에 펼쳐져 다시 올려야 했음 → 책 탭·권 칩을 바(늘 화면 위) 안 서랍으로 */
+      const D=B.querySelector(".sbDrop"); ["stTabs","stHead"].forEach(id=>{ const el=$(id); if(el) D.appendChild(el); });
+      D.addEventListener("click", e=>{ if(e.target.closest(".stCat, .stSubB")) setTimeout(()=>{ P.classList.remove("sbOpen"); const bb=B.querySelector("[data-sb=book]"); if(bb) bb.setAttribute("aria-expanded","false"); }, 0); }); }
     const BK=Study.BOOKS[this.book]||{}, U=Study.SUB[this.set]||{}, hd=this._hd||{}, pc=hd.tot ? Math.round(hd.fin/hd.tot*100) : 0, E=x=>this.esc(x), op=P.classList.contains("sbOpen");
-    B.innerHTML='<div class="sbR1"><button class="sbX" data-sb="close" aria-label="메뉴로">✕</button>'
+    const Mn=B.querySelector(".sbMain"); Mn.innerHTML='<div class="sbR1"><button class="sbX" data-sb="close" aria-label="메뉴로">✕</button>'
       +'<button class="sbBook" data-sb="book" aria-expanded="'+op+'"><i>'+(BK.emo||'')+'</i><b>'+E(BK.tab||'')+'</b>'+((BK.sets||[]).length>1 && U.nm ? '<small>'+E(U.nm)+'</small>' : '')+'<em>▾</em></button>'
       +'<span class="sbProg"><u><i style="width:'+Math.max(pc?3:0,pc)+'%"></i></u><span>Stage '+(hd.fin|0)+' / '+(hd.tot|0)+'</span></span>'
       +(hd.sk ? '<span class="sbFire">'+ic('fire')+hd.sk+'</span>' : '')+'</div><div class="sbR2" id="sbChips"></div>';
-    const R=document.querySelector("#stHead .stResume"); if(R){ const rc=this.getCur(); R.classList.toggle("other", !!(rc && !rc.rv && (BK.sets||[]).indexOf(rc.set)<0)); B.appendChild(R); }
+    const R=document.querySelector("#stHead .stResume"); if(R){ const rc=this.getCur(); R.classList.toggle("other", !!(rc && !rc.rv && (BK.sets||[]).indexOf(rc.set)<0)); Mn.appendChild(R); }
     this.barUpd(); },
   barUpd(){ const C=$("sbChips"); if(!C) return; const M=$("stMap"), T=M && M.querySelector(":scope > .stTop"); if(T) T.classList.add("sbHide");
     const ch=[], E=x=>this.esc(x);
