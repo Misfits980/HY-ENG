@@ -4,3 +4,4 @@
 - nature: 만든 뒤 텍스처의 연두(풀 윗면, H 56~82°)를 My Town 잔디 초록(H 104°, 채도 ≤0.56)으로 바꿔 다시 저장 (v434 대화 기록)
 - 읽기: tools/kk/kk.js 와 같은 코드가 proto/house.html 안에 있음 (KK.load)
 - 미리 보기: tools/kk/preview.html#nature (테스트 서버로 열기)
+- (v521) isle: KayKit Medieval Hexagon Pack 1.0 (github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0, CC0) — 🏝 우리 마을 섬 (육각 땅·집·시장·교회=학교·탑·광산·풍차·나무). 만든 뒤 nature 와 같은 방법으로 연두 → 초록 (H 56~82° → 104°, 채도 ≤0.56)

@@ -505,6 +505,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
   <div class="grp" id="gRoom"><button class="dk go" id="bOut"><i data-ic="door"></i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bEdit"><i data-ic="sofa"></i><span>가구</span></button><button class="dk" id="bWall"><i data-ic="roller"></i><span>벽지</span></button><button class="dk" id="bFloor"><i data-ic="floor"></i><span>바닥</span></button><button class="dk" id="bAv1"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gYard"><button class="dk go" id="bIn"><i data-ic="home"></i><span>집</span></button><button class="dk go" id="bVill"><i data-ic="village"></i><span>마을</span></button><b class="sep"></b><button class="dk" id="bDeco"><i data-ic="roller"></i><span>꾸미기</span></button><button class="dk" id="bShop"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv2"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gVill"><button class="dk go" id="bYard2"><i data-ic="tree"></i><span>마당</span></button><button class="dk go" id="bMine"><i data-ic="pick"></i><span>광산</span></button><b class="sep"></b><button class="dk" id="bChat"><i data-ic="chat"></i><span>말하기</span></button><button class="dk" id="bBag2"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv3"><i data-ic="shirt"></i><span>나</span></button></div>
+  <div class="grp" id="gIsle"><button class="dk go" id="bIHome"><i data-ic="home"></i><span>내 집</span></button><b class="sep"></b><button class="dk" id="bIBag"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bIAv"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gMine"><button class="dk go" id="bVill2"><i data-ic="village"></i><span>마을</span></button><b class="sep"></b><button class="dk" id="bBag3"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv4"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gVisit"><button class="dk go" id="bVLeave"><i data-ic="door"></i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bVLike"><i data-ic="heart"></i><span>좋아요</span></button><button class="dk" id="bVStk"><i data-ic="star"></i><span>스티커</span></button><button class="dk" id="bVAdd"><i data-ic="addf"></i><span>친구</span></button></div>
   <div class="grp" id="gFish"><button class="dk warn" id="bStop"><i data-ic="hand"></i><span>그만</span></button></div>
@@ -651,6 +652,45 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.18));
 const sun = new THREE.DirectionalLight(0xffe2b8, 0.85);
 sun.castShadow = true; sun.shadow.mapSize.set(LOW?1024:2048, LOW?1024:2048); sun.shadow.bias=-0.0008; sun.shadow.radius=3;
 scene.add(sun); scene.add(sun.target);
+/* ═════════ (v520) 🎨 B 동물의 숲 툰 — 사용자: "b 정말 마음에 들고" (시안: 같은 KayKit 모델 · 2단 그림자 · 테두리 · 진한 파스텔)
+   · 재질을 바꾸지 않고 그림자 계산만 2단으로 (MeshStandardMaterial 셰이더에 한 줄) → 색을 바꾸는 기존 코드(물 반짝임·고르기 빛 …)가 그대로 동작
+   · 테두리 = 깊이 차이로 그리는 후처리 한 번 (느린 기기 LOW 는 테두리 없이 툰 그림자만) · ?toon=0 이면 끔 */
+const TOON = (()=>{
+  const q=new URLSearchParams(location.search), off=q.get("toon")==="0";
+  const U={uLit:{value:.85}, uSunC:{value:new THREE.Color(1,1,1)}};
+  const T={on:!off, edge:!off && (q.get("edge")==="1" || (!LOW && q.get("edge")!=="0")), n:0, rt:null, post:null};
+  T.mat=function(m){ if(!T.on || !m || !m.isMeshStandardMaterial || m.userData.toon) return; m.userData.toon=1;
+    m.onBeforeCompile=(s)=>{ s.uniforms.uLit=U.uLit; s.uniforms.uSunC=U.uSunC;
+      s.fragmentShader=s.fragmentShader
+        .replace("#include <common>", "#include <common>\nuniform float uLit; uniform vec3 uSunC;")
+        .replace("#include <color_fragment>", "#include <color_fragment>\n{ float g=dot(diffuseColor.rgb, vec3(.2126,.7152,.0722)); diffuseColor.rgb=clamp(mix(vec3(g), diffuseColor.rgb, 1.18),0.,1.); }")
+        .replace("#include <lights_fragment_end>", `#include <lights_fragment_end>
+{ vec3 lc = reflectedLight.directDiffuse / max(material.diffuseColor, vec3(1e-3));
+  float tk = max(max(lc.r, lc.g), lc.b);
+  vec3 lcol = tk > 1e-3 ? lc / tk : uSunC;
+  float nl = tk / max(uLit, 1e-3);
+  float tq = smoothstep(.2, .27, nl);
+  reflectedLight.directDiffuse = material.diffuseColor * lcol * uLit * mix(.36, 1., tq);
+  reflectedLight.directSpecular *= .25; }`); };
+    m.customProgramCacheKey=()=>"toon520"; m.needsUpdate=true; };
+  T.scan=function(root){ if(!T.on) return; (root||scene).traverse(o=>{ if(!o.isMesh || !o.material) return; if(Array.isArray(o.material)) o.material.forEach(T.mat); else T.mat(o.material); }); };
+  T.light=function(){ U.uLit.value=Math.max(.05, sun.intensity); U.uSunC.value.copy(sun.color); };
+  function mkPost(){ const sz=new THREE.Vector2(); renderer.getDrawingBufferSize(sz);
+    if(T.rt){ T.rt.setSize(sz.x, sz.y); T.rt.depthTexture.image.width=sz.x; T.rt.depthTexture.image.height=sz.y; T.post.material.uniforms.px.value.set(1/sz.x,1/sz.y); return; }
+    T.rt=new THREE.WebGLRenderTarget(sz.x, sz.y); T.rt.texture.encoding=THREE.LinearEncoding; T.rt.depthTexture=new THREE.DepthTexture(sz.x, sz.y); T.rt.depthTexture.type=THREE.UnsignedIntType;
+    T.post=new THREE.Mesh(new THREE.PlaneGeometry(2,2), new THREE.ShaderMaterial({depthTest:false, depthWrite:false,
+      uniforms:{tC:{value:T.rt.texture}, tD:{value:T.rt.depthTexture}, px:{value:new THREE.Vector2(1/sz.x,1/sz.y)}, n:{value:.1}, f:{value:300}, oc:{value:new THREE.Color(0x3b2433)}, th:{value:Math.max(1.4, Math.min(2.6, renderer.getPixelRatio()*1.2))}},
+      vertexShader:"varying vec2 v; void main(){ v=uv; gl_Position=vec4(position.xy,0.,1.); }",
+      fragmentShader:"uniform sampler2D tC,tD; uniform vec2 px; uniform float n,f,th; uniform vec3 oc; varying vec2 v;\n float L(vec2 u){ float z=texture2D(tD,u).x*2.-1.; return 2.*n*f/(f+n-z*(f-n)); }\n void main(){ vec4 c=texture2D(tC,v); float d=L(v), e=0.; vec2 o=px*th; e=max(e,(L(v+vec2(o.x,0.))-d)/d); e=max(e,(L(v-vec2(o.x,0.))-d)/d); e=max(e,(L(v+vec2(0.,o.y))-d)/d); e=max(e,(L(v-vec2(0.,o.y))-d)/d);\n float k=smoothstep(.02,.06,e)*step(d,f*.9); gl_FragColor=linearToOutputTexel(vec4(mix(c.rgb, oc, k*.9),1.)); }"}));
+    T.ps=new THREE.Scene(); T.ps.add(T.post); T.pc=new THREE.OrthographicCamera(-1,1,1,-1,0,1); }
+  T.resize=function(){ if(T.edge && T.rt) mkPost(); };
+  T.draw=function(){ if(++T.n%30===1) T.scan();   /* 새로 생긴 물건도 툰으로 (가벼운 표시 확인만) */
+    T.light();
+    if(!T.edge){ renderer.render(scene, camera); return; }
+    if(!T.rt){ try{ mkPost(); }catch(e){ T.edge=false; renderer.render(scene, camera); return; } }
+    const u=T.post.material.uniforms; u.n.value=camera.near; u.f.value=camera.far;
+    renderer.setRenderTarget(T.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(T.ps, T.pc); };
+  return T; })();
 
 /* ───────── 재료 ───────── */
 function canvasTex(w, h, draw, rep){ const c=document.createElement("canvas"); c.width=w; c.height=h; draw(c.getContext("2d"), w, h);
@@ -1988,7 +2028,7 @@ function twEnter(){ TW.on=true; TW.fin=false; TW.cp=0; TW.best=0; TW.wallTold=0;
   $("twUI").classList.add("help"); clearTimeout(twEnter._h); twEnter._h=setTimeout(()=>$("twUI").classList.remove("help"), 7000);
   toast("🗼 <b>오늘의 하늘 타워</b> — "+(TW.mode==="sky"?TW_N.sky+"층 · 11층부터 한 층 = 한 바퀴 (함정 2개) · 🏝 20층 작은 땅":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층 · 1~10층은 🚩 연습 (깃발 = 체크포인트)":TW.mode==="hard"?"🔴 어려움 "+TW_N.hard+"층":"🟢 쉬움 "+TW_N.easy+"층")+"<br><small>"+(TW.mode==="kid"?"🚩 깃발에 닿으면 체크포인트 · 떨어지면 깃발에서 다시":"🚫 체크포인트 없음 · 떨어지면 거기서 다시!")+"</small>", 2600); TW.gSeen={}; tEv("tower"); try{ twNetStart(); }catch(e){} }
 function twExit(){ try{ twHiSave(); }catch(e){} try{ twNetStop(); }catch(e){} $("twEmoBar").classList.remove("on"); TW.on=false; hero.g.visible=true; camera.fov=30; camera.updateProjectionMatrix(); try{ viewOff(); }catch(e){} $("twUI").classList.remove("on"); document.body.classList.remove("twOn"); TW.joy=null; TW.cam=null; hero.act="idle"; }
-function twLeave(){ if(!TW.on) return; go("village", [TW_DOOR[0], TW_DOOR[1]]); }
+function twLeave(){ if(!TW.on) return; if(window.ISLE && ISLE.ON) return ISLE.back("tower"); go("village", [TW_DOOR[0], TW_DOOR[1]]); }
 /* ── 몸 ── */
 function twRespawn(first){ const c=TW.cps[TW.cp]||TW.cps[0], ctr=c.mesh.position; TW.p.set(ctr.x, c.max.y+0.001, ctr.z); TW.v.set(0,0,0); TW.onG=true; TW.gnd=c; TW.coy=0; TW.buf=0; TW.climb=false;
   hero.g.position.copy(TW.p); { const d=TDIR[twFi(TW.cp)%4]; hero.face=Math.atan2(d[0],d[1]); hero.g.rotation.y=hero.face; } if(!first){ TW.dead++; try{ SND.plop(); }catch(e){} TW.flash=0.5; }
@@ -2988,7 +3028,7 @@ const line = (()=>{ const geo=new THREE.BufferGeometry(); geo.setAttribute("posi
 function ring(x,z,big){ const r=new THREE.Mesh(new THREE.RingGeometry(0.06,0.09,24), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.8, depthWrite:false})); r.rotation.x=-Math.PI/2; r.position.set(x,WL+0.006,z); r.renderOrder=4; scene.add(r); F.rings.push({m:r, t:0, k:big?1.8:1}); }
 function nextToWater(x,z){ return [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].some(([a,b])=>isWater(x+a,z+b)); }
 function hint(t){ const h=$("hint"); if(t){ h.textContent=t; h.classList.add("on"); } else h.classList.remove("on"); }
-function setGroups(){ $("bCam").classList.toggle("on", (place===PL.room || place===PL.visit) && F.st==="idle"); $("gRoom").classList.toggle("on", place===PL.room && F.st==="idle"); $("gYard").classList.toggle("on", place===PL.yard && F.st==="idle"); $("gVill").classList.toggle("on", place===PL.village && F.st==="idle"); $("gMine").classList.toggle("on", place===PL.mine && F.st==="idle"); $("gVisit").classList.toggle("on", (place===PL.visit || place===PL.yvisit) && F.st==="idle"); $("gFish").classList.toggle("on", F.st!=="idle" && F.st!=="quiz" && F.st!=="jump"); $("fight").classList.toggle("on", F.st==="fight"); try{ updUI(); }catch(e){} }
+function setGroups(){ $("bCam").classList.toggle("on", (place===PL.room || place===PL.visit) && F.st==="idle"); $("gRoom").classList.toggle("on", place===PL.room && F.st==="idle"); $("gYard").classList.toggle("on", place===PL.yard && F.st==="idle"); $("gVill").classList.toggle("on", place===PL.village && F.st==="idle"); $("gMine").classList.toggle("on", place===PL.mine && F.st==="idle"); $("gIsle").classList.toggle("on", !!PL.isle && place===PL.isle && F.st==="idle"); $("gVisit").classList.toggle("on", (place===PL.visit || place===PL.yvisit) && F.st==="idle"); $("gFish").classList.toggle("on", F.st!=="idle" && F.st!=="quiz" && F.st!=="jump"); $("fight").classList.toggle("on", F.st==="fight"); try{ updUI(); }catch(e){} }
 
 /* ── 🔊 효과음 (WebAudio · 파일 없음) ── */
 const SND=(()=>{ let ac=null; const ctx=()=>{ if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac && ac.state==="suspended"){ try{ ac.resume(); }catch(e){} } return ac; };
@@ -3234,6 +3274,7 @@ function focus(){ const N=place.N, p=hero ? hero.g.position : new THREE.Vector3(
   if(avOpen){ const c=new THREE.Vector3(p.x,0.62,p.z); return {c, C:boxC(c,0.55,0,1.4), b:[0.7,0.06,0.97], pitch:0.32}; }
   if(talkN){ const q=talkN.g.position, c=new THREE.Vector3((p.x+q.x)/2,0.7,(p.z+q.z)/2), r=Math.max(0.8, Math.hypot(p.x-q.x,p.z-q.z)/2+0.42); return {c, C:boxC(c,r,0,1.75), b:[0.78,-0.12,0.95], pitch:0.3}; }   /* 대화 — 두 사람에게 다가감 */
   if(place===PL.yard && edit && yEC){ const c=new THREE.Vector3(yEC.x,0.3,yEC.z); return {c, C:boxC(c,2.8,0,0.8), b:[0.97,-0.18,0.82], pitch:0.95}; }   /* (v415) 마당 꾸미기 — 아래 서랍 위로 */
+  if(PL.isle && place===PL.isle){ const c=new THREE.Vector3(p.x,0.45,p.z); return {c, C:boxC(c,1.9,0,1.5), b:[0.94,-0.62,0.8], pitch:place.pitch}; }   /* (v521) 🏝 낮고 가까운 카메라 */
   if(place.follow){ const m=2.9, c=new THREE.Vector3(clamp(p.x,m,N-m),0.4,clamp(p.z,m,N-m)); return {c, C:boxC(c,2.9,0,1.4), b:[0.94,-0.72,0.72], pitch:place.pitch}; }
   const c=new THREE.Vector3(N/2,0.5,N/2), C=[]; for(const x of [0,N]) for(const y of [0,place.h]) for(const z of [0,N]) C.push(new THREE.Vector3(x,y,z)); return {c, C, b:[0.94,-0.74,0.74], pitch:place.pitch}; }
 let camPitch=0.62;
@@ -3248,13 +3289,13 @@ function updCam(dt){ const f=focus(), d=fitFor(f); const k=camSnap?1:Math.min(1,
 function placeCamera(){ camSnap=true; updCam(0); dirty=true; }
 function viewOff(){ const w=innerWidth, h=innerHeight; camera.setViewOffset(w,h,0,h*(avOpen?0.26:talkN?0.15:coachOn?0.085:0.04),w,h); camera.updateProjectionMatrix(); }
 function setShadow(){ const N=place.N, s=sun.shadow.camera; sun.position.set(N/2-N*0.9, N*1.4, N/2-N*0.45); sun.target.position.set(N/2,0,N/2); s.left=-N*0.85; s.right=N*0.85; s.top=N*0.85; s.bottom=-N*0.85; s.near=1; s.far=N*4; s.updateProjectionMatrix(); }
-function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; viewOff(); placeCamera(); }
+function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; viewOff(); placeCamera(); try{ TOON.resize(); }catch(e){} }
 addEventListener("resize", resize);
 function go(key, at, mid, o){
   if(F.st!=="idle") return; setEdit(false); standUp(); hero.slide=null; trip.busy=true;
   if(visiting && key!=="visit" && key!=="yvisit"){ const m0=mid; mid=()=>{ if(myRoom) restoreMine(); yVisitOut(); visiting=null; if(m0) m0(); }; }   // 지도 등으로 나가도 내 방으로 돌려놓음
   $("fade").classList.add("on");
-  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].forEach(g=>g.visible=g===place.g); if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
+  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].concat(window.ISLE?[ISLE.G]:[]).forEach(g=>g.visible=g===place.g); try{ if(window.ISLE) ISLE.show(place===PL.isle); }catch(e){} if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
     const s=at||place.start; hero.cx=s[0]; hero.cz=s[1]; hero.path=[]; hero.moving=false; hero.g.position.set(s[0]+0.5,0,s[1]+0.5);
     if(o && o.from){ const f=typeof o.from==="function"?o.from():o.from, b=[s[0]+0.5,s[1]+0.5]; hero.g.position.set(f[0],0,f[1]); hero.face=Math.atan2(b[0]-f[0],b[1]-f[1]); hero.g.rotation.y=hero.face;
       hero.slide={a:f.slice(), b, t:0, d:Math.max(0.4, Math.hypot(b[0]-f[0],b[1]-f[1])/2.4)}; if(o.door) openDoor(o.door); }
@@ -3267,12 +3308,12 @@ function leaveBy(cell, out, fn, door){ if(F.st!=="idle" || trip.busy) return;
   const t=blocked(cell[0],cell[1]) ? nearestFree(cell[0],cell[1]) : cell; if(!t || (!(hero.cx===t[0]&&hero.cz===t[1]) && !findPath(hero.cx,hero.cz,t[0],t[1]))){ fn(); return; }
   walkTo(cell[0], cell[1], ()=>{ trip.busy=true; if(door){ const p=hero.g.position; hero.face=Math.atan2(out[0]-p.x,out[1]-p.z); openDoor(door); setTimeout(()=>slideTo(out), 300); setTimeout(()=>{ trip.busy=false; fn(); }, 560); }
     else { slideTo(out); setTimeout(()=>{ trip.busy=false; fn(); }, 220); } }); }
-function exitRoom(){ leaveBy([0,RN-1], [-0.1,RN-0.5], ()=>{ if(visiting && yStash) go("yvisit", DOOR, ()=>{ if(myRoom) restoreMine(); }, {from:[1.5,2.95], door:houseDoor}); else if(visiting) leaveVisit(); else go("yard", DOOR, null, {from:[1.5,2.95], door:houseDoor}); }, roomDoor); }
+function exitRoom(){ leaveBy([0,RN-1], [-0.1,RN-0.5], ()=>{ if(visiting && yStash) go("yvisit", DOOR, ()=>{ if(myRoom) restoreMine(); }, {from:[1.5,2.95], door:houseDoor}); else if(visiting) leaveVisit(); else if(window.ISLE && ISLE.ON){ if(ISLE.enter()==="gate"){} } else go("yard", DOOR, null, {from:[1.5,2.95], door:houseDoor}); }, roomDoor); }   /* (v521) 문을 나서면 🏝 우리 마을 */
 function enterHouse(){ leaveBy(DOOR, [1.5,2.95], ()=>{ const a=!roomBlocked(1,RN-1)?[1,RN-1]:[0,RN-1]; go("room", a, null, {from:()=>[0.05,RN-0.5], door:roomDoor}); }, houseDoor); }
-function yardToVillage(){ leaveBy(Y_GATE, [Y_GATE[0]+1.05,Y_GATE[1]+0.5], ()=>go("village", [V_GATE[0]+1,V_GATE[1]], null, {from:[V_GATE[0]-0.05,V_GATE[1]+0.5]})); }
-function villageToYard(){ leaveBy(V_GATE, [V_GATE[0]-0.05,V_GATE[1]+0.5], ()=>go("yard", [Y_GATE[0]-1,Y_GATE[1]], null, {from:[Y_GATE[0]+1.05,Y_GATE[1]+0.5]})); }
+function yardToVillage(){ if(window.ISLE && ISLE.ON) return ISLE.back("farm"); leaveBy(Y_GATE, [Y_GATE[0]+1.05,Y_GATE[1]+0.5], ()=>go("village", [V_GATE[0]+1,V_GATE[1]], null, {from:[V_GATE[0]-0.05,V_GATE[1]+0.5]})); }
+function villageToYard(){ if(window.ISLE && ISLE.ON) return ISLE.back("market"); leaveBy(V_GATE, [V_GATE[0]-0.05,V_GATE[1]+0.5], ()=>go("yard", [Y_GATE[0]-1,Y_GATE[1]], null, {from:[Y_GATE[0]+1.05,Y_GATE[1]+0.5]})); }
 function villageToMine(){ leaveBy(V_EAST, [V_EAST[0]+1.05,V_EAST[1]+0.5], ()=>go("mine", [M_GATE[0]-1,M_GATE[1]], null, {from:[M_GATE[0]+1.05,M_GATE[1]+0.5]})); }
-function mineToVillage(){ leaveBy(M_GATE, [M_GATE[0]+1.05,M_GATE[1]+0.5], ()=>go("village", [V_EAST[0]-1,V_EAST[1]], null, {from:[V_EAST[0]+1.05,V_EAST[1]+0.5]})); }
+function mineToVillage(){ if(window.ISLE && ISLE.ON) return ISLE.back("mine"); leaveBy(M_GATE, [M_GATE[0]+1.05,M_GATE[1]+0.5], ()=>go("village", [V_EAST[0]-1,V_EAST[1]], null, {from:[V_EAST[0]+1.05,V_EAST[1]+0.5]})); }
 
 /* ═════════ 가구 꾸미기 (집) ═════════ */
 let edit=false, sel=null, ghost=null, ghostPad=null;
@@ -3362,6 +3403,8 @@ $("cv").addEventListener("pointerup", e=>{
     const it=yItemAt(c[0],c[1]); if(it){ useTile(c[0],c[1],()=>{ wobble(it.obj); say(OUT[it.id].nm); emote(hero, OUT[it.id].ic); }); return; }
     walkTo(c[0], c[1]); return;
   }
+  // (v521) 🏝 우리 마을
+  if(PL.isle && place===PL.isle){ ISLE.tap(e); return; }
   // ⛏ 광산
   if(place===PL.mine){
     if(hitObj(e, scene.userData.mGateObj)){ mineToVillage(); return; }
@@ -3420,7 +3463,7 @@ $("bEdit").onclick=()=>{ if(!visiting) setEdit(true); }; $("bDone").onclick=()=>
 $("bWall").onclick=()=>{ setWall(ownW[(ownW.indexOf(wallIx)+1)%ownW.length]); saveRoom(); toast("🎨 "+WALLS[wallIx].nm+(ownW.length<WALLS.length?"<br><small>🛒 가게에 벽지가 더 있어요</small>":"")); };
 $("bFloor").onclick=()=>{ setFloor(ownF[(ownF.indexOf(floorIx)+1)%ownF.length]); saveRoom(); toast("🟫 "+FLOORS[floorIx].nm+(ownF.length<FLOORS.length?"<br><small>🛒 가게에 바닥이 더 있어요</small>":"")); };
 $("bCam").onclick=()=>{ yawTo+=Math.PI/2; unselect(); };
-$("bVill2").onclick=mineToVillage; $("bBag3").onclick=()=>openBag(); $("bAv4").onclick=()=>openAv();
+$("bVill2").onclick=mineToVillage; $("bIHome").onclick=()=>{ const d=ISLE.doorCell(); walkTo(d[0],d[1],()=>ISLE.enterHome()); }; $("bIBag").onclick=()=>openBag(); $("bIAv").onclick=()=>openAv(); $("bBag3").onclick=()=>openBag(); $("bAv4").onclick=()=>openAv();
 $("bYard2").onclick=villageToYard; $("bVill").onclick=yardToVillage; $("bMine").onclick=villageToMine; $("bBag2").onclick=()=>openBag(); $("bAv3").onclick=()=>openAv();
 $("bOut").onclick=exitRoom; $("bIn").onclick=enterHouse;
 $("bAv1").onclick=openAv; $("bAv2").onclick=openAv; $("avDone").onclick=closeAv;
@@ -3750,7 +3793,7 @@ if(PAD.shared && !PAD.blocked){ const w=$("hWho"); w.hidden=false; w.querySelect
 /* (v414) 🕐 하늘·빛 = 실제 한국 시간 (아침·낮·저녁·밤) · 🌧 비 · ✨ 황금 물고기 떼 알림 */
 const ENV={a:{sky:0xffd6b4, h:0.72, s:0xffc890, si:0.8}, d:{sky:0, h:0.75, s:0xffe2b8, si:0.85}, e:{sky:0xffa77a, h:0.62, s:0xff9a5c, si:0.72}, n:{sky:0x1e2b52, h:0.45, s:0x9fb4ff, si:0.38}};
 let envK="", envT=0, envRu=false, envRuWas=null;
-function envApply(force){ const out=place===PL.yard || place===PL.village || place===PL.yvisit, ti=tod(), rn=rainy() && out, ru=!!rush(); envRu = ru && place===PL.yard;
+function envApply(force){ const out=place===PL.yard || place===PL.village || place===PL.yvisit || (PL.isle && place===PL.isle), ti=tod(), rn=rainy() && out, ru=!!rush(); envRu = ru && place===PL.yard;
   if(envRuWas!=null && ru && !envRuWas && place===PL.yard){ toast("✨ <b>황금 물고기 떼</b>가 왔어요!<br><small>5분 동안 반짝이 물고기가 잔뜩 — 인어도 나올지 몰라요</small>", 3600); try{ SND.sparkle(); }catch(e){} }
   envRuWas=ru; updEnvPill(out, ti, rn, ru); try{ if(yNightOn!==(ti==="n"||ti==="e")) yNight(ti==="n"||ti==="e"); }catch(e){} const k=place.key+ti+rn+ru; if(k===envK && !force) return; envK=k;
   const E=out ? ENV[ti] : ENV.d; let sky=out ? (E.sky||place.sky||0x8fd3f0) : (place.sky||0xf1e2c8); if(rn) sky=new THREE.Color(sky).lerp(new THREE.Color(0x8796aa), 0.45).getHex();
@@ -3860,7 +3903,7 @@ function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Mat
 function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  let anim=updateHero(dt); if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
+  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } if(place===PL.mine){ regenMine(); drawOres(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(TW.on){ twTick(dt); anim=true; } else if(updCam(dt)) anim=true;
@@ -3872,12 +3915,13 @@ function loop(now){
   if(anim) dirty=true;
   if(!dirty){ fT+=dt; if(fT>1){ $("fps").textContent="멈춤 — 안 그림"; fT=0; fN=0; } return; }
   if(skyDome.visible) skyDome.position.copy(camera.position); if(scene.fog){ FOG.near=camD+place.N*1.3; FOG.far=FOG.near+95; }   /* (v434) */
-  renderer.render(scene, camera); dirty=false; updLabels();
+  TOON.draw(); dirty=false; updLabels();   /* (v520) 툰 + 테두리 */
   fN++; fT+=dt; if(fT>=1){ $("fps").textContent=Math.round(fN/fT)+" fps"; fN=0; fT=0; }
 }
 requestAnimationFrame(loop);
 window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcClean, vcOpen, vlCount, sayBubble, TWN8, srvNow, twNightAt, twNightOn, twOpenAt, twNightTick, twNightAsk, towerAskX:()=>towerAsk(), drawPlots, buildAvatar, animChar, emote, twFrame, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
+<script src="isle.js"></script>
 </body>
 </html>
