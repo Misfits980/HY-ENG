@@ -27,7 +27,7 @@ async def main():
         L = {k: v for k, v in r["log"]}
         ok(r["now"] == [0, 1] and [k for k, v in r["log"]] == ["judge", "spawn", "show"] and L["show"] > L["spawn"] and r["live"] == 1, f"판정 → 다음 프레임 다음 문 → 그다음 문제 글자 {r}")
         # 강제 배치 계산 없음 · 깜빡임은 다시 붙음
-        r = await pg.evaluate("""()=>new Promise(res=>{ const card=document.getElementById('prompt'); const s=G.sets.find(s=>!s.judged); showQuestion(s.q, s); const a=card.classList.contains('fresh');
+        r = await pg.evaluate("""()=>new Promise(res=>{ const card=document.getElementById('prompt'); const s=G.sets.find(s=>!s.judged); try{ HudC.holdTo=0; }catch(e){} showQuestion(s.q, s); const a=card.classList.contains('fresh');
             requestAnimationFrame(()=>requestAnimationFrame(()=>res([a, card.classList.contains('fresh')]))); })""")
         ok(r == [False, True], f"문제 카드 깜빡임: 바로 빼고 다음 프레임에 다시 {r}")
         src = open(os.path.join(SITE, "index.html"), encoding="utf8").read()
