@@ -26,8 +26,8 @@ def main(path, cols, rows, out, prev=None, N=12):
     D = []
     for k in ks:
         y0, x0, y1, x1 = bodies[k]
-        dx = np.maximum(0, np.maximum(x0 - xx, xx - x1)); dy = np.maximum(0, np.maximum(y0 - yy, yy - y1)); D.append(dx * dx + dy * dy)
-    own = np.argmin(np.stack(D), 0)
+        dx = np.maximum(0, np.maximum((x0 - xx) * 0.45, (xx - x1) * 1.6)); dy = np.maximum(0, np.maximum(y0 - yy, yy - y1)); D.append(dx * dx + dy * dy)
+    own = np.argmin(np.stack(D), 0)   # 공격은 왼쪽으로 → 몸 왼쪽의 빛은 그 몸 것으로 (왼쪽 거리 ×0.45)
     ML = int(cw * 0.45); CWo = int(cw) + ML * 2; CHo = int(ch)
     frames = []
     for j, k in enumerate(ks):
