@@ -4842,6 +4842,13 @@ img.chImg{display:block;max-width:100%;height:auto}
 .stBt.hurt.hasAtk .bM{width:132px!important;height:104px!important}
 #scStudy.fit1 .stBt .bM{height:70px!important;width:90px!important}
 #scStudy.thB4 .stWN.fin .stDot::before{inset:17% 15% 13%!important}
+/* (v499) 메달 속 = 보스 초상화(동그란 얼굴 그림) — 메달 안 보라 동그라미에 꽉 차게 · 배틀 띠는 그대로 전신 */
+#scStudy.thB4 .stDot:not(.grSt)::before{right:auto!important;bottom:auto!important;left:50%!important;top:51%!important;width:auto!important;height:59%;aspect-ratio:1;transform:translate(-50%,-50%)!important;background:var(--pt,var(--mon)) center/cover no-repeat!important;border-radius:50%;filter:none}
+#scStudy.thB4 .stDot.now:not(.grSt)::before{height:55%}
+#scStudy.thB4 .stDot.y3:not(.grSt)::before{filter:saturate(.75) brightness(.9)}
+#scStudy.thB4 .stDot.lock:not(.grSt)::before{background-image:url(assets/d30/g36/pt_lock.webp)!important;height:50%;filter:brightness(.8)}
+#scStudy.thB4 .stWN.fin .stDot::before{right:auto!important;bottom:auto!important;left:50%!important;top:55%!important;height:55%;background-image:var(--pt,var(--mon))!important;background-size:cover!important}
+#scStudy.thB4 .stWN.fin .stDot.lock::before{height:50%}
 </style>
 </head>
 <body>
@@ -15470,7 +15477,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v498";
+const GAME_VER = "v499";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16974,12 +16981,12 @@ const StudyUI = {
     if(v==="stDone") [80,700,1600,3000].forEach(t=>setTimeout(()=>{ try{ this.fitDone(); }catch(e){} }, t));   /* (v493) 늦게 붙는 칸(보스 기회·상자)까지 */
     const ob=(this.book==="g34" || this.book==="g56") && (v==="stPath" || v==="stLesson" || v==="stDone");   /* (v491) G3-4 몬스터 사냥 · G5-6 원정대 */
     S.classList.toggle("thB", ob); S.classList.toggle("thB4", ob && this.book==="g34"); S.classList.toggle("thB6", ob && this.book==="g56");
-    if(ob && v==="stPath") try{ $("stMap").querySelectorAll(".stDot[data-i]:not(.grSt)").forEach(d=>{ const m=this.monFor(d.dataset.s, +d.dataset.i); d.style.setProperty("--mon","url("+m.img+")"); d.classList.toggle("flipM", !!m.flip); }); }catch(e){} },
+    if(ob && v==="stPath") try{ $("stMap").querySelectorAll(".stDot[data-i]:not(.grSt)").forEach(d=>{ const m=this.monFor(d.dataset.s, +d.dataset.i); d.style.setProperty("--mon","url("+m.img+")"); if(m.pt) d.style.setProperty("--pt","url("+m.pt+")"); d.classList.toggle("flipM", !!m.flip && !m.pt); }); }catch(e){} },
   /* (v498) 몬스터 = 길 메달 속 몬스터와 배틀 상대가 같게 · Stage 마지막 시험 = 보스(슬라임 킹 / 흑기사) · 몬스터마다 무대(숲·얼음·화산) */
   MONS:[{k:"hb2",ar:"forest"},{k:"hb3",ar:"ice"},{k:"hb4",ar:"lava",flip:1},{k:"hb5",ar:"lava"},{k:"hbS",ar:"forest"}],
-  monFor(set, i){ let L=[]; try{ L=Study.lessons(set)||[]; }catch(e){} const x=L[i]||{}; const B="assets/boss/";
-    if(x.fin){ const f=L.slice(0,i+1).filter(y=>y.fin).length; return f%2 ? {k:"hb1",img:B+"hb1.webp",atk:B+"hb1-a.webp",ar:"ice",boss:1} : {k:"knight",img:B+"boss-knight.webp",ar:"lava",boss:1,big:1}; }
-    const m=this.MONS[i%5]; return {k:m.k,img:B+m.k+".webp",atk:B+m.k+"-a.webp",ar:m.ar,flip:m.flip}; },
+  monFor(set, i){ let L=[]; try{ L=Study.lessons(set)||[]; }catch(e){} const x=L[i]||{}; const B="assets/boss/", P="assets/d30/g36/pt_";
+    if(x.fin){ const f=L.slice(0,i+1).filter(y=>y.fin).length; return f%2 ? {k:"hb1",img:B+"hb1.webp",pt:P+"hb1.webp",atk:B+"hb1-a.webp",ar:"ice",boss:1} : {k:"knight",img:B+"boss-knight.webp",pt:P+"knight.webp",ar:"lava",boss:1,big:1}; }
+    const m=this.MONS[i%5]; return {k:m.k,img:B+m.k+".webp",pt:P+m.k+".webp",atk:B+m.k+"-a.webp",ar:m.ar,flip:m.flip}; },
   /* (v491) 스크롤 없이 — 문제가 화면보다 길면 그림·버튼을 줄이고(fit1 · fit2), 그래도 길면 문제 칸 전체를 줄임(zoom) */
   fitDone(){ const S=$("scStudy"), D=$("stDoneIn"); if(!S || !D || !S.classList.contains("vDone")) return; D.style.zoom="";   /* (v491) 끝 화면도 스크롤 없이 */
     const o=S.scrollHeight-S.clientHeight; if(o<=2) return; const h=D.offsetHeight; if(h>0) D.style.zoom=String(Math.max(.62, (h-o-6)/h)); },
