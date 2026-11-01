@@ -5268,6 +5268,14 @@ body:not(.tabL) #scStudy.thB6 .stMap > .stTop + .zBan,body:not(.tabL) #scStudy.t
 #scStudy.thB6 .stChkRow.wait .stChkT b{color:#3a2a14} #scStudy.thB6 .stChkRow.wait .stChkT small{color:#6b5232}
 #scStudy.thB6 .stHead2 .stFire.off{color:#8a4b10}
 #scStudy.thB6 .cpO > b,#scStudy.thB6 .spT{color:#fff;-webkit-text-stroke:3px #3a2a14;paint-order:stroke fill}
+/* (v517) 사용자 B안: G5-6 지도 땅 그림을 흐리게(종이색으로 덮어 은은하게) · 구역이 바뀌는 곳은 위·아래를 종이색으로 부드럽게 이음 */
+#scStudy.thB6.vPath{position:relative}
+#scStudy.thB6 .stWBox{position:relative;isolation:isolate}
+#scStudy.thB6 .stWBox::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:rgba(244,232,205,.62)}
+#scStudy.thB6 .stWBox.zFirst::after{background:linear-gradient(rgba(244,232,205,1),rgba(244,232,205,.62) 110px)}
+#scStudy.thB6 .stWBox.zLast::after{background:linear-gradient(rgba(244,232,205,.62) calc(100% - 110px),rgba(244,232,205,1))}
+#scStudy.thB6 .stWBox.zFirst.zLast::after{background:linear-gradient(rgba(244,232,205,1),rgba(244,232,205,.62) 110px,rgba(244,232,205,.62) calc(100% - 110px),rgba(244,232,205,1))}
+#scStudy.thB6.vPath{background:#efe0bd radial-gradient(130% 70% at 50% 0%,#f6ead0,#e6d1a3)!important}
 </style>
 </head>
 <body class="hudC">
@@ -15981,7 +15989,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v516";
+const GAME_VER = "v517";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17500,6 +17508,7 @@ const StudyUI = {
       $("stMap").querySelectorAll(".stWBox").forEach(bx=>{ const d=bx.querySelector(".stDot[data-i]"); if(!d) return; const m=this.monFor(d.dataset.s, +d.dataset.i), L=Study.lessons(d.dataset.s), x=L[+d.dataset.i]; const z=this.zoneOf(d.dataset.s, x);
         bx.classList.add("zb-"+m.ar);   /* (v505) G5-6 지도: Stage 상자 뒤 지도 그림 = 그 구역 땅 (숲·눈·화산 …) */
         if(this.book==="g56") bx.style.backgroundPositionY=(-bx.offsetTop)+"px";   /* (v514) 같은 구역 상자끼리 땅 그림이 이어지게 */
+        bx.classList.toggle("zFirst", z.sIn===0); { const nx=bx.nextElementSibling && bx.nextElementSibling.classList.contains("stWBox") ? bx.nextElementSibling : null, nd=nx && nx.querySelector(".stDot[data-i]"); bx.classList.toggle("zLast", !nd || this.zoneOf(nd.dataset.s, L[+nd.dataset.i]).zi!==z.zi); }   /* (v517) 구역 경계 부드럽게 */
         if(bx.previousElementSibling && bx.previousElementSibling.classList.contains("zBan")) return;
         if(z.sIn!==0) return; const e=document.createElement("div"); e.className="zBan z-"+m.ar; e.innerHTML='<i>'+m.ze+'</i><b>'+m.zn+' 구역</b><small>Stage '+z.wd+'~'+(z.wd+4)+' · 보스 '+'<img src="'+this.mon(this.ZONES[z.zi].boss).pt+'" alt=""></small>'; bx.parentNode.insertBefore(e, bx); }); }catch(e){} },
   /* (v501) 몬스터 구역 — Stage 5개 = 구역 1곳 (일반 3마리가 돌아가며) · Stage 마지막 시험 = 구역 정예(크게·붉게) · 구역 5번째 Stage 마지막 = 구역 보스
