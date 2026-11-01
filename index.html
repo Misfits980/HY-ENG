@@ -5240,6 +5240,18 @@ body.hudC #windTag{top:calc(env(safe-area-inset-top,0px) + clamp(240px,40vh,400p
 #stQ .stPrompt.sent{padding-left:14px;padding-right:14px}
 .rdBreak .rdMas.pic{margin-bottom:12px}
 #scStudy.thB #stGram .grHead small,#scStudy.thB .stTop .stSub{text-shadow:0 1px 3px rgba(0,0,0,.9)}
+/* (v513) QA 2 (유치원·G1-2) */
+.ksL{color:#d4380d}
+#scStudy:not(.thK) .ksL{color:#ffd23f}
+.stSent u.bad,.stTalk u.bad{border-bottom-color:#5fe0b0}
+#scStudy.thK .stSent u.bad,#scStudy.thK .stTalk u.bad{border-bottom-color:#1fae4f}
+#scStudy.thML .stTalk u.bad,#scStudy.thML .stSent u.bad{border-bottom-color:var(--mGreen)}
+#scStudy.thK .stFoot.bad .stCheck,#scStudy.thK .stFoot.bad .stCheck *{color:#fff!important;text-shadow:0 2px 0 rgba(120,20,30,.6)}
+#scStudy.thK .rbS,#scStudy.thB .rbS{width:22px;height:22px;margin:0 5px;border-radius:50%;background:rgba(255,255,255,.35)!important;box-shadow:inset 0 0 0 3px rgba(0,0,0,.25)}
+#scStudy.thK .rbS.on,#scStudy.thB .rbS.on{background:#ffd23f!important;box-shadow:inset 0 -3px 0 #c98a00,0 0 8px rgba(255,210,63,.7)}
+#scStudy.thK.vDone .stGem{color:#fff;background:rgba(20,70,110,.7);border-color:rgba(255,255,255,.5)}
+#scStudy.thK.vDone .stMiss > :not(small) i{color:#8a5a20}
+#dmView{word-break:keep-all}
 </style>
 </head>
 <body class="hudC">
@@ -15953,7 +15965,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v512";
+const GAME_VER = "v513";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18380,6 +18392,8 @@ const StudyUI = {
     if(q.cz) return '<b>'+this.esc(dispEn(w.en))+'</b> = '+this.kp(w);   // (v334)
     if(q.kans) return '<b>'+this.esc(q.kans)+'</b> ('+this.esc(w.en)+'의 과거형 · '+this.esc(w.ko)+')';
     if(q.rd) return '<b>'+this.esc(q.ans)+'</b>';   // (v442)
+    if(q.t==="blend" && q.mid) return '<b>'+this.esc(q.mid)+'</b> · '+this.esc(dispEn(w.en))+' = '+this.kp(w);   /* (v513) 빠진 소리 글자도 */
+    if(q.so && /^[a-z][a-z' -]+$/i.test(String(q.ans)) && String(q.ans).toLowerCase()!==String(w.en).toLowerCase()){ const aw=Study.word && Study.word(q.ans); if(aw && aw.ko) return '<b>'+this.esc(dispEn(q.ans))+'</b> ('+this.esc(aw.ko)+') · '+this.esc(dispEn(w.en))+' = '+this.kp(w); }   /* (v513) 「mule · mouth = 입」 → mule(노새) */
     if(q.so) return String(q.ans).toLowerCase()===String(w.en).toLowerCase() ? '<b>'+this.esc(dispEn(w.en))+'</b> = '+this.kp(w) : '<b>'+this.esc(q.ans)+'</b>'+(q.x && q.x.ako ? ' ('+this.esc(q.x.ako)+')' : '')+(q.t==="stk" || q.t==="gram" ? '' : ' · '+this.esc(dispEn(w.en))+' = '+this.kp(w));   /* (v503) 정답이 그 단어면 한 번만 · 고유명사 대문자 */   // (v276) 문법 빈칸은 설명 줄이 따로
     if(q.t==="order") return this.esc(q.x.full);
     if(q.t==="sentp") return this.esc(q.form)+' · '+this.esc(w.en)+' = '+this.kp(w);
