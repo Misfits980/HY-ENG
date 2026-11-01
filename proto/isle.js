@@ -24,7 +24,9 @@ const ISLE=(()=>{
   function kk(pack,k,x,z,o){ o=o||{}; const R=KK.R[pack]; if(!R || !R.G[k]) return null; const g=R.G[k], bb=g.boundingBox; let s=(o.s||1)*S;
     const M4=new THREE.Matrix4().compose(new THREE.Vector3(x+OX, o.y||0, z+OZ), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), o.ry||0), new THREE.Vector3(s,s,s))
       .multiply(new THREE.Matrix4().makeTranslation(-(bb.min.x+bb.max.x)/2, -bb.min.y, -(bb.min.z+bb.max.z)/2));
-    const key=pack+"|"+(o.chunk||"c"); (bag[key]=bag[key]||[]).push({g, m:M4, cast:o.cast!==false}); if(o.col) cols.push([x+OX, z+OZ, o.col]); return true; }
+    if(o.col) cols.push([x+OX, z+OZ, o.col]);
+    if(o.solo){ const m=new THREE.Mesh(g, R.mat); m.matrixAutoUpdate=false; m.matrix.copy(M4); m.castShadow=true; m.receiveShadow=true; const W=new THREE.Group(); W.add(m); W.userData.solo=1; G.add(W); return W; }   /* (v525) 집·큰 건물 = 따로 (가리면 그것만 흐려짐) */
+    const key=pack+"|"+(o.chunk||"c"); (bag[key]=bag[key]||[]).push({g, m:M4, cast:o.cast!==false}); return true; }
   function merge(){ Object.keys(bag).forEach(key=>{ const pack=key.split("|")[0], L=bag[key], R=KK.R[pack];
       let nv=0, ni=0; L.forEach(e=>{ nv+=e.g.attributes.position.count; ni+=e.g.index.count; });
       const P=new Float32Array(nv*3), Nn=new Float32Array(nv*3), U=new Float32Array(nv*2), I=new Uint32Array(ni); let ov=0, oi=0; const v=new THREE.Vector3(), nm=new THREE.Matrix3();
@@ -75,11 +77,11 @@ const ISLE=(()=>{
       mesh(new THREE.CylinderGeometry(.55,.4,.18,12), st, 0,1.4,0); mesh(new THREE.CylinderGeometry(.48,.48,.06,16), 0x7fd3ea, 0,1.5,0,{nocast:1}); mesh(new THREE.SphereGeometry(.2,10,8), 0xbfeaff, 0,1.7,0,{nocast:1}); cols.push([OX,OZ,1.75]); SPOT.fountain=[OX,1.2,OZ]; }
     [[2.2,2.2],[-2.2,2.2],[2.2,-2.2],[-2.2,-2.2]].forEach(([x,z])=>kk("city","streetlight",x*S,z*S,{s:1,chunk:"m",col:.2}));
     [[3.1,0,Math.PI/2],[-3.1,0,-Math.PI/2],[0,3.1,0]].forEach(([x,z,r])=>kk("city","bench",x*S,z*S,{s:.9,ry:r,chunk:"m",col:.45}));
-    kk("isle","tent",-2.7*S,-2.3*S,{s:1.5,ry:.9,chunk:"m",col:1.0}); kk("isle","crate_A_big",-3.5*S,-1.4*S,{s:.5,chunk:"m",col:.3}); kk("isle","barrel",-1.9*S,-3.2*S,{s:.5,chunk:"m",col:.3}); SPOT.market=[-2.7*S+OX,1.6,-2.3*S+OZ];
+    kk("isle","tent",-2.7*S,-2.3*S,{s:1.5,ry:.9,chunk:"m",col:1.0,solo:1}); kk("isle","crate_A_big",-3.5*S,-1.4*S,{s:.5,chunk:"m",col:.3}); kk("isle","barrel",-1.9*S,-3.2*S,{s:.5,chunk:"m",col:.3}); SPOT.market=[-2.7*S+OX,1.6,-2.3*S+OZ];
     // 가게 거리
     const MK=["building_market_blue","building_market_red","building_market_green","building_market_yellow"]; let mi=0;
-    C.filter(c=>c.t==="grass"&&Math.abs(c.lz-6.9)<0.9&&Math.abs(c.lx)<8&&Math.abs(c.lx)>1.2).forEach(c=>{ kk("isle",MK[mi++%4],c.x,c.z,{s:1.9,ry:Math.PI,chunk:"m",col:1.1*S}); c.t="shop"; });
-    kk("isle","building_church_blue",-4.8*S,10.2*S,{s:2.3,ry:Math.PI*0.9,chunk:"m",col:1.3*S}); SPOT.school=[-4.8*S+OX,2.6,10.2*S+OZ];
+    C.filter(c=>c.t==="grass"&&Math.abs(c.lz-6.9)<0.9&&Math.abs(c.lx)<8&&Math.abs(c.lx)>1.2).forEach(c=>{ kk("isle",MK[mi++%4],c.x,c.z,{s:1.9,ry:Math.PI,chunk:"m",col:1.1*S,solo:1}); c.t="shop"; });
+    kk("isle","building_church_blue",-4.8*S,10.2*S,{s:2.3,ry:Math.PI*0.9,chunk:"m",col:1.3*S,solo:1}); SPOT.school=[-4.8*S+OX,2.6,10.2*S+OZ];
     kk("isle","building_stage_A",4.4*S,9.2*S,{s:2.4,ry:-2,chunk:"m",col:1.2});
     { // 모닥불
       const fx=2.4*S, fz=9.8*S; for(let i=0;i<4;i++){ const a=i/4*6.283+.4; const lg=mesh(new THREE.CylinderGeometry(.16,.16,.85,8), 0xa06a3c, fx+Math.cos(a)*1.1,.16,fz+Math.sin(a)*1.1); lg.rotation.z=Math.PI/2; lg.rotation.y=-a; }
@@ -88,8 +90,8 @@ const ISLE=(()=>{
     { const B=new THREE.Group(); B.position.set(5.2*S+OX,0,-0.6*S+OZ); B.rotation.y=.15; for(let i=0;i<9;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(.45,.11,1.55), MC(i%2?0xb07a4a:0x9a6a40)); pl.position.set(i*.47,-.02,0); pl.receiveShadow=true; B.add(pl); } G.add(B); G.userData.dock=B;
       const a=B.position, e=new THREE.Vector3(4.2,0,0).applyAxisAngle(new THREE.Vector3(0,1,0),.15); bridges.push([a.x-.2,a.z,a.x+e.x,a.z+e.z,.7]); SPOT.lake=[a.x+e.x*.6,.6,a.z+e.z*.6]; }
     C.filter(c=>c.t==="water").forEach(c=>{ if(rnd()<.35) kk("isle",rnd()<.5?"waterlily_A":"waterlily_B",c.x+(rnd()-.5)*S,c.z+(rnd()-.5)*S,{s:.8,y:-.2*S,chunk:"m",cast:false}); });
-    kk("isle","building_tower_B_blue",-9*S,-9*S,{s:3.2,chunk:"m",col:1.5*S}); kk("isle","flag_blue",-7.8*S,-8.2*S,{s:1.6,chunk:"m"}); SPOT.tower=[-9*S+OX,3.4,-9*S+OZ];
-    kk("isle","building_mine_blue",9*S,-11*S,{s:2.2,ry:Math.PI*0.8,chunk:"m",col:1.3*S}); kk("isle","mountain_B_grass_trees",11*S,-13*S,{s:1.4,chunk:"m",col:2.4*S}); SPOT.mine=[9*S+OX,2,-11*S+OZ];
+    kk("isle","building_tower_B_blue",-9*S,-9*S,{s:3.2,chunk:"m",col:1.5*S,solo:1}); kk("isle","flag_blue",-7.8*S,-8.2*S,{s:1.6,chunk:"m"}); SPOT.tower=[-9*S+OX,3.4,-9*S+OZ];
+    kk("isle","building_mine_blue",9*S,-11*S,{s:2.2,ry:Math.PI*0.8,chunk:"m",col:1.3*S,solo:1}); kk("isle","mountain_B_grass_trees",11*S,-13*S,{s:1.4,chunk:"m",col:2.4*S}); SPOT.mine=[9*S+OX,2,-11*S+OZ];
     trees(C,[0.55,0.2,0.04],"m");
     // 동네 섬 · 새 동네 · 밭 섬
     hood(D.d1[0],D.d1[1],"1동","d1"); hood(D.d2[0],D.d2[1],"2동","d2"); hood(D.d3[0],D.d3[1],"3동","d3");
@@ -97,12 +99,12 @@ const ISLE=(()=>{
     { const cells=island(D.nu[0],D.nu[1],3,null,"nu"); cells.forEach(c=>{ if(rnd()<.3) cap(c.x,c.z,0xc9a46a,.05); }); kk("isle","resource_lumber",D.nu[0],D.nu[1],{s:1.6,chunk:"nu",col:.8}); kk("isle","flag_yellow",D.nu[0]+S*2,D.nu[1],{s:1.6,chunk:"nu"}); bridge(0,D.d1[1]-7.2*S,0,D.nu[1]+5.4*S); SPOT.nu=[D.nu[0]+OX,1.4,D.nu[1]+OZ]; }
     { const FC=island(D.farm[0],D.farm[1],4,c=>{ if(c.d<=3 && c.d>=1) c.t="farm"; },"f");
       FC.filter(c=>c.t==="farm").forEach((c,i)=>{ cap(c.x,c.z,0x8a5a34,.08); const col=[0xffd23f,0xff9a3d,0x7fd36a,0xff6b6b][i%4]; for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++){ const x=c.x+a*S*.42, z=c.z+b*S*.5; const s=mesh(new THREE.ConeGeometry(.08,.28,5), 0x5db95a, x,.22,z,{nocast:1}); const f=mesh(new THREE.SphereGeometry(.12,8,6), col, x,.4,z,{nocast:1}); } });
-      kk("isle","building_windmill_yellow",D.farm[0],D.farm[1],{s:2.2,chunk:"f",col:1.0}); trees(FC,[0.6,0.1,0],"f"); link(D.plaza,15*S,D.farm,7.2*S); SPOT.farm=[D.farm[0]+OX,1.6,D.farm[1]+OZ]; }
+      kk("isle","building_windmill_yellow",D.farm[0],D.farm[1],{s:2.2,chunk:"f",col:1.0,solo:1}); trees(FC,[0.6,0.1,0],"f"); link(D.plaza,15*S,D.farm,7.2*S); SPOT.farm=[D.farm[0]+OX,1.6,D.farm[1]+OZ]; }
     // 동네 집 (내 집은 ⭐)
     myHouse=mySlot();
     slots.forEach(sl=>{ const ch=sl.hood==="1동"?"d1":sl.hood==="2동"?"d2":"d3";
       if(sl.empty){ cap(sl.x,sl.z,0xc9a46a,.05); kk("city","box_A",sl.x,sl.z,{s:.8,chunk:ch,col:.4}); return; }
-      kk("isle",HC[(sl.i*3+ch.charCodeAt(1))%HC.length],sl.x,sl.z,{s:2.2,ry:sl.face,chunk:ch,col:.95});
+      kk("isle",HC[(sl.i*3+ch.charCodeAt(1))%HC.length],sl.x,sl.z,{s:2.2,ry:sl.face,chunk:ch,col:.95,solo:1});
       if(sl===myHouse){ const st=mesh(new THREE.OctahedronGeometry(.32), 0xffd23f, sl.x,3.1,sl.z,{basic:1,nocast:1}); G.userData.star=st; } });
     if(myHouse){ const dx=Math.sin(myHouse.face), dz=Math.cos(myHouse.face); SPOT.home=[myHouse.x+OX+dx*1.25,1.3,myHouse.z+OZ+dz*1.25]; SPOT.homeIn=[myHouse.x+OX+dx*.55,myHouse.z+OZ+dz*.55]; }
     // 풀포기 · 들꽃
@@ -113,7 +115,7 @@ const ISLE=(()=>{
     // 먼 섬 · 구름 (테두리 계산에서 멀리 빼려고 그림자 없음)
     for(let i=0;i<10;i++){ const a=i/10*6.283+0.3, d=75+rnd()*30; kk("nature",["mountain_A_grass_trees","mountain_B_grass_trees","hills_A_trees","hills_C_trees"][i%4],Math.cos(a)*d,Math.sin(a)*d-20,{s:1.4+rnd(),y:-0.72*S,chunk:"far",cast:false}); }
     merge(); drawCaps(); walkmap();
-    G.children.forEach(o=>{ o.userData.noFade=1; });   /* 합친 섬은 통째로 흐려지지 않게 (가림 흐리기 제외) */
+    G.children.forEach(o=>{ if(!o.userData.solo) o.userData.noFade=1; });   /* 합친 섬은 통째로 흐려지지 않게 (가림 흐리기 제외) · 집·큰 건물만 흐려짐 */
     try{ TOON.scan(G); }catch(e){} dirty=true; }
   /* ── 걸을 수 있는 칸 ── */
   function hexOf(x,z){ for(const I of islands){ const lx=x-(I.cx+OX), lz=z-(I.cz+OZ); const fq=(Math.sqrt(3)/3*lx-1/3*lz)/HR, fr=(2/3*lz)/HR; let rq=Math.round(fq), rr=Math.round(fr), rs=Math.round(-fq-fr); const dq=Math.abs(rq-fq), dr=Math.abs(rr-fr), ds=Math.abs(rs+fq+fr);
@@ -136,7 +138,7 @@ const ISLE=(()=>{
   /* 섬 그림은 처음 나갈 때 받음 (처음 열기를 가볍게) */
   function ready(){ return Promise.all([KK.load("isle"), KK.load("city"), KK.load("nature")]); }
   function enter(o){ if(!ON) return false; if(!nameOk()){ gate(); return "gate"; }
-    const run=()=>{ build(); const d=doorCell(); go("isle", d, null, Object.assign({from:SPOT.homeIn||null}, o||{})); };
+    const run=()=>{ build(); const d=doorCell(); go("isle", d, null, Object.assign({from:SPOT.homeIn||null}, o||{})); setTimeout(()=>faceOut(), 260); };
     if(KK.R.isle && KK.R.city && KK.R.nature){ run(); return true; }
     toast("🏝 우리 마을로 가는 중…", 1500); ready().then(run); return true; }
   /* 마당·시장·광산·타워에서 돌아오기 — 그곳으로 가는 다리·건물 앞에 */
@@ -173,7 +175,7 @@ const ISLE=(()=>{
     const st=G.userData.star; if(st){ st.rotation.y+=dt*1.5; st.position.y=3.1+Math.sin(performance.now()*.003)*.12; anim=true; }
     const fi=G.userData.fire; if(fi){ const t=performance.now()*.012; fi[0].scale.set(1,1+Math.sin(t)*.12,1); fi[1].scale.set(1,1+Math.cos(t*1.3)*.15,1); }
     return anim; }
-  function show(on){ ui(); document.body.classList.toggle("isleOn", !!on); }
+  function show(on){ ui(); camUI(); document.body.classList.toggle("isleOn", !!on); if(on) camHint(); }
   /* ── 이름표 (가까이 가면) ── */
   function labels(){ const L=[];
     if(SPOT.home) L.push({k:"home", ic:"⭐", t:"내 집", p:SPOT.home, r:3, act:()=>walkTo(SPOT.door[0],SPOT.door[1],()=>enterHome())});
@@ -187,6 +189,22 @@ const ISLE=(()=>{
     if(SPOT.camp) L.push({k:"camp", ic:"🔥", t:"모닥불", p:SPOT.camp, r:2.6, act:()=>{ hero.act="sit"; hero.actT=0; toast("🔥 따뜻해요 — 친구들이 모이는 곳이에요", 2200); }});
     return L; }
   function tripTo(key){ const at=key==="yard" ? [DOOR[0],DOOR[1]] : key==="village" ? [V_GATE[0]+1,V_GATE[1]] : key==="mine" ? [M_GATE[0]-1,M_GATE[1]] : null; go(key, at); }
+  /* (v525) 사용자: "화면을 돌릴 수도 없고 · 집이 동그랗게 있어서 보이지도 않아 · 화면의 자유가 없는데"
+     → 빈 곳을 끌면 돌리기(좌우)·기울이기(위아래) · 두 손가락 벌리기 = 가까이/멀리 · 집에서 나오면 카메라가 내 뒤에서 마을 쪽을 봄 */
+  const CAM={pitch:.6, zoom:1, drag:null, pts:new Map(), pinch:0, told:false};
+  function faceOut(){ if(!myHouse) return; const a=myHouse.face+Math.PI; yaw=yawTo=a; try{ camSnap=true; }catch(e){} dirty=true; }
+  function camUI(){ const cv=$("cv"); if(cv.dataset.isleCam) return; cv.dataset.isleCam=1;
+    cv.addEventListener("pointerdown", e=>{ if(place!==PLC) return; CAM.pts.set(e.pointerId,[e.clientX,e.clientY]); if(CAM.pts.size===1) CAM.drag={x:e.clientX,y:e.clientY,moved:0}; else { CAM.drag=null; const P=[...CAM.pts.values()]; CAM.pinch=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]); } });
+    cv.addEventListener("pointermove", e=>{ if(place!==PLC || !CAM.pts.has(e.pointerId)) return; CAM.pts.set(e.pointerId,[e.clientX,e.clientY]);
+      if(CAM.pts.size>=2){ const P=[...CAM.pts.values()], d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]); if(CAM.pinch>0){ CAM.zoom=Math.max(.55, Math.min(2.4, CAM.zoom*CAM.pinch/d)); } CAM.pinch=d; dirty=true; return; }
+      const D=CAM.drag; if(!D) return; const dx=e.clientX-D.x, dy=e.clientY-D.y; D.x=e.clientX; D.y=e.clientY; D.moved+=Math.abs(dx)+Math.abs(dy); if(D.moved<10) return;
+      yaw-=dx*.009; yawTo=yaw; CAM.pitch=Math.max(.28, Math.min(1.15, CAM.pitch+dy*.005)); dirty=true;
+      if(!CAM.told){ CAM.told=true; try{ localStorage.setItem("hyeng_isle_cam","1"); }catch(_){} } });
+    const end=e=>{ CAM.pts.delete(e.pointerId); if(CAM.pts.size<2) CAM.pinch=0; if(!CAM.pts.size) CAM.drag=null; };
+    ["pointerup","pointercancel","pointerleave"].forEach(ev=>cv.addEventListener(ev,end));
+    cv.addEventListener("wheel", e=>{ if(place!==PLC) return; e.preventDefault(); CAM.zoom=Math.max(.55, Math.min(2.4, CAM.zoom*(e.deltaY>0?1.1:.9))); dirty=true; }, {passive:false});
+    addEventListener("keydown", e=>{ if(place!==PLC) return; if(e.key==="q"||e.key==="Q"){ yawTo=yaw+Math.PI/4; } if(e.key==="e"||e.key==="E"){ yawTo=yaw-Math.PI/4; } }); }
+  function camHint(){ let t=false; try{ t=localStorage.getItem("hyeng_isle_cam")==="1"; }catch(e){} if(!t) setTimeout(()=>{ if(place===PLC) toast("👆 화면을 <b>끌면</b> 돌아가요 · 두 손가락으로 <b>벌리면</b> 가까이", 3200); }, 900); }
   function enterHome(){ const a=!roomBlocked(1,RN-1)?[1,RN-1]:[0,RN-1]; go("room", a, null, {from:()=>[0.05,RN-0.5], door:roomDoor}); }
   function tap(e){ const c=cellAt(e); if(!c) return; walkTo(c[0], c[1]); }
   /* 단추 모양 (시안 hud3: 굵은 테두리 #3b2433) */
@@ -199,6 +217,6 @@ const ISLE=(()=>{
 #ijump b{font-size:30px;line-height:1} #ijump span{font-size:15px}
 #ijump:active{transform:translateY(3px);box-shadow:inset 0 -5px 0 rgba(200,110,10,.45),0 2px 0 #3b2433}
 body.isleOn #bEmo{bottom:calc(220px + env(safe-area-inset-bottom))}`; document.head.appendChild(st); }
-  return {ON, back, ready, G, PLC, N, OX, OZ, S, build, enter, tick, show, labels, tap, blocked, nameOk, gate, SPOT, slots, myHouse:()=>myHouse, W, J, doorCell, enterHome};
+  return {ON, CAM, faceOut, back, ready, G, PLC, N, OX, OZ, S, build, enter, tick, show, labels, tap, blocked, nameOk, gate, SPOT, slots, myHouse:()=>myHouse, W, J, doorCell, enterHome};
 })();
 window.ISLE=ISLE; PL.isle=ISLE.PLC; LBL_DEF.isle=ISLE.labels; LBL_NEAR.isle=1;

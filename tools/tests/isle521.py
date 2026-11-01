@@ -57,6 +57,21 @@ async def main():
         ok(r["hood"] in ("1동","2동","3동") and r["star"], f"내 집 = {r['hood']} ⭐")
         ok(r["sea"] and r["edge"], "호수·바다 칸은 막힘")
         ok(r["mats"]>0 and r["toon"]==r["mats"], f"마을 재질 모두 툰 {r['toon']}/{r['mats']}")
+        # (v525) 화면 돌리기 · 내 뒤 카메라 · 가리는 집만 흐려짐
+        r=await pg.evaluate("()=>{ const m=ISLE.myHouse(); const d=((yaw-(m.face+Math.PI))%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI; return Math.abs(d); }")
+        ok(r<0.05, f"집에서 나오면 카메라가 내 뒤 (마을 쪽을 봄) {r:.3f}")
+        y0=await pg.evaluate("()=>yaw")
+        await pg.mouse.move(200,300); await pg.mouse.down(); 
+        for i in range(8): await pg.mouse.move(200+i*15,300+i*4)
+        await pg.mouse.up(); await pg.wait_for_timeout(300)
+        r=await pg.evaluate("()=>[yaw, ISLE.CAM.pitch, HOUSE.place()]")
+        ok(abs(r[0]-y0)>0.5 and r[1]!=0.6 and r[2]=="isle", f"화면을 끌면 돌아감 {y0:.2f} → {r}")
+        r=await pg.evaluate("()=>{ ISLE.CAM.zoom=1; const W=document.getElementById('cv'); W.dispatchEvent(new WheelEvent('wheel',{deltaY:120,bubbles:true,cancelable:true})); return ISLE.CAM.zoom; }")
+        ok(r>1.05, f"바퀴/두 손가락 = 확대·축소 {r}")
+        r=await pg.evaluate("()=>{ let s=0, nf=0; ISLE.G.children.forEach(o=>{ if(o.userData.solo) s++; if(o.userData.noFade) nf++; }); return [s,nf]; }")
+        ok(r[0]>40 and r[1]>3, f"집·큰 건물은 따로 (흐려질 수 있음) {r}")
+        r=await pg.evaluate("()=>{ ISLE.faceOut(); const m=ISLE.myHouse(); camSnap=true; updCam(0); updOcclude(1); return [...faded.keys()].some(o=>o.userData.solo); }")
+        ok(r, "내 집이 나를 가리면 흐려짐")
         # ④ 조이스틱
         await until(pg, "()=>!HOUSE.hero().slide")
         await pg.evaluate("()=>{ HOUSE.hero().g.position.set(ISLE.OX+0.5, 0, ISLE.OZ+4.6); }")   # 광장 남쪽 큰길
