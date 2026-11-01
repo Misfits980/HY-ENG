@@ -52,7 +52,36 @@ async def main(set_, state, vpn, out):
             a = await E(AUDIT, name)
             await pg.screenshot(path=os.path.join(out, fn), full_page=False)
             rep["shots"].append({"f": fn, "name": name, "view": a["view"], "iss": a["iss"]})
-        if state == "path":
+        if state.startswith("gram"):
+            # 📒 쉬어 가기: 길에서 첫 문법 돌 누르기 → 설명·확인 문제·문제를 끝까지 (처음 한 번은 틀림)
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("g386", os.path.join(os.path.dirname(os.path.abspath(__file__)), "gram386.py")); g = importlib.util.module_from_spec(spec)
+            src = open(spec.origin, encoding="utf-8").read(); ANS = src.split('ANS = """', 1)[1].split('"""', 1)[0]
+            if state == "gram2": await E("()=>{ const g=Gram.list(StudyUI.book)[0]; Gram.save && 0; }")
+            ok = await E("()=>{ const b=document.querySelector('#scStudy [data-gram]'); if(!b) return false; b.click(); return true; }")
+            if not ok: rep["skip"] = "no gram"
+            await pg.wait_for_timeout(700); await shot("문법_시작")
+            sig = set(); wrong = 0
+            for k in range(120):
+                st = await E("()=>{ const U=GramUI, q=U.cur&&U.cur(); return [U.mode, U.tier, q&&q.k, !!U.ck, q&&q.res, StudyUI._v, !!document.querySelector('#stGram [data-gr=chk]'), !!document.querySelector('#stGram [data-gr=cnext]'), !!document.querySelector('#stGram [data-gr=qnext]'), !!document.querySelector('#stGram [data-gr=go]')]; }")
+                if st[5] != "stGram": break
+                key = (st[0], st[2], st[3])
+                if key not in sig: sig.add(key); await shot("문법_" + "_".join(str(x) for x in key))
+                if st[0] == "quiz" or st[3]:
+                    w = wrong < 1 and st[4] is None
+                    await E(ANS, w); await pg.wait_for_timeout(300)
+                    if w: wrong += 1; await shot("문법_틀림")
+                    if st[3]:
+                        if await E("()=>!!document.querySelector('#stGram [data-gr=uncheck]')"): await E("()=>document.querySelector('#stGram [data-gr=uncheck]').click()"); await E(ANS, False); await pg.wait_for_timeout(200)
+                    for b in ("qnext", "cnext"):
+                        if await E(f"()=>{{ const b=document.querySelector('#stGram [data-gr={b}]'); if(b){{ b.click(); return true; }} return false; }}"): break
+                elif st[6]: await E("()=>document.querySelector('#stGram [data-gr=chk]').click()")
+                elif st[7]: await E("()=>document.querySelector('#stGram [data-gr=cnext]').click()")
+                elif st[9]: await E("()=>document.querySelector('#stGram [data-gr=go]').click()")
+                else:
+                    await shot("문법_끝"); break
+                await pg.wait_for_timeout(250)
+        elif state == "path":
             await E("()=>{ document.getElementById('scStudy').scrollTop=0; }"); await pg.wait_for_timeout(300); await shot("길_위")
             await E("()=>{ const n=document.querySelector('#scStudy .stDot.now'); if(n) n.scrollIntoView({block:'center'}); }"); await pg.wait_for_timeout(300); await shot("길_지금")
             await E("()=>{ const S=document.getElementById('scStudy'); S.scrollTop=S.scrollHeight; }"); await pg.wait_for_timeout(400); await shot("길_끝")
