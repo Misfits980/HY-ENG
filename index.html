@@ -5414,6 +5414,14 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 /* (v526) 사용자: 위 바가 배경과 달라 탁 잘려 보임 → 바 아래 끝을 배경으로 스르르 녹임 (딱딱한 선·그림자 없앰) */
 .stBar{background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;isolation:isolate}
 .stBar::before{content:"";position:absolute;left:0;right:0;top:0;bottom:-26px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,var(--sbBg) 0,var(--sbBg) calc(100% - 44px),transparent)}
+/* (v528) QA 3 */
+#stLesson:has(.stFoot:not(.good):not(.bad):not(.idk)) .stSentKo.koAll{color:transparent!important;text-shadow:none!important;position:relative}
+#stLesson:has(.stFoot:not(.good):not(.bad):not(.idk)) .stSentKo.koAll::after{content:"해석은 답한 뒤에 보여요";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:.55;color:var(--sbInk,#8d82b8)}
+.stBar::before{background:linear-gradient(180deg,var(--sbBg) 0,var(--sbBg) calc(100% - 26px),transparent)!important}
+.stBt .bM{height:84px!important;width:110px!important;bottom:2px}
+.stBt.zbM .bM{height:90px!important;width:124px!important}
+#scStudy.fit1 .stBt .bM{height:60px!important;width:80px!important}
+#scStudy.thB6.vGram #stGram .stTitle,#scStudy.thB6.vGram #stGram .stSub,#scStudy.thB6.vGram #stGram .grHead b,#scStudy.thB6.vGram #stGram .grHead small{color:#ffe8a0!important;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 </style>
 </head>
 <body class="hudC">
@@ -16127,7 +16135,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v527";
+const GAME_VER = "v528";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17860,7 +17868,7 @@ const StudyUI = {
       D.addEventListener("click", e=>{ if(e.target.closest(".stCat, .stSubB")) setTimeout(()=>{ P.classList.remove("sbOpen"); const bb=B.querySelector("[data-sb=book]"); if(bb) bb.setAttribute("aria-expanded","false"); }, 0); }); }
     const BK=Study.BOOKS[this.book]||{}, U=Study.SUB[this.set]||{}, hd=this._hd||{}, pc=hd.tot ? Math.round(hd.fin/hd.tot*100) : 0, E=x=>this.esc(x), op=P.classList.contains("sbOpen");
     const Mn=B.querySelector(".sbMain"); Mn.innerHTML='<div class="sbR1"><button class="sbX" data-sb="close" aria-label="메뉴로">✕</button>'
-      +'<button class="sbBook" data-sb="book" aria-expanded="'+op+'"><i>'+(BK.emo||'')+'</i><b>'+E(BK.tab||'')+'</b>'+((BK.sets||[]).length>1 && U.nm ? '<small>'+E(U.nm)+'</small>' : '')+'<em>▾</em></button>'
+      +'<button class="sbBook" data-sb="book" aria-expanded="'+op+'"><i>'+(BK.emo||'')+'</i><b>'+E(BK.tab||'')+'</b>'+((BK.sets||[]).length>1 && U.nm ? '<small>'+E(String(U.nm).replace(new RegExp('^'+String(BK.tab||'').replace(/[-]/g,'\\-')+'\\s*'),''))+'</small>' : '')+'<em>▾</em></button>'
       +'<span class="sbProg"><u><i style="width:'+Math.max(pc?3:0,pc)+'%"></i></u><span>Stage '+(hd.fin|0)+' / '+(hd.tot|0)+'</span></span>'
       +(hd.sk ? '<span class="sbFire">'+ic('fire')+hd.sk+'</span>' : '')+'</div><div class="sbR2" id="sbChips"></div>';
     const R=document.querySelector("#stHead .stResume"); if(R){ const rc=this.getCur(); R.classList.toggle("other", !!(rc && !rc.rv && (BK.sets||[]).indexOf(rc.set)<0)); Mn.appendChild(R); }
@@ -18259,7 +18267,7 @@ const StudyUI = {
       const full=q.st.pre+(q.st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+q.st.post;
       h='<div class="stKind">'+(q.idm?'📌 숙어 — 빈칸에 들어갈 단어는?':q.col?'🧩 자주 같이 쓰는 말 — 빈칸은?':q.aud?'👂 문장을 듣고 빈칸을 채워요':'📝 빈칸에 들어갈 단어는?')+'</div><div class="stPrompt sent">'+(q.opic && w.emoji?'<div class="stPic">'+w.emoji+'</div>':'')
         +(q.aud?'<div class="stAudRow"><button class="stSay" data-say="'+this.esc(full)+'">🔊</button><button class="stSlow" data-slow="'+this.esc(full)+'">🐢 천천히</button></div>':'')+'<div class="stSent'+(q.col?' col':'')+'">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'
-        +(q.st.ko && !q.noKo?'<div class="stSentKo">'+this.koMark(q.st.ko, w, !this.koHelp(q))+'</div>':'')   /* (v503) 고학년·중등: 해석 줄의 정답 뜻은 답한 뒤에 보임 */+(this.koHelp(q) && !q.col && !(q.st.ko && !q.noKo && this.koHit(q.st.ko, w)) ? '<div class="stKoHint">💡 빈칸 = <b>'+this.esc(w.ko)+'</b></div>' : '')+'</div>'
+        +(q.st.ko && !q.noKo?'<div class="stSentKo'+(!this.koHelp(q) && !this.koHit(q.st.ko, w) ? ' koAll' : '')+'">'+this.koMark(q.st.ko, w, !this.koHelp(q))+'</div>':'')   /* (v503) 고학년·중등: 해석 줄의 정답 뜻은 답한 뒤에 보임 */+(this.koHelp(q) && !q.col && !(q.st.ko && !q.noKo && this.koHit(q.st.ko, w)) ? '<div class="stKoHint">💡 빈칸 = <b>'+this.esc(w.ko)+'</b></div>' : '')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(dispEn(o.en))+'</button>').join("")+'</div>';
       if(q.aud) setTimeout(()=>{ if(this.qs[this.i]===q) this.say(full); }, 300);
     } else if(q.t==="sentp"){                                           // (v270) 과거형 빈칸
@@ -18281,7 +18289,7 @@ const StudyUI = {
         +(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'');
       setTimeout(()=>{ if(this.qs[this.i]===q && !this.locked) this.say(w.en); }, 250);
     } else if(q.t==="drag"){                                            // (v228) 끌어서 짝짓기 (Drops)
-      q.done={}; q.miss=0; q.pick=null; const L=shuffle(q.ws), T=shuffle(q.ws);
+      q.done={}; q.miss=0; q.pick=null; let L=shuffle(q.ws), T=shuffle(q.ws); for(let g=0; g<6 && L.length>1 && L.every((o,k)=>T[k]===o); g++) L=shuffle(q.ws);   /* (v528) 위·아래 같은 순서면 다시 섞음 */
       h='<div class="stKind">✋ 단어를 끌어서 '+(q.pic?'그림':'뜻')+'에 놓아요</div><div class="dgWrap"><div class="dgWords">'
         +L.map(o=>'<button class="dgChip" data-en="'+this.esc(o.en)+'">'+this.esc(dispEn(o.en))+'</button>').join("")+'</div><div class="dgTargets'+(q.pic?' pic':'')+'">'
         +T.map(o=>'<div class="dgT" data-en="'+this.esc(o.en)+'"><span>'+(q.pic?o.emoji:this.esc(o.ko))+'</span><b></b></div>').join("")+'</div></div>';
@@ -18722,6 +18730,7 @@ const StudyUI = {
     if(!this.test && !this.oly && !this.chk && this.done<this.total && r>=1 && r<this.rounds() && r>(this._rd|0) && this.rounds()>1){ this._rd=r; this.roundBreak(r); return; }
     this.show(); },
   roundBreak(r){
+    try{ const rl=$("stRnd"); if(rl) rl.textContent="라운드 "+r+"/"+this.rounds()+" 끝"; }catch(e){}   /* (v528) 위 글자와 카드가 같은 라운드 */
     const R=this.rounds(), acc=Math.round(this.first/Math.max(1,this.first+(this._fw|0))*100), perfect=!(this._rm|0); this._rm=0;   // (v234) 이번 라운드를 한 번도 안 틀렸으면
     $("stQ").innerHTML='<div class="rdBreak'+(perfect?' perfect':'')+'"><div class="rdStars">'+'<b class="rbS on">●</b>'.repeat(r)+'<b class="rbS">○</b>'.repeat(Math.max(0,R-r))   /* (v503) 라운드 진행 = 동그라미 (별 ★★☆ 은 '퍼펙트'와 어긋나 보임) */+'<small class="rdStL">라운드 '+r+' / '+R+'</small>'+'</div>'
       +'<div class="rdT">'+(perfect?'✨ 퍼펙트 라운드!':'라운드 '+r+' 끝!')+'</div>'+this.mas(true,true)
