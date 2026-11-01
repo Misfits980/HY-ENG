@@ -5227,6 +5227,15 @@ body.hudC #windTag{top:calc(env(safe-area-inset-top,0px) + clamp(240px,40vh,400p
 /* 정예(붉은 빛)는 그대로 */
 .stBt.eliteM.ar-lava .bM,.stBt.eliteM.ar-castle .bM{filter:drop-shadow(0 0 1.5px rgba(255,236,210,.85)) drop-shadow(0 0 6px rgba(255,70,60,.85))}
 .stBt.ar-castle.mk-overlord .bM{filter:drop-shadow(0 0 1.5px rgba(235,215,255,.9)) drop-shadow(0 0 10px rgba(180,120,255,.55))}
+/* (v511) QA 2 — 중등 밝은 톤 남은 조각 */
+#scStudy.thML .vRib .stBigT,#scStudy.thML .vRib *{color:#fff!important;-webkit-text-stroke:0!important}
+#scStudy.thML #stDone .stGo small{color:rgba(255,255,255,.85)}
+#scStudy.thML .stChests{background:none}
+#scStudy.thML .stCh{max-width:96px} #scStudy.thML .stCh.open{transform:scale(1.06)}
+#scStudy.thML .stCh u{color:#13744a;text-shadow:none}
+#scStudy.thML .stBig{background:var(--mBlue);color:#fff;border:0;box-shadow:0 4px 0 #2a3fc0;filter:none;border-image:none}
+#scStudy.thML .stSlow{background:var(--mBlueL);color:var(--mBlue);border:0}
+#scStudy.thML .stPrompt.sent,#scStudy.thML .stPrompt{padding-left:16px;padding-right:16px}
 </style>
 </head>
 <body class="hudC">
@@ -15940,7 +15949,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v510";
+const GAME_VER = "v511";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17801,11 +17810,16 @@ const StudyUI = {
     const c=$("stCombo"); if(c){ c.textContent = this.combo>=2 ? "🔥 "+this.combo : ""; c.className="stCombo"+(this.combo>=5?" hot":""); } },
   esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
   /* (v439) 낮은 학년 도움 — G1-2·G3-4(·유치원) 배우는 판의 문장·대화 빈칸: 해석을 보여 주고 빈칸 단어 뜻에 밑줄 (사용자: 별 3개(★1·★2 확인·★3)까지 · 💜·🚩·주간 시험·해석 숨김 문제는 그대로) */
-  koHelp(q){ if(!q || q.oly || q.wk || q.ex || q.noKo || this.tier===3 || this.oly || this.test || this.wk) return false; let g=""; try{ g=Study.isKid && Study.isKid(this.set) ? "kid" : Study.gradeOf(this.set); }catch(e){} return g==="g12" || g==="g34" || g==="kid"; },
+  koHelp(q){ try{ if(Study.bookOf(this.set)==="ph") return false; }catch(e){}   /* (v511) 표현 책은 해석 줄이 곧 정답(서로 · ~하는 방법) */
+    if(!q || q.oly || q.wk || q.ex || q.noKo || this.tier===3 || this.oly || this.test || this.wk) return false; let g=""; try{ g=Study.isKid && Study.isKid(this.set) ? "kid" : Study.gradeOf(this.set); }catch(e){} return g==="g12" || g==="g34" || g==="kid"; },
   koStems(w){ let ps=koParts(w.ko); try{ const b=BEX[w.en]; if(b && b.P) b.P.forEach(P=>{ ps=ps.concat(koParts(P[1]||'')); }); }catch(e){}   /* (v503) 교재 뜻(볼, 뺨)까지 — 해석 줄이 다른 말을 쓰면 정답이 보이던 것 */
     return ps.map(p=>p.replace(/(하다|되다|이다|다)$/,"")).filter(p=>p.length>=1).sort((a,b)=>b.length-a.length); },
-  koHit(ko, w){ const k=String(ko||""); return this.koStems(w).some(p=>k.indexOf(p)>=0); },
-  koMark(ko, w, hide){ const k=String(ko||""); for(const p of this.koStems(w)){ const i=k.indexOf(p); if(i>=0) return this.esc(k.slice(0,i))+'<u class="koU'+(hide?' koH':'')+'">'+this.esc(p)+'</u>'+this.esc(k.slice(i+p.length)); } return this.esc(k); },
+  /* (v511) 뜻 찾기 — 그대로 + 끝 글자 받침이 바뀐 꼴(이루다 → 이룰 · 만들다 → 만든)도 */
+  koFind(k, p){ let i=k.indexOf(p); if(i>=0) return [i, p.length]; if(p.length<2) return null;
+    const c=p.charCodeAt(p.length-1); if(c<0xAC00 || c>0xD7A3) return null; const b=c-((c-0xAC00)%28), head=p.slice(0,-1);
+    for(let j=k.indexOf(head); j>=0; j=k.indexOf(head, j+1)){ const d=k.charCodeAt(j+head.length); if(d>=b && d<=b+27) return [j, p.length]; } return null; },
+  koHit(ko, w){ const k=String(ko||""); return this.koStems(w).some(p=>!!this.koFind(k,p)); },
+  koMark(ko, w, hide){ const k=String(ko||""); for(const p of this.koStems(w)){ const f=this.koFind(k,p); if(f){ const i=f[0], n=f[1]; return this.esc(k.slice(0,i))+'<u class="koU'+(hide?' koH':'')+'">'+this.esc(k.slice(i,i+n))+'</u>'+this.esc(k.slice(i+n)); } } return this.esc(k); },
   say(t){ try{ DexDet.say(t); }catch(e){} },
   /* (v226) 파닉스 Stage 면 소리 글자를 노랗게 */
   wd(en){ const hl=this.les && this.les.hl; return '<span class="wdW">'+(hl ? phonicsMark(String(en), hl==='g12' && G12X[en] ? 'g12t' : hl) : this.esc(dispEn(en)))+'</span>'; },   // (v486) 한 덩어리로 — .stEn(flex) 안에서 「h ea d」 처럼 벌어지던 것   // (v322) 고유명사 대문자
@@ -18097,7 +18111,7 @@ const StudyUI = {
     } else if(q.t==="form" || q.t==="conf"){                            // (v273) 💜 규칙 빈칸 (goes · boxes · took · taller) · 헷갈리는 짝 (quite · quiet)
       h='<div class="stKind">'+(q.t==="form"?'📏 빈칸에 알맞은 모양은?':'🤔 헷갈리는 짝 — 빈칸에 맞는 것은?')+'</div><div class="stPrompt sent">'
         +(q.t==="form"?'<div class="stFormB">기본 모양 <b>'+this.esc(dispEn(w.en))+'</b> <span>'+this.esc(w.ko)+'</span></div>':'')
-        +'<div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'+(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
+        +'<div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'+(q.st.ko?'<div class="stSentKo">'+(q.t==="conf" ? this.koMark(q.st.ko, w, true) : this.esc(q.st.ko))+'</div>':'')   /* (v511) 헷갈리는 짝: 해석 줄 정답 뜻은 답한 뒤에 */+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(dispEn(o))+'</button>').join("")+'</div>';
     } else if(q.t==="gram"){                                            // (v276) 시제·시간 전치사 빈칸
       h='<div class="stKind">'+(q.x.lbl ? this.esc(q.x.lbl) : q.x.kind==="prep"?'⏳ 빈칸에 맞는 전치사는?':'⏪⏩ 시간 말을 보고 알맞은 모양은?')+'</div><div class="stPrompt sent">'+(q.x.head?'<div class="stFormB">'+q.x.head+'</div>':'')
@@ -18469,7 +18483,7 @@ const StudyUI = {
   },
   /* (v228) 10문제마다 라운드 — 짧게 쉬어 가며 (단어 수는 그대로) */
   RND:10,
-  rounds(){ return Math.max(1, Math.ceil(this.total/this.RND)); },
+  rounds(){ if(this._R0 && this._R0q===this.qs) return this._R0; this._R0q=this.qs; return (this._R0=Math.max(1, Math.ceil(this.total/this.RND))); },   /* (v511) 라운드 수는 판 처음에 정함 — 틀린 문제가 붙어도 3/3 → 3/4 로 늘지 않게 */
   /* (v300) 먼저 복습 '다음에 하기' — 이 판의 복습 문제를 빼고 바로 새 단어로. 오늘은 판 처음 복습을 다시 묻지 않는다 (단어는 내일 다시) */
   skipWarm(){ const s=Study.load(); s.wuSkip=Study.today(); Study.save();
     this.qs=this.qs.filter((q,k)=>k<this.i || !(q.wu || (q.t==="intro" && q.hd==="wu")));
@@ -18479,7 +18493,7 @@ const StudyUI = {
   outEnd(){ if(this._out!==1) return; this._out=2; clearTimeout(this._outT); clearTimeout(this._adv); this.finish(false); },   // (v325) 💜3 ❤️ 다 씀
   next(){ if(this._out){ this.outEnd(); return; } clearTimeout(this._adv); this.i++; this.dgClean();
     const r=Math.floor(this.done/this.RND);
-    if(!this.test && !this.oly && !this.chk && this.done<this.total && r>=1 && r>(this._rd|0) && this.rounds()>1){ this._rd=r; this.roundBreak(r); return; }
+    if(!this.test && !this.oly && !this.chk && this.done<this.total && r>=1 && r<this.rounds() && r>(this._rd|0) && this.rounds()>1){ this._rd=r; this.roundBreak(r); return; }
     this.show(); },
   roundBreak(r){
     const R=this.rounds(), acc=Math.round(this.first/Math.max(1,this.first+(this._fw|0))*100), perfect=!(this._rm|0); this._rm=0;   // (v234) 이번 라운드를 한 번도 안 틀렸으면
@@ -18664,7 +18678,7 @@ const StudyUI = {
       +this.vicStat(acc)
       +(this.test ? '' : (()=>{ const tot=(x.ws||[]).length, met=tot-Study.unseenLeft(set,x.n), tm=Study.dueOn(Study.today()+1);   // (v242) Stage 단어 진행 · 내일 복습
           return (met<tot ? '<div class="stDProg">이 Stage 단어 '+met+' / '+tot+' 만남<span class="stPgBar"><span style="width:'+Math.round(met/Math.max(1,tot)*100)+'%"></span></span></div>' : '')   // (v444) 다 만났으면 막대는 뺌
-            +(tm?'<p class="stDue">🔁 내일 복습 단어 <b>'+tm+'</b>개 · 💎+3</p>':''); })())
+            +(tm?'<p class="stDue">📅 내일 복습 상자 · 단어 <b>'+tm+'</b>개 · 💎+3</p>':'')   /* (v511) 모든 Stage 의 복습 일정 — 이 판 틀린 단어 수와 다름 */; })())
       +(()=>{ if(!pass || this.test || this.oly || !(this.tier===2 || this.tier===3)) return ''; const rd=Study.storyFor(set, x); if(!rd) return ''; this._rdx=x;   /* (v442) 📖 짧은 글 (중등) */
           return '<button class="stGo rdGo" data-read="1">📖 짧은 글 읽기 <small>「'+this.esc(rd.st.t[0])+'」 · 처음이면 💎1</small></button>'; })()
       +(gems?'<div class="stGem gpop"><i class="vGem"></i>+'+gems+'</div>':'')
