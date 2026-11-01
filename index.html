@@ -4752,6 +4752,29 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
 #scStudy.vDone .stWrap{padding-bottom:16px}
 #scStudy.thB.vDone .stRun{border:solid transparent;border-width:12px 18px;border-image:url(assets/d30/g36/btn_o.webp) 40 84 fill / 12px 18px stretch;border-radius:0;background:none;box-shadow:none;color:#fff;font:900 14px var(--font);text-shadow:0 2px 0 rgba(0,0,0,.4);min-height:50px;margin:0}
 #scStudy.thB.vDone .stRun small{display:block;font-size:11px}
+
+/* ===== (v493) 끝 화면 리본 · 미션 상자 · 나무 글자 타일 · 진행 막대 ===== */
+img.chImg{display:block;max-width:100%;height:auto}
+/* 오늘의 미션 */
+.dmCh{width:128px;height:112px;filter:grayscale(.6) brightness(.8)} .dmCh img.chImg{width:100%;height:100%;object-fit:contain}
+.dmChest{position:relative;margin:14px 0 6px;padding:10px 12px 8px;border-radius:18px;background:radial-gradient(ellipse at 50% 45%,rgba(255,214,110,.22),rgba(0,0,0,0) 70%)}
+.dmChest.rd .dmCh{filter:drop-shadow(0 0 14px rgba(255,214,110,.8))}
+.dmChest.got .dmCh{filter:none}
+.dmRow{border:1.5px solid rgba(255,255,255,.08)} .dmRow.ok{border-color:rgba(126,217,87,.45);background:rgba(126,217,87,.10)}
+.dmHead b{display:flex;align-items:center;gap:6px}
+.dmIn{overflow:hidden}
+/* 배틀 끝 화면 리본 = 그림 */
+#scStudy.thB.vDone .vRib{border:solid transparent;border-width:0 34px;border-image:url(assets/d30/k/ribbon.webp) 0 110 fill / 0 34px stretch;background:none;box-shadow:none;padding:8px 40px 14px;max-width:calc(100% - 20px)}
+#scStudy.thB.vDone .vRib::before,#scStudy.thB.vDone .vRib::after,#scStudy.thB.vDone .vRibS{display:none}
+#scStudy.thB.vDone .vRib .stBigT{color:#4a2600;font-size:20px}
+/* 유치원·G1-2 철자 글자 = 나무 타일(표지판과 같은 나무) */
+#scStudy.thK .stTiles,#scStudy.thG .stTiles{gap:8px}
+#scStudy.thK .stTile,#scStudy.thG .stTile{width:52px;height:56px;padding:0;border:3px solid #5a3412;border-radius:12px;background:linear-gradient(180deg,#f7d39c,#dca468 62%,#cb8d4f);box-shadow:inset 0 2px 0 #ffe8bf,0 4px 0 #4a250a;color:#3a1d06;font:900 28px/1 var(--font);-webkit-text-stroke:0;text-shadow:0 1px 0 rgba(255,255,255,.5);display:inline-flex;align-items:center;justify-content:center}
+#scStudy.thK .stTile:active,#scStudy.thG .stTile:active{transform:translateY(3px);box-shadow:inset 0 2px 0 #ffe8bf,0 1px 0 #4a250a}
+#scStudy.thK .stTile:disabled,#scStudy.thK .stTile.used,#scStudy.thG .stTile:disabled,#scStudy.thG .stTile.used{background:rgba(255,250,235,.35);border-color:rgba(90,52,18,.4);box-shadow:none;color:rgba(58,29,6,.35);opacity:1}
+#scStudy.thK.fit2 .stTile,#scStudy.thG.fit2 .stTile{width:44px;height:48px;font-size:24px}
+/* 유치원·G1-2 진행 막대 = 나무 홈 + 초록 막대 + 연꽃 (코드로) */
+#scStudy.thK .stProg{height:22px;padding:3px;border:3px solid #5a3412;border-image:none;border-radius:12px;background:linear-gradient(#5a3412,#7a4a1e);box-shadow:inset 0 2px 3px rgba(0,0,0,.5),0 3px 0 #3a1d06;overflow:visible}
 </style>
 </head>
 <body>
@@ -15380,7 +15403,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v495";
+const GAME_VER = "v496";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16881,7 +16904,7 @@ const StudyUI = {
   /* (v487) 유치원·G1-2 꾸미기 — 길 화면 · 문제 · 끝 화면 모두 (thK), G1-2 는 숲 강가 · 돌 · 나무 상자 (thG) */
   thUpd(){ const S=$("scStudy"), v=this._v, on=(this.book==="k" || this.book==="g12") && (v==="stPath" || v==="stLesson" || v==="stDone");
     S.classList.toggle("thK", on); S.classList.toggle("thG", on && this.book==="g12"); S.classList.toggle("vDone", v==="stDone");
-    if(v==="stDone") setTimeout(()=>{ try{ this.fitDone(); }catch(e){} }, 80);
+    if(v==="stDone") [80,700,1600,3000].forEach(t=>setTimeout(()=>{ try{ this.fitDone(); }catch(e){} }, t));   /* (v493) 늦게 붙는 칸(보스 기회·상자)까지 */
     const ob=(this.book==="g34" || this.book==="g56") && (v==="stPath" || v==="stLesson" || v==="stDone");   /* (v491) G3-4 몬스터 사냥 · G5-6 원정대 */
     S.classList.toggle("thB", ob); S.classList.toggle("thB4", ob && this.book==="g34"); S.classList.toggle("thB6", ob && this.book==="g56");
     if(ob && v==="stPath") try{ $("stMap").querySelectorAll(".stDot:not(.grSt)").forEach((d,i)=>d.style.setProperty("--mon","url(assets/boss/hb"+(i%5+1)+".webp)")); }catch(e){} },
@@ -20776,7 +20799,7 @@ const DM = {
     d.innerHTML='<div class="rdJoinIn dmIn"><div class="dmHead"><b>🎯 오늘의 미션</b><small>새 미션까지 '+left+(s.st>0?' · 🔥 '+s.st+'일 연속':'')+'</small></div>'
       +'<div class="dmList">'+L.map(m=>'<div class="dmRow'+(m.done?' ok':'')+'"><i>'+m.ic+'</i><span><b>'+E(m.t)+'</b><u class="dmBar"><s style="width:'+Math.round(m.n/m.goal*100)+'%"></s></u></span>'
         +(m.done?'<em>✅</em>':'<button class="dmGo" data-dmgo="'+m.go+'">'+m.n+'/'+m.goal+' ›</button>')+'</div>').join('')+'</div>'
-      +'<div class="dmChest'+(rd?' rd':s.got?' got':'')+'"><button class="dmCh" data-dmopen="1"'+(rd?'':' disabled')+'>'+StudyUI.chestSvg(2, !!s.got)+'</button>'
+      +'<div class="dmChest'+(rd?' rd':s.got?' got':'')+'"><button class="dmCh" data-dmopen="1"'+(rd?'':' disabled')+'>'+'<img class="chImg" src="assets/d30/chest/gold'+(s.got?'_o':'')+'.webp" alt="" draggable="false">'+'</button>'
         +'<p>'+(s.got ? '💎 '+(s.g|0)+' 받았어요! 내일 또 만나요' : rd ? '눌러서 열기! 💎'+this.reward()+(s.st>0?' (🔥 연속 +'+Math.min(5,s.st)+')':'') : '미션 3개를 다 하면 열려요 · 💎'+this.reward()+(s.st>0?' (연속 보너스 포함)':''))+'</p></div>'
       +'<p class="dmTip">매일 열면 🔥 연속 보너스 (+1씩, 최대 +5) · 가끔 💎 두 배!</p>'
       +'<button class="stLater" data-dmx="1">닫기</button></div>'; },
