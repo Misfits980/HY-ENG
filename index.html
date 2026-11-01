@@ -12473,6 +12473,7 @@ var Loot = (function(){
   const API = {
     S, HEAL_EVERY, FEVER_MAX, FEVER_T, STAR_N, BOX_ON, STAR_ON,
     healOn(){ return can() && G.diff!=="easy"; },
+    feverOn(){ return can() && (G.stage|0) > 50 && !bossOn(); },   // (v494) 사용자: "50단계 이후부터 해야 해 · 보스 끝나고" — 첫 문지기를 쓰러뜨린 뒤(51단계~)부터 🔥
     healLeft(){ if(!this.healOn() || G.lives>=G.maxLives) return 0; return HEAL_EVERY - (G.combo % HEAL_EVERY); },
     mul(){ return (can() && S.fever>0) ? 2 : 1; },
     shieldOn(){ return can() && !!S.shield; },
@@ -12547,7 +12548,7 @@ var Loot = (function(){
       try{ burst(it.x, 1.0, it.z, 0xb98bff, 14); }catch(e){}
       updateHUD();
     },
-    gain(v){ if(S.fever>0) return; S.gauge=Math.min(FEVER_MAX, S.gauge+v); if(S.gauge>=FEVER_MAX) this.startFever(); },
+    gain(v){ if(S.fever>0 || !this.feverOn()) return; S.gauge=Math.min(FEVER_MAX, S.gauge+v); if(S.gauge>=FEVER_MAX) this.startFever(); },
     startFever(){
       S.fever=FEVER_T; S.fevers++; S.gauge=0; S.fT=0;
       try{ document.body.classList.add("fever"); }catch(e){}
@@ -12560,7 +12561,7 @@ var Loot = (function(){
     onRight(){
       if(!can()) return;
       this.gain(G_RIGHT);
-      if(G.combo>=2 && S.fever<=0) tip("fever", "🔥 맞힐 때마다 게이지가 차요 — 가득 차면 FEVER! 점수 2배");
+      if(this.feverOn() && S.fever<=0) tip("fever", "🔥 이제부터 FEVER! 맞힐 때마다 게이지가 차요 — 가득 차면 점수 2배");
       if(this.healOn() && G.combo>0 && G.combo%HEAL_EVERY===0 && G.lives<G.maxLives){
         G.lives++; S.heals++; heartAnim(); updateHUD();
         const c=G.combo; setTimeout(()=>{ try{ popScore("💗 하트 +1", c+"연속 정답!", "#ff7aa8", 36); }catch(e){} }, 420);
@@ -12602,8 +12603,9 @@ var Loot = (function(){
     },
     hud(){
       const on=can(), fb=document.getElementById("feverBar"), lt=document.getElementById("lootTag");
-      if(fb){ if(fb.hidden===on) fb.hidden=!on;
-        if(on){ const i=fb.firstChild, w=(S.fever>0 ? 100 : Math.round(S.gauge/FEVER_MAX*100))+"%"; if(i && i.style.width!==w) i.style.width=w; fb.classList.toggle("full", S.fever>0); } }
+      const fon=this.feverOn() || S.fever>0;   // (v494) 게이지 막대도 51단계부터
+      if(fb){ if(fb.hidden===fon) fb.hidden=!fon;
+        if(fon){ const i=fb.firstChild, w=(S.fever>0 ? 100 : Math.round(S.gauge/FEVER_MAX*100))+"%"; if(i && i.style.width!==w) i.style.width=w; fb.classList.toggle("full", S.fever>0); } }
       if(lt){ const p=[];
         if(on){ if(S.fever>0) p.push("🔥 FEVER "+Math.ceil(S.fever)+"초"); if(S.slow>0) p.push("🐢 "+S.slow); if(S.magnet>0) p.push("🧲 "+Math.ceil(S.magnet)+"초"); }
         const t=p.join(" · "); if(t!==S.lt){ S.lt=t; lt.textContent=t; lt.classList.toggle("on", !!t); } }
@@ -15345,7 +15347,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v493";
+const GAME_VER = "v494";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){

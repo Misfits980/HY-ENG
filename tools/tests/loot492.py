@@ -1,4 +1,4 @@
-"""(v492·v493) 달리기 손맛 — (v493) 별은 꺼 두고 🔥 게이지는 정답으로만 — ⭐ 별 줄 · ❓ 상자 · 🔥 FEVER · 💗 연속 정답 회복 · ⚡ RUSH 보이기 · 콤보 글자 단계
+"""(v492·v493·v494) 달리기 손맛 — (v494) FEVER 는 51단계부터 — (v493) 별은 꺼 두고 🔥 게이지는 정답으로만 — ⭐ 별 줄 · ❓ 상자 · 🔥 FEVER · 💗 연속 정답 회복 · ⚡ RUSH 보이기 · 콤보 글자 단계
    ① 봇이 40문제를 달리며 별을 줍고 정답을 고름 → 별·FEVER 가 실제로 생기고 오류 없음 · 별이 함정 자리에 놓이지 않음
    ② 별 줄은 정답 줄과 상관없음 (힌트가 아님) — 400번 만들어 같은 줄일 확률이 1/줄 수 근처
    ③ 연속 정답 10개 → 하트 +1 (쉬움은 없음) · 콤보 글자에 「💗 n」
@@ -47,9 +47,18 @@ async def main():
         print("봇", r)
         ok(r["sol"] >= 25, f"봇이 여러 문제를 풀었음 {r['sol']}")
         ok(r["stats"]["stars"] == 0 and r["list"] == 0, f"(v493) 별은 꺼져 있음 {r['stats']}")
-        ok(2 <= r["stats"]["fevers"] <= 4, f"정답만으로 FEVER (40문제에 2~4번) {r['stats']}")
+        ok(r["stats"]["fevers"] == 0, f"(v494) 1~50단계는 FEVER 없음 {r['stats']}")
         ok(r["bad"] == 0, f"별·상자가 함정 자리에 없음 {r['badx']}")
-        ok(r["fb"], "🔥 게이지 막대가 보임")
+        ok(not r["fb"], "(v494) 50단계 전에는 🔥 게이지 막대 숨김")
+        # (v494) 첫 문지기 뒤 51단계부터 — 봇 40문제
+        await pg.evaluate("()=>{ Loot.reset(); G.stage=51; G.zone=zoneIndex(51); applyZone(G.zone,false); G.solved=0; clearSets(); Hazards.clear(); spawnSet(); updateHUD(); }")
+        for k in range(40):
+            await pg.evaluate("()=>_run(240)")
+            r2 = await pg.evaluate("()=>({st:G.stage, sol:G.solved, run:G.running, stats:Loot.stats(), fb:!document.getElementById('feverBar').hidden})")
+            if r2["sol"] >= 25 or not r2["run"]: break
+        print("51단계부터", r2)
+        ok(r2["stats"]["fevers"] >= 1 and r2["fb"], f"51단계부터 정답만으로 FEVER · 막대 보임 (80단계 보스 전 25문제) {r2}")
+        await pg.evaluate("()=>{ Boss.reset(); Loot.endFever(); G.stage=5; G.zone=zoneIndex(5); applyZone(G.zone,false); clearSets(); Hazards.clear(); }")
         ok(r["stats"]["boxes"] == 0, f"❓ 상자는 아직 꺼져 있음 (사용자: 아이템은 아직 끄자) {r['stats']}")
 
         # ② 별 줄 ↔ 정답 줄 독립
@@ -86,9 +95,10 @@ async def main():
         await pg.wait_for_timeout(500)
         print("방패", r)
         ok(r["sh"] and r["L"] == 2 and r["left"] == 0, f"방패가 하트를 지킴 {r}")
-        r = await pg.evaluate("""()=>{ G.dead=false; G.falling=false; clearSets(); Loot.S.slow=1; spawnSet(); const s=activeSet(); return {slow:Loot.S.slow, time:s.time, base:approachTime(G.stage)}; }""")
+        r = await pg.evaluate("""()=>{ G.dead=false; G.falling=false; const one=(slow)=>{ clearSets(); G.pace=0; G.breather=false; Loot.S.slow=slow; spawnSet(); const s=activeSet(); return s.time/((s.q.word&&s.q.word.level===3)?1.06:1); };
+          const t0=one(0), t1=one(1); return {slow:Loot.S.slow, t0, t1, r:t1/t0}; }""")
         print("천천히", r)
-        ok(r["slow"] == 0 and r["time"] > r["base"] * 1.12, f"🐢 다음 문이 느리게 {r}")
+        ok(r["slow"] == 0 and 1.25 < r["r"] < 1.35, f"🐢 다음 문이 1.3배 느리게 {r}")
         r = await pg.evaluate("""()=>{ Loot.endFever(); Loot.S.gauge=0; clearSets(); G.combo=0; spawnSet(); let s=activeSet(); let ans=laneOfX(s.gates[s.q.answer].root.position.x, s.gates.length); G.lane=ans; P.x=laneX(ans,G.lanes); P.z=0;
             let a=G.score; judge(s); const g1=G.score-a;
             clearSets(); G.combo=0; Loot.S.fever=5; spawnSet(); s=activeSet(); ans=laneOfX(s.gates[s.q.answer].root.position.x, s.gates.length); G.lane=ans; P.x=laneX(ans,G.lanes); P.z=0;
