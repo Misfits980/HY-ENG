@@ -5042,9 +5042,6 @@ u.koU.koH{display:inline-block;min-width:40px;text-align:center}
 #scStudy.thB6 .stTop .stSub{color:#f3e2bb;text-shadow:0 1px 2px rgba(0,0,0,.8)}
 #scStudy.thB6 .stSubB.on small{color:#f3e2bb}
 /* G3-4 바위 골렘은 그림 여백이 커서 작아 보임 */
-.stBt.mk-hb2 .bM{transform-origin:50% 100%;scale:1.35}
-.stBt.mk-hbS .bM,.stBt.mk-hb1 .bM{scale:1.25;transform-origin:50% 100%}
-.stBt.mk-knight .bM{scale:1.3;transform-origin:50% 100%}
 body:has(#scStudy.on.thM) #dmView .dmIn{background:#fff;color:#1b2240;border:1.5px solid #d9e0f2;box-shadow:0 10px 40px rgba(27,34,64,.25)}
 body:has(#scStudy.on.thM) #dmView .dmHead b,body:has(#scStudy.on.thM) #dmView .dmRow b{color:#1b2240} body:has(#scStudy.on.thM) #dmView .dmHead small,body:has(#scStudy.on.thM) #dmView .dmTip,body:has(#scStudy.on.thM) #dmView .dmChest p{color:#6b7393}
 body:has(#scStudy.on.thM) #dmView .dmRow{background:#f5f7fd;border-color:#e3e8f5} body:has(#scStudy.on.thM) #dmView .dmBar{background:#e3e8f5} body:has(#scStudy.on.thM) #dmView .dmBar s{background:#3d5afe}
@@ -5224,6 +5221,12 @@ body.hudC #windTag{top:calc(env(safe-area-inset-top,0px) + clamp(240px,40vh,400p
 #scStudy.thB6 .grWN.done .stDot.grSt{background-image:url(assets/d30/g36/mk_rest_done.webp)!important}
 #scStudy.thB6 .stDot.grSt img.ic{display:none}
 #scStudy.thB.vDone .stStars .stBig5{display:inline-block;width:92px;height:92px;font-size:0;vertical-align:middle;background:url(assets/d30/g36/star_seal.webp) center/contain no-repeat;filter:drop-shadow(0 0 10px rgba(255,210,90,.7)) drop-shadow(0 4px 2px rgba(0,0,0,.4))}
+/* (v510) 공격 그림 크기 = 서 있을 때 키에 맞춤 · 어두운 무대(화산·성)에서 몬스터 테두리 빛 */
+#scStudy .stBt.hurt.hasAtk .bM{width:var(--aw,132px)!important;height:var(--aw,104px)!important;bottom:var(--ab,0px);background-size:1200% 100%!important}
+.stBt.ar-lava .bM,.stBt.ar-castle .bM{filter:drop-shadow(0 0 1.5px rgba(255,236,210,.85)) drop-shadow(0 0 6px rgba(255,200,150,.35))}
+/* 정예(붉은 빛)는 그대로 */
+.stBt.eliteM.ar-lava .bM,.stBt.eliteM.ar-castle .bM{filter:drop-shadow(0 0 1.5px rgba(255,236,210,.85)) drop-shadow(0 0 6px rgba(255,70,60,.85))}
+.stBt.ar-castle.mk-overlord .bM{filter:drop-shadow(0 0 1.5px rgba(235,215,255,.9)) drop-shadow(0 0 10px rgba(180,120,255,.55))}
 </style>
 </head>
 <body class="hudC">
@@ -15937,7 +15940,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v509";
+const GAME_VER = "v510";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17469,7 +17472,14 @@ const StudyUI = {
   FLIP:{hb4:1,mush:1},
   zoneOf(set, x){ const wd=(x && (x.wd||x.pn))||1, g56=Study.BOOKS.g56.sets.indexOf(set)>=0, zi=Math.floor((wd-1)/5)%(g56?6:3);   /* (v505) 사용자: G5-6 도 지도 순서대로 숲부터 */ return {zi, sIn:(wd-1)%5, wd}; },
   mon(k){ const B="assets/boss/", P="assets/d30/g36/pt_", old=/^hb/.test(k);
-    return {k, img: k==="knight" ? B+"boss-knight.webp" : old ? B+k+".webp" : B+"m_"+k+".webp", pt:P+k+".webp", atk: old ? B+k+"-a.webp" : this.ATK[k] ? B+this.ATK[k] : null, flip:!!this.FLIP[k]}; },
+    return {k, img: B+"t_"+k+".webp", pt:P+k+".webp", atk: old ? B+k+"-a.webp" : this.ATK[k] ? B+this.ATK[k] : null, flip:!!this.FLIP[k]}; },
+  /* (v510) QA: 그림마다 빈 여백이 달라 몬스터 크기가 들쭉날쭉(용암 드래곤·창 기사·마왕 공격이 작음) → 배틀은 여백을 잘라 낸 t_<k>.webp,
+     공격 그림은 첫 칸의 몸 높이(AS[0])·아래 여백(AS[1])으로 크기를 맞춰 서 있을 때와 같은 키로 */
+  AR:{"hb1":0.855,"hb2":0.706,"hb3":0.844,"hb4":0.745,"hb5":1.246,"hbS":0.855,"knight":1.641,"mush":0.888,"wolf":0.723,"blizz":1.148,"peng":1.028,"frog":1.043,"vine":0.99,"bog":0.762,"batw":1.024,"eagle":0.963,"cloud":1.0,"fox":1.021,"hydra":1.125,"griffin":0.99,"overlord":1.156,"sala":0.844,"magma":0.939,"ember":0.671,"armor":1.118},
+  AS:{"hb1":[0.551,0.117],"hb2":[0.449,0.121],"hb3":[0.594,0.113],"hb4":[0.547,0.109],"hb5":[0.613,0.121],"hbS":[0.551,0.117],"knight":[0.902,0.008],"griffin":[0.73,0.012],"hydra":[0.848,0.02],"overlord":[0.785,0.008]},
+  btSize(){ const B=$("stBt"), m=this._bm, M=B && B.querySelector(".bM"); if(!M || !m) return; B.classList.remove("hurt","atk");
+    const r=M.getBoundingClientRect(); if(!r.height) return; const ar=this.AR[m.k]||1, ih=Math.min(r.height, r.width*ar), a=this.AS[m.k];
+    if(a){ const sz=Math.round(Math.min(ih/a[0], r.height*2.1)); B.style.setProperty("--aw", sz+"px"); B.style.setProperty("--ab", Math.round(-a[1]*sz)+"px"); } },
   ATK:{knight:"knight-a.webp", griffin:"m_griffin-a.webp", hydra:"m_hydra-a.webp", overlord:"m_overlord-a.webp"},   /* (v506·v509) 새 공격 그림 12칸 (tools/cut_anim.py) */
   monFor(set, i){ let L=[]; try{ L=Study.lessons(set)||[]; }catch(e){} const x=L[i]||{};
     const {zi, sIn, wd}=this.zoneOf(set, x), Z=this.ZONES[zi]; let ms=Z.m.filter(k=>this.HAVE[k]); if(ms.length<2) ms=ms.concat((Z.fb||[]).filter(k=>ms.indexOf(k)<0)).slice(0,3);
@@ -17498,7 +17508,7 @@ const StudyUI = {
     if(S.scrollHeight-S.clientHeight>2){ Q.classList.remove("fillQ"); Q.style.minHeight=""; S.classList.remove("fillOn"); } },
   btIdle(){ const B=$("stBt"); if(!B) return; let i=0; try{ i=Study.lessons(this.set).findIndex(y=>y.n===(this.les&&this.les.n)); }catch(e){} const m=this.monFor(this.set, Math.max(0,i));
     B.className="stBt ar-"+m.ar+(m.flip?" flipM":"")+(m.boss?" bossM":"")+(m.big?" bigM":"")+(m.zb?" zbM":"")+(m.elite?" eliteM":"")+(m.atk?" hasAtk":"")+" mk-"+m.k;
-    B.style.setProperty("--mon","url("+m.img+")"); B.style.setProperty("--atk", m.atk ? "url("+m.atk+")" : "none"); this._bm=m;
+    B.style.setProperty("--mon","url("+m.img+")"); requestAnimationFrame(()=>{ try{ this.btSize(); }catch(e){} }); B.style.setProperty("--atk", m.atk ? "url("+m.atk+")" : "none"); this._bm=m;
     const hp=$("stBtHp"); if(hp) hp.style.width=Math.max(4, Math.round((1-this.done/Math.max(1,this.total))*100))+"%"; },
   bt(ok){ const S=$("scStudy"), B=$("stBt"); if(!B || !S.classList.contains("thB")) return; B.classList.remove("atk","hurt"); void B.offsetWidth; B.classList.add(ok?"atk":"hurt");
     const hp=$("stBtHp"); if(hp) hp.style.width=Math.max(4, Math.round((1-this.done/Math.max(1,this.total))*100))+"%";
