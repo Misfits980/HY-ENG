@@ -5460,6 +5460,17 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 .rdB.pop{animation:rdPop .35s ease-out forwards}
 @keyframes rdBob{to{transform:translateY(-8px)}} @keyframes rdPop{50%{transform:scale(1.5)}100%{transform:scale(0);opacity:0}}
 @media (prefers-reduced-motion:reduce){.rdB{animation:none}}
+/* (v531) 끝 화면 정리 */
+.vRun{margin:6px 0 2px}
+.vStgP{display:inline-block;margin:4px auto 0;padding:2px 10px;border-radius:99px;font:800 12px var(--font);color:#fff;background:rgba(0,0,0,.28);text-shadow:none}
+.vStgP b{color:#ffd23f;font-weight:900;letter-spacing:1px} .vStgP u{text-decoration:none;opacity:.35;letter-spacing:1px} .vStgP i{font-style:normal}
+#scStudy.thK .vStgP{background:rgba(58,29,6,.55)}
+#scStudy.thML .vStgP{background:var(--mBlueL);color:var(--mInk)} #scStudy.thML .vStgP b{color:#f5a623} #scStudy.thML .vStgP u{color:#b9c2dd;opacity:1}
+.vTop .vRib{position:relative;z-index:3}
+.vKO{width:130px;height:96px;margin:0 auto 16px}
+.vKO b{font-size:30px;top:24%;left:72%}
+@keyframes vKO{0%{filter:none;transform:none}18%{filter:brightness(2.6);transform:translateX(6px)}32%{transform:translateX(-5px)}50%{filter:brightness(1);transform:rotate(0)}100%{filter:saturate(.7) brightness(.95);transform:rotate(-72deg) translate(8px,8px)}}
+.vKO em{bottom:-14px}
 </style>
 </head>
 <body class="hudC">
@@ -16173,7 +16184,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v530";
+const GAME_VER = "v531";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18835,11 +18846,12 @@ const StudyUI = {
                       : '<div class="vHero fail">'+this.mas(false, true)+'</div>';
     /* (v530) 사용자 개선 1: 이번 판 결과(정답률)로 큰 별 3개 → 아래 작게 「Stage 별」(쌓인 별). 90% 했는데 빈 별이 보이던 것 */
     const ra=this._runAcc, rn = ra==null ? -1 : ra>=90 ? 3 : ra>=70 ? 2 : ra>=40 ? 1 : 0;
-    const run = (!oly && rn>=0) ? '<div class="vRun" aria-label="이번 판 별 '+rn+'개">'+[0,1,2].map(i=>'<i class="vRS'+(i<rn?' on':'')+'" style="--d:'+(0.4+i*0.25)+'s">★</i>').join('')+'<small>이번 판 '+ra+'%</small></div>' : '';
+    const run = (!oly && rn>=0) ? '<div class="vRun" aria-label="이번 판 별 '+rn+'개">'+[0,1,2].map(i=>'<i class="vRS'+(i<rn?' on':'')+'" style="--d:'+(0.4+i*0.25)+'s">★</i>').join('')+'</div>' : '';
     /* (v530) 개선 3: G3-6 은 끝 화면 위에 오늘 쓰러뜨린 몬스터 (쓰러지는 연출 · 처치 기록) */
     let ko=''; try{ const S0=$("scStudy"), m=this._bm; if(pass && m && S0.classList.contains("thB")){ const n0=this.monDex(m.k); ko='<div class="vKO'+(m.flip?' flipM':'')+'" style="--mon:url('+m.img+')"><i></i><b>KO!</b>'+(n0===1?'<em>📕 새 몬스터 처치! · 도감 '+this.monDexN()+'</em>':'')+'</div>'; } }catch(e){}
     const st = oly ? '<div class="stStars">'+this.stars(v, set, x)+'</div>'
-      : run+'<div class="stStars vStars'+(run?' vStg':'')+'">'+(run?'<small class="vStgL">Stage 별</small>':'')+[0,1,2].map(i=>{ const pu=i<p, on=pu || i<y; return '<i class="vS'+(on?' on':'')+(pu?' pu':'')+'" style="--d:'+(0.45+i*0.28)+'s"></i>'; }).join('')+'</div>';
+      : run ? run+'<div class="vStgP">Stage 별 <b>'+'★'.repeat(Math.min(3,y))+'</b><u>'+'★'.repeat(Math.max(0,3-Math.min(3,y)))+'</u>'+(p?' <i>💜'+p+'</i>':'')+'</div>'   /* (v531) 사용자: 별 줄이 두 개라 헷갈림 → 큰 별 = 이번 판 하나만, Stage 별은 작은 글자 한 줄 */
+      : '<div class="stStars vStars">'+[0,1,2].map(i=>{ const pu=i<p, on=pu || i<y; return '<i class="vS'+(on?' on':'')+(pu?' pu':'')+'" style="--d:'+(0.45+i*0.28)+'s"></i>'; }).join('')+'</div>';
     if(pass && !oly){ [0,1,2].forEach(i=>{ if(i<y || i<p) setTimeout(()=>{ try{ SFX.tone(660+i*170, .12, "triangle", .05, 1320+i*200); }catch(e){} }, 450+i*280); });
       if(y>=3) setTimeout(()=>{ try{ [523,659,784,1047].forEach((f,k)=>setTimeout(()=>SFX.tone(f, .22, "triangle", .045, f*1.5), k*90)); }catch(e){} }, 1400); }   /* (v446) 별 3개 = 짧은 빰빠밤 */
     setTimeout(()=>this.vicCount(), 850);
