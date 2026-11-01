@@ -4775,6 +4775,33 @@ img.chImg{display:block;max-width:100%;height:auto}
 #scStudy.thK.fit2 .stTile,#scStudy.thG.fit2 .stTile{width:44px;height:48px;font-size:24px}
 /* 유치원·G1-2 진행 막대 = 나무 홈 + 초록 막대 + 연꽃 (코드로) */
 #scStudy.thK .stProg{height:22px;padding:3px;border:3px solid #5a3412;border-image:none;border-radius:12px;background:linear-gradient(#5a3412,#7a4a1e);box-shadow:inset 0 2px 3px rgba(0,0,0,.5),0 3px 0 #3a1d06;overflow:visible}
+
+/* ===== (v497) 길 화면 단계 표시 — ★1·★2 는 「하는 중」, 노란 별 3개(💜 단계)부터 금색, 보라 별 다 = 보라 빛 · 번호는 늘 보이게 ===== */
+#scStudy.thK .stDot,#scStudy.thB .stDot{outline:none!important}
+/* 유치원 · G1-2 */
+#scStudy.thK .stDot.done{background-image:url(assets/d30/k/lily0.webp);color:#173a16}
+#scStudy.thG .stDot.done{background-image:url(assets/d30/g12/isle.webp);color:#fff}
+#scStudy.thK .stDot.y3{background-image:url(assets/d30/k/lily1.webp);color:#5a3a00}
+#scStudy.thG .stDot.y3{background-image:url(assets/d30/g12/isle1.webp);color:#fff}
+/* G3-4 메달 */
+#scStudy.thB4 .stDot.done{background-image:url(assets/d30/g36/med.webp);color:#fff}
+#scStudy.thB4 .stDot.done::before{filter:none}
+#scStudy.thB4 .stDot.y3{background-image:url(assets/d30/g36/med_win.webp);color:#ffe8a0}
+#scStudy.thB4 .stDot.y3::before{filter:grayscale(.3) brightness(.85)}
+/* G5-6 밀랍 표시 — 체크 그림은 번호를 가려서 안 씀 */
+#scStudy.thB6 .stDot.done{background-image:url(assets/d30/g36/mk.webp);color:#4a3418}
+#scStudy.thB6 .stDot.y3{background-image:url(assets/d30/g36/mk.webp);color:#7a4a00;filter:drop-shadow(0 0 0 #d6aa4c) drop-shadow(0 0 6px #ffcf4a) drop-shadow(0 3px 2px rgba(60,40,10,.35))}
+#scStudy.thB6 .stDot.now{height:62px;padding-top:12px;background-size:contain;background-position:center bottom}
+#scStudy.thB6 .stWN .stWT{margin-top:8px}
+#scStudy.thB6 .stWS u,#scStudy.thB6 .stWS .stSP0{color:rgba(90,66,32,.35)}
+/* 공통 빛 — 보라 별 다 모음 · ★2 확인할 날 · 심화 열림 */
+#scStudy.thK .stDot.d3,#scStudy.thB .stDot.d3{filter:drop-shadow(0 0 8px #c98cff) drop-shadow(0 0 3px #a259ff)!important}
+#scStudy.thK .stDot.chk,#scStudy.thB .stDot.chk{filter:drop-shadow(0 0 7px #6fd6ff) drop-shadow(0 0 2px #6fd6ff)!important;animation:thBob 1.4s ease-in-out infinite alternate}
+#scStudy.thK .stDot.dpo,#scStudy.thB .stDot.dpo{filter:drop-shadow(0 0 6px #c98cff)!important}
+/* G3-4 「오늘 할 차례」 주인공은 해당 메달 바로 왼쪽 위에 */
+#scStudy.thB4 .stWNow{left:calc(50% - 86px);top:-12px;width:50px;height:50px}
+#scStudy.thG .stWNow{left:calc(50% - 96px);top:-30px}
+#scStudy.thK:not(.thG) .stWNow{left:calc(50% - 82px)}
 </style>
 </head>
 <body>
@@ -15403,7 +15430,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v496";
+const GAME_VER = "v497";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16970,7 +16997,7 @@ const StudyUI = {
     h+='</div>';   // (v322) .stTop 끝
     const zig=[0,38,58,38,0,-38,-58,-38];
     [this.set].forEach(st=>{ const L=Study.lessons(st), c=Study.cur(st), SPL=!PH_WORLDS[st] && !!(L[0] && L[0].pn), PW=PH_WORLDS[st] || (SPL ? true : null), RD=WORD_SETS[st].reading;   // (v249) 초등 나눈 과도 같은 길
-      const cl=(x,i)=>{ const v=Study.lv(st,x.n), T=Study.tierLes(st,x) ? Study.tierOf(st,x.n) : 0; return (i===c ? "now" : v>=3 ? "deep" : v>0 ? "done" : "open")+(v>=5 && T ? " d3" : "")+(v===2 && Study.dpOpen(st,x.n) ? " dpo" : "")+(T===4 ? " chk" : "")+" s"+(i%3)+((()=>{ try{ return HyHW.inHw(st, x) && !HyHW.ok(x); }catch(e){ return false; } })() ? " hw" : ""); };   // (v329) 📌 숙제 Stage   // (v325) 돌 모양 3가지 · 보라 별 3개 = 반짝   // (v273) 💜 = 심화까지 · 보라 테두리 = 심화 열림 · (v301) 하늘 테두리 = ★2 확인 할 때
+      const cl=(x,i)=>{ const v=Study.lv(st,x.n), T=Study.tierLes(st,x) ? Study.tierOf(st,x.n) : 0; return (i===c ? "now" : v>=3 ? "deep" : v>0 ? "done" : "open")+(v>=5 && T ? " d3" : "")+(v===2 && Study.dpOpen(st,x.n) ? " dpo" : "")+(T===4 ? " chk" : "")+" s"+(i%3)+((T ? Study.starN(st,x)>=3 : v>=3) ? " y3" : "")+((()=>{ try{ return HyHW.inHw(st, x) && !HyHW.ok(x); }catch(e){ return false; } })() ? " hw" : ""); };   // (v329) 📌 숙제 Stage   // (v325) 돌 모양 3가지 · 보라 별 3개 = 반짝   // (v273) 💜 = 심화까지 · 보라 테두리 = 심화 열림 · (v301) 하늘 테두리 = ★2 확인 할 때
       const stars=(v,x)=>this.stars(v, st, x);
       if(PW){   /* (v243) 슈퍼마리오 월드 지도처럼 — 월드마다 1-1 → 1-2 → … → 🚩 를 왼쪽에서 오른쪽으로 한 줄 */
         const wds=[]; L.forEach(x=>{ if(wds.indexOf(x.wd)<0) wds.push(x.wd); });
