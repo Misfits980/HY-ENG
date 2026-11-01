@@ -5471,6 +5471,17 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 .vKO b{font-size:30px;top:24%;left:72%}
 @keyframes vKO{0%{filter:none;transform:none}18%{filter:brightness(2.6);transform:translateX(6px)}32%{transform:translateX(-5px)}50%{filter:brightness(1);transform:rotate(0)}100%{filter:saturate(.7) brightness(.95);transform:rotate(-72deg) translate(8px,8px)}}
 .vKO em{bottom:-14px}
+/* (v532) 도감 한 줄 · 유치원 끝 화면 = 무지개만 · 옆으로 밀리는 스크롤 막기 */
+.vDex{display:inline-flex;align-items:center;gap:6px;margin:6px auto 0;padding:3px 12px 3px 4px;border-radius:99px;font:800 12.5px var(--font);color:#ffe8a0;background:rgba(14,10,36,.7);border:1.5px solid #d6aa4c}
+.vDex img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+#scStudy.thK.vDone .resCheer,#scStudy.thK.vDone .vHeroEmo,#scStudy.thK.vDone .resMedal{display:none!important}
+#scStudy.thK.vDone .vHero{height:96px}
+#scStudy.thK.vDone .vHero::before{top:0;width:260px;height:130px;margin-left:-130px;opacity:1}
+#scStudy{overflow-x:hidden;overscroll-behavior-x:none}
+#scStudy .stWrap{overflow-x:clip}
+#scStudy.thB .stCut:not(.on){display:none}
+.sbR2{overscroll-behavior-x:contain;touch-action:pan-x}
+.sbDrop #stTabs,.sbDrop .stSubs{overscroll-behavior-x:contain}
 </style>
 </head>
 <body class="hudC">
@@ -16184,7 +16195,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v531";
+const GAME_VER = "v532";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18848,7 +18859,7 @@ const StudyUI = {
     const ra=this._runAcc, rn = ra==null ? -1 : ra>=90 ? 3 : ra>=70 ? 2 : ra>=40 ? 1 : 0;
     const run = (!oly && rn>=0) ? '<div class="vRun" aria-label="이번 판 별 '+rn+'개">'+[0,1,2].map(i=>'<i class="vRS'+(i<rn?' on':'')+'" style="--d:'+(0.4+i*0.25)+'s">★</i>').join('')+'</div>' : '';
     /* (v530) 개선 3: G3-6 은 끝 화면 위에 오늘 쓰러뜨린 몬스터 (쓰러지는 연출 · 처치 기록) */
-    let ko=''; try{ const S0=$("scStudy"), m=this._bm; if(pass && m && S0.classList.contains("thB")){ const n0=this.monDex(m.k); ko='<div class="vKO'+(m.flip?' flipM':'')+'" style="--mon:url('+m.img+')"><i></i><b>KO!</b>'+(n0===1?'<em>📕 새 몬스터 처치! · 도감 '+this.monDexN()+'</em>':'')+'</div>'; } }catch(e){}
+    let ko=''; try{ const S0=$("scStudy"), m=this._bm; if(pass && m && S0.classList.contains("thB")){ const n0=this.monDex(m.k); ko='<p class="vDex"><img src="'+(m.pt||m.img)+'" alt="">'+(n0===1?'📕 새 몬스터 처치!':'⚔️ 몬스터 처치')+' · 도감 '+this.monDexN()+'</p>'; }   /* (v532) 사용자: 쓰러지는 장면 빼고 도감 한 줄 */ }catch(e){}
     const st = oly ? '<div class="stStars">'+this.stars(v, set, x)+'</div>'
       : run ? run+'<div class="vStgP">Stage 별 <b>'+'★'.repeat(Math.min(3,y))+'</b><u>'+'★'.repeat(Math.max(0,3-Math.min(3,y)))+'</u>'+(p?' <i>💜'+p+'</i>':'')+'</div>'   /* (v531) 사용자: 별 줄이 두 개라 헷갈림 → 큰 별 = 이번 판 하나만, Stage 별은 작은 글자 한 줄 */
       : '<div class="stStars vStars">'+[0,1,2].map(i=>{ const pu=i<p, on=pu || i<y; return '<i class="vS'+(on?' on':'')+(pu?' pu':'')+'" style="--d:'+(0.45+i*0.28)+'s"></i>'; }).join('')+'</div>';
@@ -18856,7 +18867,7 @@ const StudyUI = {
       if(y>=3) setTimeout(()=>{ try{ [523,659,784,1047].forEach((f,k)=>setTimeout(()=>SFX.tone(f, .22, "triangle", .045, f*1.5), k*90)); }catch(e){} }, 1400); }   /* (v446) 별 3개 = 짧은 빰빠밤 */
     setTimeout(()=>this.vicCount(), 850);
     return '<div class="vTop'+(pass?'':' fail')+'"><div class="vRays"></div>'+hero
-      +'<div class="vRib"><span class="vRibS"></span><b class="stBigT">'+title+'</b></div>'+ko+st+(sub?'<p class="vSub">'+sub+'</p>':'')+'</div>'; },
+      +'<div class="vRib"><span class="vRibS"></span><b class="stBigT">'+title+'</b></div>'+st+ko+(sub?'<p class="vSub">'+sub+'</p>':'')+'</div>'; },
   /* (v530) 몬스터 처치 기록 (도감) — 기기에 저장 */
   monDex(k){ let d={}; try{ d=JSON.parse(localStorage.getItem("hyeng_mondex")||"{}"); }catch(e){} d[k]=(d[k]|0)+1; try{ localStorage.setItem("hyeng_mondex", JSON.stringify(d)); }catch(e){} return d[k]; },
   monDexN(){ let d={}; try{ d=JSON.parse(localStorage.getItem("hyeng_mondex")||"{}"); }catch(e){} return Object.keys(d).length+" / "+Object.keys(this.HAVE).length; },
