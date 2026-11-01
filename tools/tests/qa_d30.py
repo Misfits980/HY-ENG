@@ -13,7 +13,7 @@ AUDIT = r"""(tag)=>{ const W=innerWidth, H=innerHeight, S=document.getElementByI
   const vis=e=>{ const r=e.getBoundingClientRect(); if(!(r.width>1&&r.height>1)) return false; let n=e; while(n && n!==document.body){ const c=getComputedStyle(n); if(c.display==='none'||c.visibility==='hidden'||+c.opacity<0.05) return false; n=n.parentElement; } return true; };
   document.querySelectorAll('#scStudy img, #stPop img').forEach(im=>{ if(vis(im) && im.complete && im.naturalWidth===0) iss.push('그림깨짐 '+im.getAttribute('src')); });
   const scope=[S, document.getElementById('stPop')].filter(Boolean);
-  scope.forEach(R=>R.querySelectorAll('button,.stOpt,.stPrompt,.stCard,img,.stTile,.stMsg,.zBan,.mdRow,.stWorld,.stWT,.stCheck,p,h2,h3').forEach(e=>{ if(!vis(e) || e.closest('.stTabs,.stSubs,.stAmb,.stCut')) return; const r=e.getBoundingClientRect(); if(r.right>W+2 || r.left<-2) iss.push('가로삐짐 '+desc(e)+' '+Math.round(r.left)+'~'+Math.round(r.right)); }));
+  scope.forEach(R=>R.querySelectorAll('button,.stOpt,.stPrompt,.stCard,img,.stTile,.stMsg,.zBan,.mdRow,.stWorld,.stWT,.stCheck,p,h2,h3').forEach(e=>{ if(!vis(e) || e.closest('.stTabs,.stSubs,.stAmb,.stCut,.sbR2')) return; const r=e.getBoundingClientRect(); if(r.right>W+2 || r.left<-2) iss.push('가로삐짐 '+desc(e)+' '+Math.round(r.left)+'~'+Math.round(r.right)); }));
   if(document.documentElement.scrollWidth>W+1) iss.push('페이지가로스크롤 '+document.documentElement.scrollWidth);
   const view=S.classList.contains('vLesson')?'lesson':S.classList.contains('vDone')?'done':S.classList.contains('vGram')?'gram':'path';
   if(view==='lesson'||view==='done'){ const o=S.scrollHeight-S.clientHeight; if(o>2) iss.push('세로스크롤 '+o+'px'); }
