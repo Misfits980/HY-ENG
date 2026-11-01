@@ -12406,14 +12406,15 @@ function comboWord(c){
    ① 💗 연속 정답 10개마다 하트 +1 (보통 이상 · 최대치까지) — 1장 '지대 회복 없음' 규칙은 그대로 두고, 꾸준히 맞히는 아이에게만
    ② ⚡ RUSH 보이기 — 앞으로 나가면 화면 가장자리 속도선 + 「⚡ RUSH +n」 (보너스는 원래 있었는데 도움말에만 적혀 있었음)
    ③ ❓ 상자 — 🐢 천천히(다음 문 3개 느리게) · 🧲 별 자석 · 🔥 게이지 +40 · (쉬움·유치원·2장부터) 💗 하트 · 🛡️ 방패 — 정답을 알려 주는 효과는 없음
-   ④ ⭐ 별 줄 — 문이 생길 때 그 문까지 길의 앞쪽 절반에 한 줄 (줄은 정답과 상관없이 무작위 → 정답 힌트가 아님 · 함정 자리는 비움)
+   ④ (v493 꺼 둠 — 🔥 게이지는 정답으로만) ⭐ 별 줄 — 문이 생길 때 그 문까지 길의 앞쪽 절반에 한 줄 (줄은 정답과 상관없이 무작위 → 정답 힌트가 아님 · 함정 자리는 비움)
       별·정답이 🔥 게이지를 채움 → 가득 차면 🔥 FEVER 7초: 정답 점수 2배 · 별 2배 · 함정에 안 걸림 (오답은 그대로 넘어짐)
    ⑤ 콤보 단계 빛 — 5(민트)·10(금)·15(주황)·FEVER(빨강) 캐릭터 뒤 빛
    2인용·레이스·보스전에는 별·상자를 놓지 않는다. 문 앞 마지막 40% 구간은 늘 비워 두어 단어 고르기에 집중
 ===================================================================== */
 var Loot = (function(){
-  const HEAL_EVERY=10, FEVER_MAX=100, FEVER_T=7, STAR_N=5, STAR_PTS=10, G_STAR=1, G_RIGHT=5;
-  const BOX_ON=false;   // (v492) 사용자: "아이템은 아직 끄자" — ❓ 상자는 만들어 두고 꺼 둠 (true 로 바꾸면 켜짐)   // 별 다 줍고 다 맞히면 문 10개쯤에 한 번 FEVER
+  const HEAL_EVERY=10, FEVER_MAX=100, FEVER_T=7, STAR_N=5, STAR_PTS=10, G_STAR=1, G_RIGHT=10;   // (v493) 별 없이 정답으로만 — 틀리지 않고 10개 맞히면 FEVER
+  const BOX_ON=false;    // (v492) 사용자: "아이템은 아직 끄자" — ❓ 상자는 만들어 두고 꺼 둠 (true 로 바꾸면 켜짐)
+  const STAR_ON=false;   // (v493) 사용자: "별을 빼고 문제를 맞춰서 피버로 바꾸자" — ⭐ 별 줄은 만들어 두고 꺼 둠
   const S={list:[], gauge:0, fever:0, shield:0, slow:0, magnet:0, boxCD:3, chain:0, chainT:0,
            stars:0, boxes:0, fevers:0, heals:0, told:{}, aura:null, auraC:-1, auraT:0, fT:0, tx:null, mats:{}};
   const can = ()=> !!(G.running && G.rule==="normal" && !G.versus && !G.race);
@@ -12470,7 +12471,7 @@ var Loot = (function(){
   }
   function heartAnim(){ setTimeout(()=>{ try{ const el=document.getElementById("uLives"); if(el){ el.classList.remove("gain"); void el.offsetWidth; el.classList.add("gain"); } }catch(e){} }, 60); }
   const API = {
-    S, HEAL_EVERY, FEVER_MAX, FEVER_T, STAR_N, BOX_ON,
+    S, HEAL_EVERY, FEVER_MAX, FEVER_T, STAR_N, BOX_ON, STAR_ON,
     healOn(){ return can() && G.diff!=="easy"; },
     healLeft(){ if(!this.healOn() || G.lives>=G.maxLives) return 0; return HEAL_EVERY - (G.combo % HEAL_EVERY); },
     mul(){ return (can() && S.fever>0) ? 2 : 1; },
@@ -12482,7 +12483,7 @@ var Loot = (function(){
       if(!can() || bossOn() || !s || !s.q || s.q.isMine) return;
       if(S.slow>0){ S.slow--; s.time*=1.3; s.speed=G.spawnDist/s.time; }       // 🐢 이 문은 느리게
       const gz=s.group.position.z, D=G.spawnDist, n=G.lanes;
-      if(G.stage>=2){
+      if(STAR_ON && G.stage>=2){
         const lane=Math.floor(Math.random()*n), x=laneX(lane,n); let put=0;   // 줄은 정답과 상관없이 무작위
         for(let k=0;k<STAR_N;k++){ const z=gz + D*(0.44 + 0.36*k/(STAR_N-1)); if(blocked(x,z)) continue; add("star", x, z); put++; }
         if(put) tip("star", "⭐ 별을 모으면 🔥 게이지가 차요 — 가득 차면 FEVER! 점수 2배");
@@ -12559,6 +12560,7 @@ var Loot = (function(){
     onRight(){
       if(!can()) return;
       this.gain(G_RIGHT);
+      if(G.combo>=2 && S.fever<=0) tip("fever", "🔥 맞힐 때마다 게이지가 차요 — 가득 차면 FEVER! 점수 2배");
       if(this.healOn() && G.combo>0 && G.combo%HEAL_EVERY===0 && G.lives<G.maxLives){
         G.lives++; S.heals++; heartAnim(); updateHUD();
         const c=G.combo; setTimeout(()=>{ try{ popScore("💗 하트 +1", c+"연속 정답!", "#ff7aa8", 36); }catch(e){} }, 420);
@@ -15343,7 +15345,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v492";
+const GAME_VER = "v493";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){

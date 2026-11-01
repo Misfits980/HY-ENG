@@ -1,4 +1,4 @@
-"""(v492) 달리기 손맛 — ⭐ 별 줄 · ❓ 상자 · 🔥 FEVER · 💗 연속 정답 회복 · ⚡ RUSH 보이기 · 콤보 글자 단계
+"""(v492·v493) 달리기 손맛 — (v493) 별은 꺼 두고 🔥 게이지는 정답으로만 — ⭐ 별 줄 · ❓ 상자 · 🔥 FEVER · 💗 연속 정답 회복 · ⚡ RUSH 보이기 · 콤보 글자 단계
    ① 봇이 40문제를 달리며 별을 줍고 정답을 고름 → 별·FEVER 가 실제로 생기고 오류 없음 · 별이 함정 자리에 놓이지 않음
    ② 별 줄은 정답 줄과 상관없음 (힌트가 아님) — 400번 만들어 같은 줄일 확률이 1/줄 수 근처
    ③ 연속 정답 10개 → 하트 +1 (쉬움은 없음) · 콤보 글자에 「💗 n」
@@ -46,8 +46,8 @@ async def main():
             if r["sol"] >= 40 or not r["run"]: break
         print("봇", r)
         ok(r["sol"] >= 25, f"봇이 여러 문제를 풀었음 {r['sol']}")
-        ok(r["stats"]["stars"] >= 10, f"별을 주움 {r['stats']}")
-        ok(r["stats"]["fevers"] >= 1, f"FEVER 가 한 번 이상 {r['stats']}")
+        ok(r["stats"]["stars"] == 0 and r["list"] == 0, f"(v493) 별은 꺼져 있음 {r['stats']}")
+        ok(2 <= r["stats"]["fevers"] <= 4, f"정답만으로 FEVER (40문제에 2~4번) {r['stats']}")
         ok(r["bad"] == 0, f"별·상자가 함정 자리에 없음 {r['badx']}")
         ok(r["fb"], "🔥 게이지 막대가 보임")
         ok(r["stats"]["boxes"] == 0, f"❓ 상자는 아직 꺼져 있음 (사용자: 아이템은 아직 끄자) {r['stats']}")
@@ -59,7 +59,7 @@ async def main():
             if(Math.abs(st.x - s.gates[s.q.answer].root.position.x) < 0.3) same++; }
           G.stage=keep; return {same, tot, n, rate: same/Math.max(1,tot)}; }""")
         print("별 줄 = 정답 줄", r)
-        ok(r["tot"] > 300 and abs(r["rate"] - 1/r["n"]) < 0.09, f"별 줄은 정답과 상관없음 {r}")
+        ok(r["tot"] == 0, f"(v493) 문이 생겨도 별 줄 없음 {r}")
 
         # ③ 연속 정답 회복
         r = await pg.evaluate("""()=>{ clearSets(); Loot.clearItems(); G.maxLives=3; G.lives=1; G.combo=9; G.falling=false; G.dead=false; spawnSet(); updateHUD();
