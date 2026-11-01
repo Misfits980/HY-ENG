@@ -78,11 +78,13 @@ async def main():
         # ④ 안내 글
         r = await pg.evaluate("""()=>{ startGame(); G.inv=99; HudC.holdTo=0; const out=[], seen={}; for(let i=0;i<10;i++){ clearSets(); G.nextQ=null; spawnSet();
               const base=activeSet().q.dir==='k2e' ? '뜻에 맞는 단어' : '단어의 뜻'; seen[base]=(seen[base]||0)+1;
-              out.push([seen[base], document.getElementById('plabel').classList.contains('mini')]); } return out; }""")
+              out.push([seen[base], document.getElementById('plabel').classList.contains('labOff')]); } return out; }""")
         print("안내 글", r)
+        r2 = await pg.evaluate("()=>{ const cs=getComputedStyle(document.getElementById('plabel')); return [document.getElementById('plabel').className, cs.borderTopWidth, cs.backgroundColor, cs.paddingTop]; }")
+        ok(r2[1] == "0px" and r2[2] == "rgba(0, 0, 0, 0)" and r2[3] == "0px", f"(v507) 안내 글 숨긴 칸에 알약 테두리 없음 {r2}")
         ok(all((not m) for n, m in r if n <= 2) and all(m for n, m in r if n >= 5), f"같은 종류 처음 몇 문제만 안내 글 {r}")   # (시작 때 미리 나온 문제 1개가 섞일 수 있어 3·4번째는 안 봄)
         r = await pg.evaluate("""()=>{ const q={dir:'k2e', prompt:'소파', promptIsEn:false, word:{en:'sofa',ko:'소파'}}; G.labSeen={'뜻에 맞는 단어':9}; HudC.holdTo=0;
-            showQuestion(q, {hideMode:'flash'}); return document.getElementById('plabel').classList.contains('mini'); }""")
+            showQuestion(q, {hideMode:'flash'}); return document.getElementById('plabel').classList.contains('labOff'); }""")
         ok(r is False, "사라짐 경고가 있으면 안내 글은 늘 보임")
 
         # ⑤ 긴 뜻
