@@ -76,18 +76,20 @@ async def main():
           const s=activeSet(); const ans=laneOfX(s.gates[s.q.answer].root.position.x, s.gates.length); G.lane=ans; P.x=laneX(ans,G.lanes); judge(s);
           return {tag, lives:G.lives, combo:G.combo, heals:Loot.stats().heals}; }""")
         print("회복", r)
-        ok("💗 1" in r["tag"], f"콤보 글자에 하트까지 남은 수 {r['tag']}")
+        ok("9 COMBO" in r["tag"], f"(v506) 콤보 글자는 「N COMBO」만 {r['tag']}")
         ok(r["lives"] == 2 and r["combo"] == 10, f"10연속 → 하트 +1 {r}")
         r = await pg.evaluate("""()=>{ G.diff='easy'; clearSets(); G.lives=1; G.combo=19; spawnSet(); const s=activeSet(); const ans=laneOfX(s.gates[s.q.answer].root.position.x, s.gates.length); G.lane=ans; P.x=laneX(ans,G.lanes); judge(s); const L=G.lives; G.diff='normal'; return L; }""")
         ok(r == 1, f"쉬움은 연속 회복 없음 (지대 회복 따로) {r}")
 
         # ④ 콤보 글자
+        await pg.add_style_tag(content="*{transition:none!important}")
         r = await pg.evaluate("""()=>{ const out={}; [3,5,10,15].forEach(c=>{ G.combo=c; G.lives=G.maxLives; updateHUD(); const el=document.getElementById('comboTag'), cs=getComputedStyle(el);
             out[c]={cls:el.className, col:cs.color, bg:cs.backgroundColor, bgi:cs.backgroundImage.slice(0,30), fs:cs.fontSize}; }); return out; }""")
         print("콤보 글자", json.dumps(r, ensure_ascii=False))
-        ok("t5" in r["5"]["cls"] and "t10" in r["10"]["cls"] and "t15" in r["15"]["cls"], "콤보 단계 클래스")
-        ok(r["5"]["col"] == "rgb(42, 27, 0)" and r["10"]["col"] == "rgb(42, 27, 0)", f"5·10연속 글자는 진한 색 {r['5']['col']} {r['10']['col']}")
-        ok(r["5"]["fs"] == "13px", "글자 크기 13px")
+        # (v506) C안 — 판 없이 글자만: 흰색 → 10 금색
+        ok("on" in r["3"]["cls"] and "c10" in r["10"]["cls"] and "c10" in r["15"]["cls"], "콤보 단계 클래스")
+        ok(r["5"]["col"] == "rgb(255, 255, 255)" and r["10"]["col"] == "rgb(255, 216, 74)", f"5 흰색 · 10 금색 {r['5']['col']} {r['10']['col']}")
+        ok(r["5"]["bgi"] == "none" and r["5"]["fs"] == "15px", f"배경 없음 · 작은 글자 {r['5']}")
 
         # ⑤ 방패 · 천천히 · FEVER 점수
         r = await pg.evaluate("""()=>{ G.lives=2; G.maxLives=3; Loot.S.shield=1; updateHUD(); const sh=document.getElementById('uLives').innerHTML.indexOf('🛡')>=0;

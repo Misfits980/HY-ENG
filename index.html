@@ -5076,24 +5076,162 @@ body:has(#scStudy.on.thM) #dmView .dmGo{background:#3d5afe;color:#fff;border:0} 
 #stQ.fillQ .stOpt:not(.pic):not(.ox){min-height:74px}
 #stQ.fillQ>.stPrompt .stKo.big{font-size:clamp(30px,9vw,40px)}
 #stQ.fillQ>.stPrompt .stEn{font-size:clamp(30px,9vw,42px)}
+
+/* ================= (v506) C안 HUD — 시안 a18 그대로 =================
+   위: 하트(왼) · STAGE(가운데) · 점수+멈춤(오른) — 판 없이 글자만
+   문제: 큰 흰 글자 + 밑줄 시간 · 맞으면 초록 / 틀리면 빨강 + 그 자리에 정답
+   COMBO: 뜻 밑 가운데 작은 「N COMBO」 (10 금 · 20 하늘 · 30 보라 · 50 무지개)
+   FEVER: 문제 글자가 주황 형광 + 뒤 은은한 빛 · 점수 밑 ×2                        */
+body.hudC{--hs:0 2px 0 rgba(0,0,0,.42),0 0 10px rgba(0,0,0,.38)}
+body.hudC #hud .top{position:relative;display:block;height:60px}
+body.hudC #hud .tL{position:absolute;left:2px;top:7px}
+body.hudC #hud .tC{position:absolute;left:50%;top:0;transform:translateX(-50%)}
+body.hudC #hud .tR{position:absolute;right:0;top:0;display:flex;align-items:flex-start;gap:10px}
+body.hudC #hud .tBtns{display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+body.hudC #hud .tBtns #pauseBtn{order:-1}
+body.hudC #fsBtn{transform:scale(.84);opacity:.85}
+body.hudC #hud .chip{background:none!important;border:0!important;border-image:none!important;box-shadow:none!important;
+  padding:0!important;border-radius:0!important;margin:0!important}
+body.hudC #chipLife small{display:none}
+body.hudC #uLives{color:#ff6b7f;text-shadow:var(--hs)}
+body.hudC.hud-ok .hearts .hico{width:25px;height:25px;margin-right:3px;filter:drop-shadow(0 2px 1px rgba(0,0,0,.45))}
+body.hudC .hearts .last{display:inline-block;animation:lastBeat .9s ease-in-out infinite}
+@keyframes lastBeat{0%,100%{transform:scale(1)}18%{transform:scale(1.28)}36%{transform:scale(1)}52%{transform:scale(1.16)}}
+body.hudC #chipStage{text-align:center;line-height:1}
+body.hudC #chipStage .stL{display:block;font-size:10px;letter-spacing:.2em;font-weight:900;color:rgba(255,255,255,.78);text-shadow:var(--hs)}
+body.hudC #chipStage b{display:block;font-size:25px;font-weight:900;color:#fff;text-shadow:var(--hs);margin-top:1px}
+body.hudC #chipStage .stZ{display:block;margin-top:3px;font-size:10.5px;font-weight:800;letter-spacing:.02em;color:rgba(255,255,255,.85);
+  max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:var(--hs)}
+body.hudC #chipStage .stZ .hico{display:none}
+body.hudC #chipScore{text-align:right;padding-top:8px!important;line-height:1}
+body.hudC #chipScore small{display:none}
+body.hudC #uScore{font-size:21px;font-weight:900;color:#fff;text-shadow:var(--hs);white-space:nowrap}
+body.hudC #uScore .scS{width:19px;height:19px;vertical-align:-2px;margin-right:4px}
+body.hudC #uScore.s6{font-size:19px}
+body.hudC #uScore.s7{font-size:17px} body.hudC #uScore.s9{font-size:15px}
+body.hudC #uScore.s7 .scS, body.hudC #uScore.s9 .scS{display:none}
+#uScore .scS,#uX2,#uGain{display:none}
+body.hudC #uScore .scS{display:inline-block}
+body.hudC #uX2{font-size:15px;font-weight:900;color:#ffa53a;text-shadow:var(--hs);margin-top:4px}
+body.hudC.fever #uX2{display:block}
+body.hudC.fvEnd #uX2{animation:fvBlink .3s steps(2) infinite}
+body.hudC #uGain{display:block;opacity:0;margin-top:4px;font-size:15px;font-weight:900;color:#fff;text-shadow:var(--hs);white-space:nowrap}
+body.hudC #uGain em{font-style:normal;color:#ffa53a;font-size:12.5px;margin-left:3px}
+body.hudC #uGain.on{animation:gainUp 1.15s ease-out forwards}
+@keyframes gainUp{0%{opacity:0;transform:translateY(6px)}14%{opacity:1;transform:translateY(0)}72%{opacity:1}100%{opacity:0;transform:translateY(-3px)}}
+body.hudC #feverBar{height:3px;margin:5px 0 0 auto;width:72px;background:rgba(0,0,0,.4)}
+body.hudC.fever #feverBar{display:none}
+body.hudC #pauseBtn, body.hudC #fsBtn{width:38px;height:38px;border-radius:50%}
+
+body.hudC #promptWrap{position:relative;margin-top:clamp(18px,6.5vh,72px)}
+body.hudC #prompt{display:block;margin:0 auto;padding:0!important;max-width:94vw;background:none!important;border:0!important;
+  border-image:none!important;border-radius:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.hudC #prompt::before{content:"";position:absolute;left:50%;top:58%;width:min(92vw,420px);height:190px;transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,rgba(255,150,50,.5),rgba(255,95,25,.2) 58%,rgba(255,80,20,0));
+  opacity:0;transition:opacity .35s;pointer-events:none;z-index:-1}
+body.hudC #plabel{min-height:17px;font-size:12.5px;font-weight:800;letter-spacing:.02em;color:#fff;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.75)}
+body.hudC #plabel.mini .lt{display:none}
+body.hudC #plabel.mini .spk i{display:none}
+body.hudC #plabel .spk{font-size:13px;margin-left:4px}
+body.hudC #plabel .spk i{font-style:normal}
+body.hudC #plabel.mini .spk{font-size:17px;margin-left:0}
+body.hudC #ptext{color:#fff;font-weight:900;line-height:1.08;letter-spacing:-.01em;white-space:nowrap;
+  -webkit-text-stroke:1.5px rgba(32,16,64,.5);paint-order:stroke fill;
+  text-shadow:0 3px 0 rgba(0,0,0,.34),0 0 18px rgba(0,0,0,.4);transition:color .12s}
+body.hudC #ptext.wrap{white-space:normal;line-height:1.12}
+body.hudC #ptext.en{letter-spacing:.01em}
+body.hudC #ptext .emo{font-size:1.05em}
+body.hudC #approach{width:min(48vw,200px);height:4px;margin-top:9px;background:rgba(0,0,0,.38);box-shadow:0 1px 2px rgba(0,0,0,.35)}
+body.hudC #promptWrap.ok #ptext{color:#5dff9e}
+body.hudC #promptWrap.ok #approach i{width:100%!important;background:#5dff9e!important;box-shadow:0 0 10px #5dff9e,0 0 3px #fff}
+body.hudC #promptWrap.no #ptext{color:#ff5a4f}
+body.hudC #promptWrap.no #approach{background:none;box-shadow:none}
+body.hudC #promptWrap.no #approach i{width:100%!important;background:repeating-linear-gradient(90deg,#ff5a4f 0 11px,transparent 11px 17px)!important}
+#pans{display:none}
+body.hudC #promptWrap.no #pans{display:block;margin-top:6px;font-weight:900;text-shadow:var(--hs);animation:pump .3s ease}
+body.hudC #pans small{font-size:12px;color:#fff;opacity:.85;margin-right:6px;vertical-align:3px}
+body.hudC #pans b{font-size:23px;color:#5dff9e}
+body.hudC #promptWrap.no .cRow{display:none}
+body.hudC .cRow{min-height:24px;margin-top:6px}
+body.hudC #comboTag{display:inline-block;margin:0;padding:0;background:none!important;box-shadow:none!important;border-radius:0;
+  font-size:15px;font-weight:900;letter-spacing:.09em;color:#fff;text-shadow:var(--hs);opacity:.34;transition:opacity .2s,color .2s;animation:none}
+body.hudC #comboTag b{font-size:17px;letter-spacing:.02em;margin-right:1px}
+body.hudC #comboTag.on{opacity:1}
+body.hudC #comboTag.bump b{display:inline-block;animation:kBump .28s ease-out}
+body.hudC #comboTag.big{animation:kBig .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes kBump{0%{transform:scale(1.45)}100%{transform:scale(1)}}
+@keyframes kBig{0%{transform:scale(1.6)}100%{transform:scale(1)}}
+body.hudC #comboTag.c10{color:#ffd84a}
+body.hudC #comboTag.c20{color:#6fd3ff}
+body.hudC #comboTag.c30{color:#c79bff}
+body.hudC #comboTag.c50{background:linear-gradient(90deg,#ff6b6b,#ffd84a,#5dff9e,#6fd3ff,#c79bff)!important;
+  -webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}
+body.hudC #rushTag{margin:0 0 0 10px;padding:0;background:none;box-shadow:none;border-radius:0;font-size:13px;color:#8fe3ff;text-shadow:var(--hs);vertical-align:1px}
+body.hudC #lootTag{display:none!important}
+body.hudC #feverFx{display:none}
+/* FEVER — 문제 글자가 주황 형광 (맞힘·틀림 색이 우선) */
+body.hudC.fever #prompt::before{opacity:1}
+body.hudC.fever #promptWrap.ok #prompt::before, body.hudC.fever #promptWrap.no #prompt::before{opacity:.35}
+body.hudC.fever #promptWrap:not(.ok):not(.no) #ptext{color:#fffaf0;-webkit-text-stroke:0;
+  text-shadow:0 0 4px #fff,0 0 12px #ffd060,0 0 26px #ffa030,0 0 48px #ff7a1a,0 0 80px rgba(255,90,20,.9)}
+body.hudC.fvEnd #promptWrap:not(.ok):not(.no) #ptext{animation:fvBlink .3s steps(2) infinite}
+@keyframes fvBlink{50%{opacity:.55}}
+/* 지대 이름 — COMBO 밑, 한 줄 안내 */
+body.hudC #zoneTag{top:calc(env(safe-area-inset-top,0px) + clamp(200px,33vh,330px));width:min(92vw,560px)}
+body.hudC #zoneTag b{font-size:clamp(24px,6.6vw,36px);text-shadow:0 3px 0 rgba(0,0,0,.5),0 0 22px rgba(0,0,0,.5),0 0 30px rgba(255,196,107,.6)}
+body.hudC #zoneTag em{display:block;margin-top:5px;font-style:normal;font-size:13px;font-weight:800;color:#ffe2a8;text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 10px rgba(0,0,0,.5)}
+body.hudC #zoneTag span{letter-spacing:.08em;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+body.hudC #windTag{top:calc(env(safe-area-inset-top,0px) + clamp(240px,40vh,400px))}
+@media (min-width:700px) and (min-height:700px){   /* 패드 — 위 줄도 크게 */
+  body.hudC #hud .top{height:78px}
+  body.hudC.hud-ok .hearts .hico{width:34px;height:34px;margin-right:4px}
+  body.hudC #chipStage .stL{font-size:13px}
+  body.hudC #chipStage b{font-size:34px}
+  body.hudC #chipStage .stZ{font-size:14px;max-width:240px}
+  body.hudC #uScore, body.hudC #uScore.s6, body.hudC #uScore.s7, body.hudC #uScore.s9{font-size:30px}
+  body.hudC #uScore.s7 .scS, body.hudC #uScore.s9 .scS{display:inline-block}
+  body.hudC #uScore .scS{width:26px;height:26px}
+  body.hudC #uX2,body.hudC #uGain{font-size:20px}
+  body.hudC #chipScore{padding-top:10px!important}
+  body.hudC #pauseBtn, body.hudC #fsBtn{width:50px;height:50px}
+  body.hudC #plabel{font-size:16px;min-height:22px}
+  body.hudC #approach{width:min(40vw,300px);height:5px}
+  body.hudC .cRow{min-height:30px}
+  body.hudC #comboTag{font-size:20px} body.hudC #comboTag b{font-size:23px}
+  body.hudC #pans small{font-size:16px} body.hudC #pans b{font-size:32px}
+  body.hudC #zoneTag em{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){ body.hudC .hearts .last, body.hudC.fvEnd #uX2, body.hudC.fvEnd #ptext{animation:none!important} }
+@media (orientation:landscape) and (max-height:520px){
+  body.hudC #hud .top{height:46px}
+  body.hudC #chipStage b{font-size:19px}
+  body.hudC #chipStage .stZ{display:none}
+  body.hudC #uScore{font-size:17px}
+  body.hudC #chipScore{padding-top:6px!important}
+  body.hudC #pauseBtn, body.hudC #fsBtn{width:32px;height:32px}
+  body.hudC.hud-ok .hearts .hico{width:20px;height:20px}
+  body.hudC #promptWrap{margin-top:0}
+  body.hudC #plabel{min-height:0}
+  body.hudC .cRow{min-height:18px;margin-top:3px}
+  body.hudC #approach{margin-top:5px}
+}
 </style>
 </head>
-<body>
+<body class="hudC">
 <canvas id="c"></canvas>
 
 <div class="layer" id="hud">
   <div id="brakeBar"><i></i><span>브레이크</span></div>
+  <!-- (v506) C안 HUD — 왼쪽 하트 · 가운데 STAGE · 오른쪽 점수 + 멈춤. 판 위에 글자만 (상자 없음) -->
   <div class="top">
-    <div>
-      <div class="chip"><small><span class="hico flag"></span><span id="uZone">초원</span></small><b id="uStage">1</b></div>
-      <div class="chip" id="chipScore" style="margin-top:6px"><small><span class="hico star"></span>SCORE</small><b id="uScore">0</b><div id="feverBar" hidden><i></i></div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-      <div style="display:flex;gap:6px;pointer-events:auto">
+    <div class="tL"><div class="chip" id="chipLife"><small id="uLifeLab">LIFE</small><div class="hearts" id="uLives">♥♥♥</div></div></div>
+    <div class="tC"><div class="chip" id="chipStage"><small class="stL">STAGE</small><b id="uStage">1</b><small class="stZ"><span class="hico flag"></span><span id="uZone">초원</span></small></div></div>
+    <div class="tR">
+      <div class="chip" id="chipScore"><small><span class="hico star"></span>SCORE</small><b id="uScore"><span class="hico star scS"></span><span id="uScoreN">0</span></b><b id="uX2">×2</b><b id="uGain"></b><div id="feverBar" hidden><i></i></div></div>
+      <div class="tBtns">
         <div id="fsBtn" title="전체화면"></div>
         <div id="pauseBtn"><span class="pz">❚❚</span><span class="hico pause"></span></div>
       </div>
-      <div class="chip" id="chipLife"><small id="uLifeLab">LIFE</small><div class="hearts" id="uLives">♥♥♥</div></div>
     </div>
   </div>
   <div id="vsHud"><div class="vsCard p1" id="vsC0"></div><div class="vsCard p2" id="vsC1"></div></div>
@@ -5103,7 +5241,8 @@ body:has(#scStudy.on.thM) #dmView .dmGo{background:#3d5afe;color:#fff;border:0} 
       <div id="ptext">－</div>
       <div id="approach"><i id="approachBar"></i></div>
     </div>
-    <div><span id="comboTag">2 COMBO</span><span id="rushTag"></span><span id="lootTag"></span></div>
+    <div id="pans"><small>정답</small><b></b></div>
+    <div class="cRow"><span id="comboTag">2 COMBO</span><span id="rushTag"></span><span id="lootTag"></span></div>
   </div>
 </div>
 
@@ -8819,7 +8958,8 @@ function applyZone(i, announce){
 function zoneBanner(z){
   const el=document.getElementById("zoneTag");
   if(!el) return;
-  el.innerHTML = '<b>'+z.name+'</b><span>'+z.sub+'</span>';
+  if(HudC.on()){ const h=HudC.zoneHint(z); el.innerHTML = '<b>'+z.name+'</b>'+(h?'<em>'+h+'</em>':''); }   // (v506) 영어 부제(글자 간격 넓어 겹치던 RUINS) 대신 한 줄 안내
+  else el.innerHTML = '<b>'+z.name+'</b><span>'+z.sub+'</span>';
   el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
   SFX.tone(420,.5,"triangle",.05,880);
   setTimeout(()=>el.classList.remove("on"), 2600);
@@ -9721,7 +9861,7 @@ function updateGates(dt){
     const r = clamp(1 - (P.z - act.group.position.z)/G.spawnDist, 0, 1);
     const bar = document.getElementById("approachBar");
     bar.style.width = (100-r*100)+"%";
-    bar.style.background = r<.55 ? "#5fe0b0" : (r<.8 ? "#ffc46b" : "#ff7a66");
+    bar.style.background = r<.55 ? (HudC.on() ? "#ffffff" : "#5fe0b0") : (r<.8 ? "#ffc46b" : "#ff7a66");
   }
 }
 function highlightLane(){
@@ -9836,11 +9976,13 @@ function judge(s){ Perf.mark("판정");
     G.score += gain;
     burst(P.x, 1.4, P.z+0.5, COL.mint, 22);
     try{ HitFx.play(); }catch(e){}                   // 상점 정답 효과
-    popScore("+"+gain, (lm>1?"🔥 FEVER ":"")+(bonus?"RUSH ":"")+(memo?"MEMORY ":"")+(G.combo>=2?G.combo+" COMBO":""),
+    const hc=HudC.on();
+    if(!hc) popScore("+"+gain, (lm>1?"🔥 FEVER ":"")+(bonus?"RUSH ":"")+(memo?"MEMORY ":"")+(G.combo>=2?G.combo+" COMBO":""),
              comboColor(G.combo), 44);
     comboStep();
     try{ Loot.onRight(); }catch(e){}                         // (v492) 💗 연속 정답 회복 · 🔥 게이지
-    verdict("Correct!", "+"+gain+"점"+(bonus?" <em>RUSH +"+bonus+"</em>":"")+(memo?" <em>MEMORY +"+memo+"</em>":""),
+    if(hc){ HudC.right(gain, lm>1); flashTint("rgba(95,224,176,.2)"); }   // (v506) 문제 글자가 초록 + 점수 밑 「+N」
+    else verdict("Correct!", "+"+gain+"점"+(bonus?" <em>RUSH +"+bonus+"</em>":"")+(memo?" <em>MEMORY +"+memo+"</em>":""),
             COL.mint, "rgba(95,224,176,.2)");
     if(WORD_SETS[G.set].review) WrongBook.remove(s.q.word.en);
     if(ruleEnded()) return;
@@ -9870,7 +10012,8 @@ function judge(s){ Perf.mark("판정");
     WrongBook.add(w.en, G.set==="wrong" ? null : (()=>{ try{ return HyBoss.easy(G.set, G.book); }catch(e){ return null; } })());   // 다음에 "틀린 단어" 세트로 다시 나온다 · (v329) 유치원 판에서 틀렸는지 표시
     queueReview(w.en);
     const correctLabel = s.q.dir==="k2e" ? w.en.toUpperCase() : w.ko;
-    verdict("Wrong!", "정답은 <em>"+correctLabel+"</em>", COL.coral, "rgba(255,122,102,.24)");
+    if(HudC.on()){ HudC.wrong(correctLabel); flashTint("rgba(255,122,102,.24)"); }   // (v506) 빨강 + 그 자리에 초록 정답
+    else verdict("Wrong!", "정답은 <em>"+correctLabel+"</em>", COL.coral, "rgba(255,122,102,.24)");
     G.shake = .55;
     G.wrongFall = true;             // 오답으로 떨어진 것 — 시간 벌점 중복 방지
     Ground.collapseAt(lane, P.z);   // 발밑 붕괴
@@ -12875,6 +13018,7 @@ var Loot = (function(){
         S.fT-=rdt; if(S.fT<=0 && !G.falling){ S.fT=0.09; try{ puff(P.x, .25, P.z+.25, 0xff7a3c, 2, 1.8); }catch(e){} }
         if(S.fever<=0) this.endFever();
       }
+      { const fe=S.fever>0 && S.fever<=2; if(fe!==!!S.fe){ S.fe=fe; try{ document.body.classList.toggle("fvEnd", fe); }catch(e){} } }   // (v506) 끝나기 2초 전 깜빡
       this.rush();
       this.aura(rdt);
       S.hT=(S.hT||0)-rdt; if(S.hT<=0){ S.hT=0.25; this.hud(); }
@@ -12914,7 +13058,7 @@ var Loot = (function(){
       G.shake=Math.max(G.shake||0, .25);
       this.hud();
     },
-    endFever(){ S.fever=0; try{ document.body.classList.remove("fever"); }catch(e){} this.hud(); },
+    endFever(){ S.fever=0; S.fe=false; try{ document.body.classList.remove("fever","fvEnd"); }catch(e){} this.hud(); },
     onRight(){
       if(!can()) return;
       this.gain(G_RIGHT);
@@ -12988,7 +13132,7 @@ var Loot = (function(){
 function comboStep(){
   const c=G.combo;
   if(c===5 || c===10 || c===15 || (c>15 && c%10===0)){
-    popScore(comboWord(c), c+" COMBO", comboColor(c), 30);
+    popScore(comboWord(c), HudC.on() ? "" : c+" COMBO", comboColor(c), 30);   // (v506) C안은 COMBO 숫자가 문제 밑에 늘 있음
     SFX.tone(520+Math.min(c,30)*22, .18, "triangle", .07, 900+c*20);
     G.shake = Math.max(G.shake, .22);
     const gl = scene.userData.glow;
@@ -13001,7 +13145,7 @@ function popScore(text, sub, color, topPct){ Perf.mark("글자 띄움");
   const el=document.createElement("div");
   el.className = /^(GOOD|GREAT|EXCELLENT|AMAZING)/.test(text) ? "pop big" : "pop";
   el.style.color = color || "#ffd37a";
-  el.style.top = (topPct || 46) + "%";
+  el.style.top = (HudC.on() ? Math.max(42, topPct||46) : (topPct || 46)) + "%";   // (v506) 문제 글자를 가리지 않게
   if(G.versus && typeof VS!=="undefined" && VS.cur!=null) el.style.left = (VS.cur===0 ? 27 : 73) + "%";   // 2인용 — 자기 쪽에
   el.innerHTML = text + (sub ? '<small>'+sub+'</small>' : '');
   layer.appendChild(el);
@@ -13609,16 +13753,28 @@ const Voice = {
 };
 
 function showQuestion(q, s){
+  if(HudC.on()) return HudC.show(()=>showQuestionNow(q, s));   // (v506) 방금 판정한 색을 잠깐 보여 준 뒤
+  showQuestionNow(q, s);
+}
+function showQuestionNow(q, s){
   const base = q.dir==="k2e" ? "뜻에 맞는 단어" : "단어의 뜻";
   const warn = (s && s.hideMode)
     ? ' · <b style="color:var(--coral)">'+(s.hideMode==="flash"?"곧 사라짐":"가까워지면 사라짐")+'</b>'
     : '';
   const canSpeak = !!(q.promptIsEn && Voice.on && RunVoice.on());
-  $("plabel").innerHTML = base + warn + (canSpeak ? ' <span class="spk">🔊 다시 듣기</span>' : '');
+  const pl=$("plabel");
+  if(HudC.on()){
+    /* (v506) 안내 글은 같은 종류 처음 3문제만 (사라짐 경고는 늘) · 영어 문제는 스피커만 남김 */
+    G.labSeen=G.labSeen||{}; const nSeen=G.labSeen[base]=(G.labSeen[base]||0)+1;
+    pl.innerHTML = '<span class="lt">'+base+warn+'</span>' + (canSpeak ? ' <span class="spk">🔊<i> 다시 듣기</i></span>' : '');
+    pl.classList.toggle("mini", nSeen>3 && !warn);
+  } else
+  pl.innerHTML = base + warn + (canSpeak ? ' <span class="spk">🔊 다시 듣기</span>' : '');
   const el=$("ptext");
   const pic = G.picture && q.word.emoji && !q.promptIsEn;      // 그림 힌트
   el.innerHTML = pic ? '<span class="emo">'+q.word.emoji+'</span><br>'+q.prompt : q.prompt;
   el.className = q.promptIsEn ? "en" : "";
+  if(HudC.on()) HudC.fit(el, q.promptIsEn ? String(q.prompt).toUpperCase() : q.prompt); else el.style.fontSize="";
   const card=$("prompt");
   if(card){
     card.classList.toggle("speak", canSpeak);
@@ -13650,12 +13806,16 @@ function updateHUD(){ Perf.mark("HUD");
   }
   $("uStage").textContent = G.stage;
   const zn=$("uZone"); if(zn) zn.textContent = (typeof Boss!=="undefined" && Boss.active) ? "⚔️ 보스" : zone().name;
-  $("uScore").textContent = G.score.toLocaleString();
+  { const sn=$("uScoreN"), st=G.score.toLocaleString();
+    if(sn){ sn.textContent = st; const us=$("uScore"), k = st.length>=9 ? "s9" : st.length>=7 ? "s7" : st.length>=6 ? "s6" : "";   // (v506) 큰 점수는 글자를 줄여 STAGE 와 안 겹치게
+      if(us.dataset.k!==k){ us.dataset.k=k; us.className=k; } }
+    else $("uScore").textContent = st; }
   if(G.rule==="normal" || G.rule==="mine"){
     let h=""; const img=!!(document.body && document.body.classList && document.body.classList.contains("hud-ok"));
+    const last = G.running && G.lives===1 && (G.maxLives||CFG.LIVES)>1;     // (v506) 마지막 하트는 두근두근
     for(let i=0;i<(G.maxLives||CFG.LIVES);i++)
-      h += img ? '<span class="hico '+(i<G.lives?'full':'empty')+'"></span>'
-               : (i<G.lives ? "♥" : '<span class="off">♥</span>');
+      h += img ? '<span class="hico '+(i<G.lives?'full':'empty')+(last&&i===0?' last':'')+'"></span>'
+               : (i<G.lives ? (last&&i===0?'<span class="last">♥</span>':"♥") : '<span class="off">♥</span>');
     try{ if(Loot.shieldOn()) h += '<span class="lootSh" title="방패">🛡️</span>'; }catch(e){}   // (v492) ❓ 상자에서 얻은 방패
     $("uLives").innerHTML = h;
   }
@@ -13667,6 +13827,7 @@ function updateHUD(){ Perf.mark("HUD");
     BGM.volume(danger ? 0.055 : 0.035);
   }
   const c=$("comboTag");
+  if(HudC.on()){ HudC.combo(c); try{ Loot.hud(); }catch(e){} return; }   // (v506) C안 — 작은 「N COMBO」 글자만
   /* (v492) 글자는 진한 색 그대로 · 단계(5·10·15)마다 배경만 바뀜 · 하트가 비었으면 「💗 n」 = 하트까지 남은 연속 정답 */
   let ht=""; try{ const k=Loot.healLeft(); if(k>0) ht='<em>💗 '+k+'</em>'; }catch(e){}
   if(G.combo>=2) c.innerHTML = G.combo+" COMBO"+ht;   // 끊기면 글자는 그대로 두고 조용히 사라짐 (「0 COMBO」가 잠깐 보이지 않게)
@@ -13674,6 +13835,68 @@ function updateHUD(){ Perf.mark("HUD");
   c.style.color = "";
   c.style.transform = G.combo>=10 ? "scale(1.12)" : "";
   try{ Loot.hud(); }catch(e){}
+}
+/* (v506) C안 HUD — 문제 글자가 곧 판정판: 맞으면 초록, 틀리면 빨강 + 그 자리에 정답.
+   「Correct!/Wrong!」 큰 글자 대신 이것. 얻은 점수는 점수 밑에 작게 (FEVER 면 ×2). */
+const HudC = {
+  ZH:{"초원":"구멍과 상자를 피해요","사막 유적":"모래바람이 옆으로 밀어요","얼음 동굴":"굴러오는 바위를 조심해요",
+      "화산":"무너지는 바닥을 조심해요","밤하늘":"모든 함정이 나와요","성벽 위의 길":"가시와 바위를 조심해요",
+      "왕궁 앞 광장":"무너지는 바닥 · 가시를 조심해요"},
+  holdTo:0, pend:null, lastCombo:0,
+  on(){ return !!(document.body && document.body.classList.contains("hudC")) && !G.versus; },
+  wrap(){ return document.getElementById("promptWrap"); },
+  /* 글자 크기 — 화면에 맞게 (배치 계산 없이 글자 수로 어림: 사파리 강제 배치 41ms 피함) */
+  fit(el, text){
+    const ww=innerWidth||390, hh=innerHeight||844;
+    const base=Math.max(26, Math.min(ww>=700 && hh>=700 ? 82 : 64, ww*0.138, hh*0.075));
+    let em=0; for(const ch of String(text||"")){
+      em += /[\u3131-\uD79D]/.test(ch) ? 1.0 : /[A-Z0-9]/.test(ch) ? 0.72 : /[a-z]/.test(ch) ? 0.6 : ch===" " ? 0.3 : /[,.·'’\-]/.test(ch) ? 0.34 : 0.85; }
+    em=Math.max(em,1);
+    const avail=Math.min(ww*0.9, 640);
+    let fs=Math.min(base, avail/em), wrap=false;
+    if(fs < base*0.62){ wrap=true; fs=Math.min(base*0.74, avail/(em/2)*0.92); }   // 아주 긴 뜻은 두 줄로
+    el.style.fontSize=Math.round(Math.max(18,fs))+"px";
+    el.classList.toggle("wrap", wrap);
+  },
+  state(k){ const w=this.wrap(); if(!w) return; w.classList.toggle("ok", k==="ok"); w.classList.toggle("no", k==="no"); },
+  right(gain, x2){
+    this.state("ok"); this.holdTo=performance.now()+340;
+    const g=document.getElementById("uGain");
+    if(g){ g.innerHTML="+"+gain.toLocaleString()+(x2?'<em>×2</em>':''); g.classList.remove("on"); requestAnimationFrame(()=>g.classList.add("on")); }
+  },
+  wrong(label){
+    this.state("no"); this.holdTo=performance.now()+1000;
+    const a=document.getElementById("pans"); if(a){ const b=a.querySelector("b"); if(b) b.textContent=label; }
+  },
+  /* 새 문제 — 방금 판정 글자(초록·빨강)는 잠깐 더 보여 준 뒤 바꾼다 */
+  show(fn){
+    clearTimeout(this._t);
+    const left=this.holdTo-performance.now();
+    if(left>20 && G.running){ this.pend=fn; this._t=setTimeout(()=>{ const f=this.pend; this.pend=null; this.state(""); if(f) f(); }, left); return; }
+    this.pend=null; this.state(""); fn();
+  },
+  reset(){ clearTimeout(this._t); this.pend=null; this.holdTo=0; this.state(""); this.lastCombo=0; G.labSeen={};
+    const g=document.getElementById("uGain"); if(g){ g.classList.remove("on"); g.innerHTML=""; }
+    try{ document.body.classList.remove("fvEnd"); }catch(e){} },
+  combo(c){
+    if(!c) return;
+    const n=G.combo|0;
+    const tier = n>=50 ? "c50" : n>=30 ? "c30" : n>=20 ? "c20" : n>=10 ? "c10" : "";
+    const html='<b>'+n+'</b> COMBO';
+    if(c.innerHTML!==html) c.innerHTML=html;
+    c.style.color=""; c.style.transform="";
+    const up = n>this.lastCombo && n>=2;
+    const tierUp = up && (n===10 || n===20 || n===30 || n===50);
+    c.className = (n>=2 ? "on" : "dim") + (tier ? " "+tier : "");
+    if(up){ c.classList.remove("bump","big"); requestAnimationFrame(()=>c.classList.add(tierUp ? "big" : "bump")); }
+    this.lastCombo=n;
+  },
+  zoneHint(z){ if(!z) return ""; if(/[\u3131-\uD79D]/.test(z.sub||"")) return z.sub; return this.ZH[z.name]||""; }
+};
+function flashTint(flash){
+  const f=$("flash"); if(!f) return;
+  f.style.background="radial-gradient(120% 70% at 50% 55%,"+flash+" 0%,rgba(0,0,0,0) 70%)";
+  f.style.opacity="1"; setTimeout(()=>f.style.opacity="0",240);
 }
 function verdict(main,sub,hex,flash){ Perf.mark("판정 글자");
   if(G.versus && typeof VS!=="undefined" && VS.cur!=null) main = VS.NAME[VS.cur]+"  "+main;   // 2인용 — 누구 일인지
@@ -15193,6 +15416,7 @@ function startGame(){ Later.reset(); try{ SFX.keep(!(Perf.on && Perf.exp.noka));
   applyLaneMetrics();
   setCharacter(G.char);
   G.stage=1; G.score=0; G.combo=0; G.bestCombo=0; G.lives=CFG.LIVES;
+  try{ HudC.reset(); }catch(e){}
   G.solved=0; G.pace=0; G.breather=false; G.overFade=false; G.skipOutro=false;
   G.timeLeft = (G.rule==="time") ? RULES.time.start : 0; G.wrongFall=false;
   if(G.rule==="daily") _dailyState = dailySeed();        // 오늘의 문제는 모두 같게
@@ -15282,7 +15506,7 @@ const VS = {
   /* ── 시작 ── */
   start(){
     const c=this.cfg; this.clear();
-    G.versus=true; document.body.classList.add("vs");
+    G.versus=true; document.body.classList.add("vs"); document.body.classList.remove("hudC");   // (v506) 2인용은 예전 HUD 그대로
     G.rule="normal"; G.diff=c.diff; G.set=WORD_SETS[c.set]?c.set:"basic"; G.lesson=0; G.tag=null; G.char=c.c[0]; G._vsDone=false;
     startGame();                                                       // 세계 + 1P (지금 캐릭터 그림)
     const base={}; this.PF.forEach(k=>{ base[k]=G[k]; });
@@ -15306,7 +15530,7 @@ const VS = {
   },
   /* 2인용 그림을 치우고 1인용으로 돌린다 */
   clear(){
-    if(!this.pl.length){ G.versus=false; document.body.classList.remove("vs"); return; }
+    if(!this.pl.length){ G.versus=false; document.body.classList.remove("vs"); document.body.classList.add("hudC"); return; }
     if(this.cur!=null) this.swapOut();
     const kill=o=>{ if(!o) return; scene.remove(o); o.traverse(x=>{ if(x.geometry) x.geometry.dispose(); if(x.material){ if(x.material.map && x.material.map.isCanvasTexture) x.material.map.dispose(); x.material.dispose(); } }); };
     const p2=this.pl[1]; if(p2){ kill(p2.mesh); kill(p2.blob); kill(p2.beam); }
@@ -15314,7 +15538,7 @@ const VS = {
     player=this.pl[0].mesh; blob=this._blob0||blob; beam=this._beam0||beam;
     if(player) player.visible=true; if(blob) blob.visible=true;
     try{ beam.material.color.setHex(this._beamCol!=null ? this._beamCol : 0xffc46b); }catch(e){}   // 1인용 레인 빛 색으로 되돌린다
-    this.pl=[]; this.cur=null; G.versus=false; document.body.classList.remove("vs");
+    this.pl=[]; this.cur=null; G.versus=false; document.body.classList.remove("vs"); document.body.classList.add("hudC");
     const kb=$("kbhint"); if(kb) kb.textContent="A D / ← → 좌우 이동 · W S / ↑ ↓ 앞뒤 이동 · P 일시정지";
   },
   /* ── 한 프레임 ── */
@@ -15704,7 +15928,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v505";
+const GAME_VER = "v506";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
