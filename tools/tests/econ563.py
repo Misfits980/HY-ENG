@@ -147,6 +147,15 @@ async def main():
         await B.evaluate("async ()=>{ await IPLAY.ftEnd(IPLAY.ftSlot().id); }"); await B.wait_for_timeout(400)
         r=await B.evaluate("()=>[TECO.coins(), document.getElementById('info') ? document.getElementById('info').innerText : '']")
         ok(r[0]==80+20, f"④ 1등 = 상금 주머니(2명 × 🪙20)의 50% = 🪙20 {r[0]}")
+        ok(await B.evaluate("()=>IPLAY.ftQ().length")==0, "④ 끝난 대회는 기억 목록에서 빠짐")
+        # (v563) 대회 끝날 때 섬에 없었어도 다음에 들어오면 상금
+        DB["hy"]["isle"]["ft"]["tpast"]={mk:{"n":"하준","s":50,"fee":1,"at":1}, "CCCCC":{"n":"친구","s":30,"fee":1,"at":1}}
+        r=await B.evaluate("""async ()=>{ document.getElementById('info').classList.remove('on'); TECO.setCoin(100); localStorage.setItem(TECO.kk('hyeng_isle_ftq'), JSON.stringify([{id:'tpast', en:IPLAY.T()-60000}]));
+            IPLAY.ftCatchUp(IPLAY.T(), true); for(let i=0;i<40 && TECO.coins()===100;i++) await new Promise(r=>setTimeout(r,150)); await new Promise(r=>setTimeout(r,300)); return [TECO.coins(), IPLAY.ftQ().length, document.getElementById('info').classList.contains('on')]; }""")
+        ok(r==[120,0,True], f"④ 앱을 닫아 대회 끝을 못 봤어도 → 다음에 섬에서 결과 창 + 1등 🪙20 {r}")
+        await B.evaluate("()=>toast('테스트 알림', 3000)"); await B.wait_for_timeout(500)
+        r=await B.evaluate("()=>{ const t=document.getElementById('toast').getBoundingClientRect(), h=document.getElementById('ihRes').getBoundingClientRect(); return [Math.round(t.top), Math.round(h.bottom)]; }")
+        ok(r[0]>=r[1], f"🟡 섬: 알림이 💎·🪱·🪙 칸 아래 {r}")
         await br.close()
     e=real_errs(errs)
     ok(not e, f"오류 없음 {e[:3]}")

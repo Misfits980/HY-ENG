@@ -58,7 +58,7 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     const s=ftSlot(); if(s && cm>0 && cm>S.ft.best){
       /* (v563) 💰 대회 참가비 🪙20 — 모인 참가비를 1~3등이 나눠 가짐 (돈이 새로 생기지 않음) · 처음 기록할 때 한 번 묻기 */
       const ek=kidK("hyeng_isle_fte_"+s.id); let st=""; try{ st=localStorage.getItem(ek)||""; }catch(e){}
-      const rec=()=>{ S.ft.best=cm; NET.put("/hy/isle/ft/"+s.id+"/"+me(), {n:K, s:cm, e:f.e, en:f.en, at:Date.now(), fee:1}).catch(()=>{}); setTimeout(()=>ftLoad(s.id), 600); toast("🏆 대회 기록 <b>"+cm+"cm</b>!", 1800); };
+      const rec=()=>{ ftQAdd(s); S.ft.best=cm; NET.put("/hy/isle/ft/"+s.id+"/"+me(), {n:K, s:cm, e:f.e, en:f.en, at:Date.now(), fee:1}).catch(()=>{}); setTimeout(()=>ftLoad(s.id), 600); toast("🏆 대회 기록 <b>"+cm+"cm</b>!", 1800); };
       if(st==="in") rec(); else if(st!=="no"){ try{ localStorage.setItem(ek,"no"); }catch(e){}   /* (v563 QA) 「아니요」면 이번 대회엔 다시 안 물음 */ try{ ask("🏆 <b>낚시 대회</b> 참가할까요?<br>참가비 <b>🪙 "+TECO.FEE.contest+"</b><br><small>모인 참가비를 1·2·3등이 나눠 가져요 (50% · 30% · 20%)</small>", ()=>{ if(!TECO.pay2({g:0,c:TECO.FEE.contest})) return; try{ localStorage.setItem(ek,"in"); }catch(e){} rec(); }); }catch(e){} } } }
   function ftTick(){ const now=T(), s=ftSlot(now);
     if(s){ if(S.ft.id!==s.id){ S.ft.id=s.id; S.ft.best=0; S.ft.board=null; ftLoad(s.id); toast("🏆 <b>낚시 대회</b> 시작! 10분 동안 가장 큰 물고기를 잡아요<br><small>🎣 호수 부두로!</small>", 3400); }
@@ -66,9 +66,19 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
       const L=S.ft.board||[], top=L[0], mi=L.findIndex(x=>x.k===me());
       return ['<i>🏆</i>낚시 대회 <b>'+fmtT(s.en-now)+'</b> <small>'+(top?'1등 '+esc(top.n)+' '+top.s+'cm':'아직 기록 없음')+(mi>=0?' · 나 '+(mi+1)+'등':'')+'</small>', "hot"]; }
     if(S.ft.id && !S.ft.done[S.ft.id]){ const id=S.ft.id; S.ft.done[id]=1; ftEnd(id); }
+    ftCatchUp(now);
     const n=ftNext(now); if(n && n.st-now<20*60000) return ['<i>🎣</i>낚시 대회 <small>'+fmtT(n.st-now)+' 뒤 시작</small>', ""];
     return null; }
-  async function ftEnd(id){ await ftLoad(id); const L=S.ft.board||[]; if(!L.length) return; const mi=L.findIndex(x=>x.k===me()); let got=0, key=kidK("hyeng_isle_ftp_"+id);
+  /* (v563) 대회 끝날 때 섬에 없었어도(앱을 닫았어도) 다음에 들어오면 결과·상금 — 참가한 대회를 기억 */
+  const FTQ=()=>kidK("hyeng_isle_ftq");
+  const ftQ=()=>{ try{ return JSON.parse(localStorage.getItem(FTQ())||"[]"); }catch(e){ return []; } };
+  function ftQAdd(s){ try{ const L=ftQ().filter(x=>x.id!==s.id); L.push({id:s.id, en:s.en}); localStorage.setItem(FTQ(), JSON.stringify(L.slice(-6))); }catch(e){} }
+  let ftQT=0;
+  function ftCatchUp(now, force){ if(!force && Date.now()-ftQT<10000) return; ftQT=Date.now(); const L=ftQ(); if(!L.length) return;
+    const due=L.filter(x=>now>=x.en+3000), keep=L.filter(x=>now<x.en+3000 && now>x.en-864e5); if(!due.length) return;
+    try{ localStorage.setItem(FTQ(), JSON.stringify(keep)); }catch(e){}
+    due.filter(x=>now-x.en<7*864e5 && !S.ft.done[x.id]).slice(-1).forEach(x=>{ S.ft.done[x.id]=1; ftEnd(x.id); }); }
+  async function ftEnd(id){ try{ localStorage.setItem(FTQ(), JSON.stringify(ftQ().filter(x=>x.id!==id))); }catch(e){} await ftLoad(id); const L=S.ft.board||[]; if(!L.length) return; const mi=L.findIndex(x=>x.k===me()); let got=0, key=kidK("hyeng_isle_ftp_"+id);
     let paid=false; try{ paid=!!localStorage.getItem(key); }catch(e){} const dk=kidK("hyeng_isle_ftd_"+day()); let today=false; try{ today=!!localStorage.getItem(dk); }catch(e){}   /* (v559) 💰 낚시 대회 상은 하루 한 번 (매시간 받으면 하루 💎180) */
     /* (v563) 상금 = 모인 참가비 (참가비 낸 아이 수 × 🪙20) 를 1~3등이 50·30·20% — 💎 는 안 줌 (공부로만) */
     const P=L.filter(x=>x.fee), pool=P.length*TECO.FEE.contest, pi=P.findIndex(x=>x.k===me());
@@ -165,6 +175,6 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     if(slowGo){ slow=tn; const ox=oxTick(), ft=ftTick(); const B=tg||ox||ft; if(B) ban(B[0], B[1]); else ban("", ""); twCount(); }
     return anim; }
   function onMsg(v){}
-  return {S, tick, onCatch, onMsg, frozen, ftSlot, ftNext, oxQ, oxIn, tagger, tagPlayers, trSpots, trTotal, chestTap, askWord, day, ftEnd, ftLoad, oxLoad, trBuild, T};
+  return {S, tick, onCatch, onMsg, frozen, ftSlot, ftNext, ftCatchUp, ftQ, oxQ, oxIn, tagger, tagPlayers, trSpots, trTotal, chestTap, askWord, day, ftEnd, ftLoad, oxLoad, trBuild, T};
 })();
 window.IPLAY=IPLAY;
