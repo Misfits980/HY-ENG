@@ -94,7 +94,7 @@ async def main():
         await E("()=>document.getElementById('bDone').click()"); await pg.wait_for_timeout(600)
         ok(await E("()=>!document.getElementById('drawer').classList.contains('on') && getComputedStyle(document.querySelector('.bar.bot')).visibility==='visible'"), "✅ 다 했어요 → 꾸미기 끝")
         # 가게 · 만들기
-        r = await E("""()=>{ const H=HOUSE; H.setGems(50); H.openFurn('yard'); const b=document.querySelector('#furnBody [data-by=swing]'); b.click(); const t=[...document.querySelectorAll('#furnTabs [data-ft]')].map(x=>x.dataset.ft); document.getElementById('furnDone').click(); return [H.ystock().swing, H.gems(), t]; }""")
+        r = await E("""()=>{ const H=HOUSE; H.setGems(50); H.openFurn('yard'); const b=document.querySelector('#furnBody [data-by=swing]'); b.click(); document.getElementById('askOk').click(); const t=[...document.querySelectorAll('#furnTabs [data-ft]')].map(x=>x.dataset.ft); document.getElementById('furnDone').click(); return [H.ystock().swing, H.gems(), t]; }""")
         ok(r[0] == 1 and r[1] == 35 and "yard" in r[2], f"🛒 가게 🌳 마당 탭 · 그네 사기 {r}")
         r = await E("()=>{ const H=HOUSE; H.addMat('branch',4); H.addMat('stone',1); const ok=H.make('craft','y_obench'); return [ok, H.ystock().obench]; }")
         ok(r[0] and r[1] == 1, f"🛠 정원 벤치 만들기 {r}")

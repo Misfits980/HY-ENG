@@ -22,7 +22,7 @@ const TFAC=(()=>{
   const pay=(n,why)=>{ if(!n) return; gems+=n; saveBag(); try{ SND.big(); }catch(e){} toast("💎 +"+n+(why?" · "+why:""), 1600); };
 
   /* ── 간식 · 펫 밥 (가방 재료로) ── */
-  const SNACK=[["cookie","🍪",1,1],["juice","🧃",1,1],["ice cream","🍦",2,1],["donut","🍩",2,1],["sandwich","🥪",3,2],["hot dog","🌭",3,2]];   /* [이름, 그림, 💎, 배부름 하트] */
+  const SNACK=[["cookie","🍪",1,1],["lemonade","🍋",1,1],["ice cream","🍦",2,1],["donut","🍩",2,1],["sandwich","🥪",3,2],["hot dog","🌭",3,2]];   /* [이름, 그림, 💎, 배부름 하트] */   /* (v561) 간식 juice(💎1) 가 요리 juice(수박, 팔면 💎14~23)와 같은 이름이라 사서 바로 팔면 이득 → lemonade */
   SNACK.forEach(([n,e])=>{ if(!MAT[n]) MAT[n]={e, food:1}; }); if(!MAT["pet food"]) MAT["pet food"]={e:"🦴"};
 
   /* ── 창 (HLIFE 와 같은 모양) ── */
@@ -330,7 +330,7 @@ const TFAC=(()=>{
       if(!hasIt(cat[0],n)){ openMuseum(); return; }
       if(cat[0]==="fish"){ const i=bag.findIndex(it=>it.en===n); bag.splice(i,1); } else addMat(n,-1); saveBag();
       const rec={c:myCode, n:nick(), t:T()}; MUS[mkey(n)]=rec; const L=store("hyeng_proto_mus")||{}; L[mkey(n)]=rec; store("hyeng_proto_mus", L); try{ await NET.put("/hy/isle/museum/"+mkey(n), rec); }catch(_){}
-      try{ tEv("museum"); emote(hero,"🏛"); }catch(_){} pay(5, "🏛 "+e+" "+n+" 기증"); openMuseum(); }, {ask:"🏷 이 전시물의 영어 이름은?"}); }
+      try{ tEv("museum"); emote(hero,"🏛"); }catch(_){} { const Dm=daily("mus"); if(Dm.n<2){ Dm.add(); pay(5, "🏛 "+e+" "+n+" 기증"); } else toast("🏛 "+e+" "+n+" 기증! 🏷 내 이름이 붙었어요<br><small>기증 💎 는 하루 두 번까지</small>", 2200); } openMuseum(); }   /* (v561) QA: 마트에서 사서 기증하면 하루 💎110 — 하루 💎10 까지 */, {ask:"🏷 이 전시물의 영어 이름은?"}); }
 
   /* ═════════ 📸 사진관 ═════════ */
   const BGS=[["rainbow","🌈",["#ffd6e8","#d6ebff","#d8f5cc"],"🌈⭐"],["beach","🏖",["#8fd3f0","#cfeffc","#ffe8a8"],"🐚🌊"],["space","🚀",["#1d1b4a","#3b2f7a","#6a4bb0"],"⭐🪐"],["flower","🌸",["#ffe0ef","#fff3c4","#d8f5cc"],"🌸🌼"],["castle","🏰",["#e6dcff","#fff3e0","#ffd0d0"],"👑✨"]];
@@ -390,12 +390,13 @@ const TFAC=(()=>{
     d.querySelector(".lb").onclick=e=>{ if(e.target.closest("[data-say]")){ try{ say(pg[1]); }catch(_){} return; } if(e.target.closest("[data-ko]")){ $("tfKo").style.visibility="visible"; return; }
       if(e.target.closest("[data-prev]") && i) readBook(bk, i-1); if(e.target.closest("[data-next]")){ if(!last) readBook(bk, i+1); else bookQuiz(bk); } }; }
   function bookQuiz(bk){ close("tfLb"); const ix=[0,1,2,3,4,5].sort(()=>Math.random()-.5).slice(0,2); let k=0, ok=0;
-    const one=()=>{ if(k>=2){ const D=libDone(), first=!D[bk.id]; D[bk.id]=1; store("hyeng_proto_lib", D); try{ tEv("book"); emote(hero,"📖"); }catch(_){} if(first) pay(3, "📚 "+bk.t+" 다 읽었어요 ⭐"); else toast("📚 또 읽었어요! "+ok+" / 2", 1600); openLib(); return; }
+    const one=()=>{ if(k>=2){ if(!ok){ toast("📚 한 문제는 맞혀야 ⭐ 를 받아요 — 다시 읽어 봐요!", 2200); openLib(); return; }   /* (v561) QA: 다 틀려도 ⭐·💎3 받던 것 */
+      const D=libDone(), first=!D[bk.id]; D[bk.id]=1; store("hyeng_proto_lib", D); try{ tEv("book"); emote(hero,"📖"); }catch(_){} if(first) pay(3, "📚 "+bk.t+" 다 읽었어요 ⭐"); else toast("📚 또 읽었어요! "+ok+" / 2", 1600); openLib(); return; }
       const pg=bk.p[ix[k]]; pick1("📖 "+bk.t+" — 무슨 문장일까요? "+(k+1)+" / 2", pg[0], pg[1], bk.p.map(x=>x[1]), r=>{ if(r) ok++; k++; one(); }, {ask:"그림에 맞는 문장은?", n:3}); };
     one(); }
 
   /* ═════════ 🚉 기차역 ═════════ */
-  const DEST=[["plaza","⛲","광장","the plaza"],["market","🏪","시장 거리","the market"],["lake","🎣","호수","the lake"],["school","🏫","학교","the school"],["tower","🗼","하늘 타워","the tower"],["mine","⛏","광산","the mine"],["park","🎡","공원","the park"],["farm","🌾","풍차 밭","the farm"],["home","⭐","내 집","my house"]];
+  const DEST=[["plaza","⛲","광장","the plaza"],["market","🏪","상점가","the market"],["lake","🎣","호수","the lake"],["school","🎓","배움 언덕","the school"],["tower","🗼","하늘 타워","the tower"],["mine","⛏","광산","the mine"],["park","🎡","놀이 공원","the park"],["farm","🌾","농장","the farm"],["home","⭐","내 집","my house"]];
   function destAt(k){ const S=ISLE.SPOT; if(k==="home"){ const d=ISLE.doorCell(); return d?[d[0]+.5,d[1]+.5]:null; } if(k==="plaza") return [ISLE.OX+2.6, ISLE.OZ+2.6]; if(k==="park") return S.oxC?[S.oxC[0]+3.6,S.oxC[1]-3.6]:null; if(k==="market") return S.shops&&S.shops[0]?S.shops[0].door:null;
     const p=S[k]; return p?[p[0], p[2]]:null; }
   function warp(x,z){ const B=ISLE.blocked; let bx=Math.floor(x), bz=Math.floor(z), f=null; for(let r=0;r<8 && !f;r++) for(let dx=-r;dx<=r && !f;dx++) for(let dz=-r;dz<=r && !f;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!B(bx+dx,bz+dz)) f=[bx+dx,bz+dz]; }
@@ -411,10 +412,10 @@ const TFAC=(()=>{
           if(r){ const Dd=daily("ride"); if(Dd.n<3){ Dd.add(); pay(1, "🚉 "+D[2]+" 도착!"); } else toast("🚉 "+D[2]+" 도착!", 1400); } else toast("🚉 "+D[2]+" ("+D[3]+") 에 왔어요!", 1800); }, 800); }; }, 2600); }
 
   /* ═════════ 틱 — 펫 · 날리는 것 · 불꽃놀이 · 편지 알림 ═════════ */
-  let lastPl=null, fwT=0, pillT=0;
+  let lastPl=null, fwT=0, pillT=0, mailSeen=-1;
   function tick(dt){ let anim=false; try{ if(petT0===""&&!tick.s){ tick.s=1; petSync(); } if(petTick(dt)) anim=true; if(visTick(dt)) anim=true; }catch(e){}
     pillT+=dt; if(pillT>1){ pillT=0; ensurePill(); updPill(); try{ petSync(); }catch(e){} }
-    const isle=isIsle(); if(isle!==lastPl){ lastPl=isle; if(isle){ loadMail().then(M=>{ if(M.unread) toast("📮 편지 <b>"+M.unread+"통</b>이 왔어요! 우체국에 가 봐요", 2400); }); if(Date.now()-GOAL.at>60e3) loadGoal(); } }
+    const isle=isIsle(); if(isle!==lastPl){ lastPl=isle; if(isle){ loadMail().then(M=>{ let tOn=false; try{ tOn=tut.s<TUT.length-1; }catch(e){} if(M.unread && !tOn && M.unread!==mailSeen){ mailSeen=M.unread; toast("📮 편지 <b>"+M.unread+"통</b>이 왔어요! 우체국에 가 봐요", 2400); } });   /* (v561) QA: 튜토리얼 중엔 안 띄움(Mia 안내와 겹침) · 같은 수면 다시 안 띄움 */ if(Date.now()-GOAL.at>60e3) loadGoal(); } }
     if(!isle) return anim;
     if(parts){ const a=parts.geometry.attributes.position, hp=hero.g.position, k=parts.userData.kind, tm=performance.now()/1000;
       for(let i=0;i<a.count;i++){ let x=a.getX(i), y=a.getY(i), z=a.getZ(i); y-=dt*(k==="winter"?.9:.7); x+=Math.sin(tm+i)*dt*(k==="winter"?.2:.5); if(y<0){ y=14; } a.setXYZ(i,x,y,z); }

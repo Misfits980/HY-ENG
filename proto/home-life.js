@@ -33,12 +33,13 @@ const HLIFE=(()=>{
 #hqP .o{display:grid;grid-template-columns:1fr 1fr;gap:8px}#hqP .o button{height:52px;border-radius:16px;border:3px solid #3b2433;background:#fffdf7;box-shadow:0 3px 0 #3b2433;font:800 19px var(--en);color:#3b2433}
 #hqP .o button.r{background:#bff0a8}#hqP .o button.w{background:#ffc4c4}
 #hqP .o.em button{font-size:34px;height:64px}
+#hqP .hqX{position:fixed;top:calc(14px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));width:48px;height:48px;border-radius:50%;border:3px solid #3b2433;background:#fff;font-size:20px;box-shadow:0 3px 0 #3b2433}
 #hqP .sb{margin-top:8px;height:40px;padding:0 16px;border-radius:14px;border:3px solid #3b2433;background:#fffdf7;font:15px var(--kr)}`; document.head.appendChild(st);
   function sheet(id){ let d=$(id); if(d) return d; d=document.createElement("div"); d.id=id; d.className="hlP"; d.innerHTML='<div class="lb"></div>'; document.body.appendChild(d);
     d.addEventListener("click", e=>{ if(e.target===d || e.target.closest(".x")) d.classList.remove("on"); }); ["pointerdown","pointerup"].forEach(ev=>d.addEventListener(ev, e=>e.stopPropagation())); try{ SHEETS.push(id); }catch(e){} return d; }
   function show(id, html){ const d=sheet(id); d.querySelector(".lb").innerHTML=html; d.classList.add("on"); return d; }
   /* ── 단어 문제 (그림+뜻 → 영어 4개) ── */
-  function quiz(title, list, done){ let q=$("hqP"); if(!q){ q=document.createElement("div"); q.id="hqP"; q.innerHTML='<div class="b"></div>'; document.body.appendChild(q); ["pointerdown","pointerup","click"].forEach(ev=>q.addEventListener(ev, e=>e.stopPropagation())); }
+  function quiz(title, list, done){ let q=$("hqP"); if(!q){ q=document.createElement("div"); q.id="hqP"; q.innerHTML='<button class="hqX" aria-label="닫기">✕</button><div class="b"></div>'; document.body.appendChild(q); ["pointerdown","pointerup","click"].forEach(ev=>q.addEventListener(ev, e=>e.stopPropagation())); q.querySelector(".hqX").onclick=()=>{ q.classList.remove("on"); const b=q.querySelector(".b"); b.onclick=null; delete b.dataset.lock; }; }   /* (v561) QA: 간식 주문·펫 재주 문제 창에 닫기가 없어 맞힐 때까지 못 나가던 것 → ✕ (닫으면 보상·값 없음) */
     const box=q.querySelector(".b"); let i=0, ok=0; const all=W_();
     const next=()=>{ if(i>=list.length){ q.classList.remove("on"); done(ok); return; } const w=list[i]; const opts=[w]; let g=0; while(opts.length<4 && g++<60){ const x=all[Math.floor(Math.random()*all.length)]; if(!opts.some(o=>o[0]===x[0])) opts.push(x); } opts.sort(()=>Math.random()-.5);
       box.innerHTML='<div class="t">'+title+' · '+(i+1)+' / '+list.length+'</div><div class="e">'+w[2]+'</div><div class="k">'+esc(w[1])+' — 영어로?</div><div class="o">'+opts.map(o=>'<button data-w="'+o[0]+'">'+o[0]+'</button>').join("")+'</div>';

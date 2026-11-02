@@ -47,8 +47,13 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
   function ftNext(t){ t=t==null?T():t; for(let k=0;k<26;k++){ const x=Math.ceil((t+1)/1800000)*1800000+k*1800000; const s=ftSlot(x+1000); if(s) return s; } return null; }
   async function ftLoad(id){ try{ const v=await NET.get("/hy/isle/ft/"+id); S.ft.board=board(v); S.ft.bAt=Date.now(); }catch(e){} }
   function onCatch(f, cm, sh, rec){ if(!inIsle()) return; const K=nm();
-    if(cm>0 || f.en==="treasure"){ const m="🎣 "+f.e+" "+f.en+(cm?" "+cm+"cm":"")+(sh?" ✨":"")+"!"; const id=Date.now().toString(36)+myCode, v={c:myCode, n:K, m, at:Date.now(), sys:1};
-      try{ VLN.msgs[id]=v; vcFeed(K, m, true); NET.put(VLN.mp+"/"+id, v).catch(()=>{}); }catch(e){} }
+    /* (v561) 사용자: "채팅에 너무 많은 말이 올라와 · 뭐뭐 잡았다 · 정말 긴 걸 잡았을 때 등 기준을 정해 두고 해야" → 잡을 때마다 다 알리지 않음
+       알리는 것 = ✨ 반짝이 · 🎁 보물 · 🐋 대물(그 물고기 크기 위쪽 10%) · 💎 희귀 물고기 처음 · 🏆 대회 1등이 바뀔 때 — 그리고 한 아이당 3분에 한 번 */
+    let why=""; try{ const R=(FISH_BY[f.en]||{}).r|0, v=cm>0 ? sizeV(f.en, cm) : 0;
+      if(f.en==="treasure") why="보물"; else if(sh) why="반짝이"; else if(cm>0 && v>=0.9) why="대물"; else if(rec==="first" || (R && R<=2 && (dex[f.en]|0)<=1)) why="희귀"; }catch(_){}
+    const ftS=ftSlot(); if(ftS && cm>0){ const top=(S.ft.board||[])[0]; if(!top || cm>top.s) why=why||"대회 1등"; }
+    if(why && Date.now()-(S.cast||0)>180000){ S.cast=Date.now(); const m="🎣 "+f.e+" "+f.en+(cm?" "+cm+"cm":"")+(sh?" ✨":"")+" — "+{보물:"🎁 보물!", 반짝이:"✨ 반짝반짝!", 대물:"🐋 대물!", 희귀:"💎 희귀!", "대회 1등":"🏆 대회 1등!"}[why]; const id=Date.now().toString(36)+myCode, vv={c:myCode, n:K, m, at:Date.now(), sys:1};
+      try{ VLN.msgs[id]=vv; vcFeed(K, m, true); NET.put(VLN.mp+"/"+id, vv).catch(()=>{}); }catch(e){} }
     const s=ftSlot(); if(s && cm>0 && cm>S.ft.best){ S.ft.best=cm; NET.put("/hy/isle/ft/"+s.id+"/"+me(), {n:K, s:cm, e:f.e, en:f.en, at:Date.now()}).catch(()=>{}); setTimeout(()=>ftLoad(s.id), 600); toast("🏆 대회 기록 <b>"+cm+"cm</b>!", 1800); } }
   function ftTick(){ const now=T(), s=ftSlot(now);
     if(s){ if(S.ft.id!==s.id){ S.ft.id=s.id; S.ft.best=0; S.ft.board=null; ftLoad(s.id); toast("🏆 <b>낚시 대회</b> 시작! 10분 동안 가장 큰 물고기를 잡아요<br><small>🎣 호수 부두로!</small>", 3400); }
@@ -83,7 +88,7 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     const left=OXJ-ph, judge=ph>=OXJ, top=(S.ox.board||[])[0];
     if(!at) return ['<i>⭕</i>OX 단어 마당 <small>안으로 들어가요 · '+Q.w[2]+' = '+Q.shown[0]+' ?'+(top?' · 오늘 1등 '+esc(top.n)+' '+top.s+'연속':'')+'</small>', ""];
     if(judge) return ['<i>'+(S.ox.ok?"🎉":"⭕")+'</i>'+(Q.yes?"⭕ 맞아요":"❌ 아니에요")+' <small>'+Q.w[2]+' = '+Q.w[0]+' · 연속 '+S.ox.st+'</small>', S.ox.ok?"ok":S.ox.ok===false?"bad":""];
-    return ['<i>'+Q.w[2]+'</i>= <b>'+Q.shown[0]+'</b> ? <small>⭕ 왼쪽 · ❌ 오른쪽 · '+Math.ceil(left/1000)+'초 · 연속 '+S.ox.st+'</small>', at==="mid"?"":"hot"]; }
+    return ['<i>'+Q.w[2]+'</i>= <b>'+Q.shown[0]+'</b> ? <small>⭕ 파란 판 · ❌ 빨간 판 · '+Math.ceil(left/1000)+'초 · 연속 '+S.ox.st+'</small>', at==="mid"?"":"hot"]; }
   /* ════ ③ 🧊 얼음땡 (놀이터) ════ */
   const TAGP=60000;
   function inPG(x,z){ const c=ISLE.SPOT.pgC; return c && Math.hypot(x-c[0],z-c[1])<3.5; }

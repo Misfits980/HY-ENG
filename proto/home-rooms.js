@@ -42,7 +42,7 @@ const HOMEX=(()=>{
   function isSlot(side,s){ return slots().some(sl=>sl.side===side && sl.s===s); }
   function doors(){ dirty=true; }
   function labels(base){ const L=base.filter(d=>d.k!=="door"); const c=cur();
-    slots().forEach(sl=>{ const p=[.12,1.3,sl.s+.5]; const t=sl.to==="out" ? ["🚪","나가기"] : isAx(c) ? ["🚪", rinfo(sl.to).nm+"으로"] : ["🪜", rinfo(sl.to).nm+" (아래층)"]; L.push({k:"door", ic:t[0], t:t[1], p, act:exitRoom, show:()=>walls[3].visible}); });
+    slots().forEach(sl=>{ const p=[.12,1.3,sl.s+.5]; const t=sl.to==="out" ? ["🚪","나가기"] : isAx(c) ? ["🚪", ro(sl.to==="living" ? "거실" : rinfo(sl.to).nm)+" 돌아가기"] : ["🪜", rinfo(sl.to).nm+" (아래층)"]; L.push({k:"door", ic:t[0], t:t[1], p, act:exitRoom, show:()=>walls[3].visible}); });
     sdoors().forEach(w=>{ const sd=w.side, s=w.s, p=sd===0 ? [s+.5,1.3,.12] : sd===3 ? [.12,1.3,s+.5] : sd===1 ? [RN-.12,1.3,s+.5] : [s+.5,1.3,RN-.12]; L.push({k:"sd_"+w.c, ic:"🚪", t:"옆방 "+w.c, p, act:()=>annex(w), show:()=>walls[sd].visible}); });
     return L; }
   /* 층 데이터 */
@@ -66,7 +66,14 @@ const HOMEX=(()=>{
       st=back ? fcell(back) : (nearStairs()||[1,RN-1]); PL[key].start=st; PL[key].name=(inVisit() ? "🏠 "+(visiting.n||"")+" 의 집 · " : "🏠 ")+(to==="living"?"내 집":rinfo(to).nm); },
       {from:()=>back ? outPt(back) : [st[0]+.5, st[1]+.5], door:null}); try{ tEv("room_"+to); }catch(e){} }
   function go2(to){ if(F.st!=="idle" || trip.busy) return; if(!opened(to)){ if(!inVisit()) openUp(to); return; } moveTo(to); }
-  function stairs(){ const c=floorOf(cur()), nx=NEXT[c]; if(!nx){ toast("🌿 여기가 꼭대기 층이에요", 1500); return; }
+  /* (v561) QA: 위층에서 계단을 누르면 올라가기만 돼서 헷갈림 → 위층에서는 「⬆ 위층 · ⬇ 아래층」 고르기 */
+  const ro=w=>{ const c=String(w).replace(/[^가-힣]/g,"").slice(-1), j=c ? (c.charCodeAt(0)-0xac00)%28 : 0; return w+(j && j!==8 ? "으로" : "로"); };   /* 받침 있으면 으로 (ㄹ 받침은 로) */
+  function stairs(pick){ const c=floorOf(cur()), nx=NEXT[c], dn=c!=="living" ? (R[c].par||"living") : null;
+    if(dn && pick!==1){ const A=$("ask"), ok=$("askOk");
+      ask('🪜 <b>계단</b> — 어디로 갈까요?<div class="hxPick">'+(nx?'<button class="btn on" data-sp="u">⬆ '+R[nx].nm+'</button>':'')+'<button class="btn on" data-sp="d">⬇ '+R[dn].nm+'</button></div>', null); ok.hidden=true;
+      const h=e=>{ const b=e.target.closest("[data-sp]"); if(!b && !e.target.closest("#askNo") && e.target!==A) return; A.removeEventListener("click", h, true); ok.hidden=false; if(b){ A.classList.remove("on"); if(b.dataset.sp==="d"){ try{ SND.pop(); }catch(_){} moveTo(dn); } else stairs(1); } };
+      A.addEventListener("click", h, true); return; }
+    if(!nx){ toast("🌿 여기가 꼭대기 층이에요", 1500); return; }
     if(!opened(nx)){ if(inVisit()){ toast("🪜 친구는 아직 "+R[nx].nm+"이 없어요", 1600); return; } toast("🪜 <b>🏗 넓히기</b>에서 "+R[nx].nm+"을 열면 올라가요", 2200); openUp(nx); return; }
     try{ SND.pop(); }catch(e){} moveTo(nx); }
   function back(){ const c=cur(); if(c==="living") return; const sl=slots()[0]; leaveBy(fcell(sl), outPt(sl), ()=>moveTo(rinfo(c).par), roomDoor); }
@@ -113,6 +120,7 @@ const HOMEX=(()=>{
     H.mig=553; save(); try{ saveRoom(); }catch(e){} if(n) setTimeout(()=>{ try{ toast("🏠 집이 <b>한 공간</b>으로 바뀌었어요!<br><small>부엌·침실 가구 "+n+"개는 🛋️ 창고에 — 원하는 곳에 놓아요</small>", 3600); }catch(e){} }, 1500); }
   /* 🏗 넓히기 창 */
   function css(){ if($("upP")) return; const st=document.createElement("style"); st.textContent=`
+.hxPick{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}.hxPick .btn{min-width:120px}
 #upP{position:fixed;inset:0;z-index:20;display:none;background:rgba(30,18,40,.42);align-items:flex-end;justify-content:center} #upP.on{display:flex}
 #upP .lb{width:min(560px,100%);max-height:92vh;overflow:auto;background:#fff8ea;border:3px solid #3b2433;border-bottom:0;border-radius:26px 26px 0 0;padding:12px 14px calc(16px + env(safe-area-inset-bottom));font-family:var(--kr);color:#3b2433}
 #upP h3{margin:2px 4px 6px;font-weight:400;font-size:21px;display:flex;align-items:center;gap:8px}#upP h3 small{font-size:12px;color:#9a7e63;flex:1}
@@ -133,7 +141,8 @@ const HOMEX=(()=>{
 .upBar{height:8px;width:110px;border-radius:5px;border:2px solid #3b2433;background:#eadfcb;overflow:hidden;margin-top:3px}.upBar i{display:block;height:100%;background:#ff9a3d}`; document.head.appendChild(st);
     const d=document.createElement("div"); d.id="upP"; d.innerHTML='<div class="lb"><h3>🏗 집 넓히기<small>공부를 <b>이어서</b> 하면 열려요 · 토·일은 쉬어도 이어져요</small><button class="x" id="upX" aria-label="닫기">✕</button></h3><div id="upB"></div></div>'; document.body.appendChild(d);
     d.addEventListener("click", e=>{ if(e.target===d || e.target.id==="upX"){ d.classList.remove("on"); return; } const g=e.target.closest("[data-grow]"); if(g && !g.disabled){ const D0=DIRS.find(x=>x[0]===g.dataset.grow); ask(D0[1]+" <b>"+D0[2]+"</b>으로 넓힐까요?<br><small>💎 "+(ROOM_UP.find(x=>x[0]>RN)||[0,0])[1]+" · 놓은 가구는 그대로예요</small>", ()=>grow(g.dataset.grow)); return; }
-      const b=e.target.closest("[data-up]"); if(!b) return; const k=b.dataset.up, r=info(k); ask(r.ic+" <b>"+r.nm+"</b>을 살까요?<br><small>💎 "+r.gem+(SETS[k]?" · 창고에 들어가요":"")+"</small>", ()=>unlock(k)); });
+      const b=e.target.closest("[data-up]"); if(!b) return; const k=b.dataset.up, r=info(k); const nm=String(r.nm).replace(/^\S+\s/, m=>m.trim()===r.ic?"":m), last=nm.replace(/[^가-힣]/g,"").slice(-1), jo=last && (last.charCodeAt(0)-0xac00)%28 ? "을" : "를";   /* (v561) QA: 「세트을」 → 받침 보고 을/를 · 「🚪 🚪 옆방 문」 그림 두 번 */
+      ask(r.ic+" <b>"+nm+"</b>"+jo+" 살까요?<br><small>💎 "+r.gem+(SETS[k]?" · 창고에 들어가요":"")+" · 가진 💎 "+gems+"</small>", ()=>unlock(k)); });
     ["pointerdown","pointerup"].forEach(ev=>d.addEventListener(ev, e=>e.stopPropagation())); try{ SHEETS.push("upP"); }catch(e){} }
   let hot=null;
   function drawUp(){ if(!$("upB")) return; const S=streak(), u=ROOM_UP.find(x=>x[0]>RN), c=cur();
@@ -146,7 +155,7 @@ const HOMEX=(()=>{
         : st==="par" ? '<button class="go" disabled>🔒 '+R[r.par].nm+' 먼저</button>' : st==="streak" ? '<button class="go" disabled>🔥 '+need+'일 더</button>' : '<button class="go" disabled>💎 '+(r.gem-gems)+' 더</button>';
       h+='<div class="upR'+(st==="have"?" have":"")+(hot===k?" hot":"")+'" data-row="'+k+'"><div class="ic">'+r.ic+'</div><div><b>'+r.nm+'</b><small>'+r.tip+'<br>🔥 연속 '+r.st+'일 + 💎 '+r.gem+'</small>'+(st==="streak"?'<div class="upBar"><i style="width:'+Math.round(Math.min(1,S.best/r.st)*100)+'%"></i></div>':'')+'</div>'+btn+'</div>'; });
     $("upB").innerHTML=h; }
-  function openUp(k){ if(inVisit()) return; css(); hot=k||null; drawUp(); try{ SHEETS.forEach(id=>{ const e=$(id); if(e && id!=="upP") e.classList.remove("on"); }); }catch(e){} $("upP").classList.add("on");
+  function openUp(k){ if(inVisit()) return; css(); hot=k||null; drawUp(); try{ SHEETS.forEach(id=>{ const e=$(id); if(e && id!=="upP") e.classList.remove("on"); }); }catch(e){} $("upP").classList.add("on"); $("upP").querySelectorAll("*").forEach(e=>{ if(e.scrollTop) e.scrollTop=0; });   /* (v561) QA: 다시 열면 맨 아래부터 보이던 것 */
     if(k) setTimeout(()=>{ const r=document.querySelector('[data-row="'+k+'"]'); if(r) r.scrollIntoView({block:"center"}); }, 60); }
   function tap(){ return false; }
   function init(){ migrate(); doors(); try{ PL.room.name="🏠 "+(cur()==="living"?"내 집":rinfo(cur()).nm); }catch(e){} try{ drawLabels(); }catch(e){} }

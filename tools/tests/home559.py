@@ -43,7 +43,7 @@ async def main():
         ok(await pg.evaluate("()=>HOUSE.gems()")==540, "① 새로 고침해도 두 번 안 더함")
         # ② 사기
         await pg.evaluate("()=>openFurn('furn')"); await pg.wait_for_timeout(300)
-        await pg.evaluate("()=>document.querySelector('#furnBody [data-bf=chair]').click()"); await pg.wait_for_timeout(200)
+        await pg.evaluate("()=>document.querySelector('#furnBody [data-bf=chair]').click()"); await pg.wait_for_timeout(200); await pg.click('#askOk'); await pg.wait_for_timeout(200)
         r=await pg.evaluate("()=>[HOUSE.gems(), PRICE.chair, "+W[4:]+".gems, "+W[4:]+".log.slice(-1)[0]]")
         ok(r[1]==60 and r[0]==480 and r[2]==480 and "마을에서 씀" in r[3][2] and r[3][1]==-60, f"② 🪑 💎60 → 게임 지갑에서 빠짐 {r}")
         await pg.evaluate("()=>document.getElementById('furnP').classList.remove('on')")

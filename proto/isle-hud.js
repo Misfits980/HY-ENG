@@ -43,6 +43,16 @@ body.isleOn #ipBan{top:calc(110px + env(safe-area-inset-top))} body.isleOn #emoB
 #ih.fan .ihF{opacity:1;pointer-events:auto}
 #ihM{position:fixed;inset:0;z-index:20;display:none;background:rgba(30,18,40,.42);align-items:flex-start;justify-content:flex-end;padding:calc(66px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 0 0}
 #ihM.on{display:flex}
+/* (v561) 🗺 마을 지도 — QA: 섬에서 지도를 열면 예전 세계 지도(예전 마을로 감)가 나오던 것 */
+#ihMap{position:fixed;inset:0;z-index:21;display:none;background:rgba(30,18,40,.45);align-items:center;justify-content:center;padding:16px}
+#ihMap.on{display:flex}
+#ihMap .mb{width:min(520px,94vw);background:#fff8ea;border:3px solid #3b2433;border-radius:24px;box-shadow:0 5px 0 #3b2433;padding:10px 10px 12px;animation:pop .3s cubic-bezier(.2,.9,.3,1.3)}
+#ihMap .mh{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:17px;padding:2px 4px 6px}
+#ihMap .mh button{width:40px;height:40px;border-radius:50%;border:3px solid #3b2433;background:#fff;font-size:18px}
+#ihMap svg{width:100%;height:auto;display:block;border-radius:16px;background:#8fd3f0}
+#ihMap svg [data-z]{cursor:pointer}
+#ihMap svg text{font:800 4.2px system-ui,sans-serif;fill:#3b2433;paint-order:stroke;stroke:#fff;stroke-width:1.1px;pointer-events:none}
+#ihMap .mt{font-size:13px;color:#6b5a4e;text-align:center;margin-top:6px}
 #ihM .bx{width:min(300px,86vw);background:#fff8ea;border:3px solid #3b2433;border-radius:24px;box-shadow:0 5px 0 #3b2433;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px;animation:pop .3s cubic-bezier(.2,.9,.3,1.3)}
 #ihM .bx button{position:relative;height:84px;border-radius:18px;border:3px solid #3b2433;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),0 3px 0 #3b2433;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;padding:0}
 #ihM .bx button i{font-style:normal;font-size:30px;line-height:1}
@@ -85,7 +95,8 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   function where(){ const h=hero && hero.g.position; if(!h) return "🏝 우리 마을"; const x=h.x-ISLE.OX, z=h.z-ISLE.OZ;   /* (v536) 이름 있는 길 */
     if(x*x+z*z<64) return "⛲ 광장"; let best=null, bd=36; (ISLE.lots||[]).forEach(L=>{ const d=(L.x-x)**2+(L.z-z)**2; if(d<bd){ bd=d; best=L; } });
     if(best){ const hi=(window.ISLE_MAP && ISLE_MAP.hoods.find(q=>q.id===best.hood)); if(hi) return hi.ic+" "+hi.nm; }
-    const S=window.ISLE_MAP && ISLE_MAP.spots; if(S){ const near=(p,r)=>(p[0]-x)**2+(p[1]-z)**2<r*r; if(near(S.farm,8)) return "🌾 풍차 밭"; if(near([S.park.x,S.park.z],S.park.r+1)) return "🎡 공원"; if(near(S.market,9)) return "🏪 시장 거리"; if(near([S.lake.x,S.lake.z],10)) return "🎣 호수"; if(near(S.school,7)) return "🏫 학교"; if(near(S.tower,7)) return "🗼 타워"; if(near(S.mine,8)) return "⛏ 광산"; }
+    const S=window.ISLE_MAP && ISLE_MAP.spots; if(S){ const near=(p,r)=>(p[0]-x)**2+(p[1]-z)**2<r*r; if(near(S.farm,8)) return "🌾 농장"; if(near([S.park.x,S.park.z],S.park.r+1)) return "🎡 놀이 공원"; if(near([S.lake.x,S.lake.z],10)) return "🎣 호수"; if(near(S.tower,7)) return "🗼 타워"; if(near(S.mine,8)) return "⛏ 광산"; }
+    try{ const Z=ISLE_MAP.zoneAt(x,z); if(Z && !Z.free) return Z.nm; }catch(_){}   /* (v561) QA: 곳마다 이름이 달랐음(시장 거리/상점가 · 학교/배움 언덕 · 풍차 밭/농장·캠핑) → 구역 이름판과 같게 */
     return "🏝 우리 마을"; }
   let meKey="";
   function drawMe(){ let n="나"; try{ n=String(kidInfo().n||localStorage.getItem("hyeng_nick")||"나").replace(/^👤\s*/,""); }catch(e){} const w=where(), k=n+"|"+w+"|"+JSON.stringify(av);
@@ -116,7 +127,25 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   $("ihQ").onclick=e=>{ e.stopPropagation(); try{ openQ(); }catch(_){} };
   $("ihMe").onclick=e=>{ e.stopPropagation(); click("bIAv"); };
   m.addEventListener("click", e=>{ const b=e.target.closest("[data-m]"); m.classList.remove("on"); if(!b) return; const k=b.dataset.m;
-    if(k==="home") click("bIHome"); else if(k==="fr") click("bFr"); else if(k==="map") click("bMap"); else if(k==="dex") click("bDex"); else if(k==="q") openQ(); else if(k==="lot") ISLE.openLots(); });
+    if(k==="home") click("bIHome"); else if(k==="fr") click("bFr"); else if(k==="map") openMap(); else if(k==="dex") click("bDex"); else if(k==="q") openQ(); else if(k==="lot") ISLE.openLots(); });
+  /* (v561) 🗺 마을 지도 — 구역을 누르면 그 입구까지 걸어감 · ⭐ 내 집 · 🔴 나 */
+  function openMap(){ const M=window.ISLE_MAP; if(!M || !M.zones){ click("bMap"); return; }
+    let el=$("ihMap"); if(!el){ el=document.createElement("div"); el.id="ihMap"; document.body.appendChild(el);
+      el.addEventListener("click", e=>{ const z=e.target.closest("[data-z]"); if(z){ el.classList.remove("on"); goZone(z.dataset.z); return; } if(e.target===el || e.target.closest(".mx")) el.classList.remove("on"); }); }
+    const I=M.island, x0=-I.ax/2-6, z0=I.cz-I.az/2-6, w=I.ax+12, h=I.az+12, f=n=>Math.round(n*10)/10;
+    const cen=P=>{ let x=0,z=0; P.forEach(q=>{ x+=q[0]; z+=q[1]; }); return [x/P.length, z/P.length]; };
+    const hex=c=>"#"+("00000"+(c>>>0).toString(16)).slice(-6);
+    let g='<ellipse cx="'+f(I.cx)+'" cy="'+f(I.cz)+'" rx="'+f(I.ax/2)+'" ry="'+f(I.az/2)+'" fill="#9ed67a" stroke="#e8d7a0" stroke-width="1.6"/>';
+    M.zones.forEach(Z=>{ if(Z.free) return; const c=cen(Z.poly); g+='<g data-z="'+Z.k+'"><polygon points="'+Z.poly.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="'+hex(Z.c||0xcccccc)+'" fill-opacity=".75" stroke="#3b2433" stroke-width=".5"/></g><text x="'+f(c[0])+'" y="'+f(c[1])+'" text-anchor="middle">'+Z.nm+'</text>'; });
+    try{ const d=ISLE.doorCell(); if(d && tut.s>=1) g+='<g data-z="myhome"><circle cx="'+f(d[0]+.5-ISLE.OX)+'" cy="'+f(d[1]+.5-ISLE.OZ)+'" r="3.4" fill="#ffd23f" stroke="#3b2433" stroke-width=".6"/></g><text x="'+f(d[0]+.5-ISLE.OX)+'" y="'+f(d[1]-4-ISLE.OZ)+'" text-anchor="middle">⭐ 내 집</text>'; }catch(_){}
+    try{ const p=hero.g.position; g+='<circle cx="'+f(p.x-ISLE.OX)+'" cy="'+f(p.z-ISLE.OZ)+'" r="2.2" fill="#ff4d5e" stroke="#fff" stroke-width=".8"><animate attributeName="r" values="2.2;3;2.2" dur="1.2s" repeatCount="indefinite"/></circle>'; }catch(_){}
+    el.innerHTML='<div class="mb"><div class="mh"><span>🗺 우리 마을 지도</span><button class="mx" aria-label="닫기">✕</button></div><svg viewBox="'+f(x0)+' '+f(z0)+' '+f(w)+' '+f(h)+'">'+g+'</svg><div class="mt">🔴 = 나 · 가고 싶은 곳을 누르면 걸어가요</div></div>';
+    el.classList.add("on"); }
+  function goZone(k){ if(k==="myhome"){ click("bIHome"); return; } const Z=(ISLE_MAP.zones||[]).find(z=>z.k===k); if(!Z) return;
+    const t=Z.gate || (()=>{ let x=0,z=0; Z.poly.forEach(q=>{ x+=q[0]; z+=q[1]; }); return [x/Z.poly.length, z/Z.poly.length]; })();
+    const bx=Math.floor(t[0]+ISLE.OX), bz=Math.floor(t[1]+ISLE.OZ); let c=null;
+    for(let r=0;r<10 && !c;r++) for(let dx=-r;dx<=r && !c;dx++) for(let dz=-r;dz<=r && !c;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!ISLE.blocked(bx+dx,bz+dz)) c=[bx+dx,bz+dz]; }
+    if(!c) return; toast("🗺 "+Z.nm+" — 걸어가요", 1400); try{ walkTo(c[0], c[1]); }catch(_){} }
   /* ── 바닥 빛 고리 (가장 가까운 할 수 있는 일) ── */
   let ring=null, ringT=0;
   function mkRing(){ const g=new THREE.RingGeometry(.62,.8,40); g.rotateX(-Math.PI/2); ring=new THREE.Mesh(g, new THREE.MeshBasicMaterial({color:0x7dff7a, transparent:true, opacity:.75, depthWrite:false})); ring.position.y=.03; ring.renderOrder=3; ring.visible=false; ISLE.G.add(ring); }
@@ -133,6 +162,6 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   function onCatch(){ if(!inIsle()) return; setTimeout(()=>{ const o=$("qOpts"); if(!o || o.querySelector("#qDexB")) return; const b=document.createElement("button"); b.className="btn"; b.id="qDexB"; b.textContent="📖 도감";
     b.onclick=()=>{ const ok=$("qOk"); if(ok) ok.click(); setTimeout(()=>click("bDex"), 250); }; o.appendChild(b); }, 0); }
   addEventListener("resize", ()=>{ if(d.classList.contains("fan")) fan(true); });
-  return {tick, fan, onCatch, drawQ, badge, ring:()=>ring};
+  return {tick, fan, onCatch, drawQ, badge, ring:()=>ring, openMap, goZone};
 })();
 window.IHUD=IHUD;

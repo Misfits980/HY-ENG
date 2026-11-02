@@ -462,7 +462,7 @@ const ISLE=(()=>{
     if(SPOT.board) L.push({k:"board", ic:"📋", t:"땅 고르기", p:SPOT.board, r:3.4, act:()=>openLots()});
     (SPOT.shops||[]).forEach(S=>L.push({k:S.k, ic:S.ic, t:S.t, p:S.p, r:3, act:()=>shopGo(S)}));
     if(SPOT.lake) L.push({k:"lake", ic:"🎣", t:"같이 낚시", p:SPOT.lake, r:3.2, act:()=>{ const L=lake(); fishTap(Math.floor(L.x-1.5), Math.floor(L.z), L.x-1.4, L.z); }});
-    if(SPOT.farm) L.push({k:"farm", ic:"🌱", t:"내 밭 (밭 섬)", p:SPOT.farm, r:4.5, act:()=>tripTo("yard")});
+    if(SPOT.farm) L.push({k:"farm", ic:"🌱", t:"내 밭 가기 (마당)", p:SPOT.farm, r:4.5, act:()=>tripTo("yard")});
     if(SPOT.school) L.push({k:"school", ic:"🏫", t:"학교 · 공부하기", p:SPOT.school, r:3.4, act:()=>ask("🏫 공부하러 갈까요?<br><small>Daily 30 을 하면 🪱 미끼를 받아요</small>", ()=>{ location.href="../index.html"; })});
     if(SPOT.tower) L.push({k:"tower", ic:"🗼", t:"하늘 타워", p:SPOT.tower, r:3.6, act:()=>towerAsk()});
     if(SPOT.mine) L.push({k:"mine", ic:"⛏", t:"광산", p:SPOT.mine, r:3.4, act:()=>tripTo("mine")});
