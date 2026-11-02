@@ -32,8 +32,8 @@ async def main():
         r = await E("()=>[HOUSE.yd().pc, document.getElementById('bDeco')!==null, !document.getElementById('bBait'), HOUSE.ystock()]")
         ok(r[0] == [0, 0, 0] and r[1] and r[2], f"마당 14×14 · 새 땅 3구역 잠김 · 아래 독 ✏️ 꾸미기 {r}")
         # ① 잠긴 땅은 못 들어감 · 열기
-        r = await E("()=>{ HOUSE.setGems(200); return [0, HOUSE.yParcOpen(0), HOUSE.yd().pc[0], Object.keys(HOUSE.yd().db).length, HOUSE.gems()]; }")
-        ok(r[1] and r[2] == 1 and r[3] > 10 and r[4] == 180, f"동쪽 숲 열기 💎20 → 잡초·돌·그루터기 {r[3]}칸 {r}")
+        r = await E("()=>{ HOUSE.setGems(300); return [0, HOUSE.yParcOpen(0), HOUSE.yd().pc[0], Object.keys(HOUSE.yd().db).length, HOUSE.gems()]; }")
+        ok(r[1] and r[2] == 1 and r[3] > 10 and r[4] == 155, f"동쪽 숲 열기 💎145 (v559 물가) → 잡초·돌·그루터기 {r[3]}칸 {r}")
         k = await E("()=>Object.keys(HOUSE.yd().db).find(k=>HOUSE.yd().db[k]==='stone')")
         r = await E("(k)=>{ const m0=HOUSE.mats().stone|0; HOUSE.yClear(k); return [!HOUSE.yd().db[k], (HOUSE.mats().stone|0)-m0]; }", k)
         ok(r[0] and r[1] == 1, f"🪨 돌 치우기 → stone +1 {r}")

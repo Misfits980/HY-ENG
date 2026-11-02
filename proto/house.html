@@ -1202,12 +1202,12 @@ const ROAD_Z=8, ROAD_X0=10;                       // 마을 가는 흙길 (10~13
 const PARC=[ {k:"e",  nm:"동쪽 숲",   x0:10, z0:0,  x1:13, z1:7,  sign:[10,4], need:"공부한 날 5일"},
              {k:"se", nm:"언덕",      x0:10, z0:9,  x1:13, z1:13, sign:[11,9], need:"공부한 날 15일"},
              {k:"s",  nm:"들판",      x0:0,  z0:10, x1:9,  z1:13, sign:[8,10], need:"공부한 날 30일"} ];
-const PARC_P=[20, 40, 60];                         // 맛보기 💎 (몇 번째로 여느냐)
+const PARC_P=[145, 265, 385]   /* (v559) 💰 20·40·60 → ECON */;                         // 맛보기 💎 (몇 번째로 여느냐)
 const parcOf=(x,z)=>PARC.findIndex(p=>x>=p.x0&&x<=p.x1&&z>=p.z0&&z<=p.z1);
 const isRoad=(x,z)=>z===ROAD_Z && x>=ROAD_X0;
 /* 길 칠하기 */
 const GP={ dirt:{nm:"dirt path", e:"🟫", p:0, c:"#c99a62"}, stone:{nm:"stone path", e:"🪨", p:5, c:"#c9c4b8"}, deck:{nm:"wood deck", e:"🪵", p:5, c:"#c08a55"},
-           brick:{nm:"brick road", e:"🧱", p:6, c:"#c8664f"}, sand:{nm:"sand", e:"🏖", p:4, c:"#efd9a0"}, flowers:{nm:"flower field", e:"🌼", p:6, c:"#7fcf6a"} };
+           brick:{nm:"brick road", e:"🧱", p:6, c:"#c8664f"}, sand:{nm:"sand", e:"🏖", p:4, c:"#efd9a0"}, flowers:{nm:"flower field", e:"🌼", p:6, c:"#7fcf6a"} }; Object.keys(GP).forEach(k=>{ if(GP[k].p) GP[k].p=ECON(GP[k].p); });   /* (v559) 💰 물가 */
 /* 집 색 */
 const HXC={ r:["#e46a5a","#4f8fd6","#5cbf5a","#a879e0","#f2b33d","#6b5a4e","#ff8fb8"], w:["#fff1d6","#ffd9e0","#d8f0ff","#e6f5d8","#f3e2c0","#ffffff"], d:["#8a5a34","#e85d5d","#4f8fd6","#5db95a","#2c2c3a","#ffd23f"] };
 let yd=null, ystock={}, ownGP=["dirt"];
@@ -2286,7 +2286,7 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
 function twShatter(s){ const c=s.mesh.position.clone(); s.mesh.visible=false; if(s.lab) s.lab.visible=false; for(let k=0;k<8;k++){ const m=new THREE.Mesh(rbox(0.3,0.05,0.3,0.02), s.mesh.material); m.position.set(c.x+rnd(-0.6,0.6), c.y, c.z+rnd(-0.6,0.6)); m.userData.v=new THREE.Vector3(rnd(-1,1), rnd(0,2), rnd(-1,1)); m.userData.shard=1; towerG.add(m); } }
 function twShards(dt){ towerG.children.filter(m=>m.userData.shard).forEach(m=>{ m.userData.v.y-=TG*dt; m.position.addScaledVector(m.userData.v, dt); m.rotation.x+=dt*5; if(m.position.y<-8) towerG.remove(m); }); }
 function twWin(){ if(TW.fin) return; TW.fin=true; try{ twHiSave(); twEmote("🎉"); }catch(e){} const t=(performance.now()-TW.t0)/1000, d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}); const first=!m.best, rec=!first && t<m.best;
-  m.best=first?t:Math.min(m.best,t); m.n=(m.n|0)+1; const g=first ? (TW.mode==="sky"?30:TW.mode==="hard"?25:TW.mode==="kid"?12:6) : 0;   /* (v454) 30층 = 💎 25 · 10층 = 💎 6 */ if(g){ gems+=g; saveBag(); }
+  m.best=first?t:Math.min(m.best,t); m.n=(m.n|0)+1; const g=first && !r.pay ? (TW.mode==="sky"?15:TW.mode==="hard"?12:TW.mode==="kid"?6:4) : 0;   /* (v454) 30층 = 💎 25 · 10층 = 💎 6 → (v559) 💰 하루 한 번(처음 깬 것) · 15/12/6/4 */ if(g){ r.pay=1; gems+=g; saveBag(); }
   const all=TW.rec; Object.keys(all).sort().slice(0,-14).forEach(k=>delete all[k]); store("hyeng_proto_tower", all); TW.tEnd=t;
   try{ SND.big(); }catch(e){} act("yay"); emote(hero,"🏆"); say("I did it!"); twConfetti();
   setTimeout(()=>info('<div class="iBig">🏆</div><b>꼭대기!</b> '+(TW.mode==="sky"?"🗼 "+TW_N.sky+"층":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층":TW.mode==="hard"?"🔴 어려움":"🟢 쉬움")+'<br><span class="twT">⏱ '+twTime(t)+'</span>'+(rec?'<br><b class="twRec">🎉 새 기록!</b>':first?'':'<br><small>오늘 최고 '+twTime(m.best)+'</small>')
@@ -2613,7 +2613,27 @@ let dex = store("hyeng_proto_fish") || {};
    가방 칸 = {en, at(잡은 시각)} · 신선도: 잡고 2시간은 그대로 → 48시간에 0 (값은 15%까지만 떨어짐) · 장화·조개껍데기는 안 상함
    시세: 한국 시간 1시간마다 · 물고기마다 다른 물결(모든 기기 같은 값) 0.5~1.7배 · 맛보기 보석은 게임 보석과 따로(hyeng_proto_gems) */
 const FISH_BY={}; FISH.forEach(f=>FISH_BY[f.en]=f);
-let bag = store("hyeng_proto_bag") || [], gems = store("hyeng_proto_gems") || 0, tShift = 0;
+/* (v559) 💎 보석 지갑 하나 — 사용자: "공부해서 번 걸 게임에 소비하는 거면 좋다"
+   게임 지갑(hyeng_wallet_v1 — 게임 Kid.k 규칙: 내 기기·주인 패드 = 그대로)과 같은 돈. 마을 = 쓰는 곳 · 공부 = 버는 곳.
+   · 예전 마을 보석(hyeng_proto_gems)은 처음 한 번 게임 지갑에 더함 (지갑 paid["town-merge"] + hyeng_proto_gmerged 둘 다 보고)
+   · 바뀐 만큼만 더하고 뺌(delta) — 게임 탭에서 바뀐 것을 덮지 않음 · 보석 기록(log)에 「🏝 마을」 줄로 10분씩 묶음
+   · hyeng_proto_gems 는 거울(공용 패드 서버 저장용)
+   · 공용 패드에서 주인이 아닌 아이(이름 고른 공용 패드)는 예전처럼 마을 보석 따로 — 게임 보석이 그 아이 기기로 배달되는 구조라 여기서 빼면 어긋남 */
+const WAL=(()=>{ const K="hyeng_wallet_v1", on=!PAD.shared || !!(PAD.kid && (PAD.kid.own || (PAD.owner && PAD.kid.id===PAD.owner.k)));
+  const rd=()=>{ const a={gems:0, pts:0, owned:[], wear:{}, paid:{}, earned:0}; try{ const v=JSON.parse(localStorage.getItem(K)); if(v && typeof v==="object") Object.assign(a, v); }catch(e){} a.paid=a.paid||{}; return a; };
+  const wr=a=>{ try{ localStorage.setItem(K, JSON.stringify(a)); }catch(e){} };
+  function note(a, d, why){ const L=a.log=a.log||[], l=L[L.length-1]; if(l && l[2]===why && Date.now()-l[0]<10*60000){ l[1]+=d; l[3]=a.gems; l[0]=Date.now(); } else L.push([Date.now(), d, why, a.gems]); if(L.length>200) L.splice(0, L.length-200); }
+  let base=0;
+  function init(g){ if(!on) return g; const a=rd(); let merged=false; try{ merged=localStorage.getItem(skey("hyeng_proto_gmerged"))==="1"; }catch(e){}
+    if(!a.paid["town-merge"]){ a.paid["town-merge"]=1; if(g>0 && !merged){ a.gems=(a.gems|0)+g; a.earned=(a.earned|0)+g; note(a, g, "🏝 마을 보석 합침"); } wr(a); }
+    try{ localStorage.setItem(skey("hyeng_proto_gmerged"), "1"); }catch(e){} base=a.gems|0; return base; }
+  function sync(g){ if(!on) return g; const a=rd(), d=(g|0)-base; if(d){ a.gems=Math.max(0, (a.gems|0)+d); if(d>0) a.earned=(a.earned|0)+d; note(a, d, d>0?"🏝 마을에서 벎":"🏝 마을에서 씀"); wr(a); } base=a.gems|0; return base; }
+  return {on, init, sync, K}; })();
+let bag = store("hyeng_proto_bag") || [], gems = WAL.init(store("hyeng_proto_gems") || 0), tShift = 0;
+/* 게임에서 돌아오면(뒤로 가기 bfcache)·다른 탭에서 바뀌면 지갑 다시 읽음 */
+addEventListener("pageshow", ()=>{ try{ gems=WAL.sync(gems); dirty=true; }catch(e){} });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) try{ gems=WAL.sync(gems); dirty=true; }catch(e){} });
+addEventListener("storage", e=>{ if(e.key===WAL.K) try{ gems=WAL.sync(gems); dirty=true; }catch(er){} });
 const FRESH_H=2, ROT_H=48, FISH_STACK=10, MAT_STACK=30;   /* (L0-5) 가방 = 칸(슬롯) — 같은 것은 겹쳐 담음(물고기 10 · 나머지 30) · 칸 20개(👜 큰 가방을 만들면 30) */
 let bagCap = store("hyeng_proto_cap") || 20;
 const now=()=>Date.now()+tShift;
@@ -2626,7 +2646,7 @@ function mkt(en, h){ h=h==null?hourIx():h; const a=hashf(en+"|a"), b=hashf(en+"|
 function fresh(it){ if(FISH_BY[it.en].noRot) return 1; const h=(now()-it.at)/3600e3; return Math.max(0, Math.min(1, 1-(h-FRESH_H)/(ROT_H-FRESH_H))); }
 function freshTag(v){ return v>0.75?["✨","fresh"]:v>0.4?["🙂","good"]:v>0.05?["😕","old"]:["🤢","rotten"]; }
 function price(it){ const S=SPEC[it.en]||{}, sm=it.cm && S.cm ? 0.8+0.8*sizeV(it.en,it.cm) : 1; return Math.max(1, Math.round(FISH_BY[it.en].p * mkt(it.en) * (0.15+0.85*fresh(it)) * sm * (it.sh?3:1))); }   /* (v414) 클수록 ×0.8~1.6 · ✨ 반짝이 ×3 */
-function saveBag(){ store("hyeng_proto_bag", bag); store("hyeng_proto_gems", gems); }
+function saveBag(){ gems=WAL.sync(gems); store("hyeng_proto_bag", bag); store("hyeng_proto_gems", gems); }
 /* ═════════ 🌾 재료 · 🌱 밭 · 🛠 만들기 · 🍳 요리 (L0-4) ═════════ */
 /* (L0-9) 경제 다시 — 사용자: "보석이 너무 비싸 · 나중엔 농사만 하거나 광질만 할 텐데"
    · 값 ≈ 1/3 · 💎 는 게임(공부) 보석과 같은 돈이 될 것이므로 생활로 버는 💎 는 하루 상한(가게 주머니 💎30)
@@ -2639,12 +2659,13 @@ const MAT={ apple:{e:"🍎",p:1}, branch:{e:"🪵",p:1}, stone:{e:"🪨",p:1},
   popcorn:{e:"🍿",food:1}, soup:{e:"🥣",food:1}, pizza:{e:"🍕",food:1}, cake:{e:"🍰",food:1}, juice:{e:"🧃",food:1} };
 /* 씨앗 p=값 h=자라는 시간 y=수확 개수 — 이익: 🌾+2 🥕+3 (12시간) · 🥔🍅🌽+4 🍓+6 (24시간) · 🎃+6 🍉+7 (48시간) */
 const SEEDS={ wheat:{p:1,h:12,y:3}, carrot:{p:1,h:12,y:2}, potato:{p:2,h:24,y:3}, tomato:{p:2,h:24,y:3}, corn:{p:2,h:24,y:2}, strawberry:{p:3,h:24,y:3}, pumpkin:{p:4,h:48,y:1}, watermelon:{p:5,h:48,y:1} };
-/* 🏪 하루 가게 주머니 — 팔아서 받는 💎 는 하루 💎30 까지 제값, 넘으면 ¼ (부탁 보상은 따로) */
-const SELL_CAP=30;
+/* 🏪 하루 가게 주머니 — 팔아서 받는 💎 는 하루 💎20 까지 (부탁 보상은 따로)
+   (v559) 💰 지갑을 게임과 합치면서 30 → 20 · 넘으면 ¼ → 0 (사용자: "공부해서 번 걸 쓰는 곳" — 낚시·농사만으로 게임 옷·진짜 상품을 사지 않게) · 팔기는 됨(가방 비우기) */
+const SELL_CAP=20;
 let sold = store("hyeng_proto_sold") || {d:"", n:0};
 function soldN(){ const d=dayKey(); if(sold.d!==d) sold={d, n:0}; return sold.n; }
-function simPay(list){ let n=soldN(), g=0; list.forEach(v=>{ const full=Math.min(v, Math.max(0,SELL_CAP-n)); g+=full+Math.floor((v-full)*0.25); n+=v; }); return g; }
-function payout(v){ try{ tEv("sell"); }catch(e){} const g=simPay([v]); soldN(); sold.n+=v; store("hyeng_proto_sold", sold); gems+=g; return g; }
+function simPay(list){ let n=soldN(), g=0; list.forEach(v=>{ const full=Math.min(v, Math.max(0,SELL_CAP-n)); g+=full; n+=v; }); return g; }
+function payout(v){ try{ tEv("sell"); }catch(e){} const g=simPay([v]); if(!g && v>0) setTimeout(()=>toast("👛 오늘 가게 주머니가 가득 찼어요<br><small>💎 는 내일 다시 · 💎 는 공부해서 많이 벌어요</small>", 2400), 30); soldN(); sold.n+=v; store("hyeng_proto_sold", sold); gems+=g; return g; }
 const WATER_H=12;
 let mats = store("hyeng_proto_mats") || {apple:2, branch:3, stone:2, "carrot seeds":3, "wheat seeds":3, "potato seeds":2, "tomato seeds":2, "strawberry seeds":2, "pumpkin seeds":1};
 let plots = store("hyeng_proto_plots") || PLOTS.map(()=>({s:null})); while(plots.length<PLOTS.length) plots.push({s:null});
@@ -2904,7 +2925,7 @@ function drawFurn(){ $("furnGem").innerHTML="💎 <b>"+gems+"</b>";
     h=sec(FLOORS,ownF,floorIx,"🟫 바닥","f")+sec(WALLS,ownW,wallIx,"🎨 벽지","w"); }
   if(furnTab==="yard") h=yShopHTML();
   if(furnTab==="up") h=upRows().map(([k,e,nm,sub,p,lab])=>'<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b><small>'+sub+'</small></span>'+(p?'<button class="btn'+(gems>=p?' on':'')+'" data-up="'+k+'"'+(gems>=p?'':' disabled')+'>'+lab+' 💎'+p+'</button>':'<em>'+(lab||'✅')+'</em>')+'</div>').join("")
-    +'<p class="bHint" style="margin:10px 0 0">조금씩 늘려요 — 💎 는 하루에 많이 못 벌어요 (가게 주머니 💎'+SELL_CAP+')</p>';
+    +'<p class="bHint" style="margin:10px 0 0">조금씩 늘려요 — 팔아서 버는 💎 는 하루 💎'+SELL_CAP+' 까지 · 💎 는 공부해서 많이 벌어요</p>';
   $("furnBody").innerHTML=h; }
 function openFurn(tab){ if(F.st!=="idle") return; if(tab) furnTab=tab; $("drawer").classList.remove("on"); drawFurn(); $("furnP").classList.add("on"); }
 $("furnTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-ft]"); if(!b) return; furnTab=b.dataset.ft; drawFurn(); });
@@ -3513,7 +3534,7 @@ function placeMenu(){ if(!sel) return; if(sel.y) return yPlaceMenu(); $("mBox").
 /* ═════════ 나 꾸미기 ═════════ */
 /* (v539) 사용자: "마트나 이런 시설 — 옷이랑 그런 걸 사는 거지" → 옷·모자·꾸미기 = 👕 옷 가게 · 머리·표정 = 💇 미용실 에서 💎 로 삼 (기본 몇 개는 처음부터) · 집 옷장(나 꾸미기)에선 산 것만 */
 const AV_FREE={style:["tee"], top:[0,1,2], pc:[0,1], sc:[0,1], hat:["none","straw"], acc:["none"], hair:["short","long"], hc:[0,1,2], expr:["smile","grin"]};
-const AV_COST={style:15, top:5, pc:4, sc:4, hat:10, acc:8, hair:10, hc:6, expr:5};
+const AV_COST={style:15, top:5, pc:4, sc:4, hat:10, acc:8, hair:10, hc:6, expr:5}; Object.keys(AV_COST).forEach(k=>{ AV_COST[k]=ECON(AV_COST[k]); })   /* (v559) 💰 옷·머리도 가구점과 같은 물가 (최소 💎50) */;
 let avOwn=store("hyeng_proto_avown")||{}, avMode="home", avPend=null, avSnap={};
 function avOwned(k,v){ if(k==="skin") return true; if(k==="hat" && v==="crown") return !!crown; const F=AV_FREE[k]; return (F && F.indexOf(v)>=0) || !!avOwn[k+":"+v]; }
 function avPrice(k,v){ return k==="acc" && v==="backpack" ? 12 : (AV_COST[k]||5); }

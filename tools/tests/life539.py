@@ -56,7 +56,7 @@ async def main():
         ok(r[0]==r[1]=="tee", f"② 안 사고 닫으면 원래 옷 {r}")
         await A.evaluate("()=>{ openAv('clothes'); document.querySelector('.chip.lk[data-k=style][data-v=hoodie]').click(); document.getElementById('avBuy').click(); }"); await A.wait_for_timeout(300)
         r=await A.evaluate("()=>[av.style, HOUSE.gems(), JSON.parse(localStorage.getItem('hyeng_proto_avown')||'{}')['style:hoodie']]")
-        ok(r==["hoodie",1985,1], f"② 사면 입고 💎 -15 · 내 옷장에 {r}")
+        ok(r==["hoodie",1885,1], f"② 사면 입고 💎 -115 (v559 물가) · 내 옷장에 {r}")
         await A.evaluate("()=>{ closeAv(); openAv(); avTab='wear'; drawAv(); }")
         r=await A.evaluate("()=>[!!document.querySelector('.chip[data-k=style][data-v=hoodie]:not(.lk)'), !!document.querySelector('.chip.lk[data-k=style][data-v=dress]')]")
         ok(r==[True,True], f"② 집 옷장: 산 옷은 풀림 · 안 산 옷은 🔒 {r}")

@@ -255,7 +255,8 @@ const TFAC=(()=>{
   function updPill(){ const h=Math.round(full()), P=PET(), txt=(P?PETS_BY[P.t].ic:"🍗")+" "+h; ["hFull","ihFull"].forEach(id=>{ const el=$(id); if(el && el.dataset.v!==txt){ el.dataset.v=txt; el.querySelector("b").textContent=h; el.querySelector("i").textContent=P?PETS_BY[P.t].ic:"🍗"; el.classList.toggle("low", h<=1); } }); }
 
   /* ═════════ 🐶 펫 ═════════ */
-  const PETS=[{k:"chick",ic:"🐥",nm:"병아리",p:20,c:[0xffd23f,0xff9a3d]},{k:"dog",ic:"🐶",nm:"강아지",p:30,c:[0xd9a066,0x8a5a34]},{k:"cat",ic:"🐱",nm:"고양이",p:30,c:[0xf2a65a,0xffffff]},{k:"bunny",ic:"🐰",nm:"토끼",p:40,c:[0xffffff,0xffb6c8]},{k:"fox",ic:"🦊",nm:"여우",p:60,c:[0xff8a3d,0xffffff]},{k:"panda",ic:"🐼",nm:"판다",p:80,c:[0xffffff,0x2b2b2b]}];
+  /* (v559) 💰 펫 값 = 가구점 물가(ECON): 20·30·30·40·60·80 → 145·205·205·265·385·505 */
+  const PETS=[{k:"chick",ic:"🐥",nm:"병아리",p:145,c:[0xffd23f,0xff9a3d]},{k:"dog",ic:"🐶",nm:"강아지",p:205,c:[0xd9a066,0x8a5a34]},{k:"cat",ic:"🐱",nm:"고양이",p:205,c:[0xf2a65a,0xffffff]},{k:"bunny",ic:"🐰",nm:"토끼",p:265,c:[0xffffff,0xffb6c8]},{k:"fox",ic:"🦊",nm:"여우",p:385,c:[0xff8a3d,0xffffff]},{k:"panda",ic:"🐼",nm:"판다",p:505,c:[0xffffff,0x2b2b2b]}];
   const PETS_BY={}; PETS.forEach(p=>PETS_BY[p.k]=p);
   const PNAME=["Coco","Lucky","Mimi","Bori","Choco","Momo","Toby","Lulu"];
   const TRICK=[["sit","🧘","앉아"],["jump","⬆️","점프"],["spin","🌀","빙글빙글"],["shake","🤝","악수"],["roll","🔄","데굴데굴"],["dance","💃","춤"]];

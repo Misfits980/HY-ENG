@@ -16264,7 +16264,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v559";
+const GAME_VER = "v560";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19790,6 +19790,8 @@ const Wallet = (function(){
     return mem;
   }
   function save(){ try{ const a=load(); localStorage.setItem(memK||KEYf(), JSON.stringify(a)); }catch(e){} }
+  /* (v559) My Town 이 같은 지갑을 씀 → 돌아오면(bfcache)·다른 탭에서 바뀌면 다시 읽음 (save 는 바로 쓰므로 버려도 안전) */
+  try{ addEventListener("pageshow", ()=>{ mem=null; }); addEventListener("storage", e=>{ if(!e.key || e.key.indexOf(KEY)===0) mem=null; }); document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) mem=null; }); }catch(e){}
   /* 보석 기록 — [시각, 변화, 이유, 남은 보석] 최근 200줄 (관리자 화면에서 본다) */
   function note(a, d, why){ a.log=a.log||[]; a.log.push([Date.now(), d, why||"", a.gems]); if(a.log.length>200) a.log.splice(0, a.log.length-200); }
   return {

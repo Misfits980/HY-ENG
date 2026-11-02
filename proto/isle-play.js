@@ -59,8 +59,9 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     const n=ftNext(now); if(n && n.st-now<20*60000) return ['<i>🎣</i>낚시 대회 <small>'+fmtT(n.st-now)+' 뒤 시작</small>', ""];
     return null; }
   async function ftEnd(id){ await ftLoad(id); const L=S.ft.board||[]; if(!L.length) return; const mi=L.findIndex(x=>x.k===me()); let got=0, key="hyeng_isle_ftp_"+id;
-    let paid=false; try{ paid=!!localStorage.getItem(key); }catch(e){} if(mi>=0 && !paid){ got=[30,20,10][mi]||3; try{ gems+=got; saveBag(); localStorage.setItem(key,"1"); }catch(e){} }
-    info('<div class="iBig">🏆</div><b>낚시 대회 끝!</b>'+boardHTML(L,"cm",5)+(mi>=0?'<small>나는 <b>'+(mi+1)+'등</b>'+(got?' · 💎 +'+got:'')+'</small>':'<small>다음 대회에 같이 해요!</small>'), "좋아요", null); }
+    let paid=false; try{ paid=!!localStorage.getItem(key); }catch(e){} const dk="hyeng_isle_ftd_"+day(); let today=false; try{ today=!!localStorage.getItem(dk); }catch(e){}   /* (v559) 💰 낚시 대회 상은 하루 한 번 (매시간 받으면 하루 💎180) */
+    if(mi>=0 && !paid && !today){ got=[20,12,6][mi]||2; try{ gems+=got; saveBag(); localStorage.setItem(key,"1"); localStorage.setItem(dk,"1"); }catch(e){} }
+    info('<div class="iBig">🏆</div><b>낚시 대회 끝!</b>'+boardHTML(L,"cm",5)+(mi>=0?'<small>나는 <b>'+(mi+1)+'등</b>'+(got?' · 💎 +'+got:(mi>=0 && !paid ? '<br>💎 상은 하루 한 번 — 오늘은 이미 받았어요':''))+'</small>':'<small>다음 대회에 같이 해요!</small>'), "좋아요", null); }
   /* ════ ② ⭕❌ OX 단어 마당 ════ */
   const OXP=12000, OXJ=10000;   // 12초에 한 문제 · 10초에 판정
   function oxQ(i){ const r=H("ox|"+i), w=W_[r%W_.length]; let shown=w; const yes=(r>>>8)%2===0; if(!yes){ let k=1; do{ shown=W_[(r+k*7919)%W_.length]; k++; }while(shown[0]===w[0]); } return {w, shown, yes}; }
@@ -69,7 +70,7 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
   async function oxLoad(){ try{ const v=await NET.get("/hy/isle/ox/"+day()); S.ox.board=board(v); S.ox.bAt=Date.now(); }catch(e){} }
   function oxJudge(j, at){ S.ox.judged=j; if(!at) return; const Q=oxQ(j), right=at!=="mid" && (at==="O")===Q.yes;
     const o=ISLE.G.userData["ox"+(Q.yes?"O":"X")]; if(o){ o.material.emissive=new THREE.Color(0x66ff66); o.material.emissiveIntensity=.35; setTimeout(()=>{ o.material.emissiveIntensity=0; dirty=true; }, 1600); }
-    if(right){ S.ox.st++; S.ox.ok=true; try{ SND.win(); }catch(e){} hero.act="yay"; hero.actT=0; if(S.ox.st>S.ox.best){ S.ox.best=S.ox.st; NET.put("/hy/isle/ox/"+day()+"/"+me(), {n:nm(), s:S.ox.best, at:Date.now()}).catch(()=>{}); } if(S.ox.st%5===0){ try{ gems+=2; saveBag(); }catch(e){} toast("⭕ "+S.ox.st+"연속! 💎 +2", 1600); } }
+    if(right){ S.ox.st++; S.ox.ok=true; try{ SND.win(); }catch(e){} hero.act="yay"; hero.actT=0; if(S.ox.st>S.ox.best){ S.ox.best=S.ox.st; NET.put("/hy/isle/ox/"+day()+"/"+me(), {n:nm(), s:S.ox.best, at:Date.now()}).catch(()=>{}); } if(S.ox.st%5===0){ let og=0; try{ const k="hyeng_isle_oxg_"+day(); og=+(localStorage.getItem(k)||0); if(og<10){ gems+=2; saveBag(); localStorage.setItem(k, String(og+2)); } }catch(e){}   /* (v559) 💰 OX 보석은 하루 💎10 까지 */ toast("⭕ "+S.ox.st+"연속!"+(og<10?" 💎 +2":""), 1600); } }
     else { S.ox.ok=false; S.ox.st=0; try{ SND.snap(); }catch(e){} const c=ISLE.SPOT.oxC, p=hero.g.position; p.set(c[0], 0, c[1]+4.6); hero.cx=Math.floor(p.x); hero.cz=Math.floor(p.z); hero.path=[]; toast("❌ 아쉬워요! 정답은 "+(Q.yes?"⭕":"❌")+" — <b>"+Q.w[2]+" = "+Q.w[0]+"</b>", 2200); }
     try{ say(Q.w[0]); }catch(e){} }
   function oxTick(){ if(!oxNear()){ S.ox.i=-1; return null; } const now=T(), i=Math.floor(now/OXP), ph=now-i*OXP, Q=oxQ(i), at=oxIn();

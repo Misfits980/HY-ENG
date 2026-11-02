@@ -137,7 +137,7 @@ async def main():
         r = await E("""()=>{ const T=HOUSE.TW, top=T.top; T.bot=true; T.p.set((top.min.x+top.max.x)/2, top.max.y+0.3, (top.min.z+top.max.z)/2); T.v.set(0,0,0); for(let i=0;i<40;i++) HOUSE.twStep(1/90); T.bot=false; return [T.fin, HOUSE.gems()]; }""")
         await pg.wait_for_timeout(1300)
         t = await E("()=>document.getElementById('infoT').innerText")
-        ok(r[0] and r[1] == 12 and "쉬움 30층" in t and "40층 도전" in t, f"🏆 쉬움 꼭대기 → 💎 12 · 「40층 도전도」 {r} {t[:80]!r}")
+        ok(r[0] and r[1] == 6 and "쉬움 30층" in t and "40층 도전" in t, f"🏆 쉬움 꼭대기 → 💎 6 (v559) · 「40층 도전도」 {r} {t[:80]!r}")
         r = await E("""()=>{ const d=HOUSE.dayKey(); const s=HOUSE.SOC(); s.cls={AAAAA:{n:'루아', tw:{d, k:301.2}}}; s.who={}; HOUSE.towerAsk(); return document.getElementById('twBd').innerText; }""")
         ok("루아" in r and "🟢" in r, f"친구 기록 🟢 쉬움 줄 {r!r}")
         ok(not real_errs(errs), "오류 없음 " + str(real_errs(errs)[:3]))

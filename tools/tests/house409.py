@@ -30,9 +30,9 @@ async def main():
         ok(all(v>0 for _,v in pr) and len(pr)==8, f"씨앗 8가지 모두 이익 {pr}")
         fp=await pg.evaluate("()=>HOUSE.COOK.map(r=>[r.id, r.base, HOUSE.MAT[r.id].p])")
         ok(len(fp)==13 and all(p_==-(-b_*13//10) for _,b_,p_ in fp), f"요리 13가지 · 값 = 재료 × 1.3 {fp[-5:]}")
-        # ② 하루 가게 주머니 💎30 — 넘으면 ¼
+        # ② 하루 가게 주머니 💎20 — 넘으면 0 (v559)
         r=await pg.evaluate("()=>{ HOUSE.setGems(0); const a=HOUSE.payout(25); const b=HOUSE.payout(10); const c=HOUSE.payout(8); return [a,b,c,HOUSE.soldN(),HOUSE.gems()]; }")
-        ok(r[:3]==[25,6,2] and r[4]==33, f"💎30 까지 제값 · 넘으면 ¼ {r}")
+        ok(r[:3]==[20,0,0] and r[4]==20, f"💎20 까지 제값 · 넘으면 0 (v559 지갑 합침) {r}")
         await pg.evaluate("()=>HOUSE.ffwd(24)")
         ok(await pg.evaluate("()=>HOUSE.soldN()")==0 and await pg.evaluate("()=>HOUSE.payout(5)")==5, "다음 날 = 주머니 비움")
         await pg.evaluate("()=>{ HOUSE.bag().push({en:'shark',at:Date.now()+3600e3*24}); HOUSE.openShop(); }"); await pg.wait_for_timeout(300)

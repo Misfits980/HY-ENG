@@ -94,7 +94,7 @@ async def main():
         await A.evaluate("(id)=>{ localStorage.removeItem('hyeng_isle_ftp_'+id); return IPLAY.ftEnd(id); }", r[0]); await A.wait_for_timeout(500)
         g1=await A.evaluate("()=>HOUSE.gems()")
         t=await A.evaluate("()=>document.getElementById('infoT').innerText")
-        ok(g1-g0==30 and "1등" in t, f"⑤ 대회 끝 = 1등 💎+30 · 순위 창 {g0}→{g1}")
+        ok(g1-g0==20 and "1등" in t, f"⑤ 대회 끝 = 1등 💎+20 (v559 · 하루 한 번) · 순위 창 {g0}→{g1}")
         await A.evaluate("()=>document.getElementById('info').classList.remove('on')")
         # ⑥ OX
         OXJS="""(right)=>{ const P=12000, J=10000, now=IPLAY.T(), i=Math.floor(now/P)+1, Q=IPLAY.oxQ(i); TWN8.test+= (i*P+J-300)-now; const c=ISLE.SPOT.oxC, h=HOUSE.hero(); const want=right ? (Q.yes?'O':'X') : (Q.yes?'X':'O');
