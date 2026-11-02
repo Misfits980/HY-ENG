@@ -1,11 +1,11 @@
 """(v536) 🏠 집 안 넓히기 · 처음부터 다시 · 새 튜토리얼 · 바깥 집 층·모던 (가짜 서버 · 아이 2명)
    ① 초기화(?reset=1): 💎·가방·방·할 일 지워짐 · 집 코드·타워 기록은 남음 · 처음 방 = 비어 있음 + 침대·책상 1개씩
    ② 튜토리얼: 침대 놓기 → 책상 놓기 단계가 넘어감 · 책상 누르면 「영어 공부」
-   ③ 잠긴 문: 부엌·침실·2층 자리에 문 + 🔒 이름표 · 문 앞 칸은 가구 못 놓음 · 누르면 넓히기 창 (연속 n일 더)
-   ④ 연속 공부 + 💎 → 부엌 열기 · 문으로 들어가면 부엌(빈 방, 다른 바닥) · 거실 가구는 그대로 저장 · 다시 거실로
-   ⑤ 부엌에서 새로 고침해도 부엌 · 밖에서 들어오면 늘 거실
-   ⑥ 2층까지 열면 바깥 집이 2층 (서버 f=2) · 모던 집 고르기 → 서버 h=M_… · 친구 화면에도 모던 2층
-   ⑦ 친구가 놀러 오면 열린 방(부엌)까지 구경 · 잠긴 방 문은 안 보임 · 나가기
+   ③ (v553) 처음 방 = 나가는 문 하나 (미리 정한 방·잠긴 문 없음) · 🏗 넓히기 창 (연속 n일 더)
+   ④ 연속 + 💎 → 🍳 부엌 세트 = 창고로 · ↖ 넓힐 쪽 골라 6→8 (가구가 같이 옮겨짐)
+   ⑤ 새로 고침해도 8×8
+   ⑥ 2층 = 🪜 계단 (원하는 곳에 놓고 누르면 올라감) · 바깥 집 2층 · 모던 → 서버 · 친구 화면에도
+   ⑦ 친구가 놀러 오면 1층(8×8) · 🪜 계단으로 2층까지 구경 · 나가기
    ⑧ 연속 공부: 금요일 → 월요일 = 이어짐 · 수요일 빠지면 1부터 (index.html didToday)"""
 import asyncio, sys, os, json
 os.environ["HY_REAL3D"]="1"
@@ -65,42 +65,36 @@ async def main():
         await A.evaluate("()=>{ const p=placed.find(p=>p.id==='desk'); useItem(p); }")
         ok(await until(A, "()=>document.getElementById('ask').classList.contains('on') && /영어 공부/.test(document.getElementById('askT').innerText)", 20), "② 책상 = 「영어 공부 하러 갈까요?」")
         await A.evaluate("()=>document.getElementById('askNo').click()")
-        # ③ 잠긴 문
-        r=await A.evaluate("""()=>{ const L=LBL.map(l=>[l.d.k, l.el.textContent]); const sl=HOMEX.slots().map(s=>[s.side,s.s,s.to]); const cells=HOMEX.cells();
-            return {L, sl, cells, blockKitchen:!fits('chair', RN-2, 0, 0), wallSlot:!wallFits(0,1)}; }""")
-        print("③", r)
-        ks=[x[0] for x in r["L"]]
-        ok(all(k in ks for k in ("door","hd_kitchen","hd_bedroom","hd_f2")), f"③ 문 이름표: 나가기·부엌·침실·2층 {ks}")
-        ok(any("🔒" in t and "부엌" in t for k,t in r["L"] if k=="hd_kitchen"), "③ 부엌 = 🔒 (연속 n일)")
-        ok(r["blockKitchen"] and r["wallSlot"], "③ 문 앞 칸·문 자리 벽엔 가구 못 놓음")
-        await A.evaluate("()=>LBL.find(l=>l.d.k==='hd_kitchen').d.act()")
-        ok(await until(A, "()=>document.getElementById('upP') && document.getElementById('upP').classList.contains('on')", 20), "③ 잠긴 문 → 🏗 넓히기 창")
+        # ③ (v553) 처음 방 = 나가는 문 하나 (잠긴 문·판자 없음) · 🏗 넓히기 창
+        r=await A.evaluate("()=>({ks:LBL.map(l=>l.d.k), sl:HOMEX.slots().length, cells:HOMEX.cells().length})")
+        ok(r["sl"]==1 and r["cells"]==1 and not any(k.startswith("hd_") for k in r["ks"]), f"③ 처음엔 나가는 문만 (미리 정한 방 문 없음) {r}")
+        await A.evaluate("()=>HOMEX.openUp()")
+        ok(await until(A, "()=>document.getElementById('upP') && document.getElementById('upP').classList.contains('on')", 20), "③ 🏗 넓히기 창")
         t=await A.evaluate("()=>document.querySelector('[data-row=kitchen]').innerText")
-        ok("일 더" in t, f"③ 부엌: 연속이 모자라면 「🔥 n일 더」 {t!r}")
-        # ④ 연속 + 💎 → 부엌
+        ok("일 더" in t, f"③ 부엌 세트: 연속이 모자라면 「🔥 n일 더」 {t!r}")
+        # ④ 연속 + 💎 → 가구 세트 · 넓힐 쪽 고르기
         await A.evaluate("()=>{ localStorage.setItem('hyeng_study_v1', JSON.stringify({days:{n:8,tot:9,hs:8,hb:8,last:Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5)}})); HOUSE.setGems ? HOUSE.setGems(300) : (gems=300); saveBag(); HOMEX.drawUp(); }")
-        r=await A.evaluate("()=>[HOMEX.state('kitchen'), HOMEX.state('bath'), HOMEX.state('f2'), HOMEX.state('f3')]")
-        ok(r==["ok","par","ok","par"], f"④ 연속 8일 + 💎300: 부엌 ○ · 욕실 = 침실 먼저 · 2층 ○ · 3층 = 2층 먼저 {r}")
+        r=await A.evaluate("()=>[HOMEX.state('walls'), HOMEX.state('kitchen'), HOMEX.state('bath'), HOMEX.state('f2'), HOMEX.state('f3')]")
+        ok(r==["ok","ok","ok","ok","par"], f"④ 연속 8일 + 💎300: 칸막이·부엌·욕실 세트 ○ · 2층 ○ · 3층 = 2층 먼저 {r}")
         await A.evaluate("()=>document.querySelector('[data-up=kitchen]').click()"); await A.wait_for_timeout(200); await A.evaluate("()=>document.getElementById('askOk').click()")
-        ok(await until(A, "()=>HOMEX.H().o.kitchen===1", 20) and await A.evaluate("()=>HOUSE.gems()")==280, "④ 부엌 열림 · 💎 -20")
+        ok(await until(A, "()=>HOMEX.H().o.kitchen===1", 20) and await A.evaluate("()=>HOUSE.gems()")==280 and await A.evaluate("()=>[stock.stove,stock.fridge,stock.table,stock.stool].join()")=="1,1,1,2", "④ 🍳 부엌 세트 → 창고 (스토브·냉장고·식탁·의자2) · 💎 -20")
+        r0=await A.evaluate("()=>[RN, placed.map(p=>[p.id,p.x,p.z])]")
+        await A.evaluate("()=>document.querySelector('[data-grow=l]').click()"); await A.wait_for_timeout(200); await A.evaluate("()=>document.getElementById('askOk').click()"); await A.wait_for_timeout(600)
+        r=await A.evaluate("()=>[RN, placed.map(p=>[p.id,p.x,p.z]), HOUSE.gems(), HOMEX.slots()[0].s]")
+        print("④", r0, r)
+        ok(r[0]==8 and r[2]==220 and all([a[0],a[1]+2,a[2]]==b for a,b in zip(r0[1], r[1])) and r[3]==7, f"④ ↖ 왼쪽으로 넓히기 6→8 · 가구가 같이 옮겨짐 (x+2) · 💎 -60 · 문은 앞 {r}")
         await A.evaluate("()=>document.getElementById('upP').classList.remove('on')")
-        await A.evaluate("()=>LBL.find(l=>l.d.k==='hd_kitchen').d.act()")
-        ok(await until(A, "()=>HOMEX.cur()==='kitchen' && !HOUSE.trip().busy && HOUSE.place()==='room'", 60), "④ 부엌 문 → 부엌으로")
-        r=await A.evaluate("()=>({placed:placed.map(p=>p.id), f:floorIx, door:LBL.find(l=>l.d.k==='door').el.textContent, hero:[HOUSE.hero().cx,HOUSE.hero().cz], saved:(HOMEX.H().r.living||{}).p})")
-        print("④", r)
-        ok(sorted(r["placed"])==sorted(["stove","fridge","table","stool"]) and r["f"]==1 and "거실" in r["door"], f"④ 부엌 = 🍳🧊 처음 가구 · 타일 바닥 · 문 = 거실로 {r['door']!r}")
-        ok(r["saved"] and {x[0] for x in r["saved"]}=={"bed","desk"}, "④ 거실 가구는 저장됨")
-        await A.evaluate("()=>{ startGhost('desk'); }");
-        await A.evaluate("()=>{ cancelGhost(); }")
-        # ⑤ 새로 고침 → 부엌 · 밖에서 → 거실
+        # ⑤ 새로 고침해도 8×8 · 가구 그대로
         await A.reload(); await A.wait_for_timeout(2200)
-        ok(await A.evaluate("()=>HOMEX.cur()==='kitchen' && floorIx===1"), "⑤ 새로 고침해도 부엌")
-        await A.evaluate("()=>HOUSE.exitRoom()")
-        ok(await until(A, "()=>HOMEX.cur()==='living' && !HOUSE.trip().busy && HOUSE.place()==='room'", 60), "⑤ 부엌 문 = 거실로")
-        ok(await A.evaluate("()=>placed.some(p=>p.id==='bed') && placed.some(p=>p.id==='desk')"), "⑤ 거실 가구 그대로")
-        # ⑥ 2층 · 바깥 집
+        ok(await A.evaluate("()=>RN===8 && placed.some(p=>p.id==='bed') && placed.some(p=>p.id==='desk') && (stock.stove|0)===1"), "⑤ 새로 고침해도 8×8 · 가구·창고 그대로")
+        # ⑥ 2층 = 🪜 계단 (원하는 곳에 놓고 누르면 올라감) · 바깥 집
         await A.evaluate("()=>HOMEX.unlock('f2')")
-        ok(await A.evaluate("()=>HOMEX.floors()")==2, "⑥ 2층 열림 → 2층 집")
+        ok(await A.evaluate("()=>HOMEX.floors()===2 && (stock.stairs|0)===1"), "⑥ 2층 열림 → 🪜 계단 창고에 · 바깥 집 2층")
+        await A.evaluate("()=>{ for(let x=RN-1;x>=0;x--) for(let z=RN-2;z>=0;z--){ if(fits('stairs',x,z,0) && !window._st){ window._st=addPlaced('stairs',x,z,0,0); stock.stairs--; } } saveRoom(); useItem(window._st); }")
+        ok(await until(A, "()=>HOMEX.cur()==='f2' && !HOUSE.trip().busy && HOUSE.place()==='room'", 80), "⑥ 🪜 계단 누르면 2층 공부방")
+        ok(await A.evaluate("()=>placed.some(p=>p.id==='bookcase') && placed.some(p=>p.id==='stairs')"), "⑥ 2층 = 📚 책장 + 🪜 (3층으로 갈 계단)")
+        await A.evaluate("()=>HOUSE.exitRoom()")
+        ok(await until(A, "()=>HOMEX.cur()==='living' && !HOUSE.trip().busy && HOUSE.place()==='room'", 80), "⑥ 아래층 문 → 1층 (계단 옆)")
         await A.evaluate("()=>HOUSE.exitRoom()")
         ok(await until(A, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy", 80), "⑥ 밖 = 우리 마을")
         await A.wait_for_timeout(1500)
@@ -123,10 +117,10 @@ async def main():
         await until(B, "()=>['visit','yvisit'].includes(HOUSE.place()) && !HOUSE.trip().busy && !HOUSE.hero().slide", 80)
         if await B.evaluate("()=>HOUSE.place()==='yvisit'"): await B.evaluate("()=>HOUSE.yVisitHouse()")
         ok(await until(B, "()=>HOUSE.place()==='visit' && !HOUSE.trip().busy", 280), "⑦ 루아 집에 놀러 감")
-        r=await B.evaluate("()=>({ks:LBL.map(l=>l.d.k), placed:placed.map(p=>p.id), cur:HOMEX.cur()})")
-        ok(r["cur"]=="living" and "hd_kitchen" in r["ks"] and "hd_bedroom" not in r["ks"] and "bed" in r["placed"], f"⑦ 거실부터 · 열린 부엌 문만 보임 {r}")
-        await B.evaluate("()=>LBL.find(l=>l.d.k==='hd_kitchen').d.act()")
-        ok(await until(B, "()=>HOMEX.cur()==='kitchen' && !HOUSE.trip().busy && HOUSE.place()==='visit'", 200), "⑦ 친구 부엌까지 구경")
+        r=await B.evaluate("()=>({ks:LBL.map(l=>l.d.k), placed:placed.map(p=>p.id), cur:HOMEX.cur(), rn:RN})")
+        ok(r["cur"]=="living" and r["rn"]==8 and "stairs" in r["placed"] and "bed" in r["placed"], f"⑦ 1층부터 · 친구 집 8×8 · 🪜 계단 {r}")
+        await B.evaluate("()=>useItem(placed.find(p=>p.id==='stairs'))")
+        ok(await until(B, "()=>HOMEX.cur()==='f2' && !HOUSE.trip().busy && HOUSE.place()==='visit'", 200), "⑦ 친구 2층까지 구경")
         await B.evaluate("()=>HOUSE.exitRoom()"); await until(B, "()=>HOMEX.cur()==='living' && !HOUSE.trip().busy", 200)
         await B.evaluate("()=>HOUSE.exitRoom()")
         ok(await until(B, "()=>['isle','yvisit'].includes(HOUSE.place()) && !HOUSE.trip().busy", 200), "⑦ 거실 문 → 나가기")

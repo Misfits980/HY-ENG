@@ -997,7 +997,7 @@ Object.assign(ITEMS, {
 Object.assign(PRICE_ADD={}, {washer:25, microwave:15, fan:12, aircon:30, computer:35, radio:10, toaster:8, tank:30, robot:40, window:10, painting:12, poster:6, wclock:10, wshelf:8, mirror:12});
 /* 가구 값(💎) — 🛒 가구 가게에서 삼 · 몇 개는 🛠 재료로도 만듦 */
 var PRICE_ADD; const vc=(id,c)=>{ const L=ITEMS[id].cols; return L[((c|0)%L.length+L.length)%L.length]; };
-const PRICE={stool:4, plant:4, vase:4, chair:6, lamp:8, bear:8, rug:10, rug2:10, table:10, chest:12, clock:15, shelf:15, desk:18, closet:20, stove:20, fridge:25, sofa:25, bed:25, tv:30, piano:45}; Object.assign(PRICE, PRICE_ADD);
+const PRICE={partition:2, archway:4, stool:4, plant:4, vase:4, chair:6, lamp:8, bear:8, rug:10, rug2:10, table:10, chest:12, clock:15, shelf:15, desk:18, closet:20, stove:20, fridge:25, sofa:25, bed:25, tv:30, piano:45}; Object.assign(PRICE, PRICE_ADD);
 /* (v434) ③ 새 가구 = KayKit 모델 (색 = 모델 종류) — 한 칸 = KayKit 약 1.8 → 0.55배, 칸보다 크면 칸에 맞춤 */
 const KKF=(L, o)=>function(c){ const g=new THREE.Group(), k=L[((c|0)%L.length+L.length)%L.length]; KK.fill(g, "furniture", k, Object.assign({s:0.55, fit:[this.sz[0]*0.96, this.sz[1]*0.96]}, o||{})); return g; };
 Object.assign(ITEMS, {
@@ -1020,6 +1020,14 @@ Object.assign(PRICE, {kk_books:4, kk_stool:5, kk_cactus:6, kk_chair:7, kk_night:
 /* (v539) 사용자: "2층 3층 4층 기능은 뭐로?" → 방·층마다 할 일 — 넓히면 생기는 특별 가구 (가게에선 안 팖) */
 const STUDY_LS=()=>{ try{ return JSON.parse(localStorage.getItem("hyeng_study_v1")||"{}"); }catch(e){ return {}; } };
 Object.assign(ITEMS, {
+  /* (v553) 🧱 칸막이 · 🚪 아치 문 · 🪜 계단 — 아이가 방을 직접 나누고 위층 계단을 원하는 곳에 */
+  partition:{nm:"partition wall", ic:"🧱", sz:[1,1], cols:[0xfff3e0,0xffd6e8,0xd6ebff,0xd8f5cc,0xc9925c,0xfffdf7], build(c){ const g=new THREE.Group(), col=this.cols[(c|0)%this.cols.length];
+    part(g, new THREE.BoxGeometry(1.0,1.45,.14), M(col), 0,.725,0); part(g, new THREE.BoxGeometry(1.04,.08,.2), M(0xffffff), 0,1.49,0); part(g, new THREE.BoxGeometry(1.02,.12,.17), M(0xc9a27a), 0,.06,0); return g; }},
+  archway:{nm:"arch door", ic:"🚪", sz:[1,1], rug:true, flat:false, cols:[0xffffff,0xc9925c,0xffd6e8,0xd6ebff], build(c){ const g=new THREE.Group(), col=this.cols[(c|0)%this.cols.length];
+    [-1,1].forEach(s=>part(g, new THREE.BoxGeometry(.14,1.75,.18), M(col), s*.43,.875,0)); part(g, new THREE.BoxGeometry(1.0,.22,.2), M(col), 0,1.78,0); part(g, new THREE.BoxGeometry(.5,.06,.22), M(0xffd23f), 0,1.92,0); return g; }},
+  stairs:{nm:"stairs", ic:"🪜", sz:[1,1], use:"stairs", special:1, build(){ const g=new THREE.Group();
+    for(let i=0;i<5;i++) part(g, new THREE.BoxGeometry(.86,.32*(i+1),.19), M(i%2?0xd9a46c:0xc48a58), 0,.16*(i+1),-.38+i*.19);
+    [-1,1].forEach(s=>{ part(g, new THREE.BoxGeometry(.05,.9,.05), M(0xffffff), s*.45,.45+.9,.4); const r=part(g, new THREE.BoxGeometry(.05,.05,1.05), M(0xffffff), s*.45,1.3,0); r.rotation.x=-.85; }); return g; }},
   bookcase:{nm:"word bookcase", ic:"📚", sz:[2,1], use:"books", special:1, build(){ const g=new THREE.Group(), z0=-0.22, D=0.42, W=1.9;   /* 2층 공부방 — 공부한 단어 10개 = 책 1권 */
     part(g, rbox(W,2.0,0.04,0.01), M(WOOD2), 0,1.0,z0-D/2+0.02); [-1,1].forEach(a=>part(g, rbox(0.07,2.0,D,0.02), M(WOOD), a*(W/2-0.03),1.0,z0));
     [0.04,0.66,1.28,1.92].forEach(y=>part(g, rbox(W,0.07,D,0.02), M(WOOD), 0,y,z0));
@@ -2797,7 +2805,7 @@ $("stoDone").onclick=()=>$("stoP").classList.remove("on");
 let furnTab="furn", furnCat="all"; const swCache={};
 const APP_IDS={tv:1, fridge:1, stove:1}, catF=id=>ITEMS[id].wall?"wall":(ITEMS[id].app||APP_IDS[id])?"app":"furn";
 const USE_T={fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
-const ROOM_UP=[[8,60],[10,120]];
+const ROOM_UP=[[8,60],[10,120],[12,180]];
 function swatch(L,i){ const k=(L===FLOORS?"f":"w")+i; if(swCache[k]) return swCache[k]; const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d"); g.scale(0.25,0.25); L[i].draw(g,256,256); return swCache[k]=c.toDataURL(); }
 const CRAFTABLE=id=>CRAFT.some(r=>r.id===id);
 function upRows(){ const R=[]; const ru=ROOM_UP.find(x=>x[0]>RN); R.push(["room","🏠","집 넓히기",RN+"×"+RN+" 칸", ru?ru[1]:0, ru?"→ "+ru[0]+"×"+ru[0]:""]); const L=LAND.find(l=>l.n>plotN); R.push(["land","🌱","밭 fields",plotN+" / 12칸",L?L.p:0,L?"+2칸":""]);
@@ -2829,7 +2837,7 @@ $("furnBody").addEventListener("click", e=>{ const bf=e.target.closest("[data-bf
   const by=e.target.closest("[data-by]"); if(by && !by.disabled){ const id=by.dataset.by; if(!spend(OUT_PRICE[id])) return; ystock[id]=(ystock[id]|0)+1; ySave(); toast(OUT[id].ic+" "+OUT[id].nm+" → 🌳 마당 꾸미기<br><small>마당 ✏️ 꾸미기 단추로 놓아요</small>", 2200); say(OUT[id].nm); }
   if(up && !up.disabled && up.dataset.up==="parc"){ const i=yd.pc.findIndex(v=>!v); if(i>=0) yParcAsk(i); return; }
   if(up && !up.disabled){ const k=up.dataset.up;
-    if(k==="room"){ const u=ROOM_UP.find(x=>x[0]>RN); if(u && !visiting && spend(u[1])){ growRoom(u[0]); toast("🏠 집이 "+u[0]+"×"+u[0]+" 이 됐어요!"); } }
+    if(k==="room"){ if(window.HOMEX && !visiting){ $("furnP").classList.remove("on"); HOMEX.openUp(); } else { const u=ROOM_UP.find(x=>x[0]>RN); if(u && !visiting && spend(u[1])){ growRoom(u[0]); toast("🏠 집이 "+u[0]+"×"+u[0]+" 이 됐어요!"); } } }
     if(k==="land") buyLand();
     if(k==="fr"||k==="ch"){ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); if(u && spend(u[1])){ S.cap=u[0]; saveSto(); toast("➕ "+(k==="fr"?"🧊":"📦")+" "+u[0]+"칸"); } }
     if(k==="bag"){ const u=BAG_UP.find(x=>x[0]>bagCap); if(u && bagCap>=30 && spend(u[1])){ bagCap=u[0]; store("hyeng_proto_cap", bagCap); updBagBtn(); toast("🎒 가방 "+bagCap+"칸!"); } } }
@@ -2864,9 +2872,10 @@ function sitOn(p){ tEv("use"); const it=ITEMS[p.id], o=p.obj; standUp(); const w
   else { hero.seat={p}; hero.g.position.set(wp.x, it.sit-0.27, wp.z); hero.face=-p.r*Math.PI/2; hero.g.rotation.y=hero.face; hero.act="sit"; say("sit"); }
   dirty=true; }
 function standUp(){ if(!hero || !hero.seat) return; hero.seat=null; hero.body.rotation.x=0; hero.body.position.z=0; hero.act="idle"; hero.g.position.set(hero.cx+0.5,0,hero.cz+0.5); dirty=true; }
-const VISIT_OK={piano:1, clock:1, tv:1, bear:1, lamp:1, fan:1, radio:1, mirror:1, tank:1, computer:1, aircon:1, robot:1, books:1, brag:1, planter:1};
+const VISIT_OK={stairs:1, piano:1, clock:1, tv:1, bear:1, lamp:1, fan:1, radio:1, mirror:1, tank:1, computer:1, aircon:1, robot:1, books:1, brag:1, planter:1};
 function useItem(p){ tEv("use"); const u=ITEMS[p.id].use;
   if(visiting && !VISIT_OK[u]){ toast("🙅 친구 집 물건이에요 — 구경만 해요", 1800); return; }
+  if(u=="stairs" && window.HOMEX){ HOMEX.stairs(p); return; }
   if(window.HLIFE && HLIFE.use(u, p)) return;
   if(u==="study"){ if(visiting) return; ask("📚 <b>영어 공부</b> 하러 갈까요?<br><small>Daily 30 · 공부한 날이 <b>이어지면</b> 🏗 집을 넓힐 수 있어요</small>", ()=>{ location.href="../index.html"; }); return; } if(u==="fridge") openSto("fr"); else if(u==="chest") openSto("ch"); else if(u==="closet") openAv(); else if(u==="stove") openCraft("cook");
   else if(u==="piano") playPiano(); else if(u==="clock") tellTime(); else if(u==="tv") toggleTv(p); else if(u==="bear"){ emote(hero,"❤️"); act("yay"); say("teddy bear"); }
@@ -3017,7 +3026,7 @@ function enterVisit(v){ if(F.st!=="idle") return; SHEETS.forEach(id=>$(id).class
   if(!visiting) visitFrom={key:place.key, at:[hero.cx,hero.cz]};
   const d=window.HOMEX ? HOMEX.visitStart(v.data) : v.data; let start=null;
   go("visit", null, ()=>{ if(!myRoom) stashMine(); else clearHostRoom(); visiting=v;
-    buildShell(Math.max(6,Math.min(10,d.rn|0||6))); floorIx=Math.min(FLOORS.length-1,d.f|0); wallIx=Math.min(WALLS.length-1,d.w|0); setFloor(floorIx); setWall(wallIx);
+    buildShell(Math.max(6,Math.min(12,d.rn|0||6))); floorIx=Math.min(FLOORS.length-1,d.f|0); wallIx=Math.min(WALLS.length-1,d.w|0); setFloor(floorIx); setWall(wallIx);
     (d.p||[]).slice(0,90).forEach(([id,x,z,r,c])=>{ if(ITEMS[id] && !ITEMS[id].wall && fits(id,x,z,r,null,true)){ const p=addPlaced(id,x,z,r,c); p.host=1; if(id==="tank"){ p.fish=(d.fish||[]).slice(0,6); fillTank(p); } } });
     (d.wl||[]).slice(0,40).forEach(([id,sd,s,c])=>{ if(ITEMS[id] && ITEMS[id].wall && wallFits(sd,s)) addWall(id,sd,s,c); });
     // 집 주인 인형 (그 아이 아바타) · 나는 문 쪽에서 시작
@@ -3745,7 +3754,7 @@ function updOcclude(dt){ occT+=dt; if(occT<0.1) return false; occT=0; const g=pl
 makeHero();
 function loadRoomData(R){ placed.splice(0).concat(wplaced.splice(0)).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
   if(R.s){ Object.keys(stock).forEach(k=>delete stock[k]); Object.assign(stock, R.s); } ownF=R.of||ownF; ownW=R.ow||ownW; floorIx=Math.min(FLOORS.length-1,R.f|0); wallIx=Math.min(WALLS.length-1,R.w|0);
-  if((R.rn|0)!==RN) buildShell(Math.max(6,Math.min(10,R.rn|0||6))); setFloor(floorIx); setWall(wallIx);
+  if((R.rn|0)!==RN) buildShell(Math.max(6,Math.min(12,R.rn|0||6))); setFloor(floorIx); setWall(wallIx);
   (R.p||[]).forEach(([id,x,z,r,c])=>{ if(ITEMS[id] && !ITEMS[id].wall) addPlaced(id,x,z,r,c); }); (R.wl||[["window",0,1,0],["window",3,3,1]]).forEach(([id,sd,s,c])=>{ if(ITEMS[id] && ITEMS[id].wall){ if(wallFits(sd,s)) addWall(id,sd,s,c); else if(!visiting && sd===3 && s===RN-1) stock[id]=(stock[id]|0)+1; } }); dirty=true; }
 { const R=store("hyeng_proto_room");
   if(R && R.p) loadRoomData(R);
@@ -3790,7 +3799,7 @@ const TUT=[   /* (v539) 사용자: "애들이 켜면 튜토리얼이 무엇을 �
   {pl:"room", t:"텅 빈 집이죠? 🎁 <b>Mia 의 입주 선물</b> — 🛏 침대 · 📚 책상!<br>바닥을 <b>톡</b> 누르면 걸어가요", until:"walk"},
   {pl:"room", t:"<b>🛋️ 가구</b> 단추를 누르고<br><b>🛏 침대</b>를 골라 방에 놓아 봐요", until:"put_bed"},
   {pl:"room", t:"<b>📚 책상</b>도 놓아요!<br><small>책상을 누르면 영어 공부(Daily 30)를 하러 가요</small>", until:"put_desk"},
-  {pl:"room", t:"🔒 잠긴 문 너머에 <b>부엌·침실·2층 공부방</b>이 있어요!<br><small>공부한 날이 <b>이어지면</b> 🏗 넓히기로 열려요</small>", until:"roomup", next:true},
+  {pl:"room", t:"🏗 <b>넓히기</b>로 집을 <b>내가 고른 쪽</b>으로 넓혀요!<br><small>🧱 칸막이로 방을 나누고 · 🍳🛏🛁 가구 세트 · 🪜 2층도 — 공부한 날이 <b>이어지면</b> 열려요</small>", until:"roomup", next:true},
   {pl:"room", t:"이제 밖으로 나가 볼까요?<br><b>🚪 문</b>을 눌러요", hot:"door", until:"out"},
   {pl:"*", t:"<b>🎣 호수</b>에서 낚시해 봐요<br><small>잡은 물고기는 🎒 가방에 들어가요</small>", hot:"lake|pond", until:"catch"},
   {pl:"*", t:"시장 거리 <b>🐟 생선 가게</b>에서 팔면 💎 보석!<br><small>💎 로 👕 옷 가게 · 🛋 가구점 · 💇 미용실에서 사요</small>", hot:"fish|shop", until:"sell", next:true},

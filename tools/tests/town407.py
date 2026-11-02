@@ -32,7 +32,7 @@ async def main():
         # ── 처음 화면: 안내 · 이름표 · 독 · 디버그 글씨 없음
         ok(await E("()=>document.getElementById('coach').classList.contains('on') && /바닥을/.test(document.getElementById('coachT').innerText)"), "처음 들어오면 Mia 안내 (바닥을 톡)")
         ok(await E("()=>getComputedStyle(document.getElementById('fps')).display==='none'"), "fps 글씨 안 보임")
-        ok(await E("()=>{ const L=HOUSE.LBL(), d=L.find(l=>l.d.k==='door'); return !!d && d.el.style.display!=='none' && L.filter(l=>/^hd_/.test(l.d.k)).length===3; }"), "방: 🚪 나가기 이름표 + (v536) 🔒 부엌·침실·2층 문")
+        ok(await E("()=>{ const L=HOUSE.LBL(), d=L.find(l=>l.d.k==='door'); return !!d && d.el.style.display!=='none' && L.filter(l=>/^hd_/.test(l.d.k)).length===0; }"), "방: 🚪 나가기 이름표 하나 (v553 미리 정한 방 문 없음)")
         ok(await E("()=>document.getElementById('bOut').innerText.includes('나가기') && !!document.getElementById('bVill') && !!document.getElementById('bMine')"), "독: 🚪 나가기 · 마당 🏘 마을 · 마을 ⛏ 광산")
         # ── 🚪 방 문
         d = await E("()=>{ const D=HOUSE.roomDoor(), R=HOUSE.RN(); return [!!D && D.parent===HOUSE.walls[3], HOUSE.wallFits(3,R-1), HOUSE.wallFits(3,R-2) || HOUSE.wplaced.some(p=>p.side===3&&p.s===R-2), HOUSE.fits('plant',0,R-1,0), HOUSE.fits('rug',0,R-2,0)]; }")

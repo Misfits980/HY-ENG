@@ -75,14 +75,18 @@ async def main():
         await A.evaluate("()=>document.getElementById('hlMt').classList.remove('on')")
         # ④ 방 가구
         await A.evaluate("()=>ISLE.enterHome()"); ok(await until(A, "()=>HOUSE.place()==='room' && !HOUSE.trip().busy", 80), "집 안")
-        await A.evaluate("()=>{ ['kitchen','bedroom','bath','f2','f3','f4'].forEach(k=>HOMEX.H().o[k]=1); HOMEX.save(); HOMEX.doors(); drawLabels(); }")
-        want={"f2":["bookcase"],"f3":["trophy"],"f4":["telescope","planter"],"bath":["bathtub"],"kitchen":["stove","fridge"],"bedroom":["bed","closet"]}
+        await A.evaluate("()=>{ ['f2','f3','f4'].forEach(k=>HOMEX.H().o[k]=1); HOMEX.save(); }")
+        want={"f2":["bookcase","stairs"],"f3":["trophy","stairs"],"f4":["telescope","planter"]}
         async def goRoom(rm):
             await A.evaluate("(r)=>HOMEX.moveTo(r)", rm); return await until(A, f"()=>HOMEX.cur()==='{rm}' && !HOUSE.trip().busy", 60)
         for rm,ids in want.items():
             await goRoom(rm)
             r=await A.evaluate("()=>placed.map(p=>p.id)")
             ok(all(i in r for i in ids), f"④ {rm} 처음 가구 {ids} ⊂ {r}")
+        await goRoom("living")
+        await A.evaluate("()=>{ localStorage.setItem('hyeng_study_v1', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('hyeng_study_v1')), {}))); ['bath','bedroom','kitchen'].forEach(k=>HOMEX.unlock(k)); }")
+        r=await A.evaluate("()=>[stock.bathtub|0, stock.closet|0, stock.stove|0, stock.fridge|0]")
+        ok(r==[1,1,1,1], f"④ 🛁 욕실 · 🛏 침실 · 🍳 부엌 세트 → 창고 {r}")
         # ⑤ 책장 · 복습
         await goRoom("f2")
         await A.evaluate("()=>useItem(placed.find(p=>p.id==='bookcase'))")
@@ -106,16 +110,16 @@ async def main():
         h=DB["hy"]["life"]["h"]["AAAAA"]
         ok(h.get("brag",{}).get("books")==2 and h["brag"].get("hb")==15, f"⑥ 서버 집 기록에 자랑 {h.get('brag')}")
         # ⑧ 욕실 · 꿈
-        await goRoom("bedroom"); await goRoom("bath")
+        await goRoom("living")
+        await A.evaluate("()=>{ const put=id=>{ for(let x=0;x<RN;x++) for(let z=0;z<RN-1;z++) for(const r of [0,1]){ if(stock[id]>0 && fits(id,x,z,r)){ addPlaced(id,x,z,r,0); stock[id]--; return; } } }; put('bathtub'); put('bed'); saveRoom(); }")
         await A.evaluate("()=>{ buffUntil=0; useItem(placed.find(p=>p.id==='bathtub')); }"); await A.wait_for_timeout(300)
         r=await A.evaluate("()=>[Math.round((buffUntil-now())/60e3), document.getElementById('toast') ? 1 : 1]")
         ok(9<=r[0]<=10, f"⑧ 🛁 씻기 → 🍀 행운 10분 {r}")
         await A.evaluate("()=>useItem(placed.find(p=>p.id==='bathtub'))"); await A.wait_for_timeout(300)
         ok(await A.evaluate("()=>Math.round((buffUntil-now())/60e3)")<=10, "⑧ 1시간에 한 번")
-        await A.evaluate("()=>HOUSE.exitRoom()"); await until(A, "()=>HOMEX.cur()==='bedroom' && !HOUSE.trip().busy", 60)
         g0=await A.evaluate("()=>HOUSE.gems()")
         await A.evaluate("()=>sitOn(placed.find(p=>p.id==='bed'))")
-        ok(await until(A, "()=>document.getElementById('hqP').classList.contains('on') && /꿈/.test(document.getElementById('hqP').innerText)", 20), "⑧ 💤 침실 침대에서 자면 꿈 카드")
+        ok(await until(A, "()=>document.getElementById('hqP').classList.contains('on') && /꿈/.test(document.getElementById('hqP').innerText)", 20), "⑧ 💤 침대(어디에 놓든)에서 자면 꿈 카드")
         for i in range(3):
             await until(A, "()=>document.getElementById('hqP').classList.contains('on') && !document.querySelector('#hqP .b').dataset.lock", 20)
             await A.evaluate("()=>{ const box=document.querySelector('#hqP .b'), e=box.querySelector('.e').textContent; const w=ISLE_WORDS.find(w=>w[2]===e && box.querySelector('[data-w=\"'+w[0]+'\"]')); box.querySelector('[data-w=\"'+w[0]+'\"]').click(); }")
@@ -125,7 +129,7 @@ async def main():
         ok(not await A.evaluate("()=>document.getElementById('hqP').classList.contains('on')"), "⑧ 꿈 카드는 하루 한 번")
         await A.evaluate("()=>standUp()")
         # ⑨ 요리
-        await A.evaluate("()=>HOUSE.exitRoom()"); await until(A, "()=>HOMEX.cur()==='living' && !HOUSE.trip().busy", 60); await goRoom("kitchen")
+        await A.evaluate("()=>{ for(let x=0;x<RN;x++) for(let z=0;z<RN-1;z++){ if(stock.stove>0 && fits('stove',x,z,0)){ addPlaced('stove',x,z,0,0); stock.stove--; } } }")
         await A.evaluate("()=>{ addMat('wheat',2); addMat('tomato',2); openCraft('cook'); }"); await A.wait_for_timeout(300)
         p0=await A.evaluate("()=>mats['pasta']|0")
         await A.evaluate("()=>document.querySelector('#craftBody [data-make=pasta]').click()")
