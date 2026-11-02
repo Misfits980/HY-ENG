@@ -2908,6 +2908,12 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .rs.big .rsMore{font-size:17px;padding:4px 14px}#arena .rsMore{left:auto;right:10px;top:10px;bottom:auto;font-size:11px}
 @media (max-height:500px){ .rs{height:118px;margin:4px 0} .rsAtkName{font-size:12px} .rsNum{font-size:18px} }   /* (v308) 가로 휴대폰 — 보기 버튼이 화면 안에 */
 .rdHostOn #rdC{position:sticky;bottom:0;z-index:5;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 8px);background:linear-gradient(180deg,rgba(11,7,22,0),#0b0716 35%)}
+.rs.side .rsBg{position:absolute;inset:0;background:center 85%/cover no-repeat}   /* (v538) 옆모습 무대 */
+.rs.side .rsHero.sd{aspect-ratio:auto;z-index:3} .rs.side .rsHero.sd.me{z-index:4} .rs.side .rsAllies .rsHero.sd{opacity:1;filter:brightness(.9) saturate(.92)}
+.rs.side .rsHero.sd::before{content:"";position:absolute;left:50%;bottom:-6%;width:70%;height:12%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(rgba(0,0,0,.4),transparent 70%)}
+.rs.side .rsHero.sd .sdI{position:absolute;left:50%;width:auto;max-width:none;height:calc(100% / var(--ay));bottom:calc(-100% * (1 - var(--ay)) / var(--ay));translate:calc(-100% * var(--ax)) 0;background:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35));pointer-events:none;-webkit-user-drag:none}
+.rs.side .rsHero.sd .rsName{top:auto!important;bottom:-18px;font-size:12px} .rs.side.big .rsHero.sd .rsName{font-size:15px}
+.rs.side .rsBossIn img{object-position:50% 100%;filter:drop-shadow(0 0 2px rgba(255,246,230,.75)) drop-shadow(0 10px 10px rgba(0,0,0,.45))}   /* 어두운 땅(화산·성)에서도 보스 윤곽이 보이게 */
 .rsSpr{display:block;width:100%;height:100%;background-size:600% 300%;background-repeat:no-repeat;background-position:0 50%;filter:drop-shadow(0 6px 5px rgba(0,0,0,.45))}
 .rsHero.bsH{aspect-ratio:289/220;height:22%} .rsHero.me.bsH{height:30%;left:12%;bottom:8%}
 @media (max-width:360px){ .rsHero.bsH{height:28%} .rsHero.me.bsH{height:38%;left:8%} }
@@ -16207,7 +16213,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v538";
+const GAME_VER = "v539";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -22131,7 +22137,8 @@ const RaidStage = {
     if(this.el===box && box.dataset.k===key) return true;
     const bg=this.BG[b.img]||this.BG.hb1; box.dataset.k=key; box.className="rs "+(role==="host"?"big":"");
     box.style.setProperty("--sky", bg[1]); box.style.setProperty("--floor", bg[2]);
-    box.innerHTML='<div class="rsMt" style="background-image:url(assets/world/mountains-'+bg[0]+'.webp)"></div><div class="rsFloor"></div><div class="rsTint"></div>'
+    const sd=this.SIDE_ON; if(sd) box.classList.add("side"); this.side=sd; this._lay=null;   /* (v538) 사용자: G3-6 처럼 옆모습 무대 — 큰 땅 그림(assets/raid/bg_<곳>.webp) · 아이들 왼쪽 → 보스 오른쪽 */
+    box.innerHTML=(sd ? '<div class="rsBg" style="background-image:url(assets/raid/bg_'+bg[0]+'.webp)"></div>' : '<div class="rsMt" style="background-image:url(assets/world/mountains-'+bg[0]+'.webp)"></div><div class="rsFloor"></div>')+'<div class="rsTint"></div>'
       +'<div class="rsBoss"><div class="rsBossIn'+(HyBoss.flip(b)?' flip':'')+'"><img src="'+HyBoss.img(b)+'" alt=""'+HyBoss.imgCss(b)+'><i class="rsAtk"></i></div><div class="rsShield"></div><em class="rsAtkName"></em></div>'
       +'<div class="rsAllies"></div><div class="rsFx"></div><div class="rsWarn"></div><b class="rsCombo"></b>';
     this.el=box; this.fx=box.querySelector(".rsFx"); this.al={}; this.me=null; this.seen={}; this._fed=0; this.t0=Date.now();
@@ -22145,7 +22152,16 @@ const RaidStage = {
      궁수는 그림이 다 올 때까지 예전 달리기 그림 · 다른 캐릭터(마법사·학자·유령·고양이)를 고른 아이는 이름으로 넷 중 하나 */
   BS:["hero","knight","wolf"], FIVE:["hero","knight","wolf"],   // (v335) 사용자: 지금은 용사·기사·늑대만 (탐험가·궁수는 그림이 다 오면)
   bsId(cid, key){ if(this.FIVE.indexOf(cid)>=0) return cid; let h=0; String(key||cid||"x").split("").forEach(c=>{ h=(h*31+c.charCodeAt(0))>>>0; }); return this.BS[h%this.BS.length]; },
-  hero(id, cid, name, mine, key){ const wk=this.role==="wk", h=document.createElement("div"), bid=this.bsId(cid, key||name||(mine ? (Raid.name||id) : id)), bs=this.BS.indexOf(bid)>=0;   /* (v342) 사용자: 수업 레이드도 새 공격 동작 (예전엔 🏠 주간 보스 화면에서만) */ h.className="rsHero"+(mine?" me":"")+(bs?" bsH":"");
+  /* (v538) 옆모습 캐릭터 5명 — assets/chars/side/<id>_<idle|charge|atk|hurt>.webp (네 포즈 같은 캔버스) · [캔버스 너비, 높이, 발 x, 발 y] (tools/cut_poses.py) · 다른 캐릭터는 이름으로 다섯 중 하나 */
+  SIDE_ON:true, SD:{hero:[376,365,0.473,0.962], knight:[450,346,0.504,0.974], wolf:[422,349,0.483,0.966], explorer:[633,388,0.327,0.979], archer:[561,358,0.351,0.972]}, POSE:["idle","charge","atk","hurt"],
+  sdId(cid, key){ if(this.SD[cid]) return cid; const L=Object.keys(this.SD); let h=0; String(key||cid||"x").split("").forEach(c=>{ h=(h*31+c.charCodeAt(0))>>>0; }); return L[h%L.length]; },
+  sdHero(id, cid, name, mine, key){ const k=this.sdId(cid, key||name||(mine ? (Raid.name||id) : id)), m=this.SD[k], h=document.createElement("div"); h.className="rsHero sd"+(mine?" me":"");
+    h.style.setProperty("--ax", m[2]); h.style.setProperty("--ay", m[3]); h.style.setProperty("--ar", (m[0]/m[1]).toFixed(3));
+    h.innerHTML='<img class="rsSpr sdI" src="assets/chars/side/'+k+'_idle.webp" alt="" draggable="false">'+(name?'<b class="rsName">'+Raid.esc(name)+'</b>':'');
+    this.POSE.forEach(p=>{ const im=new Image(); im.src="assets/chars/side/"+k+"_"+p+".webp"; });
+    (mine ? this.el : this.el.querySelector(".rsAllies")).appendChild(h);
+    return {el:h, spr:h.firstChild, k, pose:"idle", x:0, f:0, ph:Math.random()*6, dash:0, hurt:0, mine:!!mine, slot:0, sd:true, atk:0}; },
+  hero(id, cid, name, mine, key){ if(this.side) return this.sdHero(id, cid, name, mine, key); const wk=this.role==="wk", h=document.createElement("div"), bid=this.bsId(cid, key||name||(mine ? (Raid.name||id) : id)), bs=this.BS.indexOf(bid)>=0;   /* (v342) 사용자: 수업 레이드도 새 공격 동작 (예전엔 🏠 주간 보스 화면에서만) */ h.className="rsHero"+(mine?" me":"")+(bs?" bsH":"");
     h.innerHTML='<i class="rsSpr'+(bs?' bs':'')+'" style="background-image:url(assets/chars/'+(bs?'bs-':'run-')+bid+'.webp)"></i>'+(name?'<b class="rsName">'+Raid.esc(name)+'</b>':'');
     (mine ? this.el : this.el.querySelector(".rsAllies")).appendChild(h);
     const o={el:h, spr:h.firstChild, x:0, y:0, tx:0, f:Math.random()*6, ph:Math.random()*6, dash:0, back:0, hurt:0, mine:!!mine, slot:0, bs, atk:0};
@@ -22167,6 +22183,7 @@ const RaidStage = {
       if(host){ a.bx=3+c*(54/cols)+(r===1?27/cols:0); a.by=[4,19,34][r]; }
       else if(arena){ a.bx=4+c*13; a.by=47+(c%2)*2; }
       else { a.bx = narrow ? 2+c*14 : 2+c*7; a.by = narrow ? 38+(c%2)*3 : 26+(c%2)*6; }
+      if(this.side){ a.el.classList.remove("rsBack","rsNar","rsArena"); return; }
       a.el.style.zIndex = host ? 3-r : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow || arena)); a.el.classList.toggle("rsNar", narrow); a.el.classList.toggle("rsArena", arena);
       ["rsR0","rsR1","rsR2"].forEach((x,j)=>a.el.classList.toggle(x, host && r===j)); });
     let mo=this.el.querySelector(".rsMore"); const more=total-ids.length;
@@ -22178,11 +22195,11 @@ const RaidStage = {
     ks.forEach(k=>{ if(this.seen[k]) return; this.seen[k]=1; const e=E[k]; if(!e || now-(e.t||0)>6000) return;
       if(e.k!=="hit" && e.k!=="blk" && e.k!=="shield") return; if(this.role==="kid" && e.n===meName) return;
       const a=Object.values(this.al).find(x=>x.n===e.n); if(a){ a.dash=1; a.dashT=Date.now(); a.atk=(e.v|0)>=40 ? 2 : Math.random()<0.5 ? 0 : 1; }
-      const hv=e.k==="shield"?0:(e.v|0), hs=e.k==="shield"; if(a && a.bs) setTimeout(()=>this.bossHit(hv, false, hs), Math.round(this.BSG*1000)+140); else this.bossHit(hv, false, hs); }); },   // (v335) 친구도 휘두를 때 맞음
+      const hv=e.k==="shield"?0:(e.v|0), hs=e.k==="shield"; if(a && (a.bs||a.sd)) setTimeout(()=>this.bossHit(hv, false, hs), Math.round(this.BSG*1000)+140); else this.bossHit(hv, false, hs); }); },   // (v335) 친구도 휘두를 때 맞음
   /* 내 공격 */
   attack(d, combo, sh){ if(!this.me) return; const o=this.me, now=Date.now();
     /* (v335) 새 그림: 이미 보스 앞에 있으면 돌아가지 않고 이어서 때림 (연타 = 연속 공격) · 맞는 순간(휘두를 때)에 보스가 움찔 */
-    let wait=130; if(o.bs){ const t=o.dash ? (now-o.dashT)/1000 : 9; if(t>=this.BSG*0.6 && t<this.BSG+this.BSH+this.BSR){ o.dashT=now-this.BSG*1000; wait=140; } else { o.dashT=now; wait=Math.round(this.BSG*1000)+140; } }
+    let wait=130; if(o.bs || o.sd){ const t=o.dash ? (now-o.dashT)/1000 : 9; if(t>=this.BSG*0.6 && t<this.BSG+this.BSH+this.BSR){ o.dashT=now-this.BSG*1000; wait=140; } else { o.dashT=now; wait=Math.round(this.BSG*1000)+140; } }
     else o.dashT=now;
     o.dash=1; o.atk = (combo|0)>=5 ? 2 : ((o.n2=(o.n2|0)+1)%2);   // 번갈아 · 콤보 5 넘으면 큰 공격
     setTimeout(()=>this.bossHit(d, true, sh, combo), wait);
@@ -22227,6 +22244,31 @@ const RaidStage = {
   burst(n, col){ if(!this.fx) return; for(let i=0;i<n;i++){ const p=document.createElement("i"); p.className="rsPt"; const a=Math.random()*Math.PI*2, r=30+Math.random()*50;
       p.style.cssText="left:"+(70+Math.random()*6)+"%;top:"+(42+Math.random()*10)+"%;--dx:"+Math.round(Math.cos(a)*r)+"px;--dy:"+Math.round(Math.sin(a)*r-20)+"px;background:"+col; this.fx.appendChild(p); setTimeout(()=>p.remove(), 700); } },
   slash(mine){ if(!this.fx) return; const s=document.createElement("i"); s.className="rsSlash"+(mine?"":" sm"); s.style.left=(64+Math.random()*8)+"%"; s.style.top=(26+Math.random()*16)+"%"; s.style.setProperty("--r", (Math.random()*60-30)+"deg"); this.fx.appendChild(s); setTimeout(()=>s.remove(), 420); },
+  /* (v538) 옆모습 자리 — 땅 그림의 바닥선(그림 높이 84%, cover · 아래 85% 맞춤)에 발 · 크기는 무대에 맞춰 (TV · 패드 · 폰 · 주간 보스 · 아레나 모두 같은 규칙) */
+  layout(){ const E=this.el, W=E.clientWidth, H=E.clientHeight; if(!W || !H) return; const host=this.role==="host", arena=E.id==="arStage" || E.id==="wbaStage", narrow=W<480;
+    const key=W+"x"+H+":"+Object.keys(this.al).length; if(this._lay && this._lay.key===key) return;
+    const s=Math.max(W/1672, H/941), ih=941*s, gy=(H-ih)*0.85+ih*0.84, gb=Math.max(H*0.04, H-gy);
+    const wide=W/H>1.9;   /* 주간 보스 카드처럼 납작한 무대 */
+    const unit=Math.round(Math.min(H*(wide?0.34:host?0.26:0.25), W*(narrow?0.27:host?0.12:0.23)));
+    const bossW=Math.round(Math.min(unit*(narrow?1.75:host?2.7:wide?2.4:2.05), H*(wide?0.85:0.62))), bossCx=Math.min(W*(narrow?0.77:0.79), W-bossW*0.42);
+    const L=this._lay={key, W, H, gb, unit, bossW, bossCx, meCx:W*(host?0.5:narrow?0.38:0.4)}; E.style.setProperty("--gb", gb+"px");
+    const B=E.querySelector(".rsBoss"); if(B){ const st=B.style; st.setProperty("width", bossW+"px", "important"); st.setProperty("height", bossW+"px", "important"); st.setProperty("max-height", "none", "important"); st.setProperty("right", "auto", "important"); st.setProperty("left", Math.round(bossCx-bossW/2)+"px", "important"); st.setProperty("bottom", Math.round(gb-bossW*0.06)+"px", "important"); }
+    const put=(o, cx, b, hpx)=>{ const st=o.el.style; st.setProperty("height", Math.round(hpx)+"px", "important"); st.setProperty("width", Math.round(hpx*0.8)+"px", "important"); st.setProperty("left", Math.round(cx-hpx*0.4)+"px", "important"); st.setProperty("bottom", Math.round(b)+"px", "important"); o.cx=cx; o.reach=Math.max(0, (bossCx-bossW*0.36)-(cx+hpx*0.35)); };
+    if(this.me) put(this.me, L.meCx, gb, unit);
+    const al=Object.values(this.al); al.forEach(a=>{ const i=a.slot;
+      if(host){ const cols=8, r=Math.min(2, Math.floor(i/cols)), c=i-r*cols, sc=[0.8,0.68,0.58][r]; put(a, W*(0.05+c*0.075+(r===1?0.035:0)), gb+r*unit*0.2, unit*sc); a.el.style.zIndex=3-r; }
+      else { a.el.style.display = narrow && i>=2 ? "none" : ""; put(a, W*(narrow ? 0.05+i*0.12 : 0.06+i*0.075), gb+unit*0.14, unit*(narrow?0.6:arena?0.62:0.7)); } }); },   /* 폰은 친구 2명까지 (내 캐릭터와 겹쳤음) */
+  /* (v538) 옆모습 동작 — 가만히(숨쉬기) · 공격: 기 모으며 달려감(charge) → 때림(atk) → 돌아옴 · 맞음(hurt, 뒤로 밀림) */
+  stepSd(o, now){ let x=0, pose="idle", bob=Math.abs(Math.sin(now/320+o.slot))*-2; const go=this.BSG, hit=this.BSH, ret=this.BSR;
+    if(o.dash){ const t=(now-o.dashT)/1000;
+      if(t<go){ x=Math.min(1, t/go*1.05); pose="charge"; bob=-Math.abs(Math.sin(t*18))*4; }
+      else if(t<go+hit){ x=1; pose="atk"; bob=0; }
+      else if(t<go+hit+ret){ x=1-(t-go-hit)/ret; pose="idle"; }
+      else o.dash=0; }
+    if(o.hurt){ const t=(now-o.hurtT)/1000; if(t<0.8){ pose="hurt"; x=-0.18*(t<0.3 ? t/0.3 : Math.max(0, 1-(t-0.3)/0.5)); bob=0; } else o.hurt=0; }
+    if(o.pose!==pose){ o.pose=pose; o.spr.src="assets/chars/side/"+o.k+"_"+pose+".webp"; }
+    const r = x<0 ? (this._lay ? this._lay.unit : 100) : (o.reach||0);
+    o.el.style.transform="translate("+Math.round(x*r)+"px, "+bob.toFixed(1)+"px)"; },
   /* (v335) 새 공격 그림 — 가만히: 공격 줄 첫 칸 + 숨쉬기 · 공격: 달려가며 준비(1) → 휘두르기(2~5) → 돌아오기 · 맞음: 쓰러짐 줄 앞 3칸 비틀 */
   BSG:0.34, BSH:0.42, BSR:0.36,   // (v335) 걸어가기 · 때리기 · 뒷걸음질 (초) — 걷기 = 시트 5번째 줄
   stepBs(o, now, W){ let x=0, row=o.atk|0, fr=0, hop=0; const go=this.BSG, hit=this.BSH, ret=this.BSR;
@@ -22243,7 +22285,8 @@ const RaidStage = {
   /* 한 장면 — 달리기 그림 프레임 · 달려가기/돌아오기(뒷걸음질) · 밀려나기 */
   step(){ if(!this.el || !document.body.contains(this.el)){ this.stop(); return; } const now=Date.now(), dt=Math.min(0.1, (now-(this._lt||now))/1000); this._lt=now;   // (v308) 120Hz 아이패드에서도 같은 빠르기
     const list=(this.me?[this.me]:[]).concat(Object.values(this.al)), W=this.el.clientWidth||360;
-    list.forEach(o=>{ if(o.bs){ this.stepBs(o, now, W); return; } let x=0, y=0, row=1, back=false, rate=6;
+    if(this.side) this.layout();
+    list.forEach(o=>{ if(o.sd){ this.stepSd(o, now); return; } if(o.bs){ this.stepBs(o, now, W); return; } let x=0, y=0, row=1, back=false, rate=6;
       if(o.dash){ const t=(now-o.dashT)/1000, go=0.14, ret=0.3;
         if(t<go){ x=(t/go); rate=16; } else if(t<go+0.08){ x=1; rate=16; } else if(t<go+0.08+ret){ x=1-(t-go-0.08)/ret; back=true; rate=12; } else { o.dash=0; } }
       if(o.hurt){ const t=(now-o.hurtT)/1000; if(t<0.5){ x=-0.35*Math.sin(Math.min(1,t/0.25)*Math.PI/2)*(t<0.25?1:1-(t-0.25)/0.25); back=true; rate=12; } else o.hurt=0; }

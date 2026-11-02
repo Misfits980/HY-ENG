@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v538";
+const VERSION = "hyeng-v539";
 /* (v322) 그림(assets/)은 버전마다 다시 받지 않게 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 그림 130개(약 22MB)를 다시 받았다.
    그림 파일을 '같은 이름으로' 새로 바꿨을 때만 아래 숫자를 올리세요 (새 이름의 그림은 그냥 올리면 됨). */
 const ART = "hyeng-art-v1";
@@ -75,7 +75,7 @@ const OPTIONAL = [                    // 없으면 그냥 건너뜀 — 그림�
   "./assets/books/book-short.webp", "./assets/books/book-sight.webp", "./assets/books/book-vowel2.webp", "./assets/ui/mode-e2k.webp",
   "./assets/ui/mode-k2e.webp", "./assets/ui/mode-mix.webp", "./assets/items/item-heart.webp", "./assets/items/item-hint.webp",
   "./assets/items/item-shield.webp", "./assets/items/item-slow.webp", "./assets/chars/run-archer.webp", "./assets/chars/run-cat.webp",
-  "./assets/chars/bs-hero.webp", "./assets/chars/bs-knight.webp", "./assets/chars/bs-wolf.webp",   // (v335) 주간 보스 공격 그림
+  "./assets/raid/bg_meadow.webp", "./assets/chars/side/hero_idle.webp", "./assets/chars/side/knight_idle.webp", "./assets/chars/side/wolf_idle.webp", "./assets/chars/side/explorer_idle.webp", "./assets/chars/side/archer_idle.webp",   // (v538) 옆모습 레이드 무대
   "./assets/chars/run-explorer.webp", "./assets/chars/run-ghost.webp", "./assets/chars/run-hero.webp", "./assets/chars/run-knight.webp",
   "./assets/chars/run-mage.webp", "./assets/chars/run-scholar.webp", "./assets/chars/run-wolf.webp", "./assets/boss/hb1-a.webp",
   "./assets/boss/hb1-b.webp", "./assets/boss/hb1-c.webp", "./assets/boss/hb2-a.webp", "./assets/boss/hb2-b.webp",

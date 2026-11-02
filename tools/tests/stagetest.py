@@ -17,9 +17,9 @@ async def main():
             await k.evaluate(f"()=>{{ G.char='{ch}'; Raid.FAST=0; Raid.ARENA=false; Raid.join('{room}','{nm}'); }}"); kids.append(k)
         await host.wait_for_timeout(600); await host.evaluate("()=>Raid.hostAct('start')"); await host.wait_for_timeout(800)
         k0=kids[0]
-        info=await k0.evaluate("()=>{ const s=document.getElementById('rdStage'); return [!!s.querySelector('.rsHero.me'), (s.querySelector('.rsHero.me .rsSpr')||{}).style.backgroundImage, s.querySelectorAll('.rsAllies .rsHero').length, !!s.querySelector('.rsBoss img')]; }")
+        info=await k0.evaluate("()=>{ const s=document.getElementById('rdStage'); return [!!s.querySelector('.rsHero.me'), (s.querySelector('.rsHero.me .rsSpr')||{}).getAttribute('src'), s.querySelectorAll('.rsAllies .rsHero').length, !!s.querySelector('.rsBoss img')]; }")
         print("kid stage", info)
-        if not info[0] or "bs-knight" not in (info[1] or "") or info[2]!=2 or not info[3]: bad.append(f"아이 무대 {info}")
+        if not info[0] or "side/knight" not in (info[1] or "") or info[2]!=2 or not info[3]: bad.append(f"아이 무대 {info}")
         # 맞히기 → 달려감 · 숫자
         r=await k0.evaluate(ANS, True); await k0.wait_for_timeout(90)
         d=await k0.evaluate("()=>[RaidStage.me.dash, (RaidStage.me.el.style.transform||'')]")
