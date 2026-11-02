@@ -218,6 +218,7 @@ button{font-family:inherit}
 .dSeeds.on{display:flex} .dGem{align-self:center;font:900 15px var(--en);color:#8a5a00;margin-left:6px}
 
 /* (L0-9) 묻기 창 · 보관 · 가게 */
+.hxPick{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}.hxPick .btn{min-width:120px}
 #ask{position:fixed;inset:0;z-index:35;display:none;align-items:center;justify-content:center;background:rgba(60,40,20,.35)}
 #ask.on{display:flex}
 #ask .box{width:min(300px,84vw);background:var(--paper);border:3px solid var(--line2);border-radius:26px;padding:20px 16px 14px;text-align:center;box-shadow:0 8px 0 rgba(90,60,30,.25);animation:pop .3s cubic-bezier(.2,.9,.3,1.3)}
@@ -284,6 +285,7 @@ button{font-family:inherit}
 @keyframes tlHop{0%,100%{margin-top:0}50%{margin-top:-6px}}
 .ttl .sign.swing{animation:swing .9s ease-out;transform-origin:50% -14px}
 @keyframes swing{0%{transform:rotate(-9deg)}35%{transform:rotate(6deg)}65%{transform:rotate(-3deg)}100%{transform:none}}
+body.isleOn #coach{bottom:calc(176px + env(safe-area-inset-bottom))}   /* (v563) 사용자: 「Mia 말 때문에 조이스틱이랑 점프가 안 보이는 사고」 → 섬에선 조이스틱·점프 위로 */
 #coach{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,12px);z-index:4;width:min(360px,calc(100vw - 24px));display:flex;gap:9px;align-items:flex-start;padding:8px 12px 9px 8px;border-radius:22px;background:var(--paper);border:3px solid var(--line2);box-shadow:0 5px 0 rgba(90,60,30,.25);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
 #coach.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 #coach .cMas{flex:none;width:40px;height:40px;border-radius:50%;background:#dff3d8;border:2px solid #a8dca0;font-size:24px;display:flex;align-items:center;justify-content:center}
@@ -492,6 +494,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 .twBd{margin:4px 0 8px;padding:8px 10px;border-radius:14px;background:rgba(122,91,216,.08);text-align:left}
 .twLb{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:4px;font-size:13px}.twLb b{font-size:12px}.twLb em{font-style:normal;font-variant-numeric:tabular-nums;color:#7a5bd8}.twLb .me{font-weight:800;background:#fff3bf;border-radius:8px;padding:0 4px}
 .twT{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}.twRec{color:#e8590c}
+[data-poor]{opacity:.5;filter:grayscale(.35)}   /* (v563 QA) 모자라도 누르면 안내 */
 </style>
 
 </head>
@@ -503,7 +506,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
   <div class="tools"><button class="tool" id="bFr" aria-label="친구"><i data-ic="friends"></i><span>친구</span><b class="dot" id="frDot" hidden></b></button><button class="tool" id="bMap" aria-label="지도"><i data-ic="map"></i><span>지도</span></button><button class="tool" id="bDex" aria-label="물고기 도감"><i data-ic="dex"></i><span>도감</span></button></div>
 </div>
 <button class="camB" id="bCam" aria-label="방 돌리기"><i data-ic="rotate"></i><span>돌리기</span></button>
-<div id="hud"><span class="pill" id="hGem"><img src="../assets/ui/ic-gem.webp" alt=""><b>0</b></span><button class="pill tap" id="hBait" aria-label="미끼란?"><i data-ic="worm"></i><b>0</b></button><span class="pill buff" id="hBuff" hidden><i>🍀</i><b></b></span><button class="pill tap" id="hWho" hidden><i data-ic="me"></i><b></b></button><button class="pill tap envP" id="hEnv" hidden><b></b></button><button class="pill tap qp" id="hQ"><i data-ic="list"></i><b>할 일</b><u id="hQn" hidden></u></button></div>
+<div id="hud"><span class="pill" id="hGem"><img src="../assets/ui/ic-gem.webp" alt=""><b>0</b></span><button class="pill tap" id="hCoin" aria-label="코인 · 마을 은행"><i>🪙</i><b>0</b></button><button class="pill tap" id="hBait" aria-label="미끼란?"><i data-ic="worm"></i><b>0</b></button><span class="pill buff" id="hBuff" hidden><i>🍀</i><b></b></span><button class="pill tap" id="hWho" hidden><i data-ic="me"></i><b></b></button><button class="pill tap envP" id="hEnv" hidden><b></b></button><button class="pill tap qp" id="hQ"><i data-ic="list"></i><b>할 일</b><u id="hQn" hidden></u></button></div>
 <div class="bar bot">
   <div class="grp" id="gRoom"><button class="dk go" id="bOut"><i data-ic="door"></i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bEdit"><i data-ic="sofa"></i><span>가구</span></button><button class="dk" id="bWall"><i data-ic="roller"></i><span>벽지</span></button><button class="dk" id="bFloor"><i data-ic="floor"></i><span>바닥</span></button><button class="dk" id="bUp"><i data-ic="build"></i><span>넓히기</span></button><button class="dk" id="bAv1"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gYard"><button class="dk go" id="bIn"><i data-ic="home"></i><span>집</span></button><button class="dk go" id="bVill"><i data-ic="village"></i><span>마을</span></button><b class="sep"></b><button class="dk" id="bDeco"><i data-ic="roller"></i><span>꾸미기</span></button><button class="dk" id="bShop"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv2"><i data-ic="shirt"></i><span>나</span></button></div>
@@ -1068,7 +1071,18 @@ Object.assign(ITEMS, {
     fuC(g,.13,.13,.04,0x3b2433,0,1.2,0); fuC(g,.09,.09,.18,0x3b2433,0,1.3,0); const sc=new THREE.Mesh(new THREE.TorusGeometry(.18,.04,6,16), M(0xff4b4b)); sc.rotation.x=Math.PI/2; sc.position.y=.9; g.add(sc); return g; }},
   pumpkinlamp:{nm:"pumpkin lamp", ic:"🎃", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuS(g,.3,0xff8a3d,0,.26,0,[1,.75,1]); fuC(g,.04,.05,.14,0x5a8a3a,0,.5,0); [-1,1].forEach(s=>{ const e=fuN(g,.06,.08,0x3b2433,s*.1,.32,.27,3); e.material=new THREE.MeshBasicMaterial({color:0xffd23f}); e.rotation.x=Math.PI/2; });
     const m=new THREE.Mesh(new THREE.BoxGeometry(.2,.04,.02), new THREE.MeshBasicMaterial({color:0xffd23f})); m.position.set(0,.18,.29); g.add(m); return g; }},
+  /* (v563) 🌙 이달의 한정 가구 — 그달에만 가구점에 나옴 (TECO.LIMITED) */
+  kotatsu:{nm:"kotatsu", ic:"🍊", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuB(g,.98,.3,.98,0xd9534f,0,.16,0); fuB(g,.86,.05,.86,0xb07a4a,0,.34,0); [[-.12,0],[.1,.08],[.05,-.1]].forEach(([x,z])=>fuS(g,.07,0xff9a3d,x,.42,z)); return g; }},
+  snowglobe:{nm:"snow globe", ic:"🔮", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.26,.3,.16,0x8a5a34,0,.08,0); fuS(g,.28,0xdff4ff,0,.42,0,null,{transparent:true, opacity:.35}); fuN(g,.1,.24,0x2f8f3f,0,.38,0,8); fuS(g,.05,0xffffff,.1,.3,.05); return g; }},
+  heartlamp:{nm:"heart lamp", ic:"💗", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.14,.18,.06,0xffffff,0,.03,0); fuC(g,.025,.025,.7,0xc9c4b8,0,.4,0); [-1,1].forEach(s=>fuG(g,new THREE.SphereGeometry(.12,14,10),0xff7aa8,s*.08,.86,0)); const c=fuG(g,new THREE.ConeGeometry(.17,.22,14),0xff7aa8,0,.72,0); c.rotation.x=Math.PI; return g; }},
+  cherrytree:{nm:"cherry tree", ic:"🌸", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.18,.22,.22,0xc0703a,0,.11,0); fuC(g,.06,.08,.9,0x8a5a34,0,.65,0); [[0,1.2,0,.38],[.22,1.05,.1,.26],[-.2,1.08,-.08,.27],[.05,1.0,-.24,.24]].forEach(([x,y,z,r])=>fuS(g,r,0xffb7d5,x,y,z)); return g; }},
+  giftpile:{nm:"gift boxes", ic:"🎁", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); [[-.16,0,.1,.36,0xff6b6b],[.18,0,-.08,.3,0x5aa7ff],[0,.34,0,.24,0x7ed957]].forEach(([x,y,z,w,c])=>{ fuB(g,w,w,w,c,x,y+w/2,z); fuB(g,w+.02,w+.02,.05,0xffd23f,x,y+w/2,z); fuB(g,.05,w+.02,w+.02,0xffd23f,x,y+w/2,z); }); return g; }},
+  parasol2:{nm:"beach parasol", ic:"⛱", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuB(g,.8,.03,.5,0x5aa7ff,0,.02,.1); fuC(g,.025,.025,1.5,0xffffff,0,.75,0); [0xff6b6b,0xffffff].forEach((c,i)=>{ const n=fuN(g,.62-i*.001,.32,c,0,1.5,0,8); n.rotation.y=i*Math.PI/8; }); return g; }},
+  seashell:{nm:"giant seashell", ic:"🐚", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuS(g,.36,0xffd9c7,0,.2,0,[1,.5,.85]); fuS(g,.34,0xfff0e6,0,.36,-.12,[1,.55,.6]).rotation.x=-.6; fuS(g,.07,0xffffff,0,.26,.12,null,{metalness:.4}); return g; }},
+  icecart:{nm:"ice cream cart", ic:"🍦", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuB(g,.8,.5,.5,0xffb6d1,0,.45,0); [-.28,.28].forEach(x=>{ const w=fuC(g,.12,.12,.06,0x3b2433,x,.12,.27); w.rotation.x=Math.PI/2; }); fuC(g,.02,.02,.8,0xffffff,.3,1.1,0); fuN(g,.4,.2,0x7fd3ff,.3,1.5,0,10); [[-.2,0xfff1c9],[0,0xffb6d1],[.15,0x8a5a34]].forEach(([x,c])=>fuS(g,.08,c,x,.76,0)); return g; }},
+  mapletree:{nm:"maple tree", ic:"🍁", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.18,.22,.22,0xc0703a,0,.11,0); fuC(g,.06,.08,.9,0x8a5a34,0,.65,0); [[0,1.2,0,.38,0xff7a3d],[.22,1.05,.1,.26,0xe24b4b],[-.2,1.08,-.08,.27,0xffb02e],[.05,1.0,-.24,.24,0xff7a3d]].forEach(([x,y,z,r,c])=>fuS(g,r,c,x,y,z)); return g; }},
 });
+Object.assign(PRICE_ADD, {kotatsu:24, snowglobe:18, heartlamp:16, cherrytree:30, giftpile:14, parasol2:18, seashell:12, icecart:34, mapletree:28});
 Object.assign(PRICE_ADD, {beanbag:12, bunkbed:45, coffeetable:12, floorlamp:14, fireplace:40, bigshelf:30, dresser:24, toybox:10, rockinghorse:22, teepee:28, ballpit:35, slide:38, arcade:50, toyblocks:6, trampoline:42, monstera:12, cactus:8, bonsai:15, flowerbox:14, sunflower:9, easel:16, guitar:25, drums:40, globe:14, sink:18, kcounter:16, cakestand:20, shower:30, starlights:10, wallplant:9, neon:18, worldmap:12, banner:8, xmastree:26, snowman:15, pumpkinlamp:12});
 Object.keys(PRICE_ADD).forEach(k=>{ if(ITEMS[k] && !["washer","microwave","fan","aircon","computer","radio","toaster","tank","robot","window","painting","poster","wclock","wshelf","mirror"].includes(k)) NEWF[k]=1; });
 function wallOk(id, side, s, skip){ if(!wallFits(side,s,skip)) return false; if(id==="sidedoor"){ if(side===3 && s>=RN-1) return false; const c=[[s,0],[RN-1,s],[s,RN-1],[0,s]][side]; if(roomBlocked(c[0],c[1])) return false; } return true; }
@@ -1097,6 +1111,14 @@ Object.assign(PRICE, {kk_books:4, kk_stool:5, kk_cactus:6, kk_chair:7, kk_night:
    예전 값 p → 50 + (p-4)×6 (5 단위, 최소 50) : 의자 6→60 · 침대 25→175 · 피아노 45→295 · 오락기 50→325
    칸막이·울타리·덤불처럼 여러 개 쓰는 것은 묶음(PACK)으로 — 한 번 사면 여러 개 */
 const ECON=p=>p<=4 ? 50 : 50+Math.round((p-4)*6/5)*5;
+/* (v563) 경제 2.0 — 💎85 넘는 큰 것만 ×1.6 (아이들이 모아 둔 💎 가 많아서) · 값 종류(🪙만/💎+🪙/💎만)는 TECO.cost 가 나중에 (눌렀을 때) 계산 */
+const bigP=V=>V>85 ? Math.max(5, Math.round(V*1.6/5)*5) : V;
+const CO=(V,t)=>{ try{ return TECO.cost(V, t||TECO.tierOf(V)); }catch(e){ return {g:V, c:0}; } };
+const canCO=o=>{ try{ return TECO.can(o); }catch(e){ return gems>=(o.g|0); } };
+const htmlCO=o=>{ try{ return TECO.cHtml(o); }catch(e){ return '💎 '+(o.g|0); } };
+const payCO=o=>{ try{ return TECO.pay2(o); }catch(e){ return spend(o.g|0); } };
+/* 가구 값 — 🌙 이달의 한정은 그달에만 · 💎+🪙 ×1.3 */
+function furnCO(id){ try{ if(TECO.isLim(id)){ if(TECO.limNow().indexOf(id)<0) return null; const o=TECO.cost(PRICE[id],"mix"); return {g:Math.round(o.g*1.3/5)*5, c:Math.round(o.c*1.3/10)*10}; } }catch(e){} return CO(PRICE[id]); }
 const PACK={partition:4, fence:5, hedge:5};
 Object.keys(PRICE).forEach(k=>{ PRICE[k]=ECON(PRICE[k]); });
 /* (v539) 사용자: "2층 3층 4층 기능은 뭐로?" → 방·층마다 할 일 — 넓히면 생기는 특별 가구 (가게에선 안 팖) */
@@ -1410,9 +1432,9 @@ function yLoad(d){ yplaced.splice(0).forEach(p=>p.obj.parent && p.obj.parent.rem
   yLoading=true; ((d&&d.p)||[]).slice(0,120).forEach(([id,x,z,r,c])=>{ if(OUT[id] && yFits(id,x,z,r|0)===1) yAdd(id,x,z,r,c); }); yLoading=false;
   yFences(); yDrawWild(); yDrawDeb(); yDrawGround(); yHouseColors(); yNight(yNightOn); }
 /* ── 🌾 새 땅 열기 · 🧹 치우기 ── */
-function yParcAsk(i){ const p=PARC[i], n=yd.pc.filter(Boolean).length, cost=PARC_P[n];
-  ask('<div class="iBig">🌱</div><b>새 땅 「'+p.nm+'」</b> 열기<br><small>'+((p.x1-p.x0+1)*(p.z1-p.z0+1))+'칸 · 잡초·돌·그루터기를 치우면 내 땅</small><br><br>💎 '+cost+' <small>(가진 💎 '+gems+')</small><br><small class="dim">게임에서는 '+p.need+'이 되면 열려요 (맛보기는 💎)</small>', ()=>yParcOpen(i)); }
-function yParcOpen(i){ const n=yd.pc.filter(Boolean).length; if(yd.pc[i] || !spend(PARC_P[n])) return false; yd.pc[i]=1; const p=PARC[i];
+function yParcAsk(i){ const p=PARC[i], n=yd.pc.filter(Boolean).length, cost=CO(PARC_P[n],"mix");
+  ask('<div class="iBig">🌱</div><b>새 땅 「'+p.nm+'」</b> 열기<br><small>'+((p.x1-p.x0+1)*(p.z1-p.z0+1))+'칸 · 잡초·돌·그루터기를 치우면 내 땅</small><br><br>'+htmlCO(cost)+'<br><small class="dim">가진 💎 '+gems+' · 🪙 '+TECO.coins()+'</small>', ()=>yParcOpen(i)); }
+function yParcOpen(i){ const n=yd.pc.filter(Boolean).length; if(yd.pc[i] || !payCO(CO(PARC_P[n],"mix"))) return false; yd.pc[i]=1; const p=PARC[i];
   for(let x=p.x0;x<=p.x1;x++) for(let z=p.z0;z<=p.z1;z++){ const h=hashf("dbg|"+i+"|"+x+"|"+z), k=x+","+z; if(isRoad(x,z)) continue; yd.db[k]= h<0.5 ? "weed" : h<0.62 ? "stone" : h<0.72 ? "stump" : undefined; if(!yd.db[k]) delete yd.db[k]; }
   yDrawWild(); yDrawDeb(); yFlowersUpd(); ySave(); act("yay"); emote(hero,"🌱"); say("new land"); tEv("land"); toast("🌱 「"+p.nm+"」 이 열렸어요!<br><small>🌿 잡초 · 🪨 돌 · 🪵 그루터기를 눌러 치워요</small>", 2800); drawLabels(); return true; }
 const DEB_GIVE={weed:[["wheat seeds",0.15],["carrot seeds",0.1]], stone:[["stone",1]], stump:[["branch",1],["branch",0.5]]};
@@ -1485,7 +1507,7 @@ function yPointerMove(e){ if(!down || place!==PL.yard || !edit) return; const dx
 /* 가게 줄 */
 function yShopHTML(){ let h='<div class="bChips fCat">'+OUT_CAT.map(([k,t])=>'<button class="chip'+(yCat===k?' on':'')+'" data-yc="'+k+'">'+t+'</button>').join("")+'</div>';
   h+=Object.keys(OUT_PRICE).filter(id=>yCat==="all"||OUT[id].cat===yCat).sort((a,b)=>OUT_PRICE[a]-OUT_PRICE[b]).map(id=>{ const it=OUT[id], p=OUT_PRICE[id], have=(ystock[id]|0)+yplaced.filter(x=>x.id===id).length;
-    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(gems>=p?' on':'')+'" data-by="'+id+'"'+(gems>=p?'':' disabled')+'>💎 '+p+'</button></div>'; }).join("");
+    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(canCO(CO(p))?' on':'')+'" data-by="'+id+'"'+(canCO(CO(p))?'':' data-poor="1"')+'>'+htmlCO(CO(p))+'</button></div>'; }).join("");
   return h; }
 let yCat="all";
 /* 🏅 마당 도장 */
@@ -1500,7 +1522,7 @@ function yInit(){ yFlowersInit(); yGrassInit(); ystock=Object.assign({flowers:2,
     const t=e.target.closest("[data-yt]"); if(t){ yTool=t.dataset.yt; cancelGhost(); unselect(); yDrawInv(); return; }
     const sh=e.target.closest("[data-yshop]"); if(sh){ openFurn("yard"); return; }
     const c=e.target.closest("[data-yid]"); if(c){ yTool="items"; yStartGhost(c.dataset.yid, null); return; }
-    const g=e.target.closest("[data-gp]"); if(g){ const k=g.dataset.gp; if(k!=="erase" && !ownGP.includes(k)){ ask(GP[k].e+" <b>"+GP[k].nm+"</b> 칠하기<br>💎 "+GP[k].p+" (한 번 사면 계속 칠해요)", ()=>{ if(!spend(GP[k].p)) return; ownGP.push(k); yPaint=k; ySave(); yDrawInv(); say(GP[k].nm); }); return; } yPaint=k; yDrawInv(); if(k!=="erase") say(GP[k].nm); return; }
+    const g=e.target.closest("[data-gp]"); if(g){ const k=g.dataset.gp; if(k!=="erase" && !ownGP.includes(k)){ ask(GP[k].e+" <b>"+GP[k].nm+"</b> 칠하기<br>"+htmlCO(CO(GP[k].p,"coin"))+" (한 번 사면 계속 칠해요)", ()=>{ if(!payCO(CO(GP[k].p,"coin"))) return; ownGP.push(k); yPaint=k; ySave(); yDrawInv(); say(GP[k].nm); }); return; } yPaint=k; yDrawInv(); if(k!=="erase") say(GP[k].nm); return; }
     const hx=e.target.closest("[data-hx]"); if(hx){ const k=hx.dataset.hx[0], i=+hx.dataset.hx.slice(1); yd.hx[k]=i; yHouseColors(); ySave(); yDrawInv(); tEv("ycolor"); return; } }, true);
   $("cv").addEventListener("pointermove", yPointerMove);
   $("cv").addEventListener("pointerup", ()=>{ if(yDrag){ yDrag=null; } }, true);
@@ -1904,8 +1926,8 @@ const TW_GEM_DAY=10; function twGemOk(n){ const d=dayKey(), r=TW.rec[d]||(TW.rec
 function twStarDay(){ const d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}); return m.st||(m.st=[]); }
 function twStarTick(dt){ if(!TW.stars) return; const p=TW.p, T=performance.now()/1000;
   TW.stars.forEach(s=>{ if(s.got) return; s.sp.position.y=s.y+Math.sin(T*2.5+s.i)*0.1; const k=0.7*(1+0.08*Math.sin(T*5+s.i)); s.sp.scale.set(k,k,1);
-    if(!TW.bot && Math.hypot(p.x-s.x, (p.y+0.6)-s.y, p.z-s.z)<0.8){ s.got=true; s.sp.visible=false; const L=twStarDay(); let gem=0; if(L.indexOf(s.i)<0){ L.push(s.i); if(twGemOk(1)){ gem=1; gems+=1; } saveBag(); store("hyeng_proto_tower", TW.rec); }
-      TW.starN=(TW.starN|0)+1; try{ SND.sparkle(); }catch(e){} emote(hero,"⭐"); toast("⭐ <b>숨은 별!</b> "+TW.starN+" / "+TW.stars.length+(gem?" · 💎 +1":""), 1500); twHud(); } }); }
+    if(!TW.bot && Math.hypot(p.x-s.x, (p.y+0.6)-s.y, p.z-s.z)<0.8){ s.got=true; s.sp.visible=false; const L=twStarDay(); let gem=0; if(L.indexOf(s.i)<0){ L.push(s.i); if(twGemOk(1)){ gem=1; try{ TECO.addCoin(5); }catch(e){} }   /* (v563) 사용자: 💎 는 공부로 → 🪙 (💎 × 5) */ saveBag(); store("hyeng_proto_tower", TW.rec); }
+      TW.starN=(TW.starN|0)+1; try{ SND.sparkle(); }catch(e){} emote(hero,"⭐"); toast("⭐ <b>숨은 별!</b> "+TW.starN+" / "+TW.stars.length+(gem?" · 🪙 +5":""), 1500); twHud(); } }); }
 /* (v455) 📏 내 최고 높이 선 — 오늘 이 타워에서 가 본 가장 높은 곳에 금색 테 + 「내 최고 n층」 · 넘으면 「새 최고!」 */
 function twHiLine(){ if(TW.hiG){ towerG.remove(TW.hiG); TW.hiG=null; } const d=dayKey(), m=((TW.rec[d]||{})[TW.mode])||{}, hy=m.hi; TW.hi0=hy||0; TW.hiNew=0; if(!hy || TW.bot) return;
   const G=new THREE.Group(); G.position.set(TWC, hy+0.05, TWC); towerG.add(G); TW.hiG=G; const mat=new THREE.MeshBasicMaterial({color:0xffd23f, transparent:true, opacity:.85});
@@ -2196,8 +2218,8 @@ function twViewSet(on){ TW.fp=!!on; camera.fov=TW.fp?70:50; camera.updateProject
 function twFi(i){ return (TW.fr && TW.fr[i]!=null) ? TW.fr[i] : i; }   /* (v471) 층 → 첫 면 번호 */
 function twDie(msg){ if(TW.bot){ twRespawn(); return; } const keep=TW.cp, gi=twSafeIdx(), flag=TW.mode==="kid" && gi>0 && gi<=TW_PRACTICE && TW.secs[gi]!=="ground"; TW.cp=gi; twRespawn(); TW.cp=keep; TW.lastGY=null;
   if(msg!=null) toast((msg?msg+" ":"")+(flag?"<b>🚩 "+(gi+1)+"층 깃발</b>":gi?"<b>🏝 "+(gi+1)+"층 땅</b>":"<b>맨 아래</b>")+"부터 다시!", 1500); }
-function twGroundHit(gi){ if(TW.bot || (TW.gSeen=TW.gSeen||{})[gi]) return; TW.gSeen[gi]=1; const d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}), L=m.gd||(m.gd=[]); let gem=0; if(L.indexOf(gi)<0){ L.push(gi); if(twGemOk(2)){ gem=2; gems+=2; } saveBag(); store("hyeng_proto_tower", TW.rec); }
-  try{ SND.sparkle(); }catch(e){} toast("🏝 <b>"+(gi+1)+"층 넓은 땅!</b> 잠깐 쉬어 가요<br><small>여기서부터는 떨어져도 이 땅으로 와요</small>"+(gem?" · 💎 +2":""), 2200); }
+function twGroundHit(gi){ if(TW.bot || (TW.gSeen=TW.gSeen||{})[gi]) return; TW.gSeen[gi]=1; const d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}), L=m.gd||(m.gd=[]); let gem=0; if(L.indexOf(gi)<0){ L.push(gi); if(twGemOk(2)){ gem=2; try{ TECO.addCoin(10); }catch(e){} } saveBag(); store("hyeng_proto_tower", TW.rec); }
+  try{ SND.sparkle(); }catch(e){} toast("🏝 <b>"+(gi+1)+"층 넓은 땅!</b> 잠깐 쉬어 가요<br><small>여기서부터는 떨어져도 이 땅으로 와요</small>"+(gem?" · 🪙 +10":""), 2200); }
 function twYawSide(){ return Math.atan2(TW.side[0], TW.side[1]); }   // 카메라 = 그 면의 바깥에서 안쪽을 봄 (옆에서 보는 발판 게임)
 function twSideUpd(){ const dx=TW.p.x-TWC, dz=TW.p.z-TWC, ax=Math.abs(dx), az=Math.abs(dz), cur=TW.side;
   const curA = cur[0] ? ax : az, othA = cur[0] ? az : ax; if(othA > curA + 1.2){ TW.side = cur[0] ? [0, Math.sign(dz)||1] : [Math.sign(dx)||1, 0]; TW.yawTo=twYawSide(); }
@@ -2291,11 +2313,11 @@ function twStep(dt){ const T=(TW.clk=(TW.clk||0)+dt), p=TW.p, v=TW.v;
 function twShatter(s){ const c=s.mesh.position.clone(); s.mesh.visible=false; if(s.lab) s.lab.visible=false; for(let k=0;k<8;k++){ const m=new THREE.Mesh(rbox(0.3,0.05,0.3,0.02), s.mesh.material); m.position.set(c.x+rnd(-0.6,0.6), c.y, c.z+rnd(-0.6,0.6)); m.userData.v=new THREE.Vector3(rnd(-1,1), rnd(0,2), rnd(-1,1)); m.userData.shard=1; towerG.add(m); } }
 function twShards(dt){ towerG.children.filter(m=>m.userData.shard).forEach(m=>{ m.userData.v.y-=TG*dt; m.position.addScaledVector(m.userData.v, dt); m.rotation.x+=dt*5; if(m.position.y<-8) towerG.remove(m); }); }
 function twWin(){ if(TW.fin) return; TW.fin=true; try{ twHiSave(); twEmote("🎉"); }catch(e){} const t=(performance.now()-TW.t0)/1000, d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}); const first=!m.best, rec=!first && t<m.best;
-  m.best=first?t:Math.min(m.best,t); m.n=(m.n|0)+1; const g=first && !r.pay ? (TW.mode==="sky"?15:TW.mode==="hard"?12:TW.mode==="kid"?6:4) : 0;   /* (v454) 30층 = 💎 25 · 10층 = 💎 6 → (v559) 💰 하루 한 번(처음 깬 것) · 15/12/6/4 */ if(g){ r.pay=1; gems+=g; saveBag(); } else if(first) setTimeout(()=>toast("🏆 꼭대기 💎 는 하루 한 번 — 오늘은 이미 받았어요", 2400), 1800);
+  m.best=first?t:Math.min(m.best,t); m.n=(m.n|0)+1; const g=first && !r.pay ? (TW.mode==="sky"?15:TW.mode==="hard"?12:TW.mode==="kid"?6:4) : 0;   /* (v454) 30층 = 💎 25 · 10층 = 💎 6 → (v559) 💰 하루 한 번(처음 깬 것) · 15/12/6/4 */ if(g){ r.pay=1; try{ TECO.addCoin(g*5); }catch(e){} saveBag(); } else if(first) setTimeout(()=>toast("🏆 꼭대기 🪙 는 하루 한 번 — 오늘은 이미 받았어요", 2400), 1800);
   const all=TW.rec; Object.keys(all).sort().slice(0,-14).forEach(k=>delete all[k]); store("hyeng_proto_tower", all); TW.tEnd=t;
   try{ SND.big(); }catch(e){} act("yay"); emote(hero,"🏆"); say("I did it!"); twConfetti();
   setTimeout(()=>info('<div class="iBig">🏆</div><b>꼭대기!</b> '+(TW.mode==="sky"?"🗼 "+TW_N.sky+"층":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층":TW.mode==="hard"?"🔴 어려움":"🟢 쉬움")+'<br><span class="twT">⏱ '+twTime(t)+'</span>'+(rec?'<br><b class="twRec">🎉 새 기록!</b>':first?'':'<br><small>오늘 최고 '+twTime(m.best)+'</small>')
-    +'<br><small>⬇️ 떨어진 횟수 '+(TW.fall+TW.dead)+' · ⭐ 숨은 별 '+(TW.starN|0)+' / '+((TW.stars||[]).length)+'</small>'+(g?'<div class="iBox">💎 +'+g+' <small>(오늘 처음)</small></div>':'')+(TW.mode==="easy"||TW.mode==="kid"?'<br><small>🗼 40층 도전도 해 볼까요?</small>':''), "🏘 마을로", ()=>twLeave()), 1100);
+    +'<br><small>⬇️ 떨어진 횟수 '+(TW.fall+TW.dead)+' · ⭐ 숨은 별 '+(TW.starN|0)+' / '+((TW.stars||[]).length)+'</small>'+(g?'<div class="iBox">🪙 +'+(g*5)+' <small>(오늘 처음)</small></div>':'')+(TW.mode==="easy"||TW.mode==="kid"?'<br><small>🗼 40층 도전도 해 볼까요?</small>':''), "🏘 마을로", ()=>twLeave()), 1100);
   if(first || rec){ twSocT=0; try{ publish().catch(()=>{}); }catch(e){} }
   twHud(); }
 function twConfetti(){ const c=TW.top.mesh.position; for(let k=0;k<40;k++){ const m=new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), new THREE.MeshBasicMaterial({color:new THREE.Color(TCOL[k%10]), side:THREE.DoubleSide})); m.position.set(c.x+rnd(-0.5,0.5), TW.top.max.y+0.5, c.z+rnd(-0.5,0.5)); m.userData.v=new THREE.Vector3(rnd(-2.5,2.5), rnd(4,8), rnd(-2.5,2.5)); m.userData.shard=1; towerG.add(m); } }
@@ -2654,7 +2676,8 @@ document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) try{ ge
 addEventListener("storage", e=>{ if(e.key===WAL.K) try{ gems=WAL.sync(gems); dirty=true; }catch(er){} });
 const FRESH_H=2, ROT_H=48, FISH_STACK=10, MAT_STACK=30;   /* (L0-5) 가방 = 칸(슬롯) — 같은 것은 겹쳐 담음(물고기 10 · 나머지 30) · 칸 20개(👜 큰 가방을 만들면 30) */
 let bagCap = store("hyeng_proto_cap") || 20;
-const now=()=>Date.now()+tShift;
+const bagB=()=>{ try{ return 5*TECO.lv("bag"); }catch(e){ return 0; } };   /* (v563) 🛠 가방 강화 칸 — big bag·칸 넓히기가 덮어쓰지 않게 더해 줌 */
+const now=()=>Date.now()+tShift+(TWN8.ok ? TWN8.off : 0);   /* (v563) 하루 한도·은행 = 서버 시각 (기기 날짜를 바꿔도 안 열림) — 남은 할 일 목록 1번 */
 function hashf(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
   h^=h>>>16; h=Math.imul(h,0x85ebca6b); h^=h>>>13; h=Math.imul(h,0xc2b2ae35); h^=h>>>16;   // (L0-9) 끝 글자만 다른 말도 고르게 섞이게 (광산 바위가 모두 같은 종류로 나오던 것)
   return (h>>>0)/4294967296; }
@@ -2663,7 +2686,7 @@ function mkt(en, h){ h=h==null?hourIx():h; const a=hashf(en+"|a"), b=hashf(en+"|
   return Math.max(0.65, Math.min(1.45, 1 + 0.32*Math.sin(2*Math.PI*(h/(14+a*16) + b)) + (c-0.5)*0.24)); }   // (L0-9) 0.5~1.7 → 0.65~1.45
 function fresh(it){ if(FISH_BY[it.en].noRot) return 1; const h=(now()-it.at)/3600e3; return Math.max(0, Math.min(1, 1-(h-FRESH_H)/(ROT_H-FRESH_H))); }
 function freshTag(v){ return v>0.75?["✨","fresh"]:v>0.4?["🙂","good"]:v>0.05?["😕","old"]:["🤢","rotten"]; }
-function price(it){ const S=SPEC[it.en]||{}, sm=it.cm && S.cm ? 0.8+0.8*sizeV(it.en,it.cm) : 1; return Math.max(1, Math.round(FISH_BY[it.en].p * mkt(it.en) * (0.15+0.85*fresh(it)) * sm * (it.sh?3:1))); }   /* (v414) 클수록 ×0.8~1.6 · ✨ 반짝이 ×3 */
+function price(it){ const S=SPEC[it.en]||{}, sm=it.cm && S.cm ? 0.8+0.8*sizeV(it.en,it.cm) : 1; let mf=1; try{ mf=TECO.mkF(it.en); }catch(e){} return Math.max(1, Math.round(FISH_BY[it.en].p * mkt(it.en) * mf * (0.15+0.85*fresh(it)) * sm * (it.sh?3:1))); }   /* (v414) 클수록 ×0.8~1.6 · ✨ 반짝이 ×3 */
 function saveBag(){ gems=WAL.sync(gems); store("hyeng_proto_bag", bag); store("hyeng_proto_gems", gems); }
 /* ═════════ 🌾 재료 · 🌱 밭 · 🛠 만들기 · 🍳 요리 (L0-4) ═════════ */
 /* (L0-9) 경제 다시 — 사용자: "보석이 너무 비싸 · 나중엔 농사만 하거나 광질만 할 텐데"
@@ -2683,7 +2706,8 @@ const SELL_CAP=20;
 let sold = store("hyeng_proto_sold") || {d:"", n:0};
 function soldN(){ const d=dayKey(); if(sold.d!==d) sold={d, n:0}; return sold.n; }
 function simPay(list){ let n=soldN(), g=0; list.forEach(v=>{ const full=Math.min(v, Math.max(0,SELL_CAP-n)); g+=full; n+=v; }); return g; }
-function payout(v){ try{ tEv("sell"); }catch(e){} const g=simPay([v]); if(!g && v>0) setTimeout(()=>toast("👛 오늘 가게 주머니가 가득 찼어요<br><small>💎 는 내일 다시 · 💎 는 공부해서 많이 벌어요</small>", 2400), 30); soldN(); sold.n+=v; store("hyeng_proto_sold", sold); gems+=g; return g; }
+/* (v563) 경제 2.0 — 팔면 🪙 코인 (한도 없음) · 💎 는 공부로 · 🏦 마을 은행에서 바꿈 */
+function payout(v){ try{ tEv("sell"); }catch(e){} const c=Math.max(0, Math.round(v)); soldN(); sold.n+=c; store("hyeng_proto_sold", sold); try{ TECO.addCoin(c); }catch(e){} return c; }
 const WATER_H=12;
 let mats = store("hyeng_proto_mats") || {apple:2, branch:3, stone:2, "carrot seeds":3, "wheat seeds":3, "potato seeds":2, "tomato seeds":2, "strawberry seeds":2, "pumpkin seeds":1};
 let plots = store("hyeng_proto_plots") || PLOTS.map(()=>({s:null})); while(plots.length<PLOTS.length) plots.push({s:null});
@@ -2693,7 +2717,7 @@ function saveFarm(){ store("hyeng_proto_mats", mats); store("hyeng_proto_plots",
 function addMat(n, k){ mats[n]=(mats[n]|0)+(k==null?1:k); if(mats[n]<=0) delete mats[n]; saveFarm(); }
 const has=(n,k)=>(mats[n]|0)>=k;
 const matE=n=>(MAT[n]||{}).e || (/ seeds$/.test(n)?"🌰":"❔");
-const matP=n=>Math.max(1, Math.round(((MAT[n]||{}).p||1)*mkt(n)));
+const matP=n=>{ let mf=1; try{ mf=TECO.mkF(n); }catch(e){} return Math.max(1, Math.round(((MAT[n]||{}).p||1)*mkt(n)*mf)); };   /* (v563) 📉 마을 시세 (이번 시간 많이 팔리면 내려감) */
 /* 밭 — 물을 주면 12시간 동안 자람 (안 주면 멈춤, 시들지 않음) */
 function grow(pl){ if(!pl.s || !pl.wt) return; const t=now(), end=pl.wt+WATER_H*3600e3, from=Math.max(pl.le||pl.wt, pl.wt), to=Math.min(t,end); if(to>from) pl.g=(pl.g||0)+(to-from)/3600e3; pl.le=t; if(t>=end){ pl.wt=0; pl.le=0; } }
 function plotStage(pl){ if(!pl.s) return "empty"; grow(pl); const k=(pl.g||0)/SEEDS[pl.s].h; return k>=1?"ripe":k>=0.66?"big":k>=0.33?"small":"sprout"; }
@@ -2773,7 +2797,7 @@ function mineHit(i){ if(!pick){ toast("⛏ 곡괭이가 있어야 캘 수 있어
   if(t==="gold"||t==="diamond"){ emote(hero,"✨"); } return t; }
 function plant(i, seed){ const pl=plots[i]; if(i>=plotN || pl.s || !has(seed+" seeds",1)) return false; addMat(seed+" seeds",-1); plots[i]={s:seed, g:0, wt:0}; saveFarm(); drawPlot(i); say(seed); tEv("plant"); return true; }
 function water(i){ const pl=plots[i]; if(!pl.s || pl.wt || plotStage(pl)==="ripe") return false; grow(pl); pl.wt=now(); pl.le=pl.wt; act("reel"); saveFarm(); drawPlot(i); splash(i); return true; }
-function harvest(i){ const pl=plots[i]; if(plotStage(pl)!=="ripe") return 0; const y=SEEDS[pl.s].y; if(!canAdd(pl.s,y)){ fullMsg(); return 0; } addMat(pl.s, y); const n=pl.s; plots[i]={s:null}; act("yay"); saveFarm(); drawPlot(i); gotList([[n,y]]); tEv("harvest"); return y; }
+function harvest(i){ const pl=plots[i]; if(plotStage(pl)!=="ripe") return 0; let y=SEEDS[pl.s].y; try{ y+=TECO.farmBonus(); }catch(e){}   /* (v563) 🌱 밭 도구 강화 */ if(!canAdd(pl.s,y)){ fullMsg(); return 0; } addMat(pl.s, y); const n=pl.s; plots[i]={s:null}; act("yay"); saveFarm(); drawPlot(i); gotList([[n,y]]); tEv("harvest"); return y; }
 function splash(i){ const [x,z]=PLOTS[i]; for(let k=0;k<3;k++) setTimeout(()=>ring(x+0.5+rnd(-0.2,0.2), z+0.5+rnd(-0.2,0.2)), k*90); }
 function onPlot(i){ const pl=plots[i], st=plotStage(pl);
   if(!pl.s){ openSeeds(i); return; }
@@ -2786,7 +2810,7 @@ const CRAFT=[ {id:"chair", e:"🪑", nm:"chair", need:{branch:4}, give:()=>addSt
   {id:"plant", e:"🪴", nm:"plant", need:{stone:2, branch:1}, give:()=>addStock("plant"), to:"🏠 창고"},
   {id:"lamp", e:"💡", nm:"lamp", need:{stone:2, branch:2}, give:()=>addStock("lamp"), to:"🏠 창고"},
   {id:"rod", e:"🎣", nm:"good rod", need:{branch:5, stone:3}, give:()=>{ rod2=true; }, to:"드문 물고기 ↑", once:()=>rod2},
-  {id:"bag", e:"👜", nm:"big bag", need:{branch:6, stone:4, apple:2}, give:()=>{ bagCap=Math.max(bagCap,30); store("hyeng_proto_cap", bagCap); updBagBtn(); }, to:"가방 30칸", once:()=>bagCap>=30},
+  {id:"bag", e:"👜", nm:"big bag", need:{branch:6, stone:4, apple:2}, give:()=>{ bagCap=Math.max(bagCap,30+bagB()); store("hyeng_proto_cap", bagCap); updBagBtn(); }, to:"가방 30칸", once:()=>bagCap>=30+bagB()},
   /* (L0-9) 광산·재료로 만들기 — 보석 없이 재료만으로도 집을 꾸밀 수 있게 */
   {id:"pickaxe", e:"⛏️", nm:"pickaxe", need:{branch:3, stone:3}, give:()=>{ pick=true; store("hyeng_proto_pick",1); }, to:"⛏ 광산에서 캐기", once:()=>pick},
   {id:"stool", e:"🍄", nm:"stool", need:{branch:2}, give:()=>addStock("stool"), to:"🏠 창고"},
@@ -2883,8 +2907,8 @@ $("askNo").onclick=()=>{ $("ask").classList.remove("on"); askFn=null; };
 $("askOk").onclick=()=>{ $("ask").classList.remove("on"); const f=askFn; askFn=null; if(f) f(); };
 function spend(p){ if(gems<p){ toast("💎 "+(p-gems)+"개 더 있어야 해요", 1800); return false; } gems-=p; saveBag(); return true; }
 /* 땅 */
-function askLand(){ const L=LAND.find(l=>l.n>plotN); if(!L){ toast("🌱 밭을 다 늘렸어요!"); return; } ask("🌱 밭 2칸 늘리기<br><b>"+plotN+" → "+L.n+"칸</b><br>💎 "+L.p+" <small>(가진 💎 "+gems+")</small>", buyLand); }
-function buyLand(){ const L=LAND.find(l=>l.n>plotN); if(!L || !spend(L.p)) return false; plotN=L.n; store("hyeng_proto_plotn", plotN); drawPlots(); act("yay"); toast("🌱 밭이 "+plotN+"칸이 됐어요!"); say("field"); return true; }
+function askLand(){ const L=LAND.find(l=>l.n>plotN); if(!L){ toast("🌱 밭을 다 늘렸어요!"); return; } ask("🌱 밭 2칸 늘리기<br><b>"+plotN+" → "+L.n+"칸</b><br>"+htmlCO(CO(L.p,"coin"))+" <small>(가진 🪙 "+TECO.coins()+")</small>", buyLand); }
+function buyLand(){ const L=LAND.find(l=>l.n>plotN); if(!L || !payCO(CO(L.p,"coin"))) return false; plotN=L.n; store("hyeng_proto_plotn", plotN); drawPlots(); act("yay"); toast("🌱 밭이 "+plotN+"칸이 됐어요!"); say("field"); return true; }
 /* 보관 — 냉장고(fr): 물고기·음식·작물 · 물고기가 안 상함 | 보관함(ch): 물고기 빼고 무엇이든 */
 const STO_UP={fr:[[10,0],[20,15],[30,30]], ch:[[10,0],[20,10],[40,25]]}, BAG_UP=[[40,30]];
 let sto = store("hyeng_proto_sto") || {fr:{cap:10, m:{}, f:[]}, ch:{cap:10, m:{}, f:[]}};
@@ -2919,50 +2943,51 @@ $("stoGrid").addEventListener("click", e=>{ const b=e.target.closest("[data-out]
 $("stoBag").addEventListener("click", e=>{ const b=e.target.closest("[data-in]"); if(!b) return; const n=b.dataset.in;
   if(!stoOK(stoK,n)){ toast(stoK==="fr"?"🧊 냉장고엔 물고기·음식·작물만 넣어요":"🐟 물고기는 🧊 냉장고에 넣어요 (보관함에선 상해요)", 2000); return; }
   const c=putIn(stoK,n); if(c<0) toast((stoK==="fr"?"🧊":"📦")+" 칸이 꽉 찼어요 — ➕ 칸을 늘려요", 2000); else if(c) toast(matE2(n)+" "+n+" ×"+c+" → "+(stoK==="fr"?"🧊":"📦")); drawSto(); });
-$("stoUp").onclick=()=>{ const S=sto[stoK], up=STO_UP[stoK].find(u=>u[0]>S.cap); if(!up) return; ask((stoK==="fr"?"🧊 냉장고":"📦 보관함")+" "+S.cap+" → <b>"+up[0]+"칸</b><br>💎 "+up[1], ()=>{ if(!spend(up[1])) return; S.cap=up[0]; saveSto(); drawSto(); toast("➕ "+up[0]+"칸이 됐어요!"); }); };
+$("stoUp").onclick=()=>{ const S=sto[stoK], up=STO_UP[stoK].find(u=>u[0]>S.cap); if(!up) return; ask((stoK==="fr"?"🧊 냉장고":"📦 보관함")+" "+S.cap+" → <b>"+up[0]+"칸</b><br>"+htmlCO(CO(up[1],"coin")), ()=>{ if(!payCO(CO(up[1],"coin"))) return; S.cap=up[0]; saveSto(); drawSto(); toast("➕ "+up[0]+"칸이 됐어요!"); }); };
 $("stoDone").onclick=()=>$("stoP").classList.remove("on");
 /* 🛒 가게 — 가구 · 벽지·바닥 · 늘리기 */
 let furnTab="furn", furnCat="all"; const swCache={};
 const APP_IDS={tv:1, fridge:1, stove:1}, catF=id=>ITEMS[id].cat||(ITEMS[id].wall?"wall":(ITEMS[id].app||APP_IDS[id])?"app":"furn");
 const USE_T={sidedoor:"🚪 옆방", music:"🎵 연주", arcade:"🕹 놀기", jump:"🤸 뛰기", stairs:"🪜 위층", fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
-const ROOM_UP=[[8,200],[10,400],[12,600]];   /* (v557) 물가 60·120·180 → 200·400·600 */
+const ROOM_UP=[[8,320],[10,640],[12,960]];   /* (v563) ×1.6 */   /* (v557) 물가 60·120·180 → 200·400·600 */
 function swatch(L,i){ const k=(L===FLOORS?"f":"w")+i; if(swCache[k]) return swCache[k]; const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d"); g.scale(0.25,0.25); L[i].draw(g,256,256); return swCache[k]=c.toDataURL(); }
 const CRAFTABLE=id=>CRAFT.some(r=>r.id===id);
 function upRows(){ const R=[]; const ru=ROOM_UP.find(x=>x[0]>RN); R.push(["room","🏠","집 넓히기",RN+"×"+RN+" 칸", ru?ru[1]:0, ru?"→ "+ru[0]+"×"+ru[0]:""]); const L=LAND.find(l=>l.n>plotN); R.push(["land","🌱","밭 fields",plotN+" / 12칸",L?L.p:0,L?"+2칸":""]);
   ["fr","ch"].forEach(k=>{ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); R.push([k, k==="fr"?"🧊":"📦", k==="fr"?"냉장고 칸":"보관함 칸", S.cap+"칸"+(k==="fr" && !placed.some(p=>p.id==="fridge") && !(stock.fridge>0)?" · 냉장고가 있어야 써요":""), u?u[1]:0, u?"→ "+u[0]:""]); });
   { const n=yd?yd.pc.filter(Boolean).length:0; R.push(["parc","🌾","새 땅 (마당)", n+" / 3 구역"+(n<3?" · 🪧 팻말에서도":""), n<3?PARC_P[n]:0, n<3?"🌱 열기":"✅"]); }   /* (v415) */
-  const bu=BAG_UP.find(x=>x[0]>bagCap); R.push(["bag","🎒","가방 칸",bagCap+"칸"+(bagCap<30?" · 먼저 🛠 big bag (30칸)":""), bu&&bagCap>=30?bu[1]:0, !bu?"✅":bagCap<30?"🛠 먼저":"→ "+bu[0]]); return R; }
-function drawFurn(){ $("furnGem").innerHTML="💎 <b>"+gems+"</b>";
+  const bb=bagB(), bu=BAG_UP.find(x=>x[0]+bb>bagCap); R.push(["bag","🎒","가방 칸",bagCap+"칸"+(bagCap<30+bb?" · 먼저 🛠 big bag (30칸)":""), bu&&bagCap>=30+bb?bu[1]:0, !bu?"✅":bagCap<30+bb?"🛠 먼저":"→ "+(bu[0]+bb)]); return R; }
+function drawFurn(){ $("furnGem").innerHTML="💎 <b>"+gems+"</b> · 🪙 <b>"+TECO.coins()+"</b>";   /* (v563 QA) 대부분 🪙 가구라 둘 다 */
   $("furnTabs").innerHTML=[["furn","🛋 가구"],["yard","🌳 마당"],["wall","🎨 벽지·바닥"],["up","🏡 넓히기"]].map(([k,t])=>'<button class="bTab'+(furnTab===k?' on':'')+'" data-ft="'+k+'">'+t+'</button>').join("");
   let h="";
-  if(furnTab==="furn") h='<div class="bChips fCat">'+[["all","전체"],["new","✨ 새 가구"],["furn","🛋 가구"],["play","🧸 놀이"],["plant","🌿 식물"],["hobby","🎨 취미"],["kb","🍽 부엌·욕실"],["app","📺 가전"],["wall","🖼 벽"],["season","🎄 계절"]].map(([k,t])=>'<button class="chip'+(furnCat===k?' on':'')+'" data-fc="'+k+'">'+t+'</button>').join("")+'</div>'
-    +Object.keys(PRICE).filter(id=>furnCat==="all" || (furnCat==="new" ? NEWF[id] : catF(id)===furnCat)).sort((a,b)=>PRICE[a]-PRICE[b]).map(id=>{ const it=ITEMS[id], p=PRICE[id], have=(stock[id]|0)+placed.filter(x=>x.id===id).length;
-    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(NEWF[id]&&!have?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(gems>=p?' on':'')+'" data-bf="'+id+'"'+(gems>=p?'':' disabled')+'>💎 '+p+'</button></div>'; }).join("");
+  if(furnTab==="furn") h='<div class="bChips fCat">'+[["all","전체"],["lim","🌙 이달의 한정"],["new","✨ 새 가구"],["furn","🛋 가구"],["play","🧸 놀이"],["plant","🌿 식물"],["hobby","🎨 취미"],["kb","🍽 부엌·욕실"],["app","📺 가전"],["wall","🖼 벽"],["season","🎄 계절"]].map(([k,t])=>'<button class="chip'+(furnCat===k?' on':'')+'" data-fc="'+k+'">'+t+'</button>').join("")+'</div>'
+    +Object.keys(PRICE).filter(id=>{ const lim=TECO.isLim(id), now_=TECO.limNow().indexOf(id)>=0; if(furnCat==="lim") return now_; if(lim && !now_) return false; return furnCat==="all" || (furnCat==="new" ? NEWF[id] : catF(id)===furnCat); }).sort((a,b)=>PRICE[a]-PRICE[b]).map(id=>{ const it=ITEMS[id], p=PRICE[id], o=furnCO(id), have=(stock[id]|0)+placed.filter(x=>x.id===id).length;
+    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(TECO.isLim(id)?' <em style="font-style:normal;font-size:11px;color:#fff;background:#7a5af5;border-radius:8px;padding:1px 6px">🌙 '+(new Date(TECO.T()+9*3600e3).getUTCMonth()+1)+'월 한정</em>':'')+(NEWF[id]&&!have?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(o&&canCO(o)?' on':'')+'" data-bf="'+id+'"'+(!o?' disabled':canCO(o)?'':' data-poor="1"')+'>'+(o?htmlCO(o):'🌙')+'</button></div>'; }).join("");
   if(furnTab==="wall"){ const sec=(L,own,cur,t,key)=>'<h4 class="bH">'+t+'</h4><div class="fwG">'+L.map((x,i)=>{ const o=own.includes(i), on=cur===i;
-      return '<button class="fw'+(on?' on':'')+(o?'':' buy')+'" data-fw="'+key+i+'"'+(!o&&gems<FW_PRICE?' disabled':'')+'><img src="'+swatch(L,i)+'" alt=""><b>'+x.nm+'</b><small>'+(on?'✅ 지금':o?'쓰기':'💎 '+FW_PRICE)+'</small></button>'; }).join("")+'</div>';
+      return '<button class="fw'+(on?' on':'')+(o?'':' buy')+'" data-fw="'+key+i+'"'+(!o&&!canCO(CO(FW_PRICE,"coin"))?' data-poor="1"':'')+'><img src="'+swatch(L,i)+'" alt=""><b>'+x.nm+'</b><small>'+(on?'✅ 지금':o?'쓰기':htmlCO(CO(FW_PRICE,"coin")))+'</small></button>'; }).join("")+'</div>';
     h=sec(FLOORS,ownF,floorIx,"🟫 바닥","f")+sec(WALLS,ownW,wallIx,"🎨 벽지","w"); }
   if(furnTab==="yard") h=yShopHTML();
-  if(furnTab==="up") h=upRows().map(([k,e,nm,sub,p,lab])=>'<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b><small>'+sub+'</small></span>'+(p?'<button class="btn'+(gems>=p?' on':'')+'" data-up="'+k+'"'+(gems>=p?'':' disabled')+'>'+lab+' 💎'+p+'</button>':'<em>'+(lab||'✅')+'</em>')+'</div>').join("")
-    +'<p class="bHint" style="margin:10px 0 0">조금씩 늘려요 — 팔아서 버는 💎 는 하루 💎'+SELL_CAP+' 까지 · 💎 는 공부해서 많이 벌어요</p>';
+  if(furnTab==="up") h=upRows().map(([k,e,nm,sub,p,lab])=>{ const o=p?CO(p, k==="room"?"gem":k==="parc"?"mix":"coin"):null; return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b><small>'+sub+'</small></span>'+(p?'<button class="btn'+(canCO(o)?' on':'')+'" data-up="'+k+'"'+(canCO(o)?'':' data-poor="1"')+'>'+lab+' '+htmlCO(o)+'</button>':'<em>'+(lab||'✅')+'</em>')+'</div>'; }).join("")
+    +'<p class="bHint" style="margin:10px 0 0">조금씩 늘려요 — 🪙 는 물고기·작물을 팔아서 · 💎 는 공부해서 벌어요 · 🏦 은행에서 바꿀 수도 있어요</p>';
   $("furnBody").innerHTML=h; }
 function openFurn(tab){ if(F.st!=="idle") return; if(tab) furnTab=tab; $("drawer").classList.remove("on"); drawFurn(); $("furnP").classList.add("on"); }
 $("furnTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-ft]"); if(!b) return; furnTab=b.dataset.ft; drawFurn(); });
 $("furnBody").addEventListener("click", e=>{ const bf=e.target.closest("[data-bf]"), fw=e.target.closest("[data-fw]"), up=e.target.closest("[data-up]");
   /* (v561) QA: 한 번 누르면 확인 없이 💎 가 빠지던 것 → 「살까요?」 (값이 💎50 부터라 잘못 누르면 아까움) */
-  const buyQ=(ic,nm,p,fn)=>{ say(nm); ask(ic+" <b>"+nm+"</b><br>💎 "+p+" 에 살까요?<br><small>가진 💎 "+gems+"</small>", fn); };
-  if(bf && !bf.disabled){ const id=bf.dataset.bf; buyQ(ITEMS[id].ic, ITEMS[id].nm+(PACK[id]?" ×"+PACK[id]:""), PRICE[id], ()=>{ if(!spend(PRICE[id])) return; addStock(id, PACK[id]||1); toast(ITEMS[id].ic+" "+ITEMS[id].nm+(PACK[id]?" ×"+PACK[id]:"")+" → 🏠 창고<br><small>집 🛋️ 가구 단추로 놓아요</small>", 2200); say(ITEMS[id].nm); drawFurn(); }); }
+  const buyQ=(ic,nm,o,fn)=>{ if(!canCO(o)){ payCO(o); return; }   /* (v563 QA) 모자라면 바로 「💎 는 공부 · 🪙 는 팔기 · 🏦 은행」 안내 (예전엔 회색 단추라 아무 반응 없음) */
+    say(nm); ask(ic+" <b>"+nm+"</b><br>"+htmlCO(o)+" 에 살까요?<br><small>가진 💎 "+gems+" · 🪙 "+TECO.coins()+"</small>", fn); };
+  if(bf && !bf.disabled){ const id=bf.dataset.bf; const o=furnCO(id); if(!o){ toast("🌙 이달의 한정 가구가 아니에요 — 그달에만 살 수 있어요", 2000); return; } buyQ(ITEMS[id].ic, ITEMS[id].nm+(PACK[id]?" ×"+PACK[id]:""), o, ()=>{ if(!payCO(o)) return; addStock(id, PACK[id]||1); toast(ITEMS[id].ic+" "+ITEMS[id].nm+(PACK[id]?" ×"+PACK[id]:"")+" → 🏠 창고<br><small>집 🛋️ 가구 단추로 놓아요</small>", 2200); say(ITEMS[id].nm); drawFurn(); }); }
   if(fw && !fw.disabled){ const isF=fw.dataset.fw[0]==="f", i=+fw.dataset.fw.slice(1), own=isF?ownF:ownW, L=isF?FLOORS:WALLS;
     const use=()=>{ if(isF) setFloor(i); else setWall(i); saveRoom(); toast((isF?"🟫 ":"🎨 ")+L[i].nm); drawFurn(); };
-    if(!own.includes(i)) buyQ(isF?"🟫":"🎨", L[i].nm, FW_PRICE, ()=>{ if(!spend(FW_PRICE)) return; own.push(i); own.sort((a,b)=>a-b); use(); }); else use(); }
+    if(!own.includes(i)) buyQ(isF?"🟫":"🎨", L[i].nm, CO(FW_PRICE,"coin"), ()=>{ if(!payCO(CO(FW_PRICE,"coin"))) return; own.push(i); own.sort((a,b)=>a-b); use(); }); else use(); }
   const fc=e.target.closest("[data-fc]"); if(fc){ furnCat=fc.dataset.fc; drawFurn(); return; }
   const yc=e.target.closest("[data-yc]"); if(yc){ yCat=yc.dataset.yc; drawFurn(); return; }
-  const by=e.target.closest("[data-by]"); if(by && !by.disabled){ const id=by.dataset.by; buyQ(OUT[id].ic, OUT[id].nm+(PACK[id]?" ×"+PACK[id]:""), OUT_PRICE[id], ()=>{ if(!spend(OUT_PRICE[id])) return; ystock[id]=(ystock[id]|0)+(PACK[id]||1); ySave(); toast(OUT[id].ic+" "+OUT[id].nm+" → 🌳 마당 꾸미기<br><small>마당 ✏️ 꾸미기 단추로 놓아요</small>", 2200); say(OUT[id].nm); drawFurn(); }); }
+  const by=e.target.closest("[data-by]"); if(by && !by.disabled){ const id=by.dataset.by; buyQ(OUT[id].ic, OUT[id].nm+(PACK[id]?" ×"+PACK[id]:""), CO(OUT_PRICE[id]), ()=>{ if(!payCO(CO(OUT_PRICE[id]))) return; ystock[id]=(ystock[id]|0)+(PACK[id]||1); ySave(); toast(OUT[id].ic+" "+OUT[id].nm+" → 🌳 마당 꾸미기<br><small>마당 ✏️ 꾸미기 단추로 놓아요</small>", 2200); say(OUT[id].nm); drawFurn(); }); }
   if(up && !up.disabled && up.dataset.up==="parc"){ const i=yd.pc.findIndex(v=>!v); if(i>=0) yParcAsk(i); return; }
   if(up && !up.disabled){ const k=up.dataset.up;
-    if(k==="room"){ if(window.HOMEX && !visiting){ $("furnP").classList.remove("on"); HOMEX.openUp(); } else { const u=ROOM_UP.find(x=>x[0]>RN); if(u && !visiting && spend(u[1])){ growRoom(u[0]); toast("🏠 집이 "+u[0]+"×"+u[0]+" 이 됐어요!"); } } }
+    if(k==="room"){ if(window.HOMEX && !visiting){ $("furnP").classList.remove("on"); HOMEX.openUp(); } else { const u=ROOM_UP.find(x=>x[0]>RN); if(u && !visiting && payCO(CO(u[1],"gem"))){ growRoom(u[0]); toast("🏠 집이 "+u[0]+"×"+u[0]+" 이 됐어요!"); } } }
     if(k==="land") askLand();
-    if(k==="fr"||k==="ch"){ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); if(u && spend(u[1])){ S.cap=u[0]; saveSto(); toast("➕ "+(k==="fr"?"🧊":"📦")+" "+u[0]+"칸"); } }
-    if(k==="bag"){ const u=BAG_UP.find(x=>x[0]>bagCap); if(u && bagCap>=30 && spend(u[1])){ bagCap=u[0]; store("hyeng_proto_cap", bagCap); updBagBtn(); toast("🎒 가방 "+bagCap+"칸!"); } } }
+    if(k==="fr"||k==="ch"){ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); if(u && payCO(CO(u[1],"coin"))){ S.cap=u[0]; saveSto(); toast("➕ "+(k==="fr"?"🧊":"📦")+" "+u[0]+"칸"); } }
+    if(k==="bag"){ const bb=bagB(), u=BAG_UP.find(x=>x[0]+bb>bagCap); if(u && bagCap>=30+bb && payCO(CO(u[1],"coin"))){ bagCap=u[0]+bb; store("hyeng_proto_cap", bagCap); updBagBtn(); toast("🎒 가방 "+bagCap+"칸!"); } } }
   drawFurn(); });
 $("furnDone").onclick=()=>{ $("furnP").classList.remove("on"); if(edit && !ghost){ drawInv(); $("drawer").classList.add("on"); } };
 /* (L0-9) 방 가구 쓰기 — 🧊 냉장고 · 📦 보관함 · 👗 옷장(꾸미기) · 🍳 스토브(요리) · 🎹 피아노 · 🕰 시계(영어로 시간) · 📺 TV · 🧸 곰 */
@@ -3055,7 +3080,7 @@ function mtLog(final){ if(navigator.webdriver && !MTL.force) return; try{ if(loc
   const K=kidInfo(), a=Math.round(MTL.a/1000), b=Math.round(nowT/1000), body={n:K.n, la:nowT, lk:"m"}; if(K.t) body.t=K.t; body["tl/m"+a.toString(36)]=[a, b];
   NET.patch("/hy/day/"+new Date(nowT+9*3600e3).toISOString().slice(0,10)+"/"+id, body).catch(()=>{}); }
 setTimeout(()=>mtLog(true), 4000); setInterval(()=>{ if(!document.hidden) mtLog(false); }, 15000);
-document.addEventListener("visibilitychange", ()=>{ if(document.hidden){ mtLog(true); } else if(Date.now()-MTL.last>10*60000){ MTL.a=0; mtLog(true); } });
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden){ mtLog(true); } else { MTL.a=0; mtLog(true); } });   /* (v563) 사용자: 「백그라운드에 켜 둬서 846분」 → 다시 보이면 늘 새 구간 (숨어 있던 시간은 안 셈) */
 addEventListener("pagehide", ()=>{ try{ mtLog(true); }catch(e){} });
 let SOC={req:{}, fr:{}, lk:{}, gb:{}, cls:{}, hot:{}, err:""}, pubT=0, hostDoll=null, myRoom=null, visitFrom=null;
 const errT=e=>e==="off"?"인터넷(서버)에 연결이 안 돼요 — 🏘 마을 사람 집은 갈 수 있어요":(e===401||e===403)?"서버 준비 중이에요 (선생님이 규칙을 올리면 열려요)":"잠깐 뒤에 다시 해 봐요";
@@ -3212,10 +3237,10 @@ function growRoom(n){ buildShell(n); saveRoom(); PL.room.N=RN; setShadow(); plac
 function faceTo(tx,tz){ const p=hero.g.position; hero.face=Math.atan2(tx+0.5-p.x, tz+0.5-p.z); }
 function useTile(tx,tz, fn){ if(F.st!=="idle") return; const adj=(x,z)=>Math.max(Math.abs(x-tx),Math.abs(z-tz))===1;
   if(adj(hero.cx,hero.cz)){ faceTo(tx,tz); fn(); return; } const s=nearestFree(tx,tz,adj); if(!s){ toast("갈 수 없어요"); return; } walkTo(s[0],s[1],()=>{ faceTo(tx,tz); fn(); }); }
-function sell(i){ const it=bag[i]; if(!it) return 0; const v=price(it); bag.splice(i,1); const g=payout(v); saveBag(); return g; }
+function sell(i){ const it=bag[i]; if(!it) return 0; const v=price(it); bag.splice(i,1); const g=payout(v); try{ TECO.sold(it.en, 1); }catch(e){} saveBag(); return g; }
 let bait = store("hyeng_proto_bait"); if(typeof bait!=="number") bait=10;
 let casts = store("hyeng_proto_casts")|0;   // (v407) 던진 횟수 — 처음 몇 번은 쉽게
-function setBait(n){ bait=Math.max(0,Math.min(30,n)); store("hyeng_proto_bait", bait); try{ updHud(); }catch(e){} }
+function setBait(n){ bait=Math.max(0,Math.min(20,n));   /* (v563) 사용자: 「미끼는 20개 최대로 · 30은 너무 많아」 */ store("hyeng_proto_bait", bait); try{ updHud(); }catch(e){} try{ TECO.sum(); }catch(e){} }
 /* ═════════ 🎣 낚시 v414 — 사용자: "낚시부터 정확하게 (집 콘텐츠와 상관없이)" ═════════
    ① 연못에 물고기 그림자가 헤엄침 — 그림자가 클수록 큰·드문 물고기 · ✨ 금빛 그림자 = 반짝이
    ② 누른 곳으로 던짐 (그림자 근처를 노림) → 가까운 물고기가 다가와 콕콕 → 쑥! 톡
@@ -3254,7 +3279,7 @@ function fishW(f){ const S=SPEC[f.en]||{}; if(!canAppear(f)) return 0; let w=S.e
   if(f===todaySp()) w*=3; if(f.r<=4 && buffUntil>now()) w*=3; if(f.r<=6 && rod2) w*=1.6; return w; }   // 🌧 비 · ⭐ 오늘 · 🍀 행운 · 🎣 좋은 낚싯대
 function pickFish(){ const tot=FISH.reduce((a,f)=>a+fishW(f),0); let x=Math.random()*tot; for(const f of FISH){ x-=fishW(f); if(x<=0) return f; } return FISH[0]; }
 /* 크기: 작은 게 많고 가끔 아주 큼 · v = 0(가장 작음) ~ 1(가장 큼) */
-function rollSize(f){ const S=SPEC[f.en]||{}; if(!S.cm) return {cm:0, v:0.5}; let v=Math.pow(Math.random(), 1.7); if(Math.random()<0.07) v=0.85+Math.random()*0.15; return {cm:Math.round(S.cm[0]+(S.cm[1]-S.cm[0])*v), v}; }
+function rollSize(f){ const S=SPEC[f.en]||{}; if(!S.cm) return {cm:0, v:0.5}; let v=Math.pow(Math.random(), (()=>{ try{ return TECO.rodPow(); }catch(e){ return 1.7; } })());   /* (v563) 🎣 낚싯대 강화 = 큰 물고기 조금 더 */ if(Math.random()<0.07) v=0.85+Math.random()*0.15; return {cm:Math.round(S.cm[0]+(S.cm[1]-S.cm[0])*v), v}; }
 const sizeV=(en,cm)=>{ const S=SPEC[en]||{}; return S.cm && cm ? Math.max(0,Math.min(1,(cm-S.cm[0])/Math.max(1,S.cm[1]-S.cm[0]))) : 0.5; };
 const sizeWord=v=>v>=0.85?"엄청 큰":v>=0.6?"큰":v>=0.3?"보통":"작은";
 let FR=store("hyeng_proto_fishr")||{};   // 도감 기록 {en:{b:가장 큰 cm, s:반짝이 수}}
@@ -3427,21 +3452,20 @@ let shopTick=0;
 function drawShop(){
   const h=hourIx(), left=3600e3-((now()+9*3600e3)%3600e3), mm=Math.floor(left/60e3), ss=Math.floor(left%60e3/1000);
   const seen=FISH.filter(f=>dex[f.en] || bag.some(b=>b.en===f.en));
-  const sn=soldN(), full=sn>=SELL_CAP;
-  $("shopTop").innerHTML='<span>💎 <b>'+gems+'</b></span><span>⏱ '+mm+':'+String(ss).padStart(2,"0")+' 뒤 값이 바뀌어요</span>'
-    +'<div class="pouch'+(full?' full':'')+'"><span>👛 오늘 가게 주머니</span><u><s style="width:'+Math.min(100,Math.round(sn/SELL_CAP*100))+'%"></s></u><b>💎 '+Math.min(sn,SELL_CAP)+' / '+SELL_CAP+'</b>'
-    +(full?'<small>오늘은 가득! 지금 팔면 ¼ 값 — 🧊 냉장고·📦 보관함에 두었다가 내일 팔아요</small>':'')+'</div>';
+  const coinN=(()=>{ try{ return TECO.coins(); }catch(e){ return 0; } })();
+  $("shopTop").innerHTML='<span>🪙 <b>'+coinN.toLocaleString("ko-KR")+'</b></span><span>⏱ '+mm+':'+String(ss).padStart(2,"0")+' 뒤 값이 바뀌어요</span>'
+    +'<div class="pouch"><span>🏦 코인은 <b>마을 은행</b>에서 💎 로 바꿔요 · 마을에서 많이 팔린 건 값이 내려가요</span><button class="btn sm2" id="shopBank">🏦 은행</button><button class="btn sm2" id="shopUpg">🛠 강화</button></div>';   /* (v563) 하루 주머니 대신 🪙 */
   $("shopMkt").innerHTML=seen.length ? seen.map(f=>{ const m=mkt(f.en,h), m0=mkt(f.en,h-1), up=m>m0+0.01, dn=m<m0-0.01;
     return '<span class="mk'+(up?' up':dn?' dn':'')+'">'+f.e+' '+f.en+' <b>×'+m.toFixed(2)+'</b> '+(up?'▲':dn?'▼':'–')+'</span>'; }).join("") : '<span class="mk">아직 잡은 게 없어요</span>';
-  const rows=bag.map((it,i)=>({it,i,v:price(it),fr:fresh(it)})).sort((a,b)=>b.v-a.v); rows.forEach(r=>r.g=simPay([r.v]));
-  const pay=(v,g)=>'💎 '+g+(g<v?' <s>'+v+'</s>':'');
+  const rows=bag.map((it,i)=>({it,i,v:price(it),fr:fresh(it)})).sort((a,b)=>b.v-a.v); rows.forEach(r=>r.g=r.v);
+  const pay=(v,g)=>'🪙 '+g;
   $("shopBag").innerHTML=rows.length ? rows.map(r=>{ const f=FISH_BY[r.it.en], t=freshTag(r.fr);
     return '<div class="sRow'+(r.fr<=0.05?' rot':'')+'"><i>'+f.e+'</i><span><b>'+f.en+(r.it.cm?' <u class="cmT">'+fmtCm(r.it.cm)+'</u>':'')+(r.it.sh?' ✨':'')+'</b><small>'+(f.noRot?'♾️ never rots':t[0]+' '+t[1])+(f.noRot?'':' <u class="fBar"><s style="width:'+Math.round(r.fr*100)+'%"></s></u>')+'</small></span><em>'+pay(r.v,r.g)+'</em><button class="btn" data-sell="'+r.i+'">sell</button></div>'; }).join("")
     : '<p class="sEmpty">🎒 가방이 비었어요 — 연못에서 낚아 와요</p>';
-  const tot=simPay(rows.map(r=>r.v)); $("sellAll").disabled=!rows.length; $("sellAll").textContent="🐟 모두 팔기 💎 "+tot;
+  const tot=(()=>{ const c={}; return rows.reduce((s,r)=>{ const en=r.it.en, k=c[en]|0; c[en]=k+1; let f=1; try{ f=TECO.mkF(en,k)/TECO.mkF(en,0); }catch(e){} return s+Math.max(1,Math.round(r.v*f)); },0); })();   /* (v563 QA) 같은 물고기 여러 마리 = 값이 내려간 만큼 */ $("sellAll").disabled=!rows.length; $("sellAll").textContent="🐟 모두 팔기 🪙 "+tot;
   const mk=Object.keys(mats).filter(n=>mats[n]>0 && MAT[n]).sort((a,b)=>matP(b)-matP(a));
-  $("shopMats").innerHTML=(mk.length?'<h4 class="bH">🌾 crops · 🍽 food · 🪵 materials</h4>'+mk.map(n=>{ const v=matP(n); return '<div class="sRow"><i>'+MAT[n].e+'</i><span><b>'+n+'</b><small>×'+mats[n]+(MAT[n].food?' · 🍽':MAT[n].ore?' · ⛏':'')+'</small></span><em>'+pay(v,simPay([v]))+'</em><button class="btn" data-sellm="'+n+'">sell</button>'+(mats[n]>1?'<button class="btn sm2" data-sellall="'+n+'">모두 '+mats[n]+'</button>':'')+'</div>'; }).join(""):'')
-    +'<h4 class="bH">🌰 seeds — buy</h4><div class="bChips">'+Object.keys(SEEDS).map(n=>'<button class="btn sm2" data-buy="'+n+'"'+(gems>=SEEDS[n].p?'':' disabled')+'>'+MAT[n].e+' '+n+' 💎'+SEEDS[n].p+'</button>').join("")+'</div>';
+  $("shopMats").innerHTML=(mk.length?'<h4 class="bH">🌾 crops · 🍽 food · 🪵 materials</h4>'+mk.map(n=>{ const v=matP(n); return '<div class="sRow"><i>'+MAT[n].e+'</i><span><b>'+n+'</b><small>×'+mats[n]+(MAT[n].food?' · 🍽':MAT[n].ore?' · ⛏':'')+'</small></span><em>'+pay(v,v)+'</em><button class="btn" data-sellm="'+n+'">sell</button>'+(mats[n]>1?'<button class="btn sm2" data-sellall="'+n+'">모두 '+mats[n]+'</button>':'')+'</div>'; }).join(""):'')
+    +'<h4 class="bH">🌰 seeds — buy</h4><div class="bChips">'+Object.keys(SEEDS).map(n=>'<button class="btn sm2" data-buy="'+n+'"'+((()=>{ try{ return TECO.coins(); }catch(e){ return 0; } })()>=SEEDS[n].p?'':' data-poor="1"')+'>'+MAT[n].e+' '+n+' 🪙'+SEEDS[n].p+'</button>').join("")+'</div>';
 }
 /* (v477) 가게가 1초마다 목록 전체를 다시 그려서, 누르는 사이에 단추가 바뀌면 「팔기」가 안 눌렸다 → 1초마다는 ⏱ 시간 글자만 · 값이 바뀌는 정각에만 목록 다시 (누르는 중이면 미룸) */
 let shopH=-1, shopPress=0;
@@ -3451,16 +3475,18 @@ function openShop(){ if(F.st!=="idle") return; closeAv(); drawShop(); shopH=hour
 $("shopP").addEventListener("pointerdown", ()=>{ shopPress=Date.now(); }, true);
 function goShop(){ if(F.st!=="idle") return; const near=STALL_FRONT.some(t=>t[0]===hero.cx&&t[1]===hero.cz); if(near){ hero.face=Math.PI; openShop(); return; }
   const t=STALL_FRONT.slice().sort((a,b)=>Math.hypot(a[0]-hero.cx,a[1]-hero.cz)-Math.hypot(b[0]-hero.cx,b[1]-hero.cz))[0]; walkTo(t[0], t[1], ()=>{ hero.face=Math.PI; openShop(); }); }
-$("shopBag").addEventListener("click", e=>{ const b=e.target.closest("[data-sell]"); if(!b) return; const v=sell(+b.dataset.sell); if(v){ toast("💎 +"+v); try{ navigator.vibrate&&navigator.vibrate(20); }catch(er){} } drawShop(); updBagBtn(); });
+$("shopBag").addEventListener("click", e=>{ const b=e.target.closest("[data-sell]"); if(!b) return; const v=sell(+b.dataset.sell); if(v){ toast("🪙 +"+v); try{ navigator.vibrate&&navigator.vibrate(20); }catch(er){} } drawShop(); updBagBtn(); });
 $("shopMats").addEventListener("click", e=>{ const s=e.target.closest("[data-sellm]"), b=e.target.closest("[data-buy]");
   const sa=e.target.closest("[data-sellall]");
-  if(s){ const n=s.dataset.sellm; if(!has(n,1)) return; const v=matP(n); addMat(n,-1); const g=payout(v); saveBag(); toast("💎 +"+g); }
-  if(sa){ const n=sa.dataset.sellall, k=mats[n]|0; if(!k) return; let g=0; const v=matP(n); for(let i=0;i<k;i++) g+=payout(v); addMat(n,-k); saveBag(); toast(MAT[n].e+" "+n+" ×"+k+" → 💎 +"+g); }
-  if(b && !b.disabled){ const n=b.dataset.buy; if(gems<SEEDS[n].p) return; if(!canAdd(n+" seeds",1)){ fullMsg(); return; } gems-=SEEDS[n].p; addMat(n+" seeds",1); saveBag(); toast("🌰 "+n+" seeds +1"); }
+  if(s){ const n=s.dataset.sellm; if(!has(n,1)) return; const v=matP(n); addMat(n,-1); const g=payout(v); try{ TECO.sold(n,1); }catch(e){} saveBag(); toast("🪙 +"+g); }
+  if(sa){ const n=sa.dataset.sellall, k=mats[n]|0; if(!k) return; let g=0; for(let i=0;i<k;i++){ g+=payout(matP(n)); try{ TECO.sold(n,1); }catch(e){} }   /* (v563 QA) 하나씩 — 많이 팔면 값이 내려감 */ addMat(n,-k); saveBag(); toast(MAT[n].e+" "+n+" ×"+k+" → 🪙 +"+g); }
+  if(b && !b.disabled){ const n=b.dataset.buy; if(!canAdd(n+" seeds",1)){ fullMsg(); return; } if(!TECO.pay2({g:0,c:SEEDS[n].p})) return; addMat(n+" seeds",1); saveBag(); toast("🌰 "+n+" seeds +1"); }
   drawShop(); });
-$("sellAll").onclick=()=>{ let t=0; while(bag.length) t+=sell(0); if(t) toast("💎 +"+t+" — 모두 팔았어요!"); drawShop(); updBagBtn(); };
+$("sellAll").onclick=()=>{ let t=0; while(bag.length) t+=sell(0); if(t) toast("🪙 +"+t+" — 모두 팔았어요!"); drawShop(); updBagBtn(); };
 $("ffwd").onclick=()=>{ tShift+=3*3600e3; drawShop(); toast("⏩ 3시간 뒤로 (맛보기) — 신선도·값이 바뀌어요"); };
 $("shopDone").onclick=()=>$("shopP").classList.remove("on");
+$("shopTop").addEventListener("click", e=>{ if(e.target.closest("#shopBank")){ $("shopP").classList.remove("on"); TECO.openBank("ex"); } else if(e.target.closest("#shopUpg")){ $("shopP").classList.remove("on"); TECO.openUpg(); } });
+$("hCoin").onclick=()=>{ try{ TECO.openBank(); }catch(e){} };
 function drawDex(){ const n=FISH.filter(f=>dex[f.en]).length, td=todaySp(), ti=tod(), rn=rainy(), ru=rush(); $("dexN").textContent=" "+n+" / "+FISH.length;
   const hintOf=f=>{ const S=SPEC[f.en]||{}; return S.ev ? "✨ 황금 떼" : S.t ? S.t.split("").map(k=>TOD[k][0]).join("") : S.rain ? "🌧 비" : ""; };
   $("dexBody").innerHTML='<div class="dexNow">'+TOD[ti][0]+' 지금 <b>'+TOD[ti][1]+'</b>'+(rn?' · 🌧 비':'')+(ru?' · <b>✨ 황금 물고기 떼!</b>':'')+' · ⭐ 오늘의 물고기 '+td.e+' '+(dex[td.en]?td.en:'?')+'</div>'
@@ -3555,7 +3581,7 @@ function placeMenu(){ if(!sel) return; if(sel.y) return yPlaceMenu(); $("mBox").
 /* ═════════ 나 꾸미기 ═════════ */
 /* (v539) 사용자: "마트나 이런 시설 — 옷이랑 그런 걸 사는 거지" → 옷·모자·꾸미기 = 👕 옷 가게 · 머리·표정 = 💇 미용실 에서 💎 로 삼 (기본 몇 개는 처음부터) · 집 옷장(나 꾸미기)에선 산 것만 */
 const AV_FREE={style:["tee"], top:[0,1,2], pc:[0,1], sc:[0,1], hat:["none","straw"], acc:["none"], hair:["short","long"], hc:[0,1,2], expr:["smile","grin"]};
-const AV_COST={style:15, top:5, pc:4, sc:4, hat:10, acc:8, hair:10, hc:6, expr:5}; Object.keys(AV_COST).forEach(k=>{ AV_COST[k]=ECON(AV_COST[k]); })   /* (v559) 💰 옷·머리도 가구점과 같은 물가 (최소 💎50) */;
+const AV_COST={style:15, top:5, pc:4, sc:4, hat:10, acc:8, hair:10, hc:6, expr:5}; Object.keys(AV_COST).forEach(k=>{ AV_COST[k]=bigP(ECON(AV_COST[k])); })   /* (v559) 💰 옷·머리도 가구점과 같은 물가 (최소 💎50) */;
 let avOwn=store("hyeng_proto_avown")||{}, avMode="home", avPend=null, avSnap={};
 function avOwned(k,v){ if(k==="skin") return true; if(k==="hat" && v==="crown") return !!crown; const F=AV_FREE[k]; return (F && F.indexOf(v)>=0) || !!avOwn[k+":"+v]; }
 function avPrice(k,v){ return k==="acc" && v==="backpack" ? 12 : (AV_COST[k]||5); }
@@ -3579,7 +3605,7 @@ $("avBody").addEventListener("click", e=>{ const t=e.target.closest("[data-avt]"
   if(!avOwned(k,v)){ if(avMode==="home"){ toast("🔒 시장 거리 <b>"+(["hair","hc","expr"].indexOf(k)>=0?"💇 미용실":"👕 옷 가게")+"</b>에서 사요", 1800); return; }
     const sv=Object.assign({}, avSnap, store("hyeng_proto_av")||{}); Object.keys(sv).forEach(q=>{ if(q!==k) av[q]=sv[q]; }); av[k]=v; avPend={k, v, p:avPrice(k,v)}; makeHero(); drawAv(); hero.act="yay"; hero.actT=0; return; }   /* 입어 보기 (아직 안 삼) */
   avPend=null; Object.assign(av, Object.assign({}, avSnap, store("hyeng_proto_av")||{}, {[k]:v})); avSnap=Object.assign({}, av); pubSoon(); tEv("avatar"); store("hyeng_proto_av", av); makeHero(); drawAv(); hero.act="yay"; hero.actT=0; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; },700); });
-$("avBuy").onclick=()=>{ const P=avPend; if(!P) return; if(!spend(P.p)) return; avOwn[P.k+":"+P.v]=1; store("hyeng_proto_avown", avOwn); avPend=null; store("hyeng_proto_av", av); avSnap=Object.assign({}, av); pubSoon(); tEv("avatar"); try{ tEv("buyav"); SND.big(); }catch(e){} emote(hero,"✨"); toast("🛍 샀어요! 내 옷장에 들어갔어요", 1800); makeHero(); drawAv(); };
+$("avBuy").onclick=()=>{ const P=avPend; if(!P) return; if(!payCO({g:P.p,c:0})) return; avOwn[P.k+":"+P.v]=1; store("hyeng_proto_avown", avOwn); avPend=null; store("hyeng_proto_av", av); avSnap=Object.assign({}, av); pubSoon(); tEv("avatar"); try{ tEv("buyav"); SND.big(); }catch(e){} emote(hero,"✨"); toast("🛍 샀어요! 내 옷장에 들어갔어요", 1800); makeHero(); drawAv(); };
 function openAv(mode){ if(F.st!=="idle") return; avMode=(mode==="clothes"||mode==="hair")?mode:"home"; avPend=null; avSnap=Object.assign({}, av); setEdit(false); drawAv(); $("avP").classList.add("on"); avOpen=true; hero.path=[]; hero.moving=false; hero.face=yaw; viewOff(); }
 function closeAv(){ $("avP").classList.remove("on"); if(avPend){ avPend=null; Object.assign(av, avSnap, store("hyeng_proto_av")||{}); makeHero(); } if(avOpen){ avOpen=false; viewOff(); } }
 
@@ -3693,7 +3719,7 @@ $("bOut").onclick=exitRoom; $("bIn").onclick=enterHouse;
 $("bAv1").onclick=openAv; $("bAv2").onclick=openAv; $("avDone").onclick=closeAv;
 $("bDex").onclick=()=>{ if(F.st!=="idle") return; drawDex(); $("dexP").classList.add("on"); }; $("dexDone").onclick=()=>$("dexP").classList.remove("on");
 $("bShop").onclick=openBag;
-function baitGift(){ if(store("hyeng_proto_baitg")===dayKey()) return; store("hyeng_proto_baitg", dayKey()); setBait(bait+5); toast("🪱 미끼 +5 (오늘의 선물)<br><small>미끼는 공부하면 생겨요 · Daily 30 한 판 = 🪱 5개</small>", 2600); }   /* (v561) QA: 누를 때마다 +5 생기던 것 → 하루 한 번 */
+function baitGift(){ if(store("hyeng_proto_baitg")===dayKey()) return; store("hyeng_proto_baitg", dayKey()); setBait(bait+3); toast("🪱 미끼 +3 (오늘의 선물)<br><small>미끼는 공부하면 생겨요 · Daily 30 한 판 = 🪱 5개 · 달리기 15단계 = 🪱 3개</small>", 2600); }   /* (v561) QA: 누를 때마다 +5 생기던 것 → 하루 한 번 */
 $("hBait").onclick=()=>baitCard(null);
 $("bStop").onclick=()=>{ if(F.st==="wait"||F.st==="cast") endFish("그만했어요 — 미끼는 돌려받았어요", true); else if(F.st==="bite") endFish(null,false); };
 
@@ -3734,14 +3760,14 @@ function reqReward(r){ const base=FISH_BY[r[0]]?FISH_BY[r[0]].p:((MAT[r[0]]||{})
 function giveGift(g){ const [n,k]=g;
   if(n==="bait"){ setBait(bait+k); return "🪱 bait +"+k; }
   if(n==="rod"){ rod2=true; saveFarm(); return "🎣 good rod"; }
-  if(n==="bag"){ bagCap=Math.max(bagCap,30); store("hyeng_proto_cap", bagCap); updBagBtn(); return "👜 big bag (30칸)"; }
+  if(n==="bag"){ bagCap=Math.max(bagCap,30+bagB()); store("hyeng_proto_cap", bagCap); updBagBtn(); return "👜 big bag (30칸)"; }
   if(ITEMS[n]){ addStock(n,k); return ITEMS[n].ic+" "+n+" → 🏠"; }
   addMat(n,k); return matE(n)+" "+n+" ×"+k; }
 function showBoard(){ toast("📋 오늘의 부탁<br>"+NPCS.map(n=>{ const r=todayReq(n), d=nst(n.id).done===dayKey(); return n.e+" "+n.nm+": "+(d?"✅":(FISH_BY[r[0]]?FISH_BY[r[0]].e:matE(r[0]))+" "+r[0]+" ×"+r[1]); }).join("<br>")+"<br><small>마을 사람을 눌러 건네줘요</small>", 3800); }
 function giveReq(n){ const st=nst(n.id), r=todayReq(n); if(st.done===dayKey() || haveReq(r)<r[1]) return false; tEv("give");
   if(FISH_BY[r[0]]){ for(let i=0;i<r[1];i++){ const L=bag.map((b,j)=>({b,j})).filter(x=>x.b.en===r[0]).sort((a,b)=>fresh(a.b)-fresh(b.b)); bag.splice(L[0].j,1); } }
   else addMat(r[0], -r[1]);
-  const v=reqReward(r); gems+=v; st.done=dayKey(); let msg="💎 +"+v;
+  const v=reqReward(r)*5; try{ TECO.addCoin(v); }catch(e){} st.done=dayKey(); let msg="🪙 +"+v;   /* (v563) 부탁 = 🪙 (💎 × 5) */
   if(st.h<5){ st.h++; msg+=" · ❤️ "+st.h+" · 🎁 "+giveGift(n.gift[st.h-1]); }
   store("hyeng_proto_npc", npcSt); saveBag(); updBagBtn(); return msg; }
 /* NPC 모습 · 이름표 */
@@ -3844,10 +3870,10 @@ function choose(k){ const c=talkN, n=c.n, st=nst(n.id), r=todayReq(n), done=st.d
     if(gi) L.push(N_("This is for you! "+gi.split(" ")[0],"이건 너한테 주는 선물이야! "+gi,"🎁","yay"));
     L.push(AGAIN()); act("yay"); toast("🎉 "+m, 2600); speakLines(L); }
   else if(k==="seeds"){ speakLines([myLine, N_("Sure! Which seeds do you want?","좋아! 무슨 씨앗 줄까?","🌰")], ()=>{ drawSeedsDlg(); $("dlgSeeds").classList.add("on"); showChoices(); }); }
-  else if(k==="land"){ const Ld=LAND.find(l=>l.n>plotN); speakLines([myLine, N_("Sure! Two more fields for "+Ld.p+" gems.","좋아! 밭 2칸에 💎"+Ld.p+"야.","🌱")], ()=>{ showChoices(); askLand(); }); }
+  else if(k==="land"){ const Ld=LAND.find(l=>l.n>plotN); speakLines([myLine, N_("Sure! Two more fields for "+CO(Ld.p,"coin").c+" coins.","좋아! 밭 2칸에 🪙"+CO(Ld.p,"coin").c+"야.","🌱")], ()=>{ showChoices(); askLand(); }); }
   else if(k==="furn"){ speakLines([myLine, N_("Of course! Take a look.","물론이지! 구경해 봐.","🛋")], ()=>{ closeTalk(); openFurn("furn"); }); }
   else if(k==="bye"){ speakLines([myLine, N_("See you! Come again!","또 봐! 또 와!","👋","wave")], ()=>setTimeout(closeTalk, 500)); } }
-function drawSeedsDlg(){ $("dlgSeeds").innerHTML=Object.keys(SEEDS).map(s=>'<button class="btn sm2" data-buy="'+s+'"'+(gems>=SEEDS[s].p?'':' disabled')+'>'+MAT[s].e+' '+s+' 💎'+SEEDS[s].p+'</button>').join("")+'<span class="dGem">💎 '+gems+'</span>'; }
+function drawSeedsDlg(){ $("dlgSeeds").innerHTML=Object.keys(SEEDS).map(s=>'<button class="btn sm2" data-buy="'+s+'"'+(TECO.coins()>=SEEDS[s].p?'':' data-poor="1"')+'>'+MAT[s].e+' '+s+' 🪙'+SEEDS[s].p+'</button>').join("")+'<span class="dGem">🪙 '+TECO.coins()+'</span>'; }
 function talkTo(c){ tEv("talk"); if(talkN && talkN!==c) closeTalk(); talkN=c; c.talking=true; c.path=[]; c.moving=false; const p=c.g.position, h=hero.g.position;
   c.face=angTo(Math.atan2(h.x-p.x, h.z-p.z), yaw, 0.45); hero.face=angTo(Math.atan2(p.x-h.x, p.z-h.z), yaw, 0.45);   // 서로 보면서 카메라 쪽으로 반쯤 (얼굴이 보이게)
   const st=nst(c.n.id); dlg={queue:[], tm:0}; $("dlg").classList.add("on"); document.querySelector(".bar.bot").style.visibility="hidden"; viewOff();
@@ -3858,7 +3884,7 @@ function closeTalk(){ if(dlg){ clearInterval(dlg.tm); dlg=null; } $("dlg").class
   if(talkN){ talkN.talking=false; talkN.wait=rnd(1,3); talkN=null; } viewOff(); }
 $("dlgBox").addEventListener("click", tapDlg);
 $("dlgCh").addEventListener("click", e=>{ const b=e.target.closest("[data-ch]"); if(b) choose(b.dataset.ch); });
-$("dlgSeeds").addEventListener("click", e=>{ const b=e.target.closest("[data-buy]"); if(!b || b.disabled) return; const s=b.dataset.buy; if(gems<SEEDS[s].p) return; if(!canAdd(s+" seeds",1)){ fullMsg(); return; } gems-=SEEDS[s].p; addMat(s+" seeds",1); saveBag(); updBagBtn(); emote(talkN,"🌰"); blip(talkN.n.id); drawSeedsDlg(); toast("🌰 "+s+" seeds +1"); });
+$("dlgSeeds").addEventListener("click", e=>{ const b=e.target.closest("[data-buy]"); if(!b || b.disabled) return; const s=b.dataset.buy; if(!canAdd(s+" seeds",1)){ fullMsg(); return; } if(!TECO.pay2({g:0,c:SEEDS[s].p})) return; addMat(s+" seeds",1); saveBag(); updBagBtn(); emote(talkN,"🌰"); blip(talkN.n.id); drawSeedsDlg(); toast("🌰 "+s+" seeds +1"); });
 $("dlgX").onclick=closeTalk;
 /* 🗺 지도 — 구역 이동 (잠긴 구역은 열리는 조건만 보여 줌) */
 const AREAS=[["room","🏠","내 집",""],["yard","🌳","마당",""],["village","🏘","마을",""],["forest","🌲","숲","공부한 날 5일"],["beach","🏖","바닷가","큰 별 5개"],["mine","⛏","광산",""]];   // (L0-9) 맛보기는 광산 열림 — 게임에선 큰 별 15개
@@ -3933,8 +3959,8 @@ const TUT=[   /* (v539) 사용자: "애들이 켜면 튜토리얼이 무엇을 �
   {pl:"room", t:"📚 <b>책상</b>을 누르면 영어 공부(Daily 30)! 공부해서 번 💎 로 집을 꾸며요<br><small>🏗 <b>넓히기</b> — 내가 고른 쪽으로 넓히고 · 🧱 칸막이 · 🍳🛏🛁 세트 · 🚪 옆방 · 🪜 2층 (공부한 날이 이어지면 열려요)</small>", until:"roomup", next:true, hotB:"bUp"},
   {pl:"room", t:"이제 밖으로 나가 볼까요?<br><b>🚪 문</b>이나 아래 <b>나가기</b>를 눌러요", hot:"door", until:"out", hotB:"bOut"},
   {pl:"*", t:"<b>🎣 호수</b>에서 낚시해 봐요<br><small>잡은 물고기는 🎒 가방에 들어가요</small>", hot:"lake|pond", until:"catch"},
-  {pl:"*", t:"시장 거리 <b>🐟 생선 가게</b>에서 팔면 💎 보석!<br><small>💎 로 👕 옷 가게 · 🛋 가구점 · 💇 미용실에서 사요</small>", hot:"fish|shop", until:"sell", next:true},
-  {pl:"*", t:"이제 마음껏 놀아요! 🎉<br><small>📋 <b>할 일</b> 을 누르면 해 볼 것과 💎 선물이 있어요</small>", next:"좋아요!"}
+  {pl:"*", t:"시장 거리 <b>🐟 생선 가게</b>에서 팔면 🪙 코인!<br><small>🪙 로 씨앗·간식·가구를 사고 · 🏦 마을 은행에서 💎 로 바꿔요 · 💎 는 공부해서 벌어요</small>", hot:"fish|shop", until:"sell", next:true},
+  {pl:"*", t:"이제 마음껏 놀아요! 🎉<br><small>📋 <b>할 일</b> 을 누르면 해 볼 것과 🪙 선물이 있어요</small>", next:"좋아요!"}
 ];
 let tut=store("hyeng_proto_tut"); if(!tut || typeof tut.s!=="number") tut={s:0};
 function tutSave(){ store("hyeng_proto_tut", tut); }
@@ -3965,14 +3991,14 @@ function tEv(name){
   if(name==="walk") return;
   qRoll(); Q.s[name]=(Q.s[name]|0)+1; Q.dc[name]=(Q.dc[name]|0)+1; store("hyeng_proto_q", Q);
   const hit=qList().find(q=>q.k===name && !q.got && (q.sec==="s"?Q.s[name]:Q.dc[name])===q.n);
-  if(hit){ let n=0; const show=()=>{ if((F.st!=="idle" || sheetOpen()) && n++<20){ setTimeout(show, 700); return; } toast("✅ 할 일 끝! "+hit.ic+" "+hit.t+"<br><small>왼쪽 위 📋 할 일 에서 💎 받아요</small>", 2600); }; setTimeout(show, 900); }   // 잡음 카드·시트가 닫힌 뒤에
+  if(hit){ let n=0; const show=()=>{ if((F.st!=="idle" || sheetOpen()) && n++<20){ setTimeout(show, 700); return; } toast("✅ 할 일 끝! "+hit.ic+" "+hit.t+"<br><small>왼쪽 위 📋 할 일 에서 🪙 받아요</small>", 2600); }; setTimeout(show, 900); }   // 잡음 카드·시트가 닫힌 뒤에
   updQ(); }
 function qClaim(id){ const q=qList().find(x=>x.id===id); if(!q || q.got || q.c<q.n) return 0; (q.sec==="s"?Q.sg:Q.dg).push(q.k); store("hyeng_proto_q", Q);
-  gems+=q.r; saveBag(); toast("💎 +"+q.r+" — "+q.ic+" "+q.t); act("yay"); drawQ(); updQ(); return q.r; }
+  try{ TECO.addCoin(q.r*5); }catch(e){} saveBag(); toast("🪙 +"+(q.r*5)+" — "+q.ic+" "+q.t);   /* (v563) 할 일 = 🪙 (💎 × 5) */ act("yay"); drawQ(); updQ(); return q.r; }
 function updQ(){ const n=qList().filter(q=>!q.got && q.c>=q.n).length, u=$("hQn"); u.hidden=!n; u.textContent=n; }
 function drawQ(){ const L=qList(), S=L.filter(q=>q.sec==="s"), D=L.filter(q=>q.sec==="d"), allS=S.every(q=>q.got);
   const row=q=>'<div class="qRow'+(q.got?' got':q.c>=q.n?' done':'')+'"><i>'+q.ic+'</i><span>'+q.t+(q.n>1?' <small>'+Math.min(q.c,q.n)+'/'+q.n+'</small>':'')+'</span>'
-    +(q.got?'<em>✅</em>':q.c>=q.n?'<button class="btn on sm2" data-q="'+q.id+'">💎'+q.r+' 받기</button>':'<em class="r">💎'+q.r+'</em>')+'</div>';
+    +(q.got?'<em>✅</em>':q.c>=q.n?'<button class="btn on sm2" data-q="'+q.id+'">🪙'+(q.r*5)+' 받기</button>':'<em class="r">🪙'+(q.r*5)+'</em>')+'</div>';
   $("qBody").innerHTML=(allS?'':'<h4 class="qH">🌱 처음 해 볼 것 <small>'+S.filter(q=>q.got).length+' / '+S.length+'</small></h4>'+S.map(row).join(""))
     +'<h4 class="qH">☀️ 오늘 할 일 <small>내일 새로 바뀌어요</small></h4>'+D.map(row).join("")
     +'<p style="text-align:center;margin:12px 0 0"><button class="btn sm2" id="qTut">🧑‍🌾 Mia 의 안내 다시 보기</button></p>'; }
@@ -3989,7 +4015,7 @@ $("infoOk").onclick=()=>{ $("info").classList.remove("on"); const f=infoFn; info
 $("info").addEventListener("click", e=>{ if(e.target===$("info")){ $("info").classList.remove("on"); infoFn=null; updUI(); } });
 function baitCard(then){ info('<div class="iBig">🪱</div><b>미끼</b> = 물고기가 좋아하는 <b>밥</b><br>낚시 한 번에 🪱 <b>1개</b>를 써요'
   +'<div class="iBox">📚 <b>공부하면 생겨요!</b><br><small>게임에서 Daily 30 한 판 = 🪱 5개</small></div>'
-  +'<small>지금 가진 미끼 🪱 '+bait+'개</small>'+(store("hyeng_proto_baitg")===dayKey()?'':'<br><button class="btn sm2" onclick="baitGift();this.disabled=true;this.textContent=\'🪱 +5 받았어요\'">🪱 +5 받기 <small>(하루 한 번)</small></button>'), then?"🎣 낚시하러 가기":"알겠어요", then); }
+  +'<small>지금 가진 미끼 🪱 '+bait+'개</small>'+(store("hyeng_proto_baitg")===dayKey()?'':'<br><button class="btn sm2" onclick="baitGift();this.disabled=true;this.textContent=\'🪱 +3 받았어요\'">🪱 +3 받기 <small>(하루 한 번)</small></button>'), then?"🎣 낚시하러 가기":"알겠어요", then); }
 function fishTap(wx, wz, ax, az){ if(F.st!=="idle") return; if(!store("hyeng_proto_baitok") && bait>0){ store("hyeng_proto_baitok", 1); baitCard(()=>tryFish(wx,wz,ax,az)); return; } tryFish(wx, wz, ax, az); }
 
 /* 🎣 낚시 코치 — ① 던지기 ② 기다리기 ③ 톡! (지금 어디인지 · 무엇을 할지 한 줄) */
@@ -4164,5 +4190,6 @@ window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcC
 <script src="isle-hud.js"></script>
 <script src="home-life.js"></script>
 <script src="town-fac.js"></script>
+<script src="town-eco.js"></script>
 </body>
 </html>

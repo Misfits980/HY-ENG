@@ -12,6 +12,7 @@ const IPLAY=(()=>{
   const W_=typeof ISLE_WORDS!=="undefined" ? ISLE_WORDS : [["cat","고양이","🐱",1],["dog","개","🐶",1],["fish","물고기","🐟",1]];
   const q=new URLSearchParams(location.search), TEST=q.get("iplay")==="test";
   const T=()=>{ try{ return srvNow(); }catch(e){ return Date.now(); } };
+  const kidK=k=>{ try{ return TECO.kk(k); }catch(e){ return k; } };   /* (v563 QA) 공용 패드: 대회 참가·상금 표시는 아이마다 */
   const KST=t=>new Date(t+9*3600e3);
   const day=()=>KST(T()).toISOString().slice(0,10).replace(/-/g,"");
   const H=s=>{ let h=2166136261; for(const ch of String(s)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619)>>>0; } return h; };
@@ -38,7 +39,7 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     $("ipQ").classList.add("on"); box.onclick=e=>{ const bt=e.target.closest("[data-w]"); if(!bt) return; const ok=bt.dataset.w===w[0]; bt.classList.add(ok?"r":"w"); box.querySelectorAll("[data-w]").forEach(x=>{ if(x.dataset.w===w[0]) x.classList.add("r"); x.disabled=true; }); try{ say(w[0]); }catch(_){}
       setTimeout(()=>{ $("ipQ").classList.remove("on"); cb(ok); }, ok?700:1300); }; }
   const fmtT=ms=>{ const s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
-  function board(o, unit){ const L=Object.entries(o||{}).map(([k,v])=>({k, n:v&&v.n||"친구", s:+(v&&v.s)||0})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s); return L; }
+  function board(o, unit){ const L=Object.entries(o||{}).map(([k,v])=>({k, n:v&&v.n||"친구", s:+(v&&v.s)||0, fee:!!(v&&v.fee)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s); return L; }
   function boardHTML(L, unit, n){ return '<div class="ipBoard">'+L.slice(0,n||5).map((x,i)=>'<div class="'+(x.k===me()?"me":"")+'"><span>'+["🥇","🥈","🥉","4","5","6","7","8"][i]+'</span>'+esc(x.n)+'<b>'+x.s+unit+'</b></div>').join("")+'</div>'; }
   /* ════ ① 🎣 낚시 대회 ════ */
   function ftSlot(t){ t=t==null?T():t; if(TEST && q.get("ft")==="on"){ const st=Math.floor(t/600000)*600000; return {id:"t"+st, st, en:st+600000}; }
@@ -54,7 +55,11 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     const ftS=ftSlot(); if(ftS && cm>0){ const top=(S.ft.board||[])[0]; if(!top || cm>top.s) why=why||"대회 1등"; }
     if(why && Date.now()-(S.cast||0)>180000){ S.cast=Date.now(); const m="🎣 "+f.e+" "+f.en+(cm?" "+cm+"cm":"")+(sh?" ✨":"")+" — "+{보물:"🎁 보물!", 반짝이:"✨ 반짝반짝!", 대물:"🐋 대물!", 희귀:"💎 희귀!", "대회 1등":"🏆 대회 1등!"}[why]; const id=Date.now().toString(36)+myCode, vv={c:myCode, n:K, m, at:Date.now(), sys:1};
       try{ VLN.msgs[id]=vv; vcFeed(K, m, true); NET.put(VLN.mp+"/"+id, vv).catch(()=>{}); }catch(e){} }
-    const s=ftSlot(); if(s && cm>0 && cm>S.ft.best){ S.ft.best=cm; NET.put("/hy/isle/ft/"+s.id+"/"+me(), {n:K, s:cm, e:f.e, en:f.en, at:Date.now()}).catch(()=>{}); setTimeout(()=>ftLoad(s.id), 600); toast("🏆 대회 기록 <b>"+cm+"cm</b>!", 1800); } }
+    const s=ftSlot(); if(s && cm>0 && cm>S.ft.best){
+      /* (v563) 💰 대회 참가비 🪙20 — 모인 참가비를 1~3등이 나눠 가짐 (돈이 새로 생기지 않음) · 처음 기록할 때 한 번 묻기 */
+      const ek=kidK("hyeng_isle_fte_"+s.id); let st=""; try{ st=localStorage.getItem(ek)||""; }catch(e){}
+      const rec=()=>{ S.ft.best=cm; NET.put("/hy/isle/ft/"+s.id+"/"+me(), {n:K, s:cm, e:f.e, en:f.en, at:Date.now(), fee:1}).catch(()=>{}); setTimeout(()=>ftLoad(s.id), 600); toast("🏆 대회 기록 <b>"+cm+"cm</b>!", 1800); };
+      if(st==="in") rec(); else if(st!=="no"){ try{ localStorage.setItem(ek,"no"); }catch(e){}   /* (v563 QA) 「아니요」면 이번 대회엔 다시 안 물음 */ try{ ask("🏆 <b>낚시 대회</b> 참가할까요?<br>참가비 <b>🪙 "+TECO.FEE.contest+"</b><br><small>모인 참가비를 1·2·3등이 나눠 가져요 (50% · 30% · 20%)</small>", ()=>{ if(!TECO.pay2({g:0,c:TECO.FEE.contest})) return; try{ localStorage.setItem(ek,"in"); }catch(e){} rec(); }); }catch(e){} } } }
   function ftTick(){ const now=T(), s=ftSlot(now);
     if(s){ if(S.ft.id!==s.id){ S.ft.id=s.id; S.ft.best=0; S.ft.board=null; ftLoad(s.id); toast("🏆 <b>낚시 대회</b> 시작! 10분 동안 가장 큰 물고기를 잡아요<br><small>🎣 호수 부두로!</small>", 3400); }
       if(Date.now()-S.ft.bAt>8000){ S.ft.bAt=Date.now(); ftLoad(s.id); }
@@ -63,10 +68,12 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     if(S.ft.id && !S.ft.done[S.ft.id]){ const id=S.ft.id; S.ft.done[id]=1; ftEnd(id); }
     const n=ftNext(now); if(n && n.st-now<20*60000) return ['<i>🎣</i>낚시 대회 <small>'+fmtT(n.st-now)+' 뒤 시작</small>', ""];
     return null; }
-  async function ftEnd(id){ await ftLoad(id); const L=S.ft.board||[]; if(!L.length) return; const mi=L.findIndex(x=>x.k===me()); let got=0, key="hyeng_isle_ftp_"+id;
-    let paid=false; try{ paid=!!localStorage.getItem(key); }catch(e){} const dk="hyeng_isle_ftd_"+day(); let today=false; try{ today=!!localStorage.getItem(dk); }catch(e){}   /* (v559) 💰 낚시 대회 상은 하루 한 번 (매시간 받으면 하루 💎180) */
-    if(mi>=0 && !paid && !today){ got=[20,12,6][mi]||2; try{ gems+=got; saveBag(); localStorage.setItem(key,"1"); localStorage.setItem(dk,"1"); }catch(e){} }
-    info('<div class="iBig">🏆</div><b>낚시 대회 끝!</b>'+boardHTML(L,"cm",5)+(mi>=0?'<small>나는 <b>'+(mi+1)+'등</b>'+(got?' · 💎 +'+got:(mi>=0 && !paid ? '<br>💎 상은 하루 한 번 — 오늘은 이미 받았어요':''))+'</small>':'<small>다음 대회에 같이 해요!</small>'), "좋아요", null); }
+  async function ftEnd(id){ await ftLoad(id); const L=S.ft.board||[]; if(!L.length) return; const mi=L.findIndex(x=>x.k===me()); let got=0, key=kidK("hyeng_isle_ftp_"+id);
+    let paid=false; try{ paid=!!localStorage.getItem(key); }catch(e){} const dk=kidK("hyeng_isle_ftd_"+day()); let today=false; try{ today=!!localStorage.getItem(dk); }catch(e){}   /* (v559) 💰 낚시 대회 상은 하루 한 번 (매시간 받으면 하루 💎180) */
+    /* (v563) 상금 = 모인 참가비 (참가비 낸 아이 수 × 🪙20) 를 1~3등이 50·30·20% — 💎 는 안 줌 (공부로만) */
+    const P=L.filter(x=>x.fee), pool=P.length*TECO.FEE.contest, pi=P.findIndex(x=>x.k===me());
+    if(pi>=0 && pi<3 && !paid){ got=Math.floor(pool*[0.5,0.3,0.2][pi]); try{ if(got) TECO.addCoin(got); localStorage.setItem(key,"1"); localStorage.setItem(dk,"1"); }catch(e){} }
+    info('<div class="iBig">🏆</div><b>낚시 대회 끝!</b>'+boardHTML(L,"cm",5)+'<small>🪙 상금 주머니 '+pool+(mi>=0?' · 나는 <b>'+(mi+1)+'등</b>'+(got?' · 🪙 +'+got:''):'')+'</small>'+(mi<0?'<small>다음 대회에 같이 해요!</small>':''), "좋아요", null); }
   /* ════ ② ⭕❌ OX 단어 마당 ════ */
   const OXP=12000, OXJ=10000;   // 12초에 한 문제 · 10초에 판정
   function oxQ(i){ const r=H("ox|"+i), w=W_[r%W_.length]; let shown=w; const yes=(r>>>8)%2===0; if(!yes){ let k=1; do{ shown=W_[(r+k*7919)%W_.length]; k++; }while(shown[0]===w[0]); } return {w, shown, yes}; }
@@ -75,7 +82,7 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
   async function oxLoad(){ try{ const v=await NET.get("/hy/isle/ox/"+day()); S.ox.board=board(v); S.ox.bAt=Date.now(); }catch(e){} }
   function oxJudge(j, at){ S.ox.judged=j; if(!at) return; const Q=oxQ(j), right=at!=="mid" && (at==="O")===Q.yes;
     const o=ISLE.G.userData["ox"+(Q.yes?"O":"X")]; if(o){ o.material.emissive=new THREE.Color(0x66ff66); o.material.emissiveIntensity=.35; setTimeout(()=>{ o.material.emissiveIntensity=0; dirty=true; }, 1600); }
-    if(right){ S.ox.st++; S.ox.ok=true; try{ SND.win(); }catch(e){} hero.act="yay"; hero.actT=0; if(S.ox.st>S.ox.best){ S.ox.best=S.ox.st; NET.put("/hy/isle/ox/"+day()+"/"+me(), {n:nm(), s:S.ox.best, at:Date.now()}).catch(()=>{}); } if(S.ox.st%5===0){ let og=0; try{ const k="hyeng_isle_oxg_"+day(); og=+(localStorage.getItem(k)||0); if(og<10){ gems+=2; saveBag(); localStorage.setItem(k, String(og+2)); } }catch(e){}   /* (v559) 💰 OX 보석은 하루 💎10 까지 */ toast("⭕ "+S.ox.st+"연속!"+(og<10?" 💎 +2":""), 1600); } }
+    if(right){ S.ox.st++; S.ox.ok=true; try{ SND.win(); }catch(e){} hero.act="yay"; hero.actT=0; if(S.ox.st>S.ox.best){ S.ox.best=S.ox.st; NET.put("/hy/isle/ox/"+day()+"/"+me(), {n:nm(), s:S.ox.best, at:Date.now()}).catch(()=>{}); } if(S.ox.st%5===0){ let og=0; try{ const k="hyeng_isle_oxg_"+day(); og=+(localStorage.getItem(k)||0); if(og<10){ try{ TECO.addCoin(10); }catch(_){} localStorage.setItem(k, String(og+2)); } }catch(e){}   /* (v563) 💎2 → 🪙10 (💎 는 공부로) */   /* (v559) 💰 OX 보석은 하루 💎10 까지 */ toast("⭕ "+S.ox.st+"연속!"+(og<10?" 🪙 +10":""), 1600); } }
     else { S.ox.ok=false; S.ox.st=0; try{ SND.snap(); }catch(e){} const c=ISLE.SPOT.oxC, p=hero.g.position; p.set(c[0], 0, c[1]+4.6); hero.cx=Math.floor(p.x); hero.cz=Math.floor(p.z); hero.path=[]; toast("❌ 아쉬워요! 정답은 "+(Q.yes?"⭕":"❌")+" — <b>"+Q.w[2]+" = "+Q.w[0]+"</b>", 2200); }
     try{ say(Q.w[0]); }catch(e){} }
   function oxTick(){ if(!oxNear()){ S.ox.i=-1; return null; } const now=T(), i=Math.floor(now/OXP), ph=now-i*OXP, Q=oxQ(i), at=oxIn();
@@ -137,7 +144,7 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     const lid=ISLE.G.userData.chestLid, open=S.tr.total>=S.tr.goal; if(lid){ const want=open?-1.1:0; if(Math.abs(lid.rotation.x-want)>.01){ lid.rotation.x+=(want-lid.rotation.x)*Math.min(1,dt*3); anim=true; } }
     return anim; }
   function chestTap(){ if(S.tr.busy) return; S.tr.busy=true; trTotal().finally(()=>{ S.tr.busy=false; }).then(()=>{ const open=S.tr.total>=S.tr.goal, n=Object.keys(S.tr.found).length;
-    if(open && !S.tr.claimed){ S.tr.claimed=true; trSave(); try{ gems+=10; setBait(bait+5); saveBag(); SND.big(); }catch(e){} info('<div class="iBig">🎁</div><b>보물 상자가 열렸어요!</b><br>우리 마을 친구들이 카드 <b>'+S.tr.total+'장</b>을 모았어요<br><small>💎 +10 · 🪱 +5</small>', "고마워요!", null); return; }
+    if(open && !S.tr.claimed){ S.tr.claimed=true; trSave(); try{ TECO.addCoin(50); setBait(bait+5); saveBag(); SND.big(); }catch(e){}   /* (v563) 💎10 → 🪙50 */ info('<div class="iBig">🎁</div><b>보물 상자가 열렸어요!</b><br>우리 마을 친구들이 카드 <b>'+S.tr.total+'장</b>을 모았어요<br><small>🪙 +50 · 🪱 +5</small>', "고마워요!", null); return; }
     info('<div class="iBig">🎁</div><b>오늘의 보물 상자</b><br>섬 곳곳의 <b>❓ 단어 카드</b>를 주워요<br><small>우리 마을 '+S.tr.total+' / '+S.tr.goal+'장 · 내가 '+n+'/'+TRN+'장'+(open?' · 오늘 상은 받았어요':'')+'</small>', "찾으러 가요", null); }); }
   /* ════ ④ 🗼 타워 인원 ════ */
   async function twCount(){ if(Date.now()-S.tw.at<15000) return S.tw.n; S.tw.at=Date.now(); let n=0;

@@ -20,7 +20,7 @@ const ISLE_MAP=(()=>{
   const hoods=[hood("1동","벚꽃길","🌸","blossom",19,-1), hood("2동","해바라기길","🌻","sun",19,1), hood("3동","클로버길","🍀","clover",35,-1), hood("4동","단풍길","🍁","maple",35,1), hood("5동","바닷가길","🌊","palm",51,-1), hood("6동","별빛길","⭐","star",51,1)];
   const LOT=2.2, GAP=2.75, OFF=2.15, PER=8;
   const spots={
-    fountain:[0,0], board:[-2.9,-7.1], goal:[5.9,4.8], stage:[-7,-16], camp:[-11,-21.5], station:[2.5,-14], post:[9.5,8.5],
+    fountain:[0,0], board:[-2.9,-7.1], goal:[5.9,4.8], stage:[-7,-16], camp:[-11,-21.5], station:[2.5,-14], post:[9.5,8.5], bank:[-9.5,8.5],
     market:[22,-22], campus:[-31,-29], school:[-37,-35], library:[-25,-36.5], museum:[-39,-22],
     lake:{x:52, z:-16, rx:11, rz:7.5}, dock:[41.5,-15], tower:[82,3],
     mine:[10,-58], mountain:[17,-66],

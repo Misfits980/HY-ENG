@@ -48,7 +48,7 @@ async def main():
         ok(await until(A, "()=>tut.s===1", 40), "① 눌러서 집 지음 → 튜토리얼 2단계")
         # ③ 미끼 · 💎 확인
         await A.evaluate("()=>{ bait=0; setBait(0); baitGift(); baitGift(); baitGift(); }")
-        ok(await A.evaluate("()=>bait")==5, "③ 🪱 미끼 선물 하루 한 번 (세 번 눌러도 +5)")
+        ok(await A.evaluate("()=>bait")==3, "③ 🪱 미끼 선물 하루 한 번 (세 번 눌러도 +3 · v563)")
         # ④ 막힌 곳 · 지도 · 가장자리 화살표
         r=await A.evaluate("()=>{ const c=[ISLE.OX, ISLE.OZ]; const t=performance.now(); const f=nearestFree(Math.floor(c[0]), Math.floor(c[1])); return [performance.now()-t, !!f]; }")
         ok(r[1] and r[0]<1500, f"④ 분수(막힌 곳) 눌러도 안 멈춤 {r[0]:.0f}ms")
@@ -59,7 +59,8 @@ async def main():
         ok(r[0] and r[1]>=7, f"④ 🗺 마을 지도 (구역 {r[1]}개 + 내 집)")
         await A.screenshot(path=OUT+"qa561_map.png")
         h0=await A.evaluate("()=>[HOUSE.hero().cx, HOUSE.hero().cz]")
-        await A.evaluate("()=>document.querySelector('#ihMap [data-z=park] polygon').dispatchEvent(new MouseEvent('click',{bubbles:true}))"); await A.wait_for_timeout(600)
+        await A.evaluate("()=>document.querySelector('#ihMap [data-z=park] polygon').dispatchEvent(new MouseEvent('click',{bubbles:true}))"); await A.wait_for_timeout(300)
+        await A.evaluate("()=>document.querySelector('#askT [data-gz=w]').click()"); await A.wait_for_timeout(600)
         r=await A.evaluate("()=>[document.getElementById('ihMap').classList.contains('on'), (HOUSE.hero().path||[]).length, HOUSE.hero().moving]")
         ok(not r[0] and (r[1]>0 or r[2]), f"④ 지도에서 놀이 공원 → 걸어감 {r}")
         await A.evaluate("()=>{ const h=HOUSE.hero(); h.path=[]; h.moving=false; }")
@@ -80,7 +81,7 @@ async def main():
         await B.evaluate("()=>tEv('walk')")
         ok(await B.evaluate("()=>tut.s")==4, f"② 미리 놓은 침대 → 걷기 뒤 침대 단계 바로 넘어감 (2→{r}→{await B.evaluate('()=>tut.s')})")
         # ③ 가구 사기 확인 · ① 넓히기 확인 창
-        await B.evaluate("()=>{ tut.s=99; tutSave(); gems=3000; saveBag(); openFurn('furn'); }"); await B.wait_for_timeout(300)
+        await B.evaluate("()=>{ tut.s=99; tutSave(); gems=3000; saveBag(); TECO.setCoin(20000); openFurn('furn'); }"); await B.wait_for_timeout(300)
         await B.evaluate("()=>document.querySelector('#furnBody [data-bf=sofa]').click()"); await B.wait_for_timeout(200)
         ok(await B.evaluate("()=>(stock.sofa|0)===0 && document.getElementById('ask').classList.contains('on')"), "③ 가구 누르면 바로 안 사고 「살까요?」")
         await B.click("#askOk"); await B.wait_for_timeout(200)

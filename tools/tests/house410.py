@@ -57,7 +57,7 @@ async def main():
                 await pg.wait_for_timeout(250)
             return False
         # ① 가전 · 벽 · 색 · 앉기 · 넓히기 · 점수
-        n=await A.evaluate("()=>Object.keys(HOUSE.PRICE).length"); ok(n==87, f"가게 물건 87가지 (… v553 칸막이·아치 문 + v557 가구점 새 가구 35 + 🚪 옆방 문) {n}")
+        n=await A.evaluate("()=>Object.keys(HOUSE.PRICE).length"); ok(n==96, f"가게 물건 96가지 (v563 🌙 한정 9) (… v553 칸막이·아치 문 + v557 가구점 새 가구 35 + 🚪 옆방 문) {n}")
         ok(await A.evaluate("()=>HOUSE.wplaced.length")==3, "처음 방: 창문 2 · 그림 1 (벽에 걸림)")
         await A.evaluate("()=>{ HOUSE.setGems(999); ['tank','fan','radio','washer','robot','poster','mirror'].forEach(id=>HOUSE.addStock(id)); }")
         await A.click("#bEdit"); await A.wait_for_timeout(200)

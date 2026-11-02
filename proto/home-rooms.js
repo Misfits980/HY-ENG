@@ -8,18 +8,18 @@
 const HOMEX=(()=>{
   const R={
     living: {nm:"1층", ic:"🏠", f:0, w:0},
-    f2:     {nm:"2층 공부방", ic:"📚", par:"living", st:7, gem:300, f:6, w:4, up:2, tip:"📚 내 단어 책장 · 오늘의 복습 → 💎 · 🪜 계단으로 올라가요"},
-    f3:     {nm:"3층 자랑방", ic:"🏆", par:"f2", st:10, gem:450, f:7, w:2, up:3, tip:"🏆 트로피·물고기·타워 기록이 저절로 진열"},
-    f4:     {nm:"4층 옥상", ic:"🌿", par:"f3", st:14, gem:600, f:5, w:5, up:4, tip:"🔭 망원경으로 친구 집 · 🪴 공부한 날마다 꽃"}
+    f2:     {nm:"2층 공부방", ic:"📚", par:"living", st:7, gem:480, f:6, w:4, up:2, tip:"📚 내 단어 책장 · 오늘의 복습 → 💎 · 🪜 계단으로 올라가요"},
+    f3:     {nm:"3층 자랑방", ic:"🏆", par:"f2", st:10, gem:720, f:7, w:2, up:3, tip:"🏆 트로피·물고기·타워 기록이 저절로 진열"},
+    f4:     {nm:"4층 옥상", ic:"🌿", par:"f3", st:14, gem:960, f:5, w:5, up:4, tip:"🔭 망원경으로 친구 집 · 🪴 공부한 날마다 꽃"}
   };
   /* 가구 세트 — 사면 창고로 · 아무 데나 놓음 */
   const SETS={
-    walls:  {nm:"방 나누기 세트", ic:"🧱", st:1, gem:120, items:[["partition",6],["archway",2]], tip:"🧱 칸막이 벽 6 · 🚪 아치 문 2 — 내 방을 직접 나눠요"},
-    kitchen:{nm:"부엌 세트", ic:"🍳", st:2, gem:250, items:[["stove",1],["fridge",1],["table",1],["stool",2]], tip:"🍳 영어 듣고 요리 · 🧊 냉장고"},
-    bedroom:{nm:"침실 세트", ic:"🛏️", st:3, gem:200, items:[["closet",1],["kk_night",1],["rug",1]], tip:"💤 침대에서 자면 꿈 카드 · 👗 옷장"},
-    bath:   {nm:"욕실 세트", ic:"🛁", st:5, gem:250, items:[["bathtub",1],["mirror",1],["plant",1]], tip:"🫧 욕조에서 씻으면 ✨ 낚시 행운 10분"},
+    walls:  {nm:"방 나누기 세트", ic:"🧱", st:1, gem:190, items:[["partition",6],["archway",2]], tip:"🧱 칸막이 벽 6 · 🚪 아치 문 2 — 내 방을 직접 나눠요"},
+    kitchen:{nm:"부엌 세트", ic:"🍳", st:2, gem:400, items:[["stove",1],["fridge",1],["table",1],["stool",2]], tip:"🍳 영어 듣고 요리 · 🧊 냉장고"},
+    bedroom:{nm:"침실 세트", ic:"🛏️", st:3, gem:320, items:[["closet",1],["kk_night",1],["rug",1]], tip:"💤 침대에서 자면 꿈 카드 · 👗 옷장"},
+    bath:   {nm:"욕실 세트", ic:"🛁", st:5, gem:400, items:[["bathtub",1],["mirror",1],["plant",1]], tip:"🫧 욕조에서 씻으면 ✨ 낚시 행운 10분"},
   };
-  SETS.door={nm:"🚪 옆방 문", ic:"🚪", st:4, gem:250, rep:1, tip:"원하는 벽에 달면 문 너머에 <b>새 방</b> (따로 꾸밈·넓히기) · 6개까지"};
+  SETS.door={nm:"🚪 옆방 문", ic:"🚪", st:4, gem:400, rep:1, tip:"원하는 벽에 달면 문 너머에 <b>새 방</b> (따로 꾸밈·넓히기) · 6개까지"};
   const ORDER=["walls","door","kitchen","bedroom","bath","f2","f3","f4"];
   const NEXT={living:"f2", f2:"f3", f3:"f4"};
   let H=store("hyeng_proto_home"); if(!H || typeof H!=="object" || !H.o) H={c:"living", o:{living:1}, r:{}, mig:553};

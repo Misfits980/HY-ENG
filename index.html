@@ -1032,6 +1032,9 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .adStat b{display:block;font-size:16px;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .adStat small{display:block;margin-top:2px;font-size:10px;color:#9d92c8;font-weight:700;line-height:1.3}
 .adStat.p b{color:#7dffb0} .adStat.m b{color:#ff8f9a}
+.adStat.tup b{font-size:12px;white-space:normal;line-height:1.35;word-break:keep-all}   /* (v563) 🏝 강화 */
+.adTownLog{margin-top:8px;max-height:180px}
+.adTbl td.town{white-space:nowrap;font-variant-numeric:tabular-nums}
 .adWeek{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end}
 .adDay{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
 .adBarBox{width:100%;max-width:26px;height:70px;display:flex;flex-direction:column-reverse;border-radius:7px;overflow:hidden;background:rgba(0,0,0,.2)}
@@ -2372,6 +2375,12 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .stDp{font-style:normal;letter-spacing:0}
 .stGo.deep,.stCheck.go.deep{background:linear-gradient(180deg,#c98cff,#8a3fd6);box-shadow:0 5px 0 #5a2196;color:#fff}
 .stGem.dp{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:99px;border:2px solid #c98cff;font-size:20px;color:#f1dcff;background:linear-gradient(180deg,rgba(201,140,255,.28),rgba(138,63,214,.22));border-color:#c98cff}
+.stGem.bait{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:99px;font-size:18px;color:#ffd9a8;background:rgba(255,160,80,.14);border:2px solid rgba(255,170,90,.5);margin:0 4px 12px;vertical-align:middle}   /* (v563) 🪱 My Town 미끼 */
+.stGem.bait small{font-size:12px;font-weight:700;opacity:.85}
+#scStudy.thML #stDone .stGem.bait{color:#b4541a;border-color:#f3c79a}
+#oGems .resBait{grid-column:1/-1;order:4;display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0 0;padding:6px 12px;border-radius:12px;font-weight:900;font-size:16px;color:#ffd9a8;background:rgba(255,160,80,.12);border:1.5px solid rgba(255,170,90,.4)}
+#oGems .resBait small{font-size:12px;font-weight:700;opacity:.85}
+#oGems .resBait.dim{background:none;border-color:rgba(255,255,255,.12);color:#c9c2e6;padding:4px 10px}
 .stDpNew,.stConq{margin:8px auto;max-width:420px;padding:10px 12px;border-radius:14px;background:rgba(160,90,240,.18);border:1px solid rgba(201,140,255,.55);color:#f1e2ff;font-weight:800;font-size:14px;line-height:1.45}
 .stDpNew b,.stConq b{color:#e7c6ff}
 .stUseTag{font-size:11px;padding:1px 7px;border-radius:99px;background:rgba(255,211,122,.18);color:#ffd37a;margin-left:4px}
@@ -15744,7 +15753,7 @@ function startGame(){ Later.reset(); try{ SFX.keep(!(Perf.on && Perf.exp.noka));
   G.words = G._nextWords || null; G._nextWords = null;      // (v226) Daily 30 → 이 Stage 단어로 달리기 (한 판만)
   if(G.words || G.rule==="daily" || G.tag) G.book=null;      // (v291) 책 달리기는 기본 모드에서만
   G.practice = !!G._nextPractice; G._nextPractice = false;  // (v227) 같은 Stage 카드로 두 번째부터 = 연습 (보석·도감·랭킹 없음)
-  G.runStart=Date.now(); G.quit=false; G.lastCause=""; G.pauseMs=0; G.pauseAt=0;   // (v322) 쉬는 시간은 '플레이(초)'에서 뺀다
+  G.runStart=Date.now(); G.quit=false; G.lastCause=""; G.pauseMs=0; G.pauseAt=0; G.hidAt=0;   // (v322) 쉬는 시간은 '플레이(초)'에서 뺀다
   try{ FrameWatch.reset(); }catch(e){}
   G.brake = BRAKE.MAX*perk("brake"); G.worldScale = 1;
   G.passSafe = 0; G.nextQ = null; G.preHazQ = null;
@@ -16248,7 +16257,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
           + (G.nick==="PLAYER" ? '<div class="note">설정 ⚙에서 이름을 정하면 랭킹에 내 이름이 나와요</div>' : '');
       });
   }
-  try{ if(!G.testRun && !TEST_STAGE) HyDay.add({r:1, rr:G.right|0, rw:G.wrong|0, rs:Math.max(0, Math.round((Date.now()-(G.runStart||Date.now())-(G.pauseMs||0))/1000))}, {b:G.score|0, bs:G.stage|0}, null, G.runStart); }catch(e){}   // (v330) 📅 오늘 한 아이
+  try{ if(!G.testRun && !TEST_STAGE) HyDay.add({r:1, rr:G.right|0, rw:G.wrong|0, rs:Math.min(3600, Math.round(runActMs()/1000))}, {b:G.score|0, bs:G.stage|0}, null, Date.now()-runActMs()); }catch(e){}   // (v330) 📅 오늘 한 아이 · (v563) 시간 = 실제로 달린 시간 (쉼·뒤로 보낸 시간 뺌)
   /* (v305) 🏃 달리기도 🏠 주간 보스를 깎는다 — 맞힌 단어 1개 = ⚔️2, 하루 100 까지 (공부가 먼저라 공부보다 적게) */
   try{ if(!G.testRun && !G.practice && (G.right|0)>0){ if((G.right|0)>=HyBoss.PER_RUN){ DM.add("run", 1); try{ Course.add("r"); }catch(e){} } DM.add("rw", G.right|0); DM.add("combo", G.bestCombo|0); } }catch(e){}   // (v310) 🎯 오늘의 미션 · (v322) 짧은 판(맞힘 4 미만)은 '달리기 한 판'에 안 셈
   /* (v312) 🏃 달리기 = 공격 기회 쌓기 (맞힌 단어 4개 = 1번, 🏃 10까지)
@@ -16270,7 +16279,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v562";
+const GAME_VER = "v563";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16289,7 +16298,7 @@ function runReport(){
     clear:G.cleared ? (G.clearCh||1) : 0,                  // 완주한 장 (0 = 완주 못 함)
     end: G.cleared ? "clear" : (G.quit ? "quit" : "dead"),
     cause: G.cleared ? "" : (G.lastCause||""),             // 마지막으로 넘어진 이유
-    zone:(zone()||{}).name||"", set:G.set+(G.book?"/"+G.book:"")+(G.lesson?"-"+G.lesson:""), secs:Math.max(0, Math.round((Date.now()-(G.runStart||Date.now())-(G.pauseMs||0)-(G.pauseAt?Date.now()-G.pauseAt:0))/1000)),   // (v322) 쉬는 시간 뺌
+    zone:(zone()||{}).name||"", set:G.set+(G.book?"/"+G.book:"")+(G.lesson?"-"+G.lesson:""), secs:Math.min(3600, Math.round(runActMs()/1000)),   // (v322) 쉬는 시간 뺌 · (v563) 뒤로 보낸 시간도 뺌 · 한 줄 1시간까지
     dex, ver:GAME_VER, miss:(G.wrongWords||[]).map(x=>x.en).slice(0,25).join(", ")
   }, w);
 }
@@ -16302,9 +16311,17 @@ function rankRows(diff){
 function canPause(){ return !!G.running && (G.paused || (!G.overFade && !G.finishing)); }
 /* (v322) 시트 '플레이(초)'에서 쉬는 시간을 뺀다 — 멈춘 동안 시간을 따로 센다 */
 function pauseTally(){ if(G.pauseAt){ G.pauseMs=(G.pauseMs||0)+Math.max(0, Date.now()-G.pauseAt); G.pauseAt=0; } }
+/* (v563) 사용자: 「유이홍이 탭을 뒤로 보내 두었더니 846분」 — 화면이 가려진 동안(멈출 수 없던 때: 넘어지는 연출 등)도 뺀다 (G.hidAt)
+   runActMs = 실제로 달린 시간 (쉼·가려짐 뺌) → 시트 '플레이(초)' · 📅 오늘 한 아이 · ⏰ 언제 했나 */
+function hidTally(){ if(G.hidAt){ G.pauseMs=(G.pauseMs||0)+Math.max(0, Date.now()-G.hidAt); G.hidAt=0; } }
+/* 화면이 가려져 있던 시간 합 (페이지를 연 뒤) — 문법 등 따로 멈춤이 없는 화면의 시간에서 뺄 때 */
+const Vis={ms:0, at:0, tot(){ return this.ms+(this.at ? Date.now()-this.at : 0); }};
+try{ if(document.hidden) Vis.at=Date.now(); document.addEventListener("visibilitychange", ()=>{ if(document.hidden){ if(!Vis.at) Vis.at=Date.now(); } else if(Vis.at){ Vis.ms+=Math.max(0, Date.now()-Vis.at); Vis.at=0; } }); }catch(e){}
+function runActMs(){ const now=Date.now(); if(!G.runStart) return 0;
+  return Math.max(0, now-G.runStart-(G.pauseMs||0)-(G.pauseAt?now-G.pauseAt:0)-(G.hidAt?now-G.hidAt:0)); }
 function togglePause(){
   G.paused=!G.paused;
-  if(G.paused) G.pauseAt=Date.now(); else pauseTally();
+  if(G.paused){ hidTally(); G.pauseAt=Date.now(); } else pauseTally();
   $("scPause").classList.toggle("on",G.paused);
   if(G.paused){
     const pi=$("pauseInfo");
@@ -16326,9 +16343,10 @@ document.addEventListener("visibilitychange", ()=>{
   try{
     if(document.hidden){
       if(G.running && !G.paused && !G.overFade) togglePause();
+      if(G.running && !G.pauseAt && !G.hidAt) G.hidAt=Date.now();   // (v563) 멈추지 못한 채 가려짐 → 그 시간도 뺌
       if(SFX.ctx && SFX.ctx.state==="running") SFX.ctx.suspend();
       Voice.stop();
-    } else if(SFX.ctx && SFX.ctx.state==="suspended") SFX.ctx.resume();
+    } else { hidTally(); if(SFX.ctx && SFX.ctx.state==="suspended") SFX.ctx.resume(); }
   }catch(e){}
 });
 
@@ -19196,11 +19214,12 @@ const StudyUI = {
       if(acc>=60) try{ confetti(); }catch(e){} this.bossHit(5); this.log(true, acc); return; }
     if(this.rv){ const acc=Math.round(this.first/this.total*100), key="rv-"+Study.today(); let gems=0;
       if(!Wallet.paid(key)){ Wallet.pay(key); gems=3; Wallet.addGems(gems, "복습 "+Study.today()); }   // (v301) 💎 +3 (사용자)
+      let bait=0; try{ if(this._bt!==this.t0){ this._bt=this.t0; bait=Town.give(Town.BAIT_STUDY); } }catch(e){}   // (v563) 🪱 복습 한 판도 미끼 +5
       try{ Study.dayTick(); }catch(e){} const fresh=Study.didToday(); try{ Unlock.addDaily(); }catch(e){} const sk=Study.streak();
       this.view("stDone");
       $("stDoneIn").innerHTML='<div class="stBigT">🔁 복습 끝!</div><p>'+(fresh&&sk>1?'🔥 '+sk+'일째 공부 중!':'잊기 전에 한 번 더 봤어요')+'</p>'
         +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>'+this.total+'</b><small>문제</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div></div>'
-        +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')
+        +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+Town.baitHtml(bait)
         +'<button class="stGo" id="stBack">스테이지로 돌아가기</button>';
       try{ confetti(); }catch(e){} this.bossHit(3); this.log(true, acc); return; }
     const x=this.les, set=this.set, before=Study.lv(set,x.n), acc=this.acc1();
@@ -19255,6 +19274,8 @@ const StudyUI = {
         title = sp ? "🚩 Stage "+x.wd+" 완성!" : "🚩 World "+x.wd+" 클리어!"; }
     }
     if(gems) Wallet.addGems(gems, (this.test?"건너뛰기 시험 ":"공부 ")+Study.key(set,x.n));
+    /* (v563) 🪱 Daily 30 한 판을 끝까지 하면 My Town 미끼 +5 (건너뛰기 시험·🚩 마지막 시험·연습 판은 없음 · 한 판에 한 번) */
+    let bait=0; try{ if(pass && !this.test && !this.oly && (this.tier|0)!==5 && this._bt!==this.t0){ this._bt=this.t0; bait=Town.give(Town.BAIT_STUDY); } }catch(e){}
     const chest = (!this.test && pass) ? this.rollChest() : 0;
     const fresh = pass ? (()=>{ try{ Study.dayTick(); }catch(e){} return Study.didToday(); })() : false, sk=Study.streak();
     this.view("stDone");
@@ -19269,7 +19290,7 @@ const StudyUI = {
             +(tm?'<p class="stDue">📅 내일 복습 상자 · 단어 <b>'+tm+'</b>개 · 💎+3</p>':'')   /* (v511) 모든 Stage 의 복습 일정 — 이 판 틀린 단어 수와 다름 */; })())
       +(()=>{ if(!pass || this.test || this.oly || !(this.tier===2 || this.tier===3)) return ''; const rd=Study.storyFor(set, x); if(!rd) return ''; this._rdx=x;   /* (v442) 📖 짧은 글 (중등) */
           return '<button class="stGo rdGo" data-read="1">📖 짧은 글 읽기 <small>「'+this.esc(rd.st.t[0])+'」 · 처음이면 💎1</small></button>'; })()
-      +(gems?'<div class="stGem gpop"><i class="vGem"></i>+'+gems+'</div>':'')
+      +(gems?'<div class="stGem gpop"><i class="vGem"></i>+'+gems+'</div>':'')+Town.baitHtml(bait)
       +(dpGem?'<div class="stGem dp">💜 보라 별 보상 💎 +'+dpGem+'</div>':'')
       +(dpNew?'<div class="stDpNew">💜 심화가 열렸어요! 아래 보라색 <b>심화 도전</b>으로 바로 할 수 있어요</div>':'')
       +(conq?'<div class="stConq">🏷️ 새 칭호 <b>'+conq.emo+' '+this.esc(conq.name)+'</b> — 상점 칭호에서 골라요</div>':'')
@@ -19317,7 +19338,7 @@ const StudyUI = {
   secs(){ return Math.round(this.tk()/1000); },
   /* 공부 기록도 시트로 (방식=study · 단어장=반-과) */
   log(pass, acc, why){
-    try{ if(!TEST_STAGE && this._dy!==this.t0 && (this.done|0)>0){ this._dy=this.t0; HyDay.add({s:1, so:this.nOk|0, sw:this.wrong|0}, null, null, this.t0); } }catch(e){}   // (v330) 📅 오늘 한 아이
+    try{ if(!TEST_STAGE && this._dy!==this.t0 && (this.done|0)>0){ this._dy=this.t0; HyDay.add({s:1, so:this.nOk|0, sw:this.wrong|0}, null, null, Date.now()-Math.min(3600e3, this.tk())); } }catch(e){}   // (v330) 📅 오늘 한 아이 · (v563) ⏰ 시간 막대 = 실제로 푼 시간 (예전엔 판 시작 t0 — 이어 하기·뒤로 보낸 탭이면 846분)
     try{ if(!Online.on() || TEST_STAGE || this._lg===this.t0) return; this._lg=this.t0;   // 한 번 공부에 한 줄만
       /* (v277) 이어 하기로 다시 열고 바로 또 나가면 같은 '중간에 나감' 줄이 두 번 (시트 10-15 최선아 19-3) → 같은 판·같은 진도의 나감은 한 번만 */
       const lk=this.t0+":"+(this.done|0)+":"+(this.wrong|0);
@@ -19326,7 +19347,7 @@ const StudyUI = {
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
       const tl = this.tier===3 ? " 💜"+(this.dl||1) : this.tier===2 ? " ★3" : this.tier===4 ? " ★2확인" : this.tier===5 ? " 연습" : this.oly ? " ★5시험" : "";   // (v273) 시트에서 어느 단계 판인지 · (v301) 별 5개 이름
       Online.submit({nick, score:this.first*10, diff:"study", rule:this.ex?"study-exam":this.wk?"study-weekly":this.rv?"study-review":this.test?"study-test":this.tier===3?"study-deep":this.tier===4?"study-check":"study", stage:(this.rv||this.wk||this.ex)?0:Study.stageNo(this.set,this.les.n), acc, right:(this.nOk!=null ? this.nOk|0 : this.done), wrong:this.wrong,   /* (v309) 정답 수 = 맞힌 수 (시험·확인·주간은 틀린 것도 done 에 들어가 '푼 문제'가 부풀었음) */
-        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.ex?("📝 "+(this.ex.title||"시험")):this.wk?(Study.tag(this.set)+" 주간 시험"):this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)+tl), secs:this.secs(), dex, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER,   // (v277) 모은 보석도 — 공부만 하는 아이는 '보석 점검'에 0으로 나왔다
+        clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.ex?("📝 "+(this.ex.title||"시험")):this.wk?(Study.tag(this.set)+" 주간 시험"):this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)+tl), secs:Math.min(3600, this.secs()), dex, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER,   // (v277) 모은 보석도 — 공부만 하는 아이는 '보석 점검'에 0으로 나왔다
         miss:Object.keys(this.missed).slice(0,25).join(", ")});
     }catch(e){}
   },
@@ -19447,7 +19468,7 @@ const GramUI = {
   start(id, full){ Gram.load().then(()=>{ const g=Gram.get(id); if(!g){ hyToast("📡 문법 자료를 못 불러왔어요 — 인터넷을 확인해 주세요"); return; }
       if(!Gram.open(id)){ try{ SFX.tone(220,.12,"square",.03); }catch(e){} const L=Gram.list(Gram.bookOf(id)), k=L.indexOf(g); hyToast("🔒 Stage "+g.at+" 을 시작하거나 앞 문법("+(L[k-1]||{}).t+")을 끝내면 열려요"); return; }
       this.g=g; this.tier=Math.min(Gram.MAX, Gram.stars(id)+1); this.full=!!full || this.tier===1;
-      this.mode = this.full ? "cards" : "recap"; this.ci=0; this.ck=false; this.done=false; this.t0=Date.now(); this.peek=false; this.cm=[]; this.pkN=0;
+      this.mode = this.full ? "cards" : "recap"; this.ci=0; this.ck=false; this.done=false; this.t0=Date.now(); this._v0=Vis.tot(); this.peek=false; this.cm=[]; this.pkN=0;
       this.cards().forEach(c=>{ if(c.q){ this.prep(c.q); c.q.tried=0; } });
       StudyUI.view("stGram"); this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){} }); },
   /* 문제 고르기 — 별 단계마다 섞는 비율이 다르다 (Gram.TIER) */
@@ -19545,7 +19566,7 @@ const GramUI = {
     try{ if(up){ SFX.tone(660,.12,"triangle",.05,990); setTimeout(()=>{ try{ SFX.tone(990,.18,"triangle",.05,1480); }catch(e){} }, 140); if(this.tier>=3) confetti(); } }catch(e){}
     try{ let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       Online.submit({nick, score:this.first*10, diff:"study", rule:"study-grammar", stage:0, acc:Math.round(pct*100), right:this.first, wrong:this.n-this.first, total:this.n,
-        clear:pass?1:0, end:pass?"clear":"fail", set:(this.bk()==="g56"?"G5-6":"G3-4")+" 문법 · "+g.t+" ★"+this.tier, secs:Math.round((Date.now()-this.t0)/1000), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:((this.pkN?"📒규칙 "+this.pkN+"번 · ":"")+(this.cm.length?"설명✗ "+this.cm.join(",")+" · ":"")+this.miss.slice(0,10).join(" / "))}); }catch(e){} },   // (v386c) 어느 설명에서 막히는지 — 규칙 연 횟수 · 확인 문제를 처음에 틀린 설명 번호
+        clear:pass?1:0, end:pass?"clear":"fail", set:(this.bk()==="g56"?"G5-6":"G3-4")+" 문법 · "+g.t+" ★"+this.tier, secs:Math.min(3600, Math.max(0, Math.round((Date.now()-this.t0-(Vis.tot()-(this._v0||0)))/1000))), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:((this.pkN?"📒규칙 "+this.pkN+"번 · ":"")+(this.cm.length?"설명✗ "+this.cm.join(",")+" · ":"")+this.miss.slice(0,10).join(" / "))}); }catch(e){} },   // (v386c) 어느 설명에서 막히는지 — 규칙 연 횟수 · 확인 문제를 처음에 틀린 설명 번호
   endHtml(){ const r=this.res, g=this.g, L=Gram.list(this.bk()), k=L.indexOf(g), nx=L[k+1], E=s=>this.E(s), s=Gram.stars(g.id), nxOpen = nx && Gram.open(nx.id);
     const head = r.up ? (r.tier>=6 ? '마스터!' : r.tier>=3 ? '완벽해요!' : '잘했어요!') : r.pass ? '이번에도 통과!' : '조금만 더!';
     const msg = r.up ? '★'+r.tier+' '+Gram.TIER[r.tier].nm+' 통과' : r.pass ? '★'+r.tier+' 은 이미 받았어요' : r.need-this.first+'개만 더 맞히면 ★'+r.tier+' · 📒 규칙을 보고 다시 해 봐요';
@@ -19835,6 +19856,26 @@ const Wallet = (function(){
     remap(f){ const a=load(), np={}; Object.keys(a.paid).forEach(k=>{ np[f(k)]=1; }); a.paid=np; save(); }   // (v256) 받은 표시 키 옮기기
   };
 })();
+/* (v563) 🏝 My Town 과 주고받는 칸 — 사용자: "미끼는 공부해서 · 선생님이 아이들 보석과 마을 돈을 관리 화면·시트에서"
+   · 받은 편지함 Kid.k("hyeng_town_inbox") = {bait:n} — 게임이 더하고, My Town 이 열 때 가져감 (미끼는 My Town 에서 20개까지)
+   · 마을 요약 Kid.k("hyeng_town_sum") = {coin, bait, bank, gbank, tup, at} — My Town 이 적고, 게임은 읽기만 (없을 수 있음)
+   공용 패드에서 이름을 고른 아이는 Kid.k 로 따로 칸 */
+const Town = {
+  IN:"hyeng_town_inbox", SUM:"hyeng_town_sum", BAIT_MAX:20, BAIT_STUDY:5, BAIT_RUN:3, RUN_STAGE:15,
+  k(b){ try{ return Kid.k(b); }catch(e){ return b; } },
+  /* 미끼 n 개를 편지함에 — 실제로 넣은 개수 (못 넣으면 0) */
+  bait(n){ try{ n=Math.floor(Number(n)||0); if(n<=0) return 0; const K=this.k(this.IN); let o=null;
+      try{ o=JSON.parse(localStorage.getItem(K)); }catch(e){} if(!o || typeof o!=="object" || Array.isArray(o)) o={};
+      const had=Math.max(0, Math.floor(Number(o.bait)||0)); o.bait=Math.max(had, Math.min(this.BAIT_MAX, had+n)); localStorage.setItem(K, JSON.stringify(o)); return o.bait-had; }catch(e){ return 0; } },
+  inbox(){ try{ const o=JSON.parse(localStorage.getItem(this.k(this.IN))); return Math.max(0, Math.floor(Number(o && o.bait)||0)); }catch(e){ return 0; } },
+  sum(){ try{ const o=JSON.parse(localStorage.getItem(this.k(this.SUM))); return (o && typeof o==="object" && !Array.isArray(o)) ? o : null; }catch(e){ return null; } },
+  /* 시트 줄에 붙이는 칸 — 마을 요약이 없으면 빈 칸(옛 기기·My Town 을 안 연 아이) */
+  fields(){ const s=this.sum(); if(!s) return {}; const n=v=>{ v=Math.round(Number(v)); return isFinite(v) && v>0 ? Math.min(v, 1e7) : 0; };
+    return {coin:n(s.coin), bait:n(s.bait), bank:n(s.bank), gbank:n(s.gbank), tup:String(s.tup==null?"":s.tup).slice(0,40)}; },
+  baitHtml(n){ return n>0 ? '<div class="stGem bait">🪱 +'+n+' <small>My Town 미끼</small></div>' : n<0 ? '<div class="stGem bait full">🪱 미끼 가득! <small>My Town 에서 낚시해요</small></div>' : ''; },
+  /* 받을 만큼 넣고 화면에 보일 수 — 넣을 게 있었는데 편지함이 가득이면 -1 */
+  give(n){ const got=this.bait(n); return got>0 ? got : (n>0 && this.inbox()>=this.BAIT_MAX ? -1 : 0); }
+};
 
 /* =====================================================================
    달리기 효과 (상점) — 발밑에 남는 반짝이·하트·불꽃 … 코드로 그린 작은 그림을 흩뿌린다
@@ -25209,6 +25250,7 @@ const Admin = (function(){
       +S(ex && ex.sc!=null ? ex.sc+'점' : '-', '📝 최근 시험', ex && ex.sc!=null ? (ex.sc>=80?'ok':ex.sc>=50?'mid':'no') : '')
       +S(W && W[11] ? esc(W[11]) : '-', '지난주보다')
       +'</div>';
+    { const tw=townRows(D).by[townKey(x.n)]; if(tw) h+='<p class="adSmall">🏝 💎 <b>'+twv(tw[3])+'</b> · 🪙 <b>'+twv(tw[5])+'</b> · 🪱 <b>'+twv(tw[6])+'</b> · 🏦 <b>'+twv(tw[7])+'</b> 코인 · 💎'+twv(tw[8])+(String(tw[9]||"").trim()?' · '+twv(tw[9]):'')+' <small>('+twv(tw[2])+')</small></p>'; }   /* (v563) */
     if(W && W[10]) h+='<p class="adSmall">📕 자주 틀린 단어: <b>'+esc(W[10])+'</b></p>';
     if(W && W[12]) h+='<div class="adKidTxt"><span>💬 '+esc(pmOf(W))+'</span><button class="mini" data-ad="kdCopy" data-k="'+esc(k)+'">학부모 문자 복사</button></div>';
     if(!W && !C) h+='<p class="adSmall">'+(rep ? '시트에 「'+esc(x.n)+'」 줄이 없어요 — 명단 이름을 게임 이름과 같게 하면 기록이 붙어요' : '시트 기록을 불러오는 중…')+'</p>';
@@ -25312,6 +25354,23 @@ const Admin = (function(){
     return out; }
   function repWeak(n){ const M=(rep && rep.d && rep.d.miss)||[]; let w=M.filter(r=>r[0] && r[0]!=="단어").map(r=>String(r[0]).trim().toLowerCase()).filter(x=>Study.word(x));
     if(!w.length){ try{ w=Stats.topMiss(15).map(m=>m.en).filter(en=>Study.word(en)); }catch(e){} } return w.slice(0, n||10); }
+  /* (v563) 🏝 마을 현황 — 서버 v8 report.town (시트 「마을 현황」 탭: 아이 한 줄) · 이름은 👤·띄어쓰기 떼고 소문자로 맞춤 */
+  const townKey=n=>String(n==null?"":n).replace(/^(👤\s*)+/,"").replace(/\s+/g,"").toLowerCase();
+  function townRows(D){ const T=(D && Array.isArray(D.town)) ? D.town.filter(r=>r && r[0] && String(r[0]).trim()!=="아이") : [], by={};
+    T.forEach(r=>{ const k=townKey(r[0]); if(k && !by[k]) by[k]=r; }); return {L:T, by}; }
+  const twv=v=>{ const t=String(v==null?"":v).trim(); return t==="" ? '—' : esc(t); };
+  function townTds(r){ if(!r) return '<td class="town">—</td><td class="town">—</td><td class="town">—</td>';
+    const bk=[String(r[7]||"").trim(), String(r[8]||"").trim()]; return '<td class="town">'+twv(r[5])+'</td><td class="town">'+twv(r[6])+'</td><td class="town">'+(bk[0]||bk[1] ? twv(bk[0])+(bk[1] && bk[1]!=="0" ? ' · 💎'+esc(bk[1]) : '') : '—')+'</td>'; }
+  function townClassCard(D){ const TW=townRows(D);
+    if(!D || !Array.isArray(D.town)) return card('🏝 보석 · My Town (반 전체)', (srv && srv.v>0 && srv.v<8 ? '<p class="adSmall">서버(Code.gs)를 <b>v8</b> 로 바꾸면 아이마다 💎 보석 · 🪙 코인 · 🪱 미끼 · 🏦 은행이 여기와 시트 「마을 현황」 탭에 나와요 (지금 v'+(srv.v|0)+')</p>'
+        +'<ol class="adSteps"><li>아래 <b>📋 새 Code.gs 복사</b></li><li>구글 시트 → <b>확장 프로그램 → Apps Script</b> → Code.gs 글을 모두 지우고 붙여 넣기 → 💾 저장</li><li><b>배포 → 배포 관리 → ✏️ → 버전: 새 버전 → 배포</b> (「새 배포」는 누르지 마세요)</li></ol>'
+        +'<button class="mini go" data-ad="copyGs">📋 새 Code.gs 복사</button><textarea id="adGsTxt" rows="3" style="display:none;margin-top:8px" readonly></textarea>'
+      : '<p class="adSmall">아직 기록이 없어요 — 아이들이 v563 이상에서 한 판 하면 쌓여요</p>'));
+    if(!TW.L.length) return card('🏝 보석 · My Town (반 전체)', '<p class="adSmall">아직 기록이 없어요 — 아이들이 한 판 하면 시트 「마을 현황」 탭에 쌓여요</p>');
+    const L=TW.L.slice().sort((a,b)=>String(b[2]||"").localeCompare(String(a[2]||"")));
+    return card('🏝 보석 · My Town (반 전체) · '+L.length+'명', '<div class="adTbl"><table class="kidSum"><tr><th>아이</th><th>💎</th><th>모은 💎</th><th>🪙</th><th>🪱</th><th>🏦 코인</th><th>🏦 💎</th><th>강화</th><th>마지막</th></tr>'
+      +L.map(r=>'<tr><td>'+esc(String(r[0]).replace(/^👤\s*/,""))+(r[1]?' <small>'+esc(r[1])+'</small>':'')+'</td><td class="town">'+twv(r[3])+'</td><td class="town">'+twv(r[4])+'</td><td class="town">'+twv(r[5])+'</td><td class="town">'+twv(r[6])+'</td><td class="town">'+twv(r[7])+'</td><td class="town">'+twv(r[8])+'</td><td><small>'+twv(r[9])+'</small></td><td><small>'+twv(r[2])+'</small></td></tr>').join('')+'</table></div>',
+      '시트 「마을 현황」 탭 · 아이마다 마지막 판 기준'); }
   const cellCls=v=>/^✅/.test(v)?'ok':/^🔸/.test(v)?'mid':/^❌/.test(v)?'no':/^⭐/.test(v)?'we':'';
   function klass(){
     if(!Online.on()) return card('📋 우리 반', '<p class="adSmall">온라인 기록이 꺼져 있어요</p>');
@@ -25334,13 +25393,15 @@ const Admin = (function(){
     /* (v329) 👤 아이별 이번 주 — 시트 「주간 리포트」(공부·정답률·달리기·자주 틀린 단어) + 게임 서버(⚔️ 주간 보스 휘두름 · 📝 최근 시험 점수) */
     { const R=(D.weekly||[]).filter(r=>r[0] && r[0]!=="아이" && !/^🏫/.test(r[0])), BD=(HyBoss.D||{}), byN={}; Object.keys(BD).forEach(k=>{ const x=BD[k]||{}; if(x.n) byN[x.n]=x; });
       const EX=(HyExam._last && HyExam._last.R)||{}, exN={}; Object.keys(EX).forEach(k=>{ const x=EX[k]||{}; if(x.n && x.sc!=null) exN[x.n]=x.sc; });
-      const nm=r=>String(r[0]||"").trim(), num=v=>parseFloat(String(v||"").replace(/,/g,""))||0;
-      if(R.length) h+='<div class="full">'+card('👤 아이별 이번 주', '<div class="adTbl"><table class="kidSum"><tr><th>아이</th><th>들어온 날</th><th>공부</th><th>정답률</th><th>달리기</th><th>⚔️ 보스</th>'+(HyExam._last?'<th>📝 '+esc(HyExam._last.t||'시험')+'</th>':'')+'<th>지난주보다</th><th>자주 틀린 단어</th></tr>'
+      const nm=r=>String(r[0]||"").trim(), num=v=>parseFloat(String(v||"").replace(/,/g,""))||0, TW=townRows(D), twOf=n=>TW.by[townKey(n)];
+      if(R.length) h+='<div class="full">'+card('👤 아이별 이번 주', '<div class="adTbl"><table class="kidSum"><tr><th>아이</th><th>들어온 날</th><th>공부</th><th>정답률</th><th>달리기</th><th>🪙</th><th>🪱</th><th>🏦</th><th>⚔️ 보스</th>'+(HyExam._last?'<th>📝 '+esc(HyExam._last.t||'시험')+'</th>':'')+'<th>지난주보다</th><th>자주 틀린 단어</th></tr>'
         +R.map(r=>{ const b=byN[nm(r)], ac=num(r[5]), dn=num(r[1]), ex=exN[nm(r)];
           return '<tr><td>'+esc(nm(r))+'</td><td class="'+(dn>=4?'ok':dn>=2?'mid':'no')+'">'+esc(r[1]||'0')+'일</td><td>'+esc(r[2]||'0')+'판 · '+esc(r[4]||'0')+'분</td>'
             +'<td class="'+(ac>=90?'ok':ac>=75?'mid':ac?'no':'')+'">'+(r[5]?esc(r[5])+'%':'-')+'</td><td>'+(num(r[6])?esc(r[6])+'판':'-')+'</td>'
+            +townTds(twOf(nm(r)))
             +'<td>'+(b ? (HyBoss.swOf(b)|0)+'번 · '+((b.d|0).toLocaleString()) : '-')+'</td>'+(HyExam._last?'<td class="'+(ex==null?'':ex>=80?'ok':ex>=50?'mid':'no')+'">'+(ex==null?'-':ex+'점')+'</td>':'')
-            +'<td>'+esc(r[11]||'')+'</td><td class="st">'+esc(r[10]||'')+'</td></tr>'; }).join('')+'</table></div>', '시트 주간 리포트 + ⚔️ 휘두른 횟수 · 깎은 체력 + 📝 최근 시험')+'</div>'; }
+            +'<td>'+esc(r[11]||'')+'</td><td class="st">'+esc(r[10]||'')+'</td></tr>'; }).join('')+'</table></div>', '시트 주간 리포트 + 🏝 My Town (🪙 코인 · 🪱 미끼 · 🏦 은행) + ⚔️ 휘두른 횟수 · 깎은 체력 + 📝 최근 시험')+'</div>'; }
+    h+='<div class="full">'+townClassCard(D)+'</div>';   /* (v563) 🏝 반 전체 보석·마을 돈 */
     const P=(D.weekly||[]).filter(r=>r[0] && r[0]!=="아이" && r[12] && !/^🏫/.test(r[0])); klass._P=P; klass._D=D;
     h+=card('💬 학부모 문자 (이번 주)', P.length ? '<button class="mini go adCopyAll" data-ad="copyAllTxt">📋 '+P.length+'명 모두 한 번에 복사</button><div class="adParent">'+P.map((r,i)=>'<div><b>'+esc(r[0])+'</b><span>'+esc(pmOf(r))+'</span><button class="mini" data-ad="copyTxt" data-i="'+i+'">복사</button></div>').join('')+'</div>' : '<p class="adSmall">아직 없어요</p>', '복사 → 문자에 붙여 넣기');
     const L=(D.lesson||[]).filter(r=>r[0] && r[0]!=="날짜" && !/^아직/.test(r[0]));
@@ -25365,7 +25426,8 @@ const Admin = (function(){
   const REP_COLS={
     weekly:[/^아이$/,/^들어온/,/^오늘의 ?30/,/^끝까지/,/^공부 ?\(분\)/,/^정답률/,/^달리기 판/,/^달리기 최고/,/^짧은/,/^새 도감/,/^자주 틀린/,/^지난주보다/,/^학부모/],
     week:[/^아이$/,/^월/,/^화/,/^수/,/^목/,/^금/,/^토/,/^일/,/^평일 들어/,/^빠진/,/^끝낸/,/^공부 ?\(분\)/,/^정답률/,/★ ?2/,/^주간 시험/,/^자주 틀린/,/^상태/,/^구분/],
-    today:[/^아이$/,/^한 횟수/,/^끝까지/,/^푼 문제/,/^정답률/,/^공부 ?\(분\)/,/^마지막/,/Stage/]};
+    today:[/^아이$/,/^한 횟수/,/^끝까지/,/^푼 문제/,/^정답률/,/^공부 ?\(분\)/,/^마지막/,/Stage/],
+    town:[/^아이$/,/^태그/,/^마지막/,/^보석/,/^모은 ?보석/,/^코인/,/^미끼/,/^은행 ?코인/,/^은행 ?보석/,/^강화/,/^버전/]};   /* (v563) 🏝 마을 현황 (서버 v8) */
   function canonRep(d){ const o=Object.assign({}, d);
     Object.keys(REP_COLS).forEach(k=>{ const rows=d[k]; if(!Array.isArray(rows)) return; const hd=rows.find(r=>r && String(r[0]).trim()==="아이"); if(!hd) return;
       const ix=REP_COLS[k].map((re,i)=>{ const j=hd.findIndex(c=>re.test(String(c||"").trim())); return j>=0 ? j : i; });
@@ -25382,6 +25444,13 @@ const Admin = (function(){
     return card('🧸 이 패드 주인', '<p class="adPadNow">'+(o ? '지금 주인: <b>'+esc(o.n)+'</b>' : '아직 주인이 없어요')+'</p>'
       +'<p class="adSmall">주인(유치부 아이)이 하면 내 기기처럼 💎·⭐·📖·🏡 가 이 패드에 쌓여요. 다른 아이가 이름을 고르면 <b>수업 모드</b> — 받은 💎·⭐·📖 는 그 아이 기기로 배달돼요.</p>'
       +'<div class="adRow"><button class="mini go" data-ad="padOwn">👤 '+(o?'주인 바꾸기 (기록은 그대로)':'주인 정하기')+'</button>'+(o?'<button class="mini" data-ad="padGrad">🎓 졸업 · 기록 맡기기</button><button class="mini warn" data-ad="padNone">주인 없애기</button>':'')+'</div>'+L); }
+  /* (v563) 🏝 My Town — 이 기기(공용 패드에서 이름 고른 아이면 그 아이 칸) 마을 요약 hyeng_town_sum + 보석 기록 중 「🏝」 줄 */
+  function townCard(log){ const S=Town.sum(), inb=Town.inbox(), TL=(log||[]).filter(r=>/^🏝/.test(String(r[2]||""))).slice(-10).reverse();
+    const n=v=>{ v=Math.round(Number(v)); return isFinite(v) ? v.toLocaleString() : '—'; };
+    const body = S ? '<div class="adStats">'+stat('🪙 '+n(S.coin),'코인')+stat('🪱 '+n(S.bait),'미끼'+(inb?' · 받을 것 +'+inb:''))+stat('🏦 '+n(S.bank),'은행 코인')
+        +stat('🏦 💎'+n(S.gbank),'은행 보석')+stat(esc(String(S.tup||'—')).slice(0,40)||'—','강화','tup')+stat(S.at?when(S.at):'—','마지막 저장')+'</div>'
+      : '<p class="adSmall">아직 My Town 기록이 없어요 (이 기기에서 My Town 을 한 번 열면 생겨요)'+(inb?' · 받을 미끼 🪱 '+inb:'')+'</p>';
+    return card('🏝 My Town', body+(TL.length ? '<div class="adLog adTownLog">'+TL.map(r=>'<div><i>'+when(r[0])+'</i><span>'+esc(r[2])+'</span><b class="'+(r[1]<0?'m':'p')+'">'+(r[1]>0?'+':'')+r[1]+'</b><u>'+r[3]+'</u></div>').join('')+'</div>' : '<p class="adSmall">보석 기록에 🏝 마을 줄이 아직 없어요</p>'), '이 기기 · 🏝 보석 기록 최근 10줄'); }
   function dev(){
     const W=Wallet.raw(), st=Stats.all(), td=Stats.today(), S=Study.load();
     const okK={}; try{ Study.SETS.forEach(st=>Study.lessons(st).forEach(x=>{ okK[Study.key(st,x.n)]=1; })); }catch(e){}   /* (v337) QA: 중등 나눔 전 옛 칸은 세지 않음 */
@@ -25408,6 +25477,7 @@ const Admin = (function(){
       +stat(st.games,'달리기 판 수')+stat(acc+'%','정답률 ('+st.right+'/'+tot+')')+stat(chars+'/'+CHARACTERS.length,'열린 캐릭터')
       +stat(stLv.length,'공부한 Stage')+stat(st3,'★3 Stage')+stat(W.owned.length,'산 물건')+'</div>'
       +'<p class="adSmall">도감 '+Dex.BOOKS.map(B=>B.lv+'권 '+Dex.count(B.lv)+'/'+Dex.list(B.lv).length).join(' · ')+' · 받은 보상 '+Object.keys(W.paid||{}).length+'개</p>');
+    h+=townCard(log);   /* (v563) 🏝 My Town */
     const tm=Stats.topMiss(10);
     h+=card('자주 틀린 단어', tm.length ? '<div class="adChips">'+tm.map(m=>'<span>'+esc(m.en)+' <i>×'+m.n+'</i></span>').join('')+'</div>' : '<p class="adSmall">아직 없어요</p>', '달리기 기준');
     h+=card('보석 기록', log.length ? '<div class="adLog">'+log.slice(-60).reverse().map(r=>'<div><i>'+when(r[0])+'</i><span>'+why(r[2])+'</span><b class="'+(r[1]<0?'m':'p')+'">'+(r[1]>0?'+':'')+r[1]+'</b><u>'+r[3]+'</u></div>').join('')+'</div>'
@@ -26044,7 +26114,9 @@ function settleGems(){
   const fromPts=Wallet.addPts(pt);
   let boss=0; try{ Object.keys(Boss.doneAt||{}).forEach(k=>{ if(Boss.doneAt[k] && GEM.BOSS[k]) boss+=GEM.BOSS[k]; }); }catch(e){}
   Wallet.addGems(boss, "문지기");
-  return {gain:Wallet.gems()-before, fromPts, boss, pt, pts:Wallet.pts(), total:Wallet.gems(), dexNew:G.dexNew|0};
+  /* (v563) 🪱 15단계 넘게 달린 판은 My Town 미끼 +3 (보석과 같은 판만 — 시험·연습 달리기는 없음) */
+  let bait=0; try{ if((G.stage|0)>=Town.RUN_STAGE) bait=Town.give(Town.BAIT_RUN); }catch(e){}
+  return {gain:Wallet.gems()-before, fromPts, boss, pt, pts:Wallet.pts(), total:Wallet.gems(), dexNew:G.dexNew|0, bait};
 }
 function drawGemResult(r){
   const el=$("oGems"); if(!el) return;
@@ -26056,7 +26128,9 @@ function drawGemResult(r){
   el.innerHTML =
     '<div class="rwT gem"><div class="rwH"><span class="rwIco">💎</span><span>보석</span><em>모은 '+Number(r.total).toLocaleString()+'</em></div><b class="rwN gGain">'+(r.gain>0?'+'+r.gain:'+0')+'</b>'
     +'<div class="gBar"><i style="width:0"></i></div><small class="rwS">다음 💎까지 정답 '+Math.max(1, Math.ceil((GEM.PER-r.pts)/(GEM.PT[G.diff]||2)))+'개'+(r.boss?' · 문지기 +'+r.boss:'')+'</small></div>'
-    +(r.dexNew ? '<div class="gPills"><button class="gPill" data-go="dex">📖 새 단어 <b>'+r.dexNew+'</b> ›</button></div>' : '');
+    +(r.dexNew ? '<div class="gPills"><button class="gPill" data-go="dex">📖 새 단어 <b>'+r.dexNew+'</b> ›</button></div>' : '')
+    +(r.bait>0 ? '<div class="resBait">🪱 +'+r.bait+' <small>My Town 미끼</small></div>' : r.bait<0 ? '<div class="resBait">🪱 미끼 가득! <small>My Town 에서 낚시해요</small></div>'
+      : '<div class="resBait dim"><small>🪱 '+Town.RUN_STAGE+'단계까지 달리면 My Town 미끼 +'+Town.BAIT_RUN+'</small></div>');   /* (v563) */
   const bar=el.querySelector(".gBar i"); if(bar) setTimeout(()=>{ bar.style.width=pct+"%"; }, 450);
   if(r.gain>0){ const tl=el.querySelector(".rwT")||el; tl.classList.remove("gemIn"); void tl.offsetWidth; tl.classList.add("gemIn"); try{ setTimeout(()=>SFX.tone(880,.18,"triangle",.05,1320), 500); }catch(e){} }
 }
@@ -26758,8 +26832,11 @@ const Online = {
     try{ if(Kid.shared()){ if(Kid.ownerMode()) body.own=1; else if("dex" in body) body.dex=""; } }catch(e){}   /* (v417) 🧸 주인 패드는 주인 단어 수 */   /* (v416) 공용 패드의 도감 = 여러 아이가 모은 단어 → 그 아이 단어 수로 안 보냄 (랭킹 「분신술」) */   /* (v404) 🏷 태그 칸 — 공용 패드는 여러 아이가 쓰므로 비움(👤 이름으로) · (v367) at = 실제로 판이 끝난 때 (늦게 보내져도 시트가 이 시각으로 적게 — 서버 Code.gs v367) */
     /* (v322) 인터넷이 끊기거나 서버가 바쁘면(busy) 그 판 기록이 사라졌다 → 기기에 모아 두었다가(hyeng_sheetq, 최대 30줄) 다음에 보낸다.
        시트 줄을 만드는 기록(달리기·공부 = type 없음, 구매)만. 날짜는 서버가 받은 때로 적힌다 */
+    /* (v563) 판 기록 줄(type 없음) — 🏝 My Town 돈(코인·미끼·은행·강화)을 함께 · 플레이(초)는 한 줄 1시간까지 (탭을 뒤로 보내 둔 시간이 쌓이지 않게) */
+    if(!body.type){ try{ const tf=Town.fields(); Object.keys(tf).forEach(k=>{ if(!(k in body)) body[k]=tf[k]; }); }catch(e){}
+      if(body.secs!=null){ const sc=Math.round(Number(body.secs)); body.secs = isFinite(sc) ? Math.max(0, Math.min(3600, sc)) : 0; } }
     const keep = !body.type || body.type==="buy";
-    if(keep) this.flush();                                   // 밀린 줄부터 (지금 판은 기다리지 않고 함께)
+    if(keep) this.flush();                                  // 밀린 줄부터 (지금 판은 기다리지 않고 함께)
     /* (v367) 사용자: 아이들이 안 왔는데 교실 배틀 기록이 생김 — 어제 배틀이 끝나는 순간 반 아이들이 한꺼번에 보내 시트 서버가 바빠(busy) 기기에 쌓였다가 오늘 보내졌다
        → 배틀·레이드 끝 기록은 0~8초 사이 아무 때나 보내 한꺼번에 몰리지 않게 */
     const spread = /^study-(battle|raid)$/.test(String(body.rule||"")) && !window.HY_FB_LOCAL ? Math.random()*8000 : 0;

@@ -15,8 +15,9 @@ body.isleOn .bar.top .ttl, body.isleOn .bar.top .tools, body.isleOn #hud, body.i
 #ihMe small{display:block;font-size:11.5px;color:#8a6a4a;white-space:nowrap;text-align:left}
 #ihMenu{position:fixed;right:calc(12px + env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));z-index:4;width:50px;height:50px;border-radius:16px;border:3px solid #3b2433;background:#fffdf7;box-shadow:0 3px 0 #3b2433;font-size:24px;line-height:1;padding:0}
 #ihMenu u,#ihChat u{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:#ff4d5e;color:#fff;border:2.5px solid #fff;font:800 12px/17px var(--en);text-decoration:none;box-sizing:border-box}
-#ihRes{position:fixed;right:calc(12px + env(safe-area-inset-right));top:calc(68px + env(safe-area-inset-top));z-index:4;display:flex;gap:6px}
+#ihRes{position:fixed;right:calc(12px + env(safe-area-inset-right));top:calc(68px + env(safe-area-inset-top));z-index:4;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:min(230px,58vw)}
 #ihRes span{display:flex;align-items:center;gap:4px;height:32px;padding:0 10px 0 6px;border-radius:999px;border:2.5px solid #3b2433;background:#fffdf7;box-shadow:0 2px 0 #3b2433;font:800 15px var(--en);color:#3b2433}
+#ihCoinP{position:relative;cursor:pointer}#ihCoinP::after{content:"";position:absolute;inset:-7px -4px}   /* (v563 QA) 누르는 자리 넓게 (보이는 칸은 그대로) */
 #ihRes img{width:20px;height:20px} #ihRes i{font-style:normal;font-size:17px}
 #ihQ{position:fixed;left:calc(10px + env(safe-area-inset-left));top:calc(70px + env(safe-area-inset-top));z-index:3;width:148px;padding:6px 8px 7px;border-radius:16px;border:3px solid #3b2433;background:rgba(255,253,247,.94);box-shadow:0 3px 0 #3b2433;text-align:left}
 #ihQ h4{margin:0 0 4px;font-weight:400;font-size:13px;display:flex;justify-content:space-between}#ihQ h4 em{font-style:normal;color:#4caf50}
@@ -76,7 +77,7 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
 @media (max-height:430px){ #ihQ{display:none} }
 `; document.head.appendChild(st);
   const d=document.createElement("div"); d.id="ih";
-  d.innerHTML='<button id="ihMe" aria-label="나"></button><button id="ihMenu" aria-label="메뉴">☰<u hidden></u></button><div id="ihRes"><span><img src="../assets/ui/ic-gem.webp" alt=""><b id="ihGem">0</b></span><span><i>🪱</i><b id="ihBait">0</b></span></div>'
+  d.innerHTML='<button id="ihMe" aria-label="나"></button><button id="ihMenu" aria-label="메뉴">☰<u hidden></u></button><div id="ihRes"><span><img src="../assets/ui/ic-gem.webp" alt=""><b id="ihGem">0</b></span><span id="ihCoinP" role="button" aria-label="코인 · 마을 은행"><i>🪙</i><b id="ihCoin">0</b></span><span><i>🪱</i><b id="ihBait">0</b></span></div>'
     +'<button id="ihQ" aria-label="오늘 할 일"></button><button id="ihChat" aria-label="말하기">💬<span>말하기</span></button>'
     +'<button id="ihTool" aria-label="도구"><b>🧰</b><span>도구</span></button>'
     +[["bag","🎒","가방"],["deco","🎨","꾸미기"],["me","👕","나"],["emo","😊","표정"]].map(([k,i,t])=>'<button class="ihF" data-f="'+k+'"><i>'+i+'</i><span>'+t+'</span></button>').join("");
@@ -111,7 +112,7 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   function badge(){ let n=0, fr=0; try{ n=qList().filter(q=>!q.got && q.c>=q.n).length; }catch(e){} try{ fr=Object.keys(SOC.req||{}).length; }catch(e){}
     const set=(el,v)=>{ el.hidden=!v; el.textContent=v; }; set($("ihMenu").querySelector("u"), n+fr);
     set(m.querySelector('[data-m="q"] u'), n); set(m.querySelector('[data-m="fr"] u'), fr);
-    $("ihGem").textContent=gems; $("ihBait").textContent=bait; }
+    $("ihGem").textContent=gems; $("ihBait").textContent=bait; try{ $("ihCoin").textContent=TECO.coins().toLocaleString("ko-KR"); }catch(_){} }
   /* ── 도구 펼침 — 점프 둘레 대각선 호 ── */
   function fan(on){ const J=$("ijump"); d.classList.toggle("fan", !!on); $("ihTool").classList.toggle("open", !!on); $("ihTool").querySelector("b").textContent=on?"✕":"🧰";
     if(!J) return; const r=J.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, R=r.width/2+74;
@@ -123,6 +124,7 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
     if(k==="bag") click("bIBag"); else if(k==="me") click("bIAv"); else if(k==="deco") ISLE.openHouse();
     else if(k==="emo"){ const eb=$("emoBar"); eb.classList.toggle("on"); } });
   $("ihChat").onclick=e=>{ e.stopPropagation(); fan(false); try{ vcOpen(); }catch(_){ click("bIChat"); } };
+  $("ihCoinP").onclick=e=>{ e.stopPropagation(); try{ TECO.openBank(); }catch(_){} };
   $("ihMenu").onclick=e=>{ e.stopPropagation(); fan(false); badge(); m.classList.add("on"); };
   $("ihQ").onclick=e=>{ e.stopPropagation(); try{ openQ(); }catch(_){} };
   $("ihMe").onclick=e=>{ e.stopPropagation(); click("bIAv"); };
@@ -145,7 +147,14 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
     const t=Z.gate || (()=>{ let x=0,z=0; Z.poly.forEach(q=>{ x+=q[0]; z+=q[1]; }); return [x/Z.poly.length, z/Z.poly.length]; })();
     const bx=Math.floor(t[0]+ISLE.OX), bz=Math.floor(t[1]+ISLE.OZ); let c=null;
     for(let r=0;r<10 && !c;r++) for(let dx=-r;dx<=r && !c;dx++) for(let dz=-r;dz<=r && !c;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!ISLE.blocked(bx+dx,bz+dz)) c=[bx+dx,bz+dz]; }
-    if(!c) return; toast("🗺 "+Z.nm+" — 걸어가요", 1400); try{ walkTo(c[0], c[1]); }catch(_){} }
+    if(!c) return;
+    /* (v563) 🚀 바로 가기 = 이용료 🪙5 (걸어가면 무료) */
+    const A=$("ask"), ok=$("askOk"), fee=(()=>{ try{ return TECO.FEE.warp; }catch(_){ return 5; } })();
+    const walk=()=>{ toast("🗺 "+Z.nm+" — 걸어가요", 1400); try{ walkTo(c[0], c[1]); }catch(_){} };
+    try{ ask("🗺 <b>"+Z.nm+"</b><div class=\"hxPick\"><button class=\"btn on\" data-gz=\"w\">🚶 걸어가기 (무료)</button><button class=\"btn on\" data-gz=\"j\">🚀 바로 가기 🪙"+fee+"</button></div>", null); ok.hidden=true;
+      const h=e=>{ const b=e.target.closest("[data-gz]"); if(!b && !e.target.closest("#askNo") && e.target!==A) return; A.removeEventListener("click", h, true); ok.hidden=false; if(!b) return; A.classList.remove("on");
+        if(b.dataset.gz==="w") walk(); else { if(!TECO.pay2({g:0,c:fee})) return; hero.path=[]; hero.moving=false; hero.slide=null; hero.cx=c[0]; hero.cz=c[1]; hero.g.position.set(c[0]+.5,0,c[1]+.5); try{ camSnap=true; placeCamera(); }catch(_){} dirty=true; toast("🚀 "+Z.nm+" 도착!", 1400); } };
+      A.addEventListener("click", h, true); }catch(_){ walk(); } }
   /* ── 바닥 빛 고리 (가장 가까운 할 수 있는 일) ── */
   let ring=null, ringT=0;
   function mkRing(){ const g=new THREE.RingGeometry(.62,.8,40); g.rotateX(-Math.PI/2); ring=new THREE.Mesh(g, new THREE.MeshBasicMaterial({color:0x7dff7a, transparent:true, opacity:.75, depthWrite:false})); ring.position.y=.03; ring.renderOrder=3; ring.visible=false; ISLE.G.add(ring); }

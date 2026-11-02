@@ -33,7 +33,7 @@ async def main():
                 localStorage.setItem('hyeng_study_v1', JSON.stringify({days:{n:8,tot:9,hs:8,hb:8,last:Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5)}})); }""", [code,name])
             await pg.reload(); await pg.wait_for_timeout(2200); return pg
         A=await kid("AAAAA","루아")
-        await A.evaluate("()=>{ gems=1000; saveBag(); }")
+        await A.evaluate("()=>{ gems=1000; saveBag(); TECO.setCoin(20000); }")
         # ① 가구점
         await A.evaluate("()=>openFurn('furn')"); await A.wait_for_timeout(300)
         r=await A.evaluate("()=>[Object.keys(NEWF).length, [...document.querySelectorAll('#furnBody [data-fc]')].map(b=>b.dataset.fc)]")
@@ -45,7 +45,7 @@ async def main():
         await A.evaluate("()=>document.querySelector('#furnBody [data-bf=teepee]').click()"); await A.wait_for_timeout(200)
         ok(await A.evaluate("()=>(stock.teepee|0)===0 && /살까요/.test(document.getElementById('askT').innerText)"), "① (v561) 사기 전에 「살까요?」")
         await A.click('#askOk'); await A.wait_for_timeout(200)
-        ok(await A.evaluate("()=>(stock.teepee|0)===1 && HOUSE.gems()===1000-PRICE.teepee"), "① ⛺ 사면 창고 · 💎")
+        ok(await A.evaluate("()=>(stock.teepee|0)===1 && HOUSE.gems()===1000-furnCO('teepee').g"), "① ⛺ 사면 창고 · 💎+🪙")
         await A.evaluate("()=>document.getElementById('furnP').classList.remove('on')")
         # 새 가구는 모두 지어짐 (빌드 오류 없음)
         r=await A.evaluate("()=>Object.keys(NEWF).filter(id=>{ try{ const o=ITEMS[id].build(0); return !o || !o.children.length; }catch(e){ return true; } })")

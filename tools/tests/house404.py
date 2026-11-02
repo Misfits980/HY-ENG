@@ -96,12 +96,12 @@ async def main():
         f0=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])"); await pg.evaluate("()=>HOUSE.ffwd(30)"); f1=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])")
         ok(f1<f0, f"시간이 지나면 신선도 내려감 {f0}→{f1:.2f}")
         await pg.evaluate("()=>HOUSE.goShop()"); ok(await until("()=>document.getElementById('shopP').classList.contains('on')"), "🏪 → 가게까지 걸어가 열림")
-        g0=await pg.evaluate("()=>HOUSE.gems()"); v=await pg.evaluate("()=>HOUSE.price(HOUSE.bag()[0])")
+        g0=await pg.evaluate("()=>TECO.coins()"); v=await pg.evaluate("()=>HOUSE.price(HOUSE.bag()[0])")
         await pg.click('#shopBag [data-sell="0"]'); await pg.wait_for_timeout(200)
-        ok(await pg.evaluate("()=>HOUSE.gems()")==g0+v and await pg.evaluate("()=>HOUSE.bag().length")==2, f"sell → 💎 +{v}")
+        ok(await pg.evaluate("()=>TECO.coins()")==g0+v and await pg.evaluate("()=>HOUSE.bag().length")==2, f"sell → 🪙 +{v} (v563)")
         await pg.click("#sellAll"); await pg.wait_for_timeout(200)
         ok(await pg.evaluate("()=>HOUSE.bag().length")==0 and await pg.evaluate("()=>localStorage.getItem('hyeng_proto_gems')")==str(await pg.evaluate("()=>HOUSE.gems()")), "모두 팔기 · 보석 저장(게임 보석과 따로)")
-        ok(await pg.evaluate("()=>!localStorage.getItem('hyeng_wallet_v1') || !JSON.parse(localStorage.getItem('hyeng_wallet_v1')).log.some(l=>/Fish|가게/.test(l[2]))"), "게임 지갑은 안 건드림")
+        ok(await pg.evaluate("()=>!localStorage.getItem('hyeng_wallet_v1') || !(JSON.parse(localStorage.getItem('hyeng_wallet_v1')).log||[]).some(l=>/Fish|가게/.test(l[2]))"), "게임 지갑은 안 건드림")
         await pg.click("#shopDone")
         # ⑦ 🌱 농사 · 🪵 모으기 · 🛠 만들기 · 🍳 요리
         await pg.evaluate("()=>{ const m=HOUSE.mats(); Object.keys(m).forEach(k=>delete m[k]); Object.assign(m, {'carrot seeds':1,'pumpkin seeds':1, branch:4}); }")
@@ -162,9 +162,9 @@ async def main():
         ok(await to_choices(), "▼ 넘기면 내 대답 고르기")
         ch=await pg.evaluate("()=>[...document.querySelectorAll('#dlgCh .dch')].map(b=>b.dataset.ch)")
         ok(ch[:2]==["mood","help"] and "give" in ch and "seeds" in ch and ch[-1]=="bye", f"대답: 안부·도와줄까·주기·씨앗(Mia)·잘 있어 {ch}")
-        g0=await pg.evaluate("()=>HOUSE.gems()"); h0=await pg.evaluate("()=>HOUSE.npcSt().mia.h")
+        g0=await pg.evaluate("()=>TECO.coins()"); h0=await pg.evaluate("()=>HOUSE.npcSt().mia.h")   # (v563) 부탁 = 🪙
         await pg.click('#dlgCh [data-ch="give"]'); await pg.wait_for_timeout(300)
-        ok(await pg.evaluate("()=>HOUSE.gems()")>g0 and await pg.evaluate("()=>HOUSE.npcSt().mia.h")==h0+1, f"🎁 Here you are! → 💎 + ❤️ {r}")
+        ok(await pg.evaluate("()=>TECO.coins()")>g0 and await pg.evaluate("()=>HOUSE.npcSt().mia.h")==h0+1, f"🎁 Here you are! → 🪙 + ❤️ (v563) {r}")
         ok(await to_choices() and "give" not in await pg.evaluate("()=>[...document.querySelectorAll('#dlgCh .dch')].map(b=>b.dataset.ch)"), "준 뒤엔 주기 대답이 없어짐")
         await pg.click('#dlgCh [data-ch="bye"]'); await pg.wait_for_timeout(200)
         for _ in range(8):

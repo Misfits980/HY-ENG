@@ -14,6 +14,8 @@
      #0000 = 선생님(나, 관리 화면에서 「이 기기 = #0000」) · #0001~#0005 = 공용 패드 전용 · 아이들은 #0006 부터 차례로 (이름을 처음 정할 때)
      POST type:"tag" (기기·이름 → 태그) · 선생님 type:"tagMe"/"tagSet"(태그를 새 기기로 옮기기)/"tags"(목록)
      scores·구매·이름 탭 맨 끝에 '태그' 칸 · 랭킹은 태그로 묶음(같은 이름이 둘이어도 안 섞임, 이름을 바꿔도 한 줄)
+   - (v563 · 서버 v8) 🏝 My Town — scores 탭 맨 끝에 코인·미끼·은행 코인·은행 보석·강화 칸 · 플레이(초)는 한 줄 3600(1시간)까지
+     '마을 현황' 탭 = 아이 한 줄(태그, 없으면 👤 뗀 이름) — 판 기록이 올 때마다 보석·모은 보석·마을 돈을 고쳐 씀 · 관리 화면 「📋 우리 반」에도 (report.town)
    붙여 넣은 뒤 반드시: 배포 → 배포 관리 → ✏️수정 → 버전 "새 버전" → 배포
    (새 배포를 만들면 주소가 바뀌어 게임이 못 찾는다)
 ===================================================================== */
@@ -33,9 +35,15 @@ const COLS = [
   ["owned","가진 물건"], ["earned","모은 보석"], ["miss","틀린 단어"],
   ["short","짧은 판"],                                              // (v267) 이 줄 전에 초원에서 끝나 기록하지 않은 판 수
   ["tag","태그"],                                                   // (v404) 아이 태그 4자리 (이름을 바꿔도 그대로)
-  ["own","주인 패드"]                                               // (v417) 🧸 공용 패드에서 주인(유치부 아이)이 한 판 = 1 → 그 패드 단어 수를 주인 것으로 셈
+  ["own","주인 패드"],                                              // (v417) 🧸 공용 패드에서 주인(유치부 아이)이 한 판 = 1 → 그 패드 단어 수를 주인 것으로 셈
+  ["coin","코인"], ["bait","미끼"], ["bank","은행 코인"], ["gbank","은행 보석"], ["tup","강화"]   // (v563 · 서버 v8) 🏝 My Town (옛 게임은 빈 칸)
 ];
-const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1};
+const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1, coin:1, bait:1, bank:1, gbank:1};
+const NUM_MAX = {score:10000000, secs:3600};                         // (v563) 플레이(초) 한 줄 1시간까지 — 탭을 뒤로 보내 둔 시간이 846분으로 쌓이던 것
+/* (v563) 🏝 마을 현황 탭 — 아이 한 줄 (태그 → 없으면 👤 뗀 이름) · 판 기록이 올 때마다 고쳐 씀 */
+const TOWN_SHEET = "마을 현황";
+const TOWN_COLS = [["nick","아이"], ["tag","태그"], ["at","마지막"], ["gems","보석"], ["earned","모은 보석"], ["coin","코인"], ["bait","미끼"], ["bank","은행 코인"], ["gbank","은행 보석"], ["tup","강화"], ["ver","버전"]];
+const TOWN_KEEP = {coin:1, bait:1, bank:1, gbank:1, tup:1};          // 옛 게임 줄(이 칸이 없음)은 전에 적힌 값을 그대로 둠
 /* 구매 탭 열 순서 */
 const BUY_SHEET = "구매";
 const BUY_COLS = [["date","날짜"], ["nick","닉네임"], ["kind","종류"], ["name","물건"], ["item","코드"],
@@ -59,7 +67,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 7;   // (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸 · (v419) 7 = 🔐 선생님 기기 등록(fbTeacher)
+const SERVER_V = 8;   // (v563) 8 = 🏝 My Town 칸(코인·미끼·은행·강화) · 「마을 현황」 탭 · 플레이(초) 1시간까지 · (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸 · (v419) 7 = 🔐 선생님 기기 등록(fbTeacher)
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
@@ -111,7 +119,7 @@ function doPost(e){
   }) : COLS.map(([k])=>{
     if (k === "date") return when;
     if (k === "nick") return txt_(d.nick, 20) || "PLAYER";
-    if (NUM[k])       return num_(d[k], k === "score" ? 10000000 : 1000000);
+    if (NUM[k])       return (k in TOWN_KEEP && !has_(d, k)) ? "" : num_(d[k], NUM_MAX[k] || 1000000);   // (v563) 옛 게임 = 마을 칸 비움
     if (k === "boss") return txt_(d.boss, 40).replace(/,/g, " · ");   // "50,80" 이 숫자 5080 으로 바뀌지 않게
     if (k === "tag")  return tag_(d.tag) ? "#" + tag_(d.tag) : "";
     return txt_(d[k], k === "owned" ? 400 : (k === "miss" ? 400 : (k === "cause" ? 60 : 40)));
@@ -123,12 +131,53 @@ function doPost(e){
     const sh = isBuy ? buySheet_() : sheet_();
     sh.appendRow(row);
     sh.getRange(sh.getLastRow(), 1).setNumberFormat("yyyy-mm-dd hh:mm");   // 날짜를 다른 줄과 같은 모양으로
+    if (!isBuy) { try { townUpsert_(d, when); } catch(e2){} }      // (v563) 🏝 마을 현황 — 안 되어도 판 기록은 남김
   } catch(err){
     return json_({ok:false, err:"busy"});
   } finally {
     try { lock.releaseLock(); } catch(_){}
   }
   return json_({ok:true});
+}
+
+/* ── (v563) 🏝 마을 현황 ── */
+function has_(d, k){ return d && d[k] !== undefined && d[k] !== null && d[k] !== ""; }
+function townSheet_(){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(TOWN_SHEET);
+  if (!sh){ sh = ss.insertSheet(TOWN_SHEET); sh.setFrozenRows(1); }
+  if (sh.getRange(1, TOWN_COLS.length).getValue() === ""){
+    sh.getRange(1, 1, 1, TOWN_COLS.length).setValues([TOWN_COLS.map(c=>c[1])]).setFontWeight("bold");
+    sh.getRange("B:B").setNumberFormat("@");                         // #0006 의 0 이 안 없어지게
+  }
+  return sh;
+}
+/* 판 기록 한 줄 → 그 아이 줄을 고침 (없으면 새 줄). doPost 의 잠금 안에서 부름
+   찾기: 태그가 있으면 같은 태그 줄 → 없으면 같은 이름이면서 태그가 빈 줄(그 줄에 태그를 붙임) · 태그가 없으면 같은 이름이면서 태그가 빈 줄 */
+function townUpsert_(d, when){
+  const nick = plain_(txt_(d.nick, 20)), tg = tag_(d.tag) ? "#" + tag_(d.tag) : "";
+  if (!nick && !tg) return;
+  if (!tg && (!nick || /^PLAYER$/i.test(nick))) return;              // 이름도 태그도 없는 줄은 누구 것인지 몰라 안 적음
+  const sh = townSheet_(), last = sh.getLastRow(), N = TOWN_COLS.length;
+  const rows = last >= 2 ? sh.getRange(2, 1, last - 1, N).getValues() : [];
+  const up = nick.toUpperCase(); let hit = -1;
+  if (tg) hit = rows.findIndex(r=>String(r[1]).trim() === tg);
+  if (hit < 0) hit = rows.findIndex(r=>!String(r[1]).trim() && plain_(r[0]).toUpperCase() === up);
+  const old = hit >= 0 ? rows[hit] : TOWN_COLS.map(()=>"");
+  const out = TOWN_COLS.map(([k], i)=>{
+    if (k === "nick") return nick || old[i];
+    if (k === "tag")  return tg || old[i];
+    if (k === "at")   return when;
+    if (k === "ver")  return txt_(d.ver, 20) || old[i];
+    if (k === "tup")  return has_(d, k) ? txt_(d.tup, 60) : old[i];
+    if (TOWN_KEEP[k] && !has_(d, k)) return old[i];                  // 옛 게임 — 마을 칸은 전에 적힌 그대로
+    if (k === "gems" || k === "earned"){ if (!has_(d, k)) return old[i]; }
+    return num_(d[k], 10000000);
+  });
+  const at = hit >= 0 ? hit + 2 : last + 1;
+  sh.getRange(at, 2).setNumberFormat("@");
+  sh.getRange(at, 1, 1, N).setValues([out]);
+  sh.getRange(at, 3).setNumberFormat("yyyy-mm-dd hh:mm");
 }
 
 /* ------------------------------ 랭킹 ------------------------------ */
@@ -465,6 +514,7 @@ function report_(){
     lesson: g("수업 기록", "A3:I40"),
     prog:  g("진도표", "A3:H80"),
     nicks: g("기기별 이름", "B5:B300").map(r=>String(r[0]).trim()).filter(n=>n && !/^PLAYER$/i.test(n)),   // (v308) 보내기 받는 아이 = 게임 이름(닉네임)
-    tags:  tagList_().filter(x=>x.dev).map(x=>[x.tag, x.nick, x.first])   // (v404) 🏷 태그 · 지금 이름 · 처음 이름
+    tags:  tagList_().filter(x=>x.dev).map(x=>[x.tag, x.nick, x.first]),   // (v404) 🏷 태그 · 지금 이름 · 처음 이름
+    town:  g(TOWN_SHEET, "A1:K300")   // (v563) 🏝 마을 현황 — 머리 줄(아이·태그·마지막·보석·모은 보석·코인·미끼·은행 코인·은행 보석·강화·버전) + 아이마다 한 줄
   };
 }

@@ -72,11 +72,11 @@ async def main():
         r = await E("()=>{ const T=HOUSE.TW; return [T.stars.length, T.cps.length-1, T.S.filter(s=>s.starPad).every(s=>s.noWalk), !!T.hiG]; }")
         ok(r == [30, 30, True, False], f"① 별 30개 (층마다 하나) · 별 발판은 길 찾기에서 빠짐 · ② 처음엔 최고 선 없음 {r}")
         # ① 별 잡기
-        g0 = await E("()=>HOUSE.gems()")
+        g0 = await E("()=>TECO.coins()")
         r = await E("""()=>{ const T=HOUSE.TW; T.bot=false; const s=T.stars[0], pad=T.S.find(x=>x.starPad); T.p.set((pad.min.x+pad.max.x)/2, pad.max.y+0.01, (pad.min.z+pad.max.z)/2); T.v.set(0,0,0); for(let i=0;i<10;i++) HOUSE.twStep(1/90); HOUSE.twTick(0.05);
             return [s.got, s.sp.visible, T.starN, document.getElementById('twSec').textContent.indexOf('⭐1')>=0]; }""")
-        g1 = await E("()=>HOUSE.gems()")
-        ok(r[0] and not r[1] and r[2] == 1 and r[3] and g1 == g0 + 1, f"① 별 발판에 올라가 ⭐ 잡음 · HUD ⭐1 · 💎 +1 {r} {g0}→{g1}")
+        g1 = await E("()=>TECO.coins()")
+        ok(r[0] and not r[1] and r[2] == 1 and r[3] and g1 == g0 + 5, f"① 별 발판에 올라가 ⭐ 잡음 · HUD ⭐1 · 🪙 +5 (v563) {r} {g0}→{g1}")
         # ③ 감정 표현 (내 머리 위)
         r = await E("""()=>{ document.getElementById('twEmo').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true})); const bar=document.getElementById('twEmoBar'); const on=bar.classList.contains('on'), n=bar.querySelectorAll('button').length;
             bar.querySelector('[data-e="💪"]').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true})); return [on, n, bar.classList.contains('on'), !!HOUSE.hero().emo]; }""")
