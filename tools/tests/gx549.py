@@ -28,6 +28,13 @@ async def main():
         ok(r[0]>=20, f"시험지 「문법 섞어서」 {r}")
         key=await pg.evaluate("()=>document.querySelector('#paper .pp.key') ? document.querySelector('#paper .pp.key').innerText : ''")
         ok("과거분사" in key or "해석" in key or "be동사" in key, "답안지에 이유 (앞 글자 잘림 없이)")
+        # (v551) 중등 Stage 마다 「이번 Stage 문법」 — 11가지가 고르게 · ★3 카드+3문제 · ★4 카드+4문제
+        d=await pg.evaluate("()=>{ const L=Study.lessons('mv1'); const o={}; L.forEach(x=>{ const G=Study.stgGx('mv1', x.n); if(G) o[G.k]=(o[G.k]||0)+1; }); return o; }")
+        ok(len(d)==11 and min(d.values())>=5, f"중등 Stage 문법 11가지 고르게 {d}")
+        t=await pg.evaluate("()=>[2,3].map(tr=>{ const Q=Study._bt('mv1', 4, tr); return [Q.filter(q=>q.t==='intro'&&q.hd==='rule'&&q.x.kd).length, Q.filter(q=>q.tg==='🧩 이번 Stage 문법').length]; })")
+        ok(t[0][0]==1 and t[0][1]>=3 and t[1][0]==1 and t[1][1]>=4, f"★3 {t[0]} · ★4 {t[1]} (규칙 카드 · 문제)")
+        g=await pg.evaluate("()=>[Study.stgGx('g56', Study.lessons('g56')[3].n), Study.stgGx('elem', Study.lessons('elem')[3].n)]")
+        ok(g==[None, None], "초등 Stage 에는 없음 (문법 돌 따로)")
         ok(not errs, f"오류 없음 {errs}")
         await br.close()
     print(f"{sum(R)}/{len(R)}")
