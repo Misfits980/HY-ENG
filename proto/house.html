@@ -505,7 +505,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
   <div class="grp" id="gRoom"><button class="dk go" id="bOut"><i data-ic="door"></i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bEdit"><i data-ic="sofa"></i><span>가구</span></button><button class="dk" id="bWall"><i data-ic="roller"></i><span>벽지</span></button><button class="dk" id="bFloor"><i data-ic="floor"></i><span>바닥</span></button><button class="dk" id="bAv1"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gYard"><button class="dk go" id="bIn"><i data-ic="home"></i><span>집</span></button><button class="dk go" id="bVill"><i data-ic="village"></i><span>마을</span></button><b class="sep"></b><button class="dk" id="bDeco"><i data-ic="roller"></i><span>꾸미기</span></button><button class="dk" id="bShop"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv2"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gVill"><button class="dk go" id="bYard2"><i data-ic="tree"></i><span>마당</span></button><button class="dk go" id="bMine"><i data-ic="pick"></i><span>광산</span></button><b class="sep"></b><button class="dk" id="bChat"><i data-ic="chat"></i><span>말하기</span></button><button class="dk" id="bBag2"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv3"><i data-ic="shirt"></i><span>나</span></button></div>
-  <div class="grp" id="gIsle"><button class="dk go" id="bIHome"><i data-ic="home"></i><span>내 집</span></button><b class="sep"></b><button class="dk" id="bIBag"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bIAv"><i data-ic="shirt"></i><span>나</span></button></div>
+  <div class="grp" id="gIsle"><button class="dk go" id="bIHome"><i data-ic="home"></i><span>내 집</span></button><b class="sep"></b><button class="dk" id="bIBag"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bIAv"><i data-ic="shirt"></i><span>나</span></button><button class="dk" id="bIChat"><i data-ic="chat"></i><span>말하기</span></button></div>
   <div class="grp" id="gMine"><button class="dk go" id="bVill2"><i data-ic="village"></i><span>마을</span></button><b class="sep"></b><button class="dk" id="bBag3"><i data-ic="bag"></i><span>가방</span></button><button class="dk" id="bAv4"><i data-ic="shirt"></i><span>나</span></button></div>
   <div class="grp" id="gVisit"><button class="dk go" id="bVLeave"><i data-ic="door"></i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bVLike"><i data-ic="heart"></i><span>좋아요</span></button><button class="dk" id="bVStk"><i data-ic="star"></i><span>스티커</span></button><button class="dk" id="bVAdd"><i data-ic="addf"></i><span>친구</span></button></div>
   <div class="grp" id="gFish"><button class="dk warn" id="bStop"><i data-ic="hand"></i><span>그만</span></button></div>
@@ -1050,7 +1050,7 @@ const yardG = new THREE.Group(); scene.add(yardG); yardG.visible=false;
 const HOUSE_T = [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]], DOOR=[1,3];
 const POND = {x0:6, z0:5, x1:8, z1:7};      // 3×3 칸
 const TREES = [[0,6],[0,9],[4,0],[9,0],[9,3],[5,9],[9,9],[6,9]];   // (L0-9) [3,7] → [6,9]: 밭을 늘려도 길이 막히지 않게
-const isWater=(x,z)=>x>=POND.x0&&x<=POND.x1&&z>=POND.z0&&z<=POND.z1;
+const isWater=(x,z)=>(window.ISLE && typeof place!=="undefined" && place===PL.isle) ? ISLE.waterCell(x,z) : (x>=POND.x0&&x<=POND.x1&&z>=POND.z0&&z<=POND.z1);   /* (v528) 🏝 섬에서는 호수 */
 const isHouse=(x,z)=>HOUSE_T.some(t=>t[0]===x&&t[1]===z);
 const STALL_T=[[6,1],[7,1]], STALL_FRONT=[[6,2],[7,2]];   // (L0-3) 🏪 물고기 가게
 const isStall=(x,z)=>STALL_T.some(t=>t[0]===x&&t[1]===z);
@@ -1061,7 +1061,7 @@ const LAND=[{n:8,p:10},{n:10,p:20},{n:12,p:30}];
 let plotN = store("hyeng_proto_plotn") || 6;
 const at=(L,x,z)=>L.findIndex(t=>t[0]===x&&t[1]===z);
 function yardBlocked(x,z){ return isWater(x,z) || isHouse(x,z) || isStall(x,z) || TREES.some(t=>t[0]===x&&t[1]===z) || at(PLOTS,x,z)>=0 || (x===BENCH[0]&&z===BENCH[1]) || (x===POT[0]&&z===POT[1]) || at(ROCKS,x,z)>=0 || yBlk(x,z) || PARC.some(p=>p.sign[0]===x&&p.sign[1]===z && !(yd && yd.pc[PARC.indexOf(p)])); }
-const WL = 0.035;   // 물 높이
+let WL = 0.035;   // 물 높이 · (v528) 섬 호수에서는 호수 물 높이
 const Y_STEPS=[[1.5,3.6],[2.3,4.2],[3.2,4.7],[4.2,5.2],[5.2,5.7]];   // 디딤돌 (문 → 연못)
 /* ═════════ (v415) 🌳 내 땅 꾸미기 — 사용자: "집 콘텐츠는? 자기 땅을 어떻게 꾸밀지"
    · 마당 10×10 → 14×14 : 오른쪽(동쪽 숲)·오른쪽 아래(언덕)·아래(들판) 3구역은 처음엔 풀숲 🌾 → 🪧 팻말에서 열기(맛보기 💎, 게임은 공부한 날)
@@ -2248,7 +2248,8 @@ function vcClean(s){ s=String(s||"").replace(/[\u0000-\u001f<>]/g,"").replace(/\
   m=m.replace(/(https?:\/\/|www\.)\S*|\S+\.(com|net|kr|co|me|io)\b\S*|\S+@\S+/gi, ()=>{ bad=true; return "***"; });   /* 주소·메일 */
   return {m, bad}; }
 const VLN={tree:{}, peers:{}, es:null, poll:0, sendT:0, sent:null, path:"", on:false, g:null, seen:{}, mp:"", mes:null, mpoll:0, msgs:{}, ready:false, lastT:0, rep:[], feed:[], cool:0};
-function vlNetPath(){ return "/hy/day/vl"+dayKey().replace(/\D/g,""); }
+function vlNetPath(){ return (PL.isle && place===PL.isle ? "/hy/day/il" : "/hy/day/vl")+dayKey().replace(/\D/g,""); }   /* (v528) 🏝 섬은 따로 */
+const vlHere=()=>place===PL.village || (PL.isle && place===PL.isle);
 function vcPath(){ return "/hy/day/vc"+dayKey().replace(/\D/g,""); }
 function vlApply(path, data, patch){ const P=String(path||"/").split("/").filter(Boolean), now=performance.now(), T=VLN.tree;
   if(!P.length){ if(patch) Object.assign(T, data||{}); else VLN.tree=Object.assign({}, data||{}); Object.keys(data||{}).forEach(k=>VLN.seen[k]=now); return; }
@@ -2260,9 +2261,9 @@ function vcApply(path, data, patch){ const P=String(path||"/").split("/").filter
   const k=P[0]; if(P.length===1){ if(data==null){ delete VLN.msgs[k]; vcDraw(); } else vcGot(k, data, false); } }
 function vcGot(k, v, init){ if(!v || typeof v!=="object" || !v.m) return; const isNew=!VLN.msgs[k]; VLN.msgs[k]=v; if(!isNew) return;
   const age=Math.abs(Date.now()-(+v.at||0)); if(init && age>8000){ return; } if(v.c===myCode && Date.now()-VLN.lastT<4000) return;   /* 내 것은 보낼 때 이미 보여 줌 */
-  const c=v.c===myCode ? hero : VLN.peers[v.c]; if(c && c.g.visible!==false && place===PL.village) sayBubble(c, v.m); vcFeed(v.n, v.m, v.c===myCode); vcDraw(); }
+  const c=v.c===myCode ? hero : VLN.peers[v.c]; if(c && c.g.visible!==false && vlHere()) sayBubble(c, v.m); try{ if(window.IPLAY) IPLAY.onMsg(v); }catch(e){} vcFeed(v.n, v.m, v.c===myCode); vcDraw(); }
 function vlNetStart(){ if(VLN.on) return; const K=kidInfo(); VLN.on=true; VLN.path=vlNetPath(); VLN.mp=vcPath(); VLN.tree={}; VLN.seen={}; VLN.ready=false;
-  if(!VLN.g){ VLN.g=new THREE.Group(); villageG.add(VLN.g); }
+  if(!VLN.g){ VLN.g=new THREE.Group(); } place.g.add(VLN.g);
   NET.put(VLN.path+"/"+myCode+"/i", {n:K.n, av:av||{}, at:Date.now()}).catch(()=>{});
   const poll=()=>{ if(!VLN.on) return; if(!VLN.es) NET.get(VLN.path).then(d=>{ if(VLN.on && !VLN.es) vlApply("/", d||{}); }).catch(()=>{});
       if(!VLN.mes) NET.query(VLN.mp, 'orderBy=%22%24key%22&limitToLast=40').then(d=>{ if(VLN.on && !VLN.mes) vcApply("/", d||{}); }).catch(()=>{}); };
@@ -2277,9 +2278,12 @@ addEventListener("pagehide", ()=>{ try{ if(VLN.on && VLN.path) NET.del(VLN.path+
 function vlSend(dt){ VLN.sendT+=dt; const p=hero.g.position, s=VLN.sent, f=+hero.face.toFixed(2), a=hero.moving?"walk":(hero.act||"idle");
   const moved=!s || Math.abs(s[0]-p.x)+Math.abs(s[1]-p.z)>0.05 || s[2]!==a;
   if((moved && VLN.sendT>0.25) || VLN.sendT>3){ VLN.sendT=0; const v=[+p.x.toFixed(2), +p.z.toFixed(2), f, a, Date.now()]; VLN.sent=[v[0],v[1],a]; NET.put(VLN.path+"/"+myCode+"/p", v).catch(()=>{}); } }
-function vlTick(dt){ if(!VLN.on) return false; if(place!==PL.village){ vlNetStop(); return false; } vlSend(dt); const now=performance.now(), wall=Date.now(); let anim=false;
-  Object.keys(VLN.tree).forEach(k=>{ if(k===myCode) return; const d=VLN.tree[k]; if(!d || !d.p || !d.i) return; let c=VLN.peers[k];
-    if(!c){ if(Object.keys(VLN.peers).length>=24) return; const A=buildAvatar((d.i&&d.i.av)||{}); c=VLN.peers[k]=Object.assign(A, {face:0, t:0, moving:false, act:"idle", blinkT:2, tgt:new THREE.Vector3(), nm:""}); VLN.g.add(c.g); c.g.position.set(+d.p[0]||0, 0, +d.p[1]||0); }
+function vlTick(dt){ if(!VLN.on) return false; if(!vlHere() || VLN.path!==vlNetPath()){ vlNetStop(); return false; } vlSend(dt); const now=performance.now(), wall=Date.now(); let anim=false;
+  /* (v528) 학원 전체 = 많은 친구 → 가까운 20명만 그림 (멀리 있는 친구는 안 만듦) */
+  const hp=hero.g.position, near=new Set(Object.keys(VLN.tree).filter(k=>k!==myCode && VLN.tree[k] && VLN.tree[k].p).sort((a,b)=>{ const A=VLN.tree[a].p, B=VLN.tree[b].p; return Math.hypot(A[0]-hp.x,A[1]-hp.z)-Math.hypot(B[0]-hp.x,B[1]-hp.z); }).slice(0,20));
+  Object.keys(VLN.peers).forEach(k=>{ if(!near.has(k)){ const c=VLN.peers[k]; sayOff(c); if(c.g.parent) c.g.parent.remove(c.g); delete VLN.peers[k]; } });
+  Object.keys(VLN.tree).forEach(k=>{ if(k===myCode || !near.has(k)) return; const d=VLN.tree[k]; if(!d || !d.p || !d.i) return; let c=VLN.peers[k];
+    if(!c){ const A=buildAvatar((d.i&&d.i.av)||{}); c=VLN.peers[k]=Object.assign(A, {face:0, t:0, moving:false, act:"idle", blinkT:2, tgt:new THREE.Vector3(), nm:""}); VLN.g.add(c.g); c.g.position.set(+d.p[0]||0, 0, +d.p[1]||0); }
     if(c.nm!==(d.i.n||"")){ c.nm=d.i.n||""; if(c.tag) c.g.remove(c.tag); c.tag=twNameTag(c.nm||"친구"); c.tag.position.y=1.55; c.g.add(c.tag); }
     c.g.visible=now-(VLN.seen[k]||0)<15000 && Math.abs(wall-(+d.p[4]||0))<10*60000;
     c.tgt.set(+d.p[0]||0, 0, +d.p[1]||0); c.face=+d.p[2]||0; c.act=d.p[3]==="walk"?"idle":(d.p[3]||"idle"); });
@@ -2303,7 +2307,7 @@ function vcFeedTick(){ const now=Date.now(); if(VLN.feed.length && now-VLN.feed[
 function vcDraw(){ if(!$("vcPane").classList.contains("on")) return; const L=Object.keys(VLN.msgs).sort().slice(-30).map(k=>VLN.msgs[k]);
   $("vcList").innerHTML=L.length ? L.map(v=>'<p class="'+(v.c===myCode?'me':'')+'"><small>'+esc(String(v.n||"친구").slice(0,10))+'</small>'+esc(v.m)+'</p>').join("") : '<p class="vcEmpty">아직 아무도 말하지 않았어요 — 먼저 인사해 봐요! 👋</p>';
   const el=$("vcList"); el.scrollTop=el.scrollHeight; const n=vlCount(); $("vcWho").textContent=n?"👥 마을 친구 "+n+"명":"지금은 나 혼자예요"; }
-function vcOpen(){ if(place!==PL.village) return; $("vcPane").classList.add("on"); vcDraw(); }
+function vcOpen(){ if(!vlHere()) return; $("vcPane").classList.add("on"); vcDraw(); }
 function vcSay(raw){ const now=Date.now(); if(now<VLN.cool){ toast("🙊 잠깐 쉬었다가 말해요", 1200); return false; } if(now-VLN.lastT<1500){ toast("🐢 천천히 말해요", 900); return false; }
   const {m, bad}=vcClean(raw); if(!m.replace(/[\s*]/g,"")){ if(bad) toast("🙅 그 말은 보낼 수 없어요", 1400); return false; }
   VLN.rep=VLN.rep.filter(r=>now-r[1]<20000); if(VLN.rep.filter(r=>r[0]===m).length>=2){ VLN.cool=now+10000; VLN.rep=[]; toast("🙊 같은 말을 너무 많이 했어요 — 10초 쉬어요", 1600); return false; } VLN.rep.push([m, now]);
@@ -3059,7 +3063,11 @@ const sizeWord=v=>v>=0.85?"엄청 큰":v>=0.6?"큰":v>=0.3?"보통":"작은";
 let FR=store("hyeng_proto_fishr")||{};   // 도감 기록 {en:{b:가장 큰 cm, s:반짝이 수}}
 
 /* ── 🐟 연못 그림자 ── */
-const PCX=(POND.x0+POND.x1+1)/2, PCZ=(POND.z0+POND.z1+1)/2, PHW=(POND.x1-POND.x0+1)/2-0.12, PHD=(POND.z1-POND.z0+1)/2-0.12;
+let PCX=(POND.x0+POND.x1+1)/2, PCZ=(POND.z0+POND.z1+1)/2, PHW=(POND.x1-POND.x0+1)/2-0.12, PHD=(POND.z1-POND.z0+1)/2-0.12, PG=yardG;
+/* (v528) 🎣 연못 바꾸기 — 마당 연못 ↔ 🏝 섬 호수 (같이 낚시) · 물고기 그림자는 새 연못에 다시 */
+function pondCtx(k){ let L=null; try{ if(k==="isle" && window.ISLE) L=ISLE.lake(); }catch(e){}
+  const was=PG; if(L){ PCX=L.x; PCZ=L.z; PHW=L.hw; PHD=L.hd; WL=L.wl; PG=L.g; } else { PCX=(POND.x0+POND.x1+1)/2; PCZ=(POND.z0+POND.z1+1)/2; PHW=(POND.x1-POND.x0+1)/2-0.12; PHD=(POND.z1-POND.z0+1)/2-0.12; WL=0.035; PG=yardG; }
+  if(was!==PG) PS.slice().forEach(o=>{ was.remove(o.g); o.mat.dispose(); PS.splice(PS.indexOf(o),1); }); }
 const shGeo=(()=>{ const s=new THREE.Shape(); s.moveTo(0.62,0); s.quadraticCurveTo(0.56,0.33,0,0.35); s.quadraticCurveTo(-0.46,0.32,-0.62,0.07); s.lineTo(-0.98,0.32); s.lineTo(-0.86,0); s.lineTo(-0.98,-0.32); s.lineTo(-0.62,-0.07); s.quadraticCurveTo(-0.46,-0.32,0,-0.35); s.quadraticCurveTo(0.56,-0.33,0.62,0); return new THREE.ShapeGeometry(s, 8); })();
 const junkGeo=new THREE.CircleGeometry(0.5, 7);
 const PS=[]; let psT=0;
@@ -3068,10 +3076,10 @@ function spawnShadow(near){ const f=pickFish(), z=rollSize(f), S=SPEC[f.en]||{},
   const g=new THREE.Group(), mat=new THREE.MeshBasicMaterial({color:sh?0xffc93d:0x0b3550, transparent:true, opacity:0, depthWrite:false}), m=new THREE.Mesh(S.junk?junkGeo:shGeo, mat);
   m.rotation.x=-Math.PI/2; m.scale.set(rad*2, rad*(S.junk?1.3:2), 1); m.renderOrder=3; g.add(m); g.position.y=WL+0.003;
   const lim=(h,r)=>h-Math.min(h-0.05, r*0.8), x=near ? near[0] : PCX+rnd(-1,1)*lim(PHW,rad), zz=near ? near[1] : PCZ+rnd(-1,1)*lim(PHD,rad);
-  g.position.x=x; g.position.z=zz; yardG.add(g);
+  g.position.x=x; g.position.z=zz; PG.add(g);
   const o={f, cm:z.cm, v:z.v, sh, rad, g, m, mat, st:"swim", tx:x, tz:zz, spd:(0.16+Math.random()*0.14)/(0.6+rad), t:0, op:0, a:0, ph:Math.random()*6};
   PS.push(o); return o; }
-function shadowGone(o){ yardG.remove(o.g); o.mat.dispose(); const i=PS.indexOf(o); if(i>=0) PS.splice(i,1); }
+function shadowGone(o){ PG.remove(o.g); o.mat.dispose(); const i=PS.indexOf(o); if(i>=0) PS.splice(i,1); }
 function wantShadows(){ return rush() ? 6 : 4; }
 function clampPond(x,z,r){ const mx=PHW-Math.min(PHW-0.05,(r||0.1)*0.8), mz=PHD-Math.min(PHD-0.05,(r||0.1)*0.8); return [Math.max(PCX-mx,Math.min(PCX+mx,x)), Math.max(PCZ-mz,Math.min(PCZ+mz,z))]; }
 function updShadows(dt){
@@ -3156,7 +3164,7 @@ function jumpFx(cb){ F.st="jump"; setGroups(); const f=F.fish, el=$("jumpFx"), v
   bobber.visible=false; line.visible=false; if(F.sd){ shadowGone(F.sd); F.sd=null; } setTimeout(()=>{ el.className=""; cb(); }, 900); }
 
 function updateFish(dt){
-  if(place===PL.yard) updShadows(dt);
+  if(place===PL.yard || (PL.isle && place===PL.isle)) updShadows(dt);
   if(F.st==="idle" || F.st==="jump" || F.st==="quiz"){ updRings(dt); return F.rings.length>0 || F.st==="jump"; }
   F.t+=dt;
   if(F.st==="cast"){
@@ -3201,7 +3209,7 @@ function tts(en){ try{ const u=new SpeechSynthesisUtterance(en); u.lang="en-US";
 function quiz(f){
   F.st="quiz"; setGroups(); bobber.visible=false; line.visible=false;
   const S=SPEC[f.en]||{}, cm=F.cm|0, sh=!!F.sh, first=!dex[f.en], r=FR[f.en]||{}, rec=!first && cm>0 && cm>(r.b|0), td=f===todaySp(), v=sizeV(f.en,cm);
-  dex[f.en]=(dex[f.en]|0)+1; store("hyeng_proto_fish", dex); FR[f.en]={b:Math.max(r.b|0, cm), s:(r.s|0)+(sh?1:0)}; store("hyeng_proto_fishr", FR); tEv("catch");
+  dex[f.en]=(dex[f.en]|0)+1; store("hyeng_proto_fish", dex); FR[f.en]={b:Math.max(r.b|0, cm), s:(r.s|0)+(sh?1:0)}; store("hyeng_proto_fishr", FR); tEv("catch"); try{ if(window.IPLAY) IPLAY.onCatch(f, cm, sh, rec); }catch(e){}
   const full=!canAdd(f.en,1); if(!full){ bag.push({en:f.en, at:now(), cm, sh:sh?1:0}); saveBag(); }
   $("qFish").innerHTML='<span class="'+(sh?'sh':'')+'">'+f.e+'</span>'; $("qAsk").innerHTML='<span class="enBig">'+f.en+'</span>';
   const bd=[first?'<em class="bNew">🆕 NEW</em>':'', rec?'<em class="bRec">🏆 최고 기록!</em>':'', sh?'<em class="bSh">✨ 반짝이</em>':'', td?'<em class="bTd">⭐ 오늘의 물고기</em>':''].join('');
@@ -3295,12 +3303,12 @@ function go(key, at, mid, o){
   if(F.st!=="idle") return; setEdit(false); standUp(); hero.slide=null; trip.busy=true;
   if(visiting && key!=="visit" && key!=="yvisit"){ const m0=mid; mid=()=>{ if(myRoom) restoreMine(); yVisitOut(); visiting=null; if(m0) m0(); }; }   // 지도 등으로 나가도 내 방으로 돌려놓음
   $("fade").classList.add("on");
-  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].concat(window.ISLE?[ISLE.G]:[]).forEach(g=>g.visible=g===place.g); try{ if(window.ISLE) ISLE.show(place===PL.isle); }catch(e){} if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
+  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].concat(window.ISLE?[ISLE.G]:[]).forEach(g=>g.visible=g===place.g); try{ if(window.ISLE) ISLE.show(place===PL.isle); }catch(e){} try{ pondCtx(place.key); }catch(e){} if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
     const s=at||place.start; hero.cx=s[0]; hero.cz=s[1]; hero.path=[]; hero.moving=false; hero.g.position.set(s[0]+0.5,0,s[1]+0.5);
     if(o && o.from){ const f=typeof o.from==="function"?o.from():o.from, b=[s[0]+0.5,s[1]+0.5]; hero.g.position.set(f[0],0,f[1]); hero.face=Math.atan2(b[0]-f[0],b[1]-f[1]); hero.g.rotation.y=hero.face;
       hero.slide={a:f.slice(), b, t:0, d:Math.max(0.4, Math.hypot(b[0]-f[0],b[1]-f[1])/2.4)}; if(o.door) openDoor(o.door); }
     try{ envApply(true); }catch(e){}   // (v414) 시간·비
-    $("ttl").innerHTML='<span class="sign swing">'+place.name+'<small>맛보기</small></span>'; setShadow(); placeCamera(); setGroups(); $("fade").classList.remove("on"); trip.busy=false; drawLabels(); try{ tEv(key); }catch(e){} if(key==="tower") twEnter(); try{ if(key==="village") vlNetStart(); else vlNetStop(); }catch(e){} }, 240);
+    $("ttl").innerHTML='<span class="sign swing">'+place.name+'<small>맛보기</small></span>'; setShadow(); placeCamera(); setGroups(); $("fade").classList.remove("on"); trip.busy=false; drawLabels(); try{ tEv(key); }catch(e){} if(key==="tower") twEnter(); try{ vlNetStop(); if(key==="village" || key==="isle") vlNetStart(); }catch(e){} }, 240);
 }
 /* (v407) 문·길로 나가기 — 걸어가서 (문 열고) 끝까지 걸어 나감 → 다음 곳에선 문·길 쪽에서 걸어 들어옴 */
 function slideTo(b, then){ const p=hero.g.position, d=Math.hypot(b[0]-p.x,b[1]-p.z); hero.face=Math.atan2(b[0]-p.x,b[1]-p.z); hero.slide={a:[p.x,p.z], b, t:0, d:Math.max(0.25,d/2.4), then}; dirty=true; }
@@ -3463,7 +3471,7 @@ $("bEdit").onclick=()=>{ if(!visiting) setEdit(true); }; $("bDone").onclick=()=>
 $("bWall").onclick=()=>{ setWall(ownW[(ownW.indexOf(wallIx)+1)%ownW.length]); saveRoom(); toast("🎨 "+WALLS[wallIx].nm+(ownW.length<WALLS.length?"<br><small>🛒 가게에 벽지가 더 있어요</small>":"")); };
 $("bFloor").onclick=()=>{ setFloor(ownF[(ownF.indexOf(floorIx)+1)%ownF.length]); saveRoom(); toast("🟫 "+FLOORS[floorIx].nm+(ownF.length<FLOORS.length?"<br><small>🛒 가게에 바닥이 더 있어요</small>":"")); };
 $("bCam").onclick=()=>{ yawTo+=Math.PI/2; unselect(); };
-$("bVill2").onclick=mineToVillage; $("bIHome").onclick=()=>{ const d=ISLE.doorCell(); walkTo(d[0],d[1],()=>ISLE.enterHome()); }; $("bIBag").onclick=()=>openBag(); $("bIAv").onclick=()=>openAv(); $("bBag3").onclick=()=>openBag(); $("bAv4").onclick=()=>openAv();
+$("bVill2").onclick=mineToVillage; $("bIHome").onclick=()=>{ const d=ISLE.doorCell(); walkTo(d[0],d[1],()=>ISLE.enterHome()); }; $("bIBag").onclick=()=>openBag(); $("bIAv").onclick=()=>openAv(); $("bIChat").onclick=()=>vcOpen(); $("bBag3").onclick=()=>openBag(); $("bAv4").onclick=()=>openAv();
 $("bYard2").onclick=villageToYard; $("bVill").onclick=yardToVillage; $("bMine").onclick=villageToMine; $("bBag2").onclick=()=>openBag(); $("bAv3").onclick=()=>openAv();
 $("bOut").onclick=exitRoom; $("bIn").onclick=enterHouse;
 $("bAv1").onclick=openAv; $("bAv2").onclick=openAv; $("avDone").onclick=closeAv;
@@ -3922,6 +3930,8 @@ requestAnimationFrame(loop);
 window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcClean, vcOpen, vlCount, sayBubble, TWN8, srvNow, twNightAt, twNightOn, twOpenAt, twNightTick, twNightAsk, towerAskX:()=>towerAsk(), drawPlots, buildAvatar, animChar, emote, twFrame, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
+<script src="isle-words.js"></script>
 <script src="isle.js"></script>
+<script src="isle-play.js"></script>
 </body>
 </html>

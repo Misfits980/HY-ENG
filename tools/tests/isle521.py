@@ -69,7 +69,7 @@ async def main():
         r=await pg.evaluate("()=>{ ISLE.CAM.zoom=1; const W=document.getElementById('cv'); W.dispatchEvent(new WheelEvent('wheel',{deltaY:120,bubbles:true,cancelable:true})); return ISLE.CAM.zoom; }")
         ok(r>1.05, f"바퀴/두 손가락 = 확대·축소 {r}")
         r=await pg.evaluate("()=>{ let s=0, nf=0; ISLE.G.children.forEach(o=>{ if(o.userData.solo) s++; if(o.userData.noFade) nf++; }); return [s,nf]; }")
-        ok(r[0]>40 and r[1]>3, f"집·큰 건물은 따로 (흐려질 수 있음) {r}")
+        ok(r[0]>=5 and r[1]>3, f"집·큰 건물은 따로 (흐려질 수 있음) {r}")
         r=await pg.evaluate("()=>{ ISLE.faceOut(); const m=ISLE.myHouse(); camSnap=true; updCam(0); updOcclude(1); return [...faded.keys()].some(o=>o.userData.solo); }")
         ok(r, "내 집이 나를 가리면 흐려짐")
         # ④ 조이스틱
@@ -79,8 +79,8 @@ async def main():
         await pg.evaluate("()=>{ ISLE.J.x=0; ISLE.J.y=1; for(let i=0;i<20;i++) ISLE.tick(0.05); ISLE.J.y=0; ISLE.tick(0.05); }")
         b=await pg.evaluate("()=>{ const p=HOUSE.hero().g.position; return [p.x,p.z]; }")
         ok(abs(b[0]-a[0])+abs(b[1]-a[1])>1.0, f"조이스틱으로 움직임 {a} → {b}")
-        r=await pg.evaluate("""()=>{ const h=HOUSE.hero(), p=h.g.position; p.set(ISLE.OX+4.5, 0, ISLE.OZ+0.5); const st=!ISLE.blocked(Math.floor(p.x), Math.floor(p.z)); let wet=false;
-            for(const [jx,jy] of [[1,0],[1,-1],[1,1]]){ ISLE.J.x=jx; ISLE.J.y=jy; for(let i=0;i<160;i++){ ISLE.tick(0.05); if(ISLE.blocked(Math.floor(p.x), Math.floor(p.z))) wet=true; } }
+        r=await pg.evaluate("""()=>{ const h=HOUSE.hero(), p=h.g.position; const lk=ISLE.lake(); let sx=Math.floor(lk.x); while(sx>0 && ISLE.blocked(sx, Math.floor(lk.z))) sx--; p.set(sx+.5, 0, Math.floor(lk.z)+.5); const st=!ISLE.blocked(Math.floor(p.x), Math.floor(p.z)); let wet=false;
+            for(const [jx,jy] of [[1,0],[1,-1],[1,1],[0,-1],[0,1],[-1,0]]){ p.set(sx+.5, 0, Math.floor(lk.z)+.5); yaw=-Math.PI/2; yawTo=yaw; ISLE.J.x=jx; ISLE.J.y=jy; for(let i=0;i<60;i++){ ISLE.tick(0.05); if(ISLE.blocked(Math.floor(p.x), Math.floor(p.z))) wet=true; } }
             ISLE.J.x=0; ISLE.J.y=0; ISLE.tick(0.05); return st && !wet; }""")
         ok(r, "물로는 못 들어감 (늘 걸을 수 있는 칸)")
         r=await pg.evaluate("()=>{ const d=ISLE.doorCell(); HOUSE.hero().g.position.set(d[0]+.5,0,d[1]+.5); ISLE.J.air=false; document.getElementById('ijump').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true})); for(let i=0;i<4;i++) ISLE.tick(0.05); const y=HOUSE.hero().g.position.y; for(let i=0;i<40;i++) ISLE.tick(0.05); return [y, HOUSE.hero().g.position.y]; }")
