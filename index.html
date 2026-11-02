@@ -2396,6 +2396,7 @@ body.ui-skin #selSet .gMore .tile:not(.card):not(.gbtn){width:96px}
 .ruEx small{color:#a99ed0;font-weight:800}
 .ruEx span{display:flex;align-items:center;gap:8px;font-size:17px;color:#e9e2ff;font-weight:800}
 .ruEx b{color:#7dffb2} .ruEx i{font-style:normal}
+/* (v552) 🔼 다음 학년 도전 */ .stUp{display:inline-block;margin:0 6px 0 0;padding:3px 10px;border-radius:99px;vertical-align:1px;background:linear-gradient(90deg,#ffd36a,#ff9d5c);color:#4a2400;font-size:12.5px;font-weight:700;box-shadow:0 2px 0 rgba(160,80,0,.25)} .stUp b{font-weight:900} .stSent.ab .abBx{display:inline-block;min-width:44px;margin:0 3px;padding:0 6px;border:2px solid #7c5cff;border-radius:8px;color:#5a32e6;font-weight:900;text-align:center;line-height:1.35} .stBonus.up{background:linear-gradient(90deg,#fff3c4,#ffe0b8);color:#8a4b00}
 /* (v551) 공부 화면이 밝아진 뒤 규칙 카드 글자가 흰색이라 안 보이던 것 */ #scStudy .ruT{color:#4b2fc0} #scStudy .ruL{color:#2a2350} #scStudy .ruL li::marker{color:#7c5cff} #scStudy .ruEx{background:rgba(124,92,255,.08)} #scStudy .ruEx small{color:#7c6bb0} #scStudy .ruEx span{color:#2a2350} #scStudy .ruEx b{color:#16a35a}
 .stSay.sm{width:30px;height:30px;flex:0 0 30px;font-size:14px}
 .stCard.deep{border-color:rgba(201,140,255,.5);background:rgba(160,90,240,.12)}
@@ -16261,7 +16262,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v552";
+const GAME_VER = "v553";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17161,7 +17162,7 @@ const Study = (function(){
     return out; }
   /* 한 과의 20문제 만들기 */
   function build(set, n, test){
-    ctx(set);
+    ctx(set); try{ if(gradeOf(set)==="mid") hsqLoad(); }catch(e){}   // (v552) 🔼 고등 도전 문제 은행
     const L=lessons(set), i=L.findIndex(x=>x.n===n), les=L[i], level=test?3:lv(set,n);
     tierNow = test ? 0 : tierOf(set,n);                                                   // (v273) ★1 · ★2 · 💜 심화 → (v301) 별 5개
     if(tierNow>=2){ if(!wantedNew(set,n).length){ if(tierNow===4) return buildChk(set,les); if(tierNow===5) return buildPrac(set,les); return tierNow===2 ? buildT2(set,les) : buildT3(set,les,(dlNow=deepLv(set,n))); } tierNow=1; }
@@ -17280,6 +17281,7 @@ const Study = (function(){
       shuffle(grp).forEach(w=>{ const t=bagT(B[1], w, gr, "k2e"), q=(t==="xfrm") ? (xQ(t, w, set, pool) || makeQ("spell", w, pool, lvq)) : (t==="tense"||t==="prep") ? (gramQ(t, w) || makeQ("k2e", w, pool, lvq)) : (t==="gx") ? (gxQ(w, gr) || makeQ("k2e", w, pool, lvq)) : (t==="be"||t==="s3"||t==="pl") ? (mkDeep(t, w, gr, pool) || makeQ("spell", w, pool, lvq)) : makeQ(t, w, pool, lvq); q.tg="★3"; out.push(q); }); }
     /* (v301) G5-6·중등 — 문장 만들기 판마다 2개 (사용자: 문장도 같이) */
     if(gr==="g56" || gr==="mid"){ let k=0; for(const w of shuffle(les.ws)){ if(k>=2) break; let q=null; try{ q=mkDeep("order", w, gr, pool); }catch(e){} if(q){ q.tg="★3 문장"; out.splice(Math.min(out.length, Math.round(out.length*(k+1)/3)), 0, q); k++; } } }
+    try{ const u=upQ(set, les, 2); if(u) out.push(u); }catch(e){ console.error(e); }   // (v552) 🔼 다음 학년 도전 (맨 끝)
     if(gr==="mid"){ try{ const G=stgQs(set, les, 4); if(G && G.qs.length){ const at=Math.round(out.length*0.6); out.splice(at, 0, G.card, ...G.qs); } }catch(e){ console.error(e); } }   // (v551) 🧩 이번 Stage 문법
     return out; }
   /* ── 💜 심화 판: 안내 → 복습 4문제 → 규칙 카드(학년) → 심화 문제 (단어 수 × 1.3, 10~16) ── */
@@ -17340,6 +17342,7 @@ const Study = (function(){
     if(gr==="g56"){ const L=lessons(set), i=L.findIndex(x=>x.n===les.n), S=load(), own={}; les.ws.forEach(w=>own[w.en]=1);   // (v301) 불규칙은 앞 Stage 것까지 쌓아서 (2개)
       const prev=[].concat(...L.slice(Math.max(0,i-6), i).map(x=>x.ws)).filter(w=>!own[w.en] && S.seen[w.en] && (own[w.en]=1));
       shuffle(prev).map(w=>mkDeep("ptype", w, gr, pool)).filter(Boolean).slice(0,2).forEach(q=>{ q.tg="💜 지난 불규칙"; out.push(q); }); }
+    try{ const u=upQ(set, les, 3); if(u) out.push(u); }catch(e){ console.error(e); }   // (v552) 🔼 다음 학년 도전 (맨 끝)
     return out; }
   function buildD2(set, les){
     const gr=gradeOf(set), pool=les.ws, ws=shuffle(les.ws), out=[{t:"intro", hd:"deep", dl:2, w:ws[0], ws:les.ws}], A=[], B=[];
@@ -17505,7 +17508,7 @@ const Study = (function(){
     rel(w, x){ const m=x[0].match(/\b(the|a|an|my|your|his|her|our|their|this|these|those|some|any|every|one|two|many) ((?:[a-z]+ ){0,2}?[a-z]+) (who|which) ([a-z]+)/); if(!m) return null;
       const noun=m[2].split(" ").pop(), at=m.index+m[0].length-m[4].length-1-m[3].length; if(x[0].charAt(at-2)==="," || REL_STOP[noun] || m[2].split(" ").some(z=>REL_STOP[z])) return null;
       return gxMk(w, "rel", x, at, m[3].length, [m[3], m[3]==="who" ? "which" : "who", "what"], m[3]==="who" ? "앞 말("+noun+")이 사람 → who" : "앞 말("+noun+")이 사람이 아닌 것 → which"); },
-    conj(w, x, gr){ const A=CJ_LV[gr]||CJ_LV.g56, ko=x[1]||""; const m=x[0].match(new RegExp("\\b("+A.join("|")+")\\s+(I|you|he|she|it|we|they|the|my|your|his|her|our|their|a|an|this|these|those|there|everyone|someone|nobody|people|[A-Z][a-z]+)\\b","i")); if(!m) return null;
+    conj(w, x, gr){ const A=CJ_LV[gr]||CJ_LV.g56, ko=x[1]||""; const m=x[0].match(new RegExp("\\b("+A.join("|")+"|"+A.map(z=>z.charAt(0).toUpperCase()+z.slice(1)).join("|")+")\\s+(I|you|he|she|it|we|they|the|my|your|his|her|our|their|a|an|this|these|those|there|everyone|someone|nobody|people|[A-Z][a-z]+)\\b")); if(!m) return null;   /* (v552) 대소문자 구분 — 'because of' 를 접속사로 잡던 것 */
       const c=m[1].toLowerCase(); if(c==="when" && /\?\s*$/.test(x[0])) return null; if(c==="if" && /\b(ask|asked|know|knew|wonder|wondered|see|check|checked|sure)\s+$/i.test(x[0].slice(0,m.index))) return null;
       if((c==="before"||c==="after"||c==="until") && !/^(I|you|he|she|it|we|they|[A-Z][a-z]+)$/.test(m[2])) return null;
       if(!CJ[c][0].test(ko)) return null; const D=shuffle((gr==="g34" ? CJ_LV.g56 : A).filter(o=>o!==c && !CJ[o][0].test(ko) && (CJ_NO[c]||[]).indexOf(o)<0)).slice(0,2);   /* 초3-4 는 답은 3개만 · 보기는 before·after 도 */ if(D.length<2) return null;
@@ -17530,6 +17533,31 @@ const Study = (function(){
     const L=shuffle(exAll(w).filter(KO_OK)); if(!L.length) return null; const B=GX_LV[gr], ks=k ? [k] : Object.keys(B), ord=[];
     const bag=ks.slice(); while(bag.length){ const tot=bag.reduce((t,z)=>t+(B[z]||1),0); let r=Math.random()*tot, i=0; for(; i<bag.length-1; i++){ r-=(B[bag[i]]||1); if(r<=0) break; } ord.push(bag.splice(i,1)[0]); }
     for(const t of ord){ for(const x of L){ let q=null; try{ q=GXF[t](w, x, gr); }catch(e){ q=null; } if(q) return q; } } return null; }
+  /* ══ (v552) 사용자: "그레이드마다 하나씩은 — G1-2 에서 G3-4 것을 야금야금 배우면서 조금씩 스텝업" — 🔼 다음 학년 도전
+     ★3 · ★4 판 맨 끝에 1문제 · 바로 위 학년 문법 · 같은 책에서 뒤 Stage 일수록 어려운 것 (3단계)
+     점수·별·복습 기록에는 안 들어감 · 틀려도 괜찮음 · 그 판에서 처음 맞히면 💎+2 · 중등 → 고등 은 고등 어법 문제 은행(data/hsq.json, 직접 쓰고 검수) */
+  const UP={ g12:{nm:"초3-4", steps:[["pl"],["pl","be"],["be","s3"]]},
+             g34:{nm:"초5-6", steps:[["tense","prep"],["inf","sup","tense"],["dur","conj","inf"]]},
+             g56:{nm:"중등", steps:[["ger","inf"],["perf","pass"],["rel","conj","pass","perf"]]},
+             mid:{nm:"고등", steps:[[1],[1,2],[2,3]]} };
+  let HSQ=null, hsqLd=null; const hsqLoad=()=>{ if(HSQ || hsqLd) return; hsqLd=fetch("data/hsq.json").then(r=>r.ok?r.json():null).then(j=>{ if(Array.isArray(j)) HSQ=j; hsqLd=null; }).catch(()=>{ hsqLd=null; }); };
+  const HS_NM={part:"분사형 형용사", voice:"능동·수동", agree:"수 일치", what:"what · that", reladv:"관계부사", ifp:"가정법", verb2:"to · -ing 뜻 차이", caus:"사역·지각동사", adj:"형용사 · 부사", indq:"간접의문문", it:"가주어 it", paral:"병렬 구조"};
+  function upHs(w, lvs){ if(!HSQ){ hsqLoad(); return null; } let seen={}; try{ seen=JSON.parse(localStorage.getItem("hyeng_hsq_seen")||"{}")||{}; }catch(e){}
+    let L=HSQ.map((x,i)=>Object.assign({i}, x)).filter(x=>lvs.indexOf(x.lv)>=0); if(!L.length) return null; let U=L.filter(x=>!seen[x.i]); if(!U.length){ L.forEach(x=>delete seen[x.i]); U=L; }
+    const x=shuffle(U)[0]; seen[x.i]=1; try{ localStorage.setItem("hyeng_hsq_seen", JSON.stringify(seen)); }catch(e){}
+    const E=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]), nm=HS_NM[x.k]||"어법";
+    if(x.lv===3){ const C=[[0,0],[1,0],[0,1],[1,1]].map(p=>x.A[p[0]]+" – "+x.B[p[1]]), sh=E(x.s).replace("(A)___",'<span class="abBx">(A)</span>').replace("(B)___",'<span class="abBx">(B)</span>');
+      return {t:"gram", w, so:1, ans:C[0], opts:shuffle(C), st:{pre:"", post:"", ko:x.ko||"", cap:false}, x:{why:x.why, kind:"up", lbl:"(A) · (B) 에 알맞은 것은? — "+nm, sh}}; }
+    const P=x.s.split("___"); if(P.length!==2) return null;
+    return {t:"gram", w, so:1, ans:x.o[0], opts:shuffle(x.o.slice()), st:{pre:P[0], post:P[1], ko:x.ko||"", cap:false}, x:{why:x.why, kind:"up", lbl:"빈칸에 알맞은 것은? — "+nm}}; }
+  function upQ(set, les, tier){ const gr=gradeOf(set), U=UP[gr]; if(!U || !les || les.fin) return null;
+    const L=lessons(set), i=L.findIndex(x=>x.n===les.n), live=L.filter(x=>!x.fin), p=Math.max(0, live.indexOf(les))/Math.max(1, live.length), st=U.steps[p<0.34 ? 0 : p<0.67 ? 1 : 2];
+    let q=null;
+    if(gr==="mid") q=upHs(les.ws[0], st);
+    else { gxIx(); const near=[0,1,-1,2,-2,-3,-4,-5,-6].map(d=>L[i+d]).filter(x=>x && !x.fin), W=[]; near.forEach(x=>(x.ws||[]).forEach(w=>{ if(!W.some(y=>y.en===w.en)) W.push(w); }));
+      const gen=(t, w)=>{ if(gr==="g12") return mkDeep(t, w, "g34", les.ws); if(t==="tense"||t==="prep") return gramQ(t, w); return gxQ(w, U===UP.g34 ? "g56" : "mid", t); };
+      outer: for(const t of shuffle(st.slice())){ for(const w of W.slice(0, 10).concat(shuffle(W.slice(10)))){ let r=null; try{ r=gen(t, w); }catch(e){ r=null; } if(r && r.st){ q=r; break outer; } } } }
+    if(!q) return null; q.up=1; q.upNm=U.nm; q.upk="up-"+set+"-"+les.n+"-"+tier; q.tg="틀려도 괜찮아요 · 맞히면 💎+2"; q.x=Object.assign({}, q.x||{}); return q; }
   /* (v551) 사용자: "중등 문법 돌이 아니라 스테이지에 그냥 같이 끼워 둬" — 중등 Stage 마다 「이번 Stage 문법」 하나
      쉬운 것부터 차례로 돌아가며 (그 Stage·옆 Stage 예문으로 3문제 이상 되는 것) · ★3 · ★4 에 규칙 카드(이 Stage 예문) + 그 문법 문제 · Stage 창에 이름 */
   const STG_GX=["prog","modal","inf","comp","dur","conj","ger","sup","perf","pass","rel"], stgC={};
@@ -17865,7 +17893,7 @@ const Study = (function(){
         if(t==="gx") return gxQ(w, gr);   // (v549)
         if(["opp","syn","pastc","def","xfam","xidm","xfrm","conf2","sent"].indexOf(t)>=0) return chkQ(t, w, set, O);
         return mkDeep(t, w, gr, O); }catch(e){ return null; } },
-    deepLv, dlCur:()=>dlNow, DL_MAX, estMin, dayTick, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
+    deepLv, dlCur:()=>dlNow, DL_MAX, estMin, dayTick, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} try{ Gift.add({st:[set,n,v]}); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
@@ -17972,7 +18000,7 @@ const StudyUI = {
     if(ok && this.combo>=8 && this.combo%8===0 && !this.oly && !this.test && !this.wk && !this.ex){ const C=$("stCut");   /* (v503) 시간 재는 시험에서는 문제를 가리지 않게 */ if(C){ C.classList.remove("on"); void C.offsetWidth; C.classList.add("on"); } } },
   view(v){ ["stPath","stLesson","stDone","stGram"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); $("scStudy").classList.toggle("vLesson", v==="stLesson"); $("scStudy").classList.toggle("vGram", v==="stGram"); this._v=v; this.thUpd(); /* (v484) 유치원 꾸미기 */ if(v!=="stPath") this.pop(null); if(v!=="stLesson") this.dgClean(); },
   /* ── 길 ── */
-  path(){ this.ex=null;   // (v328) 📝 시험이 끝나 길로 돌아오면 시험 판 표시는 지움
+  path(){ try{ if(Study.gradeOf(this.set)==="mid") Study.hsqLoad(); }catch(e){} this.ex=null;   // (v328) 📝 시험이 끝나 길로 돌아오면 시험 판 표시는 지움
     try{ HyHW.report(); }catch(e){}   // (v329) 📌 숙제 진행 → 선생님
     this.view("stPath");
     const B=Study.BOOKS, bk=B[this.book] ? this.book : "g12"; this.book=bk; const BK=B[bk];
@@ -18605,8 +18633,8 @@ const StudyUI = {
         +'<div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'+(q.st.ko?'<div class="stSentKo">'+(q.t==="conf" ? this.koMark(q.st.ko, w, true) : this.esc(q.st.ko))+'</div>':'')   /* (v511) 헷갈리는 짝: 해석 줄 정답 뜻은 답한 뒤에 */+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(dispEn(o))+'</button>').join("")+'</div>';
     } else if(q.t==="gram"){                                            // (v276) 시제·시간 전치사 빈칸
-      h='<div class="stKind">'+(q.x.lbl ? this.esc(q.x.lbl) : q.x.kind==="prep"?'⏳ 빈칸에 맞는 전치사는?':'⏪⏩ 시간 말을 보고 알맞은 모양은?')+'</div><div class="stPrompt sent">'+(q.x.head?'<div class="stFormB">'+q.x.head+'</div>':'')
-        +'<div class="stSent">'+this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post)+'</div>'+(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
+      h='<div class="stKind'+(q.up?' up':'')+'">'+(q.up?'<span class="stUp">🔼 '+this.esc(q.upNm)+' 도전</span>':'')+(q.x.lbl ? this.esc(q.x.lbl) : q.x.kind==="prep"?'⏳ 빈칸에 맞는 전치사는?':'⏪⏩ 시간 말을 보고 알맞은 모양은?')+'</div><div class="stPrompt sent">'+(q.x.head?'<div class="stFormB">'+q.x.head+'</div>':'')
+        +'<div class="stSent'+(q.x.sh?' ab':'')+'">'+(q.x.sh ? q.x.sh : this.esc(q.st.pre)+'<u>&nbsp;</u>'+this.esc(q.st.post))+'</div>'+(q.st.ko?'<div class="stSentKo">'+this.esc(q.st.ko)+'</div>':'')+'</div>'
         +'<div class="stOpts">'+q.opts.map((o,k)=>'<button class="stOpt en" data-k="'+k+'">'+this.esc(dispEn(o))+'</button>').join("")+'</div>';
     } else if(q.t==="svs"){                                             // (v380) 모음 소리가 같은 단어 (단모음)
       const X=q.x||{}, en=String(w.en), wd = X.v1 ? '<u class="onU">'+this.esc(en.charAt(0))+'</u>'+this.esc(en.slice(1)) : this.esc(X.pre||"")+'<u class="onU">'+this.esc(X.v||"")+'</u>'+this.esc(X.post||"");
@@ -18796,12 +18824,14 @@ const StudyUI = {
     const q=this.qs[this.i]; this.locked=true; if(this.ex && q.t!=="intro" && q._r==null){ q._r=ok?1:0; try{ HyExam.prog(this); }catch(e){} }   // (v328) 📝 시험 — 처음 답만
     const nf=(q.step!=null || q.fam || q.wu); this.see(q.w.en); if(q.ws && !nf) q.ws.forEach(o=>this.see(o.en));
     if(q.retry) return this.retryResult(q, ok);                         // (v272) 틀린 뒤 바로 한 번 더
-    if(!q.rd) ((nf ? null : q.ws)||[q.w]).forEach(o=>{ try{ Study.mark(o.en, ok && !q.again); }catch(e){} if(ok && !q.again && !this.missed[o.en]) this.okW[o.en]=1; });   // 복습 칸 · (v225) 도감은 한 번에 맞힌 단어만
+    if(!q.rd && !q.up) ((nf ? null : q.ws)||[q.w]).forEach(o=>{ try{ Study.mark(o.en, ok && !q.again); }catch(e){} if(ok && !q.again && !this.missed[o.en]) this.okW[o.en]=1; });   // 복습 칸 · (v225) 도감은 한 번에 맞힌 단어만
     let bonus="";
     if(ok && !q.again){ this.combo++; this.best=Math.max(this.best,this.combo);
       if(this.combo%5===0){ bonus='<em class="stBonus">🔥 '+this.combo+' 콤보!</em>'; try{ SFX.tone(880,.18,"triangle",.05,1760); }catch(e){} } }   // (v226) 보석은 Stage를 끝낼 때만
-    else if(!ok) this.combo=0;
-    if(ok){ this.done++; this.nOk=(this.nOk|0)+1; if(!q.again) this.first++; SFX.tone(660,.14,"triangle",.05,1320); if(!this.test && !this.oly && !q.chk && !q.kn && !q.sure && !q.once) this.adapt(q, true); if(q.kn) this.knownOk(q); if(q.sure) try{ Study.cfSet(q.w.en, 0); }catch(e){} }
+    else if(!ok && !q.up) this.combo=0;
+    if(ok && q.up){ let g=0; try{ if(q.upk && !Wallet.paid(q.upk)){ Wallet.pay(q.upk); Wallet.addGems(2, "🔼 "+q.upNm+" 도전"); g=2; } }catch(e){} bonus+='<em class="stBonus up">🔼 '+q.upNm+' 문제를 맞혔어요!'+(g?' 💎+2':'')+'</em>'; }   // (v552) 다음 학년 도전 — 점수 밖
+    if(ok){ this.done++; this.nOk=(this.nOk|0)+1; if(!q.again && !q.up) this.first++; SFX.tone(660,.14,"triangle",.05,1320); if(!this.test && !this.oly && !q.chk && !q.kn && !q.sure && !q.once) this.adapt(q, true); if(q.kn) this.knownOk(q); if(q.sure) try{ Study.cfSet(q.w.en, 0); }catch(e){} }
+    else if(q.up){ this.done++; SFX.tone(300,.15,"triangle",.04); }   // (v552) 🔼 도전은 틀려도 점수·복습에 안 들어감
     else { this.wrong++; this._rm=(this._rm|0)+1; if(!q.again) this._fw=(this._fw|0)+1; this.missed[q.w.en]=1; delete this.okW[q.w.en]; SFX.tone(180,.18,"square",.04);
       if(this.test){ if(this.wrong>2){ this.finish(false); return; } this.done++; }
       else if(this.tier===3 && this.dl===3){ this.done++; if(this.wrong>2){ this._out=1; clearTimeout(this._outT); this._outT=setTimeout(()=>this.outEnd(), 1800); } }   // (v325) 💜3 — 힌트 없이, 3번 틀리면 끝 (답은 잠깐 보여 줌)
@@ -18835,7 +18865,7 @@ const StudyUI = {
     if((q.t==="sent" && q.st) || q.t==="sent2" || q.t==="talk") $("stQ").querySelectorAll(".stSent u:not(.koU), .stTalk u:not(.koU)").forEach(s2=>{ s2.textContent=q.w.en; s2.className=ok?"ok":"bad"; });   /* (v512) 해석 줄 뜻 칸(koU)은 영어로 덮지 않음 */
     this.talkKo(q);
     f.innerHTML='<div class="stMsg">'+mc+(ok ? '<b>'+cheer[Math.floor(Math.random()*cheer.length)]+'</b>'+bonus+this.alt(q.w)+this.why(q)
-      : '<b>'+(q.tout?'⏰ 시간이 다 됐어요':cheer[Math.floor(Math.random()*cheer.length)])+'</b><span>정답: '+this.ansH(q)+'</span>'+this.why(q)+this.alt(q.w)+(this.test||this.oly||q.chk||q.kn||q.sure||q.once?(q.kn?'<small>이 단어는 이 판에서 같이 배워요</small>':q.sure?'<small>🗂️ 헷갈리는 단어로 옮겼어요 · 내일 확인에 두 번 나와요</small>':''):(this.qs[this.i+1] && this.qs[this.i+1].retry ? '<small>🔁 바로 한 번 더 해 봐요 · 뒤에도 또 나와요</small>' : '<small>이 문제는 뒤에 한 번 더 나와요</small>')))+'</div>'
+      : '<b>'+(q.tout?'⏰ 시간이 다 됐어요':cheer[Math.floor(Math.random()*cheer.length)])+'</b><span>정답: '+this.ansH(q)+'</span>'+this.why(q)+(q.up?'':this.alt(q.w))+(q.up?'<small>🔼 '+q.upNm+' 문제예요 · 지금 몰라도 괜찮아요 · 점수에는 안 들어가요</small>':'')+(q.up||this.test||this.oly||q.chk||q.kn||q.sure||q.once?(q.kn?'<small>이 단어는 이 판에서 같이 배워요</small>':q.sure?'<small>🗂️ 헷갈리는 단어로 옮겼어요 · 내일 확인에 두 번 나와요</small>':''):(this.qs[this.i+1] && this.qs[this.i+1].retry ? '<small>🔁 바로 한 번 더 해 봐요 · 뒤에도 또 나와요</small>' : '<small>이 문제는 뒤에 한 번 더 나와요</small>')))+'</div>'
       +'<button class="stCheck go" id="stCheck">계속 ▶</button>';
     if(q.t==="sentp") this.say(q.form);
     else if(q.kans) this.say(q.kans);
