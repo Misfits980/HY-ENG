@@ -640,7 +640,8 @@ const MT_EPOCH=536;
     if(!PAD.ns) for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && /^hyeng_isle_(lot|house|tr|ftp_)/.test(k)) del.push(k); }
     del.forEach(k=>localStorage.removeItem(k)); localStorage.setItem(kE, String(MT_EPOCH)); console.log("[My Town] 처음부터 (v536)", del.length); }catch(e){} })();
 let padT=0;
-function padSave(){ if(!PAD.ready) return;   /* 처음 열 때 기본값을 쓰는 것은 '고친 것'이 아님 (서버 것을 받아야 함) */ try{ localStorage.setItem("hyeng_proto_"+PAD.ns+"_mt", String(Date.now())); PAD.kid.at=Date.now(); sessionStorage.setItem("hyeng_kid", JSON.stringify(PAD.kid)); }catch(e){} clearTimeout(padT); padT=setTimeout(()=>padPush(), 4000); }
+/* (v561) 처음 열 때(서버에서 받아 오기 전) 저절로 쓰이는 것이 _mt 를 올려서, 다른 공용 패드에서 이어 하기가 안 되던 것 고침 — 받아 오기가 끝날 때까지 미뤘다가 저장 */
+function padSave(){ if(!PAD.ready) return; if(PAD.kid && !PAD.pulled){ PAD.pend=1; return; }   /* 처음 열 때 기본값을 쓰는 것은 '고친 것'이 아님 (서버 것을 받아야 함) */ try{ localStorage.setItem("hyeng_proto_"+PAD.ns+"_mt", String(Date.now())); PAD.kid.at=Date.now(); sessionStorage.setItem("hyeng_kid", JSON.stringify(PAD.kid)); }catch(e){} clearTimeout(padT); padT=setTimeout(()=>padPush(), 4000); }
 function padDump(){ const pre="hyeng_proto_"+PAD.ns, o={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(pre)===0 && k.charAt(pre.length)!=="_") o[k.slice(pre.length)]=localStorage.getItem(k); } return o; }
 const padPath=()=>"/hy/life/sv/"+encodeURIComponent(PAD.id);
 async function padPush(){ if(!PAD.kid) return false; try{ await NET.put(padPath(), {at:Date.now(), n:String(PAD.kid.n||"").slice(0,12), d:JSON.stringify(padDump())}); return true; }catch(e){ return false; } }
@@ -3991,7 +3992,7 @@ if(PAD.blocked){ const d=document.createElement("div"); d.id="padBlock"; d.inner
     +'<button class="btn on" id="pbBack">🎮 게임으로</button><button class="btn" id="pbOwn">🧸 나는 '+esc(PAD.owner.n||"")+'</button></div>'; document.body.appendChild(d);
   $("pbBack").onclick=()=>{ location.href="../index.html"; }; $("pbOwn").onclick=()=>{ try{ sessionStorage.setItem("hyeng_kid", JSON.stringify({id:PAD.owner.k, n:PAD.owner.n, t:PAD.owner.t||"all", pk:Date.now(), at:Date.now(), ok:1})); }catch(e){} location.reload(); }; }
 if(PAD.shared && !PAD.blocked){ const w=$("hWho"); w.hidden=false; w.querySelector("b").textContent=PAD.kid ? String(PAD.kid.n||"").slice(0,8) : "누구?"; w.onclick=async()=>{ if(PAD.kid) await padPush(); openWho(true); };
-  if(!PAD.kid) setTimeout(()=>openWho(false), 300); else setTimeout(()=>padPull(), 200);
+  if(!PAD.kid) setTimeout(()=>openWho(false), 300); else setTimeout(()=>padPull().catch(()=>0).then(r=>{ PAD.pulled=true; if(!r && PAD.pend){ PAD.pend=0; padSave(); } }), 200);
   const flush=()=>{ if(PAD.kid && padT){ clearTimeout(padT); padT=0; padPush(); } }; addEventListener("pagehide", flush); document.addEventListener("visibilitychange", ()=>{ if(document.hidden) flush(); }); }   // 나갈 때 바로 서버에
 /* (v414) 🕐 하늘·빛 = 실제 한국 시간 (아침·낮·저녁·밤) · 🌧 비 · ✨ 황금 물고기 떼 알림 */
 const ENV={a:{sky:0xffd6b4, h:0.72, s:0xffc890, si:0.8}, d:{sky:0, h:0.75, s:0xffe2b8, si:0.85}, e:{sky:0xffa77a, h:0.62, s:0xff9a5c, si:0.72}, n:{sky:0x1e2b52, h:0.45, s:0x9fb4ff, si:0.38}};
