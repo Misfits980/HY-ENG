@@ -5547,6 +5547,10 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 #scStudy.thK.vDone .vHero{height:96px}
 #scStudy.thK.vDone .vHero::before{top:0;width:260px;height:130px;margin-left:-130px;opacity:1}
 #scStudy{overflow-x:hidden;overscroll-behavior-x:none}
+/* (v561) 스크롤 올리고 내릴 때 위 막대가 「부르르」 — 아이패드·아이폰 튕김(바운스) 동안 붙어 있는 막대가 같이 흔들림 → 튕김 끄고 막대를 따로 한 장(레이어)으로 */
+#scStudy{overscroll-behavior-y:none}
+#scStudy .stBar{-webkit-backface-visibility:hidden;backface-visibility:hidden;transform:translateZ(0)}
+#g6Bg{-webkit-backface-visibility:hidden;backface-visibility:hidden;transform:translateZ(0)}
 #scStudy .stWrap{overflow-x:clip}
 #scStudy.thB .stCut:not(.on){display:none}
 .sbR2{overscroll-behavior-x:contain;touch-action:pan-x}
@@ -13667,8 +13671,10 @@ function playLater(fn, ms){ let left=ms, last=performance.now();
   setInterval(()=>{ if(G.running && !document.hidden) arm(); else if(!G.running && armed && !document.hidden){ armed=false; skip=true; try{ history.back(); }catch(e){ skip=false; } setTimeout(()=>{ skip=false; }, 1500); } }, 800);
   addEventListener("popstate", ()=>{ if(skip){ skip=false; return; } armed=false; if(G.running){ if(!G.paused && !G.overFade && !G.finishing) togglePause(); arm(); } });
 }catch(e){} })();
+const StudyCover={ el:null, on(){ const S=this.el||(this.el=document.getElementById("scStudy")); return !!(S && S.classList.contains("on")); } };
 function loop(time){ G._ft=time; const a=Perf.on?performance.now():0; Perf.pre(a, time); try{ loopBody(); }catch(e){ showErr(e && e.message); } if(Perf.on) Perf.frame(a, performance.now(), time); }
 function loopBody(){
+  if(!G.running && StudyCover.on()){ clock.getDelta(); return; }   /* (v561) Daily 30 화면(배경이 꽉 막힘)이 열려 있으면 뒤 3D 를 안 그림 — 아이패드에서 뒤 그림 + 스크롤이 겹쳐 위 막대가 「부르르」 떨리던 것 */
   if(Board.o && B3.R && !G.running){ clock.getDelta(); return; }   /* (v428) 🎲 3D 보드가 열려 있으면 뒤의 달리기 화면은 안 그림 (그림 두 개 = 아이패드가 힘듦) */
   let dt=Math.min(clock.getDelta(),.05);
   /* (v370) 아이폰 측정: 계산 1ms 인데도 가끔 한 프레임(33ms)씩 늦음 → 그 순간 세상이 두 칸 뛰어 「툭」
@@ -16264,7 +16270,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v560";
+const GAME_VER = "v561";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
