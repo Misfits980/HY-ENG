@@ -74,7 +74,7 @@ body.isleOn #ipBan.on{display:flex} #ipBan i{font-style:normal;font-size:20px} #
     try{ say(Q.w[0]); }catch(e){} }
   function oxTick(){ if(!oxNear()){ S.ox.i=-1; return null; } const now=T(), i=Math.floor(now/OXP), ph=now-i*OXP, Q=oxQ(i), at=oxIn();
     /* 화면이 느려 판정 2초를 놓쳤으면 (지난 문제 · 바로 앞 두 문제까지만) 지금 서 있는 자리로 판정 */
-    if(S.ox.i>=0 && S.ox.i<i && S.ox.i>=i-2 && S.ox.judged!==S.ox.i && S.ox.lastAt) oxJudge(S.ox.i, at);
+    if(S.ox.i>=0 && S.ox.i===i-1 && ph<2500 && S.ox.judged!==S.ox.i && S.ox.lastAt) oxJudge(S.ox.i, at);   /* 막 넘어간 직후만 (시간이 크게 건너뛰면 판정 안 함) */
     if(S.ox.i!==i){ S.ox.i=i; S.ox.ok=null; }
     S.ox.lastAt=at;
     if(ph>=OXJ && S.ox.judged!==i) oxJudge(i, at);

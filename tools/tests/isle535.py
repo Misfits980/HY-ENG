@@ -46,7 +46,7 @@ async def main():
         print("①", r)
         ok(all(r[k] for k in ("me","menu","res","q","chat","tool","jump","joy")), "① 새 화면 단추 다 보임 (화면 안)")
         ok(r["oldTop"]=="none" and r["oldBot"]=="none" and r["oldHud"]=="none", "① 옛 위·아래 단추 숨김")
-        ok("루아" in r["name"] and ("동" in r["name"] or "광장" in r["name"]), f"① 얼굴 배지 = 이름 + 있는 곳 {r['name']!r}")
+        ok("루아" in r["name"] and ("동" in r["name"] or "광장" in r["name"] or "길" in r["name"]), f"① 얼굴 배지 = 이름 + 있는 곳 {r['name']!r}")
         ok("오늘 할 일" in r["q4"], f"① 할 일 카드 {r['q4']!r}")
         # ②
         await A.evaluate("()=>document.getElementById('ihTool').click()"); await A.wait_for_timeout(700)
@@ -62,16 +62,16 @@ async def main():
         # ⑥ 집 모양
         await A.wait_for_timeout(800)
         lid=await A.evaluate("()=>ISLE.myHouse().id")
-        rec=DB["hy"]["isle"]["lot"][lid]
+        rec=DB["hy"]["isle"]["lot2"][lid]
         ok(rec.get("t")==3, f"⑥ 공부한 날 12일 → 3단계 서버 {rec}")
         r=await A.evaluate("()=>{ const t=document.querySelector('.hsTop').innerText; return [t, document.querySelectorAll('[data-hs]').length]; }")
-        ok("3단계" in r[0] and r[1]==8, f"⑥ 창: 3단계 · 모양·색 8개 {r}")
+        ok("3단계" in r[0] and r[1]==12, f"⑥ 창: 3단계 · 모양·색 12개 (뾰족·넓은·모던 × 4색) {r}")
         o0=await A.evaluate("()=>{ window.__o=ISLE.myHouse().obj; return ISLE.myHouse().style; }")
         pick="B_green" if o0!="B_green" else "A_blue"
         await A.evaluate("(k)=>document.querySelector('[data-hs=\"'+k+'\"]').click()", pick); await A.wait_for_timeout(700)
         r=await A.evaluate("()=>[ISLE.myHouse().style, ISLE.myHouse().obj!==window.__o, !!ISLE.myHouse().obj.parent, ISLE.myHouse().obj.userData.lot===ISLE.myHouse(), document.querySelector('[data-hs].on').dataset.hs]")
         ok(r[0]==pick and r[1] and r[2] and r[3] and r[4]==pick, f"⑥ 고르면 내 집이 바로 바뀜 {r}")
-        ok(DB["hy"]["isle"]["lot"][lid].get("h")==pick, f"⑥ 서버 h = {DB['hy']['isle']['lot'][lid].get('h')}")
+        ok(DB["hy"]["isle"]["lot2"][lid].get("h")==pick, f"⑥ 서버 h = {DB['hy']['isle']['lot2'][lid].get('h')}")
         await A.evaluate("()=>document.getElementById('hsX').click()")
         B=await kid("BBBBB","하준",0)
         ok(await enter(B), "친구 들어감"); await B.wait_for_timeout(1200)
@@ -80,14 +80,14 @@ async def main():
         ok(r[2]==1, f"⑥ 공부 0일 = 1단계 작은 집 {r}")
         # ⑦ 그리기 횟수 · 문 길
         await B.evaluate("""async ()=>{ const ids=[]; for(let h=1;h<=3;h++) for(let n=1;n<=16;n++) ids.push(h+'-'+n);
-            for(const id of ids){ const v=await NET.get('/hy/isle/lot/'+id); if(!v) await NET.put('/hy/isle/lot/'+id, {k:'x'+id, c:'ZZZZZ', n:'친구'+id, at:1, h:['A_red','B_blue','A_yellow','B_green'][id.length%4], t:1+(+id.split('-')[1])%4}); } await ISLE.loadLots(); ISLE.rebuild(); }""")
+            for(const id of ids){ const v=await NET.get('/hy/isle/lot2/'+id); if(!v) await NET.put('/hy/isle/lot2/'+id, {k:'x'+id, c:'ZZZZZ', n:'친구'+id, at:1, h:['A_red','B_blue','A_yellow','B_green'][id.length%4], t:1+(+id.split('-')[1])%4}); } await ISLE.loadLots(); ISLE.rebuild(); }""")
         await B.wait_for_timeout(1500)
         r=await B.evaluate("()=>{ renderer.info.autoReset=true; TOON.draw(); return {calls:renderer.info.render.calls, owned:ISLE.lots.filter(l=>l.owner).length, stuck:ISLE.stuckDoors(), meshes:ISLE.G.children.length, t4:ISLE.lots.filter(l=>l.tier===4).length}; }")
         print("⑦", r)
         ok(r["owned"]>=48 and not r["stuck"], f"⑦ 집 {r['owned']}채 · 문 길 막힘 없음")
         ok(r["calls"]<260, f"⑦ 한 장면 그리기 {r['calls']}번 (울타리·꽃은 한 덩어리)")
         # ④ 말풍선 · 빛 고리
-        await A.evaluate("()=>{ const L=ISLE.lake(), h=HOUSE.hero(); let sx=Math.floor(L.x); while(ISLE.blocked(sx,Math.floor(L.z))) sx--; h.g.position.set(sx+.5,0,Math.floor(L.z)+.5); h.cx=sx; h.cz=Math.floor(L.z); camSnap=true; }")
+        await A.evaluate("()=>{ const S=ISLE.SPOT.lake, h=HOUSE.hero(); h.g.position.set(S[0]-1,0,S[2]); h.cx=Math.floor(S[0]-1); h.cz=Math.floor(S[2]); camSnap=true; }")
         ok(await until(A, "()=>IHUD.ring() && IHUD.ring().visible", 30), "④ 가까운 할 일 = 바닥 빛 고리")
         r=await A.evaluate("()=>{ const L=LBL.find(l=>l.d.k==='lake'), F=LBL.find(l=>l.d.k==='tower'); return [L && !L.el.classList.contains('far'), getComputedStyle(L.el).backgroundImage.indexOf('gradient')>=0, F && F.el.classList.contains('far'), F && getComputedStyle(F.el).opacity]; }")
         ok(r[0] and r[1] and r[2] and float(r[3])>0.3, f"④ 가까이 = 초록 말풍선 · 멀리 = 작은 아이콘(보임) {r}")

@@ -82,10 +82,11 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
     return '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#bfe6ff" stroke="#3b2433" stroke-width="2.5"/><path d="M6 38c2-7 8-10 14-10s12 3 14 10" fill="'+tp+'" stroke="#3b2433" stroke-width="2"/>'
       +'<circle cx="20" cy="19" r="10.5" fill="'+sk+'" stroke="#3b2433" stroke-width="2"/><path d="M9.6 18.5c0-7 4.6-10 10.4-10s10.4 3 10.4 10c-3-3.6-7-4.6-10.4-4.6S12.6 15 9.6 18.5z" fill="'+hc+'" stroke="#3b2433" stroke-width="1.6"/>'
       +'<circle cx="16.2" cy="20.5" r="1.6" fill="#3b2433"/><circle cx="23.8" cy="20.5" r="1.6" fill="#3b2433"/><path d="M17 24.4q3 2.6 6 0" fill="none" stroke="#3b2433" stroke-width="1.6" stroke-linecap="round"/><circle cx="13.6" cy="23.6" r="1.6" fill="#ff9ab0" opacity=".7"/><circle cx="26.4" cy="23.6" r="1.6" fill="#ff9ab0" opacity=".7"/></svg>'; }
-  function where(){ const h=hero && hero.g.position; if(!h) return "🏝 우리 마을"; const x=h.x-ISLE.OX, z=h.z-ISLE.OZ; let best="🏝 광장", bd=17.6*17.6;
-    if(x*x+z*z<bd) return "🏝 광장";
-    ISLE.HOODS.forEach(([nm,k])=>{ const c=ISLE.D[k]; const dd=(x-c[0])**2+(z-c[1])**2; if(dd<(ISLE.HOODR+1)**2 && dd<bd){ bd=dd; best="🏘 "+nm; } });
-    const f=ISLE.D.farm; if((x-f[0])**2+(z-f[1])**2<100) best="🌱 밭 섬"; return best; }
+  function where(){ const h=hero && hero.g.position; if(!h) return "🏝 우리 마을"; const x=h.x-ISLE.OX, z=h.z-ISLE.OZ;   /* (v536) 이름 있는 길 */
+    if(x*x+z*z<64) return "⛲ 광장"; let best=null, bd=36; (ISLE.lots||[]).forEach(L=>{ const d=(L.x-x)**2+(L.z-z)**2; if(d<bd){ bd=d; best=L; } });
+    if(best){ const hi=(window.ISLE_MAP && ISLE_MAP.hoods.find(q=>q.id===best.hood)); if(hi) return hi.ic+" "+hi.nm; }
+    const S=window.ISLE_MAP && ISLE_MAP.spots; if(S){ const near=(p,r)=>(p[0]-x)**2+(p[1]-z)**2<r*r; if(near(S.farm,8)) return "🌾 풍차 밭"; if(near([S.park.x,S.park.z],S.park.r+1)) return "🎡 공원"; if(near(S.market,9)) return "🏪 시장 거리"; if(near([S.lake.x,S.lake.z],10)) return "🎣 호수"; if(near(S.school,7)) return "🏫 학교"; if(near(S.tower,7)) return "🗼 타워"; if(near(S.mine,8)) return "⛏ 광산"; }
+    return "🏝 우리 마을"; }
   let meKey="";
   function drawMe(){ let n="나"; try{ n=String(kidInfo().n||localStorage.getItem("hyeng_nick")||"나").replace(/^👤\s*/,""); }catch(e){} const w=where(), k=n+"|"+w+"|"+JSON.stringify(av);
     if(k===meKey) return; meKey=k; $("ihMe").innerHTML=face()+'<div><b>'+esc(n)+'</b><small>'+w+'</small></div>'; }

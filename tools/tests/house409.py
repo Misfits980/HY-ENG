@@ -15,7 +15,7 @@ async def main():
         ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
         pg=await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route("**/*", route); await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(2500)
-        await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); }")
+        await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); "+LEGACY_ROOM+" }")
         await pg.reload(); await pg.wait_for_timeout(2500)
         async def until(js, n=80):
             for _ in range(n):

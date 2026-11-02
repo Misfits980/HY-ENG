@@ -32,7 +32,7 @@ async def main():
         # ── 처음 화면: 안내 · 이름표 · 독 · 디버그 글씨 없음
         ok(await E("()=>document.getElementById('coach').classList.contains('on') && /바닥을/.test(document.getElementById('coachT').innerText)"), "처음 들어오면 Mia 안내 (바닥을 톡)")
         ok(await E("()=>getComputedStyle(document.getElementById('fps')).display==='none'"), "fps 글씨 안 보임")
-        ok(await E("()=>HOUSE.LBL().map(l=>l.d.k).join()==='door' && HOUSE.LBL()[0].el.style.display!=='none'"), "방: 🚪 나가기 이름표")
+        ok(await E("()=>{ const L=HOUSE.LBL(), d=L.find(l=>l.d.k==='door'); return !!d && d.el.style.display!=='none' && L.filter(l=>/^hd_/.test(l.d.k)).length===3; }"), "방: 🚪 나가기 이름표 + (v536) 🔒 부엌·침실·2층 문")
         ok(await E("()=>document.getElementById('bOut').innerText.includes('나가기') && !!document.getElementById('bVill') && !!document.getElementById('bMine')"), "독: 🚪 나가기 · 마당 🏘 마을 · 마을 ⛏ 광산")
         # ── 🚪 방 문
         d = await E("()=>{ const D=HOUSE.roomDoor(), R=HOUSE.RN(); return [!!D && D.parent===HOUSE.walls[3], HOUSE.wallFits(3,R-1), HOUSE.wallFits(3,R-2) || HOUSE.wplaced.some(p=>p.side===3&&p.s===R-2), HOUSE.fits('plant',0,R-1,0), HOUSE.fits('rug',0,R-2,0)]; }")
@@ -50,7 +50,7 @@ async def main():
         a = await E("()=>{ const h=HOUSE.hero(); return [h.cx, h.cz, !!h.slide, HOUSE.houseDoor().userData.open]; }")
         ok(a[0] == 1 and a[1] == 3 and a[3] == 1, f"마당: 집 문이 열리고 문 앞(1,3)으로 걸어 나옴 {a}")
         ok(await until("()=>!HOUSE.hero().slide && !HOUSE.trip().busy"), "걸어 나오기 끝")
-        ok(await E("()=>HOUSE.tut().s")==3, "마당에 오면 안내가 낚시로 건너뜀 (가구 안내 건너뛰어도 따라감)")
+        ok(await E("()=>HOUSE.tut().s")==6, "(v536) 밖에 나오면 안내가 낚시로 건너뜀 (침대·책상 안내 건너뛰어도 따라감)")
         L = await E("()=>HOUSE.LBL().map(l=>l.d.k)")
         ok(L == ["house", "pond", "shop", "bench", "pot", "farm", "gate", "parc0", "parc1", "parc2"], f"마당 이름표 7 + (v415) 🌱 새 땅 3 {L}")
         await pg.wait_for_timeout(500)
@@ -69,7 +69,7 @@ async def main():
         ok(await E("()=>document.getElementById('fc').classList.contains('go') && /지금/.test(document.getElementById('fc').innerText)"), "입질 → ③ 지금 톡!")
         await E("()=>HOUSE.tapWhileFishing()")
         ok(await until("()=>{ if(HOUSE.F.st==='fight') HOUSE.winFight(); return HOUSE.F.st==='quiz'; }"), "톡 → (줄다리기) → 잡음")
-        ok(await E("()=>!document.getElementById('fc').classList.contains('on') && HOUSE.tut().s===4"), "잡으면 코치 닫힘 · 안내 다음 (가게에서 팔기)")
+        ok(await E("()=>!document.getElementById('fc').classList.contains('on') && HOUSE.tut().s===7"), "잡으면 코치 닫힘 · 안내 다음 (가게에서 팔기)")
         await E("()=>document.getElementById('qOk').click()"); await pg.wait_for_timeout(300)
         # ── 📋 할 일
         ok(await E("()=>!document.getElementById('hQn').hidden && document.getElementById('hQn').innerText==='1'"), "할 일 1개 끝 → 📋 에 빨간 1")
@@ -94,7 +94,7 @@ async def main():
         ok(v[0] == 1 and v[1] == 6 and v[2], f"마을 왼쪽 길 끝에서 걸어 들어옴 {v}")
         await until("()=>!HOUSE.trip().busy && !HOUSE.hero().slide")
         ok(await E("()=>HOUSE.LBL().map(l=>l.d.k).join()") == "gate,east,tower,board", "마을 이름표: 마당 · 광산 · (v422) 🗼 타워 · 부탁")
-        ok(await E("()=>HOUSE.tut().s") == 7 and await E("()=>/영어로/.test(document.getElementById('coachT').innerText)"), "마을 안내 (마을 사람 = 영어로)")
+        ok(await E("()=>HOUSE.tut().s") >= 7, "(v536) 마을 안내 단계는 없어짐 — 낚시·팔기 다음")
         await E("()=>document.getElementById('coachSkip').click()")
         ok(await E("()=>HOUSE.tut().s>=HOUSE.TUT.length && !document.getElementById('coach').classList.contains('on')"), "안내 그만 보기")
         # 광산 ↔ 마을
@@ -114,7 +114,7 @@ async def main():
         ok(await E("()=>HOUSE.qList().find(q=>q.id==='s:visit').c>=1"), "할 일 '이웃 집 놀러 가기' 체크")
         # 다시 보기
         await E("()=>{ HOUSE.openQ(); }"); await pg.wait_for_timeout(150); await E("()=>document.getElementById('qTut').click()"); await pg.wait_for_timeout(500)
-        ok(await E("()=>HOUSE.tut().s===7 && document.getElementById('coach').classList.contains('on')"), "📋 → Mia 안내 다시 보기 (지금 있는 곳부터)")
+        ok(await E("()=>HOUSE.tut().s===HOUSE.TUT.findIndex(S=>S.pl==='*') && document.getElementById('coach').classList.contains('on')"), "📋 → Mia 안내 다시 보기 (지금 있는 곳부터 · 없으면 밖 안내부터)")
         ok(not errs, "오류 없음 " + str(errs[:3]))
         await br.close()
     print("결과:", "통과" if not bad else f"실패 {len(bad)}")

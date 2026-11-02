@@ -48,3 +48,6 @@ SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('s
   if(q.t==='spell'||q.t==='dict'){ for(const c of q.w.en.slice((q.got||'').length)){ const b=[...document.querySelectorAll('.stTile')].find(x=>!x.disabled && x.textContent===c); b.click(); } document.getElementById('stCheck').click(); document.getElementById('stCheck').click(); return q.t; }
   let k= (q.t==='ox'||q.t==='oxs') ? (q.truth?0:1) : q.opts.findIndex(o=>o.en===q.w.en); if(wrongFirst && !q.again) k=(k+1)%((q.t==='ox'||q.t==='oxs')?2:q.opts.length);
   document.querySelector('.stOpt[data-k="'+k+'"]').click(); return q.t; }"""
+
+# (v536) My Town 은 빈 방에서 시작 — 예전 테스트(가구 7개·창문 2·그림 1 기준)는 이 방을 넣고 시작 (새 문 자리 피해서)
+LEGACY_ROOM = """localStorage.setItem('hyeng_proto_room', JSON.stringify({p:[["rug",2,2,0,0],["bed",5,1,0,0],["shelf",2,0,0,0],["plant",5,0,0,0],["desk",2,4,0,0],["chair",3,3,2,0],["chest",0,3,3,0]], wl:[["window",0,2,0],["window",3,3,1],["painting",3,4,0]], f:0, w:0, rn:6, s:{chair:1, shelf:1, plant:1, lamp:1, sofa:1}}));"""

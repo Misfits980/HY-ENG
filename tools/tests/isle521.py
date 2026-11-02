@@ -49,7 +49,7 @@ async def main():
         await pg.wait_for_timeout(800)
         r=await pg.evaluate("""()=>{ let w=0; for(const v of ISLE.W) w+=v; const h=HOUSE.hero(), d=ISLE.doorCell(), m=ISLE.myHouse();
             let toon=0, mats=0; ISLE.G.traverse(o=>{ if(o.isMesh && o.material && o.material.isMeshStandardMaterial){ mats++; if(o.material.userData.toon) toon++; } });
-            const sea=ISLE.blocked(Math.floor(ISLE.OX+9.5*ISLE.S), Math.floor(ISLE.OZ-0.8*ISLE.S));
+            const LK=ISLE.lake(), sea=ISLE.blocked(Math.floor(LK.x), Math.floor(LK.z));
             return {w, at:[h.cx,h.cz], d, hood:m&&m.hood, toon, mats, sea, edge:ISLE.blocked(2,2), star:!!ISLE.G.userData.star}; }""")
         print("마을", r)
         ok(r["w"]>1000, f"걸을 수 있는 칸 {r['w']}")

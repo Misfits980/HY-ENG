@@ -41,7 +41,7 @@ async def main():
         A=await kid("AAAAA","루아","&ft=on"); B=await kid("BBBBB","하준","&ft=on")
         ok(await enter(A) and await enter(B), "두 아이 🏝 들어감")
         await A.wait_for_timeout(2500)
-        lots=DB["hy"]["isle"]["lot"]
+        lots=DB["hy"]["isle"]["lot2"]
         r=await B.evaluate("()=>({me:ISLE.myHouse().id, owners:ISLE.lots.filter(l=>l.owner&&!l.me).map(l=>l.owner)})")
         print("①", json.dumps(lots, ensure_ascii=False), r)
         ok(len(lots)==2 and {v["n"] for v in lots.values()}=={"루아","하준"}, "① 처음 나오면 땅 하나씩 서버에")
@@ -53,7 +53,7 @@ async def main():
         old=await B.evaluate("()=>ISLE.myHouse().id")
         fid=await B.evaluate("()=>ISLE.lots.find(l=>!l.owner && !l.prem && l.hood==='1동').id")
         r=await B.evaluate("(id)=>ISLE.claim(id)", fid)
-        ok(r=="ok" and fid in DB["hy"]["isle"]["lot"] and old not in DB["hy"]["isle"]["lot"], f"② 이사 = 새 땅 · 옛 땅 비움 {r} {old}→{fid}")
+        ok(r=="ok" and fid in DB["hy"]["isle"]["lot2"] and old not in DB["hy"]["isle"]["lot2"], f"② 이사 = 새 땅 · 옛 땅 비움 {r} {old}→{fid}")
         r=await B.evaluate("()=>{ localStorage.setItem('hyeng_study_v1', JSON.stringify({days:{n:1,tot:2}})); const L=ISLE.lots.find(l=>l.prem && !l.owner); const a=ISLE.lotState(L); localStorage.setItem('hyeng_study_v1', JSON.stringify({days:{n:6,tot:6}})); return [a, ISLE.lotState(L)]; }")
         ok(r==["lock","free"], f"② ⭐ 좋은 자리 = 공부한 날 5일부터 {r}")
         await B.evaluate("async ()=>{ await ISLE.loadLots(); ISLE.rebuild(); }")
@@ -64,7 +64,7 @@ async def main():
         ok(not r["stuck"] and r["ok"], f"③ 문 앞 칸 열림 · 광장까지 감 {r}")
         C=await kid("CCCCC","서아")
         r=await C.evaluate("""async ()=>{ await NET.ready(); const ids=[]; for(let h=1;h<=3;h++) for(let n=1;n<=16;n++) ids.push(h+'-'+n);
-            for(const id of ids){ const v=await NET.get('/hy/isle/lot/'+id); if(!v) await NET.put('/hy/isle/lot/'+id, {k:'x'+id, c:'ZZZZZ', n:'친구'+id, at:1}); } return ids.length; }""")
+            for(const id of ids){ const v=await NET.get('/hy/isle/lot2/'+id); if(!v) await NET.put('/hy/isle/lot2/'+id, {k:'x'+id, c:'ZZZZZ', n:'친구'+id, at:1}); } return ids.length; }""")
         ok(await enter(C), "세 번째 아이 들어감 (땅이 다 차도)")
         r=await C.evaluate("()=>({hoods:ISLE.hoodCount(), stuck:ISLE.stuckDoors(), owned:ISLE.lots.filter(l=>l.owner).length, me:ISLE.myHouse()&&ISLE.myHouse().id, path:(()=>{ const d=ISLE.myHouse().door, P=ISLE.plazaCell(); return !!HOUSE.findPath(d[0],d[1],P[0],P[1]); })()})")
         print("③", r)

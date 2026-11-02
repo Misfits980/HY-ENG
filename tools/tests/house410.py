@@ -43,12 +43,13 @@ async def main():
         if not c: bad.append(m)
     async with async_playwright() as p:
         br=await p.chromium.launch(args=["--use-gl=swiftshader","--enable-unsafe-swiftshader"])
-        async def kid(name, t, tag=""):
+        KIDS_SEEN=set()   # (v536) 처음 고른 아이만 예전 방 (같은 아이를 새 기기에서 고르면 = 서버 집을 불러와야 함)
+        async def kid(name, t, tag="", legacy=None):
             ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
             pg=await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(name+": "+str(e)))
             await pg.route("**/*", fb); await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(1500)
-            await pg.evaluate("(a)=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_kid', JSON.stringify({id:a[0], n:a[0], t:a[1]})); localStorage.setItem('hyeng_me', JSON.stringify({id:a[0], t:a[1]})); localStorage.setItem('hyeng_nick', a[0]); if(a[2]) localStorage.setItem('hyeng_tag', a[2]); }", [name, t, tag])
-            await pg.reload(); await pg.wait_for_timeout(3500); return pg
+            await pg.evaluate("(a)=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); "+(LEGACY_ROOM if legacy is None and name not in KIDS_SEEN else "")+" localStorage.setItem('hyeng_kid', JSON.stringify({id:a[0], n:a[0], t:a[1]})); localStorage.setItem('hyeng_me', JSON.stringify({id:a[0], t:a[1]})); localStorage.setItem('hyeng_nick', a[0]); if(a[2]) localStorage.setItem('hyeng_tag', a[2]); }", [name, t, tag])
+            KIDS_SEEN.add(name); await pg.reload(); await pg.wait_for_timeout(3500); return pg
         A=await kid("민준","A1","0006")
         async def until(pg, js, n=60):
             for _ in range(n):
