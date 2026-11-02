@@ -45,10 +45,21 @@ async def main():
         ok(r["tower"]=={"b":123} and r["code"]=="AAAAA" and r["ep"]=="536", "① 집 코드·타워 기록은 남음")
         ok(r["stock"]=={"bed":1,"desk":1}, f"① 처음 = 침대·책상만 {r['stock']}")
         ok(r["tut"]==0, "① 튜토리얼 처음부터")
-        # ② 튜토리얼 · 침대 · 책상
+        # ② (v539) 새 시작 — 우리 마을 광장 → 📋 땅 고르기 → 집이 생김 → 집 안 → 🎁 입주 선물 → 침대 → 책상
+        ok(await until(A, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy && HOUSE.tut().s===0 && /게시판/.test(document.getElementById('coachT').innerText)", 160), "② 처음 = 🏝 우리 마을 광장 · Mia 「게시판에서 내 땅」")
+        await A.evaluate("()=>ISLE.openLots()")
+        ok(await until(A, "()=>document.getElementById('lotP').classList.contains('on') && !document.getElementById('lotGo').disabled && /집 짓기/.test(document.getElementById('lotGo').textContent)", 40), "② 땅 고르기 = 👍 추천 땅이 골라져 있음 · 「여기에 집 짓기」")
+        await A.evaluate("()=>document.getElementById('lotGo').click()"); await until(A, "()=>document.getElementById('ask').classList.contains('on')", 20); await A.evaluate("()=>document.getElementById('askOk').click()")
+        ok(await until(A, "()=>!!ISLE.myHouse() && HOUSE.tut().s===1", 60), "② 집이 생김 → 다음 안내 「⭐ 내 집」")
+        mine=[v for v in DB["hy"]["isle"].get("lot2",{}).values() if v.get("c")=="AAAAA"]
+        ok(len(mine)==1, f"② 서버에 내 땅 {mine}")
+        await A.evaluate("()=>ISLE.enterHome()")
+        ok(await until(A, "()=>HOUSE.place()==='room' && !HOUSE.trip().busy && HOUSE.tut().s===2", 80), "② 내 집 안 → 안내 3단계")
+        ok(await until(A, "()=>document.getElementById('info').classList.contains('on') && /입주 선물/.test(document.getElementById('infoT').innerText)", 20), "② 🎁 Mia 의 입주 선물 (침대·책상)")
+        await A.evaluate("()=>document.getElementById('infoOk').click()")
         await A.evaluate("()=>{ HOUSE.tEv('walk'); }")
-        ok(await until(A, "()=>HOUSE.tut().s===1 && /침대/.test(document.getElementById('coachT').innerText)", 20), "② 2단계 = 🛏 침대 놓기 안내")
-        for i,(it,step) in enumerate((("bed",2),("desk",3))):
+        ok(await until(A, "()=>HOUSE.tut().s===3 && /침대/.test(document.getElementById('coachT').innerText)", 20), "② 걷기 → 🛏 침대 놓기 안내")
+        for i,(it,step) in enumerate((("bed",4),("desk",5))):
             await A.evaluate("(id)=>{ startGhost(id); okGhost(); }", it); await A.wait_for_timeout(300)
             ok(await until(A, f"()=>HOUSE.tut().s==={step}", 20) and await A.evaluate("(id)=>placed.some(p=>p.id===id)", it), f"② {it} 놓기 → 다음 단계 ({step})")
         await A.evaluate("()=>{ const p=placed.find(p=>p.id==='desk'); useItem(p); }")
@@ -77,7 +88,7 @@ async def main():
         ok(await until(A, "()=>HOMEX.cur()==='kitchen' && !HOUSE.trip().busy && HOUSE.place()==='room'", 60), "④ 부엌 문 → 부엌으로")
         r=await A.evaluate("()=>({placed:placed.map(p=>p.id), f:floorIx, door:LBL.find(l=>l.d.k==='door').el.textContent, hero:[HOUSE.hero().cx,HOUSE.hero().cz], saved:(HOMEX.H().r.living||{}).p})")
         print("④", r)
-        ok(r["placed"]==[] and r["f"]==1 and "거실" in r["door"], f"④ 부엌 = 빈 방 · 타일 바닥 · 문 = 거실로 {r['door']!r}")
+        ok(sorted(r["placed"])==sorted(["stove","fridge","table","stool"]) and r["f"]==1 and "거실" in r["door"], f"④ 부엌 = 🍳🧊 처음 가구 · 타일 바닥 · 문 = 거실로 {r['door']!r}")
         ok(r["saved"] and {x[0] for x in r["saved"]}=={"bed","desk"}, "④ 거실 가구는 저장됨")
         await A.evaluate("()=>{ startGhost('desk'); }");
         await A.evaluate("()=>{ cancelGhost(); }")
@@ -102,7 +113,7 @@ async def main():
         r=await A.evaluate("()=>{ const L=ISLE.myHouse(); let n=0, vc=0; L.obj.traverse(o=>{ if(o.isMesh){ n++; if(o.geometry.attributes.color) vc+=o.geometry.attributes.position.count; } }); return [L.style, L.fl, n, vc]; }")
         ok(r[0]=="M_blue" and r[1]==2 and r[2]<=2 and r[3]>300, f"⑥ 내 집 = 모던 2층 (한 덩어리) {r}")
         await A.evaluate("()=>HOUSE.publish()"); await A.wait_for_timeout(400)
-        B=await kid("BBBBB","하준")
+        B=await kid("BBBBB","하준","",{"hyeng_proto_tut":{"s":99}})
         await B.evaluate("()=>HOUSE.exitRoom()"); await until(B, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy", 80); await B.wait_for_timeout(1500)
         r=await B.evaluate("()=>{ const L=ISLE.lots.find(l=>l.owner==='루아'); return L ? [L.style, L.fl, (()=>{ let y=0; L.obj.traverse(o=>{ if(o.isMesh){ const b=new THREE.Box3().setFromObject(o); y=Math.max(y,b.max.y); } }); return +y.toFixed(2); })()] : null; }")
         ok(r and r[0]=="M_blue" and r[1]==2 and r[2]>1.6, f"⑥ 친구 화면에도 모던 2층 (높이) {r}")

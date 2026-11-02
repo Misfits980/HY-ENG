@@ -110,7 +110,7 @@ async def main():
         ok(await pg.evaluate("()=>HOUSE.mres().n[1]")==1, "4시간 뒤 1번 다시")
         await pg.screenshot(path=OUT+"life_mine.png")
         # ⑦ 꾸미기 — 옷 모양 · 바지 · 신발 · 꾸미기 · 👑 (금3 다이아1)
-        await pg.evaluate("()=>HOUSE.openAv()"); await pg.wait_for_timeout(300)
+        await pg.evaluate("()=>{ avOwn['style:overalls']=1; avOwn['acc:glasses']=1; HOUSE.openAv(); }"); await pg.wait_for_timeout(300)
         tabs=await pg.evaluate("()=>[...document.querySelectorAll('[data-avt]')].map(b=>b.dataset.avt)")
         ok(tabs==["face","wear","hat"], f"꾸미기 탭 3개 {tabs}")
         await pg.click('[data-avt="wear"]'); await pg.wait_for_timeout(200)

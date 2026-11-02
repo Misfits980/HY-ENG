@@ -166,7 +166,9 @@ const ISLE=(()=>{
       const old=Object.keys(SRV).filter(k=>k!==id && SRV[k] && SRV[k].k===me); for(const k of old){ try{ await NET.del(LOTP+"/"+k); }catch(e){} }   /* 전에 살던 땅은 비움 */
       store("hyeng_proto_ilot", id); await loadLots(); return "ok"; }catch(e){ return "err"; } }
   /* 처음 나오면 — 서버에 내 땅이 없으면 빈 땅 하나를 저절로 (나중에 게시판에서 옮길 수 있음) */
-  async function autoClaim(){ if(lots.some(L=>L.me) || !srvOk) return false; const F=lots.filter(L=>!L.owner && !L.prem); if(!F.length) return false;
+  /* (v539) 처음 온 아이 = 튜토리얼에서 직접 고름 (자동 X) · 추천 땅 = 아이 코드로 정한 빈 땅 */
+  function recLot(){ const F=lots.filter(L=>!L.owner && !L.prem); if(!F.length) return null; let h=0; for(const ch of myKey()) h=(h*31+ch.charCodeAt(0))>>>0; return F[h%F.length]; }
+  async function autoClaim(){ if(lots.some(L=>L.me) || !srvOk) return false; try{ if(tut.s<1) return false; }catch(e){} const F=lots.filter(L=>!L.owner && !L.prem); if(!F.length) return false;
     let h=0; for(const ch of myKey()) h=(h*31+ch.charCodeAt(0))>>>0; for(let i=0;i<4;i++){ const L=F[(h+i*7)%F.length]; const r=await claim(L.id); if(r==="ok"){ toast("🏡 <b>"+L.hood+" "+L.n+"번 땅</b>이 내 집이 됐어요!<br><small>📋 광장 게시판에서 다른 땅으로 옮길 수 있어요</small>", 3600); return true; } } return false; }
   /* 동네 늘리기 — 빈 땅이 4칸 아래면 다음 동네 섬이 열림 (최대 6동 = 96칸) */
   function hoodCount(){ const n=Object.keys(SRV).length; let h=3; while(h<6 && h*16-n<4) h++; return h; }
@@ -226,7 +228,7 @@ const ISLE=(()=>{
       for(let k=-3;k<=3;k++){ prim(geo_("arF",()=>new THREE.IcosahedronGeometry(.17,0)), k%2?T:0xffffff, A.x+nx*k*.4,2.6,A.z+nz*k*.4); } }
     else { for(let k=-2;k<=2;k++){ prim(geo_("fcP",()=>new THREE.BoxGeometry(.12,.8,.12)), 0xfff1c4, A.x+nx*k*.6,.4,A.z+nz*k*.6); cols.push([A.x+nx*k*.6+OX, A.z+nz*k*.6+OZ, .45]); }
       [.25,.6].forEach(y=>prim(geo_("fcR",()=>new THREE.BoxGeometry(2.6,.12,.06)), 0xff9a3d, A.x,y,A.z,{ry:ry+Math.PI/2})); kk("isle","resource_lumber",A.x+A.tx*1.6,A.z+A.tz*1.6,{s:1.2,chunk:"m"}); }
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex((open?"":"🚧 ")+h.ic+" "+h.id+" "+h.nm, open?"#fffdf7":"#ffd23f"), depthWrite:false})); sp.scale.set(3.6,.9,1); sp.position.set(A.x+OX, open?3.35:1.75, A.z+OZ); sp.renderOrder=2; G.add(sp);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex((open?"":"🚧 ")+h.ic+" "+h.id+" "+h.nm, open?"#fffdf7":"#ffd23f"), depthWrite:false})); sp.scale.set(3.0,.75,1); sp.position.set(A.x+OX, open?2.95:1.7, A.z+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp);
     return A; }
   /* 동네 나무 — 길마다 색 (🌸 벚꽃 · 🌻 해바라기 · 🌊 야자 · 🍀 클로버 · 🍁 단풍 · ⭐ 별빛) · 땅 뒤 마당 쪽 */
   function laneTrees(h){ const C=MAP.curve(h.p), end=C.L[C.L.length-1];
@@ -243,8 +245,9 @@ const ISLE=(()=>{
         prim(geo_("ttr",()=>new THREE.CylinderGeometry(.12,.17,1.2,7)), 0x8a5a34, x,.6,z);
         [[0,1.55,0,.85],[.45,1.35,.2,.6],[-.4,1.4,-.25,.62],[.05,2.0,-.1,.55]].forEach(([a,y,b,r],k)=>prim(geo_("tb"+k,()=>new THREE.IcosahedronGeometry(r,1)), col[k%col.length===2&&k===3?2:k%2], x+a,y,z+b));
         if(h.tree==="star") prim(geo_("tst",()=>new THREE.OctahedronGeometry(.22)), 0xffe27a, x,2.75,z); } }); }
+  let SIGNS=[];   /* (v539) 길 팻말·가게 간판 — 카메라 바로 앞이면 흐려짐 (화면을 가리지 않게) */
   function build(){
-    if(G.userData.built) return; G.userData.built=1;
+    if(G.userData.built) return; G.userData.built=1; SIGNS=[];
     const sea=new THREE.Mesh(new THREE.CircleGeometry(400,48), new THREE.MeshStandardMaterial({color:LIN(0x6cc0dc), roughness:.35})); sea.rotation.x=-Math.PI/2; sea.position.set(OX,-0.76,OZ); sea.receiveShadow=true; G.add(sea); G.userData.sea=sea;
     /* (v536) 사용자: "마을은 이쁘게 다시 만들어 줘야 해" → 하나로 이어진 큰 섬 (ISLE_MAP 설계도) — 광장 · 굽은 돌길 · 시장 거리 · 숲속 호수 · 언덕 학교 · 곶 타워 · 산 아래 광산 · 풍차 밭 · 공원 · 이름 있는 동네 길 */
     const LK=LKD, Sx=MAP.spots; const C=land(MAP.island.cx,MAP.island.cz,Math.max(MAP.island.ax,MAP.island.az),MAP.island.s,[LK],true);
@@ -265,7 +268,11 @@ const ISLE=(()=>{
       b.traverse(m=>{ if(m.isMesh){ m.castShadow=true; } }); G.add(b); cols.push([bx+OX,bz+OZ,.5]); SPOT.board=[bx+OX,1.9,bz+OZ]; busy.push([bx,bz,1.2]); }
     // 🏪 시장 거리 — 가게 6채가 길을 보고 마주 섬 · 사이사이 가로등 · 상자
     { const MK=["building_market_red","building_market_blue","building_market_yellow","building_market_green"], Cm=MAP.curve(MAP.roads.market.p); let i=0;
-      [5.4,9.6,13.8].forEach(s=>{ const A=MAP.at(Cm.Q,Cm.L,s); [-1,1].forEach(sd=>{ const nx=-A.tz*sd, nz=A.tx*sd, x=A.x+nx*3.5, z=A.z+nz*3.5; kk("isle",MK[i++%4],x,z,{s:1.75,ry:Math.atan2(-nx,-nz),chunk:"m",col:1.25,solo:1}); busy.push([x,z,2.2]);
+      /* (v539) 사용자: "마트나 이런 시설 — 옷이랑 그런 걸 사는 거지" → 가게 6곳 (간판 · 가까이 가면 초록 말풍선) */
+      const SHOP=[["fish","🐟","생선 가게",0x5aa7ff],["furn","🛋","가구점",0xffc93d],["clothes","👕","옷 가게",0xff6b6b],["hair","💇","미용실",0xff9ac8],["mart","🛒","마트",0x5cc46a],["town","🏘","마을 사람들",0xc7a6ff]]; SPOT.shops=[];
+      [5.4,9.6,13.8].forEach(s=>{ const A=MAP.at(Cm.Q,Cm.L,s); [-1,1].forEach(sd=>{ const nx=-A.tz*sd, nz=A.tx*sd, x=A.x+nx*3.5, z=A.z+nz*3.5, SH=SHOP[i]; kk("isle",MK[i++%4],x,z,{s:1.75,ry:Math.atan2(-nx,-nz),chunk:"m",col:1.25,solo:1}); busy.push([x,z,2.2]);
+        { const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(SH[1]+" "+SH[2], "#"+new THREE.Color(SH[3]).lerp(new THREE.Color(0xffffff),.55).getHexString(), 448), depthWrite:false})); sp.scale.set(2.5,.72,1); sp.position.set(x-nx*1.4+OX,2.9,z-nz*1.4+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp); }
+        SPOT.shops.push({k:SH[0], ic:SH[1], t:SH[2], p:[x-nx*2.2+OX,1.4,z-nz*2.2+OZ], door:[A.x+nx*1.4+OX, A.z+nz*1.4+OZ]});
         kk("isle",(i%2)?"barrel":"crate_A_big",x-nx*.4+A.tx*1.7,z-nz*.4+A.tz*1.7,{s:.45,chunk:"m",col:.3}); }); });
       [3.4,7.5,11.7,15.9].forEach((s,k)=>{ const A=MAP.at(Cm.Q,Cm.L,s), sd=k%2?1:-1; kk("city","streetlight",A.x-A.tz*sd*1.75,A.z+A.tx*sd*1.75,{s:.95,chunk:"m",col:.2}); });
       SPOT.market=[Sx.market[0]+OX,1.7,Sx.market[1]+OZ]; }
@@ -369,8 +376,8 @@ const ISLE=(()=>{
   function stuckDoors(){ const P=plazaCell(), R=reachFrom(P[0],P[1]); return lots.filter(L=>L.owner && L.door && !R[L.door[0]*N+L.door[1]]).map(L=>L.id); }
   const blocked=(x,z)=>x<0||z<0||x>=N||z>=N||!W[x*N+z];
   /* ── 장소 ── */
-  const PLC={key:"isle", N, g:G, h:3, name:"🏝 우리 마을", blocked, start:[OX,OZ+3], pitch:.55, follow:true, sky:0xa6dcf5};
-  function doorCell(){ return SPOT.door || [OX,OZ+3]; }
+  const PLC={key:"isle", N, g:G, h:3, name:"🏝 우리 마을", blocked, start:[OX-3,OZ-2], pitch:.55, follow:true, sky:0xa6dcf5};
+  function doorCell(){ return SPOT.door || [OX-3,OZ-2]; }   /* 집이 없으면 = 광장 게시판 옆 (튜토리얼 시작) */
   /* 이름 확인 — 학원 전체가 같이 쓰므로 PLAYER·빈 이름은 들어갈 수 없음 */
   function nameOk(){ let n=""; try{ const k=kidInfo(); n=(k && k.n)||""; }catch(e){} if(!n){ try{ n=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} }
     n=String(n).replace(/^👤\s*/,"").trim(); return !!n && !/^player\d*$/i.test(n) && n!=="친구"; }
@@ -413,6 +420,7 @@ const ISLE=(()=>{
     else if(hero.joy){ hero.joy=false; if(!hero.path.length) hero.moving=false; anim=true; }
     if(J.air){ J.vy-=16*dt; p.y=Math.max(0, p.y+J.vy*dt); if(p.y<=0 && J.vy<0){ p.y=0; J.air=false; } hero.act=J.air?"air":(hero.act==="air"?"idle":hero.act); anim=true; }
     // 그림자 상자는 나를 따라감
+    const dh=camera.position.distanceTo(p); for(const sp of SIGNS){ const o=Math.max(0,Math.min(1,(sp.position.distanceTo(camera.position)-(dh-3.5))/3)); if(Math.abs(sp.material.opacity-o)>.02){ sp.material.opacity=o; sp.visible=o>.03; anim=true; } }
     const s=sun.shadow.camera; sun.position.set(p.x-14, 26, p.z-7); sun.target.position.set(p.x,0,p.z); if(s.right!==16){ s.left=-16; s.right=16; s.top=16; s.bottom=-16; s.near=1; s.far=80; s.updateProjectionMatrix(); }
     if(!hero.joy && hero.moving && hero.path && hero.path.length && performance.now()-(CAM.dragAt||0)>1500){ const want=hero.face+Math.PI, d=((want-yaw)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI; yaw+=d*Math.min(1,dt*.9); yawTo=yaw; }
     const st=G.userData.star; if(st){ st.rotation.y+=dt*1.5; st.position.y=3.1+Math.sin(performance.now()*.003)*.12; anim=true; }
@@ -425,7 +433,7 @@ const ISLE=(()=>{
   function labels(){ const L=[];
     if(SPOT.home) L.push({k:"home", ic:"⭐", t:"내 집", p:SPOT.home, r:3, act:()=>walkTo(SPOT.door[0],SPOT.door[1],()=>enterHome())});
     if(SPOT.board) L.push({k:"board", ic:"📋", t:"땅 고르기", p:SPOT.board, r:3.4, act:()=>openLots()});
-    if(SPOT.market) L.push({k:"mk", ic:"🏘", t:"시장 · 마을 사람", p:SPOT.market, r:3.2, act:()=>tripTo("village")});
+    (SPOT.shops||[]).forEach(S=>L.push({k:S.k, ic:S.ic, t:S.t, p:S.p, r:3, act:()=>shopGo(S)}));
     if(SPOT.lake) L.push({k:"lake", ic:"🎣", t:"같이 낚시", p:SPOT.lake, r:3.2, act:()=>{ const L=lake(); fishTap(Math.floor(L.x-1.5), Math.floor(L.z), L.x-1.4, L.z); }});
     if(SPOT.farm) L.push({k:"farm", ic:"🌱", t:"내 밭 (밭 섬)", p:SPOT.farm, r:4.5, act:()=>tripTo("yard")});
     if(SPOT.school) L.push({k:"school", ic:"🏫", t:"학교 · 공부하기", p:SPOT.school, r:3.4, act:()=>ask("🏫 공부하러 갈까요?<br><small>Daily 30 을 하면 🪱 미끼를 받아요</small>", ()=>{ location.href="../index.html"; })});
@@ -434,6 +442,9 @@ const ISLE=(()=>{
     if(SPOT.nu) L.push({k:"nu", ic:"🚧", t:(SPOT.nuName||"새 동네")+" (친구가 오면)", p:SPOT.nu, r:4, act:()=>toast("🚧 학원 친구가 늘면 <b>새 동네</b>가 여기에 생겨요!", 2600)});
     if(SPOT.camp) L.push({k:"camp", ic:"🔥", t:"모닥불", p:SPOT.camp, r:2.6, act:()=>{ hero.act="sit"; hero.actT=0; toast("🔥 따뜻해요 — 친구들이 모이는 곳이에요", 2200); }});
     return L; }
+  /* (v539) 가게 — 문 앞까지 걸어가서 그 가게 창 */
+  function shopGo(S){ const run=()=>{ const k=S.k; if(k==="fish") openShop(); else if(k==="furn") openFurn("furn"); else if(k==="clothes") openAv("clothes"); else if(k==="hair") openAv("hair"); else if(k==="mart"){ try{ HLIFE.openMart(); }catch(e){} } else if(k==="town") tripTo("village"); try{ tEv("shop_"+k); }catch(e){} };
+    const c=[Math.floor(S.door[0]), Math.floor(S.door[1])]; if(Math.hypot(hero.g.position.x-S.door[0], hero.g.position.z-S.door[1])<2.2 || blocked(c[0],c[1])) run(); else walkTo(c[0],c[1],run); }
   function tripTo(key){ const at=key==="yard" ? [DOOR[0],DOOR[1]] : key==="village" ? [V_GATE[0]+1,V_GATE[1]] : key==="mine" ? [M_GATE[0]-1,M_GATE[1]] : null; go(key, at); }
   /* (v525) 사용자: "화면을 돌릴 수도 없고 · 집이 동그랗게 있어서 보이지도 않아 · 화면의 자유가 없는데"
      → 빈 곳을 끌면 돌리기(좌우)·기울이기(위아래) · 두 손가락 벌리기 = 가까이/멀리 · 집에서 나오면 카메라가 내 뒤에서 마을 쪽을 봄 */
@@ -486,6 +497,7 @@ const ISLE=(()=>{
     s+='<rect x="-110" y="-9" width="220" height="18" fill="#dcbf86"/><rect x="-110" y="-10" width="220" height="2" fill="#bf9f6a"/><rect x="-110" y="8" width="220" height="2" fill="#bf9f6a"/>';
     s+='<text x="-104" y="4" font-size="8" fill="#6a5040">'+(hi.from?"🛣":"⛲")+'</text><text x="0" y="-66" font-size="11" text-anchor="middle" fill="#3b2433">'+hi.ic+' '+hi.id+' '+hi.nm+'</text>';
     s+='<text x="0" y="74" font-size="8" text-anchor="middle" fill="#3b2433">'+(hi.from?"← 큰길 쪽":"← 광장 쪽")+' · 끝 ⭐ = 좋은 자리 →</text>';
+    const RC=!myHouse && recLot();
     HL.forEach(L=>{ const k=Math.floor((L.n-1)/2), up=L.n%2===1, w=22, x=X0+k*CW+w/2-4, y=up?-36:36, st=lotState(L), sel=lotSel===L.id;
       const fill=st==="me"?"#ffd23f":st==="friend"?"#9fd884":L.prem?"#fff3bf":"#fff", dash=(st==="free"||st==="lock")?' stroke-dasharray="4 3"':'';
       s+='<g data-lot="'+L.id+'" style="cursor:pointer"><rect x="'+(x-w/2)+'" y="'+(y-w/2)+'" width="'+w+'" height="'+w+'" rx="5" fill="'+fill+'" stroke="'+(sel?"#ff5d6c":"#3b2433")+'" stroke-width="'+(sel?3.5:2)+'"'+dash+'/>';
@@ -493,20 +505,28 @@ const ISLE=(()=>{
       const ic=st==="me"?"⭐":st==="friend"?"🏠":st==="lock"?"🔒":L.prem?"⭐":"＋";
       s+='<text x="'+x+'" y="'+(y+(st==="friend"||st==="me"?0:4))+'" font-size="'+(st==="free"&&!L.prem?13:11)+'" text-anchor="middle" fill="#3b2433">'+ic+'</text>';
       if(st==="friend"||st==="me") s+='<text x="'+x+'" y="'+(y+(up?-14:19))+'" font-size="6.5" text-anchor="middle" fill="#3b2433">'+(st==="me"?"내 집":esc(L.owner))+'</text>';
+      else if(RC && RC.id===L.id) s+='<text x="'+x+'" y="'+(y+(up?-14:19))+'" font-size="7" text-anchor="middle" fill="#e8572a">👍 추천</text>';
       s+='</g>'; });
     $("lotMap").innerHTML=s;
     const L=lots.find(L=>L.id===lotSel), sd=studyDays();
     $("lotSel").innerHTML = !L ? '<div><b>빈 땅을 눌러 보세요</b><small>'+(myHouse?'지금 내 집: '+myHouse.hood+' '+myHouse.n+'번 땅':'')+'</small></div>'
       : '<div><b>'+L.hood+' '+L.n+'번 땅'+(L.prem?' · ⭐ 바다 앞':'')+'</b><small>'+(lotState(L)==="friend"?esc(L.owner)+' 의 집이에요':lotState(L)==="me"?'지금 내 집이에요':lotState(L)==="lock"?'공부한 날 '+PREM_DAYS+'일부터 (지금 '+sd+'일) — Daily 30 을 해요':'여기로 이사할 수 있어요')+'</small></div>'
-        +'<button class="go" id="lotGo"'+(lotState(L)==="free"?'':' disabled')+'>여기로 할래요</button>'; }
-  async function openLots(){ lotCSS(); await loadLots(); owners(); if(myHouse) lotHood=myHouse.hood; lotSel=null; drawLotP(); $("lotP").classList.add("on"); }
-  function pickLot(id){ const L=lots.find(L=>L.id===id); if(!L || lotState(L)!=="free") return;
-    ask("🏡 <b>"+L.hood+" "+L.n+"번 땅</b>으로 이사할까요?"+(L.prem?"<br><small>⭐ 바다 앞 좋은 자리예요</small>":""), async ()=>{
-      $("lotP").classList.remove("on"); toast("🚚 이사하는 중…", 1500); const r=await claim(id);
+        +'<button class="go" id="lotGo"'+(lotState(L)==="free"?'':' disabled')+'>'+(myHouse?'여기로 할래요':'🔨 여기에 집 짓기')+'</button>'; }
+  async function openLots(){ lotCSS(); await loadLots(); owners(); lotSel=null; if(myHouse) lotHood=myHouse.hood; else { const R=recLot(); if(R){ lotHood=R.hood; lotSel=R.id; } } drawLotP(); $("lotP").classList.add("on"); }
+  function pickLot(id){ const L=lots.find(L=>L.id===id); if(!L || lotState(L)!=="free") return; const first=!myHouse;
+    ask(first ? "🏡 <b>"+hoodInfo(L.hood).ic+" "+L.hood+" "+L.n+"번 땅</b>에 내 집을 지을까요?" : "🏡 <b>"+L.hood+" "+L.n+"번 땅</b>으로 이사할까요?"+(L.prem?"<br><small>⭐ 바다 앞 좋은 자리예요</small>":""), async ()=>{
+      $("lotP").classList.remove("on"); toast(first?"🔨 집을 짓는 중…":"🚚 이사하는 중…", 1500); const r=await claim(id);
+      if(first && (r==="ok"||r==="local")){ setTimeout(()=>{ rebuild(); try{ const d=doorCell(); hero.path=[]; hero.moving=false; hero.slide=null; hero.cx=d[0]; hero.cz=d[1]; hero.g.position.set(d[0]+.5,0,d[1]+.5); hero.face=myHouse.face+Math.PI; yaw=yawTo=myHouse.face; camSnap=true; placeCamera(); }catch(e){ console.warn(e); } drawLabels(); riseHouse();   /* 내 땅 앞으로 와서 집이 솟는 걸 봄 */ try{ if(!store("hyeng_proto_gift")) store("hyeng_proto_gift","due"); tEv("lot"); }catch(e){} try{ SND.big(); }catch(e){} toast("🎉 <b>내 집이 생겼어요!</b><br><small>"+hoodInfo(L.hood).ic+" "+L.hood+" "+hoodInfo(L.hood).nm+" "+L.n+"번 땅 · ⭐ 내 집을 눌러 들어가요</small>", 3400); }, 400); return; }
       if(r==="taken"){ toast("😮 방금 친구가 그 땅을 골랐어요 — 다른 땅을 골라 봐요", 2600); await loadLots(); rebuild(); drawLabels(); return; }
       if(r==="err"){ toast("📡 인터넷이 잠깐 안 돼요 — 다시 해 봐요", 2400); return; }
       setTimeout(()=>{ rebuild(); const d=doorCell(); hero.path=[]; hero.moving=false; hero.slide=null; hero.cx=d[0]; hero.cz=d[1]; hero.g.position.set(d[0]+.5,0,d[1]+.5); faceOut(); drawLabels(); placeCamera();
         try{ confetti && confetti(); }catch(e){} toast("🎉 새 집이에요! <b>"+L.hood+" "+L.n+"번 땅</b>", 2600); }, 400); }); }
+  /* (v539) 집이 생기는 순간 — 땅에서 쑥 올라오며 통통 + 먼지 */
+  function riseHouse(){ const L=myHouse; if(!L || !L.obj) return; const W_=L.obj, y0=W_.position.y, t0=performance.now();
+    const dust=[]; for(let i=0;i<10;i++){ const m=new THREE.Mesh(geo_("dust",()=>new THREE.IcosahedronGeometry(.25,0)), new THREE.MeshBasicMaterial({color:0xf3e2c0, transparent:true, opacity:.9})); const a=i/10*6.283; m.position.set(L.x+OX+Math.cos(a)*1.1,.2,L.z+OZ+Math.sin(a)*1.1); m.userData.v=[Math.cos(a)*1.4,1.2,Math.sin(a)*1.4]; G.add(m); dust.push(m); }
+    const step=()=>{ const t=Math.min(1,(performance.now()-t0)/900), e=t<.7 ? t/.7 : 1+Math.sin((t-.7)/.3*Math.PI)*.08; W_.position.y=y0-2.6*(1-Math.min(1,e))+(t>=.7?(e-1)*1.2:0);
+      dust.forEach(m=>{ const v=m.userData.v; m.position.x+=v[0]*.016; m.position.y+=v[1]*.016; m.position.z+=v[2]*.016; m.material.opacity=Math.max(0,.9-t); m.scale.setScalar(1+t); }); dirty=true;
+      if(t<1) requestAnimationFrame(step); else { W_.position.y=y0; dust.forEach(m=>{ G.remove(m); m.material.dispose(); }); } }; step(); }
   /* (v535) 🏡 내 집 꾸미기 — 모양 A·B · 색 4 · 공부한 날만큼 자라는 단계 */
   function houseSVG(h, big){ const sh=h[0], c={red:["#ff6b6b","#c94545"],blue:["#5aa7ff","#2f6fc4"],yellow:["#ffc93d","#c9901a"],green:["#5cc46a","#2f8f3f"]}[h.slice(2)]||["#ff6b6b","#c94545"], W=big?120:64;
     if(sh==="M"){ const fl=big ? (()=>{ try{ return HOMEX.floors(); }catch(e){ return 1; } })() : 2, fh=Math.min(16, 40/fl); let g='';
@@ -566,6 +586,6 @@ const ISLE=(()=>{
 #ijump b{font-size:30px;line-height:1} #ijump span{font-size:15px}
 #ijump:active{transform:translateY(3px);box-shadow:inset 0 -5px 0 rgba(200,110,10,.45),0 2px 0 #3b2433}
 body.isleOn #bEmo{bottom:calc(220px + env(safe-area-inset-bottom))}`; document.head.appendChild(st); }
-  return {openHouse, setStyle, styleOf, tierOf, TIER, syncMine, stuckDoors, ensureDoors, reachFrom, plazaCell, doorCellOf, onBuild:f=>onB.push(f), MC, W, ON, CAM, lake, waterCell, claim, loadLots, autoClaim, myKey, hoodCount, houseAt, visitLot, doorOf, SRV:()=>SRV, D, HOODS, LOT, HOODR, inIsle:(x,z)=>ISL.some(I=>inIsle(I,x-OX,z-OZ,.4)), onPave:(x,z)=>onPave(x-OX,z-OZ), busyAt:(x,z,r)=>busy.some(([bx,bz,br])=>Math.hypot(x-OX-bx,z-OZ-bz)<br+(r||0)), faceOut, back, ready, G, PLC, N, OX, OZ, S, build, enter, tick, show, labels, tap, blocked, nameOk, gate, SPOT, lots, rebuild, openLots, pickLot, lotState, studyDays, myHouse:()=>myHouse, W, J, doorCell, enterHome};
+  return {riseHouse, recLot, openHouse, setStyle, styleOf, tierOf, TIER, syncMine, stuckDoors, ensureDoors, reachFrom, plazaCell, doorCellOf, onBuild:f=>onB.push(f), MC, W, ON, CAM, lake, waterCell, claim, loadLots, autoClaim, myKey, hoodCount, houseAt, visitLot, doorOf, SRV:()=>SRV, D, HOODS, LOT, HOODR, inIsle:(x,z)=>ISL.some(I=>inIsle(I,x-OX,z-OZ,.4)), onPave:(x,z)=>onPave(x-OX,z-OZ), busyAt:(x,z,r)=>busy.some(([bx,bz,br])=>Math.hypot(x-OX-bx,z-OZ-bz)<br+(r||0)), faceOut, back, ready, G, PLC, N, OX, OZ, S, build, enter, tick, show, labels, tap, blocked, nameOk, gate, SPOT, lots, rebuild, openLots, pickLot, lotState, studyDays, myHouse:()=>myHouse, W, J, doorCell, enterHome};
 })();
 window.ISLE=ISLE; PL.isle=ISLE.PLC; LBL_DEF.isle=ISLE.labels; LBL_NEAR.isle=1;

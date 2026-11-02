@@ -7,12 +7,12 @@
 const HOMEX=(()=>{
   const R={
     living: {nm:"거실", ic:"🛋️", f:0, w:0},
-    kitchen:{nm:"부엌", ic:"🍳", par:"living", sl:[0,"R"], st:2, gem:20, f:1, w:3, tip:"🍳 요리 · 🧊 냉장고 자리"},
-    bedroom:{nm:"침실", ic:"🛏️", par:"living", sl:[3,1], st:3, gem:40, f:2, w:1, tip:"💤 아늑한 내 방"},
-    bath:   {nm:"욕실", ic:"🛁", par:"bedroom", sl:[0,"R"], st:5, gem:60, f:8, w:5, tip:"🫧 씻고 반짝"},
-    f2:     {nm:"2층", ic:"🪜", par:"living", sl:[0,1], st:7, gem:80, f:6, w:4, up:2, tip:"🪜 계단으로 올라가요 · 다락방"},
-    f3:     {nm:"3층", ic:"🪜", par:"f2", sl:[0,1], st:10, gem:120, f:7, w:2, up:3, tip:"🌇 더 높이 · 창밖으로 바다"},
-    f4:     {nm:"4층 옥상", ic:"🌿", par:"f3", sl:[0,1], st:14, gem:160, f:5, w:5, up:4, tip:"🌿 옥상 정원 · 맨 꼭대기"}
+    kitchen:{nm:"부엌", ic:"🍳", par:"living", sl:[0,"R"], st:2, gem:20, f:1, w:3, tip:"🍳 영어 듣고 요리 · 🧊 냉장고"},
+    bedroom:{nm:"침실", ic:"🛏️", par:"living", sl:[3,1], st:3, gem:40, f:2, w:1, tip:"💤 침대에서 자면 꿈 카드 (하루 한 번 💎) · 👗 옷장"},
+    bath:   {nm:"욕실", ic:"🛁", par:"bedroom", sl:[0,"R"], st:5, gem:60, f:8, w:5, tip:"🫧 씻으면 ✨ 낚시 행운 10분"},
+    f2:     {nm:"2층 공부방", ic:"📚", par:"living", sl:[0,1], st:7, gem:80, f:6, w:4, up:2, tip:"📚 내 단어 책장 · 오늘의 복습 → 💎"},
+    f3:     {nm:"3층 자랑방", ic:"🏆", par:"f2", sl:[0,1], st:10, gem:120, f:7, w:2, up:3, tip:"🏆 트로피·물고기·타워 기록이 저절로 진열"},
+    f4:     {nm:"4층 옥상", ic:"🌿", par:"f3", sl:[0,1], st:14, gem:160, f:5, w:5, up:4, tip:"🔭 망원경으로 친구 집 · 🪴 공부한 날마다 꽃"}
   };
   const ORDER=["kitchen","bedroom","bath","f2","f3","f4"];
   let H=store("hyeng_proto_home"); if(!H || typeof H!=="object" || !H.o) H={c:"living", o:{living:1}, r:{}};
@@ -46,7 +46,11 @@ const HOMEX=(()=>{
   /* 방 옮기기 */
   function data(id){ if(inVisit()){ const d=visiting.data||{}, h=d.home||{}; const rr=(h.r||{})[id]; if(rr) return rr; if(id===(h.c||"living")) return d; return dflt(id); }
     return id===H.c ? roomData() : (H.r[id] || dflt(id)); }
-  function dflt(id){ const r=R[id]||R.living; return {p:[], wl:[["window",0,r.up?3:2,0],["window",3,3,1]], f:Math.min(FLOORS.length-1,r.f|0), w:Math.min(WALLS.length-1,r.w|0), rn:6}; }
+  /* (v539) 방마다 처음 들어 있는 가구 — 그 방에서만 하는 일 (문 자리는 비움) */
+  const FIX={kitchen:[["stove",2,0,0],["fridge",3,0,0],["table",3,3,0],["stool",2,3,1]], bedroom:[["closet",2,0,0],["kk_night",5,0,0],["bed",5,2,0],["rug",2,2,0]], bath:[["bathtub",2,0,0],["plant",5,0,0]],
+    f2:[["bookcase",2,0,0],["desk",3,3,0],["chair",3,4,2],["kk_books",5,0,0]], f3:[["trophy",2,0,0],["kk_rug",2,2,0],["kk_armchair",4,3,3]], f4:[["telescope",4,1,0],["planter",2,0,0],["planter",3,0,0],["planter",5,3,0],["stool",2,3,0]]};
+  const FIXW={bath:[["mirror",0,4,0],["window",3,3,1]], f4:[["window",3,3,1]]};
+  function dflt(id){ const r=R[id]||R.living; return {p:(FIX[id]||[]).map(x=>x.concat([0])), wl:FIXW[id]||[["window",0,r.up?3:2,0],["window",3,3,1]], f:Math.min(FLOORS.length-1,r.f|0), w:Math.min(WALLS.length-1,r.w|0), rn:6}; }
   function load(D, host){ placed.splice(0).concat(wplaced.splice(0)).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
     if(host){ if(hostDoll){ roomG.remove(hostDoll.g); hostDoll=null; } buildShell(Math.max(6,Math.min(10,D.rn|0||6))); floorIx=Math.min(FLOORS.length-1,D.f|0); wallIx=Math.min(WALLS.length-1,D.w|0); setFloor(floorIx); setWall(wallIx);
       (D.p||[]).slice(0,90).forEach(([id,x,z,r,c])=>{ if(ITEMS[id] && !ITEMS[id].wall && fits(id,x,z,r,null,true)){ const p=addPlaced(id,x,z,r,c); p.host=1; } });

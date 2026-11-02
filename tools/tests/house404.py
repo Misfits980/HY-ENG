@@ -183,11 +183,11 @@ async def main():
         # ④ 나 꾸미기
         await pg.click("#bAv2"); await pg.wait_for_timeout(500)
         await pg.click('[data-avt="hat"]'); await pg.wait_for_timeout(200)
-        await pg.click('.chip[data-k="hat"][data-v="cap"]'); await pg.wait_for_timeout(300)
-        ok(await pg.evaluate("()=>HOUSE.av().hat")=="cap", "모자 바꾸기")
+        await pg.click('.chip[data-k="hat"][data-v="none"]'); await pg.wait_for_timeout(300)
+        ok(await pg.evaluate("()=>HOUSE.av().hat")=="none", "모자 바꾸기")
         await pg.screenshot(path=OUT+"life_av.png")
         await pg.click("#avDone"); await pg.reload(); await pg.wait_for_timeout(2500)
-        ok(await pg.evaluate("()=>HOUSE.av().hat")=="cap" and await pg.evaluate("(f)=>HOUSE.dex()[f]===1", q["fish"]), "새로 열어도 모자·도감 그대로")
+        ok(await pg.evaluate("()=>HOUSE.av().hat")=="none" and await pg.evaluate("(f)=>HOUSE.dex()[f]===1", q["fish"]), "새로 열어도 모자·도감 그대로")
         # ⑤ 가로
         await pg.set_viewport_size({"width":844,"height":390}); await pg.wait_for_timeout(1000)
         inb=await pg.evaluate("()=>{ let ok=true; for(const x of [0,6]) for(const z of [0,6]){ const v=new THREE.Vector3(x,0,z).project(HOUSE.camera); if(Math.abs(v.x)>1||Math.abs(v.y)>1) ok=false; } return ok; }")

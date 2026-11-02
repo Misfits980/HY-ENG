@@ -39,7 +39,7 @@ async def main():
         ok(d[0] and not d[1] and d[2] and not d[3], f"방 문 = 왼쪽 벽 맨 앞 · 그 벽 칸엔 못 걺 · 문 앞 칸엔 가구 못 놓음 {d}")
         # 걷기 → 안내 다음
         await E("()=>HOUSE.walkTo(3,3)"); await pg.wait_for_timeout(300)
-        ok(await E("()=>HOUSE.tut().s")==1, "바닥 톡(걷기) → 안내 2 (가구도 눌러 봐요)")
+        ok(await E("()=>HOUSE.tut().s")==3, "(v539) 바닥 톡(걷기) → 안내 (침대 놓기)")
         await until("()=>!HOUSE.hero().moving")
         # 나가기: 문까지 걸어가 → 문 열림 → 마당 집 문 앞에서 걸어 나옴
         await stand(0, await E("()=>HOUSE.RN()-1"))
@@ -50,7 +50,7 @@ async def main():
         a = await E("()=>{ const h=HOUSE.hero(); return [h.cx, h.cz, !!h.slide, HOUSE.houseDoor().userData.open]; }")
         ok(a[0] == 1 and a[1] == 3 and a[3] == 1, f"마당: 집 문이 열리고 문 앞(1,3)으로 걸어 나옴 {a}")
         ok(await until("()=>!HOUSE.hero().slide && !HOUSE.trip().busy"), "걸어 나오기 끝")
-        ok(await E("()=>HOUSE.tut().s")==6, "(v536) 밖에 나오면 안내가 낚시로 건너뜀 (침대·책상 안내 건너뛰어도 따라감)")
+        ok(await E("()=>HOUSE.tut().s")==7, "밖에 나오면 안내가 낚시로 건너뜀 (침대·책상 안내 건너뛰어도 따라감)")
         L = await E("()=>HOUSE.LBL().map(l=>l.d.k)")
         ok(L == ["house", "pond", "shop", "bench", "pot", "farm", "gate", "parc0", "parc1", "parc2"], f"마당 이름표 7 + (v415) 🌱 새 땅 3 {L}")
         await pg.wait_for_timeout(500)
@@ -69,7 +69,7 @@ async def main():
         ok(await E("()=>document.getElementById('fc').classList.contains('go') && /지금/.test(document.getElementById('fc').innerText)"), "입질 → ③ 지금 톡!")
         await E("()=>HOUSE.tapWhileFishing()")
         ok(await until("()=>{ if(HOUSE.F.st==='fight') HOUSE.winFight(); return HOUSE.F.st==='quiz'; }"), "톡 → (줄다리기) → 잡음")
-        ok(await E("()=>!document.getElementById('fc').classList.contains('on') && HOUSE.tut().s===7"), "잡으면 코치 닫힘 · 안내 다음 (가게에서 팔기)")
+        ok(await E("()=>!document.getElementById('fc').classList.contains('on') && HOUSE.tut().s===8"), "잡으면 코치 닫힘 · 안내 다음 (가게에서 팔기)")
         await E("()=>document.getElementById('qOk').click()"); await pg.wait_for_timeout(300)
         # ── 📋 할 일
         ok(await E("()=>!document.getElementById('hQn').hidden && document.getElementById('hQn').innerText==='1'"), "할 일 1개 끝 → 📋 에 빨간 1")

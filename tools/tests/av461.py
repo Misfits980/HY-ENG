@@ -19,7 +19,7 @@ async def main():
         ctx = await br.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
         pg = await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route("**/*", route); await pg.goto(ORIGIN + "proto/house.html"); await pg.wait_for_timeout(800)
-        await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); localStorage.setItem('hyeng_proto_baitok','1'); }")
+        await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); localStorage.setItem('hyeng_proto_baitok','1'); localStorage.setItem('hyeng_proto_avown', JSON.stringify({'expr:wink':1})); }")
         await pg.reload(); await pg.wait_for_timeout(2500)
         E = pg.evaluate
         await E("()=>{ HOUSE.setWx(false); HOUSE.go('yard'); }"); await pg.wait_for_timeout(2500)

@@ -486,6 +486,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 #emoBar.on{display:flex}
 #emoBar button{width:44px;height:44px;border:0;border-radius:50%;background:transparent;font-size:27px;line-height:1;padding:0}
 #emoBar button:active{transform:scale(.86)}
+.chip.lk{opacity:.72;position:relative} .chip em{position:absolute;right:-6px;top:-8px;font:800 10px var(--en);font-style:normal;background:#fffdf7;border:1.5px solid #3b2433;border-radius:8px;padding:0 3px;color:#3b2433;white-space:nowrap}
 .twBd{margin:4px 0 8px;padding:8px 10px;border-radius:14px;background:rgba(122,91,216,.08);text-align:left}
 .twLb{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:4px;font-size:13px}.twLb b{font-size:12px}.twLb em{font-style:normal;font-variant-numeric:tabular-nums;color:#7a5bd8}.twLb .me{font-weight:800;background:#fff3bf;border-radius:8px;padding:0 4px}
 .twT{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}.twRec{color:#e8590c}
@@ -514,7 +515,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
   <div class="hd"><b><i class="hdI" data-ic="box"></i><span>창고<small>눌러서 놓아요</small></span></b><button class="btn sm2 icb" id="bScore" aria-label="꾸미기 도장"><i data-ic="medal"></i></button><button class="btn sm2 icb wide" id="bBuy"><i data-ic="shop"></i>가게</button><button class="btn on" id="bDone">✅ 다 했어요</button></div>
   <div class="row" id="inv"></div>
 </div>
-<div class="sheet" id="avP"><div class="hd"><b><i class="hdI" data-ic="shirt"></i>나 꾸미기</b><button class="btn on" id="avDone">✅ 다 했어요</button></div><div id="avBody"></div></div>
+<div class="sheet" id="avP"><div class="hd"><b><i class="hdI" data-ic="shirt"></i><span id="avTtl">나 꾸미기</span></b><button class="btn" id="avBuy" hidden></button><button class="btn on" id="avDone">✅ 다 했어요</button></div><div id="avBody"></div></div>
 <div class="sheet" id="shopP"><div class="hd"><b><i class="hdI" data-ic="shop"></i>Fish Shop</b><button class="x" id="shopDone" aria-label="닫기">✕</button></div>
   <div class="shopTop" id="shopTop"></div>
   <div class="shopMkt" id="shopMkt"></div>
@@ -1016,6 +1017,33 @@ Object.assign(ITEMS, {
   kk_books:{nm:"book pile", ic:"📚", sz:[1,1], build:KKF(["book_set"], {s:1.1})}
 });
 Object.assign(PRICE, {kk_books:4, kk_stool:5, kk_cactus:6, kk_chair:7, kk_night:10, kk_rug:12, kk_table:12, kk_flamp:12, kk_tlong:16, kk_drawers:18, kk_armchair:20, kk_bed1:24, kk_couch:30, kk_bed2:38});
+/* (v539) 사용자: "2층 3층 4층 기능은 뭐로?" → 방·층마다 할 일 — 넓히면 생기는 특별 가구 (가게에선 안 팖) */
+const STUDY_LS=()=>{ try{ return JSON.parse(localStorage.getItem("hyeng_study_v1")||"{}"); }catch(e){ return {}; } };
+Object.assign(ITEMS, {
+  bookcase:{nm:"word bookcase", ic:"📚", sz:[2,1], use:"books", special:1, build(){ const g=new THREE.Group(), z0=-0.22, D=0.42, W=1.9;   /* 2층 공부방 — 공부한 단어 10개 = 책 1권 */
+    part(g, rbox(W,2.0,0.04,0.01), M(WOOD2), 0,1.0,z0-D/2+0.02); [-1,1].forEach(a=>part(g, rbox(0.07,2.0,D,0.02), M(WOOD), a*(W/2-0.03),1.0,z0));
+    [0.04,0.66,1.28,1.92].forEach(y=>part(g, rbox(W,0.07,D,0.02), M(WOOD), 0,y,z0));
+    const n=Math.min(36, Math.floor(Object.keys(STUDY_LS().srs||{}).length/10)), C=[0xff6b6b,0x5aa7ff,0xffc93d,0x5cc46a,0xb28dff,0xff9ac8];
+    for(let i=0;i<Math.max(n,0);i++){ const row=Math.floor(i/12), k=i%12; part(g, rbox(0.12,0.46+((i*7)%3)*0.04,0.3,0.015), M(C[i%6]), -W/2+0.16+k*0.135,0.32+row*0.62,z0+0.02); }
+    if(!n) part(g, rbox(0.5,0.3,0.05,0.02), M(0xfff3dd), 0,0.98,z0+0.1); return g; }},
+  trophy:{nm:"trophy case", ic:"🏆", sz:[2,1], use:"brag", special:1, build(){ const g=new THREE.Group(), z0=-0.2, W=1.9;   /* 3층 자랑방 */
+    part(g, rbox(W,0.5,0.6,0.04), M(0x8a5a34), 0,0.25,z0); part(g, rbox(W,1.3,0.04,0.01), M(0x6a3f22), 0,1.15,z0-0.28);
+    [0.85,1.35].forEach(y=>part(g, rbox(W-0.1,0.05,0.42,0.02), M(0xc98c55), 0,y,z0-0.06));
+    part(g, cyl(0.12,0.16,0.08,12), M(0xffd23f,{metalness:.4}), -0.55,0.54,z0); part(g, cyl(0.03,0.03,0.18,8), M(0xffd23f,{metalness:.4}), -0.55,0.67,z0);
+    const cup=new THREE.Mesh(new THREE.SphereGeometry(0.16,14,8,0,Math.PI*2,Math.PI/2,Math.PI/2), M(0xffd23f,{metalness:.5, side:THREE.DoubleSide})); cup.position.set(-0.55,0.92,z0); cup.rotation.x=Math.PI; g.add(cup);
+    part(g, sph(0.12), M(0x6ec3ff), 0.1,0.98,z0-0.05); part(g, rbox(0.34,0.22,0.04,0.02), M(0xfff3dd), 0.6,1.0,z0-0.1); part(g, sph(0.08), M(0xff6b6b), 0.6,1.45,z0-0.05); return g; }},
+  telescope:{nm:"telescope", ic:"🔭", sz:[1,1], use:"scope", special:1, build(){ const g=new THREE.Group();   /* 4층 옥상 — 마을 친구 집 찾기 */
+    [0,2.1,4.2].forEach(a=>{ const l=new THREE.Mesh(cyl(0.025,0.03,0.9,6), M(0x6a4428)); l.position.set(Math.cos(a)*0.18,0.42,Math.sin(a)*0.18); l.rotation.set(Math.sin(a)*0.35,0,-Math.cos(a)*0.35); g.add(l); });
+    const t=new THREE.Group(); t.position.y=0.92; t.rotation.x=-0.5; g.add(t); part(t, cyl(0.09,0.12,0.8,14), M(0x3f5ea8), 0,0,0.1).rotation.x=Math.PI/2; part(t, cyl(0.13,0.13,0.06,14), M(0xffd23f,{metalness:.4}), 0,0,0.5).rotation.x=Math.PI/2; return g; }},
+  planter:{nm:"flower planter", ic:"🪴", sz:[1,1], use:"planter", special:1, build(){ const g=new THREE.Group();   /* 4층 옥상 — 공부한 날마다 꽃 하나 */
+    part(g, rbox(0.82,0.34,0.82,0.05), M(0xc98c55), 0,0.17,0); part(g, rbox(0.74,0.04,0.74,0.02), M(0x6b4428), 0,0.35,0);
+    const n=Math.min(9, (STUDY_LS().days||{}).tot||0), C=[0xff7aa8,0xffd23f,0xffffff,0xb28dff,0xff9a3d];
+    for(let i=0;i<9;i++){ const x=-0.24+(i%3)*0.24, z=-0.24+Math.floor(i/3)*0.24; part(g, cyl(0.018,0.02,i<n?0.32:0.08,5), M(0x4fa34a), x,0.37+(i<n?0.16:0.04),z); if(i<n) part(g, sph(0.075), M(C[i%5]), x,0.56,z); } return g; }},
+  bathtub:{nm:"bathtub", ic:"🛁", sz:[2,1], use:"bath", special:1, build(){ const g=new THREE.Group();   /* 욕실 — 씻으면 ✨ */
+    part(g, rbox(1.8,0.55,0.86,0.18), M(0xffffff), 0,0.3,0); part(g, rbox(1.56,0.08,0.64,0.06), M(0x9fdcf5), 0,0.52,0);
+    [[-0.5,0.62],[0.1,0.66],[0.45,0.6]].forEach(([x,y])=>part(g, sph(0.09), M(0xffffff,{transparent:true, opacity:.9}), x,y,0.1));
+    part(g, cyl(0.03,0.03,0.4,8), M(0xc0c6cc,{metalness:.6}), 0.78,0.72,-0.3); return g; }}
+});
 const stock = {bed:1, desk:1};   /* (v536) 사용자: "처음부터 가구를 다 주면 아이들이 살려고 할까? 침대·책상은 튜토리얼 때 설치" → 빈 방 + 침대·책상만 */
 const placed = []; let visiting = null;   // (L0-10) 남의 집에 놀러 간 동안 = {code, n, …} (내 방 저장·꾸미기 막음)
 function fp(id, r){ const s=ITEMS[id].sz; return (r%2) ? [s[1], s[0]] : [s[0], s[1]]; }
@@ -2832,13 +2860,14 @@ function findPathIn(a,b){ const blk=(x,z)=>x<0||z<0||x>=RN||z>=RN||roomBlocked(x
   if(!(key(b[0],b[1]) in prev)) return null; const P=[]; let c=b; while(c && !(c[0]===a[0]&&c[1]===a[1])){ P.unshift(c); c=prev[key(c[0],c[1])]; } return P; }
 /* 앉기 · 눕기 */
 function sitOn(p){ tEv("use"); const it=ITEMS[p.id], o=p.obj; standUp(); const wp=new THREE.Vector3(); o.getWorldPosition(wp);
-  if(it.sit==="sleep"){ hero.seat={p}; hero.g.position.set(wp.x, 0.64, wp.z); hero.face=-p.r*Math.PI/2; hero.g.rotation.y=hero.face; hero.body.rotation.x=-Math.PI/2; hero.body.position.z=0.3; hero.act="sleep"; emote(hero,"💤"); toast("💤 Good night!"); say("sleep"); }
+  if(it.sit==="sleep"){ hero.seat={p}; hero.g.position.set(wp.x, 0.64, wp.z); hero.face=-p.r*Math.PI/2; hero.g.rotation.y=hero.face; hero.body.rotation.x=-Math.PI/2; hero.body.position.z=0.3; hero.act="sleep"; emote(hero,"💤"); toast("💤 Good night!"); say("sleep"); try{ if(window.HLIFE) HLIFE.slept(p); }catch(e){} }
   else { hero.seat={p}; hero.g.position.set(wp.x, it.sit-0.27, wp.z); hero.face=-p.r*Math.PI/2; hero.g.rotation.y=hero.face; hero.act="sit"; say("sit"); }
   dirty=true; }
 function standUp(){ if(!hero || !hero.seat) return; hero.seat=null; hero.body.rotation.x=0; hero.body.position.z=0; hero.act="idle"; hero.g.position.set(hero.cx+0.5,0,hero.cz+0.5); dirty=true; }
-const VISIT_OK={piano:1, clock:1, tv:1, bear:1, lamp:1, fan:1, radio:1, mirror:1, tank:1, computer:1, aircon:1, robot:1};
+const VISIT_OK={piano:1, clock:1, tv:1, bear:1, lamp:1, fan:1, radio:1, mirror:1, tank:1, computer:1, aircon:1, robot:1, books:1, brag:1, planter:1};
 function useItem(p){ tEv("use"); const u=ITEMS[p.id].use;
   if(visiting && !VISIT_OK[u]){ toast("🙅 친구 집 물건이에요 — 구경만 해요", 1800); return; }
+  if(window.HLIFE && HLIFE.use(u, p)) return;
   if(u==="study"){ if(visiting) return; ask("📚 <b>영어 공부</b> 하러 갈까요?<br><small>Daily 30 · 공부한 날이 <b>이어지면</b> 🏗 집을 넓힐 수 있어요</small>", ()=>{ location.href="../index.html"; }); return; } if(u==="fridge") openSto("fr"); else if(u==="chest") openSto("ch"); else if(u==="closet") openAv(); else if(u==="stove") openCraft("cook");
   else if(u==="piano") playPiano(); else if(u==="clock") tellTime(); else if(u==="tv") toggleTv(p); else if(u==="bear"){ emote(hero,"❤️"); act("yay"); say("teddy bear"); }
   else if(u==="lamp"){ p.off=!p.off; p.obj.traverse(m=>{ if(m.userData.shade) m.material.emissiveIntensity=p.off?0:0.55; }); dirty=true; toast(p.off?"💡 off":"💡 on"); }
@@ -2913,7 +2942,7 @@ async function linkKid(){ await ensureTag(); const K=kidInfo(); if(K.shared || !
 const tagOf=h=>h && h.g ? '<u class="tg">#'+esc(h.g)+'</u>' : '';
 const nmTag=(h)=>esc((h&&h.n)||"친구")+tagOf(h);
 async function publish(){ const K=kidInfo(); if(K.shared || visiting) return false; await ensureTag();
-  const d=Object.assign(roomData(), {home:window.HOMEX?HOMEX.pub():null, y:yd?yData():null, n:K.n, t:K.t, g:myTag, av, fish:FISH.filter(f=>dex[f.en]&&!f.noRot).slice(-6).map(f=>f.e), tw:twPub(), at:Date.now()});
+  const d=Object.assign(roomData(), {home:window.HOMEX?HOMEX.pub():null, brag:window.HLIFE?HLIFE.brag():null, y:yd?yData():null, n:K.n, t:K.t, g:myTag, av, fish:FISH.filter(f=>dex[f.en]&&!f.noRot).slice(-6).map(f=>f.e), tw:twPub(), at:Date.now()});
   try{ await NET.put("/hy/life/h/"+myCode, d); SOC.err=""; return true; }catch(e){ SOC.err=errT(e); return false; } }
 async function loadSocial(){ const g=p=>NET.get(p).then(v=>v||{});
   try{ const [rq,fr,lk,gb]=await Promise.all([g("/hy/life/req/"+myCode), g("/hy/life/fr/"+myCode), g("/hy/life/lk/"+myCode), g("/hy/life/gb/"+myCode)]); Object.assign(SOC,{req:rq, fr, lk, gb, err:""});
@@ -3388,19 +3417,35 @@ function placeMenu(){ if(!sel) return; if(sel.y) return yPlaceMenu(); $("mBox").
   $("mRot").style.display=sel.wall?"none":""; $("mCol").style.display=ITEMS[sel.id].cols?"":"none"; const el=$("menu"); el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=Math.max(70,(1-v.y)/2*innerHeight)+"px"; el.classList.add("on"); }
 
 /* ═════════ 나 꾸미기 ═════════ */
+/* (v539) 사용자: "마트나 이런 시설 — 옷이랑 그런 걸 사는 거지" → 옷·모자·꾸미기 = 👕 옷 가게 · 머리·표정 = 💇 미용실 에서 💎 로 삼 (기본 몇 개는 처음부터) · 집 옷장(나 꾸미기)에선 산 것만 */
+const AV_FREE={style:["tee"], top:[0,1,2], pc:[0,1], sc:[0,1], hat:["none","straw"], acc:["none"], hair:["short","long"], hc:[0,1,2], expr:["smile","grin"]};
+const AV_COST={style:15, top:5, pc:4, sc:4, hat:10, acc:8, hair:10, hc:6, expr:5};
+let avOwn=store("hyeng_proto_avown")||{}, avMode="home", avPend=null, avSnap={};
+function avOwned(k,v){ if(k==="skin") return true; if(k==="hat" && v==="crown") return !!crown; const F=AV_FREE[k]; return (F && F.indexOf(v)>=0) || !!avOwn[k+":"+v]; }
+function avPrice(k,v){ return k==="acc" && v==="backpack" ? 12 : (AV_COST[k]||5); }
 function drawAv(){
-  const row=(k,t,list,isCol)=>'<div class="avRow"><h4>'+t+'</h4><div class="chips">'+list.map((v,i)=>{ const val=isCol?i:v[0], on=av[k]===val;
-    return '<button class="chip'+(isCol?' col':'')+(on?' on':'')+'" data-k="'+k+'" data-v="'+val+'"'+(isCol?' style="background:'+v+'" aria-label="색 '+(i+1)+'"':'')+'>'+(isCol?'':v[1])+'</button>'; }).join("")+'</div></div>';
-  const hats=AV_OPT.hat.filter(h=>h[0]!=="crown" || crown);   /* (L0-9) 줄이 많아져 탭 3개로 — 시트가 낮아야 위에 내 모습이 보임 */
-  const tabs='<div class="bTabs avTabs">'+[["face","🙂 얼굴·머리"],["wear","👕 옷"],["hat","🎩 모자·꾸미기"]].map(([k,t])=>'<button class="bTab'+(avTab===k?' on':'')+'" data-avt="'+k+'">'+t+'</button>').join("")+'</div>';
-  $("avBody").innerHTML=tabs+(avTab==="face" ? row("expr","표정",AV_OPT.expr)+row("skin","피부",AV_OPT.skin,true)+row("hair","머리 모양",AV_OPT.hair)+row("hc","머리 색",AV_OPT.hc,true)
+  const shop=avMode!=="home";
+  const row=(k,t,list,isCol)=>'<div class="avRow"><h4>'+t+'</h4><div class="chips">'+list.map((v,i)=>{ const val=isCol?i:v[0], on=av[k]===val, own=avOwned(k,val);
+    return '<button class="chip'+(isCol?' col':'')+(on?' on':'')+(own?'':' lk')+'" data-k="'+k+'" data-v="'+val+'"'+(isCol?' style="background:'+v+'" aria-label="색 '+(i+1)+'"':'')+'>'+(isCol?'':v[1])+(own?'':'<em>'+(shop?'💎'+avPrice(k,val):'🔒')+'</em>')+'</button>'; }).join("")+'</div></div>';
+  const hats=AV_OPT.hat.filter(h=>h[0]!=="crown" || crown);
+  const TB=avMode==="clothes" ? [["wear","👕 옷"],["hat","🎩 모자·꾸미기"]] : avMode==="hair" ? [["face","💇 머리·표정"]] : [["face","🙂 얼굴·머리"],["wear","👕 옷"],["hat","🎩 모자·꾸미기"]];
+  if(!TB.some(t=>t[0]===avTab)) avTab=TB[0][0];
+  const tabs='<div class="bTabs avTabs">'+TB.map(([k,t])=>'<button class="bTab'+(avTab===k?' on':'')+'" data-avt="'+k+'">'+t+'</button>').join("")+'</div>';
+  const hint=avMode==="home" ? '<p class="bHint" style="margin:6px 0 0">🔒 = 시장 거리 <b>👕 옷 가게</b> · <b>💇 미용실</b>에서 💎 로 사요</p>' : '<p class="bHint" style="margin:6px 0 0">눌러서 입어 보고 마음에 들면 <b>💎 사기</b> · 💎 '+gems+'</p>';
+  $("avTtl").textContent=avMode==="clothes"?"👕 옷 가게":avMode==="hair"?"💇 미용실":"나 꾸미기";
+  $("avBody").innerHTML=tabs+(avTab==="face" ? (avMode==="hair"?'':row("skin","피부",AV_OPT.skin,true))+row("hair","머리 모양",AV_OPT.hair)+row("hc","머리 색",AV_OPT.hc,true)+row("expr","표정",AV_OPT.expr)
     : avTab==="wear" ? row("style","옷 모양",AV_OPT.style)+row("top","옷 색",AV_OPT.top,true)+(av.style==="dress"?"":row("pc","바지 색",AV_OPT.pc,true))+row("sc","신발 색",AV_OPT.sc,true)
-    : row("hat","모자",hats)+row("acc","꾸미기",AV_OPT.acc)+(crown?'':'<p class="bHint" style="margin:4px 0 0">👑 왕관은 ⛏ 광산의 🪙 gold 3 + 💠 diamond 1 로 🛠 만들어요</p>'));
+    : row("hat","모자",hats)+row("acc","꾸미기",AV_OPT.acc)+(crown?'':'<p class="bHint" style="margin:4px 0 0">👑 왕관은 ⛏ 광산의 🪙 gold 3 + 💠 diamond 1 로 🛠 만들어요</p>'))+hint;
+  const bb=$("avBuy"); bb.hidden=!avPend; if(avPend) bb.textContent="💎 "+avPend.p+" 사기";
 }
 let avTab="face";
-$("avBody").addEventListener("click", e=>{ const t=e.target.closest("[data-avt]"); if(t){ avTab=t.dataset.avt; drawAv(); return; } const b=e.target.closest(".chip"); if(!b) return; pubSoon(); tEv("avatar"); const k=b.dataset.k, v=b.dataset.v; av[k]=/^\d+$/.test(v)?+v:v; store("hyeng_proto_av", av); makeHero(); drawAv(); hero.act="yay"; hero.actT=0; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; },700); });
-function openAv(){ if(F.st!=="idle") return; setEdit(false); drawAv(); $("avP").classList.add("on"); avOpen=true; hero.path=[]; hero.moving=false; hero.face=yaw; viewOff(); }
-function closeAv(){ $("avP").classList.remove("on"); if(avOpen){ avOpen=false; viewOff(); } }
+$("avBody").addEventListener("click", e=>{ const t=e.target.closest("[data-avt]"); if(t){ avTab=t.dataset.avt; drawAv(); return; } const b=e.target.closest(".chip"); if(!b) return; const k=b.dataset.k, v0=b.dataset.v, v=/^\d+$/.test(v0)?+v0:v0;
+  if(!avOwned(k,v)){ if(avMode==="home"){ toast("🔒 시장 거리 <b>"+(["hair","hc","expr"].indexOf(k)>=0?"💇 미용실":"👕 옷 가게")+"</b>에서 사요", 1800); return; }
+    const sv=Object.assign({}, avSnap, store("hyeng_proto_av")||{}); Object.keys(sv).forEach(q=>{ if(q!==k) av[q]=sv[q]; }); av[k]=v; avPend={k, v, p:avPrice(k,v)}; makeHero(); drawAv(); hero.act="yay"; hero.actT=0; return; }   /* 입어 보기 (아직 안 삼) */
+  avPend=null; Object.assign(av, Object.assign({}, avSnap, store("hyeng_proto_av")||{}, {[k]:v})); avSnap=Object.assign({}, av); pubSoon(); tEv("avatar"); store("hyeng_proto_av", av); makeHero(); drawAv(); hero.act="yay"; hero.actT=0; setTimeout(()=>{ if(hero.act==="yay") hero.act="idle"; },700); });
+$("avBuy").onclick=()=>{ const P=avPend; if(!P) return; if(!spend(P.p)) return; avOwn[P.k+":"+P.v]=1; store("hyeng_proto_avown", avOwn); avPend=null; store("hyeng_proto_av", av); avSnap=Object.assign({}, av); pubSoon(); tEv("avatar"); try{ tEv("buyav"); SND.big(); }catch(e){} emote(hero,"✨"); toast("🛍 샀어요! 내 옷장에 들어갔어요", 1800); makeHero(); drawAv(); };
+function openAv(mode){ if(F.st!=="idle") return; avMode=(mode==="clothes"||mode==="hair")?mode:"home"; avPend=null; avSnap=Object.assign({}, av); setEdit(false); drawAv(); $("avP").classList.add("on"); avOpen=true; hero.path=[]; hero.moving=false; hero.face=yaw; viewOff(); }
+function closeAv(){ $("avP").classList.remove("on"); if(avPend){ avPend=null; Object.assign(av, avSnap, store("hyeng_proto_av")||{}); makeHero(); } if(avOpen){ avOpen=false; viewOff(); } }
 
 /* ═════════ 누르기 ═════════ */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0), 0);
@@ -3739,15 +3784,16 @@ function uiBusy(){ return sheetOpen() || edit || !!ghost || F.st!=="idle" || !!d
 function updUI(){ const b=uiBusy(); $("tls").classList.toggle("off", b); drawCoach(b); const eo=(place===PL.yard || place===PL.village || place===PL.mine || place===PL.yvisit) && !b && !coachOn && !TW.on; $("bEmo").classList.toggle("on", eo); if(!eo) $("emoBar").classList.remove("on"); }
 
 /* 🧑‍🌾 Mia 의 처음 안내 — 한 번에 한 가지 · 해 보면 저절로 다음 · 순서를 건너뛰어도(먼저 마을에 가도) 따라감 */
-const TUT=[   /* (v536) 새 시작 — 빈 방 → 침대·책상 놓기 → 넓히기 안내 → 밖(우리 마을) → 낚시 → 팔기 */
-  {pl:"room", t:"안녕! 여기가 <b>내 집</b>이에요 🏠<br>아직 텅 비었죠? 바닥을 <b>톡</b> 누르면 걸어가요", until:"walk"},
+const TUT=[   /* (v539) 사용자: "애들이 켜면 튜토리얼이 무엇을 따라가서 집이 생기고 침대·책상이 생기는 거야?" → 마을 광장에서 시작 → 📋 땅 고르기 → 집이 생김 → 🎁 입주 선물 */
+  {pl:"isle", t:"🏝 <b>우리 마을</b>에 온 걸 환영해요! 나는 Mia 예요<br>먼저 <b>📋 게시판</b>에서 <b>내 땅</b>을 골라요", hot:"board", until:"lot"},
+  {pl:"isle", t:"🏡 <b>내 집이 생겼어요!</b><br><b>⭐ 내 집</b>을 눌러 들어가 봐요", hot:"home", until:"room"},
+  {pl:"room", t:"텅 빈 집이죠? 🎁 <b>Mia 의 입주 선물</b> — 🛏 침대 · 📚 책상!<br>바닥을 <b>톡</b> 누르면 걸어가요", until:"walk"},
   {pl:"room", t:"<b>🛋️ 가구</b> 단추를 누르고<br><b>🛏 침대</b>를 골라 방에 놓아 봐요", until:"put_bed"},
   {pl:"room", t:"<b>📚 책상</b>도 놓아요!<br><small>책상을 누르면 영어 공부(Daily 30)를 하러 가요</small>", until:"put_desk"},
-  {pl:"room", t:"침대를 누르면 누워서 쉬어요 💤<br><small>가구는 💎 로 더 살 수 있어요</small>", until:"use", next:true},
-  {pl:"room", t:"🔒 잠긴 문 너머에 <b>부엌·침실·2층</b>이 있어요!<br><small>공부한 날이 <b>이어지면</b> 🏗 넓히기로 열 수 있어요</small>", until:"roomup", next:true},
+  {pl:"room", t:"🔒 잠긴 문 너머에 <b>부엌·침실·2층 공부방</b>이 있어요!<br><small>공부한 날이 <b>이어지면</b> 🏗 넓히기로 열려요</small>", until:"roomup", next:true},
   {pl:"room", t:"이제 밖으로 나가 볼까요?<br><b>🚪 문</b>을 눌러요", hot:"door", until:"out"},
-  {pl:"*", t:"여기는 <b>우리 마을</b>이에요 🏝<br>학원 친구들이 다 같이 살아요 · <b>🎣 호수</b>에서 낚시해 봐요", hot:"lake|pond", until:"catch"},
-  {pl:"*", t:"잡은 물고기는 <b>🏪 시장</b>에서 팔면 💎 보석이 생겨요<br><small>💎 로 가구를 사고 집을 넓혀요</small>", hot:"mk|shop", until:"sell", next:true},
+  {pl:"*", t:"<b>🎣 호수</b>에서 낚시해 봐요<br><small>잡은 물고기는 🎒 가방에 들어가요</small>", hot:"lake|pond", until:"catch"},
+  {pl:"*", t:"시장 거리 <b>🐟 생선 가게</b>에서 팔면 💎 보석!<br><small>💎 로 👕 옷 가게 · 🛋 가구점 · 💇 미용실에서 사요</small>", hot:"fish|shop", until:"sell", next:true},
   {pl:"*", t:"이제 마음껏 놀아요! 🎉<br><small>📋 <b>할 일</b> 을 누르면 해 볼 것과 💎 선물이 있어요</small>", next:"좋아요!"}
 ];
 let tut=store("hyeng_proto_tut"); if(!tut || typeof tut.s!=="number") tut={s:0};
@@ -3971,5 +4017,6 @@ window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcC
 <script src="isle.js"></script>
 <script src="isle-play.js"></script>
 <script src="isle-hud.js"></script>
+<script src="home-life.js"></script>
 </body>
 </html>

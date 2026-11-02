@@ -16,7 +16,7 @@ async def page(br, nick):
     await ctx.add_init_script("(()=>{ try{ localStorage.setItem('hyeng_nick','"+nick+"'); }catch(e){} })();")
     pg=await ctx.new_page(); errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
     await pg.route("**/*", route); await pg.goto(ORIGIN+"proto/house.html?isle=1&edge=1"); await pg.wait_for_timeout(2500)
-    await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); }")
+    await pg.evaluate("()=>{ Object.keys(localStorage).filter(k=>k.startsWith('hyeng_proto_')).forEach(k=>localStorage.removeItem(k)); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); }")
     await pg.reload(); await pg.wait_for_timeout(3000)
     await pg.evaluate("()=>{ const b=document.getElementById('coachSkip'); if(b) b.click(); }")
     return ctx, pg, errs
@@ -87,7 +87,7 @@ async def main():
         ok(r[0]>0.3 and r[1]==0, f"점프 {r}")
         # ⑤ 이름표
         ks=await pg.evaluate("()=>LBL.map(L=>L.d.k)")
-        ok(all(k in ks for k in ["home","mk","farm","school","tower","mine","lake"]), f"이름표 {ks}")
+        ok(all(k in ks for k in ["home","fish","clothes","mart","farm","school","tower","mine","lake"]), f"이름표 {ks}")
         vis=await pg.evaluate("()=>[getComputedStyle(document.getElementById('iUI')).display, getComputedStyle(document.getElementById('ijump')).display, document.getElementById('gIsle').classList.contains('on')]")
         ok(vis[0]!="none" and vis[1]!="none" and vis[2], f"조이스틱·점프·아래 단추 보임 {vis}")
         await pg.evaluate("()=>{ const d=ISLE.doorCell(); const h=HOUSE.hero(); h.g.position.set(d[0]+.5,0,d[1]+.5); h.cx=d[0]; h.cz=d[1]; const L=LBL.find(L=>L.d.k==='home'); L.d.act(); }")
