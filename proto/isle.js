@@ -324,6 +324,8 @@ const ISLE=(()=>{
     // 동네 땅 (열린 동네만) · 길 입구 아치 · 다음 동네 = 🚧
     MAP.hoods.slice(0,HN).forEach((h,i)=>MAP.hoodLots(h,i).forEach(L=>{ L.chunk="h"+i; lots.push(L); busy.push([L.x,L.z,1.6]); }));
     MAP.hoods.forEach((h,i)=>{ if(i<HN) arch(h,i,true); else if(i===HN){ const A=arch(h,i,false); SPOT.nu=[A.x+OX,1.4,A.z+OZ]; SPOT.nuName=h.ic+" "+h.id+" "+h.nm; } else arch(h,i,false); });
+    /* (v544) 🏘 마을 시설 9곳 (proto/town-fac.js) — 나무보다 먼저 자리 잡음 */
+    try{ if(window.TFAC) TFAC.build({G, OX, OZ, MAP, box, flush, prim, mesh, disc, kk, signTex, SIGNS, busy, cols, SPOT, MC, LIN, geo_}); }catch(e){ console.warn(e); }
     /* 얕은 물·해변 · 꽃밭 (나무보다 먼저 자리 잡음) */
     ISL.forEach(shore);
     const tryBed=(x,z,r)=>{ if(onPave(x,z,r+.25) || water(x,z) || !MAP.inside(x,z,1.5) || busy.some(([bx,bz,br])=>Math.hypot(x-bx,z-bz)<br+r*.6)) return; bed(x,z,r,"m"); };
@@ -411,7 +413,7 @@ const ISLE=(()=>{
     let jx=J.x, jy=J.y; const k=J.key; if(k.arrowleft||k.a) jx=-1; if(k.arrowright||k.d) jx=1; if(k.arrowup||k.w) jy=-1; if(k.arrowdown||k.s) jy=1;
     const busy=F.st!=="idle" || trip.busy || sheetOpen() || !!dlg || (window.IPLAY && IPLAY.frozen());
     const m=Math.hypot(jx,jy);
-    if(m>.12 && !busy){ hero.path=[]; hero.then=null; if(hero.slide && !hero.slide.then) hero.slide=null; const fx=-Math.sin(yaw), fz=-Math.cos(yaw), rx=Math.cos(yaw), rz=-Math.sin(yaw), mx=rx*jx+fx*(-jy), mz=rz*jx+fz*(-jy), L=Math.hypot(mx,mz)||1, sp=SPD*Math.min(1,m)*dt;
+    if(m>.12 && !busy){ hero.path=[]; hero.then=null; if(hero.slide && !hero.slide.then) hero.slide=null; const fx=-Math.sin(yaw), fz=-Math.cos(yaw), rx=Math.cos(yaw), rz=-Math.sin(yaw), mx=rx*jx+fx*(-jy), mz=rz*jx+fz*(-jy), L=Math.hypot(mx,mz)||1, sp=SPD*(window.TFAC?TFAC.spd():1)*Math.min(1,m)*dt;
       const nx=p.x+mx/L*sp, nz=p.z+mz/L*sp, okc=(x,z)=>!blocked(Math.floor(x),Math.floor(z));
       if(okc(nx,nz)){ p.x=nx; p.z=nz; } else if(okc(nx,p.z)){ p.x=nx; } else if(okc(p.x,nz)){ p.z=nz; }
       hero.face=Math.atan2(mx,mz); hero.cx=Math.floor(p.x); hero.cz=Math.floor(p.z); hero.moving=true; hero.joy=true; anim=true;
@@ -441,6 +443,7 @@ const ISLE=(()=>{
     if(SPOT.mine) L.push({k:"mine", ic:"⛏", t:"광산", p:SPOT.mine, r:3.4, act:()=>tripTo("mine")});
     if(SPOT.nu) L.push({k:"nu", ic:"🚧", t:(SPOT.nuName||"새 동네")+" (친구가 오면)", p:SPOT.nu, r:4, act:()=>toast("🚧 학원 친구가 늘면 <b>새 동네</b>가 여기에 생겨요!", 2600)});
     if(SPOT.camp) L.push({k:"camp", ic:"🔥", t:"모닥불", p:SPOT.camp, r:2.6, act:()=>{ hero.act="sit"; hero.actT=0; toast("🔥 따뜻해요 — 친구들이 모이는 곳이에요", 2200); }});
+    try{ if(window.TFAC) TFAC.labels(L); }catch(e){ console.warn(e); }
     return L; }
   /* (v539) 가게 — 문 앞까지 걸어가서 그 가게 창 */
   function shopGo(S){ const run=()=>{ const k=S.k; if(k==="fish") openShop(); else if(k==="furn") openFurn("furn"); else if(k==="clothes") openAv("clothes"); else if(k==="hair") openAv("hair"); else if(k==="mart"){ try{ HLIFE.openMart(); }catch(e){} } else if(k==="town") tripTo("village"); try{ tEv("shop_"+k); }catch(e){} };

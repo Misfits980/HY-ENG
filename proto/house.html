@@ -2942,7 +2942,7 @@ async function linkKid(){ await ensureTag(); const K=kidInfo(); if(K.shared || !
 const tagOf=h=>h && h.g ? '<u class="tg">#'+esc(h.g)+'</u>' : '';
 const nmTag=(h)=>esc((h&&h.n)||"친구")+tagOf(h);
 async function publish(){ const K=kidInfo(); if(K.shared || visiting) return false; await ensureTag();
-  const d=Object.assign(roomData(), {home:window.HOMEX?HOMEX.pub():null, brag:window.HLIFE?HLIFE.brag():null, y:yd?yData():null, n:K.n, t:K.t, g:myTag, av, fish:FISH.filter(f=>dex[f.en]&&!f.noRot).slice(-6).map(f=>f.e), tw:twPub(), at:Date.now()});
+  const d=Object.assign(roomData(), {home:window.HOMEX?HOMEX.pub():null, brag:window.HLIFE?HLIFE.brag():null, pet:window.TFAC?TFAC.petPub():null, y:yd?yData():null, n:K.n, t:K.t, g:myTag, av, fish:FISH.filter(f=>dex[f.en]&&!f.noRot).slice(-6).map(f=>f.e), tw:twPub(), at:Date.now()});
   try{ await NET.put("/hy/life/h/"+myCode, d); SOC.err=""; return true; }catch(e){ SOC.err=errT(e); return false; } }
 async function loadSocial(){ const g=p=>NET.get(p).then(v=>v||{});
   try{ const [rq,fr,lk,gb]=await Promise.all([g("/hy/life/req/"+myCode), g("/hy/life/fr/"+myCode), g("/hy/life/lk/"+myCode), g("/hy/life/gb/"+myCode)]); Object.assign(SOC,{req:rq, fr, lk, gb, err:""});
@@ -3991,7 +3991,7 @@ function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Mat
 function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
+  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } if(place===PL.mine){ regenMine(); drawOres(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(TW.on){ twTick(dt); anim=true; } else if(updCam(dt)) anim=true;
@@ -4018,5 +4018,6 @@ window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcC
 <script src="isle-play.js"></script>
 <script src="isle-hud.js"></script>
 <script src="home-life.js"></script>
+<script src="town-fac.js"></script>
 </body>
 </html>
