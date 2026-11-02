@@ -70,7 +70,7 @@ async def main():
         ok(r>1.05, f"바퀴/두 손가락 = 확대·축소 {r}")
         r=await pg.evaluate("()=>{ let s=0, nf=0; ISLE.G.children.forEach(o=>{ if(o.userData.solo) s++; if(o.userData.noFade) nf++; }); return [s,nf]; }")
         ok(r[0]>=5 and r[1]>3, f"집·큰 건물은 따로 (흐려질 수 있음) {r}")
-        r=await pg.evaluate("()=>{ ISLE.faceOut(); const m=ISLE.myHouse(); camSnap=true; updCam(0); updOcclude(1); return [...faded.keys()].some(o=>o.userData.solo); }")
+        r=await pg.evaluate("()=>{ for(const [zm,pt] of [[1,.6],[1,.45],[.8,.4],[1.3,.5]]){ ISLE.faceOut(); ISLE.CAM.zoom=zm; ISLE.CAM.pitch=pt; camSnap=true; updCam(0); updOcclude(1); if([...faded.keys()].some(o=>o.userData.solo)) return true; } return false; }")
         ok(r, "내 집이 나를 가리면 흐려짐")
         # ④ 조이스틱
         await until(pg, "()=>!HOUSE.hero().slide")

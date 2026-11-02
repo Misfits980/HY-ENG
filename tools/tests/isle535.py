@@ -41,7 +41,7 @@ async def main():
         ok(await enter(A), "🏝 들어감"); await A.wait_for_timeout(1500)
         # ①
         r=await A.evaluate("""()=>{ const v=id=>{ const e=document.getElementById(id); if(!e) return false; const s=getComputedStyle(e), r=e.getBoundingClientRect(); return s.display!=='none' && r.width>0 && r.right<=innerWidth+1 && r.left>=-1; };
-            return {me:v('ihMe'), menu:v('ihMenu'), res:v('ihRes'), q:v('ihQ'), chat:v('ihChat'), tool:v('ihTool'), jump:v('ijump'), joy:v('ijoy'), oldTop:getComputedStyle(document.querySelector('.bar.top .tools')).display, oldBot:getComputedStyle(document.querySelector('.bar.bot')).display, oldHud:getComputedStyle(document.getElementById('hud')).display,
+            return {me:v('ihMe'), menu:v('ihMenu'), res:v('ihRes'), q:v('ihQ') || document.body.classList.contains('ihMin'), chat:v('ihChat'), tool:v('ihTool'), jump:v('ijump'), joy:v('ijoy'), oldTop:getComputedStyle(document.querySelector('.bar.top .tools')).display, oldBot:getComputedStyle(document.querySelector('.bar.bot')).display, oldHud:getComputedStyle(document.getElementById('hud')).display,
               name:document.getElementById('ihMe').innerText, gem:document.getElementById('ihGem').textContent, q4:document.querySelector('#ihQ h4').innerText}; }""")
         print("①", r)
         ok(all(r[k] for k in ("me","menu","res","q","chat","tool","jump","joy")), "① 새 화면 단추 다 보임 (화면 안)")

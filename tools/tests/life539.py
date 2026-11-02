@@ -43,9 +43,9 @@ async def main():
         await A.evaluate("()=>HOUSE.exitRoom()"); ok(await until(A, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy", 120), "🏝 우리 마을")
         await A.wait_for_timeout(1200)
         r=await A.evaluate("()=>(ISLE.SPOT.shops||[]).map(s=>s.k)")
-        ok(sorted(r)==sorted(["fish","furn","clothes","hair","mart","town"]), f"① 시장 거리 가게 6곳 {r}")
-        r=await A.evaluate("()=>LBL.filter(l=>['fish','furn','clothes','hair','mart','town'].includes(l.d.k)).length")
-        ok(r==6, f"① 가게 이름표 6개 {r}")
+        ok(sorted(r)==sorted(["fish","furn","clothes","hair","mart","town","snack","pet","photo"]), f"① 상점가 가게 8곳 + 마을 사람들 {r}")
+        r=await A.evaluate("()=>LBL.filter(l=>['fish','furn','clothes','hair','mart','town','snack','pet','photo'].includes(l.d.k)).length")
+        ok(r==9, f"① 가게 이름표 9개 {r}")
         # ② 옷 가게
         await A.evaluate("()=>{ const S=ISLE.SPOT.shops.find(s=>s.k==='clothes'), h=HOUSE.hero(); h.g.position.set(S.door[0],0,S.door[1]); h.cx=Math.floor(S.door[0]); h.cz=Math.floor(S.door[1]); LBL.find(l=>l.d.k==='clothes').d.act(); }")
         ok(await until(A, "()=>document.getElementById('avP').classList.contains('on') && /옷 가게/.test(document.getElementById('avTtl').textContent)", 40), "② 👕 옷 가게 창")

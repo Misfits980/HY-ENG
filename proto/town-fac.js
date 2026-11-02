@@ -60,21 +60,20 @@ const TFAC=(()=>{
     q.classList.add("on"); }
 
   /* ═════════ 🏗 건물 (isle.js build 가 부름) ═════════ */
+  /* (v550) 자리는 마을 설계도(ISLE_MAP.spots) — 🍦 간식 · 🐶 펫 · 📸 사진관은 🏪 상점가 가게로 옮김 */
   const FAC=[
-    {k:"goal", ic:"📣", t:"마을 목표판", at:[-12.8,-3.6]},
-    {k:"post", ic:"📮", t:"우체국", at:[5,16], w:4, d:3.4, h:2.2, wall:0xfff3e0, roof:0xe24b4b, bg:"#ffd0d0"},
-    {k:"snack", ic:"🍦", t:"간식 가게", at:[-16,-5], w:3.6, d:3, h:2.1, wall:0xffe1ee, roof:0xff7aa8, bg:"#ffe0ef"},
-    {k:"pet", ic:"🐶", t:"펫 가게", at:[18,9], w:3.8, d:3.2, h:2.1, wall:0xd8f2c8, roof:0x5cc46a, bg:"#d8f5cc"},
-    {k:"museum", ic:"🏛", t:"박물관", at:[7,-20], w:5, d:3.8, h:2.7, wall:0xf3eee2, roof:0xd6cbb2, bg:"#f3eee2"},
-    {k:"photo", ic:"📸", t:"사진관", at:[23,1], w:3.4, d:3, h:2.2, wall:0xe6dcff, roof:0x9b72f0, bg:"#e6dcff"},
-    {k:"library", ic:"📚", t:"도서관", at:[-19,-19], w:4.6, d:3.6, h:3.2, wall:0xffeccc, roof:0x5aa7ff, bg:"#d6ebff"},
-    {k:"station", ic:"🚉", t:"기차역", at:[-25,-3], w:4.4, d:2.6, h:2.4, wall:0xfff3e0, roof:0x4caf50, bg:"#d8f5cc"},
+    {k:"goal", ic:"📣", t:"마을 목표판"},
+    {k:"post", ic:"📮", t:"우체국", w:4, d:3.4, h:2.2, wall:0xfff3e0, roof:0xe24b4b, bg:"#ffd0d0", face:"plaza"},
+    {k:"museum", ic:"🏛", t:"박물관", w:5, d:3.8, h:2.7, wall:0xf3eee2, roof:0xd6cbb2, bg:"#f3eee2", face:"campus"},
+    {k:"library", ic:"📚", t:"도서관", w:4.6, d:3.6, h:3.2, wall:0xffeccc, roof:0x5aa7ff, bg:"#d6ebff", face:"campus"},
+    {k:"station", ic:"🚉", t:"기차역", w:4.4, d:2.6, h:2.4, wall:0xfff3e0, roof:0x4caf50, bg:"#d8f5cc", face:"plaza"},
   ];
   let C=null; const SP={}; let goalTex=null, goalCv=null, bunt=null, parts=null, fw=null;
   function faceDir(x,z){ const M_=C.MAP; let best=1e9, bp=null; const segs=Object.values(M_.roads).map(r=>r.p).concat(M_.hoods.map(h=>h.p));
     segs.forEach(P=>{ const Qp=M_.cr(P,8); for(let i=1;i<Qp.length;i++){ const a=Qp[i-1], b=Qp[i], dx=b[0]-a[0], dz=b[1]-a[1], L2=dx*dx+dz*dz||1, t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/L2)), px=a[0]+dx*t, pz=a[1]+dz*t, d=Math.hypot(x-px,z-pz); if(d<best){ best=d; bp=[px,pz]; } } });
     let fx=bp?bp[0]-x:-x, fz=bp?bp[1]-z:-z; const L=Math.hypot(fx,fz)||1; return [fx/L, fz/L]; }
-  function building(f){ const [x,z]=f.at, D=faceDir(x,z), ry=Math.atan2(D[0],D[1]), OX=C.OX, OZ=C.OZ;
+  const mergeIn=W=>{ if(!C.vcMerge) return; const L=[]; W.children.slice().forEach(m=>{ if(m.isMesh && m.material && m.material.isMeshStandardMaterial && !m.material.vertexColors){ m.updateMatrix(); L.push({g:m.geometry, col:m.material.color.clone().convertLinearToSRGB().getHex(), m:m.matrix.clone()}); W.remove(m); } }); if(L.length){ W.add(C.vcMerge(L)); L.forEach(e=>e.g.dispose()); } };
+  function building(f){ const [x,z]=f.at, D=f.face==='plaza' ? (()=>{ const L=Math.hypot(x,z)||1; return [-x/L,-z/L]; })() : f.face==='campus' && C.MAP.spots.campus ? (()=>{ const c=C.MAP.spots.campus, L=Math.hypot(c[0]-x,c[1]-z)||1; return [(c[0]-x)/L,(c[1]-z)/L]; })() : faceDir(x,z), ry=Math.atan2(D[0],D[1]), OX=C.OX, OZ=C.OZ;
     const W=new THREE.Group(); W.position.set(x+OX,0,z+OZ); W.rotation.y=ry; W.userData.solo=1; W.userData.fac=f.k;
     const B=(w,h,d,col,bx,by,bz)=>C.box(W,w,h,d,col,bx,by+h/2,bz);
     const X=(geo,col,px,py,pz,rx,ry2,rz,o)=>{ const m=new THREE.Mesh(geo, o&&o.basic?new THREE.MeshBasicMaterial({color:C.LIN(col)}):C.MC(col)); m.position.set(px,py,pz); m.rotation.set(rx||0,ry2||0,rz||0); m.castShadow=true; m.receiveShadow=true; W.add(m); return m; };
@@ -107,7 +106,7 @@ const TFAC=(()=>{
         if(eng){ X(new THREE.CylinderGeometry(.3,.3,.9,14),col,cx+.45,.95,rz,0,0,Math.PI/2); X(new THREE.CylinderGeometry(.09,.13,.4,10),0x3b2433,cx+.75,1.45,rz); B(.6,.5,.92,0xffd23f,cx-.35,1.11,rz); } else [-.32,.32].forEach(wx=>B(.36,.3,.04,0x9fd8ff,cx+wx,.66,rz+.47)); };
       car(-2.3,0xff6b6b,1); car(-.8,0x5aa7ff); car(.7,0xffd23f);
       [-2.3,-.8,.7].forEach(cx=>{ const p=L2W(cx,rz); C.cols.push([p[0]+OX,p[1]+OZ,.75]); }); [-4,-2,0,2,4].forEach(cx=>{ const p=L2W(cx,rz); C.busy.push([p[0],p[1],1.3]); }); }
-    C.flush(W); C.G.add(W);
+    C.flush(W); mergeIn(W); C.G.add(W);
     const rad=Math.max(w,d)/2*.92+(f.k==="museum"?.3:0); C.cols.push([x+OX,z+OZ,rad]); C.busy.push([x,z,rad+1.4]); if(f.k==="pet"){ const p=L2W(w/2+1.5,0); C.cols.push([p[0]+OX,p[1]+OZ,1.1]); C.busy.push([p[0],p[1],1.6]); }
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:C.signTex(f.ic+" "+f.t, f.bg, 448), depthWrite:false})); sp.scale.set(2.5,.72,1); const sg=L2W(0,fr+.5); sp.position.set(sg[0]+OX, f.k==="museum"?h+1.95:(f.k==="library"?h+2.0:h+1.65), sg[1]+OZ); sp.renderOrder=2; C.G.add(sp); C.SIGNS.push(sp);
     const dp=L2W(0,fr+(f.k==="museum"?1.9:1.25)), lp=L2W(0,fr+.4); SP[f.k]={k:f.k, ic:f.ic, t:f.t, p:[lp[0]+OX,1.6,lp[1]+OZ], door:[dp[0]+OX, dp[1]+OZ], at:[x+OX,z+OZ]}; }
@@ -117,7 +116,7 @@ const TFAC=(()=>{
     const bd=new THREE.Mesh(new THREE.BoxGeometry(2.3,1.45,.1), C.MC(0xc9925c)); bd.position.y=1.55; bd.castShadow=true; W.add(bd);
     goalCv=document.createElement("canvas"); goalCv.width=512; goalCv.height=320; goalTex=new THREE.CanvasTexture(goalCv); goalTex.encoding=THREE.sRGBEncoding;
     const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.3), new THREE.MeshBasicMaterial({map:goalTex})); pl.position.set(0,1.55,.06); W.add(pl);
-    C.G.add(W); C.cols.push([x+OX,z+OZ,.9]); C.busy.push([x,z,1.6]); const fx=-Math.sin(ry+Math.PI), fz=-Math.cos(ry+Math.PI);
+    mergeIn(W); C.G.add(W); C.cols.push([x+OX,z+OZ,.9]); C.busy.push([x,z,1.6]); const fx=-Math.sin(ry+Math.PI), fz=-Math.cos(ry+Math.PI);
     SP.goal={k:"goal", ic:"📣", t:"마을 목표판", p:[x+OX,2.6,z+OZ], door:[x+OX+Math.sin(ry)*1.4, z+OZ+Math.cos(ry)*1.4], at:[x+OX,z+OZ]}; drawGoal(); }
   function drawGoal(){ if(!goalCv) return; const g=goalCv.getContext("2d"), G_=GOAL, pct=Math.min(1, G_.tot/Math.max(1,G_.target));
     g.fillStyle="#fffdf7"; g.fillRect(0,0,512,320); g.strokeStyle="#3b2433"; g.lineWidth=10; g.strokeRect(5,5,502,310);
@@ -133,28 +132,29 @@ const TFAC=(()=>{
   function decorate(){ const OX=C.OX, OZ=C.OZ, S=season(), sea=SEA[S]||SEA.spring, fest=GOAL.tot>=GOAL.target;
     // 깃발 줄: 분수 위 → 광장 둘레 8곳
     const pos=[], col=[], c3=new THREE.Color(); const flags=fest?[0xff6b6b,0xffd23f,0x5aa7ff,0x7fd36a,0xff9ac8]:sea.flag;
-    for(let k=0;k<8;k++){ const a=k/8*6.283+.2, ex=Math.cos(a)*5.6, ez=Math.sin(a)*5.6, n=9;
+    const PR=C.MAP.plaza.r; for(let k=0;k<8;k++){ const a=k/8*6.283+.2, ex=Math.cos(a)*PR*.78, ez=Math.sin(a)*PR*.78, n=9;
       for(let i=1;i<n;i++){ const t=i/n, x=ex*t, z=ez*t, y=2.75-(2.75-2.35)*t-Math.sin(t*Math.PI)*.45, tx=-Math.sin(a)*.17, tz=Math.cos(a)*.17; c3.set(flags[(i+k)%flags.length]).convertSRGBToLinear();
         [[x-tx,y,z-tz],[x+tx,y,z+tz],[x,y-.36,z]].forEach(v=>{ pos.push(v[0]+OX,v[1],v[2]+OZ); col.push(c3.r,c3.g,c3.b); }); } }
     const bg=new THREE.BufferGeometry(); bg.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); bg.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
     bunt=new THREE.Mesh(bg, new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.DoubleSide})); C.G.add(bunt);
-    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1.0,6), C.MC(0xffffff)); pole.position.set(OX,2.3,OZ); C.G.add(pole);
+    const DG=new THREE.Group(); DG.position.set(OX,0,OZ); C.G.add(DG); const pole=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1.0,6), C.MC(0xffffff)); pole.position.set(0,2.3,0); DG.add(pole);
     // 계절 소품 — 광장 둘레 (길 위는 피함)
     const ring=(r, n, fn)=>{ for(let k=0;k<n;k++){ const a=k/n*6.283+.35, x=Math.cos(a)*r, z=Math.sin(a)*r; try{ if(ISLE.onPave(x+OX,z+OZ) && Math.hypot(x,z)>C.MAP.plaza.r-.2) continue; }catch(e){} fn(x,z,a,k); } };
-    const P_=(geo,c,x,y,z,o)=>{ const m=new THREE.Mesh(geo, C.MC(c)); m.position.set(x+OX,y,z+OZ); if(o) m.scale.set(o[0],o[1],o[2]); m.castShadow=true; C.G.add(m); return m; };
-    if(S==="autumn") ring(4.25, 10, (x,z,a,k)=>{ if(k%2) return; P_(new THREE.SphereGeometry(.3,12,8),0xff8a3d,x,.24,z,[1,.75,1]); P_(new THREE.CylinderGeometry(.04,.05,.16,6),0x5a8a3a,x,.5,z); });
-    if(S==="winter"){ ring(4.25, 10, (x,z,a,k)=>{ if(k%3) return; P_(new THREE.SphereGeometry(.34,12,10),0xffffff,x,.32,z); P_(new THREE.SphereGeometry(.24,12,10),0xffffff,x,.82,z); P_(new THREE.ConeGeometry(.05,.22,6),0xff8a3d,x+Math.cos(a+3.14)*.24,.84,z+Math.sin(a+3.14)*.24).rotation.set(0,0,Math.PI/2); });
-      const tx=6.2, tz=-2.6; [[1.25,1.3,.7],[1.0,1.1,1.5],[.7,.9,2.2]].forEach(([r,h,y])=>P_(new THREE.ConeGeometry(r,h,14),0x2f8f3f,tx,y,tz)); P_(new THREE.CylinderGeometry(.18,.2,.5,8),0x7a4f2c,tx,.25,tz);
-      const star=new THREE.Mesh(new THREE.OctahedronGeometry(.28), new THREE.MeshBasicMaterial({color:C.LIN(0xffd23f)})); star.position.set(tx+OX,2.85,tz+OZ); C.G.add(star); C.cols.push([tx+OX,tz+OZ,1.2]);
-      for(let i=0;i<14;i++){ const a=i*2.4, r=.5+(i%4)*.18, y=.9+(i%5)*.3, b=new THREE.Mesh(new THREE.SphereGeometry(.08,8,6), new THREE.MeshBasicMaterial({color:C.LIN([0xff6b6b,0xffd23f,0x5aa7ff,0xffffff][i%4])})); b.position.set(tx+OX+Math.cos(a)*r*(1.6-y/2.4), y, tz+OZ+Math.sin(a)*r*(1.6-y/2.4)); C.G.add(b); } }
-    if(S==="summer") ring(4.4, 10, (x,z,a,k)=>{ if(k%3) return; P_(new THREE.CylinderGeometry(.04,.04,1.8,6),0xffffff,x,.9,z); P_(new THREE.ConeGeometry(.9,.4,12),[0xff6b6b,0x5aa7ff,0xffd23f][k%3],x,1.9,z); });
-    if(S==="spring") ring(4.3, 10, (x,z,a,k)=>{ if(k%2) return; P_(new THREE.CylinderGeometry(.24,.18,.32,10),0xc9925c,x,.16,z); [0,1,2].forEach(j=>P_(new THREE.SphereGeometry(.1,8,6),[0xff9ac8,0xffffff,0xffd23f][j],x+Math.cos(j*2.1)*.1,.42,z+Math.sin(j*2.1)*.1)); });
+    const P_=(geo,c,x,y,z,o)=>{ const m=new THREE.Mesh(geo, C.MC(c)); m.position.set(x,y,z); if(o) m.scale.set(o[0],o[1],o[2]); m.castShadow=true; DG.add(m); return m; };
+    if(S==="autumn") ring(PR*.57, 12, (x,z,a,k)=>{ if(k%2) return; P_(new THREE.SphereGeometry(.3,12,8),0xff8a3d,x,.24,z,[1,.75,1]); P_(new THREE.CylinderGeometry(.04,.05,.16,6),0x5a8a3a,x,.5,z); });
+    if(S==="winter"){ ring(PR*.57, 12, (x,z,a,k)=>{ if(k%3) return; P_(new THREE.SphereGeometry(.34,12,10),0xffffff,x,.32,z); P_(new THREE.SphereGeometry(.24,12,10),0xffffff,x,.82,z); P_(new THREE.ConeGeometry(.05,.22,6),0xff8a3d,x+Math.cos(a+3.14)*.24,.84,z+Math.sin(a+3.14)*.24).rotation.set(0,0,Math.PI/2); });
+      const tx=9.2, tz=-3.8; C.busy.push([tx,tz,2]); [[1.25,1.3,.7],[1.0,1.1,1.5],[.7,.9,2.2]].forEach(([r,h,y])=>P_(new THREE.ConeGeometry(r,h,14),0x2f8f3f,tx,y,tz)); P_(new THREE.CylinderGeometry(.18,.2,.5,8),0x7a4f2c,tx,.25,tz);
+      P_(new THREE.OctahedronGeometry(.28),0xffd23f,tx,2.85,tz); C.cols.push([tx+OX,tz+OZ,1.2]);
+      for(let i=0;i<14;i++){ const a=i*2.4, r=.5+(i%4)*.18, y=.9+(i%5)*.3, b=new THREE.Mesh(new THREE.SphereGeometry(.08,8,6), new THREE.MeshBasicMaterial({color:C.LIN([0xff6b6b,0xffd23f,0x5aa7ff,0xffffff][i%4])})); b.position.set(tx+Math.cos(a)*r*(1.6-y/2.4), y, tz+Math.sin(a)*r*(1.6-y/2.4)); b.material=C.MC([0xff6b6b,0xffd23f,0x5aa7ff,0xffffff][i%4]); DG.add(b); } }
+    if(S==="summer") ring(PR*.59, 12, (x,z,a,k)=>{ if(k%3) return; P_(new THREE.CylinderGeometry(.04,.04,1.8,6),0xffffff,x,.9,z); P_(new THREE.ConeGeometry(.9,.4,12),[0xff6b6b,0x5aa7ff,0xffd23f][k%3],x,1.9,z); });
+    if(S==="spring") ring(PR*.58, 12, (x,z,a,k)=>{ if(k%2) return; P_(new THREE.CylinderGeometry(.24,.18,.32,10),0xc9925c,x,.16,z); [0,1,2].forEach(j=>P_(new THREE.SphereGeometry(.1,8,6),[0xff9ac8,0xffffff,0xffd23f][j],x+Math.cos(j*2.1)*.1,.42,z+Math.sin(j*2.1)*.1)); });
+    mergeIn(DG);
     // 날리는 것 (여름 = 없음)
     parts=null; if(sea.p){ const n=(typeof LOW!=="undefined" && LOW)?120:240, g=new THREE.BufferGeometry(), a=new Float32Array(n*3); for(let i=0;i<n;i++){ a[i*3]=(Math.random()-.5)*40; a[i*3+1]=Math.random()*14; a[i*3+2]=(Math.random()-.5)*40; } g.setAttribute("position",new THREE.BufferAttribute(a,3));
       const cv=document.createElement("canvas"); cv.width=cv.height=32; const x2=cv.getContext("2d"); x2.fillStyle="#"+new THREE.Color(sea.p).getHexString(); x2.beginPath(); if(S==="winter") x2.arc(16,16,13,0,7); else x2.ellipse(16,16,14,8,.6,0,7); x2.fill();
       const tx=new THREE.CanvasTexture(cv); const m=new THREE.PointsMaterial({size:S==="winter"?.22:.28, map:tx, transparent:true, depthWrite:false, alphaTest:.3}); parts=new THREE.Points(g,m); parts.frustumCulled=false; parts.userData.kind=S; C.G.add(parts); }
     fw=new THREE.Group(); C.G.add(fw); }
-  function build(ctx){ C=ctx; Object.keys(SP).forEach(k=>delete SP[k]); FAC.forEach(f=>{ try{ if(f.k==="goal") goalBoard(f); else building(f); }catch(e){ console.warn("TFAC", f.k, e); } }); try{ decorate(); }catch(e){ console.warn(e); } loadGoal(); }
+  function build(ctx){ C=ctx; Object.keys(SP).forEach(k=>delete SP[k]); FAC.forEach(f=>{ try{ const a=(C.MAP.spots||{})[f.k]; if(!a) return; f.at=a; if(f.k==="goal") goalBoard(f); else building(f); }catch(e){ console.warn("TFAC", f.k, e); } }); try{ decorate(); }catch(e){ console.warn(e); } loadGoal(); }
   /* 이름표 — 누르면 문 앞까지 걸어가서 열기 */
   function go(S, fn){ const run=()=>{ try{ fn(); tEv("fac_"+S.k); }catch(e){ console.warn(e); } }; const c=[Math.floor(S.door[0]), Math.floor(S.door[1])];
     if(Math.hypot(hero.g.position.x-S.door[0], hero.g.position.z-S.door[1])<2.4 || ISLE.blocked(c[0],c[1])) run(); else walkTo(c[0],c[1],run); }

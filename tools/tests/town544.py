@@ -44,15 +44,17 @@ async def main():
         A=await kid("AAAAA","루아")
         # ①
         r=await A.evaluate("()=>LBL.filter(l=>/^f_/.test(l.d.k)).map(l=>l.d.k)")
-        ok(sorted(r)==sorted(["f_goal","f_post","f_snack","f_pet","f_museum","f_photo","f_library","f_station","f_stage"]), f"① 시설 이름표 9개 {r}")
+        ok(sorted(r)==sorted(["f_goal","f_post","f_museum","f_library","f_station","f_stage"]), f"① 시설 이름표 6개 (간식·펫·사진관 = 상점가 가게) {r}")
+        r=await A.evaluate("()=>['snack','pet','photo'].map(k=>!!LBL.find(l=>l.d.k===k))")
+        ok(r==[True,True,True], f"① 🏪 상점가: 🍦 🐶 📸 이름표 {r}")
         r=await A.evaluate("()=>Object.values(TFAC.SP).filter(S=>S.k!=='goal').map(S=>[S.k, ISLE.blocked(Math.floor(S.at[0]),Math.floor(S.at[1])), ISLE.blocked(Math.floor(S.door[0]),Math.floor(S.door[1]))])")
         ok(all(x[1] for x in r), f"① 건물 자리는 막힘 {r}")
         ok(all(not x[2] for x in r), f"① 문 앞은 걸을 수 있음 {[x for x in r if x[2]]}")
         r=await A.evaluate("()=>{ const h=HOUSE.hero(); return Object.values(TFAC.SP).filter(S=>S.k!=='goal').map(S=>[S.k, ISLE.reachFrom ? 1 : 1]); }")
         ok(await until(A, "()=>!!document.getElementById('ihFull')", 20), "① 🍗 단추 (섬 HUD)")
         # 걸어서 가게 앞 → 창
-        await A.evaluate("()=>{ const S=TFAC.SP.snack; TFAC.warp(S.door[0]+(S.door[0]-S.at[0])*1.5, S.door[1]+(S.door[1]-S.at[1])*1.5); LBL.find(l=>l.d.k==='f_snack').d.act(); }")
-        ok(await until(A, "()=>document.getElementById('tfSn') && document.getElementById('tfSn').classList.contains('on')", 200), "① 🍦 이름표 → 걸어가서 간식 가게 창")
+        await A.evaluate("()=>{ const S=ISLE.SPOT.shops.find(s=>s.k==='snack'); TFAC.warp(S.door[0]+3, S.door[1]+3); LBL.find(l=>l.d.k==='snack').d.act(); }")
+        ok(await until(A, "()=>document.getElementById('tfSn') && document.getElementById('tfSn').classList.contains('on')", 200), "① 🍦 상점가 이름표 → 걸어가서 간식 가게 창")
         await A.evaluate("()=>document.getElementById('tfSn').classList.remove('on')")
         # ② 목표
         await A.evaluate("()=>{ const S=JSON.parse(localStorage.getItem('hyeng_study_v1')); ['red','blue','green','pink','sky'].forEach(w=>S.srs[w]=[1,0]); S.days.tot+=1; localStorage.setItem('hyeng_study_v1', JSON.stringify(S)); }")

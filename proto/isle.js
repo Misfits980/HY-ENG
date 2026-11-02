@@ -9,7 +9,7 @@
 const ISLE=(()=>{
   const q=new URLSearchParams(location.search);
   const ON = q.get("isle")==="1" || (q.get("isle")!=="0" && !navigator.webdriver);
-  const S=1.05, N=112, OX=56, OZ=56;   /* (v536) 하나로 이어진 큰 섬 (ISLE_MAP) */
+  const S=1.05, N=196, OX=98, OZ=98;   /* (v536) 하나로 이어진 큰 섬 (ISLE_MAP) · (v550) 3.5배 섬 → 196칸 */
   const MAP=window.ISLE_MAP;
   const G=new THREE.Group(); G.name="isle"; G.visible=false; scene.add(G);
   const W=new Uint8Array(N*N);              // 1 = 걸을 수 있음
@@ -25,7 +25,7 @@ const ISLE=(()=>{
     if(o.col) cols.push([x+OX, z+OZ, o.col]);
     if(o.solo){ const m=new THREE.Mesh(g, R.mat); m.matrixAutoUpdate=false; m.matrix.copy(M4); m.castShadow=true; m.receiveShadow=true; const W=new THREE.Group(); W.add(m); W.userData.solo=1; G.add(W); return W; }   /* (v525) 집·큰 건물 = 따로 (가리면 그것만 흐려짐) */
     /* (v536) 큰 섬 — 덩어리를 14칸 구역마다 나눔 (화면 밖 구역은 안 그림) */
-    const key=pack+"|"+(o.chunk==="far" ? "far" : "g"+Math.floor((x+72)/18)+"_"+Math.floor((z+72)/18)); (bag[key]=bag[key]||[]).push({g, m:M4, cast:o.cast!==false}); return true; }
+    const key=pack+"|"+(o.chunk==="far" ? "far" : "g"+Math.floor((x+104)/26)+"_"+Math.floor((z+104)/26)); (bag[key]=bag[key]||[]).push({g, m:M4, cast:o.cast!==false}); return true; }
   function merge(){ Object.keys(bag).forEach(key=>{ const pack=key.split("|")[0], L=bag[key], R=KK.R[pack];
       let nv=0, ni=0; L.forEach(e=>{ nv+=e.g.attributes.position.count; ni+=e.g.index.count; });
       const P=new Float32Array(nv*3), Nn=new Float32Array(nv*3), U=new Float32Array(nv*2), I=new Uint32Array(ni); let ov=0, oi=0; const v=new THREE.Vector3(), nm=new THREE.Matrix3();
@@ -108,6 +108,13 @@ const ISLE=(()=>{
       for(let i=0;i<B.index.count;i++) idx[oi+i]=B.index.getX(i)+ov; ov+=pa.count; oi+=B.index.count; });
     const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.BufferAttribute(pos,3)); g.setAttribute("normal",new THREE.BufferAttribute(nor,3)); g.setAttribute("color",new THREE.BufferAttribute(colA,3)); g.setIndex(new THREE.BufferAttribute(idx,1)); g.computeBoundingSphere();
     const m=new THREE.Mesh(g, VCM); m.castShadow=true; m.receiveShadow=true; W.add(m); }
+  /* (v550) 여러 조각 → 꼭짓점 색 한 덩어리 (그리기 1번) — [{g, col, m}] · m = Matrix4(없으면 그대로) */
+  const VCM2=new THREE.MeshStandardMaterial({vertexColors:true, roughness:.9});
+  function vcMerge(L, mat){ const parts=L.map(e=>{ let g=e.g.index ? e.g.toNonIndexed() : e.g.clone(); if(e.m) g.applyMatrix4(e.m); if(!g.attributes.normal) g.computeVertexNormals(); return [g, new THREE.Color(e.col).convertSRGBToLinear()]; });
+    let n=0; parts.forEach(([g])=>n+=g.attributes.position.count); const P=new Float32Array(n*3), Nn=new Float32Array(n*3), Cc=new Float32Array(n*3); let o=0;
+    parts.forEach(([g,c])=>{ const k=g.attributes.position.count; P.set(g.attributes.position.array.subarray(0,k*3), o*3); Nn.set(g.attributes.normal.array.subarray(0,k*3), o*3); for(let i=0;i<k;i++){ Cc[(o+i)*3]=c.r; Cc[(o+i)*3+1]=c.g; Cc[(o+i)*3+2]=c.b; } o+=k; g.dispose(); });
+    const G2=new THREE.BufferGeometry(); G2.setAttribute("position",new THREE.BufferAttribute(P,3)); G2.setAttribute("normal",new THREE.BufferAttribute(Nn,3)); G2.setAttribute("color",new THREE.BufferAttribute(Cc,3)); G2.computeBoundingSphere();
+    const m=new THREE.Mesh(G2, mat||VCM2); m.castShadow=true; m.receiveShadow=true; return m; }
   function houseObj(L){ const fl=L.fl||1, sty=L.style, col=sty.slice(2), S2=TIER[(L.tier||1)-1].s;
     if(sty[0]==="M"){ /* 🏢 모던 — 흰 상자 층마다 · 큰 유리창 · 나무 판 · 평평한 지붕 · 맨 위 유리 난간 */
       const W=new THREE.Group(); W.userData.solo=1; W.position.set(L.x+OX,0,L.z+OZ); W.rotation.y=L.face; G.add(W); const k=S2/1.9, bw=1.62*k, bd=1.5*k, FH=.86*k, ac=HCV[col]||HCV.blue;
@@ -210,7 +217,7 @@ const ISLE=(()=>{
     cols.push([x+OX,z+OZ,r+.1]); busy.push([x,z,r+.5]); }
   function bushes(I,n,chunk){ for(let k=0;k<n;k++){ const a=rnd()*6.2832, r=rr(I,a)*(.45+rnd()*.45), x=I.cx+Math.cos(a)*r, z=I.cz+Math.sin(a)*r;
       if(!inIsle(I,x,z,.8) || water(x,z) || onPave(x,z,.7) || busy.some(([bx,bz,br])=>Math.hypot(x-bx,z-bz)<br)) continue; kk("city","bush",x,z,{s:.7+rnd()*.4,ry:rnd()*6,chunk,col:.45}); busy.push([x,z,.8]); } }
-  function clouds(){ for(let i=0;i<9;i++){ const a=i/9*6.283+.5, d=78+rnd()*30; kk("nature",i%2?"cloud_big":"cloud_small",Math.cos(a)*d,Math.sin(a)*d-18,{s:2.2+rnd()*1.6,y:9+rnd()*5,ry:rnd()*6,chunk:"far",cast:false}); } }
+  function clouds(){ for(let i=0;i<9;i++){ const a=i/9*6.283+.5, d=104+rnd()*30; kk("nature",i%2?"cloud_big":"cloud_small",Math.cos(a)*d,Math.sin(a)*d-18,{s:2.2+rnd()*1.6,y:9+rnd()*5,ry:rnd()*6,chunk:"far",cast:false}); } }
   /* (v536) 길 = 곡선을 짧은 판으로 (색마다 한 덩어리) · 테두리 한 줄 */
   const ROAD=0xe6d6b0, ROADE=0xc4ab7e, LANE=0xdcbf86, LANEE=0xbf9f6a;
   function roadP(P,w,col,edge){ const UPL=geo_("upl",()=>{ const g=new THREE.PlaneGeometry(1,1); g.rotateX(-Math.PI/2); return g; }), UCI=geo_("uci",()=>{ const g=new THREE.CircleGeometry(.5,18); g.rotateX(-Math.PI/2); return g; });
@@ -252,6 +259,19 @@ const ISLE=(()=>{
     /* (v536) 사용자: "마을은 이쁘게 다시 만들어 줘야 해" → 하나로 이어진 큰 섬 (ISLE_MAP 설계도) — 광장 · 굽은 돌길 · 시장 거리 · 숲속 호수 · 언덕 학교 · 곶 타워 · 산 아래 광산 · 풍차 밭 · 공원 · 이름 있는 동네 길 */
     const LK=LKD, Sx=MAP.spots; const C=land(MAP.island.cx,MAP.island.cz,Math.max(MAP.island.ax,MAP.island.az),MAP.island.s,[LK],true);
     const HN=hoodCount();
+    /* (v550) 🗺 구역 — 바닥 색(부드러운 모양) · 입구 문 + 이름판 · 🚧 빈 자리 팻말 */
+    { const ZL=[]; (MAP.zones||[]).forEach(Z=>{ const P=Z.poly, Q=MAP.cr(P.concat([P[0],P[1]]),6).slice(6*1, 6*(P.length+1)), cx=P.reduce((a,p)=>a+p[0],0)/P.length, cz=P.reduce((a,p)=>a+p[1],0)/P.length;
+      if(Z.free){ prim(geo_("fpost",()=>new THREE.CylinderGeometry(.08,.08,1.7,8)), 0x9a6a40, cx,.85,cz); cols.push([cx+OX,cz+OZ,.35]); busy.push([cx,cz,7]);
+        const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex("🚧 새 구역 준비 중", "#ffe9a8", 512), depthWrite:false})); sp.scale.set(2.8,.7,1); sp.position.set(cx+OX,2.0,cz+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp); SPOT["free_"+Z.k]=[cx+OX,1.6,cz+OZ]; return; }
+      const sh=new THREE.Shape(); Q.forEach((q,i)=>i?sh.lineTo(q[0],-q[1]):sh.moveTo(q[0],-q[1])); if(MAP.inPoly(LK[0],LK[1],P)){ const hp=new THREE.Path(); for(let k=0;k<=40;k++){ const a=k/40*6.2832; const x=LK[0]+Math.cos(a)*(LK[2]+1.6), z=LK[1]+Math.sin(a)*(LK[3]+1.6); k?hp.lineTo(x,-z):hp.moveTo(x,-z); } sh.holes.push(hp); }
+      const g=new THREE.ShapeGeometry(sh,2); g.rotateX(-Math.PI/2); ZL.push({g, col:new THREE.Color(GRASS).lerp(new THREE.Color(Z.c),.42).getHex()}); g.dispose;
+      if(Z.gate){ const [gx,gz]=Z.gate, L=Math.hypot(gx,gz)||1, fx=gx/L, fz=gz/L, px=-fz, pz=fx, W2=2.5;
+        [-1,1].forEach(sd=>{ const x=gx+px*W2*sd, z=gz+pz*W2*sd; prim(geo_("gpost",()=>new THREE.CylinderGeometry(.13,.15,2.8,10)), 0xfffdf7, x,1.4,z); prim(geo_("gball",()=>new THREE.SphereGeometry(.2,10,8)), 0xffd23f, x,2.9,z); cols.push([x+OX,z+OZ,.3]); busy.push([x,z,.9]); });
+        prim(geo_("gbeam",()=>new THREE.BoxGeometry(5.5,.26,.26)), 0xc94545, gx,2.62,gz,{ry:Math.atan2(-pz,px)});
+        const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(Z.nm, "#"+new THREE.Color(Z.c).lerp(new THREE.Color(0xffffff),.35).getHexString(), 512), depthWrite:false})); sp.scale.set(3.4,.85,1); sp.position.set(gx+OX,3.25,gz+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp); } });
+      if(ZL.length){ const zm=vcMerge(ZL, new THREE.MeshStandardMaterial({vertexColors:true, roughness:.95})); zm.castShadow=false; zm.position.set(OX,.005,OZ); G.add(zm); } }
+    /* 🎓 캠퍼스 마당 (학교·도서관·박물관이 봄) */
+    if(Sx.campus){ disc(Sx.campus[0],Sx.campus[1],5.6,STONE); roadP([MAP.roads.school.p[MAP.roads.school.p.length-1], Sx.campus], 2.2, ROAD, ROADE); }
     // 길
     disc(0,0,MAP.plaza.r,STONE);
     Object.entries(MAP.roads).forEach(([k,r])=>roadP(r.p, r.w, ROAD, ROADE));
@@ -267,22 +287,26 @@ const ISLE=(()=>{
       const bd=new THREE.Mesh(new THREE.BoxGeometry(1.4,.85,.08),MC(0xc9925c)); bd.position.y=1.05; b.add(bd); [[-.3,1.15,0xfff3d6],[.25,1.0,0xdff3d6],[-.2,.88,0xffd9e6]].forEach(([x,y,c])=>{ const pp=new THREE.Mesh(new THREE.BoxGeometry(.38,.3,.02),MC(c)); pp.position.set(x,y,.05); b.add(pp); });
       b.traverse(m=>{ if(m.isMesh){ m.castShadow=true; } }); G.add(b); cols.push([bx+OX,bz+OZ,.5]); SPOT.board=[bx+OX,1.9,bz+OZ]; busy.push([bx,bz,1.2]); }
     // 🏪 시장 거리 — 가게 6채가 길을 보고 마주 섬 · 사이사이 가로등 · 상자
-    { const MK=["building_market_red","building_market_blue","building_market_yellow","building_market_green"], Cm=MAP.curve(MAP.roads.market.p); let i=0;
-      /* (v539) 사용자: "마트나 이런 시설 — 옷이랑 그런 걸 사는 거지" → 가게 6곳 (간판 · 가까이 가면 초록 말풍선) */
-      const SHOP=[["fish","🐟","생선 가게",0x5aa7ff],["furn","🛋","가구점",0xffc93d],["clothes","👕","옷 가게",0xff6b6b],["hair","💇","미용실",0xff9ac8],["mart","🛒","마트",0x5cc46a],["town","🏘","마을 사람들",0xc7a6ff]]; SPOT.shops=[];
-      [5.4,9.6,13.8].forEach(s=>{ const A=MAP.at(Cm.Q,Cm.L,s); [-1,1].forEach(sd=>{ const nx=-A.tz*sd, nz=A.tx*sd, x=A.x+nx*3.5, z=A.z+nz*3.5, SH=SHOP[i]; kk("isle",MK[i++%4],x,z,{s:1.75,ry:Math.atan2(-nx,-nz),chunk:"m",col:1.25,solo:1}); busy.push([x,z,2.2]);
-        { const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(SH[1]+" "+SH[2], "#"+new THREE.Color(SH[3]).lerp(new THREE.Color(0xffffff),.55).getHexString(), 448), depthWrite:false})); sp.scale.set(2.5,.72,1); sp.position.set(x-nx*1.4+OX,2.9,z-nz*1.4+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp); }
-        SPOT.shops.push({k:SH[0], ic:SH[1], t:SH[2], p:[x-nx*2.2+OX,1.4,z-nz*2.2+OZ], door:[A.x+nx*1.4+OX, A.z+nz*1.4+OZ]});
-        kk("isle",(i%2)?"barrel":"crate_A_big",x-nx*.4+A.tx*1.7,z-nz*.4+A.tz*1.7,{s:.45,chunk:"m",col:.3}); }); });
-      [3.4,7.5,11.7,15.9].forEach((s,k)=>{ const A=MAP.at(Cm.Q,Cm.L,s), sd=k%2?1:-1; kk("city","streetlight",A.x-A.tz*sd*1.75,A.z+A.tx*sd*1.75,{s:.95,chunk:"m",col:.2}); });
-      SPOT.market=[Sx.market[0]+OX,1.7,Sx.market[1]+OZ]; }
+    { const MK=["building_market_red","building_market_blue","building_market_yellow","building_market_green"], Cm=MAP.curve(MAP.roads.market.p); SPOT.shops=[];
+      /* (v539) 가게 · (v550) 상점가 큰길 양옆 8채 (🍦 간식 · 🐶 펫 · 📸 사진관도 여기로) */
+      MAP.shopLots().forEach((L,i)=>{ const SH=L.sh, nx=L.nx, nz=L.nz, x=L.x, z=L.z; kk("isle",MK[i%4],x,z,{s:1.9,ry:Math.atan2(-nx,-nz),chunk:"m",col:1.35,solo:1}); busy.push([x,z,2.4]);
+        { const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(SH[1]+" "+SH[2], "#"+new THREE.Color(SH[3]).lerp(new THREE.Color(0xffffff),.55).getHexString(), 448), depthWrite:false})); sp.scale.set(2.5,.72,1); sp.position.set(x-nx*1.5+OX,3.1,z-nz*1.5+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp); }
+        SPOT.shops.push({k:SH[0], ic:SH[1], t:SH[2], p:[x-nx*2.3+OX,1.4,z-nz*2.3+OZ], door:[L.rx+nx*1.9+OX, L.rz+nz*1.9+OZ]});
+        const tx=-nz, tz=nx; kk("isle",(i%2)?"barrel":"crate_A_big",x-nx*.6+tx*1.9,z-nz*.6+tz*1.9,{s:.45,chunk:"m",col:.3}); });
+      for(let s2=6, k=0; s2<35; s2+=7.5, k++){ const A=MAP.at(Cm.Q,Cm.L,s2), sd=k%2?1:-1; kk("city","streetlight",A.x-A.tz*sd*2.0,A.z+A.tx*sd*2.0,{s:.95,chunk:"m",col:.2}); }
+      SPOT.market=[Sx.market[0]+OX,1.7,Sx.market[1]+OZ];
+      /* 🏘 마을 사람들 (예전 마을) 가는 길 팻말 — 광장 서쪽 */
+      { const tx=-9.5, tz=3.4; const po=mesh(new THREE.CylinderGeometry(.07,.07,1.6,8), 0x9a6a40, tx,.8,tz); cols.push([tx+OX,tz+OZ,.35]); busy.push([tx,tz,1.2]);
+        const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex("🏘 마을 사람들", "#ece0ff", 448), depthWrite:false})); sp.scale.set(2.3,.66,1); sp.position.set(tx+OX,1.9,tz+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp);
+        SPOT.shops.push({k:"town", ic:"🏘", t:"마을 사람들", p:[tx+OX,1.4,tz+OZ], door:[tx+OX+1.2, tz+OZ-1.2]}); } }
     // ⛏ 광산 (산 아래)
-    kk("nature","mountain_B_grass_trees",Sx.mine[0]+3,Sx.mine[1]-4,{s:2.4,chunk:"m",col:3.2}); kk("isle","building_mine_blue",Sx.mine[0],Sx.mine[1],{s:2.3,ry:Math.atan2(-Sx.mine[0]+21,-Sx.mine[1]-22)+Math.PI,chunk:"m",col:1.4,solo:1});
+    { const mt=Sx.mountain||[Sx.mine[0]+3,Sx.mine[1]-4], re=MAP.roads.mine.p[MAP.roads.mine.p.length-1]; kk("nature","mountain_B_grass_trees",mt[0],mt[1],{s:5.5,chunk:"m",col:6.5}); busy.push([mt[0],mt[1],9]);
+      kk("isle","building_mine_blue",Sx.mine[0],Sx.mine[1],{s:2.3,ry:Math.atan2(re[0]-Sx.mine[0],re[1]-Sx.mine[1]),chunk:"m",col:1.4,solo:1}); }
     SPOT.mine=[Sx.mine[0]+OX,2,Sx.mine[1]+OZ]; busy.push([Sx.mine[0]+1,Sx.mine[1]-1.5,5]);
     // 🗼 하늘 타워 (동쪽 곶)
     kk("isle","building_tower_B_blue",Sx.tower[0],Sx.tower[1],{s:3.3,chunk:"m",col:1.6,solo:1}); kk("isle","flag_blue",Sx.tower[0]-1.5,Sx.tower[1]+1.2,{s:1.6,chunk:"m"}); SPOT.tower=[Sx.tower[0]+OX,3.6,Sx.tower[1]+OZ]; busy.push([Sx.tower[0],Sx.tower[1],3.2]);
     // 🏫 학교 (언덕)
-    { const [sx,sz]=Sx.school; prim(geo_("hill",()=>new THREE.CylinderGeometry(1,1.18,.34,28)), 0x7fc463, sx,.17,sz,{sx:4.2,sz:3.6}); kk("isle","building_church_blue",sx,sz,{s:2.5,y:.34,ry:Math.atan2(-12-sx,-22-sz),chunk:"m",col:2.6,solo:1});
+    { const [sx,sz]=Sx.school; prim(geo_("hill",()=>new THREE.CylinderGeometry(1,1.18,.34,28)), 0x7fc463, sx,.17,sz,{sx:4.2,sz:3.6}); kk("isle","building_church_blue",sx,sz,{s:2.5,y:.34,ry:Math.atan2((MAP.spots.campus||[-31,-29])[0]-sx,(MAP.spots.campus||[-31,-29])[1]-sz),chunk:"m",col:2.6,solo:1});
       SPOT.school=[sx+OX,3.2,sz+OZ]; busy.push([sx,sz,4.4]); [[-1,1],[1,1]].forEach(([a])=>kk("city","bush",sx+a*3.2,sz+2.2,{s:.8,chunk:"m"})); }
     // 🎪 무대 · 🔥 모닥불
     kk("isle","building_stage_A",Sx.stage[0],Sx.stage[1],{s:2.2,ry:Math.atan2(-Sx.stage[0],-Sx.stage[1]),chunk:"m",col:1.2}); busy.push([Sx.stage[0],Sx.stage[1],2.2]);
@@ -294,11 +318,12 @@ const ISLE=(()=>{
       bridges.push([dx-.4+OX,dz+OZ,dx+3.8+OX,dz+OZ,.7]); SPOT.lake=[dx+2.4+OX,.6,dz+OZ]; busy.push([dx+1.4,dz,1.6]); }
     for(let i=0;i<12;i++){ const a=rnd()*6.28, r=Math.sqrt(rnd())*.82; kk("isle",rnd()<.5?"waterlily_A":"waterlily_B",LK[0]+Math.cos(a)*LK[2]*r,LK[1]+Math.sin(a)*LK[3]*r,{s:.8,y:-.36,chunk:"m",cast:false}); }
     // 🌾 풍차 밭 (→ 내 마당)
-    { const [fx,fz]=Sx.farm; disc(fx+3.2,fz+1.6,1.6,PATH);
-      for(let gx=0;gx<3;gx++) for(let gz=0;gz<2;gz++){ const x=fx-2.6+gx*2.4, z=fz-1.4+gz*2.4, col=[0xffd23f,0xff9a3d,0x7fd36a,0xff6b6b][(gx+gz*2)%4];
+    { const [fx,fz]=Sx.farm; disc(fx+3.2,fz+4.6,1.6,PATH);
+      for(let gx=0;gx<5;gx++) for(let gz=0;gz<3;gz++){ const x=fx-5.6+gx*2.8, z=fz-2.8+gz*2.8, col=[0xffd23f,0xff9a3d,0x7fd36a,0xff6b6b][(gx+gz*2)%4];
         prim(geo_("fld",()=>new THREE.BoxGeometry(2.0,.12,2.0)), 0x8a5a34, x,.06,z); busy.push([x,z,1.4]); cols.push([x+OX,z+OZ,.95]);
         for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++){ prim(geo_("crL",()=>new THREE.ConeGeometry(.08,.28,5)), 0x5db95a, x+a*.56,.25,z+b*.56); prim(geo_("crF",()=>new THREE.SphereGeometry(.12,8,6)), col, x+a*.56,.42,z+b*.56); } }
-      kk("isle","building_windmill_yellow",fx-1.2,fz-5.2,{s:2.2,chunk:"m",col:1.0,solo:1}); busy.push([fx-1.2,fz-5.2,2.6]); SPOT.farm=[fx+3.2+OX,1.6,fz+1.6+OZ]; }
+      const wm=Sx.windmill||[fx-1.2,fz-5.2]; kk("isle","building_windmill_yellow",wm[0],wm[1],{s:2.6,chunk:"m",col:1.2,solo:1}); busy.push([wm[0],wm[1],3]); SPOT.farm=[fx+3.2+OX,1.6,fz+1.6+OZ];
+      /* ⛺ 캠핑장 — 텐트 2 · 모닥불 자리 */ [[fx+8,fz+6],[fx+11,fz+3]].forEach(([tx,tz],k)=>{ kk("isle","tent",tx,tz,{s:1.4,ry:k?.6:-.3,chunk:"m",col:.9}); busy.push([tx,tz,1.8]); }); }
     /* 🎡 공원 — ⭕❌ OX 마당 · 🧊 놀이터 · 🎁 보물 상자 (v528 놀이 자리) */
     { const pk=Sx.park; disc(pk.x,pk.z,pk.r,0xa8dc8a); }
     { const ox=Sx.ox; SPOT.oxC=[ox[0]+OX,ox[1]+OZ]; busy.push([ox[0],ox[1],4.2]); disc(ox[0],ox[1],3.9,0xe7dcc2);
@@ -325,22 +350,22 @@ const ISLE=(()=>{
     MAP.hoods.slice(0,HN).forEach((h,i)=>MAP.hoodLots(h,i).forEach(L=>{ L.chunk="h"+i; lots.push(L); busy.push([L.x,L.z,1.6]); }));
     MAP.hoods.forEach((h,i)=>{ if(i<HN) arch(h,i,true); else if(i===HN){ const A=arch(h,i,false); SPOT.nu=[A.x+OX,1.4,A.z+OZ]; SPOT.nuName=h.ic+" "+h.id+" "+h.nm; } else arch(h,i,false); });
     /* (v544) 🏘 마을 시설 9곳 (proto/town-fac.js) — 나무보다 먼저 자리 잡음 */
-    try{ if(window.TFAC) TFAC.build({G, OX, OZ, MAP, box, flush, prim, mesh, disc, kk, signTex, SIGNS, busy, cols, SPOT, MC, LIN, geo_}); }catch(e){ console.warn(e); }
+    try{ if(window.TFAC) TFAC.build({G, OX, OZ, MAP, box, flush, prim, mesh, disc, kk, signTex, SIGNS, busy, cols, SPOT, MC, LIN, geo_, vcMerge}); }catch(e){ console.warn(e); }
     /* 얕은 물·해변 · 꽃밭 (나무보다 먼저 자리 잡음) */
     ISL.forEach(shore);
     const tryBed=(x,z,r)=>{ if(onPave(x,z,r+.25) || water(x,z) || !MAP.inside(x,z,1.5) || busy.some(([bx,bz,br])=>Math.hypot(x-bx,z-bz)<br+r*.6)) return; bed(x,z,r,"m"); };
-    [[-4.4,4.6,.8],[4.6,4.6,.75],[5.6,-2.4,.7],[-6.4,-3.6,.8],[2.8,-6.8,.8],[-3.6,-8,.7],[8.8,4.6,.9],[-9.6,-1.8,.8],[10.4,-4.4,.8],[18.8,-.8,.9],[-17.6,-10.6,.9],[-4.8,-21,.9],[30.6,4,.9],[-10.6,24.6,.9],[-20.6,21.6,.8]].forEach(([x,z,r])=>tryBed(x,z,r));
+    { for(let k=0;k<16;k++){ const a=k/16*6.283+.2; tryBed(Math.cos(a)*10.2, Math.sin(a)*10.2, .85); } [[14,-8],[-14,-6],[20,8],[-20,8],[8,-26],[-8,-30],[28,-12],[-34,-12],[40,10],[-44,8],[12,64],[-12,64],[46,-34],[-56,-2],[60,-4]].forEach(([x,z])=>tryBed(x,z,.9)); }   /* (v550) 광장 둘레 · 구역마다 꽃밭 */
     // 큰길 가로등
     Object.values(MAP.roads).forEach(r=>{ const Cc=MAP.curve(r.p), end=Cc.L[Cc.L.length-1]; for(let s=6, k=0; s<end-1; s+=6.5, k++){ const A=MAP.at(Cc.Q,Cc.L,s), sd=k%2?1:-1, x=A.x-A.tz*sd*(r.w/2+.45), z=A.z+A.tx*sd*(r.w/2+.45); if(!busy.some(([bx,bz,br])=>Math.hypot(x-bx,z-bz)<br) && !water(x,z)) kk("city","streetlight",x,z,{s:.9,chunk:"m",col:.2}); } });
     MAP.hoods.slice(0,HN).forEach((h)=>laneTrees(h)); MAP.hoods.slice(HN).forEach(h=>laneTrees(h));
     // 동네 길 가로등 (땅 사이 틈)
     MAP.hoods.slice(0,HN).forEach(h=>{ const Cc=MAP.curve(h.p); for(let k=0;k<MAP.PER-1;k+=2){ const s=h.s0+(k+.5)*MAP.GAP, A=MAP.at(Cc.Q,Cc.L,s), sd=(k/2)%2?1:-1; kk("city","streetlight",A.x-A.tz*sd*1.45,A.z+A.tx*sd*1.45,{s:.85,chunk:"m",col:.15}); } });
-    const LOWD=typeof LOW!=="undefined" && LOW; trees(C,LOWD?240:400,"m");   /* 느린 기기 = 나무 줄임 */
+    const LOWD=typeof LOW!=="undefined" && LOW; trees(C,LOWD?520:950,"m");   /* 느린 기기 = 나무 줄임 */
     drawLots();
     if(myHouse){ const dx=Math.sin(myHouse.face), dz=Math.cos(myHouse.face); SPOT.home=[myHouse.x+OX+dx*1.25,1.3,myHouse.z+OZ+dz*1.25]; SPOT.homeIn=[myHouse.x+OX+dx*1.0,myHouse.z+OZ+dz*1.0]; }
-    rocks(C, 90, "m"); bushes(C, 70, "m"); clouds();
+    rocks(C, 200, "m"); bushes(C, 160, "m"); clouds();
     // 풀포기 · 들꽃 — (v536) 12칸 구역마다 (화면 밖은 안 그림)
-    { const cells={}, CS=16; ISL.forEach(I=>{ for(let k=0;k<I.R*I.R*((typeof LOW!=="undefined" && LOW)?.4:.75);k++){ const a=rnd()*6.28, r=Math.sqrt(rnd())*rr(I,a)*.95, x=I.cx+Math.cos(a)*r, z=I.cz+Math.sin(a)*r; if(water(x,z) || onPave(x,z,.1)) continue; const key=Math.floor(x/CS)+"_"+Math.floor(z/CS); (cells[key]=cells[key]||[]).push([x,z,rnd()]); } });
+    { const cells={}, CS=24; ISL.forEach(I=>{ for(let k=0;k<I.R*I.R*((typeof LOW!=="undefined" && LOW)?.4:.75);k++){ const a=rnd()*6.28, r=Math.sqrt(rnd())*rr(I,a)*.95, x=I.cx+Math.cos(a)*r, z=I.cz+Math.sin(a)*r; if(water(x,z) || onPave(x,z,.1)) continue; const key=Math.floor(x/CS)+"_"+Math.floor(z/CS); (cells[key]=cells[key]||[]).push([x,z,rnd()]); } });
       const g0=new THREE.ConeGeometry(.05,.24,3); g0.translate(0,.11,0); const f0=new THREE.IcosahedronGeometry(.075,0), d=new THREE.Object3D(), col=new THREE.Color();
       Object.keys(cells).forEach(key=>{ const gs=cells[key], [ci,cj]=key.split("_").map(Number), cx=(ci+.5)*CS, cz=(cj+.5)*CS, sph=new THREE.Sphere(new THREE.Vector3(0,.2,0), CS*.75);
         const geo=g0.clone(); geo.boundingSphere=sph; const im=new THREE.InstancedMesh(geo, MC(0x5aa845), gs.length*3); im.position.set(cx+OX,0,cz+OZ); let k=0;
@@ -446,7 +471,7 @@ const ISLE=(()=>{
     try{ if(window.TFAC) TFAC.labels(L); }catch(e){ console.warn(e); }
     return L; }
   /* (v539) 가게 — 문 앞까지 걸어가서 그 가게 창 */
-  function shopGo(S){ const run=()=>{ const k=S.k; if(k==="fish") openShop(); else if(k==="furn") openFurn("furn"); else if(k==="clothes") openAv("clothes"); else if(k==="hair") openAv("hair"); else if(k==="mart"){ try{ HLIFE.openMart(); }catch(e){} } else if(k==="town") tripTo("village"); try{ tEv("shop_"+k); }catch(e){} };
+  function shopGo(S){ const run=()=>{ const k=S.k; if(k==="fish") openShop(); else if(k==="furn") openFurn("furn"); else if(k==="clothes") openAv("clothes"); else if(k==="hair") openAv("hair"); else if(k==="mart"){ try{ HLIFE.openMart(); }catch(e){} } else if(k==="town") tripTo("village"); else if(window.TFAC && k==="snack") TFAC.openSnack(); else if(window.TFAC && k==="pet") TFAC.openPet(); else if(window.TFAC && k==="photo") TFAC.openPhoto(); try{ tEv("shop_"+k); }catch(e){} };
     const c=[Math.floor(S.door[0]), Math.floor(S.door[1])]; if(Math.hypot(hero.g.position.x-S.door[0], hero.g.position.z-S.door[1])<2.2 || blocked(c[0],c[1])) run(); else walkTo(c[0],c[1],run); }
   function tripTo(key){ const at=key==="yard" ? [DOOR[0],DOOR[1]] : key==="village" ? [V_GATE[0]+1,V_GATE[1]] : key==="mine" ? [M_GATE[0]-1,M_GATE[1]] : null; go(key, at); }
   /* (v525) 사용자: "화면을 돌릴 수도 없고 · 집이 동그랗게 있어서 보이지도 않아 · 화면의 자유가 없는데"
