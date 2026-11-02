@@ -42,7 +42,7 @@ async def main():
             await pg.evaluate(f"()=>{{ Study._day(0); StudyUI.book=Study.bookOf('{set_}'); StudyUI.set='{set_}'; StudyUI.path(); }}")
             n=await pg.evaluate(f"()=>Study.lessons('{set_}')[0].n")
             g0=await pg.evaluate("()=>Wallet.gems()")
-            S=lambda: pg.evaluate(f"()=>({{lv:Study.lv('{set_}',{n}), ck:Study.ckOk('{set_}',{n}), dp:Study.dpOpen('{set_}',{n}), s:Study.starN('{set_}',Study.lessons('{set_}')[0]), gems:Wallet.gems(), txt:document.getElementById('stDoneIn').innerText.slice(0,200)}})")
+            S=lambda: pg.evaluate(f"()=>({{lv:Study.lv('{set_}',{n}), ck:Study.ckOk('{set_}',{n}), dp:Study.dpOpen('{set_}',{n}), s:Study.starN('{set_}',Study.lessons('{set_}')[0]), gems:Wallet.gems(), txt:document.getElementById('stDoneIn').innerText.slice(0,600)}})")
             again="()=>{ const b=document.getElementById('stBack'); if(b && document.getElementById('stDone').style.display!=='none') b.click(); StudyUI.start(0,false); return StudyUI.tier; }"
             # ★1 배우기
             t1=await pg.evaluate(again); ty1=await play(pg)

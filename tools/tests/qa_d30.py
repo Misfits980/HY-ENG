@@ -28,6 +28,7 @@ AUDIT = r"""(tag)=>{ const W=innerWidth, H=innerHeight, S=document.getElementByI
 SETUP = r"""([set, state])=>{ localStorage.setItem('hyeng_nick','한양패드1'); const s=Study.load(); const bk=Study.bookOf ? Study.bookOf(set) : null;
   s.book=Object.keys(Study.BOOKS).find(b=>Study.BOOKS[b].sets.indexOf(set)>=0)||'g34'; s.set=set; s.lv={}; s.ck={}; s.d1={}; s.last={};
   const L=Study.lessons(set), x=L[0], k=Study.key(set,x.n);
+  if(state==='t2'||state==='t3'||state==='t4'){ s.seen=s.seen||{}; (x.ws||[]).forEach(w=>s.seen[w.en]=1); }   // (v558) 새 단어가 남으면 ★1 로 가던 것
   if(state==='t4'){ s.lv[k]=1; } if(state==='t2'){ s.lv[k]=1; s.ck[k]=1; } if(state==='t3'){ s.lv[k]=3; s.ck[k]=1; }
   if(state==='v1') s.lv[k]=1; if(state==='v2') s.lv[k]=2;
   if(state==='path'){ L.slice(0,2).forEach(y=>s.lv[Study.key(set,y.n)]=1); s.last[set]=L[1] ? L[1].n : x.n; }
