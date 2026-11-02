@@ -12,7 +12,7 @@ async def main():
         await pg.evaluate("()=>{ Study.hsqLoad(); Paper.open({set:'mid',from:0,to:3}); }"); await pg.wait_for_timeout(4000); await pg.evaluate("()=>Paper.close()")
         hs=await pg.evaluate("()=>fetch('data/hsq.json').then(r=>r.json()).then(L=>[L.length, L.filter(x=>x.lv===3).length])")
         ok(hs[0]>=160 and hs[1]>=40, f"고등 문제 은행 {hs}")
-        for st,nm in [("basic","초3-4"),("elem","초5-6"),("g56","중등"),("mv1","고등")]:
+        for st,nm in [("basic","초3-4"),("elem","초5-6"),("g56","중등"),("mv1","심화")]:
             r=await pg.evaluate("""(st)=>{ const L=Study.lessons(st); let n=0, got=0, bad=0, nm=''; const first=[], last=[];
                L.forEach((x,i)=>{ if(x.fin) return; n++; const q=Study._up(st, i, 3); if(!q) return; got++; nm=q.upNm; if(!q.up || q.opts.indexOf(q.ans)<0 || new Set(q.opts).size!==q.opts.length) bad++;
                  const k=q.x.gk||q.x.kind||q.t; const lv=(q.x.sh?3:0); (i<L.length/3 ? first : i>L.length*2/3 ? last : []).push(k+(lv?'#3':'')); }); return {n, got, bad, nm, first:[...new Set(first)], last:[...new Set(last)]}; }""", st)
@@ -21,6 +21,7 @@ async def main():
         ok(c==[1,1], f"★3 · ★4 판 맨 끝에 도전 {c}")
         # 점수 밖 · 보석 한 번
         await pg.evaluate(mq.SETUP, ["mv1","t2"]); await pg.wait_for_timeout(800); await pg.evaluate("()=>{ try{ KidPick.close(); }catch(e){} StudyUI.start(0,false); StudyUI.view('stLesson'); }")
+        await pg.evaluate("()=>{ const v=GNote.st(); [].concat(...GNote.LV.map(x=>x[1])).forEach(k=>v.seen[k]=1); GNote.put(v); }")   # (v555) 처음 카드 없이
         async def ans(right):
             return await pg.evaluate("""(right)=>{ const q=Study._up('mv1', 5, 3); Study.ctx('mv1'); StudyUI.locked=false; StudyUI.qs.splice(StudyUI.i,0,q); StudyUI.show(); const f0=StudyUI.first, w0=StudyUI._fw|0, g0=Wallet.gems();
                const b=[...document.querySelectorAll('.stOpt')].find(x=>(x.textContent.trim()===q.ans)===right); b.click(); const c=document.getElementById('stCheck'); if(c && !c.classList.contains('go')) c.click();
