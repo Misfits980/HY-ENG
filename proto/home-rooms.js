@@ -8,41 +8,49 @@
 const HOMEX=(()=>{
   const R={
     living: {nm:"1층", ic:"🏠", f:0, w:0},
-    f2:     {nm:"2층 공부방", ic:"📚", par:"living", st:7, gem:80, f:6, w:4, up:2, tip:"📚 내 단어 책장 · 오늘의 복습 → 💎 · 🪜 계단으로 올라가요"},
-    f3:     {nm:"3층 자랑방", ic:"🏆", par:"f2", st:10, gem:120, f:7, w:2, up:3, tip:"🏆 트로피·물고기·타워 기록이 저절로 진열"},
-    f4:     {nm:"4층 옥상", ic:"🌿", par:"f3", st:14, gem:160, f:5, w:5, up:4, tip:"🔭 망원경으로 친구 집 · 🪴 공부한 날마다 꽃"}
+    f2:     {nm:"2층 공부방", ic:"📚", par:"living", st:7, gem:300, f:6, w:4, up:2, tip:"📚 내 단어 책장 · 오늘의 복습 → 💎 · 🪜 계단으로 올라가요"},
+    f3:     {nm:"3층 자랑방", ic:"🏆", par:"f2", st:10, gem:450, f:7, w:2, up:3, tip:"🏆 트로피·물고기·타워 기록이 저절로 진열"},
+    f4:     {nm:"4층 옥상", ic:"🌿", par:"f3", st:14, gem:600, f:5, w:5, up:4, tip:"🔭 망원경으로 친구 집 · 🪴 공부한 날마다 꽃"}
   };
   /* 가구 세트 — 사면 창고로 · 아무 데나 놓음 */
   const SETS={
-    walls:  {nm:"방 나누기 세트", ic:"🧱", st:1, gem:10, items:[["partition",6],["archway",2]], tip:"🧱 칸막이 벽 6 · 🚪 아치 문 2 — 내 방을 직접 나눠요"},
-    kitchen:{nm:"부엌 세트", ic:"🍳", st:2, gem:20, items:[["stove",1],["fridge",1],["table",1],["stool",2]], tip:"🍳 영어 듣고 요리 · 🧊 냉장고"},
-    bedroom:{nm:"침실 세트", ic:"🛏️", st:3, gem:40, items:[["closet",1],["kk_night",1],["rug",1]], tip:"💤 침대에서 자면 꿈 카드 · 👗 옷장"},
-    bath:   {nm:"욕실 세트", ic:"🛁", st:5, gem:60, items:[["bathtub",1],["mirror",1],["plant",1]], tip:"🫧 욕조에서 씻으면 ✨ 낚시 행운 10분"},
+    walls:  {nm:"방 나누기 세트", ic:"🧱", st:1, gem:120, items:[["partition",6],["archway",2]], tip:"🧱 칸막이 벽 6 · 🚪 아치 문 2 — 내 방을 직접 나눠요"},
+    kitchen:{nm:"부엌 세트", ic:"🍳", st:2, gem:250, items:[["stove",1],["fridge",1],["table",1],["stool",2]], tip:"🍳 영어 듣고 요리 · 🧊 냉장고"},
+    bedroom:{nm:"침실 세트", ic:"🛏️", st:3, gem:200, items:[["closet",1],["kk_night",1],["rug",1]], tip:"💤 침대에서 자면 꿈 카드 · 👗 옷장"},
+    bath:   {nm:"욕실 세트", ic:"🛁", st:5, gem:250, items:[["bathtub",1],["mirror",1],["plant",1]], tip:"🫧 욕조에서 씻으면 ✨ 낚시 행운 10분"},
   };
-  const ORDER=["walls","kitchen","bedroom","bath","f2","f3","f4"];
+  SETS.door={nm:"🚪 옆방 문", ic:"🚪", st:4, gem:250, rep:1, tip:"원하는 벽에 달면 문 너머에 <b>새 방</b> (따로 꾸밈·넓히기) · 6개까지"};
+  const ORDER=["walls","door","kitchen","bedroom","bath","f2","f3","f4"];
   const NEXT={living:"f2", f2:"f3", f3:"f4"};
   let H=store("hyeng_proto_home"); if(!H || typeof H!=="object" || !H.o) H={c:"living", o:{living:1}, r:{}, mig:553};
   let vcur="living";
   const save=()=>store("hyeng_proto_home", H);
   const inVisit=()=>!!visiting;
-  const cur=()=>inVisit() ? vcur : (R[H.c] ? H.c : "living");
+  const isAx=id=>/^a\d+$/.test(id||"");
+  const axMap=()=>(inVisit() ? ((visiting.data||{}).home||{}).ax : H.ax)||{};
+  /* (v557) 🚪 옆방 = 벽에 단 문(sidedoor, c = 옆방 번호) 너머의 방 */
+  const rinfo=id=>R[id] || (isAx(id) ? {nm:"옆방 "+id.slice(1), ic:"🚪", par:(axMap()[id.slice(1)]||{}).par||"living", f:3, w:1} : R.living);
+  const cur=()=>inVisit() ? vcur : (R[H.c] || isAx(H.c) ? H.c : "living");
+  const floorOf=id=>{ let k=id, n=0; while(isAx(k) && n++<10) k=rinfo(k).par; return k; };
   const opened=id=>{ if(inVisit()){ const h=(visiting.data||{}).home; return id==="living" || !!(h && h.o && h.o[id]); } return !!H.o[id]; };
   /* 문 = 나가는 문 하나 (1층 = 밖 · 위층 = 아래층) */
-  function slots(id, rn){ id=id||cur(); rn=rn||RN; return [{side:3, s:rn-1, to:id==="living"?"out":(R[id]||R.living).par||"living", back:1}]; }
+  function slots(id, rn){ id=id||cur(); rn=rn||RN; return [{side:3, s:rn-1, to:id==="living"?"out":rinfo(id).par||"living", back:1}]; }
+  const sdoors=()=>wplaced.filter(w=>w.id==="sidedoor");
   const fcell=sl=>[[sl.s,0],[RN-1,sl.s],[sl.s,RN-1],[0,sl.s]][sl.side];
   const outPt=sl=>[[sl.s+.5,-.12],[RN+.12,sl.s+.5],[sl.s+.5,RN+.12],[-.12,sl.s+.5]][sl.side];
-  function cells(){ return slots().map(fcell); }
+  function cells(){ return slots().map(fcell).concat(sdoors().map(w=>fcell({side:w.side, s:w.s}))); }
   function isSlot(side,s){ return slots().some(sl=>sl.side===side && sl.s===s); }
   function doors(){ dirty=true; }
   function labels(base){ const L=base.filter(d=>d.k!=="door"); const c=cur();
-    slots().forEach(sl=>{ const p=[.12,1.3,sl.s+.5]; const t=sl.to==="out" ? ["🚪","나가기"] : ["🪜", R[sl.to].nm+" (아래층)"]; L.push({k:"door", ic:t[0], t:t[1], p, act:exitRoom, show:()=>walls[3].visible}); });
+    slots().forEach(sl=>{ const p=[.12,1.3,sl.s+.5]; const t=sl.to==="out" ? ["🚪","나가기"] : isAx(c) ? ["🚪", rinfo(sl.to).nm+"으로"] : ["🪜", rinfo(sl.to).nm+" (아래층)"]; L.push({k:"door", ic:t[0], t:t[1], p, act:exitRoom, show:()=>walls[3].visible}); });
+    sdoors().forEach(w=>{ const sd=w.side, s=w.s, p=sd===0 ? [s+.5,1.3,.12] : sd===3 ? [.12,1.3,s+.5] : sd===1 ? [RN-.12,1.3,s+.5] : [s+.5,1.3,RN-.12]; L.push({k:"sd_"+w.c, ic:"🚪", t:"옆방 "+w.c, p, act:()=>annex(w), show:()=>walls[sd].visible}); });
     return L; }
   /* 층 데이터 */
   function data(id){ if(inVisit()){ const d=visiting.data||{}, h=d.home||{}; const rr=(h.r||{})[id]; if(rr) return rr; if(id===(h.c||"living")) return d; return dflt(id); }
     return id===H.c ? roomData() : (H.r[id] || dflt(id)); }
   const FIX={f2:[["bookcase",2,0,0],["desk",3,3,0],["chair",3,4,2],["kk_books",5,0,0],["stairs",5,3,0]], f3:[["trophy",2,0,0],["kk_rug",2,2,0],["kk_armchair",4,3,3],["stairs",5,3,0]], f4:[["telescope",4,1,0],["planter",2,0,0],["planter",3,0,0],["planter",5,3,0],["stool",2,3,0]]};
   const FIXW={f4:[["window",3,3,1]]};
-  function dflt(id){ const r=R[id]||R.living; return {p:(FIX[id]||[]).map(x=>x.concat([0])), wl:FIXW[id]||[["window",0,r.up?3:2,0],["window",3,3,1]], f:Math.min(FLOORS.length-1,r.f|0), w:Math.min(WALLS.length-1,r.w|0), rn:6}; }
+  function dflt(id){ if(isAx(id)) return {p:[], wl:[["window",0,2,0]], f:3, w:1, rn:6}; const r=R[id]||R.living; return {p:(FIX[id]||[]).map(x=>x.concat([0])), wl:FIXW[id]||[["window",0,r.up?3:2,0],["window",3,3,1]], f:Math.min(FLOORS.length-1,r.f|0), w:Math.min(WALLS.length-1,r.w|0), rn:6}; }
   function load(D, host){ placed.splice(0).concat(wplaced.splice(0)).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
     if(host){ if(hostDoll){ roomG.remove(hostDoll.g); hostDoll=null; } buildShell(Math.max(6,Math.min(12,D.rn|0||6))); floorIx=Math.min(FLOORS.length-1,D.f|0); wallIx=Math.min(WALLS.length-1,D.w|0); setFloor(floorIx); setWall(wallIx);
       (D.p||[]).slice(0,120).forEach(([id,x,z,r,c])=>{ if(ITEMS[id] && !ITEMS[id].wall && fits(id,x,z,r,null,true)){ const p=addPlaced(id,x,z,r,c); p.host=1; } });
@@ -53,24 +61,34 @@ const HOMEX=(()=>{
     doors(); return id==="living" ? null : slots()[0]; }
   /* 🪜 계단 옆 칸 (1층으로 내려왔을 때 · 위층에 올라갈 때 섬) */
   function nearStairs(){ const st=placed.find(p=>p.id==="stairs"); if(!st) return null; for(const [dx,dz] of [[0,1],[1,0],[-1,0],[0,-1],[1,1],[-1,1]]){ const x=st.x+dx, z=st.z+dz; if(x>=0&&z>=0&&x<RN&&z<RN && !roomBlocked(x,z)) return [x,z]; } return null; }
-  function moveTo(to){ const key=place.key; let back=null, st=null;
-    go(key, null, ()=>{ back=swapTo(to); st=back ? fcell(back) : (nearStairs()||[1,RN-1]); PL[key].start=st; PL[key].name=(inVisit() ? "🏠 "+(visiting.n||"")+" 의 집 · " : "🏠 ")+(to==="living"?"내 집":R[to].nm); },
+  function moveTo(to){ const key=place.key, from=cur(); let back=null, st=null;
+    go(key, null, ()=>{ back=swapTo(to); if(isAx(from) && rinfo(from).par===to){ const d=sdoors().find(w=>"a"+w.c===from); if(d) back={side:d.side, s:d.s}; }
+      st=back ? fcell(back) : (nearStairs()||[1,RN-1]); PL[key].start=st; PL[key].name=(inVisit() ? "🏠 "+(visiting.n||"")+" 의 집 · " : "🏠 ")+(to==="living"?"내 집":rinfo(to).nm); },
       {from:()=>back ? outPt(back) : [st[0]+.5, st[1]+.5], door:null}); try{ tEv("room_"+to); }catch(e){} }
   function go2(to){ if(F.st!=="idle" || trip.busy) return; if(!opened(to)){ if(!inVisit()) openUp(to); return; } moveTo(to); }
-  function stairs(){ const c=cur(), nx=NEXT[c]; if(!nx){ toast("🌿 여기가 꼭대기 층이에요", 1500); return; }
+  function stairs(){ const c=floorOf(cur()), nx=NEXT[c]; if(!nx){ toast("🌿 여기가 꼭대기 층이에요", 1500); return; }
     if(!opened(nx)){ if(inVisit()){ toast("🪜 친구는 아직 "+R[nx].nm+"이 없어요", 1600); return; } toast("🪜 <b>🏗 넓히기</b>에서 "+R[nx].nm+"을 열면 올라가요", 2200); openUp(nx); return; }
     try{ SND.pop(); }catch(e){} moveTo(nx); }
-  function back(){ const c=cur(); if(c==="living") return; const sl=slots()[0]; leaveBy(fcell(sl), outPt(sl), ()=>moveTo(R[c].par), roomDoor); }
+  function back(){ const c=cur(); if(c==="living") return; const sl=slots()[0]; leaveBy(fcell(sl), outPt(sl), ()=>moveTo(rinfo(c).par), roomDoor); }
+  /* 🚪 옆방 — 문을 처음 달면 새 번호 (치웠다가 다시 달면 예전 옆방을 다시 씀) */
+  function newAnnex(){ H.ax=H.ax||{}; const used={}; const scan=wl=>(wl||[]).forEach(w=>{ if(w[0]==="sidedoor" && w[3]>0) used[w[3]]=1; }); Object.values(H.r||{}).forEach(r=>scan(r && r.wl)); wplaced.forEach(w=>{ if(w.id==="sidedoor" && w.c>0) used[w.c]=1; });
+    let n=Object.keys(H.ax).map(Number).sort((a,b)=>a-b).find(k=>!used[k]); if(!n){ n=1; while(H.ax[n] || used[n]) n++; } H.ax[n]=Object.assign(H.ax[n]||{}, {par:cur()}); save(); return n; }
+  function annex(w){ if(F.st!=="idle" || trip.busy || !w || !(w.c>0)) return; const id="a"+w.c;
+    if(inVisit()){ const h=(visiting.data||{}).home||{}; if(!(h.ax||{})[w.c]){ toast("🚪 아직 빈 방이에요", 1400); return; } }
+    else { H.ax=H.ax||{}; H.ax[w.c]=Object.assign(H.ax[w.c]||{}, {par:cur()}); save(); }
+    const sl={side:w.side, s:w.s}; leaveBy(fcell(sl), outPt(sl), ()=>moveTo(id), (w.obj && w.obj.userData.door)||null); }
   function toLiving(){ if(H.c!=="living"){ H.r[H.c]=roomData(); H.c="living"; const D=H.r.living || dflt("living"); delete H.r.living; load(D,false); save(); saveRoom(); } PL.room.name="🏠 내 집"; }
   function visitStart(d){ vcur="living"; const h=d && d.home; if(h && h.c && h.c!=="living" && h.r && h.r.living) return Object.assign({}, d, h.r.living); return d; }
-  function pub(){ const r=Object.assign({}, H.r); r[H.c]=roomData(); return {c:H.c, o:H.o, r}; }
+  function pub(){ const r=Object.assign({}, H.r); r[H.c]=roomData(); return {c:H.c, o:H.o, ax:H.ax||{}, r}; }
   /* 🔥 연속 공부 */
   function streak(){ try{ const s=JSON.parse(localStorage.getItem("hyeng_study_v1")||"{}"), d=s.days||{}; const today=Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5);
       const live=d.last && today-d.last<=3 ? (d.hs||d.n||0) : 0; return {best:Math.max(d.hb||0, d.hs||0, d.n||0), now:live, tot:d.tot||d.n||0}; }catch(e){ return {best:0, now:0, tot:0}; } }
   const floors=()=>1+["f2","f3","f4"].filter(k=>H.o[k]).length;
   const info=id=>SETS[id]||R[id];
-  function state(id){ const r=info(id), S=streak(); if(H.o[id]) return "have"; if(r.par && R[r.par] && !H.o[r.par]) return "par"; if(S.best<r.st) return "streak"; if(gems<r.gem) return "gem"; return "ok"; }
-  function unlock(id){ const r=info(id); if(state(id)!=="ok") return false; if(!spend(r.gem)) return false; H.o[id]=1; save();
+  const axCount=()=>Object.keys(H.ax||{}).length+(stock.sidedoor|0);
+  function state(id){ const r=info(id), S=streak(); if(id==="door"){ if(axCount()>=6) return "have"; } else if(H.o[id]) return "have"; if(r.par && R[r.par] && !H.o[r.par]) return "par"; if(S.best<r.st) return "streak"; if(gems<r.gem) return "gem"; return "ok"; }
+  function unlock(id){ const r=info(id); if(state(id)!=="ok") return false; if(!spend(r.gem)) return false; if(id==="door"){ addStock("sidedoor"); saveRoom(); try{ SND.big(); tEv("roomup"); }catch(e){} toast("🚪 <b>옆방 문</b> → 🏠 창고<br><small>🛋️ 가구에서 골라 <b>원하는 벽</b>에 달아요 · 문을 누르면 새 방!</small>", 3400); drawUp(); return true; }
+    H.o[id]=1; save();
     if(SETS[id]) r.items.forEach(([it,n])=>{ if(ITEMS[it]) for(let i=0;i<n;i++) addStock(it); });
     if(id==="f2") addStock("stairs");
     try{ saveRoom(); }catch(e){} try{ tEv("roomup"); }catch(e){} try{ SND.big(); act("yay"); emote(hero,"🎉"); }catch(e){}
@@ -84,7 +102,7 @@ const HOMEX=(()=>{
     D.p=D.p.map(([id,x,z,r,c])=>[id,x+dx,z+dz,r,c]); D.wl=D.wl.map(([id,sd,s,c])=>[id,sd,s+((sd===0||sd===2)?dx:dz),c]); D.rn=u[0];
     loadRoomData(Object.assign({}, D, {s:null})); try{ hero.cx=Math.min(RN-1,hero.cx+dx); hero.cz=Math.min(RN-1,hero.cz+dz); hero.g.position.set(hero.cx+.5,0,hero.cz+.5); hero.path=[]; }catch(e){}
     saveRoom(); PL.room.N=RN; try{ setShadow(); placeCamera(); drawInv(); drawLabels(); }catch(e){} try{ tEv("roomup"); SND.big(); }catch(e){}
-    toast("🏠 "+(cur()==="living"?"집":R[cur()].nm)+"이 <b>"+RN+"×"+RN+"</b> 이 됐어요!<br><small>"+D0[1]+" "+D0[2]+" 으로 넓어졌어요</small>", 2400); drawUp(); return true; }
+    toast("🏠 "+(cur()==="living"?"집":rinfo(cur()).nm)+"이 <b>"+RN+"×"+RN+"</b> 이 됐어요!<br><small>"+D0[1]+" "+D0[2]+" 으로 넓어졌어요</small>", 2400); drawUp(); return true; }
   function dirSVG(dx,dz,o,n){ const k=34/n, P=(x,z)=>[(x-z)*k+40, (x+z)*k/2+4], poly=pts=>pts.map(p=>P(p[0],p[1]).map(v=>v.toFixed(1)).join(",")).join(" ");
     return '<svg viewBox="0 0 80 44" style="width:100%;max-width:80px;height:auto;display:block"><polygon points="'+poly([[0,0],[n,0],[n,n],[0,n]])+'" fill="#c9efbd" stroke="#4caf50" stroke-width="1.5"/><polygon points="'+poly([[dx,dz],[dx+o,dz],[dx+o,dz+o],[dx,dz+o]])+'" fill="#ffe9c2" stroke="#3b2433" stroke-width="1.5"/></svg>'; }
   /* 기존 아이 — 방(부엌·침실·욕실)에 있던 가구는 모두 창고로 · 위층이 있으면 🪜 계단 */
@@ -120,18 +138,18 @@ const HOMEX=(()=>{
   let hot=null;
   function drawUp(){ if(!$("upB")) return; const S=streak(), u=ROOM_UP.find(x=>x[0]>RN), c=cur();
     let h='<div class="upS"><i>🔥</i><div><b>연속 '+S.now+'일</b> <small>· 가장 긴 연속 '+S.best+'일 · 공부한 날 '+S.tot+'일</small><br><small>Daily 30 을 하면 하루가 쌓여요</small></div></div>';
-    h+='<h4>📐 '+(c==="living"?"집":R[c].nm)+' 넓히기 · 지금 '+RN+'×'+RN+(u?' → '+u[0]+'×'+u[0]+' · 💎 '+u[1]:' · 가장 커요')+'</h4>';
+    h+='<h4>📐 '+(c==="living"?"집":rinfo(c).nm)+' 넓히기 · 지금 '+RN+'×'+RN+(u?' → '+u[0]+'×'+u[0]+' · 💎 '+u[1]:' · 가장 커요')+'</h4>';
     if(u){ const d=u[0]-RN; h+='<div class="upDir">'+DIRS.map(D=>'<button data-grow="'+D[0]+'"'+(gems<u[1]?' disabled':'')+'>'+dirSVG(D[3]?d:0, D[4]?d:0, RN, u[0])+'<span>'+D[1]+' '+D[2]+'</span></button>').join("")+'</div>'+(gems<u[1]?'<p style="margin:0 4px 6px;font-size:12px;color:#8a6a4a">💎 '+(u[1]-gems)+'개 더 모으면 넓힐 수 있어요</p>':''); }
     h+='<h4>🛋 가구 세트 · 🪜 위층</h4>';
     ORDER.forEach(k=>{ const r=info(k), st=state(k), need=Math.max(0,r.st-S.best);
-      const btn=st==="have" ? '<button class="go" disabled>✅ 있음</button>' : st==="ok" ? '<button class="go" data-up="'+k+'">💎 '+r.gem+' 사기</button>'
+      const btn=st==="have" ? '<button class="go" disabled>'+(k==="door"?'✅ 6개':'✅ 있음')+'</button>' : st==="ok" ? '<button class="go" data-up="'+k+'">💎 '+r.gem+' 사기</button>'
         : st==="par" ? '<button class="go" disabled>🔒 '+R[r.par].nm+' 먼저</button>' : st==="streak" ? '<button class="go" disabled>🔥 '+need+'일 더</button>' : '<button class="go" disabled>💎 '+(r.gem-gems)+' 더</button>';
       h+='<div class="upR'+(st==="have"?" have":"")+(hot===k?" hot":"")+'" data-row="'+k+'"><div class="ic">'+r.ic+'</div><div><b>'+r.nm+'</b><small>'+r.tip+'<br>🔥 연속 '+r.st+'일 + 💎 '+r.gem+'</small>'+(st==="streak"?'<div class="upBar"><i style="width:'+Math.round(Math.min(1,S.best/r.st)*100)+'%"></i></div>':'')+'</div>'+btn+'</div>'; });
     $("upB").innerHTML=h; }
   function openUp(k){ if(inVisit()) return; css(); hot=k||null; drawUp(); try{ SHEETS.forEach(id=>{ const e=$(id); if(e && id!=="upP") e.classList.remove("on"); }); }catch(e){} $("upP").classList.add("on");
     if(k) setTimeout(()=>{ const r=document.querySelector('[data-row="'+k+'"]'); if(r) r.scrollIntoView({block:"center"}); }, 60); }
   function tap(){ return false; }
-  function init(){ migrate(); doors(); try{ PL.room.name="🏠 "+(cur()==="living"?"내 집":R[cur()].nm); }catch(e){} try{ drawLabels(); }catch(e){} }
-  return {R, SETS, ORDER, DIRS, H:()=>H, cur, slots, cells, isSlot, doors, labels, go2, moveTo, back, toLiving, visitStart, pub, streak, floors, state, unlock, grow, stairs, openUp, drawUp, tap, init, opened, save, migrate};
+  function init(){ migrate(); doors(); try{ PL.room.name="🏠 "+(cur()==="living"?"내 집":rinfo(cur()).nm); }catch(e){} try{ drawLabels(); }catch(e){} }
+  return {R, SETS, ORDER, DIRS, newAnnex, annex, rinfo, isAx, H:()=>H, cur, slots, cells, isSlot, doors, labels, go2, moveTo, back, toLiving, visitStart, pub, streak, floors, state, unlock, grow, stairs, openUp, drawUp, tap, init, opened, save, migrate};
 })();
 window.HOMEX=HOMEX;

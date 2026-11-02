@@ -766,7 +766,7 @@ const WALLS = [
   {nm:"hearts", draw(g,w,h){ g.fillStyle="#ffe6ee"; g.fillRect(0,0,w,h); g.fillStyle="#ff9ec0"; g.font="20px sans-serif"; for(let y=24;y<h;y+=44) for(let x=(y/44%2)*22+6;x<w;x+=44) g.fillText("♥",x,y); }},
   {nm:"clouds", draw(g,w,h){ g.fillStyle="#bfe4ff"; g.fillRect(0,0,w,h); g.fillStyle="#fff"; [[40,50],[170,30],[110,130],[220,170],[30,210]].forEach(([x,y])=>{ [[0,0,18],[16,-6,16],[32,0,15],[16,6,15]].forEach(([a,b,r])=>{ g.beginPath(); g.arc(x+a,y+b,r,0,7); g.fill(); }); }); }}
 ];
-const FW_PRICE=8;   // 새 바닥·벽지 하나 💎8 (처음 3개씩은 공짜)
+const FW_PRICE=60;   // 새 바닥·벽지 하나 💎60 (처음 3개씩은 공짜) · (v557) 물가 8→60
 let ownF=[0,1,2], ownW=[0,1,2];
 let floorIx=0, wallIx=0;
 /* (v434) ② 그림 바닥·벽지 — assets/town/tex/<이름>.webp (GPT 질감, claude/hy-eng-art-order-town.md) · 그림이 오기 전엔 코드 그림 */
@@ -996,6 +996,79 @@ Object.assign(ITEMS, {
 });
 Object.assign(PRICE_ADD={}, {washer:25, microwave:15, fan:12, aircon:30, computer:35, radio:10, toaster:8, tank:30, robot:40, window:10, painting:12, poster:6, wclock:10, wshelf:8, mirror:12});
 /* 가구 값(💎) — 🛒 가구 가게에서 삼 · 몇 개는 🛠 재료로도 만듦 */
+/* (v557) 🛋 가구점 새 가구 — 사용자: "애들이 자기만의 집에서 자기만의 형식으로 꾸미는 걸 보고 싶어 · 가구들도 많이 넣을 수 있으면 넣자 · 가구점 하나 만들어서 보석으로 사게"
+   도형으로 만든 가구 (cat = 가게 칸: play 놀이 · plant 식물 · hobby 취미 · kb 부엌·욕실 · season 계절 · 없으면 가구/가전/벽) · 🚪 옆방 문(sidedoor) = 벽에 달면 새 방 */
+const fuB=(g,w,h,d,col,x,y,z,o)=>part(g, rbox(w,h,d,Math.min(.03,w/4,h/4,d/4)), M(col,o), x,y,z), fuS=(g,r,col,x,y,z,s,o)=>{ const m=part(g, sph(r), M(col,o), x,y,z); if(s) m.scale.set(s[0],s[1],s[2]); return m; },
+  fuC=(g,rt,rb,h,col,x,y,z,o)=>part(g, cyl(rt,rb,h,16), M(col,o), x,y,z), fuN=(g,r,h,col,x,y,z,seg)=>part(g, new THREE.ConeGeometry(r,h,seg||16), M(col), x,y,z), fuG=(g,geo,col,x,y,z)=>{ const m=new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:col})); m.position.set(x,y,z); g.add(m); return m; };
+const NEWF={};
+Object.assign(ITEMS, {
+  sidedoor:{nm:"room door", ic:"🚪", sz:[1,1], wall:true, use:"sidedoor", special:1, build(c){ const g=new THREE.Group(), D=makeDoor(.84,1.95, 0xb07a4a, true); g.add(D); g.userData.door=D;
+    const pl=new THREE.Mesh(new THREE.PlaneGeometry(.34,.2), new THREE.MeshBasicMaterial({color:0xfff3c4})); pl.position.set(0,2.25,.07); g.add(pl); return g; }},
+  /* 🛋 가구 */
+  beanbag:{nm:"bean bag", ic:"🫘", sz:[1,1], sit:.32, cols:[0xff6b6b,0x5aa7ff,0xffd23f,0x7fd36a,0xc7a6ff], build(c){ const g=new THREE.Group(), C=vc("beanbag",c); fuS(g,.42,C,0,.28,0,[1,.62,1]); fuS(g,.3,C,0,.48,-.18,[1,.8,.7]); return g; }},
+  bunkbed:{nm:"bunk bed", ic:"🛏️", sz:[2,1], cols:[0x5aa7ff,0xff9ac8,0x7fd36a], build(c){ const g=new THREE.Group(), C=vc("bunkbed",c), W=0xc48a58;
+    [[-.9,-.42],[.9,-.42],[-.9,.42],[.9,.42]].forEach(([x,z])=>fuB(g,.08,1.9,.08,W,x,.95,z)); [.3,1.3].forEach(y=>{ fuB(g,1.9,.12,.86,W,0,y,0); fuB(g,1.78,.14,.8,0xffffff,0,y+.13,0); fuB(g,1.7,.1,.78,C,.08,y+.24,0); fuB(g,.36,.1,.6,0xfff3e0,-.68,y+.27,0); });
+    fuB(g,1.9,.06,.06,W,0,1.62,.42); for(let i=0;i<4;i++) fuB(g,.3,.05,.05,W,.98,.4+i*.35,.25); return g; }},
+  coffeetable:{nm:"coffee table", ic:"☕", sz:[1,1], cols:[0xc48a58,0xffffff,0x8a5a34], build(c){ const g=new THREE.Group(), C=vc("coffeetable",c); fuB(g,.9,.08,.6,C,0,.4,0); [[-.38,-.24],[.38,-.24],[-.38,.24],[.38,.24]].forEach(([x,z])=>fuB(g,.06,.38,.06,C,x,.19,z)); fuC(g,.07,.06,.12,0xffffff,.15,.5,0); fuS(g,.06,0x8a5a34,.15,.56,0,[1,.3,1]); return g; }},
+  floorlamp:{nm:"floor lamp", ic:"💡", sz:[1,1], cols:[0xffe9a8,0xffc4d6,0xc4e6ff], build(c){ const g=new THREE.Group(), C=vc("floorlamp",c); fuC(g,.18,.2,.05,0x3b2433,0,.03,0); fuC(g,.025,.025,1.5,0x3b2433,0,.78,0); fuC(g,.16,.28,.32,C,0,1.6,0,{emissive:C,emissiveIntensity:.35}); return g; }},
+  fireplace:{nm:"fireplace", ic:"🔥", sz:[2,1], build(){ const g=new THREE.Group(); fuB(g,1.8,1.2,.6,0xc96b4a,0,.6,-.1); fuB(g,2,.12,.72,0xf3eee2,0,1.26,-.08); fuB(g,1.0,.7,.1,0x3b2433,0,.4,.2);
+    [[0,0xffa53a,.5],[-.15,0xffd23f,.35],[.16,0xff6b3a,.38]].forEach(([x,col,h])=>{ const m=fuN(g,.13,h,col,x,.1+h/2,.15,8); m.material=new THREE.MeshBasicMaterial({color:col}); }); fuB(g,.7,.08,.16,0x8a5a34,0,.08,.16); return g; }},
+  bigshelf:{nm:"bookshelf", ic:"📚", sz:[2,1], cols:[0xc48a58,0xffffff,0x5aa7ff], build(c){ const g=new THREE.Group(), C=vc("bigshelf",c); fuB(g,1.9,1.9,.4,C,0,.95,-.25);
+    const B=[0xff6b6b,0x5aa7ff,0xffd23f,0x7fd36a,0xc7a6ff,0xff9a3d]; for(let r=0;r<3;r++){ fuB(g,1.8,.05,.36,0xfffdf7,0,.35+r*.55,-.23); for(let i=0;i<8;i++){ if((i+r)%5===4) continue; fuB(g,.14,.36+((i*7+r)%3)*.05,.26,B[(i+r*2)%6],-.75+i*.21,.55+r*.55,-.2); } } return g; }},
+  dresser:{nm:"dresser", ic:"🗄️", sz:[2,1], cols:[0xffffff,0xc48a58,0xffc4d6], build(c){ const g=new THREE.Group(), C=vc("dresser",c); fuB(g,1.6,.9,.5,C,0,.5,-.2); for(let i=0;i<3;i++){ fuB(g,1.46,.24,.03,0xfffdf7,0,.24+i*.28,.06); fuS(g,.035,0xffd23f,0,.24+i*.28,.09); } fuB(g,.5,.4,.04,0xbfeaff,.3,1.25,-.3); fuS(g,.08,0xff9ac8,-.5,1.0,-.2); return g; }},
+  /* 🧸 놀이 */
+  toybox:{nm:"toy box", ic:"🧸", sz:[1,1], cat:"play", cols:[0xff6b6b,0x5aa7ff,0x7fd36a], build(c){ const g=new THREE.Group(), C=vc("toybox",c); fuB(g,.8,.5,.55,C,0,.25,0); fuB(g,.84,.06,.6,0xffd23f,0,.52,0); fuS(g,.12,0xffd23f,-.2,.62,0); fuS(g,.1,0x5aa7ff,.15,.62,.1); fuB(g,.16,.16,.16,0xff9a3d,.25,.64,-.12); fuS(g,.13,0xc48a58,-.05,.66,-.1); return g; }},
+  rockinghorse:{nm:"rocking horse", ic:"🐴", sz:[1,1], cat:"play", sit:.55, cols:[0xffffff,0xc48a58,0xff9ac8], build(c){ const g=new THREE.Group(), C=vc("rockinghorse",c); const r=new THREE.Mesh(new THREE.TorusGeometry(.5,.035,6,24,Math.PI*.6), M(0xff6b6b)); r.rotation.set(0,Math.PI/2,Math.PI*1.2); r.position.y=.5; g.add(r);
+    [-1,1].forEach(s=>fuB(g,.05,.32,.05,0x8a5a34,0,.28,s*.22)); fuS(g,.2,C,0,.55,0,[1,.8,1.6]); fuS(g,.13,C,0,.8,.3,[1,1.1,1.2]); fuB(g,.06,.2,.12,0x8a5a34,0,.88,.18); fuS(g,.03,0x3b2433,.09,.85,.38); return g; }},
+  teepee:{nm:"play tent", ic:"⛺", sz:[2,2], cat:"play", cols:[0xfff3e0,0xffd6e8,0xd6ebff], build(c){ const g=new THREE.Group(), C=vc("teepee",c); const t=fuN(g,.95,1.8,C,0,.9,0,6); fuG(g,new THREE.PlaneGeometry(.5,.8),0x3b2433,0,.42,.79); [0,1,2].forEach(i=>fuC(g,.02,.02,.5,0xc48a58,Math.cos(i*2.1)*.12,1.95,Math.sin(i*2.1)*.12)); fuB(g,1.6,.03,.6,0xff9ac8,0,.02,.9); return g; }},
+  ballpit:{nm:"ball pit", ic:"🔴", sz:[2,2], cat:"play", build(){ const g=new THREE.Group(); const ring=new THREE.Mesh(new THREE.TorusGeometry(.78,.14,10,28), M(0x5aa7ff)); ring.rotation.x=Math.PI/2; ring.position.y=.18; g.add(ring); fuC(g,.78,.78,.12,0x9fd8ff,0,.06,0);
+    const C=[0xff6b6b,0xffd23f,0x7fd36a,0x5aa7ff,0xff9ac8]; for(let i=0;i<34;i++){ const a=i*2.4, r=Math.sqrt((i+.5)/34)*.62; fuS(g,.1,C[i%5],Math.cos(a)*r,.2+(i%3)*.05,Math.sin(a)*r); } return g; }},
+  slide:{nm:"slide", ic:"🛝", sz:[2,1], cat:"play", cols:[0xff6b6b,0x5aa7ff,0x7fd36a], build(c){ const g=new THREE.Group(), C=vc("slide",c); fuB(g,.5,.08,.5,0xffd23f,-.6,1.0,0); [[-.82,-.22],[-.38,-.22],[-.82,.22],[-.38,.22]].forEach(([x,z])=>fuB(g,.06,1.0,.06,0xffffff,x,.5,z));
+    for(let i=0;i<4;i++) fuB(g,.06,.05,.44,0xffffff,-.85,.2+i*.22,0); const s=fuB(g,1.3,.06,.46,C,.15,.55,0); s.rotation.z=-.62; return g; }},
+  arcade:{nm:"arcade game", ic:"🕹️", sz:[1,1], cat:"play", use:"arcade", cols:[0x9b72f0,0xff6b6b,0x3b2433], build(c){ const g=new THREE.Group(), C=vc("arcade",c); fuB(g,.7,1.6,.6,C,0,.8,-.1); fuB(g,.62,.12,.4,0x3b2433,0,1.0,.2); const sc=fuG(g,new THREE.PlaneGeometry(.5,.38),0x7fe0ff,0,1.3,.21); sc.rotation.x=-.25;
+    fuC(g,.03,.03,.12,0x3b2433,-.1,1.12,.25); fuS(g,.05,0xff4b4b,-.1,1.19,.25); [0xffd23f,0x7fd36a].forEach((col,i)=>fuS(g,.035,col,.08+i*.1,1.08,.28)); fuB(g,.7,.2,.6,0xffd23f,0,1.68,-.1); return g; }},
+  toyblocks:{nm:"toy blocks", ic:"🔤", sz:[1,1], cat:"play", build(){ const g=new THREE.Group(); const C=[0xff6b6b,0x5aa7ff,0xffd23f,0x7fd36a,0xff9ac8,0x9b72f0]; [[-.2,0,0],[.05,0,.05],[.3,0,-.05],[-.08,1,0],[.18,1,0],[.05,2,0]].forEach(([x,l,z],i)=>fuB(g,.24,.24,.24,C[i],x,.12+l*.24,z)); return g; }},
+  trampoline:{nm:"trampoline", ic:"🤸", sz:[2,2], cat:"play", use:"jump", build(){ const g=new THREE.Group(); fuC(g,.85,.85,.06,0x3b2433,0,.42,0); const r=new THREE.Mesh(new THREE.TorusGeometry(.88,.06,8,30), M(0x5aa7ff)); r.rotation.x=Math.PI/2; r.position.y=.44; g.add(r);
+    for(let i=0;i<6;i++){ const a=i/6*6.283; fuC(g,.03,.03,.42,0xffffff,Math.cos(a)*.82,.21,Math.sin(a)*.82); } return g; }},
+  /* 🌿 식물 */
+  monstera:{nm:"monstera", ic:"🌿", sz:[1,1], cat:"plant", cols:[0xffffff,0xc96b4a,0x3b2433], build(c){ const g=new THREE.Group(); fuC(g,.26,.2,.4,vc("monstera",c),0,.2,0); for(let i=0;i<7;i++){ const a=i/7*6.283, l=fuS(g,.22,0x2f9a4a,Math.cos(a)*.22,.75+(i%3)*.18,Math.sin(a)*.22,[1,.18,.7]); l.rotation.set(.4*Math.sin(a),a,.4*Math.cos(a)); } return g; }},
+  cactus:{nm:"cactus", ic:"🌵", sz:[1,1], cat:"plant", build(){ const g=new THREE.Group(); fuC(g,.2,.16,.3,0xc96b4a,0,.15,0); fuC(g,.12,.13,.7,0x5cb85c,0,.62,0); fuS(g,.12,0x5cb85c,0,.97,0); fuC(g,.06,.06,.25,0x5cb85c,.18,.66,0); fuC(g,.06,.06,.2,0x5cb85c,-.17,.55,0); fuS(g,.06,0xff9ac8,0,1.1,0); return g; }},
+  bonsai:{nm:"bonsai", ic:"🌳", sz:[1,1], cat:"plant", build(){ const g=new THREE.Group(); fuB(g,.6,.16,.36,0x3b2433,0,.08,0); fuC(g,.05,.07,.4,0x8a5a34,0,.36,0); fuS(g,.22,0x4caf50,-.08,.62,0,[1.2,.6,1]); fuS(g,.17,0x5cc46a,.16,.55,.05,[1.2,.6,1]); return g; }},
+  flowerbox:{nm:"flower box", ic:"🌷", sz:[2,1], cat:"plant", cols:[0xc48a58,0xffffff,0x5aa7ff], build(c){ const g=new THREE.Group(); fuB(g,1.7,.36,.4,vc("flowerbox",c),0,.18,0); const C=[0xff6b6b,0xffd23f,0xff9ac8,0xc7a6ff,0xffffff];
+    for(let i=0;i<9;i++){ const x=-.72+i*.18; fuC(g,.015,.015,.3,0x4caf50,x,.5,((i%2)-.5)*.12); fuS(g,.07,C[i%5],x,.68,((i%2)-.5)*.12); } return g; }},
+  sunflower:{nm:"sunflower", ic:"🌻", sz:[1,1], cat:"plant", build(){ const g=new THREE.Group(); fuC(g,.18,.14,.28,0x5aa7ff,0,.14,0); fuC(g,.025,.025,1.3,0x4caf50,0,.9,0); const f=fuC(g,.24,.24,.04,0xffd23f,0,1.55,.04); f.rotation.x=Math.PI/2.4; const m=fuC(g,.12,.12,.06,0x8a5a34,0,1.55,.07); m.rotation.x=Math.PI/2.4; fuS(g,.1,0x4caf50,.1,.9,0,[1,.3,.6]); return g; }},
+  /* 🎨 취미 */
+  easel:{nm:"easel", ic:"🎨", sz:[1,1], cat:"hobby", build(){ const g=new THREE.Group(); [-1,1].forEach(s=>{ const l=fuB(g,.05,1.4,.05,0xc48a58,s*.25,.7,0); l.rotation.z=s*-.12; }); const b=fuB(g,.05,1.3,.05,0xc48a58,0,.65,-.3); b.rotation.x=.3; fuB(g,.6,.5,.03,0xffffff,0,1.05,.04);
+    [[0xff6b6b,-.12,1.1],[0x5aa7ff,.1,1.0],[0xffd23f,0,1.18],[0x7fd36a,-.05,.95]].forEach(([col,x,y])=>fuS(g,.06,col,x,y,.07,[1,1,.2])); fuB(g,.6,.05,.1,0xc48a58,0,.78,.06); return g; }},
+  guitar:{nm:"guitar", ic:"🎸", sz:[1,1], cat:"hobby", use:"music", cols:[0xff6b6b,0xc48a58,0x5aa7ff], build(c){ const g=new THREE.Group(), C=vc("guitar",c); fuB(g,.4,.06,.3,0x3b2433,0,.03,0); const G=new THREE.Group(); G.position.set(0,.06,0); G.rotation.x=-.18; g.add(G);
+    fuS(G,.2,C,0,.28,0,[1,1,.35]); fuS(G,.16,C,0,.55,0,[1,1,.35]); fuC(G,.06,.06,.03,0x3b2433,0,.36,.07).rotation.x=Math.PI/2; fuB(G,.07,.55,.05,0x8a5a34,0,.95,0); fuB(G,.12,.14,.05,0x3b2433,0,1.25,0); return g; }},
+  drums:{nm:"drums", ic:"🥁", sz:[1,1], cat:"hobby", use:"music", cols:[0xff6b6b,0x5aa7ff,0x3b2433], build(c){ const g=new THREE.Group(), C=vc("drums",c); const k=fuC(g,.3,.3,.3,C,0,.32,-.1); k.rotation.x=Math.PI/2; fuC(g,.28,.28,.02,0xffffff,0,.32,.06).rotation.x=Math.PI/2;
+    [[-.3,.2],[.3,.2]].forEach(([x,z])=>{ fuC(g,.16,.16,.16,C,x,.55,z); fuC(g,.02,.02,.5,0xcfcfcf,x,.25,z); }); fuC(g,.22,.22,.015,0xffd23f,.3,.95,-.25); fuC(g,.015,.015,.9,0xcfcfcf,.3,.48,-.25); return g; }},
+  globe:{nm:"globe", ic:"🌍", sz:[1,1], cat:"hobby", build(){ const g=new THREE.Group(); fuB(g,.5,.5,.4,0xc48a58,0,.25,0); fuC(g,.08,.1,.06,0xffd23f,0,.53,0); fuC(g,.015,.015,.3,0xffd23f,0,.65,0); fuS(g,.2,0x5aa7ff,0,.82,0); fuS(g,.1,0x5cc46a,.08,.88,.1,[1,.8,.5]); fuS(g,.08,0x5cc46a,-.1,.76,.08,[1,.9,.5]); return g; }},
+  /* 🍽 부엌·욕실 */
+  sink:{nm:"sink", ic:"🚰", sz:[1,1], cat:"kb", build(){ const g=new THREE.Group(); fuB(g,.9,.86,.6,0xffffff,0,.43,-.18); fuB(g,.92,.06,.62,0x9fb4c4,0,.88,-.18); fuB(g,.5,.08,.36,0xbfeaff,0,.9,-.14); fuC(g,.025,.025,.25,0xcfcfcf,0,1.02,-.4); fuB(g,.03,.03,.16,0xcfcfcf,0,1.14,-.33); return g; }},
+  kcounter:{nm:"kitchen counter", ic:"🔪", sz:[1,1], cat:"kb", cols:[0xffffff,0xc48a58,0x7fd36a], build(c){ const g=new THREE.Group(); fuB(g,.94,.86,.6,vc("kcounter",c),0,.43,-.18); fuB(g,.96,.06,.62,0xf3eee2,0,.88,-.18); fuB(g,.4,.03,.26,0xc48a58,0,.93,-.1); fuS(g,.07,0xff6b6b,-.3,.97,-.25); fuS(g,.06,0xffd23f,.3,.96,-.3); return g; }},
+  cakestand:{nm:"cake table", ic:"🎂", sz:[1,1], cat:"kb", build(){ const g=new THREE.Group(); fuC(g,.36,.36,.05,0xffffff,0,.72,0); fuC(g,.05,.08,.7,0xffffff,0,.35,0); fuC(g,.24,.24,.18,0xffd6e8,0,.84,0); fuC(g,.18,.18,.12,0xffffff,0,1.0,0); fuS(g,.05,0xff4b4b,0,1.1,0); [0,1,2].forEach(i=>fuC(g,.012,.012,.1,0x5aa7ff,Math.cos(i*2.1)*.1,1.11,Math.sin(i*2.1)*.1)); return g; }},
+  shower:{nm:"shower", ic:"🚿", sz:[1,1], cat:"kb", build(){ const g=new THREE.Group(); fuB(g,.9,.1,.9,0xffffff,0,.05,0); const gl=new THREE.Mesh(new THREE.BoxGeometry(.9,1.9,.9), new THREE.MeshStandardMaterial({color:0xbfeaff, transparent:true, opacity:.28})); gl.position.y=1.05; g.add(gl);
+    fuC(g,.02,.02,.5,0xcfcfcf,-.3,1.9,-.3); fuC(g,.1,.12,.04,0xcfcfcf,-.3,1.65,-.3); return g; }},
+  /* 🖼 벽 */
+  starlights:{nm:"star lights", ic:"✨", sz:[1,1], wall:true, build(){ const g=new THREE.Group(); const C=[0xffd23f,0xff9ac8,0x7fe0ff,0x9ff0b0]; for(let i=0;i<7;i++){ const x=-.42+i*.14, y=1.85-Math.sin(i/6*Math.PI)*.18; const m=new THREE.Mesh(new THREE.OctahedronGeometry(.045), new THREE.MeshBasicMaterial({color:C[i%4]})); m.position.set(x,y,.05); g.add(m); } return g; }},
+  wallplant:{nm:"hanging plant", ic:"🪴", sz:[1,1], wall:true, cat:"plant", build(){ const g=new THREE.Group(); fuB(g,.5,.05,.2,0xc48a58,0,1.5,.1); fuC(g,.12,.09,.16,0xffffff,0,1.6,.1); for(let i=0;i<6;i++) fuS(g,.07,0x4caf50,(i-2.5)*.07,1.45-(i%3)*.12,.14,[1,1.4,.6]); return g; }},
+  neon:{nm:"neon sign", ic:"💖", sz:[1,1], wall:true, cols:[0xff6bb5,0x7fe0ff,0xffd23f], build(c){ const g=new THREE.Group(), C=vc("neon",c); const s=new THREE.Shape(); s.moveTo(0,-.18); s.bezierCurveTo(-.32,.05,-.2,.28,0,.12); s.bezierCurveTo(.2,.28,.32,.05,0,-.18);
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(s), new THREE.MeshBasicMaterial({color:C})); m.position.set(0,1.55,.04); g.add(m); fuB(g,.6,.5,.02,0x3b2433,0,1.55,.015); return g; }},
+  worldmap:{nm:"world map", ic:"🗺️", sz:[1,1], wall:true, cat:"hobby", build(){ const g=new THREE.Group(); fuB(g,.8,.55,.03,0x9fd8ff,0,1.55,.02); [[-.22,1.6,.18,.14],[.05,1.62,.12,.18],[.25,1.5,.16,.12],[-.1,1.42,.1,.08]].forEach(([x,y,w,h])=>fuB(g,w,h,.02,0x7fd36a,x,y,.04)); fuB(g,.84,.04,.04,0xc48a58,0,1.84,.03); return g; }},
+  banner:{nm:"party banner", ic:"🎏", sz:[1,1], wall:true, build(){ const g=new THREE.Group(); const C=[0xff6b6b,0xffd23f,0x5aa7ff,0x7fd36a,0xff9ac8]; for(let i=0;i<5;i++){ const t=new THREE.Mesh(new THREE.ConeGeometry(.08,.2,3), M(C[i])); t.rotation.z=Math.PI; t.position.set(-.36+i*.18,1.8-Math.sin(i/4*Math.PI)*.08,.04); g.add(t); } return g; }},
+  /* 🎄 계절 */
+  xmastree:{nm:"Christmas tree", ic:"🎄", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.1,.12,.3,0x8a5a34,0,.15,0); [[.45,.7,.55],[.36,.6,.95],[.24,.5,1.3]].forEach(([r,h,y])=>fuN(g,r,h,0x2f8f3f,0,y,0,10)); const s=new THREE.Mesh(new THREE.OctahedronGeometry(.1), new THREE.MeshBasicMaterial({color:0xffd23f})); s.position.y=1.62; g.add(s);
+    const C=[0xff4b4b,0xffd23f,0x5aa7ff,0xffffff]; for(let i=0;i<12;i++){ const a=i*2.3, y=.45+(i%4)*.25, r=.42-(i%4)*.08; fuS(g,.045,C[i%4],Math.cos(a)*r,y,Math.sin(a)*r); } fuB(g,.2,.16,.2,0xff6b6b,.22,.08,.2); return g; }},
+  snowman:{nm:"snowman", ic:"⛄", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuS(g,.3,0xffffff,0,.28,0); fuS(g,.22,0xffffff,0,.72,0); fuS(g,.16,0xffffff,0,1.05,0); fuN(g,.04,.18,0xff8a3d,0,1.05,.2).rotation.x=Math.PI/2; [-1,1].forEach(s=>fuS(g,.025,0x3b2433,s*.06,1.1,.14));
+    fuC(g,.13,.13,.04,0x3b2433,0,1.2,0); fuC(g,.09,.09,.18,0x3b2433,0,1.3,0); const sc=new THREE.Mesh(new THREE.TorusGeometry(.18,.04,6,16), M(0xff4b4b)); sc.rotation.x=Math.PI/2; sc.position.y=.9; g.add(sc); return g; }},
+  pumpkinlamp:{nm:"pumpkin lamp", ic:"🎃", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuS(g,.3,0xff8a3d,0,.26,0,[1,.75,1]); fuC(g,.04,.05,.14,0x5a8a3a,0,.5,0); [-1,1].forEach(s=>{ const e=fuN(g,.06,.08,0x3b2433,s*.1,.32,.27,3); e.material=new THREE.MeshBasicMaterial({color:0xffd23f}); e.rotation.x=Math.PI/2; });
+    const m=new THREE.Mesh(new THREE.BoxGeometry(.2,.04,.02), new THREE.MeshBasicMaterial({color:0xffd23f})); m.position.set(0,.18,.29); g.add(m); return g; }},
+});
+Object.assign(PRICE_ADD, {beanbag:12, bunkbed:45, coffeetable:12, floorlamp:14, fireplace:40, bigshelf:30, dresser:24, toybox:10, rockinghorse:22, teepee:28, ballpit:35, slide:38, arcade:50, toyblocks:6, trampoline:42, monstera:12, cactus:8, bonsai:15, flowerbox:14, sunflower:9, easel:16, guitar:25, drums:40, globe:14, sink:18, kcounter:16, cakestand:20, shower:30, starlights:10, wallplant:9, neon:18, worldmap:12, banner:8, xmastree:26, snowman:15, pumpkinlamp:12});
+Object.keys(PRICE_ADD).forEach(k=>{ if(ITEMS[k] && !["washer","microwave","fan","aircon","computer","radio","toaster","tank","robot","window","painting","poster","wclock","wshelf","mirror"].includes(k)) NEWF[k]=1; });
+function wallOk(id, side, s, skip){ if(!wallFits(side,s,skip)) return false; if(id==="sidedoor"){ if(side===3 && s>=RN-1) return false; const c=[[s,0],[RN-1,s],[s,RN-1],[0,s]][side]; if(roomBlocked(c[0],c[1])) return false; } return true; }
 var PRICE_ADD; const vc=(id,c)=>{ const L=ITEMS[id].cols; return L[((c|0)%L.length+L.length)%L.length]; };
 const PRICE={partition:2, archway:4, stool:4, plant:4, vase:4, chair:6, lamp:8, bear:8, rug:10, rug2:10, table:10, chest:12, clock:15, shelf:15, desk:18, closet:20, stove:20, fridge:25, sofa:25, bed:25, tv:30, piano:45}; Object.assign(PRICE, PRICE_ADD);
 /* (v434) ③ 새 가구 = KayKit 모델 (색 = 모델 종류) — 한 칸 = KayKit 약 1.8 → 0.55배, 칸보다 크면 칸에 맞춤 */
@@ -1017,6 +1090,12 @@ Object.assign(ITEMS, {
   kk_books:{nm:"book pile", ic:"📚", sz:[1,1], build:KKF(["book_set"], {s:1.1})}
 });
 Object.assign(PRICE, {kk_books:4, kk_stool:5, kk_cactus:6, kk_chair:7, kk_night:10, kk_rug:12, kk_table:12, kk_flamp:12, kk_tlong:16, kk_drawers:18, kk_armchair:20, kk_bed1:24, kk_couch:30, kk_bed2:38});
+/* (v557) 💰 가구점 물가 — 사용자: "가구점 가격들 최소 50부터 · 작물 팔아서 하면 금방 모이잖아 · 경제 인플레 생각해야지"
+   예전 값 p → 50 + (p-4)×6 (5 단위, 최소 50) : 의자 6→60 · 침대 25→175 · 피아노 45→295 · 오락기 50→325
+   칸막이·울타리·덤불처럼 여러 개 쓰는 것은 묶음(PACK)으로 — 한 번 사면 여러 개 */
+const ECON=p=>p<=4 ? 50 : 50+Math.round((p-4)*6/5)*5;
+const PACK={partition:4, fence:5, hedge:5};
+Object.keys(PRICE).forEach(k=>{ PRICE[k]=ECON(PRICE[k]); });
 /* (v539) 사용자: "2층 3층 4층 기능은 뭐로?" → 방·층마다 할 일 — 넓히면 생기는 특별 가구 (가게에선 안 팖) */
 const STUDY_LS=()=>{ try{ return JSON.parse(localStorage.getItem("hyeng_study_v1")||"{}"); }catch(e){ return {}; } };
 Object.assign(ITEMS, {
@@ -1067,8 +1146,10 @@ function addPlaced(id, x, z, r, c){ if(ITEMS[id].wall) return addWall(id, x, z, 
 function removePlaced(p){ if(p.wall){ removeWall(p); return; } p.obj.parent && p.obj.parent.remove(p.obj); placed.splice(placed.indexOf(p),1); dirty=true; }
 /* (L0-10) 벽에 거는 것 — {id, side, s, c, obj, wall:true} · 벽 그룹의 아이 = 그 벽이 안 보이면 같이 숨음 */
 function wallFits(side, s, skip){ return s>=0 && s<RN && !(window.HOMEX ? HOMEX.isSlot(side,s) : (side===3 && s===RN-1)) && !wplaced.some(p=>p!==skip && p.side===side && p.s===s); }
-function addWall(id, side, s, c){ const o=ITEMS[id].build(c|0); wallPos(o, side, s); const p={id, side, s, c:c|0, obj:o, wall:true}; o.traverse(m=>{ m.userData.p=p; }); wplaced.push(p); initLive(p); dirty=true; return p; }
-function removeWall(p){ p.obj.parent && p.obj.parent.remove(p.obj); wplaced.splice(wplaced.indexOf(p),1); dirty=true; }
+function addWall(id, side, s, c){ if(id==="sidedoor" && !((c|0)>0) && window.HOMEX && !visiting) c=HOMEX.newAnnex(); const o=ITEMS[id].build(c|0); wallPos(o, side, s); const p={id, side, s, c:c|0, obj:o, wall:true}; o.traverse(m=>{ m.userData.p=p; }); wplaced.push(p); initLive(p); dirty=true; if(id==="sidedoor") sdLbl(); return p; }
+function removeWall(p){ p.obj.parent && p.obj.parent.remove(p.obj); wplaced.splice(wplaced.indexOf(p),1); dirty=true;  if(p.id==="sidedoor") sdLbl(); }
+/* (v557) 🚪 옆방 문을 달거나 떼면 이름표 다시 (한 번에 모아서) */
+let sdT=0; function sdLbl(){ if(sdT) return; sdT=setTimeout(()=>{ sdT=0; try{ drawLabels(); }catch(e){} },0); }
 function rebuildP(p){ const par=p.obj.parent, o=ITEMS[p.id].build(p.c|0); if(par) par.remove(p.obj); p.obj=o; o.traverse(m=>{ m.userData.p=p; });
   if(p.wall) wallPos(o, p.side, p.s); else { posObj(o,p.id,p.x,p.z,p.r); roomG.add(o); } initLive(p); dirty=true; }
 /* 계속 움직이는 가전 (어항 물고기 · 선풍기 · 라디오 …) */
@@ -1104,7 +1185,7 @@ const isStall=(x,z)=>STALL_T.some(t=>t[0]===x&&t[1]===z);
 /* (L0-4) 🌱 밭 6칸 · 🛠 제작대 · 🍳 요리 냄비 · 🪨 바위 2 */
 const PLOTS=[[1,5],[2,5],[3,5],[1,6],[2,6],[3,6], [1,8],[2,8],[1,9],[2,9],[4,8],[4,9]], BENCH=[3,1], POT=[4,2], ROCKS=[[7,9],[9,6]];
 /* (L0-9) 사용자: "땅을 늘리는 것도 좋고 · 조금씩 늘리는 거지" → 밭은 6칸으로 시작, 💎 로 2칸씩 (🪧 팻말을 누르거나 Mia 에게) */
-const LAND=[{n:8,p:10},{n:10,p:20},{n:12,p:30}];
+const LAND=[{n:8,p:80},{n:10,p:150},{n:12,p:250}];   /* (v557) 물가 10·20·30 → 80·150·250 (밭 = 버는 곳이라 비싸게) */
 let plotN = store("hyeng_proto_plotn") || 6;
 const at=(L,x,z)=>L.findIndex(t=>t[0]===x&&t[1]===z);
 function yardBlocked(x,z){ return isWater(x,z) || isHouse(x,z) || isStall(x,z) || TREES.some(t=>t[0]===x&&t[1]===z) || at(PLOTS,x,z)>=0 || (x===BENCH[0]&&z===BENCH[1]) || (x===POT[0]&&z===POT[1]) || at(ROCKS,x,z)>=0 || yBlk(x,z) || PARC.some(p=>p.sign[0]===x&&p.sign[1]===z && !(yd && yd.pc[PARC.indexOf(p)])); }
@@ -1189,7 +1270,7 @@ const OUT={
   lantern:{nm:"stone lantern", ic:"🏮", sz:[1,1], cat:"deco", glow:1, build(){ const g=new THREE.Group(), s=M(0xb9b3a8); part(g, rbox(0.34,0.12,0.34,0.03), s, 0,0.06,0); part(g, cyl(0.07,0.09,0.5,8), s, 0,0.37,0); part(g, rbox(0.3,0.06,0.3,0.02), s, 0,0.64,0);
       const b=new THREE.Mesh(rbox(0.22,0.2,0.22,0.03), new THREE.MeshStandardMaterial({color:0xfff1b0, emissive:0xffb03a, emissiveIntensity:0.1})); b.position.y=0.77; g.add(b); g.userData.bulb=b; const r=part(g, cone(0.3,0.2,4), s, 0,0.97,0); r.rotation.y=Math.PI/4; return g; }},
 };
-const OUT_PRICE={fence:1, hedge:2, flowers:3, bush:3, mushroom:3, sunflower:4, sign:5, flag:5, sapling:6, pine:6, obench:6, mailbox:6, birdhouse:6, parasol:8, lamp:8, arch:8, scarecrow:8, lantern:10, picnic:12, sandbox:12, well:14, tent:14, swing:15, statue:16, slide:18, trampoline:20, windmill:20, fountain:30};
+const OUT_PRICE={fence:1, hedge:2, flowers:3, bush:3, mushroom:3, sunflower:4, sign:5, flag:5, sapling:6, pine:6, obench:6, mailbox:6, birdhouse:6, parasol:8, lamp:8, arch:8, scarecrow:8, lantern:10, picnic:12, sandbox:12, well:14, tent:14, swing:15, statue:16, slide:18, trampoline:20, windmill:20, fountain:30}; Object.keys(OUT_PRICE).forEach(k=>{ OUT_PRICE[k]=ECON(OUT_PRICE[k]); });   /* (v557) 물가 */
 /* (v434) ③ 마당 꾸미기 = KayKit 모델 */
 const KKO=(L, o)=>function(c){ const g=new THREE.Group(), k=L[((c|0)%L.length+L.length)%L.length]; KK.fill(g, "nature", k, Object.assign({fit:[this.sz[0]*0.96, this.sz[1]*0.96]}, o||{})); return g; };
 Object.assign(OUT, {
@@ -1401,7 +1482,7 @@ function yPointerMove(e){ if(!down || place!==PL.yard || !edit) return; const dx
 /* 가게 줄 */
 function yShopHTML(){ let h='<div class="bChips fCat">'+OUT_CAT.map(([k,t])=>'<button class="chip'+(yCat===k?' on':'')+'" data-yc="'+k+'">'+t+'</button>').join("")+'</div>';
   h+=Object.keys(OUT_PRICE).filter(id=>yCat==="all"||OUT[id].cat===yCat).sort((a,b)=>OUT_PRICE[a]-OUT_PRICE[b]).map(id=>{ const it=OUT[id], p=OUT_PRICE[id], have=(ystock[id]|0)+yplaced.filter(x=>x.id===id).length;
-    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(gems>=p?' on':'')+'" data-by="'+id+'"'+(gems>=p?'':' disabled')+'>💎 '+p+'</button></div>'; }).join("");
+    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(gems>=p?' on':'')+'" data-by="'+id+'"'+(gems>=p?'':' disabled')+'>💎 '+p+'</button></div>'; }).join("");
   return h; }
 let yCat="all";
 /* 🏅 마당 도장 */
@@ -2803,9 +2884,9 @@ $("stoUp").onclick=()=>{ const S=sto[stoK], up=STO_UP[stoK].find(u=>u[0]>S.cap);
 $("stoDone").onclick=()=>$("stoP").classList.remove("on");
 /* 🛒 가게 — 가구 · 벽지·바닥 · 늘리기 */
 let furnTab="furn", furnCat="all"; const swCache={};
-const APP_IDS={tv:1, fridge:1, stove:1}, catF=id=>ITEMS[id].wall?"wall":(ITEMS[id].app||APP_IDS[id])?"app":"furn";
-const USE_T={fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
-const ROOM_UP=[[8,60],[10,120],[12,180]];
+const APP_IDS={tv:1, fridge:1, stove:1}, catF=id=>ITEMS[id].cat||(ITEMS[id].wall?"wall":(ITEMS[id].app||APP_IDS[id])?"app":"furn");
+const USE_T={sidedoor:"🚪 옆방", music:"🎵 연주", arcade:"🕹 놀기", jump:"🤸 뛰기", stairs:"🪜 위층", fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
+const ROOM_UP=[[8,200],[10,400],[12,600]];   /* (v557) 물가 60·120·180 → 200·400·600 */
 function swatch(L,i){ const k=(L===FLOORS?"f":"w")+i; if(swCache[k]) return swCache[k]; const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d"); g.scale(0.25,0.25); L[i].draw(g,256,256); return swCache[k]=c.toDataURL(); }
 const CRAFTABLE=id=>CRAFT.some(r=>r.id===id);
 function upRows(){ const R=[]; const ru=ROOM_UP.find(x=>x[0]>RN); R.push(["room","🏠","집 넓히기",RN+"×"+RN+" 칸", ru?ru[1]:0, ru?"→ "+ru[0]+"×"+ru[0]:""]); const L=LAND.find(l=>l.n>plotN); R.push(["land","🌱","밭 fields",plotN+" / 12칸",L?L.p:0,L?"+2칸":""]);
@@ -2815,9 +2896,9 @@ function upRows(){ const R=[]; const ru=ROOM_UP.find(x=>x[0]>RN); R.push(["room"
 function drawFurn(){ $("furnGem").innerHTML="💎 <b>"+gems+"</b>";
   $("furnTabs").innerHTML=[["furn","🛋 가구"],["yard","🌳 마당"],["wall","🎨 벽지·바닥"],["up","🏡 늘리기"]].map(([k,t])=>'<button class="bTab'+(furnTab===k?' on':'')+'" data-ft="'+k+'">'+t+'</button>').join("");
   let h="";
-  if(furnTab==="furn") h='<div class="bChips fCat">'+[["all","전체"],["furn","🛋 가구"],["app","📺 가전"],["wall","🖼 벽"]].map(([k,t])=>'<button class="chip'+(furnCat===k?' on':'')+'" data-fc="'+k+'">'+t+'</button>').join("")+'</div>'
-    +Object.keys(PRICE).filter(id=>furnCat==="all" || catF(id)===furnCat).sort((a,b)=>PRICE[a]-PRICE[b]).map(id=>{ const it=ITEMS[id], p=PRICE[id], have=(stock[id]|0)+placed.filter(x=>x.id===id).length;
-    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(gems>=p?' on':'')+'" data-bf="'+id+'"'+(gems>=p?'':' disabled')+'>💎 '+p+'</button></div>'; }).join("");
+  if(furnTab==="furn") h='<div class="bChips fCat">'+[["all","전체"],["new","✨ 새 가구"],["furn","🛋 가구"],["play","🧸 놀이"],["plant","🌿 식물"],["hobby","🎨 취미"],["kb","🍽 부엌·욕실"],["app","📺 가전"],["wall","🖼 벽"],["season","🎄 계절"]].map(([k,t])=>'<button class="chip'+(furnCat===k?' on':'')+'" data-fc="'+k+'">'+t+'</button>').join("")+'</div>'
+    +Object.keys(PRICE).filter(id=>furnCat==="all" || (furnCat==="new" ? NEWF[id] : catF(id)===furnCat)).sort((a,b)=>PRICE[a]-PRICE[b]).map(id=>{ const it=ITEMS[id], p=PRICE[id], have=(stock[id]|0)+placed.filter(x=>x.id===id).length;
+    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(NEWF[id]?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(gems>=p?' on':'')+'" data-bf="'+id+'"'+(gems>=p?'':' disabled')+'>💎 '+p+'</button></div>'; }).join("");
   if(furnTab==="wall"){ const sec=(L,own,cur,t,key)=>'<h4 class="bH">'+t+'</h4><div class="fwG">'+L.map((x,i)=>{ const o=own.includes(i), on=cur===i;
       return '<button class="fw'+(on?' on':'')+(o?'':' buy')+'" data-fw="'+key+i+'"'+(!o&&gems<FW_PRICE?' disabled':'')+'><img src="'+swatch(L,i)+'" alt=""><b>'+x.nm+'</b><small>'+(on?'✅ 지금':o?'쓰기':'💎 '+FW_PRICE)+'</small></button>'; }).join("")+'</div>';
     h=sec(FLOORS,ownF,floorIx,"🟫 바닥","f")+sec(WALLS,ownW,wallIx,"🎨 벽지","w"); }
@@ -2828,13 +2909,13 @@ function drawFurn(){ $("furnGem").innerHTML="💎 <b>"+gems+"</b>";
 function openFurn(tab){ if(F.st!=="idle") return; if(tab) furnTab=tab; $("drawer").classList.remove("on"); drawFurn(); $("furnP").classList.add("on"); }
 $("furnTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-ft]"); if(!b) return; furnTab=b.dataset.ft; drawFurn(); });
 $("furnBody").addEventListener("click", e=>{ const bf=e.target.closest("[data-bf]"), fw=e.target.closest("[data-fw]"), up=e.target.closest("[data-up]");
-  if(bf && !bf.disabled){ const id=bf.dataset.bf; if(!spend(PRICE[id])) return; addStock(id); toast(ITEMS[id].ic+" "+ITEMS[id].nm+" → 🏠 창고<br><small>집 🛋️ 가구 단추로 놓아요</small>", 2200); say(ITEMS[id].nm); }
+  if(bf && !bf.disabled){ const id=bf.dataset.bf; if(!spend(PRICE[id])) return; addStock(id, PACK[id]||1); toast(ITEMS[id].ic+" "+ITEMS[id].nm+(PACK[id]?" ×"+PACK[id]:"")+" → 🏠 창고<br><small>집 🛋️ 가구 단추로 놓아요</small>", 2200); say(ITEMS[id].nm); }
   if(fw && !fw.disabled){ const isF=fw.dataset.fw[0]==="f", i=+fw.dataset.fw.slice(1), own=isF?ownF:ownW;
     if(!own.includes(i)){ if(!spend(FW_PRICE)) return; own.push(i); own.sort((a,b)=>a-b); }
     if(isF) setFloor(i); else setWall(i); saveRoom(); toast((isF?"🟫 ":"🎨 ")+(isF?FLOORS:WALLS)[i].nm); }
   const fc=e.target.closest("[data-fc]"); if(fc){ furnCat=fc.dataset.fc; drawFurn(); return; }
   const yc=e.target.closest("[data-yc]"); if(yc){ yCat=yc.dataset.yc; drawFurn(); return; }
-  const by=e.target.closest("[data-by]"); if(by && !by.disabled){ const id=by.dataset.by; if(!spend(OUT_PRICE[id])) return; ystock[id]=(ystock[id]|0)+1; ySave(); toast(OUT[id].ic+" "+OUT[id].nm+" → 🌳 마당 꾸미기<br><small>마당 ✏️ 꾸미기 단추로 놓아요</small>", 2200); say(OUT[id].nm); }
+  const by=e.target.closest("[data-by]"); if(by && !by.disabled){ const id=by.dataset.by; if(!spend(OUT_PRICE[id])) return; ystock[id]=(ystock[id]|0)+(PACK[id]||1); ySave(); toast(OUT[id].ic+" "+OUT[id].nm+" → 🌳 마당 꾸미기<br><small>마당 ✏️ 꾸미기 단추로 놓아요</small>", 2200); say(OUT[id].nm); }
   if(up && !up.disabled && up.dataset.up==="parc"){ const i=yd.pc.findIndex(v=>!v); if(i>=0) yParcAsk(i); return; }
   if(up && !up.disabled){ const k=up.dataset.up;
     if(k==="room"){ if(window.HOMEX && !visiting){ $("furnP").classList.remove("on"); HOMEX.openUp(); } else { const u=ROOM_UP.find(x=>x[0]>RN); if(u && !visiting && spend(u[1])){ growRoom(u[0]); toast("🏠 집이 "+u[0]+"×"+u[0]+" 이 됐어요!"); } } }
@@ -2872,10 +2953,14 @@ function sitOn(p){ tEv("use"); const it=ITEMS[p.id], o=p.obj; standUp(); const w
   else { hero.seat={p}; hero.g.position.set(wp.x, it.sit-0.27, wp.z); hero.face=-p.r*Math.PI/2; hero.g.rotation.y=hero.face; hero.act="sit"; say("sit"); }
   dirty=true; }
 function standUp(){ if(!hero || !hero.seat) return; hero.seat=null; hero.body.rotation.x=0; hero.body.position.z=0; hero.act="idle"; hero.g.position.set(hero.cx+0.5,0,hero.cz+0.5); dirty=true; }
-const VISIT_OK={stairs:1, piano:1, clock:1, tv:1, bear:1, lamp:1, fan:1, radio:1, mirror:1, tank:1, computer:1, aircon:1, robot:1, books:1, brag:1, planter:1};
+const VISIT_OK={stairs:1, sidedoor:1, music:1, arcade:1, jump:1, piano:1, clock:1, tv:1, bear:1, lamp:1, fan:1, radio:1, mirror:1, tank:1, computer:1, aircon:1, robot:1, books:1, brag:1, planter:1};
 function useItem(p){ tEv("use"); const u=ITEMS[p.id].use;
   if(visiting && !VISIT_OK[u]){ toast("🙅 친구 집 물건이에요 — 구경만 해요", 1800); return; }
   if(u=="stairs" && window.HOMEX){ HOMEX.stairs(p); return; }
+  if(u==="sidedoor" && window.HOMEX){ HOMEX.annex(p); return; }
+  if(u==="music"){ emote(hero,"🎵"); act("yay"); try{ say(ITEMS[p.id].nm); SND.pop(); }catch(e){} toast("🎵 "+ITEMS[p.id].ic+" 띵띵띵~ <b>"+ITEMS[p.id].nm+"</b>", 1400); return; }
+  if(u==="arcade"){ emote(hero,"🎮"); act("yay"); try{ SND.win(); }catch(e){} toast("🕹 삐용삐용! <b>하이 스코어!</b>", 1600); return; }
+  if(u==="jump"){ act("yay"); emote(hero,"🤸"); try{ say("jump"); SND.pop(); }catch(e){} return; }
   if(window.HLIFE && HLIFE.use(u, p)) return;
   if(u==="study"){ if(visiting) return; ask("📚 <b>영어 공부</b> 하러 갈까요?<br><small>Daily 30 · 공부한 날이 <b>이어지면</b> 🏗 집을 넓힐 수 있어요</small>", ()=>{ location.href="../index.html"; }); return; } if(u==="fridge") openSto("fr"); else if(u==="chest") openSto("ch"); else if(u==="closet") openAv(); else if(u==="stove") openCraft("cook");
   else if(u==="piano") playPiano(); else if(u==="clock") tellTime(); else if(u==="tv") toggleTv(p); else if(u==="bear"){ emote(hero,"❤️"); act("yay"); say("teddy bear"); }
@@ -3414,11 +3499,11 @@ function startGhost(id, from){ cancelGhost(); unselect(); if(ITEMS[id].wall) ret
   ghostPad=new THREE.Mesh(new THREE.PlaneGeometry(1,1), ghostMats.ok); ghostPad.rotation.x=-Math.PI/2; roomG.add(ghostPad); updGhost(); $("place").classList.add("on"); $("drawer").classList.remove("on"); }
 function updGhost(){ if(!ghost) return;
   if(ghost.wall){ wallPos(ghost.obj, ghost.side, ghost.s); const g=walls[ghost.side]; if(ghostPad.parent!==g){ if(ghostPad.parent) ghostPad.parent.remove(ghostPad); g.add(ghostPad); } ghostPad.position.set(wallLX(ghost.side,ghost.s),1.55,WT/2+0.005);
-    const ok=wallFits(ghost.side,ghost.s,ghost.from); ghostPad.material=ok?ghostMats.ok:ghostMats.bad; $("pOk").disabled=!ok; dirty=true; return; }
+    const ok=wallOk(ghost.id,ghost.side,ghost.s,ghost.from); ghostPad.material=ok?ghostMats.ok:ghostMats.bad; $("pOk").disabled=!ok; dirty=true; return; }
   posObj(ghost.obj, ghost.id, ghost.x, ghost.z, ghost.r); const [w,d]=fp(ghost.id, ghost.r); ghostPad.scale.set(w,d,1); ghostPad.position.set(ghost.x+w/2,0.05,ghost.z+d/2);
   const ok=fits(ghost.id,ghost.x,ghost.z,ghost.r,ghost.from); ghostPad.material=ok?ghostMats.ok:ghostMats.bad; $("pOk").disabled=!ok; dirty=true; }
 function cancelGhost(){ if(!ghost) return; if(ghost.y){ yCancelGhost(); return; } ghost.obj.parent && ghost.obj.parent.remove(ghost.obj); ghostPad.parent && ghostPad.parent.remove(ghostPad); if(ghost.from) ghost.from.obj.visible=true; ghost=null; ghostPad=null; $("place").classList.remove("on"); if(edit) $("drawer").classList.add("on"); dirty=true; }
-function okGhost(){ if(!ghost) return; const g=ghost; if(g.wall ? !wallFits(g.side,g.s,g.from) : !fits(g.id,g.x,g.z,g.r,g.from)){ toast("빨간 칸에는 못 놓아요"); return; }
+function okGhost(){ if(!ghost) return; const g=ghost; if(g.wall ? !wallOk(g.id,g.side,g.s,g.from) : !fits(g.id,g.x,g.z,g.r,g.from)){ toast("빨간 칸에는 못 놓아요"); return; }
   tEv("furn"); if(!g.from) try{ tEv("put_"+g.id); }catch(e){} if(g.from) removePlaced(g.from); else stock[g.id]--; if(g.wall) addWall(g.id,g.side,g.s,g.c); else addPlaced(g.id,g.x,g.z,g.r,g.c); cancelGhost(); drawInv(); saveRoom(); toast(ITEMS[g.id].ic+" "+ITEMS[g.id].nm); say(ITEMS[g.id].nm); }
 function selectP(p){ unselect(); sel=p; p.obj.traverse(m=>{ if(m.isMesh && m.material && m.material.emissive){ m.userData.em=m.material; m.material=m.material.clone(); m.material.emissive=new THREE.Color(0x553300); } }); placeMenu(); dirty=true; }
 function unselect(){ if(!sel) return; sel.obj.traverse(m=>{ if(m.userData.em){ m.material.dispose(); m.material=m.userData.em; delete m.userData.em; } }); sel=null; $("menu").classList.remove("on"); dirty=true; }

@@ -38,7 +38,7 @@ async def main():
                 localStorage.setItem('hyeng_study_v1', JSON.stringify({srs:Object.fromEntries(W.map(w=>[w,[1,0]])), days:{n:15,tot:16,hs:15,hb:15,last:Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5)}})); }""", [code,name,WORDS])
             await pg.reload(); await pg.wait_for_timeout(2000); return pg
         A=await kid("AAAAA","루아")
-        await A.evaluate("()=>{ gems=600; saveBag(); }")
+        await A.evaluate("()=>{ gems=2000; saveBag(); }")
         # ① 가게
         await A.evaluate("()=>HOUSE.exitRoom()"); ok(await until(A, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy", 120), "🏝 우리 마을")
         await A.wait_for_timeout(1200)
@@ -56,7 +56,7 @@ async def main():
         ok(r[0]==r[1]=="tee", f"② 안 사고 닫으면 원래 옷 {r}")
         await A.evaluate("()=>{ openAv('clothes'); document.querySelector('.chip.lk[data-k=style][data-v=hoodie]').click(); document.getElementById('avBuy').click(); }"); await A.wait_for_timeout(300)
         r=await A.evaluate("()=>[av.style, HOUSE.gems(), JSON.parse(localStorage.getItem('hyeng_proto_avown')||'{}')['style:hoodie']]")
-        ok(r==["hoodie",585,1], f"② 사면 입고 💎 -15 · 내 옷장에 {r}")
+        ok(r==["hoodie",1985,1], f"② 사면 입고 💎 -15 · 내 옷장에 {r}")
         await A.evaluate("()=>{ closeAv(); openAv(); avTab='wear'; drawAv(); }")
         r=await A.evaluate("()=>[!!document.querySelector('.chip[data-k=style][data-v=hoodie]:not(.lk)'), !!document.querySelector('.chip.lk[data-k=style][data-v=dress]')]")
         ok(r==[True,True], f"② 집 옷장: 산 옷은 풀림 · 안 산 옷은 🔒 {r}")

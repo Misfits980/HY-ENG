@@ -57,7 +57,7 @@ async def main():
                 await pg.wait_for_timeout(250)
             return False
         # ① 가전 · 벽 · 색 · 앉기 · 넓히기 · 점수
-        n=await A.evaluate("()=>Object.keys(HOUSE.PRICE).length"); ok(n==51, f"가게 물건 51가지 (가구 20 + 가전 9 + 벽 6 + v434 KayKit 14 + v553 🧱 칸막이·🚪 아치 문) {n}")
+        n=await A.evaluate("()=>Object.keys(HOUSE.PRICE).length"); ok(n==87, f"가게 물건 87가지 (… v553 칸막이·아치 문 + v557 가구점 새 가구 35 + 🚪 옆방 문) {n}")
         ok(await A.evaluate("()=>HOUSE.wplaced.length")==3, "처음 방: 창문 2 · 그림 1 (벽에 걸림)")
         await A.evaluate("()=>{ HOUSE.setGems(999); ['tank','fan','radio','washer','robot','poster','mirror'].forEach(id=>HOUSE.addStock(id)); }")
         await A.click("#bEdit"); await A.wait_for_timeout(200)
@@ -89,7 +89,7 @@ async def main():
         s0=await A.evaluate("()=>HOUSE.stamps().filter(x=>x[2]).length")
         await A.evaluate("()=>HOUSE.openFurn('up')"); await A.wait_for_timeout(200); await A.click('#furnBody [data-up="room"]'); await A.wait_for_timeout(400)
         await A.evaluate("()=>{ document.querySelector('#upP [data-grow=lr]').click(); }"); await A.wait_for_timeout(200); await A.evaluate("()=>document.getElementById('askOk').click()"); await A.wait_for_timeout(400)
-        ok(await A.evaluate("()=>HOUSE.RN()")==8 and await A.evaluate("()=>JSON.parse(localStorage.getItem('hyeng_proto_room')).rn")==8, "🏠 집 넓히기 → 🏗 넓힐 쪽 고르기 → 6 → 8 (💎60) · 저장")
+        ok(await A.evaluate("()=>HOUSE.RN()")==8 and await A.evaluate("()=>JSON.parse(localStorage.getItem('hyeng_proto_room')).rn")==8, "🏠 집 넓히기 → 🏗 넓힐 쪽 고르기 → 6 → 8 (💎200) · 저장")
         s1=await A.evaluate("()=>HOUSE.stamps().filter(x=>x[2]).length"); ok(s1>s0 and await A.evaluate("()=>HOUSE.stamps().find(x=>x[0]==='big')[2]"), f"🏅 도장 늘어남 (넓은 집) {s0}→{s1}")
         await A.evaluate("()=>{ const u=document.getElementById('upP'); if(u) u.classList.remove('on'); }")
         await A.evaluate("()=>HOUSE.openScore()"); await A.wait_for_timeout(200)
