@@ -16260,7 +16260,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v549";
+const GAME_VER = "v550";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17252,9 +17252,9 @@ const Study = (function(){
     return {b:out, silent}; }
   /* ── ★2 판: 세 단어씩 — 쓰임 카드 3장 → 뜻·빈칸으로 떠올리기 → 철자·받아쓰기·모양 ── */
   const T2B = { g12:[{k2e:3, sent:2, listen:1, talk:1}, {spell:4, dict:2}],   // (v281) 1단계도 노션 대화(프리스타터)를 ★2 에서 씀
-                g34:[{k2e:2, sent:3, talk:2}, {spell:3, dict:2, past:1, be:2, s3:1, pl:1}],   // (v301) be동사 · 3인칭 -s · 여러 개 -s/-es
-                g56:[{k2e:1, sent:3, talk:2}, {spell:3, dict:2, sentp:2, past:1, tense:2, prep:1}],
-                mid:[{k2e:1, sent:3, talk:2}, {spell:3, dict:2, sentp:2, tense:2, prep:1, xfrm:3}] };   // (v442) ✏️ 모양 바꿔 고르기 (노션 [표 3])   // (v278) talk = 대화 빈칸 (상황·해석)
+                g34:[{k2e:2, sent:3, talk:2}, {spell:3, dict:2, past:1, be:2, s3:1, pl:1, gx:2}],   // (v301) be동사 · 3인칭 -s · 여러 개 -s/-es
+                g56:[{k2e:1, sent:3, talk:2}, {spell:3, dict:2, sentp:2, past:1, tense:2, prep:1, gx:3}],
+                mid:[{k2e:1, sent:3, talk:2}, {spell:3, dict:2, sentp:2, tense:2, prep:1, xfrm:3, gx:4}] };   // (v549) 🧩 문법 섞기   // (v442) ✏️ 모양 바꿔 고르기 (노션 [표 3])   // (v278) talk = 대화 빈칸 (상황·해석)
   function canT(t, w, gr){
     if(t==="spell") return canSpell(w);
     if(t==="dict") return canSpell(w) && canHear() && (gr!=="g12" || w.en.length<=4);
@@ -17263,6 +17263,7 @@ const Study = (function(){
     if(t==="past") return canPast(w);
     if(t==="listen" || t==="lmean" || t==="find") return canHear();
     if(t==="tense" || t==="prep") return !!gramQ(t, w);   // (v276)
+    if(t==="gx") return !!gxQ(w, gr);   // (v549)
     if(t==="talk") return !w.alt && !!talkOf(w);
     if(t==="be" || t==="s3" || t==="pl"){ try{ return !!mkDeep(t, w, gr, []); }catch(e){ return false; } }   // (v301)
     if(t==="xfam" || t==="xidm" || t==="xfrm") return xHas(t, w);   // (v442)
@@ -17275,15 +17276,15 @@ const Study = (function(){
       grp.forEach(w=>out.push({t:"intro", w, ws:[w], use:1}));
       grp.forEach(w=>{ const t=bagT(B[0], w, gr), tk=t==="talk" ? talkOf(w) : null;
         const q = tk ? {t:"talk", w, tk, opts:talkOpts(w, pool, tk)} : makeQ(t==="talk" ? "k2e" : t, w, pool, lvq); q.tg="★2"; out.push(q); });
-      shuffle(grp).forEach(w=>{ const t=bagT(B[1], w, gr, "k2e"), q=(t==="xfrm") ? (xQ(t, w, set, pool) || makeQ("spell", w, pool, lvq)) : (t==="tense"||t==="prep") ? (gramQ(t, w) || makeQ("k2e", w, pool, lvq)) : (t==="be"||t==="s3"||t==="pl") ? (mkDeep(t, w, gr, pool) || makeQ("spell", w, pool, lvq)) : makeQ(t, w, pool, lvq); q.tg="★3"; out.push(q); }); }
+      shuffle(grp).forEach(w=>{ const t=bagT(B[1], w, gr, "k2e"), q=(t==="xfrm") ? (xQ(t, w, set, pool) || makeQ("spell", w, pool, lvq)) : (t==="tense"||t==="prep") ? (gramQ(t, w) || makeQ("k2e", w, pool, lvq)) : (t==="gx") ? (gxQ(w, gr) || makeQ("k2e", w, pool, lvq)) : (t==="be"||t==="s3"||t==="pl") ? (mkDeep(t, w, gr, pool) || makeQ("spell", w, pool, lvq)) : makeQ(t, w, pool, lvq); q.tg="★3"; out.push(q); }); }
     /* (v301) G5-6·중등 — 문장 만들기 판마다 2개 (사용자: 문장도 같이) */
     if(gr==="g56" || gr==="mid"){ let k=0; for(const w of shuffle(les.ws)){ if(k>=2) break; let q=null; try{ q=mkDeep("order", w, gr, pool); }catch(e){} if(q){ q.tg="★3 문장"; out.splice(Math.min(out.length, Math.round(out.length*(k+1)/3)), 0, q); k++; } } }
     return out; }
   /* ── 💜 심화 판: 안내 → 복습 4문제 → 규칙 카드(학년) → 심화 문제 (단어 수 × 1.3, 10~16) ── */
   const DEEP = { g12:{sfs:3, order:2, lmean:2, opp:1, spic:3, dict:1, oxs:2},   // (v334) ⭕❌ 맞는 문장 · 🔍 틀린 곳
-                 g34:{order:3, colb:2, opp:2, form:2, lsent:2, dict:1, tense:1, prep:1, be:3, adjp:2, pl:1, s3:1, oxs:2, err:1},              // (v301) be동사(부정·의문) · 형용사 자리
-                 g56:{order:3, colb:2, rel:2, stk:2, kdict:2, conf:3, form:2, famf:1, tense:2, prep:3, ptype:3, err:3},                  // (v301) 불규칙 과거형 쓰기
-                 mid:{famf:2, rel:2, stk:2, sent2:2, order:2, kdict:1, conf:2, colb:1, tense:2, prep:2, def:3, frm:3, anal:2, ctx:2, eob:2, err:3, xfam:3, xidm:2, xfrm:3} };   // (v442) 📗 [표 3] 짝 단어·숙어·모양   // (v302) 문맥상 어색한 말 · 어법(형용사/부사)  // (v301) 영영풀이 · 문장 형식 · 단어 관계
+                 g34:{order:3, colb:2, opp:2, form:2, lsent:2, dict:1, tense:1, prep:1, be:3, adjp:2, pl:1, s3:1, oxs:2, err:1, gx:4},              // (v301) be동사(부정·의문) · 형용사 자리
+                 g56:{order:3, colb:2, rel:2, stk:2, kdict:2, conf:3, form:2, famf:1, tense:2, prep:3, ptype:3, err:3, gx:5},                  // (v301) 불규칙 과거형 쓰기
+                 mid:{famf:2, rel:2, stk:2, sent2:2, order:2, kdict:1, conf:2, colb:1, tense:2, prep:2, def:3, frm:3, anal:2, ctx:2, eob:2, err:3, xfam:3, xidm:2, xfrm:3, gx:6} };   // (v442) 📗 [표 3] 짝 단어·숙어·모양   // (v302) 문맥상 어색한 말 · 어법(형용사/부사)  // (v301) 영영풀이 · 문장 형식 · 단어 관계
   /* (v325) 💜2 = 철자 쓰기 + 문장 빈칸 (⏱ 시간 제한) · 💜3 = 문장 만들기 + 뜻 보고 쓰기 (힌트 없음 · 3번 틀리면 끝) */
   const tmSec = (q, gr) => { const sp=q.t==="spell"||q.t==="dict"||q.t==="kdict"; q.tm=1; q.sec = sp ? Math.min(28, (gr==="g12"?12:9)+Math.round(q.w.en.length*1.2)) : (gr==="g12" ? 15 : 12); return q; };
   /* (v334) 뜻 보고 쓰기 — 띄어쓰기 키가 생겨 두 단어(ice cream · take off)도 · 못 쓰는 단어(up 처럼 두 글자 · 이름)는 쉬운 고르기 대신 문장 빈칸 직접 쓰기 */
@@ -17293,8 +17294,8 @@ const Study = (function(){
     if(canSpell(w)) return makeQ("spell", w, pool, 2);
     let s=null; try{ s=sentOf(w) ? makeQ("sent", w, pool, 2) : null; }catch(e){ s=null; } return s || makeQ("k2e", w, pool, 2); }   // (v336) 점검: 💜3 쉬운 고르기 대신 문장 빈칸 먼저
   /* (v334) 보라 별 새 문제 (사용자: 다 좋다) — 🔍 틀린 곳 찾기 · ✍️ 문장 빈칸 직접 쓰기 · 🎧 듣고 빈칸 쓰기 · ⭕❌ 그림/뜻과 맞는 문장일까? */
-  function errQ(w){ for(const k of shuffle(["tense","prep"])){ let g=null; try{ g=gramQ(k, w); }catch(e){ g=null; } if(!g) continue;
-      const b=w.en, wrong = k==="prep" ? shuffle(g.opts.filter(o=>o!==g.ans))[0] : (g.ans===b || /^will /.test(g.ans) ? pastOf(b) : b);
+  function errQ(w){ for(const k of shuffle(["tense","prep","gx"])){ let g=null; try{ g = k==="gx" ? gxQ(w, gradeOf(ctxSet)) : gramQ(k, w); }catch(e){ g=null; } if(!g) continue;   // (v549) 🧩 문법 섞기에서도
+      const b=w.en, wrong = k==="prep" || k==="gx" ? shuffle(g.opts.filter(o=>o!==g.ans))[0] : (g.ans===b || /^will /.test(g.ans) ? pastOf(b) : b);
       if(!wrong || wrong===g.ans) continue;
       const cap=s=>g.st.cap ? s.charAt(0).toUpperCase()+s.slice(1) : s, wr=cap(wrong), full=g.st.pre+wr+g.st.post, a=g.st.pre.length, z=a+wr.length, toks=[]; let i=0;
       full.split(/(\s+)/).forEach(s=>{ if(s && !/^\s+$/.test(s)) toks.push({t:s, ok: i<z && i+s.length>a}); i+=s.length; });
@@ -17322,7 +17323,7 @@ const Study = (function(){
     const word=truth ? w.en : d.en, ww=st.cap ? word.charAt(0).toUpperCase()+word.slice(1) : word, wr=st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en;
     return {t:"oxs", w, st, truth, dw:d, sent:st.pre+ww+st.post, right:st.pre+wr+st.post}; }
   function blankQ(w, gr, pool){ let q=null;
-    for(const t of shuffle(gr==="g12" ? ["sent"] : gr==="g34" ? ["form","sent","sent"] : ["tense","prep","form","tense","prep","sent"])){   // (v326) G5-6·중등은 문법 빈칸 먼저
+    for(const t of shuffle(gr==="g12" ? ["sent"] : gr==="g34" ? ["form","sent","sent"] : ["tense","prep","form","tense","prep","sent","gx","gx"])){   // (v326) G5-6·중등은 문법 빈칸 먼저 · (v549) 🧩
       try{ q = t==="sent" ? (sentOf(w) ? makeQ("sent", w, pool, 2) : null) : (t==="tense"||t==="prep") ? gramQ(t, w) : mkDeep(t, w, gr, pool); }catch(e){ q=null; } if(q) return q; }
     return makeQ(sentOf(w) ? "sent" : "k2e", w, pool, 2); }
   function buildT3(set, les, dl){
@@ -17440,6 +17441,100 @@ const Study = (function(){
             x:{why:"⏪ '"+sg[1]+"' → 지난 일이라 "+p+" ("+b+"의 과거형)", kind:"tense"}}; }
       return null; }
     return null; }
+  /* ══ (v549) 사용자: "문법 조금 더 강화 · 여러 가지 섞어서 난이도 수준으로" — 🧩 문법 섞기 (gx)
+     예문 속 문법 자리를 빈칸으로 (진행형 · 조동사 · 이어 주는 말 · 위치 · 비교 · 최상급 · 기간 · to부정사 · 동명사 · 완료 · 수동태 · 관계대명사)
+     동사·형용사 모양은 사전 「변하는 모양」 전체로 알아봄 (VIX · AIX) · 해석이 꼭 있어야 · 해석으로 가를 수 없는 보기는 안 냄 */
+  const GX_LV={ g34:{prog:3, modal:3, conj:2, place:3, comp:1},
+                g56:{prog:2, modal:2, conj:3, place:2, dur:2, comp:2, sup:2, inf:2},
+                mid:{prog:0.5, modal:0.5, conj:2, dur:1, comp:1, sup:1, inf:2, ger:2, perf:3, pass:3, rel:3} };
+  const GX_LBL={prog:"🔵 진행형 — 빈칸에 알맞은 모양은?", modal:"🟣 조동사 뒤 — 빈칸에 알맞은 모양은?", conj:"🔗 이어 주는 말 — 해석을 보고 고르세요", place:"📍 위치를 나타내는 말은?",
+    comp:"📏 비교 — 빈칸에 알맞은 모양은?", sup:"🏆 가장 ~한 — 빈칸에 알맞은 모양은?", dur:"⏳ 기간·때를 나타내는 말은?", inf:"🟠 to 다음 — 빈칸에 알맞은 모양은?",
+    ger:"🟡 -ing 가 오는 자리 — 알맞은 모양은?", perf:"🟢 완료형 — 빈칸에 알맞은 모양은?", pass:"🔴 수동태 — 빈칸에 알맞은 모양은?", rel:"🟤 관계대명사 — 빈칸에 알맞은 말은?"};
+  const GX_NM={prog:"진행형", modal:"조동사", conj:"이어 주는 말", place:"위치 전치사", comp:"비교급", sup:"최상급", dur:"기간 전치사", inf:"to부정사", ger:"동명사", perf:"현재완료", pass:"수동태", rel:"관계대명사"};
+  let VIX=null, AIX=null, VIXn=-1;
+  function gxIx(){ const D=(typeof DexData!=="undefined" && DexData.d)||{}, n=Object.keys(D).length; if(VIX && n===VIXn) return; VIXn=n; VIX={}; AIX={};
+    const put=(en,pos,f)=>{ f=String(f||""); pos=String(pos||""); if(!/^[a-z]+$/.test(en)) return;
+      if(/동사/.test(pos)){ const seg=f.split("/").find(x=>(x.match(/·/g)||[]).length===3); if(seg){ const P=seg.replace(/^[^a-z]*/i,"").split("·").map(x=>x.trim());
+          if(P.length===4 && P.every(x=>/^[a-z]+$/.test(x)) && /ing$/.test(P[3])){ const F={b:en, s:P[0], p:P[1], pp:P[2], g:P[3]}; if(!VIX["@"+en]) VIX["@"+en]=F; [P[0],P[1],P[2],P[3]].forEach(x=>{ if(!VIX[x]) VIX[x]=F; }); } } }
+      if(/형용사/.test(pos)){ const seg=f.split("/").map(x=>x.replace(/^[^a-z]*/i,"").trim()).find(x=>(x.match(/·/g)||[]).length===1); if(seg){ const P=seg.split("·").map(x=>x.trim());
+          if(P.length===2 && P.every(x=>/^[a-z]+( [a-z]+)?$/.test(x)) && P[0]!==en){ const A={b:en, c:P[0], s:P[1]}; if(!AIX["@"+en]) AIX["@"+en]=A; [P[0],P[1]].forEach(x=>{ if(!AIX[x]) AIX[x]=A; }); } } } };
+    Object.keys(D).forEach(en=>{ const x=D[en]; if(x) put(en, x[1], x[2]); }); try{ Object.keys(BEX).forEach(en=>{ const b=BEX[en]; if(b && !D[en]) put(en, b.p, b.f); }); }catch(e){} }
+  const vB=x=>VIX["@"+x]||null, vG=x=>{ const F=VIX[x]; return F && F.g===x ? F : null; }, vPP=x=>{ const F=VIX[x]; return F && F.pp===x ? F : null; };
+  const isAdj=x=>{ let D=null; try{ D=DexData.of(x); }catch(e){} return /형용사/.test(String((D && D[1])||"")) || !!AIX["@"+x]; };
+  /* 빈칸 문제 한 개 — s 문장 · at 시작 · len 길이 · L 보기(첫 번째가 답) */
+  function gxMk(w, k, x, at, len, L, why){ const s=x[0], ans=L[0], O=[...new Set(L.filter(Boolean))]; if(O.length<3 || O.indexOf(ans)!==0) return null;
+    const cap=at===0 && /^[A-Z]/.test(s), C=t=>cap ? t.charAt(0).toUpperCase()+t.slice(1) : t;
+    return {t:"gram", w, so:1, ans:C(ans), opts:shuffle(O.slice(0,3).map(C)), st:{pre:s.slice(0,at), post:s.slice(at+len), ko:x[1]||"", cap}, x:{why, kind:"gx", gk:k, lbl:GX_LBL[k]}}; }
+  const NP="(?:the|a|an|my|your|his|her|our|their|this|that|these|those|some|two|three|four|five|me|him|us|them|it|[A-Z][a-z]+)";
+  const CJ={ because:[/때문|(아|어|여|해|러|라|니|와|워|져|려)서|니까|으므로|덕분/, "~ 때문에"], when:[/때/, "~할 때"], if:[/(으|하|다|라|이)?면/, "만약 ~하면"], while:[/동안|면서|하는 사이/, "~하는 동안"],
+    before:[/전에/, "~하기 전에"], after:[/후에|뒤에|다음에|나서/, "~한 후에"], although:[/지만|는데도|(아|어|해)도|에도|더라도/, "비록 ~지만"], until:[/까지/, "~할 때까지"], unless:[/않으면|않는다면|안 하면|없으면|아니면/, "~하지 않으면"] };
+  const CJ_LV={g34:["because","when","if"], g56:["because","when","if","while","before","after"], mid:["because","when","if","while","before","after","although","until","unless"]};
+  const PL={ under:[/아래|밑/, "~ 아래에"], above:[/위/, "~ 위에 (떨어져서)"], between:[/사이(?!에서)/, "~ 사이에 (둘)"], behind:[/뒤/, "~ 뒤에"], "next to":[/옆/, "~ 옆에"], "in front of":[/앞/, "~ 앞에"],
+    near:[/근처|가까이/, "~ 가까이에"], across:[/건너|가로질러|맞은편|건너편/, "~ 건너편에·가로질러"], through:[/통과|지나|통해|사이로/, "~을 지나서·뚫고"], along:[/따라/, "~을 따라"], around:[/주위|둘레|주변|곳곳|돌아/, "~ 주위에"], among:[/사이에서|가운데|중에/, "(여럿) 사이에서"] };
+  const PL_LV={g34:["under","behind","next to","in front of","between","near"]};
+  const ADJPP={}; "tired excited interested surprised bored worried scared pleased married closed done gone finished lost broken amazed shocked satisfied disappointed confused embarrassed relaxed prepared used located known born dressed involved concerned allowed supposed exhausted frightened annoyed delighted".split(" ").forEach(x=>ADJPP[x]=1);
+  const GX_BAN=/\b(divorc\w*|missiles?|cigarettes?|smok\w*|crimes?|funerals?|died|dead|kill\w*|wars?|guns?|weapons?|drunk|beer|wine|politics|accused|prison|steal\w*|stole|romanc\w*|in love|dated|dating|marr\w*|criminal)\b/i;   /* 아이 문법 문제에는 안 맞는 말 */
+  const KO_OK=x=>x && x[1] && x[0] && x[0].split(" ").length<=20 && !GX_BAN.test(x[0]);
+  const GX_EMO={}; "astonish surprise amaze excite interest bore tire shock please satisfy disappoint confuse embarrass frighten scare worry annoy delight thrill impress touch move relax exhaust terrify puzzle disgust depress fascinate inspire".split(" ").forEach(x=>GX_EMO[x]=1);
+  const CJ_NO={when:["if","while"], if:["when","unless"], while:["when"], unless:["if"], although:["while"]}, PL_NO={near:["next to"], "next to":["near"], between:["among"], among:["between"], above:["over"]};
+  const REL_STOP={}; "about of for to with in on at from by into onto than like know knew ask asked wonder decide tell told show see saw is are was were".split(" ").forEach(x=>REL_STOP[x]=1);
+  const GXF={
+    prog(w, x, gr){ const m=x[0].match(/\b(am|is|are|was|were|I'm|you're|we're|they're)( not| still| now| always| just)? ([a-z]+ing)\b(?! to\b)/); if(!m) return null; const F=vG(m[3]); if(!F) return null;
+      if(gr==="g34" && /was|were/.test(m[1])) return null; const at=m.index+m[0].length-m[3].length, past=/was|were/.test(m[1]);
+      return gxMk(w, "prog", x, at, m[3].length, [F.g, F.b, F.p!==F.b ? F.p : F.s], "be동사("+m[1].replace(/^(I|you|we|they)'/i,"")+") 뒤 → -ing : "+(past?"그때 ~하던 중 (과거진행)":"지금 ~하는 중 (진행형)")); },
+    modal(w, x, gr){ const MD=gr==="g34" ? "can|will|can't|won't" : gr==="g56" ? "can|will|must|should|may|can't|won't|shouldn't" : "can|could|will|would|must|should|may|might|can't|won't|couldn't|shouldn't|mustn't";
+      const m=x[0].match(new RegExp("\\b("+MD+")( not| never| also| always| still| soon| really| just| even)? ([a-z]+)\\b")); if(!m) return null; const F=vB(m[3]); if(!F || F.b==="have" || F.b==="be") return null;
+      const at=m.index+m[0].length-m[3].length; return gxMk(w, "modal", x, at, m[3].length, [F.b, F.s, F.p!==F.b ? F.p : F.g], m[1]+" 뒤에는 동사 원형 ("+F.b+")"); },
+    inf(w, x){ const m=x[0].match(/\b(want|wants|wanted|decide|decides|decided|plan|plans|planned|hope|hopes|hoped|need|needs|needed|try|tries|tried|learn|learns|learned|promise|promised|forget|forgot|agree|agreed|refuse|refused|wish|wished|expect|expected|choose|chose|would like|'d like) to ([a-z]+)\b/); if(!m) return null;
+      const F=vB(m[2]); if(!F || F.b==="be") return null; const at=m.index+m[0].length-m[2].length;
+      return gxMk(w, "inf", x, at, m[2].length, [F.b, F.g, F.p!==F.b ? F.p : F.s], m[1]+" to + 동사 원형 ("+F.b+") : ~하는 것을·~하기로"); },
+    ger(w, x){ const m=x[0].match(/\b(enjoy|enjoys|enjoyed|finish|finishes|finished|stop|stops|stopped|keep|keeps|kept|mind|avoid|avoided|practice|practiced|gave up|give up|good at|interested in|without|thank you for|thanks for|instead of|by|before|after) ([a-z]+ing)\b/); if(!m) return null;
+      const F=vG(m[2]); if(!F) return null; const at=m.index+m[0].length-m[2].length, pr=/^(good at|interested in|without|thank you for|thanks for|instead of|by|before|after)$/.test(m[1]);
+      return gxMk(w, "ger", x, at, m[2].length, [F.g, "to "+F.b, F.b], pr ? "전치사("+m[1].split(" ").pop()+") 뒤에는 -ing (동명사)" : m[1]+" 다음에는 -ing (동명사) — to 가 아니에요"); },
+    perf(w, x){ const m=x[0].match(/\b(have|has|had|haven't|hasn't|hadn't|I've|we've|they've|you've)( not| never| already| just| ever| recently| finally| always| also| been)? ([a-z]+)\b/); if(!m) return null;
+      if(m[2]===" been") return null; const F=vPP(m[3]); if(!F || F.pp===F.b) return null; const at=m.index+m[0].length-m[3].length, h=m[1].replace(/^(I|we|they|you)'ve$/i,"have");
+      return gxMk(w, "perf", x, at, m[3].length, F.p!==F.pp ? [F.pp, F.p, F.b] : [F.pp, F.b, F.g], h+" + 과거분사 ("+F.pp+") = "+(/had/.test(h) ? "그때보다 먼저 ~했었다 (과거완료)" : "~해 왔다·~한 적 있다·막 ~했다 (완료)")); },
+    pass(w, x){ const m=x[0].match(/\b(am|is|are|was|were|be|been|being)( not| never| often| usually| always| also| already| still| carefully| finally| easily| widely| mostly| completely)? ([a-z]+)( by\b)?/); if(!m) return null;
+      const F=vPP(m[3]); if(!F || ADJPP[m[3]] || (F.pp===F.b && !m[4]) || (GX_EMO[F.b] && !m[4])) return null; if(/\b(has|have|had)\s*$/.test(x[0].slice(0,m.index)) && m[1]==="been" && !m[4] && F.pp===F.p) { /* has been + pp 도 수동태 */ }
+      const at=m.index+m[0].length-m[3].length-(m[4]||"").length, d2=isAdj(F.b) ? (F.p!==F.pp ? F.p : F.s) : F.b, L=[F.pp, F.g, d2];
+      return gxMk(w, "pass", x, at, m[3].length, L, "be동사("+m[1]+") + 과거분사 ("+F.pp+") = ~되다·~받다 (수동태)"+(m[4]?" · by 뒤 = 한 사람·것":"")); },
+    rel(w, x){ const m=x[0].match(/\b(the|a|an|my|your|his|her|our|their|this|these|those|some|any|every|one|two|many) ((?:[a-z]+ ){0,2}?[a-z]+) (who|which) ([a-z]+)/); if(!m) return null;
+      const noun=m[2].split(" ").pop(), at=m.index+m[0].length-m[4].length-1-m[3].length; if(x[0].charAt(at-2)==="," || REL_STOP[noun] || m[2].split(" ").some(z=>REL_STOP[z])) return null;
+      return gxMk(w, "rel", x, at, m[3].length, [m[3], m[3]==="who" ? "which" : "who", "what"], m[3]==="who" ? "앞 말("+noun+")이 사람 → who" : "앞 말("+noun+")이 사람이 아닌 것 → which"); },
+    conj(w, x, gr){ const A=CJ_LV[gr]||CJ_LV.g56, ko=x[1]||""; const m=x[0].match(new RegExp("\\b("+A.join("|")+")\\s+(I|you|he|she|it|we|they|the|my|your|his|her|our|their|a|an|this|these|those|there|everyone|someone|nobody|people|[A-Z][a-z]+)\\b","i")); if(!m) return null;
+      const c=m[1].toLowerCase(); if(c==="when" && /\?\s*$/.test(x[0])) return null; if(c==="if" && /\b(ask|asked|know|knew|wonder|wondered|see|check|checked|sure)\s+$/i.test(x[0].slice(0,m.index))) return null;
+      if((c==="before"||c==="after"||c==="until") && !/^(I|you|he|she|it|we|they|[A-Z][a-z]+)$/.test(m[2])) return null;
+      if(!CJ[c][0].test(ko)) return null; const D=shuffle((gr==="g34" ? CJ_LV.g56 : A).filter(o=>o!==c && !CJ[o][0].test(ko) && (CJ_NO[c]||[]).indexOf(o)<0)).slice(0,2);   /* 초3-4 는 답은 3개만 · 보기는 before·after 도 */ if(D.length<2) return null;
+      return gxMk(w, "conj", x, m.index, c.length, [c].concat(D), "해석 → "+c+" ("+CJ[c][1]+")"); },
+    place(w, x, gr){ const A=PL_LV[gr]||Object.keys(PL), ko=x[1]||""; const m=x[0].match(new RegExp("\\b("+A.join("|")+") "+NP+"\\b")); if(!m) return null; const p=m[1];
+      if(!PL[p][0].test(ko)) return null; if(/\b(look|looked|looks|came|come|went|go|get|got|ran|run|walk|walked)\s+$/.test(x[0].slice(0,m.index)) && /through|across|around|along/.test(p)) { /* 움직임 + 전치사는 괜찮음 */ }
+      const D=shuffle(A.filter(o=>o!==p && !PL[o][0].test(ko) && (PL_NO[p]||[]).indexOf(o)<0)).slice(0,2); if(D.length<2) return null;
+      return gxMk(w, "place", x, m.index, p.length, [p].concat(D), "해석의 '"+(ko.match(PL[p][0])||[""])[0]+"' → "+p+" ("+PL[p][1]+")"); },
+    dur(w, x){ const ko=x[1]||""; let m, k=null;
+      if((m=x[0].match(/\bfor (?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|many|several|a few|a couple of)( long)? ?(second|minute|hour|day|night|week|month|year)s?\b/)) && /동안|간|째/.test(ko)) k="for";
+      else if((m=x[0].match(/\bsince (?:\d{4}|last \w+|yesterday|this morning|morning|then|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|childhood|kindergarten|(?:I|he|she|we|they) (?:was|were))\b/)) && /부터|이후|이래|지/.test(ko)) k="since";
+      else if((m=x[0].match(/\bduring (?:the|my|your|his|her|our|their|this|that|summer|winter|lunch|class|vacation)\b/)) && /동안|중에|중/.test(ko)) k="during";
+      else if((m=x[0].match(/\buntil (?:\d|noon|midnight|night|morning|evening|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|the end|next|tomorrow|late|dinner|lunch)\b/)) && /까지/.test(ko)) k="until";
+      if(!k) return null; const D={for:["since","during"], since:["for","during"], during:["since","until"], until:["since","during"]}[k];
+      return gxMk(w, "dur", x, m.index, k.length, [k].concat(D), {for:"for + 숫자 기간 (~ 동안)", since:"since + 시작한 때 (~부터 쭉)", during:"during + 일·행사 (~하는 동안)", until:"until = ~까지 (계속)"}[k]); },
+    comp(w, x, gr){ const m=x[0].match(/\b([a-z]+er|more [a-z]+|less [a-z]+) than\b/); if(!m) return null; const A=AIX[m[1]]; if(!A || A.c!==m[1] || (gr==="g34" && /^more /.test(A.c))) return null;
+      return gxMk(w, "comp", x, m.index, m[1].length, [A.c, A.b, A.s], "than 앞 → 비교급 ("+A.c+") : 더 ~한"); },
+    sup(w, x){ const m=x[0].match(/\bthe (most [a-z]+|[a-z]+est)\b/); if(!m) return null; const A=AIX[m[1]]; if(!A || A.s!==m[1]) return null; const at=m.index+4;
+      return gxMk(w, "sup", x, at, m[1].length, [A.s, A.c, A.b], "the + 최상급 ("+A.s+") = 가장 ~한"); } };
+  /* 한 단어의 예문에서 학년에 맞는 문법 빈칸 하나 (k 를 주면 그 문법만) */
+  function gxQ(w, gr, k){ if(!w || w.alt) return null; gr = GX_LV[gr] ? gr : (gr==="g12" ? null : "g56"); if(!gr) return null; gxIx();
+    const L=shuffle(exAll(w).filter(KO_OK)); if(!L.length) return null; const B=GX_LV[gr], ks=k ? [k] : Object.keys(B), ord=[];
+    const bag=ks.slice(); while(bag.length){ const tot=bag.reduce((t,z)=>t+(B[z]||1),0); let r=Math.random()*tot, i=0; for(; i<bag.length-1; i++){ r-=(B[bag[i]]||1); if(r<=0) break; } ord.push(bag.splice(i,1)[0]); }
+    for(const t of ord){ for(const x of L){ let q=null; try{ q=GXF[t](w, x, gr); }catch(e){ q=null; } if(q) return q; } } return null; }
+  /* 규칙 카드 (💜 시작) — 이 판 단어 예문에 나오는 문법 */
+  const GX_RULE={prog:["진행형 = be동사 + -ing",["I am reading. (지금 읽는 중)","She was sleeping. (그때 자던 중)"]], modal:["조동사 뒤는 늘 동사 원형",["can swim · will go · must stop","He can swims ✗ → He can swim ✓"]],
+    conj:["이어 주는 말은 해석으로 골라요",["because ~때문에 · when ~할 때 · if 만약 ~하면","while ~하는 동안 · before ~전에 · after ~후에","although 비록 ~지만 · until ~할 때까지 · unless ~하지 않으면"]],
+    place:["위치를 나타내는 말",["under 아래 · behind 뒤 · next to 옆 · in front of 앞","between (둘) 사이 · among (여럿) 사이 · near 가까이"]], comp:["더 ~한 = 비교급 + than",["taller than · more careful than"]], sup:["가장 ~한 = the + 최상급",["the tallest · the most careful"]],
+    dur:["기간·때를 나타내는 말",["for + 숫자 기간 : for two hours","since + 시작한 때 : since 2020","during + 일·행사 : during the trip","until ~까지 : until Friday"]], inf:["want·decide·plan + to + 동사 원형",["I want to go. · She decided to stay."]],
+    ger:["enjoy·finish·keep + -ing",["I enjoy reading. · Stop talking!","전치사 뒤도 -ing : good at swimming"]], perf:["완료 = have/has + 과거분사",["I have finished it. (막 끝냈다)","She has lived here for 3 years. (쭉 살아 왔다)"]],
+    pass:["수동태 = be동사 + 과거분사",["The bridge was built in 1990. (지어졌다)","by 뒤 = 그 일을 한 사람·것"]], rel:["관계대명사 — 앞 말을 꾸며요",["사람 → who : a girl who sings","사람이 아닌 것 → which : a book which is fun"]]};
+  function gxRule(ws, gr){ const B=GX_LV[gr]; if(!B) return null; const seen={}; ws.forEach(w=>{ Object.keys(B).forEach(k=>{ if(!seen[k] && gxQ(w, gr, k)) seen[k]=1; }); }); const K=Object.keys(seen); if(!K.length) return null; const k=K[Math.floor(Math.random()*K.length)];
+    return {t:"🧩 "+GX_RULE[k][0], ln:GX_RULE[k][1], ex:[]}; }
   /* ── (v301) G3-4 문법 (사용자: be동사 · 형용사 · 3인칭 동사 모양 · 수량 변화) — 이 판 단어로 자동 ── */
   const FRM_WHY={1:"주어 + 동사", 2:"주어 + 동사 + 보어(어떤지)", 3:"주어 + 동사 + 목적어(무엇을)", 4:"주어 + 동사 + 누구에게 + 무엇을", 5:"주어 + 동사 + 목적어 + 보충하는 말"};
   const BE_S=[["I","am"],["You","are"],["He","is"],["She","is"],["It","is"],["We","are"],["They","are"],["My mom","is"],["Tom","is"],["My friends","are"]];
@@ -17476,6 +17571,7 @@ const Study = (function(){
     return null; }
   function mkDeep(t, w, gr, pool, only){
     if(t==="xfam" || t==="xidm" || t==="xfrm") return xQ(t, w, ctxSet, pool);   // (v442)
+    if(t==="gx") return gxQ(w, gr);   // (v549)
     if(t==="err") return errQ(w); if(t==="oxs") return oxsQ(w, pool); if(t==="cz") return czQ(w, gr, false, false);   // (v334)
     const D=dexOf(w);
     if(t==="order"){ const lim = gr==="g12" ? [3,6] : gr==="g34" ? [4,9] : [6,14];
@@ -17595,6 +17691,7 @@ const Study = (function(){
       if(gr==="mid"){ const fm=ws.map(w=>{ const f=famOf(w)[0]; return f ? [w.en, f.en] : null; }).filter(Boolean);
         if(fm.length) R.push({t:"꼬리를 바꾸면 품사가 바뀌어요", ln:["-ness · -tion · -ment · -ity → 명사 : happy → happiness","-ful · -ous · -al → 형용사 : care → careful","-ly → 부사 : quick → quickly"], ex:fm}); }
     }
+    try{ const gR=gxRule(ws, gr); if(gR){ R.push(gR); if(R.length>1 && Math.random()<0.5){ R.length=0; R.push(gR); } } }catch(e){}   // (v549) 🧩 문법 규칙 카드 (반쯤은 이것)
     if(!R.length) return null; const r=R[Math.floor(Math.random()*R.length)];
     return {t:"intro", hd:"rule", w:ws[0], ws:[], x:{t:r.t, ln:r.ln, ex:shuffle(r.ex).slice(0,4)}}; }
   /* ══ (v301) 엄격한 보기 — 같은 판 단어로만 보기를 내면 '아는 단어 지우기'로 찍을 수 있었다 (사용자: 마지막 깃발은 이런 문제가 생기면 안 된다)
@@ -17745,9 +17842,10 @@ const Study = (function(){
     paperQ:(t, en, set, own)=>{ ctx(set); const w=byEn[en]; if(!w) return null; const gr=gradeOf(set), O=(own||[]).map(x=>byEn[x]||x).filter(x=>x && x.en);
       try{ if(t==="sent2"){ const L=shuffle(sentsOf(w)); return L.length>=2 ? {t:"sent2", w, sts:L.slice(0,2), opts:strictOpts(w, set, O, "en", blankAvoid(w))} : null; }
         if(t==="tense" || t==="prep") return gramQ(t, w);
+        if(t==="gx") return gxQ(w, gr);   // (v549)
         if(["opp","syn","pastc","def","xfam","xidm","xfrm","conf2","sent"].indexOf(t)>=0) return chkQ(t, w, set, O);
         return mkDeep(t, w, gr, O); }catch(e){ return null; } },
-    deepLv, dlCur:()=>dlNow, DL_MAX, estMin, dayTick, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
+    deepLv, dlCur:()=>dlNow, DL_MAX, estMin, dayTick, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} try{ Gift.add({st:[set,n,v]}); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
@@ -21348,9 +21446,9 @@ const Paper = {
       frm:["밑줄 친 문장의 형식을 고르세요.", "문장 형식", 2, "mid", ["frm"]],
       /* (v543) 사용자: "과거형 과거분사 문제도" — 동사 변화(사전 데이터의 「변하는 모양」) · 불규칙 동사 먼저 */
       vtab:["동사의 변화형을 쓰세요.", "동사 변화 쓰기", 2, "g56 mid", null],
-      adjc:["알맞은 비교급·최상급을 고르세요.", "비교급·최상급 고르기", 2, "g56 mid", null], adjt:["형용사의 비교급과 최상급을 쓰세요.", "비교급·최상급 쓰기", 2, "g56 mid", null], vform:["알맞은 동사 변화형을 고르세요.", "과거형·과거분사 고르기", 2, "g56 mid", null], err:["틀린 곳 하나에 밑줄을 긋고 바르게 고쳐 쓰세요.", "틀린 곳 고치기", 2, "g34 g56 mid", ["err"]] },
-  ORD:["mean","k2e","pic","def","syn","opp","fam","match","gap","scr","sent","talk","sent2","idm","ctx","be","pl","prep","verb","vform","vtab","adjc","adjt","gram","conf","frm","err","wen","wko"],
-  DEF:{ g12:["mean","k2e","pic","sent","wen"], g34:["mean","k2e","sent","talk","be","pl","prep","wen"], g56:["mean","k2e","sent2","verb","vform","adjc","prep","syn","err","wen"], mid:["mean","def","sent2","ctx","gram","vform","vtab","syn","err","wen"] },
+      adjc:["알맞은 비교급·최상급을 고르세요.", "비교급·최상급 고르기", 2, "g56 mid", null], adjt:["형용사의 비교급과 최상급을 쓰세요.", "비교급·최상급 쓰기", 2, "g56 mid", null], vform:["알맞은 동사 변화형을 고르세요.", "과거형·과거분사 고르기", 2, "g56 mid", null], gx:["해석을 보고 빈칸에 알맞은 말을 고르세요.", "문법 섞어서", 2, "g34 g56 mid", ["gx"]], err:["틀린 곳 하나에 밑줄을 긋고 바르게 고쳐 쓰세요.", "틀린 곳 고치기", 2, "g34 g56 mid", ["err"]] },
+  ORD:["mean","k2e","pic","def","syn","opp","fam","match","gap","scr","sent","talk","sent2","idm","ctx","be","pl","prep","verb","gx","vform","vtab","adjc","adjt","gram","conf","frm","err","wen","wko"],
+  DEF:{ g12:["mean","k2e","pic","sent","wen"], g34:["mean","k2e","sent","talk","be","pl","gx","wen"], g56:["mean","k2e","sent2","verb","gx","vform","adjc","syn","err","wen"], mid:["mean","def","sent2","ctx","gram","gx","vform","vtab","err","wen"] },
   /* 동사 변화 [원형, s, 과거, 과거분사, ing] — 도감 데이터(D[2]) 또는 교재 예문 데이터(BEX.f) · 「동사 …s · …ed · …ed · …ing / 명사 …」 */
   vf(w){ if(!/다(\s*\(.*\))?\s*$|다,|다\s/.test(String(w.ko||""))) return null;   /* Stage 뜻이 동사(…다)일 때만 — wind(바람)·coil(코일)처럼 명사 뜻인데 동사 변화가 나오던 것 */
     let f=""; try{ const D=DexData.of(w.en); if(D && /동사/.test(D[1]||"")) f=D[2]||""; }catch(e){} if(!f){ const b=BEX[w.en]; if(b && /동사/.test(b.p||"")) f=b.f||""; } if(!f) return null;
@@ -21472,7 +21570,7 @@ const Paper = {
       if(q.opts){ x.opts=this.sh(q.opts, R); x.a=x.opts.indexOf(q.w); }
       if(sec.k==="match"){ x.right=this.sh(q.w, R); } return x; })})); },
   /* (v542) 게임 문제 → 시험지 문제 {w, lab(보기 글자), ans, fix(보기 순서 고정), 그리기 재료, why(답안지 한 줄)} */
-  norm(k, q, c){ const w=q.w, E=x=>this.E(x), why=String((q.x && q.x.why) || "").replace(/^\S+\s/, "").trim(), en=o=>typeof o==="string" ? o : dispEn(o.en);
+  norm(k, q, c){ const w=q.w, E=x=>this.E(x), why=String((q.x && q.x.why) || "").replace(/^[^A-Za-z0-9가-힣'"(\s]+\s/, "").trim(), en=o=>typeof o==="string" ? o : dispEn(o.en);
     const blank=st=>E(st.pre)+'<u>　　　　</u>'+E(st.post);
     const base={w, k, why};
     if(q.t==="find"){ return Object.assign(base, {wr:1, toks:q.toks.map(t=>t.t), ko:(q.st&&q.st.ko)||"", key:q.bad+" → "+q.fix}); }
