@@ -855,6 +855,7 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 .cpBossB img{position:relative}
 .cpBossB img{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 5px 4px rgba(0,0,0,.6));animation:rsBreath 2.4s ease-in-out infinite;transform-origin:50% 100%}
 .cpBoss.dead .cpBossB img{filter:grayscale(.85) brightness(.75) drop-shadow(0 5px 4px rgba(0,0,0,.6));animation:none;transform:rotate(-8deg)}
+.cpBoss.dead .cpBossB img.isKo{width:66px;height:54px;object-position:50% 100%;filter:drop-shadow(0 4px 3px rgba(0,0,0,.55));transform:none}   /* (v533) 쓰러진 그림은 회색·기울임 없이 */
 .cpHp{position:relative;display:block;margin-top:4px;width:56px;height:8px;border-radius:3px;background:rgba(0,0,0,.6);box-shadow:0 0 0 1.5px rgba(255,255,255,.25);overflow:hidden}
 .cpHp u{display:block;height:100%;background:linear-gradient(90deg,#ff3d6a,#ff8a3d)} .cpHp.dead u{background:#7ed957}
 .cpHp::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(20% - 1.5px),rgba(20,8,30,.9) calc(20% - 1.5px) 20%)}
@@ -1011,7 +1012,7 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .tdTx b{font-size:13.5px;color:#fff;word-break:keep-all} .tdTx small{font-size:11.5px;color:#bfb3ec;line-height:1.4;overflow-wrap:anywhere}
 .tdRow .mini{flex:none;white-space:nowrap}
 .tdOk{margin:0;font-size:14px;font-weight:800;color:#b9ffcf} .tdOk small{font-size:11px;color:#8d82b8;font-weight:700}
-.rwPick{flex-wrap:wrap;gap:6px;margin-bottom:8px} .rwN{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:3px;border-radius:9px;background:#ff7a66;color:#fff;font-size:11px}
+.rwPick{flex-wrap:wrap;gap:6px;margin-bottom:8px} .rwPick .rwN{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:3px;border-radius:9px;background:#ff7a66;color:#fff;font-size:11px}
 .rwHead{margin:0 0 8px;font-size:12.5px;color:#cfc4f2;line-height:1.5} .rwHead b{color:#fff}
 .rwSum{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px} .rwSum span{padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,255,255,.06);color:#e8e1ff}
 .rwSum .ok{background:rgba(80,200,120,.18)} .rwSum .no{background:rgba(255,90,110,.2);color:#ffd0d6} .rwSum .mid{background:rgba(255,200,80,.16)}
@@ -1669,7 +1670,7 @@ body.tabP #scOver .resP{zoom:var(--stZ,1);min-height:calc(var(--appH,100dvh) / v
 #scOver .rwH{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#e9dcff;min-width:0;white-space:nowrap}
 #scOver .rwH em{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:900;color:#bff1ff;white-space:nowrap}
 #scOver .rwT:not(.gem) .rwH em{color:#ffd0dc}
-#scOver .rwImg{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))} #scOver .rwIco{font-size:20px;line-height:1}
+#scOver .rwImg{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))} #scOver .rwImg.rwKo{width:40px;object-position:50% 100%} #scOver .rwIco{font-size:20px;line-height:1}
 #scOver .rwN{font-size:30px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:#ffe08a;text-shadow:0 2px 0 rgba(0,0,0,.3)} #scOver .rwT.gem .rwN{color:#bff1ff}
 #scOver .rwS{font-size:11px;font-weight:700;color:#b7acdc}
 #scOver .rwT .gBar{height:7px;border-radius:7px;background:rgba(255,255,255,.1);overflow:hidden;margin:2px 0 0}
@@ -2882,6 +2883,8 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .rsShield{position:absolute;inset:-4%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(140,220,255,.06) 52%,rgba(140,220,255,.5) 68%,rgba(140,220,255,0) 71%);opacity:0;transition:opacity .3s;pointer-events:none}
 .rs.shield .rsShield{opacity:1;animation:rsPulse 1.6s ease-in-out infinite}
 .rs.dead .rsBoss{animation:rsDie 1.4s forwards}
+.rs.dead.ko .rsBoss{animation:rsKo .9s ease-out both} .rs.ko .rsBossIn{animation:none} .rs.ko .rsBossIn img{object-position:50% 100%} .rs.ko .rsAtk,.rs.ko .rsShield{display:none}   /* (v533) 쓰러진 그림 */
+@keyframes rsKo{0%{filter:brightness(3);transform:translateY(-4%)}40%{filter:brightness(1.6);transform:translateY(1.5%)}100%{filter:none;transform:none}}
 .rsHero{position:absolute;left:6%;bottom:5%;height:46%;aspect-ratio:232/200;z-index:3;will-change:transform}
 .rsHero.me{left:7%;bottom:3%;height:66%;z-index:4}
 .rsAllies .rsHero{height:40%;opacity:.96;filter:brightness(.92)}
@@ -3210,6 +3213,7 @@ body:has(#scStudy.vLesson.on) #hyToast{top:calc(env(safe-area-inset-top,0px) + 7
   background:conic-gradient(#ff5f7a calc(var(--hp)*1%), rgba(255,255,255,.14) 0);box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 0 2px rgba(255,140,170,.55)}
 .hbRing::before{content:"";position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#4a2f7e,#1d1438)}
 .hbRing.dead{background:conic-gradient(#7ed957 100%, transparent 0)}
+#scStart .hbCorner .hbRing img.isKo{object-position:50% 80%;animation:none}
 #scStart .hbCorner .hbRing img{position:relative;display:block;width:100%;height:100%;object-fit:contain;animation:rsBreath 2.4s ease-in-out infinite;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .hbChip{position:absolute;top:-2px;right:0;min-width:22px;padding:2px 6px;border-radius:11px;background:#ffd23f;color:#3a2600;font:900 12px/16px var(--font);box-shadow:0 2px 0 rgba(0,0,0,.35);white-space:nowrap}
 .hbChip.gift{background:#7ed957;font-size:13px}
@@ -4920,7 +4924,7 @@ img.chImg{display:block;max-width:100%;height:auto}
 #scStudy.thM .cpRow .cpBoss{display:flex;flex-direction:row;align-items:center;gap:8px;height:44px;padding:0 12px 0 6px;background:#fff;border:1.5px solid var(--mLine);border-radius:14px;box-shadow:0 2px 8px rgba(27,34,64,.06)}
 #scStudy.thM .cpRow .cpBossB{width:36px;height:36px;display:flex;align-items:center;justify-content:center}
 #scStudy.thM .cpRow .cpBossB img{width:34px;height:34px;margin:0;animation:none;filter:none}
-#scStudy.thM .cpRow .cpBoss.dead .cpBossB img{filter:grayscale(.85);transform:none}
+#scStudy.thM .cpRow .cpBoss.dead .cpBossB img{filter:grayscale(.85);transform:none} #scStudy.thM .cpRow .cpBoss.dead .cpBossB img.isKo{width:34px;height:34px;filter:none}
 #scStudy.thM .cpRow .cpMound{display:none}
 #scStudy.thM .cpRow .cpBoss>b{position:static;order:1;transform:none;font:800 14px var(--font);color:var(--mInk);-webkit-text-stroke:0;text-shadow:none}
 #scStudy.thM .cpRow .cpHp{position:relative;left:auto;bottom:auto;order:2;margin:0;width:54px;height:7px;background:#e5eaff;border-radius:4px;overflow:hidden;box-shadow:none;border:0}
@@ -5421,6 +5425,11 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 .stBt .bM{height:84px!important;width:110px!important;bottom:2px}
 .stBt.zbM .bM{height:90px!important;width:124px!important}
 #scStudy.fit1 .stBt .bM{height:60px!important;width:80px!important}
+/* (v533) 마지막 한 방 → 쓰러진 그림 (ko_<k>) · 누운 그림이라 칸을 옆으로 넓게 · 뒤집지 않음(이미 왼쪽 보기) */
+#scStudy .stBt.ko .bM{background-image:var(--ko)!important;background-size:contain!important;background-position:center bottom!important;width:132px!important;height:84px!important;right:3%;transform:none!important;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))!important;animation:btKo .7s ease-out both!important}
+#scStudy.fit1 .stBt.ko .bM{width:100px!important;height:62px!important}
+#scStudy .stBt.ko .bHp{opacity:0;transition:opacity .3s .3s}
+@keyframes btKo{0%{filter:brightness(3) drop-shadow(0 3px 3px rgba(0,0,0,.45));translate:0 -6px}35%{filter:brightness(1.5) drop-shadow(0 3px 3px rgba(0,0,0,.45));translate:0 2px}100%{filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));translate:0 0}}
 #scStudy.thB6.vGram #stGram .stTitle,#scStudy.thB6.vGram #stGram .stSub,#scStudy.thB6.vGram #stGram .grHead b,#scStudy.thB6.vGram #stGram .grHead small{color:#ffe8a0!important;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 
 /* ===== (v530) Daily 30 개선 1~8 ===== */
@@ -5436,15 +5445,7 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 .stRevenge{display:block;width:auto!important;margin:-6px auto 12px!important;padding:9px 16px;border-radius:14px;font:900 14px var(--font);background:linear-gradient(180deg,#ff8a6a,#e8304d);color:#fff;border:0;box-shadow:0 4px 0 #8e1a2c;cursor:pointer}
 #scStudy.thML .stRevenge{background:var(--mBlue);box-shadow:0 4px 0 #2a3fc0}
 /* KO */
-.vKO{position:relative;width:150px;height:120px;margin:-4px auto 0}
-.vKO i{position:absolute;inset:0;background:var(--mon) center bottom/contain no-repeat;animation:vKO 1.1s ease-in .25s both;transform-origin:50% 100%}
-.vKO.flipM i{scale:-1 1}
-.vKO b{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%) rotate(-12deg);font:900 40px/1 var(--font);color:#ffd23f;-webkit-text-stroke:3px #7a1020;paint-order:stroke fill;text-shadow:0 4px 0 #3a0610;animation:vKOb .5s cubic-bezier(.2,1.8,.4,1) 1.05s both}
-.vKO em{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);white-space:nowrap;font:900 12px var(--font);font-style:normal;padding:3px 10px;border-radius:99px;background:#2b2366;color:#ffe8a0;border:1.5px solid #d6aa4c;animation:vUp .4s ease-out 1.5s both}
-@keyframes vKO{0%{filter:none;transform:none}18%{filter:brightness(2.6);transform:translateX(6px)}32%{transform:translateX(-5px)}50%{filter:brightness(1);transform:rotate(0)}100%{filter:grayscale(.85) brightness(.75);transform:rotate(-78deg) translate(10px,6px);opacity:.75}}
-@keyframes vKOb{from{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.4)}to{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}}
-.vTop:has(.vKO) .vHero{display:none}
-@media (prefers-reduced-motion:reduce){.vKO i,.vKO b,.vKO em,.vRS.on{animation:none}}
+@media (prefers-reduced-motion:reduce){.vRS.on{animation:none}}
 /* 지금 여기 (모든 책) */
 #scStudy .stWN:has(.stDot.now):not(.grWN) .stWT::before{content:"📍 지금 여기";display:block;width:max-content;margin:0 auto 2px;padding:1px 8px;border-radius:99px;font:900 11px/1.5 var(--font);background:#ff7a1a;color:#fff;border:1.5px solid #3b2414;-webkit-text-stroke:0;text-shadow:none}
 #scStudy.thB .stWN:has(.stDot.now):not(.grWN) .stWT::before{background:#e8304d;border-color:#ffd37a}
@@ -5467,10 +5468,6 @@ body:not(.tabL) #scStudy.thB6 .stWBox{background-size:100% auto!important}
 #scStudy.thK .vStgP{background:rgba(58,29,6,.55)}
 #scStudy.thML .vStgP{background:var(--mBlueL);color:var(--mInk)} #scStudy.thML .vStgP b{color:#f5a623} #scStudy.thML .vStgP u{color:#b9c2dd;opacity:1}
 .vTop .vRib{position:relative;z-index:3}
-.vKO{width:130px;height:96px;margin:0 auto 16px}
-.vKO b{font-size:30px;top:24%;left:72%}
-@keyframes vKO{0%{filter:none;transform:none}18%{filter:brightness(2.6);transform:translateX(6px)}32%{transform:translateX(-5px)}50%{filter:brightness(1);transform:rotate(0)}100%{filter:saturate(.7) brightness(.95);transform:rotate(-72deg) translate(8px,8px)}}
-.vKO em{bottom:-14px}
 /* (v532) 도감 한 줄 · 유치원 끝 화면 = 무지개만 · 옆으로 밀리는 스크롤 막기 */
 .vDex{display:inline-flex;align-items:center;gap:6px;margin:6px auto 0;padding:3px 12px 3px 4px;border-radius:99px;font:800 12.5px var(--font);color:#ffe8a0;background:rgba(14,10,36,.7);border:1.5px solid #d6aa4c}
 .vDex img{width:26px;height:26px;border-radius:50%;object-fit:cover}
@@ -16189,13 +16186,13 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
         if(!HyBoss.myTeam(me.id, me)){ HyBoss.pendAdd("r", right, HyBoss.PER_RUN); o.innerHTML='<div class="ovBoss rwT off rwNo"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">🏫</b><small class="rwS">선생님이 우리 반을 정해 주면 쌓여요 (지금 한 것도)</small></div>'; return; }   /* (v478) */
         const n=HyBoss.chunk(me.id, "r", right, HyBoss.PER_RUN), t=HyBoss.myTeam(me.id, me), s=t && HyBoss.state(t), got = n>0 ? HyBoss.earn(me, "run", n) : 0, st=HyBoss.stock(me.id), rem=HyBoss.chunkLeft(me.id, "r");
         const sub = n>0 ? '🏃 '+st.r+' / '+HyBoss.STK : '🏃 '+rem+'/'+HyBoss.PER_RUN+' 단어 · 다음 판에 이어서';
-        o.innerHTML = s && s.dead ? '<div class="ovBoss rwT'+(got>0?' rwFlash':'')+'"><div class="rwH">'+img+'<span>주간 보스</span></div><b class="rwN">🎉</b><small class="rwS">쓰러뜨렸어요!'+(got>0?' · ⚔️ +'+got:'')+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">🎁 보상 받기</button></div>'
+        o.innerHTML = s && s.dead ? '<div class="ovBoss rwT rwDead'+(got>0?' rwFlash':'')+'"><div class="rwH">'+(HyBoss.ko(B) ? '<img class="rwImg rwKo" src="'+HyBoss.ko(B)+'" alt="">' : img)+'<span>주간 보스</span></div><b class="rwN">🎉</b><small class="rwS">쓰러뜨렸어요!'+(got>0?' · ⚔️ +'+got:'')+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">🎁 보상 받기</button></div>'
           : got>=0 ? '<div class="ovBoss rwT'+(got>0?' rwFlash':'')+'"><div class="rwH">'+img+'<span>공격 기회</span></div><b class="rwN">'+(got>0?'+'+got:n>0?'가득!':'+0')+'</b>'+pips(st.r)+'<small class="rwS">'+sub+'</small>'+who+'<button class="ovBossSee rwGo" onclick="WeekBoss.open()">⚔️ 공격하러</button></div>' : ''; }); } }catch(e){}
   if(G.race){ try{ RunRace.done(); }catch(e){ console.error(e); $("scOver").classList.add("on"); } return; }   // (v389) 달리기 레이스 → 결과 화면 대신 배틀 순위 화면
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v532";
+const GAME_VER = "v533";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17733,7 +17730,7 @@ const StudyUI = {
     const sz=Math.max(1, Math.ceil(N/Z)), zi=Math.min(Z-1, Math.floor((wd-1)/sz)), sIn=(wd-1)-zi*sz, last=Math.min(N, (zi+1)*sz);
     return {zi, sIn, wd, sz, zEnd:last, zStart:zi*sz+1}; },
   mon(k){ const B="assets/boss/", P="assets/d30/g36/pt_", old=/^hb/.test(k);
-    return {k, img: B+"t_"+k+".webp", pt:P+k+".webp", atk: old ? B+k+"-a.webp" : this.ATK[k] ? B+this.ATK[k] : null, flip:!!this.FLIP[k]}; },
+    return {k, img: B+"t_"+k+".webp", pt:P+k+".webp", atk: old ? B+k+"-a.webp" : this.ATK[k] ? B+this.ATK[k] : null, flip:!!this.FLIP[k], ko:B+"ko_"+k+".webp"}; },
   /* (v510) QA: 그림마다 빈 여백이 달라 몬스터 크기가 들쭉날쭉(용암 드래곤·창 기사·마왕 공격이 작음) → 배틀은 여백을 잘라 낸 t_<k>.webp,
      공격 그림은 첫 칸의 몸 높이(AS[0])·아래 여백(AS[1])으로 크기를 맞춰 서 있을 때와 같은 키로 */
   AR:{"hb1":0.855,"hb2":0.706,"hb3":0.844,"hb4":0.745,"hb5":1.246,"hbS":0.855,"knight":1.641,"mush":0.888,"wolf":0.723,"blizz":1.148,"peng":1.028,"frog":1.043,"vine":0.99,"bog":0.762,"batw":1.024,"eagle":0.963,"cloud":1.0,"fox":1.021,"hydra":1.125,"griffin":0.99,"overlord":1.156,"sala":0.844,"magma":0.939,"ember":0.671,"armor":1.118},
@@ -17773,7 +17770,9 @@ const StudyUI = {
     B.className="stBt ar-"+m.ar+(m.flip?" flipM":"")+(m.boss?" bossM":"")+(m.big?" bigM":"")+(m.zb?" zbM":"")+(m.elite?" eliteM":"")+(m.atk?" hasAtk":"")+" mk-"+m.k;
     B.style.setProperty("--mon","url("+m.img+")"); requestAnimationFrame(()=>{ try{ this.btSize(); }catch(e){} }); B.style.setProperty("--atk", m.atk ? "url("+m.atk+")" : "none"); this._bm=m;
     const hp=$("stBtHp"); if(hp) hp.style.width=Math.max(4, Math.round((1-this.done/Math.max(1,this.total))*100))+"%"; },
-  bt(ok){ const S=$("scStudy"), B=$("stBt"); if(!B || !S.classList.contains("thB")) return; B.classList.remove("atk","hurt"); void B.offsetWidth; B.classList.add(ok?"atk":"hurt");
+  bt(ok){ const S=$("scStudy"), B=$("stBt"); if(!B || !S.classList.contains("thB")) return; B.classList.remove("atk","hurt","ko"); void B.offsetWidth; B.classList.add(ok?"atk":"hurt");
+    /* (v533) 마지막 한 방(체력 0) → 몬스터마다 그린 쓰러진 그림(ko_<k>.webp)으로 바뀜 · 공격 동작이 끝날 즈음 */
+    clearTimeout(this._koT); const m0=this._bm; if(ok && m0 && m0.ko && this.done>=this.total){ B.style.setProperty("--ko","url("+m0.ko+")"); this._koT=setTimeout(()=>{ if(this._bm===m0 && this.done>=this.total) B.classList.add("ko"); }, 420); }
     const hp=$("stBtHp"); if(hp) hp.style.width=Math.max(4, Math.round((1-this.done/Math.max(1,this.total))*100))+"%";
     if(ok && this.combo>=8 && this.combo%8===0 && !this.oly && !this.test && !this.wk && !this.ex){ const C=$("stCut");   /* (v503) 시간 재는 시험에서는 문제를 가리지 않게 */ if(C){ C.classList.remove("on"); void C.offsetWidth; C.classList.add("on"); } } },
   view(v){ ["stPath","stLesson","stDone","stGram"].forEach(id=>$(id).style.display = id===v ? "" : "none"); $("scStudy").classList.toggle("vPath", v==="stPath"); $("scStudy").classList.toggle("vLesson", v==="stLesson"); $("scStudy").classList.toggle("vGram", v==="stGram"); this._v=v; this.thUpd(); /* (v484) 유치원 꾸미기 */ if(v!=="stPath") this.pop(null); if(v!=="stLesson") this.dgClean(); },
@@ -17910,7 +17909,7 @@ const StudyUI = {
       : n>0 ? '<span class="cpBub hot" data-wbopen="1">'+ic('swords')+' '+n+'</span>' : '';
     el.className='cpO cpBoss'+(claim?' gift':'')+(st.dead?' dead':'');
     el.setAttribute("aria-label", "이번 주 보스 · "+B.n+" · "+(st.dead?"쓰러뜨렸어요":"체력 "+pc+"%")+(me?" · 공격 기회 "+n:""));
-    el.innerHTML=bub+'<button class="cpBossB" data-wbopen="1"><i class="cpMound"></i><img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+' onerror="this.src=\'assets/boss/boss-knight.webp\'"></button>'
+    el.innerHTML=bub+'<button class="cpBossB" data-wbopen="1"><i class="cpMound"></i>'+(st.dead && HyBoss.ko(B) ? HyBoss.deadImg(B, true) : '<img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+' onerror="this.src=\'assets/boss/boss-knight.webp\'">')+'</button>'
       +'<i class="cpHp'+(st.dead?' dead':'')+'"><u style="width:'+(st.dead?100:pc)+'%"></u></i><b>보스</b>'; try{ this.barUpd(); }catch(e){} },   // (v331) 글자 줄임 — 이름·남은 날은 보스 화면에서
   /* (v331) 🎁 복습 상자 — 보물상자 그림 그대로 (파란 상자). go: 열려서 보석 반짝 · later: 닫혀서 쿨쿨 (그래도 누르면 복습) · done: 빈 상자 */
   rvChest(s){ return '<img class="cpChI" src="assets/d30/chest/'+({go:'wood_glow', later:'wood_sleep', done:'wood_empty'}[s]||'wood_glow')+'.webp" alt="" draggable="false" onerror="this.outerHTML=StudyUI.chestSvg(1,'+(s!=='later')+')">'; },   // (v331) 그림 (안 나오면 예전 SVG)
@@ -20771,6 +20770,9 @@ const HyBoss = {
   nextOf(b){ b=b||this.B; const i=(b && b.i)|0; return BOSS_LINE[(b && b.test ? i : i+1)%BOSS_LINE.length]; },
   /* (v342) 사용자: 화룡이 뒤집혀서 공격을 안 하는 느낌 — 그림이 오른쪽(아이들 반대쪽)을 보고 불을 뿜었다 → 오른쪽을 보는 보스(설원수·화룡)는 좌우를 뒤집어 아이들 쪽으로
      (scale 은 transform 과 따로라 맞을 때 흔들림 애니메이션과 같이 됨) */
+  KO:{hb1:1,hb2:1,hb3:1,hb4:1,hb5:1,hbS:1}, ko(b){ b=b||this.B; return (b && this.KO[b.img]) ? "assets/boss/ko_"+b.img+".webp" : ""; },   /* (v533) 쓰러진 그림 — 쓰러뜨린 주간 보스 (회색으로 기울이던 것 대신) */
+  koCss(b){ b=b||this.B; return (b && b.hue) ? ' style="filter:hue-rotate('+(b.hue|0)+'deg) saturate(1.3)"' : ''; },
+  deadImg(b, dead){ const k=dead && this.ko(b); return k ? '<img class="isKo" src="'+k+'" alt=""'+this.koCss(b)+'>' : '<img src="'+this.img(b)+'" alt=""'+this.imgCss(b)+'>'; },
   FLIP:{hb3:1, hb4:1}, flip(b){ b=b||this.B; return !!(b && this.FLIP[b.img]); },
   imgCss(b){ b=b||this.B; const st=((b && b.hue) ? 'filter:hue-rotate('+(b.hue|0)+'deg) saturate(1.3);' : '')+(this.flip(b) ? 'scale:-1 1;' : ''); return st ? ' style="'+st+'"' : ''; },
   /* 아이의 반 — 반 대항전인데 반이 없으면 null (공격 안 됨) */
@@ -21245,7 +21247,7 @@ const WeekBoss = {
     const me=Kid.me(), v=this.view(B, me), pc=Math.round(v.pct*100), E=x=>Raid.esc(x);
     const st=me ? HyBoss.stock(me.id) : null, n=st ? st.r+st.s : 0, gift=!!(me && (()=>{ try{ return HyBoss.reward(me) || HyBoss.prevReward(me) || HyBoss.oldRewards(me).length; }catch(e){ return 0; } })());
     const chip = gift ? '<b class="hbChip gift">🎁</b>' : (n>0 && !v.dead) ? '<b class="hbChip">⚔️'+n+'</b>' : '';   /* (v327) 왼쪽 위 배지 — 체력 고리 · 공격 기회 수 · 받을 보상 */
-    const h='<span class="hbRing'+(v.dead?' dead':'')+'" style="--hp:'+(v.dead?0:pc)+'"><img src="'+HyBoss.img(B)+'" alt=""'+HyBoss.imgCss(B)+'></span>'+chip+'<span class="hbL">주간 보스</span><small class="hbT">'+(v.dead?'🎉 쓰러뜨림':'⏰ '+E(HyBoss.leftTxt(B)))+'</small>';
+    const h='<span class="hbRing'+(v.dead?' dead':'')+'" style="--hp:'+(v.dead?0:pc)+'">'+HyBoss.deadImg(B, v.dead)+'</span>'+chip+'<span class="hbL">주간 보스</span><small class="hbT">'+(v.dead?'🎉 쓰러뜨림':'⏰ '+E(HyBoss.leftTxt(B)))+'</small>';
     el.setAttribute("aria-label", "이번 주 보스 · "+B.n+" · "+(v.dead?"쓰러뜨렸어요":this.left(B))+(me?" · 공격 기회 "+n:"")); el.title=el.getAttribute("aria-label"); el.classList.toggle("hot", n>0 || gift);
     if(el._h!==h){ el._h=h; el.innerHTML=h; } el.hidden=false; }
 };
@@ -22107,7 +22109,7 @@ const Arena = {
 const RaidStage = {
   BG:{hbS:["meadow","#9be8a0","#2c6b3a"], hb1:["meadow","#7cc6ff","#2c6b3a"], hb2:["desert","#ffcf8a","#a8743a"], hb3:["ice","#bfe6ff","#6fa3c8"], hb4:["volcano","#ff9a6a","#4a2020"], hb5:["castle","#9aa6ff","#3a3560"]},
   el:null, me:null, al:{}, fx:null, raf:0, seen:{}, t0:0,
-  ensure(role, o){ o=o||{}; const box=o.box||$("rdStage"); if(!box) return false; const b=o.boss||Raid.rb(), key=role+"|"+b.img; this.role=role;   // (v310) 🏠 주간 보스 화면도 같은 무대 (o.box · o.boss)
+  ensure(role, o){ o=o||{}; const box=o.box||$("rdStage"); if(!box) return false; const b=o.boss||Raid.rb(), key=role+"|"+b.img; this.role=role; this.b=b;   // (v310) 🏠 주간 보스 화면도 같은 무대 (o.box · o.boss)
     if(this.el===box && box.dataset.k===key) return true;
     const bg=this.BG[b.img]||this.BG.hb1; box.dataset.k=key; box.className="rs "+(role==="host"?"big":"");
     box.style.setProperty("--sky", bg[1]); box.style.setProperty("--floor", bg[2]);
@@ -22196,8 +22198,11 @@ const RaidStage = {
   block(n){ if(!this.me) return; const s=this.me.el; s.classList.remove("guard"); void s.offsetWidth; s.classList.add("guard"); this.num("🛡 막았다!", "blk", true); setTimeout(()=>this.attack(n==null?20:n, 0, false), 380); },
   hurt(txt){ if(!this.me) return; this.me.hurt=1; this.me.hurtT=Date.now(); this.shake(); this.num(txt||"💥 -❤️", "hurt", true); const s=this.me.el; s.classList.remove("ouch"); void s.offsetWidth; s.classList.add("ouch"); },
   shake(){ if(!this.el) return; this.el.classList.remove("shake"); void this.el.offsetWidth; this.el.classList.add("shake"); },
-  state(c, st){ if(!this.el) return; this.el.classList.toggle("shield", !!c.shield); this.el.classList.toggle("rage", !!c.rage); this.el.classList.toggle("dead", c.hp<=0);
+  state(c, st){ if(!this.el) return; this.el.classList.toggle("shield", !!c.shield); this.el.classList.toggle("rage", !!c.rage); this.el.classList.toggle("dead", c.hp<=0); this.koSet(c.hp<=0);
     this.el.classList.toggle("wait", !st.s || st.s==="wait" || st.s==="pause"); },
+  /* (v533) 쓰러지면 사라지던 것 → 쓰러진 그림으로 바꿔 그 자리에 둠 (다시 살아나면 원래 그림) */
+  koSet(dead){ const b=this.b, ko=dead && HyBoss.ko(b), im=this.el && this.el.querySelector(".rsBossIn img"); if(!im || !b) return; this.el.classList.toggle("ko", !!ko);
+    const want = ko || HyBoss.img(b); if(im.getAttribute("src")===want) return; im.setAttribute("src", want); im.style.cssText = ko ? (b.hue ? 'filter:hue-rotate('+(b.hue|0)+'deg) saturate(1.3)' : '') : ((b.hue ? 'filter:hue-rotate('+(b.hue|0)+'deg) saturate(1.3);' : '')+(HyBoss.flip(b) ? 'scale:-1 1;' : '')); },
   /* 떠오르는 글자 · 불꽃 · 칼자국 */
   num(t, cls, atHero){ if(!t || !this.fx) return; const e=document.createElement("b"); e.className="rsNum "+cls; e.textContent=t;
     const x = atHero ? 22+Math.random()*6 : 64+Math.random()*14, y = atHero ? 46 : 22+Math.random()*16; e.style.left=x+"%"; e.style.top=y+"%"; this.fx.appendChild(e); setTimeout(()=>e.remove(), 1000); },
