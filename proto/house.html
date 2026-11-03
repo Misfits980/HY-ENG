@@ -3180,7 +3180,7 @@ let myCode=store("hyeng_proto_code"); if(!myCode){ myCode=""; for(let k=0;k<5;k+
    /hy/day/<날>/<아이>/tl/m<시작> = [시작초, 끝초] + n·t·la·lk="m" → 선생님 관리 ⏰ 언제 했나 (게임 index.html 의 HyDay 와 같은 자리 · 이름이 같으면 한 줄) */
 const MTL={a:0, last:0, id:"", force:false};
 function mtId(){ const K=kidInfo(); if(K.rid) return K.rid.replace(/[.#$\[\]\/]/g,"").slice(0,40); if(K.shared) return ""; let d=""; try{ d=localStorage.getItem("hyeng_dev")||""; }catch(e){} return d ? "d"+d.replace(/[^a-z0-9]/gi,"").slice(0,16) : ""; }
-function mtLog(final){ if(navigator.webdriver && !MTL.force) return; try{ if(localStorage.getItem("hyeng_teacher_dev")==="1") return; }catch(e){} const id=mtId(); if(!id) return;   /* (v476) 🧑‍🏫 선생님 기기는 기록 안 함 */ const nowT=Date.now(); if(id!==MTL.id){ MTL.id=id; MTL.a=0; MTL.last=0; } if(!MTL.a) MTL.a=nowT; if(!final && nowT-MTL.last<55000) return; MTL.last=nowT;
+function mtLog(final){ if(navigator.webdriver && !MTL.force) return; try{ if(localStorage.getItem("hyeng_teacher_dev")==="1") return; }catch(e){} const id=mtId(); if(!id) return;   /* (v476) 🧑‍🏫 선생님 기기는 기록 안 함 */ const nowT=Date.now(); if(id!==MTL.id){ MTL.id=id; MTL.a=0; MTL.last=0; } if(MTL.a && MTL.last && nowT-MTL.last>180000) MTL.a=nowT;   /* (v573) 1분마다 적는 게 3분 넘게 끊겼으면(기기가 재워 둠·화면 가림 소식이 안 옴) 앞 구간은 거기서 끝, 지금부터 새 구간 */ if(!MTL.a) MTL.a=nowT; if(!final && nowT-MTL.last<55000) return; MTL.last=nowT;
   const K=kidInfo(), a=Math.round(MTL.a/1000), b=Math.round(nowT/1000), body={n:K.n, la:nowT, lk:"m"}; if(K.t) body.t=K.t; body["tl/m"+a.toString(36)]=[a, b];
   NET.patch("/hy/day/"+new Date(nowT+9*3600e3).toISOString().slice(0,10)+"/"+id, body).catch(()=>{}); }
 setTimeout(()=>mtLog(true), 4000); setInterval(()=>{ if(!document.hidden) mtLog(false); }, 15000);

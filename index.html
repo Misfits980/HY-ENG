@@ -993,6 +993,9 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .whBar{position:relative;height:18px;border-radius:6px;background:rgba(255,255,255,.05)}
 .whH{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.1)}
 .whS{position:absolute;top:2px;bottom:2px;border-radius:5px;min-width:5px;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.whS.old{opacity:.38;background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.45) 0 4px,transparent 4px 9px)!important}   /* (v573) 켜 둔 시간 */
+.whTx span.old{color:#9a90c4;text-decoration:line-through;text-decoration-color:rgba(255,255,255,.35)}
+.whOldN{margin:-4px 0 8px;font-size:11.5px;color:#ffcf8a}
 .whTx{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:3px;font-size:12px;color:#e8e1ff}.whTx small{color:#8d82b8;font-size:11px}
 .adVcBar{display:flex;align-items:center;gap:8px;margin-bottom:8px}.adVcBar b{flex:1;text-align:center;color:#fff}.adVcBar b small{color:#8d82b8;font-size:11px;margin-left:4px}
 .adVcList{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto}
@@ -16279,7 +16282,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v572";
+const GAME_VER = "v573";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -22079,7 +22082,11 @@ const HyDay = {
     return Object.values(G); },
   /* (v474) ⏰ 언제 했나 — 아이마다 한 줄 · 📚 Daily 30 · 🏃 달리기 · 🏘 My Town(마을·타워) · 🏫 수업 · 시간 막대 + 글 */
   KD:{s:["📚","Daily 30","#5b8cff"], r:["🏃","달리기","#ff9a3d"], m:["🏘","My Town","#2fd27a"], c:["🏫","수업","#b07cff"]},
-  spans(x){ const T=x.tl||{}; return Object.keys(T).map(k=>{ const v=T[k]; if(!Array.isArray(v)) return null; const a=(+v[0]||0)*1000, b=Math.max(a, (+v[1]||0)*1000); return a ? {k:k[0], a, b} : null; }).filter(o=>o && this.KD[o.k]).sort((p,q)=>p.a-q.a); },
+  spans(x){ const T=x.tl||{}; return Object.keys(T).map(k=>{ const v=T[k]; if(!Array.isArray(v)) return null; const a=(+v[0]||0)*1000, b=Math.max(a, (+v[1]||0)*1000); return a ? {k:k[0], a, b, old:(b-a)>(this.MAXM[k[0]]||1e9)*60000} : null; }).filter(o=>o && this.KD[o.k]).sort((p,q)=>p.a-q.a); },
+  /* (v573) 사용자 캡처: 빈 📚 22:26~7:35 (556분) · 유이홍 🏘 8:15~22:43 (879분) — 하다가 앱을 뒤로 보내고(켜 둔 채) 다음에 돌아온 것
+     v563 부터 기기는 실제로 한 시간만 적음(📚 🏃 한 판 최대 60분 · 🏘 가려지면 끊고 새 구간) → 그보다 긴 구간은 업데이트 안 된 기기가 적은 「켜 둔 시간」
+     → 흐린 줄무늬 막대 + ⚠️ · 「분」 합계에 안 셈 */
+  MAXM:{s:65, r:65, c:120, m:180},
   hm(t){ const d=new Date(t); return d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); },
   timeCard(){ const E=x=>Raid.esc(x), today=this.key(), yday=this.key(Date.now()-864e5), day=this.day||today, D=this.D[day], K=this.KD;
     const head='<div class="dyTabs"><button class="mini'+(day===today?' on':'')+'" data-ad="dayPick" data-d="'+today+'">오늘</button><button class="mini'+(day===yday?' on':'')+'" data-ad="dayPick" data-d="'+yday+'">어제</button><button class="mini" data-ad="dayPick" data-d="'+day+'">🔄</button></div>';
@@ -22087,16 +22094,17 @@ const HyDay = {
     if(!D) return '<section class="adCard full"><h3>⏰ 언제 했나</h3>'+head+'<p class="adSmall">불러오는 중…</p></section>';
     const L=this.merge(D).map(x=>Object.assign(x, {sp:this.spans(x)})).filter(x=>x.sp.length).sort((p,q)=>p.sp[0].a-q.sp[0].a);
     if(!L.length) return '<section class="adCard full"><h3>⏰ '+(day===today?'오늘':day===yday?'어제':day)+' 언제 했나</h3>'+head+leg+'<p class="adSmall">'+(day===today?'아직 시간 기록이 없어요':'이날은 시간 기록이 없어요')+' <small>(v474 이상 기기부터 쌓여요)</small></p></section>';
-    let lo=Infinity, hi=0; L.forEach(x=>x.sp.forEach(s=>{ lo=Math.min(lo, s.a); hi=Math.max(hi, s.b); }));
+    let lo=Infinity, hi=0; const ok=L.some(x=>x.sp.some(s=>!s.old)); L.forEach(x=>x.sp.forEach(s=>{ if(ok && s.old){ lo=Math.min(lo, s.b); hi=Math.max(hi, s.b); return; } lo=Math.min(lo, s.a); hi=Math.max(hi, s.b); }));   /* (v573) 켜 둔 시간은 시간 줄 범위를 안 늘림 (앞이 잘림) */
     const d0=new Date(lo); d0.setMinutes(0,0,0); const A=d0.getTime(), B=Math.max(A+3600e3, Math.ceil(hi/3600e3)*3600e3), span=B-A, hrs=[]; for(let h=A; h<=B; h+=3600e3) hrs.push(h);
-    const pct=t=>((t-A)/span*100).toFixed(2)+'%', mins=s=>Math.max(1, Math.round((s.b-s.a)/60000));
-    const cnt={}; L.forEach(x=>{ const seen={}; x.sp.forEach(s=>{ if(!seen[s.k]){ seen[s.k]=1; cnt[s.k]=(cnt[s.k]|0)+1; } }); });
+    const cl=t=>Math.max(A, Math.min(B, t)), pct=t=>((cl(t)-A)/span*100).toFixed(2)+'%', hSt=hrs.length>16 ? 4 : hrs.length>11 ? 3 : hrs.length>6 ? 2 : 1, mins=s=>Math.max(1, Math.round((s.b-s.a)/60000));
+    const old=L.some(x=>x.sp.some(s=>s.old)), cnt={}; L.forEach(x=>{ const seen={}; x.sp.forEach(s=>{ if(!seen[s.k]){ seen[s.k]=1; cnt[s.k]=(cnt[s.k]|0)+1; } }); });
     let h='<section class="adCard full whCard"><h3>⏰ '+(day===today?'오늘':day===yday?'어제':day)+' 언제 했나<small>'+L.length+'명 · '+Object.keys(K).filter(k=>cnt[k]).map(k=>K[k][0]+' '+cnt[k]+'명').join(' · ')+'</small></h3>'+head+leg;
-    h+='<div class="whGrid"><div class="whRow whAx"><span class="whN"></span><div class="whBar">'+hrs.map(t=>'<span class="whL" style="left:'+pct(t)+'">'+new Date(t).getHours()+'시</span>').join('')+'</div></div>';
-    h+=L.map(x=>{ const sum={}; x.sp.forEach(s=>{ sum[s.k]=(sum[s.k]|0)+mins(s); });
+    h+='<div class="whGrid"><div class="whRow whAx"><span class="whN"></span><div class="whBar">'+hrs.map((t,i)=>i%hSt ? '' : '<span class="whL" style="left:'+pct(t)+'">'+new Date(t).getHours()+'시</span>').join('')+'</div></div>';
+    if(old) h+='<p class="whOldN">⚠️ 흐린 줄무늬 = 하다가 앱을 켜 둔 채 둔 시간 (업데이트 전 기기) — 「분」에 안 셈</p>';
+    h+=L.map(x=>{ const sum={}; x.sp.forEach(s=>{ if(!s.old) sum[s.k]=(sum[s.k]|0)+mins(s); });
       return '<div class="whRow"><span class="whN">'+E(String(x.n||"?").slice(0,10))+'</span><div class="whBar">'+hrs.map(t=>'<i class="whH" style="left:'+pct(t)+'"></i>').join('')
-        +x.sp.map(s=>'<b class="whS" style="left:'+pct(s.a)+';width:max(5px,'+((s.b-s.a)/span*100).toFixed(2)+'%);background:'+K[s.k][2]+'" title="'+K[s.k][1]+' '+this.hm(s.a)+'~'+this.hm(s.b)+'"></b>').join('')+'</div>'
-        +'<div class="whTx">'+x.sp.map(s=>'<span>'+K[s.k][0]+' '+this.hm(s.a)+(s.b-s.a>=60000?'~'+this.hm(s.b):'')+'</span>').join('')+'<small>'+Object.keys(sum).map(k=>K[k][0]+' '+sum[k]+'분').join(' · ')+'</small></div></div>'; }).join('');
+        +x.sp.map(s=>'<b class="whS'+(s.old?' old':'')+'" style="left:'+pct(s.a)+';width:max(5px,'+((cl(s.b)-cl(s.a))/span*100).toFixed(2)+'%);background:'+K[s.k][2]+'" title="'+K[s.k][1]+' '+this.hm(s.a)+'~'+this.hm(s.b)+(s.old?' (켜 둔 시간)':'')+'"></b>').join('')+'</div>'
+        +'<div class="whTx">'+x.sp.map(s=>'<span'+(s.old?' class="old"':'')+'>'+K[s.k][0]+' '+this.hm(s.a)+(s.b-s.a>=60000?'~'+this.hm(s.b):'')+(s.old?' ⚠️':'')+'</span>').join('')+'<small>'+(Object.keys(sum).map(k=>K[k][0]+' '+sum[k]+'분').join(' · ')||'⚠️ 켜 둔 시간만')+'</small></div></div>'; }).join('');
     return h+'</div></section>'; },
   card(){ const E=x=>Raid.esc(x), today=this.key(), yday=this.key(Date.now()-864e5), day=this.day||today, D=this.D[day];
     const head='<div class="dyTabs"><button class="mini'+(day===today?' on':'')+'" data-ad="dayPick" data-d="'+today+'">오늘</button><button class="mini'+(day===yday?' on':'')+'" data-ad="dayPick" data-d="'+yday+'">어제</button><button class="mini" data-ad="dayPick" data-d="'+day+'">🔄</button></div>';
