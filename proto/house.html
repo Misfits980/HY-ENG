@@ -252,13 +252,14 @@ button{font-family:inherit}
 .hdGem.two .cur{display:inline-flex;align-items:center;gap:3px;height:30px;padding:0 10px;border-radius:999px;font:800 14px var(--en);white-space:nowrap;box-shadow:inset 0 -2px 0 rgba(90,60,30,.12)}
 .hdGem.two .cG{background:#e4efff;color:#2f5fb8} .hdGem.two .cC{background:#fff1c9;color:#8a5a00}
 .cBar{position:relative;margin:0 0 10px}
-.cBar .bChips.fCat{margin:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;padding:2px 96px 6px 2px;max-height:52px;transition:max-height .35s ease}
+.cBar .bChips.fCat{margin:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;padding:2px 46px 6px 2px;max-height:52px;transition:max-height .35s ease}
 .cBar .bChips.fCat::-webkit-scrollbar{display:none}
 .cBar .chip{flex:none;scroll-snap-align:start}
-.cBar .cTog{position:absolute;right:0;top:2px;height:38px;padding:0 12px 0 10px;border-radius:999px;border:2px solid var(--line);background:var(--ink);color:#fff;font:800 13px var(--en);box-shadow:0 2px 0 var(--line);z-index:2;white-space:nowrap}
+.cBar .cTog{position:absolute;right:0;top:2px;width:38px;height:38px;padding:0;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--ink);font:900 15px var(--en);box-shadow:0 2px 0 var(--line);z-index:2;display:grid;place-items:center}   /* (v568) 사용자: 「모두 11」 거슬림 → 작은 동그라미 ⌄ */
+.cBar .cTog i{font-style:normal;display:block;line-height:1;margin-top:-3px;transition:transform .25s}.cBar.open .cTog i{transform:rotate(180deg);margin-top:3px}
 .cBar .cTog::before{content:"";position:absolute;right:100%;top:-4px;bottom:-6px;width:34px;background:linear-gradient(90deg,rgba(255,248,234,0),var(--paper,#fff8ea) 70%);pointer-events:none}
 .cBar.open .bChips.fCat{flex-wrap:wrap;overflow:visible;padding-right:2px;max-height:600px}
-.cBar.open .cTog{position:static;display:block;margin:6px 0 0 auto}
+.cBar.open .cTog{position:static;margin:6px 0 0 auto}
 .cBar.open .cTog::before{display:none}
 .cBar.open .chip{animation:chipIn .32s cubic-bezier(.2,.9,.3,1.25) both;animation-delay:calc(var(--i,0)*22ms)}
 #furnTabs .bTab{flex:1 1 auto;white-space:nowrap;min-width:0;padding:0 7px;letter-spacing:-.2px} @media (max-width:430px){#furnTabs .bTab{font-size:14.5px}}   /* (v566) 「벽지·바닥」「넓히기」 두 줄로 꺾이던 것 */
@@ -271,6 +272,8 @@ button{font-family:inherit}
 @keyframes fHint{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
 @media (prefers-reduced-motion:reduce){#furnBody.fSlideL,#furnBody.fSlideR,.fHint{animation:none}}
 #furnP{overflow-x:hidden}
+#furnBody .upB{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1;padding:5px 12px;flex:none;max-width:52%}   /* (v568) 넓히기 단추 = 위 할 일 · 아래 값 (💎+🪙 이면 글이 한 글자씩 꺾이던 것) */
+#furnBody .upB b{font-size:14px;white-space:nowrap} #furnBody .upB small{font-size:12.5px;white-space:nowrap} #furnBody .upB small .teG,#furnBody .upB small .teC,#furnBody .upB small .teP{color:inherit}
 @keyframes chipIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.cBar.open .chip{animation:none}.cBar .bChips.fCat{transition:none}}
 .scTop{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px;border-radius:20px;background:#fff6dc;border:2px solid #f0d58a;margin-bottom:10px} .scTop b{font:900 26px var(--en);color:#7a5a10} .scTop small{color:var(--sub)}
@@ -1536,11 +1539,11 @@ function yPointerMove(e){ if(!down || place!==PL.yard || !edit) return; const dx
 /* (v566) 종류 칩 = 수납형 — 접힘: 한 줄 가로로 밀기(고른 칩이 보이게) · ▾ 모두: 촤라락 펼침 · 고르면 다시 접힘 */
 let chipOpen=false;
 const FTABS=["furn","yard","wall","up"];   /* (v567) 가게 칸 차례 (옆으로 밀기) */
-function chipBar(items, cur, attr){ return '<div class="cBar'+(chipOpen?' open':'')+'" data-cbar="'+attr+'"><div class="bChips fCat">'+items.map(([k,t],i)=>'<button class="chip'+(cur===k?' on':'')+'" data-'+attr+'="'+k+'" style="--i:'+i+'">'+t+'</button>').join("")+'</div><button class="cTog" data-ctog aria-expanded="'+chipOpen+'">'+(chipOpen?'▴ 접기':'▾ 모두 '+items.length)+'</button></div>'; }
+function chipBar(items, cur, attr){ return '<div class="cBar'+(chipOpen?' open':'')+'" data-cbar="'+attr+'"><div class="bChips fCat">'+items.map(([k,t],i)=>'<button class="chip'+(cur===k?' on':'')+'" data-'+attr+'="'+k+'" style="--i:'+i+'">'+t+'</button>').join("")+'</div><button class="cTog" data-ctog aria-expanded="'+chipOpen+'" aria-label="'+(chipOpen?'접기':'종류 모두 보기')+'"><i>⌄</i></button></div>'; }
 const chipMem={};
 function chipKeep(root){ (root||document).querySelectorAll(".cBar").forEach(b=>{ chipMem[b.dataset.cbar]=b.querySelector(".fCat").scrollLeft; }); }
 function chipShow(root){ (root||document).querySelectorAll(".cBar").forEach(b=>{ const sc=b.querySelector(".fCat"), on=sc.querySelector(".chip.on"); if(b.classList.contains("open")) return;
-    sc.scrollLeft=chipMem[b.dataset.cbar]||0; if(on){ const L=on.offsetLeft, R=L+on.offsetWidth, vw=sc.clientWidth-96; if(L<sc.scrollLeft+4) sc.scrollLeft=Math.max(0,L-8); else if(R>sc.scrollLeft+vw) sc.scrollLeft=R-vw+8; } }); }
+    sc.scrollLeft=chipMem[b.dataset.cbar]||0; if(on){ const L=on.offsetLeft, R=L+on.offsetWidth, vw=sc.clientWidth-58; if(L<sc.scrollLeft+4) sc.scrollLeft=Math.max(0,L-8); else if(R>sc.scrollLeft+vw) sc.scrollLeft=R-vw+8; } }); }
 function yShopHTML(){ let h=chipBar(OUT_CAT, yCat, "yc");
   h+=Object.keys(OUT_PRICE).filter(id=>yCat==="all"||OUT[id].cat===yCat).sort((a,b)=>OUT_PRICE[a]-OUT_PRICE[b]).map(id=>{ const it=OUT[id], p=OUT_PRICE[id], have=(ystock[id]|0)+yplaced.filter(x=>x.id===id).length;
     return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(canCO(CO(p))?' on':'')+'" data-by="'+id+'"'+(canCO(CO(p))?'':' data-poor="1"')+'>'+htmlCO(CO(p))+'</button></div>'; }).join("");
@@ -3002,7 +3005,7 @@ function drawFurn(){ { const F=$("furnGem"), n=v=>Number(v||0).toLocaleString("k
       return '<button class="fw'+(on?' on':'')+(o?'':' buy')+'" data-fw="'+key+i+'"'+(!o&&!canCO(CO(FW_PRICE,"coin"))?' data-poor="1"':'')+'><img src="'+swatch(L,i)+'" alt=""><b>'+x.nm+'</b><small>'+(on?'✅ 지금':o?'쓰기':htmlCO(CO(FW_PRICE,"coin")))+'</small></button>'; }).join("")+'</div>';
     h=sec(FLOORS,ownF,floorIx,"🟫 바닥","f")+sec(WALLS,ownW,wallIx,"🎨 벽지","w"); }
   if(furnTab==="yard") h=yShopHTML();
-  if(furnTab==="up") h=upRows().map(([k,e,nm,sub,p,lab])=>{ const o=p?CO(p, k==="room"?"gem":k==="parc"?"mix":"coin"):null; return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b><small>'+sub+'</small></span>'+(p?'<button class="btn'+(canCO(o)?' on':'')+'" data-up="'+k+'"'+(canCO(o)?'':' data-poor="1"')+'>'+lab+' '+htmlCO(o)+'</button>':'<em>'+(lab||'✅')+'</em>')+'</div>'; }).join("")
+  if(furnTab==="up") h=upRows().map(([k,e,nm,sub,p,lab])=>{ const o=p?CO(p, k==="room"?"gem":k==="parc"?"mix":"coin"):null; return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b><small>'+sub+'</small></span>'+(p?'<button class="btn upB'+(canCO(o)?' on':'')+'" data-up="'+k+'"'+(canCO(o)?'':' data-poor="1"')+'><b>'+lab+'</b><small>'+htmlCO(o)+'</small></button>':'<em>'+(lab||'✅')+'</em>')+'</div>'; }).join("")
     +'<p class="bHint" style="margin:10px 0 0">조금씩 늘려요 — 🪙 는 물고기·작물을 팔아서 · 💎 는 공부해서 벌어요 · 🏦 은행에서 바꿀 수도 있어요</p>';
   { const n=+store("hyeng_proto_fswipe")||0, i=FTABS.indexOf(furnTab);   /* (v567) 옆으로 밀기 안내 — 몇 번 넘겨 보기 전까지 + 아래 칸 점 */
     h='<div class="fPager"><span class="fDots">'+FTABS.map((k,j)=>'<i class="'+(j===i?'on':'')+'"></i>').join("")+'</span>'+(n<3?'<span class="fHint">'+(i<3?'👈 밀어서 '+["🌳 마당","🎨 벽지·바닥","🏡 넓히기"][i]+' 보기':'👉 밀어서 🎨 벽지·바닥 보기')+'</span>':'')+'</div>'+h; }

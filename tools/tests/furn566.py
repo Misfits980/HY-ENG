@@ -33,7 +33,7 @@ async def main():
             ok(not r[0] and r[1]<=56 and (r[2] or W>500) and r[3] and r[4], f"{t} ② 접힘 = 한 줄 · 가로 밀기 · 고른 「🖼 벽」 이 보임(▾ 단추에 안 가림) · 페이지 가로 스크롤 없음 {r}")
             await pg.screenshot(path=OUT+f"furn566_{W}_closed.png")
             await pg.click("#furnBody .cTog"); await pg.wait_for_timeout(600)
-            r=await pg.evaluate("()=>{ const B=document.querySelector('#furnBody .cBar'), sc=B.querySelector('.fCat'); return [B.classList.contains('open'), Math.round(sc.getBoundingClientRect().height), B.querySelector('.cTog').innerText, sc.querySelectorAll('.chip').length, document.documentElement.scrollWidth<=innerWidth]; }")
+            r=await pg.evaluate("()=>{ const B=document.querySelector('#furnBody .cBar'), sc=B.querySelector('.fCat'); return [B.classList.contains('open'), Math.round(sc.getBoundingClientRect().height), B.querySelector('.cTog').getAttribute('aria-label'), sc.querySelectorAll('.chip').length, document.documentElement.scrollWidth<=innerWidth]; }")
             ok(r[0] and r[1]>56 and "접기" in r[2] and r[3]==11 and r[4], f"{t} ② ▾ 모두 → 촤라락 펼침 (여러 줄) · ▴ 접기 {r}")
             await pg.screenshot(path=OUT+f"furn566_{W}_open.png")
             await pg.click("#furnBody [data-fc=plant]"); await pg.wait_for_timeout(400)

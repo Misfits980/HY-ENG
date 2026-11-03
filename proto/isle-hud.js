@@ -52,7 +52,7 @@ body.isleOn #ipBan{top:calc(110px + env(safe-area-inset-top))} body.isleOn #emoB
 #ihMap .mh button{width:40px;height:40px;border-radius:50%;border:3px solid #3b2433;background:#fff;font-size:18px}
 #ihMap svg{width:100%;height:auto;display:block;border-radius:16px;background:#8fd3f0}
 #ihMap svg [data-z]{cursor:pointer}
-#ihMap svg text{font:800 4.2px system-ui,sans-serif;fill:#3b2433;paint-order:stroke;stroke:#fff;stroke-width:1.1px;pointer-events:none}
+#ihMap svg text{font:800 7.6px system-ui,sans-serif;fill:#3b2433;paint-order:stroke;stroke:#fff;stroke-width:2.4px;pointer-events:none} #ihMap svg text.hm{font-size:7.5px;fill:#8a5a00}
 #ihMap .mt{font-size:13px;color:#6b5a4e;text-align:center;margin-top:6px}
 #ihM .bx{width:min(300px,86vw);background:#fff8ea;border:3px solid #3b2433;border-radius:24px;box-shadow:0 5px 0 #3b2433;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px;animation:pop .3s cubic-bezier(.2,.9,.3,1.3)}
 #ihM .bx button{position:relative;height:84px;border-radius:18px;border:3px solid #3b2433;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),0 3px 0 #3b2433;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;padding:0}
@@ -134,13 +134,14 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   function openMap(){ const M=window.ISLE_MAP; if(!M || !M.zones){ click("bMap"); return; }
     let el=$("ihMap"); if(!el){ el=document.createElement("div"); el.id="ihMap"; document.body.appendChild(el);
       el.addEventListener("click", e=>{ const z=e.target.closest("[data-z]"); if(z){ el.classList.remove("on"); goZone(z.dataset.z); return; } if(e.target===el || e.target.closest(".mx")) el.classList.remove("on"); }); }
-    const I=M.island, x0=-I.ax/2-6, z0=I.cz-I.az/2-6, w=I.ax+12, h=I.az+12, f=n=>Math.round(n*10)/10;
+    const I=M.island, x0=I.cx-I.ax-5, z0=I.cz-I.az-5, w=I.ax*2+10, h=I.az*2+10, f=n=>Math.round(n*10)/10;   /* (v568) ax·az 는 반지름 — 예전엔 지름으로 써서 섬 절반만 보이고 이름이 겹침 */
     const cen=P=>{ let x=0,z=0; P.forEach(q=>{ x+=q[0]; z+=q[1]; }); return [x/P.length, z/P.length]; };
     const hex=c=>"#"+("00000"+(c>>>0).toString(16)).slice(-6);
-    let g='<ellipse cx="'+f(I.cx)+'" cy="'+f(I.cz)+'" rx="'+f(I.ax/2)+'" ry="'+f(I.az/2)+'" fill="#9ed67a" stroke="#e8d7a0" stroke-width="1.6"/>';
-    M.zones.forEach(Z=>{ if(Z.free) return; const c=cen(Z.poly); g+='<g data-z="'+Z.k+'"><polygon points="'+Z.poly.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="'+hex(Z.c||0xcccccc)+'" fill-opacity=".75" stroke="#3b2433" stroke-width=".5"/></g><text x="'+f(c[0])+'" y="'+f(c[1])+'" text-anchor="middle">'+Z.nm+'</text>'; });
-    try{ const d=ISLE.doorCell(); if(d && tut.s>=1) g+='<g data-z="myhome"><circle cx="'+f(d[0]+.5-ISLE.OX)+'" cy="'+f(d[1]+.5-ISLE.OZ)+'" r="3.4" fill="#ffd23f" stroke="#3b2433" stroke-width=".6"/></g><text x="'+f(d[0]+.5-ISLE.OX)+'" y="'+f(d[1]-4-ISLE.OZ)+'" text-anchor="middle">⭐ 내 집</text>'; }catch(_){}
-    try{ const p=hero.g.position; g+='<circle cx="'+f(p.x-ISLE.OX)+'" cy="'+f(p.z-ISLE.OZ)+'" r="2.2" fill="#ff4d5e" stroke="#fff" stroke-width=".8"><animate attributeName="r" values="2.2;3;2.2" dur="1.2s" repeatCount="indefinite"/></circle>'; }catch(_){}
+    let g; try{ const pts=[]; for(let k=0;k<72;k++){ const a=k/72*Math.PI*2, r=M.edge(a); pts.push(f(I.cx+Math.cos(a)*r)+","+f(I.cz+Math.sin(a)*r)); } g='<polygon points="'+pts.join(" ")+'" fill="#9ed67a" stroke="#f1e2a8" stroke-width="3"/>'; }
+      catch(_){ g='<ellipse cx="'+f(I.cx)+'" cy="'+f(I.cz)+'" rx="'+f(I.ax)+'" ry="'+f(I.az)+'" fill="#9ed67a" stroke="#f1e2a8" stroke-width="3"/>'; }
+    M.zones.forEach(Z=>{ if(Z.free) return; const c=cen(Z.poly); g+='<g data-z="'+Z.k+'"><polygon points="'+Z.poly.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="'+hex(Z.c||0xcccccc)+'" fill-opacity=".75" stroke="#3b2433" stroke-width=".9"/></g><text x="'+f(c[0])+'" y="'+f(c[1])+'" text-anchor="middle">'+Z.nm+'</text>'; });
+    try{ const d=ISLE.doorCell(); if(d && tut.s>=1) g+='<g data-z="myhome"><circle cx="'+f(d[0]+.5-ISLE.OX)+'" cy="'+f(d[1]+.5-ISLE.OZ)+'" r="4.4" fill="#ffd23f" stroke="#3b2433" stroke-width="1"/></g><text class="hm" x="'+f(d[0]+.5-ISLE.OX)+'" y="'+f(d[1]+11-ISLE.OZ)+'" text-anchor="middle">⭐ 내 집</text>'; }catch(_){}
+    try{ const p=hero.g.position; g+='<circle cx="'+f(p.x-ISLE.OX)+'" cy="'+f(p.z-ISLE.OZ)+'" r="3.4" fill="#ff4d5e" stroke="#fff" stroke-width="1.2"><animate attributeName="r" values="3.4;4.6;3.4" dur="1.2s" repeatCount="indefinite"/></circle>'; }catch(_){}
     el.innerHTML='<div class="mb"><div class="mh"><span>🗺 우리 마을 지도</span><button class="mx" aria-label="닫기">✕</button></div><svg viewBox="'+f(x0)+' '+f(z0)+' '+f(w)+' '+f(h)+'">'+g+'</svg><div class="mt">🔴 = 나 · 가고 싶은 곳을 누르면 걸어가요</div></div>';
     el.classList.add("on"); }
   function goZone(k){ if(k==="myhome"){ click("bIHome"); return; } const Z=(ISLE_MAP.zones||[]).find(z=>z.k===k); if(!Z) return;
