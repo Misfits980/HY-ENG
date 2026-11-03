@@ -95,6 +95,8 @@ button{font-family:inherit}
 /* 가구 고르기 */
 #menu{position:fixed;z-index:5;display:none;gap:6px;transform:translate(-50%,-100%);padding:6px;border-radius:999px;background:var(--paper);border:3px solid var(--line2);box-shadow:0 4px 0 rgba(90,60,30,.25)}
 #menu.on{display:flex}
+#menu .btn.sm{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;height:54px;padding:2px 6px;font-size:20px;line-height:1.05} #menu .btn.sm small{font:800 11px var(--en);letter-spacing:-.2px} #menu #mBox{background:#fff1c9}   /* (v571) 글자 붙임 — 「📦 넣기」가 보이게 */
+#inv .card.allIn{background:#fff1c9;border-style:dashed} #inv .card.tipC{background:transparent;border:2px dashed var(--line);box-shadow:none;cursor:default} #inv .card.tipC span{white-space:normal;font-size:11.5px;line-height:1.25}
 #place{position:fixed;left:50%;bottom:calc(160px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;display:none;gap:8px;padding:8px;border-radius:999px;background:rgba(255,248,234,.94);border:3px solid var(--line2)}
 #place.on{display:flex}
 
@@ -576,7 +578,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
   <p class="bHint" style="margin:10px 0 0">잠긴 곳은 게임에서 공부하면 열려요</p></div>
 <div class="sheet" id="dexP"><div class="hd"><b><i class="hdI" data-ic="dex"></i>물고기 도감 <small id="dexN"></small></b><button class="x" id="dexDone" aria-label="닫기">✕</button></div><div class="dexGrid" id="dexBody"></div></div>
 <div id="place"><button class="btn" id="pRot">↻ 돌리기</button><button class="btn on" id="pOk">✅ 놓기</button><button class="btn" id="pNo">✕</button></div>
-<div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻</button><button class="btn sm" id="mMove" aria-label="옮기기">✋</button><button class="btn sm" id="mCol" aria-label="색 바꾸기">🎨</button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦</button></div>
+<div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻<small>돌리기</small></button><button class="btn sm" id="mMove" aria-label="옮기기">✋<small>옮기기</small></button><button class="btn sm" id="mCol" aria-label="색 바꾸기">🎨<small>색</small></button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦<small>넣기</small></button></div>
 <div id="quiz"><div class="box"><div class="fishBig" id="qFish">🐟</div><p id="qAsk"></p><div class="opts" id="qOpts"></div><div class="res" id="qRes"></div></div></div>
 <div id="bang">!</div>
 <div id="fight"><div class="fgName" id="fgName"></div><p id="fgMsg"></p>
@@ -3655,7 +3657,11 @@ let edit=false, sel=null, ghost=null, ghostPad=null;
 const ghostMats={ok:new THREE.MeshBasicMaterial({color:0x7be39a, transparent:true, opacity:.55, depthWrite:false}), bad:new THREE.MeshBasicMaterial({color:0xff4d5e, transparent:true, opacity:.6, depthWrite:false})};
 function drawInv(){ if(place===PL.yard && edit){ yDrawInv(); return; } const L=Object.keys(ITEMS).filter(id=>stock[id]>0);
   $("inv").innerHTML=L.map(id=>'<button class="card" data-id="'+id+'"><i>'+ITEMS[id].ic+'</i><span>'+ITEMS[id].nm+'</span><em>×'+stock[id]+'</em></button>').join("")
-    +'<button class="card shopC" data-shop="1"><i>🛒</i><span>가게</span><em>더 사기</em></button>'; }
+    +'<button class="card shopC" data-shop="1"><i>🛒</i><span>가게</span><em>더 사기</em></button>'
+    /* (v571) 사용자: 「다시 집어넣는 기능 — 언제든지 꾸미고 뺄 수 있게」 — 놓인 가구 누르면 📦 넣기 · 이 방 다 넣기 */
+    +(visiting?'':'<button class="card tipC" disabled><i>👆</i><span>놓인 가구를 누르면 📦 넣기</span></button>'+(placed.some(p=>!ITEMS[p.id].special)||wplaced.some(p=>!ITEMS[p.id].special)?'<button class="card allIn" data-allin="1"><i>🧹</i><span>이 방 다 넣기</span><em>창고로</em></button>':'')); }
+function allIn(){ let n=0; placed.slice().forEach(p=>{ if(ITEMS[p.id].special) return; removePlaced(p); stock[p.id]=(stock[p.id]|0)+1; n++; }); wplaced.slice().forEach(p=>{ if(ITEMS[p.id].special) return; removeWall(p); stock[p.id]=(stock[p.id]|0)+1; n++; });
+  unselect(); drawInv(); saveRoom(); toast("🧹 가구 "+n+"개를 📦 창고에 넣었어요<br><small>🪜 계단 · 🚪 옆방 문 · 📚 단어 책장은 그대로</small>", 2400); return n; }
 function setEdit(on){ if(edit===on && !on) return; cancelGhost(); unselect(); edit=on; $("drawer").classList.toggle("on", on); document.querySelector(".bar.bot").style.visibility=on?"hidden":"visible"; gridLines.visible=on && place!==PL.yard; if(place===PL.yard || !on) yEditOn(on && place===PL.yard); drawInv(); dirty=true; }
 function firstFree(id, r){ for(let z=0;z<RN;z++) for(let x=0;x<RN;x++) if(fits(id,x,z,r)) return [x,z]; return null; }
 function visWalls(){ return walls.filter(w=>w.visible).map(w=>w.userData.side); }
@@ -3804,7 +3810,8 @@ $("cv").addEventListener("pointerup", e=>{
   if(isHouse(c[0], c[1])){ enterHouse(); return; }
   walkTo(c[0], c[1]);
 });
-$("inv").addEventListener("click", e=>{ const b=e.target.closest(".card"); if(!b || b.disabled) return; if(b.dataset.shop){ openFurn("furn"); return; } startGhost(b.dataset.id, null); });
+$("inv").addEventListener("click", e=>{ const b=e.target.closest(".card"); if(!b || b.disabled) return; if(b.dataset.shop){ openFurn("furn"); return; }
+  if(b.dataset.allin){ ask("🧹 이 방 가구를 <b>모두 📦 창고</b>에 넣을까요?<br><small>다시 하나씩 놓아서 새로 꾸며요</small>", ()=>allIn()); return; } if(!b.dataset.id) return; startGhost(b.dataset.id, null); });
 $("pRot").onclick=()=>{ if(!ghost) return; if(ghost.y){ if(ghost.fixed) return; ghost.r=(ghost.r+1)%4; const [w,d]=yFp(ghost.id,ghost.r); ghost.x=Math.min(ghost.x,YN-w); ghost.z=Math.min(ghost.z,YN-d); yUpdGhost(); return; } if(ghost.wall){ const V=visWalls(); ghost.side=V[(V.indexOf(ghost.side)+1)%V.length]; ghost.s=Math.min(ghost.s,RN-1); updGhost(); return; } ghost.r=(ghost.r+1)%4; const [w,d]=fp(ghost.id,ghost.r); ghost.x=Math.min(ghost.x,RN-w); ghost.z=Math.min(ghost.z,RN-d); updGhost(); };
 $("pOk").onclick=()=>{ if(ghost && ghost.y) yOkGhost(); else okGhost(); }; $("pNo").onclick=cancelGhost;
 $("mRot").onclick=()=>{ if(!sel) return; if(sel.y){ const p=sel; if(p.fixed) return; const r=(p.r+1)%4, [w,d]=yFp(p.id,r), x=Math.min(p.x,YN-w), z=Math.min(p.z,YN-d), o0=[p.r,p.x,p.z]; yplaced.splice(yplaced.indexOf(p),1); const ok=yFits(p.id,x,z,r); yplaced.push(p);
