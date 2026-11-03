@@ -85,8 +85,9 @@ async def main():
             ok(all(i in r for i in ids), f"④ {rm} 처음 가구 {ids} ⊂ {r}")
         await goRoom("living")
         await A.evaluate("()=>{ localStorage.setItem('hyeng_study_v1', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('hyeng_study_v1')), {}))); ['bath','bedroom','kitchen'].forEach(k=>HOMEX.unlock(k)); }")
-        r=await A.evaluate("()=>[stock.bathtub|0, stock.closet|0, stock.stove|0, stock.fridge|0]")
-        ok(r==[1,1,1,1], f"④ 🛁 욕실 · 🛏 침실 · 🍳 부엌 세트 → 창고 {r}")
+        r=await A.evaluate("()=>[HOMEX.facOK('bath'), HOMEX.facOK('bedroom'), HOMEX.facOK('kitchen'), stock.stove|0]")
+        ok(r==[True,True,True,0], f"④ 🛁 욕실 · 🛏 침실 · 🍳 부엌 열기 (v569 기구는 따로) {r}")
+        await A.evaluate("()=>{ ['bathtub','closet','stove','fridge'].forEach(id=>addStock(id)); }")   # 가구 가게에서 산 셈
         # ⑤ 책장 · 복습
         await goRoom("f2")
         await A.evaluate("()=>useItem(placed.find(p=>p.id==='bookcase'))")

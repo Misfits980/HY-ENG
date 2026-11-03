@@ -1031,7 +1031,7 @@ Object.assign(ITEMS, {
     const fr=part(g, cyl(0.3,0.3,0.04,32), M(0xc9a64a,{metalness:.3}), 0,1.5,0.02); fr.rotation.x=Math.PI/2; fr.scale.set(0.8,1,1.25);
     const m=part(g, cyl(0.26,0.26,0.02,32), M(0xdff3ff,{metalness:.6, roughness:.08}), 0,1.5,0.04); m.rotation.x=Math.PI/2; m.scale.set(0.8,1,1.25); return g; }}
 });
-Object.assign(PRICE_ADD={}, {washer:25, microwave:15, fan:12, aircon:30, computer:35, radio:10, toaster:8, tank:30, robot:40, window:10, painting:12, poster:6, wclock:10, wshelf:8, mirror:12});
+Object.assign(PRICE_ADD={}, {bathtub:30, washer:25, microwave:15, fan:12, aircon:30, computer:35, radio:10, toaster:8, tank:30, robot:40, window:10, painting:12, poster:6, wclock:10, wshelf:8, mirror:12});
 /* 가구 값(💎) — 🛒 가구 가게에서 삼 · 몇 개는 🛠 재료로도 만듦 */
 /* (v557) 🛋 가구점 새 가구 — 사용자: "애들이 자기만의 집에서 자기만의 형식으로 꾸미는 걸 보고 싶어 · 가구들도 많이 넣을 수 있으면 넣자 · 가구점 하나 만들어서 보석으로 사게"
    도형으로 만든 가구 (cat = 가게 칸: play 놀이 · plant 식물 · hobby 취미 · kb 부엌·욕실 · season 계절 · 없으면 가구/가전/벽) · 🚪 옆방 문(sidedoor) = 벽에 달면 새 방 */
@@ -1149,7 +1149,8 @@ const canCO=o=>{ try{ return TECO.can(o); }catch(e){ return gems>=(o.g|0); } };
 const htmlCO=o=>{ try{ return TECO.cHtml(o); }catch(e){ return '💎 '+(o.g|0); } };
 const payCO=o=>{ try{ return TECO.pay2(o); }catch(e){ return spend(o.g|0); } };
 /* 가구 값 — 🌙 이달의 한정은 그달에만 · 💎+🪙 ×1.3 */
-function furnCO(id){ try{ if(TECO.isLim(id)){ if(TECO.limNow().indexOf(id)<0) return null; const o=TECO.cost(PRICE[id],"mix"); return {g:Math.round(o.g*1.3/5)*5, c:Math.round(o.c*1.3/10)*10}; } }catch(e){} return CO(PRICE[id]); }
+const FAC_P={stove:300, fridge:350, bathtub:450};   /* (v569) 시설 기구 = 🪙 만 (시설 열기에 💎 를 이미 냄) */
+function furnCO(id){ if(FAC_P[id]) return {g:0, c:FAC_P[id]}; try{ if(TECO.isLim(id)){ if(TECO.limNow().indexOf(id)<0) return null; const o=TECO.cost(PRICE[id],"mix"); return {g:Math.round(o.g*1.3/5)*5, c:Math.round(o.c*1.3/10)*10}; } }catch(e){} return CO(PRICE[id]); }
 const PACK={partition:4, fence:5, hedge:5};
 Object.keys(PRICE).forEach(k=>{ PRICE[k]=ECON(PRICE[k]); });
 /* (v539) 사용자: "2층 3층 4층 기능은 뭐로?" → 방·층마다 할 일 — 넓히면 생기는 특별 가구 (가게에선 안 팖) */
@@ -2987,7 +2988,7 @@ $("stoDone").onclick=()=>$("stoP").classList.remove("on");
 /* 🛒 가게 — 가구 · 벽지·바닥 · 늘리기 */
 let furnTab="furn", furnCat="all"; const swCache={};
 const APP_IDS={tv:1, fridge:1, stove:1}, catF=id=>ITEMS[id].cat||(ITEMS[id].wall?"wall":(ITEMS[id].app||APP_IDS[id])?"app":"furn");
-const USE_T={sidedoor:"🚪 옆방", music:"🎵 연주", arcade:"🕹 놀기", jump:"🤸 뛰기", stairs:"🪜 위층", fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
+const USE_T={bath:"🫧 씻기", sidedoor:"🚪 옆방", music:"🎵 연주", arcade:"🕹 놀기", jump:"🤸 뛰기", stairs:"🪜 위층", fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
 const ROOM_UP=[[8,320],[10,640],[12,960]];   /* (v563) ×1.6 */   /* (v557) 물가 60·120·180 → 200·400·600 */
 function swatch(L,i){ const k=(L===FLOORS?"f":"w")+i; if(swCache[k]) return swCache[k]; const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d"); g.scale(0.25,0.25); L[i].draw(g,256,256); return swCache[k]=c.toDataURL(); }
 const CRAFTABLE=id=>CRAFT.some(r=>r.id===id);
@@ -3000,7 +3001,7 @@ function drawFurn(){ { const F=$("furnGem"), n=v=>Number(v||0).toLocaleString("k
   let h="";
   if(furnTab==="furn") h=chipBar([["all","전체"],["lim","🌙 이달의 한정"],["new","✨ 새 가구"],["furn","🛋 가구"],["play","🧸 놀이"],["plant","🌿 식물"],["hobby","🎨 취미"],["kb","🍽 부엌·욕실"],["app","📺 가전"],["wall","🖼 벽"],["season","🎄 계절"]], furnCat, "fc")
     +Object.keys(PRICE).filter(id=>{ const lim=TECO.isLim(id), now_=TECO.limNow().indexOf(id)>=0; if(furnCat==="lim") return now_; if(lim && !now_) return false; return furnCat==="all" || (furnCat==="new" ? NEWF[id] : catF(id)===furnCat); }).sort((a,b)=>PRICE[a]-PRICE[b]).map(id=>{ const it=ITEMS[id], p=PRICE[id], o=furnCO(id), have=(stock[id]|0)+placed.filter(x=>x.id===id).length;
-    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(TECO.isLim(id)?' <em style="font-style:normal;font-size:11px;color:#fff;background:#7a5af5;border-radius:8px;padding:1px 6px">🌙 '+(new Date(TECO.T()+9*3600e3).getUTCMonth()+1)+'월 한정</em>':'')+(NEWF[id]&&!have?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(o&&canCO(o)?' on':'')+'" data-bf="'+id+'"'+(!o?' disabled':canCO(o)?'':' data-poor="1"')+'>'+(o?htmlCO(o):'🌙')+'</button></div>'; }).join("");
+    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(TECO.isLim(id)?' <em style="font-style:normal;font-size:11px;color:#fff;background:#7a5af5;border-radius:8px;padding:1px 6px">🌙 '+(new Date(TECO.T()+9*3600e3).getUTCMonth()+1)+'월 한정</em>':'')+(NEWF[id]&&!have?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+((()=>{ const fk={stove:"kitchen",fridge:"kitchen",bathtub:"bath"}[id]; try{ return fk && !HOMEX.facOK(fk) ? ' · <b style="color:#c0392b">🔒 '+HOMEX.SETS[fk].ic+' '+HOMEX.SETS[fk].nm+' 하면 써요</b>' : ''; }catch(e){ return ''; } })())+'</small></span><button class="btn'+(o&&canCO(o)?' on':'')+'" data-bf="'+id+'"'+(!o?' disabled':canCO(o)?'':' data-poor="1"')+'>'+(o?htmlCO(o):'🌙')+'</button></div>'; }).join("");
   if(furnTab==="wall"){ const sec=(L,own,cur,t,key)=>'<h4 class="bH">'+t+'</h4><div class="fwG">'+L.map((x,i)=>{ const o=own.includes(i), on=cur===i;
       return '<button class="fw'+(on?' on':'')+(o?'':' buy')+'" data-fw="'+key+i+'"'+(!o&&!canCO(CO(FW_PRICE,"coin"))?' data-poor="1"':'')+'><img src="'+swatch(L,i)+'" alt=""><b>'+x.nm+'</b><small>'+(on?'✅ 지금':o?'쓰기':htmlCO(CO(FW_PRICE,"coin")))+'</small></button>'; }).join("")+'</div>';
     h=sec(FLOORS,ownF,floorIx,"🟫 바닥","f")+sec(WALLS,ownW,wallIx,"🎨 벽지","w"); }
@@ -3086,6 +3087,7 @@ function useItem(p){ tEv("use"); const u=ITEMS[p.id].use;
   if(u==="music"){ emote(hero,"🎵"); act("yay"); try{ say(ITEMS[p.id].nm); SND.pop(); }catch(e){} toast("🎵 "+ITEMS[p.id].ic+" 띵띵띵~ <b>"+ITEMS[p.id].nm+"</b>", 1400); return; }
   if(u==="arcade"){ emote(hero,"🎮"); act("yay"); try{ SND.win(); }catch(e){} toast("🕹 삐용삐용! <b>하이 스코어!</b>", 1600); return; }
   if(u==="jump"){ act("yay"); emote(hero,"🤸"); try{ say("jump"); SND.pop(); }catch(e){} return; }
+  if((u==="stove"||u==="fridge") && window.HOMEX && !HOMEX.facOK("kitchen")){ HOMEX.facNeed("kitchen"); return; }   /* (v569) 요리·냉장고 = 🍳 부엌을 연 뒤 */
   if(window.HLIFE && HLIFE.use(u, p)) return;
   if(u==="study"){ if(visiting) return; ask("📚 <b>영어 공부</b> 하러 갈까요?<br><small>Daily 30 · 공부한 날이 <b>이어지면</b> 🏗 집을 넓힐 수 있어요</small>", ()=>{ location.href="../index.html"; }); return; } if(u==="fridge") openSto("fr"); else if(u==="chest") openSto("ch"); else if(u==="closet") openAv(); else if(u==="stove") openCraft("cook");
   else if(u==="piano") playPiano(); else if(u==="clock") tellTime(); else if(u==="tv") toggleTv(p); else if(u==="bear"){ emote(hero,"❤️"); act("yay"); say("teddy bear"); }

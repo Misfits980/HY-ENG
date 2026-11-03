@@ -15,14 +15,20 @@ const HOMEX=(()=>{
   /* 가구 세트 — 사면 창고로 · 아무 데나 놓음 */
   const SETS={
     walls:  {nm:"방 나누기 세트", ic:"🧱", st:1, gem:190, items:[["partition",6],["archway",2]], tip:"🧱 칸막이 벽 6 · 🚪 아치 문 2 — 내 방을 직접 나눠요"},
-    kitchen:{nm:"부엌 세트", ic:"🍳", st:2, gem:400, items:[["stove",1],["fridge",1],["table",1],["stool",2]], tip:"🍳 영어 듣고 요리 · 🧊 냉장고"},
-    bedroom:{nm:"침실 세트", ic:"🛏️", st:3, gem:320, items:[["closet",1],["kk_night",1],["rug",1]], tip:"💤 침대에서 자면 꿈 카드 · 👗 옷장"},
-    bath:   {nm:"욕실 세트", ic:"🛁", st:5, gem:400, items:[["bathtub",1],["mirror",1],["plant",1]], tip:"🫧 욕조에서 씻으면 ✨ 낚시 행운 10분"},
+    /* (v569) 사용자: 「부엌 시설 오픈에 다이아를 쓰게 하고 기구는 따로 더 받아야 하는 거 아니야?」 → 부엌·침실·욕실 = 💎 로 「시설 열기」(할 수 있는 일이 열림) · 기구는 🛋 가구 가게에서 🪙 로 따로 */
+    kitchen:{nm:"부엌 열기", ic:"🍳", st:2, gem:400, fac:1, need:"🍳 stove · 🧊 fridge", tip:"열면 🍳 영어 듣고 요리 · 🧊 냉장고 보관을 할 수 있어요<br>기구(🍳 stove · 🧊 fridge)는 🛋 가구 가게에서 🪙 로"},
+    bedroom:{nm:"침실 열기", ic:"🛏️", st:3, gem:320, fac:1, need:"🛏 bed", tip:"열면 💤 침대에서 자고 꿈 카드(영어 3문제 → 💎)<br>꾸밀 기구(👗 옷장 · 🌙 스탠드)는 🛋 가구 가게에서 🪙 로"},
+    bath:   {nm:"욕실 열기", ic:"🛁", st:5, gem:400, fac:1, need:"🛁 bathtub", tip:"열면 🫧 욕조에서 씻고 ✨ 낚시 행운 10분<br>🛁 욕조는 🛋 가구 가게에서 🪙 로"},
   };
   SETS.door={nm:"🚪 옆방 문", ic:"🚪", st:4, gem:400, rep:1, tip:"원하는 벽에 달면 문 너머에 <b>새 방</b> (따로 꾸밈·넓히기) · 6개까지"};
   const ORDER=["walls","door","kitchen","bedroom","bath","f2","f3","f4"];
   const NEXT={living:"f2", f2:"f3", f3:"f4"};
   let H=store("hyeng_proto_home"); if(!H || typeof H!=="object" || !H.o) H={c:"living", o:{living:1}, r:{}, mig:553};
+  /* (v569) 시설 열기 전부터 기구를 가진 아이는 그 시설을 연 것으로 (예전엔 기구만 있으면 요리·씻기·꿈 카드가 됐음) — 한 번 */
+  function facMig(){ try{ if(H.fm) return; const RM=store("hyeng_proto_room")||{};   /* 저장된 것을 직접 봄 (방을 늦게 불러와도) */
+      const have=id=>((RM.s||{})[id]|0)>0 || (RM.p||[]).some(q=>q && (q.id||q[0])===id) || (stock[id]|0)>0 || placed.some(q=>q.id===id) || Object.values(H.r||{}).some(rr=>(rr.p||[]).some(q=>q && (q.id||q[0])===id));
+      if(have("stove") || have("fridge")) H.o.kitchen=1; if(have("bathtub")) H.o.bath=1; if(have("closet") || store("hyeng_proto_dream")) H.o.bedroom=1; H.fm=569; save(); }catch(e){} }
+  facMig(); setTimeout(()=>{ if(H.fm===569 && !H.o.kitchen) { delete H.fm; facMig(); } }, 2500);   /* 늦게 불러온 방도 한 번 더 */
   let vcur="living";
   const save=()=>store("hyeng_proto_home", H);
   const inVisit=()=>!!visiting;
@@ -96,10 +102,11 @@ const HOMEX=(()=>{
   function state(id){ const r=info(id), S=streak(); if(id==="door"){ if(axCount()>=6) return "have"; } else if(H.o[id]) return "have"; if(r.par && R[r.par] && !H.o[r.par]) return "par"; if(S.best<r.st) return "streak"; if(gems<r.gem) return "gem"; return "ok"; }
   function unlock(id){ const r=info(id); if(state(id)!=="ok") return false; if(!spend(r.gem)) return false; if(id==="door"){ addStock("sidedoor"); saveRoom(); try{ SND.big(); tEv("roomup"); }catch(e){} toast("🚪 <b>옆방 문</b> → 🏠 창고<br><small>🛋️ 가구에서 골라 <b>원하는 벽</b>에 달아요 · 문을 누르면 새 방!</small>", 3400); drawUp(); return true; }
     H.o[id]=1; save();
-    if(SETS[id]) r.items.forEach(([it,n])=>{ if(ITEMS[it]) for(let i=0;i<n;i++) addStock(it); });
+    if(SETS[id] && r.items) r.items.forEach(([it,n])=>{ if(ITEMS[it]) for(let i=0;i<n;i++) addStock(it); });
     if(id==="f2") addStock("stairs");
     try{ saveRoom(); }catch(e){} try{ tEv("roomup"); }catch(e){} try{ SND.big(); act("yay"); emote(hero,"🎉"); }catch(e){}
-    toast(SETS[id] ? "🎉 <b>"+r.ic+" "+r.nm+"</b> → 🏠 창고<br><small>🛋️ 가구 단추로 <b>원하는 곳</b>에 놓아요</small>"
+    toast(SETS[id] && r.fac ? "🎉 <b>"+r.ic+" "+r.nm.replace(" 열기","")+"</b>이 열렸어요!<br><small>🛋 가구 가게에서 "+r.need+" 를 🪙 로 사서 놓아요</small>"
+      : SETS[id] ? "🎉 <b>"+r.ic+" "+r.nm+"</b> → 🏠 창고<br><small>🛋️ 가구 단추로 <b>원하는 곳</b>에 놓아요</small>"
       : "🎉 <b>"+r.ic+" "+r.nm+"</b> 이 생겼어요!<br><small>"+(id==="f2"?"🪜 계단이 창고에 들어갔어요 — 원하는 곳에 놓고 눌러요":"🪜 아래층 계단을 눌러 올라가요")+" · 바깥 집도 "+floors()+"층</small>", 3400);
     try{ if(window.ISLE) ISLE.syncMine(); }catch(e){} drawUp(); return true; }
   /* 📐 넓히기 — 어느 쪽으로 늘릴지 (dx = 왼쪽 벽 쪽 · dz = 오른쪽 벽 쪽 · 놓은 가구·벽 물건은 그대로 따라감) */
@@ -149,9 +156,9 @@ const HOMEX=(()=>{
     let h='<div class="upS"><i>🔥</i><div><b>연속 '+S.now+'일</b> <small>· 가장 긴 연속 '+S.best+'일 · 공부한 날 '+S.tot+'일</small><br><small>Daily 30 을 하면 하루가 쌓여요</small></div></div>';
     h+='<h4>📐 '+(c==="living"?"집":rinfo(c).nm)+' 넓히기 · 지금 '+RN+'×'+RN+(u?' → '+u[0]+'×'+u[0]+' · 💎 '+u[1]:' · 가장 커요')+'</h4>';
     if(u){ const d=u[0]-RN; h+='<div class="upDir">'+DIRS.map(D=>'<button data-grow="'+D[0]+'"'+(gems<u[1]?' disabled':'')+'>'+dirSVG(D[3]?d:0, D[4]?d:0, RN, u[0])+'<span>'+D[1]+' '+D[2]+'</span></button>').join("")+'</div>'+(gems<u[1]?'<p style="margin:0 4px 6px;font-size:12px;color:#8a6a4a">💎 '+(u[1]-gems)+'개 더 모으면 넓힐 수 있어요</p>':''); }
-    h+='<h4>🛋 가구 세트 · 🪜 위층</h4>';
+    h+='<h4>🔓 시설 열기 · 🛋 세트 · 🪜 위층</h4>';
     ORDER.forEach(k=>{ const r=info(k), st=state(k), need=Math.max(0,r.st-S.best);
-      const btn=st==="have" ? '<button class="go" disabled>'+(k==="door"?'✅ 6개':'✅ 있음')+'</button>' : st==="ok" ? '<button class="go" data-up="'+k+'">💎 '+r.gem+' 사기</button>'
+      const btn=st==="have" ? '<button class="go" disabled>'+(k==="door"?'✅ 6개':r.fac?'✅ 열림':'✅ 있음')+'</button>' : st==="ok" ? '<button class="go" data-up="'+k+'">💎 '+r.gem+(r.fac?' 열기':' 사기')+'</button>'
         : st==="par" ? '<button class="go" disabled>🔒 '+R[r.par].nm+' 먼저</button>' : st==="streak" ? '<button class="go" disabled>🔥 '+need+'일 더</button>' : '<button class="go" disabled>💎 '+(r.gem-gems)+' 더</button>';
       h+='<div class="upR'+(st==="have"?" have":"")+(hot===k?" hot":"")+'" data-row="'+k+'"><div class="ic">'+r.ic+'</div><div><b>'+r.nm+'</b><small>'+r.tip+'<br>🔥 연속 '+r.st+'일 + 💎 '+r.gem+'</small>'+(st==="streak"?'<div class="upBar"><i style="width:'+Math.round(Math.min(1,S.best/r.st)*100)+'%"></i></div>':'')+'</div>'+btn+'</div>'; });
     $("upB").innerHTML=h; }
@@ -159,6 +166,9 @@ const HOMEX=(()=>{
     if(k) setTimeout(()=>{ const r=document.querySelector('[data-row="'+k+'"]'); if(r) r.scrollIntoView({block:"center"}); }, 60); }
   function tap(){ return false; }
   function init(){ migrate(); doors(); try{ PL.room.name="🏠 "+(cur()==="living"?"내 집":rinfo(cur()).nm); }catch(e){} try{ drawLabels(); }catch(e){} }
-  return {R, SETS, ORDER, DIRS, newAnnex, annex, rinfo, isAx, H:()=>H, cur, slots, cells, isSlot, doors, labels, go2, moveTo, back, toLiving, visitStart, pub, streak, floors, state, unlock, grow, stairs, openUp, drawUp, tap, init, opened, save, migrate};
+  /* (v569) 시설 열렸나 · 안 열렸으면 안내 + 넓히기 창 */
+  const facOK=k=>inVisit() || !!H.o[k];
+  function facNeed(k){ const r=SETS[k]; toast(r.ic+" <b>"+r.nm.replace(" 열기","")+"</b>을 먼저 열어야 해요<br><small>🏗 넓히기 → "+r.ic+" "+r.nm+" (🔥 연속 "+r.st+"일 + 💎 "+r.gem+")</small>", 2600); setTimeout(()=>{ try{ openUp(k); }catch(e){} }, 900); return false; }
+  return {facOK, facNeed, R, SETS, ORDER, DIRS, newAnnex, annex, rinfo, isAx, H:()=>H, cur, slots, cells, isSlot, doors, labels, go2, moveTo, back, toLiving, visitStart, pub, streak, floors, state, unlock, grow, stairs, openUp, drawUp, tap, init, opened, save, migrate};
 })();
 window.HOMEX=HOMEX;

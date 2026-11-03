@@ -77,7 +77,7 @@ async def main():
         r=await A.evaluate("()=>[HOMEX.state('walls'), HOMEX.state('kitchen'), HOMEX.state('bath'), HOMEX.state('f2'), HOMEX.state('f3')]")
         ok(r==["ok","ok","ok","ok","par"], f"④ 연속 8일 + 💎3000: 칸막이·부엌·욕실 세트 ○ · 2층 ○ · 3층 = 2층 먼저 {r}")
         await A.evaluate("()=>document.querySelector('[data-up=kitchen]').click()"); await A.wait_for_timeout(200); await A.evaluate("()=>document.getElementById('askOk').click()")
-        ok(await until(A, "()=>HOMEX.H().o.kitchen===1", 20) and await A.evaluate("()=>HOUSE.gems()")==2600 and await A.evaluate("()=>[stock.stove,stock.fridge,stock.table,stock.stool].join()")=="1,1,1,2", "④ 🍳 부엌 세트 → 창고 (스토브·냉장고·식탁·의자2) · 💎 -400 (v563 물가)")
+        ok(await until(A, "()=>HOMEX.H().o.kitchen===1", 20) and await A.evaluate("()=>HOUSE.gems()")==2600 and await A.evaluate("()=>[stock.stove|0,stock.fridge|0].join()")=="0,0" and await A.evaluate("()=>HOMEX.facOK('kitchen')"), "④ 🍳 부엌 열기 = 💎 -400 · 기구는 따로 (v569)")
         r0=await A.evaluate("()=>[RN, placed.map(p=>[p.id,p.x,p.z])]")
         await A.evaluate("()=>document.querySelector('[data-grow=l]').click()"); await A.wait_for_timeout(200); await A.evaluate("()=>document.getElementById('askOk').click()"); await A.wait_for_timeout(600)
         r=await A.evaluate("()=>[RN, placed.map(p=>[p.id,p.x,p.z]), HOUSE.gems(), HOMEX.slots()[0].s]")
@@ -86,7 +86,7 @@ async def main():
         await A.evaluate("()=>document.getElementById('upP').classList.remove('on')")
         # ⑤ 새로 고침해도 8×8 · 가구 그대로
         await A.reload(); await A.wait_for_timeout(2200)
-        ok(await A.evaluate("()=>RN===8 && placed.some(p=>p.id==='bed') && placed.some(p=>p.id==='desk') && (stock.stove|0)===1"), "⑤ 새로 고침해도 8×8 · 가구·창고 그대로")
+        ok(await A.evaluate("()=>RN===8 && placed.some(p=>p.id==='bed') && placed.some(p=>p.id==='desk') && HOMEX.facOK('kitchen')"), "⑤ 새로 고침해도 8×8 · 가구 그대로 · 부엌 열림 그대로")
         # ⑥ 2층 = 🪜 계단 (원하는 곳에 놓고 누르면 올라감) · 바깥 집
         await A.evaluate("()=>HOMEX.unlock('f2')")
         ok(await A.evaluate("()=>HOMEX.floors()===2 && (stock.stairs|0)===1"), "⑥ 2층 열림 → 🪜 계단 창고에 · 바깥 집 2층")

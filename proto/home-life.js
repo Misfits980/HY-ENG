@@ -80,8 +80,9 @@ const HLIFE=(()=>{
     store("hyeng_proto_bath", Date.now()); try{ buffUntil=Math.max(buffUntil, now())+10*60e3; saveFarm(); SND.sparkle(); }catch(e){} emote(hero,"✨"); try{ say("bath"); }catch(e){} toast("🛁 뽀득뽀득! <b>✨ 반짝 10분</b><br><small>드문 물고기가 더 잘 잡혀요 (🍀 lucky)</small>", 2600); }
   function planter(){ const n=Math.min(9,(study().days||{}).tot||0); toast("🪴 공부한 날마다 꽃이 한 송이씩 피어요 <b>"+n+" / 9</b>", 2200); }
   function slept(p){ if(visiting) return; if(store("hyeng_proto_dream")===day()) return;
+    if(window.HOMEX && !HOMEX.facOK("bedroom")){ if(store("hyeng_proto_dreamh")!==day()){ store("hyeng_proto_dreamh", day()); setTimeout(()=>toast("💤 <b>🛏️ 침실</b>을 열면 자고 나서 꿈 카드(💎)가 나와요<br><small>🏗 넓히기 → 🛏️ 침실 열기</small>", 2600), 1500); } return; }   /* (v569) 꿈 카드 = 침실을 연 뒤 */
     setTimeout(()=>{ if(!hero.seat) return; quiz("💤 꿈속 단어 카드", pickWords(3), ok=>{ store("hyeng_proto_dream", day()); if(ok){ gems+=ok; saveBag(); } try{ tEv("dream"); }catch(_){} toast("💤 잘 잤어요! 꿈 카드 "+ok+" / 3 · 💎 +"+ok+"<br><small>내일 또 자면 새 꿈 카드</small>", 2600); }); }, 1500); }
-  function use(u){ if(u==="books"){ openBooks(); return true; } if(u==="brag"){ openBrag(); return true; } if(u==="scope"){ openScope(); return true; } if(u==="planter"){ planter(); return true; } if(u==="bath"){ if(visiting) return true; bath(); return true; } return false; }
+  function use(u){ if(u==="books"){ openBooks(); return true; } if(u==="brag"){ openBrag(); return true; } if(u==="scope"){ openScope(); return true; } if(u==="planter"){ planter(); return true; } if(u==="bath"){ if(visiting) return true; if(window.HOMEX && !HOMEX.facOK("bath")){ HOMEX.facNeed("bath"); return true; } bath(); return true; } return false; }
   /* ── 🛒 마트 — 씨앗 · 요리 재료 ── */
   const MART=["wheat","tomato","potato","corn","strawberry","apple","pumpkin","watermelon"];
   function openMart(){ const seeds=Object.keys(SEEDS||{}), rows=seeds.map(n=>[n+" seeds", MAT[n+" seeds"]?MAT[n+" seeds"].e:"🌰", SEEDS[n].p, "씨앗 — 내 마당 밭에 심어요"]).concat(MART.filter(n=>MAT[n]).map(n=>[n, MAT[n].e, Math.max(2, MAT[n].p*2), "요리 재료"]));
