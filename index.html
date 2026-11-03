@@ -2931,6 +2931,10 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppX{appearance:none;border:1px solid #6a5f9a;background:none;color:#fff;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer}
 .ppTy,.ppOpt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%} .ppChk{padding:3px 9px;border-radius:99px;background:#2d2650;border:1px solid #6a5f9a;cursor:pointer;font-size:13px} .ppChk input{margin:0 4px 0 0}
 .ppChk:has(input:checked){background:#ffd23f;color:#3a2600;border-color:#ffd23f}
+#ppPdf{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:rgba(20,16,40,.72);padding:16px}
+.ppPdfC{background:#fff;color:#2a2340;border-radius:16px;padding:18px 18px 16px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.ppPdfC b{display:block;font-size:17px;margin-bottom:6px} .ppPdfC p{font-size:13.5px;line-height:1.45;margin:0 0 12px;color:#5a5270} .ppPdfC .ppGo{margin:0 0 8px;width:100%;padding:12px;font-size:15px} .ppPdfC .ppNew{width:100%;padding:10px}
+.ppShot{position:fixed;left:0;top:0;z-index:-1;pointer-events:none;zoom:1!important}
 .ppNew,.ppGo{appearance:none;border:0;border-radius:10px;padding:7px 14px;font:800 14px var(--font);cursor:pointer;background:#4a4080;color:#fff} .ppGo{background:#ffd23f;color:#3a2600;margin-left:auto}
 #ppInfo{display:block;width:100%;color:#cfc6ff;font-size:12px}
 .ppView{flex:1;overflow:auto;padding:12px;-webkit-overflow-scrolling:touch} .ppWrap{margin:0 auto;width:210mm}
@@ -16282,7 +16286,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v575";
+const GAME_VER = "v576";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -21697,7 +21701,7 @@ const Paper = {
       +'<label>제목<input id="ppTitle" maxlength="30" placeholder="(비우면 자동)" value="'+E(o.title||"")+'"></label>'
       +'<div class="ppTy" id="ppTy"></div>'
       +'<div class="ppOpt"><label class="ppChk"><input type="checkbox" id="ppAB"'+(P.ab!==false?' checked':'')+'>A형·B형</label><label class="ppChk"><input type="checkbox" id="ppKey"'+(P.key!==false?' checked':'')+'>답안지</label>'
-      +'<button class="ppNew" data-pp="new">🔀 새로 뽑기</button><button class="ppGo" data-pp="print">🖨 인쇄 / PDF 저장</button></div><small id="ppInfo"></small></div>'
+      +'<button class="ppNew" data-pp="new">🔀 새로 뽑기</button><button class="ppGo" data-pp="print">'+(this.pdfMode()?'📄 PDF 만들기 (인쇄·저장)':'🖨 인쇄 / PDF 저장')+'</button></div><small id="ppInfo"></small></div>'
       +'<div class="ppView"><div class="ppWrap" id="ppWrap"></div></div>';
     document.body.appendChild(d); document.body.classList.add("ppOn");
     const fill=keep=>{ const s=$("ppSet").value, L=Study.lessons(s), opt=L.map((x,i)=>'<option value="'+i+'">'+Study.stageNo(s,x.n)+(x.fin?' 🚩':'')+'</option>').join('');
@@ -21713,7 +21717,7 @@ const Paper = {
         q.classList.add("sel"); q.insertAdjacentHTML("beforeend", '<button class="ppSwap" data-pp="swap" data-src="'+q.dataset.src+'">🔄 이 문제 바꾸기</button>'); return; }
       const b=e.target.closest && e.target.closest("[data-pp]"); if(!b) return; const a=b.dataset.pp;
       if(a==="swap"){ const [si,qi]=String(b.dataset.src).split(":").map(Number); if(this.B && this.B.swap(si, qi)) this.render(); else hyToast("바꿀 단어가 더 없어요 (범위를 넓혀 보세요)", 1800); return; }
-      if(a==="x") this.close(); else if(a==="new"){ this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print") this.print(); });
+      if(a==="x") this.close(); else if(a==="new"){ this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print"){ if(this.pdfMode()) this.pdf(); else this.print(); } else if(a==="pdfShare") this.pdfShare(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); } });
     this._rs=()=>this.fit(); addEventListener("resize", this._rs);
     try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}   /* 예문·대화 데이터 (처음이면 받는 동안 기다렸다가 다시) */
     if(!this.PPX) fetch("data/ppx.json").then(r=>r.json()).then(j=>{ this.PPX=j; if($("paper")) this.make(); }).catch(()=>{});   /* (v545) 과거분사 예문 (Claude 작성) */
@@ -21842,6 +21846,39 @@ const Paper = {
     I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · 범위 단어 "+B.nw+"개 · "+B.total+"문제"+(c.ab?" × A·B형":"")+" · "+np+"쪽"+(B.xv?" · 불규칙 동사 "+B.xv+"개는 앞 단계·아래 학년에서 복습으로 넣었어요":"")+(B.total<c.n?" · 범위 단어가 모자라 "+B.total+"문제만":"")+(B.warn.length?" · 이 범위엔 못 내는 형식: "+B.warn.join(", ")+" (그림·예문·대화가 있는 단어가 없어요 — 다른 형식으로 채웠어요)":"");
     this.fit(); },
   fit(){ const W=$("ppWrap"), V=W && W.parentNode; if(!V) return; const mm=96/25.4, z=Math.min(1, (V.clientWidth-24)/(210*mm)); W.style.zoom=z.toFixed(3); },
+  /* (v576) 사용자: 「휴대폰 홈 화면 앱에서 인쇄/PDF 저장이 안 됨」 — 아이폰·아이패드 홈 화면 앱(standalone)은 window.print() 가 아무 일도 안 함
+     → 쪽마다 그림으로 찍어(html2canvas, lib/) 우리가 직접 PDF 파일을 만들고 → 📤 공유 창 (프린트 · 파일에 저장 · 카톡) */
+  pdfMode(){ try{ if(this.forcePdf) return true; const ua=navigator.userAgent||"", ios=/iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1);
+      return ios && (navigator.standalone===true || matchMedia("(display-mode: standalone)").matches); }catch(e){ return false; } },
+  h2c(){ return this._h2c || (this._h2c=new Promise((ok, no)=>{ if(window.html2canvas) return ok(window.html2canvas); const sc=document.createElement("script"); sc.src="lib/html2canvas.min.js";
+      sc.onload=()=>window.html2canvas ? ok(window.html2canvas) : no(new Error("h2c")); sc.onerror=()=>{ this._h2c=null; no(new Error("load")); }; document.head.appendChild(sc); })); },
+  /* JPEG 쪽 그림들 → PDF (A4 · 쪽마다 그림 한 장) */
+  pdfBlob(jp){ const enc=new TextEncoder(), parts=[], off=[]; let len=0; const put=x=>{ const b=typeof x==="string" ? enc.encode(x) : x; parts.push(b); len+=b.length; };
+    const W=595.28, H=841.89, n=jp.length, obj=(i, body)=>{ off[i]=len; put(i+" 0 obj\n"); body(); put("\nendobj\n"); };
+    put("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n"); obj(1, ()=>put("<< /Type /Catalog /Pages 2 0 R >>"));
+    obj(2, ()=>put("<< /Type /Pages /Count "+n+" /Kids ["+jp.map((x,i)=>(3+i*3)+" 0 R").join(" ")+"] >>"));
+    jp.forEach((x,i)=>{ const P=3+i*3, C=P+1, I=P+2, cs="q "+W+" 0 0 "+H+" 0 0 cm /Im0 Do Q";
+      obj(P, ()=>put("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+W+" "+H+"] /Resources << /XObject << /Im0 "+I+" 0 R >> >> /Contents "+C+" 0 R >>"));
+      obj(C, ()=>{ put("<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream"); });
+      obj(I, ()=>{ put("<< /Type /XObject /Subtype /Image /Width "+x.w+" /Height "+x.h+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+x.b.length+" >>\nstream\n"); put(x.b); put("\nendstream"); }); });
+    const N=3+n*3, xo=len; let xr="xref\n0 "+N+"\n0000000000 65535 f \n"; for(let i=1;i<N;i++) xr+=String(off[i]).padStart(10,"0")+" 00000 n \n";
+    put(xr+"trailer\n<< /Size "+N+" /Root 1 0 R >>\nstartxref\n"+xo+"\n%%EOF\n"); return new Blob(parts, {type:"application/pdf"}); },
+  pdfBox(h){ let o=$("ppPdf"); if(!o){ o=document.createElement("div"); o.id="ppPdf"; $("paper").appendChild(o); } o.innerHTML='<div class="ppPdfC">'+h+'</div>'; return o; },
+  async pdf(){ if(this._pdfBusy) return; const W=$("ppWrap"); if(!W) return; const pg=[...W.querySelectorAll(".pp")]; if(!pg.length) return;
+    this._pdfBusy=1; this._pdfF=null; let host=null;
+    try{ this.pdfBox('<b>📄 PDF 만드는 중…</b><p id="ppPdfN">0 / '+pg.length+'쪽</p>'); const h2c=await this.h2c();
+      host=document.createElement("div"); host.className="ppWrap ppShot"; $("paper").appendChild(host); const jp=[];
+      for(let i=0;i<pg.length;i++){ const c=pg[i].cloneNode(true); c.querySelectorAll(".ppSwap").forEach(x=>x.remove()); c.querySelectorAll(".ppQ.sel").forEach(x=>x.classList.remove("sel")); host.innerHTML=""; host.appendChild(c);
+        const cv=await h2c(c, {scale:1.6, backgroundColor:"#ffffff", useCORS:true, logging:false, scrollX:0, scrollY:0, windowWidth:Math.max(innerWidth, 900)});
+        const u=cv.toDataURL("image/jpeg", 0.9), bin=atob(u.slice(u.indexOf(",")+1)), b=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) b[k]=bin.charCodeAt(k);
+        jp.push({w:cv.width, h:cv.height, b}); cv.width=cv.height=0; const t=$("ppPdfN"); if(t) t.textContent=(i+1)+" / "+pg.length+"쪽"; await new Promise(r=>setTimeout(r, 30)); }
+      const c=this.cfg(), nm=String(c.title || (Study.label(c.set)+" 단어 시험")).replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim().slice(0,40) || "시험지";
+      const bl=this.pdfBlob(jp); this._pdfF=new File([bl], nm+".pdf", {type:"application/pdf"}); this._pdfU && URL.revokeObjectURL(this._pdfU); this._pdfU=URL.createObjectURL(bl);
+      this.pdfBox('<b>✅ PDF 완성 · '+pg.length+'쪽</b><p>아래를 누르면 📤 공유 창이 떠요 — 「프린트」 · 「파일에 저장」 · 카톡으로 보내기</p><button class="ppGo" data-pp="pdfShare">📤 공유 · 인쇄 · 저장</button><button class="ppNew" data-pp="pdfX">닫기</button>');
+    }catch(e){ this.pdfBox('<b>⚠️ PDF 를 못 만들었어요</b><p>인터넷을 확인하고 다시 눌러 주세요'+(e && e.message ? ' <small>('+this.E(String(e.message).slice(0,40))+')</small>' : '')+'</p><button class="ppNew" data-pp="pdfX">닫기</button>'); }
+    finally{ if(host) host.remove(); this._pdfBusy=0; } },
+  pdfShare(){ const f=this._pdfF; if(!f) return; try{ if(navigator.canShare && navigator.canShare({files:[f]})){ navigator.share({files:[f], title:f.name}).catch(()=>{}); return; } }catch(e){}
+    const a=document.createElement("a"); a.href=this._pdfU; a.download=f.name; a.target="_blank"; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(), 500); },
   print(){ const W=$("ppWrap"); if(!W) return; const z=W.style.zoom; W.style.zoom=""; document.body.classList.add("ppPrint"); const done=()=>{ document.body.classList.remove("ppPrint"); W.style.zoom=z; removeEventListener("afterprint", done); };
     addEventListener("afterprint", done); setTimeout(()=>{ try{ window.print(); }catch(e){ done(); } }, 60); setTimeout(()=>{ if(document.body.classList.contains("ppPrint") && !matchMedia("print").matches) done(); }, 60000); }
 };
