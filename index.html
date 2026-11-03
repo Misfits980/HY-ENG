@@ -2967,7 +2967,19 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .kjT{position:absolute;left:1.5mm;top:calc(var(--sp)*2 - .9em);font-style:normal;font-size:var(--tf);line-height:1;color:#c9c5d8;white-space:nowrap;font-weight:600;letter-spacing:.03em;z-index:1}
 .kjChk{width:4.6mm;height:4.6mm;border:.35mm solid #b8b2d6;border-radius:1.2mm;align-self:center;font-style:normal}
 .kjB.s .kjChk{align-self:start;margin-top:.8mm}
-.kjSt p{margin:0;font-size:12pt;font-weight:800;line-height:1.35;color:#1d1b26} .kjSt small{display:block;font-size:8.8pt;color:#6b6585;margin:.4mm 0 1.6mm}
+.kjSt p{margin:0;font-size:12pt;font-weight:800;line-height:1.35;color:#1d1b26}
+/* (v582) 📐 문장 성분 */
+.ppKsO{display:none!important} #paper.ppKj.ppKs .ppKsO{display:flex!important}
+.kjSt p.gm{display:flex;flex-wrap:wrap;align-items:flex-start;gap:1.2mm 1.6mm;line-height:1.25;margin-bottom:.4mm}
+.sg{display:inline-flex;flex-direction:column;align-items:center;max-width:100%}
+.sgT{padding:0 .4mm .5mm;border-bottom:.6mm solid var(--c,transparent)} .sg.n .sgT{border-bottom-color:transparent}
+.sg em{font-style:normal;font-size:7.2pt;font-weight:900;color:var(--c,#999);line-height:1;margin-top:.6mm;min-height:2.6mm;white-space:nowrap;letter-spacing:.02em}
+.sg.pu{margin-left:-2.1mm} .sg.q .sgT{border-bottom-color:#a8a2c6} .sg em.qb{display:block;width:10mm;height:4.4mm;min-height:0;border:.3mm solid #b8b2d6;border-radius:1.2mm;margin-top:.7mm}
+.r-S{--c:#2f6fd6} .r-V{--c:#e0523d} .r-O,.r-DO{--c:#2b9a57} .r-IO{--c:#159c9c} .r-C{--c:#8a4fd6} .r-OC{--c:#d9821a}
+.sgF{align-self:flex-start;margin:.2mm 0 0 1.5mm;padding:.6mm 2.4mm;border-radius:99px;background:#f3f0ff;border:.3mm solid #d8d1f5;font-size:8.5pt;font-weight:900;color:#4b3fae;white-space:nowrap}
+.sgF.t{display:flex;gap:2.2mm;background:none;border:0;padding:.6mm 0;color:#4b3fae} .sgF.t i{font-style:normal;font-weight:800}
+.kjK{display:grid;grid-template-columns:6.5mm 1fr;gap:0 2.5mm;align-items:start;padding:1.6mm 2mm;border-bottom:.25mm solid var(--kE);break-inside:avoid;font-size:9.5pt}
+.kjK div{display:flex;flex-wrap:wrap;gap:.8mm 3mm;align-items:baseline} .kjK span b{color:var(--c);font-weight:900;margin-right:.6mm} .kjK em{font-style:normal;font-weight:900;color:#4b3fae;background:#f3f0ff;border-radius:99px;padding:.2mm 2mm} .kjSt small{display:block;font-size:8.8pt;color:#6b6585;margin:.4mm 0 1.6mm}
 .ppView{flex:1;overflow:auto;padding:12px;-webkit-overflow-scrolling:touch} .ppWrap{margin:0 auto;width:210mm}
 .pp{position:relative;width:210mm;height:297mm;box-sizing:border-box;padding:12mm 12mm 14mm;margin:0 auto 12px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden;color:#1d1b26}
 .ppHd{display:grid;grid-template-columns:1fr auto;gap:4mm 6mm;align-items:center;border-bottom:2.5px solid #1d1b26;padding-bottom:3mm;margin-bottom:3mm}
@@ -16318,7 +16330,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v581";
+const GAME_VER = "v582";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17988,6 +18000,7 @@ const Study = (function(){
         if(t==="gx") return gxQ(w, gr);   // (v549)
         if(["opp","syn","pastc","def","xfam","xidm","xfrm","conf2","sent"].indexOf(t)>=0) return chkQ(t, w, set, O);
         return mkDeep(t, w, gr, O); }catch(e){ return null; } },
+    sentsFull:w=>sentsOf(w).map(x=>({en:(x.pre+(x.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+x.post).replace(/\s+/g," ").trim(), ko:x.ko||""})),   /* (v582) ✏️ 따라쓰기 문장 + 문장 성분 */
     deepLv, dlCur:()=>dlNow, DL_MAX, estMin, dayTick, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, hsqReady:()=>!!HSQ || hsqTried>=2, _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length, bank:!!G.bank} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
@@ -21732,6 +21745,7 @@ const Paper = {
       +'<label>Stage<select id="ppFrom"></select>~<select id="ppTo"></select></label>'
       +'<label><span id="ppNL">문제</span><select id="ppN">'+[20,25,30,40,50].map(n=>'<option'+(n===(P.n||30)?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'
       +'<label class="ppKjO">번씩<select id="ppRep"></select></label><label class="ppChk ppKjO"><input type="checkbox" id="ppTr">첫 칸에 흐린 글씨</label>'
+      +'<label class="ppKsO">📐 문법<select id="ppGm"><option value="off">끄기</option><option value="show">표시해서 보여 주기</option><option value="quiz">문제로 내기 (+답안지)</option></select></label>'
       +'<label>제목<input id="ppTitle" maxlength="30" placeholder="(비우면 자동)" value="'+E(o.title||"")+'"></label>'
       +'<div class="ppTy" id="ppTy"></div>'
       +'<div class="ppOpt"><label class="ppChk"><input type="checkbox" id="ppAB"'+(P.ab!==false?' checked':'')+'>A형·B형</label><label class="ppChk"><input type="checkbox" id="ppKey"'+(P.key!==false?' checked':'')+'>답안지</label>'
@@ -21760,8 +21774,8 @@ const Paper = {
     this.make(); clearTimeout(this._lt); let tries=0; const again=()=>{ if(!$("paper")) return; const ok=Object.keys(TALK).length && Object.keys(BEX).length; this.make(); if(!ok && ++tries<6) this._lt=setTimeout(again, 800); }; this._lt=setTimeout(again, 700); },
   close(){ const d=$("paper"); if(d) d.remove(); document.body.classList.remove("ppOn"); if(this._rs) removeEventListener("resize", this._rs); this._rs=null; },
   cfg(){ const set=$("ppSet").value, f=+$("ppFrom").value||0, t=Math.max(f, +$("ppTo").value||0), ty=[...document.querySelectorAll("#paper .ppTy input:checked")].map(x=>x.value);
-    const c={set, from:f, to:t, n:+$("ppN").value||30, ty: ty.length ? ty : ["mean"], ab:$("ppAB").checked, key:$("ppKey").checked, title:$("ppTitle").value.trim(), rep:+(($("ppRep")||{}).value)||5, tr:!!(($("ppTr")||{}).checked)};
-    try{ const P0=this.pref(), tyG=P0.tyG||{}; tyG[this.gr(set)]=c.ty; localStorage.setItem("hyeng_paper", JSON.stringify({set, n:c.n, tyG, ab:c.ab, key:c.key, mode:this.mode||"test", rep:Object.assign({}, P0.rep||{}, this.mode && this.mode!=="test" ? {[this.mode]:c.rep} : {}), tr:Object.assign({}, P0.tr||{}, this.mode && this.mode!=="test" ? {[this.gr(set)]:c.tr} : {})})); }catch(e){} return c; },
+    const c={set, from:f, to:t, n:+$("ppN").value||30, ty: ty.length ? ty : ["mean"], ab:$("ppAB").checked, key:$("ppKey").checked, title:$("ppTitle").value.trim(), rep:+(($("ppRep")||{}).value)||5, tr:!!(($("ppTr")||{}).checked), gm:(this.gr(set)==="g12" ? "off" : (($("ppGm")||{}).value || "off"))};
+    try{ const P0=this.pref(), tyG=P0.tyG||{}; tyG[this.gr(set)]=c.ty; localStorage.setItem("hyeng_paper", JSON.stringify({set, n:c.n, tyG, ab:c.ab, key:c.key, mode:this.mode||"test", rep:Object.assign({}, P0.rep||{}, this.mode && this.mode!=="test" ? {[this.mode]:c.rep} : {}), tr:Object.assign({}, P0.tr||{}, this.mode && this.mode!=="test" ? {[this.gr(set)]:c.tr} : {}), gm:Object.assign({}, P0.gm||{}, this.mode==="ks" && this.gr(set)!=="g12" ? {[this.gr(set)]:c.gm} : {})})); }catch(e){} return c; },
   /* ── 문제 만들기 (단어 하나 = 문제 하나 · 같은 단어가 두 번 안 나옴) ── */
   build(c){ Study.ctx(c.set); const L=Study.lessons(c.set).slice(c.from, c.to+1), seen={}, ws=[];
     L.forEach(x=>(x.ws||[]).forEach(w=>{ if(w && w.en && w.ko && !seen[w.en]){ seen[w.en]=1; ws.push(w); } }));
@@ -21882,16 +21896,40 @@ const Paper = {
      초1-2·3-4 는 첫 칸에 흐린 글씨(따라 쓰기) · 범위 순서대로(🔀 누르면 섞기) · 같은 A4 · 인쇄·PDF 그대로 */
   KJ_REP:{kw:[3,5,8,10], ks:[1,2,3,5]}, KJ_DEF:{kw:5, ks:2},
   kjUi(reset){ const d=$("paper"); if(!d) return; const kj=this.mode==="kw" || this.mode==="ks"; d.classList.toggle("ppKj", kj); $("ppNL").textContent = kj ? "단어" : "문제";
-    if(!kj) return; const P=this.pref(), m=this.mode, L=this.KJ_REP[m], cur=+((P.rep||{})[m])||this.KJ_DEF[m], sel=$("ppRep"), g=this.gr($("ppSet").value), tr=(P.tr||{})[g];
+    const g0=this.gr($("ppSet").value); d.classList.toggle("ppKs", this.mode==="ks" && g0!=="g12");   /* (v582) 📐 문법은 초3-4 부터 */
+    if(!kj) return; const P=this.pref(), m=this.mode, L=this.KJ_REP[m], cur=+((P.rep||{})[m])||this.KJ_DEF[m], sel=$("ppRep"), g=g0, tr=(P.tr||{})[g];
+    if(reset){ const gm=(P.gm||{})[g]; $("ppGm").value = gm || "show"; }
     if(reset || !sel.options.length){ sel.innerHTML=L.map(n=>'<option'+(n===cur?' selected':'')+'>'+n+'</option>').join(''); if(L.indexOf(cur)<0) sel.value=String(this.KJ_DEF[m]); $("ppTr").checked = tr!=null ? !!tr : (g==="g12" || g==="g34"); } },
   kjWords(c){ Study.ctx(c.set); const L=Study.lessons(c.set).slice(c.from, c.to+1), seen={}, ws=[];
     L.forEach(x=>(x.ws||[]).forEach(w=>{ if(w && w.en && w.ko && !seen[w.en]){ seen[w.en]=1; ws.push(w); } }));
     return this._kjMix ? this.sh(ws, this.rnd(this.seed)) : ws; },
-  kjSent(w){ let st=null; try{ st=Study.sentOf(w); }catch(e){} if(!st) return null; const full=(st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post).replace(/\s+/g," ").trim();
+  /* (v582) 📐 문장 성분 — data/sva.json (Claude 가 예문마다 S·V·O·C·형식·시제를 적음) { 문장: [형식, 시제, [[역할, 시작, 길이], …]] } */
+  svaLoad(){ if(this.SVA) return Promise.resolve(this.SVA); if(this._svaP) return this._svaP;
+    return (this._svaP=fetch("data/sva.json").then(r=>r.json()).then(j=>{ this.SVA=j; if($("paper") && this.mode==="ks" && this.c) this.kjRender(); return j; }).catch(()=>{ this._svaP=null; return null; })); },
+  SV_LB:{ g34:{S:"누가", V:"해요"}, g56:{S:"주어", V:"동사", O:"목적어", IO:"~에게", DO:"~을", C:"보어", OC:"보어"}, mid:{S:"S", V:"V", O:"O", IO:"I.O.", DO:"D.O.", C:"C", OC:"O.C."} },
+  SV_T4:{"현재":"현재", "과거":"과거", "미래":"미래", "현재진행":"-ing (진행)", "과거진행":"-ing (진행)"},
+  kjGram(x, gr, quiz){ const E=t=>this.E(t), G=x.g, LB=this.SV_LB[gr]||this.SV_LB.mid, s=x.en, out=[]; let p=0;
+    const plain=t=>t.split(/\s+/).filter(Boolean).forEach(w=>out.push('<span class="sg n'+(/^[.,!?;:'"’”)]+$/.test(w)?' pu':'')+'"><span class="sgT">'+E(w)+'</span><em></em></span>'));   /* 마침표만 남은 조각은 앞 말에 붙임 */
+    (G[2]||[]).forEach(r=>{ const [ro, a, n]=r; if(!LB[ro]) return; if(a<p) return; plain(s.slice(p, a)); out.push('<span class="sg r-'+ro+(quiz?' q':'')+'"><span class="sgT">'+E(s.slice(a, a+n))+'</span>'+(quiz?'<em class="qb"></em>':'<em>'+LB[ro]+'</em>')+'</span>'); p=a+n; });
+    plain(s.slice(p));
+    let tag=""; const t=G[1]||"";
+    if(gr==="mid") tag = '<span class="sgF">'+(quiz ? '(　　) 형식' : G[0]+'형식')+'</span>';
+    else if(gr==="g34"){ const k=this.SV_T4[t]; if(k) tag = quiz ? '<span class="sgF t">언제? '+["현재","과거","미래","-ing (진행)"].map(o=>'<i>○ '+o+'</i>').join('')+'</span>' : '<span class="sgF">'+k+'</span>'; }
+    else if(t) tag = '<span class="sgF">'+(quiz ? '시제 (　　　　)' : '시제: '+E(t))+'</span>';
+    return '<p class="gm">'+out.join('')+tag+'</p>'; },
+  kjKey(x, gr){ const G=x.g, LB=this.SV_LB[gr]||this.SV_LB.mid, s=x.en, E=t=>this.E(t);
+    const parts=(G[2]||[]).filter(r=>LB[r[0]]).map(r=>'<span class="r-'+r[0]+'"><b>'+LB[r[0]]+'</b> '+E(s.slice(r[1], r[1]+r[2]))+'</span>');
+    const t=G[1]||"", tail = gr==="mid" ? G[0]+'형식' : gr==="g34" ? (this.SV_T4[t]||"") : t;
+    return parts.join('')+(tail?'<em>'+E(tail)+'</em>':''); },
+  kjSent(w, gm){ if(gm && gm!=="off" && this.SVA){ let L=[]; try{ L=Study.sentsFull(w); }catch(e){}
+      for(const x of L){ const g=x.en.length>=6 && x.en.length<=110 && this.SVA[x.en]; if(g) return {en:x.en, ko:x.ko, w:w.en, g}; } }
+    let st=null; try{ st=Study.sentOf(w); }catch(e){} if(!st) return null; const full=(st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post).replace(/\s+/g," ").trim();
     return full.length>=6 && full.length<=110 ? {en:full, ko:st.ko||"", w:w.en} : null; },
   kjRender(){ const W=$("ppWrap"); if(!W) return; const c=this.c, I=$("ppInfo"), top=W.parentNode.scrollTop, E=x=>this.E(x), m=this.mode, ks=m==="ks"; W.innerHTML=""; W.style.zoom="";
     const all=this.kjWords(c); let items=[], miss=0;
-    if(ks){ for(const w of all){ if(items.length>=c.n) break; const x=this.kjSent(w); if(x) items.push(x); else miss++; } } else items=all.slice(0, c.n).map(w=>({en:dispEn(w.en), ko:w.ko, emo:w.emoji||""}));
+    const gr=this.gr(c.set), gm = ks && gr!=="g12" ? c.gm : "off", quiz=gm==="quiz";
+    if(gm!=="off" && !this.SVA){ this.svaLoad(); I.textContent="📐 문법 자료를 받는 중…"; }
+    if(ks){ for(const w of all){ if(items.length>=c.n) break; const x=this.kjSent(w, gm); if(x) items.push(x); else miss++; } } else items=all.slice(0, c.n).map(w=>({en:dispEn(w.en), ko:w.ko, emo:w.emoji||""}));
     if(!items.length){ I.textContent = ks ? "이 범위엔 예문이 있는 단어가 없어요" : "범위에 단어가 없어요"; return; }
     const ttl=c.title || (Study.label(c.set)+(ks?" 문장 따라쓰기":" 단어 따라쓰기")), rep=c.rep, tr=c.tr, pages=[], young=/^g(12|34)$/.test(this.gr(c.set)), pic=!ks && young && items.some(x=>x.emo); let body=null;
     /* (v581) 사용자: 「깜지 말고 따라쓰기 · 조금 더 이쁘게」 → 영어 4선 공책 줄(빨간 바닥 줄) · 동그라미 번호 · 카드 줄 · 그림(초1-4) · 다 쓰면 ✔ 칸 · 머리에 「참 잘했어요」 도장 자리 */
@@ -21911,10 +21949,14 @@ const Paper = {
         const cw=(AW/per).toFixed(1), L=[]; let k=0; for(let l=0;l<lines;l++){ const row=[]; for(let j=0;j<per && k<rep;j++,k++) row.push(k===0 && tr ? x.en : ""); L.push(strip(row, cw)); }
         fitTx(add('<div class="kjB'+(pic?' pic':'')+'">'+no+(pic?'<span class="kjPic">'+(x.emo?emoHtml(x.emo):'')+'</span>':'')+'<div class="kjW"><b>'+E(x.en)+'</b><small>'+E(x.ko)+'</small></div><div class="kjS">'+L.join('')+'</div>'+chk+'</div>')); return; }
       const two=x.en.length>(young?46:72), L=[]; if(tr) L.push(strip([x.en])); for(let k=0;k<rep*(two?2:1);k++) L.push(strip([""]));
-      fitTx(add('<div class="kjB s">'+no+'<div class="kjSt"><p>'+E(x.en)+'</p><small>'+E(x.ko)+'</small><div class="kjS">'+L.join('')+'</div></div>'+chk+'</div>')); });
+      fitTx(add('<div class="kjB s">'+no+'<div class="kjSt">'+(x.g && gm!=="off" ? this.kjGram(x, gr, quiz) : '<p>'+E(x.en)+'</p>')+'<small>'+E(x.ko)+'</small><div class="kjS">'+L.join('')+'</div></div>'+chk+'</div>')); });
+    /* (v582) 📐 문제로 냈으면 맨 뒤에 답안지 */
+    if(quiz && items.some(x=>x.g)){ const pg=document.createElement("section"); pg.className="pp kj key"+(young?"":" big"); pg.innerHTML='<header class="kjHd sm"><b>📗 답안지 — '+E(ttl)+'</b><span>'+E(this.rng(c))+'</span></header><div class="kjBody"></div><footer class="ppFt"></footer>'; W.appendChild(pg); pages.push(pg); body=pg.querySelector(".kjBody");
+      items.forEach((x,i)=>{ if(x.g) add('<div class="kjK"><b class="kjNo">'+(i+1)+'</b><div>'+this.kjKey(x, gr)+'</div></div>'); }); }
     pages.forEach((p,i)=>{ p.querySelector(".ppFt").textContent=(i+1)+" / "+pages.length; });
     W.parentNode.scrollTop=top;
-    I.textContent="✏️ "+(ks?"문장 따라쓰기":"단어 따라쓰기")+" · "+items.length+(ks?"문장":"단어")+" × "+rep+"번 · "+pages.length+"쪽"+(ks && miss ? " · 예문이 없는 단어 "+miss+"개는 뺐어요" : "")+(all.length>items.length && !ks ? " · 범위 단어 "+all.length+"개 중 앞 "+items.length+"개 (🔀 = 섞어서)" : "")+(this._kjMix?" · 🔀 섞음":" · 범위 순서대로");
+    const ng=items.filter(x=>x.g).length;
+    I.textContent="✏️ "+(ks?"문장 따라쓰기":"단어 따라쓰기")+(gm!=="off" ? (this.SVA ? " · 📐 문법 "+ng+"문장"+(ng<items.length?" (나머지 "+(items.length-ng)+"문장은 문법 표시 없음)":"") : " · 📐 문법 자료 받는 중…") : "")+" · "+items.length+(ks?"문장":"단어")+" × "+rep+"번 · "+pages.length+"쪽"+(ks && miss ? " · 예문이 없는 단어 "+miss+"개는 뺐어요" : "")+(all.length>items.length && !ks ? " · 범위 단어 "+all.length+"개 중 앞 "+items.length+"개 (🔀 = 섞어서)" : "")+(this._kjMix?" · 🔀 섞음":" · 범위 순서대로");
     this.fit(); },
   render(){ const W=$("ppWrap"); if(!W) return; const c=this.c, B=this.B, I=$("ppInfo"), top=W.parentNode.scrollTop; W.innerHTML="";
     W.style.zoom="";   /* (v577) 사용자 사진: 아이폰에서 만든 시험지 1쪽이 반만 차고 아래가 텅 빔 — 화면 맞춤(zoom)을 건 채로 「넘치나?」를 재면 사파리는 높이를 줄여서 알려 줘서 일찍 다음 쪽으로 넘김 → 쪽 나누기는 zoom 없이 재고 끝나면 다시 맞춤 */
