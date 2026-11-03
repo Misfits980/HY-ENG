@@ -1048,7 +1048,7 @@ Object.assign(ITEMS, {
     fuB(g,1.9,.06,.06,W,0,1.62,.42); for(let i=0;i<4;i++) fuB(g,.3,.05,.05,W,.98,.4+i*.35,.25); return g; }},
   coffeetable:{nm:"coffee table", ic:"☕", sz:[1,1], cols:[0xc48a58,0xffffff,0x8a5a34], build(c){ const g=new THREE.Group(), C=vc("coffeetable",c); fuB(g,.9,.08,.6,C,0,.4,0); [[-.38,-.24],[.38,-.24],[-.38,.24],[.38,.24]].forEach(([x,z])=>fuB(g,.06,.38,.06,C,x,.19,z)); fuC(g,.07,.06,.12,0xffffff,.15,.5,0); fuS(g,.06,0x8a5a34,.15,.56,0,[1,.3,1]); return g; }},
   floorlamp:{nm:"floor lamp", ic:"💡", sz:[1,1], cols:[0xffe9a8,0xffc4d6,0xc4e6ff], build(c){ const g=new THREE.Group(), C=vc("floorlamp",c); fuC(g,.18,.2,.05,0x3b2433,0,.03,0); fuC(g,.025,.025,1.5,0x3b2433,0,.78,0); fuC(g,.16,.28,.32,C,0,1.6,0,{emissive:C,emissiveIntensity:.35}); return g; }},
-  fireplace:{nm:"fireplace", ic:"🔥", sz:[2,1], build(){ const g=new THREE.Group(); fuB(g,1.8,1.2,.6,0xc96b4a,0,.6,-.1); fuB(g,2,.12,.72,0xf3eee2,0,1.26,-.08); fuB(g,1.0,.7,.1,0x3b2433,0,.4,.2);
+  fireplace:{nm:"fireplace", ic:"🔥", sz:[2,1], use:"warm", build(){ const g=new THREE.Group(); fuB(g,1.8,1.2,.6,0xc96b4a,0,.6,-.1); fuB(g,2,.12,.72,0xf3eee2,0,1.26,-.08); fuB(g,1.0,.7,.1,0x3b2433,0,.4,.2);
     [[0,0xffa53a,.5],[-.15,0xffd23f,.35],[.16,0xff6b3a,.38]].forEach(([x,col,h])=>{ const m=fuN(g,.13,h,col,x,.1+h/2,.15,8); m.material=new THREE.MeshBasicMaterial({color:col}); }); fuB(g,.7,.08,.16,0x8a5a34,0,.08,.16); return g; }},
   bigshelf:{nm:"bookshelf", ic:"📚", sz:[2,1], cols:[0xc48a58,0xffffff,0x5aa7ff], build(c){ const g=new THREE.Group(), C=vc("bigshelf",c); fuB(g,1.9,1.9,.4,C,0,.95,-.25);
     const B=[0xff6b6b,0x5aa7ff,0xffd23f,0x7fd36a,0xc7a6ff,0xff9a3d]; for(let r=0;r<3;r++){ fuB(g,1.8,.05,.36,0xfffdf7,0,.35+r*.55,-.23); for(let i=0;i<8;i++){ if((i+r)%5===4) continue; fuB(g,.14,.36+((i*7+r)%3)*.05,.26,B[(i+r*2)%6],-.75+i*.21,.55+r*.55,-.2); } } return g; }},
@@ -1103,6 +1103,34 @@ Object.assign(ITEMS, {
   pumpkinlamp:{nm:"pumpkin lamp", ic:"🎃", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuS(g,.3,0xff8a3d,0,.26,0,[1,.75,1]); fuC(g,.04,.05,.14,0x5a8a3a,0,.5,0); [-1,1].forEach(s=>{ const e=fuN(g,.06,.08,0x3b2433,s*.1,.32,.27,3); e.material=new THREE.MeshBasicMaterial({color:0xffd23f}); e.rotation.x=Math.PI/2; });
     const m=new THREE.Mesh(new THREE.BoxGeometry(.2,.04,.02), new THREE.MeshBasicMaterial({color:0xffd23f})); m.position.set(0,.18,.29); g.add(m); return g; }},
   /* (v563) 🌙 이달의 한정 가구 — 그달에만 가구점에 나옴 (TECO.LIMITED) */
+  /* (v570) ❄️ 겨울 — 사용자: 「곧 겨울이니까 벽난로 같은 것」 · 🏠 미니멀 라이프 — 「그냥 방에 스토브랑 그런 것도 있을 수 있으니」 (원룸에 다 있는 것) */
+  woodstove:{nm:"wood stove", ic:"🔥", sz:[1,1], cat:"season", use:"warm", build(){ const g=new THREE.Group(); fuB(g,.7,.62,.6,0x3b3b44,0,.39,0); [[-.28,-.24],[.28,-.24],[-.28,.24],[.28,.24]].forEach(([x,z])=>fuB(g,.06,.1,.06,0x2a2a30,x,.05,z));
+    const w=fuB(g,.36,.26,.03,0xff8a3d,0,.38,.31,{emissive:0xff6b1a,emissiveIntensity:.9}); w.userData.win=1; fuB(g,.74,.05,.64,0x2a2a30,0,.72,0); fuC(g,.08,.08,1.15,0x3b3b44,.18,1.3,-.12); fuC(g,.11,.11,.06,0x2a2a30,.18,1.86,-.12);
+    fuC(g,.09,.08,.1,0xd9534f,-.18,.8,.05); return g; }},
+  heater:{nm:"heater", ic:"♨️", sz:[1,1], cat:"app", use:"heater", cols:[0xffffff,0xffd6e0,0xc4e6ff], build(c){ const g=new THREE.Group(), C=vc("heater",c); fuB(g,.5,.7,.24,C,0,.4,0); fuB(g,.56,.06,.3,0x9a9a9a,0,.04,0);
+    for(let i=0;i<3;i++){ const m=fuB(g,.36,.05,.02,0x553333,0,.26+i*.13,.13); m.userData.win=1; } fuS(g,.03,0xff6b6b,.18,.7,.13); return g; }},
+  firewood:{nm:"firewood", ic:"🪵", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); for(let r=0;r<3;r++) for(let i=0;i<3-r;i++){ const m=fuC(g,.09,.09,.62,[0xa86b3c,0x8a5a34,0xb07a4a][(i+r)%3],-.2+i*.2+r*.1,.1+r*.17,0); m.rotation.x=Math.PI/2; fuC(g,.075,.075,.005,0xe8c08a,-.2+i*.2+r*.1,.1+r*.17,.315).rotation.x=Math.PI/2; } return g; }},
+  armchair:{nm:"cozy chair", ic:"🧶", sz:[1,1], sit:.42, cols:[0xd9534f,0x5aa7ff,0x7fd36a,0xc7a6ff], build(c){ const g=new THREE.Group(), C=vc("armchair",c); fuB(g,.8,.36,.72,C,0,.26,0); fuB(g,.8,.7,.16,C,0,.6,-.3); [-1,1].forEach(s=>fuB(g,.14,.5,.72,C,s*.36,.45,0));
+    fuB(g,.6,.08,.5,0xfff3e0,0,.47,.04); fuB(g,.5,.5,.04,0xf3eee2,0,.62,-.2); for(let i=0;i<4;i++) fuB(g,.5,.03,.045,0xffd23f,0,.42+i*.1,-.17); return g; }},
+  wreath:{nm:"wreath", ic:"🎀", sz:[1,1], wall:true, cat:"season", build(){ const g=new THREE.Group(); const t=new THREE.Mesh(new THREE.TorusGeometry(.26,.08,8,20), M(0x2f8f3f)); t.position.set(0,1.45,.07); g.add(t);
+    [[0,-.25,0xd9534f],[.2,.14,0xffd23f],[-.22,.1,0xd9534f],[.05,.27,0xd9534f]].forEach(([x,y,col])=>fuS(g,.045,col,x,1.45+y,.13)); fuB(g,.18,.1,.04,0xd9534f,0,1.2,.12); return g; }},
+  stockings:{nm:"stockings", ic:"🧦", sz:[1,1], wall:true, cat:"season", build(){ const g=new THREE.Group(); fuB(g,.9,.04,.04,0x8a5a34,0,1.55,.05); [[-.25,0xd9534f],[.25,0x2f8f3f]].forEach(([x,col])=>{ fuB(g,.16,.36,.06,col,x,1.33,.07); fuB(g,.24,.12,.06,col,x+.04,1.12,.07); fuB(g,.18,.08,.07,0xffffff,x,1.5,.08); }); return g; }},
+  snowrug:{nm:"snowflake rug", ic:"❄️", sz:[2,2], rug:true, cat:"season", build(){ const g=new THREE.Group();
+    const t=canvasTex(128,128,(c,w,h)=>{ c.fillStyle="#cfe9ff"; c.fillRect(0,0,w,h); c.strokeStyle="#fff"; c.lineWidth=6; c.lineCap="round"; c.translate(w/2,h/2); for(let i=0;i<6;i++){ c.rotate(Math.PI/3); c.beginPath(); c.moveTo(0,0); c.lineTo(0,46); c.moveTo(0,28); c.lineTo(12,38); c.moveTo(0,28); c.lineTo(-12,38); c.stroke(); } });
+    const m=new THREE.Mesh(cyl(0.92,0.92,0.03,36), new THREE.MeshStandardMaterial({map:t, roughness:1})); m.position.y=0.016; m.receiveShadow=true; g.add(m); return g; }},
+  sled:{nm:"sled", ic:"🛷", sz:[1,1], cat:"season", cols:[0xd9534f,0x5aa7ff,0xc48a58], build(c){ const g=new THREE.Group(), C=vc("sled",c); fuB(g,.5,.05,.85,C,0,.2,0); [-1,1].forEach(s=>{ fuB(g,.04,.04,.9,0x9a9a9a,s*.2,.05,0); fuB(g,.04,.16,.04,0x9a9a9a,s*.2,.12,.3); fuB(g,.04,.16,.04,0x9a9a9a,s*.2,.12,-.3); }); fuC(g,.04,.04,.5,0x9a9a9a,0,.12,.47).rotation.z=Math.PI/2; return g; }},
+  cocoa:{nm:"hot cocoa", ic:"☕", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.28,.28,.05,0xc48a58,0,.5,0); fuC(g,.04,.06,.48,0xc48a58,0,.25,0); fuC(g,.22,.24,.03,0xc48a58,0,.02,0);
+    [[-.1,0xd9534f],[.12,0x5aa7ff]].forEach(([x,col])=>{ fuC(g,.07,.06,.13,col,x,.6,0); fuC(g,.06,.06,.01,0x6b3a1f,x,.67,0); fuS(g,.025,0xffffff,x+.02,.685,.01); }); return g; }},
+  kitchenette:{nm:"mini kitchen", ic:"🍳", sz:[1,1], cat:"kb", use:"stove", cols:[0xffffff,0xc4e6ff,0xffd6e0], build(c){ const g=new THREE.Group(), C=vc("kitchenette",c); fuB(g,.94,.86,.6,C,0,.43,-.18); fuB(g,.96,.05,.62,0x9fb4c4,0,.88,-.18);
+    fuC(g,.11,.11,.02,0x3b2433,-.22,.91,-.12); fuC(g,.08,.08,.02,0x3b2433,-.22,.91,-.32); fuB(g,.3,.05,.3,0xbfeaff,.22,.9,-.16); fuC(g,.02,.02,.2,0xcfcfcf,.22,1.0,-.38);
+    fuB(g,.4,.34,.02,0xf3eee2,-.2,.62,.13); fuB(g,.4,.34,.02,0xf3eee2,.22,.62,.13); fuB(g,.86,.3,.02,0xe6eef5,0,.2,.13); fuS(g,.02,0xffd23f,0,.62,.15); return g; }},
+  minifridge:{nm:"mini fridge", ic:"🧊", sz:[1,1], cat:"kb", use:"fridge", cols:[0xffffff,0xc4e6ff,0xffd6e0,0xfff1b8], build(c){ const g=new THREE.Group(), C=vc("minifridge",c); fuB(g,.6,.72,.56,C,0,.38,-.1); fuB(g,.56,.02,.02,0xd0d0d0,0,.48,.19); fuB(g,.04,.2,.04,0xcfcfcf,.22,.62,.2); fuB(g,.04,.12,.04,0xcfcfcf,.22,.3,.2);
+    fuS(g,.06,0xff6b6b,-.1,.8,-.1); fuB(g,.16,.16,.16,0x7fd36a,.12,.82,-.12); return g; }},
+  sofabed:{nm:"sofa bed", ic:"🛋️", sz:[1,2], sit:"sleep", cols:[0x7d8ff0,0xe86a6a,0x5db95a,0xc98f5a], build(c){ const g=new THREE.Group(), C=vc("sofabed",c); fuB(g,.96,.3,1.96,0x8a5a34,0,.16,0); fuB(g,.9,.2,1.86,C,0,.4,0);
+    fuB(g,.2,.5,1.9,C,-.38,.6,0); fuB(g,.9,.36,.16,C,0,.5,-.92); fuB(g,.9,.36,.16,C,0,.5,.92); fuB(g,.5,.12,.34,0xfff3e0,.08,.56,-.62); return g; }},
+  futon:{nm:"floor bed", ic:"🛌", sz:[1,2], sit:"sleep", cols:[0xffffff,0xc4e6ff,0xffd6e0,0xfff1b8], build(c){ const g=new THREE.Group(), C=vc("futon",c); fuB(g,.92,.12,1.9,0xfffdf7,0,.07,0); fuB(g,.9,.08,1.3,C,0,.17,.28); fuB(g,.56,.1,.32,0xf3eee2,0,.18,-.7); return g; }},
+  lowtable:{nm:"low table", ic:"🍵", sz:[1,1], cols:[0xc48a58,0x8a5a34,0xffffff], build(c){ const g=new THREE.Group(), C=vc("lowtable",c); fuB(g,.9,.06,.9,C,0,.3,0); [[-.38,-.38],[.38,-.38],[-.38,.38],[.38,.38]].forEach(([x,z])=>fuB(g,.07,.28,.07,C,x,.14,z)); fuC(g,.06,.05,.08,0x7fd36a,.15,.37,0); fuS(g,.07,0xff9a3d,-.18,.37,.1); return g; }},
+  cushion:{nm:"floor cushion", ic:"🟫", sz:[1,1], sit:.15, cols:[0xd9534f,0x5aa7ff,0x7fd36a,0xffd23f,0xc7a6ff], build(c){ const g=new THREE.Group(), C=vc("cushion",c); fuB(g,.66,.12,.66,C,0,.07,0); fuS(g,.04,0xffffff,0,.14,0); return g; }},
   kotatsu:{nm:"kotatsu", ic:"🍊", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuB(g,.98,.3,.98,0xd9534f,0,.16,0); fuB(g,.86,.05,.86,0xb07a4a,0,.34,0); [[-.12,0],[.1,.08],[.05,-.1]].forEach(([x,z])=>fuS(g,.07,0xff9a3d,x,.42,z)); return g; }},
   snowglobe:{nm:"snow globe", ic:"🔮", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.26,.3,.16,0x8a5a34,0,.08,0); fuS(g,.28,0xdff4ff,0,.42,0,null,{transparent:true, opacity:.35}); fuN(g,.1,.24,0x2f8f3f,0,.38,0,8); fuS(g,.05,0xffffff,.1,.3,.05); return g; }},
   heartlamp:{nm:"heart lamp", ic:"💗", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.14,.18,.06,0xffffff,0,.03,0); fuC(g,.025,.025,.7,0xc9c4b8,0,.4,0); [-1,1].forEach(s=>fuG(g,new THREE.SphereGeometry(.12,14,10),0xff7aa8,s*.08,.86,0)); const c=fuG(g,new THREE.ConeGeometry(.17,.22,14),0xff7aa8,0,.72,0); c.rotation.x=Math.PI; return g; }},
@@ -1113,6 +1141,7 @@ Object.assign(ITEMS, {
   icecart:{nm:"ice cream cart", ic:"🍦", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuB(g,.8,.5,.5,0xffb6d1,0,.45,0); [-.28,.28].forEach(x=>{ const w=fuC(g,.12,.12,.06,0x3b2433,x,.12,.27); w.rotation.x=Math.PI/2; }); fuC(g,.02,.02,.8,0xffffff,.3,1.1,0); fuN(g,.4,.2,0x7fd3ff,.3,1.5,0,10); [[-.2,0xfff1c9],[0,0xffb6d1],[.15,0x8a5a34]].forEach(([x,c])=>fuS(g,.08,c,x,.76,0)); return g; }},
   mapletree:{nm:"maple tree", ic:"🍁", sz:[1,1], cat:"season", build(){ const g=new THREE.Group(); fuC(g,.18,.22,.22,0xc0703a,0,.11,0); fuC(g,.06,.08,.9,0x8a5a34,0,.65,0); [[0,1.2,0,.38,0xff7a3d],[.22,1.05,.1,.26,0xe24b4b],[-.2,1.08,-.08,.27,0xffb02e],[.05,1.0,-.24,.24,0xff7a3d]].forEach(([x,y,z,r,c])=>fuS(g,r,c,x,y,z)); return g; }},
 });
+Object.assign(PRICE_ADD, {woodstove:24, heater:12, firewood:6, armchair:14, wreath:7, stockings:6, snowrug:10, sled:8, cocoa:7, kitchenette:30, minifridge:20, sofabed:22, futon:12, lowtable:7, cushion:4});   /* (v570) ❄️ 겨울 · 🏠 미니멀 */
 Object.assign(PRICE_ADD, {kotatsu:24, snowglobe:18, heartlamp:16, cherrytree:30, giftpile:14, parasol2:18, seashell:12, icecart:34, mapletree:28});
 Object.assign(PRICE_ADD, {beanbag:12, bunkbed:45, coffeetable:12, floorlamp:14, fireplace:40, bigshelf:30, dresser:24, toybox:10, rockinghorse:22, teepee:28, ballpit:35, slide:38, arcade:50, toyblocks:6, trampoline:42, monstera:12, cactus:8, bonsai:15, flowerbox:14, sunflower:9, easel:16, guitar:25, drums:40, globe:14, sink:18, kcounter:16, cakestand:20, shower:30, starlights:10, wallplant:9, neon:18, worldmap:12, banner:8, xmastree:26, snowman:15, pumpkinlamp:12});
 Object.keys(PRICE_ADD).forEach(k=>{ if(ITEMS[k] && !["washer","microwave","fan","aircon","computer","radio","toaster","tank","robot","window","painting","poster","wclock","wshelf","mirror"].includes(k)) NEWF[k]=1; });
@@ -1149,7 +1178,7 @@ const canCO=o=>{ try{ return TECO.can(o); }catch(e){ return gems>=(o.g|0); } };
 const htmlCO=o=>{ try{ return TECO.cHtml(o); }catch(e){ return '💎 '+(o.g|0); } };
 const payCO=o=>{ try{ return TECO.pay2(o); }catch(e){ return spend(o.g|0); } };
 /* 가구 값 — 🌙 이달의 한정은 그달에만 · 💎+🪙 ×1.3 */
-const FAC_P={stove:300, fridge:350, bathtub:450};   /* (v569) 시설 기구 = 🪙 만 (시설 열기에 💎 를 이미 냄) */
+const FAC_P={stove:300, fridge:350, bathtub:450, kitchenette:380, minifridge:220};   /* (v570) 🏠 원룸 주방 · 작은 냉장고 */   /* (v569) 시설 기구 = 🪙 만 (시설 열기에 💎 를 이미 냄) */
 function furnCO(id){ if(FAC_P[id]) return {g:0, c:FAC_P[id]}; try{ if(TECO.isLim(id)){ if(TECO.limNow().indexOf(id)<0) return null; const o=TECO.cost(PRICE[id],"mix"); return {g:Math.round(o.g*1.3/5)*5, c:Math.round(o.c*1.3/10)*10}; } }catch(e){} return CO(PRICE[id]); }
 const PACK={partition:4, fence:5, hedge:5};
 Object.keys(PRICE).forEach(k=>{ PRICE[k]=ECON(PRICE[k]); });
@@ -2679,14 +2708,24 @@ const FISH = [   // r = 희귀도 무게 · 모두 게임 발음 파일(audio/*.
   /* (v414) 새로 — 쓰레기(비 오면 ↑) · 시간·날씨에만 나오는 것 · ✨ 황금 물고기 떼에만 나오는 인어 (모두 게임 발음 파일 있음) */
   {en:"sock", ko:"양말", e:"🧦", r:5, p:1, noRot:1}, {en:"can", ko:"캔", e:"🥫", r:5, p:1, noRot:1}, {en:"bottle", ko:"병", e:"🍾", r:4, p:1, noRot:1},
   {en:"duck", ko:"오리", e:"🦆", r:8, p:3, noCook:1}, {en:"otter", ko:"수달", e:"🦦", r:5, p:5, noCook:1}, {en:"penguin", ko:"펭귄", e:"🐧", r:2, p:7, noCook:1}, {en:"seal", ko:"물개", e:"🦭", r:3, p:8, noCook:1},
-  {en:"dolphin", ko:"돌고래", e:"🐬", r:2, p:12, noCook:1}, {en:"crocodile", ko:"악어", e:"🐊", r:1.2, p:16, noCook:1}, {en:"treasure", ko:"보물", e:"💰", r:0.6, p:20, noRot:1}, {en:"mermaid", ko:"인어", e:"🧜", r:0.01, p:40, noCook:1}
+  {en:"dolphin", ko:"돌고래", e:"🐬", r:2, p:12, noCook:1}, {en:"crocodile", ko:"악어", e:"🐊", r:1.2, p:16, noCook:1}, {en:"treasure", ko:"보물", e:"💰", r:0.6, p:20, noRot:1}, {en:"mermaid", ko:"인어", e:"🧜", r:0.01, p:40, noCook:1},
+  /* (v570) 사용자: 「낚시 컨텐츠에 생물도 더 늘려 주면」 — 새 생물 · 계절에만 나오는 것(mon) · 반짝 보물 · 겨울 쓰레기 */
+  {en:"clownfish", ko:"흰동가리", e:"🐠", r:9, p:3}, {en:"pufferfish", ko:"복어", e:"🐡", r:6, p:5}, {en:"oyster", ko:"굴", e:"🦪", r:7, p:3},
+  {en:"swan", ko:"백조", e:"🦢", r:3, p:7, noCook:1}, {en:"hippo", ko:"하마", e:"🦛", r:1.5, p:15, noCook:1}, {en:"snake", ko:"물뱀", e:"🐍", r:3, p:6, noCook:1},
+  {en:"dragon", ko:"용", e:"🐉", r:0.01, p:50, noCook:1},
+  {en:"ring", ko:"반지", e:"💍", r:0.8, p:12, noRot:1}, {en:"crown", ko:"왕관", e:"👑", r:0.15, p:30, noRot:1}, {en:"key", ko:"열쇠", e:"🔑", r:2, p:4, noRot:1},
+  {en:"mitten", ko:"벙어리장갑", e:"🧤", r:6, p:1, noRot:1}, {en:"scarf", ko:"목도리", e:"🧣", r:5, p:1, noRot:1}, {en:"leaf", ko:"나뭇잎", e:"🍂", r:7, p:1, noRot:1}
 ];
 /* (v414) 낚시 — cm 크기 [가장 작음, 가장 큼] · t 나오는 때(a 아침 5~10 · d 낮 10~17 · e 저녁 17~20 · n 밤 20~5, 없으면 언제나) · rain 비 올 때 ×배 (안 오면 ×0.3)
    fp 힘(0 = 바로 잡힘 · 1~3 = 줄다리기) · junk 쓰레기 · ev 황금 물고기 떼에만 */
 const SPEC={ fish:{cm:[10,40],fp:1}, frog:{cm:[5,15],fp:0}, snail:{cm:[2,6],fp:0}, shell:{cm:[3,12],fp:0}, boot:{junk:1}, sock:{junk:1}, can:{junk:1}, bottle:{junk:1},
   crab:{cm:[8,30],fp:1}, shrimp:{cm:[5,20],fp:0}, duck:{cm:[30,60],fp:1,t:"ad"}, turtle:{cm:[20,80],fp:2}, squid:{cm:[20,60],fp:2,t:"en"}, otter:{cm:[60,120],fp:2,t:"en"},
   lobster:{cm:[20,60],fp:2}, octopus:{cm:[30,120],fp:2,t:"en"}, penguin:{cm:[40,110],fp:2,rain:4}, seal:{cm:[100,200],fp:3,t:"e"}, dolphin:{cm:[150,300],fp:3,t:"a"},
-  shark:{cm:[100,400],fp:3}, crocodile:{cm:[150,500],fp:3,t:"n"}, treasure:{junk:1,t:"n"}, whale:{cm:[400,1500],fp:3}, mermaid:{cm:[150,200],fp:3,ev:1} };
+  shark:{cm:[100,400],fp:3}, crocodile:{cm:[150,500],fp:3,t:"n"}, treasure:{junk:1,t:"n"}, whale:{cm:[400,1500],fp:3}, mermaid:{cm:[150,200],fp:3,ev:1},
+  /* (v570) mon = 그 달에만 (한국 시간) · 🐉 용 = 겨울(12~2월) 밤 황금 물고기 떼에만 */
+  clownfish:{cm:[5,15],fp:0,mon:[5,6,7,8,9]}, pufferfish:{cm:[10,45],fp:1}, oyster:{cm:[5,15],fp:0,mon:[10,11,12,1,2,3]}, swan:{cm:[100,150],fp:2,t:"ad",mon:[11,12,1,2]},
+  hippo:{cm:[300,500],fp:3,t:"d",mon:[6,7,8]}, snake:{cm:[60,200],fp:2,t:"en"}, dragon:{cm:[500,900],fp:3,ev:1,mon:[12,1,2]},
+  ring:{junk:1}, crown:{junk:1,t:"n"}, key:{junk:1}, mitten:{junk:1,mon:[11,12,1,2]}, scarf:{junk:1,mon:[11,12,1,2]}, leaf:{junk:1,mon:[9,10,11]} };
 const fmtCm=cm=>cm>=100 ? (cm/100).toFixed(cm>=1000?1:2).replace(/\.?0+$/,"")+" m" : cm+" cm";
 let dex = store("hyeng_proto_fish") || {};
 /* (L0-3) 🎒 가방 · 🏪 가게 — 사용자: 잡은 걸 보석으로 팔기 · 상하면 값이 떨어짐 · 시간마다 값이 바뀜
@@ -2988,12 +3027,12 @@ $("stoDone").onclick=()=>$("stoP").classList.remove("on");
 /* 🛒 가게 — 가구 · 벽지·바닥 · 늘리기 */
 let furnTab="furn", furnCat="all"; const swCache={};
 const APP_IDS={tv:1, fridge:1, stove:1}, catF=id=>ITEMS[id].cat||(ITEMS[id].wall?"wall":(ITEMS[id].app||APP_IDS[id])?"app":"furn");
-const USE_T={bath:"🫧 씻기", sidedoor:"🚪 옆방", music:"🎵 연주", arcade:"🕹 놀기", jump:"🤸 뛰기", stairs:"🪜 위층", fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
+const USE_T={warm:"🔥 따뜻해요", heater:"♨️ 켜기", bath:"🫧 씻기", sidedoor:"🚪 옆방", music:"🎵 연주", arcade:"🕹 놀기", jump:"🤸 뛰기", stairs:"🪜 위층", fridge:"🧊 보관",chest:"📦 보관",closet:"👕 옷 갈아입기",stove:"🍳 요리",piano:"🎵 연주",clock:"🕰 시간",tv:"📺 켜기",bear:"❤️ 안기",lamp:"💡 켜기",washer:"🧺 빨래",microwave:"📟 띵!",fan:"🌀 바람",aircon:"❄️ 시원",computer:"💻 켜기",radio:"📻 음악",toaster:"🍞 톡!",tank:"🐠 내 물고기",robot:"🤖 청소",mirror:"🪞 거울"};
 const ROOM_UP=[[8,320],[10,640],[12,960]];   /* (v563) ×1.6 */   /* (v557) 물가 60·120·180 → 200·400·600 */
 function swatch(L,i){ const k=(L===FLOORS?"f":"w")+i; if(swCache[k]) return swCache[k]; const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d"); g.scale(0.25,0.25); L[i].draw(g,256,256); return swCache[k]=c.toDataURL(); }
 const CRAFTABLE=id=>CRAFT.some(r=>r.id===id);
 function upRows(){ const R=[]; const ru=ROOM_UP.find(x=>x[0]>RN); R.push(["room","🏠","집 넓히기",RN+"×"+RN+" 칸", ru?ru[1]:0, ru?"→ "+ru[0]+"×"+ru[0]:""]); const L=LAND.find(l=>l.n>plotN); R.push(["land","🌱","밭 fields",plotN+" / 12칸",L?L.p:0,L?"+2칸":""]);
-  ["fr","ch"].forEach(k=>{ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); R.push([k, k==="fr"?"🧊":"📦", k==="fr"?"냉장고 칸":"보관함 칸", S.cap+"칸"+(k==="fr" && !placed.some(p=>p.id==="fridge") && !(stock.fridge>0)?" · 냉장고가 있어야 써요":""), u?u[1]:0, u?"→ "+u[0]:""]); });
+  ["fr","ch"].forEach(k=>{ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); R.push([k, k==="fr"?"🧊":"📦", k==="fr"?"냉장고 칸":"보관함 칸", S.cap+"칸"+(k==="fr" && !placed.some(p=>p.id==="fridge"||p.id==="minifridge") && !(stock.fridge>0) && !(stock.minifridge>0)?" · 냉장고가 있어야 써요":""), u?u[1]:0, u?"→ "+u[0]:""]); });
   { const n=yd?yd.pc.filter(Boolean).length:0; R.push(["parc","🌾","새 땅 (마당)", n+" / 3 구역"+(n<3?" · 🪧 팻말에서도":""), n<3?PARC_P[n]:0, n<3?"🌱 열기":"✅"]); }   /* (v415) */
   const bb=bagB(), bu=BAG_UP.find(x=>x[0]+bb>bagCap); R.push(["bag","🎒","가방 칸",bagCap+"칸"+(bagCap<30+bb?" · 먼저 🛠 big bag (30칸)":""), bu&&bagCap>=30+bb?bu[1]:0, !bu?"✅":bagCap<30+bb?"🛠 먼저":"→ "+(bu[0]+bb)]); return R; }
 function drawFurn(){ { const F=$("furnGem"), n=v=>Number(v||0).toLocaleString("ko-KR"); F.classList.add("two"); F.innerHTML='<span class="cur cG">💎 '+n(gems)+'</span><span class="cur cC">🪙 '+n(TECO.coins())+'</span>'; }   /* (v563 QA) 대부분 🪙 가구라 둘 다 */
@@ -3001,7 +3040,7 @@ function drawFurn(){ { const F=$("furnGem"), n=v=>Number(v||0).toLocaleString("k
   let h="";
   if(furnTab==="furn") h=chipBar([["all","전체"],["lim","🌙 이달의 한정"],["new","✨ 새 가구"],["furn","🛋 가구"],["play","🧸 놀이"],["plant","🌿 식물"],["hobby","🎨 취미"],["kb","🍽 부엌·욕실"],["app","📺 가전"],["wall","🖼 벽"],["season","🎄 계절"]], furnCat, "fc")
     +Object.keys(PRICE).filter(id=>{ const lim=TECO.isLim(id), now_=TECO.limNow().indexOf(id)>=0; if(furnCat==="lim") return now_; if(lim && !now_) return false; return furnCat==="all" || (furnCat==="new" ? NEWF[id] : catF(id)===furnCat); }).sort((a,b)=>PRICE[a]-PRICE[b]).map(id=>{ const it=ITEMS[id], p=PRICE[id], o=furnCO(id), have=(stock[id]|0)+placed.filter(x=>x.id===id).length;
-    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(TECO.isLim(id)?' <em style="font-style:normal;font-size:11px;color:#fff;background:#7a5af5;border-radius:8px;padding:1px 6px">🌙 '+(new Date(TECO.T()+9*3600e3).getUTCMonth()+1)+'월 한정</em>':'')+(NEWF[id]&&!have?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+((()=>{ const fk={stove:"kitchen",fridge:"kitchen",bathtub:"bath"}[id]; try{ return fk && !HOMEX.facOK(fk) ? ' · <b style="color:#c0392b">🔒 '+HOMEX.SETS[fk].ic+' '+HOMEX.SETS[fk].nm+' 하면 써요</b>' : ''; }catch(e){ return ''; } })())+'</small></span><button class="btn'+(o&&canCO(o)?' on':'')+'" data-bf="'+id+'"'+(!o?' disabled':canCO(o)?'':' data-poor="1"')+'>'+(o?htmlCO(o):'🌙')+'</button></div>'; }).join("");
+    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(TECO.isLim(id)?' <em style="font-style:normal;font-size:11px;color:#fff;background:#7a5af5;border-radius:8px;padding:1px 6px">🌙 '+(new Date(TECO.T()+9*3600e3).getUTCMonth()+1)+'월 한정</em>':'')+(NEWF[id]&&!have?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+((()=>{ const fk={stove:"kitchen",fridge:"kitchen",bathtub:"bath",kitchenette:"kitchen",minifridge:"kitchen"}[id]; try{ return fk && !HOMEX.facOK(fk) ? ' · <b style="color:#c0392b">🔒 '+HOMEX.SETS[fk].ic+' '+HOMEX.SETS[fk].nm+' 하면 써요</b>' : ''; }catch(e){ return ''; } })())+'</small></span><button class="btn'+(o&&canCO(o)?' on':'')+'" data-bf="'+id+'"'+(!o?' disabled':canCO(o)?'':' data-poor="1"')+'>'+(o?htmlCO(o):'🌙')+'</button></div>'; }).join("");
   if(furnTab==="wall"){ const sec=(L,own,cur,t,key)=>'<h4 class="bH">'+t+'</h4><div class="fwG">'+L.map((x,i)=>{ const o=own.includes(i), on=cur===i;
       return '<button class="fw'+(on?' on':'')+(o?'':' buy')+'" data-fw="'+key+i+'"'+(!o&&!canCO(CO(FW_PRICE,"coin"))?' data-poor="1"':'')+'><img src="'+swatch(L,i)+'" alt=""><b>'+x.nm+'</b><small>'+(on?'✅ 지금':o?'쓰기':htmlCO(CO(FW_PRICE,"coin")))+'</small></button>'; }).join("")+'</div>';
     h=sec(FLOORS,ownF,floorIx,"🟫 바닥","f")+sec(WALLS,ownW,wallIx,"🎨 벽지","w"); }
@@ -3088,6 +3127,8 @@ function useItem(p){ tEv("use"); const u=ITEMS[p.id].use;
   if(u==="arcade"){ emote(hero,"🎮"); act("yay"); try{ SND.win(); }catch(e){} toast("🕹 삐용삐용! <b>하이 스코어!</b>", 1600); return; }
   if(u==="jump"){ act("yay"); emote(hero,"🤸"); try{ say("jump"); SND.pop(); }catch(e){} return; }
   if((u==="stove"||u==="fridge") && window.HOMEX && !HOMEX.facOK("kitchen")){ HOMEX.facNeed("kitchen"); return; }   /* (v569) 요리·냉장고 = 🍳 부엌을 연 뒤 */
+  if(u==="warm"){ emote(hero,"🔥"); act("yay"); try{ say("warm"); SND.pop(); }catch(e){} toast("🔥 따뜻해요~ <b>warm</b>", 1500); return; }   /* (v570) */
+  if(u==="heater"){ p.on=!p.on; setWin(p,p.on,0xff8a3d,0xff5a1a); toast(p.on?"♨️ heater on — 따뜻해!":"♨️ off"); if(p.on){ say("heater"); emote(hero,"♨️"); } return; }
   if(window.HLIFE && HLIFE.use(u, p)) return;
   if(u==="study"){ if(visiting) return; ask("📚 <b>영어 공부</b> 하러 갈까요?<br><small>Daily 30 · 공부한 날이 <b>이어지면</b> 🏗 집을 넓힐 수 있어요</small>", ()=>{ location.href="../index.html"; }); return; } if(u==="fridge") openSto("fr"); else if(u==="chest") openSto("ch"); else if(u==="closet") openAv(); else if(u==="stove") openCraft("cook");
   else if(u==="piano") playPiano(); else if(u==="clock") tellTime(); else if(u==="tv") toggleTv(p); else if(u==="bear"){ emote(hero,"❤️"); act("yay"); say("teddy bear"); }
@@ -3331,10 +3372,11 @@ const TOD={a:["🌅","아침"], d:["☀️","낮"], e:["🌇","저녁"], n:["�
 function tod(t){ const h=new Date((t==null?now():t)+9*3600e3).getUTCHours(); return h>=5&&h<10?"a":h>=10&&h<17?"d":h>=17&&h<20?"e":"n"; }
 let wxForce=null, rushForce=0;   // 시험용
 function rainy(t){ if(wxForce!=null) return wxForce; const b=Math.floor(((t==null?now():t)+9*3600e3)/(3*3600e3)); return hashf("rain|"+b)<0.28; }
-function todaySp(){ const L=FISH.filter(f=>{ const S=SPEC[f.en]||{}; return !S.junk && !S.ev && f.r>=1 && f.r<=9; }); return L[Math.floor(hashf("today|"+dayKey())*L.length)]; }
+function todaySp(){ const L=FISH.filter(f=>{ const S=SPEC[f.en]||{}; return !S.junk && !S.ev && f.r>=1 && f.r<=9 && (!S.mon || S.mon.indexOf(kMon())>=0); }); return L[Math.floor(hashf("today|"+dayKey())*L.length)]; }   /* (v570) 철 아닌 생물은 「오늘의 물고기」 안 됨 */
 function rush(t){ const ms=t==null?now():t; if(rushForce>ms) return {st:rushForce-5*60e3, en:rushForce}; const h=hourIx(ms); if(hashf("rush|"+h)>0.4) return null;
   const st=h*3600e3-9*3600e3+Math.floor(hashf("rushm|"+h)*52)*60e3, en=st+5*60e3; return ms>=st && ms<en ? {st, en} : null; }
-function canAppear(f){ const S=SPEC[f.en]||{}; if(S.ev) return !!rush(); if(S.t && S.t.indexOf(tod())<0) return false; return true; }
+const kMon=()=>new Date(now()+9*3600e3).getUTCMonth()+1;   /* (v570) 계절 생물 */
+function canAppear(f){ const S=SPEC[f.en]||{}; if(S.mon && S.mon.indexOf(kMon())<0) return false; if(S.ev) return !!rush(); if(S.t && S.t.indexOf(tod())<0) return false; return true; }
 function fishW(f){ const S=SPEC[f.en]||{}; if(!canAppear(f)) return 0; let w=S.ev ? 1.5 : f.r; const rn=rainy();
   if(S.rain) w*= rn ? S.rain : 0.3; if(S.junk && f.en!=="treasure" && rn) w*=1.6;
   if(f===todaySp()) w*=3; if(f.r<=4 && buffUntil>now()) w*=3; if(f.r<=6 && rod2) w*=1.6; return w; }   // 🌧 비 · ⭐ 오늘 · 🍀 행운 · 🎣 좋은 낚싯대
