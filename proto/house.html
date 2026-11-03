@@ -262,6 +262,15 @@ button{font-family:inherit}
 .cBar.open .cTog::before{display:none}
 .cBar.open .chip{animation:chipIn .32s cubic-bezier(.2,.9,.3,1.25) both;animation-delay:calc(var(--i,0)*22ms)}
 #furnTabs .bTab{flex:1 1 auto;white-space:nowrap;min-width:0;padding:0 7px;letter-spacing:-.2px} @media (max-width:430px){#furnTabs .bTab{font-size:14.5px}}   /* (v566) 「벽지·바닥」「넓히기」 두 줄로 꺾이던 것 */
+#furnBody{touch-action:pan-y;transition:transform .22s ease;will-change:transform}
+#furnBody.fSlideL{animation:fSlideL .26s cubic-bezier(.2,.9,.3,1)} #furnBody.fSlideR{animation:fSlideR .26s cubic-bezier(.2,.9,.3,1)}
+@keyframes fSlideL{from{transform:translateX(42%);opacity:.2}to{transform:none;opacity:1}} @keyframes fSlideR{from{transform:translateX(-42%);opacity:.2}to{transform:none;opacity:1}}
+.fPager{display:flex;align-items:center;justify-content:center;gap:10px;margin:-4px 0 8px;min-height:16px}
+.fDots{display:flex;gap:5px}.fDots i{width:7px;height:7px;border-radius:5px;background:var(--line);opacity:.35;transition:width .2s}.fDots i.on{width:20px;opacity:1;background:var(--ink)}
+.fHint{font:800 12px var(--en);color:var(--sub);animation:fHint 1.6s ease-in-out infinite}
+@keyframes fHint{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+@media (prefers-reduced-motion:reduce){#furnBody.fSlideL,#furnBody.fSlideR,.fHint{animation:none}}
+#furnP{overflow-x:hidden}
 @keyframes chipIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.cBar.open .chip{animation:none}.cBar .bChips.fCat{transition:none}}
 .scTop{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px;border-radius:20px;background:#fff6dc;border:2px solid #f0d58a;margin-bottom:10px} .scTop b{font:900 26px var(--en);color:#7a5a10} .scTop small{color:var(--sub)}
@@ -1526,6 +1535,7 @@ function yPointerMove(e){ if(!down || place!==PL.yard || !edit) return; const dx
 /* 가게 줄 */
 /* (v566) 종류 칩 = 수납형 — 접힘: 한 줄 가로로 밀기(고른 칩이 보이게) · ▾ 모두: 촤라락 펼침 · 고르면 다시 접힘 */
 let chipOpen=false;
+const FTABS=["furn","yard","wall","up"];   /* (v567) 가게 칸 차례 (옆으로 밀기) */
 function chipBar(items, cur, attr){ return '<div class="cBar'+(chipOpen?' open':'')+'" data-cbar="'+attr+'"><div class="bChips fCat">'+items.map(([k,t],i)=>'<button class="chip'+(cur===k?' on':'')+'" data-'+attr+'="'+k+'" style="--i:'+i+'">'+t+'</button>').join("")+'</div><button class="cTog" data-ctog aria-expanded="'+chipOpen+'">'+(chipOpen?'▴ 접기':'▾ 모두 '+items.length)+'</button></div>'; }
 const chipMem={};
 function chipKeep(root){ (root||document).querySelectorAll(".cBar").forEach(b=>{ chipMem[b.dataset.cbar]=b.querySelector(".fCat").scrollLeft; }); }
@@ -2994,9 +3004,28 @@ function drawFurn(){ { const F=$("furnGem"), n=v=>Number(v||0).toLocaleString("k
   if(furnTab==="yard") h=yShopHTML();
   if(furnTab==="up") h=upRows().map(([k,e,nm,sub,p,lab])=>{ const o=p?CO(p, k==="room"?"gem":k==="parc"?"mix":"coin"):null; return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b><small>'+sub+'</small></span>'+(p?'<button class="btn'+(canCO(o)?' on':'')+'" data-up="'+k+'"'+(canCO(o)?'':' data-poor="1"')+'>'+lab+' '+htmlCO(o)+'</button>':'<em>'+(lab||'✅')+'</em>')+'</div>'; }).join("")
     +'<p class="bHint" style="margin:10px 0 0">조금씩 늘려요 — 🪙 는 물고기·작물을 팔아서 · 💎 는 공부해서 벌어요 · 🏦 은행에서 바꿀 수도 있어요</p>';
+  { const n=+store("hyeng_proto_fswipe")||0, i=FTABS.indexOf(furnTab);   /* (v567) 옆으로 밀기 안내 — 몇 번 넘겨 보기 전까지 + 아래 칸 점 */
+    h='<div class="fPager"><span class="fDots">'+FTABS.map((k,j)=>'<i class="'+(j===i?'on':'')+'"></i>').join("")+'</span>'+(n<3?'<span class="fHint">'+(i<3?'👈 밀어서 '+["🌳 마당","🎨 벽지·바닥","🏡 넓히기"][i]+' 보기':'👉 밀어서 🎨 벽지·바닥 보기')+'</span>':'')+'</div>'+h; }
   chipKeep($("furnBody")); $("furnBody").innerHTML=h; chipShow($("furnBody")); }
 function openFurn(tab){ if(F.st!=="idle") return; if(tab) furnTab=tab; $("drawer").classList.remove("on"); drawFurn(); $("furnP").classList.add("on"); }
-$("furnTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-ft]"); if(!b) return; furnTab=b.dataset.ft; drawFurn(); });
+/* (v567) 사용자: 「가구·마당·벽지바닥·넓히기를 옆으로 미는 형식으로 해야 애들이 찾아보지」 — 가게 안을 옆으로 밀면 다음/앞 칸으로 넘어감
+   · 세로 스크롤은 그대로(touch-action:pan-y) · 종류 칩 줄(가로 밀기)·빈 곳 아닌 단추 위에서도 됨 · 손가락 따라 살짝 움직이고 넘어가면 그쪽에서 미끄러져 들어옴 */
+function goFurnTab(k, dir){ if(!k || k===furnTab) return; const d=dir || (FTABS.indexOf(k)>FTABS.indexOf(furnTab) ? 1 : -1); furnTab=k; chipOpen=false; drawFurn();
+  const B=$("furnBody"); B.style.transform=""; B.classList.remove("fSlideL","fSlideR"); void B.offsetWidth; B.classList.add(d>0?"fSlideL":"fSlideR");
+  try{ $("furnP").scrollTop=0; }catch(e){} try{ const t=$("furnTabs").querySelector(".bTab.on"); if(t) t.scrollIntoView({block:"nearest", inline:"nearest"}); }catch(e){}
+  try{ store("hyeng_proto_fswipe", (+store("hyeng_proto_fswipe")||0)+1); }catch(e){} }
+$("furnTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-ft]"); if(!b) return; goFurnTab(b.dataset.ft); });
+(()=>{ const B=$("furnBody"); let sx=0, sy=0, on=false, horiz=null;
+  const skip=t=>!!(t && t.closest && t.closest(".cBar:not(.open) .fCat"));   /* 종류 칩 줄은 제 가로 밀기 */
+  B.addEventListener("touchstart", e=>{ if(e.touches.length!==1 || skip(e.target)){ on=false; return; } on=true; horiz=null; sx=e.touches[0].clientX; sy=e.touches[0].clientY; B.style.transition="none"; }, {passive:true});
+  B.addEventListener("touchmove", e=>{ if(!on) return; const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+    if(horiz===null && Math.hypot(dx,dy)>10) horiz=Math.abs(dx)>Math.abs(dy)*1.4;
+    if(horiz){ const i=FTABS.indexOf(furnTab), edge=(dx>0&&i===0)||(dx<0&&i===FTABS.length-1); B.style.transform="translateX("+(dx*(edge?.12:.35)).toFixed(1)+"px)"; } }, {passive:true});
+  const end=e=>{ if(!on) return; on=false; const t=(e.changedTouches||[])[0]; B.style.transition=""; B.style.transform="";
+    if(!horiz || !t) return; const dx=t.clientX-sx, i=FTABS.indexOf(furnTab);
+    if(Math.abs(dx)>56){ const j=i+(dx<0?1:-1); if(j>=0 && j<FTABS.length){ goFurnTab(FTABS[j], dx<0?1:-1); try{ SND.pop(); }catch(_){} } } };
+  B.addEventListener("touchend", end, {passive:true}); B.addEventListener("touchcancel", end, {passive:true});
+  B.addEventListener("animationend", ()=>B.classList.remove("fSlideL","fSlideR")); })();
 $("furnBody").addEventListener("click", e=>{ const bf=e.target.closest("[data-bf]"), fw=e.target.closest("[data-fw]"), up=e.target.closest("[data-up]");
   /* (v561) QA: 한 번 누르면 확인 없이 💎 가 빠지던 것 → 「살까요?」 (값이 💎50 부터라 잘못 누르면 아까움) */
   const buyQ=(ic,nm,o,fn)=>{ if(!canCO(o)){ payCO(o); return; }   /* (v563 QA) 모자라면 바로 「💎 는 공부 · 🪙 는 팔기 · 🏦 은행」 안내 (예전엔 회색 단추라 아무 반응 없음) */

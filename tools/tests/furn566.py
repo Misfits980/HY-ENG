@@ -39,6 +39,22 @@ async def main():
             await pg.click("#furnBody [data-fc=plant]"); await pg.wait_for_timeout(400)
             r=await pg.evaluate("()=>{ const B=document.querySelector('#furnBody .cBar'); return [B.classList.contains('open'), furnCat, B.querySelector('.chip.on').dataset.fc, document.querySelectorAll('#furnBody .sRow').length]; }")
             ok(not r[0] and r[1]=="plant" and r[2]=="plant" and r[3]>0, f"{t} ② 고르면 다시 접히고 그 종류 가구 {r}")
+            # (v567) 옆으로 밀어 칸 넘기기
+            SW="""([x0,x1,y0,y1,sel])=>{ const B=document.getElementById('furnBody'), el=(sel?document.querySelector(sel):null)||B, mk=(x,y)=>new Touch({identifier:1, target:el, clientX:x, clientY:y});
+                el.dispatchEvent(new TouchEvent('touchstart',{touches:[mk(x0,y0)], changedTouches:[mk(x0,y0)], bubbles:true}));
+                for(let k=1;k<=6;k++){ const x=x0+(x1-x0)*k/6, y=y0+(y1-y0)*k/6; el.dispatchEvent(new TouchEvent('touchmove',{touches:[mk(x,y)], changedTouches:[mk(x,y)], bubbles:true})); }
+                el.dispatchEvent(new TouchEvent('touchend',{touches:[], changedTouches:[mk(x1,y1)], bubbles:true})); return furnTab; }"""
+            await pg.evaluate("()=>{ furnTab='furn'; drawFurn(); }")
+            r=[await pg.evaluate(SW, [300,120,500,510,None])]; await pg.wait_for_timeout(350)
+            r.append(await pg.evaluate(SW, [300,120,500,505,None])); await pg.wait_for_timeout(350)
+            r.append(await pg.evaluate(SW, [100,300,500,505,None])); await pg.wait_for_timeout(350)
+            r.append(await pg.evaluate(SW, [200,215,300,600,None]))   # 세로로 미는 건 스크롤 — 안 넘어감
+            r.append(await pg.evaluate("()=>document.querySelector('#furnBody .fDots i.on') && [...document.querySelectorAll('#furnBody .fDots i')].indexOf(document.querySelector('#furnBody .fDots i.on'))"))
+            ok(r==["yard","wall","yard","yard",1], f"{t} (v567) 옆으로 밀기: 가구 → 마당 → 벽지 → 마당 · 세로는 안 넘어감 · 점 {r}")
+            await pg.evaluate("()=>{ furnTab='furn'; drawFurn(); }"); await pg.wait_for_timeout(300)
+            r=await pg.evaluate(SW, [300,100,0,0,"#furnBody .cBar .fCat .chip"])
+            ok(r=="furn", f"{t} (v567) 종류 칩 줄에서 미는 건 칩만 밀림 (칸은 그대로) {r}")
+            await pg.screenshot(path=OUT+f"furn566_{W}_pager.png")
             await pg.evaluate("()=>{ furnTab='yard'; drawFurn(); }"); await pg.wait_for_timeout(300)
             r=await pg.evaluate("()=>[!!document.querySelector('#furnBody .cBar[data-cbar=yc]'), document.querySelectorAll('#furnBody [data-yc]').length]")
             ok(r[0] and r[1]==6, f"{t} 🌳 마당 칩도 같은 수납형 {r}")
