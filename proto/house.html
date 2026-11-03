@@ -1423,6 +1423,12 @@ const OUT_PRICE={pswing:24, hammock:18, rocker:12, eggchair:22, bbq:16, fence:1,
       [[-0.1,0.02,0xc0532f],[0.1,-0.06,0xe8a35a]].forEach(([x,z,col])=>{ const f=part(g, cyl(0.06,0.06,0.04,10), M(col), x,0.77,z); });
       const sm=[0,1,2].map(i=>{ const s=part(g, sph(0.06), M(0xeeeeee,{transparent:true, opacity:.6}), 0,0.9,0); return s; }); g.userData.tick=(dt,t)=>{ sm.forEach((s,i)=>{ const k=((t*0.5+i/3)%1); s.position.set(Math.sin(t+i)*0.05, 0.85+k*0.6, 0); s.scale.setScalar(0.6+k*1.2); s.material.opacity=.55*(1-k); }); return true; }; return g; }}
   });
+  /* (v587) 🍄 버섯 마을 선물 (가게에 없음 · 이웃 하트 ❤️ 로만) — isle-vil.js GIFT */
+  Object.assign(OUT, {
+  mushstool:{nm:"mushroom stool", ic:"🍄", sz:[1,1], cat:"furn", use:"sit", gift:1, cols:["#ff5a5a","#4f9be8","#ffb84d"], build(c){ const g=new THREE.Group(); part(g, cyl(0.16,0.2,0.36,12), M(0xfff3dc), 0,0.18,0); const cp=part(g, new THREE.SphereGeometry(0.34,16,8,0,Math.PI*2,0,Math.PI/2), M(this.cols[c]), 0,0.34,0); cp.scale.y=0.55; for(let k=0;k<5;k++){ const a=k/5*Math.PI*2; part(g, sph(0.05), M(0xffffff), Math.cos(a)*0.2,0.47,Math.sin(a)*0.2).scale.y=0.5; } g.userData.seat=seat(g,0,0.5,0); return g; }},
+  mushlamp:{nm:"mushroom lamp", ic:"🍄", sz:[1,1], cat:"furn", glow:1, gift:1, cols:["#9b7be8","#ff7aa8","#7fc8f8"], build(c){ const g=new THREE.Group(); part(g, cyl(0.05,0.08,1.0,8), M(0xfff3dc), 0,0.5,0); const b=new THREE.Mesh(new THREE.SphereGeometry(0.32,16,8,0,Math.PI*2,0,Math.PI/2), new THREE.MeshStandardMaterial({color:new THREE.Color(this.cols[c]).convertSRGBToLinear(), emissive:new THREE.Color(0xffe9a0).convertSRGBToLinear(), emissiveIntensity:0.12})); b.material.userData.lin=1; b.position.y=0.95; b.scale.y=0.7; b.castShadow=true; g.add(b); g.userData.bulb=b; return g; }},
+  mushhut:{nm:"mushroom hut", ic:"🏠", sz:[2,2], cat:"play", use:"tent", gift:1, cols:["#ff5a5a","#4f9be8","#9b7be8","#ffb84d"], build(c){ const g=new THREE.Group(); part(g, cyl(0.6,0.75,1.1,16), M(0xfff3dc), 0,0.55,0); const cp=part(g, new THREE.SphereGeometry(1.0,20,10,0,Math.PI*2,0,Math.PI/2), M(this.cols[c]), 0,1.0,0); cp.scale.y=0.7; for(let k=0;k<6;k++){ const a=k/6*Math.PI*2; part(g, sph(0.12), M(0xffffff), Math.cos(a)*0.6,1.5,Math.sin(a)*0.6).scale.y=0.45; } part(g, rbox(0.36,0.56,0.06,0.02), M(0x8a5a34), 0,0.28,0.7); part(g, sph(0.035), M(0xffd23f), 0.1,0.3,0.74); return g; }}
+  });
   Object.assign(OUT.obench, {use:"sit"}); OUT.obench.build=(f=>function(c){ const g=f.call(this,c); g.userData.seat=seat(g, 0,0.46,0.06); return g; })(OUT.obench.build);
   Object.assign(OUT.picnic, {use:"sit"}); OUT.picnic.build=(f=>function(c){ const g=f.call(this,c); g.userData.seat=seat(g, 0,0.48,0.62); g.userData.seatFace=Math.PI; return g; })(OUT.picnic.build);
   Object.assign(OUT.swing, {use:"ride"}); OUT.swing.build=(f=>function(c){ const g=f.call(this,c); const s=g.children.find(o=>o.isGroup); if(s){ g.userData.seat=seat(s, 0,-0.97,0); g.userData.tick=(dt,t)=>{ const r=g.userData.ride; s.rotation.x=Math.sin(t*(r?2.4:1.8))*(r?0.62:0.35); return true; }; } return g; })(OUT.swing.build);
@@ -4372,11 +4378,18 @@ function drawQ(){ const L=qList(), S=L.filter(q=>q.sec==="s"), D=L.filter(q=>q.s
     +(q.got?'<em>✅</em>':q.c>=q.n?'<button class="btn on sm2" data-q="'+q.id+'">🪙'+(q.r*5)+' 받기</button>':'<em class="r">🪙'+(q.r*5)+'</em>')+'</div>';
   $("qBody").innerHTML=(allS?'':'<h4 class="qH">🌱 처음 해 볼 것 <small>'+S.filter(q=>q.got).length+' / '+S.length+'</small></h4>'+S.map(row).join(""))
     +'<h4 class="qH">☀️ 오늘 할 일 <small>내일 새로 바뀌어요</small></h4>'+D.map(row).join("")
+    +vilQ()
     +'<p style="text-align:center;margin:12px 0 0"><button class="btn sm2" id="qTut">🧑‍🌾 Mia 의 안내 다시 보기</button></p>'; }
+/* (v587) 📌 버섯 마을 의뢰 — 고른 것 · 하는 중 · 끝나면 그 사람에게 */
+function vilQ(){ if(!window.VIL || !ISLE_MODE) return ""; const S=VIL.st(), L=VIL.today().filter(q=>S.acc[q.id]); const N={}; VIL.NPC.forEach(n=>N[n.id]=n);
+  return '<h4 class="qH">📌 버섯 마을 의뢰 <small>고른 것 '+L.filter(q=>!S.done[q.id]).length+' / 3</small></h4>'+(L.length?L.map(q=>{ const n=N[q.who], d=S.done[q.id], c=q.kind==="d"?((S.acc[q.id]||{}).c|0):(q.x==="fish"?bag.filter(b=>FISH_BY[b.en]&&!(SPEC[b.en]||{}).junk).length:(mats[q.x]|0)), fin=!d && c>=q.n;
+      return '<div class="qRow'+(d?' got':fin?' done':'')+'"><i>'+n.ic+'</i><span>'+esc(q.ko)+' <small>'+Math.min(c,q.n)+'/'+q.n+'</small></span>'+(d?'<em>✅</em>':fin?'<em class="r">'+n.nm+' 에게 가요</em>':'<em class="r">🪙'+q.r+'</em>')+'</div>'; }).join("")
+    :'<p class="qH" style="font-weight:400;font-size:13px">🍄 버섯 마을 📌 의뢰판에서 골라요 — 🪙 20·30</p>')+'<p style="text-align:center;margin:6px 0 0"><button class="btn sm2" id="qVil">📌 의뢰판 보기</button></p>'; }
 function openQ(){ if(F.st!=="idle") return; closeAv(); SHEETS.forEach(id=>$(id).classList.remove("on")); drawQ(); $("qP").classList.add("on"); }
 $("hQ").onclick=openQ; $("hEnv").onclick=envCard;
 $("fgHold").addEventListener("pointerdown", e=>{ e.preventDefault(); e.stopPropagation(); if(F.st==="fight") F.hold=true; }); $("qDone").onclick=()=>$("qP").classList.remove("on");
 $("qBody").addEventListener("click", e=>{ const b=e.target.closest("[data-q]"); if(b){ qClaim(b.dataset.q); return; }
+  if(e.target.id==="qVil"){ $("qP").classList.remove("on"); try{ VIL.open(); }catch(_){} return; }
   if(e.target.id==="qTut"){ $("qP").classList.remove("on"); let i=TUT.findIndex(S=>S.pl===place.key); if(i<0) i=TUT.findIndex(S=>S.pl==="*"); delete $("coach").dataset.s; tutAdv(i<0?0:i); } });
 
 /* 🪱 미끼 카드 · 처음 연못을 누르면 한 번 보여 줌 */
@@ -4533,7 +4546,7 @@ function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Mat
 function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
+  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.VIL && VIL.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } if(place===PL.mine){ regenMine(); drawOres(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(TW.on){ twTick(dt); anim=true; } else if(updCam(dt)) anim=true;
@@ -4564,6 +4577,7 @@ window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcC
 <script src="home-life.js"></script>
 <script src="town-fac.js"></script>
 <script src="town-eco.js"></script>
+<script src="isle-vil.js"></script>   <!-- (v587) 🍄 버섯 마을 · 📌 의뢰 -->
 <script src="shop-in.js"></script>   <!-- (v572) 🏪 가게 안 -->
 </body>
 </html>

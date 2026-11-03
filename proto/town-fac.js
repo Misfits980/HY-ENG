@@ -423,8 +423,8 @@ const TFAC=(()=>{
     one(); }
 
   /* ═════════ 🚉 기차역 ═════════ */
-  const DEST=[["plaza","⛲","광장","the plaza"],["market","🏪","상점가","the market"],["lake","🎣","호수","the lake"],["school","🎓","배움 언덕","the school"],["tower","🗼","하늘 타워","the tower"],["mine","⛏","광산","the mine"],["park","🎡","놀이 공원","the park"],["farm","🌾","농장","the farm"],["home","⭐","내 집","my house"]];
-  function destAt(k){ const S=ISLE.SPOT; if(k==="home"){ const d=ISLE.doorCell(); return d?[d[0]+.5,d[1]+.5]:null; } if(k==="plaza") return [ISLE.OX+2.6, ISLE.OZ+2.6]; if(k==="park") return S.oxC?[S.oxC[0]+3.6,S.oxC[1]-3.6]:null; if(k==="market") return S.shops&&S.shops[0]?S.shops[0].door:null;
+  const DEST=[["plaza","⛲","광장","the plaza"],["market","🏪","상점가","the market"],["lake","🎣","호수","the lake"],["school","🎓","배움 언덕","the school"],["tower","🗼","하늘 타워","the tower"],["mine","⛏","광산","the mine"],["park","🎡","놀이 공원","the park"],["farm","🌾","농장","the farm"],["vil","🍄","버섯 마을","the mushroom village"],["home","⭐","내 집","my house"]];
+  function destAt(k){ const S=ISLE.SPOT; if(k==="home"){ const d=ISLE.doorCell(); return d?[d[0]+.5,d[1]+.5]:null; } if(k==="plaza") return [ISLE.OX+2.6, ISLE.OZ+2.6]; if(k==="park") return S.oxC?[S.oxC[0]+3.6,S.oxC[1]-3.6]:null; if(k==="market") return S.shops&&S.shops[0]?S.shops[0].door:null; if(k==="vil"){ const v=(ISLE_MAP.spots||{}).vil; return v?[v[0]+ISLE.OX, v[1]+ISLE.OZ+7]:null; }
     const p=S[k]; return p?[p[0], p[2]]:null; }
   function warp(x,z){ const B=ISLE.blocked; let bx=Math.floor(x), bz=Math.floor(z), f=null; for(let r=0;r<8 && !f;r++) for(let dx=-r;dx<=r && !f;dx++) for(let dz=-r;dz<=r && !f;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!B(bx+dx,bz+dz)) f=[bx+dx,bz+dz]; }
     if(!f) return false; hero.path=[]; hero.moving=false; hero.slide=null; hero.cx=f[0]; hero.cz=f[1]; hero.g.position.set(f[0]+.5,0,f[1]+.5); if(petObj) petObj.position.copy(hero.g.position); camSnap=true; placeCamera(); return true; }
