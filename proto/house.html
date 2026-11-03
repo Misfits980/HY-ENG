@@ -4168,7 +4168,7 @@ const ENV={a:{sky:0xffd6b4, h:0.72, s:0xffc890, si:0.8}, d:{sky:0, h:0.75, s:0xf
 let envK="", envT=0, envRu=false, envRuWas=null;
 function envApply(force){ const out=place===PL.yard || place===PL.village || place===PL.yvisit || (PL.isle && place===PL.isle), ti=tod(), rn=rainy() && out, ru=!!rush(); envRu = ru && place===PL.yard;
   if(envRuWas!=null && ru && !envRuWas && place===PL.yard){ toast("✨ <b>황금 물고기 떼</b>가 왔어요!<br><small>5분 동안 반짝이 물고기가 잔뜩 — 인어도 나올지 몰라요</small>", 3600); try{ SND.sparkle(); }catch(e){} }
-  envRuWas=ru; updEnvPill(out, ti, rn, ru); try{ if(yNightOn!==(ti==="n"||ti==="e")) yNight(ti==="n"||ti==="e"); }catch(e){} const k=place.key+ti+rn+ru; if(k===envK && !force) return; envK=k;
+  envRuWas=ru; updEnvPill(out, ti, rn, ru); try{ if(yNightOn!==(ti==="n"||ti==="e")) yNight(ti==="n"||ti==="e"); }catch(e){} try{ if(window.ISLE && ISLE.night) ISLE.night(ti==="n"||ti==="e"); }catch(e){}   /* (v575) 섬 가로등 */ const k=place.key+ti+rn+ru; if(k===envK && !force) return; envK=k;
   const E=out ? ENV[ti] : ENV.d; let sky=out ? (E.sky||place.sky||0x8fd3f0) : (place.sky||0xf1e2c8); if(rn) sky=new THREE.Color(sky).lerp(new THREE.Color(0x8796aa), 0.45).getHex();
   scene.background=new THREE.Color(sky); hemiL.intensity=out ? E.h*(rn?0.85:1) : 0.75; sun.color.setHex(out ? E.s : 0xffe2b8); sun.intensity=out ? E.si*(rn?0.7:1) : 0.85;
   document.body.classList.toggle("rain", rn); document.body.classList.toggle("night", out && ti==="n"); try{ townEnv(out, ti, rn); }catch(e){ console.warn(e); } dirty=true; }

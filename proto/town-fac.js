@@ -116,7 +116,7 @@ const TFAC=(()=>{
       X(new THREE.CylinderGeometry(.34,.34,.06,20),0x9a9aa6,0,1.0,fr+.09,Math.PI/2); X(new THREE.TorusGeometry(.2,.03,6,16),0x5b5b66,0,1.0,fr+.14);
       [[-1,0xd9a62e],[1,0x7fd36a]].forEach(([s2,col])=>{ X(new THREE.SphereGeometry(.28,12,10),col,s2*(w/2+.55),.36,fr+.3); X(new THREE.CylinderGeometry(.08,.12,.16,10),col,s2*(w/2+.55),.68,fr+.3); X(new THREE.TorusGeometry(.1,.025,6,12),0x7a4f2c,s2*(w/2+.55),.6,fr+.3,Math.PI/2); }); }
     C.flush(W); mergeIn(W); C.G.add(W);
-    const rad=Math.max(w,d)/2*.92+(f.k==="museum"?.3:0); C.cols.push([x+OX,z+OZ,rad]); C.busy.push([x,z,rad+1.4]); if(f.k==="pet"){ const p=L2W(w/2+1.5,0); C.cols.push([p[0]+OX,p[1]+OZ,1.1]); C.busy.push([p[0],p[1],1.6]); }
+    const rad=Math.max(w,d)/2*.92+(f.k==="museum"?.3:0); C.cols.push([x+OX,z+OZ,rad]); C.busy.push([x,z,rad+1.4]); { const df=L2W(0,fr+1.7); C.busy.push([df[0],df[1],1.7]); if(f.k==="post"){ const mb=L2W(w/2+.6,fr+.6); C.busy.push([mb[0],mb[1],1.0]); } }   /* (v575) 점검: 문 앞·우체통이 꽃밭에 묻히던 것 */ if(f.k==="pet"){ const p=L2W(w/2+1.5,0); C.cols.push([p[0]+OX,p[1]+OZ,1.1]); C.busy.push([p[0],p[1],1.6]); }
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:C.signTex(f.ic+" "+f.t, f.bg, 448), depthWrite:false})); sp.scale.set(2.5,.72,1); const sg=L2W(0,fr+.5); sp.position.set(sg[0]+OX, f.k==="museum"?h+1.95:(f.k==="library"?h+2.0:h+1.65), sg[1]+OZ); sp.renderOrder=2; C.G.add(sp); C.SIGNS.push(sp);
     const dp=L2W(0,fr+(f.k==="museum"?1.9:1.25)), lp=L2W(0,fr+.4); SP[f.k]={k:f.k, ic:f.ic, t:f.t, p:[lp[0]+OX,1.6,lp[1]+OZ], door:[dp[0]+OX, dp[1]+OZ], at:[x+OX,z+OZ]}; }
   /* 📣 목표판 — 광장 쪽을 보는 큰 판 (글씨 = 그림판, 서버 값이 오면 다시 그림) */
@@ -141,12 +141,16 @@ const TFAC=(()=>{
   function decorate(){ const OX=C.OX, OZ=C.OZ, S=season(), sea=SEA[S]||SEA.spring, fest=GOAL.tot>=GOAL.target;
     // 깃발 줄: 분수 위 → 광장 둘레 8곳
     const pos=[], col=[], c3=new THREE.Color(); const flags=fest?[0xff6b6b,0xffd23f,0x5aa7ff,0x7fd36a,0xff9ac8]:sea.flag;
-    const PR=C.MAP.plaza.r; for(let k=0;k<8;k++){ const a=k/8*6.283+.2, ex=Math.cos(a)*PR*.78, ez=Math.sin(a)*PR*.78, n=9;
-      for(let i=1;i<n;i++){ const t=i/n, x=ex*t, z=ez*t, y=2.75-(2.75-2.35)*t-Math.sin(t*Math.PI)*.45, tx=-Math.sin(a)*.17, tz=Math.cos(a)*.17; c3.set(flags[(i+k)%flags.length]).convertSRGBToLinear();
-        [[x-tx,y,z-tz],[x+tx,y,z+tz],[x,y-.36,z]].forEach(v=>{ pos.push(v[0]+OX,v[1],v[2]+OZ); col.push(c3.r,c3.g,c3.b); }); } }
+    /* (v575) 점검: 깃발이 줄 없이 1.9~2.75m 허공에 떠서 아이 얼굴·건물 앞을 가림 → 4줄 · 높이 3.3~3.8 · 진짜 줄 · 끝마다 기둥 */
+    const PR=C.MAP.plaza.r, line=[]; for(let k=0;k<4;k++){ const a=k/4*6.283+.6, ex=Math.cos(a)*PR*.86, ez=Math.sin(a)*PR*.86, n=11, Y=t=>3.8-(3.8-3.3)*t-Math.sin(t*Math.PI)*.35;
+      for(let i=0;i<=24;i++){ const t=i/24; line.push(ex*t+OX, Y(t)+.02, ez*t+OZ); if(i>0 && i<24) line.push(ex*t+OX, Y(t)+.02, ez*t+OZ); }
+      for(let i=1;i<n;i++){ const t=i/n, x=ex*t, z=ez*t, y=Y(t), tx=-Math.sin(a)*.16, tz=Math.cos(a)*.16; c3.set(flags[(i+k)%flags.length]).convertSRGBToLinear();
+        [[x-tx,y,z-tz],[x+tx,y,z+tz],[x,y-.32,z]].forEach(v=>{ pos.push(v[0]+OX,v[1],v[2]+OZ); col.push(c3.r,c3.g,c3.b); }); } }
     const bg=new THREE.BufferGeometry(); bg.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); bg.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
     bunt=new THREE.Mesh(bg, new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.DoubleSide})); C.G.add(bunt);
-    const DG=new THREE.Group(); DG.position.set(OX,0,OZ); C.G.add(DG); const pole=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1.0,6), C.MC(0xffffff)); pole.position.set(0,2.3,0); DG.add(pole);
+    { const lg=new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(line,3)); const ln=new THREE.LineSegments(lg, new THREE.LineBasicMaterial({color:0x6b5a4e})); ln.raycast=()=>{}; ln.userData.noFade=1; C.G.add(ln); }
+    const DG=new THREE.Group(); DG.position.set(OX,0,OZ); C.G.add(DG); const pole=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.6,8), C.MC(0xffffff)); pole.position.set(0,3.05,0); DG.add(pole);
+    for(let k=0;k<4;k++){ const a=k/4*6.283+.6, ex=Math.cos(a)*PR*.86, ez=Math.sin(a)*PR*.86; const p2=new THREE.Mesh(new THREE.CylinderGeometry(.07,.08,3.35,8), C.MC(0xfffdf7)); p2.position.set(ex,1.67,ez); p2.castShadow=true; DG.add(p2); const b=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8), C.MC(0xffd23f)); b.position.set(ex,3.42,ez); DG.add(b); try{ C.cols.push([ex+OX,ez+OZ,.25]); }catch(e){} }
     // 계절 소품 — 광장 둘레 (길 위는 피함)
     const ring=(r, n, fn)=>{ for(let k=0;k<n;k++){ const a=k/n*6.283+.35, x=Math.cos(a)*r, z=Math.sin(a)*r; try{ if(ISLE.onPave(x+OX,z+OZ) && Math.hypot(x,z)>C.MAP.plaza.r-.2) continue; }catch(e){} fn(x,z,a,k); } };
     const P_=(geo,c,x,y,z,o)=>{ const m=new THREE.Mesh(geo, C.MC(c)); m.position.set(x,y,z); if(o) m.scale.set(o[0],o[1],o[2]); m.castShadow=true; DG.add(m); return m; };
