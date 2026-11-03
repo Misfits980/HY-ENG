@@ -246,6 +246,24 @@ button{font-family:inherit}
 .gbG{display:flex;flex-wrap:wrap;gap:8px} .gbC{display:flex;flex-direction:column;align-items:center;min-width:58px;padding:6px;border-radius:14px;background:var(--card);border:2px solid var(--line)} .gbC i{font-style:normal;font-size:26px} .gbC small{font-size:11px;color:var(--sub)}
 .stkG{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px} .stkB{font-size:30px;height:56px;border-radius:16px;border:2px solid var(--line);background:var(--card);cursor:pointer;box-shadow:0 2px 0 var(--line)}
 .fCat{margin-bottom:10px} .fCat .chip{min-height:38px;font-size:13px}
+/* (v566) 사용자: 「오른쪽으로 이쁘게 정리 · 밑에는 촤라락 펼치는 수납형 버튼 · 스크롤 신경」
+   가구 가게 머리 = 💎·🪙 작은 알약 두 개 (예전엔 <b> 가 .hd b{flex:1} 를 받아 네 줄로 꺾임) · 종류 칩 = 한 줄 가로 밀기 + ▾ 모두(펼치기) */
+.hdGem.two{display:flex;gap:5px;align-items:center;padding:0;background:none;border-radius:0;font-size:14px;margin-left:auto}
+.hdGem.two .cur{display:inline-flex;align-items:center;gap:3px;height:30px;padding:0 10px;border-radius:999px;font:800 14px var(--en);white-space:nowrap;box-shadow:inset 0 -2px 0 rgba(90,60,30,.12)}
+.hdGem.two .cG{background:#e4efff;color:#2f5fb8} .hdGem.two .cC{background:#fff1c9;color:#8a5a00}
+.cBar{position:relative;margin:0 0 10px}
+.cBar .bChips.fCat{margin:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;padding:2px 96px 6px 2px;max-height:52px;transition:max-height .35s ease}
+.cBar .bChips.fCat::-webkit-scrollbar{display:none}
+.cBar .chip{flex:none;scroll-snap-align:start}
+.cBar .cTog{position:absolute;right:0;top:2px;height:38px;padding:0 12px 0 10px;border-radius:999px;border:2px solid var(--line);background:var(--ink);color:#fff;font:800 13px var(--en);box-shadow:0 2px 0 var(--line);z-index:2;white-space:nowrap}
+.cBar .cTog::before{content:"";position:absolute;right:100%;top:-4px;bottom:-6px;width:34px;background:linear-gradient(90deg,rgba(255,248,234,0),var(--paper,#fff8ea) 70%);pointer-events:none}
+.cBar.open .bChips.fCat{flex-wrap:wrap;overflow:visible;padding-right:2px;max-height:600px}
+.cBar.open .cTog{position:static;display:block;margin:6px 0 0 auto}
+.cBar.open .cTog::before{display:none}
+.cBar.open .chip{animation:chipIn .32s cubic-bezier(.2,.9,.3,1.25) both;animation-delay:calc(var(--i,0)*22ms)}
+#furnTabs .bTab{flex:1 1 auto;white-space:nowrap;min-width:0;padding:0 7px;letter-spacing:-.2px} @media (max-width:430px){#furnTabs .bTab{font-size:14.5px}}   /* (v566) 「벽지·바닥」「넓히기」 두 줄로 꺾이던 것 */
+@keyframes chipIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.cBar.open .chip{animation:none}.cBar .bChips.fCat{transition:none}}
 .scTop{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px;border-radius:20px;background:#fff6dc;border:2px solid #f0d58a;margin-bottom:10px} .scTop b{font:900 26px var(--en);color:#7a5a10} .scTop small{color:var(--sub)}
 .setG{display:grid;grid-template-columns:repeat(2,1fr);gap:6px} .setC{padding:8px 10px;border-radius:14px;background:var(--card);border:2px solid var(--line)} .setC b{display:block;font-weight:400;font-size:14px} .setC small{font-size:13px;color:var(--sub)} .setC.ok{background:#e6f6e1;border-color:#9fd89a}
 .scRow{display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px dashed var(--line);font-size:14px} .scRow b{font-family:var(--en);color:var(--leafD)} .scRow b.neg{color:var(--coralD)}
@@ -1506,7 +1524,14 @@ function yPointerMove(e){ if(!down || place!==PL.yard || !edit) return; const dx
   if(!yDrag) yDrag={x:down.x, y:down.y, c:yEC.clone()}; const k=camD/innerHeight*1.15, fx=Math.cos(yaw), fz=-Math.sin(yaw);   // 화면 오른쪽 = (cos yaw, -sin yaw)
   const ddx=e.clientX-yDrag.x, ddy=e.clientY-yDrag.y; yEC.set(clamp(yDrag.c.x-(ddx*fx+ddy*Math.sin(yaw))*k,0,YN), 0, clamp(yDrag.c.z-(ddx*fz+ddy*Math.cos(yaw))*k,0,YN)); dirty=true; }
 /* 가게 줄 */
-function yShopHTML(){ let h='<div class="bChips fCat">'+OUT_CAT.map(([k,t])=>'<button class="chip'+(yCat===k?' on':'')+'" data-yc="'+k+'">'+t+'</button>').join("")+'</div>';
+/* (v566) 종류 칩 = 수납형 — 접힘: 한 줄 가로로 밀기(고른 칩이 보이게) · ▾ 모두: 촤라락 펼침 · 고르면 다시 접힘 */
+let chipOpen=false;
+function chipBar(items, cur, attr){ return '<div class="cBar'+(chipOpen?' open':'')+'" data-cbar="'+attr+'"><div class="bChips fCat">'+items.map(([k,t],i)=>'<button class="chip'+(cur===k?' on':'')+'" data-'+attr+'="'+k+'" style="--i:'+i+'">'+t+'</button>').join("")+'</div><button class="cTog" data-ctog aria-expanded="'+chipOpen+'">'+(chipOpen?'▴ 접기':'▾ 모두 '+items.length)+'</button></div>'; }
+const chipMem={};
+function chipKeep(root){ (root||document).querySelectorAll(".cBar").forEach(b=>{ chipMem[b.dataset.cbar]=b.querySelector(".fCat").scrollLeft; }); }
+function chipShow(root){ (root||document).querySelectorAll(".cBar").forEach(b=>{ const sc=b.querySelector(".fCat"), on=sc.querySelector(".chip.on"); if(b.classList.contains("open")) return;
+    sc.scrollLeft=chipMem[b.dataset.cbar]||0; if(on){ const L=on.offsetLeft, R=L+on.offsetWidth, vw=sc.clientWidth-96; if(L<sc.scrollLeft+4) sc.scrollLeft=Math.max(0,L-8); else if(R>sc.scrollLeft+vw) sc.scrollLeft=R-vw+8; } }); }
+function yShopHTML(){ let h=chipBar(OUT_CAT, yCat, "yc");
   h+=Object.keys(OUT_PRICE).filter(id=>yCat==="all"||OUT[id].cat===yCat).sort((a,b)=>OUT_PRICE[a]-OUT_PRICE[b]).map(id=>{ const it=OUT[id], p=OUT_PRICE[id], have=(ystock[id]|0)+yplaced.filter(x=>x.id===id).length;
     return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(canCO(CO(p))?' on':'')+'" data-by="'+id+'"'+(canCO(CO(p))?'':' data-poor="1"')+'>'+htmlCO(CO(p))+'</button></div>'; }).join("");
   return h; }
@@ -2957,10 +2982,10 @@ function upRows(){ const R=[]; const ru=ROOM_UP.find(x=>x[0]>RN); R.push(["room"
   ["fr","ch"].forEach(k=>{ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); R.push([k, k==="fr"?"🧊":"📦", k==="fr"?"냉장고 칸":"보관함 칸", S.cap+"칸"+(k==="fr" && !placed.some(p=>p.id==="fridge") && !(stock.fridge>0)?" · 냉장고가 있어야 써요":""), u?u[1]:0, u?"→ "+u[0]:""]); });
   { const n=yd?yd.pc.filter(Boolean).length:0; R.push(["parc","🌾","새 땅 (마당)", n+" / 3 구역"+(n<3?" · 🪧 팻말에서도":""), n<3?PARC_P[n]:0, n<3?"🌱 열기":"✅"]); }   /* (v415) */
   const bb=bagB(), bu=BAG_UP.find(x=>x[0]+bb>bagCap); R.push(["bag","🎒","가방 칸",bagCap+"칸"+(bagCap<30+bb?" · 먼저 🛠 big bag (30칸)":""), bu&&bagCap>=30+bb?bu[1]:0, !bu?"✅":bagCap<30+bb?"🛠 먼저":"→ "+(bu[0]+bb)]); return R; }
-function drawFurn(){ $("furnGem").innerHTML="💎 <b>"+gems+"</b> · 🪙 <b>"+TECO.coins()+"</b>";   /* (v563 QA) 대부분 🪙 가구라 둘 다 */
+function drawFurn(){ { const F=$("furnGem"), n=v=>Number(v||0).toLocaleString("ko-KR"); F.classList.add("two"); F.innerHTML='<span class="cur cG">💎 '+n(gems)+'</span><span class="cur cC">🪙 '+n(TECO.coins())+'</span>'; }   /* (v563 QA) 대부분 🪙 가구라 둘 다 */
   $("furnTabs").innerHTML=[["furn","🛋 가구"],["yard","🌳 마당"],["wall","🎨 벽지·바닥"],["up","🏡 넓히기"]].map(([k,t])=>'<button class="bTab'+(furnTab===k?' on':'')+'" data-ft="'+k+'">'+t+'</button>').join("");
   let h="";
-  if(furnTab==="furn") h='<div class="bChips fCat">'+[["all","전체"],["lim","🌙 이달의 한정"],["new","✨ 새 가구"],["furn","🛋 가구"],["play","🧸 놀이"],["plant","🌿 식물"],["hobby","🎨 취미"],["kb","🍽 부엌·욕실"],["app","📺 가전"],["wall","🖼 벽"],["season","🎄 계절"]].map(([k,t])=>'<button class="chip'+(furnCat===k?' on':'')+'" data-fc="'+k+'">'+t+'</button>').join("")+'</div>'
+  if(furnTab==="furn") h=chipBar([["all","전체"],["lim","🌙 이달의 한정"],["new","✨ 새 가구"],["furn","🛋 가구"],["play","🧸 놀이"],["plant","🌿 식물"],["hobby","🎨 취미"],["kb","🍽 부엌·욕실"],["app","📺 가전"],["wall","🖼 벽"],["season","🎄 계절"]], furnCat, "fc")
     +Object.keys(PRICE).filter(id=>{ const lim=TECO.isLim(id), now_=TECO.limNow().indexOf(id)>=0; if(furnCat==="lim") return now_; if(lim && !now_) return false; return furnCat==="all" || (furnCat==="new" ? NEWF[id] : catF(id)===furnCat); }).sort((a,b)=>PRICE[a]-PRICE[b]).map(id=>{ const it=ITEMS[id], p=PRICE[id], o=furnCO(id), have=(stock[id]|0)+placed.filter(x=>x.id===id).length;
     return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(TECO.isLim(id)?' <em style="font-style:normal;font-size:11px;color:#fff;background:#7a5af5;border-radius:8px;padding:1px 6px">🌙 '+(new Date(TECO.T()+9*3600e3).getUTCMonth()+1)+'월 한정</em>':'')+(NEWF[id]&&!have?' <em style="font-style:normal;font-size:11px;color:#fff;background:#ff6b9a;border-radius:8px;padding:1px 6px">NEW</em>':'')+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🏠 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+(it.wall?' · 🖼 벽에 걸어요':'')+(it.cols?' · 🎨 색 '+it.cols.length:'')+(it.sit?' · 🪑 앉기':'')+(it.use?' · 👆 '+(USE_T[it.use]):'')+(CRAFTABLE(id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(o&&canCO(o)?' on':'')+'" data-bf="'+id+'"'+(!o?' disabled':canCO(o)?'':' data-poor="1"')+'>'+(o?htmlCO(o):'🌙')+'</button></div>'; }).join("");
   if(furnTab==="wall"){ const sec=(L,own,cur,t,key)=>'<h4 class="bH">'+t+'</h4><div class="fwG">'+L.map((x,i)=>{ const o=own.includes(i), on=cur===i;
@@ -2969,7 +2994,7 @@ function drawFurn(){ $("furnGem").innerHTML="💎 <b>"+gems+"</b> · 🪙 <b>"+T
   if(furnTab==="yard") h=yShopHTML();
   if(furnTab==="up") h=upRows().map(([k,e,nm,sub,p,lab])=>{ const o=p?CO(p, k==="room"?"gem":k==="parc"?"mix":"coin"):null; return '<div class="sRow"><i>'+e+'</i><span><b>'+nm+'</b><small>'+sub+'</small></span>'+(p?'<button class="btn'+(canCO(o)?' on':'')+'" data-up="'+k+'"'+(canCO(o)?'':' data-poor="1"')+'>'+lab+' '+htmlCO(o)+'</button>':'<em>'+(lab||'✅')+'</em>')+'</div>'; }).join("")
     +'<p class="bHint" style="margin:10px 0 0">조금씩 늘려요 — 🪙 는 물고기·작물을 팔아서 · 💎 는 공부해서 벌어요 · 🏦 은행에서 바꿀 수도 있어요</p>';
-  $("furnBody").innerHTML=h; }
+  chipKeep($("furnBody")); $("furnBody").innerHTML=h; chipShow($("furnBody")); }
 function openFurn(tab){ if(F.st!=="idle") return; if(tab) furnTab=tab; $("drawer").classList.remove("on"); drawFurn(); $("furnP").classList.add("on"); }
 $("furnTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-ft]"); if(!b) return; furnTab=b.dataset.ft; drawFurn(); });
 $("furnBody").addEventListener("click", e=>{ const bf=e.target.closest("[data-bf]"), fw=e.target.closest("[data-fw]"), up=e.target.closest("[data-up]");
@@ -2980,8 +3005,9 @@ $("furnBody").addEventListener("click", e=>{ const bf=e.target.closest("[data-bf
   if(fw && !fw.disabled){ const isF=fw.dataset.fw[0]==="f", i=+fw.dataset.fw.slice(1), own=isF?ownF:ownW, L=isF?FLOORS:WALLS;
     const use=()=>{ if(isF) setFloor(i); else setWall(i); saveRoom(); toast((isF?"🟫 ":"🎨 ")+L[i].nm); drawFurn(); };
     if(!own.includes(i)) buyQ(isF?"🟫":"🎨", L[i].nm, CO(FW_PRICE,"coin"), ()=>{ if(!payCO(CO(FW_PRICE,"coin"))) return; own.push(i); own.sort((a,b)=>a-b); use(); }); else use(); }
-  const fc=e.target.closest("[data-fc]"); if(fc){ furnCat=fc.dataset.fc; drawFurn(); return; }
-  const yc=e.target.closest("[data-yc]"); if(yc){ yCat=yc.dataset.yc; drawFurn(); return; }
+  const tg=e.target.closest("[data-ctog]"); if(tg){ chipOpen=!chipOpen; drawFurn(); return; }
+  const fc=e.target.closest("[data-fc]"); if(fc){ furnCat=fc.dataset.fc; chipOpen=false; drawFurn(); return; }
+  const yc=e.target.closest("[data-yc]"); if(yc){ yCat=yc.dataset.yc; chipOpen=false; drawFurn(); return; }
   const by=e.target.closest("[data-by]"); if(by && !by.disabled){ const id=by.dataset.by; buyQ(OUT[id].ic, OUT[id].nm+(PACK[id]?" ×"+PACK[id]:""), CO(OUT_PRICE[id]), ()=>{ if(!payCO(CO(OUT_PRICE[id]))) return; ystock[id]=(ystock[id]|0)+(PACK[id]||1); ySave(); toast(OUT[id].ic+" "+OUT[id].nm+" → 🌳 마당 꾸미기<br><small>마당 ✏️ 꾸미기 단추로 놓아요</small>", 2200); say(OUT[id].nm); drawFurn(); }); }
   if(up && !up.disabled && up.dataset.up==="parc"){ const i=yd.pc.findIndex(v=>!v); if(i>=0) yParcAsk(i); return; }
   if(up && !up.disabled){ const k=up.dataset.up;
