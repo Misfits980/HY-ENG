@@ -108,6 +108,13 @@ const TFAC=(()=>{
         if(eng){ X(new THREE.CylinderGeometry(.3,.3,.9,14),col,cx+.45,.95,rz,0,0,Math.PI/2); X(new THREE.CylinderGeometry(.09,.13,.4,10),0x3b2433,cx+.75,1.45,rz); B(.6,.5,.92,0xffd23f,cx-.35,1.11,rz); } else [-.32,.32].forEach(wx=>B(.36,.3,.04,0x9fd8ff,cx+wx,.66,rz+.47)); };
       car(-2.3,0xff6b6b,1); car(-.8,0x5aa7ff); car(.7,0xffd23f);
       [-2.3,-.8,.7].forEach(cx=>{ const p=L2W(cx,rz); C.cols.push([p[0]+OX,p[1]+OZ,.75]); }); [-4,-2,0,2,4].forEach(cx=>{ const p=L2W(cx,rz); C.busy.push([p[0],p[1],1.3]); }); }
+    else if(f.k==="bank"){   /* (v571) 🏦 은행다운 모양 — 사용자: 「상점·은행 … 차이점이 없어」 · 계단 · 흰 기둥 4 · 금색 삼각 지붕 · 큰 금화 · 금고 문 · 돈주머니 */
+      B(w+1.0,.14,d+1.4,0xe9e2d0,0,0,.3); B(w+.6,.14,d+1.0,0xf3eee2,0,.14,.2);
+      [-1.65,-.55,.55,1.65].forEach(cx=>{ X(new THREE.CylinderGeometry(.17,.2,h-.05,12),0xffffff,cx,h/2+.25,fr+.5); X(new THREE.BoxGeometry(.44,.12,.44),0xf3eee2,cx,.34,fr+.48); X(new THREE.BoxGeometry(.44,.12,.44),0xf3eee2,cx,h+.2,fr+.48); });
+      B(w+.4,.26,d+1.0,0xf6f0e2,0,h+.18,.25); gable(w+.1,d+.6,.85,0xd9a62e,h+.44);
+      const coin=X(new THREE.CylinderGeometry(.42,.42,.1,24),0xffd23f,0,h+.82,fr+.62,Math.PI/2); coin.userData.spin=1; X(new THREE.CylinderGeometry(.3,.3,.12,20),0xe0a800,0,h+.82,fr+.64,Math.PI/2);
+      X(new THREE.CylinderGeometry(.34,.34,.06,20),0x9a9aa6,0,1.0,fr+.09,Math.PI/2); X(new THREE.TorusGeometry(.2,.03,6,16),0x5b5b66,0,1.0,fr+.14);
+      [[-1,0xd9a62e],[1,0x7fd36a]].forEach(([s2,col])=>{ X(new THREE.SphereGeometry(.28,12,10),col,s2*(w/2+.55),.36,fr+.3); X(new THREE.CylinderGeometry(.08,.12,.16,10),col,s2*(w/2+.55),.68,fr+.3); X(new THREE.TorusGeometry(.1,.025,6,12),0x7a4f2c,s2*(w/2+.55),.6,fr+.3,Math.PI/2); }); }
     C.flush(W); mergeIn(W); C.G.add(W);
     const rad=Math.max(w,d)/2*.92+(f.k==="museum"?.3:0); C.cols.push([x+OX,z+OZ,rad]); C.busy.push([x,z,rad+1.4]); if(f.k==="pet"){ const p=L2W(w/2+1.5,0); C.cols.push([p[0]+OX,p[1]+OZ,1.1]); C.busy.push([p[0],p[1],1.6]); }
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:C.signTex(f.ic+" "+f.t, f.bg, 448), depthWrite:false})); sp.scale.set(2.5,.72,1); const sg=L2W(0,fr+.5); sp.position.set(sg[0]+OX, f.k==="museum"?h+1.95:(f.k==="library"?h+2.0:h+1.65), sg[1]+OZ); sp.renderOrder=2; C.G.add(sp); C.SIGNS.push(sp);

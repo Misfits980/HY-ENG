@@ -286,13 +286,38 @@ const ISLE=(()=>{
     { const [bx,bz]=Sx.board; const b=new THREE.Group(); b.position.set(bx+OX,0,bz+OZ); b.rotation.y=Math.PI*.25; const W_=MC(0x9a6a40); [-.55,.55].forEach(x=>{ const p=new THREE.Mesh(new THREE.BoxGeometry(.1,1.3,.1),W_); p.position.set(x,.65,0); b.add(p); });
       const bd=new THREE.Mesh(new THREE.BoxGeometry(1.4,.85,.08),MC(0xc9925c)); bd.position.y=1.05; b.add(bd); [[-.3,1.15,0xfff3d6],[.25,1.0,0xdff3d6],[-.2,.88,0xffd9e6]].forEach(([x,y,c])=>{ const pp=new THREE.Mesh(new THREE.BoxGeometry(.38,.3,.02),MC(c)); pp.position.set(x,y,.05); b.add(pp); });
       b.traverse(m=>{ if(m.isMesh){ m.castShadow=true; } }); G.add(b); cols.push([bx+OX,bz+OZ,.5]); SPOT.board=[bx+OX,1.9,bz+OZ]; busy.push([bx,bz,1.2]); }
+    /* (v571) 사용자: 「상점들 … 조금 더 이쁘게 · 차이점이 없어」 — 가게마다 지붕 위 큰 상징물 + 문 옆 소품 + 가게 색 차양
+       로컬 좌표: +z = 길(앞) · x = 옆 · 지붕 ≈ 3.3 */
+    function shopDeco(SH, x, z, nx, nz){ const k=SH[0], col=SH[3], g=new THREE.Group(); g.position.set(x+OX,0,z+OZ); g.rotation.y=Math.atan2(-nx,-nz);
+      const P=(geo,c,px,py,pz,rx,ry,rz,o)=>{ const m=new THREE.Mesh(geo, o&&o.basic?new THREE.MeshBasicMaterial({color:LIN(c)}):MC(c)); m.position.set(px,py,pz); m.rotation.set(rx||0,ry||0,rz||0); m.castShadow=true; g.add(m); return m; };
+      const Bx=(w,h,d,c,px,py,pz)=>P(new THREE.BoxGeometry(w,h,d),c,px,py+h/2,pz), Sp=(r,c,px,py,pz,sx,sy,sz)=>{ const m=P(new THREE.SphereGeometry(r,12,10),c,px,py,pz); if(sx) m.scale.set(sx,sy,sz); return m; }, Cy=(rt,rb,h,c,px,py,pz,rx,rz)=>P(new THREE.CylinderGeometry(rt,rb,h,14),c,px,py,pz,rx,0,rz);
+      /* 차양 (가게 색 줄무늬) */ for(let j=0;j<5;j++){ const a=P(new THREE.BoxGeometry(.5,.05,.85),j%2?0xffffff:col,-1+j*.5,2.15,2.05,.38); a.castShadow=false; }
+      const R=2.0, sx=-1.95, sz=1.9;   // 지붕 위(가게 지붕 ≈ 1.7) · 문 옆
+      if(k==="fish"){ const f=Sp(.55,0x5aa7ff,0,R+.4,0,1.6,.8,.6); Sp(.09,0xffffff,.62,R+.55,.28); Sp(.05,0x3b2433,.65,R+.55,.32); P(new THREE.ConeGeometry(.42,.6,4),0x3d8be0,-1.05,R+.4,0,0,0,Math.PI/2); Cy(.04,.04,.5,0x8a8a96,0,R-.05,0);
+        Bx(.9,.45,.6,0xffffff,sx,0,sz); Bx(.8,.06,.5,0xbfeaff,sx,.45,sz); [[-.2,0xff9a3d],[.05,0x5aa7ff],[.25,0xc7a6ff]].forEach(([o,c])=>Sp(.08,c,sx+o,.55,sz,2,.7,.9)); }
+      else if(k==="clothes"){ Cy(.05,.05,.5,0x8a8a96,0,R-.05,0); const t=Bx(1.1,.85,.12,col,0,R+.15,0); Bx(.3,.4,.12,col,-.7,R+.55,0).rotation.z=.6; Bx(.3,.4,.12,col,.7,R+.55,0).rotation.z=-.6; Bx(.5,.18,.13,0xffffff,0,R+.85,0);
+        Cy(.14,.18,.75,0xff9ac8,sx,.42,sz); Sp(.14,0xf3d6c0,sx,1.0,sz); Cy(.03,.03,.3,0x8a8a96,sx,.12,sz); Cy(.12,.12,.04,0x8a8a96,sx,.02,sz); }
+      else if(k==="mart"){ Cy(.05,.05,.5,0x8a8a96,0,R-.05,0); Bx(1.0,.55,.7,0xc48a58,0,R+.15,0); [[-.25,.1,0xff4b4b],[.05,-.12,0xffd23f],[.28,.12,0x7fd36a],[-.05,.15,0xff9a3d]].forEach(([a,b,c])=>Sp(.17,c,a,R+.78,b));
+        [[0,0xff4b4b],[.55,0xffd23f]].forEach(([o,c])=>{ Bx(.5,.3,.42,0xc48a58,sx+o,0,sz); for(let q=0;q<3;q++) Sp(.08,c,sx+o-.13+q*.13,.36,sz); }); }
+      else if(k==="hair"){ Cy(.05,.05,.5,0x8a8a96,0,R-.05,0); [0,1].forEach(s2=>{ const r=new THREE.Mesh(new THREE.TorusGeometry(.2,.06,8,18), MC(0xc0c0cc)); r.position.set(-.18+s2*.36,R+.35,0); g.add(r); }); Bx(.08,.9,.06,0xc0c0cc,-.12,R+.5,0).rotation.z=-.35; Bx(.08,.9,.06,0xc0c0cc,.12,R+.5,0).rotation.z=.35;
+        for(let q=0;q<6;q++) Cy(.13,.13,.18,[0xff4b4b,0xffffff,0x5aa7ff][q%3],sx,.3+q*.18,sz); Sp(.15,0xffffff,sx,1.45,sz); }
+      else if(k==="snack"){ P(new THREE.ConeGeometry(.38,.9,14),0xe8b46a,0,R+.4,0,Math.PI); Sp(.42,0xffb6d1,0,R+.95,0); Sp(.32,0x9ff0d0,0,R+1.32,0); Sp(.09,0xff4b4b,0,R+1.66,0);
+        Cy(.3,.3,.05,0xffffff,sx,.62,sz); Cy(.04,.04,.6,0x7a4f2c,sx,.3,sz); Cy(.06,.06,1.5,0xffffff,sx,1.0,sz); P(new THREE.ConeGeometry(.75,.35,10),col,sx,1.85,sz); }
+      else if(k==="furn"){ Bx(1.2,.3,.6,col,0,R,0); Bx(1.2,.45,.16,col,0,R+.3,-.22); Bx(.16,.35,.6,col,-.6,R+.25,0); Bx(.16,.35,.6,col,.6,R+.25,0);
+        Bx(.8,.3,.5,0x7d8ff0,sx,.15,sz); Bx(.8,.35,.14,0x7d8ff0,sx,.4,sz-.2); Cy(.03,.03,1.2,0x3b2433,sx+.65,.6,sz); P(new THREE.CylinderGeometry(.12,.22,.26,14),0xffe9a8,sx+.65,1.3,sz,0,0,0,{basic:1}); }
+      else if(k==="pet"){ Cy(.05,.05,.5,0x8a8a96,0,R-.05,0); Cy(.11,.11,.9,0xffffff,0,R+.35,0,0,Math.PI/2); [-.45,.45].forEach(o=>[-.1,.1].forEach(t2=>Sp(.14,0xffffff,o,R+.35+t2,0)));
+        Bx(.7,.55,.65,0xd9a066,sx,0,sz); P(new THREE.ConeGeometry(.56,.38,4),0xc94545,sx,.74,sz,0,Math.PI/4); Bx(.26,.3,.02,0x3b2433,sx,.04,sz+.33); }
+      else if(k==="photo"){ Bx(.95,.6,.5,0x3b2433,0,R+.05,0); Cy(.2,.22,.3,0x9fd8ff,0,R+.35,.32,Math.PI/2); Cy(.24,.24,.06,0x3b2433,0,R+.35,.48,Math.PI/2); Bx(.24,.14,.2,0x3b2433,-.28,R+.65,0); Sp(.07,0xffd23f,.3,R+.68,.1);
+        [[-.18],[.18]].forEach(([o])=>Cy(.025,.025,.9,0x8a5a34,sx+o,.45,sz,.18*(o>0?1:-1))); Bx(.35,.25,.25,0x3b2433,sx,.92,sz); }
+      g.traverse(m=>{ if(m.isMesh) m.receiveShadow=true; }); G.add(g); }
     // 🏪 시장 거리 — 가게 6채가 길을 보고 마주 섬 · 사이사이 가로등 · 상자
     { const MK=["building_market_red","building_market_blue","building_market_yellow","building_market_green"], Cm=MAP.curve(MAP.roads.market.p); SPOT.shops=[];
       /* (v539) 가게 · (v550) 상점가 큰길 양옆 8채 (🍦 간식 · 🐶 펫 · 📸 사진관도 여기로) */
       MAP.shopLots().forEach((L,i)=>{ const SH=L.sh, nx=L.nx, nz=L.nz, x=L.x, z=L.z; kk("isle",MK[i%4],x,z,{s:1.9,ry:Math.atan2(-nx,-nz),chunk:"m",col:1.35,solo:1}); busy.push([x,z,2.4]);
         { const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(SH[1]+" "+SH[2], "#"+new THREE.Color(SH[3]).lerp(new THREE.Color(0xffffff),.55).getHexString(), 448), depthWrite:false})); sp.scale.set(2.5,.72,1); sp.position.set(x-nx*1.5+OX,3.1,z-nz*1.5+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp); }
         SPOT.shops.push({k:SH[0], ic:SH[1], t:SH[2], p:[x-nx*2.3+OX,1.4,z-nz*2.3+OZ], door:[L.rx+nx*1.9+OX, L.rz+nz*1.9+OZ]});
-        const tx=-nz, tz=nx; kk("isle",(i%2)?"barrel":"crate_A_big",x-nx*.6+tx*1.9,z-nz*.6+tz*1.9,{s:.45,chunk:"m",col:.3}); });
+        const tx=-nz, tz=nx; kk("isle",(i%2)?"barrel":"crate_A_big",x-nx*.6+tx*1.9,z-nz*.6+tz*1.9,{s:.45,chunk:"m",col:.3});
+        try{ shopDeco(SH, x, z, nx, nz); }catch(e){ console.warn("shopDeco", e); } });
       for(let s2=6, k=0; s2<35; s2+=7.5, k++){ const A=MAP.at(Cm.Q,Cm.L,s2), sd=k%2?1:-1; kk("city","streetlight",A.x-A.tz*sd*2.0,A.z+A.tx*sd*2.0,{s:.95,chunk:"m",col:.2}); }
       SPOT.market=[Sx.market[0]+OX,1.7,Sx.market[1]+OZ];
       /* 🏘 마을 사람들 (예전 마을) 가는 길 팻말 — 광장 서쪽 */
