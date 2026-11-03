@@ -2948,6 +2948,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppFt{position:absolute;left:0;right:0;bottom:6mm;text-align:center;font-size:9pt;color:#777}
 .ppSec{display:flex;gap:2mm;align-items:baseline;margin:1.5mm 0 2mm;font-size:10.5pt;font-weight:800;line-height:1.35} .ppSec b{flex:none;width:5.5mm;height:5.5mm;border-radius:1.2mm;background:#1d1b26;color:#fff;display:grid;place-items:center;font-size:9pt}
 .ppQ{break-inside:avoid;margin:0 0 3.2mm;font-size:11pt;line-height:1.4;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 2mm}
+.pp.tight .ppQ{margin-bottom:1.7mm} .pp.tight .ppSec{margin:1mm 0 1.2mm} .pp.tight .ppOp{margin-top:.5mm;gap:.2mm 3mm}   /* (v577) 한 쪽 줄이기 */
 .ppNo{font-weight:900;min-width:7mm} .ppW{font-size:13pt;font-weight:900} .ppW.ko{font-size:12pt}
 .ppOp{list-style:none;margin:1mm 0 0 7mm;padding:0;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:.6mm 3mm} .ppOp.long{grid-template-columns:1fr} .ppOp li{font-size:10.5pt} .ppOp i{font-style:normal;margin-right:1.2mm}
 .ppS{flex:1;min-width:0} .ppS u,.ppT u{text-decoration:none;display:inline-block;border-bottom:1.2px solid #333;min-width:14mm} .ppKo{width:100%;margin-left:7mm;font-size:9pt;color:#666}
@@ -16286,7 +16287,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v576";
+const GAME_VER = "v577";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -21721,6 +21722,7 @@ const Paper = {
     this._rs=()=>this.fit(); addEventListener("resize", this._rs);
     try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}   /* 예문·대화 데이터 (처음이면 받는 동안 기다렸다가 다시) */
     if(!this.PPX) fetch("data/ppx.json").then(r=>r.json()).then(j=>{ this.PPX=j; if($("paper")) this.make(); }).catch(()=>{});   /* (v545) 과거분사 예문 (Claude 작성) */
+    try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ if($("paper") && this.B) this.render(); }); }catch(e){}   /* (v577) 글꼴을 늦게 받으면 쪽 나누기를 다시 */
     this.make(); clearTimeout(this._lt); let tries=0; const again=()=>{ if(!$("paper")) return; const ok=Object.keys(TALK).length && Object.keys(BEX).length; this.make(); if(!ok && ++tries<6) this._lt=setTimeout(again, 800); }; this._lt=setTimeout(again, 700); },
   close(){ const d=$("paper"); if(d) d.remove(); document.body.classList.remove("ppOn"); if(this._rs) removeEventListener("resize", this._rs); this._rs=null; },
   cfg(){ const set=$("ppSet").value, f=+$("ppFrom").value||0, t=Math.max(f, +$("ppTo").value||0), ty=[...document.querySelectorAll("#paper .ppTy input:checked")].map(x=>x.value);
@@ -21819,8 +21821,8 @@ const Paper = {
   ttl(c){ const l=Study.label(c.set); return /단어$/.test(l) ? l+" 시험" : l+" 단어 시험"; },
   rng(c){ const L=Study.lessons(c.set), A=L[c.from], B=L[c.to]; return Study.label(c.set)+" Stage "+(A?Study.stageNo(c.set,A.n):"")+(c.to>c.from && B?" ~ "+Study.stageNo(c.set,B.n):""); },
   /* 쪽 나누기 — A4 (2단) 에 하나씩 넣어 보다가 넘치면 다음 단 · 다음 쪽 */
-  pages(W, c, F, secs, total){ const pages=[]; let page=null, cols=null, ci=0;
-    const newPage=first=>{ page=document.createElement("section"); page.className="pp"; page.innerHTML=(first ? this.head(c, F, total) : '<header class="ppHd sm"><b>'+this.E(c.title || this.ttl(c))+'</b>'+(F?'<em class="ppForm">'+F+'형</em>':'')+'</header>')+'<div class="ppBody"><div class="ppCol"></div><div class="ppCol"></div></div><footer class="ppFt"></footer>'; W.appendChild(page); cols=page.querySelectorAll(".ppCol"); ci=0; pages.push(page); };
+  pages(W, c, F, secs, total, tight){ const pages=[]; let page=null, cols=null, ci=0;
+    const newPage=first=>{ page=document.createElement("section"); page.className="pp"+(tight?" tight":""); page.innerHTML=(first ? this.head(c, F, total) : '<header class="ppHd sm"><b>'+this.E(c.title || this.ttl(c))+'</b>'+(F?'<em class="ppForm">'+F+'형</em>':'')+'</header>')+'<div class="ppBody"><div class="ppCol"></div><div class="ppCol"></div></div><footer class="ppFt"></footer>'; W.appendChild(page); cols=page.querySelectorAll(".ppCol"); ci=0; pages.push(page); };
     const add=html=>{ const t=document.createElement("div"); t.innerHTML=html; const el=t.firstChild; cols[ci].appendChild(el);
       if(cols[ci].scrollHeight>cols[ci].clientHeight+1 && cols[ci].children.length>1){ el.remove(); if(ci===0){ ci=1; } else newPage(false); cols[ci].appendChild(el); } return el; };
     newPage(true); let no=1;
@@ -21828,6 +21830,9 @@ const Paper = {
       s.qs.forEach((q,qi)=>{ let h=this.qHtml(s.k, q, s.k==="match" ? no+"~"+(no+q.w.length-1) : no); no += s.k==="match" ? q.w.length : 1;
         if(s.k!=="match" && q.src) h=h.replace('<div class="ppQ', '<div data-src="'+q.src+'" class="ppQ');
         if(qi===0){ const g=add('<div class="ppGrp">'+hd+h+'</div>'); } else add(h); }); });
+    /* (v577) 마지막 쪽에 문제 몇 개만 남으면(왼쪽 단 1/3 도 안 참) 문제 사이를 조금 좁혀서 한 쪽 줄여 봄 — 안 줄면 원래대로 */
+    if(tight==null && pages.length>1){ const L=pages[pages.length-1], C=L.querySelectorAll(".ppCol"), e=C[0].lastElementChild, used=e ? (e.offsetTop+e.offsetHeight-C[0].offsetTop)/Math.max(1, C[0].clientHeight) : 0;
+      if(!C[1].children.length && used<0.4){ const n0=pages.length; pages.forEach(p=>p.remove()); const T=this.pages(W, c, F, secs, total, true); if(T.length<n0) return T; T.forEach(p=>p.remove()); return this.pages(W, c, F, secs, total, false); } }
     pages.forEach((p,i)=>{ p.querySelector(".ppFt").textContent=(F?F+"형 · ":"")+(i+1)+" / "+pages.length; });
     return pages; },
   key(W, c, forms){ const E=x=>this.E(x), p=document.createElement("section"); p.className="pp key";
@@ -21839,6 +21844,7 @@ const Paper = {
     W.appendChild(p); },
   make(){ const c=this.cfg(); this.B=this.build(c); this.c=c; this.render(); },
   render(){ const W=$("ppWrap"); if(!W) return; const c=this.c, B=this.B, I=$("ppInfo"), top=W.parentNode.scrollTop; W.innerHTML="";
+    W.style.zoom="";   /* (v577) 사용자 사진: 아이폰에서 만든 시험지 1쪽이 반만 차고 아래가 텅 빔 — 화면 맞춤(zoom)을 건 채로 「넘치나?」를 재면 사파리는 높이를 줄여서 알려 줘서 일찍 다음 쪽으로 넘김 → 쪽 나누기는 zoom 없이 재고 끝나면 다시 맞춤 */
     if(B.nw<4){ I.textContent="범위에 단어가 너무 적어요 (4개 이상)"; return; }
     const forms = c.ab ? [{F:"A", secs:this.form(B, this.rnd(this.seed+1))}, {F:"B", secs:this.form(B, this.rnd(this.seed+2))}] : [{F:"", secs:this.form(B, this.rnd(this.seed+1))}];
     let np=0; forms.forEach(f=>{ np+=this.pages(W, c, f.F, f.secs, B.total).length; }); if(c.key){ this.key(W, c, forms); np++; }
