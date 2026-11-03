@@ -317,6 +317,46 @@ const ISLE=(()=>{
       b.traverse(m=>{ if(m.isMesh){ m.castShadow=true; } }); G.add(b); cols.push([bx+OX,bz+OZ,.5]); SPOT.board=[bx+OX,1.9,bz+OZ]; busy.push([bx,bz,1.2]); }
     /* (v571) 사용자: 「상점들 … 조금 더 이쁘게 · 차이점이 없어」 — 가게마다 지붕 위 큰 상징물 + 문 옆 소품 + 가게 색 차양
        로컬 좌표: +z = 길(앞) · x = 옆 · 지붕 ≈ 3.3 */
+    /* (v589) 사용자: 「버섯 집은 이렇게 나올 수 있는데 왜 상점들은 모양이 다 똑같아? 위에 다는 거 말고는」 → 가게마다 파는 것이 멀리서도 보이는 건물
+       🐟 통나무 오두막+큰 물고기 · 👕 쇼윈도 부티크+티셔츠 간판 · 🛒 유리 마트+큰 사과 · 💇 둥근 미용실+돔·이발소 기둥 · 🍦 아이스크림콘 · 🛋 통나무 창고+큰 의자 · 🐶 큰 개집+뼈다귀 · 📸 카메라
+       앞(+z) = 길 쪽 · 문은 앞 가운데(사진관은 왼쪽) · 한 가게 = 한 덩어리(vcMerge) · 차양·문 옆 소품(shopDeco)은 그대로, 지붕 위 표시는 건물이 대신 */
+    function shopBody(SH, x, z, nx, nz){ const k=SH[0], col=SH[3], L=[], E=new THREE.Euler(), Q=new THREE.Quaternion(), V=new THREE.Vector3(), Sv=new THREE.Vector3();
+      const put=(geo,c,px,py,pz,o)=>{ o=o||{}; E.set(o.rx||0,o.ry||0,o.rz||0); Q.setFromEuler(E); V.set(px,py,pz); Sv.set(o.sx||1,o.sy||1,o.sz||1); L.push({g:geo, col:c, m:new THREE.Matrix4().compose(V.clone(),Q.clone(),Sv.clone())}); };
+      const BX=(w,h,d,c,px,py,pz,o)=>put(new THREE.BoxGeometry(w,h,d),c,px,py+h/2,pz,o), CY=(rt,rb,h,c,px,py,pz,o,seg)=>put(new THREE.CylinderGeometry(rt,rb,h,seg||18),c,px,py+h/2,pz,o), SP=(r,c,px,py,pz,o)=>put(new THREE.SphereGeometry(r,16,12),c,px,py,pz,o);
+      const gable=(w,d,h,c,py,ov)=>{ ov=ov||.2; const sh=new THREE.Shape(); sh.moveTo(-w/2-ov,0); sh.lineTo(0,h); sh.lineTo(w/2+ov,0); sh.lineTo(-w/2-ov,0); const g=new THREE.ExtrudeGeometry(sh,{depth:d+ov*2, bevelEnabled:false}); g.translate(0,0,-(d+ov*2)/2); put(g,c,0,py,0); };
+      const door=(dx,c,h,w)=>{ BX(w||.62,h||1.05,.08,c||0x6a4430,dx||0,0,1.12); SP(.04,0xffd23f,(dx||0)+.2,(h||1.05)*.52,1.17); };
+      const win=(px,py,pz,w,h,ry)=>{ BX(w+.1,h+.1,.06,0xffffff,px,py-.05,pz,{ry}); BX(w,h,.08,0xaee3ff,px,py,pz+.01,{ry}); };
+      const D=1.1;   /* 앞면 z */
+      if(k==="fish"){ BX(2.6,1.65,2.2,0xb98a5a,0,0,0); for(let j=0;j<7;j++) BX(.04,1.6,.02,0x8a5a34,-1.2+j*.4,0,D+.01); gable(2.6,2.2,1.0,0x3d6fb0,1.65,.22); BX(2.9,.12,.06,0xffffff,0,1.62,D+.24);
+        SP(.62,0x5aa7ff,0,3.05,0,{sx:1.7,sy:.85,sz:.55}); put(new THREE.ConeGeometry(.45,.65,4),0x3d8be0,-1.2,3.05,0,{rz:Math.PI/2}); SP(.11,0xffffff,.7,3.2,.25); SP(.06,0x3b2433,.74,3.2,.3); CY(.05,.05,.45,0x8a8a96,0,2.55,0);
+        win(.85,1.15,D+.02,.45,.4); door(-.15); put(new THREE.TorusGeometry(.24,.07,8,18),0xff5a5a,-.95,1.25,D+.06); put(new THREE.TorusGeometry(.24,.071,8,18),0xffffff,-.95,1.25,D+.065,{rz:Math.PI/4, sx:.98,sy:.98});
+        CY(.22,.22,.3,0x8a5a34,1.15,0,D+.35,null,12); CY(.24,.24,.04,0xd9b07a,1.15,.3,D+.35,null,12); }
+      else if(k==="clothes"){ BX(2.6,1.95,2.2,0xffd1e0,0,0,0); BX(2.8,.16,2.4,0xffffff,0,1.95,0); BX(2.6,.14,.1,col,0,2.11,D+.1);
+        BX(1.25,1.1,.08,0xaee3ff,.55,.35,D+.02); BX(1.35,.08,.1,0xffffff,.55,1.45,D+.03); CY(.12,.15,.55,0xff9ac8,.35,.4,D-.1); SP(.11,0xf3d6c0,.35,1.07,D-.1); CY(.12,.15,.55,0x7fc8f8,.8,.4,D-.1); SP(.11,0xf3d6c0,.8,1.07,D-.1);
+        door(-.75,0xb04a7a); BX(1.3,1.0,.14,col,0,2.32,0); BX(.42,.5,.14,col,-.82,2.62,0,{rz:.6}); BX(.42,.5,.14,col,.82,2.62,0,{rz:-.6}); BX(.5,.16,.15,0xffffff,0,3.25,0); }
+      else if(k==="mart"){ BX(2.8,1.55,2.3,0xf6f6f2,0,0,0); BX(2.82,.22,2.32,0x5cc46a,0,1.25,0); BX(3.0,.12,2.5,0xffffff,0,1.55,0); BX(2.5,.95,.08,0xaee3ff,0,.12,D+.06); for(let j=-1;j<=1;j++) BX(.06,.95,.1,0xffffff,j*.62,.12,D+.08);
+        door(0,0x3b8a3a,.95,.7); SP(.62,0xff4b4b,0,2.35,0,{sy:.92}); CY(.05,.05,.3,0x6a4430,0,2.9,0); SP(.2,0x5cc46a,.22,3.05,0,{sx:1.6,sy:.5,sz:.8,rz:-.4}); CY(.04,.04,.75,0x8a8a96,0,1.6,0);
+        [[-1.05,0xff9a3d],[1.05,0x7fd36a]].forEach(([px,c])=>{ BX(.5,.28,.4,0xc48a58,px,0,D+.45); for(let q=0;q<3;q++) SP(.08,c,px-.13+q*.13,.34,D+.45); }); }
+      else if(k==="hair"){ CY(1.2,1.25,1.75,0xf3d1ff,0,0,0,null,24); put(new THREE.SphereGeometry(1.3,24,12,0,Math.PI*2,0,Math.PI/2),0xff9ac8,0,1.72,0); CY(1.32,1.32,.12,0xffffff,0,1.68,0,null,24); SP(.18,0xffd23f,0,3.05,0);
+        for(let j=0;j<7;j++) SP(.11,0xffffff,Math.cos(j/7*6.28)*1.05,2.15+Math.sin(j*1.3)*.1,Math.sin(j/7*6.28)*1.05,{sy:.5});
+        door(0,0x9b5fc0); win(-.75,.95,.95,.38,.42,-.6); win(.75,.95,.95,.38,.42,.6);
+        for(let q=0;q<6;q++) CY(.11,.11,.17,[0xff4b4b,0xffffff,0x5aa7ff][q%3],.98,.35+q*.17,.95,null,12); SP(.13,0xffffff,.98,1.4,.95);
+        put(new THREE.TorusGeometry(.16,.05,8,16),0xc0c0cc,-.2,2.5,.95); put(new THREE.TorusGeometry(.16,.05,8,16),0xc0c0cc,.2,2.5,.95); BX(.07,.7,.05,0xc0c0cc,-.1,2.55,.95,{rz:-.35}); BX(.07,.7,.05,0xc0c0cc,.1,2.55,.95,{rz:.35}); }
+      else if(k==="snack"){ put(new THREE.CylinderGeometry(1.15,.8,1.6,20),0xe8b46a,0,.8,0); for(let j=0;j<10;j++){ BX(.03,1.7,.03,0xc48a4a,Math.cos(j/10*6.28)*1.0,0,Math.sin(j/10*6.28)*1.0,{rz:.45,ry:-j/10*6.28}); }
+        SP(1.3,0xffb6d1,0,2.05,0,{sy:.85}); for(let j=0;j<8;j++){ const a=j/8*6.28; SP(.26,0xffb6d1,Math.cos(a)*1.12,1.6,Math.sin(a)*1.12,{sy:1.3}); } SP(.85,0x9ff0d0,0,2.95,0,{sy:.85}); SP(.2,0xff4b4b,0,3.72,0); CY(.02,.02,.3,0x3b8a3a,.05,3.82,0,{rz:.4});
+        for(let j=0;j<9;j++) BX(.12,.05,.05,[0xff4b4b,0xffd23f,0x5aa7ff][j%3],Math.cos(j*.7)*.8,2.5+Math.sin(j)*.3,Math.sin(j*.7)*.8+.3,{ry:j}); door(0,0xc94545,.95,.55); BX(.75,.08,.2,0xffffff,0,1.05,D-.05); }
+      else if(k==="furn"){ BX(2.7,1.7,2.3,0xc98f5a,0,0,0); for(let j=0;j<6;j++) CY(.07,.07,2.72,0xa86e3e,0,.15+j*.28,D+.02,{rz:Math.PI/2},10); gable(2.7,2.3,1.05,0xc94545,1.7,.22); BX(.08,.9,.06,0xffffff,0,1.85,D+.27,{rz:.7}); BX(.08,.9,.06,0xffffff,0,1.85,D+.27,{rz:-.7});
+        BX(1.1,1.15,.1,0x7a4a26,0,0,D+.04); BX(.5,1.1,.04,0x8a5a34,-.27,0,D+.1,{ry:.3}); BX(.5,1.1,.04,0x8a5a34,.27,0,D+.1,{ry:-.3});
+        BX(1.3,.35,.75,col,0,2.85,0); BX(1.3,.65,.2,col,0,3.1,-.3); BX(.22,.5,.75,col,-.65,3.0,0); BX(.22,.5,.75,col,.65,3.0,0); CY(.04,.04,.35,0x8a8a96,0,2.5,0); }
+      else if(k==="pet"){ BX(2.5,1.4,2.2,0xd9a066,0,0,0); const sh=new THREE.Shape(); sh.moveTo(-1.55,0); sh.lineTo(0,1.55); sh.lineTo(1.55,0); sh.lineTo(1.25,0); sh.lineTo(0,1.2); sh.lineTo(-1.25,0); sh.lineTo(-1.55,0); const rg=new THREE.ExtrudeGeometry(sh,{depth:2.6, bevelEnabled:false}); rg.translate(0,0,-1.3); put(rg,0xc94545,0,1.38,0);
+        const ga=new THREE.Shape(); ga.moveTo(-1.25,0); ga.lineTo(0,1.2); ga.lineTo(1.25,0); ga.lineTo(-1.25,0); put(new THREE.ShapeGeometry(ga),0xd9a066,0,1.38,D+.01);
+        const ar=new THREE.Shape(); ar.moveTo(-.38,0); ar.lineTo(-.38,.7); ar.absarc(0,.7,.38,Math.PI,0,true); ar.lineTo(.38,0); ar.lineTo(-.38,0); put(new THREE.ShapeGeometry(ar),0x3b2433,0,0,D+.02);
+        CY(.1,.1,.75,0xffffff,0,1.85,D+.08,{rz:Math.PI/2}); [-.42,.42].forEach(o=>[-.09,.09].forEach(t2=>SP(.13,0xffffff,o,1.85+t2,D+.08))); [[-.85,.5],[-.65,.75],[.75,.45],[.9,.72]].forEach(([px,py])=>{ SP(.09,0x8a5a34,px,py,D+.02,{sz:.3}); }); BX(.5,.08,.35,0xff5a5a,1.0,0,D+.4); CY(.16,.13,.1,0x5aa7ff,1.0,.08,D+.4,null,12); }
+      else if(k==="photo"){ BX(2.8,1.75,2.0,0x3b3b48,0,0,0); BX(2.82,.3,2.02,0xc0c0cc,0,1.75,0); BX(.8,.35,.6,0x3b3b48,-.7,2.05,0); BX(.5,.22,.08,0xfff6c4,-.7,2.13,.31); SP(.12,0xff4b4b,1.0,2.12,.5); BX(.9,.12,.5,0xc0c0cc,.6,2.05,0);
+        CY(.82,.82,.35,0x2a2a33,.55,.95,D+.05,{rx:Math.PI/2},28); CY(.6,.6,.38,0x8ac8f0,.55,.95,D+.08,{rx:Math.PI/2},28); CY(.3,.3,.4,0x3b6fb0,.55,.95,D+.1,{rx:Math.PI/2},20); SP(.1,0xffffff,.4,1.12,D+.32);
+        door(-.85,0x8a5a34,1.0,.55); BX(1.0,.1,.06,0xffd23f,-.85,1.2,D+.03); }
+      else return null;
+      const g=new THREE.Group(); g.position.set(x+OX,0,z+OZ); g.rotation.y=Math.atan2(-nx,-nz); g.userData.solo=1; const mm=vcMerge(L); g.add(mm); L.forEach(e=>e.g.dispose()); G.add(g); try{ TOON.scan(g); }catch(e){} g.userData.shopK=k; return g; }
     function shopDeco(SH, x, z, nx, nz){ const k=SH[0], col=SH[3], g=new THREE.Group(); g.position.set(x+OX,0,z+OZ); g.rotation.y=Math.atan2(-nx,-nz);
       const P=(geo,c,px,py,pz,rx,ry,rz,o)=>{ const m=new THREE.Mesh(geo, o&&o.basic?new THREE.MeshBasicMaterial({color:LIN(c)}):MC(c)); m.position.set(px,py,pz); m.rotation.set(rx||0,ry||0,rz||0); m.castShadow=true; g.add(m); return m; };
       const Bx=(w,h,d,c,px,py,pz)=>P(new THREE.BoxGeometry(w,h,d),c,px,py+h/2,pz), Sp=(r,c,px,py,pz,sx,sy,sz)=>{ const m=P(new THREE.SphereGeometry(r,12,10),c,px,py,pz); if(sx) m.scale.set(sx,sy,sz); return m; }, Cy=(rt,rb,h,c,px,py,pz,rx,rz)=>P(new THREE.CylinderGeometry(rt,rb,h,14),c,px,py,pz,rx,0,rz);
@@ -339,11 +379,12 @@ const ISLE=(()=>{
         Bx(.7,.55,.65,0xd9a066,sx,0,sz); P(new THREE.ConeGeometry(.56,.38,4),0xc94545,sx,.74,sz,0,Math.PI/4); Bx(.26,.3,.02,0x3b2433,sx,.04,sz+.33); }
       else if(k==="photo"){ Bx(.95,.6,.5,0x3b2433,0,R+.05,0); Cy(.2,.22,.3,0x9fd8ff,0,R+.35,.32,Math.PI/2); Cy(.24,.24,.06,0x3b2433,0,R+.35,.48,Math.PI/2); Bx(.24,.14,.2,0x3b2433,-.28,R+.65,0); Sp(.07,0xffd23f,.3,R+.68,.1);
         [[-.18],[.18]].forEach(([o])=>Cy(.025,.025,.9,0x8a5a34,sx+o,.45,sz,.18*(o>0?1:-1))); Bx(.35,.25,.25,0x3b2433,sx,.92,sz); }
+      g.children.slice().forEach(m=>{ if(Math.abs(m.position.z)<0.8) g.remove(m); });   /* (v589) 지붕 위 표시 → 건물 모양이 대신 */
       g.traverse(m=>{ if(m.isMesh) m.receiveShadow=true; }); G.add(g); }
     // 🏪 시장 거리 — 가게 6채가 길을 보고 마주 섬 · 사이사이 가로등 · 상자
     { const MK=["building_market_red","building_market_blue","building_market_yellow","building_market_green"], Cm=MAP.curve(MAP.roads.market.p); SPOT.shops=[];
       /* (v539) 가게 · (v550) 상점가 큰길 양옆 8채 (🍦 간식 · 🐶 펫 · 📸 사진관도 여기로) */
-      MAP.shopLots().forEach((L,i)=>{ const SH=L.sh, nx=L.nx, nz=L.nz, x=L.x, z=L.z; kk("isle",MK[i%4],x,z,{s:1.9,ry:Math.atan2(-nx,-nz),chunk:"m",col:1.35,solo:1}); busy.push([x,z,2.4]);
+      MAP.shopLots().forEach((L,i)=>{ const SH=L.sh, nx=L.nx, nz=L.nz, x=L.x, z=L.z; if(!shopBody(SH,x,z,nx,nz)) kk("isle",MK[i%4],x,z,{s:1.9,ry:Math.atan2(-nx,-nz),chunk:"m",col:1.35,solo:1}); else cols.push([x+OX,z+OZ,1.35]); busy.push([x,z,2.4]);
         { const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(SH[1]+" "+SH[2], "#"+new THREE.Color(SH[3]).lerp(new THREE.Color(0xffffff),.55).getHexString(), 448), depthWrite:false})); sp.scale.set(2.5,.72,1); sp.position.set(x-nx*1.5+OX,3.1,z-nz*1.5+OZ); sp.renderOrder=2; sp.userData.lbl=SH[0]; G.add(sp); SIGNS.push(sp); }
         SPOT.shops.push({k:SH[0], ic:SH[1], t:SH[2], p:[x-nx*2.3+OX,1.4,z-nz*2.3+OZ], door:[L.rx+nx*1.9+OX, L.rz+nz*1.9+OZ]});
         const tx=-nz, tz=nx; kk("isle",(i%2)?"barrel":"crate_A_big",x-nx*.6+tx*1.9,z-nz*.6+tz*1.9,{s:.45,chunk:"m",col:.3});
