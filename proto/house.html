@@ -24,7 +24,10 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#8fd3f0;color:var(--ink);font-family:var(--kr);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
-#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+#cv{position:fixed;left:0;top:0;width:100%;height:var(--appH,100%);display:block}
+/* (v577) 사용자 사진: 아이폰 홈 화면 앱 맨 아래 파란 띠 — iOS 26 홈 화면 앱은 화면 고정 칸이 아래로 짧게 잡힘(index.html v293 과 같은 버그)
+   → 캔버스를 기기 화면 높이(--appH)까지 · 아래에 붙는 창(아래 단추 줄·시트·대화)은 모자란 만큼(--gapB) 더 내려 붙임 */
+html,body{min-height:var(--appH,100%)}
 button{font-family:inherit}
 :focus-visible{outline:3px solid var(--sky);outline-offset:2px}
 
@@ -50,7 +53,7 @@ button{font-family:inherit}
 .ttl .sign::before{left:16px} .ttl .sign::after{right:16px}
 .ttl small{display:block;text-align:center;font-size:10px;opacity:.8;margin-top:1px}
 /* HUD — 💎 · 🪱 · 🍀 */
-#hud{position:fixed;left:12px;top:calc(66px + env(safe-area-inset-top));z-index:3;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+#hud{position:fixed;left:12px;top:calc(66px + env(safe-area-inset-top));z-index:3;display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;align-items:center;gap:6px;max-width:min(340px,calc(100vw - 112px));pointer-events:none}   /* (v577) 사용자: 「저 창 때문에 나가기나 다른 게 안 보여」 → 세로 다섯 줄 대신 옆으로 두 줄 */
 .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px 4px 6px;border-radius:999px;background:rgba(255,248,234,.92);border:2px solid var(--line);font-size:15px;box-shadow:0 2px 0 rgba(0,0,0,.08);width:max-content}
 .pill img{width:22px;height:22px} .pill i{font-style:normal;font-size:17px;width:22px;text-align:center}
 .pill.buff{background:#eaf9e5;border-color:#a8dca0;color:var(--leafD)}
@@ -192,10 +195,10 @@ button{font-family:inherit}
 .iBtns [data-act="say"]{flex:0 0 52px}
 
 /* 지도 */
-.mapG{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mapG{display:grid;grid-template-columns:repeat(3,1fr);gap:10px} .mapG.i4{grid-template-columns:repeat(2,1fr)}
 .mapC{position:relative;min-height:104px;border-radius:20px;border:2px solid var(--line);background:var(--card);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;box-shadow:0 3px 0 var(--line)}
 .mapC i{font-style:normal;font-size:34px} .mapC b{font-size:16px;font-weight:400} .mapC small{font-size:11.5px;color:var(--sub)}
-.mapC[data-go="room"]{background:#fff0e6} .mapC[data-go="yard"]{background:#eaf8e4} .mapC[data-go="village"]{background:#eef3ff} .mapC[data-go="mine"]{background:#efe9f6}
+.mapC[data-go="room"]{background:#fff0e6} .mapC[data-go="yard"]{background:#eaf8e4} .mapC[data-go="village"],.mapC[data-go="isle"]{background:#eef3ff} .mapC[data-go="mine"]{background:#efe9f6}
 .mapC.here{border-color:var(--leaf);box-shadow:0 0 0 3px rgba(93,185,90,.4),0 3px 0 var(--leafD)}
 .mapC.lock{background:var(--paper2);box-shadow:none} .mapC.lock i{filter:grayscale(1) opacity(.5)}
 
@@ -528,6 +531,10 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 .twLb{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:4px;font-size:13px}.twLb b{font-size:12px}.twLb em{font-style:normal;font-variant-numeric:tabular-nums;color:#7a5bd8}.twLb .me{font-weight:800;background:#fff3bf;border-radius:8px;padding:0 4px}
 .twT{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}.twRec{color:#e8590c}
 [data-poor]{opacity:.5;filter:grayscale(.35)}   /* (v563 QA) 모자라도 누르면 안내 */
+/* (v577) 홈 화면 앱 아래 빈 띠 — 아래에 붙는 창을 모자란 만큼 더 내림 (위 #cv 설명) */
+.bar.bot,#drawer,.sheet,#dlg{margin-bottom:calc(0px - var(--gapB,0px))} .bar.bot{padding-bottom:calc(max(12px,env(safe-area-inset-bottom)) + var(--gapB,0px))}
+#drawer,.sheet{padding-bottom:calc(max(14px,env(safe-area-inset-bottom)) + var(--gapB,0px))} #dlg{padding-bottom:calc(max(14px,env(safe-area-inset-bottom)) + var(--gapB,0px))}
+#vcPane{bottom:calc(0px - var(--gapB,0px))} .vcBox{padding-bottom:calc(12px + env(safe-area-inset-bottom) + var(--gapB,0px))}
 </style>
 
 </head>
@@ -575,7 +582,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <div class="sheet" id="scP"><div class="hd"><b><i class="hdI" data-ic="medal"></i>꾸미기 도장</b><button class="x" id="scDone" aria-label="닫기">✕</button></div><div id="scBody"></div></div>
 <div id="ask"><div class="box"><p id="askT"></p><div class="askB"><button class="btn" id="askNo">아니요</button><button class="btn on" id="askOk">네!</button></div></div></div>
 <div class="sheet" id="mapP"><div class="hd"><b><i class="hdI" data-ic="map"></i>지도</b><button class="x" id="mapDone" aria-label="닫기">✕</button></div><div class="mapG" id="mapBody"></div>
-  <p class="bHint" style="margin:10px 0 0">잠긴 곳은 게임에서 공부하면 열려요</p></div>
+  <p class="bHint" id="mapLockH" style="margin:10px 0 0">잠긴 곳은 게임에서 공부하면 열려요</p></div>
 <div class="sheet" id="dexP"><div class="hd"><b><i class="hdI" data-ic="dex"></i>물고기 도감 <small id="dexN"></small></b><button class="x" id="dexDone" aria-label="닫기">✕</button></div><div class="dexGrid" id="dexBody"></div></div>
 <div id="place"><button class="btn" id="pRot">↻ 돌리기</button><button class="btn on" id="pOk">✅ 놓기</button><button class="btn" id="pNo">✕</button></div>
 <div id="menu"><button class="btn sm" id="mRot" aria-label="돌리기">↻<small>돌리기</small></button><button class="btn sm" id="mMove" aria-label="옮기기">✋<small>옮기기</small></button><button class="btn sm" id="mCol" aria-label="색 바꾸기">🎨<small>색</small></button><button class="btn sm" id="mBox" aria-label="창고에 넣기">📦<small>넣기</small></button></div>
@@ -612,6 +619,14 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <div id="fade"></div>
 <script src="../three.min.js"></script>
 <script>
+/* (v577) 화면 높이 — 아이폰 홈 화면 앱(iOS 26)은 innerHeight 가 기기 화면보다 짧게 잡혀 맨 아래가 빈 띠로 남음 → 그때만 기기 화면 높이(APPH) */
+let APPH=0;
+function VH(){ return APPH||innerHeight; }
+function fitAppH(){ const d=document.documentElement; try{ let h=0; const H=Math.round(d.clientHeight||innerHeight), W=Math.round(d.clientWidth||innerWidth);
+    if(navigator.standalone===true){ const sw=screen.width, sh=screen.height, land=innerWidth>innerHeight, sc=land?Math.min(sw,sh):Math.max(sw,sh), w=land?Math.max(sw,sh):Math.min(sw,sh); if(Math.abs(w-W)<=2 && sc>H && sc-H<=140) h=sc; }
+    APPH=h; if(h){ d.style.setProperty("--appH", h+"px"); d.style.setProperty("--gapB", (h-H)+"px"); } else { d.style.removeProperty("--appH"); d.style.removeProperty("--gapB"); } }catch(e){ APPH=0; } }
+fitAppH();
+
 "use strict";
 const $ = id => document.getElementById(id);
 /* (v412) 아이콘 — 이모지(기기마다 모양이 다름) 대신 같은 선·같은 색의 그림 한 벌 */
@@ -737,10 +752,11 @@ const TOON = (()=>{
   T.resize=function(){ if(T.edge && T.rt) mkPost(); };
   T.draw=function(){ if(++T.n%30===1) T.scan();   /* 새로 생긴 물건도 툰으로 (가벼운 표시 확인만) */
     T.light();
-    if(!T.edge){ renderer.render(scene, camera); return; }
-    if(!T.rt){ try{ mkPost(); }catch(e){ T.edge=false; renderer.render(scene, camera); return; } }
+    const af=()=>{ try{ if(T.after) T.after(); }catch(e){} };   /* (v576) 🌲 가려진 나 실루엣 (HGHOST) — 같은 깊이 버퍼 위에 */
+    if(!T.edge){ renderer.render(scene, camera); af(); return; }
+    if(!T.rt){ try{ mkPost(); }catch(e){ T.edge=false; renderer.render(scene, camera); af(); return; } }
     const u=T.post.material.uniforms; u.n.value=camera.near; u.f.value=camera.far;
-    renderer.setRenderTarget(T.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(T.ps, T.pc); };
+    renderer.setRenderTarget(T.rt); renderer.render(scene, camera); af(); renderer.setRenderTarget(null); renderer.render(T.ps, T.pc); };
   return T; })();
 
 /* ───────── 재료 ───────── */
@@ -1439,7 +1455,7 @@ ywG.userData.noFade=true;
 const yDebObj={};
 function yDrawDeb(){ Object.keys(yDebObj).forEach(k=>{ if(!yd.db[k]){ ydbG.remove(yDebObj[k]); delete yDebObj[k]; } });
   Object.keys(yd.db).forEach(k=>{ if(yDebObj[k]) return; const [x,z]=k.split(",").map(Number), t=yd.db[k], h=hashf("deb|"+k), G=new THREE.Group(); G.position.set(x+0.5,0,z+0.5); G.userData.deb=k;
-    if(t==="weed"){ for(let i=0;i<6;i++){ const a=i/6*Math.PI*2+h, r=0.12+((h*(i+3))%1)*0.18, w=part(G, yGeo.weed, M(i%2?0x5c9f3c:0x78b84a,{flatShading:true}), Math.cos(a)*r,0.09,Math.sin(a)*r); w.rotation.z=(((h*(i+7))%1)-0.5)*0.6; } }
+    if(t==="weed"||t==="weed2"){ for(let i=0;i<6;i++){ const a=i/6*Math.PI*2+h, r=0.12+((h*(i+3))%1)*0.18, w=part(G, yGeo.weed, M(i%2?0x5c9f3c:0x78b84a,{flatShading:true}), Math.cos(a)*r,0.09,Math.sin(a)*r); w.rotation.z=(((h*(i+7))%1)-0.5)*0.6; } }
     else if(t==="stone"){ const s=part(G, yGeo.stone, M(0x9f998f,{flatShading:true}), 0,0.12,0); s.scale.set(1.2,0.8,1); s.rotation.y=h*6; }
     else { part(G, yGeo.stump, M(0x8a5a34), 0,0.1,0); const tp=part(G, cyl(0.17,0.17,0.01,10), M(0xd9b07a), 0,0.205,0); }
     ydbG.add(G); yDebObj[k]=G; }); dirty=true; }
@@ -1484,26 +1500,34 @@ function yHouseColors(){ const H=scene.userData.houseObj; if(!H) return; const h
   if(houseDoor) houseDoor.traverse(m=>{ if(m.isMesh && m.userData.door) m.material=M(HXC.d[hx.d|0]); }); H.traverse(m=>{ if(m.userData.shutter) m.material=M(HXC.d[hx.d|0]); }); try{ kkHouse(); }catch(e){} dirty=true; }
 function yMoveFixedTo(s, x, z){ const P=yFixedXY(s); P[0]=x; P[1]=z; const o=yFixedObj(s); o.position.set(x+0.5,0,z+0.5); dirty=true; }
 /* 저장 · 불러오기 */
-function yData(){ return {v:1, p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
+function yData(){ return {v:1, p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, wd:yd.wd||"", mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
 function ySave(){ if(visiting) return; store("hyeng_proto_yard", Object.assign(yData(), {s:ystock, gp:ownGP})); try{ pubSoon(); checkStamps(); }catch(e){} }
 function yLoad(d){ yplaced.splice(0).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
-  yd={p:[], g:{}, pc:[0,0,0], db:{}, hx:{r:0,w:0,d:0}}; if(d){ yd.g=Object.assign({}, d.g||{}); yd.pc=(d.pc||[0,0,0]).slice(0,3).map(v=>v?1:0); while(yd.pc.length<3) yd.pc.push(0); yd.db=Object.assign({}, d.db||{}); yd.hx=Object.assign({r:0,w:0,d:0}, d.hx||{}); }
+  yd={p:[], g:{}, pc:[0,0,0], db:{}, hx:{r:0,w:0,d:0}}; if(d){ yd.g=Object.assign({}, d.g||{}); yd.pc=(d.pc||[0,0,0]).slice(0,3).map(v=>v?1:0); while(yd.pc.length<3) yd.pc.push(0); yd.db=Object.assign({}, d.db||{}); yd.hx=Object.assign({r:0,w:0,d:0}, d.hx||{}); yd.wd=d.wd||""; }
   { BENCH[0]=Y_DEF.b[0]; BENCH[1]=Y_DEF.b[1]; POT[0]=Y_DEF.k[0]; POT[1]=Y_DEF.k[1]; Y_DEF.t.forEach((t,i)=>{ TREES[i][0]=t[0]; TREES[i][1]=t[1]; }); }
   if(d && d.mv){ const ok=a=>Array.isArray(a)&&a.length===2&&a.every(v=>Number.isInteger(v)&&v>=0&&v<YN); if(ok(d.mv.b)){ BENCH[0]=d.mv.b[0]; BENCH[1]=d.mv.b[1]; } if(ok(d.mv.k)){ POT[0]=d.mv.k[0]; POT[1]=d.mv.k[1]; } (d.mv.t||[]).forEach((t,i)=>{ if(TREES[i] && ok(t)){ TREES[i][0]=t[0]; TREES[i][1]=t[1]; } }); }
   scene.userData.benchObj.position.set(BENCH[0]+0.5,0,BENCH[1]+0.5); scene.userData.potObj.position.set(POT[0]+0.5,0,POT[1]+0.5); scene.userData.trees.forEach((T,i)=>T.position.set(TREES[i][0]+0.5,0,TREES[i][1]+0.5));
   Object.keys(yDebObj).forEach(k=>{ ydbG.remove(yDebObj[k]); delete yDebObj[k]; });
   yLoading=true; ((d&&d.p)||[]).slice(0,120).forEach(([id,x,z,r,c])=>{ if(OUT[id] && yFits(id,x,z,r|0)===1) yAdd(id,x,z,r,c); }); yLoading=false;
   yFences(); yDrawWild(); yDrawDeb(); yDrawGround(); yHouseColors(); yNight(yNightOn); }
+/* ── (v576) 🌿 잡초가 다시 자람 — 사용자: 「그래도 좋지」(매일 들러 돌볼 작은 일)
+   하루마다 2포기 (며칠 비우면 최대 3일치) · 마당 전체 최대 8 · 빈 칸만(가구·밭·길·칠한 길·문 앞·잠긴 땅 피함) · 뽑으면 가끔 씨앗(weed2) ── */
+function yRegrow(){ if(!yd || visiting) return 0; const today=dayKey(); if(!yd.wd){ yd.wd=today; ySave(); return 0; } if(yd.wd===today) return 0;
+  const days=Math.max(1, Math.min(3, Math.round((new Date(today)-new Date(yd.wd))/864e5)||1)); yd.wd=today;
+  const have=Object.values(yd.db).filter(t=>t==="weed2").length; let want=Math.min(8-have, days*2); if(want<=0){ ySave(); return 0; }
+  const free=[]; for(let x=0;x<YN;x++) for(let z=0;z<YN;z++){ const k=x+","+z; if(yardBlocked(x,z) || yLocked(x,z) || yDeb(x,z) || yItemAt(x,z) || isRoad(x,z) || yd.g[k] || Math.abs(x-DOOR[0])+Math.abs(z-DOOR[1])<=2 || at(STALL_FRONT,x,z)>=0) continue; free.push(k); }
+  let n=0; while(want>0 && free.length){ const i=Math.floor(hashf("regrow|"+today+"|"+n+"|"+free.length)*free.length), k=free.splice(i,1)[0]; yd.db[k]="weed2"; want--; n++; }
+  ySave(); try{ yDrawDeb(); yFlowersUpd(); }catch(e){} return n; }
 /* ── 🌾 새 땅 열기 · 🧹 치우기 ── */
 function yParcAsk(i){ const p=PARC[i], n=yd.pc.filter(Boolean).length, cost=CO(PARC_P[n],"mix");
   ask('<div class="iBig">🌱</div><b>새 땅 「'+p.nm+'」</b> 열기<br><small>'+((p.x1-p.x0+1)*(p.z1-p.z0+1))+'칸 · 잡초·돌·그루터기를 치우면 내 땅</small><br><br>'+htmlCO(cost)+'<br><small class="dim">가진 💎 '+gems+' · 🪙 '+TECO.coins()+'</small>', ()=>yParcOpen(i)); }
 function yParcOpen(i){ const n=yd.pc.filter(Boolean).length; if(yd.pc[i] || !payCO(CO(PARC_P[n],"mix"))) return false; yd.pc[i]=1; const p=PARC[i];
   for(let x=p.x0;x<=p.x1;x++) for(let z=p.z0;z<=p.z1;z++){ const h=hashf("dbg|"+i+"|"+x+"|"+z), k=x+","+z; if(isRoad(x,z)) continue; yd.db[k]= h<0.5 ? "weed" : h<0.62 ? "stone" : h<0.72 ? "stump" : undefined; if(!yd.db[k]) delete yd.db[k]; }
   yDrawWild(); yDrawDeb(); yFlowersUpd(); ySave(); act("yay"); emote(hero,"🌱"); say("new land"); tEv("land"); toast("🌱 「"+p.nm+"」 이 열렸어요!<br><small>🌿 잡초 · 🪨 돌 · 🪵 그루터기를 눌러 치워요</small>", 2800); drawLabels(); return true; }
-const DEB_GIVE={weed:[["wheat seeds",0.15],["carrot seeds",0.1]], stone:[["stone",1]], stump:[["branch",1],["branch",0.5]]};
+const DEB_GIVE={weed:[["wheat seeds",0.15],["carrot seeds",0.1]], weed2:[["wheat seeds",0.25],["carrot seeds",0.2],["strawberry seeds",0.08],["tomato seeds",0.08]], stone:[["stone",1]], stump:[["branch",1],["branch",0.5]]};
 function yClear(k){ const t=yd.db[k]; if(!t) return; const got=[]; for(const [n,pr] of DEB_GIVE[t]){ if(Math.random()<pr){ if(!canAdd(n,1)){ fullMsg(); return; } addMat(n,1); const g=got.find(x=>x[0]===n); g ? g[1]++ : got.push([n,1]); } }
   delete yd.db[k]; act("reel"); wobble(yDebObj[k]||hero.g); setTimeout(()=>{ yDrawDeb(); yFlowersUpd(); }, 180); try{ SND.click(); }catch(e){} tEv("clear"); ySave();
-  const left=Object.keys(yd.db).length; if(got.length) gotList(got); else toast(t==="weed"?"🌿 잡초를 뽑았어요":"🧹 치웠어요"+(left?"":" — 다 치웠어요! 🎉"), 1200);
+  const left=Object.keys(yd.db).length; if(got.length) gotList(got); else toast(t==="weed"||t==="weed2"?"🌿 잡초를 뽑았어요":"🧹 치웠어요"+(left?"":" — 다 치웠어요! 🎉"), 1200);
   if(!left){ setTimeout(()=>{ toast("🎉 땅을 다 치웠어요!<br><small>✏️ 꾸미기로 내 땅을 꾸며요</small>", 2600); act("yay"); }, 900); } }
 /* 마당에서 누르기 (꾸미기가 아닐 때) — true 면 처리함 */
 function yTapPlay(e, c){ if(!yd) return false;
@@ -1548,14 +1572,14 @@ function yOkGhost(){ const g=ghost; if(!g) return; const ok=g.fixed ? yFits("@",
 function ySelect(s){ unselect(); sel=s; s.obj.traverse(m=>{ if(m.isMesh && m.material && m.material.emissive){ m.userData.em=m.material; m.material=m.material.clone(); m.material.emissive=new THREE.Color(0x553300); } }); yPlaceMenu(); dirty=true; }
 function yPlaceMenu(){ if(!sel) return; const s=sel, v=new THREE.Vector3(); s.obj.getWorldPosition(v); v.y=1.7; v.project(camera);
   $("mRot").style.display=s.fixed||OUT[s.id]&&OUT[s.id].fence?"none":""; $("mCol").style.display=!s.fixed&&OUT[s.id].cols?"":"none"; $("mBox").style.display=s.fixed?"none":"";
-  const el=$("menu"); el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=Math.max(70,(1-v.y)/2*innerHeight)+"px"; el.classList.add("on"); }
+  const el=$("menu"); el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=Math.max(70,(1-v.y)/2*VH())+"px"; el.classList.add("on"); }
 function yPaintAt(c){ if(!c) return; const [x,z]=c, k=x+","+z; if(isWater(x,z)||isHouse(x,z)||isStall(x,z)||yLocked(x,z)||isRoad(x,z)||at(PLOTS,x,z)>=0) return;
   if(yPaint==="erase"){ if(!yd.g[k]) return; delete yd.g[k]; } else { if(!ownGP.includes(yPaint) || yd.g[k]===yPaint) return; yd.g[k]=yPaint; }
   yDrawGround(); clearTimeout(yPaintAt._t); yPaintAt._t=setTimeout(()=>{ ySave(); tEv("ypath"); }, 600); try{ SND.click(); }catch(e){} }
 function yTapEdit(e){ const c=cellAt(e);
   if(ghost && ghost.y){ if(c){ const [w,d]=ghost.fixed?[1,1]:yFp(ghost.id,ghost.r); ghost.x=Math.min(Math.max(0,c[0]-Math.floor((w-1)/2)),YN-w); ghost.z=Math.min(Math.max(0,c[1]-Math.floor((d-1)/2)),YN-d); yUpdGhost(); } return; }
   if(yTool==="path"){ yPaintAt(c); return; }
-  ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera);
+  ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera);
   const H=ray.intersectObjects(yplaced.map(p=>p.obj), true); if(H.length){ ySelect(H[0].object.userData.yp); return; }
   const fx=[{f:"bench"},{f:"pot"}].concat(TREES.map((t,i)=>({f:"tree",i}))).find(s=>ray.intersectObject(yFixedObj(s), true).length);
   if(fx){ ySelect({fixed:fx, obj:yFixedObj(fx), y:1}); return; }
@@ -1565,7 +1589,7 @@ function yTapEdit(e){ const c=cellAt(e);
 let yDrag=null;
 function yPointerMove(e){ if(!down || place!==PL.yard || !edit) return; const dx=e.clientX-down.x, dy=e.clientY-down.y; if(Math.hypot(dx,dy)<10 && !yDrag) return;
   if(yTool==="path" && !ghost){ yPaintAt(cellAt(e)); yDrag=1; return; }
-  if(!yDrag) yDrag={x:down.x, y:down.y, c:yEC.clone()}; const k=camD/innerHeight*1.15, fx=Math.cos(yaw), fz=-Math.sin(yaw);   // 화면 오른쪽 = (cos yaw, -sin yaw)
+  if(!yDrag) yDrag={x:down.x, y:down.y, c:yEC.clone()}; const k=camD/VH()*1.15, fx=Math.cos(yaw), fz=-Math.sin(yaw);   // 화면 오른쪽 = (cos yaw, -sin yaw)
   const ddx=e.clientX-yDrag.x, ddy=e.clientY-yDrag.y; yEC.set(clamp(yDrag.c.x-(ddx*fx+ddy*Math.sin(yaw))*k,0,YN), 0, clamp(yDrag.c.z-(ddx*fz+ddy*Math.cos(yaw))*k,0,YN)); dirty=true; }
 /* 가게 줄 */
 /* (v566) 종류 칩 = 수납형 — 접힘: 한 줄 가로로 밀기(고른 칩이 보이게) · ▾ 모두: 촤라락 펼침 · 고르면 다시 접힘 */
@@ -2402,7 +2426,7 @@ function twHud(){ const n=TW.cps.length-1, f=TW.bot ? TW.cp : twFloorAt(); $("tw
 const twRay=new THREE.Raycaster();
 function twCam(dt){ TW.camY += (TW.p.y-TW.camY)*Math.min(1, dt*(Math.abs(TW.p.y-TW.camY)>2.5?7:4.5));
   if(TW.yawTo!=null && TW.snap){ let d=((TW.yawTo-TW.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; TW.yaw+=d*Math.min(1,dt*9); if(Math.abs(d)<0.01) TW.snap=0; }
-  const asp=innerWidth/Math.max(1,innerHeight), want=asp<0.8 ? 8.6 : asp<1.2 ? 7.4 : 6.6, pit=TW.pit==null?0.42:TW.pit;
+  const asp=innerWidth/Math.max(1,VH()), want=asp<0.8 ? 8.6 : asp<1.2 ? 7.4 : 6.6, pit=TW.pit==null?0.42:TW.pit;
   /* (v472) 사용자: "아이들이 1인칭 3인칭 전환을 요구" → 👁 1인칭 = 눈 높이에서 보는 쪽 그대로 (화면 끌기 위아래 = 고개) · 내 캐릭터는 숨김 */
   if(TW.fp){ if(hero.g.visible) hero.g.visible=false; const fy=TW.p.y+0.98, lk=pit*1.1-0.12; camera.position.set(TW.p.x, fy, TW.p.z); camera.lookAt(TW.p.x-Math.sin(TW.yaw)*Math.cos(lk), fy-Math.sin(lk), TW.p.z-Math.cos(TW.yaw)*Math.cos(lk)); camera.updateMatrixWorld(); return; }
   if(!hero.g.visible) hero.g.visible=true;
@@ -2542,7 +2566,7 @@ function vlCount(){ return Object.values(VLN.peers).filter(c=>c.g.visible).lengt
 function sayBubble(c, txt){ if(!c) return; if(!c.say){ const el=document.createElement("div"); el.className="vcB"; $("vcBub").appendChild(el); c.say={el, t:0, v:new THREE.Vector3()}; }
   c.say.el.textContent=txt; c.say.t=0; c.say.el.classList.remove("out"); dirty=true; }
 function sayOff(c){ if(c && c.say){ c.say.el.remove(); c.say=null; } }
-function sayTick(dt){ let a=false; const W=innerWidth, H=innerHeight; [hero].concat(Object.values(VLN.peers)).forEach(c=>{ if(!c || !c.say) return; const S=c.say; S.t+=dt; a=true;
+function sayTick(dt){ let a=false; const W=innerWidth, H=VH(); [hero].concat(Object.values(VLN.peers)).forEach(c=>{ if(!c || !c.say) return; const S=c.say; S.t+=dt; a=true;
   if(S.t>5){ sayOff(c); return; } if(S.t>4.4) S.el.classList.add("out");
   c.g.getWorldPosition(S.v); S.v.y+=1.95; S.v.project(camera); const x=(S.v.x+1)/2*W, y=(1-S.v.y)/2*H, off=S.v.z>1 || c.g.visible===false || x<-60 || x>W+60 || y<0 || y>H;
   S.el.style.display=off?"none":""; if(!off) S.el.style.transform="translate("+Math.round(x)+"px,"+Math.round(y)+"px) translate(-50%,-100%)"; }); return a; }
@@ -3486,7 +3510,7 @@ function drawFight(){ const t=$("fgT"), d=$("fgD"), m=$("fgMsg"); if(!t) return;
 
 /* ── 잡는 순간: 물 밖으로 튀어 오름 ── */
 function jumpFx(cb){ F.st="jump"; setGroups(); const f=F.fish, el=$("jumpFx"), v=bobber.position.clone(); v.project(camera);
-  const x=(v.x+1)/2*innerWidth, y=(1-v.y)/2*innerHeight; el.style.left=x+"px"; el.style.top=y+"px"; el.innerHTML='<i class="'+(F.sh?'sh':'')+'">'+f.e+'</i>'+'<s></s><s></s><s></s><s></s><s></s>';
+  const x=(v.x+1)/2*innerWidth, y=(1-v.y)/2*VH(); el.style.left=x+"px"; el.style.top=y+"px"; el.innerHTML='<i class="'+(F.sh?'sh':'')+'">'+f.e+'</i>'+'<s></s><s></s><s></s><s></s><s></s>';
   el.className="on"; (SPEC[f.en]||{}).junk ? SND.plop() : SND.splash(); for(let i=0;i<3;i++) ring(bobber.position.x+rnd(-0.1,0.1), bobber.position.z+rnd(-0.1,0.1), 1);
   bobber.visible=false; line.visible=false; if(F.sd){ shadowGone(F.sd); F.sd=null; } setTimeout(()=>{ el.className=""; cb(); }, 900); }
 
@@ -3510,7 +3534,7 @@ function updateFish(dt){
     bobber.position.y = F.target.y - 0.09 + Math.sin(F.t*30)*0.012;
     if(F.t>(F.win||1.3)){ endFish("놓쳤어요! 찌가 쑥 들어가면 <b>바로</b> 톡!", false, true); return true; }
     bobLabel("쑥! 지금!");
-    const v=hero.g.position.clone(); v.y+=1.7; v.project(camera); const b=$("bang"); b.style.left=((v.x+1)/2*innerWidth)+"px"; b.style.top=((1-v.y)/2*innerHeight)+"px";
+    const v=hero.g.position.clone(); v.y+=1.7; v.project(camera); const b=$("bang"); b.style.left=((v.x+1)/2*innerWidth)+"px"; b.style.top=((1-v.y)/2*VH())+"px";
   } else if(F.st==="fight"){
     fightStep(dt); if(F.st!=="fight" && F.st!=="reel") return true;
     hero.tip.getWorldPosition(F.from); const shore=new THREE.Vector3(F.from.x, WL+0.02, F.from.z), k=FG.d*0.85;
@@ -3623,9 +3647,9 @@ function updCam(dt){ const f=focus(), d=fitFor(f); const k=camSnap?1:Math.min(1,
   const cx=Math.sin(yaw), cz=Math.cos(yaw); walls.forEach(w=>{ const n=w.userData.normal; w.visible=(n[0]*cx+n[1]*cz)>0; });
   return moving; }
 function placeCamera(){ camSnap=true; updCam(0); dirty=true; }
-function viewOff(){ const w=innerWidth, h=innerHeight; camera.setViewOffset(w,h,0,h*(avOpen?0.26:talkN?0.15:coachOn?0.085:0.04),w,h); camera.updateProjectionMatrix(); }
+function viewOff(){ const w=innerWidth, h=VH(); camera.setViewOffset(w,h,0,h*(avOpen?0.26:talkN?0.15:coachOn?0.085:0.04),w,h); camera.updateProjectionMatrix(); }
 function setShadow(){ const N=place.N, s=sun.shadow.camera; sun.position.set(N/2-N*0.9, N*1.4, N/2-N*0.45); sun.target.position.set(N/2,0,N/2); s.left=-N*0.85; s.right=N*0.85; s.top=N*0.85; s.bottom=-N*0.85; s.near=1; s.far=N*4; s.updateProjectionMatrix(); }
-function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; viewOff(); placeCamera(); try{ TOON.resize(); }catch(e){} }
+function resize(){ fitAppH(); const w=innerWidth, h=VH(); renderer.setSize(w,h,false); camera.aspect=w/h; viewOff(); placeCamera(); try{ TOON.resize(); }catch(e){} }
 addEventListener("resize", resize);
 /* (v572) 사용자 사진: 아이패드 가로로 돌리면 오른쪽에 파란 줄 — 돌린 직후 크기가 늦게 바뀌는 iOS · 잠깐 뒤 다시 맞추고 확대를 되돌림 */
 const reFit=()=>{ [120,450,1000].forEach(t=>setTimeout(()=>{ try{ window.scrollTo(0,0); resize(); }catch(e){} }, t)); };
@@ -3634,7 +3658,7 @@ function go(key, at, mid, o){
   if(F.st!=="idle") return; setEdit(false); standUp(); hero.slide=null; trip.busy=true;
   if(visiting && key!=="visit" && key!=="yvisit"){ const m0=mid; mid=()=>{ if(myRoom) restoreMine(); yVisitOut(); visiting=null; if(m0) m0(); }; }   // 지도 등으로 나가도 내 방으로 돌려놓음
   $("fade").classList.add("on");
-  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].concat(window.ISLE?[ISLE.G]:[]).forEach(g=>g.visible=g===place.g); try{ if(window.ISLE) ISLE.show(place===PL.isle); }catch(e){} try{ pondCtx(place.key); }catch(e){} if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
+  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].concat(window.ISLE?[ISLE.G]:[]).forEach(g=>g.visible=g===place.g); try{ if(window.ISLE) ISLE.show(place===PL.isle); }catch(e){} try{ pondCtx(place.key); }catch(e){} if(place===PL.yard){ setTimeout(()=>{ const n=yRegrow(); if(n) toast("🌿 마당에 잡초가 "+n+"포기 자랐어요!<br><small>눌러서 뽑아요 — 가끔 씨앗이 나와요</small>", 2600); }, 900); }   /* (v576) */ if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
     const s=at||place.start; hero.cx=s[0]; hero.cz=s[1]; hero.path=[]; hero.moving=false; hero.g.position.set(s[0]+0.5,0,s[1]+0.5);
     if(o && o.from){ const f=typeof o.from==="function"?o.from():o.from, b=[s[0]+0.5,s[1]+0.5]; hero.g.position.set(f[0],0,f[1]); hero.face=Math.atan2(b[0]-f[0],b[1]-f[1]); hero.g.rotation.y=hero.face;
       hero.slide={a:f.slice(), b, t:0, d:Math.max(0.4, Math.hypot(b[0]-f[0],b[1]-f[1])/2.4)}; if(o.door) openDoor(o.door); }
@@ -3688,7 +3712,7 @@ function okGhost(){ if(!ghost) return; const g=ghost; if(g.wall ? !wallOk(g.id,g
 function selectP(p){ unselect(); sel=p; p.obj.traverse(m=>{ if(m.isMesh && m.material && m.material.emissive){ m.userData.em=m.material; m.material=m.material.clone(); m.material.emissive=new THREE.Color(0x553300); } }); placeMenu(); dirty=true; }
 function unselect(){ if(!sel) return; sel.obj.traverse(m=>{ if(m.userData.em){ m.material.dispose(); m.material=m.userData.em; delete m.userData.em; } }); sel=null; $("menu").classList.remove("on"); dirty=true; }
 function placeMenu(){ if(!sel) return; if(sel.y) return yPlaceMenu(); $("mBox").style.display=""; let v; if(sel.wall){ v=new THREE.Vector3(); sel.obj.getWorldPosition(v); v.y=2.1; v.project(camera); } else { const [w,d]=fp(sel.id,sel.r); v=new THREE.Vector3(sel.x+w/2,1.6,sel.z+d/2).project(camera); }
-  $("mRot").style.display=sel.wall?"none":""; $("mCol").style.display=ITEMS[sel.id].cols?"":"none"; const el=$("menu"); el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=Math.max(70,(1-v.y)/2*innerHeight)+"px"; el.classList.add("on"); }
+  $("mRot").style.display=sel.wall?"none":""; $("mCol").style.display=ITEMS[sel.id].cols?"":"none"; const el=$("menu"); el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=Math.max(70,(1-v.y)/2*VH())+"px"; el.classList.add("on"); }
 
 /* ═════════ 나 꾸미기 ═════════ */
 /* (v539) 사용자: "마트나 이런 시설 — 옷이랑 그런 걸 사는 거지" → 옷·모자·꾸미기 = 👕 옷 가게 · 머리·표정 = 💇 미용실 에서 💎 로 삼 (기본 몇 개는 처음부터) · 집 옷장(나 꾸미기)에선 산 것만 */
@@ -3723,25 +3747,25 @@ function closeAv(){ $("avP").classList.remove("on"); if(avPend){ avPend=null; Ob
 
 /* ═════════ 누르기 ═════════ */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0), 0);
-function cellAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const hit=new THREE.Vector3(); if(!ray.ray.intersectPlane(floorPlane, hit)) return null; const x=Math.floor(hit.x), z=Math.floor(hit.z); return (x>=0&&z>=0&&x<place.N&&z<place.N)?[x,z]:null; }
-function itemAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const h=ray.intersectObjects(placed.concat(wplaced).filter(p=>p.obj.visible && (!p.wall || walls[p.side].visible)).map(p=>p.obj), true); return h.length ? h[0].object.userData.p : null; }
-function hitHouse(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.houseObj, true).length>0; }
+function cellAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera); const hit=new THREE.Vector3(); if(!ray.ray.intersectPlane(floorPlane, hit)) return null; const x=Math.floor(hit.x), z=Math.floor(hit.z); return (x>=0&&z>=0&&x<place.N&&z<place.N)?[x,z]:null; }
+function itemAt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera); const h=ray.intersectObjects(placed.concat(wplaced).filter(p=>p.obj.visible && (!p.wall || walls[p.side].visible)).map(p=>p.obj), true); return h.length ? h[0].object.userData.p : null; }
+function hitHouse(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.houseObj, true).length>0; }
 const SHEETS=["qP","avP","dexP","shopP","craftP","seedP","bagP","mapP","stoP","furnP","scP","frP"];
 function sheetOpen(){ return SHEETS.some(id=>$(id).classList.contains("on")) || $("ask").classList.contains("on"); }
-function hitObj(e, o){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(o, true).length>0; }
-function hitStall(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.stallObj, true).length>0; }
+function hitObj(e, o){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(o, true).length>0; }
+function hitStall(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera); return ray.intersectObject(scene.userData.stallObj, true).length>0; }
 let down=null;
 $("cv").addEventListener("pointerdown", e=>{ down={x:e.clientX, y:e.clientY}; if(F.st==="fight"){ F.hold=true; down=null; return; } if(F.st!=="idle" && F.st!=="quiz" && F.st!=="reel" && F.st!=="jump"){ tapWhileFishing(); down=null; } });
 ["pointerup","pointercancel","blur"].forEach(ev=>addEventListener(ev, ()=>{ F.hold=false; }));   // (v414) 줄다리기 — 손을 떼면 멈춤
 addEventListener("keydown", e=>{ if(e.key===" " && F.st==="fight"){ F.hold=true; e.preventDefault(); } }); addEventListener("keyup", e=>{ if(e.key===" ") F.hold=false; });
-function floorPt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const hit=new THREE.Vector3(); return ray.ray.intersectPlane(floorPlane, hit) ? hit : null; }
+function floorPt(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera); const hit=new THREE.Vector3(); return ray.ray.intersectPlane(floorPlane, hit) ? hit : null; }
 $("cv").addEventListener("pointerup", e=>{
   if(!down || Math.hypot(e.clientX-down.x, e.clientY-down.y)>14){ down=null; return; } down=null;
   if(dlg){ tapDlg(); return; }
   if(sheetOpen()){ closeAv(); closeTalk(); SHEETS.forEach(id=>{ if(id!=="avP") $(id).classList.remove("on"); }); $("ask").classList.remove("on"); if(edit && !ghost) $("drawer").classList.add("on"); return; }
   if(place===PL.visit && hostDoll && hitObj(e, hostDoll.g)){ hostHi(); return; }
   if(place===PL.room || place===PL.visit){
-    if(ghost && ghost.wall){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc, camera); const H=ray.intersectObjects(walls.filter(w=>w.visible), true).find(h=>h.object!==ghostPad);
+    if(ghost && ghost.wall){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); ray.setFromCamera(ndc, camera); const H=ray.intersectObjects(walls.filter(w=>w.visible), true).find(h=>h.object!==ghostPad);
       if(H){ let g=H.object; while(g && walls.indexOf(g)<0) g=g.parent; if(g){ const lp=g.worldToLocal(H.point.clone()); ghost.side=g.userData.side; ghost.s=wallS(ghost.side, lp.x); updGhost(); } }
       else { const c=cellAt(e); if(c){ const V=visWalls(), dist=sd=>[c[1],RN-1-c[0],RN-1-c[1],c[0]][sd], sd=V.sort((a,b)=>dist(a)-dist(b))[0]; ghost.side=sd; ghost.s=(sd===0||sd===2)?c[0]:c[1]; updGhost(); } } return; }
     if(ghost){ const c=cellAt(e); if(c){ const [w,d]=fp(ghost.id,ghost.r); ghost.x=Math.min(Math.max(0,c[0]-Math.floor((w-1)/2)),RN-w); ghost.z=Math.min(Math.max(0,c[1]-Math.floor((d-1)/2)),RN-d); updGhost(); } return; }
@@ -4002,8 +4026,12 @@ $("dlgSeeds").addEventListener("click", e=>{ const b=e.target.closest("[data-buy
 $("dlgX").onclick=closeTalk;
 /* 🗺 지도 — 구역 이동 (잠긴 구역은 열리는 조건만 보여 줌) */
 const AREAS=[["room","🏠","내 집",""],["yard","🌳","마당",""],["village","🏘","마을",""],["forest","🌲","숲","공부한 날 5일"],["beach","🏖","바닷가","큰 별 5개"],["mine","⛏","광산",""]];   // (L0-9) 맛보기는 광산 열림 — 게임에선 큰 별 15개
-function drawMap(){ $("mapBody").innerHTML=AREAS.map(([k,e,nm,lock])=>'<button class="mapC'+(lock?' lock':'')+(place.key===k?' here':'')+'" data-go="'+k+'"'+(lock?' disabled':'')+'><i>'+e+'</i><b>'+nm+'</b><small>'+(lock?'🔒 '+lock:place.key===k?'📍 여기':'가기')+'</small></button>').join(""); }
-$("mapBody").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(!b || b.disabled) return; $("mapP").classList.remove("on"); const k=b.dataset.go; if(k!==place.key) go(k); });
+/* (v577) 사용자: 「지도 누르고 마을 가면 예전에 만든 마을로 가지더라」 → 섬 모드에선 🏘 마을 = 🏝 우리 마을(섬) · 없는 숲·바닷가는 뺌 */
+function mapAreas(){ if(!(window.ISLE && ISLE.ON)) return AREAS; return AREAS.filter(a=>a[0]!=="forest" && a[0]!=="beach").map(a=>a[0]==="village" ? ["isle","🏝","우리 마을",""] : a); }
+function drawMap(){ $("mapBody").classList.toggle("i4", mapAreas().length===4); $("mapLockH").style.display=mapAreas().some(a=>a[3])?"":"none"; $("mapBody").innerHTML=mapAreas().map(([k,e,nm,lock])=>'<button class="mapC'+(lock?' lock':'')+(place.key===k?' here':'')+'" data-go="'+k+'"'+(lock?' disabled':'')+'><i>'+e+'</i><b>'+nm+'</b><small>'+(lock?'🔒 '+lock:place.key===k?'📍 여기':'가기')+'</small></button>').join(""); }
+$("mapBody").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(!b || b.disabled) return; $("mapP").classList.remove("on"); const k=b.dataset.go; if(k===place.key) return;
+  if(k==="isle"){ if(ISLE.enter()==="gate"){} return; }   /* (v577) 섬 = 내 집 문 앞으로 */
+  go(k); });
 $("bMap").onclick=()=>{ if(F.st!=="idle") return; drawMap(); $("mapP").classList.add("on"); };
 $("mapDone").onclick=()=>$("mapP").classList.remove("on");
 /* 가리는 것 흐리게 — (L0-7) 대화 장면이 집에 가려 안 보였다 → 카메라와 나(·대화 상대) 사이에 있는 집·나무 등을 반투명으로 (게임에서 흔한 방식) */
@@ -4013,10 +4041,23 @@ function setFade(obj,on){ if(on){ if(faded.has(obj)) return; const L=[]; obj.tra
 function clearFade(){ [...faded.keys()].forEach(o=>setFade(o,false)); }
 const occRc=new THREE.Raycaster(); occRc.camera=camera; let occT=0;   // 그림판(이름표)을 맞출 때 카메라가 필요
 function updOcclude(dt){ occT+=dt; if(occT<0.1) return false; occT=0; const g=place.g; if(!hero || !g.visible) return false;
-  const targets=[hero.g].concat(talkN?[talkN.g]:[]), hit=new Set();
+  const targets=[hero.g].concat(talkN?[talkN.g]:[]), hit=new Set(); let hid=false;
   targets.forEach(t=>[0.45,1.15].forEach(hy=>{ const to=t.position.clone(); to.y+=hy; const dir=to.clone().sub(camera.position), dist=dir.length(); occRc.set(camera.position, dir.normalize()); occRc.far=Math.max(0.1,dist-0.35);
-    occRc.intersectObject(g,true).forEach(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; if(o.parent===g && !o.userData.npc && !o.userData.noFade) hit.add(o); }); }));
-  let ch=false; [...faded.keys()].forEach(o=>{ if(!hit.has(o)){ setFade(o,false); ch=true; } }); hit.forEach(o=>{ if(!faded.has(o)){ setFade(o,true); ch=true; } }); return ch; }
+    occRc.intersectObject(g,true).forEach(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; if(o.parent===g && !o.userData.npc && !o.userData.noFade) hit.add(o);
+      if(t===hero.g && h.object.isMesh && !o.userData.npc && !(h.object.material && h.object.material.transparent)) hid=true; }); }));   /* (v576) 흐려지지 않는(합친) 것이 나를 가림 → 실루엣 */
+  let ch=false; [...faded.keys()].forEach(o=>{ if(!hit.has(o)){ setFade(o,false); ch=true; } }); hit.forEach(o=>{ if(!faded.has(o)){ setFade(o,true); ch=true; } });
+  if(!hid && PL.isle && place===PL.isle){ const to=hero.g.position.clone(); to.y+=0.22; const dir=to.clone().sub(camera.position), dist=dir.length(); occRc.set(camera.position, dir.normalize()); occRc.far=Math.max(0.1,dist-0.3);   /* 발쪽도 (나무가 낮아서) */
+    hid=occRc.intersectObject(g,true).some(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; return h.object.isMesh && !o.userData.npc && !(h.object.material && h.object.material.transparent); }); }
+  if(HGHOST.chk(hid)) ch=true; return ch; }
+/* (v576) 🌲 숲·가로수(합쳐서 안 흐려지는 덩어리)에 가려지면 나를 보라색 실루엣으로 — 섬에서만 · 가려졌을 때만 한 번 더 그림(뒤에 있는 부분만: GreaterDepth) */
+const HGHOST=(()=>{ const mat=new THREE.MeshBasicMaterial({color:0x8a6cff, transparent:true, opacity:.6, depthTest:true, depthWrite:false, depthFunc:THREE.GreaterDepth}); let on=false;
+  /* 카메라 쪽으로 0.3 당겨 그림 — 보이는 부분 · 몸 안쪽 조각(옷 속 몸 등)은 안 칠하고, 0.3 넘게 앞에 있는 나무·건물 뒤만 칠함 */
+  mat.onBeforeCompile=s=>{ s.vertexShader=s.vertexShader.replace("#include <project_vertex>", "#include <project_vertex>\n mvPosition.z+=0.3; gl_Position=projectionMatrix*mvPosition;"); }; mat.customProgramCacheKey=()=>"hghost576";
+  function chk(hid){ const want=!!(hid && PL.isle && place===PL.isle && !TW.on); if(want!==on){ on=want; return true; } return false; }
+  function draw(){ if(!on || !hero || !hero.g.visible || !(PL.isle && place===PL.isle)) return; const sw=[]; hero.g.traverse(m=>{ if((m.isMesh||m.isSprite) && m.visible){ if(m.isSprite || (m.material && (m.material.transparent || m.material.side===THREE.BackSide))){ sw.push([m,null]); m.visible=false; } else { sw.push([m,m.material]); m.material=mat; } } });
+    const ac=renderer.autoClear, ar=renderer.info.autoReset; renderer.autoClear=false; renderer.info.autoReset=false; try{ renderer.render(hero.g, camera); }finally{ renderer.autoClear=ac; renderer.info.autoReset=ar; sw.forEach(([m,mt])=>{ if(mt) m.material=mt; else m.visible=true; }); } }
+  TOON.after=draw; return {chk, draw, mat, on:()=>on}; })();
+window.HGHOST=HGHOST;
 /* ═════════ 시작 ═════════ */
 makeHero();
 function loadRoomData(R){ placed.splice(0).concat(wplaced.splice(0)).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
@@ -4050,7 +4091,7 @@ function drawLabels(){ const box=$("tls"); box.innerHTML="";
   LBL=(LBL_DEF[place.key]||(()=>[]))().map(d=>{ const el=document.createElement("button"); el.className="tl"; el.dataset.k=d.k; el.innerHTML='<i>'+d.ic+'</i>'+d.t;
     el.onclick=e=>{ e.stopPropagation(); if(F.st!=="idle" || trip.busy) return; d.act(); }; box.appendChild(el); return {d, el, v:new THREE.Vector3()}; });
   updLabels(); updUI(); }
-function updLabels(){ const W=innerWidth, H=innerHeight;
+function updLabels(){ const W=innerWidth, H=VH();
   LBL.forEach(L=>{ if(L.d.show && !L.d.show()){ L.el.style.display="none"; return; } L.v.set(L.d.p[0],L.d.p[1],L.d.p[2]).project(camera);
     let x=(L.v.x+1)/2*W, y=(1-L.v.y)/2*H, off=L.v.z>1 || x<-30 || x>W+30 || y<110 || y>H-106;
     /* (v561) QA: 안내 중(hot)인 곳이 화면 밖이면 숨지 않고 화면 가장자리에 화살표로 (호수·생선 가게가 멀어서 어디로 갈지 몰랐음) */
@@ -4137,7 +4178,7 @@ function fcDraw(st, msg){ const el=$("fc"); if(!st){ el.classList.remove("on","g
   el.innerHTML='<ol>'+["던지기","기다리기","톡!"].map((t,j)=>'<li'+(j===i?' class="on"':j<i?' class="ok"':'')+'>'+t+'</li>').join("")+'</ol><p>'+msg+'</p>'+(st==="bite"?'<u style="animation-duration:'+(F.win||1.3)+'s"></u>':'');
   el.classList.add("on"); el.classList.toggle("go", st==="bite"); }
 function bobLabel(t){ const el=$("bobL"); if(!bobber.visible){ el.classList.remove("on"); return; } const v=bobber.position.clone(); v.y+=0.22; v.project(camera);
-  if(el.textContent!==t) el.textContent=t; el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=((1-v.y)/2*innerHeight)+"px"; el.classList.add("on"); }
+  if(el.textContent!==t) el.textContent=t; el.style.left=((v.x+1)/2*innerWidth)+"px"; el.style.top=((1-v.y)/2*VH())+"px"; el.classList.add("on"); }
 if(/fps/.test(location.search)) document.body.classList.add("dbg"); if(/dev/.test(location.search)) document.body.classList.add("dev");
 drawLabels(); updQ();
 /* (v411) 👤 공용 패드 — 나는 누구? (반 명단 = 게임과 같은 /hy/roster) · 고르면 그 아이 칸으로 다시 열기 */

@@ -44,7 +44,7 @@ async def main():
         # ① 팔기 → 🪙
         r=await A.evaluate("""()=>{ const c0=TECO.coins(), g0=HOUSE.gems(); bag.push({en:'whale',at:Date.now(),cm:150}); bag.push({en:'shark',at:Date.now(),cm:90}); for(let i=0;i<30;i++) bag.push({en:'fish',at:Date.now(),cm:20});
             const v=bag.map(price).reduce((a,b)=>a+b,0); let t=0; while(bag.length) t+=sell(0); return [TECO.coins()-c0, HOUSE.gems()-g0, t>0, v]; }""")
-        ok(r[0]>60 and r[1]==0 and r[2], f"① 팔면 🪙 (한도 없음 · 💎 는 안 늘어남) {r}")
+        ok(r[0]>30 and abs(r[0]-r[3])<=2 and r[1]==0 and r[2], f"① 팔면 🪙 = 값 그대로 (한도 없음 · 💎 는 안 늘어남 · 시간마다 시세가 달라 합계는 바뀜) {r}")   # (v577) 시세가 낮은 시간엔 54 → 60 넘기 조건이 흔들림
         ok(await A.evaluate("()=>document.getElementById('hCoin').querySelector('b').textContent.replace(/,/g,'')")==str(await A.evaluate("()=>TECO.coins()")), "① HUD 🪙 칸")
         r=await A.evaluate("()=>{ const a=TECO.mkF('fish'); return [a, TECO.mkF('octopus')]; }")
         ok(r[0]<1 and r[1]==1, f"① 📉 이번 시간 많이 판 fish 는 값이 내려감 {r}")

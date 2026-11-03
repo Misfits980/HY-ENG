@@ -10,7 +10,7 @@ const SHOPIN=(()=>{
   const G=new THREE.Group(); G.name="shopIn"; G.visible=false; scene.add(G);
   const occ=new Uint8Array(N*N);
   PL.shop={key:"shop", N, g:G, h:H, name:"🏪 가게", blocked:(x,z)=>!!occ[z*N+x], start:[1,N-1], pitch:0.6, sky:0xf6e6cf};
-  Object.defineProperty(PL.shop, "pitch", {get:()=>innerHeight>innerWidth*1.5 ? 0.86 : innerHeight>innerWidth ? 0.7 : 0.6});   /* 세로 휴대폰 = 더 위에서 (방이 화면을 더 채움) */
+  Object.defineProperty(PL.shop, "pitch", {get:()=>VH()>innerWidth*1.5 ? 0.86 : VH()>innerWidth ? 0.7 : 0.6});   /* 세로 휴대폰 = 더 위에서 (방이 화면을 더 채움) */
   let cur=null, deco=null, keeper=null, bub=null, words=[], anims=[], own=[], tA=0, run=false, lastT=0;
 
   /* ── 도형 도우미 (OWN = 나만 쓰는 모양 → 합친 뒤 버림 · rbox/M 은 집 것과 같이 씀) ── */
@@ -268,7 +268,7 @@ const SHOPIN=(()=>{
 
   /* ── 누르기 (house.html 바닥 누르기에서 부름) ── */
   const rc=new THREE.Raycaster(), v2=new THREE.Vector2();
-  function tap(e){ if(!cur || trip.busy) return; cur.ao=false; v2.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); rc.setFromCamera(v2, camera);
+  function tap(e){ if(!cur || trip.busy) return; cur.ao=false; v2.set(e.clientX/innerWidth*2-1, -(e.clientY/VH())*2+1); rc.setFromCamera(v2, camera);
     if(door && rc.intersectObject(door,true).length){ exit(); return; }
     if(keeper && rc.intersectObject(keeper.g,true).length){ goCounter(); return; }
     const cHit=deco ? rc.intersectObject(deco,true).find(h=>h.object.userData.sign) : null; if(cHit){ goCounter(); return; }

@@ -81,6 +81,11 @@ const TFAC=(()=>{
     const X=(geo,col,px,py,pz,rx,ry2,rz,o)=>{ const m=new THREE.Mesh(geo, o&&o.basic?new THREE.MeshBasicMaterial({color:C.LIN(col)}):C.MC(col)); m.position.set(px,py,pz); m.rotation.set(rx||0,ry2||0,rz||0); m.castShadow=true; m.receiveShadow=true; W.add(m); return m; };
     const gable=(w,d,hh,col,y)=>{ const s=new THREE.Shape(); s.moveTo(-w/2-.25,0); s.lineTo(w/2+.25,0); s.lineTo(0,hh); s.lineTo(-w/2-.25,0); const g=new THREE.ExtrudeGeometry(s,{depth:d+.4, bevelEnabled:false}); g.translate(0,0,-(d+.4)/2); return X(g,col,0,y,0); };
     const L2W=(lx,lz)=>[x+lx*Math.cos(ry)+lz*Math.sin(ry), z-lx*Math.sin(ry)+lz*Math.cos(ry)];
+    /* (v576) 점검: 시계가 흰 원 + 막대 하나라 「I」로 읽힘 → 테 · 눈금 12 (3·6·9·12 굵게) · 시침·분침 (10시 10분) · 가운데 단추 */
+    const clock=(cx,cy,cz,r,rim)=>{ X(new THREE.CylinderGeometry(r+.06,r+.06,.05,24),rim,cx,cy,cz-.012,Math.PI/2); X(new THREE.CylinderGeometry(r,r,.06,24),0xffffff,cx,cy,cz,Math.PI/2);
+      for(let i=0;i<12;i++){ const a=i/12*Math.PI*2, bg=i%3===0; X(new THREE.BoxGeometry(bg?.04:.024,bg?.085:.05,.02),0x3b2433,cx+Math.sin(a)*r*.8,cy+Math.cos(a)*r*.8,cz+.035,0,0,-a); }
+      [[300,.5,.05],[60,.8,.034]].forEach(([deg,k,wd])=>{ const a=deg*Math.PI/180, len=r*k; X(new THREE.BoxGeometry(wd,len,.02),0x3b2433,cx+Math.sin(a)*len/2,cy+Math.cos(a)*len/2,cz+.045+(k>.6?.008:0),0,0,-a); });
+      X(new THREE.CylinderGeometry(.035,.035,.03,10),0xe24b4b,cx,cy,cz+.06,Math.PI/2); };
     const w=f.w, d=f.d, h=f.h, fr=d/2;
     // 공통 — 바닥 판 · 벽 · 문 · 창 · 띠
     B(w+.4,.18,d+.4,0xd9c9a8,0,0,0); B(w,h,d,f.wall,0,.18,0); B(.95,1.5,.12,0x8a5a3a,0,.18,fr+.02); B(.18,.18,.1,0xffd23f,.3,.9,fr+.1);
@@ -100,9 +105,11 @@ const TFAC=(()=>{
     else if(f.k==="photo"){ gable(w,d,.8,f.roof,top); B(1.0,.62,.56,0x3b2433,0,top+.72,.1); X(new THREE.CylinderGeometry(.22,.24,.32,16),0x9fd8ff,0,top+1.03,.5,Math.PI/2); X(new THREE.CylinderGeometry(.26,.26,.06,16),0x3b2433,0,top+1.03,.66,Math.PI/2); B(.28,.16,.2,0xffd23f,-.3,top+1.34,0);
       [-1,1].forEach(s=>X(new THREE.OctahedronGeometry(.16),0xffd23f,s*1.3,top+.5,fr+.2,0,0,0,{basic:1})); }
     else if(f.k==="library"){ for(let r=0;r<2;r++) [-1,0,1].forEach(c=>{ if(r===0 && c===0) return; B(.7,.75,.1,0x9fd8ff,c*1.45,.8+r*1.35,fr+.02); }); B(w+.1,.14,d+.1,0xc9925c,0,1.72,0); gable(w,d,1.2,f.roof,top);
-      [[0xff6b6b,0],[0x5aa7ff,.32],[0xffd23f,.64]].forEach(([c,y],i)=>B(1.1-i*.12,.3,.75,c,-w/2-.85,y,fr-.1)); X(new THREE.CylinderGeometry(.3,.3,.06,20),0xffffff,0,top+.55,fr+.25,Math.PI/2); X(new THREE.BoxGeometry(.04,.22,.02),0x3b2433,0,top+.6,fr+.29); }
-    else if(f.k==="station"){ X(new THREE.BoxGeometry(w+3.6,.14,d+1.6),0x4caf50,0,h+.28,.1); [-1,1].forEach(s=>[-1,1].forEach(t=>B(.14,h,.14,0xffffff,s*(w/2+1.6),.18,t>0?fr+.55:-fr-.4)));
-      gable(w,d,.9,0xc94545,h+.35); X(new THREE.CylinderGeometry(.32,.32,.06,20),0xffffff,0,h+.75,fr+.24,Math.PI/2); X(new THREE.BoxGeometry(.04,.22,.02),0x3b2433,0,h+.8,fr+.28);
+      [[0xff6b6b,0],[0x5aa7ff,.32],[0xffd23f,.64]].forEach(([c,y],i)=>B(1.1-i*.12,.3,.75,c,-w/2-.85,y,fr-.1)); clock(0,top+.55,fr+.25,.32,0x2f6fc4); }
+    /* (v576) 점검: 건물보다 큰 초록 판(8×4)이 빨간 지붕을 덮음 → 초록 차양은 뒤 기찻길 위로만(처마 아래) + 문 위 작은 차양 · 빨간 지붕이 보이게 */
+    else if(f.k==="station"){ X(new THREE.BoxGeometry(w+4.2,.12,2.4),0x4caf50,0,h-.08,-fr-1.25); B(w+4.25,.08,.08,0xfffdf7,0,h-.2,-fr-2.45); [-1,0,1].forEach(s=>B(.12,h-.14,.12,0xffffff,s*(w/2+1.75),0,-fr-2.38));
+      X(new THREE.BoxGeometry(1.7,.08,.75),0x4caf50,0,1.86,fr+.36,.22); [-1,1].forEach(s=>X(new THREE.CylinderGeometry(.04,.04,.4,6),0xffffff,s*.75,1.68,fr+.66));
+      gable(w,d,.9,0xc94545,h+.13); clock(0,h+.52,fr+.24,.3,0xc94545);
       const rz=-fr-1.25; B(w+5,.12,2.0,0xcfc8b8,0,0,-fr-1.25+.0); for(let i=-5;i<=5;i++) B(.18,.06,1.2,0x7a4f2c,i*.62,.12,rz); [-.42,.42].forEach(o=>B(w+5,.08,.08,0x8f8f9a,0,.18,rz+o));
       const car=(cx,col,eng)=>{ B(1.35,.75,.92,col,cx,.36,rz); B(1.45,.1,1.0,0x3b2433,cx,1.11,rz); [-.42,.42].forEach(wx=>[-.48,.48].forEach(wz=>X(new THREE.CylinderGeometry(.18,.18,.08,12),0x3b2433,cx+wx,.34,rz+wz,Math.PI/2)));
         if(eng){ X(new THREE.CylinderGeometry(.3,.3,.9,14),col,cx+.45,.95,rz,0,0,Math.PI/2); X(new THREE.CylinderGeometry(.09,.13,.4,10),0x3b2433,cx+.75,1.45,rz); B(.6,.5,.92,0xffd23f,cx-.35,1.11,rz); } else [-.32,.32].forEach(wx=>B(.36,.3,.04,0x9fd8ff,cx+wx,.66,rz+.47)); };
@@ -117,7 +124,7 @@ const TFAC=(()=>{
       [[-1,0xd9a62e],[1,0x7fd36a]].forEach(([s2,col])=>{ X(new THREE.SphereGeometry(.28,12,10),col,s2*(w/2+.55),.36,fr+.3); X(new THREE.CylinderGeometry(.08,.12,.16,10),col,s2*(w/2+.55),.68,fr+.3); X(new THREE.TorusGeometry(.1,.025,6,12),0x7a4f2c,s2*(w/2+.55),.6,fr+.3,Math.PI/2); }); }
     C.flush(W); mergeIn(W); C.G.add(W);
     const rad=Math.max(w,d)/2*.92+(f.k==="museum"?.3:0); C.cols.push([x+OX,z+OZ,rad]); C.busy.push([x,z,rad+1.4]); { const df=L2W(0,fr+1.7); C.busy.push([df[0],df[1],1.7]); if(f.k==="post"){ const mb=L2W(w/2+.6,fr+.6); C.busy.push([mb[0],mb[1],1.0]); } }   /* (v575) 점검: 문 앞·우체통이 꽃밭에 묻히던 것 */ if(f.k==="pet"){ const p=L2W(w/2+1.5,0); C.cols.push([p[0]+OX,p[1]+OZ,1.1]); C.busy.push([p[0],p[1],1.6]); }
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:C.signTex(f.ic+" "+f.t, f.bg, 448), depthWrite:false})); sp.scale.set(2.5,.72,1); const sg=L2W(0,fr+.5); sp.position.set(sg[0]+OX, f.k==="museum"?h+1.95:(f.k==="library"?h+2.0:h+1.65), sg[1]+OZ); sp.renderOrder=2; C.G.add(sp); C.SIGNS.push(sp);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:C.signTex(f.ic+" "+f.t, f.bg, 448), depthWrite:false})); sp.scale.set(2.5,.72,1); const sg=L2W(0,fr+.5); sp.position.set(sg[0]+OX, f.k==="museum"?h+1.95:(f.k==="library"?h+2.0:h+1.65), sg[1]+OZ); sp.renderOrder=2; sp.userData.lbl="f_"+f.k; C.G.add(sp); C.SIGNS.push(sp);   /* (v576) 이름표 f_… 가 펴지면 숨김 (isle.js tick) */
     const dp=L2W(0,fr+(f.k==="museum"?1.9:1.25)), lp=L2W(0,fr+.4); SP[f.k]={k:f.k, ic:f.ic, t:f.t, p:[lp[0]+OX,1.6,lp[1]+OZ], door:[dp[0]+OX, dp[1]+OZ], at:[x+OX,z+OZ]}; }
   /* 📣 목표판 — 광장 쪽을 보는 큰 판 (글씨 = 그림판, 서버 값이 오면 다시 그림) */
   function goalBoard(f){ const [x,z]=f.at, OX=C.OX, OZ=C.OZ, ry=Math.atan2(-x,-z), W=new THREE.Group(); W.position.set(x+OX,0,z+OZ); W.rotation.y=ry;

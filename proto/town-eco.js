@@ -144,9 +144,48 @@ const TECO=(()=>{
   function site(k){ const c=zoneC(k); if(!c) return; const old=SITES[k]; if(old && old.g){ C.G.remove(old.g); }
     const B=BUILD[k], ok=done(k), g=new THREE.Group(); g.position.set(c[0]+C.OX, 0, c[1]+C.OZ); g.userData.solo=1; C.G.add(g);
     const box=(w,h,d,col,x,y,z)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), C.MC(col)); m.position.set(x,y+h/2,z); m.castShadow=true; m.receiveShadow=true; g.add(m); return m; };
-    if(!ok){ /* 공사 중: 울타리 + 목재 + 진행 팻말 */
-      [[-3,0],[3,0],[0,-3],[0,3]].forEach(([x,z],i)=>box(i<2?.15:6,.8,i<2?6:.15,0xf2c14e,x,0,z));
-      box(1.6,.5,.9,0xb07a4a,-1,0,-.8); box(1.2,.4,.8,0x9a9a9a,1.2,0,.6); box(.3,2.2,.3,0x8a5a34,0,0,0);
+    if(!ok){ /* (v576) 점검: 공사장 3곳이 똑같음(울타리+목재+기둥) · 기둥이 글씨를 뚫음 · 「공사 0%」 겹침 → 곳마다 다른 공사 모습 + 울타리(주황·흰 판) + 진행 게이지판 (한 덩어리로 합쳐 그리기 1번) */
+      const L=[], GS=new Set(), put=(geo,col,x,y,z,o)=>{ o=o||{}; GS.add(geo); L.push({g:geo, col, m:new THREE.Matrix4().compose(new THREE.Vector3(x,y,z), new THREE.Quaternion().setFromEuler(new THREE.Euler(o.rx||0,o.ry||0,o.rz||0,"YXZ")), new THREE.Vector3(o.sx||1,o.sy||1,o.sz||1))}); };
+      const BX=new THREE.BoxGeometry(1,1,1), CY=new THREE.CylinderGeometry(1,1,1,8), CO=new THREE.ConeGeometry(1,1,10), RK=new THREE.DodecahedronGeometry(1,0), HS=new THREE.SphereGeometry(1,10,6,0,Math.PI*2,0,Math.PI/2);
+      const bx=(w,h,d,col,x,y,z,o)=>put(BX,col,x,y+h/2,z,Object.assign({sx:w,sy:h,sz:d},o||{}));
+      const UP=new THREE.Vector3(0,1,0), rod=(col,a,b,r)=>{ const A=new THREE.Vector3(...a), B2=new THREE.Vector3(...b), d=B2.clone().sub(A), e=new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(UP,d.clone().normalize()),"YXZ"); put(CY,col,(A.x+B2.x)/2,(A.y+B2.y)/2,(A.z+B2.z)/2,{rx:e.x,ry:e.y,rz:e.z,sx:r,sz:r,sy:d.length()}); };
+      /* 울타리 — 네모 ±3.25 · 기둥 · 주황/흰 판 · 아래 줄 (막기는 isle.js 가 cols 로) */
+      const R=3.25, n=5; for(let s=0;s<4;s++) for(let i=0;i<n;i++){ const t0=-R+i*(2*R/n), t1=t0+2*R/n, tm=(t0+t1)/2, side=[[0,-1],[1,0],[0,1],[-1,0]][s], P=t=>side[0] ? [side[0]*R, t] : [t, side[1]*R];
+        const [px,pz]=P(t0), [mx,mz]=P(tm), alongX=!side[0]; put(CY,0xfffdf7,px,.45,pz,{sx:.06,sz:.06,sy:.9}); put(CO,0xff8a3d,px,.95,pz,{sx:.08,sz:.08,sy:.14});
+        bx(alongX?2*R/n-.06:.05,.3,alongX?.05:2*R/n-.06,i%2?0xfffdf7:0xff8a3d,mx,.42,mz); bx(alongX?2*R/n:.04,.05,alongX?.04:2*R/n,0xfff1c4,mx,.16,mz); }
+      /* 곳마다 다른 공사 */
+      if(k==="free1"){ /* 🏊 수영장 — 판 구덩이 · 흙 둔덕 · 파란 덮개 · 타일 더미 · 꼬깔 · 삽 */
+        bx(4.4,.03,3.0,0x7a5236,0,.0,0); bx(3.8,.03,2.4,0x5a3d28,0,.02,0); bx(3.0,.03,1.6,0x4a3020,0,.035,0);
+        [[-1.9,-1.9,.8],[1.7,-2.0,.65],[2.2,1.9,.55]].forEach(([x,z,r])=>put(HS,0xa3714a,x,0,z,{sx:r*1.3,sy:r*.7,sz:r}));
+        bx(1.9,.05,1.5,0x2f7fe0,-.9,.05,.6,{ry:.25, rz:.06}); [[-1.8,.0],[0,1.3],[-1.6,1.3],[0,-.1]].forEach(([x,z])=>put(RK,0x9a9aa6,x-.05,.12,z+.05,{sx:.1,sy:.08,sz:.1}));
+        for(let i=0;i<4;i++) bx(.7,.12,.5,i%2?0x9fe0ff:0x6fc6f0,2.2,i*.12,-.4,{ry:i*.15});
+        [[1.2,2.4],[-2.4,.9],[2.5,-2.4]].forEach(([x,z])=>{ put(CO,0xff8a3d,x,.25,z,{sx:.17,sz:.17,sy:.5}); put(CY,0xffffff,x,.24,z,{sx:.115,sz:.115,sy:.07}); bx(.36,.04,.36,0xff8a3d,x,0,z); });
+        rod(0x8a5a34,[1.55,.35,-1.85],[1.85,1.25,-2.0],.035); bx(.22,.28,.04,0x9a9aa6,1.52,.15,-1.84,{ry:.4, rz:.3}); }
+      else if(k==="free2"){ /* 🎡 관람차 — 둥근 받침(콘크리트) · 노란 크레인 · 매달린 바퀴 조각 · 쇠 기둥 더미 */
+        put(new THREE.TorusGeometry(2.0,.2,6,28),0xbdbdc6,0,.1,0,{rx:Math.PI/2}); bx(1.4,.3,1.4,0xa9a9b4,0,0,0); bx(.5,1.2,.5,0x8a8a9a,-.6,.3,0); bx(.5,1.2,.5,0x8a8a9a,.6,.3,0);
+        const mx=-2.1, mz=-2.1, H=5.4; bx(1.0,.3,1.0,0x8a8a9a,mx,0,mz); bx(.42,H,.42,0xffc21a,mx,.3,mz); for(let y=.9;y<H;y+=.9){ bx(.44,.06,.44,0x3b2433,mx,y,mz); rod(0xe0a800,[mx-.2,y,mz+.22],[mx+.2,y+.85,mz+.22],.02); }
+        bx(.6,.5,.55,0xffc21a,mx,H+.3,mz); bx(.4,.25,.05,0x9fd8ff,mx+.1,H+.48,mz+.28); bx(4.6,.22,.28,0xffc21a,mx+2.3,H+.85,mz,{}); bx(1.4,.22,.28,0xffc21a,mx-.8,H+.85,mz); bx(.55,.5,.45,0x8a8a9a,mx-1.25,H+.4,mz);
+        rod(0x3b2433,[mx,H+1.6,mz],[mx+3.8,H+.95,mz],.02); rod(0x3b2433,[mx,H+1.6,mz],[mx-1.2,H+.95,mz],.02); bx(.08,.7,.08,0xffc21a,mx,H+.9,mz);
+        rod(0x3b2433,[mx+3.6,H+.85,mz],[mx+3.6,2.6,mz],.015); put(CO,0x3b2433,mx+3.6,2.5,mz,{sx:.1,sz:.1,sy:.2,rx:Math.PI});
+        put(new THREE.TorusGeometry(.9,.09,6,12,Math.PI*.6),0xff6b9a,mx+3.6,1.55,mz,{rz:Math.PI*.2}); bx(.45,.42,.45,0x5aa7ff,mx+3.0,1.0,mz);
+        for(let i=0;i<4;i++) bx(2.4,.16,.16,0xff6b9a,1.5,i<3?0:.16,1.9+(i%3)*.2-(i===3?.1:0)); }
+      else { /* 🏰 성 놀이터 — 반쯤 쌓은 돌 벽(ㄱ자) · 비계(쇠 기둥 + 나무 판) · 돌 더미 · 깃발 */
+        const ST=[0xd9d2c5,0xcfc6b6,0xe4ddd0]; for(let i=0;i<5;i++) for(let j=0;j<3;j++){ if(j===2 && i%2) continue; bx(.56,.38,.5,ST[(i+j)%3],-1.8+i*.58,j*.4,-1.4); }
+        for(let i=1;i<4;i++) for(let j=0;j<(i<3?3:2);j++) bx(.5,.38,.56,ST[(i+j+1)%3],-1.8,j*.4,-1.4+i*.58);
+        bx(.9,1.6,.9,0xcfc6b6,-1.8,0,-1.4); bx(1.0,.18,1.0,0x5aa7ff,-1.8,1.6,-1.4);
+        [[-2.5,-2.1],[-.9,-2.1],[.7,-2.1],[-2.5,-.7],[-2.5,.7]].forEach(([x,z])=>rod(0x9a9aa6,[x,0,z],[x,2.4,z],.04));
+        [1.05,2.05].forEach(y=>{ rod(0x9a9aa6,[-2.5,y,-2.1],[.7,y,-2.1],.03); rod(0x9a9aa6,[-2.5,y,-2.1],[-2.5,y,.7],.03); bx(3.1,.06,.36,0xc48a58,-.9,y,-2.0); bx(.36,.06,2.6,0xc48a58,-2.4,y,-.75); });
+        rod(0x9a9aa6,[-2.5,0,-2.1],[-.9,2.4,-2.1],.025); rod(0x9a9aa6,[-.9,0,-2.1],[.7,2.4,-2.1],.025);
+        [[1.3,1.1,.42],[1.8,1.5,.36],[1.0,1.7,.32],[1.6,.7,.3],[2.2,1.0,.34],[1.45,1.3,.3]].forEach(([x,z,r],i)=>put(RK,ST[i%3],x,r*.7+(i===5?.45:0),z,{sx:r,sy:r*.8,sz:r,ry:i}));
+        for(let i=0;i<3;i++) bx(.5,.36,.46,ST[i%3],2.3-i*.55,0,-.6+i*.1,{ry:i*.2}); rod(0x8a5a34,[-1.8,1.78,-1.4],[-1.8,3.1,-1.4],.03); put(new THREE.ConeGeometry(.3,.5,3),0xff6b6b,-1.62,2.9,-1.4,{rz:-Math.PI/2, sz:.15}); }
+      const mm=C.vcMerge(L); g.add(mm); GS.forEach(x=>x.dispose());
+      /* 진행 게이지판 — 섬 가운데 쪽 울타리에 (밖을 봄) */
+      const dx=-c[0], dz=-c[1], ax=Math.abs(dx)>Math.abs(dz), nx=ax?Math.sign(dx):0, nz=ax?0:Math.sign(dz), along=Math.max(-1.6,Math.min(1.6,(ax?dz:dx)/Math.hypot(dx,dz)*3.4)), bpx=ax?nx*(R+.14):along, bpz=ax?along:nz*(R+.14);
+      const bd=new THREE.Group(); bd.position.set(bpx,0,bpz); bd.rotation.y=Math.atan2(nx,nz); g.add(bd);
+      const pm=C.MC(0x8a5a34); [-.9,.9].forEach(u=>{ const p=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,1.75,8), pm); p.position.set(u,.88,-.03); p.castShadow=true; bd.add(p); });
+      const back=new THREE.Mesh(new THREE.BoxGeometry(2.0,1.08,.07), C.MC(0xc9925c)); back.position.set(0,1.2,0); back.castShadow=true; bd.add(back);
+      const cv=document.createElement("canvas"); cv.width=512; cv.height=272; const tx=new THREE.CanvasTexture(cv); tx.encoding=THREE.sRGBEncoding; boardDraw(cv, k); const face=new THREE.Mesh(new THREE.PlaneGeometry(1.9,1.0), new THREE.MeshBasicMaterial({map:tx})); face.position.set(0,1.2,.04); bd.add(face);
+      g.userData.board=bd; g.userData.lp=[c[0]+bpx+C.OX, 2.35, c[1]+bpz+C.OZ];
     } else if(k==="free1"){ /* 🏊 수영장 */
       box(7,.3,5,0xe8dcc2,0,0,0); const w=box(6,.12,4,0x4fc3f7,0,.3,0); w.material.transparent=true; w.material.opacity=.85; box(.4,1.2,.15,0xffffff,2.6,.3,-2); box(1,.1,2,0xff6b6b,-4.2,0,1); box(1,.1,2,0xffd23f,-4.2,0,-1.4);
     } else if(k==="free2"){ /* 🎡 관람차 (돎) */
@@ -159,9 +198,17 @@ const TECO=(()=>{
     }
     try{ TOON.scan(g); }catch(e){}   /* (v563 QA) 서버에서 늦게 받아 다시 지으니 툰 재질도 다시 */
     SITES[k]={g, c, ok}; }
+  /* (v576) 🏗 공사 게이지판 그림 — 이름 · 진행 막대 · 모은 🪙 */
+  function boardDraw(cv, k){ const g=cv.getContext("2d"), B=BUILD[k], tot=bdTot(k), pct=Math.min(1, tot/B.goal), W=cv.width, H=cv.height;
+    g.fillStyle="#fffdf7"; g.fillRect(0,0,W,H); g.strokeStyle="#3b2433"; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10);
+    g.fillStyle="#ffd23f"; g.fillRect(10,10,W-20,62); for(let x=-40;x<W;x+=44){ g.fillStyle="#3b2433"; g.beginPath(); g.moveTo(x,72); g.lineTo(x+22,72); g.lineTo(x+44,10); g.lineTo(x+22,10); g.closePath(); g.fill(); }
+    g.fillStyle="#fffdf7"; g.fillRect(70,16,W-140,50); g.fillStyle="#3b2433"; g.font="bold 38px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🏗 "+B.ic+" "+B.nm+" 공사", W/2, 42);
+    const bx=40, by=104, bw=W-80, bh=58; g.fillStyle="#efe6d6"; g.fillRect(bx,by,bw,bh); g.fillStyle="#7ed957"; g.fillRect(bx,by,bw*pct,bh); g.fillStyle="rgba(255,255,255,.35)"; for(let x=bx; x<bx+bw*pct; x+=28) g.fillRect(x,by,12,bh);
+    g.strokeStyle="#3b2433"; g.lineWidth=6; g.strokeRect(bx,by,bw,bh); g.fillStyle="#3b2433"; g.font="bold 40px sans-serif"; g.fillText(Math.floor(pct*100)+"%", W/2, by+bh/2+2);
+    g.font="bold 30px sans-serif"; g.fillStyle="#8a5a00"; g.fillText("🪙 "+fmt(Math.min(tot,B.goal))+" / "+fmt(B.goal), W/2, 200); g.font="24px sans-serif"; g.fillStyle="#6b5a4e"; g.fillText("다 같이 🪙 를 모으면 생겨요!", W/2, 240); }
   function tick(dt){ let a=false; Object.values(SITES).forEach(S=>{ if(S.g.userData.wheel){ S.g.userData.wheel.rotation.z+=dt*.25; a=true; } }); return a; }
   function labels(L){ if(!C) return; Object.keys(BUILD).forEach(k=>{ const S=SITES[k]; if(!S) return; const B=BUILD[k], ok=S.ok;
-      L.push({k:"b_"+k, ic:ok?B.ic:"🏗", t:ok?B.nm:(B.nm+" 공사 "+Math.min(99,Math.floor(bdTot(k)/B.goal*100))+"%"), p:[S.c[0]+C.OX, 2.4, S.c[1]+C.OZ], r:4, act:()=>openBuild(k)}); }); }
+      L.push({k:"b_"+k, ic:ok?B.ic:"🏗", t:ok?B.nm:(B.nm+" 공사 "+Math.min(99,Math.floor(bdTot(k)/B.goal*100))+"%"), p:S.g.userData.lp||[S.c[0]+C.OX, 2.4, S.c[1]+C.OZ], r:4.5, act:()=>openBuild(k)}); }); }
 
   /* ═════════ 화면 ═════════ */
   function css(){ if($("teCss")) return; const s=document.createElement("style"); s.id="teCss"; s.textContent=`
