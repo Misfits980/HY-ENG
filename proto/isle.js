@@ -350,10 +350,7 @@ const ISLE=(()=>{
         try{ shopDeco(SH, x, z, nx, nz); }catch(e){ console.warn("shopDeco", e); } });
       for(let s2=6, k=0; s2<35; s2+=7.5, k++){ const A=MAP.at(Cm.Q,Cm.L,s2), sd=k%2?1:-1; kk("city","streetlight",A.x-A.tz*sd*2.0,A.z+A.tx*sd*2.0,{s:.95,chunk:"m",col:.2}); }
       SPOT.market=[Sx.market[0]+OX,1.7,Sx.market[1]+OZ];
-      /* 🏘 마을 사람들 (예전 마을) 가는 길 팻말 — 광장 서쪽 */
-      { const tx=-9.5, tz=3.4; const po=mesh(new THREE.CylinderGeometry(.07,.07,1.6,8), 0x9a6a40, tx,.8,tz); cols.push([tx+OX,tz+OZ,.35]); busy.push([tx,tz,1.2]);
-        const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex("🏘 마을 사람들", "#ece0ff", 448), depthWrite:false})); sp.scale.set(2.3,.66,1); sp.position.set(tx+OX,1.9,tz+OZ); sp.renderOrder=2; sp.userData.lbl="town"; G.add(sp); SIGNS.push(sp);
-        SPOT.shops.push({k:"town", ic:"🏘", t:"마을 사람들", p:[tx+OX,1.4,tz+OZ], door:[tx+OX+1.2, tz+OZ-1.2]}); } }
+      /* (v586) 🏘 「마을 사람들」(예전 마을) 팻말 없앰 — 사용자: 「예전에 없앴어야 했던 것들 다 정리」 */ }
     // ⛏ 광산 (산 아래)
     { const mt=Sx.mountain||[Sx.mine[0]+3,Sx.mine[1]-4], re=MAP.roads.mine.p[MAP.roads.mine.p.length-1]; kk("nature","mountain_B_grass_trees",mt[0],mt[1],{s:5.5,chunk:"m",col:6.5}); busy.push([mt[0],mt[1],9]);
       kk("isle","building_mine_blue",Sx.mine[0],Sx.mine[1],{s:2.3,ry:Math.atan2(re[0]-Sx.mine[0],re[1]-Sx.mine[1]),chunk:"m",col:1.4,solo:1}); }

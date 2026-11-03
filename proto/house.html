@@ -1292,7 +1292,10 @@ const POND = {x0:6, z0:5, x1:8, z1:7};      // 3×3 칸
 const TREES = [[0,6],[0,9],[4,0],[9,0],[9,3],[5,9],[9,9],[6,9]];   // (L0-9) [3,7] → [6,9]: 밭을 늘려도 길이 막히지 않게
 const isWater=(x,z)=>(window.ISLE && typeof place!=="undefined" && place===PL.isle) ? ISLE.waterCell(x,z) : (x>=POND.x0&&x<=POND.x1&&z>=POND.z0&&z<=POND.z1);   /* (v528) 🏝 섬에서는 호수 */
 const isHouse=(x,z)=>HOUSE_T.some(t=>t[0]===x&&t[1]===z);
-const STALL_T=[[6,1],[7,1]], STALL_FRONT=[[6,2],[7,2]];   // (L0-3) 🏪 물고기 가게
+/* (v586) 섬 모드 = isle.js 의 ON 과 같은 조건 (isle.js 보다 먼저 알아야 하는 곳에서 씀) */
+const ISLE_MODE=(()=>{ try{ const q=new URLSearchParams(location.search); return q.get("isle")==="1" || (q.get("isle")!=="0" && !navigator.webdriver); }catch(e){ return false; } })();
+/* (v586) 사용자: 「예전에 없앴어야 했던 것들 — 일단 다 정리 · 새 섬엔 다른 애들이 있잖아 (Mia 빼고)」 → 섬 모드: 마당 🏪 좌판 없음 (생선은 섬 시장 거리 생선 가게에서) */
+const STALL_T=ISLE_MODE?[]:[[6,1],[7,1]], STALL_FRONT=ISLE_MODE?[]:[[6,2],[7,2]];   // (L0-3) 🏪 물고기 가게
 const isStall=(x,z)=>STALL_T.some(t=>t[0]===x&&t[1]===z);
 /* (L0-4) 🌱 밭 6칸 · 🛠 제작대 · 🍳 요리 냄비 · 🪨 바위 2 */
 const PDEF=[[1,5],[2,5],[3,5],[1,6],[2,6],[3,6], [1,8],[2,8],[1,9],[2,9],[4,8],[4,9]], BENCH=[3,1], POT=[4,2], ROCKS=[[7,9],[9,6]];
@@ -1386,7 +1389,7 @@ const OUT={
   lantern:{nm:"stone lantern", ic:"🏮", sz:[1,1], cat:"deco", glow:1, build(){ const g=new THREE.Group(), s=M(0xb9b3a8); part(g, rbox(0.34,0.12,0.34,0.03), s, 0,0.06,0); part(g, cyl(0.07,0.09,0.5,8), s, 0,0.37,0); part(g, rbox(0.3,0.06,0.3,0.02), s, 0,0.64,0);
       const b=new THREE.Mesh(rbox(0.22,0.2,0.22,0.03), new THREE.MeshStandardMaterial({color:0xfff1b0, emissive:0xffb03a, emissiveIntensity:0.1})); b.position.y=0.77; g.add(b); g.userData.bulb=b; const r=part(g, cone(0.3,0.2,4), s, 0,0.97,0); r.rotation.y=Math.PI/4; return g; }},
 };
-const OUT_PRICE={pswing:24, hammock:18, rocker:12, eggchair:22, bbq:16, fence:1, hedge:2, flowers:3, bush:3, mushroom:3, sunflower:4, sign:5, flag:5, sapling:6, pine:6, obench:6, mailbox:6, birdhouse:6, parasol:8, lamp:8, arch:8, scarecrow:8, lantern:10, picnic:12, sandbox:12, well:14, tent:14, swing:15, statue:16, slide:18, trampoline:20, windmill:20, fountain:30}; Object.keys(OUT_PRICE).forEach(k=>{ OUT_PRICE[k]=ECON(OUT_PRICE[k]); });   /* (v557) 물가 */
+const OUT_PRICE={pswing:24, hammock:18, rocker:12, eggchair:22, bbq:16, fence:1, hedge:2, flowers:3, bush:3, mushroom:3, sunflower:4, sign:5, flag:5, sapling:6, pine:6, obench:6, mailbox:6, birdhouse:6, parasol:8, lamp:8, arch:8, scarecrow:8, lantern:10, picnic:12, sandbox:12, well:14, tent:14, swing:15, statue:16, slide:18, trampoline:20, windmill:20, fountain:30}; Object.keys(OUT_PRICE).forEach(k=>{ OUT_PRICE[k]=ECON(OUT_PRICE[k]); }); if(ISLE_MODE) delete OUT_PRICE.well;   /* (v586) 🪣 우물은 마당 「우물 자리」에서 지음 */   /* (v557) 물가 */
 
 /* (v584) 사용자: 「마당에 쓸 만한 가구 · 흔들그네 막 그런 거」 — 새 마당 가구 5가지 + 누르면 앉고·타고·눕고·요리하는 마당 가구
    seat = 앉는 자리 표시(움직이는 부품 안 → 그네가 흔들리면 나도 같이) · use = yUse() 가 할 일 */
@@ -1453,6 +1456,7 @@ function yBase(x,z, skipFixed){ if(x<0||z<0||x>=YN||z>=YN) return true;
   if((x===DOOR[0]&&z===DOOR[1]) || at(STALL_FRONT,x,z)>=0 || (x===Y_GATE[0]&&z===Y_GATE[1])) return true;
   const fx=yFixedAt(x,z); if(fx && !(skipFixed && skipFixed.f===fx.f && skipFixed.i===fx.i)) return true;
   if(PARC.some((p,i)=>p.sign[0]===x&&p.sign[1]===z && !(yd && yd.pc[i]))) return true;
+  { const w=yWS(); if(w && w[0]===x && w[1]===z) return true; }   /* (v586) 🪣 우물 자리는 비워 둠 */
   return yLocked(x,z) || yDeb(x,z); }
 function yFits(id, x, z, r, skip, skipFixed){ const C=skipFixed ? [[x,z]] : yCells(id,x,z,r);
   for(const [a,b] of C){ if(yBase(a,b, skipFixed)) return 0; const o=yItemAt(a,b); if(o && o!==skip) return 0; if(!yLoading && hero && place===PL.yard && a===hero.cx && b===hero.cz) return 0; }
@@ -1469,7 +1473,7 @@ function yReachOK(add, skip, skipFixed){ const key=(x,z)=>x+","+z, A={}; (add||[
   const ok=(x,z)=>!!seen[key(x,z)], adj=(x,z)=>D.some(([a,b])=>ok(x+a,z+b));
   const fx2=(s)=>{ const p=yFixedXY(s); return (skipFixed && skipFixed.f===s.f && skipFixed.i===s.i) ? (add&&add[0]) : p; };
   if(!ok(Y_GATE[0],Y_GATE[1])) return false;
-  if(!STALL_FRONT.some(([x,z])=>ok(x,z))) return false;
+  if(STALL_FRONT.length && !STALL_FRONT.some(([x,z])=>ok(x,z))) return false;
   let pond=false; for(let x=POND.x0;x<=POND.x1;x++) for(let z=POND.z0;z<=POND.z1;z++) if(adj(x,z)) pond=true; if(!pond) return false;
   if(!PLOTS.every(([x,z])=>adj(x,z))) return false;
   if(!ROCKS.every(([x,z])=>adj(x,z))) return false;
@@ -1550,10 +1554,10 @@ function yHouseColors(){ const H=scene.userData.houseObj; if(!H) return; const h
   if(houseDoor) houseDoor.traverse(m=>{ if(m.isMesh && m.userData.door) m.material=M(HXC.d[hx.d|0]); }); H.traverse(m=>{ if(m.userData.shutter) m.material=M(HXC.d[hx.d|0]); }); try{ kkHouse(); }catch(e){} dirty=true; }
 function yMoveFixedTo(s, x, z){ const P=yFixedXY(s); P[0]=x; P[1]=z; const o=yFixedObj(s); o.position.set(x+0.5,0,z+0.5); dirty=true; }
 /* 저장 · 불러오기 */
-function yData(){ return {v:1, fp:(yPStash||PLOTS).map(c=>c.slice()), p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, wd:yd.wd||"", wl:yd.wl||"", sb:yd.sb||"", mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
+function yData(){ return {v:1, fp:(yPStash||PLOTS).map(c=>c.slice()), p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, wd:yd.wd||"", wl:yd.wl||"", sb:yd.sb||"", m6:yd.m6|0, ws:yd.ws||null, gc:yd.gc|0, pl:yd.pl|0, gr:yd.gr|0, mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
 function ySave(){ if(visiting) return; store("hyeng_proto_yard", Object.assign(yData(), {s:ystock, gp:ownGP})); try{ pubSoon(); checkStamps(); }catch(e){} }
 function yLoad(d){ yplaced.splice(0).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
-  yd={p:[], g:{}, pc:[0,0,0], db:{}, hx:{r:0,w:0,d:0}}; if(d){ yd.g=Object.assign({}, d.g||{}); yd.pc=(d.pc||[0,0,0]).slice(0,3).map(v=>v?1:0); while(yd.pc.length<3) yd.pc.push(0); yd.db=Object.assign({}, d.db||{}); yd.hx=Object.assign({r:0,w:0,d:0}, d.hx||{}); yd.wd=d.wd||""; yd.wl=d.wl||""; yd.sb=d.sb||""; }
+  yd={p:[], g:{}, pc:[0,0,0], db:{}, hx:{r:0,w:0,d:0}}; if(d){ yd.g=Object.assign({}, d.g||{}); yd.pc=(d.pc||[0,0,0]).slice(0,3).map(v=>v?1:0); while(yd.pc.length<3) yd.pc.push(0); yd.db=Object.assign({}, d.db||{}); yd.hx=Object.assign({r:0,w:0,d:0}, d.hx||{}); yd.wd=d.wd||""; yd.wl=d.wl||""; yd.sb=d.sb||""; yd.m6=d.m6|0; yd.ws=Array.isArray(d.ws)&&d.ws.length===2?d.ws.slice():null; yd.gc=d.gc|0; yd.pl=d.pl|0; yd.gr=d.gr|0; }
   { BENCH[0]=Y_DEF.b[0]; BENCH[1]=Y_DEF.b[1]; POT[0]=Y_DEF.k[0]; POT[1]=Y_DEF.k[1]; Y_DEF.t.forEach((t,i)=>{ TREES[i][0]=t[0]; TREES[i][1]=t[1]; }); }
   if(d && d.mv){ const ok=a=>Array.isArray(a)&&a.length===2&&a.every(v=>Number.isInteger(v)&&v>=0&&v<YN); if(ok(d.mv.b)){ BENCH[0]=d.mv.b[0]; BENCH[1]=d.mv.b[1]; } if(ok(d.mv.k)){ POT[0]=d.mv.k[0]; POT[1]=d.mv.k[1]; } (d.mv.t||[]).forEach((t,i)=>{ if(TREES[i] && ok(t)){ TREES[i][0]=t[0]; TREES[i][1]=t[1]; } }); }
   scene.userData.benchObj.position.set(BENCH[0]+0.5,0,BENCH[1]+0.5); scene.userData.potObj.position.set(POT[0]+0.5,0,POT[1]+0.5); scene.userData.trees.forEach((T,i)=>T.position.set(TREES[i][0]+0.5,0,TREES[i][1]+0.5));
@@ -1576,9 +1580,59 @@ function yParcOpen(i){ const n=yd.pc.filter(Boolean).length; if(yd.pc[i] || !pay
   yDrawWild(); yDrawDeb(); yFlowersUpd(); ySave(); act("yay"); emote(hero,"🌱"); say("new land"); tEv("land"); toast("🌱 「"+p.nm+"」 이 열렸어요!<br><small>🌿 잡초 · 🪨 돌 · 🪵 그루터기를 눌러 치워요</small>", 2800); drawLabels(); return true; }
 const DEB_GIVE={weed:[["wheat seeds",0.15],["carrot seeds",0.1]], weed2:[["wheat seeds",0.25],["carrot seeds",0.2],["strawberry seeds",0.08],["tomato seeds",0.08]], stone:[["stone",1]], stump:[["branch",1],["branch",0.5]]};
 function yClear(k){ const t=yd.db[k]; if(!t) return; const got=[]; for(const [n,pr] of DEB_GIVE[t]){ if(Math.random()<pr){ if(!canAdd(n,1)){ fullMsg(); return; } addMat(n,1); const g=got.find(x=>x[0]===n); g ? g[1]++ : got.push([n,1]); } }
-  delete yd.db[k]; act("reel"); wobble(yDebObj[k]||hero.g); setTimeout(()=>{ yDrawDeb(); yFlowersUpd(); }, 180); try{ SND.click(); }catch(e){} tEv("clear"); ySave();
+  delete yd.db[k]; if(!Object.keys(yd.db).length && !yd.gc){ yd.gc=1; setTimeout(()=>{ try{ yGuideUpd(true); }catch(e){} }, 1400); } act("reel"); wobble(yDebObj[k]||hero.g); setTimeout(()=>{ yDrawDeb(); yFlowersUpd(); }, 180); try{ SND.click(); }catch(e){} tEv("clear"); ySave();
   const left=Object.keys(yd.db).length; if(got.length) gotList(got); else toast(t==="weed"||t==="weed2"?"🌿 잡초를 뽑았어요":"🧹 치웠어요"+(left?"":" — 다 치웠어요! 🎉"), 1200);
   if(!left){ setTimeout(()=>{ toast("🎉 땅을 다 치웠어요!<br><small>✏️ 꾸미기로 내 땅을 꾸며요</small>", 2600); act("yay"); }, 900); } }
+/* ═════════ (v586) 🌳 마당 가꾸기 안내 — 사용자: 「마당도 우물 설치할 곳 이렇게 해야 한다고 봐 · 그 대신 마당 청소가 먼저 · 그렇게 튜토리얼을 하는 거야」
+   ① 🧹 마당 치우기(잡초·돌·그루터기) → ② 🪣 우물 자리에 우물 짓기(치우며 모은 🪨 3 · 🪵 3) → ③ 🌱 씨앗 심기 → ④ 💧 우물로 밭에 물 주기 → 🪙 100
+   · 섬 모드 내 마당만 · 위 안내 카드를 누르면 다음 할 곳으로 걸어감 · 예전 「새 땅」 3구역은 다 열림(옅은 잡초·돌이 있어 치우기 할 거리) */
+const YG={wsp:[0,1.5,0], need:{stone:3, branch:3}, el:null, k:"", reward:100};
+const wellBuilt=()=>yplaced.some(p=>p.id==="well"||p.id==="kk_well") || (ystock.well|0)>0;
+function yWS(){ if(!ISLE_MODE || !yd || !yd.ws || visiting || yStash) return null; return wellBuilt() ? null : yd.ws; }
+function yWSPick(){ if(yd.ws) return; const C=[[5,8],[5,9],[5,4],[4,6],[0,7],[3,4],[2,10],[5,10],[7,3],[8,3]];
+  const ok=([x,z])=>x>=0&&z>=0&&x<YN&&z<YN && !yardBlocked(x,z) && !yItemAt(x,z) && !yDeb(x,z) && !yLocked(x,z) && !isRoad(x,z) && !(yd.g||{})[x+","+z] && Math.abs(x-DOOR[0])+Math.abs(z-DOOR[1])>1 && yReachOK([[x,z]]);
+  let w=C.find(ok); if(!w){ for(let x=0;x<YN && !w;x++) for(let z=0;z<YN && !w;z++) if(ok([x,z])) w=[x,z]; } if(w) yd.ws=w; }
+function yMig6(fresh){ if(!ISLE_MODE || !yd || yd.m6) return; yWSPick(); const W=yd.ws||[-9,-9];
+  const skip=(x,z)=>(x===W[0]&&z===W[1]) || isRoad(x,z) || yardBlocked(x,z) || yItemAt(x,z) || (yd.g||{})[x+","+z] || Math.abs(x-DOOR[0])+Math.abs(z-DOOR[1])<=1 || at(STALL_FRONT,x,z)>=0;
+  PARC.forEach((p,i)=>{ if(yd.pc[i]) return; yd.pc[i]=1; for(let x=p.x0;x<=p.x1;x++) for(let z=p.z0;z<=p.z1;z++){ if(skip(x,z)) continue; const h=hashf("db6|"+i+"|"+x+"|"+z); const t=h<0.05?"weed":h<0.08?"stone":h<0.105?"stump":null; if(t) yd.db[x+","+z]=t; } });
+  if(fresh){ const L=[]; for(let x=0;x<10;x++) for(let z=0;z<10;z++) if(!skip(x,z) && !yd.db[x+","+z]) L.push([x,z,hashf("new6|"+x+"|"+z)]); L.sort((a,b)=>a[2]-b[2]); L.slice(0,9).forEach(([x,z],i)=>{ yd.db[x+","+z]=i<5?"weed":i<7?"stone":"stump"; }); }
+  yd.m6=1; ySave(); try{ yDrawWild(); yDrawDeb(); yFlowersUpd(); yWellDraw(); }catch(e){} }
+function yWellDraw(){ let G=scene.userData.wsG; const w=yWS(); if(!w){ if(G) G.visible=false; dirty=true; return; }
+  if(!G){ G=new THREE.Group(); G.userData.noFade=1; scene.userData.wsG=G; yardG.add(G); const LIN=c=>{ const m=new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(), roughness:.9}); m.userData.lin=1; return m; };
+    const dirt=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.44,0.03,20), LIN(0xb08a5a)); dirt.position.y=0.015; G.add(dirt);
+    for(let i=0;i<9;i++){ const a=i/9*Math.PI*2, st=new THREE.Mesh(new THREE.DodecahedronGeometry(0.07,0), LIN(i%2?0xb9b3a8:0xa39c90)); st.position.set(Math.cos(a)*0.4,0.04,Math.sin(a)*0.4); st.scale.y=0.7; G.add(st); }
+    [[-0.3,0],[0.3,0]].forEach(([x,z])=>{ const p=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.5,6), LIN(0xc98f5a)); p.position.set(x,0.25,z-0.42); G.add(p); });
+    const tx=canvasTex(256,128,(g,W,H)=>{ g.fillStyle="#fff7e6"; g.fillRect(0,0,W,H); g.strokeStyle="#8a5a34"; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10); g.fillStyle="#3f7fb8"; g.font="bold 46px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🪣 WELL",W/2,H/2-18); g.fillStyle="#6a4430"; g.font="bold 32px sans-serif"; g.fillText("우물 자리",W/2,H/2+28); });
+    const sg=new THREE.Mesh(new THREE.PlaneGeometry(0.66,0.33), new THREE.MeshBasicMaterial({map:tx, side:THREE.DoubleSide})); sg.position.set(0,0.52,-0.42); G.add(sg);
+    G.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } }); }
+  G.position.set(w[0]+0.5,0,w[1]+0.5); G.visible=place===PL.yard; YG.wsp[0]=w[0]+0.5; YG.wsp[2]=w[1]+0.5; dirty=true; }
+function yWellAsk(){ const w=yWS(); if(!w) return; const n=Object.keys(yd.db).length;
+  if(!yd.gc && n){ toast("🧹 먼저 <b>마당을 치워요</b>! (잡초·돌·그루터기 "+n+"개 남았어요)<br><small>치우면 🪨 돌 · 🪵 나뭇가지가 나와요 — 우물 짓는 데 써요</small>", 2600); return; }
+  const N=YG.need, hs=mats.stone|0, hb=mats.branch|0, can=hs>=N.stone && hb>=N.branch;
+  ask('<div class="iBig">🪣</div><b>우물 짓기</b><br><small>밭에 물을 한 번에 줄 수 있어요 (하루 한 번)</small><br><br>🪨 stone <b>'+hs+'/'+N.stone+'</b> · 🪵 branch <b>'+hb+'/'+N.branch+'</b>'+(can?'':'<br><small>🌳 나무를 흔들거나 🪨 바위를 두드려서 모아요</small>'), can ? ()=>yWellBuild() : null); }
+function yWellBuild(){ const w=yWS(); if(!w) return false; const N=YG.need; if((mats.stone|0)<N.stone || (mats.branch|0)<N.branch) return false;
+  addMat("stone",-N.stone); addMat("branch",-N.branch); saveBag(); yAdd("well", w[0], w[1], 0, 0); ySave(); yWellDraw(); yFlowersUpd(); act("yay"); emote(hero,"🪣"); try{ SND.big(); }catch(e){} say("well");
+  toast("🪣 <b>우물 완성!</b><br><small>우물을 누르면 목마른 밭에 물을 줘요 (하루 한 번)</small>", 2600); tEv("ywell"); yGuideUpd(true); drawLabels(); return true; }
+function yGuideSteps(){ const n=Object.keys(yd.db).length; if(n===0 && !yd.gc){ yd.gc=1; ySave(); }
+  const N=YG.need;
+  return [{k:"clean", t:"🧹 마당 치우기", sub:"잡초·돌·그루터기 "+n+"개 남았어요", ok:!!yd.gc},
+    {k:"well", t:"🪣 우물 짓기", sub:"🪣 우물 자리 · 🪨 "+Math.min(mats.stone|0,N.stone)+"/"+N.stone+" · 🪵 "+Math.min(mats.branch|0,N.branch)+"/"+N.branch, ok:wellBuilt()},
+    {k:"plant", t:"🌱 씨앗 심기", sub:"밭을 누르고 씨앗을 골라요", ok:!!yd.pl || plots.some(p=>p.s)},
+    {k:"water", t:"💧 우물로 물 주기", sub:"우물을 누르면 밭에 물이 가요", ok:!!yd.wl}]; }
+function yGuideUpd(force){ if(!ISLE_MODE) return; let el=YG.el; const on=place===PL.yard && !visiting && !edit && yd && !yd.gr && F.st==="idle";
+  if(!on){ if(el) el.classList.remove("on"); return; }
+  if(!el){ el=YG.el=document.createElement("button"); el.id="yGd"; document.body.appendChild(el); el.onclick=e=>{ e.stopPropagation(); yGuideGo(); };
+    const st=document.createElement("style"); st.textContent='#yGd{position:fixed;left:50%;top:calc(150px + env(safe-area-inset-top));transform:translateX(-50%);z-index:4;display:none;align-items:center;gap:10px;width:min(420px,calc(100vw - 24px));padding:8px 14px 8px 10px;border-radius:18px;border:3px solid var(--line2);background:rgba(255,250,240,.97);box-shadow:0 4px 0 rgba(90,60,30,.18);font-family:inherit;color:var(--ink);text-align:left} #yGd.on{display:flex} #yGd i{font-style:normal;font-size:28px} #yGd > span{flex:1;display:flex;flex-direction:column;min-width:0} #yGd b{font-size:15px} #yGd small{font-size:12px;color:var(--sub)} #yGd .dots{display:flex;gap:3px;margin-top:3px} #yGd .dots u{width:22px;height:5px;border-radius:3px;background:#e6dccb;text-decoration:none} #yGd .dots u.ok{background:#7ed957} #yGd .dots u.now{background:#ffb84d} #yGd em{font-style:normal;font:800 12px var(--kr);color:#fff;background:#4caf50;border-radius:999px;padding:4px 10px;white-space:nowrap} body.isleOn #toast{top:calc(214px + env(safe-area-inset-top))}'; document.head.appendChild(st); }
+  const S=yGuideSteps(), i=S.findIndex(x=>!x.ok);
+  if(i<0){ yd.gr=1; ySave(); el.classList.remove("on"); try{ TECO.addCoin(YG.reward); }catch(e){} act("yay"); emote(hero,"🌳"); try{ SND.win(); }catch(e){} toast("🌳 <b>마당 가꾸기 완성!</b> 🪙 +"+YG.reward+"<br><small>이제 꾸미기로 마음껏 꾸며요 · 🎠 그네·해먹도 놓아 봐요</small>", 3200); tEv("ydone"); return; }
+  const c=S[i], k=i+"|"+c.sub; if(!force && YG.k===k && el.classList.contains("on")) return; YG.k=k;
+  el.innerHTML='<i>'+c.t.split(" ")[0]+'</i><span><b>🌳 마당 가꾸기 '+(i+1)+'/'+S.length+' · '+c.t.slice(c.t.indexOf(" ")+1)+'</b><small>'+c.sub+'</small><span class="dots">'+S.map((x,j)=>'<u class="'+(x.ok?'ok':j===i?'now':'')+'"></u>').join("")+'</span></span><em>👉 가기</em>';
+  el.classList.add("on"); }
+function yGuideGo(){ if(F.st!=="idle") return; const S=yGuideSteps(), c=S.find(x=>!x.ok); if(!c) return;
+  if(c.k==="clean"){ const K=Object.keys(yd.db).map(k=>k.split(",").map(Number)).sort((a,b)=>Math.hypot(a[0]-hero.cx,a[1]-hero.cz)-Math.hypot(b[0]-hero.cx,b[1]-hero.cz)); if(K[0]) useTile(K[0][0],K[0][1],()=>yClear(K[0][0]+","+K[0][1])); return; }
+  if(c.k==="well"){ const w=yWS(); if(w) useTile(w[0],w[1],yWellAsk); return; }
+  if(c.k==="plant"){ farmGo(); return; }
+  if(c.k==="water"){ const it=yplaced.find(p=>p.id==="well"); if(it) yGo(it); return; } }
 /* 마당에서 누르기 (꾸미기가 아닐 때) — true 면 처리함 */
 function yTapPlay(e, c){ if(!yd) return false;
   { const si=ywG.children.findIndex(o=>o.userData.parc!=null && hitObj(e,o)); if(si>=0){ const i=ywG.children[si].userData.parc, p=PARC[i]; useTile(p.sign[0],p.sign[1],()=>yParcAsk(i)); return true; } }
@@ -1668,7 +1722,7 @@ function yPaintAt(c){ if(!c) return; const [x,z]=c, k=x+","+z; if(isWater(x,z)||
 /* (v580) 🌱 밭 일구기 — 빈 풀밭 → 밭 · 빈 밭 → 풀밭 */
 function yTillWhy(x,z){ if(x<0||z<0||x>=YN||z>=YN) return "x"; if(yBase(x,z)) return "busy"; if(yItemAt(x,z)) return "busy"; if(yd.g[x+","+z]) return "path";
   if(Math.abs(x-DOOR[0])+Math.abs(z-DOOR[1])<=1) return "door"; if(hero && x===hero.cx && z===hero.cz) return "me"; if(!yReachOK([[x,z]])) return "block"; return ""; }
-function plotGRebuild(){ (scene.userData.plotG||[]).forEach(P=>yardG.remove(P)); scene.userData.plotG=PLOTS.map(([x,z])=>{ const P=new THREE.Group(); P.position.set(x+0.5,0,z+0.5); yardG.add(P); return P; }); drawPlots(); try{ yFlowersUpd(); }catch(e){} try{ yGrassUpd && yGrassUpd(); }catch(e){} dirty=true; }
+function plotGRebuild(){ setTimeout(()=>{ try{ if(place===PL.yard) drawLabels(); }catch(e){} }, 0); (scene.userData.plotG||[]).forEach(P=>yardG.remove(P)); scene.userData.plotG=PLOTS.map(([x,z])=>{ const P=new THREE.Group(); P.position.set(x+0.5,0,z+0.5); yardG.add(P); return P; }); drawPlots(); try{ yFlowersUpd(); }catch(e){} try{ yGrassUpd && yGrassUpd(); }catch(e){} dirty=true; }
 function savePlotXY(){ store("hyeng_proto_plotxy", PLOTS); saveFarm(); }
 function yTill(x,z){ const why=yTillWhy(x,z); if(why) return why; PLOTS.push([x,z]); plots.push({s:null}); savePlotXY(); plotGRebuild(); return ""; }
 function yUntill(i){ if(i<0 || i>=PLOTS.length) return "x"; if(plots[i] && plots[i].s) return "crop"; PLOTS.splice(i,1); plots.splice(i,1); savePlotXY(); plotGRebuild(); return ""; }
@@ -1717,9 +1771,9 @@ let yCat="all";
 /* 🏅 마당 도장 */
 function yStamps(){ const ids=new Set(yplaced.map(p=>p.id)), nat=yplaced.filter(p=>OUT[p.id].cat==="nat").length, play=new Set(yplaced.filter(p=>OUT[p.id].cat==="play").map(p=>p.id)).size;
   return [["y_garden","🌷 정원사", nat>=5, "꽃·나무 5개 심기"], ["y_path","🛤 길 만들기", Object.keys(yd.g).length>=10, "🛤 길 10칸 칠하기"], ["y_play","🎠 놀이터", play>=2, "놀이 기구 2가지"],
-    ["y_land","🌱 개척자", yd.pc.some(Boolean) && !Object.keys(yd.db).some(k=>PARC.some((p,i)=>yd.pc[i])), "새 땅을 열고 다 치우기"], ["y_house","🏠 우리 집 색", !!(yd.hx.r||yd.hx.w||yd.hx.d), "집 지붕·벽·문 색 바꾸기"],
+    ISLE_MODE ? ["y_land","🧹 마당 청소왕", !!yd.gc, "마당을 다 치우기"] : ["y_land","🌱 개척자", yd.pc.some(Boolean) && !Object.keys(yd.db).some(k=>PARC.some((p,i)=>yd.pc[i])), "새 땅을 열고 다 치우기"], ["y_house","🏠 우리 집 색", !!(yd.hx.r||yd.hx.w||yd.hx.d), "집 지붕·벽·문 색 바꾸기"],
     ["y_night","💡 밤 산책", ids.has("lamp")||ids.has("lantern"), "가로등 놓기"], ["y_fence","🪵 울타리", yplaced.filter(p=>p.id==="fence").length>=6, "울타리 6개 잇기"]]; }
-function yInit(){ yFlowersInit(); yGrassInit(); ystock=Object.assign({flowers:2, fence:6, lamp:1, sign:1}, {}); const d=store("hyeng_proto_yard"); if(d){ ystock=Object.assign({}, d.s||{}); ownGP=Array.isArray(d.gp)&&d.gp.length?d.gp:["dirt"]; } yLoad(d);
+function yInit(){ yFlowersInit(); yGrassInit(); ystock=Object.assign({flowers:2, fence:6, lamp:1, sign:1}, {}); const d=store("hyeng_proto_yard"); if(d){ ystock=Object.assign({}, d.s||{}); ownGP=Array.isArray(d.gp)&&d.gp.length?d.gp:["dirt"]; } yLoad(d); try{ yMig6(!d); yWellDraw(); }catch(e){ console.warn(e); }
   // 바닥 단추 / 시트 연결
   $("bDeco").onclick=()=>{ if(F.st!=="idle" || visiting) return; setEdit(true); };
   $("inv").addEventListener("click", e=>{ if(place!==PL.yard) return; e.stopImmediatePropagation();
@@ -1809,7 +1863,7 @@ function yInit(){ yFlowersInit(); yGrassInit(); ystock=Object.assign({flowers:2,
   Y_STEPS.forEach(([x,z],i)=>{ const h=hashf("step|"+i), s=new THREE.Mesh(cyl(0.25,0.27,0.05,7), M(i%2?0x8c8576:0x9a9283,{flatShading:true})); s.scale.set(1+h*0.22, 1, 0.82+((h*7)%1)*0.22); s.rotation.y=h*6; s.position.set(x,0.02,z); s.receiveShadow=true; s.name="step"; yardG.add(s);
     for(let k=0;k<2;k++){ const a=h*9+k*2.6, pb=part(yardG, sph(0.045), M(0xb3aa98,{flatShading:true}), x+Math.cos(a)*0.36, 0.015, z+Math.sin(a)*0.33); pb.scale.y=0.5; pb.castShadow=false; } });
   // 🏪 물고기 가게 — 계산대 · 기둥 · 줄무늬 차양 · 간판
-  { const S=new THREE.Group(); S.position.set(7,0,1.5); yardG.add(S); scene.userData.stallObj=S;
+  { const S=new THREE.Group(); S.position.set(7,0,1.5); if(!ISLE_MODE) yardG.add(S); scene.userData.stallObj=S;
     part(S, rbox(1.9,0.72,0.7,0.06), M(0xc98f5a), 0,0.36,0.05); part(S, rbox(1.96,0.08,0.78,0.03), M(0xf3e2c0), 0,0.75,0.05);
     [[-0.9,-0.32],[0.9,-0.32],[-0.9,0.38],[0.9,0.38]].forEach(([x,z])=>part(S, cyl(0.04,0.04,1.75,8), M(0x8a5a34), x,0.88,z));
     const aw=canvasTex(128,32,(g,w,h)=>{ for(let i=0;i<8;i++){ g.fillStyle=i%2?"#ffffff":"#3fa7d6"; g.fillRect(i*w/8,0,w/8,h); } });
@@ -3019,7 +3073,7 @@ function mineHit(i){ if(!pick){ toast("⛏ 곡괭이가 있어야 캘 수 있어
   if(mres.n[i]<=0){ gotList([]); return; } const k=t==="stone"?2:1; if(!canAdd(t,k)){ fullMsg(); return; }
   if(mres.n[i]===3) mres.at[i]=now(); mres.n[i]--; addMat(t,k); store("hyeng_proto_mine", mres); drawOre(i); gotList([[t,k]]);
   if(t==="gold"||t==="diamond"){ emote(hero,"✨"); } return t; }
-function plant(i, seed){ const pl=plots[i]; if(i>=plotN || pl.s || !has(seed+" seeds",1)) return false; addMat(seed+" seeds",-1); plots[i]={s:seed, g:0, wt:0}; saveFarm(); drawPlot(i); say(seed); tEv("plant"); return true; }
+function plant(i, seed){ const pl=plots[i]; if(i>=plotN || pl.s || !has(seed+" seeds",1)) return false; if(yd && !yd.pl){ yd.pl=1; try{ ySave(); }catch(e){} } addMat(seed+" seeds",-1); plots[i]={s:seed, g:0, wt:0}; saveFarm(); drawPlot(i); say(seed); tEv("plant"); return true; }
 function water(i){ const pl=plots[i]; if(!pl.s || pl.wt || plotStage(pl)==="ripe") return false; grow(pl); pl.wt=now(); pl.le=pl.wt; act("reel"); saveFarm(); drawPlot(i); splash(i); return true; }
 function harvest(i){ const pl=plots[i]; if(plotStage(pl)!=="ripe") return 0; let y=SEEDS[pl.s].y; try{ y+=TECO.farmBonus(); }catch(e){}   /* (v563) 🌱 밭 도구 강화 */ if(!canAdd(pl.s,y)){ fullMsg(); return 0; } addMat(pl.s, y); const n=pl.s; plots[i]={s:null}; act("yay"); saveFarm(); drawPlot(i); gotList([[n,y]]); tEv("harvest"); return y; }
 function splash(i){ const [x,z]=PLOTS[i]; for(let k=0;k<3;k++) setTimeout(()=>ring(x+0.5+rnd(-0.2,0.2), z+0.5+rnd(-0.2,0.2)), k*90); }
@@ -3182,7 +3236,7 @@ function swatch(L,i){ const k=(L===FLOORS?"f":"w")+i; if(swCache[k]) return swCa
 const CRAFTABLE=id=>CRAFT.some(r=>r.id===id);
 function upRows(){ const R=[]; const ru=ROOM_UP.find(x=>x[0]>RN); R.push(["room","🏠","집 넓히기",RN+"×"+RN+" 칸", ru?ru[1]:0, ru?"→ "+ru[0]+"×"+ru[0]:""]); const L=LAND.find(l=>l.n>plotN); R.push(["land","🌱","밭 fields",plotN+" / "+LAND_MAX+"칸",L?L.p:0,L?"+2칸":""]);
   ["fr","ch"].forEach(k=>{ const S=sto[k], u=STO_UP[k].find(x=>x[0]>S.cap); R.push([k, k==="fr"?"🧊":"📦", k==="fr"?"냉장고 칸":"보관함 칸", S.cap+"칸"+(k==="fr" && !placed.some(p=>p.id==="fridge"||p.id==="minifridge") && !(stock.fridge>0) && !(stock.minifridge>0)?" · 냉장고가 있어야 써요":""), u?u[1]:0, u?"→ "+u[0]:""]); });
-  { const n=yd?yd.pc.filter(Boolean).length:0; R.push(["parc","🌾","새 땅 (마당)", n+" / 3 구역"+(n<3?" · 🪧 팻말에서도":""), n<3?PARC_P[n]:0, n<3?"🌱 열기":"✅"]); }   /* (v415) */
+  if(!ISLE_MODE){ const n=yd?yd.pc.filter(Boolean).length:0; R.push(["parc","🌾","새 땅 (마당)", n+" / 3 구역"+(n<3?" · 🪧 팻말에서도":""), n<3?PARC_P[n]:0, n<3?"🌱 열기":"✅"]); }   /* (v415) */
   const bb=bagB(), bu=BAG_UP.find(x=>x[0]+bb>bagCap); R.push(["bag","🎒","가방 칸",bagCap+"칸"+(bagCap<30+bb?" · 먼저 🛠 big bag (30칸)":""), bu&&bagCap>=30+bb?bu[1]:0, !bu?"✅":bagCap<30+bb?"🛠 먼저":"→ "+(bu[0]+bb)]); return R; }
 function drawFurn(){ { const F=$("furnGem"), n=v=>Number(v||0).toLocaleString("ko-KR"); F.classList.add("two"); F.innerHTML='<span class="cur cG">💎 '+n(gems)+'</span><span class="cur cC">🪙 '+n(TECO.coins())+'</span>'; }   /* (v563 QA) 대부분 🪙 가구라 둘 다 */
   $("furnTabs").innerHTML=[["furn","🛋 가구"],["yard","🌳 마당"],["wall","🎨 벽지·바닥"],["up","🏡 넓히기"]].map(([k,t])=>'<button class="bTab'+(furnTab===k?' on':'')+'" data-ft="'+k+'">'+t+'</button>').join("");
@@ -3374,7 +3428,7 @@ function drawFr(){ const K=kidInfo(), today=dayKey(); const lk=SOC.lk||{}, nT=Ob
   const fr=Object.entries(SOC.fr||{}); h+='<h4 class="bH">👫 내 친구 <small>'+fr.length+'</small></h4>'+(fr.length?fr.map(([c,v])=>frRow(c,Object.assign({},v,(SOC.hot[c]||SOC.cls[c]||{})),'<button class="btn on" data-vis="'+c+'">🏠 놀러 가기</button>')).join(""):'<p class="sEmpty">아직 없어요 — 아래에서 친구 #번호로 추가해요</p>');
   const cls=Object.entries(SOC.cls||{}).filter(([c])=>c!==myCode && !(SOC.fr||{})[c]); if(cls.length) h+='<h4 class="bH">🏫 우리 반 집</h4>'+cls.map(([c,v])=>frRow(c,v,'<button class="btn" data-vis="'+c+'">🏠</button><button class="btn sm2" data-add="'+c+'">➕</button>')).join("");
   const hot=Object.entries(SOC.hot||{}).filter(([c])=>c!==myCode && !(SOC.fr||{})[c] && !(SOC.cls||{})[c]).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).slice(0,5); if(hot.length) h+='<h4 class="bH">✨ 요즘 꾸민 집</h4>'+hot.map(([c,v])=>frRow(c,v,'<button class="btn" data-vis="'+c+'">🏠</button>')).join("");
-  h+='<h4 class="bH">🏘 마을 사람 집</h4><div class="bChips">'+NPCS.map(n=>'<button class="btn sm2" data-npc="'+n.id+'">'+n.e+' '+n.nm+'</button>').join("")+'</div>';
+  if(!ISLE_MODE) h+='<h4 class="bH">🏘 마을 사람 집</h4><div class="bChips">'+NPCS.map(n=>'<button class="btn sm2" data-npc="'+n.id+'">'+n.e+' '+n.nm+'</button>').join("")+'</div>';
   if(!K.shared) h+='<h4 class="bH">➕ 친구 번호로 추가 <small>친구 이름 옆 # 번호</small></h4><div class="addRow"><span class="hash">#</span><input id="frCode" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="0000" aria-label="친구 번호 4자리"><button class="btn on" id="frSend">찾기</button></div>';
   if(gb.length) h+='<h4 class="bH">📮 방명록 <small>놀러 온 친구가 남긴 스티커</small></h4><div class="gbG">'+gb.slice(0,12).map(([k,v])=>'<span class="gbC"><i>'+esc(v.e)+'</i><small>'+esc(v.n)+'</small></span>').join("")+'</div>';
   $("frBody").innerHTML=h;
@@ -3762,7 +3816,7 @@ function fishCfg(tab0){ const mkFr=(en,k)=>{ try{ return TECO.mkF(en,k)/TECO.mkF
 function openShop(tab0){ if(F.st!=="idle") return; closeAv(); if(window.SHOPUI){ SHOPUI.open(fishCfg(tab0)); return; } drawShop(); shopH=hourIx(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if(!$("shopP").classList.contains("on")){ clearInterval(shopTick); return; }
     if(hourIx()!==shopH && Date.now()-shopPress>800){ shopH=hourIx(); drawShop(); } else shopTimer(); }, 1000); }
 $("shopP").addEventListener("pointerdown", ()=>{ shopPress=Date.now(); }, true);
-function goShop(){ if(F.st!=="idle") return; const near=STALL_FRONT.some(t=>t[0]===hero.cx&&t[1]===hero.cz); if(near){ hero.face=Math.PI; openShop(); return; }
+function goShop(){ if(F.st!=="idle") return; if(ISLE_MODE){ if(place===PL.isle){ const L=LBL.find(l=>l.d.k==="fish"); if(L){ L.d.act(); return; } } toast("🐟 잡은 건 <b>🏝 마을 시장 거리 🐟 생선 가게</b>에서 팔아요", 2400); return; } const near=STALL_FRONT.some(t=>t[0]===hero.cx&&t[1]===hero.cz); if(near){ hero.face=Math.PI; openShop(); return; }
   const t=STALL_FRONT.slice().sort((a,b)=>Math.hypot(a[0]-hero.cx,a[1]-hero.cz)-Math.hypot(b[0]-hero.cx,b[1]-hero.cz))[0]; walkTo(t[0], t[1], ()=>{ hero.face=Math.PI; openShop(); }); }
 $("shopBag").addEventListener("click", e=>{ const b=e.target.closest("[data-sell]"); if(!b) return; const v=sell(+b.dataset.sell); if(v){ toast("🪙 +"+v); try{ navigator.vibrate&&navigator.vibrate(20); }catch(er){} } drawShop(); updBagBtn(); });
 $("shopMats").addEventListener("click", e=>{ const s=e.target.closest("[data-sellm]"), b=e.target.closest("[data-buy]");
@@ -3818,7 +3872,7 @@ function go(key, at, mid, o){
   if(F.st!=="idle") return; setEdit(false); standUp(); hero.slide=null; trip.busy=true;
   if(visiting && key!=="visit" && key!=="yvisit"){ const m0=mid; mid=()=>{ if(myRoom) restoreMine(); yVisitOut(); visiting=null; if(m0) m0(); }; }   // 지도 등으로 나가도 내 방으로 돌려놓음
   $("fade").classList.add("on");
-  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].concat(window.ISLE?[ISLE.G]:[]).forEach(g=>g.visible=g===place.g); try{ if(window.ISLE) ISLE.show(place===PL.isle); }catch(e){} try{ pondCtx(place.key); }catch(e){} if(place===PL.yard){ setTimeout(()=>{ const n=yRegrow(); if(n) toast("🌿 마당에 잡초가 "+n+"포기 자랐어요!<br><small>눌러서 뽑아요 — 가끔 씨앗이 나와요</small>", 2600); }, 900); }   /* (v576) */ if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
+  setTimeout(()=>{ if(TW.on && key!=="tower") twExit(); if(mid) mid(); place=PL[key]; [roomG,yardG,villageG,mineG,towerG].concat(window.ISLE?[ISLE.G]:[]).forEach(g=>g.visible=g===place.g); try{ if(window.ISLE) ISLE.show(place===PL.isle); }catch(e){} try{ pondCtx(place.key); }catch(e){} if(place===PL.yard){ setTimeout(()=>{ try{ yWellDraw(); yGuideUpd(true); }catch(e){} }, 700); setTimeout(()=>{ const n=yRegrow(); if(n) toast("🌿 마당에 잡초가 "+n+"포기 자랐어요!<br><small>눌러서 뽑아요 — 가끔 씨앗이 나와요</small>", 2600); }, 900); }   /* (v576) */ if(place===PL.mine){ regenMine(); drawOres(); } clearFade(); scene.background=new THREE.Color(place.sky||0xf1e2c8); try{ closeTalk(); }catch(e){}
     const s=at||place.start; hero.cx=s[0]; hero.cz=s[1]; hero.path=[]; hero.moving=false; hero.g.position.set(s[0]+0.5,0,s[1]+0.5);
     if(o && o.from){ const f=typeof o.from==="function"?o.from():o.from, b=[s[0]+0.5,s[1]+0.5]; hero.g.position.set(f[0],0,f[1]); hero.face=Math.atan2(b[0]-f[0],b[1]-f[1]); hero.g.rotation.y=hero.face;
       hero.slide={a:f.slice(), b, t:0, d:Math.max(0.4, Math.hypot(b[0]-f[0],b[1]-f[1])/2.4)}; if(o.door) openDoor(o.door); }
@@ -4238,8 +4292,9 @@ const LBL_DEF={
   visit:()=>{ const L=[{k:"door", ic:"🚪", t:"나가기", p:[0.12,1.3,RN-0.5], act:exitRoom, show:()=>walls[3].visible}]; return window.HOMEX ? HOMEX.labels(L) : L; },
   yvisit:()=>[{k:"house", ic:"🚪", t:"친구 집", p:[1.5,1.25,3.0], act:yVisitHouse}, {k:"gate", ic:"🏠", t:"나가기", p:[Y_GATE[0]+0.5,1.55,Y_GATE[1]+0.5], act:leaveVisit}],
   yard:()=>[{k:"house", ic:"🚪", t:"집", p:[1.5,1.25,3.0], act:enterHouse}, {k:"pond", ic:"🎣", t:"낚시", p:[7.5,0.45,6.5], r:3.1, act:()=>{ const b=PS.filter(o=>o.st==="swim").sort((x,y)=>y.rad-x.rad)[0]; b ? fishTap(7,6,b.g.position.x,b.g.position.z) : fishTap(7,6); }},
-    {k:"shop", ic:"🏪", t:"가게", p:[7,2.15,1.5], r:2.8, act:goShop}, {k:"bench", ic:"🛠", t:"만들기", p:[BENCH[0]+0.5,1.15,BENCH[1]+0.5], act:()=>useTile(BENCH[0],BENCH[1],()=>openCraft("craft"))},
-    {k:"pot", ic:"🍳", t:"요리", p:[POT[0]+0.5,1.0,POT[1]+0.5], act:()=>useTile(POT[0],POT[1],()=>openCraft("cook"))}, {k:"farm", ic:"🌱", t:"밭", p:[2.5,0.45,6.0], r:2.2, act:farmGo},
+    {k:"shop", ic:"🏪", t:"가게", p:[7,2.15,1.5], r:2.8, act:goShop, show:()=>!ISLE_MODE}, {k:"bench", ic:"🛠", t:"만들기", p:[BENCH[0]+0.5,1.15,BENCH[1]+0.5], act:()=>useTile(BENCH[0],BENCH[1],()=>openCraft("craft"))},
+    {k:"pot", ic:"🍳", t:"요리", p:[POT[0]+0.5,1.0,POT[1]+0.5], act:()=>useTile(POT[0],POT[1],()=>openCraft("cook"))}, {k:"farm", ic:"🌱", t:"밭", p:(()=>{ if(!PLOTS.length) return [2.5,0.45,6.0]; let x=0,z=0; PLOTS.forEach(c=>{ x+=c[0]; z+=c[1]; }); return [x/PLOTS.length+0.5,0.45,z/PLOTS.length+0.5]; })(), r:2.2, act:farmGo, show:()=>PLOTS.length>0},
+    {k:"wspot", ic:"🪣", t:"우물 자리", p:YG.wsp, r:3, act:()=>{ const w=yWS(); if(w) useTile(w[0],w[1],yWellAsk); }, show:()=>ISLE_MODE && !visiting && !!yWS()},
     {k:"gate", ic:"🏘", t:"마을", p:[Y_GATE[0]+0.5,1.55,Y_GATE[1]+0.5], act:yardToVillage}].concat(PARC.map((P,i)=>({k:"parc"+i, ic:"🌱", t:"새 땅", p:[P.sign[0]+0.5,1.45,P.sign[1]+0.5], act:()=>useTile(P.sign[0],P.sign[1],()=>yParcAsk(i)), show:()=>!(yd && yd.pc[i])}))),
   village:()=>[{k:"gate", ic:"🌳", t:"마당", p:[V_GATE[0]+0.5,1.85,V_GATE[1]+0.5], act:villageToYard}, {k:"east", ic:"⛏", t:"광산", p:[V_EAST[0]+0.5,1.85,V_EAST[1]+0.5], act:villageToMine}, {k:"tower", ic:"🗼", t:"타워", p:[TW_AT[0]+1,4.3,TW_AT[1]+1], r:3.4, act:()=>towerGo()},
     {k:"board", ic:"📋", t:"부탁", p:[V_BOARD[0]+0.5,1.65,V_BOARD[1]+0.5], act:()=>useTile(V_BOARD[0],V_BOARD[1],showBoard)}],
@@ -4289,8 +4344,9 @@ function drawCoach(busy){ const c=$("coach"), S=tut.s<TUT.length?TUT[tut.s]:null
 $("coachNext").onclick=()=>tutAdv(); $("coachSkip").onclick=()=>tutAdv(99);
 
 /* 📋 할 일 — 🌱 처음 해 볼 것 8개(💎2) + ☀️ 오늘 할 일 3개(💎3, 날마다 바뀜 · 모든 기기 같음) · 해 보면 저절로 체크 → 눌러서 받기 */
-const QS=[["catch","🎣","물고기 잡기",1],["sell","🏪","가게에서 팔기",1],["plant","🌱","씨앗 심기",1],["talk","💬","마을 사람과 이야기",1],["furn","🛋️","가구 놓기·옮기기",1],["avatar","👕","나 꾸미기",1],["tree","🌳","나무 흔들기",1],["visit","🏠","이웃 집 놀러 가기",1]];
-const QD=[["catch","🎣","물고기 잡기",3],["sell","🏪","가게에서 팔기",3],["harvest","🧺","채소 거두기",1],["give","📋","부탁 들어주기",1],["mine","⛏","광산에서 캐기",3],["tree","🌳","나무 흔들기",2],["cook","🍳","요리하기",1],["talk","💬","마을 사람과 이야기",2],["rock","🪨","바위 깨기",2],["use","📺","집 물건 써 보기",3],["craft","🛠","만들기",1]];
+/* (v586) 섬 모드: 예전 마을 사람(이야기·부탁) 할 일 → ✉️ 편지 · 🎠 마당 가구 · 🧹 잡초 */
+const QS=[["catch","🎣","물고기 잡기",1],["sell","🏪","가게에서 팔기",1],["plant","🌱","씨앗 심기",1],(ISLE_MODE?["mail","✉️","편지 보내기",1]:["talk","💬","마을 사람과 이야기",1]),["furn","🛋️","가구 놓기·옮기기",1],["avatar","👕","나 꾸미기",1],["tree","🌳","나무 흔들기",1],["visit","🏠","이웃 집 놀러 가기",1]];
+const QD=[["catch","🎣","물고기 잡기",3],["sell","🏪","가게에서 팔기",3],["harvest","🧺","채소 거두기",1],(ISLE_MODE?["yuse","🎠","마당 가구 써 보기",1]:["give","📋","부탁 들어주기",1]),["mine","⛏","광산에서 캐기",3],["tree","🌳","나무 흔들기",2],["cook","🍳","요리하기",1],(ISLE_MODE?["clear","🧹","마당 잡초 뽑기",2]:["talk","💬","마을 사람과 이야기",2]),["rock","🪨","바위 깨기",2],["use","📺","집 물건 써 보기",3],["craft","🛠","만들기",1]];
 let Q=store("hyeng_proto_q"); if(!Q || !Q.s) Q={s:{}, sg:[], d:"", dc:{}, dg:[]};
 function qRoll(){ const d=dayKey(); if(Q.d!==d){ Q.d=d; Q.dc={}; Q.dg=[]; } }
 function qDaily(){ const L=[], d=dayKey(); for(let i=0;L.length<3 && i<60;i++){ const j=Math.floor(hashf(d+"|q"+i)*QD.length); if(L.indexOf(j)<0) L.push(j); } return L.map(j=>QD[j]); }
@@ -4482,7 +4538,7 @@ function loop(now){
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(TW.on){ twTick(dt); anim=true; } else if(updCam(dt)) anim=true;
   if(VLN.on && vlTick(dt)) anim=true;   /* (v473) 💬 마을 친구 */
-  hudT+=dt; if(hudT>0.4){ hudT=0; updHud(); updUI(); envT+=0.4; if(envT>5){ envT=0; envApply(); } }
+  hudT+=dt; if(hudT>0.4){ hudT=0; updHud(); updUI(); try{ yGuideUpd(); }catch(e){} envT+=0.4; if(envT>5){ envT=0; envApply(); } }
   // 마당 물결 (가만히 있어도 1초에 8번만)
   if(place===PL.village){ scene.userData.fwater.material.color.setHSL(0.54,0.62,0.6+Math.sin(now*0.0015)*0.03); idleT+=dt; if(idleT>0.125){ idleT=0; dirty=true; } }
   if(place===PL.yard){ const w=scene.userData.water; w.material.color.setHSL(envRu?0.12:0.53, envRu?0.8:0.78, (envRu?0.6:0.56)+Math.sin(now*(envRu?0.004:0.0012))*(envRu?0.05:0.025)).convertSRGBToLinear(); idleT+=dt; if(idleT>0.05){ idleT=0; dirty=true; } }
