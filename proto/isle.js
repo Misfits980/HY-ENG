@@ -507,7 +507,8 @@ const ISLE=(()=>{
     return L; }
   /* (v539) 가게 — 문 앞까지 걸어가서 그 가게 창 */
   function shopGo(S){ const run=()=>{ const k=S.k; if(k==="fish") openShop(); else if(k==="furn") openFurn("furn"); else if(k==="clothes") openAv("clothes"); else if(k==="hair") openAv("hair"); else if(k==="mart"){ try{ HLIFE.openMart(); }catch(e){} } else if(k==="town") tripTo("village"); else if(window.TFAC && k==="snack") TFAC.openSnack(); else if(window.TFAC && k==="pet") TFAC.openPet(); else if(window.TFAC && k==="photo") TFAC.openPhoto(); try{ tEv("shop_"+k); }catch(e){} };
-    const c=[Math.floor(S.door[0]), Math.floor(S.door[1])]; if(Math.hypot(hero.g.position.x-S.door[0], hero.g.position.z-S.door[1])<2.2 || blocked(c[0],c[1])) run(); else walkTo(c[0],c[1],run); }
+    const go_=(window.SHOPIN && SHOPIN.has(S.k)) ? ()=>{ if(!SHOPIN.enter(S, run)) run(); } : run;   /* (v572) 🏪 가게 안으로 들어가서 → 카운터에서 창 */
+    const c=[Math.floor(S.door[0]), Math.floor(S.door[1])]; if(Math.hypot(hero.g.position.x-S.door[0], hero.g.position.z-S.door[1])<2.2 || blocked(c[0],c[1])) go_(); else walkTo(c[0],c[1],go_); }
   function tripTo(key){ const at=key==="yard" ? [DOOR[0],DOOR[1]] : key==="village" ? [V_GATE[0]+1,V_GATE[1]] : key==="mine" ? [M_GATE[0]-1,M_GATE[1]] : null; go(key, at); }
   /* (v525) 사용자: "화면을 돌릴 수도 없고 · 집이 동그랗게 있어서 보이지도 않아 · 화면의 자유가 없는데"
      → 빈 곳을 끌면 돌리기(좌우)·기울이기(위아래) · 두 손가락 벌리기 = 가까이/멀리 · 집에서 나오면 카메라가 내 뒤에서 마을 쪽을 봄 */
