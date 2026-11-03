@@ -16279,7 +16279,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v564";
+const GAME_VER = "v565";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17155,7 +17155,7 @@ const Study = (function(){
       else if(R.o) rows.push([w.en, "↔ 반대말", one(R.o)]);
       else if(R.s && gradeOf(load().set)!=="g12") rows.push([w.en, "≈ 비슷한 말", one(R.s)]);
       else if(R.f && gradeOf(load().set)!=="g12" && famOf(w)[0]) rows.push([w.en, "👪 가족", famOf(w)[0].en+" ("+famOf(w)[0].ko+")"]);
-      else { const on=onset(w.en), fr=on ? grp.concat(shuffle(WORD_BANK.filter(x=>x.level<=1 && /^[a-z]{3,6}$/.test(x.en))).slice(0,200)).find(x=>x.en!==w.en && onset(x.en)===on) : null; if(fr) rows.push([w.en, "🔤 같은 첫소리", fr.en+(fr.emoji?" "+fr.emoji:"")]); } });
+      else { const on=onset(w.en), fr=on ? grp.concat(shuffle(WORD_BANK.filter(x=>x.level<=1 && /^[a-z]{3,6}$/.test(x.en))).slice(0,200)).find(x=>x.en!==w.en && onset(x.en)===on) : null; if(fr) rows.push([w.en, "🔤 같은 첫소리", fr.en, fr.emoji||""]); }   /* (v565) 그림 글자는 따로 — 학원 PC 는 EmojiFix 가 <img> 로 바꿔 둬서 esc 하면 코드가 글로 보였음 */ });
     return rows.length ? {t:"intro", hd:"grp", w:grp[0], ws:grp, x:{rows:rows.slice(0,4)}} : null; }
   function touchQ(w, gr, pool){
     if(canSpell(w) && !(gr==="g12" && w.en.length>6)){ const q=makeQ("spell", w, pool, gr==="g12"?1:2); q.hint= w.en.length>3 ? 1 : 0;   /* (v503) arm 처럼 짧은 단어는 첫 글자를 주면 고를 게 없음 */ q.step=1; q.tg="④ 만져 보기"; return q; }
@@ -18437,7 +18437,7 @@ const StudyUI = {
       if(q.gp==null) this.say(X.sent && Math.random()<0 ? X.sent : w.en);
     } else if(q.t==="intro" && q.hd==="grp"){                                   // (v302) ③ 묶어 보기 카드
       h='<div class="stKind">③ 🧩 묶어서 기억해요</div><div class="stCard grp"><div class="stWuS">이 단어들은 이렇게 짝이 있어요</div><div class="grpL">'
-        +q.x.rows.map(r=>'<div class="grpR"><b>'+this.esc(dispEn(r[0]))+'</b><i>'+this.esc(r[1])+'</i><span>'+this.esc(dispLead(r[2]))+'</span><button class="stSay sm" data-say="'+this.esc(r[0]+'. '+String(r[2]).replace(/\s*\(.*$/,'').replace(/[^A-Za-z' ]/g,''))+'">🔊</button></div>').join("")+'</div></div>';
+        +q.x.rows.map(r=>'<div class="grpR"><b>'+this.esc(dispEn(r[0]))+'</b><i>'+this.esc(r[1])+'</i><span>'+this.esc(dispLead(r[2]))+(r[3]?' '+emoHtml(r[3]):'')+'</span><button class="stSay sm" data-say="'+this.esc(r[0]+'. '+String(r[2]).replace(/\s*\(.*$/,'').replace(/[^A-Za-z' ]/g,''))+'">🔊</button></div>').join("")+'</div></div>';
       f.innerHTML='<button class="stCheck go" id="stCheck">알겠어요 ▶</button>';
     } else if(q.t==="intro" && q.hd==="once"){                                  // (v302) ⑥ 한 번 더
       h='<div class="stKind">⑥ 🔁 한 번 더</div><div class="stCard"><div class="stWuT">힌트 없이 '+q.ws.length+'문제</div><div class="stWuS">오늘 배운 단어를 떠올려 봐요 · 틀려도 다시 안 나와요 · 내일 ★2 확인에서 또 봐요</div>'
