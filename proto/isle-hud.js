@@ -141,21 +141,31 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
       catch(_){ g='<ellipse cx="'+f(I.cx)+'" cy="'+f(I.cz)+'" rx="'+f(I.ax)+'" ry="'+f(I.az)+'" fill="#9ed67a" stroke="#f1e2a8" stroke-width="3"/>'; }
     M.zones.forEach(Z=>{ if(Z.free) return; const c=cen(Z.poly); g+='<g data-z="'+Z.k+'"><polygon points="'+Z.poly.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="'+hex(Z.c||0xcccccc)+'" fill-opacity=".75" stroke="#3b2433" stroke-width=".9"/></g><text x="'+f(c[0])+'" y="'+f(c[1])+'" text-anchor="middle">'+Z.nm+'</text>'; });
     try{ const d=ISLE.doorCell(); if(d && tut.s>=1) g+='<g data-z="myhome"><circle cx="'+f(d[0]+.5-ISLE.OX)+'" cy="'+f(d[1]+.5-ISLE.OZ)+'" r="4.4" fill="#ffd23f" stroke="#3b2433" stroke-width="1"/></g><text class="hm" x="'+f(d[0]+.5-ISLE.OX)+'" y="'+f(d[1]+11-ISLE.OZ)+'" text-anchor="middle">⭐ 내 집</text>'; }catch(_){}
+    try{ const s=ISLE.SPOT.mine; if(s) g+='<g data-z="mine"><circle cx="'+f(s[0]-ISLE.OX)+'" cy="'+f(s[2]-ISLE.OZ)+'" r="4.4" fill="#b8a2e0" stroke="#3b2433" stroke-width="1"/></g><text class="hm" x="'+f(s[0]-ISLE.OX)+'" y="'+f(s[2]+11-ISLE.OZ)+'" text-anchor="middle">⛏ 광산</text>'; }catch(_){}   /* (v580) ⛏ 광산 = 바로 가기 되는 곳 */
     try{ const p=hero.g.position; g+='<circle cx="'+f(p.x-ISLE.OX)+'" cy="'+f(p.z-ISLE.OZ)+'" r="3.4" fill="#ff4d5e" stroke="#fff" stroke-width="1.2"><animate attributeName="r" values="3.4;4.6;3.4" dur="1.2s" repeatCount="indefinite"/></circle>'; }catch(_){}
-    el.innerHTML='<div class="mb"><div class="mh"><span>🗺 우리 마을 지도</span><button class="mx" aria-label="닫기">✕</button></div><svg viewBox="'+f(x0)+' '+f(z0)+' '+f(w)+' '+f(h)+'">'+g+'</svg><div class="mt">🔴 = 나 · 가고 싶은 곳을 누르면 걸어가요</div></div>';
+    el.innerHTML='<div class="mb"><div class="mh"><span>🗺 우리 마을 지도</span><button class="mx" aria-label="닫기">✕</button></div><svg viewBox="'+f(x0)+' '+f(z0)+' '+f(w)+' '+f(h)+'">'+g+'</svg><div class="mt">🔴 = 나 · 누르면 걸어가요 · ⭐ 집·⛏ 광산은 🚀 바로 · 먼 곳은 🚉 기차</div></div>';
     el.classList.add("on"); }
-  function goZone(k){ if(k==="myhome"){ click("bIHome"); return; } const Z=(ISLE_MAP.zones||[]).find(z=>z.k===k); if(!Z) return;
+  /* (v580) 사용자: 「기차가 있는데 지도로 텔포하면 기차의 의미가 있을까? · 집 가는 거랑 광산은 하게 해 줘」
+     → 🚀 바로 가기는 ⭐ 내 집(무료)·⛏ 광산(🪙)만 · 다른 곳은 🚶 걸어가기 또는 🚉 기차역으로 (빨리 가려면 기차) */
+  const near=(x,z)=>{ const bx=Math.floor(x), bz=Math.floor(z); for(let r=0;r<10;r++) for(let dx=-r;dx<=r;dx++) for(let dz=-r;dz<=r;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!ISLE.blocked(bx+dx,bz+dz)) return [bx+dx,bz+dz]; } return null; };
+  function pick2(title, opts){ const A=$("ask"), ok=$("askOk");
+    try{ ask(title+'<div class="hxPick">'+opts.map((o,i)=>'<button class="btn on" data-gz="'+i+'">'+o[0]+'</button>').join("")+'</div>', null); ok.hidden=true;
+      const h=e=>{ const b=e.target.closest("[data-gz]"); if(!b && !e.target.closest("#askNo") && e.target!==A) return; A.removeEventListener("click", h, true); ok.hidden=false; if(!b) return; A.classList.remove("on"); opts[+b.dataset.gz][1](); };
+      A.addEventListener("click", h, true); }catch(_){ opts[0][1](); } }
+  function homeNow(){ const d=ISLE.doorCell(); if(!d) return; const p=hero.g.position; if(Math.hypot(p.x-d[0]-.5, p.z-d[1]-.5)>6){ try{ TFAC.warp(d[0]+.5, d[1]+.5); }catch(_){} }
+    try{ ISLE.enterHome(); }catch(_){ walkTo(d[0],d[1],()=>ISLE.enterHome()); } }
+  function goZone(k){ const fee=(()=>{ try{ return TECO.FEE.warp; }catch(_){ return 5; } })();
+    if(k==="myhome"){ const d=ISLE.doorCell(); if(!d) return; pick2("⭐ <b>내 집</b>", [["🚶 걸어가기", ()=>{ toast("⭐ 내 집 — 걸어가요", 1400); walkTo(d[0],d[1],()=>ISLE.enterHome()); }], ["🚀 바로 집으로 (무료)", homeNow]]); return; }
+    if(k==="mine"){ const s=ISLE.SPOT.mine; if(!s) return; const c=near(s[0], s[2]);
+      pick2("⛏ <b>광산</b>", [["🚶 걸어가기 (무료)", ()=>{ toast("⛏ 광산 — 걸어가요", 1400); if(c) walkTo(c[0],c[1]); }], ["🚀 바로 광산으로 🪙"+fee, ()=>{ if(!TECO.pay2({g:0,c:fee})) return; try{ ISLE.tripTo("mine"); }catch(_){} }]]); return; }
+    const Z=(ISLE_MAP.zones||[]).find(z=>z.k===k); if(!Z) return;
     const t=Z.gate || (()=>{ let x=0,z=0; Z.poly.forEach(q=>{ x+=q[0]; z+=q[1]; }); return [x/Z.poly.length, z/Z.poly.length]; })();
-    const bx=Math.floor(t[0]+ISLE.OX), bz=Math.floor(t[1]+ISLE.OZ); let c=null;
-    for(let r=0;r<10 && !c;r++) for(let dx=-r;dx<=r && !c;dx++) for(let dz=-r;dz<=r && !c;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!ISLE.blocked(bx+dx,bz+dz)) c=[bx+dx,bz+dz]; }
-    if(!c) return;
-    /* (v563) 🚀 바로 가기 = 이용료 🪙5 (걸어가면 무료) */
-    const A=$("ask"), ok=$("askOk"), fee=(()=>{ try{ return TECO.FEE.warp; }catch(_){ return 5; } })();
+    const c=near(t[0]+ISLE.OX, t[1]+ISLE.OZ); if(!c) return;
     const walk=()=>{ toast("🗺 "+Z.nm+" — 걸어가요", 1400); try{ walkTo(c[0], c[1]); }catch(_){} };
-    try{ ask("🗺 <b>"+Z.nm+"</b><div class=\"hxPick\"><button class=\"btn on\" data-gz=\"w\">🚶 걸어가기 (무료)</button><button class=\"btn on\" data-gz=\"j\">🚀 바로 가기 🪙"+fee+"</button></div>", null); ok.hidden=true;
-      const h=e=>{ const b=e.target.closest("[data-gz]"); if(!b && !e.target.closest("#askNo") && e.target!==A) return; A.removeEventListener("click", h, true); ok.hidden=false; if(!b) return; A.classList.remove("on");
-        if(b.dataset.gz==="w") walk(); else { if(!TECO.pay2({g:0,c:fee})) return; hero.path=[]; hero.moving=false; hero.slide=null; hero.cx=c[0]; hero.cz=c[1]; hero.g.position.set(c[0]+.5,0,c[1]+.5); try{ camSnap=true; placeCamera(); }catch(_){} dirty=true; toast("🚀 "+Z.nm+" 도착!", 1400); } };
-      A.addEventListener("click", h, true); }catch(_){ walk(); } }
+    const st=ISLE_MAP.spots.station, sc=st ? near(st[0]+ISLE.OX, st[1]+ISLE.OZ) : null, here=hero.g.position, far=Math.hypot(here.x-c[0], here.z-c[1])>28;
+    const tf=(()=>{ try{ return TECO.trainFee(); }catch(_){ return 10; } })();
+    if(!sc || !far){ walk(); return; }
+    pick2("🗺 <b>"+Z.nm+"</b><br><small>멀어요! 빨리 가려면 🚉 기차 (🎫 🪙"+tf+" · 안내 방송을 맞히면 다음 표 반값)</small>", [["🚶 걸어가기 (무료)", walk], ["🚉 기차역으로", ()=>{ toast("🚉 기차역으로 걸어가요", 1400); try{ walkTo(sc[0], sc[1]); }catch(_){} }]]); }
   /* ── 바닥 빛 고리 (가장 가까운 할 수 있는 일) ── */
   let ring=null, ringT=0;
   function mkRing(){ const g=new THREE.RingGeometry(.62,.8,40); g.rotateX(-Math.PI/2); ring=new THREE.Mesh(g, new THREE.MeshBasicMaterial({color:0x7dff7a, transparent:true, opacity:.75, depthWrite:false})); ring.position.y=.03; ring.renderOrder=3; ring.visible=false; ISLE.G.add(ring); }

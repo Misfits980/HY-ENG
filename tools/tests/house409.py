@@ -48,7 +48,7 @@ async def main():
         await pg.click('#furnBody [data-fw="w3"]'); await pg.wait_for_timeout(200); await pg.click('#askOk'); await pg.wait_for_timeout(200)
         ok(await pg.evaluate("()=>HOUSE.ownW().includes(3) && HOUSE.wallIx()===3 && TECO.coins()===5000-furnCO('fridge').c-300"), "🎨 bricks 벽지 🪙300 → 바로 바뀜")
         await pg.click('[data-ft="up"]'); await pg.wait_for_timeout(200)
-        ups=await pg.evaluate("()=>[...document.querySelectorAll('#furnBody .sRow b')].map(e=>e.innerText)")
+        ups=await pg.evaluate("()=>[...document.querySelectorAll('#furnBody .sRow > span > b')].map(e=>e.innerText)")   # (v580) 늘리기 단추 안 <b> 는 빼고
         ok(len(ups)==6 and "새 땅 (마당)" in ups, f"🏡 늘리기 6가지(집 넓히기 · (v415) 새 땅 포함) {ups}")
         await pg.click("#furnDone"); await pg.wait_for_timeout(200)
         ok(await pg.evaluate("()=>document.getElementById('drawer').classList.contains('on')"), "가게 닫으면 창고로 돌아옴")

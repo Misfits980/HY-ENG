@@ -39,9 +39,9 @@ async def main():
             const L=scene.userData.wallLamp; yNight(true); const n=L.material.emissiveIntensity; yNight(false); const d=L.material.emissiveIntensity; const hd=yardG.getObjectByName('yHedge');
             return [sh.length, a!==b, b===new THREE.Color(HXC.d[2]).getHex(), n>1, d<0.5, hd && hd.children[0].count, hd && hd.userData.noFade]; }""")
         ok(r[0] == 4 and r[1] and r[2] and r[3] and r[4] and r[5] > 50 and r[6], f"③ 덧문 4 = 문 색 따라감 · 벽등 밤에 켜짐 · 울타리 밖 덤불 {r}")
-        r = await E("""()=>{ const P=scene.userData.plotG[plotN]; const thin=[]; P.traverse(m=>{ if(m.isMesh){ m.geometry.computeBoundingBox(); const s=new THREE.Vector3(); m.geometry.boundingBox.getSize(s); if(Math.min(s.x,s.z)<0.1 && Math.max(s.x,s.z)>0.8) thin.push(m); } });
-            const st=yardG.children.filter(m=>m.name==='step'); return [P.userData.st, thin.length, st.length, st.every(m=>m.geometry.parameters.radialSegments===7)]; }""")
-        ok(r[0].startswith("lot") and r[1] == 0 and r[2] == 5 and r[3], f"④ 안 산 밭 = 흙 자리(줄 틀 없음) · 디딤돌 5 = 넓적 돌 {r}")
+        # (v580) 안 산 밭 팻말 칸은 없어짐 — 밭 자리는 아이가 꾸미기 🌱 로 정함 (farm580) → 밭 그룹 = 일군 칸 수
+        r = await E("""()=>{ const st=yardG.children.filter(m=>m.name==='step'); return [scene.userData.plotG.length===PLOTS.length && PLOTS.length===plotN, scene.userData.plotG.every(P=>P.userData.st && !P.userData.st.startsWith('lot')), st.length, st.every(m=>m.geometry.parameters.radialSegments===7)]; }""")
+        ok(r[0] and r[1] and r[2] == 5 and r[3], f"④ 밭 = 일군 칸만 (팻말 칸 없음) · 디딤돌 5 = 넓적 돌 {r}")
         await pg.screenshot(path=OUT + "yard436_day.png")
         await br.close()
     real = real_errs(errs)
