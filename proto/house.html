@@ -2392,7 +2392,10 @@ function twNightAt(t){ const h=kstHM(t)[0]; return h>=22 || h<6; }
 function twOpenAt(t){ const d=new Date(t+9*3600e3); let o=Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 6)-9*3600e3; if(o<=t) o+=86400e3; return o; }   /* 다음 아침 6시 */
 function twUnlocked(){ return +(store("hyeng_proto_twnight")||0) > srvNow(); }
 function twNightOn(){ return (!TWN8.auto || TWN8.force) && !TW.bot && twNightAt(srvNow()) && !twUnlocked(); }
-function twClock(){ try{ NET.put("/hy/day/ck"+dayKey().replace(/\D/g,"")+"/"+myCode, {".sv":"timestamp"}).then(ts=>{ if(typeof ts==="number"){ TWN8.off=ts-Date.now(); TWN8.ok=true; } }).catch(()=>{}); }catch(e){} }
+/* (v586) 서버 시계 — 실패하면 10분 뒤가 아니라 15초마다 다시 · 앱으로 돌아오거나 인터넷이 다시 되면 바로 · 은행을 열면 바로 · 실패 까닭(TWN8.err) */
+let twCkBusy=null;
+function twClock(){ if(twCkBusy) return twCkBusy; try{ twCkBusy=NET.put("/hy/day/ck"+dayKey().replace(/\D/g,"")+"/"+(myCode||"anon"), {".sv":"timestamp"}).then(ts=>{ if(typeof ts==="number"){ TWN8.off=ts-Date.now(); TWN8.ok=true; TWN8.err=""; } else TWN8.err="ts"; return TWN8.ok; }).catch(e=>{ TWN8.err=String(e); return false; }).finally(()=>{ twCkBusy=null; }); }catch(e){ TWN8.err=String(e); return Promise.resolve(false); } return twCkBusy; }
+setInterval(()=>{ if(!TWN8.ok) twClock(); }, 15000); addEventListener("online", ()=>twClock()); document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && !TWN8.ok) twClock(); });
 function sha256(s){ try{ return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")).catch(()=>""); }catch(e){ return Promise.resolve(""); } }
 function twNightAsk(){ info('<div class="iBig">🌙</div><b>타워는 문을 닫았어요</b><br><small>밤 10시 ~ 아침 6시는 쉬는 시간이에요 · <b>아침 6시</b>에 다시 열려요!</small>'
     +'<div class="twPin"><input id="twPin" type="password" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="선생님 비밀번호" aria-label="선생님 비밀번호"><button class="btn" id="twPinB">🔓 열기</button></div><small id="twPinM"></small>', "알겠어요", null);
@@ -3295,11 +3298,12 @@ function frontCell(p){ return [[p.s,0],[RN-1,p.s],[p.s,RN-1],[0,p.s]][p.side]; }
    · 이름 = 게임에서 고른 반 명단 이름(hyeng_kid) — 자유 글자 없음 · 집 코드 5자(헷갈리는 0·O·1·I 없음)
    · 공용 패드(이름 '한양…'·'…패드') = 내 집을 올리지 않음 · 구경만 · 남의 집은 읽기만(가구를 못 옮기고·못 가져감) */
 const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app","https://hy-eng-raid-default-rtdb.firebaseio.com","https://hy-eng-raid-default-rtdb.europe-west1.firebasedatabase.app"];
-  let base=null, mode=null, probing=null;
-  function ready(){ if(mode) return Promise.resolve(mode); if(probing) return probing; let c=null; try{ c=localStorage.getItem("hyeng_fb_url"); }catch(e){}
+  let base=null, mode=null, probing=null, offAt=0;
+  /* (v586) 사용자: 「은행에서 바꾸려는데 왜 안 돼?」(📡 서버 시계를 기다리는 중) — 처음 켤 때 한 번 연결이 늦으면 그 판 내내 「안 됨」으로 남았다 → 20초 뒤 다시 찾아봄 */
+  function ready(){ if(mode==="off" && Date.now()-offAt>20000){ mode=null; probing=null; } if(mode) return Promise.resolve(mode); if(probing) return probing; let c=null; try{ c=localStorage.getItem("hyeng_fb_url"); }catch(e){}
     const C=(c&&URLS.includes(c)?[c]:[]).concat(URLS.filter(u=>u!==c));
     probing=(async()=>{ for(const u of C){ try{ const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),5000); const r=await fetch(u+"/hy/ok.json",{cache:"no-store",signal:ac.signal}); clearTimeout(tm);
-          if(r.ok||r.status===401){ base=u; mode="fb"; try{ localStorage.setItem("hyeng_fb_url",u); }catch(e){} return mode; } }catch(e){} } mode="off"; return mode; })(); return probing; }
+          if(r.ok||r.status===401){ base=u; mode="fb"; try{ localStorage.setItem("hyeng_fb_url",u); }catch(e){} return mode; } }catch(e){} } mode="off"; offAt=Date.now(); return mode; })(); return probing; }
   /* (v419) 🔐 게임과 같은 로그인 토큰 (FB_API_KEY 가 있으면) — 게임이 받아 둔 hyeng_fb_auth · 끝나 가면 새로 */
   const AK=()=>{ try{ return localStorage.getItem("hyeng_fb_key")||""; }catch(e){ return ""; } };
   async function tok(){ const key=AK(); if(!key) return ""; let o=null; try{ o=JSON.parse(localStorage.getItem("hyeng_fb_auth")); }catch(e){} if(o && o.t && Date.now()<o.e-5*60000) return o.t;

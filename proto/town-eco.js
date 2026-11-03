@@ -56,8 +56,10 @@ const TECO=(()=>{
   const limit=()=>Math.min(LIM_MAX, 10+Math.floor(studyToday()/2));
   function ex(){ let o=store("hyeng_proto_exch")||{}; if(o.d!==day()) o={d:day(), n:0}; return o; }
   const left=()=>Math.max(0, limit()-ex().n);
-  const noSrv=()=>{ toast("📡 마을 서버 시계를 기다리는 중이에요<br><small>인터넷이 연결되면 🏦 은행을 쓸 수 있어요</small>", 2400); };
-  function buyGem(n){ if(!srvOK()){ noSrv(); return 0; } n=Math.min(n|0, left()); if(n<=0){ toast("🏦 오늘은 더 못 바꿔요<br><small>📚 공부하면 한도가 늘어나요 (최대 💎"+LIM_MAX+")</small>", 2400); return 0; } const c=n*rate(); if(coin<c){ toast("🪙 "+(c-coin)+" 더 있어야 해요", 1800); return 0; }
+  const noSrv=()=>{ const e=String((TWN8||{}).err||""), au=/^(401|403)$/.test(e); toast(au ? "🔐 마을 서버가 은행 기록을 막고 있어요<br><small>선생님께 「서버 규칙(hy/day)」을 알려 주세요 · 오류 "+e+"</small>" : "📡 마을 서버에 연결이 안 돼요<br><small>인터넷을 확인하고 잠깐 뒤 다시 눌러요"+(e?" · 오류 "+e:"")+"</small>", 3000); };
+  /* (v586) 사용자: 「은행에서 바꾸려는데 왜 안 돼?」 — 서버 시계가 아직이면 그 자리에서 다시 맞춰 보고 되면 바로 이어서 (예전: 10분마다만 다시 → 그동안 막힘) */
+  function needSrv(fn){ if(srvOK()) return fn(); toast("📡 마을 서버 시계 맞추는 중…", 1200); let p=null; try{ p=twClock(); }catch(e){} Promise.resolve(p).then(ok=>{ if(ok || srvOK()){ fn(); try{ if($("teBank") && $("teBank").classList.contains("on")) openBank(); }catch(_){} } else noSrv(); }); return 0; }
+  function buyGem(n){ if(!srvOK()) return needSrv(()=>buyGem(n)); n=Math.min(n|0, left()); if(n<=0){ toast("🏦 오늘은 더 못 바꿔요<br><small>📚 공부하면 한도가 늘어나요 (최대 💎"+LIM_MAX+")</small>", 2400); return 0; } const c=n*rate(); if(coin<c){ toast("🪙 "+(c-coin)+" 더 있어야 해요", 1800); return 0; }
     setCoin(coin-c); gems+=n; saveBag(); const o=ex(); o.n+=n; store("hyeng_proto_exch", o); tEvS("bank"); try{ SND.big(); }catch(e){} toast("🏦 🪙 "+fmt(c)+" → <b>💎 "+n+"</b>", 1800); return n; }
   function sellGem(n){ n=n|0; if(n<=0 || gems<n){ toast("💎 가 모자라요", 1500); return 0; } const c=n*sellRate(); gems-=n; saveBag(); addCoin(c); tEvS("bank"); try{ SND.pop(); }catch(e){} toast("🏦 💎 "+n+" → <b>🪙 "+fmt(c)+"</b><br><small>되팔면 싸게 쳐 줘요</small>", 2000); return c; }
 
@@ -74,11 +76,11 @@ const TECO=(()=>{
   const val=(x, r)=>{ const m=months(x.t); if(m<1) return x.a; return r===PRODUCT.lk.r ? Math.floor(x.a*(1+r)) : Math.round(x.a*Math.pow(1+r, m)); };
   function bankV(){ const lk=BK.lk.reduce((s,x)=>s+val(x,PRODUCT.lk.r),0), gm=BK.gm.reduce((s,x)=>s+val(x,PRODUCT.gm.r),0); return {sv:BK.sv|0, lk, gm}; }
   const nextIn=t0=>{ const ms=MON-((T()-t0)%MON); return Math.max(1, Math.ceil(ms/864e5)); };
-  function deposit(k, n){ n=n|0; if(n<=0) return false; if(!srvOK()){ noSrv(); return false; } settle();
+  function deposit(k, n){ n=n|0; if(n<=0) return false; if(!srvOK()){ needSrv(()=>deposit(k, n)); return false; } settle();
     if(k==="gm"){ const cur=BK.gm.reduce((s,x)=>s+x.a,0); if(cur+n>GM_MAX){ toast("💎 보석 적금은 💎"+GM_MAX+" 까지예요", 1800); return false; } if(gems<n){ toast("💎 가 모자라요",1500); return false; } gems-=n; saveBag(); BK.gm.push({a:n, t:T()}); }
     else { if(coin<n){ toast("🪙 가 모자라요",1500); return false; } setCoin(coin-n); if(k==="sv"){ if(!BK.sv){ BK.st=T(); BK.svm=n; } BK.sv+=n; } else BK.lk.push({a:n, t:T()}); }
     bsave(); tEvS("bank"); try{ SND.pop(); }catch(e){} toast("🏦 "+PRODUCT[k].nm+" <b>"+(k==="gm"?"💎 ":"🪙 ")+fmt(n)+"</b> 넣었어요", 1800); return true; }
-  function withdraw(k, i){ if(k!=="sv" && !srvOK()){ noSrv(); return 0; } settle();
+  function withdraw(k, i){ if(k!=="sv" && !srvOK()) return needSrv(()=>withdraw(k, i)); settle();
     if(k==="sv"){ const n=BK.sv|0; if(!n) return 0; BK.sv=0; BK.st=0; BK.svm=0; bsave(); addCoin(n); toast("🐷 🪙 "+fmt(n)+" 찾았어요", 1600); return n; }
     const L=BK[k], x=L[i]; if(!x) return 0; const m=months(x.t), early=m<1, n=early ? x.a : val(x, PRODUCT[k].r); L.splice(i,1); bsave();
     if(k==="gm"){ gems+=n; saveBag(); } else addCoin(n);
@@ -232,7 +234,7 @@ const TECO=(()=>{
   function spark(){ const h=hourIx(), P=[]; for(let i=11;i>=0;i--) P.push(rate(h-i)); const W=96, H=34, lo=7, hi=14, x=i=>i*(W/11), y=v=>H-3-(v-lo)/(hi-lo)*(H-6);
     return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" aria-label="지난 12시간 환율"><polyline fill="none" stroke="#b07800" stroke-width="2" points="'+P.map((v,i)=>x(i).toFixed(1)+","+y(v).toFixed(1)).join(" ")+'"/><circle cx="'+x(11)+'" cy="'+y(P[11])+'" r="3" fill="#d33a3a"/></svg>'; }
   let bankTab="ex";
-  function openBank(tab){ if(tab) bankTab=tab; settle(); const d=sheet("teBank"), r=rate(), pr=rate(hourIx()-1), lim=limit(), used=ex().n, lf=Math.max(0,lim-used), st=studyToday();
+  function openBank(tab){ if(tab) bankTab=tab; if(!srvOK()){ try{ twClock(); }catch(e){} } settle(); const d=sheet("teBank"), r=rate(), pr=rate(hourIx()-1), lim=limit(), used=ex().n, lf=Math.max(0,lim-used), st=studyToday();
     const top='<div class="teBal"><div><small>내 코인</small><b class="teC">🪙 '+fmt(coin)+'</b></div><div><small>내 보석</small><b class="teG">💎 '+fmt(gems)+'</b></div></div>'
       +'<div class="teTabs"><button data-tb="ex" class="'+(bankTab==="ex"?"on":"")+'">💱 환전</button><button data-tb="sv" class="'+(bankTab==="sv"?"on":"")+'">🐷 저금·적금</button></div>';
     let body="";
