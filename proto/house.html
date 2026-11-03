@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="robots" content="noindex">
 <title>My Town</title>
 <!-- 🏡 생활 모드 맛보기 (L0) — 설계서 claude/hy-eng-plan-life.md
@@ -246,7 +246,7 @@ button{font-family:inherit}
 .frR i{font-size:26px} .frR .btn{white-space:nowrap} .stars{color:#f2b33d;letter-spacing:1px;font-family:var(--en)}
 .addRow{display:flex;gap:8px} .addRow input{flex:1;min-width:0;height:46px;border-radius:14px;border:2px solid var(--line2);background:#fff;font:900 24px var(--en);letter-spacing:8px;text-align:center;color:var(--ink)}
 .gbG{display:flex;flex-wrap:wrap;gap:8px} .gbC{display:flex;flex-direction:column;align-items:center;min-width:58px;padding:6px;border-radius:14px;background:var(--card);border:2px solid var(--line)} .gbC i{font-style:normal;font-size:26px} .gbC small{font-size:11px;color:var(--sub)}
-.stkG{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px} .stkB{font-size:30px;height:56px;border-radius:16px;border:2px solid var(--line);background:var(--card);cursor:pointer;box-shadow:0 2px 0 var(--line)}
+.stkG{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}   /* (v572) 사용자 사진: 아이패드에서 스티커 칸이 창 밖으로 — 칸이 줄어들 수 있게 */ .stkB{min-width:0;padding:0;font-size:28px;height:56px;border-radius:16px;border:2px solid var(--line);background:var(--card);cursor:pointer;box-shadow:0 2px 0 var(--line)}
 .fCat{margin-bottom:10px} .fCat .chip{min-height:38px;font-size:13px}
 /* (v566) 사용자: 「오른쪽으로 이쁘게 정리 · 밑에는 촤라락 펼치는 수납형 버튼 · 스크롤 신경」
    가구 가게 머리 = 💎·🪙 작은 알약 두 개 (예전엔 <b> 가 .hd b{flex:1} 를 받아 네 줄로 꺾임) · 종류 칩 = 한 줄 가로 밀기 + ▾ 모두(펼치기) */
@@ -697,7 +697,7 @@ renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf1e2c8);   // (L0-8) 집 안 배경 — 따뜻한 종이색
-const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 300);
+const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 300);   /* (v572) near 0.1 → 0.3 = 깊이 정밀도 3배 (아이패드 땅 줄무늬) */
 const hemiL=new THREE.HemisphereLight(0xfff4e0, 0x6a5a8a, 0.75); scene.add(hemiL);
 scene.add(new THREE.AmbientLight(0xffffff, 0.18));
 const sun = new THREE.DirectionalLight(0xffe2b8, 0.85);
@@ -3627,6 +3627,9 @@ function viewOff(){ const w=innerWidth, h=innerHeight; camera.setViewOffset(w,h,
 function setShadow(){ const N=place.N, s=sun.shadow.camera; sun.position.set(N/2-N*0.9, N*1.4, N/2-N*0.45); sun.target.position.set(N/2,0,N/2); s.left=-N*0.85; s.right=N*0.85; s.top=N*0.85; s.bottom=-N*0.85; s.near=1; s.far=N*4; s.updateProjectionMatrix(); }
 function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; viewOff(); placeCamera(); try{ TOON.resize(); }catch(e){} }
 addEventListener("resize", resize);
+/* (v572) 사용자 사진: 아이패드 가로로 돌리면 오른쪽에 파란 줄 — 돌린 직후 크기가 늦게 바뀌는 iOS · 잠깐 뒤 다시 맞추고 확대를 되돌림 */
+const reFit=()=>{ [120,450,1000].forEach(t=>setTimeout(()=>{ try{ window.scrollTo(0,0); resize(); }catch(e){} }, t)); };
+addEventListener("orientationchange", reFit); try{ if(window.visualViewport) visualViewport.addEventListener("resize", ()=>{ if(Math.abs(visualViewport.width-innerWidth)>2 || Math.abs((visualViewport.scale||1)-1)>.01) reFit(); }); }catch(e){}
 function go(key, at, mid, o){
   if(F.st!=="idle") return; setEdit(false); standUp(); hero.slide=null; trip.busy=true;
   if(visiting && key!=="visit" && key!=="yvisit"){ const m0=mid; mid=()=>{ if(myRoom) restoreMine(); yVisitOut(); visiting=null; if(m0) m0(); }; }   // 지도 등으로 나가도 내 방으로 돌려놓음

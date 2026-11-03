@@ -47,7 +47,8 @@ const ISLE=(()=>{
         for(let i=0;i<pa.count;i++){ v.fromBufferAttribute(pa,i).applyMatrix4(e.m); P[(ov+i)*3]=v.x; P[(ov+i)*3+1]=v.y; P[(ov+i)*3+2]=v.z; v.fromBufferAttribute(na,i).applyMatrix3(nm).normalize(); Nn[(ov+i)*3]=v.x; Nn[(ov+i)*3+1]=v.y; Nn[(ov+i)*3+2]=v.z; }
         const n=ix ? ix.count : pa.count; for(let i=0;i<n;i++) I[oi+i]=(ix ? ix.getX(i) : i)+ov; ov+=pa.count; oi+=n; });
       const geo=new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(P,3)); geo.setAttribute("normal", new THREE.BufferAttribute(Nn,3)); geo.setIndex(new THREE.BufferAttribute(I,1)); geo.computeBoundingSphere();
-      const m=new THREE.Mesh(geo, MC(col)); m.castShadow=!flat; m.receiveShadow=true; G.add(m); delete pbag[key]; }); }
+      let mat=MC(col); if(flat){ mat=mat.clone(); mat.polygonOffset=true; mat.polygonOffsetFactor=-1; mat.polygonOffsetUnits=-4; }   /* (v572) 사용자 사진: 땅에 초록 줄무늬(깊이 겹침) — 바닥에 붙은 판(길·패드)은 땅보다 앞으로 */
+      const m=new THREE.Mesh(geo, mat); m.castShadow=!flat; m.receiveShadow=true; G.add(m); delete pbag[key]; }); }
   const GEO={};   // 같은 모양은 한 번만 만듦
   const geo_=(k,f)=>GEO[k]||(GEO[k]=f());
   /* ── (v528) 섬 = 매끈한 땅 한 판 (사용자: "꼭 6각형 타일로 한 이유는?" → 판처럼 보여서 매끈한 땅 + 네모 땅 칸) ── */
@@ -269,7 +270,7 @@ const ISLE=(()=>{
         [-1,1].forEach(sd=>{ const x=gx+px*W2*sd, z=gz+pz*W2*sd; prim(geo_("gpost",()=>new THREE.CylinderGeometry(.13,.15,2.8,10)), 0xfffdf7, x,1.4,z); prim(geo_("gball",()=>new THREE.SphereGeometry(.2,10,8)), 0xffd23f, x,2.9,z); cols.push([x+OX,z+OZ,.3]); busy.push([x,z,.9]); });
         prim(geo_("gbeam",()=>new THREE.BoxGeometry(5.5,.26,.26)), 0xc94545, gx,2.62,gz,{ry:Math.atan2(-pz,px)});
         const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(Z.nm, "#"+new THREE.Color(Z.c).lerp(new THREE.Color(0xffffff),.35).getHexString(), 512), depthWrite:false})); sp.scale.set(3.4,.85,1); sp.position.set(gx+OX,3.25,gz+OZ); sp.renderOrder=2; G.add(sp); SIGNS.push(sp); } });
-      if(ZL.length){ const zm=vcMerge(ZL, new THREE.MeshStandardMaterial({vertexColors:true, roughness:.95})); zm.castShadow=false; zm.position.set(OX,.005,OZ); G.add(zm); } }
+      if(ZL.length){ const zm=vcMerge(ZL, new THREE.MeshStandardMaterial({vertexColors:true, roughness:.95, polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-2}));   /* (v572) 구역 바닥색이 땅과 겹쳐 줄무늬 */ zm.castShadow=false; zm.position.set(OX,.005,OZ); G.add(zm); } }
     /* 🎓 캠퍼스 마당 (학교·도서관·박물관이 봄) */
     if(Sx.campus){ disc(Sx.campus[0],Sx.campus[1],5.6,STONE); roadP([MAP.roads.school.p[MAP.roads.school.p.length-1], Sx.campus], 2.2, ROAD, ROADE); }
     // 길
@@ -338,9 +339,18 @@ const ISLE=(()=>{
     { const [fx,fz]=Sx.camp; for(let i=0;i<4;i++){ const a=i/4*6.283+.4; const lg=mesh(new THREE.CylinderGeometry(.16,.16,.85,8), 0xa06a3c, fx+Math.cos(a)*1.1,.16,fz+Math.sin(a)*1.1); lg.rotation.z=Math.PI/2; lg.rotation.y=-a; }
       const f1=mesh(new THREE.ConeGeometry(.24,.6,8), 0xffa53a, fx,.32,fz,{basic:1,nocast:1}), f2=mesh(new THREE.ConeGeometry(.13,.42,8), 0xffe27a, fx,.3,fz,{basic:1,nocast:1}); G.userData.fire=[f1,f2]; cols.push([fx+OX,fz+OZ,.45]); SPOT.camp=[fx+OX,.9,fz+OZ]; busy.push([fx,fz,1.8]); }
     // 🎣 숲속 호수 — 부두 (서쪽 물가에서 물로)
-    { const [dx,dz]=Sx.dock, B=new THREE.Group(); B.position.set(dx+OX,0,dz+OZ); for(let i=0;i<9;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(.45,.11,1.55), MC(i%2?0xb07a4a:0x9a6a40)); pl.position.set(i*.47,-.02,0); pl.receiveShadow=true; B.add(pl); }
-      [[0,-.8],[0,.8],[3.7,-.8],[3.7,.8]].forEach(([x,z])=>{ const po=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.9,6), MC(0x7a4f2c)); po.position.set(x,-.15,z); B.add(po); }); G.add(B); G.userData.dock=B;
-      bridges.push([dx-.4+OX,dz+OZ,dx+3.8+OX,dz+OZ,.7]); SPOT.lake=[dx+2.4+OX,.6,dz+OZ]; busy.push([dx+1.4,dz,1.6]); }
+    /* (v572) 사용자: 「나무판자 쪽에 캐릭터가 가라앉는 경우 · 낚시터 나무 안 예뻐」 — 판 윗면 = 땅 높이(0) · 넓게(1.8) · 아래 받침 · 기둥+밧줄 난간 · 끝에 등불 · 양동이 · 구명 튜브 */
+    { const [dx,dz]=Sx.dock, B=new THREE.Group(); B.position.set(dx+OX,0,dz+OZ); const P_=(geo,c,x,y,z,o)=>{ const m=new THREE.Mesh(geo, o&&o.basic?new THREE.MeshBasicMaterial({color:LIN(c)}):MC(c)); m.position.set(x,y,z); m.castShadow=!(o&&o.flat); m.receiveShadow=true; B.add(m); return m; };
+      const PL=[0xc48a58,0xb07a4a,0xd09a66,0xb98252]; for(let i=0;i<9;i++){ P_(new THREE.BoxGeometry(.44,.1,1.8),PL[i%4],i*.47,-.05,0,{flat:1}); P_(new THREE.BoxGeometry(.03,.012,1.8),0x8a5a34,i*.47+.235,.002,0,{flat:1}); }
+      [-.78,.78].forEach(z=>P_(new THREE.BoxGeometry(4.3,.14,.14),0x7a4f2c,1.88,-.17,z));
+      [0,1.88,3.76].forEach(x=>[-.86,.86].forEach(z=>{ P_(new THREE.CylinderGeometry(.09,.1,1.15,8),0x8a5a34,x,-.15,z); P_(new THREE.SphereGeometry(.1,8,6),0x9a6a40,x,.45,z); }));
+      [-.86,.86].forEach(z=>[[0,1.88],[1.88,3.76]].forEach(([a,b])=>{ const r=P_(new THREE.CylinderGeometry(.025,.025,b-a,6),0xe8d2a6,(a+b)/2,.32,z); r.rotation.z=Math.PI/2; }));
+      { const r=P_(new THREE.CylinderGeometry(.025,.025,1.72,6),0xe8d2a6,3.76,.32,0); r.rotation.x=Math.PI/2; }
+      P_(new THREE.CylinderGeometry(.04,.04,1.3,6),0x3b2433,3.6,.65,.62); P_(new THREE.BoxGeometry(.2,.26,.2),0x3b2433,3.6,1.38,.62); P_(new THREE.BoxGeometry(.14,.18,.14),0xffd56a,3.6,1.38,.62,{basic:1});
+      P_(new THREE.CylinderGeometry(.16,.13,.26,10),0x5aa7ff,.9,.13,-.55); P_(new THREE.TorusGeometry(.16,.015,6,12),0x3b2433,.9,.27,-.55).rotation.x=Math.PI/2;
+      { const t=P_(new THREE.TorusGeometry(.24,.08,8,16),0xff6b6b,1.88,.22,-.93); t.rotation.y=Math.PI/2; }
+      G.add(B); G.userData.dock=B;
+      bridges.push([dx-.4+OX,dz+OZ,dx+3.8+OX,dz+OZ,.8]); SPOT.lake=[dx+2.4+OX,.6,dz+OZ]; busy.push([dx+1.4,dz,1.6]); }
     for(let i=0;i<12;i++){ const a=rnd()*6.28, r=Math.sqrt(rnd())*.82; kk("isle",rnd()<.5?"waterlily_A":"waterlily_B",LK[0]+Math.cos(a)*LK[2]*r,LK[1]+Math.sin(a)*LK[3]*r,{s:.8,y:-.36,chunk:"m",cast:false}); }
     // 🌾 풍차 밭 (→ 내 마당)
     { const [fx,fz]=Sx.farm; disc(fx+3.2,fz+4.6,1.6,PATH);
