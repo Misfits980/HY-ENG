@@ -12,7 +12,7 @@ async def main():
             info=await E("()=>[document.getElementById('ppInfo').textContent, document.querySelectorAll('#ppWrap .pp').length, document.getElementById('ppRep').value, document.getElementById('ppTr').checked, getComputedStyle(document.getElementById('ppTy')).display]")
             print(st, md, info)
             await E("()=>{ document.getElementById('ppWrap').style.zoom=1; }")
-            await pg.locator("#ppWrap .pp").first.screenshot(path=f"/tmp/claude-0/hs/kj_{st}_{md}.png")
+            await pg.locator("#ppWrap .pp").first.screenshot(path=f"/tmp/claude-0/kj579_{st}_{md}.png")
         # mode switch back to test
         await E("()=>document.querySelector('#ppMd [data-v=test]').click()"); await pg.wait_for_timeout(800)
         print("test", await E("()=>[document.querySelectorAll('#ppWrap .ppQ').length, getComputedStyle(document.getElementById('ppTy')).display, document.getElementById('ppNL').textContent]"))
@@ -24,5 +24,5 @@ async def main():
         # phone bar
         br=await p.chromium.launch(); pg=await br.new_page(viewport={"width":390,"height":844}, device_scale_factor=2); await boot(pg)
         await pg.evaluate("()=>Paper.open({set:'basic', mode:'kw'})"); await pg.wait_for_timeout(1800)
-        await pg.screenshot(path="/tmp/claude-0/hs/kj_phone.png"); await br.close()
+        await pg.screenshot(path="/tmp/claude-0/kj579_phone.png"); await br.close()
 asyncio.run(main())
