@@ -2937,6 +2937,23 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppShot{position:fixed;left:0;top:0;z-index:-1;pointer-events:none;zoom:1!important}
 .ppNew,.ppGo{appearance:none;border:0;border-radius:10px;padding:7px 14px;font:800 14px var(--font);cursor:pointer;background:#4a4080;color:#fff} .ppGo{background:#ffd23f;color:#3a2600;margin-left:auto}
 #ppInfo{display:block;width:100%;color:#cfc6ff;font-size:12px}
+/* (v580) ✏️ 깜지 */
+.adPpBtns{display:flex;gap:8px;flex-wrap:wrap} .adPpBtns .adGo{flex:1 1 140px} .adPpBtns .adGo.kj{background:linear-gradient(180deg,#7be0a8,#3fb879);color:#0f3a22}
+.ppMd{display:flex;gap:4px;background:#2d2650;border:1px solid #6a5f9a;border-radius:12px;padding:3px} .ppMd button{appearance:none;border:0;background:none;color:#d8d0ff;font:800 13px var(--font);padding:6px 10px;border-radius:9px;cursor:pointer;white-space:nowrap} .ppMd button.on{background:#ffd23f;color:#3a2600}
+.ppKjO{display:none!important} #paper.ppKj .ppKjO{display:flex!important} #paper.ppKj .ppTy,#paper.ppKj .ppOpt .ppChk:not(.ppKjO){display:none!important}
+.kjBody{flex:1;min-height:0;overflow:hidden}
+.kjB{display:grid;grid-template-columns:7mm 36mm 1fr;gap:0 3mm;align-items:center;padding:2.2mm 0;border-bottom:.25mm solid #e2e0ea;break-inside:avoid}
+.kjB.s{grid-template-columns:7mm 1fr;align-items:start}
+.kjNo{font-size:10.5pt;font-weight:900;color:#1d1b26;align-self:start;padding-top:1mm}
+.kjW b{display:block;font-size:13pt;font-weight:900;line-height:1.2;word-break:break-word} .kjW small{display:block;font-size:9pt;color:#555;line-height:1.3}
+.kjS{display:flex;flex-wrap:wrap;gap:1.5mm 2.5mm}
+.kjSl,.kjLn{position:relative;display:block;height:10mm;border-bottom:.35mm solid #333;font-style:normal}
+.kjSl::before,.kjLn::before{content:"";position:absolute;left:0;right:0;top:1.6mm;border-top:.2mm dotted #b9b6c6}
+.kjSl::after,.kjLn::after{content:"";position:absolute;left:0;right:0;top:5.2mm;border-top:.2mm dashed #cfccda}
+.kjT{position:absolute;left:1.2mm;right:1mm;bottom:.7mm;font-size:15pt;line-height:1;color:#c3c0cf;white-space:nowrap;overflow:hidden;font-weight:600;letter-spacing:.02em;z-index:1}
+.kjSt p{margin:0;font-size:11.5pt;font-weight:700;line-height:1.35} .kjSt small{display:block;font-size:9pt;color:#555;margin:.3mm 0 .6mm}
+.kjLn{width:100%;height:10.5mm} .kjLn.tr .kjT{font-size:14pt}
+.pp.kj.big .kjLn{height:8.5mm} .pp.kj.big .kjLn::before{display:none} .pp.kj.big .kjLn::after{top:3.6mm} .pp.kj.big .kjSl{height:9mm} .pp.kj.big .kjSl::before{display:none} .pp.kj.big .kjSl::after{top:3.8mm} .pp.kj.big .kjB{padding:1.8mm 0}   /* 5-6·중등 = 글씨가 작아 줄 간격 좁게 · 위 점선 없음 */
 .ppView{flex:1;overflow:auto;padding:12px;-webkit-overflow-scrolling:touch} .ppWrap{margin:0 auto;width:210mm}
 .pp{position:relative;width:210mm;height:297mm;box-sizing:border-box;padding:12mm 12mm 14mm;margin:0 auto 12px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden;color:#1d1b26}
 .ppHd{display:grid;grid-template-columns:1fr auto;gap:4mm 6mm;align-items:center;border-bottom:2.5px solid #1d1b26;padding-bottom:3mm;margin-bottom:3mm}
@@ -16287,7 +16304,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v579";
+const GAME_VER = "v580";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -21695,10 +21712,12 @@ const Paper = {
   /* ── 창 ── */
   open(o){ this.close(); o=o||{}; const P=this.pref(), E=x=>this.E(x), sets=HyExam.sets(), set=o.set && sets.indexOf(o.set)>=0 ? o.set : (P.set && sets.indexOf(P.set)>=0 ? P.set : sets[0]);
     const d=document.createElement("div"); d.id="paper";
-    d.innerHTML='<div class="ppBar"><button class="ppX" data-pp="x" aria-label="닫기">✕</button><b>🖨 시험지 만들기</b>'
+    d.innerHTML='<div class="ppBar"><button class="ppX" data-pp="x" aria-label="닫기">✕</button><b>🖨 시험지 · 깜지</b>'
+      +'<div class="ppMd" id="ppMd">'+[["test","📝 시험지"],["kw","✏️ 단어 깜지"],["ks","✏️ 문장 깜지"]].map(m=>'<button data-pp="md" data-v="'+m[0]+'"'+(m[0]===(this.mode=o.mode||P.mode||"test")?' class="on"':'')+'>'+m[1]+'</button>').join('')+'</div>'
       +'<label>책<select id="ppSet">'+sets.map(s=>'<option value="'+s+'"'+(s===set?' selected':'')+'>'+E(Study.label(s))+'</option>').join('')+'</select></label>'
       +'<label>Stage<select id="ppFrom"></select>~<select id="ppTo"></select></label>'
-      +'<label>문제<select id="ppN">'+[20,25,30,40,50].map(n=>'<option'+(n===(P.n||30)?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'
+      +'<label><span id="ppNL">문제</span><select id="ppN">'+[20,25,30,40,50].map(n=>'<option'+(n===(P.n||30)?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'
+      +'<label class="ppKjO">번씩<select id="ppRep"></select></label><label class="ppChk ppKjO"><input type="checkbox" id="ppTr">흐린 글씨 따라 쓰기</label>'
       +'<label>제목<input id="ppTitle" maxlength="30" placeholder="(비우면 자동)" value="'+E(o.title||"")+'"></label>'
       +'<div class="ppTy" id="ppTy"></div>'
       +'<div class="ppOpt"><label class="ppChk"><input type="checkbox" id="ppAB"'+(P.ab!==false?' checked':'')+'>A형·B형</label><label class="ppChk"><input type="checkbox" id="ppKey"'+(P.key!==false?' checked':'')+'>답안지</label>'
@@ -21709,25 +21728,26 @@ const Paper = {
       $("ppFrom").innerHTML=opt; $("ppTo").innerHTML=opt; const f=keep && o.from!=null ? o.from : 0, t=keep && o.to!=null ? o.to : Math.min(L.length-1, f+2); $("ppFrom").value=f; $("ppTo").value=t; };
     const tys=()=>{ const s=$("ppSet").value, g=this.gr(s), P0=this.pref(), on=(P0.tyG||{})[g] || this.DEF[g] || this.DEF.g34;   /* 학년마다 고른 형식 기억 */
       $("ppTy").innerHTML=this.ORD.filter(k=>this.vis(k, s)).map(k=>'<label class="ppChk'+(this.T[k][2]===2?' gr':'')+'"><input type="checkbox" value="'+k+'"'+(on.indexOf(k)>=0?' checked':'')+'>'+this.T[k][1]+'</label>').join(''); };
-    fill(!!o.set); tys();
+    fill(!!o.set); tys(); this.kjUi(true);
     this.seed=(Date.now()%100000)|0;
-    d.addEventListener("change", e=>{ if(e.target.id==="ppSet"){ fill(false); tys(); } if(e.target.id==="ppFrom" && +$("ppTo").value < +$("ppFrom").value) $("ppTo").value=$("ppFrom").value; this.make(); });
+    d.addEventListener("change", e=>{ if(e.target.id==="ppSet"){ fill(false); tys(); this.kjUi(true); } if(e.target.id==="ppFrom" && +$("ppTo").value < +$("ppFrom").value) $("ppTo").value=$("ppFrom").value; this.make(); });
     d.addEventListener("input", e=>{ if(e.target.id==="ppTitle"){ clearTimeout(this._ti); this._ti=setTimeout(()=>this.make(), 400); } });
     d.addEventListener("click", e=>{ const q=e.target.closest && e.target.closest(".ppQ[data-src]");
       if(q && !(e.target.closest("[data-pp]"))){ d.querySelectorAll(".ppQ.sel").forEach(x=>x.classList.remove("sel")); const old=d.querySelector(".ppSwap"); if(old) old.remove();
         q.classList.add("sel"); q.insertAdjacentHTML("beforeend", '<button class="ppSwap" data-pp="swap" data-src="'+q.dataset.src+'">🔄 이 문제 바꾸기</button>'); return; }
       const b=e.target.closest && e.target.closest("[data-pp]"); if(!b) return; const a=b.dataset.pp;
       if(a==="swap"){ const [si,qi]=String(b.dataset.src).split(":").map(Number); if(this.B && this.B.swap(si, qi)) this.render(); else hyToast("바꿀 단어가 더 없어요 (범위를 넓혀 보세요)", 1800); return; }
-      if(a==="x") this.close(); else if(a==="new"){ this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print"){ if(this.pdfMode()) this.pdf(); else this.print(); } else if(a==="pdfShare") this.pdfShare(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); } });
+      if(a==="md"){ this.mode=b.dataset.v; d.querySelectorAll("#ppMd button").forEach(x=>x.classList.toggle("on", x===b)); this.kjUi(true); this._kjMix=false; this.make(); return; }
+      if(a==="x") this.close(); else if(a==="new"){ this._kjMix=true; this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print"){ if(this.pdfMode()) this.pdf(); else this.print(); } else if(a==="pdfShare") this.pdfShare(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); } });
     this._rs=()=>this.fit(); addEventListener("resize", this._rs);
     try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}   /* 예문·대화 데이터 (처음이면 받는 동안 기다렸다가 다시) */
     if(!this.PPX) fetch("data/ppx.json").then(r=>r.json()).then(j=>{ this.PPX=j; if($("paper")) this.make(); }).catch(()=>{});   /* (v545) 과거분사 예문 (Claude 작성) */
-    try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ if($("paper") && this.B) this.render(); }); }catch(e){}   /* (v577) 글꼴을 늦게 받으면 쪽 나누기를 다시 */
+    try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ if(!$("paper")) return; if(this.mode==="kw" || this.mode==="ks"){ if(this.c) this.kjRender(); } else if(this.B) this.render(); }); }catch(e){}   /* (v577) 글꼴을 늦게 받으면 쪽 나누기를 다시 */
     this.make(); clearTimeout(this._lt); let tries=0; const again=()=>{ if(!$("paper")) return; const ok=Object.keys(TALK).length && Object.keys(BEX).length; this.make(); if(!ok && ++tries<6) this._lt=setTimeout(again, 800); }; this._lt=setTimeout(again, 700); },
   close(){ const d=$("paper"); if(d) d.remove(); document.body.classList.remove("ppOn"); if(this._rs) removeEventListener("resize", this._rs); this._rs=null; },
   cfg(){ const set=$("ppSet").value, f=+$("ppFrom").value||0, t=Math.max(f, +$("ppTo").value||0), ty=[...document.querySelectorAll("#paper .ppTy input:checked")].map(x=>x.value);
-    const c={set, from:f, to:t, n:+$("ppN").value||30, ty: ty.length ? ty : ["mean"], ab:$("ppAB").checked, key:$("ppKey").checked, title:$("ppTitle").value.trim()};
-    try{ const P0=this.pref(), tyG=P0.tyG||{}; tyG[this.gr(set)]=c.ty; localStorage.setItem("hyeng_paper", JSON.stringify({set, n:c.n, tyG, ab:c.ab, key:c.key})); }catch(e){} return c; },
+    const c={set, from:f, to:t, n:+$("ppN").value||30, ty: ty.length ? ty : ["mean"], ab:$("ppAB").checked, key:$("ppKey").checked, title:$("ppTitle").value.trim(), rep:+(($("ppRep")||{}).value)||5, tr:!!(($("ppTr")||{}).checked)};
+    try{ const P0=this.pref(), tyG=P0.tyG||{}; tyG[this.gr(set)]=c.ty; localStorage.setItem("hyeng_paper", JSON.stringify({set, n:c.n, tyG, ab:c.ab, key:c.key, mode:this.mode||"test", rep:Object.assign({}, P0.rep||{}, this.mode && this.mode!=="test" ? {[this.mode]:c.rep} : {}), tr:Object.assign({}, P0.tr||{}, this.mode && this.mode!=="test" ? {[this.gr(set)]:c.tr} : {})})); }catch(e){} return c; },
   /* ── 문제 만들기 (단어 하나 = 문제 하나 · 같은 단어가 두 번 안 나옴) ── */
   build(c){ Study.ctx(c.set); const L=Study.lessons(c.set).slice(c.from, c.to+1), seen={}, ws=[];
     L.forEach(x=>(x.ws||[]).forEach(w=>{ if(w && w.en && w.ko && !seen[w.en]){ seen[w.en]=1; ws.push(w); } }));
@@ -21842,7 +21862,41 @@ const Paper = {
         if(this.T[s.k][2]===2){ const a = q.wr || q.vt || q.at ? E(q.key) : this.NUM[q.a]+(q.noOpt?' '+E(q.ans):''); return '<span class="g'+(q.why && !q.vt?' w':'')+'"><i>'+(no++)+'</i>'+a+(q.why?'<small>'+E(q.why)+'</small>':'')+'</span>'; }
         const a = q.opts ? this.NUM[q.a] : s.k==="wko" ? E(q.w.ko) : E(dispEn(q.w.en)); return '<span><i>'+(no++)+'</i>'+a+'</span>'; }).join('')+'</div>').join('')+'</div>'; }).join('')+'</div>';
     W.appendChild(p); },
-  make(){ const c=this.cfg(); this.B=this.build(c); this.c=c; this.render(); },
+  make(){ const c=this.cfg(); if(this.mode==="kw" || this.mode==="ks"){ this.B=null; this.c=c; this.kjRender(); return; } this.B=this.build(c); this.c=c; this.render(); },
+  /* ══ (v580) ✏️ 깜지 — 사용자: 「깜지 쓰는 거랑 문장 깜지 기능도」
+     단어 깜지 = 영어 단어 + 뜻 → 영어 줄(위·가운데·아래 줄) 칸에 N 번 쓰기 · 문장 깜지 = 예문 + 해석 → 줄에 N 번 베껴 쓰기
+     초1-2·3-4 는 첫 칸에 흐린 글씨(따라 쓰기) · 범위 순서대로(🔀 누르면 섞기) · 같은 A4 · 인쇄·PDF 그대로 */
+  KJ_REP:{kw:[3,5,8,10], ks:[1,2,3,5]}, KJ_DEF:{kw:5, ks:2},
+  kjUi(reset){ const d=$("paper"); if(!d) return; const kj=this.mode==="kw" || this.mode==="ks"; d.classList.toggle("ppKj", kj); $("ppNL").textContent = kj ? "단어" : "문제";
+    if(!kj) return; const P=this.pref(), m=this.mode, L=this.KJ_REP[m], cur=+((P.rep||{})[m])||this.KJ_DEF[m], sel=$("ppRep"), g=this.gr($("ppSet").value), tr=(P.tr||{})[g];
+    if(reset || !sel.options.length){ sel.innerHTML=L.map(n=>'<option'+(n===cur?' selected':'')+'>'+n+'</option>').join(''); if(L.indexOf(cur)<0) sel.value=String(this.KJ_DEF[m]); $("ppTr").checked = tr!=null ? !!tr : (g==="g12" || g==="g34"); } },
+  kjWords(c){ Study.ctx(c.set); const L=Study.lessons(c.set).slice(c.from, c.to+1), seen={}, ws=[];
+    L.forEach(x=>(x.ws||[]).forEach(w=>{ if(w && w.en && w.ko && !seen[w.en]){ seen[w.en]=1; ws.push(w); } }));
+    return this._kjMix ? this.sh(ws, this.rnd(this.seed)) : ws; },
+  kjSent(w){ let st=null; try{ st=Study.sentOf(w); }catch(e){} if(!st) return null; const full=(st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post).replace(/\s+/g," ").trim();
+    return full.length>=6 && full.length<=110 ? {en:full, ko:st.ko||"", w:w.en} : null; },
+  kjRender(){ const W=$("ppWrap"); if(!W) return; const c=this.c, I=$("ppInfo"), top=W.parentNode.scrollTop, E=x=>this.E(x), m=this.mode, ks=m==="ks"; W.innerHTML=""; W.style.zoom="";
+    const all=this.kjWords(c); let items=[], miss=0;
+    if(ks){ for(const w of all){ if(items.length>=c.n) break; const x=this.kjSent(w); if(x) items.push(x); else miss++; } } else items=all.slice(0, c.n).map(w=>({en:dispEn(w.en), ko:w.ko}));
+    if(!items.length){ I.textContent = ks ? "이 범위엔 예문이 있는 단어가 없어요" : "범위에 단어가 없어요"; return; }
+    const ttl=c.title || (Study.label(c.set)+(ks?" 문장 깜지":" 단어 깜지")), rep=c.rep, tr=c.tr, pages=[], young=/^g(12|34)$/.test(this.gr(c.set)); let body=null;
+    const newPage=first=>{ const pg=document.createElement("section"); pg.className="pp kj"+(young?"":" big");
+      pg.innerHTML=(first ? '<header class="ppHd"><div class="ppHdT"><b>✏️ '+E(ttl)+'</b><small>'+E(this.rng(c))+' · '+items.length+(ks?'문장':'단어')+' · '+rep+'번씩</small></div><div class="ppHdF"><span>반 <i></i></span><span>이름 <i class="w"></i></span><span>날짜 <i></i></span></div></header>'
+        : '<header class="ppHd sm"><b>✏️ '+E(ttl)+'</b></header>')+'<div class="kjBody"></div><footer class="ppFt"></footer>'; W.appendChild(pg); pages.push(pg); body=pg.querySelector(".kjBody"); };
+    const add=html=>{ const t=document.createElement("div"); t.innerHTML=html; const el=t.firstChild; body.appendChild(el);
+      if(body.scrollHeight>body.clientHeight+1 && body.children.length>1){ el.remove(); newPage(false); body.appendChild(el); } return el; };
+    const fitTx=el=>{ el.querySelectorAll(".kjT").forEach(t=>{ let f=parseFloat(getComputedStyle(t).fontSize)||16, k=0; while(t.scrollWidth>t.clientWidth+1 && k++<12){ f*=0.92; t.style.fontSize=f+"px"; } }); };
+    newPage(true);
+    items.forEach((x,i)=>{ const no='<b class="kjNo">'+(i+1)+'</b>';
+      if(!ks){ const AW=137, G=2.5, wmin=Math.max(22, Math.min(AW, x.en.length*(young?3.4:2.3)+(young?6:5))); let per=Math.max(1, Math.min(rep, Math.floor((AW+G)/(wmin+G)))); const lines=Math.ceil(rep/per); per=Math.ceil(rep/lines);   /* 한 줄에 고르게 (마지막 칸 하나만 다음 줄로 안 떨어지게) */
+        const wmm=((AW-(per-1)*G)/per).toFixed(1), slots=[]; for(let k=0;k<rep;k++) slots.push('<i class="kjSl" style="width:'+wmm+'mm">'+(k===0 && tr ? '<span class="kjT">'+E(x.en)+'</span>' : '')+'</i>');
+        fitTx(add('<div class="kjB">'+no+'<div class="kjW"><b>'+E(x.en)+'</b><small>'+E(x.ko)+'</small></div><div class="kjS">'+slots.join('')+'</div></div>')); return; }
+      const two=x.en.length>(young?56:84), ln=[]; if(tr) ln.push('<i class="kjLn tr"><span class="kjT">'+E(x.en)+'</span></i>'); for(let k=0;k<rep*(two?2:1);k++) ln.push('<i class="kjLn"></i>');
+      fitTx(add('<div class="kjB s">'+no+'<div class="kjSt"><p>'+E(x.en)+'</p><small>'+E(x.ko)+'</small>'+ln.join('')+'</div></div>')); });
+    pages.forEach((p,i)=>{ p.querySelector(".ppFt").textContent=(i+1)+" / "+pages.length; });
+    W.parentNode.scrollTop=top;
+    I.textContent="✏️ "+(ks?"문장 깜지":"단어 깜지")+" · "+items.length+(ks?"문장":"단어")+" × "+rep+"번 · "+pages.length+"쪽"+(ks && miss ? " · 예문이 없는 단어 "+miss+"개는 뺐어요" : "")+(all.length>items.length && !ks ? " · 범위 단어 "+all.length+"개 중 앞 "+items.length+"개 (🔀 = 섞어서)" : "")+(this._kjMix?" · 🔀 섞음":" · 범위 순서대로");
+    this.fit(); },
   render(){ const W=$("ppWrap"); if(!W) return; const c=this.c, B=this.B, I=$("ppInfo"), top=W.parentNode.scrollTop; W.innerHTML="";
     W.style.zoom="";   /* (v577) 사용자 사진: 아이폰에서 만든 시험지 1쪽이 반만 차고 아래가 텅 빔 — 화면 맞춤(zoom)을 건 채로 「넘치나?」를 재면 사파리는 높이를 줄여서 알려 줘서 일찍 다음 쪽으로 넘김 → 쪽 나누기는 zoom 없이 재고 끝나면 다시 맞춤 */
     if(B.nw<4){ I.textContent="범위에 단어가 너무 적어요 (4개 이상)"; return; }
@@ -21995,7 +22049,7 @@ const HyExam = {
       +'<div class="adPinRow"><label class="adL">제목</label><input id="adExT" maxlength="30" placeholder="(비우면 자동 — 예: 중등 단어 1~3 시험)"></div>'
       +'<p class="adSmall" id="adExInfo"></p>'
       +'<button class="play adGo" data-ad="exOpen">📝 시험 열기</button></section>';
-    h+='<section class="adCard"><h3>🖨 시험지 (종이) 만들기<small>책·Stage·문제 수·형식을 골라 A4 로 — 인쇄하거나 PDF 로 저장 · A형·B형 · 답안지</small></h3><button class="play adGo" data-ad="paper">🖨 시험지 만들기</button></section>';
+    h+='<section class="adCard"><h3>🖨 시험지 · ✏️ 깜지 (종이) 만들기<small>책·Stage·문제 수·형식을 골라 A4 로 — 인쇄하거나 PDF 로 저장 · A형·B형 · 답안지 · 단어 깜지 · 문장 깜지</small></h3><div class="adPpBtns"><button class="play adGo" data-ad="paper">🖨 시험지 만들기</button><button class="play adGo kj" data-ad="paperKj">✏️ 깜지 만들기</button></div></section>';
     h+='<section class="adCard"><h3>📚 지난 시험<small>눌러서 결과 보기</small></h3><div id="adExHist" class="exHist"><p class="adSmall">불러오는 중…</p></div><div id="adExRes" class="exRes"></div></section>';
     return h; },
   timeTbl(P){ return P==="hj" ? "A 7초 · B 12초 · C 15초" : (P==="ps"||P==="st") ? "A 7초 · B 8초 · C 11초" : "A 7초 · B 10초 · C 12초"; },
@@ -22017,7 +22071,7 @@ const HyExam = {
     return v==="1" ? Date.now()+3600e3 : v==="7" ? Date.now()+7*864e5 : v==="mn" ? at22(1) : (at22(0)>Date.now()+15*60e3 ? at22(0) : at22(1)); },
   byId(id){ return this.L.find(c=>c.id===id) || null; },
   act(a, el, msg, redraw){
-    if(a==="paper"){ let o={}; try{ const s=$("adExSet"); if(s) o={set:s.value, from:+$("adExFrom").value||0, to:+$("adExTo").value||0}; }catch(e){} Paper.open(o); return true; }   /* (v541) 🖨 시험지 */
+    if(a==="paper" || a==="paperKj"){ let o={}; try{ const s=$("adExSet"); if(s) o={set:s.value, from:+$("adExFrom").value||0, to:+$("adExTo").value||0}; }catch(e){} o.mode = a==="paperKj" ? "kw" : "test"; Paper.open(o); return true; }   /* (v580) ✏️ 깜지 */   /* (v541) 🖨 시험지 */
     if(a==="exOpen"){ const f=this.form(); if(!f) return true;
       let n=f.n; if(f.rng!=="mine"){ const all=Study.examWords(Object.assign({}, f, {n:0})).length; if(all<4) return msg("범위에 단어가 너무 적어요 (4개 이상)", false), true; n=Math.min(all, f.n||all); } else n=f.n||100;
       if(this.L.some(c=>(c.team||"all")===f.team) && !confirm("「"+this.tName(f.team)+"」에 열린 시험이 벌써 있어요. 하나 더 열까요?")) return true;
