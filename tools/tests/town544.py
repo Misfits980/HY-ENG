@@ -56,6 +56,8 @@ async def main():
         await A.evaluate("()=>{ const S=ISLE.SPOT.shops.find(s=>s.k==='snack'); TFAC.warp(S.door[0]+3, S.door[1]+3); LBL.find(l=>l.d.k==='snack').d.act(); }")
         ok(await until(A, "()=>document.getElementById('tfSn') && document.getElementById('tfSn').classList.contains('on')", 200), "① 🍦 상점가 이름표 → 걸어가서 간식 가게 창")
         await A.evaluate("()=>document.getElementById('tfSn').classList.remove('on')")
+        if await A.evaluate("()=>!!window.SHOPIN && SHOPIN.is()"):   # (v572) 가게 안 → 🚪 나가기 로 섬에 돌아옴
+            await A.evaluate("()=>SHOPIN.exit()"); ok(await until(A, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy && !HOUSE.hero().slide", 80), "① (v572) 🍦 가게 안 → 나가기 → 🏝")
         # ② 목표
         await A.evaluate("()=>{ const S=JSON.parse(localStorage.getItem('hyeng_study_v1')); ['red','blue','green','pink','sky'].forEach(w=>S.srs[w]=[1,0]); S.days.tot+=1; localStorage.setItem('hyeng_study_v1', JSON.stringify(S)); }")
         await A.evaluate("()=>TFAC.loadGoal()")
