@@ -95,14 +95,14 @@ async def main():
         ok(await pg.evaluate("()=>HOUSE.mkt('crab',123456)===HOUSE.mkt('crab',123456)"), "같은 시간 = 같은 값 (모든 기기)")
         f0=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])"); await pg.evaluate("()=>HOUSE.ffwd(30)"); f1=await pg.evaluate("()=>HOUSE.fresh(HOUSE.bag()[0])")
         ok(f1<f0, f"시간이 지나면 신선도 내려감 {f0}→{f1:.2f}")
-        await pg.evaluate("()=>HOUSE.goShop()"); ok(await until("()=>document.getElementById('shopP').classList.contains('on')"), "🏪 → 가게까지 걸어가 열림")
+        await pg.evaluate("()=>HOUSE.goShop()"); ok(await until("()=>SHOPUI.isOn() && SHOPUI.kind()==='fish'"), "🏪 → 가게까지 걸어가 열림 (v584 🧺 계산대)")
         g0=await pg.evaluate("()=>TECO.coins()"); v=await pg.evaluate("()=>HOUSE.price(HOUSE.bag()[0])")
-        await pg.click('#shopBag [data-sell="0"]'); await pg.wait_for_timeout(200)
+        await pg.evaluate("()=>{ const en=HOUSE.bag()[0].en; SHOPUI.pick(en,1); SHOPUI.go(); }"); await pg.wait_for_timeout(200)   # (v584) 바구니에 하나 → 팔기
         ok(await pg.evaluate("()=>TECO.coins()")==g0+v and await pg.evaluate("()=>HOUSE.bag().length")==2, f"sell → 🪙 +{v} (v563)")
-        await pg.click("#sellAll"); await pg.wait_for_timeout(200)
+        await pg.evaluate("()=>{ document.querySelector('#suP [data-all]').click(); SHOPUI.go(); }"); await pg.wait_for_timeout(200)   # (v584) 다 담기 → 팔기
         ok(await pg.evaluate("()=>HOUSE.bag().length")==0 and await pg.evaluate("()=>localStorage.getItem('hyeng_proto_gems')")==str(await pg.evaluate("()=>HOUSE.gems()")), "모두 팔기 · 보석 저장(게임 보석과 따로)")
         ok(await pg.evaluate("()=>!localStorage.getItem('hyeng_wallet_v1') || !(JSON.parse(localStorage.getItem('hyeng_wallet_v1')).log||[]).some(l=>/Fish|가게/.test(l[2]))"), "게임 지갑은 안 건드림")
-        await pg.click("#shopDone")
+        await pg.evaluate("()=>SHOPUI.close()")   # (v584)
         # ⑦ 🌱 농사 · 🪵 모으기 · 🛠 만들기 · 🍳 요리
         await pg.evaluate("()=>{ const m=HOUSE.mats(); Object.keys(m).forEach(k=>delete m[k]); Object.assign(m, {'carrot seeds':1,'pumpkin seeds':1, branch:4}); }")
         ok(await pg.evaluate("()=>HOUSE.plant(0,'carrot') && !HOUSE.plant(0,'pumpkin')"), "씨앗 심기 · 심은 밭엔 또 못 심음")

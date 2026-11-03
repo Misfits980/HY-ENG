@@ -260,7 +260,14 @@ const TFAC=(()=>{
   const foodV=n=>{ const s=SNACK.find(x=>x[0]===n); if(s) return s[3]; return MAT[n] && MAT[n].food ? (/pizza|cake|stew|pie/.test(n)?3:2) : 0; };
   function eat(n){ const v=foodV(n); if(!v || (mats[n]|0)<1) return false; addMat(n,-1); saveBag(); FULL={h:Math.min(5, full()+v), t:T()}; store("hyeng_proto_full", FULL);
     try{ say(n); emote(hero,"😋"); SND.pop(); tEv("eat"); }catch(e){} toast("😋 냠냠! "+MAT[n].e+" "+n+" · 🍗 +"+v+(full()>=4.5?"<br><small>⚡ 배불러서 빨리 달려요!</small>":""), 1800); updPill(); return true; }
-  function openSnack(){ const d=show("tfSn", hd("🍦 간식 가게", "영어로 주문해요 · 🪙 <b>"+TECO.coins()+"</b>")+'<div class="tfCard" style="text-align:left;display:flex;gap:10px;align-items:center"><span style="font-size:40px">🧑‍🍳</span><span><b style="font:800 18px var(--en)">"What would you like?"</b><br><small>먹고 싶은 걸 눌러요 — 영어 이름을 맞히면 주문 끝!</small></span></div>'
+  function openSnack(){ if(window.SHOPUI){ SHOPUI.open({kind:"snack", color:"#ff7aa8", keeper:{e:"🧑‍🍳", nm:"Sunny", en:"What would you like?", ko:"먹고 싶은 걸 담고 → 영어 이름을 맞히면 주문 끝!", thx:"Here you are!"},   /* (v584) 🧺 계산대 */
+      tools:'<span>🍗 배부름 '+heartTxt()+' · 배부르면 ⚡ 빨리 달리고, 배고프면 느려져요</span>',
+      tabs:[{k:"snack", t:"🍦 간식", mode:"buy", items:()=>SNACK.map(([n,e,p,h])=>({id:n, e, en:n, sub:"🍗 +"+h+" · 🎒 "+(mats[n]|0), price:p*5})),
+        act:B=>{ const tot=B.reduce((s,[n,q])=>s+SNACK.find(x=>x[0]===n)[2]*5*q,0); if(TECO.coins()<tot) return {n:0, msg:["Oh no, not enough coins!","🪙 가 모자라요"]};
+          const S=SNACK.find(x=>x[0]===B[0][0]); SHOPUI.close();
+          pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!TECO.pay2({g:0,c:tot})) return; let n=0; B.forEach(([m,q])=>{ addMat(m,q); n+=q; }); saveBag(); try{ say("Here you are"); }catch(_){} toast("🧑‍🍳 \"Here you are!\" "+B.map(([m,q])=>SNACK.find(x=>x[0]===m)[1]+(q>1?"×"+q:"")).join(" ")+" → 🎒", 1800); openSnack(); }, {ask:'🧑‍🍳 "What would you like?"<br><small>'+S[1]+' 이 간식은 영어로?</small>', n:3, retry:1});
+          return {n:0}; }}]}); return; }
+    const d=show("tfSn", hd("🍦 간식 가게", "영어로 주문해요 · 🪙 <b>"+TECO.coins()+"</b>")+'<div class="tfCard" style="text-align:left;display:flex;gap:10px;align-items:center"><span style="font-size:40px">🧑‍🍳</span><span><b style="font:800 18px var(--en)">"What would you like?"</b><br><small>먹고 싶은 걸 눌러요 — 영어 이름을 맞히면 주문 끝!</small></span></div>'
       +'<div class="hlList">'+SNACK.map(([n,e,p,h])=>'<button data-sn="'+esc(n)+'"><span style="font-size:30px">'+e+'</span><span><b style="font:800 16px var(--en)">'+esc(n)+'</b><br><small style="color:#8a6a4a">🍗 +'+h+' · 가방에 '+(mats[n]|0)+'</small></span><em>🪙 '+(p*5)+'</em></button>').join("")+'</div>'
       +'<p style="font-size:13px;color:#8a6a4a;margin:6px 4px">🍗 배부름 '+heartTxt()+' · 배부르면 ⚡ 빨리 달리고, 배고프면 느려져요 · 🍳 요리한 음식도 먹을 수 있어요</p>');
     try{ say("What would you like"); }catch(e){}

@@ -34,8 +34,8 @@ async def main():
         r=await pg.evaluate("()=>{ HOUSE.setGems(0); TECO.setCoin(0); const a=HOUSE.payout(25); const b=HOUSE.payout(10); const c=HOUSE.payout(8); return [a,b,c,TECO.coins(),HOUSE.gems()]; }")
         ok(r==[25,10,8,43,0], f"팔면 🪙 (한도 없음 · v563 경제 2.0) {r}")
         await pg.evaluate("()=>{ HOUSE.bag().push({en:'shark',at:Date.now()+3600e3*24}); HOUSE.openShop(); }"); await pg.wait_for_timeout(300)
-        ok("마을 은행" in await pg.evaluate("()=>document.getElementById('shopTop').innerText"), "가게 위 🪙 · 🏦 은행 · 🛠 강화")
-        await pg.click("#shopDone")
+        ok(await pg.evaluate("()=>{ const t=document.getElementById('suP').innerText; return /은행/.test(t) && /강화/.test(t) && /🪙/.test(t); }"), "가게 위 🪙 · 🏦 은행 · 🛠 강화 (v584 계산대)")
+        await pg.evaluate("()=>SHOPUI.close()")
         # ③ 🛒 가게 — 가구·벽지·늘리기
         await pg.evaluate("()=>{ HOUSE.setGems(500); TECO.setCoin(5000); HOUSE.go('room'); }"); await pg.wait_for_timeout(600)
         await pg.click("#bEdit"); await pg.wait_for_timeout(200); await pg.click("#bBuy"); await pg.wait_for_timeout(300)

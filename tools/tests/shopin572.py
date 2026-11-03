@@ -12,12 +12,12 @@ from harness import *
 from fakefb import fake
 from playwright.async_api import async_playwright
 
-SHEET={"fish":"()=>document.getElementById('shopP').classList.contains('on')",
+SHEET={"fish":"()=>SHOPUI.isOn() && SHOPUI.kind()==='fish'",   # (v584) 🧺 계산대
        "clothes":"()=>document.getElementById('avP').classList.contains('on') && /옷 가게/.test(document.getElementById('avTtl').textContent)",
        "hair":"()=>document.getElementById('avP').classList.contains('on') && /미용실/.test(document.getElementById('avTtl').textContent)",
-       "mart":"()=>!!document.getElementById('hlMt') && document.getElementById('hlMt').classList.contains('on')",
+       "mart":"()=>SHOPUI.isOn() && SHOPUI.kind()==='mart'",
        "furn":"()=>document.getElementById('furnP').classList.contains('on')",
-       "snack":"()=>!!document.getElementById('tfSn') && document.getElementById('tfSn').classList.contains('on')",
+       "snack":"()=>SHOPUI.isOn() && SHOPUI.kind()==='snack'",
        "pet":"()=>!!document.getElementById('tfPt') && document.getElementById('tfPt').classList.contains('on')",
        "photo":"()=>!!document.getElementById('tfPh') && document.getElementById('tfPh').classList.contains('on')"}
 DECO={"fish":["fish tank","net","life ring","barrel"],"clothes":["shirt","dress","mirror","shoes"],"mart":["apple","fridge","cart","watermelon"],

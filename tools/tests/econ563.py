@@ -110,10 +110,18 @@ async def main():
         r=await A.evaluate("()=>{ TECO.setCoin(100); store('hyeng_proto_thalf',0); const f1=TECO.trainFee(); const ok1=TECO.payTrain(); TECO.trainRight(); const f2=TECO.trainFee(); TECO.payTrain(); return [f1, ok1, f2, TECO.coins(), TECO.trainFee()]; }")
         ok(r==[10,True,5,85,10], f"④ 🎫 기차표 🪙10 · 맞히면 다음 반값 {r}")
         # 바로 가기
-        await A.evaluate("()=>{ TECO.setCoin(20); IHUD.goZone('park'); }"); await A.wait_for_timeout(300)
-        await A.click("#askT [data-gz=j]"); await A.wait_for_timeout(500)
-        r=await A.evaluate("()=>{ const Z=ISLE_MAP.zones.find(z=>z.k==='park'); const h=HOUSE.hero(); return [TECO.coins(), Math.hypot(h.cx-(Z.gate[0]+ISLE.OX), h.cz-(Z.gate[1]+ISLE.OZ))]; }")
-        ok(r[0]==15 and r[1]<10, f"④ 🗺 바로 가기 🪙5 → 놀이 공원 {r}")
+        # (v583) 사용자: 「기차 의미가 있을까 · 집이랑 광산은 하게」 → 🚀 바로 가기 = ⛏ 광산만 🪙5 (놀이 공원 등은 🚶/🚉)
+        await A.evaluate("()=>{ TECO.setCoin(20); IHUD.goZone('mine'); }"); await A.wait_for_timeout(300)
+        await A.evaluate("()=>document.querySelector('#ask [data-gz=\"1\"]').click()")
+        for _ in range(60):
+            if await A.evaluate("()=>HOUSE.place()==='mine' && !HOUSE.trip().busy"): break
+            await A.wait_for_timeout(250)
+        r=await A.evaluate("()=>[TECO.coins(), HOUSE.place()]")
+        ok(r==[15,'mine'], f"④ 🗺 바로 가기 🪙5 → ⛏ 광산 {r}")
+        await A.evaluate("()=>mineToVillage()")
+        for _ in range(120):
+            if await A.evaluate("()=>HOUSE.place()==='isle' && !HOUSE.trip().busy"): break
+            await A.wait_for_timeout(250)
         # 공사
         r=await A.evaluate("async ()=>{ TECO.setCoin(1000); await TECO.donate('free1', 500); await TECO.bdLoad(true); return [TECO.bdTot('free1'), TECO.coins(), LBL.some(l=>l.d.k==='b_free1')]; }")
         ok(r[0]==500 and r[1]==500 and r[2], f"⑤ 🏗 수영장 공사에 🪙500 보탬 · 🏗 이름표 b_free1 (window.TECO) {r}")

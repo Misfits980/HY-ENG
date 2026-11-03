@@ -85,7 +85,15 @@ const HLIFE=(()=>{
   function use(u){ if(u==="books"){ openBooks(); return true; } if(u==="brag"){ openBrag(); return true; } if(u==="scope"){ openScope(); return true; } if(u==="planter"){ planter(); return true; } if(u==="bath"){ if(visiting) return true; if(window.HOMEX && !HOMEX.facOK("bath")){ HOMEX.facNeed("bath"); return true; } bath(); return true; } return false; }
   /* ── 🛒 마트 — 씨앗 · 요리 재료 ── */
   const MART=["wheat","tomato","potato","corn","strawberry","apple","pumpkin","watermelon"];
-  function openMart(){ const seeds=Object.keys(SEEDS||{}), rows=seeds.map(n=>[n+" seeds", MAT[n+" seeds"]?MAT[n+" seeds"].e:"🌰", SEEDS[n].p, "씨앗 — 내 마당 밭에 심어요"]).concat(MART.filter(n=>MAT[n]).map(n=>[n, MAT[n].e, Math.max(2, MAT[n].p*2), "요리 재료"]));
+  /* (v584) 🧺 가게 계산대 — 씨앗 봉투 그림 · 바구니에 담아 한 번에 사기 */
+  function martCfg(){ const buy=(id,p,q)=>{ let n=0; for(let k=0;k<q;k++){ try{ if(typeof canAdd==="function" && !canAdd(id,1)){ fullMsg(); break; } }catch(_){} if(!TECO.pay2({g:0,c:p})) break; addMat(id,1); n++; } return n; };
+    return {kind:"mart", color:"#4caf50", keeper:{e:"👩‍🌾", nm:"Rosie", en:"Welcome! What do you need?", ko:"씨앗·요리 재료를 바구니에 담아요", thx:"Thank you! Have a nice day!"},
+      after:()=>{ try{ tEv("mart"); }catch(_){} },
+      tabs:[{k:"seeds", t:"🌱 씨앗", mode:"buy", items:()=>Object.keys(SEEDS||{}).map(n=>({id:n+" seeds", e:(MAT[n]||{}).e||"🌱", seed:true, en:n+" seeds", sub:"⏱ "+Math.round(SEEDS[n].h)+"시간 · 🎒 "+(mats[n+" seeds"]|0), price:SEEDS[n].p})),
+          act:B=>{ let n=0, c=0; B.forEach(([id,q])=>{ const p=SEEDS[id.replace(/ seeds$/,"")].p, k=buy(id,p,q); n+=k; c+=k*p; }); saveBag(); return {n, c}; }},
+        {k:"food", t:"🍅 요리 재료", mode:"buy", items:()=>MART.filter(n=>MAT[n]).map(n=>({id:n, e:MAT[n].e, en:n, sub:"🍳 요리 재료 · 🎒 "+(mats[n]|0), price:Math.max(2, MAT[n].p*2)})),
+          act:B=>{ let n=0, c=0; B.forEach(([id,q])=>{ const p=Math.max(2, MAT[id].p*2), k=buy(id,p,q); n+=k; c+=k*p; }); saveBag(); return {n, c}; }}]}; }
+  function openMart(){ if(window.SHOPUI){ SHOPUI.open(martCfg()); return; } const seeds=Object.keys(SEEDS||{}), rows=seeds.map(n=>[n+" seeds", MAT[n+" seeds"]?MAT[n+" seeds"].e:"🌰", SEEDS[n].p, "씨앗 — 내 마당 밭에 심어요"]).concat(MART.filter(n=>MAT[n]).map(n=>[n, MAT[n].e, Math.max(2, MAT[n].p*2), "요리 재료"]));
     const d=show("hlMt", '<h3>🛒 마트<small>씨앗 · 요리 재료 · 🪙 <b id="hlMtG">'+TECO.coins()+'</b></small><button class="x" aria-label="닫기">✕</button></h3><div class="hlList">'+rows.map(([n,e,p,t])=>'<button data-buy="'+esc(n)+'" data-p="'+p+'"><span style="font-size:26px">'+e+'</span><span><b style="font:800 16px var(--en)">'+esc(n)+'</b><br><small style="color:#8a6a4a">'+t+' · 가방에 '+(mats[n]|0)+'</small></span><em>🪙 '+p+'</em></button>').join("")+'</div>');
     d.querySelector(".lb").onclick=e=>{ const b=e.target.closest("[data-buy]"); if(!b) return; const n=b.dataset.buy, p=+b.dataset.p; if(!TECO.pay2({g:0,c:p})) return;   /* (v563) 마트 = 🪙 */ addMat(n,1); saveBag(); try{ say(n.replace(" seeds","")); SND.pop(); tEv("mart"); }catch(_){} toast(MAT[n].e+" "+n+" 샀어요! → 🎒", 1300); openMart(); }; }
   /* ── 🍳 요리 듣기 놀이 — "Put in the tomato!" ── */

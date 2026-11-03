@@ -1386,7 +1386,45 @@ const OUT={
   lantern:{nm:"stone lantern", ic:"🏮", sz:[1,1], cat:"deco", glow:1, build(){ const g=new THREE.Group(), s=M(0xb9b3a8); part(g, rbox(0.34,0.12,0.34,0.03), s, 0,0.06,0); part(g, cyl(0.07,0.09,0.5,8), s, 0,0.37,0); part(g, rbox(0.3,0.06,0.3,0.02), s, 0,0.64,0);
       const b=new THREE.Mesh(rbox(0.22,0.2,0.22,0.03), new THREE.MeshStandardMaterial({color:0xfff1b0, emissive:0xffb03a, emissiveIntensity:0.1})); b.position.y=0.77; g.add(b); g.userData.bulb=b; const r=part(g, cone(0.3,0.2,4), s, 0,0.97,0); r.rotation.y=Math.PI/4; return g; }},
 };
-const OUT_PRICE={fence:1, hedge:2, flowers:3, bush:3, mushroom:3, sunflower:4, sign:5, flag:5, sapling:6, pine:6, obench:6, mailbox:6, birdhouse:6, parasol:8, lamp:8, arch:8, scarecrow:8, lantern:10, picnic:12, sandbox:12, well:14, tent:14, swing:15, statue:16, slide:18, trampoline:20, windmill:20, fountain:30}; Object.keys(OUT_PRICE).forEach(k=>{ OUT_PRICE[k]=ECON(OUT_PRICE[k]); });   /* (v557) 물가 */
+const OUT_PRICE={pswing:24, hammock:18, rocker:12, eggchair:22, bbq:16, fence:1, hedge:2, flowers:3, bush:3, mushroom:3, sunflower:4, sign:5, flag:5, sapling:6, pine:6, obench:6, mailbox:6, birdhouse:6, parasol:8, lamp:8, arch:8, scarecrow:8, lantern:10, picnic:12, sandbox:12, well:14, tent:14, swing:15, statue:16, slide:18, trampoline:20, windmill:20, fountain:30}; Object.keys(OUT_PRICE).forEach(k=>{ OUT_PRICE[k]=ECON(OUT_PRICE[k]); });   /* (v557) 물가 */
+
+/* (v584) 사용자: 「마당에 쓸 만한 가구 · 흔들그네 막 그런 거」 — 새 마당 가구 5가지 + 누르면 앉고·타고·눕고·요리하는 마당 가구
+   seat = 앉는 자리 표시(움직이는 부품 안 → 그네가 흔들리면 나도 같이) · use = yUse() 가 할 일 */
+{ const seat=(par,x,y,z)=>{ const o=new THREE.Object3D(); o.position.set(x,y,z); par.add(o); return o; };
+  Object.assign(OUT, {
+  pswing:{nm:"porch swing", ic:"🪑", sz:[2,1], cat:"furn", use:"ride", cols:["#ffffff","#b07a4a","#7fc8f8","#ff9ec0"], build(c){ const g=new THREE.Group(), w=M(YC.wood2), wt=M(0xfff8ee);
+      [-0.85,0.85].forEach(x=>{ [-0.32,0.32].forEach(z=>{ const a=part(g, rbox(0.08,1.75,0.08,0.02), w, x,0.86,z*0.55); a.rotation.x=z>0?-0.32:0.32; }); }); part(g, rbox(1.86,0.1,0.1,0.02), w, 0,1.72,0);
+      const b=new THREE.Group(); b.position.y=1.68; g.add(b); [-0.62,0.62].forEach(x=>{ part(b, cyl(0.012,0.012,1.05,5), M(0x9aa3ad), x,-0.52,0.06); part(b, cyl(0.012,0.012,1.2,5), M(0x9aa3ad), x,-0.6,-0.14); });
+      const m=M(this.cols[c]); part(b, rbox(1.36,0.08,0.44,0.03), m, 0,-1.1,0); part(b, rbox(1.36,0.42,0.07,0.03), m, 0,-0.86,-0.2); [-0.68,0.68].forEach(x=>part(b, rbox(0.06,0.24,0.42,0.02), m, x,-0.98,0));
+      part(b, rbox(0.34,0.16,0.3,0.06), M(0xff9ec0), -0.4,-0.98,-0.07).rotation.x=-0.25; part(b, rbox(0.34,0.16,0.3,0.06), M(0xffd23f), 0.42,-0.98,-0.07).rotation.x=-0.25;
+      g.userData.seat=seat(b, 0,-1.06,0.04); g.userData.sw=b; g.userData.tick=(dt,t)=>{ const r=g.userData.ride; b.rotation.x=Math.sin(t*(r?1.6:0.9))*(r?0.2:0.05); return true; }; return g; }},
+  hammock:{nm:"hammock", ic:"🛌", sz:[2,1], cat:"furn", use:"lie", cols:["#ff8a65","#4fa9de","#5cbf5a","#b28dff"], build(c){ const g=new THREE.Group(), w=M(YC.wood2);
+      [-0.92,0.92].forEach(x=>{ part(g, rbox(0.1,1.1,0.1,0.02), w, x,0.55,0); part(g, sph(0.07), w, x,1.12,0); });
+      const h=new THREE.Group(); h.position.y=0.95; g.add(h); const cl=canvasTex(128,32,(x,W,H)=>{ for(let i=0;i<8;i++){ x.fillStyle=i%2?"#ffffff":this.cols[c]; x.fillRect(i*W/8,0,W/8,H); } });
+      const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,1.55,16,1,true,Math.PI*0.65,Math.PI*0.7), new THREE.MeshStandardMaterial({map:cl, side:THREE.DoubleSide, roughness:.9})); sh.rotation.z=Math.PI/2; sh.position.y=-0.2; sh.scale.set(1,1,1); sh.castShadow=true; h.add(sh);
+      [-0.86,0.86].forEach(x=>{ const r=part(h, cyl(0.01,0.01,0.3,4), M(0xd9d2c4), x,-0.06,0); r.rotation.z=x>0?0.9:-0.9; });
+      part(h, rbox(0.34,0.09,0.24,0.05), M(0xffffff), -0.52,-0.42,0);
+      g.userData.seat=seat(h, 0.05,-0.42,0); g.userData.tick=(dt,t)=>{ const r=g.userData.ride; h.rotation.x=Math.sin(t*(r?1.1:0.7))*(r?0.14:0.04); return true; }; return g; }},
+  rocker:{nm:"rocking chair", ic:"🪑", sz:[1,1], cat:"furn", use:"ride", cols:["#b07a4a","#ffffff","#5cbf5a"], build(c){ const g=new THREE.Group(), r=new THREE.Group(); g.add(r); const m=M(this.cols[c]);
+      [-0.27,0.27].forEach(x=>{ const k=part(r, new THREE.TorusGeometry(0.62,0.03,6,16,0.9), m, x,0.66,0.0); k.rotation.y=Math.PI/2; k.rotation.z=-Math.PI/2-0.45; [-0.18,0.18].forEach(z=>part(r, rbox(0.05,0.4,0.05,0.01), m, x,0.25,z)); });
+      part(r, rbox(0.6,0.06,0.46,0.02), m, 0,0.45,0.02); part(r, rbox(0.6,0.62,0.06,0.02), m, 0,0.78,-0.22).rotation.x=-0.12; part(r, rbox(0.46,0.07,0.36,0.04), M(0xffd23f), 0,0.5,0.03);
+      g.userData.seat=seat(r, 0,0.5,0.05); g.userData.tick=(dt,t)=>{ if(!g.userData.ride && Math.abs(r.rotation.x)<0.001) return false; r.rotation.x=g.userData.ride?Math.sin(t*2.2)*0.16:r.rotation.x*0.9; return true; }; return g; }},
+  eggchair:{nm:"egg chair", ic:"🥚", sz:[1,1], cat:"furn", use:"ride", cols:["#ffffff","#ffd23f","#ff9ec0"], build(c){ const g=new THREE.Group(), k=M(0x3a3a44); part(g, cyl(0.3,0.34,0.05,16), k, 0,0.025,0); part(g, cyl(0.025,0.025,1.8,8), k, 0.32,0.9,-0.1); const hk=part(g, torus(0.2,0.02), k, 0.15,1.78,-0.1); hk.rotation.y=Math.PI/2;
+      const e=new THREE.Group(); e.position.set(0,1.62,0); g.add(e); part(e, cyl(0.01,0.01,0.4,4), k, 0,-0.2,0);
+      const shell=new THREE.Mesh(new THREE.SphereGeometry(0.36,18,14,Math.PI*0.15,Math.PI*1.7,0,Math.PI*0.82), M(this.cols[c],{side:THREE.DoubleSide})); shell.scale.set(1,1.25,1); shell.position.y=-0.8; shell.rotation.y=Math.PI; shell.castShadow=true; e.add(shell);
+      part(e, cyl(0.3,0.3,0.1,16), M(0x7fc8f8), 0,-1.08,0.02);
+      g.userData.seat=seat(e, 0,-1.03,0.03); g.userData.tick=(dt,t)=>{ const r=g.userData.ride; e.rotation.z=Math.sin(t*(r?1.3:0.6))*(r?0.12:0.03); e.rotation.y=Math.sin(t*0.4)*0.25; return true; }; return g; }},
+  bbq:{nm:"barbecue grill", ic:"🍖", sz:[1,1], cat:"furn", use:"cook", cols:["#3a3a44","#e85d5d","#4f8fd6"], build(c){ const g=new THREE.Group(), m=M(this.cols[c]), k=M(0x9aa3ad);
+      [[-0.2,-0.15],[0.2,-0.15],[0,0.2]].forEach(([x,z])=>{ const l=part(g, cyl(0.025,0.025,0.6,6), k, x,0.3,z); }); const bw=part(g, new THREE.SphereGeometry(0.3,18,10,0,Math.PI*2,Math.PI/2,Math.PI/2), M(this.cols[c],{side:THREE.DoubleSide}), 0,0.72,0);
+      part(g, cyl(0.29,0.29,0.02,18), M(0x2a2a30), 0,0.72,0); for(let i=-2;i<=2;i++) part(g, rbox(0.5,0.015,0.02,0.005), k, 0,0.74,i*0.1);
+      [[-0.1,0.02,0xc0532f],[0.1,-0.06,0xe8a35a]].forEach(([x,z,col])=>{ const f=part(g, cyl(0.06,0.06,0.04,10), M(col), x,0.77,z); });
+      const sm=[0,1,2].map(i=>{ const s=part(g, sph(0.06), M(0xeeeeee,{transparent:true, opacity:.6}), 0,0.9,0); return s; }); g.userData.tick=(dt,t)=>{ sm.forEach((s,i)=>{ const k=((t*0.5+i/3)%1); s.position.set(Math.sin(t+i)*0.05, 0.85+k*0.6, 0); s.scale.setScalar(0.6+k*1.2); s.material.opacity=.55*(1-k); }); return true; }; return g; }}
+  });
+  Object.assign(OUT.obench, {use:"sit"}); OUT.obench.build=(f=>function(c){ const g=f.call(this,c); g.userData.seat=seat(g, 0,0.46,0.06); return g; })(OUT.obench.build);
+  Object.assign(OUT.picnic, {use:"sit"}); OUT.picnic.build=(f=>function(c){ const g=f.call(this,c); g.userData.seat=seat(g, 0,0.48,0.62); g.userData.seatFace=Math.PI; return g; })(OUT.picnic.build);
+  Object.assign(OUT.swing, {use:"ride"}); OUT.swing.build=(f=>function(c){ const g=f.call(this,c); const s=g.children.find(o=>o.isGroup); if(s){ g.userData.seat=seat(s, 0,-0.97,0); g.userData.tick=(dt,t)=>{ const r=g.userData.ride; s.rotation.x=Math.sin(t*(r?2.4:1.8))*(r?0.62:0.35); return true; }; } return g; })(OUT.swing.build);
+  ["slide","trampoline","sandbox","tent","fountain","well"].forEach(k=>{ if(OUT[k]) OUT[k].use=k; });
+}
 /* (v434) ③ 마당 꾸미기 = KayKit 모델 */
 const KKO=(L, o)=>function(c){ const g=new THREE.Group(), k=L[((c|0)%L.length+L.length)%L.length]; KK.fill(g, "nature", k, Object.assign({fit:[this.sz[0]*0.96, this.sz[1]*0.96]}, o||{})); return g; };
 Object.assign(OUT, {
@@ -1512,10 +1550,10 @@ function yHouseColors(){ const H=scene.userData.houseObj; if(!H) return; const h
   if(houseDoor) houseDoor.traverse(m=>{ if(m.isMesh && m.userData.door) m.material=M(HXC.d[hx.d|0]); }); H.traverse(m=>{ if(m.userData.shutter) m.material=M(HXC.d[hx.d|0]); }); try{ kkHouse(); }catch(e){} dirty=true; }
 function yMoveFixedTo(s, x, z){ const P=yFixedXY(s); P[0]=x; P[1]=z; const o=yFixedObj(s); o.position.set(x+0.5,0,z+0.5); dirty=true; }
 /* 저장 · 불러오기 */
-function yData(){ return {v:1, fp:(yPStash||PLOTS).map(c=>c.slice()), p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, wd:yd.wd||"", mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
+function yData(){ return {v:1, fp:(yPStash||PLOTS).map(c=>c.slice()), p:yplaced.map(p=>[p.id,p.x,p.z,p.r,p.c]), g:yd.g, pc:yd.pc, db:yd.db, hx:yd.hx, wd:yd.wd||"", wl:yd.wl||"", sb:yd.sb||"", mv:{b:BENCH.slice(), k:POT.slice(), t:TREES.map(t=>t.slice())}}; }
 function ySave(){ if(visiting) return; store("hyeng_proto_yard", Object.assign(yData(), {s:ystock, gp:ownGP})); try{ pubSoon(); checkStamps(); }catch(e){} }
 function yLoad(d){ yplaced.splice(0).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
-  yd={p:[], g:{}, pc:[0,0,0], db:{}, hx:{r:0,w:0,d:0}}; if(d){ yd.g=Object.assign({}, d.g||{}); yd.pc=(d.pc||[0,0,0]).slice(0,3).map(v=>v?1:0); while(yd.pc.length<3) yd.pc.push(0); yd.db=Object.assign({}, d.db||{}); yd.hx=Object.assign({r:0,w:0,d:0}, d.hx||{}); yd.wd=d.wd||""; }
+  yd={p:[], g:{}, pc:[0,0,0], db:{}, hx:{r:0,w:0,d:0}}; if(d){ yd.g=Object.assign({}, d.g||{}); yd.pc=(d.pc||[0,0,0]).slice(0,3).map(v=>v?1:0); while(yd.pc.length<3) yd.pc.push(0); yd.db=Object.assign({}, d.db||{}); yd.hx=Object.assign({r:0,w:0,d:0}, d.hx||{}); yd.wd=d.wd||""; yd.wl=d.wl||""; yd.sb=d.sb||""; }
   { BENCH[0]=Y_DEF.b[0]; BENCH[1]=Y_DEF.b[1]; POT[0]=Y_DEF.k[0]; POT[1]=Y_DEF.k[1]; Y_DEF.t.forEach((t,i)=>{ TREES[i][0]=t[0]; TREES[i][1]=t[1]; }); }
   if(d && d.mv){ const ok=a=>Array.isArray(a)&&a.length===2&&a.every(v=>Number.isInteger(v)&&v>=0&&v<YN); if(ok(d.mv.b)){ BENCH[0]=d.mv.b[0]; BENCH[1]=d.mv.b[1]; } if(ok(d.mv.k)){ POT[0]=d.mv.k[0]; POT[1]=d.mv.k[1]; } (d.mv.t||[]).forEach((t,i)=>{ if(TREES[i] && ok(t)){ TREES[i][0]=t[0]; TREES[i][1]=t[1]; } }); }
   scene.userData.benchObj.position.set(BENCH[0]+0.5,0,BENCH[1]+0.5); scene.userData.potObj.position.set(POT[0]+0.5,0,POT[1]+0.5); scene.userData.trees.forEach((T,i)=>T.position.set(TREES[i][0]+0.5,0,TREES[i][1]+0.5));
@@ -1547,8 +1585,43 @@ function yTapPlay(e, c){ if(!yd) return false;
   if(!c) return false; const k=c[0]+","+c[1];
   if(yd.db[k]){ useTile(c[0],c[1],()=>yClear(k)); return true; }
   const pi=parcOf(c[0],c[1]); if(pi>=0 && !yd.pc[pi]){ const p=PARC[pi]; useTile(p.sign[0],p.sign[1],()=>yParcAsk(pi)); return true; }
-  const it=yItemAt(c[0],c[1]); if(it){ const u=OUT[it.id]; useTile(c[0],c[1],()=>{ wobble(it.obj); say(u.nm); emote(hero, u.ic); }); return true; }
+  const it=yItemAt(c[0],c[1]); if(it){ yGo(it, c); return true; }
   return false; }
+/* (v584) 🎠 마당 가구 쓰기 — 앉기·타기·눕기·미끄럼·방방·모래 놀이·텐트·분수·우물·바베큐 (친구 마당에서도 놀 수 있음 · 우물·모래 보물은 내 마당만) */
+const yRV=new THREE.Vector3();
+function yGo(it, c){ const u=OUT[it.id]; let t=c && yItemAt(c[0],c[1])===it ? c : null; if(!t){ const C=yCells(it.id,it.x,it.z,it.r); C.sort((a,b)=>Math.hypot(a[0]-hero.cx,a[1]-hero.cz)-Math.hypot(b[0]-hero.cx,b[1]-hero.cz)); t=C[0]; }
+  useTile(t[0],t[1],()=>{ if(u.use) yUse(it); else { wobble(it.obj); say(u.nm); emote(hero, u.ic); } }); }
+function ySeatOn(it, how){ standUp(); const o=it.obj; hero.seat={y:it, how, t:0}; o.userData.ride=1; hero.act=how==="lie"?"sleep":"sit"; if(how==="lie"){ hero.body.rotation.x=-Math.PI/2; hero.body.position.z=0.3; } yRide(0); dirty=true; }
+function yRide(dt){ const S=hero && hero.seat; if(!S || !S.y) return false; const it=S.y, o=it.obj; S.t+=dt;
+  if(!o.parent || place!==PL.yard && place!==PL.yvisit){ yStand(); return false; }
+  const face=-it.r*Math.PI/2+(o.userData.seatFace||0);
+  if(S.how==="sit" || S.how==="ride" || S.how==="lie"){ const m=o.userData.seat; if(!m) return false; m.getWorldPosition(yRV); hero.g.position.set(yRV.x, yRV.y-(S.how==="lie"?0.12:0.27), yRV.z); hero.face=face+(S.how==="lie"?Math.PI/2:0); hero.g.rotation.y=hero.face; return true; }
+  const L=v=>o.localToWorld(yRV.set(v[0],v[1],v[2])), k=S.t;
+  if(S.how==="slide"){ const A=[-0.95,0,0], B=[-0.62,1.05,0], C=[0.95,0.06,0]; let q;
+    if(k<0.7){ const f=k/0.7; q=[A[0]+(B[0]-A[0])*f, A[1]+(B[1]-A[1])*f, 0]; hero.act="climb"; }
+    else if(k<1.5){ const f=Math.min(1,(k-0.7)/0.8), e=f*f; q=[B[0]+(C[0]-B[0])*e, B[1]+(C[1]-B[1])*e, 0]; hero.act="sit"; if(!S.w){ S.w=1; try{ SND.pop(); }catch(_){} emote(hero,"😆"); } }
+    else { yStand(); act("yay"); return true; }
+    L(q); hero.g.position.copy(yRV); hero.face=face+Math.PI/2; hero.g.rotation.y=hero.face; return true; }
+  if(S.how==="trampoline"){ const n=Math.floor(k/0.6); if(n>=5){ yStand(); act("yay"); return true; } const f=(k%0.6)/0.6; L([0, 0.4+Math.sin(f*Math.PI)*(0.7+n*0.12), 0]); hero.g.position.copy(yRV); hero.act=f<0.15||f>0.85?"idle":"air"; if(f<0.05 && S.n!==n){ S.n=n; try{ SND.pop(); }catch(_){} if(n===2) emote(hero,"🤸"); } hero.face=face+k*1.2; hero.g.rotation.y=hero.face; return true; }
+  if(S.how==="tent"){ hero.g.visible=k>1.6; if(k>1.6){ yStand(); emote(hero,"👀"); toast("⛺ 까꿍!", 1000); } return true; }
+  return false; }
+function yStand(){ const S=hero && hero.seat; if(S && S.y && S.y.obj) S.y.obj.userData.ride=0; hero.g.visible=true; standUp(); }
+function yUse(it){ const u=OUT[it.id], k=u.use, nm=u.nm; try{ tEv("yuse"); }catch(e){}
+  if(k==="sit"){ ySeatOn(it,"sit"); say("sit"); return; }
+  if(k==="ride"){ ySeatOn(it,"ride"); say(nm); emote(hero, it.id==="swing"?"😆":"😌"); if(it.id==="swing") toast("🎠 슝~ 슝~ (다른 곳을 누르면 내려요)", 1600); return; }
+  if(k==="lie"){ ySeatOn(it,"lie"); say(nm); emote(hero,"😌"); toast("🛌 흔들흔들~ 쉬어요 (다른 곳을 누르면 일어나요)", 1600); return; }
+  if(k==="slide"){ standUp(); hero.seat={y:it, how:"slide", t:0}; say("slide"); return; }
+  if(k==="trampoline"){ standUp(); hero.seat={y:it, how:"trampoline", t:0}; say("jump"); return; }
+  if(k==="tent"){ standUp(); hero.seat={y:it, how:"tent", t:0}; say("tent"); return; }
+  if(k==="cook"){ wobble(it.obj); say("barbecue"); emote(hero,"🍖"); openCraft("pot"); return; }
+  if(k==="fountain"){ wobble(it.obj); say("Make a wish!"); emote(hero,"✨"); act("yay"); toast("⛲ 소원을 빌었어요 ✨", 1300); return; }
+  const mine=!visiting, d=dayKey();
+  if(k==="well"){ wobble(it.obj); say("water"); if(!mine){ toast("🪣 친구 우물이에요", 1200); return; } const dry=plots.map((pl,i)=>i).filter(i=>plots[i].s && plotDry(plots[i]));
+    if(yd.wl===d){ toast("🪣 우물물은 오늘 다 썼어요 — 내일 또!", 1600); return; }
+    if(!dry.length){ toast("🪣 목마른 밭이 없어요 💧", 1300); return; } dry.forEach(i=>{ water(i); }); yd.wl=d; ySave(); act("yay"); emote(hero,"💧"); toast("🪣 우물물로 밭 "+dry.length+"칸에 물을 줬어요! (하루 한 번)", 2000); return; }
+  if(k==="sandbox"){ wobble(it.obj); act("reel"); say("sand"); emote(hero,"🏖️"); if(!mine || yd.sb===d){ toast("🏖️ 모래성을 쌓았어요!", 1200); return; } yd.sb=d; ySave();
+    const r=Math.random(), got=r<0.15?"strawberry seeds":r<0.5?"stone":null; if(got && MAT[got] && canAdd(got,1)){ addMat(got,1); saveBag(); toast("🏖️ 모래 속에서 "+MAT[got].e+" "+got+" 찾았어요!", 1800); } else toast("🏖️ 모래성을 쌓았어요! (내일 또 파 봐요)", 1500); return; }
+  wobble(it.obj); say(nm); emote(hero, u.ic); }
 /* ── ✏️ 마당 꾸미기 ── */
 function yEditOn(on){ if(!yGrid){ const P=[]; for(let i=0;i<=YN;i++){ P.push(i,0.03,0, i,0.03,YN, 0,0.03,i, YN,0.03,i); } const g=new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P,3)); yGrid=new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:.4})); yardG.add(yGrid); }
   yGrid.visible=on; yEC = on ? new THREE.Vector3(hero.g.position.x, 0, hero.g.position.z) : null;
@@ -1638,7 +1711,7 @@ function chipShow(root){ (root||document).querySelectorAll(".cBar").forEach(b=>{
     sc.scrollLeft=chipMem[b.dataset.cbar]||0; if(on){ const L=on.offsetLeft, R=L+on.offsetWidth, vw=sc.clientWidth-58; if(L<sc.scrollLeft+4) sc.scrollLeft=Math.max(0,L-8); else if(R>sc.scrollLeft+vw) sc.scrollLeft=R-vw+8; } }); }
 function yShopHTML(){ let h=chipBar(OUT_CAT, yCat, "yc");
   h+=Object.keys(OUT_PRICE).filter(id=>yCat==="all"||OUT[id].cat===yCat).sort((a,b)=>OUT_PRICE[a]-OUT_PRICE[b]).map(id=>{ const it=OUT[id], p=OUT_PRICE[id], have=(ystock[id]|0)+yplaced.filter(x=>x.id===id).length;
-    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(canCO(CO(p))?' on':'')+'" data-by="'+id+'"'+(canCO(CO(p))?'':' data-poor="1"')+'>'+htmlCO(CO(p))+'</button></div>'; }).join("");
+    return '<div class="sRow"><i>'+it.ic+'</i><span><b>'+it.nm+(PACK[id]?' ×'+PACK[id]:'')+'</b><small>'+(have?'🌳 '+have+'개 있어요':'새것')+(it.use?' · <b style="color:#2f8a3a">'+({sit:'🪑 앉기',ride:'🎠 타기',lie:'🛌 눕기',cook:'🍖 요리',slide:'🛝 타기',trampoline:'🤸 방방',sandbox:'🏖️ 모래 놀이',tent:'⛺ 숨기',fountain:'✨ 소원',well:'💧 밭에 물'})[it.use]+'</b>':'')+(PACK[id]?' · 📦 '+PACK[id]+'개 묶음':'')+' · '+it.sz[0]+'×'+it.sz[1]+'칸'+(it.cols?' · 🎨 '+it.cols.length:'')+(it.glow?' · 💡 밤에 켜짐':'')+(it.build.toString().includes("tick")?' · 움직여요':'')+(CRAFT.some(r=>r.id==="y_"+id)?' · 🛠 만들 수도':'')+'</small></span><button class="btn'+(canCO(CO(p))?' on':'')+'" data-by="'+id+'"'+(canCO(CO(p))?'':' data-poor="1"')+'>'+htmlCO(CO(p))+'</button></div>'; }).join("");
   return h; }
 let yCat="all";
 /* 🏅 마당 도장 */
@@ -2917,7 +2990,7 @@ function drawFruit(){ scene.userData.trees.forEach((T,i)=>{ T.children.filter(c=
   [[0.3,0.95,0.25],[-0.28,1.0,0.2],[0.05,1.2,0.33]].slice(0,n).forEach(([x,y,z])=>{ const a=part(T, sph(0.07), M(0xe8402a), x*s,y*s,z*s); a.userData.apple=true; }); }); dirty=true; }
 let shakeT=[]; function wobble(obj){ shakeT.push({o:obj, t:0}); }
 function updWobble(dt){ for(let i=shakeT.length-1;i>=0;i--){ const w=shakeT[i]; w.t+=dt; w.o.rotation.z=Math.sin(w.t*40)*0.08*Math.max(0,1-w.t/0.6); if(w.t>0.6){ w.o.rotation.z=0; shakeT.splice(i,1); } } return shakeT.length>0; }
-function act(kind){ hero.act=kind; hero.actT=0; setTimeout(()=>{ if(hero.act===kind) hero.act="idle"; }, 500); }
+function act(kind){ if(hero && hero.seat) return;   /* (v584) 앉아 있거나 타는 중엔 몸짓이 앉은 자세를 덮지 않게 */ hero.act=kind; hero.actT=0; setTimeout(()=>{ if(hero.act===kind) hero.act="idle"; }, 500); }
 function gotList(L){ const t=L.filter(x=>x[1]>0).map(([n,k])=>matE(n)+" "+n+" +"+k).join(" · "); if(t){ toast(t); say(L.find(x=>x[1]>0)[0]); } else toast("지금은 없어요 — 조금 있다 다시 와요"); }
 function shakeTree(i){ tEv("tree"); regen(); const T=scene.userData.trees[i], r=res.t[i]; wobble(T); act("reel"); const got=[];
   if(r.a>0){ if(!canAdd("apple", r.a)){ fullMsg(); return; } got.push(["apple", r.a]); addMat("apple", r.a); r.a=0; r.at=now(); }
@@ -3190,7 +3263,7 @@ function sitOn(p){ tEv("use"); const it=ITEMS[p.id], o=p.obj; standUp(); const w
   if(it.sit==="sleep"){ hero.seat={p}; hero.g.position.set(wp.x, 0.64, wp.z); hero.face=-p.r*Math.PI/2; hero.g.rotation.y=hero.face; hero.body.rotation.x=-Math.PI/2; hero.body.position.z=0.3; hero.act="sleep"; emote(hero,"💤"); toast("💤 Good night!"); say("sleep"); try{ if(window.HLIFE) HLIFE.slept(p); }catch(e){} }
   else { hero.seat={p}; hero.g.position.set(wp.x, it.sit-0.27, wp.z); hero.face=-p.r*Math.PI/2; hero.g.rotation.y=hero.face; hero.act="sit"; say("sit"); }
   dirty=true; }
-function standUp(){ if(!hero || !hero.seat) return; hero.seat=null; hero.body.rotation.x=0; hero.body.position.z=0; hero.act="idle"; hero.g.position.set(hero.cx+0.5,0,hero.cz+0.5); dirty=true; }
+function standUp(){ if(!hero || !hero.seat) return; if(hero.seat.y && hero.seat.y.obj) hero.seat.y.obj.userData.ride=0; hero.g.visible=true; hero.seat=null; hero.body.rotation.x=0; hero.body.position.z=0; hero.act="idle"; hero.g.position.set(hero.cx+0.5,0,hero.cz+0.5); dirty=true; }
 const VISIT_OK={stairs:1, sidedoor:1, music:1, arcade:1, jump:1, piano:1, clock:1, tv:1, bear:1, lamp:1, fan:1, radio:1, mirror:1, tank:1, computer:1, aircon:1, robot:1, books:1, brag:1, planter:1};
 function useItem(p){ tEv("use"); const u=ITEMS[p.id].use;
   if(visiting && !VISIT_OK[u]){ toast("🙅 친구 집 물건이에요 — 구경만 해요", 1800); return; }
@@ -3345,7 +3418,7 @@ function yEnterVisit(v){ if(F.st!=="idle") return; SHEETS.forEach(id=>$(id).clas
   go("yvisit", [Y_GATE[0]-1,Y_GATE[1]], ()=>{ visiting=v; yVisitIn(v); PL.yvisit.name="🌳 "+(v.n||"")+" 의 마당"; $("bVAdd").style.display=((SOC.fr||{})[v.code] || kidInfo().shared)?"none":""; }, {from:[Y_GATE[0]+1.05,Y_GATE[1]+0.5]});
   setTimeout(()=>{ if(visiting===v && yHost){ emote(yHost,"👋"); toast("🌳 "+esc(v.n)+" 의 마당 — 구경해요!<br><small>🚪 집 문을 누르면 들어가요</small>", 2600); say("welcome"); } }, 700); }
 function yVisitIn(v){ const d=v.data||{}; if(!yStash) yStash=store("hyeng_proto_yard")||yData();
-  scene.userData.plotG.forEach(P=>P.visible=false); yLoad(d.y); yVisitPlots(d.y);
+  scene.userData.plotG.forEach(P=>P.visible=false); yVisitPlots(d.y); yLoad(d.y);   /* (v584) 친구 밭 자리 먼저 → 친구 물건이 내 밭 자리에 막혀 빠지지 않게 */
   if(yHost){ yardG.remove(yHost.g); yHost=null; } const c=[DOOR[0]+1, DOOR[1]]; const P=buildAvatar(Object.assign({}, d.av||{})); P.g.position.set(c[0]+0.5,0,c[1]+0.5); P.g.rotation.y=Math.PI/4;
   P.g.add(tagSprite("🏠 "+(v.n||"")+(d.g?" #"+d.g:""))); P.g.traverse(m=>{ m.userData.npc="host"; }); yardG.add(P.g); yHost=Object.assign(P, {cx:c[0], cz:c[1], t:0, act:"wave", actT:0, face:Math.PI/4, moving:false, path:[]}); }
 function yVisitOut(){ if(yHost){ yardG.remove(yHost.g); yHost=null; } yVisitPlots(null); if(yStash){ scene.userData.plotG.forEach(P=>P.visible=true); const d=yStash; yStash=null; yLoad(d); } }
@@ -3659,7 +3732,30 @@ function drawShop(){
 /* (v477) 가게가 1초마다 목록 전체를 다시 그려서, 누르는 사이에 단추가 바뀌면 「팔기」가 안 눌렸다 → 1초마다는 ⏱ 시간 글자만 · 값이 바뀌는 정각에만 목록 다시 (누르는 중이면 미룸) */
 let shopH=-1, shopPress=0;
 function shopTimer(){ const el=$("shopTop") && $("shopTop").querySelectorAll("span")[1]; if(!el) return; const left=3600e3-((now()+9*3600e3)%3600e3), mm=Math.floor(left/60e3), ss=Math.floor(left%60e3/1000); el.textContent="⏱ "+mm+":"+String(ss).padStart(2,"0")+" 뒤 값이 바뀌어요"; }
-function openShop(){ if(F.st!=="idle") return; closeAv(); drawShop(); shopH=hourIx(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if(!$("shopP").classList.contains("on")){ clearInterval(shopTick); return; }
+/* (v584) 🧺 가게 계산대 (shop-ui.js) — 🐟 물고기 팔기 · 🌾 작물·재료 팔기 · 🌱 씨앗 사기 (값·시세·저장은 예전 sell/payout/matP 그대로) */
+function fishCfg(tab0){ const mkFr=(en,k)=>{ try{ return TECO.mkF(en,k)/TECO.mkF(en,0); }catch(e){ return 1; } };
+  const grp=()=>{ const G={}; bag.forEach((it,i)=>{ (G[it.en]=G[it.en]||[]).push({it, v:price(it), fr:fresh(it)}); }); Object.values(G).forEach(L=>L.sort((a,b)=>b.v-a.v)); return G; };
+  const h=hourIx(), arrow=en=>{ const m=mkt(en,h), m0=mkt(en,h-1); return m>m0+0.01?["▲","up"]:m<m0-0.01?["▼","dn"]:["",""]; };
+  const left=()=>{ const l=3600e3-((now()+9*3600e3)%3600e3); return Math.floor(l/60e3)+":"+String(Math.floor(l%60e3/1000)).padStart(2,"0"); };
+  return {kind:"fish", color:"#3fa7d6", tab:tab0|0, keeper:{e:"🧔", nm:"Finn", en:"Fresh fish? I'll buy them!", ko:"잡은 걸 누르면 바구니에 담겨요", thx:"Thank you! Come again!"},
+    tools:(t)=>t.k==="seeds" ? '' : '<span>⏱ '+left()+' 뒤 값이 바뀌어요</span>'+(t.k==="fish" ? Object.keys(grp()).slice(0,4).map(en=>{ const a=arrow(en); return '<span class="mk '+a[1]+'">'+FISH_BY[en].e+' ×'+mkt(en,h).toFixed(2)+' '+a[0]+'</span>'; }).join("") : '')+'<button class="btn sm2" data-subank>🏦 은행</button><button class="btn sm2" data-suupg>🛠 강화</button>',
+    onTools:e=>{ if(e.target.closest("[data-subank]")){ SHOPUI.close(); TECO.openBank("ex"); } else if(e.target.closest("[data-suupg]")){ SHOPUI.close(); TECO.openUpg(); } },
+    after:()=>{ updBagBtn(); try{ drawShop(); }catch(e){} },
+    tabs:[
+      {k:"fish", t:"🐟 물고기 팔기", mode:"sell", allT:"🐟 다 담기", empty:"🎒 가방에 물고기가 없어요 — 연못·호수에서 낚아 와요",
+        items:()=>{ const G=grp(); return Object.keys(G).map(en=>{ const L=G[en], b=L[0], f=FISH_BY[en], a=arrow(en), t=freshTag(b.fr);
+          return {id:en, e:f.e, en, sub:(b.it.cm?fmtCm(b.it.cm)+' · ':'')+(f.noRot?'♾️':t[0]+' '+t[1]), fr:f.noRot?null:b.fr, price:b.v, have:L.length, max:L.length, tag:a[0], tagc:a[1], cls:b.fr<=0.05&&!f.noRot?'rot':''}; }).sort((x,y)=>y.price-x.price); },
+        quote:B=>{ const G=grp(); return B.reduce((s,[en,q])=>s+(G[en]||[]).slice(0,q).reduce((a,r,k)=>a+Math.max(1,Math.round(r.v*mkFr(en,k))),0),0); },
+        act:B=>{ let n=0, c=0; B.forEach(([en,q])=>{ for(let k=0;k<q;k++){ let bi=-1, bv=-1; bag.forEach((it,i)=>{ if(it.en===en){ const v=price(it); if(v>bv){ bv=v; bi=i; } } }); if(bi<0) break; c+=sell(bi); n++; } }); return {n, c}; }},
+      {k:"mats", t:"🌾 작물·재료 팔기", mode:"sell", allT:"🌾 다 담기", empty:"🌾 팔 작물·재료가 없어요 — 밭에서 길러요",
+        items:()=>Object.keys(mats).filter(n=>mats[n]>0 && MAT[n]).map(n=>({id:n, e:MAT[n].e, seed:/ seeds$/.test(n), en:n, sub:MAT[n].food?'🍽 음식':MAT[n].ore?'⛏ 광석':/ seeds$/.test(n)?'🌱 씨앗':'🌾 재료', price:matP(n), have:mats[n], max:mats[n]})).sort((a,b)=>b.price-a.price),
+        quote:B=>B.reduce((s,[n,q])=>{ let a=0; for(let k=0;k<q;k++) a+=Math.max(1,Math.round(matP(n)*mkFr(n,k))); return s+a; },0),
+        act:B=>{ let n=0, c=0; B.forEach(([m,q])=>{ q=Math.min(q, mats[m]|0); for(let k=0;k<q;k++){ c+=payout(matP(m)); try{ TECO.sold(m,1); }catch(e){} } if(q) addMat(m,-q); n+=q; }); saveBag(); return {n, c}; }},
+      {k:"seeds", t:"🌱 씨앗 사기", mode:"buy",
+        items:()=>Object.keys(SEEDS).map(n=>({id:n, e:(MAT[n]||{}).e||"🌱", seed:true, en:n+" seeds", sub:'⏱ '+Math.round(SEEDS[n].h)+'시간 · 🎒 '+(mats[n+" seeds"]|0), price:SEEDS[n].p})),
+        act:B=>{ let n=0, c=0; for(const [m,q] of B){ for(let k=0;k<q;k++){ if(!canAdd(m+" seeds",1)){ fullMsg(); break; } if(!TECO.pay2({g:0,c:SEEDS[m].p})) break; addMat(m+" seeds",1); n++; c+=SEEDS[m].p; } } saveBag(); return {n, c}; }}
+    ]}; }
+function openShop(tab0){ if(F.st!=="idle") return; closeAv(); if(window.SHOPUI){ SHOPUI.open(fishCfg(tab0)); return; } drawShop(); shopH=hourIx(); $("shopP").classList.add("on"); clearInterval(shopTick); shopTick=setInterval(()=>{ if(!$("shopP").classList.contains("on")){ clearInterval(shopTick); return; }
     if(hourIx()!==shopH && Date.now()-shopPress>800){ shopH=hourIx(); drawShop(); } else shopTimer(); }, 1000); }
 $("shopP").addEventListener("pointerdown", ()=>{ shopPress=Date.now(); }, true);
 function goShop(){ if(F.st!=="idle") return; const near=STALL_FRONT.some(t=>t[0]===hero.cx&&t[1]===hero.cz); if(near){ hero.face=Math.PI; openShop(); return; }
@@ -3749,7 +3845,7 @@ function drawInv(){ if(place===PL.yard && edit){ yDrawInv(); return; } const L=O
     +(visiting?'':'<button class="card tipC" disabled><i>👆</i><span>놓인 가구를 누르면 📦 넣기</span></button>'+(placed.some(p=>!ITEMS[p.id].special)||wplaced.some(p=>!ITEMS[p.id].special)?'<button class="card allIn" data-allin="1"><i>🧹</i><span>이 방 다 넣기</span><em>창고로</em></button>':'')); }
 function allIn(){ let n=0; placed.slice().forEach(p=>{ if(ITEMS[p.id].special) return; removePlaced(p); stock[p.id]=(stock[p.id]|0)+1; n++; }); wplaced.slice().forEach(p=>{ if(ITEMS[p.id].special) return; removeWall(p); stock[p.id]=(stock[p.id]|0)+1; n++; });
   unselect(); drawInv(); saveRoom(); toast("🧹 가구 "+n+"개를 📦 창고에 넣었어요<br><small>🪜 계단 · 🚪 옆방 문 · 📚 단어 책장은 그대로</small>", 2400); return n; }
-function setEdit(on){ if(edit===on && !on) return; cancelGhost(); unselect(); edit=on; setTimeout(()=>{ try{ yFarmMarks(); }catch(e){} }, 0); $("drawer").classList.toggle("on", on); document.querySelector(".bar.bot").style.visibility=on?"hidden":"visible"; gridLines.visible=on && place!==PL.yard; if(place===PL.yard || !on) yEditOn(on && place===PL.yard); drawInv(); dirty=true; }
+function setEdit(on){ if(edit===on && !on) return; cancelGhost(); unselect(); if(on && hero && hero.seat && hero.seat.y) yStand(); edit=on; setTimeout(()=>{ try{ yFarmMarks(); }catch(e){} }, 0); $("drawer").classList.toggle("on", on); document.querySelector(".bar.bot").style.visibility=on?"hidden":"visible"; gridLines.visible=on && place!==PL.yard; if(place===PL.yard || !on) yEditOn(on && place===PL.yard); drawInv(); dirty=true; }
 function firstFree(id, r){ for(let z=0;z<RN;z++) for(let x=0;x<RN;x++) if(fits(id,x,z,r)) return [x,z]; return null; }
 function visWalls(){ return walls.filter(w=>w.visible).map(w=>w.userData.side); }
 function startWallGhost(id, from){ const V=visWalls(); let side=from?from.side:V[0], s=from?from.s:-1;
@@ -3846,7 +3942,7 @@ $("cv").addEventListener("pointerup", e=>{
     const c=cellAt(e); if(!c) return;
     if(c[0]===Y_GATE[0]&&c[1]===Y_GATE[1]){ leaveVisit(); return; }
     if(isHouse(c[0],c[1])){ yVisitHouse(); return; }
-    const it=yItemAt(c[0],c[1]); if(it){ useTile(c[0],c[1],()=>{ wobble(it.obj); say(OUT[it.id].nm); emote(hero, OUT[it.id].ic); }); return; }
+    const it=yItemAt(c[0],c[1]); if(it){ yGo(it, c); return; }   /* (v584) 친구 마당 그네도 탐 */
     walkTo(c[0], c[1]); return;
   }
   if(window.SHOPIN && SHOPIN.is()){ SHOPIN.tap(e); return; }   // (v572) 🏪 가게 안
@@ -4377,7 +4473,7 @@ function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Mat
 function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
+  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } if(place===PL.mine){ regenMine(); drawOres(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(TW.on){ twTick(dt); anim=true; } else if(updCam(dt)) anim=true;
@@ -4397,6 +4493,7 @@ requestAnimationFrame(loop);
 window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcClean, vcOpen, vlCount, sayBubble, TWN8, srvNow, twNightAt, twNightOn, twOpenAt, twNightTick, twNightAsk, towerAskX:()=>towerAsk(), drawPlots, buildAvatar, animChar, emote, twFrame, twEmote, twHiSave, TWN, twNetApply, twNetTick, twNetStart, twNetStop, twNetPath, twNetCount, twFloorAt, twDie, NET, myCode:()=>myCode, TW, THX, TDIR, TWC, TCORE, twJoyHome, camera, twTick, twBuild, twStep, twRespawn, towerAsk, towerGo, twEnterGo, twLeave, twWin, TW_SECS, TW_AT, towerObj:()=>scene.userData.towerObj, PADX:()=>PAD, yEnterVisit, yVisitHouse, yStash:()=>yStash, yHost:()=>yHost, yd:()=>yd, yplaced, ystock:()=>ystock, OUT, OUT_PRICE, PARC, GP, yFits, yAdd, yParcOpen, yClear, yStartGhost, yOkGhost, yPaintAt, yData, yLoad, yReachOK, yStamps, ySave, yTool:(k)=>{ if(k) yTool=k; return yTool; }, yPaintK:(k)=>{ if(k) yPaint=k; return yPaint; }, ownGP:()=>ownGP, yEC:()=>yEC, ySel:(s)=>ySelect(s), ghost:()=>ghost, yUpd:()=>yUpdGhost(), benchObj:()=>scene.userData.benchObj, BENCH:()=>BENCH.slice(), houseRoof:()=>scene.userData.houseRoof, yNight, setEditY:(v)=>setEdit(v), SPEC, fightStep, PS:()=>PS, FG, winFight, FR:()=>FR, tod, rainy, rush, todaySp, canAppear, spawnShadow, callFish, sizeV, fmtCm, envApply, startFight, rollSize, setWx:(v)=>{ wxForce=v; envApply(true); }, setRush:(on)=>{ rushForce=on ? now()+5*60e3 : 0; envApply(true); }, PAD, padPush, padPull, padDump, openWho, skey, exitRoom, enterHouse, yardToVillage, villageToYard, villageToMine, mineToVillage, trip:()=>trip, doors, roomDoor:()=>roomDoor, houseDoor:()=>houseDoor, tut:()=>tut, TUT, tEv, Q:()=>Q, qList, qClaim, openQ, baitCard, fishTap, LBL:()=>LBL, drawLabels, updLabels, casts:()=>casts, linkKid, loadRoomData, stamps, checkStamps, findTag, ensureTag, myTag:()=>myTag, selectP, visitNpc, visitCode, leaveVisit, visiting:()=>visiting, sendReq, accept, loadSocial, publish, SOC:()=>SOC, myCode:()=>myCode, growRoom, wplaced, addWall, wallFits, sitOn, standUp, rebuildP, kidInfo, openFr, likeHost, hostDoll:()=>hostDoll, RN:()=>RN, walls, openScore, robotGo, drawFr,
   sto:()=>sto, putIn, takeOut, openSto, openFurn, drawFurn, buyLand, askLand, plotN:()=>plotN, LAND, mineHit, oreType, mres:()=>mres, regenMine, drawOres, ORE_AT, setPick:(v)=>{ pick=v; }, pick:()=>pick, setCrown:(v)=>{ crown=v; }, PRICE, useItem, tellTime, toggleTv, soldN, payout, simPay, SELL_CAP, sold:()=>sold, SEEDS, CRAFT, addStock, saveRoom, ownF:()=>ownF, ownW:()=>ownW, floorIx:()=>floorIx, wallIx:()=>wallIx, setGems:(v)=>{ gems=v; saveBag(); }, ask, matP, AV_OPT, choose, tapDlg, dlg:()=>dlg, enCount, npcs, talkTo, giveReq, todayReq, npcSt:()=>npcSt, dayKey, closeTalk, slots, canAdd, bagCap:()=>bagCap, COOK, MAT, mats:()=>mats, plots:()=>plots, res:()=>res, plotStage:(i)=>plotStage(plots[i]), plant, water, harvest, onPlot, shakeTree, hitRock, make, canMake:(k,id)=>canMake((k==="craft"?CRAFT:COOK).find(r=>r.id===id)), openCraft, openBag, buff:()=>buffUntil, rod2:()=>rod2, regen, addMat, useTile, bag:()=>bag, gems:()=>gems, price, fresh, mkt, hourIx, sell, ffwd:(h)=>{ tShift+=h*3600e3; }, openShop, goShop, makeHero, setAv:(o)=>{ Object.assign(av,o); makeHero(); dirty=true; }, openAv, closeAv, placed, stock, ITEMS, FISH, F, hero:()=>hero, walkTo, fits, findPath, go, place:()=>place.key, tryFish, bite, tapWhileFishing, dex:()=>dex, bait:()=>bait, setBait, av:()=>av, camera, scene, renderer};
 </script>
+<script src="shop-ui.js"></script>   <!-- (v584) 🧺 가게 계산대 -->
 <script src="home-rooms.js"></script>
 <script>try{ HOMEX.init(); }catch(e){ console.warn(e); }</script>
 <script src="isle-map.js"></script>

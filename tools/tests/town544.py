@@ -54,8 +54,8 @@ async def main():
         ok(await until(A, "()=>!!document.getElementById('ihFull')", 20), "① 🍗 단추 (섬 HUD)")
         # 걸어서 가게 앞 → 창
         await A.evaluate("()=>{ const S=ISLE.SPOT.shops.find(s=>s.k==='snack'); TFAC.warp(S.door[0]+3, S.door[1]+3); LBL.find(l=>l.d.k==='snack').d.act(); }")
-        ok(await until(A, "()=>document.getElementById('tfSn') && document.getElementById('tfSn').classList.contains('on')", 200), "① 🍦 상점가 이름표 → 걸어가서 간식 가게 창")
-        await A.evaluate("()=>document.getElementById('tfSn').classList.remove('on')")
+        ok(await until(A, "()=>SHOPUI.isOn() && SHOPUI.kind()==='snack'", 200), "① 🍦 상점가 이름표 → 걸어가서 간식 가게 창")
+        await A.evaluate("()=>SHOPUI.close()")
         if await A.evaluate("()=>!!window.SHOPIN && SHOPIN.is()"):   # (v572) 가게 안 → 🚪 나가기 로 섬에 돌아옴
             await A.evaluate("()=>SHOPIN.exit()"); ok(await until(A, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy && !HOUSE.hero().slide", 80), "① (v572) 🍦 가게 안 → 나가기 → 🏝")
         # ② 목표
@@ -112,13 +112,13 @@ async def main():
         await A.evaluate("()=>{ localStorage.setItem('hyeng_proto_full', JSON.stringify({h:1, t:Date.now()})); }")
         await A.reload(); await A.wait_for_timeout(2000); await A.evaluate("()=>{ HOUSE.exitRoom(); }"); await until(A, "()=>HOUSE.place()==='isle' && !HOUSE.trip().busy", 160); await A.wait_for_timeout(800)
         await A.evaluate("()=>TECO.setCoin(500)"); g0=await A.evaluate("()=>TECO.coins()")
-        await A.evaluate("()=>{ TFAC.openSnack(); document.querySelector('#tfSn [data-sn=\"ice cream\"]').click(); }")
+        await A.evaluate("()=>{ TFAC.openSnack(); SHOPUI.pick('ice cream',1); SHOPUI.go(); }")   # (v584) 🧺 담고 → 사기 → 영어 맞히기
         ok(await until(A, "()=>document.getElementById('hqP').classList.contains('on') && /What would you like/.test(document.getElementById('hqP').innerText)", 20), "④ 🧑‍🍳 \"What would you like?\"")
         await A.evaluate("()=>{ const box=document.querySelector('#hqP .b'); const w=[...box.querySelectorAll('[data-w]')].find(b=>b.dataset.w!=='ice cream'); w.click(); }"); await A.wait_for_timeout(300)
         ok(await A.evaluate("()=>(mats['ice cream']|0)===0"), "④ 틀리면 아직 안 삼")
         await A.evaluate("()=>document.querySelector('#hqP [data-w=\"ice cream\"]').click()")
         ok(await until(A, "()=>(mats['ice cream']|0)===1", 20) and await A.evaluate("()=>TECO.coins()")==g0-10, "④ 맞히면 🍦 ice cream 🪙10 (v563)")
-        await A.evaluate("()=>document.getElementById('tfSn').classList.remove('on')")
+        await A.evaluate("()=>SHOPUI.close()")
         r=await A.evaluate("()=>[Math.round(TFAC.full()), TFAC.spd()]")
         ok(r==[1,1], f"④ 배부름 1 · 보통 빠르기 {r}")
         await A.evaluate("()=>TFAC.eat('ice cream')")

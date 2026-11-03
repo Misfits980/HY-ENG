@@ -70,9 +70,9 @@ async def main():
         # ③ 마트
         await A.evaluate("()=>HLIFE.openMart()"); await A.wait_for_timeout(300)
         m0=await A.evaluate("()=>mats['tomato']|0")
-        await A.evaluate("()=>document.querySelector('#hlMt [data-buy=tomato]').click()"); await A.wait_for_timeout(300)
+        await A.evaluate("()=>{ SHOPUI.setTab(1); SHOPUI.pick('tomato',1); SHOPUI.go(); }"); await A.wait_for_timeout(300)   # (v584) 🧺 계산대
         ok(await A.evaluate("()=>mats['tomato']|0")==m0+1, "③ 🛒 마트에서 tomato 사면 가방에")
-        await A.evaluate("()=>document.getElementById('hlMt').classList.remove('on')")
+        await A.evaluate("()=>SHOPUI.close()")
         # ④ 방 가구
         await A.evaluate("()=>ISLE.enterHome()"); ok(await until(A, "()=>HOUSE.place()==='room' && !HOUSE.trip().busy", 80), "집 안")
         await A.evaluate("()=>{ ['f2','f3','f4'].forEach(k=>HOMEX.H().o[k]=1); HOMEX.save(); }")
