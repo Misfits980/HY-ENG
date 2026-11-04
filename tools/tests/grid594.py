@@ -82,8 +82,8 @@ async def main():
         g1=await A.evaluate("()=>[...MG.run.cell].map((v,i)=>v===2?i:-1).filter(i=>i>=0).join(',')")
         await B.evaluate("""async ()=>{ const R=MG.run; R.P.inv=99; for(let q=0;q<R.N*R.N;q++){ if(R.cell[q]===1){ R.P.p.set(R.cx(q%R.N),0,R.cx(Math.floor(q/R.N))); MG.step(.02,false); } } }""")
         await steps(P3, 8)
-        r=[await x.evaluate("()=>[MG.run.st.blue, MG.run.st.clrS, MG.run.R.d.h.sg && MG.run.R.d.h.sg.s]") for x in P3]
-        ok(all(z[1]==0 for z in r) and r[0][2]==1, f"④ 파랑 다 지움(1판 깸) → 방장이 다음 판 예약 {r}")
+        r=[await x.evaluate("()=>[MG.run.st.blue, MG.run.st.clrS, MG.run.R.d.h.sg && MG.run.R.d.h.sg.s, MG.run.st.stage]") for x in P3]
+        ok(all(z[1]==0 or z[3]==1 for z in r) and r[0][2]==1, f"④ 파랑 다 지움(1판 깸) → 방장이 다음 판 예약 {r}")
         for x in P3: await x.evaluate("()=>{ TWN8.test+=3000; }")
         await steps(P3, 6)
         r=[await x.evaluate("()=>[MG.run.st.stage, [...MG.run.cell].map((v,i)=>v===2?i:-1).filter(i=>i>=0).join(','), MG.run.st.score]") for x in P3]

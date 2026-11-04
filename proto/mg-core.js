@@ -101,7 +101,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     I.touch=true;
     if(bt){ const b=bt.dataset.b; btnSet(b,1); PT.set(e.pointerId,{r:"b", b, x, y, look:b==="fire" && cfg && cfg.look}); return; }
     const look=!!(cfg && cfg.look);
-    if(!look || x<innerWidth*0.45){ if([...PT.values()].some(q=>q.r==="joy")) return; PT.set(e.pointerId,{r:"joy", ox:x, oy:y}); joyEl.style.left=x+"px"; joyEl.style.top=y+"px"; joyEl.classList.add("on"); ROOT.classList.add("joyOn"); joyMove(0,0); return; }
+    if(!look || x<innerWidth*0.45){ for(const [id,q] of [...PT]) if(q.r==="joy") PT.delete(id);   /* (v597) 버그: 화면을 돌리면 손 뗀 신호가 안 와서 조이스틱이 잠김 → 새로 누르면 예전 것은 버림 */ PT.set(e.pointerId,{r:"joy", ox:x, oy:y}); joyEl.style.left=x+"px"; joyEl.style.top=y+"px"; joyEl.classList.add("on"); ROOT.classList.add("joyOn"); joyMove(0,0); return; }
     PT.set(e.pointerId,{r:"look", x, y}); }
   function joyMove(dx, dy){ const d=Math.hypot(dx,dy), k=d>joyR?joyR/d:1; dx*=k; dy*=k; joyEl.firstChild.style.transform="translate("+dx+"px,"+dy+"px)"; let mx=dx/joyR, my=-dy/joyR; const m=Math.hypot(mx,my); if(m<0.12){ mx=my=0; } I.mx=mx; I.my=my; }
   function onMove(e){ if(!S.on) return; if(I.lock && e.pointerType==="mouse"){ I.lx+=e.movementX||0; I.ly+=e.movementY||0; return; } const p=PT.get(e.pointerId); if(!p) return; e.preventDefault();
@@ -121,6 +121,9 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
   addEventListener("keydown", e=>onKey(e,1)); addEventListener("keyup", e=>onKey(e,0));
   document.addEventListener("pointerlockchange", ()=>{ I.lock=!!ROOT && document.pointerLockElement===ROOT; if(!I.lock) btnSet("fire",0); });
   addEventListener("blur", ()=>{ if(S.on) resetI(); });
+  const unstick=()=>{ if(!S.on) return; resetI(); if(joyEl){ joyEl.classList.remove("on"); } if(ROOT) ROOT.classList.remove("joyOn"); ROOT && ROOT.querySelectorAll(".mgB.dn").forEach(b=>b.classList.remove("dn")); };
+  addEventListener("orientationchange", unstick); let lastW=innerWidth; addEventListener("resize", ()=>{ if(Math.abs(innerWidth-lastW)>40){ lastW=innerWidth; unstick(); } });   /* 가로 ↔ 세로 */ document.addEventListener("visibilitychange", unstick);
+  try{ if(screen.orientation) screen.orientation.addEventListener("change", unstick); }catch(e){}
 
   function mkUI(def){ css(); let u=$$("mgUI"); if(u) u.remove(); u=document.createElement("div"); u.id="mgUI"; document.body.appendChild(u); ROOT=u; cfg=def.ui||{};
     const B=(cfg.btns||[]).map(b=>'<div class="mgB '+(b.cls||"")+'" data-b="'+b.b+'" style="'+b.st+'">'+b.ic+(b.t?'<small>'+b.t+'</small>':'')+'</div>').join("");

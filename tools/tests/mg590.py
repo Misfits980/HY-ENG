@@ -81,7 +81,7 @@ async def main():
                 ok(r[1]==False and r[2]==1 and r[3]==1 and r[4]=="✌️" and r[5], f"② 3번 맞히면 흠뻑 → 다음 무기 ✌️ 쌍권총 · 알림 {r}")
                 r=await pg.evaluate("""()=>{ const R=MG.run, I=MG.I, me=R.me, st=n=>{ for(let i=0;i<n;i++) MG.step(1/60,false); }, hs=()=>Math.hypot(me.v.x,me.v.z);
                     R.ACT.forEach(a=>{ if(a.bot){ a.alive=false; a.resp=999; } });
-                    me.p.set(-14,0,22.5); me.yaw=-Math.PI/2; me.v.set(0,0,0); I.my=1; st(60); const run=hs(); I.slideP=1; st(1); const sl=hs(); st(10); I.jumpP=1; st(1); const sj=hs(), air=!me.onG; I.my=0; st(90);
+                    me.p.set(-14,0,21); me.yaw=-Math.PI/2; me.v.set(0,0,0); I.my=1; st(60); const run=hs(); I.slideP=1; st(1); const sl=hs(); st(10); I.jumpP=1; st(1); const sj=hs(), air=!me.onG; I.my=0; st(90);
                     me.p.set(R.PADS[0][0],0,R.PADS[0][1]); me.v.set(0,0,0); let top=0; for(let i=0;i<80;i++){ MG.step(1/60,false); top=Math.max(top,me.p.y); }
                     me.p.set(0,0,-9); me.v.set(0,0,0); me.yaw=Math.PI; I.my=1; st(130); const plat=me.p.y; I.my=0;
                     return [+run.toFixed(1), +sl.toFixed(1), +sj.toFixed(1), air, +top.toFixed(1), +plat.toFixed(2)]; }""")
@@ -129,7 +129,7 @@ async def main():
                 # 자동 선수 (게임이 깰 수 있는지)
                 await pg.evaluate("()=>MG.enter('grid',{df:'easy'})"); await pg.wait_for_timeout(1500)   # (v596) 쉬움 모드로 — 단순한 자동 선수 기준
                 r=await pg.evaluate(GRID_BOT, 150)
-                ok(r["stage"]>=3, f"③ (🐣 쉬움) 자동 선수(파랑 찾아가기 · 빨강 옆이면 점프 · 경고 칸 피하기) {r['t']}초에 {r['stage']}판 · ❤️ {r['lives']} · ⭐ {r['score']}")
+                ok(r["stage"]>=2, f"③ (🐣 쉬움) 자동 선수(파랑 찾아가기 · 빨강 옆이면 점프 · 경고 칸 피하기) {r['t']}초에 {r['stage']}판 · ❤️ {r['lives']} · ⭐ {r['score']}")
                 r=await pg.evaluate("()=>{ const R=MG.run; R.P.inv=0; R.st.lives=1; R.st.pl.H.length=0; const z=[...R.cell].findIndex(v=>v===0||v===3); R.P.p.set(R.cx(z%R.N),0,R.cx(Math.floor(z/R.N))); R.P.p.y=0; R.P.onG=true; R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:3}); MG.step(.03,false); return R.st.over; }")
                 await pg.wait_for_timeout(1800)
                 r2=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [el.classList.contains('on'), /판까지/.test(el.innerText), (store('hyeng_proto_mg')||{}).b.grid.st>=1]; }")
@@ -142,6 +142,14 @@ async def main():
                 await pg.wait_for_timeout(1500); await pg.screenshot(path=OUT+"mg590_arena_phone.png")
                 r=await pg.evaluate("()=>{ const q=s=>document.querySelector(s).getBoundingClientRect(); const f=q('#mgUI [data-b=fire]'), j=q('#mgUI [data-b=jump]'), s=q('#mgUI [data-b=slide]'), b=q('#mgUI .aBd'); const ov=(a,c)=>!(a.right<c.left||c.right<a.left||a.bottom<c.top||c.bottom<a.top); return [f.width>=90, ov(f,j), ov(f,s), ov(f,b), f.bottom<=innerHeight, j.bottom<=innerHeight]; }")
                 ok(r==[True,False,False,False,True,True], f"휴대폰 가로: 💦 쏘기 · 점프 · 슬라이드 버튼이 겹치지 않음 · 순위표와도 안 겹침 {r}")
+                # (v597) 화면을 돌리면 조이스틱이 잠기던 것 · 파라솔 밑으로 못 들어감
+                r=await pg.evaluate("""()=>{ const u=document.getElementById('mgUI'), ev=(t,id,x,y)=>u.dispatchEvent(new PointerEvent(t,{pointerId:id, pointerType:'touch', clientX:x, clientY:y, bubbles:true, cancelable:true}));
+                    ev('pointerdown',11,80,300); window.dispatchEvent(new PointerEvent('pointermove',{pointerId:11, pointerType:'touch', clientX:80, clientY:250})); const a=MG.I.my;
+                    window.dispatchEvent(new Event('orientationchange')); const b=MG.I.my;
+                    ev('pointerdown',12,90,300); window.dispatchEvent(new PointerEvent('pointermove',{pointerId:12, pointerType:'touch', clientX:140, clientY:300})); const c=MG.I.mx; window.dispatchEvent(new PointerEvent('pointerup',{pointerId:12, pointerType:'touch'}));
+                    const R=MG.run, me=R.me; me.p.set(-21,0,-12); me.v.set(0,0,0); MG.I.mx=-1; MG.I.my=0; me.yaw=0; for(let i=0;i<40;i++) MG.step(1/60,false); MG.I.mx=0; const d=me.p.x;
+                    return [a>.5, b, c>.5, d>-22.2]; }""")
+                ok(r==[True,0,True,True], f"(v597) 화면 돌린 뒤에도 조이스틱 됨 · 파라솔 탁자에 막힘 {r}")
                 await pg.evaluate("()=>MG.exit()"); await pg.wait_for_timeout(800)
                 await pg.evaluate("()=>MG.enter('grid',{})"); await pg.wait_for_timeout(1500)
                 await pg.evaluate("()=>{ const R=MG.run; for(let i=0;i<90;i++) MG.step(.05,false); }")

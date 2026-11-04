@@ -60,6 +60,8 @@ function start(api){
   cr(-8.5,-11); cr(-7.3,-11,1.15,0x5ee36b); cr(-8.5,-11,2.3,0xff9a3d); cr(-11.5,-4.5,1.15,0xb28dff); cr(-11.5,-3.3,2.3,0xb28dff); cr(-7,7.5,1.15,0x5ee36b); cr(-13,9.5,1.15,0xff9a3d);
   cr(8.5,-11.5,1.15,0x5ee36b); cr(12,-6,2.3,0xff9a3d); cr(12,-4.8,1.15,0xff9a3d); cr(7,12.5,1.15,0xb28dff); cr(-3.5,-20,1.15,0xff9a3d); cr(-2.3,-20,2.3,0xff7aa8); cr(-21.5,-21,1.15,0x5ee36b); cr(-20.3,-21.6,1.15,0xb28dff);
   sym(-2.2,-15.6,2.2,-15,1.0,0xd7e3ff); sym(-14.2,-1,-13.6,3,1.0,0xd7e3ff); sym(5.6,-8,6.2,-5,1.0,0xd7e3ff); sym(-24.9,-17,-23.6,-15.8,1.15,0xff9a3d);
+  /* (v597) 버그: 파라솔 밑에 들어가면 화면 위가 보라색으로 덮임 → 파라솔 아래 탁자(부딪힘) · 파라솔 더 높이 */
+  [[-23,-12],[23,12],[-12,23],[12,-23]].forEach(([x,z])=>bx(x-.75,z-.75,x+.75,z+.75,.85,0xfff6e6));
   /* 💧 분수 발판 (밟으면 높이 튀어 오름) */
   const PADS=[[-13.8,-9.2],[13.8,9.2],[-8.2,15.8],[8.2,-15.8]];
   /* 나오는 자리 */
@@ -74,7 +76,7 @@ function start(api){
   { const N=20, s=50/N; for(let i=0;i<N;i++) for(let j=0;j<N;j++) VL.push({g:new THREE.PlaneGeometry(s,s), col:(i+j)%2?0x8fd0dc:0x7cc3d1, m:mtx(-R+s*(i+.5),0,-R+s*(j+.5),-Math.PI/2)}); }
   [[-9,-17.5],[9,17.5]].forEach(([x,z])=>{ VL.push({g:new THREE.CylinderGeometry(2.3,2.3,.2,26), col:0xffffff, m:mtx(x,.1,z)}); VL.push({g:new THREE.CylinderGeometry(2.05,2.05,.06,26), col:0x46b3ff, m:mtx(x,.2,z)});
     VL.push({g:new THREE.TorusGeometry(.55,.22,10,18), col:0xffd23f, m:mtx(x+.6,.3,z-.4,Math.PI/2)}); VL.push({g:new THREE.SphereGeometry(.3,10,8), col:0xffd23f, m:mtx(x+.6,.62,z-.95)}); VL.push({g:new THREE.ConeGeometry(.1,.2,8), col:0xff9a3d, m:mtx(x+.6,.62,z-1.27,Math.PI/2)}); });
-  [[-23,-12],[23,12],[-12,23],[12,-23]].forEach(([x,z],i)=>{ VL.push({g:new THREE.CylinderGeometry(.06,.06,2.8,8), col:0xffffff, m:mtx(x,1.4,z)}); VL.push({g:new THREE.ConeGeometry(1.7,.7,10), col:[0xff7aa8,0xffd23f,0x5ee36b,0xb28dff][i], m:mtx(x,2.9,z)}); });
+  [[-23,-12],[23,12],[-12,23],[12,-23]].forEach(([x,z],i)=>{ VL.push({g:new THREE.CylinderGeometry(.06,.06,3.6,8), col:0xffffff, m:mtx(x,1.8,z)}); VL.push({g:new THREE.ConeGeometry(1.7,.7,10), col:[0xff7aa8,0xffd23f,0x5ee36b,0xb28dff][i], m:mtx(x,3.7,z)}); });
   VL.push({g:new THREE.SphereGeometry(1.5,20,14), col:0x7fd3ff, m:mtx(0,6.6,0)}); VL.push({g:new THREE.CylinderGeometry(1.52,1.52,.25,20), col:0xffffff, m:mtx(0,6.6,0)}); VL.push({g:new THREE.ConeGeometry(.5,.8,14), col:0x46b3ff, m:mtx(0,8.3,0)});
   PADS.forEach(([x,z])=>{ VL.push({g:new THREE.CylinderGeometry(1.0,1.1,.12,22), col:0xffffff, m:mtx(x,.06,z)}); GLOW.push({g:new THREE.CylinderGeometry(.82,.82,.04,22), col:0x7fe0ff, m:mtx(x,.13,z)}); GLOW.push({g:new THREE.TorusGeometry(.95,.05,6,24), col:0x46b3ff, m:mtx(x,.14,z,Math.PI/2)}); });
   function merge(L, mat){ const parts=L.map(e=>{ let g=e.g.index?e.g.toNonIndexed():e.g; if(e.m) g.applyMatrix4(e.m); if(!g.attributes.normal) g.computeVertexNormals(); return [g, new THREE.Color(e.col).convertSRGBToLinear()]; });
@@ -179,15 +181,15 @@ function start(api){
   const DROP=new THREE.InstancedMesh(new THREE.SphereGeometry(.06,6,4), new THREE.MeshBasicMaterial({color:0x8fe3ff, transparent:true, opacity:.9}), 900); DROP.frustumCulled=false; DROP.count=0; scene.add(DROP); disp.push(DROP.geometry);
   const SPL=new THREE.InstancedMesh(new THREE.SphereGeometry(.07,6,4), new THREE.MeshBasicMaterial({color:0xc8f3ff, transparent:true, opacity:.85}), 500); SPL.frustumCulled=false; SPL.count=0; scene.add(SPL); disp.push(SPL.geometry);
   const STR=[], PAR=[], BAL=[]; const _m=new THREE.Matrix4(), _q=new THREE.Quaternion(), _s=new V3(), _v=new V3(), _w=new V3();
-  function stream(a, b, w, big){ const L=a.distanceTo(b); STR.push({a:a.clone(), b:b.clone(), L, t:0, sp:big?52:78, w:w||1, big}); }
+  function stream(a, b, w, big, mine){ const L=a.distanceTo(b); STR.push({a:a.clone(), b:b.clone(), L, t:0, sp:big?52:78, w:w||1, big, mine}); }
   function burst(p, n, k){ for(let i=0;i<n && PAR.length<480;i++){ const th=Math.random()*Math.PI*2, ph=Math.random()*1.2; PAR.push({p:p.clone(), v:new V3(Math.cos(th)*Math.sin(ph)*(2+Math.random()*3)*(k||1), (1.5+Math.random()*3.5)*(k||1), Math.sin(th)*Math.sin(ph)*(2+Math.random()*3)*(k||1)), t:0, L:.35+Math.random()*.35, s:.6+Math.random()*.9}); } }
   const BALG=new THREE.SphereGeometry(.2,14,10); disp.push(BALG);
   function fxTick(dt){ let n=0;
     for(let i=STR.length-1;i>=0;i--){ const s=STR[i]; s.t+=dt; const hd=Math.min(s.L, s.t*s.sp), tl=Math.max(0, hd-(s.big?3.2:2.2));
       if(tl>=s.L-1e-3){ STR.splice(i,1); continue; } const k=s.big?9:6;
-      for(let j=0;j<k && n<900;j++){ const f=tl+(hd-tl)*(j/(k-1)); _v.copy(s.a).lerp(s.b, s.L>0?f/s.L:1); const sc=(s.big?2.2:1.15)*s.w*(.55+.45*j/(k-1)); _s.set(sc,sc,sc); _m.compose(_v,_q,_s); DROP.setMatrixAt(n++, _m); } }
+      for(let j=0;j<k && n<900;j++){ const f=tl+(hd-tl)*(j/(k-1)); _v.copy(s.a).lerp(s.b, s.L>0?f/s.L:1); const sc=(s.big?2.2:1.15)*s.w*(.55+.45*j/(k-1)); if(!s.mine && _v.distanceToSquared(cam.position)<2.6) continue; _s.set(sc,sc,sc); _m.compose(_v,_q,_s); DROP.setMatrixAt(n++, _m); } }   /* (v597) 버그: 남이 나를 맞힌 물줄기가 카메라 앞에서 커다란 덩어리 → 가까운 것은 안 그림 */
     DROP.count=n; DROP.instanceMatrix.needsUpdate=true; n=0;
-    for(let i=PAR.length-1;i>=0;i--){ const p=PAR[i]; p.t+=dt; if(p.t>p.L){ PAR.splice(i,1); continue; } p.v.y-=14*dt; p.p.addScaledVector(p.v, dt); if(p.p.y<.02){ p.p.y=.02; p.v.y*=-.2; p.v.x*=.6; p.v.z*=.6; } const sc=p.s*(1-p.t/p.L*.6); _s.set(sc,sc,sc); _m.compose(p.p,_q,_s); if(n<500) SPL.setMatrixAt(n++, _m); }
+    for(let i=PAR.length-1;i>=0;i--){ const p=PAR[i]; p.t+=dt; if(p.t>p.L){ PAR.splice(i,1); continue; } p.v.y-=14*dt; p.p.addScaledVector(p.v, dt); if(p.p.y<.02){ p.p.y=.02; p.v.y*=-.2; p.v.x*=.6; p.v.z*=.6; } const sc=p.s*(1-p.t/p.L*.6); if(p.p.distanceToSquared(cam.position)<1.7) continue; _s.set(sc,sc,sc); _m.compose(p.p,_q,_s); if(n<500) SPL.setMatrixAt(n++, _m); }
     SPL.count=n; SPL.instanceMatrix.needsUpdate=true;
     for(let i=BAL.length-1;i>=0;i--){ const b=BAL[i]; b.t+=dt; b.v.y-=13*dt; const o=b.m.position.clone(); b.m.position.addScaledVector(b.v, dt); b.m.rotation.x+=dt*6; const d=b.m.position.clone().sub(o), L=d.length(); let hit=null;
       if(L>0){ d.divideScalar(L); const r=rayBox(o, d, L); if(r.t<L) hit=o.addScaledVector(d, r.t); }
@@ -224,7 +226,7 @@ function start(api){
     const n=W.n||1, sp=a.me?(W.t==="snipe" && (Math.hypot(me.v.x,me.v.z)>2 || !me.onG) ? 2.2 : W.spr):W.spr; let hitAny=false, hd=false;
     for(let i=0;i<n;i++){ let dd=spread(d, sp); let r=trace(a, o, dd, W.rng);
       if(!r.who && hint && i===0){ const as=hint(o, dd, W.rng); if(as){ dd=as.c.clone().sub(o).normalize(); r={t:as.L, who:as.a, head:false}; } }
-      const end=o.clone().addScaledVector(dd, Math.min(r.t, W.rng)); stream(i===0||n<4?mz:mz, end, W.t==="beam"?1.6:W.t==="snipe"?.8:1, W.t==="beam");
+      const end=o.clone().addScaledVector(dd, Math.min(r.t, W.rng)); stream(mz, end, W.t==="beam"?1.6:W.t==="snipe"?.8:1, W.t==="beam", !!a.me);
       if(r.who){ let dm=W.dmg; if(W.k==="shot"){ const L=r.t; dm*=L<9?1:Math.max(.35,1-(L-9)/15); } if(r.head && W.t!=="beam") dm*=1.5; hurt(r.who, dm, a, a.wi, r.head, o); hitAny=true; hd=hd||r.head;
         if(W.t==="beam"){ const pu=new V3(dd.x,0,dd.z).normalize().multiplyScalar(5.5*Math.max(.3,1-r.t/16)); r.who.v.x+=pu.x*.35; r.who.v.z+=pu.z*.35; } burst(end, W.t==="beam"?2:4, .6); }
       else if(r.t<W.rng){ if(Math.random()<(W.t==="beam"?.3:1)) burst(end, W.n?2:5, .7); } }
