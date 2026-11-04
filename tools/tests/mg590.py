@@ -117,20 +117,20 @@ async def main():
                 r=await pg.evaluate("()=>{ const R=MG.run; MG.I.mx=.7; MG.I.my=.5; for(let i=0;i<20;i++) MG.step(.03,false); MG.I.mx=MG.I.my=0; const g=R.scene.children.find(c=>c.type==='Group' && c.scale.x>1.2); let ok=true; g.updateMatrixWorld(true); g.traverse(o=>{ if(o.isMesh && !isFinite(o.matrixWorld.elements[13])) ok=false; }); return [ok, g.visible]; }")
                 ok(r==[True,True], f"③ (v593) 걸어도 내 캐릭터가 보임 (예전: 걸으면 NaN 으로 사라짐) {r}")
                 r=await pg.evaluate("""()=>{ const R=MG.run, N=R.N; const q=[...R.cell].findIndex(v=>v===1); R.P.p.set(R.cx(q%N),0,R.cx(Math.floor(q/N))); const b0=R.st.blue; MG.step(.03,false); const a=[R.cell[q], b0-R.st.blue, R.st.score];
-                    const z=[...R.cell].findIndex(v=>v===0); R.st.intro=0; R.P.p.set(R.cx(z%N),0,R.cx(Math.floor(z/N))); R.st.hz=[{k:'blink', L:[z], w:0, on:3, t:0}]; MG.step(.03,false); const l1=R.st.lives;
+                    const z=[...R.cell].findIndex(v=>v===0); R.st.intro=0; R.P.p.set(R.cx(z%N),0,R.cx(Math.floor(z/N))); R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:3}); MG.step(.03,false); const l1=R.st.lives;
                     R.P.inv=0; R.P.p.y=.8; R.P.onG=false; R.P.vy=3; MG.step(.03,false); const l2=R.st.lives; return a.concat([l1, l2]); }""")
                 ok(r[0]==3 and r[1]==1 and r[2]>=10 and r[3]==2 and r[4]==2, f"③ 파랑 밟으면 지워짐 ⭐ · 빨강 밟으면 ❤️ -1 · 점프 중엔 안 맞음 {r}")
-                r=await pg.evaluate("""()=>{ const R=MG.run, N=R.N; R.P.inv=0; R.st.hz=[]; R.P.p.y=0; R.P.onG=true; R.P.vy=0; for(let q=0;q<N*N;q++){ if(R.cell[q]===1){ R.P.p.set(R.cx(q%N),0,R.cx(Math.floor(q/N))); MG.step(.02,false); } }
+                r=await pg.evaluate("""()=>{ const R=MG.run, N=R.N; R.P.inv=0; R.st.pl.H.length=0; R.P.p.y=0; R.P.onG=true; R.P.vy=0; for(let q=0;q<N*N;q++){ if(R.cell[q]===1){ R.P.p.set(R.cx(q%N),0,R.cx(Math.floor(q/N))); MG.step(.02,false); } }
                     const c=R.st.clearT>0; for(let i=0;i<60;i++) MG.step(.05,false); return [c, R.st.stage+1, R.st.lives]; }""")
                 ok(r[0] and r[1]==2, f"③ 파랑을 다 지우면 다음 판 {r}")
-                await pg.evaluate("()=>{ const R=MG.run; R.spawnHz(); R.spawnHz(); for(let i=0;i<40;i++) MG.step(.05,false); }")
+                await pg.evaluate("()=>{ const R=MG.run; for(let i=0;i<70;i++) MG.step(.05,false); }")
                 await pg.wait_for_timeout(1200); await pg.screenshot(path=OUT+"mg590_grid_pad.png")
                 await pg.evaluate("()=>{ document.querySelector('#mgUI .mgX').click(); document.querySelector('#mgUI .mgConf .go').click(); }"); await pg.wait_for_timeout(1500)
                 # 자동 선수 (게임이 깰 수 있는지)
                 await pg.evaluate("()=>MG.enter('grid',{})"); await pg.wait_for_timeout(1500)
                 r=await pg.evaluate(GRID_BOT, 150)
                 ok(r["stage"]>=3, f"③ 자동 선수(파랑 찾아가기 · 빨강 옆이면 점프 · 경고 칸 피하기) {r['t']}초에 {r['stage']}판 · ❤️ {r['lives']} · ⭐ {r['score']}")
-                r=await pg.evaluate("()=>{ const R=MG.run; R.P.inv=0; R.st.lives=1; R.st.hz=[]; const z=[...R.cell].findIndex(v=>v===0||v===3); R.P.p.set(R.cx(z%10),0,R.cx(Math.floor(z/10))); R.P.p.y=0; R.P.onG=true; R.red[z]=1; R.st.hz=[{k:'blink', L:[z], w:0, on:3, t:0}]; MG.step(.03,false); return R.st.over; }")
+                r=await pg.evaluate("()=>{ const R=MG.run; R.P.inv=0; R.st.lives=1; R.st.pl.H.length=0; const z=[...R.cell].findIndex(v=>v===0||v===3); R.P.p.set(R.cx(z%10),0,R.cx(Math.floor(z/10))); R.P.p.y=0; R.P.onG=true; R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:3}); MG.step(.03,false); return R.st.over; }")
                 await pg.wait_for_timeout(1800)
                 r2=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [el.classList.contains('on'), /판까지/.test(el.innerText), (store('hyeng_proto_mg')||{}).b.grid.st>=1]; }")
                 ok(r and r2==[True,True,True], f"③ ❤️ 다 쓰면 결과 창 · 기록 {r} {r2}")
@@ -144,7 +144,7 @@ async def main():
                 ok(r==[True,False,False,False,True,True], f"휴대폰 가로: 💦 쏘기 · 점프 · 슬라이드 버튼이 겹치지 않음 · 순위표와도 안 겹침 {r}")
                 await pg.evaluate("()=>MG.exit()"); await pg.wait_for_timeout(800)
                 await pg.evaluate("()=>MG.enter('grid',{})"); await pg.wait_for_timeout(1500)
-                await pg.evaluate("()=>{ const R=MG.run; for(let i=0;i<60;i++) MG.step(.05,false); R.spawnHz(); for(let i=0;i<30;i++) MG.step(.05,false); }")
+                await pg.evaluate("()=>{ const R=MG.run; for(let i=0;i<90;i++) MG.step(.05,false); }")
                 await pg.wait_for_timeout(1200); await pg.screenshot(path=OUT+"mg590_grid_phone.png")
                 await pg.evaluate("()=>MG.exit()"); await pg.wait_for_timeout(800)
             await ctx.close()
