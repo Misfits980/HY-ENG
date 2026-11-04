@@ -112,7 +112,7 @@ async def main():
                 # ③ 발판 게임
                 await pg.evaluate("()=>MG.lobby('grid')"); await pg.wait_for_timeout(300)
                 await pg.evaluate("()=>document.querySelector('#mgLob .go').click()"); await pg.wait_for_timeout(1500)
-                r=await pg.evaluate("()=>{ const R=MG.run; let b=0, g=0; for(let q=0;q<100;q++){ if(R.cell[q]===1) b++; if(R.cell[q]===2) g++; } return [MG.k, b, g, R.st.lives, R.cell[R.idxAt(R.P.p.x,R.P.p.z)]]; }")
+                r=await pg.evaluate("()=>{ const R=MG.run; let b=0, g=0; for(let q=0;q<R.N*R.N;q++){ if(R.cell[q]===1) b++; if(R.cell[q]===2) g++; } return [MG.k, b, g, R.st.lives, R.cell[R.idxAt(R.P.p.x,R.P.p.z)]]; }")
                 ok(r[0]=="grid" and r[1]>=10 and r[2]>=4 and r[3]==3 and r[4]==2, f"③ 발판 게임: 파랑 {r[1]} · 초록 {r[2]} · ❤️3 · 초록에서 시작 {r}")
                 r=await pg.evaluate("()=>{ const R=MG.run; MG.I.mx=.7; MG.I.my=.5; for(let i=0;i<20;i++) MG.step(.03,false); MG.I.mx=MG.I.my=0; const g=R.scene.children.find(c=>c.type==='Group' && c.scale.x>1.2); let ok=true; g.updateMatrixWorld(true); g.traverse(o=>{ if(o.isMesh && !isFinite(o.matrixWorld.elements[13])) ok=false; }); return [ok, g.visible]; }")
                 ok(r==[True,True], f"③ (v593) 걸어도 내 캐릭터가 보임 (예전: 걸으면 NaN 으로 사라짐) {r}")
@@ -130,7 +130,7 @@ async def main():
                 await pg.evaluate("()=>MG.enter('grid',{})"); await pg.wait_for_timeout(1500)
                 r=await pg.evaluate(GRID_BOT, 150)
                 ok(r["stage"]>=3, f"③ 자동 선수(파랑 찾아가기 · 빨강 옆이면 점프 · 경고 칸 피하기) {r['t']}초에 {r['stage']}판 · ❤️ {r['lives']} · ⭐ {r['score']}")
-                r=await pg.evaluate("()=>{ const R=MG.run; R.P.inv=0; R.st.lives=1; R.st.pl.H.length=0; const z=[...R.cell].findIndex(v=>v===0||v===3); R.P.p.set(R.cx(z%10),0,R.cx(Math.floor(z/10))); R.P.p.y=0; R.P.onG=true; R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:3}); MG.step(.03,false); return R.st.over; }")
+                r=await pg.evaluate("()=>{ const R=MG.run; R.P.inv=0; R.st.lives=1; R.st.pl.H.length=0; const z=[...R.cell].findIndex(v=>v===0||v===3); R.P.p.set(R.cx(z%R.N),0,R.cx(Math.floor(z/R.N))); R.P.p.y=0; R.P.onG=true; R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:3}); MG.step(.03,false); return R.st.over; }")
                 await pg.wait_for_timeout(1800)
                 r2=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [el.classList.contains('on'), /판까지/.test(el.innerText), (store('hyeng_proto_mg')||{}).b.grid.st>=1]; }")
                 ok(r and r2==[True,True,True], f"③ ❤️ 다 쓰면 결과 창 · 기록 {r} {r2}")

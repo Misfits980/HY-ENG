@@ -51,11 +51,11 @@ async def main():
         await B.evaluate("()=>document.querySelector('#mgUI [data-j]').click()"); await B.wait_for_timeout(600)
         rid=await A.evaluate("()=>MG.run.R.id")
         # 5명 꽉 참 → 못 들어감
-        await A.evaluate("(id)=>{ const t=srvNow(); ['F1','F2','F3'].forEach(k=>NET.put('/hy/day/mgg'+dayKey().replace(/\\D/g,'')+'/'+id+'/p/'+k, {n:k, x:0,z:0,y:0,l:3,o:0,t})); }", rid); await A.wait_for_timeout(300)
+        await A.evaluate("(id)=>{ const t=srvNow(); ['F1','F2','F3','F4'].forEach(k=>NET.put('/hy/day/mgg'+dayKey().replace(/\\D/g,'')+'/'+id+'/p/'+k, {n:k, x:0,z:0,y:0,l:3,o:0,t})); }", rid); await A.wait_for_timeout(300)
         await C.evaluate("(id)=>MG.run.joinRoom(id)", rid); await C.wait_for_timeout(600)
         r=await C.evaluate("()=>MG.run.st.phase")
-        ok(r=="room", f"② 5명이면 못 들어감 (C 는 방 목록에 남음) {r}")
-        await A.evaluate("(id)=>{ ['F1','F2','F3'].forEach(k=>NET.del('/hy/day/mgg'+dayKey().replace(/\\D/g,'')+'/'+id+'/p/'+k)); }", rid); await A.wait_for_timeout(300)
+        ok(r=="room", f"② 6명이면 못 들어감 (C 는 방 목록에 남음) {r}")
+        await A.evaluate("(id)=>{ ['F1','F2','F3','F4'].forEach(k=>NET.del('/hy/day/mgg'+dayKey().replace(/\\D/g,'')+'/'+id+'/p/'+k)); }", rid); await A.wait_for_timeout(300)
         await C.evaluate("(id)=>MG.run.joinRoom(id)", rid); await C.wait_for_timeout(600)
         await steps(P3, 6)
         r=[await x.evaluate("()=>[MG.run.st.phase, document.querySelectorAll('#mgUI .gRoom .pl span').length, !!document.querySelector('#mgUI [data-st]')]") for x in P3]
