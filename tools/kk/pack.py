@@ -21,8 +21,18 @@ def nodeM(n):
     if "matrix" in n: return np.array(n["matrix"]).reshape(4,4).T
     S=np.diag(n.get("scale",[1,1,1])+[1]); R=np.eye(4); R[:3,:3]=qmat(n.get("rotation",[0,0,0,1])); T=np.eye(4); T[:3,3]=n.get("translation",[0,0,0])
     return T@R@S
+def glb(f):
+    b=open(f,"rb").read(); assert b[:4]==b"glTF"; o=12; j=None; bin_=b""
+    while o<len(b):
+        L,T=struct.unpack("<II", b[o:o+8]); c=b[o+8:o+8+L]; o+=8+L
+        if T==0x4E4F534A: j=json.loads(c)
+        elif T==0x004E4942: bin_=c
+    return j, bin_
 def load(f):
-    j=json.load(open(f)); d=os.path.dirname(f); bins=[open(os.path.join(d,b["uri"]),"rb").read() for b in j["buffers"]]
+    if f.endswith(".glb"):   # (v591) Kenney Blaster Kit = .glb (버퍼가 파일 안에)
+        j, bn=glb(f); bins=[bn for _ in j["buffers"]]
+    else:
+        j=json.load(open(f)); d=os.path.dirname(f); bins=[open(os.path.join(d,b["uri"]),"rb").read() for b in j["buffers"]]
     P=[];N=[];U=[];I=[]; base=0
     def walk(ni, M):
         nonlocal base
@@ -42,7 +52,7 @@ def main():
     name, tex = sys.argv[1], sys.argv[2]; files=sys.argv[3:]; out=os.path.join(os.path.dirname(__file__), "..", "..", "assets", "town", "kk"); os.makedirs(out, exist_ok=True)
     B=bytearray(); idx={}
     for f in files:
-        P,N,U,I=load(f); k=os.path.basename(f)[:-5]
+        P,N,U,I=load(f); k=os.path.splitext(os.path.basename(f))[0]
         assert len(P)<65536, (k,len(P))
         mn=P.min(0); mx=P.max(0); sp=np.maximum(mx-mn,1e-6)
         q=np.round((P-mn)/sp*65535-32768).astype(np.int16); n8=np.round(N*127).astype(np.int8)

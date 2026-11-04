@@ -50,6 +50,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
 #mgUI .mgX{pointer-events:auto;border:0;background:rgba(20,30,60,.55);color:#fff;font:inherit;font-size:15px;border-radius:14px;padding:8px 12px;min-height:40px}
 #mgUI .mgB{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(20,40,80,.38);color:#fff;font-size:26px;line-height:1;pointer-events:auto;touch-action:none;transition:transform .06s}
 #mgUI .mgB small{font-size:11px;margin-top:3px;opacity:.95}
+#mgUI .mgB.tx{font-family:var(--en);font-weight:900;font-size:15px;letter-spacing:.04em}
 #mgUI .mgB.dn{transform:scale(.9);background:rgba(255,255,255,.35)}
 #mgUI .mgJoy{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(20,40,80,.18);pointer-events:none;display:none}
 #mgUI .mgJoy i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.8)}

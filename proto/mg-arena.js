@@ -101,6 +101,9 @@ function start(api){
   function raySph(o, d, c, r){ const ox=o.x-c.x, oy=o.y-c.y, oz=o.z-c.z, b=ox*d.x+oy*d.y+oz*d.z, cc=ox*ox+oy*oy+oz*oz-r*r, h=b*b-cc; if(h<0) return -1; const t=-b-Math.sqrt(h); return t>0?t:-1; }
 
   /* ════ 물총 모양 (손에 든 것 · 내 화면 것 같은 모양) ════ */
+  const KIT={pistol:["blaster-k",.38,.034], duo:["blaster-a",.33,.03], shot:["blaster-b",.44,.04], smg:["blaster-d",.52,.034], snipe:["blaster-e",.72,.03], balloon:["blaster-h",.5,.04], wave:["blaster-l",.5,.048]};
+  const TANK=new THREE.MeshStandardMaterial({color:0x6fd0ff, transparent:true, opacity:.72, roughness:.15, metalness:0}); disp.push(TANK);
+  let KMAT=null; const kitMat=R=>{ if(!KMAT){ KMAT=R.mat; toon(KMAT); } return KMAT; };
   const GM={}; const gmat=c=>GM[c]||(GM[c]=toon(new THREE.MeshStandardMaterial({color:c, roughness:.55})));
   function gunModel(G, wi, small){ while(G.children.length) G.remove(G.children[0]); const W=WP[wi], add=(geo,c,x,y,z,rx,ry,rz)=>{ const m=new THREE.Mesh(geo, gmat(c)); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,rz||0); if(!small) m.castShadow=false; G.add(m); return m; };
     /* 앞 = -z (내 화면) — 봇 손에서는 팔 방향(-y)으로 돌림 */
@@ -108,6 +111,14 @@ function start(api){
     const B=(w,h,d)=>new THREE.BoxGeometry(w,h,d), C=(r,h,n,r2)=>new THREE.CylinderGeometry(r,r2==null?r:r2,h,n||14), S=r=>new THREE.SphereGeometry(r,14,10), Z=Math.PI/2;
     const dk=c=>{ const k=new THREE.Color(c); k.multiplyScalar(.72); return k.getHex(); };
     if(W.k==="hammer"){ A(C(.032,.5,8),0xc98b5a,0,.02,-.08,Z*.78); A(C(.12,.32,18),W.col,0,.2,-.3,0,0,Z); [-.13,.13].forEach(x=>A(C(.125,.05,18),W.tk,x,.2,-.3,0,0,Z)); A(S(.05),0xffffff,0,.3,-.2); return; }
+    /* (v591) 사용자: 「무기가 너무 아쉬워」 → Kenney Blaster Kit(CC0) 장난감 블래스터 + 위에 투명 물통 = 장난감 물총 (모델이 아직 안 왔으면 아래 상자 물총) */
+    const KM=KIT[W.k], R=(typeof KK!=="undefined") && KK.R.blaster;
+    if(KM && R && R.G[KM[0]]){ const g=R.G[KM[0]], bb=g.boundingBox, s=KM[1]/(bb.max.z-bb.min.z), m=new THREE.Mesh(g, kitMat(R)); m.scale.setScalar(s); m.castShadow=!!small;   /* 모델 앞 = -z 그대로 */
+      m.position.set(-(bb.min.x+bb.max.x)/2*s, .07-bb.max.y*s, .1-bb.max.z*s); H.add(m); const L=KM[1], tr=KM[2]||.045;
+      const tk=new THREE.Mesh(C(tr,L*.28,16), TANK); tk.rotation.x=Z; tk.position.set(0,.07+tr*.85,.1-L*.42); H.add(tk); [1,-1].forEach(e=>{ const c=new THREE.Mesh(S(tr), TANK); c.scale.z=.5; c.position.set(0,.07+tr*.85,.1-L*.42+e*L*.14); H.add(c); });
+      const cp=new THREE.Mesh(C(tr*.45,.05,10), gmat(0xffffff)); cp.position.set(0,.07+tr*1.75,.1-L*.34); H.add(cp);
+      if(W.k==="duo" && !small){ const G2=new THREE.Group(); G.add(G2); G2.position.set(-.42,0,0); H.children.forEach(q=>G2.add(q.clone())); G.userData.twin=G2; } else G.userData.twin=null;
+      return; }
     if(W.k==="balloon"){ A(C(.085,.5,16),W.col,0,0,-.2,Z); A(C(.095,.06,16),0xffffff,0,0,-.45,Z); A(S(.12),0x46b3ff,0,.0,-.55); A(B(.08,.2,.1),dk(W.col),0,-.15,.0,.3); A(C(.05,.14,12),W.tk,0,.11,-.08,Z); return; }
     /* 물총 = 몸통 · 위 물통 · 앞 꼭지 · 아래 펌프 · 손잡이 */
     const P={pistol:[.08,.1,.34,.055,.16], duo:[.07,.09,.3,.05,.13], shot:[.13,.12,.46,.075,.24], smg:[.09,.11,.5,.06,.26], snipe:[.075,.09,.7,.05,.26], wave:[.15,.14,.5,.095,.28]}[W.k]||[.09,.11,.36,.06,.2];
@@ -148,6 +159,7 @@ function start(api){
   const VM=new THREE.Group(); vmS.add(VM); const VMG=new THREE.Group(); VM.add(VMG);
   const hand=new THREE.Mesh(new THREE.SphereGeometry(.07,12,10), toon(new THREE.MeshStandardMaterial({color:(()=>{ try{ return AV_OPT.skin[api.av.skin|0]; }catch(e){ return "#ffe0c2"; } })(), roughness:.8})));
   function vmSet(wi){ gunModel(VMG, wi, false); VMG.add(hand); hand.position.set(0,-.2,.03); hand.scale.set(1,1.15,1.25); VM.userData.wi=wi; }
+  let gone=false; try{ KK.load("blaster").then(()=>{ if(gone) return; vmSet(me.wi); ACT.forEach(a=>{ if(a.bot) gunModel(a.gun, a.wi, true); }); }); }catch(e){}
   vmSet(0); VM.position.set(.24,-.22,-.5); const vmA={kick:0, sw:1, bob:0, swing:0, side:1};
 
   /* ════ 물줄기 · 물보라 (작은 공 여러 개를 한 번에) ════ */
@@ -338,8 +350,8 @@ function start(api){
 #mgUI .aDead{position:absolute;inset:0;background:rgba(60,150,255,.35);pointer-events:none;opacity:0;transition:opacity .25s}
 #mgUI .aHint{position:absolute;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:13px;background:rgba(20,30,60,.45);border-radius:10px;padding:4px 10px;pointer-events:none;white-space:nowrap}
 #mgUI .mgB[data-b=fire]{right:max(22px,calc(env(safe-area-inset-right) + 14px));bottom:calc(130px + env(safe-area-inset-bottom));width:98px;height:98px;font-size:40px;background:rgba(255,132,102,.5)}
-#mgUI .mgB[data-b=jump]{right:max(18px,calc(env(safe-area-inset-right) + 10px));bottom:calc(36px + env(safe-area-inset-bottom));width:80px;height:80px}
-#mgUI .mgB[data-b=slide]{right:max(112px,calc(env(safe-area-inset-right) + 104px));bottom:calc(30px + env(safe-area-inset-bottom));width:68px;height:68px;font-size:22px}
+#mgUI .mgB[data-b=jump]{right:max(18px,calc(env(safe-area-inset-right) + 10px));bottom:calc(36px + env(safe-area-inset-bottom));width:80px;height:80px;font-size:16px}
+#mgUI .mgB[data-b=slide]{right:max(112px,calc(env(safe-area-inset-right) + 104px));bottom:calc(30px + env(safe-area-inset-bottom));width:68px;height:68px;font-size:13px}
 #mgUI .mgB[data-b=fire2]{left:max(20px,calc(env(safe-area-inset-left) + 12px));bottom:calc(200px + env(safe-area-inset-bottom));width:64px;height:64px;font-size:26px;background:rgba(255,132,102,.4)}
 </style>
 <div class="aWet"></div><div class="aDead"></div><div class="aDir"><i></i></div>
@@ -421,7 +433,7 @@ function start(api){
     const s=Math.max(0,Math.ceil(time.left)); eClk.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
     bdT-=dt; if(bdT<=0){ bdT=.5; drawBoard(); } }
   function render(rn){ MG.draw(scene, cam); const va=cam.aspect||1.5, vf=va>=1.3?58:Math.min(92, 58+(1.3-va)*52); if(vmC.aspect!==va || vmC.fov!==vf){ vmC.aspect=va; vmC.fov=vf; vmC.updateProjectionMatrix(); } rn.autoClear=false; rn.clearDepth(); rn.render(vmS, vmC); rn.autoClear=true; }
-  function dispose(){ disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); Object.values(GM).forEach(m=>{ try{ m.dispose(); }catch(e){} }); BAL.forEach(b=>scene.remove(b.m)); }
+  function dispose(){ gone=true; disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); Object.values(GM).forEach(m=>{ try{ m.dispose(); }catch(e){} }); BAL.forEach(b=>scene.remove(b.m)); }
   return {scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, vmSet, VM, me, ACT, WP, time, BOX, fire, hurt, spawn, PADS, moveAct, up, win, path, sees, D, vmA, get zoom(){ return zoom; }}; }
 
 MG.reg("arena", {ic:"💦", nm:"물총 아레나", tag:"1인칭 · 아레나 무브 · 무기 8단계", bg:"linear-gradient(135deg,#7fd3ff,#2f7fff)", big:"🔫💦",
@@ -429,6 +441,6 @@ MG.reg("arena", {ic:"💦", nm:"물총 아레나", tag:"1인칭 · 아레나 무
   opts:[{k:"diff", t:"상대(마을 친구 5명) 실력", d:"normal", v:[["easy","🐣 쉬움"],["normal","🙂 보통"],["hard","🔥 어려움"]]},{k:"auto", t:"터치 자동 쏘기 (조준만 하면 쏨)", d:0, v:[[0,"끄기"],[1,"켜기"]]}],
   payTxt:"우승 🪙15 · 3등 안 🪙8 · 참가 🪙5",
   bestTxt:(b,t)=>'🏆 우승 '+(t.win|0)+'번 · 💦 모두 '+(t.kills|0)+'명'+(b.fast?' · 가장 빠른 우승 '+b.fast+'초':'')+(b.wi?' · 최고 '+b.wi+'단계':''),
-  ui:{look:true, btns:[{b:"fire", ic:"🔫"}, {b:"jump", ic:"⤒", t:"점프"}, {b:"slide", ic:"🛝", t:"슬라이드"}]},
+  ui:{look:true, btns:[{b:"fire", ic:"🔫"}, {b:"jump", ic:"JUMP", cls:"tx"}, {b:"slide", ic:"SLIDE", cls:"tx"}]},
   start});
 })();

@@ -82,7 +82,7 @@ function start(api){
 #mgUI .gIntro b{display:inline-block;width:22px;height:22px;border-radius:6px;vertical-align:-4px;margin-right:6px}
 #mgUI .gHurt{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(255,45,85,0) 40%, rgba(255,45,85,.6) 100%);opacity:0;transition:opacity .15s}
 #mgUI .gCombo{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:24px;font-family:var(--en);font-weight:900;color:#7fe0ff;text-shadow:0 3px 0 rgba(0,0,0,.4);pointer-events:none;opacity:0;transition:opacity .2s}
-#mgUI .mgB[data-b=jump]{right:max(22px,calc(env(safe-area-inset-right) + 14px));bottom:calc(36px + env(safe-area-inset-bottom));width:104px;height:104px;font-size:34px;background:rgba(47,140,255,.45)}
+#mgUI .mgB[data-b=jump]{right:max(22px,calc(env(safe-area-inset-right) + 14px));bottom:calc(36px + env(safe-area-inset-bottom));width:104px;height:104px;font-size:20px;background:rgba(47,140,255,.45)}
 </style>
 <div class="gHurt"></div><div class="gTop"><span class="sg"></span><span class="tm"></span><span class="lv"></span><span class="bl"></span><span class="sc"></span></div><div class="gCombo"></div>
 <div class="gIntro"><div><b style="background:#2f8cff"></b>파란 칸 = 밟아서 지우기</div><div><b style="background:#ff2d55"></b>빨간 칸이 오면 = <b style="width:auto;height:auto;background:none;margin:0">⤒</b>점프로 넘거나 피하기</div><div><b style="background:#ff9a3d"></b>주황 깜빡 = 곧 빨강이 와요</div><div><b style="background:#2fd866"></b>초록 칸 = 안전 (빨강이 안 와요)</div></div>`;
@@ -144,6 +144,6 @@ MG.reg("grid", {ic:"🟦", nm:"발판 게임", tag:"LED 바닥 · 밟고 · 피�
   how:[["🟦","<b>파란 칸</b>을 모두 밟으면 다음 판 (점점 빨라져요)"],["🟥","<b>빨간 줄·고리</b>가 오면 점프로 넘거나 피하기"],["🟧","주황 깜빡 = 곧 빨강이 와요"],["🟩","<b>초록 칸</b> = 안전 (빨강이 안 와요)"],["❤️","3번 맞으면 끝 · 한 판 60초 · 남은 시간은 보너스"]],
   payTxt:"5판 🪙15 · 3판 🪙10 · 참가 🪙5",
   bestTxt:(b,t)=>'🏆 최고 '+(b.st|0)+'판 · ⭐ '+(b.sc|0)+' · 지운 칸 모두 '+(t.tiles|0)+'개',
-  ui:{look:false, btns:[{b:"jump", ic:"⤒", t:"점프"}]},
+  ui:{look:false, btns:[{b:"jump", ic:"JUMP", cls:"tx"}]},
   start});
 })();
