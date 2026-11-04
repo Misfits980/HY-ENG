@@ -528,6 +528,7 @@ const ISLE=(()=>{
     /* (v544) 🏘 마을 시설 9곳 (proto/town-fac.js) — 나무보다 먼저 자리 잡음 */
     try{ if(window.TFAC) TFAC.build({G, OX, OZ, MAP, box, flush, prim, mesh, disc, kk, signTex, SIGNS, busy, cols, SPOT, MC, LIN, geo_, vcMerge}); }catch(e){ console.warn(e); }
     try{ if(window.VIL) VIL.build({G, OX, OZ, MAP, disc, kk, busy, cols, SPOT, MC, LIN, vcMerge}); }catch(e){ console.warn("VIL", e); }   /* (v587) 🍄 버섯 마을 */
+    try{ if(window.MG) MG.build({G, OX, OZ, MAP, disc, busy, cols, SPOT, vcMerge}); }catch(e){ console.warn("MG", e); }   /* (v590) 🎮 게임 타워 2채 */
     /* 얕은 물·해변 · 꽃밭 (나무보다 먼저 자리 잡음) */
     ISL.forEach(shore);
     const tryBed=(x,z,r)=>{ if(onPave(x,z,r+.25) || water(x,z) || !MAP.inside(x,z,1.5) || busy.some(([bx,bz,br])=>Math.hypot(x-bx,z-bz)<br+r*.6)) return; bed(x,z,r,"m"); };
@@ -654,7 +655,7 @@ const ISLE=(()=>{
     if(SPOT.nu) L.push({k:"nu", ic:"🚧", t:(SPOT.nuName||"새 동네")+" (친구가 오면)", p:SPOT.nu, r:4, act:()=>toast("🚧 학원 친구가 늘면 <b>새 동네</b>가 여기에 생겨요!", 2600)});
     if(SPOT.camp) L.push({k:"camp", ic:"🔥", t:"모닥불", p:SPOT.camp, r:2.6, act:()=>{ hero.act="sit"; hero.actT=0; toast("🔥 따뜻해요 — 친구들이 모이는 곳이에요", 2200); }});
     try{ if(window.TFAC) TFAC.labels(L); }catch(e){ console.warn(e); }
-    try{ if(window.VIL) VIL.labels(L); }catch(e){ console.warn(e); }
+    try{ if(window.VIL) VIL.labels(L); }catch(e){ console.warn(e); } try{ if(window.MG) MG.labels(L); }catch(e){ console.warn(e); }
     return L; }
   /* (v539) 가게 — 문 앞까지 걸어가서 그 가게 창 */
   function shopGo(S){ const run=()=>{ const k=S.k; if(k==="fish") openShop(); else if(k==="furn") openFurn("furn"); else if(k==="clothes") openAv("clothes"); else if(k==="hair") openAv("hair"); else if(k==="mart"){ try{ HLIFE.openMart(); }catch(e){} } else if(k==="town") tripTo("village"); else if(window.TFAC && k==="snack") TFAC.openSnack(); else if(window.TFAC && k==="pet") TFAC.openPet(); else if(window.TFAC && k==="photo") TFAC.openPhoto(); try{ tEv("shop_"+k); }catch(e){} };

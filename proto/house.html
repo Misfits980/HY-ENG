@@ -4545,6 +4545,7 @@ function updHud(){ const bl=Math.max(0,buffUntil-now()), k=gems+"|"+bait+"|"+Mat
   $("hGem").querySelector("b").textContent=gems; $("hBait").querySelector("b").textContent=bait; $("hBuff").hidden=!(bl>0); if(bl>0) $("hBuff").querySelector("b").textContent=Math.ceil(bl/60e3)+"분"; }
 function loop(now){
   requestAnimationFrame(loop);
+  if(window.MG && MG.on){ last=now; return; }   /* (v590) 🎮 게임 타워 안 — 섬은 멈추고 게임이 그림 (mg-core.js) */
   const dt=Math.min(0.05,(now-last)/1000); last=now;
   let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.VIL && VIL.tick(dt)) anim=true; }catch(e){ console.warn(e); } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ console.warn(e); } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } if(place===PL.mine){ regenMine(); drawOres(); } }
@@ -4578,6 +4579,9 @@ window.HOUSE = {MTL, mtLog, mtId, VLN, vlNetStart, vlNetStop, vlTick, vcSay, vcC
 <script src="town-fac.js"></script>
 <script src="town-eco.js"></script>
 <script src="isle-vil.js"></script>   <!-- (v587) 🍄 버섯 마을 · 📌 의뢰 -->
+<script src="mg-core.js"></script>   <!-- (v590) 🎮 놀이 공원 게임 타워 -->
+<script src="mg-arena.js"></script>   <!-- (v590) 💦 물총 아레나 -->
+<script src="mg-grid.js"></script>   <!-- (v590) 🟦 발판 게임 -->
 <script src="shop-in.js"></script>   <!-- (v572) 🏪 가게 안 -->
 </body>
 </html>

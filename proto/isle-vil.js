@@ -35,9 +35,11 @@ const VIL=(()=>{
     ["joe","b","coal",2,30,"Bring me 2 coal from the mine!","광산에서 석탄 2개!"],
     ["joe","d","mine",3,30,"Go to the mine and dig 3 times!","광산에서 3번 캐 봐!"],
     ["joe","d","tree",3,20,"Shake 3 trees for me!","나무 3번 흔들어 줘!"],
-    ["joe","d","clear",3,20,"Pull 3 weeds in your yard!","마당 잡초 3개 뽑아 줘!"]
+    ["joe","d","clear",3,20,"Pull 3 weeds in your yard!","마당 잡초 3개 뽑아 줘!"],
+    ["sam","d","mg_arena",1,20,"Let's play water guns at the park!","놀이 공원 💦 물총 아레나 한 판 해 봐!"],   /* (v590) 🎮 게임 타워 */
+    ["lily","d","mg_grid",1,20,"Can you try the tile game at the park?","놀이 공원 🟦 발판 게임 한 판 해 볼래?"]
   ].map(([who,k,x,n,r,en,ko],i)=>({id:"q"+i, who, kind:k, x, n, r, en, ko}));
-  const EV_KO={plant:"🌱 씨앗 심기", harvest:"🧺 거두기", cook:"🍳 요리", eat:"😋 먹기", catch:"🎣 낚기", sell:"🪙 팔기", mine:"⛏ 캐기", tree:"🌳 흔들기", clear:"🌿 잡초 뽑기"};
+  const EV_KO={plant:"🌱 씨앗 심기", harvest:"🧺 거두기", cook:"🍳 요리", eat:"😋 먹기", catch:"🎣 낚기", sell:"🪙 팔기", mine:"⛏ 캐기", tree:"🌳 흔들기", clear:"🌿 잡초 뽑기", mg_arena:"💦 물총 아레나", mg_grid:"🟦 발판 게임"};
   const MAXA=3;
   const GIFT=[[3,"mushstool","🍄 버섯 의자"],[8,"mushlamp","🍄 버섯 등"],[15,"mushhut","🍄 버섯 집"]];
   const day=()=>{ try{ return dayKey(); }catch(e){ return new Date().toISOString().slice(0,10); } };
