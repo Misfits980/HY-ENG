@@ -8,3 +8,4 @@
 - (v591 뒤 · 2026-11-04) 사용자가 받아 준 Kenney 모음(CC0) — 아직 게임 코드에선 안 씀:
   - 묶어 둠(colormap 텍스처): suburb(City Kit Suburban 2.0 · 주택 40) · commerce(City Kit Commercial 2.1 · 41) · food(Food Kit · 198, 냄비·프라이팬 뚜껑 2개는 UV 범위 밖이라 뺌) · holiday(Holiday Kit · 99) · blaster(Blaster Kit 2.1 · 7, 물총 아레나에서 씀)
   - 원본만 둠(tools/kk/src/): furniture-kit(140) · nature-kit(329) — 텍스처 없이 재료 색이라 pack.py 에 「재료 색 → 작은 팔레트 텍스처」 굽기를 더해야 묶을 수 있음
+  - blasterx(Blaster Kit 2.1 · 14): 상자 crate-small/medium/wide · 과녁 target-* · 수류탄 grenade-a/b(→ 물풍선) · 스펀지 총알 — 물총 아레나 장애물 후보 (아직 안 씀)
