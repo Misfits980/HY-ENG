@@ -127,9 +127,9 @@ async def main():
                 await pg.wait_for_timeout(1200); await pg.screenshot(path=OUT+"mg590_grid_pad.png")
                 await pg.evaluate("()=>{ document.querySelector('#mgUI .mgX').click(); document.querySelector('#mgUI .mgConf .go').click(); }"); await pg.wait_for_timeout(1500)
                 # 자동 선수 (게임이 깰 수 있는지)
-                await pg.evaluate("()=>MG.enter('grid',{})"); await pg.wait_for_timeout(1500)
+                await pg.evaluate("()=>MG.enter('grid',{df:'easy'})"); await pg.wait_for_timeout(1500)   # (v596) 쉬움 모드로 — 단순한 자동 선수 기준
                 r=await pg.evaluate(GRID_BOT, 150)
-                ok(r["stage"]>=3, f"③ 자동 선수(파랑 찾아가기 · 빨강 옆이면 점프 · 경고 칸 피하기) {r['t']}초에 {r['stage']}판 · ❤️ {r['lives']} · ⭐ {r['score']}")
+                ok(r["stage"]>=3, f"③ (🐣 쉬움) 자동 선수(파랑 찾아가기 · 빨강 옆이면 점프 · 경고 칸 피하기) {r['t']}초에 {r['stage']}판 · ❤️ {r['lives']} · ⭐ {r['score']}")
                 r=await pg.evaluate("()=>{ const R=MG.run; R.P.inv=0; R.st.lives=1; R.st.pl.H.length=0; const z=[...R.cell].findIndex(v=>v===0||v===3); R.P.p.set(R.cx(z%R.N),0,R.cx(Math.floor(z/R.N))); R.P.p.y=0; R.P.onG=true; R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:3}); MG.step(.03,false); return R.st.over; }")
                 await pg.wait_for_timeout(1800)
                 r2=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [el.classList.contains('on'), /판까지/.test(el.innerText), (store('hyeng_proto_mg')||{}).b.grid.st>=1]; }")

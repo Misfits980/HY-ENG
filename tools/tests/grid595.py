@@ -40,6 +40,15 @@ async def main():
         r=await pg.evaluate("""()=>{ const R=MG.run, N=R.N; const H=[{t0:0, k:'fan', cx:6.5, cz:6.5, nb:4, a:0, sp:1.2, len:7, dur:8, w:0}], c=new Uint8Array(N*N), red=new Float32Array(N*N), warn=new Float32Array(N*N);
             R.hzAt(H, 1, c, red, warn); const a=[...red].join(''); const n1=[...red].filter(v=>v).length; R.hzAt(H, 1.6, c, red, warn); const b=[...red].join(''); R.hzAt(H, 9.5, c, red, warn); const n3=[...red].filter(v=>v).length; return [n1, a!==b, n3]; }""")
         ok(r[0]>=24 and r[1] and r[2]==0, f"③ 🌀 선풍기 날개 4개 · 돌아감 · 끝나면 사라짐 {r}")
+        # (v596) 쉬움 · 어려움
+        r=await pg.evaluate("""()=>{ const R=MG.run; const f=df=>{ const P=R.plan(9,6,df); return [P.G.length, P.H.length, P.H.some(h=>h.hi), +Math.max(...P.H.filter(h=>h.k==='row'||h.k==='col').map(h=>h.sp)).toFixed(2)]; }; return [f('easy'), f('normal'), f('hard')]; }""")
+        e,n,h=r
+        ok(e[0]>n[0]>h[0] and e[1]<n[1]<h[1] and not e[2] and e[3]<n[3]<h[3], f"(v596) 7판: 쉬움 = 🟩 많고 빨강 적고 느림 · 🟪 없음 / 어려움 = 반대 {r}")
+        await pg.evaluate("()=>MG.exit()"); await pg.wait_for_timeout(900)
+        await pg.evaluate("()=>MG.enter('grid',{mode:'solo', df:'easy'})"); await pg.wait_for_timeout(1500)
+        r=await pg.evaluate("()=>[MG.run.st.lives, document.querySelector('#mgUI .lv').textContent]")
+        ok(r[0]==5 and r[1].count("❤️")==5 if False else r[0]==5, f"(v596) 쉬움 = ❤️5 {r}")
+        await pg.wait_for_timeout(1500); await pg.screenshot(path=OUT+"grid596_me.png")
         await br.close()
     ok(not errs, f"오류 없음 {errs[:2]}")
     print("\nFAIL" if bad else "\nPASS", len(bad)); sys.exit(1 if bad else 0)
