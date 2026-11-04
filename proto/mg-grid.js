@@ -31,7 +31,7 @@ function start(api){
   T.instanceColor.setUsage(THREE.DynamicDrawUsage);
 
   /* ── 나 (내 아바타) ── */
-  let me=null; try{ me=buildAvatar(api.av); me.g.scale.setScalar(1.5); me.g.traverse(m=>{ if(m.isMesh) m.castShadow=!api.low; }); scene.add(me.g); }catch(e){ me=null; }
+  let me=null; try{ me=buildAvatar(api.av); me.t=0; me.blinkT=2; me.face=0; me.act="idle"; me.g.scale.setScalar(1.8);   /* (v593) t 가 없으면 걸을 때 NaN → 캐릭터가 사라짐 */ me.g.traverse(m=>{ if(m.isMesh) m.castShadow=!api.low; }); scene.add(me.g); }catch(e){ me=null; }
   const P={p:new V3(), vy:0, onG:true, inv:0, face:0};
   /* 내가 선 칸 = 흰 테두리 (어느 칸인지 바로 보임) */
   const HL=new THREE.Group(); { const hm=new THREE.MeshBasicMaterial({color:0xffffff}), a=TS*.92, t=.12; [[0,-a/2,a,t],[0,a/2,a,t],[-a/2,0,t,a],[a/2,0,t,a]].forEach(([x,z,w,d])=>{ const g=new THREE.BoxGeometry(w,.05,d); disp.push(g); const m=new THREE.Mesh(g,hm); m.position.set(x,.14,z); HL.add(m); }); } scene.add(HL);

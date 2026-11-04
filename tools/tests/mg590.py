@@ -114,6 +114,8 @@ async def main():
                 await pg.evaluate("()=>document.querySelector('#mgLob .go').click()"); await pg.wait_for_timeout(1500)
                 r=await pg.evaluate("()=>{ const R=MG.run; let b=0, g=0; for(let q=0;q<100;q++){ if(R.cell[q]===1) b++; if(R.cell[q]===2) g++; } return [MG.k, b, g, R.st.lives, R.cell[R.idxAt(R.P.p.x,R.P.p.z)]]; }")
                 ok(r[0]=="grid" and r[1]>=10 and r[2]>=4 and r[3]==3 and r[4]==2, f"③ 발판 게임: 파랑 {r[1]} · 초록 {r[2]} · ❤️3 · 초록에서 시작 {r}")
+                r=await pg.evaluate("()=>{ const R=MG.run; MG.I.mx=.7; MG.I.my=.5; for(let i=0;i<20;i++) MG.step(.03,false); MG.I.mx=MG.I.my=0; const g=R.scene.children.find(c=>c.type==='Group' && c.scale.x>1.2); let ok=true; g.updateMatrixWorld(true); g.traverse(o=>{ if(o.isMesh && !isFinite(o.matrixWorld.elements[13])) ok=false; }); return [ok, g.visible]; }")
+                ok(r==[True,True], f"③ (v593) 걸어도 내 캐릭터가 보임 (예전: 걸으면 NaN 으로 사라짐) {r}")
                 r=await pg.evaluate("""()=>{ const R=MG.run, N=R.N; const q=[...R.cell].findIndex(v=>v===1); R.P.p.set(R.cx(q%N),0,R.cx(Math.floor(q/N))); const b0=R.st.blue; MG.step(.03,false); const a=[R.cell[q], b0-R.st.blue, R.st.score];
                     const z=[...R.cell].findIndex(v=>v===0); R.st.intro=0; R.P.p.set(R.cx(z%N),0,R.cx(Math.floor(z/N))); R.st.hz=[{k:'blink', L:[z], w:0, on:3, t:0}]; MG.step(.03,false); const l1=R.st.lives;
                     R.P.inv=0; R.P.p.y=.8; R.P.onG=false; R.P.vy=3; MG.step(.03,false); const l2=R.st.lives; return a.concat([l1, l2]); }""")

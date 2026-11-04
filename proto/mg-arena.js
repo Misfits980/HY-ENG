@@ -141,7 +141,7 @@ function start(api){
   BOTS.forEach((b,i)=>{ const a=mkAct({bot:true, nm:b.nm, i});
     let c=null; try{ c=buildAvatar(b.av); }catch(e){ c=null; }
     const G=new THREE.Group(); scene.add(G); a.G=G;
-    if(c){ c.g.scale.setScalar(AVK); G.add(c.g); a.c=c; c.g.traverse(m=>{ if(m.isMesh){ m.castShadow=!api.low; } }); }
+    if(c){ c.t=0; c.blinkT=2; c.act='idle'; c.g.scale.setScalar(AVK); G.add(c.g); a.c=c; c.g.traverse(m=>{ if(m.isMesh){ m.castShadow=!api.low; } }); }
     else { const m=new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CylinderGeometry(.35,.35,1.7,10) : new THREE.CylinderGeometry(.35,.35,1.7,10), toon(new THREE.MeshStandardMaterial({color:0xff9a3d}))); m.position.y=.85; G.add(m); }
     a.gun=new THREE.Group(); if(c && c.armR){ c.armR.add(a.gun); a.gun.position.set(0,-.2,0); a.gun.scale.setScalar(.7); }
     a.tag=nameTag(b.nm); a.tag.position.y=2.15; G.add(a.tag);
@@ -169,7 +169,7 @@ function start(api){
     const root=new THREE.Group(), legL=part("leg-left"), legR=part("leg-right"), torso=part("torso"), armL=part("arm-left"), armR=part("arm-right"), head=part("head");
     root.add(legL, legR, torso); torso.add(armL, armR, head); root.scale.setScalar(.667);
     if(a.c){ a.G.remove(a.c.g); a.c=null; } a.G.add(root); a.bk={g:root, legL, legR, torso, armL, armR, head, t:Math.random()*6};
-    armR.add(a.gun); a.gun.position.set(-.2,-.95,.02); a.gun.scale.setScalar(1.35); a.hb=HB_BK; }
+    armR.add(a.gun); a.gun.position.set(-.2,-1.02,-.24); a.gun.scale.setScalar(1.75);   /* (v593) 사용자: 「총이 손에 파묻혀」 → 손 아래·앞으로 · 더 크게 */ a.hb=HB_BK; }
   let gone=false;
   try{ fetch("../assets/mg/blocky/blocky.json").then(r=>r.json()).then(J=>{ if(gone) return; ACT.forEach(a=>{ if(a.bot){ const k=BKS[a.i%BKS.length]; blockify(a, J[k], k); } }); }).catch(e=>console.warn("blocky", e)); }catch(e){}
   try{ KK.load("blaster").then(()=>{ if(gone) return; vmSet(me.wi); ACT.forEach(a=>{ if(a.bot) gunModel(a.gun, a.wi, true); }); }); }catch(e){}
