@@ -230,6 +230,58 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
       const hp=hero.g.position; if(Math.hypot(hp.x-p[0],hp.z-p[2])<4.2 || !best){ then(); return; } walkTo(best[0],best[1],then); }catch(e){ then(); } }
   function labels(L){ GATES.forEach(g=>{ const p=SPOT[g.k], d=GM[g.k]; if(!p || !d) return; L.push({k:"mg_"+g.k, ic:d.ic, t:d.nm, p, r:4.4, act:()=>walkNear(p, ()=>lobby(g.k))}); }); }
 
-  return {reg, GM, ORDER, draw, build, labels, lobby, enter, exit, step, result, rec, payLeft, SFX, I, SPOT, GATES, get on(){ return S.on; }, get run(){ return S.run; }, get k(){ return S.k; }, msg, DAY_PAY};
+  /* ══ (v598) 👫 같이 하기 방 — 방 목록 · 대기방 · 방장 시작 → 10초 · 위치 보내기 · 사건(맞음·잡음) 주고받기 ══
+     /hy/day/<pre><날>/<방>/{h:{c 방장, n, st, seed, hb, …}, p:{<코드>:상태}, e:{<코드>:{<id>:사건}}, fd:{<id>:소식}, b: 봇(방장)} — 서버 규칙 /hy/day/$d/$k 그대로 */
+  function room(api, cfg){ const MAX=cfg.max||6, WAITMS=cfg.wait||10000, OK=typeof NET!=="undefined";
+    const code=(()=>{ try{ return myCode; }catch(e){ return "ME"+Math.floor(Math.random()*999); } })(), nm=api.nick;
+    const now=()=>{ try{ return srvNow(); }catch(e){ return Date.now(); } }, day=()=>{ try{ return dayKey().replace(/\D/g,""); }catch(e){ return "0"; } };
+    const BASE=()=>"/hy/day/"+cfg.pre+day(), esc2=x=>String(x==null?"":x).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+    const R={code, phase:"room", id:null, path:null, d:null, host:false, rooms:[], busy:false, listT:0, pollT:0, sendT:0, hbT:0, last:null, seenE:{}, seenF:{}, onEv:null, onFeed:null, onStart:null, node:null};
+    const P=document.createElement("div"); P.className="mgRoomP"; api.ui.appendChild(P); P.addEventListener("pointerdown", e=>e.stopPropagation());
+    if(!$$("mgRoomCss")){ const st=document.createElement("style"); st.id="mgRoomCss"; st.textContent=`#mgUI .mgRoomP{position:absolute;left:50%;top:calc(58px + env(safe-area-inset-top));transform:translateX(-50%);width:min(380px,calc(100vw - 24px));background:rgba(10,14,50,.86);border:2px solid rgba(127,224,255,.55);border-radius:20px;padding:12px 14px;pointer-events:auto;text-align:center;font-size:16px;z-index:3}
+#mgUI .mgRoomP h4{margin:0 0 6px;font-size:20px;font-weight:400} #mgUI .mgRoomP .sub{font-size:13.5px;opacity:.85;margin:4px 0}
+#mgUI .mgRoomP button{font:inherit;border:0;border-radius:14px;padding:10px 14px;margin:5px 3px 0;min-height:46px;background:#2f8cff;color:#fff;font-size:16px} #mgUI .mgRoomP button.go{background:#2fd866;color:#10123a} #mgUI .mgRoomP button.gr{background:rgba(255,255,255,.18)}
+#mgUI .mgRoomP .rl{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:34vh;overflow:auto} #mgUI .mgRoomP .rl button{margin:0;width:100%;text-align:left;background:rgba(255,255,255,.12)}
+#mgUI .mgRoomP .pl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0} #mgUI .mgRoomP .pl span{background:rgba(255,255,255,.14);border-radius:12px;padding:5px 10px} #mgUI .mgRoomP .pl span.me{background:#ff8466}
+#mgUI .mgRoomCnt{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:84px;font-family:var(--en);font-weight:900;text-shadow:0 5px 0 rgba(0,0,0,.35);pointer-events:none;color:#fff}`; document.head.appendChild(st); }
+    const CNT=document.createElement("div"); CNT.className="mgRoomCnt"; api.ui.appendChild(CNT);
+    function live(withMe){ const d=R.d||{}, t=now(), L=[]; Object.keys(d.p||{}).forEach(k=>{ const p=d.p[k]; if(!p) return; if(k!==code && t-(p.t||0)>10000) return; if(!withMe && k===code) return; L.push(Object.assign({}, p, {k})); }); if(withMe && !L.some(p=>p.k===code)) L.push({k:code, n:nm}); return L.sort((a,b)=>a.k<b.k?-1:1); }
+    function ui(){ if(R.phase!=="room" && R.phase!=="wait"){ P.style.display="none"; return; } P.style.display="";
+      if(R.phase==="room"){ P.innerHTML='<h4>👫 '+cfg.title+' <small style="font-size:13px;opacity:.8">(최대 '+MAX+'명)</small></h4><div class="sub">친구 방에 들어가거나, 내 방을 만들어요</div><div class="rl">'+(R.rooms.length?R.rooms.map(r=>'<button data-j="'+r.id+'">'+cfg.ic+' '+esc2(r.n)+'의 방 · '+r.c+'/'+MAX+'명</button>').join(""):'<div class="sub">아직 열린 방이 없어요</div>')+'</div><button class="go" data-mk="1">＋ 내 방 만들기</button>'; }
+      else { const h=(R.d&&R.d.h)||{}, ps=live(true); P.innerHTML='<h4>'+cfg.ic+' '+esc2(h.n||"")+'의 방</h4><div class="pl">'+ps.map(p=>'<span class="'+(p.k===code?"me":"")+'">'+(p.k===h.c?"👑 ":"")+esc2(p.n)+'</span>').join("")+'</div><div class="sub">'+ps.length+' / '+MAX+'명'+(cfg.fill?' · 빈자리는 봇이 채워요':'')+'</div>'+
+        (h.st?'<div class="sub">곧 시작해요!</div>':R.host?'<button class="go" data-st="1">▶ 게임 시작 (10초 뒤)</button>':'<div class="sub">방장(👑)이 「게임 시작」을 누르면 10초 뒤 시작해요</div>')+'<button class="gr" data-lv="1">방 나가기</button>'; } }
+    P.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b || R.busy) return; if(b.dataset.mk) R.make(); else if(b.dataset.j) R.join(b.dataset.j); else if(b.dataset.st) R.start(); else if(b.dataset.lv) R.leave(true); });
+    R.list=async()=>{ if(!OK) return; let d=null; try{ d=await NET.get(BASE()); }catch(e){ return; } const t=now(), L=[];
+      Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAX) L.push({id, n:r.h.n||"친구", c}); });
+      R.rooms=L.sort((a,b)=>b.c-a.c).slice(0,6); if(R.phase==="room") ui(); };
+    R.make=async()=>{ if(!OK){ api.msg("서버에 연결이 안 돼요", 1500); return; } R.busy=true; const id=code+"_"+(Date.now()%100000); R.id=id; R.path=BASE()+"/"+id; R.host=true;
+      const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, cfg.h||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{}); try{ await NET.put(R.path, {h, p:{[code]:me}}); }catch(e){} R.d={h, p:{[code]:me}}; R.phase="wait"; R.busy=false; ui(); };
+    R.join=async(id)=>{ R.busy=true; const path=BASE()+"/"+id; let d=null; try{ d=await NET.get(path); }catch(e){} const t=now(), c=d && d.p ? Object.values(d.p).filter(p=>p && t-(p.t||0)<10000).length : 0;
+      if(!d || !d.h || d.h.st || c>=MAX){ R.busy=false; api.msg(d && d.h && d.h.st?"이미 시작한 방이에요":"방이 꽉 찼어요 (최대 "+MAX+"명)", 1500); R.list(); return; }
+      R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, Object.assign({n:nm, t:now()}, R.node?R.node():{})); }catch(e){} R.phase="wait"; R.busy=false; ui(); };
+    R.start=async()=>{ if(!R.host || !R.path) return; const at=now()+WAITMS, seed=(Math.random()*4294967296)>>>0; try{ await NET.patch(R.path+"/h", {st:at, seed}); }catch(e){} R.d.h=Object.assign({}, R.d.h, {st:at, seed}); ui(); };
+    R.leave=(toList)=>{ if(R.path && OK){ NET.del(R.path+"/p/"+code).catch(()=>{}); if(R.host && R.phase==="wait") NET.del(R.path).catch(()=>{}); } R.id=R.path=null; R.d=null; R.host=false; if(toList){ R.phase="room"; R.list(); ui(); } };
+    R.live=live; R.now=now;
+    R.authority=()=>{ const h=(R.d&&R.d.h)||{}, L=live(true).map(p=>p.k); return L.indexOf(h.c)>=0 ? h.c===code : L[0]===code; };
+    R.ev=(to, o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); NET.put(R.path+"/e/"+to+"/"+id, Object.assign({at:now()}, o)).catch(()=>{}); };
+    R.feed=(o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); R.seenF[id]=1; NET.put(R.path+"/fd/"+id, o).catch(()=>{}); };
+    R.put=(sub, v)=>{ if(R.path && OK) NET.put(R.path+"/"+sub, v).catch(()=>{}); };
+    async function poll(){ if(!R.path || R.busy) return; let d=null; try{ d=await NET.get(R.path); }catch(e){ return; } if(!R.path) return;
+      if(!d || !d.h){ if(R.phase==="wait"){ api.msg("방이 닫혔어요", 1400); R.leave(true); } return; } R.d=d;
+      const my=(d.e||{})[code]||{}; Object.keys(my).forEach(id=>{ if(R.seenE[id]) return; R.seenE[id]=1; NET.del(R.path+"/e/"+code+"/"+id).catch(()=>{}); try{ R.onEv && R.onEv(my[id]); }catch(e){ console.warn(e); } });
+      Object.keys(d.fd||{}).forEach(id=>{ if(R.seenF[id]) return; R.seenF[id]=1; try{ R.onFeed && R.onFeed(d.fd[id]); }catch(e){} });
+      if(R.phase==="wait"){ if(d.h.st) R.phase="count"; ui(); } }
+    R.tick=(dt)=>{ if(!OK) return;
+      if(R.phase==="room"){ R.listT-=dt; if(R.listT<=0){ R.listT=1.5; R.list(); } return; }
+      if(!R.path) return;
+      R.sendT-=dt; if(R.sendT<=0){ R.sendT=cfg.send||.1; const m=Object.assign({n:nm, t:now()}, R.node?R.node():{}); const s0=R.last; if(!s0 || JSON.stringify(Object.assign({},s0,{t:0}))!==JSON.stringify(Object.assign({},m,{t:0})) || m.t-s0.t>1500){ R.last=m; NET.put(R.path+"/p/"+code, m).catch(()=>{}); } }
+      R.pollT-=dt; if(R.pollT<=0){ R.pollT=cfg.poll||.25; poll(); }
+      if(R.host && R.phase==="wait"){ R.hbT-=dt; if(R.hbT<=0){ R.hbT=3; NET.put(R.path+"/h/hb", now()).catch(()=>{}); } }
+      if(R.phase==="count"){ const left=((R.d.h.st||0)-now())/1000; CNT.textContent=left>0?Math.ceil(left):""; if(left<=3 && left>0 && Math.ceil(left)!==R.lc){ R.lc=Math.ceil(left); try{ api.sfx.tick(); }catch(e){} }
+        if(left<=0){ CNT.textContent=""; R.phase="play"; try{ R.onStart && R.onStart(R.d.h, live(true)); }catch(e){ console.warn(e); } } } };
+    R.dispose=()=>{ R.leave(false); try{ P.remove(); CNT.remove(); }catch(e){} };
+    R.list(); ui(); return R; }
+
+  return {reg, GM, ORDER, draw, room, build, labels, lobby, enter, exit, step, result, rec, payLeft, SFX, I, SPOT, GATES, get on(){ return S.on; }, get run(){ return S.run; }, get k(){ return S.k; }, msg, DAY_PAY};
 })();
 window.MG=MG;

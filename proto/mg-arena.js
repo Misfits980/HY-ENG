@@ -29,7 +29,7 @@ const GRAV=22, JV=8.1, MAXS=7.6, ACC=11, FRIC=6.2, STOP=2.6, AIRACC=14, AIRCAP=1
 const MATCH=300, RESP=2.6, PROT=1.6;
 
 function start(api){
-  const D=DIFF[api.opt.diff]||DIFF.normal, AUTO=!!api.opt.auto;
+  const D=DIFF[api.opt.diff]||DIFF.normal, AUTO=!!api.opt.auto, CO=api.opt.mode==="co";   /* (v598) 👫 같이 하기 */
   const scene=new THREE.Scene(); scene.background=new THREE.Color(0x9fdcff); scene.fog=new THREE.Fog(0x9fdcff, 45, 95);
   const cam=new THREE.PerspectiveCamera(76, 1, 0.05, 160); cam.rotation.order="YXZ";
   const hemi=new THREE.HemisphereLight(0xfff4e0, 0x5a7ab0, 0.5); scene.add(hemi); scene.add(new THREE.AmbientLight(0xffffff, .08));
@@ -150,6 +150,7 @@ function start(api){
     const bub=new THREE.Mesh(new THREE.SphereGeometry(1.15,16,12), new THREE.MeshBasicMaterial({color:0x9fe8ff, transparent:true, opacity:.25, depthWrite:false})); bub.position.y=.95; G.add(bub); a.bub=bub;
     a.brain={tg:null, see:false, seeT:0, react:0, path:[], pathT:0, goal:null, str:1, strT:0, stuckT:0, lastP:new V3(), aimY:0, aimP:0, ex:0, ey:0, eT:0, think:Math.random()*.2, roam:null};
     gunModel(a.gun, 0, true); });
+  const BOTL=ACT.filter(a=>a.bot); if(CO){ BOTL.forEach(a=>{ a.G.visible=false; }); ACT.length=0; ACT.push(me); }   /* 같이 하기: 시작할 때 빈자리만큼 봇 */
   /* 머리 위 이름 · 젖음 막대 */
   function nameTag(nm){ const cv=document.createElement("canvas"); cv.width=256; cv.height=72; const tx=new THREE.CanvasTexture(cv); tx.encoding=THREE.sRGBEncoding; disp.push(tx);
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, depthWrite:false, transparent:true})); sp.scale.set(1.5,.42,1); sp.userData={cv, tx, nm, k:-1, w:-1}; drawTag(sp, 0, 0); return sp; }
@@ -173,8 +174,8 @@ function start(api){
     if(a.c){ a.G.remove(a.c.g); a.c=null; } a.G.add(root); a.bk={g:root, legL, legR, torso, armL, armR, head, t:Math.random()*6};
     armR.add(a.gun); a.gun.position.set(-.2,-1.02,-.24); a.gun.scale.setScalar(1.75);   /* (v593) 사용자: 「총이 손에 파묻혀」 → 손 아래·앞으로 · 더 크게 */ a.hb=HB_BK; }
   let gone=false;
-  try{ fetch("../assets/mg/blocky/blocky.json").then(r=>r.json()).then(J=>{ if(gone) return; ACT.forEach(a=>{ if(a.bot){ const k=BKS[a.i%BKS.length]; blockify(a, J[k], k); } }); }).catch(e=>console.warn("blocky", e)); }catch(e){}
-  try{ KK.load("blaster").then(()=>{ if(gone) return; vmSet(me.wi); ACT.forEach(a=>{ if(a.bot) gunModel(a.gun, a.wi, true); }); }); }catch(e){}
+  try{ fetch("../assets/mg/blocky/blocky.json").then(r=>r.json()).then(J=>{ if(gone) return; BOTL.forEach(a=>{ const k=BKS[a.i%BKS.length]; blockify(a, J[k], k); }); }).catch(e=>console.warn("blocky", e)); }catch(e){}
+  try{ KK.load("blaster").then(()=>{ if(gone) return; vmSet(me.wi); ACT.forEach(a=>{ if(a.bot || a.net) gunModel(a.gun, a.wi, true); }); }); }catch(e){}
   vmSet(0); VM.position.set(.24,-.22,-.5); const vmA={kick:0, sw:1, bob:0, swing:0, side:1};
 
   /* ════ 물줄기 · 물보라 (작은 공 여러 개를 한 번에) ════ */
@@ -200,7 +201,7 @@ function start(api){
     for(const a of ACT){ if(!a.alive) continue; const c=_w.set(a.p.x, a.p.y+.85*(a.h/HH), a.p.z), d=c.distanceTo(p); if(d<2.9){ const dm=WP[5].dmg*(1-Math.min(1,d/2.9)*.65); if(a!==by) hurt(a, dm, by, 5, false, p); } } }
 
   /* ════ 쏘기 ════ */
-  const time={t:0, left:MATCH, cd:3.2, over:false};
+  const time={t:0, left:MATCH, cd:CO?1e9:3.2, over:false};
   function eyeOf(a){ return new V3(a.p.x, a.p.y+(a.sl?EYES:EYE), a.p.z); }
   function dirOf(yaw, pitch){ const cp=Math.cos(pitch); return new V3(-Math.sin(yaw)*cp, Math.sin(pitch), -Math.cos(yaw)*cp); }
   function muzzle(a){ if(a.me){ const v=new V3(.26,-.22,-.75); return v.applyMatrix4(cam.matrixWorld); } const e=eyeOf(a), f=dirOf(a.yaw, a.pitch), r=new V3(Math.cos(a.yaw),0,-Math.sin(a.yaw)); return e.addScaledVector(f,.55).addScaledVector(r,.32).add(new V3(0,-.35,0)); }
@@ -217,7 +218,7 @@ function start(api){
   function assist(sh, o, d, rng, deg){ let best=null, bd=deg*D2R;
     for(const a of ACT){ if(a===sh || !a.alive || a.prot>0) continue; const c=new V3(a.p.x, a.p.y+.75*(a.h/HH), a.p.z), v=c.clone().sub(o), L=v.length(); if(L>rng) continue; const ang=v.normalize().angleTo(d); if(ang<bd && sees(o,c)){ bd=ang; best={a, c, L}; } }
     return best; }
-  function fire(a, o, d, hint){ const W=WP[a.wi]; a.cd=W.rate*(a.bot?D.fire:1); a.prot=0;
+  function fire(a, o, d, hint){ const W=WP[a.wi]; a.cd=W.rate*(a.bot?D.fire:1); a.prot=0; a.fc=(a.fc|0)+1;
     const mz=muzzle(a); let snd=a.me || o.distanceTo(me.p)<22;
     if(W.t==="melee"){ let best=null, bd=W.rng; for(const t of ACT){ if(t===a || !t.alive) continue; const c=new V3(t.p.x, t.p.y+.8, t.p.z), v=c.clone().sub(o), L=v.length(); if(L>bd+.5) continue; v.y*=.4; if(v.normalize().dot(d)<Math.cos(42*D2R)) continue; if(!sees(o,c)) continue; bd=L; best=t; }
       if(a.me){ vmA.swing=1; me.v.addScaledVector(new V3(d.x,0,d.z).normalize(), 3.2); } if(snd) api.sfx.shot("hammer", !a.me);
@@ -234,14 +235,22 @@ function start(api){
 
   /* ════ 맞음 · 흠뻑 · 단계 오르기 ════ */
   const FEED=[]; let hitT=0, hitHead=false, hurtT=0, hurtA=0;
-  function hurt(t, dm, by, wi, head, from){ if(!t.alive || t.prot>0 || time.over) return; if(by && by.bot) dm*=t.bot?D.bvb:D.dm; t.soak+=dm; t.lastHit=time.t; t.by=by; t.dmgBy.set(by, (t.dmgBy.get(by)||0)+dm);
+  function hurt(t, dm, by, wi, head, from, raw){ if(!t.alive || (t.prot>0 && !t.net && !t.rb) || time.over) return;   /* 친구·방장 봇은 그쪽 화면이 보호시간을 셈 */ if(by && by.bot && !raw) dm*=t.bot?D.bvb:D.dm;
+    /* 같이 하기: 맞은 사람(친구 = 그 기기 · 봇 = 방장)이 젖음을 셈 → 사건으로 보냄 */
+    if(CO && NETR && (t.net || (t.bot && t.rb))){ if(by && by.me){ hitT=.18; hitHead=head; api.sfx.hit(head); }
+      if(by && (by.me || (by.bot && !by.rb))){ const o={k:t.net?"hit":"hitb", i:t.i, dm:+dm.toFixed(1), wi, hd:head?1:0, by:idOf(by), fx:from?+from.x.toFixed(1):0, fz:from?+from.z.toFixed(1):0}; NETR.ev(t.net?t.code:hostCode(), o); }
+      return; }
+    t.soak+=dm; t.lastHit=time.t; t.by=by; t.dmgBy.set(by, (t.dmgBy.get(by)||0)+dm);
     if(by && by.me){ hitT=.18; hitHead=head; api.sfx.hit(head); }
     if(t.me){ hurtT=.7; if(from){ const v=new V3().subVectors(from, me.p); hurtA=Math.atan2(v.x, v.z); } api.sfx.hurt(); }
     if(t.bot && by && !t.brain.tg){ t.brain.tg=by; t.brain.react=D.react*.6; }
     if(t.soak>=100) soaked(t, by, wi); }
+  function feedAdd(a, b, ic, mine){ FEED.unshift({a, b, ic, me:mine, t:5}); if(FEED.length>4) FEED.length=4; drawFeed(); }
   function soaked(t, by, wi){ t.alive=false; t.deaths=(t.deaths|0)+1; t.soak=100; t.resp=RESP; t.dead=0; t.sl=false; t.h=HH; burst(new V3(t.p.x,t.p.y+1,t.p.z), 34, 1.4); api.sfx.soak();
-    FEED.unshift({a:by?by.nm:"", b:t.nm, ic:by?WP[wi].ic:"💧", me:(by&&by.me)||t.me, t:5}); if(FEED.length>4) FEED.length=4; drawFeed();
-    if(by && by!==t){ by.kills++; if(wi>=LAST && by.wi>=LAST){ win(by); return; } up(by);
+    feedAdd(by?by.nm:"", t.nm, by?WP[wi].ic:"💧", (by&&by.me)||t.me); if(CO && NETR) NETR.feed({a:by?by.nm:"", b:t.nm, ic:by?WP[wi].ic:"💧"});
+    if(CO && by && by!==t && (by.net || by.rb)){ NETR.ev(by.net?by.code:hostCode(), by.net?{k:"kill", wi, vic:t.nm}:{k:"bkill", i:by.i, wi, vic:t.nm}); t.dmgBy.clear();
+      if(t.me) api.msg('💦 흠뻑!<small>'+esc(by.nm)+' 의 '+WP[wi].ic+' '+WP[wi].nm+'</small>', 1900); return; }   /* 잡은 사람(다른 기기)이 다음 무기로 */
+    if(by && by!==t){ by.kills++; if(wi>=LAST && by.wi>=LAST){ declareWin(by); return; } up(by);
       t.dmgBy.forEach((v,k)=>{ if(k && k!==by && k!==t && v>=40 && k.alive){ k.asst++; if(k.asst>=2 && k.wi<LAST-1){ k.asst=0; up(k, true); } } }); }
     t.dmgBy.clear();
     if(t.me){ api.msg('💦 흠뻑!<small>'+(by&&by!==t?esc(by.nm)+' 의 '+WP[wi].ic+' '+WP[wi].nm:'')+'</small>', 1900); } }
@@ -340,6 +349,48 @@ function start(api){
       B.armR.rotation.set(-Math.PI/2-a.pitch*.8,0,0); B.armL.rotation.set(-Math.PI/2+.2-a.pitch*.6,-.5,0); B.head.rotation.set(-a.pitch*.5,0,0); }
     a.bub.visible=a.prot>0; drawTag(a.tag, a.soak, a.wi); }
 
+  /* ════ 👫 같이 하기 (최대 6명 · 모자라면 봇) ════ */
+  let NETR=null, waitCo=CO; const PEER={};
+  const idOf=a=>a.me?(NETR?NETR.code:"me"):a.net?a.code:"b"+a.i;
+  const actorOf=id=>{ if(!id) return null; if(NETR && id===NETR.code) return me; if(id.charAt(0)==="b" && /^b\d$/.test(id)) return ACT.find(a=>a.bot && a.i===+id.slice(1))||null; return PEER[id]||null; };
+  const hostCode=()=>{ const h=(NETR&&NETR.d&&NETR.d.h)||{}, L=NETR?NETR.live(true).map(p=>p.k):[]; return L.indexOf(h.c)>=0?h.c:L[0]; };
+  function mkPeer(k, p){ const a=mkAct({net:true, code:k, nm:(p.n||"친구").slice(0,8), prot:0}); a.tp=new V3(p.x||0,p.y||0,p.z||0); a.p.copy(a.tp); a.lf=p.f|0;
+    let c=null; try{ c=buildAvatar(p.av||{}); c.t=0; c.blinkT=2; c.act="idle"; }catch(e){ c=null; } const G=new THREE.Group(); scene.add(G); a.G=G;
+    if(c){ c.g.scale.setScalar(AVK); G.add(c.g); a.c=c; c.g.traverse(m=>{ if(m.isMesh) m.castShadow=!api.low; }); }
+    a.gun=new THREE.Group(); if(c && c.armR){ c.armR.add(a.gun); a.gun.position.set(0,-.2,0); a.gun.scale.setScalar(.7); } gunModel(a.gun, p.wi|0, true); a.gw=p.wi|0;
+    a.tag=nameTag("👫 "+a.nm); a.tag.position.y=2.15; G.add(a.tag); const bub=new THREE.Mesh(new THREE.SphereGeometry(1.15,16,12), new THREE.MeshBasicMaterial({color:0x9fe8ff, transparent:true, opacity:.25, depthWrite:false})); bub.position.y=.95; G.add(bub); a.bub=bub; bub.visible=false;
+    PEER[k]=a; return a; }
+  function netStart(h, peers){ waitCo=false; const ks=peers.map(p=>p.k).filter(k=>k!==NETR.code).slice(0,5);
+    ks.forEach(k=>{ const p=(NETR.d.p||{})[k]||{}; mkPeer(k, p); });
+    const nb=Math.max(0, 6-1-ks.length); BOTL.slice(0,nb).forEach(a=>{ ACT.push(a); a.G.visible=true; a.rb=!NETR.authority(); spawn(a); a.prot=0; });
+    spawn(me); me.prot=0; time.cd=0; time.st=h.st; drawBoard(); api.msg('👫 '+(ks.length+1)+'명 + 봇 '+nb+'<small>🔨 뿅망치로 먼저 맞히는 사람이 우승!</small>', 1800); api.sfx.up(); }
+  function netNode(){ return {av:api.av||{}, x:+me.p.x.toFixed(2), y:+me.p.y.toFixed(2), z:+me.p.z.toFixed(2), yw:+me.yaw.toFixed(2), pt:+me.pitch.toFixed(2), wi:me.wi, al:me.alive?1:0, sl:me.sl?1:0, f:me.fc|0, kl:me.kills, sk:Math.round(me.soak)}; }
+  function onEv(e){ if(time.over) return; const by=actorOf(e.by), from=new V3(e.fx||0,1.4,e.fz||0);
+    if(e.k==="hit"){ hurt(me, e.dm, by||{nm:"친구", net:true}, e.wi|0, !!e.hd, from, true); }
+    else if(e.k==="hitb"){ const b=ACT.find(a=>a.bot && a.i===e.i); if(b) hurt(b, e.dm, by, e.wi|0, !!e.hd, from, true); }
+    else if(e.k==="kill"){ me.kills++; if((e.wi|0)>=LAST && me.wi>=LAST){ declareWin(me); return; } up(me); }
+    else if(e.k==="bkill"){ const b=ACT.find(a=>a.bot && a.i===e.i); if(!b) return; b.kills++; if((e.wi|0)>=LAST && b.wi>=LAST){ declareWin(b); return; } up(b); } }
+  function netApply(dt){ if(!NETR || !NETR.d || waitCo) return; const d=NETR.d, host=NETR.authority();
+    Object.keys(PEER).forEach(k=>{ const a=PEER[k], p=(d.p||{})[k]; if(!p || NETR.now()-(p.t||0)>10000){ if(a.G.visible){ a.G.visible=false; a.alive=false; } return; }
+      a.tp.set(p.x||0,p.y||0,p.z||0); a.ty=p.yw||0; a.pitch=p.pt||0; a.kills=p.kl|0; a.soak=p.sk|0; a.sl=!!p.sl; a.h=a.sl?HS:HH; if((p.wi|0)!==a.gw){ a.wi=p.wi|0; a.gw=a.wi; gunModel(a.gun, a.wi, true); }
+      const al=!!p.al; if(al && !a.alive){ a.alive=true; a.dead=0; a.p.copy(a.tp); a.G.visible=true; } else if(!al && a.alive){ a.alive=false; a.dead=0; } 
+      if((p.f|0)>a.lf){ a.lf=p.f|0; if(a.alive){ const e=eyeOf(a), dd=dirOf(a.yaw, a.pitch), r=trace(a, e, dd, WP[a.wi].rng); stream(muzzle(a), e.clone().addScaledVector(dd, Math.min(r.t, WP[a.wi].rng)), 1, WP[a.wi].t==="beam"); if(e.distanceTo(me.p)<22) api.sfx.shot(WP[a.wi].k, true); } } });
+    /* 봇: 방장이 움직이고 나머지는 받아서 그림 */
+    if(host){ ACT.forEach(a=>{ if(a.bot) a.rb=false; }); NETR.bT=(NETR.bT||0)-dt; if(NETR.bT<=0){ NETR.bT=.12; NETR.put("b", ACT.filter(a=>a.bot).map(a=>[a.i, +a.p.x.toFixed(2), +a.p.y.toFixed(2), +a.p.z.toFixed(2), +a.yaw.toFixed(2), +a.pitch.toFixed(2), a.wi, a.alive?1:0, a.sl?1:0, a.fc|0, a.kills, Math.round(a.soak)])); } }
+    else { (d.b||[]).forEach(r=>{ const a=ACT.find(x=>x.bot && x.i===r[0]); if(!a) return; a.rb=true; a.tp=a.tp||new V3(); a.tp.set(r[1],r[2],r[3]); a.ty=r[4]; a.pitch=r[5]; if(r[6]!==a.wi){ a.wi=r[6]; gunModel(a.gun, a.wi, true); } a.kills=r[10]; a.soak=r[11]; a.sl=!!r[8]; a.h=a.sl?HS:HH;
+        const al=!!r[7]; if(al && !a.alive){ a.alive=true; a.dead=0; a.p.copy(a.tp); a.G.visible=true; } else if(!al && a.alive){ a.alive=false; a.dead=0; }
+        if((r[9]|0)>(a.lf|0)){ a.lf=r[9]|0; if(a.alive){ const e=eyeOf(a), dd=dirOf(a.yaw, a.pitch), q=trace(a, e, dd, WP[a.wi].rng); stream(muzzle(a), e.clone().addScaledVector(dd, Math.min(q.t, WP[a.wi].rng)), 1, WP[a.wi].t==="beam"); if(e.distanceTo(me.p)<22) api.sfx.shot(WP[a.wi].k, true); } } }); }
+    if(d.h && d.h.win && !time.over){ const w=actorOf(d.h.win.c)||{nm:d.h.win.n}; win(w); } }
+  /* 받아서 그리는 사람·봇 (부드럽게 따라감 · 넘어짐) */
+  function netVis(a, dt){ if(!a.tp) return; if(a.alive){ a.v.subVectors(a.tp, a.p).multiplyScalar(1/Math.max(dt,1e-3)*.18); a.p.lerp(a.tp, Math.min(1, dt*12)); let dy=angN(a.ty-a.yaw); a.yaw+=dy*Math.min(1,dt*14); a.onG=a.p.y<.05 || Math.abs(a.tp.y-a.p.y)<.05; }
+    else a.dead+=dt;
+    const G=a.G; G.position.set(a.p.x,a.p.y,a.p.z); a.bub.visible=false; drawTag(a.tag, a.soak, a.wi);
+    if(!a.alive){ const k=Math.min(1.5, a.dead*6); if(a.bk){ a.bk.g.rotation.x=-k; } else if(a.c){ a.c.g.rotation.x=-Math.min(1.4,k); } if(a.dead>1.1) G.visible=false; return; }
+    G.visible=true; if(a.c){ const c=a.c; c.face=a.yaw+Math.PI; c.moving=Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03 && a.onG && !a.sl; try{ animChar(c, dt); }catch(e){} c.g.rotation.y=a.yaw+Math.PI; c.g.rotation.x=a.sl?-.55:0; c.g.position.y=a.sl?.15:0;
+      if(c.armR){ c.armR.rotation.x=-Math.PI/2-a.pitch*.8; c.armR.rotation.z=0; } if(c.armL){ c.armL.rotation.x=-1.25-a.pitch*.6; c.armL.rotation.z=-.35; } }
+    if(a.bk){ const B=a.bk, mv=Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03; B.t+=dt*(mv?11:0); const sw=mv?Math.sin(B.t)*.8:0; B.legL.rotation.x=sw; B.legR.rotation.x=-sw; B.g.rotation.set(a.sl?-.6:0, a.yaw+Math.PI, 0); B.g.position.y=a.sl?.25:0; B.armR.rotation.set(-Math.PI/2-a.pitch*.8,0,0); B.armL.rotation.set(-Math.PI/2+.2-a.pitch*.6,-.5,0); } }
+  if(CO){ NETR=MG.room(api, {pre:"mga", title:"물총 같이 하기", ic:"💦", max:6, fill:1, h:{df:api.opt.diff||"normal"}}); NETR.node=netNode; NETR.onEv=onEv; NETR.onFeed=f=>feedAdd(f.a, f.b, f.ic, false); NETR.onStart=(h, peers)=>netStart(h, peers); }
+
   /* ════ 화면 글자(HUD) ════ */
   const hud=api.hud;
   hud.innerHTML=`<style>
@@ -413,23 +464,26 @@ function start(api){
     else if(want && me.cd<=0 && time.cd<=0){ fire(me, e, d, I.touch?(o,dd,rg)=>assist(me,o,dd,rg,3.4):I.mouse?(o,dd,rg)=>assist(me,o,dd,rg,.9):null); }
     /* 마르기 */
     if(time.t-me.lastHit>3.2) me.soak=Math.max(0, me.soak-34*dt); }
-  function botsTick(dt){ for(const a of ACT){ if(!a.bot) continue; if(!a.alive){ a.resp-=dt; a.dead+=dt; if(a.c){ a.c.g.rotation.x=-Math.min(1.4, a.dead*5); a.c.g.position.y=Math.max(-.3, -a.dead*.4); } if(a.bk){ const B=a.bk; B.g.rotation.x=-Math.min(1.5, a.dead*6); B.g.position.y=0; B.armL.rotation.set(-2.6,0,.3); B.armR.rotation.set(-2.6,0,-.3); B.legL.rotation.x=.3; B.legR.rotation.x=-.3; } if(a.dead>1.0) a.G.visible=false; if(a.resp<=0) spawn(a); continue; }
+  function botsTick(dt){ for(const a of ACT){ if(a.net || (a.bot && a.rb)){ netVis(a, dt); continue; } if(!a.bot) continue; if(!a.alive){ a.resp-=dt; a.dead+=dt; if(a.c){ a.c.g.rotation.x=-Math.min(1.4, a.dead*5); a.c.g.position.y=Math.max(-.3, -a.dead*.4); } if(a.bk){ const B=a.bk; B.g.rotation.x=-Math.min(1.5, a.dead*6); B.g.position.y=0; B.armL.rotation.set(-2.6,0,.3); B.armR.rotation.set(-2.6,0,-.3); B.legL.rotation.x=.3; B.legR.rotation.x=-.3; } if(a.dead>1.0) a.G.visible=false; if(a.resp<=0) spawn(a); continue; }
       a.prot=Math.max(0,a.prot-dt); if(time.cd>0){ a.G.position.set(a.p.x,a.p.y,a.p.z); continue; } botTick(a, dt); if(time.t-a.lastHit>3.2) a.soak=Math.max(0, a.soak-30*dt); } }
 
   /* ════ 판 끝 ════ */
   function win(w){ if(time.over) return; time.over=true; finishMatch(w); }
-  function finishMatch(w){ const L=ACT.slice().sort((x,y)=>(y===w)-(x===w) || y.wi-x.wi || y.kills-x.kills), rank=L.indexOf(me)+1, won=L[0]===me;
+  function declareWin(w){ if(CO && NETR){ NETR.put("h/win", {n:w.nm, c:idOf(w)}); } win(w); }
+  function finishMatch(w){ if(w && !ACT.includes(w)) w=ACT.find(a=>a.nm===w.nm)||null; const L=ACT.slice().sort((x,y)=>(y===w)-(x===w) || y.wi-x.wi || y.kills-x.kills), rank=L.indexOf(me)+1, won=L[0]===me;
     api.msg(won?'🏆 우승!':w?'🏁 '+esc(w.nm)+' 우승!':'⏰ 시간 끝!', 1800);
     setTimeout(()=>{ try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
       api.end({title:won?'🏆 '+esc(me.nm)+' 우승!':rank<=3?'🎉 '+rank+'등!':'💦 '+rank+'등', sub:'흠뻑 적신 수 '+me.kills+' · 단계 '+(me.wi+1)+'/'+WP.length+(won?' · '+Math.round(time.t)+'초':''),
-        rows:L.map(a=>[a.nm, WP[a.wi].ic+' '+(a.wi+1)+'단계 · 💦'+a.kills, a.me]), coins:won?15:rank<=3?8:5,
+        rows:L.map(a=>[(a.net?'👫 ':'')+a.nm, WP[a.wi].ic+' '+(a.wi+1)+'단계 · 💦'+a.kills, a.me]), coins:won?15:rank<=3?8:5,
         upd:(b,t)=>{ t.kills=(t.kills|0)+me.kills; if(won){ t.win=(t.win|0)+1; if(!b.fast || time.t<b.fast) b.fast=Math.round(time.t); } if(me.kills>(b.kill|0)) b.kill=me.kills; if(me.wi+1>(b.wi|0)) b.wi=me.wi+1; }}); }, 1700); }
 
   /* ════ 한 장면 ════ */
-  function tick(dt){ if(paused) return; time.t+=dt;
-    if(time.cd>0){ const c0=Math.ceil(time.cd); time.cd-=dt; const c1=Math.ceil(time.cd); eCnt.textContent=time.cd>0?c1:"GO!"; if(c1!==c0) api.sfx.tick(); if(time.cd<=0){ api.sfx.up(); setTimeout(()=>{ eCnt.textContent=""; }, 600); } }
-    else if(!time.over){ time.left-=dt; if(time.left<=0){ time.left=0; time.over=true; finishMatch(null); } }
-    if(!time.over || true){ myTick(dt); botsTick(dt); }
+  function tick(dt){ if(paused && !CO) return; time.t+=dt;
+    if(CO && NETR){ NETR.tick(dt); netApply(dt); if(time.st) time.left=Math.max(0, MATCH-(NETR.now()-time.st)/1000); }
+    if(waitCo){ eCnt.textContent=""; myTick(dt); }
+    else if(time.cd>0){ const c0=Math.ceil(time.cd); time.cd-=dt; const c1=Math.ceil(time.cd); eCnt.textContent=time.cd>0?c1:"GO!"; if(c1!==c0) api.sfx.tick(); if(time.cd<=0){ api.sfx.up(); setTimeout(()=>{ eCnt.textContent=""; }, 600); } }
+    else if(!time.over){ if(!CO) time.left-=dt; if(time.left<=0){ time.left=0; time.over=true; finishMatch(null); } }
+    if(!waitCo){ myTick(dt); botsTick(dt); }
     fxTick(dt);
     for(const f of FEED) f.t-=dt; if(FEED.length && FEED[FEED.length-1].t<=0){ FEED.pop(); drawFeed(); }
     /* 카메라 */
@@ -453,12 +507,12 @@ function start(api){
     const s=Math.max(0,Math.ceil(time.left)); eClk.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
     bdT-=dt; if(bdT<=0){ bdT=.5; drawBoard(); } }
   function render(rn){ MG.draw(scene, cam); const va=cam.aspect||1.5, vf=va>=1.3?58:Math.min(92, 58+(1.3-va)*52); if(vmC.aspect!==va || vmC.fov!==vf){ vmC.aspect=va; vmC.fov=vf; vmC.updateProjectionMatrix(); } rn.autoClear=false; rn.clearDepth(); rn.render(vmS, vmC); rn.autoClear=true; }
-  function dispose(){ gone=true; disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); Object.values(GM).forEach(m=>{ try{ m.dispose(); }catch(e){} }); BAL.forEach(b=>scene.remove(b.m)); }
-  return {scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, vmSet, VM, me, ACT, WP, time, BOX, fire, hurt, spawn, PADS, moveAct, up, win, path, sees, D, vmA, get zoom(){ return zoom; }}; }
+  function dispose(){ gone=true; if(NETR){ try{ NETR.dispose(); }catch(e){} } disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); Object.values(GM).forEach(m=>{ try{ m.dispose(); }catch(e){} }); BAL.forEach(b=>scene.remove(b.m)); }
+  return {scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, vmSet, VM, me, ACT, PEER, get NETR(){ return NETR; }, WP, time, BOX, fire, hurt, spawn, PADS, moveAct, up, win, path, sees, D, vmA, get zoom(){ return zoom; }}; }
 
 MG.reg("arena", {ic:"💦", nm:"물총 아레나", tag:"1인칭 · 아레나 무브 · 무기 8단계", bg:"linear-gradient(135deg,#7fd3ff,#2f7fff)", big:"🔫💦",
   how:[["🎯","한 명을 흠뻑 적실 때마다 <b>다음 무기</b>로 (8단계)"],["🔨","마지막 <b>뿅망치</b>로 맞히면 우승! · 5분이 지나면 가장 멀리 간 사람"],["🛝","달리다 <b>슬라이드</b> → 빨라짐 · 슬라이드 중 점프 = 속도 그대로"],["🐇","땅에 닿는 순간 점프(점프 꾹) = 속도 유지 · 💧 분수 발판 = 높이 점프"],["👐","왼손 = 움직이기 · 오른손 = 끌어서 둘러보기 · 💦 누른 채 끌면 조준"]],
-  opts:[{k:"diff", t:"상대(마을 친구 5명) 실력", d:"normal", v:[["easy","🐣 쉬움"],["normal","🙂 보통"],["hard","🔥 어려움"]]},{k:"auto", t:"터치 자동 쏘기 (조준만 하면 쏨)", d:0, v:[[0,"끄기"],[1,"켜기"]]}],
+  opts:[{k:"mode", t:"어떻게 할까요?", d:"solo", v:[["solo","🙋 혼자 (봇 5명)"],["co","👫 친구랑 같이 (최대 6명 · 빈자리는 봇)"]]},{k:"diff", t:"봇 실력 (같이 하기는 방장 것)", d:"normal", v:[["easy","🐣 쉬움"],["normal","🙂 보통"],["hard","🔥 어려움"]]},{k:"auto", t:"터치 자동 쏘기 (조준만 하면 쏨)", d:0, v:[[0,"끄기"],[1,"켜기"]]}],
   payTxt:"우승 🪙15 · 3등 안 🪙8 · 참가 🪙5",
   bestTxt:(b,t)=>'🏆 우승 '+(t.win|0)+'번 · 💦 모두 '+(t.kills|0)+'명'+(b.fast?' · 가장 빠른 우승 '+b.fast+'초':'')+(b.wi?' · 최고 '+b.wi+'단계':''),
   ui:{look:true, btns:[{b:"fire", ic:"🔫"}, {b:"jump", ic:"JUMP", cls:"tx"}, {b:"slide", ic:"SLIDE", cls:"tx"}]},
