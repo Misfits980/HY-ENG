@@ -26,13 +26,13 @@ const MG=(()=>{
     try{ tEv("mg"); tEv("mg_"+k); }catch(e){} return got; }
 
   /* ── 소리 (물소리 · 맞힘 · 올라감) — 게임 버튼을 누른 뒤라 아이패드도 소리 남 ── */
-  const SFX=(()=>{ let ac=null, mute=false; const ctx=()=>{ if(mute) return null; if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac && ac.state==="suspended"){ try{ ac.resume(); }catch(e){} } return ac; };
-    function tone(f, d, type, vol, f2, at){ const a=ctx(); if(!a) return; try{ const o=a.createOscillator(), g=a.createGain(), t=a.currentTime+(at||0); o.type=type||"sine"; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.05,t+.008); g.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d+.02); }catch(e){} }
+  const SFX=(()=>{ let ac=null, mute=false, vol=1, mgn=null; const out=a=>{ if(!mgn){ mgn=a.createGain(); mgn.gain.value=vol; mgn.connect(a.destination); } return mgn; };   /* (v599) 소리 크기 */ const ctx=()=>{ if(mute) return null; if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac && ac.state==="suspended"){ try{ ac.resume(); }catch(e){} } return ac; };
+    function tone(f, d, type, vol, f2, at){ const a=ctx(); if(!a) return; try{ const o=a.createOscillator(), g=a.createGain(), t=a.currentTime+(at||0); o.type=type||"sine"; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.05,t+.008); g.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(g); g.connect(out(a)); o.start(t); o.stop(t+d+.02); }catch(e){} }
     const nb={};
     function noise(d, vol, fr, q, f2){ const a=ctx(); if(!a) return; try{ const key=Math.round(d*100); let b=nb[key]; if(!b){ const n=Math.floor(a.sampleRate*d); b=a.createBuffer(1,n,a.sampleRate); const c=b.getChannelData(0); for(let i=0;i<n;i++) c[i]=(Math.random()*2-1)*Math.pow(1-i/n,1.6); nb[key]=b; }
-        const s=a.createBufferSource(); s.buffer=b; const f=a.createBiquadFilter(); f.type="bandpass"; const t=a.currentTime; f.frequency.setValueAtTime(fr||1200,t); if(f2) f.frequency.exponentialRampToValueAtTime(f2,t+d); f.Q.value=q||.8; const g=a.createGain(); g.gain.value=vol||.08; s.connect(f); f.connect(g); g.connect(a.destination); s.start(); }catch(e){} }
+        const s=a.createBufferSource(); s.buffer=b; const f=a.createBiquadFilter(); f.type="bandpass"; const t=a.currentTime; f.frequency.setValueAtTime(fr||1200,t); if(f2) f.frequency.exponentialRampToValueAtTime(f2,t+d); f.Q.value=q||.8; const g=a.createGain(); g.gain.value=vol||.08; s.connect(f); f.connect(g); g.connect(out(a)); s.start(); }catch(e){} }
     let lastShot=0;
-    return { ctx, set mute(v){ mute=!!v; }, get mute(){ return mute; }, tone, noise,
+    return { ctx, set mute(v){ mute=!!v; }, get mute(){ return mute; }, set vol(v){ vol=Math.max(0,+v||0); if(mgn) mgn.gain.value=vol; }, get vol(){ return vol; }, tone, noise,
       shot(k, far){ const n=performance.now(); if(n-lastShot<40) return; lastShot=n; const v=far?.022:.07;
         if(k==="shot"||k==="wave"){ noise(.26,v*1.4,900,.6,400); } else if(k==="snipe"){ noise(.32,v*1.2,1800,.9,600); tone(320,.18,"sine",v*.5,120); } else if(k==="balloon"){ tone(260,.16,"sine",v*.9,520); noise(.12,v*.6,1600); } else if(k==="hammer"){ tone(880,.1,"square",v*.35,1500); tone(1500,.12,"triangle",v*.4,900,.08); } else noise(.14,v,2600,.8,1400); },
       hit(head){ tone(head?2200:1700,.06,"square",.035); if(head) tone(2900,.12,"sine",.05,3300,.04); },
@@ -93,6 +93,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
   function btnSet(b, v){ if(v && !I[b]) I[b+"P"]=1; I[b]=v?1:0; const el=ROOT && ROOT.querySelector('[data-b="'+b+'"]'); if(el) el.classList.toggle("dn", !!v); }
   function onDown(e){ if(!S.on || !ROOT) return; const bt=e.target.closest && e.target.closest("[data-b]"), x=e.clientX, y=e.clientY;
     if(e.target.closest && e.target.closest(".mgX,.mgConf")) return;
+    if(S.api && S.api.menu) return;   /* (v599) 게임 메뉴 화면 = 조이스틱·둘러보기 없음 (그냥 누르기) */
     e.preventDefault();
     if(e.pointerType==="mouse"){ I.mouse=true; if(bt){ btnSet(bt.dataset.b,1); PT.set(e.pointerId,{r:"b", b:bt.dataset.b, x, y}); return; }
       if(cfg && cfg.look){ if(I.lock){ if(e.button===0) btnSet("fire",1); else if(e.button===2) btnSet("slide",1); return; }
@@ -147,11 +148,14 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
         S.k=k; S.on=true; document.body.classList.add("mgOn"); resetI(); mkUI(def);
         try{ S.sun=[sun.intensity, sun.color.getHex()]; sun.intensity=.95; sun.color.setHex(0xfff0d8); TOON.light(); }catch(e){ S.sun=null; }   /* 툰 그림자 기준 = 낮 (섬이 밤이어도 게임은 밝게) */
         S.pr0=renderer.getPixelRatio(); const pr=Math.min(S.pr0, (typeof LOW!=="undefined" && LOW) ? 1 : 1.5); if(pr!==S.pr0){ renderer.setPixelRatio(pr); try{ TOON.resize(); }catch(e){} }
-        S.api={I, ui:ROOT, hud:ROOT.querySelector(".mgHud"), topR:ROOT.querySelector(".mgTopR"), msg, sfx:SFX, nick:nick(), av:(typeof av!=="undefined"?Object.assign({},av):{}), opt:opt||{}, renderer, end:(r)=>result(k, r), low:typeof LOW!=="undefined" && LOW};
+        S.api={I, ui:ROOT, hud:ROOT.querySelector(".mgHud"), topR:ROOT.querySelector(".mgTopR"), msg, sfx:SFX, nick:nick(), av:(typeof av!=="undefined"?Object.assign({},av):{}), opt:opt||{}, renderer, end:(r)=>result(k, r), low:typeof LOW!=="undefined" && LOW, restart:(o)=>restart(k, o)};
         S.run=def.start(S.api); S.last=performance.now(); cancelAnimationFrame(S.raf); S.raf=requestAnimationFrame(frame);
       }catch(e){ console.warn("MG", e); S.on=false; document.body.classList.remove("mgOn"); }
       S.busy=false; if(fd) setTimeout(()=>fd.classList.remove("on"), 60); }, 240);
     return true; }
+  /* (v599) 같은 게임을 처음부터 (메뉴로 · 한 판 더) */
+  function restart(k, o){ const def=GM[k]; if(!S.on || !def) return; $$("mgRes") && $$("mgRes").classList.remove("on"); try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
+    try{ if(S.run && S.run.dispose) S.run.dispose(); }catch(e){} resetI(); mkUI(def); S.api.ui=ROOT; S.api.hud=ROOT.querySelector(".mgHud"); S.api.topR=ROOT.querySelector(".mgTopR"); S.api.menu=false; S.api.opt=o||{}; S.run=def.start(S.api); }
   function frame(now){ if(!S.on) return; S.raf=requestAnimationFrame(frame); const dt=Math.min(0.05, Math.max(0,(now-S.last)/1000)); S.last=now; step(dt, true); }
   function step(dt, show){ const R=S.run; if(!R) return; try{ R.tick(dt); }catch(e){ console.warn("MG tick", e); }
     I.jumpP=I.slideP=I.fireP=0;
@@ -176,14 +180,15 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     const left=payLeft(k);
     el.innerHTML='<div class="bx"><h3>'+r.title+'</h3><div class="sub">'+(r.sub||"")+'</div>'+(rows?'<table>'+rows+'</table>':'')+(r.extra||"")+
       (got>0?'<div class="coin">🪙 +'+got+' <small>(오늘 '+(DAY_PAY-left)+'/'+DAY_PAY+'판)</small></div>':'<div class="sub" style="margin-top:10px">오늘 🪙 상은 다 받았어요 — 그래도 기록은 남아요!</div>')+
-      '<div><button class="out">🏝 섬으로</button><button class="go">🔁 한 판 더</button></div></div>';
+      '<div><button class="out">🏝 섬으로</button>'+(def.menu?'<button class="mn">'+def.ic+' 메뉴</button>':'')+'<button class="go">🔁 한 판 더</button></div></div>';
     el.classList.add("on"); try{ SFX.win(); }catch(e){}
     el.querySelector(".out").onclick=()=>{ el.classList.remove("on"); exit(); };
-    el.querySelector(".go").onclick=()=>{ el.classList.remove("on"); const o=S.api && S.api.opt; try{ if(S.run && S.run.dispose) S.run.dispose(); }catch(e){} resetI(); mkUI(def); S.api.ui=ROOT; S.api.hud=ROOT.querySelector(".mgHud"); S.api.topR=ROOT.querySelector(".mgTopR"); S.run=def.start(S.api); };
+    el.querySelector(".go").onclick=()=>{ el.classList.remove("on"); restart(k, Object.assign({}, S.api && S.api.opt, r.again||{})); };
+    if(def.menu) el.querySelector(".mn").onclick=()=>{ el.classList.remove("on"); restart(k, {}); };
     return got; }
 
   /* ── 입구 안내 창 (게임 고르기 전) ── */
-  function lobby(k){ const def=GM[k]; if(!def) return; css(); let el=$$("mgLob"); if(!el){ el=document.createElement("div"); el.id="mgLob"; document.body.appendChild(el); }
+  function lobby(k){ const def=GM[k]; if(!def) return; if(def.menu){ enter(k, {}); return; }   /* (v599) 자기 메뉴 화면이 있는 게임은 바로 */ css(); let el=$$("mgLob"); if(!el){ el=document.createElement("div"); el.id="mgLob"; document.body.appendChild(el); }
     const r=rec(), b=r.b[k]||{}, t=r.t[k]||{}, opt={}; (def.opts||[]).forEach(o=>{ let v=null; try{ v=(store("hyeng_proto_mgopt")||{})[k+"."+o.k]; }catch(e){} opt[o.k]=v!=null?v:o.d; });
     const draw=()=>{ const left=payLeft(k);
       el.innerHTML='<div class="bx"><h3>'+def.ic+' '+def.nm+'</h3><div class="sub">'+def.tag+'</div><div class="hero" style="background:'+def.bg+'">'+def.big+'</div><ul>'+def.how.map(h=>'<li><b>'+h[0]+'</b>'+h[1]+'</li>').join("")+'</ul>'+
@@ -242,20 +247,20 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
 #mgUI .mgRoomP h4{margin:0 0 6px;font-size:20px;font-weight:400} #mgUI .mgRoomP .sub{font-size:13.5px;opacity:.85;margin:4px 0}
 #mgUI .mgRoomP button{font:inherit;border:0;border-radius:14px;padding:10px 14px;margin:5px 3px 0;min-height:46px;background:#2f8cff;color:#fff;font-size:16px} #mgUI .mgRoomP button.go{background:#2fd866;color:#10123a} #mgUI .mgRoomP button.gr{background:rgba(255,255,255,.18)}
 #mgUI .mgRoomP .rl{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:34vh;overflow:auto} #mgUI .mgRoomP .rl button{margin:0;width:100%;text-align:left;background:rgba(255,255,255,.12)}
-#mgUI .mgRoomP .pl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0} #mgUI .mgRoomP .pl span{background:rgba(255,255,255,.14);border-radius:12px;padding:5px 10px} #mgUI .mgRoomP .pl span.me{background:#ff8466}
+#mgUI .mgRoomP .pl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0} #mgUI .mgRoomP .pl span{background:rgba(255,255,255,.14);border-radius:12px;padding:5px 10px} #mgUI .mgRoomP .pl span.me{background:#ff8466} #mgUI .mgRoomP .pl span.bt{opacity:.5;border:1.5px dashed rgba(255,255,255,.5);background:none}
 #mgUI .mgRoomCnt{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:84px;font-family:var(--en);font-weight:900;text-shadow:0 5px 0 rgba(0,0,0,.35);pointer-events:none;color:#fff}`; document.head.appendChild(st); }
     const CNT=document.createElement("div"); CNT.className="mgRoomCnt"; api.ui.appendChild(CNT);
     function live(withMe){ const d=R.d||{}, t=now(), L=[]; Object.keys(d.p||{}).forEach(k=>{ const p=d.p[k]; if(!p) return; if(k!==code && t-(p.t||0)>10000) return; if(!withMe && k===code) return; L.push(Object.assign({}, p, {k})); }); if(withMe && !L.some(p=>p.k===code)) L.push({k:code, n:nm}); return L.sort((a,b)=>a.k<b.k?-1:1); }
     function ui(){ if(R.phase!=="room" && R.phase!=="wait"){ P.style.display="none"; return; } P.style.display="";
-      if(R.phase==="room"){ P.innerHTML='<h4>👫 '+cfg.title+' <small style="font-size:13px;opacity:.8">(최대 '+MAX+'명)</small></h4><div class="sub">친구 방에 들어가거나, 내 방을 만들어요</div><div class="rl">'+(R.rooms.length?R.rooms.map(r=>'<button data-j="'+r.id+'">'+cfg.ic+' '+esc2(r.n)+'의 방 · '+r.c+'/'+MAX+'명</button>').join(""):'<div class="sub">아직 열린 방이 없어요</div>')+'</div><button class="go" data-mk="1">＋ 내 방 만들기</button>'; }
-      else { const h=(R.d&&R.d.h)||{}, ps=live(true); P.innerHTML='<h4>'+cfg.ic+' '+esc2(h.n||"")+'의 방</h4><div class="pl">'+ps.map(p=>'<span class="'+(p.k===code?"me":"")+'">'+(p.k===h.c?"👑 ":"")+esc2(p.n)+'</span>').join("")+'</div><div class="sub">'+ps.length+' / '+MAX+'명'+(cfg.fill?' · 빈자리는 봇이 채워요':'')+'</div>'+
+      if(R.phase==="room"){ P.innerHTML='<h4>👫 '+cfg.title+' <small style="font-size:13px;opacity:.8">(최대 '+MAX+'명)</small></h4><div class="sub">친구 방에 들어가거나, 내 방을 만들어요</div><div class="rl">'+(R.rooms.length?R.rooms.map(r=>'<button data-j="'+r.id+'">'+cfg.ic+' '+esc2(r.n)+'의 방 · '+(cfg.tag?cfg.tag(r.h)+' · ':'')+r.c+'/'+MAX+'명</button>').join(""):'<div class="sub">아직 열린 방이 없어요</div>')+'</div><button class="go" data-mk="1">＋ 내 방 만들기</button>'+(cfg.back?'<button class="gr" data-bk="1">← 뒤로</button>':''); }
+      else { const h=(R.d&&R.d.h)||{}, ps=live(true); P.innerHTML='<h4>'+cfg.ic+' '+esc2(h.n||"")+'의 방</h4><div class="pl">'+ps.map(p=>'<span class="'+(p.k===code?"me":"")+'">'+(p.k===h.c?"👑 ":"")+esc2(p.n)+'</span>').join("")+(cfg.fill?Array.from({length:Math.max(0,MAX-ps.length)},()=>'<span class="bt">🤖 봇</span>').join(""):'')+'</div><div class="sub">'+(cfg.tag?cfg.tag(h)+' · ':'')+ps.length+' / '+MAX+'명'+(cfg.fill?' · 빈자리는 봇이 채워요':'')+'</div>'+
         (h.st?'<div class="sub">곧 시작해요!</div>':R.host?'<button class="go" data-st="1">▶ 게임 시작 (10초 뒤)</button>':'<div class="sub">방장(👑)이 「게임 시작」을 누르면 10초 뒤 시작해요</div>')+'<button class="gr" data-lv="1">방 나가기</button>'; } }
-    P.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b || R.busy) return; if(b.dataset.mk) R.make(); else if(b.dataset.j) R.join(b.dataset.j); else if(b.dataset.st) R.start(); else if(b.dataset.lv) R.leave(true); });
+    P.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b || R.busy) return; if(b.dataset.mk) R.make(); else if(b.dataset.j) R.join(b.dataset.j); else if(b.dataset.st) R.start(); else if(b.dataset.lv) R.leave(true); else if(b.dataset.bk && cfg.back) cfg.back(); });
     R.list=async()=>{ if(!OK) return; let d=null; try{ d=await NET.get(BASE()); }catch(e){ return; } const t=now(), L=[];
-      Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAX) L.push({id, n:r.h.n||"친구", c}); });
+      Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAX) L.push({id, n:r.h.n||"친구", c, h:r.h}); });
       R.rooms=L.sort((a,b)=>b.c-a.c).slice(0,6); if(R.phase==="room") ui(); };
     R.make=async()=>{ if(!OK){ api.msg("서버에 연결이 안 돼요", 1500); return; } R.busy=true; const id=code+"_"+(Date.now()%100000); R.id=id; R.path=BASE()+"/"+id; R.host=true;
-      const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, cfg.h||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{}); try{ await NET.put(R.path, {h, p:{[code]:me}}); }catch(e){} R.d={h, p:{[code]:me}}; R.phase="wait"; R.busy=false; ui(); };
+      const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, (typeof cfg.h==="function"?cfg.h():cfg.h)||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{}); try{ await NET.put(R.path, {h, p:{[code]:me}}); }catch(e){} R.d={h, p:{[code]:me}}; R.phase="wait"; R.busy=false; ui(); };
     R.join=async(id)=>{ R.busy=true; const path=BASE()+"/"+id; let d=null; try{ d=await NET.get(path); }catch(e){} const t=now(), c=d && d.p ? Object.values(d.p).filter(p=>p && t-(p.t||0)<10000).length : 0;
       if(!d || !d.h || d.h.st || c>=MAX){ R.busy=false; api.msg(d && d.h && d.h.st?"이미 시작한 방이에요":"방이 꽉 찼어요 (최대 "+MAX+"명)", 1500); R.list(); return; }
       R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, Object.assign({n:nm, t:now()}, R.node?R.node():{})); }catch(e){} R.phase="wait"; R.busy=false; ui(); };

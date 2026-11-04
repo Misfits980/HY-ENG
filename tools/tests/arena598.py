@@ -16,7 +16,7 @@ async def boot(br, nick, code):
     await pg.route("**/*", fake); await pg.goto(ORIGIN+"proto/house.html?isle=1"); await pg.wait_for_timeout(300)
     await pg.evaluate("([n,c])=>{ localStorage.setItem('hyeng_proto_code', JSON.stringify(c)); localStorage.setItem('hyeng_nick', n); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); }", [nick, code])
     await pg.reload(); await pg.wait_for_timeout(2400)
-    await pg.evaluate("()=>MG.enter('arena',{mode:'co', diff:'normal'})"); await pg.wait_for_timeout(1500)
+    await pg.evaluate("()=>MG.enter('arena',{mode:'co', diff:'normal', quick:1})"); await pg.wait_for_timeout(1500)
     return ctx, pg, errs
 
 async def steps(pgs, n=8, dt=.1):
@@ -35,6 +35,7 @@ async def main():
         P3=[A,B,C]
         r=await A.evaluate("()=>[MG.run.ACT.length, !!document.querySelector('#mgUI .mgRoomP [data-mk]')]")
         ok(r==[1,True], f"① 같이 하기 = 처음엔 방 목록(봇 없음) {r}")
+        await A.evaluate("()=>MG.run.setMap('toy')")   # (v599) 방장 맵 = 🧸 → 들어온 친구 화면도 🧸
         await A.evaluate("()=>document.querySelector('#mgUI .mgRoomP [data-mk]').click()"); await A.wait_for_timeout(500)
         for x in (B,C):
             for _ in range(12):
@@ -44,8 +45,10 @@ async def main():
             ok(len(r)==1 and "루아" in r[0], f"① 방 목록에 「루아의 방」 {r}")
             await x.evaluate("()=>document.querySelector('#mgUI .mgRoomP [data-j]').click()"); await x.wait_for_timeout(600)
         await steps(P3, 8)
-        r=[await x.evaluate("()=>[MG.run.NETR.phase, document.querySelectorAll('#mgUI .mgRoomP .pl span').length, !!document.querySelector('#mgUI .mgRoomP [data-st]')]") for x in P3]
+        r=[await x.evaluate("()=>[MG.run.NETR.phase, document.querySelectorAll('#mgUI .mgRoomP .pl span:not(.bt)').length, !!document.querySelector('#mgUI .mgRoomP [data-st]')]") for x in P3]
         ok(all(q[0]=="wait" and q[1]==3 for q in r) and r[0][2] and not r[1][2] and not r[2][2], f"① 셋 다 대기방 · 3명 · 「게임 시작」은 방장만 {r}")
+        r=[await x.evaluate("()=>[MG.run.MAPK, document.querySelector('#mgUI .mgRoomP').innerText.includes('장난감')]") for x in P3]
+        ok(all(q==["toy",True] for q in r), f"(v599) 방장이 고른 맵이 모두에게 (대기방에 맵 이름) {r}")
         await B.screenshot(path=OUT+"arena598_wait.png")
         await A.evaluate("()=>document.querySelector('#mgUI .mgRoomP [data-st]').click()"); await A.wait_for_timeout(400)
         await steps(P3, 5)
@@ -57,10 +60,12 @@ async def main():
         # ② 6명
         r=[await x.evaluate("()=>{ const R=MG.run; return [R.NETR.phase, R.ACT.length, R.ACT.filter(a=>a.net).length, R.ACT.filter(a=>a.bot).length, R.ACT.filter(a=>a.bot && a.rb).length, Math.round(R.time.left)]; }") for x in P3]
         ok(all(q[0]=="play" and q[1]==6 and q[2]==2 and q[3]==3 for q in r) and r[0][4]==0 and r[1][4]==3, f"② 사람 3 + 봇 3 = 6 · 봇은 방장이 움직임 {r}")
-        await B.evaluate("()=>{ const m=MG.run.me; m.p.set(3.5,0,21); m.yaw=1.2; }")
+        await A.evaluate("()=>{ MG.run.D.dm=0; }")   # 시험: 봇이 사람을 적시지 않게 (방장 봇)
+        await B.evaluate("()=>{ MG.run.me.soak=0; }")
+        await B.evaluate("()=>{ const m=MG.run.me; m.p.set(0.5,0,13); m.yaw=1.2; }")
         await steps(P3, 12)
         r=await A.evaluate("()=>{ const a=MG.run.PEER['BBBB3']; return [a.nm, +a.p.x.toFixed(1), +a.p.z.toFixed(1), a.G.visible]; }")
-        ok(r[0]=="민수" and abs(r[1]-3.5)<.4 and abs(r[2]-21)<.4 and r[3], f"② A 화면에 민수가 보이고 따라옴 {r}")
+        ok(r[0]=="민수" and abs(r[1]-.5)<.4 and abs(r[2]-13)<.4 and r[3], f"② A 화면에 민수가 보이고 따라옴 {r}")
         r=await A.evaluate("()=>MG.run.ACT.filter(a=>a.bot).map(a=>[a.i,+a.p.x.toFixed(1),+a.p.z.toFixed(1)])")
         await steps(P3, 6, .0001)
         rb=await B.evaluate("()=>MG.run.ACT.filter(a=>a.bot).map(a=>[a.i,+a.p.x.toFixed(1),+a.p.z.toFixed(1)])")

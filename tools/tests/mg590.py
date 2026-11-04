@@ -56,19 +56,21 @@ async def main():
                 await pg.evaluate("()=>{ const g=MG.SPOT.arena; TFAC.warp(g[0]+.5, g[2]+3.6); }"); await pg.wait_for_timeout(600)   # 시험 화면은 걸음이 느림 → 문 앞으로
                 await pg.evaluate("()=>{ const L=LBL.find(l=>l.d.k==='mg_arena'); L.d.act(); }")
                 for _ in range(60):
-                    if await pg.evaluate("()=>{ const el=document.getElementById('mgLob'); return !!el && el.classList.contains('on'); }"): break
+                    if await pg.evaluate("()=>!!(MG.on && MG.run && MG.run.phase==='menu')"): break
                     await pg.wait_for_timeout(250)
-                await pg.wait_for_timeout(400)
-                r=await pg.evaluate("()=>{ const el=document.getElementById('mgLob'); return [el && el.classList.contains('on'), el && el.innerText.includes('물총 아레나'), el && el.querySelectorAll('[data-o=diff]').length, el && /3판/.test(el.innerText)]; }")
-                ok(r==[True,True,3,True], f"① 누르면 안내 창 (규칙 · 실력 3가지 · 오늘 🪙 3판) {r}")
+                await pg.wait_for_timeout(600)
+                r=await pg.evaluate("()=>{ const s=document.querySelector('#mgUI .aSide'); return [!!s && s.offsetWidth>0, s && s.innerText.includes('혼자 하기'), document.querySelectorAll('#mgUI .aMaps [data-m]').length, /3판/.test(document.querySelector('#mgUI .aMe').innerText), getComputedStyle(document.querySelector('#mgUI [data-b=fire]')).display]; }")
+                ok(r==[True,True,3,True,"none"], f"① (v599) 누르면 아레나 메뉴 화면 (혼자 · 같이 · 맵 3 · 오늘 🪙 3판 · 쏘기 버튼은 숨김) {r}")
                 await pg.screenshot(path=OUT+"mg590_lobby.png")
-                await pg.evaluate("()=>document.querySelector('#mgLob [data-o=diff][data-v=easy]').click()")
-                r=await pg.evaluate("()=>(store('hyeng_proto_mgopt')||{})['arena.diff']")
+                await pg.evaluate("()=>document.querySelector('#mgUI .aSide [data-c=solo]').click()"); await pg.wait_for_timeout(200)
+                await pg.evaluate("()=>document.querySelector('#mgUI .aCard [data-s=diff][data-v=easy]').click()")
+                r=await pg.evaluate("()=>JSON.parse(localStorage.getItem('hyeng_proto_arenaset')||'{}').diff")
                 ok(r=="easy", f"① 고른 실력은 기억 {r}")
-                await pg.evaluate("()=>document.querySelector('#mgLob [data-o=diff][data-v=normal]').click()")
+                await pg.evaluate("()=>document.querySelector('#mgUI .aCard [data-s=diff][data-v=normal]').click()")
                 # ② 아레나
                 h0=await pg.evaluate("()=>[hero.g.position.x, hero.g.position.z, renderer.getPixelRatio()]")
-                await pg.evaluate("()=>document.querySelector('#mgLob .go').click()"); await pg.wait_for_timeout(1500)
+                await pg.evaluate("()=>document.querySelector('#mgUI .aCard [data-go=solo]').click()"); await pg.wait_for_timeout(300)
+                await pg.evaluate("()=>{ for(let i=0;i<52;i++) MG.step(.05,false); }")
                 r=await pg.evaluate("()=>[MG.on, MG.k, document.body.classList.contains('mgOn'), getComputedStyle(document.querySelector('.bar.top')).visibility, MG.run.ACT.length, MG.run.D===undefined?0:1]")
                 ok(r[0] and r[1]=="arena" and r[2] and r[3]=="hidden" and r[4]==6, f"② 들어가면 아레나 · 섬 화면은 숨김 · 나+봇 5 {r}")
                 r=await pg.evaluate("()=>{ const R=MG.run, me=R.me; R.ACT.forEach(a=>{ if(a.bot) a.prot=0; }); me.cd=0; MG.I.fire=1; MG.step(.05,false); const shot0=me.cd>0; MG.I.fire=0; return [R.time.cd>2, shot0]; }")
@@ -137,8 +139,8 @@ async def main():
                 await pg.evaluate("()=>document.querySelector('#mgRes .out').click()"); await pg.wait_for_timeout(1400)
             else:
                 # 휴대폰 가로: 아레나 화면
-                await pg.evaluate("()=>MG.enter('arena',{diff:'normal'})"); await pg.wait_for_timeout(1500)
-                await pg.evaluate("()=>{ for(let i=0;i<70;i++) MG.step(.05,false); const R=MG.run, me=R.me; R.ACT.forEach(a=>{ if(a.bot){ a.alive=true; a.prot=0; a.p.set(-6+a.i*3,0,8); a.brain.think=99; } }); me.p.set(0,0,18); me.yaw=0; me.pitch=-.03; }")
+                await pg.evaluate("()=>MG.enter('arena',{diff:'normal', quick:1})"); await pg.wait_for_timeout(1500)
+                await pg.evaluate("()=>{ for(let i=0;i<130;i++) MG.step(.05,false); const R=MG.run, me=R.me; R.ACT.forEach(a=>{ if(a.bot){ a.alive=true; a.prot=0; a.p.set(-6+a.i*3,0,8); a.brain.think=99; } }); me.p.set(0,0,18); me.yaw=0; me.pitch=-.03; }")
                 await pg.wait_for_timeout(1500); await pg.screenshot(path=OUT+"mg590_arena_phone.png")
                 r=await pg.evaluate("()=>{ const q=s=>document.querySelector(s).getBoundingClientRect(); const f=q('#mgUI [data-b=fire]'), j=q('#mgUI [data-b=jump]'), s=q('#mgUI [data-b=slide]'), b=q('#mgUI .aBd'); const ov=(a,c)=>!(a.right<c.left||c.right<a.left||a.bottom<c.top||c.bottom<a.top); return [f.width>=90, ov(f,j), ov(f,s), ov(f,b), f.bottom<=innerHeight, j.bottom<=innerHeight]; }")
                 ok(r==[True,False,False,False,True,True], f"휴대폰 가로: 💦 쏘기 · 점프 · 슬라이드 버튼이 겹치지 않음 · 순위표와도 안 겹침 {r}")
