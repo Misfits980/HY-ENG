@@ -16419,7 +16419,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v602";
+const GAME_VER = "v603";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -27291,7 +27291,7 @@ function drawRankScreen(){
   if(stu && !Online.on()){ box.innerHTML='<div class="note">인터넷에 연결되면 학원 공부 점수가 보여요</div>'; return; }
   if(!Online.on() || v.range==="local"){ box.innerHTML = dex ? dexLocalRow() : rankRows(v.diff); return; }
   const cached=Online.cacheGet(v.diff, v.range);
-  const rule = stu ? '<div class="note">📚 이번 주 오늘의 30 을 끝까지 푼 판의 맞힌 수 · 같은 날 같은 Stage 다시는 안 셈</div>' : dex && v.range==="week" ? '<div class="note">📖 이번 주에 새로 모은 단어 수</div>' : '';
+  const rule = stu ? '<div class="note">📚 이번 주 오늘의 30 을 끝까지 푼 판의 스테이지 점수 + 푼 문제 수 · 같은 날 같은 Stage 다시 · 내 단계보다 쉬운 책은 안 셈</div>' : dex && v.range==="week" ? '<div class="note">📖 이번 주에 새로 모은 단어 수</div>' : '';
   box.innerHTML = cached ? '<div class="note">최신 순위로 바꾸는 중…</div>'+rule+onlineRows(cached.list, dex, unit)
                          : '<div class="note">학원 랭킹을 불러오는 중…</div>';
   const want=v.diff+"|"+v.range;
@@ -27310,7 +27310,7 @@ const LiveRank = {
   K:"hyeng_board", CAT:{study:["📚","공부"], words:["📖","단어"], run:["🏃","달리기"]}, ORD:["study","words","run"], B:null, it:[], i:0, _t:null, _f:0, tab:"study",
   esc(t){ return String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
   mvH(m){ return m==="new" ? '<span class="lrMv nw">NEW</span>' : m>0 ? '<span class="lrMv up">▲'+m+'</span>' : m<0 ? '<span class="lrMv dn">▼'+(-m)+'</span>' : '<span class="lrMv eq">–</span>'; },
-  val(k, r){ return k==="study" ? Number(r.score).toLocaleString()+'점'+(r.n?' · '+r.n+'판':'') : k==="words" ? Number(r.score).toLocaleString()+'단어' : Number(r.score).toLocaleString()+'점'; },
+  val(k, r){ return k==="study" ? Number(r.score).toLocaleString()+'점'+(r.n?' · '+r.n+'판':'')+(r.q?' · '+r.q+'문제':'') : k==="words" ? Number(r.score).toLocaleString()+'단어' : Number(r.score).toLocaleString()+'점'; },
   myTag(){ try{ return Tag.pad() ? "" : Tag.get(); }catch(e){ return ""; } },
   load(){ try{ const c=JSON.parse(localStorage.getItem(this.K)||"null"); if(c && c.boards && Date.now()-c.t<7*864e5) this.set(c.boards, true); }catch(e){} this.fetch(); },
   fetch(){ if(!Online.on() || TEST_STAGE || this._busy) return; if(Date.now()-this._f<55000) return; this._f=Date.now(); this._busy=1;
@@ -27332,7 +27332,7 @@ const LiveRank = {
     if(this.it.length<2){ this._t=setTimeout(()=>this.step(), 2600); return; }
     void R.offsetWidth; R.classList.add("go"); R.style.transform="translateY(-24px)";
     clearTimeout(this._t); this._t=setTimeout(()=>{ this.i=(this.i+1)%this.it.length; if(this.i===0) this.fetch(); this.draw(); }, 480); },
-  RULE:{study:"이번 주(월요일부터) 📚 오늘의 30 을 <b>끝까지</b> 푼 판의 맞힌 수예요. 같은 날 같은 Stage 다시 · <b>내 단계보다 쉬운 책</b>은 안 세요.", words:"이번 주에 단어 도감에 <b>새로 모은</b> 단어 수예요.", run:"이번 주 🏃 달리기 가장 높은 점수예요. <b>내 단계보다 쉬운 단어장</b>으로 달린 판은 안 세요."},
+  RULE:{study:"이번 주(월요일부터) 📚 오늘의 30 을 <b>끝까지</b> 푼 판의 <b>스테이지 점수 + 푼 문제 수</b>예요. 같은 날 같은 Stage 다시 · <b>내 단계보다 쉬운 책</b>은 안 세요.", words:"이번 주에 단어 도감에 <b>새로 모은</b> 단어 수예요.", run:"이번 주 🏃 달리기 가장 높은 점수예요. <b>내 단계보다 쉬운 단어장</b>으로 달린 판은 안 세요."},
   open(k){ if(k) this.tab=k; let d=$("lrPanel"); if(!d){ d=document.createElement("div"); d.id="lrPanel"; document.body.appendChild(d);
       d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.t){ this.tab=b.dataset.t; this.panel(); try{ SFX.click(); }catch(_){} return; }
         if(b && b.dataset.all){ d.remove(); showRank(this.tab==="words"?"dex":this.tab==="study"?"study":"normal"); } }); }

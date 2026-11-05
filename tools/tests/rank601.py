@@ -45,7 +45,7 @@ async def main():
                 await pg.screenshot(path=OUT+"rank601_start_phone.png")
                 await pg.evaluate("()=>{ LiveRank.i=0; LiveRank.draw(); document.getElementById('lrBar').click(); }"); await pg.wait_for_timeout(300)
                 r=await pg.evaluate("()=>{ const P=document.getElementById('lrPanel'); return [!!P, P.querySelectorAll('.lrRow').length, P.querySelector('.lrTabs .on').innerText, [...P.querySelectorAll('.lrMv')].map(x=>x.innerText).join(','), !!P.querySelector('.lrRow.me .meTag'), P.querySelector('.lrRule').innerText]; }")
-                ok(r[0] and r[1]==5 and "공부" in r[2] and r[3]=="▲1,▼1,NEW,–,▼2" and r[4] and "끝까지" in r[5], f"② 누르면 1~10위 · ▲▼NEW– · 내 줄(나) · 규칙 {r}")
+                ok(r[0] and r[1]==5 and "공부" in r[2] and r[3]=="▲1,▼1,NEW,–,▼2" and r[4] and "스테이지 점수" in r[5], f"② 누르면 1~10위 · ▲▼NEW– · 내 줄(나) · 규칙 {r}")
                 r=await pg.evaluate("()=>{ const P=document.getElementById('lrPanel'); const m=P.querySelector('.lrRow.me:last-of-type'); return [!!P.querySelector('.lrDots'), [...P.querySelectorAll('.lrRow.me')].map(x=>x.innerText.replace(/\\s+/g,' ')).join('|'), (P.querySelector('.lrLv')||{}).innerText||'']; }")
                 ok(r[0] and "12" in r[1] and "서원까지 8점" in r[1] and "▼2" in r[1] and "G1-2" in r[2], f"(v602) 10위 밖이어도 ⋯ 아래 내 줄 (12위 · 서원까지 8점 · ▼2) · 내 단계 {r}")
                 r=await pg.evaluate("()=>{ const i=LiveRank.it.findIndex(x=>x[1]<0); return LiveRank.rowH(LiveRank.it[i]).replace(/<[^>]+>/g,' ').replace(/\\s+/g,' '); }")
