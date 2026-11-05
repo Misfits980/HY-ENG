@@ -81,6 +81,22 @@ async def main():
             else:
                 await pg.screenshot(path=OUT+"rank601_start_pad.png")
             await pg.close()
+        # (v604) 「랭킹이 안 나왔는데」 — 서버가 늦으면 「불러오는 중」 줄 · 실패하면 다시 부름
+        pg=await br.new_page(viewport={"width":390,"height":844}); pg.on("pageerror", lambda e: errs.append(str(e))); bc=[]
+        async def slow(r):
+            if "board=1" in r.request.url: bc.append(1); return await r.abort()
+            return await r.fulfill(status=200, body='{"ok":true,"list":[]}', content_type="application/json")
+        await pg.route("**/*", route); await pg.route("https://script.google.com/**", slow)
+        await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(300)
+        await pg.evaluate("()=>{ localStorage.removeItem('hyeng_board'); }"); await pg.reload(); await pg.wait_for_timeout(1500)
+        await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
+        r=await pg.evaluate("()=>{ const b=document.getElementById('lrBar'); return [!b.hidden && b.offsetHeight>0, b.innerText.replace(/\\s+/g,' ')]; }")
+        ok(r[0] and "불러오는 중" in r[1], f"(v604) 기록이 오기 전 = 「순위를 불러오는 중…」 줄 {r}")
+        await pg.wait_for_timeout(9000)
+        ok(len(bc)>=2, f"(v604) 못 받으면 8초 뒤 다시 부름 · {len(bc)}번")
+        r=await pg.evaluate("()=>{ const b=document.getElementById('btnNews'); const q=b.getBoundingClientRect(); return [Math.round(q.width), Math.round(q.height)]; }")
+        ok(r[0]<=40, f"(v604) 📰 소식지 단추 작게 {r}")
+        await pg.close()
         # ④ house.html 바로 열기 (자동 시험 표시를 끔 → 실제 아이처럼)
         ctx=await br.new_context(viewport={"width":390,"height":844}); await ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>false})")
         pg=await ctx.new_page(); await pg.route("**/*", route)
