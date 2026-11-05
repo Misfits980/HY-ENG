@@ -11,7 +11,8 @@ from playwright.async_api import async_playwright
 BOARD={"ok":True,"v":10,"boards":{
   "study":[{"nick":"지후","tag":"0006","score":230,"n":12,"mv":1},{"nick":"민수","tag":"0007","score":200,"n":10,"mv":-1},{"nick":"새싹","tag":"0008","score":40,"n":2,"mv":"new"},{"nick":"라언","tag":"0009","score":30,"n":3,"mv":0}],
   "words":[{"nick":"선아","tag":"0010","score":42,"n":0,"mv":2},{"nick":"지후","tag":"0006","score":30,"n":0,"mv":"new"}],
-  "run":[{"nick":"지환","tag":"0011","score":48952,"n":15,"mv":0}]}}
+  "run":[{"nick":"지환","tag":"0011","score":48952,"n":15,"mv":0}]},
+  "me":{"study":{"nick":"루아","tag":"0006","score":32,"n":3,"mv":-2,"rank":12,"of":15,"lv":"G1-2","above":{"nick":"서원","score":40}},"run":{"nick":"루아","tag":"0006","score":50000,"n":20,"mv":1,"rank":1,"of":5,"lv":"G1-2","above":None}}}
 
 async def main():
     bad=[]
@@ -36,7 +37,7 @@ async def main():
             await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
             await pg.wait_for_timeout(1500)
             r=await pg.evaluate("()=>{ const b=document.getElementById('lrBar'); return [!!b && !b.hidden && b.offsetHeight>0, document.querySelector('#lrRoll .lrIt').innerText.replace(/\\s+/g,' '), LiveRank.it.map(x=>x[0][0]+(x[1]+1)).join(',')]; }")
-            ok(r[0] and "공부" in r[1] and "지후" in r[1] and "▲1" in r[1] and r[2].startswith("s1,w1,r1,s2,w2,s3,s4"), f"① [{nm}] 🔥 실시간 줄: 📚 1위 지후 ▲1 · 순서 {r[2]} · '{r[1]}'")
+            ok(r[0] and "공부" in r[1] and "지후" in r[1] and "▲1" in r[1] and r[2].startswith("s1,w1,r1,s0,r0,s2,w2,s3,s4,s0,r0"), f"① [{nm}] 🔥 실시간 줄: 📚 1위 지후 ▲1 · 순서 {r[2]} · '{r[1]}'")
             if nm=="phone":
                 await pg.evaluate("()=>{ LiveRank.i=0; LiveRank.draw(); }"); await pg.wait_for_timeout(3300)
                 r=await pg.evaluate("()=>document.querySelector('#lrRoll .lrIt').innerText.replace(/\\s+/g,' ')")
@@ -44,7 +45,11 @@ async def main():
                 await pg.screenshot(path=OUT+"rank601_start_phone.png")
                 await pg.evaluate("()=>{ LiveRank.i=0; LiveRank.draw(); document.getElementById('lrBar').click(); }"); await pg.wait_for_timeout(300)
                 r=await pg.evaluate("()=>{ const P=document.getElementById('lrPanel'); return [!!P, P.querySelectorAll('.lrRow').length, P.querySelector('.lrTabs .on').innerText, [...P.querySelectorAll('.lrMv')].map(x=>x.innerText).join(','), !!P.querySelector('.lrRow.me .meTag'), P.querySelector('.lrRule').innerText]; }")
-                ok(r[0] and r[1]==4 and "공부" in r[2] and r[3]=="▲1,▼1,NEW,–" and r[4] and "끝까지" in r[5], f"② 누르면 1~10위 · ▲▼NEW– · 내 줄(나) · 규칙 {r}")
+                ok(r[0] and r[1]==5 and "공부" in r[2] and r[3]=="▲1,▼1,NEW,–,▼2" and r[4] and "끝까지" in r[5], f"② 누르면 1~10위 · ▲▼NEW– · 내 줄(나) · 규칙 {r}")
+                r=await pg.evaluate("()=>{ const P=document.getElementById('lrPanel'); const m=P.querySelector('.lrRow.me:last-of-type'); return [!!P.querySelector('.lrDots'), [...P.querySelectorAll('.lrRow.me')].map(x=>x.innerText.replace(/\\s+/g,' ')).join('|'), (P.querySelector('.lrLv')||{}).innerText||'']; }")
+                ok(r[0] and "12" in r[1] and "서원까지 8점" in r[1] and "▼2" in r[1] and "G1-2" in r[2], f"(v602) 10위 밖이어도 ⋯ 아래 내 줄 (12위 · 서원까지 8점 · ▼2) · 내 단계 {r}")
+                r=await pg.evaluate("()=>{ const i=LiveRank.it.findIndex(x=>x[1]<0); return LiveRank.rowH(LiveRank.it[i]).replace(/<[^>]+>/g,' ').replace(/\\s+/g,' '); }")
+                ok("나" in r and "12위" in r and "밀렸어요" in r and "서원까지 8점" in r, f"(v602) 실시간 줄의 ⭐ 나: '{r}'")
                 await pg.screenshot(path=OUT+"rank601_panel_phone.png")
                 await pg.evaluate("()=>document.querySelector('#lrPanel [data-t=words]').click()"); await pg.wait_for_timeout(150)
                 r=await pg.evaluate("()=>[...document.querySelectorAll('#lrPanel .lrRow')].map(x=>x.innerText.replace(/\\s+/g,' ')).join(' | ')")

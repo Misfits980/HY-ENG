@@ -28,7 +28,7 @@ vm.createContext(ctx); vm.runInContext(src, ctx);
 const post=(o)=>JSON.parse(ctx.doPost({postData:{contents:JSON.stringify(Object.assign({key:"HYENG"},o))}}).getContent());
 let bad=0; const ok=(c,m)=>{ console.log((c?"OK  ":"BAD ")+m); if(!c) bad++; };
 const get=(p)=>JSON.parse(ctx.doGet({parameter:Object.assign({key:"HYENG"},p)}).getContent());
-ok(post({type:"check", tk:"K"}).v===10, "SERVER_V = 10");
+ok(post({type:"check", tk:"K"}).v>=10, "SERVER_V ≥ 10");
 const ws=vm.runInContext("weekStart_()", ctx), now=Date.now(), H=3600e3;
 const COLS=vm.runInContext("COLS.map(c=>c[0])", ctx), S=book.scores;
 S.d=[vm.runInContext("COLS.map(c=>c[1])", ctx)];
@@ -52,15 +52,23 @@ st(T, e2, "S1", 99, {dex:999});
 add(e2, Object.assign({}, A, {nick:"지후", diff:"hard", rule:"normal", score:900, stage:12})); add(e2, Object.assign({}, A, {nick:"지후", diff:"easy", rule:"normal", score:500}));
 add(e2, Object.assign({}, B, {diff:"normal", rule:"normal", score:700, stage:9}));
 add(e2, Object.assign({}, Cc, {diff:"easy", rule:"study-raid", score:5000}));
+// (v602) 내 단계 — 다온 = G5-6 아이 · G1-2 판 · basic 달리기는 랭킹에 안 들어감
+const Dd={nick:"다온", tag:"#0012", dev:"dD"};
+st(Dd, e2, "G5-6 Stage 1-1", 3); st(Dd, e2+1000, "G5-6 Stage 1-2", 3); st(Dd, e2+2000, "G5-6 Stage 1-3", 3);
+st(Dd, e2+3000, "G1-2 Stage 1-1", 30);
+add(e2, Object.assign({}, Dd, {diff:"hard", rule:"normal", score:99999, set:"basic"})); add(e2, Object.assign({}, Dd, {diff:"hard", rule:"normal", score:3000, set:"g56"}));
 const b=get({board:1});
-ok(b.ok && b.v===10 && b.boards, "board=1 → 셋 "+JSON.stringify(Object.keys(b.boards||{})));
+ok(b.ok && b.v>=10 && b.boards, "board=1 → 셋 "+JSON.stringify(Object.keys(b.boards||{})));
 const s=b.boards.study, w=b.boards.words, r=b.boards.run;
-ok(s.map(x=>x.nick+":"+x.score+":"+x.n).join(",")==="지후:23:3,민수:20:2,새싹:4:1", "📚 공부 = 끝까지 푼 판 맞힌 수 (같은 날 다시 · 나감 · 배틀 · 선생님 빼기) "+JSON.stringify(s));
+ok(s.map(x=>x.nick+":"+x.score+":"+x.n).join(",")==="지후:23:3,민수:20:2,다온:9:3,새싹:4:1", "📚 공부 = 끝까지 푼 판 맞힌 수 (같은 날 다시 · 나감 · 배틀 · 선생님 빼기) "+JSON.stringify(s));
 ok(w.map(x=>x.nick+":"+x.score).join(",")==="지후:30,새싹:12", "📖 이번 주 단어 = 이번 주에 모은 수 (지후 100→130 = 30 · 새싹 처음 12 · 민수 0 = 없음) "+JSON.stringify(w));
-ok(r.map(x=>x.nick+":"+x.score).join(",")==="지후:900,민수:700", "🏃 달리기 = 이번 주 가장 높은 점수 (난이도 상관없이 · 레이드 X) "+JSON.stringify(r));
+ok(r.map(x=>x.nick+":"+x.score).join(",")==="지후:900,민수:700,다온:3000".split(",").sort((a,b)=>+b.split(":")[1]-+a.split(":")[1]).join(","), "🏃 달리기 = 이번 주 가장 높은 점수 (난이도 상관없이 · 레이드 X) "+JSON.stringify(r));
 ok(s[0].tag==="0006" && s[0].nick==="지후", "이름 👤 떼고 태그");
-if(old){ ok(s[0].mv===1 && s[1].mv===-1 && s[2].mv==="new", "▲▼: 지후 ▲1 · 민수 ▼1 · 새싹 NEW "+JSON.stringify(s.map(x=>x.mv))); }
+if(old){ ok(s[0].mv===1 && s[1].mv===-1 && s[3].mv==="new", "▲▼: 지후 ▲1 · 민수 ▼1 · 새싹 NEW "+JSON.stringify(s.map(x=>x.mv))); }
 else console.log("(이번 주가 하루도 안 지나 ▲▼ 시험은 건너뜀)");
+const bm=get({board:1, tag:"0012"}).me;
+ok(bm.study && bm.study.rank===3 && bm.study.score===9 && bm.study.above.nick==="민수" && bm.study.lv==="G5-6" && bm.run.rank===1 && !bm.words, "(v602) 나 = 📚 3위 9점 · 바로 위 민수 · 내 단계 G5-6 · 🏃 1위(basic 99999 는 빼고 3000) · 📖 없음 "+JSON.stringify(bm));
+ok(get({board:1, tag:"0006"}).me.study.rank===1 && get({board:1, nick:"👤지후"}).me.study.rank===1 && !get({board:1}).me.study, "(v602) 나 찾기: 태그 · 이름(태그 없을 때) · 없으면 안 줌");
 const ls=get({diff:"study", range:"week", n:"5", dev:"dA"}).list;
 ok(ls[0].nick==="지후" && ls[0].score===23 && ls[0].me===true && ls[1].me===false, "diff=study 목록 · 내 기기 = me "+JSON.stringify(ls));
 const lw=get({diff:"dex", range:"week"}).list, la=get({diff:"dex", range:"all"}).list;
