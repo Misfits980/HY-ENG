@@ -14124,8 +14124,16 @@ const Voice = {
   on:true, voice:null, ready:false, lockUntil:0, fails:0, broken:false, heardAt:0, _t:null,
   supported(){ return typeof speechSynthesis !== "undefined" && typeof SpeechSynthesisUtterance !== "undefined"; },
   /* 영어 목소리 고르기 — en-US → en-GB → 다른 영어 (안드로이드는 en_US 처럼 밑줄) · 없으면 null (기기 기본 + lang en-US) */
-  pickVoice(vs){ vs=vs||[]; const en=vs.filter(v=>/^en[-_]/i.test(v.lang||""));
-    return en.find(v=>/^en[-_]US/i.test(v.lang) && v.localService) || en.find(v=>/^en[-_]US/i.test(v.lang)) || en.find(v=>/^en[-_]GB/i.test(v.lang)) || en[0] || null; },
+  /* (v606) 사용자: 「삼성은 괜찮은데 아이폰이 발음이 구려」 — 아이폰 영어 목소리 목록엔 장난 목소리(Albert·Bad News·Bubbles·Zarvox…)와
+     옛 기계 목소리(Eloquence: Eddy·Flo·Grandma·Reed·Rocko·Sandy·Shelley…)가 섞여 있어 「en-US + 기기 안」 첫 번째를 고르면 그게 걸릴 수 있었다
+     → 점수로 고름: 고급(Premium·Enhanced) > 좋은 이름(Samantha·Ava·Allison·Nicky·Google US·Aria…) > en-US > 기기 안 · 장난/옛 목소리는 빼기 */
+  VOICE_BAD:/\b(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|princess|deranged|hysterical|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley)\b/i,
+  VOICE_GOOD:/\b(samantha|ava|allison|nicky|susan|zoe|evan|tom|joelle|noelle|nathan|karen|daniel|serena|kate|moira|tessa|aria|jenny|guy)\b/i,
+  voiceScore(v){ const n=String(v.name||""), l=String(v.lang||""); if(!/^en[-_]/i.test(l)) return -1e9; let s=0;
+    if(this.VOICE_BAD.test(n)) s-=1000; if(/premium/i.test(n)) s+=60; else if(/enhanced|natural|neural|online/i.test(n)) s+=45; if(this.VOICE_GOOD.test(n)) s+=30;
+    if(/^en[-_]US/i.test(l)) s+=12; else if(/^en[-_](GB|AU|IE|CA)/i.test(l)) s+=6; if(v.localService) s+=15; if(v.default) s+=1; return s; },   /* 기기 안 목소리 우선 = 삼성 등 안드로이드는 예전처럼 */
+  pickVoice(vs){ vs=vs||[]; let best=null, bs=-1e9; vs.forEach(v=>{ const sc=this.voiceScore(v); if(sc>bs){ bs=sc; best=v; } });
+    return bs>-500 ? best : (vs.find(v=>/^en[-_]/i.test(v.lang||"")) || null); },
   /* (v385) 미리 만든 발음 파일(audio/*.mp3, 단어 3,620개 · Kokoro 목소리) — 아이폰 읽기(speechSynthesis)는 몇 초마다 0.3초씩 화면이 멈췄다
      → 파일이 있는 단어는 웹오디오로 틀고(멈춤 없음), 파일이 없는 말(문장 등)·받지 못했을 때만 예전 방식으로 읽는다 */
   clipSet:null, clipOff:false, _bufs:new Map(), _src:null,
@@ -16429,7 +16437,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v605";
+const GAME_VER = "v606";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
