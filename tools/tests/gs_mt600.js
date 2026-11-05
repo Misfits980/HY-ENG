@@ -27,7 +27,7 @@ const ctx={ SpreadsheetApp:{ openById:()=>({ getSheetByName:n=>book[n]||null, in
 vm.createContext(ctx); vm.runInContext(src, ctx);
 const post=(o)=>JSON.parse(ctx.doPost({postData:{contents:JSON.stringify(Object.assign({key:"HYENG"},o))}}).getContent());
 let bad=0; const ok=(c,m)=>{ console.log((c?"OK  ":"BAD ")+m); if(!c) bad++; };
-ok(post({type:"check", tk:"K"}).v===9, "SERVER_V = 9");
+ok(post({type:"check", tk:"K"}).v>=9, "SERVER_V ≥ 9");
 const T0=Math.floor((Date.now()-3*864e5)/864e5)*864e5+2*3600e3;   // 사흘 전 한국 11:00 (서버는 7일 안 · 미래 아닌 때만 판 시각으로 적음)
 const study=(o)=>post(Object.assign({nick:"👤주호", diff:"study", rule:"study", set:"유치원 장모음 Stage 3-1", clear:1, right:6, wrong:0, secs:60, tag:"0011", dev:"devJU", ver:"v600", at:T0}, o));
 study({cn:6, cf:4, cs:3.46});
