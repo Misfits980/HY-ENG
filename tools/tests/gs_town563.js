@@ -16,7 +16,7 @@ function Sheet(name){ const S={name, d:[], fmt:{}};
         const k=a.match(/^([A-Z]+):\1$/); if(k) return Range(1, colN(k[1]), 1, 1); return Range(1,1,1,1); } return Range(a,b,c||1,d||1); },
     getLastRow(){ let n=S.d.length; while(n>0 && !(S.d[n-1]||[]).some(v=>v!=="" && v!==undefined)) n--; return n; },
     appendRow(a){ const n=this.getLastRow()+1; a.forEach((v,j)=>{ cell(n,j+1)[j]=v; }); },
-    setFrozenRows(){}, setColumnWidth(){}, deleteRows(){} }); }
+    setFrozenRows(){}, setColumnWidth(){}, deleteRows(){}, getMaxColumns(){ return 99; }, insertColumnsAfter(){} }); }
 const book={}; book.scores=Sheet("scores");
 const ctx={ SpreadsheetApp:{ openById:()=>({ getSheetByName:n=>book[n]||null, insertSheet:n=>(book[n]=Sheet(n)) }) },
   LockService:{ getScriptLock:()=>({waitLock(){}, releaseLock(){}}) },
@@ -27,12 +27,12 @@ vm.createContext(ctx); vm.runInContext(src, ctx);
 const post=(o)=>JSON.parse(ctx.doPost({postData:{contents:JSON.stringify(Object.assign({key:"HYENG"},o))}}).getContent());
 let bad=0; const ok=(c,m)=>{ console.log((c?"OK  ":"BAD ")+m); if(!c) bad++; };
 
-ok(post({type:"check", tk:"K"}).v===8, "SERVER_V = 8");
+ok(post({type:"check", tk:"K"}).v>=8, "SERVER_V ≥ 8");
 // 새 게임 줄 — 마을 칸 + 플레이(초) 1시간까지
 let r=post({nick:"유이홍", score:100, diff:"study", rule:"study", secs:50760, gems:120, earned:900, tag:"0009", ver:"v563", coin:340, bait:7, bank:1200, gbank:55, tup:"낚싯대2 가방1 밭0"});
 ok(r.ok, "판 기록 OK");
 const H=book.scores.d[0], row=book.scores.d[1], col=n=>row[H.indexOf(n)];
-ok(H.slice(-5).join(",")==="코인,미끼,은행 코인,은행 보석,강화", "scores 맨 끝 5칸 = 코인·미끼·은행 코인·은행 보석·강화 "+H.slice(-6).join(","));
+ok(H.slice(H.indexOf("코인"), H.indexOf("코인")+5).join(",")==="코인,미끼,은행 코인,은행 보석,강화", "scores 마을 5칸 = 코인·미끼·은행 코인·은행 보석·강화 "+H.slice(-6).join(","));
 ok(col("플레이(초)")===3600, "플레이(초) 50760 → 3600 (1시간까지)");
 ok(col("코인")===340 && col("미끼")===7 && col("은행 코인")===1200 && col("은행 보석")===55 && col("강화")==="낚싯대2 가방1 밭0", "마을 칸 값");
 ok(col("점수")===100 && col("보석")===120, "다른 칸은 그대로");

@@ -36,9 +36,12 @@ const COLS = [
   ["short","짧은 판"],                                              // (v267) 이 줄 전에 초원에서 끝나 기록하지 않은 판 수
   ["tag","태그"],                                                   // (v404) 아이 태그 4자리 (이름을 바꿔도 그대로)
   ["own","주인 패드"],                                              // (v417) 🧸 공용 패드에서 주인(유치부 아이)이 한 판 = 1 → 그 패드 단어 수를 주인 것으로 셈
-  ["coin","코인"], ["bait","미끼"], ["bank","은행 코인"], ["gbank","은행 보석"], ["tup","강화"]   // (v563 · 서버 v8) 🏝 My Town (옛 게임은 빈 칸)
+  ["coin","코인"], ["bait","미끼"], ["bank","은행 코인"], ["gbank","은행 보석"], ["tup","강화"],   // (v563 · 서버 v8) 🏝 My Town (옛 게임은 빈 칸)
+  ["cn","단어 카드"], ["cf","끝까지 본 카드"], ["cs","카드 평균(초)"],   // (v600 · 서버 v9) 오늘의 30 — 단어·뜻·문장 카드를 몇 장 봤고, 소리(단어 두 번 + 문장)가 끝날 때까지 본 카드가 몇 장인지
+  ["rep","다시 푼 판"]                                              // (v600 · 서버 v9) 같은 날 이미 끝까지 푼 같은 Stage 를 또 풀면 1 (서버가 셈)
 ];
-const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1, coin:1, bait:1, bank:1, gbank:1};
+const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1, coin:1, bait:1, bank:1, gbank:1, cn:1, cf:1, rep:1};
+const NEW9 = {cn:1, cf:1, cs:1, rep:1};                                // (v600) 옛 게임 줄은 빈 칸
 const NUM_MAX = {score:10000000, secs:3600};                         // (v563) 플레이(초) 한 줄 1시간까지 — 탭을 뒤로 보내 둔 시간이 846분으로 쌓이던 것
 /* (v563) 🏝 마을 현황 탭 — 아이 한 줄 (태그 → 없으면 👤 뗀 이름) · 판 기록이 올 때마다 고쳐 씀 */
 const TOWN_SHEET = "마을 현황";
@@ -67,10 +70,14 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 8;   // (v563) 8 = 🏝 My Town 칸(코인·미끼·은행·강화) · 「마을 현황」 탭 · 플레이(초) 1시간까지 · (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸 · (v419) 7 = 🔐 선생님 기기 등록(fbTeacher)
+const SERVER_V = 9;   // (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
+const MT_SHEET = "마이타운 시간";
+const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
+/* 이전 서버 버전: (v563) 8 = 🏝 My Town 칸(코인·미끼·은행·강화) · 「마을 현황」 탭 · 플레이(초) 1시간까지 · (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸 · (v419) 7 = 🔐 선생님 기기 등록(fbTeacher) */
 
 function sheet_(){
   const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+  if (sh.getMaxColumns() < COLS.length) sh.insertColumnsAfter(sh.getMaxColumns(), COLS.length - sh.getMaxColumns());   // (v600) 새 칸이 시트 폭보다 많으면 늘림
   if (sh.getRange(1, COLS.length).getValue() === "")                // 헤더가 비었으면 채운다 (새 칸이 생겨도)
     sh.getRange(1, 1, 1, COLS.length).setValues([COLS.map(c=>c[1])]);
   return sh;
@@ -104,6 +111,7 @@ function doPost(e){
   if (d.type === "ack") return ackAct_(d);                          // (v222) 원격 조치 처리 확인
   if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
   if (d.type === "tag") return tagFor_(d);                           // (v404) 🏷 이 기기의 태그 (없으면 새로)
+  if (d.type === "mt") return mtLog_(d);                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
   if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
@@ -119,7 +127,9 @@ function doPost(e){
   }) : COLS.map(([k])=>{
     if (k === "date") return when;
     if (k === "nick") return txt_(d.nick, 20) || "PLAYER";
-    if (NUM[k])       return (k in TOWN_KEEP && !has_(d, k)) ? "" : num_(d[k], NUM_MAX[k] || 1000000);   // (v563) 옛 게임 = 마을 칸 비움
+    if (k === "rep")  return "";                                     // (v600) 아래에서 서버가 셈
+    if (k === "cs")   return has_(d, "cs") ? Math.max(0, Math.min(600, Math.round(Number(d.cs) * 10) / 10 || 0)) : "";
+    if (NUM[k])       return ((k in TOWN_KEEP || k in NEW9) && !has_(d, k)) ? "" : num_(d[k], NUM_MAX[k] || 1000000);   // (v563) 옛 게임 = 마을 칸 비움
     if (k === "boss") return txt_(d.boss, 40).replace(/,/g, " · ");   // "50,80" 이 숫자 5080 으로 바뀌지 않게
     if (k === "tag")  return tag_(d.tag) ? "#" + tag_(d.tag) : "";
     return txt_(d[k], k === "owned" ? 400 : (k === "miss" ? 400 : (k === "cause" ? 60 : 40)));
@@ -129,6 +139,7 @@ function doPost(e){
   try {
     lock.waitLock(10000);                                           // 여러 명이 동시에 보내도 줄이 안 겹치게
     const sh = isBuy ? buySheet_() : sheet_();
+    if (!isBuy) { try { row[C.rep] = repOf_(sh, row, when); } catch(e3){} }   // (v600) 다시 푼 판
     sh.appendRow(row);
     sh.getRange(sh.getLastRow(), 1).setNumberFormat("yyyy-mm-dd hh:mm");   // 날짜를 다른 줄과 같은 모양으로
     if (!isBuy) { try { townUpsert_(d, when); } catch(e2){} }      // (v563) 🏝 마을 현황 — 안 되어도 판 기록은 남김
@@ -137,6 +148,68 @@ function doPost(e){
   } finally {
     try { lock.releaseLock(); } catch(_){}
   }
+  return json_({ok:true});
+}
+
+/* ── (v600) 다시 푼 판 — 오늘의 30(방식 study…) 줄이면 최근 400줄에서 같은 날 · 같은 아이(태그 → 기기+이름) · 같은 Stage 를 끝까지 푼 줄이 있는지 ── */
+function repOf_(sh, row, when){
+  if (!/^study/.test(String(row[C.rule] || ""))) return "";
+  const set = String(row[C.set] || ""); if (!set || set === "복습") return "";
+  const last = sh.getLastRow(); if (last < 2) return 0;
+  const from = Math.max(2, last - 399), rows = sh.getRange(from, 1, last - from + 1, C.tag + 1).getValues();
+  const day = Utilities.formatDate(when, TZ, "yyyy-MM-dd"), tg = String(row[C.tag] || ""), dev = String(row[C.dev] || ""), nk = plain_(row[C.nick]).toUpperCase();
+  const same = r => tg ? String(r[C.tag] || "") === tg : (String(r[C.dev] || "") === dev && plain_(r[C.nick]).toUpperCase() === nk);
+  return rows.some(r => Number(r[C.clear]) === 1 && String(r[C.set] || "") === set && same(r) && time_(r[C.date]) && Utilities.formatDate(new Date(time_(r[C.date])), TZ, "yyyy-MM-dd") === day) ? 1 : 0;
+}
+
+/* ── (v600) 🏝 마이타운 시간 — 아이·날마다 한 줄 (그날 모두 몇 분). 게임이 그날 합계를 보내므로 여러 번 와도 같은 값으로 덮음 ──
+   「아이」 = 명단의 기기로 찾은 이름(기록 정리 탭과 같은 모양: 실제 이름 (게임 이름)) · 공용 패드면 고른 아이 이름 */
+function mtSheet_(){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(MT_SHEET);
+  if (!sh){ sh = ss.insertSheet(MT_SHEET); sh.setFrozenRows(1); }
+  if (sh.getRange(1, 1).getValue() === ""){
+    sh.getRange(1, 1, 1, MT_COLS.length).setValues([MT_COLS.map(c=>c[1])]).setFontWeight("bold");
+    sh.getRange("A:A").setNumberFormat("@"); sh.getRange("C:C").setNumberFormat("@");
+  }
+  return sh;
+}
+function rosterName_(dev, nick){
+  try {
+    const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName("명단"); if (!sh || !dev) return "";
+    const rows = sh.getRange(5, 1, 196, 5).getValues();
+    for (const r of rows){
+      if ([r[2], r[3], r[4]].some(x => String(x).trim() === dev)){
+        const rc = String(r[0]).trim(), rn = String(r[1]).trim();
+        if (!rc && rn && nick) return "";                            // 공용 패드 줄(게임 이름 없음) → 고른 아이 이름으로
+        return rn ? rn + (rc ? " (" + rc + ")" : "") : rc;
+      }
+    }
+  } catch(e){}
+  return "";
+}
+function mtLog_(d){
+  const day = String(d.day || ""); if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return json_({ok:false, err:"day"});
+  const dev = txt_(d.dev, 40), nick = plain_(txt_(d.nick, 20)), tg = tag_(d.tag) ? "#" + tag_(d.tag) : "";
+  if (!dev && !tg) return json_({ok:false, err:"who"});
+  const kid = (Number(d.pad) ? "" : rosterName_(dev, nick)) || nick || "친구";
+  const min = Math.max(0, Math.min(1440, Math.round(Number(d.min) * 10) / 10 || 0)), segs = num_(d.segs, 500);
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = mtSheet_(), last = sh.getLastRow(), N = MT_COLS.length;
+    const rows = last >= 2 ? sh.getRange(2, 1, last - 1, N).getValues() : [];
+    const key = r => String(r[0]) + "|" + (Number(d.pad) ? String(r[1]) : (String(r[2]) || String(r[3])));
+    const want = day + "|" + (Number(d.pad) ? kid : (tg || dev));
+    let hit = -1; for (let i = rows.length - 1; i >= 0 && i >= rows.length - 400; i--){ if (key(rows[i]) === want){ hit = i; break; } }
+    const old = hit >= 0 ? rows[hit] : null;
+    const out = [day, kid, tg || (old ? old[2] : ""), dev, Math.max(min, old ? Number(old[4]) || 0 : 0), Math.max(segs, old ? Number(old[5]) || 0 : 0), new Date(), txt_(d.ver, 20), nick];
+    const at = hit >= 0 ? hit + 2 : last + 1;
+    sh.getRange(at, 1).setNumberFormat("@"); sh.getRange(at, 3).setNumberFormat("@");
+    sh.getRange(at, 1, 1, N).setValues([out]);
+    sh.getRange(at, 7).setNumberFormat("yyyy-mm-dd hh:mm");
+  } catch(err){ return json_({ok:false, err:"busy"}); }
+  finally { try { lock.releaseLock(); } catch(_){} }
   return json_({ok:true});
 }
 

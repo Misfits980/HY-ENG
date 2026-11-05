@@ -16336,7 +16336,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v599";
+const GAME_VER = "v600";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18363,6 +18363,15 @@ const StudyUI = {
   get chk(){ return (this.tier|0)===4 && !this.rv && !this.retryMode; },
   /* (v301) 저장 버그 — 카드를 보는 순간 '본 단어'가 되어 중간에 나가면 다음엔 새 단어로 안 나왔다. 판을 끝낼 때 한꺼번에 저장 */
   see(en){ (this._sp||(this._sp={}))[en]=1; },
+  /* (v600) 사용자: 「단어랑 뜻·문장이 같이 나올 때 소리 안 듣고 넘겨 버림」 → 먼저 기록부터.
+     새 단어 카드(✨ 새 단어 · 여러 개 한 장 · ★2 쓰임 카드 · 👀 다시 볼까요)가 화면에 있던 시간 → 「끝까지 본 카드」 = 저절로 나오는 소리(단어 두 번 + 예문)가 끝날 만큼 본 카드 */
+  cardT(q){ if(this._cd && this._cd.q===q) return; this.cardEnd(); if(!this.cs || this.cs.t0!==this.t0) this.cs={t0:this.t0, n:0, f:0, ms:0};
+    if(!q || q.t!=="intro" || q.hd) return;
+    let need=2.4; if(q.ws && q.ws.length>1) need=1.6*q.ws.length; else if(q.use) need=3;
+    else { let ex=null; try{ ex=q.w.alt ? null : Study.sentOf(q.w); }catch(e){} if(ex && !q.again2) need=3.4+String(ex.pre+q.w.en+ex.post).trim().split(/\s+/).length*.3; }
+    this._cd={q, t:Date.now(), need:Math.min(9, need)}; },
+  cardEnd(){ const d=this._cd; if(!d) return; this._cd=null; const C=this.cs; if(!C || C.t0!==this.t0) return; const ms=Date.now()-d.t; C.n++; C.ms+=Math.min(20000, ms); if(ms>=d.need*1000) C.f++; },
+  cardF(){ try{ this.cardEnd(); }catch(e){} const C=this.cs; return C && C.t0===this.t0 && C.n ? {cn:C.n, cf:C.f, cs:Math.round(C.ms/C.n/100)/10} : {}; },
   seeCommit(){ const p=this._sp||{}; Object.keys(p).forEach(en=>{ try{ Study.see(en); }catch(e){} }); this._sp={}; },
   /* (v234) 틀린 단어만 다시 — 끝난 Stage에서 바로 (별·보석·기록 없음) */
   retry(){ const ws=(this._lastMiss||[]); const qs=Study.quick(ws); if(!qs) return;
@@ -18470,6 +18479,7 @@ const StudyUI = {
   show(){ (this._chT||[]).forEach(clearTimeout); this._chT=[]; this.dgClean(); try{ this.btIdle(); }catch(e){}   // (v387) 끌던 단어 조각(그림자)이 다음 카드 위에 남지 않게   // (v308) '같은 소리 이어 듣기' 소리가 다음 문제까지 나오지 않게
     let q=this.qs[this.i]; if(!q){ this.finish(true); return; }
     try{ if(GNote.gate(this, q)){ q=this.qs[this.i]; this.total=Math.max(1, this.qs.filter(x=>x.t!=="intro").length); } }catch(e){ console.error(e); }   // (v555) ① 처음 만나는 문법은 카드 먼저
+    try{ this.cardT(q); }catch(e){}   // (v600) 단어·뜻·문장 카드를 얼마나 보고 넘기는지 (시트 「단어 카드 · 끝까지 본 카드 · 카드 평균(초)」)
     if(q.t==="listen" && !Voice.canListen()) q.t="e2k";                 // 소리가 안 나는 기기 — 듣기 문제는 글자로
     this.saveCur();
     this.bar(); this.sel=null; this.locked=false;
@@ -19406,7 +19416,7 @@ const StudyUI = {
       const tl = this.tier===3 ? " 💜"+(this.dl||1) : this.tier===2 ? " ★3" : this.tier===4 ? " ★2확인" : this.tier===5 ? " 연습" : this.oly ? " ★5시험" : "";   // (v273) 시트에서 어느 단계 판인지 · (v301) 별 5개 이름
       Online.submit({nick, score:this.first*10, diff:"study", rule:this.ex?"study-exam":this.wk?"study-weekly":this.rv?"study-review":this.test?"study-test":this.tier===3?"study-deep":this.tier===4?"study-check":"study", stage:(this.rv||this.wk||this.ex)?0:Study.stageNo(this.set,this.les.n), acc, right:(this.nOk!=null ? this.nOk|0 : this.done), wrong:this.wrong,   /* (v309) 정답 수 = 맞힌 수 (시험·확인·주간은 틀린 것도 done 에 들어가 '푼 문제'가 부풀었음) */
         clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.ex?("📝 "+(this.ex.title||"시험")):this.wk?(Study.tag(this.set)+" 주간 시험"):this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)+tl), secs:Math.min(3600, this.secs()), dex, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER,   // (v277) 모은 보석도 — 공부만 하는 아이는 '보석 점검'에 0으로 나왔다
-        miss:Object.keys(this.missed).slice(0,25).join(", ")});
+        miss:Object.keys(this.missed).slice(0,25).join(", "), ...this.cardF()});   // (v600) 카드 칸
     }catch(e){}
   },
   run(i){                                                   // 공부한 과 단어로 바로 달리기 (기본 모드)
