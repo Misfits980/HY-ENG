@@ -1209,7 +1209,12 @@ h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:2px 0 4px}
 .opts.wrap{flex-wrap:wrap}
 #selRankDiff{gap:5px}
 #selRankDiff .opt{flex:1 1 0;min-width:0;padding:11px 2px 10px}
-#selRankDiff .opt b{font-size:12.5px;white-space:nowrap}
+#selRankDiff .opt b{font-size:13.5px;white-space:nowrap}
+#selRankRun{gap:5px;margin-top:-6px} #selRankRun .opt{flex:1 1 0;min-width:0;padding:7px 2px} #selRankRun .opt b{font-size:12px;white-space:nowrap}
+#rankList .rrow .rkMv{margin-left:8px;min-width:30px;text-align:right;font-size:11.5px;font-weight:900} #rankList .rkMv.up{color:#ff6b6b} #rankList .rkMv.dn{color:#6aa8ff} #rankList .rkMv.nw{color:#ffd23f} #rankList .rkMv.eq{color:#8a83a8}
+#rankList .rrow span em{display:block;font-style:normal;font-size:10.5px;color:#a99ed0;font-weight:700;text-align:right}
+#rankList .rkDots{text-align:center;color:#8a83a8;letter-spacing:4px;margin:-2px 0 4px}
+#scStart:not(.on) .subRow #btnNews{display:none !important}
 .rrow span small{font-size:11px;color:#a99ed0;font-weight:700}
 .opts.wrap .opt{flex:1 1 28%;min-width:0;padding:11px 4px 10px}
 .opts.wrap .opt i{font-size:24px}
@@ -6121,19 +6126,23 @@ body.ui-skin #scStart .menuDuo .mitem:hover{background:rgba(255,255,255,.12);fil
 <!-- 랭킹 -->
 <div class="screen" id="scRank"><div class="panel">
   <h1>랭킹</h1>
+  <!-- (v605) 사용자: 「전체 랭킹도 수정해야」 → 실시간 랭킹과 같은 셋(📚 공부 · 📖 단어 · 🏃 달리기) + 🎲 팀 대항 · 달리기 난이도는 「전체·이 기기」에서만 -->
   <div class="group"><div class="opts" id="selRankDiff">
-    <div class="opt sel" data-v="easy"><i>🐣</i><b>Easy</b></div>
-    <div class="opt" data-v="normal"><i>⚡</i><b>Normal</b></div>
-    <div class="opt" data-v="hard"><i>🔥</i><b>Hard</b></div>
-    <div class="opt" data-v="extreme"><i>⚔️</i><b>Expert</b></div>
-    <div class="opt" data-v="study"><i>📚</i><b>공부 점수</b></div><!-- (v601) -->
-    <div class="opt" data-v="dex"><i>📖</i><b>단어 수집</b></div>
+    <div class="opt sel" data-v="study"><i>📚</i><b>공부</b></div>
+    <div class="opt" data-v="dex"><i>📖</i><b>단어</b></div>
+    <div class="opt" data-v="run"><i>🏃</i><b>달리기</b></div>
     <div class="opt" data-v="cup"><i>🎲</i><b>팀 대항</b></div><!-- (v398 → v399 랜덤 팀) -->
   </div></div>
   <div class="group"><div class="opts" id="selRankRange" style="display:none">
     <div class="opt sel" data-v="week"><b>이번 주</b></div>
     <div class="opt" data-v="all"><b>전체</b></div>
     <div class="opt" data-v="local"><b>이 기기</b></div>
+  </div></div>
+  <div class="group"><div class="opts" id="selRankRun" style="display:none">
+    <div class="opt" data-v="easy"><b>🐣 Easy</b></div>
+    <div class="opt sel" data-v="normal"><b>⚡ Normal</b></div>
+    <div class="opt" data-v="hard"><b>🔥 Hard</b></div>
+    <div class="opt" data-v="extreme"><b>⚔️ Expert</b></div>
   </div></div>
   <div id="rankList" class="group"></div>
   <button class="play ghost" id="btnRankBack">돌아가기</button>
@@ -16420,7 +16429,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v604";
+const GAME_VER = "v605";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -27067,10 +27076,11 @@ $("btnUnpause").addEventListener("click",()=>{ if(G.paused) togglePause(); });  
 $("btnGiveUp").addEventListener("click",()=>{ if(!G.running) return;   // (v322) 결과 화면 뒤에 남은 창에서 눌러도 기록이 바뀌지 않게
   G.quit=true; pauseTally(); G.paused=false; $("scPause").classList.remove("on"); gameOver(); });
 $("pauseBtn").addEventListener("click",()=>{ if(canPause()) togglePause(); });   // (v322) 넘어지는 연출 중에는 안 멈춤
-$("btnRankHome").addEventListener("click",()=>{ $("scStart").classList.remove("on"); showRank("easy"); });
+$("btnRankHome").addEventListener("click",()=>{ $("scStart").classList.remove("on"); showRank("study"); });
 $("btnRankBack").addEventListener("click",()=>{ $("scRank").classList.remove("on"); $("scStart").classList.add("on"); });
 pickers("selRankDiff",v=>{ RANK_VIEW.diff=v; drawRankScreen(); });
 pickers("selRankRange",v=>{ RANK_VIEW.range=v; drawRankScreen(); });
+pickers("selRankRun",v=>{ RANK_VIEW.rd=v; drawRankScreen(); });
 
 /* =====================================================================
    학원 온라인 랭킹 — 구글 시트에 점수를 모은다
@@ -27282,25 +27292,37 @@ function onlineRows(list, dex, unit){
 function dexLocalRow(){ let n=0; try{ n=Dex.count(1)+Dex.count(2)+Dex.count(3)+DEX_BASE.filter(w=>w.level===0 && Dex.has(w.en)).length; }catch(e){}
   let nick="나"; try{ nick=($("nick").value||"").trim().toUpperCase()||"나"; }catch(e){}
   return '<div class="rrow me"><i>-</i><b>'+nick.replace(/[<>&"]/g,"")+' <em class="meTag">이 기기</em></b><span>'+n.toLocaleString()+'<small> 단어</small></span></div>'; }
-let RANK_VIEW={diff:"easy", range:"week"};
+let RANK_VIEW={diff:"study", range:"week", rd:"normal"};
+/* (v605) 이번 주 = 실시간 랭킹과 같은 서버 기록(board) — 10등까지 + ▲▼ + 10등 밖이면 ⋯ 아래 내 줄 · 같은 규칙 글 */
+function rankWeekRows(k){ const L=LiveRank, B=L.B, rows=(B && B[k]) || [], me=L.myTag(), mine=(B && B.me && B.me[k]) || null;
+  const row=(r,rank,isMe)=>'<div class="rrow'+(isMe?' me':'')+'"><i>'+rank+'</i><b>'+L.esc(r.nick)+(r.tag && /^\d{4}$/.test(r.tag) ? '<u class="rkTag">#'+r.tag+'</u>' : '')+(isMe?' <em class="meTag">나</em>':'')+'</b><span>'+L.val(k,r).replace(/ · /," <em>").replace(/$/, / · /.test(L.val(k,r))?"</em>":"")+'</span>'+L.mvH(r.mv).replace('class="lrMv','class="rkMv')+'</div>';
+  let h='<div class="note">'+L.RULE[k]+'</div>';
+  if(!rows.length) return h+'<div class="note">아직 이번 주 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';
+  h+=rows.map((r,i)=>row(r, i+1, !!(me && r.tag===me) || !!(mine && mine.rank===i+1))).join("");
+  if(mine && mine.rank>10) h+='<div class="rkDots">⋯</div>'+row(mine, mine.rank, true)+(mine.above?'<div class="note" style="text-align:right">'+L.esc(mine.above.nick)+'까지 '+Math.max(1,Number(mine.above.score)-Number(mine.score)).toLocaleString()+(k==="words"?'단어':'점')+'</div>':'');
+  if(mine && mine.lv) h+='<div class="note">내 단계: '+L.esc(mine.lv)+' — 이 단계 이상 책으로 한 것만 세요</div>';
+  return h; }
 function drawRankScreen(){
   const box=$("rankList"), v=RANK_VIEW;
   const rr=$("selRankRange"); if(rr) rr.style.display = Online.on() ? "" : "none";
+  const rk=$("selRankRun"); if(rk) rk.style.display = (v.diff==="run" && (v.range!=="week" || !Online.on())) ? "" : "none";
+  if(v.diff==="study" || ((v.diff==="dex" || v.diff==="run") && v.range==="week" && Online.on())){   // (v605) 이번 주 셋 = 실시간 랭킹 기록
+    if(v.diff==="study"){ if(rr) rr.style.display="none"; v.range="week"; }
+    if(!Online.on()){ box.innerHTML='<div class="note">인터넷에 연결되면 학원 공부 점수가 보여요</div>'; return; }
+    const k=v.diff==="dex" ? "words" : v.diff, want=v.diff+"|week", draw=()=>{ if(RANK_VIEW.diff+"|"+RANK_VIEW.range!==want) return; box.innerHTML = LiveRank.B ? rankWeekRows(k) : '<div class="note">학원 랭킹을 불러오는 중…</div>'; };
+    draw(); LiveRank._f=0; LiveRank._onSet=draw; LiveRank.fetch(); return; }
   if(v.diff==="cup"){ if(rr) rr.style.display="none"; try{ Cup.draw(box); }catch(e){ console.error(e); box.innerHTML='<div class="note">팀 대항전을 불러오지 못했어요</div>'; } return; }   // (v398) 집에서 하는 대항전 · 응원 (v399 랜덤 팀)
-  const dex=v.diff==="dex", stu=v.diff==="study", unit=stu?"점":"";
-  if(stu){ if(rr) rr.style.display="none"; v.range="week"; }   // (v601) 📚 공부 점수 = 이번 주만
-  if(stu && !Online.on()){ box.innerHTML='<div class="note">인터넷에 연결되면 학원 공부 점수가 보여요</div>'; return; }
-  if(!Online.on() || v.range==="local"){ box.innerHTML = dex ? dexLocalRow() : rankRows(v.diff); return; }
-  const cached=Online.cacheGet(v.diff, v.range);
-  const rule = stu ? '<div class="note">📚 이번 주 오늘의 30 을 끝까지 푼 판의 스테이지 점수 + 푼 문제 수 · 같은 날 같은 Stage 다시 · 내 단계보다 쉬운 책은 안 셈</div>' : dex && v.range==="week" ? '<div class="note">📖 이번 주에 새로 모은 단어 수</div>' : '';
-  box.innerHTML = cached ? '<div class="note">최신 순위로 바꾸는 중…</div>'+rule+onlineRows(cached.list, dex, unit)
+  const D = v.diff==="run" ? (v.rd||"normal") : v.diff, dex=D==="dex";   // 🏃 전체·이 기기 = 난이도마다 (예전 방식)
+  if(!Online.on() || v.range==="local"){ box.innerHTML = dex ? dexLocalRow() : rankRows(D); return; }
+  const cached=Online.cacheGet(D, v.range), rule='';
+  box.innerHTML = cached ? '<div class="note">최신 순위로 바꾸는 중…</div>'+rule+onlineRows(cached.list, dex, "")
                          : '<div class="note">학원 랭킹을 불러오는 중…</div>';
-  const want=v.diff+"|"+v.range;
-  Online.top(v.diff, v.range).then(list=>{
-    if(RANK_VIEW.diff+"|"+RANK_VIEW.range!==want) return;           // 그새 다른 탭을 눌렀다
-    box.innerHTML = list ? rule+onlineRows(list, dex, unit)
-      : cached ? '<div class="note">인터넷이 느려요 · 조금 전 순위예요</div>'+rule+onlineRows(cached.list, dex, unit)
-      : '<div class="note">인터넷 연결을 확인해 주세요 · 이 기기 기록을 보여드려요</div>'+(dex ? dexLocalRow() : rankRows(v.diff));
+  const want=v.diff+"|"+v.range+"|"+D;
+  Online.top(D, v.range).then(list=>{
+    if(RANK_VIEW.diff+"|"+RANK_VIEW.range+"|"+(RANK_VIEW.diff==="run"?(RANK_VIEW.rd||"normal"):RANK_VIEW.diff)!==want) return;           // 그새 다른 탭을 눌렀다
+    box.innerHTML = list ? rule+onlineRows(list, dex, "")
+      : cached ? '<div class="note">인터넷이 느려요 · 조금 전 순위예요</div>'+rule+onlineRows(cached.list, dex, "")
+      : '<div class="note">인터넷 연결을 확인해 주세요 · 이 기기 기록을 보여드려요</div>'+(dex ? dexLocalRow() : rankRows(D));
   });
 }
 Online.warm();
@@ -27323,7 +27345,7 @@ const LiveRank = {
   /* (v602) 사용자: 「업·다운 해서 자기가 밀리는 것도 보여 주면 좋지」 → 1위 셋 다음에 「⭐ 나」 줄(순위 · 어제보다 · 바로 위 친구까지 몇 점) · 5위 셋 다음에 한 번 더 */
   set(B, cached){ this.B=B; const it=[], me=B.me||{}, mine=()=>this.ORD.forEach(k=>{ if(me[k] && me[k].rank) it.push([k, -1, me[k]]); });
     for(let i=0;i<10;i++){ this.ORD.forEach(k=>{ const r=(B[k]||[])[i]; if(r) it.push([k, i, r]); }); if(i===0 || i===4) mine(); }
-    const same = this.it.length && it.length===this.it.length; this.it=it; if(!same) this.i=0; this.draw(); if($("lrPanel")) this.panel(); },
+    const same = this.it.length && it.length===this.it.length; this.it=it; if(!same) this.i=0; this.draw(); if($("lrPanel")) this.panel(); if(this._onSet && $("scRank").classList.contains("on")){ try{ this._onSet(); }catch(e){} } },
   gap(k, r){ if(!r.above) return ''; const d=Math.max(1, Number(r.above.score)-Number(r.score)); return this.esc(r.above.nick)+'까지 '+d.toLocaleString()+(k==="words"?'단어':'점'); },
   rowH(x){ const [k,i,r]=x, C=this.CAT[k];
     if(i<0){ const down=typeof r.mv==="number" && r.mv<0; return '<div class="lrIt mine"><em class="c me">⭐ 나</em><span class="n">'+C[0]+' '+C[1]+' <b class="r">'+r.rank+'위</b>'+(r.rank===1?' 👑':'')+'</span><span class="v">'+(r.rank===1?'1등을 지켜요!':(down?'😮 밀렸어요 · ':'')+this.gap(k,r))+'</span>'+this.mvH(r.mv)+'</div>'; }
@@ -27339,7 +27361,7 @@ const LiveRank = {
   RULE:{study:"이번 주(월요일부터) 📚 오늘의 30 을 <b>끝까지</b> 푼 판의 <b>스테이지 점수 + 푼 문제 수</b>예요. 같은 날 같은 Stage 다시 · <b>내 단계보다 쉬운 책</b>은 안 세요.", words:"이번 주에 단어 도감에 <b>새로 모은</b> 단어 수예요.", run:"이번 주 🏃 달리기 가장 높은 점수예요. <b>내 단계보다 쉬운 단어장</b>으로 달린 판은 안 세요."},
   open(k){ if(k) this.tab=k; let d=$("lrPanel"); if(!d){ d=document.createElement("div"); d.id="lrPanel"; document.body.appendChild(d);
       d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.t){ this.tab=b.dataset.t; this.panel(); try{ SFX.click(); }catch(_){} return; }
-        if(b && b.dataset.all){ d.remove(); showRank(this.tab==="words"?"dex":this.tab==="study"?"study":"normal"); } }); }
+        if(b && b.dataset.all){ d.remove(); $("scStart").classList.remove("on"); RANK_VIEW.range="week"; showRank(this.tab==="words"?"dex":this.tab); } }); }
     try{ SFX.click(); }catch(e){} this.panel(); this.fetch(); },
   panel(){ const d=$("lrPanel"); if(!d) return; const k=this.tab, L=(this.B && this.B[k]) || [], me=this.myTag();
     d.innerHTML='<div class="lrP"><h3><i class="lrDot" style="width:9px;height:9px;border-radius:50%;background:#ff5a4f;display:inline-block"></i>실시간 랭킹 <small>이번 주 · 어제보다 ▲▼</small></h3>'
@@ -27352,7 +27374,9 @@ const LiveRank = {
       +'<div class="lrFoot"><button data-x="1">닫기</button><button class="go" data-all="1">🏆 전체 랭킹</button></div></div>'; }
 };
 try{ $("lrBar").addEventListener("click", ()=>{ const x=LiveRank.it[LiveRank.i%Math.max(1,LiveRank.it.length)]; LiveRank.open(x ? x[0] : null); }); setTimeout(()=>LiveRank.load(), 900); setInterval(()=>{ if($("scStart") && $("scStart").classList.contains("on") && !document.hidden) LiveRank.fetch(); }, 60000); }catch(e){}
-function showRank(d){ RANK_VIEW.diff=d; try{ $("selRankDiff").querySelectorAll("[data-v]").forEach(el=>el.classList.toggle("sel", el.dataset.v===d)); }catch(e){} drawRankScreen(); $("scRank").classList.add("on"); }
+function showRank(d){ if(["easy","normal","hard","extreme"].indexOf(d)>=0){ RANK_VIEW.rd=d; d="run"; }   // (v605) 예전 난이도 이름으로 불러도 🏃 달리기 탭
+  RANK_VIEW.diff=d; try{ $("selRankDiff").querySelectorAll("[data-v]").forEach(el=>el.classList.toggle("sel", el.dataset.v===d)); $("selRankRange").querySelectorAll("[data-v]").forEach(el=>el.classList.toggle("sel", el.dataset.v===RANK_VIEW.range)); $("selRankRun").querySelectorAll("[data-v]").forEach(el=>el.classList.toggle("sel", el.dataset.v===(RANK_VIEW.rd||"normal"))); }catch(e){}
+  try{ $("scStart").classList.remove("on"); }catch(e){} drawRankScreen(); $("scRank").classList.add("on"); }
 
 $("btnAdd").addEventListener("click",()=>{
   const msg=$("addMsg");
