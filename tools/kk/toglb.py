@@ -61,8 +61,8 @@ def from_gltf(src, dst, drop=None):
     j['accessors']=newA; j['bufferViews']=newBV; j['buffers']=[{'byteLength':len(blob)}]
     write_glb(j, bytes(blob), dst)
 def from_obj(src, dst):
-    mtl={}; cur=None; d=os.path.dirname(src)
-    V=[];N=[];prims={}; order=[]; mat='default'
+    mtl={}; cur=None; d=os.path.dirname(src); TEX={}
+    V=[];N=[];T=[];prims={}; order=[]; mat='default'
     for line in open(src, errors='ignore'):
         t=line.split()
         if not t: continue
@@ -75,17 +75,19 @@ def from_obj(src, dst):
                     if u[0]=='newmtl': cur=' '.join(u[1:]); mtl[cur]=[.8,.8,.8,1]
                     elif u[0]=='Kd' and cur: mtl[cur][:3]=[float(x) for x in u[1:4]]
                     elif u[0]=='d' and cur: mtl[cur][3]=float(u[1])
+                    elif u[0]=='map_Kd' and cur: TEX[cur]=os.path.splitext(os.path.basename(' '.join(u[1:])))[0]+'.webp'
         elif t[0]=='v': V.append([float(x) for x in t[1:4]])
         elif t[0]=='vn': N.append([float(x) for x in t[1:4]])
+        elif t[0]=='vt': T.append([float(t[1]), float(t[2]) if len(t)>2 else 0.0])
         elif t[0]=='usemtl': mat=' '.join(t[1:])
         elif t[0]=='f':
             fs=[]
             for s in t[1:]:
-                p=s.split('/'); vi=int(p[0]); ni=int(p[2]) if len(p)>2 and p[2] else 0
-                fs.append((vi-1 if vi>0 else len(V)+vi, (ni-1 if ni>0 else len(N)+ni) if ni else -1))
+                p=s.split('/'); vi=int(p[0]); ni=int(p[2]) if len(p)>2 and p[2] else 0; ti=int(p[1]) if len(p)>1 and p[1] else 0
+                fs.append((vi-1 if vi>0 else len(V)+vi, (ni-1 if ni>0 else len(N)+ni) if ni else -1, (ti-1 if ti>0 else len(T)+ti) if ti else -1))
             if mat not in prims: prims[mat]=[]; order.append(mat)
             for k in range(1,len(fs)-1): prims[mat].append((fs[0],fs[k],fs[k+1]))
-    blob=bytearray(); acc=[]; bvs=[]; meshp=[]; mats=[]
+    blob=bytearray(); acc=[]; bvs=[]; meshp=[]; mats=[]; imgs=[]
     def add(arr, fmt, comp, typ, target, mm=False):
         while len(blob)%4: blob.append(0)
         b=b''.join(struct.pack(fmt,*x) if isinstance(x,(list,tuple)) else struct.pack(fmt,x) for x in arr)
@@ -95,21 +97,26 @@ def from_obj(src, dst):
         acc.append(a); return len(acc)-1
     import math
     for m in order:
-        P=[];NN=[];I=[]; key={}
+        P=[];NN=[];UV=[];I=[]; key={}
         for tri in prims[m]:
-            if any(ni<0 for _,ni in tri):
-                a,b,c=[V[vi] for vi,_ in tri]; u=[b[i]-a[i] for i in range(3)]; w=[c[i]-a[i] for i in range(3)]
+            if any(f[1]<0 for f in tri):
+                a,b,c=[V[f[0]] for f in tri]; u=[b[i]-a[i] for i in range(3)]; w=[c[i]-a[i] for i in range(3)]
                 n=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]]; L=math.sqrt(sum(x*x for x in n)) or 1; fn=[x/L for x in n]
-            for vi,ni in tri:
-                k=(vi,ni) if ni>=0 else (vi,'f',tuple(round(x,4) for x in fn))
-                if k not in key: key[k]=len(P); P.append(V[vi]); NN.append(N[ni] if ni>=0 else fn)
+            for vi,ni,ti in tri:
+                k=(vi,ni,ti) if ni>=0 else (vi,'f',tuple(round(x,4) for x in fn),ti)
+                if k not in key: key[k]=len(P); P.append(V[vi]); NN.append(N[ni] if ni>=0 else fn); UV.append([T[ti][0],1-T[ti][1]] if ti>=0 else [0,0])
                 I.append(key[k])
         pa=add(P,'<3f',5126,'VEC3',34962,True); na=add(NN,'<3f',5126,'VEC3',34962)
         ia=add(I,'<I' if len(P)>65535 else '<H',5125 if len(P)>65535 else 5123,'SCALAR',34963)
-        c=mtl.get(m,[.8,.8,.8,1]); mats.append({'name':m,'pbrMetallicRoughness':{'baseColorFactor':c,'metallicFactor':0,'roughnessFactor':.9}})
-        meshp.append({'attributes':{'POSITION':pa,'NORMAL':na},'indices':ia,'material':len(mats)-1})
+        c=mtl.get(m,[.8,.8,.8,1]); pbr={'baseColorFactor':c,'metallicFactor':0,'roughnessFactor':.9}; att={'POSITION':pa,'NORMAL':na}
+        if m in TEX and T:
+            if TEX[m] not in imgs: imgs.append(TEX[m])
+            pbr['baseColorTexture']={'index':imgs.index(TEX[m])}; att['TEXCOORD_0']=add(UV,'<2f',5126,'VEC2',34962)
+        mats.append({'name':m,'pbrMetallicRoughness':pbr})
+        meshp.append({'attributes':att,'indices':ia,'material':len(mats)-1})
     j={'asset':{'version':'2.0','generator':'hyeng toglb'},'scene':0,'scenes':[{'nodes':[0]}],'nodes':[{'mesh':0,'name':os.path.basename(src)[:-4]}],
        'meshes':[{'primitives':meshp}],'materials':mats,'accessors':acc,'bufferViews':bvs,'buffers':[{'byteLength':len(blob)}]}
+    if imgs: j['images']=[{'uri':u} for u in imgs]; j['textures']=[{'source':i} for i in range(len(imgs))]
     write_glb(j, bytes(blob), dst)
 if __name__=='__main__':
     k=sys.argv[1]
