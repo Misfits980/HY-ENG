@@ -41,11 +41,14 @@ def run_test(name):
         return (name, r[1] + r2[1], ["두 번 다 실패"] + r2[2])
     return r
 
+V4_ONLY = {"farm580", "yqa580", "yguide586"}   # 마당 밭(새 섬에선 텃밭 섬으로 이사) 시험
 def run_once(name):
     t0 = time.time()
     try:
+        env = dict(os.environ)
+        if name in V4_ONLY and not env.get("HY_V5"): env["HY_V4"] = "1"   # (v610) 새 섬이 기본 — 예전 마당 밭 시험은 옛 섬으로
         p = subprocess.run([sys.executable, os.path.join(HERE, name + ".py")], cwd=HERE,
-                           capture_output=True, text=True, timeout=TIMEOUT.get(name, 600))
+                           capture_output=True, text=True, timeout=TIMEOUT.get(name, 600), env=env)
         out = p.stdout + p.stderr; code = p.returncode
     except subprocess.TimeoutExpired as e:
         out = (e.stdout or "") if isinstance(e.stdout, str) else ""; code = "timeout"

@@ -6,8 +6,9 @@
    · 가운데 = 초승달 항구 섬: 만 북쪽 해안에 도심(북쪽 가게 거리) · 서쪽 팔 주택가 1~3동 · 동쪽 팔 4~6동 · 뒤 언덕 배움 언덕
    · 둘레 섬 = 🌾 텃밭(서, 주택가 바로 옆 다리 2) · 🍄🌸 버섯·꽃(남서) · 🏔 광산(북) · 🎣 호수(북동) · 🎡 놀이(동) · 🏖 등대 모래섬(만 한가운데, 바다 다리) · 🌫 안개(잠김) · 🏝 비밀 */
 (function(){
-  const V5=(()=>{ try{ const q=location.search; if(/[?&]v5=0/.test(q)){ localStorage.removeItem("hyeng_isle_v5"); return false; }
-    if(/[?&]v5=1/.test(q)){ localStorage.setItem("hyeng_isle_v5","1"); return true; } return localStorage.getItem("hyeng_isle_v5")==="1"; }catch(e){ return false; } })();
+  /* (v610) 사용자: 「배포를 해서 보여 줘야 · 예전 섬은 이미 없는 거잖아」 → 새 섬이 기본 · ?v5=0 (기기에 기억) 이면 옛 섬 · ?v5=1 다시 새 섬 */
+  const V5=(()=>{ try{ const q=location.search; if(/[?&]v5=0/.test(q)){ localStorage.setItem("hyeng_isle_v5","0"); return false; }
+    if(/[?&]v5=1/.test(q)){ localStorage.setItem("hyeng_isle_v5","1"); return true; } return localStorage.getItem("hyeng_isle_v5")!=="0"; }catch(e){ return true; } })();
   if(typeof window!=="undefined") window.ISLE_V5=V5;
   if(!V5) return;
   /* ── 곡선 (4판과 같음) ── */

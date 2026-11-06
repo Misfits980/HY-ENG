@@ -622,7 +622,7 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <script>/* (v601) 🛠 My Town 점검 중 — 북마크·옛 탭으로 바로 열어도 게임 첫 화면으로 (선생님 기기 · 시험은 들어감). 다시 열기 = TOWN_OPEN=true (index.html 도) */
 (function(){ const TOWN_OPEN=false; if(TOWN_OPEN || navigator.webdriver) return; let t=false; try{ t=localStorage.getItem("hyeng_teacher_dev")==="1" && !/^한양|패드$/.test((localStorage.getItem("hyeng_nick")||"").trim()); }catch(e){} if(!t) location.replace("../index.html#townclosed"); })();</script>
 <script src="../three.min.js"></script>
-<script>/* (v608) 새 섬 5판 켜짐 여부를 먼저 (isle-map5.js 와 같은 규칙) — 밭이 텃밭 섬으로 이사 */ window.ISLE_V5_EARLY=(()=>{ try{ const q=location.search; if(/[?&]v5=0/.test(q)) return false; if(/[?&]v5=1/.test(q)) return true; return localStorage.getItem("hyeng_isle_v5")==="1"; }catch(e){ return false; } })();</script>
+<script>/* (v608) 새 섬 5판 켜짐 여부를 먼저 (isle-map5.js 와 같은 규칙) — 밭이 텃밭 섬으로 이사 */ window.ISLE_V5_EARLY=(()=>{ try{ const q=location.search; if(/[?&]v5=0/.test(q)) return false; if(/[?&]v5=1/.test(q)) return true; return localStorage.getItem("hyeng_isle_v5")!=="0"; }catch(e){ return true; } })() && (()=>{ const i=new URLSearchParams(location.search).get("isle"); return i==="1" || (i!=="0" && !navigator.webdriver); })();   /* (v610) 새 섬 = 기본 · 섬이 켜진 때만 (isle.js ON 과 같은 조건) */</script>
 <script>
 /* (v577) 화면 높이 — 아이폰 홈 화면 앱(iOS 26)은 innerHeight 가 기기 화면보다 짧게 잡혀 맨 아래가 빈 띠로 남음 → 그때만 기기 화면 높이(APPH) */
 let APPH=0;
@@ -1628,7 +1628,7 @@ function yGuideSteps(){ const n=Object.keys(yd.db).length; if(n===0 && !yd.gc){ 
   const N=YG.need;
   return [{k:"clean", t:"🧹 마당 치우기", sub:"잡초·돌·그루터기 "+n+"개 남았어요", ok:!!yd.gc},
     {k:"well", t:"🪣 우물 짓기", sub:"🪣 우물 자리 · 🪨 "+Math.min(mats.stone|0,N.stone)+"/"+N.stone+" · 🪵 "+Math.min(mats.branch|0,N.branch)+"/"+N.branch, ok:wellBuilt()},
-    {k:"plant", t:"🌱 씨앗 심기", sub:"밭을 누르고 씨앗을 골라요", ok:!!yd.pl || plots.some(p=>p.s)},
+    {k:"plant", t:"🌱 씨앗 심기", sub:PLOTV5 ? "🌾 텃밭 섬 「내 밭」에 심어요" : "밭을 누르고 씨앗을 골라요", ok:!!yd.pl || plots.some(p=>p.s)},
     {k:"water", t:"💧 우물로 물 주기", sub:"우물을 누르면 밭에 물이 가요", ok:!!yd.wl}]; }
 function yGuideUpd(force){ if(!ISLE_MODE) return; let el=YG.el; const on=place===PL.yard && !visiting && !edit && yd && !yd.gr && F.st==="idle";
   if(!on){ if(el) el.classList.remove("on"); return; }
