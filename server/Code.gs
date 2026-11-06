@@ -38,7 +38,8 @@ const COLS = [
   ["own","주인 패드"],                                              // (v417) 🧸 공용 패드에서 주인(유치부 아이)이 한 판 = 1 → 그 패드 단어 수를 주인 것으로 셈
   ["coin","코인"], ["bait","미끼"], ["bank","은행 코인"], ["gbank","은행 보석"], ["tup","강화"],   // (v563 · 서버 v8) 🏝 My Town (옛 게임은 빈 칸)
   ["cn","단어 카드"], ["cf","끝까지 본 카드"], ["cs","카드 평균(초)"],   // (v600 · 서버 v9) 오늘의 30 — 단어·뜻·문장 카드를 몇 장 봤고, 소리(단어 두 번 + 문장)가 끝날 때까지 본 카드가 몇 장인지
-  ["rep","다시 푼 판"]                                              // (v600 · 서버 v9) 같은 날 이미 끝까지 푼 같은 Stage 를 또 풀면 1 (서버가 셈)
+  ["rep","다시 푼 판"],                                             // (v600 · 서버 v9) 같은 날 이미 끝까지 푼 같은 Stage 를 또 풀면 1 (서버가 셈)
+  ["rid","기록 번호"]                                               // (v611 · 서버 v13) 판마다 게임이 붙이는 번호 — 같은 번호가 또 오면(인터넷이 끊겨 다시 보낸 것) 안 적음
 ];
 const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1, coin:1, bait:1, bank:1, gbank:1, cn:1, cf:1, rep:1};
 const NEW9 = {cn:1, cf:1, cs:1, rep:1};                                // (v600) 옛 게임 줄은 빈 칸
@@ -70,7 +71,8 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 12;  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
+const SERVER_V = 13;  // (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+//  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
 /* 이전 서버 버전: (v563) 8 = 🏝 My Town 칸(코인·미끼·은행·강화) · 「마을 현황」 탭 · 플레이(초) 1시간까지 · (v306) 3 = 관리 화면 「📋 우리 반」 (report) · (v404) 4 = 🏷 태그 · (v416) 5 = 랭킹 한 사람 한 줄(👤 묶기·공용 패드 단어 수 안 셈·선생님 빼기) · (v417) 6 = 「주인 패드」 칸 · (v419) 7 = 🔐 선생님 기기 등록(fbTeacher) */
@@ -128,6 +130,7 @@ function doPost(e){
     if (k === "date") return when;
     if (k === "nick") return txt_(d.nick, 20) || "PLAYER";
     if (k === "rep")  return "";                                     // (v600) 아래에서 서버가 셈
+    if (k === "rid")  return txt_(d.rid, 24);
     if (k === "cs")   return has_(d, "cs") ? Math.max(0, Math.min(600, Math.round(Number(d.cs) * 10) / 10 || 0)) : "";
     if (NUM[k])       return ((k in TOWN_KEEP || k in NEW9) && !has_(d, k)) ? "" : num_(d[k], NUM_MAX[k] || 1000000);   // (v563) 옛 게임 = 마을 칸 비움
     if (k === "boss") return txt_(d.boss, 40).replace(/,/g, " · ");   // "50,80" 이 숫자 5080 으로 바뀌지 않게
@@ -139,6 +142,11 @@ function doPost(e){
   try {
     lock.waitLock(10000);                                           // 여러 명이 동시에 보내도 줄이 안 겹치게
     const sh = isBuy ? buySheet_() : sheet_();
+    if (!isBuy && d.rid) {                                         // (v611) 같은 판이 두 번 — 게임이 보냈는데 답을 받기 전에 앱이 뒤로 가면 실패로 알고 다시 보냄 → 최근 600줄에 같은 번호가 있으면 안 적음
+      const rid = txt_(d.rid, 24), last = sh.getLastRow();
+      if (rid && last >= 2){ const n0 = Math.min(600, last - 1), ids = sh.getRange(last - n0 + 1, C.rid + 1, n0, 1).getValues();
+        for (let i = 0; i < ids.length; i++) if (String(ids[i][0]) === rid) return json_({ok:true, dup:true}); }
+    }
     if (!isBuy) { try { row[C.rep] = repOf_(sh, row, when); } catch(e3){} }   // (v600) 다시 푼 판
     sh.appendRow(row);
     sh.getRange(sh.getLastRow(), 1).setNumberFormat("yyyy-mm-dd hh:mm");   // 날짜를 다른 줄과 같은 모양으로
@@ -261,7 +269,12 @@ function weekStart_(){                                              // 이번 �
 }
 function time_(v){
   if (v instanceof Date) return v.getTime();
-  const t = new Date(v).getTime(); return isFinite(t) ? t : 0;
+  const s = String(v === undefined || v === null ? "" : v).trim();
+  /* (v611) 날짜 칸에 글자로 들어간 줄 — 「2026-11-05 22:53」 · 「2026. 11. 5 오후 10:53:39」 (한국 시간) → 예전엔 못 읽어서 그 판이 랭킹에서 빠졌음 */
+  const m = s.match(/^(\d{4})[.\-\/]\s*(\d{1,2})[.\-\/]\s*(\d{1,2})\.?\s*(?:(오전|오후|AM|PM)\s*)?(\d{1,2})?(?::(\d{2}))?(?::(\d{2}))?/i);
+  if (m){ let h = Number(m[5] || 0); const ap = m[4] || ""; if (/오후|PM/i.test(ap) && h < 12) h += 12; if (/오전|AM/i.test(ap) && h === 12) h = 0;
+    return Date.UTC(+m[1], +m[2] - 1, +m[3], h, Number(m[6] || 0), Number(m[7] || 0)) - 9 * 3600 * 1000; }
+  const t = new Date(s).getTime(); return isFinite(t) ? t : 0;
 }
 
 function doGet(e){
@@ -332,6 +345,7 @@ function weekCore_(rows, P, ws, cut){
     if (t < ws) return;
     if (diff === "study" && /^study/.test(rule) && !/^study-(battle|raid)/.test(rule)){
       if (Number(r[C.clear]) !== 1) return;
+      if (/연습\s*$/.test(String(r[C.set] || ""))) return;            // (v611) 「Stage 3-3 연습」 = 다 푼 Stage 를 다시 연습한 판 → 공부 점수 X (예전엔 다른 Stage 로 보고 또 셈)
       if (easy(id, LV_S_(String(r[C.set] || "")))) return;            // (v602) 내 단계보다 쉬운 판
       const key = id + "|" + Utilities.formatDate(new Date(t), TZ, "yyyy-MM-dd") + "|" + String(r[C.set] || "");
       if (done[key]) return; done[key] = 1;
