@@ -92,7 +92,7 @@ const ISLE=(()=>{
     if(bw>2.2) for(let i=1;i<n-1;i+=4){ const d=new THREE.Mesh(new THREE.BoxGeometry(.12,.012,.9), MC(0xffd85a)); d.position.set(0,.085,s0+i*(SL/n)+.2); B.add(d); }   /* 넓은 다리 = 가운데 노란 점선 */
     if(MAP.v5 && (s0>0 || s1<L)) [[s0,-1],[s1,1]].forEach(([ss,sd])=>{ const lp=new THREE.Mesh(new THREE.BoxGeometry(bw+.5,.09,.9), MC(0x8a5a34)); lp.position.set(0,.02,ss+sd*.25); lp.receiveShadow=true; B.add(lp);
       [-1,1].forEach(q=>{ const po=new THREE.Mesh(new THREE.CylinderGeometry(.11,.13,.95,8), MC(0x6a4430)); po.position.set(q*(hw+.12),.3,ss); B.add(po); const cap=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6), MC(0xffd23f)); cap.position.set(q*(hw+.12),.82,ss); B.add(cap); });
-      const t=(ss+sd*1.3)/L; disc(x1+dx*t, z1+dz*t, bw*.75, PATH); const t2=ss/L; LANDS.push([x1+dx*t2, z1+dz*t2]); });
+      const t2=ss/L; LANDS.push([x1+dx*t2, z1+dz*t2]); });   /* (v616) 발판 앞 둥근 흙 자리 뺌 — 사용자: 「동그라미 같은 게 생긴 건?」 (길이 발판까지 이어지니 필요 없음) */
     bridges.push([x1+OX,z1+OZ,x2+OX,z2+OZ,Math.max(1.0,bw/2-.15)]); }   /* 걷기 폭 넉넉히 (비스듬한 다리가 계단처럼 끊기지 않게) */
   /* 다리는 섬 가장자리(구불구불)를 지나 땅 안쪽 1칸까지 — 끊기지 않게 (v528 QA: 2·3동이 광장과 안 이어짐) */
   function edgeR(c,r,ang){ const I=ISL.find(I=>Math.abs(I.cx-c[0])<.01 && Math.abs(I.cz-c[1])<.01); return I ? rr(I,ang) : r; }
@@ -554,7 +554,7 @@ const ISLE=(()=>{
     if(MAP.fields){ /* (v608 · 4단계) 텃밭 섬 = 아이들 「내 밭」 줄 (fieldsBuild) · 풍차 · 캠핑장 */
       const wm=Sx.windmill; kk("isle","building_windmill_yellow",wm[0],wm[1],{s:2.6,chunk:"m",col:1.2,solo:1}); busy.push([wm[0],wm[1],3]);
       const [cx,cz]=Sx.camp; [[cx-1.2,cz+3.6,.5,0xff9a3d,0xffd23f],[cx+1.6,cz-3.4,2.3,0x4fb8c4,0xfff1c4]].forEach(([tx,tz,ry,c1,c2])=>{ tent(tx,tz,ry,c1,c2); busy.push([tx,tz,2.0]); cols.push([tx+OX,tz+OZ,1.0]); }); G.userData.tents=2;
-      MAP.fields.slots.forEach(F=>busy.push([F.x,F.z,3.6])); disc(Sx.farm[0],Sx.farm[1],1.4,PATH); SPOT.farm=[Sx.farm[0]+OX,1.6,Sx.farm[1]+OZ]; }
+      MAP.fields.slots.forEach(F=>busy.push([F.x,F.z,3.6])); SPOT.farm=[Sx.farm[0]+OX,1.6,Sx.farm[1]+OZ]; }
     else { const [fx,fz]=Sx.farm; disc(fx+3.2,fz+4.6,1.6,PATH);
       for(let gx=0;gx<5;gx++) for(let gz=0;gz<3;gz++){ const x=fx-5.6+gx*2.8, z=fz-2.8+gz*2.8, col=[0xffd23f,0xff9a3d,0x7fd36a,0xff6b6b][(gx+gz*2)%4];
         prim(geo_("fld",()=>new THREE.BoxGeometry(2.0,.12,2.0)), 0x8a5a34, x,.06,z); busy.push([x,z,2.3]);   /* (v576) 점검: 밭 사이(2.8 간격)에 나무가 자람 → 밭 네모 전체를 비움 */ cols.push([x+OX,z+OZ,.95]);
