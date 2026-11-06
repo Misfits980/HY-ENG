@@ -5681,6 +5681,11 @@ body.ui-skin #scStart .subRow #btnNews, #scStart .subRow #btnNews{position:fixed
 body.ui-skin #scStart .subRow #btnNews:before, #scStart .subRow #btnNews:before{content:"📰";font-size:16px;color:#fff;position:static;opacity:1;transform:none;left:auto}
 body.ui-skin #scStart .menu #btnVersus{border:0;border-image:none;border-radius:16px;background:rgba(255,255,255,.05)}
 #scStart #btnNews .newDot{position:absolute;top:4px;right:4px;margin:0;width:9px;height:9px;box-shadow:0 0 0 2px var(--void)}
+/* (v616) 📰 소식지 = 첫 화면에서 빼고 ⚙ 설정 위 작은 단추로 · 새 소식이 있으면 ⚙ 에 빨간 점 (새 소식은 지금처럼 켤 때 한 번 저절로 뜸) */
+body.ui-skin #scStart .subRow #btnNews, #scStart .subRow #btnNews{display:none !important}
+.setHead .setNews{margin-left:auto;margin-right:8px;position:relative;height:30px;padding:0 11px;border-radius:99px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#e9e2ff;font:800 12.5px var(--font);cursor:pointer}
+.setHead .setNews .newDot{position:absolute;top:-2px;right:-2px;margin:0;width:9px;height:9px;box-shadow:0 0 0 2px #1d1640}
+#btnGear{position:relative} #btnGear .gearDot{position:absolute;top:3px;right:3px;margin:0;width:10px;height:10px;box-shadow:0 0 0 2px var(--void);z-index:2}
 body.ui-skin #scStart .menu #btnGo{border:0;border-image:none;border-radius:18px;min-height:64px;background:linear-gradient(180deg,#ffd970,#f2a93a);color:#3a2300;font-size:23px;font-weight:900;
   box-shadow:0 6px 0 #b8741f,0 14px 24px rgba(0,0,0,.35);animation:none;filter:none;text-shadow:none}
 body.ui-skin #scStart .menu #btnGo .mico{filter:brightness(.25)}
@@ -5745,7 +5750,7 @@ body.ui-skin #scStart .menuDuo .mitem:hover{background:rgba(255,255,255,.12);fil
 <!-- 타이틀 -->
 <div class="screen on" id="scStart">
   <button class="hbBan hbCorner" id="hbBan" hidden></button><!-- (v310) 🏠 이번 주 보스 → (v327) 왼쪽 위 동그란 배지 (사용자: 메뉴 아래 긴 칸 때문에 스크롤이 생겨 불편) -->
-  <button class="gearBtn" id="btnGear" aria-label="설정"><span class="hico gear"></span><span class="gz">⚙</span></button>
+  <button class="gearBtn" id="btnGear" aria-label="설정"><span class="hico gear"></span><span class="gz">⚙</span><i class="newDot gearDot" id="gearNewsDot"></i></button>
   <div class="titleWrap">
     <div class="logo">
       <img class="logoImg" src="assets/ui/logo.webp" alt="HY ENG" onload="this.parentNode.classList.add('hasImg')" onerror="this.remove()">
@@ -5875,7 +5880,7 @@ body.ui-skin #scStart .menuDuo .mitem:hover{background:rgba(255,255,255,.12);fil
 <!-- 설정 -->
 <div class="sheet" id="shSettings"><div class="sheetIn setSheet">
   <div class="shGrip"></div>
-  <div class="setHead"><h2>설정</h2><button class="setClose" id="btnSetClose">✕</button></div>
+  <div class="setHead"><h2>설정</h2><button class="setNews" id="btnSetNews" aria-label="소식지">📰 소식지<i class="newDot" id="setNewsDot"></i></button><button class="setClose" id="btnSetClose">✕</button></div>
   <div class="setRow"><span>✏️ 내 이름</span><b style="color:#9d92c8;font-size:11.5px">학원 랭킹에 나와요</b></div>
   <input type="text" id="nick" class="nickIn" maxlength="8" placeholder="이름 (8글자까지)" value="" autocomplete="off">
   <div class="nmRow" id="nmRow"></div>
@@ -16438,7 +16443,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v615";
+const GAME_VER = "v616";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -16668,7 +16673,7 @@ const News = {
   seen(){ try{ return localStorage.getItem(this.KEY)||""; }catch(e){ return ""; } },
   mark(){ try{ localStorage.setItem(this.KEY, NEWS[0].id); }catch(e){} this.dot(); },
   unread(){ return NEWS.length && this.seen()<NEWS[0].id; },   // (v332) 공지를 지워 맨 앞이 예전 것이 돼도 이미 본 아이에게 다시 안 뜨게 (id = 날짜 순)
-  dot(){ const d=$("newsDot"); let n=0; try{ n=Notice.unseen().length; }catch(e){} if(d) d.style.display=(this.unread()||n)?"inline-block":"none"; },
+  dot(){ let n=0; try{ n=Notice.unseen().length; }catch(e){} const on=!!(this.unread()||n); ["newsDot","setNewsDot","gearNewsDot"].forEach(k=>{ const d=$(k); if(d) d.style.display=on?"inline-block":"none"; }); },
   fill(n){ $("newsDate").textContent=n.date; $("newsTitle").textContent=n.title;
     $("newsList").innerHTML=n.items.map(it=>'<li><span class="nIco">'+it[0]+'</span><div><b>'+it[1]+'</b><p>'+it[2]+'</p></div></li>').join(""); },
   open(){ if(!NEWS.length) return; try{ $("newsNotice").innerHTML=Notice.block(); }catch(e){} this.fill(NEWS[0]); $("newsOld").innerHTML=""; $("btnNewsOld").style.display = NEWS.length>1 ? "block" : "none";
@@ -16681,6 +16686,7 @@ const News = {
     setTimeout(()=>{ try{ if(!G.running && $("scStart").classList.contains("on")) this.open(); }catch(e){} }, 900); }
 };
 $("btnNews").addEventListener("click",()=>{ SFX.click(); News.open(); });
+$("btnSetNews").addEventListener("click",()=>{ SFX.click(); try{ closeSettings(); }catch(e){ $("shSettings").classList.remove("on"); } News.open(); });   /* (v616) 사용자: 「소식지 위치가 마음에 안 들어 · 설정에서 작은 버튼으로」 */
 $("btnNewsOk").addEventListener("click",()=>{ SFX.click(); News.close(); });
 $("btnNewsOld").addEventListener("click",()=>{ SFX.click(); News.old(); });
 $("shNews").addEventListener("click",e=>{ if(e.target===$("shNews")) News.close(); });
