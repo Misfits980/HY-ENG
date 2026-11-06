@@ -13,7 +13,7 @@ async def main():
         await pg.click("#btnNewsOk"); await pg.wait_for_timeout(200)
         print("closed:", not await on(), "dot:", await pg.evaluate("()=>getComputedStyle(document.getElementById('newsDot')).display"))
         await pg.reload(); await pg.wait_for_timeout(3000); print("second load popup:", await on())
-        await pg.click("#btnNews"); await pg.wait_for_timeout(200); print("menu opens:", await on())
+        await pg.click("#btnGear"); await pg.wait_for_timeout(400); await pg.click("#btnSetNews"); await pg.wait_for_timeout(300); print("menu opens:", await on())   # (v616) 소식지는 ⚙ 설정 안 📰 단추
         await pg.click("#btnNewsOk")
         await pg.evaluate("()=>localStorage.removeItem('hyeng_news_seen')")
         await pg.goto(ORIGIN+"index.html?stage=50"); await pg.wait_for_timeout(3000); print("test mode popup:", await on())

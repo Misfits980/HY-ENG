@@ -22,7 +22,7 @@ async def main():
         c1=not await pg.evaluate(isOn); print('closed (empty map tap)', what, c1)
         if not c1: print("BAD Stage 창이 빈 곳을 눌러도 안 닫힘")
         # (v322) ✕ 버튼
-        await pg.locator('.stDot[data-i="9"]').tap(); await pg.wait_for_timeout(500)
+        await pg.locator('.stDot[data-i="9"]').tap(force=True); await pg.wait_for_timeout(500)   # (v621) 누른 칸은 「지금」이 되어 통통 뜀(thBob) — 멈추길 기다리지 않음
         xb=await pg.evaluate("()=>{ const b=document.querySelector('.stPopX'); if(!b) return null; const r=b.getBoundingClientRect(); return [Math.round(r.width),Math.round(r.height)] }")
         print('x button', xb)
         if not xb or min(xb)<40: print("BAD Stage 창 ✕ 버튼이 없거나 40px 보다 작음", xb)
@@ -31,8 +31,8 @@ async def main():
             c2=not await pg.evaluate(isOn); print('closed (x)', c2)
             if not c2: print("BAD ✕ 를 눌러도 Stage 창이 안 닫힘")
         # 다른 Stage 동그라미를 누르면 창이 바뀌어 열려 있어야 한다
-        await pg.locator('.stDot[data-i="9"]').tap(); await pg.wait_for_timeout(400)
-        await pg.locator('.stDot[data-i="8"]').tap(); await pg.wait_for_timeout(400)
+        await pg.locator('.stDot[data-i="9"]').tap(force=True); await pg.wait_for_timeout(400)
+        await pg.locator('.stDot[data-i="8"]').tap(force=True); await pg.wait_for_timeout(400)
         c3=await pg.evaluate(isOn); print('dot -> dot still open', c3)
         if not c3: print("BAD 다른 Stage 를 누르니 창이 닫힘")
         await pg.mouse.click(195,100); await pg.wait_for_timeout(300)

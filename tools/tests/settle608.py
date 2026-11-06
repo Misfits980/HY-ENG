@@ -22,5 +22,5 @@ async def main():
         for k in range(6):
             await E("(k)=>{ const b=[...document.querySelectorAll('#ppTy input')]; b[k%b.length].click(); }", k); await pg.wait_for_timeout(300)
         await pg.wait_for_timeout(4500); print("토글 뒤", await E(OV))
-        print("ERR", errs); await br.close()
+        print("errs", errs); await br.close()
 asyncio.run(main())

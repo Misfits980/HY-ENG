@@ -16522,7 +16522,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v620";
+const GAME_VER = "v621";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -25141,6 +25141,9 @@ const Battle = {
     if(c.words && c.words.length) ws=c.words.map(en=>Study.word(en)).filter(Boolean);
     else { try{ const L=Study.lessons(c.set||"elem"); L.slice(Math.max(0,(c.from|0)), Math.min(L.length,(c.to|0)+1)).forEach(x=>x.ws.forEach(w=>{ if(!ws.some(y=>y.en===w.en)) ws.push(w); })); }catch(e){} }
     if(ws.length<6) ws=ws.concat(WORD_BANK.filter(w=>w.level===1).slice(0,20));
+    /* (v621) QA: G3-4·G5-6·중등 교재 단어엔 그림이 없어 선생님이 「그림 보고」를 골라도 늘 뜻 문제로 바뀌었음 → 단어 은행의 같은 단어·같은 뜻 그림을 빌려 씀 (뜻이 다르면 안 빌림) */
+    const mn=k=>String(k||"").split(/[,·/(]/).map(x=>x.replace(/[^가-힣a-z]/gi,"")).filter(Boolean);
+    ws=ws.map(w=>{ if(w.emoji) return w; const b=WORD_BANK.find(x=>x.en===w.en && x.emoji); if(!b) return w; const a=mn(w.ko); return mn(b.ko).some(m=>a.indexOf(m)>=0) ? Object.assign({}, w, {emoji:b.emoji}) : w; });
     return (this._ws=ws); },
   /* (v310) 문제 종류 — 선생님이 고름 (cfg.qt): mean 뜻·영어 · spell 철자 고르기 · gap 빈칸 글자 · ox ⭕❌ · pic 그림 · lsn 🔊 듣기. 예전 방(qt 없음)은 mean 만 */
   QT:{mean:"뜻·영어", spell:"철자 고르기", gap:"빈칸 글자", ox:"⭕❌ 빨리", pic:"그림 보고", flash:"👀 순간 기억", lsn:"🔊 듣고", lsp:"🔊 듣고 철자"},

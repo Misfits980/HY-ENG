@@ -13,6 +13,7 @@ async def main():
         kids=[]; skill=[0.95, 0.7, 0.4]
         for i,nm in enumerate(["민준","서연","지호"]):
             k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k)
+            await k.evaluate(f"()=>{{ const k0=Kid.k.bind(Kid); Kid.k=b=>k0(b)+'@t{len(kids)}'; }}")   # (v621) 탭 3개 = 기기 3대처럼 (v559 부터 지갑이 탭끼리 바로 같이 바뀜)
             await k.evaluate("()=>{ RaidJoin.open(); }"); await k.wait_for_timeout(100)
             await k.evaluate(f"()=>{{ document.getElementById('rdRoomIn').value='{room}'; document.getElementById('rdNameIn').value='{nm}'; document.querySelector('[data-rj=go]').click(); }}")
             await k.wait_for_timeout(400); await k.evaluate("()=>{ Battle.FAST=0; }"); kids.append(k)

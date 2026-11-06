@@ -434,7 +434,7 @@ function hof_(rows, P, A, now, ws){
   let H = last >= 2 ? sh.getRange(2, 1, last - 1, HOF_COLS.length).getValues().map(r=>({kind:String(r[0]), key:ymd_(r[1]), cat:String(r[2]), rank:Number(r[3]) || 0, id:String(r[4] || ""), nick:String(r[5] || ""), tag:String(r[6] || ""), score:Number(r[7]) || 0})) : [];
   const have = {}; H.forEach(h=>{ have[h.kind + "|" + h.key] = 1; });
   let t0 = 0; rows.forEach(r=>{ const t = time_(r[C.date]); if (t && (!t0 || t < t0)) t0 = t; });
-  const add = [], stamp = new Date(), today0 = dayStart_(now);
+  let add = []; const stamp = new Date(), today0 = dayStart_(now);
   if (t0){
     let budget = 45;                                                       // 한 번에 너무 오래 걸리지 않게 (남은 날은 다음 번에)
     for (let d = dayStart_(t0); d < today0 && budget > 0; d += 864e5){ const key = ymdK_(d); if (have["day|" + key]) continue; budget--;
@@ -446,7 +446,9 @@ function hof_(rows, P, A, now, ws){
         top.forEach((b, i)=>add.push(["week", key, c, i + 1, b.id, b.nick, b.tag, b.score, stamp])); }); }
   }
   if (add.length){ const lock = LockService.getScriptLock();
-    try { lock.waitLock(5000); const l2 = sh.getLastRow(); sh.getRange(l2 + 1, 1, add.length, HOF_COLS.length).setValues(add);
+    try { lock.waitLock(5000); const l2 = sh.getLastRow();
+      if (l2 > last){ const got = {}; sh.getRange(last + 1, 1, l2 - last, 2).getValues().forEach(r=>{ got[String(r[0]) + "|" + ymd_(r[1])] = 1; }); add = add.filter(r=>!got[r[0] + "|" + r[1]]); }   // (v621) 두 사람이 동시에 열면 같은 날을 두 번 적던 것
+      if (add.length) sh.getRange(l2 + 1, 1, add.length, HOF_COLS.length).setValues(add);
       H = H.concat(add.map(r=>({kind:r[0], key:r[1], cat:r[2], rank:r[3], id:r[4], nick:r[5], tag:r[6], score:r[7]}))); } catch(e){} finally { try { lock.releaseLock(); } catch(_){} } }
   const pick = b=>b ? {id:b.id, nick:b.nick, tag:b.tag, score:b.score} : null;
   const out = {cal:{}, streak:{}, weeks:{}, longest:{}, medals:{}, medalOf:{}, lastRank:{}, bestOf:{}};

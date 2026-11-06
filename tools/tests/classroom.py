@@ -126,7 +126,7 @@ async def main():
         ok(await E("()=>{ const b=document.querySelector('[data-bth=\"start\"]'); return b && b.classList.contains('big') && b.getBoundingClientRect().height>=60; }"), "시작 버튼 크게")
         kids = []
         for nm, kid in (("민준", "k1"), ("서연", "k2")):
-            k = await ctx.new_page(); k.on("pageerror", lambda e, n=nm: errs.append(n + " " + str(e))); await k.set_viewport_size({"width": 390, "height": 844}); await boot(k)
+            k = await ctx.new_page(); k.on("pageerror", lambda e, n=nm: errs.append(n + " " + str(e))); await k.set_viewport_size({"width": 390, "height": 844}); await boot(k, iso=nm)
             await k.evaluate(f"()=>{{ Kid.set({{id:'{kid}', n:'{nm}', t:'a'}}); Battle.join('{room}', {{id:'{kid}', n:'{nm}', t:'a'}}); }}")
             await k.wait_for_timeout(700); await k.evaluate("()=>{ Battle.FAST=0; }"); kids.append(k)
         await T.wait_for_timeout(600)

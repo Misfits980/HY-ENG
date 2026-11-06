@@ -43,6 +43,6 @@ async def main():
         for k,v in sorted(C.items()): print(k, v)
         for t,L in ex.items():
             print("==",t); [print("  ",x) for x in sorted(set(L))[:12]]
-        print("ERR", errs[:5])
+        print("errs", errs[:5])
         await br.close()
 asyncio.run(main())

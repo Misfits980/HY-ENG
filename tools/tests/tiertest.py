@@ -95,7 +95,7 @@ async def main():
             if len(set(deep))<3: bad.append(f"{label} 심화 문제 종류가 적음 {sorted(set(deep))}")
             if "💎 +10" not in st3["txt"]: bad.append(f"{label} 심화 💎10 없음: {st3['txt'][:120]}")
             await pg.evaluate("()=>{ document.getElementById('stBack').click(); }")
-            cls=await pg.evaluate("()=>{ const d=document.querySelector('#stMap .stDot[data-i=\"0\"]'); return d ? d.className+'|'+d.textContent : '' }")
+            cls=await pg.evaluate("()=>{ const d=document.querySelector('#stMap .stDot[data-i=\"0\"]'); return d ? (d.dataset.b||d.className)+'|'+d.textContent : ''   /* (v500~) 마지막에 한 Stage 는 「now」(화살표) — 본래 모양은 data-b */ }")
             if "deep" not in cls: bad.append(f"{label} 길 노드 {cls}")
             await pg.evaluate("()=>Study._day(0)")
         # (v301) 저장 버그 — 카드만 보고 나가면 '본 단어'가 안 됨 · 이어 하기는 그대로

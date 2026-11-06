@@ -14,6 +14,6 @@ async def main():
             await E("()=>{ document.getElementById('ppWrap').style.zoom=1; }")
             await pg.locator("#ppWrap .pp").first.screenshot(path=f"/tmp/claude-0/wx583_{st}_{gm}.png")
             if gm=="quiz": await pg.locator("#ppWrap .pp.key").first.screenshot(path=f"/tmp/claude-0/wx583_{st}_key.png")
-        print("ERR", errs)
+        print("errs", errs)
         await br.close()
 asyncio.run(main())

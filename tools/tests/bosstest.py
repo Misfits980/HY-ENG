@@ -50,7 +50,7 @@ async def main():
         card=await k1.evaluate("()=>document.getElementById('stBossCard').innerText"); print("card", card.replace("\n"," / "))
         if "보상 받기" not in card: bad.append("카드 보상")
         await k1.screenshot(path=OUT+"week_card_dead.png")
-        g0=await k1.evaluate("()=>Wallet.gems()"); await k1.click("[data-bossclaim='1']"); await k1.wait_for_timeout(300)
+        g0=await k1.evaluate("()=>Wallet.gems()"); await k1.click("[data-sbk=boss]"); await k1.wait_for_timeout(300)   # (v5xx) 보스 카드는 위 칩 「👹 보스 🎁」 안으로 — 칩을 누르면 숨은 보상 단추가 눌림; await k1.wait_for_timeout(300)
         g1=await k1.evaluate("()=>[Wallet.gems(), HyBoss.claim(Kid.get())]"); print("claim", g0, g1)
         if g1[0]-g0!=250 or g1[1]!=0: bad.append(f"보상 한 번 {g0} {g1}")
         # 다음 주 — 2번 보스 · 지난주 보상(서연은 아직)

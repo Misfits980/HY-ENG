@@ -22,8 +22,10 @@ async def route(r):
 def real_errs(errs):
     """콘솔/페이지 오류 중 바깥 주소를 막아서 생긴 것은 뺀다"""
     return [e for e in errs if "Failed to load" not in e and "unknown error occurred when fetching the script" not in e]
-async def boot(pg, news=True):
+async def boot(pg, news=True, iso=None):
+    """iso = 이 탭만의 저장 칸 이름 — 같은 브라우저 탭 여러 개를 기기 여러 대처럼 (v559 부터 지갑이 탭끼리 바로 같이 바뀌어서, 💎 를 먼저 끝난 탭만 받던 것)"""
     await pg.route("**/*", route); await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(1200)
+    if iso is not None: await pg.evaluate("(t)=>{ const k0=Kid.k.bind(Kid); Kid.k=b=>k0(b)+'@t'+t; }", str(iso))
     if news: await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
     await pg.evaluate("()=>{ try{ StudyUI.FAST=0; }catch(e){} }")   # (v301) 테스트는 '너무 빨리 누름' 막기를 끈다
     await pg.evaluate(PAT_SOLVE)   # (v390) 보스 공격 패턴을 푸는 도우미 window.patSolve(good)

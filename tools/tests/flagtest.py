@@ -35,12 +35,12 @@ async def main():
         room=await host.evaluate("()=>Battle.host({set:'elem', from:0, to:3, dur:120, mode:'flag', goal:6, qt:['spell','gap','ox','pic','mean'], lbl:'G3-4 Stage 1~2'})"); print("room", room)
         kids=[]; skill=[0.95, 0.9, 0.55, 0.5]
         for i,(kid,nm,t) in enumerate([("k1","민준","ta"),("k2","서연","ta"),("k3","지호","tb"),("k4","하린","tb")]):
-            k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k); await k.evaluate('()=>{ Battle.FR=false; }')
+            k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k); await k.evaluate('()=>{ Battle.FR=false; const k0=Kid.k.bind(Kid); Kid.k=b=>k0(b)+"@t'+nm+'"; }')   # (v621) 탭마다 지갑 따로
             await k.evaluate(f"()=>{{ HyBoss.start(); return HyBoss.refresh(true).then(()=>{{ Battle.join('{room}', {{id:'{kid}', n:'{nm}', t:'{t}'}}); Battle.FAST=0; }}); }}"); kids.append(k)
         # (v322) 들어오기만 하고 안 푸는 사자반 아이 · 반 없는 아이 — 반 평균을 깎지 않고, '반 없음' 레인은 안 보임
         idle=[]
         for kid,nm,t in [("k5","지민","ta"),("k6","무소속","")]:
-            k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k); await k.evaluate('()=>{ Battle.FR=false; }')
+            k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k); await k.evaluate('()=>{ Battle.FR=false; const k0=Kid.k.bind(Kid); Kid.k=b=>k0(b)+"@t'+nm+'"; }')   # (v621) 탭마다 지갑 따로
             await k.evaluate(f"()=>{{ HyBoss.start(); return HyBoss.refresh(true).then(()=>{{ Battle.join('{room}', {{id:'{kid}', n:'{nm}', t:'{t}'}}); }}); }}"); idle.append(k)
         await host.wait_for_timeout(500); await host.screenshot(path=OUT+"flag_host_wait.png")
         await host.evaluate("()=>Battle.hostAct('start')"); await host.wait_for_timeout(3900)

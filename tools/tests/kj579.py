@@ -19,7 +19,7 @@ async def main():
         await E("()=>document.querySelector('#ppMd [data-v=kw]').click()"); await pg.wait_for_timeout(500)
         await E("()=>document.querySelector('#paper [data-pp=new]').click()"); await pg.wait_for_timeout(500)
         print("mix", await E("()=>document.getElementById('ppInfo').textContent"))
-        print("ERR", errs)
+        print("errs", errs)
         await br.close()
         # phone bar
         br=await p.chromium.launch(); pg=await br.new_page(viewport={"width":390,"height":844}, device_scale_factor=2); await boot(pg)

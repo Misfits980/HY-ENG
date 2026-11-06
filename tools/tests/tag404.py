@@ -58,9 +58,9 @@ async def main():
         await pg.click('[data-ad="tagMe"]'); await pg.wait_for_timeout(600)
         ok(any(x.get("type")=="tagMe" for x in await pg.evaluate("()=>_posts")) and await pg.evaluate("()=>Tag.get()")=="0000", "#0000 (선생님) 으로")
         await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(2000)
-        t=await pg.evaluate("()=>document.body.innerText")
+        t=await pg.evaluate("()=>document.body.textContent")
         ok("🏷 태그" in t and "#0006" in t and "딸기" in t and "스트로베리" in t, "📋 우리 반: 🏷 태그 목록 (지금 이름 · 처음 이름)")
-        await pg.evaluate("()=>{ const d=document.querySelector('.adMore summary'); document.querySelectorAll('details.adMore').forEach(x=>x.open=true); }")
+        await pg.evaluate("()=>{ const d=document.querySelector('.adMore summary'); document.querySelectorAll('details.adMore').forEach(x=>x.open=true); const b=document.querySelector('#adAccBar [data-acc=\"1\"]'); if(b) b.click(); }"); await pg.wait_for_timeout(1500)   # (v548~) 접힌 카드 펼치기
         await pg.fill("#adTagT", "0007"); await pg.fill("#adTagD", "newdevB"); await pg.click('[data-ad="tagMove"]'); await pg.wait_for_timeout(500)
         mv=[x for x in await pg.evaluate("()=>_posts") if x.get("type")=="tagSet"]
         ok(mv and mv[-1]["tag"]=="0007" and mv[-1]["dev"]=="newdevB", "태그에 기기 더하기 (#0007 ← 새 기기)")

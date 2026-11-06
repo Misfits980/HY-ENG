@@ -115,7 +115,7 @@ async def main():
         ok("done" in r[0] and "★★★" in r[0] and "lock" not in r[1], f"길: 별 표시 · 둘째 열림 {r}")
         await pg.evaluate("()=>document.querySelector('[data-gnote=g34]').click()"); await pg.wait_for_timeout(300)
         r = await pg.evaluate("()=>[document.querySelectorAll('#stGram .grNR').length, document.querySelectorAll('#stGram .grNR.done').length]")
-        ok(r == [8, 2], f"문법 노트: 8개 · 별 받은 것 2 {r}")
+        ok(r[0] >= 8 and r[1] == 2, f"문법 노트: 8개 이상(문법이 늘어남) · 별 받은 것 2 {r}")
         await pg.evaluate("()=>document.querySelector('#stGram [data-gr=home]').click()"); await pg.wait_for_timeout(200)
         opened = await pg.evaluate("()=>{ const x=Study.lessons('elem').find(x=>x.wd==5); const o=Study.lv; Study.lv=(st,n)=>(st==='elem'&&n===x.n)?1:o.call(Study,st,n); const r=Gram.open('g34-4'); Study.lv=o; return [r, Gram.open('g34-5')]; }")
         ok(opened == [True, False], f"붙은 Stage 를 시작(★1)하면 그 문법이 열림 {opened}")

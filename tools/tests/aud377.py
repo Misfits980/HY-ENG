@@ -31,11 +31,14 @@ async def main():
         await pg.goto(ORIGIN + "index.html?perf=1"); await pg.wait_for_timeout(1500)
         await pg.evaluate(START); await pg.wait_for_timeout(800)
         await pg.evaluate("()=>{ G.quit=true; G.skipOutro=true; gameOver(); }"); await pg.wait_for_timeout(1000)
+        try: await pg.wait_for_function("()=>document.querySelectorAll('#perfBox button').length>2", timeout=8000)
+        except Exception: pass
         names = await pg.evaluate("()=>[...document.querySelectorAll('#perfBox button')].map(b=>b.textContent)")
         print(names)
         ok(all(any(k in n for n in names) for k in ["영어 읽기만 끄고", "효과음만 끄고", "소리 붙잡기(v377) 끄고"]), "실험 단추 3개 추가")
         for key, want in [("영어 읽기만 끄고", [False, True, True]), ("효과음만 끄고", [False, False, False]), ("소리 붙잡기(v377) 끄고", None)]:
-            await pg.evaluate("(k)=>[...document.querySelectorAll('#perfBox button')].find(b=>b.textContent.indexOf(k)>=0).click()", key); await pg.wait_for_timeout(1800)
+            if not await pg.evaluate("()=>!!document.querySelector('#perfBox button')"): await pg.evaluate("()=>{ G.quit=true; G.skipOutro=true; gameOver(); }"); await pg.wait_for_function("()=>document.querySelectorAll('#perfBox button').length>2", timeout=8000)   # (v621) 측정 상자는 판이 끝나야 나옴
+            await pg.evaluate("(k)=>[...document.querySelectorAll('#perfBox button')].find(b=>b.textContent.indexOf(k)>=0).click()", key); await pg.wait_for_timeout(1800); await pg.wait_for_load_state("load"); await pg.wait_for_timeout(1500)   # 「끄고 다시」 = 새로 불러옴
             await pg.evaluate(START); await pg.wait_for_timeout(600)
             r = await pg.evaluate("()=>[Voice.on, SFX.on, !!SFX._ka, JSON.parse(localStorage.getItem('hyeng_exp'))]")
             print(key, r)

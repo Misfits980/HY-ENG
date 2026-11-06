@@ -27,7 +27,7 @@ async def main():
         room = await T.evaluate("()=>Battle.room")
         K = []
         for nm in ["민준", "서연", "지호", "하린"]:
-            k = await ctx.new_page(); k.on("pageerror", lambda e, n=nm: errs.append(n + " " + str(e))); await k.set_viewport_size({"width": 820, "height": 1180}); await boot(k)
+            k = await ctx.new_page(); k.on("pageerror", lambda e, n=nm: errs.append(n + " " + str(e))); await k.set_viewport_size({"width": 820, "height": 1180}); await boot(k, iso=nm)
             await k.evaluate("()=>RaidJoin.open()"); await k.wait_for_timeout(150)
             await k.evaluate(f"()=>{{ document.getElementById('rdNameIn').value='{nm}'; }}")
             for d in room: await k.evaluate(f"()=>document.querySelector('[data-rjk=\"{d}\"]').click()")

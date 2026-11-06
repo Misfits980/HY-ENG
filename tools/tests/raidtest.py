@@ -13,7 +13,7 @@ async def main():
         kids=[]
         for nm in ["민준","서연","지호"]:
             k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844})
-            await boot(k); await k.evaluate(f"()=>{{ Raid.FAST=0; Raid.join('{room}','{nm}'); }}"); kids.append(k)
+            await boot(k); await k.evaluate(f"()=>{{ const k0=Kid.k.bind(Kid); Kid.k=b=>k0(b)+'@t{len(kids)}'; Raid.FAST=0; Raid.join('{room}','{nm}'); }}"); kids.append(k)   # (v621) 탭마다 지갑 따로 (기기 3대처럼)
         await host.wait_for_timeout(500); await host.screenshot(path=O+"30_host_wait.png"); await kids[0].screenshot(path=O+"31_kid_wait.png")
         await host.evaluate("()=>Raid.hostAct('start')"); await host.wait_for_timeout(800)
         print("max", await host.evaluate("()=>Raid.calc().max"))

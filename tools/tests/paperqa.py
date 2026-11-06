@@ -40,5 +40,5 @@ async def main():
                 r=await pg.evaluate(CHK); r.update(set=s, tm=tm, n=n); out.append(r)
                 print(s, tm, n, r["pages"], r["nk"], [x[0] for x in r["iss"]][:12], flush=True)
         json.dump(out, open(f"/tmp/claude-0/qa2_{sys.argv[1]}.json","w"), ensure_ascii=False)
-        print("ERR", errs[:5]); await br.close()
+        print("errs", errs[:5]); await br.close()
 if __name__=="__main__": asyncio.run(main())

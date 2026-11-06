@@ -28,3 +28,9 @@ const scSh={getMaxColumns:()=>N, getLastRow:()=>SC.length, getRange:(r,c,nr,nc)=
 SS.getSheetByName=n=>n==="scores"?scSh:n==="명예의 전당"?hofSh:null;
 const f2=new Function(...Object.keys(env), src+"; return board_;"); const board_=f2(...Object.values(env));
 const res=board_({tag:"0011"}); console.log(JSON.stringify(res.me).slice(0,400)); console.log(Object.keys(res.hof||{}), JSON.stringify(res.boards.study[0]));
+// (v621) 동시에 두 번 — 한쪽이 먼저 적은 날은 다시 적지 않음
+{ const keep=HOF.length; HOF.length=1; let inner=false;
+  env.LockService.getScriptLock=()=>({waitLock(){ if(!inner){ inner=true; M2.hof_(rows,P,A,now,ws); } }, releaseLock(){}});
+  const f3=new Function(...Object.keys(env), src+"; return {hof_};"); var M2=f3(...Object.values(env));
+  M2.hof_(rows,P,A,now,ws); const ks=HOF.slice(1).map(r=>r[0]+"|"+r[1]+"|"+r[2]+"|"+r[3]); const dup=ks.length-new Set(ks).size;
+  console.log("concurrent rows", HOF.length-1, "dup", dup, dup?"BAD":"ok"); }

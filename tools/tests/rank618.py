@@ -22,8 +22,8 @@ DATA = r"""()=>{ const mk=a=>a.map(([n,t,s,mv,ch,x])=>Object.assign({nick:n, tag
 async def main():
     async with async_playwright() as p:
         br=await p.chromium.launch(); errs=[]
-        for nm,vw in (("ph",(390,844)),("pad",(820,1180))):
-            pg=await br.new_page(viewport={"width":vw[0],"height":vw[1]}, device_scale_factor=2); pg.on("pageerror", lambda e: errs.append(str(e)[:300])); await boot(pg); E=pg.evaluate
+        for nm,vw in (("ph",(390,844)),("pad",(820,1180)),("tv",(1920,1080))):
+            pg=await br.new_page(viewport={"width":vw[0],"height":vw[1]}, device_scale_factor=1 if nm=="tv" else 2); pg.on("pageerror", lambda e: errs.append(str(e)[:300])); await boot(pg); E=pg.evaluate
             await E(DATA); await pg.wait_for_timeout(1700)
             await pg.screenshot(path=f"/tmp/claude-0/rank618_{nm}_ann.png")
             await E("()=>{ const d=document.getElementById('rkAnn'); if(d) d.remove(); }")
@@ -37,5 +37,5 @@ async def main():
             await E("()=>document.getElementById('rkSheet').remove()")
             await E("()=>document.querySelector('#scRank [data-rkmy]').click()"); await pg.wait_for_timeout(300); await pg.screenshot(path=f"/tmp/claude-0/rank618_{nm}_my.png")
             await pg.close()
-        print("ERR", errs); await br.close()
+        print("errs", errs); await br.close()
 asyncio.run(main())

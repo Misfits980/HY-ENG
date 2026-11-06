@@ -33,7 +33,7 @@ const rows = [
   row({date:new Date(NOW-1*DAY), nick:"하준", diff:"easy", rule:"normal", dev:"H1", dex:50, tag:"0020"}),
   row({date:new Date(NOW-1*DAY), nick:"하준", diff:"easy", rule:"normal", dev:"H2", dex:70, tag:"0021"}),
 ];
-const sh = { getRange: () => ({ getValues: () => rows, getValue: () => "x" }), getLastRow: () => rows.length + 1 }; SH = sh;
+const sh = { getRange: () => ({ getValues: () => rows, getValue: () => "x" }), getLastRow: () => rows.length + 1, getMaxColumns: () => 99 }   /* (v600 서버) 시트 폭 */; SH = sh;
 const since = NOW - 3*DAY;
 const L = dexRank_(sh, rows.length + 1, since, 20, "A");
 let bad = 0; const ok = (c, m) => { console.log((c ? "OK  " : "FAIL ") + m); if(!c) bad++; };
