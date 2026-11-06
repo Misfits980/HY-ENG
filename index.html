@@ -16437,7 +16437,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v607";
+const GAME_VER = "v608";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -21989,7 +21989,7 @@ const Paper = {
   pages(W, c, F, secs, total, tight){ const pages=[]; let page=null, cols=null, ci=0;
     const newPage=first=>{ page=document.createElement("section"); page.className="pp"+(tight?" tight":""); page.innerHTML=(first ? this.head(c, F, total) : '<header class="ppHd sm"><b>'+this.E(c.title || this.ttl(c))+'</b>'+(F?'<em class="ppForm">'+F+'형</em>':'')+'</header>')+'<div class="ppBody"><div class="ppCol"></div><div class="ppCol"></div></div><footer class="ppFt"></footer>'; W.appendChild(page); cols=page.querySelectorAll(".ppCol"); ci=0; pages.push(page); };
     const add=html=>{ const t=document.createElement("div"); t.innerHTML=html; const el=t.firstChild; cols[ci].appendChild(el);
-      if(cols[ci].scrollHeight>cols[ci].clientHeight+1 && cols[ci].children.length>1){ el.remove(); if(ci===0){ ci=1; } else newPage(false); cols[ci].appendChild(el); } return el; };
+      if(this.over(cols[ci]) && cols[ci].children.length>1){   /* (v608) 4px 여유 — 인쇄·글꼴 차이로 끝줄이 잘리지 않게 */ el.remove(); if(ci===0){ ci=1; } else newPage(false); cols[ci].appendChild(el); } return el; };
     newPage(true); let no=1;
     secs.forEach((s,si)=>{ const T=this.T[s.k]; const hd='<h4 class="ppSec"><b>'+String.fromCharCode(65+si)+'</b>'+T[0]+'</h4>';
       s.qs.forEach((q,qi)=>{ let h=this.qHtml(s.k, q, s.k==="match" ? no+"~"+(no+q.w.length-1) : no); no += s.k==="match" ? q.w.length : 1;
@@ -22007,7 +22007,7 @@ const Paper = {
         if(this.T[s.k][2]===2){ const a = q.wr || q.vt || q.at ? E(q.key) : this.NUM[q.a]+(q.noOpt?' '+E(q.ans):''); return '<span class="g'+(q.why && !q.vt?' w':'')+'"><i>'+(no++)+'</i>'+a+(q.why?'<small>'+E(q.why)+'</small>':'')+'</span>'; }
         const a = q.opts ? this.NUM[q.a] : s.k==="wko" ? E(q.w.ko) : E(dispEn(q.w.en)); return '<span><i>'+(no++)+'</i>'+a+'</span>'; }).join('')+'</div>').join('')+'</div>'; }).join('')+'</div>';
     W.appendChild(p); },
-  make(){ const c=this.cfg(); if(this.mode==="kw" || this.mode==="ks"){ this.B=null; this.c=c; this.kjRender(); return; } this.B=this.build(c); this.c=c; this.render(); },
+  make(){ this._rfN=0; const c=this.cfg(); if(this.mode==="kw" || this.mode==="ks"){ this.B=null; this.c=c; this.kjRender(); return; } this.B=this.build(c); this.c=c; this.render(); },
   /* ══ (v580) ✏️ 따라쓰기(처음 이름 깜지) — 사용자: 「깜지 쓰는 거랑 문장 깜지 기능도」 → (v581) 「따라쓰기라고 · 더 이쁘게」
      단어 깜지 = 영어 단어 + 뜻 → 영어 줄(위·가운데·아래 줄) 칸에 N 번 쓰기 · 문장 깜지 = 예문 + 해석 → 줄에 N 번 베껴 쓰기
      초1-2·3-4 는 첫 칸에 흐린 글씨(따라 쓰기) · 범위 순서대로(🔀 누르면 섞기) · 같은 A4 · 인쇄·PDF 그대로 */
@@ -22070,7 +22070,7 @@ const Paper = {
     const newPage=first=>{ const pg=document.createElement("section"); pg.className="pp kj"+(young?"":" big");
       pg.innerHTML=head(first)+'<div class="kjBody"></div><footer class="ppFt"></footer>'; W.appendChild(pg); pages.push(pg); body=pg.querySelector(".kjBody"); };
     const add=html=>{ const t=document.createElement("div"); t.innerHTML=html; const el=t.firstChild; body.appendChild(el);
-      if(body.scrollHeight>body.clientHeight+1 && body.children.length>1){ el.remove(); newPage(false); body.appendChild(el); } return el; };
+      if(this.over(body) && body.children.length>1){ el.remove(); newPage(false); body.appendChild(el); } return el; };
     const fitTx=el=>{ el.querySelectorAll(".kjT").forEach(t=>{ const P=t.parentNode, mx=P.clientWidth-6; let f=parseFloat(getComputedStyle(t).fontSize)||20, k=0; while(t.offsetWidth>mx && k++<14){ f*=0.92; t.style.fontSize=f+"px"; } }); };
     const strip=(cells, cw)=>'<div class="kjStrip"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i>'+cells.map(t=>'<span class="kjC"'+(cw?' style="width:'+cw+'mm"':'')+'>'+(t?'<em class="kjT">'+E(t)+'</em>':'')+'</span>').join('')+'</div>';
     newPage(true);
@@ -22098,7 +22098,16 @@ const Paper = {
     W.parentNode.scrollTop=top;
     I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · 범위 단어 "+B.nw+"개 · "+B.total+"문제"+(c.ab?" × A·B형":"")+" · "+np+"쪽"+(B.xv?" · 불규칙 동사 "+B.xv+"개는 앞 단계·아래 학년에서 복습으로 넣었어요":"")+(B.total<c.n?" · 범위 단어가 모자라 "+B.total+"문제만":"")+(B.warn.length?" · 이 범위엔 못 내는 형식: "+B.warn.join(", ")+" (그림·예문·대화가 있는 단어가 없어요 — 다른 형식으로 채웠어요)":"");
     this.fit(); },
-  fit(){ const W=$("ppWrap"), V=W && W.parentNode; if(!V) return; const mm=96/25.4, z=Math.min(1, (V.clientWidth-24)/(210*mm)); W.style.zoom=z.toFixed(3); },
+  fit(){ const W=$("ppWrap"), V=W && W.parentNode; if(!V) return; const mm=96/25.4, z=Math.min(1, (V.clientWidth-24)/(210*mm)); W.style.zoom=z.toFixed(3); this.settle(); },
+  /* (v608) 사용자: 「시험지 만들 때 잘리는 게 너무 많음 · 몇 개 넣고 뺄 때마다 줄이 안 맞음」(아이폰 사진: 쪽 아래 문제가 반쯤 잘림)
+     원인: 쪽을 나눈 「뒤에」 한글 글꼴 조각(새로 쓰인 글자마다 따로 받음)·그림이 늦게 들어와 글줄이 길어짐 → 이미 나눈 쪽이 넘침
+     → 나눈 뒤 0.25·0.9·2·4초에 다시 재 보고(글꼴을 다 받았을 때도) 넘친 단이 있으면 그대로 다시 나눔 (문제는 안 바뀜) */
+  over(c){ if(c.scrollHeight>c.clientHeight+1) return true; const l=c.lastElementChild; return !!l && l.getBoundingClientRect().bottom > c.getBoundingClientRect().top+c.clientHeight-4; },
+  settle(){ clearTimeout(this._stT); (this._stQ||[]).forEach(clearTimeout); const chk=last=>{ const W=$("ppWrap"); if(!W || !$("paper")) return; const z=W.style.zoom; W.style.zoom="";
+      const bad=[...W.querySelectorAll(".ppCol,.kjBody")].some(c=>c.scrollHeight>c.clientHeight+1); W.style.zoom=z;
+      if(bad && (this._rfN|0)<5){ this._rfN=(this._rfN|0)+1; if(this.mode==="kw" || this.mode==="ks"){ if(this.c) this.kjRender(); } else if(this.B) this.render(); } else if(last) this._rfN=0; };
+    this._stQ=[250, 900, 2000, 4000].map((t,i,a)=>setTimeout(()=>chk(i===a.length-1), t));
+    try{ if(document.fonts && !this._fl){ this._fl=1; document.fonts.addEventListener("loadingdone", ()=>{ clearTimeout(this._stT); this._stT=setTimeout(()=>chk(false), 120); }); } }catch(e){} },
   /* (v576) 사용자: 「휴대폰 홈 화면 앱에서 인쇄/PDF 저장이 안 됨」 — 아이폰·아이패드 홈 화면 앱(standalone)은 window.print() 가 아무 일도 안 함
      → 쪽마다 그림으로 찍어(html2canvas, lib/) 우리가 직접 PDF 파일을 만들고 → 📤 공유 창 (프린트 · 파일에 저장 · 카톡) */
   pdfMode(){ try{ if(this.forcePdf) return true; const ua=navigator.userAgent||"", ios=/iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1);
