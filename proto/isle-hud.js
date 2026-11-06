@@ -54,6 +54,14 @@ body.isleOn #ipBan{top:calc(110px + env(safe-area-inset-top))} body.isleOn #emoB
 #ihMap svg [data-z]{cursor:pointer}
 #ihMap svg text{font:800 7.6px system-ui,sans-serif;fill:#3b2433;paint-order:stroke;stroke:#fff;stroke-width:2.4px;pointer-events:none} #ihMap svg text.hm{font-size:7.5px;fill:#8a5a00}
 #ihMap .mt{font-size:13px;color:#6b5a4e;text-align:center;margin-top:6px}
+#ihMap.v5{padding:max(8px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+#ihMap.v5 .mb{width:min(680px,100%);max-height:100%;display:flex;flex-direction:column;padding:8px 6px 10px}
+#ihMap.v5 svg{flex:1 1 auto;min-height:0;max-height:calc(100vh - 150px);width:100%;background:radial-gradient(ellipse at 50% 45%,#9fdcf4,#7cc8ea)}
+#ihMap.v5 svg text.ic{font:9px system-ui,sans-serif;text-anchor:middle;stroke:none;fill:#000;paint-order:normal}
+#ihMap.v5 svg text.nm{font:800 7px system-ui,sans-serif;text-anchor:middle;fill:#fff;stroke:none;paint-order:normal}
+#ihMap.v5 svg text.lk{font:9px system-ui;text-anchor:middle;stroke:none}
+#ihMap.v5 svg .pin:active circle{fill:#ffd23f}
+#ihMap.v5 .mt{font-size:12.5px;line-height:1.45;padding:0 4px}
 #ihM .bx{width:min(300px,86vw);background:#fff8ea;border:3px solid #3b2433;border-radius:24px;box-shadow:0 5px 0 #3b2433;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px;animation:pop .3s cubic-bezier(.2,.9,.3,1.3)}
 #ihM .bx button{position:relative;height:84px;border-radius:18px;border:3px solid #3b2433;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),0 3px 0 #3b2433;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;padding:0}
 #ihM .bx button i{font-style:normal;font-size:30px;line-height:1}
@@ -135,6 +143,7 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   function openMap(){ const M=window.ISLE_MAP; if(!M || !M.zones){ click("bMap"); return; }
     let el=$("ihMap"); if(!el){ el=document.createElement("div"); el.id="ihMap"; document.body.appendChild(el);
       el.addEventListener("click", e=>{ const z=e.target.closest("[data-z]"); if(z){ el.classList.remove("on"); goZone(z.dataset.z); return; } if(e.target===el || e.target.closest(".mx")) el.classList.remove("on"); }); }
+    if(M.v5){ mapV5(M, el); return; }
     const I=M.island, f=n=>Math.round(n*10)/10; let x0=I.cx-I.ax-5, z0=I.cz-I.az-5, w=I.ax*2+10, h=I.az*2+10;
     if(M.isles){ let a0=-75,b0=-68,a1=73,b1=62; M.isles.forEach(q=>{ a0=Math.min(a0,q.cx-q.R); b0=Math.min(b0,q.cz-q.R); a1=Math.max(a1,q.cx+q.R); b1=Math.max(b1,q.cz+q.R); }); x0=a0-6; z0=b0-6; w=a1-a0+12; h=b1-b0+12; }   /* (v607~) 새 섬 5판 = 둘레 섬까지 */   /* (v568) ax·az 는 반지름 — 예전엔 지름으로 써서 섬 절반만 보이고 이름이 겹침 */
     const cen=P=>{ let x=0,z=0; P.forEach(q=>{ x+=q[0]; z+=q[1]; }); return [x/P.length, z/P.length]; };
@@ -150,6 +159,34 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
     try{ const s=ISLE.SPOT.mine; if(s) g+='<g data-z="mine"><circle cx="'+f(s[0]-ISLE.OX)+'" cy="'+f(s[2]-ISLE.OZ)+'" r="4.4" fill="#b8a2e0" stroke="#3b2433" stroke-width="1"/></g><text class="hm" x="'+f(s[0]-ISLE.OX)+'" y="'+f(s[2]+11-ISLE.OZ)+'" text-anchor="middle">⛏ 광산</text>'; }catch(_){}   /* (v580) ⛏ 광산 = 바로 가기 되는 곳 */
     try{ const p=hero.g.position; g+='<circle cx="'+f(p.x-ISLE.OX)+'" cy="'+f(p.z-ISLE.OZ)+'" r="3.4" fill="#ff4d5e" stroke="#fff" stroke-width="1.2"><animate attributeName="r" values="3.4;4.6;3.4" dur="1.2s" repeatCount="indefinite"/></circle>'; }catch(_){}
     el.innerHTML='<div class="mb"><div class="mh"><span>🗺 우리 마을 지도</span><button class="mx" aria-label="닫기">✕</button></div><svg viewBox="'+f(x0)+' '+f(z0)+' '+f(w)+' '+f(h)+'">'+g+'</svg><div class="mt">🔴 = 나 · 누르면 걸어가요 · ⭐ 집·⛏ 광산은 🚀 바로 · 먼 곳은 🚉 기차</div></div>';
+    el.classList.add("on"); }
+  /* (v618) 🗺 새 섬 지도 — 사용자: 「지도 너무 불편해」(구역 네모가 겹치고 · 이름이 작고 · 아래 글이 잘림)
+     → 섬 모양 + 큰길·다리·시내 블록·텃밭만 그리고, 갈 곳 = 큰 동그라미 핀(그림 + 이름표) 11곳 · 🔴 나 · ⭐ 내 집 · 🌱 내 밭 · 화면 크게 */
+  function mapV5(M, el){ const f=n=>Math.round(n*10)/10, OX=ISLE.OX, OZ=ISLE.OZ;
+    let a0=1e9,b0=1e9,a1=-1e9,b1=-1e9; M.isles.forEach(q=>{ a0=Math.min(a0,q.cx-q.R); b0=Math.min(b0,q.cz-q.R); a1=Math.max(a1,q.cx+q.R); b1=Math.max(b1,q.cz+q.R); }); a0=Math.min(a0,-80); a1=Math.max(a1,78); b0=Math.min(b0,-72); b1=Math.max(b1,66);
+    const x0=a0-3, z0=b0-5, w=a1-a0+6, h=b1-b0+14;
+    const isl=(pts,c)=>'<polygon points="'+pts.join(" ")+'" fill="'+c+'" stroke="#f3e2a6" stroke-width="3.2" stroke-linejoin="round"/>';
+    let g='';
+    { const pts=[]; for(let k=0;k<96;k++){ const a=k/96*Math.PI*2, r=M.edge(a); pts.push(f(M.island.cx+Math.cos(a)*r)+","+f(M.island.cz+Math.sin(a)*r)); } g+=isl(pts,"#a6db7f"); }
+    M.isles.forEach(q=>{ const pts=[]; for(let k=0;k<48;k++){ const a=k/48*Math.PI*2, r=q.R*(1+.035*Math.sin(3*a+q.s)+.025*Math.sin(5*a+q.s*2)); pts.push(f(q.cx+Math.cos(a)*r)+","+f(q.cz+Math.sin(a)*r)); } g+=isl(pts, q.lock?"#cfd8c6":"#a6db7f"); if(q.lock) g+='<text class="lk" x="'+f(q.cx)+'" y="'+f(q.cz+3)+'">🔒</text>'; });
+    { const L=M.spots.lake; g+='<ellipse cx="'+f(L.x)+'" cy="'+f(L.z)+'" rx="'+f(L.rx)+'" ry="'+f(L.rz)+'" fill="#6cc8ea"/>'; }
+    (M.links||[]).forEach(b=>{ g+='<line x1="'+b[0]+'" y1="'+b[1]+'" x2="'+b[2]+'" y2="'+b[3]+'" stroke="#b07a40" stroke-width="'+f((b[4]||1.5)*1.1)+'" stroke-linecap="round"/>'; });
+    if(M.city) M.city.blocks.forEach(B=>{ g+='<rect x="'+f(B.x0)+'" y="'+f(B.z0)+'" width="'+f(B.x1-B.x0)+'" height="'+f(B.z1-B.z0)+'" rx="1.5" fill="#e9e1f2" stroke="#c9bfd8" stroke-width=".6"/>'; });
+    if(M.fields) M.fields.slots.forEach(F=>{ g+='<rect x="'+f(F.x-2.8)+'" y="'+f(F.z-2.3)+'" width="5.6" height="4.6" rx=".8" fill="#c8a066" opacity=".75"/>'; });
+    Object.values(M.roads).forEach(r=>{ g+='<polyline points="'+r.p.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="none" stroke="'+(r.asph?"#8a8f9a":"#e8d3a0")+'" stroke-width="'+f(r.asph?r.w*.85:r.w*.7)+'" stroke-linecap="round" stroke-linejoin="round"/>'; });
+    M.hoods.forEach(H=>{ g+='<polyline points="'+H.p.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="none" stroke="#e8d3a0" stroke-width="1.3" stroke-linecap="round"/>'; });
+    g+='<circle cx="0" cy="0" r="'+f(M.plaza.r)+'" fill="#f3e6c4" stroke="#e0c98e" stroke-width=".8"/>';
+    /* 갈 곳 핀 */
+    const S=M.spots, P=[["center","🏙","도심",14,-30],["campus","🎓","배움 언덕",-34,-40],["home","🏘","1~3동",-46,18],["home2","🏘","4~6동",46,18],["farm","🌾","텃밭 섬",-108,16],["vil","🍄","버섯 마을",S.vil[0],S.vil[1]],["adv","⛏","광산 섬",0,-94],["lake","🎣","호수 섬",S.lake.x,S.lake.z],["park","🎡","놀이 섬",S.park.x,S.park.z],["beach","🏖","등대 섬",0,74]];
+    const K=Math.max(1, Math.min(1.6, 560/Math.max(320, Math.min(innerWidth, 680))));   /* 휴대폰 = 핀·글자 크게 */
+    const pin=(k,ic,t,x,z,col,small)=>{ const r=(small?5.4:6.6)*K, tw=(t.length*5.6+7)*K, th=9*K; return '<g data-z="'+k+'" class="pin"><circle cx="'+f(x)+'" cy="'+f(z)+'" r="'+f(r+4)+'" fill="transparent"/><circle cx="'+f(x)+'" cy="'+f(z)+'" r="'+f(r)+'" fill="'+(col||"#fffdf7")+'" stroke="#3b2433" stroke-width="'+f(1.4*K)+'"/><text class="ic" style="font-size:'+f(9*K)+'px" x="'+f(x)+'" y="'+f(z+2.8*K)+'">'+ic+'</text>'
+      +'<rect x="'+f(x-tw/2)+'" y="'+f(z+r+1.2)+'" width="'+f(tw)+'" height="'+f(th)+'" rx="'+f(th/2)+'" fill="#3b2433"/><text class="nm" style="font-size:'+f(7*K)+'px" x="'+f(x)+'" y="'+f(z+r+1.2+th*.74)+'">'+t+'</text></g>'; };
+    P.forEach(p=>{ if(p[0]==="home") return; g+=pin(p[0],p[1],p[2],p[3],p[4]); });   /* 1~3동 = ⭐ 내 집 핀이 대신 (겹치던 것) */
+    try{ const fd=ISLE.myFd && ISLE.myFd(), f2=fd!=null && ISLE.SLOTS().find(x=>x.id===fd); if(f2) g+=pin("myfield","🌱","내 밭",f2.c[0]-OX,f2.c[1]-OZ-6,"#c9f2a6",1); }catch(_){}
+    try{ const d=ISLE.doorCell(); if(d && tut.s>=1) g+=pin("myhome","⭐","내 집",d[0]+.5-OX,d[1]+.5-OZ,"#ffe27a",1); }catch(_){}
+    try{ const p=hero.g.position; g+='<circle cx="'+f(p.x-OX)+'" cy="'+f(p.z-OZ)+'" r="3.2" fill="#ff4d5e" stroke="#fff" stroke-width="1.4"><animate attributeName="r" values="3.2;4.6;3.2" dur="1.2s" repeatCount="indefinite"/></circle>'; }catch(_){}
+    el.classList.add("v5");
+    el.innerHTML='<div class="mb"><div class="mh"><span>🗺 우리 마을 지도</span><button class="mx" aria-label="닫기">✕</button></div><svg viewBox="'+f(x0)+' '+f(z0)+' '+f(w)+' '+f(h)+'" preserveAspectRatio="xMidYMid meet">'+g+'</svg><div class="mt">📍 가고 싶은 곳을 눌러요 · <b style="color:#e63946">●</b> 나 · ⭐ 내 집은 🚀 바로 · 먼 곳은 🚉 기차</div></div>';
     el.classList.add("on"); }
   /* (v580) 사용자: 「기차가 있는데 지도로 텔포하면 기차의 의미가 있을까? · 집 가는 거랑 광산은 하게 해 줘」
      → 🚀 바로 가기는 ⭐ 내 집(무료)·⛏ 광산(🪙)만 · 다른 곳은 🚶 걸어가기 또는 🚉 기차역으로 (빨리 가려면 기차) */
