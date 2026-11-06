@@ -15,6 +15,7 @@ const ISLE=(()=>{
   const W=new Uint8Array(N*N);              // 1 = 걸을 수 있음
   const cols=[];                            // 막는 동그라미 [x,z,r]
   const bridges=[];                         // [ax,az,bx,bz,반폭]
+  const LANDS=[];                           // (v615) 다리 끝 발판 자리 — 길이 여기까지 이어짐
   const rects=[];                           // (v608) 막는 네모 [x0,z0,x1,z1] (격자 좌표) — 시내 건물
   let seed=7; const rnd=()=>{ seed=(seed*9301+49297)%233280; return seed/233280; };
   const MT={}; const LIN=c=>new THREE.Color(c).convertSRGBToLinear(); const MC=(c)=>MT[c]||(MT[c]=new THREE.MeshStandardMaterial({color:LIN(c), roughness:.85}));   /* (v528) 색은 sRGB → 선형 (안 바꾸면 허옇게 바램) */
@@ -91,7 +92,7 @@ const ISLE=(()=>{
     if(bw>2.2) for(let i=1;i<n-1;i+=4){ const d=new THREE.Mesh(new THREE.BoxGeometry(.12,.012,.9), MC(0xffd85a)); d.position.set(0,.085,s0+i*(SL/n)+.2); B.add(d); }   /* 넓은 다리 = 가운데 노란 점선 */
     if(MAP.v5 && (s0>0 || s1<L)) [[s0,-1],[s1,1]].forEach(([ss,sd])=>{ const lp=new THREE.Mesh(new THREE.BoxGeometry(bw+.5,.09,.9), MC(0x8a5a34)); lp.position.set(0,.02,ss+sd*.25); lp.receiveShadow=true; B.add(lp);
       [-1,1].forEach(q=>{ const po=new THREE.Mesh(new THREE.CylinderGeometry(.11,.13,.95,8), MC(0x6a4430)); po.position.set(q*(hw+.12),.3,ss); B.add(po); const cap=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6), MC(0xffd23f)); cap.position.set(q*(hw+.12),.82,ss); B.add(cap); });
-      const t=(ss+sd*1.3)/L; disc(x1+dx*t, z1+dz*t, bw*.75, PATH); });
+      const t=(ss+sd*1.3)/L; disc(x1+dx*t, z1+dz*t, bw*.75, PATH); const t2=ss/L; LANDS.push([x1+dx*t2, z1+dz*t2]); });
     bridges.push([x1+OX,z1+OZ,x2+OX,z2+OZ,Math.max(1.0,bw/2-.15)]); }   /* 걷기 폭 넉넉히 (비스듬한 다리가 계단처럼 끊기지 않게) */
   /* 다리는 섬 가장자리(구불구불)를 지나 땅 안쪽 1칸까지 — 끊기지 않게 (v528 QA: 2·3동이 광장과 안 이어짐) */
   function edgeR(c,r,ang){ const I=ISL.find(I=>Math.abs(I.cx-c[0])<.01 && Math.abs(I.cz-c[1])<.01); return I ? rr(I,ang) : r; }
@@ -377,7 +378,9 @@ const ISLE=(()=>{
     // 길
     disc(0,0,MAP.plaza.r,STONE);
     const JUNC=[]; Object.entries(MAP.roads).forEach(([k,r])=>{ if(r.asph){ JUNC.push([r.p[0][0],r.p[0][1],k], [r.p[r.p.length-1][0],r.p[r.p.length-1][1],k]); } }); ((MAP.city||{}).cross||[]).forEach(c=>JUNC.push([c[0],c[1],"*"])); JUNC.push([0,0,"*"]);
-    Object.entries(MAP.roads).forEach(([k,r])=>{ if(r.lane){ roadP(r.p, r.w, LANE, LANEE); return; } if(!r.asph){ roadP(r.p, r.w, ROAD, ROADE); return; } const Q=roadP(r.p, r.w, ASPH, ASPHE);   /* (v607~) 큰길 = 회색 아스팔트 + 노란 점선 + 넓은 인도 */
+    /* (v615) 사용자: 「안 이어지게 만들어야 해?」 — 길 끝이 다리 발판 앞에서 끊겨 풀밭이 비던 것 → 가까운(9칸) 다리 발판까지 길을 늘림 */
+    const ROADS2={}; Object.entries(MAP.roads).forEach(([k,r])=>{ const p=r.p.map(q=>q.slice()); if(MAP.v5) [0,1].forEach(e=>{ const q=e?p[p.length-1]:p[0]; let best=null, bd=9; LANDS.forEach(Lp=>{ const d=Math.hypot(Lp[0]-q[0],Lp[1]-q[1]); if(d<bd){ bd=d; best=Lp; } }); if(best && bd>.4){ if(e) p.push(best.slice()); else p.unshift(best.slice()); } }); ROADS2[k]=Object.assign({}, r, {p}); });
+    Object.entries(ROADS2).forEach(([k,r])=>{ if(r.lane){ roadP(r.p, r.w, LANE, LANEE); return; } if(!r.asph){ roadP(r.p, r.w, ROAD, ROADE); return; } const Q=roadP(r.p, r.w, ASPH, ASPHE);   /* (v607~) 큰길 = 회색 아스팔트 + 노란 점선 + 넓은 인도 */
       const DSH=geo_("dash",()=>{ const g=new THREE.PlaneGeometry(.14,.9); g.rotateX(-Math.PI/2); return g; }); const L_=MAP.arc(Q); for(let s=1.2;s<L_[L_.length-1]-1;s+=2.2){ const A=MAP.at(Q,L_,s); if(MAP.v5 && JUNC.some(j=>j[2]!==k && Math.hypot(j[0]-A.x,j[1]-A.z)<(j[2]==="*"&&j[0]===0&&j[1]===0?9:3.2))) continue;   /* (v613) 길 만나는 곳엔 점선 X */
         prim(DSH, 0xffd85a, A.x,MAP.v5?.024:.016,A.z,{ry:Math.atan2(A.tx,A.tz), flat:1}); } });
     MAP.hoods.forEach((h,i)=>{ if(i<HN) roadP(h.p, 1.5, LANE, LANEE); else { const Q=MAP.cr(h.p,8); const UPL=geo_("upl",()=>null); for(let j=1;j<Q.length;j++){ const a=Q[j-1], b=Q[j], L=Math.hypot(b[0]-a[0],b[1]-a[1]); if(j%2) prim(UPL, 0xd4bd8a, (a[0]+b[0])/2,.006,(a[1]+b[1])/2,{ry:Math.atan2(b[0]-a[0],b[1]-a[1]), sx:1.2, sz:L*.9, flat:1}); paved.push([a[0],a[1],b[0],b[1],.75]); }
@@ -672,7 +675,7 @@ const ISLE=(()=>{
     G.userData.at=Date.now(); onB.forEach(f=>{ try{ f(); }catch(e){ console.warn(e); } }); try{ TOON.scan(G); }catch(e){} dirty=true; }
   /* 다시 짓기 (땅을 옮겼을 때) */
   function rebuild(){ while(G.children.length){ const o=G.children.pop(); o.traverse(m=>{ if(m.isMesh && m.geometry && !Object.values(KK.R).some(R=>Object.values(R.G).indexOf(m.geometry)>=0)) m.geometry.dispose(); }); }
-    [cols,bridges,rects,ISL,paved,busy,lots,LAMPS,TREES].forEach(a=>a.length=0); GLOW=null; Object.keys(SPOT).forEach(k=>delete SPOT[k]); seed=7; G.userData={}; build(); }
+    [cols,bridges,rects,LANDS,ISL,paved,busy,lots,LAMPS,TREES].forEach(a=>a.length=0); GLOW=null; Object.keys(SPOT).forEach(k=>delete SPOT[k]); seed=7; G.userData={}; build(); }
   /* ── 걸을 수 있는 칸 ── */
   /* (v575) 점검: 밤에 섬에 불이 하나도 안 켜짐 → 가로등 머리에 부드러운 빛(스프라이트 · 빛 계산 없음) · 밤·저녁에만 */
   let GLOW=null; function lampGlow(){ if(GLOW) return; const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d"), gr=g.createRadialGradient(32,32,2,32,32,31); gr.addColorStop(0,"rgba(255,240,180,1)"); gr.addColorStop(.35,"rgba(255,214,120,.55)"); gr.addColorStop(1,"rgba(255,200,100,0)"); g.fillStyle=gr; g.fillRect(0,0,64,64);
