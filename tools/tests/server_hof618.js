@@ -1,0 +1,30 @@
+const fs=require("fs"); const src=fs.readFileSync(require("path").join(__dirname,"../../server/Code.gs"),"utf8");
+const fmt=(d,tz,f)=>{ const k=new Date(d.getTime()+9*3600e3).toISOString(); return f==="yyyy-MM-dd"?k.slice(0,10):k.slice(0,16).replace("T"," "); };
+let HOF=[["종류"]]; const hofSh={getLastRow:()=>HOF.length, getRange:(r,c,nr,nc)=>({getValues:()=>HOF.slice(r-1,r-1+nr).map(x=>x.slice(0,nc)), setValues:(v)=>{ v.forEach((x,i)=>HOF[r-1+i]=x); }, setNumberFormat(){} })};
+hofSh.getRange=((g)=> (a,b,c,d)=> typeof a==="string" ? {setNumberFormat(){}} : g(a,b,c,d))(hofSh.getRange); hofSh.setFrozenRows=()=>{};
+const SS={getSheetByName:n=>n==="명예의 전당"?hofSh:null, insertSheet:()=>hofSh};
+const env={Utilities:{formatDate:fmt}, SpreadsheetApp:{openById:()=>SS}, LockService:{getScriptLock:()=>({waitLock(){},releaseLock(){}})}, CacheService:{getScriptCache:()=>null}};
+const f=new Function(...Object.keys(env), src+"; return {weekCore_, people_, C, COLS, weekStart_, hof_, wsOf_};"); const M=f(...Object.values(env));
+const C=M.C, N=M.COLS.length;
+const row=(t,nick,tag,set,score,right,wrong)=>{ const r=new Array(N).fill(""); r[C.date]=new Date(t); r[C.nick]="👤"+nick; r[C.diff]="study"; r[C.rule]="study"; r[C.set]=set; r[C.score]=score; r[C.right]=right; r[C.wrong]=wrong; r[C.clear]=1; r[C.tag]=tag; r[C.dev]="d"+tag; return r; };
+const now=Date.now(), ws=M.weekStart_(), D=864e5; const rows=[];
+for(let d=-16; d<=Math.floor((now-ws)/D); d++){ const t=ws+d*D+10*3600e3; if(t>now) break;
+  rows.push(row(t,"빈","#0012","G3-4 Stage "+(d+20)+"-1",200,20,0));
+  rows.push(row(t+60e3,"라언","#0009","G3-4 Stage "+(d+20)+"-1", d<-3?250:150,20,0));
+  if(d%2) rows.push(row(t+120e3,"주호","#0011","G3-4 Stage "+(d+20)+"-2",100,10,0)); }
+const P=M.people_(rows), A=M.weekCore_(rows,P,ws,now+1,true);
+const H=M.hof_(rows,P,A,now,ws);
+console.log("hof rows", HOF.length-1);
+console.log("streak", JSON.stringify(H.streak.study), "cal", JSON.stringify(H.cal.study.map(x=>x&&x.nick)));
+console.log("longest", JSON.stringify(H.longest.study));
+console.log("weeks", JSON.stringify(H.weeks.study.map(w=>[w.key,w.top.map(t=>t.nick)])));
+console.log("medals", JSON.stringify(H.medals.study), "last", JSON.stringify(H.lastRank), "att", JSON.stringify(H.att));
+console.log("me day", JSON.stringify(A.study.find(b=>b.nick==="빈").day), JSON.stringify((A.study.find(b=>b.nick==="빈").ent||[]).slice(0,2)));
+const H2=M.hof_(rows,P,A,now,ws); console.log("2nd run hof rows", HOF.length-1);
+console.log("json size", JSON.stringify({L:A,H}).length);
+// board_ end-to-end
+const SC=[M.COLS.map(c=>c[1])].concat(rows);
+const scSh={getMaxColumns:()=>N, getLastRow:()=>SC.length, getRange:(r,c,nr,nc)=>({getValue:()=>SC[r-1]&&SC[r-1][c-1], getValues:()=>SC.slice(r-1,r-1+nr).map(x=>x.slice(c-1,c-1+nc)), setValues(){}, setNumberFormat(){} })};
+SS.getSheetByName=n=>n==="scores"?scSh:n==="명예의 전당"?hofSh:null;
+const f2=new Function(...Object.keys(env), src+"; return board_;"); const board_=f2(...Object.values(env));
+const res=board_({tag:"0011"}); console.log(JSON.stringify(res.me).slice(0,400)); console.log(Object.keys(res.hof||{}), JSON.stringify(res.boards.study[0]));
