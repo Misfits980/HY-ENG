@@ -71,7 +71,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 13;  // (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 13;  // (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -347,11 +347,16 @@ function weekCore_(rows, P, ws, cut){
       if (Number(r[C.clear]) !== 1) return;
       if (/연습\s*$/.test(String(r[C.set] || ""))) return;            // (v611) 「Stage 3-3 연습」 = 다 푼 Stage 를 다시 연습한 판 → 공부 점수 X (예전엔 다른 Stage 로 보고 또 셈)
       if (easy(id, LV_S_(String(r[C.set] || "")))) return;            // (v602) 내 단계보다 쉬운 판
-      const key = id + "|" + Utilities.formatDate(new Date(t), TZ, "yyyy-MM-dd") + "|" + String(r[C.set] || "");
-      if (done[key]) return; done[key] = 1;
+      /* (v613) 사용자: 「몇 개를 하든 하루에 몰아서 하든 제한 X · 계속 똑같은 걸 반복하는 애들은 막자」
+         → Stage 판(「… Stage 3-2 ★3」처럼 Stage 가 적힌 것)은 한 주에 같은 Stage·같은 단계는 한 번만 — 여러 번 풀면 가장 잘한 판 하나 (예전: 날마다 또 셈)
+         → Stage 가 없는 판(복습 · 틀린 단어 · 주간 시험)은 예전처럼 하루에 한 번 */
+      const set0 = String(r[C.set] || ""), key = id + "|" + (/Stage\s*\d/.test(set0) ? "W" : Utilities.formatDate(new Date(t), TZ, "yyyy-MM-dd")) + "|" + set0;
       /* (v603) 사용자: 「데일리 30 랭킹은 푼 문제랑 스테이지 점수 총합으로」 → 공부 점수 = 스테이지 점수(처음에 맞힌 문제 ×10, 시트 「점수」) + 푼 문제 수(맞힘+틀림) */
-      const b = ent("study", id, r, t), q = (Number(r[C.right]) || 0) + (Number(r[C.wrong]) || 0), ss = Number(r[C.score]) || 0;
-      b.score += ss + q; b.n++; b.q = (b.q || 0) + q; b.ss = (b.ss || 0) + ss;
+      const b = ent("study", id, r, t), q = (Number(r[C.right]) || 0) + (Number(r[C.wrong]) || 0), ss = Number(r[C.score]) || 0, was = done[key];
+      if (was && was.v >= ss + q) return;                                // 같은 Stage 를 또 — 전보다 못하면 안 셈
+      if (was){ b.score -= was.v; b.q -= was.q; b.ss -= was.ss; } else b.n++;   // 더 잘했으면 그 판으로 바꿈 (판 수는 그대로)
+      done[key] = {v:ss + q, q, ss};
+      b.score += ss + q; b.q = (b.q || 0) + q; b.ss = (b.ss || 0) + ss;
     } else if (diff !== "study" && (!rule || rule === "normal")){
       if (easy(id, LV_R_(r[C.set]))) return;                          // (v602) 내 단계보다 쉬운 단어장으로 달린 판
       const b = ent("run", id, r, t), sc = Number(r[C.score]) || 0; if (sc > b.score){ b.score = sc; b.n = Number(r[C.stage]) || 0; }
