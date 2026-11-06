@@ -83,10 +83,15 @@ const ISLE=(()=>{
       if(!inIsle(I,x,z,.7) || water(x,z) || onPave(x,z,.9) || busy.some(([bx,bz,br])=>Math.hypot(x-bx,z-bz)<br)) continue;
       const edge=t>.82, key=edge ? (rnd()<.7?"tree_single_A":"trees_A_small") : TR[Math.floor(rnd()*TR.length)]; kk("isle",key,x,z,{s:1.1,ry:rnd()*6,chunk,col:.5}); busy.push([x,z,.9]); TREES.push([x,z]); } }
   function bridge(x1,z1,x2,z2,bw){ bw=bw||1.5; const hw=bw/2+.01, dx=x2-x1, dz=z2-z1, L=Math.hypot(dx,dz), a=Math.atan2(dx,dz); const B=new THREE.Group(); B.position.set(x1+OX,0,z1+OZ); B.rotation.y=a; G.add(B);
-    const n=Math.max(2,Math.round(L/0.46)); for(let i=0;i<n;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(bw,.11,.42), MC(i%2?0xb07a4a:0x9a6a40)); pl.position.set(0,.025,i*(L/n)+.2); pl.receiveShadow=true; B.add(pl); }
-    for(let i=0;i<=n;i+=3){ [-hw,hw].forEach(s=>{ const po=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.8,6), MC(0x7a4f2c)); po.position.set(s,.1,i*(L/n)); B.add(po); }); }
-    [-hw,hw].forEach(s=>{ const rl=new THREE.Mesh(new THREE.BoxGeometry(.06,.06,L), MC(0x7a4f2c)); rl.position.set(s,.42,L/2); B.add(rl); });
-    if(bw>2.2) for(let i=1;i<n-1;i+=4){ const d=new THREE.Mesh(new THREE.BoxGeometry(.12,.012,.9), MC(0xffd85a)); d.position.set(0,.085,i*(L/n)+.2); B.add(d); }   /* 넓은 다리 = 가운데 노란 점선 */
+    /* (v613) 새 섬: 판·난간은 물 위만(+땅 쪽 0.7) · 양 끝 = 나무 발판 + 흙 자리 — 땅 위로 난간이 나와 이음새가 어색하던 것 (사용자 사진 6) */
+    let s0=0, s1=L; if(MAP.v5){ const onL=d=>{ const x=x1+dx*d/L, z=z1+dz*d/L; return ISL.some(I=>inIsle(I,x,z,0)); }; let a0=null, a1=null; for(let d=0;d<=L;d+=.2){ if(!onL(d)){ if(a0==null) a0=d; a1=d; } } if(a0!=null){ s0=Math.max(0,a0-.7); s1=Math.min(L,a1+.7); } }
+    const SL=s1-s0, n=Math.max(2,Math.round(SL/0.46)); for(let i=0;i<n;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(bw,.11,.42), MC(i%2?0xb07a4a:0x9a6a40)); pl.position.set(0,.025,s0+i*(SL/n)+.2); pl.receiveShadow=true; B.add(pl); }
+    for(let i=0;i<=n;i+=3){ [-hw,hw].forEach(s=>{ const po=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.8,6), MC(0x7a4f2c)); po.position.set(s,.1,s0+i*(SL/n)); B.add(po); }); }
+    [-hw,hw].forEach(s=>{ const rl=new THREE.Mesh(new THREE.BoxGeometry(.06,.06,SL), MC(0x7a4f2c)); rl.position.set(s,.42,s0+SL/2); B.add(rl); });
+    if(bw>2.2) for(let i=1;i<n-1;i+=4){ const d=new THREE.Mesh(new THREE.BoxGeometry(.12,.012,.9), MC(0xffd85a)); d.position.set(0,.085,s0+i*(SL/n)+.2); B.add(d); }   /* 넓은 다리 = 가운데 노란 점선 */
+    if(MAP.v5 && (s0>0 || s1<L)) [[s0,-1],[s1,1]].forEach(([ss,sd])=>{ const lp=new THREE.Mesh(new THREE.BoxGeometry(bw+.5,.09,.9), MC(0x8a5a34)); lp.position.set(0,.02,ss+sd*.25); lp.receiveShadow=true; B.add(lp);
+      [-1,1].forEach(q=>{ const po=new THREE.Mesh(new THREE.CylinderGeometry(.11,.13,.95,8), MC(0x6a4430)); po.position.set(q*(hw+.12),.3,ss); B.add(po); const cap=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6), MC(0xffd23f)); cap.position.set(q*(hw+.12),.82,ss); B.add(cap); });
+      const t=(ss+sd*1.3)/L; disc(x1+dx*t, z1+dz*t, bw*.75, PATH); });
     bridges.push([x1+OX,z1+OZ,x2+OX,z2+OZ,Math.max(1.0,bw/2-.15)]); }   /* 걷기 폭 넉넉히 (비스듬한 다리가 계단처럼 끊기지 않게) */
   /* 다리는 섬 가장자리(구불구불)를 지나 땅 안쪽 1칸까지 — 끊기지 않게 (v528 QA: 2·3동이 광장과 안 이어짐) */
   function edgeR(c,r,ang){ const I=ISL.find(I=>Math.abs(I.cx-c[0])<.01 && Math.abs(I.cz-c[1])<.01); return I ? rr(I,ang) : r; }
@@ -254,8 +259,9 @@ const ISLE=(()=>{
   const ROAD=0xe6d6b0, ROADE=0xc4ab7e, LANE=0xdcbf86, LANEE=0xbf9f6a, ASPH=0x6b7280, ASPHE=0xe9e3d6;
   function roadP(P,w,col,edge){ const UPL=geo_("upl",()=>{ const g=new THREE.PlaneGeometry(1,1); g.rotateX(-Math.PI/2); return g; }), UCI=geo_("uci",()=>{ const g=new THREE.CircleGeometry(.5,18); g.rotateX(-Math.PI/2); return g; });
     const Q=MAP.cr(P,8); for(let i=1;i<Q.length;i++){ const a=Q[i-1], b=Q[i], L=Math.hypot(b[0]-a[0],b[1]-a[1]); if(L<1e-3) continue; const ry=Math.atan2(b[0]-a[0],b[1]-a[1]), mx=(a[0]+b[0])/2, mz=(a[1]+b[1])/2;
-      prim(UPL, edge, mx,.009,mz,{ry, sx:w+.34, sz:L+.02, flat:1}); prim(UPL, col, mx,.013,mz,{ry, sx:w, sz:L+.02, flat:1}); paved.push([a[0],a[1],b[0],b[1],w/2]); }
-    Q.forEach((p,i)=>{ if(i%2 && i!==Q.length-1) return; prim(UCI, edge, p[0],.008,p[1],{sx:w+.34,sz:w+.34,flat:1}); prim(UCI, col, p[0],.012,p[1],{sx:w,sz:w,flat:1}); }); return Q; }
+      const AS=col===ASPH, yE=MAP.v5?(AS?.004:.003):.009, yC=MAP.v5?(AS?.018:.011):.013;   /* 흙길은 아스팔트보다 아래 (흙길이 큰길에서 시작하는 곳이 깨지던 것 — 사용자 사진 2) */   /* (v613) 새 섬: 가장자리와 길 높이 차를 넓힘 — 길끼리 만나는 곳에서 밝은 테두리가 아스팔트를 뚫고 깨져 보이던 것 */
+      prim(UPL, edge, mx,yE,mz,{ry, sx:w+.34, sz:L+.02, flat:1}); prim(UPL, col, mx,yC,mz,{ry, sx:w, sz:L+.02, flat:1}); paved.push([a[0],a[1],b[0],b[1],w/2]); }
+    Q.forEach((p,i)=>{ if(i%2 && i!==Q.length-1) return; prim(UCI, edge, p[0],MAP.v5?(col===ASPH?.0035:.0025):.008,p[1],{sx:w+.34,sz:w+.34,flat:1}); prim(UCI, col, p[0],MAP.v5?(col===ASPH?.0175:.0105):.012,p[1],{sx:w,sz:w,flat:1}); }); return Q; }
   /* 이름 있는 길 입구 — 나무 아치 + 이름판 (잠긴 길 = 🚧 공사 중 울타리) */
   function signTex(txt, bg, w){ const c=document.createElement("canvas"); c.width=w||512; c.height=128; const g=c.getContext("2d"); g.fillStyle=bg||"#fffdf7"; g.strokeStyle="#3b2433"; g.lineWidth=10;
     g.beginPath(); g.roundRect ? g.roundRect(8,10,c.width-16,108,54) : g.rect(8,10,c.width-16,108); g.fill(); g.stroke(); g.fillStyle="#3b2433"; g.font="bold 58px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(txt,c.width/2,68);
@@ -356,8 +362,9 @@ const ISLE=(()=>{
     { const ZL=[]; (MAP.zones||[]).forEach(Z=>{ const P=Z.poly, Q=MAP.cr(P.concat([P[0],P[1]]),6).slice(6*1, 6*(P.length+1)), cx=P.reduce((a,p)=>a+p[0],0)/P.length, cz=P.reduce((a,p)=>a+p[1],0)/P.length;
       /* (v576) 점검: 공사장 3곳에 기둥+「새 구역 준비 중」 팻말이 공사장(town-eco site)과 겹침(기둥이 글씨를 뚫음) → 팻말은 공사장 게이지판이 맡음 · 여기는 울타리 막기(아이가 울타리 위에 서던 것)만 */
       if(Z.free){ busy.push([cx,cz,7]); const R=3.25; for(let t=-R;t<=R+.01;t+=.5){ [[t,-R],[t,R],[-R,t],[R,t]].forEach(([u,v])=>cols.push([cx+u+OX,cz+v+OZ,.5])); } SPOT["free_"+Z.k]=[cx+OX,1.6,cz+OZ]; return; }
-      const sh=new THREE.Shape(); Q.forEach((q,i)=>i?sh.lineTo(q[0],-q[1]):sh.moveTo(q[0],-q[1])); if(MAP.inPoly(LK[0],LK[1],P)){ const hp=new THREE.Path(); for(let k=0;k<=40;k++){ const a=k/40*6.2832; const x=LK[0]+Math.cos(a)*(LK[2]+1.6), z=LK[1]+Math.sin(a)*(LK[3]+1.6); k?hp.lineTo(x,-z):hp.moveTo(x,-z); } sh.holes.push(hp); }
-      const g=new THREE.ShapeGeometry(sh,2); g.rotateX(-Math.PI/2); g.translate(0,ZL.length*.0004,0);   /* (v575) 점검: 구역끼리 겹친 곳 계단 깨짐 → 구역마다 한 겹씩 */ ZL.push({g, col:new THREE.Color(GRASS).lerp(new THREE.Color(Z.c),.42).getHex()}); g.dispose;
+      if(MAP.v5){ /* (v613) 새 섬: 구역 바닥 색 없음 — 반듯한 색 판이 땅을 가르는 것처럼 보이던 것 (구역 = 문·이름판으로) */ }
+      else { const sh=new THREE.Shape(); Q.forEach((q,i)=>i?sh.lineTo(q[0],-q[1]):sh.moveTo(q[0],-q[1])); if(MAP.inPoly(LK[0],LK[1],P)){ const hp=new THREE.Path(); for(let k=0;k<=40;k++){ const a=k/40*6.2832; const x=LK[0]+Math.cos(a)*(LK[2]+1.6), z=LK[1]+Math.sin(a)*(LK[3]+1.6); k?hp.lineTo(x,-z):hp.moveTo(x,-z); } sh.holes.push(hp); }
+      const g=new THREE.ShapeGeometry(sh,2); g.rotateX(-Math.PI/2); g.translate(0,ZL.length*.0004,0);   /* (v575) 점검: 구역끼리 겹친 곳 계단 깨짐 → 구역마다 한 겹씩 */ ZL.push({g, col:new THREE.Color(GRASS).lerp(new THREE.Color(Z.c),.42).getHex()}); g.dispose; }
       if(Z.gate){ const [gx,gz]=Z.gate; let L=Math.hypot(gx,gz)||1, fx=gx/L, fz=gz/L;   /* (v608) 다리 끝 문 = 다리 방향 (비스듬한 다리에서 문이 틀어져 기둥이 물에 섬) */
         (MAP.links||[]).forEach(b=>{ [[b[0],b[1]],[b[2],b[3]]].forEach(([ex,ez])=>{ if(Math.hypot(ex-gx,ez-gz)<4){ const dl=Math.hypot(b[2]-b[0],b[3]-b[1])||1; fx=(b[2]-b[0])/dl; fz=(b[3]-b[1])/dl; } }); });
         const px=-fz, pz=fx, W2=2.5;
@@ -369,8 +376,10 @@ const ISLE=(()=>{
     if(Sx.campus){ disc(Sx.campus[0],Sx.campus[1],5.6,STONE); roadP([MAP.roads.school.p[MAP.roads.school.p.length-1], Sx.campus], 2.2, ROAD, ROADE); }
     // 길
     disc(0,0,MAP.plaza.r,STONE);
-    Object.entries(MAP.roads).forEach(([k,r])=>{ if(!r.asph){ roadP(r.p, r.w, ROAD, ROADE); return; } const Q=roadP(r.p, r.w, ASPH, ASPHE);   /* (v607~) 큰길 = 회색 아스팔트 + 노란 점선 + 넓은 인도 */
-      const DSH=geo_("dash",()=>{ const g=new THREE.PlaneGeometry(.14,.9); g.rotateX(-Math.PI/2); return g; }); const L_=MAP.arc(Q); for(let s=1.2;s<L_[L_.length-1]-1;s+=2.2){ const A=MAP.at(Q,L_,s); prim(DSH, 0xffd85a, A.x,.016,A.z,{ry:Math.atan2(A.tx,A.tz), flat:1}); } });
+    const JUNC=[]; Object.entries(MAP.roads).forEach(([k,r])=>{ if(r.asph){ JUNC.push([r.p[0][0],r.p[0][1],k], [r.p[r.p.length-1][0],r.p[r.p.length-1][1],k]); } }); ((MAP.city||{}).cross||[]).forEach(c=>JUNC.push([c[0],c[1],"*"])); JUNC.push([0,0,"*"]);
+    Object.entries(MAP.roads).forEach(([k,r])=>{ if(r.lane){ roadP(r.p, r.w, LANE, LANEE); return; } if(!r.asph){ roadP(r.p, r.w, ROAD, ROADE); return; } const Q=roadP(r.p, r.w, ASPH, ASPHE);   /* (v607~) 큰길 = 회색 아스팔트 + 노란 점선 + 넓은 인도 */
+      const DSH=geo_("dash",()=>{ const g=new THREE.PlaneGeometry(.14,.9); g.rotateX(-Math.PI/2); return g; }); const L_=MAP.arc(Q); for(let s=1.2;s<L_[L_.length-1]-1;s+=2.2){ const A=MAP.at(Q,L_,s); if(MAP.v5 && JUNC.some(j=>j[2]!==k && Math.hypot(j[0]-A.x,j[1]-A.z)<(j[2]==="*"&&j[0]===0&&j[1]===0?9:3.2))) continue;   /* (v613) 길 만나는 곳엔 점선 X */
+        prim(DSH, 0xffd85a, A.x,MAP.v5?.024:.016,A.z,{ry:Math.atan2(A.tx,A.tz), flat:1}); } });
     MAP.hoods.forEach((h,i)=>{ if(i<HN) roadP(h.p, 1.5, LANE, LANEE); else { const Q=MAP.cr(h.p,8); const UPL=geo_("upl",()=>null); for(let j=1;j<Q.length;j++){ const a=Q[j-1], b=Q[j], L=Math.hypot(b[0]-a[0],b[1]-a[1]); if(j%2) prim(UPL, 0xd4bd8a, (a[0]+b[0])/2,.006,(a[1]+b[1])/2,{ry:Math.atan2(b[0]-a[0],b[1]-a[1]), sx:1.2, sz:L*.9, flat:1}); paved.push([a[0],a[1],b[0],b[1],.75]); }
         MAP.hoodLots(h,i).forEach(L=>busy.push([L.x,L.z,1.4])); } });   /* 잠긴 길도 자리는 비워 둠 (나무 X) */
     // ⛲ 광장 — 큰 분수 · 벤치 · 가로등
@@ -482,7 +491,7 @@ const ISLE=(()=>{
             if(s+w>s1-.3){ s+=.6; continue; }
             const inset=SW+.15+d/2, c1=s+w/2, cx=along?c1:edge-fx*inset, cz=along?edge-fz*inset:c1, hx=(along?w:d)/2, hz=(along?d:w)/2, a=cx-hx, c=cx+hx, b=cz-hz, dd=cz+hz;
             if(a<B.x0-.01||c>B.x1+.01||b<B.z0-.01||dd>B.z1+.01||!fit(a,b,c,dd)){ s+=.8; continue; }
-            occ.push([a,b,c,dd]); const M4=new THREE.Matrix4().compose(new THREE.Vector3(cx+OX,0,cz+OZ), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), Math.atan2(fx,fz)), new THREE.Vector3(Ks,Ks,Ks)).multiply(new THREE.Matrix4().makeTranslation(-(bb.min.x+bb.max.x)/2, -bb.min.y, -(bb.min.z+bb.max.z)/2));
+            occ.push([a,b,c,dd]); const M4=new THREE.Matrix4().compose(new THREE.Vector3(cx+OX,0,cz+OZ), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), Math.atan2(fx,fz)+Math.PI), new THREE.Vector3(Ks,Ks,Ks))   /* (v613) Kenney 상가 앞 = -z (사용자 사진: 건물이 길 반대쪽을 봄) */.multiply(new THREE.Matrix4().makeTranslation(-(bb.min.x+bb.max.x)/2, -bb.min.y, -(bb.min.z+bb.max.z)/2));
             L.push({g, m:M4, k, grp:f+Math.floor(L.filter(e=>e.f===f).length/3), f}); rects.push([a+OX+.1,b+OZ+.1,c+OX-.1,dd+OZ-.1]); busy.push([cx,cz,Math.max(w,d)*.62+.5]); s+=w+.35; } });
         /* 가리면 흐려지는 단위 = 한 줄에 3채씩 (블록 통째로 흐려지지 않게) */
         [...new Set(L.map(e=>e.grp))].forEach(gk=>{ const Lg=L.filter(e=>e.grp===gk), W_=new THREE.Group(); W_.userData.solo=1; W_.userData.city=B.k; const mm=mergeList(Lg, R_); mm.material=cityMat(TINT[CP.blocks.indexOf(B)%TINT.length]); W_.add(mm); G.add(W_); });
@@ -490,7 +499,7 @@ const ISLE=(()=>{
       /* 🦓 건널목 — 큰길이 만나는 곳 앞뒤 */
       const ZB=geo_("zeb",()=>{ const g=new THREE.PlaneGeometry(.32,1.1); g.rotateX(-Math.PI/2); return g; });
       (CP.cross||[]).forEach(([jx,jz])=>{ Object.values(MAP.roads).forEach(r=>{ if(!r.asph) return; const Q=MAP.cr(r.p,10), Lq=MAP.arc(Q); let bi=-1, bd=1e9; Q.forEach((q,i)=>{ const dd=Math.hypot(q[0]-jx,q[1]-jz); if(dd<bd){ bd=dd; bi=i; } }); if(bd>.9) return;
-        [-1,1].forEach(dir=>{ const s2=Lq[bi]+dir*2.7; if(s2<.6 || s2>Lq[Lq.length-1]-.6) return; const A=MAP.at(Q,Lq,s2), ry=Math.atan2(A.tx,A.tz); for(let u=-r.w/2+.35;u<=r.w/2-.3;u+=.55) prim(ZB, 0xffffff, A.x+A.tz*u,.02,A.z-A.tx*u,{ry, flat:1}); }); }); });
+        [-1,1].forEach(dir=>{ const s2=Lq[bi]+dir*2.7; if(s2<.6 || s2>Lq[Lq.length-1]-.6) return; const A=MAP.at(Q,Lq,s2), ry=Math.atan2(A.tx,A.tz); for(let u=-r.w/2+.35;u<=r.w/2-.3;u+=.55) prim(ZB, 0xffffff, A.x+A.tz*u,.03,A.z-A.tx*u,{ry, flat:1}); }); }); });
       /* 🌅 가로길 끝 바다 전망 */
       if(CP.view){ const [vx,vz]=CP.view; disc(vx,vz,2.3,STONE); [-1,1].forEach(sd=>kk("city","bench",vx+.6,vz+sd*1.1,{s:.9,ry:-Math.PI/2,chunk:"m",col:.45})); busy.push([vx,vz,3]); }
     }
