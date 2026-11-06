@@ -204,6 +204,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
   const SPOT={};
   const GATES=[{k:"arena", at:[46.5,11.5], face:Math.PI*.12}, {k:"grid", at:[65.5,11.5], face:-Math.PI*.12}];
   function build(ctx){ const {G, OX, OZ, busy, cols, vcMerge}=ctx; if(!vcMerge) return; const L=[], GL=[];
+    { const SPm=ctx.MAP && ctx.MAP.spots; if(SPm && SPm.mgArena){ GATES[0].at=SPm.mgArena; GATES[1].at=SPm.mgGrid; GATES[0].face=GATES[1].face=Math.PI; } }   /* (v607~) 새 섬 5판 = 🎡 놀이 섬 */
     const add=(geo, col, x, y, z, o)=>{ o=o||{}; const m=new THREE.Matrix4(), q=new THREE.Quaternion().setFromEuler(new THREE.Euler(o.rx||0, o.ry||0, o.rz||0)); m.compose(new THREE.Vector3(x,y,z), q, new THREE.Vector3(o.sx||1,o.sy||1,o.sz||1)); (o.glow?GL:L).push({g:geo, col, m}); };
     const BX=(w,h,d)=>new THREE.BoxGeometry(w,h,d), CY=(a,b,h,n)=>new THREE.CylinderGeometry(a,b,h,n||20), SP=(r)=>new THREE.SphereGeometry(r,18,12);
     GATES.forEach(g=>{ const [gx,gz]=g.at, X=gx+OX, Z=gz+OZ, f=g.face, c=Math.cos(f), s=Math.sin(f), P=(u,y,v,geo,col,o)=>{ o=Object.assign({},o||{}); o.ry=(o.ry||0)+f; add(geo,col, X+u*c+v*s, y, Z-u*s+v*c, o); };

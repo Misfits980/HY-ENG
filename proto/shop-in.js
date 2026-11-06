@@ -50,12 +50,19 @@ const SHOPIN=(()=>{
       c.fillStyle="rgba(255,255,255,.28)"; rr(c,16,14,w-32,h*.32,18); c.fill(); c.textAlign="center"; c.textBaseline="middle"; c.fillStyle="#fff"; c.strokeStyle="#3b2433"; c.lineWidth=10; c.font='900 74px "Jua","Arial Rounded MT Bold",sans-serif';
       c.strokeText(TH.en,w/2,h*.42); c.fillText(TH.en,w/2,h*.42); c.font='800 36px "Jua",sans-serif'; c.lineWidth=7; c.strokeText(TH.ko,w/2,h*.78); c.fillText(TH.ko,w/2,h*.78); }, 3.5,2.12,.03,0,768); }
   function mkKeeper(TH){ const k=Object.assign(buildAvatar(TH.av), {face:0, t:0, moving:false, act:"idle", blinkT:1.5}); k.g.position.set(3.5,0,.62); k.g.rotation.y=0; k.g.userData.noFade=1; G.add(k.g); return k; }
-  function bubble(txt){ if(bub){ G.remove(bub.s); bub.s.material.map.dispose(); bub.s.material.dispose(); bub=null; }
-    const cv=document.createElement("canvas"); cv.width=512; cv.height=256; const g=cv.getContext("2d"); g.fillStyle="#3b2433"; rr(g,4,4,504,200,44); g.fill(); g.fillStyle="#fffdf7"; rr(g,12,12,488,184,38); g.fill();
-    g.fillStyle="#3b2433"; g.beginPath(); g.moveTo(228,200); g.lineTo(256,252); g.lineTo(286,200); g.fill(); g.fillStyle="#fffdf7"; g.beginPath(); g.moveTo(238,190); g.lineTo(256,232); g.lineTo(276,190); g.fill();
-    g.fillStyle="#3b2433"; g.textAlign="center"; g.textBaseline="middle"; const ws=txt.split(" "), L=[""]; g.font='800 52px "Jua",sans-serif'; ws.forEach(w=>{ const t=(L[L.length-1]+" "+w).trim(); if(g.measureText(t).width>440 && L[L.length-1]) L.push(w); else L[L.length-1]=t; });
-    let fs=52; while(fs>26 && L.some(l=>g.measureText(l).width>460)){ fs-=2; g.font='800 '+fs+'px "Jua",sans-serif'; } L.slice(0,3).forEach((l,i,A)=>g.fillText(l,256,104+(i-(A.length-1)/2)*(fs+8)));
-    const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false})); s.renderOrder=12; s.userData.noFade=1; s.position.set(3.5,2.5,.75); s.scale.set(.01,.01,1); G.add(s); bub={s, t:0}; dirty=true; }
+  /* (v607) 사용자: 「생선 가게 누를 때 나오는 택 손봐야」 — 말풍선 하나에 이름 · 영어 · 뜻 (위 알림과 두 번 나오던 것 · 이름표가 얼굴을 가리던 것) */
+  let bub_col="#5aa7ff";
+  function bubble(txt, ko, nm){ if(bub){ G.remove(bub.s); bub.s.material.map.dispose(); bub.s.material.dispose(); bub=null; }
+    const cv=document.createElement("canvas"); cv.width=512; cv.height=320; const g=cv.getContext("2d"); const T0=40, B=262;   /* 이름표 띠 · 말풍선 몸통 아래 끝 */
+    g.fillStyle="#3b2433"; rr(g,4,T0,504,B-T0,44); g.fill(); g.fillStyle="#fffdf7"; rr(g,12,T0+8,488,B-T0-16,38); g.fill();
+    g.fillStyle="#3b2433"; g.beginPath(); g.moveTo(228,B-2); g.lineTo(256,316); g.lineTo(286,B-2); g.fill(); g.fillStyle="#fffdf7"; g.beginPath(); g.moveTo(238,B-14); g.lineTo(256,296); g.lineTo(276,B-14); g.fill();
+    if(nm){ g.font='900 34px "Jua",sans-serif'; const w=Math.min(300, g.measureText(nm).width+44); g.fillStyle="#3b2433"; rr(g,28,4,w,56,26); g.fill(); g.fillStyle=bub_col; rr(g,33,9,w-10,46,22); g.fill();
+      g.fillStyle="#fff"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(nm,28+w/2,33); }
+    g.fillStyle="#3b2433"; g.textAlign="center"; g.textBaseline="middle"; const ws=txt.split(" "), L=[""]; let fs=46; g.font='800 '+fs+'px "Jua",sans-serif'; ws.forEach(w=>{ const t=(L[L.length-1]+" "+w).trim(); if(g.measureText(t).width>440 && L[L.length-1]) L.push(w); else L[L.length-1]=t; });
+    while(fs>26 && L.some(l=>g.measureText(l).width>460)){ fs-=2; g.font='800 '+fs+'px "Jua",sans-serif'; }
+    const ln=L.slice(0,ko?2:3), mid=ko?T0+(B-T0)/2-18:T0+(B-T0)/2; ln.forEach((l,i,A)=>g.fillText(l,256,mid+(i-(A.length-1)/2)*(fs+6)));
+    if(ko){ g.fillStyle="#8a6f7c"; let ks=28; g.font='700 '+ks+'px "Jua",sans-serif'; while(ks>18 && g.measureText(ko).width>440){ ks-=2; g.font='700 '+ks+'px "Jua",sans-serif'; } g.fillText(ko,256,mid+(ln.length-1)/2*(fs+6)+fs/2+24); }
+    const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false})); s.renderOrder=12; s.userData.noFade=1; s.position.set(3.5,2.62,.75); s.scale.set(.01,.01,1); G.add(s); bub={s, t:0}; dirty=true; }
 
   /* ── 가게 8곳 — 바닥·벽 그림 · 주인 · 장식 (로컬 좌표 = 방 칸: x 오른쪽 위 · z 왼쪽 아래 · 뒤 벽 z=0 · 왼 벽 x=0 · 문 = 왼 벽 앞) ── */
   const tiles=(a,b,n,gr)=>(c,w,h)=>{ const s=w/n; for(let y=0;y<n;y++) for(let x=0;x<n;x++){ c.fillStyle=(x+y)%2?a:b; c.fillRect(x*s,y*s,s,s); } if(gr){ c.fillStyle=gr; for(let i=0;i<=n;i++){ c.fillRect(i*s-1,0,2,h); c.fillRect(0,i*s-1,w,2); } } };
@@ -253,7 +260,7 @@ const SHOPIN=(()=>{
     go("shop", PL.shop.start, ()=>{ build(S.k); G.visible=true; yaw=yawTo=Math.PI/4; ui(true); }, {from:[-.3,N-.5], door});
     if(!run){ run=true; lastT=performance.now(); requestAnimationFrame(frame); } return true; }
   function greet(){ if(!cur || !keeper) return; const D=TH[cur.S.k]; cur.greet=true; keeper.act="wave"; keeper.t=0; setTimeout(()=>{ if(keeper) keeper.act="idle"; }, 1600);
-    bubble(D.hi[0]); try{ say(D.hi[0]); }catch(e){} toast("🧑 <b>"+D.nm+"</b> · "+D.hi[0]+"<br><small>"+D.hi[1]+"</small>", 2600); }
+    bub_col="#"+new THREE.Color(D.col).lerp(new THREE.Color(0xffffff),.15).getHexString(); bubble(D.hi[0], D.hi[1], D.nm); try{ say(D.hi[0]); }catch(e){} }
   function openSheet(){ if(!cur || !is()) return; cur.auto=false; hero.face=Math.PI; dirty=true; try{ cur.open(); }catch(e){ console.warn(e); } }
   function goCounter(){ if(!cur || !is() || trip.busy) return; cur.auto=false; if(keeper){ keeper.act="wave"; keeper.t=0; setTimeout(()=>{ if(keeper) keeper.act="idle"; }, 900); }
     if(hero.cx===SPOTC[0] && hero.cz===SPOTC[1] && !hero.moving) openSheet(); else walkTo(SPOTC[0], SPOTC[1], openSheet); }
@@ -283,7 +290,7 @@ const SHOPIN=(()=>{
 
   /* ── 이름표 · 아래 단추 ── */
   function labels(){ if(!cur) return []; const D=TH[cur.S.k];
-    return [{k:"door", ic:"🚪", t:"나가기", p:[.1,2.25,N-.5], act:exit}, {k:cur.S.k, ic:cur.S.ic, t:D.nm+" · "+D.act, p:[3.5,1.36,.62], act:goCounter}]; }
+    return [{k:"door", ic:"🚪", t:"나가기", p:[.1,2.25,N-.5], act:exit}, {k:cur.S.k, ic:cur.S.ic, t:D.act, p:[3.5,.92,1.82], act:goCounter}]; }
   function ui(on){ let g=$("gShop"); if(!g){ g=document.createElement("div"); g.className="grp"; g.id="gShop";
       g.innerHTML='<button class="dk go" id="bSOut"><i>'+ic("door")+'</i><span>나가기</span></button><b class="sep"></b><button class="dk" id="bSBuy"><i>'+ic("shop")+'</i><span id="bSBuyT">가게</span></button><button class="dk" id="bSBag"><i>'+ic("bag")+'</i><span>가방</span></button>';
       const bar=document.querySelector(".bar.bot"); if(bar) bar.appendChild(g); $("bSOut").onclick=exit; $("bSBuy").onclick=goCounter; $("bSBag").onclick=()=>{ try{ openBag(); }catch(e){} }; }
@@ -296,7 +303,7 @@ const SHOPIN=(()=>{
         try{ if(visitFrom && visitFrom.key==="shop") visitFrom={key:"isle", at:doorAt(S)}; }catch(e){} cleanup(); if(place===PL.isle){ yaw=yawTo=y0; } } return; }
     let a=false; if(keeper && animChar(keeper, dt)) a=true; if(keeper && keeper.act==="wave") a=true;
     if(cur.auto && !trip.busy && !hero.slide && F.st==="idle"){ if(!cur.greet) greet(); cur.auto=false; cur.ao=true; walkTo(SPOTC[0], SPOTC[1], ()=>{ hero.face=Math.PI; setTimeout(()=>{ if(cur && cur.ao && is() && !sheetOpen() && !avOpen && hero.cx===SPOTC[0] && hero.cz===SPOTC[1]) openSheet(); }, 380); }); }
-    if(bub){ const B=bub; B.t+=dt; const k=B.t<.2?B.t/.2*1.1:B.t<.32?1.1-(B.t-.2)/.12*.1:1; B.s.scale.set(2.3*k,1.15*k,1); if(B.t>3.4){ B.s.material.opacity=Math.max(0,1-(B.t-3.4)/.4); if(B.t>3.8){ G.remove(B.s); B.s.material.map.dispose(); B.s.material.dispose(); bub=null; } } a=true; }
+    if(bub){ const B=bub; B.t+=dt; const k=B.t<.2?B.t/.2*1.1:B.t<.32?1.1-(B.t-.2)/.12*.1:1; B.s.scale.set(2.3*k,1.44*k,1); if(B.t>4.4){ B.s.material.opacity=Math.max(0,1-(B.t-4.4)/.4); if(B.t>4.8){ G.remove(B.s); B.s.material.map.dispose(); B.s.material.dispose(); bub=null; } } a=true; }
     tA+=dt; if(tA>.066){ anims.forEach(f=>{ try{ f(tA, now/1000); }catch(e){} }); tA=0; if(anims.length) a=true; }
     if(a) dirty=true; }
 

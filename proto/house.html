@@ -4322,10 +4322,10 @@ const LBL_DEF={
     {k:"board", ic:"📋", t:"부탁", p:[V_BOARD[0]+0.5,1.65,V_BOARD[1]+0.5], act:()=>useTile(V_BOARD[0],V_BOARD[1],showBoard)}],
   mine:()=>[{k:"gate", ic:"🏘", t:"마을", p:[M_GATE[0]+0.5,1.85,M_GATE[1]+0.5], act:mineToVillage}]
 };
-let LBL=[]; const LBL_NEAR={yard:1, yvisit:1, village:1, mine:1};
+let LBL=[]; const LBL_NEAR={yard:1, yvisit:1, village:1, mine:1}, LBL_HUD={};
 function farmGo(){ if(!PLOTS.length){ toast("🌱 밭이 없어요 — ✏️ 꾸미기 → 🌱 밭 일구기로 만들어요", 2200); return; } let i=plots.findIndex((p,j)=>j<plotN && plotStage(p)==="ripe"); if(i<0) i=plots.findIndex((p,j)=>j<plotN && !p.s); if(i<0) i=0; useTile(PLOTS[i][0],PLOTS[i][1],()=>onPlot(i)); }
 function drawLabels(){ const box=$("tls"); box.innerHTML="";
-  LBL=(LBL_DEF[place.key]||(()=>[]))().map(d=>{ const el=document.createElement("button"); el.className="tl"; el.dataset.k=d.k; el.innerHTML='<i>'+d.ic+'</i>'+d.t;
+  LBL=(LBL_DEF[place.key]||(()=>[]))().map(d=>{ const el=document.createElement("button"); el.className="tl"+(d.sign?" sg":""); el.dataset.k=d.k; el.innerHTML='<i>'+d.ic+'</i>'+d.t;
     el.onclick=e=>{ e.stopPropagation(); if(F.st!=="idle" || trip.busy) return; d.act(); }; box.appendChild(el); return {d, el, v:new THREE.Vector3()}; });
   updLabels(); updUI(); }
 function updLabels(){ const W=innerWidth, H=VH();
@@ -4337,7 +4337,19 @@ function updLabels(){ const W=innerWidth, H=VH();
     L.el.classList.toggle("edge", edge); L.el.style.display=off?"none":"";
     /* (v437) 사용자: "가까이 가야 이름표가 뜨게" — 바깥(마당·마을·광산)은 가까이 갔을 때만 · 안내 중(👇)인 것은 늘 보임 · 가장자리에서 깜빡이지 않게 여유 0.5 */
     if(LBL_NEAR[place.key] && hero){ const r=L.d.r||2.4, dd=Math.hypot(hero.g.position.x-L.d.p[0], hero.g.position.z-L.d.p[2]); L.near = dd<r || (L.near && dd<r+0.5); L.el.classList.toggle("far", !L.near && !L.el.classList.contains("hot")); }
-    if(!off){ const hw=(L.el.offsetWidth||80)/2; let lx=Math.max(hw+4,Math.min(W-hw-4,x)); L.el.style.left=lx+"px"; L.el.style.top=y+"px"; } }); }
+    if(!off){ const hw=(L.el.offsetWidth||80)/2; let lx=Math.max(hw+4,Math.min(W-hw-4,x)); L.el.style.left=lx+"px"; L.el.style.top=y+"px"; L.lx=lx; L.ly=y; } else L.lx=null;
+    if(hero) L.dd=Math.hypot(hero.g.position.x-L.d.p[0], hero.g.position.z-L.d.p[2]); });
+  /* (v607) 사용자: 「이름표가 이상한지 다 확인」 — 섬: 멀리 있는 작은 동그라미가 다른 이름표·가게 간판 글자 위에 겹치던 것 → 가까운 이름표 먼저, 겹치는 작은 동그라미는 숨김 (가게는 지붕 간판이 있어서 멀 땐 동그라미 없음) */
+  if(place.key==="isle"){ const R=[], ov=(a,b)=>!(a.x+a.w<=b.x || b.x+b.w<=a.x || a.y+a.h<=b.y || b.y+b.h<=a.y), isFar=L=>L.el.classList.contains("far") && !L.el.classList.contains("hot");
+    const vis=LBL.filter(L=>L.lx!=null && L.el.style.display!=="none");
+    const now=performance.now(); if(!LBL_HUD.r || now-LBL_HUD.t>500){ LBL_HUD.t=now; LBL_HUD.r=["ihMe","ihRes","ihMenu","ihQ","ihChat","ihTool","ijoy","ijump","coach"].map(id=>{ const e=document.getElementById(id); if(!e || !e.offsetParent) return null; const q=e.getBoundingClientRect(); return q.width ? {x:q.left-4, y:q.top-4, w:q.width+8, h:q.height+8} : null; }).filter(Boolean); }
+    /* 가까운 이름표: 위쪽 판(내 얼굴·💎·오늘 할 일)에 가리면 그 아래로 · 서로 겹치면 위로 비켜 쌓기 */
+    vis.filter(L=>!isFar(L)).sort((a,b)=>b.ly-a.ly).forEach(L=>{ const t=L.el.textContent; if(L.wk!==t){ L.wn=L.el.offsetWidth||90; L.wk=t; } let y=L.ly; const box=yy=>({x:L.lx-L.wn/2-4, y:yy-50, w:L.wn+8, h:44});
+      for(let k=0;k<4;k++){ const hit=LBL_HUD.r.find(q=>q.y<H/2 && ov(q,box(y))); if(!hit) break; y=hit.y+hit.h+50; }
+      for(let k=0;k<3;k++){ const hit=R.find(q=>ov(q,box(y))); if(!hit) break; y=hit.y-2; }
+      if(y!==L.ly){ L.el.style.top=y+"px"; L.ly=y; } const bad=LBL_HUD.r.some(q=>ov(q,box(y))); L.el.classList.toggle("hudx", bad && !L.el.classList.contains("hot")); if(!bad) R.push(box(y)); L.el.classList.remove("dc"); });
+    LBL_HUD.r.forEach(q=>R.push(q));
+    vis.filter(L=>isFar(L) && !L.d.sign).sort((a,b)=>(a.dd||0)-(b.dd||0)).forEach(L=>{ const r={x:L.lx-17, y:L.ly-40, w:34, h:34}, hit=R.some(q=>ov(q,r)); L.el.classList.toggle("dc", hit); if(!hit) R.push(r); }); } }
 function uiBusy(){ return sheetOpen() || edit || !!ghost || F.st!=="idle" || !!dlg || avOpen || trip.busy || $("info").classList.contains("on") || $("drawer").classList.contains("on"); }
 function updUI(){ const b=uiBusy(); $("tls").classList.toggle("off", b); drawCoach(b); const eo=(place===PL.yard || place===PL.village || place===PL.mine || place===PL.yvisit) && !b && !coachOn && !TW.on; $("bEmo").classList.toggle("on", eo); if(!eo) $("emoBar").classList.remove("on"); }
 
@@ -4586,6 +4598,7 @@ window.HOUSE = {MTL, mtLog, mtId, MTS, mtAcc, mtSheet, VLN, vlNetStart, vlNetSto
 <script src="shop-ui.js"></script>   <!-- (v584) 🧺 가게 계산대 -->
 <script src="home-rooms.js"></script>
 <script>try{ HOMEX.init(); }catch(e){ console.warn(e); }</script>
+<script src="isle-map5.js"></script>
 <script src="isle-map.js"></script>
 <script src="isle-words.js"></script>
 <script src="isle.js"></script>

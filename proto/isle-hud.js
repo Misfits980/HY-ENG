@@ -66,6 +66,7 @@ body.isleOn .tl:not(.far)::after{content:"";position:absolute;left:50%;bottom:-9
 body.isleOn .tl.far{opacity:.78;scale:.78;pointer-events:auto;font-size:0;gap:0;padding:3px;background:rgba(255,253,247,.9)}
 body.isleOn .tl.far i{font-size:17px}
 body.isleOn .tl.far::after{display:none}
+body.isleOn .tl.far.sg:not(.hot),body.isleOn .tl.far.dc:not(.hot),body.isleOn .tl.hudx{display:none}
 /* 잡았다! 보상 카드 */
 body.isleOn #quiz .box{border:3px solid #3b2433;box-shadow:0 6px 0 #3b2433;border-radius:26px;padding-top:30px}
 body.isleOn #quiz .box::before{content:"🎉 잡았다!";top:-22px;padding:7px 22px;border:3px solid #3b2433;border-radius:16px;background:linear-gradient(180deg,#ff8a8a,#ff5d6c);font:400 19px var(--kr);box-shadow:0 3px 0 #3b2433;transform:translateX(-50%) rotate(-2deg)}
@@ -134,11 +135,15 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   function openMap(){ const M=window.ISLE_MAP; if(!M || !M.zones){ click("bMap"); return; }
     let el=$("ihMap"); if(!el){ el=document.createElement("div"); el.id="ihMap"; document.body.appendChild(el);
       el.addEventListener("click", e=>{ const z=e.target.closest("[data-z]"); if(z){ el.classList.remove("on"); goZone(z.dataset.z); return; } if(e.target===el || e.target.closest(".mx")) el.classList.remove("on"); }); }
-    const I=M.island, x0=I.cx-I.ax-5, z0=I.cz-I.az-5, w=I.ax*2+10, h=I.az*2+10, f=n=>Math.round(n*10)/10;   /* (v568) ax·az 는 반지름 — 예전엔 지름으로 써서 섬 절반만 보이고 이름이 겹침 */
+    const I=M.island, f=n=>Math.round(n*10)/10; let x0=I.cx-I.ax-5, z0=I.cz-I.az-5, w=I.ax*2+10, h=I.az*2+10;
+    if(M.isles){ let a0=-75,b0=-68,a1=73,b1=62; M.isles.forEach(q=>{ a0=Math.min(a0,q.cx-q.R); b0=Math.min(b0,q.cz-q.R); a1=Math.max(a1,q.cx+q.R); b1=Math.max(b1,q.cz+q.R); }); x0=a0-6; z0=b0-6; w=a1-a0+12; h=b1-b0+12; }   /* (v607~) 새 섬 5판 = 둘레 섬까지 */   /* (v568) ax·az 는 반지름 — 예전엔 지름으로 써서 섬 절반만 보이고 이름이 겹침 */
     const cen=P=>{ let x=0,z=0; P.forEach(q=>{ x+=q[0]; z+=q[1]; }); return [x/P.length, z/P.length]; };
     const hex=c=>"#"+("00000"+(c>>>0).toString(16)).slice(-6);
     let g; try{ const pts=[]; for(let k=0;k<72;k++){ const a=k/72*Math.PI*2, r=M.edge(a); pts.push(f(I.cx+Math.cos(a)*r)+","+f(I.cz+Math.sin(a)*r)); } g='<polygon points="'+pts.join(" ")+'" fill="#9ed67a" stroke="#f1e2a8" stroke-width="3"/>'; }
       catch(_){ g='<ellipse cx="'+f(I.cx)+'" cy="'+f(I.cz)+'" rx="'+f(I.ax)+'" ry="'+f(I.az)+'" fill="#9ed67a" stroke="#f1e2a8" stroke-width="3"/>'; }
+    if(M.isles){ M.isles.forEach(q=>{ const pts=[]; for(let k=0;k<48;k++){ const a=k/48*Math.PI*2, r=q.R*(1+.035*Math.sin(3*a+q.s)+.025*Math.sin(5*a+q.s*2)); pts.push(f(q.cx+Math.cos(a)*r)+","+f(q.cz+Math.sin(a)*r)); } g+='<polygon points="'+pts.join(" ")+'" fill="'+(q.lock?"#c9d6c0":"#9ed67a")+'" stroke="#f1e2a8" stroke-width="3"/>'; if(q.lake){ const L=M.spots.lake; g+='<ellipse cx="'+f(L.x)+'" cy="'+f(L.z)+'" rx="'+f(L.rx)+'" ry="'+f(L.rz)+'" fill="#58c2e6"/>'; } });
+      (M.links||[]).forEach(b=>{ g+='<line x1="'+b[0]+'" y1="'+b[1]+'" x2="'+b[2]+'" y2="'+b[3]+'" stroke="#a8743c" stroke-width="'+f((b[4]||1.5)*.9)+'"/>'; });
+      Object.values(M.roads).forEach(r=>{ if(!r.asph) return; g+='<polyline points="'+r.p.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="none" stroke="#7a808c" stroke-width="'+f(r.w*.8)+'" stroke-linecap="round" stroke-linejoin="round"/>'; }); }
     M.zones.forEach(Z=>{ if(Z.free) return; const c=cen(Z.poly); g+='<g data-z="'+Z.k+'"><polygon points="'+Z.poly.map(q=>f(q[0])+","+f(q[1])).join(" ")+'" fill="'+hex(Z.c||0xcccccc)+'" fill-opacity=".75" stroke="#3b2433" stroke-width=".9"/></g><text x="'+f(c[0])+'" y="'+f(c[1])+'" text-anchor="middle">'+Z.nm+'</text>'; });
     try{ const d=ISLE.doorCell(); if(d && tut.s>=1) g+='<g data-z="myhome"><circle cx="'+f(d[0]+.5-ISLE.OX)+'" cy="'+f(d[1]+.5-ISLE.OZ)+'" r="4.4" fill="#ffd23f" stroke="#3b2433" stroke-width="1"/></g><text class="hm" x="'+f(d[0]+.5-ISLE.OX)+'" y="'+f(d[1]+11-ISLE.OZ)+'" text-anchor="middle">⭐ 내 집</text>'; }catch(_){}
     try{ const s=ISLE.SPOT.mine; if(s) g+='<g data-z="mine"><circle cx="'+f(s[0]-ISLE.OX)+'" cy="'+f(s[2]-ISLE.OZ)+'" r="4.4" fill="#b8a2e0" stroke="#3b2433" stroke-width="1"/></g><text class="hm" x="'+f(s[0]-ISLE.OX)+'" y="'+f(s[2]+11-ISLE.OZ)+'" text-anchor="middle">⛏ 광산</text>'; }catch(_){}   /* (v580) ⛏ 광산 = 바로 가기 되는 곳 */

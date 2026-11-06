@@ -60,7 +60,7 @@ async def main():
         await A.screenshot(path=OUT+"qa561_map.png")
         h0=await A.evaluate("()=>[HOUSE.hero().cx, HOUSE.hero().cz]")
         await A.evaluate("()=>document.querySelector('#ihMap [data-z=park] polygon').dispatchEvent(new MouseEvent('click',{bubbles:true}))"); await A.wait_for_timeout(300)
-        await A.evaluate("()=>document.querySelector('#askT [data-gz=w]').click()"); await A.wait_for_timeout(600)
+        await A.evaluate("()=>document.querySelector('#askT [data-gz]').click()"); await A.wait_for_timeout(600)
         r=await A.evaluate("()=>[document.getElementById('ihMap').classList.contains('on'), (HOUSE.hero().path||[]).length, HOUSE.hero().moving]")
         ok(not r[0] and (r[1]>0 or r[2]), f"④ 지도에서 놀이 공원 → 걸어감 {r}")
         await A.evaluate("()=>{ const h=HOUSE.hero(); h.path=[]; h.moving=false; }")
