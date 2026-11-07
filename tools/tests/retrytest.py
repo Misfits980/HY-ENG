@@ -19,6 +19,9 @@ async def main():
             await pg.evaluate(SOLVE, False); await pg.wait_for_timeout(450 if t == "drag" else 20)
         a = await pg.evaluate("()=>({i:StudyUI.i, n:StudyUI.qs.length, en:StudyUI.qs[StudyUI.i].w.en, t:StudyUI.qs[StudyUI.i].t, done:StudyUI.done})")
         await pg.evaluate(SOLVE, True); await pg.wait_for_timeout(100)
+        t2 = await pg.evaluate("()=>!StudyUI.locked && !!StudyUI.qs[StudyUI.i].t2")   # (v623) 처음 틀리면 「한 번 더」 → 또 틀려야 정답·바로 다시
+        if not t2: bad.append("처음 틀리면 한 번 더")
+        await pg.evaluate(SOLVE, True); await pg.wait_for_timeout(100)
         msg = await pg.evaluate("()=>document.getElementById('stFoot').innerText")
         nx = await pg.evaluate("()=>{ const q=StudyUI.qs[StudyUI.i+1]; return {retry:!!q.retry, en:q.w.en, t:q.t} }")
         later = await pg.evaluate("(en)=>StudyUI.qs.slice(StudyUI.i+2).filter(q=>q.w&&q.w.en===en&&q.again&&!q.retry).length", a["en"])

@@ -9,7 +9,7 @@ async def solve_until(pg, n_first, wrong_at):
     """처음 보는 문제를 n_first 개 풀 때까지 (wrong_at 번째는 틀리게)"""
     seen = 0
     for _ in range(300):
-        st = await pg.evaluate("()=>{ const U=StudyUI, q=U.qs[U.i]; return {t:q&&q.t, again:!!(q&&q.again), locked:U.locked, brk:!!U._brk} }")
+        st = await pg.evaluate("()=>{ const U=StudyUI, q=U.qs[U.i]; return {t:q&&q.t, again:!!(q&&(q.again||q.t2)), locked:U.locked, brk:!!U._brk} }")   # (v623) 「한 번 더」 상태는 새 문제 아님
         fresh = st['t'] and st['t'] != 'intro' and not st['again'] and not st['locked'] and not st['brk']
         if fresh and seen >= n_first: return
         await pg.evaluate(SOLVE, bool(fresh and seen in wrong_at))

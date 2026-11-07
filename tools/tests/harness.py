@@ -41,17 +41,17 @@ SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('s
   if(U.locked){ document.getElementById('stCheck').click(); return 'cont'; }
   if(q.t==='intro' && q.hd==='sort'){ q.pick=q.pick||{}; q.ws.forEach((w,k)=>{ if(!q.pick[w.en]) q.pick[w.en]=(k%3===0?'s':'c'); }); U.check(); return 'intro'; }   // (v301) 세 칸 나누기
   if(q.t==='intro'){ document.getElementById('stCheck').click(); return 'intro'; }
-  if(q.so){ let k=q.opts.indexOf(q.ans); if(wrongFirst && !q.again) k=(k+1)%q.opts.length; document.querySelector('#stQ .stOpt[data-k="'+k+'"]').click(); return q.t; }
+  if(q.so){ let k=q.opts.indexOf(q.ans); if(wrongFirst && !q.again) k=(k+(q.t2?2:1))%q.opts.length; document.querySelector('#stQ .stOpt[data-k="'+k+'"]').click(); return q.t; }
   if(q.t==='order'){ const used=[]; q.x.ch.forEach(c=>{ const k=q.tiles.findIndex((ci,j)=>q.x.ch[ci]===c && used.indexOf(j)<0); used.push(k); document.querySelector('.odT[data-o="'+k+'"]').click(); }); document.getElementById('stCheck').click(); return 'order'; }
   if(q.t==='kdict'){ for(const c of (q.kans||q.w.en)) document.querySelector('.kdK[data-kk="'+c+'"]').click(); document.getElementById('stCheck').click(); return 'kdict'; }
   if(q.t==='match'){ q.ws.forEach(w=>{ document.querySelector('.stM.en[data-en="'+w.en+'"]').click(); document.querySelector('.stM.ko[data-ko="'+w.en+'"]').click(); }); document.getElementById('stCheck').click(); return 'match'; }
   if(q.t==='drag'){ q.ws.forEach(w=>{ q.pick=document.querySelector('.dgChip[data-en="'+w.en+'"]'); document.querySelector('.dgT[data-en="'+w.en+'"]').click(); }); return 'drag'; }
-  if(q.t==='blend'){ let k=q.opts.indexOf(q.mid); if(wrongFirst && !q.again) k=(k+1)%(q.t==='ox'?2:q.opts.length); document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'blend'; }
-  if(q.t==='sentp'){ let k=q.opts.indexOf(q.form); if(wrongFirst && !q.again) k=(k+1)%q.opts.length; document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'sentp'; }
-  if(q.t==='past'){ let k=q.opts.indexOf(q.w.en); if(wrongFirst && !q.again) k=(k+1)%q.opts.length; document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'past'; }
+  if(q.t==='blend'){ let k=q.opts.indexOf(q.mid); if(wrongFirst && !q.again) k=(k+(q.t2?2:1))%(q.t==='ox'?2:q.opts.length); document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'blend'; }
+  if(q.t==='sentp'){ let k=q.opts.indexOf(q.form); if(wrongFirst && !q.again) k=(k+(q.t2?2:1))%q.opts.length; document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'sentp'; }
+  if(q.t==='past'){ let k=q.opts.indexOf(q.w.en); if(wrongFirst && !q.again) k=(k+(q.t2?2:1))%q.opts.length; document.querySelector('.stOpt[data-k="'+k+'"]').click(); return 'past'; }
   if(q.t==='find'){ let k=q.toks.findIndex(o=>o.ok); if(wrongFirst && !q.again) k=q.toks.findIndex(o=>!o.ok); document.querySelector('#stQ .stOpt[data-k="'+k+'"]').click(); return 'find'; }
   if(q.t==='spell'||q.t==='dict'){ for(const c of q.w.en.slice((q.got||'').length)){ const b=[...document.querySelectorAll('.stTile')].find(x=>!x.disabled && x.textContent===c); b.click(); } document.getElementById('stCheck').click(); document.getElementById('stCheck').click(); return q.t; }
-  let k= (q.t==='ox'||q.t==='oxs') ? (q.truth?0:1) : q.opts.findIndex(o=>o.en===q.w.en); if(wrongFirst && !q.again) k=(k+1)%((q.t==='ox'||q.t==='oxs')?2:q.opts.length);
+  let k= (q.t==='ox'||q.t==='oxs') ? (q.truth?0:1) : q.opts.findIndex(o=>o.en===q.w.en); if(wrongFirst && !q.again) k=(k+(q.t2?2:1))%((q.t==='ox'||q.t==='oxs')?2:q.opts.length);
   document.querySelector('.stOpt[data-k="'+k+'"]').click(); return q.t; }"""
 
 # (v536) My Town 은 빈 방에서 시작 — 예전 테스트(가구 7개·창문 2·그림 1 기준)는 이 방을 넣고 시작 (새 문 자리 피해서)
