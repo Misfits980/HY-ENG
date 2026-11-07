@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HY ENG 오류 기록</title>
+<meta name="robots" content="noindex">
+<style>
+/* (v623) 🛡 선생님용 오류 기록 — guard.js 가 /hy/day/er<날짜> 에 남긴 것을 날짜별로 묶어 봄 */
+:root{--bg:#fff8ea;--card:#fff;--ink:#3b2433;--sub:#7a6a5e;--line:#ead9bf;--red:#e63946;--org:#f4a261;--grn:#2a9d8f;--pur:#7b5ea7}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1720;--card:#2a2230;--ink:#f3e9f7;--sub:#b8a9c2;--line:#41354a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Pretendard","Noto Sans KR",system-ui,sans-serif;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 40px max(14px,env(safe-area-inset-left))}
+h1{font-size:21px;margin:4px 0 2px}.sub{color:var(--sub);font-size:13px;margin-bottom:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar button{font:700 14px inherit;font-family:inherit;padding:8px 14px;border-radius:999px;border:2px solid var(--ink);background:var(--card);color:var(--ink)}
+.bar button.on{background:var(--ink);color:var(--bg)}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px}
+.sum div{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px}.sum b{display:block;font-size:24px}.sum span{color:var(--sub);font-size:12.5px}
+.it{background:var(--card);border:2px solid var(--line);border-left:7px solid var(--org);border-radius:14px;padding:10px 12px;margin-bottom:9px}
+.it.crash,.it.fatal{border-left-color:var(--red)}.it.perf{border-left-color:var(--grn)}.it.gl{border-left-color:var(--pur)}
+.it .h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.it .n{font-weight:900;font-size:18px;min-width:42px}
+.tag{font-size:12px;font-weight:800;padding:1px 8px;border-radius:999px;background:var(--line)}
+.m{font-weight:700;word-break:break-word}.meta{color:var(--sub);font-size:12.5px;margin-top:4px;word-break:break-word}
+details{margin-top:4px}summary{cursor:pointer;color:var(--sub);font-size:12.5px}pre{white-space:pre-wrap;word-break:break-all;font-size:11.5px;background:var(--bg);padding:8px;border-radius:8px;margin:6px 0 0}
+.empty{padding:30px;text-align:center;color:var(--sub)}
+</style></head><body>
+<h1>🛡 오류 기록</h1>
+<div class="sub">게임·마을에서 생긴 오류를 같은 것끼리 묶었어요. 빨간 줄 = 튕김·멈춤 · 초록 = 렉 때문에 가볍게 바꿈 · 보라 = 그래픽 끊김.</div>
+<div class="bar" id="bar"><button data-d="1" class="on">오늘</button><button data-d="3">3일</button><button data-d="7">7일</button><button id="rf">🔄 새로</button></div>
+<div class="sum" id="sum"></div>
+<div id="list"><div class="empty">불러오는 중…</div></div>
+<script>
+const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app","https://hy-eng-raid-default-rtdb.firebaseio.com","https://hy-eng-raid-default-rtdb.europe-west1.firebasedatabase.app"];
+const KIND={err:"오류",promise:"약속 오류",frame:"프레임 오류",fatal:"멈춤",crash:"튕김",gl:"그래픽 끊김",perf:"렉 → 가볍게"};
+const PAGE={game:"게임",town:"마을"};
+let days=1;
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dk=i=>{ const d=new Date(Date.now()+9*3600e3-i*864e5); return d.toISOString().slice(0,10).replace(/-/g,""); };
+async function get(path){ let base=null; try{ base=localStorage.getItem("hyeng_fb_url"); }catch(e){} const L=(base&&URLS.includes(base)?[base]:[]).concat(URLS.filter(u=>u!==base));
+  let q=""; try{ const a=JSON.parse(localStorage.getItem("hyeng_fb_auth")||"null"); if(a && a.t && Date.now()<(+a.e||0)) q="?auth="+encodeURIComponent(a.t); }catch(e){}
+  for(const u of L){ try{ const r=await fetch(u+path+q,{cache:"no-store"}); if(r.ok) return await r.json(); if(r.status===401) $sum.dataset.auth=1; }catch(e){} } return null; }
+const tm=t=>{ const d=new Date(t); return (d.getMonth()+1)+"/"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
+async function load(){ $list.innerHTML='<div class="empty">불러오는 중…</div>';
+  const all=[]; const R=await Promise.all(Array.from({length:days},(_,i)=>get("/hy/day/er"+dk(i)+".json")));
+  R.forEach(o=>{ if(o) Object.values(o).forEach(x=>{ if(x && x.m!=null) all.push(x); }); });
+  const G={}; all.forEach(x=>{ const key=x.k+"|"+x.m; const g=G[key]||(G[key]={k:x.k,m:x.m,n:0,v:new Set(),d:new Set(),w:new Set(),p:new Set(),pl:new Set(),t0:x.t,t1:x.t,ex:x}); g.n++; g.v.add(x.v||"?"); g.d.add(x.d||"?"); if(x.w) g.w.add(x.w); g.p.add(PAGE[x.p]||x.p); if(x.pl) g.pl.add(x.pl); g.t0=Math.min(g.t0,x.t); if(x.t>=g.t1){ g.t1=x.t; g.ex=x; } });
+  const L=Object.values(G).sort((a,b)=>b.t1-a.t1);
+  const kids=new Set(all.map(x=>x.w).filter(Boolean)), cr=all.filter(x=>x.k==="crash"||x.k==="fatal").length, pf=all.filter(x=>x.k==="perf").length;
+  $sum.innerHTML='<div><b>'+all.length+'</b><span>기록 (같은 것 '+L.length+'묶음)</span></div><div><b>'+cr+'</b><span>튕김·멈춤</span></div><div><b>'+pf+'</b><span>렉 → 가볍게</span></div><div><b>'+kids.size+'</b><span>겪은 아이</span></div>';
+  if(!L.length){ $list.innerHTML=$sum.dataset.auth ? '<div class="empty">🔐 이 기기는 아직 서버 로그인이 안 됐어요 — 게임을 한 번 켠 뒤 다시 열어 주세요</div>' : '<div class="empty">🎉 이 기간엔 오류 기록이 없어요</div>'; return; }
+  $list.innerHTML=L.map(g=>'<div class="it '+esc(g.k)+'"><div class="h"><span class="n">×'+g.n+'</span><span class="tag">'+esc(KIND[g.k]||g.k)+'</span><span class="tag">'+esc([...g.p].join("·"))+(g.pl.size?' · '+esc([...g.pl].join(", ")):'')+'</span><span class="meta">'+tm(g.t0)+(g.t1!==g.t0?' ~ '+tm(g.t1):'')+'</span></div>'
+    +'<div class="m">'+esc(g.m)+'</div><div class="meta">버전 '+esc([...g.v].join(", "))+' · '+esc([...g.d].slice(0,3).join(" / "))+(g.d.size>3?' 외 '+(g.d.size-3):'')+(g.w.size?' · 아이 '+esc([...g.w].slice(0,6).join(", ")):'')+(g.ex.fps?' · '+esc(g.ex.fps):'')+'</div>'
+    +((g.ex.s||g.ex.st)?'<details><summary>자세히 (개발자용)</summary><pre>'+esc((g.ex.s?g.ex.s+"\n":"")+(g.ex.st||""))+'</pre></details>':'')+'</div>').join("");
+}
+const $list=document.getElementById("list"), $sum=document.getElementById("sum");
+document.getElementById("bar").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; if(b.id==="rf"){ load(); return; } days=+b.dataset.d; document.querySelectorAll("#bar [data-d]").forEach(x=>x.classList.toggle("on",x===b)); load(); };
+load();
+</script>
+</body></html>

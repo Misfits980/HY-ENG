@@ -1,4 +1,4 @@
-"""가짜 Firebase (테스트용) — GET(shallow) · PUT · PATCH · DELETE · 스트리밍은 503 (폴링으로 돌게)"""
+"""가짜 Firebase (테스트용) — GET(shallow) · PUT · PATCH · POST · DELETE · 스트리밍은 503 (폴링으로 돌게)"""
 import json, re
 from harness import route
 DB = {}
@@ -33,6 +33,10 @@ async def fake(r):
                 for k, x in v.items(): db_put(path + "/" + k, x)
             else: db_put(path, v)
             return await r.fulfill(status=200, body=json.dumps(v), content_type="application/json")
+        if m == "POST":   # (v623) 🛡 오류 기록 = 자동 키로 넣기
+            import time, random
+            k = "-T%d%04d" % (int(time.time()*1000), random.randint(0, 9999)); v = json.loads(r.request.post_data or "null"); db_put(path + "/" + k, v)
+            return await r.fulfill(status=200, body=json.dumps({"name": k}), content_type="application/json")
         if m == "DELETE": db_put(path, None); return await r.fulfill(status=200, body="null", content_type="application/json")
         return await r.fulfill(status=400, body="x")
     return await route(r)
