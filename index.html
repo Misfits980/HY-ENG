@@ -16542,7 +16542,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v624";
+const GAME_VER = "v625";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19807,10 +19807,10 @@ const GramUI = {
       Online.submit({nick, score:this.first*10, diff:"study", rule:"study-grammar", stage:0, acc:Math.round(pct*100), right:this.first, wrong:this.n-this.first, total:this.n, clear:pass?1:0, end:pass?"clear":"fail",
         set:({g34:"G3-4", g56:"G5-6", mid:"중등"}[this.mixBk]||"")+" 문법 · 🔀 섞어 풀기", secs:Math.min(3600, Math.max(0, Math.round((Date.now()-this.t0-(Vis.tot()-(this._v0||0)))/1000))), gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER, miss:this.miss.slice(0,10).join(" / ")}); }catch(e){} },
   mixEnd(){ const r=this.res, E=s=>this.E(s), K=Object.keys(r.by), weak=K.filter(k=>r.by[k][0]<r.by[k][1]).sort((a,b)=>r.by[a][0]/r.by[a][1]-r.by[b][0]/r.by[b][1]);
-    return '<div class="grEnd"><div class="grEndI">🔀</div><h2>'+(r.pct>=0.9?'헷갈리지 않았어요!':r.pass?'잘 골라냈어요!':'조금 헷갈렸어요')+'</h2>'
+    return '<div class="grEnd"><div class="grEndI">🔀</div><h2>'+(r.pct>=1?'헷갈리지 않았어요!':r.pass?'잘 골라냈어요!':'조금 헷갈렸어요')+'</h2>'
       +'<p>한 번에 맞힘 <b>'+this.first+' / '+this.n+'</b></p>'+(r.gem?'<div class="stGem">💎 +'+r.gem+'</div>':'')
       +'<div class="grMixL">'+K.map(k=>{ const b=r.by[k]; return '<div class="grMixR'+(b[0]<b[1]?' weak':'')+'"><b>'+E(k)+'</b><span>'+'●'.repeat(b[0])+'<u>'+'●'.repeat(b[1]-b[0])+'</u></span></div>'; }).join('')+'</div>'
-      +(weak.length ? '<p class="grEndNx">「'+E(weak[0])+'」 이 제일 헷갈렸어요 · 📒 노트에서 규칙을 다시 봐요</p>' : '<p class="grEndNx">섞여 나와도 다 알아봤어요 👏</p>')
+      +(weak.length ? '<p class="grEndNx">「'+E(weak[0])+'」 에서 제일 많이 헷갈렸어요 · 📒 노트에서 규칙을 다시 봐요</p>' : '<p class="grEndNx">섞여 나와도 다 알아봤어요 👏</p>')
       +'<div class="grEndB"><button class="stCheck" data-gr="mix">🔀 한 번 더 섞기</button><button class="stCheck ghost" data-gnote="'+E(this.mixBk)+'">📒 문법 노트</button><button class="stCheck ghost" data-gr="home">길로 돌아가기</button></div></div>'; },
   T(){ return Gram.TIER[this.tier]; },
   start(id, full){ Gram.load().then(()=>{ const g=Gram.get(id); if(!g){ hyToast("📡 문법 자료를 못 불러왔어요 — 인터넷을 확인해 주세요"); return; }
