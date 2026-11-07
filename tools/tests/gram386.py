@@ -24,7 +24,7 @@ async def main():
         print(("OK  " if c else "BAD ") + m)
         if not c: bad.append(m)
     D = json.load(open(os.path.join(SITE, "data", "gram.json"), encoding="utf-8"))
-    ok(len(D["g34"]) == 8 and len(D["g56"]) == 8, "문법 G3-4 8개 · G5-6 8개")
+    ok(len(D["g34"]) == 12 and len(D["g56"]) == 12, "(v626) 문법 G3-4 12개 · G5-6 12개")
     ok(all(sum(1 for q in g["qs"] if q.get("hd")) >= 3 and sum(1 for q in g["qs"] if q["k"] == "fix") >= 2 for g in D["g34"] + D["g56"]), "문법마다 어려운 문제 3 · 틀린 단어 찾기 2 이상")
     ok(any("Mina and I" in json.dumps(c["ex"]) and "we" in json.dumps(c["ex"]) for c in next(g for g in D["g34"] if g["id"] == "g34-3")["cards"]), "be동사: 누가(주어) 바꾸기 카드")
     ok(any("지금 vs 매일" in c.get("h", "") for c in next(g for g in D["g56"] if g["id"] == "g56-1")["cards"]), "-ing: 언제 써요(지금 vs 매일) 카드")
@@ -40,7 +40,7 @@ async def main():
         await pg.evaluate("()=>{ const s=Study.load(); s.book='g34'; s.set='elem'; Study.save(); StudyUI.open(); }")
         await pg.wait_for_timeout(900)
         r = await pg.evaluate("()=>[...document.querySelectorAll('#stMap .grWN')].map(b=>[b.querySelector('[data-gram]').dataset.gram, b.classList.contains('lock')])")
-        ok(len(r) == 8 and r[0] == ["g34-1", False] and all(x[1] for x in r[1:]), f"G3-4 길: 문법 돌 8개 · 첫째만 열림 {r[:3]}")
+        ok(len(r) == 12 and r[0] == ["g34-1", False] and all(x[1] for x in r[1:]), f"G3-4 길: 문법 돌 12개 · 첫째만 열림 {r[:3]}")
         ok(await pg.evaluate("()=>[...document.querySelectorAll('#stMap .grWN .stDot')].every(d=>getComputedStyle(d).boxShadow==='none')"), "(v388) 문법 돌: 검은 둥근 그림자 링 없음 (빛으로만)")
         ok(await pg.evaluate("()=>!!document.querySelector('[data-gnote=g34]')"), "📒 문법 노트 버튼")
         await pg.evaluate("()=>document.querySelector('[data-gram=\"g34-2\"]').click()"); await pg.wait_for_timeout(300)
@@ -122,7 +122,7 @@ async def main():
         # G5-6 · 리딩
         await pg.evaluate("()=>{ StudyUI.book='g56'; StudyUI.set='g56'; StudyUI.path(); }"); await pg.wait_for_timeout(300)
         r = await pg.evaluate("()=>[...document.querySelectorAll('#stMap .grWN [data-gram]')].map(b=>b.dataset.gram)")
-        ok(len(r) == 8 and r[0] == "g56-1", f"G5-6 길: 문법 돌 8개 {r[:2]}")
+        ok(len(r) == 12 and r[0] == "g56-1", f"G5-6 길: 문법 돌 12개 {r[:2]}")
         await pg.evaluate("()=>{ StudyUI.set='rd1'; StudyUI.path(); }"); await pg.wait_for_timeout(200)
         ok(await pg.evaluate("()=>!document.querySelector('#stMap .grWN') && !!document.querySelector('[data-gnote=g56]')"), "리딩 책: 돌 없이 📒 문법 노트만")
         # 모든 문제 풀어 보기

@@ -16542,7 +16542,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v625";
+const GAME_VER = "v626";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19787,7 +19787,7 @@ const GramUI = {
   /* (v624) 📒 🔀 문법 섞어 풀기 — 연구(Suzuki & Sunada 2019: 한 규칙씩 몰아 한 뒤 여러 규칙을 섞어 푼 쪽이 가장 좋았음)
      문법 노트에서 배운 문법 2~4개를 섞어 10문제 · 같은 문법이 연달아 안 나오게 · 오래 안 본 문법 먼저 · 하루 첫 번 💎2 */
   mixPool(bk){ if(bk==="mid") return fetch("data/hsq.json").then(r=>r.ok?r.json():null).catch(()=>null).then(H=>{ if(!Array.isArray(H)) return [];
-      const ks=GNote.LV[2][1].filter(k=>GNote.seen(k) && H.some(x=>x.k===k));
+      const ks=GNote.LV[2][1].concat(["conj","dur","inf"]).filter(k=>GNote.seen(k) && H.some(x=>x.k===k));   /* (v626) 동명사·완료·수동태·관계대명사·이어 주는 말·기간·to부정사도 문제 은행에 넣어 섞어 풀기 */
       return ks.map(k=>({id:k, t:GNote.nm(k), at:(+((GNote.st().mx||{})[k])||0), qs:H.filter(x=>x.k===k && (x.lv|0)<=1 && !x.sh && String(x.s||"").split("___").length===2 && Array.isArray(x.o) && x.o.length>=2)
         .map(x=>({k:"pick", s:x.s, o:x.o.slice(), a:x.o[0], ko:x.ko||"", w:x.why||"", gk:k}))})).filter(t=>t.qs.length); });
     return Gram.load().then(()=>Gram.list(bk).filter(g=>Gram.stars(g.id)>0).map(g=>({id:g.id, t:g.t, at:(+((Gram.st(g.id)||{}).mx)||0), qs:g.qs.filter(q=>q.k!=="order")}))); },
