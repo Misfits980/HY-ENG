@@ -1982,7 +1982,7 @@ body.ui-skin #selChar.charRow .tile:not(.card):not(.gbtn){width:86px}
 .stSubB i{font-style:normal} .stSubB small{font-size:10px;color:#a99ed0;font-weight:800}
 .stSubB.on{background:#ffd37a;color:#2a1600;border-color:#ffd37a} .stSubB.on small{color:#6a4a10}
 .stSubB.full small{color:#4fbf6a}
-.stRun small{font-size:11px;opacity:.75}
+.stRun small{font-size:11px;opacity:.75} .stRun small.stRunS{display:block;margin-top:1px;font-size:11px;opacity:.85;white-space:nowrap}
 .stEn u,.stMini b u,.stCard u{text-decoration:none;color:#ffd37a;border-bottom:3px solid #ffd37a}
 .stPopIn .stGo{margin-top:12px}
 .stPopIn > small{display:block;margin-top:4px} .stPopIn > small.stPopGx{color:#6b5bb0;font-weight:800} .stPopGx b{color:#5a32e6} .ruSx{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(124,92,255,.08);text-align:left} .ruSx small{display:block;font-size:12px;color:#7c6bb0;font-weight:800;margin-bottom:4px} .ruSx p{margin:0;font-size:16px;line-height:1.45;font-weight:700;color:#2a2350} .ruSx p b{color:#6a3dff;text-decoration:underline;text-underline-offset:3px} .ruSx p i{display:block;font-style:normal;font-size:13px;font-weight:600;color:#6c6890;margin-top:2px}
@@ -2855,6 +2855,9 @@ body.tabP #scStudy.vLesson #stLesson, body.tabL #scStudy.vLesson #stLesson{flex:
 body.tabP #scStudy.vLesson #stQ, body.tabL #scStudy.vLesson #stQ{margin-top:auto;margin-bottom:auto;padding-top:12px;padding-bottom:12px}
 body.tabP #scStudy.vLesson .stFoot, body.tabL #scStudy.vLesson .stFoot{margin-top:auto}
 body.tabP #scStudy.vLesson #stQ ~ .stFoot, body.tabL #scStudy.vLesson #stQ ~ .stFoot{margin-top:16px}
+/* (v622) QA: 패드 세로에서 G3-4·G5-6·중등 문제가 화면 가운데 절반만 쓰고 위아래가 비었음 → 문제 칸·보기 칸을 화면 높이에 맞춰 키움 (유치원·G1-2 연못은 그림 보기라 그대로) */
+body.tabP #scStudy.vLesson:not(.thK) #stQ > .stPrompt{min-height:calc(26vh / var(--stZ,1));justify-content:center}
+body.tabP #scStudy.vLesson:not(.thK) #stQ .stOpts:not(.bal) > .stOpt{min-height:calc(10.5vh / var(--stZ,1))}
 
 /* (v298) 새 그림 — 세상 5 · 문제 방법 3 · 마법책 17 · 아이템 4 (사용자가 뽑은 그림) */
 #scSetup .mIc{position:absolute;left:50%;top:7px;width:66px;height:66px;transform:translateX(-50%);background:center/contain no-repeat;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}
@@ -16522,7 +16525,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v621";
+const GAME_VER = "v622";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17090,10 +17093,15 @@ const Study = (function(){
     const qs=[].concat(shuffle(A), shuffle(B), shuffle(C)).map(q=>Object.assign(q, {oly:1}));
     return [{t:"intro", hd:"oly", w:ws[0], P, n:qs.length, na:A.length, nb:B.length, nc:C.length}].concat(qs); }
   /* (v220) 복습 — 간격 반복. 처음에 맞히면 칸이 올라가고(1·2·4·7·15일 뒤), 틀리면 내일 다시 */
-  const IV=[0,1,2,4,7,15];
+  /* (v622) 단어·문법 기억 연구(간격 반복 메타분석 Kim & Webb 2022: 간격이 길수록 오래 감) → 15일 다음 30·60일 칸 추가 */
+  const IV=[0,1,2,4,7,15,30,60];
   let dayOff=0;                                                                          // (v301) 테스트용 — 날짜를 며칠 뒤로 (Study._day(1) = 내일)
   const today=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5)+dayOff;
-  function mark(en, ok){ const s=load(); s.srs=s.srs||{}; const r=s.srs[en]||[0,0]; r[0]= ok ? Math.min(5,r[0]+1) : 1; r[1]=today()+IV[r[0]]; s.srs[en]=r; save(); }
+  /* (v622) QA: 한 판에서 같은 단어를 3번 맞히면 칸이 3번 올라 첫 복습이 4일 뒤로 밀렸음(내일·모레 복습을 건너뜀)
+     → 복습 날이 아직 안 된 단어는 맞혀도 칸이 안 오름 = 하루에 한 칸만 (틀리면 언제든 내일 다시) */
+  function mark(en, ok){ const s=load(); s.srs=s.srs||{}; const t=today(), r=s.srs[en]||[0,0];
+    if(ok){ if(r[0]>0 && r[1]>t) return; r[0]=Math.min(IV.length-1, r[0]+1); } else r[0]=1;
+    r[1]=t+IV[r[0]]; s.srs[en]=r; save(); }
   function due(set){ const s=load(), t=today(), R=s.srs||{}, B=set ? bookWords(set) : null; return Object.keys(R).filter(en=>R[en][1]<=t && byEn[en] && (!B || B[en])); }
   function streak(){ const d=load().days||{}, t=today(); return (d.last===t || d.last===t-1) ? (d.n||0) : 0; }
   /* (v500) 하루에 끝낸 판 수 (최근 14일) — 중등 로드맵 '이번 주' 막대 */
@@ -19426,6 +19434,9 @@ const StudyUI = {
     bs.forEach(b=>b.textContent="0"+b.dataset.suf); requestAnimationFrame(go); },
   runLbl(x){ const ran=((Study.load().ran)||{})[Study.key(this.set,x.n)];
     return ran ? '🏃 배운 단어로 달리기 <small>(연습)</small>' : '🏃 배운 단어로 달리기'; },   // (v243) 짧게
+  /* (v622) QA: 끝 화면 반쪽 단추에서 「배운 단어로 달리기」가 「달리기」만 둘째 줄로 떨어짐 → 큰 글 「🏃 달리기」 + 작은 둘째 줄 (「▶ 다음 스테이지 / Stage 1-2」와 같은 모양) */
+  runLbl2(x){ const ran=((Study.load().ran)||{})[Study.key(this.set,x.n)];
+    return '🏃 달리기 <small class="stRunS">배운 단어로'+(ran ? ' · 연습' : '')+'</small>'; },
   /* (v226) 도감은 달리기에서만 모은다 — 공부는 '이제 달리면 도감 카드가 모여요'로 이어 준다 */
   runHint(){ const n=Object.keys(this.okW).filter(en=>{ try{ return !Dex.has(en); }catch(e){ return false; } }).length;
     return n ? '<div class="stDexAdd">🏃 달리기에서 이 단어를 맞히면 📖 도감 카드가 모여요 <b>(새 카드 '+n+'장 기다리는 중)</b></div>' : ''; },
@@ -19565,7 +19576,7 @@ const StudyUI = {
           const nb = nx ? '<button class="stGo'+(same?' nx':'')+'" data-next="'+(k+1)+'">▶ 다음 스테이지 <small>Stage '+Study.stageNo(set,nx.n)+(nx.fin?' 🚩':'')+'</small></button>' : '';
           return same && nb ? '<div class="stNext2">'+same+nb+'</div>' : same+nb; })()
       +'<div class="vSec">'+'<button class="stGo soft" id="stBack">🗺️ 스테이지로</button>'   /* (v445) 아래 두 단추는 한 줄 */
-      +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl(x)+'</button>' : '')+'</div>';
+      +(pass && !this.test ? '<button class="stRun" id="stRun">'+this.runLbl2(x)+'</button>' : '')+'</div>';
     if(pass) try{ confetti(); }catch(e){}
     this.bossHit(this.tier===4 ? 5 : 3);
     this.log(pass, acc);
