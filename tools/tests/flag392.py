@@ -18,7 +18,7 @@ async def main():
         room=await host.evaluate("()=>Battle.host({set:'elem', from:0, to:3, dur:60, mode:'flag', goal:6, qt:['spell','gap','ox','pic','mean'], lbl:'G3-4 Stage 1~2'})")
         kids=[]
         for kid,nm,t in [("k1","민준","ta"),("k2","서연","ta"),("k3","지호","tb"),("k4","하린","tb")]:
-            k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k)
+            k=await ctx.new_page(); k.on("pageerror", lambda e,n=nm: errs.append(n+" "+str(e))); await k.set_viewport_size({"width":390,"height":844}); await boot(k, iso=kid)   # (v626) 탭마다 지갑 따로 — 같은 지갑이면 먼저 끝난 아이만 💎
             await k.evaluate(f"()=>{{ G.char='knight'; HyBoss.start(); return HyBoss.refresh(true).then(()=>{{ Battle.join('{room}', {{id:'{kid}', n:'{nm}', t:'{t}'}}); Battle.FAST=0; }}); }}"); kids.append(k)
         await host.wait_for_timeout(800)
         r=await kids[0].evaluate("()=>!!document.getElementById('frun')"); ok(r is False, f"시작 전엔 무대 없음 {r}")
