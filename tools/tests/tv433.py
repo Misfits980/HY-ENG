@@ -105,7 +105,7 @@ async def main():
         # 미니게임 = 모든 패드 동시에
         await T.evaluate("()=>{ clearTimeout(Board._to); const o=Board.o; o.mgOnly='ox'; o.P.forEach(p=>p.coin=0); o.cur=o.P.length-1; Board.act(''); Board.endTurn(); }")
         ok(await until(T, "()=>!!document.getElementById('bdTvMG') && !!BoardTV.mgS", 40), "라운드 끝 → TV 미니게임 점수판")
-        ok(all([await until(pg, "()=>!!(BoardPad.g)", 40) for pg in K]), "모든 패드에서 미니게임이 동시에")
+        ok(all([await until(pg, "()=>!!(BoardPad.g)", 70) for pg in K]), "모든 패드에서 미니게임이 동시에")   # (v626) 시작 = 4.5초 + 설명 4.2초 → 8초로는 모자랐음
         await K[0].screenshot(path=OUT + "tv433_padmg.png")
         for _ in range(3):
             await K[0].evaluate("()=>BoardPad.g && BoardPad.g.auto()"); await K[0].wait_for_timeout(250)
