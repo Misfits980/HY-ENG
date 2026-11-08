@@ -35,7 +35,7 @@ async def main():
             ok(r[1] == "1" and "생활영어" in r[2], f"{nm} 책 고르기 끝에 생활영어 {r}")
             await pg.evaluate("()=>document.querySelector('#stTabs [data-life]').click()"); await pg.wait_for_timeout(900)
             r = await pg.evaluate("()=>({v:StudyUI._v, lv:LifeUI.lv, n:document.querySelectorAll('#stLife .lfSit').length, now:(document.querySelector('#stLife .lfSt.now')||{}).dataset, lvs:document.querySelectorAll('#stLife .lfLv').length})")
-            ok(r["v"] == "stLife" and r["lv"] == "g12" and r["n"] == 12 and r["lvs"] == 4 and r["now"] and r["now"]["lfs"] == "g12-1", f"{nm} 생활영어 길 (G1-2 = 공부 책 따라) {r}")
+            ok(r["v"] == "stLife" and r["lv"] == "g12" and r["n"] == 18 and r["lvs"] == 4 and r["now"] and r["now"]["lfs"] == "g12-1", f"{nm} 생활영어 길 (G1-2 = 공부 책 따라) {r}")
             await pg.screenshot(path=f"{OUT}{nm}_home_g12.png")
             for lv in ("k", "g12", "g34", "g56"):
                 await pg.evaluate("(lv)=>LifeUI.setLv(lv)", lv); await pg.wait_for_timeout(200)
@@ -106,12 +106,12 @@ async def main():
             # 다음 상황 열림 · 잠긴 상황
             await pg.evaluate("()=>LifeUI.home()"); await pg.wait_for_timeout(200)
             r = await pg.evaluate("()=>({o2:Life.open('g34-2'), o3:Life.open('g34-3'), lock:document.querySelectorAll('#stLife .lfSit.lock').length, now:document.querySelector('#stLife .lfSt.now').dataset.lfs})")
-            ok(r["o2"] and not r["o3"] and r["lock"] == 10 and r["now"] == "g34-2", f"{nm} 다음 상황만 열림 {r}")
+            ok(r["o2"] and not r["o3"] and r["lock"] == 16 and r["now"] == "g34-2", f"{nm} 다음 상황만 열림 {r}")
             if nm == "ph": await pg.screenshot(path=f"{OUT}{nm}_home_g34.png")
             # ◀ = 원래 길 · 탭에 진행 수
             await pg.evaluate("()=>document.querySelector('#stLife [data-lf=close]').click()"); await pg.wait_for_timeout(600)
             r = await pg.evaluate("()=>[StudyUI._v, document.querySelector('#stTabs [data-life] small').textContent]")
-            ok(r[0] == "stPath" and r[1].startswith("4 /"), f"{nm} ◀ 원래 길 · 탭 4 / 44 {r}")
+            ok(r[0] == "stPath" and r[1].startswith("4 /"), f"{nm} ◀ 원래 길 · 탭 4 / 66 {r}")
             e = real_errs(errs); ok(not e, f"{nm} 오류 없음 {e[:3]}")
             await pg.close()
         await b.close()
