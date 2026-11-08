@@ -39,7 +39,7 @@ async def main():
         async def pad(nick):
             ctx = await br.new_context(viewport={"width": 1024, "height": 768}, has_touch=True)
             pg = await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(nick + ": " + str(e)))
-            await pg.route("**/*", fb); await pg.goto(ORIGIN + "proto/house.html"); await pg.wait_for_timeout(800)
+            await pg.route("**/*", fb); await pg.goto(ORIGIN + "proto/house.html", timeout=90000); await pg.wait_for_timeout(800)
             await pg.evaluate("(n)=>{ localStorage.clear(); sessionStorage.clear(); localStorage.setItem('hyeng_nick', n); }", nick)
             await pg.reload(); await pg.wait_for_timeout(2500); return pg
         A = await pad("한양패드")

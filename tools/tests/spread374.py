@@ -41,7 +41,12 @@ async def main():
             const vi=ZONES.findIndex(z=>zoneArt(z)==='volcano'); GLWarm.release(vi); return [vi, D.sort()]; }""")
         ok(r[1] == ["floor-desert", "floor-meadow", "props-meadow"], f"화산에 들어가면 초원·사막 그림만 내려놓음 (화산·밤하늘은 그대로) {r}")
         # 📊 서버 소식
-        await pg.goto(ORIGIN + "index.html?perf=1"); await pg.wait_for_timeout(1500)
+        for _t in range(3):   # (v626) 앞 화면이 스스로 다시 불러오는 중이면 goto 가 ERR_ABORTED — 잠깐 쉬고 다시
+            try: await pg.goto(ORIGIN + "index.html?perf=1"); break
+            except Exception as e:
+                if _t == 2: raise
+                await pg.wait_for_timeout(800)
+        await pg.wait_for_timeout(1500)
         r = await pg.evaluate("""()=>{ const es=new EventSource('https://example.invalid/x.json'); let got=0; es.addEventListener('put', ()=>{ got++; const t=performance.now(); while(performance.now()-t<5){} });
             Perf.cur={}; es.dispatchEvent(new MessageEvent('put', {data:'null'})); es.close(); return [got, Perf.evs.some(e=>e.n==='서버 소식(put)'), Math.round(Perf.cur['⏱서버 소식 처리']||0)]; }""")
         ok(r[0] == 1 and r[1] and r[2] >= 4, f"서버 실시간 소식 시각·처리 시간 {r}")
