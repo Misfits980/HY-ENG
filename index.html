@@ -16691,7 +16691,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v631";
+const GAME_VER = "v632";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -26401,7 +26401,7 @@ const Admin = (function(){
     if(srv && srv.v>0 && srv.v<15) return card(T, '<p class="adSmall">아이마다 랭킹 단계를 정하려면 <b>새 Code.gs (v15)</b> 를 붙여 넣어 주세요 — ⚙️ 「📋 새 Code.gs 복사」 → Apps Script 에 붙여 넣기 → 배포 관리 → 새 버전</p>');
     if(tagL==null){ loadTags(); return card(T, '<p class="adSmall">'+(tagBusy?'불러오는 중…':'<button class="mini" data-ad="tagLoad">불러오기</button>')+'</p>'); }
     if(tagL==="old") return card(T, '<p class="adSmall">서버(Code.gs)가 옛날 것이에요 — 새 Code.gs 를 붙여 넣어 주세요</p>');
-    const kids=tagL.filter(x=>Number(x.tag)>=6 && (x.dev||x.nick)).sort((a,b)=>String(a.nick||a.first).localeCompare(String(b.nick||b.first),"ko"));
+    const kids=tagL.filter(x=>Number(x.tag)>=6 && x.dev && !/안 씀/.test((x.nick||"")+(x.memo||""))).sort((a,b)=>String(a.nick||a.first).localeCompare(String(b.nick||b.first),"ko"));
     const q=rlvQ.trim().toLowerCase(), L=kids.filter(x=>!q || x.tag.indexOf(q.replace(/^#/,""))>=0 || ((x.nick||"")+" "+(x.first||"")).toLowerCase().indexOf(q)>=0);
     const nSet=kids.filter(x=>x.rlv && x.rlv!=="자동").length, sel=Object.keys(rlvSel).filter(k=>rlvSel[k]);
     const opt=(v, auto)=>RLV.map(o=>'<option value="'+o+'"'+(((v||"자동")===o)?' selected':'')+'>'+(o==="자동" ? '자동'+(auto?' ('+esc(auto)+')':'') : o==="빼기" ? '🚫 랭킹 빼기' : o)+'</option>').join('');
@@ -27038,7 +27038,7 @@ const Admin = (function(){
     if(a==="tagLoad"){ loadTags(true); return; }
     /* (v631) 🏆 랭킹 단계 — 고르기 · 모두 · 한꺼번에 바꾸기 */
     if(a==="rlvPick"){ rlvSel[el.dataset.tag]=el.checked; keepScroll=true; draw(); return; }
-    if(a==="rlvAll"){ const q=rlvQ.trim().toLowerCase(); (Array.isArray(tagL)?tagL:[]).filter(x=>Number(x.tag)>=6 && (x.dev||x.nick) && (!q || x.tag.indexOf(q.replace(/^#/,""))>=0 || ((x.nick||"")+" "+(x.first||"")).toLowerCase().indexOf(q)>=0)).forEach(x=>rlvSel[x.tag]=el.checked); keepScroll=true; draw(); return; }
+    if(a==="rlvAll"){ const q=rlvQ.trim().toLowerCase(); (Array.isArray(tagL)?tagL:[]).filter(x=>Number(x.tag)>=6 && x.dev && !/안 씀/.test((x.nick||"")+(x.memo||"")) && (!q || x.tag.indexOf(q.replace(/^#/,""))>=0 || ((x.nick||"")+" "+(x.first||"")).toLowerCase().indexOf(q)>=0)).forEach(x=>rlvSel[x.tag]=el.checked); keepScroll=true; draw(); return; }
     if(a==="rlvSet"){ const tags=Object.keys(rlvSel).filter(k=>rlvSel[k]), lv=($("adRlvTo")||{}).value||"자동"; if(!tags.length) return msg("바꿀 아이를 먼저 골라요");
       if(lv==="빼기" && !confirm(tags.length+"명을 랭킹에서 뺄까요?\n(공부·보석은 그대로, 랭킹 표에만 안 나와요)")) return; rlvSave(tags, lv); return; }
     if(a==="fbTeacher"){ msg("등록 중…"); FBAuth.token().then(()=>{ if(!FBAuth.uid) return msg("로그인이 안 됐어요 — 인터넷·웹 API 키를 확인해요"); post({type:"fbTeacher", uid:FBAuth.uid, nick:get("hyeng_nick")||"선생님"}, r=>{ msg(r && r.ok ? "🔐 이 기기는 선생님이에요" : "⚠️ "+((r&&r.err)||"실패")+" — Code.gs v7 · 스크립트 속성 FB_SECRET 확인", !!(r && r.ok)); }); }); return; }

@@ -17,7 +17,7 @@ MOCK = """(v)=>{ window._posts=[]; window._lv={'0007':'G3-4','0009':'빼기'};
       return Promise.resolve({ok:true, v:v, list:[{tag:'0000',dev:'',first:'',nick:'',memo:'나'},{tag:'0001',dev:'p1',first:'한양패드1',nick:'한양패드1'},
         {tag:'0006',dev:'dA',first:'가온',nick:'가온',rlv:_lv['0006']||'',auto:'G1-2'},{tag:'0007',dev:'dB',first:'나래',nick:'나래',rlv:_lv['0007']||'',auto:'G5-6'},
         {tag:'0008',dev:'dC',first:'다솜',nick:'다솜',rlv:_lv['0008']||'',auto:''},{tag:'0009',dev:'dD',first:'라온',nick:'라온',rlv:_lv['0009']||'',auto:'G3-4'},
-        {tag:'0010',dev:'',first:'',nick:'',memo:''}]}); }
+        {tag:'0010',dev:'',first:'',nick:'',memo:''},{tag:'0011',dev:'',first:'선생님',nick:'(안 씀)',memo:'안 씀 — 선생님 기기가 #0000 이 되기 전에 받은 번호'}]}); }
     if(o.type==='tagLv'){ if(v<15) return Promise.resolve({ok:false, err:'type'}); o.tags.forEach(t=>_lv[t]=o.lv==='자동'?'':o.lv); return Promise.resolve({ok:true, n:o.tags.length}); }
     return Promise.resolve({ok:true}); };
   Notice.fetch=()=>Promise.resolve({v:v, notices:[]}); sessionStorage.setItem('hyeng_admin_ok', String(Date.now())); sessionStorage.setItem('hyeng_admin_tk', 'testkey'); window.confirm=()=>true; }"""
