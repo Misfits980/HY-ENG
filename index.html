@@ -1143,6 +1143,11 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .adGemNow{font-size:15px;font-weight:800;color:#d9d1f5;margin-bottom:8px}
 .adGemNow b{font-size:24px;color:#fff}
 .adPinRow{display:flex;gap:6px;margin-top:8px}
+/* (v631) 🏆 랭킹 단계 */
+.adRlvBulk{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:8px 0;font-size:12px;color:#cfc4f5;font-weight:800}
+.adRlvBulk label{display:flex;align-items:center;gap:4px} .adRlvBulk select,.adRlv select{background:#2a2152;color:#fff;border:1px solid #4a3d85;border-radius:8px;padding:5px 6px;font:inherit;font-size:12px;font-weight:800}
+.adRlv{max-height:380px;overflow:auto} .adRlv td{text-align:left} .adRlv td small{color:#9d90cf;font-weight:700}
+.adRlv select.on{background:#4b3a12;border-color:#ffcf5a;color:#ffe9a8} .adRlv tr.off td{opacity:.55} .adRlv tr.off select{opacity:1;background:#4a1f2a;border-color:#ff7f9a}
 .adPinRow input,.adKTool input,.adIn select,.adIn textarea{flex:1;min-width:0;width:100%;box-sizing:border-box;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.06);color:#fff;
   border:1px solid rgba(255,255,255,.14);font-family:var(--font);font-size:16px;font-weight:700}
 .adIn select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,#9d92c8 50%),linear-gradient(135deg,#9d92c8 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
@@ -16686,7 +16691,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v630";
+const GAME_VER = "v631";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -26388,6 +26393,28 @@ const Admin = (function(){
   let tagL=null, tagBusy=false, tagQ="";
   function loadTags(force){ if(!ready() || tagBusy) return; if(tagL && !force) return; tagBusy=true;
     Online.submit({type:"tags", tk}).then(r=>{ tagBusy=false; tagL = (r && r.ok && Array.isArray(r.list)) ? r.list : (r && r.err==="type" ? "old" : tagL); if(ok && (tab==="class"||tab==="now")){ keepScroll=true; draw(); } }); }
+  /* (v631) 🏆 랭킹 단계 — 사용자: 「애들마다 랭킹 적용 범위를 관리자 창이랑 시트에서」 「위로 올라가는 건 좋아도 아래 걸 하는 걸 방지」
+     태그(아이 번호)마다 = 시트 「태그」 탭 「랭킹 단계」 칸 · 정한 단계보다 쉬운 책은 랭킹에 안 셈 · 빼기 = 랭킹에 안 나옴 (서버 v15) */
+  let rlvSel={}, rlvQ="", rlvBusy=false;
+  const RLV=["자동","유치원","G1-2","G3-4","G5-6","중등","빼기"];
+  function rlvCard(){ const T='🏆 랭킹 단계';
+    if(srv && srv.v>0 && srv.v<15) return card(T, '<p class="adSmall">아이마다 랭킹 단계를 정하려면 <b>새 Code.gs (v15)</b> 를 붙여 넣어 주세요 — ⚙️ 「📋 새 Code.gs 복사」 → Apps Script 에 붙여 넣기 → 배포 관리 → 새 버전</p>');
+    if(tagL==null){ loadTags(); return card(T, '<p class="adSmall">'+(tagBusy?'불러오는 중…':'<button class="mini" data-ad="tagLoad">불러오기</button>')+'</p>'); }
+    if(tagL==="old") return card(T, '<p class="adSmall">서버(Code.gs)가 옛날 것이에요 — 새 Code.gs 를 붙여 넣어 주세요</p>');
+    const kids=tagL.filter(x=>Number(x.tag)>=6 && (x.dev||x.nick)).sort((a,b)=>String(a.nick||a.first).localeCompare(String(b.nick||b.first),"ko"));
+    const q=rlvQ.trim().toLowerCase(), L=kids.filter(x=>!q || x.tag.indexOf(q.replace(/^#/,""))>=0 || ((x.nick||"")+" "+(x.first||"")).toLowerCase().indexOf(q)>=0);
+    const nSet=kids.filter(x=>x.rlv && x.rlv!=="자동").length, sel=Object.keys(rlvSel).filter(k=>rlvSel[k]);
+    const opt=(v, auto)=>RLV.map(o=>'<option value="'+o+'"'+(((v||"자동")===o)?' selected':'')+'>'+(o==="자동" ? '자동'+(auto?' ('+esc(auto)+')':'') : o==="빼기" ? '🚫 랭킹 빼기' : o)+'</option>').join('');
+    return card(T+' · 정한 아이 '+nSet+'명', '<p class="adSmall">정한 단계보다 <b>쉬운 책</b>은 랭킹에 안 세요 · 높은 단계는 세요 · 자동 = 최근 4주에 가장 많이 푼 학년 · 시트 「태그」 탭 「랭킹 단계」 칸에서도 바꿔요</p>'
+      +'<div class="adPinRow"><input id="adRlvQ" maxlength="20" placeholder="🔍 이름이나 #번호" value="'+esc(rlvQ)+'" autocomplete="off"><button class="mini" data-ad="tagLoad">🔄</button></div>'
+      +'<div class="adRlvBulk"><label><input type="checkbox" data-ad="rlvAll"'+(L.length && L.every(x=>rlvSel[x.tag])?' checked':'')+'> 모두</label><span>고른 아이 <b>'+sel.length+'</b>명 →</span><select id="adRlvTo">'+opt("G3-4","")+'</select><button class="mini go" data-ad="rlvSet"'+(sel.length && !rlvBusy?'':' disabled')+'>'+(rlvBusy?'바꾸는 중…':'바꾸기')+'</button></div>'
+      +(L.length ? '<div class="adTbl adRlv"><table><tr><th></th><th>아이</th><th>랭킹 단계</th></tr>'+L.slice(0,200).map(x=>'<tr'+(x.rlv==="빼기"?' class="off"':'')+'><td><input type="checkbox" data-ad="rlvPick" data-tag="'+esc(x.tag)+'"'+(rlvSel[x.tag]?' checked':'')+'></td><td><b>'+esc(x.nick||x.first||"?")+'</b> <small>#'+esc(x.tag)+'</small></td><td><select data-rlv="'+esc(x.tag)+'"'+(x.rlv && x.rlv!=="자동"?' class="on"':'')+(rlvBusy?' disabled':'')+'>'+opt(x.rlv, x.auto)+'</select></td></tr>').join('')+'</table></div>' : '<p class="adSmall">'+(q?'찾는 아이가 없어요':'아직 태그를 받은 아이가 없어요 (아이가 이름을 정하면 생겨요)')+'</p>')); }
+  function rlvSave(tags, lv){ if(!tags.length || rlvBusy) return; rlvBusy=true; keepScroll=true; draw();
+    Online.submit({type:"tagLv", tk, tags, lv}).then(r=>{ rlvBusy=false;
+      let t, good=false;
+      if(r && r.ok){ (tagL||[]).forEach(x=>{ if(tags.indexOf(x.tag)>=0) x.rlv = lv==="자동" ? "" : lv; }); rlvSel={}; good=true; t="🏆 "+tags.length+"명 → "+(lv==="빼기"?"랭킹 빼기":lv)+" · 랭킹에 1분 안에 반영돼요"; }
+      else t = r && r.err==="type" ? "서버가 옛날 것이에요 — 새 Code.gs (v15) 를 붙여 넣어 주세요" : "못 바꿨어요 — 다시 해 주세요 ("+((r&&r.err)||"인터넷")+")";
+      keepScroll=true; draw(); msg(t, good); }, ()=>{ rlvBusy=false; msg("인터넷이 안 돼요 — 다시 해 주세요"); keepScroll=true; draw(); }); }
   function tagCard(){ if(srv && srv.v>0 && srv.v<4) return card('🏷 태그 (아이 번호)', '<p class="adSmall">태그를 쓰려면 <b>Code.gs 를 한 번 더 바꿔</b> 주세요 — 위 설정의 「📋 새 Code.gs 복사」 → 붙여 넣기 → 배포 관리 → 새 버전</p>');
     if(tagL==null){ loadTags(); return card('🏷 태그 (아이 번호)', '<p class="adSmall">'+(tagBusy?'불러오는 중…':'<button class="mini" data-ad="tagLoad">불러오기</button>')+'</p>'); }
     if(tagL==="old") return card('🏷 태그', '<p class="adSmall">서버(Code.gs)가 옛날 것이에요 — 새 Code.gs 를 붙여 넣어 주세요</p>');
@@ -26741,7 +26768,7 @@ const Admin = (function(){
     return nav+({notice, send, key:keyPane, dev, fix, move}[sub])(); }
   function body(){
     if(!ok) return pinBox();
-    const f={now:nowPane, class:()=>'<div class="full" id="adTodoW">'+todo(rep && rep.d ? canonRep(rep.d) : null)+'</div>'+team()+'<div class="full">'+tagCard()+'</div>',
+    const f={now:nowPane, class:()=>'<div class="full" id="adTodoW">'+todo(rep && rep.d ? canonRep(rep.d) : null)+'</div>'+team()+'<div class="full">'+rlvCard()+'</div><div class="full">'+tagCard()+'</div>',
       rec:()=>'<div class="full adJumpW"></div>'+(()=>{ try{ return '<div class="full">'+HyDay.card()+'</div>'; }catch(e){ return ''; } })()+(()=>{ try{ return '<div class="full adTimeW">'+HyDay.timeCard()+'</div>'; }catch(e){ console.error(e); return ''; } })()+'<div class="full" id="adVc">'+HyVc.html()+'</div>'+checkCard()+'<div class="full adSecH">📊 반 전체 기록 <small>시트에서 · 이번 주</small></div>'+klass(),
       prize:()=>'<div class="adCol">'+raid("boss")+'</div><div class="adCol">'+(()=>{ const D=rep && rep.d ? canonRep(rep.d) : null; try{ return D ? townClassCard(D) : card('🏝 보석 · My Town (반 전체)', '<p class="adSmall">'+(ready() ? '시트에서 불러오는 중…' : '시트 연결이 되면 여기 나와요')+'</p>'); }catch(e){ return ''; } })()+Prize.adminCard()+'<button class="mini adGoSend" data-ad="tab" data-t="send">💎 보석·선물 보내기 · 📢 공지 → 보내기</button></div>',
       send:sendPane, work:()=>'<div class="full adPpTop"><b>🖨 종이로 뽑기</b><span>A4 · 인쇄 · PDF · A형/B형 · 답안지</span><div><button class="mini go" data-ad="paper">📝 단어 시험지</button><button class="mini go" data-ad="paper" data-m="lf">💬 생활영어</button><button class="mini go" data-ad="paper" data-m="gm">📒 문법</button><button class="mini" data-ad="paperKj">✏️ 따라쓰기</button></div></div><div class="adCol adWkHw">'+HyHW.pane()+'</div><div class="adCol adWkEx">'+HyExam.pane()+'</div>', set:setPane}[tab]||nowPane;
@@ -26815,6 +26842,8 @@ const Admin = (function(){
     setTimeout(prefs, 0);
     setTimeout(()=>{ try{ [["adBtSet","adBtFrom","adBtTo"],["adRrBk","adRrFrom","adRrTo"],["adExSet","adExFrom","adExTo"],["adHwSet","adHwFrom","adHwTo"]].forEach(a=>StgPick.attach(a[0], a[1], a[2])); }catch(e){ console.error(e); } }, 0);   /* (v348) Stage 눌러 고르기 (prefs 다음) */
     if(ok && tab==="send" && sendWho){ const w=$("adWho"); if(w){ w.value=sendWho; try{ w.focus(); }catch(e){} } sendWho=""; }
+    if(ok && tab==="class"){ const rq=$("adRlvQ"); if(rq) rq.addEventListener("input", ()=>{ rlvQ=rq.value; keepScroll=true; const p=rq.selectionStart; draw(); const n=$("adRlvQ"); if(n){ n.focus(); try{ n.setSelectionRange(p,p); }catch(e){} } });
+      document.querySelectorAll("#adBody select[data-rlv]").forEach(sl=>sl.addEventListener("change", ()=>rlvSave([sl.dataset.rlv], sl.value))); }   /* (v631) 🏆 랭킹 단계 */
     if(ok && (tab==="class"||tab==="now")){ const tq=$("adTagQ"); if(tq) tq.addEventListener("input", ()=>{ tagQ=tq.value; keepScroll=true; const p=tq.selectionStart; draw(); const n=$("adTagQ"); if(n){ n.focus(); try{ n.setSelectionRange(p,p); }catch(e){} } }); }   // (v404) 🏷 태그 찾기
     if(ok && tab==="class"){ const q=$("adTmQ"); if(q) q.addEventListener("input", ()=>{ tmQ=q.value; paintTeam(); }); const kq=$("adKQ"); if(kq) kq.addEventListener("input", ()=>{ kQ=kq.value; paintTeam(); });
       const to=$("adTmTo"); if(to) to.addEventListener("change", ()=>{ tmTo=to.value; }); setTimeout(paintTeam, 0); }   /* (v340) */
@@ -27007,6 +27036,11 @@ const Admin = (function(){
       if(!confirm("기기 「"+d+"」를 #"+t+" 에 더할까요?\n(그 기기에서 게임을 다시 켜면 #"+t+" 가 돼요)")) return;
       post({type:"tagSet", tag:t, dev:d}, ()=>{ msg("#"+t+" 에 기기를 더했어요. 그 기기에서 게임을 다시 켜면 돼요", true); loadTags(true); }); return; }
     if(a==="tagLoad"){ loadTags(true); return; }
+    /* (v631) 🏆 랭킹 단계 — 고르기 · 모두 · 한꺼번에 바꾸기 */
+    if(a==="rlvPick"){ rlvSel[el.dataset.tag]=el.checked; keepScroll=true; draw(); return; }
+    if(a==="rlvAll"){ const q=rlvQ.trim().toLowerCase(); (Array.isArray(tagL)?tagL:[]).filter(x=>Number(x.tag)>=6 && (x.dev||x.nick) && (!q || x.tag.indexOf(q.replace(/^#/,""))>=0 || ((x.nick||"")+" "+(x.first||"")).toLowerCase().indexOf(q)>=0)).forEach(x=>rlvSel[x.tag]=el.checked); keepScroll=true; draw(); return; }
+    if(a==="rlvSet"){ const tags=Object.keys(rlvSel).filter(k=>rlvSel[k]), lv=($("adRlvTo")||{}).value||"자동"; if(!tags.length) return msg("바꿀 아이를 먼저 골라요");
+      if(lv==="빼기" && !confirm(tags.length+"명을 랭킹에서 뺄까요?\n(공부·보석은 그대로, 랭킹 표에만 안 나와요)")) return; rlvSave(tags, lv); return; }
     if(a==="fbTeacher"){ msg("등록 중…"); FBAuth.token().then(()=>{ if(!FBAuth.uid) return msg("로그인이 안 됐어요 — 인터넷·웹 API 키를 확인해요"); post({type:"fbTeacher", uid:FBAuth.uid, nick:get("hyeng_nick")||"선생님"}, r=>{ msg(r && r.ok ? "🔐 이 기기는 선생님이에요" : "⚠️ "+((r&&r.err)||"실패")+" — Code.gs v7 · 스크립트 속성 FB_SECRET 확인", !!(r && r.ok)); }); }); return; }
     if(a==="cloudNow"){ msg("저장 중…"); Cloud.save(true).then(ok=>msg(ok?"☁️ 서버에 저장했어요":"저장할 아이가 없거나(이름 · 수업 모드) 서버가 안 돼요", ok)); return; }
     if(a==="cloudPick"){ if(Kid.shared() && !Kid.owner()) return msg("공용 패드는 🧸 주인을 먼저 정해요"); KidPick.open(v=>{ if(!v || !v.id) return; msg("불러오는 중…"); Cloud.get(v.id).then(d=>{ if(!d || !d.d) return msg(HyBoss.plainN(v.n)+" — 서버에 저장된 기록이 없어요"); close(); Cloud.ask({id:v.id, n:HyBoss.plainN(v.n), t:v.t}, d); }); }); return; }
@@ -27995,7 +28029,7 @@ function rankWeekRows(k){ const L=LiveRank, B=L.B, rows=(B && B[k]) || [], me=L.
   if(!rows.length) return h+'<div class="note">아직 이번 주 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';
   h+=rows.map((r,i)=>row(r, i+1, !!(me && r.tag===me) || !!(mine && mine.rank===i+1))).join("");
   if(mine && mine.rank>10) h+='<div class="rkDots">⋯</div>'+row(mine, mine.rank, true)+(mine.above?'<div class="note" style="text-align:right">'+L.esc(mine.above.nick)+'까지 '+Math.max(1,Number(mine.above.score)-Number(mine.score)).toLocaleString()+(k==="words"?'단어':'점')+'</div>':'');
-  if(mine && mine.lv) h+='<div class="note">내 단계: '+L.esc(mine.lv)+' — 이 단계 이상 책으로 한 것만 세요</div>';
+  if(mine && mine.lv) h+='<div class="note">내 단계: '+L.esc(mine.lv)+(mine.fix?' 🔒 선생님이 정함':'')+' — 이 단계 이상 책으로 한 것만 세요</div>';   /* (v631) 🔒 */
   return h; }
 /* ══ (v618) 🏆 랭킹 · 🏛 명예의 전당 — 사용자: 「명예의 전당 · 며칠 연속 1위 · 데일리 30 이 메인 · 통합 점수 대결 · 단어·달리기도 이번 주·전체 · 깔끔하게」
    탭(오늘의 30 · 단어 · 달리기 · 팀 대항) × (이번 주 · 전체 · 🏛 명예의 전당)
@@ -28056,9 +28090,9 @@ const RankUI = {
     return h; },
   /* ── 점수 규칙 ── */
   RULES:{
-    study:[["⭐","Stage 를 끝까지 풀면 점수","처음에 맞힌 문제 × 10 + 푼 문제 수"],["♾️","몇 판을 해도 다 쌓여요","하루에 몰아서 해도 괜찮아요 · 모든 학년이 같은 점수로 겨뤄요"],["🔁","같은 Stage 는 한 주에 한 번만","다시 풀어서 더 잘하면 그 판으로 바꿔 줘요 (★2 · ★3 · ★5 는 따로)"],["🚫","이런 건 안 세요","연습 판 · 끝까지 안 푼 판 · 내 단계보다 쉬운 책"],["🔥","연속 1위","밤 12시에 1위면 그날이 한 칸 · 이어지면 🔥2일, 3일…"]],
+    study:[["⭐","Stage 를 끝까지 풀면 점수","처음에 맞힌 문제 × 10 + 푼 문제 수"],["♾️","몇 판을 해도 다 쌓여요","하루에 몰아서 해도 괜찮아요 · 모든 학년이 같은 점수로 겨뤄요"],["🔁","같은 Stage 는 한 주에 한 번만","다시 풀어서 더 잘하면 그 판으로 바꿔 줘요 (★2 · ★3 · ★5 는 따로)"],["🚫","이런 건 안 세요","연습 판 · 끝까지 안 푼 판 · 내 단계보다 쉬운 책 (내 단계 = 최근 4주에 가장 많이 푼 학년, 또는 선생님이 정한 단계)"],["🔥","연속 1위","밤 12시에 1위면 그날이 한 칸 · 이어지면 🔥2일, 3일…"]],
     words:[["📖","새로 모은 단어","이번 주에 도감에 처음 들어온 단어 수 (전체 = 지금까지 모은 수)"],["📱","내 기기에서 모은 것만","공용 패드에서 여럿이 모은 단어는 안 세요"],["🔥","연속 1위","밤 12시에 1위면 그날이 한 칸"]],
-    run:[["🏃","가장 높은 한 판","몇 판을 해도 가장 잘한 한 판의 점수"],["🚫","이런 건 안 세요","연습 판 · 내 단계보다 쉬운 단어장 · 시험 모드"],["🔥","연속 1위","밤 12시에 1위면 그날이 한 칸"]]},
+    run:[["🏃","가장 높은 한 판","몇 판을 해도 가장 잘한 한 판의 점수"],["🚫","이런 건 안 세요","연습 판 · 내 단계보다 쉬운 단어장 · 시험 모드 (선생님이 단계를 정해 주기도 해요)"],["🔥","연속 1위","밤 12시에 1위면 그날이 한 칸"]]},
   sheet(h){ let d=$("rkSheet"); if(!d){ d=document.createElement("div"); d.id="rkSheet"; document.body.appendChild(d);
       d.addEventListener("click", e=>{ if(e.target===d || e.target.closest("[data-rkx]")){ d.remove(); try{ SFX.click(); }catch(_){} } }); }
     d.innerHTML='<div class="rkSh"><button class="rkX" data-rkx="1">✕</button>'+h+'</div>'; },
@@ -28163,7 +28197,7 @@ const LiveRank = {
       +'<div class="lrL">'+(L.length ? L.map((r,i)=>'<div class="lrRow'+(i<3?' t3':'')+(me && r.tag===me?' me':'')+'"><b class="r">'+(i+1)+'</b><span class="n">'+this.esc(r.nick)+(r.tag?'<u>#'+this.esc(r.tag)+'</u>':'')+(me && r.tag===me?' <em class="meTag">나</em>':'')+'</span><span class="v">'+this.val(k,r)+'</span>'+this.mvH(r.mv)+'</div>').join("")
         : '<div class="lrEmpty">아직 이번 주 기록이 없어요.<br>첫 번째 주인공이 되어 보세요!</div>')
       +(()=>{ const m=(this.B && this.B.me && this.B.me[k]) || null; if(!m || m.rank<=10) return ''; return '<div class="lrDots">⋯</div><div class="lrRow me"><b class="r">'+m.rank+'</b><span class="n">'+this.esc(m.nick)+' <em class="meTag">나</em></span><span class="v">'+this.val(k,m)+(m.above?' · '+this.gap(k,m):'')+'</span>'+this.mvH(m.mv)+'</div>'; })()
-      +((this.B && this.B.me && this.B.me[k] && this.B.me[k].lv) ? '<div class="lrLv">내 단계: '+this.esc(this.B.me[k].lv)+' — 이 단계 이상 책으로 한 것만 세요</div>' : '')+'</div>'
+      +((this.B && this.B.me && this.B.me[k] && this.B.me[k].lv) ? '<div class="lrLv">내 단계: '+this.esc(this.B.me[k].lv)+(this.B.me[k].fix?' 🔒 선생님이 정함':'')+' — 이 단계 이상 책으로 한 것만 세요</div>' : '')+'</div>'
       +'<div class="lrFoot"><button data-x="1">닫기</button><button class="go" data-all="1">🏆 전체 랭킹</button></div></div>'; }
 };
 try{ $("lrBar").addEventListener("click", ()=>{ const x=LiveRank.it[LiveRank.i%Math.max(1,LiveRank.it.length)]; LiveRank.open(x ? x[0] : null); }); setTimeout(()=>LiveRank.load(), 900); setInterval(()=>{ if($("scStart") && $("scStart").classList.contains("on") && !document.hidden) LiveRank.fetch(); }, 60000); }catch(e){}

@@ -66,12 +66,12 @@ const NAME_SHEET = "이름";
 const NAME_COLS = [["date","날짜"], ["dev","기기"], ["old","전 이름"], ["nick","새 이름"], ["how","방법"], ["ver","버전"], ["tag","태그"]];
 /* (v404) 🏷 태그 탭 — 한 줄 = 태그 하나. 태그 칸은 글자(@)라 0006 의 0 이 안 없어짐. 0000~0005 는 처음에 미리 만들어 둠 */
 const TAG_SHEET = "태그";
-const TAG_COLS = [["tag","태그"], ["dev","기기"], ["first","처음 이름"], ["nick","지금 이름"], ["since","받은 날"], ["at","마지막으로 본 날"], ["memo","메모"]];
+const TAG_COLS = [["tag","태그"], ["dev","기기"], ["first","처음 이름"], ["nick","지금 이름"], ["since","받은 날"], ["at","마지막으로 본 날"], ["memo","메모"], ["rlv","랭킹 단계"]];   // (v631) 랭킹 단계 = 선생님이 정함 (관리 화면 · 이 칸)
 const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRST_KID = 6;
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 14;  // (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 15;  // (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -114,7 +114,7 @@ function doPost(e){
   if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
   if (d.type === "tag") return tagFor_(d);                           // (v404) 🏷 이 기기의 태그 (없으면 새로)
   if (d.type === "mt") return mtLog_(d);                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
-  if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
+  if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
   /* (v367) 기기에 쌓였다가 늦게 온 기록은 실제로 판이 끝난 때(d.at)로 적는다 — 7일 안 · 미래는 안 됨. 그 밖에는 받은 때 */
@@ -333,9 +333,12 @@ function weekCore_(rows, P, ws, cut, det){   // (v618) det = 아이마다 날마
   rows.forEach((r, i)=>{ const t = time_(r[C.date]); if (!t || t >= cut || P.hide(r)) return; const nk = plain_(r[C.nick]), id = P.id(r);
     if (!nk || id === "PLAYER" || /^한양|패드$/.test(nk)) return; idx.push([t, i, id]); });
   idx.sort((a, b)=>a[0] - b[0]);
+  const RL = rankLv_(), FIX = {};   // (v631) 선생님이 정한 단계 · 빼기
+  for (let j = idx.length - 1; j >= 0; j--) if (RL[idx[j][2]] === "x") idx.splice(j, 1);
   const LC = {}, LV = {};   // 내 단계 = 최근 4주(cut 전) 공부 줄에서 가장 많은 학년 (같으면 높은 쪽)
   idx.forEach(([t, i, id])=>{ if (t < cut - 28 * 864e5) return; const r = rows[i]; if (String(r[C.diff] || "") !== "study") return; const lv = LV_S_(String(r[C.set] || "")); if (lv < 0) return; (LC[id] = LC[id] || [0,0,0,0,0])[lv]++; });
   Object.keys(LC).forEach(id=>{ let b = -1, n = 0; LC[id].forEach((c, l)=>{ if (c > 0 && c >= n){ n = c; b = l; } }); LV[id] = b; });
+  Object.keys(RL).forEach(id=>{ if (typeof RL[id] === "number"){ LV[id] = RL[id]; FIX[id] = 1; } });   // (v631) 정한 단계가 자동보다 먼저
   const easy = (id, lv)=>lv >= 0 && id in LV && lv < LV[id];
   const ent = (k, id, r, t)=>{ let b = M[k][id]; if (!b) b = M[k][id] = {id, nick:"", tag:"", score:0, n:0, nt:0}; if (t >= b.nt){ b.nick = plain_(r[C.nick]); b.nt = t; const ch = String(r[C.char] || ""); if (ch) b.ch = ch; } const tg = P.tag(r); if (tg) b.tag = tg; return b; };   // (v618) ch = 캐릭터 (랭킹 얼굴)
   const done = {}, dxB = {}, dxW = {}, dxM = {}, first = {};
@@ -369,7 +372,7 @@ function weekCore_(rows, P, ws, cut, det){   // (v618) det = 아이마다 날마
   });
   Object.keys(M.words).forEach(id=>{ const w = dxW[id] || 0, b = id in dxB ? dxB[id] : (first[id] >= ws ? 0 : (dxM[id] || w));   // 전 기록이 공용 패드뿐 = 이번 주 처음 수부터
     M.words[id].score = Math.max(0, w - b); });
-  const out = {}; Object.keys(M).forEach(k=>{ out[k] = Object.keys(M[k]).map(id=>Object.assign(M[k][id], {lv: id in LV ? LV[id] : -1})).filter(b=>b.score > 0).sort((a, b)=>b.score - a.score || a.nt - b.nt); });
+  const out = {}; Object.keys(M).forEach(k=>{ out[k] = Object.keys(M[k]).map(id=>Object.assign(M[k][id], {lv: id in LV ? LV[id] : -1, fix: FIX[id] ? 1 : 0})).filter(b=>b.score > 0).sort((a, b)=>b.score - a.score || a.nt - b.nt); });
   return out;
 }
 function weekList_(sh, last, k, n, dev, ws0){
@@ -388,7 +391,7 @@ function board_(p){
       const rows = sh.getRange(2, 1, last - 1, COLS.length).getValues(), P = people_(rows);
       const A = weekCore_(rows, P, ws, now + 1, true), B = now - 864e5 > ws ? weekCore_(rows, P, ws, now - 864e5) : {study:[], words:[], run:[]};
       Object.keys(A).forEach(k=>{ const old = {}; B[k].forEach((b, i)=>{ old[b.id] = i + 1; });
-        full.L[k] = A[k].slice(0, 80).map((b, i)=>({id:b.id, nick:b.nick, tag:b.tag, ch:b.ch || "", score:b.score, n:b.n, q:b.q || 0, ss:b.ss || 0, lv:b.lv, mv: old[b.id] ? old[b.id] - (i + 1) : "new", day:k === "study" ? b.day : undefined, ent:k === "study" ? b.ent : undefined})); });
+        full.L[k] = A[k].slice(0, 80).map((b, i)=>({id:b.id, nick:b.nick, tag:b.tag, ch:b.ch || "", score:b.score, n:b.n, q:b.q || 0, ss:b.ss || 0, lv:b.lv, fix:b.fix || 0, mv: old[b.id] ? old[b.id] - (i + 1) : "new", day:k === "study" ? b.day : undefined, ent:k === "study" ? b.ent : undefined})); });
       try { full.hof = hof_(rows, P, A, now, ws); } catch(eh){ full.hof = {err:String(eh).slice(0, 80)}; }   // (v618) 🏛 명예의 전당
     }
     try { if (cache) cache.put("board_v4", JSON.stringify(full), 60); } catch(e){ try { const f2 = JSON.parse(JSON.stringify(full)); Object.keys(f2.L).forEach(k=>f2.L[k].forEach(b=>{ delete b.ent; })); cache.put("board_v4", JSON.stringify(f2), 60); } catch(e2){} }
@@ -400,7 +403,7 @@ function board_(p){
   const res = {ok:true, v:SERVER_V, at:full.at, ws:full.ws, boards:{}, me:{}};
   Object.keys(full.L).forEach(k=>{ const L = full.L[k]; res.boards[k] = L.slice(0, 10).map((b, i)=>pub(b, k, i));
     const i = me ? L.findIndex(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)) : -1;   // 태그가 없는 기기 = 이름으로
-    if (i >= 0) res.me[k] = Object.assign(pub(L[i], k, i), {rank:i + 1, of:L.length, lv:L[i].lv >= 0 ? LV_NM[L[i].lv] : "", above: i > 0 ? {nick:L[i - 1].nick, score:L[i - 1].score} : null}, k === "study" ? {day:L[i].day || null, ent:L[i].ent || null} : {}); });
+    if (i >= 0) res.me[k] = Object.assign(pub(L[i], k, i), {rank:i + 1, of:L.length, lv:L[i].lv >= 0 ? LV_NM[L[i].lv] : "", fix:L[i].fix || 0, above: i > 0 ? {nick:L[i - 1].nick, score:L[i - 1].score} : null}, k === "study" ? {day:L[i].day || null, ent:L[i].ent || null} : {}); });
   /* (v618) 🏛 명예의 전당 — 모두에게 같은 것 + 나(지난주 순위 · 메달 · 연속 공부 날) */
   if (H.cal){ const strip = x=>x ? {nick:x.nick, tag:x.tag, score:x.score, n:x.n} : null;
     res.hof = {cal:H.cal, streak:{}, weeks:H.weeks, longest:H.longest, medals:{}, att:(H.att || []).slice(0, 10).map(strip), lastKey:H.lastKey, ch:{}};
@@ -600,10 +603,40 @@ function tagSheet_(){
     sh.getRange(1, 1, 1, TAG_COLS.length).setValues([TAG_COLS.map(c=>c[1])]).setFontWeight("bold");
     sh.getRange("A:A").setNumberFormat("@");
     const seed = [[TAG_ME, "", "", "", "", "", "나 (선생님) — 관리 화면 「이 기기 = #0000」"]].concat(TAG_PADS.map((t, i)=>[t, "", "", "", "", "", "공용 패드 " + (i + 1)]));
-    sh.getRange(2, 1, seed.length, TAG_COLS.length).setValues(seed);
+    sh.getRange(2, 1, seed.length, TAG_COLS.length - 1).setValues(seed);
+    rlvRule_(sh);
+  }
+  if (sh.getRange(1, 8).getValue() === ""){   // (v631) 예전 시트 = 「랭킹 단계」 칸을 뒤에 붙임 + 고르기 목록
+    sh.getRange(1, 8).setValue("랭킹 단계").setFontWeight("bold");
+    rlvRule_(sh);
   }
   return sh;
 }
+function rlvRule_(sh){ try { sh.getRange("H2:H").setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(RLV_LIST, true).setAllowInvalid(true).setHelpText("정한 단계보다 쉬운 책으로 한 공부·달리기는 랭킹에 안 들어가요 (높은 단계는 들어감) · 빈칸·자동 = 최근 4주에 가장 많이 푼 학년 · 빼기 = 랭킹에 안 나옴").build()); } catch(e){} }
+/* (v631) 🏆 랭킹 단계 — 사용자: 「애들이 위로 등급이 올라가는 건 좋아도 아래 걸 하는 걸 방지」
+   「태그」 탭 H칸 = 자동(빈칸) · 유치원 · G1-2 · G3-4 · G5-6 · 중등 · 빼기 → { "#0012": 2, "#0013": "x" } */
+const RLV_LIST = ["자동", "유치원", "G1-2", "G3-4", "G5-6", "중등", "빼기"];
+function rlvOf_(v){ const s = String(v || "").trim(); if (!s || s === "자동") return null; if (/^빼|^제외|^x$/i.test(s)) return "x"; const i = LV_NM.indexOf(s); if (i >= 0) return i; const j = LV_S_(s); return j >= 0 ? j : null; }
+let RLV_ = null;
+function rankLv_(){ if (RLV_) return RLV_; RLV_ = {}; try { tagRows_(tagSheet_()).forEach(r=>{ const tg = tag_(r[0]), v = rlvOf_(r[7]); if (tg && v !== null) RLV_["#" + tg] = v; }); } catch(e){} return RLV_; }
+function tagLv_(d){
+  const lv = String(d.lv || "").trim(); if (RLV_LIST.indexOf(lv) < 0) return json_({ok:false, err:"lv"});
+  const want = (Array.isArray(d.tags) ? d.tags : [d.tag]).map(tag_).filter(t=>t && t !== "0000"); if (!want.length) return json_({ok:false, err:"tag"});
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = tagSheet_(), rows = tagRows_(sh); let n = 0;
+    rows.forEach((r, i)=>{ if (want.indexOf(tag_(r[0])) >= 0){ sh.getRange(i + 2, 8).setValue(lv === "자동" ? "" : lv); n++; } });
+    try { CacheService.getScriptCache().remove("board_v4"); } catch(e){}   // 랭킹에 바로
+    RLV_ = null;
+    return json_({ok:n > 0, n, err:n ? "" : "none"});
+  } catch(err){ return json_({ok:false, err:"busy"}); }
+  finally { try { lock.releaseLock(); } catch(_){} }
+}
+/* 아이마다 지금 자동 단계(최근 4주 오늘의 30 에서 가장 많이 푼 학년) — 관리 화면에 「자동(G3-4)」로 */
+function autoLv_(){ const out = {}; try { const sh = sheet_(), last = sh.getLastRow(); if (last < 2) return out; const rows = sh.getRange(2, 1, last - 1, COLS.length).getValues(), P = people_(rows), cut = Date.now() - 28 * 864e5, LC = {};
+    rows.forEach(r=>{ const t = time_(r[C.date]); if (!t || t < cut || String(r[C.diff] || "") !== "study") return; const lv = LV_S_(String(r[C.set] || "")); if (lv < 0) return; const id = P.id(r); (LC[id] = LC[id] || [0,0,0,0,0])[lv]++; });
+    Object.keys(LC).forEach(id=>{ let b = -1, n = 0; LC[id].forEach((c, l)=>{ if (c > 0 && c >= n){ n = c; b = l; } }); if (b >= 0) out[id] = LV_NM[b]; }); } catch(e){} return out; }
 /* (v404b) 기기 칸에 여러 기기 (쉼표·띄어쓰기로) — 한 아이가 기기 여러 대 · 선생님 기기 2대도 #0000 하나 */
 function devs_(v){ return String(v || "").split(/[\s,]+/).map(x=>x.trim()).filter(x=>x); }
 function tagRows_(sh){ const last = sh.getLastRow(); return last < 2 ? [] : sh.getRange(2, 1, last - 1, TAG_COLS.length).getValues(); }
@@ -649,7 +682,7 @@ function tagSet_(tg, dev, d){
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
 }
-function tagList_(){ return tagRows_(tagSheet_()).map(r=>({tag:tag_(r[0]), dev:devs_(r[1]).join(", "), first:String(r[2] || ""), nick:String(r[3] || ""), at:time_(r[5]), memo:String(r[6] || "")})).filter(x=>x.tag); }
+function tagList_(auto){ const A = auto ? autoLv_() : {}; return tagRows_(tagSheet_()).map(r=>({tag:tag_(r[0]), dev:devs_(r[1]).join(", "), first:String(r[2] || ""), nick:String(r[3] || ""), at:time_(r[5]), memo:String(r[6] || ""), rlv:String(r[7] || ""), auto:A["#" + tag_(r[0])] || ""})).filter(x=>x.tag); }
 
 /* ── (v264) 공지 ── */
 function noticeSheet_(){
@@ -696,7 +729,8 @@ function teacher_(d){
   if (String(d.tk || "") !== want) return json_({ok:false, err:"badkey"});
   if (d.type === "check") return json_({ok:true, v:SERVER_V});
   if (d.type === "report") return json_({ok:true, v:SERVER_V, at:Date.now(), rep:report_()});   // (v306) 우리 반 — 시트 요약 탭을 보이는 그대로
-  if (d.type === "tags") return json_({ok:true, list:tagList_()});                                 // (v404) 🏷 태그 목록
+  if (d.type === "tags") return json_({ok:true, v:SERVER_V, list:tagList_(true)});
+  if (d.type === "tagLv") return tagLv_(d);                                                         // (v631) 🏆 랭킹 단계 바꾸기                                 // (v404) 🏷 태그 목록
   if (d.type === "tagMe" || d.type === "tagSet") return tagSet_(d.type === "tagMe" ? TAG_ME : tag_(d.tag), String(d.dev || ""), d);
   if (d.type === "fbTeacher") return fbTeacher_(d);                                                // (v419) 🔐 Firebase 선생님 기기
   const lock = LockService.getScriptLock();
