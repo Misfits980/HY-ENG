@@ -18,15 +18,16 @@ PLAY = """async (wf)=>{ const U=LifeUI; let k=0, kinds={}, w=wf?1:0;
     U.qnext(); await new Promise(r=>setTimeout(r,10)); }
   return {mode:U.mode, first:U.first, n:U.n, kinds:Object.keys(kinds).sort().join(','), res:U.res}; }"""
 
-FIT = """()=>{ const F=document.querySelector('#stLife .lfFoot'), Q=document.querySelector('#stLife .lfQ'), O=[...document.querySelectorAll('#stLife .lfO, #stLife .lfOrdS')];
-  const fb=F ? F.getBoundingClientRect().top : innerHeight, last=O.length ? Math.max(...O.map(o=>o.getBoundingClientRect().bottom)) : 0;
-  const S=document.getElementById('scStudy'); return {fit: last <= fb+1, last:Math.round(last), foot:Math.round(fb), sc:S.scrollHeight-S.clientHeight, w:document.documentElement.scrollWidth-innerWidth}; }"""
+FIT = """()=>{ const S=document.getElementById('scStudy'); S.scrollTop=S.scrollHeight; const F=document.querySelector('#stLife .lfFoot'), O=[...document.querySelectorAll('#stLife .lfO, #stLife .lfOrdS')];
+  const r=F ? F.getBoundingClientRect() : {top:innerHeight, bottom:innerHeight, left:0, right:innerWidth}, last=O.length ? Math.max(...O.map(o=>o.getBoundingClientRect().bottom)) : 0;
+  const pin = Math.abs(r.bottom-innerHeight)<=2 && r.left>=-1 && r.right<=innerWidth+1;   /* (v630) 아래 칸이 화면 맨 아래에 붙음 (가로 화면에서 가운데 뜨던 것) */
+  const res={fit: last <= r.top+1 && pin, pin, last:Math.round(last), foot:Math.round(r.top), fb:Math.round(r.bottom), H:innerHeight, sc:S.scrollHeight-S.clientHeight, w:document.documentElement.scrollWidth-innerWidth}; S.scrollTop=0; return res; }"""
 
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        for nm, (w, h) in (("ph", (390, 844)), ("pad", (820, 1180)), ("tv", (1920, 1080))):
-            pg = await b.new_page(viewport={"width": w, "height": h}, is_mobile=nm != "tv", has_touch=nm != "tv"); errs = []
+        for nm, (w, h) in (("ph", (390, 844)), ("pad", (820, 1180)), ("tv", (1920, 1080)), ("phL", (915, 412)), ("padL", (1180, 820))):   # (v630) 가로 화면도
+            pg = await b.new_page(viewport={"width": w, "height": h}, is_mobile=nm not in ("tv",), has_touch=nm != "tv"); errs = []
             pg.on("pageerror", lambda e: errs.append(str(e)))
             await boot(pg)
             await pg.evaluate("()=>{ Online.on=()=>false; localStorage.removeItem(Life.sk()); const s=Study.load(); s.book='g12'; Study.save(); StudyUI.open(); }"); await pg.wait_for_timeout(900)
@@ -48,6 +49,9 @@ async def main():
                     await pg.evaluate("()=>document.querySelector('#stLife [data-lf=lnext]').click()")
                 if nm != "tv" or lv == "g56":
                     await pg.screenshot(path=f"{OUT}{nm}_{lv}_learn.png")
+                nv = await pg.evaluate("()=>new Promise(z=>setTimeout(()=>{ const c=[...document.querySelectorAll('#stLife .lfB')].pop(), F=document.querySelector('#stLife .lfFoot'); z([Math.round(c.getBoundingClientRect().bottom), Math.round(F.getBoundingClientRect().top)]); }, 700))")
+                ok(nv[0] <= nv[1] + 2, f"{nm} {lv} ★1 새 말풍선이 아래 칸에 안 가림 {nv}")
+                lfit = await pg.evaluate(FIT); ok(lfit["pin"], f"{nm} {lv} ★1 아래 칸이 화면 맨 아래 {lfit}")
                 r = await pg.evaluate("()=>({b:document.querySelectorAll('#stLife .lfChat .lfB').length, btn:(document.querySelector('#stLife [data-lf=learned]')||{}).textContent})")
                 ok(r["b"] == n and r["btn"] and "다 들었어요" in r["btn"], f"{nm} {lv} ★1 대화 {n}줄 다 보임 {r}")
                 await pg.evaluate("()=>document.querySelector('#stLife [data-lf=learned]').click()"); await pg.wait_for_timeout(200)
