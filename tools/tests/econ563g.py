@@ -140,8 +140,9 @@ async def main():
         ok("마을 낚시 대회" in t and "마을 가구 소파" in t and "공부 mid-1" not in t, "🏝 보석 기록 줄만")
         await pg.evaluate("()=>{ const c=[...document.querySelectorAll('.adCard')].find(x=>/My Town/.test(x.innerText)); if(c) c.scrollIntoView(); }")
         await pg.screenshot(path=OUT + "econ563_admin_dev.png")
-        await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(1500)
-        info = await pg.evaluate("""()=>{ const T=[...document.querySelectorAll('table.kidSum')]; const wk=T.find(t=>/들어온 날/.test(t.innerText)), tw=T.find(t=>/모은 💎/.test(t.innerText));
+        await pg.evaluate("()=>Admin._tab('rec')"); await pg.wait_for_timeout(1500)   # (v629) 아이별 이번 주 = 📊 기록 · 반 전체 보석·마을 = 🎁 보상
+        await pg.evaluate("()=>{ window._twH=''; }")
+        info = await pg.evaluate("""()=>{ const T=[...document.querySelectorAll('table.kidSum')]; const wk=T.find(t=>/들어온 날/.test(t.innerText)); Admin._tab('prize'); const tw=[...document.querySelectorAll('table.kidSum')].find(t=>/모은 💎/.test(t.innerText));
           const row=n=>wk ? [...wk.querySelectorAll('tr')].map(r=>[...r.children].map(c=>c.innerText.trim())).find(r=>r[0]===n) : null;
           return {head: wk ? [...wk.querySelectorAll('th')].map(x=>x.innerText) : null, yi: row('유이홍'), sy: row('서연'), town: tw ? tw.innerText : null}; }""")
         print("class:", json.dumps(info, ensure_ascii=False)[:500])
@@ -158,8 +159,9 @@ async def main():
         await pg.evaluate("""()=>{ document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Online.on=()=>true;
           const rep={nicks:[], weekly:[['아이','들어온 날','오늘의 30','끝까지','공부(분)','정답률(%)','달리기 판'],['서연','2','3','2','20','75','1']]};
           Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:true, rep} : o.type==='tags' ? {ok:true, list:[]} : {ok:true}); Notice.fetch=()=>Promise.resolve({v:7, notices:[]}); }""")
-        await pg.evaluate("()=>{ Admin.open(); Admin._tab('class'); }"); await pg.wait_for_timeout(1500)
+        await pg.evaluate("()=>{ Admin.open(); Admin._tab('prize'); }"); await pg.wait_for_timeout(1500)
         t2 = await pg.evaluate("()=>[...document.querySelectorAll('.adCard')].map(c=>c.innerText).find(x=>/반 전체/.test(x))||''")
+        await pg.evaluate("()=>Admin._tab('rec')"); await pg.wait_for_timeout(1200)
         ok("v8" in t2 and "새 Code.gs 복사" in t2, "옛 서버(v7) → 「v8 로 바꾸면」 안내 + 복사 단추 · " + t2.replace("\n", " ")[:100])
         sy = await pg.evaluate("()=>{ const t=[...document.querySelectorAll('table.kidSum')].find(t=>/들어온 날/.test(t.innerText)); return t ? [...t.querySelectorAll('tr')].map(r=>[...r.children].map(c=>c.innerText.trim())).find(r=>r[0]==='서연') : null; }")
         ok(sy and sy[5:8] == ["—", "—", "—"], f"옛 서버: 표의 🪙·🪱·🏦 = — {sy}")

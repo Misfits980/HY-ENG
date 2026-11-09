@@ -26,13 +26,13 @@ async def main():
             await pg.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }")
             await pg.reload(); await pg.wait_for_timeout(1200)
             await pg.evaluate("(R)=>{ window._srvV=3; Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:window._srvV, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? (window._srvV>=3?{ok:true, rep:R}:{ok:false, err:'type'}) : {ok:true}); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }", REP)
-            await pg.wait_for_timeout(800); await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(800)   # (v341) 처음 = 🏠 홈
+            await pg.wait_for_timeout(800); await pg.evaluate("()=>Admin._tab('rec')"); await pg.wait_for_timeout(800)   # (v629) 반 기록 = 📊 기록
             txt=await pg.evaluate("()=>document.getElementById('adBody').textContent   /* (v548~) 접힌 카드 글은 innerText 에 안 나옴 */")
             for want in ["이번 주 출석","오늘 공부한 아이 2명","확인 필요 2건","home","학부모 문자"]:
                 if want not in txt: bad.append(f"{name} 우리 반에 '{want}' 없음")
             tabs=await pg.evaluate("()=>{ const t=document.getElementById('adTabs'), b=[...t.querySelectorAll('button')]; return [b.length, new Set(b.map(x=>Math.round(x.getBoundingClientRect().top))).size, document.documentElement.scrollWidth<=innerWidth]; }")
             print(name, "tabs", tabs)
-            if tabs[0]!=5 or tabs[1]!=1: bad.append(f"{name} 탭이 한 줄이 아님 {tabs}")
+            if tabs[0]!=6 or tabs[1]!=1: bad.append(f"{name} 탭이 한 줄이 아님 {tabs}")
             await pg.screenshot(path=OUT+f"class_{name}.png", full_page=False)
             if name=="phone":
                 await pg.evaluate("()=>{ const b=document.querySelector('#adAccBar [data-acc=\"1\"]'); if(b) b.click(); }"); await pg.wait_for_timeout(1500); await pg.click("[data-ad=weakBt]"); await pg.wait_for_timeout(400)
@@ -66,7 +66,7 @@ async def main():
                 # 옛 서버 (v2) — 처음부터
                 await pg.reload(); await pg.wait_for_timeout(1000)
                 await pg.evaluate("(R)=>{ window._srvV=2; Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:2, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:false, err:'type'} : {ok:true}); localStorage.removeItem('hyeng_admin_rep'); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }", REP)
-                await pg.wait_for_timeout(500); await pg.click('#adTabs [data-t="class"]'); await pg.wait_for_timeout(700)
+                await pg.wait_for_timeout(500); await pg.click('#adTabs [data-t="rec"]'); await pg.wait_for_timeout(700)
                 t2=await pg.evaluate("()=>document.getElementById('adBody').innerText"); print("old", t2[:80].replace("\n"," / "))
                 if "Code.gs" not in t2: bad.append("옛 서버 안내 없음")
                 await pg.screenshot(path=OUT+"class_old.png")

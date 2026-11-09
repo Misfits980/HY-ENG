@@ -72,7 +72,9 @@ async def main():
         # (v341) 아이 카드 → 기록 · 💎 보내기 · 🎁 다른 것(보내기 칸에 이름) · 접는 칸이 보임
         await pg.evaluate("()=>{ window._posts=[]; Online.submit=o=>{ window._posts.push(o); return Promise.resolve(o.type==='report' ? {ok:true, rep:{nicks:['SEOWON','MINJUN','HAJUN','JIWOO','DOYUN','SUA'], weekly:[['아이','들어온 날','오늘의 30','끝까지','공부(분)','정답률(%)','달리기 판','달리기 최고','짧은 판','새 도감','자주 틀린 단어','지난주보다 (공부)','학부모 문자'],['MINJUN','4','8','7','60','88','5','1200','1','3','apple','+10분','민준이는 잘했어요']]}} : {ok:true}); }; Admin._tab('key'); }")
         await pg.wait_for_timeout(600); await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(800)
+        await pg.evaluate("()=>Admin._tab('rec')"); await pg.wait_for_timeout(600)   # (v629) 반 기록 새로고침은 📊 기록 탭
         await pg.evaluate("()=>{ const b=document.querySelector('[data-ad=repLoad]'); b && b.click(); }"); await pg.wait_for_timeout(1000)
+        await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(800)
         await pg.evaluate("()=>{ const b=[...document.querySelectorAll('#adTmList [data-ad=tmPick]')].find(b=>/MINJUN/.test(b.textContent)); b.click(); }"); await pg.wait_for_timeout(400)
         info = await pg.evaluate("()=>{ const i=document.querySelector('.adKidInfo'); return i ? i.innerText : ''; }")
         ok("88%" in info and "학생은 이번 주 4일" in info and "apple" in info, "아이 카드 → 이번 주 기록 · 학부모 문자 " + info[:60].replace("\n"," / "))

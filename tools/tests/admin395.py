@@ -98,7 +98,7 @@ async def main():
         await pg.click('[data-ad="selGem"][data-n="30"]'); await pg.wait_for_timeout(1200)
         P = await pg.evaluate("()=>window._posts.filter(o=>o.type==='actAdd' && o.value==='+30').map(o=>o.who)")
         ok(sorted(P) == sorted(["민준", "하준", "수아"]), f"☑ 여러 명 💎+30 {P}")
-        await pg.evaluate("()=>Admin._tab('class')"); await pg.wait_for_timeout(1500)
+        await pg.evaluate("()=>Admin._tab('rec')"); await pg.wait_for_timeout(1500)
         b = await pg.evaluate("()=>{ const b=document.querySelector('[data-ad=copyAllTxt]'); if(!b) return null; b.click(); return b.textContent; }"); await pg.wait_for_timeout(300)
         ok(b is not None and "[민준]" in await pg.evaluate("()=>window._clip") and "[서연]" in await pg.evaluate("()=>window._clip") and "학생은 이번 주" in await pg.evaluate("()=>window._clip"), "💬 학부모 문자 모두 복사")
         # ── 📝 다음 숙제 · 숙제 범위로 시험 ──
