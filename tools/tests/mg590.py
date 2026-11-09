@@ -50,7 +50,7 @@ async def main():
                 # ① 게임 타워
                 r=await pg.evaluate("""()=>{ const A=MG.SPOT.arena, G=MG.SPOT.grid, L=LBL.filter(l=>/^mg_/.test(l.d.k)).map(l=>l.d.k);
                     return [!!A, !!G, L.sort().join(","), ISLE.blocked(Math.floor(A[0]),Math.floor(A[2])), ISLE.blocked(Math.floor(G[0]),Math.floor(G[2])), !!ISLE.G.getObjectByName("mgGates")]; }""")
-                ok(r[0] and r[1] and r[2]=="mg_arena,mg_grid" and r[3] and r[4] and r[5], f"① 놀이 공원 게임 타워 2채 · 이름표 · 부딪힘 {r}")
+                ok(r[0] and r[1] and r[2] in ("mg_arena,mg_grid","mg_arena,mg_card,mg_grid") and r[3] and r[4] and r[5], f"① 놀이 공원 게임 타워 2채 · 이름표 · 부딪힘 {r}")
                 await pg.evaluate("()=>{ const g=MG.SPOT.arena; HOUSE.setWx(false); TFAC.warp(g[0]+1, g[2]+8); ISLE.CAM.zoom=2.6; ISLE.CAM.pitch=.85; yaw=yawTo=Math.PI*1.08; ISLE.CAM.dragAt=performance.now()+1e6; }")
                 await pg.wait_for_timeout(2200); await pg.screenshot(path=OUT+"mg590_gates.png")
                 await pg.evaluate("()=>{ const g=MG.SPOT.arena; TFAC.warp(g[0]+.5, g[2]+3.6); }"); await pg.wait_for_timeout(600)   # 시험 화면은 걸음이 느림 → 문 앞으로
