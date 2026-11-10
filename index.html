@@ -3635,6 +3635,13 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .adUse{display:flex;flex-direction:column;gap:6px} .adUseR{display:grid;grid-template-columns:104px 1fr 92px 84px;gap:8px;align-items:center;font-size:14px} .adUseR.zero{opacity:.45}
 .adUseR i{height:12px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden} .adUseR u{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8fe3ff,#6b5ad8)} .adUseR span{font-weight:900;text-align:right} .adUseR small{opacity:.7;text-align:right}
 @media (max-width:520px){ .adUseR{grid-template-columns:84px 1fr 74px;font-size:13px} .adUseR small{display:none} }
+/* (v655) QA 고침 — ① 중등(밝은 테마) 「스스로 나누기」 단추 글자가 흰 바탕에 연보라라 안 보임 ② 가로 화면: 나누기 10줄 → 두 줄로 · 라운드 카드 작게 ③ 보드게임 패드: 가로 휴대폰에서 차례 카드 위가 잘림 */
+#scStudy.thML .stSb{background:#fff;border:1.5px solid var(--mLine);color:var(--mInk)} #scStudy.thML .stSr{background:#f4f6fc}
+#scStudy.thML .stSb.s.on{background:#3fbf73;border-color:#3fbf73;color:#fff} #scStudy.thML .stSb.c.on{background:#ffcc4d;border-color:#ffcc4d;color:#3a2600} #scStudy.thML .stSb.u.on{background:#ff7b7b;border-color:#ff7b7b;color:#fff}
+@media (orientation:landscape){ .stSort{display:grid;grid-template-columns:1fr 1fr;max-width:860px;gap:6px 12px} }
+@media (orientation:landscape) and (max-height:520px){ .rdBreak{padding:8px 10px!important;margin-top:4px!important} .rdBreak .rdMas{display:none} .rdBreak .rdT{font-size:21px;margin-top:2px} .rdBreak p{margin:4px 0} .stSr{padding:3px 8px} .stSb{padding:6px 8px;min-height:30px} }
+.bpBody{justify-content:safe center}
+@media (orientation:landscape) and (max-height:520px){ .bpBody{flex-direction:row;flex-wrap:wrap;align-content:safe center;gap:8px 16px;padding-top:6px} .bpBody > .bpMsg{padding:8px 14px;flex:0 1 auto} .bpBody > .bpRank{width:min(400px,50%);gap:3px} .bpBody > .bpRank > div{padding:3px 10px} }
 /* (v651) 중등 문법 — ⌨️ 직접 쓰기 */
 .grBl.wr{min-width:64px;display:inline-block;text-align:center;border-bottom:3px solid #ffd37a;color:#ffd37a} .grCur{display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:#ffd37a;animation:kkBlink 1s steps(2) infinite}
 .grCue{text-align:center;font-size:14px;font-weight:800;color:#cfc4f2;margin:2px 0 8px} .grCue b{color:#8fe3ff;font-size:16px}
@@ -20006,6 +20013,7 @@ const StudyUI = {
   roundBreak(r){
     try{ const rl=$("stRnd"); if(rl) rl.textContent="라운드 "+r+"/"+this.rounds()+" 끝"; }catch(e){}   /* (v528) 위 글자와 카드가 같은 라운드 */
     const R=this.rounds(), acc=Math.round(this.first/Math.max(1,this.first+(this._fw|0))*100), perfect=!(this._rm|0); this._rm=0;   // (v234) 이번 라운드를 한 번도 안 틀렸으면
+    $("stQ").className="stQ";   /* (v655) QA: 앞 문제의 가로 두 칸(two)이 남아 가로 패드에서 라운드 카드가 왼쪽 반에 끼고 아래가 단추에 가려짐 */
     $("stQ").innerHTML='<div class="rdBreak'+(perfect?' perfect':'')+'"><div class="rdStars">'+'<b class="rbS on">●</b>'.repeat(r)+'<b class="rbS">○</b>'.repeat(Math.max(0,R-r))   /* (v503) 라운드 진행 = 동그라미 (별 ★★☆ 은 '퍼펙트'와 어긋나 보임) */+'<small class="rdStL">라운드 '+r+' / '+R+'</small>'+'</div>'
       +'<div class="rdT">'+(perfect?'✨ 퍼펙트 라운드!':'라운드 '+r+' 끝!')+'</div>'+this.mas(true,true)
       +'<p>'+(perfect?'라운드 '+r+([2,4,5,9].indexOf(r%10)>=0?'를':'을')+' 하나도 안 틀렸어요!':acc>=90?'완벽해요! 이대로 가요 🔥':acc>=70?'잘하고 있어요! 👍':'천천히, 소리 내어 읽어 봐요 🙂')+'</p>'
