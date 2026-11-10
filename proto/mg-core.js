@@ -202,14 +202,14 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
 
   /* ── 섬 놀이 공원 입구 양옆 게임 타워 2채 ── */
   const SPOT={};
-  const GATES=[{k:"arena", at:[46.5,11.5], face:Math.PI*.12}, {k:"grid", at:[65.5,11.5], face:-Math.PI*.12}, {k:"card", at:null, face:-Math.PI/2}];   /* (v633) 🃏 카드 카페 = 새 섬 놀이 섬 가운데만 */
+  const GATES=[{k:"arena", at:[46.5,11.5], face:Math.PI*.12}, {k:"grid", at:[65.5,11.5], face:-Math.PI*.12}, {k:"card", at:null, face:-Math.PI/2, sp:"mgCard"}, {k:"draw", at:null, face:-Math.PI/2, sp:"mgDraw"}];   /* (v635) 🎨 그림 공방 = 놀이 섬 동쪽 */   /* (v633) 🃏 카드 카페 = 새 섬 놀이 섬 가운데만 */
   function build(ctx){ const {G, OX, OZ, busy, cols, vcMerge}=ctx; if(!vcMerge) return; const L=[], GL=[];
-    { const SPm=ctx.MAP && ctx.MAP.spots; if(SPm && SPm.mgArena){ GATES[0].at=SPm.mgArena; GATES[1].at=SPm.mgGrid; GATES[0].face=GATES[1].face=Math.PI; } GATES[2].at=(SPm && SPm.mgCard) || null; }   /* (v607~) 새 섬 5판 = 🎡 놀이 섬 */
+    { const SPm=ctx.MAP && ctx.MAP.spots; if(SPm && SPm.mgArena){ GATES[0].at=SPm.mgArena; GATES[1].at=SPm.mgGrid; GATES[0].face=GATES[1].face=Math.PI; } GATES.forEach(g=>{ if(g.sp) g.at=(SPm && SPm[g.sp]) || null; }); }   /* (v607~) 새 섬 5판 = 🎡 놀이 섬 */
     const add=(geo, col, x, y, z, o)=>{ o=o||{}; const m=new THREE.Matrix4(), q=new THREE.Quaternion().setFromEuler(new THREE.Euler(o.rx||0, o.ry||0, o.rz||0)); m.compose(new THREE.Vector3(x,y,z), q, new THREE.Vector3(o.sx||1,o.sy||1,o.sz||1)); (o.glow?GL:L).push({g:geo, col, m}); };
     const BX=(w,h,d)=>new THREE.BoxGeometry(w,h,d), CY=(a,b,h,n)=>new THREE.CylinderGeometry(a,b,h,n||20), SP=(r)=>new THREE.SphereGeometry(r,18,12);
     GATES.forEach(g=>{ if(!g.at || !GM[g.k]) return; const [gx,gz]=g.at, X=gx+OX, Z=gz+OZ, f=g.face, c=Math.cos(f), s=Math.sin(f), P=(u,y,v,geo,col,o)=>{ o=Object.assign({},o||{}); o.ry=(o.ry||0)+f; add(geo,col, X+u*c+v*s, y, Z-u*s+v*c, o); };
       busy.push([gx,gz,4.2]); cols.push([X,Z,2.3]);
-      ctx.disc && ctx.disc(gx,gz,3.3,g.k==="arena"?0xbfe6ff:0xd6d0ff,1);
+      ctx.disc && ctx.disc(gx,gz,3.3,g.k==="arena"?0xbfe6ff:g.k==="draw"?0xffe2c4:0xd6d0ff,1);
       if(g.k==="card"){   /* (v633) 🃏 카드 카페 — 크림색 집 · 4색 줄무늬 차양 · 지붕 위 부채꼴 카드 4장(빛남) · 창문 · 문 · 입간판 */
         P(0,1.5,0, BX(4.4,3,3.8), 0xfff1dc); P(0,.12,0, BX(4.6,.24,4), 0x8a5a3c); P(0,3.12,0, BX(4.7,.26,4.1), 0x5b3a7a); P(0,3.34,0, BX(4.3,.18,3.7), 0x7a4fa0);
         for(let i=0;i<8;i++) P(-1.925+i*.55,2.62,2.25, BX(.55,.16,.95), [0xff5a5f,0xffc83d,0x3fc46a,0x3ea2ff][i%4], {rx:.42});
@@ -219,6 +219,18 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
         P(0,3.55,0, CY(.08,.1,.6,8), 0x8a5a3c);
         P(2.7,.55,2.1, BX(.7,1.0,.08), 0x3b2433, {rx:-.18}); P(2.7,.62,2.15, BX(.55,.7,.04), 0xffe14d, {rx:-.18, glow:1});
         SPOT.card=[X,4.2,Z];
+      } else if(g.k==="draw"){   /* (v635) 🎨 그림 공방 — 하얀 벽 · 물감 흘러내림 · 파란 문 · 동그란 창 · 지붕 위 이젤(그림: 해·언덕·집) · 큰 연필 · 물감 통 */
+        P(0,.12,0, BX(4.4,.24,3.9), 0x8a5a3c); P(0,1.55,0, BX(4.2,2.9,3.6), 0xfffaf0); P(0,3.1,0, BX(4.5,.24,3.9), 0x5b3a7a); P(0,3.28,0, BX(4.1,.14,3.5), 0x7a4fa0);
+        const PC=[0xff5a5f,0xffd23f,0x3fc46a,0x3ea2ff,0x9a6bff,0xff9a3d];
+        for(let i=0;i<8;i++){ const hh=.35+((i*37)%5)*.12; P(-1.85+i*.53,2.98-hh/2,1.82, BX(.36,hh,.06), PC[i%6]); P(-1.85+i*.53,2.98-hh,1.83, SP(.18), PC[i%6], {sz:.35}); }
+        P(0,1.0,1.82, BX(1.15,1.85,.12), 0x3ea2ff); P(0,1.0,1.9, BX(.95,1.65,.04), 0x5ab8ff); P(.36,1.0,1.94, SP(.07), 0xffd36b);
+        [-1.45,1.45].forEach(u=>{ P(u,1.5,1.83, SP(.5), 0x8a5a3c, {sz:.12}); P(u,1.5,1.86, SP(.42), 0xffe9a8, {sz:.1, glow:1}); });
+        [-.85,.85].forEach((u,j)=>P(u,4.25,-.35, BX(.12,2.5,.12), 0x8a5a3c, {rz:j?-.12:.12})); P(0,4.0,-.75, BX(.12,1.9,.12), 0x6e4430); P(0,3.75,0, BX(2.4,.12,.45), 0x8a5a3c);
+        P(0,4.65,-.2, BX(2.5,1.85,.08), 0x8a5a3c); P(0,4.65,-.14, BX(2.3,1.65,.06), 0xffffff);
+        P(-.65,5.05,-.09, SP(.28), 0xffd23f, {sz:.12, glow:1}); P(.35,4.15,-.09, SP(.85), 0x3fc46a, {sy:.42, sz:.08, glow:1}); P(.55,4.55,-.08, BX(.42,.34,.04), 0xff5a5f, {glow:1}); P(.55,4.78,-.075, BX(.5,.14,.04), 0x9a6bff, {rz:.0, glow:1}); P(.45,5.1,-.08, SP(.2), 0x7fe0ff, {sz:.12, glow:1});
+        P(2.5,1.6,1.25, CY(.22,.22,2.7,6), 0xffd23f); P(2.5,3.22,1.25, new THREE.ConeGeometry(.22,.55,6), 0xf3c99b); P(2.5,3.44,1.25, SP(.075), 0x3b2433); P(2.5,.32,1.25, CY(.23,.23,.18,6), 0xc8c8d0); P(2.5,.13,1.25, CY(.22,.22,.22,6), 0xff7eb6);
+        P(-2.45,.27,1.55, CY(.36,.3,.52,14), 0x3ea2ff); P(-2.45,.55,1.55, CY(.33,.33,.04,14), 0xff5a5f, {glow:1}); P(-2.1,.18,2.0, CY(.25,.21,.36,12), 0xffd23f); P(-2.1,.37,2.0, CY(.23,.23,.03,12), 0x3fc46a, {glow:1});
+        SPOT.draw=[X,4.2,Z];
       } else if(g.k==="arena"){   /* 💦 물총 아레나 — 둥근 경기장 · 줄무늬 · 문 · 꼭대기 큰 물방울 · 옆에 큰 물총 */
         P(0,1.3,0, CY(2.1,2.25,2.6,28), 0x5ab8ff); P(0,2.68,0, CY(2.18,2.18,.18,28), 0xffffff); P(0,1.0,0, CY(2.27,2.3,.22,28), 0xffffff);
         P(0,3.15,0, CY(1.75,2.1,.8,28), 0x3d8fe0); P(0,3.62,0, CY(1.8,1.8,.16,28), 0xffd23f);
