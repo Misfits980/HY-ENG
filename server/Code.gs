@@ -71,7 +71,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 15;  // (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 17;  // (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -114,6 +114,7 @@ function doPost(e){
   if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
   if (d.type === "tag") return tagFor_(d);                           // (v404) 🏷 이 기기의 태그 (없으면 새로)
   if (d.type === "mt") return mtLog_(d);                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
+  if (["duelFriends","duelSend","duelBox","duelDone"].indexOf(d.type) >= 0) return duel_(d);   // (v636) ⚔️ 스테이지 도전장
   if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
@@ -393,6 +394,7 @@ function board_(p){
       Object.keys(A).forEach(k=>{ const old = {}; B[k].forEach((b, i)=>{ old[b.id] = i + 1; });
         full.L[k] = A[k].slice(0, 80).map((b, i)=>({id:b.id, nick:b.nick, tag:b.tag, ch:b.ch || "", score:b.score, n:b.n, q:b.q || 0, ss:b.ss || 0, lv:b.lv, fix:b.fix || 0, mv: old[b.id] ? old[b.id] - (i + 1) : "new", day:k === "study" ? b.day : undefined, ent:k === "study" ? b.ent : undefined})); });
       try { full.hof = hof_(rows, P, A, now, ws); } catch(eh){ full.hof = {err:String(eh).slice(0, 80)}; }   // (v618) 🏛 명예의 전당
+      try { full.lg = lgHist_(rows, P, ws); } catch(el){ full.lg = {}; }   // (v635) 🏅 지난주 나 넘기
     }
     try { if (cache) cache.put("board_v4", JSON.stringify(full), 60); } catch(e){ try { const f2 = JSON.parse(JSON.stringify(full)); Object.keys(f2.L).forEach(k=>f2.L[k].forEach(b=>{ delete b.ent; })); cache.put("board_v4", JSON.stringify(f2), 60); } catch(e2){} }
   }
@@ -404,6 +406,9 @@ function board_(p){
   Object.keys(full.L).forEach(k=>{ const L = full.L[k]; res.boards[k] = L.slice(0, 10).map((b, i)=>pub(b, k, i));
     const i = me ? L.findIndex(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)) : -1;   // 태그가 없는 기기 = 이름으로
     if (i >= 0) res.me[k] = Object.assign(pub(L[i], k, i), {rank:i + 1, of:L.length, lv:L[i].lv >= 0 ? LV_NM[L[i].lv] : "", fix:L[i].fix || 0, above: i > 0 ? {nick:L[i - 1].nick, score:L[i - 1].score} : null}, k === "study" ? {day:L[i].day || null, ent:L[i].ent || null} : {}); });
+  /* (v635) 🏅 나의 리그 — 지난주 나 넘기 (이번 주 점수 · 지난 6주 · 지킨 주 연속) */
+  if (me && full.lg){ const st = full.L.study.find(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)), id = st ? st.id : me;
+    if (st || full.lg[id]) res.me.lg = lgOf_(st ? st.score : 0, full.lg[id]); }
   /* (v618) 🏛 명예의 전당 — 모두에게 같은 것 + 나(지난주 순위 · 메달 · 연속 공부 날) */
   if (H.cal){ const strip = x=>x ? {nick:x.nick, tag:x.tag, score:x.score, n:x.n} : null;
     res.hof = {cal:H.cal, streak:{}, weeks:H.weeks, longest:H.longest, medals:{}, att:(H.att || []).slice(0, 10).map(strip), lastKey:H.lastKey, ch:{}};
@@ -414,6 +419,79 @@ function board_(p){
     if (meId){ res.me.hof = {last:(H.lastRank || {})[meId] || null, medal:((H.medalOf || {}).study || {})[meId] || null, att:(H.attOf || {})[meId] || 0, best:(H.bestOf || {})[meId] || null}; }
   }
   return res;
+}
+
+/* ── (v636) ⚔️ 스테이지 도전장 ──
+   사용자: 「친구 도전장은 10문제보다 스테이지 대결 — 보라색(💜 심화) 같은」
+   · 보내는 아이가 먼저 한 Stage 의 💜 도전 판(같은 씨앗 seed = 같은 문제)을 풀고 → 친구에게 보냄 → 친구가 같은 문제로 → 맞힌 수, 같으면 시간
+   · 아이 = 랭킹과 같은 이름표(#태그 또는 이름) · 7일 지나면 「시간 끝」 · 한 아이가 하루에 보낼 수 있는 도전장 10장
+   · 「도전장」 탭: 번호 · 보낸 때 · 보낸 아이 · 이름 · 받는 아이 · 이름 · 책 · Stage · 이름표 · 씨앗 · 보낸 점수 · 문제 수 · 시간 · 받은 점수 · 문제 수 · 시간 · 상태 · 끝난 때 */
+const DUEL_SHEET = "도전장";
+const DUEL_COLS = [["id","번호"],["at","보낸 때"],["from","보낸 아이"],["fnick","보낸 이름"],["to","받는 아이"],["tnick","받는 이름"],["set","책"],["n","Stage"],["label","이름표"],["seed","씨앗"],
+  ["fsc","보낸 점수"],["ftot","문제 수"],["fms","시간(ms)"],["tsc","받은 점수"],["ttot","받은 문제 수"],["tms","받은 시간(ms)"],["st","상태"],["dat","끝난 때"]];
+const DUEL_DAYS = 7, DUEL_DAY_MAX = 10;
+const DI = {}; DUEL_COLS.forEach((c, i)=>{ DI[c[0]] = i; });
+function duelSheet_(){ const ss = SpreadsheetApp.openById(SHEET_ID); let sh = ss.getSheetByName(DUEL_SHEET);
+  if (!sh){ sh = ss.insertSheet(DUEL_SHEET); sh.getRange(1, 1, 1, DUEL_COLS.length).setValues([DUEL_COLS.map(c=>c[1])]); sh.setFrozenRows(1); try { sh.getRange("A:A").setNumberFormat("@"); sh.getRange("C:C").setNumberFormat("@"); sh.getRange("E:E").setNumberFormat("@"); } catch(e){} }
+  return sh; }
+function duelId_(v){ const s = String(v || "").trim(); if (/^#\d{4}$/.test(s)) return s; const t = tag_(s); if (t && /^\d+$/.test(s.replace(/^#/, ""))) return "#" + t; return plain_(txt_(s, 20)).toUpperCase(); }
+function duelPub_(r){ const o = {}; DUEL_COLS.forEach(([k], i)=>{ o[k] = r[i] instanceof Date ? r[i].getTime() : r[i]; }); ["n","seed","fsc","ftot","fms","tsc","ttot","tms"].forEach(k=>{ o[k] = Number(o[k]) || 0; }); o.id = String(o.id); return o; }
+function duel_(d){
+  const now = Date.now();
+  if (d.type === "duelFriends"){   // 최근 4주에 공부·달리기를 한 아이들 (선생님·숨김·공용 패드 이름 빼고)
+    const sh = sheet_(), last = sh.getLastRow(); if (last < 2) return json_({ok:true, v:SERVER_V, list:[]});
+    const rows = sh.getRange(2, 1, last - 1, COLS.length).getValues(), P = people_(rows), M = {};
+    rows.forEach(r=>{ const t = time_(r[C.date]); if (!t || t < now - 28 * 864e5 || P.hide(r)) return; const nk = plain_(r[C.nick]); if (!nk || nk === "PLAYER" || /^한양|패드$/.test(nk)) return;
+      const id = P.id(r), b = M[id]; if (!b || t >= b.t) M[id] = {id, nick:nk, tag:P.tag(r) || "", t}; });
+    const list = Object.keys(M).map(k=>M[k]).sort((a, b)=>b.t - a.t).slice(0, 120).map(x=>({id:x.id, nick:x.nick, tag:x.tag}));
+    return json_({ok:true, v:SERVER_V, list});
+  }
+  const sh = duelSheet_(), last = sh.getLastRow(), R = last >= 2 ? sh.getRange(2, 1, last - 1, DUEL_COLS.length).getValues() : [];
+  const me = duelId_(d.me);
+  if (d.type === "duelSend"){
+    const from = me, to = duelId_(d.to); if (!from || !to || from === to) return json_({ok:false, err:"who"});
+    const today = R.filter(r=>String(r[DI.from]) === from && time_(r[DI.at]) > now - 864e5).length; if (today >= DUEL_DAY_MAX) return json_({ok:false, err:"max"});
+    const id = String(now).slice(-9) + Math.floor(Math.random() * 90 + 10);
+    const row = DUEL_COLS.map(([k])=>{
+      if (k === "id") return id; if (k === "at") return new Date(now); if (k === "from") return from; if (k === "to") return to;
+      if (k === "fnick" || k === "tnick") return txt_(d[k], 20); if (k === "set") return txt_(d.set, 20); if (k === "label") return txt_(d.label, 40);
+      if (k === "st") return "wait"; if (k === "dat" || k === "tsc" || k === "ttot" || k === "tms") return "";
+      return num_(d[k], k === "fms" ? 36e5 : k === "seed" ? 2e9 : 1000); });
+    sh.appendRow(row); return json_({ok:true, v:SERVER_V, id});
+  }
+  if (d.type === "duelDone"){
+    const i = R.findIndex(r=>String(r[DI.id]) === String(d.id)); if (i < 0) return json_({ok:false, err:"none"});
+    const r = R[i]; if (String(r[DI.to]) !== me) return json_({ok:false, err:"who"}); if (String(r[DI.st]) !== "wait") return json_({ok:true, v:SERVER_V, d:duelPub_(r), again:1});
+    if (time_(r[DI.at]) < now - DUEL_DAYS * 864e5) return json_({ok:false, err:"old"});
+    r[DI.tsc] = num_(d.sc, 1000); r[DI.ttot] = num_(d.tot, 1000); r[DI.tms] = num_(d.ms, 36e5); r[DI.st] = "done"; r[DI.dat] = new Date(now);
+    sh.getRange(i + 2, 1, 1, DUEL_COLS.length).setValues([r]); return json_({ok:true, v:SERVER_V, d:duelPub_(r)});
+  }
+  /* duelBox: 나한테 온 것(기다림) · 내가 보낸 것 · 끝난 것 — 14일 안 */
+  const box = {inbox:[], sent:[], got:[]};
+  R.forEach(r=>{ const t = time_(r[DI.at]); if (!t || t < now - 14 * 864e5) return; const o = duelPub_(r); if (o.st === "wait" && t < now - DUEL_DAYS * 864e5) o.st = "old";
+    if (String(r[DI.to]) === me){ if (o.st === "wait") box.inbox.push(o); else box.got.push(o); } else if (String(r[DI.from]) === me) box.sent.push(o); });
+  const by = (a, b)=>b.at - a.at; box.inbox.sort(by); box.sent.sort(by); box.got.sort(by);
+  return json_({ok:true, v:SERVER_V, inbox:box.inbox.slice(0, 20), sent:box.sent.slice(0, 20), got:box.got.slice(0, 20)});
+}
+
+/* ── (v635) 🏅 나의 리그 — 「지난주 나 넘기」 ──
+   사용자: 랭킹은 잘하는 아이만 위 → 모든 아이가 이길 수 있는 경쟁. 점수 = 랭킹과 같은 📚 오늘의 30 주간 점수(랭킹 단계 규칙 그대로).
+   · 넘기 = 이번 주 > 지난주 · 지키기 = 지난주의 90% 이상 (그리고 한 판 이상 = LG_MIN 점) · 지킨 주가 이어지면 칭호
+   · 지난 6주는 바뀌지 않으니 주마다 한 번 계산해 6시간 캐시 (lg1_<월요일>) */
+const LG_MIN = 300, LG_KEEP = 0.9, LG_WEEKS = 6;
+function lgHist_(rows, P, ws){
+  const key = "lg1_" + ws; let c = null; try { c = CacheService.getScriptCache(); const h = c.get(key); if (h) return JSON.parse(h); } catch(e){}
+  const H = {};
+  for (let i = 1; i <= LG_WEEKS; i++){ const a = ws - 7 * i * 864e5, b = ws - 7 * (i - 1) * 864e5; const W = weekCore_(rows, P, a, b);
+    W.study.forEach(x=>{ (H[x.id] = H[x.id] || new Array(LG_WEEKS).fill(0))[i - 1] = x.score; }); }
+  try { if (c) c.put(key, JSON.stringify(H), 21600); } catch(e){}
+  return H;
+}
+function lgOf_(cur, W){
+  W = (W || []).slice(0, LG_WEEKS); while (W.length < LG_WEEKS) W.push(0);
+  let st = 0; for (let j = 0; j < W.length; j++){ const a = W[j], b = W[j + 1] || 0; if (a >= LG_MIN && a >= LG_KEEP * b) st++; else break; }
+  const last = W[0], keep = Math.max(LG_MIN, Math.round(last * LG_KEEP)), goal = Math.max(LG_MIN, last + 1);
+  return {now:cur, last, keep, goal, st, hist:W, win:cur >= goal ? 2 : cur >= keep ? 1 : 0};
 }
 
 /* ── (v618) 🏛 명예의 전당 · 🔥 연속 1위 ──
@@ -627,7 +705,7 @@ function tagLv_(d){
     lock.waitLock(10000);
     const sh = tagSheet_(), rows = tagRows_(sh); let n = 0;
     rows.forEach((r, i)=>{ if (want.indexOf(tag_(r[0])) >= 0){ sh.getRange(i + 2, 8).setValue(lv === "자동" ? "" : lv); n++; } });
-    try { CacheService.getScriptCache().remove("board_v4"); } catch(e){}   // 랭킹에 바로
+    try { CacheService.getScriptCache().removeAll(["board_v4", "lg1_" + weekStart_()]); } catch(e){}   // 랭킹에 바로 · (v635) 나의 리그 지난 주들도 다시
     RLV_ = null;
     return json_({ok:n > 0, n, err:n ? "" : "none"});
   } catch(err){ return json_({ok:false, err:"busy"}); }
