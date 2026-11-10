@@ -173,22 +173,28 @@ async def main():
             wrongSent = wrongSent or ('zzqzz' in dbs) or (nw in dbs.replace(w, ''))
             for x in others: await x.evaluate("(s)=>{ MG.run.typeWord(s); MG.run.submit(); }", w)
             await steps(6)
+            sc=await A_.evaluate("(rd)=>MG.run.G.rd===rd?JSON.stringify(MG.run.G.ok):'{}'", rd)
             if rd==1: await others[0].screenshot(path=OUTD+"co_ok.png")
             for _ in range(30):
-                ph=[await x.evaluate("()=>[MG.run.G.ph, MG.run.G.rd]") for x in P3]
+                ph=[await x.evaluate("()=>[MG.run.G.ph, MG.run.G.rd, JSON.stringify(MG.run.G.ok)]") for x in P3]
+                if ph[0][1]==rd and len(json.loads(ph[0][2]))>len(json.loads(sc)): sc=ph[0][2]
                 if all(q[0]=="show" or q[1]>rd or q[0]=="end" for q in ph): break
                 await steps(2)
             if rd==1: await steps(1); await B_.screenshot(path=OUTD+"co_show.png")
-            sc=await A_.evaluate("()=>JSON.stringify(MG.run.G.ok)")
             rounds.append((rd, st[2][-1], w, sig, dTools, sc))
             for _ in range(30):
                 ph=[await x.evaluate("()=>[MG.run.G.ph, MG.run.G.rd]") for x in P3]
                 if all(q[1]>rd or q[0]=="end" for q in ph): break
                 await steps(2)
         print(rounds)
+        hist=None
+        for _ in range(20):
+            hist=await A_.evaluate("()=>MG.run.G.hist||null")
+            if hist and len(hist)>=6: break
+            await steps(2)
         ok(ovOk, "④ 고를 때: 그리는 사람만 3단어 · 친구는 「고르는 중…」")
         ok(all(x[3][0][0]>=3 and x[3][1][0]>=3 and x[3][0][1]==len(x[2]) and x[3][0][2]==len(x[2]) and x[3][0][3]=="flex" and x[4][0]=="flex" for x in rounds), f"④ 그린 줄이 친구 화면에 · 친구는 글자 칸(길이)+자판 · 그리는 사람은 도구 {[ (x[0],x[3],x[4]) for x in rounds][:3]}")
-        ok(len(rounds)==6 and sorted(x[1] for x in rounds)==sorted("ABCABC") and all(len(json.loads(x[5]))==2 for x in rounds), f"④ 6판 · 셋이 두 번씩 그림 · 판마다 둘 다 맞힘 {[(x[0],x[1],x[2]) for x in rounds]}")
+        ok(len(rounds)==6 and sorted(x[1] for x in rounds)==sorted("ABCABC") and hist==[2]*6, f"④ 6판 · 셋이 두 번씩 그림 · 판마다 둘 다 맞힘 {[(x[0],x[1],x[2]) for x in rounds]} {hist}")
         ok(not wrongSent and nearSeen and popSeen, f"④ 틀린 글자는 서버에 안 감 · 거의 🔥 · 친구 이름표에 ❌/🔥 표시 {[wrongSent, nearSeen, popSeen]}")
         await steps(20)
         r=[await x.evaluate("()=>{ const el=document.getElementById('mgRes'); return [MG.run.G.ph, el&&el.classList.contains('on'), el?[...el.querySelectorAll('tr')].map(t=>t.textContent).join('|'):'']; }") for x in P3]

@@ -31,6 +31,7 @@ const TIERS=[[],[],[],[]]; W.forEach((w,i)=>TIERS[tier(i)].push(i));
 const LV=[null,{nm:"쉬움",ic:"⭐",t:[1]},{nm:"보통",ic:"⭐⭐",t:[1,2]},{nm:"어려움",ic:"⭐⭐⭐",t:[2,3]}];
 const COLS=["#2b2233","#ff5a5f","#ff9a3d","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#8a5a3c","#ffffff"], SIZES=[7,16,34], PW=1000, PH=750;
 const B36="0123456789abcdefghijklmnopqrstuvwxyz";
+const PTL={d:2,g:2,b:3,c:3,m:3,p:3,f:4,h:4,v:4,w:4,y:4,k:5,j:8,x:8,q:10,z:10};
 const e2=n=>{ n=Math.max(0,Math.min(1295,Math.round(n))); return B36[(n/36)|0]+B36[n%36]; };
 const enc=S=>{ let o=B36[S.c]+B36[S.s]; for(let i=0;i<S.p.length;i++) o+=e2(S.p[i]); return o; };
 const dec=str=>{ if(typeof str!=="string" || str.length<2) return null; const S={c:B36.indexOf(str[0]), s:B36.indexOf(str[1]), p:[]}; for(let i=2;i+1<str.length;i+=2) S.p.push(B36.indexOf(str[i])*36+B36.indexOf(str[i+1])); return S; };
@@ -50,6 +51,18 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
   repeating-linear-gradient(90deg,#fff3dd 0 26px,#ffeccc 26px 52px)}
 #mgUI .dwR *{box-sizing:border-box}
 #mgUI .dwBar{display:flex;align-items:center;gap:8px;width:min(100%,640px);flex:none}
+#mgUI .dwMe{width:46px;height:46px;border-radius:50%;flex:none;border:3px solid #fff;box-shadow:0 2px 0 #d9bfa0,0 0 0 2px #5b3a7a;background:#2b3a5a;transition:transform .2s}
+#mgUI .dwMe.hop{animation:dwHop .5s}
+@keyframes dwHop{30%{transform:translateY(-10px) scale(1.12)}60%{transform:translateY(0) scale(.95)}}
+#mgUI .dwPl span canvas{width:26px;height:26px;border-radius:50%;vertical-align:middle;margin:-4px 4px -4px -4px;background:#2b3a5a}
+#mgUI .dwLine{position:relative;width:min(100%,640px);height:58px;flex:none;display:flex;justify-content:space-around;align-items:flex-start}
+#mgUI .dwLine::before{content:"";position:absolute;left:-2%;right:-2%;top:8px;height:16px;border-top:2px solid #8a5a3c;border-radius:50%}
+#mgUI .dwLine figure{margin:10px 0 0;width:58px;height:44px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.18);transform:rotate(var(--r,0deg));position:relative;display:flex;align-items:center;justify-content:center;font-size:24px}
+#mgUI .dwLine figure img{width:100%;height:100%;object-fit:cover}
+#mgUI .dwLine figure::before{content:"";position:absolute;left:50%;top:-8px;width:8px;height:16px;margin-left:-4px;background:var(--pc,#ff8466);border-radius:2px}
+@media (max-height:760px){ #mgUI .dwLine{display:none} }
+#mgUI .dwCf{position:absolute;top:-20px;width:10px;height:14px;pointer-events:none;animation:dwFall 1.6s ease-in forwards;z-index:9}
+@keyframes dwFall{to{transform:translateY(110vh) rotate(720deg)}}
 #mgUI .dwBar b{background:#5b3a7a;color:#fff;border-radius:12px;padding:5px 10px;font-weight:400;font-size:15px;white-space:nowrap}
 #mgUI .dwTm{flex:1;height:14px;border-radius:8px;background:rgba(91,58,122,.18);overflow:hidden;border:2px solid #5b3a7a}
 #mgUI .dwTm i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#3fc46a,#ffd23f);transform-origin:left;transition:transform .2s linear}
@@ -59,9 +72,11 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
 #mgUI .dwPl span.me{border-color:#ff8466} #mgUI .dwPl span.dr{background:#ffe9a8;border-color:#ffb02e} #mgUI .dwPl span.ok{background:#d6f7de;border-color:#3fc46a}
 #mgUI .dwPl span em{position:absolute;right:-6px;top:-12px;font-style:normal;font-size:18px;animation:dwPop .9s forwards}
 @keyframes dwPop{0%{transform:scale(.3)}25%{transform:scale(1.3)}70%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
-#mgUI .dwBd{position:relative;flex:none;margin-top:auto;width:min(100%,640px,calc((100vh - 410px)*4/3));width:min(100%,640px,calc((100dvh - 410px)*4/3));aspect-ratio:4/3;max-width:100%}
+#mgUI .dwBd{position:relative;flex:none;margin-top:auto;margin-bottom:20px;width:min(100%,640px,calc((100vh - 410px)*4/3));width:min(100%,640px,calc((100dvh - 410px)*4/3));aspect-ratio:4/3;max-width:100%}
 #mgUI .dwBd.dwT{width:min(100%,640px,calc((100vh - 330px)*4/3));width:min(100%,640px,calc((100dvh - 330px)*4/3))}
-#mgUI .dwBd canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:14px;background:#fff;touch-action:none;box-shadow:0 4px 0 #e0c39a,0 10px 24px rgba(91,58,122,.18)}
+#mgUI .dwBd canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:6px;background:#fff;touch-action:none;box-shadow:0 0 0 7px #c48a58,0 0 0 10px #8a5a3c,0 14px 24px rgba(91,58,122,.25)}
+#mgUI .dwBd .ledge{position:absolute;left:-14px;right:-14px;bottom:-24px;height:14px;background:linear-gradient(#b07a50,#8a5a3c);border-radius:4px;box-shadow:0 3px 0 rgba(0,0,0,.15);pointer-events:none}
+#mgUI .dwBd .ledge i{position:absolute;bottom:10px;width:7px;height:34px;border-radius:3px 3px 1px 1px;transform:rotate(var(--r));transform-origin:bottom}
 #mgUI .dwBd::before,#mgUI .dwBd::after{content:"";position:absolute;width:70px;height:20px;top:-8px;background:rgba(255,132,102,.7);border-radius:3px;z-index:2;pointer-events:none}
 #mgUI .dwBd::before{left:14px;transform:rotate(-8deg)} #mgUI .dwBd::after{right:14px;transform:rotate(7deg);background:rgba(62,162,255,.6)}
 #mgUI .dwCov{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);border-radius:14px;overflow:hidden;pointer-events:none}
@@ -83,7 +98,7 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
 #mgUI .dwFb{min-height:24px;font-size:17px;flex:none;text-align:center;margin-bottom:auto}
 #mgUI .dwKb{margin-top:auto;width:min(100%,640px);display:flex;flex-direction:column;gap:6px;flex:none}
 #mgUI .dwKb div{display:flex;gap:5px;justify-content:center}
-#mgUI .dwKb button{font:inherit;flex:1;max-width:58px;min-height:48px;border:0;border-radius:11px;background:#fff;box-shadow:0 3px 0 #d9bfa0;font-family:var(--en);font-weight:900;font-size:21px;color:#3b2433;padding:0;touch-action:manipulation}
+#mgUI .dwKb button{font:inherit;flex:1;max-width:58px;min-height:48px;border:0;border-radius:8px;background:linear-gradient(#fff8e6,#f1dcb2);box-shadow:0 4px 0 #b88a55,inset 0 -2px 0 rgba(120,80,30,.12);position:relative;font-family:var(--en);font-weight:900;font-size:21px;color:#6a4022;padding:0;touch-action:manipulation}
 #mgUI .dwKb button.dn{transform:translateY(3px);box-shadow:none;background:#ffe9a8}
 #mgUI .dwKb button.w{max-width:none;flex:1.6;font-family:var(--kr);font-weight:400;font-size:15px;white-space:nowrap;letter-spacing:-.02em} #mgUI .dwKb button.go{background:#3fc46a;color:#fff;box-shadow:0 3px 0 #2a8a4a} #mgUI .dwKb button.gv{background:#efe3ff;box-shadow:0 3px 0 #c9b6e0}
 #mgUI .dwKb.off{opacity:.45;pointer-events:none}
@@ -113,7 +128,7 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
   #mgUI .dwR{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto auto 1fr;grid-template-areas:"bd bar" "bd pl" "bd bx" "bd fb" "bd kb";column-gap:14px;row-gap:5px;align-items:start;justify-items:center;padding-top:calc(52px + env(safe-area-inset-top))}
   #mgUI .dwBd,#mgUI .dwBd.dwT{grid-area:bd;width:auto;height:calc(100vh - 62px - env(safe-area-inset-top) - env(safe-area-inset-bottom));height:calc(100dvh - 62px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-width:58vw}
   #mgUI .dwBar{grid-area:bar} #mgUI .dwPl{grid-area:pl} #mgUI .dwBx{grid-area:bx} #mgUI .dwFb{grid-area:fb} #mgUI .dwKb,#mgUI .dwTl{grid-area:kb;align-self:end}
-  #mgUI .dwKb button{min-height:40px;font-size:18px} #mgUI .dwBx i{height:40px;font-size:21px}
+  #mgUI .dwKb button{min-height:36px;font-size:17px} #mgUI .dwBx i{height:38px;font-size:20px} #mgUI .dwMe{width:34px;height:34px;border-width:2px} #mgUI .dwBd,#mgUI .dwBd.dwT{margin-bottom:0} #mgUI .dwKb{gap:4px}
   #mgUI .dwMenu .g{grid-template-columns:repeat(4,1fr);width:min(100%,760px)} #mgUI .dwMenu .g button.big{grid-column:auto}
 }`; document.head.appendChild(s); }
 
@@ -127,12 +142,26 @@ function start(api){
   const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(50,1,.1,10);
   /* ── 화면 ── */
   const U=api.ui, R=document.createElement("div"); R.className="dwR"; U.insertBefore(R, U.querySelector(".mgTop"));
-  R.innerHTML='<div class="dwBar"><b class="rd"></b><div class="dwTm"><i></i></div><b class="sc"></b></div><div class="dwPl"></div>'+
-    '<div class="dwBd"><canvas width="'+PW+'" height="'+PH+'"></canvas><div class="dwCov"></div><div class="dwOv"></div></div>'+
+  R.innerHTML='<div class="dwBar"><canvas class="dwMe dwPor" data-k="me"></canvas><b class="rd"></b><div class="dwTm"><i></i></div><b class="sc"></b></div><div class="dwPl"></div>'+
+    '<div class="dwLine"></div><div class="dwBd"><div class="ledge"><i style="left:18px;--r:-12deg;background:#ff5a5f"></i><i style="left:30px;--r:-4deg;background:#3ea2ff"></i><i style="left:42px;--r:8deg;background:#ffd23f"></i><i style="right:30px;--r:10deg;background:#3fc46a"></i></div><canvas width="'+PW+'" height="'+PH+'"></canvas><div class="dwCov"></div><div class="dwOv"></div></div>'+
     '<div class="dwBx"></div><div class="dwFb"></div><div class="dwKb"></div><div class="dwTl"></div>'+
     '<div class="dwMenu"></div><div class="dwGal"></div>';
   ["pointerdown","pointermove","pointerup"].forEach(t=>R.addEventListener(t, e=>e.stopPropagation()));
   const $=s=>R.querySelector(s);
+  /* (개선) 얼굴 사진 (나 · 친구) — 캐릭터를 작은 장면에 세워 찍어 둠 */
+  const PSc=new THREE.Scene(); PSc.background=new THREE.Color(0x2b3a5a); PSc.add(new THREE.HemisphereLight(0xffffff,0x445566,.85)); { const l=new THREE.DirectionalLight(0xffffff,.55); l.position.set(.6,1.4,1.4); PSc.add(l); }
+  const AVS={}, PCACHE={}; let porDirty=1, frN=0;
+  function avFor(k, av){ if(AVS[k]) return AVS[k]; try{ const A=buildAvatar(av||{}); const i=Object.keys(AVS).length; A.g.position.x=i*4; PSc.add(A.g); const cm=new THREE.PerspectiveCamera(26,1,.1,10); cm.position.set(i*4+.05,1.0,1.75); cm.lookAt(i*4,.88,0); AVS[k]={A, cm}; porDirty=1; return AVS[k]; }catch(e){ return null; } }
+  avFor("me", api.av);
+  function react(k, ex, s){ const o=AVS[k]; if(!o) return; o.A.setExpr(ex); o.t=s||1.4; porDirty=1; if(k==="me"){ const m=$(".dwMe"); if(m){ m.classList.remove("hop"); void m.offsetWidth; if(ex==="grin") m.classList.add("hop"); } } }
+  function porRender(rn){ frN++; Object.keys(AVS).forEach(k=>{ const o=AVS[k]; if(o.t>0){ o.t-=1/60; if(o.t<=0){ o.A.setExpr(o.A.expr0||"smile"); porDirty=1; } } });
+    if(!porDirty && frN%30) return; porDirty=0; const sz=64; Object.keys(AVS).forEach(k=>{ const o=AVS[k]; let c=PCACHE[k]; if(!c){ c=PCACHE[k]=document.createElement("canvas"); c.width=c.height=sz*2; }
+      try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,o.cm); const pr=rn.getPixelRatio(), q=Math.round(sz*pr); c.getContext("2d").clearRect(0,0,c.width,c.height); c.getContext("2d").drawImage(rn.domElement,0,rn.domElement.height-q,q,q,0,0,c.width,c.height); }catch(e){} });
+    rn.setScissorTest(false); const cv0=rn.domElement; rn.setViewport(0,0,cv0.width/rn.getPixelRatio(),cv0.height/rn.getPixelRatio()); porCopy(); }
+  function porCopy(){ R.querySelectorAll("canvas.dwPor").forEach(el=>{ const c=PCACHE[el.dataset.k]; if(!c) return; if(el.width!==c.width){ el.width=c.width; el.height=c.height; } const q=el.getContext("2d"); q.clearRect(0,0,el.width,el.height); q.drawImage(c,0,0); }); }
+  function confetti(n){ const C=["#ff5a5f","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#ff8466"]; for(let i=0;i<n;i++){ const d=document.createElement("i"); d.className="dwCf"; d.style.left=(Math.random()*100)+"%"; d.style.background=C[i%6]; d.style.animationDelay=(Math.random()*.4)+"s"; d.style.animationDuration=(1.2+Math.random()*.8)+"s"; R.appendChild(d); setTimeout(()=>d.remove(), 2600); } }
+  function lineGal(){ const L=(st("hyeng_proto_dwg")||[]).slice(0,5), el=$(".dwLine"); if(!el) return; const PC=["#ff8466","#3ea2ff","#3fc46a","#ffd23f","#9a6bff"]; const n=Math.max(4, L.length);
+    el.innerHTML=Array.from({length:n},(_,i)=>{ const x=L[i]; return '<figure style="--r:'+((i%2?1:-1)*(3+i*2))+'deg;--pc:'+PC[i%5]+'">'+(x?'<img src="'+x.d+'" alt="">':["🎨","🖌️","🌈","⭐","🖍️"][i%5])+'</figure>'; }).join(""); }
   const cv=$("canvas"), g=cv.getContext("2d"), BD=$(".dwBd"), COV=$(".dwCov"), OV=$(".dwOv"), BX=$(".dwBx"), FB=$(".dwFb"), KB=$(".dwKb"), TL=$(".dwTl"), PL=$(".dwPl"), MENU=$(".dwMenu"), GAL=$(".dwGal");
   const show=(el,v)=>{ el.style.display=v?"":"none"; };
   function clearBoard(){ g.globalCompositeOperation="source-over"; g.fillStyle="#fff"; g.fillRect(0,0,PW,PH); }
@@ -151,7 +180,7 @@ function start(api){
   function boxes(okWord){ const n=wordLen; if(!n){ BX.innerHTML=""; return; } const bw=Math.max(22,Math.min(38, Math.floor((Math.min(BD.clientWidth||360, 640)-4*n)/n))); BX.style.setProperty("--bw", bw+"px");
     let h=""; for(let i=0;i<n;i++){ const t=okWord?okWord[i]:typed[i]; h+='<i class="'+(t?"":(hintMap[i]?"h":""))+(!okWord && i===typed.length?" cur":"")+'">'+esc(t||hintMap[i]||"")+'</i>'; } BX.innerHTML=h; BX.classList.toggle("ok", !!okWord); }
   function kb(on){ kbOn=on; KB.classList.toggle("off", !on); }
-  function kbBuild(extra, noHint){ const rows=["qwertyuiop","asdfghjkl","zxcvbnm"]; KB.innerHTML=rows.map((r,i)=>'<div>'+r.split("").map(c=>'<button data-k="'+c+'">'+c+'</button>').join("")+(i===2?'<button class="w" data-k="bs">⌫</button>':'')+'</div>').join("")+
+  function kbBuild(extra, noHint){ const rows=["qwertyuiop","asdfghjkl","zxcvbnm"]; KB.innerHTML=rows.map((r,i)=>'<div>'+r.split("").map(c=>'<button data-k="'+c+'">'+c+'<sub style="position:absolute;right:4px;bottom:2px;font-size:9px;opacity:.6">'+(PTL[c]||1)+'</sub></button>').join("")+(i===2?'<button class="w" data-k="bs">⌫</button>':'')+'</div>').join("")+
       '<div>'+(noHint?'':'<button class="w gv" data-k="hint">💡 힌트</button>')+(extra||'')+'<button class="w go" data-k="ok" style="flex:2.4">✔ 확인</button></div>'; }
   KB.addEventListener("pointerdown", e=>{ const b=e.target.closest("button"); if(!b) return; e.preventDefault(); b.classList.add("dn"); setTimeout(()=>b.classList.remove("dn"),110); key(b.dataset.k); });
   function key(k){ if(!kbOn || gone) return; if(k==="bs"){ typed=typed.slice(0,-1); boxes(); return; } if(k==="ok"){ if(onSubmit) onSubmit(); return; } if(k==="hint"){ if(mode==="solo") soloHint(); return; } if(k==="give"){ if(mode==="solo") giveUp(); return; }
@@ -186,21 +215,21 @@ function start(api){
   /* ══ 🧩 혼자: 그림 퍼즐 ══ */
   const TILE_T=1.15, NQ=8, TCOL=["#ff5a5f","#ff9a3d","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#ff7eb6","#2fc4c4"];
   let S=null;
-  function startSolo(){ mode="solo"; const r=REC(), lv=LV[SET.lv]||LV[2]; let pool=[]; lv.t.forEach(t=>pool=pool.concat(TIERS[t])); pool=shuffle(pool.filter(i=>r.recent.indexOf(W[i][0])<0)); if(pool.length<NQ){ pool=shuffle([].concat(...lv.t.map(t=>TIERS[t]))); }
+  function startSolo(){ mode="solo"; lineGal(); const r=REC(), lv=LV[SET.lv]||LV[2]; let pool=[]; lv.t.forEach(t=>pool=pool.concat(TIERS[t])); pool=shuffle(pool.filter(i=>r.recent.indexOf(W[i][0])<0)); if(pool.length<NQ){ pool=shuffle([].concat(...lv.t.map(t=>TIERS[t]))); }
     S={q:pool.slice(0,NQ), n:NQ, done:0, sc:0, ok:0, streak:0, res:[], again:{}, cur:-1, t:0, pop:0, hint:0, miss:0, wait:false};
     r.recent=r.recent.concat(S.q.map(i=>W[i][0])).slice(-40); saveRec(r);
     show(KB,1); show(TL,0); show(PL,0); BD.classList.remove("dwT"); kbBuild('<button class="w gv" data-k="give">🤔 모르겠어요</button>'); onSubmit=soloSubmit; nextQ(); }
   function nextQ(){ if(!S.q.length){ soloEnd(); return; } S.cur=S.q.shift(); S.t=0; S.pop=0; S.hint=0; S.miss=0; S.wait=false; typed=""; hintMap={}; wordLen=W[S.cur][0].length; OV.classList.remove("on");
-    emojiPic(W[S.cur][2]); COV.style.display=""; const ord=shuffle([...Array(12).keys()]); S.ord=ord; COV.innerHTML=ord.map((_,i)=>'<i style="background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.45) 0 18%,transparent 19%),'+TCOL[(i*5+S.done)%8]+'">?</i>').join("");
+    emojiPic(W[S.cur][2]); COV.style.display=""; const ord=shuffle([...Array(12).keys()]); S.ord=ord; COV.innerHTML=ord.map((_,i)=>{ const q=k=>30+((i*37+k*53+S.done*11)%35); return '<i style="margin:-7px;border-radius:'+q(1)+'% '+q(2)+'% '+q(3)+'% '+q(4)+'% / '+q(5)+'% '+q(6)+'% '+q(7)+'% '+q(8)+'%;background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.45) 0 16%,transparent 17%),'+TCOL[(i*5+S.done)%8]+'">?</i>'; }).join("");
     boxes(); fb("그림이 보이면 영어로 써 봐요 ✏️"); kb(true); bar((S.done+1)+" / "+S.n, "⭐ "+S.sc, 1); }
   function popTile(){ if(S.pop>=12) return; const i=S.ord[S.pop++]; const el=COV.children[i]; if(el) el.classList.add("off"); try{ SFX.tone(300+S.pop*35,.08,"sine",.03); }catch(e){} if(S.pop===12 && !S.hint) addHint(); }
   function addHint(){ const w=W[S.cur][0]; const free=[...Array(w.length).keys()].filter(i=>!hintMap[i] && i>=typed.length); if(!free.length) return false; const i=S.hint===0?free[0]:free[Math.floor(Math.random()*free.length)]; hintMap[i]=w[i]; S.hint++; boxes(); return true; }
   function soloHint(){ if(!S || S.wait) return; if(S.hint>=Math.ceil(W[S.cur][0].length/2)){ fb("힌트는 여기까지! 🤔 모르겠어요를 눌러도 돼요"); return; } if(addHint()){ fb("💡 글자 하나 보여 줬어요 (−10점)"); try{ SFX.tone(880,.1,"triangle",.04); }catch(e){} } }
   function soloSubmit(){ if(!S || S.wait) return; const w=W[S.cur][0], v=norm(typed); if(!v){ fb("자판으로 영어를 써 봐요 ⌨️"); return; }
     if(v===w){ S.wait=true; kb(false); const pts=Math.max(10, 20+(12-S.pop)*6-S.hint*10-S.miss*3); S.streak=(S.hint||S.miss)?0:S.streak+1; const bon=S.streak>=2?10:0; S.sc+=pts+bon; S.ok++; S.done++; S.res.push([S.cur,1]);
-      boxes(w); fb("✅ 정답! +"+pts+(bon?" · 🔥 "+S.streak+"연속 +"+bon:"")); try{ SFX.clear(); }catch(e){} sayW(w); for(let k=S.pop;k<12;k++) COV.children[S.ord[k]] && COV.children[S.ord[k]].classList.add("off"); S.pop=12;
+      boxes(w); fb("✅ 정답! +"+pts+(bon?" · 🔥 "+S.streak+"연속 +"+bon:"")); try{ SFX.clear(); }catch(e){} sayW(w); react("me","grin",1.6); confetti(S.streak>=2?40:24); for(let k=S.pop;k<12;k++) COV.children[S.ord[k]] && COV.children[S.ord[k]].classList.add("off"); S.pop=12;
       later(1.7, nextQ); return; }
-    S.miss++; typed=""; shake(); try{ SFX.bad(); }catch(e){}
+    S.miss++; typed=""; shake(); try{ SFX.bad(); }catch(e){} react("me","wow",1);
     if(near(v,w)) fb("🔥 거의 맞았어요! 철자를 다시 봐요"); else fb("❌ 아니에요 — 다시 써 봐요"); if(S.miss%3===0) addHint(); boxes(); }
   function giveUp(){ if(!S || S.wait) return; S.wait=true; kb(false); const w=W[S.cur][0]; S.streak=0; boxes(w); for(let k=S.pop;k<12;k++) COV.children[S.ord[k]] && COV.children[S.ord[k]].classList.add("off"); S.pop=12; sayW(w);
     if(!S.again[S.cur]){ S.again[S.cur]=1; S.q.splice(Math.min(S.q.length, 2), 0, S.cur); fb("정답은 「"+w+"」 ("+W[S.cur][1]+") — 조금 뒤에 다시 나와요!"); } else { S.done++; S.res.push([S.cur,0]); fb("정답은 「"+w+"」 ("+W[S.cur][1]+")"); }
@@ -248,11 +277,11 @@ function start(api){
   const hostCode=()=>{ if(!RM || !RM.d) return hostC; const L=live(), h=RM.d.h||{}; return L.indexOf(h.c)>=0?h.c:(L[0]||h.c); };
   const amHost=()=>!!RM && hostC===RM.code;
   const nmOf=c=>(G.nm&&G.nm[c])||"친구";
-  function startCo(){ mode="co"; KB.innerHTML=""; show(KB,0); show(TL,0); show(PL,0); COV.style.display="none"; clearBoard(); wordLen=0; boxes(); fb(""); OV.classList.remove("on"); bar("👫","",1);
-    RM=MG.room(api, {pre:"mgd", title:"그림 맞히기 같이", ic:"🎨", max:6, fill:false, wait:6000, send:.5, poll:.3, back:()=>{ try{ RM.dispose(); }catch(e){} RM=null; menuShow(); }});
+  function startCo(){ mode="co"; lineGal(); KB.innerHTML=""; show(KB,0); show(TL,0); show(PL,0); COV.style.display="none"; clearBoard(); wordLen=0; boxes(); fb(""); OV.classList.remove("on"); bar("👫","",1);
+    RM=MG.room(api, {pre:"mgd", title:"그림 맞히기 같이", ic:"🎨", max:6, fill:false, wait:6000, send:.5, poll:.3, back:()=>{ try{ RM.dispose(); }catch(e){} RM=null; menuShow(); }}); RM.node=()=>({av:api.av||null});
     { const st0=RM.start; RM.start=async()=>{ const L=live(); if(L.length<2){ api.msg("친구가 1명 더 들어오면 시작할 수 있어요 👫", 1600); return; } const ro=L.slice(0,6); try{ await NET.patch(RM.path+"/h", {ro}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=ro; return st0(); }; }
     RM.onEv=e=>{ if(e && amHost()) hostEv(e.s, e); };
-    RM.onFeed=f=>{ if(f && (f.t==="x"||f.t==="nr") && f.s!==RM.code) chipPop(f.s, f.t==="x"?"❌":"🔥"); };
+    RM.onFeed=f=>{ if(f && (f.t==="x"||f.t==="nr") && f.s!==RM.code){ chipPop(f.s, f.t==="x"?"❌":"🔥"); react(f.s, "wow", 1); } };
     RM.onStart=(h, L)=>{ const ro=(h.ro && h.ro.length? h.ro : L.map(p=>p.k)).slice(0,6); hostC=h.c; mode="co-play"; const PD=(RM.d&&RM.d.p)||{}, nm={}; ro.forEach(c=>{ const p=Object.assign({}, PD[c]||{}, L.find(q=>q.k===c)||{}); nm[c]=String(p.n||"친구").slice(0,8); });
       show(PL,1); if(amHost()) hostInit(ro, nm); else { G={ph:"wait", ro, nm, sc:{}, ok:{}}; render(); } };
   }
@@ -260,7 +289,7 @@ function start(api){
   /* 방장 */
   function pubG(){ G.sq=(G.sq|0)+1; RM.put("g", G); render(); }
   function hostInit(ro, nm){ G={ph:"pick", rd:0, nr:ro.length<=3?ro.length*2:ro.length, ro, nm, sc:{}, ok:{}, used:[], sq:0}; ro.forEach(c=>G.sc[c]=0); nextRound(); }
-  function nextRound(){ const L=live(); G.rd++; if(G.rd>G.nr || L.length<2){ G.ph="end"; pubG(); return; }
+  function nextRound(){ const L=live(); if(G.rd>0) G.hist=(G.hist||[]).concat([Object.keys(G.ok||{}).length]); G.rd++; if(G.rd>G.nr || L.length<2){ G.ph="end"; pubG(); return; }
     let dr=null; for(let k=0;k<G.ro.length;k++){ const c=G.ro[(G.rd-1+k)%G.ro.length]; if(L.indexOf(c)>=0){ dr=c; break; } } if(!dr){ G.ph="end"; pubG(); return; }
     if(G.rd>1) RM.put("s/"+(G.rd-1), null);
     const ch=[1,2,3].map(t=>{ const c=TIERS[t].filter(i=>G.used.indexOf(i)<0); const i=c[Math.floor(Math.random()*c.length)]; return i==null?TIERS[t][0]:i; });
@@ -282,9 +311,10 @@ function start(api){
   /* 모두 */
   function chipPop(c, e){ const el=PL.querySelector('[data-c="'+c+'"]'); if(!el) return; const m=document.createElement("em"); m.textContent=e; el.appendChild(m); setTimeout(()=>m.remove(), 950); }
   function render(){ if(mode!=="co-play" || !RM) return; const me=RM.code, iDraw=G.dr===me, t=now();
-    PL.innerHTML=(G.ro||[]).map(c=>'<span data-c="'+esc(c)+'" class="'+(c===me?"me ":"")+(c===G.dr?"dr ":"")+(G.ok&&G.ok[c]!=null?"ok":"")+'">'+(c===G.dr?"🖍️ ":G.ok&&G.ok[c]!=null?"✅ ":"")+esc(nmOf(c))+' <b style="font-family:var(--en)">'+((G.sc&&G.sc[c])|0)+'</b></span>').join("");
+    (G.ro||[]).forEach(c=>{ if(!AVS[c]) avFor(c, c===me?api.av:(((RM.d&&RM.d.p)||{})[c]||{}).av); });
+    PL.innerHTML=(G.ro||[]).map(c=>'<span data-c="'+esc(c)+'" class="'+(c===me?"me ":"")+(c===G.dr?"dr ":"")+(G.ok&&G.ok[c]!=null?"ok":"")+'"><canvas class="dwPor" data-k="'+esc(c)+'"></canvas>'+(c===G.dr?"🖍️ ":G.ok&&G.ok[c]!=null?"✅ ":"")+esc(nmOf(c))+' <b style="font-family:var(--en)">'+((G.sc&&G.sc[c])|0)+'</b></span>').join("");
     if(G.rd!==myRd){ myRd=G.rd; MY=[]; myKey=0; cur=null; strokeSig=""; clearBoard(); typed=""; seenOk={}; }
-    Object.keys(G.ok||{}).forEach(c=>{ if(!seenOk[c]){ seenOk[c]=1; if(c!==me){ fbFeed("✅ "+nmOf(c)+" 맞혔어요!"); chipPop(c,"✅"); try{ SFX.tone(1046,.12,"triangle",.04); }catch(e){} } } });
+    Object.keys(G.ok||{}).forEach(c=>{ if(!seenOk[c]){ seenOk[c]=1; if(c!==me){ fbFeed("✅ "+nmOf(c)+" 맞혔어요!"); chipPop(c,"✅"); react(c,"grin",1.6); try{ SFX.tone(1046,.12,"triangle",.04); }catch(e){} } } });
     if(G.ph==="wait"){ OV.innerHTML='<div class="big">🎨</div><div class="ko">곧 시작해요…</div>'; OV.classList.add("on"); show(KB,0); show(TL,0); return; }
     if(G.ph==="end"){ coEnd(); return; }
     const rdT=G.rd+" / "+G.nr+" 판", myS="⭐ "+((G.sc&&G.sc[me])|0);
@@ -304,7 +334,7 @@ function start(api){
   let myAns="";
   function fbFeed(t){ fb(t); clearTimeout(fbFeed.h); fbFeed.h=setTimeout(()=>{ if(FB.textContent===t) fb(""); }, 1800); }
   function coSubmit(){ if(G.ph!=="draw" || !RM || (G.ok&&G.ok[RM.code]!=null)) return; const i=decW(G.w,G.rd), w=W[i]?W[i][0]:"", v=norm(typed); if(!v) return;
-    if(v===w){ myAns=w; kb(false); boxes(w); fb("✅ 정답! 「"+w+"」 "+W[i][1]); try{ SFX.clear(); }catch(e){} toHost({t:"ok", i}); return; }
+    if(v===w){ myAns=w; kb(false); boxes(w); react("me","grin",1.6); confetti(26); fb("✅ 정답! 「"+w+"」 "+W[i][1]); try{ SFX.clear(); }catch(e){} toHost({t:"ok", i}); return; }
     typed=""; shake(); try{ SFX.bad(); }catch(e){} const nr=near(v,w); fb(nr?"🔥 거의 맞았어요! 철자를 다시 봐요":"❌ 아니에요 — 다시!"); RM.feed({t:nr?"nr":"x", s:RM.code}); boxes(); }
   /* 그리는 사람 → 방에 줄 올리기 */
   let upT=0;
@@ -334,7 +364,7 @@ function start(api){
   function dispose(){ gone=true; TM.length=0; window.removeEventListener("keydown", onKey); try{ if(RM) RM.dispose(); }catch(e){} RM=null; try{ R.remove(); }catch(e){} }
   if(O.go==="solo") startSolo(); else menuShow();
   ready=true;
-  return {scene, cam, tick, render:()=>{}, dispose, pause:v=>{ paused=!!v; },
+  return {scene, cam, tick, render:rn=>{ try{ porRender(rn); }catch(e){} }, dispose, pause:v=>{ paused=!!v; },
     get mode(){ return mode; }, get S(){ return S; }, get G(){ return G; }, get RM(){ return RM; }, get ready(){ return ready; }, get MY(){ return MY; }, W,
     set fast(v){ fast=v?1:0; }, get fast(){ return fast; }, menuGo, menuShow, key, typeWord:s=>{ String(s).split("").forEach(c=>key(c)); }, submit:()=>key("ok"), giveUp, hint:soloHint, demo,
     pick:k=>{ if(mode==="sketch") sketchPick(k); else if(mode==="co-play") toHost({t:"pk", k}); }, sketchDone, ans:()=>mode==="solo"&&S?W[S.cur][0]:(G.w?W[decW(G.w,G.rd)][0]:""), get typed(){ return typed; }, get sig(){ return strokeSig; }, get wl(){ return wordLen; }, get hints(){ return Object.assign({}, hintMap); }, get amHost(){ return amHost(); }, get fb(){ return FB.textContent; } };

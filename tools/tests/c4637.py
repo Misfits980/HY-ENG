@@ -108,10 +108,12 @@ async def main():
         for x in P2: await x.evaluate("()=>{ MG.run.fast=true; }")
         await A_.evaluate("()=>document.querySelector('#mgUI [data-st]').click()"); await steps(4)
         for x in P2: await x.evaluate("()=>{ TWN8.test=(TWN8.test||0)+5000; }")
-        for _ in range(30):
+        for it in range(90):
             await steps(2)
             r=[await x.evaluate("()=>[MG.run.mode, MG.run.me, MG.run.turn]") for x in P2]
             if all(q[0]=="co-play" for q in r): break
+            if it%15==14:
+                for x in P2: await x.evaluate("()=>{ TWN8.test=(TWN8.test||0)+3000; }")
         ok(all(q[0]=="co-play" for q in r) and sorted([r[0][1], r[1][1]])==[0,1] and r[0][2]==r[1][2], f"④ 둘이 같은 판 · 나는 빨강/노랑 하나씩 · 같은 차례 {r}")
         await steps(3); await A_.screenshot(path=OUTD+"co_A.png")
         for it in range(60):
@@ -135,7 +137,7 @@ async def main():
                 if await pg.evaluate("()=>MG.run.turn===MG.run.me"): await pg.evaluate("()=>MG.run.play([3,2,4,3,2][MG.run.mv.length%5])")
                 await pg.evaluate(STEP, 10)
             await pg.wait_for_timeout(400); await pg.screenshot(path=OUTD+nm+"_play.png")
-            r=await pg.evaluate("()=>{ const R=MG.run, p=c=>{ const v=new THREE.Vector3(c-3, .9+c*0, 0).project(R.cam||MG.run.cam); return [(v.x+1)/2*innerWidth, (1-v.y)/2*innerHeight]; }; const a=new THREE.Vector3(-3.6,7.2,0).project(R.cam), b=new THREE.Vector3(3.6,.2,0).project(R.cam); const t=document.querySelector('#mgUI .c4Top').getBoundingClientRect(); return [Math.round((a.x+1)/2*innerWidth), Math.round((1-a.y)/2*innerHeight), Math.round((b.x+1)/2*innerWidth), Math.round((1-b.y)/2*innerHeight), Math.round(t.bottom), innerWidth, innerHeight]; }")
+            r=await pg.evaluate("()=>{ const R=MG.run, p=c=>{ const v=new THREE.Vector3(c-3, .9+c*0, 0).project(R.cam||MG.run.cam); return [(v.x+1)/2*innerWidth, (1-v.y)/2*innerHeight]; }; const a=R.board.localToWorld(new THREE.Vector3(-3.6,7.2,0)).project(R.cam), b=R.board.localToWorld(new THREE.Vector3(3.6,.2,0)).project(R.cam); const t=document.querySelector('#mgUI .c4Top').getBoundingClientRect(); return [Math.round((a.x+1)/2*innerWidth), Math.round((1-a.y)/2*innerHeight), Math.round((b.x+1)/2*innerWidth), Math.round((1-b.y)/2*innerHeight), Math.round(t.bottom), innerWidth, innerHeight]; }")
             ok(r[0]>=0 and r[2]<=r[5] and r[3]<=r[6] and r[1]>=0, f"⑤ {nm}: 판이 화면 안 {r}")
             await ctx.close()
             ok(not errs, f"오류 0 ({nm}) {errs[:3]}")
