@@ -72,7 +72,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 20;  // (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 21;  // (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -114,6 +114,7 @@ function doPost(e){
   if (d.type === "ack") return ackAct_(d);                          // (v222) 원격 조치 처리 확인
   if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
   if (d.type === "tag") return tagFor_(d);                           // (v404) 🏷 이 기기의 태그 (없으면 새로)
+  if (d.type === "use") return useLog_(d);                           // (v654) 🎮 모드별 사용 시간 (아이·날마다 한 줄)
   if (d.type === "mt") return mtLog_(d);                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
   if (["duelFriends","duelSend","duelBox","duelDone"].indexOf(d.type) >= 0) return duel_(d);   // (v636) ⚔️ 스테이지 도전장
   if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
@@ -198,6 +199,63 @@ function rosterName_(dev, nick){
   } catch(e){}
   return "";
 }
+/* ── (v654) 🎮 모드 사용 — 아이·날마다 한 줄, 모드마다 그날 몇 분. 게임이 그날 합계를 보내므로 여러 번 와도 큰 값으로 덮음 ──
+   마이타운은 따로 오는 기록(type mt)이 같은 줄의 「마이타운」 칸에. 새 모드를 더할 때는 USE_MODES 끝에만 붙이면 됨(칸이 자동으로 늘어남) */
+const USE_SHEET = "모드 사용";
+const USE_MODES = [["study","오늘의 30"], ["gram","문법"], ["run","달리기"], ["battle","교실 배틀"], ["raid","레이드"], ["board","보드게임"], ["esc","저택 탈출"], ["vs","대결"], ["town","마이타운"], ["menu","첫 화면"]];
+const USE_HEAD = ["날짜", "아이", "태그", "기기", "합계(분)"].concat(USE_MODES.map(m=>m[1] + "(분)"), ["마지막", "버전", "게임 이름"]);
+function useSheet_(){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(USE_SHEET);
+  if (!sh){ sh = ss.insertSheet(USE_SHEET); }
+  if (String(sh.getRange(1, 1, 1, USE_HEAD.length).getValues()[0].join("|")) !== USE_HEAD.join("|")){
+    sh.getRange(1, 1, 1, USE_HEAD.length).setValues([USE_HEAD]).setFontWeight("bold").setBackground("#e8eaf6").setWrap(true);
+    sh.setFrozenRows(1); sh.setFrozenColumns(2);
+    sh.getRange("A:A").setNumberFormat("@"); sh.getRange("C:C").setNumberFormat("@");
+    try { sh.setColumnWidth(1, 92); sh.setColumnWidth(2, 150); sh.setColumnWidths(3, 2, 70); sh.setColumnWidths(5, USE_MODES.length + 1, 78); } catch(e){}
+  }
+  return sh;
+}
+/* 그날 그 아이 줄을 찾아(없으면 새로) 모드 칸을 큰 값으로 — who = {dev, nick, tag("#0006"), pad, ver} · M = {모드: 분} */
+function useUpsert_(day, who, M){
+  const sh = useSheet_(), last = sh.getLastRow(), N = USE_HEAD.length, C0 = 5, nM = USE_MODES.length;
+  const kid = (who.pad ? "" : rosterName_(who.dev, who.nick)) || who.nick || "친구";
+  const rows = last >= 2 ? sh.getRange(Math.max(2, last - 599), 1, Math.min(600, last - 1), N).getValues() : [], base = Math.max(2, last - 599);
+  const key = r => String(r[0]) + "|" + (who.pad ? String(r[1]) : (String(r[2]) || String(r[3])));
+  const want = day + "|" + (who.pad ? kid : (who.tag || who.dev));
+  let hit = -1; for (let i = rows.length - 1; i >= 0; i--){ if (key(rows[i]) === want){ hit = i; break; } }
+  const old = hit >= 0 ? rows[hit] : null, out = [day, kid, who.tag || (old ? old[2] : ""), who.dev || (old ? old[3] : ""), 0];
+  let tot = 0;
+  USE_MODES.forEach((m, i)=>{ const o = old ? Number(old[C0 + i]) || 0 : 0, v = Math.max(o, Math.max(0, Math.min(1440, Math.round((Number(M[m[0]]) || 0) * 10) / 10))); out.push(v || ""); tot += v; });
+  out[4] = Math.round(tot * 10) / 10;
+  out.push(new Date(), who.ver || (old ? old[C0 + nM + 1] : ""), who.nick || (old ? old[C0 + nM + 2] : ""));
+  const at = hit >= 0 ? base + hit : last + 1;
+  sh.getRange(at, 1).setNumberFormat("@"); sh.getRange(at, 3).setNumberFormat("@");
+  sh.getRange(at, 1, 1, N).setValues([out]);
+  sh.getRange(at, C0 + nM + 1).setNumberFormat("yyyy-mm-dd hh:mm");
+}
+function useLog_(d){
+  const day = String(d.day || ""); if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return json_({ok:false, err:"day"});
+  const dev = txt_(d.dev, 40), nick = plain_(txt_(d.nick, 20)), tg = tag_(d.tag) ? "#" + tag_(d.tag) : "";
+  if (!dev && !tg) return json_({ok:false, err:"who"});
+  const M = {}, src = (d.m && typeof d.m === "object") ? d.m : {}; USE_MODES.forEach(m=>{ if (m[0] !== "town" && src[m[0]] != null) M[m[0]] = Number(src[m[0]]) || 0; });
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(10000); useUpsert_(day, {dev:dev, nick:nick, tag:tg, pad:Number(d.pad) ? 1 : 0, ver:txt_(d.ver, 20)}, M); }
+  catch(err){ return json_({ok:false, err:"busy"}); }
+  finally { try { lock.releaseLock(); } catch(_){} }
+  return json_({ok:true});
+}
+/* 선생님 화면: 최근 14일 모드마다 [열쇠, 이름, 모두 몇 분, 한 아이 수] (USE_MODES 순서 · 안 쓴 모드도 0 으로) */
+function use_(){
+  const ss = SpreadsheetApp.openById(SHEET_ID), sh = ss.getSheetByName(USE_SHEET), modes = USE_MODES.map(m=>[m[0], m[1], 0, 0]);
+  if (!sh || sh.getLastRow() < 2) return {days:14, kids:0, modes:modes};
+  const last = sh.getLastRow(), n = Math.min(last - 1, 1500), rows = sh.getRange(last - n + 1, 1, n, USE_HEAD.length).getValues();
+  const cut = Utilities.formatDate(new Date(Date.now() - 13 * 864e5), "Asia/Seoul", "yyyy-MM-dd"), K = {}, MK = USE_MODES.map(()=>({}));
+  rows.forEach(r=>{ const day = String(r[0]); if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day < cut) return; const id = String(r[2]) || String(r[1]) || String(r[3]); K[id] = 1;
+    USE_MODES.forEach((m, i)=>{ const v = Number(r[5 + i]) || 0; if (v > 0){ modes[i][2] += v; MK[i][id] = 1; } }); });
+  modes.forEach((m, i)=>{ m[2] = Math.round(m[2] * 10) / 10; m[3] = Object.keys(MK[i]).length; });
+  return {days:14, kids:Object.keys(K).length, modes:modes};
+}
 function mtLog_(d){
   const day = String(d.day || ""); if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return json_({ok:false, err:"day"});
   const dev = txt_(d.dev, 40), nick = plain_(txt_(d.nick, 20)), tg = tag_(d.tag) ? "#" + tag_(d.tag) : "";
@@ -218,6 +276,7 @@ function mtLog_(d){
     sh.getRange(at, 1).setNumberFormat("@"); sh.getRange(at, 3).setNumberFormat("@");
     sh.getRange(at, 1, 1, N).setValues([out]);
     sh.getRange(at, 7).setNumberFormat("yyyy-mm-dd hh:mm");
+    try { useUpsert_(day, {dev:dev, nick:nick, tag:tg, pad:Number(d.pad) ? 1 : 0, ver:txt_(d.ver, 20)}, {town:out[4]}); } catch(e2){}   // (v654) 🎮 「모드 사용」 탭의 마이타운 칸
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
   return json_({ok:true});
@@ -919,7 +978,8 @@ function report_(){
     prog:  g("진도표", "A3:H80"),
     nicks: g("기기별 이름", "B5:B300").map(r=>String(r[0]).trim()).filter(n=>n && !/^PLAYER$/i.test(n)),   // (v308) 보내기 받는 아이 = 게임 이름(닉네임)
     tags:  tagList_().filter(x=>x.dev).map(x=>[x.tag, x.nick, x.first]),   // (v404) 🏷 태그 · 지금 이름 · 처음 이름
-    learn: (function(){ try { return learn_(); } catch(err){ return null; } })(),   // (v650) 🧠 며칠 뒤에도 기억하나
+    learn: (function(){ try { return learn_(); } catch(err){ return null; } })(),
+    use:   (function(){ try { return use_(); } catch(err){ return null; } })(),       // (v654) 🎮 모드별 사용 시간   // (v650) 🧠 며칠 뒤에도 기억하나
     town:  g(TOWN_SHEET, "A1:K300")   // (v563) 🏝 마을 현황 — 머리 줄(아이·태그·마지막·보석·모은 보석·코인·미끼·은행 코인·은행 보석·강화·버전) + 아이마다 한 줄
   };
 }

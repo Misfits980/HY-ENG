@@ -3632,6 +3632,9 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .adLearnT{margin:0 0 6px;font-size:15px} .adLearnT b{font-size:24px;color:#ffd37a} .adLearnT small{opacity:.7;font-size:12px} td.adLow{color:#ff9a9a;font-weight:900}
 .grSec{margin:14px 2px 2px;font-size:14px;font-weight:900;color:#ffd37a} .grSec:first-child{margin-top:0} .grFbW.no{color:#ffb3bd} .grFbW.no b{color:#fff}
 .hwCard.gw{border-color:rgba(143,227,255,.55)} .gwUnits{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px} .gwUnits .gwSec{flex:0 0 100%;font-weight:900;color:#ffd37a;margin-top:4px}
+.adUse{display:flex;flex-direction:column;gap:6px} .adUseR{display:grid;grid-template-columns:104px 1fr 92px 84px;gap:8px;align-items:center;font-size:14px} .adUseR.zero{opacity:.45}
+.adUseR i{height:12px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden} .adUseR u{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8fe3ff,#6b5ad8)} .adUseR span{font-weight:900;text-align:right} .adUseR small{opacity:.7;text-align:right}
+@media (max-width:520px){ .adUseR{grid-template-columns:84px 1fr 74px;font-size:13px} .adUseR small{display:none} }
 /* (v651) 중등 문법 — ⌨️ 직접 쓰기 */
 .grBl.wr{min-width:64px;display:inline-block;text-align:center;border-bottom:3px solid #ffd37a;color:#ffd37a} .grCur{display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:#ffd37a;animation:kkBlink 1s steps(2) infinite}
 .grCue{text-align:center;font-size:14px;font-weight:800;color:#cfc4f2;margin:2px 0 8px} .grCue b{color:#8fe3ff;font-size:16px}
@@ -17064,7 +17067,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v653";
+const GAME_VER = "v654";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -23794,6 +23797,38 @@ const HyHW = {
   _end:0
 };
 setInterval(()=>{ try{ if(!document.hidden && ($("scStudy").classList.contains("on") || $("scStart").classList.contains("on"))) HyHW.check(); }catch(e){} }, 15000);
+/* (v654) 🎮 모드별 사용 시간 — 사용자: 「마이타운 시간 · 보드게임 … 시트에서 깔끔하게 확인」. 지금 어느 모드인지 5초마다 보고 그날 합계(초)를 기기에 쌓음
+   → 5분마다 · 화면을 끌 때 시트 「모드 사용」 탭(아이·날마다 한 줄)으로 (그날 합계를 보내므로 여러 번 가도 같은 줄을 덮음 — 🏝 마이타운은 proto/house.html 이 같은 줄에)
+   study 오늘의 30 · gram 문법 · run 달리기 · battle 교실 배틀 · raid 레이드 · board 보드게임 · esc 저택 탈출 · vs 대결 · menu 첫 화면(기다림)
+   혼자 하는 모드는 2분 동안 화면을 안 만지면 안 셈(켜 둔 채 자리 비움) · 수업 게임은 TV 를 보느라 안 만져도 셈 · 선생님 기기·TV(방장)는 안 셈 */
+const Use = { K:"hyeng_use_v1", CLASS:{esc:1, board:1, battle:1, raid:1}, cur:"", at:0, act:Date.now(), sent:"", sentAt:0, force:false,
+  mode(){ try{
+      if(EscPad.room) return "esc"; if(BoardPad.room) return "board";
+      if(Battle.role) return Battle.role==="host" ? "" : "battle"; if(Raid.role) return Raid.role==="host" ? "" : "raid";
+      if(EscTV.room || $("escTV") || $("bdTvMG") || (BoardTV.cfg && $("board"))) return "";
+      const on=id=>{ const e=$(id); return !!(e && e.classList.contains("on")); };
+      if(on("scStudy")){ const g=$("stGram"); return (g && g.style.display!=="none" && GramUI.mode && GramUI.mode!=="note") ? "gram" : "study"; }
+      if(on("scVs") || on("scVsOver")) return "vs";
+      if(G.running) return G.versus ? "vs" : "run";
+      return "menu"; }catch(e){ return ""; } },
+  day(){ return new Date(Date.now()+9*3600e3).toISOString().slice(0,10); },
+  load(){ let o=null; try{ o=JSON.parse(localStorage.getItem(this.K)||"null"); }catch(e){} const d=this.day(); return (o && o.d===d && o.s) ? o : {d, s:{}, n:{}}; },
+  tick(final){ if(navigator.webdriver && !this.force) return; try{ if(Kid.teacher()) return; }catch(e){}
+    const now=Date.now(), m=document.hidden ? "" : this.mode(), o=this.load();
+    if(this.cur && this.at){ const dt=Math.min(20000, now-this.at); if(dt>0) o.s[this.cur]=(o.s[this.cur]||0)+dt/1000; }
+    const nx=(m && (this.CLASS[m] || now-this.act<120000)) ? m : ""; if(nx && nx!==this.cur) o.n[nx]=(o.n[nx]|0)+1; this.cur=nx; this.at=now;
+    try{ localStorage.setItem(this.K, JSON.stringify(o)); }catch(e){} this.send(o, final); },
+  send(o, final){ const now=Date.now(); if(!final && now-this.sentAt<300000) return; if(!Online.on()) return; const m={}; let tot=0; Object.keys(o.s).forEach(k=>{ const v=Math.round(o.s[k]/6)/10; if(v>=0.1){ m[k]=v; tot+=v; } }); if(tot<0.5) return;
+    const key=o.d+JSON.stringify(m); if(key===this.sent) return; this.sent=key; this.sentAt=now;
+    let k=null, pad=0, nick=""; try{ pad=Kid.shared() ? 1 : 0; k=Kid.get() || (pad ? Kid.me() : null); nick=String((k && (k.rn||k.n)) || localStorage.getItem("hyeng_nick") || "").slice(0,10); }catch(e){}
+    if(pad && !k) return;   /* 공용 패드인데 아이를 안 골랐으면 누구 시간인지 모름 */
+    const body={key:Online.KEY, type:"use", dev:Online.dev(), nick, tag:pad ? "" : (()=>{ try{ return Tag.get(); }catch(e){ return ""; } })(), pad, day:o.d, m, n:o.n, ver:String(GAME_VER)};
+    this.lastBody=body; try{ fetch(Online.URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body), keepalive:true}).catch(()=>{}); }catch(e){} }
+};
+["pointerdown","keydown","touchstart"].forEach(ev=>addEventListener(ev, ()=>{ Use.act=Date.now(); }, {passive:true, capture:true}));
+setInterval(()=>{ try{ Use.tick(false); }catch(e){} }, 5000);
+document.addEventListener("visibilitychange", ()=>{ try{ if(document.hidden) Use.tick(true); else { Use.cur=""; Use.at=0; Use.act=Date.now(); Use.tick(false); } }catch(e){} });
+addEventListener("pagehide", ()=>{ try{ Use.tick(true); }catch(e){} });
 setTimeout(()=>{ try{ HyHW.check(true); }catch(e){} }, 3000);
 
 
@@ -27746,6 +27781,14 @@ const Admin = (function(){
         b='<p class="adLearnT">반 전체 <b>'+pc(ok,tot)+'</b> <small>('+ok+'/'+tot+'문제 · 그날 정답률이 아니라 며칠 뒤 첫 번에 맞힌 비율)</small></p>'
           +(W.length ? '<p class="adSmall">📌 반이 안 붙는 단어 — 수업에서 5분만 짚어 주세요</p><div class="adWords">'+W.map(r=>'<span>'+esc(r[0])+'<i>'+esc(r[1])+'명</i></span>').join('')+'</div>' : '')
           +'<div class="adTbl"><table><tr><th>아이</th><th>며칠 뒤 정답률</th><th>안 붙는 단어</th><th>약한 문법</th><th>🎤</th></tr>'+K.map(k=>'<tr><td>'+esc(k.n)+'</td><td'+(k.tot>=5 && k.ok/k.tot<0.6?' class="adLow"':'')+'>'+pc(k.ok,k.tot)+' <small>'+(k.ok|0)+'/'+(k.tot|0)+'</small></td><td>'+((k.w||[]).map(x=>esc(x[0])+(x[1]>1?' ×'+x[1]:'')).join(', ')||'—')+'</td><td>'+(k.g ? esc(String(k.g[0]).replace(/^.*문법 · /,""))+' <small>'+(k.g[1]|0)+'%</small>' : '—')+'</td><td>'+(k.sp|0)+'</td></tr>').join('')+'</table></div>'; }
+      /* (v654) 🎮 모드별 사용 시간 — 시트 「모드 사용」 탭 (서버 v21) */
+      { const U=D.use; let u='';
+        if(!U) u='<p class="adSmall">서버를 v21 로 올리면 보여요 (Code.gs 붙여 넣고 새 버전으로 배포)</p>';
+        else if(!(U.modes||[]).some(r=>r[2]>0)) u='<p class="adSmall">아직 기록이 없어요 — 아이들 기기가 새 버전(v654~)이 되면 쌓여요</p>';
+        else { const mx=Math.max(1, ...U.modes.map(r=>r[2])), tot=U.modes.reduce((a,r)=>a+r[2],0), hm=v=>v>=60 ? Math.floor(v/60)+'시간 '+Math.round(v%60)+'분' : Math.round(v)+'분';
+          u='<p class="adSmall">최근 '+(U.days|0)+'일 · 아이 '+(U.kids|0)+'명 · 모두 '+hm(tot)+' · 안 쓰는 모드는 0 으로 보여요 (자세히는 시트 「모드 사용」 탭)</p><div class="adUse">'
+            +U.modes.map(r=>'<div class="adUseR'+(r[2]>0?'':' zero')+'"><b>'+esc(r[1])+'</b><i><u style="width:'+Math.round(r[2]/mx*100)+'%"></u></i><span>'+hm(r[2])+'</span><small>'+(r[3]|0)+'명 · '+(tot?Math.round(r[2]/tot*100):0)+'%</small></div>').join('')+'</div>'; }
+        h+='<div class="full">'+card('🎮 모드별 사용 시간', u, '어디서 시간을 보내나')+'</div>'; }
       h+='<div class="full">'+card('🧠 며칠 뒤에도 기억하나', b, '최근 14일')+'</div>';
       /* (v653) 📒 문법별 정답률 — 낮은 단원부터 (서버 v20) */
       { const Gm=L && L.gram; let g='';

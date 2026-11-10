@@ -32,7 +32,7 @@ const T0=Math.floor((Date.now()-3*864e5)/864e5)*864e5+2*3600e3;   // 사흘 전 
 const study=(o)=>post(Object.assign({nick:"👤주호", diff:"study", rule:"study", set:"유치원 장모음 Stage 3-1", clear:1, right:6, wrong:0, secs:60, tag:"0011", dev:"devJU", ver:"v600", at:T0}, o));
 study({cn:6, cf:4, cs:3.46});
 const H=book.scores.d[0], row=i=>book.scores.d[i], col=(i,n)=>row(i)[H.indexOf(n)];
-ok(H.slice(-4).join(",")==="단어 카드,끝까지 본 카드,카드 평균(초),다시 푼 판", "scores 맨 끝 4칸 "+H.slice(-4).join(","));
+{ const i0=H.indexOf("단어 카드"); ok(i0>0 && H.slice(i0,i0+4).join(",")==="단어 카드,끝까지 본 카드,카드 평균(초),다시 푼 판", "scores 카드 4칸 (v650 뒤로 그 뒤에 칸이 더 있음) "+H.slice(i0,i0+4).join(",")); }
 ok(col(1,"단어 카드")===6 && col(1,"끝까지 본 카드")===4 && col(1,"카드 평균(초)")===3.5 && col(1,"다시 푼 판")===0, "카드 6 · 끝까지 4 · 평균 3.5초 · 처음 = 0");
 study({cn:6, cf:1, cs:1.2, at:T0+600000});
 ok(col(2,"다시 푼 판")===1, "같은 날 같은 Stage 다시 = 1");
