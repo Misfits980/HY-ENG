@@ -72,7 +72,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 19;  // (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 20;  // (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -886,17 +886,22 @@ function test(){
    words = 반이 안 붙는 단어 [단어, 아이 수, 횟수] (아이 수 많은 순) */
 function learn_(){
   const sh = sheet_(), last = sh.getLastRow(); if (last < 2) return {days:14, kids:[], words:[]};
-  const n = Math.min(last - 1, 6000), rows = sh.getRange(last - n + 1, 1, n, COLS.length).getValues(), cut = Date.now() - 14 * 864e5, K = {}, W = {};
+  const n = Math.min(last - 1, 6000), rows = sh.getRange(last - n + 1, 1, n, COLS.length).getValues(), cut = Date.now() - 14 * 864e5, K = {}, W = {}, GU = {};
   rows.forEach(r=>{ const t = time_(r[C.date]); if (!t || t < cut) return;
     const tot = Number(r[C.rvn]) || 0, ok = Number(r[C.rvo]) || 0, sp = Number(r[C.sp]) || 0, ws = String(r[C.rvw] || "").split(",").map(x=>x.trim().toLowerCase()).filter(x=>x);
-    if (!tot && !sp && !ws.length) return;
+    /* (v653) 📒 문법 판(방식 study-grammar): 단어장 칸 「중등 문법 · 현재완료 ★4」 → 단원마다 맞힘/푼 수 */
+    const gm = String(r[C.rule]) === "study-grammar" ? String(r[C.set] || "").replace(/\s*★\d+\s*$/, "").trim() : "", gr = gm ? (Number(r[C.right]) || 0) : 0, gt = gm ? gr + (Number(r[C.wrong]) || 0) : 0;
+    if (!tot && !sp && !ws.length && !gt) return;
     const tg = String(r[C.tag] || "").trim(), nm = plain_(r[C.nick]), id = tg || nm; if (!id) return;
-    const k = K[id] || (K[id] = {n:nm, ok:0, tot:0, sp:0, w:{}}); k.n = nm; k.ok += Math.min(ok, tot); k.tot += tot; k.sp += sp;
+    const k = K[id] || (K[id] = {n:nm, ok:0, tot:0, sp:0, w:{}, g:{}}); k.n = nm;
+    if (gt){ const a = k.g[gm] || (k.g[gm] = [0, 0]); a[0] += gr; a[1] += gt; const u = GU[gm] || (GU[gm] = {k:{}, n:0, r:0, t:0}); u.k[id] = 1; u.n++; u.r += gr; u.t += gt; } k.ok += Math.min(ok, tot); k.tot += tot; k.sp += sp;
     ws.forEach(w=>{ k.w[w] = (k.w[w] || 0) + 1; const x = W[w] || (W[w] = {k:{}, n:0}); x.k[id] = 1; x.n++; }); });
-  const kids = Object.keys(K).map(id=>{ const k = K[id]; return {n:k.n, ok:k.ok, tot:k.tot, sp:k.sp, w:Object.keys(k.w).sort((a, b)=>k.w[b] - k.w[a]).slice(0, 5).map(w=>[w, k.w[w]])}; })
+  const kids = Object.keys(K).map(id=>{ const k = K[id]; const gw = Object.keys(k.g).filter(u=>k.g[u][1] >= 5).sort((a, b)=>k.g[a][0] / k.g[a][1] - k.g[b][0] / k.g[b][1])[0];
+      return {n:k.n, ok:k.ok, tot:k.tot, sp:k.sp, w:Object.keys(k.w).sort((a, b)=>k.w[b] - k.w[a]).slice(0, 5).map(w=>[w, k.w[w]]), g:gw ? [gw, Math.round(k.g[gw][0] / k.g[gw][1] * 100)] : null}; })
     .sort((a, b)=>(a.tot ? a.ok / a.tot : 2) - (b.tot ? b.ok / b.tot : 2));
   const words = Object.keys(W).map(w=>[w, Object.keys(W[w].k).length, W[w].n]).sort((a, b)=>b[1] - a[1] || b[2] - a[2]).slice(0, 12);
-  return {days:14, kids:kids, words:words};
+  const gram = Object.keys(GU).map(u=>[u, Object.keys(GU[u].k).length, GU[u].n, GU[u].t ? Math.round(GU[u].r / GU[u].t * 100) : 0]).sort((a, b)=>a[3] - b[3]).slice(0, 30);   // [단원, 아이 수, 판 수, 정답률%] 낮은 것부터
+  return {days:14, kids:kids, words:words, gram:gram};
 }
 function report_(){
   const ss = SpreadsheetApp.openById(SHEET_ID);

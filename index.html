@@ -3631,6 +3631,7 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .hmHp{display:flex;gap:3px;flex-wrap:wrap;font-size:clamp(18px,2.6vh,30px)} .hmHp i{font-style:normal} .hmHp i.off{filter:grayscale(1);opacity:.25} .hmHp.sm{font-size:16px;gap:1px} .hmOver{color:#ff8a8a}
 .adLearnT{margin:0 0 6px;font-size:15px} .adLearnT b{font-size:24px;color:#ffd37a} .adLearnT small{opacity:.7;font-size:12px} td.adLow{color:#ff9a9a;font-weight:900}
 .grSec{margin:14px 2px 2px;font-size:14px;font-weight:900;color:#ffd37a} .grSec:first-child{margin-top:0} .grFbW.no{color:#ffb3bd} .grFbW.no b{color:#fff}
+.hwCard.gw{border-color:rgba(143,227,255,.55)} .gwUnits{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px} .gwUnits .gwSec{flex:0 0 100%;font-weight:900;color:#ffd37a;margin-top:4px}
 /* (v651) 중등 문법 — ⌨️ 직접 쓰기 */
 .grBl.wr{min-width:64px;display:inline-block;text-align:center;border-bottom:3px solid #ffd37a;color:#ffd37a} .grCur{display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:#ffd37a;animation:kkBlink 1s steps(2) infinite}
 .grCue{text-align:center;font-size:14px;font-weight:800;color:#cfc4f2;margin:2px 0 8px} .grCue b{color:#8fe3ff;font-size:16px}
@@ -17063,7 +17064,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v652";
+const GAME_VER = "v653";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19073,6 +19074,9 @@ const StudyUI = {
     const rv=T && T.querySelector(".cpRv"); if(rv){ const go=rv.classList.contains("go"), done=rv.classList.contains("done"), n=((rv.querySelector(".cpChest em")||{}).textContent||"").trim(); ch.push({k:"rv", t:'🔁 '+(done?'복습 끝':'복습'), b: go ? (n||'!') : '', dim:done}); }
     try{ const L=DM.list(), n=L.filter(m=>m.done).length, s0=DM.s||{}; ch.push({k:"dm", t:'🎯 미션 '+(s0.got?'끝':n+'/'+L.length), b:(!s0.got && n>=L.length && L.length) ? '!' : '', dim:!!s0.got}); }catch(e){}
     const bc=$("stBossCard"); if(bc && !bc.hidden && bc.innerHTML){ const bub=bc.querySelector(".cpBub"), hot=bub && /gift|hot/.test(bub.className), dead=bc.classList.contains("dead"); ch.push({k:"boss", t:'👹 보스'+(dead?' ✓':''), b: hot ? (bub.classList.contains("gift")?'🎁':((bub.textContent||'').replace(/\D/g,'')||'!')) : '', dim:dead && !hot}); }
+    /* (v653) 숙제 카드(위 칸은 숨겨져 있음)를 위쪽 단추로 — 📌 단어 숙제 · 📒 문법 숙제 */
+    if(T) T.querySelectorAll(".hwCard").forEach(hc=>{ const gw=hc.classList.contains("gw"), done=hc.classList.contains("done"), n=(((hc.querySelector(".hwBar span")||{}).textContent||"").match(/\d+ \/ \d+/)||[""])[0].replace(/ /g,"");
+      ch.push({k:gw?"gw":"hw", t:(gw?'📒 문법 숙제 ':'📌 숙제 ')+(done?'끝 ✓':n), dim:done, hot:!done}); });
     const g=document.querySelector("#stHead [data-gnote]"); if(g) ch.push({k:"gram", t:(g.textContent||'').trim()});
     if(T && T.querySelector(".stWeek")) ch.push({k:"week", t:'📝 주간 시험', b:'!', hot:1});
     const ck=T && T.querySelector(".stChkRow"); if(ck){ const w=ck.classList.contains("wait"), n=w ? (((ck.textContent||'').match(/(\d+)개/)||[])[1]||'') : ck.querySelectorAll(".stChkB").length; ch.push({k:"chk", t: w ? '⏳ 내일 확인 '+n : '✅ 확인', b: w ? '' : String(n), dim:w, hot:!w}); }
@@ -19081,7 +19085,7 @@ const StudyUI = {
     if(t.dataset.sb==="close"){ const x=$("stClose"); if(x) x.click(); return; }
     if(t.dataset.sb==="book"){ const o=!P.classList.contains("sbOpen"); P.classList.toggle("sbOpen", o); t.setAttribute("aria-expanded", o); try{ SFX.click(); }catch(er){} return; }
     const k=t.dataset.sbk, q=sel=>document.querySelector(sel);
-    const tgt = k==="rv" ? T && T.querySelector(".cpRv .cpChest") : k==="dm" ? $("dmStrip") : k==="boss" ? (q("#stBossCard .cpBub[data-bossclaim], #stBossCard .cpBub[data-kidpick]") || q("#stBossCard .cpBossB")) : k==="gram" ? q("#stHead [data-gnote]") : k==="week" ? T && T.querySelector(".stWeek") : k==="chk" ? T && (T.querySelector(".stChkB") || T.querySelector(".stChkRow")) : null;
+    const tgt = k==="rv" ? T && T.querySelector(".cpRv .cpChest") : k==="dm" ? $("dmStrip") : k==="boss" ? (q("#stBossCard .cpBub[data-bossclaim], #stBossCard .cpBub[data-kidpick]") || q("#stBossCard .cpBossB")) : k==="gw" ? T && T.querySelector(".hwCard.gw:not(.done) [data-hwg]") : k==="hw" ? T && T.querySelector(".hwCard:not(.gw) [data-hw]") : k==="gram" ? q("#stHead [data-gnote]") : k==="week" ? T && T.querySelector(".stWeek") : k==="chk" ? T && (T.querySelector(".stChkB") || T.querySelector(".stChkRow")) : null;
     if(tgt) tgt.click(); },
   /* (v521) 사용자: G5-6 도 G3-4 처럼 뒤에 한 배경이 고정 — 대신 화면 가운데 있는 구역에 따라 배경이 스르르 바뀜 (숲 → 얼음 → 화산 → 늪 → 하늘 → 성) */
   G6BG:{forest:"mapz_forest4", ice:"mapz_snow4", lava:"mapz_lava4", swamp:"mapz_swamp", sky:"mapz_sky", castle:"mapz_castle"},
@@ -20568,7 +20572,7 @@ const GramUI = {
   /* ── 끝 ── */
   finish(){ if(this.isMix()) return this.mixFinish(); const g=this.g, T=this.T(), pct=this.n ? this.first/this.n : 1, need=Math.ceil(this.n*T.pass-1e-9), pass=this.first>=need, before=Gram.stars(g.id); let gem=0, up=false;
     if(pass && this.tier>before){ up=true; Gram.put(g.id, {s:this.tier}); const key="gr-"+g.id+"-"+this.tier; if(!Wallet.paid(key)){ Wallet.pay(key); gem=Gram.GEM; Wallet.addGems(gem, "문법 "+g.t+" ★"+this.tier); } }
-    Gram.put(g.id, {n:((Gram.st(g.id)||{}).n|0)+1, at:Date.now(), last:Math.round(pct*100)}); try{ DM.add("q", this.first|0); }catch(e){}   // (v624) 연계: 🎯 「한 번에 맞히기」 미션에 문법도
+    Gram.put(g.id, {n:((Gram.st(g.id)||{}).n|0)+1, at:Date.now(), last:Math.round(pct*100)}); try{ HyHW.reportG(); }catch(e){} try{ DM.add("q", this.first|0); }catch(e){}   // (v624) 연계: 🎯 「한 번에 맞히기」 미션에 문법도
     this.res={pass, up, pct, gem, need, tier:this.tier}; this.mode="end"; this.draw(); try{ $("scStudy").scrollTop=0; }catch(e){}
     try{ if(up){ SFX.tone(660,.12,"triangle",.05,990); setTimeout(()=>{ try{ SFX.tone(990,.18,"triangle",.05,1480); }catch(e){} }, 140); if(this.tier>=3) confetti(); } }catch(e){}
     try{ let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
@@ -20824,6 +20828,7 @@ const _stClick=e=>{
     return; }
   if(t.closest("[data-review]")){ SFX.select(); StudyUI.review(); return; }
   if(t.closest("[data-weekly]")){ SFX.select(); StudyUI.weekly(); return; }
+  { const hg=t.closest("[data-hwg]"); if(hg){ SFX.select(); HyHW.goG(hg.dataset.hwg); return; } }   // (v653) 📒 문법 숙제
   if(t.closest("[data-hw]")){ SFX.select(); HyHW.go(); return; }   // (v329) 📌 숙제
   if(t.closest("[data-raidjoin]")){ SFX.select(); RaidJoin.open(); return; }
   if(t.closest("[data-kidpick]")){ SFX.click(); KidPick.open(()=>StudyUI.bossCard(), {bind:true}); return; }   /* (v478) 개인 기기는 「같은 이름 여럿」일 때만 이 버튼 */
@@ -23644,7 +23649,33 @@ const HyHW = {
   redraw(){ try{ if($("scStudy").classList.contains("on") && $("stPath").style.display!=="none") StudyUI.path(); }catch(e){} },
   live(c){ return !!(c && c.on && WORD_SETS[c.set] && Date.now() < (c.due||0)+864e5*3); },   // 마감 3일 뒤까지는 보임
   /* 이 아이 숙제 — 우리 반 숙제 먼저, 없으면 전체 숙제 (이름을 안 골랐으면 전체 숙제만) */
-  mine(){ let m=null; try{ m=HyExam.me(); }catch(e){} const L=(this.L||[]).filter(c=>this.live(c)), t=(m && m.t && m.t!=="all") ? m.t : Kid.padT();   /* (v356) 이름을 안 골라도 지금 수업 반 숙제 */
+  /* (v653) 📒 문법 숙제 — 같은 자리(/hy/hw/cur)에 kind:"gram" · set:"@gram"(옛 게임은 모르는 책이라 지나침) · gids = 단원들 · goal = ★ 몇 개까지 · kid = 한 아이에게만(없으면 반) */
+  isG(c){ return !!(c && c.kind==="gram" && Array.isArray(c.gids)); },
+  liveG(c){ return this.isG(c) && c.on && Date.now() < (c.due||0)+864e5*3; },
+  mineG(){ let m=null; try{ m=HyExam.me(); }catch(e){} const t=(m && m.t && m.t!=="all") ? m.t : Kid.padT();
+    return (this.L||[]).filter(c=>this.liveG(c) && (c.kid ? !!(m && m.id===c.kid) : (!c.team || c.team==="all" || c.team===t))); },
+  progG(c){ return [c.gids.filter(id=>Gram.stars(id)>=(c.goal|0||1)).length, c.gids.length]; },
+  cardG(){ const L=this.mineG(); if(!L.length) return ""; if(!Gram.D){ Gram.load().then(()=>this.redraw()); return ""; } const E=x=>Raid.esc(x);
+    return L.map(c=>{ const [f,t]=this.progG(c), done=f>=t && t>0;
+      return '<div class="hwCard gw'+(done?' done':'')+((c.due||0)<Date.now() && !done?' late':'')+'"><div class="hwT"><b>📒 문법 숙제 · '+E(c.title||"")+'</b><small>단원마다 ★'+(c.goal|0||1)+' 까지 · '+this.dueTxt(c)+'</small></div>'
+        +'<div class="hwBar"><u style="width:'+Math.round(f/Math.max(1,t)*100)+'%"></u><span>'+f+' / '+t+' 단원</span></div>'
+        +(done ? '<div class="hwDone">🎉 문법 숙제 끝! 잘했어요</div>' : '<button class="hwGo" data-hwg="'+E(c.id)+'">▶ 문법 숙제 하기</button>')+'</div>'; }).join(''); },
+  goG(id){ const c=this.mineG().find(x=>x.id===id); if(!c) return; const nx=c.gids.find(g=>Gram.get(g) && Gram.stars(g)<(c.goal|0||1)); if(!nx) return hyToast("🎉 문법 숙제를 다 했어요!"); GramUI.start(nx); },
+  reportG(){ let me=null; try{ me=HyExam.me(); }catch(e){} if(!me || me.teacher || !Gram.D) return; this.mineG().forEach(c=>{ const [f,t]=this.progG(c), k="hyeng_hwrep_"+c.id+"_"+String(me.id).slice(0,20);
+      let last=""; try{ last=localStorage.getItem(k)||""; }catch(e){} if(last===f+"/"+t) return; try{ localStorage.setItem(k, f+"/"+t); }catch(e){}
+      FB.set("/hy/hw/res/"+c.id+"/"+me.id, {n:String(me.n||"").slice(0,10), t:me.t||"all", done:f, tot:t, at:Date.now()}); }); },
+  who(c){ if(c.kid){ let K={}; try{ K=HyBoss.kids()||{}; }catch(e){} return "👤 "+((K[c.kid]||{}).n||"한 아이"); } return this.tName(c.team); },
+  gPane(){ const E=x=>Raid.esc(x); let K={}; try{ K=HyBoss.kids()||{}; }catch(e){} const ks=Object.keys(K).filter(k=>K[k] && K[k].n).sort((a,b)=>String(K[a].n).localeCompare(K[b].n));
+    const bk=this._gbk||"mid", L=Gram.list(bk); if(!Gram.D) Gram.load().then(()=>{ try{ Admin.redraw && Admin.redraw(); }catch(e){} });
+    return '<section class="adCard"><h3>📒 문법 숙제 내기<small>반 전체 또는 한 아이에게 · 아이 Daily 30 맨 위에 📒 카드 · 학교 시험 범위 단원만 골라 주세요</small></h3>'
+      +'<div class="adPinRow"><label class="adL">반</label><select id="adGwTeam">'+HyExam.teamOpts("all")+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">아이 (선택)</label><select id="adGwKid"><option value="">반 전체에게</option>'+ks.map(k=>'<option value="'+E(k)+'">'+E(K[k].n)+'</option>').join('')+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">과정</label><select id="adGwBk">'+[["mid","중등"],["g56","Grade 5-6"],["g34","Grade 3-4"]].map(b=>'<option value="'+b[0]+'"'+(b[0]===bk?' selected':'')+'>'+b[1]+'</option>').join('')+'</select></div>'
+      +'<div class="gwUnits" id="adGwUnits">'+(L.length ? L.map((g,i)=>(g.sec && (!i || L[i-1].sec!==g.sec) ? '<small class="gwSec">'+E(g.sec)+'</small>' : '')+'<label class="ppChk"><input type="checkbox" value="'+E(g.id)+'">'+g.emo+' '+E(g.t)+'</label>').join('') : '<p class="adSmall">문법 자료를 불러오는 중…</p>')+'</div>'
+      +'<div class="adPinRow"><label class="adL">목표</label><select id="adGwGoal">'+[1,2,3,4,5,6].map(n=>'<option value="'+n+'"'+(n===3?' selected':'')+'>★'+n+' '+E((Gram.tiers(bk)[n]||{}).nm||"")+' 까지</option>').join('')+'</select></div>'
+      +'<div class="adPinRow"><label class="adL">마감</label><select id="adGwDue"><option value="1">내일</option><option value="2">모레</option><option value="fri" selected>이번 금요일</option><option value="7">일주일</option><option value="14">2주 (시험 대비)</option></select></div>'
+      +'<button class="play adGo" data-ad="hwGOpen">📒 문법 숙제 내기</button></section>'; },
+  mine(){ let m=null; try{ m=HyExam.me(); }catch(e){} const L=(this.L||[]).filter(c=>!this.isG(c) && this.live(c)), t=(m && m.t && m.t!=="all") ? m.t : Kid.padT();   /* (v356) 이름을 안 골라도 지금 수업 반 숙제 */
     return (t && t!=="all" && L.filter(c=>c.team===t).pop()) || L.filter(c=>!c.team || c.team==="all").pop() || null; },
   on(){ this.c=this.mine(); return !!this.c; },
   list(){ const c=this.c; if(!this.on()) return []; return Study.lessons(c.set).slice(c.from|0, (c.to|0)+1); },
@@ -23653,8 +23684,8 @@ const HyHW = {
   prog(){ const L=this.list(); return [L.filter(x=>this.ok(x)).length, L.length]; },
   dueTxt(c){ c=c||this.c; const d=new Date(c.due||0), ms=(c.due||0)-Date.now(), W="일월화수목금토";
     return ms<0 ? "마감 지남" : (d.getMonth()+1)+"/"+d.getDate()+" ("+W[d.getDay()]+")까지"+(ms<864e5 ? " · 오늘!" : ""); },
-  card(){ if(!this.on()) return ""; const c=this.c, [f,t]=this.prog(), E=x=>Raid.esc(x), done=f>=t && t>0;
-    return '<div class="hwCard'+(done?' done':'')+((c.due||0)<Date.now() && !done?' late':'')+'"><div class="hwT"><b>📌 숙제 · '+E(c.title||"")+'</b><small>'+E(this.GOAL[c.goal]||"")+'까지 · '+this.dueTxt()+'</small></div>'
+  card(){ let g=""; try{ g=this.cardG(); }catch(e){} if(!this.on()) return g; const c=this.c, [f,t]=this.prog(), E=x=>Raid.esc(x), done=f>=t && t>0;
+    return g+'<div class="hwCard'+(done?' done':'')+((c.due||0)<Date.now() && !done?' late':'')+'"><div class="hwT"><b>📌 숙제 · '+E(c.title||"")+'</b><small>'+E(this.GOAL[c.goal]||"")+'까지 · '+this.dueTxt()+'</small></div>'
       +'<div class="hwBar"><u style="width:'+Math.round(f/Math.max(1,t)*100)+'%"></u><span>'+f+' / '+t+' Stage</span></div>'
       +(done ? '<div class="hwDone">🎉 숙제 끝! 잘했어요</div>' : '<button class="hwGo" data-hw="go">▶ 숙제 하기</button>')+'</div>'; },
   /* 다음에 할 숙제 Stage 로 */
@@ -23670,12 +23701,15 @@ const HyHW = {
   /* ── 선생님 (📝 시험·숙제 탭) ── */
   tName(t){ return (!t || t==="all") ? "👥 전체" : HyExam.tName(t); },
   curCard(c){ const E=x=>Raid.esc(x);
+    if(this.isG(c)) return '<section class="adCard hwCur"><h3>📒 '+E(c.title)+'<small>'+E(this.who(c))+' · 단원마다 ★'+(c.goal|0||1)+' 까지 · '+this.dueTxt(c)+'</small></h3>'
+      +'<div id="adHwRes_'+E(c.id)+'" class="hwRes"><p class="adSmall">불러오는 중…</p></div>'
+      +'<div class="adRow"><button class="mini" data-ad="hwCopy" data-id="'+E(c.id)+'">📋 안 한 아이 이름 복사</button><button class="mini warn" data-ad="hwEnd" data-id="'+E(c.id)+'">■ 숙제 끝내기</button></div></section>';
     return '<section class="adCard hwCur"><h3>📌 '+E(c.title)+'<small>'+E(this.tName(c.team))+' · '+E(this.GOAL[c.goal]||"")+'까지 · '+this.dueTxt(c)+'</small></h3>'
       +'<div id="adHwRes_'+E(c.id)+'" class="hwRes"><p class="adSmall">불러오는 중…</p></div>'
       +'<div class="adRow"><button class="mini" data-ad="hwCopy" data-id="'+E(c.id)+'">📋 안 한 아이 이름 복사</button><button class="mini" data-ad="hwExam" data-id="'+E(c.id)+'">📝 이 범위로 시험</button><button class="mini warn" data-ad="hwEnd" data-id="'+E(c.id)+'">■ 숙제 끝내기</button></div></section>'; },
   /* (v395) ⚡ 다음 숙제 — 반마다 지금(또는 지난) 숙제 바로 다음 범위를 같은 길이로 · 한 번 누르면 냄 */
   rng(set, f, t){ const L=Study.lessons(set), A=L[f], B=L[t]; return Study.label(set)+" "+(A?Study.stageNo(set,A.n):"")+(t>f && B?"~"+Study.stageNo(set,B.n):""); },
-  nextOf(team){ const cur=this.L.filter(c=>c.on && (c.team||"all")===team).pop(), last=cur || (((HyBoss.R||{}).hwl||{})[team]); if(!last || !last.set || !WORD_SETS[last.set]) return null;
+  nextOf(team){ const cur=this.L.filter(c=>c.on && !this.isG(c) && (c.team||"all")===team).pop(), last=cur || (((HyBoss.R||{}).hwl||{})[team]); if(!last || !last.set || !WORD_SETS[last.set]) return null;
     const L=Study.lessons(last.set); if(!L.length) return null; const n=Math.max(1, (last.to|0)-(last.from|0)+1), f=(last.to|0)+1;
     if(f>=L.length) return {team, cur, end:1, set:last.set}; return {team, cur, set:last.set, from:f, to:Math.min(L.length-1, f+n-1), goal:last.goal||3}; },
   nextCard(){ const E=x=>Raid.esc(x); let T={}; try{ T=HyBoss.teams()||{}; }catch(e){} const rows=["all"].concat(Object.keys(T)).map(t=>this.nextOf(t)).filter(Boolean);
@@ -23686,10 +23720,10 @@ const HyHW = {
         +(x.end ? '' : '<button class="play adGo" data-ad="hwNext" data-team="'+E(x.team)+'">📌 다음 숙제 내기</button>')+'</div>'; }).join('')+'</section>'; },
   /* 반 명단 아이 모두 + 서버 진행 — 안 한 아이도 보이게 */
   rows(c){ const R=this._R[c.id]||{}; let K={}; try{ K=HyBoss.kids()||{}; }catch(e){}
-    const inT=k=>!c.team || c.team==="all" || (K[k]||{}).t===c.team, rows=[], seen={};
+    const inT=k=>c.kid ? k===c.kid : (!c.team || c.team==="all" || (K[k]||{}).t===c.team), rows=[], seen={}, tot0=c.gids ? c.gids.length : (c.to-c.from+1);
     Object.keys(K).filter(inT).forEach(k=>{ const r=R[k] || Object.values(R).find(x=>x && String(x.n||"").toLowerCase()===String(K[k].n).toLowerCase()); seen[k]=1; if(r) seen["n:"+String(r.n||"").toLowerCase()]=1;
-      rows.push({n:K[k].n, done:r?(r.done|0):0, tot:r?(r.tot|0):(c.to-c.from+1), st:r?1:0}); });
-    Object.keys(R).forEach(k=>{ const r=R[k]; if(!r || seen[k] || seen["n:"+String(r.n||"").toLowerCase()]) return; if(c.team && c.team!=="all" && r.t && r.t!==c.team) return; rows.push({n:r.n, done:r.done|0, tot:r.tot|0, st:1}); });
+      rows.push({n:K[k].n, done:r?(r.done|0):0, tot:r?(r.tot|0):tot0, st:r?1:0}); });
+    Object.keys(R).forEach(k=>{ const r=R[k]; if(!r || seen[k] || seen["n:"+String(r.n||"").toLowerCase()]) return; if(c.kid && k!==c.kid) return; if(c.team && c.team!=="all" && r.t && r.t!==c.team) return; rows.push({n:r.n, done:r.done|0, tot:r.tot|0, st:1}); });
     const fin=x=>x.tot>0 && x.done>=x.tot; rows.sort((a,b)=>(fin(a)-fin(b)) || (a.done-b.done) || String(a.n).localeCompare(b.n)); return rows; },
   table(c){ const E=x=>Raid.esc(x), L=this.rows(c), fin=L.filter(x=>x.tot>0 && x.done>=x.tot), doing=L.filter(x=>x.done>0 && !(x.tot>0 && x.done>=x.tot)), none=L.filter(x=>!x.done);
     if(!L.length) return '<p class="adSmall">아직 한 아이가 없어요 · 👥 우리 반에 아이를 넣으면 안 한 아이도 여기 보여요</p>';
@@ -23706,11 +23740,13 @@ const HyHW = {
       +'<div class="adPinRow"><label class="adL">마감</label><select id="adHwDue"><option value="1">내일</option><option value="2">모레</option><option value="fri" selected>이번 금요일</option><option value="7">일주일</option></select></div>'
       +'<div class="adPinRow"><label class="adL">제목</label><input id="adHwT" maxlength="30" placeholder="(비우면 자동 — 예: 중등 단어 1-1~2-3)"></div>'
       +'<button class="play adGo" data-ad="hwOpen">📌 숙제 내기</button></section>';
+    try{ h+=this.gPane(); }catch(e){}
     return h; },
   dueOf(v){ const d=new Date(), end=k=>new Date(d.getFullYear(), d.getMonth(), d.getDate()+k, 23, 59, 0).getTime();
     if(v==="fri"){ let k=(5-d.getDay()+7)%7; if(k===0 && d.getHours()>=20) k=7; return end(k); } return end(+v||1); },
   paintRes(c){ const el=$("adHwRes_"+c.id); if(el) el.innerHTML=this.table(c); },
-  wire(){ const s=$("adHwSet"); if(s){ const fill=()=>{ const L=Study.lessons(s.value), o=L.map((x,i)=>'<option value="'+i+'">Stage '+Study.stageNo(s.value,x.n)+(x.fin?' 🚩':'')+'</option>').join(''); $("adHwFrom").innerHTML=o; $("adHwTo").innerHTML=o; $("adHwTo").value=String(Math.min(L.length-1, 3)); };
+  wire(){ const gb=$("adGwBk"); if(gb) gb.addEventListener("change", ()=>{ this._gbk=gb.value; const b=$("adBody"), y=b ? b.scrollTop : 0; try{ Admin.redraw(); }catch(e){} const b2=$("adBody"); if(b2) b2.scrollTop=y; });
+    const s=$("adHwSet"); if(s){ const fill=()=>{ const L=Study.lessons(s.value), o=L.map((x,i)=>'<option value="'+i+'">Stage '+Study.stageNo(s.value,x.n)+(x.fin?' 🚩':'')+'</option>').join(''); $("adHwFrom").innerHTML=o; $("adHwTo").innerHTML=o; $("adHwTo").value=String(Math.min(L.length-1, 3)); };
       s.addEventListener("change", fill); fill(); }
     this.L.filter(c=>c.on).forEach(c=>{ this.paintRes(c); FB.get("/hy/hw/res/"+c.id).then(R=>{ this._R[c.id]=R||{}; this.paintRes(c); }); }); },
   /* 지금 숙제 모두를 새 모양(반마다)으로 다시 씀 */
@@ -23725,6 +23761,14 @@ const HyHW = {
       msg("📝 시험 칸에 숙제 범위를 넣었어요 — 「📝 시험 열기」만 누르면 돼요", true); return true; }
     if(a==="hwOpen"){ const set=$("adHwSet").value, f=+$("adHwFrom").value||0, t=Math.max(f, +$("adHwTo").value||0), team=($("adHwTeam")||{}).value||"all";
       return this.issue({team, set, from:f, to:t, goal:+$("adHwGoal").value||3, due:this.dueOf($("adHwDue").value), title:(($("adHwT").value||"").trim() || this.rng(set, f, t)).slice(0,30)}, msg, redraw); }
+    if(a==="hwGOpen"){ const gids=[...document.querySelectorAll("#adGwUnits input:checked")].map(x=>x.value).filter(id=>Gram.get(id)); if(!gids.length){ msg("단원을 하나 넘게 골라 주세요", false); return true; }
+      const kid=($("adGwKid")||{}).value||"", team=kid ? "all" : (($("adGwTeam")||{}).value||"all"), goal=+$("adGwGoal").value||3, due=this.dueOf($("adGwDue").value), tg=kid ? "k:"+kid : team;
+      const title=gids.map(id=>Gram.get(id).t).join(" · ").slice(0,30), tOf=c=>c.kid ? "k:"+c.kid : (c.team||"all"), same=this.L.filter(c=>c.on && this.isG(c) && tOf(c)===tg);
+      const c={id:"g"+Date.now().toString(36), on:1, kind:"gram", set:"@gram", team, gids:gids.slice(0,12), goal, due, title, at:Date.now()}; if(kid) c.kid=kid;
+      if(same.length && !confirm("「"+this.who(c)+"」에 내 둔 문법 숙제 「"+same.map(x=>x.title).join(", ")+"」가 있어요.\n\n새 숙제로 바꿀까요? (앞 숙제는 끝나요)")) return true;
+      const next=this.L.filter(x=>x.on && !(this.isG(x) && tOf(x)===tg)).concat([c]);
+      this.save(next).then(()=>this.verify(c.id, true).then(v=>{ if(!v){ const E=FB.lastErr(); msg("⚠️ 문법 숙제가 서버에 저장되지 않았어요"+(E && E.e ? " (오류 "+E.e+")" : "")+" — 와이파이를 확인하고 다시 눌러 주세요", false); this.check(true).then(redraw); return; }
+        this.L=next; this._at=Date.now(); msg("📒 "+this.who(c)+"에게 문법 숙제를 냈어요 — 아이 Daily 30 맨 위에 보여요", true); redraw(); })); return true; }
     if(a==="hwReload"){ this.check(true).then(redraw); return true; }
     if(a==="hwEnd"){ const id=el && el.dataset.id, c=this.L.find(x=>x.id===id); if(!c) return true;
       if(!confirm("「"+c.title+"」 숙제를 끝낼까요? (아이 화면에서 📌 카드가 사라져요)")) return true;
@@ -23738,11 +23782,11 @@ const HyHW = {
     return false; },
   /* (v395) 숙제 내기 (📌 숙제 내기 · ⚡ 다음 숙제 같은 길) — 반마다 지난 숙제 범위를 /hy/roster/hwl 에 (다음 숙제 계산) */
   issue(o, msg, redraw, quick){ const team=o.team||"all", set=o.set, f=o.from|0, t=Math.max(f, o.to|0), title=o.title;
-      const same=this.L.filter(c=>c.on && (c.team||"all")===team);
+      const same=this.L.filter(c=>c.on && !this.isG(c) && (c.team||"all")===team);
       if(same.length && !confirm("「"+this.tName(team)+"」에 내 둔 숙제 「"+same.map(c=>c.title).join(", ")+"」가 있어요.\n\n새 숙제로 바꿀까요? (앞 숙제는 끝나요)")) return true;
       if(quick && !same.length && !confirm("「"+this.tName(team)+"」에 숙제를 낼까요?\n\n"+title+" · "+(this.GOAL[o.goal]||"")+" · 이번 금요일까지")) return true;
       const c={id:"h"+Date.now().toString(36), on:1, team, set, from:f, to:t, goal:o.goal||3, due:o.due, title, at:Date.now()};
-      const next=this.L.filter(x=>x.on && (x.team||"all")!==team).concat([c]);
+      const next=this.L.filter(x=>x.on && (this.isG(x) || (x.team||"all")!==team)).concat([c]);   /* (v653) 문법 숙제는 그대로 둠 */
       /* (v355) 사용자: 숙제를 냈는데 나갔다 들어오면 사라짐 (끌 수도 없음) — 저장이 실패해도 화면에는 낸 것처럼 보였다 → 서버에서 다시 읽어 확인한 뒤에만 「냈어요」, 아니면 이유와 함께 알림 */
       this.save(next).then(ok=>this.verify(c.id, true).then(v=>{
         if(!v){ const E=FB.lastErr(); msg("⚠️ 숙제가 서버에 저장되지 않았어요"+(E && E.e ? " (오류 "+E.e+")" : "")+" — 와이파이를 확인하고 다시 눌러 주세요", false); this.check(true).then(redraw); return; }
@@ -27701,8 +27745,14 @@ const Admin = (function(){
       else { const K=L.kids, ok=K.reduce((a,k)=>a+(k.ok|0),0), tot=K.reduce((a,k)=>a+(k.tot|0),0), pc=(o,t)=>t ? Math.round(o/t*100)+'%' : '—', W=L.words||[];
         b='<p class="adLearnT">반 전체 <b>'+pc(ok,tot)+'</b> <small>('+ok+'/'+tot+'문제 · 그날 정답률이 아니라 며칠 뒤 첫 번에 맞힌 비율)</small></p>'
           +(W.length ? '<p class="adSmall">📌 반이 안 붙는 단어 — 수업에서 5분만 짚어 주세요</p><div class="adWords">'+W.map(r=>'<span>'+esc(r[0])+'<i>'+esc(r[1])+'명</i></span>').join('')+'</div>' : '')
-          +'<div class="adTbl"><table><tr><th>아이</th><th>며칠 뒤 정답률</th><th>안 붙는 단어</th><th>🎤</th></tr>'+K.map(k=>'<tr><td>'+esc(k.n)+'</td><td'+(k.tot>=5 && k.ok/k.tot<0.6?' class="adLow"':'')+'>'+pc(k.ok,k.tot)+' <small>'+(k.ok|0)+'/'+(k.tot|0)+'</small></td><td>'+((k.w||[]).map(x=>esc(x[0])+(x[1]>1?' ×'+x[1]:'')).join(', ')||'—')+'</td><td>'+(k.sp|0)+'</td></tr>').join('')+'</table></div>'; }
-      h+='<div class="full">'+card('🧠 며칠 뒤에도 기억하나', b, '최근 14일')+'</div>'; }
+          +'<div class="adTbl"><table><tr><th>아이</th><th>며칠 뒤 정답률</th><th>안 붙는 단어</th><th>약한 문법</th><th>🎤</th></tr>'+K.map(k=>'<tr><td>'+esc(k.n)+'</td><td'+(k.tot>=5 && k.ok/k.tot<0.6?' class="adLow"':'')+'>'+pc(k.ok,k.tot)+' <small>'+(k.ok|0)+'/'+(k.tot|0)+'</small></td><td>'+((k.w||[]).map(x=>esc(x[0])+(x[1]>1?' ×'+x[1]:'')).join(', ')||'—')+'</td><td>'+(k.g ? esc(String(k.g[0]).replace(/^.*문법 · /,""))+' <small>'+(k.g[1]|0)+'%</small>' : '—')+'</td><td>'+(k.sp|0)+'</td></tr>').join('')+'</table></div>'; }
+      h+='<div class="full">'+card('🧠 며칠 뒤에도 기억하나', b, '최근 14일')+'</div>';
+      /* (v653) 📒 문법별 정답률 — 낮은 단원부터 (서버 v20) */
+      { const Gm=L && L.gram; let g='';
+        if(!L || !Gm) g='<p class="adSmall">서버를 v20 으로 올리면 보여요 (Code.gs 붙여 넣고 새 버전으로 배포)</p>';
+        else if(!Gm.length) g='<p class="adSmall">최근 14일에 문법 판 기록이 없어요</p>';
+        else g='<p class="adSmall">낮은 단원부터 · 60% 아래는 수업에서 다시 짚어 주세요 · 「📝 숙제·시험」 탭에서 그 단원을 문법 숙제로 낼 수 있어요</p><div class="adTbl"><table><tr><th>단원</th><th>정답률</th><th>아이</th><th>판</th></tr>'+Gm.map(r=>'<tr><td>'+esc(r[0])+'</td><td'+(r[3]<60?' class="adLow"':'')+'>'+(r[3]|0)+'%</td><td>'+(r[1]|0)+'명</td><td>'+(r[2]|0)+'</td></tr>').join('')+'</table></div>';
+        h+='<div class="full">'+card('📒 문법별 정답률', g, '최근 14일')+'</div>'; } }
     /* (v329) 👤 아이별 이번 주 — 시트 「주간 리포트」(공부·정답률·달리기·자주 틀린 단어) + 게임 서버(⚔️ 주간 보스 휘두름 · 📝 최근 시험 점수) */
     { const R=(D.weekly||[]).filter(r=>r[0] && r[0]!=="아이" && !/^🏫/.test(r[0])), BD=(HyBoss.D||{}), byN={}; Object.keys(BD).forEach(k=>{ const x=BD[k]||{}; if(x.n) byN[x.n]=x; });
       const EX=(HyExam._last && HyExam._last.R)||{}, exN={}; Object.keys(EX).forEach(k=>{ const x=EX[k]||{}; if(x.n && x.sc!=null) exN[x.n]=x.sc; });
@@ -28456,7 +28506,7 @@ const Admin = (function(){
     let vs=0; v.addEventListener("click", ()=>{ if(vs){ v.textContent=GAME_VER; vs=0; return; } vs=1;   // (v293) 짧게 누르면 화면 크기 (아이폰 아래 띠 확인용)
       try{ v.textContent=GAME_VER+" · "+scrW()+"×"+scrH()+" · in "+Math.round(innerHeight)+" · scr "+screen.height+" · "+gameH()+(navigator.standalone?" · 앱":""); }catch(e){} }); })();
   try{ if(new URLSearchParams(location.search).has("admin")) setTimeout(open, 300); }catch(e){}
-  return { open, close, isOn:()=>ok, _srv:()=>srv, _pMsg:pMsg, _tab:t=>{ if(OLD_TAB[t]){ if(t!=="team" && t!=="raid") sub=t; } else if(SUBS.some(x=>x[0]===t)){ sub=t; t="set"; } else if(t==="set" && !SUBS.some(x=>x[0]===sub)) sub="key"; tab=normTab(t, sub); draw(); after(); }, paintRaid };
+  return { open, close, redraw:()=>{ try{ draw(); }catch(e){} }, isOn:()=>ok, _srv:()=>srv, _pMsg:pMsg, _tab:t=>{ if(OLD_TAB[t]){ if(t!=="team" && t!=="raid") sub=t; } else if(SUBS.some(x=>x[0]===t)){ sub=t; t="set"; } else if(t==="set" && !SUBS.some(x=>x[0]===sub)) sub="key"; tab=normTab(t, sub); draw(); after(); }, paintRaid };
 })();
 
 /* 한 판이 끝나면 — 보석 정산 (결과 화면에서 한 번) */

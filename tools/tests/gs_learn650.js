@@ -39,6 +39,15 @@ ok(r4[ci("며칠 뒤 맞힘")]==="" && r4[ci("말한 단어")]==="", "옛 게임
 const L=post({type:"report", tk:"K"}).rep.learn;
 ok(L && L.kids.length===2 && L.kids[0].n==="민준" && L.kids[0].ok===9 && L.kids[0].tot===20 && L.kids[0].sp===2 && L.kids[1].n==="서연" && L.kids[1].ok===9, "아이마다 합 · 낮은 아이 먼저 "+JSON.stringify(L.kids.map(k=>[k.n,k.ok,k.tot,k.sp])));
 ok(JSON.stringify(L.kids[0].w)===JSON.stringify([["quite",2],["through",1]]) && JSON.stringify(L.words[0])===JSON.stringify(["quite",2,3]), "안 붙는 단어: 아이별 · 반(아이 수 많은 순) "+JSON.stringify(L.words));
+// (v653 · 서버 v20) 📒 문법별 정답률
+const gb={diff:"study", rule:"study-grammar", score:10, acc:50, secs:60, ver:"v653"};
+post(Object.assign({}, gb, {nick:"민준", tag:"0006", at:now-600, rid:"g1", set:"중등 문법 · 현재완료 ★1", right:2, wrong:3}));
+post(Object.assign({}, gb, {nick:"민준", tag:"0006", at:now-500, rid:"g2", set:"중등 문법 · 현재완료 ★2", right:3, wrong:3}));
+post(Object.assign({}, gb, {nick:"서연", tag:"0007", at:now-400, rid:"g3", set:"중등 문법 · 현재완료 ★1", right:5, wrong:0}));
+post(Object.assign({}, gb, {nick:"서연", tag:"0007", at:now-300, rid:"g4", set:"중등 문법 · 수동태 ★1", right:5, wrong:0}));
+const L2=post({type:"report", tk:"K"}).rep.learn;
+ok(post({type:"check", tk:"K"}).v>=20 && JSON.stringify(L2.gram)===JSON.stringify([["중등 문법 · 현재완료",2,3,63],["중등 문법 · 수동태",1,1,100]]), "문법별: [단원, 아이 수, 판, 정답률] 낮은 것부터 "+JSON.stringify(L2.gram));
+ok(JSON.stringify(L2.kids.find(k=>k.n==="민준").g)===JSON.stringify(["중등 문법 · 현재완료",45]) && L2.kids.find(k=>k.n==="민준").tot===20, "아이별 약한 문법 (5문제 넘게 푼 단원 중 가장 낮은 것) · 며칠 뒤 기록은 그대로");
 book.scores.d[1][0]=new Date(now-20*864e5);
 ok(post({type:"report", tk:"K"}).rep.learn.kids[0].tot===10, "14일보다 오래된 줄은 뺌");
 console.log(bad ? "FAIL "+bad : "PASS"); process.exit(bad?1:0);
