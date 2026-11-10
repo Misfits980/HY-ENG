@@ -202,14 +202,14 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
 
   /* ── 섬 놀이 공원 입구 양옆 게임 타워 2채 ── */
   const SPOT={};
-  const GATES=[{k:"arena", at:[46.5,11.5], face:Math.PI*.12}, {k:"grid", at:[65.5,11.5], face:-Math.PI*.12}, {k:"card", at:null, face:-Math.PI/2, sp:"mgCard"}, {k:"draw", at:null, face:-Math.PI/2, sp:"mgDraw"}, {k:"fruit", at:null, face:0, sp:"mgFruit"}];   /* (v635) 🎨 그림 공방 = 놀이 섬 동쪽 */   /* (v633) 🃏 카드 카페 = 새 섬 놀이 섬 가운데만 */
+  const GATES=[{k:"arena", at:[46.5,11.5], face:Math.PI*.12}, {k:"grid", at:[65.5,11.5], face:-Math.PI*.12}, {k:"card", at:null, face:-Math.PI/2, sp:"mgCard"}, {k:"draw", at:null, face:-Math.PI/2, sp:"mgDraw"}, {k:"fruit", at:null, face:0, sp:"mgFruit"}, {k:"c4", at:null, face:Math.PI, sp:"mgC4"}, {k:"bowl", at:null, face:Math.PI/2, sp:"mgBowl"}];   /* (v635) 🎨 그림 공방 = 놀이 섬 동쪽 */   /* (v633) 🃏 카드 카페 = 새 섬 놀이 섬 가운데만 */
   function build(ctx){ const {G, OX, OZ, busy, cols, vcMerge}=ctx; if(!vcMerge) return; const L=[], GL=[];
     { const SPm=ctx.MAP && ctx.MAP.spots; if(SPm && SPm.mgArena){ GATES[0].at=SPm.mgArena; GATES[1].at=SPm.mgGrid; GATES[0].face=GATES[1].face=Math.PI; } GATES.forEach(g=>{ if(g.sp) g.at=(SPm && SPm[g.sp]) || null; }); }   /* (v607~) 새 섬 5판 = 🎡 놀이 섬 */
     const add=(geo, col, x, y, z, o)=>{ o=o||{}; const m=new THREE.Matrix4(), q=new THREE.Quaternion().setFromEuler(new THREE.Euler(o.rx||0, o.ry||0, o.rz||0)); m.compose(new THREE.Vector3(x,y,z), q, new THREE.Vector3(o.sx||1,o.sy||1,o.sz||1)); (o.glow?GL:L).push({g:geo, col, m}); };
     const BX=(w,h,d)=>new THREE.BoxGeometry(w,h,d), CY=(a,b,h,n)=>new THREE.CylinderGeometry(a,b,h,n||20), SP=(r)=>new THREE.SphereGeometry(r,18,12);
     GATES.forEach(g=>{ if(!g.at || !GM[g.k]) return; const [gx,gz]=g.at, X=gx+OX, Z=gz+OZ, f=g.face, c=Math.cos(f), s=Math.sin(f), P=(u,y,v,geo,col,o)=>{ o=Object.assign({},o||{}); o.ry=(o.ry||0)+f; add(geo,col, X+u*c+v*s, y, Z-u*s+v*c, o); };
       busy.push([gx,gz,4.2]); cols.push([X,Z,2.3]);
-      ctx.disc && ctx.disc(gx,gz,3.3,g.k==="arena"?0xbfe6ff:g.k==="draw"?0xffe2c4:g.k==="fruit"?0xd8f5c8:0xd6d0ff,1);
+      ctx.disc && ctx.disc(gx,gz,3.3,g.k==="arena"?0xbfe6ff:g.k==="draw"?0xffe2c4:g.k==="fruit"?0xd8f5c8:g.k==="c4"?0xcfdcff:g.k==="bowl"?0xe3d6ff:0xd6d0ff,1);
       if(g.k==="card"){   /* (v633) 🃏 카드 카페 — 크림색 집 · 4색 줄무늬 차양 · 지붕 위 부채꼴 카드 4장(빛남) · 창문 · 문 · 입간판 */
         P(0,1.5,0, BX(4.4,3,3.8), 0xfff1dc); P(0,.12,0, BX(4.6,.24,4), 0x8a5a3c); P(0,3.12,0, BX(4.7,.26,4.1), 0x5b3a7a); P(0,3.34,0, BX(4.3,.18,3.7), 0x7a4fa0);
         for(let i=0;i<8;i++) P(-1.925+i*.55,2.62,2.25, BX(.55,.16,.95), [0xff5a5f,0xffc83d,0x3fc46a,0x3ea2ff][i%4], {rx:.42});
@@ -242,6 +242,24 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
         P(0,5.35,.1, BX(.08,.9,.08), 0x3f9a4a, {rz:.5}); P(.22,5.32,.2, BX(.08,.9,.08), 0x3f9a4a, {rz:-.45}); P(.08,5.75,.1, SP(.24), 0x4cc36a, {sx:1.6, sy:.5});
         P(2.55,1.25,1.4, BX(.12,2.5,.12), 0x3b2433); P(2.55,2.35,1.48, BX(1.0,.7,.08), 0x06090f); P(2.55,2.35,1.53, BX(.84,.12,.02), 0x3dff9a, {glow:1}); P(2.55,2.5,1.53, BX(.6,.08,.02), 0xff5ce1, {glow:1}); P(2.55,2.2,1.53, BX(.7,.08,.02), 0xffe14d, {glow:1});
         SPOT.fruit=[X,4.6,Z];
+      } else if(g.k==="c4"){   /* (v637) 🔴 4줄 탑 — 하늘색 집 · 지붕 위 큰 파란 판(빨강·노랑 알 · 4알 줄이 빛남) · 노란 줄무늬 · 문 */
+        P(0,.12,0, BX(4.3,.24,3.5), 0x8a5a3c); P(0,1.2,0, BX(4,2.2,3.2), 0xeaf0ff); P(0,2.38,0, BX(4.2,.2,3.4), 0x2a4fd0);
+        for(let i=0;i<5;i++) P(-1.6+i*.8,1.2,1.62, BX(.36,2.1,.05), 0xffd23f);
+        P(0,.95,1.64, BX(1.1,1.7,.1), 0x2a4fd0); P(.35,.95,1.71, SP(.07), 0xffd36b);
+        P(0,3.9,.2, BX(3.7,2.9,.34), 0x3b6cff); [-1.95,1.95].forEach(u=>P(u,3.4,.2, BX(.22,3.9,.5), 0x2a4fd0)); P(0,2.55,.2, BX(4.2,.2,.7), 0xffc83d);
+        const PAT=["ryry","yrry","ryyr"]; for(let r=0;r<3;r++) for(let c=0;c<4;c++){ const k=PAT[r][c], hot=(r===2-c+0 && c<3)||false; P(-1.26+c*.84, 3.05+r*.84, .4, SP(.33), k==="r"?0xff4d5e:0xffd23f, {sz:.3, glow:1}); }
+        [[0,0],[1,1],[2,2]].forEach(([c,r])=>P(-1.26+c*.84, 3.05+r*.84, .5, SP(.14), 0xffffff, {sz:.3, glow:1}));
+        P(1.5,5.75,.2, SP(.5), 0xff4d5e, {sz:.3, glow:1}); P(1.5,5.75,.32, SP(.2), 0xffffff, {sz:.2, glow:1}); P(.9,5.6,.2, SP(.35), 0xffd23f, {sz:.3, glow:1});
+        SPOT.c4=[X,5.2,Z];
+      } else if(g.k==="bowl"){   /* (v638) 🎳 볼링장 — 보라 집 · 지붕 위 큰 볼링 핀 + 공 · 앞벽에 큰 다트판 · 네온 줄 */
+        P(0,.12,0, BX(4.4,.24,3.7), 0x8a5a3c); P(0,1.35,0, BX(4.1,2.5,3.4), 0x5b3aff); P(0,2.68,0, BX(4.3,.18,3.6), 0x3a2290);
+        P(0,2.4,1.72, BX(4.1,.08,.04), 0xff5ce1, {glow:1}); P(0,.42,1.72, BX(4.1,.08,.04), 0x3dff9a, {glow:1});
+        P(-.7,.95,1.71, BX(1.0,1.7,.1), 0x1d1640); P(-.38,.95,1.78, SP(.07), 0xffd36b);
+        [[1.0,0xffffff],[.82,0x2b2233],[.62,0xff4d5e],[.48,0x3fc46a],[.3,0xffd84a],[.14,0xff4d5e]].forEach(([r,cc],i)=>P(1.1,1.45,1.72+i*.012, SP(r*.62), cc, {sz:.04, glow:i>=2?1:0}));
+        P(.0,3.15,-.3, SP(.62), 0xfffaf2, {sy:1.25}); P(0,3.95,-.3, CY(.26,.36,.6,16), 0xfffaf2); P(0,4.45,-.3, SP(.36), 0xfffaf2); [4.0,4.15].forEach(y=>P(0,y,-.3, CY(.29,.3,.07,16), 0xff4d5e));
+        P(1.25,3.35,.5, SP(.62), 0xff5ce1, {glow:1}); [[1.05,3.6,.98],[1.3,3.68,1.05],[1.18,3.4,1.1]].forEach(([u,y,v])=>P(u,y,v, SP(.09), 0x1d1640));
+        P(-1.4,3.0,.6, SP(.4), 0xfffaf2, {sy:1.2}); P(-1.4,3.55,.6, SP(.22), 0xfffaf2); P(-1.4,3.42,.6, CY(.17,.18,.05,12), 0xff4d5e);
+        SPOT.bowl=[X,5.0,Z];
       } else if(g.k==="arena"){   /* 💦 물총 아레나 — 둥근 경기장 · 줄무늬 · 문 · 꼭대기 큰 물방울 · 옆에 큰 물총 */
         P(0,1.3,0, CY(2.1,2.25,2.6,28), 0x5ab8ff); P(0,2.68,0, CY(2.18,2.18,.18,28), 0xffffff); P(0,1.0,0, CY(2.27,2.3,.22,28), 0xffffff);
         P(0,3.15,0, CY(1.75,2.1,.8,28), 0x3d8fe0); P(0,3.62,0, CY(1.8,1.8,.16,28), 0xffd23f);
