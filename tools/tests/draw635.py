@@ -62,7 +62,7 @@ async def main():
             await pg.wait_for_timeout(200)
         await pg.wait_for_timeout(400)
         r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .puM'); return [MG.run.mode, getComputedStyle(M).display, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), M.querySelectorAll('[data-sg]').length, !!M.querySelector('.out')]; }")
-        ok(r==["menu","flex","solo,sketch,gal,co",3,True], f"① 공방 → 바로 메뉴 (혼자·같이·그려 보기·그림첩 · 단계 3) {r}")
+        ok(r==["menu","flex","co,solo,sketch,gal",3,True], f"① 공방 → 바로 메뉴 (혼자·같이·그려 보기·그림첩 · 단계 3) {r}")
         await pg.screenshot(path=OUTD+"menu.png")
         # ② 혼자 그림 퍼즐
         c0=await pg.evaluate("()=>TECO.coins()")
@@ -102,12 +102,17 @@ async def main():
         # ③ 그려 보기 → 그림첩
         await pg.evaluate("()=>MG.run.menuShow()"); await pg.evaluate("()=>MG.run.menuGo('sketch')"); await pg.wait_for_timeout(200)
         r=await pg.evaluate("()=>document.querySelectorAll('#mgUI .dwOv.on [data-p]').length")
-        await pg.evaluate("()=>{ MG.run.pick(1); MG.run.demo(3); }"); await pg.wait_for_timeout(300)
+        await pg.evaluate("()=>{ MG.run.pick(1); }"); await pg.wait_for_timeout(200)
+        bb=await pg.evaluate("()=>{ const r=document.querySelector('#mgUI .dwBd canvas').getBoundingClientRect(); return [r.left,r.top,r.width,r.height]; }")
+        await pg.mouse.move(bb[0]+bb[2]*.25, bb[1]+bb[3]*.5); await pg.mouse.down(); await pg.mouse.move(bb[0]+bb[2]*.5, bb[1]+bb[3]*.3, steps=6); await pg.mouse.move(bb[0]+bb[2]*.75, bb[1]+bb[3]*.6, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(150)
+        r3=await pg.evaluate("()=>{ const c=document.querySelector('#mgUI .dwBd canvas'), d=c.getContext('2d').getImageData(0,0,c.width,c.height).data; let n=0; for(let i=0;i<d.length;i+=16) if(d[i]<200) n++; return [MG.run.MY.length, n>200]; }")
+        ok(r3==[1,True], f"③ 손가락으로 그림판에 그리면 그림판에 줄이 그려짐 {r3}")
+        await pg.evaluate("()=>{ MG.run.demo(3); }"); await pg.wait_for_timeout(300)
         await pg.screenshot(path=OUTD+"sketch.png")
         await pg.evaluate("()=>MG.run.sketchDone()"); await pg.wait_for_timeout(300)
         await pg.evaluate("()=>document.querySelector('#mgUI .dwOv [data-a=menu]').click()"); await pg.evaluate("()=>MG.run.menuGo('gal')"); await pg.wait_for_timeout(300)
         r2=await pg.evaluate("()=>[(store('hyeng_proto_dwg')||[]).length, document.querySelectorAll('#mgUI .dwGal figure img').length, (store('hyeng_proto_dwr')||{}).drawn]")
-        ok(r==3 and r2==[1,1,1], f"③ 그려 보기: 3단어 중 고름 → 그림 → 그림첩 1장 {r} {r2}")
+        ok(r==3 and r2[0]==1 and r2[1]==1 and r2[2]==1, f"③ 그려 보기: 3단어 중 고름 → 그림 → 그림첩 1장 {r} {r2}")
         await pg.screenshot(path=OUTD+"gallery.png")
         ok(not errs, f"오류 0 {errs[:5]}")
         await ctx.close()
@@ -147,7 +152,7 @@ async def main():
         rounds=[]; wrongSent=False; nearSeen=False; popSeen=False; ovOk=True
         for rd in range(1,8):
             st=await A_.evaluate("()=>[MG.run.G.ph, MG.run.G.rd, MG.run.G.dr, MG.run.G.nr]")
-            if st[0]=="end": break
+            if st[0] in ("end","vote","award"): break
             D=codes[st[2]]; others=[x for k,x in codes.items() if k!=st[2]]
             # 고르는 화면: 그리는 사람만 3단어
             r=[await x.evaluate("()=>document.querySelectorAll('#mgUI .dwOv.on [data-p]').length") for x in [D]+others]
@@ -196,8 +201,32 @@ async def main():
         ok(all(x[3][0][0]>=3 and x[3][1][0]>=3 and x[3][0][1]==len(x[2]) and x[3][0][2]==len(x[2]) and x[3][0][3]=="flex" and x[4][0]=="flex" for x in rounds), f"④ 그린 줄이 친구 화면에 · 친구는 글자 칸(길이)+자판 · 그리는 사람은 도구 {[ (x[0],x[3],x[4]) for x in rounds][:3]}")
         ok(len(rounds)==6 and sorted(x[1] for x in rounds)==sorted("ABCABC") and hist==[2]*6, f"④ 6판 · 셋이 두 번씩 그림 · 판마다 둘 다 맞힘 {[(x[0],x[1],x[2]) for x in rounds]} {hist}")
         ok(not wrongSent and nearSeen and popSeen, f"④ 틀린 글자는 서버에 안 감 · 거의 🔥 · 친구 이름표에 ❌/🔥 표시 {[wrongSent, nearSeen, popSeen]}")
+        # ⑤ 작품 투표: 6장 · 내 그림은 못 고름 · A·C 가 같은 B 그림 → 인기 작품상 · 표마다 +10
+        for _ in range(20):
+            if all([await x.evaluate("()=>MG.run.G.ph==='vote'") for x in P3]): break
+            await steps(2)
+        r=[await x.evaluate("()=>[MG.run.G.ph, document.querySelectorAll('#mgUI .dwVote.on figure').length, document.querySelectorAll('#mgUI .dwVote figure.mine').length, Object.keys(MG.run.ART).length, document.querySelectorAll('#mgUI .dwVote figure .im[style*=data]').length]") for x in P3]
+        ok(all(q==["vote",6,2,6,6] for q in r), f"⑤ 투표: 그림 6장(내 기기에 찍어 둔 그림) · 내 그림 2장은 못 고름 {r}")
+        await B_.screenshot(path=OUTD+"co_vote.png")
+        drs=await A_.evaluate("()=>MG.run.G.drs")
+        bR=int(next(k for k,v in drs.items() if v=="CO635B")[1:]); aR=int(next(k for k,v in drs.items() if v=="CO635A")[1:])
+        sc0=await A_.evaluate("()=>Object.assign({}, MG.run.G.sc)")
+        await B_.evaluate("(r)=>MG.run.vote(r)", next(int(k[1:]) for k,v in drs.items() if v=="CO635B")); await steps(3)
+        own=await A_.evaluate("()=>MG.run.G.vt['CO635B']")
+        await A_.evaluate("(r)=>MG.run.vote(r)", bR); await steps(2)
+        await B_.evaluate("(r)=>MG.run.vote(r)", aR); await steps(2)
+        await C_.evaluate("(r)=>MG.run.vote(r)", bR); await steps(4)
+        for _ in range(15):
+            if all([await x.evaluate("()=>MG.run.G.ph==='award'") for x in P3]): break
+            await steps(1)
+        r=[await x.evaluate("()=>[MG.run.G.ph, (MG.run.G.aw||[]).join(','), JSON.stringify(MG.run.G.vc), document.querySelectorAll('#mgUI .dwVote .aw figure').length]") for x in P3]
+        sc1=await A_.evaluate("()=>Object.assign({}, MG.run.G.sc)")
+        ok(own is None and all(q[0]=="award" and q[1]==f"r{bR}" and q[3]==1 for q in r) and sc1["CO635B"]-sc0["CO635B"]==20 and sc1["CO635A"]-sc0["CO635A"]==10 and sc1["CO635C"]==sc0["CO635C"], f"⑤ 내 그림 투표는 안 됨 · 2표 B 그림 = 🏅 인기 작품상 · 표마다 ⭐+10 {own} {r} {sc0} {sc1}")
+        await steps(1); await A_.screenshot(path=OUTD+"co_award.png")
         await steps(20)
         r=[await x.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [MG.run.G.ph, !!el, el?[...el.querySelectorAll('.puRank div')].map(t=>t.textContent).join('|'):'']; }") for x in P3]
+        aw=[await x.evaluate("()=>{ const el=document.querySelector('#mgUI .puR .dwAw'); return el?el.textContent:''; }") for x in P3]
+        ok(all("인기 작품상" in a and "민수" in a for a in aw), f"⑤ 결과 창에 🏅 인기 작품상 민수 {aw}")
         ok(all(q[0]=="end" and q[1] for q in r) and len(set(q[2] for q in r))==1, f"④ 끝 · 세 화면 같은 순위·점수 {r}")
         await C_.screenshot(path=OUTD+"co_end.png")
         r=[await x.evaluate("()=>[(MG.rec().t.draw||{}).co, (store('hyeng_proto_dwg')||[]).length]") for x in P3]

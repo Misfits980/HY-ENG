@@ -55,7 +55,7 @@ function css(){ if(document.getElementById("puCss")) return; const s=document.cr
 #mgUI .puBtn{font:inherit;display:flex;align-items:center;justify-content:center;gap:8px;border:3px solid var(--deep);border-radius:18px;color:#fff;font-size:23px;padding:10px 16px;min-height:52px;cursor:pointer;
   box-shadow:inset 0 -7px 0 rgba(0,0,0,.2),inset 0 4px 0 rgba(255,255,255,.3),0 5px 0 var(--deep);text-shadow:0 2px 0 rgba(0,0,0,.25);background:var(--nv2)}
 #mgUI .puBtn:active{transform:translateY(4px);box-shadow:inset 0 -4px 0 rgba(0,0,0,.2),0 1px 0 var(--deep)}
-#mgUI .puBtn.pk{background:var(--pink)} #mgUI .puBtn.mt{background:var(--mint)} #mgUI .puBtn.sm{font-size:17px;min-height:42px;padding:6px 14px;border-radius:14px}
+#mgUI .puBtn.pk{background:var(--pink)} #mgUI .puBtn.two span{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left} #mgUI .puBtn.two b{font-weight:400} #mgUI .puBtn.two small{font-size:13px;opacity:.92} #mgUI .puBtn.mt{background:var(--mint)} #mgUI .puBtn.sm{font-size:17px;min-height:42px;padding:6px 14px;border-radius:14px}
 #mgUI .puRow{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 #mgUI .puRow .pay{font-size:15px;opacity:.9}
 #mgUI .puSeg{display:flex;gap:6px;justify-content:center} #mgUI .puSeg button{font:inherit;border:2px solid rgba(255,201,74,.5);background:transparent;color:#fff;border-radius:12px;padding:6px 12px;min-height:40px;font-size:15px;cursor:pointer} #mgUI .puSeg button.on{background:var(--gold);color:var(--deep);border-color:var(--gold)}
@@ -63,7 +63,7 @@ function css(){ if(document.getElementById("puCss")) return; const s=document.cr
 @media (orientation:landscape) and (max-height:620px){
   #mgUI .puM{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:auto auto 1fr auto;grid-template-areas:"hero stats" "hero ttl" "hero extra" "hero panel";column-gap:18px;row-gap:6px;padding-top:calc(48px + env(safe-area-inset-top))}
   #mgUI .puM .stats{grid-area:stats} #mgUI .puTtl{grid-area:ttl} #mgUI .puTtl h2{font-size:40px} #mgUI .puHero{grid-area:hero;height:100%} #mgUI .puPanel{grid-area:panel;align-self:end;justify-self:center} #mgUI .puExtra{grid-area:extra;align-self:end;justify-self:center} #mgUI .puM:has(.puExtra) .stats{display:none} #mgUI .puM:has(.puExtra) .puTtl h2{font-size:34px}
-  #mgUI .puTile{min-height:72px;padding:4px} #mgUI .puTile .pic{width:40px;height:40px;font-size:24px} #mgUI .puTile b{font-size:16px} #mgUI .puTtl p{display:none} #mgUI .puM{row-gap:4px}
+  #mgUI .puTile{min-height:72px;padding:4px} #mgUI .puBtn.two small{display:none} #mgUI .puM:has(.puBtn.two) .stats{display:none} #mgUI .puSeg button{min-height:36px;padding:4px 10px} #mgUI .puTile .pic{width:40px;height:40px;font-size:24px} #mgUI .puTile b{font-size:16px} #mgUI .puTtl p{display:none} #mgUI .puM{row-gap:4px}
   #mgUI .puHero{min-height:0} #mgUI .puHero img{height:auto;max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px);margin-bottom:18px} #mgUI .puHero .stage{width:170px;margin-left:-85px;height:42px} #mgUI .puPanel{gap:7px;padding:9px} #mgUI .puBtn{min-height:44px;font-size:20px;padding:6px 12px}
 }
 /* 결과 */
@@ -112,15 +112,16 @@ function css(){ if(document.getElementById("puCss")) return; const s=document.cr
 `; document.head.appendChild(s); }
 
 /* ── 메뉴 (B) ── o={title, sub, av, stats:[[icon|emoji, num, label]], tiles:[{k, pic|emoji, nm, sub, bd}], n, primary:{k,label,ic}, seg:{title, items:[[k,label]], on, pick}, pay, more:html, onPick, onOut, cls} */
+function pbtn(p){ return '<button class="puBtn pk'+(p.sub?' two':'')+'" data-m="'+esc(p.k)+'" style="font-size:25px">'+(p.ic?ic(p.ic,36):'')+(p.sub?'<span><b>'+esc(p.label)+'</b><small>'+esc(p.sub)+'</small></span>':esc(p.label))+'</button>'; }
 function menu(host, o){ css(); let el=host.querySelector(".puM"); if(!el){ el=document.createElement("div"); el.className="puM"; host.appendChild(el); } if(o.cls) el.classList.add(o.cls);
   const st=(o.stats||[]).map(([i,n,l])=>'<span class="puChip">'+(ic(i,26)||'<span style="font-size:20px">'+i+'</span>')+'<b>'+esc(n)+'</b>'+esc(l)+'</span>').join("");
   const url=o.av===false?"":av(o.av||{}, "wave");
   el.innerHTML='<div class="stats">'+st+'</div><div class="puTtl"><h2>'+esc(o.title)+'</h2><br><p>'+esc(o.sub||"")+'</p></div>'+
     '<div class="puHero"><div class="stage"></div>'+(url?'<img alt="" src="'+url+'">':'')+(o.deco||[]).map(d=>'<span class="deco" style="'+d[1]+'">'+d[0]+'</span>').join("")+(o.nick?'<span class="puChip tag">'+esc(o.nick)+'</span>':'')+'</div>'+
     (o.more||"")+
-    '<div class="puPanel">'+(o.seg?'<div class="puSeg">'+o.seg.items.map(([k,l])=>'<button data-sg="'+esc(k)+'" class="'+(String(o.seg.on)===String(k)?"on":"")+'">'+l+'</button>').join("")+'</div>':'')+
+    '<div class="puPanel">'+(o.primary&&o.primaryTop?pbtn(o.primary):'')+(o.seg?'<div class="puSeg">'+o.seg.items.map(([k,l])=>'<button data-sg="'+esc(k)+'" class="'+(String(o.seg.on)===String(k)?"on":"")+'">'+l+'</button>').join("")+'</div>':'')+
       ((o.tiles&&o.tiles.length)?'<div class="puTiles" style="--n:'+(o.n||Math.min(3,o.tiles.length))+'">'+o.tiles.map(t=>'<button class="puTile" data-m="'+esc(t.k)+'">'+(t.bd?'<span class="bd">'+t.bd+'</span>':'')+'<span class="pic" style="'+(t.pic?'background-image:url('+t.pic+');':'')+(t.bg?'background-color:'+t.bg+';':'')+'">'+(t.pic?'':(t.emoji||""))+'</span><b>'+esc(t.nm)+'</b>'+(t.sub?'<small>'+t.sub+'</small>':'')+'</button>').join("")+'</div>':'')+
-      (o.primary?'<button class="puBtn pk" data-m="'+esc(o.primary.k)+'" style="font-size:25px">'+(o.primary.ic?ic(o.primary.ic,36):'')+esc(o.primary.label)+'</button>':'')+
+      (o.primary&&!o.primaryTop?pbtn(o.primary):'')+
       '<div class="puRow"><span class="pay">오늘 🪙 상 '+(o.pay>0?'<b>'+o.pay+'</b>판 남음':'다 받았어요 (연습은 계속!)')+'</span><button class="puBtn sm out">🏝 섬으로</button></div></div>';
   el.style.display="";
   el.onclick=e=>{ const b=e.target.closest("button"); if(!b) return; try{ MG.SFX.tone(660,.06,"triangle",.04); }catch(_){} if(b.classList.contains("out")){ (o.onOut||MG.exit)(); return; } if(b.dataset.sg!=null){ o.seg.pick(b.dataset.sg); return; } if(b.dataset.m) o.onPick(b.dataset.m); };

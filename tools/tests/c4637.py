@@ -112,6 +112,8 @@ async def main():
             await steps(2)
             r=[await x.evaluate("()=>[MG.run.mode, MG.run.me, MG.run.turn]") for x in P2]
             if all(q[0]=="co-play" for q in r): break
+            if it%6==5 and await A_.evaluate("()=>!!(MG.run.RM && MG.run.RM.phase==='wait' && !(MG.run.RM.d&&MG.run.RM.d.h&&MG.run.RM.d.h.st))"):
+                await A_.evaluate("()=>{ const b=document.querySelector('#mgUI [data-st]'); if(b) b.click(); }")
             if it%15==14:
                 for x in P2: await x.evaluate("()=>{ TWN8.test=(TWN8.test||0)+3000; }")
         ok(all(q[0]=="co-play" for q in r) and sorted([r[0][1], r[1][1]])==[0,1] and r[0][2]==r[1][2], f"④ 둘이 같은 판 · 나는 빨강/노랑 하나씩 · 같은 차례 {r}")
