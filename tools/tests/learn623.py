@@ -58,7 +58,7 @@ async def main():
                 r = await pg.evaluate("""()=>{ const st='elem', L=Study.lessons(st), ws=[].concat(...L.slice(0,3).map(x=>x.ws)).slice(0,10); const s=Study.load(); s.srs=s.srs||{};
                     const T={}; const run=lv=>{ ws.forEach(w=>{ s.srs[w.en]=[lv, 0]; }); Study.save(); const o={}; for(let k=0;k<6;k++){ const qs=Study.buildReview(st)||[]; qs.slice(0, ws.length).forEach(q=>{ o[q.t]=(o[q.t]|0)+1; }); } return o; };
                     T.lo=run(1); T.mid=run(3); T.hi=run(6); return T; }""")
-                prod = lambda o: sum(v for k, v in o.items() if k in ("spell", "dict", "sent"))
+                prod = lambda o: sum(v for k, v in o.items() if k in ("spell", "dict", "sent", "kdict"))
                 tot = lambda o: max(1, sum(o.values()))
                 print("  복습 종류", r)
                 ok(prod(r["hi"]) / tot(r["hi"]) > 0.8, f"② 5칸 넘은 단어는 꺼내 쓰기(철자·받아쓰기·빈칸) 위주 {r['hi']}")

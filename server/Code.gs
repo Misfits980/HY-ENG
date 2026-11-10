@@ -39,10 +39,11 @@ const COLS = [
   ["coin","코인"], ["bait","미끼"], ["bank","은행 코인"], ["gbank","은행 보석"], ["tup","강화"],   // (v563 · 서버 v8) 🏝 My Town (옛 게임은 빈 칸)
   ["cn","단어 카드"], ["cf","끝까지 본 카드"], ["cs","카드 평균(초)"],   // (v600 · 서버 v9) 오늘의 30 — 단어·뜻·문장 카드를 몇 장 봤고, 소리(단어 두 번 + 문장)가 끝날 때까지 본 카드가 몇 장인지
   ["rep","다시 푼 판"],                                             // (v600 · 서버 v9) 같은 날 이미 끝까지 푼 같은 Stage 를 또 풀면 1 (서버가 셈)
-  ["rid","기록 번호"]                                               // (v611 · 서버 v13) 판마다 게임이 붙이는 번호 — 같은 번호가 또 오면(인터넷이 끊겨 다시 보낸 것) 안 적음
+  ["rid","기록 번호"],                                               // (v611 · 서버 v13) 판마다 게임이 붙이는 번호 — 같은 번호가 또 오면(인터넷이 끊겨 다시 보낸 것) 안 적음
 ];
-const NUM = {score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1, coin:1, bait:1, bank:1, gbank:1, cn:1, cf:1, rep:1};
-const NEW9 = {cn:1, cf:1, cs:1, rep:1};                                // (v600) 옛 게임 줄은 빈 칸
+COLS.push(["rvo","며칠 뒤 맞힘"], ["rvn","며칠 뒤 푼 수"], ["rvw","며칠 뒤 틀린 단어"], ["sp","말한 단어"]);   // (v650 · 서버 v19) 오늘의 30 — 복습 날이 된 단어를 그날 처음 푼 결과 · 🎤 따라 말한 단어 수
+const NUM = {rvo:1, rvn:1, sp:1, score:1, stage:1, acc:1, combo:1, right:1, wrong:1, clear:1, secs:1, dex:1, gems:1, earned:1, short:1, coin:1, bait:1, bank:1, gbank:1, cn:1, cf:1, rep:1};
+const NEW9 = {cn:1, cf:1, cs:1, rep:1, rvo:1, rvn:1, sp:1};                                // (v600) 옛 게임 줄은 빈 칸
 const NUM_MAX = {score:10000000, secs:3600};                         // (v563) 플레이(초) 한 줄 1시간까지 — 탭을 뒤로 보내 둔 시간이 846분으로 쌓이던 것
 /* (v563) 🏝 마을 현황 탭 — 아이 한 줄 (태그 → 없으면 👤 뗀 이름) · 판 기록이 올 때마다 고쳐 씀 */
 const TOWN_SHEET = "마을 현황";
@@ -71,7 +72,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 18;  // (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 19;  // (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -136,7 +137,7 @@ function doPost(e){
     if (NUM[k])       return ((k in TOWN_KEEP || k in NEW9) && !has_(d, k)) ? "" : num_(d[k], NUM_MAX[k] || 1000000);   // (v563) 옛 게임 = 마을 칸 비움
     if (k === "boss") return txt_(d.boss, 40).replace(/,/g, " · ");   // "50,80" 이 숫자 5080 으로 바뀌지 않게
     if (k === "tag")  return tag_(d.tag) ? "#" + tag_(d.tag) : "";
-    return txt_(d[k], k === "owned" ? 400 : (k === "miss" ? 400 : (k === "cause" ? 60 : 40)));
+    return txt_(d[k], k === "owned" ? 400 : (k === "miss" || k === "rvw" ? 400 : (k === "cause" ? 60 : 40)));
   });
 
   const lock = LockService.getScriptLock();
@@ -881,6 +882,22 @@ function test(){
 }
 
 /* ── (v306) 관리 화면 「📋 우리 반」 — 시트 요약 탭(수식이 계산한 것)을 보이는 글자 그대로 보낸다 (선생님 열쇠가 있어야) ── */
+/* (v650 · 서버 v19) 🧠 며칠 뒤에도 기억하나 — 최근 14일 · 아이마다(태그 → 이름) 며칠 뒤 첫 번 맞힘/푼 수 · 그때 틀린 단어 · 🎤 말한 단어
+   words = 반이 안 붙는 단어 [단어, 아이 수, 횟수] (아이 수 많은 순) */
+function learn_(){
+  const sh = sheet_(), last = sh.getLastRow(); if (last < 2) return {days:14, kids:[], words:[]};
+  const n = Math.min(last - 1, 6000), rows = sh.getRange(last - n + 1, 1, n, COLS.length).getValues(), cut = Date.now() - 14 * 864e5, K = {}, W = {};
+  rows.forEach(r=>{ const t = time_(r[C.date]); if (!t || t < cut) return;
+    const tot = Number(r[C.rvn]) || 0, ok = Number(r[C.rvo]) || 0, sp = Number(r[C.sp]) || 0, ws = String(r[C.rvw] || "").split(",").map(x=>x.trim().toLowerCase()).filter(x=>x);
+    if (!tot && !sp && !ws.length) return;
+    const tg = String(r[C.tag] || "").trim(), nm = plain_(r[C.nick]), id = tg || nm; if (!id) return;
+    const k = K[id] || (K[id] = {n:nm, ok:0, tot:0, sp:0, w:{}}); k.n = nm; k.ok += Math.min(ok, tot); k.tot += tot; k.sp += sp;
+    ws.forEach(w=>{ k.w[w] = (k.w[w] || 0) + 1; const x = W[w] || (W[w] = {k:{}, n:0}); x.k[id] = 1; x.n++; }); });
+  const kids = Object.keys(K).map(id=>{ const k = K[id]; return {n:k.n, ok:k.ok, tot:k.tot, sp:k.sp, w:Object.keys(k.w).sort((a, b)=>k.w[b] - k.w[a]).slice(0, 5).map(w=>[w, k.w[w]])}; })
+    .sort((a, b)=>(a.tot ? a.ok / a.tot : 2) - (b.tot ? b.ok / b.tot : 2));
+  const words = Object.keys(W).map(w=>[w, Object.keys(W[w].k).length, W[w].n]).sort((a, b)=>b[1] - a[1] || b[2] - a[2]).slice(0, 12);
+  return {days:14, kids:kids, words:words};
+}
 function report_(){
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const g = (name, a1)=>{ try { const sh = ss.getSheetByName(name); if (!sh) return [];
@@ -897,6 +914,7 @@ function report_(){
     prog:  g("진도표", "A3:H80"),
     nicks: g("기기별 이름", "B5:B300").map(r=>String(r[0]).trim()).filter(n=>n && !/^PLAYER$/i.test(n)),   // (v308) 보내기 받는 아이 = 게임 이름(닉네임)
     tags:  tagList_().filter(x=>x.dev).map(x=>[x.tag, x.nick, x.first]),   // (v404) 🏷 태그 · 지금 이름 · 처음 이름
+    learn: (function(){ try { return learn_(); } catch(err){ return null; } })(),   // (v650) 🧠 며칠 뒤에도 기억하나
     town:  g(TOWN_SHEET, "A1:K300")   // (v563) 🏝 마을 현황 — 머리 줄(아이·태그·마지막·보석·모은 보석·코인·미끼·은행 코인·은행 보석·강화·버전) + 아이마다 한 줄
   };
 }
