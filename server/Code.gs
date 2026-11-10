@@ -71,7 +71,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 17;  // (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 18;  // (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -408,7 +408,7 @@ function board_(p){
     if (i >= 0) res.me[k] = Object.assign(pub(L[i], k, i), {rank:i + 1, of:L.length, lv:L[i].lv >= 0 ? LV_NM[L[i].lv] : "", fix:L[i].fix || 0, above: i > 0 ? {nick:L[i - 1].nick, score:L[i - 1].score} : null}, k === "study" ? {day:L[i].day || null, ent:L[i].ent || null} : {}); });
   /* (v635) 🏅 나의 리그 — 지난주 나 넘기 (이번 주 점수 · 지난 6주 · 지킨 주 연속) */
   if (me && full.lg){ const st = full.L.study.find(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)), id = st ? st.id : me;
-    if (st || full.lg[id]) res.me.lg = lgOf_(st ? st.score : 0, full.lg[id]); }
+    if (st || full.lg[id]) res.me.lg = lgOf_(st ? st.score : 0, full.lg[id], full.lg._b, st ? st.lv : -1); }
   /* (v618) 🏛 명예의 전당 — 모두에게 같은 것 + 나(지난주 순위 · 메달 · 연속 공부 날) */
   if (H.cal){ const strip = x=>x ? {nick:x.nick, tag:x.tag, score:x.score, n:x.n} : null;
     res.hof = {cal:H.cal, streak:{}, weeks:H.weeks, longest:H.longest, medals:{}, att:(H.att || []).slice(0, 10).map(strip), lastKey:H.lastKey, ch:{}};
@@ -477,21 +477,31 @@ function duel_(d){
 /* ── (v635) 🏅 나의 리그 — 「지난주 나 넘기」 ──
    사용자: 랭킹은 잘하는 아이만 위 → 모든 아이가 이길 수 있는 경쟁. 점수 = 랭킹과 같은 📚 오늘의 30 주간 점수(랭킹 단계 규칙 그대로).
    · 넘기 = 이번 주 > 지난주 · 지키기 = 지난주의 90% 이상 (그리고 한 판 이상 = LG_MIN 점) · 지킨 주가 이어지면 칭호
-   · 지난 6주는 바뀌지 않으니 주마다 한 번 계산해 6시간 캐시 (lg1_<월요일>) */
-const LG_MIN = 300, LG_KEEP = 0.9, LG_WEEKS = 6;
+   · 지난 6주는 바뀌지 않으니 주마다 한 번 계산해 6시간 캐시 (lg2_<월요일>)
+   · (v638) 사용자: 「원래 점수가 낮았던 애들은 칭호를 따기가 쉬워진다」 → 주마다 「기준」 = 그 주 같은 랭킹 단계 아이들 점수 가운데값의 60% (3명 안 되면 전체 · 최소 LG_MIN)
+     칭호 연속 주 = 기준 이상 + 지난주 90% 이상인 주만 · 이번 주 목표·지키기도 기준보다 낮을 수 없음 (기준 = 지난주 것) */
+const LG_MIN = 300, LG_KEEP = 0.9, LG_WEEKS = 6, LG_BAR = 0.6;
+function lgMed_(a){ a = a.slice().sort((x, y)=>x - y); const n = a.length; return n ? (n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2) : 0; }
+function lgBars_(list){   // 한 주 study 목록 → {a: 전체 기준, 0~4: 단계 기준}
+  const all = list.map(x=>x.score), o = {a: all.length >= 3 ? Math.max(LG_MIN, Math.round(lgMed_(all) * LG_BAR)) : LG_MIN};
+  for (let lv = 0; lv <= 4; lv++){ const L = list.filter(x=>x.lv === lv).map(x=>x.score); o[lv] = L.length >= 3 ? Math.max(LG_MIN, Math.round(lgMed_(L) * LG_BAR)) : o.a; }
+  return o;
+}
 function lgHist_(rows, P, ws){
-  const key = "lg1_" + ws; let c = null; try { c = CacheService.getScriptCache(); const h = c.get(key); if (h) return JSON.parse(h); } catch(e){}
-  const H = {};
+  const key = "lg2_" + ws; let c = null; try { c = CacheService.getScriptCache(); const h = c.get(key); if (h) return JSON.parse(h); } catch(e){}
+  const H = {_b: []};
   for (let i = 1; i <= LG_WEEKS; i++){ const a = ws - 7 * i * 864e5, b = ws - 7 * (i - 1) * 864e5; const W = weekCore_(rows, P, a, b);
+    H._b[i - 1] = lgBars_(W.study);
     W.study.forEach(x=>{ (H[x.id] = H[x.id] || new Array(LG_WEEKS).fill(0))[i - 1] = x.score; }); }
   try { if (c) c.put(key, JSON.stringify(H), 21600); } catch(e){}
   return H;
 }
-function lgOf_(cur, W){
+function lgOf_(cur, W, BB, lv){   // BB = H._b (주마다 기준) · lv = 랭킹 단계(0~4, 모르면 -1)
   W = (W || []).slice(0, LG_WEEKS); while (W.length < LG_WEEKS) W.push(0);
-  let st = 0; for (let j = 0; j < W.length; j++){ const a = W[j], b = W[j + 1] || 0; if (a >= LG_MIN && a >= LG_KEEP * b) st++; else break; }
-  const last = W[0], keep = Math.max(LG_MIN, Math.round(last * LG_KEEP)), goal = Math.max(LG_MIN, last + 1);
-  return {now:cur, last, keep, goal, st, hist:W, win:cur >= goal ? 2 : cur >= keep ? 1 : 0};
+  const bar = j=>{ const o = (BB || [])[j]; return o ? (lv >= 0 && o[lv] ? o[lv] : o.a) || LG_MIN : LG_MIN; };
+  let st = 0; for (let j = 0; j < W.length; j++){ const a = W[j], b = W[j + 1] || 0; if (a >= bar(j) && a >= LG_KEEP * b) st++; else break; }
+  const last = W[0], B0 = bar(0), keep = Math.max(B0, Math.round(last * LG_KEEP)), goal = Math.max(B0, last + 1);
+  return {now:cur, last, keep, goal, bar:B0, st, hist:W, win:cur >= goal ? 2 : cur >= keep ? 1 : 0};
 }
 
 /* ── (v618) 🏛 명예의 전당 · 🔥 연속 1위 ──
@@ -705,7 +715,7 @@ function tagLv_(d){
     lock.waitLock(10000);
     const sh = tagSheet_(), rows = tagRows_(sh); let n = 0;
     rows.forEach((r, i)=>{ if (want.indexOf(tag_(r[0])) >= 0){ sh.getRange(i + 2, 8).setValue(lv === "자동" ? "" : lv); n++; } });
-    try { CacheService.getScriptCache().removeAll(["board_v4", "lg1_" + weekStart_()]); } catch(e){}   // 랭킹에 바로 · (v635) 나의 리그 지난 주들도 다시
+    try { CacheService.getScriptCache().removeAll(["board_v4", "lg2_" + weekStart_()]); } catch(e){}   // 랭킹에 바로 · (v635) 나의 리그 지난 주들도 다시
     RLV_ = null;
     return json_({ok:n > 0, n, err:n ? "" : "none"});
   } catch(err){ return json_({ok:false, err:"busy"}); }

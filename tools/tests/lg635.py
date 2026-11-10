@@ -17,7 +17,7 @@ def board(lg, ws=1762700000000):
 LG = {
   "win":  {"now": 440, "last": 330, "keep": 300, "goal": 331, "st": 3, "hist": [330, 330, 330, 0, 0, 0], "win": 2},
   "keep": {"now": 310, "last": 330, "keep": 300, "goal": 331, "st": 5, "hist": [330] * 6, "win": 1},
-  "low":  {"now": 120, "last": 400, "keep": 360, "goal": 401, "st": 0, "hist": [400, 0, 0, 0, 0, 0], "win": 0},
+  "low":  {"now": 120, "last": 400, "keep": 360, "goal": 401, "bar": 450, "st": 0, "hist": [400, 0, 0, 0, 0, 0], "win": 0},
   "first": {"now": 110, "last": 0, "keep": 300, "goal": 300, "st": 0, "hist": [0] * 6, "win": 0},
 }
 BOX = "()=>{ const b=document.querySelector('#lrPanel .lgBox'); if(!b) return null; const r=b.getBoundingClientRect(), p=document.querySelector('#lrPanel .lrP').getBoundingClientRect(); return {t:b.textContent, win:b.classList.contains('win'), w:Math.round(b.querySelector('.lgBar i').getBoundingClientRect().width), in:r.left>=p.left-1 && r.right<=p.right+1}; }"
@@ -30,7 +30,7 @@ async def main():
         await boot(pg)
         await pg.evaluate("()=>{ LiveRank.fetch=()=>{}; localStorage.removeItem('hyeng_lg_win'); }")
         want = {"win": ("지난주 나를 넘었어요", "🌳 나무 · 3주째", True), "keep": ("지켰어요 · 넘기까지 21점", "🏅 꾸준왕 · 5주째", False),
-                "low": ("지키기까지 240점", None, False), "first": ("첫 주예요", None, False)}
+                "low": ("기준보다 낮아서 목표가 기준 450점", None, False), "first": ("첫 주예요", None, False)}
         for k, (txt, title, win) in want.items():
             await pg.evaluate("(B)=>{ LiveRank.set(B, true); LiveRank.open('study'); }", board(LG[k])); await pg.wait_for_timeout(300)
             r = await pg.evaluate(BOX)
@@ -69,9 +69,10 @@ async def main():
             await pg.screenshot(path=f"{OUT}panel_{nm}.png")
             await pg.close()
         await b.close()
-    r = subprocess.run(["node", os.path.join(os.path.dirname(os.path.abspath(__file__)), "gs_lg635.js")], capture_output=True, text=True)
-    print((r.stdout.strip().splitlines() or [r.stderr[:200]])[-1])
-    ok(r.returncode == 0, "서버 나의 리그 (gs_lg635.js)")
+    for js in ("gs_lg635.js", "gs_lg638.js"):
+        r = subprocess.run(["node", os.path.join(os.path.dirname(os.path.abspath(__file__)), js)], capture_output=True, text=True)
+        print((r.stdout.strip().splitlines() or [r.stderr[:200]])[-1])
+        ok(r.returncode == 0, "서버 나의 리그 (" + js + ")")
     print("PASS" if not bad else "FAIL", len(bad))
     if bad: sys.exit(1)
 
