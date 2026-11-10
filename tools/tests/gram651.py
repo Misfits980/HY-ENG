@@ -31,12 +31,28 @@ async def main():
         await boot(pg)
         await pg.evaluate("()=>{ Online.on=()=>true; window.__sub=[]; Online.submit=r=>{ window.__sub.push(r); return Promise.resolve({ok:true}); }; localStorage.removeItem('hyeng_gram_v1'); return Gram.load(); }")
         r = await pg.evaluate("()=>({n:Gram.list('mid').length, open:Gram.list('mid').every(g=>Gram.open(g.id)), k:Gram.list('mid').map(g=>g.qs.filter(q=>q.k==='write').length), g34:Gram.open('g34-5'), t4:Gram.tiers('mid')[4].mix.write, e4:Gram.tiers('g34')[4].mix.write||0})")
-        ok(r["n"] >= 4 and r["open"] and min(r["k"]) >= 4 and r["t4"] == 3 and r["e4"] == 0, f"중등 단원 {r['n']}개 · 처음부터 다 열림 · 직접 쓰기 문제 · 초등 단계는 그대로 {r}")
+        ok(r["n"] >= 23 and r["open"] and r["t4"] == 3 and r["e4"] == 0, f"중등 단원 {r['n']}개 · 처음부터 다 열림 · 직접 쓰기 문제 · 초등 단계는 그대로 {r}")
         ok(r["g34"] is False, "초등 문법은 예전처럼 잠김")
         # 노트 = 코스 목록
         await pg.evaluate("()=>{ StudyUI.book='mid'; StudyUI.set=Study.BOOKS.mid.sets[0]; StudyUI.open(); GramUI.note('mid'); }"); await pg.wait_for_timeout(600)
         r = await pg.evaluate("()=>[document.querySelectorAll('#stGram .grNR').length, document.querySelectorAll('#stGram .grNR.lock').length, document.querySelector('#stGram .stSub').textContent, document.querySelector('#stGram .grNoteP').textContent]")
         ok(r[0] >= 4 and r[1] == 0 and "0 / " in r[2] and "어느 단원이든" in r[3], f"📒 노트에 중등 단원 목록 (잠금 없음) {r[:3]}"); await pg.screenshot(path=OUT + "note_ph.png")
+        r = await pg.evaluate("()=>[[...document.querySelectorAll('#stGram .grSec')].map(x=>x.textContent), [...document.querySelectorAll('#stGram .grNR[data-gram]')].map(x=>x.dataset.gram)]")
+        ok(r[0] == ["중등 문법", "어법 심화", "초등 문법 복습 · 직접 쓰기"] and r[1][0] == "mid-11" and r[1][-4:] == ["mid-1", "mid-2", "mid-3", "mid-4"], f"묶음 3개 · 새 주제 먼저 · 초등 복습은 맨 아래 {r[0]} {r[1][:3]}")
+        # (v652) 이미 만들어 둔 중·고등 자료로 만든 단원: 모든 단원 × 모든 단계가 문제 수를 채우고, 한 판에 같은 문장이 두 번 안 나옴
+        r = await pg.evaluate("""()=>{ const G=GramUI, bad=[]; let nq=0; Gram.list('mid').forEach(g=>{ for(let t=1;t<=6;t++){ for(let rep=0;rep<4;rep++){ G.g=g; G.tier=t; G.build(); const T=G.T(), sids=G.qs.filter(q=>q.sid!=null && !q.from).map(q=>q.sid);
+              if(G.qs.length!==T.n) bad.push(g.id+' ★'+t+' '+G.qs.length+'/'+T.n); if(new Set(sids).size!==sids.length) bad.push(g.id+' ★'+t+' 같은 문장 두 번'); nq+=G.qs.length;
+              G.qs.forEach(q=>{ try{ if(!G.qHtml(q,false) || !G.right(q)) bad.push(g.id+' 그리기'); }catch(e){ bad.push(g.id+' '+e.message); } }); } } });
+            G.mode='note'; return {bad:bad.slice(0,6), nq, units:Gram.list('mid').length, cards:Gram.list('mid').every(g=>g.cards.length>=3 && g.cards.every(c=>c.q && c.q.o.indexOf(c.q.a)>=0))}; }""")
+        ok(not r["bad"] and r["cards"], f"단원 {r['units']}개 × ★1~6 × 4번 = {r['nq']}문제 모두 그려짐 · 수 맞음 · 겹침 없음 {r['bad']}")
+        await pg.evaluate("()=>{ GramUI.start('mid-15'); }"); await pg.wait_for_timeout(300)
+        r = await pg.evaluate(PLAY, {}); ok(r["mode"] == "end" and r["res"]["pass"], f"현재완료(만들어 둔 자료) ★1 통과 {r['log']}")
+        await pg.evaluate("()=>{ Gram.put('mid-15', {s:3}); GramUI.start('mid-15'); }"); await pg.wait_for_timeout(300); await pg.evaluate("()=>document.querySelector('[data-gr=go]').click()"); await pg.wait_for_timeout(200)
+        r = await pg.evaluate("()=>GramUI.qs.map(q=>q.k)"); ok(r.count("write") == 3, f"현재완료 ★4 = 직접 쓰기 3 {r}")
+        await pg.evaluate("()=>{ Gram.put('mid-19', {s:1}); GramUI.start('mid-19'); }"); await pg.wait_for_timeout(300); await pg.evaluate("()=>document.querySelector('[data-gr=go]').click()"); await pg.wait_for_timeout(200)
+        r = await pg.evaluate("""()=>{ const G=GramUI; G.qi=G.qs.findIndex(q=>q.k==='pick' && q.wr); G.draw(); const q=G.cur(), bad=q.opts.findIndex(o=>o!==q.a && q.wr[o]); G.pick(bad); return [(document.querySelector('#stGram .grFbW.no')||{}).textContent||'', q.opts[bad], q.wr[q.opts[bad]]]; }""")
+        ok(r[1] in r[0] and r[2] in r[0], f"틀리면 내가 고른 보기가 왜 틀렸는지 「{r[0]}」"); await pg.screenshot(path=OUT + "wr_ph.png")
+        await pg.evaluate("()=>GramUI.note('mid')"); await pg.wait_for_timeout(400)
         # 3번째 단원부터 시작해도 됨 → ★1
         await pg.click('#stGram [data-gram="mid-3"]'); await pg.wait_for_timeout(300)
         r = await pg.evaluate(PLAY, {}); ok(r["mode"] == "end" and r["res"]["pass"] and r["res"]["tier"] == 1 and "write" not in r["log"], f"mid-3 ★1 (고르기·⭕❌만) {r['log']}")

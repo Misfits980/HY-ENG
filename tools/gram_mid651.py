@@ -200,11 +200,105 @@ G("mid-4", "조동사", "🔑", "중1 · can · must · have to · should", [
 ]),
 ]
 
+# ═════════ (v652) 이미 만들어 둔 중·고등 문법 자료로 코스 만들기 ═════════
+# data/gcard.json (주제마다 설명 카드 3장) + data/hsq.json (주제마다 고르기 15~42문제 · 왜 · 오답마다 이유) → 단원 (mid-11 ~)
+# 고르기는 그대로 쓰고, 같은 문장에서 ⭕❌ · 순서 · 고치기 · 직접 쓰기를 만들어 냄 (sid = 뿌리 문장 번호 — 한 판에 같은 문장이 두 번 안 나오게)
+import re
+TOPICS = [  # (열쇠, 이름, 그림, 한 줄, 묶음)
+ ("inf", "to부정사", "🎯", "to + 동사원형", "중등 문법"), ("ger", "동명사", "🏊", "동사 + ing = ~하는 것", "중등 문법"), ("conj", "접속사", "🔗", "because · when · if · but · so", "중등 문법"),
+ ("dur", "기간 · 때", "⏳", "for · during · since", "중등 문법"), ("perf", "현재완료", "✅", "have + 과거분사", "중등 문법"), ("pass", "수동태", "🎂", "be + 과거분사", "중등 문법"),
+ ("rel", "관계대명사", "🧷", "who · which · that", "중등 문법"),
+ ("adj", "형용사 · 부사", "🎨", "good · well · -ly", "어법 심화"), ("part", "분사", "🎢", "-ing · -ed", "어법 심화"), ("voice", "능동 · 수동", "🔄", "하나, 당하나", "어법 심화"),
+ ("agree", "수 일치", "⚖️", "진짜 주어 찾기", "어법 심화"), ("what", "what · that", "❓", "~한 것 · ~라는 것", "어법 심화"), ("it", "가주어 it", "👉", "It is … to ~", "어법 심화"),
+ ("verb2", "to · -ing 뜻 차이", "🔀", "stop · try · remember", "어법 심화"), ("caus", "사역 · 지각동사", "🎬", "make · let · have · see", "어법 심화"), ("reladv", "관계부사", "📍", "where · when · why · how", "어법 심화"),
+ ("paral", "병렬 구조", "🟰", "and · or 앞뒤 같은 모양", "어법 심화"), ("indq", "간접의문문", "💭", "질문이 문장 속으로", "어법 심화"), ("ifp", "가정법 과거", "🕊️", "If I were …, I would …", "어법 심화"),
+]
+VIRR = {"went": "go", "gone": "go", "ate": "eat", "eaten": "eat", "saw": "see", "seen": "see", "bought": "buy", "wrote": "write", "written": "write", "gave": "give", "given": "give", "met": "meet", "made": "make",
+ "got": "get", "gotten": "get", "took": "take", "taken": "take", "broke": "break", "broken": "break", "came": "come", "knew": "know", "known": "know", "heard": "hear", "had": "have", "has": "have", "did": "do", "done": "do", "does": "do",
+ "ran": "run", "swam": "swim", "swum": "swim", "said": "say", "told": "tell", "found": "find", "left": "leave", "slept": "sleep", "was": "be", "were": "be", "been": "be", "is": "be", "are": "be", "am": "be", "being": "be",
+ "built": "build", "taught": "teach", "caught": "catch", "lost": "lose", "sent": "send", "spent": "spend", "sold": "sell", "held": "hold", "kept": "keep", "felt": "feel", "won": "win", "sang": "sing", "sung": "sing",
+ "began": "begin", "begun": "begin", "drank": "drink", "drunk": "drink", "stole": "steal", "stolen": "steal", "chose": "choose", "chosen": "choose", "forgot": "forget", "forgotten": "forget", "hid": "hide", "hidden": "hide",
+ "rode": "ride", "ridden": "ride", "drove": "drive", "driven": "drive", "fell": "fall", "fallen": "fall", "flew": "fly", "flown": "fly", "grew": "grow", "grown": "grow", "threw": "throw", "thrown": "throw", "drew": "draw", "drawn": "draw",
+ "wore": "wear", "worn": "wear", "spoke": "speak", "spoken": "speak", "thought": "think", "brought": "bring", "paid": "pay", "stood": "stand", "understood": "understand", "became": "become", "read": "read", "put": "put", "cut": "cut",
+ "sat": "sit", "woke": "wake", "woken": "wake", "invited": "invite", "lived": "live", "used": "use"}
+FUNC = set("to be have has had been being is are was were am will would not can could should must do does did".split())
+def vlemma(w, bank):
+    w = w.lower()
+    if w in VIRR: return VIRR[w]
+    for suf in ("ies", "ied", "ing", "ed", "es", "s", "en", "d"):
+        if w.endswith(suf) and len(w) > len(suf) + 1:
+            b = w[:-len(suf)] + ("y" if suf in ("ies", "ied") else "")
+            for c in (b, b + "e", b[:-1] if len(b) > 2 and b[-1] == b[-2] else None):
+                if c and c in bank: return c
+    return w
+def base_of(opts, bank):   # 보기 세 개가 같은 동사의 다른 모양이면 그 동사 원형 (직접 쓰기 힌트)
+    L = set()
+    for o in opts:
+        cw = [x for x in re.findall(r"[a-z']+", o.lower()) if x not in FUNC]
+        if len(cw) != 1 and not (len(cw) == 0 and any(x in ("be", "been", "being", "is", "are", "was", "were", "am") for x in re.findall(r"[a-z']+", o.lower()))): return None
+        L.add(vlemma(cw[0], bank) if cw else "be")
+    if len(L) != 1: return None
+    b = L.pop(); return b if (b in bank or b in ("be",)) and re.fullmatch(r"[a-z]+", b) else None
+def fill(s, a): return s.replace("___", (a[0].upper() + a[1:]) if s.startswith("___") else a, 1)
+
+def from_hsq():
+    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    H = json.load(open(os.path.join(root, "data", "hsq.json"), encoding="utf-8")); C = json.load(open(os.path.join(root, "data", "gcard.json"), encoding="utf-8"))
+    bank = set(w.lower() for w in re.findall(r'\{en:"([^"]+)"', open(os.path.join(root, "index.html"), encoding="utf-8").read()))
+    out = []
+    for ti, (k, nm, emo, sub, sec) in enumerate(TOPICS):
+        P0 = [q for q in H if q["k"] == k and "o" in q and q["s"].count("___") == 1 and not q.get("sh")]
+        if len(P0) < 8 or k not in C: print("건너뜀", k, len(P0)); continue
+        qs = []; n = {"ox": 0, "order": 0, "fix": 0, "write": 0}
+        for i, q in enumerate(P0):
+            a = q["o"][0]; d = {"k": "pick", "s": q["s"], "o": q["o"][:], "a": a, "ko": q.get("ko", ""), "w": q.get("why", ""), "sid": i}
+            if isinstance(q.get("w"), dict) and q["w"]: d["wr"] = q["w"]
+            if (q.get("lv") or 0) >= 2: d["hd"] = 1
+            qs.append(d)
+        easy = [(i, q) for i, q in enumerate(P0) if (q.get("lv") or 0) <= 1]
+        big = len(P0) > 20; want = {"write": 8 if big else 5, "order": 5 if big else 3, "fix": 4 if big else 2, "ox": 6 if big else 3}; lim = dict(want, ox=6 if big else 4)
+        for j, (i, q) in enumerate(easy):
+            a = q["o"][0]; wrong = q["o"][1]; right = fill(q["s"], a); nw = len(right.split(" ")); why = q.get("why", ""); wr = (q.get("w") or {}).get(wrong) if isinstance(q.get("w"), dict) else None
+            cap = q["s"].startswith("___"); bad = wrong[0].upper() + wrong[1:] if cap else wrong; b = base_of(q["o"], bank)
+            # 직접 쓰기는 답이 하나로 정해지는 자리만: 때(시제)를 마음대로 쓸 수 있는 자리는 뺌 — 주제를 고르고, 동사 자리(be·have 가 든 답)는 때를 알려 주는 말이 있을 때만
+            finite = bool(re.search(r"\b(is|are|was|were|am|has|have|had|does|do|did)\b", a.lower()))
+            wok = k in ("inf", "ger", "perf", "pass", "part", "caus", "paral", "ifp", "verb2") or (k == "voice" and bool(re.search(r"\b(yesterday|ago|last|every|in \d{4}|tomorrow|now)\b", q["s"], re.I)))
+            if finite and k != "ifp" and not re.search(r"\b(yesterday|ago|last|every|in \d{4}|tomorrow|now|since|for)\b", q["s"], re.I): wok = False
+            can = {"write": wok and bool(b) and bool(re.fullmatch(r"[a-z' ]{1,18}", a.lower())),
+                   "order": 4 <= nw <= 8 and right[0].isupper() and "," not in right,
+                   "fix": " " not in a and " " not in wrong and [re.sub(r"[.,!?]", "", t) for t in fill(q["s"], wrong).split(" ")].count(bad) == 1, "ox": True}
+            ks = [k2 for k2 in ("write", "order", "fix", "ox") if can[k2] and n[k2] < lim[k2]]
+            if not ks: continue
+            kind = max(ks, key=lambda k2: (want[k2] - n[k2]) / want[k2] + (0.01 if k2 != "ox" else 0)); n[kind] += 1
+            if kind == "write":
+                d = {"k": "write", "s": q["s"] + " (" + b + ")", "a": a.lower(), "ko": q.get("ko", ""), "w": why, "sid": i}
+                if k == "caus" and a.lower() == b and re.search(r"\b(hear|heard|see|saw|watch|watched|feel|felt)\b", q["s"], re.I):   # 지각동사는 동사원형·-ing 둘 다 맞음
+                    ing = next((o for o in q["o"] if o.lower().endswith("ing") and o.lower() != b and " " not in o), None) or ((b[:-1] if b.endswith("e") and not b.endswith("ee") else b) + "ing")
+                    d["alt"] = [ing.lower()]
+                qs.append(d)
+            elif kind == "order": qs.append({"k": "order", "w": right.split(" "), "ko": q.get("ko", ""), "sid": i})
+            elif kind == "fix": qs.append({"k": "fix", "s": fill(q["s"], wrong), "bad": bad, "a": (a[0].upper() + a[1:]) if cap else a, "ko": q.get("ko", ""), "w": wr or why, "sid": i})
+            else:
+                ok = n["ox"] % 2 == 1
+                d = {"k": "ox", "s": right if ok else fill(q["s"], wrong), "ok": ok, "ko": q.get("ko", ""), "sid": i}
+                if not ok: d["fix"] = right; d["w"] = wr or why
+                qs.append(d)
+        # 설명 카드마다 확인 문제 — 카드 글과 가장 많이 겹치는 쉬운 고르기
+        cards = []; used = set()
+        tok = lambda t: set(x for x in re.findall(r"[a-z]+", t.lower()) if len(x) > 1)
+        for c in C[k][:3]:
+            ct = tok(c["h"] + " " + c["p"] + " " + " ".join(e[2] for e in c["ex"]))
+            best = max(((len(ct & tok(" ".join(q["o"]) + " " + q.get("why", ""))), -i, i, q) for i, q in easy if i not in used), default=None)
+            i, q = best[2], best[3]; used.add(i)
+            cc = dict(c); cc["q"] = {"k": "pick", "s": q["s"], "o": q["o"][:], "a": q["o"][0], "ko": q.get("ko", ""), "w": q.get("why", "")}; cards.append(cc)
+        out.append({"id": "mid-%d" % (11 + ti), "at": 0, "t": nm, "emo": emo, "sub": sub, "sec": sec, "gk": k, "cards": cards, "qs": qs})
+        print(k, len(P0), n)
+    return out
+
 if __name__ == "__main__":
     raw = open(P_, encoding="utf-8").read(); D = json.loads(raw)
-    old = {g["id"]: g for g in D.get("mid", [])}
-    for g in MID: old[g["id"]] = g
-    D["mid"] = sorted(old.values(), key=lambda g: int(g["id"].split("-")[1]))
+    for g in MID: g["sec"] = "초등 문법 복습 · 직접 쓰기"
+    D["mid"] = from_hsq() + MID      # 새 주제 먼저 · 초등에서 배운 것(복습)은 맨 아래
     compact = "\n" not in raw.strip()[:2000]
     open(P_, "w", encoding="utf-8").write(json.dumps(D, ensure_ascii=False, separators=(",", ":")) if compact else json.dumps(D, ensure_ascii=False, indent=1))
     print({g["id"]: len(g["qs"]) for g in D["mid"]})

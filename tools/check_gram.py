@@ -24,6 +24,8 @@ EXTRA = set("""a an the i you he she it we they me him her us them my your his i
  do does did don't doesn't didn't isn't aren't wasn't weren't can't cannot won't not no yes and or but so because if when than then there here to of in on at by for with from
  about into under over after before up down out off near very too much many more most some any every all one two three four five six seven eight nine ten thirteen
  can could may might must should will would shall have has had let's let ms mr mrs kim tom mina jinsu jisu canada busan seoul jeju korea english saturday sunday saturdays
+ yuna amy jiho minsu jiho's grandma grandma's kimchi sushi ramen christmas herself himself myself yourself themselves ourselves itself fluently gracefully laps
+ seen forgot written spoken became known eaten broken grown taken gone given done been driven chosen stolen fallen flown thrown drawn worn hidden ridden forgotten begun sung swum drunk woken
  tv ok o'clock who what where which whose why how a.m p.m didn mall weekdays vegetarian classmate hallway onions baths twins amn't""".split())
 IRR = {"went": "go", "ate": "eat", "saw": "see", "bought": "buy", "wrote": "write", "gave": "give", "met": "meet", "made": "make", "got": "get", "took": "take", "broke": "break", "came": "come",
        "knew": "know", "heard": "hear", "had": "have", "did": "do", "ran": "run", "swam": "swim", "said": "say", "told": "tell", "found": "find", "left": "leave", "slept": "sleep", "read": "read",
@@ -83,11 +85,11 @@ def check_q(g, q, bk, where):
         if bk == "mid" and not q.get("w"): Wn(g, q, "왜 그런지 한 줄(w) 없음")
         # 답이 둘일 수 있는지: 같은 동사의 때(시제)만 다른 보기인데 문장에 때를 알려 주는 말이 없음
         lem = set(lemma(x.split(" ")[-1]) for x in o if x != "-")
-        if len(o) >= 2 and len(lem) == 1 and not (lem & {"child", "person", "man", "woman", "foot", "tooth"}):
+        if len(o) >= 2 and len(lem) == 1 and all(" " not in x for x in o) and not (lem & {"child", "person", "man", "woman", "foot", "tooth"}):
             forms = set(x.lower() for x in o); past = any(x in IRR and IRR[x] != "be" and x not in ("has", "does", "goes") or x.endswith("ed") for x in forms) or bool(forms & {"was", "were"})
             pres = any(not (x.endswith("ed") or (x in IRR and x not in ("has", "does", "goes", "is", "are", "am"))) for x in forms)
             fake = any(re.search(r"(eed|oed|yed|ked|ted|ned|med)$", x) and lemma(x) != x and x[:-2] in IRR.values() for x in forms)   # goed · buyed 같은 일부러 틀린 모양
-            if past and pres and not fake and not TIME.search(q["s"]) and not AUX_BEFORE.search(q["s"]) and not re.search(r"\b(and|but|so)\b.*\b\w+ed\b|\b\w+ed\b.*\b(and|but|so)\b", q["s"]):
+            if past and pres and not fake and not any(x.endswith("ing") for x in forms) and "would" not in q["s"].lower() and not re.search(r"\b(have|has|had|and|or|than|be|been)\s+___", q["s"]) and not TIME.search(q["s"]) and not AUX_BEFORE.search(q["s"]) and not re.search(r"\b(and|but|so)\b.*\b\w+ed\b|\b\w+ed\b.*\b(and|but|so)\b", q["s"]):
                 Wn(g, q, f"때를 알려 주는 말이 없음 — 보기 {o} 둘 다 될 수 있는지 확인")
         if len(o) >= 2 and set(x.lower() for x in o) <= {"can", "may", "must", "should", "will", "have to", "has to", "could", "might"}:
             Wn(g, q, f"조동사끼리 고르기 {o} — 문맥으로 하나만 되는지 확인")
@@ -161,10 +163,10 @@ for bk in BOOKS:
             if sig in seen: E(g, q, "같은 문제가 두 번")
             seen[sig] = 1
             if r:
-                if r in [x[1] for x in rows] and q.get("k") != "ox": Wn(g, q, "정답 문장이 다른 문제와 같음 (답을 미리 알려 줌)")
+                if q.get("sid") is None and r in [x[1] for x in rows if x[4].get("sid") is None] and q.get("k") != "ox": Wn(g, q, "정답 문장이 다른 문제와 같음 (답을 미리 알려 줌)")   # sid 가 있으면 게임이 한 판에 한 번만 냄
                 rows.append((q.get("k"), r, q.get("ko", ""), q.get("w", ""), q))
         for k, n in NEED[bk].items():
-            if cnt[k] < n: E(g, "", f"{k} 문제가 {cnt[k]}개 — 별 단계에 {n}개 넘게 필요")
+            if cnt[k] < n: (Wn if k in ("write", "hard", "fix", "order") and bk == "mid" else E)(g, "", f"{k} 문제가 {cnt[k]}개 — 별 단계에 {n}개 필요 (모자라면 고르기로 채워짐)")
         sheet.append((bk, g, rows, cnt))
 
 print(f"검사: {', '.join(BOOKS)} · 단원 {sum(len(D[b]) for b in BOOKS)}개 · 문제 {sum(len(g['qs']) for b in BOOKS for g in D[b])}개")

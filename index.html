@@ -3630,6 +3630,7 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .scFace.sm{width:150px;margin:0 auto;box-shadow:0 0 30px #3b5bff} .epEnd.dead h3{color:#ff8a8a}
 .hmHp{display:flex;gap:3px;flex-wrap:wrap;font-size:clamp(18px,2.6vh,30px)} .hmHp i{font-style:normal} .hmHp i.off{filter:grayscale(1);opacity:.25} .hmHp.sm{font-size:16px;gap:1px} .hmOver{color:#ff8a8a}
 .adLearnT{margin:0 0 6px;font-size:15px} .adLearnT b{font-size:24px;color:#ffd37a} .adLearnT small{opacity:.7;font-size:12px} td.adLow{color:#ff9a9a;font-weight:900}
+.grSec{margin:14px 2px 2px;font-size:14px;font-weight:900;color:#ffd37a} .grSec:first-child{margin-top:0} .grFbW.no{color:#ffb3bd} .grFbW.no b{color:#fff}
 /* (v651) 중등 문법 — ⌨️ 직접 쓰기 */
 .grBl.wr{min-width:64px;display:inline-block;text-align:center;border-bottom:3px solid #ffd37a;color:#ffd37a} .grCur{display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:#ffd37a;animation:kkBlink 1s steps(2) infinite}
 .grCue{text-align:center;font-size:14px;font-weight:800;color:#cfc4f2;margin:2px 0 8px} .grCue b{color:#8fe3ff;font-size:16px}
@@ -17062,7 +17063,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v651";
+const GAME_VER = "v652";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20449,10 +20450,12 @@ const GramUI = {
   /* 문제 고르기 — 별 단계마다 섞는 비율이 다르다 (Gram.TIER) */
   build(){ const T=this.T(), Q=this.g.qs, by=f=>this.shuf(Q.filter(f)), src={
       pick:by(q=>q.k==="pick" && !q.hd), hard:by(q=>q.k==="pick" && q.hd), ox:by(q=>q.k==="ox"), order:by(q=>q.k==="order"), fix:by(q=>q.k==="fix"), write:by(q=>q.k==="write") };
-    let out=[]; Object.keys(T.mix).forEach(k=>{ if(k==="old") return; for(let i=0;i<T.mix[k];i++){ const q=src[k].shift() || src.pick.shift() || src.hard.shift(); if(q) out.push(q); } });
+    /* (v652) 같은 문장에서 만든 문제(sid 가 같음 — 고르기·⭕❌·쓰기)는 한 판에 한 번만 */
+    const usedS={}, take=k=>{ const A=src[k]||[]; for(let i=0;i<A.length;i++){ const q=A[i]; if(q.sid!=null && usedS[q.sid]) continue; A.splice(i,1); if(q.sid!=null) usedS[q.sid]=1; return q; } return null; };
+    let out=[]; Object.keys(T.mix).forEach(k=>{ if(k==="old") return; for(let i=0;i<T.mix[k];i++){ const q=take(k) || take("pick") || take("hard") || take("ox"); if(q) out.push(q); } });
     if(T.mix.old){ const L=Gram.list(this.bk()), prev=(this.bk()==="mid" ? L.filter(x=>x!==this.g) : L.slice(0, L.indexOf(this.g))).filter(x=>Gram.stars(x.id)>0);   /* (v651) 중등은 순서 없이 푸니 별 딴 다른 단원 모두 */
       const pool=this.shuf([].concat(...prev.map(x=>x.qs.filter(q=>q.k!=="order").map(q=>Object.assign({}, q, {from:x.t})))));
-      for(let i=0;i<T.mix.old;i++){ const q=pool.shift() || src.pick.shift() || src.ox.shift() || src.hard.shift(); if(q) out.push(q); } }
+      for(let i=0;i<T.mix.old;i++){ const q=pool.shift() || take("pick") || take("ox") || take("hard"); if(q) out.push(q); } }
     /* 쉬운 것 → 어려운 것: 고르기 · OX → 순서 → 틀린 단어 · 섞어서 문제는 사이사이 */
     const rank=q=>({pick:0, ox:1, order:2, fix:3, write:3.6}[q.k]||0)+(q.hd?1.5:0)+(q.from?Math.random()*3:0);
     out=out.map(q=>[rank(q)+Math.random()*0.9, q]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
@@ -20538,6 +20541,7 @@ const GramUI = {
     const fx = q.k==="fix" ? '<p class="grFx"><s>'+E(q.bad)+'</s> → <b>'+(q.a?E(q.a):'빼요')+'</b></p>' : '';
     return '<div class="grFb '+(ok?'ok':'bad')+'"><div class="grFbH">'+(ok ? (q.again ? '👍 이번엔 맞았어요!' : ['🎉 정답!','👏 잘했어요!','✨ 맞아요!'][this.qi%3]) : '🤔 아쉬워요')+'</div>'+fx
       +'<button class="grFbS" data-say="'+E(this.right(q))+'">🔊 '+E(this.right(q))+'</button><small>'+E(q.ko)+'</small>'
+      +(!ok && q.wr && typeof q.pk==="string" && q.wr[q.pk] ? '<p class="grFbW no">✗ <b>'+E(q.pk)+'</b> — '+E(q.wr[q.pk])+'</p>' : '')   /* (v652) 내가 고른 보기가 왜 틀렸는지 (이미 만들어 둔 오답 이유) */
       +(q.w && (!ok || q.hd) ? '<p class="grFbW">💡 '+E(q.w)+'</p>' : '')+(!ok ? '<button class="grRuleB in" data-gr="peek">📒 규칙 다시 보기</button>' : '')
       +'</div><div class="grFoot"><button class="stCheck" data-gr="qnext">'+(this.qi+1<this.qs.length?'다음 ▶':'끝 ▶')+'</button></div>'; },
   /* ── 답하기 ── */
@@ -20590,8 +20594,8 @@ const GramUI = {
         +'<p class="grNoteP">단어 길 옆 「쉬어 가기」 돌에서 배운 규칙이 여기 모여요. 별 하나마다 💎'+Gram.GEM+' · 별 6개까지 갈수록 어려워져요.</p>'
         +(()=>{ const n = bk==="mid" ? GNote.LV[2][1].filter(k=>GNote.seen(k)).length : L.filter(g=>Gram.stars(g.id)>0).length;   /* (v624) 🔀 섞어 풀기 */
             return n>=2 ? '<button class="grMixB" data-gr="mix"><i>🔀</i><span><b>섞어 풀기</b><small>배운 문법 '+Math.min(4, n)+'개가 섞여 나와요 · 10문제</small></span><em>▶</em></button>' : ''; })()
-        +'<div class="grNote">'+L.map(g=>{ const on=Gram.open(g.id), s=Gram.stars(g.id);
-          return '<button class="grNR'+(on?'':' lock')+(s?' done':'')+'" data-gram="'+g.id+'"><i>'+(on?g.emo:'🔒')+'</i><span><b>'+E(g.t)+'</b><small>'+(on ? E(g.sub) : 'Stage '+g.at+([2,4,5,9].indexOf(g.at%10)>=0?' 를':' 을')+' 시작하면 열려요')+'</small></span><em>'+(s?Gram.starHtml(s):on?'NEW':'')+'</em></button>'; }).join('')+'</div>'+'<div class="glNoteS"><h4>🧩 공부하면서 만난 문법 <small>눌러서 규칙 보기 · ★ = 맞힌 비율</small></h4>'+GNote.noteHtml(bk==="g34"||bk==="g12"?"g34":bk==="g56"?"g56":"mid")+'</div>';
+        +'<div class="grNote">'+L.map((g,gi)=>{ const on=Gram.open(g.id), s=Gram.stars(g.id), sec = g.sec && (!gi || L[gi-1].sec!==g.sec) ? '<h4 class="grSec">'+E(g.sec)+'</h4>' : '';   /* (v652) 중등: 묶음 제목 (중등 문법 · 어법 심화 · 초등 복습) */
+          return sec+'<button class="grNR'+(on?'':' lock')+(s?' done':'')+'" data-gram="'+g.id+'"><i>'+(on?g.emo:'🔒')+'</i><span><b>'+E(g.t)+'</b><small>'+(on ? E(g.sub) : 'Stage '+g.at+([2,4,5,9].indexOf(g.at%10)>=0?' 를':' 을')+' 시작하면 열려요')+'</small></span><em>'+(s?Gram.starHtml(s):on?'NEW':'')+'</em></button>'; }).join('')+'</div>'+'<div class="glNoteS"><h4>🧩 공부하면서 만난 문법 <small>눌러서 규칙 보기 · ★ = 맞힌 비율</small></h4>'+GNote.noteHtml(bk==="g34"||bk==="g12"?"g34":bk==="g56"?"g56":"mid")+'</div>';
       if(bk==="mid"||bk==="g12"){ const G=$("stGram"), P=G.querySelector(".grNoteP"), N=G.querySelector(".grNote:not(.glN)"), S=G.querySelector(".stSub"); if(bk==="mid" && L.length){ if(P) P.textContent="중등 문법 코스 — 어느 단원이든 바로 시작할 수 있어요. 학교 시험 범위 단원을 골라요. ★4 부터는 보기 없이 직접 써요 · 별 하나마다 💎"+Gram.GEM; if(S) S.textContent="중등 · "+Gram.done(bk)+" / "+L.length; }
         else { if(P) P.textContent="Stage 마다 「🧩 이번 Stage 문법」과 문제에서 배운 규칙이 여기 모여요. 헷갈리면 눌러서 다시 봐요."; if(N) N.remove(); if(S) S.textContent=(bk==="g12"?"Grade 1-2 · "+GNote.count("g34"):"중등 · "+GNote.count("mid")); } }   // (v555)
       try{ $("scStudy").scrollTop=0; }catch(e){} }); },
