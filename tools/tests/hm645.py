@@ -31,7 +31,7 @@ SOLVE = """async ([id, v])=>{ const P=EscPad; P.view=id; P.inp=''; P.iw=[]; P.iw
   P.drawIn(); const s=document.getElementById('epSend'); const dis=s && s.disabled; P.send(); return {k:z.k, dis}; }"""
 # 한 층 가구를 다 뒤짐 (퍼즐·잠긴 가구 빼고) — act 를 0.3초 간격으로
 LOOK = """async (z)=>{ const P=EscPad, Z=P.Z(), T=P.myT(); let n=0; for(let r=0;r<3;r++) for(let s=0;s<5;s++){ const F=Z.H[z].R[r].F[s], fk=Esc.fk(z,r,s); if(F.st || (F.gate && !(T.rev||{})[F.gate]) || (P.myT().lk||{})[fk]) continue; P.act({a:'look', f:fk}); n++; await new Promise(q=>setTimeout(q,320)); } return n; }"""
-GO = "(l)=>{ EscPad.loc=Object.assign({h:0}, l); EscPad.put(); EscPad._dk=''; EscPad.draw(); }"
+GO = "(l)=>{ EscPad.way=[]; EscPad.loc=Object.assign({h:0, d:4}, l, {x:l.x+.5, y:l.y+.5}); EscPad.put(); EscPad._dk=''; EscPad.draw(); }"
 TS = "()=>{ const T=EscTV.st.T[0]; return {rm:T.rm, sv:Object.keys(T.sv||{}).sort().join(','), inv:(T.inv||[]).join(','), rev:Object.keys(T.rev||{}).join(','), nt:(T.nt||[]).length, msg:(T.msg||{}).m||'', out:T.out, star:T.star, M:EscTV.st.M[0].length}; }"
 
 async def walk_touch(k, kind, s=None):
@@ -66,14 +66,44 @@ async def main():
         await A.screenshot(path=OUT + "map_pad.png"); await B.screenshot(path=OUT + "map_ph.png"); await C.screenshot(path=OUT + "map_phL.png")
         # 다른 친구도 내 화면에 보임
         await tv.wait_for_timeout(600); n = await B.evaluate("()=>document.querySelectorAll('#escPad .hmK').length"); ok(n == 3, f"같은 방 친구 3명 보임 {n}")
-        # 걷기: 바닥 누르기
-        await B.evaluate("()=>{ const g=document.querySelector('#escPad .hmGrid.big'), r=g.getBoundingClientRect(), c=r.width/9; g.dispatchEvent(new MouseEvent('click', {bubbles:true, clientX:r.left+c*5.5, clientY:r.top+c*2.5})); }")
-        await B.wait_for_timeout(1500); l = await B.evaluate("()=>EscPad.loc"); ok(l["x"] == 5 and l["y"] == 2, f"바닥 누르면 걸어감 {l}")
-        await tv.wait_for_timeout(500); l2 = await tv.evaluate("(id)=>(EscTV.P[id]||{}).loc", "나래"); ok(l2 and l2["x"] == 5, f"TV 도 내 자리 {l2}")
+        # 걷기 ① 바닥을 톡 → 그 자리로 걸어감
+        pt = await B.evaluate("()=>{ const g=document.querySelector('#escPad .hmGrid.big'), r=g.getBoundingClientRect(), c=r.width/9; return [r.left+c*4.5, r.top+c*2.5]; }")
+        await B.mouse.click(pt[0], pt[1]); await B.wait_for_function("()=>!EscPad.way.length", timeout=6000); await B.wait_for_timeout(300); l = await B.evaluate("()=>EscPad.loc"); ok(abs(l["x"] - 4.5) < .05 and abs(l["y"] - 2.5) < .05, f"바닥 톡 → 걸어감 {l}")
+        await tv.wait_for_timeout(500); l2 = await tv.evaluate("(id)=>(EscTV.P[id]||{}).loc", "나래"); ok(l2 and abs(l2["x"] - 4.5) < .05, f"TV 도 내 자리 {l2}")
+        # 걷기 ② 🕹 조이스틱 (화면을 끌고 있으면 계속 걸음 · 가구에 막힘)
+        x0 = l["x"]; sx, sy = 120, 600
+        await B.mouse.move(sx, sy); await B.mouse.down(); await B.mouse.move(sx + 30, sy, steps=3); await B.mouse.move(sx + 60, sy, steps=3)
+        r = await B.evaluate("()=>[document.getElementById('epJoy').classList.contains('on'), EscPad.jv[0]]"); await B.wait_for_timeout(600)
+        x1 = await B.evaluate("()=>[EscPad.loc.x, document.querySelector('#escPad .hmK.me').classList.contains('mv'), EscPad.loc.d]"); await B.mouse.up()
+        ok(r[0] and r[1] > .9 and x1[0] > x0 + 1.2 and x1[1] and x1[2] == 2, f"조이스틱 → 오른쪽으로 걸음 · 걷는 그림 · 방향 {r} {x0}→{x1}")
+        await B.wait_for_timeout(400); x2 = await B.evaluate("()=>[EscPad.loc.x, document.querySelector('#escPad .hmK.me').classList.contains('mv'), document.getElementById('epJoy').classList.contains('on')]")
+        ok(abs(x2[0] - x1[0]) < .6 and not x2[1] and not x2[2], f"손 떼면 멈춤 {x2}")
+        cam = await B.evaluate("()=>document.getElementById('hmCam').style.transform"); ok("translate3d(-" in cam, f"카메라가 따라감 {cam}")
+        await B.evaluate(GO, {"z": 0, "r": 0, "x": 4, "y": 1}); await B.keyboard.down("ArrowUp"); await B.wait_for_timeout(700); await B.keyboard.up("ArrowUp")
+        l = await B.evaluate("()=>EscPad.loc"); ok(l["y"] >= 1.29 and l["y"] < 1.4, f"가구(4,0)에 막힘 (방향키) {l}")
+        # 문으로 걸어 나가면 옆 방
+        await B.evaluate(GO, {"z": 0, "r": 0, "x": 7, "y": 3}); await B.keyboard.down("ArrowRight"); await B.wait_for_function("()=>EscPad.loc.r===1", timeout=4000); await B.wait_for_timeout(100); await B.keyboard.up("ArrowRight")
+        l = await B.evaluate("()=>EscPad.loc"); ok(l["r"] == 1 and l["x"] < 2, f"➡️ 문으로 걸어 나감 → 거실 {l}")
+        await B.keyboard.down("ArrowLeft"); await B.wait_for_function("()=>EscPad.loc.r===0", timeout=4000); await B.wait_for_timeout(100); await B.keyboard.up("ArrowLeft")
+        l = await B.evaluate("()=>EscPad.loc"); ok(l["r"] == 0 and l["x"] > 7, f"⬅️ 다시 현관 {l}")
+        # 가구 앞 = 🔍 단추 · 누르면 뒤지기
+        await B.evaluate(GO, {"z": 0, "r": 0, "x": 4, "y": 3})
+        r = await B.evaluate("()=>[document.getElementById('epActB').hidden, document.querySelectorAll('#escPad .hmF.near').length]"); ok(r[0] and r[1] == 0, f"빈 바닥엔 행동 단추 없음 {r}")
+        await B.evaluate(GO, {"z": 0, "r": 0, "x": 4, "y": 4}); await B.wait_for_timeout(200)
+        r = await B.evaluate("()=>[document.getElementById('epActB').hidden, document.getElementById('epActB').textContent, !!document.querySelector('#escPad .hmF.hide.near')]"); ok(not r[0] and "숨기" in r[1] and r[2], f"옷장 앞 = 🚪 숨기 단추 {r}")
         # 가구 뒤지기 (진짜로 걸어가서) → 모두의 노트
         Z = await tv.evaluate("()=>EscTV.st.Z[0].H")
         s0 = next(s for s, F in enumerate(Z[0]["R"][0]["F"]) if not F.get("st") and not F.get("gate"))
-        await walk_touch(B, "f", s0); await tv.wait_for_timeout(1300)
+        nt0 = (await tv.evaluate(TS))["nt"]
+        await B.evaluate("(s)=>{ const t=Esc.near(EscPad.cell(), Esc.SLOT[s]); EscPad.loc.x=t[0]+.5; EscPad.loc.y=t[1]+.5; EscPad.put(); }", s0); await B.wait_for_timeout(250)
+        r = await B.evaluate("()=>document.getElementById('epActB').textContent"); ok("뒤지기" in r, f"가구 앞 = 🔍 뒤지기 단추 {r}")
+        await B.click("#epActB"); await B.wait_for_timeout(1300); await tv.wait_for_timeout(300)
+        has = bool(Z[0]["R"][0]["F"][s0].get("c"))
+        r = await B.evaluate("()=>[EscPad.view, !document.getElementById('epPop').hidden, (document.querySelector('#epPop h3')||{}).textContent||'', EscPad.lm]")
+        ok((r[0] == "found" and r[1] and "찾았어요" in r[2]) if has else (r[0] is None and "아무것도" in r[3]), f"뒤지면 찾은 것 창 (있을 때) {has} {r}")
+        await B.screenshot(path=OUT + "found_ph.png")
+        if has: await B.click("#epPop [data-ep=back]"); await B.wait_for_timeout(200)
+        ok(await B.evaluate("()=>EscPad.view===null && document.getElementById('epPop').hidden"), "창 닫으면 다시 걷기")
         t = await tv.evaluate(TS); fk = f"0-0-{s0}"
         ok(await tv.evaluate("(f)=>!!EscTV.st.T[0].lk[f]", fk), f"걸어가서 뒤짐 → TV 에 표시 {fk} · 노트 {t['nt']}")
         await B.screenshot(path=OUT + "search_ph.png")
@@ -87,6 +117,11 @@ async def main():
         st0 = next(s for s, F in enumerate(Z[0]["R"][0]["F"]) if F.get("st")); pid0 = Z[0]["R"][0]["F"][st0]["st"]
         await walk_touch(A, "f", st0); r = await A.evaluate("()=>EscPad.view"); ok(r == pid0, f"퍼즐 가구 → 퍼즐 화면 {r}")
         await A.screenshot(path=OUT + "pz_pad.png")
+        r = await A.evaluate("()=>[!document.getElementById('epPop').hidden, !!document.querySelector('#epPop .epPz'), !!document.getElementById('hmStage')]"); ok(all(r), f"퍼즐 = 창 (뒤에 저택 그대로) {r}")
+        lx = await A.evaluate("()=>EscPad.loc.x"); await A.keyboard.down("ArrowLeft"); await A.wait_for_timeout(400); await A.keyboard.up("ArrowLeft")
+        ok(await A.evaluate("()=>EscPad.loc.x") == lx, "퍼즐 창이 떠 있으면 안 걸어감")
+        await A.click("#epPop [data-ep=back]"); await A.wait_for_timeout(200); ok(await A.evaluate("()=>EscPad.view===null && document.getElementById('epPop').hidden"), "✕ 나가기 → 창 닫힘")
+        await A.evaluate("()=>EscPad.doAct()"); await A.wait_for_timeout(200); ok(await A.evaluate("()=>EscPad.view") == pid0, "다시 단추 → 퍼즐 창")
         # 1층: a → 아이템 · b(아이템 쓰기) · c · 계단
         await A.evaluate(SOLVE, ["0a", ans["0a"]]); await tv.wait_for_timeout(900)
         t = await tv.evaluate(TS); it = t["inv"]; ok("0a" in t["sv"] and it, f"🔤 → 아이템 {it}")
@@ -110,7 +145,8 @@ async def main():
         for k in (A, B, C, D): await k.evaluate(GO, {"z": 1, "r": 0, "x": 4, "y": 2})
         await B.evaluate(LOOK, 1); await tv.wait_for_timeout(900)
         t = await tv.evaluate(TS); ok("n1" in t["inv"] and "n2" in t["inv"], f"📜 쪽지 두 장 {t['inv']}")
-        await C.evaluate("()=>{ EscPad._dk=''; EscPad.draw(); document.querySelector('#escPad [data-ep=mix]').click(); }"); await tv.wait_for_timeout(900)
+        r = await C.evaluate("()=>document.querySelector('#escPad .hmB.glow[data-ep=bag]')!=null"); ok(r, "쪽지 두 장 → 🎒 단추 반짝")
+        await C.click("#escPad [data-ep=bag]"); await C.wait_for_timeout(200); await C.screenshot(path=OUT + "bag_phL.png"); await C.click("#epPop [data-ep=mix]"); await tv.wait_for_timeout(900)
         t = await tv.evaluate(TS); ok("1c" in t["rev"], f"쪽지 합침 {t['msg'][:40]}")
         # 🔵 아오: 숨은 아이는 안 잡힘 · 안 숨은 아이는 잡혀 처음 방으로
         await tv.evaluate("()=>{ EscTV.cfg.mo=2; EscTV.st.mo.nx=EscTV.now(); }")
@@ -171,7 +207,7 @@ async def main():
         await k.evaluate("(a)=>{ EscPad.join(a, {id:'가온', n:'가온'}); window.confirm=()=>true; }", room); await tv.wait_for_timeout(800)
         await tv.evaluate("async ()=>{ await EscTV.go(); EscTV.st.t0=EscTV.now()+300; EscTV.st.mo.nx=EscTV.now()+9e5; EscTV.push(); }"); await tv.wait_for_timeout(1500)
         r = await tv.evaluate("()=>EscTV.st.T[0].hpM"); ok(r == 3, f"1명이면 ❤️ 3 {r}")
-        await tv.evaluate("()=>{ EscTV.st.T[0].hp=1; const l=EscTV.P['가온'].loc; Object.assign(EscTV.st.mo, {on:1, z:0, r:0, x:l.x+1, y:l.y, until:EscTV.now()+60000, wait:0, mv:0}); EscTV.push(); }")
+        await tv.evaluate("()=>{ EscTV.st.T[0].hp=1; const l=EscTV.P['가온'].loc; Object.assign(EscTV.st.mo, {on:1, z:0, r:0, x:Math.floor(l.x)+1, y:Math.floor(l.y), until:EscTV.now()+60000, wait:0, mv:0}); EscTV.push(); }")
         await tv.wait_for_timeout(2500)
         r = await tv.evaluate("()=>[EscTV.st.s, EscTV.st.T[0].dead, EscTV.st.T[0].hp]"); ok(r[0] == "end" and r[1] == 1 and r[2] == 0, f"❤️ 0 = 게임 오버 {r}")
         await k.wait_for_timeout(1500)
@@ -190,8 +226,8 @@ async def main():
         for nm, k in pads: await k.evaluate(LOOK, 0)
         await tv.wait_for_timeout(1000)
         ids = await tv.evaluate("()=>Esc.ids()")
-        FIT = """()=>{ const P=document.getElementById('escPad'), all=[...P.querySelectorAll('button')].filter(b=>b.offsetParent).map(b=>b.getBoundingClientRect());
-            return [P.scrollHeight-P.clientHeight, Math.round(Math.max(...all.map(x=>x.bottom))), innerHeight, Math.round(Math.max(...all.map(x=>x.right))), innerWidth]; }"""
+        FIT = """()=>{ const P=document.getElementById('escPad'), all=[...P.querySelectorAll('button')].filter(b=>b.offsetParent && !b.closest('.hmCam')).map(b=>b.getBoundingClientRect()), C=document.querySelector('#epPop:not([hidden]) .epPopC');
+            return [Math.max(P.scrollHeight-P.clientHeight, C ? C.scrollHeight-C.clientHeight : 0), Math.round(Math.max(...all.map(x=>x.bottom))), innerHeight, Math.round(Math.max(...all.map(x=>x.right))), innerWidth]; }"""
         for view in [None, "note"] + ids:
             if view and view != "note":
                 if view == "m": await tv.evaluate("()=>{ EscTV.st.T[0].rm=3; EscTV.push(); }")
