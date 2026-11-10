@@ -61,8 +61,8 @@ async def main():
             if await pg.evaluate("()=>!!(MG.on && MG.run && MG.run.ready)"): break
             await pg.wait_for_timeout(200)
         await pg.wait_for_timeout(400)
-        r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .dwMenu'); return [MG.run.mode, getComputedStyle(M).display, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), M.querySelectorAll('[data-lv]').length, !!M.querySelector('.out')]; }")
-        ok(r==["menu","flex","solo,co,sketch,gal",3,True], f"① 공방 → 바로 메뉴 (혼자·같이·그려 보기·그림첩 · 단계 3) {r}")
+        r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .puM'); return [MG.run.mode, getComputedStyle(M).display, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), M.querySelectorAll('[data-sg]').length, !!M.querySelector('.out')]; }")
+        ok(r==["menu","flex","solo,sketch,gal,co",3,True], f"① 공방 → 바로 메뉴 (혼자·같이·그려 보기·그림첩 · 단계 3) {r}")
         await pg.screenshot(path=OUTD+"menu.png")
         # ② 혼자 그림 퍼즐
         c0=await pg.evaluate("()=>TECO.coins()")
@@ -92,11 +92,11 @@ async def main():
                 seen.append(r[2]); await pg.evaluate("(w)=>{ MG.run.typeWord(w); MG.run.submit(); }", r[2])
             await pg.evaluate(STEP, 45)
         await pg.wait_for_timeout(800)
-        r=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [MG.run.mode, MG.run.S.ok, MG.run.S.done, el&&el.classList.contains('on'), el?el.querySelector('h3').textContent:'', TECO.coins(), MG.payLeft('draw'), (store('hyeng_proto_dwr')||{}).ok]; }")
+        r=await pg.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [MG.run.mode, MG.run.S.ok, MG.run.S.done, !!el, el?el.textContent:'', TECO.coins(), MG.payLeft('draw'), (store('hyeng_proto_dwr')||{}).ok]; }")
         ok(r[0]=="solo-end" and r[1]==8 and r[2]==8 and r[3] and "8 / 8" in r[4] and r[5]>c0 and r[6]==2 and r[7]==8, f"② 8문제 끝(다시 나온 단어도 맞힘) · 결과 창 · 🪙 · 하루 판 수 · 기록 {r} 문제 {len(seen)}")
         await pg.screenshot(path=OUTD+"solo_end.png")
         # 한 판 더 = 바로 혼자
-        await pg.evaluate("()=>document.querySelector('#mgRes .go').click()"); await pg.wait_for_timeout(400)
+        await pg.evaluate("()=>document.querySelector('#mgUI .puR .again').click()"); await pg.wait_for_timeout(400)
         r=await pg.evaluate("()=>[MG.run.mode, MG.run.S && MG.run.S.done]")
         ok(r==["solo",0], f"② 🔁 한 판 더 → 바로 그림 퍼즐 {r}")
         # ③ 그려 보기 → 그림첩
@@ -197,7 +197,7 @@ async def main():
         ok(len(rounds)==6 and sorted(x[1] for x in rounds)==sorted("ABCABC") and hist==[2]*6, f"④ 6판 · 셋이 두 번씩 그림 · 판마다 둘 다 맞힘 {[(x[0],x[1],x[2]) for x in rounds]} {hist}")
         ok(not wrongSent and nearSeen and popSeen, f"④ 틀린 글자는 서버에 안 감 · 거의 🔥 · 친구 이름표에 ❌/🔥 표시 {[wrongSent, nearSeen, popSeen]}")
         await steps(20)
-        r=[await x.evaluate("()=>{ const el=document.getElementById('mgRes'); return [MG.run.G.ph, el&&el.classList.contains('on'), el?[...el.querySelectorAll('tr')].map(t=>t.textContent).join('|'):'']; }") for x in P3]
+        r=[await x.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [MG.run.G.ph, !!el, el?[...el.querySelectorAll('.puRank div')].map(t=>t.textContent).join('|'):'']; }") for x in P3]
         ok(all(q[0]=="end" and q[1] for q in r) and len(set(q[2] for q in r))==1, f"④ 끝 · 세 화면 같은 순위·점수 {r}")
         await C_.screenshot(path=OUTD+"co_end.png")
         r=[await x.evaluate("()=>[(MG.rec().t.draw||{}).co, (store('hyeng_proto_dwg')||[]).length]") for x in P3]

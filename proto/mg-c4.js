@@ -37,17 +37,18 @@ function css(){ if(document.getElementById("c4Css")) return; const s=document.cr
 #mgUI .c4R{position:absolute;inset:0;pointer-events:none;font-family:var(--kr);color:#fff} #mgUI.c4On .mgJoyH,#mgUI.c4On .mgJoy{display:none!important}
 #mgUI .c4Hit{position:absolute;inset:0;pointer-events:auto;touch-action:none}
 #mgUI .c4Top{position:absolute;left:50%;top:calc(56px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;gap:8px;align-items:center;pointer-events:none;width:min(94vw,520px)}
-#mgUI .c4P{flex:1;display:flex;align-items:center;gap:7px;background:rgba(20,26,60,.72);border:2px solid rgba(255,255,255,.25);border-radius:30px;padding:4px 10px 4px 4px;min-width:0;transition:all .2s}
-#mgUI .c4P i{width:18px;height:18px;border-radius:50%;flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)} #mgUI .c4P b{font-weight:400;font-size:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0} #mgUI .c4P.p1{flex-direction:row-reverse;text-align:right}
-#mgUI .c4P canvas{width:44px;height:44px;border-radius:50%;flex:none;border:3px solid var(--c,#fff);background:#2b3a5a}
-#mgUI .c4Bub{position:absolute;transform:translate(-50%,-100%);background:#fff;color:#20265a;border-radius:16px;padding:6px 12px;font-size:16px;white-space:nowrap;pointer-events:none;box-shadow:0 3px 0 rgba(0,0,0,.2);display:none}
-#mgUI .c4Bub::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-7px;border:7px solid transparent;border-top-color:#fff;border-bottom:0}
+#mgUI .c4P{flex:1;display:flex;align-items:center;gap:7px;background:#FFF6E3;color:#4A2E1F;border:3px solid #4A2E1F;border-radius:999px;padding:3px 10px 3px 3px;min-width:0;transition:all .2s;box-shadow:0 0 0 3px #fff,0 5px 0 3px rgba(74,46,31,.35)}
+#mgUI .c4P i{width:20px;height:20px;border-radius:50%;flex:none;border:3px solid #4A2E1F;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)} #mgUI .c4P b{font-weight:400;font-size:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0} #mgUI .c4P.p1{flex-direction:row-reverse;text-align:right}
+#mgUI .c4P canvas{width:46px;height:46px;border-radius:50%;flex:none;border:3px solid #4A2E1F;background:#bfe6ff;box-shadow:0 0 0 3px var(--c,#fff)}
+#mgUI .c4Bub{position:absolute;transform:translate(-50%,-100%);background:#fff;color:#4A2E1F;border:3px solid #4A2E1F;border-radius:16px;padding:5px 12px;font-size:17px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 0 #4A2E1F;display:none}
+#mgUI .c4Bub::after{content:"";position:absolute;left:50%;bottom:-12px;margin-left:-8px;border:8px solid transparent;border-top-color:#4A2E1F;border-bottom:0}
 #mgUI .c4Bub.on{display:block;animation:c4Pop .25s}
 @keyframes c4Pop{from{transform:translate(-50%,-100%) scale(.5)}to{transform:translate(-50%,-100%) scale(1)}}
-#mgUI .c4P.on{border-color:#ffe14d;background:rgba(40,46,110,.85);box-shadow:0 0 0 3px rgba(255,225,77,.35);transform:scale(1.04)}
-#mgUI .c4Tm{width:46px;height:46px;flex:none;border-radius:50%;background:conic-gradient(#ffe14d var(--p,100%),rgba(255,255,255,.18) 0);display:flex;align-items:center;justify-content:center;font-family:var(--en);font-weight:900;font-size:15px}
-#mgUI .c4Tm span{width:36px;height:36px;border-radius:50%;background:#20265a;display:flex;align-items:center;justify-content:center}
-#mgUI .c4Say{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(20,26,60,.72);border-radius:16px;padding:8px 16px;font-size:17px;white-space:nowrap;pointer-events:none}
+#mgUI .c4P.on{background:#fff;box-shadow:0 0 0 3px #FFC53D,0 5px 0 3px #4A2E1F;transform:scale(1.04)}
+#mgUI .c4Tm{width:50px;height:50px;flex:none;border-radius:50%;border:3px solid #4A2E1F;background:conic-gradient(#3CC46B var(--p,100%),#fff 0);display:flex;align-items:center;justify-content:center;font-family:var(--en);font-weight:900;font-size:16px;box-shadow:0 4px 0 #4A2E1F;color:#4A2E1F}
+#mgUI .c4Tm span{width:36px;height:36px;border-radius:50%;background:#FFF6E3;display:flex;align-items:center;justify-content:center;border:2px solid #4A2E1F}
+#mgUI .c4Say{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#4A2E1F;color:#fff;border-radius:16px;padding:9px 18px;font-size:17px;white-space:nowrap;pointer-events:none;box-shadow:0 0 0 3px #fff}
+#mgUI .c4Ban{top:calc(126px + env(safe-area-inset-top))}
 #mgUI .c4Menu{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:auto;padding:calc(60px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:rgba(16,22,58,.55)}
 #mgUI .c4Menu.on{display:flex} #mgUI .c4Menu h2{margin:0;font-weight:400;font-size:34px;text-shadow:0 3px 0 rgba(0,0,0,.3)} #mgUI .c4Menu .sub{font-size:14.5px;opacity:.9;text-align:center}
 #mgUI .c4Menu .g{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:min(100%,460px)}
@@ -56,10 +57,10 @@ function css(){ if(document.getElementById("c4Css")) return; const s=document.cr
 #mgUI .c4Menu button:active{transform:translateY(4px);box-shadow:0 1px 0 #9aa6d8} #mgUI .c4Menu .out{min-height:46px;background:rgba(255,255,255,.2);color:#fff;box-shadow:none;padding:8px 20px}
 #mgUI .c4Menu .rec{font-size:13.5px;opacity:.9;text-align:center}
 #mgUI .c4Emo{position:absolute;left:calc(12px + env(safe-area-inset-left));bottom:calc(76px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;pointer-events:auto}
-#mgUI .c4Emo button{width:48px;height:48px;border-radius:50%;border:0;background:rgba(20,26,60,.6);font-size:24px;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.25)} #mgUI .c4Emo button:active{transform:scale(.9)}
+#mgUI .c4Emo button{width:52px;height:52px;border-radius:16px;border:3px solid #4A2E1F;background:#fff;font-size:26px;padding:0;box-shadow:0 4px 0 #4A2E1F} #mgUI .c4Emo button:active{transform:scale(.9)}
 #mgUI .c4Me{position:absolute;left:calc(66px + env(safe-area-inset-left));bottom:calc(150px + env(safe-area-inset-bottom));font-size:40px;pointer-events:none;opacity:0;transition:all .3s;transform:translateY(10px)} #mgUI .c4Me.on{opacity:1;transform:none}
-#mgUI.c4Menu0 .c4Top,#mgUI.c4Menu0 .c4Emo{display:none}
-@media (orientation:landscape) and (max-height:620px){ #mgUI .c4Say{left:auto;right:calc(14px + env(safe-area-inset-right));transform:none} #mgUI .c4Emo{flex-direction:row;bottom:calc(14px + env(safe-area-inset-bottom))} #mgUI .c4Me{bottom:calc(70px + env(safe-area-inset-bottom));left:calc(20px + env(safe-area-inset-left))} #mgUI .c4Top{top:calc(8px + env(safe-area-inset-top));width:min(54vw,480px)} #mgUI .c4Menu .g{grid-template-columns:repeat(4,1fr);width:min(100%,640px)} #mgUI .c4Menu button.co{grid-column:auto;flex-direction:column;min-height:96px} }`; document.head.appendChild(s); }
+#mgUI.c4Menu0 .c4Top,#mgUI.c4Menu0 .c4Emo,#mgUI.c4Menu0 .c4Ban{display:none}
+@media (orientation:landscape) and (max-height:620px){ #mgUI .c4Say{left:auto;right:calc(14px + env(safe-area-inset-right));transform:none} #mgUI .c4Emo{flex-direction:row;bottom:calc(14px + env(safe-area-inset-bottom))} #mgUI .c4Me{bottom:calc(70px + env(safe-area-inset-bottom));left:calc(20px + env(safe-area-inset-left))} #mgUI .c4Top{top:calc(8px + env(safe-area-inset-top));width:min(60vw,520px)} #mgUI .c4Ban{top:calc(74px + env(safe-area-inset-top))} #mgUI .c4Menu .g{grid-template-columns:repeat(4,1fr);width:min(100%,640px)} #mgUI .c4Menu button.co{grid-column:auto;flex-direction:column;min-height:96px} }`; document.head.appendChild(s); }
 
 function start(api){
   const SFX=api.sfx, LOW=!!api.low; api.menu=true; css(); api.ui.classList.add("c4On");
@@ -155,7 +156,7 @@ function start(api){
     const tv=Math.tan(cam.fov*Math.PI/360), th=tv*asp, d=Math.max(needW/2/th, needH/2/tv); cam.position.copy(CT).addScaledVector(CD, d); cam.lookAt(CT.x, CT.y-(land?0:.08), CT.z); cam.updateProjectionMatrix(); }
   /* ══ 화면 ══ */
   const U=api.ui, R=document.createElement("div"); R.className="c4R"; U.insertBefore(R, U.querySelector(".mgTop"));
-  R.innerHTML='<div class="c4Hit"></div><div class="c4Top"><div class="c4P p0"><canvas></canvas><b></b><i></i></div><div class="c4Tm"><span>30</span></div><div class="c4P p1"><canvas></canvas><b></b><i></i></div></div><div class="c4Bub"></div><div class="c4Say"></div><div class="c4Emo"><button>😆</button><button>😮</button><button>👍</button></div><div class="c4Me"></div><div class="c4Menu"></div>';
+  R.innerHTML='<div class="c4Hit"></div><div class="c4Top"><div class="c4P p0"><canvas></canvas><b></b><i></i></div><div class="c4Tm"><span>30</span></div><div class="c4P p1"><canvas></canvas><b></b><i></i></div></div><div class="c4Bub"></div><div class="paBan c4Ban"></div><div class="c4Say"></div><div class="c4Emo"><button>😆</button><button>😮</button><button>👍</button></div><div class="c4Me"></div><div class="c4Menu"></div>';
   ["pointerdown","pointermove","pointerup"].forEach(t=>R.addEventListener(t, e=>e.stopPropagation()));
   const $=s=>R.querySelector(s), HIT=$(".c4Hit"), MENU=$(".c4Menu"), SAY=$(".c4Say"), TMR=$(".c4Tm");
   const say=t=>{ SAY.textContent=t||""; SAY.style.display=t?"":"none"; };
@@ -168,16 +169,17 @@ function start(api){
   /* ══ 판 상태 ══ */
   let bd=fresh(), mv=[], first=0, me=0, over=false, win=null, busy=false, opp="bot", lv="normal", names=["나","봇"], turnT=0, hov=-1, RM=null, oppGone=0, coStart=0;
   const turn=()=>(first+mv.length)%2;
-  function seats(){ [0,1].forEach(k=>{ const p=k===0?me:1-me, el=$(".c4P.p"+k); el.querySelector("i").style.background=COLS[p]; el.style.setProperty("--c", COLS[p]); el.querySelector("canvas").style.borderColor=COLS[p]; el.querySelector("b").textContent=names[p]; el.classList.toggle("on", !over && turn()===p); }); trays(); }
+  function seats(){ [0,1].forEach(k=>{ const p=k===0?me:1-me, el=$(".c4P.p"+k); el.querySelector("i").style.background=COLS[p]; el.style.setProperty("--c", COLS[p]); el.querySelector("canvas").style.borderColor=COLS[p]; el.querySelector("b").textContent=names[p]; el.classList.toggle("on", !over && turn()===p); }); trays(); const B=$(".c4Ban"), t=over||mode==="menu"?"":turn()===me?"내 차례!":names[1-me]+" 차례"; if(B.textContent!==t){ B.textContent=t; B.style.display=t?"":"none"; B.className="paBan c4Ban pop "+(turn()===me?"":"y"); } }
   function clearDiscs(){ DM.forEach(d=>board.remove(d)); DM.length=0; FALL.length=0; clearFx(); }
-  function newGame(o){ bd=fresh(); mv=[]; over=false; win=null; busy=false; clearDiscs(); first=o.first|0; me=o.me|0; opp=o.opp; lv=o.lv||lv; names=o.names; turnT=0; oppGone=0; mode=o.mode; MENU.classList.remove("on"); U.classList.remove("c4Menu0"); TMR.style.display=""; oppAv(o.av); oppRest(); if(ME_AV) ME_AV.setExpr("smile"); seats();
+  function newGame(o){ bd=fresh(); mv=[]; over=false; win=null; busy=false; clearDiscs(); first=o.first|0; me=o.me|0; opp=o.opp; lv=o.lv||lv; names=o.names; turnT=0; oppGone=0; mode=o.mode; U.classList.remove("c4Menu0"); TMR.style.display=""; oppAv(o.av); oppRest(); if(ME_AV) ME_AV.setExpr("smile"); seats();
     bub(opp==="bot"?["한 판 해요! 😆","내가 이길걸? 😝","잘 부탁해! 👋"][Math.floor(Math.random()*3)]:"반가워! 👋", 1.8);
-    say(turn()===me?"내 차례! 칸을 눌러요 👆":(opp==="bot"?LV[lv].ic+" 봇이 생각 중…":"친구 차례예요")); if(opp==="bot" && turn()!==me) later(.7, botGo); }
+    busy=true; PUI.count(U, ()=>{ busy=false; turnT=0; if(opp==="bot" && turn()!==me && !over) later(.4, botGo); }, fast);
+    say(turn()===me?"칸을 콕! 알 넣기 👆":(opp==="bot"?"생각하는 중…":"친구 차례예요")); }
   function put(c, p, anim){ const r=bd[c].length; if(r>=Rw) return false; bd[c].push(p); mv.push(c); const d=discMesh(p); d.position.set(cx(c), anim?cy(Rw)+.6:cy(r), 0); board.add(d); DM.push(d); d.userData.c=c; d.userData.r=r; if(p!==me){ OPP.reach=.55; OPP.col=c; }
     if(anim) FALL.push({d, y:cy(Rw)+.6, ty:cy(r), v:0, b:0}); else d.position.y=cy(r);
     try{ SFX.tone(p?520:660,.06,"triangle",.04); }catch(e){}
     const w=line4(bd,c,r); if(w){ over=true; win={p, L:w}; later(fast?.02:.55, ()=>finish()); } else if(full(bd)){ over=true; win={p:-1}; later(fast?.02:.4, ()=>finish()); }
-    turnT=0; seats(); if(!over){ say(turn()===me?"내 차례! 칸을 눌러요 👆":(opp==="bot"?LV[lv].ic+" 봇이 생각 중…":"친구 차례예요")); } return true; }
+    turnT=0; seats(); if(!over){ say(turn()===me?"칸을 콕! 알 넣기 👆":(opp==="bot"?"생각하는 중…":"친구 차례예요")); } return true; }
   function play(c){ if(over || busy || turn()!==me || mode==="menu") return false; if(c<0||c>=C||bd[c].length>=Rw){ try{ SFX.bad(); }catch(e){} return false; }
     const thr=threat(1-me); put(c, me, true); if(!over && thr>=0 && thr!==c) { try{ OPP.P && OPP.P.setExpr("wow"); OPP.act=1.2; }catch(e){} } if(opp==="co" && RM) RM.put("g", {mv:mv.slice(), first, ro:coRo, sq:mv.length}); else if(!over) later(fast?.02:.45, botGo); return true; }
   function threat(p){ for(let c=0;c<C;c++){ if(bd[c].length>=Rw) continue; bd[c].push(p); const w=line4(bd,c,bd[c].length-1); bd[c].pop(); if(w) return c; } return -1; }
@@ -192,10 +194,14 @@ function start(api){
     if(res==="win"){ try{ SFX.win(); }catch(e){} say("🎉 4줄 팡! 이겼어요!"); } else if(res==="lose"){ try{ SFX.bad(); }catch(e){} say(opp==="bot"?"아깝다! 다시 해 봐요":"친구가 이겼어요!"); } else say("비겼어요 🤝");
     const key=opp==="bot"?lv:"co"; r.n++; if(res==="win"){ r.w[key]=(r.w[key]|0)+1; r.s++; r.bs=Math.max(r.bs,r.s); } else if(res==="lose") r.s=0; st("hyeng_proto_c4r", r);
     seats(); TMR.style.display="none";
-    later(fast?.05:1.8, ()=>{ if(gone) return; const coins=res==="win"?8:res==="draw"?5:3; const vs=opp==="bot"?LV[lv].ic+" "+LV[lv].nm+" 봇":"👫 "+esc(names[1-me]);
-      api.end({title:res==="win"?"🎉 이겼어요!":res==="draw"?"🤝 비겼어요":"😅 졌어요", sub:"4줄 팡 · "+vs+" · "+mv.length+"수", rows:null, coins, again:opp==="bot"?{go:lv}:{},
-        extra:'<div class="sub" style="margin-top:6px">🏆 이긴 판 🐣 '+(r.w.easy|0)+' · 🐥 '+(r.w.normal|0)+' · 🦅 '+(r.w.hard|0)+' · 👫 '+(r.w.co|0)+' · 🔥 최고 '+r.bs+'연승</div>',
-        upd:(b,t)=>{ if(res==="win") t.win=(t.win|0)+1; if(opp==="co") t.co=(t.co|0)+1; }}); try{ if(RM){ RM.dispose(); RM=null; } }catch(e){} }); }
+    later(fast?.05:1.8, ()=>{ if(gone) return; const coins=res==="win"?8:res==="draw"?5:3, B=opp==="bot"?botOf(lv):null, vs=opp==="bot"?LV[lv].ic+" "+B.nm:"👫 "+esc(names[1-me]);
+      const stars=res==="win"?((opp!=="bot"||lv==="hard"||mv.length<=16)?3:2):res==="draw"?1:0, tw=Object.values(r.w).reduce((a,b)=>a+(b|0),0);
+      const got=PUI.award(api, {title:res==="win"?"이겼어요!":res==="draw"?"비겼어요":"졌어요", sub:"4줄 팡 · "+vs, rows:null, coins, again:opp==="bot"?{go:lv}:{}, upd:(b,t)=>{ if(res==="win") t.win=(t.win|0)+1; if(opp==="co") t.co=(t.co|0)+1; }});
+      const left=MG.payLeft("c4");
+      PUI.result(U, {res, stars, title:res==="win"?"이겼어요!":res==="draw"?"비겼어요!":"아깝다!", sub:vs+(res==="win"?"를 ":"와 ")+mv.length+"수 만에 "+(res==="win"?"이겼어요":res==="draw"?"비겼어요":"졌어요 — 다시 해 봐요!"), av:api.av,
+        rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["fire", r.s, "연승", res==="win" && r.s>=r.bs && r.s>1],["trophy", tw, "이긴 판"]],
+        prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3}, onAgain:()=>api.restart(opp==="bot"?{go:lv}:{}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()});
+      try{ if(RM){ RM.dispose(); RM=null; } }catch(e){} }); }
   /* ── 칸 고르기 (화면 x → 칸) ── */
   const v3=new THREE.Vector3();
   function colAt(px){ const r=HIT.getBoundingClientRect(); const sx=c=>{ v3.set(cx(c),cy(Rw/2),0); board.localToWorld(v3); v3.project(cam); return (v3.x+1)/2*r.width+r.left; }; const x0=sx(0), x1=sx(C-1), w=(x1-x0)/(C-1); const c=Math.round((px-x0)/w); return (c<0||c>=C||px<x0-w*.8||px>x1+w*.8)?-1:c; }
@@ -205,17 +211,16 @@ function start(api){
   const onKey=e=>{ if(/^[1-7]$/.test(e.key)) play(+e.key-1); };
   window.addEventListener("keydown", onKey);
   /* ══ 메뉴 ══ */
-  function menuShow(){ mode="menu"; U.classList.add("c4Menu0"); over=true; clearDiscs(); bd=fresh(); MENU.classList.add("on"); TMR.style.display="none"; say(""); const r=REC();
-    MENU.innerHTML='<h2>🔴 4줄 팡</h2><div class="sub">내 알 <b>4개</b>를 가로 · 세로 · 대각선으로 먼저 이으면 이겨요!</div><div class="g">'+
-      Object.keys(LV).map(k=>'<button data-m="'+k+'"><span class="e">'+LV[k].ic+'</span>'+LV[k].nm+'<small>봇이랑 · 이김 '+(r.w[k]|0)+'</small></button>').join("")+
-      '<button class="co" data-m="co"><span class="e">👫</span><span>친구랑 1:1<br><small style="opacity:.95">같은 놀이 섬 친구랑</small></span></button></div>'+
-      '<div class="rec">🔥 최고 '+r.bs+'연승 · 오늘 🪙 상 '+(MG.payLeft("c4")>0?MG.payLeft("c4")+'판 남음':'다 받았어요')+'</div><button class="out">🏝 섬으로</button>'; }
-  MENU.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; if(b.classList.contains("out")){ MG.exit(); return; } menuGo(b.dataset.m); });
-  function menuGo(k){ try{ SFX.tone(660,.06,"triangle",.04); }catch(e){} if(k==="co"){ startCo(); return; } const f=Math.random()<.5?0:1, B=botOf(k); newGame({mode:"bot", opp:"bot", lv:k, first:f, me:0, names:[String(api.nick||"나"), B.nm+" "+LV[k].ic], av:B.av}); }
+  function menuShow(){ mode="menu"; U.classList.add("c4Menu0"); over=true; clearDiscs(); bd=fresh(); TMR.style.display="none"; say(""); const r=REC(), tw=Object.values(r.w).reduce((a,b)=>a+(b|0),0);
+    PUI.menu(U, {title:"4줄 팡!", sub:"알 4개를 먼저 이으면 이겨요", av:api.av, nick:api.nick, stats:[["trophy",tw,"이긴 판"],["fire",r.bs,"최고 연승"]],
+      deco:[["🔴","left:calc(50% - 130px);top:20%;transform:rotate(-14deg)"],["🟡","left:calc(50% - 104px);top:52%;font-size:30px"]],
+      tiles:Object.keys(LV).map((k,i)=>{ const B=botOf(k); return {k, pic:PUI.av(B.av,"bust"), bg:["#bfe6ff","#ffe08a","#ffc2d6"][i], nm:B.nm, sub:LV[k].nm+" · 이김 "+(r.w[k]|0), bd:"★".repeat(i+1)}; }),
+      primary:{k:"co", label:"친구랑 1:1", ic:"swords"}, pay:MG.payLeft("c4"), onPick:k=>menuGo(k)}); }
+  function menuGo(k){ PUI.menuHide(U); try{ SFX.tone(660,.06,"triangle",.04); }catch(e){} if(k==="co"){ startCo(); return; } const f=Math.random()<.5?0:1, B=botOf(k); newGame({mode:"bot", opp:"bot", lv:k, first:f, me:0, names:[String(api.nick||"나"), B.nm], av:B.av}); }
   function botOf(k){ const L=(window.CPA&&CPA.BOTS)||[], i={easy:0,normal:1,hard:2}[k]|0; return L[i]||{nm:"봇", av:{}}; }
   /* ══ 👫 친구랑 1:1 ══ */
   let coRo=[], lastSq=-1;
-  function startCo(){ mode="co"; MENU.classList.remove("on"); say(""); U.classList.add("c4Menu0");
+  function startCo(){ mode="co"; PUI.menuHide(U); say(""); U.classList.add("c4Menu0");
     RM=MG.room(api, {pre:"mgf", title:"4줄 팡 1:1", ic:"🔴", max:2, fill:false, wait:4000, send:.5, poll:.3, back:()=>{ try{ RM.dispose(); }catch(e){} RM=null; menuShow(); }}); RM.node=()=>({av:api.av||null}); RM.onFeed=f=>{ if(f && f.t==="emo" && f.s!==RM.code){ bub(f.e, 1.5); if(OPP.P){ OPP.P.setExpr(EMX[f.e]||"grin"); OPP.act=1.5; } } };
     { const st0=RM.start; RM.start=async()=>{ const L=RM.live(true).map(p=>p.k); if(L.length<2){ api.msg("친구가 들어오면 시작할 수 있어요 👫", 1500); return; } try{ await NET.patch(RM.path+"/h", {ro:L.slice(0,2)}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=L.slice(0,2); return st0(); }; }
     RM.onStart=(h, L)=>{ coRo=(h.ro&&h.ro.length?h.ro:L.map(p=>p.k)).slice(0,2); const PD=(RM.d&&RM.d.p)||{}; const nm=coRo.map(c=>String((PD[c]&&PD[c].n)||(L.find(q=>q.k===c)||{}).n||"친구").slice(0,8));

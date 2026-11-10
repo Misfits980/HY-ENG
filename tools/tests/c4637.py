@@ -38,7 +38,7 @@ async def main():
         await ctx.close()
         ctx,pg,errs=await boot(br,"루아","C4637A", isle=False)
         await enter(pg)
-        r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .c4Menu'); return [MG.run.mode, getComputedStyle(M).display, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), !!M.querySelector('.out')]; }")
+        r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .puM'); return [MG.run.mode, getComputedStyle(M).display, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), !!M.querySelector('.out')]; }")
         ok(r==["menu","flex","easy,normal,hard,co",True], f"① 메뉴 (쉬움·보통·어려움·친구랑·섬으로) {r}")
         await pg.screenshot(path=OUTD+"menu.png")
         # ② 규칙 · 봇
@@ -69,13 +69,13 @@ async def main():
             if st[1]: await pg.evaluate("()=>{ const R=MG.run, ok=[0,1,2,3,4,5,6].filter(c=>R.bd[c].length<6); R.play(ok[Math.floor(Math.random()*ok.length)]); }")
             await pg.evaluate(STEP, 8)
         await pg.evaluate(STEP, 40)
-        r=await pg.evaluate("()=>{ const R=MG.run, n=R.bd.reduce((s,c)=>s+c.length,0), el=document.getElementById('mgRes'); return [R.over, n, R.mv.length, R.win&&R.win.p, el&&el.classList.contains('on'), el?el.querySelector('h3').textContent:'', TECO.coins(), MG.payLeft('c4')]; }")
+        r=await pg.evaluate("()=>{ const R=MG.run, n=R.bd.reduce((s,c)=>s+c.length,0), el=document.querySelector('#mgUI .puR'); return [R.over, n, R.mv.length, R.win&&R.win.p, !!el, el?el.textContent:'', TECO.coins(), MG.payLeft('c4')]; }")
         ok(r[0] and r[1]==r[2] and r[4] and r[6]>c0 and r[7]==2, f"③ 보통 봇이랑 끝까지 · 알 수 = 놓은 수 · 결과 창 · 🪙 {r}")
         await pg.screenshot(path=OUTD+"result.png")
         # 어려움 vs 아무 데나 → 봇이 이김
         wins=0
         for gi in range(2):
-            await pg.evaluate("()=>{ document.getElementById('mgRes').classList.remove('on'); MG.run.menuGo('hard'); }")
+            await pg.evaluate("()=>{ (document.querySelector('#mgUI .puR')||{remove(){}}).remove(); MG.run.menuGo('hard'); }")
             for _ in range(80):
                 st=await pg.evaluate("()=>[MG.run.over, MG.run.turn===MG.run.me]")
                 if st[0]: break
@@ -125,7 +125,7 @@ async def main():
                     break
             await steps(4)
         await steps(30)
-        r=[await x.evaluate("()=>{ const el=document.getElementById('mgRes'); return [MG.run.over, JSON.stringify(MG.run.bd), MG.run.win&&MG.run.win.p, MG.run.me, el&&el.classList.contains('on'), el?el.querySelector('h3').textContent:'']; }") for x in P2]
+        r=[await x.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [MG.run.over, JSON.stringify(MG.run.bd), MG.run.win&&MG.run.win.p, MG.run.me, !!el, el?el.textContent:'']; }") for x in P2]
         ok(r[0][0] and r[1][0] and r[0][1]==r[1][1] and r[0][2]==r[1][2] and r[0][4] and r[1][4] and (r[0][2]==-1 or r[0][5]!=r[1][5]), f"④ 끝까지 · 두 화면 같은 판 · 같은 승자 · 한쪽 이김/한쪽 짐 {[(q[2],q[3],q[5]) for q in r]}")
         await B_.screenshot(path=OUTD+"co_end.png")
         ok(not (eA+eB), f"오류 0 (같이) {(eA+eB)[:5]}")

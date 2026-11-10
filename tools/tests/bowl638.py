@@ -45,7 +45,7 @@ async def main():
         await ctx.close()
         ctx,pg,errs=await boot(br,"루아","BW638A", isle=False)
         await enter(pg)
-        r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .spMenu'); return [MG.run.mode, getComputedStyle(M).display, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), !!M.querySelector('[data-t=bump]'), !!M.querySelector('.out')]; }")
+        r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .puM'); return [MG.run.mode, getComputedStyle(M).display, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), !!M.querySelector('[data-sg]'), !!M.querySelector('.out')]; }")
         ok(r==["menu","flex","bowl,dart",True,True], f"① 메뉴 (볼링 · 다트 · 범퍼 · 섬으로) {r}")
         await pg.screenshot(path=OUTD+"menu.png")
         r=await pg.evaluate("""()=>{ const R=MG.run, S=x=>R.bowlScore(x).total;
@@ -81,14 +81,14 @@ async def main():
         await pg.evaluate("()=>{ document.querySelector('#mgUI .spBtn').click(); }")
         for _ in range(16):
             r=await wait_aim(pg)
-            if r[1]!="bowl" or await pg.evaluate("()=>!!document.getElementById('mgRes') && document.getElementById('mgRes').classList.contains('on')"): break
+            if r[1]!="bowl" or await pg.evaluate("()=>!!document.querySelector('#mgUI .puR')"): break
             await pg.evaluate("()=>MG.run.throwBall((Math.random()-.5)*.6, (Math.random()-.5)*.3, 8+Math.random()*6)")
         await pg.evaluate(STEP, 40)
-        r=await pg.evaluate("()=>{ const R=MG.run, el=document.getElementById('mgRes'); return [R.bowlDone(R.bw.rolls), R.bw.rolls, R.bowlScore(R.bw.rolls).total, el&&el.classList.contains('on'), el?el.querySelector('h3').textContent:'', TECO.coins(), MG.payLeft('bowl')]; }")
+        r=await pg.evaluate("()=>{ const R=MG.run, el=document.querySelector('#mgUI .puR'); return [R.bowlDone(R.bw.rolls), R.bw.rolls, R.bowlScore(R.bw.rolls).total, !!el, el?el.textContent:'', TECO.coins(), MG.payLeft('bowl')]; }")
         ok(r[0] and r[3] and str(r[2]) in r[4] and r[5]>c0 and r[6]==2, f"③ 5프레임 끝 · 결과 창 점수 · 🪙 {r}")
         await pg.screenshot(path=OUTD+"bowl_end.png")
         # ④ 다트
-        await pg.evaluate("()=>{ document.getElementById('mgRes').classList.remove('on'); MG.run.menuGo('dart'); }"); await pg.evaluate(STEP, 4)
+        await pg.evaluate("()=>{ (document.querySelector('#mgUI .puR')||{remove(){}}).remove(); MG.run.menuGo('dart'); }"); await pg.evaluate(STEP, 4)
         await pg.screenshot(path=OUTD+"dart_aim.png")
         r=await pg.evaluate("()=>{ const R=MG.run; return [R.scoreAt(0,0).s, R.scoreAt(0,.07).s, R.scoreAt(0,.6).s, R.scoreAt(0,.98).s, R.scoreAt(.3,0).s, R.scoreAt(0,1.2).s, R.scoreAt(0,.6).w]; }")
         ok(r==[50,25,60,40,6,0,"triple twenty"], f"④ 다트 점수: 불 50 · 25 · 트리플 20 = 60 · 더블 20 = 40 · 6 · 밖 0 · 영어 {r}")
@@ -101,7 +101,7 @@ async def main():
             if i==1:
                 await pg.evaluate("()=>{ MG.run.fast=false; }"); await pg.evaluate(STEP, 12); await pg.wait_for_timeout(200); await pg.screenshot(path=OUTD+"dart_hit.png"); await pg.evaluate("()=>{ MG.run.fast=true; }")
         await pg.evaluate(STEP, 60)
-        r=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [MG.run.dt.n, MG.run.dt.sum, el&&el.classList.contains('on'), el?el.querySelector('h3').textContent:'', MG.payLeft('bowl')]; }")
+        r=await pg.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [MG.run.dt.n, MG.run.dt.sum, !!el, el?el.textContent:'', MG.payLeft('bowl')]; }")
         ok(r[0]==9 and r[1]==tot and r[2] and str(tot) in r[3] and r[4]==1, f"④ 다트 9개 · 합계 {tot} · 결과 창 {r}")
         await pg.screenshot(path=OUTD+"dart_end.png")
         ok(not errs, f"오류 0 {errs[:5]}")

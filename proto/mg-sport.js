@@ -31,16 +31,16 @@ function rollsInFrame(rolls){ /* 지금 프레임에서 몇 번째 굴림인지 
 function css(){ if(document.getElementById("spCss")) return; const s=document.createElement("style"); s.id="spCss"; s.textContent=`
 #mgUI .spR{position:absolute;inset:0;pointer-events:none;font-family:var(--kr);color:#fff} #mgUI.spOn .mgJoyH,#mgUI.spOn .mgJoy{display:none!important}
 #mgUI .spHit{position:absolute;inset:0;pointer-events:auto;touch-action:none}
-#mgUI .spSc{position:absolute;left:50%;top:calc(56px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;gap:3px;pointer-events:none;background:rgba(14,20,50,.72);border-radius:14px;padding:5px;max-width:96vw}
-#mgUI .spSc div{width:54px;background:#fff;color:#1d2450;border-radius:8px;text-align:center;font-family:var(--en);font-weight:900;overflow:hidden}
-#mgUI .spSc div.cur{box-shadow:0 0 0 3px #ffe14d}
-#mgUI .spSc div small{display:block;background:#1d2450;color:#fff;font-size:10px;font-weight:700;padding:1px 0}
+#mgUI .spSc{position:absolute;left:50%;top:calc(56px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;gap:4px;pointer-events:none;background:#FFF6E3;border:3px solid #4A2E1F;border-radius:16px;padding:5px;max-width:96vw;box-shadow:0 0 0 3px #fff,0 5px 0 3px rgba(74,46,31,.35)}
+#mgUI .spSc div{width:54px;background:#fff;color:#4A2E1F;border:2px solid #4A2E1F;border-radius:9px;text-align:center;font-family:var(--en);font-weight:900;overflow:hidden}
+#mgUI .spSc div.cur{box-shadow:0 0 0 3px #FFC53D;background:#fffbe8}
+#mgUI .spSc div small{display:block;background:#4A2E1F;color:#fff;font-size:10px;font-weight:700;padding:1px 0}
 #mgUI .spSc div .m{display:flex;justify-content:flex-end;gap:4px;font-size:13px;min-height:18px;padding:1px 3px} #mgUI .spSc div .m span{min-width:12px} #mgUI .spSc div .t{font-size:17px;min-height:22px}
-#mgUI .spSc div.tot{width:64px;background:#ffe14d}
-#mgUI .spBig{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);opacity:0;font-family:var(--en);font-weight:900;font-size:58px;text-shadow:0 4px 0 #c8213a,0 0 24px rgba(255,90,95,.6);transition:all .25s;pointer-events:none;white-space:nowrap;text-align:center}
-#mgUI .spBig.on{opacity:1;transform:translate(-50%,-50%) scale(1)} #mgUI .spBig small{display:block;font-size:22px;font-family:var(--kr);font-weight:400;text-shadow:0 2px 0 rgba(0,0,0,.4)}
-#mgUI .spSay{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(14,20,50,.72);border-radius:16px;padding:8px 16px;font-size:16.5px;white-space:nowrap;pointer-events:none}
-#mgUI .spBtn{position:absolute;right:calc(14px + env(safe-area-inset-right));bottom:calc(74px + env(safe-area-inset-bottom));pointer-events:auto;font:inherit;border:0;border-radius:14px;padding:8px 12px;min-height:44px;background:rgba(14,20,50,.62);color:#fff;font-size:14.5px}
+#mgUI .spSc div.tot{width:64px;background:#FFC53D}
+#mgUI .spBig{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);opacity:0;font-family:var(--kr);font-size:62px;color:#FFC53D;-webkit-text-stroke:9px #4A2E1F;paint-order:stroke fill;filter:drop-shadow(0 6px 0 #4A2E1F);transition:all .25s;pointer-events:none;white-space:nowrap;text-align:center}
+#mgUI .spBig.on{opacity:1;transform:translate(-50%,-50%) scale(1)} #mgUI .spBig small{display:block;font-size:24px;font-family:var(--kr);color:#fff;-webkit-text-stroke:6px #4A2E1F}
+#mgUI .spSay{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#4A2E1F;color:#fff;border-radius:16px;padding:9px 18px;font-size:16.5px;white-space:nowrap;pointer-events:none;box-shadow:0 0 0 3px #fff}
+#mgUI .spBtn{position:absolute;right:calc(14px + env(safe-area-inset-right));bottom:calc(74px + env(safe-area-inset-bottom));pointer-events:auto;font:inherit;font-family:var(--kr);border:3px solid #4A2E1F;border-radius:16px;padding:8px 12px;min-height:46px;background:#fff;color:#4A2E1F;font-size:15px;box-shadow:0 4px 0 #4A2E1F}
 #mgUI .spAim{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.4),inset 0 0 0 2px rgba(0,0,0,.3);pointer-events:none;display:none}
 #mgUI .spAim::before,#mgUI .spAim::after{content:"";position:absolute;background:#ff4d5e;left:50%;top:50%} #mgUI .spAim::before{width:2px;height:56px;margin:-28px 0 0 -1px} #mgUI .spAim::after{height:2px;width:56px;margin:-1px 0 0 -28px}
 #mgUI .spMenu{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:auto;padding:calc(60px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:rgba(20,16,50,.55)}
@@ -154,12 +154,13 @@ function start(api){
   const say=t=>{ SAY.textContent=t||""; SAY.style.display=t?"":"none"; };
   function big(t, sub, s){ BIG.innerHTML=t+(sub?'<small>'+sub+'</small>':''); BIG.classList.add("on"); clearTimeout(big.h); big.h=setTimeout(()=>BIG.classList.remove("on"), (s||1.2)*1000*(fast?.05:1)); }
   /* ══ 메뉴 ══ */
-  function menuShow(){ mode="menu"; TM.length=0; MENU.classList.add("on"); SC.style.display="none"; BTN.style.display="none"; AIM.style.display="none"; say(""); BOWL.visible=true; DART.visible=false; const r=REC();
-    MENU.innerHTML='<h2>🎳 볼링 · 🎯 다트</h2><div class="sub">하나 골라 한 판!</div><div class="g"><button data-m="bowl"><span class="e">🎳</span>볼링<small>5프레임 · 최고 '+r.bw+'점</small></button><button data-m="dart"><span class="e">🎯</span>다트<small>9개 던지기 · 최고 '+r.dt+'점</small></button></div>'+
-      '<button class="tg'+(SET.bump?" on":"")+'" data-t="bump">🛡 볼링 범퍼 '+(SET.bump?"켬 (도랑 막기)":"끔")+'</button><div class="sub">오늘 🪙 상 '+(MG.payLeft("bowl")>0?MG.payLeft("bowl")+'판 남음':'다 받았어요')+' · 🎳 스트라이크 '+r.strikes+' · 🎯 불 '+r.bulls+'</div><button class="out">🏝 섬으로</button>'; }
-  MENU.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; try{ SFX.tone(660,.06,"triangle",.04); }catch(_){} if(b.classList.contains("out")){ MG.exit(); return; }
-    if(b.dataset.t==="bump"){ SET.bump=SET.bump?0:1; st("hyeng_proto_spset", SET); menuShow(); return; } menuGo(b.dataset.m); });
-  function menuGo(k){ TM.length=0; CONF.forEach(m=>scene.remove(m)); CONF.length=0; MENU.classList.remove("on"); if(k==="bowl") bowlStart(); else dartStart(); }
+  function menuShow(){ mode="menu"; TM.length=0; SC.style.display="none"; BTN.style.display="none"; AIM.style.display="none"; say(""); BOWL.visible=true; DART.visible=false; const r=REC();
+    PUI.menu(U, {title:"볼링 · 다트", sub:"하나 골라 한 판!", av:api.av, nick:api.nick, stats:[["🎳",r.bw,"볼링 최고"],["🎯",r.dt,"다트 최고"],["star",r.strikes,"스트라이크"]],
+      deco:[["🎳","left:calc(50% - 132px);top:24%;transform:rotate(-14deg)"],["🎯","left:calc(50% + 70px);top:58%;font-size:34px"]],
+      tiles:[{k:"bowl", emoji:"🎳", bg:"#c9b8ff", nm:"볼링", sub:"5프레임 · 최고 "+r.bw}, {k:"dart", emoji:"🎯", bg:"#ffd1e6", nm:"다트", sub:"9개 · 최고 "+r.dt}], n:2,
+      seg:{items:[["1","🛡 볼링 범퍼 켬"],["0","범퍼 끔"]], on:SET.bump, pick:v=>{ SET.bump=+v; st("hyeng_proto_spset", SET); menuShow(); }},
+      pay:MG.payLeft("bowl"), onPick:k=>menuGo(k)}); }
+  function menuGo(k){ TM.length=0; CONF.forEach(m=>scene.remove(m)); CONF.length=0; PUI.menuHide(U); if(k==="bowl") bowlStart(); else dartStart(); }
   BTN.addEventListener("click", ()=>{ if(mode==="bowl"){ SET.bump=SET.bump?0:1; st("hyeng_proto_spset", SET); BTN.textContent="🛡 범퍼 "+(SET.bump?"켬":"끔"); BUMP.forEach(b=>b.visible=!!SET.bump); } });
 
   /* ══ 🎳 볼링 ══ */
@@ -192,8 +193,11 @@ function start(api){
     sheet(); if(bowlDone(BW.rolls)){ later(fast?.05:1.8, bowlEnd); return; }
     const nf=rollsInFrame(BW.rolls); later(fast?.05:1.3, ()=>{ setPins(nf.reset); readyBall(); sheet(); }); }
   function fx(t, n){ confetti(0,.8,HZ-.6,LOW?Math.round(n/2):n); AV.cheer=1.6; if(MEAV) MEAV.setExpr("grin"); monBig=1; monPaint(t); later(fast?.05:1.6, ()=>{ monBig=0; monPaint(); }); }
-  function bowlEnd(){ const s=bowlScore(BW.rolls).total, r=REC(), best=s>r.bw; r.bw=Math.max(r.bw,s); st("hyeng_proto_spr", r); const coins=s>=100?9:s>=70?7:s>=40?5:3;
-    api.end({title:(best?"🎉 내 최고! ":"🎳 ")+s+"점", sub:"볼링 5프레임 · "+(SET.bump?"🛡 범퍼":"범퍼 없이")+" · 스트라이크 "+BW.rolls.filter((x,i)=>x===10).length, rows:null, coins, again:{go:"bowl"}, upd:(b,t)=>{ b.bw=Math.max(b.bw|0,s); }}); }
+  function bowlEnd(){ const s=bowlScore(BW.rolls).total, r=REC(), best=s>r.bw; r.bw=Math.max(r.bw,s); st("hyeng_proto_spr", r); const coins=s>=100?9:s>=70?7:s>=40?5:3, sk=BW.rolls.filter(x=>x===10).length;
+    const got=PUI.award(api, {title:s+"점", sub:"볼링", rows:null, coins, again:{go:"bowl"}, upd:(b,t)=>{ b.bw=Math.max(b.bw|0,s); }}), left=MG.payLeft("bowl");
+    PUI.result(U, {res:"win", stars:s>=100?3:s>=70?2:s>=40?1:0, title:best?"내 최고 기록!":s+"점!", sub:"볼링 5프레임 · "+(SET.bump?"🛡 범퍼":"범퍼 없이"), av:api.av,
+      rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["🎳", s, "점", best],["star", sk, "스트라이크"]], prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3},
+      onAgain:()=>api.restart({go:"bowl"}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()}); }
   /* 볼링 조작: 위로 쓱(빠르기 · 방향) · 콕 = 그쪽으로 */
   const ray=new THREE.Raycaster(), v2=new THREE.Vector2(), pl=new THREE.Plane(new THREE.Vector3(0,1,0),0), hitP=new THREE.Vector3();
   function lanePt(e){ const r=HIT.getBoundingClientRect(); v2.set((e.clientX-r.left)/r.width*2-1, -((e.clientY-r.top)/r.height*2-1)); ray.setFromCamera(v2,cam); return ray.ray.intersectPlane(pl,hitP)?hitP.clone():null; }
@@ -225,9 +229,12 @@ function start(api){
   function dartLand(){ const f=DT.fly; DT.fly=null; const sc=scoreAt(f.x,f.y); DT.darts.push({m:f.m, x:f.x, y:f.y}); DT.rnd.push(sc); DT.sum+=sc.s; DT.n++; try{ SFX.tone(sc.s?1200:200,.06,"square",.04); }catch(e){}
     big(sc.t, sc.s?(sc.s+"점"):"괜찮아요!", 1.2); if(sc.w && sc.k!=="miss") sayW(sc.w); if(sc.k==="bull"){ const r=REC(); r.bulls++; st("hyeng_proto_spr", r); }
     dsheet(); chPaint(); if(DT.n>=DN){ later(fast?.05:1.6, dartEnd); return; } if(DT.n%3===0) later(fast?.05:1.4, ()=>{ DT.darts.forEach(d=>DART.remove(d.m)); DT.darts=[]; say((DT.n/3+1)+"라운드!"); }); }
-  function dartEnd(){ const s=DT.sum, r=REC(), best=s>r.dt; r.dt=Math.max(r.dt,s); st("hyeng_proto_spr", r); AIM.style.display="none"; const coins=s>=300?9:s>=180?7:s>=90?5:3;
-    api.end({title:(best?"🎉 내 최고! ":"🎯 ")+s+"점", sub:"다트 9개 · 가장 큰 한 방 "+Math.max(...DT.rnd.map(q=>q.s))+"점", rows:null, coins, again:{go:"dart"},
-      extra:'<div class="sub" style="margin-top:6px">'+DT.rnd.filter(q=>q.w).map(q=>'<b style="font-family:var(--en)">'+q.w+'</b>').join(" · ")+'</div>', upd:(b,t)=>{ b.dt=Math.max(b.dt|0,s); }}); }
+  function dartEnd(){ const s=DT.sum, r=REC(), best=s>r.dt; r.dt=Math.max(r.dt,s); st("hyeng_proto_spr", r); AIM.style.display="none"; const coins=s>=300?9:s>=180?7:s>=90?5:3, top=Math.max(...DT.rnd.map(q=>q.s));
+    const got=PUI.award(api, {title:s+"점", sub:"다트", rows:null, coins, again:{go:"dart"}, upd:(b,t)=>{ b.dt=Math.max(b.dt|0,s); }}), left=MG.payLeft("bowl");
+    PUI.result(U, {res:"win", stars:s>=250?3:s>=150?2:s>=80?1:0, title:best?"내 최고 기록!":s+"점!", sub:"다트 9개 · 가장 큰 한 방 "+top+"점", av:api.av,
+      rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["🎯", s, "점", best],["star", DT.rnd.filter(q=>q.k==="bull").length, "불"]],
+      extra:DT.rnd.filter(q=>q.w).map(q=>'<b style="font-family:var(--en)">'+q.w+'</b>').join(" · "), prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3},
+      onAgain:()=>api.restart({go:"dart"}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()}); }
   function dartStep(dt){ DT.wob+=dt; if(DT.fly){ const f=DT.fly; f.t=Math.min(1,f.t+dt*(fast?20:3.2)); const p=f.from.clone().lerp(f.to,f.t); p.y+=Math.sin(f.t*Math.PI)*.35; f.m.position.copy(p); f.m.lookAt(f.to.x, f.to.y, f.to.z-1); f.m.rotateY(Math.PI); if(f.t>=1){ f.m.position.copy(f.to); f.m.rotation.set(-.22+Math.random()*.1,(Math.random()-.5)*.35,0); dartLand(); } }
     if(mode==="dart" && !DT.fly && DT.n<DN){ hand.visible=true; const w=wob(); const ax=(DT.aimX+w[0])*DB.R, ay=DB.y+(DT.aimY+w[1])*DB.R; hand.position.set(cam.position.x+.34, cam.position.y-.42, cam.position.z-1.1); hand.lookAt(ax, ay, DB.z); hand.rotateY(Math.PI); } else hand.visible=false;
     if(mode==="dart" && !DT.fly && DT.n<DN){ const w=wob(), s=toScr(DT.aimX+w[0], DT.aimY+w[1]); AIM.style.left=s[0]+"px"; AIM.style.top=s[1]+"px"; AIM.style.display="block"; } else AIM.style.display="none"; }

@@ -63,8 +63,8 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
 @media (max-height:760px){ #mgUI .dwLine{display:none} }
 #mgUI .dwCf{position:absolute;top:-20px;width:10px;height:14px;pointer-events:none;animation:dwFall 1.6s ease-in forwards;z-index:9}
 @keyframes dwFall{to{transform:translateY(110vh) rotate(720deg)}}
-#mgUI .dwBar b{background:#5b3a7a;color:#fff;border-radius:12px;padding:5px 10px;font-weight:400;font-size:15px;white-space:nowrap}
-#mgUI .dwTm{flex:1;height:14px;border-radius:8px;background:rgba(91,58,122,.18);overflow:hidden;border:2px solid #5b3a7a}
+#mgUI .dwBar b{background:#FFF6E3;color:#4A2E1F;border:3px solid #4A2E1F;box-shadow:0 3px 0 #4A2E1F;border-radius:999px;padding:3px 11px;font-weight:400;font-size:16px;white-space:nowrap}
+#mgUI .dwTm{flex:1;height:16px;border-radius:9px;background:#fff;overflow:hidden;border:3px solid #4A2E1F}
 #mgUI .dwTm i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#3fc46a,#ffd23f);transform-origin:left;transition:transform .2s linear}
 #mgUI .dwTm.low i{background:#ff5a5f}
 #mgUI .dwPl{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;width:min(100%,640px);flex:none}
@@ -194,20 +194,14 @@ function start(api){
   function bar(rd, sc, frac){ $(".dwBar .rd").textContent=rd; $(".dwBar .sc").textContent=sc; TMB.style.transform="scaleX("+Math.max(0,Math.min(1,frac))+")"; TMW.classList.toggle("low", frac<.2); }
 
   /* ══ 메뉴 ══ */
-  function menuShow(){ mode="menu"; kb(false); show(KB,0); show(TL,0); MENU.classList.add("on"); GAL.classList.remove("on"); const r=REC(), G0=st("hyeng_proto_dwg")||[];
-    MENU.innerHTML='<h2>🎨 그림 맞히기</h2><div class="sub">그림을 보고 <b>영어 단어를 직접 써서</b> 맞혀요</div><div class="g">'+
-      '<button class="big" data-m="solo"><span class="e">🧩</span>혼자 — 그림 퍼즐<small style="opacity:.95">물감이 떨어지면 그림이 보여요!</small></button>'+
-      '<button data-m="co"><span class="e">👫</span>친구랑 같이<small>그리고 · 맞히기 (2~6명)</small></button>'+
-      '<button data-m="sketch"><span class="e">🖍️</span>그려 보기<small>그려서 그림첩에 쏙</small></button>'+
-      '<button data-m="gal"><span class="e">🖼️</span>그림첩<small>'+G0.length+'장</small></button>'+
-      '</div><div class="sub">혼자 하기 단계</div><div class="lv">'+[1,2,3].map(i=>'<button data-lv="'+i+'" class="'+(SET.lv===i?"on":"")+'">'+LV[i].ic+' '+LV[i].nm+'</button>').join("")+'</div>'+
-      '<div class="bst">🏆 최고 '+r.best+'점 · ✅ 맞힌 단어 '+r.ok+'개 · 🖍️ 그린 그림 '+r.drawn+'장<br>오늘 🪙 상: '+(MG.payLeft("draw")>0?'<b>'+MG.payLeft("draw")+'판</b> 남음':'다 받았어요 (연습은 계속!)')+'</div>'+
-      '<button class="out">🏝 섬으로</button>';
+  function menuShow(){ mode="menu"; kb(false); show(KB,0); show(TL,0); GAL.classList.remove("on"); const r=REC(), G0=st("hyeng_proto_dwg")||[];
+    PUI.menu(U, {title:"그림 맞히기", sub:"그림을 보고 영어로 직접 써서 맞혀요", av:api.av, nick:api.nick, stats:[["trophy",r.best,"최고 점수"],["✅",r.ok,"맞힌 단어"],["🖍️",r.drawn,"그린 그림"]],
+      deco:[["🎨","left:calc(50% - 132px);top:20%;transform:rotate(-14deg)"],["✏️","left:calc(50% + 72px);top:58%;font-size:34px"]],
+      tiles:[{k:"solo", emoji:"🧩", bg:"#ffd36b", nm:"그림 퍼즐", sub:"혼자 · 8문제"},{k:"sketch", emoji:"🖍️", bg:"#bfe6ff", nm:"그려 보기", sub:"그림첩에 쏙"},{k:"gal", emoji:"🖼️", bg:"#ffd1e6", nm:"그림첩", sub:G0.length+"장"}],
+      seg:{items:[1,2,3].map(i=>[String(i), LV[i].ic+" "+LV[i].nm]), on:SET.lv, pick:v=>{ SET.lv=+v; st("hyeng_proto_dwset", SET); menuShow(); }},
+      primary:{k:"co", label:"친구랑 같이 (2~6명)", ic:"swords"}, pay:MG.payLeft("draw"), onPick:k=>menuGo(k)});
     bar("","",1); }
-  MENU.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; try{ SFX.tone(660,.06,"triangle",.04); }catch(_){}
-    if(b.dataset.lv){ SET.lv=+b.dataset.lv; st("hyeng_proto_dwset", SET); menuShow(); return; }
-    if(b.classList.contains("out")){ MG.exit(); return; } menuGo(b.dataset.m); });
-  function menuGo(m){ MENU.classList.remove("on"); if(m==="solo") startSolo(); else if(m==="co") startCo(); else if(m==="sketch") startSketch(); else if(m==="gal") galShow(); }
+  function menuGo(m){ PUI.menuHide(U); if(m==="solo") startSolo(); else if(m==="co") startCo(); else if(m==="sketch") startSketch(); else if(m==="gal") galShow(); }
   function galShow(){ mode="gal"; GAL.classList.add("on"); const L=st("hyeng_proto_dwg")||[];
     GAL.innerHTML='<h3>🖼️ 내 그림첩</h3>'+(L.length?'<div class="gr">'+L.map(x=>'<figure><img src="'+x.d+'" alt=""><b>'+esc(x.w)+'</b> · '+esc(x.ko)+'</figure>').join("")+'</div>':'<div class="none">아직 그림이 없어요 — 「🖍️ 그려 보기」나 「👫 같이」에서 그려 봐요!</div>')+'<button>☰ 메뉴</button>';
     GAL.querySelector("button").onclick=()=>{ GAL.classList.remove("on"); menuShow(); }; }
@@ -234,11 +228,13 @@ function start(api){
   function giveUp(){ if(!S || S.wait) return; S.wait=true; kb(false); const w=W[S.cur][0]; S.streak=0; boxes(w); for(let k=S.pop;k<12;k++) COV.children[S.ord[k]] && COV.children[S.ord[k]].classList.add("off"); S.pop=12; sayW(w);
     if(!S.again[S.cur]){ S.again[S.cur]=1; S.q.splice(Math.min(S.q.length, 2), 0, S.cur); fb("정답은 「"+w+"」 ("+W[S.cur][1]+") — 조금 뒤에 다시 나와요!"); } else { S.done++; S.res.push([S.cur,0]); fb("정답은 「"+w+"」 ("+W[S.cur][1]+")"); }
     later(2.4, nextQ); }
-  function soloEnd(){ mode="solo-end"; kb(false); const r=REC(); r.best=Math.max(r.best, S.sc); r.ok+=S.ok; saveRec(r);
+  function soloEnd(){ mode="solo-end"; kb(false); const r=REC(), isBest=S.sc>r.best; r.best=Math.max(r.best, S.sc); r.ok+=S.ok; saveRec(r);
     const coins=S.ok>=7?8:S.ok>=5?6:S.ok>=3?5:3, lv=LV[SET.lv]||LV[2];
-    api.end({title:"🎨 "+S.ok+" / "+S.n+" 맞혔어요!", sub:"그림 퍼즐 · "+lv.ic+" "+lv.nm+" · ⭐ "+S.sc+"점", rows:null, coins, again:{go:"solo"},
-      extra:'<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:8px 0">'+S.res.map(([i,o])=>'<span style="background:'+(o?"#d6f7de":"#ffe1e1")+';border-radius:10px;padding:3px 8px;font-size:13.5px">'+W[i][2]+' <b style="font-family:var(--en)">'+W[i][0]+'</b> '+W[i][1]+'</span>').join("")+'</div>',
-      upd:(b,t)=>{ b.best=Math.max(b.best|0, S.sc); t.ok=(t.ok|0)+S.ok; }}); }
+    const got=PUI.award(api, {title:S.ok+" / "+S.n, sub:"그림 퍼즐", rows:null, coins, again:{go:"solo"}, upd:(b,t)=>{ b.best=Math.max(b.best|0, S.sc); t.ok=(t.ok|0)+S.ok; }}), left=MG.payLeft("draw");
+    PUI.result(U, {res:"win", stars:S.ok>=7?3:S.ok>=5?2:S.ok>=3?1:0, title:S.ok+" / "+S.n+" 맞혔어요!", sub:"그림 퍼즐 · "+lv.ic+" "+lv.nm, av:api.av,
+      rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["star", S.sc, "점", isBest],["✅", r.ok, "모은 단어"]],
+      extra:'<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center">'+S.res.map(([i,o])=>'<span style="background:'+(o?"#2FD49A":"#6a72d8")+';border-radius:10px;padding:2px 8px;font-size:13.5px">'+W[i][2]+' <b style="font-family:var(--en)">'+W[i][0]+'</b></span>').join("")+'</div>',
+      prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3}, onAgain:()=>api.restart({go:"solo"}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()}); }
 
   /* ══ 🖍️ 그리기 도구 (같이 · 그려 보기) ══ */
   const TOOL={c:0, s:1};
@@ -353,8 +349,12 @@ function start(api){
   let ended=false;
   function coEnd(){ if(ended) return; ended=true; drawOK=false; kb(false); show(TL,0); show(KB,0); const me=RM.code, ord=(G.ro||[]).slice().sort((a,b)=>((G.sc[b]|0)-(G.sc[a]|0))), rank=ord.indexOf(me)+1;
     OV.innerHTML='<div class="big">🏆</div><div class="ko">'+esc(nmOf(ord[0]))+' 1등!</div>'; OV.classList.add("on");
-    later(1.2, ()=>{ api.end({title:rank===1?"🏆 1등!":rank+"등", sub:"🎨 그림 맞히기 · 같이 "+ord.length+"명", rows:ord.map(c=>[nmOf(c), (G.sc[c]|0)+"점", c===me]), coins:[0,10,6,5][rank]||4,
-      upd:(b,t)=>{ t.co=(t.co|0)+1; if(rank===1) t.win=(t.win|0)+1; }}); try{ RM.dispose(); }catch(e){} RM=null; }); }
+    later(1.2, ()=>{ const got=PUI.award(api, {title:rank+"등", sub:"그림 맞히기 같이", rows:ord.map(c=>[nmOf(c), (G.sc[c]|0)+"점", c===me]), coins:[0,10,6,5][rank]||4, upd:(b,t)=>{ t.co=(t.co|0)+1; if(rank===1) t.win=(t.win|0)+1; }}), left=MG.payLeft("draw");
+      PUI.result(U, {res:rank===1?"win":"draw", stars:rank===1?3:rank===2?2:1, title:rank===1?"1등!":rank+"등!", sub:"그림 맞히기 · 같이 "+ord.length+"명", av:api.av,
+        rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["star", (G.sc[me]|0), "점"],["trophy", rank+"등", "순위"]],
+        extra:'<div class="puRank">'+ord.map((c,i)=>'<div class="'+(c===me?"me":"")+'"><span>'+(i<3?["🥇","🥈","🥉"][i]:(i+1)+".")+' '+esc(nmOf(c))+'</span><b>'+(G.sc[c]|0)+'점</b></div>').join("")+'</div>',
+        prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3}, onAgain:()=>api.restart({}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()});
+      try{ RM.dispose(); }catch(e){} RM=null; }); }
 
   /* ══ 틀 ══ */
   function tick(dt){ if(gone || paused) return;

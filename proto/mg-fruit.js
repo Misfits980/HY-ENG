@@ -63,6 +63,8 @@ function css(){ if(document.getElementById("frCss")) return; const s=document.cr
 @keyframes frBulb{50%{background-position:7px 0,0 0}}
 #mgUI .frLed{position:relative;margin:6px 0}
 #mgUI .frR *{box-sizing:border-box}
+#mgUI .puM .ch{display:grid;grid-template-columns:repeat(6,1fr);gap:2px 2px;margin:0 auto 6px;max-width:360px} #mgUI .puM .ch span{display:flex;flex-direction:column;align-items:center;font-size:8.5px;letter-spacing:-.2px;font-family:var(--en);font-weight:800;min-width:0;white-space:nowrap;opacity:.9} #mgUI .puM .ch span i{font-style:normal;font-size:22px} #mgUI .puM .frLed{margin:4px auto 0}
+@media (max-height:760px){ #mgUI .puM .ch{display:none} }
 #mgUI .frLed{width:min(100%,560px);flex:none;background-color:#06090f;background-image:radial-gradient(rgba(120,255,190,.07) 1px,transparent 1.5px);background-size:4px 4px;border:3px solid #232a3f;border-radius:14px;
   box-shadow:inset 0 0 22px rgba(61,255,154,.12),0 0 0 2px #000,0 6px 18px rgba(0,0,0,.25);padding:6px 10px 8px;color:#3dff9a;font-family:"Courier New",ui-monospace,monospace;font-weight:700;text-shadow:0 0 3px #3dff9a,0 0 10px rgba(61,255,154,.55)}
 #mgUI .frLed .mq{white-space:nowrap;overflow:hidden;font-size:13px;color:#ffe14d;text-shadow:0 0 4px #ffe14d,0 0 10px rgba(255,225,77,.6);border-bottom:1px dashed rgba(61,255,154,.3);padding-bottom:3px;margin-bottom:4px}
@@ -78,7 +80,7 @@ function css(){ if(document.getElementById("frCss")) return; const s=document.cr
 @keyframes frBl{50%{background:rgba(255,92,225,.04)}}
 #mgUI .frLed .em{font-size:14px;opacity:.75;padding:6px 4px}
 #mgUI .frTop{display:flex;align-items:center;gap:8px;width:min(100%,560px);flex:none}
-#mgUI .frTop b{background:#24314a;color:#fff;border-radius:12px;padding:5px 11px;font-weight:400;font-size:16px;white-space:nowrap} #mgUI .frTop b.sc{font-family:var(--en);font-weight:900;font-size:19px;background:#ff8466}
+#mgUI .frTop b{background:#FFF6E3;color:#4A2E1F;border:3px solid #4A2E1F;box-shadow:0 0 0 2px #fff,0 4px 0 2px rgba(74,46,31,.35);border-radius:999px;padding:3px 12px;font-weight:400;font-size:16px;white-space:nowrap} #mgUI .frTop b.sc{color:#fff;-webkit-text-stroke:5px #4A2E1F;paint-order:stroke fill;font-family:var(--en);font-weight:900;font-size:19px;background:#ff8466}
 #mgUI .frTop .nx{margin-left:auto;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.75);border-radius:14px;padding:2px 10px 2px 8px;font-size:13px}
 #mgUI .frTop canvas{width:34px;height:34px}
 #mgUI .frBox{position:relative;flex:1;min-height:0;width:100%;display:flex;justify-content:center;align-items:flex-start}
@@ -126,27 +128,27 @@ function start(api){
   const LB={W:null, M:null, A:null}; let tabK="W", tabT=0, tabHold=0, lbErr=false, K=keys(now()), newRec={};
   async function lbLoad(){ K=keys(now()); try{ await Promise.all(TABS.map(async([k])=>{ const v=await NET.get("/hy/day/"+K[k]); LB[k]=v||{}; })); lbErr=false; }catch(e){ lbErr=true; TABS.forEach(([k])=>{ if(!LB[k]) LB[k]={}; }); } ledPaint(); }
   function rows(k){ const o=LB[k]||{}; return Object.keys(o).map(c=>Object.assign({c}, o[c]||{})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s || (a.at||0)-(b.at||0)); }
-  function ledPaint(){ R.querySelectorAll(".frLed").forEach(L=>{ const big=L.closest(".frSt") || innerHeight>900 || (innerWidth>innerHeight && innerHeight<=620), n=big?8:4;
+  function ledPaint(){ U.querySelectorAll(".frLed").forEach(L=>{ const big=L.closest(".puM") || innerHeight>900 || (innerWidth>innerHeight && innerHeight<=620), n=big?8:4;
     L.querySelectorAll(".tb button").forEach(b=>b.classList.toggle("on", b.dataset.t===tabK));
     const rs=rows(tabK), me=rs.findIndex(x=>x.c===code); let show=rs.slice(0,n); if(me>=n) show=show.slice(0,n-1).concat([rs[me]]);
     L.querySelector(".rows").innerHTML=LB[tabK]==null?'<div class="em">불러오는 중…</div>':!rs.length?'<div class="em">'+(lbErr?'서버에 연결이 안 돼요 — 내 기록만 남아요':'아직 기록이 없어요 — 1등 해 봐요!')+'</div>':
       show.map(x=>{ const r=rs.indexOf(x)+1; return '<div class="rw r'+r+(x.c===code?" me":"")+'"><span>'+(r<=3?["🥇","🥈","🥉"][r-1]:r+".")+'</span><span class="n">'+esc(String(x.n||"친구").slice(0,8))+(newRec[tabK]&&x.c===code?" NEW!":"")+'</span><span>'+(x.s|0).toLocaleString()+'</span></div>'; }).join("");
     const top=TABS.map(([k,t])=>{ const r0=rows(k)[0]; return r0?"★ "+t+" 1등 "+String(r0.n||"").slice(0,8)+" "+(r0.s|0).toLocaleString()+"점":null; }).filter(Boolean);
     const mq=L.querySelector(".mq span"), tx=(top.length?top.join("   "):"★ 과일 합치기 랭킹 ★ 같은 과일을 합쳐서 수박을 만들어요!")+"   ★"; if(mq.textContent!==tx) mq.textContent=tx; }); }
-  R.addEventListener("click", e=>{ const b=e.target.closest(".frLed .tb button"); if(!b) return; tabK=b.dataset.t; tabHold=12; tabT=0; ledPaint(); try{ SFX.tone(990,.05,"square",.02); }catch(_){} });
+  U.addEventListener("click", e=>{ const b=e.target.closest(".frLed .tb button"); if(!b) return; tabK=b.dataset.t; tabHold=12; tabT=0; ledPaint(); try{ SFX.tone(990,.05,"square",.02); }catch(_){} });
   async function lbSave(score){ K=keys(now()); newRec={}; const rec={n:String(nick||"친구").slice(0,8), s:score|0, at:now()};
     await Promise.all(TABS.map(async([k])=>{ const o=LB[k]=LB[k]||{}, mine=o[code]; if(!mine || (mine.s|0)<score){ o[code]=rec; newRec[k]=1; try{ await NET.put("/hy/day/"+K[k]+"/"+code, rec); }catch(e){} } }));
     ledPaint(); return newRec; }
   /* ══ 시작 화면 ══ */
-  function title(){ phase="title"; const r=REC(); STP.classList.add("on");
-    STP.innerHTML='<h2>🍉 과일 합치기</h2><div class="sub">같은 과일끼리 닿으면 <b>쑥!</b> 다음 과일로 — <b>수박</b>까지 만들어 봐요</div>'+
-      '<div class="ch">'+FR.map((f,i)=>'<span><i>'+EMO[i]+'</i>'+f[0]+'</span>').join("")+'</div>'+ledHTML+
-      '<div class="sub">🏆 내 최고 '+(r.best|0).toLocaleString()+'점 · 오늘 🪙 상 '+(MG.payLeft("fruit")>0?MG.payLeft("fruit")+'판 남음':'다 받았어요')+'</div><button class="go">▶ 시작!</button><button class="out">🏝 섬으로</button>';
-    STP.querySelector(".go").onclick=()=>{ try{ SFX.up(); }catch(e){} begin(); }; STP.querySelector(".out").onclick=()=>MG.exit(); ledPaint(); }
+  function title(){ phase="title"; const r=REC();
+    PUI.menu(U, {title:"과일 합치기", sub:"같은 과일끼리 닿으면 쑥! 수박까지 만들어요", av:api.av, nick:api.nick, stats:[["trophy",(r.best|0).toLocaleString(),"내 최고"],[EMO[r.top|0],FR[r.top|0][1],"가장 큰 과일"]],
+      deco:[["🍒","left:calc(50% - 128px);top:20%;transform:rotate(-14deg)"],["🍉","left:calc(50% + 72px);top:56%;font-size:36px"]],
+      more:'<div class="puExtra"><div class="ch">'+FR.map((f,i)=>'<span><i>'+EMO[i]+'</i>'+f[0]+'</span>').join("")+'</div>'+ledHTML+'</div>', primary:{k:"go", label:"시작!", ic:"play"}, pay:MG.payLeft("fruit"), onPick:()=>{ try{ SFX.up(); }catch(e){} begin(); }});
+    ledPaint(); }
   /* ══ 게임 ══ */
   let RG=[], combo=0, lastM=-9, gt=0, B=[], P=[], TX=[], score=0, aimX=BW/2, held=0, next=0, cool=0, danger=0, over=false, idn=0, made={}, maxLv=0, drops=0, merges=0, acc=0, holdOn=false, shake=0;
   const rnd=()=>{ const r=Math.random()*100; return r<30?0:r<55?1:r<75?2:r<90?3:4; };
-  function begin(){ phase="play"; STP.classList.remove("on"); B=[]; P=[]; TX=[]; RG=[]; combo=0; lastM=-9; gt=0; score=0; over=false; danger=0; made={}; maxLv=0; drops=0; merges=0; cool=.2; held=rnd(); next=rnd(); aimX=BW/2; fit(); nxPaint(); top(); evoPaint(); }
+  function begin(){ PUI.menuHide(U); phase="ready"; B=[]; P=[]; TX=[]; RG=[]; combo=0; lastM=-9; gt=0; score=0; over=false; danger=0; made={}; maxLv=0; drops=0; merges=0; cool=.2; held=rnd(); next=rnd(); aimX=BW/2; fit(); nxPaint(); top(); evoPaint(); PUI.count(U, ()=>{ if(phase==="ready") phase="play"; }, fast); }
   function nxPaint(){ nxg.clearRect(0,0,68,68); const a=ART[next]; if(!a) return; const s=Math.min(1, 26/(FR[next][2]*SC)); nxg.save(); nxg.translate(34,36); nxg.scale(s,s); nxg.drawImage(a.c,-a.h,-a.h); nxg.restore(); }
   function top(){ $(".frTop .sc").textContent=score.toLocaleString(); $(".frTop .bs").textContent="🏆 "+Math.max(REC().best|0, score).toLocaleString(); }
   function drop(){ if(phase!=="play" || over || cool>0) return; const r=FR[held][2]; const x=Math.max(r, Math.min(BW-r, aimX)); B.push({id:++idn, x, y:HOLD_Y, vx:(Math.random()-.5)*4, vy:60, r, lv:held, a:0, age:0, sc:1});
@@ -154,11 +156,11 @@ function start(api){
   function merge(a, b){ a.dead=b.dead=true; const lv=a.lv, mx=(a.x*a.r*a.r+b.x*b.r*b.r)/(a.r*a.r+b.r*b.r), my=(a.y*a.r*a.r+b.y*b.r*b.r)/(a.r*a.r+b.r*b.r); merges++;
     if(lv>=FR.length-1){ score+=PTS[lv]*4+100; burst(mx,my,lv,40); text(mx,my,"🍉🍉 펑! +"+(PTS[lv]*4+100),"#ff5ce1"); shake=.5; try{ SFX.win(); }catch(e){} return; }
     const n=lv+1, r=FR[n][2]; B.push({id:++idn, x:Math.max(r,Math.min(BW-r,mx)), y:Math.min(BH-r,my), vx:(a.vx+b.vx)/2, vy:Math.min(0,(a.vy+b.vy)/2)-60, r, lv:n, a:0, age:2, sc:.55}); score+=PTS[n];
-    burst(mx,my,n,10+n*2); text(mx,my-r*.4, FR[n][0]+"!", "#fff"); RG.push({x:mx,y:my,r:r*.6,t:.45,c:FR[n][3]}); const nm=n>maxLv; maxLv=Math.max(maxLv,n); if(nm) evoPaint();
-    combo=gt-lastM<1.1?combo+1:1; lastM=gt; if(combo>=2){ const cb=combo*3; score+=cb; text(mx,my-r*.4-38,"콤보 x"+combo+" +"+cb,"#ffe14d"); try{ SFX.tone(700+combo*90,.1,"square",.03); }catch(e){} }
+    burst(mx,my,n,10+n*2); const nmT=FR[n][0]+"!"; RG.push({x:mx,y:my,r:r*.6,t:.45,c:FR[n][3]}); const nm=n>maxLv; maxLv=Math.max(maxLv,n); if(nm) evoPaint();
+    combo=gt-lastM<1.1?combo+1:1; lastM=gt; if(combo<2) text(mx,my-r*.4,nmT,"#fff"); if(combo>=2){ const cb=combo*3; score+=cb; text(mx,my-r*.4,nmT+" 콤보 x"+combo+" +"+cb,"#ffe14d"); try{ SFX.tone(700+combo*90,.1,"square",.03); }catch(e){} }
     if(!made[n]){ made[n]=1; if(n>=4) sayW(FR[n][0]); } try{ SFX.tone(440*Math.pow(1.122,n),.14,"triangle",.05,0); SFX.tone(660*Math.pow(1.122,n),.12,"sine",.03,0,.05); }catch(e){} if(n>=8) shake=.25; top(); }
   function burst(x,y,lv,n){ for(let i=0;i<n;i++){ const a=Math.random()*7, s=120+Math.random()*320; P.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-120,t:.6+Math.random()*.4,c:i%3?FR[lv][3]:"#fff",r:3+Math.random()*5}); } }
-  function text(x,y,t,c){ TX.push({x:Math.max(110,Math.min(BW-110,x)),y,t,c,tt:1.1}); }
+  function text(x,y,t,c){ x=Math.max(110,Math.min(BW-110,x)); let cy=y; for(const o of TX.filter(o=>Math.abs(o.x-x)<200).sort((a,b)=>b.y-a.y)){ if(o.y>cy-40){ o.y=cy-40; o.tt=Math.min(o.tt,.6); } cy=o.y; } TX.push({x:Math.max(110,Math.min(BW-110,x)),y,t,c,tt:1.1}); }
   function phys(h){ const L=B;
     for(const b of L){ b.vy+=GRAV*h; b.vx*=1-.6*h; const sp=Math.hypot(b.vx,b.vy); if(sp>1400){ b.vx*=1400/sp; b.vy*=1400/sp; } if(b.vy<-700) b.vy=-700; b.x+=b.vx*h; b.y+=b.vy*h; b.a+=b.vx/b.r*h; b.age+=h; if(b.sc<1) b.sc=Math.min(1,b.sc+h*4); }
     for(const b of L) b.cn=0;
@@ -180,9 +182,11 @@ function start(api){
   function botAim(){ /* 같은 과일 위로 · 없으면 아무 데나 */ const same=B.filter(b=>b.lv===held).sort((a,b)=>a.y-b.y)[0]; aimX=same && Math.random()<.35?same.x+(Math.random()-.5)*8:FR[held][2]+Math.random()*(BW-2*FR[held][2]); }
   async function gameOver(){ if(over) return; over=true; phase="over"; try{ SFX.bad(); }catch(e){} const r=REC(); const isBest=score>(r.best|0); r.best=Math.max(r.best|0,score); r.top=Math.max(r.top|0,maxLv); r.n=(r.n|0)+1; st("hyeng_proto_frr", r);
     const nr=await lbSave(score); if(gone) return; const rk=rows("W").findIndex(x=>x.c===code)+1, coins=score>=1500?9:score>=800?7:score>=300?5:3;
-    setTimeout(()=>{ if(gone) return; api.end({title:(isBest?"🎉 내 최고 기록! ":"🍉 ")+score.toLocaleString()+"점", sub:"과일 합치기 · 가장 큰 과일 "+EMO[maxLv]+" "+FR[maxLv][0]+" ("+FR[maxLv][1]+")", rows:null, coins, again:{},
-      extra:'<div class="sub" style="margin-top:8px">📟 이번 주 랭킹 <b>'+(rk||"-")+'등</b>'+(nr.W?' · <b style="color:#ff5ce1">이번 주 기록 NEW!</b>':'')+(nr.A?' · <b style="color:#ff5ce1">전체 기록 NEW!</b>':'')+'</div>',
-      upd:(b,t)=>{ b.best=Math.max(b.best|0,score); t.top=Math.max(t.top|0,maxLv); }}); }, fast?50:900); }
+    setTimeout(()=>{ if(gone) return; const got=PUI.award(api, {title:score+"점", sub:"과일 합치기", rows:null, coins, again:{}, upd:(b,t)=>{ b.best=Math.max(b.best|0,score); t.top=Math.max(t.top|0,maxLv); }}), left=MG.payLeft("fruit");
+      PUI.result(U, {res:"win", stars:score>=1500?3:score>=800?2:score>=300?1:0, title:isBest?"내 최고 기록!":score.toLocaleString()+"점!", sub:"가장 큰 과일 "+EMO[maxLv]+" "+FR[maxLv][0]+" ("+FR[maxLv][1]+")", av:api.av,
+        rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["🍉", score.toLocaleString(), "점", isBest],["trophy", rk?rk+"등":"-", "이번 주"]],
+        extra:(nr.W?'📟 <b style="color:#ff8ef0">이번 주 기록 NEW!</b> ':'')+(nr.A?'<b style="color:#ff8ef0">전체 기록 NEW!</b>':''), prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3},
+        onAgain:()=>api.restart({go:"play"}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()}); }, fast?50:900); }
   /* ── 조작: 상자를 눌러 끌기 → 떼면 떨어짐 · 키보드 ←→ 스페이스 ── */
   const toX=e=>{ const r=cv.getBoundingClientRect(); return (e.clientX-r.left)/r.width*BW; };
   cv.addEventListener("pointerdown", e=>{ if(phase!=="play") return; e.preventDefault(); holdOn=true; aimX=toX(e); try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
@@ -209,7 +213,7 @@ function start(api){
     tabT+=dt; tabHold=Math.max(0,tabHold-dt); if(tabT>5 && !tabHold){ tabT=0; tabK=TABS[(TABS.findIndex(t=>t[0]===tabK)+1)%3][0]; ledPaint(); } }
   function render(){ if(phase!=="title") paint(); }
   function dispose(){ gone=true; window.removeEventListener("keydown", onKey); try{ R.remove(); }catch(e){} }
-  fit(); title(); lbLoad(); ready=true;
+  fit(); title(); lbLoad(); if((api.opt||{}).go==="play") begin(); ready=true;
   return {scene, cam, tick, render, dispose, pause:v=>{ paused=!!v; },
     get B(){ return B; }, get score(){ return score; }, get over(){ return over; }, get phase(){ return phase; }, get ready(){ return ready; }, get maxLv(){ return maxLv; }, get merges(){ return merges; }, get drops(){ return drops; }, get held(){ return held; },
     set bot(v){ bot=!!v; }, set fast(v){ fast=v?1:0; }, aim:x=>{ aimX=x; }, drop, begin, title, tab:k=>{ tabK=k; tabHold=12; ledPaint(); }, get tabK(){ return tabK; }, get lb(){ return LB; }, lbLoad, keys:()=>keys(now()), gameOver, FR, step:dt=>step(dt) };
