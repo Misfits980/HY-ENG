@@ -105,6 +105,9 @@ async def main():
     r = subprocess.run(["node", os.path.join(os.path.dirname(os.path.abspath(__file__)), "gs_rank631.js")], capture_output=True, text=True)
     print(r.stdout.strip().splitlines()[-1] if r.stdout else r.stderr[:300])
     ok(r.returncode == 0, "서버 Code.gs 랭킹 단계 (gs_rank631.js)")
+    r = subprocess.run(["node", os.path.join(os.path.dirname(os.path.abspath(__file__)), "gs_own657.js")], capture_output=True, text=True)
+    print(r.stdout[-600:])
+    ok(r.returncode == 0, "서버 v22 🧸 주인 패드 아이 유치원 책도 랭킹 (gs_own657.js)")
     print("PASS" if not bad else "FAIL", len(bad))
     if bad: sys.exit(1)
 
