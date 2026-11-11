@@ -95,7 +95,7 @@ async def main():
         await A.evaluate("()=>{ const R=MG.run, c=R.PEER['CCCC4']; c.alive=true; R.hurt(c, 120, R.me, R.WP.length-1, false, R.me.p.clone()); }")
         await steps(P3, 12, .05)
         await A.wait_for_timeout(1800); await steps(P3, 4, .05); await A.wait_for_timeout(600)
-        r=[await x.evaluate("()=>{ const el=document.getElementById('mgRes'); return [!!el && el.classList.contains('on'), el ? el.innerText.slice(0,80) : '']; }") for x in P3]
+        r=[await x.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [!!el, el ? el.querySelector('.puRank div').textContent+' '+el.querySelector('.sub').textContent : '']; }") for x in P3]
         ok(all(z[0] for z in r) and all("루아" in z[1] for z in r), f"④ 뿅망치로 잡음 → 세 화면 모두 결과 · 우승 루아 {r}")
         await C.screenshot(path=OUT+"arena598_result.png")
         allerr=eA+eB+eC

@@ -81,6 +81,8 @@ async def main():
                     for(let k=0;k<3;k++){ me.cd=0; const e=new THREE.Vector3(me.p.x, me.p.y+1.48, me.p.z), c=new THREE.Vector3(b.p.x, b.p.y+.7, b.p.z); b.p.set(0,0,16); const d=c.clone().sub(e).normalize(); R.fire(me, e, d); out.push(Math.round(b.soak)); }
                     return [out, b.alive, me.wi, me.kills, document.querySelector('#mgUI .aLad b.c').textContent, document.querySelector('#mgUI .aFd').innerText.includes('Tom')]; }""")
                 ok(r[1]==False and r[2]==1 and r[3]==1 and r[4]=="✌️" and r[5], f"② 3번 맞히면 흠뻑 → 다음 무기 ✌️ 쌍권총 · 알림 {r}")
+                r=await pg.evaluate("()=>{ const k=document.querySelector('#mgUI .aKill'); return [k.classList.contains('on'), /흠뻑/.test(k.textContent) && /Tom/.test(k.textContent), document.querySelectorAll('#mgUI .aDmg').length>=1, MG.run.scene.children.some(c=>c.userData && c.userData.sky)]; }")
+                ok(r==[True,True,True,True], f"② (v658) 맞힌 숫자가 떠오름 · 「💦 흠뻑! Tom」 리본 · 둘레 풍경(하늘 · 구름) {r}")
                 r=await pg.evaluate("""()=>{ const R=MG.run, I=MG.I, me=R.me, st=n=>{ for(let i=0;i<n;i++) MG.step(1/60,false); }, hs=()=>Math.hypot(me.v.x,me.v.z);
                     R.ACT.forEach(a=>{ if(a.bot){ a.alive=false; a.resp=999; } });
                     me.p.set(-14,0,21); me.yaw=-Math.PI/2; me.v.set(0,0,0); I.my=1; st(60); const run=hs(); I.slideP=1; st(1); const sl=hs(); st(10); I.jumpP=1; st(1); const sj=hs(), air=!me.onG; I.my=0; st(90);
@@ -101,19 +103,22 @@ async def main():
                     const e=new THREE.Vector3(0,1.48,18), d=new THREE.Vector3(0,-.3,-1).normalize(); R.fire(me, e, d); return [R.time.over, b.alive]; }""")
                 ok(r==[True,False], f"② 🔨 뿅망치로 맞히면 우승 {r}")
                 await pg.wait_for_timeout(2600)
-                r=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [el.classList.contains('on'), /우승/.test(el.innerText), /🪙 \\+15/.test(el.innerText), (store('hyeng_proto_mg')||{}).t.arena.win, (store('hyeng_proto_mg')||{}).b.arena.fast>0]; }")
+                r=await pg.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [!!el, /우승/.test(el.textContent), /\\+15/.test(el.querySelector('.rw').textContent), (store('hyeng_proto_mg')||{}).t.arena.win, (store('hyeng_proto_mg')||{}).b.arena.fast>0]; }")
                 c1=await pg.evaluate("()=>TECO.coins()")
                 ok(r[0] and r[1] and r[2] and r[3]==1 and r[4] and c1-c0==15, f"② 결과 창 · 🪙 +15 · 우승 기록 {r} {c1-c0}")
                 await pg.screenshot(path=OUT+"mg590_result.png")
                 # 하루 3판 — 4번째부터 🪙 없음
                 r=await pg.evaluate("()=>{ const c0=TECO.coins(); for(let i=0;i<3;i++) MG.result('arena', {title:'t', coins:5}); return [TECO.coins()-c0, MG.payLeft('arena')]; }")
                 ok(r==[10,0], f"② 오늘 🪙 는 3판까지 (2판 더 → +10 · 4판째 0) {r}")
-                await pg.evaluate("()=>{ document.querySelector('#mgRes .out').click(); }"); await pg.wait_for_timeout(1500)
+                await pg.evaluate("()=>{ document.querySelector('#mgUI .puR .out').click(); }"); await pg.wait_for_timeout(1500)
                 r=await pg.evaluate("(h)=>[MG.on, document.body.classList.contains('mgOn'), !!document.getElementById('mgUI'), HOUSE.place(), Math.hypot(hero.g.position.x-h[0], hero.g.position.z-h[1])<1.5, renderer.getPixelRatio()===h[2]]", h0)
                 ok(r==[False,False,False,"isle",True,True], f"② 나가면 섬 그 자리 그대로 · 화면 원래대로 {r}")
                 # ③ 발판 게임
-                await pg.evaluate("()=>MG.lobby('grid')"); await pg.wait_for_timeout(300)
-                await pg.evaluate("()=>document.querySelector('#mgLob .go').click()"); await pg.wait_for_timeout(1500)
+                await pg.evaluate("()=>MG.lobby('grid')"); await pg.wait_for_timeout(1200)
+                r=await pg.evaluate("()=>{ const M=document.querySelector('#mgUI .puM'); return [MG.run.st.phase, !!M, [...M.querySelectorAll('[data-m]')].map(b=>b.dataset.m).join(','), M.querySelectorAll('[data-sg]').length, getComputedStyle(document.querySelector('#mgUI .mgB')).display]; }")
+                ok(r==["menu",True,"solo,co,how",3,"none"], f"③ (v658) 발판 게임 메뉴 (혼자 · 같이 · 방법 · 난이도 3 · 점프 단추 숨김) {r}")
+                await pg.screenshot(path=OUT+"mg590_grid_menu.png")
+                await pg.evaluate("()=>document.querySelector('#mgUI .puM [data-m=solo]').click()"); await pg.wait_for_timeout(1500)
                 r=await pg.evaluate("()=>{ const R=MG.run; let b=0, g=0; for(let q=0;q<R.N*R.N;q++){ if(R.cell[q]===1) b++; if(R.cell[q]===2) g++; } return [MG.k, b, g, R.st.lives, R.cell[R.idxAt(R.P.p.x,R.P.p.z)]]; }")
                 ok(r[0]=="grid" and r[1]>=10 and r[2]>=4 and r[3]==3 and r[4]==2, f"③ 발판 게임: 파랑 {r[1]} · 초록 {r[2]} · ❤️3 · 초록에서 시작 {r}")
                 r=await pg.evaluate("()=>{ const R=MG.run; MG.I.mx=.7; MG.I.my=.5; for(let i=0;i<20;i++) MG.step(.03,false); MG.I.mx=MG.I.my=0; const g=R.scene.children.find(c=>c.type==='Group' && c.scale.x>1.2); let ok=true; g.updateMatrixWorld(true); g.traverse(o=>{ if(o.isMesh && !isFinite(o.matrixWorld.elements[13])) ok=false; }); return [ok, g.visible]; }")
@@ -129,14 +134,15 @@ async def main():
                 await pg.wait_for_timeout(1200); await pg.screenshot(path=OUT+"mg590_grid_pad.png")
                 await pg.evaluate("()=>{ document.querySelector('#mgUI .mgX').click(); document.querySelector('#mgUI .mgConf .go').click(); }"); await pg.wait_for_timeout(1500)
                 # 자동 선수 (게임이 깰 수 있는지)
-                await pg.evaluate("()=>MG.enter('grid',{df:'easy'})"); await pg.wait_for_timeout(1500)   # (v596) 쉬움 모드로 — 단순한 자동 선수 기준
+                await pg.evaluate("()=>MG.enter('grid',{mode:'solo', df:'easy'})"); await pg.wait_for_timeout(1500)   # (v596) 쉬움 모드로 — 단순한 자동 선수 기준
                 r=await pg.evaluate(GRID_BOT, 150)
                 ok(r["stage"]>=2, f"③ (🐣 쉬움) 자동 선수(파랑 찾아가기 · 빨강 옆이면 점프 · 경고 칸 피하기) {r['t']}초에 {r['stage']}판 · ❤️ {r['lives']} · ⭐ {r['score']}")
                 r=await pg.evaluate("()=>{ const R=MG.run; R.P.inv=0; R.st.lives=1; R.st.pl.H.length=0; const z=[...R.cell].findIndex(v=>v===0||v===3); R.P.p.set(R.cx(z%R.N),0,R.cx(Math.floor(z/R.N))); R.P.p.y=0; R.P.onG=true; R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:3}); MG.step(.03,false); return R.st.over; }")
                 await pg.wait_for_timeout(1800)
-                r2=await pg.evaluate("()=>{ const el=document.getElementById('mgRes'); return [el.classList.contains('on'), /판까지/.test(el.innerText), (store('hyeng_proto_mg')||{}).b.grid.st>=1]; }")
+                r2=await pg.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [!!el, !!el && /판까지/.test(el.textContent), (store('hyeng_proto_mg')||{}).b.grid.st>=1]; }")
                 ok(r and r2==[True,True,True], f"③ ❤️ 다 쓰면 결과 창 · 기록 {r} {r2}")
-                await pg.evaluate("()=>document.querySelector('#mgRes .out').click()"); await pg.wait_for_timeout(1400)
+                await pg.screenshot(path=OUT+"mg590_grid_result.png")
+                await pg.evaluate("()=>document.querySelector('#mgUI .puR .out').click()"); await pg.wait_for_timeout(1400)
             else:
                 # 휴대폰 가로: 아레나 화면
                 await pg.evaluate("()=>MG.enter('arena',{diff:'normal', quick:1})"); await pg.wait_for_timeout(1500)
@@ -153,7 +159,7 @@ async def main():
                     return [a>.5, b, c>.5, d>-22.2]; }""")
                 ok(r==[True,0,True,True], f"(v597) 화면 돌린 뒤에도 조이스틱 됨 · 파라솔 탁자에 막힘 {r}")
                 await pg.evaluate("()=>MG.exit()"); await pg.wait_for_timeout(800)
-                await pg.evaluate("()=>MG.enter('grid',{})"); await pg.wait_for_timeout(1500)
+                await pg.evaluate("()=>MG.enter('grid',{mode:'solo'})"); await pg.wait_for_timeout(1500)
                 await pg.evaluate("()=>{ const R=MG.run; for(let i=0;i<90;i++) MG.step(.05,false); }")
                 await pg.wait_for_timeout(1200); await pg.screenshot(path=OUT+"mg590_grid_phone.png")
                 await pg.evaluate("()=>MG.exit()"); await pg.wait_for_timeout(800)

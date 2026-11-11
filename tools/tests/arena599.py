@@ -70,9 +70,9 @@ async def main():
         ok(r, f"④ 계속하기 → 다시 흐름 {r}")
         # 결과 → 메뉴 · 한 판 더
         await P.evaluate("()=>{ const R=MG.run; R.win(R.me); }"); await P.wait_for_timeout(2400)
-        r=await P.evaluate("()=>{ const el=document.getElementById('mgRes'); return [el.classList.contains('on'), !!el.querySelector('.mn'), !!el.querySelector('.go')]; }")
+        r=await P.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [!!el, !!el.querySelector('.menu'), !!el.querySelector('.again')]; }")
         ok(r==[True,True,True], f"④ 결과: 섬으로 · 💦 메뉴 · 한 판 더 {r}")
-        await P.evaluate("()=>document.querySelector('#mgRes .go').click()"); await P.wait_for_timeout(300)
+        await P.screenshot(path=OUT+"arena599_result_phone.png"); await P.evaluate("()=>document.querySelector('#mgUI .puR .again').click()"); await P.wait_for_timeout(300)
         r=await P.evaluate("()=>[MG.run.phase, MG.run.ACT.length]"); ok(r==["intro",6], f"④ 한 판 더 = 메뉴 없이 바로 {r}")
         await P.evaluate("()=>{ for(let i=0;i<60;i++) MG.step(.05,false); document.querySelector('#mgUI .aPzB').click(); document.querySelector('#mgUI .aCard [data-go=menu]').click(); }"); await P.wait_for_timeout(300)
         r=await P.evaluate("()=>[MG.run.phase, MG.run.ACT.length, MG.on]"); ok(r==["menu",1,True], f"④ ☰ → 아레나 메뉴로 {r}")

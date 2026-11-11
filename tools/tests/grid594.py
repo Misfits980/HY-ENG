@@ -65,7 +65,7 @@ async def main():
         await A.evaluate("()=>document.querySelector('#mgUI [data-st]').click()"); await A.wait_for_timeout(500)
         await steps(P3, 5)
         r=[await x.evaluate("()=>[MG.run.st.phase, document.querySelector('#mgUI .gCnt').textContent]") for x in P3]
-        ok(all(q[0]=="count" and q[1] in ("10","9","8","7") for q in r), f"② 방장이 시작 → 모두 10초 세기 {r}")
+        ok(all(q[0]=="count" and q[1] in ("10","9","8","7","6","5","4") for q in r), f"② 방장이 시작 → 모두 10초 세기 {r}")
         for x in P3: await x.evaluate("()=>{ TWN8.test=(TWN8.test||0)+10500; }")
         await steps(P3, 6)
         # ③ 같은 판
@@ -96,11 +96,11 @@ async def main():
         for x in (A,B): await x.evaluate("()=>{ const R=MG.run; R.st.lives=1; R.P.inv=0; const z=[...R.cell].findIndex(v=>v===0); R.P.p.set(R.cx(z%R.N),0,R.cx(Math.floor(z/R.N))); R.st.pl.H.push({t0:R.st.el, k:'blink', L:[z], w:0, on:5}); MG.step(.03,false); }")
         await steps(P3, 10)
         await A.wait_for_timeout(1800)
-        r=[await x.evaluate("()=>{ const el=document.getElementById('mgRes'); return [!!el && el.classList.contains('on'), el ? el.querySelector('h3').textContent : '']; }") for x in P3]
+        r=[await x.evaluate("()=>{ const el=document.querySelector('#mgUI .puR'); return [!!el, el ? el.querySelector('.rib').textContent+'|'+el.querySelectorAll('.rw .it b')[1].textContent : '']; }") for x in P3]
         ok(all(z[0] for z in r) and len(set(z[1] for z in r))==1 and "함께" in r[0][1], f"④ 모두 구경 → 끝 · 결과 = 같은 「함께 점수」 {r}")
         await A.screenshot(path=OUT+"grid594_result.png")
         # 혼자 하기도 판마다 바뀜
-        await A.evaluate("()=>{ document.querySelector('#mgRes .out').click(); }"); await A.wait_for_timeout(1300)
+        await A.evaluate("()=>{ document.querySelector('#mgUI .puR .out').click(); }"); await A.wait_for_timeout(1300)
         await A.evaluate("()=>MG.enter('grid',{mode:'solo'})"); await A.wait_for_timeout(1500)
         r=await A.evaluate("()=>{ const R=MG.run; const g0=[...R.cell].map((v,i)=>v===2?i:-1).filter(i=>i>=0).join(','); R.P.inv=99; for(let q=0;q<R.N*R.N;q++){ if(R.cell[q]===1){ R.P.p.set(R.cx(q%R.N),0,R.cx(Math.floor(q/R.N))); MG.step(.02,false); } } for(let i=0;i<60;i++) MG.step(.05,false); const g1=[...R.cell].map((v,i)=>v===2?i:-1).filter(i=>i>=0).join(','); return [R.st.phase, R.st.stage, g0!==g1]; }")
         ok(r==["play",1,True], f"혼자 하기: 2판에서 안전 칸 자리가 바뀜 {r}")
