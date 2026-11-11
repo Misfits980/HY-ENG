@@ -105,7 +105,7 @@ async def main():
         # ⑦ 미끼 글 (마을 점검 중) · 랭킹 규칙 한 줄 · Daily 30 카드 글
         pg = await b.new_page(viewport={"width": 390, "height": 844}); await boot(pg)
         r = await pg.evaluate("()=>{ window.HY_TOWN_SHUT=1; return [Town.baitHtml(5), townOpen()]; }")
-        ok("새 마을에서 써요" in r[0] and r[1] is False, f"마을 닫힘 = 「미끼 · 새 마을에서 써요」 {r}")
+        ok("My Town 미끼" in r[0] and r[1] is True, f"(v663 마을 다시 엶) 「My Town 미끼」 {r}")
         r = await pg.evaluate("()=>[LiveRank.RULE.study.replace(/<[^>]+>/g,'').length, document.querySelector('#selRule [data-v=daily] small').textContent]")
         ok(r[0] < 60 and "30단어" not in r[1], f"랭킹 규칙 짧게 · Daily 30 카드 글 {r}")
         await pg.close()

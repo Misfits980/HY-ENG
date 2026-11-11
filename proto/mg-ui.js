@@ -13,6 +13,8 @@ function ic(n, px){ px=px||28; let f="hud-icons", i=HUD.indexOf(n), cols=8; if(i
   return '<i class="puI" style="width:'+px+'px;height:'+px+'px;background-image:url(../assets/ui/'+f+'.webp);background-size:'+(px*cols)+'px '+px+'px;background-position:'+(-px*i)+'px 0"></i>'; }
 /* ── 캐릭터 사진 (PNG) ── */
 let RR=null; const AVC={};
+const SV={coin:'<svg class="puSv" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="18" rx="13" ry="12.4" fill="#c98412"/><circle cx="16" cy="15.4" r="13" fill="#ffc93d" stroke="#4b3527" stroke-width="2.4"/><circle cx="16" cy="15.4" r="8.8" fill="#ffe08a" stroke="#e0a21c" stroke-width="1.6"/><path d="M16 9.6l1.8 3.7 4 .5-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4-2.9-2.8 4-.5z" fill="#ffb21c" stroke="#d98a0c" stroke-width=".8" stroke-linejoin="round"/><path d="M7.4 10.6c1.6-3 4.2-4.8 7.4-5.2" stroke="#fff" stroke-width="2.1" fill="none" stroke-linecap="round" opacity=".85"/></svg>'};
+const coinTx=t=>String(t==null?"":t).replace(/🪙/g, SV.coin);
 function av(a, kind){ kind=kind||"bust"; const key=kind+"|"+JSON.stringify(a||{}); if(AVC[key]) return AVC[key];
   try{ if(!RR){ RR=new THREE.WebGLRenderer({alpha:true, antialias:true, preserveDrawingBuffer:true}); RR.setPixelRatio(1); RR.outputEncoding=THREE.sRGBEncoding; }
     const full=kind!=="bust", w=full?360:256, h=full?440:256; RR.setSize(w,h,false); RR.setClearColor(0x000000,0);
@@ -110,11 +112,32 @@ function css(){ if(document.getElementById("puCss")) return; const s=document.cr
 #mgUI .puCnt b{font-family:var(--kr);font-weight:400;font-size:120px;color:#ffd860;-webkit-text-stroke:12px #0D0F33;paint-order:stroke fill;filter:drop-shadow(0 8px 0 #0D0F33);animation:puCnt .7s cubic-bezier(.3,1.6,.6,1) both}
 #mgUI .puCnt b.go{font-size:92px;color:#2FD49A}
 @keyframes puCnt{0%{transform:scale(2.2);opacity:0}30%{transform:scale(1);opacity:1}80%{opacity:1}100%{transform:scale(.8);opacity:0}}
+/* (v659) 사용자: 「UI 퀄리티도 올리고」 → 화면이 살아 있게: 캐릭터 둥실 · 무대 빛 · 장식 떠다님 · 제목/판 등장 · 큰 단추 반짝 · 보상 칸 차례로 · 숫자 올라감 · 꽃가루 · 그린 코인 */
+#mgUI .puSv{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.22em}
+#mgUI .puR .rw .it .e .puSv{width:38px;height:38px;vertical-align:middle}
+#mgUI .puBtn.pk{position:relative;overflow:hidden}
+#mgUI .puR .cf{position:absolute;top:-24px;width:10px;height:16px;border-radius:3px;pointer-events:none;z-index:1;animation:puCf linear forwards} @keyframes puCf{to{transform:translateY(112vh) rotate(700deg)}}
+@media (prefers-reduced-motion:no-preference){
+#mgUI .puM .puHero img{animation:puBob 2.4s ease-in-out infinite;transform-origin:50% 100%} @keyframes puBob{50%{transform:translateY(-7px) rotate(1.4deg) scale(1.015)}}
+#mgUI .puM .puHero .stage{animation:puGlow 2.4s ease-in-out infinite} @keyframes puGlow{50%{box-shadow:0 0 64px #7fe9ff;scale:1.05}}
+#mgUI .puM .puHero .deco{animation:puFloat 3.2s ease-in-out infinite} #mgUI .puM .puHero .deco:nth-of-type(odd){animation-duration:2.5s;animation-delay:-1.1s} @keyframes puFloat{50%{translate:0 -11px;rotate:9deg}}
+#mgUI .puM .puHero .tag{animation:puFloat 2.8s ease-in-out infinite -.6s}
+#mgUI .puBtn.pk::after{content:"";position:absolute;top:0;bottom:0;width:50px;left:-70px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);animation:puShine 2.8s infinite;pointer-events:none} @keyframes puShine{0%,58%{left:-70px}100%{left:calc(100% + 20px)}}
+#mgUI .puM.puIn .puTtl h2{animation:puTtl .6s cubic-bezier(.3,1.7,.5,1) backwards} @keyframes puTtl{from{transform:rotate(-14deg) scale(.3);opacity:0}}
+#mgUI .puM.puIn .puPanel,#mgUI .puM.puIn .puExtra{animation:puUp .5s cubic-bezier(.3,1.35,.6,1) backwards .12s} @keyframes puUp{from{translate:0 70px;opacity:0}}
+#mgUI .puM.puIn .stats .puChip{animation:puUp .4s cubic-bezier(.3,1.35,.6,1) backwards} #mgUI .puM.puIn .stats .puChip:nth-child(2){animation-delay:.08s} #mgUI .puM.puIn .stats .puChip:nth-child(3){animation-delay:.16s}
+#mgUI .puM.puIn .puHero img{animation:puHeroIn .55s cubic-bezier(.3,1.5,.6,1) backwards .05s, puBob 2.4s ease-in-out infinite .6s} @keyframes puHeroIn{from{transform:translateY(40px) scale(.5);opacity:0}}
+#mgUI .puR .rw .it{animation:puPop .4s cubic-bezier(.3,1.6,.6,1) backwards .35s} #mgUI .puR .rw .it:nth-child(2){animation-delay:.5s} #mgUI .puR .rw .it:nth-child(3){animation-delay:.65s} #mgUI .puR .rw .it:nth-child(4){animation-delay:.8s}
+#mgUI .puR .rib{animation:puRib .55s cubic-bezier(.3,1.7,.5,1) backwards .15s} @keyframes puRib{from{transform:translateX(-50%) scale(.3) rotate(-14deg);opacity:0}}
+#mgUI .puR .who{animation:puWho 1s ease-in-out infinite alternate} @keyframes puWho{to{transform:rotate(-3deg) translateY(-8px)}}
+#mgUI .puR .prog .b i{animation:puBar .8s ease-out backwards .7s} @keyframes puBar{from{width:0}}
+#mgUI .puR .bt .again{animation:puPulse 1.5s ease-in-out infinite 1.2s} @keyframes puPulse{50%{scale:1.03}}
+}
 `; document.head.appendChild(s); }
 
 /* ── 메뉴 (B) ── o={title, sub, av, stats:[[icon|emoji, num, label]], tiles:[{k, pic|emoji, nm, sub, bd}], n, primary:{k,label,ic}, seg:{title, items:[[k,label]], on, pick}, pay, more:html, onPick, onOut, cls} */
 function pbtn(p){ return '<button class="puBtn pk'+(p.sub?' two':'')+'" data-m="'+esc(p.k)+'" style="font-size:25px">'+(p.ic?ic(p.ic,36):'')+(p.sub?'<span><b>'+esc(p.label)+'</b><small>'+esc(p.sub)+'</small></span>':esc(p.label))+'</button>'; }
-function menu(host, o){ css(); let el=host.querySelector(".puM"); if(!el){ el=document.createElement("div"); el.className="puM"; host.appendChild(el); } if(o.cls) el.classList.add(o.cls);
+function menu(host, o){ css(); let el=host.querySelector(".puM"); if(!el){ el=document.createElement("div"); el.className="puM puIn"; host.appendChild(el); setTimeout(()=>el.classList.remove("puIn"), 1100); } if(o.cls) el.classList.add(o.cls);
   const st=(o.stats||[]).map(([i,n,l])=>'<span class="puChip">'+(ic(i,26)||'<span style="font-size:20px">'+i+'</span>')+'<b>'+esc(n)+'</b>'+esc(l)+'</span>').join("");
   const url=o.av===false?"":av(o.av||{}, "wave");
   el.innerHTML='<div class="stats">'+st+'</div><div class="puTtl"><h2>'+esc(o.title)+'</h2><br><p>'+esc(o.sub||"")+'</p></div>'+
@@ -123,7 +146,7 @@ function menu(host, o){ css(); let el=host.querySelector(".puM"); if(!el){ el=do
     '<div class="puPanel">'+(o.primary&&o.primaryTop?pbtn(o.primary):'')+(o.seg?'<div class="puSeg">'+o.seg.items.map(([k,l])=>'<button data-sg="'+esc(k)+'" class="'+(String(o.seg.on)===String(k)?"on":"")+'">'+l+'</button>').join("")+'</div>':'')+
       ((o.tiles&&o.tiles.length)?'<div class="puTiles" style="--n:'+(o.n||Math.min(3,o.tiles.length))+'">'+o.tiles.map(t=>'<button class="puTile" data-m="'+esc(t.k)+'">'+(t.bd?'<span class="bd">'+t.bd+'</span>':'')+'<span class="pic" style="'+(t.pic?'background-image:url('+t.pic+');':'')+(t.bg?'background-color:'+t.bg+';':'')+'">'+(t.pic?'':(t.emoji||""))+'</span><b>'+esc(t.nm)+'</b>'+(t.sub?'<small>'+t.sub+'</small>':'')+'</button>').join("")+'</div>':'')+
       (o.primary&&!o.primaryTop?pbtn(o.primary):'')+
-      '<div class="puRow"><span class="pay">오늘 🪙 상 '+(o.pay>0?'<b>'+o.pay+'</b>판 남음':'다 받았어요 (연습은 계속!)')+'</span><button class="puBtn sm out">🏝 섬으로</button></div></div>';
+      '<div class="puRow"><span class="pay">오늘 '+SV.coin+' 상 '+(o.pay>0?'<b>'+o.pay+'</b>판 남음':'다 받았어요 (연습은 계속!)')+'</span><button class="puBtn sm out">🏝 섬으로</button></div></div>';
   el.style.display="";
   el.onclick=e=>{ const b=e.target.closest("button"); if(!b) return; try{ MG.SFX.tone(660,.06,"triangle",.04); }catch(_){} if(b.classList.contains("out")){ (o.onOut||MG.exit)(); return; } if(b.dataset.sg!=null){ o.seg.pick(b.dataset.sg); return; } if(b.dataset.m) o.onPick(b.dataset.m); };
   return el; }
@@ -134,14 +157,20 @@ function result(host, o){ css(); let el=host.querySelector(".puR"); if(el) el.re
   const s=Math.max(0,Math.min(3,o.stars|0)), who=av(o.av||{}, o.res==="lose"?"sad":"cheer");
   el.innerHTML='<div class="rays"></div><div class="box">'+'<div class="stars">'+[0,1,2].map(i=>ic("star", i===1?104:82).replace('class="puI"','class="puI'+(i<s?'':' off')+'"')).join("")+'</div>'+
     (who?'<img class="who" alt="" src="'+who+'">':'')+'<div class="rib '+(o.res||"win")+'">'+esc(o.title)+'</div><div class="sub">'+(o.sub||"")+'</div>'+
-    '<div class="rw">'+(o.rewards||[]).map(([i,v,l,nw])=>'<div class="it">'+(nw?'<span class="nw">새 기록</span>':'')+'<span class="e">'+(ic(i,38)||i)+'</span><b>'+esc(v)+'</b><small>'+esc(l)+'</small></div>').join("")+'</div>'+
+    '<div class="rw">'+(o.rewards||[]).map(([i,v,l,nw])=>'<div class="it">'+(nw?'<span class="nw">새 기록</span>':'')+'<span class="e">'+(ic(i,38)||(i==="🪙"?SV.coin:i))+'</span><b>'+esc(v)+'</b><small>'+esc(l)+'</small></div>').join("")+'</div>'+
     (o.extra?'<div class="extra">'+o.extra+'</div>':'')+
-    (o.prog?'<div class="prog">'+o.prog.t+'<div class="b"><i style="width:'+Math.round(Math.max(0,Math.min(1,o.prog.v))*100)+'%"></i></div></div>':'')+
+    (o.prog?'<div class="prog">'+coinTx(o.prog.t)+'<div class="b"><i style="width:'+Math.round(Math.max(0,Math.min(1,o.prog.v))*100)+'%"></i></div></div>':'')+
     '<div class="bt"><button class="puBtn mt big again">'+ic("retry",34)+'한 판 더</button><button class="puBtn menu">☰ 메뉴</button><button class="puBtn out">🏝 섬으로</button></div></div>';
   el.querySelector(".again").onclick=()=>{ el.remove(); o.onAgain && o.onAgain(); };
   el.querySelector(".menu").onclick=()=>{ el.remove(); o.onMenu && o.onMenu(); };
   el.querySelector(".out").onclick=()=>{ el.remove(); (o.onOut||MG.exit)(); };
   try{ if(s>=2) MG.SFX.win(); }catch(e){}
+  if(!navigator.webdriver){ try{
+    /* 숫자가 0 에서 올라감 */
+    el.querySelectorAll(".rw .it b").forEach((b,i)=>{ const m=String(b.textContent).match(/^([+×]?)([\d,]+)$/); if(!m) return; const n=+m[2].replace(/,/g,""); if(!(n>1)) return; const t0=performance.now()+350+i*150, D=650; b.textContent=m[1]+"0";
+      const f=()=>{ if(!b.isConnected) return; const k=Math.max(0, Math.min(1, (performance.now()-t0)/D)), e=1-Math.pow(1-k,3); b.textContent=m[1]+Math.round(n*e).toLocaleString(); if(k<1) requestAnimationFrame(f); else b.textContent=m[1]+m[2]; }; requestAnimationFrame(f); });
+    /* 꽃가루 (별 2개부터) */
+    if(s>=2 && (o.res||"win")==="win"){ const C=["#FFC94A","#FF4FA8","#2FD49A","#3FD8FF","#fff","#b28dff"]; for(let i=0;i<34;i++){ const c=document.createElement("i"); c.className="cf"; c.style.left=(Math.random()*100)+"%"; c.style.background=C[i%C.length]; c.style.animationDuration=(1.8+Math.random()*1.6)+"s"; c.style.animationDelay=(Math.random()*.9)+"s"; c.style.width=(7+Math.random()*7)+"px"; el.appendChild(c); setTimeout(()=>c.remove(), 4600); } } }catch(e){} }
   return el; }
 /* MG 공통 결과(코인·하루 판 수)는 그대로 쓰고 창만 우리 것으로 */
 function award(api, r){ const got=api.end(r)|0; const el=document.getElementById("mgRes"); if(el) el.classList.remove("on"); return got; }

@@ -191,9 +191,10 @@ function start(api){
   const st={stage:0, t:0, el:0, left:STAGE_T, lives:DF[DFK].life, score:0, combo:0, comboT:0, blue:0, over:false, clearT:0, intro:(CO||MENU)?0:2.4, flash:0, steps:0, seed:(Math.random()*4294967296)>>>0, pl:null, phase:MENU?"menu":CO?"room":"play", out:false, cleared:0, wipe:9, shake:0, best:0, gold:0};
   const cell=new Uint8Array(N*N);   /* 0 꺼짐 · 1 파랑 · 2 초록 · 3 지운 칸 */
   const red=new Float32Array(N*N), warn=new Float32Array(N*N), hi=new Float32Array(N*N), GT=new Set();   /* GT = 이번 판에 먹은 ⭐ 금빛 칸 */
+  let GI=-1;
   const goldAt=q=>{ const L=st.pl && st.pl.GD; if(!L || st.phase!=="play") return -1; for(let i=0;i<L.length;i++){ const g=L[i]; if(g.q===q && st.el>=g.t0 && st.el<g.t0+g.dur && !GT.has(i) && cell[q]!==2) return i; } return -1; };
   function nearGreen(){ const G=st.pl?st.pl.G:[]; if(!G.length) return [cx(0),cx(N-1)]; let best=G[0], bd=1e9; G.forEach(q=>{ const d=Math.hypot(cx(q%N)-P.p.x, cx(Math.floor(q/N))-P.p.z); if(d<bd){ bd=d; best=q; } }); return [cx(best%N), cx(Math.floor(best/N))]; }
-  function newStage(s, first){ GT.clear(); st.clrS=-1; st.goS=-1; st.stage=s; st.pl=plan(st.seed, s, DFK); cell.set(st.pl.cell); st.blue=st.pl.blue; st.blue0=st.pl.blue; st.el=0; st.left=STAGE_T; st.clearT=0; st.wipe=0; red.fill(0); warn.fill(0);
+  function newStage(s, first){ GT.clear(); st.nohit=true; st.clrS=-1; st.goS=-1; st.stage=s; st.pl=plan(st.seed, s, DFK); cell.set(st.pl.cell); st.blue=st.pl.blue; st.blue0=st.pl.blue; st.el=0; st.left=STAGE_T; st.clearT=0; st.wipe=0; red.fill(0); warn.fill(0);
     if(st.out){ st.out=false; st.lives=DF[DFK].life; P.inv=1.5; }   /* 같이 하기: 구경하던 아이 = 다음 판에 ❤️3 으로 다시 */
     if(first || CO){ const g=nearGreen(); P.p.set(g[0],0,g[1]); } if(me) me.act="idle";
     api.msg('<b class="gStg">'+(s+1)+' 판</b><small>'+GREEN_T[st.pl.th]+' · '+HZ_T[st.pl.th]+'</small>', 1900); try{ api.sfx.up(); }catch(e){} drawHud(); }
@@ -326,7 +327,7 @@ function start(api){
   /* ── 움직임 · 칸 밟기 ── */
   const camT=new V3(); let camInit=false, paused=false;
   function idxAt(x,z){ const i=Math.floor((x+HALF)/TS), j=Math.floor((z+HALF)/TS); if(i<0||j<0||i>=N||j>=N) return -1; return j*N+i; }
-  function hit(){ if(P.inv>0 || st.over || st.out) return; st.lives--; P.inv=1.6; st.combo=0; st.flash=.5; st.shake=.45; api.sfx.bad(); drawHud();
+  function hit(){ if(P.inv>0 || st.over || st.out) return; st.lives--; st.nohit=false; P.inv=1.6; st.combo=0; st.flash=.5; st.shake=.45; api.sfx.bad(); drawHud();
     ripple(idxAt(P.p.x,P.p.z), COL.red, 1.3, .8); burst(P.p.x, P.p.z, 0xff5a7a, 12, 6); floatTxt(P.p.x, 2.4, P.p.z, "−❤", "r"); P.sq=-.35;
     if(me){ try{ emote(me, "💦"); }catch(e){} }
     if(st.lives<=0){ if(CO){ st.out=true; api.msg('👀 ❤️ 다 썼어요<small>친구들을 응원하다가 다음 판에 다시 들어가요</small>', 2000); return; } end(); return; }
@@ -349,12 +350,17 @@ function start(api){
     if(id>=0){ if(P.onG && cell[id]===1) clearTile(id); if(P.onG){ const gi=goldAt(id); if(gi>=0) takeGold(gi); } if(red[id] && cell[id]!==2 && (P.onG || (hi[id] && P.p.y<1.6))) hit(); }   /* 🟪 높은 것은 점프해도 맞음 */
     st.comboT=Math.max(0, st.comboT-dt); }
   function greenOff(){ const GO=st.pl && st.pl.GO; if(!GO || st.goS===st.stage || st.el<GO.t) return; st.goS=st.stage; GO.L.forEach(q=>{ if(cell[q]===2) cell[q]=0; }); api.msg('🟩 초록 칸이 줄었어요!<small>남은 초록으로 가요</small>', 1500); try{ api.sfx.bad(); }catch(e){} }
-  function takeGold(i){ GT.add(i); st.gold++; try{ api.sfx.clear(); }catch(e){} { const q=st.pl.GD[i].q, x=cx(q%N), z=cx(Math.floor(q/N)); ripple(q, COL.gold, 1.2, .9); burst(x, z, 0xffe14d, 16, 7); floatTxt(x, 1.6, z, "⭐ +50", "g"); }
+  const isHeart=i=>i===1 && st.stage>=1 && st.lives<DF[DFK].life && !st.out;
+  const PK=[]; ["⭐","❤️"].forEach(t=>{ const cv=document.createElement("canvas"); cv.width=cv.height=128; const g=cv.getContext("2d"); g.font="96px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.shadowColor="rgba(10,14,50,.6)"; g.shadowBlur=10; g.fillText(t,64,70);
+    const tx=new THREE.CanvasTexture(cv); tx.encoding=THREE.sRGBEncoding; disp.push(tx); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, depthWrite:false, transparent:true})); sp.scale.set(1.5,1.5,1); sp.visible=false; sp.renderOrder=4; scene.add(sp); PK.push(sp); });
+  function pickTick(){ PK[0].visible=PK[1].visible=false; const L=st.pl && st.pl.GD; if(!L || st.phase!=="play" || st.over) return; for(let i=0;i<L.length;i++){ const g=L[i]; if(goldAt(g.q)!==i) continue; const sp=PK[isHeart(i)?1:0], left=g.t0+g.dur-st.el; sp.visible=left>1.2 || Math.sin(st.t*22)>0; sp.position.set(cx(g.q%N), 1.5+Math.sin(st.t*5)*.22, cx(Math.floor(g.q/N))); const k=1.5+Math.sin(st.t*7)*.12; sp.scale.set(k,k,1); break; } }
+  function takeGold(i){ const hrt=isHeart(i); GT.add(i); st.gold++; try{ api.sfx.clear(); }catch(e){} { const q=st.pl.GD[i].q, x=cx(q%N), z=cx(Math.floor(q/N)); ripple(q, hrt?0xff7aa8:COL.gold, 1.2, .9); burst(x, z, hrt?0xff7aa8:0xffe14d, 16, 7); floatTxt(x, 1.6, z, hrt?"❤ +1":"⭐ +50", hrt?"r":"g"); }
+    if(hrt){ st.lives++; if(me){ try{ emote(me, "❤️"); }catch(e){} } api.msg('❤️ 하나 더!<small>하트 칸을 밟았어요</small>', 1100); if(!CO){ drawHud(); return; } }
     if(CO){ if(R.path){ R.d.c=R.d.c||{}; R.d.c["g"+st.stage+"_"+i]=code; NET.put(R.path+"/c/g"+st.stage+"_"+i, code).catch(()=>{}); } teamScore(); } else st.score+=50; drawHud(); }
   function stageClear(){ if(st.clrS===st.stage) return; st.clrS=st.stage; st.cleared++; st.clearT=2.4; api.sfx.clear(); if(me) me.act="yay";
     for(let k=0;k<5;k++) burst((Math.random()-.5)*HALF*1.6, (Math.random()-.5)*HALF*1.6, [0xff5a7a,0xffe14d,0x5fe08a,0x6fc0ff,0xc58bff][k], 9, 9);
     if(CO){ teamScore(); api.msg('<b class="gStg">🎉 다 같이 깼다!</b><small>🤝 +50</small>', 1900); }
-    else { const b=Math.ceil(st.left)*2+20; st.score+=b; api.msg('<b class="gStg">🎉 '+(st.stage+1)+' 판 깼다!</b><small>남은 시간 보너스 ⭐ +'+b+'</small>', 1900); } drawHud(); }
+    else { const pf=st.nohit?100:0, b=Math.ceil(st.left)*2+20; st.score+=b+pf; if(pf){ st.perf=(st.perf||0)+1; floatTxt(P.p.x, 2.6, P.p.z, "퍼펙트 +100", "g"); } api.msg('<b class="gStg">'+(pf?'🌟 퍼펙트! ':'🎉 ')+(st.stage+1)+' 판 깼다!</b><small>남은 시간 보너스 ⭐ +'+b+(pf?' · 안 맞고 깨기 ⭐ +100':'')+'</small>', 1900); } drawHud(); }
   function end(){ if(st.over) return; st.over=true; const reached=st.stage+1;
     if(CO && R.path && NETOK){ NET.del(R.path+"/p/"+code).catch(()=>{}); }
     const who=CO ? livePeers(true).map(p=>p.n||"친구") : [];
@@ -397,7 +403,7 @@ function start(api){
     st.wipe+=dt; for(let k=FXR.length-1;k>=0;k--){ FXR[k].t+=dt; if(FXR[k].t>FXR[k].L) FXR.splice(k,1); }
     for(let q=0;q<N*N;q++){ const i=q%N, j=(q-i)/N; let c=COL.off, k=1, glow=0; const isRed=!!red[q], tall=isRed && !!hi[q], hk=tall?2:isRed?1:0;
       if(hk!==HT[q]){ HT[q]=hk; _m.makeTranslation(cx(i), tall?.8:isRed?.07:.02, cx(j)); if(tall) _m.scale(_s.set(1,7.6,1)); else if(isRed) _m.scale(_s.set(1,1.5,1)); T.setMatrixAt(q,_m); T.instanceMatrix.needsUpdate=true; }
-      if(isRed){ c=hi[q]?COL.hi:COL.red; glow=.75; k=.92+.08*Math.sin(st.t*14+i+j); } else if(warn[q]){ c=blink?COL.warn:COL.off; glow=blink?.5:0; } else if(goldAt(q)>=0){ c=COL.gold; k=.8+.4*Math.abs(Math.sin(st.t*9)); glow=.9; } else if(cell[q]===1){ c=COL.blue; k=pulse; glow=.42; } else if(cell[q]===2){ c=COL.green; glow=.5; k=.94+.06*Math.sin(st.t*3+i*.7+j*.5); } else if(cell[q]===3) c=COL.done;
+      if(isRed){ c=hi[q]?COL.hi:COL.red; glow=.75; k=.92+.08*Math.sin(st.t*14+i+j); } else if(warn[q]){ c=blink?COL.warn:COL.off; glow=blink?.5:0; } else if((GI=goldAt(q))>=0){ c=isHeart(GI)?0xff7aa8:COL.gold; k=.8+.4*Math.abs(Math.sin(st.t*9)); glow=.9; } else if(cell[q]===1){ c=COL.blue; k=pulse; glow=.42; } else if(cell[q]===2){ c=COL.green; glow=.5; k=.94+.06*Math.sin(st.t*3+i*.7+j*.5); } else if(cell[q]===3) c=COL.done;
       _c.setHex(c).convertSRGBToLinear(); if(k!==1) _c.multiplyScalar(k);
       if(party || demo){ const h=((i+j)*.045+st.t*(party?.9:.18))%1; _w.setHSL(h, 1, party?.56:.5).convertSRGBToLinear(); if(party){ _c.copy(_w); glow=.7; } else if(cell[q]!==2){ const f=.5+.5*Math.sin(st.t*1.6-(Math.hypot(i-6.5,j-6.5))*.8); _c.lerp(_w, .55*f); glow=.35*f; } }
       if(st.wipe<1.1){ const f=st.wipe*22-(i+j)*.6; if(f<0){ _c.multiplyScalar(.25); glow*=.2; } else if(f<1.6){ _c.lerp(_w.setRGB(1,1,1), .7*(1-f/1.6)); glow=Math.max(glow,.6); } }
@@ -415,7 +421,7 @@ function start(api){
       LAND.t+=dt; { const f=LAND.t/.38; LAND.m.visible=f<1; if(f<1){ LAND.m.scale.setScalar(1+f*2.2); LAND.m.material.opacity=.8*(1-f); } } }
     if(me){ me.g.position.copy(P.p); me.face=P.face; me.moving=P.onG && Math.hypot(api.I.mx,api.I.my)>.1; try{ animChar(me, dt); }catch(e){} me.g.visible=!st.out && !(P.inv>0 && Math.sin(st.t*30)>0); const q=P.sq||0; me.g.scale.set(AVS*(1-q*.45), AVS*(1+q), AVS*(1-q*.45)); }
     { const id=idxAt(P.p.x,P.p.z); HL.visible=id>=0 && !st.out; if(id>=0) HL.position.set(cx(id%N), 0, cx(Math.floor(id/N))); }
-    myTag(); const bob=Math.sin(st.t*4)*.12, tk=(cam.aspect||1)>1.3?1.75:1; MY.tag.scale.set(.21*tk,.0525*tk,1); MY.arrow.scale.set(.085*tk,.053*tk,1); if(tk!==st.tk){ st.tk=tk; Object.values(R.peers).forEach(pp=>{ if(pp.tag) pp.tag.scale.set(.19*tk,.0475*tk,1); }); } MY.tag.position.set(P.p.x, P.p.y+3.5, P.p.z); MY.arrow.position.set(P.p.x, P.p.y+3.5+bob*.3, P.p.z); MY.arrow.center.y=-1.02-Math.abs(bob)*.8; MY.ring.position.set(P.p.x,.16,P.p.z); MY.ring.scale.setScalar(1+Math.sin(st.t*5)*.06); MY.tag.visible=MY.arrow.visible=MY.ring.visible=!st.out;
+    myTag(); const bob=Math.sin(st.t*4)*.12, tk=(cam.aspect||1)>1.3?1.75:1; MY.tag.scale.set(.21*tk,.0525*tk,1); MY.arrow.scale.set(.085*tk,.053*tk,1); if(tk!==st.tk){ st.tk=tk; Object.values(R.peers).forEach(pp=>{ if(pp.tag) pp.tag.scale.set(.19*tk,.0475*tk,1); }); } MY.tag.position.set(P.p.x, P.p.y+3.5, P.p.z); MY.arrow.position.set(P.p.x, P.p.y+3.5+bob*.3, P.p.z); MY.arrow.center.y=(CO?-1.02:-.1)-Math.abs(bob)*.8; MY.ring.position.set(P.p.x,.16,P.p.z); MY.ring.scale.setScalar(1+Math.sin(st.t*5)*.06); MY.arrow.visible=MY.ring.visible=!st.out; MY.tag.visible=!st.out && !!CO;   /* (v659) 혼자 할 땐 이름 알약이 캐릭터를 가려서 뺌 */ pickTick();
     shadowD.position.set(P.p.x,.13,P.p.z); shadowD.scale.setScalar(1-Math.min(.5,P.p.y*.3)); shadowD.visible=!st.out;
     st.flash=Math.max(0,st.flash-dt); eHurt.style.opacity=st.flash>0?1:0;
     const asp=cam.aspect||1, port=asp<1, W=asp<.6?8.6:HALF+1.4, tv=Math.tan(cam.fov*Math.PI/360), d=Math.max(15, Math.min(48, W/(tv*Math.min(asp,1.45)))), pit=port?.84:.8;

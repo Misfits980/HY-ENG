@@ -110,7 +110,7 @@ function start(api){
   [-.6,0,.6].forEach((ang,j)=>{ const L=j+1, d=TR+.5, x=Math.sin(ang)*d, z=-Math.cos(ang)*d, G=new THREE.Group(); G.position.set(x,0,z); G.rotation.y=Math.atan2(-x,-z); scene.add(G); chair(G);
     const hand=new THREE.Group(); hand.position.set(0,.8,.42); hand.rotation.x=-.5; G.add(hand); SEATS[L]={L, G, P:null, hand, n:-1, bk:"", t:Math.random()*6, actT:0, avK:""}; });
   function seatAv(L, av){ const s=SEATS[L], k=JSON.stringify(av||{}); if(s.avK===k && s.P) return; s.avK=k; if(s.P){ s.G.remove(s.P.g); s.P=null; }
-    try{ const P=buildAvatar(av||{}); P.g.scale.setScalar(1.08); P.g.position.set(0,.25,-.02); s.G.add(P.g); P.legL.rotation.x=P.legR.rotation.x=-1.45; arms(P,"hold"); P.expr0=(av&&av.expr)||"smile"; s.P=P; }catch(e){ console.warn("CP av", e); } }
+    try{ const P=buildAvatar(av||{}); P.g.scale.setScalar(1.08); P.g.position.set(0,.25-(typeof AVB!=="undefined"?AVB.leg*1.08:0),-.02);   /* (v660) 다리가 길어진 만큼 내려 앉힘 */  s.G.add(P.g); P.legL.rotation.x=P.legR.rotation.x=-1.45; arms(P,"hold"); P.expr0=(av&&av.expr)||"smile"; s.P=P; }catch(e){ console.warn("CP av", e); } }
   const backPG=G3(new THREE.PlaneGeometry(CW*.62,CH*.62)), backBM=MS(0xfff8ea,{side:THREE.BackSide}), FANM={};
   function fanMat(bk){ if(FANM[bk]) return FANM[bk]; const m=new THREE.MeshStandardMaterial({map:faceMat(null,bk).map,roughness:.6}); disp.push(m); return FANM[bk]=m; }
   function fan(s, n, bk){ n=Math.min(n,8); bk=bk||SET.bk; if(s.n===n && s.bk===bk) return; s.n=n; s.bk=bk; while(s.hand.children.length) s.hand.remove(s.hand.children[0]); const fm=fanMat(bk);

@@ -2,7 +2,7 @@
    ① 첫 화면 🔥 실시간 줄: 📚 1위 → 📖 1위 → 🏃 1위 → 📚 2위 … 굴러감 · ▲▼ NEW
    ② 누르면 1~10위 (탭 셋 · 규칙 한 줄 · 내 줄 표시) · 🏆 전체 랭킹 → 📚 공부 점수 탭
    ③ 서버가 옛 버전(boards 없음)이면 줄을 숨김
-   ④ 🛠 My Town 점검 중: 누르면 안내 카드(📚 오늘의 30 으로) · 선생님 기기는 들어감 · house.html 을 바로 열어도 첫 화면 + 안내"""
+   ④ 🛠 My Town (v601 점검 중 → v663 다시 엶): 점검 표시·안내 카드 없음 · house.html 바로 열어도 마을"""
 import asyncio, sys, os, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
@@ -77,19 +77,16 @@ async def main():
                 await pg.screenshot(path=OUT+"rank605_runall_phone.png")
                 await pg.evaluate("()=>{ document.querySelector('#selRankRange [data-v=week]').click(); document.querySelector('#selRankDiff [data-v=study]').click(); }"); await pg.wait_for_timeout(200)
                 await pg.evaluate("()=>document.getElementById('btnRankBack').click()")
-                # ④ My Town 점검
+                # ④ (v663) My Town 다시 엶 — 「이제 열자」
                 await pg.evaluate("()=>document.getElementById('btnGo').click()"); await pg.wait_for_timeout(500)
-                r=await pg.evaluate("()=>{ const t=document.querySelector('#selRule .c-town'); return [t.classList.contains('closed'), t.innerText.replace(/\\s+/g,' ')]; }")
-                ok(r[0] and "점검" in r[1], f"④ My Town 칸 = 🛠 점검 중 {r}")
-                await pg.evaluate("()=>document.querySelector('#selRule .c-town').click()"); await pg.wait_for_timeout(400)
-                r=await pg.evaluate("()=>{ const m=document.getElementById('townMt'); return [!!m, m && m.innerText.includes('새 마을 준비 중'), m && m.innerText.includes('그대로'), location.pathname.endsWith('index.html')]; }")
-                ok(r==[True,True,True,True], f"④ 누르면 점검 안내 카드 · 마을로 안 감 {r}")
+                r=await pg.evaluate("()=>{ const t=document.querySelector('#selRule .c-town'); return [t.classList.contains('closed'), t.innerText.replace(/\\s+/g,' '), TOWN_OPEN, townOpen()]; }")
+                ok(not r[0] and "점검" not in r[1] and "My Town" in r[1] and r[2] and r[3], f"④ My Town 칸 = 열림 (점검 표시 없음) {r}")
                 await pg.screenshot(path=OUT+"rank601_town_phone.png")
-                await pg.evaluate("()=>document.querySelector('#townMt [data-d]').click()"); await pg.wait_for_timeout(400)
-                r=await pg.evaluate("()=>[!document.getElementById('townMt'), document.getElementById('scStudy').classList.contains('on')]")
-                ok(r==[True,True], f"④ 「📚 오늘의 30 하러 가기」 {r}")
-                r=await pg.evaluate("()=>{ localStorage.setItem('hyeng_teacher_dev','1'); const a=townOpen(); localStorage.removeItem('hyeng_teacher_dev'); return [a, townOpen()]; }")
-                ok(r==[True,False], f"④ 선생님 기기만 들어감 {r}")
+                ne=len(errs); await pg.evaluate("()=>document.querySelector('#selRule .c-town').click()"); await pg.wait_for_timeout(1500)
+                r=await pg.evaluate("()=>[!document.getElementById('townMt'), location.pathname]")
+                ok(r[0] and r[1].endswith("/proto/house.html"), f"④ 누르면 점검 안내 없이 마을로 감 {r}")
+                del errs[ne:]   # 마을 화면은 가짜 3D 엔진(fake_three)이라 그림 오류가 남 — 진짜 마을은 isle·town 시험이 봄
+                await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(1500)
                 # ③ 옛 서버
                 await pg.evaluate("()=>{ LiveRank.it=[]; LiveRank.draw(); }")
                 ok(await pg.evaluate("()=>document.getElementById('lrBar').hidden"), "③ 기록 없으면(옛 서버) 줄을 숨김")
@@ -112,12 +109,12 @@ async def main():
         r=await pg.evaluate("()=>{ const b=document.getElementById('btnNews'); const q=b.getBoundingClientRect(); return [Math.round(q.width), Math.round(q.height)]; }")
         ok(r[0]<=40, f"(v604) 📰 소식지 단추 작게 {r}")
         await pg.close()
-        # ④ house.html 바로 열기 (자동 시험 표시를 끔 → 실제 아이처럼)
+        # ④ house.html 바로 열기 (자동 시험 표시를 끔 → 실제 아이처럼) — (v663) 열렸으니 그대로 마을
         ctx=await br.new_context(viewport={"width":390,"height":844}); await ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>false})")
         pg=await ctx.new_page(); await pg.route("**/*", route)
         await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(2500)
         r=await pg.evaluate("()=>[location.pathname, !!document.getElementById('townMt')]")
-        ok(r[0].endswith("/index.html") and r[1], f"④ house.html 을 바로 열어도 → 첫 화면 + 점검 안내 {r}")
+        ok(r[0].endswith("/proto/house.html") and not r[1], f"④ house.html 을 바로 열면 → 마을 그대로 {r}")
         await br.close()
     ok(not real_errs(errs), f"오류 없음 {real_errs(errs)[:2]}")
     print("\nFAIL" if bad else "\nPASS", len(bad)); sys.exit(1 if bad else 0)

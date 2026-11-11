@@ -6200,7 +6200,6 @@ body.hudC #windTag{top:calc(env(safe-area-inset-top,0px) + clamp(240px,40vh,400p
   body.hudC .cRow{min-height:18px;margin-top:3px}
   body.hudC #approach{margin-top:5px}
 }
-=======
 /* (v506) G5-6 지도: 늪·하늘·성 땅 그림 (색 덮기 대신) · 쉬어 가기 표시 · 마지막 시험 큰 별 도장 */
 #scStudy.thB6 .stWBox.zb-swamp{background-image:url(assets/d30/g36/mapz_swamp.webp)}
 #scStudy.thB6 .stWBox.zb-sky{background-image:url(assets/d30/g36/mapz_sky.webp)}
@@ -6731,7 +6730,7 @@ body.ui-skin #scStart .menuDuo .mitem:hover{background:rgba(255,255,255,.12);fil
         <div class="cardCol" id="selRule">
           <div class="tile card c-meadow sel" data-v="normal"><span class="mHero" id="ruleHero"></span><span class="mTag" id="ruleTag"></span><b>🗺️ Adventure</b><small>목숨 3개로 끝까지 달리기</small><span class="mStat" id="ruleStatN"></span></div>
           <div class="tile card c-night" data-v="daily"><span class="mRing" id="ruleRing"></span><b>📚 Daily 30</b><small>달리기 전에 단어 공부 · 한 판 약 30문제</small><span class="mStat" id="ruleStatD"></span></div>
-          <div class="tRow2"><div class="tile card c-town" data-v="town"><span class="townTag">🛠 점검 중</span><b>🏡 My Town</b><small>새 마을 준비 중</small></div>
+          <div class="tRow2"><div class="tile card c-town" data-v="town"><span class="townTag">🎉 새로 열림</span><b>🏡 My Town</b><small>옷 입히기 · 놀이공원 · 낚시</small></div>
           <div class="tile card c-board" data-v="join"><span class="townTag">🔢 방 번호</span><b>🎮 수업 게임</b><small>배틀 · 레이드 · 보드</small></div></div>
         </div>
       </div>
@@ -15387,7 +15386,7 @@ $("itemBox").addEventListener("click",e=>{ const b=e.target.closest && e.target.
 
 /* (v601) 🛠 My Town 점검 중 — 사용자: 「마이타운 잠시 점검 중으로 닫아 두자」 (마을 중심으로 새로 만드는 동안). 다시 열기 = TOWN_OPEN=true (proto/house.html 의 TOWN_OPEN 도)
    아이 기록(보석·집·가방)은 기기·서버에 그대로 · 선생님 기기(🧑‍🏫)는 들어가서 볼 수 있음 */
-const TOWN_OPEN=false;
+const TOWN_OPEN=true;   /* (v663) 사용자: 「게임 버그 없는지 체크하고 그래픽 깨지는 거 체크해서 이제 열자」 → 다시 엶 */
 function townOpen(){ if(TOWN_OPEN) return true; if(navigator.webdriver && !window.HY_TOWN_SHUT) return true;   /* 예전 자동 시험은 그대로 들어감 (점검 시험 = HY_TOWN_SHUT) */ try{ return Kid.teacher(); }catch(e){ return false; } }
 function townClosed(){ if($("townMt")) return; const d=document.createElement("div"); d.id="townMt";
   d.innerHTML='<div class="tmB"><div class="tmI">🛠</div><h3>새 마을 준비 중!</h3><p>마을 사람들이 <b>영어로 말을 걸고 부탁하는</b><br>새 My Town 을 만들고 있어요.</p>'
@@ -15396,7 +15395,7 @@ function townClosed(){ if($("townMt")) return; const d=document.createElement("d
     +'<div><button class="no" data-x="1">닫기</button><button class="go" data-d="1">📚 오늘의 30 하러 가기</button></div></div>';
   document.body.appendChild(d); try{ SFX.click(); }catch(e){}
   d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.d){ d.remove(); try{ StudyUI.open(); }catch(_){} } }); }
-setTimeout(()=>{ try{ const t=document.querySelector('#selRule .c-town'); if(t){ if(townOpen()) t.innerHTML='<span class="townTag">🧑‍🏫 선생님만</span><b>🏡 My Town</b><small>점검 중 · 선생님 기기</small>'; else t.classList.add("closed"); }
+setTimeout(()=>{ try{ const t=document.querySelector('#selRule .c-town'); if(t && !TOWN_OPEN){ if(townOpen()) t.innerHTML='<span class="townTag">🧑‍🏫 선생님만</span><b>🏡 My Town</b><small>점검 중 · 선생님 기기</small>'; else t.classList.add("closed"); }
   if(location.hash==="#townclosed"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!townOpen()) townClosed(); }catch(e){} }, 800); } }catch(e){} }, 0);
 /* (v428) 🎲 보드게임 미리 해 보기 — 주소 끝에 #board 를 붙여 열면 이 기기에서만 카드가 보임 (다시 숨기기: #noboard) */
 try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); /* (v441) 보드게임 카드 자리는 🎮 수업 게임 — 선생님 시범은 관리자 「🎲 영어 파티 보드 시범」 */ }catch(e){}
@@ -17244,7 +17243,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v662";
+const GAME_VER = "v663";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){

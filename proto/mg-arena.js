@@ -56,6 +56,12 @@ function start(api){
   const B3=(w,h,d)=>new THREE.BoxGeometry(w,h,d), CY=(r,h,n,r2)=>new THREE.CylinderGeometry(r,r2==null?r:r2,h,n||14), SP=(r,a,b)=>new THREE.SphereGeometry(r,a||14,b||10);
   /* 상자마다 그림 + 큰 벽 위 흰 줄 · 바닥 바둑판 · 둘레 띠 · 분수 발판 */
   function boxMesh(VL, line){ BOX.forEach(b=>{ const w=b.x1-b.x0, h=b.y1-b.y0, d=b.z1-b.z0; VL.push({g:B3(w,h,d), col:b.col, m:mtx((b.x0+b.x1)/2,(b.y0+b.y1)/2,(b.z0+b.z1)/2)});
+    /* (v659) 상자마다 밝은 뚜껑 테 + 어두운 밑단 → 맨 상자가 아니라 블록·장난감처럼 (부딪힘 모양은 그대로) */
+    if(!b.nl && w>.45 && d>.45 && h>.3){ const c0=new THREE.Color(b.col), lt="#"+c0.clone().offsetHSL(0,-.04,.1).getHexString(), dk="#"+c0.clone().offsetHSL(0,.03,-.11).getHexString();
+      VL.push({g:B3(w+.07,.09,d+.07), col:lt, m:mtx((b.x0+b.x1)/2,b.y1-.035,(b.z0+b.z1)/2)});
+      if(b.y0===0 && h>.7) VL.push({g:B3(w+.07,.13,d+.07), col:dk, m:mtx((b.x0+b.x1)/2,.065,(b.z0+b.z1)/2)});
+      /* 나무 상자 크기(1~2.6m 정육면체쯤)는 옆면에 테 */
+      if(b.y0===0 && Math.abs(w-d)<.5 && w>=1 && w<=2.6 && h>=1 && h<=2.6){ [[1,0],[-1,0],[0,1],[0,-1]].forEach(([sx,sz])=>{ const fw=(sx?d:w)-.34, fh=h-.42; if(fw<.3 || fh<.3) return; VL.push({g:B3(sx?.04:fw, fh, sx?fw:.04), col:dk, m:mtx((b.x0+b.x1)/2+sx*(w/2+.012),(b.y0+b.y1)/2+.02,(b.z0+b.z1)/2+sz*(d/2+.012))}); VL.push({g:B3(sx?.05:fw-.22, fh-.22, sx?fw-.22:.05), col:b.col, m:mtx((b.x0+b.x1)/2+sx*(w/2+.014),(b.y0+b.y1)/2+.02,(b.z0+b.z1)/2+sz*(d/2+.014))}); }); } }
     if(line!=null && h>2 && w>.5 && d>.5 && b.y0===0 && !b.nl) VL.push({g:B3(w+.04,.14,d+.04), col:line, m:mtx((b.x0+b.x1)/2,b.y1-.3,(b.z0+b.z1)/2)}); }); }
   function floor(VL, c1, c2, N){ const s=50/N; for(let i=0;i<N;i++) for(let j=0;j<N;j++) VL.push({g:new THREE.PlaneGeometry(s,s), col:(i+j)%2?c1:c2, m:mtx(-R+s*(i+.5),0,-R+s*(j+.5),-Math.PI/2)}); }
   function rim(VL, c1, c2){ for(let i=0;i<4;i++){ const a=i*Math.PI/2; VL.push({g:B3(52,.35,.2), col:c1, m:mtx(Math.sin(a)*(R-.08),3.9,Math.cos(a)*(R-.08),0,a,0)}); VL.push({g:B3(52,.25,.2), col:c2, m:mtx(Math.sin(a)*(R-.08),2.2,Math.cos(a)*(R-.08),0,a,0)}); } }
@@ -261,13 +267,13 @@ function start(api){
   function mkAct(o){ const a=Object.assign({p:new V3(), v:new V3(), yaw:0, pitch:0, onG:true, sl:false, slT:0, slCD:0, soak:0, alive:true, resp:0, prot:PROT, wi:0, kills:0, asst:0, lastHit:-9, by:null, dmgBy:new Map(), cd:0, hold:0, h:HH, jbuf:0, coy:0, padT:0, dead:0}, o); ACT.push(a); return a; }
   const me=mkAct({me:true, nm:api.nick});
   const AVH=1.25, AVK=1.42;   /* 아바타 키 1.25 → ×1.42 ≈ 1.78 */
-  const HB_AV={h:1.28,hr:.42,b:.68,br:.46,l:.25,lr:.34}, HB_BK={h:1.53,hr:.34,b:.98,br:.42,l:.36,lr:.3};   /* 맞는 자리(머리·몸·다리) — 블록 사람은 머리가 작고 높음 */
+  const HB_AV={h:1.37,hr:.38,b:.76,br:.44,l:.26,lr:.32}, HB_BK={h:1.53,hr:.34,b:.98,br:.42,l:.36,lr:.3};   /* 맞는 자리(머리·몸·다리) — 블록 사람은 머리가 작고 높음 */
   BOTS.forEach((b,i)=>{ const a=mkAct({bot:true, nm:b.nm, i});
     let c=null; try{ c=buildAvatar(b.av); }catch(e){ c=null; }
     const G=new THREE.Group(); scene.add(G); a.G=G;
     if(c){ c.t=0; c.blinkT=2; c.act='idle'; c.g.scale.setScalar(AVK); G.add(c.g); a.c=c; c.g.traverse(m=>{ if(m.isMesh){ m.castShadow=!api.low; } }); }
     else { const m=new THREE.Mesh(new THREE.CapsuleGeometry ? new THREE.CylinderGeometry(.35,.35,1.7,10) : new THREE.CylinderGeometry(.35,.35,1.7,10), toon(new THREE.MeshStandardMaterial({color:0xff9a3d}))); m.position.y=.85; G.add(m); }
-    a.gun=new THREE.Group(); if(c && c.armR){ c.armR.add(a.gun); a.gun.position.set(0,-.2,0); a.gun.scale.setScalar(.7); }
+    a.gun=new THREE.Group(); if(c && c.armR){ c.armR.add(a.gun); a.gun.position.set(.05,-.235,0); a.gun.scale.setScalar(.7); }
     a.tag=nameTag(b.nm); a.tag.position.y=2.15; G.add(a.tag);
     const bub=new THREE.Mesh(new THREE.SphereGeometry(1.15,16,12), new THREE.MeshBasicMaterial({color:0x9fe8ff, transparent:true, opacity:.25, depthWrite:false})); bub.position.y=.95; G.add(bub); a.bub=bub;
     a.brain={tg:null, see:false, seeT:0, react:0, path:[], pathT:0, goal:null, str:1, strT:0, stuckT:0, lastP:new V3(), aimY:0, aimP:0, ex:0, ey:0, eT:0, think:Math.random()*.2, roam:null};
@@ -296,7 +302,7 @@ function start(api){
     if(a.c){ a.G.remove(a.c.g); a.c=null; } a.G.add(root); a.bk={g:root, legL, legR, torso, armL, armR, head, t:Math.random()*6};
     armR.add(a.gun); a.gun.position.set(-.2,-1.02,-.24); a.gun.scale.setScalar(1.75);   /* (v593) 사용자: 「총이 손에 파묻혀」 → 손 아래·앞으로 · 더 크게 */ a.hb=HB_BK; }
   let gone=false;
-  try{ fetch("../assets/mg/blocky/blocky.json").then(r=>r.json()).then(J=>{ if(gone) return; BOTL.forEach(a=>{ const k=BKS[a.i%BKS.length]; blockify(a, J[k], k); }); }).catch(e=>console.warn("blocky", e)); }catch(e){}
+  try{ fetch("../assets/mg/blocky/blocky.json").then(r=>r.json()).then(J=>{ if(gone) return; BOTL.forEach(a=>{ if(a.c) return; const k=BKS[a.i%BKS.length]; blockify(a, J[k], k); });   /* (v660) 사용자: 「3개 다 해줘봐」 → 상대도 옷 입은 새 캐릭터 (친구랑 할 때 친구 모습과 같은 무게) · 블록 사람은 캐릭터를 못 만들었을 때만 */ }).catch(e=>console.warn("blocky", e)); }catch(e){}
   try{ KK.load("blaster").then(()=>{ if(gone) return; vmSet(me.wi); ACT.forEach(a=>{ if(a.bot || a.net) gunModel(a.gun, a.wi, true); }); }); }catch(e){}
   vmSet(0); VM.position.set(.24,-.22,-.5); const vmA={kick:0, sw:1, bob:0, swing:0, side:1};
 
@@ -307,7 +313,37 @@ function start(api){
   function stream(a, b, w, big, mine){ const L=a.distanceTo(b); STR.push({a:a.clone(), b:b.clone(), L, t:0, sp:big?52:78, w:w||1, big, mine}); }
   function burst(p, n, k){ for(let i=0;i<n && PAR.length<480;i++){ const th=Math.random()*Math.PI*2, ph=Math.random()*1.2; PAR.push({p:p.clone(), v:new V3(Math.cos(th)*Math.sin(ph)*(2+Math.random()*3)*(k||1), (1.5+Math.random()*3.5)*(k||1), Math.sin(th)*Math.sin(ph)*(2+Math.random()*3)*(k||1)), t:0, L:.35+Math.random()*.35, s:.6+Math.random()*.9}); } }
   const BALG=new THREE.SphereGeometry(.2,14,10); disp.push(BALG);
-  function fxTick(dt){ let n=0;
+  /* (v659) 바닥에 젖은 자국 — 물줄기·물풍선이 닿은 바닥이 잠깐 젖어요 */
+  const PUD=[], PUDN=api.low?12:28, pudG=new THREE.CircleGeometry(1,18), DOWN=new V3(0,-1,0); let pudI=0; disp.push(pudG);
+  function puddle(e, big){ let y=-9; try{ const r=rayBox(new V3(e.x,e.y+.4,e.z), DOWN, 1.2); if(Math.abs(r.t-.4)<.09) y=e.y+.4-r.t; else if(e.y<.08) y=0; }catch(_){} if(y<-1) return;
+    let m=PUD[pudI]; if(!m){ m=new THREE.Mesh(pudG, new THREE.MeshBasicMaterial({color:0x58c4ff, transparent:true, opacity:0, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2})); m.rotation.x=-Math.PI/2; m.renderOrder=1; scene.add(m); PUD[pudI]=m; } pudI=(pudI+1)%PUDN;
+    m.position.set(e.x, y+.03, e.z); m.userData.t=0; m.userData.s=(big?1.5:.3)+Math.random()*(big?.5:.28); m.visible=true; }
+  function pudTick(dt){ for(const m of PUD){ if(!m || !m.visible) continue; const u=m.userData; u.t+=dt; const k=Math.min(1,u.t/.22); m.scale.setScalar(u.s*(.3+.7*k)); m.material.opacity=.4*(u.t<3?1:Math.max(0,1-(u.t-3)/2)); if(u.t>5) m.visible=false; } }
+  /* (v660) 맞으면 움찔 · 젖을수록 옷 색이 진해지고 물이 뚝뚝 · 흠뻑 젖으면 폴짝 넘어짐 */
+  const WETC=new THREE.Color(0x2f6fd0);
+  function wetTint(c, f){ if(!c.wm){ c.wm=[]; c.g.traverse(o=>{ if(o.isMesh && o.material && o.material.color && o.material.side!==THREE.BackSide){ o.material=o.material.clone(); disp.push(o.material); c.wm.push({m:o.material, c0:o.material.color.clone()}); } }); }
+    c.wm.forEach(o=>{ o.m.color.copy(o.c0).multiplyScalar(1-.3*f).lerp(WETC, .16*f); }); }
+  function reactVis(a, dt){ const c=a.c; if(!c) return; let sq=0; if(a.fl>0){ a.fl-=dt; sq=Math.sin(Math.max(0,a.fl/.24)*Math.PI); c.g.rotation.x-=.3*sq; }
+    c.g.scale.set(AVK*(1+.09*sq), AVK*(1-.1*sq), AVK*(1+.09*sq));
+    if(a.ex && a.alive && !(a.fl>0)){ a.ex=0; try{ c.setExpr(c.expr0); }catch(e){} }
+    if(a.alive && a.soak>30 && !api.low){ if(Math.random()<dt*a.soak*.07) burst(new V3(a.p.x+(Math.random()-.5)*.4, a.p.y+1.1, a.p.z+(Math.random()-.5)*.4), 1, .22); if(a.soak>60 && a.onG && Math.random()<dt*.9) puddle({x:a.p.x, y:a.p.y, z:a.p.z}); }
+    const wk=Math.round(a.soak/12.5); if(wk!==a.wk && (a.wk!==undefined || wk>0)){ a.wk=wk; wetTint(c, Math.min(1, a.soak/100)); } }
+  /* (v660) 줍는 아이템 — 👟 번개 신발(6초 빨라짐) · 🎈 물풍선(주우면 보는 쪽으로 바로 던짐 · 혼자 하기만) */
+  const PKS=[], PKK={shoe:{ic:"👟", col:0xffd23f}, bal:{ic:"🎈", col:0xff5a7a}}, PKTX={}; let pkT=7; const pkRG=new THREE.TorusGeometry(.62,.07,8,24); disp.push(pkRG);
+  function pkTex(k){ if(PKTX[k]) return PKTX[k]; const cv=document.createElement("canvas"); cv.width=cv.height=128; const g=cv.getContext("2d"); g.font="92px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.shadowColor="rgba(20,30,60,.55)"; g.shadowBlur=10; g.fillText(PKK[k].ic,64,70); const tx=new THREE.CanvasTexture(cv); tx.encoding=THREE.sRGBEncoding; disp.push(tx); return PKTX[k]=tx; }
+  function pkSpawn(k, at){ if(PKS.length>=3 || !SPAWN.length) return null; let s=at; for(let n=0;n<12 && !s;n++){ const c=SPAWN[Math.floor(Math.random()*SPAWN.length)]; if(ACT.some(a=>a.alive && Math.hypot(a.p.x-c[0], a.p.z-c[1])<5) || PKS.some(q=>Math.hypot(q.p.x-c[0], q.p.z-c[1])<3)) continue; s=c; } if(!s) return null;
+    k=k||(CO || Math.random()<.5?"shoe":"bal"); const g=new THREE.Group(), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:pkTex(k), transparent:true, depthWrite:false})), rg=new THREE.Mesh(pkRG, new THREE.MeshBasicMaterial({color:PKK[k].col, transparent:true, opacity:.85}));
+    sp.scale.set(1.25,1.25,1); sp.position.y=1.05; rg.rotation.x=Math.PI/2; rg.position.y=.08; g.add(sp, rg); g.position.set(s[0], 0, s[1]); scene.add(g); disp.push(sp.material, rg.material); const q={k, p:new V3(s[0],0,s[1]), g, sp, rg, t:0}; PKS.push(q); return q; }
+  function pkDrop(q){ scene.remove(q.g); const i=PKS.indexOf(q); if(i>=0) PKS.splice(i,1); }
+  function pkTake(a, q){ pkDrop(q); burst(new V3(q.p.x, 1, q.p.z), 14, 1); try{ a.me?api.sfx.clear():api.sfx.tile(3); }catch(e){}
+    if(q.k==="shoe"){ a.spT=6; if(a.me) api.msg('👟 번개 신발!<small>6초 동안 빨라요</small>', 1300); }
+    else { const o=eyeOf(a), d=dirOf(a.yaw, a.pitch), m=new THREE.Mesh(BALG, gmat(0xff7aa8)); m.position.copy(o.clone().addScaledVector(d,.7)); scene.add(m); BAL.push({m, v:d.clone().multiplyScalar(21).add(new V3(0,3.2,0)), by:a, t:0}); try{ api.sfx.shot("balloon", !a.me); }catch(e){} if(a.me) api.msg('🎈 물풍선 발사!<small>보는 쪽으로 날아가요</small>', 1200); } }
+  function pkTick(dt){ if(phase!=="play" || time.over){ while(PKS.length) pkDrop(PKS[0]); pkT=7; eBuf.style.display="none"; return; } if(time.cd>0) return;
+    pkT-=dt; if(pkT<=0){ pkT=9+Math.random()*5; pkSpawn(); }
+    for(let i=PKS.length-1;i>=0;i--){ const q=PKS[i]; q.t+=dt; q.sp.position.y=1.05+Math.sin(q.t*3)*.14; q.rg.rotation.z+=dt*2; q.rg.scale.setScalar(1+Math.sin(q.t*5)*.08); if(q.t>26){ pkDrop(q); continue; } if(q.t>22) q.g.visible=Math.sin(q.t*18)>0;
+      for(const a of ACT){ if(!a.alive || a.net || (a.bot && a.rb)) continue; if(Math.hypot(a.p.x-q.p.x, a.p.z-q.p.z)<1.25 && Math.abs(a.p.y-q.p.y)<1.6){ pkTake(a, q); break; } } }
+    for(const a of ACT){ if(a.spT>0) a.spT-=dt; } if(me.spT>0){ eBuf.style.display=""; eBuf.textContent="👟 "+Math.ceil(me.spT); } else eBuf.style.display="none"; }
+  function fxTick(dt){ let n=0; pudTick(dt);
     for(let i=STR.length-1;i>=0;i--){ const s=STR[i]; s.t+=dt; const hd=Math.min(s.L, s.t*s.sp), tl=Math.max(0, hd-(s.big?3.2:2.2));
       if(tl>=s.L-1e-3){ STR.splice(i,1); continue; } const k=s.big?9:6;
       for(let j=0;j<k && n<900;j++){ const f=tl+(hd-tl)*(j/(k-1)); _v.copy(s.a).lerp(s.b, s.L>0?f/s.L:1); const sc=(s.big?2.2:1.15)*s.w*(.55+.45*j/(k-1)); if(!s.mine && _v.distanceToSquared(cam.position)<2.6) continue; _s.set(sc,sc,sc); _m.compose(_v,_q,_s); DROP.setMatrixAt(n++, _m); } }   /* (v597) 버그: 남이 나를 맞힌 물줄기가 카메라 앞에서 커다란 덩어리 → 가까운 것은 안 그림 */
@@ -319,7 +355,7 @@ function start(api){
       if(!hit) for(const a of ACT){ if(a===b.by || !a.alive) continue; if(b.m.position.distanceTo(_w.set(a.p.x, a.p.y+.85*(a.h/HH), a.p.z))<.75){ hit=b.m.position.clone(); break; } }
       if(!hit && b.t>4) hit=b.m.position.clone();
       if(hit){ scene.remove(b.m); BAL.splice(i,1); pop(hit, b.by); } } }
-  function pop(p, by){ burst(p, 30, 1.5); try{ api.sfx.splash(); }catch(e){}
+  function pop(p, by){ burst(p, 30, 1.5); puddle(p, true); try{ api.sfx.splash(); }catch(e){}
     for(const a of ACT){ if(!a.alive) continue; const c=_w.set(a.p.x, a.p.y+.85*(a.h/HH), a.p.z), d=c.distanceTo(p); if(d<2.9){ const dm=WP[5].dmg*(1-Math.min(1,d/2.9)*.65); if(a!==by) hurt(a, dm, by, 5, false, p); } } }
 
   /* ════ 쏘기 ════ */
@@ -352,7 +388,7 @@ function start(api){
       const end=o.clone().addScaledVector(dd, Math.min(r.t, W.rng)); stream(mz, end, W.t==="beam"?1.6:W.t==="snipe"?.8:1, W.t==="beam", !!a.me);
       if(r.who){ let dm=W.dmg; if(W.k==="shot"){ const L=r.t; dm*=L<9?1:Math.max(.35,1-(L-9)/15); } if(r.head && W.t!=="beam") dm*=1.5; hurt(r.who, dm, a, a.wi, r.head, o); hitAny=true; hd=hd||r.head;
         if(W.t==="beam"){ const pu=new V3(dd.x,0,dd.z).normalize().multiplyScalar(5.5*Math.max(.3,1-r.t/16)); r.who.v.x+=pu.x*.35; r.who.v.z+=pu.z*.35; } burst(end, W.t==="beam"?2:4, .6); }
-      else if(r.t<W.rng){ if(Math.random()<(W.t==="beam"?.3:1)) burst(end, W.n?2:5, .7); } }
+      else if(r.t<W.rng){ if(Math.random()<(W.t==="beam"?.3:1)){ burst(end, W.n?2:5, .7); puddle(end); } } }
     if(snd) api.sfx.shot(W.k, !a.me); if(a.me){ vmA.kick=W.t==="snipe"?1.6:W.t==="beam"?.25:W.k==="shot"?1.3:.7; vmA.side=-vmA.side; } }
 
   /* ════ 맞음 · 흠뻑 · 단계 오르기 ════ */
@@ -361,7 +397,7 @@ function start(api){
       el.style.left=((v.x+1)/2*root.clientWidth)+"px"; el.style.top=((1-v.y)/2*root.clientHeight)+"px"; hud.appendChild(el); setTimeout(()=>el.remove(), 660); }catch(e){} }
   const STK=["","","연속 2명! 🔥","연속 3명! 🔥🔥","멈출 수 없어! 🔥🔥🔥"];
   function killFx(nm){ streak++; killT=1.7; eKill.innerHTML="💦 흠뻑! "+esc(nm||"")+(streak>=2?'<small>'+STK[Math.min(4,streak)]+'</small>':''); eKill.classList.remove("pop","y"); void eKill.offsetWidth; eKill.classList.add("on","pop"); if(streak>=2) eKill.classList.add("y"); try{ api.sfx.win && streak>=3 && api.sfx.clear(); }catch(e){} }
-  function hurt(t, dm, by, wi, head, from, raw){ if(!t.alive || (t.prot>0 && !t.net && !t.rb) || time.over) return;   /* 친구·방장 봇은 그쪽 화면이 보호시간을 셈 */ if(by && by.bot && !raw) dm*=t.bot?D.bvb:D.dm;
+  function hurt(t, dm, by, wi, head, from, raw){ if(!t.alive || (t.prot>0 && !t.net && !t.rb) || time.over) return; t.fl=.24; if(t.c && !t.ex){ t.ex=1; try{ t.c.setExpr('wow'); }catch(e){} }   /* 친구·방장 봇은 그쪽 화면이 보호시간을 셈 */ if(by && by.bot && !raw) dm*=t.bot?D.bvb:D.dm;
     /* 같이 하기: 맞은 사람(친구 = 그 기기 · 봇 = 방장)이 젖음을 셈 → 사건으로 보냄 */
     if(CO && NETR && (t.net || (t.bot && t.rb))){ if(by && by.me){ hitT=.18; hitHead=head; api.sfx.hit(head); dmgFx(t, dm, head); }
       if(by && (by.me || (by.bot && !by.rb))){ const o={k:t.net?"hit":"hitb", i:t.i, dm:+dm.toFixed(1), wi, hd:head?1:0, by:idOf(by), fx:from?+from.x.toFixed(1):0, fz:from?+from.z.toFixed(1):0}; NETR.ev(t.net?t.code:hostCode(), o); }
@@ -372,7 +408,7 @@ function start(api){
     if(t.bot && by && !t.brain.tg){ t.brain.tg=by; t.brain.react=D.react*.6; }
     if(t.soak>=100) soaked(t, by, wi); }
   function feedAdd(a, b, ic, mine){ FEED.unshift({a, b, ic, me:mine, t:5}); if(FEED.length>4) FEED.length=4; drawFeed(); }
-  function soaked(t, by, wi){ t.alive=false; t.deaths=(t.deaths|0)+1; t.soak=100; t.resp=RESP; t.dead=0; t.sl=false; t.h=HH; burst(new V3(t.p.x,t.p.y+1,t.p.z), 34, 1.4); api.sfx.soak();
+  function soaked(t, by, wi){ if(t.c){ t.ex=1; try{ t.c.setExpr('wow'); }catch(e){} } try{ puddle({x:t.p.x, y:t.p.y, z:t.p.z}, true); }catch(e){} t.spT=0; t.alive=false; t.deaths=(t.deaths|0)+1; t.soak=100; t.resp=RESP; t.dead=0; t.sl=false; t.h=HH; burst(new V3(t.p.x,t.p.y+1,t.p.z), 34, 1.4); api.sfx.soak();
     feedAdd(by?by.nm:"", t.nm, by?WP[wi].ic:"💧", (by&&by.me)||t.me); if(CO && NETR) NETR.feed({a:by?by.nm:"", b:t.nm, ic:by?WP[wi].ic:"💧"});
     if(CO && by && by!==t && (by.net || by.rb)){ NETR.ev(by.net?by.code:hostCode(), by.net?{k:"kill", wi, vic:t.nm}:{k:"bkill", i:by.i, wi, vic:t.nm}); t.dmgBy.clear();
       if(t.me){ streak=0; eSplat.classList.remove("on"); void eSplat.offsetWidth; eSplat.classList.add("on"); api.msg('💦 흠뻑!<small>'+esc(by.nm)+' 의 '+WP[wi].ic+' '+WP[wi].nm+'</small>', 1900); } return; }   /* 잡은 사람(다른 기기)이 다음 무기로 */
@@ -417,8 +453,10 @@ function start(api){
     if(a.onG && a.padT<=0) for(const [x,z] of PADS){ if(Math.hypot(P.x-x,P.z-z)<1.0){ a.v.y=PADV; a.onG=false; a.padT=.6; a.sl=false; burst(new V3(x,.2,z), 22, 1.3); if(a.me || P.distanceTo(me.p)<16) api.sfx.pad(); break; } } }
 
   /* ════ 나오는 자리 — 다른 사람에게서 가장 먼 곳 ════ */
+  /* (v663) 시작·부활 방향 — 가운데 쪽이면서 앞이 트인 쪽 (전에는 가운데만 봐서 3·2·1 내내 벽만 보이기도 했음) */
+  function openYaw(x, z){ const yc=Math.atan2(x, z), o=new V3(x, 1.5, z); let by=yc, bs=-1e9; for(let k=0;k<16;k++){ const y=k*Math.PI/8, d=new V3(-Math.sin(y), 0, -Math.cos(y)); let t=30; try{ t=Math.min(30, rayBox(o, d, 30).t); }catch(e){} const sc=Math.min(t, 16)+5*Math.cos(y-yc); if(sc>bs){ bs=sc; by=y; } } return by; }
   function spawn(a){ let best=SPAWN[0], bd=-1; SPAWN.forEach(s=>{ let m=1e9; for(const o of ACT){ if(o===a || !o.alive) continue; m=Math.min(m, Math.hypot(o.p.x-s[0], o.p.z-s[1])); } m+=Math.random()*4; if(m>bd){ bd=m; best=s; } });
-    a.p.set(best[0], 0, best[1]); a.v.set(0,0,0); a.soak=0; a.alive=true; a.prot=PROT; a.sl=false; a.h=HH; a.onG=true; a.dmgBy.clear(); a.yaw=Math.atan2(best[0], best[1]); a.pitch=0; a.cd=.3;
+    a.p.set(best[0], 0, best[1]); a.v.set(0,0,0); a.soak=0; a.alive=true; a.prot=PROT; a.sl=false; a.h=HH; a.onG=true; a.dmgBy.clear(); a.yaw=openYaw(best[0], best[1]); a.pitch=0; a.cd=.3;
     if(a.bot){ a.brain.tg=null; a.brain.path=[]; a.brain.aimY=a.yaw; a.G.visible=true; a.G.rotation.set(0,0,0); } }
 
   /* ════ 봇 길 찾기 (0.5m 칸 높이 지도) ════ */
@@ -461,7 +499,7 @@ function start(api){
       if(a.onG && W.t==="melee" && L>5 && L<11 && Math.random()<dt*1.2) slide=true; }
     /* 막힘 → 점프 + 다시 길 찾기 */
     B.stuckT+=dt; if(B.stuckT>.9){ if(wl>0 && a.p.distanceTo(B.lastP)<.45){ jump=true; B.pathT=0; B.str=-B.str; B.roam=null; } B.stuckT=0; B.lastP.copy(a.p); }
-    moveAct(a, wx, wz, wl, jump && a.onG, slide, slide, dt);
+    moveAct(a, wx, wz, wl*(a.spT>0?1.3:1), jump && a.onG, slide, slide, dt);
     /* 조준: 몸으로 천천히 · 흔들림(쉬움일수록 큼) */
     let ty=wl>0?Math.atan2(-wx,-wz):a.yaw, tp=0;
     if(tg && (B.see || B.last)){ const c=B.see?new V3(tg.p.x, tg.p.y+.85*(tg.h/HH), tg.p.z):B.last, e=eyeOf(a); if(W.t==="proj"){ c.y-=.6; } const v=c.clone().sub(e), L=v.length();
@@ -474,7 +512,7 @@ function start(api){
     /* 모습 */
     const G=a.G; G.position.set(a.p.x, a.p.y, a.p.z); if(a.c){ const c=a.c; c.face=a.yaw+Math.PI; c.moving=Math.hypot(a.v.x,a.v.z)>1.2 && a.onG && !a.sl; try{ animChar(c, dt); }catch(e){}
       c.g.rotation.y=a.yaw+Math.PI; c.g.rotation.x=a.sl?-.55:0; c.g.position.y=a.sl?.15:0;
-      if(c.armR){ c.armR.rotation.x=-Math.PI/2-a.pitch*.8; c.armR.rotation.z=0; } if(c.armL){ c.armL.rotation.x=-1.25-a.pitch*.6; c.armL.rotation.z=-.35; } }
+      if(c.armR){ c.armR.rotation.x=-Math.PI/2-a.pitch*.8; c.armR.rotation.z=0; } if(c.armL){ c.armL.rotation.x=-1.25-a.pitch*.6; c.armL.rotation.z=-.35; } reactVis(a, dt); }
     if(a.bk){ const B=a.bk, hs=Math.hypot(a.v.x,a.v.z), mv=hs>1.2 && a.onG && !a.sl; B.t+=dt*(mv?Math.min(14,5+hs*1.1):0); const sw=mv?Math.sin(B.t)*.8:0;
       B.legL.rotation.x=a.onG?sw:-.55; B.legR.rotation.x=a.onG?-sw:.35;
       B.g.rotation.set(a.sl?-.6:0, a.yaw+Math.PI, 0); B.g.position.y=a.sl?.25:(mv?Math.abs(Math.cos(B.t))*.05:0);
@@ -489,7 +527,7 @@ function start(api){
   function mkPeer(k, p){ const a=mkAct({net:true, code:k, nm:(p.n||"친구").slice(0,8), prot:0}); a.tp=new V3(p.x||0,p.y||0,p.z||0); a.p.copy(a.tp); a.lf=p.f|0;
     let c=null; try{ c=buildAvatar(p.av||{}); c.t=0; c.blinkT=2; c.act="idle"; }catch(e){ c=null; } const G=new THREE.Group(); scene.add(G); a.G=G;
     if(c){ c.g.scale.setScalar(AVK); G.add(c.g); a.c=c; c.g.traverse(m=>{ if(m.isMesh) m.castShadow=!api.low; }); }
-    a.gun=new THREE.Group(); if(c && c.armR){ c.armR.add(a.gun); a.gun.position.set(0,-.2,0); a.gun.scale.setScalar(.7); } gunModel(a.gun, p.wi|0, true); a.gw=p.wi|0;
+    a.gun=new THREE.Group(); if(c && c.armR){ c.armR.add(a.gun); a.gun.position.set(.05,-.235,0); a.gun.scale.setScalar(.7); } gunModel(a.gun, p.wi|0, true); a.gw=p.wi|0;
     a.tag=nameTag("👫 "+a.nm); a.tag.position.y=2.15; G.add(a.tag); const bub=new THREE.Mesh(new THREE.SphereGeometry(1.15,16,12), new THREE.MeshBasicMaterial({color:0x9fe8ff, transparent:true, opacity:.25, depthWrite:false})); bub.position.y=.95; G.add(bub); a.bub=bub; bub.visible=false;
     PEER[k]=a; return a; }
   function netStart(h, peers){ if(h.map && h.map!==MAPK) setMap(h.map); D=DIFF[h.df]||DIFF.normal; const ks=peers.map(p=>p.k).filter(k=>k!==NETR.code).slice(0,5);
@@ -519,7 +557,7 @@ function start(api){
     const G=a.G; G.position.set(a.p.x,a.p.y,a.p.z); a.bub.visible=false; drawTag(a.tag, a.soak, a.wi);
     if(!a.alive){ const k=Math.min(1.5, a.dead*6); if(a.bk){ a.bk.g.rotation.x=-k; } else if(a.c){ a.c.g.rotation.x=-Math.min(1.4,k); } if(a.dead>1.1) G.visible=false; return; }
     G.visible=true; if(a.c){ const c=a.c; c.face=a.yaw+Math.PI; c.moving=Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03 && a.onG && !a.sl; try{ animChar(c, dt); }catch(e){} c.g.rotation.y=a.yaw+Math.PI; c.g.rotation.x=a.sl?-.55:0; c.g.position.y=a.sl?.15:0;
-      if(c.armR){ c.armR.rotation.x=-Math.PI/2-a.pitch*.8; c.armR.rotation.z=0; } if(c.armL){ c.armL.rotation.x=-1.25-a.pitch*.6; c.armL.rotation.z=-.35; } }
+      if(c.armR){ c.armR.rotation.x=-Math.PI/2-a.pitch*.8; c.armR.rotation.z=0; } if(c.armL){ c.armL.rotation.x=-1.25-a.pitch*.6; c.armL.rotation.z=-.35; } reactVis(a, dt); }
     if(a.bk){ const B=a.bk, mv=Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03; B.t+=dt*(mv?11:0); const sw=mv?Math.sin(B.t)*.8:0; B.legL.rotation.x=sw; B.legR.rotation.x=-sw; B.g.rotation.set(a.sl?-.6:0, a.yaw+Math.PI, 0); B.g.position.y=a.sl?.25:0; B.armR.rotation.set(-Math.PI/2-a.pitch*.8,0,0); B.armL.rotation.set(-Math.PI/2+.2-a.pitch*.6,-.5,0); } }
   const mapTag=h=>{ const M=MAPS[h && h.map]||MAPS.pool; return M.ic+' '+M.nm; };
   function goCo(){ CO=true; phase="room"; menuUI("room");
@@ -667,6 +705,7 @@ function start(api){
 <div class="aCx"><i class="h" style="left:-18px"></i><i class="h" style="left:8px"></i><i class="v" style="top:-18px"></i><i class="v" style="top:8px"></i><i class="d"></i></div><div class="aHm"></div>
 <div class="aTop"><div class="aClock">5:00</div><div class="aLad"></div></div><div class="aBd"></div><div class="aFd"></div>
 <div class="aSoak"><i></i></div><div class="aWpn"></div><div class="aCnt"></div><div class="aHint"></div><div class="aSplat"></div><div class="paBan aKill"></div>`;
+  const eBuf=document.createElement("div"); eBuf.className="paPill aBuf"; eBuf.style.cssText="position:absolute;left:50%;top:calc(104px + env(safe-area-inset-top));transform:translateX(-50%);display:none;font-size:18px;pointer-events:none"; hud.appendChild(eBuf);
   const Q=s=>hud.querySelector(s), eCx=Q(".aCx"), eHm=Q(".aHm"), eWet=Q(".aWet"), eDir=Q(".aDir"), eClk=Q(".aClock"), eLad=Q(".aLad"), eBd=Q(".aBd"), eFd=Q(".aFd"), eWpn=Q(".aWpn"), eSoak=Q(".aSoak i"), eCnt=Q(".aCnt"), eDead=Q(".aDead"), eHint=Q(".aHint"), eSplat=Q(".aSplat"), eKill=Q(".aKill"); try{ PUI.css(); }catch(e){}
   const root=api.ui, fireB=root.querySelector('[data-b=fire]'), fire2=root.querySelector('[data-b=fire2]');
   function fireIc(){ const W=WP[me.wi]; if(fireB) fireB.firstChild.nodeValue=W.ic; if(fire2) fire2.firstChild.nodeValue=W.ic; eWpn.innerHTML=W.ic+' '+W.nm+' <small>'+(me.wi+1)+'/'+WP.length+(W.t==="snipe"?' · 꾹 눌러 조준 → 떼면 쏘기':W.t==="melee"?' · 가까이 가서!':'')+'</small>'; }
@@ -686,7 +725,7 @@ function start(api){
   const cFromP=new V3(), cFromQ=new THREE.Quaternion(), _cP=new V3(), _cQ=new THREE.Quaternion();
   const SHOW=new THREE.Group(); scene.add(SHOW); let showC=null;
   try{ showC=buildAvatar(api.av||{}); showC.t=0; showC.blinkT=2; showC.act="idle"; showC.g.scale.setScalar(AVK); SHOW.add(showC.g); showC.g.traverse(m=>{ if(m.isMesh) m.castShadow=!api.low; });
-    if(showC.armR){ const gg=new THREE.Group(); showC.armR.add(gg); gg.position.set(0,-.2,0); gg.scale.setScalar(.7); gunModel(gg, 0, true); SHOW.userData.gun=gg; } }catch(e){ showC=null; }
+    if(showC.armR){ const gg=new THREE.Group(); showC.armR.add(gg); gg.position.set(.05,-.235,0); gg.scale.setScalar(.7); gunModel(gg, 0, true); SHOW.userData.gun=gg; } }catch(e){ showC=null; }
   function placeShow(){ const s=MAPS[MAPK].show; SHOW.position.set(s[0],s[1],s[2]); }
   /* 가로 = 캐릭터가 오른쪽 (왼쪽은 메뉴) · 세로 = 캐릭터가 위 (아래는 메뉴) */
   /* 캐릭터는 맵 가운데 쪽을 등지고 섬 · 카메라는 바깥에서 살짝 좌우로 흔들리며 → 뒤로 맵이 보임 */
@@ -756,7 +795,7 @@ function start(api){
     if(I.jumpP) me.jbuf=.14; me.jbuf=Math.max(0, me.jbuf-dt);
     const jump=me.onG && (me.jbuf>0 || I.jump);   /* 점프 꾹 = 땅에 닿자마자 또 (버니합) */
     if(jump) me.jbuf=0;
-    if(time.cd>0){ me.v.x=me.v.z=0; } else moveAct(me, wx, wz, wl, jump, !!I.slideP, !!I.slide, dt);
+    if(time.cd>0){ me.v.x=me.v.z=0; } else moveAct(me, wx, wz, wl*(me.spT>0?1.35:1), jump, !!I.slideP, !!I.slide, dt);
     /* 쏘기 */
     me.cd-=dt; const W=WP[me.wi], e=eyeOf(me), d=dirOf(me.yaw, me.pitch);
     let want=I.fire;
@@ -766,7 +805,7 @@ function start(api){
     else if(want && me.cd<=0 && time.cd<=0){ fire(me, e, d, !SET.aim?null:I.touch?(o,dd,rg)=>assist(me,o,dd,rg,SET.aim>1?3.4:1.8):I.mouse?(o,dd,rg)=>assist(me,o,dd,rg,.9):null); }
     /* 마르기 */
     if(time.t-me.lastHit>3.2) me.soak=Math.max(0, me.soak-34*dt); }
-  function botsTick(dt){ for(const a of ACT){ if(a.net || (a.bot && a.rb)){ netVis(a, dt); continue; } if(!a.bot) continue; if(!a.alive){ a.resp-=dt; a.dead+=dt; if(a.c){ a.c.g.rotation.x=-Math.min(1.4, a.dead*5); a.c.g.position.y=Math.max(-.3, -a.dead*.4); } if(a.bk){ const B=a.bk; B.g.rotation.x=-Math.min(1.5, a.dead*6); B.g.position.y=0; B.armL.rotation.set(-2.6,0,.3); B.armR.rotation.set(-2.6,0,-.3); B.legL.rotation.x=.3; B.legR.rotation.x=-.3; } if(a.dead>1.0) a.G.visible=false; if(a.resp<=0) spawn(a); continue; }
+  function botsTick(dt){ for(const a of ACT){ if(a.net || (a.bot && a.rb)){ netVis(a, dt); continue; } if(!a.bot) continue; if(!a.alive){ a.resp-=dt; a.dead+=dt; if(a.c){ a.c.g.rotation.x=-Math.min(1.45, a.dead*4.2); a.c.g.position.y=(a.dead<.45?Math.sin(a.dead/.45*Math.PI)*.45:0)-Math.max(0, a.dead-.6)*.5; }   /* 폴짝 → 벌러덩 */ if(a.bk){ const B=a.bk; B.g.rotation.x=-Math.min(1.5, a.dead*6); B.g.position.y=0; B.armL.rotation.set(-2.6,0,.3); B.armR.rotation.set(-2.6,0,-.3); B.legL.rotation.x=.3; B.legR.rotation.x=-.3; } if(a.dead>1.0) a.G.visible=false; if(a.resp<=0) spawn(a); continue; }
       a.prot=Math.max(0,a.prot-dt); if(time.cd>0){ a.G.position.set(a.p.x,a.p.y,a.p.z); continue; } botTick(a, dt); if(time.t-a.lastHit>3.2) a.soak=Math.max(0, a.soak-30*dt); } }
 
   /* ════ 판 끝 ════ */
@@ -791,13 +830,13 @@ function start(api){
   function tick(dt){ if(paused && !CO) return; time.t+=dt; if(MAPG && MAPG.userData.sky) MAPG.userData.sky.rotation.y+=dt*.008;
     if(NETR){ NETR.tick(dt); netApply(dt); if(time.st) time.left=Math.max(0, Math.min(MATCH, MATCH-(NETR.now()-time.st)/1000));
       if(phase==="room" && NETR && NETR.d && NETR.d.h && NETR.d.h.map && NETR.d.h.map!==MAPK) setMap(NETR.d.h.map); }   /* 친구 방에 들어가면 그 방 맵이 뒤에 보임 */
-    if(phase==="menu" || phase==="room"){ menuTick(dt); fxTick(dt); return; }
+    if(phase==="menu" || phase==="room"){ menuTick(dt); fxTick(dt); pkTick(dt); return; }
     if(phase==="intro"){ introT+=dt; api.I.lx=api.I.ly=0; const now=NETR?NETR.now():0, done=introSt?now>=introSt+INTRO*1000:introT>=INTRO;
       if(done){ phase="play"; api.menu=false; menuUI("play"); time.cd=introSt?Math.max(.1,(introSt+INTRO*1000+3000-now)/1000):3.2; showHint(); } }
     else if(time.cd>0){ const c0=Math.ceil(time.cd); time.cd-=dt; const c1=Math.ceil(time.cd); eCnt.textContent=time.cd>0?c1:"GO!"; if(c1!==c0) api.sfx.tick(); if(time.cd<=0){ api.sfx.up(); setTimeout(()=>{ eCnt.textContent=""; }, 600); } }
     else if(!time.over){ if(!CO) time.left-=dt; if(time.left<=0){ time.left=0; time.over=true; finishMatch(null); } }
     if(phase==="play") myTick(dt); botsTick(dt);
-    fxTick(dt);
+    fxTick(dt); pkTick(dt);
     for(const f of FEED) f.t-=dt; if(FEED.length && FEED[FEED.length-1].t<=0){ FEED.pop(); drawFeed(); }
     /* 카메라 */
     const eyeH=me.alive?(me.sl?EYES:EYE):.35, ty=me.p.y+eyeH; if(Math.abs(ty-camY)<.7 && me.onG) camY+=(ty-camY)*Math.min(1,dt*16); else camY=ty;
@@ -826,7 +865,7 @@ function start(api){
   if(api.opt.quick){ if(api.opt.mode==="co") goCo(); else beginSolo(); }
   function render(rn){ MG.draw(scene, cam); const va=cam.aspect||1.5, vf=va>=1.3?58:Math.min(92, 58+(1.3-va)*52); if(vmC.aspect!==va || vmC.fov!==vf){ vmC.aspect=va; vmC.fov=vf; vmC.updateProjectionMatrix(); } rn.autoClear=false; rn.clearDepth(); rn.render(vmS, vmC); rn.autoClear=true; }
   function dispose(){ gone=true; try{ api.sfx.vol=1; }catch(e){} if(NETR){ try{ NETR.dispose(); }catch(e){} } if(MAPG) MAPG.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); Object.values(GM).forEach(m=>{ try{ m.dispose(); }catch(e){} }); BAL.forEach(b=>scene.remove(b.m)); }
-  return {scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, vmSet, VM, me, ACT, PEER, get NETR(){ return NETR; }, WP, time, BOX, fire, hurt, spawn, PADS, SPAWN, moveAct, up, win, path, sees, get D(){ return D; }, vmA, get zoom(){ return zoom; },
+  return {PKS, pkSpawn, pkTake, reactVis, scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, vmSet, VM, me, ACT, PEER, get NETR(){ return NETR; }, WP, time, BOX, fire, hurt, spawn, PADS, SPAWN, moveAct, up, win, path, sees, get D(){ return D; }, vmA, get zoom(){ return zoom; },
     get phase(){ return phase; }, beginSolo, goCo, setMap, get MAPK(){ return MAPK; }, MAPS, MAPL, SET, applySet, menuUI, card, HT, BL, NC}; }
 
 MG.reg("arena", {ic:"💦", nm:"물총 아레나", tag:"1인칭 · 아레나 무브 · 무기 8단계", bg:"linear-gradient(135deg,#7fd3ff,#2f7fff)", big:"🔫💦",
