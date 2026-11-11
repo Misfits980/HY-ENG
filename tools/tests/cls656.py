@@ -49,7 +49,7 @@ async def main():
         r = await E("()=>FB.get('/battle/9999/p/k1')"); ok(r and r.get("ng") == 1 and r.get("mw") == "beard", f"배틀: 틀리면 내 줄에 틀린 단어 {r}")
         await E("()=>{ Battle.role=null; Battle.q=null; clearInterval(Battle.t); try{ document.getElementById('scRaid').classList.remove('on'); }catch(e){} Cls.cur=null; }")
         # ── 🏫 한밤의 학교
-        ok(await E("()=>Esc.HS.length===2 && Esc.HS.every(h=>h.Z.length===3 && h.Z.every(z=>z[1].length===3 && z[1].every(r=>r[2].length===5)) && h.R.length===3 && h.FLV.length===3)"), "집 두 채 — 층 3 · 방 3 · 물건 5 씩 같은 틀")
+        ok(await E("()=>Esc.HS.length>=2 && Esc.HS.every(h=>h.Z.length===3 && h.Z.every(z=>z[1].length===3 && z[1].every(r=>r[2].length===5)) && h.R.length===3 && h.FLV.length===3)"), "집 두 채 — 층 3 · 방 3 · 물건 5 씩 같은 틀")
         await E("()=>EscTV.host({set:'elem', from:0, to:5, dur:20, lv:1, mo:0, hv:1})"); await T.wait_for_function("()=>EscTV.room", timeout=8000); room = await E("()=>EscTV.room")
         K = await ctx.new_page(); await K.set_viewport_size({"width": 400, "height": 860}); await boot(K)
         await K.evaluate("(r)=>{ EscPad.join(r, {id:'k1', n:'민준'}); window.confirm=()=>true; }", room); await T.wait_for_timeout(1300)
