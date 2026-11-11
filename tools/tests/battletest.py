@@ -6,7 +6,7 @@ from playwright.async_api import async_playwright
 async def main():
     bad=[]; errs=[]
     async with async_playwright() as p:
-        br=await p.chromium.launch(); ctx=await br.new_context(viewport={"width":1024,"height":700})
+        br=await p.chromium.launch(); ctx=await br.new_context(viewport={"width":int(os.environ.get("HY_W","1024")),"height":int(os.environ.get("HY_H","700"))})
         await ctx.add_init_script("window.HY_FB_LOCAL=true;")
         host=await ctx.new_page(); host.on("pageerror", lambda e: errs.append("H "+str(e))); await boot(host)
         room=await host.evaluate("()=>Battle.host({set:'g56', from:0, to:2, dur:20, team:false, lbl:'G5-6 Stage 1-1~1-3'})"); print("room", room)
