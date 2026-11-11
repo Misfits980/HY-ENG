@@ -36,7 +36,7 @@ async def main():
         await T.evaluate("()=>{ Battle.reopen('3939'); }"); await T.wait_for_timeout(600)
         await T.evaluate("()=>{ const t=JSON.parse(JSON.stringify(Battle.h.get())); Battle.h.close(); Battle.h={get:()=>t, up:()=>false, close(){}}; Battle._evAt=Date.now()-10000; }")
         await T.evaluate("()=>FB.update('/battle/3939/p/a3', {n:'지우', sc:10, at:Date.now()})"); await T.wait_for_timeout(3800)
-        r = await T.evaluate("()=>[!!document.querySelector('.btLag'), [...document.querySelectorAll('.btRow b')].map(b=>b.textContent)]")
+        r = await T.evaluate("()=>[!!document.querySelector('.btLag'), [...document.querySelectorAll('.btRow b, #brTrk .brTag span')].map(b=>b.textContent)]")
         ok(r[0] and "지우" in r[1], f"TV: 「연결 다시 잡는 중」 + 새 아이 보임 {r}")
         await T.evaluate("()=>{ Battle.role=null; clearInterval(Battle.t); }")
         # 「한 판 더」 — 끝난 지 2초 넘어 바로 눌러도 다음 판 점수는 0 부터 (옛 점수를 붙잡지 않음) · 점수가 올라감
@@ -48,7 +48,7 @@ async def main():
         ok(r[0] == "wait" and r[1] == 1 and r[2] == [0, 0] and not r[3], f"한 판 더: 대기 · 점수 0 · 옛 점수 안 붙잡음 {r}")
         await T.evaluate("()=>FB.update('/battle/4848/st', {s:'run', t0:Battle.now()-1000})"); await T.wait_for_timeout(300)
         await T.evaluate("()=>FB.inc('/battle/4848/p/a1', {sc:10, ok:1})"); await T.wait_for_timeout(500)
-        r = await T.evaluate("()=>[(Battle.T().p.a1||{}).sc, [...document.querySelectorAll('.btRow em')].map(e=>e.textContent)]")
+        r = await T.evaluate("()=>[(Battle.T().p.a1||{}).sc, [...document.querySelectorAll('.btRow em, #brTrk .brTag u')].map(e=>e.textContent)]")
         ok(r[0] == 10 and "10" in r[1], f"다음 판 점수가 0 에서 올라감 {r}")
         await T.evaluate("()=>{ Battle.role=null; clearInterval(Battle.t); }")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
