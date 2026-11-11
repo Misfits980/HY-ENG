@@ -3108,6 +3108,58 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppNR{display:grid;grid-template-columns:11mm 1fr 1fr 1fr;gap:0 2.5mm;height:9.5mm;align-items:end} .ppNR i{display:block;border-bottom:1px solid #777;height:100%;font-style:normal}
 .ppNR.hd{height:5mm} .ppNR.hd i{border:0;font-size:8pt;color:#666;font-weight:700;height:auto}
 .ppNS{display:flex;justify-content:flex-end;gap:4mm;margin-top:4mm;font-size:8.5pt;font-weight:700} .ppNS span{display:flex;align-items:flex-end;gap:1.5mm;white-space:nowrap} .ppNS i{display:inline-block;width:15mm;height:6mm;border-bottom:1px solid #333}
+/* (v657) 🏃 교실 배틀 = 달리기 경주 */
+.brSky{position:absolute;inset:0;overflow:hidden;background:#7fb8e8}
+.brScr{position:absolute;left:0;bottom:0;height:142%;display:flex;animation:brScroll 64s linear infinite;will-change:transform}
+.brScr i{flex:none;height:100%;aspect-ratio:1672/941;background:url(assets/raid/bg_meadow.webp) center/100% 100% no-repeat;margin-right:-1px} .brScr i.f{transform:scaleX(-1)}
+@keyframes brScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#btRace{position:absolute;inset:0;z-index:0;overflow:hidden}
+#btRace:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,14,40,.6) 0,rgba(10,14,40,0) 26%,rgba(0,0,0,0) 70%,rgba(20,12,4,.3) 100%);pointer-events:none}
+.brTrk{position:absolute;left:0;right:0;top:57%;bottom:74px;z-index:2}
+.brStart{position:absolute;left:14%;top:0;bottom:0;width:6px;margin-left:-3px;background:rgba(255,255,255,.6);border-radius:3px}
+#btRace:not(.hold) .brStart{animation:brStartGo 8s linear forwards}   /* 배경과 같은 빠르기: 142% 높이 × (1672/941) × 2장 ÷ 64초 ≈ 7.9vh/초 */
+@keyframes brStartGo{to{transform:translateX(-63.1vh)}}
+#btRace.hold .brScr{animation-play-state:paused}
+.brR{position:absolute;transform:translateX(-50%);transition:left .7s cubic-bezier(.2,.9,.3,1.25),top .4s}
+.brR .btChr{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 5px 4px rgba(0,0,0,.35))}
+.brShd{position:absolute;left:22%;right:22%;bottom:4%;height:11%;border-radius:50%;background:rgba(0,0,0,.3)}
+.brTag{position:absolute;right:80%;top:38%;display:flex;align-items:center;gap:.35em;white-space:nowrap;font:900 clamp(13px,1.35vw,26px) var(--font);color:#fff;background:rgba(15,12,40,.86);padding:.12em .7em .12em .25em;border-radius:99px;border:2px solid rgba(255,255,255,.3)}
+.brTag em{font-style:normal;min-width:1.5em;height:1.5em;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.18);font-size:.85em}
+.brTag.r1 em{background:#ffd23f;color:#3a2600} .brTag.r2 em{background:#d8dde6;color:#333} .brTag.r3 em{background:#e0995a;color:#3a1c00} .brTag.r1{border-color:#ffd23f}
+.brTag u{text-decoration:none;color:#ffd23f}
+.brPop{position:absolute;left:96%;top:22%;white-space:nowrap;font:900 clamp(18px,2.1vw,42px) var(--font);color:#7dffa8;text-shadow:0 3px 0 #0a4a22,0 0 12px rgba(0,0,0,.45);opacity:0;pointer-events:none}
+.brR.boost .brPop{animation:brPop 1.1s ease-out}
+@keyframes brPop{0%{opacity:0;transform:translateY(20%) scale(.6) rotate(-4deg)}18%{opacity:1;transform:translateY(-10%) scale(1.15) rotate(-4deg)}70%{opacity:1;transform:translateY(-40%) scale(1) rotate(-4deg)}100%{opacity:0;transform:translateY(-70%) scale(1) rotate(-4deg)}}
+.brSpd{position:absolute;right:70%;top:52%;width:190%;height:40%;background:repeating-linear-gradient(180deg,transparent 0 14%,rgba(255,255,255,.85) 14% 19%,transparent 19% 33%);-webkit-mask:linear-gradient(90deg,transparent,#000);mask:linear-gradient(90deg,transparent,#000);transform:skewX(-18deg);opacity:0}
+.brR.boost .brSpd{animation:brSpd .9s ease-out}
+@keyframes brSpd{0%{opacity:0;transform:skewX(-18deg) scaleX(.3)}20%{opacity:1;transform:skewX(-18deg) scaleX(1)}100%{opacity:0;transform:skewX(-18deg) scaleX(1.2)}}
+.brDust{position:absolute;right:74%;bottom:4%;width:16%;height:16%;border-radius:50%;background:rgba(255,245,220,.85);box-shadow:-.9em .25em 0 -.18em rgba(255,245,220,.65),-1.7em .5em 0 -.3em rgba(255,245,220,.45);font-size:clamp(12px,1.4vw,26px);opacity:0}
+.brR.boost .brDust{animation:brDust .8s ease-out}
+@keyframes brDust{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translateX(-80%) scale(1.5)}}
+.brR.boost .btChr{animation:rdAwWalk .28s steps(6) infinite}
+.brR.oops .btChr{animation:brTrip .9s ease-in-out}
+@keyframes brTrip{0%,100%{transform:none}20%{transform:rotate(14deg) translateY(4%)}45%{transform:rotate(-8deg)}70%{transform:rotate(6deg)}}
+.brR.oops:after{content:"💦";position:absolute;left:68%;top:8%;font-size:clamp(18px,2vw,40px);animation:brPop .9s ease-out}
+.brFeed{position:absolute;right:24px;top:max(22%,172px);z-index:3;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.brFeed span{font:800 clamp(14px,1.3vw,25px) var(--font);color:#fff;background:rgba(15,12,40,.8);padding:.3em .9em;border-radius:99px;animation:clsIn .3s ease-out} .brFeed span b{color:#ffd23f} .brFeed span.big{border:2px solid #ffd23f;font-size:clamp(16px,1.6vw,30px)}
+#scRaid.brOn{position:relative;overflow:hidden}
+#scRaid.brOn #rdIn{position:relative;z-index:2;padding-bottom:0;pointer-events:none} #scRaid.brOn #rdIn>*{pointer-events:auto}
+#scRaid.brOn #rdA{background:rgba(15,12,40,.74);border-radius:18px;padding:6px 12px 8px;backdrop-filter:blur(3px)}
+#scRaid.brOn #rdC{position:fixed;left:auto;right:18px;bottom:76px;z-index:4;width:auto;background:none!important;padding:0;box-shadow:none} #scRaid.brOn #rdC .rdCtl{margin:0} #scRaid.brOn #rdC button{opacity:.85}
+#scRaid.brOn .btDblBig{position:relative;z-index:3}
+/* 📱 아이 패드 — 문제 위 달리기 띠 */
+#btStrip{position:relative;height:clamp(92px,18vh,230px);max-width:952px;margin:calc(8px + env(safe-area-inset-top,0px)) auto 0;width:calc(100% - 24px);border-radius:20px;overflow:hidden;border:2px solid rgba(255,255,255,.2)}
+#btStrip .brScr{height:200%;animation-duration:38s}
+#btStrip .brR{bottom:4%;height:64%;aspect-ratio:1;transition:left .6s ease-out}
+#btStrip .brR.me{left:42%;z-index:3} #btStrip .brR.gh{height:46%;opacity:.92;z-index:2} #btStrip .brR.gh:empty{display:none} #btStrip .brR.gh .brTag{font-size:clamp(10px,1.9vh,17px);background:rgba(15,12,40,.7)}
+#btStrip .brTag{font-size:clamp(11px,2.4vh,20px);padding:.1em .7em;right:auto;top:auto;left:50%;bottom:90%;transform:translateX(-50%)} #btStrip .brR.me .brTag{display:none} #btStrip .brR.me .brShd{background:rgba(255,210,63,.8);box-shadow:0 0 0 3px rgba(255,255,255,.55)}
+#btStrip .brPop{font-size:clamp(18px,4.2vh,40px);top:16%} #btStrip .brR.oops:after{font-size:clamp(18px,4vh,36px)} #btStrip .brDust{font-size:clamp(10px,2.4vh,22px)}
+.bsRk{position:absolute;left:10px;top:8px;z-index:4;font:900 clamp(13px,2.6vh,22px) var(--font);background:rgba(255,255,255,.9);color:#2a2340;padding:.15em .8em;border-radius:99px} .bsRk.r1{background:#ffd23f;color:#3a2600} .bsRk.r2{background:#d8dde6} .bsRk.r3{background:#e0995a;color:#3a1c00}
+.bsGap{position:absolute;right:10px;top:8px;z-index:4;font:900 clamp(12px,2.4vh,21px) var(--font);color:#fff;background:rgba(15,12,40,.85);padding:.2em .9em;border-radius:99px;border:2px solid #ff9d4d;white-space:nowrap;max-width:calc(100% - 90px);overflow:hidden;text-overflow:ellipsis} .bsGap:empty{display:none} .bsGap b{color:#ffd23f}
+#scRaid.brKid .rdWrap{padding-top:8px}
+@media (orientation:landscape) and (max-height:520px){ #btStrip{display:none} }
+@media (orientation:portrait) and (max-height:760px){ #scRaid.brKid .btLive{display:none!important} }   /* 작은 휴대폰: 띠가 순위·점수 차를 보여 주니 아래 순위표는 접음 (문제 화면에 스크롤 없게) */
+@media (prefers-reduced-motion:reduce){ .brScr{animation:none} }
 /* (v656) 🏫 수업 게임 끝 — TV 아래 한 줄 · 선생님 방 기록 */
 #clsBar{position:fixed;left:50%;bottom:calc(68px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:330;display:flex;align-items:center;flex-wrap:wrap;gap:6px 18px;max-width:min(96vw,1500px);padding:10px 46px 10px 18px;border-radius:18px;background:rgba(20,16,44,.94);border:2px solid #ffd23f;color:#fff;font:700 clamp(13px,1.15vw,20px) var(--font);box-shadow:0 8px 28px rgba(0,0,0,.5);animation:clsUp .35s ease-out}
 @keyframes clsUp{from{transform:translate(-50%,30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
@@ -17102,7 +17154,11 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
+<<<<<<< HEAD
 const GAME_VER = "v658";
+=======
+const GAME_VER = "v657";
+>>>>>>> 9b860f53 (v657 🏃 교실 배틀(개인 레이스) = 달리기 경주 — TV 초원 트랙(배경 흐름·한 줄씩·맞히면 슝·틀리면 비틀·추월 소식·출발선은 땅과 같이 흘러감) · 패드 달리기 띠 · 방탈출 카드 설명 고침)
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -24714,6 +24770,53 @@ const RAID_AW = {
   sharp:{e:"🎯", n:"정확왕",      d:"가장 정확하게 (10문제 이상)", u:"%", title:"t-r-sharp"},
   hard: {e:"🔥", n:"끈기왕",      d:"가장 많이 맞혔어요",        u:"문제", title:"t-r-hard"}   /* (v322) 푼 수 → 맞힌 수 (아무거나 빨리 눌러도 받던 것) */
 };
+/* ══ (v657) 🏃 교실 배틀 = 달리기 경주 — 사용자: 「애들이 뛰는 느낌이 아니라서 아쉬워」 → 시안 「오 이거 좋다 · 8명까지면 충분」
+   점수 배틀(깃발·달리기 레이스 아님)의 달리는 중 화면만 바꿈 (대기·끝 화면 · 점수 규칙 · 시간제는 그대로):
+   📺 TV = 화면 가득 초원 트랙 (배경이 흘러감) · 아이마다 한 줄 · 점수만큼 앞으로 · 맞히면 슝(속도선·흙먼지·+점수) · 틀리면 💦 비틀 · 추월 소식
+   📱 패드 = 문제 위에 내 캐릭터가 달리는 띠 (바로 앞·뒤 친구가 같이 보임 · 점수 차만큼 가깝게)
+   그림은 있던 것만: 걷기 그림(오른쪽 줄) · 레이드 초원 배경 (좌우 뒤집어 이어 붙여 끝없이). Raid.reg 가 다시 그려도 안 끊기게 #scRaid 에 따로 붙임 */
+const BtRace = { tv:null, kd:null, L:{}, pv:{}, rk:{}, fd:[], cap:0,
+  bg(){ return '<div class="brSky"><div class="brScr"><i></i><i class="f"></i><i></i><i class="f"></i></div></div>'; },
+  chr(c){ return Battle.chr(c) || Battle.chr("hero") || '<i class="btChr"></i>'; },
+  want(){ const B=Battle, S=$("scRaid"); if(!B.role || !S || !S.classList.contains("on") || !S.classList.contains("btOn")) return ""; let c, st; try{ c=B.cfg(); st=B.st(); }catch(e){ return ""; }
+    if(B.isRun() || c.mode==="flag" || B.ended) return ""; if(st.s!=="run" && st.s!=="count") return ""; return B.role==="host" ? "tv" : B.role==="kid" ? "kid" : ""; },
+  sync(){ let w=""; try{ w=this.want(); }catch(e){} const S=$("scRaid"); if(!S) return;
+    if(w!=="tv" && this.tv){ this.tv.remove(); this.tv=null; S.classList.remove("brOn"); }
+    if(w!=="kid" && this.kd){ this.kd.remove(); this.kd=null; S.classList.remove("brKid"); }
+    try{ if(w==="tv") this.syncTv(S); else if(w==="kid") this.syncKid(S); }catch(e){ console.error(e); } },
+  off(){ const S=$("scRaid"); if(this.tv){ this.tv.remove(); this.tv=null; } if(this.kd){ this.kd.remove(); this.kd=null; } if(S) S.classList.remove("brOn","brKid"); },
+  fx(el, cls, ms){ if(!el) return; el.classList.remove("boost","oops"); void el.offsetWidth; el.classList.add(cls); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove(cls), ms); },
+  syncTv(S){ const B=Battle, P=B.T().p||{}, E=x=>B.esc(x), now=Date.now();
+    if(!this.tv){ const d=document.createElement("div"); d.id="btRace"; d.className="go"; d.innerHTML=this.bg()+'<div class="brTrk" id="brTrk"><i class="brStart"></i></div><div class="brFeed" id="brFeed"></div>'; S.insertBefore(d, S.firstChild); this.tv=d; S.classList.add("brOn"); this.L={}; this.pv={}; this.rk={}; this.fd=[]; this.cap=0; this._fk=""; }
+    { const st=B.st(); this.tv.classList.toggle("hold", st.s==="count" && B.now()<(st.t0||0)); }   /* 3·2·1 동안은 땅이 멈춰 있고, 출발하면 출발선이 땅과 같이 뒤로 흘러가 사라짐 (사용자: 「시작한 그 줄은 계속 움직이네」— 땅은 흐르는데 줄만 화면에 붙어 있었음) */
+    const T=$("brTrk"), ids=Object.keys(P).filter(k=>P[k] && P[k].n).sort(), n=ids.length, R=B.rankOf(P).filter(k=>P[k] && P[k].n), top=Math.max(0, ...ids.map(k=>P[k].sc|0));
+    this.cap=Math.max(this.cap, 120, Math.ceil(top*1.15/40)*40);
+    const H=T.clientHeight||300, lh=Math.min(H/Math.max(1,n), H/3), sz=Math.round(Math.max(Math.min(132, H*0.36), Math.min(230, lh*2.4)));
+    Object.keys(this.L).forEach(k=>{ if(ids.indexOf(k)<0){ this.L[k].remove(); delete this.L[k]; delete this.pv[k]; delete this.rk[k]; } });
+    ids.forEach((k,i)=>{ const p=P[k], sc=p.sc|0, r=R.indexOf(k)+1; let el=this.L[k];
+      if(!el){ el=document.createElement("div"); el.className="brR"; el.innerHTML='<i class="brSpd"></i><i class="brDust"></i><i class="brShd"></i>'+this.chr(p.c)+'<b class="brTag"><em></em><span></span><u></u></b><span class="brPop"></span>'; el._c=p.c; T.appendChild(el); this.L[k]=el; }
+      if(el._c!==p.c){ el._c=p.c; const o=el.querySelector(".btChr"); if(o) o.outerHTML=this.chr(p.c); }
+      el.style.width=el.style.height=sz+"px"; el.style.top=Math.round((i+1)*lh-sz+ (H-lh*n))+"px"; el.style.zIndex=String(10+i); el.style.left=(15+Math.min(1, sc/this.cap)*72).toFixed(2)+"%";
+      const tg=el.querySelector(".brTag"); tg.className="brTag r"+Math.min(4, r); tg.children[0].textContent=r; tg.children[1].textContent=p.n; tg.children[2].textContent=sc;
+      const o=this.pv[k]; if(o){ if(sc>o.sc){ const d=sc-o.sc, sk=p.sk|0; el.querySelector(".brPop").textContent="+"+d+(sk>=3 ? " 🔥"+sk : d>=30 ? " ⚡" : ""); this.fx(el, "boost", 1100); if(sk>=3 && sk%3===0) this.fd.unshift({h:'<b>'+E(p.n)+'</b> 🔥 '+sk+'연속!', at:now}); }
+        else if((p.ng|0)>o.ng) this.fx(el, "oops", 900);
+        const r0=this.rk[k]; if(r0 && r<r0 && r<=3 && sc>o.sc && n>1 && now-(el._ov||0)>4000){ el._ov=now; this.fd.unshift({h:'<b>'+E(p.n)+'</b> 추월! '+r0+'등 → '+r+'등', at:now, big:r===1}); } }   /* 3등 안으로 들어올 때만 (처음엔 다들 0점이라 소식이 쏟아짐) */
+      this.pv[k]={sc, ng:p.ng|0}; this.rk[k]=r; });
+    this.fd=this.fd.filter(x=>now-x.at<6000).slice(0,3); const fk=this.fd.map(x=>x.at+x.h).join("|"); if(fk!==this._fk){ this._fk=fk; $("brFeed").innerHTML=this.fd.map(x=>'<span'+(x.big?' class="big"':'')+'>'+x.h+'</span>').join(''); } },
+  syncKid(S){ const B=Battle, me=B.me, P=B.T().p||{}, E=x=>B.esc(x);
+    if(!this.kd){ const d=document.createElement("div"); d.id="btStrip"; d.className="go"; let mc=""; try{ mc=(P[me]||{}).c || G.char; }catch(e){}
+      d.innerHTML=this.bg()+'<b class="bsRk" id="bsRk"></b><b class="bsGap" id="bsGap"></b><div class="brR gh" id="bsA"></div><div class="brR gh" id="bsB"></div><div class="brR me" id="bsM"><i class="brSpd"></i><i class="brDust"></i><i class="brShd"></i>'+this.chr(mc)+'<b class="brTag r1"><span>나</span></b><span class="brPop" id="bsPop"></span></div>';
+      S.insertBefore(d, S.firstChild); this.kd=d; S.classList.add("brKid"); this._kk=""; }
+    const Q=Object.assign({}, P); Q[me]=Object.assign({n:(B.pick||{}).n}, Q[me]||{}, {sc:Math.max(((Q[me]||{}).sc|0), B.sc|0)});
+    const R=B.rankOf(Q).filter(k=>Q[k] && Q[k].n), i=R.indexOf(me), up=R[i-1], dn=R[i+1], my=Q[me].sc|0, gu=up ? (Q[up].sc|0)-my : 0, gd=dn ? my-(Q[dn].sc|0) : 0;
+    $("bsRk").textContent=(i+1)+"등"; $("bsRk").className="bsRk r"+Math.min(4, i+1);
+    $("bsGap").innerHTML = up ? (gu>0 ? '🔥 '+i+'등 <b>'+E(Q[up].n)+'</b>까지 '+gu+'점!' : '⚡ <b>'+E(Q[up].n)+'</b>와 같은 점수 — 하나만 더!') : R.length>1 ? '👑 1등으로 달리는 중!' : '';
+    const key=[up, up && Q[up].c, dn, dn && Q[dn].c].join("|");
+    if(key!==this._kk){ this._kk=key; const g=(k)=> k ? '<i class="brShd"></i>'+this.chr(Q[k].c)+'<b class="brTag"><span>'+E(Q[k].n)+'</span></b>' : ''; $("bsA").innerHTML=g(up); $("bsB").innerHTML=g(dn); }
+    $("bsA").style.left=(60+Math.min(1, gu/120)*26)+"%"; $("bsB").style.left=(24-Math.min(1, gd/120)*18)+"%"; },
+  /* 패드: 내가 답했을 때 */
+  kidFx(ok, gain, sk){ const m=$("bsM"); if(!m) return; if(ok){ $("bsPop").textContent="+"+(gain|0)+(sk>=3 ? " 🔥"+sk+"연속" : ""); this.fx(m, "boost", 1100); } else this.fx(m, "oops", 900); }
+};
 /* ══ (v656) 🏫 수업 게임 공통 — 사용자: 「방탈출·레이드·배틀 다 조금씩 빠져 있다」 → 한 판이 끝나도 남는 것:
    ① 아이 기기: 틀린 단어 → Study.clsMiss (내일 Daily 30 복습) · 점수 줄의 「틀린 단어」 칸 (선생님 📕 반이 많이 틀린 단어에 합쳐짐)
    ② TV: 끝나면 아래에 한 줄 — 📕 많이 틀린 단어 · 반 정답률 · 지난번 대비
@@ -27352,8 +27455,8 @@ const Battle = {
     let add;
     if(ok){ this.streak++; this.ok++; let g=(q.exq ? ({A:10, B:15, C:20}[q.ab]||10) : 10) + Math.min(10, (this.streak-1)*2);   /* (v351) 시험처럼: B·C 문제는 점수가 더 큼 */
       const fast = this.now()-this.qAt <= this.FAST+2000; if(q.zap) g*=3; else if(this.dbl()) g*=2; if(fast) g+=3; q.gain=g; q.fast=fast;   // (v382) ⚡ 번개 3배 · 🔥 마지막 30초 2배 · 빨리 맞히면 +3
-      this.sc += g; add={sc:g, ok:1}; try{ if(this.cfg().mode==="flag") this.flagFx(); }catch(e){} try{ SFX.tone(660,.1,"triangle",.05,1320); }catch(e){} }
-    else { this.streak=0; this.ng++; add={ng:1}; this.lockTo=this.now()+1500; try{ SFX.tone(200,.15,"square",.04); }catch(e){} }
+      this.sc += g; add={sc:g, ok:1}; try{ if(this.cfg().mode==="flag") this.flagFx(); }catch(e){} try{ SFX.tone(660,.1,"triangle",.05,1320); }catch(e){} try{ BtRace.kidFx(true, g, this.streak); }catch(e){} }
+    else { this.streak=0; this.ng++; add={ng:1}; this.lockTo=this.now()+1500; try{ SFX.tone(200,.15,"square",.04); }catch(e){} try{ BtRace.kidFx(false); }catch(e){} }
     FB.inc("/battle/"+this.room+"/p/"+this.me, add, Object.assign({at:this.now(), sk:this.streak}, ok ? {} : {mw:Cls.mw()}));   // (v382) sk = 지금 연속 (TV 소식) · (v322) 서버에서 더하기 (절대값으로 쓰면 늦게 온 쓰기·두 기기가 점수를 덮어씀)
     this.draw(); setTimeout(()=>{ if(this.q===q){ this.q=this.nextQ(); this.qAt=this.now(); this.draw(); } }, ok?350:1500); },
   rank(){ const fin=this.st().fin, P=this.T().p||{}; let R = this.ended && fin && fin.r ? fin.r.filter(k=>P[k]) : this.rankOf(P);
@@ -27493,7 +27596,7 @@ const Battle = {
     if(this.q && this.q.exq){ const b=$("btQTi"); if(b){ const l=this.q.done ? 0 : this.qLeft(); b.style.width=(l/(this.q.sec*1000)*100).toFixed(1)+"%"; b.parentNode.classList.toggle("hurry", l<3000); } }
     if(now-(this._ping||0)>20000 && this.cfg().made){ this._ping=now; FB.update("/battle/"+this.room+"/p/"+this.me, {at:now}); }   // (v322) '접속 중' 표시 (같은 이름 막기)
     this.draw(); },
-  leave(){ clearInterval(this.t); this.t=null; this.frClose(); try{ if(this.role==="host") TvCast.stop(); }catch(e){}
+  leave(){ try{ BtRace.off(); }catch(e){} clearInterval(this.t); this.t=null; this.frClose(); try{ if(this.role==="host") TvCast.stop(); }catch(e){}
     if(this.role==="kid" && this.ended) RaidJoin.saveLast(null);
     if(this.role==="host"){ TvRoom.save(null); const st=this.st(), r=this.room; LiveRoom.end(r);   // (v322) 선생님이 닫으면 = 배틀 끝 · 20초 뒤 방을 지움 (아이 화면은 마지막 모습 그대로)
       if(st.s==="count" || st.s==="run"){ const top=this.cfg().mode==="flag" ? this.teamsOf()[0] : null; FB.update("/battle/"+r+"/st", Object.assign({s:"end", endAt:this.now()}, top ? {win:top.t} : {})); }
@@ -27539,6 +27642,7 @@ const Battle = {
     return teamH+'<div class="btBoard'+(big?' big':'')+'">'+R.slice(0,n).map((k,i)=>{ const p=P[k], pc=Math.round((p.sc|0)/top*100), me=k===this.me;
       return '<div class="btRow'+(me?' me':'')+(now-(p.at||0)>60000?' idle':'')+'"><i class="btRk">'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</i><b>'+this.esc(p.n)+'</b><div class="btTrack'+(this.st().s==="run"?' go':'')+'"><span style="left:'+Math.min(92,pc)+'%">'+(this.chr(p.c) || (p.e||'🏃'))+'</span></div><em>'+(p.sc|0)+'</em></div>'; }).join('')+'</div>'; },
   draw(){ if(!$("rdIn")) return; const st=this.st(), c=this.cfg(), now=this.now(), P=this.T().p||{};
+    try{ BtRace.sync(); }catch(e){}   /* (v657) 🏃 달리기 경주 화면 */
     if(this.role==="host"){
       const flag=c.mode==="flag", rt=this.isRun() && this.auto(), qtl=this.isRun() ? "🏃 "+this.runLbl() : c.lvl==="exam" ? "📝 시험처럼 (A·B·C · 문제마다 시간)" : (c.qt||["mean"]).map(x=>this.QT[x]||x).join(" · ");
       const lag = this._poll && (this._pollAt||0) > (this._evAt||0) ? '<span class="btLag">🔄 연결 다시 잡는 중 · 3초마다 새로</span>' : '';
@@ -27551,6 +27655,7 @@ const Battle = {
       } else
       Raid.reg("rdB", st.s==="wait" ? '<div class="rdWait">'+this.bigRoom()+'<b>들어온 아이 '+Object.keys(P).length+'명</b>'+(rt ? '<p>들어오면 빨강·파랑 팀으로 자동으로 나눠요 · 팀 점수 = 1인 평균</p>'+this.teamCols() : '<div class="rdPeople tcLine go">'+Object.keys(P).map(k=>'<span>'+(this.chr(P[k].c)||(P[k].e||'🙂'))+'<b>'+this.esc(P[k].n)+'</b></span>').join('')+'</div>')+this.miss()+Cls.last("battle")+'</div>'   /* (v410) 📺 들어온 아이 캐릭터가 제자리 걸음 */
         : st.s==="end" ? (rt ? this.runWinHtml() : '')+this.podium()+this.board(30,true)
+        : BtRace.tv ? this.dblHtml()   /* (v657) 🏃 달리는 중 = 트랙이 순위·점수·소식을 다 보여 줌 */
         : (rt ? this.runBar(true) : '')+this.tvTop()+this.board(30, true));
       Raid.reg("rdC", '<div class="rdCtl">'+(st.s==="wait"?((flag || this.isRun()) && this.auto() ? '<button class="stGo soft" data-bth="shuffle">🔀 팀 다시 섞기</button>' : '')+'<button class="stGo big" data-bth="start">'+(this.isRun()?'▶ 레이스 시작 (3·2·1)':'▶ 배틀 시작 (3·2·1)')+'</button><p class="rdHint">아이들: 첫 화면 🎮 수업 게임 → 방 번호 '+this.esc(this.room)+'</p>'
         : st.s==="end" ? '<button class="stGo" data-bth="again">🔁 같은 설정으로 한 판 더</button><button class="stGo soft" data-bt="leave">닫기</button><p class="rdHint">한 판 더: 아이들은 그대로 이 방에서 기다려요 (방 번호 다시 안 쳐도 돼요)</p>' : '<button class="warn" data-bth="end">🏁 지금 끝내기</button>')+'</div>');
@@ -28196,7 +28301,7 @@ const Admin = (function(){
       +'<p class="adTileS" id="adSum_'+k+'">…</p><div class="adTileB"><button class="play adStart" data-ad="'+go+'">▶ 바로 시작</button><button class="adEdit" data-ad="nowEdit" data-k="'+k+'">'+(nowOpen===k?'▲ 접기':'⚙ 바꾸기')+'</button></div></div>').join('')+'</div>';
     h+='<div class="full adForms'+(nowOpen?' on':'')+'" id="adForms" data-open="'+nowOpen+'">'+raid("play")+'</div>';
     /* (v440) 🎲 보드게임 — 아이 화면에는 아직 숨김 · 관리자 화면에서만 시범 (사용자: "관리자 모드에만") */
-    h+='<button class="full adBdTry adEsc" data-ad="escTry"><span>🔐</span><b>영어 방탈출</b><small>📺 TV + 각자 패드 · 팀마다 자물쇠 5개 · 단서는 팀원 패드에 나눠서 · 틀리면 20초 잠김</small></button>';   /* (v637) */
+    h+='<button class="full adBdTry adEsc" data-ad="escTry"><span>🏚</span><b>저택 탈출 (영어 방탈출)</b><small>📺 TV + 각자 패드 · 반 전체가 한 집에서 · 가구를 뒤져 단서 → 퍼즐 13개 · 집 2채 (파란 저택 · 한밤의 학교)</small></button>';   /* (v657) 옛 설명(팀마다 자물쇠 5개)이 남아 있었음 */   /* (v637) */
     h+='<button class="full adBdTry" data-ad="bdTry"><span>🎲</span><b>영어 파티 보드</b><small>한 패드 · 📺 TV + 각자 패드 · 아이들은 🎮 수업 게임 → 「방 만들기」로 친구랑</small></button>';
     { const on=BoardKid.padOn(); h+='<button class="full adBdPad'+(on?' on':'')+'" data-ad="bdPad"><span>🪑</span><b>아이들 「한 패드로 같이」 '+(on?'<i class="on">켜짐</i>':'<i>꺼짐</i>')+'</b><small>'+(on?'아이 패드 🎮 수업 게임 창에 「🪑 한 패드로 같이」가 보여요 · 누르면 끔':'누르면 켜요 — 아이들이 패드 하나에 둘러앉아 보드게임')+'</small></button>'; }   /* (v448) 사용자: "한 패드 둘러앉기는 관리자 모드에서 온오프" */
     /* (v474) 바로가기 줄(시험·숙제·공지·보석·보스)은 위 탭과 겹쳐서 뺌 · 📅 오늘 한 아이는 👥 아이들로 */
