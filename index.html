@@ -2865,6 +2865,12 @@ img{-webkit-user-drag:none}
 /* (v297) 태블릿에서 공부 화면 아래 버튼('복습 시작 ▶' 등)이 안 보이던 것 — 확대(zoom) 안의 position:fixed 를 구형 사파리가 화면 밖에 놓음 → 내용 바로 아래에 붙여 둔다 */
 body.tabP #scStudy .stFoot, body.tabL #scStudy .stFoot{position:sticky;bottom:0;margin:16px -16px 0}
 body.tabP #scStudy.vLesson .stWrap, body.tabL #scStudy.vLesson .stWrap{padding-bottom:16px}
+/* (v664) 사용자 사진(아이패드): 「확인」 단추 아래에 띠가 한 줄 더 보임 — 패드에서는 아래 칸(.stFoot)이 화면 끝에서 16px 떠 있어, 칸 밑으로 배경이 띠처럼 비쳤다(연못 테마는 옅은 흰 네모가 단추 뒤에 떠 보임).
+   → 자리(레이아웃)는 그대로 두고, 칸 밑 16px 를 칸과 같은 바탕으로 덧칠 (::after · 여백을 칸 안으로 옮기면 내용이 길 때 띠가 22px 더 가려서 learn623 이 잡음) */
+body.tabP #scStudy.vLesson .stFoot::after, body.tabL #scStudy.vLesson .stFoot::after{content:"";position:absolute;left:0;right:0;top:100%;height:16px;background:inherit;pointer-events:none}
+body.tabP #scStudy.thB.vLesson .stFoot::after, body.tabL #scStudy.thB.vLesson .stFoot::after{background:rgba(10,8,28,.98)}   /* 성 테마는 위→아래 번지는 바탕이라 끝 색으로 */
+body.tabP #scStudy.thK.vLesson .stFoot:not(.good):not(.bad):not(.idk){background:none}   /* 세로 패드: 양옆이 잘린 옅은 네모가 보이던 것 */
+body.tabL #scStudy.thK.vLesson .stFoot:not(.good):not(.bad):not(.idk)::after{background:rgba(255,255,255,.35)}
 /* (v481) Daily 30 점검: 패드에서 문제가 위 1/3 에 몰리고 확인 버튼·맞음/틀림 칸이 화면 가운데 떠 있었음(아래 절반이 빈 화면)
    → 문제는 위아래 가운데 · 확인 버튼은 화면 맨 아래 (fixed 는 옛 사파리 확대(zoom)에서 화면 밖으로 가서 sticky 그대로) */
 body.tabP #scStudy.vLesson .stWrap, body.tabL #scStudy.vLesson .stWrap{display:flex;flex-direction:column}
@@ -5228,6 +5234,9 @@ span.bdIcE{display:inline-flex;align-items:center;justify-content:center;font-si
 .podS{display:grid;grid-template-columns:1fr 1.2fr 1fr;align-items:end;gap:10px;width:100%;margin-top:48px}
 .podC{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 6px 10px;border-radius:20px 20px 10px 10px;background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 45%,#2a1f4a),#1b1333);border:4px solid var(--pc);animation:podUp .55s cubic-bezier(.2,1.5,.4,1) both}
 .podC.r1{padding-top:26px;min-height:62%;box-shadow:0 0 34px color-mix(in srgb,var(--pc) 70%,transparent);animation-delay:.45s}.podC.r2{animation-delay:.2s}.podC.r3{animation-delay:.05s}
+/* (v664) 옛 아이패드(iPadOS 16.1 이하)는 color-mix 를 몰라 줄다리기 단추·시상대·시간 막대의 바탕이 통째로 사라짐 → 그런 기기에서는 단색으로 */
+@supports not (color:color-mix(in srgb,red 50%,blue)){ .tmBar>i{background:var(--pc)} .mgTugB{background:var(--me);box-shadow:0 8px 0 rgba(0,0,0,.45),inset 0 3px 0 rgba(255,255,255,.4)} .mgTugB.hit{animation:tugHit2 .12s} .podC{background:linear-gradient(180deg,#34285c,#1b1333)} .podC.r1{box-shadow:0 0 34px var(--pc)} }
+@keyframes tugHit2{50%{transform:translateY(5px) scale(.96);box-shadow:0 3px 0 rgba(0,0,0,.45)}}
 .podC.none{visibility:hidden}
 .podC.me,.podL span.me{outline:4px solid #fff;outline-offset:3px}
 @keyframes podUp{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
@@ -5377,6 +5386,9 @@ span.bdIcE{display:inline-flex;align-items:center;justify-content:center;font-si
 #scStudy.thK .stCheck:disabled{border-image-source:url(assets/d30/k/btn_x.webp);color:#6b7890;text-shadow:0 1px 0 rgba(255,255,255,.5);background:none;box-shadow:none;transform:none}
 #scStudy.thK .stFoot.bad .stCheck{border-image-source:url(assets/d30/k/btn_p.webp);background:none;box-shadow:none;color:#fff}
 #scStudy.thK .stFoot.idk .stCheck{border-image-source:url(assets/d30/k/btn_o.webp);background:none;box-shadow:none;color:#fff}
+/* (v664) QA: 「계속 ▶」 자동 넘김 막대가 알약 단추 밑테(짙은 받침·테두리) 위에 걸쳐 그려져 줄이 삐져나온 것처럼 보임 → 단추 몸통 안쪽으로 */
+#scStudy.thK .stCheck.auto{overflow:visible}
+#scStudy.thK .stCheck.auto::after{left:2px;width:calc(100% - 4px);bottom:12px;height:4px;border-radius:2px;background:rgba(255,255,255,.7)}
 #scStudy.thK .ksBtn{border:solid transparent;border-width:0 29px;border-image:url(assets/d30/k/btn_o.webp) 0 83 fill / 0 29px stretch;border-radius:0;background:none;box-shadow:none;color:#4a2600;padding:8px 2px;font:900 14px var(--font)}
 #scStudy.thK .stIdk{border:solid transparent;border-width:0 29px;border-image:url(assets/d30/k/btn_b.webp) 0 83 fill / 0 29px stretch;border-radius:0;background:none;box-shadow:none;color:#fff;font:900 15px var(--font);padding:11px 4px 13px;text-shadow:0 1px 0 rgba(0,0,0,.35)}
 #scStudy.thK .stBig{width:100px;height:100px;font-size:0;color:transparent;border:0;border-radius:50%;background:url(assets/d30/k/snd.webp) center/contain no-repeat;box-shadow:none;filter:drop-shadow(0 6px 4px rgba(0,40,60,.3))}
@@ -6227,6 +6239,8 @@ body.hudC #windTag{top:calc(env(safe-area-inset-top,0px) + clamp(240px,40vh,400p
 /* (v512) QA 2 (G3-6) */
 #stQ .stPrompt.sent{padding-left:14px;padding-right:14px}
 .rdBreak .rdMas.pic{margin-bottom:12px}
+/* (v664) QA(휴대폰 가로 915×412): 라운드 사이 카드의 캐릭터 그림이 안 숨겨져(뒤 규칙에 밀림) 「다음 라운드」 줄이 단추 띠 밑으로 들어감 */
+@media (orientation:landscape) and (max-height:520px){ #scStudy .rdBreak .rdMas, #scStudy .rdBreak .vHero{display:none!important} #scStudy .rdBreak .rdStars{margin-bottom:0} }
 #scStudy.thB #stGram .grHead small,#scStudy.thB .stTop .stSub{text-shadow:0 1px 3px rgba(0,0,0,.9)}
 /* (v513) QA 2 (유치원·G1-2) */
 .ksL{color:#d4380d}
@@ -17243,7 +17257,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v663";
+const GAME_VER = "v664";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20198,6 +20212,8 @@ const StudyUI = {
         B.querySelectorAll(".rdB").forEach(b=>b.addEventListener("click", ev=>{ ev.stopPropagation(); if(b.classList.contains("pop")) return; b.classList.add("pop"); try{ SFX.tone(700+Math.random()*400, .08, "triangle", .05, 1400); }catch(e){} })); } }catch(e){}
     const f=$("stFoot"); f.className="stFoot good"; f.innerHTML='<button class="stCheck go" id="stCheck">라운드 '+(r+1)+' 시작 ▶</button>';
     this.locked=false; this._brk=true; try{ SFX.tone(660,.12,"triangle",.05,1320); if(perfect){ SFX.tone(990,.16,"triangle",.05,1980); confetti(); } }catch(e){} this.bar();
+    /* (v664) QA(아이패드 가로 1024×768 · 1180×820): 라운드 사이 카드는 화면 맞춤(fitQ)을 안 불러서 앞 문제의 맞춤값이 그대로 남음 → 성 테마 가로에서 카드 아래(「하나도 안 틀렸어요」·다음 라운드)가 단추 띠에 가려지고 194~212px 스크롤 */
+    try{ this.fitQ(); [60,400].forEach(t=>setTimeout(()=>{ try{ if(this._brk) this.fitQ(); }catch(e){} }, t)); }catch(e){}
     this.saveCur(); },   // (v322) 점검: 쉬는 화면에서 앱이 꺼지면 방금 푼 문제를 다시 풀었다 → 다음 문제 위치로 저장
   /* ── 끝 ── */
   /* (v228) Stage 끝 보물상자 — 가끔(35%) · 하루 2번까지 · 💎1~5 (보석은 바로 들어가고 상자는 여는 재미) */
@@ -26796,6 +26812,7 @@ const RunRace = {
    - 시간이 지나도 안 끝남 → ⭐ 별이 줄어듦 (UNLOCK) · 선생님이 끝내거나 2배 시간 · 별 = 시간 + 힌트
    - 답은 TV 기기 메모리에만 (Firebase 에는 단서만) · 아이 패드는 /p/<id> 에 sub·hint·act·on 만 씀
 ===================================================================== */
+const ESC_OPEN=false;   /* (v664) 🏚 저택 탈출(방탈출) 닫음 — 수업 탭 카드만 숨김 */
 const Esc = {
   NUM:["zero","one","two","three","four","five","six","seven","eight","nine"], ORD:["first","second","third","fourth"], CIR:["①","②","③","④"],
   TEAM:[["빨강팀","🔴","#ff4d6d"],["파랑팀","🔵","#3fa9ff"],["초록팀","🟢","#2fd27a"],["노랑팀","🟡","#ffc21a"]],
@@ -28094,7 +28111,7 @@ const Admin = (function(){
     const C=(D.check||[]).filter(r=>r[0] && r[0]!=="종류"), cOk=C.length && C[0][0]!=="✅";
     h+=card('📌 확인 필요'+(cOk?' '+C.length+'건':''), cOk ? '<div class="adChk2">'+C.map(r=>'<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+(r[2]?' — '+esc(r[2]):'')+'</span></div>').join('')+'</div>' : '<p class="adSmall">✅ 지금 확인할 것이 없어요</p>');
     const M=(D.miss||[]).filter(r=>r[0] && r[0]!=="단어").slice(0,12);
-    try{ const cl=Cls.adminCard(); if(cl) h+=card('🎮 수업 게임 기록', cl, '레이드 · 배틀 · 보드게임 · 저택 탈출 — 끝날 때 TV 가 적어요 (최근 12판)'); }catch(e){}
+    try{ const cl=Cls.adminCard(); if(cl) h+=card('🎮 수업 게임 기록', cl, '레이드 · 배틀 · 보드게임'+(ESC_OPEN?' · 저택 탈출':'')+' — 끝날 때 TV 가 적어요 (최근 12판)'); }catch(e){}
     h+=card('📕 반이 많이 틀린 단어', M.length ? '<div class="adWords">'+M.map(r=>'<span>'+esc(r[0])+'<i>×'+esc(r[1])+'</i></span>').join('')+'</div><div class="adRow"><button class="mini" data-ad="weakBt">🏫 이 단어로 배틀</button><button class="mini" data-ad="weakRd">⚔️ 레이드 방패 단어로</button></div>' : '<p class="adSmall">아직 없어요</p>', '최근 며칠');
     /* (v650) ⑤ 🧠 며칠 뒤에도 기억하나 — 복습 날이 된 단어를 처음에 맞힌 비율 (서버 v19 · scores 의 「며칠 뒤 맞힘/푼 수/틀린 단어」 칸) */
     { const L=D.learn; let b='';
@@ -28403,7 +28420,8 @@ const Admin = (function(){
       +'<p class="adTileS" id="adSum_'+k+'">…</p><div class="adTileB"><button class="play adStart" data-ad="'+go+'">▶ 바로 시작</button><button class="adEdit" data-ad="nowEdit" data-k="'+k+'">'+(nowOpen===k?'▲ 접기':'⚙ 바꾸기')+'</button></div></div>').join('')+'</div>';
     h+='<div class="full adForms'+(nowOpen?' on':'')+'" id="adForms" data-open="'+nowOpen+'">'+raid("play")+'</div>';
     /* (v440) 🎲 보드게임 — 아이 화면에는 아직 숨김 · 관리자 화면에서만 시범 (사용자: "관리자 모드에만") */
-    h+='<button class="full adBdTry adEsc" data-ad="escTry"><span>🏚</span><b>저택 탈출 (영어 방탈출)</b><small>📺 TV + 각자 패드 · 반 전체가 한 집에서 · 가구를 뒤져 단서 → 퍼즐 13개 · 집 2채 (파란 저택 · 한밤의 학교)</small></button>';   /* (v657) 옛 설명(팀마다 자물쇠 5개)이 남아 있었음 */   /* (v637) */
+    /* (v664) 사용자: 「방탈출 없애자 그냥」 — 선생님 방 수업 탭에서 카드를 내림. 코드는 그대로 둠 (다시 열기 = ESC_OPEN=true) */
+    if(ESC_OPEN) h+='<button class="full adBdTry adEsc" data-ad="escTry"><span>🏚</span><b>저택 탈출 (영어 방탈출)</b><small>📺 TV + 각자 패드 · 반 전체가 한 집에서 · 가구를 뒤져 단서 → 퍼즐 13개 · 집 2채 (파란 저택 · 한밤의 학교)</small></button>';   /* (v657) 옛 설명(팀마다 자물쇠 5개)이 남아 있었음 */   /* (v637) */
     h+='<button class="full adBdTry" data-ad="bdTry"><span>🎲</span><b>영어 파티 보드</b><small>한 패드 · 📺 TV + 각자 패드 · 아이들은 🎮 수업 게임 → 「방 만들기」로 친구랑</small></button>';
     { const on=BoardKid.padOn(); h+='<button class="full adBdPad'+(on?' on':'')+'" data-ad="bdPad"><span>🪑</span><b>아이들 「한 패드로 같이」 '+(on?'<i class="on">켜짐</i>':'<i>꺼짐</i>')+'</b><small>'+(on?'아이 패드 🎮 수업 게임 창에 「🪑 한 패드로 같이」가 보여요 · 누르면 끔':'누르면 켜요 — 아이들이 패드 하나에 둘러앉아 보드게임')+'</small></button>'; }   /* (v448) 사용자: "한 패드 둘러앉기는 관리자 모드에서 온오프" */
     /* (v474) 바로가기 줄(시험·숙제·공지·보석·보스)은 위 탭과 겹쳐서 뺌 · 📅 오늘 한 아이는 👥 아이들로 */
