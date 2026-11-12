@@ -50,4 +50,4 @@ ok(sc(b,"run","루아")===900, "루아 유치원 단어장(digr) 달리기도 �
 ok(sc(b,"study","나래")===3*110 && sc(b,"run","나래")===null, "자기 기기 아이는 그대로 (내 단계보다 쉬운 판 안 셈) 공부 "+sc(b,"study","나래")+" · 달리기 "+sc(b,"run","나래"));
 const me=get({board:1, nick:"루아"}).me;
 ok(me.study && me.study.lv==="유치원", "루아 내 단계 = 유치원 "+JSON.stringify(me.study&&me.study.lv));
-console.log("BAD:", bad); process.exit(bad?1:0);
+console.log("DONE bad="+bad); process.exit(bad?1:0);

@@ -16,6 +16,8 @@
      scores·구매·이름 탭 맨 끝에 '태그' 칸 · 랭킹은 태그로 묶음(같은 이름이 둘이어도 안 섞임, 이름을 바꿔도 한 줄)
    - (v563 · 서버 v8) 🏝 My Town — scores 탭 맨 끝에 코인·미끼·은행 코인·은행 보석·강화 칸 · 플레이(초)는 한 줄 3600(1시간)까지
      '마을 현황' 탭 = 아이 한 줄(태그, 없으면 👤 뗀 이름) — 판 기록이 올 때마다 보석·모은 보석·마을 돈을 고쳐 씀 · 관리 화면 「📋 우리 반」에도 (report.town)
+   - (v667 · 서버 v23) 🔥 오늘의 대결 — GET board=1 답에 today(오늘 올린 점수 순위 · 오늘의 상) · me.today · fresh=1 이면 새로 셈
+     📊 선생님 랭킹 통계 — POST type:"report" 답의 rk (이번 주 · 지난주 · 이번 달 · 지난달: 하루 1등 · 주 1등 · 한 날 · 푼 문제)
    붙여 넣은 뒤 반드시: 배포 → 배포 관리 → ✏️수정 → 버전 "새 버전" → 배포
    (새 배포를 만들면 주소가 바뀌어 게임이 못 찾는다)
 ===================================================================== */
@@ -72,7 +74,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 22;  // (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 23;  // (v667) 23 = 🔥 오늘의 대결(board.today: 오늘 올린 점수 순위 · 오늘의 상 · me.today) · 선생님 📊 랭킹 통계(report.rk: 이번 주·지난주·이번 달·지난달 — 하루 1등 · 주 1등 · 한 날 · 푼 문제) · board fresh=1 · (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -425,6 +427,8 @@ function weekCore_(rows, P, ws, cut, det){   // (v618) det = 아이마다 날마
       const b = ent("study", id, r, t), q = (Number(r[C.right]) || 0) + (Number(r[C.wrong]) || 0), ss = Number(r[C.score]) || 0, was = done[key];
       if (was && was.v >= ss + q){ DT("w", ss + q); return; }           // 같은 Stage 를 또 — 전보다 못하면 안 셈
       const di = Math.floor((t - ws) / 864e5);
+      /* (v667 · 서버 23) 🔥 오늘의 대결 — dd[요일] = 그날 「올린」 점수 (같은 Stage 를 더 잘하면 늘어난 만큼만 · 날마다 합 = 이번 주 점수) · dn = 그날 센 판 수 */
+      if (det && di >= 0 && di < 7){ if (!b.dd){ b.dd = [0,0,0,0,0,0,0]; b.dn = [0,0,0,0,0,0,0]; } b.dd[di] += ss + q - (was ? was.v : 0); b.dn[di]++; }
       if (was){ b.score -= was.v; b.q -= was.q; b.ss -= was.ss; if (det && b.day) b.day[was.di] -= was.v; if (was.e) was.e[2] = "r"; } else b.n++;   // 더 잘했으면 그 판으로 바꿈 (판 수는 그대로)
       if (det){ if (!b.day) b.day = [0,0,0,0,0,0,0]; if (di >= 0 && di < 7) b.day[di] += ss + q; }
       done[key] = {v:ss + q, q, ss, di, e:DT("o", ss + q)};
@@ -448,7 +452,8 @@ function weekList_(sh, last, k, n, dev, ws0){
 /* (v601) 🔥 실시간 랭킹 — 게임 첫 화면 「실시간 검색어」. 셋 다 10등까지 + 어제(24시간 전)보다 몇 칸 올랐나(mv) · 1분 동안 같은 답(시트 부담 줄이기) */
 function board_(p){
   p = p || {};
-  let cache = null, full = null; try { cache = CacheService.getScriptCache(); const hit = cache.get("board_v4"); if (hit) full = JSON.parse(hit); } catch(e){}
+  let cache = null, full = null; try { cache = CacheService.getScriptCache(); const hit = cache.get("board_v5"); if (hit) full = JSON.parse(hit); } catch(e){}
+  if (full && p.fresh && Date.now() - full.at > 8000) full = null;   // (v667) 방금 한 판을 끝낸 아이 = 새로 셈 (8초 안에 센 것이 있으면 그것)
   if (!full){
     const sh = sheet_(), last = sh.getLastRow(), now = Date.now(), ws = weekStart_();
     full = {at:now, ws, L:{study:[], words:[], run:[]}};
@@ -457,10 +462,12 @@ function board_(p){
       const A = weekCore_(rows, P, ws, now + 1, true), B = now - 864e5 > ws ? weekCore_(rows, P, ws, now - 864e5) : {study:[], words:[], run:[]};
       Object.keys(A).forEach(k=>{ const old = {}; B[k].forEach((b, i)=>{ old[b.id] = i + 1; });
         full.L[k] = A[k].slice(0, 80).map((b, i)=>({id:b.id, nick:b.nick, tag:b.tag, ch:b.ch || "", score:b.score, n:b.n, q:b.q || 0, ss:b.ss || 0, lv:b.lv, fix:b.fix || 0, mv: old[b.id] ? old[b.id] - (i + 1) : "new", day:k === "study" ? b.day : undefined, ent:k === "study" ? b.ent : undefined})); });
-      try { full.hof = hof_(rows, P, A, now, ws); } catch(eh){ full.hof = {err:String(eh).slice(0, 80)}; }   // (v618) 🏛 명예의 전당
+      let Hf = null;
+      try { Hf = full.hof = hof_(rows, P, A, now, ws); } catch(eh){ full.hof = {err:String(eh).slice(0, 80)}; }   // (v618) 🏛 명예의 전당
+      try { full.td = today_(rows, P, A, Hf, now, ws); } catch(et){ full.td = {key:ymdK_(now), L:[], aw:{}, err:String(et).slice(0, 80)}; }   // (v667) 🔥 오늘의 대결
       try { full.lg = lgHist_(rows, P, ws); } catch(el){ full.lg = {}; }   // (v635) 🏅 지난주 나 넘기
     }
-    try { if (cache) cache.put("board_v4", JSON.stringify(full), 60); } catch(e){ try { const f2 = JSON.parse(JSON.stringify(full)); Object.keys(f2.L).forEach(k=>f2.L[k].forEach(b=>{ delete b.ent; })); cache.put("board_v4", JSON.stringify(f2), 60); } catch(e2){} }
+    try { if (cache) cache.put("board_v5", JSON.stringify(full), 60); } catch(e){ try { const f2 = JSON.parse(JSON.stringify(full)); Object.keys(f2.L).forEach(k=>f2.L[k].forEach(b=>{ delete b.ent; })); cache.put("board_v5", JSON.stringify(f2), 60); } catch(e2){} }
   }
   /* (v602) 나: 순위 · 어제보다 · 바로 위 친구(따라잡을 점수) — 태그 → 없으면 👤 뗀 이름 */
   const tg = tag_(p.tag), me = tg ? "#" + tg : plain_(txt_(p.nick, 20)).toUpperCase();
@@ -470,6 +477,11 @@ function board_(p){
   Object.keys(full.L).forEach(k=>{ const L = full.L[k]; res.boards[k] = L.slice(0, 10).map((b, i)=>pub(b, k, i));
     const i = me ? L.findIndex(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)) : -1;   // 태그가 없는 기기 = 이름으로
     if (i >= 0) res.me[k] = Object.assign(pub(L[i], k, i), {rank:i + 1, of:L.length, lv:L[i].lv >= 0 ? LV_NM[L[i].lv] : "", fix:L[i].fix || 0, above: i > 0 ? {nick:L[i - 1].nick, score:L[i - 1].score} : null}, k === "study" ? {day:L[i].day || null, ent:L[i].ent || null} : {}); });
+  /* (v667) 🔥 오늘의 대결 — 오늘 올린 점수 순위(30등까지) · 오늘의 상 · 나(순위 · 바로 앞·뒤 친구) */
+  if (full.td){ const T = full.td, L = T.L || [], pt = b=>({nick:b.nick, tag:b.tag, ch:b.ch, score:b.score, n:b.n});
+    res.today = {key:T.key, of:L.length, list:L.slice(0, 30).map(pt), aw:T.aw || {}};
+    const i = me ? L.findIndex(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)) : -1;
+    if (i >= 0) res.me.today = Object.assign(pt(L[i]), {rank:i + 1, of:L.length, above:i > 0 ? {nick:L[i - 1].nick, score:L[i - 1].score} : null, below:i < L.length - 1 ? {nick:L[i + 1].nick, score:L[i + 1].score} : null}); }
   /* (v635) 🏅 나의 리그 — 지난주 나 넘기 (이번 주 점수 · 지난 6주 · 지킨 주 연속) */
   if (me && full.lg){ const st = full.L.study.find(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)), id = st ? st.id : me;
     if (st || full.lg[id]) res.me.lg = lgOf_(st ? st.score : 0, full.lg[id], full.lg._b, st ? st.lv : -1); }
@@ -573,6 +585,77 @@ function lgOf_(cur, W, BB, lv){   // BB = H._b (주마다 기준) · lv = 랭킹
    · 「명예의 전당」 탭 = 날마다 밤 12시의 1위(종류 day) · 주마다 1~3위(종류 week) — 한 번 적으면 그대로 (scores 가 보관 탭으로 옮겨져도 남음)
    · 연속 1위 = 지금 1위인 아이가 어제·그제… 밤 12시에도 1위였던 날 수 + 오늘 (월요일에 주가 바뀌어도 이어짐)
    · 개근 = 오늘의 30 을 끝까지 푼 날이 며칠 이어졌나 (오늘 아직 안 했으면 어제까지) */
+/* ── (v667 · 서버 23) 🔥 오늘의 대결 ──
+   사용자: 「조보단 오늘에서」 「애들이 몇 등인지 모르잖아」 → 날마다 0점에서 다시 시작하는 순위 (이번 주 1등이 멀어도 오늘은 누구나 1등 할 수 있게)
+   · 오늘 점수 = 오늘 「올린」 공부 점수 (이번 주 점수와 같은 규칙 — weekCore_ 의 dd) · 같으면 먼저 한 아이
+   · 🏅 오늘의 상 (오늘 순위에 있는 아이 가운데): 📈 역전왕 = 이번 주 순위보다 오늘 순위가 가장 많이 높은 아이 · 🎯 정확왕 = 오늘 정답률(20문제 넘게) · 📖 단어왕 = 오늘 새로 모은 단어 · 🔥 개근왕 = 연속 공부 날 */
+function today_(rows, P, A, H, now, ws){
+  const d0 = dayStart_(now), di = Math.round((d0 - ws) / 864e5), key = ymdK_(now);
+  const L = A.study.filter(b=>b.dd && b.dd[di] > 0).map(b=>({id:b.id, nick:b.nick, tag:b.tag, ch:b.ch || "", score:b.dd[di], n:b.dn[di], nt:b.nt, wk:b.score}))
+    .sort((a, b)=>b.score - a.score || a.nt - b.nt);
+  const on = {}; L.forEach((b, i)=>{ on[b.id] = b; b.r = i + 1; });
+  const acc = {}, dxB = {}, dxT = {}, dxM = {};
+  rows.forEach(r=>{ const t = time_(r[C.date]); if (!t || t > now || P.hide(r)) return; const id = P.id(r); if (!on[id]) return;
+    const dx = (P.sharedDev(r) && !String(r[C.own] || "")) ? 0 : (Number(r[C.dex]) || 0);
+    if (dx > 0){ if (t < d0) dxB[id] = Math.max(dxB[id] || 0, dx); else { dxT[id] = Math.max(dxT[id] || 0, dx); dxM[id] = Math.min(dxM[id] || 1e9, dx); } }
+    if (t < d0) return;
+    const rule = String(r[C.rule] || ""); if (String(r[C.diff]) !== "study" || !/^study/.test(rule) || /^study-(battle|raid)/.test(rule) || Number(r[C.clear]) !== 1) return;
+    const a = acc[id] || (acc[id] = [0, 0]), rt = Number(r[C.right]) || 0; a[0] += rt; a[1] += rt + (Number(r[C.wrong]) || 0); });
+  const aw = {}, put = (k, b, v)=>{ if (b && v > 0 && (!aw[k] || v > aw[k].v)) aw[k] = {nick:b.nick, tag:b.tag, ch:b.ch, v}; };
+  const byW = L.slice().sort((a, b)=>b.wk - a.wk || a.nt - b.nt); byW.forEach((b, i)=>put("up", b, (i + 1) - b.r));   // 오늘 한 아이들끼리의 이번 주 순위 − 오늘 순위
+  L.forEach(b=>{ const a = acc[b.id]; if (a && a[1] >= 20) put("acc", b, Math.round(a[0] / a[1] * 100));
+    if (dxT[b.id]) put("word", b, dxT[b.id] - (b.id in dxB ? dxB[b.id] : dxM[b.id]));
+    const n = H && H.attOf ? (H.attOf[b.id] || 0) : 0; if (n >= 2) put("att", b, n); });
+  L.forEach(b=>{ delete b.wk; delete b.r; });
+  return {key, di, L:L.slice(0, 80), aw};
+}
+/* ── (v667 · 서버 23) 📊 선생님 랭킹 통계 (report.rk) ──
+   사용자: 「주·월 통계치를 나한테 줘야 해 — 누가 1등을 몇 번 했는지 · 며칠 했는지 · 아이들이 몇 문제 했는지」
+   · 기간 넷: 이번 주 · 지난주 · 이번 달 · 지난달 (scores 탭에 남아 있는 줄로 셈)
+   · d1 하루 1등 = 그날 「오늘의 대결」 1등 (그날 점수를 가장 많이 올린 아이 · 밤 12시가 지난 날만 — 오늘은 아직 안 셈)
+   · w1 주 1등 = 그 달에 끝난 주의 오늘의 30 1등 (달 표) · rk = 그 주 순위 (주 표)
+   · days 한 날 = 오늘의 30·문법을 한 문제라도 푼 날 수 · q 푼 문제 = 맞힘 + 틀림 (연습 판·끝까지 안 푼 판도 · 배틀·레이드는 뺌) · ok 정답률 % · r 끝까지 푼 판 · sc 그 기간에 올린 랭킹 점수
+   · 이름 = 「명단」 탭 이름(내 기기) → 없으면 게임 이름 */
+function monthStart_(t, add){ const H9 = 9*3600*1000, k = new Date(t + H9); return Date.UTC(k.getUTCFullYear(), k.getUTCMonth() + (add || 0), 1) - H9; }
+function rosterMap_(){ const M = {};
+  try { const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName("명단"); if (!sh) return M;
+    sh.getRange(5, 1, 196, 5).getValues().forEach(r=>{ const rc = String(r[0]).trim(), rn = String(r[1]).trim(); if (!rn || !rc) return;   // 게임 이름이 없는 줄 = 공용 패드 → 고른 아이 이름 그대로
+      [r[2], r[3], r[4]].forEach(x=>{ const d = String(x).trim(); if (d) M[d] = rn; }); }); } catch(e){}
+  return M; }
+function rstat_(){
+  const now = Date.now(), ws = wsOf_(now), D7 = 7 * 864e5, ms = monthStart_(now, 0), lms = monthStart_(now, -1);
+  const PER = [["w0", "이번 주", ws, ws + D7], ["w1", "지난주", ws - D7, ws], ["m0", "이번 달", ms, monthStart_(now, 1)], ["m1", "지난달", lms, ms]];
+  const out = {at:now, today:ymdK_(now), per:PER.map(p=>({k:p[0], name:p[1], from:ymdK_(p[2]), to:ymdK_(p[3] - 1), rows:[]}))};
+  const sh = sheet_(), last = sh.getLastRow(); if (last < 2) return out;
+  const all = sh.getRange(2, 1, last - 1, COLS.length).getValues(), P = people_(all), from = Math.min(wsOf_(lms), ws - D7);
+  const rows = all.filter(r=>{ const t = time_(r[C.date]); return t && t >= from - 28 * 864e5 && t <= now; });
+  const RM = rosterMap_(), K = {};
+  rows.forEach(r=>{ const t = time_(r[C.date]); if (t < from || P.hide(r)) return; const rule = String(r[C.rule] || "");
+    if (String(r[C.diff]) !== "study" || !/^study/.test(rule) || /^study-(battle|raid)/.test(rule)) return;
+    const nk = plain_(r[C.nick]), id = P.id(r); if (!nk || id === "PLAYER" || /^한양|패드$/.test(nk)) return;
+    const rt = Number(r[C.right]) || 0, q = rt + (Number(r[C.wrong]) || 0); if (q <= 0) return;
+    const k = K[id] || (K[id] = {n:nk, tag:"", real:"", t:0, d:{}}); if (t >= k.t){ k.n = nk; k.t = t; }
+    const tg = P.tag(r); if (tg) k.tag = tg; const rl = RM[String(r[C.dev] || "")]; if (rl) k.real = rl;
+    const dk = ymdK_(t), a = k.d[dk] || (k.d[dk] = [0, 0, 0]); a[0] += q; a[1] += rt; if (Number(r[C.clear]) === 1) a[2]++; });
+  const DW = {}, WW = {}, DS = {}, WK = {};   // DW[날] = 하루 1등 · WW[주] = 주 1등 · DS[아이][날] = 그날 올린 점수 · WK[주] = 그 주 순위
+  for (let w = from; w <= ws; w += D7){ const L = weekCore_(rows, P, w, Math.min(w + D7, now + 1), true).study;
+    WK[w] = L.map(b=>b.id); if (w + D7 <= now && L[0]) WW[w] = L[0].id;
+    for (let i = 0; i < 7; i++){ const d = w + i * 864e5; if (d > now) break; const dk = ymdK_(d); let top = null;
+      L.forEach(b=>{ const v = b.dd ? b.dd[i] : 0; if (v > 0){ (DS[b.id] = DS[b.id] || {})[dk] = v; if (!top || v > top.v) top = {id:b.id, v}; } });
+      if (top && d + 864e5 <= now) DW[dk] = top.id; } }
+  out.per.forEach((p, pi)=>{ const R = {}, row = id=>R[id] || (R[id] = {d1:0, w1:0, rk:0, days:0, q:0, ok:0, r:0, sc:0}), inP = dk=>dk >= p.from && dk <= p.to;
+    Object.keys(K).forEach(id=>Object.keys(K[id].d).forEach(dk=>{ if (!inP(dk)) return; const x = row(id), a = K[id].d[dk]; x.days++; x.q += a[0]; x.ok += a[1]; x.r += a[2]; }));
+    Object.keys(DW).forEach(dk=>{ if (inP(dk)) row(DW[dk]).d1++; });
+    Object.keys(DS).forEach(id=>Object.keys(DS[id]).forEach(dk=>{ if (inP(dk)) row(id).sc += DS[id][dk]; }));
+    if (pi < 2) (WK[PER[pi][2]] || []).forEach((id, i)=>{ row(id).rk = i + 1; });
+    else Object.keys(WW).forEach(w=>{ if (inP(ymdK_(Number(w) + D7 - 1))) row(WW[w]).w1++; });
+    p.dn = Object.keys(DW).filter(inP).length;   // 1등이 정해진 날 수
+    p.rows = Object.keys(R).map(id=>{ const x = R[id], k = K[id] || {n:String(id).replace(/^#/, ""), tag:"", real:""};
+      return {n:k.real || k.n, g:k.real && k.real !== k.n ? k.n : "", tag:k.tag || "", d1:x.d1, w1:x.w1, rk:x.rk, days:x.days, q:x.q, ok:x.q ? Math.round(x.ok / x.q * 100) : 0, r:x.r, sc:x.sc}; })
+      .sort((a, b)=>b.q - a.q || b.sc - a.sc); });
+  return out;
+}
+
 const HOF_SHEET = "명예의 전당";
 const HOF_COLS = [["kind","종류"], ["key","날짜"], ["cat","분야"], ["rank","순위"], ["id","아이"], ["nick","이름"], ["tag","태그"], ["score","점수"], ["at","적은 때"]];
 const HOF_CATS = ["study", "words", "run"];
@@ -983,6 +1066,7 @@ function report_(){
     nicks: g("기기별 이름", "B5:B300").map(r=>String(r[0]).trim()).filter(n=>n && !/^PLAYER$/i.test(n)),   // (v308) 보내기 받는 아이 = 게임 이름(닉네임)
     tags:  tagList_().filter(x=>x.dev).map(x=>[x.tag, x.nick, x.first]),   // (v404) 🏷 태그 · 지금 이름 · 처음 이름
     learn: (function(){ try { return learn_(); } catch(err){ return null; } })(),
+    rk:    (function(){ try { return rstat_(); } catch(err){ return {err:String(err).slice(0, 120)}; } })(),   // (v667) 📊 랭킹 통계 (주·월: 하루 1등 · 한 날 · 푼 문제)
     use:   (function(){ try { return use_(); } catch(err){ return null; } })(),       // (v654) 🎮 모드별 사용 시간   // (v650) 🧠 며칠 뒤에도 기억하나
     town:  g(TOWN_SHEET, "A1:K300")   // (v563) 🏝 마을 현황 — 머리 줄(아이·태그·마지막·보석·모은 보석·코인·미끼·은행 코인·은행 보석·강화·버전) + 아이마다 한 줄
   };
