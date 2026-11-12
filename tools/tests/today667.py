@@ -53,6 +53,16 @@ async def main():
         r = await E("()=>document.getElementById('tdyCard').textContent")
         ok("2등" in r and "8명 중" in r and "1등까지 300점!" in r, f"카드: 2등 · 8명 중 · 1등까지 300점 {r}")
         f = await E(FIT); ok(f[1] <= 0 and f[2] <= 0, f"첫 화면 스크롤 없음 {f}")
+        # ④-2 (v669) 카드 글이 굴러감 — 내 줄 → 오늘 1·2·3등 → 이번 주 1위들 (내가 했든 안 했든)
+        r = await E("()=>TodayRank._L.map(x=>(x.sm+' / '+x.b).replace(/<[^>]+>/g,'').replace(/\\s+/g,' ').trim())")
+        ok(len(r) == 7 and "1등까지 300점" in r[0] and "지금 순위 / 스트로베리 720점" in r[1] and "주호 420점" in r[2] and "단우 330점" in r[3] and "이번 주 오늘의 30 · 1위" in r[4] and "단어" in r[5] and "달리기" in r[6], f"굴러가는 줄 7개 {r}")
+        await pg.wait_for_timeout(3600); t = await E("()=>[document.querySelector('#tdyRl .it b').textContent.trim(), document.querySelector('#tdyCard .tdyBd').textContent, Math.round(document.getElementById('tdyCard').getBoundingClientRect().height)]")
+        ok("스트로베리" in t[0] and t[1] == "2등", f"3초 뒤 다음 줄(오늘 1등)로 굴러감 · 큰 등수는 그대로 {t}")
+        await pg.wait_for_timeout(2900); t2 = await E("()=>[document.querySelector('#tdyRl .it b').textContent.trim(), Math.round(document.getElementById('tdyCard').getBoundingClientRect().height)]")
+        ok("주호" in t2[0] and t2[1] == t[2], f"또 다음 줄 · 카드 높이 그대로 {t2}")
+        await E(TD, {"empty": True}); await pg.wait_for_timeout(200)
+        r = await E("()=>TodayRank._L.map(x=>x.b.replace(/<[^>]+>/g,'').trim())"); ok(len(r) == 4 and "지금 하면 1등" in r[0], f"오늘 아무도 안 했어도 이번 주 1위들이 굴러감 {r}")
+        await E(TD, {}); await pg.wait_for_timeout(200)
         # ⑤ 오늘 탭 — 처음 본 것 = 0점에서 올라오는 연출
         await E("()=>document.getElementById('tdyCard').click()"); await pg.wait_for_timeout(250)
         r = await E("()=>[document.getElementById('scRank').classList.contains('on'), RANK_VIEW.range, document.querySelector('#selRankRange .sel').dataset.v, getComputedStyle(document.querySelector('#selRankRange [data-v=today]')).display!=='none', document.querySelector('#selRankRange [data-v=hof] b').textContent]")
@@ -107,6 +117,8 @@ async def main():
             f0 = await E(FIT); base = {"se": 40}.get(nm, 0)   # 작은 휴대폰 첫 화면은 예전에도 17px 넘침
             c = await E("()=>{ const c=document.getElementById('tdyCard'), r=c.getBoundingClientRect(), b=c.querySelector('.tx b'); return [Math.round(r.width), r.left>=0 && r.right<=innerWidth+1, b.scrollWidth<=b.clientWidth+1]; }")
             ok(f0[1] <= base and f0[2] <= 0 and c[1] and c[2], f"{nm}: 첫 화면 카드 {c} · 스크롤 {f0}")
+            cut = await E("()=>{ const L=TodayRank._L, bad=[]; for(let i=0;i<L.length;i++){ TodayRank._li=i; TodayRank.roll0(); const it=document.querySelector('#tdyRl .it'); it.querySelectorAll('b, small').forEach(e=>{ if(e.scrollWidth>e.clientWidth+1) bad.push(e.textContent); }); } TodayRank._li=0; TodayRank.roll0(); return bad; }")
+            ok(not cut, f"{nm}: 굴러가는 줄마다 글자 안 잘림 {cut}")
             await pg.screenshot(path=f"{OUT}{nm}_start.png")
             await E("()=>{ localStorage.setItem(TodayRank.KS(), JSON.stringify({k:TodayRank.dkey(), s:420, r:2})); document.getElementById('tdyCard').click(); }"); await pg.wait_for_timeout(350)
             t = await E("""()=>{ const d=document.querySelector('.tdyDay').getBoundingClientRect(), cut=[...document.querySelectorAll('.tdyRow .nm, .tdyMy .gp, .tdyCta, .tdyAwC b, .tdyAwC span')].filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent);

@@ -554,12 +554,13 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
 .tdyCard{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;appearance:none;margin:10px 0 8px;padding:9px 12px 9px 10px;border-radius:18px;border:2px solid #d6aa4c;background:linear-gradient(180deg,rgba(32,27,78,.96),rgba(18,15,48,.97));box-shadow:inset 0 0 0 2px rgba(0,0,0,.4),0 6px 16px rgba(0,0,0,.4);color:#fff;font-family:var(--font);cursor:pointer}
 .tdyCard[hidden]{display:none} .tdyCard:active{transform:scale(.98)}
 .tdyCard .tdyBd{width:50px;height:50px;padding-top:9px;font-size:24px} .tdyCard .tdyBd small{font-size:13px}
-.tdyCard .tx{flex:1;min-width:0} .tdyCard .tx small{display:block;font-size:11.5px;font-weight:800;color:#cfc3ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tdyCard .tx b{display:block;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tdyCard .tx b u{text-decoration:none;color:#ffd37a}
+.tdyCard .tx{flex:1;min-width:0;height:42px;overflow:hidden;position:relative} .tdyRl{display:block;position:absolute;left:0;right:0;top:0} .tdyRl.go{transition:transform .45s cubic-bezier(.3,.8,.3,1)} .tdyRl .it{display:flex;flex-direction:column;justify-content:center;height:42px} .tdyCard .tx b .rkMd{width:20px;height:20px;vertical-align:-4px}
+.tdyCard .tx small{display:block;font-size:11.5px;font-weight:800;color:#cfc3ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tdyCard .tx b{display:block;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tdyCard .tx b u{text-decoration:none;color:#ffd37a}
 .tdyCard .go{flex:none;font-size:20px;color:#ffd37a;font-weight:900}
 .tdyCard.idle .tdyBd{background:linear-gradient(180deg,#4a4380,#2a2456);color:#bdb2e4;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 .tdyCard.up .tdyBd{animation:tdyPop 1.1s ease-in-out infinite} .tdyCard.up .tx b u{color:#9af07f} @keyframes tdyPop{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 @media (prefers-reduced-motion:reduce){ .tdyCard.up .tdyBd{animation:none} .tdyRow{transition:none} }
-@media (max-height:700px){ .tdyCard{margin:6px 0;padding:5px 12px 5px 8px} .tdyCard .tdyBd{width:40px;height:40px;padding-top:7px;font-size:19px} .tdyCard .tdyBd small{font-size:11px} .tdyCard .tx b{font-size:15px} }
+@media (max-height:700px){ .tdyCard{margin:6px 0;padding:5px 12px 5px 8px} .tdyCard .tdyBd{width:40px;height:40px;padding-top:7px;font-size:19px} .tdyCard .tdyBd small{font-size:11px} .tdyCard .tx b{font-size:15px} .tdyCard .tx,.tdyRl .it{height:38px} }
 /* 관리 화면 📊 랭킹 통계 */
 .adSeg{display:flex;gap:4px;padding:3px;border-radius:12px;background:#120c28;margin-bottom:8px} .adSeg button{flex:1 1 0;appearance:none;border:0;border-radius:9px;background:none;color:#9d92c8;font:800 13px var(--font);padding:8px 2px;cursor:pointer;white-space:nowrap} .adSeg button.on{background:#fff;color:#241b52}
 .adTbl table.rkStat td b{color:#ffd37a;font-size:13.5px} .adTbl table.rkStat td.z{color:#6f668f} .adTbl table.rkStat td small{color:#a99ed0;font-weight:700}
@@ -17469,7 +17470,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v668";
+const GAME_VER = "v669";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -30409,8 +30410,20 @@ const TodayRank = {
     else if(T.old) b='순위를 불러오는 중…';
     else if(T.of){ sm+=' · 친구 '+T.of+'명 참가 중'; b='한 판 하면 등수가 생겨요'; }
     else b='지금 하면 1등!';
-    const h='<span class="tdyBd">'+bd+'</span><span class="tx"><small>'+sm+'</small><b>'+b+'</b></span><span class="go">›</span>';
-    if(c._h!==cls+h){ c._h=cls+h; c.className="tdyCard"+(cls?" "+cls:""); c.innerHTML=h; } return true; },
+    /* (v669) 사용자: 「시작 화면에서 랭킹이 안 굴러가는 건 아쉬운데 — 내가 하든 안 하든」 → 카드 글이 예전 「실시간」 줄처럼 굴러감:
+       ① 내 줄(등수·몇 점 차 / 아직 안 했으면 안내) → ② 오늘 1·2·3등 → ③ 이번 주 1위(오늘의 30 · 단어 · 달리기) → 다시 ①  ·  왼쪽 큰 동그라미(내 등수)는 그대로 */
+    const L=[{sm, b}].concat(this.lines(T)), key=cls+"|"+bd+"|"+JSON.stringify(L);
+    if(c._h!==key){ c._h=key; c.className="tdyCard"+(cls?" "+cls:""); this._L=L; this._li=0; c.innerHTML='<span class="tdyBd">'+bd+'</span><span class="tx"><span class="tdyRl" id="tdyRl"></span></span><span class="go">›</span>'; this.roll0(); }
+    this.rollOn(); return true; },
+  lines(T){ const B=LiveRank.B||{}, E=x=>RankUI.E(x), N=x=>RankUI.num(x), L=[], MD=["m0","m2","m3"];
+    if(!T.old) (T.list||[]).slice(0,3).forEach((r,i)=>L.push({sm:'🔥 오늘의 대결 · 지금 순위', b:'<i class="rkMd '+MD[i]+'"></i> '+E(r.nick)+' <u>'+N(r.score)+'점</u>'}));
+    [["study","📚 이번 주 오늘의 30","점"],["words","📖 이번 주 단어","단어"],["run","🏃 이번 주 달리기","점"]].forEach(x=>{ const r=(B[x[0]]||[])[0]; if(r && r.nick) L.push({sm:x[1]+' · 1위', b:'<i class="rkMd m0"></i> '+E(r.nick)+' <u>'+N(r.score)+x[2]+'</u>'}); });
+    return L; },
+  roll0(){ const R=$("tdyRl"), L=this._L||[]; if(!R || !L.length) return; const it=x=>'<span class="it"><small>'+x.sm+'</small><b>'+x.b+'</b></span>';
+    R.classList.remove("go"); R.style.transform="translateY(0)"; R.innerHTML=it(L[this._li%L.length])+(L.length>1 ? it(L[(this._li+1)%L.length]) : ''); },
+  rollOn(){ if(this._rt) return; this._rt=setInterval(()=>{ try{ const c=$("tdyCard"), R=$("tdyRl"), L=this._L||[]; if(!c || c.hidden || !R || L.length<2) return;
+      if(!$("scStart").classList.contains("on") || document.hidden) return; try{ if(matchMedia("(prefers-reduced-motion:reduce)").matches) return; }catch(e){}
+      void R.offsetWidth; R.classList.add("go"); R.style.transform="translateY(-50%)"; clearTimeout(this._rt2); this._rt2=setTimeout(()=>{ this._li=(this._li+1)%L.length; this.roll0(); }, 480); }catch(e){} }, 2800); },
   /* ── 「오늘」 탭 ── */
   geo(){ const pad=innerWidth>=700, low=innerHeight<900; return {H:pad ? (low?42:48) : 38, G:pad ? (low?4:6) : 4, D:18}; },   /* CSS 의 .tdyRow 높이와 같아야 함 */
   vis(T, m){ const n=T.list.length, mi=m ? m.rank-1 : -1, all=T.list.map((_,i)=>i);
