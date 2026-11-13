@@ -3089,6 +3089,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppPdfC{background:#fff;color:#2a2340;border-radius:16px;padding:18px 18px 16px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .ppPdfC b{display:block;font-size:17px;margin-bottom:6px} .ppPdfC p{font-size:13.5px;line-height:1.45;margin:0 0 12px;color:#5a5270} .ppPdfC .ppGo{margin:0 0 8px;width:100%;padding:12px;font-size:15px} .ppPdfC .ppNew{width:100%;padding:10px}
 .ppShot{position:fixed;left:0;top:0;z-index:-1;pointer-events:none;zoom:1!important}
+.ppLt{background:#3a3460} .ppLt b{font-weight:900;color:#bdb3e8} .ppLt.on{background:#2f7d55} .ppLt.on b{color:#fff}   /* (v674) 🪶 가벼운 PDF 단추 */
 .ppNew,.ppGo{appearance:none;border:0;border-radius:10px;padding:7px 14px;font:800 14px var(--font);cursor:pointer;background:#4a4080;color:#fff} .ppGo{background:#ffd23f;color:#3a2600;margin-left:auto}
 #ppInfo{display:block;width:100%;color:#cfc6ff;font-size:12px}
 /* (v580) ✏️ 따라쓰기 (처음 이름 깜지) */
@@ -17498,7 +17499,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v673";
+const GAME_VER = "v674";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -23366,7 +23367,7 @@ const Paper = {
       +'<label>제목<input id="ppTitle" maxlength="30" placeholder="(비우면 자동)" value="'+E(o.title||"")+'"></label>'
       +'<div class="ppTy" id="ppTy"></div>'
       +'<div class="ppOpt"><label class="ppChk"><input type="checkbox" id="ppAB"'+(P.ab!==false?' checked':'')+'>A형·B형</label><label class="ppChk"><input type="checkbox" id="ppKey"'+(P.key!==false?' checked':'')+'>답안지</label><label class="ppChk" title="마지막 쪽 빈자리에 틀린 문제 다시 쓰기 칸"><input type="checkbox" id="ppNote"'+(P.note!==false?' checked':'')+'>오답 노트</label>'
-      +'<button class="ppNew" data-pp="new">🔀 새로 뽑기</button><button class="ppGo" data-pp="print">'+(this.pdfMode()?'📄 PDF 만들기 (인쇄·저장)':'🖨 인쇄 / PDF 저장')+'</button></div><small id="ppInfo"></small></div>'
+      +'<button class="ppNew" data-pp="new">🔀 새로 뽑기</button>'+this.lightBtn()+'<button class="ppGo" data-pp="print">'+this.printLabel()+'</button></div><small id="ppInfo"></small></div>'
       +'<div class="ppView"><div class="ppWrap" id="ppWrap"></div></div>';
     document.body.appendChild(d); document.body.classList.add("ppOn");
     const fill=keep=>{ const s=$("ppSet").value, L=Study.lessons(s), opt=L.map((x,i)=>'<option value="'+i+'">'+Study.stageNo(s,x.n)+(x.fin?' 🚩':'')+'</option>').join('');
@@ -23383,7 +23384,7 @@ const Paper = {
       const b=e.target.closest && e.target.closest("[data-pp]"); if(!b) return; const a=b.dataset.pp;
       if(a==="swap"){ const [si,qi]=String(b.dataset.src).split(":").map(Number); if(this.B && this.B.swap(si, qi)) this.render(); else hyToast("바꿀 단어가 더 없어요 (범위를 넓혀 보세요)", 1800); return; }
       if(a==="md"){ this.mode=b.dataset.v; d.querySelectorAll("#ppMd button").forEach(x=>x.classList.toggle("on", x===b)); this.kjUi(true); this._kjMix=false; this.modeUi(); if(this.isX()) this.xLoad().then(()=>{ if(!$("paper")) return; this.lfFill(true); this.gmFill(true); this.modeUi(); this.make(); }); this.make(); return; }
-      if(a==="x") this.close(); else if(a==="new"){ this._kjMix=true; this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print"){ if(this.pdfMode()) this.pdf(); else this.print(); } else if(a==="pdfShare") this.pdfShare(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); } });
+      if(a==="x") this.close(); else if(a==="new"){ this._kjMix=true; this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print"){ if(this.pdfMode()) this.pdf(); else this.print(); } else if(a==="pdfShare") this.pdfShare(); else if(a==="pdfOpen") this.pdfOpen(); else if(a==="pdfDl") this.pdfDl(); else if(a==="light") this.toggleLight(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); } });
     this._rs=()=>this.fit(); addEventListener("resize", this._rs);
     try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}   /* 예문·대화 데이터 (처음이면 받는 동안 기다렸다가 다시) */
     if(!this.PPX) fetch("data/ppx.json").then(r=>r.json()).then(j=>{ this.PPX=j; if($("paper")) this.make(); }).catch(()=>{});   /* (v545) 과거분사 예문 (Claude 작성) */
@@ -23640,7 +23641,20 @@ const Paper = {
     try{ if(document.fonts && !this._fl){ this._fl=1; document.fonts.addEventListener("loadingdone", ()=>{ clearTimeout(this._stT); this._stT=setTimeout(()=>chk(false), 120); }); } }catch(e){} },
   /* (v576) 사용자: 「휴대폰 홈 화면 앱에서 인쇄/PDF 저장이 안 됨」 — 아이폰·아이패드 홈 화면 앱(standalone)은 window.print() 가 아무 일도 안 함
      → 쪽마다 그림으로 찍어(html2canvas, lib/) 우리가 직접 PDF 파일을 만들고 → 📤 공유 창 (프린트 · 파일에 저장 · 카톡) */
-  pdfMode(){ try{ if(this.forcePdf) return true; const ua=navigator.userAgent||"", ios=/iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1);
+  /* (v674) 사용자: PC 크롬으로 인쇄하면 한 장 뽑히고 멈춤 → 「가벼운 PDF」 설정 단추 — 켜면 쪽마다 그림 한 장인 PDF 를 우리가 만들어(아이패드 앱과 같은 길) 새 탭에서 인쇄
+     (약한 프린터는 글자·그림 글자·여백 없는 쪽을 처리하다 메모리가 모자라 멈추는 일이 있음 — 그림 PDF 는 프린터가 받기 쉬움) · 기기에 기억 */
+  LK:"hyeng_pp_light",
+  light(){ try{ return localStorage.getItem(this.LK)==="1"; }catch(e){ return false; } },
+  lightBtn(){ const on=this.light(); return '<button class="ppNew ppLt'+(on?' on':'')+'" data-pp="light" title="프린터가 중간에 멈추면 켜 보세요 — 쪽마다 그림 한 장인 PDF 로 인쇄해요">🪶 가벼운 PDF <b>'+(on?'켜짐':'꺼짐')+'</b></button>'; },
+  printLabel(){ return this.pdfMode() ? (this.light() && !this.iosApp() ? '📄 가벼운 PDF 만들기 (인쇄)' : '📄 PDF 만들기 (인쇄·저장)') : '🖨 인쇄 / PDF 저장'; },
+  toggleLight(){ const on=!this.light(); try{ localStorage.setItem(this.LK, on?"1":"0"); }catch(e){} try{ SFX.click(); }catch(e){}
+    document.querySelectorAll("#paper .ppLt").forEach(b=>{ b.classList.toggle("on", on); b.innerHTML='🪶 가벼운 PDF <b>'+(on?'켜짐':'꺼짐')+'</b>'; });
+    document.querySelectorAll('#paper [data-pp=print]').forEach(b=>{ b.textContent=this.printLabel(); });
+    try{ hyToast(on ? "🪶 가벼운 PDF 켜짐 — 인쇄를 누르면 그림 PDF 를 만들어 새 탭에서 인쇄해요" : "🖨 보통 인쇄로 돌아왔어요"); }catch(e){} },
+  iosApp(){ try{ const ua=navigator.userAgent||"", ios=/iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1); return ios && (navigator.standalone===true || matchMedia("(display-mode: standalone)").matches); }catch(e){ return false; } },
+  pdfOpen(){ const u=this._pdfU; if(!u) return; let w=null; try{ w=window.open(u, "_blank"); }catch(e){} if(!w) this.pdfDl(); },
+  pdfDl(){ const f=this._pdfF; if(!f) return; const a=document.createElement("a"); a.href=this._pdfU; a.download=f.name; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(), 500); },
+  pdfMode(){ try{ if(this.forcePdf || this.light()) return true; const ua=navigator.userAgent||"", ios=/iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1);
       return ios && (navigator.standalone===true || matchMedia("(display-mode: standalone)").matches); }catch(e){ return false; } },
   h2c(){ return this._h2c || (this._h2c=new Promise((ok, no)=>{ if(window.html2canvas) return ok(window.html2canvas); const sc=document.createElement("script"); sc.src="lib/html2canvas.min.js";
       sc.onload=()=>window.html2canvas ? ok(window.html2canvas) : no(new Error("h2c")); sc.onerror=()=>{ this._h2c=null; no(new Error("load")); }; document.head.appendChild(sc); })); },
@@ -23666,7 +23680,8 @@ const Paper = {
         jp.push({w:cv.width, h:cv.height, b}); cv.width=cv.height=0; const t=$("ppPdfN"); if(t) t.textContent=(i+1)+" / "+pg.length+"쪽"; await new Promise(r=>setTimeout(r, 30)); }
       const c=this.cfg(), nm=String(c.title || (Study.label(c.set)+" 단어 시험")).replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim().slice(0,40) || "시험지";
       const bl=this.pdfBlob(jp); this._pdfF=new File([bl], nm+".pdf", {type:"application/pdf"}); this._pdfU && URL.revokeObjectURL(this._pdfU); this._pdfU=URL.createObjectURL(bl);
-      this.pdfBox('<b>✅ PDF 완성 · '+pg.length+'쪽</b><p>아래를 누르면 📤 공유 창이 떠요 — 「프린트」 · 「파일에 저장」 · 카톡으로 보내기</p><button class="ppGo" data-pp="pdfShare">📤 공유 · 인쇄 · 저장</button><button class="ppNew" data-pp="pdfX">닫기</button>');
+      if(this.iosApp()) this.pdfBox('<b>✅ PDF 완성 · '+pg.length+'쪽</b><p>아래를 누르면 📤 공유 창이 떠요 — 「프린트」 · 「파일에 저장」 · 카톡으로 보내기</p><button class="ppGo" data-pp="pdfShare">📤 공유 · 인쇄 · 저장</button><button class="ppNew" data-pp="pdfX">닫기</button>');
+      else this.pdfBox('<b>✅ 가벼운 PDF 완성 · '+pg.length+'쪽</b><p>「인쇄 창 열기」를 누르면 새 탭에 PDF 가 열려요 — 거기서 🖨 인쇄를 눌러요</p><button class="ppGo" data-pp="pdfOpen">🖨 인쇄 창 열기</button><button class="ppNew" data-pp="pdfDl" style="margin-bottom:8px">💾 PDF 파일로 받기</button><button class="ppNew" data-pp="pdfX">닫기</button>');   /* (v674) PC = 새 탭(크롬 PDF 보기)에서 인쇄 · 내려받기 */
     }catch(e){ this.pdfBox('<b>⚠️ PDF 를 못 만들었어요</b><p>인터넷을 확인하고 다시 눌러 주세요'+(e && e.message ? ' <small>('+this.E(String(e.message).slice(0,40))+')</small>' : '')+'</p><button class="ppNew" data-pp="pdfX">닫기</button>'); }
     finally{ if(host) host.remove(); this._pdfBusy=0; } },
   pdfShare(){ const f=this._pdfF; if(!f) return; try{ if(navigator.canShare && navigator.canShare({files:[f]})){ navigator.share({files:[f], title:f.name}).catch(()=>{}); return; } }catch(e){}
@@ -24180,10 +24195,10 @@ const HyHW = {
     let h=""; for(let i=0;i<N.length;i+=8) h+='<section class="pp slipPg"><div class="slipG">'+N.slice(i,i+8).map(one).join('')+'</div><footer class="ppFt">✂ 점선을 따라 잘라 주세요</footer></section>';
     try{ Paper.close(); }catch(e){} const d=document.createElement("div"); d.id="paper"; d.className="ppSlip";
     d.innerHTML='<div class="ppBar"><button class="ppX" data-sl="x" aria-label="닫기">✕</button><b>🖨 숙제 안내 쪽지</b><small id="ppInfo" style="width:auto;flex:1">'+E(c.title||"")+' · '+N.filter(x=>x).length+'명 · '+(N.length/8)+'쪽</small>'
-      +'<button class="ppNew" data-sl="copy">📋 알림 글 복사</button><button class="ppGo" data-sl="print" style="margin-left:0">'+(Paper.pdfMode()?'📄 PDF 만들기':'🖨 인쇄 / PDF 저장')+'</button></div><div class="ppView"><div class="ppWrap" id="ppWrap">'+h+'</div></div>';
+      +'<button class="ppNew" data-sl="copy">📋 알림 글 복사</button>'+Paper.lightBtn()+'<button class="ppGo" data-pp="print" style="margin-left:0">'+Paper.printLabel()+'</button></div><div class="ppView"><div class="ppWrap" id="ppWrap">'+h+'</div></div>';
     document.body.appendChild(d); document.body.classList.add("ppOn"); try{ Paper.fit(); }catch(e){}
     d.addEventListener("click", ev=>{ const b=ev.target.closest("[data-sl],[data-pp]"); if(!b) return; const a=b.dataset.sl||b.dataset.pp;
-      if(a==="x") Paper.close(); else if(a==="print"){ if(Paper.pdfMode()) Paper.pdf(); else Paper.print(); } else if(a==="pdfShare") Paper.pdfShare(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); }
+      if(a==="x") Paper.close(); else if(a==="print"){ if(Paper.pdfMode()) Paper.pdf(); else Paper.print(); } else if(a==="pdfShare") Paper.pdfShare(); else if(a==="pdfOpen") Paper.pdfOpen(); else if(a==="pdfDl") Paper.pdfDl(); else if(a==="light") Paper.toggleLight(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); }
       else if(a==="copy"){ const txt="[HY ENG 숙제] "+(c.title||"")+"\n"+T.goal+" · "+T.due+"\n"+T.how+" 를 눌러 주세요 😊";
         try{ navigator.clipboard.writeText(txt).then(()=>hyToast("📋 알림 글을 복사했어요"), ()=>prompt("복사해 주세요", txt)); }catch(e){ prompt("복사해 주세요", txt); } } }); },
   /* ── 선생님 (📝 시험·숙제 탭) ── */
