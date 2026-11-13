@@ -29,6 +29,19 @@ async def boot(pg, news=True, iso=None):
     if news: await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
     await pg.evaluate("()=>{ try{ StudyUI.FAST=0; }catch(e){} }")   # (v301) 테스트는 '너무 빨리 누름' 막기를 끈다
     await pg.evaluate(PAT_SOLVE)   # (v390) 보스 공격 패턴을 푸는 도우미 window.patSolve(good)
+    if os.environ.get("HY_CSSSCAN"): await css_scan(pg)
+# (v671) 이름이 겹친 CSS 찾기 — HY_CSSSCAN=<파일> 로 테스트를 돌리면, 보드게임·미니게임 화면 안 요소에 걸린 「짧은 이름 하나짜리 선택자」(.pp · .pop · .on …)를 파일에 모음
+#   (땅따먹기 칸이 종이 인쇄용 .pp{width:210mm;height:297mm} 에 걸려 한 칸이 판 전체를 덮던 버그를 이렇게 찾음)
+CSS_SCAN = """()=>{ if(window._cssScan) return; const M={}; for(const sh of document.styleSheets){ let R; try{ R=sh.cssRules; }catch(e){ continue; } const walk=(rules)=>{ for(const ru of rules){ if(ru.cssRules && !ru.selectorText){ walk(ru.cssRules); continue; } if(!ru.selectorText) continue;
+      ru.selectorText.split(',').forEach(s=>{ s=s.trim(); const m=/^[a-zA-Z]*((?:\\.[\\w-]+)+)(::?[\\w-]+(\\([^)]*\\))?)*$/.exec(s); if(!m) return; const cs=m[1].split('.').filter(Boolean); if(!cs.every(c=>/^[a-z]{1,5}[0-9]?$/.test(c))) return;
+        const base=s.replace(/::?[\\w-]+(\\([^)]*\\))?$/,''); (M[cs[0]]=M[cs[0]]||[]).push([s, base, ru.style.cssText.slice(0,140)]); }); } }; walk(R); }
+  const seen={}; window._cssScan=()=>{ document.querySelectorAll('#board, #bdMG, #bpMG, #bdTvMG, #tg, .mgG').forEach(root=>{ root.querySelectorAll('*').forEach(el=>{ const cl=el.classList; if(!cl || !cl.length) return; for(const c of cl){ const L=M[c]; if(!L) continue; for(const [s,base,css] of L){ if(seen[s]) continue; let ok=false; try{ ok=el.matches(base); }catch(e){} if(ok){ seen[s]=1; try{ window.hyCssHit(JSON.stringify({s, css, on:el.tagName.toLowerCase()+'.'+[...cl].join('.'), root:root.id||root.className})); }catch(e){} } } } }); }); };
+  setInterval(window._cssScan, 150); }"""
+async def css_scan(pg):
+    f = os.environ.get("HY_CSSSCAN")
+    try: await pg.expose_function("hyCssHit", lambda t: open(f, "a", encoding="utf-8").write(t + "\n"))
+    except Exception: pass
+    await pg.evaluate(CSS_SCAN)
 # (v392) ⚔️ 실시간 보스전(BossLive) — liveAtk(): 보스 공격을 지금 시작 · patSolve(good): 지금 공격을 한 번에 (good = 맞는 순간 🛡 / 아니면 방패 없이 그 칸에 서 있기)
 PAT_SOLVE="""()=>{ try{ BossLive.manual=true; }catch(e){} window.liveAtk=()=>{ const S=BossLive.S; if(!S) return false; S.hold=false; S.A=null; BossLive.clear(); BossLive.launch(performance.now()); return !!S.A; };   // 하던 공격은 버리고 새로
   window.patSolve=(good)=>{ const S=BossLive.S, A=S && S.A; if(!A) return 'none';

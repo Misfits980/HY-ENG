@@ -41,8 +41,15 @@ async def main():
         r = await H.evaluate("()=>{ const g=window._g; g.auto(); g.auto(); const a=g.sc; g.wrong(); return [a, g.sc]; }")
         ok(r[0] in (2, 4, 6) and r[1] == r[0] - 2, f"🍎 과일 +1 (🌟 +3) · 💣 −2 {r}")
         await H.evaluate(MOUNT, "stack")
-        r = await H.evaluate("()=>{ const g=window._g; g.auto(); g.auto(); const a=[g.sc, g.h, g.L.length]; g.mv.x=g.L[g.L.length-1].x+10; g.lock=0; g.drop(); return a.concat([g.sc, +g.L[g.L.length-1].w.toFixed(1)]); }")
+        r = await H.evaluate("()=>{ const g=window._g; g.auto(); g.auto(); const a=[g.sc, g.h, g.L.length]; g.step(0.3); g.mv.x=g.L[g.L.length-1].x+10; g.lock=0; g.drop(); return a.concat([g.sc, +g.L[g.L.length-1].w.toFixed(1)]); }")
         ok(r[0] == 4 and r[1] == 2 and r[3] == 5 and r[4] == 30.0, f"🧱 딱 맞으면 +2 · 어긋나면 겹친 만큼(40→30) {r}")
+        # (v671) 「내려오는 것도 아니고 그냥 누르면 쌓이는 것처럼 보여」 → 블록이 탑 위 높은 곳에 매달려 있다가 톡 하면 떨어져서 앉음
+        await H.evaluate(MOUNT, "stack")
+        r = await H.evaluate("""()=>{ const g=window._g, pb=()=>parseFloat(g.M.style.bottom), nB=()=>g.T.querySelectorAll('.mgStB').length; g.step(0.05); const hov=pb(), top=g.top();
+          g.mv.x=g.L[0].x+8; g.drop(); const a=[!!g.fl, nB(), g.sc, g.host.firstChild.classList.contains('drop')]; g.step(0.08); const y1=pb(); g.step(0.08); const y2=pb(); const x0=g.M.style.left; g.drop(); const mid=[nB(), g.sc];
+          g.step(0.1); const land=[!!g.fl, nB(), g.sc, g.T.querySelectorAll('.mgStC').length, g.T.querySelector('.mgStB.land') ? 1 : 0, pb(), g.top(), g.N.textContent]; g.step(0.2); return {hov, top, a, y1, y2, x0, mid, land, mv:g.M.style.left!==x0}; }""")
+        ok(r["hov"] - r["top"] >= 20 and r["a"] == [True, 1, 1, True] and r["hov"] > r["y1"] > r["y2"] > r["top"] and r["hov"] - r["y1"] < r["y1"] - r["y2"], f"🧱 높은 곳에서 오가다가 톡 → 떨어짐(점점 빨라짐) · 떨어지는 동안은 아직 안 쌓임 {r['hov']} {r['y1']:.1f} {r['y2']:.1f} {r['a']}")
+        ok(r["mid"] == [1, 1] and r["land"][:5] == [False, 2, 1, 1, 1] and abs(r["land"][5] - r["land"][6] - 24) < 0.01 and r["land"][7] == "1층" and r["mv"], f"🧱 떨어지는 중엔 다시 못 누름 · 앉으면 블록 +1 · 잘린 조각 1개 · 다음 블록이 다시 높은 곳에서 움직임 {r['mid']} {r['land']}")
         await H.evaluate(MOUNT, "jump")
         r = await H.evaluate("()=>{ const g=window._g; g.jump(); const a=g.vy>0; for(let i=0;i<200;i++) g.step(0.02); return [a, g.os.length>0, g.sc]; }")
         ok(r[0] and r[1], f"🏃 톡 = 점프 · 장애물이 나옴 {r}")
