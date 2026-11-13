@@ -1,6 +1,6 @@
 /* HY ENG 서비스워커 — 게임 파일을 캐시해 두 번째부터는 오프라인에서도 실행됩니다.
    게임을 수정한 뒤에는 아래 VERSION 숫자를 꼭 올리세요. 그래야 새 버전이 반영됩니다. */
-const VERSION = "hyeng-v676";
+const VERSION = "hyeng-v677";
 /* (v322) 그림(assets/)은 버전마다 다시 받지 않게 이름이 고정된 캐시에 따로 둔다 — 업데이트마다 그림 130개(약 22MB)를 다시 받았다.
    그림 파일을 '같은 이름으로' 새로 바꿨을 때만 아래 숫자를 올리세요 (새 이름의 그림은 그냥 올리면 됨). */
 const ART = "hyeng-art-v1";
@@ -19,6 +19,10 @@ async function fillAudio() {
   } catch (e) {}
 }
 const isArt = u => new URL(u, self.location.href).pathname.indexOf("/assets/") >= 0;
+/* (v677) 선생님 PC 크롬에서 켤 때마다 첫 화면이 7초 넘게 걸림 — 원인: caches.match(…, {ignoreSearch:true}) 가 발음 파일 3,620개 저장소까지
+   하나하나 뒤져서 한 번에 4.2초(그냥 찾기는 0.001초). → 주소 뒤 ?… 를 직접 떼고 그냥 찾음 */
+const bare = u => { const x = new URL(u, self.location.href); x.search = ""; x.hash = ""; return x.href; };
+const own = async (req, alt) => (await caches.match(bare(req.url || req))) || (alt ? await caches.match(alt) : undefined);
 const isData = u => /\/data\/[^/]+\.json$/.test(new URL(u, self.location.href).pathname);
 const CORE = [
   "./",
@@ -141,18 +145,18 @@ self.addEventListener("fetch", e => {
           if (res && res.ok) { const cp = res.clone(); caches.open(VERSION).then(c => c.put(e.request, cp)).catch(() => {}); }
           return res; });
         if (isPage) {
-          const hit = (await caches.match(e.request, {ignoreSearch: true})) || (await caches.match("./index.html"));
+          const hit = await own(e.request, "./index.html");
           if (hit) {
-            const slow = new Promise(r => setTimeout(() => r(null), 6000));
-            const won = await Promise.race([net.catch(() => null), slow]);
-            if (won) return won;
-            e.waitUntil(net.catch(() => {}));
+            const slow = new Promise(r => setTimeout(() => r(null), 3000));   /* (v677) 6초 → 3초: 와이파이가 느리면 저장해 둔 화면 먼저 (새 버전은 받아 두고 다음에) */
+            const won = await Promise.race([net.then(r => (r && r.ok) ? r : "bad", () => "bad"), slow]);   /* (v677) 서버가 오류(5xx·404)를 주면 기다리지 않고 저장해 둔 화면 */
+            if (won && won !== "bad") return won;
+            if (!won) e.waitUntil(net.catch(() => {}));
             return hit;
           }
         }
         return await net;
       } catch (err) {
-        const hit = await caches.match(e.request, {ignoreSearch: true});
+        const hit = await own(e.request);
         if (hit) return hit;
         return isPage ? (await caches.match("./index.html")) : Response.error();
       }
