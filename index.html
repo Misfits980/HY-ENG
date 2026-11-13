@@ -17499,7 +17499,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v674";
+const GAME_VER = "v675";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -23659,7 +23659,7 @@ const Paper = {
   h2c(){ return this._h2c || (this._h2c=new Promise((ok, no)=>{ if(window.html2canvas) return ok(window.html2canvas); const sc=document.createElement("script"); sc.src="lib/html2canvas.min.js";
       sc.onload=()=>window.html2canvas ? ok(window.html2canvas) : no(new Error("h2c")); sc.onerror=()=>{ this._h2c=null; no(new Error("load")); }; document.head.appendChild(sc); })); },
   /* JPEG 쪽 그림들 → PDF (A4 · 쪽마다 그림 한 장) */
-  pdfBlob(jp){ const enc=new TextEncoder(), parts=[], off=[]; let len=0; const put=x=>{ const b=typeof x==="string" ? enc.encode(x) : x; parts.push(b); len+=b.length; };
+  pdfBlob(jp, title){ const enc=new TextEncoder(), parts=[], off=[]; let len=0; const put=x=>{ const b=typeof x==="string" ? enc.encode(x) : x; parts.push(b); len+=b.length; };
     const W=595.28, H=841.89, n=jp.length, obj=(i, body)=>{ off[i]=len; put(i+" 0 obj\n"); body(); put("\nendobj\n"); };
     put("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n"); obj(1, ()=>put("<< /Type /Catalog /Pages 2 0 R >>"));
     obj(2, ()=>put("<< /Type /Pages /Count "+n+" /Kids ["+jp.map((x,i)=>(3+i*3)+" 0 R").join(" ")+"] >>"));
@@ -23667,8 +23667,11 @@ const Paper = {
       obj(P, ()=>put("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+W+" "+H+"] /Resources << /XObject << /Im0 "+I+" 0 R >> >> /Contents "+C+" 0 R >>"));
       obj(C, ()=>{ put("<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream"); });
       obj(I, ()=>{ put("<< /Type /XObject /Subtype /Image /Width "+x.w+" /Height "+x.h+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+x.b.length+" >>\nstream\n"); put(x.b); put("\nendstream"); }); });
-    const N=3+n*3, xo=len; let xr="xref\n0 "+N+"\n0000000000 65535 f \n"; for(let i=1;i<N;i++) xr+=String(off[i]).padStart(10,"0")+" 00000 n \n";
-    put(xr+"trailer\n<< /Size "+N+" /Root 1 0 R >>\nstartxref\n"+xo+"\n%%EOF\n"); return new Blob(parts, {type:"application/pdf"}); },
+    /* (v674) 문서 제목(Info) — 새 탭(크롬 PDF 보기) 위쪽에 「Grade 1-2 단어 시험」처럼 보이게 (UTF-16BE) */
+    const IN=3+n*3, t=String(title||"HY ENG"); let hx="FEFF"; for(const ch of t){ const c=ch.codePointAt(0); if(c>0xffff){ const v=c-0x10000; hx+=(0xD800+(v>>10)).toString(16).padStart(4,"0")+(0xDC00+(v&0x3ff)).toString(16).padStart(4,"0"); } else hx+=c.toString(16).padStart(4,"0"); }
+    obj(IN, ()=>put("<< /Title <"+hx.toUpperCase()+"> /Producer (HY ENG) >>"));
+    const N=IN+1, xo=len; let xr="xref\n0 "+N+"\n0000000000 65535 f \n"; for(let i=1;i<N;i++) xr+=String(off[i]).padStart(10,"0")+" 00000 n \n";
+    put(xr+"trailer\n<< /Size "+N+" /Root 1 0 R /Info "+IN+" 0 R >>\nstartxref\n"+xo+"\n%%EOF\n"); return new Blob(parts, {type:"application/pdf"}); },
   pdfBox(h){ let o=$("ppPdf"); if(!o){ o=document.createElement("div"); o.id="ppPdf"; $("paper").appendChild(o); } o.innerHTML='<div class="ppPdfC">'+h+'</div>'; return o; },
   async pdf(){ if(this._pdfBusy) return; const W=$("ppWrap"); if(!W) return; const pg=[...W.querySelectorAll(".pp")]; if(!pg.length) return;
     this._pdfBusy=1; this._pdfF=null; let host=null;
@@ -23679,7 +23682,7 @@ const Paper = {
         const u=cv.toDataURL("image/jpeg", 0.9), bin=atob(u.slice(u.indexOf(",")+1)), b=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) b[k]=bin.charCodeAt(k);
         jp.push({w:cv.width, h:cv.height, b}); cv.width=cv.height=0; const t=$("ppPdfN"); if(t) t.textContent=(i+1)+" / "+pg.length+"쪽"; await new Promise(r=>setTimeout(r, 30)); }
       const c=this.cfg(), nm=String(c.title || (Study.label(c.set)+" 단어 시험")).replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim().slice(0,40) || "시험지";
-      const bl=this.pdfBlob(jp); this._pdfF=new File([bl], nm+".pdf", {type:"application/pdf"}); this._pdfU && URL.revokeObjectURL(this._pdfU); this._pdfU=URL.createObjectURL(bl);
+      const bl=this.pdfBlob(jp, nm); this._pdfF=new File([bl], nm+".pdf", {type:"application/pdf"}); this._pdfU && URL.revokeObjectURL(this._pdfU); this._pdfU=URL.createObjectURL(bl);
       if(this.iosApp()) this.pdfBox('<b>✅ PDF 완성 · '+pg.length+'쪽</b><p>아래를 누르면 📤 공유 창이 떠요 — 「프린트」 · 「파일에 저장」 · 카톡으로 보내기</p><button class="ppGo" data-pp="pdfShare">📤 공유 · 인쇄 · 저장</button><button class="ppNew" data-pp="pdfX">닫기</button>');
       else this.pdfBox('<b>✅ 가벼운 PDF 완성 · '+pg.length+'쪽</b><p>「인쇄 창 열기」를 누르면 새 탭에 PDF 가 열려요 — 거기서 🖨 인쇄를 눌러요</p><button class="ppGo" data-pp="pdfOpen">🖨 인쇄 창 열기</button><button class="ppNew" data-pp="pdfDl" style="margin-bottom:8px">💾 PDF 파일로 받기</button><button class="ppNew" data-pp="pdfX">닫기</button>');   /* (v674) PC = 새 탭(크롬 PDF 보기)에서 인쇄 · 내려받기 */
     }catch(e){ this.pdfBox('<b>⚠️ PDF 를 못 만들었어요</b><p>인터넷을 확인하고 다시 눌러 주세요'+(e && e.message ? ' <small>('+this.E(String(e.message).slice(0,40))+')</small>' : '')+'</p><button class="ppNew" data-pp="pdfX">닫기</button>'); }
