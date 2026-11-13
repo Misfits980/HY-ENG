@@ -122,7 +122,7 @@ async def main():
         # 10) 길 맨 위 — 머리말 'Stage n / 24' · '확인할 단어' · 390×844 에서 첫 Stage 보임 · 12) '다음에' 뒤 작은 '🔁 복습' 칩
         await pg.evaluate("""()=>{ try{ localStorage.removeItem(StudyUI.CUR); }catch(e){} const S=Study.load(), t=Study.today(); const L=Study.lessons('jl'); const k=x=>Study.key('jl',x.n);
           S.d1=S.d1||{}; S.ck=S.ck||{}; S.sd=S.sd||{}; S.srs=S.srs||{}; delete S.rvLater;
-          [0,1].forEach(i=>{ L[i].ws.forEach(w=>{ S.seen[w.en]=1; S.sd[w.en]=t; S.srs[w.en]=[1,t-1]; }); S.lv[k(L[i])]=1; delete S.ck[k(L[i])]; });
+          [0,1].forEach(i=>{ L[i].ws.forEach(w=>{ S.seen[w.en]=1; S.sd[w.en]=i?t:t-1; S.srs[w.en]=[1,t-1]; }); S.lv[k(L[i])]=1; delete S.ck[k(L[i])]; });
           S.d1[k(L[0])]=t-1; S.d1[k(L[1])]=t; Study.save(); StudyUI.view('stPath'); StudyUI.book='mid'; StudyUI.set='jl'; StudyUI.path(); }""")
         await pg.wait_for_timeout(500)
         await pg.evaluate("()=>{ scrollTo(0,0); document.querySelectorAll('#scStudy, #scStudy *').forEach(e=>{ if(e.scrollTop) e.scrollTop=0; }); }"); await pg.wait_for_timeout(100)
