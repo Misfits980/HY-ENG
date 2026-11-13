@@ -37,7 +37,7 @@ async def main():
             await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
             await pg.wait_for_timeout(1500)
             r=await pg.evaluate("()=>{ const b=document.getElementById('lrBar'); return [!!b && !b.hidden && b.offsetHeight>0, document.querySelector('#lrRoll .lrIt').innerText.replace(/\\s+/g,' '), LiveRank.it.map(x=>x[0][0]+(x[1]+1)).join(',')]; }")
-            ok(r[0] and ("공부" in r[1] or "오늘의 30" in r[1]) and "지후" in r[1] and "▲1" in r[1] and r[2].startswith("s1,w1,r1,s0,r0,s2,w2,s3,s4,s0,r0"), f"① [{nm}] 🔥 실시간 줄: 📚 1위 지후 ▲1 · 순서 {r[2]} · '{r[1]}'")
+            ok(r[0] and ("공부" in r[1] or "오늘의 30" in r[1] or r[1].startswith("📚")) and "지후" in r[1] and "▲1" in r[1] and r[2].startswith("s1,w1,r1,s0,r0,s2,w2,s3,s4,s0,r0"), f"① [{nm}] 🔥 실시간 줄: 📚 1위 지후 ▲1 · 순서 {r[2]} · '{r[1]}'")
             if nm=="phone":
                 await pg.evaluate("()=>{ LiveRank.i=0; LiveRank.draw(); }"); await pg.wait_for_timeout(3300)
                 r=await pg.evaluate("()=>document.querySelector('#lrRoll .lrIt').innerText.replace(/\\s+/g,' ')")

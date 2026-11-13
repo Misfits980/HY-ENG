@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#100b22">
 <meta name="description" content="다가오는 문 중 뜻에 맞는 영어 단어를 골라 통과하는 3D 단어 학습 게임">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,7 +38,7 @@
 :root{
   --void:#0d0a1c; --ink:#181030; --ivory:#f3ece0;
   --amber:#ffc46b; --mint:#5fe0b0; --coral:#ff7a66; --violet:#8b7bd8; --muted:#a89ec4;
-  --font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  --font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;   /* (v672) 크롬 점검: Windows 10 에 없는 새 그림 문자(🪱 미끼 · 🪙 코인 · 🗒 …)가 네모(▯)로 깨졌음 → 기기 그림 문자에 없을 때만 Noto 그림 문자(필요한 글자만 받음) */
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);font-family:var(--font);
@@ -2723,6 +2724,12 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
 #scSetup #selRule .tile.card small{font-size:12.5px}
 #scSetup #selRule .tile.card.sel{box-shadow:0 0 0 3px #ffd37a,0 0 26px rgba(255,190,90,.45);border-color:#ffd37a !important}
 #scSetup .mStat{position:absolute !important;left:12px;right:12px;bottom:11px;display:flex;flex-wrap:wrap;gap:5px}
+/* (v672) 크롬 점검(Windows 맑은 고딕): Adventure 카드 「최고 Stage · 점수」가 설명 글을 덮었음(절대 위치) → 설명 아래로 이어서 놓음 */
+#scSetup #selRule .tile.card .mStat{position:relative !important;left:auto;right:auto;bottom:auto;margin-top:8px}
+#scSetup #selRule .tile.card[data-v=normal], #scSetup #selRule .tile.card[data-v=daily], body.ui-skin #scSetup #selRule .tile.card[data-v=normal], body.ui-skin #scSetup #selRule .tile.card[data-v=daily]{padding-bottom:14px}
+#scSetup #selRule .tile.card small{text-wrap:balance}
+/* (v672) 가로로 넓은 화면(PC·가로 패드·TV)에서 카드가 위쪽 200px 만 쓰고 아래 절반이 비었음 → 화면 높이에 맞춰 카드를 키움 */
+
 #scSetup .mStat span{font-size:11.5px;font-weight:800;color:#fff;padding:4px 9px;border-radius:99px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);white-space:nowrap}
 #scSetup .mHero{position:absolute !important;right:-4px;bottom:46px;width:130px;height:156px;background:no-repeat 0 0/200% 100%;
   filter:drop-shadow(0 8px 10px rgba(0,0,0,.5));animation:rhRun .5s steps(1) infinite}
@@ -2902,6 +2909,11 @@ body.tabP #scSetup .setWrap{zoom:var(--stZ,1);padding-top:calc(env(safe-area-ins
   #scSetup .tsec[data-step="3"] .rdLoad{margin-top:0}
   #scSetup .tsec[data-step="3"] .itemBox{margin-bottom:10px}
   #scSetup .bkShelf{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+/* (v672) 크롬 점검: 가로로 낮고 넓은 화면(PC 창 894×551 · 1280×537 · 가로 휴대폰)에서 카드가 위쪽 200px 만 쓰고 아래 절반이 비었음 → 화면 높이에 맞춰 키움 */
+@media (max-height:560px) and (min-width:600px) and (min-height:380px){
+  #scSetup #selRule .tile.card, body.ui-skin #scSetup #selRule .tile.card, #scSetup #selRule .tRow2{height:clamp(200px, calc(var(--appH,100dvh) / var(--sz,1) - 150px), 400px) !important}
+  #scSetup #selRule .tRow2>.tile.card[data-v]{height:auto !important}
 }
 
 /* (v297) 길게 누르면 글자 선택·돋보기·'복사하기/찾아보기/번역' 메뉴가 뜨고 화면이 밀리던 것 (구형 iPad Air — -webkit- 접두 필요) */
@@ -3415,7 +3427,7 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .rs.side .rsHero.sd{aspect-ratio:auto;z-index:3} .rs.side .rsHero.sd.me{z-index:4} .rs.side .rsAllies .rsHero.sd{opacity:1;filter:brightness(.9) saturate(.92)}
 .rs.side .rsHero.sd::before{content:"";position:absolute;left:50%;bottom:-5%;width:78%;height:11%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(rgba(0,0,0,.5),rgba(0,0,0,.18) 55%,transparent 72%)}
 .rs.side .rsHero.sd .sdI{position:absolute;left:50%;width:auto;max-width:none;height:calc(100% / var(--ay));bottom:calc(-100% * (1 - var(--ay)) / var(--ay));translate:calc(-100% * var(--ax)) 0;background:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35));pointer-events:none;-webkit-user-drag:none}
-.rs.side .rsHero.sd .rsName{top:auto!important;bottom:-18px;font-size:12px} .rs.side.big .rsHero.sd .rsName{font-size:15px}
+.rs.side .rsHero.sd .rsName{top:auto!important;bottom:-18px;font-size:12px} .rs.side .rsHero.sd.rsUp .rsName{bottom:auto!important;top:-16px!important} .rs.side.big .rsHero.sd .rsName{font-size:15px}
 .rs.side .rsBossIn img{object-position:50% 100%;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4))} .rs.side.z-volcano .rsBossIn img,.rs.side.z-castle .rsBossIn img{filter:drop-shadow(0 0 1px rgba(255,236,210,.9)) drop-shadow(0 6px 6px rgba(0,0,0,.45))}   /* 어두운 땅(화산·성)에서도 보스 윤곽이 보이게 */
 .rsSpr{display:block;width:100%;height:100%;background-size:600% 300%;background-repeat:no-repeat;background-position:0 50%;filter:drop-shadow(0 6px 5px rgba(0,0,0,.45))}
 .rsHero.bsH{aspect-ratio:289/220;height:22%} .rsHero.me.bsH{height:30%;left:12%;bottom:8%}
@@ -3496,6 +3508,7 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .rdCtl .stGo.big{min-width:320px;min-height:68px;font-size:24px;border-radius:18px;background:linear-gradient(180deg,#63d471,#2f9e44);color:#fff;box-shadow:0 6px 0 #1f6e2f,0 10px 24px rgba(0,0,0,.35)}
 .rdBigRoom{display:flex;flex-direction:column;align-items:center;gap:2px;margin:4px 0 14px} .rdBigRoom small{font-weight:800;color:#cfc6ef;font-size:15px}
 .rdBigRoom b{font:900 clamp(56px,11vw,120px)/1 var(--font);letter-spacing:.08em;color:#ffd37a;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+@media (max-height:760px){ .rdBigRoom b{font-size:clamp(44px, min(11vw, 13vh), 120px)} .rdBigRoom{margin-bottom:6px} .rdBigRoom small{font-size:13px} } @media (max-height:640px){ .rdBigRoom b{font-size:clamp(40px, 10vh, 120px)} .rdBigRoom small:last-child{display:none} .rdBigRoom{margin:0 0 4px} }   /* (v672) 크롬 점검(1280×593): 방 번호가 150px 이라 들어온 아이 줄이 「배틀 시작」 단추·LIVE 띠 밑에 가려졌음 */
 .rsMiss{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin:12px 0 4px;padding:10px 12px;border-radius:14px;background:rgba(255,107,107,.08);border:1px dashed rgba(255,107,107,.45)}
 .rsMiss b{color:#ffb3b3;font-size:15px;margin-right:4px} .rsMiss span{padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.06);color:#e7defc;font-weight:800;font-size:14px;opacity:.85}
 .rsMiss small{font-weight:800;color:#cfc6ef} .rsMiss.all{background:rgba(126,217,87,.1);border-color:rgba(126,217,87,.45);color:#b9f5a0;font-weight:800}
@@ -3508,7 +3521,7 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .rdJoinIn{box-sizing:border-box;min-width:0;max-height:calc(100dvh - 32px);overflow:auto} .rdJoinIn input{width:100%;min-width:0;box-sizing:border-box} .rdJoinIn .stTwo{width:100%} .rdJoinIn .stTwo>*{min-width:0}   /* (v305) 휴대폰에서 입장 창이 오른쪽으로 잘리던 것 */
 .rdJoinIn{width:min(360px,100%);background:#241a44;border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:18px;color:#fff;font-family:var(--font);display:flex;flex-direction:column;gap:6px}
 /* (v634) 휴대폰 가로: 수업 게임 번호판 = 왼쪽 이름·번호·버튼 · 오른쪽 숫자판 (0 · 들어가기 가 화면 밖이던 것) */
-@media (orientation:landscape) and (max-height:520px){
+@media (orientation:landscape) and (max-height:640px) and (min-width:700px){   /* (v672) 520 → 640: PC 창(894×551)에서도 「들어가기」가 화면 밖이었음 */
   .rdJoinIn:has(> .rjPad){width:min(720px,100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px;align-content:start}
   .rdJoinIn:has(> .rjPad) > *{grid-column:1} .rdJoinIn > .rjPad{grid-column:2;grid-row:1 / span 9;align-self:center}
   .newsIn #btnNewsOk{position:sticky;bottom:0;z-index:2;box-shadow:0 -8px 16px rgba(0,0,0,.25)} }
@@ -3647,6 +3660,10 @@ body.rsSideCtl #bpCtl.bl{background:linear-gradient(180deg,rgba(14,8,30,0) 45%,r
 .lrIt.mine .n{flex:0 0 auto;overflow:visible} .lrIt.mine .v{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:right}   /* (v670) 「⭐ 나」 줄 = 등수가 먼저 다 보이고 뒤 글이 줄어듦 — 예전엔 「📚 오… 김지후까지 210점」처럼 정작 내 등수가 잘렸음 (v602 부터 · 휴대폰·패드 모두) */
 #lrPanel .lrDots{text-align:center;color:#8f86b5;line-height:1;margin:2px 0} #lrPanel .lrLv{font-size:12px;color:#8f86b5;text-align:center;margin-top:8px}
 .lrIt .r{flex:none;width:18px;text-align:center;font-weight:900;color:#ffd23f;font-size:15px}
+/* (v672) 크롬 점검: 랭킹·2인용 대결은 「돌아가기」가 맨 아래에만 있어 낮은 화면에서 안 보였음 → 왼쪽 위 ◀ 뒤로 (스크롤해도 따라옴) */
+.topBack, .panel .topBack{width:auto !important;min-width:0 !important;align-self:flex-start;position:sticky;top:6px;z-index:8;margin:0 0 6px;appearance:none;cursor:pointer;height:38px;padding:0 14px;border-radius:99px;border:1px solid rgba(255,255,255,.2);background:rgba(20,12,40,.82);color:#efe9ff;font:800 14px var(--font);backdrop-filter:blur(6px)}
+.topBack:active{transform:translateY(1px)}
+.lrIt .c .lb{font-style:normal} #lrBar .lrIt:not(.mine) .v, .lrIt:not(.mine) .v{flex:none}   /* (v672) 값은 점수 하나뿐 → 값은 줄지 않고 이름이 줄어듦 */ #lrBar.nar .lrIt .c .lb{display:none} #lrBar.nar .lrIt .c{padding:1px 4px}   /* (v672) 좁은 실시간 줄 = 이름표는 그림만 */
 .lrIt .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:800}
 .lrIt .v{flex:none;font-size:11.5px;color:#cfc6f0}
 .lrIt:not(.mine) .n{flex:0 1 auto;min-width:2.6em} .lrIt:not(.mine) .v{flex:0 60 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;margin-left:auto}   /* (v613) 시안 만들다 찾음: 휴대폰 실시간 줄에서 「2,140점 · 11판 · 310문제」가 길어 이름(빈)이 0칸으로 사라졌음 → 이름 먼저 · 뒤 글이 줄어듦 */
@@ -5146,6 +5163,7 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
 .bdLen{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.bdLen button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;border:2px solid var(--bdLine);background:transparent;color:inherit;font-size:16px;font-weight:900}.bdLen button small{font-size:11px;font-weight:600;opacity:.75}.bdLen button.on{border-color:#ffd23f;background:rgba(255,210,63,.25);box-shadow:inset 0 0 0 2px #ffd23f}
 .bdMore{margin-top:14px;border-top:1px dashed var(--bdLine);padding-top:8px}.bdMore summary{cursor:pointer;font-weight:800;font-size:14px;padding:6px 0}.bdMore summary small{font-weight:400;font-size:11px;opacity:.7}
 .bdGo{margin-top:10px;height:58px;border-radius:18px;border:0;background:var(--bdBtn);color:var(--bdBtnInk);font-size:22px;font-weight:900;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+.bdGo:disabled{filter:grayscale(.75) brightness(.7);opacity:.75;box-shadow:none;cursor:default}   /* (v672) 크롬 점검: 친구가 없어 꺼진 「시작 (1명)」이 노란색 그대로라 눌리는 것처럼 보였음 */
 /* 판 */
 .bdTop{display:flex;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top)) 10px 6px}
 .bdPl{flex:1;display:flex;gap:6px;overflow-x:auto}
@@ -5418,6 +5436,9 @@ span.bdIcE{display:inline-flex;align-items:center;justify-content:center;font-si
 .mgSwT.img ~ .mgSwB{width:auto;height:min(24%,96px);aspect-ratio:2.4;flex:none}.mgSw:has(.mgSwT.img){gap:8px}
 .mgSwT.img{height:clamp(140px,32vh,320px);width:auto;aspect-ratio:.82;min-height:0;justify-content:center;padding:12% 0 0;border:0;border-radius:0;background:var(--mgI-sp_watch) center/contain no-repeat;gap:2px}
 .mgSwT.img b{color:#2a2350;font-size:clamp(24px,5.6vh,58px)}.mgSwT.img small{color:#5b4a2a;max-width:58%;text-align:center;font-size:clamp(10px,1.7vh,15px);line-height:1.2}
+/* (v672) 크롬 점검: 낮은 화면(1280×537)에서 숫자가 시계 테두리에 겹치고 「10.00초에 딱!」이 STOP 에 가려졌음 — 크기를 화면(vh)이 아니라 이 칸 높이(cqh)에 맞춤 */
+.mgSw:has(.mgSwT.img){container-type:size}
+@supports (height:1cqh){ .mgSwT.img{height:min(320px, 64cqh)} .mgSwT.img b{font-size:clamp(16px, 10cqh, 58px)} .mgSwT.img small{font-size:clamp(8px, 2.5cqh, 15px);max-width:64%} .mgSwT.img ~ .mgSwB{height:min(96px, 26cqh)} }
 .mgSw.hid .mgSwT.img b{color:#a89cc8}.mgSw.end .mgSwT.img{box-shadow:none;filter:drop-shadow(0 0 18px rgba(255,210,63,.7))}.mgSw.end .mgSwT.img b{color:#d4462c}
 .mgNu button{background:transparent var(--mgI-nu_tile) center/100% 100% no-repeat;box-shadow:none;border-radius:0}
 .mgNu button.ok{background-color:transparent;background-image:var(--mgI-nu_ok);opacity:.55;transform:none;color:#fff}.mgNu button.no{background-color:transparent;background-image:var(--mgI-nu_no);color:#fff}
@@ -7105,6 +7126,7 @@ body.ui-skin #scStart .menuDuo .mitem:hover{background:rgba(255,255,255,.12);fil
 <div class="stPop" id="stPop"></div>
 <!-- 👥 2인용 준비 -->
 <div class="screen" id="scVs"><div class="panel vsPanel">
+  <button class="topBack" data-tb="vsBack" aria-label="돌아가기">◀ 뒤로</button>
   <h1>👥 2인용 대결</h1>
   <p class="lede">키보드 하나로 둘이 같은 길을 달려요. 같은 문제를 풀고, 점수가 높은 사람이 이겨요.</p>
   <div class="group"><div class="glab">난이도</div><div class="opts" id="vsDiff"></div></div>
@@ -7157,6 +7179,7 @@ body.ui-skin #scStart .menuDuo .mitem:hover{background:rgba(255,255,255,.12);fil
 
 <!-- 랭킹 -->
 <div class="screen" id="scRank"><div class="panel">
+  <button class="topBack" data-tb="btnRankBack" aria-label="돌아가기">◀ 뒤로</button>
   <h1>랭킹</h1>
   <!-- (v605) 사용자: 「전체 랭킹도 수정해야」 → 실시간 랭킹과 같은 셋(📚 공부 · 📖 단어 · 🏃 달리기) + 🎲 팀 대항 · 달리기 난이도는 「전체·이 기기」에서만 -->
   <div class="group"><div class="opts" id="selRankDiff">
@@ -15014,13 +15037,13 @@ const Best = (function(){
 
 /* 마지막 설정 — 다음에 "이어서 하기" 한 번으로 시작할 수 있게 */
 const LastSetup = (function(){
-  const KEY="hyeng_setup_v1";
-  let mem=null, ls=false;
+  const KEY="hyeng_setup_v1", KK=()=>{ try{ return Kid.k(KEY); }catch(e){ return KEY; } };
+  let mem={}, ls=false;
   try{ localStorage.setItem(KEY+"_t","1"); localStorage.removeItem(KEY+"_t"); ls=true; }catch(e){}
   return {
-    get(){ if(ls){ try{ const v=JSON.parse(localStorage.getItem(KEY)); if(v) return v; }catch(e){} }
-           return mem; },
-    save(o){ mem=o; if(!ls) return; try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
+    /* (v672) 공용 패드에서 이름을 고른 아이는 그 아이 칸(…@아이) — 예전엔 패드 하나에 하나라 다른 아이의 「이어서 하기」(HARD 등)가 보였음 */
+    get(){ const K=KK(); if(ls){ try{ const v=JSON.parse(localStorage.getItem(K)); if(v) return v; }catch(e){} } return mem[K]||null; },
+    save(o){ const K=KK(); mem[K]=o; if(!ls) return; try{ localStorage.setItem(K, JSON.stringify(o)); }catch(e){} }
   };
 })();
 
@@ -15869,7 +15892,7 @@ const NameCard = {
       : '<button class="nmBtn" data-nm="edit">✏️ 이름 바꾸기 · '+cost+'</button>';
     /* (v404) 🏷 태그 — 이름 옆 #번호 · 아이는 못 바꿈 */
     let tg=""; try{ tg=Tag.get(); }catch(e){}
-    if(!first) row.insertAdjacentHTML("beforeend", '<div class="nmTag">'+(tg ? '<b>🏷 '+String(nm).replace(/[<>&"]/g,"")+'<i>#'+tg+'</i></b><small>태그는 나만의 번호예요 — 이름을 바꿔도 그대로예요</small>' : '<small>🏷 태그(나만의 번호)를 받는 중… 인터넷이 연결되면 생겨요</small>')+'</div>');
+    if(!first) row.insertAdjacentHTML("beforeend", '<div class="nmTag">'+(tg ? '<b>🏷 '+String(nm).replace(/[<>&"]/g,"")+'<i>#'+tg+'</i></b><small>태그는 나만의 번호예요 — 이름을 바꿔도 그대로예요</small>' : '<small>'+((()=>{ try{ return Tag.pad(); }catch(e){ return false; } })() ? '📱 공용 패드 — 태그는 아이마다 따로예요 (판마다 이름을 골라요)' : '🏷 태그(나만의 번호)를 받는 중… 인터넷이 연결되면 생겨요')+'</small>')+'</div>');   /* (v672) 공용 패드엔 서버가 태그를 안 줌(nopad) — 「받는 중」이 영원히 떠 있었음 */
   },
   click(a){
     if(a==="edit"){ SFX.click(); this.editing=true; this.draw(); const el=$("nick"); try{ el.focus(); el.select(); }catch(e){} return; }
@@ -17357,7 +17380,8 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   try{
     const medal = isBest ? 3 : (acc>=90 && total>=5 ? 2 : (acc>=70 ? 1 : 0));   // 0 동 · 1 은 · 2 금 · 3 왕관
     const md=$("oMedal");
-    if(md){ md.style.backgroundPosition=(medal/3*100)+"% 0"; md.className="resMedal"; void md.offsetWidth; md.className="resMedal pop"; }
+    if(md){ md.style.display = (G.score>0 && total>0) ? "" : "none";   /* (v672) 크롬 점검: 0점으로 끝내도 동메달이 나왔음 */
+      md.style.backgroundPosition=(medal/3*100)+"% 0"; md.className="resMedal"; void md.offsetWidth; md.className="resMedal pop"; }
     const ci=Math.max(0, CHARACTERS.findIndex(c=>c.id===G.char));
     const ch=$("oCheer"); if(ch){ const wo=Wallet.wearing(G.char);
       if(wo && Outfit.ready[wo]!==false){ ch.style.backgroundImage="url("+AP("outfit-"+wo+"-card.webp")+"), url("+AP("char-cheer.webp")+")"; ch.style.backgroundSize="contain, 900% 100%"; ch.style.backgroundPosition="center bottom, "+(ci/8*100)+"% 0"; }
@@ -17418,13 +17442,15 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   }
   $("oHint").textContent = isTouch ? "" : "R 키를 누르면 바로 다시 시작합니다";
   const noRank = (G.set==="kinder") || !!G.testRun || !!G.practice;      // 유치원 단어·시험 주소는 랭킹에 넣지 않는다
-  const rank = noRank ? 0 : Ranking.save({nick:G.nick, title:myTitle(), score:G.score, stage:G.stage,
+  /* (v672) 크롬 점검: 공용 패드 결과 「HARD 랭킹」 1~3등이 모두 패드 이름("한양키즈하우스") → 이름을 고른 아이면 그 이름으로 */
+  let myNick=G.nick; try{ const k=Kid.shared() && Kid.get(); if(k && k.n) myNick=HyBoss.plainN(k.n).slice(0,10); }catch(e){}
+  const rank = noRank ? 0 : Ranking.save({nick:myNick, title:myTitle(), score:G.score, stage:G.stage,
     acc: total?Math.round(G.right/total*100):0, combo:G.bestCombo, diff:G.diff, date:Date.now(), book:G.book||""});
   try{ if(!G.testRun && !G.practice && !G.words && G.rule==="normal") RunBook.saveBest(G.book||G.set, G.score); }catch(e){}   // (v291) 책별(🌈 전체 = 학년) 내 최고 기록
   const rankTxt = rank>0 ? ("내 순위 "+rank+"위") : "20위 밖";
   $("oRank").innerHTML = noRank ? '<div class="note">'+(G.testRun?'시험 모드 기록은 랭킹에 올라가지 않아요':G.practice?'연습 달리기는 랭킹에 안 올라가요':'유치원 단어는 랭킹에 기록되지 않아요')+'</div>'   /* (v322) 연습 문구 */
     : '<div class="resCh">'+DIFF[G.diff].label+' 랭킹 <b class="resMy">'+rankTxt+'</b></div>'+rankRows(G.diff)
-      +(rank>3 ? '<div class="rrDots">⋯</div><div class="rrow me"><i>'+rank+'</i><b>'+String(G.nick||"나").replace(/[<>&"]/g,"")+' <em class="meTag">나</em></b><span>'+G.score.toLocaleString()+'</span></div>' : '');   /* (v320) TOP 3 + 나 */
+      +(rank>3 ? '<div class="rrDots">⋯</div><div class="rrow me"><i>'+rank+'</i><b>'+String(myNick||"나").replace(/[<>&"]/g,"")+' <em class="meTag">나</em></b><span>'+G.score.toLocaleString()+'</span></div>' : '');   /* (v320) TOP 3 + 나 */
   /* (v322) 유치원 판·연습 달리기도 선생님이 볼 수 있게 시트에 줄을 남긴다 — 방식 칸을 "kinder"/"practice" 로 (시트 랭킹은 normal 만 센다). 시험 주소 판은 보내지 않음 */
   if(!G.testRun && Online.on() && G.rule==="normal" && G.score>0){
     const d0=G.diff, sheetRule = G.practice ? "practice" : (G.set==="kinder" ? "kinder" : G.rule);
@@ -17471,7 +17497,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v671";
+const GAME_VER = "v672";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -17576,7 +17602,9 @@ $("prompt") && $("prompt").addEventListener("click",()=>{
 });
 $("btnGo").addEventListener("click",()=>{
   SFX.wake(); SFX.click();
-  try{ Kid.confirm(()=>{ show("scSetup"); laneNote(); goStep(0); }); }catch(e){ show("scSetup"); laneNote(); goStep(0); }   // (v322) 공용 패드 '민준 맞아요?'
+  const go0=()=>{ try{ const ls=LastSetup.get(); if(ls && !ls.versus){ if(DIFF[ls.diff]) G.diff=ls.diff; if(ls.mode) G.mode=ls.mode; } }catch(e){}   /* (v672) 고르는 화면도 마지막 설정(「이어서 하기」와 같게) — 예전엔 늘 Normal 에서 시작 */
+    show("scSetup"); laneNote(); goStep(0); };
+  try{ Kid.confirm(go0); }catch(e){ go0(); }   // (v322) 공용 패드 '민준 맞아요?'
 });
 $("btnBack").addEventListener("click",()=>{
   SFX.click();
@@ -20481,7 +20509,7 @@ const StudyUI = {
     /* (v530) 개선 3: G3-6 은 끝 화면 위에 오늘 쓰러뜨린 몬스터 (쓰러지는 연출 · 처치 기록) */
     let ko=''; try{ const S0=$("scStudy"), m=this._bm; if(pass && m && S0.classList.contains("thB")){ const n0=this.monDex(m.k); ko='<p class="vDex"><img src="'+(m.pt||m.img)+'" alt="">'+(n0===1?'📕 새 몬스터 처치!':'⚔️ 몬스터 처치')+' · 도감 '+this.monDexN()+'</p>'; }   /* (v532) 사용자: 쓰러지는 장면 빼고 도감 한 줄 */ }catch(e){}
     const st = oly ? '<div class="stStars">'+this.stars(v, set, x)+'</div>'
-      : run ? run+'<div class="vStgP">Stage 별 <b>'+'★'.repeat(Math.min(3,y))+'</b><u>'+'★'.repeat(Math.max(0,3-Math.min(3,y)))+'</u>'+(p?' <i>💜'+p+'</i>':'')+'</div>'   /* (v531) 사용자: 별 줄이 두 개라 헷갈림 → 큰 별 = 이번 판 하나만, Stage 별은 작은 글자 한 줄 */
+      : run ? run+'<div class="vStgP">이 Stage 모은 별 <b>'+'★'.repeat(Math.min(3,y))+'</b><u>'+'★'.repeat(Math.max(0,3-Math.min(3,y)))+'</u>'+(p?' <i>💜'+p+'</i>':'')+'</div>'   /* (v531) 사용자: 별 줄이 두 개라 헷갈림 → 큰 별 = 이번 판 하나만, Stage 별은 작은 글자 한 줄 */
       : '<div class="stStars vStars">'+[0,1,2].map(i=>{ const pu=i<p, on=pu || i<y; return '<i class="vS'+(on?' on':'')+(pu?' pu':'')+'" style="--d:'+(0.45+i*0.28)+'s"></i>'; }).join('')+'</div>';
     if(pass && !oly){ [0,1,2].forEach(i=>{ if(i<y || i<p) setTimeout(()=>{ try{ SFX.tone(660+i*170, .12, "triangle", .05, 1320+i*200); }catch(e){} }, 450+i*280); });
       if(y>=3) setTimeout(()=>{ try{ [523,659,784,1047].forEach((f,k)=>setTimeout(()=>SFX.tone(f, .22, "triangle", .045, f*1.5), k*90)); }catch(e){} }, 1400); }   /* (v446) 별 3개 = 짧은 빰빠밤 */
@@ -22341,19 +22369,31 @@ const FB = (function(){
     return probing; }
   /* (v359) 사용자 사진: 선생님 휴대폰 TV 에 아이들 점수가 멈춤(흐리게) · 아이 화면에 다른 아이가 안 보이고 0등 — 휴대폰(5G)·패드 잠깐 꺼짐에서 실시간 연결이 오류 없이 조용히 끊겨 다시 안 붙었다
      → 모든 이벤트(서버가 30초마다 보내는 keep-alive 포함) 시각 h.at · 10초마다 검사해 닫혔거나 45초 넘게 소식이 없으면 다시 연결 · cancel(권한) 도 다시 */
-  function open1(h){ const path=h.path; h.at=Date.now(); try{ h.es=new EventSource(U(path)); h.es.addEventListener("auth_revoked", ()=>{ try{ h.es.close(); }catch(e){} h.up=false; h.at=0; FBAuth.token(); });
+  /* (v672) 크롬 점검: 교실 배틀 방장·아이 모두 「연결 다시 잡는 중 · 들어온 아이 0명」 · Firebase 읽기 시간 초과
+     원인 = 실시간 듣기(EventSource)가 서버 하나에 동시에 열 수 있는 연결(브라우저 6개)을 다 차지 → 새 읽기·쓰기가 줄을 서서 안 감
+     선생님 화면은 주간 보스 실시간 듣기 4개(명단·보스·이번 주·지난주 데미지) + 방 + 관리 화면의 방 지켜보기 … 로 6개를 넘김
+     → 한 화면의 실시간 연결은 4개까지(MAXES) · 넘으면 그 듣기는 몇 초마다 읽기(poll)로 · 방(battle·raids) 듣기가 오면 hy/… 듣기를 읽기로 내려 자리를 비움 · 닫히면 읽기 하던 것을 다시 올림 */
+  const MAXES=4, nES=()=>L.filter(x=>x.es && x.es.readyState!==2).length;
+  function pollStart(h){ if(h.pt) return; h.poll=true; const go=()=>{ if(L.indexOf(h)<0){ clearInterval(h.pt); h.pt=null; return; } if(h.pb) return; h.pb=1;
+      get(h.path).then(v=>{ h.pb=0; if(L.indexOf(h)<0) return; h.at=Date.now(); h.ev=Date.now(); h.up=true; const js=JSON.stringify(v===undefined?null:v); if(js!==h.js){ h.js=js; h.tree=cp(v); h.dirty=1; emit(); } }, ()=>{ h.pb=0; h.up=false; }); };
+    h.pt=setInterval(go, h.lo ? 6000 : 2500); go(); }
+  function pollStop(h){ if(h.pt){ clearInterval(h.pt); h.pt=null; } h.poll=false; h.js=null; }
+  function promote(){ if(mode!=="fb") return; const w=L.filter(x=>x.poll).sort((a,b)=>(a.lo?1:0)-(b.lo?1:0)); for(const h of w){ if(nES()>=MAXES) break; pollStop(h); open1(h); } }
+  function open1(h){ const path=h.path; h.at=Date.now();
+    if(!h.es && nES()>=MAXES){ if(!h.lo){ const v=L.find(x=>x!==h && x.lo && x.es && x.es.readyState!==2); if(v){ try{ v.es.close(); }catch(e){} v.es=null; v.up=false; pollStart(v); } } if(nES()>=MAXES){ pollStart(h); return; } }
+    pollStop(h); try{ h.es=new EventSource(U(path)); h.es.addEventListener("auth_revoked", ()=>{ try{ h.es.close(); }catch(e){} h.up=false; h.at=0; FBAuth.token(); });
           const on=(e,mg)=>{ h.at=Date.now(); try{ const d=JSON.parse(e.data); if(!d) return; applyTo(h, parts(path).concat(parts(d.path)).join("/"), d.data, mg); h.up=true; h.ev=Date.now(); emit(); }catch(er){} };
           h.es.addEventListener("put", e=>on(e,false)); h.es.addEventListener("patch", e=>on(e,true)); h.es.addEventListener("keep-alive", ()=>{ h.at=Date.now(); });
           h.es.addEventListener("cancel", ()=>{ h.up=false; h.at=0; }); h.es.onerror=()=>{ h.up=false; }; h.es.onopen=()=>{ h.up=true; h.at=Date.now(); flush(); }; }catch(e){} }
-  function watch(){ if(mode!=="fb") return; const now=Date.now(); L.forEach(h=>{ const dead = !h.es || h.es.readyState===2 || now-(h.at||0)>45000;
-      if(dead){ try{ h.es && h.es.close(); }catch(e){} h.es=null; h.up=false; open1(h); } }); }
+  function watch(){ if(mode!=="fb") return; const now=Date.now(); L.forEach(h=>{ if(h.poll) return; const dead = !h.es || h.es.readyState===2 || now-(h.at||0)>45000;
+      if(dead){ try{ h.es && h.es.close(); }catch(e){} h.es=null; h.up=false; open1(h); } }); promote(); }
   try{ setInterval(watch, 10000); }catch(e){}
-  function listen(path, cb){ const h={path, cb, tree:null, dirty:0, es:null, up:false};
+  function listen(path, cb){ const h={path, cb, tree:null, dirty:0, es:null, up:false, lo:/^\/?hy\//.test(path)};
     L.push(h);
     ready().then(m=>{ if(L.indexOf(h)<0) return;
       if(m==="fb") open1(h);
       else { h.tree=cp(getAt(mem, path)); h.up=true; h.dirty=1; emit(); } });
-    return { get:()=>h.tree, up:()=>h.up, age:()=>Date.now()-(h.ev||h.at||0), close(){ try{ h.es && h.es.close(); }catch(e){} const i=L.indexOf(h); if(i>=0) L.splice(i,1); } }; }
+    return { get:()=>h.tree, up:()=>h.up, age:()=>Date.now()-(h.ev||h.at||0), close(){ try{ h.es && h.es.close(); }catch(e){} h.es=null; pollStop(h); const i=L.indexOf(h); if(i>=0) L.splice(i,1); setTimeout(promote, 50); } }; }
   function send(path, val, merge){ return FBAuth.token().then(()=>fetch(U(path), {method:merge?"PATCH":"PUT", body:JSON.stringify(val)}))
       .then(r=>{ if(!r.ok) throw r.status; return true; }).catch(e=>{ lastErr={path:parts(path).join("/"), e:String(e && e.message || e), at:Date.now()}; if((e===401 && FBAuth.on() && Date.now()>FBAuth.exp-60000) || (e!==401 && e!==400)){   /* (v419) 토큰이 끝나서 401 이면 버리지 않고 모아 둠 */ if(/^hy\//.test(parts(path).join("/"))){ PQ.push([path,val,merge]); saveQ(); } else Q.push([path,val,merge]); } return false; }); }
   /* 와이파이가 돌아오면 모아 둔 것을 보냄 — (v308) 하나씩 차례로 · 더하기가 아닌 같은 경로 쓰기는 마지막 것만 */
@@ -22370,6 +22410,7 @@ const FB = (function(){
   function write(path, val, merge){ return ready().then(m=>put(m, path, val, merge)); }
   /* strict = 인터넷 오류면 null 대신 실패 (없는 것과 못 읽은 것을 구별) */
   /* (v355) 읽기 8초 제한 — 패드에서 요청이 대답 없이 멈추면 숙제·시험 목록이 영영 안 불러와졌다 (그 뒤 check 가 _busy 로 막힘) */
+  function stat(){ return {es:nES(), poll:L.filter(x=>x.poll).length, n:L.length, paths:L.map(x=>(x.poll?"~":"")+x.path)}; }   /* (v672) 시험·점검용 */
   function get(path, strict){ return ready().then(m=>{ if(m!=="fb") return cp(getAt(mem, path)); let ac=null, tm=0; try{ ac=new AbortController(); tm=setTimeout(()=>{ try{ ac.abort(); }catch(e){} }, 8000); }catch(e){}
       return FBAuth.token().then(()=>fetch(U(path), ac ? {cache:"no-store", signal:ac.signal} : {cache:"no-store"})).then(r=>{ clearTimeout(tm); return r.ok?r.json():Promise.reject(r.status); }).catch(e=>{ clearTimeout(tm); lastErr={path:parts(path).join("/"), e:"읽기 "+String(e && e.name==="AbortError" ? "시간 초과" : (e && e.message || e)), at:Date.now()}; return strict?Promise.reject(e):null; }); }); }
   /* (v308) 한 번만 쓰기 — 이미 값이 있으면 false. 서버 ETag 로 두 기기가 동시에 해도 한 쪽만 (안 되면 읽고 확인) */
@@ -22391,7 +22432,7 @@ const FB = (function(){
   function reopen(){ if(mode!=="fb") return; L.forEach(h=>{ if(h.es && h.es.readyState===2){ try{ h.es.close(); }catch(e){} h.es=null; open1(h); } }); flush(); }
   try{ document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) setTimeout(reopen, 300); }); addEventListener("online", ()=>setTimeout(reopen, 800)); }catch(e){}
   const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-  return { ready, listen, get, set:(p,v)=>write(p,v,false), update:(p,v)=>write(p,v,true), push:(p,v)=>write(p+"/"+id(), v, false), id,
+  return { ready, listen, get, stat, set:(p,v)=>write(p,v,false), update:(p,v)=>write(p,v,true), push:(p,v)=>write(p+"/"+id(), v, false), id,
     mode:()=>mode, on:()=>mode==="fb", base:()=>base, lastErr:()=>lastErr, retry:flush, pending:()=>PQ.length+(flushing?1:0), inc, clock, once };
 })();
 /* 예전 이름 그대로 (방 하나 듣기) */
@@ -22468,7 +22509,9 @@ const Kid = {
   set(v){ if(this.personal()){ if(v && v.id && !/^[dt]/.test(v.id)) this.bindTo(v.id); return; }   /* (v478) 📱 내 기기 = 고른 것이 아니라 묶기 (옮기기·설정 「명단에서 찾기」) */
     try{ if(v && v.id && !this.shared()) setTimeout(()=>{ try{ HyBoss.pendApply(this.me()); }catch(e){} }, 400); }catch(e){}   /* (v477) */
     try{ const o=this.get(); if(o && v && o.id!==v.id) Gift.flush(); }catch(e){} try{ this.st().setItem("hyeng_kid", JSON.stringify(Object.assign({}, v, {at:Date.now()}))); }catch(e){}
-    try{ setTimeout(()=>{ try{ LiveRank.draw(); }catch(e){} }, 60); }catch(e){} },   /* (v667) 「⭐ 나」 줄 = 고른 아이 등수로 */
+    try{ setTimeout(()=>{ try{ LiveRank.draw(); }catch(e){} }, 60); }catch(e){}   /* (v667) 「⭐ 나」 줄 = 고른 아이 등수로 */
+    /* (v672) 크롬 점검: 공용 패드에서 이름을 새로 고르거나 만든 뒤에도 Daily 30 지도가 앞 아이(패드)의 책·진도를 그대로 보여 줬음(닫았다 열어야 바뀜) → 지도 화면이면 그 아이 것으로 다시 그림 (문제 푸는 중이면 안 건드림) */
+    try{ const o0=this._lastSet; this._lastSet=v && v.id; if(this.shared() && v && v.id && o0!==v.id) setTimeout(()=>{ try{ const P=$("stPath"); if($("scStudy").classList.contains("on") && P && P.style.display!=="none") StudyUI.open(); }catch(e){} }, 80); }catch(e){} },
   /* (v417) 🧸 패드 주인 — 사용자: "유치부는 아직 자기 패드가 없어 (루아·주호·단우·경훈·라언) · 늘 자기 패드를 사용 · 보석은 우리 애들이 썼으면"
      공용 패드 한 대 = 유치부 아이 한 명의 패드. 주인이 하면(이름을 안 골라도) 내 기기처럼 · 다른 아이가 이름을 고르면 수업 모드:
      진도·보석·도감은 이 패드 주인 것과 따로(…@아이 칸) + 받은 💎·별·단어·물건은 서버로 → 그 아이 기기가 켤 때 받음 (Gift) */
@@ -23003,7 +23046,10 @@ addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest || !t.close
   if(t.closest("[data-kptok]")){ KidPick.tchOk(); return; }
   if(t.closest("[data-kpback]")){ const cb=KidPick.cb, bm=KidPick.bindMode; KidPick.open(cb, {bind:bm}); return; } });   /* (v478) 「다시 고르기」도 같은 모드로 */
 addEventListener("click", e=>{ const t=e.target; if(!t || !t.closest) return; const b=t.closest("[data-kp]"); if(!b) return;
-  const id=b.dataset.kp, K=HyBoss.kids(); if(!id || !K[id]) return;
+  const id=b.dataset.kp, K=HyBoss.kids();
+  /* (v672) 크롬 점검: 「닫기」(data-kp="")가 아무 일도 안 했음 → 창을 닫고, 공용 패드에서 이름 없이 Daily 30 에 남지 않게 첫 화면으로 */
+  if(!id){ KidPick.close(); KidPick.cb=null; try{ SFX.click(); }catch(er){} try{ if(Kid.shared() && !Kid.get() && $("scStudy").classList.contains("on")){ StudyUI.close && StudyUI.close(); show("scStart"); } }catch(er){} return; }
+  if(!K[id]) return;
   /* (v477) 사용자: "이름을 잘못 골라서 다른 아이 기록으로 됨" → 개인 패드에서 설정 이름과 다른 아이를 누르면 한 번 더 묻기 */
   if(!Kid.shared() && !Kid.teacher() && Kid.nick() && Kid.nk(K[id].n)!==Kid.nk(Kid.nick()) && !b.dataset.sure){ const box=document.querySelector("#kidPick .rdJoinIn"); if(box){ const nm=HyBoss.plainN(K[id].n);
       box.innerHTML='<b>🤔 「'+Raid.esc(nm)+'」 정말 나예요?</b><p>설정에 쓴 내 이름은 「'+Raid.esc(Kid.nick())+'」이에요<br><small>다른 친구 이름을 고르면 공부·보스·보석이 그 친구에게 가요</small></p><div class="wbPopB"><button class="stBossBtn" data-kp="'+Raid.esc(id)+'" data-sure="1">네, '+Raid.esc(nm)+' 맞아요</button><button class="stLater" data-kpback="1">◀ 다시 고르기</button></div>';
@@ -24954,7 +25000,8 @@ const RaidStage = {
     ids.forEach(k=>{ const a=this.al[k], i=a.slot, r=host ? Math.min(2, Math.floor(i/cols)) : 0, c=host ? i-r*cols : i;
       if(host){ a.bx=3+c*(54/cols)+(r===1?27/cols:0); a.by=[4,19,34][r]; }
       else if(arena){ a.bx=4+c*13; a.by=47+(c%2)*2; }
-      else { a.bx = narrow ? 2+c*14 : 2+c*7; a.by = narrow ? 38+(c%2)*3 : 26+(c%2)*6; }
+      else { a.bx = narrow ? 2+c*14 : 2+c*9; a.by = narrow ? 38+(c%2)*3 : 26+(c%2)*6; }   /* (v672) 7 → 9 */
+      a.el.classList.toggle("rsUp", !host && !arena && c%2===1);   /* (v672) 크롬 점검: 주간 보스 친구 이름표(빈·스트로베리·김지환)가 서로 겹쳤음 → 한 명 걸러 이름을 머리 위로 */
       if(this.side){ a.el.classList.remove("rsBack","rsNar","rsArena"); return; }
       a.el.style.zIndex = host ? 3-r : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow || arena)); a.el.classList.toggle("rsNar", narrow); a.el.classList.toggle("rsArena", arena);
       ["rsR0","rsR1","rsR2"].forEach((x,j)=>a.el.classList.toggle(x, host && r===j)); });
@@ -25626,7 +25673,8 @@ const RaidJoin = {
     const gOf=k=>T[K[k].t] ? K[k].t : "_", G={}; Object.keys(K).forEach(k=>{ if(dup[k]) return; (G[gOf(k)]=G[gOf(k)]||[]).push(k); });
     Object.keys(G).forEach(t=>G[t].sort((a,b)=>HyBoss.plainN(K[a].n).localeCompare(HyBoss.plainN(K[b].n)))); return G; },
   pickHtml(){ const T=HyBoss.teams(), K=HyBoss.kids(), G=this.groups(), ks=Object.keys(T).filter(t=>G[t]).concat(G._ ? ["_"] : []), pt=Kid.padT(), me=this.pick;
-    if(!this.cls || !G[this.cls]) this.cls = (me && G[me.t] && G[me.t].indexOf(me.id)>=0) ? me.t : (pt && G[pt]) ? pt : ks[0];
+    let sk=null; try{ sk=Kid.shared() ? Kid.get() : null; }catch(e){}   /* (v672) 공용 패드: 방금(20분 안) 고른 아이의 반을 먼저 펼침 · 이름은 미리 고르지 않음 (v383) */
+    if(!this.cls || !G[this.cls]) this.cls = (me && G[me.t] && G[me.t].indexOf(me.id)>=0) ? me.t : (sk && G[sk.t] && G[sk.t].indexOf(sk.id)>=0) ? sk.t : (sk && G._ && G._.indexOf(sk.id)>=0) ? "_" : (pt && G[pt]) ? pt : ks[0];
     const nm=t=>t==="_" ? "반 없음" : ((T[t].e||"")+" "+T[t].n).trim();
     return '<div class="rjCls">'+ks.map(t=>'<button class="rjC'+(t===this.cls?' on':'')+(t===pt?' now':'')+'" data-rjc="'+Raid.esc(t)+'">'+Raid.esc(nm(t))+(t===pt?' <small>수업 중</small>':'')+'</button>').join('')+'</div>'
       +'<div class="rjKids">'+(G[this.cls]||[]).map(k=>'<button class="rjN'+(me && me.id===k?' on':'')+'" data-rjn="'+Raid.esc(k)+'">'+Raid.esc(HyBoss.plainN(K[k].n))+'</button>').join('')+'</div>'; },
@@ -26263,7 +26311,7 @@ const BoardPad = {
     const rs=s.res; if(this._resId==null) this._resId=rs ? rs.id : 0; else if(rs && rs.id!==this._resId){ this._resId=rs.id; if((rs.who||[]).indexOf(this.me)>=0){ try{ Cls.ans(rs.en, !!rs.ok); }catch(e){} this.toast(rs); } else if(rs.co && rs.co[this.me]!=null) this.toast(Object.assign({}, rs, {ok:rs.co[this.me], co:1})); }   /* 들어오기 전 결과는 안 보여 줌 */
     /* 미니게임 */
     const m=s.mg; if(m && m.who && m.who.indexOf(this.me)>=0){ if(this.mgId!==m.id) this.mg(m); return; } else if(this.g && !m) this.mgStop();
-    if(s.s==="wait"){ const tm=s.tm && s.tm[this.me]!=null ? s.tn[s.tm[this.me]] : ""; B.innerHTML='<div class="bpMsg"><b>🙌 들어왔어요!</b><small>'+(tm ? '나는 <b>'+E(tm)+'</b> · ' : '')+'선생님이 시작하면 시작해요</small></div>'+this.cheers(); return; }
+    if(s.s==="wait"){ const tm=s.tm && s.tm[this.me]!=null ? s.tn[s.tm[this.me]] : ""; B.innerHTML='<div class="bpMsg"><b>🙌 들어왔어요!</b><small>'+(tm ? '나는 <b>'+E(tm)+'</b> · ' : '')+(s.kh ? '방장이 시작하면 시작해요' : '선생님이 시작하면 시작해요')+'</small></div>'+this.cheers(); return; }   /* (v672) 친구 방(방장 = 아이)인데 「선생님이」라고 나왔음 */
     if(s.s==="end" && s.end){ const r=s.end.findIndex(x=>(x.mem||[]).indexOf(this.me)>=0);
       const rr=r>=0 ? (s.end[r].r||r+1) : 0; B.innerHTML='<div class="bpMsg"><b>'+(rr===1?'🏆 우승!':rr>1?rr+'등!':'끝!')+'</b>'+(r>=0 && s.end[r].g>0 ? '<small>💎 +'+s.end[r].g+' 🎁 선물함으로 가요</small>' : '')+'</div><div class="bpRank">'+s.end.map((x,i)=>'<div style="--pc:'+x.col+'"><em>'+(["🥇","🥈","🥉"][(x.r||i+1)-1]||(x.r||i+1))+'</em><b>'+E(x.n)+'</b><span>⭐'+x.star+' · '+Board.ic("coins")+x.coin+'</span></div>').join('')+'</div>'; return; }
     const rq=s.req; if(rq && rq.who && rq.who.indexOf(this.me)>=0){
@@ -28563,8 +28611,8 @@ const Admin = (function(){
     if(srv.v<0) return '<div class="adSrv bad">서버에 연결하지 못했어요 · 인터넷을 확인하고 「다시 확인」</div>';
     if(!srv.v) return '<div class="adSrv bad">⚠️ Apps Script를 새 버전으로 바꿔야 해요 (아래 순서대로)</div>';
     if(!tk) return '<div class="adSrv bad">✅ 서버는 새 버전이에요 · 아래에서 열쇠를 만들어 넣어 주세요</div>';
-    if(srv.key==="nokey") return '<div class="adSrv bad">⚠️ 서버에 선생님 열쇠가 없어요 (아래 순서대로)</div>';
-    if(srv.key==="badkey") return '<div class="adSrv bad">⚠️ 서버 열쇠가 이 비밀번호와 달라요 (아래 순서대로)</div>';
+    if(srv.key==="nokey") return '<div class="adSrv bad">⚠️ 서버에 선생님 열쇠가 없어요 <button class="mini" data-ad="tab" data-t="set" data-s="key">🔑 열쇠 넣는 순서 ›</button></div>';
+    if(srv.key==="badkey") return '<div class="adSrv bad">⚠️ 이 기기의 선생님 열쇠가 서버와 달라요 — 📊 랭킹 통계·반 전체 기록이 안 나와요 <button class="mini" data-ad="tab" data-t="set" data-s="key">🔑 열쇠 맞추기 ›</button><br><small>다른 기기에서 「새 열쇠」를 만들었다면 그 열쇠를 여기 「다른 선생님 기기에서 만든 열쇠 넣기」에 넣어요</small></div>';   /* (v672) 크롬 점검: 「아래 순서대로」인데 수업 탭 아래엔 안내가 없었음 → 열쇠 칸으로 바로 */
     if(srv.key==="ok") return '';   // (v395) 잘 되면 아무것도 안 보임 (안 될 때만 빨간 줄)
     return '<div class="adSrv">서버 연결됨 · 열쇠 확인 중…</div>';
   }
@@ -29882,6 +29930,7 @@ $("btnGiveUp").addEventListener("click",()=>{ if(!G.running) return;   // (v322)
 $("pauseBtn").addEventListener("click",()=>{ if(canPause()) togglePause(); });   // (v322) 넘어지는 연출 중에는 안 멈춤
 $("btnRankHome").addEventListener("click",()=>{ $("scStart").classList.remove("on"); try{ if(TodayRank.sup()) RANK_VIEW.range="today"; }catch(e){} showRank("study"); });   /* (v667) 서버 v23 부터 = 🔥 오늘 먼저 */
 $("btnRankBack").addEventListener("click",()=>{ $("scRank").classList.remove("on"); $("scStart").classList.add("on"); });
+addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-tb]"); if(!b) return; const t=$(b.dataset.tb); if(t) t.click(); });   /* (v672) 왼쪽 위 ◀ 뒤로 = 아래 돌아가기와 같음 */
 pickers("selRankDiff",v=>{ RANK_VIEW.diff=v; drawRankScreen(); });
 pickers("selRankRange",v=>{ RANK_VIEW.range=v; drawRankScreen(); });
 pickers("selRankRun",v=>{ RANK_VIEW.rd=v; drawRankScreen(); });
@@ -30369,9 +30418,11 @@ const LiveRank = {
     if(i<0 && k==="today"){ let up=0; try{ const sn=TodayRank.seen(); up = sn && sn.r && r.rank<sn.r ? sn.r-r.rank : 0; }catch(e){}   /* 「오늘」 탭에서 마지막으로 본 등수보다 올랐으면 ▲ */
       return '<div class="lrIt mine"><em class="c me">⭐ 나</em><span class="n">'+C[0]+' '+C[1]+' <b class="r">'+r.rank+'위</b>'+(r.rank===1?' 👑':'')+'</span><span class="v">'+(r.rank===1 ? (r.of>1?'1등을 지켜요!':'지금 1등!') : r.above ? (r.rank-1)+'등까지 '+TodayRank.gap(r.above.score, r.score) : '')+'</span>'+(up?this.mvH(up):'')+'</div>'; }
     if(i<0){ const down=typeof r.mv==="number" && r.mv<0; return '<div class="lrIt mine"><em class="c me">⭐ 나</em><span class="n">'+C[0]+' '+(k==="study"?'':C[1]+' ')+'<b class="r">'+r.rank+'위</b>'+(r.rank===1?' 👑':'')+'</span><span class="v">'+(r.rank===1?'1등을 지켜요!':(down?'😮 밀렸어요 · ':'')+this.gap(k,r))+'</span>'+this.mvH(r.mv)+'</div>'; }   /* (v670) 오늘의 30 = 「📚 4위」 (긴 이름표를 빼서 등수·몇 점 차가 한 줄에 들어감) */
-    return '<div class="lrIt"><em class="c">'+C[0]+' '+C[1]+'</em><b class="r">'+(i+1)+'</b><span class="n">'+this.esc(r.nick)+'</span>'+(i===0 && r.st>=2 ? '<span class="lrFi">🔥'+r.st+'일</span>' : '')+'<span class="v">'+this.val(k,r)+'</span>'+(k==="today"?'':this.mvH(r.mv))+'</div>'; },   /* (v618) 1위 = 🔥 며칠째 */
+    /* (v672) 크롬 점검: 줄 폭 310px 에서 30줄 중 15줄의 점수·이름이 잘림 → 굴러가는 줄은 점수만(판·문제는 눌러서 펼친 창에) · 좁으면 이름표를 그림만 */
+    return '<div class="lrIt"><em class="c">'+C[0]+'<i class="lb"> '+C[1]+'</i></em><b class="r">'+(i+1)+'</b><span class="n">'+this.esc(r.nick)+'</span>'+(i===0 && r.st>=2 ? '<span class="lrFi">🔥'+r.st+'일</span>' : '')+'<span class="v">'+Number(r.score).toLocaleString()+(k==="words"?'단어':'점')+'</span>'+(k==="today"?'':this.mvH(r.mv))+'</div>'; },   /* (v618) 1위 = 🔥 며칠째 */
   draw(){ const bar=$("lrBar"), R=$("lrRoll"); if(!bar || !R) return;
     try{ const wk=this.who().key; if(this.B && this._wk!==undefined && wk!==this._wk){ this.it=this.build(); this.i=0; if(this.B.who!==undefined && wk!==this.B.who && this._askK!==wk && !this._busy && Date.now()-(this._ask||0)>5000){ this._askK=wk; this._ask=Date.now(); this._f=0; this.fetch(); } } }catch(e){}   /* 아이가 바뀜 → 「나」 줄을 빼고 그 아이로 다시 받기 (한 번) */
+    try{ bar.classList.toggle("nar", (bar.getBoundingClientRect().width||999)<400); }catch(e){}
     if(!this.it.length){ if(this.st==="load"){ bar.hidden=false; R.classList.remove("go"); R.style.transform="translateY(0)"; R.innerHTML='<div class="lrIt wait"><span class="n">순위를 불러오는 중…</span></div>'; } else bar.hidden=true; return; } bar.hidden=false;
     const a=this.it[this.i%this.it.length], b=this.it[(this.i+1)%this.it.length]; R.classList.remove("go"); R.style.transform="translateY(0)"; R.innerHTML=this.rowH(a)+this.rowH(b);
     clearTimeout(this._t); this._t=setTimeout(()=>this.step(), 2600); },
