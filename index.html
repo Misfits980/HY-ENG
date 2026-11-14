@@ -5565,7 +5565,13 @@ span.bdIcE{display:inline-flex;align-items:center;justify-content:center;font-si
 #townMt .tmI,#helloMt .tmI{font-size:56px;line-height:1;margin-bottom:6px} #townMt h3,#helloMt h3{margin:4px 0 8px;font-size:23px} #townMt p,#helloMt p{margin:6px 0;font-size:15.5px;line-height:1.5}
 #townMt .tmSafe,#helloMt .tmSafe{background:#eaf6df;border-radius:14px;padding:8px 10px;margin:10px 0;font-size:14.5px}
 #townMt button,#helloMt button{font:inherit;border:0;border-radius:16px;min-height:50px;padding:0 16px;font-size:17px;margin:6px 4px 0}
-#townMt .go,#helloMt .go{background:#ff8466;color:#fff;box-shadow:0 4px 0 #d9604a} #townMt .no,#helloMt .no{background:#efe3cb;color:#4b3527}
+#townMt .go,#helloMt .go{background:#ff8466;color:#fff;box-shadow:0 4px 0 #d9604a}
+/* (v678) 🏡 오늘의 30 Stage 3개 */
+#townMt .twPips{display:flex;justify-content:center;gap:10px;margin:8px 0 4px} #townMt .twPips i{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:900 19px/1 var(--font);font-style:normal;background:#efe3cb;color:#a08668;border:3px dashed #cfae7e}
+#townMt .twPips i.on{background:#5cc46a;color:#fff;border:3px solid #3f9c4c} #townMt .twSm{font-size:13px!important;color:#8a7158}
+#scSetup .c-town.twLock{filter:saturate(.6) brightness(.93)} #scSetup .c-town.twLock .townTag{color:#4b3527;background:#ffe08a}
+#stDoneIn .twLine{margin:6px auto 0;font:800 14.5px/1.4 var(--font);color:#fff;background:rgba(20,16,40,.42);border-radius:99px;padding:4px 14px;width:fit-content;max-width:100%}
+#stDoneIn .twLine.open{font-size:17px;background:#5cc46a;box-shadow:0 3px 0 #3f9c4c;animation:twPop .5s cubic-bezier(.3,1.6,.5,1)} @keyframes twPop{from{transform:scale(.6);opacity:0}} #townMt .no,#helloMt .no{background:#efe3cb;color:#4b3527}
 
 /* ===== (v484) Daily 30 유치원 꾸미기 — 아침 강가 · 연잎 보기 · 개구리 도우미 · 새 풍선 (#scStudy.thK = 유치원 책 공부 중) ===== */
 #scStudy.thK{background:#4cc8e6 url(assets/d30/k/bg.webp) center top/cover no-repeat}
@@ -15535,6 +15541,7 @@ function drawDots(){
 }
 function goStep(i){
   step = clamp(i, 0, STEPS.length-1);
+  if(step===0) try{ TownGate.card(); }catch(e){}   // (v678) 🏡 오늘 Stage 몇 개 했는지
   try{ $("scSetup").scrollTop=0; }catch(e){}   // (v337) QA: 단계를 넘어가도 앞 화면 스크롤이 남아 휴대폰 가로에서 제목·뒤로 버튼이 잘린 채 열렸다
   document.querySelectorAll("#scSetup .tsec").forEach(el=>{
     el.classList.toggle("on", Number(el.dataset.step)===step);
@@ -15673,6 +15680,32 @@ $("itemBox").addEventListener("click",e=>{ const b=e.target.closest && e.target.
    아이 기록(보석·집·가방)은 기기·서버에 그대로 · 선생님 기기(🧑‍🏫)는 들어가서 볼 수 있음 */
 const TOWN_OPEN=true;   /* (v663) 사용자: 「게임 버그 없는지 체크하고 그래픽 깨지는 거 체크해서 이제 열자」 → 다시 엶 */
 function townOpen(){ if(TOWN_OPEN) return true; if(navigator.webdriver && !window.HY_TOWN_SHUT) return true;   /* 예전 자동 시험은 그대로 들어감 (점검 시험 = HY_TOWN_SHUT) */ try{ return Kid.teacher(); }catch(e){ return false; } }
+/* (v678) 🏡 사용자: 「애들이 마이타운만 한다 · 데일리30 Stage 를 해야 들어가게」 → 오늘 서로 다른 Stage 3개 (「5개는 우리 애들 원래 안 해 → 3개」)
+   날마다 0부터 · 같은 Stage 같은 단계 다시 = 안 셈 · 복습 한 판 = 1개 · 선생님 기기는 그냥 · 공용 패드 손님은 원래 못 들어감
+   들어갈 때 localStorage hyeng_town_ok = 오늘 (공용 패드 주인처럼 공부 칸이 다른 경우에도 house.html 이 알게) · house.html 을 바로 열어도 같은 검사 */
+const TownGate={ NEED:3,
+  n(){ try{ return Study.townN(); }catch(e){ return 0; } },
+  free(){ if(navigator.webdriver && !window.HY_TOWN_GATE) return true; try{ return Kid.teacher(); }catch(e){ return false; } },
+  ok(){ return this.free() || this.n()>=this.NEED; },
+  pass(){ try{ localStorage.setItem("hyeng_town_ok", String(Study.today())); }catch(e){} },
+  pips(n){ let h=''; for(let i=0;i<this.NEED;i++) h+='<i class="'+(i<n?'on':'')+'">'+(i<n?'✓':i+1)+'</i>'; return '<div class="twPips">'+h+'</div>'; },
+  show(){ if($("townMt")) return; const n=Math.min(this.n(), this.NEED), d=document.createElement("div"); d.id="townMt";
+    d.innerHTML='<div class="tmB"><div class="tmI">🔒</div><h3>오늘의 30 Stage '+this.NEED+'개를 하면<br>My Town 이 열려요</h3>'+this.pips(n)
+      +'<p>'+(n ? '오늘 <b>'+n+'개</b> 했어요 · <b>'+(this.NEED-n)+'개</b>만 더!' : '오늘 아직 안 했어요 · Stage 하나부터 시작해요!')+'</p>'
+      +'<p class="twSm">같은 Stage 를 다시 하면 1개로 세요 · 날마다 처음부터</p>'
+      +'<div><button class="no" data-x="1">닫기</button><button class="go" data-d="1">📚 오늘의 30 하러 가기</button></div></div>';
+    document.body.appendChild(d); try{ SFX.click(); }catch(e){}
+    d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.d){ d.remove(); try{ StudyUI.open(); }catch(_){} } }); },
+  card(){ const t=document.querySelector('#selRule .c-town'); if(!t || !TOWN_OPEN) return; if(!t.dataset.h0) t.dataset.h0=t.innerHTML;
+    let g=false; try{ g=!!Kid.guest(); }catch(e){}
+    const lock=!g && !this.ok(), n=Math.min(this.n(), this.NEED); t.classList.toggle("twLock", lock);
+    t.innerHTML = lock ? '<span class="townTag">🔒 '+n+' / '+this.NEED+'</span><b>🏡 My Town</b><small>오늘의 30 Stage '+this.NEED+'개 하면 열려요</small>' : t.dataset.h0; },
+  /* Stage 끝 화면 한 줄 — 방금 열렸으면 크게, 아직이면 몇 개 남았는지 (선생님·공용 패드 손님·점검 중이면 없음) */
+  line(before){ try{ if(!TOWN_OPEN || this.free() || Kid.guest()) return ''; }catch(e){ return ''; } const n=this.n();
+    if(before<this.NEED && n>=this.NEED) return '<p class="twLine open">🏡 My Town 이 열렸어요!</p>';
+    if(n<this.NEED) return '<p class="twLine">🏡 My Town 까지 Stage <b>'+(this.NEED-n)+'개</b> 더</p>';
+    return ''; }
+};
 function townClosed(){ if($("townMt")) return; const d=document.createElement("div"); d.id="townMt";
   d.innerHTML='<div class="tmB"><div class="tmI">🛠</div><h3>새 마을 준비 중!</h3><p>마을 사람들이 <b>영어로 말을 걸고 부탁하는</b><br>새 My Town 을 만들고 있어요.</p>'
     +'<div class="tmSafe">💎 보석 · 🏠 집 · 🎒 가방 · 🐶 펫은<br><b>그대로 안전하게</b> 저장돼 있어요</div>'
@@ -15681,13 +15714,16 @@ function townClosed(){ if($("townMt")) return; const d=document.createElement("d
   document.body.appendChild(d); try{ SFX.click(); }catch(e){}
   d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.d){ d.remove(); try{ StudyUI.open(); }catch(_){} } }); }
 setTimeout(()=>{ try{ const t=document.querySelector('#selRule .c-town'); if(t && !TOWN_OPEN){ if(townOpen()) t.innerHTML='<span class="townTag">🧑‍🏫 선생님만</span><b>🏡 My Town</b><small>점검 중 · 선생님 기기</small>'; else t.classList.add("closed"); }
-  if(location.hash==="#townclosed"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!townOpen()) townClosed(); }catch(e){} }, 800); } }catch(e){} }, 0);
+  if(location.hash==="#townclosed"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!townOpen()) townClosed(); }catch(e){} }, 800); }
+  if(location.hash==="#townlock"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!TownGate.ok()) TownGate.show(); }catch(e){} }, 800); }   /* (v678) house.html 을 바로 열었는데 아직 안 열림 */
+  TownGate.card(); }catch(e){} }, 0);
 /* (v428) 🎲 보드게임 미리 해 보기 — 주소 끝에 #board 를 붙여 열면 이 기기에서만 카드가 보임 (다시 숨기기: #noboard) */
 try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); /* (v441) 보드게임 카드 자리는 🎮 수업 게임 — 선생님 시범은 관리자 「🎲 영어 파티 보드 시범」 */ }catch(e){}
 pickers("selRule", v=>{
   if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town" && !townOpen()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; townClosed(); return; }   // (v601) 🛠 점검 중 (선생님 기기는 들어감)
-  if(v==="town"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); return; }   // (v406) 🏡 My Town
+  if(v==="town" && !TownGate.ok()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; TownGate.show(); return; }   // (v678) 🔒 오늘의 30 Stage 3개
+  if(v==="town"){ TownGate.pass(); document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); return; }   // (v406) 🏡 My Town
   if(v==="daily"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; StudyUI.open(); return; }
   /* (v441) 사용자: "Daily 30 이 게임 들어가는 발사대 같음 · 보드게임 자리에서 들어가게" → 🎮 수업 게임 카드 = 바로 이름·방 번호 (배틀·레이드·레이스·보드 수업판은 방 번호로 저절로 구분) */
   if(v==="join"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ SFX.select(); }catch(e){} RaidJoin.open(); return; }
@@ -17531,7 +17567,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v677";
+const GAME_VER = "v678";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18133,6 +18169,9 @@ const Study = (function(){
   function due(set){ const s=load(), t=today(), R=s.srs||{}, B=set ? bookWords(set) : null; return Object.keys(R).filter(en=>R[en][1]<=t && byEn[en] && (!B || B[en])); }
   function streak(){ const d=load().days||{}, t=today(); return (d.last===t || d.last===t-1) ? (d.n||0) : 0; }
   /* (v500) 하루에 끝낸 판 수 (최근 14일) — 중등 로드맵 '이번 주' 막대 */
+  /* (v678) 🏡 사용자: 「애들이 마이타운만 한다 · 데일리30 Stage 3개는 해야 (서로 다른 Stage)」 → 오늘 끝낸 서로 다른 판 (Stage+단계 · 복습은 rv 하나 · 날마다 0부터) */
+  function townTick(id){ const s=load(), t=today(); if(!s.tw || s.tw.d!==t) s.tw={d:t, k:{}}; if(s.tw.k[id]) return false; s.tw.k[id]=1; save(); return true; }
+  function townN(){ const s=load(); return (s.tw && s.tw.d===today()) ? Object.keys(s.tw.k||{}).length : 0; }
   function dayTick(){ const s=load(), t=today(); s.dl=s.dl||{}; s.dl[t]=(s.dl[t]|0)+1; Object.keys(s.dl).forEach(k=>{ if(+k<t-14) delete s.dl[k]; }); save(); }
   function week(){ const d=load().dl||{}, t=today(), r=[]; for(let i=6;i>=0;i--) r.push(d[t-i]|0); return r; }
   function didToday(){ const s=load(); s.days=s.days||{}; const t=today(); if(s.days.last===t) return false;
@@ -19248,7 +19287,7 @@ const Study = (function(){
         return mkDeep(t, w, gr, O); }catch(e){ return null; } },
     sentsFull:w=>sentsOf(w).map(x=>({en:(x.pre+(x.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+x.post).replace(/\s+/g," ").trim(), ko:x.ko||""})),   /* (v582) ✏️ 따라쓰기 문장 + 문장 성분 */
     deepLv, dlCur:()=>dlNow, DL_MAX, buildDuel:(set, n)=>{ ctx(set); const les=lessons(set).find(x=>x.n===n); if(!les) return null; tierNow=3; dlNow=2; return buildD2(set, les); },   /* (v636) ⚔️ 도전장 = 💜2 (철자 + 빈칸 · ⏱) */
-    estMin, dayTick, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, hsqReady:()=>!!HSQ || hsqTried>=2, _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length, bank:!!G.bank} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
+    estMin, dayTick, townTick, townN, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, hsqReady:()=>!!HSQ || hsqTried>=2, _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length, bank:!!G.bank} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} try{ Gift.add({st:[set,n,v]}); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
@@ -20620,8 +20659,9 @@ const StudyUI = {
       if(!Wallet.paid(key)){ Wallet.pay(key); gems=3; Wallet.addGems(gems, "복습 "+Study.today()); }   // (v301) 💎 +3 (사용자)
       let bait=0; try{ if(this._bt!==this.t0){ this._bt=this.t0; bait=Town.give(Town.BAIT_STUDY); } }catch(e){}   // (v563) 🪱 복습 한 판도 미끼 +5
       try{ Study.dayTick(); }catch(e){} const fresh=Study.didToday(); try{ Unlock.addDaily(); }catch(e){} const sk=Study.streak();
+      const tw0=TownGate.n(); try{ Study.townTick("rv"); }catch(e){}   /* (v678) 🏡 */
       this.view("stDone");
-      $("stDoneIn").innerHTML='<div class="stBigT">🔁 복습 끝!</div><p>'+(fresh&&sk>1?'🔥 '+sk+'일째 공부 중!':'잊기 전에 한 번 더 봤어요')+'</p>'
+      $("stDoneIn").innerHTML='<div class="stBigT">🔁 복습 끝!</div><p>'+(fresh&&sk>1?'🔥 '+sk+'일째 공부 중!':'잊기 전에 한 번 더 봤어요')+'</p>'+TownGate.line(tw0)
         +'<div class="stStat"><div><b>'+acc+'%</b><small>한 번에 맞힘</small></div><div><b>'+this.total+'</b><small>문제</small></div><div><b>🔥 '+this.best+'</b><small>최고 콤보</small></div></div>'
         +(gems?'<div class="stGem">💎 +'+gems+'</div>':'')+Town.baitHtml(bait)
         +'<button class="stGo" id="stBack">스테이지로 돌아가기</button>';
@@ -20682,12 +20722,13 @@ const StudyUI = {
     let bait=0; try{ if(pass && !this.test && !this.oly && (this.tier|0)!==5 && this._bt!==this.t0){ this._bt=this.t0; bait=Town.give(Town.BAIT_STUDY); } }catch(e){}
     const chest = (!this.test && pass) ? this.rollChest() : 0;
     const fresh = pass ? (()=>{ try{ Study.dayTick(); }catch(e){} return Study.didToday(); })() : false, sk=Study.streak();
+    const tw0=TownGate.n(); if(pass) try{ Study.townTick(Study.key(set,x.n)+"-"+(this.test?"t":this.oly?"o":(this.tier|0))); }catch(e){}   /* (v678) 🏡 같은 Stage 같은 단계를 또 하면 안 셈 */
     this.view("stDone");
     const v=Study.lv(set,x.n), miss=Object.keys(this.missed);
     this._lastMiss = miss.map(en=>(x.ws||[]).find(y=>y.en===en)||Study.word(en)).filter(Boolean);
     this._runAcc=acc;   /* (v530) 끝 화면 = 이번 판 별 먼저 */
     $("stDoneIn").innerHTML=this.vicHead(pass, title, sub, v, set, x, this.oly)   /* (v445) 끝 화면 새로 — HUD 메달·응원 캐릭터·리본·HUD 별 */
-      +(fresh && sk>1 ? '<p class="stFireP vStreak">🔥 '+sk+'일째 공부 중!</p>' : '')
+      +(fresh && sk>1 ? '<p class="stFireP vStreak">🔥 '+sk+'일째 공부 중!</p>' : '')+(pass ? TownGate.line(tw0) : '')
       +this.vicStat(acc)
       +(this.test ? '' : (()=>{ const tot=(x.ws||[]).length, met=tot-Study.unseenLeft(set,x.n), tm=Study.dueOn(Study.today()+1);   // (v242) Stage 단어 진행 · 내일 복습
           return (met<tot ? '<div class="stDProg">이 Stage 단어 '+met+' / '+tot+' 만남<span class="stPgBar"><span style="width:'+Math.round(met/Math.max(1,tot)*100)+'%"></span></span></div>' : '')   // (v444) 다 만났으면 막대는 뺌
