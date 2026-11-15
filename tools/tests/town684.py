@@ -45,8 +45,8 @@ async def main():
         await A.wait_for_timeout(800)
         r=await A.evaluate("""async ()=>{ const R=document.getElementById('ihRes'), sp=[...R.querySelectorAll('.emjF')], bg=sp.map(s=>getComputedStyle(s).backgroundImage);   /* (v684) 실제로 그려지는 값(계산된 값)으로 — 처음엔 CSS 가 그림을 지우고 있었음 */
             const coin=bg.find(b=>/1fa99/.test(b)); let st=0; if(coin){ try{ st=(await fetch(coin.replace(/^url\\("?|"?\\)$/g,''))).status; }catch(e){} }
-            return {n:EMOJI_DOM.n, sp:sp.length, txt:R.textContent.includes('🪙') && R.textContent.includes('🪱'), coin:!!coin, st, w:sp[0] ? Math.round(sp[0].getBoundingClientRect().width) : 0, col:sp[0] ? getComputedStyle(sp[0]).color : ''}; }""")
-        ok(r["n"]>=60 and r["sp"]>=2 and r["txt"] and r["coin"] and r["st"]==200 and r["w"]>=10 and "0, 0, 0, 0" in r["col"], f"① 섬 💎🪙🪱 칸: 🪙·🪱 = 그림 · 글자는 그대로(투명) · 그림 파일 받아짐 {r}")
+            return {n:EMOJI_DOM.n, sp:sp.length, txt:R.textContent.includes('🪙') && R.textContent.includes('🪱'), coin:!!coin, st, w:sp[0] ? Math.round(sp[0].getBoundingClientRect().width) : 0, h:sp[0] ? Math.round(sp[0].getBoundingClientRect().height) : 0, bd:sp[0] ? getComputedStyle(sp[0]).borderTopWidth : '', col:sp[0] ? getComputedStyle(sp[0]).color : ''}; }""")
+        ok(r["n"]>=60 and r["sp"]>=2 and r["txt"] and r["coin"] and r["st"]==200 and r["w"]>=10 and abs(r["w"]-r["h"])<=1 and r["bd"]=="0px" and "0, 0, 0, 0" in r["col"], f"① 섬 💎🪙🪱 칸: 🪙·🪱 = 그림(네모 칸 · 알약 테두리 안 붙음) · 글자는 그대로(투명) · 그림 파일 받아짐 {r}")
         await A.evaluate("()=>TECO.openBank()"); await A.wait_for_timeout(500)
         r=await A.evaluate("()=>{ const B=document.getElementById('teBank'), S=[...B.querySelectorAll('.emjF')]; return [S.length, (B.textContent.match(/🪙/g)||[]).length, S.filter(e=>/1fa99/.test(getComputedStyle(e).backgroundImage)).length]; }")
         ok(r[0]>=4 and r[0]==r[1] and r[2]==r[0], f"① 은행: 🪙 마다 그림 (계산된 배경 그림) {r}")
