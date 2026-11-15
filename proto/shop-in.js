@@ -249,7 +249,7 @@ const SHOPIN=(()=>{
     deco.userData.n=bake(deco); deco.traverse(o=>{ o.userData.noFade=1; }); sg.userData.sign=1;
     keeper=mkKeeper(D); try{ TOON.scan(G); }catch(e){} dirty=true; }
   function clear(){ if(deco){ G.remove(deco); deco.traverse(o=>{ if(o.geometry && o.geometry.userData.own) o.geometry.dispose(); }); deco=null; }
-    if(keeper){ G.remove(keeper.g); keeper=null; } if(bub){ G.remove(bub.s); bub.s.material.map.dispose(); bub.s.material.dispose(); bub=null; }
+    if(keeper){ G.remove(keeper.g); try{ keeper.g.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }catch(e){} keeper=null; }   /* (v684) 주인 모습 도형이 들어갈 때마다 GPU 에 쌓이던 것 */ if(bub){ G.remove(bub.s); bub.s.material.map.dispose(); bub.s.material.dispose(); bub=null; }
     own.splice(0).forEach(r=>{ try{ r.dispose(); }catch(e){} }); words=[]; anims=[]; }
 
   /* ── 들어가기 · 나가기 ── */

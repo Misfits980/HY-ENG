@@ -710,7 +710,11 @@ const ISLE=(()=>{
   /* 이름 확인 — 학원 전체가 같이 쓰므로 PLAYER·빈 이름은 들어갈 수 없음 */
   function nameOk(){ let n=""; try{ const k=kidInfo(); n=(k && k.n)||""; }catch(e){} if(!n){ try{ n=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} }
     n=String(n).replace(/^👤\s*/,"").trim(); return !!n && !/^player\d*$/i.test(n) && n!=="친구"; }
-  function gate(){ info('<div class="iBig">🏝</div><b>우리 마을에 들어가려면<br>내 이름이 필요해요</b><br><small>학원 친구들이 다 같이 사는 마을이에요.<br>게임 설정에서 <b>내 이름</b>을 정하거나, 공용 패드는 「나는 누구?」에서 이름을 골라 주세요.</small>', "알겠어요", null); }
+  /* (v684) QA: 이름 없는 아이는 「알겠어요」 하나뿐이라 방에서 못 나가고 막힘 (Mia 는 「밖으로 나가 볼까요?」) → 그 자리에서 이름 정하러 감
+     내 기기 = 게임의 이름 정하기 창(../index.html#townname → 정하면 바로 마을로 돌아옴) · 공용 패드 = 「나는 누구?」 */
+  function gate(){ let pad=false; try{ pad=!!PAD.shared; }catch(e){}
+    ask('<div class="iBig">🏝</div><b>우리 마을에 들어가려면<br>내 이름이 필요해요</b><br><small>학원 친구들이 다 같이 사는 마을이에요.<br>'+(pad ? '「나는 누구?」에서 내 이름을 골라요.' : '친구들이 볼 <b>내 이름</b>을 지금 정할까요?')+'</small>',
+      ()=>{ if(pad){ try{ openWho(true); }catch(e){} return; } try{ location.href="../index.html#townname"; }catch(e){} }); }
   /* 섬 그림은 처음 나갈 때 받음 (처음 열기를 가볍게) */
   function ready(){ return Promise.all([KK.load("isle"), KK.load("city"), KK.load("nature")].concat(MAP.city ? [KK.load(MAP.city.pack)] : [])); }
   function enter(o){ if(!ON) return false; if(!nameOk()){ gate(); return "gate"; }

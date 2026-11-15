@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script src="guard.js"></script>   <!-- (v623) 🛡 오류 기록 (err.html 에서 봄) · 튕김 알아채기 -->
+<script src="emoji-dom.js"></script>   <!-- (v684) 🪙 학원 PC·옛 패드가 못 그리는 새 이모지 → 그림 -->
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <title>HY ENG — 단어 게이트 러너</title>
 <meta name="theme-color" content="#100b22">
@@ -15707,6 +15708,19 @@ const TownGate={ NEED:3,
     const lock=!g && !this.ok(), n=Math.min(this.n(), this.NEED); t.classList.toggle("twLock", lock);
     t.innerHTML = lock ? '<span class="townTag">🔒 '+n+' / '+this.NEED+'</span><b>🏡 My Town</b><small>오늘의 30 Stage '+this.NEED+'개 하면 열려요</small>' : t.dataset.h0; },
   /* Stage 끝 화면 한 줄 — 방금 열렸으면 크게, 아직이면 몇 개 남았는지 (선생님·공용 패드 손님·점검 중이면 없음) */
+  /* (v684) My Town QA: 이름이 없으면(빈칸·PLAYER) 마을에서 집 밖으로 못 나감 → 들어가기 전에 여기서 이름부터 (처음 정하는 건 무료 · NameCard 규칙 그대로)
+     공용 패드는 마을 안 「나는 누구?」에서 고르므로 묻지 않음 · house.html 에서 「이름 정하기」를 누르면 #townname 으로 와서 이 창 */
+  named(){ if(navigator.webdriver && !window.HY_TOWN_NAME) return true;   /* 예전 자동 시험은 그대로 (이 검사 시험 = HY_TOWN_NAME) */ try{ if(Kid.shared()) return true; }catch(e){} const n=String(NameCard.cur()||"").replace(/^👤\s*/,"").trim(); return !!n && !/^player\d*$/i.test(n) && n!=="친구"; },
+  askName(){ if($("townMt")) return; const d=document.createElement("div"); d.id="townMt";
+    d.innerHTML='<div class="tmB"><div class="tmI">🏝</div><h3>My Town 에서 친구들이 볼<br>내 이름을 정해요</h3>'
+      +'<input id="twNm" maxlength="8" autocomplete="off" placeholder="예: 서윤" style="font:inherit;font-size:20px;width:min(240px,90%);text-align:center;border:3px solid #cfae7e;border-radius:14px;padding:10px;margin:6px 0;background:#fff;color:#4b3527">'
+      +'<p class="twSm" id="twNmMsg">한글·영어·숫자 8글자까지 · 처음 정하는 건 무료예요</p>'
+      +'<div><button class="no" data-x="1">닫기</button><button class="go" data-ok="1">이 이름으로 들어가기</button></div></div>';
+    document.body.appendChild(d); try{ SFX.click(); }catch(e){} const inp=d.querySelector("#twNm"); setTimeout(()=>{ try{ inp.focus(); }catch(e){} }, 60);
+    const go=()=>{ const r=NameCard.change(inp.value); if(r){ d.querySelector("#twNmMsg").textContent=r; try{ SFX.tone(200,.1,"square",.03); }catch(e){} return; }
+      d.remove(); try{ SFX.select(); }catch(e){} this.pass(); try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); };
+    inp.addEventListener("keydown", e=>{ if(e.key==="Enter") go(); });
+    d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.ok) go(); }); },
   line(before){ try{ if(!TOWN_OPEN || this.free() || Kid.guest()) return ''; }catch(e){ return ''; } const n=this.n();
     if(before<this.NEED && n>=this.NEED) return '<p class="twLine open">🏡 My Town 이 열렸어요!</p>';
     if(n<this.NEED) return '<p class="twLine">🏡 My Town 까지 Stage <b>'+(this.NEED-n)+'개</b> 더</p>';
@@ -15722,6 +15736,7 @@ function townClosed(){ if($("townMt")) return; const d=document.createElement("d
 setTimeout(()=>{ try{ const t=document.querySelector('#selRule .c-town'); if(t && !TOWN_OPEN){ if(townOpen()) t.innerHTML='<span class="townTag">🧑‍🏫 선생님만</span><b>🏡 My Town</b><small>점검 중 · 선생님 기기</small>'; else t.classList.add("closed"); }
   if(location.hash==="#townclosed"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!townOpen()) townClosed(); }catch(e){} }, 800); }
   if(location.hash==="#townlock"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!TownGate.ok()) TownGate.show(); }catch(e){} }, 800); }   /* (v678) house.html 을 바로 열었는데 아직 안 열림 */
+  if(location.hash==="#townname"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!TownGate.ok()) TownGate.show(); else if(!TownGate.named()) TownGate.askName(); }catch(e){} }, 800); }   /* (v684) 마을에서 「이름 정하기」 */
   TownGate.card(); }catch(e){} }, 0);
 /* (v428) 🎲 보드게임 미리 해 보기 — 주소 끝에 #board 를 붙여 열면 이 기기에서만 카드가 보임 (다시 숨기기: #noboard) */
 try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); /* (v441) 보드게임 카드 자리는 🎮 수업 게임 — 선생님 시범은 관리자 「🎲 영어 파티 보드 시범」 */ }catch(e){}
@@ -15729,6 +15744,7 @@ pickers("selRule", v=>{
   if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town" && !townOpen()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; townClosed(); return; }   // (v601) 🛠 점검 중 (선생님 기기는 들어감)
   if(v==="town" && !TownGate.ok()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; TownGate.show(); return; }   // (v678) 🔒 오늘의 30 Stage 3개
+  if(v==="town" && !TownGate.named()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; TownGate.askName(); return; }   // (v684) 이름부터 (없으면 마을 밖으로 못 나감)
   if(v==="town"){ TownGate.pass(); document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ BGM.stop(); }catch(e){} setTimeout(()=>{ location.href="proto/house.html"; }, 150); return; }   // (v406) 🏡 My Town
   if(v==="daily"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; StudyUI.open(); return; }
   /* (v441) 사용자: "Daily 30 이 게임 들어가는 발사대 같음 · 보드게임 자리에서 들어가게" → 🎮 수업 게임 카드 = 바로 이름·방 번호 (배틀·레이드·레이스·보드 수업판은 방 번호로 저절로 구분) */
@@ -15949,11 +15965,11 @@ const NameCard = {
     if(v===old) return "지금 이름과 같아요";
     let how;
     if(force) how=force;
-    else if(!old) how="처음";
+    else if(!old || /^player$/i.test(old)) how="처음";   /* (v684) 예전 기본 이름 PLAYER 는 「처음 정하기」(무료권·보석 안 씀) — My Town 에 들어가려고 이름을 정할 때 막히지 않게 */
     else if((s.free|0)>0){ s.free--; how="무료권"; }
     else { if(Wallet.gems()<this.PRICE) return "보석이 모자라요 (💎 "+this.PRICE+" 필요)";
       Wallet.adjust(-this.PRICE, "이름 바꾸기"); how="보석 "+this.PRICE; }
-    if(old) s.n=(s.n|0)+1; this.put(s); this.write(v, how); this.editing=false; this.draw(); return ""; },
+    if(old && !/^player$/i.test(old)) s.n=(s.n|0)+1; this.put(s); this.write(v, how); this.editing=false; this.draw(); return ""; },
   give(k){ const s=this.st(); s.free=(s.free|0)+Math.max(1,k|0); this.put(s); this.draw(); },
   draw(){
     const el=$("nick"), row=$("nmRow"); if(!el || !row) return;
@@ -17573,7 +17589,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v683";
+const GAME_VER = "v684";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){

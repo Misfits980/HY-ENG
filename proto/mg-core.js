@@ -153,9 +153,12 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
       }catch(e){ console.warn("MG", e); S.on=false; document.body.classList.remove("mgOn"); }
       S.busy=false; if(fd) setTimeout(()=>fd.classList.remove("on"), 60); }, 240);
     return true; }
+  /* (v684) QA: 게임에 들어갔다 나올 때마다(한 판 더 포함) 그 판의 도형이 GPU 에 남음 — 컬러팡 한 판 ≈ 20개, 아레나 ≈ 10개 (오래 하면 패드 탭이 다시 불러와짐)
+     → 다 쓴 장면의 도형을 풀어 줌 (섬과 같이 쓰는 도형이어도 다음에 그릴 때 저절로 다시 올라가서 안전) */
+  function freeScene(sc){ if(!sc || !sc.traverse) return; const seen=new Set(); try{ sc.traverse(o=>{ const g=o.geometry; if(g && !seen.has(g) && g.dispose){ seen.add(g); try{ g.dispose(); }catch(e){} } }); }catch(e){} }
   /* (v599) 같은 게임을 처음부터 (메뉴로 · 한 판 더) */
   function restart(k, o){ const def=GM[k]; if(!S.on || !def) return; $$("mgRes") && $$("mgRes").classList.remove("on"); try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
-    try{ if(S.run && S.run.dispose) S.run.dispose(); }catch(e){} resetI(); mkUI(def); S.api.ui=ROOT; S.api.hud=ROOT.querySelector(".mgHud"); S.api.topR=ROOT.querySelector(".mgTopR"); S.api.menu=false; S.api.opt=o||{}; S.run=def.start(S.api); }
+    const sc0=S.run && S.run.scene; try{ if(S.run && S.run.dispose) S.run.dispose(); }catch(e){} freeScene(sc0); resetI(); mkUI(def); S.api.ui=ROOT; S.api.hud=ROOT.querySelector(".mgHud"); S.api.topR=ROOT.querySelector(".mgTopR"); S.api.menu=false; S.api.opt=o||{}; S.run=def.start(S.api); }
   function frame(now){ if(!S.on) return; S.raf=requestAnimationFrame(frame); const dt=Math.min(0.05, Math.max(0,(now-S.last)/1000)); S.last=now; step(dt, true); }
   function step(dt, show){ const R=S.run; if(!R) return; try{ R.tick(dt); }catch(e){ console.warn("MG tick", e); }
     I.jumpP=I.slideP=I.fireP=0;
@@ -166,7 +169,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     if(T && T.edge && T.rt && T.post){ const u=T.post.material.uniforms; u.n.value=cm.near; u.f.value=cm.far; renderer.setRenderTarget(T.rt); renderer.render(sc, cm); renderer.setRenderTarget(null); renderer.render(T.ps, T.pc); }
     else renderer.render(sc, cm); }
   function exit(){ if(!S.on) return; const fd=$$("fade"); if(fd) fd.classList.add("on"); try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
-    setTimeout(()=>{ try{ if(S.run && S.run.dispose) S.run.dispose(); }catch(e){ console.warn(e); } S.run=null; S.on=false; cancelAnimationFrame(S.raf);
+    setTimeout(()=>{ const sc0=S.run && S.run.scene; try{ if(S.run && S.run.dispose) S.run.dispose(); }catch(e){ console.warn(e); } freeScene(sc0); S.run=null; S.on=false; cancelAnimationFrame(S.raf);
       $$("mgRes") && $$("mgRes").classList.remove("on"); if(ROOT){ ROOT.remove(); ROOT=null; } document.body.classList.remove("mgOn"); resetI();
       try{ if(S.sun){ sun.intensity=S.sun[0]; sun.color.setHex(S.sun[1]); TOON.light(); } }catch(e){}
       try{ renderer.autoClear=true; if(renderer.getPixelRatio()!==S.pr0) renderer.setPixelRatio(S.pr0); resize(); }catch(e){}
