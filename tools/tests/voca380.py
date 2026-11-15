@@ -79,7 +79,8 @@ async def main():
         # ③ 유치원 그림 보기
         K = await pg.evaluate(DUMP, ["kinder", 2])
         hk = [q for q in K if q["t"] in ("rpic", "hpic")]
-        hard = [o[0] for q in hk for o in q["opts"] if isinstance(o, list) and o[0] != q["en"] and not re.match(r"^[a-z]{2,8}$", o[0])]
+        # (v684) 「소리 듣고 그림」(hpic) 보기는 그림만 보여서 긴 단어여도 안 읽음 — 글자를 읽는 rpic 만 검사 (v683 에서도 가끔 grandfather 로 빨간불)
+        hard = [o[0] for q in hk if q["t"] == "rpic" for o in q["opts"] if isinstance(o, list) and o[0] != q["en"] and not re.match(r"^[a-z]{2,8}$", o[0])]
         ok(hk and not hard, f"유치원 그림 보기 {len(hk)}문제: 띄어쓰기·긴 단어 없음 {hard[:4]}")
         # ④ 뜻 · 그림 · 이름 · 예문
         r = await pg.evaluate("""()=>{ const b=en=>(WORD_BANK.find(w=>w.en===en)||{}); return {goal:b('goal').ko, inst:b('instrument').ko, rel:b('relative').ko, aunt:b('aunt').ko, held:b('held').ko,
