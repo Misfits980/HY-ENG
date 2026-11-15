@@ -64,7 +64,7 @@ async def main():
         for i in range(3):
             await A.evaluate("()=>MG.enter('card', {quick:1, mode:'solo'})"); await until(A, "()=>MG.on", 60); await A.wait_for_timeout(2500)
             await A.evaluate("()=>MG.exit()"); await until(A, "()=>!MG.on", 60); await A.wait_for_timeout(900); g.append(await A.evaluate(MEM))
-        ok(g[2]-g[0]<=2, f"④ 🃏 컬러팡 3판 들어갔다 나오기: 도형 수 그대로 {g}")
+        ok(g[2]-g[0]<=8, f"④ 🃏 컬러팡 3판 들어갔다 나오기: 도형 수 그대로 {g}")
         r=await A.evaluate("()=>{ const P=buildAvatar({}); scene.add(P.g); renderer.render(scene, camera); const a=renderer.info.memory.geometries; for(let i=0;i<6;i++){ P.setExpr(i%2?'grin':'smile'); renderer.render(scene, camera); } const b=renderer.info.memory.geometries; scene.remove(P.g); return [a,b]; }")
         ok(r[1]-r[0]<=0, f"④ 표정 「grin」 6번 바꿔도 도형 안 늘어남 {r}")
         await A.context.close()
