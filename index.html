@@ -2214,6 +2214,7 @@ body.tabP .stTabs > :last-child, body.tabL .stTabs > :last-child{margin-right:au
 .stSent u{text-decoration:none;display:inline-block;min-width:70px;padding:0 6px;border-bottom:3px solid #ffd37a;color:#ffd37a}
 .stSent u.ok{color:#5fe0b0;border-color:#5fe0b0} .stSent u.bad{color:#ff7a66;border-color:#ff7a66}
 .stSentKo{margin-top:6px;font-size:13px;color:#a99ed0}
+#scStudy .stPrompt .stSent,#scStudy .stPrompt .stSentKo{text-align:center;text-wrap:balance}   /* (v682) 크롬 점검: 두 줄 넘는 영어 문장은 왼쪽 · 뜻 한 줄은 가운데라 줄이 어긋나 보였음 → 문제 칸 문장은 늘 가운데 · 두 줄 길이 고르게 */
 /* (v439) 낮은 학년: 대화 줄마다 해석 · 빈칸 뜻 밑줄 · 💡 빈칸 = 뜻 */
 /* (v442) 📖 짧은 글 · 📗 [표 3] */
 .rdCard{text-align:left}.rdT{font:900 20px var(--font);color:#ffe3a0;margin-bottom:6px}.rdT small{display:block;font-size:13px;font-weight:600;color:#b9b0e6}
@@ -3421,7 +3422,9 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 @media print{ .ppSwap{display:none!important} .ppQ.sel{outline:0!important;background:none!important} } .ppS.en{font-style:italic} .ppKo.in{width:auto;margin:0} .ppS2{width:calc(100% - 9mm)} .ppS2 p{margin:0 0 .6mm} .ppS2 u{text-decoration:none;display:inline-block;border-bottom:1.2px solid #333;min-width:14mm}   /* (v610) 두 문장 빈칸 — 빈칸이 단 밖으로 삐져나가던 것 */ .ppS2 p::before{content:"· "}
 .ppS u.mk,.ppS u.ul{text-decoration:none;min-width:0;border-bottom:1.2px solid #333;padding-bottom:.3mm}   /* (v578) 사용자 사진: 어색한 낱말 밑줄이 두 줄(밑줄 + 빈칸 선) · 빈칸 최소 길이 때문에 밑줄이 단어보다 길고 뒤가 벌어짐 → 선 하나 · 단어 길이만 */ .ppS u.mk i{font-style:normal;font-size:.8em;margin-right:.5mm;vertical-align:.3em}
 .ppOp.row{display:flex;gap:6mm} .ppAsk{font-size:10.5pt} .ppVt{width:calc(100% - 7mm);margin:1mm 0 0 7mm;display:flex;align-items:flex-end;gap:2mm;font-size:9.5pt} .ppVt em{font-style:normal;color:#555;white-space:nowrap} .ppVt .ppLine{margin-left:0;min-width:22mm;margin-right:3mm} .ppFix{width:100%;margin:1.5mm 0 0 7mm;display:flex;align-items:flex-end;gap:2mm;font-size:10pt} .ppFix .ppLine{margin-left:0;min-width:22mm}
-.ppKS span.g.w{white-space:normal;width:100%} .ppKS span.g small{margin-left:2mm;color:#666;font-size:8.5pt}
+.ppKS span.g.w{white-space:normal;width:100%;display:grid;grid-template-columns:5.5mm auto 1fr;align-items:baseline} .ppKS span.g.w > i{margin-right:0} .ppKS span.g.w > small{margin-left:1.5mm}   /* (v682) 답안지 풀이가 두 줄이면 둘째 줄이 번호 밑으로 → 풀이 칸에 맞춤 */
+.ppOp:not(.long):not(.pic):not(.row):has(> li:nth-child(3):last-child){display:flex;flex-wrap:wrap;column-gap:3mm} .ppOp:not(.long):not(.pic):not(.row):has(> li:nth-child(3):last-child) > li{flex:0 0 auto;min-width:calc((100% - 6mm) / 3)}   /* (v682) 보기 3개를 두 칸 틀에 넣어 ③ 혼자 다음 줄 → 짧으면 한 줄에 셋 (길면 예전처럼 다음 줄) */
+ .ppKS span.g small{margin-left:2mm;color:#666;font-size:8.5pt}
 .pp.key .ppKey{display:grid;grid-template-columns:1fr 1fr;gap:0 7mm;font-size:10pt;flex:1;min-height:0;overflow:hidden} .ppKC{display:flex;flex-direction:column;gap:4mm;min-height:0;min-width:0;overflow:hidden} .ppKC+.ppKC{border-left:.3mm solid #ddd;padding-left:7mm;margin-left:-3.5mm} .ppKF h4 small{font-size:9pt;color:#888;font-weight:700} .ppKF h4{margin:0 0 1.5mm;font-size:12pt} .ppKS{display:flex;flex-wrap:wrap;gap:1mm 4mm;margin-bottom:2mm;align-items:baseline} .ppKS>b{width:5mm;font-weight:900}
 .ppKS span{white-space:nowrap} .ppKS span i{font-style:normal;color:#777;margin-right:1mm;font-size:9pt} .ppKS span.m{white-space:normal}
 @page{size:A4;margin:0}
@@ -17568,7 +17571,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v681";
+const GAME_VER = "v682";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20893,7 +20896,7 @@ const GNote = {
       conj:"이어 주는 말", place:"위치 전치사", dur:"기간·때 for · since", inf:"to부정사", ger:"동명사 -ing", perf:"현재완료", pass:"수동태", rel:"관계대명사 who · which",
       part:"분사형 형용사", voice:"능동 · 수동", agree:"수 일치", what:"what · that", reladv:"관계부사 where · when", ifp:"가정법 If I were", verb2:"to · -ing 뜻 차이", caus:"사역·지각동사", adj:"형용사 · 부사", indq:"간접의문문", it:"가주어 it", paral:"병렬 구조"},
   LV:[["초3-4", ["be","pl","s3"]], ["초5-6", ["past","will","prep","prog","modal","comp","sup","place","conj","inf"]],   /* (v681) 기간 for·since(현재완료와 짝)는 중등으로 */
-      ["중등", ["dur","ger","perf","pass","rel","adj","part","voice","agree","what","it","verb2","caus","reladv","paral","indq","ifp"]]],
+      ["중등", ["ger","perf","pass","rel","adj","part","voice","agree","what","it","verb2","caus","reladv","paral","indq","ifp","dur"]]],
   GR:{be:"g34-3", pl:"g34-2", s3:"g34-6", past:"g56-2", will:"g56-5", prep:"g56-8", prog:"g56-1", modal:"g56-7", comp:"g56-6", sup:"g56-6"},
   E(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]); },
   load(){ try{ Gram.load(); }catch(e){} if(this.C) return Promise.resolve(this.C); if(this._ld) return this._ld;
@@ -20959,7 +20962,7 @@ const GramUI = {
   /* (v624) 📒 🔀 문법 섞어 풀기 — 연구(Suzuki & Sunada 2019: 한 규칙씩 몰아 한 뒤 여러 규칙을 섞어 푼 쪽이 가장 좋았음)
      문법 노트에서 배운 문법 2~4개를 섞어 10문제 · 같은 문법이 연달아 안 나오게 · 오래 안 본 문법 먼저 · 하루 첫 번 💎2 */
   mixPool(bk){ if(bk==="mid") return fetch("data/hsq.json").then(r=>r.ok?r.json():null).catch(()=>null).then(H=>{ if(!Array.isArray(H)) return [];
-      const ks=GNote.LV[2][1].concat(["conj","dur","inf"]).filter((k,i,a)=>a.indexOf(k)===i).filter(k=>GNote.seen(k) && H.some(x=>x.k===k));   /* (v626) 동명사·완료·수동태·관계대명사·이어 주는 말·기간·to부정사도 문제 은행에 넣어 섞어 풀기 */
+      const ks=GNote.LV[2][1].filter(k=>["conj","dur","inf"].indexOf(k)<0).concat(["conj","dur","inf"]).filter(k=>GNote.seen(k) && H.some(x=>x.k===k));   /* (v626) 동명사·완료·수동태·관계대명사·이어 주는 말·기간·to부정사도 문제 은행에 넣어 섞어 풀기 */
       const V=GNote.st(); return ks.map(k=>{ const a=(V.s||{})[k]||[0,0]; return {id:k, t:GNote.nm(k), at:(+((V.mx||{})[k])||0), ml:((V.ml||{})[k]|0), acc:((a[0]|0)+1)/((a[1]|0)+2), qs:H.filter(x=>x.k===k && (x.lv|0)<=1 && !x.sh && String(x.s||"").split("___").length===2 && Array.isArray(x.o) && x.o.length>=2)
         .map(x=>({k:"pick", s:x.s, o:x.o.slice(), a:x.o[0], ko:x.ko||"", w:x.why||"", gk:k}))}; }).filter(t=>t.qs.length); });
     /* (v627) acc = 섞기에서 맞힌 비율 + 마지막 문법 판 점수(5문제로 셈) · ml = 섞기 간격 칸 */
@@ -23828,7 +23831,7 @@ Object.assign(Paper, {
       .map(t=>'<label class="ppChk'+(/^(lfd|lfdk|gmr)$/.test(t[0])?' rd':'')+'"><input type="checkbox" value="'+t[0]+'"'+(on.indexOf(t[0])>=0?' checked':'')+'>'+t[1]+'</label>').join(''); },
   lfFill(keep){ const s=$("ppLv"); if(!s) return; if(!$("ppLF").options.length) keep=false;   /* 처음엔 자료를 받기 전이라 비어 있음 → 기본 범위(1~3) */ const L=Life.list(s.value), o=L.map((x,i)=>'<option value="'+i+'">'+(i+1)+'. '+this.E(x.t)+'</option>').join(''), f0=keep ? +$("ppLF").value||0 : 0, t0=keep ? +$("ppLT").value||0 : Math.min(L.length-1, 2);
     $("ppLF").innerHTML=o; $("ppLT").innerHTML=o; if(L.length){ $("ppLF").value=Math.min(f0, L.length-1); $("ppLT").value=Math.min(Math.max(t0, f0), L.length-1); } },
-  gmTopics(bk){ if(bk==="mid"){ const H=this.HSQ||[], C=GNote.C||{}; return GNote.LV[2][1].concat(["conj","dur","inf"]).filter((k,i,a)=>a.indexOf(k)===i && H.some(x=>x.k===k && (x.lv|0)<=1)).map(k=>({id:k, t:GNote.nm(k), emo:"📒", mid:1, cards:C[k]||[]})); }
+  gmTopics(bk){ if(bk==="mid"){ const H=this.HSQ||[], C=GNote.C||{}; return GNote.LV[2][1].filter(k=>["conj","dur","inf"].indexOf(k)<0).concat(["conj","dur","inf"]).filter((k,i,a)=>a.indexOf(k)===i && H.some(x=>x.k===k && (x.lv|0)<=1)).map(k=>({id:k, t:GNote.nm(k), emo:"📒", mid:1, cards:C[k]||[]})); }
     return Gram.list(bk); },
   gmFill(keep){ const s=$("ppGb"); if(!s) return; if(!$("ppGF").options.length) keep=false; const T=this.gmTopics(s.value), o=T.map((g,i)=>'<option value="'+i+'">'+(i+1)+'. '+this.E(g.t)+'</option>').join(''), f0=keep ? +$("ppGF").value||0 : 0, t0=keep ? +$("ppGT").value||0 : Math.min(T.length-1, 1);
     $("ppGF").innerHTML=o; $("ppGT").innerHTML=o; if(T.length){ $("ppGF").value=Math.min(f0, T.length-1); $("ppGT").value=Math.min(Math.max(t0, f0), T.length-1); } },
