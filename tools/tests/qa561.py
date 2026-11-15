@@ -69,6 +69,7 @@ async def main():
         ok(r[1]==r[0] and r[2]==r[0]+1 and r[3]==r[2], f"⑦ 채팅 소식: 보통 크기는 안 알림 · 🐋 대물은 알림 · 3분 안에 또는 안 알림 {r}")
         # 튜토리얼 hot 이름표가 화면 밖이면 가장자리
         await A.evaluate("()=>{ tutAdv(7); drawLabels(); }"); await A.wait_for_timeout(1200)
+        await until(A, "()=>LBL.some(l=>l.el.classList.contains('hot'))", 24)   # (v684) 부하가 클 때 이름표를 다시 그리는 순간과 겹치면 한 번 비어 보임 → 잠깐 더 기다림
         r=await A.evaluate("()=>{ const L=LBL.find(l=>l.el.classList.contains('hot')); return L ? [L.d.k, L.el.style.display, L.el.classList.contains('edge')] : null; }")
         ok(r and r[1]!="none", f"④ 안내(🎣 호수) 이름표는 화면 밖이어도 보임 {r}")
         await A.screenshot(path=OUT+"qa561_edge.png")

@@ -111,6 +111,7 @@ async def main():
         await pg.close()
         # ④ house.html 바로 열기 (자동 시험 표시를 끔 → 실제 아이처럼) — (v663) 열렸으니 그대로 마을
         ctx=await br.new_context(viewport={"width":390,"height":844}); await ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>false})")
+        await ctx.add_init_script("try{ localStorage.setItem('hyeng_town_ok', String(Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5))); }catch(e){}")   # (v684) v678 부터 오늘의 30 Stage 3개를 한 아이만 — 오늘 연 아이처럼
         pg=await ctx.new_page(); await pg.route("**/*", route)
         await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(2500)
         r=await pg.evaluate("()=>[location.pathname, !!document.getElementById('townMt')]")
