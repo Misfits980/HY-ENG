@@ -20,14 +20,14 @@
   const esc = s=>s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const RE = new RegExp("(?:"+K.map(esc).join("|")+")\\uFE0F?", "gu");
   const st = document.createElement("style");
-  st.textContent = ".emjF{display:inline-block;width:1.15em;height:1.15em;line-height:1.15em;vertical-align:-.2em;overflow:hidden;white-space:nowrap;text-align:center;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;background:center/contain no-repeat!important;-webkit-background-clip:border-box!important;background-clip:border-box!important}";
+  st.textContent = ".emjF{display:inline-block;width:1.15em;height:1.15em;line-height:1.15em;vertical-align:-.2em;overflow:hidden;white-space:nowrap;text-align:center;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;background-color:transparent!important;background-position:center!important;background-size:contain!important;background-repeat:no-repeat!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;border:0!important;padding:0!important;box-shadow:none!important}";
   (document.head || document.documentElement).appendChild(st);
   const SKIP = /^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT|TITLE|NOSCRIPT|CANVAS)$/;
   function fixText(n){ const p = n.parentNode; if(!p || p.nodeType!==1 || SKIP.test(p.nodeName) || p.namespaceURI==="http://www.w3.org/2000/svg" || (p.classList && p.classList.contains("emjF"))) return;
     const s = n.data; RE.lastIndex = 0; if(!s || !RE.test(s)) return; RE.lastIndex = 0;
     const f = document.createDocumentFragment(); let last = 0, m;
     while((m = RE.exec(s))){ if(m.index>last) f.appendChild(document.createTextNode(s.slice(last, m.index)));
-      const c = M[m[0]] || M[m[0].replace(/\uFE0F$/, "")]; const sp = document.createElement("span"); sp.className = "emjF"; if(c) sp.style.backgroundImage = 'url("'+base+c+'.svg")'; sp.textContent = m[0]; f.appendChild(sp); last = m.index + m[0].length; }
+      const c = M[m[0]] || M[m[0].replace(/\uFE0F$/, "")]; const sp = document.createElement("span"); sp.className = "emjF"; if(c) sp.style.setProperty("background-image", 'url("'+base+c+'.svg")', "important");   /* 크롬 확인: CSS 의 background 한 줄 규칙이 그림까지 지우던 것 → 그림은 따로 important */ sp.textContent = m[0]; f.appendChild(sp); last = m.index + m[0].length; }
     if(last<s.length) f.appendChild(document.createTextNode(s.slice(last)));
     p.replaceChild(f, n); }
   function walk(r){ if(r.nodeType===3){ fixText(r); return; } if(r.nodeType!==1 || SKIP.test(r.nodeName) || (r.classList && r.classList.contains("emjF"))) return;
