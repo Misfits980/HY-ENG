@@ -110,7 +110,7 @@ async def main():
         r = await E("()=>[HOUSE.LBL().some(L=>L.d.k==='tower'), !!HOUSE.towerObj(), HOUSE.TW_AT]")
         ok(r[0] and r[1] and r[2] == [9, 3, 2, 2], f"마을에 🗼 타워 건물 · 이름표 {r}")
         r = await E("()=>{ const L=HOUSE.LBL().find(L=>L.d.k==='tower'); L.d.act(); return 1; }")
-        ok(await until("()=>document.getElementById('info').classList.contains('on') && !!document.getElementById('twS')", 150),   # (v684) 느린 기기에서 16초로는 다 못 걸어감 "이름표 → 걸어가서 「오늘의 하늘 타워」 (v459) 🗼 40층")
+        ok(await until("()=>document.getElementById('info').classList.contains('on') && !!document.getElementById('twS')", 150), "이름표 → 걸어가서 「오늘의 하늘 타워」 (v459) 🗼 40층")   # (v684) 느린 기기에서 16초로는 다 못 걸어감 (80 → 150)
         r = await E("()=>document.getElementById('infoT').innerText")
         ok("40층" in r and ("친구 기록" in r or "첫 번째" in r), f"고르기 창 + 🏆 오늘 친구 기록 {r[:80]!r}")
         await pg.screenshot(path=OUT + "tower422_ask.png")
