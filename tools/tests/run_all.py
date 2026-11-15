@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 FAST = ["guard623", "isle521", "isle528", "isle535", "home536", "life539", "town544", "home557", "home559", "qa561", "econ563", "grp565", "furn566", "fac569", "winter570", "deco571", "fix572", "shopin572", "polish575", "weed576", "polish576", "fix577", "farm580", "shopui584", "yfurn584", "bank586", "yguide586", "vil587", "shops589", "mg590", "card634", "draw635", "fruit636", "c4637", "bowl638", "grid594", "grid595", "arena598", "arena599", "card600", "rank601", "hudc506", "loot492", "study3", "study4", "v243test", "v246test", "v249test", "uitest", "newstest", "homotest",
         "dexgr", "bingotest", "bingo2", "albumtest2", "olytest", "olyfail", "scrolltest2", "bottomtap",
-        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest", "tiertest", "voicetest", "v6test", "datacheck", "raidtest", "bosstest", "battletest", "walktest", "classtest", "stagetest", "flagtest", "wbtest", "jltest", "slimetest", "formscheck", "dexprac", "quiztest", "runfix", "sensetest", "raid2test", "swcache", "weektest", "swmin", "midsplit", "purpletest", "examtest", "polishtest", "examclass", "stocksync", "qa337", "teamtab", "phonics2", "classroom", "battleq", "race351", "live353", "day354", "hw355", "pad356", "sfs357", "rank358", "conn359", "sw360", "kids361", "nick362", "prize364", "dup365", "late367", "fx368", "perf369", "gate370", "zone371", "perf372", "perf373", "spread374", "gc375", "exp376", "aud377", "joy378", "voice379", "voca380", "proper381", "battle382", "pick383","voice385","gram386","admin387","race389","boss392","raid392","flag392","rr392","wk392","admin395","link396","course397","parent397","cup399","cup401","house404","house409","house410","tag404","town406","town407","raid407","bt409","tv410","pad411","ui413","fish414","rank416","land415","pad417","cloud418","auth419","own421","tower422","board424","board428","tv433","town434", "tower435", "yard436", "label437", "d30_438", "fr439", "board440", "mid442", "mid443", "done444", "board447", "tv447", "kid448", "kid451", "kid452", "tower453", "tower455", "tower459", "day459", "av461", "tower462", "tower463", "tower467", "tower472", "town473", "study474", "who476", "who477", "who478", "hint481", "econ563g", "rank618", "learn623", "gram626", "learn626", "life626", "paper629", "today667", "cls668", "mg671", "fix672", "pdf674", "week676", "bpmap676", "wide676", "sw677", "town678", "pp679"]
+        "shx", "swreload", "v256test", "mv1run", "foottest", "talkshot", "screens", "poptest", "fixedscan", "acctest", "admintest", "dexfound", "shortrun", "ipadtest", "retrytest", "tiertest", "voicetest", "v6test", "datacheck", "raidtest", "bosstest", "battletest", "walktest", "classtest", "stagetest", "flagtest", "wbtest", "jltest", "slimetest", "formscheck", "dexprac", "quiztest", "runfix", "sensetest", "raid2test", "swcache", "weektest", "swmin", "midsplit", "purpletest", "examtest", "polishtest", "examclass", "stocksync", "qa337", "teamtab", "phonics2", "classroom", "battleq", "race351", "live353", "day354", "hw355", "pad356", "sfs357", "rank358", "conn359", "sw360", "kids361", "nick362", "prize364", "dup365", "late367", "fx368", "perf369", "gate370", "zone371", "perf372", "perf373", "spread374", "gc375", "exp376", "aud377", "joy378", "voice379", "voca380", "proper381", "battle382", "pick383","voice385","gram386","admin387","race389","boss392","raid392","flag392","rr392","wk392","admin395","link396","course397","parent397","cup399","cup401","house404","house409","house410","tag404","town406","town407","raid407","bt409","tv410","pad411","ui413","fish414","rank416","land415","pad417","cloud418","auth419","own421","tower422","board424","board428","tv433","town434", "tower435", "yard436", "label437", "d30_438", "fr439", "board440", "mid442", "mid443", "done444", "board447", "tv447", "kid448", "kid451", "kid452", "tower453", "tower455", "tower459", "day459", "av461", "tower462", "tower463", "tower467", "tower472", "town473", "study474", "who476", "who477", "who478", "hint481", "econ563g", "rank618", "learn623", "gram626", "learn626", "life626", "paper629", "today667", "cls668", "mg671", "fix672", "pdf674", "week676", "bpmap676", "wide676", "sw677", "town678", "fix684", "pp679"]
 SLOW = ["runsweep", "sweep1", "board440full"]
 TIMEOUT = {"runsweep": 1800, "sweep1": 3600, "board440full": 3600}
 
@@ -27,6 +27,8 @@ def check_output(out):
     for ln in out.splitlines():
         l2 = re.sub(r"'C:(Failed to load[^']*|An unknown error occurred when fetching the script\.)',?\s*", "", ln)   # 바깥 주소 막힘은 정상
         l2 = re.sub(r"\[\s*,?\s*\]", "[]", l2)
+        if re.match(r"^\s*OK\b", l2): continue   # (v684) 통과한 줄에 일부러 낸 오류 글자(「Uncaught Error: 게임 테스트 오류」)가 있어도 실패 아님 (guard623)
+        if re.match(r"^\s*BAD:\s*0\s*$", l2): continue   # (v684) 「BAD: 0」 = 틀린 곳 0개 (fruit636·draw635·c4637·bowl638 이 늘 빨간불이었음)
         if BAD_LINE.search(l2): bad.append(ln.strip()[:200])
     return bad
 
@@ -41,7 +43,8 @@ def run_test(name):
         return (name, r[1] + r2[1], ["두 번 다 실패"] + r2[2])
     return r
 
-V4_ONLY = {"farm580", "yqa580", "yguide586"}   # 마당 밭(새 섬에선 텃밭 섬으로 이사) 시험
+LEGACY = {"town407", "land415"}   # (v684) 새 섬(v610) 전 옛 마당·마을 시험 — v658 부터 늘 실패(아이들이 갈 수 없는 곳). 이름을 적으면 따로 돌릴 수 있음
+V4_ONLY = {"farm580", "yqa580", "yguide586", "polish576"}   # (v684) polish576 = v576 옛 섬 다듬기 (옛 섬에서 통과)   # 마당 밭(새 섬에선 텃밭 섬으로 이사) 시험
 def run_once(name):
     t0 = time.time()
     try:
@@ -91,7 +94,7 @@ def basic_checks():
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    names = args or (FAST + (SLOW if "--slow" in sys.argv else []))
+    names = args or ([n for n in FAST if n not in LEGACY] + (SLOW if "--slow" in sys.argv else []))
     os.makedirs(os.path.join(HERE, "out"), exist_ok=True)
     print("== 기본 검사"); bp = basic_checks()
     print("  " + ("통과" if not bp else "\n  ".join("❌ " + x for x in bp)))

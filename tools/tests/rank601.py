@@ -110,7 +110,7 @@ async def main():
         ok(r[0]<=40, f"(v604) 📰 소식지 단추 작게 {r}")
         await pg.close()
         # ④ house.html 바로 열기 (자동 시험 표시를 끔 → 실제 아이처럼) — (v663) 열렸으니 그대로 마을
-        ctx=await br.new_context(viewport={"width":390,"height":844}); await ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>false})")
+        ctx=await br.new_context(viewport={"width":390,"height":844}); await ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>false}); try{ localStorage.setItem('hyeng_town_ok', String(Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5))); }catch(e){}")   # (v684) v678 My Town 잠금(Stage 3개) — 오늘 열림으로 두고 시험
         pg=await ctx.new_page(); await pg.route("**/*", route)
         await pg.goto(ORIGIN+"proto/house.html"); await pg.wait_for_timeout(2500)
         r=await pg.evaluate("()=>[location.pathname, !!document.getElementById('townMt')]")

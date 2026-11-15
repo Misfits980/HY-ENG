@@ -27,7 +27,7 @@ async def main():
     async with async_playwright() as p:
         br=await p.chromium.launch(args=["--use-gl=swiftshader","--enable-unsafe-swiftshader"])
         ctx=await br.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True)
-        await ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>false});")
+        await ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>false});; try{ localStorage.setItem('hyeng_town_ok', String(Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5))); }catch(e){}")   # (v684) v678 My Town 잠금(Stage 3개) — 오늘 열림으로 두고 시험
         pg=await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.route("**/*", route); await pg.goto(ORIGIN+"proto/house.html?isle=1"); await pg.wait_for_timeout(300)
         await pg.evaluate("()=>{ localStorage.setItem('hyeng_proto_code', JSON.stringify('BANK6')); localStorage.setItem('hyeng_nick','루아'); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); localStorage.removeItem('hyeng_fb_url'); }")

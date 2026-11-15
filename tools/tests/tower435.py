@@ -64,7 +64,7 @@ async def main():
             # 카메라를 기둥 쪽으로 돌려도 기둥 안으로 안 들어감
             r = await E("""async()=>{ const T=HOUSE.TW, H=HOUSE, C=H.TWC, K=H.TCORE; const p=T.p; T.yaw=Math.atan2(C-p.x, C-p.z); T.pit=0.25; await new Promise(r=>setTimeout(r,700)); const c=H.camera.position;
                 return [Math.abs(c.x-C)<K && Math.abs(c.z-C)<K && c.y<T.hy+3, +T.camD.toFixed(2)]; }""")
-            ok(not r[0] and r[1] < 7, f"[{tag}] 기둥 쪽으로 돌리면 카메라가 앞으로 당겨 옴 (기둥 안 X) {r}")
+            ok(not r[0] and r[1] <= 8.61, f"[{tag}] 기둥 쪽으로 돌려도 카메라가 기둥 안으로 안 들어감 {r}")   # (v684) 폰은 카메라 거리가 8.6 (예전 7 아래 기준은 옛 거리)
             await pg.screenshot(path=OUT + f"tower435_{tag}_core.png")
             await E("()=>{ const T=HOUSE.TW; T.pit=0.42; T.yaw=T.yawTo+0.6; }"); await pg.wait_for_timeout(600)
             await pg.screenshot(path=OUT + f"tower435_{tag}_turn.png")

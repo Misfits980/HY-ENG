@@ -2447,7 +2447,7 @@ function twBuild(mode){ while(towerG.children.length){ const c=towerG.children[0
   twBox([TWC-TCORE,-0.5,TWC-TCORE],[TWC+TCORE,y+3,TWC+TCORE],"solid",null).mesh.visible=false;
   for(let i=0;i<ys.length-1;i++){ const h=ys[i+1]-ys[i], m=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2, h, TCORE*2), twMat(twCol(i),{emissiveIntensity:.35, roughness:.8})); m.position.set(TWC, ys[i]+h/2, TWC); towerG.add(m); TW.hitL.push(m);
     const e=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2+0.08, 0.14, TCORE*2+0.08), new THREE.MeshBasicMaterial({color:0xffffff})); e.position.set(TWC, ys[i], TWC); towerG.add(e); }
-  { const m=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2, ys[0]+0.5, TCORE*2), twMat("#ffffff")); m.position.set(TWC, (ys[0]-0.5)/2, TWC); towerG.add(m); }
+  { const m=new THREE.Mesh(new THREE.BoxGeometry(TCORE*2, ys[0]+0.5, TCORE*2), twMat("#ffffff")); m.position.set(TWC, (ys[0]-0.5)/2, TWC); towerG.add(m); TW.hitL.push(m); }   /* (v684) QA(tower435): 맨 아래 기둥은 카메라 당겨 오기 목록에 없어서 1층에서 기둥 쪽으로 돌리면 캐릭터가 가려졌음 */
   const capT=new THREE.Mesh(new THREE.ConeGeometry(TCORE*1.5, 2.6, 4), twMat("#ffd23f",{emissiveIntensity:.4})); capT.rotation.y=Math.PI/4; capT.position.set(TWC, y+4.3, TWC); towerG.add(capT);
   // 모서리 네 기둥 (탑 모양) · 2층마다 테
   const PH=y+3.2; [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([a,b])=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(0.22, PH+0.5, 0.22), twMat("#f0d2a2")); m.position.set(TWC+a*(TQ+2.4), PH/2-0.25, TWC+b*(TQ+2.4)); towerG.add(m); });   /* (v535) 나무 기둥 */
@@ -4408,7 +4408,7 @@ function drawCoach(busy){ const c=$("coach"), S=tut.s<TUT.length?TUT[tut.s]:null
   if(here!==coachOn){ coachOn=here; viewOff(); dirty=true; }   // 안내가 있는 동안 장면을 조금 위로 (아래 말풍선에 가리지 않게)
   c.classList.toggle("on", show); document.querySelectorAll(".dk.hot").forEach(e=>{ if(!(here && S.hotB===e.id)) e.classList.remove("hot"); }); if(here && S.hotB && $(S.hotB)) $(S.hotB).classList.add("hot");   /* (v561) QA: 안내하는 아래 단추도 반짝 (문이 카메라에 가려도 나가기로) */
   document.querySelectorAll("#tls .tl").forEach(e=>e.classList.toggle("hot", show && !!S.hot && S.hot.split("|").indexOf(e.dataset.k)>=0));
-  if(show && c.dataset.s!==String(tut.s)){ c.dataset.s=String(tut.s); $("coachT").innerHTML=S.t; $("coachN").textContent=(tut.s+1)+" / "+TUT.length;
+  if(show && c.dataset.s!==String(tut.s)){ c.dataset.s=String(tut.s); $("coachT").innerHTML=S.t; if(tut.b==null || tut.s<tut.b){ tut.b = (tut.b==null && tut.s>2) ? 0 : tut.s; tutSave(); }   /* 이미 하던 아이(3단계 넘음)는 예전 번호 그대로 */ $("coachN").textContent=(tut.s-tut.b+1)+" / "+(TUT.length-tut.b);   /* (v684) QA: 앞 단계(땅·방)가 저절로 넘어가 「3 / 10」부터 보였음 → 처음 본 단계 = 1 */
     $("coachNext").hidden=!S.next; $("coachNext").textContent=typeof S.next==="string"?S.next:"다음 ▶"; } }
 $("coachNext").onclick=()=>tutAdv(); $("coachSkip").onclick=()=>tutAdv(99);
 

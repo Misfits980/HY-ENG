@@ -252,7 +252,9 @@ function start(api){
       else if(OPP.think>0){ P.head.rotation.set(-.1, Math.sin(t*2.2)*.3, Math.sin(t*1.6)*.12); P.armR.rotation.set(-1.9,0,-.6); P.armL.rotation.set(-.9,0,.25); }
       else { P.armR.rotation.set(-.9,0,-.25); const lc=hov>=0&&turn()===me?hov:3; P.head.rotation.set(-.12, (lc-3)*-.08+Math.sin(t*.7)*.05, 0); }
       if(OPP.act>0){ OPP.act-=dt; if(OPP.act<=0) P.setExpr(P.expr0||"smile"); } }
-    if(BUB.classList.contains("on")){ P.head.getWorldPosition(hv); hv.y+=.32; hv.project(cam); BUB.style.left=((hv.x+1)/2*innerWidth)+"px"; BUB.style.top=((1-hv.y)/2*innerHeight)+"px"; } }
+    if(BUB.classList.contains("on")){ P.head.getWorldPosition(hv); hv.y+=.32; hv.project(cam); BUB.style.left=((hv.x+1)/2*innerWidth)+"px";
+      /* (v684) QA: 「잘 부탁해!」 말풍선이 위 띠의 남은 시간(⏱)을 가렸음 → 말풍선 위쪽이 띠 아래로 오게 */
+      let y=(1-hv.y)/2*innerHeight; const tb=$(".c4Top"); if(tb){ const lim=tb.getBoundingClientRect().bottom+6+BUB.offsetHeight; if(y<lim) y=lim; } BUB.style.top=y+"px"; } }
   let fr=0;
   function render(rn){ fr++; fitCam(); if(mode!=="menu" && fr%8===1){ [[ME_AV,PCm,0],[OPP_POR,PCo,1]].forEach(([A,PC,k])=>{ const o=POR[k]; if(!A || !o) return; const r=o.c.getBoundingClientRect(), pr=rn.getPixelRatio(), sz=Math.max(8,Math.round(r.width)); if(o.c.width!==Math.round(sz*pr)) o.c.width=o.c.height=Math.round(sz*pr);
       try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,PC); o.g.clearRect(0,0,o.c.width,o.c.height); o.g.drawImage(rn.domElement,0,rn.domElement.height-o.c.height,o.c.width,o.c.height,0,0,o.c.width,o.c.height); }catch(e){}

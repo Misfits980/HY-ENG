@@ -14,8 +14,10 @@ async def main():
         if not c: bad.append(m)
     async with async_playwright() as p:
         br = await p.chromium.launch(); ctx = await br.new_context(viewport={"width": 390, "height": 844}); await ctx.add_init_script("window.HY_FB_LOCAL=true;")
-        K = await ctx.new_page(); K.on("pageerror", lambda e: errs.append("K " + str(e))); await boot(K)
+        K = await ctx.new_page(); K.on("pageerror", lambda e: errs.append("K " + str(e))); await boot(K); await K.evaluate("()=>{ PRIZES[0].to='2099-12-31'; }")   # (v684) 빼빼로는 11/11 에 끝남 — 사고팔기 규칙은 기간을 늘려서 시험
         await K.evaluate("()=>FB.set('/hy/roster', {t:{a:{n:'고학년', e:'🐸'}}, k:{k1:{n:'라언', t:'a'}, k2:{n:'단우', t:'a'}}}).then(()=>{ localStorage.setItem('hyeng_nick','한양 행복'); Kid.clear(); Kid.setOwner({id:'k1', n:'라언', t:'a'}); Wallet.adjust(1200, 'test'); return HyBoss.refresh(true); })")
+        r = await K.evaluate("()=>{ const t=PRIZES[0].to; PRIZES[0].to='2026-11-11'; const a=Prize.on(PRIZES[0]); PRIZES[0].to=t; return [a, HyBoss.dayOf(Date.now())]; }")
+        ok(r[0] == (r[1] <= "2026-11-11"), f"(v684) 기간(11/11)이 지나면 상점에서 안 보임 {r}")
         await K.evaluate("()=>ShopUI.open()"); await K.wait_for_timeout(500)
         r = await K.evaluate("()=>{ const b=document.getElementById('shopPrize'); return [b.style.display, b.innerText.indexOf('빼빼로')>=0, !!b.querySelector('[data-act=\"pzarm\"]')]; }")
         ok(r == ["block", True, True], f"상점 맨 위 진짜 상품 빼빼로 {r}")
@@ -32,7 +34,7 @@ async def main():
         d = await K.evaluate("()=>FB.get('/hy/roster/pz/pepero')")
         ok(d and d.get("k1", {}).get("n") == "라언", f"서버에 산 기록 {d}")
         # 같은 아이 · 다른 기기 → 못 삼
-        P = await ctx.new_page(); P.on("pageerror", lambda e: errs.append("P " + str(e))); await boot(P)
+        P = await ctx.new_page(); P.on("pageerror", lambda e: errs.append("P " + str(e))); await boot(P); await P.evaluate("()=>{ PRIZES[0].to='2099-12-31'; }")   # (v684) 빼빼로는 11/11 에 끝남 — 사고팔기 규칙은 기간을 늘려서 시험
         await P.evaluate("()=>{ localStorage.setItem('hyeng_nick','한양 배려'); Wallet.adjust(1000,'t'); Kid.set({id:'k1', n:'라언', t:'a'}); return HyBoss.refresh(true); }")
         await P.evaluate("()=>{ ShopUI.open(); }"); await P.wait_for_timeout(500)
         r = await P.evaluate("()=>[!!document.querySelector('[data-act=\"pzarm\"]'), document.getElementById('shopPrize').innerText.indexOf('샀어요')>=0]")
@@ -44,7 +46,7 @@ async def main():
         r = await P.evaluate("()=>{ Kid.setOwner({id:'k2', n:'단우', t:'a'}); Kid.set({id:'k2', n:'단우', t:'a'}); Wallet.adjust(-Wallet.gems()+100,'t'); ShopUI.draw(); Prize.act('pzarm','pepero'); return [Wallet.gems(), document.getElementById('shopMsg').textContent]; }")
         ok(r[0] == 100 and "더 필요" in r[1], f"보석 모자라면 안 됨 {r}")
         # 선생님 홈
-        T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T)
+        T = await ctx.new_page(); T.on("pageerror", lambda e: errs.append("T " + str(e))); await boot(T); await T.evaluate("()=>{ PRIZES[0].to='2099-12-31'; }")   # (v684) 빼빼로는 11/11 에 끝남 — 사고팔기 규칙은 기간을 늘려서 시험
         await T.evaluate("()=>{ sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }"); await T.reload(); await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ window.confirm=()=>true; Admin.open(); Admin._tab('prize'); }"); await T.wait_for_timeout(1200)   # (v629) 진짜 상품 = 🎁 보상
         r = await T.evaluate("()=>{ const c=document.getElementById('adPrize'); return c ? c.innerText.replace(/\\s+/g,' ') : ''; }")
