@@ -23,6 +23,7 @@ async def main():
             if vw["width"]==390:
                 await pg.screenshot(path=OUT+"town_card.png")
                 await pg.route("**/proto/house.html", lambda r: r.fulfill(status=200, content_type="text/html", body="<p>town</p>"))
+                await pg.evaluate("()=>localStorage.setItem('hyeng_nick','루아')")   # (v684) 이름이 없으면 이름 정하기 창이 먼저 (fix684)
                 await pg.click('#selRule [data-v="town"]'); await pg.wait_for_timeout(1500)
                 ok(pg.url.endswith("proto/house.html"), f"🏡 My Town → 생활 맛보기 {pg.url}")
             await pg.close()

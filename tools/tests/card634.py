@@ -120,7 +120,8 @@ async def main():
             const tot0=G.P.reduce((s,p)=>s+p.h.length,0); R.tapCard(id,null); let pend=0; for(let j=0;j<12;j++){ MG.step(.05,false); await null; await null; pend=Math.max(pend,G.pend); }
             let mx=pend; for(let j=0;j<600;j++){ MG.step(.05,false); await null; await null; mx=Math.max(mx,G.pend); if(G.pend===0 && !G.lock) break; }
             return [pend, mx, G.pend, G.P.reduce((s,p)=>s+p.h.length,0)-tot0]; }""")
-        ok(r[0]==2 and r[1]<=8 and r[2]==0 and r[3]>=r[1]-1-3, f"③ +2 쌓기: 내가 내면 +2 쌓임 → 넘기다가 못 내는 사람이 다 받음 (최대 8) {r}")
+        # (v684) 다음 봇이 0.6초 안에 +2 를 또 얹으면 바로 4 — 쌓였으면 통과
+        ok(r[0]>=2 and r[0]%2==0 and r[1]<=8 and r[2]==0 and r[3]>=r[1]-1-3, f"③ +2 쌓기: 내가 내면 +2 쌓임 → 넘기다가 못 내는 사람이 다 받음 (최대 8) {r}")
         r=await pg.evaluate("""async ()=>{ const R=MG.run, G=R.G; for(let t=0;t<400 && !(R.isMyTurn()) && !G.over;t++){ MG.step(.05,false); await null; await null; }
             if(G.over) return 'over'; const me=G.P[0];
             /* 쌓인 상태 만들기: 맨 위 +2 · 쌓인 2 */ const i=G.draw.findIndex(id=>R.CARD(id).v==='d2'); const d=G.draw.splice(i,1)[0]; G.pile.push(d); G.top=R.CARD(d); G.cur=G.top.c; G.pend=2;

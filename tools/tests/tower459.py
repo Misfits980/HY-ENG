@@ -133,7 +133,7 @@ async def main():
             const y0=T.ys[24]+0.5, free=[]; for(let a=0;a<64 && free.length<4;a++){ const ang=a/64*Math.PI*2+0.05, dx=Math.cos(ang)*8.1, dz=Math.sin(ang)*8.1, x=C+dx, z=C+dz; if(!T.S.some(s=>s.min && s.ground==null && s.kind!=='floor' && x+0.3>s.min.x && x-0.3<s.max.x && z+0.3>s.min.z && z-0.3<s.max.z && s.max.y>G.y+0.01 && s.min.y<y0+2)) free.push([dx,dz]); }
             for(const [dx,dz] of free){ T.p.set(C+dx, T.ys[24]+0.5, C+dz); T.v.set(0,0,0); T.lastGY=null; T.onG=false; T.gnd=null; let n=0; HOUSE.twStep(1/90); while(!(T.onG) && n<900){ HOUSE.twStep(1/90); n++; }
               res.push([T.gnd && T.gnd.ground, +(T.p.y-G.y).toFixed(2)]); } return [res, HOUSE.gems(), document.getElementById('toast').innerText]; }""")
-        ok(len(r[0]) >= 3 and all(x[0] == 19 and abs(x[1]) < 0.03 for x in r[0]) and r[1] == 2 and "20층 넓은 땅" in r[2], f"25층 바깥에서 뚝 → 🏝 20층 땅에 내려앉음 · 💎 +2 처음만 {r}")
+        ok(len(r[0]) >= 3 and all(x[0] == 19 and abs(x[1]) < 0.03 for x in r[0]) and r[1] == 0 and "20층 넓은 땅" in r[2] and "🪙 +10" in r[2], f"25층 바깥에서 뚝 → 🏝 20층 땅에 내려앉음 · 🪙 +10 처음만 (보상 💎 → 🪙) {r}")
         await pg.wait_for_timeout(300); await pg.screenshot(path=OUT + "tower459_ground.png")
         # 밑에서는 투명
         r = await E("""()=>{ const T=HOUSE.TW, G=T.grounds[0], c=T.cps[15]; T.p.set((c.min.x+c.max.x)/2, c.max.y+0.01, (c.min.z+c.max.z)/2); T.v.set(0,0,0); HOUSE.twStep(1/90); const lo=G.mat.opacity;
