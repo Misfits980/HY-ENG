@@ -35,10 +35,10 @@ async def main():
             return False
         # ② PLAYER
         ctx, pg, errs = await page(br, "PLAYER")
-        await pg.evaluate("()=>HOUSE.exitRoom()"); await until(pg, "()=>document.getElementById('info').classList.contains('on') || HOUSE.place()!=='room'", 120)
-        r=await pg.evaluate("()=>[HOUSE.place(), document.getElementById('info').classList.contains('on'), document.getElementById('infoT').textContent]")
+        await pg.evaluate("()=>HOUSE.exitRoom()"); await until(pg, "()=>document.getElementById('ask').classList.contains('on') || HOUSE.place()!=='room'", 120)
+        r=await pg.evaluate("()=>[HOUSE.place(), document.getElementById('ask').classList.contains('on'), document.getElementById('askT').textContent]")
         print("PLAYER", r)
-        ok(r[0]=="room" and r[1] and "이름" in r[2], "이름이 PLAYER 면 마을에 못 들어감 + 안내")
+        ok(r[0]=="room" and r[1] and "이름" in r[2], "이름이 PLAYER 면 마을에 못 들어감 + 안내 (v684: 「이름 정할까요?」 네/아니요)")
         allerr+=errs; await ctx.close()
         # ①③
         ctx, pg, errs = await page(br, "용현")

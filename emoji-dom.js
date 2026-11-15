@@ -9,9 +9,9 @@
   try{ base = new URL("assets/emoji/", document.currentScript.src).href; }catch(e){ return; }
   try{ const cv = document.createElement("canvas"); cv.width = cv.height = 44; ctx = cv.getContext("2d", {willReadFrequently:true}); if(!ctx) return;
     ctx.font = '32px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif'; ctx.textBaseline = "top"; ref = ctx.measureText("\u{1F600}").width || 32; }catch(e){ return; }
-  /* 색이 있는 점이 하나라도 나오면 = 그릴 줄 앎 (빈 네모·흑백 글자 = 검은색뿐) · 붙은 이모지가 둘로 갈라지면(너비 1.45배) = 못 그림 */
+  /* 검은색이 아닌 점이 하나라도 나오면 = 그릴 줄 앎 (빈 네모·흑백 글자는 칠한 색(검정) 그대로 · 회색 돌 🪨 같은 그림 글자는 밝은 점이 있음) · 붙은 이모지가 둘로 갈라지면(너비 1.45배) = 못 그림 */
   function ok(ch){ try{ if(ctx.measureText(ch).width > ref*1.45) return false; ctx.clearRect(0,0,44,44); ctx.fillStyle = "#000"; ctx.fillText(ch, 4, 4);
-      const d = ctx.getImageData(0,0,44,44).data; for(let i=0;i<d.length;i+=4){ if(d[i+3]>60 && Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>40) return true; } return false; }catch(e){ return true; } }
+      const d = ctx.getImageData(0,0,44,44).data; for(let i=0;i<d.length;i+=4){ if(d[i+3]>60 && Math.max(d[i],d[i+1],d[i+2])>70) return true; } return false; }catch(e){ return true; } }
   const M = {}; let forced = false; try{ forced = /[?&]emjfix=1/.test(location.search) || localStorage.getItem("hyeng_emjfix")==="1"; }catch(e){}   /* 시험·확인용: 잘 그리는 기기에서도 그림으로 */
   CODES.forEach(c=>{ let ch; try{ ch = String.fromCodePoint(...c.split("-").map(h=>parseInt(h,16))); }catch(e){ return; } if(forced || !ok(ch)) M[ch] = c; });
   const K = Object.keys(M).sort((a,b)=>b.length-a.length);

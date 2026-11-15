@@ -20,7 +20,7 @@ FAST = ["town684", "guard623", "isle521", "isle528", "isle535", "home536", "life
 SLOW = ["runsweep", "sweep1", "board440full"]
 TIMEOUT = {"runsweep": 1800, "sweep1": 3600, "board440full": 3600}
 
-BAD_LINE = re.compile(r"(\berrs\s*\[(?!\s*\]))|(^\s*BAD\b)|(\bError:)|(^ERR\b)")
+BAD_LINE = re.compile(r"(\berrs\s*\[(?!\s*\]))|(^\s*BAD\b(?!:\s*0\s*$))|(\bError:)|(^ERR\b)")   # (v684) 「BAD: 0」(나쁜 것 0개) 줄은 실패 아님
 
 def check_output(out):
     bad = []
