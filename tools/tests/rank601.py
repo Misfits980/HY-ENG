@@ -82,7 +82,7 @@ async def main():
                 r=await pg.evaluate("()=>{ const t=document.querySelector('#selRule .c-town'); return [t.classList.contains('closed'), t.innerText.replace(/\\s+/g,' '), TOWN_OPEN, townOpen()]; }")
                 ok(not r[0] and "점검" not in r[1] and "My Town" in r[1] and r[2] and r[3], f"④ My Town 칸 = 열림 (점검 표시 없음) {r}")
                 await pg.screenshot(path=OUT+"rank601_town_phone.png")
-                ne=len(errs); await pg.evaluate("()=>document.querySelector('#selRule .c-town').click()"); await pg.wait_for_timeout(1500)
+                ne=len(errs); await pg.evaluate("()=>{ localStorage.setItem('hyeng_nick','루아'); document.querySelector('#selRule .c-town').click(); }"); await pg.wait_for_timeout(1500)   # (v684) 이름이 없으면 이름 정하기 창이 먼저 (fix684)
                 r=await pg.evaluate("()=>[!document.getElementById('townMt'), location.pathname]")
                 ok(r[0] and r[1].endswith("/proto/house.html"), f"④ 누르면 점검 안내 없이 마을로 감 {r}")
                 del errs[ne:]   # 마을 화면은 가짜 3D 엔진(fake_three)이라 그림 오류가 남 — 진짜 마을은 isle·town 시험이 봄
