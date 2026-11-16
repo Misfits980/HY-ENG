@@ -191,6 +191,16 @@ async def main():
         ok(r == ["rgb(169, 169, 169)", "rgb(184, 184, 184)"], f"⑥ 따라쓰기 흐린 글씨·가운데 줄 한 단계 진하게 {r}")
         g = await E(LEAF_GAP)
         ok(g and all(x[0] >= 25 and x[1] <= 1 for x in g), f"⑥ 단어 따라쓰기 {len(g)}쪽 — 아래 25mm · 넘침 없음 {g}")
+        # (v700 이어서) 사용자: 「단어 따라쓰기 여백이 너무 남는데?」
+        r = await E("""()=>{ const W=document.getElementById('ppWrap'); W.style.zoom=''; const mm=96/25.4, P=[...W.querySelectorAll('.pp.kj:not(.key)')];
+            const rows=[...W.querySelectorAll('.kjX')].map(x=>{ const c=x.closest('.kjB').getBoundingClientRect(); return (c.right-Math.max(...[...x.children].map(e=>e.getBoundingClientRect().right)))/mm; });
+            const lone=[...W.querySelectorAll('.kjX')].filter(x=>!x.querySelector('.kjXf')).length;
+            const two=[...W.querySelectorAll('.kjS')].filter(s=>s.children.length>1).map(s=>[...s.children].map(r=>r.getBoundingClientRect().right)).map(a=>Math.abs(a[0]-a[a.length-1])/mm);
+            const fill=P.map(p=>p.querySelector('.kjBody').classList.contains('fill')), free=P.map(p=>{ const b=p.querySelector('.kjBody'), L=b.lastElementChild; return (b.getBoundingClientRect().bottom-L.getBoundingClientRect().bottom)/mm; });
+            return {rows:rows.length, wide:rows.filter(v=>v>20).length, kjE:W.querySelectorAll('.kjE').length, lone, posIn:W.querySelectorAll('.kjPos.in').length, two:Math.max(0, ...two), fill, free:free.map(v=>+v.toFixed(1))}; }""")
+        ok(r["rows"] and r["wide"] == 0 and r["kjE"] >= r["rows"] and r["lone"] == 0, f"⑥ 「여러 개」 줄 오른쪽이 비지 않음 (혼자 써 보기 칸 {r['kjE']} · 20mm 넘게 빈 줄 {r['wide']} · 칩만 있는 줄 {r['lone']} · 칩을 뜻 밑으로 {r['posIn']})")
+        ok(r["two"] < 2, f"⑥ 긴 단어 둘째 줄도 첫 줄 끝까지 (차이 {r['two']:.1f}mm)")
+        ok(all(r["fill"][:-1]) and not r["fill"][-1] and all(v < 6 for v in r["free"][:-1]), f"⑥ 꽉 찬 쪽 = 남는 아래 자리를 카드 사이로 · 마지막 쪽은 그대로 {r['fill']} {r['free']}")
 
         # ── ④ My Town 밤 「Good night!」 한 번
         await pg.unroute("**/*"); await pg.route("**/*", fake)

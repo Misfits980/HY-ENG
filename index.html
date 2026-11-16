@@ -3173,7 +3173,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .adPpBtns{display:flex;gap:8px;flex-wrap:wrap} .adPpBtns .adGo{flex:1 1 140px} .adPpBtns .adGo.kj{background:linear-gradient(180deg,#7be0a8,#3fb879);color:#0f3a22}
 .ppMd{display:flex;gap:4px;background:#2d2650;border:1px solid #6a5f9a;border-radius:12px;padding:3px} .ppMd button{appearance:none;border:0;background:none;color:#d8d0ff;font:800 13px var(--font);padding:6px 10px;border-radius:9px;cursor:pointer;white-space:nowrap} .ppMd button.on{background:#ffd23f;color:#3a2600}
 .ppKjO{display:none!important} #paper.ppKj .ppKjO{display:flex!important} #paper.ppKj .ppTy,#paper.ppKj .ppOpt .ppChk:not(.ppKjO){display:none!important}
-.kjBody{flex:1;min-height:0;overflow:hidden}
+.kjBody{flex:1;min-height:0;overflow:hidden} .kjBody.fill{display:flex;flex-direction:column;justify-content:space-between} .kjBody.fill>.kjB{flex:none}
 .pp.kj{--kA:#6b5cd6;--kL:#f3f0ff;--kE:#e3def5;--sp:3mm;--tf:20pt}
 .pp.kj.big{--sp:2.5mm;--tf:17pt}
 .kjHd{display:grid;grid-template-columns:1fr auto;gap:2.5mm 5mm;align-items:center;background:var(--kL);border-radius:4mm;padding:4mm 5mm 3.5mm;margin-bottom:4mm}
@@ -3231,9 +3231,10 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .sgF.t{display:flex;gap:2.2mm;background:none;border:0;padding:.6mm 0;color:#4b3fae} .sgF.t i{font-style:normal;font-weight:800}
 .kjX{grid-column:2 / -1;display:flex;flex-wrap:wrap;align-items:flex-end;gap:1.6mm 4mm;margin-top:1.8mm;padding-top:1.6mm;border-top:.25mm dashed var(--kE)}
 .kjPos{align-self:center;padding:.5mm 2.4mm;border-radius:99px;font-size:8.5pt;font-weight:900;color:#fff;background:#8a84a8} .kjPos.n{background:#2f6fd6} .kjPos.v{background:#e0523d} .kjPos.a{background:#8a4fd6}
-.kjPos.q{display:flex;gap:2.4mm;background:none;color:#4b3fae;padding:.5mm 0} .kjPos.q i{font-style:normal} .kjPos.q u{display:inline-block;width:14mm;border-bottom:.3mm solid #8a82b8;margin-left:1mm}
+.kjW .kjPos.in{display:inline-block;margin-top:.8mm;padding:.2mm 2mm;font-size:7.5pt} .kjPos.q{display:flex;gap:2.4mm;background:none;color:#4b3fae;padding:.5mm 0} .kjPos.q i{font-style:normal} .kjPos.q u{display:inline-block;width:14mm;border-bottom:.3mm solid #8a82b8;margin-left:1mm}
 .kjXf{display:flex;align-items:flex-end;gap:1.4mm} .kjXf>b{font-size:8.5pt;font-weight:900;color:#4b3fae;white-space:nowrap;padding-bottom:.3mm}
-.kjStrip.kjMini{--sp:2.3mm;--tf:14pt;display:block} .kjStrip.kjMini .kjC{display:block;height:calc(var(--sp)*3)} .pp.kj.big .kjStrip.kjMini{--sp:2.1mm;--tf:12.5pt}
+.kjStrip.kjMini{--sp:2.3mm;--tf:14pt;display:block} .kjStrip.kjMini .kjC{display:block;height:calc(var(--sp)*3)}
+.kjX.fill .kjXf.fx{flex:1 1 auto} .kjXf.fx .kjStrip.kjMini{display:flex;flex:1} .kjStrip.kjMini .kjC.kjE{flex:1 1 0;min-width:0} .kjStrip.kjMini .kjC.kjE.thin{border-left-color:transparent}   /* (v700) 남는 자리 = 혼자 써 보기 칸 */ .pp.kj.big .kjStrip.kjMini{--sp:2.1mm;--tf:12.5pt}
 .kjKl{color:#4b3fae!important;font-size:8.5pt}
 .kjK{display:grid;grid-template-columns:6.5mm 1fr;gap:0 2.5mm;align-items:start;padding:1.6mm 2mm;border-bottom:.25mm solid var(--kE);break-inside:avoid;font-size:9.5pt}
 .kjK div{display:flex;flex-wrap:wrap;gap:.8mm 3mm;align-items:baseline} .kjK span b{color:var(--c);font-weight:900;margin-right:.6mm} .kjK em{font-style:normal;font-weight:900;color:#4b3fae;background:#f3f0ff;border-radius:99px;padding:.2mm 2mm} .kjSt small{display:block;font-size:8.8pt;color:#6b6585;margin:.4mm 0 1.6mm}
@@ -17765,7 +17766,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v700";
+const GAME_VER = "v701";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -24164,7 +24165,11 @@ const Paper = {
     return (p || f.length) ? {p, f:f.slice(0, 4)} : null; },
   kjWxHtml(X, gr, quiz){ const E=t=>this.E(t), PC={"명사":"n","동사":"v","형용사":"a"};
     const pos = quiz && gr==="g34" ? '<span class="kjPos q">'+["명사","동사","형용사"].map(o=>'<i>○ '+o+'</i>').join('')+'</span>' : quiz ? '<span class="kjPos q">품사 <u></u></span>' : X.p ? '<span class="kjPos '+(PC[X.p]||'')+'">'+X.p+'</span>' : '';
-    return '<div class="kjX">'+pos+X.f.map(f=>'<span class="kjXf"><b>'+f[0]+'</b><span class="kjStrip kjMini"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i><span class="kjC" style="width:'+(this.room() ? Math.max(30, Math.min(64, f[1].length*4.2+10)) : Math.max(22, Math.min(46, f[1].length*2.9+8))).toFixed(0)+'mm">'+(quiz?'':'<em class="kjT">'+E(f[1])+'</em>')+'</span></span></span>').join('')+'</div>'; },
+    const Rm=this.room(), gw=f=>Rm ? Math.max(30, Math.min(64, f[1].length*4.2+10)) : Math.max(22, Math.min(46, f[1].length*2.9+8));
+    /* (v700) 사용자: 「단어 따라쓰기 여백이 너무 남는데?」 — 「여러 개 beards」 한 칸 뒤 오른쪽 12cm 가 비어 있었음
+       → 따라 쓰는 칸 뒤에 「혼자 써 보기」 칸: 한 가지면 2칸, 여러 가지면 1칸씩 · 줄에 남는 자리만큼 늘어나고(자리가 없으면 0 → 줄바꿈·쪽 수 안 늘어남) 10mm 보다 좁으면 선을 숨김(fitTx) · 문제(quiz)는 그대로 */
+    const ex=X.f.map(()=>quiz ? 0 : X.f.length===1 ? 2 : 1);
+    return '<div class="kjX'+(ex.some(Boolean)?' fill':'')+'">'+pos+X.f.map((f,i)=>'<span class="kjXf'+(ex[i]?' fx':'')+'"><b>'+f[0]+'</b><span class="kjStrip kjMini"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i><span class="kjC" style="width:'+gw(f).toFixed(0)+'mm">'+(quiz?'':'<em class="kjT">'+E(f[1])+'</em>')+'</span>'+'<span class="kjC kjE"></span>'.repeat(ex[i])+'</span></span>').join('')+'</div>'; },
   kjSent(w, gm){ if(gm && gm!=="off" && this.SVA){ let L=[]; try{ L=Study.sentsFull(w); }catch(e){}
       for(const x of L){ const g=x.en.length>=6 && x.en.length<=110 && this.SVA[x.en]; if(g) return {en:x.en, ko:x.ko, w:w.en, g}; } }
     let st=null; try{ st=Study.sentOf(w); }catch(e){} if(!st) return null; const full=(st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post).replace(/\s+/g," ").trim();
@@ -24185,14 +24190,18 @@ const Paper = {
     const newPage=first=>{ const pg=document.createElement("section"); pg.className="pp kj"+(young?"":" big")+(kHd?" key":"")+(T && T.on && !kHd ? " tight" : "");
       pg.innerHTML=(kHd ? kHd.replace('</b>', ' <small>(이어서)</small></b>') : head(first))+'<div class="kjBody"></div><footer class="ppFt"></footer>'; W.appendChild(pg); pages.push(pg); body=pg.querySelector(".kjBody"); };
     const add=html=>{ const t=document.createElement("div"); t.innerHTML=html; const el=t.firstChild; body.appendChild(el);
-      if(this.over(body) && body.children.length>1){ el.remove(); newPage(false); body.appendChild(el); } return el; };
-    const fitTx=el=>{ el.querySelectorAll(".kjT").forEach(t=>{ const P=t.parentNode, mx=P.clientWidth-6; let f=parseFloat(getComputedStyle(t).fontSize)||20, k=0; while(t.offsetWidth>mx && k++<14){ f*=0.92; t.style.fontSize=f+"px"; } }); };
+      if(this.over(body) && body.children.length>1){ el.remove(); const lc=body.lastElementChild, lo=lc ? body.getBoundingClientRect().bottom-lc.getBoundingClientRect().bottom : 0;
+        if(!ks && lo>0 && lo<45*96/25.4 && body.children.length>=4) body.classList.add("fill");   /* (v700) 단어 따라쓰기 꽉 찬 쪽 = 남는 아래 자리(45mm 미만)를 카드 사이로 나눔 · 문장 카드는 커서 사이가 벌어지므로 안 함 */
+        newPage(false); body.appendChild(el); } return el; };
+    const fitTx=el=>{ el.querySelectorAll(".kjE").forEach(c=>{ if(c.getBoundingClientRect().width<10*96/25.4) c.classList.add("thin"); });
+      el.querySelectorAll(".kjT").forEach(t=>{ const P=t.parentNode, mx=P.clientWidth-6; let f=parseFloat(getComputedStyle(t).fontSize)||20, k=0; while(t.offsetWidth>mx && k++<14){ f*=0.92; t.style.fontSize=f+"px"; } }); };
     const strip=(cells, cw)=>'<div class="kjStrip"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i>'+cells.map(t=>'<span class="kjC"'+(cw?' style="width:'+cw+'mm"':'')+'>'+(t?'<em class="kjT">'+E(t)+'</em>':'')+'</span>').join('')+'</div>';
     newPage(true);
     items.forEach((x,i)=>{ const no='<b class="kjNo">'+(i+1)+'</b>', chk='<i class="kjChk"></i>';
       if(!ks){ const AW=pic ? 116 : 128, Rm=this.room(), wmin=Math.max(young?(Rm?32:24):(Rm?28:20), Math.min(AW, x.en.length*(young?(Rm?6:4):(Rm?4.2:2.8))+(young?(Rm?8:6):(Rm?7:5))));   /* (v690) 넉넉하게 = 글자마다 6mm · 4.2mm */ let per=Math.max(1, Math.min(rep, Math.floor(AW*1.15/wmin))); const lines=Math.ceil(rep/per); per=Math.ceil(rep/lines);   /* 한 줄에 고르게 */
-        const cw=(AW/per).toFixed(1), L=[]; let k=0; for(let l=0;l<lines;l++){ const row=[]; for(let j=0;j<per && k<rep;j++,k++) row.push(k===0 && tr ? x.en : ""); L.push(strip(row, cw)); }
-        fitTx(add('<div class="kjB'+(pic?' pic':'')+'">'+no+(pic?'<span class="kjPic">'+(x.emo?emoHtml(x.emo):'')+'</span>':'')+'<div class="kjW"><b'+(String(x.en).replace(/\s.*/,"").length>=13 ? ' class="xl"' : String(x.en).replace(/\s.*/,"").length>=10 ? ' class="lg"' : '')+'>'+E(x.en)+'</b><small>'+E(x.ko)+'</small></div><div class="kjS">'+L.join('')+'</div>'+chk+(x.x ? this.kjWxHtml(x.x, gr, quiz) : '')+'</div>')); return; }
+        const pOnly=!!(x.x && !quiz && x.x.p && !x.x.f.length);   /* (v700) 품사만 있고 바뀌는 꼴이 없는 낱말(초3-4 형용사 등) = 아래 줄이 칩 하나에 빈 줄이었음 → 칩을 뜻 밑으로 · 줄 없앰(카드 낮아짐) */
+        const cw=(AW/per).toFixed(1), L=[]; let k=0; for(let l=0;l<lines;l++){ const row=[]; for(let j=0;j<per && k<rep;j++,k++) row.push(k===0 && tr ? x.en : ""); L.push(strip(row, row.length<per ? (AW/row.length).toFixed(1) : cw)); }   /* (v700) 긴 단어 둘째 줄(칸이 적음)도 끝까지 — 오른쪽 한 칸이 비던 것 */
+        fitTx(add('<div class="kjB'+(pic?' pic':'')+'">'+no+(pic?'<span class="kjPic">'+(x.emo?emoHtml(x.emo):'')+'</span>':'')+'<div class="kjW"><b'+(String(x.en).replace(/\s.*/,"").length>=13 ? ' class="xl"' : String(x.en).replace(/\s.*/,"").length>=10 ? ' class="lg"' : '')+'>'+E(x.en)+'</b><small>'+E(x.ko)+'</small>'+(pOnly ? '<span class="kjPos in '+({"명사":"n","동사":"v","형용사":"a"}[x.x.p]||'')+'">'+x.x.p+'</span>' : '')+'</div><div class="kjS">'+L.join('')+'</div>'+chk+(x.x && !pOnly ? this.kjWxHtml(x.x, gr, quiz) : '')+'</div>')); return; }
       const two=x.en.length>(young?(this.room()?30:46):(this.room()?48:72)), L=[];   /* (v690) 넉넉하게 = 긴 문장은 두 줄에 */ if(tr) L.push(strip([x.en])); for(let k=0;k<rep*(two?2:1);k++) L.push(strip([""]));
       fitTx(add('<div class="kjB s">'+no+'<div class="kjSt">'+(x.g && gm!=="off" ? this.kjGram(x, gr, quiz) : '<p>'+E(x.en)+'</p>')+'<small>'+E(x.ko)+'</small><div class="kjS">'+L.join('')+'</div></div>'+chk+'</div>')); });
     /* (v700) QA: 마지막 쪽에 단어 1~2개만 넘어가 종이 한 장을 더 쓰던 것(학원용은 아래 여백이 커서 더 자주) → 카드 사이를 조금 좁혀 한 쪽 줄여 봄 · 안 줄면 원래대로 */
