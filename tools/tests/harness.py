@@ -3,6 +3,19 @@
 import asyncio, os, mimetypes, json, sys
 from playwright.async_api import async_playwright
 HERE=os.path.dirname(os.path.abspath(__file__))
+# (v700) 이 기기(2코어)에서 3D 시험을 같이 돌리면 페이지 열기가 30초를 넘겨 「Page.goto: Timeout 30000ms」로 실패하던 것(guest695·isle528·nb693 …)
+#        → 페이지 열기·다시 불러오기 기본 기다림 120초 (시험이 직접 timeout 을 주면 그대로)
+try:
+    from playwright.async_api import Page as _HyPage
+    if not getattr(_HyPage, "_hy_nav", False):
+        _hy_goto, _hy_reload = _HyPage.goto, _HyPage.reload
+        async def _goto(self, url, **kw):
+            kw.setdefault("timeout", 120000); return await _hy_goto(self, url, **kw)
+        async def _reload(self, **kw):
+            kw.setdefault("timeout", 120000); return await _hy_reload(self, **kw)
+        _HyPage.goto, _HyPage.reload, _HyPage._hy_nav = _goto, _reload, True
+except Exception as _e:
+    print("harness: 페이지 기다림 늘리기 건너뜀", _e)
 SITE=os.path.abspath(os.path.join(HERE, "..", ".."))          # 저장소 맨 위 (index.html 이 있는 곳)
 ORIGIN="https://misfits980.github.io/HY-ENG/"
 OUT=os.path.join(HERE, "out")+os.sep                          # 스크린샷 (git 에 안 올림)

@@ -7,6 +7,40 @@
    · 렉(마을): 그리는 프레임이 3초 동안 평균 25fps 아래면 한 단계 가볍게(PERF 0→3) — 이 기기에 기억 · ?perf=0 이면 되돌림
    · 그래픽 끊김(webglcontextlost): 「다시 시작」 카드
    자동 시험(navigator.webdriver)에서는 서버로 안 보냄(GUARD.sent 에만 쌓음) · 렉 자동 낮춤도 끔(?perf=auto 면 켬) */
+/* (v700) 🧪 점검 모드 — 주소에 ?qa=1 (이 탭만, sessionStorage hyeng_qa · 마을로 넘어가도 이어짐)
+   사용자(11-17): QA 때 크롬 iframe 으로 막다가 마을로 넘어가는 순간 막는 장치가 빠져 테스트 기록이 서버에 올라간 사고 →
+   게임이 스스로: Firebase 쓰기(PUT·POST·PATCH·DELETE) · 구글 시트(Apps Script) POST·조치(act=1) · sendBeacon = 보내지 않고 가짜 성공.
+   읽기(랭킹·주간 보스·친구 위치)는 진짜. 이 기기 저장(localStorage hyeng*)은 들어올 때 sessionStorage 에 두었다가 「끝내기」(= ?qa=0)로 되돌림.
+   되돌리기는 다음 페이지가 시작할 때(이 파일 맨 앞) 함 — 페이지를 닫을 때(pagehide) 게임이 다시 쓰는 것까지 지우려고. */
+(function(){
+  let on=false, ss=null, ls=null; try{ ss=window.sessionStorage; }catch(e){} try{ ls=window.localStorage; }catch(e){}
+  const BK="hyeng_qa_bak", alive=k=>/^hyeng_alive_/.test(k);
+  const restore=S=>{ try{ if(!S || !ls) return false; const K=[]; for(let i=0;i<ls.length;i++){ const k=ls.key(i); if(/^hyeng/.test(k) && k!==BK) K.push(k); }
+      K.forEach(k=>{ if(!(k in S) || alive(k)) ls.removeItem(k); }); Object.keys(S).forEach(k=>{ if(!alive(k) && k!==BK) ls.setItem(k, S[k]); }); return true; }catch(e){ return false; } };
+  const parse=t=>{ try{ return JSON.parse(t||"null"); }catch(e){ return null; } };
+  try{ const q=location.search, inQa=!!ss && ss.getItem("hyeng_qa")==="1";
+    if(/[?&]qa=0(&|$)/.test(q)){ const S=parse(ss && ss.getItem("hyeng_qa_snap")) || parse(ls && ls.getItem(BK)); if(S) window.HY_QA_RESTORED=restore(S); if(ss){ ss.removeItem("hyeng_qa"); ss.removeItem("hyeng_qa_snap"); } if(ls) ls.removeItem(BK); }
+    else { if(!inQa && ls && ls.getItem(BK)){ window.HY_QA_RESTORED=restore(parse(ls.getItem(BK))); ls.removeItem(BK); }   /* 점검하던 탭을 「끝내기」 없이 닫았으면 → 다음에 열 때(이 기기 어느 탭이든) 점검 전으로 되돌림 */
+      if(/[?&]qa=1(&|$)/.test(q) && ss) ss.setItem("hyeng_qa","1"); }
+    on=!!ss && ss.getItem("hyeng_qa")==="1"; }catch(e){}
+  window.HY_QA=on; if(!on) return;
+  try{ if(!ss.getItem("hyeng_qa_snap")){ const S={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^hyeng/.test(k) && !alive(k) && k!==BK) S[k]=localStorage.getItem(k); } const j=JSON.stringify(S); ss.setItem("hyeng_qa_snap", j); try{ localStorage.setItem(BK, j); }catch(e){} } }catch(e){}
+  const FBH=/firebasedatabase\.app|firebaseio\.com/, GAS=/script\.google(usercontent)?\.com/, LOG=window.HY_QA_LOG=[];
+  const fake=o=>Promise.resolve(new Response(JSON.stringify(o===undefined?null:o), {status:200, headers:{"Content-Type":"application/json"}}));
+  const of=window.fetch ? window.fetch.bind(window) : null;
+  if(of) window.fetch=function(u, o){ const url=String((u && u.url) || u), m=String((o && o.method) || (u && u.method) || "GET").toUpperCase();
+    if(FBH.test(url) && m!=="GET"){ LOG.push([m, url.split("?")[0].replace(/^https:\/\/[^/]+/, "")]); let b=null; try{ b=o && o.body ? JSON.parse(o.body) : null; }catch(e){}
+      if(b && typeof b==="object" && b[".sv"]) b=Date.now(); return fake(m==="POST" ? {name:"-qa"+Date.now().toString(36)} : b); }
+    if(GAS.test(url) && (m!=="GET" || /[?&]act=1/.test(url))){ LOG.push([m, "sheet"]); return fake(/[?&]act=1/.test(url) ? {ok:true, list:[]} : {ok:true, qa:1}); }
+    return of(u, o); };
+  try{ const sb=navigator.sendBeacon && navigator.sendBeacon.bind(navigator); if(sb) navigator.sendBeacon=function(u, d){ if(FBH.test(String(u)) || GAS.test(String(u))){ LOG.push(["BEACON", ""]); return true; } return sb(u, d); }; }catch(e){}
+  const badge=()=>{ if(document.getElementById("hyQa")) return; const b=document.createElement("div"); b.id="hyQa";
+    b.style.cssText="position:fixed;left:6px;bottom:6px;z-index:2147483000;background:#7a1fa2;color:#fff;font:700 12px/1.2 sans-serif;padding:6px 8px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;gap:6px;align-items:center;opacity:.92";
+    b.innerHTML='🧪 점검 모드 · 서버에 안 씀 <button type="button" style="font:700 12px sans-serif;border:0;border-radius:7px;padding:3px 7px;background:#fff;color:#7a1fa2;cursor:pointer">끝내기</button>';
+    b.querySelector("button").onclick=()=>{ const town=/house\.html/.test(location.pathname); location.href=(town ? "../index.html" : location.pathname)+"?qa=0"; };
+    document.body.appendChild(b); };
+  if(document.body) badge(); else document.addEventListener("DOMContentLoaded", badge);
+})();
 (function(){
   "use strict";
   if(window.GUARD) return;

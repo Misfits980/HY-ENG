@@ -82,16 +82,20 @@ const DAYR=(()=>{
     const n=Object.keys(s.dig).length; toast("✨ 파 보니 <b>"+R[2]+"</b>!<br><small>오늘 반짝 땅 "+n+" / 3</small>", 2200); stamp(); }
   /* ── 시계: 밤/낮이 바뀌면 이름표 다시 · 날이 바뀌면 병·땅 새로 ── */
   let nt=0, lastN=null, lastD="";
+  /* (v700) 🌙 밤에 섬에 들어오면 한 번만(밤마다) 알림 줄 — 창이 아니라 잠깐 뜨는 글 (사용자 원칙: 날마다 뜨는 창 없음) */
+  function gnCheck(){ try{ if(!night() || place!==PL.isle) return; const k=String(Math.floor((Date.now()+9*3600e3-HOURS.open*3600e3)/864e5)); if(store("hyeng_proto_gn")===k) return; store("hyeng_proto_gn", k);   /* 밤 12시를 넘겨도 같은 밤 = 한 번 */
+      toast("🌙 <b>Good night!</b> 가게는 밤 "+(HOURS.close>12?HOURS.close-12:HOURS.close)+"시 ~ 아침 "+HOURS.open+"시에 닫아요<br><small>오늘은 여기까지 하고, 내일 또 와요 · 산책·낚시·내 집은 그대로</small>", 4200); }catch(e){} }
   function tick(dt){ if(!built) return false; nt+=dt; let a=false; const t=performance.now()/1000;
     if(B){ const sp=B.g.children.find(o=>o.userData.spark); if(sp){ sp.rotation.y=t*2; sp.scale.setScalar(.8+Math.sin(t*5)*.25); a=true; } }
     DG.forEach(x=>{ const sp=x.g.children.find(o=>o.userData.spark); if(sp){ sp.rotation.y=t*2+x.i; sp.scale.setScalar(.7+Math.sin(t*4+x.i)*.3); a=true; } });
     if(nt>5){ nt=0; const n=night(), d=day(); if(lastD && d!==lastD){ S=null; build(C); try{ if(place===PL.isle) drawLabels(); }catch(e){} } lastD=d;
+      gnCheck();
       if(lastN!==null && n!==lastN){ try{ if(place===PL.isle) drawLabels(); }catch(e){} try{ toast(n ? "🌙 밤이 됐어요 — 가게는 문을 닫고 이웃은 잠들었어요" : "🌅 아침이에요! 가게가 문을 열었어요", 2600); }catch(e){} } lastN=n; }
     return a; }
   function news(){ const s=st(); if(night()) return ["🌙","Good night, town!","밤 "+(HOURS.close>12?HOURS.close-12:HOURS.close)+"시 ~ 아침 "+HOURS.open+"시: 가게 닫힘 · 이웃은 쿨쿨 💤",""];
     if(s.done) return ["✅","You walked around the island!","오늘 섬 한 바퀴 끝 — 내일 또 새로 생겨요",""];
     if(!s.bottle) return ["🍾","A bottle is on the beach!","🏖 등대 모래섬 바닷가에 병 편지가 있어요 · 반짝 땅 "+Object.keys(s.dig).length+"/3",""];
     return ["✨","Find the shiny spots!","반짝 땅 "+Object.keys(s.dig).length+" / 3 — 섬 곳곳을 걸어 봐요",""]; }
-  return {build, labels, tick, night, hour, HOURS, CLOSE, st, news, openBottle, B:()=>B, DG:()=>DG, digAt, bottleAt};
+  return {build, labels, tick, night, hour, HOURS, CLOSE, st, news, openBottle, B:()=>B, DG:()=>DG, digAt, bottleAt, gn:gnCheck};
 })();
 window.DAYR=DAYR;

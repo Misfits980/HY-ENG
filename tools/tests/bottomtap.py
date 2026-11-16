@@ -35,7 +35,9 @@ async def main():
         await pg.locator('.stDot[data-i="8"]').tap(force=True); await pg.wait_for_timeout(400)
         c3=await pg.evaluate(isOn); print('dot -> dot still open', c3)
         if not c3: print("BAD 다른 Stage 를 누르니 창이 닫힘")
-        await pg.mouse.click(195,100); await pg.wait_for_timeout(300)
+        # (v700) 지도 위쪽 (195,100) 자리에 「▶ 다음 할 것」 줄이 생김 → 위쪽의 빈 곳(단추·Stage·줄이 아닌 곳)을 찾아 누름
+        yy=await pg.evaluate("()=>{ for(let y=60;y<420;y+=6){ const e=document.elementFromPoint(195,y); if(e && !e.closest('button,.stBar,.stDot,.stNode,.stWN,#stPop,a,[data-sbnext],.sbChip')) return y; } return 100; }")
+        await pg.mouse.click(195,yy); await pg.wait_for_timeout(300)
         c4=await pg.evaluate("()=>!document.getElementById('stPop').classList.contains('on')"); print('closed', c4)
         if not c4: print("BAD Stage 창이 위쪽을 눌러도 안 닫힘")
         await pg.evaluate("()=>StudyUI.close()"); await pg.wait_for_timeout(500)

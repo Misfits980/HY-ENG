@@ -111,6 +111,10 @@ async def main():
         await A.evaluate("()=>{ TWN8.test=0; }")
         # ⑦ 얼음땡
         PG_="(k)=>{ const c=ISLE.SPOT.pgC, h=HOUSE.hero(); const o={A:[-1,0],B:[1,0],C:[0,1.5]}[k]; h.g.position.set(c[0]+o[0],0,c[1]+o[1]); h.cx=Math.floor(h.g.position.x); h.cz=Math.floor(h.g.position.z); h.path=[]; }"
+        # (v700) 술래 판은 60초마다 바뀜 — 판이 거의 끝날 때 시작하면 얼음이 도중에 풀려 「단어 문제」가 안 뜸(흔들리던 것) → 새 판이 막 시작될 때까지 기다림
+        for _ in range(140):
+            if await A.evaluate("()=>IPLAY.T()%60000 < 6000"): break
+            await A.wait_for_timeout(500)
         for pg,k in ((A,"A"),(B,"B"),(C,"C")): await pg.evaluate(PG_, k)
         TGJS="()=>{ const L=IPLAY.tagPlayers(), r=Math.floor(IPLAY.T()/60000), t=IPLAY.tagger(L,r); return [L.length, t && (t.me ? myCode : t.k)]; }"
         for _ in range(60):
