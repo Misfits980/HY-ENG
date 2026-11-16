@@ -228,7 +228,7 @@ const TFAC=(()=>{
     if(D.n>=3){ B.innerHTML='<p style="text-align:center">✉️ 오늘은 3통 다 보냈어요 — 내일 또 써요!</p>'; return; }
     if(!to){ B.innerHTML='<p>누구에게 보낼까요? <small>(오늘 '+(3-D.n)+'통 더)</small></p><div class="hlList" id="tfTo"><p>찾는 중…</p></div>'; const F=await friends();
       const NP=NPCM.map(x=>({c:"npc:"+x[0], n:x[0], npc:1})); const all=F.concat(NP);
-      $("tfTo").innerHTML=all.map(f=>'<button data-c="'+esc(f.c)+'" data-n="'+esc(f.n)+'"'+(today.indexOf(f.c)>=0?' disabled style="opacity:.5"':'')+'><span style="font-size:24px">'+(f.npc?"🧑‍🌾":"🏠")+'</span><span>'+esc(f.n)+(f.npc?' <small style="color:#8a6a4a">마을 사람</small>':'')+'</span><em>'+(today.indexOf(f.c)>=0?"오늘 보냄":"✏️")+'</em></button>').join("");
+      $("tfTo").innerHTML=all.map(f=>'<button data-c="'+esc(f.c)+'" data-n="'+esc(f.n)+'"'+(today.indexOf(f.c)>=0?' disabled style="opacity:.5"':'')+'><span style="font-size:24px">'+(f.npc?"👩‍🌾":"🏠")+'</span><span>'+esc(f.n)+(f.npc?' <small style="color:#8a6a4a">마을 사람</small>':'')+'</span><em>'+(today.indexOf(f.c)>=0?"오늘 보냄":"✏️")+'</em></button>').join("");
       $("tfTo").onclick=e=>{ const b=e.target.closest("[data-c]"); if(b && !b.disabled) writeTo({c:b.dataset.c, n:b.dataset.n}); }; return; }
     B.innerHTML='<p>✉️ <b>'+esc(to.n)+'</b> 에게 — 무슨 말을 할까요?</p><div class="hlList">'+SENT.map((s,i)=>'<button data-s="'+i+'"><span><b style="font:800 16px var(--en)">'+esc(s[0])+'</b><br><small style="color:#8a6a4a">'+esc(s[1])+'</small></span></button>').join("")+'</div>';
     B.onclick=e=>{ const b=e.target.closest("[data-s]"); if(b) buildSent(to, +b.dataset.s); }; }
@@ -258,19 +258,19 @@ const TFAC=(()=>{
   const foodV=n=>{ const s=SNACK.find(x=>x[0]===n); if(s) return s[3]; return MAT[n] && MAT[n].food ? (/pizza|cake|stew|pie/.test(n)?3:2) : 0; };
   function eat(n){ const v=foodV(n); if(!v || (mats[n]|0)<1) return false; addMat(n,-1); saveBag(); FULL={h:Math.min(5, full()+v), t:T()}; store("hyeng_proto_full", FULL);
     try{ say(n); emote(hero,"😋"); SND.pop(); tEv("eat"); }catch(e){} toast("😋 냠냠! "+MAT[n].e+" "+n+" · 🍗 +"+v+(full()>=4.5?"<br><small>⚡ 배불러서 빨리 달려요!</small>":""), 1800); updPill(); return true; }
-  function openSnack(){ if(window.SHOPUI){ SHOPUI.open({kind:"snack", color:"#ff7aa8", keeper:{e:"🧑‍🍳", nm:"Sunny", en:"What would you like?", ko:"먹고 싶은 걸 담고 → 영어 이름을 맞히면 주문 끝!", thx:"Here you are!"},   /* (v584) 🧺 계산대 */
+  function openSnack(){ if(window.SHOPUI){ SHOPUI.open({kind:"snack", color:"#ff7aa8", keeper:{e:"👩‍🍳", nm:"Sunny", en:"What would you like?", ko:"먹고 싶은 걸 담고 → 영어 이름을 맞히면 주문 끝!", thx:"Here you are!"},   /* (v584) 🧺 계산대 */
       tools:'<span>🍗 배부름 '+heartTxt()+' · 배부르면 ⚡ 빨리 달리고, 배고프면 느려져요</span>',
       tabs:[{k:"snack", t:"🍦 간식", mode:"buy", items:()=>SNACK.map(([n,e,p,h])=>({id:n, e, en:n, sub:"🍗 +"+h+" · 🎒 "+(mats[n]|0), price:p*5})),
         act:B=>{ const tot=B.reduce((s,[n,q])=>s+SNACK.find(x=>x[0]===n)[2]*5*q,0); if(TECO.coins()<tot) return {n:0, msg:["Oh no, not enough coins!","🪙 가 모자라요"]};
           const S=SNACK.find(x=>x[0]===B[0][0]); SHOPUI.close();
-          pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!TECO.pay2({g:0,c:tot})) return; let n=0; B.forEach(([m,q])=>{ addMat(m,q); n+=q; }); saveBag(); try{ say("Here you are"); }catch(_){} toast("🧑‍🍳 \"Here you are!\" "+B.map(([m,q])=>SNACK.find(x=>x[0]===m)[1]+(q>1?"×"+q:"")).join(" ")+" → 🎒", 1800); openSnack(); }, {ask:'🧑‍🍳 "What would you like?"<br><small>'+S[1]+' 이 간식은 영어로?</small>', n:3, retry:1});
+          pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!TECO.pay2({g:0,c:tot})) return; let n=0; B.forEach(([m,q])=>{ addMat(m,q); n+=q; }); saveBag(); try{ say("Here you are"); }catch(_){} toast("👩‍🍳 \"Here you are!\" "+B.map(([m,q])=>SNACK.find(x=>x[0]===m)[1]+(q>1?"×"+q:"")).join(" ")+" → 🎒", 1800); openSnack(); }, {ask:'👩‍🍳 "What would you like?"<br><small>'+S[1]+' 이 간식은 영어로?</small>', n:3, retry:1});
           return {n:0}; }}]}); return; }
-    const d=show("tfSn", hd("🍦 간식 가게", "영어로 주문해요 · 🪙 <b>"+TECO.coins()+"</b>")+'<div class="tfCard" style="text-align:left;display:flex;gap:10px;align-items:center"><span style="font-size:40px">🧑‍🍳</span><span><b style="font:800 18px var(--en)">"What would you like?"</b><br><small>먹고 싶은 걸 눌러요 — 영어 이름을 맞히면 주문 끝!</small></span></div>'
+    const d=show("tfSn", hd("🍦 간식 가게", "영어로 주문해요 · 🪙 <b>"+TECO.coins()+"</b>")+'<div class="tfCard" style="text-align:left;display:flex;gap:10px;align-items:center"><span style="font-size:40px">👩‍🍳</span><span><b style="font:800 18px var(--en)">"What would you like?"</b><br><small>먹고 싶은 걸 눌러요 — 영어 이름을 맞히면 주문 끝!</small></span></div>'
       +'<div class="hlList">'+SNACK.map(([n,e,p,h])=>'<button data-sn="'+esc(n)+'"><span style="font-size:30px">'+e+'</span><span><b style="font:800 16px var(--en)">'+esc(n)+'</b><br><small style="color:#8a6a4a">🍗 +'+h+' · 가방에 '+(mats[n]|0)+'</small></span><em>🪙 '+(p*5)+'</em></button>').join("")+'</div>'
       +'<p style="font-size:13px;color:#8a6a4a;margin:6px 4px">🍗 배부름 '+heartTxt()+' · 배부르면 ⚡ 빨리 달리고, 배고프면 느려져요 · 🍳 요리한 음식도 먹을 수 있어요</p>');
     try{ say("What would you like"); }catch(e){}
     d.querySelector(".lb").onclick=e=>{ const b=e.target.closest("[data-sn]"); if(!b) return; const S=SNACK.find(x=>x[0]===b.dataset.sn); if(TECO.coins()<S[2]*5){ TECO.pay2({g:0,c:S[2]*5}); return; } close("tfSn");   /* (v563) 간식 = 🪙 */
-      pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!TECO.pay2({g:0,c:S[2]*5})) return; addMat(S[0],1); saveBag(); try{ say("Here you are"); }catch(_){} toast("🧑‍🍳 \"Here you are!\" "+S[1]+" → 🎒", 1700); openSnack(); }, {ask:'🧑‍🍳 "What would you like?"<br><small>이 간식은 영어로?</small>', n:3, retry:1}); }; }
+      pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!TECO.pay2({g:0,c:S[2]*5})) return; addMat(S[0],1); saveBag(); try{ say("Here you are"); }catch(_){} toast("👩‍🍳 \"Here you are!\" "+S[1]+" → 🎒", 1700); openSnack(); }, {ask:'👩‍🍳 "What would you like?"<br><small>이 간식은 영어로?</small>', n:3, retry:1}); }; }
   const heartTxt=()=>{ const h=Math.round(full()); return "❤️".repeat(h)+"🤍".repeat(5-h); };
   function openMe(){ const P=PET(), foods=Object.keys(mats).filter(n=>(mats[n]|0)>0 && foodV(n));
     const d=show("tfMe", hd("🍗 배부름 · 🐾 내 펫", "")+'<div class="tfCard"><div style="font-size:28px">'+heartTxt()+'</div><div class="ko">'+(full()>=4.5?"⚡ 배불러요! 마을에서 더 빨리 달려요":full()<=.01?"😵 배고파요… 느려졌어요 — 뭐라도 먹어요":"🙂 괜찮아요 · 2시간마다 하트 1개씩 줄어요")+'</div></div>'

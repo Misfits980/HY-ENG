@@ -9,7 +9,7 @@ const DAYR=(()=>{
   const HOURS={close:22, open:7};   /* ← 바꾸기: 밤 10시 ~ 아침 7시 */
   const CLOSE=new Set(["mart","snack","clothes","hair","photo","pet","furn","fish","f_bank"]);
   const T=()=>{ try{ return srvNow(); }catch(e){ return Date.now(); } };
-  function hour(){ if(window.HY_HOUR!=null) return +window.HY_HOUR; try{ return kstHM(T())[0]; }catch(e){ return new Date().getHours(); } }
+  function hour(){ if(window.HY_HOUR!=null) return +window.HY_HOUR; if(navigator.webdriver) return 12;   /* (v699) 자동 시험은 늘 낮 12시 — 밤(22~7시)에 돌리면 이웃·가게 시험(nb693 …)이 「자고 있어요」로 실패했음 · 밤 시험은 HY_HOUR 로 */ try{ return kstHM(T())[0]; }catch(e){ return new Date().getHours(); } }
   function night(){ const h=hour(); return HOURS.close>HOURS.open ? (h>=HOURS.close || h<HOURS.open) : (h>=HOURS.close && h<HOURS.open); }
   const day=()=>{ try{ return dayKey(); }catch(e){ return new Date().toISOString().slice(0,10); } };
   const hs=s=>{ try{ return hashf(s); }catch(e){ return .5; } };

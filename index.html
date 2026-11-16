@@ -6768,6 +6768,7 @@ body.tabL #sbBar.stBar::before,body.tabP #sbBar.stBar::before{-webkit-mask-image
 .sbFire{display:flex;align-items:center;gap:1px;font:900 14px var(--font);color:var(--sbInk)} .sbFire img.ic{width:18px;height:18px}
 .sbR2{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
 .sbR2::-webkit-scrollbar{display:none} .sbR2:empty{display:none}
+.sbR2.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent)}   /* (v699) 오른쪽에 칩이 더 있음 */
 .sbChip{appearance:none;flex:0 0 auto;position:relative;display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 11px;border-radius:99px;border:1.5px solid var(--sbEdge);background:var(--sbChip);color:var(--sbInk);font:800 13px var(--font);cursor:pointer;white-space:nowrap}
 .sbChip em{font-style:normal;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e8304d;color:#fff;font:900 11px/18px var(--font);text-align:center}
 .sbChip.hot{background:linear-gradient(180deg,#ffd27a,#ff9a5a);border-color:#c8641c;color:#3a1a00}
@@ -9723,7 +9724,7 @@ function rampPool(p){
    혼자 하는 달리기에 섞음(10문제에 2~3개). 맞히면 Daily 30 복습과 같은 규칙으로 칸이 오름(Study.mark · 하루 한 칸) · 그날 처음 푼 결과는 「며칠 뒤 맞힘」(Study.ret) · 틀리면 내일 다시
    매일 같은 문제(Daily 달리기)·과 하나·틀린 단어 판·태그 판은 그대로 (G._due = 이 판에서 복습으로 낸 단어) */
 const DueMix={ RATE:0.25,
-  ok(){ const S=WORD_SETS[G.set]||{}; return G.rule!=="daily" && !G.lesson && !G.tag && !S.review && G.set!=="wrong" && !G.versus; },
+  ok(){ const S=WORD_SETS[G.set]||{}; return G.rule!=="daily" && !G.lesson && !G.tag && !S.review && G.set!=="wrong" && !G.versus && !G.race && !(G.words && G.words.length); },   /* (v699) 🏃 수업 달리기 레이스(선생님이 고른 범위 · 다 같이 겨룸)와 「이 Stage 단어로 달리기」(G.words)엔 안 섞음 — 범위 밖 내 복습 단어가 4문제에 1개꼴로 나왔음 */
   pick(){ if(!this.ok() || Math.random()>=this.RATE) return null; let L=[]; try{ L=Study.due(null); }catch(e){ return null; }
     G._due=G._due||{}; const c=L.filter(en=>!G._due[en] && recent.indexOf(en)<0); if(!c.length) return null;
     const en=c[Math.floor(Math.random()*c.length)]; let w=null; try{ w=Study.word(en); }catch(e){} if(!w || !w.en || !w.ko) return null;
@@ -17727,7 +17728,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v698";
+const GAME_VER = "v699";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19530,8 +19531,8 @@ const StoryQ={ REW:2, N:4,
   TH:{ k:{t:"🏞 강가 친구의 잃어버린 물건", npc:"🐸", nm:"Ribbit", hi:"I lost my things by the river. Can you help me?", ko:"강가에서 물건을 잃어버렸어. 찾아 줄래?", bg:"riv"},
        g12:{t:"🏞 강가 친구의 잃어버린 물건", npc:"🐸", nm:"Ribbit", hi:"I lost my things by the river. Can you help me?", ko:"강가에서 물건을 잃어버렸어. 찾아 줄래?", bg:"riv"},
        g34:{t:"👹 몬스터가 숨긴 물건", npc:"👧", nm:"Mina", hi:"A monster hid our things! Let's find them.", ko:"몬스터가 우리 물건을 숨겼어! 같이 찾자.", bg:"mon"},
-       g56:{t:"🧭 원정대 보급품", npc:"🧑‍✈️", nm:"Captain Jay", hi:"Our team needs the right words. Pick the one that fits!", ko:"원정대에 딱 맞는 단어가 필요해. 알맞은 것을 골라 줘!", bg:"exp"},
-       mid:{t:"🧭 원정대 보급품", npc:"🧑‍✈️", nm:"Captain Jay", hi:"Our team needs the right words. Pick the one that fits!", ko:"원정대에 딱 맞는 단어가 필요해. 알맞은 것을 골라 줘!", bg:"exp"} },
+       g56:{t:"🧭 원정대 보급품", npc:"👨‍✈️", nm:"Captain Jay", hi:"Our team needs the right words. Pick the one that fits!", ko:"원정대에 딱 맞는 단어가 필요해. 알맞은 것을 골라 줘!", bg:"exp"},
+       mid:{t:"🧭 원정대 보급품", npc:"👨‍✈️", nm:"Captain Jay", hi:"Our team needs the right words. Pick the one that fits!", ko:"원정대에 딱 맞는 단어가 필요해. 알맞은 것을 골라 줘!", bg:"exp"} },
   on(){ return !(navigator.webdriver && !window.HY_STY); },
   esc(t){ return String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); },
   book(set){ let b="g34"; try{ b=Study.bookOf(set); }catch(e){} return this.TH[b] ? b : "g34"; },
@@ -20007,7 +20008,11 @@ const StudyUI = {
     const pq=document.querySelector("#stHead .stPq"); if(pq){ const tx=(pq.textContent||'').trim(); ch.push({k:"pq", t:tx.replace(/ 🎁$/,''), b:/🎁$/.test(tx)?'🎁':'', hot:/🎁$/.test(tx)}); }   /* (v698) ⑤ 🤝 짝 퀘스트 */
     if(T && T.querySelector(".stWeek")) ch.push({k:"week", t:'📝 주간 시험', b:'!', hot:1});
     const ck=T && T.querySelector(".stChkRow"); if(ck){ const w=ck.classList.contains("wait"), n=w ? (((ck.textContent||'').match(/(\d+)개/)||[])[1]||'') : ck.querySelectorAll(".stChkB").length; ch.push({k:"chk", t: w ? '⏳ 내일 확인 '+n : '✅ 확인', b: w ? '' : String(n), dim:w, hot:!w}); }
-    C.innerHTML=ch.map(c=>'<button class="sbChip'+(c.dim?' dim':'')+(c.hot?' hot':'')+'" data-sbk="'+c.k+'">'+E(c.t)+(c.b?'<em>'+E(c.b)+'</em>':'')+'</button>').join(''); },
+    /* (v699) 폰 폭(390)에서 칩 줄이 넘치면 맨 뒤 「🧭 이야기 NEW」·「🤝 짝」이 화면 밖에 숨던 것 → 할 것(hot)·빨간 표(b) 칩을 앞으로 (같은 무리 안은 원래 순서) · 더 있으면 오른쪽 끝을 흐리게 */
+    const rk=c=>c.hot ? 0 : (c.k==='pq' || (c.b && !c.dim)) ? 1 : 2;   /* 🤝 짝 칩(이번 주 내내)도 앞쪽 */ ch.forEach((c,i)=>c.i=i); ch.sort((a,b)=>rk(a)-rk(b) || a.i-b.i);
+    C.innerHTML=ch.map(c=>'<button class="sbChip'+(c.dim?' dim':'')+(c.hot?' hot':'')+'" data-sbk="'+c.k+'">'+E(c.t)+(c.b?'<em>'+E(c.b)+'</em>':'')+'</button>').join('');
+    const more=()=>{ const c=$("sbChips"); if(c) c.classList.toggle("more", c.scrollWidth>c.clientWidth+4 && c.scrollLeft+c.clientWidth<c.scrollWidth-4); }; more();
+    if(!C._mv){ C._mv=1; C.addEventListener("scroll", more, {passive:true}); } if(!this._mvR){ this._mvR=1; addEventListener("resize", more); } },
   barClick(e){ const t=e.target.closest("[data-sb],[data-sbk]"); if(!t) return; e.stopPropagation(); const P=$("stPath"), M=$("stMap"), T=M && M.querySelector(":scope > .stTop");
     if(t.dataset.sb==="close"){ const x=$("stClose"); if(x) x.click(); return; }
     if(t.dataset.sb==="book"){ const o=!P.classList.contains("sbOpen"); P.classList.toggle("sbOpen", o); t.setAttribute("aria-expanded", o); try{ SFX.click(); }catch(er){} return; }
@@ -23155,7 +23160,8 @@ const Cloud = {
   async get(id){ try{ await FB.ready(); return await FB.get("/hy/acct/"+Gift.sid(id)); }catch(e){ return null; } },
   /* 켤 때 — 이 기기가 비어 있고 서버에 그 아이 기록이 있으면 묻기 (자기 기기만) */
   async check(){ if(TEST_STAGE) return; try{ if(Kid.shared()) return; }catch(e){ return; } const me=this.who(); if(!me || !this.empty()) return;
-    const d=await this.get(me.id); if(!d || !d.d || d.dev===Online.dev()) return; let seen=""; try{ seen=localStorage.getItem(this.SEEN)||""; }catch(e){} if(seen===String(d.at)) return;
+    const d=await this.get(me.id); if(!d || !d.d || d.dev===Online.dev()) return; const sm=d.sm||{}; if(d.sm && !(sm.g|0) && !(sm.e|0) && !(sm.st|0) && !(sm.dx|0)) return;   /* (v699) 서버 기록도 비어 있으면(💎0 · Stage 0 · 📖0) 묻지 않음 — 「가져올까요?」 창만 뜨고 가져올 게 없던 것 */
+    let seen=""; try{ seen=localStorage.getItem(this.SEEN)||""; }catch(e){} if(seen===String(d.at)) return;
     this.ask(me, d); },
   ask(me, d, cb){ if($("moveAsk")) return; const el=document.createElement("div"); el.id="moveAsk"; el.className="rdJoin"; const sm=d.sm||{}, dt=new Date(d.at||0);
     el.innerHTML='<div class="rdJoinIn kaIn"><b>☁️ '+Raid.esc(d.n||me.n)+' 예전 기록</b><p>서버에 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일에 저장한 기록이 있어요 — 가져올까요?</p>'
@@ -25529,7 +25535,7 @@ const RaidStage = {
       if(host){ a.bx=3+c*(54/cols)+(r===1?27/cols:0); a.by=[4,19,34][r]; }
       else if(arena){ a.bx=4+c*13; a.by=47+(c%2)*2; }
       else { a.bx = narrow ? 2+c*14 : 2+c*9; a.by = narrow ? 38+(c%2)*3 : 26+(c%2)*6; }   /* (v672) 7 → 9 */
-      a.el.classList.toggle("rsUp", !host && !arena && c%2===1);   /* (v672) 크롬 점검: 주간 보스 친구 이름표(빈·스트로베리·김지환)가 서로 겹쳤음 → 한 명 걸러 이름을 머리 위로 */
+      a.el.classList.toggle("rsUp", !host && !arena && (this.side ? c%2===0 : c%2===1));   /* (v699) 크롬 점검: 옆모습 무대에선 0번 자리(내 바로 뒤 · 높이)가 이름표를 발밑에 달아 내 캐릭터 그림에 가렸음(「트로베…」) → 옆모습은 0·2번 머리 위 · 1·3번 발밑 */   /* (v672) 크롬 점검: 주간 보스 친구 이름표(빈·스트로베리·김지환)가 서로 겹쳤음 → 한 명 걸러 이름을 머리 위로 */
       if(this.side){ a.el.classList.remove("rsBack","rsNar","rsArena"); return; }
       a.el.style.zIndex = host ? 3-r : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow || arena)); a.el.classList.toggle("rsNar", narrow); a.el.classList.toggle("rsArena", arena);
       ["rsR0","rsR1","rsR2"].forEach((x,j)=>a.el.classList.toggle(x, host && r===j)); });
@@ -27667,7 +27673,7 @@ const Esc = {
       R:[["📚","서재",[["📕","마법책"],["🕯","촛대"],["🦉","부엉이"],["🧺","바구니"],["🪞","거울"],["🗄","서랍장"]]],
          ["⚗️","연금술 방",[["🔮","수정 구슬"],["🍄","버섯 화분"],["🧪","물약 병"],["📜","두루마리"],["🪄","지팡이"],["🧹","빗자루"]]],
          ["🔭","별 관측실",[["🔭","망원경"],["🌙","달 그림"],["🗺","별 지도"],["⏳","모래시계"],["🪐","행성 모형"],["📦","상자"]]]]},
-    pir:{ic:"🏴‍☠️", nm:"해적선", intro:"해적에게 붙잡혀 배 안에 갇혔어요! 배가 떠나기 전에 영어 암호를 풀고 탈출해요.", end:"구명보트를 타고 탈출 성공! 🌊", meta:"구명보트 자물쇠",
+    pir:{ic:"⚓", nm:"해적선", intro:"해적에게 붙잡혀 배 안에 갇혔어요! 배가 떠나기 전에 영어 암호를 풀고 탈출해요.", end:"구명보트를 타고 탈출 성공! 🌊", meta:"구명보트 자물쇠",
       R:[["⚓","갑판",[["⚓","닻"],["🛟","구명튜브"],["🪢","밧줄"],["🛢","나무통"],["🦜","앵무새"],["🧭","나침반"]]],
          ["🛏","선장실",[["🗺","보물 지도"],["🕰","시계"],["🍾","유리병"],["🪑","의자"],["🧥","외투"],["📓","항해 일지"]]],
          ["💰","보물 창고",[["💰","금화 자루"],["👑","왕관"],["🗡","칼"],["💎","보석함"],["🦴","뼈다귀"],["🕸","거미줄"]]]]},

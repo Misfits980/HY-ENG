@@ -9,7 +9,7 @@
 const VIL=(()=>{
   if(!window.ISLE) return null;
   const NPC=[
-    {id:"tom",  nm:"Tom",  job:"농부",  ic:"🧑‍🌾", cap:0xff5a5a, av:{skin:1, hair:"short", hc:1, style:"overalls", top:3, pc:2, hat:"straw", acc:"none"}, hi:["Hi! My carrots are the best!","안녕! 우리 당근이 최고야!"]},
+    {id:"tom",  nm:"Tom",  job:"농부",  ic:"👨‍🌾", cap:0xff5a5a, av:{skin:1, hair:"short", hc:1, style:"overalls", top:3, pc:2, hat:"straw", acc:"none"}, hi:["Hi! My carrots are the best!","안녕! 우리 당근이 최고야!"]},
     {id:"lily", nm:"Lily", job:"빵집",  ic:"👩‍🍳", cap:0xffb84d, av:{skin:0, hair:"bun", hc:6, style:"dress", top:6, pc:5, hat:"none", acc:"ribbon"}, hi:["Welcome! Something smells sweet!","어서 와! 달콤한 냄새가 나지?"]},
     {id:"sam",  nm:"Sam",  job:"어부",  ic:"🧔", cap:0x4f9be8, av:{skin:2, hair:"short", hc:0, style:"hoodie", top:1, pc:1, hat:"beanie", acc:"none"}, hi:["The lake is calm today.","오늘 호수가 잔잔해."]},
     {id:"joe",  nm:"Joe",  job:"광부",  ic:"👴", cap:0xa77be8, av:{skin:1, hair:"spiky", hc:4, style:"tee", top:7, pc:2, hat:"cap", acc:"glasses"}, hi:["Rocks and gems, that's my life!","돌이랑 보석이 내 인생이지!"]}];

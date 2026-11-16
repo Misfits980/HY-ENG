@@ -278,7 +278,7 @@ const TECO=(()=>{
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   /* Mia 「공부 먼저!」 — 오늘 공부를 안 하고 마을에 오면 하루 한 번 (막지는 않음 · 사용자: 에너지 같은 강제는 빼자) */
   function nudge(){ try{ if(store("hyeng_proto_nudge")===day()) return; if(studyToday()>0) return; if(tut.s<TUT.length-1) return; if(!(window.ISLE && place===ISLE.PLC)) return;
-      store("hyeng_proto_nudge", day()); toast("🧑‍🌾 <b>Mia</b>: 오늘 📚 <b>Daily 30</b> 한 판 하면<br>🪱 미끼 5개 + 🏦 은행에서 💎 더 바꿀 수 있어요!", 4200); }catch(e){} }
+      store("hyeng_proto_nudge", day()); toast("👩‍🌾 <b>Mia</b>: 오늘 📚 <b>Daily 30</b> 한 판 하면<br>🪱 미끼 5개 + 🏦 은행에서 💎 더 바꿀 수 있어요!", 4200); }catch(e){} }
   function init(){ hud(); sum(); inbox(); settle(); mkLoad(); setTimeout(nudge, 5000); setInterval(nudge, 15000); }   /* (v563 QA) 방에서 시작한 아이도 섬에 오면 */
   addEventListener("pageshow", ()=>{ try{ inbox(); }catch(e){} });
   return {K, cost, tierOf, cTxt, cHtml, coins, setCoin, addCoin, can, pay2, lack, hud, sum, inbox, rate, sellRate, limit, left, studyToday, buyGem, sellGem,
