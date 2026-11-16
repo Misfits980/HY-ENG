@@ -66,6 +66,40 @@ body.isleOn #ipBan{top:calc(110px + env(safe-area-inset-top))} body.isleOn #emoB
 #ihM .bx button{position:relative;height:84px;border-radius:18px;border:3px solid #3b2433;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),0 3px 0 #3b2433;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;padding:0}
 #ihM .bx button i{font-style:normal;font-size:30px;line-height:1}
 #ihM .bx button u{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:#ff4d5e;color:#fff;border:2.5px solid #fff;font:800 12px/17px var(--en);text-decoration:none}
+/* (v696) 📱 화면 정리 — claude/hy-eng-plan-town-study.md 4번 (시안 ①②): 시각·날씨 알약 · 돈 알약 하나 · 접힌 「📋 오늘」 · ☰+🧰 → 📱 HY폰 · 상황 단추 */
+#ihMe b{font:800 16px var(--en)} #ihMe b em{font-style:normal;font-size:15px;margin-left:3px}
+#ihMenu{background:linear-gradient(180deg,#c7a6ff,#8f63ef);box-shadow:inset 0 -4px 0 rgba(70,30,150,.35),inset 0 3px 0 rgba(255,255,255,.45),0 3px 0 #3b2433;font-size:25px}
+#ihRes{gap:0;flex-wrap:nowrap;max-width:none;align-items:center;height:38px;padding:0 3px;border:2.5px solid #3b2433;border-radius:999px;background:#fffdf7;box-shadow:0 2px 0 #3b2433}
+#ihRes>span{height:32px;padding:0 7px 0 5px;border:0;box-shadow:none;background:none;border-radius:0}
+#ihRes>span+span{border-left:2px solid #eadfcb}
+#ihQ{width:auto;height:38px;padding:0 12px 0 9px;border-radius:999px;display:flex;align-items:center;gap:5px;font-size:14px;white-space:nowrap}
+#ihQ>i{font-style:normal;font-size:17px} #ihQ>em{font:800 14px var(--en);font-style:normal;color:#4caf50} #ihQ>s{text-decoration:none;color:#8a6a4a;font-size:12px}
+#ihQ.all{background:#e9f8e4}
+#ihAct{position:fixed;right:calc(124px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));z-index:4;width:78px;height:78px;border-radius:50%;border:3px solid #3b2433;padding:0;
+  background:linear-gradient(180deg,#8fe07f,#3fa64a);box-shadow:inset 0 -5px 0 rgba(20,80,30,.3),inset 0 4px 0 rgba(255,255,255,.45),0 4px 0 #3b2433;color:#fff!important;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+#ihAct.on{display:flex;animation:pop .25s cubic-bezier(.2,.9,.3,1.3)}
+#ihAct i{font-style:normal;font-size:29px;line-height:1} #ihAct span{font-size:12.5px;line-height:1.1;max-width:72px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 rgba(0,60,10,.55)}
+#ihM{align-items:center;justify-content:center;padding:14px}
+#ihM .ph{position:relative;width:min(360px,92vw);max-height:calc(100% - 8px);overflow-y:auto;border-radius:34px;border:4px solid #3b2433;background:#fffaf0;box-shadow:0 6px 0 #3b2433;padding:12px 14px 16px;animation:pop .28s cubic-bezier(.2,.9,.3,1.3)}
+#ihM .pt{display:flex;justify-content:space-between;align-items:center;font:800 14px var(--en);color:#3b2433;padding:0 6px 8px}
+#ihM .pt b{font-weight:800} #ihM .pt small{font-size:12.5px;color:#8a6a4a}
+#ihM .nw{display:flex;gap:9px;align-items:center;width:100%;padding:9px 12px;margin:0 0 12px;border-radius:18px;border:2.5px solid #3b2433;background:#fff4d6;text-align:left;font:inherit;color:#3b2433}
+#ihM .nw>i{font-style:normal;font-size:24px} #ihM .nw span{flex:1;min-width:0} #ihM .nw b{display:block;font:800 14.5px/1.25 var(--en)} #ihM .nw small{display:block;font-size:12px;color:#8a6a4a}
+#ihM .ph .bx{width:auto;background:none;border:0;box-shadow:none;padding:0;animation:none;gap:10px 8px}
+#ihM .ph .bx button{height:auto;aspect-ratio:auto;padding:10px 2px 8px;font-size:12.5px;gap:4px}
+#ihM .ph .bx button i{font-size:30px}
+#ihM .pc{display:block;margin:14px auto 0;width:52px;height:52px;border-radius:50%;border:3px solid #3b2433;background:#fff;font-size:20px;box-shadow:0 3px 0 #3b2433}
+@media (max-height:520px){ #ihM .ph{width:min(640px,94vw);padding:10px 12px 12px} #ihM .ph .bx{grid-template-columns:repeat(6,1fr);gap:8px 6px} #ihM .ph .bx button{padding:6px 2px 5px;font-size:11.5px} #ihM .ph .bx button i{font-size:24px} #ihM .nw{margin-bottom:8px;padding:6px 10px} #ihM .pt{padding-bottom:4px} #ihM .pc{margin-top:8px;width:44px;height:44px} }
+/* 패드: 단추·글자 1.35배 (시안 2 ①) */
+@media (min-width:700px) and (min-height:700px){
+  #ihMe{transform:scale(1.32);transform-origin:left top}
+  #ihMenu{transform:scale(1.32);transform-origin:right top}
+  #ihRes{transform:scale(1.32);transform-origin:right top;top:calc(86px + env(safe-area-inset-top))}
+  #ihQ{transform:scale(1.32);transform-origin:left top;top:calc(86px + env(safe-area-inset-top))}
+  #ihChat{transform:scale(1.25);transform-origin:left bottom}
+  #ihAct{transform:scale(1.3);transform-origin:right bottom;right:calc(150px + env(safe-area-inset-right))}
+  body.isleOn #tls .tl{font-size:18px} #ihM .ph{width:min(470px,86vw);padding:16px 20px 20px} #ihM .ph .bx button i{font-size:40px} #ihM .ph .bx button{font-size:15px} #ihM .nw b{font-size:17px} #ihM .nw small{font-size:14px} #ihM .pt{font-size:16px}
+}
 /* 할 수 있는 일 = 초록 말풍선 · 멀리 = 작은 흐린 아이콘 */
 body.isleOn .tl{border:3px solid #3b2433;box-shadow:0 3px 0 #3b2433;font-size:14.5px}
 body.isleOn .tl:not(.far){background:linear-gradient(180deg,#8fe07f,#4caf50);color:#fff;text-shadow:0 1px 0 rgba(20,70,20,.5);padding:4px 13px 4px 4px}
@@ -89,14 +123,15 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
 @media (max-height:430px){ #ihQ{display:none} }
 `; document.head.appendChild(st);
   const d=document.createElement("div"); d.id="ih";
-  d.innerHTML='<button id="ihMe" aria-label="나"></button><button id="ihMenu" aria-label="메뉴">☰<u hidden></u></button><div id="ihRes"><span><img src="../assets/ui/ic-gem.webp" alt=""><b id="ihGem">0</b></span><span id="ihCoinP" role="button" aria-label="코인 · 마을 은행"><i>🪙</i><b id="ihCoin">0</b></span><span><i>🪱</i><b id="ihBait">0</b></span></div>'
+  d.innerHTML='<button id="ihMe" aria-label="나"></button><button id="ihMenu" aria-label="HY폰">📱<u hidden></u></button><div id="ihRes"><span><img src="../assets/ui/ic-gem.webp" alt=""><b id="ihGem">0</b></span><span id="ihCoinP" role="button" aria-label="코인 · 마을 은행"><i>🪙</i><b id="ihCoin">0</b></span><span><i>🪱</i><b id="ihBait">0</b></span></div>'
     +'<button id="ihQ" aria-label="오늘 할 일"></button><button id="ihChat" aria-label="말하기">💬<span>말하기</span></button>'
-    +'<button id="ihTool" aria-label="도구"><b>🧰</b><span>도구</span></button>'
-    +[["bag","🎒","가방"],["deco","🎨","꾸미기"],["me","👕","나"],["emo","😊","표정"]].map(([k,i,t])=>'<button class="ihF" data-f="'+k+'"><i>'+i+'</i><span>'+t+'</span></button>').join("");
+    +'<button id="ihAct" aria-label="지금 할 수 있는 것"><i></i><span></span></button>';   /* (v696) 🧰 도구 펼침 → 📱 HY폰 안으로 · 그 자리 = 상황 단추 */
   document.body.appendChild(d);
   const m=document.createElement("div"); m.id="ihM";
-  const TILES=[["home","🏠","내 집","#ffd9a8"],["fr","👫","친구","#ffc4d6"],["map","🗺️","지도","#c4e6ff"],["dex","🐟","도감","#c9f0c0"],["q","📋","할 일","#fff0a8"],["lot","🏡","우리 땅","#e0d0ff"]];
-  m.innerHTML='<div class="bx">'+TILES.map(([k,i,t,c])=>'<button data-m="'+k+'" style="background:'+c+'"><i>'+i+'</i>'+t+'<u hidden></u></button>').join("")+'</div>'; document.body.appendChild(m);
+  /* (v696) 📱 HY폰 — ☰ 메뉴 · 🧰 도구(가방·꾸미기·나·표정) · 이웃 · 단어 손님을 한 화면에 (시안 ②) · 맨 위 오늘 소식 한 줄 (창이 뜨지 않음) */
+  const TILES=[["map","🗺️","지도","#c4e6ff"],["q","📋","할 일","#fff0a8"],["dex","🐟","도감","#c9f0c0"],["bag","🎒","가방","#ffd9a8"],["me","👕","나 꾸미기","#ffe0ec"],["nb","🐻","이웃","#e9d6ff"],
+    ["guest","🐾","단어 손님","#ffe7c2"],["fr","👫","친구","#ffc4d6"],["home","🏠","내 집","#fde6b0"],["deco","🎨","집 꾸미기","#d8f3ec"],["lot","🏡","우리 땅","#e0d0ff"],["emo","😊","표정","#fff3b0"]];
+  m.innerHTML='<div class="ph"><div class="pt"><b id="ihPT"></b><small id="ihPD"></small></div><button class="nw" id="ihNw" data-m="news"></button><div class="bx">'+TILES.map(([k,i,t,c])=>'<button data-m="'+k+'" style="background:'+c+'"><i>'+i+'</i>'+t+'<u hidden></u></button>').join("")+'</div><button class="pc" data-m="x" aria-label="닫기">✕</button></div>'; document.body.appendChild(m);
   const stop=e=>e.stopPropagation(); [d,m].forEach(el=>["pointerdown","pointerup","click","wheel"].forEach(ev=>el.addEventListener(ev, e=>{ if(e.target!==el || el===m) stop(e); })));
   try{ SHEETS.push("ihM"); }catch(e){}
   const click=id=>{ const b=$(id); if(b) b.click(); };
@@ -112,36 +147,44 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
     try{ const Z=ISLE_MAP.zoneAt(x,z); if(Z && !Z.free) return Z.nm; }catch(_){}   /* (v561) QA: 곳마다 이름이 달랐음(시장 거리/상점가 · 학교/배움 언덕 · 풍차 밭/농장·캠핑) → 구역 이름판과 같게 */
     return "🏝 우리 마을"; }
   let meKey="";
-  function drawMe(){ let n="나"; try{ n=String(kidInfo().n||localStorage.getItem("hyeng_nick")||"나").replace(/^👤\s*/,""); }catch(e){} const w=where(), k=n+"|"+w+"|"+JSON.stringify(av);
-    if(k===meKey) return; meKey=k; $("ihMe").innerHTML=face()+'<div><b>'+esc(n)+'</b><small>'+w+'</small></div>'; }
+  /* (v696) 왼쪽 위 = 얼굴 + 지금 시각·날씨 (이름 대신 · 이름은 나 꾸미기·친구에서) */
+  function clock(){ let t; try{ t=new Date(srvNow()); }catch(e){ t=new Date(); } const h=t.getHours(), m=t.getMinutes(); return {t:(h<12?"오전 ":"오후 ")+((h%12)||12)+":"+String(m).padStart(2,"0"), d:(t.getMonth()+1)+"월 "+t.getDate()+"일 ("+"일월화수목금토"[t.getDay()]+")", h}; }
+  function wx(){ let r=false, k="d"; try{ r=rainy(); }catch(e){} try{ k=tod(); }catch(e){} return r?"🌧":k==="n"?"🌙":k==="e"?"🌇":"☀️"; }
+  function drawMe(){ const w=where(), c=clock(), k=c.t+"|"+w+"|"+wx()+"|"+JSON.stringify(av);
+    if(k===meKey) return; meKey=k; $("ihMe").innerHTML=face()+'<div><b>'+c.t+'<em>'+wx()+'</em></b><small>'+w+'</small></div>'; }
   /* ── 할 일 카드 ── */
   let qKey="";
   function drawQ(){ let L=[]; try{ L=qList().filter(q=>q.sec==="d"); }catch(e){} const done=L.filter(q=>q.got||q.c>=q.n).length, ok=L.some(q=>!q.got && q.c>=q.n);
     const k=L.map(q=>q.k+q.c+q.got).join("|"); if(k===qKey) return; qKey=k;
-    $("ihQ").innerHTML='<h4>오늘 할 일 <em>'+done+'/'+L.length+'</em></h4>'+L.slice(0,3).map(q=>'<div class="r'+(q.got?' got':q.c>=q.n?' ok':'')+'"><i>'+q.ic+'</i><s><b style="width:'+Math.round(Math.min(1,q.c/q.n)*100)+'%"></b></s><small>'+(q.got?'✓':Math.min(q.c,q.n)+'/'+q.n)+'</small></div>').join("");
-    $("ihQ").classList.toggle("hot", ok); }
+    $("ihQ").innerHTML='<i>📋</i>오늘 <em>'+done+'/'+L.length+'</em><s>'+(ok?'받기!':'▸')+'</s>';   /* (v696) 접힌 칩 — 누르면 할 일 창 */
+    $("ihQ").classList.toggle("hot", ok); $("ihQ").classList.toggle("all", !!L.length && done>=L.length); }
   /* ── 숫자 (💎 🪱 · ☰ 빨간 숫자) ── */
-  function badge(){ let n=0, fr=0; try{ n=qList().filter(q=>!q.got && q.c>=q.n).length; }catch(e){} try{ fr=Object.keys(SOC.req||{}).length; }catch(e){}
-    const set=(el,v)=>{ el.hidden=!v; el.textContent=v; }; set($("ihMenu").querySelector("u"), n+fr);
-    set(m.querySelector('[data-m="q"] u'), n); set(m.querySelector('[data-m="fr"] u'), fr);
+  function nbBang(){ try{ return VIL.nbList().filter(x=>x.bang).length; }catch(e){ return 0; } }
+  function gNew(){ try{ const s=GUEST.st(); return GUEST.A().filter(G=>G.kind0==="r" && !s.seen[G.w]).length; }catch(e){ return 0; } }
+  function badge(){ let n=0, fr=0; try{ n=qList().filter(q=>!q.got && q.c>=q.n).length; }catch(e){} try{ fr=Object.keys(SOC.req||{}).length; }catch(e){} const nb=nbBang(), gn=gNew();
+    const set=(el,v)=>{ el.hidden=!v; el.textContent=v; }; set($("ihMenu").querySelector("u"), n+fr+nb+gn);
+    set(m.querySelector('[data-m="q"] u'), n); set(m.querySelector('[data-m="fr"] u'), fr); set(m.querySelector('[data-m="nb"] u'), nb); set(m.querySelector('[data-m="guest"] u'), gn);
     $("ihGem").textContent=gems; $("ihBait").textContent=bait; try{ $("ihCoin").textContent=TECO.coins().toLocaleString("ko-KR"); }catch(_){} }
-  /* ── 도구 펼침 — 점프 둘레 대각선 호 ── */
-  function fan(on){ const J=$("ijump"); d.classList.toggle("fan", !!on); $("ihTool").classList.toggle("open", !!on); $("ihTool").querySelector("b").textContent=on?"✕":"🧰";
-    if(!J) return; const r=J.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, R=r.width/2+74;
-    d.querySelectorAll(".ihF").forEach((b,i)=>{ const a=(202+i*27)*Math.PI/180;   // 왼쪽 → 위로 감싸며 (점프 왼쪽 위 사분면)
-      const x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R; b.style.left=(on?x:cx)+"px"; b.style.top=(on?y:cy)+"px"; b.style.transitionDelay=(on?i*45:0)+"ms";
-      b.style.transform=on?"scale(1)":"scale(.3)"; }); }
-  $("ihTool").onclick=e=>{ e.stopPropagation(); fan(!d.classList.contains("fan")); try{ SND.pop && SND.pop(); }catch(_){} };
-  d.querySelectorAll(".ihF").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const k=b.dataset.f; fan(false);
-    if(k==="bag") click("bIBag"); else if(k==="me") click("bIAv"); else if(k==="deco") ISLE.openHouse();
-    else if(k==="emo"){ const eb=$("emoBar"); eb.classList.toggle("on"); } });
+  /* (v696) 🧰 도구 펼침은 📱 HY폰 안으로 — fan() 은 예전 부르는 곳을 위해 빈 함수 */
+  function fan(){}
   $("ihChat").onclick=e=>{ e.stopPropagation(); fan(false); try{ vcOpen(); }catch(_){ click("bIChat"); } };
   $("ihCoinP").onclick=e=>{ e.stopPropagation(); try{ TECO.openBank(); }catch(_){} };
-  $("ihMenu").onclick=e=>{ e.stopPropagation(); fan(false); badge(); m.classList.add("on"); };
+  function news(){ const c=clock(); let n=null;
+    try{ if(DAYR.night()) n=DAYR.news(); }catch(e){}
+    try{ const L=VIL.nbList().filter(x=>x.bang); if(L.length) n=["🐻", L[0].nm+(L.length>1?" and friends need":" needs")+" your help!", "이웃 "+L.map(x=>x.nm).join("·")+" 에게 오늘 ❗ 부탁이 있어요", "nb"]; }catch(e){}
+    if(!n){ try{ const s=GUEST.st(), G=GUEST.A().find(G=>G.kind0==="r" && !s.seen[G.w]) || GUEST.A().find(G=>G.kind0==="v"); if(G) n=G.kind0==="r" ? ["🏡", "A "+G.w+" moved to our town!", "「"+G.w+"」 가 마을로 이사 왔어요 · 광장에 있어요", "guest"] : ["✨", "A "+G.w+" is visiting today!", "오늘 배운 「"+G.w+"」 가 광장에 놀러 왔어요", "guest"]; }catch(e){} }
+    if(!n){ let q=0; try{ q=qList().filter(x=>!x.got && x.c>=x.n).length; }catch(e){} if(q) n=["📋", "You can get a reward!", "할 일 보상 "+q+"개를 받을 수 있어요", "q"]; }
+    if(!n){ try{ n=DAYR.news(); }catch(e){} }
+    if(!n) n=c.h<12 ? ["🌅","Good morning!","좋은 아침! 오늘도 즐거운 하루", ""] : c.h<18 ? ["🌤","Good afternoon!","오늘도 마을은 평화로워요", ""] : ["🌙","Good evening!","오늘 하루도 수고했어요", ""];
+    return n; }
+  function phone(){ const c=clock(), n=news(); $("ihPT").textContent=c.t+" "+wx(); $("ihPD").textContent=c.d; const nw=$("ihNw"); nw.dataset.go=n[3]; nw.innerHTML='<i>'+n[0]+'</i><span><b>'+esc(n[1])+'</b><small>'+esc(n[2])+'</small></span>'; badge(); m.classList.add("on"); }
+  $("ihMenu").onclick=e=>{ e.stopPropagation(); phone(); try{ SND.pop && SND.pop(); }catch(_){} };
   $("ihQ").onclick=e=>{ e.stopPropagation(); try{ openQ(); }catch(_){} };
   $("ihMe").onclick=e=>{ e.stopPropagation(); click("bIAv"); };
-  m.addEventListener("click", e=>{ const b=e.target.closest("[data-m]"); m.classList.remove("on"); if(!b) return; const k=b.dataset.m;
-    if(k==="home") click("bIHome"); else if(k==="fr") click("bFr"); else if(k==="map") openMap(); else if(k==="dex") click("bDex"); else if(k==="q") openQ(); else if(k==="lot") ISLE.openLots(); });
+  m.addEventListener("click", e=>{ const b=e.target.closest("[data-m]"); if(!b && e.target!==m) return; m.classList.remove("on"); if(!b) return; let k=b.dataset.m; if(k==="news") k=b.dataset.go||"";
+    if(k==="home") click("bIHome"); else if(k==="fr") click("bFr"); else if(k==="map") openMap(); else if(k==="dex") click("bDex"); else if(k==="q") openQ(); else if(k==="lot") ISLE.openLots();
+    else if(k==="bag") click("bIBag"); else if(k==="me") click("bIAv"); else if(k==="deco") ISLE.openHouse(); else if(k==="emo"){ const eb=$("emoBar"); if(eb) eb.classList.toggle("on"); }
+    else if(k==="nb"){ try{ VIL.openList(); }catch(_){} } else if(k==="guest"){ try{ GUEST.openBook(); }catch(_){} } });
   /* (v561) 🗺 마을 지도 — 구역을 누르면 그 입구까지 걸어감 · ⭐ 내 집 · 🔴 나 */
   function openMap(){ const M=window.ISLE_MAP; if(!M || !M.zones){ click("bMap"); return; }
     let el=$("ihMap"); if(!el){ el=document.createElement("div"); el.id="ihMap"; document.body.appendChild(el);
@@ -217,10 +260,19 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   let ring=null, ringT=0;
   function mkRing(){ const g=new THREE.RingGeometry(.62,.8,40); g.rotateX(-Math.PI/2); ring=new THREE.Mesh(g, new THREE.MeshBasicMaterial({color:0x7dff7a, transparent:true, opacity:.75, depthWrite:false})); ring.position.y=.03; ring.renderOrder=3; ring.visible=false; ISLE.G.add(ring); }
   ISLE.onBuild(()=>{ mkRing(); });
-  let slowT=0;
+  let slowT=0, actK="";
+  /* (v696) 상황 단추 — 엄지 자리 · 가까운 것에 따라 💬 말 걸기 · 🚪 들어가기 · 🎣 낚시 … (작은 이름표를 정확히 누르는 대신) */
+  function verb(d){ const k=String(d.k||""), t=String(d.t||"").replace(/<[^>]+>/g,"").replace(/ [❗✨🆕✅]+$/u,"");
+    if(/^(v_(tom|lily|sam|joe)|g_)/.test(k)) return ["💬","말 걸기"];
+    if(k==="lake") return ["🎣","낚시"];
+    return [d.ic||"👉", t.split(/ · | \(/)[0]]; }
+  function act(best){ const b=$("ihAct"); if(!b) return; const busy=!!((typeof talkN!=="undefined" && talkN) || document.querySelector("#dlg.on") || document.querySelector(".sheet.on") || (m.classList.contains("on")));
+    const L=(!busy && best && best.near) ? best : null; const k=L ? L.d.k+"|"+L.d.t : "";
+    if(k!==actK){ actK=k; if(L){ const [i,s]=verb(L.d); b.querySelector("i").textContent=i; b.querySelector("span").textContent=s; b.onclick=e=>{ e.stopPropagation(); try{ if(F.st!=="idle" || trip.busy) return; }catch(_){} try{ L.d.act(); }catch(_){} }; } b.classList.toggle("on", !!L); } }
   function tick(dt){ if(!inIsle()){ if(d.classList.contains("fan")) fan(false); return false; } let anim=false;
     if(!ring || !ring.parent) mkRing();
     let best=null, bd=1e9; try{ LBL.forEach(L=>{ if(!L.near || !L.d.p || L.el.style.display==="none") return; const dd=Math.hypot(hero.g.position.x-L.d.p[0], hero.g.position.z-L.d.p[2]); if(dd<bd){ bd=dd; best=L; } }); }catch(e){}
+    act(best);
     if(best){ ringT+=dt; const s=1+Math.sin(ringT*4)*.12, rad=Math.min(1.6, Math.max(.8,(best.d.r||2.4)*.33)); ring.position.set(best.d.p[0], .03, best.d.p[2]); ring.scale.setScalar(s*rad); ring.material.opacity=.55+Math.sin(ringT*4)*.2; if(!ring.visible) ring.visible=true; anim=true; }
     else if(ring.visible){ ring.visible=false; anim=true; }
     const t=performance.now(); if(t-slowT>400){ slowT=t; drawMe(); drawQ(); badge(); const bn=$("ipBan"); document.body.classList.toggle("ihMin", !!(bn && bn.classList.contains("on"))); }

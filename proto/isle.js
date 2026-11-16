@@ -647,6 +647,7 @@ const ISLE=(()=>{
     try{ if(window.TFAC) TFAC.build({G, OX, OZ, MAP, box, flush, prim, mesh, disc, kk, signTex, SIGNS, busy, cols, SPOT, MC, LIN, geo_, vcMerge}); }catch(e){ console.warn(e); }
     try{ if(window.VIL) VIL.build({G, OX, OZ, MAP, disc, kk, busy, cols, SPOT, MC, LIN, vcMerge}); }catch(e){ console.warn("VIL", e); }   /* (v587) 🍄 버섯 마을 */
     try{ if(window.GUEST) GUEST.build({G, OX, OZ}); }catch(e){ console.warn("GUEST", e); }   /* (v694) 🐾 단어 손님 — 광장 */
+    try{ if(window.DAYR) DAYR.build({G, OX, OZ}); }catch(e){ console.warn("DAYR", e); }   /* (v696) 🍾 병 편지 · ✨ 반짝 땅 */
     try{ if(window.MG) MG.build({G, OX, OZ, MAP, disc, busy, cols, SPOT, vcMerge}); }catch(e){ console.warn("MG", e); }   /* (v590) 🎮 게임 타워 2채 */
     /* 얕은 물·해변 · 꽃밭 (나무보다 먼저 자리 잡음) */
     ISL.forEach(shore);
@@ -784,6 +785,7 @@ const ISLE=(()=>{
     if(SPOT.camp) L.push({k:"camp", ic:"🔥", t:"모닥불", p:SPOT.camp, r:2.6, act:()=>{ hero.act="sit"; hero.actT=0; toast("🔥 따뜻해요 — 친구들이 모이는 곳이에요", 2200); }});
     try{ if(window.TFAC) TFAC.labels(L); }catch(e){ console.warn(e); }
     try{ if(window.VIL) VIL.labels(L); }catch(e){ console.warn(e); } try{ if(window.GUEST) GUEST.labels(L); }catch(e){ console.warn(e); } try{ if(window.MG) MG.labels(L); }catch(e){ console.warn(e); }
+    try{ if(window.DAYR) DAYR.labels(L); }catch(e){ console.warn(e); }   /* (v696) 맨 끝 — 밤엔 가게 이름표 = 닫힘 */
     return L; }
   /* (v539) 가게 — 문 앞까지 걸어가서 그 가게 창 */
   function shopGo(S){ const run=()=>{ const k=S.k; if(k==="fish") openShop(); else if(k==="furn") openFurn("furn"); else if(k==="clothes") openAv("clothes"); else if(k==="hair") openAv("hair"); else if(k==="mart"){ try{ HLIFE.openMart(); }catch(e){} } else if(k==="town") tripTo("village"); else if(window.TFAC && k==="snack") TFAC.openSnack(); else if(window.TFAC && k==="pet") TFAC.openPet(); else if(window.TFAC && k==="photo") TFAC.openPhoto(); try{ tEv("shop_"+k); }catch(e){} };

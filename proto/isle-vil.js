@@ -181,7 +181,7 @@ const VIL=(()=>{
   /* 걸어 다니기 — 광장 안 (반지름 5) */
   function tick(dt){ if(!C || !W.length || !C.G.visible) return false; let a=false; const s=SP, OX=C.OX, OZ=C.OZ;
     { const S0=st(), hp=hero.g.position; if(!S0.seen && place===PL.isle && Math.hypot(hp.x-s[0]-OX, hp.z-s[1]-OZ)<12){ S0.seen=1; sv(); toast("🍄 <b>버섯 마을</b>에 왔어요!<br><small>📌 의뢰판에서 의뢰를 골라요 — 하면 🪙 20·30 · 마을 사람 ❤️</small>", 3200); try{ say("Welcome to the Mushroom Village!"); }catch(e){} } }
-    { const hp=hero.g.position, d=Math.hypot(hp.x-s[0]-OX, hp.z-s[1]-OZ), G=C.G.userData.vil; const near=d<46; if(G && G.visible!==(d<70)){ G.visible=d<70; a=true; } W.forEach(w=>{ if(w.c.g.visible!==near){ w.c.g.visible=near; a=true; } }); if(!near) return a; }   /* 멀면 마을 사람은 안 그림 (그리는 횟수) */
+    { const hp=hero.g.position, d=Math.hypot(hp.x-s[0]-OX, hp.z-s[1]-OZ), G=C.G.userData.vil; const near=d<46; if(G && G.visible!==(d<70)){ G.visible=d<70; a=true; } const sl=asleep(); W.forEach(w=>{ const v=near && !sl; if(w.c.g.visible!==v){ w.c.g.visible=v; a=true; } }); if(!near || sl) return a; }   /* 멀면 마을 사람은 안 그림 (그리는 횟수) */
     W.forEach(w=>{ const p=w.c.g.position;
       if(w.talk>0){ w.talk-=dt; w.c.moving=false; const hp=hero.g.position; w.c.face=Math.atan2(hp.x-p.x, hp.z-p.z); }
       else if(!w.tgt){ w.wait-=dt; w.c.moving=false; if(w.wait<=0){ const r=1.5+Math.random()*3.6, an=Math.random()*Math.PI*2; w.tgt=[s[0]+OX+Math.cos(an)*r, s[1]+OZ+Math.sin(an)*r]; } }
@@ -192,10 +192,14 @@ const VIL=(()=>{
   function labels(L){ if(!SP) return; const s=st();
     if(SP.board) L.push({k:"v_board", ic:"📌", t:"의뢰판"+(today().some(q=>s.acc[q.id] && !s.done[q.id] && canDone(q))?" ✅":""), p:SP.board, r:3.6, act:()=>walkNear(SP.board, ()=>open())});
     if(SP.big) L.push({k:"v_big", ic:"🍄", t:"큰 버섯", p:SP.big, r:3.4, act:()=>walkNear(SP.big, bigShroom)});
+    if(asleep()){ W.forEach(w=>{ const n=w.n, h=n.door||[w.L[0]-C.OX, w.L[2]-C.OZ]; L.push({k:"v_"+n.id, ic:n.ic, t:n.nm+" 💤", p:[h[0]+C.OX, 2.4, h[1]+C.OZ], r:3.2, act:()=>zzz(n)}); }); return; }
     W.forEach(w=>{ const n=w.n, fin=today().some(q=>q.who===n.id && s.acc[q.id] && !s.done[q.id] && canDone(q)), bg=!fin && bangOf(n.id); L.push({k:"v_"+n.id, ic:n.ic, t:n.nm+(fin?" ✅":bg?" ❗":""), p:w.L, r:bg?9:3.2, act:()=>talk(w)}); }); }   /* (v693) ❗ 오늘 부탁 — 좀 멀리서도 보이게 */
   function walkNear(p, then){ const x=Math.floor(p[0]), z=Math.floor(p[2]); let best=null; for(let r=1;r<5 && !best;r++) for(let dx=-r;dx<=r;dx++) for(let dz=-r;dz<=r;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!ISLE.blocked(x+dx,z+dz)){ best=[x+dx,z+dz]; break; } }
     const hp=hero.g.position; if(Math.hypot(hp.x-p[0],hp.z-p[2])<3.2 || !best){ then(); return; } walkTo(best[0],best[1],then); }
-  function talk(w){ w.talk=8;
+  /* (v696) 🌙 밤 (DAYR.HOURS) = 이웃은 버섯 집에서 잠듦 — 걷지 않고 · 이름표 💤 · 부탁(❗) 없음 */
+  function asleep(){ try{ return !!(window.DAYR && DAYR.night()); }catch(e){ return false; } }
+  function zzz(n){ toast("💤 <b>"+n.nm+"</b> 은(는) 버섯 집에서 자고 있어요<br><small>아침 "+((window.DAYR && DAYR.HOURS.open)||7)+"시에 일어나요</small>", 2400); }
+  function talk(w){ if(asleep()){ zzz(w.n); return; } w.talk=8;
     walkNear([w.c.g.position.x,0,w.c.g.position.z], ()=>{ w.talk=30; w.c.n=w.n; w.c.prov=prov(w); try{ talkTo(w.c); }catch(e){ open(w.n.id); } }); }   /* (v693) 🐻 말 걸면 대화창 (예전엔 바로 의뢰판) */
 
   /* ═════════ (v693) 🐻 이웃 대화 (게임 대화창 #dlg — house.html talkTo/speakLines 를 씀) ═════════ */
@@ -213,7 +217,7 @@ const VIL=(()=>{
   /* 오늘의 「❗」 — 아이마다 다른 두 이웃 (단어 하나 · 부탁 하나) */
   function bangs(){ const d=day(), c=code(), L=NPC.map(n=>n.id).sort((a,b)=>hashf("nb|"+d+"|"+c+"|"+a)-hashf("nb|"+d+"|"+c+"|"+b)); return {wc:L[0], fv:L[1]}; }
   const favorQ=id=>today().find(q=>q.who===id);
-  function bangOf(id){ const s=st(), B=bangs(); if(B.wc===id && !s.nb.wc[id] && wordToday()) return "wc"; const q=favorQ(id);
+  function bangOf(id){ if(asleep()) return ""; const s=st(), B=bangs(); if(B.wc===id && !s.nb.wc[id] && wordToday()) return "wc"; const q=favorQ(id);
     if(B.fv===id && !s.nb.fv[id] && q && !s.acc[q.id] && !s.done[q.id]) return "fv"; return ""; }
   /* 오늘 공부한 단어 (오늘의 30 — 같은 기기 hyeng_study_v1) 가운데 그림 있는 섬 단어 → 없으면 이번 주 → 외운 것 → 기본 */
   let WT=null;
@@ -274,8 +278,34 @@ const VIL=(()=>{
     try{ updBagBtn(); }catch(er){} s.nb.gift[id]=1; const lk=X.like.find(x=>x[0]===nm); if(lk){ s.lk[id]=Object.assign(s.lk[id]||{}, {[lk[0]]:1}); } sv(); addF(id, lk?3:1); refresh();
     const box=document.getElementById("dlgSeeds"); if(box) box.classList.remove("on"); const e2=k[0]==="f"?"🐟":(MAT[nm]||{}).e||"🎁";
     try{ hideChoices(); speakLines(lk ? [ML("Here you go! "+e2,"여기! "+e2), NL("Wow! I love "+lk[2]+"! Thank you!","와! "+lk[3]+" 정말 좋아해! 고마워!","💖","yay")] : [ML("Here you go! "+e2,"여기! "+e2), NL("Thank you! That's nice.","고마워! 좋다.","🎵")]); }catch(er){} }, true);
+  /* (v696) 📱 HY폰 「이웃」 앱 — 누가 오늘 부탁(❗)이 있는지 · 하트 · 좋아하는 것 · 「가기」 = 그 이웃에게 (멀면 지도의 버섯 마을 길) */
+  let nel=null;
+  function nbSheet(){ if(nel) return nel; const css=document.createElement("style"); css.textContent=`
+#nbP{left:50%;right:auto;width:min(640px,100vw);transform:translate(-50%,105%);padding:0;display:flex;flex-direction:column;max-height:min(80vh,760px);overflow:hidden;background:#fffaf0}
+#nbP.on{transform:translate(-50%,0)} #nbP::before{display:none}
+#nbP .nHd{flex:none;display:flex;align-items:center;gap:10px;padding:12px 12px 6px} #nbP .nHd .t{flex:1;min-width:0} #nbP .nHd b{display:block;font-size:18px} #nbP .nHd small{display:block;font-size:12.5px;color:var(--sub)}
+#nbP .nX{flex:none;width:38px;height:38px;border-radius:50%;border:2.5px solid var(--line2);background:#fff;font-size:16px}
+#nbP .nB{flex:1;min-height:0;overflow-y:auto;padding:2px 12px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+#nbP .nR{display:flex;gap:10px;align-items:center;padding:10px;border-radius:18px;border:2.5px solid var(--line);background:#fff}
+#nbP .nR.bang{border-color:#ff9a3d;background:#fff6ea}
+#nbP .nR .np{position:relative;flex:none;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:28px;border:2.5px solid var(--line2);background:#fffdf7}
+#nbP .nR .np u{position:absolute;right:-5px;top:-5px;min-width:22px;height:22px;border-radius:99px;background:#ff4d5e;color:#fff;border:2.5px solid #fff;font:900 12px/17px var(--en);text-decoration:none;text-align:center}
+#nbP .nR .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px} #nbP .nR .tx b{font:800 16px var(--en)} #nbP .nR .tx b i{font-style:normal;color:#ff5a7a;font-size:13px;letter-spacing:1px;margin-left:6px}
+#nbP .nR .tx small{font-size:12px;color:var(--sub)} #nbP .nR .tx em{font-style:normal;font-size:12.5px;font-weight:800;color:#c2571a}
+#nbP .nR button.go{flex:none;min-width:64px;height:42px;border-radius:14px;border:0;font:900 15px var(--kr);color:#fff;background:#4caf50;box-shadow:0 3px 0 rgba(0,0,0,.15)}`; document.head.appendChild(css);
+    nel=document.createElement("div"); nel.id="nbP"; nel.className="sheet"; document.body.appendChild(nel); try{ SHEETS.push("nbP"); }catch(e){}
+    nel.addEventListener("click", e=>{ if(e.target.closest("[data-nx]")){ nel.classList.remove("on"); return; } const g=e.target.closest("[data-ngo]"); if(g){ nel.classList.remove("on"); goNb(g.dataset.ngo); } });
+    return nel; }
+  function goNb(id){ const w=W.find(x=>x.n.id===id); if(!w) return; const p=w.c.g.position, h=hero.g.position;
+    if(Math.hypot(p.x-h.x, p.z-h.z)>30){ try{ IHUD.goZone("vil"); return; }catch(e){} } talk(w); }
+  function openList(){ nbSheet(); const L=nbList(), nb=L.filter(x=>x.bang).length;
+    let h='<div class="nHd"><span style="font-size:32px">🐻</span><span class="t"><b>이웃 · 버섯 마을</b><small>'+(nb?'오늘 ❗ 부탁 '+nb+'개 — 가서 말을 걸어 봐요':'오늘 부탁은 다 했어요 — 말 걸면 하트가 올라요')+'</small></span><button class="nX" data-nx aria-label="닫기">✕</button></div><div class="nB">';
+    h+=L.map(n=>{ const X=NBX[n.id], f=Math.min(5,n.lv), hs="♥".repeat(f)+"♡".repeat(5-f), lk=X.like.map(x=>(n.likes||[]).some(l=>l[0]===x[1])?x[1]:"❔").join(" ");
+      const bang=n.bang==="wc"?"❗ 오늘 단어 하나 물어봐요":n.bang==="fv"?"❗ 오늘 부탁이 있어요":"";
+      return '<div class="nR'+(bang?' bang':'')+'"><span class="np">'+n.ic+(bang?'<u>!</u>':'')+'</span><span class="tx"><b>'+esc(n.nm)+'<i>'+hs+'</i></b><small>'+esc(X.pt)+' · 좋아하는 것 '+lk+'</small>'+(bang?'<em>'+bang+'</em>':'')+'</span><button class="go" data-ngo="'+n.id+'">가기</button></div>'; }).join("");
+    nel.innerHTML=h+'</div>'; nel.classList.add("on"); }
   function talkNb(id){ const w=W.find(x=>x.n.id===id); if(w) talk(w); }
   function nbList(){ const s=st(); return NPC.map(n=>({id:n.id, nm:n.nm, ic:n.ic, job:n.job, pt:NBX[n.id].pt, lv:lv(n.id), f:s.f[n.id]|0, bang:bangOf(n.id), likes:NBX[n.id].like.filter(x=>(s.lk[n.id]||{})[x[0]]).map(x=>[x[1],x[3]]), gifted:!!s.nb.gift[n.id]})); }
-  return {build, tick, labels, night, open, today, accept, claim, st, NPC, QT, GIFT, hearts, ev, bigShroom, W:()=>W, SP:()=>SP, talkNb, nbList, wordToday, bangs, bangOf, lv, addF, HT};
+  return {build, tick, labels, night, open, today, accept, claim, st, NPC, QT, GIFT, hearts, ev, bigShroom, W:()=>W, SP:()=>SP, talkNb, nbList, openList, goNb, wordToday, bangs, bangOf, lv, addF, HT};
 })();
 window.VIL=VIL;

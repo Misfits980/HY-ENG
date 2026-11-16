@@ -227,6 +227,7 @@ button{font-family:inherit}
 @keyframes dpop{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
 .dSeeds{display:none;flex-wrap:wrap;gap:6px;justify-content:center;width:min(560px,94vw);margin:0 auto 10px;padding:10px;border-radius:22px;background:var(--paper);border:3px solid var(--line2)}
 .dSeeds.on{display:flex} .dGem{align-self:center;font:900 15px var(--en);color:#8a5a00;margin-left:6px}
+@media (min-width:700px) and (min-height:700px){ .dBox{width:min(760px,92vw);min-height:170px;padding:34px 30px 26px} #dlgEn{font-size:28px;min-height:38px} #dlgKo{font-size:18px;min-height:24px} #dlgName{font-size:21px;top:-22px} #dlgX{width:44px;height:44px;font-size:18px} .dChoices{width:min(760px,92vw);gap:10px} .dch{min-width:270px;padding:12px 24px} .dch b{font-size:21px} .dch small{font-size:15.5px} .dch.pic{width:112px;height:112px} .dch.pic b{font-size:58px} .dSeeds{width:min(760px,92vw)} }   /* (v696) 패드 = 대화창 크게 (시안 2) */
 
 /* (L0-9) 묻기 창 · 보관 · 가게 */
 .hxPick{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}.hxPick .btn{min-width:120px}
@@ -3919,7 +3920,7 @@ function focus(){ const N=place.N, p=hero ? hero.g.position : new THREE.Vector3(
   if(avOpen){ const c=new THREE.Vector3(p.x,0.62,p.z); return {c, C:boxC(c,0.55,0,1.4), b:[0.7,0.06,0.97], pitch:0.32}; }
   if(talkN){ const q=talkN.g.position, c=new THREE.Vector3((p.x+q.x)/2,0.7,(p.z+q.z)/2), r=Math.max(0.8, Math.hypot(p.x-q.x,p.z-q.z)/2+0.42); return {c, C:boxC(c,r,0,1.75), b:[0.78,-0.12,0.95], pitch:0.3}; }   /* 대화 — 두 사람에게 다가감 */
   if(place===PL.yard && edit && yEC){ const c=new THREE.Vector3(yEC.x,0.3,yEC.z); return {c, C:boxC(c,2.8,0,0.8), b:[0.97,-0.18,0.82], pitch:0.95}; }   /* (v415) 마당 꾸미기 — 아래 서랍 위로 */
-  if(PL.isle && place===PL.isle){ const z=ISLE.CAM.zoom, c=new THREE.Vector3(p.x,0.45,p.z); return {c, C:boxC(c,1.9*z,0,1.5*z), b:[0.94,-0.62,0.8], pitch:ISLE.CAM.pitch}; }   /* (v521) 🏝 낮고 가까운 카메라 · (v525) 끌어서 돌리기·기울이기·확대 */
+  if(PL.isle && place===PL.isle){ const z=ISLE.CAM.zoom*(Math.min(innerWidth,innerHeight)>=700 ? 1.4 : 1), c=new THREE.Vector3(p.x,0.45,p.z); return {c, C:boxC(c,1.9*z,0,1.5*z), b:[0.94,-0.62,0.8], pitch:ISLE.CAM.pitch}; }   /* (v521) 🏝 낮고 가까운 카메라 · (v525) 끌어서 돌리기·기울이기·확대 */
   if(place.follow){ const m=2.9, c=new THREE.Vector3(clamp(p.x,m,N-m),0.4,clamp(p.z,m,N-m)); return {c, C:boxC(c,2.9,0,1.4), b:[0.94,-0.72,0.72], pitch:place.pitch}; }
   const c=new THREE.Vector3(N/2,0.5,N/2), C=[]; for(const x of [0,N]) for(const y of [0,place.h]) for(const z of [0,N]) C.push(new THREE.Vector3(x,y,z)); return {c, C, b:[0.94,-0.74,0.74], pitch:place.pitch}; }
 let camPitch=0.62;
@@ -4638,7 +4639,7 @@ try{ GUARD.onLevel=perfApply; }catch(e){}
 function loopBody(now){
   if(window.MG && MG.on){ last=now; return; }   /* (v590) 🎮 게임 타워 안 — 섬은 멈추고 게임이 그림 (mg-core.js) */
   const rawMs=now-last, dt=Math.min(0.05,rawMs/1000); last=now;
-  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.VIL && VIL.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.GUEST && GUEST.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
+  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.VIL && VIL.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.DAYR && DAYR.tick(dt)) anim=true; }catch(e){} try{ if(window.GUEST && GUEST.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } if(place===PL.mine){ regenMine(); drawOres(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(TW.on){ twTick(dt); anim=true; } else if(updCam(dt)) anim=true;
@@ -4676,6 +4677,7 @@ window.HOUSE = {MTL, mtLog, mtId, MTS, mtAcc, mtSheet, VLN, vlNetStart, vlNetSto
 <script src="isle-vil.js"></script>   <!-- (v587) 🍄 버섯 마을 · 📌 의뢰 -->
 <script src="isle-ani.js"></script>   <!-- (v694) 🐾 움직이는 동물 (Quaternius CC0) -->
 <script src="isle-guest.js"></script>   <!-- (v694) 🐾 단어 손님 -->
+<script src="isle-day.js"></script>   <!-- (v696) 🕰 하루 리듬 · 🍾 병 편지 · ✨ 반짝 땅 · 🌙 밤 가게 닫힘 -->
 <script src="mg-core.js"></script>   <!-- (v590) 🎮 놀이 공원 게임 타워 -->
 <script src="mg-arena.js"></script>   <!-- (v590) 💦 물총 아레나 -->
 <script src="mg-grid.js"></script>   <!-- (v590) 🟦 발판 게임 -->

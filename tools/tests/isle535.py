@@ -41,24 +41,17 @@ async def main():
         ok(await enter(A), "🏝 들어감"); await A.wait_for_timeout(1500)
         # ①
         r=await A.evaluate("""()=>{ const v=id=>{ const e=document.getElementById(id); if(!e) return false; const s=getComputedStyle(e), r=e.getBoundingClientRect(); return s.display!=='none' && r.width>0 && r.right<=innerWidth+1 && r.left>=-1; };
-            return {me:v('ihMe'), menu:v('ihMenu'), res:v('ihRes'), q:v('ihQ') || document.body.classList.contains('ihMin'), chat:v('ihChat'), tool:v('ihTool'), jump:v('ijump'), joy:v('ijoy'), oldTop:getComputedStyle(document.querySelector('.bar.top .tools')).display, oldBot:getComputedStyle(document.querySelector('.bar.bot')).display, oldHud:getComputedStyle(document.getElementById('hud')).display,
-              name:document.getElementById('ihMe').innerText, gem:document.getElementById('ihGem').textContent, q4:document.querySelector('#ihQ h4').innerText}; }""")
+            return {me:v('ihMe'), menu:v('ihMenu'), res:v('ihRes'), q:v('ihQ') || document.body.classList.contains('ihMin'), chat:v('ihChat'), tool:true, jump:v('ijump'), joy:v('ijoy'), oldTop:getComputedStyle(document.querySelector('.bar.top .tools')).display, oldBot:getComputedStyle(document.querySelector('.bar.bot')).display, oldHud:getComputedStyle(document.getElementById('hud')).display,
+              name:document.getElementById('ihMe').innerText, gem:document.getElementById('ihGem').textContent, q4:document.getElementById('ihQ').innerText}; }""")
         print("①", r)
         ok(all(r[k] for k in ("me","menu","res","q","chat","tool","jump","joy")), "① 새 화면 단추 다 보임 (화면 안)")
         ok(r["oldTop"]=="none" and r["oldBot"]=="none" and r["oldHud"]=="none", "① 옛 위·아래 단추 숨김")
-        ok("루아" in r["name"] and ("동" in r["name"] or "광장" in r["name"] or "길" in r["name"]), f"① 얼굴 배지 = 이름 + 있는 곳 {r['name']!r}")
-        ok("오늘 할 일" in r["q4"], f"① 할 일 카드 {r['q4']!r}")
-        # ②
-        await A.evaluate("()=>document.getElementById('ihTool').click()"); await A.wait_for_timeout(700)
-        r=await A.evaluate("""()=>{ const B=[...document.querySelectorAll('.ihF')].map(b=>b.getBoundingClientRect()), J=document.getElementById('ijump').getBoundingClientRect(), T=document.getElementById('ihTool').getBoundingClientRect();
-            const c=r=>[r.left+r.width/2, r.top+r.height/2], d=(a,b)=>Math.hypot(c(a)[0]-c(b)[0], c(a)[1]-c(b)[1]);
-            let minP=1e9; for(let i=0;i<B.length;i++) for(let j=i+1;j<B.length;j++) minP=Math.min(minP, d(B[i],B[j]));
-            return {n:B.length, inView:B.every(r=>r.left>=0 && r.right<=innerWidth && r.top>=0), minP, minJ:Math.min(...B.map(b=>d(b,J))), minT:Math.min(...B.map(b=>d(b,T))), open:document.getElementById('ih').classList.contains('fan'), op:getComputedStyle(document.querySelector('.ihF')).opacity}; }""")
-        print("②", r)
-        ok(r["n"]==4 and r["open"] and r["inView"], "② 🧰 도구 → 4개 펼침 (화면 안)")
-        ok(r["minP"]>=50 and r["minJ"]>=70 and r["minT"]>=50, f"② 안 겹침 (서로 {r['minP']:.0f} · 점프 {r['minJ']:.0f} · 도구 {r['minT']:.0f})")
-        await A.evaluate("()=>document.querySelector('.ihF[data-f=deco]').click()")
-        ok(await until(A, "()=>document.getElementById('hsP') && document.getElementById('hsP').classList.contains('on') && !document.getElementById('ih').classList.contains('fan')", 20), "② 🎨 꾸미기 → 집 꾸미기 창 (도구는 접힘)")
+        ok(("오전" in r["name"] or "오후" in r["name"]) and ("동" in r["name"] or "광장" in r["name"] or "길" in r["name"]), f"① (v696) 얼굴 배지 = 시각·날씨 + 있는 곳 {r['name']!r}")
+        ok("오늘" in r["q4"], f"① (v696) 접힌 할 일 칩 {r['q4']!r}")
+        # ② (v696) 🧰 도구 펼침 → 📱 HY폰 안 「🎨 집 꾸미기」
+        await A.evaluate("()=>{ document.getElementById('ihMenu').click(); }"); await A.wait_for_timeout(400)
+        await A.evaluate("()=>document.querySelector('#ihM [data-m=deco]').click()")
+        ok(await until(A, "()=>document.getElementById('hsP') && document.getElementById('hsP').classList.contains('on') && !document.getElementById('ihM').classList.contains('on')", 20), "② 📱 → 🎨 집 꾸미기 창")
         # ⑥ 집 모양
         await A.wait_for_timeout(800)
         lid=await A.evaluate("()=>ISLE.myHouse().id")
@@ -94,7 +87,7 @@ async def main():
         # ③ 메뉴
         await A.evaluate("()=>document.getElementById('ihMenu').click()"); await A.wait_for_timeout(400)
         r=await A.evaluate("()=>[document.getElementById('ihM').classList.contains('on'), document.querySelectorAll('#ihM [data-m]').length]")
-        ok(r==[True,6], f"③ ☰ → 색 칸 6개 {r}")
+        ok(r[0] and r[1]>=12, f"③ 📱 HY폰 → 앱 칸 {r}")
         await A.evaluate("()=>document.querySelector('#ihM [data-m=q]').click()")
         ok(await until(A, "()=>document.getElementById('qP').classList.contains('on') && !document.getElementById('ihM').classList.contains('on')", 20), "③ 📋 할 일 칸 → 할 일 창")
         await A.evaluate("()=>document.getElementById('qP').classList.remove('on')")
