@@ -3106,8 +3106,8 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppShot{position:fixed;left:0;top:0;z-index:-1;pointer-events:none;zoom:1!important}
 .ppLt{background:#3a3460} .ppLt b{font-weight:900;color:#bdb3e8} .ppLt.on{background:#2f7d55} .ppLt.on b{color:#fff}   /* (v674) 🪶 가벼운 PDF 단추 */
 /* (v690) 📏 넉넉하게 — 사용자: 「깜지 쓰는 거랑 프린트가 버티질 못해 · 조금 더 널널하게 · 빽빽하게 말고」 → 쓰는 줄·빈칸·문제 사이를 넓힘 (쪽 수는 늘어남) · 단추로 끄면 예전 촘촘한 모양
-   따라쓰기 4선 줄 한 칸: 초1-4 3mm → 4.4mm · 초5-6·중등 2.5mm → 3.6mm (줄 전체 13mm · 11mm) · 칸 너비 = 글자 수 × 6mm(초1-4) · 4.2mm */
-.ppRm{background:#3a3460} .ppRm b{font-weight:900;color:#bdb3e8} .ppRm.on{background:#2f7d55} .ppRm.on b{color:#fff}
+   (문장) 따라쓰기 4선 줄 한 칸 — 단어 따라쓰기는 v692 부터 예전 그대로: 초1-4 3mm → 4.4mm · 초5-6·중등 2.5mm → 3.6mm (줄 전체 13mm · 11mm) · 칸 너비 = 글자 수 × 6mm(초1-4) · 4.2mm */
+.ppRm{background:#3a3460} .ppRm b{font-weight:900;color:#bdb3e8} .ppRm.on{background:#2f7d55} .ppRm.on b{color:#fff} #paper.ppKwM .ppRm{display:none!important}   /* (v692) 단어 따라쓰기 = 예전 그대로 */
 #paper.ppRoom .ppQ{margin-bottom:6mm;font-size:12pt;line-height:1.55} #paper.ppRoom .ppSec{margin:3mm 0 3.5mm;font-size:11.5pt}
 #paper.ppRoom .ppW{font-size:14pt} #paper.ppRoom .ppW.ko{font-size:13pt} #paper.ppRoom .ppKo{font-size:9.5pt}
 #paper.ppRoom .ppOp{margin-top:2mm;gap:1.8mm 3mm} #paper.ppRoom .ppOp li{font-size:11.5pt}
@@ -17620,7 +17620,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v691";
+const GAME_VER = "v692";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -23705,7 +23705,7 @@ const Paper = {
           const a = q.opts ? this.NUM[q.a] : s.k==="wko" ? E(q.w.ko) : E(dispEn(q.w.en))+(s.k==="wen" && q.sib && q.sib.length ? '<small> (같은 뜻 '+E(q.sib.join(', '))+' 와 구분: 앞 글자 '+E(q.pre)+')</small>' : ''); put('<span><i>'+(no++)+'</i>'+a+'</span>'); }); }); });
     pages.forEach((p,i)=>{ p.querySelector(".ppFt").textContent="답안지"+(pages.length>1 ? " · "+(i+1)+" / "+pages.length : ""); });
     return pages.length; },
-  make(){ this._rfN=0; try{ $("paper").classList.toggle("ppRoom", this.room()); }catch(e){} if(this.isX()){ this.B=null; if(!Life.D || !Gram.D){ this.xLoad().then(()=>{ if($("paper") && this.isX() && Life.D){ this.lfFill(true); this.gmFill(true); this.modeUi(); this.make(); } }); const W=$("ppWrap"); if(W) W.innerHTML=""; return; } const c=this.xCfg(); this.c=c; this.B = this.mode==="lf" ? this.lfBuild(c) : this.gmBuild(c); this.render(); return; } const c=this.cfg(); if(this.mode==="kw" || this.mode==="ks"){ this.B=null; this.c=c; this.kjRender(); return; } this.B=this.build(c); this.c=c; this.render(); },
+  make(){ this._rfN=0; try{ $("paper").classList.toggle("ppRoom", this.room()); $("paper").classList.toggle("ppKwM", this.mode==="kw"); }catch(e){} if(this.isX()){ this.B=null; if(!Life.D || !Gram.D){ this.xLoad().then(()=>{ if($("paper") && this.isX() && Life.D){ this.lfFill(true); this.gmFill(true); this.modeUi(); this.make(); } }); const W=$("ppWrap"); if(W) W.innerHTML=""; return; } const c=this.xCfg(); this.c=c; this.B = this.mode==="lf" ? this.lfBuild(c) : this.gmBuild(c); this.render(); return; } const c=this.cfg(); if(this.mode==="kw" || this.mode==="ks"){ this.B=null; this.c=c; this.kjRender(); return; } this.B=this.build(c); this.c=c; this.render(); },
   /* ══ (v580) ✏️ 따라쓰기(처음 이름 깜지) — 사용자: 「깜지 쓰는 거랑 문장 깜지 기능도」 → (v581) 「따라쓰기라고 · 더 이쁘게」
      단어 깜지 = 영어 단어 + 뜻 → 영어 줄(위·가운데·아래 줄) 칸에 N 번 쓰기 · 문장 깜지 = 예문 + 해석 → 줄에 N 번 베껴 쓰기
      초1-2·3-4 는 첫 칸에 흐린 글씨(따라 쓰기) · 범위 순서대로(🔀 누르면 섞기) · 같은 A4 · 인쇄·PDF 그대로 */
@@ -23759,7 +23759,7 @@ const Paper = {
     if(ks && gm!=="off" && !this.SVA){ this.svaLoad(); I.textContent="📐 문법 자료를 받는 중…"; }
     if(ks){ for(const w of all){ if(items.length>=c.n) break; const x=this.kjSent(w, gm); if(x) items.push(x); else miss++; } } else items=all.slice(0, c.n).map(w=>({en:dispEn(w.en), ko:w.ko, emo:w.emoji||"", x: gm!=="off" ? this.kjWx(w, gr) : null}));
     if(!items.length){ I.textContent = ks ? "이 범위엔 예문이 있는 단어가 없어요" : "범위에 단어가 없어요"; return; }
-    const ttl=c.title || (Study.label(c.set)+(ks?" 문장 따라쓰기":" 단어 따라쓰기")), rep=c.rep, tr=c.tr, pages=[], young=/^(g12|g34|k)$/.test(this.gr(c.set)), pic=!ks && young && items.some(x=>x.emo); let body=null;
+    const ttl=c.title || (Study.label(c.set)+(ks?" 문장 따라쓰기":" 단어 따라쓰기")), rep=c.rep, tr=c.tr, pages=[], young=/^g(12|34)$/.test(this.gr(c.set)), pic=!ks && young && items.some(x=>x.emo); let body=null;
     /* (v581) 사용자: 「깜지 말고 따라쓰기 · 조금 더 이쁘게」 → 영어 4선 공책 줄(빨간 바닥 줄) · 동그라미 번호 · 카드 줄 · 그림(초1-4) · 다 쓰면 ✔ 칸 · 머리에 「참 잘했어요」 도장 자리 */
     const head=first=>first
       ? '<header class="kjHd"><div class="kjTt"><b>✏️ '+E(ttl)+'</b><small>'+E(this.rng(c))+' · '+items.length+(ks?'문장':'단어')+' · '+rep+'번씩 써요</small></div><div class="kjStamp"><span>참<br>잘했어요</span></div>'
@@ -23816,7 +23816,7 @@ const Paper = {
      (약한 프린터는 글자·그림 글자·여백 없는 쪽을 처리하다 메모리가 모자라 멈추는 일이 있음 — 그림 PDF 는 프린터가 받기 쉬움) · 기기에 기억 */
   LK:"hyeng_pp_light",
   /* (v690) 📏 넉넉하게 (기본 켜짐 · hyeng_paper.room) */
-  room(){ return this.pref().room!==false; },
+  room(){ return this.mode!=="kw" && this.pref().room!==false; },   /* (v692) 사용자: 「단어 따라쓰기는 원래 걸로 하자」 → 단어 따라쓰기는 늘 예전 크기 (단추도 숨김) */
   roomBtn(){ const on=this.room(); return '<button class="ppNew ppRm'+(on?' on':'')+'" data-pp="room" title="아이 글씨가 들어가게 쓰는 줄·빈칸·문제 사이를 넓혀요 (쪽 수는 늘어요) · 끄면 예전처럼 촘촘하게">📏 넉넉하게 <b>'+(on?'켜짐':'꺼짐')+'</b></button>'; },
   toggleRoom(){ const on=!this.room(); try{ localStorage.setItem("hyeng_paper", JSON.stringify(Object.assign({}, this.pref(), {room:on}))); }catch(e){}
     document.querySelectorAll("#paper .ppRm").forEach(b=>{ b.classList.toggle("on", on); b.innerHTML='📏 넉넉하게 <b>'+(on?'켜짐':'꺼짐')+'</b>'; }); this.make(); },

@@ -1,4 +1,4 @@
-"""(v690) 사용자: 「바꾸고」 — 🏡 My Town 잠금(오늘의 30 Stage 3개)을 학원 패드·집 기기 합쳐 셈 (서버 v24)
+"""(v690 · v692) 사용자: 「바꾸고」 — 🏡 My Town 잠금(오늘의 30 Stage 3개)을 학원 패드·집 기기 합쳐 셈 (서버 v24)
    ① 끝까지 푼 Stage 를 보낼 때 「마을 칸」 tw = 이 기기에서 센 이름과 같은 것 · 못 끝낸 판 · 📝 시험 · 그만둔 복습 = tw 없음 · 끝낸 복습 = rv
    ② 서버 랭킹 답 me.twk(다른 기기에서 센 이름) + 이 기기 이름 = 서로 다른 것만 셈 → 3개면 카드가 바로 열림 (답이 올 때 카드 다시 그림)
    ③ 서버 답이 어제 것(twd) · 다른 아이 것(공용 패드에서 아이가 바뀜) · 옛 서버(me.tw 없음) = 이 기기 것만
@@ -101,26 +101,24 @@ async def main():
         r = await E("()=>[document.getElementById('paper').classList.contains('ppRoom'), (document.querySelector('#paper .ppRm')||{}).textContent]")
         ok(r[0] and "켜짐" in (r[1] or ""), f"⑤ 처음엔 📏 넉넉하게 켜짐 (기본) {r}")
         async def kj(mode, set_, f, t, rep):
-            await E("(a)=>{ const [m,s,f,t,rep]=a; Paper.close(); Paper.open({mode:m, set:s, from:f, to:t}); const R=document.getElementById('ppRep'); R.value=String(rep); Paper._kjMix=false; Paper.make(); }", [mode, set_, f, t, rep]); await pg.wait_for_timeout(900)
+            await E("(a)=>{ const [m,s,f,t,rep]=a; Paper.close(); Paper.open({mode:m, set:s, from:f, to:t}); const R=document.getElementById('ppRep'); R.value=String(rep); document.getElementById('ppN').value='20'; Paper._kjMix=false; Paper.make(); }", [mode, set_, f, t, rep]); await pg.wait_for_timeout(900)
+        # (v692) 사용자: 「단어 따라쓰기는 원래 걸로 하자」 → 단어 따라쓰기는 늘 예전 크기 · 📏 단추 숨김
         await kj("kw", S["g12"], 0, 2, 3)
-        r = await E("""()=>{ const p=document.querySelector('#ppWrap .pp.kj'), sp=parseFloat(getComputedStyle(p).getPropertyValue('--sp'))||0, st=p.querySelector('.kjStrip'), c=p.querySelector('.kjC');
-          return [p.classList.contains('big'), Math.round(st.getBoundingClientRect().height/(96/25.4)*10)/10, Math.round(c.getBoundingClientRect().width/(96/25.4))]; }""")
-        ok((not r[0]) and 12.5 <= r[1] <= 14 and r[2] >= 30, f"⑤ 단어 따라쓰기 G1-2: 4선 줄 높이 ≈13mm (예전 9mm) · 칸 너비 30mm 이상 [big?, 줄 mm, 칸 mm] {r}")
+        r = await E("""()=>{ const p=document.querySelector('#ppWrap .pp.kj'), st=p.querySelector('.kjStrip'), b=document.querySelector('#paper .ppRm');
+          return [p.classList.contains('big'), Math.round(st.getBoundingClientRect().height/(96/25.4)*10)/10, document.getElementById('paper').classList.contains('ppRoom'), !!(b && b.offsetParent)]; }""")
+        ok((not r[0]) and 8.5 <= r[1] <= 9.5 and not r[2] and not r[3], f"⑤ 단어 따라쓰기 G1-2 = 예전 그대로 (4선 줄 9mm · 넉넉하게 안 걸림 · 단추 숨김) {r}")
         await kj("kw", S["g34"], 0, 2, 3)
-        r = await E("""()=>{ const B=[...document.querySelectorAll('#ppWrap .pp.kj .kjB')], L=B.find(b=>/necklace|sweater|costume/.test(b.querySelector('.kjW b').textContent));
-          const cs=L ? [...L.querySelectorAll('.kjS > .kjStrip .kjC')].map(c=>Math.round(c.getBoundingClientRect().width/(96/25.4))) : [];
-          const over=[...document.querySelectorAll('#ppWrap .kjBody')].filter(b=>b.scrollHeight>b.clientHeight+1).length;
-          return [cs, L ? L.querySelectorAll('.kjS > .kjStrip').length : 0, document.querySelectorAll('#ppWrap .pp').length, over]; }""")
-        ok(len(r[0]) == 3 and min(r[0]) >= 55 and r[1] == 2 and r[3] == 0, f"⑤ G3-4 긴 단어(8글자) 3번 = 두 줄에 나눠 칸마다 55mm 이상 · 넘친 쪽 없음 [칸 mm, 줄 수, 쪽, 넘침] {r}")
-        n_room = r[2]
+        r = await E("()=>[document.querySelectorAll('#ppWrap .pp').length, Math.round(document.querySelector('#ppWrap .kjStrip').getBoundingClientRect().height/(96/25.4)*10)/10, (JSON.parse(localStorage.getItem('hyeng_paper'))||{}).room]")
+        ok(r[0] == 3 and 8.5 <= r[1] <= 9.5 and r[2] is not False, f"⑤ 단어 따라쓰기 G3-4 20단어 3번 = 예전처럼 3쪽 · 줄 9mm (다른 종이의 넉넉하게 설정은 그대로) {r}")
+        await kj("ks", S["g34"], 0, 2, 1)
+        r = await E("""()=>{ const B=[...document.querySelectorAll('#ppWrap .kjB.s')].map(b=>[(b.querySelector('.kjT')||{textContent:''}).textContent.length, b.querySelectorAll('.kjS > .kjStrip').length]);
+          return [B.filter(x=>x[0]>30).every(x=>x[1]===3), B.filter(x=>x[0]>0 && x[0]<=30).every(x=>x[1]===2), B.slice(0,6), B.every(x=>x[0]>0), Math.round(document.querySelector('#ppWrap .kjStrip').getBoundingClientRect().height/(96/25.4)*10)/10, document.querySelectorAll('#ppWrap .pp').length, !!(document.querySelector('#paper .ppRm')||{}).offsetParent]; }""")
+        ok(r[0] and r[1] and r[3] and 12.5 <= r[4] <= 14 and r[6], f"⑤ 문장 따라쓰기 G3-4 = 넉넉하게: 줄 13mm · 30자 넘는 문장 = 흐린 줄 + 쓰는 줄 2 · 짧은 문장 = 흐린 줄 + 1 · 단추 보임 {r[2]} {r[4:]}")
+        n_room = r[5]
         await E("()=>document.querySelector('#paper [data-pp=room]').click()"); await pg.wait_for_timeout(900)
         r = await E("()=>[document.getElementById('paper').classList.contains('ppRoom'), document.querySelectorAll('#ppWrap .pp').length, (JSON.parse(localStorage.getItem('hyeng_paper'))||{}).room, (document.querySelector('#paper .ppRm')||{}).textContent, Math.round(document.querySelector('#ppWrap .kjStrip').getBoundingClientRect().height/(96/25.4))]")
         ok((not r[0]) and r[1] < n_room and r[2] is False and "꺼짐" in r[3] and r[4] == 9, f"⑤ 끄면 예전 촘촘한 모양(줄 9mm) · 쪽 수 줄어듦({n_room} → {r[1]}) · 기억 {r}")
         await E("()=>document.querySelector('#paper [data-pp=room]').click()"); await pg.wait_for_timeout(600)
-        await kj("ks", S["g34"], 0, 2, 1)
-        r = await E("""()=>{ const B=[...document.querySelectorAll('#ppWrap .kjB.s')].map(b=>[(b.querySelector('.kjT')||{textContent:''}).textContent.length, b.querySelectorAll('.kjS > .kjStrip').length]);
-          return [B.filter(x=>x[0]>30).every(x=>x[1]===3), B.filter(x=>x[0]>0 && x[0]<=30).every(x=>x[1]===2), B.slice(0,6), B.every(x=>x[0]>0)]; }""")
-        ok(r[0] and r[1] and r[3], f"⑤ 문장 따라쓰기 G3-4: 30자 넘는 문장 = 흐린 줄 + 쓰는 줄 2 · 짧은 문장 = 흐린 줄 + 1 {r[2]}")
         await E("()=>{ Paper.close(); Paper.open({mode:'test'}); }"); await pg.wait_for_timeout(1200)
         await E("(s)=>{ const $=id=>document.getElementById(id), S=$('ppSet'); S.value=s; S.dispatchEvent(new Event('change',{bubbles:true})); $('ppFrom').value=0; $('ppTo').value=2; $('ppN').value='30'; document.querySelectorAll('#ppTy input').forEach(i=>{ i.checked=['mean','sent','vform','vtab','wen'].indexOf(i.value)>=0; }); Paper.seed=3; Paper.make(); }", S["g56"]); await pg.wait_for_timeout(1500)
         r = await E("""()=>{ const mm=x=>Math.round(x/(96/25.4)), W=document.getElementById('ppWrap'); W.style.zoom='';
