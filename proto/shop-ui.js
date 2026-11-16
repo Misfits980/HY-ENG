@@ -97,9 +97,9 @@ const SHOPUI=(()=>{
       +(t.mode==="sell" && I.length ? '<button class="suAll" data-all>'+(t.allT||"전부 담기")+'</button>' : '')
       +'<button class="suGo'+(poor?' poor':'')+'" data-go'+(n?'':' disabled')+'>'+(t.mode==="sell" ? '💰 팔기<small>+🪙 '+sum+'</small>' : poor ? '🪙 '+(sum-c)+' 모자라요<small>바구니 🪙 '+sum+'</small>' : '🛒 사기<small>🪙 '+sum+'</small>')+'</button></div>';
     const sc=el.querySelector(".suBody"), top=sc?sc.scrollTop:0; el.innerHTML=h; const sc2=el.querySelector(".suBody"); if(sc2) sc2.scrollTop=top; fitNm(); }
-  /* (v687) 「글자 배열 체크」 — 긴 이름(strawberry seeds)이 「strawberry …」로 잘림 → 칸에 들어갈 때까지 글자만 조금 작게 (11px 까지, 그래도 길면 그때 …) */
+  /* (v687) 「글자 배열 체크」 — 긴 이름(strawberry seeds)이 「strawberry …」로 잘림 → 칸에 들어갈 때까지 글자만 조금 작게 (10px 까지, 그래도 길면 그때 …) */
   function fitNm(t){ const N=el.querySelectorAll(".suC .nm"); if(N.length && !N[0].clientWidth){ if((t|0)<30) requestAnimationFrame(()=>fitNm((t|0)+1)); return; }   /* 창이 아직 안 보이면(열리기 직전) 다음 그림 때 */
-    N.forEach(n=>{ n.style.fontSize=""; let f=14; while(n.scrollWidth>n.clientWidth+.5 && f>11){ f-=.5; n.style.fontSize=f+"px"; } }); }
+    N.forEach(n=>{ n.style.fontSize=""; let f=14; while(n.scrollWidth>n.clientWidth+.5 && f>10){ f-=.5; n.style.fontSize=f+"px"; }   /* 크롬(Windows 글꼴): watermelon seeds 는 11px 에서도 1px 넘침 → 10px 까지 */ }); }
   function say(en, ko, speak){ const s=$("suSay"); if(!s) return; s.innerHTML='<b>'+esc(en)+'</b><small>'+esc(ko||"")+'</small>'; s.classList.remove("pop"); void s.offsetWidth; s.classList.add("pop"); if(speak) try{ window.say && window.say(en); }catch(e){} }
   function fly(fromEl, emo){ try{ const a=fromEl.getBoundingClientRect(), b=($("suCoinN")||fromEl).getBoundingClientRect(); const f=document.createElement("div"); f.className="suFly"; f.textContent=emo; f.style.left=(a.left+a.width/2-13)+"px"; f.style.top=(a.top+a.height/2-13)+"px"; f.style.setProperty("--dx",(b.left-a.left-a.width/2+20)+"px"); f.style.setProperty("--dy",(b.top-a.top-a.height/2)+"px"); el.appendChild(f); setTimeout(()=>f.remove(), 750); }catch(e){} }
   function onClick(e){ if(busy) return;
