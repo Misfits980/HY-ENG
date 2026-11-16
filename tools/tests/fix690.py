@@ -111,7 +111,7 @@ async def main():
         r = await E("()=>[document.querySelectorAll('#ppWrap .pp').length, Math.round(document.querySelector('#ppWrap .kjStrip').getBoundingClientRect().height/(96/25.4)*10)/10, (JSON.parse(localStorage.getItem('hyeng_paper'))||{}).room]")
         ok(r[0] == 3 and 8.5 <= r[1] <= 9.5 and r[2] is not False, f"⑤ 단어 따라쓰기 G3-4 20단어 3번 = 예전처럼 3쪽 · 줄 9mm (다른 종이의 넉넉하게 설정은 그대로) {r}")
         await kj("ks", S["g34"], 0, 2, 1)
-        r = await E("""()=>{ const B=[...document.querySelectorAll('#ppWrap .kjB.s')].map(b=>[(b.querySelector('.kjT')||{textContent:''}).textContent.length, b.querySelectorAll('.kjS > .kjStrip').length]);
+        r = await E("""()=>{ const B=[]; document.querySelectorAll('#ppWrap .kjB.s').forEach(b=>{ const n=b.querySelectorAll('.kjS > .kjStrip').length; if(b.classList.contains('cont')){ if(B.length) B[B.length-1][1]+=n; return; } B.push([(b.querySelector('.kjT')||{textContent:''}).textContent.length, n]); });   /* (v702) 쪽 끝에서 나뉜 카드(「이어서」)는 앞 카드에 더함 */
           return [B.filter(x=>x[0]>30).every(x=>x[1]===3), B.filter(x=>x[0]>0 && x[0]<=30).every(x=>x[1]===2), B.slice(0,6), B.every(x=>x[0]>0), Math.round(document.querySelector('#ppWrap .kjStrip').getBoundingClientRect().height/(96/25.4)*10)/10, document.querySelectorAll('#ppWrap .pp').length, !!(document.querySelector('#paper .ppRm')||{}).offsetParent]; }""")
         ok(r[0] and r[1] and r[3] and 12.5 <= r[4] <= 14 and r[6], f"⑤ 문장 따라쓰기 G3-4 = 넉넉하게: 줄 13mm · 30자 넘는 문장 = 흐린 줄 + 쓰는 줄 2 · 짧은 문장 = 흐린 줄 + 1 · 단추 보임 {r[2]} {r[4:]}")
         n_room = r[5]

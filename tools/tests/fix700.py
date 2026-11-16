@@ -73,7 +73,7 @@ async def main():
         await E("()=>{ localStorage.setItem('hyeng_keep','B'); localStorage.setItem('hyeng_new','1'); }")
         await pg.goto(ORIGIN + "index.html"); await pg.wait_for_timeout(1200)
         ok(await E("()=>window.HY_QA===true && !!document.getElementById('hyQa')"), "② 주소에 qa 가 없어도 이 탭은 계속 점검 모드 (게임 안에서 넘어가도)")
-        await E("()=>document.querySelector('#hyQa button').click()"); await pg.wait_for_timeout(1800)
+        await E("()=>{ setTimeout(()=>document.querySelector('#hyQa button').click(), 30); }"); await pg.wait_for_url("**qa=0**"); await pg.wait_for_timeout(1500)   # (v702) 누르는 사이에 페이지가 바뀌어 evaluate 가 깨지던 것
         r = await E("()=>[location.search, window.HY_QA, window.HY_QA_RESTORED, localStorage.getItem('hyeng_keep'), localStorage.getItem('hyeng_new'), localStorage.getItem('hyeng_alive_qa'), localStorage.getItem('hyeng_qa_bak'), sessionStorage.getItem('hyeng_qa'), !!document.getElementById('hyQa')]")
         ok(r == ["?qa=0", False, True, "A", None, None, None, None, False], f"② 끝내기 = ?qa=0 · 이 기기 저장 되돌림(A · 새 키 지움 · 접속 표시 지움) · 배지 없음 {r}")
         # 끝내기 없이 탭을 닫으면 → 다음에 여는 탭에서 되돌림
@@ -97,7 +97,7 @@ async def main():
         await pq.goto(ORIGIN + "index.html?qa=1"); await pq.wait_for_timeout(2500)
         r = await pq.evaluate("()=>[window.HY_QA, !!document.getElementById('hyQa'), sessionStorage.getItem('hyeng_qa_rl')]")
         ok(r[0] is True and r[1] and n_idx[0] == 2 and n_g[0] == 2 and r[2] is None, f"② 예전 guard.js 가 실리면 멈추고 한 번 다시 열어 점검 모드로 (index {n_idx[0]}번 · guard {n_g[0]}번) {r}")
-        await pq.evaluate("()=>document.querySelector('#hyQa button').click()"); await pq.wait_for_timeout(1500); await pq.close()
+        await pq.evaluate("()=>{ setTimeout(()=>document.querySelector('#hyQa button').click(), 30); }"); await pq.wait_for_url("**qa=0**"); await pq.wait_for_timeout(1200); await pq.close()
         await E("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); try{ StudyUI.FAST=0; }catch(e){} ['helloMt','rkAnn','moveAsk'].forEach(i=>{ const d=document.getElementById(i); if(d) d.remove(); }); }")
 
         # ── ① ▶ 다음 할 것
@@ -201,6 +201,23 @@ async def main():
         ok(r["rows"] and r["wide"] == 0 and r["kjE"] >= r["rows"] and r["lone"] == 0, f"⑥ 「여러 개」 줄 오른쪽이 비지 않음 (혼자 써 보기 칸 {r['kjE']} · 20mm 넘게 빈 줄 {r['wide']} · 칩만 있는 줄 {r['lone']} · 칩을 뜻 밑으로 {r['posIn']})")
         ok(r["two"] < 2, f"⑥ 긴 단어 둘째 줄도 첫 줄 끝까지 (차이 {r['two']:.1f}mm)")
         ok(all(r["fill"][:-1]) and not r["fill"][-1] and all(v < 6 for v in r["free"][:-1]), f"⑥ 꽉 찬 쪽 = 남는 아래 자리를 카드 사이로 · 마지막 쪽은 그대로 {r['fill']} {r['free']}")
+        # (v701) 사용자: 「문장틀도 확인해봐 옵션들 선택 해보면서 단어랑 시험지도」
+        ttl = await E("()=>{ const s=Paper.psets().find(s=>Paper.gr(s)==='g56'), $=id=>document.getElementById(id), S=$('ppSet'); S.value=s; S.dispatchEvent(new Event('change',{bubbles:true})); $('ppFrom').value=0; $('ppTo').value=2; $('ppN').value='30'; $('ppGm').value='quiz'; Paper.make(); return document.querySelector('#ppWrap .kjHd b').textContent; }")
+        await pg.wait_for_timeout(3000)
+        r = await E("""()=>{ const W=document.getElementById('ppWrap'), q=[...W.querySelectorAll('.kjPos.q')];
+            return {bd:q.map(e=>getComputedStyle(e).borderTopStyle).filter(b=>b!=='none').length, n:q.length, inW:W.querySelectorAll('.kjW .kjPos.q.in').length, cells:W.querySelectorAll('.kjXf.fx .kjC.kjA').length, title:document.querySelector('#ppWrap .kjHd b').textContent}; }""")
+        ok(r["n"] and r["bd"] == 0 and r["cells"] > 0 and "단어 단어" not in r["title"], f"⑥ 단어 따라쓰기 「문제로 내기」: 품사 문제에 테두리 없음(학원용이 글자를 덮었음) · 답 칸이 줄 끝까지 {r['cells']} · 「품사 ___」만 있으면 뜻 밑으로 {r['inW']} · 제목 「{r['title']}」")
+        await E("()=>{ Paper.open({mode:'ks'}); }"); await pg.wait_for_timeout(1500); await E("()=>Paper.svaLoad()"); await pg.wait_for_timeout(1500)
+        await E("()=>{ const s=Paper.psets().find(s=>Paper.gr(s)==='g34'), $=id=>document.getElementById(id), S=$('ppSet'); S.value=s; S.dispatchEvent(new Event('change',{bubbles:true})); $('ppFrom').value=0; $('ppTo').value=2; $('ppN').value='30'; $('ppRep').value='5'; $('ppGm').value='off'; $('ppTr').checked=true; Paper.seed=3; Paper.make(); }")
+        await pg.wait_for_timeout(4500)
+        r = await E("""()=>{ const W=document.getElementById('ppWrap'); W.style.zoom=''; const mm=96/25.4, P=[...W.querySelectorAll('.pp.kj:not(.key)')];
+            const free=P.map(p=>{ const b=p.querySelector('.kjBody'), L=b.lastElementChild; return +((b.getBoundingClientRect().bottom-L.getBoundingClientRect().bottom)/mm).toFixed(0); });
+            const C=[...W.querySelectorAll('.kjB.cont')].map(c=>{ const prev=c.closest('.pp').previousElementSibling, pb=prev && prev.querySelector('.kjBody'), last=pb && pb.lastElementChild;
+                return [c.querySelector('.kjNo').textContent===(last && last.querySelector('.kjNo').textContent), (c.querySelector('.kjCt').textContent||'').replace(/^이어서/,'')===((last && (last.querySelector('.kjSt p')||{}).textContent)||'-'), c.querySelectorAll('.kjStrip').length>0, !c.querySelector('[data-g="0"]')]; });
+            const over=P.some(p=>{ const b=p.querySelector('.kjBody'); return b.scrollHeight>b.clientHeight+1; });
+            return {pages:P.length, free, C, over, items:W.querySelectorAll('.kjB.s:not(.cont)').length}; }""")
+        ok(r["C"] and all(all(x) for x in r["C"]) and not r["over"] and r["items"] == 30, f"⑥ 문장 따라쓰기 5번씩: 쪽 끝 카드를 「이어서」로 나눔 {len(r['C'])}번 (번호·문장이 앞 쪽 카드와 같음 · 흐린 글씨 줄은 안 넘어감) · 30문장 · 넘침 없음")
+        ok(r["pages"] <= 24 and max(r["free"][:-1]) < 45, f"⑥ 문장 따라쓰기 5번씩 넉넉하게 {r['pages']}쪽 (전 28쪽) · 중간 쪽 아래 남는 자리 {r['free'][:-1]}mm")
 
         # ── ④ My Town 밤 「Good night!」 한 번
         await pg.unroute("**/*"); await pg.route("**/*", fake)
