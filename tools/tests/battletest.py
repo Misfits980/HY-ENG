@@ -39,7 +39,7 @@ async def main():
         await host.screenshot(path=OUT+"bt_host_end.png"); await kids[0].screenshot(path=OUT+"bt_kid_end.png")
         if not all(r[0] for r in res): bad.append("안 끝난 아이")
         g={r[2]:r[3] for r in res}
-        if g.get(1)!=5 or g.get(2)!=3 or g.get(3)!=2: bad.append(f"순위 보석 {g}")
+        if g.get(1)!=5 or g.get(2)!=4 or g.get(3)!=4: bad.append(f"순위 보석 (v698 모두 3 + 1등 +2 · 2·3등 +1) {g}")
         print("errs", errs[:5]); await br.close()
     print("결과:", "통과 ✅" if not bad and not errs else "실패 ❌"); [print(" BAD", b) for b in bad]
     if bad or errs: sys.exit(1)

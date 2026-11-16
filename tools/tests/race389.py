@@ -70,8 +70,8 @@ async def main():
         await T.evaluate("()=>Battle.hostAct('end')"); await T.wait_for_timeout(5200)
         r = [await k.evaluate("()=>[!!G.race, G.running, document.getElementById('scOver').classList.contains('on'), Battle.ended, Battle._gems, Battle._win]") for k in K]
         win = "r" if exp["r"] / cnt["r"] > exp["b"] / cnt["b"] else "b"
-        expg = [4 if tm[nm] == win else 2 for nm in ["민준", "서연", "지호", "하린"]]
-        ok(all(x[:4] == [False, False, False, True] for x in r) and [x[4] for x in r] == expg, f"끝 → 러너도 끝 · 결과 화면 X · 이긴 팀 💎4 진 팀 💎2 {r} 기대 {expg}")
+        expg = [4 if tm[nm] == win else 3 for nm in ["민준", "서연", "지호", "하린"]]
+        ok(all(x[:4] == [False, False, False, True] for x in r) and [x[4] for x in r] == expg, f"끝 → 러너도 끝 · 결과 화면 X · 이긴 팀 💎4 진 팀 💎3 (v698) {r} 기대 {expg}")
         r = await K[0].evaluate("()=>[document.getElementById('rdIn').innerText, document.querySelectorAll('#rdIn .rrBar').length]")
         ok(("승리" in r[0] or "잘 달렸어요" in r[0]) and r[1] == 1, f"아이 끝 화면: 팀 결과 · 막대 {r[0][:60]!r}")
         r = await T.evaluate("()=>[document.querySelector('#rdIn .btWin') && document.querySelector('#rdIn .btWin').innerText, document.querySelectorAll('#rdIn .btPodium .btP').length]")

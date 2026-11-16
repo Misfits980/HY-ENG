@@ -18,6 +18,7 @@
      '마을 현황' 탭 = 아이 한 줄(태그, 없으면 👤 뗀 이름) — 판 기록이 올 때마다 보석·모은 보석·마을 돈을 고쳐 씀 · 관리 화면 「📋 우리 반」에도 (report.town)
    - (v667 · 서버 v23) 🔥 오늘의 대결 — GET board=1 답에 today(오늘 올린 점수 순위 · 오늘의 상) · me.today · fresh=1 이면 새로 셈
      📊 선생님 랭킹 통계 — POST type:"report" 답의 rk (이번 주 · 지난주 · 이번 달 · 지난달: 하루 1등 · 주 1등 · 한 날 · 푼 문제)
+   - (v698 · 서버 v25) 🤝 짝 퀘스트 — 월요일마다 지난 2주 오늘의 30 을 한 아이들을 둘씩 짝(홀수면 마지막은 셋) · 이번 주 둘이 끝낸 Stage 합(마을 칸 · 하루에 같은 칸은 1) · 정해진 응원 말 3개(「짝 응원」 탭)
    - (v690 · 서버 v24) 🏡 My Town 잠금(오늘의 30 Stage 3개)을 기기끼리 합쳐 셈 — scores 맨 끝 「마을 칸」 · GET board=1 답 me.tw(수) · me.twk(이름들) · me.twd(날)
    붙여 넣은 뒤 반드시: 배포 → 배포 관리 → ✏️수정 → 버전 "새 버전" → 배포
    (새 배포를 만들면 주소가 바뀌어 게임이 못 찾는다)
@@ -76,7 +77,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 24;  // (v690) 24 = 🏡 My Town 「Stage 3개」를 기기끼리 합쳐 셈(scores 끝 「마을 칸」 · board 답 me.tw) · (v667) 23 = 🔥 오늘의 대결(board.today: 오늘 올린 점수 순위 · 오늘의 상 · me.today) · 선생님 📊 랭킹 통계(report.rk: 이번 주·지난주·이번 달·지난달 — 하루 1등 · 주 1등 · 한 날 · 푼 문제) · board fresh=1 · (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 25;  // (v698) 25 = 🤝 짝 퀘스트(board 답 me.pq · POST type "cheer" · 「짝 응원」 탭) · (v690) 24 = 🏡 My Town 「Stage 3개」를 기기끼리 합쳐 셈(scores 끝 「마을 칸」 · board 답 me.tw) · (v667) 23 = 🔥 오늘의 대결(board.today: 오늘 올린 점수 순위 · 오늘의 상 · me.today) · 선생님 📊 랭킹 통계(report.rk: 이번 주·지난주·이번 달·지난달 — 하루 1등 · 주 1등 · 한 날 · 푼 문제) · board fresh=1 · (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -119,7 +120,8 @@ function doPost(e){
   if (d.type === "name") return nameLog_(d);                         // (v225) 이름 바꾼 기록
   if (d.type === "tag") return tagFor_(d);                           // (v404) 🏷 이 기기의 태그 (없으면 새로)
   if (d.type === "use") return useLog_(d);                           // (v654) 🎮 모드별 사용 시간 (아이·날마다 한 줄)
-  if (d.type === "mt") return mtLog_(d);                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
+  if (d.type === "mt") return mtLog_(d);
+  if (d.type === "cheer") return cheer_(d);                          // (v698) 🤝 짝 응원                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
   if (["duelFriends","duelSend","duelBox","duelDone"].indexOf(d.type) >= 0) return duel_(d);   // (v636) ⚔️ 스테이지 도전장
   if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
@@ -451,6 +453,51 @@ function weekList_(sh, last, k, n, dev, ws0){
   const mine = {}; if (dev) rows.forEach(r=>{ if (String(r[C.dev]) === dev) mine[P.id(r)] = 1; });
   return L.slice(0, n).map(b=>({nick:b.nick, tag:b.tag, ch:b.ch || "", score:b.score, stage:b.n, title:"", me:!!mine[b.id]}));
 }
+/* (v698 · 서버 v25) 🤝 짝 퀘스트 — 사용자: 연구 제안 ⑤ 「둘이 합쳐 이번 주 Stage 15개」(Duolingo Friends Quest · 경쟁 + 협력)
+   짝 = 이번 주 월요일 전 14일 동안 오늘의 30 을 한 아이(선생님·숨김·공용 패드 이름 빼고) → 주마다 섞어 둘씩 (주 안에서는 안 바뀜 · 홀수면 마지막 짝이 셋)
+   Stage 수 = 이번 주 공부 줄의 마을 칸(tw · v690) — 같은 날 같은 칸은 1 · 목표 둘 15 · 셋 22 */
+const PQ_GOAL = {2:15, 3:22};
+const PQ_MSG = ["같이 하자! 💪", "거의 다 왔어! 🔥", "고마워! 😊"];
+const PQ_SHEET = "짝 응원", PQ_COLS = [["at","보낸 때"], ["ws","주"], ["from","보낸 아이"], ["nick","이름"], ["to","받는 아이"], ["m","응원"]];
+function hash_(s){ let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }
+function pqBad_(nk){ return !nk || nk === "PLAYER" || /^한양|패드$/.test(nk); }
+function pairs_(rows, P, now, ws){
+  const act = {}, nick = {}, cnt = {}, seen = {};
+  rows.forEach(r=>{ if (String(r[C.diff]) !== "study" || P.hide(r)) return; const t = time_(r[C.date]); if (!t) return;
+    const nk = plain_(r[C.nick]), id = P.id(r); if (pqBad_(nk) || !id || id === "#0000") return;
+    if (t >= ws - 14 * 864e5 && t < ws) act[id] = 1;
+    nick[id] = nk;   // 줄은 시간 순 = 마지막 이름
+    if (t >= ws){ const tw = String(r[C.tw] || ""); if (tw){ const k = id + "|" + ymdK_(t) + "|" + tw; if (!seen[k]){ seen[k] = 1; cnt[id] = (cnt[id] || 0) + 1; } } } });
+  const ids = Object.keys(act).sort((a, b)=>hash_(ws + a) - hash_(ws + b) || (a < b ? -1 : 1)), G = [];
+  for (let i = 0; i + 1 < ids.length; i += 2) G.push([ids[i], ids[i + 1]]);
+  if (ids.length % 2 && G.length) G[G.length - 1].push(ids[ids.length - 1]);
+  const by = {}; G.forEach((g, gi)=>g.forEach(id=>{ by[id] = gi; }));
+  return {ws, G:G.map(g=>g.map(id=>({id, n:nick[id] || String(id).replace(/^#/, ""), c:cnt[id] || 0}))), by};
+}
+function pqSheet_(){ const ss = SpreadsheetApp.openById(SHEET_ID); let sh = ss.getSheetByName(PQ_SHEET);
+  if (!sh){ sh = ss.insertSheet(PQ_SHEET); sh.getRange(1, 1, 1, PQ_COLS.length).setValues([PQ_COLS.map(c=>c[1])]); sh.setFrozenRows(1); } return sh; }
+/* 이번 주 응원 → 받는 아이마다 최근 5개 [보낸 이름, 말 번호, 때] */
+function pqCheers_(ws){ const ss = SpreadsheetApp.openById(SHEET_ID), sh = ss.getSheetByName(PQ_SHEET); if (!sh) return {}; const last = sh.getLastRow(); if (last < 2) return {};
+  const n = Math.min(last - 1, 600), R = sh.getRange(last - n + 1, 1, n, PQ_COLS.length).getValues(), out = {};
+  R.forEach(r=>{ if (Number(r[1]) !== ws) return; String(r[4] || "").split(",").forEach(to=>{ if (!to) return; (out[to] = out[to] || []).push([String(r[3] || ""), Number(r[5]) || 0, Number(r[0]) || 0]); }); });
+  Object.keys(out).forEach(k=>{ out[k] = out[k].slice(-5); }); return out; }
+/* POST {type:"cheer", tag, nick, m} — 내 짝에게 정해진 응원 하나 (하루 3번까지) */
+function cheer_(d){
+  const tg = tag_(d.tag), me = tg ? "#" + tg : plain_(txt_(d.nick, 20)).toUpperCase(), m = Math.max(0, Math.min(PQ_MSG.length - 1, Number(d.m) || 0));
+  if (!me || me === "PLAYER") return json_({ok:false, err:"who"});
+  const sh = sheet_(), last = sh.getLastRow(); if (last < 2) return json_({ok:false, err:"nopair"});
+  const rows = sh.getRange(2, 1, last - 1, COLS.length).getValues(), P = people_(rows), now = Date.now(), ws = weekStart_(), Q = pairs_(rows, P, now, ws), gi = Q.by[me];
+  if (gi === undefined) return json_({ok:false, err:"nopair"});
+  const g = Q.G[gi], mine = g.find(x=>x.id === me), to = g.filter(x=>x.id !== me).map(x=>x.id).join(",");
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(10000); const P2 = pqSheet_(), l2 = P2.getLastRow(), day = ymdK_(now);
+    if (l2 >= 2){ const n = Math.min(l2 - 1, 300), R = P2.getRange(l2 - n + 1, 1, n, PQ_COLS.length).getValues();
+      if (R.filter(r=>String(r[2]) === me && ymdK_(Number(r[0])) === day).length >= 3) return json_({ok:false, err:"max"}); }
+    P2.appendRow([now, ws, me, mine ? mine.n : "", to, m]);
+  } catch(e){ return json_({ok:false, err:"busy"}); } finally { try { lock.releaseLock(); } catch(_){} }
+  try { CacheService.getScriptCache().remove("board_v5"); } catch(e){}
+  return json_({ok:true, v:SERVER_V});
+}
 /* (v601) 🔥 실시간 랭킹 — 게임 첫 화면 「실시간 검색어」. 셋 다 10등까지 + 어제(24시간 전)보다 몇 칸 올랐나(mv) · 1분 동안 같은 답(시트 부담 줄이기) */
 /* (v690 · 서버 v24) 🏡 My Town 잠금 = 오늘의 30 Stage 3개 — 아이가 학원 공용 패드에서 한 것도 집 기기에서 세게.
    오늘(한국 날짜) 공부 줄의 「마을 칸」(tw = 게임이 센 Stage·단계 이름 — 통과한 Stage · 끝낸 복습에만 붙음) 서로 다른 것의 수. 아이 = people_ 의 id(태그, 없으면 이름) · 이름으로도 한 벌(@이름) */
@@ -475,6 +522,7 @@ function board_(p){
       try { Hf = full.hof = hof_(rows, P, A, now, ws); } catch(eh){ full.hof = {err:String(eh).slice(0, 80)}; }   // (v618) 🏛 명예의 전당
       try { full.td = today_(rows, P, A, Hf, now, ws); } catch(et){ full.td = {key:ymdK_(now), L:[], aw:{}, err:String(et).slice(0, 80)}; }   // (v667) 🔥 오늘의 대결
       try { full.lg = lgHist_(rows, P, ws); } catch(el){ full.lg = {}; }   // (v635) 🏅 지난주 나 넘기
+      try { full.pq = pairs_(rows, P, now, ws); full.pqc = pqCheers_(ws); } catch(epq){ full.pq = null; }   // (v698) 🤝 짝 퀘스트
       try { full.tw = townDay_(rows, P, now); full.twd = ymdK_(now); } catch(etw){ full.tw = {}; }   // (v690) 🏡 오늘 서로 다른 Stage 칸 수 (아이마다) · twd = 센 날(한국) — 자정 넘어 1분 남은 옛 답을 게임이 안 쓰게
     }
     try { if (cache) cache.put("board_v5", JSON.stringify(full), 60); } catch(e){ try { const f2 = JSON.parse(JSON.stringify(full)); Object.keys(f2.L).forEach(k=>f2.L[k].forEach(b=>{ delete b.ent; })); cache.put("board_v5", JSON.stringify(f2), 60); } catch(e2){} }
@@ -492,6 +540,9 @@ function board_(p){
     res.today = {key:T.key, of:L.length, list:L.slice(0, 30).map(pt), aw:T.aw || {}};
     const i = me ? L.findIndex(b=>b.id === me || (!tg && String(b.nick).toUpperCase() === me)) : -1;
     if (i >= 0) res.me.today = Object.assign(pt(L[i]), {rank:i + 1, of:L.length, above:i > 0 ? {nick:L[i - 1].nick, score:L[i - 1].score} : null, below:i < L.length - 1 ? {nick:L[i + 1].nick, score:L[i + 1].score} : null}); }
+  /* (v698) 🤝 짝 퀘스트 — 내 짝(들) · 이번 주 Stage 수 · 목표 · 나에게 온 응원 */
+  if (me && full.pq && full.pq.by && full.pq.by[me] !== undefined){ const g = full.pq.G[full.pq.by[me]], sum = g.reduce((a, x)=>a + x.c, 0);
+    res.me.pq = {ws:full.pq.ws, goal:PQ_GOAL[g.length] || 15, sum, mem:g.map(x=>({n:x.n, c:x.c, me:x.id === me ? 1 : 0})), ch:(full.pqc || {})[me] || []}; }
   /* (v690) 🏡 My Town 잠금 — 오늘 끝까지 푼 서로 다른 Stage 칸 수 (학원 패드·집 폰 합침) */
   if (me && full.tw){ const K = (tg ? full.tw[me] : full.tw["@" + me]) || [];   // 공용 패드(태그 없음) = 이름 한 벌(@이름: 집 기기 줄도 같은 이름이면 들어감)
     if (K.length){ res.me.tw = K.length; res.me.twk = K; res.me.twd = full.twd || ""; } }   // tw = 수 · twk = 이름들 · twd = 센 날

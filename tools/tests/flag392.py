@@ -48,7 +48,7 @@ async def main():
         await host.wait_for_timeout(3500)
         r=await host.evaluate("()=>!!document.getElementById('frun')"); ok(r is False, "끝나면 TV 무대 닫고 결과")
         res=[await k.evaluate("()=>[Battle.ended, Battle._win, Battle._gems, !!document.getElementById('frun')]") for k in kids]; print("res", res)
-        ok([x[1] for x in res]==[True,True,False,False] and [x[2] for x in res]==[4,4,2,2] and not any(x[3] for x in res), f"보석 우승 반 4 · 나머지 2 · 무대 닫힘 {res}")
+        ok([x[1] for x in res]==[True,True,False,False] and [x[2] for x in res]==[4,4,3,3] and not any(x[3] for x in res), f"보석 우승 반 4 · 나머지 3 (v698) · 무대 닫힘 {res}")
         await host.screenshot(path=OUT+"flag392_end.png")
         # (v393) QA: 「한 판 더」 → 다시 시작하면 TV·아이 모두 무대가 다시 열림 · 보내기 탭
         await host.evaluate("()=>Battle.hostAct('again')"); await host.wait_for_timeout(1500)

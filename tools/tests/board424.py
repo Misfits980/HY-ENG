@@ -150,7 +150,7 @@ async def main():
         ok(r[0] == [3, 3, 2], f"🧠 정답왕 루아 · ⚔️ 결투왕 주호 · 🪙 부자 손님 = 별 +1씩 {r[0]}")
         txt = r[1]
         ok("주호 우승" in txt, f"별 같으면 🪙 많은 사람이 우승 (주호 ⭐3 🪙9 > 루아 ⭐3 🪙4) {txt[:60]!r}")
-        ok("손님" in txt and "연습" in txt and "💎 +10" in txt and "💎 +7" in txt, f"💎 10·7 · 직접 쓴 이름 = 연습 {txt[:200]!r}")
+        ok("손님" in txt and "연습" in txt and "💎 +10" in txt and "💎 +8" in txt, f"💎 10·8 (v698 모두 같게 + 우승 덤) · 직접 쓴 이름 = 연습 {txt[:200]!r}")
         await pg.screenshot(path=OUT + "board424_end.png")
         await pg.wait_for_timeout(600)
         g = await E("()=>FB.get('/hy/gift/k2')")

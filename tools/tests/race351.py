@@ -36,7 +36,7 @@ async def main():
         await K.wait_for_timeout(4500)
         r = await K.evaluate("()=>[Battle.ended, Battle.rank().indexOf('k1')+1, document.querySelector('.rdEndT') && document.querySelector('.rdEndT').innerText, Battle._gems]")
         print("kid end", r)
-        ok(r[0] and r[1] == 2 and "2등" in (r[2] or "") and r[3] == 3, f"끝나면 서버 점수로 — 민준 2등 · 💎3 {r}")
+        ok(r[0] and r[1] == 2 and "2등" in (r[2] or "") and r[3] == 4, f"끝나면 서버 점수로 — 민준 2등 · 💎4 (v698 모두 3 + 2·3등 +1) {r}")
         fin = await T.evaluate("()=>FB.get('/battle/7777/st').then(s=>s && s.fin && s.fin.r)")
         ok(fin == ["k2", "k1"], f"선생님 TV 가 끝 순위를 써 둠 {fin}")
         # 한 판 더 → fin 지워짐 · 아이 화면 새 판

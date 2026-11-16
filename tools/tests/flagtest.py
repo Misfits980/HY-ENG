@@ -64,7 +64,7 @@ async def main():
         await host.screenshot(path=OUT+"flag_host_end.png"); await kids[0].screenshot(path=OUT+"flag_kid_end.png")
         if st[0]!="end" or st[1]!="ta": bad.append(f"사자반 우승 {st}")
         if st[2][0][1] < 6: bad.append(f"목표 전에 끝 {st}")
-        if [r[2] for r in res]!=[(g if r[3]>0 else 0) for g,r in zip([4,4,2,2],res)] or [r[1] for r in res]!=[True,True,False,False]: bad.append(f"보석 (맞힌 게 있으면 우승 4 · 나머지 2) {res}")
+        if [r[2] for r in res]!=[(g if r[3]>0 else 0) for g,r in zip([4,4,3,3],res)] or [r[1] for r in res]!=[True,True,False,False]: bad.append(f"보석 (맞힌 게 있으면 우승 4 · 나머지 3 · v698) {res}")
         if not await host.evaluate("()=>!!document.querySelector('.btWin')"): bad.append("TV 우승 글자")
         print("errs", errs[:5]); await br.close()
     print("결과:", "통과 ✅" if not bad and not errs else "실패 ❌"); [print(" BAD", b) for b in bad]

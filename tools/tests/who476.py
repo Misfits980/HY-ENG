@@ -34,7 +34,8 @@ async def main():
         await E(SETUP)
         await E("""()=>{ const W=Wallet.raw(); W.log=(W.log||[]).concat([[Date.now(), 30, '🎁 수업 보석 (공용 패드)', 30],[Date.now(), 20, '🎁 수업 보석 (레이드)', 50]]); }""")
         await E("()=>FB.set('/hy/acct/k1', {dev:Online.dev(), n:'박유범', at:1, d:'{}'})")
-        r = await E("async ()=>{ const k=Kid.setTeacher(true); await new Promise(r=>setTimeout(r,500)); const a=await FB.get('/hy/acct/k1'); return [k && k.n, localStorage.getItem('hyeng_kid'), a, document.getElementById('hyToast') ? document.getElementById('hyToast').innerText : (document.querySelector('.hyToast')||{}).innerText, JSON.parse(localStorage.getItem('hyeng_unhook')||'{}').g]; }")
+        # (v698) ①② 의 Kid.bind 가 300ms 마다 me() 를 다시 불러(가짜 명단이라 계속) ③ 준비를 지우던 시험 경쟁 (v692 에서도 가끔 실패) → 같은 순간에 다시 놓고 바로 부름
+        r = await E("async ()=>{ localStorage.removeItem('hyeng_me'); localStorage.setItem('hyeng_kid', JSON.stringify({id:'k1', n:'박유범', t:'a', pk:Date.now()})); const k=Kid.setTeacher(true); await new Promise(r=>setTimeout(r,500)); const a=await FB.get('/hy/acct/k1'); return [k && k.n, localStorage.getItem('hyeng_kid'), a, document.getElementById('hyToast') ? document.getElementById('hyToast').innerText : (document.querySelector('.hyToast')||{}).innerText, JSON.parse(localStorage.getItem('hyeng_unhook')||'{}').g]; }")
         ok(r[0] == "박유범" and r[1] is None and r[2] is None, f"③ 선생님 기기로 → 박유범 연결 풀림 · 이 기기가 올린 박유범 ☁️ 백업 지움 {r[:3]}")
         ok(r[4] == 50 or (r[4] or 0) >= 50, f"③ 그 이름으로 받은 수업 보석 합계 안내 💎 {r[4]} · 「{r[3]}」")
         r = await E("()=>{ const m=Kid.me(); return [m.n, m.teacher, m.id.slice(0,1), Cloud.who()]; }")

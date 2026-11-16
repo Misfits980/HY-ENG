@@ -56,7 +56,7 @@ async def main():
               const s0=Battle.sc; Battle.answer(q.ans!=null?q.ans:q.opts.findIndex(o=>o.en===q.w.en)); Battle.dbl=d0; return Battle.sc-s0; };
             out.base=go(false,false,false); out.fast=go(false,false,true); out.dbl=go(false,true,false); out.zap=go(true,false,false); return out; }""")
         b = r["base"]
-        ok(r["fast"] == b + 3 and r["dbl"] == b * 2 and r["zap"] == b * 3, f"빠름 +3 · 2배 · 번개 3배 {r}")
+        ok(r["fast"] == b + 1 and r["dbl"] == b * 2 and r["zap"] == b * 3, f"빠름 +1 (v698 속도 비중 줄임) · 2배 · 번개 3배 {r}")
         # (v384) 번개 문제 간격 = 순위 (위 7 · 가운데 6 · 아래 5 · 맨 끝이고 많이 뒤지면 4) · 처음 4문제는 없음
         r = await K[0].evaluate("""()=>{ const P=Battle.T().p||{}, ks=Object.keys(P), me=Battle.me, sv=Battle.sc, out={};
             const cnt=(mySc, others)=>{ Battle._poll=null; const fake={}; ks.forEach((k,i)=>{ fake[k]=Object.assign({}, P[k], {sc: k===me ? mySc : others[i%others.length]}); }); const t0=Battle.T; Battle.T=()=>Object.assign({}, t0.call(Battle), {p:fake}); Battle.sc=mySc;
