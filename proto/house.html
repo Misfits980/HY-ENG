@@ -751,11 +751,12 @@ const TOON = (()=>{
   const T={on:!off, edge:!off && (q.get("edge")==="1" || (!LOW && q.get("edge")!=="0" && PLV()<1)), n:0, rt:null, post:null};
   T.mat=function(m){ if(!T.on || !m || !m.isMeshStandardMaterial || m.userData.toon) return; m.userData.toon=1;
     m.onBeforeCompile=(s)=>{ s.uniforms.uLit=U.uLit; s.uniforms.uSunC=U.uSunC; s.uniforms.uNear=U.uNear;
-      /* (v687) 사용자 「의견도 잘 만져 봐」 — 벚나무·다리 입구 기둥이 카메라 바로 앞에서 화면 절반을 가림 → 카메라에서 uNear 안쪽 + 땅 위(높이 .35 넘게)는 바둑무늬로 비움 (땅·길은 그대로) */
+      /* (v687) 사용자 「의견도 잘 만져 봐」 — 벚나무·다리 입구 기둥이 카메라 바로 앞에서 화면 절반을 가림 → 카메라에서 uNear 안쪽 + 땅 위(높이 .35 넘게)는 바둑무늬로 비움 (땅·길은 그대로)
+         (v694) ⚠ 고침: 깊이 부호가 거꾸로(-vViewPosition.z)라 섬의 모든 물건이 높이 .35 위로 잘려 보였음(나무 = 컵 · 목표판·간판 사라짐). vViewPosition.z = 카메라에서의 깊이(+) */
       s.vertexShader=s.vertexShader.replace("#include <common>", "#include <common>\nvarying float vWY;").replace("#include <project_vertex>", "#include <project_vertex>\n{ vec4 wq=vec4(transformed,1.);\n#ifdef USE_INSTANCING\n wq=instanceMatrix*wq;\n#endif\n vWY=(modelMatrix*wq).y; }");
       s.fragmentShader=s.fragmentShader
         .replace("#include <common>", "#include <common>\nuniform float uLit; uniform vec3 uSunC; uniform float uNear; varying float vWY;")
-        .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif(uNear>0. && vWY>.35){ float t=clamp(-vViewPosition.z-uNear+1.,0.,1.); if(t<1.){ float h=fract(52.9829189*fract(dot(gl_FragCoord.xy, vec2(.06711056,.00583715)))); if(h>t*.85) discard; } }")
+        .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif(uNear>0. && vWY>.35){ float t=clamp(vViewPosition.z-uNear+1.,0.,1.); if(t<1.){ float h=fract(52.9829189*fract(dot(gl_FragCoord.xy, vec2(.06711056,.00583715)))); if(h>.25+t*.75) discard; } }")
         .replace("#include <color_fragment>", "#include <color_fragment>\n{ float g=dot(diffuseColor.rgb, vec3(.2126,.7152,.0722)); diffuseColor.rgb=clamp(mix(vec3(g), diffuseColor.rgb, 1.18),0.,1.); }")
         .replace("#include <lights_fragment_end>", `#include <lights_fragment_end>
 { vec3 lc = reflectedLight.directDiffuse / max(material.diffuseColor, vec3(1e-3));
@@ -765,7 +766,7 @@ const TOON = (()=>{
   float tq = smoothstep(.2, .27, nl);
   reflectedLight.directDiffuse = material.diffuseColor * lcol * uLit * mix(.36, 1., tq);
   reflectedLight.directSpecular *= .25; }`); };
-    m.customProgramCacheKey=()=>"toon687"; m.needsUpdate=true; };
+    m.customProgramCacheKey=()=>"toon694"; m.needsUpdate=true; };
   T.near=function(v){ if(U.uNear.value!==v) U.uNear.value=v; }; T.nearV=()=>U.uNear.value;
   T.scan=function(root){ if(!T.on) return; (root||scene).traverse(o=>{ if(!o.isMesh || !o.material) return; if(Array.isArray(o.material)) o.material.forEach(T.mat); else T.mat(o.material); }); };
   T.light=function(){ U.uLit.value=Math.max(.05, sun.intensity); U.uSunC.value.copy(sun.color); };
