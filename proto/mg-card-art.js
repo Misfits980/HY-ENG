@@ -226,7 +226,7 @@ function css(){ if(document.getElementById("cpCss")) return; const st=document.c
 .cpMenu .bb .big{grid-column:1/-1;background:linear-gradient(#8ff0a3,#4fcf6c);font-size:22px;padding:12px}
 .cpMenu .bb .co{background:linear-gradient(#9fd8ff,#56b0ff)}
 .cpMenu .bb .new:after{content:"처음이면 여기!";position:absolute;top:-10px;right:-6px;background:#ff5a5f;color:#fff;border:2px solid var(--ink);border-radius:9px;font-size:11px;padding:0 6px;transform:rotate(6deg);animation:cpGlow 1s infinite}
-.cpMenu .df{display:flex;justify-content:center;gap:6px;margin:8px 0 2px}.cpMenu .df button{border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.1);color:#fff;border-radius:99px;padding:5px 12px;font-size:14px}.cpMenu .df button.on{background:#ffe14d;color:var(--ink);border-color:var(--ink)}
+.cpMenu .df{display:flex;justify-content:center;gap:6px;margin:8px 0 2px}.cpMenu .df button{border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.1);color:#fff;border-radius:99px;padding:5px 14px;font-size:14px;min-height:40px}   /* (v687) 글자·위치 점검: 92×30 → 아이 손가락엔 작음 */.cpMenu .df button.on{background:#ffe14d;color:var(--ink);border-color:var(--ink)}
 .cpMenu .bt2{display:flex;gap:8px;margin-top:10px}.cpMenu .bt2 button{flex:1;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;border-radius:14px;padding:8px;font-size:15px}
 .cpMenu h4{margin:0 0 8px;font-size:22px;font-weight:400;text-align:center}
 .cpMenu .ml{display:flex;flex-direction:column;gap:7px}

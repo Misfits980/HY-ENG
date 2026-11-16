@@ -74,6 +74,9 @@ body.isleOn .tl:not(.far)::after{content:"";position:absolute;left:50%;bottom:-9
 body.isleOn .tl.far{opacity:.78;scale:.78;pointer-events:auto;font-size:0;gap:0;padding:3px;background:rgba(255,253,247,.9)}
 body.isleOn .tl.far i{font-size:17px}
 body.isleOn .tl.far::after{display:none}
+/* (v687) 화면 밖 안내(.edge): 위 꼬리 규칙이 「➜」 화살표 규칙을 이겨서 화살표 대신 초록 꼬리가 이름표 글자(「같이 낚시」의 「같」) 위에 그려졌음 → 이름표 바깥에 동그란 화살표 · 👇 손가락은 숨김 (가리킬 곳이 화면 밖) */
+body.isleOn .tl.edge:not(.far)::after{content:"➜";left:50%;top:50%;bottom:auto;width:26px;height:26px;margin:-16px 0 0 -16px;display:grid;place-items:center;background:#fffdf7;border:3px solid #3b2433;border-radius:50%;color:#2f8a2a;font-size:19px;font-weight:900;line-height:1;text-shadow:none;box-shadow:0 2px 0 #3b2433;transform:rotate(var(--ea)) translateX(var(--er,46px));pointer-events:none}
+body.isleOn .tl.edge::before{display:none}
 body.isleOn .tl.far.sg:not(.hot),body.isleOn .tl.far.dc:not(.hot),body.isleOn .tl.hudx{display:none}
 /* 잡았다! 보상 카드 */
 body.isleOn #quiz .box{border:3px solid #3b2433;box-shadow:0 6px 0 #3b2433;border-radius:26px;padding-top:30px}

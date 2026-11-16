@@ -28,6 +28,7 @@ html,body{margin:0;height:100%;background:#8fd3f0;color:var(--ink);font-family:v
 /* (v577) 사용자 사진: 아이폰 홈 화면 앱 맨 아래 파란 띠 — iOS 26 홈 화면 앱은 화면 고정 칸이 아래로 짧게 잡힘(index.html v293 과 같은 버그)
    → 캔버스를 기기 화면 높이(--appH)까지 · 아래에 붙는 창(아래 단추 줄·시트·대화)은 모자란 만큼(--gapB) 더 내려 붙임 */
 html,body{min-height:var(--appH,100%)}
+body{word-break:keep-all;overflow-wrap:break-word}   /* (v687) 사용자: 「글자 배열 체크」 — 한글이 낱자 중간에서 줄이 바뀜(「멀/면」 「돌아가/요」) → 띄어쓰기에서만 줄바꿈 (너무 길면 그때만 끊음) */
 button{font-family:inherit}
 :focus-visible{outline:3px solid var(--sky);outline-offset:2px}
 
@@ -178,6 +179,9 @@ button{font-family:inherit}
 .slot u{position:absolute;left:6px;right:6px;top:5px;height:5px;border-radius:3px;background:var(--paper2);overflow:hidden;text-decoration:none}
 .slot u::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--f);background:linear-gradient(90deg,#ff8a7a,#f2b33d,#5db95a)}
 .slot s.mini{position:absolute;left:4px;bottom:3px;font-size:15px;text-decoration:none}
+.slot i.pk{position:relative;display:grid;place-items:center;width:62%;height:72%;border-radius:5px 5px 10px 10px;background:linear-gradient(#f7e2b5,#e9c88a);border:2px solid #b9884f;font-size:clamp(16px,5vw,24px)!important}   /* (v687) 가방 씨앗이 모두 🌰 로 같아 보이던 것 → 가게처럼 작물 그림 씨앗 봉투 */
+.slot i.pk::before{content:"";position:absolute;top:-2px;left:16%;right:16%;height:6px;background:repeating-linear-gradient(90deg,#b9884f 0 3px,transparent 3px 6px);border-radius:2px}
+.slot i.pk::after{content:"🌱";position:absolute;right:-9px;bottom:-7px;font-size:13px}
 .slot.on{border-color:var(--leaf);box-shadow:0 0 0 3px rgba(93,185,90,.45),0 3px 0 var(--leafD);transform:translateY(-3px)}
 .slot.empty{cursor:default;background:transparent;border:2px dashed var(--line);box-shadow:none}
 .slot.c-fish{background:linear-gradient(180deg,#eaf6ff,#fffdf7)} .slot.c-food{background:linear-gradient(180deg,#fff0de,#fffdf7)}
@@ -313,7 +317,7 @@ button{font-family:inherit}
 .tl:active{transform:translate(-50%,calc(-100% - 6px))}
 .tl{transition:opacity .25s, scale .25s}.tl.far{opacity:0;scale:.6;pointer-events:none}.tl.hot.far{opacity:1;scale:1;pointer-events:auto}
 .dk.hot{animation:tlHop 1s ease-in-out infinite;box-shadow:0 0 0 3px #7dff7a,0 0 14px #7dff7a;border-radius:16px}
-.tl.edge::after{content:"➜";position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;display:grid;place-items:center;font-size:20px;color:#2f8a2a;transform:rotate(var(--ea)) translateX(46px);text-shadow:0 1px 0 #fff;pointer-events:none}
+.tl.edge::after{content:"➜";position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;display:grid;place-items:center;font-size:20px;color:#2f8a2a;transform:rotate(var(--ea)) translateX(var(--er,46px));text-shadow:0 1px 0 #fff;pointer-events:none}
 .tl.hot{border-color:var(--leafD);background:#eaffdf;color:var(--leafD);animation:tlHop 1s ease-in-out infinite;z-index:1}
 .tl.hot i{background:#c9efbd}
 .tl.hot::before{content:"👇";position:absolute;left:50%;top:-30px;transform:translateX(-50%);font-size:22px}
@@ -499,10 +503,10 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 /* (v473) 💬 마을 말하기 */
 #vcFeed{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));z-index:4;display:flex;flex-direction:column;align-items:center;gap:4px;width:min(64vw,340px);pointer-events:none}
 #vcBub{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
-.vcB{position:absolute;left:0;top:0;max-width:190px;background:#fff;border:3px solid #4b3527;border-radius:16px;padding:5px 11px;font-size:15px;font-weight:800;line-height:1.2;color:#2b1d12;text-align:center;word-break:break-all;box-shadow:0 3px 0 rgba(75,53,39,.25);transition:opacity .5s;margin-top:-10px}
+.vcB{position:absolute;left:0;top:0;max-width:190px;background:#fff;border:3px solid #4b3527;border-radius:16px;padding:5px 11px;font-size:15px;font-weight:800;line-height:1.2;color:#2b1d12;text-align:center;word-break:keep-all;overflow-wrap:anywhere;box-shadow:0 3px 0 rgba(75,53,39,.25);transition:opacity .5s;margin-top:-10px}
 .vcB::after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-8px;border:8px solid transparent;border-top-color:#4b3527;border-bottom:0}
 .vcB.out{opacity:0}
-#vcFeed div{background:rgba(40,30,90,.72);color:#fff;font-size:13px;line-height:1.25;padding:5px 10px;border-radius:12px;animation:vcIn .2s ease-out;word-break:break-all}
+#vcFeed div{background:rgba(40,30,90,.72);color:#fff;font-size:13px;line-height:1.25;padding:5px 10px;border-radius:12px;animation:vcIn .2s ease-out;word-break:keep-all;overflow-wrap:anywhere}
 #vcFeed b{color:#ffd23f;margin-right:4px}#vcFeed .me b{color:#9fe7ff}
 @keyframes vcIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 #vcPane{position:fixed;inset:0;z-index:30;display:none;align-items:flex-end;justify-content:center;background:rgba(40,25,10,.25)}
@@ -511,9 +515,9 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 .vcHead{display:flex;align-items:center;gap:8px}.vcHead b{font-size:17px;color:#4b3527}.vcHead span{flex:1;font-size:12px;color:#8a7055}
 #vcX{width:38px;height:38px;border-radius:12px;border:2px solid var(--line2);background:#fff;font-size:16px}
 .vcList{flex:1;min-height:90px;max-height:30vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:6px;background:#f6ecd8;border-radius:14px}
-.vcList p{margin:0;align-self:flex-start;max-width:85%;background:#fff;border:2px solid #ead9bb;border-radius:14px 14px 14px 4px;padding:5px 10px;font-size:14px;word-break:break-all}
+.vcList p{margin:0;align-self:flex-start;max-width:85%;background:#fff;border:2px solid #ead9bb;border-radius:14px 14px 14px 4px;padding:5px 10px;font-size:14px;word-break:keep-all;overflow-wrap:anywhere}
 .vcList p.me{align-self:flex-end;background:#dff4ff;border-color:#b6e2fb;border-radius:14px 14px 4px 14px}
-.vcList p small{display:block;font-size:11px;color:#8a7055;font-weight:800}.vcList .vcEmpty{align-self:center;background:none;border:0;color:#8a7055}
+.vcList p small{display:block;font-size:11px;color:#8a7055;font-weight:800}.vcList .vcEmpty{align-self:center;background:none;border:0;color:#8a7055;word-break:keep-all;text-align:center}
 .vcQuick{display:flex;flex-wrap:wrap;gap:6px;max-height:112px;overflow-y:auto}
 .vcQuick button{border:2px solid #ead9bb;background:#fff;border-radius:16px;padding:6px 10px;font-size:14px;font-weight:700;color:#4b3527;text-align:left;line-height:1.15}
 .vcQuick button small{display:block;font-size:10.5px;font-weight:600;color:#a08465}
@@ -741,12 +745,15 @@ scene.add(sun); scene.add(sun.target);
    · 테두리 = 깊이 차이로 그리는 후처리 한 번 (느린 기기 LOW 는 테두리 없이 툰 그림자만) · ?toon=0 이면 끔 */
 const TOON = (()=>{
   const q=new URLSearchParams(location.search), off=q.get("toon")==="0";
-  const U={uLit:{value:.85}, uSunC:{value:new THREE.Color(1,1,1)}};
+  const U={uLit:{value:.85}, uSunC:{value:new THREE.Color(1,1,1)}, uNear:{value:0}};   /* (v687) uNear = 카메라 바로 앞(이 깊이 안) 물건은 점점이 비침 — 섬에서만 */
   const T={on:!off, edge:!off && (q.get("edge")==="1" || (!LOW && q.get("edge")!=="0" && PLV()<1)), n:0, rt:null, post:null};
   T.mat=function(m){ if(!T.on || !m || !m.isMeshStandardMaterial || m.userData.toon) return; m.userData.toon=1;
-    m.onBeforeCompile=(s)=>{ s.uniforms.uLit=U.uLit; s.uniforms.uSunC=U.uSunC;
+    m.onBeforeCompile=(s)=>{ s.uniforms.uLit=U.uLit; s.uniforms.uSunC=U.uSunC; s.uniforms.uNear=U.uNear;
+      /* (v687) 사용자 「의견도 잘 만져 봐」 — 벚나무·다리 입구 기둥이 카메라 바로 앞에서 화면 절반을 가림 → 카메라에서 uNear 안쪽 + 땅 위(높이 .35 넘게)는 바둑무늬로 비움 (땅·길은 그대로) */
+      s.vertexShader=s.vertexShader.replace("#include <common>", "#include <common>\nvarying float vWY;").replace("#include <project_vertex>", "#include <project_vertex>\n{ vec4 wq=vec4(transformed,1.);\n#ifdef USE_INSTANCING\n wq=instanceMatrix*wq;\n#endif\n vWY=(modelMatrix*wq).y; }");
       s.fragmentShader=s.fragmentShader
-        .replace("#include <common>", "#include <common>\nuniform float uLit; uniform vec3 uSunC;")
+        .replace("#include <common>", "#include <common>\nuniform float uLit; uniform vec3 uSunC; uniform float uNear; varying float vWY;")
+        .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif(uNear>0. && vWY>.35){ float t=clamp(-vViewPosition.z-uNear+1.,0.,1.); if(t<1.){ float h=fract(52.9829189*fract(dot(gl_FragCoord.xy, vec2(.06711056,.00583715)))); if(h>t*.85) discard; } }")
         .replace("#include <color_fragment>", "#include <color_fragment>\n{ float g=dot(diffuseColor.rgb, vec3(.2126,.7152,.0722)); diffuseColor.rgb=clamp(mix(vec3(g), diffuseColor.rgb, 1.18),0.,1.); }")
         .replace("#include <lights_fragment_end>", `#include <lights_fragment_end>
 { vec3 lc = reflectedLight.directDiffuse / max(material.diffuseColor, vec3(1e-3));
@@ -756,7 +763,8 @@ const TOON = (()=>{
   float tq = smoothstep(.2, .27, nl);
   reflectedLight.directDiffuse = material.diffuseColor * lcol * uLit * mix(.36, 1., tq);
   reflectedLight.directSpecular *= .25; }`); };
-    m.customProgramCacheKey=()=>"toon520"; m.needsUpdate=true; };
+    m.customProgramCacheKey=()=>"toon687"; m.needsUpdate=true; };
+  T.near=function(v){ if(U.uNear.value!==v) U.uNear.value=v; }; T.nearV=()=>U.uNear.value;
   T.scan=function(root){ if(!T.on) return; (root||scene).traverse(o=>{ if(!o.isMesh || !o.material) return; if(Array.isArray(o.material)) o.material.forEach(T.mat); else T.mat(o.material); }); };
   T.light=function(){ U.uLit.value=Math.max(.05, sun.intensity); U.uSunC.value.copy(sun.color); };
   function mkPost(){ const sz=new THREE.Vector2(); renderer.getDrawingBufferSize(sz);
@@ -2751,6 +2759,7 @@ function vcGot(k, v, init){ if(!v || typeof v!=="object" || !v.m) return; const 
 function vlNetStart(){ if(VLN.on) return; const K=kidInfo(); VLN.on=true; VLN.path=vlNetPath(); VLN.mp=vcPath(); VLN.tree={}; VLN.seen={}; VLN.ready=false;
   if(!VLN.g){ VLN.g=new THREE.Group(); } place.g.add(VLN.g);
   NET.put(VLN.path+"/"+myCode+"/i", {n:K.n, av:av||{}, at:Date.now()}).catch(()=>{});
+  try{ VLN.sent=null; VLN.sendT=9; vlSend(0); }catch(e){}   /* (v687) 내 자리도 바로 — 첫 그림이 느린 기기(섬 첫 장면)에서 친구 화면에 내가 늦게 보이던 것 */
   const poll=()=>{ if(!VLN.on) return; if(!VLN.es) NET.get(VLN.path).then(d=>{ if(VLN.on && !VLN.es) vlApply("/", d||{}); }).catch(()=>{});
       if(!VLN.mes) NET.query(VLN.mp, 'orderBy=%22%24key%22&limitToLast=40').then(d=>{ if(VLN.on && !VLN.mes) vcApply("/", d||{}); }).catch(()=>{}); };
   const go=()=>{ if(!VLN.on || !NET.stream) return;
@@ -3196,7 +3205,7 @@ function drawBagP(){ const S=slots(), L=S.filter(x=>bagTab==="all"||x.cat===bagT
   $("bagCnt").textContent=S.length+" / "+bagCap+"칸";
   $("bagTabs").innerHTML=[["all","전체"]].concat(Object.keys(CAT).map(k=>[k,CAT[k][0]])).map(([k,t])=>'<button class="bTab'+(bagTab===k?' on':'')+'" data-tab="'+k+'">'+t+'</button>').join("");
   const cells=L.map(x=>{ const fr=FISH_BY[x.n] ? bag.filter(b=>b.en===x.n).reduce((a,b)=>Math.max(a,fresh(b)),0) : null;
-    return '<button class="slot'+(bagSel===x.n?' on':'')+' c-'+x.cat+'" data-slot="'+x.n+'" aria-label="'+x.n+'"><i>'+matE2(x.n)+'</i>'+(x.cat==="seed"?'<s class="mini">'+MAT[x.n.replace(/ seeds$/,"")].e+'</s>':'')+(x.k>1?'<b>'+x.k+'</b>':'')+(fr!=null && !FISH_BY[x.n].noRot?'<u style="--f:'+Math.round(fr*100)+'%"></u>':'')+'</button>'; });
+    return '<button class="slot'+(bagSel===x.n?' on':'')+' c-'+x.cat+'" data-slot="'+x.n+'" aria-label="'+x.n+'">'+(x.cat==="seed" ? '<i class="pk">'+MAT[x.n.replace(/ seeds$/,"")].e+'</i>' : '<i>'+matE2(x.n)+'</i>')+(x.k>1?'<b>'+x.k+'</b>':'')+(fr!=null && !FISH_BY[x.n].noRot?'<u style="--f:'+Math.round(fr*100)+'%"></u>':'')+'</button>'; });
   if(bagTab==="all") for(let i=S.length;i<bagCap;i++) cells.push('<span class="slot empty"></span>');
   $("bagGrid").innerHTML=cells.join("") || '<p class="sEmpty">비었어요</p>';
   drawInfo(); }
@@ -3258,7 +3267,7 @@ function takeOut(k,n){ let c=stoCnt(k)[n]|0; while(c>0 && !canAdd(n,c)) c--; if(
   saveSto(); updBagBtn(); return c; }
 let stoK="fr";
 function slotHTML(x, attr, dim){ const fr=!rotF(x.n) ? null : attr==="data-out" ? sto[stoK].f.filter(f=>f.en===x.n).reduce((a,f)=>Math.max(a,fresh({en:f.en, at:now()-f.age})),0) : bag.filter(b=>b.en===x.n).reduce((a,b)=>Math.max(a,fresh(b)),0);
-  return '<button class="slot c-'+x.cat+(dim?' dim':'')+'" '+attr+'="'+x.n+'" aria-label="'+x.n+'"><i>'+matE2(x.n)+'</i>'+(x.cat==="seed"?'<s class="mini">'+MAT[x.n.replace(/ seeds$/,"")].e+'</s>':'')+(x.k>1?'<b>'+x.k+'</b>':'')+(fr!=null?'<u style="--f:'+Math.round(fr*100)+'%"></u>':'')+'</button>'; }
+  return '<button class="slot c-'+x.cat+(dim?' dim':'')+'" '+attr+'="'+x.n+'" aria-label="'+x.n+'">'+(x.cat==="seed" ? '<i class="pk">'+MAT[x.n.replace(/ seeds$/,"")].e+'</i>' : '<i>'+matE2(x.n)+'</i>')+(x.k>1?'<b>'+x.k+'</b>':'')+(fr!=null?'<u style="--f:'+Math.round(fr*100)+'%"></u>':'')+'</button>'; }
 function drawSto(){ const k=stoK, S=sto[k], L=stoSlots(k), up=STO_UP[k].find(u=>u[0]>S.cap);
   $("stoT").textContent=k==="fr"?"🧊 Fridge":"📦 Chest"; $("stoCnt").textContent=L.length+" / "+S.cap+"칸";
   $("stoUp").innerHTML=up?"➕ "+up[0]+"칸 💎"+up[1]:"✅ 가장 커요"; $("stoUp").disabled=!up;
@@ -3917,6 +3926,7 @@ function fitFor(f){ let lo=1.5, hi=120; for(let k=0;k<22;k++){ const d=(lo+hi)/2
 function updCam(dt){ const f=focus(), d=fitFor(f); const k=camSnap?1:Math.min(1,dt*5);
   const moving = camC.distanceTo(f.c)>0.004 || Math.abs(camD-d)>0.01 || Math.abs(camPitch-f.pitch)>0.002;
   camC.lerp(f.c,k); camD+=(d-camD)*k; camPitch+=(f.pitch-camPitch)*k; camSnap=false; setCam(camC, camD, camPitch);
+  try{ TOON.near(PL.isle && place===PL.isle && !(window.MG && MG.on) && !avOpen ? Math.max(0, Math.min(3.4, camD-2.6)) : 0); }catch(e){}   /* (v687) 나(카메라 목표)에서 2.6 앞까지만 — 내 캐릭터는 안 비침 */
   const cx=Math.sin(yaw), cz=Math.cos(yaw); walls.forEach(w=>{ const n=w.userData.normal; w.visible=(n[0]*cx+n[1]*cz)>0; });
   return moving; }
 function placeCamera(){ camSnap=true; updCam(0); dirty=true; }
@@ -4371,8 +4381,8 @@ function updLabels(){ const W=innerWidth, H=VH();
     let x=(L.v.x+1)/2*W, y=(1-L.v.y)/2*H, off=L.v.z>1 || x<-30 || x>W+30 || y<110 || y>H-106;
     /* (v561) QA: 안내 중(hot)인 곳이 화면 밖이면 숨지 않고 화면 가장자리에 화살표로 (호수·생선 가게가 멀어서 어디로 갈지 몰랐음) */
     const hot=L.el.classList.contains("hot"); let edge=false;
-    if(off && hot && !(L.d.show && !L.d.show())){ let dx=x-W/2, dy=y-H/2; /* (v684) 크롬 점검: 「🎣 호수」 화살표가 반대쪽(왼쪽 아래)에 — 새 섬은 카메라 far 가 짧아서(안개 ≈ 80) 앞쪽 먼 곳도 z>1 이 됨 → 진짜 뒤쪽(카메라 공간 z>0)일 때만 뒤집기 */ if(_lblBack.set(L.d.p[0],L.d.p[1],L.d.p[2]).applyMatrix4(camera.matrixWorldInverse).z>0){ dx=-dx; dy=-dy; } const k=Math.min((W/2-70)/Math.max(1,Math.abs(dx)), (H/2-150)/Math.max(1,Math.abs(dy))); x=W/2+dx*k; y=H/2+dy*k; off=false; edge=true; L.el.style.setProperty("--ea", Math.atan2(dy,dx)+"rad"); }
-    L.el.classList.toggle("edge", edge); L.el.style.display=off?"none":"";
+    if(off && hot && !(L.d.show && !L.d.show())){ let dx=x-W/2, dy=y-H/2; /* (v684) 크롬 점검: 「🎣 호수」 화살표가 반대쪽(왼쪽 아래)에 — 새 섬은 카메라 far 가 짧아서(안개 ≈ 80) 앞쪽 먼 곳도 z>1 이 됨 → 진짜 뒤쪽(카메라 공간 z>0)일 때만 뒤집기 */ if(_lblBack.set(L.d.p[0],L.d.p[1],L.d.p[2]).applyMatrix4(camera.matrixWorldInverse).z>0){ dx=-dx; dy=-dy; } const mx=Math.max(70, L.el.offsetWidth/2+40), k=Math.min((W/2-mx)/Math.max(1,Math.abs(dx)), (H/2-150)/Math.max(1,Math.abs(dy)));   /* (v687) 옆으로 갈 땐 이름표 + 화살표가 다 화면 안에 */ x=W/2+dx*k; y=H/2+dy*k; off=false; edge=true; const ea=Math.atan2(dy,dx), er=Math.round(Math.abs(Math.cos(ea))*L.el.offsetWidth/2+Math.abs(Math.sin(ea))*L.el.offsetHeight/2+19); L.el.style.setProperty("--ea", ea+"rad"); L.el.style.setProperty("--er", er+"px"); L.edgeA=[Math.cos(ea)*er, Math.sin(ea)*er]; }   /* (v687) 화살표가 이름표 글자(「같이 낚시」의 「같」)를 덮던 것 → 이름표 테두리 바깥에 */
+    L.el.classList.toggle("edge", edge); if(!edge) L.edgeA=null; L.el.style.display=off?"none":"";
     /* (v437) 사용자: "가까이 가야 이름표가 뜨게" — 바깥(마당·마을·광산)은 가까이 갔을 때만 · 안내 중(👇)인 것은 늘 보임 · 가장자리에서 깜빡이지 않게 여유 0.5 */
     if(LBL_NEAR[place.key] && hero){ const r=L.d.r||2.4, dd=Math.hypot(hero.g.position.x-L.d.p[0], hero.g.position.z-L.d.p[2]); L.near = dd<r || (L.near && dd<r+0.5); L.el.classList.toggle("far", !L.near && !L.el.classList.contains("hot")); }
     if(!off){ const hw=(L.el.offsetWidth||80)/2; let lx=Math.max(hw+4,Math.min(W-hw-4,x)); L.el.style.left=lx+"px"; L.el.style.top=y+"px"; L.lx=lx; L.ly=y; } else L.lx=null;
@@ -4380,10 +4390,10 @@ function updLabels(){ const W=innerWidth, H=VH();
   /* (v607) 사용자: 「이름표가 이상한지 다 확인」 — 섬: 멀리 있는 작은 동그라미가 다른 이름표·가게 간판 글자 위에 겹치던 것 → 가까운 이름표 먼저, 겹치는 작은 동그라미는 숨김 (가게는 지붕 간판이 있어서 멀 땐 동그라미 없음) */
   if(place.key==="isle"){ const R=[], ov=(a,b)=>!(a.x+a.w<=b.x || b.x+b.w<=a.x || a.y+a.h<=b.y || b.y+b.h<=a.y), isFar=L=>L.el.classList.contains("far") && !L.el.classList.contains("hot");
     const vis=LBL.filter(L=>L.lx!=null && L.el.style.display!=="none");
-    const now=performance.now(); if(!LBL_HUD.r || now-LBL_HUD.t>500){ LBL_HUD.t=now; LBL_HUD.r=["ihMe","ihRes","ihMenu","ihQ","ihChat","ihTool","ijoy","ijump","coach"].map(id=>{ const e=document.getElementById(id); if(!e || !e.offsetParent) return null; const q=e.getBoundingClientRect(); return q.width ? {x:q.left-4, y:q.top-4, w:q.width+8, h:q.height+8} : null; }).filter(Boolean); }
+    const now=performance.now(); if(!LBL_HUD.r || now-LBL_HUD.t>500){ LBL_HUD.t=now; LBL_HUD.r=["ihMe","ihRes","ihMenu","ihQ","ihChat","ihTool","ijoy","ijump","coach"].map(id=>{ const e=document.getElementById(id); if(!e || !e.getClientRects().length || (id==="coach" && !e.classList.contains("on"))) return null;   /* (v687) 글자·위치 점검: 💎🪙 칸(#ihRes)은 position:fixed 라 offsetParent 가 늘 null → 빠져 있어서 「📋 땅 고르기」 이름표가 그 밑에 가렸음 */ const q=e.getBoundingClientRect(); return q.width ? {x:q.left-4, y:q.top-4, w:q.width+8, h:q.height+8} : null; }).filter(Boolean); }
     /* 가까운 이름표: 위쪽 판(내 얼굴·💎·오늘 할 일)에 가리면 그 아래로 · 서로 겹치면 위로 비켜 쌓기 */
-    vis.filter(L=>!isFar(L)).sort((a,b)=>b.ly-a.ly).forEach(L=>{ const t=L.el.textContent; if(L.wk!==t){ L.wn=L.el.offsetWidth||90; L.wk=t; } let y=L.ly; const box=yy=>({x:L.lx-L.wn/2-4, y:yy-50, w:L.wn+8, h:44});
-      for(let k=0;k<4;k++){ const hit=LBL_HUD.r.find(q=>q.y<H/2 && ov(q,box(y))); if(!hit) break; y=hit.y+hit.h+50; }
+    vis.filter(L=>!isFar(L)).sort((a,b)=>b.ly-a.ly).forEach(L=>{ const t=L.el.textContent; if(L.wk!==t){ L.wn=L.el.offsetWidth||90; L.wk=t; } let y=L.ly; const box=yy=>{ const b={x:L.lx-L.wn/2-4, y:yy-50, w:L.wn+8, h:44}, A=L.edgeA; if(!A) return b; const ax=L.lx+A[0], ay=yy-28+A[1], x0=Math.min(b.x,ax-18), y0=Math.min(b.y,ay-18); return {x:x0, y:y0, w:Math.max(b.x+b.w,ax+18)-x0, h:Math.max(b.y+b.h,ay+18)-y0}; };   /* (v687) 화면 밖 안내는 ➜ 화살표 자리까지 (위쪽 💎🪙 칸 밑에 숨지 않게) */
+      for(let k=0;k<4;k++){ const bb=box(y), hit=LBL_HUD.r.find(q=>q.y<H/2 && ov(q,bb)); if(!hit) break; y+=hit.y+hit.h-bb.y; }
       for(let k=0;k<3;k++){ const hit=R.find(q=>ov(q,box(y))); if(!hit) break; y=hit.y-2; }
       if(y!==L.ly){ L.el.style.top=y+"px"; L.ly=y; } const bad=LBL_HUD.r.some(q=>ov(q,box(y))); L.el.classList.toggle("hudx", bad && !L.el.classList.contains("hot")); if(!bad) R.push(box(y)); L.el.classList.remove("dc"); });
     LBL_HUD.r.forEach(q=>R.push(q));
@@ -4400,7 +4410,7 @@ const TUT=[   /* (v539) 사용자: "애들이 켜면 튜토리얼이 무엇을 �
   {pl:"room", t:"<b>📚 책상</b>도 놓아요!<br><small>책상을 누르면 영어 공부(Daily 30)를 하러 가요</small>", until:"put_desk", hotB:"bEdit"},
   {pl:"room", t:"📚 <b>책상</b>을 누르면 영어 공부(Daily 30)! 공부해서 번 💎 로 집을 꾸며요<br><small>🏗 <b>넓히기</b> — 내가 고른 쪽으로 넓히고 · 🧱 칸막이 · 🍳🛏🛁 세트 · 🚪 옆방 · 🪜 2층 (공부한 날이 이어지면 열려요)</small>", until:"roomup", next:true, hotB:"bUp"},
   {pl:"room", t:"이제 밖으로 나가 볼까요?<br><b>🚪 문</b>이나 아래 <b>나가기</b>를 눌러요", hot:"door", until:"out", hotB:"bOut"},
-  {pl:"*", t:"<b>🎣 호수</b>에서 낚시해 봐요<br><small>잡은 물고기는 🎒 가방에 들어가요</small>", hot:"lake|pond", until:"catch"},
+  {pl:"*", t:"<b>🎣 호수</b>에서 낚시해 봐요<br><small>잡은 물고기는 🎒 가방에 들어가요 · 멀면 🚂 첫 기차는 공짜!</small>", hot:"lake|pond", until:"catch", ride:"lake"},   /* (v687) QA 의견: 1동에서 호수까지 걸어서 40초 → 첫 기차 한 번은 Mia 가 태워 줌 (기차 타는 법도 배움) */
   {pl:"*", t:"시장 거리 <b>🐟 생선 가게</b>에서 팔면 🪙 코인!<br><small>🪙 로 씨앗·간식·가구를 사고 · 🏦 마을 은행에서 💎 로 바꿔요 · 💎 는 공부해서 벌어요</small>", hot:"fish|shop", until:"sell", next:true},
   {pl:"*", t:"이제 마음껏 놀아요! 🎉<br><small>📋 <b>할 일</b> 을 누르면 해 볼 것과 🪙 선물이 있어요</small>", next:"좋아요!"}
 ];
@@ -4411,9 +4421,11 @@ function drawCoach(busy){ const c=$("coach"), S=tut.s<TUT.length?TUT[tut.s]:null
   if(here!==coachOn){ coachOn=here; viewOff(); dirty=true; }   // 안내가 있는 동안 장면을 조금 위로 (아래 말풍선에 가리지 않게)
   c.classList.toggle("on", show); document.querySelectorAll(".dk.hot").forEach(e=>{ if(!(here && S.hotB===e.id)) e.classList.remove("hot"); }); if(here && S.hotB && $(S.hotB)) $(S.hotB).classList.add("hot");   /* (v561) QA: 안내하는 아래 단추도 반짝 (문이 카메라에 가려도 나가기로) */
   document.querySelectorAll("#tls .tl").forEach(e=>e.classList.toggle("hot", show && !!S.hot && S.hot.split("|").indexOf(e.dataset.k)>=0));
-  if(show && c.dataset.s!==String(tut.s)){ c.dataset.s=String(tut.s); $("coachT").innerHTML=S.t; if(tut.b==null || tut.s<tut.b){ tut.b = (tut.b==null && tut.s>2) ? 0 : tut.s; tutSave(); }   /* 이미 하던 아이(3단계 넘음)는 예전 번호 그대로 */ $("coachN").textContent=(tut.s-tut.b+1)+" / "+(TUT.length-tut.b);   /* (v687) QA: 앞 단계(땅·방)가 저절로 넘어가 「3 / 10」부터 보였음 → 처음 본 단계 = 1 */
-    $("coachNext").hidden=!S.next; $("coachNext").textContent=typeof S.next==="string"?S.next:"다음 ▶"; } }
-$("coachNext").onclick=()=>tutAdv(); $("coachSkip").onclick=()=>tutAdv(99);
+  if(show && c.dataset.s!==String(tut.s)){ c.dataset.s=String(tut.s); $("coachT").innerHTML=S.t; if(tut.b==null || tut.s<tut.b){ tut.b = (tut.b==null && tut.s>2) ? 0 : tut.s; tutSave(); }   /* 이미 하던 아이(3단계 넘음)는 예전 번호 그대로 */ $("coachN").textContent=(tut.s-tut.b+1)+" / "+(TUT.length-tut.b);   /* (v687) QA: 앞 단계(땅·방)가 저절로 넘어가 「3 / 10」부터 보였음 → 처음 본 단계 = 1 */ }
+  if(show){ const rd=tutRide(S); $("coachNext").hidden=!S.next && !rd; $("coachNext").textContent=rd ? "🚂 기차 타고 호수로 (공짜)" : typeof S.next==="string"?S.next:"다음 ▶"; } }
+/* (v687) 🚂 튜토리얼 첫 기차 — 섬에 있고 · 한 번도 안 탔고 · 호수에서 먼 곳(18칸 넘게)일 때만 단추 */
+function tutRide(S){ try{ if(!S || !S.ride || place.key!=="isle" || store("hyeng_proto_tride") || !window.TFAC || !window.ISLE) return false; const L=ISLE.SPOT.lake; return !L || Math.hypot(hero.g.position.x-L[0], hero.g.position.z-L[2])>18; }catch(e){ return false; } }
+$("coachNext").onclick=()=>{ const S=tut.s<TUT.length?TUT[tut.s]:null; if(tutRide(S)){ const D=TFAC.DEST.find(d=>d[0]===S.ride); if(D){ store("hyeng_proto_tride", 1); TFAC.ride(D, true); drawCoach(uiBusy()); } return; } tutAdv(); }; $("coachSkip").onclick=()=>tutAdv(99);
 
 /* 📋 할 일 — 🌱 처음 해 볼 것 8개(💎2) + ☀️ 오늘 할 일 3개(💎3, 날마다 바뀜 · 모든 기기 같음) · 해 보면 저절로 체크 → 눌러서 받기 */
 /* (v586) 섬 모드: 예전 마을 사람(이야기·부탁) 할 일 → ✉️ 편지 · 🎠 마당 가구 · 🧹 잡초 */

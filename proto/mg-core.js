@@ -145,7 +145,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     try{ hero.path=[]; hero.moving=false; }catch(e){}
     const fd=$$("fade"); if(fd) fd.classList.add("on");
     setTimeout(()=>{ try{
-        S.k=k; S.on=true; document.body.classList.add("mgOn"); resetI(); mkUI(def);
+        S.k=k; S.on=true; document.body.classList.add("mgOn"); try{ TOON.near(0); }catch(e){} resetI(); mkUI(def);   /* (v687) 섬의 「카메라 앞 비침」은 끔 — 게임 안에선 섬 그리기(updCam)가 멈춰 값이 남음 */
         try{ S.sun=[sun.intensity, sun.color.getHex()]; sun.intensity=.95; sun.color.setHex(0xfff0d8); TOON.light(); }catch(e){ S.sun=null; }   /* 툰 그림자 기준 = 낮 (섬이 밤이어도 게임은 밝게) */
         S.pr0=renderer.getPixelRatio(); const pr=Math.min(S.pr0, (typeof LOW!=="undefined" && LOW) ? 1 : 1.5); if(pr!==S.pr0){ renderer.setPixelRatio(pr); try{ TOON.resize(); }catch(e){} }
         S.api={I, ui:ROOT, hud:ROOT.querySelector(".mgHud"), topR:ROOT.querySelector(".mgTopR"), msg, sfx:SFX, nick:nick(), av:(typeof av!=="undefined"?Object.assign({},av):{}), opt:opt||{}, renderer, end:(r)=>result(k, r), low:typeof LOW!=="undefined" && LOW, restart:(o)=>restart(k, o)};

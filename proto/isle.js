@@ -792,9 +792,13 @@ const ISLE=(()=>{
   /* (v525) 사용자: "화면을 돌릴 수도 없고 · 집이 동그랗게 있어서 보이지도 않아 · 화면의 자유가 없는데"
      → 빈 곳을 끌면 돌리기(좌우)·기울이기(위아래) · 두 손가락 벌리기 = 가까이/멀리 · 집에서 나오면 카메라가 내 뒤에서 마을 쪽을 봄 */
   const CAM={pitch:.6, zoom:1, drag:null, pts:new Map(), pinch:0, told:false};
-  function faceOut(){ if(!myHouse) return; const a=myHouse.face+Math.PI; yaw=yawTo=a;   /* (v525) 사용자 요청: 나오면 내 뒤에서 마을 쪽 (집이 가리면 흐려짐) — v575 점검의 「집 앞에서」 안은 사용자 뜻과 달라 되돌림 */ try{ camSnap=true; }catch(e){} dirty=true; }
+  function faceOut(){ if(!myHouse) return; const a=myHouse.face+Math.PI; yaw=yawTo=a;   /* (v525) 사용자 요청: 나오면 내 뒤에서 마을 쪽 (집이 가리면 흐려짐) — v575 점검의 「집 앞에서」 안은 사용자 뜻과 달라 되돌림 */ try{ camSnap=true; }catch(e){} dirty=true;
+    /* (v687) QA 의견: 문 앞에 서 있으면 카메라(내 뒤)와 나 사이에 집이 있어 반투명한 집이 캐릭터와 겹쳐 보임 → 길 쪽으로 두어 걸음 걸어 나감 (카메라가 지붕 너머로 · 내 뒤에서 마을 쪽은 그대로) */
+    const H=myHouse, t0=performance.now(); (function step(){ try{ if(place!==PLC || myHouse!==H) return; if(trip.busy){ if(performance.now()-t0<9000) setTimeout(step, 120); return; } if(hero.joy || (hero.path && hero.path.length)) return;
+      const dx=Math.sin(H.face), dz=Math.cos(H.face), x0=hero.g.position.x, z0=hero.g.position.z;
+      for(let k=3.6;k>=1.4;k-=.4){ const x=Math.floor(x0+dx*k), z=Math.floor(z0+dz*k); if(!blocked(x,z)){ walkTo(x,z); return; } } }catch(e){} })(); }
   function camUI(){ const cv=$("cv"); if(cv.dataset.isleCam) return; cv.dataset.isleCam=1;
-    cv.addEventListener("pointerdown", e=>{ if(place!==PLC) return; CAM.pts.set(e.pointerId,[e.clientX,e.clientY]); if(CAM.pts.size===1) CAM.drag={x:e.clientX,y:e.clientY,moved:0}; else { CAM.drag=null; const P=[...CAM.pts.values()]; CAM.pinch=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]); } });
+    cv.addEventListener("pointerdown", e=>{ if(place!==PLC) return; CAM.pts.set(e.pointerId,[e.clientX,e.clientY]); if(CAM.pts.size===1){ CAM.drag={x:e.clientX,y:e.clientY,moved:0}; if(e.pointerType==="mouse") try{ cv.setPointerCapture(e.pointerId); }catch(_){} }   /* (v687) PC 마우스: 끄는 길에 이름표가 지나가면 돌리기가 끊김 → 끄는 동안은 화면이 계속 받음 (손가락은 원래 그럼) */ else { CAM.drag=null; const P=[...CAM.pts.values()]; CAM.pinch=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]); } });
     cv.addEventListener("pointermove", e=>{ if(place!==PLC || !CAM.pts.has(e.pointerId)) return; CAM.pts.set(e.pointerId,[e.clientX,e.clientY]);
       if(CAM.pts.size>=2){ const P=[...CAM.pts.values()], d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]); if(CAM.pinch>0){ CAM.zoom=Math.max(.55, Math.min(2.4, CAM.zoom*CAM.pinch/d)); } CAM.pinch=d; dirty=true; return; }
       const D=CAM.drag; if(!D) return; const dx=e.clientX-D.x, dy=e.clientY-D.y; D.x=e.clientX; D.y=e.clientY; D.moved+=Math.abs(dx)+Math.abs(dy); if(D.moved<10) return;
