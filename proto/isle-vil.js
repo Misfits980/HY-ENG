@@ -14,6 +14,29 @@ const VIL=(()=>{
     {id:"sam",  nm:"Sam",  job:"어부",  ic:"🧔", cap:0x4f9be8, av:{skin:2, hair:"short", hc:0, style:"hoodie", top:1, pc:1, hat:"beanie", acc:"none"}, hi:["The lake is calm today.","오늘 호수가 잔잔해."]},
     {id:"joe",  nm:"Joe",  job:"광부",  ic:"👴", cap:0xa77be8, av:{skin:1, hair:"spiky", hc:4, style:"tee", top:7, pc:2, hat:"cap", acc:"glasses"}, hi:["Rocks and gems, that's my life!","돌이랑 보석이 내 인생이지!"]}];
   const NB={}; NPC.forEach(n=>NB[n.id]=n);
+  /* ═════════ (v693) 🐻 이웃과 영어로 — 사용자: 「그래 너가 한번 해 봐라」 (claude/hy-eng-plan-town-study.md 1번)
+     · 동숲처럼 말을 걸면 시간·날씨·성격에 맞는 영어 한 줄 + 대답도 영어로 고름 (게임 대화창 #dlg 를 그대로 씀)
+     · 하루 「❗」 2개: 한 이웃 = 오늘 공부한 단어 그림 맞히기 · 다른 이웃 = 그 사람 의뢰 부탁 (영어는 하루 한두 번만)
+     · 하트 5칸(우정 점수 3·8·15·25·40) — 줄지 않음 · 보상은 보석 대신 🪙 · 마당 가구
+     · 기록 hyeng_proto_vil 안: f{id:점수} · lv{id:받은 칸} · lk{id:{좋아하는 것:1}} · nb{d, talk, wc, fv, gift} · wu[최근 단어] */
+  const NBX={
+    tom:{pt:"다정한 농부", like:[["carrot","🥕","carrots","당근"],["potato","🥔","potatoes","감자"]], gift:{3:"scarecrow",5:"windmill"},
+      L:{a:["Good morning! The sun is nice today.","좋은 아침! 오늘 햇살이 좋아."], d:["Hi! My carrots are growing fast.","안녕! 내 당근이 쑥쑥 자라."], e:["Good evening! Dinner time soon.","좋은 저녁! 곧 저녁 먹을 시간이야."], n:["Yawn... I'm sleepy.","하암… 졸려."], r:["Rain is good for my farm!","비는 우리 밭에 좋아!"]},
+      chat:[["I plant seeds every spring.","봄마다 씨앗을 심어."],["My cows say moo every morning.","우리 소들은 아침마다 음매 해."],["Do you like vegetables? I love them!","채소 좋아해? 나는 정말 좋아!"]], chat3:[["You are a good friend!","너는 좋은 친구야!"]],
+      q:["Quiz time! Which one is “{w}”?","퀴즈! 「{w}」는 어느 거야?"]},
+    lily:{pt:"명랑한 빵집", like:[["strawberry","🍓","strawberries","딸기"],["apple","🍎","apples","사과"]], gift:{3:"picnic",5:"parasol"},
+      L:{a:["Good morning! I baked bread!","좋은 아침! 빵 구웠어!"], d:["Hello! Do you want a cookie?","안녕! 쿠키 먹을래?"], e:["Wow, the sky is pink!","와, 하늘이 분홍색이야!"], n:["It's late. Sweet dreams!","늦었어. 좋은 꿈 꿔!"], r:["Rainy days are for baking!","비 오는 날엔 빵 굽기지!"]},
+      chat:[["Pink is my favorite color!","분홍색이 제일 좋아!"],["Cakes make everyone happy.","케이크는 모두를 행복하게 해."],["I sing when I bake. La la la!","나는 빵 구울 때 노래해. 랄라라!"]], chat3:[["Let's be best friends!","우리 단짝 하자!"]],
+      q:["I want to draw “{w}”. Which one is it?","「{w}」를 그리고 싶어. 어느 거야?"]},
+    sam:{pt:"느긋한 어부", like:[["fish","🐟","fish","물고기"],["bread","🍞","bread","빵"]], gift:{3:"hammock",5:"rocker"},
+      L:{a:["Morning... Fish wake up early.","아침이네… 물고기는 일찍 일어나."], d:["The lake is calm today.","오늘 호수가 잔잔해."], e:["Big fish come out at night.","큰 물고기는 밤에 나와."], n:["Zzz... five more minutes...","쿨쿨… 5분만 더…"], r:["Fish love the rain. Me too!","물고기는 비를 좋아해. 나도!"]},
+      chat:[["Fishing is easy. Just wait!","낚시는 쉬워. 그냥 기다려!"],["I ate three sandwiches today.","오늘 샌드위치 세 개 먹었어."],["The lake has a big, big fish.","호수에 아주 큰 물고기가 있어."]], chat3:[["You are my fishing buddy!","너는 내 낚시 친구야!"]],
+      q:["Hmm... what is “{w}”? Show me!","음… 「{w}」가 뭐지? 보여 줘!"]},
+    joe:{pt:"투덜이 광부", like:[["coal","⚫","coal","석탄"],["stone","🪨","stones","돌"]], gift:{3:"lantern",5:"statue"},
+      L:{a:["Hmph. Morning.","흥. 아침이군."], d:["Rocks and gems, that's my life!","돌이랑 보석이 내 인생이지!"], e:["My back hurts. I need a rest.","허리 아파. 좀 쉬어야겠어."], n:["Go home, kid. It's late.","집에 가렴. 늦었어."], r:["Rain again? The mine is wet!","또 비야? 광산이 축축해!"]},
+      chat:[["Don't touch my pickaxe!","내 곡괭이 만지지 마!"],["Iron is strong. Like me!","철은 튼튼해. 나처럼!"],["Gems are pretty, but rocks are cool.","보석은 예쁘지만 돌은 멋져."]], chat3:[["You're not bad, kid.","너 꽤 괜찮구나."]],
+      q:["Kid! Find “{w}”. Quick!","얘! 「{w}」 찾아 봐. 빨리!"]}};
+  const HT=[3,8,15,25,40];   /* 하트 칸 = 우정 점수 */
   /* 의뢰 틀 — kind b = 가져다주기(item·n) · d = 해 오기(ev·n) · r = 🪙 */
   const QT=[
     ["tom","b","carrot",3,20,"Can you bring me 3 carrots?","당근 3개 갖다 줄래?"],
@@ -43,7 +66,7 @@ const VIL=(()=>{
   const MAXA=3;
   const GIFT=[[3,"mushstool","🍄 버섯 의자"],[8,"mushlamp","🍄 버섯 등"],[15,"mushhut","🍄 버섯 집"]];
   const day=()=>{ try{ return dayKey(); }catch(e){ return new Date().toISOString().slice(0,10); } };
-  let S=null; function st(){ if(!S){ S=store("hyeng_proto_vil")||{}; S.acc=S.acc||{}; S.done=S.done||{}; S.h=S.h||{}; S.g=S.g||{}; } if(S.d!==day()){ S.d=day(); S.acc={}; S.done={}; sv(); } return S; }
+  let S=null; function st(){ if(!S){ S=store("hyeng_proto_vil")||{}; S.acc=S.acc||{}; S.done=S.done||{}; S.h=S.h||{}; S.g=S.g||{}; S.f=S.f||{}; S.lv=S.lv||{}; S.lk=S.lk||{}; S.wu=S.wu||[]; } if(S.d!==day()){ S.d=day(); S.acc={}; S.done={}; sv(); } if(!S.nb || S.nb.d!==day()){ S.nb={d:day(), talk:{}, wc:{}, fv:{}, gift:{}}; } return S; }
   function sv(){ store("hyeng_proto_vil", S); }
   /* 오늘의 의뢰 6개 — 날짜로 섞음 (모든 아이 같음) · 사람마다 1개 이상 */
   function today(){ const d=day(), pick=[]; NPC.forEach(n=>{ const L=QT.filter(q=>q.who===n.id && ok(q)); if(L.length) pick.push(L[Math.floor(hashf("vq|"+d+"|"+n.id)*L.length)]); });
@@ -61,7 +84,7 @@ const VIL=(()=>{
   function claim(q){ const s=st(); if(!s.acc[q.id] || s.done[q.id] || !canDone(q)) return false;
     if(q.kind==="b"){ if(q.x==="fish"){ for(let k=0;k<q.n;k++){ let bi=-1, bv=1e9; bag.forEach((it,i)=>{ if(FISH_BY[it.en] && !(SPEC[it.en]||{}).junk){ const v=price(it); if(v<bv){ bv=v; bi=i; } } }); if(bi>=0) bag.splice(bi,1); } saveBag(); try{ updBagBtn(); }catch(e){} }
       else { addMat(q.x,-q.n); saveBag(); } }
-    s.done[q.id]=1; s.h[q.who]=(s.h[q.who]|0)+1; sv(); try{ TECO.addCoin(q.r); }catch(e){}
+    s.done[q.id]=1; s.h[q.who]=(s.h[q.who]|0)+1; sv(); try{ TECO.addCoin(q.r); }catch(e){} try{ addF(q.who, 2); }catch(e){}
     try{ say("Thank you!"); SND.big(); }catch(e){} const N=NB[q.who]; const npc=W.find(w=>w.n.id===q.who); if(npc){ npc.c.act="yay"; npc.c.t=0; setTimeout(()=>{ if(npc.c.act==="yay") npc.c.act="idle"; }, 1500); try{ emote(npc.c,"💖"); }catch(e){} }
     toast(N.ic+" <b>"+N.nm+"</b>: \"Thank you!\"<br>🪙 +"+q.r+" · ❤️ +1 <small>("+N.nm+" ❤️ "+s.h[q.who]+")</small>", 2400); try{ _tEv("vdone"); }catch(e){} gifts(); refresh(); return true; }
   const hearts=()=>Object.values(st().h).reduce((a,b)=>a+(b|0),0);
@@ -169,12 +192,90 @@ const VIL=(()=>{
   function labels(L){ if(!SP) return; const s=st();
     if(SP.board) L.push({k:"v_board", ic:"📌", t:"의뢰판"+(today().some(q=>s.acc[q.id] && !s.done[q.id] && canDone(q))?" ✅":""), p:SP.board, r:3.6, act:()=>walkNear(SP.board, ()=>open())});
     if(SP.big) L.push({k:"v_big", ic:"🍄", t:"큰 버섯", p:SP.big, r:3.4, act:()=>walkNear(SP.big, bigShroom)});
-    W.forEach(w=>{ const n=w.n, fin=today().some(q=>q.who===n.id && s.acc[q.id] && !s.done[q.id] && canDone(q)); L.push({k:"v_"+n.id, ic:n.ic, t:n.nm+(fin?" ✅":""), p:w.L, r:3.2, act:()=>talk(w)}); }); }
+    W.forEach(w=>{ const n=w.n, fin=today().some(q=>q.who===n.id && s.acc[q.id] && !s.done[q.id] && canDone(q)), bg=!fin && bangOf(n.id); L.push({k:"v_"+n.id, ic:n.ic, t:n.nm+(fin?" ✅":bg?" ❗":""), p:w.L, r:bg?9:3.2, act:()=>talk(w)}); }); }   /* (v693) ❗ 오늘 부탁 — 좀 멀리서도 보이게 */
   function walkNear(p, then){ const x=Math.floor(p[0]), z=Math.floor(p[2]); let best=null; for(let r=1;r<5 && !best;r++) for(let dx=-r;dx<=r;dx++) for(let dz=-r;dz<=r;dz++){ if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue; if(!ISLE.blocked(x+dx,z+dz)){ best=[x+dx,z+dz]; break; } }
     const hp=hero.g.position; if(Math.hypot(hp.x-p[0],hp.z-p[2])<3.2 || !best){ then(); return; } walkTo(best[0],best[1],then); }
-  function talk(w){ w.talk=6; const s=st(); const done=today().filter(q=>q.who===w.n.id && s.acc[q.id] && !s.done[q.id] && canDone(q));
-    walkNear([w.c.g.position.x,0,w.c.g.position.z], ()=>{ w.c.act="wave"; w.c.t=0; setTimeout(()=>{ if(w.c.act==="wave") w.c.act="idle"; }, 1200);
-      if(done.length){ done.forEach(q=>claim(q)); return; } open(w.n.id); }); }
-  return {build, tick, labels, night, open, today, accept, claim, st, NPC, QT, GIFT, hearts, ev, bigShroom, W:()=>W, SP:()=>SP};
+  function talk(w){ w.talk=8;
+    walkNear([w.c.g.position.x,0,w.c.g.position.z], ()=>{ w.talk=30; w.c.n=w.n; w.c.prov=prov(w); try{ talkTo(w.c); }catch(e){ open(w.n.id); } }); }   /* (v693) 🐻 말 걸면 대화창 (예전엔 바로 의뢰판) */
+
+  /* ═════════ (v693) 🐻 이웃 대화 (게임 대화창 #dlg — house.html talkTo/speakLines 를 씀) ═════════ */
+  const lvOf=f=>HT.filter(t=>(f|0)>=t).length, lv=id=>lvOf(st().f[id]);
+  const hearts5=id=>{ const n=lv(id); return "♥".repeat(n)+"♡".repeat(5-n); };
+  const NL=(en,ko,emo,anim)=>({en,ko,emo,anim,who:"npc"}), ML=(en,ko,emo)=>({en,ko,emo,who:"me",say:false});
+  const code=()=>{ try{ return typeof myCode!=="undefined" ? myCode : ""; }catch(e){ return ""; } };
+  function addF(id, n){ const s=st(); const b=lv(id); s.f[id]=(s.f[id]|0)+n; const a=lv(id); sv();
+    if(a>b){ for(let k=b+1;k<=a;k++) lvReward(id, k); } return a>b; }
+  function lvReward(id, k){ const s=st(), N=NB[id], X=NBX[id]; if((s.lv[id]|0)>=k) return; s.lv[id]=k; sv(); let msg="";
+    if(X.gift[k] && typeof OUT!=="undefined" && OUT[X.gift[k]]){ try{ ystock[X.gift[k]]=(ystock[X.gift[k]]|0)+1; ySave(); }catch(e){} msg=OUT[X.gift[k]].ic+" "+OUT[X.gift[k]].nm+" <small>(✏️ 마당 꾸미기에서 놓아요)</small>"; }
+    else if(k>=2){ const c=k>=4?50:20; try{ TECO.addCoin(c); }catch(e){} msg="🪙 +"+c; }
+    else msg="이제 친구예요! 💖";   /* ♥1 = 인사만 */
+    setTimeout(()=>{ try{ SND.win(); }catch(e){} toast(N.ic+" <b>"+N.nm+"</b> 하트 "+"♥".repeat(k)+" !<br>"+(k>=2?"선물: ":"")+msg, 3200); }, 900); }
+  /* 오늘의 「❗」 — 아이마다 다른 두 이웃 (단어 하나 · 부탁 하나) */
+  function bangs(){ const d=day(), c=code(), L=NPC.map(n=>n.id).sort((a,b)=>hashf("nb|"+d+"|"+c+"|"+a)-hashf("nb|"+d+"|"+c+"|"+b)); return {wc:L[0], fv:L[1]}; }
+  const favorQ=id=>today().find(q=>q.who===id);
+  function bangOf(id){ const s=st(), B=bangs(); if(B.wc===id && !s.nb.wc[id] && wordToday()) return "wc"; const q=favorQ(id);
+    if(B.fv===id && !s.nb.fv[id] && q && !s.acc[q.id] && !s.done[q.id]) return "fv"; return ""; }
+  /* 오늘 공부한 단어 (오늘의 30 — 같은 기기 hyeng_study_v1) 가운데 그림 있는 섬 단어 → 없으면 이번 주 → 외운 것 → 기본 */
+  let WT=null;
+  function wordToday(){ const d=day(); if(WT && WT.d===d && WT.c===code()) return WT.w; const W=typeof ISLE_WORDS!=="undefined" ? ISLE_WORDS : []; if(!W.length) return null;
+    let sd={}, srs={}; try{ const o=JSON.parse(localStorage.getItem("hyeng_study_v1")||"{}"); sd=o.sd||{}; srs=o.srs||{}; }catch(e){}
+    const dn=Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5), byE={}; W.forEach((w,i)=>byE[w[0]]=i); const used=st().wu||[];
+    const tiers=[Object.keys(sd).filter(en=>sd[en]===dn), Object.keys(sd).filter(en=>sd[en]>=dn-6), Object.keys(srs), W.filter(w=>w[3]===1).map(w=>w[0])];
+    let pick=null; for(const T of tiers){ const L=T.filter(en=>byE[en]!=null && used.indexOf(en)<0); if(L.length){ pick=L.slice().sort((a,b)=>hashf("nw|"+d+"|"+code()+"|"+a)-hashf("nw|"+d+"|"+code()+"|"+b))[0]; break; } }
+    if(!pick) pick=W[Math.floor(hashf("nw|"+d)*W.length)][0];
+    const i=byE[pick], near=W.map((w,j)=>[w,j]).filter(([w,j])=>j!==i && Math.abs(j-i)<=18 && w[2]!==W[i][2]).map(([w])=>w);
+    const ds=near.sort((a,b)=>hashf("nd|"+d+"|"+a[0])-hashf("nd|"+d+"|"+b[0])).slice(0,2), opts=[W[i]].concat(ds).sort((a,b)=>hashf("no|"+d+"|"+a[0])-hashf("no|"+d+"|"+b[0]));
+    WT={d, c:code(), w:{en:W[i][0], ko:W[i][1], e:W[i][2], opts}}; return WT.w; }
+  /* 지금 인사 (시간 · 비 · 처음) */
+  function greet(id){ const X=NBX[id]; let k="d"; try{ k=tod(); }catch(e){} let r=false; try{ r=rainy() && k!=="n"; }catch(e){} const g=r ? X.L.r : (X.L[k]||X.L.d);
+    let nm=""; try{ nm=kidInfo().n||""; }catch(e){} const hi=nm && !/^(친구|플레이어|player)$/i.test(nm) ? ["Hi, "+nm+"! ","안녕, "+nm+"! "] : ["",""];
+    return NL(hi[0]+g[0], hi[1]+g[1], "🎵", "wave"); }
+  function prov(w){ const id=w.n.id, N=w.n, X=NBX[id]; let wrong=0;
+    const P={
+      nameHtml:()=>esc(N.nm)+'<i>'+hearts5(id)+'</i>',
+      start(){ const s=st(), L=[greet(id)];
+        if(!s.nb.talk[id]){ s.nb.talk[id]=1; sv(); addF(id, 1); }
+        const fin=today().filter(q=>q.who===id && s.acc[q.id] && !s.done[q.id] && canDone(q));
+        if(fin.length){ speakLines(L, ()=>{ fin.forEach(q=>claim(q)); speakLines([NL("Wow! Thank you so much!","와! 정말 고마워!","💖","yay")]); }); refresh(); return; }
+        const b=bangOf(id);
+        if(b==="wc"){ const W=wordToday(); wrong=0; L.push(NL(X.q[0].replace("{w}",W.en), X.q[1].replace("{w}",W.en), "❗")); speakLines(L, ()=>{ try{ say(W.en); }catch(e){} showChoices(); }); return; }
+        if(b==="fv"){ const q=favorQ(id); L.push(NL(q.en, q.ko+" · 🪙 "+q.r, "❗")); speakLines(L); return; }
+        speakLines(L); },
+      choices(){ const s=st(), b=bangOf(id);
+        if(b==="wc"){ const W=wordToday(); return W.opts.map(o=>["w:"+o[0], o[2], "", "pic"]).concat([["say","🔊","", "pic say"]]); }
+        if(b==="fv") return [["fvY","Sure! I can do it.","좋아! 할 수 있어."],["fvN","Sorry, not now.","지금은 안 돼."]];
+        const C=[["chat","💬 Tell me something!","이야기해 줘!"]];
+        if(!s.nb.gift[id] && giftList().length) C.push(["gift","🎁 I have a gift for you!","선물이 있어!"]);
+        C.push(["help","📌 Can I help you?","도와줄 거 있어?"]); C.push(["bye","👋 Bye!","잘 있어!"]); return C; },
+      choose(k, me){ const s=st();
+        if(k==="say"){ const W=wordToday(); try{ say(W.en); }catch(e){} showChoices(); return; }
+        if(k.indexOf("w:")===0){ const W=wordToday(), en=k.slice(2), o=W.opts.find(x=>x[0]===en)||[en,"","❓"];
+          if(en===W.en){ s.nb.wc[id]=1; s.wu=[W.en].concat(s.wu||[]).slice(0,6); sv(); try{ TECO.addCoin(10); SND.big(); }catch(e){} addF(id, 2); refresh();
+            speakLines([ML(o[2]+" This one!","이거!"), NL("Yes! That's “"+W.en+"”! "+W.e,"맞아! 「"+W.en+"」 = "+W.ko+" · 🪙 +10","💖","yay"), NL("Thank you, friend!","고마워, 친구!")]); try{ _tEv("vword"); }catch(e){} }
+          else if(!wrong){ wrong=1; speakLines([ML(o[2]+" This one?","이거?"), NL("Hmm, not that one. Try again!","음, 그건 아니야. 다시 해 봐!","💦")], ()=>{ try{ say(W.en); }catch(e){} showChoices(); }); }
+          else { s.nb.wc[id]=1; s.wu=[W.en].concat(s.wu||[]).slice(0,6); sv(); addF(id, 1); refresh();
+            speakLines([ML(o[2]+" This one?","이거?"), NL("It's this one: "+W.e+" “"+W.en+"”.","이거야: "+W.e+" "+W.en+" ("+W.ko+")","💡"), NL("Now you know it!","이제 알겠지!")]); }
+          return; }
+        if(k==="fvY"){ const q=favorQ(id); s.nb.fv[id]=1; sv(); if(q) accept(q); speakLines([ML(me[1],me[2]), NL("Thank you! See you later!","고마워! 이따 봐!","💖","yay")]); return; }
+        if(k==="fvN"){ s.nb.fv[id]=-1; sv(); refresh(); speakLines([ML(me[1],me[2]), NL("Okay! Maybe tomorrow.","알았어! 내일 또 봐.","🎵")]); return; }
+        if(k==="chat"){ const pool=X.chat.concat(lv(id)>=3?X.chat3:[]), t=pool[Math.floor(Math.random()*pool.length)], L=[ML("Tell me something!","이야기해 줘!"), NL(t[0],t[1],"🎵")];
+          const lk=X.like.find(x=>!(s.lk[id]||{})[x[0]]); if(lk && Math.random()<.5){ s.lk[id]=Object.assign(s.lk[id]||{}, {[lk[0]]:1}); sv(); L.push(NL("Oh! I love "+lk[2]+"! "+lk[1],"아! 나는 "+lk[3]+"를 정말 좋아해!","💖")); }
+          speakLines(L); return; }
+        if(k==="gift"){ speakLines([ML("I have a gift for you!","선물이 있어!"), NL("Really? For me?","정말? 나한테?","❗")], ()=>{ drawGifts(id); showChoices(); }); return; }
+        if(k==="help"){ speakLines([ML(me[1].replace(/^\S+\s/,""),me[2]), NL("Look at my board!","내 의뢰판을 봐!","📌")], ()=>{ try{ closeTalk(); }catch(e){} open(id); }); return; }
+        if(k==="bye"){ speakLines([ML("Bye!","잘 있어!"), NL("See you! Come again!","또 봐! 또 와!","👋","wave")], ()=>setTimeout(()=>{ try{ closeTalk(); }catch(e){} }, 500)); return; } } };
+    return P; }
+  /* 🎁 선물 — 가방의 재료·작물·물고기 하나 (이웃마다 하루 한 번) */
+  function giftList(){ const L=[]; try{ Object.keys(mats||{}).forEach(k=>{ if((mats[k]|0)>0 && MAT[k] && !/ seeds$/.test(k)) L.push(["m:"+k, MAT[k].e, k, mats[k]]); }); }catch(e){}
+    try{ const f=bag.filter(b=>FISH_BY[b.en] && !(SPEC[b.en]||{}).junk); if(f.length) L.push(["f:fish", "🐟", "fish", f.length]); }catch(e){} return L.slice(0,10); }
+  function drawGifts(id){ const box=document.getElementById("dlgSeeds"); if(!box) return; box.innerHTML=giftList().map(([k,e,n,c])=>'<button class="btn sm2" data-gift="'+k+'" data-gw="'+id+'">'+e+' '+esc(n)+' <small>×'+c+'</small></button>').join(""); box.classList.add("on"); }
+  document.addEventListener("click", e=>{ const b=e.target.closest && e.target.closest("[data-gift]"); if(!b) return; e.stopPropagation(); const id=b.dataset.gw, k=b.dataset.gift, s=st(), X=NBX[id]; if(!X || s.nb.gift[id]) return;
+    const nm=k.slice(2); if(k[0]==="m"){ if((mats[nm]|0)<1) return; addMat(nm,-1); saveBag(); } else { let bi=-1, bv=1e9; bag.forEach((it,i)=>{ if(FISH_BY[it.en] && !(SPEC[it.en]||{}).junk){ const v=price(it); if(v<bv){ bv=v; bi=i; } } }); if(bi<0) return; bag.splice(bi,1); saveBag(); }
+    try{ updBagBtn(); }catch(er){} s.nb.gift[id]=1; const lk=X.like.find(x=>x[0]===nm); if(lk){ s.lk[id]=Object.assign(s.lk[id]||{}, {[lk[0]]:1}); } sv(); addF(id, lk?3:1); refresh();
+    const box=document.getElementById("dlgSeeds"); if(box) box.classList.remove("on"); const e2=k[0]==="f"?"🐟":(MAT[nm]||{}).e||"🎁";
+    try{ hideChoices(); speakLines(lk ? [ML("Here you go! "+e2,"여기! "+e2), NL("Wow! I love "+lk[2]+"! Thank you!","와! "+lk[3]+" 정말 좋아해! 고마워!","💖","yay")] : [ML("Here you go! "+e2,"여기! "+e2), NL("Thank you! That's nice.","고마워! 좋다.","🎵")]); }catch(er){} }, true);
+  function talkNb(id){ const w=W.find(x=>x.n.id===id); if(w) talk(w); }
+  function nbList(){ const s=st(); return NPC.map(n=>({id:n.id, nm:n.nm, ic:n.ic, job:n.job, pt:NBX[n.id].pt, lv:lv(n.id), f:s.f[n.id]|0, bang:bangOf(n.id), likes:NBX[n.id].like.filter(x=>(s.lk[n.id]||{})[x[0]]).map(x=>[x[1],x[3]]), gifted:!!s.nb.gift[n.id]})); }
+  return {build, tick, labels, night, open, today, accept, claim, st, NPC, QT, GIFT, hearts, ev, bigShroom, W:()=>W, SP:()=>SP, talkNb, nbList, wordToday, bangs, bangOf, lv, addF, HT};
 })();
 window.VIL=VIL;
