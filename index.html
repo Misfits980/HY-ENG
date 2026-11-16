@@ -11312,7 +11312,7 @@ function spawnSet(){ Perf.mark("문 생성");
   G.sets.push(s);
   try{
     G.nextQ = newQuestion();
-    try{ if(G.nextQ && G.nextQ.promptIsEn && Voice.on && RunVoice.on()) Voice.prefetch([G.nextQ.word.en]); }catch(e){}   /* (v687) QA: 다음 문 단어 발음 파일을 미리 받아 둠 (아이폰은 받기 전이면 조용히 건너뜀 · prefetch 는 만들어 놓고 안 쓰고 있었음) */
+    { const nq=G.nextQ; setTimeout(()=>{ try{ if(G.running && G.nextQ===nq && nq && nq.promptIsEn && Voice.on && RunVoice.on()) Voice.prefetch([nq.word.en]); }catch(e){} }, 1500); }   /* 1.5초 뒤 = 지금 단어 소리를 먼저 받게 (같이 받으면 첫 단어가 늦어짐) */   /* (v687) QA: 다음 문 단어 발음 파일을 미리 받아 둠 (아이폰은 받기 전이면 조용히 건너뜀 · prefetch 는 만들어 놓고 안 쓰고 있었음) */
     const hb=new Set(Hazards.list);
     Hazards.spawnAhead(group.position.z - G.spawnDist, G.nextQ.answer, s.speed);   // 다음 문제 함정 — 이 문 뒤편 (다음 단계의 지대로)
     G.preHazQ = G.nextQ;
