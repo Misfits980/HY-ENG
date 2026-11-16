@@ -121,6 +121,8 @@ async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch(); ctx = await br.new_context(viewport={"width": 1280, "height": 900}, accept_downloads=True)
         pg = await ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)[:300])); await boot(pg); E = pg.evaluate
+        if os.environ.get("HY_PP_ROOM") == "0":   # (v690) 📏 넉넉하게(기본 켜짐)를 끄고 예전 촘촘한 모양으로 돌려 봄
+            await E("()=>localStorage.setItem('hyeng_paper', JSON.stringify({room:false}))")
         await E("()=>{ try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){} Paper.open({mode:'test'}); }"); await pg.wait_for_timeout(6000)
         await E(HELP)
         sets = await E("()=>Paper.psets()")

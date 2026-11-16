@@ -13,7 +13,7 @@ async def main():
         ctx = await b.new_context(viewport={"width": 1280, "height": 900}); await ctx.add_init_script("window.HY_FB_LOCAL=true;")
         T = await ctx.new_page(); errs = []; T.on("pageerror", lambda e: errs.append(str(e))); await boot(T); E = T.evaluate
         # ── 시험지
-        await E("()=>{ localStorage.removeItem('hyeng_paper'); Paper.open({set:'elem', from:0, to:2, mode:'test'}); }"); await T.wait_for_timeout(1800)
+        await E("()=>{ localStorage.setItem('hyeng_paper', JSON.stringify({room:false})); Paper.open({set:'elem', from:0, to:2, mode:'test'}); }")   # (v690) 오답 노트 칸 검사는 「보통」 간격으로 (넉넉하게는 마지막 쪽 빈자리가 줄어 노트가 빠질 수 있음 · fix689 에서 따로 봄); await T.wait_for_timeout(1800)
         r = await E("""()=>{ const W=document.getElementById('ppWrap'); const pg=[...W.querySelectorAll('.pp:not(.key):not(.rd)')], N=[...W.querySelectorAll('.ppNote')];
           return [W.querySelectorAll('.ppHdF i.d').length, N.length, N.map(n=>n.querySelectorAll('.ppNR:not(.hd)').length), [...W.querySelectorAll('.ppCol')].filter(c=>c.scrollHeight>c.clientHeight+1).length, pg.length, document.getElementById('ppNote').checked]; }""")
         ok(r[0] >= 2 and r[1] == 2 and min(r[2]) >= 5 and r[3] == 0 and r[5], f"시험지: 날짜 칸 · A/B형 마지막 쪽에 오답 노트(5줄 이상) · 넘침 없음 {r}")

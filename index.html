@@ -3105,6 +3105,24 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppPdfC b{display:block;font-size:17px;margin-bottom:6px} .ppPdfC p{font-size:13.5px;line-height:1.45;margin:0 0 12px;color:#5a5270} .ppPdfC .ppGo{margin:0 0 8px;width:100%;padding:12px;font-size:15px} .ppPdfC .ppNew{width:100%;padding:10px}
 .ppShot{position:fixed;left:0;top:0;z-index:-1;pointer-events:none;zoom:1!important}
 .ppLt{background:#3a3460} .ppLt b{font-weight:900;color:#bdb3e8} .ppLt.on{background:#2f7d55} .ppLt.on b{color:#fff}   /* (v674) 🪶 가벼운 PDF 단추 */
+/* (v690) 📏 넉넉하게 — 사용자: 「깜지 쓰는 거랑 프린트가 버티질 못해 · 조금 더 널널하게 · 빽빽하게 말고」 → 쓰는 줄·빈칸·문제 사이를 넓힘 (쪽 수는 늘어남) · 단추로 끄면 예전 촘촘한 모양
+   따라쓰기 4선 줄 한 칸: 초1-4 3mm → 4.4mm · 초5-6·중등 2.5mm → 3.6mm (줄 전체 13mm · 11mm) · 칸 너비 = 글자 수 × 6mm(초1-4) · 4.2mm */
+.ppRm{background:#3a3460} .ppRm b{font-weight:900;color:#bdb3e8} .ppRm.on{background:#2f7d55} .ppRm.on b{color:#fff}
+#paper.ppRoom .ppQ{margin-bottom:6mm;font-size:12pt;line-height:1.55} #paper.ppRoom .ppSec{margin:3mm 0 3.5mm;font-size:11.5pt}
+#paper.ppRoom .ppW{font-size:14pt} #paper.ppRoom .ppW.ko{font-size:13pt} #paper.ppRoom .ppKo{font-size:9.5pt}
+#paper.ppRoom .ppOp{margin-top:2mm;gap:1.8mm 3mm} #paper.ppRoom .ppOp li{font-size:11.5pt}
+#paper.ppRoom .ppS u,#paper.ppRoom .ppT u,#paper.ppRoom .ppS2 u{min-width:24mm} #paper.ppRoom .ppS u.mk,#paper.ppRoom .ppS u.ul{min-width:0} #paper.ppRoom .ppT p,#paper.ppRoom .ppS2 p{margin-bottom:1.4mm}
+#paper.ppRoom .ppQ .ppLine{width:calc(var(--n)*6mm);min-width:34mm;max-width:calc(100% - 9mm);height:9mm} #paper.ppRoom .ppDl .ppLine{height:8mm} #paper.ppRoom .ppDl li{margin-bottom:2mm} #paper.ppRoom .ppQ.row{row-gap:2mm}
+#paper.ppRoom .ppGap,#paper.ppRoom .ppScr{font-size:15pt;gap:1.8mm} #paper.ppRoom .ppGap i{width:7.5mm;height:8.5mm} #paper.ppRoom .ppScr b{width:7.5mm}
+#paper.ppRoom .ppFix{margin-top:3mm;font-size:10.5pt;flex-wrap:wrap;row-gap:3mm} #paper.ppRoom .ppFix .ppLine{min-width:30mm}
+#paper.ppRoom .ppVt{margin-top:2.5mm;font-size:10.5pt;display:grid;grid-template-columns:max-content minmax(0,48mm);justify-content:start;gap:3.5mm 3mm;align-items:end} #paper.ppRoom .ppVt .ppLine{width:auto;min-width:0;max-width:none;margin:0}   /* 과거 ____ / 과거분사 ____ 두 줄 (이름과 칸이 떨어지지 않게) */
+#paper.ppRoom .ppM{gap:14mm} #paper.ppRoom .ppM ol{font-size:11.5pt;line-height:1.35} #paper.ppRoom .ppM li{min-height:10mm}   /* 선 잇기: 줄마다 10mm (뜻이 두 줄이면 그만큼만 더) */
+#paper.ppRoom .ppQ.pic > .ppPic{width:19mm;height:19mm;font-size:42pt} #paper.ppRoom .ppQ.pic > .ppPic img{width:19mm;height:19mm} #paper.ppRoom .ppOp.pic .ppPic,#paper.ppRoom .ppOp.pic .ppPic img{width:13mm;height:13mm}
+#paper.ppRoom .ppNR{height:11mm}
+#paper.ppRoom .pp.kj{--sp:4.4mm;--tf:29pt} #paper.ppRoom .pp.kj.big{--sp:3.6mm;--tf:24pt}
+#paper.ppRoom .kjB{padding:3mm;margin-bottom:3mm} #paper.ppRoom .kjS{gap:3.2mm} #paper.ppRoom .kjB.s .kjS{gap:4.2mm}
+#paper.ppRoom .kjStrip.kjMini{--sp:3.4mm;--tf:20pt} #paper.ppRoom .pp.kj.big .kjStrip.kjMini{--sp:3mm;--tf:17pt}
+#paper.ppRoom .kjX{gap:3mm 5mm;margin-top:2.6mm;padding-top:2.4mm}
 .ppNew,.ppGo{appearance:none;border:0;border-radius:10px;padding:7px 14px;font:800 14px var(--font);cursor:pointer;background:#4a4080;color:#fff} .ppGo{background:#ffd23f;color:#3a2600;margin-left:auto}
 #ppInfo{display:block;width:100%;color:#cfc6ff;font-size:12px}
 /* (v580) ✏️ 따라쓰기 (처음 이름 깜지) */
@@ -15697,7 +15715,13 @@ function townOpen(){ if(TOWN_OPEN) return true; if(navigator.webdriver && !windo
    날마다 0부터 · 같은 Stage 같은 단계 다시 = 안 셈 · 복습 한 판 = 1개 · 선생님 기기는 그냥 · 공용 패드 손님은 원래 못 들어감
    들어갈 때 localStorage hyeng_town_ok = 오늘 (공용 패드 주인처럼 공부 칸이 다른 경우에도 house.html 이 알게) · house.html 을 바로 열어도 같은 검사 */
 const TownGate={ NEED:3,
-  n(){ try{ return Study.townN(); }catch(e){ return 0; } },
+  n(){ let a=0, K=[]; try{ a=Study.townN(); K=Study.townK(); }catch(e){} const m=this.srvM(); if(!m) return a;
+    if(Array.isArray(m.twk)){ const U={}; K.concat(m.twk).forEach(k=>{ U[k]=1; }); return Math.max(a, Object.keys(U).length); }   /* 이 기기에서 센 이름 + 서버(다른 기기)에서 센 이름 = 서로 다른 것만 */
+    return Math.max(a, Math.min(99, m.tw|0)); },
+  /* (v690 · 서버 v24) 사용자: 「바꾸고」 — 학원 패드에서 한 Stage 도 집 기기에서 셈 → 서버 랭킹 답 me.tw(오늘 서로 다른 Stage 수) · me.twk(그 이름들)
+     받아 둔 답이 오늘(한국 날짜 twd) 것이고 지금 이 아이 것일 때만 (공용 패드에서 아이가 바뀌면 안 씀) · 옛 서버(v23 까지) = me.tw 없음 = 이 기기 것만 */
+  srvM(){ try{ const B=LiveRank.B, m=B && B.me; if(!m || !m.tw || m.twd!==TodayRank.dkey() || !TodayRank.mine()) return null; return m; }catch(e){ return null; } },
+  srv(){ const m=this.srvM(); return m ? Math.min(99, m.tw|0) : 0; },
   free(){ if(navigator.webdriver && !window.HY_TOWN_GATE) return true; try{ return Kid.teacher(); }catch(e){ return false; } },
   ok(){ return this.free() || this.n()>=this.NEED; },
   pass(){ try{ localStorage.setItem("hyeng_town_ok", String(Study.today())); }catch(e){} },
@@ -15705,7 +15729,7 @@ const TownGate={ NEED:3,
   show(){ if($("townMt")) return; const n=Math.min(this.n(), this.NEED), d=document.createElement("div"); d.id="townMt";
     d.innerHTML='<div class="tmB"><div class="tmI">🔒</div><h3>오늘의 30 Stage '+this.NEED+'개를 하면<br>My Town 이 열려요</h3>'+this.pips(n)
       +'<p>'+(n ? '오늘 <b>'+n+'개</b> 했어요 · <b>'+(this.NEED-n)+'개</b>만 더!' : '오늘 아직 안 했어요 · Stage 하나부터 시작해요!')+'</p>'
-      +'<p class="twSm">같은 Stage 를 다시 하면 1개로 세요 · 날마다 처음부터<br>이 기기에서 한 Stage 만 세요</p>'   /* (v687) QA: 학원 패드에서 한 건 집 폰에서 안 세는 걸 몰랐음 → 알려 줌 (기기끼리 맞추려면 서버가 필요) */
+      +'<p class="twSm">같은 Stage 를 다시 하면 1개로 세요 · 날마다 처음부터<br>같은 이름이면 학원 패드·집 기기를 합쳐 세요 (인터넷)</p>'   /* (v687) 「이 기기에서 한 Stage 만」 → (v690) 서버 v24 가 합쳐 셈 */
       +'<div><button class="no" data-x="1">닫기</button><button class="go" data-d="1">📚 오늘의 30 하러 가기</button></div></div>';
     document.body.appendChild(d); try{ SFX.click(); }catch(e){}
     d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.d){ d.remove(); try{ StudyUI.open(); }catch(_){} } }); },
@@ -17722,7 +17746,7 @@ const NEWS = [
   {id:"2026-11-15a", date:"11월 15일", title:"🏡 My Town 이 열렸어요!",   /* (v687) QA: 소식지가 10/28 에 멈춰 있었음 · My Town 열림과 Stage 3개 규칙 안내가 없었음 */
    items:[
      ["🏡","My Town","게임 시작 → 🏡 My Town — 내 집 꾸미기 · 우리 마을 · 놀이공원"],
-     ["🔒","오늘의 30 Stage 3개","오늘 이 기기에서 Stage 3개를 끝내면 그날 My Town 이 열려요 · 같은 Stage 는 1개로 세요"],
+     ["🔒","오늘의 30 Stage 3개","오늘 Stage 3개를 끝내면 그날 My Town 이 열려요 · 같은 Stage 는 1개로 세요 · 같은 이름이면 학원 패드에서 한 것도 집에서 세요"],   /* (v690) 기기끼리 합침 (서버 v24) */
      ["🏷","내 이름","마을 친구들이 내 이름을 봐요 — 처음 들어갈 때 이름을 정해요"]]},
   {id:"2026-10-28c", date:"10월 28일", title:"📗 중등 voca 1 이 새로 생겼어요!",
    items:[
@@ -18208,6 +18232,7 @@ const Study = (function(){
   /* (v678) 🏡 사용자: 「애들이 마이타운만 한다 · 데일리30 Stage 3개는 해야 (서로 다른 Stage)」 → 오늘 끝낸 서로 다른 판 (Stage+단계 · 복습은 rv 하나 · 날마다 0부터) */
   function townTick(id){ const s=load(), t=today(); if(!s.tw || s.tw.d!==t) s.tw={d:t, k:{}}; if(s.tw.k[id]) return false; s.tw.k[id]=1; save(); return true; }
   function townN(){ const s=load(); return (s.tw && s.tw.d===today()) ? Object.keys(s.tw.k||{}).length : 0; }
+  function townK(){ const s=load(); return (s.tw && s.tw.d===today()) ? Object.keys(s.tw.k||{}) : []; }   /* (v690) 오늘 센 판 이름 — 서버(다른 기기)에서 온 이름과 합침 */
   function dayTick(){ const s=load(), t=today(); s.dl=s.dl||{}; s.dl[t]=(s.dl[t]|0)+1; Object.keys(s.dl).forEach(k=>{ if(+k<t-14) delete s.dl[k]; }); save(); }
   function week(){ const d=load().dl||{}, t=today(), r=[]; for(let i=6;i>=0;i--) r.push(d[t-i]|0); return r; }
   function didToday(){ const s=load(); s.days=s.days||{}; const t=today(); if(s.days.last===t) return false;
@@ -19351,7 +19376,7 @@ const Study = (function(){
         return mkDeep(t, w, gr, O); }catch(e){ return null; } },
     sentsFull:w=>sentsOf(w).map(x=>({en:(x.pre+(x.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+x.post).replace(/\s+/g," ").trim(), ko:x.ko||""})),   /* (v582) ✏️ 따라쓰기 문장 + 문장 성분 */
     deepLv, dlCur:()=>dlNow, DL_MAX, buildDuel:(set, n)=>{ ctx(set); const les=lessons(set).find(x=>x.n===n); if(!les) return null; tierNow=3; dlNow=2; return buildD2(set, les); },   /* (v636) ⚔️ 도전장 = 💜2 (철자 + 빈칸 · ⏱) */
-    estMin, dayTick, townTick, townN, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, hsqReady:()=>!!HSQ || hsqTried>=2, _el:(s, gr)=>elOk(s, gr), _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length, bank:!!G.bank} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
+    estMin, dayTick, townTick, townN, townK, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, hsqReady:()=>!!HSQ || hsqTried>=2, _el:(s, gr)=>elOk(s, gr), _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length, bank:!!G.bank} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} try{ Gift.add({st:[set,n,v]}); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
@@ -20854,10 +20879,11 @@ const StudyUI = {
       if(why==="quit"){ let last=""; try{ last=localStorage.getItem("hyeng_study_lastquit")||""; }catch(e){} if(last===lk) return; try{ localStorage.setItem("hyeng_study_lastquit", lk); }catch(e){} }
       let nick="PLAYER"; try{ nick=(($("nick").value||"PLAYER").trim().slice(0,10).toUpperCase())||"PLAYER"; }catch(e){}
       let dex=0; try{ dex=Dex.count(1)+Dex.count(2)+Dex.count(3); }catch(e){}
+      const twK = (this.ex || this.wk) ? "" : this.rv ? (why==="quit" ? "" : "rv") : (pass ? Study.key(this.set, this.les.n)+"-"+(this.test?"t":this.oly?"o":(this.tier|0)) : "");   /* (v690) Study.townTick 과 같은 이름 */
       const tl = this.tier===3 ? " 💜"+(this.dl||1) : this.tier===2 ? " ★3" : this.tier===4 ? " ★2확인" : this.tier===5 ? " 연습" : this.oly ? " ★5시험" : "";   // (v273) 시트에서 어느 단계 판인지 · (v301) 별 5개 이름
       Online.submit({nick, score:this.first*10, diff:"study", rule:this.ex?"study-exam":this.wk?"study-weekly":this.rv?"study-review":this.test?"study-test":this.tier===3?"study-deep":this.tier===4?"study-check":"study", stage:(this.rv||this.wk||this.ex)?0:Study.stageNo(this.set,this.les.n), acc, right:(this.nOk!=null ? this.nOk|0 : this.done), wrong:this.wrong,   /* (v309) 정답 수 = 맞힌 수 (시험·확인·주간은 틀린 것도 done 에 들어가 '푼 문제'가 부풀었음) */
         clear:pass?1:0, end:why||(pass?"clear":"fail"), set:this.ex?("📝 "+(this.ex.title||"시험")):this.wk?(Study.tag(this.set)+" 주간 시험"):this.rv?"복습":(Study.tag(this.set)+" Stage "+Study.stageNo(this.set,this.les.n)+tl), secs:Math.min(3600, this.secs()), dex, gems:Wallet.gems(), earned:Wallet.earned(), ver:GAME_VER,   // (v277) 모은 보석도 — 공부만 하는 아이는 '보석 점검'에 0으로 나왔다
-        miss:Object.keys(this.missed).slice(0,25).join(", "), ...this.cardF(),
+        miss:Object.keys(this.missed).slice(0,25).join(", "), ...this.cardF(), ...(twK ? {tw:twK} : {}),   /* (v690 · 서버 v24) 🏡 이 판이 센 Stage 칸 → 학원 패드·집 폰 합쳐 셈 */
         ...(this.rvN ? {rvo:this.rvOk|0, rvn:this.rvN, rvw:(this.rvMiss||[]).slice(0,25).join(", ")} : {}), ...(Object.keys(this.spW||{}).length ? {sp:Object.keys(this.spW).length} : {})});   // (v600) 카드 칸 · (v650) 며칠 뒤 첫 번 맞힘/푼 수 · 그때 틀린 단어 · 🎤 말한 단어 수
     }catch(e){}
   },
@@ -23508,7 +23534,7 @@ const Paper = {
       +'<label>제목<input id="ppTitle" maxlength="30" placeholder="(비우면 자동)" value="'+E(o.title||"")+'"></label>'
       +'<div class="ppTy" id="ppTy"></div>'
       +'<div class="ppOpt"><label class="ppChk"><input type="checkbox" id="ppAB"'+(P.ab!==false?' checked':'')+'>A형·B형</label><label class="ppChk"><input type="checkbox" id="ppKey"'+(P.key!==false?' checked':'')+'>답안지</label><label class="ppChk" title="마지막 쪽 빈자리에 틀린 문제 다시 쓰기 칸"><input type="checkbox" id="ppNote"'+(P.note!==false?' checked':'')+'>오답 노트</label>'
-      +'<button class="ppNew" data-pp="new">🔀 새로 뽑기</button>'+this.lightBtn()+'<button class="ppGo" data-pp="print">'+this.printLabel()+'</button></div><small id="ppInfo"></small></div>'
+      +'<button class="ppNew" data-pp="new">🔀 새로 뽑기</button>'+this.roomBtn()+this.lightBtn()+'<button class="ppGo" data-pp="print">'+this.printLabel()+'</button></div><small id="ppInfo"></small></div>'
       +'<div class="ppView"><div class="ppWrap" id="ppWrap"></div></div>';
     document.body.appendChild(d); document.body.classList.add("ppOn");
     const fill=keep=>{ const s=$("ppSet").value, L=Study.lessons(s), opt=L.map((x,i)=>'<option value="'+i+'">'+Study.stageNo(s,x.n)+(x.fin?' 🚩':'')+'</option>').join('');
@@ -23525,7 +23551,7 @@ const Paper = {
       const b=e.target.closest && e.target.closest("[data-pp]"); if(!b) return; const a=b.dataset.pp;
       if(a==="swap"){ const [si,qi]=String(b.dataset.src).split(":").map(Number); if(this.B && this.B.swap(si, qi)) this.render(); else hyToast("바꿀 단어가 더 없어요 (범위를 넓혀 보세요)", 1800); return; }
       if(a==="md"){ this.mode=b.dataset.v; d.querySelectorAll("#ppMd button").forEach(x=>x.classList.toggle("on", x===b)); this.kjUi(true); this._kjMix=false; this.modeUi(); if(this.isX()) this.xLoad().then(()=>{ if(!$("paper")) return; this.lfFill(true); this.gmFill(true); this.modeUi(); this.make(); }); this.make(); return; }
-      if(a==="x") this.close(); else if(a==="new"){ this._kjMix=true; this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print"){ if(this.pdfMode()) this.pdf(); else this.print(); } else if(a==="pdfShare") this.pdfShare(); else if(a==="pdfOpen") this.pdfOpen(); else if(a==="pdfDl") this.pdfDl(); else if(a==="light") this.toggleLight(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); } });
+      if(a==="x") this.close(); else if(a==="new"){ this._kjMix=true; this.seed=(this.seed*7+13)%100000; this.make(); } else if(a==="print"){ if(this.pdfMode()) this.pdf(); else this.print(); } else if(a==="pdfShare") this.pdfShare(); else if(a==="pdfOpen") this.pdfOpen(); else if(a==="pdfDl") this.pdfDl(); else if(a==="light") this.toggleLight(); else if(a==="room") this.toggleRoom(); else if(a==="pdfX"){ const o=$("ppPdf"); if(o) o.remove(); } });
     this._rs=()=>this.fit(); addEventListener("resize", this._rs);
     try{ DexData.load(1); DexData.load(2); DexData.load(3); loadEasy(); }catch(e){}   /* 예문·대화 데이터 (처음이면 받는 동안 기다렸다가 다시) */
     if(!this.PPX) fetch("data/ppx.json").then(r=>r.json()).then(j=>{ this.PPX=j; if($("paper")) this.make(); }).catch(()=>{});   /* (v545) 과거분사 예문 (Claude 작성) */
@@ -23645,7 +23671,7 @@ const Paper = {
         if(s.k!=="match" && q.src) h=h.replace('<div class="ppQ', '<div data-src="'+q.src+'" class="ppQ');
         if(qi===0){ const g=add('<div class="ppGrp">'+hd+h+'</div>'); } else add(h); }); });
     /* (v577) 마지막 쪽에 문제 몇 개만 남으면(왼쪽 단 1/3 도 안 참) 문제 사이를 조금 좁혀서 한 쪽 줄여 봄 — 안 줄면 원래대로 */
-    if(tight==null && pages.length>1){ const L=pages[pages.length-1], C=L.querySelectorAll(".ppCol"), e=C[0].lastElementChild, used=e ? (e.offsetTop+e.offsetHeight-C[0].offsetTop)/Math.max(1, C[0].clientHeight) : 0;
+    if(tight==null && pages.length>1 && !this.room()){ const L=pages[pages.length-1], C=L.querySelectorAll(".ppCol"), e=C[0].lastElementChild, used=e ? (e.offsetTop+e.offsetHeight-C[0].offsetTop)/Math.max(1, C[0].clientHeight) : 0;
       if(!C[1].children.length && used<0.4){ const n0=pages.length; pages.forEach(p=>p.remove()); const T=this.pages(W, c, F, secs, total, true); if(T.length<n0) return T; T.forEach(p=>p.remove()); return this.pages(W, c, F, secs, total, false); } }
     if(c.note!==false) this.noteBox(pages[pages.length-1]);
     pages.forEach((p,i)=>{ p.querySelector(".ppFt").textContent=(F?F+"형 · ":"")+(i+1)+" / "+pages.length; });
@@ -23655,7 +23681,7 @@ const Paper = {
   noteBox(page){ if(!page) return; const C=[...page.querySelectorAll(".ppCol")]; if(C.length<2) return;
     const col = !C[1].children.length ? C[1] : C[1], last=col.lastElementChild, cr=col.getBoundingClientRect(), z=cr.height/Math.max(1, col.offsetHeight);
     const free=(cr.top+col.clientHeight*z-(last ? last.getBoundingClientRect().bottom : cr.top))/z, mm=col.offsetWidth/88.5;   /* 단 너비 ≈ 88.5mm */
-    const rows=Math.min(12, Math.floor((free/mm-30)/9.5)); if(rows<5) return;
+    const rows=Math.min(12, Math.floor((free/mm-30)/(this.room()?11:9.5))); if(rows<5) return;   /* (v690) 넉넉하게 = 줄 11mm */
     const b=document.createElement("div"); b.className="ppNote"; b.innerHTML='<h4><b>✏️ 틀린 문제 다시 쓰기</b><small>틀린 번호와 바른 답을 쓰고, 두 번 더 써요</small></h4>'
       +'<div class="ppNR hd"><i>번호</i><i>바른 답</i><i>한 번 더</i><i>또 한 번</i></div>'+new Array(rows+1).join('<div class="ppNR"><i></i><i></i><i></i><i></i></div>')
       +'<div class="ppNS"><span>부모님 확인 <i></i></span><span>선생님 확인 <i></i></span></div>';
@@ -23679,7 +23705,7 @@ const Paper = {
           const a = q.opts ? this.NUM[q.a] : s.k==="wko" ? E(q.w.ko) : E(dispEn(q.w.en))+(s.k==="wen" && q.sib && q.sib.length ? '<small> (같은 뜻 '+E(q.sib.join(', '))+' 와 구분: 앞 글자 '+E(q.pre)+')</small>' : ''); put('<span><i>'+(no++)+'</i>'+a+'</span>'); }); }); });
     pages.forEach((p,i)=>{ p.querySelector(".ppFt").textContent="답안지"+(pages.length>1 ? " · "+(i+1)+" / "+pages.length : ""); });
     return pages.length; },
-  make(){ this._rfN=0; if(this.isX()){ this.B=null; if(!Life.D || !Gram.D){ this.xLoad().then(()=>{ if($("paper") && this.isX() && Life.D){ this.lfFill(true); this.gmFill(true); this.modeUi(); this.make(); } }); const W=$("ppWrap"); if(W) W.innerHTML=""; return; } const c=this.xCfg(); this.c=c; this.B = this.mode==="lf" ? this.lfBuild(c) : this.gmBuild(c); this.render(); return; } const c=this.cfg(); if(this.mode==="kw" || this.mode==="ks"){ this.B=null; this.c=c; this.kjRender(); return; } this.B=this.build(c); this.c=c; this.render(); },
+  make(){ this._rfN=0; try{ $("paper").classList.toggle("ppRoom", this.room()); }catch(e){} if(this.isX()){ this.B=null; if(!Life.D || !Gram.D){ this.xLoad().then(()=>{ if($("paper") && this.isX() && Life.D){ this.lfFill(true); this.gmFill(true); this.modeUi(); this.make(); } }); const W=$("ppWrap"); if(W) W.innerHTML=""; return; } const c=this.xCfg(); this.c=c; this.B = this.mode==="lf" ? this.lfBuild(c) : this.gmBuild(c); this.render(); return; } const c=this.cfg(); if(this.mode==="kw" || this.mode==="ks"){ this.B=null; this.c=c; this.kjRender(); return; } this.B=this.build(c); this.c=c; this.render(); },
   /* ══ (v580) ✏️ 따라쓰기(처음 이름 깜지) — 사용자: 「깜지 쓰는 거랑 문장 깜지 기능도」 → (v581) 「따라쓰기라고 · 더 이쁘게」
      단어 깜지 = 영어 단어 + 뜻 → 영어 줄(위·가운데·아래 줄) 칸에 N 번 쓰기 · 문장 깜지 = 예문 + 해석 → 줄에 N 번 베껴 쓰기
      초1-2·3-4 는 첫 칸에 흐린 글씨(따라 쓰기) · 범위 순서대로(🔀 누르면 섞기) · 같은 A4 · 인쇄·PDF 그대로 */
@@ -23722,7 +23748,7 @@ const Paper = {
     return (p || f.length) ? {p, f:f.slice(0, 4)} : null; },
   kjWxHtml(X, gr, quiz){ const E=t=>this.E(t), PC={"명사":"n","동사":"v","형용사":"a"};
     const pos = quiz && gr==="g34" ? '<span class="kjPos q">'+["명사","동사","형용사"].map(o=>'<i>○ '+o+'</i>').join('')+'</span>' : quiz ? '<span class="kjPos q">품사 <u></u></span>' : X.p ? '<span class="kjPos '+(PC[X.p]||'')+'">'+X.p+'</span>' : '';
-    return '<div class="kjX">'+pos+X.f.map(f=>'<span class="kjXf"><b>'+f[0]+'</b><span class="kjStrip kjMini"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i><span class="kjC" style="width:'+Math.max(22, Math.min(46, f[1].length*2.9+8)).toFixed(0)+'mm">'+(quiz?'':'<em class="kjT">'+E(f[1])+'</em>')+'</span></span></span>').join('')+'</div>'; },
+    return '<div class="kjX">'+pos+X.f.map(f=>'<span class="kjXf"><b>'+f[0]+'</b><span class="kjStrip kjMini"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i><span class="kjC" style="width:'+(this.room() ? Math.max(30, Math.min(64, f[1].length*4.2+10)) : Math.max(22, Math.min(46, f[1].length*2.9+8))).toFixed(0)+'mm">'+(quiz?'':'<em class="kjT">'+E(f[1])+'</em>')+'</span></span></span>').join('')+'</div>'; },
   kjSent(w, gm){ if(gm && gm!=="off" && this.SVA){ let L=[]; try{ L=Study.sentsFull(w); }catch(e){}
       for(const x of L){ const g=x.en.length>=6 && x.en.length<=110 && this.SVA[x.en]; if(g) return {en:x.en, ko:x.ko, w:w.en, g}; } }
     let st=null; try{ st=Study.sentOf(w); }catch(e){} if(!st) return null; const full=(st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post).replace(/\s+/g," ").trim();
@@ -23733,7 +23759,7 @@ const Paper = {
     if(ks && gm!=="off" && !this.SVA){ this.svaLoad(); I.textContent="📐 문법 자료를 받는 중…"; }
     if(ks){ for(const w of all){ if(items.length>=c.n) break; const x=this.kjSent(w, gm); if(x) items.push(x); else miss++; } } else items=all.slice(0, c.n).map(w=>({en:dispEn(w.en), ko:w.ko, emo:w.emoji||"", x: gm!=="off" ? this.kjWx(w, gr) : null}));
     if(!items.length){ I.textContent = ks ? "이 범위엔 예문이 있는 단어가 없어요" : "범위에 단어가 없어요"; return; }
-    const ttl=c.title || (Study.label(c.set)+(ks?" 문장 따라쓰기":" 단어 따라쓰기")), rep=c.rep, tr=c.tr, pages=[], young=/^g(12|34)$/.test(this.gr(c.set)), pic=!ks && young && items.some(x=>x.emo); let body=null;
+    const ttl=c.title || (Study.label(c.set)+(ks?" 문장 따라쓰기":" 단어 따라쓰기")), rep=c.rep, tr=c.tr, pages=[], young=/^(g12|g34|k)$/.test(this.gr(c.set)), pic=!ks && young && items.some(x=>x.emo); let body=null;
     /* (v581) 사용자: 「깜지 말고 따라쓰기 · 조금 더 이쁘게」 → 영어 4선 공책 줄(빨간 바닥 줄) · 동그라미 번호 · 카드 줄 · 그림(초1-4) · 다 쓰면 ✔ 칸 · 머리에 「참 잘했어요」 도장 자리 */
     const head=first=>first
       ? '<header class="kjHd"><div class="kjTt"><b>✏️ '+E(ttl)+'</b><small>'+E(this.rng(c))+' · '+items.length+(ks?'문장':'단어')+' · '+rep+'번씩 써요</small></div><div class="kjStamp"><span>참<br>잘했어요</span></div>'
@@ -23748,10 +23774,10 @@ const Paper = {
     const strip=(cells, cw)=>'<div class="kjStrip"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i>'+cells.map(t=>'<span class="kjC"'+(cw?' style="width:'+cw+'mm"':'')+'>'+(t?'<em class="kjT">'+E(t)+'</em>':'')+'</span>').join('')+'</div>';
     newPage(true);
     items.forEach((x,i)=>{ const no='<b class="kjNo">'+(i+1)+'</b>', chk='<i class="kjChk"></i>';
-      if(!ks){ const AW=pic ? 116 : 128, wmin=Math.max(young?24:20, Math.min(AW, x.en.length*(young?4:2.8)+(young?6:5))); let per=Math.max(1, Math.min(rep, Math.floor(AW*1.15/wmin))); const lines=Math.ceil(rep/per); per=Math.ceil(rep/lines);   /* 한 줄에 고르게 */
+      if(!ks){ const AW=pic ? 116 : 128, Rm=this.room(), wmin=Math.max(young?(Rm?32:24):(Rm?28:20), Math.min(AW, x.en.length*(young?(Rm?6:4):(Rm?4.2:2.8))+(young?(Rm?8:6):(Rm?7:5))));   /* (v690) 넉넉하게 = 글자마다 6mm · 4.2mm */ let per=Math.max(1, Math.min(rep, Math.floor(AW*1.15/wmin))); const lines=Math.ceil(rep/per); per=Math.ceil(rep/lines);   /* 한 줄에 고르게 */
         const cw=(AW/per).toFixed(1), L=[]; let k=0; for(let l=0;l<lines;l++){ const row=[]; for(let j=0;j<per && k<rep;j++,k++) row.push(k===0 && tr ? x.en : ""); L.push(strip(row, cw)); }
         fitTx(add('<div class="kjB'+(pic?' pic':'')+'">'+no+(pic?'<span class="kjPic">'+(x.emo?emoHtml(x.emo):'')+'</span>':'')+'<div class="kjW"><b'+(String(x.en).replace(/\s.*/,"").length>=13 ? ' class="xl"' : String(x.en).replace(/\s.*/,"").length>=10 ? ' class="lg"' : '')+'>'+E(x.en)+'</b><small>'+E(x.ko)+'</small></div><div class="kjS">'+L.join('')+'</div>'+chk+(x.x ? this.kjWxHtml(x.x, gr, quiz) : '')+'</div>')); return; }
-      const two=x.en.length>(young?46:72), L=[]; if(tr) L.push(strip([x.en])); for(let k=0;k<rep*(two?2:1);k++) L.push(strip([""]));
+      const two=x.en.length>(young?(this.room()?30:46):(this.room()?48:72)), L=[];   /* (v690) 넉넉하게 = 긴 문장은 두 줄에 */ if(tr) L.push(strip([x.en])); for(let k=0;k<rep*(two?2:1);k++) L.push(strip([""]));
       fitTx(add('<div class="kjB s">'+no+'<div class="kjSt">'+(x.g && gm!=="off" ? this.kjGram(x, gr, quiz) : '<p>'+E(x.en)+'</p>')+'<small>'+E(x.ko)+'</small><div class="kjS">'+L.join('')+'</div></div>'+chk+'</div>')); });
     /* (v582) 📐 문제로 냈으면 맨 뒤에 답안지 */
     if(quiz && !ks && items.some(x=>x.x && x.x.f.length)){ const pg=document.createElement("section"); pg.className="pp kj key"+(young?"":" big"); kHd='<header class="kjHd sm"><b>📗 답안지 — '+E(ttl)+'</b><span>'+E(this.rng(c))+'</span></header>'; pg.innerHTML=kHd+'<div class="kjBody"></div><footer class="ppFt"></footer>'; W.appendChild(pg); pages.push(pg); body=pg.querySelector(".kjBody");
@@ -23789,6 +23815,11 @@ const Paper = {
   /* (v674) 사용자: PC 크롬으로 인쇄하면 한 장 뽑히고 멈춤 → 「가벼운 PDF」 설정 단추 — 켜면 쪽마다 그림 한 장인 PDF 를 우리가 만들어(아이패드 앱과 같은 길) 새 탭에서 인쇄
      (약한 프린터는 글자·그림 글자·여백 없는 쪽을 처리하다 메모리가 모자라 멈추는 일이 있음 — 그림 PDF 는 프린터가 받기 쉬움) · 기기에 기억 */
   LK:"hyeng_pp_light",
+  /* (v690) 📏 넉넉하게 (기본 켜짐 · hyeng_paper.room) */
+  room(){ return this.pref().room!==false; },
+  roomBtn(){ const on=this.room(); return '<button class="ppNew ppRm'+(on?' on':'')+'" data-pp="room" title="아이 글씨가 들어가게 쓰는 줄·빈칸·문제 사이를 넓혀요 (쪽 수는 늘어요) · 끄면 예전처럼 촘촘하게">📏 넉넉하게 <b>'+(on?'켜짐':'꺼짐')+'</b></button>'; },
+  toggleRoom(){ const on=!this.room(); try{ localStorage.setItem("hyeng_paper", JSON.stringify(Object.assign({}, this.pref(), {room:on}))); }catch(e){}
+    document.querySelectorAll("#paper .ppRm").forEach(b=>{ b.classList.toggle("on", on); b.innerHTML='📏 넉넉하게 <b>'+(on?'켜짐':'꺼짐')+'</b>'; }); this.make(); },
   light(){ try{ return localStorage.getItem(this.LK)==="1"; }catch(e){ return false; } },
   lightBtn(){ const on=this.light(); return '<button class="ppNew ppLt'+(on?' on':'')+'" data-pp="light" title="프린터가 중간에 멈추면 켜 보세요 — 쪽마다 그림 한 장인 PDF 로 인쇄해요">🪶 가벼운 PDF <b>'+(on?'켜짐':'꺼짐')+'</b></button>'; },
   printLabel(){ return this.pdfMode() ? (this.light() && !this.iosApp() ? '📄 가벼운 PDF 만들기 (인쇄)' : '📄 PDF 만들기 (인쇄·저장)') : '🖨 인쇄 / PDF 저장'; },
@@ -28794,7 +28825,7 @@ const Admin = (function(){
     if(!tk) return '<div class="adSrv bad">✅ 서버는 새 버전이에요 · 아래에서 열쇠를 만들어 넣어 주세요</div>';
     if(srv.key==="nokey") return '<div class="adSrv bad">⚠️ 서버에 선생님 열쇠가 없어요 <button class="mini" data-ad="tab" data-t="set" data-s="key">🔑 열쇠 넣는 순서 ›</button></div>';
     if(srv.key==="badkey") return '<div class="adSrv bad">⚠️ 이 기기의 선생님 열쇠가 서버와 달라요 — 📊 랭킹 통계·반 전체 기록이 안 나와요 <button class="mini" data-ad="tab" data-t="set" data-s="key">🔑 열쇠 맞추기 ›</button><br><small>다른 기기에서 「새 열쇠」를 만들었다면 그 열쇠를 여기 「다른 선생님 기기에서 만든 열쇠 넣기」에 넣어요</small></div>';   /* (v672) 크롬 점검: 「아래 순서대로」인데 수업 탭 아래엔 안내가 없었음 → 열쇠 칸으로 바로 */
-    if(srv.key==="ok") return '';   // (v395) 잘 되면 아무것도 안 보임 (안 될 때만 빨간 줄)
+    if(srv.key==="ok") return srv.v<24 ? '<div class="adSrv">🏡 My Town 「Stage 3개」를 학원 패드·집 기기 합쳐 세려면 <b>새 Code.gs (v24)</b> 를 붙여 넣어 주세요 — ⚙️ 설정 「📋 새 Code.gs 복사」 → Apps Script → 배포 관리 → ✏️ → 새 버전</div>' : '';   // (v395) 잘 되면 아무것도 안 보임 · (v690) 서버 v24 전이면 한 줄
     return '<div class="adSrv">서버 연결됨 · 열쇠 확인 중…</div>';
   }
   const ready=()=>srv && srv.v>0 && srv.key==="ok" && tk;
@@ -30599,7 +30630,7 @@ const LiveRank = {
     const mine=(first)=>{ if(!own) return; if(first && tm) it.push(["today", -1, tm]); this.ORD.forEach(k=>{ if(me[k] && me[k].rank) it.push([k, -1, me[k]]); }); };
     for(let i=0;i<10;i++){ if(T && i<3 && T.list[i]) it.push(["today", i, T.list[i]]); this.ORD.forEach(k=>{ const r=(B[k]||[])[i]; if(r) it.push([k, i, r]); }); if(i===0 || i===4) mine(i===0); }
     this._wk=this.who().key; return it; },
-  set(B, cached){ this.B=B; const it=this.build();
+  set(B, cached){ let tw0=0; try{ tw0=TownGate.n(); }catch(e){} this.B=B; try{ if(TownGate.n()!==tw0) TownGate.card(); }catch(e){}   /* (v690) 🏡 다른 기기에서 한 Stage 가 오면 My Town 카드 잠금도 바로 */ const it=this.build();
     const same = this.it.length && it.length===this.it.length; this.it=it; if(!same) this.i=0; this.draw(); if($("lrPanel")) this.panel(); if(!cached) setTimeout(()=>{ try{ this.lgCheer(); }catch(e){} }, 600); if(this._onSet && $("scRank").classList.contains("on")){ try{ this._onSet(); }catch(e){} } if(!cached) setTimeout(()=>{ try{ RankUI.ann(); }catch(e){} }, 1200); },
   gap(k, r){ if(!r.above) return ''; const d=Math.max(1, Number(r.above.score)-Number(r.score)); return this.esc(r.above.nick)+'까지 '+d.toLocaleString()+(k==="words"?'단어':'점'); },
   rowH(x){ const [k,i,r]=x, C=this.CAT[k];

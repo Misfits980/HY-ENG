@@ -60,7 +60,7 @@ async def main():
         await A.evaluate("()=>HLIFE.openMart()"); await A.wait_for_timeout(800)
         r=await A.evaluate("()=>[...document.querySelectorAll('#suP .suC .nm')].map(n=>[n.textContent, n.scrollWidth-n.clientWidth, parseFloat(getComputedStyle(n).fontSize)])")
         st=[x for x in r if x[0]=="strawberry seeds"]
-        ok(st and st[0][1]<=1 and 10<=st[0][2]<14 and all(x[1]<=1 for x in r), f"② 가게 이름이 칸 안에 다 들어감 (strawberry seeds 글자만 작게) {st} · 넘침 {[x for x in r if x[1]>1]}")
+        ok(st and st[0][1]<=1 and 11<=st[0][2]<14 and all(x[1]<=1 for x in r), f"② 가게 이름이 칸 안에 다 들어감 (strawberry seeds 글자만 작게) {st} · 넘침 {[x for x in r if x[1]>1]}")
         await A.evaluate("()=>{ try{ SHOPUI.close(); }catch(e){} document.querySelectorAll('#suP.on').forEach(e=>e.classList.remove('on')); }")
         # ⑤ 카메라 바로 앞 비침
         await A.wait_for_timeout(500)

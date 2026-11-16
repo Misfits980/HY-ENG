@@ -33,7 +33,7 @@ post(Object.assign({}, base, {nick:"민준", tag:"0006", at:now-900, rid:"a2", r
 post(Object.assign({}, base, {nick:"서연", tag:"0007", at:now-800, rid:"a3", rvo:9, rvn:10, rvw:"quite", sp:5}));
 post(Object.assign({}, base, {nick:"지호", tag:"0008", at:now-700, rid:"a4"}));   // 옛 게임 — 칸 없음
 const H=book.scores.d[0], ci=n=>H.indexOf(n), r1=book.scores.d[1], r4=book.scores.d[4];
-ok(ci("며칠 뒤 맞힘")>0 && ci("며칠 뒤 푼 수")===ci("며칠 뒤 맞힘")+1 && ci("말한 단어")===H.length-1, "새 칸 4개가 맨 끝에 "+H.slice(-4).join(" · "));
+ok(ci("며칠 뒤 맞힘")>0 && ci("며칠 뒤 푼 수")===ci("며칠 뒤 맞힘")+1 && ci("말한 단어")===ci("며칠 뒤 맞힘")+3 && ci("며칠 뒤 맞힘")>ci("기록 번호"), "새 칸 4개가 옛 칸 뒤에 이어서 (v690 마을 칸은 그 뒤) "+H.slice(-5).join(" · "));
 ok(r1[ci("며칠 뒤 맞힘")]===3 && r1[ci("며칠 뒤 푼 수")]===10 && r1[ci("며칠 뒤 틀린 단어")]==="quite, through" && r1[ci("말한 단어")]===2, "값이 숫자·글자 그대로");
 ok(r4[ci("며칠 뒤 맞힘")]==="" && r4[ci("말한 단어")]==="", "옛 게임 줄은 빈 칸");
 const L=post({type:"report", tk:"K"}).rep.learn;

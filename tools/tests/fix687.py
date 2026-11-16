@@ -81,7 +81,7 @@ async def main():
         r = await E("()=>[NEWS[0].id, NEWS[0].title, NEWS.find(n=>n.id==='2026-10-20a').title]")
         ok(r[0] == "2026-11-15a" and "My Town" in r[1] and "끝났" in r[2], f"⑦ 소식지 맨 위 = My Town · 빼빼로는 끝났다고 {r}")
         r = await E("()=>{ const f=TownGate.free; TownGate.free=()=>false; TownGate.show(); TownGate.free=f; const d=document.getElementById('townMt'); const t=d.innerText, b=d.querySelector('.tmB'); const z=[getComputedStyle(b).zoom, Math.round(b.getBoundingClientRect().width)]; d.remove(); return [t, z]; }")
-        ok("이 기기에서" in r[0], "⑦ 잠금 창에 「이 기기에서 한 Stage 만」")
+        ok("학원 패드" in r[0], "⑦ 잠금 창에 어디서 한 것을 세는지 (v690: 같은 이름이면 학원 패드·집 기기 합쳐)")
         ok(float(r[1][0]) > 1.2 and r[1][1] > 520, f"(v688) 패드 세로 잠금 창 = 배율 (전엔 휴대폰 크기) {r[1]}")
         # ③ 첫소리 문제 고유명사
         await E("()=>{ const S=Study.load(); S.book='g12'; Study.save(); StudyUI.open(); StudyUI.start(0,false); }"); await pg.wait_for_timeout(800)
