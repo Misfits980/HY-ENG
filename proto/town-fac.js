@@ -155,16 +155,17 @@ const TFAC=(()=>{
     { const lg=new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(line,3)); const ln=new THREE.LineSegments(lg, new THREE.LineBasicMaterial({color:0x6b5a4e})); ln.raycast=()=>{}; ln.userData.noFade=1; C.G.add(ln); }
     const DG=new THREE.Group(); DG.position.set(OX,0,OZ); C.G.add(DG); const pole=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.6,8), C.MC(0xffffff)); pole.position.set(0,3.05,0); DG.add(pole);
     for(let k=0;k<4;k++){ const a=k/4*6.283+.6, ex=Math.cos(a)*PR*.86, ez=Math.sin(a)*PR*.86; const p2=new THREE.Mesh(new THREE.CylinderGeometry(.07,.08,3.35,8), C.MC(0xfffdf7)); p2.position.set(ex,1.67,ez); p2.castShadow=true; DG.add(p2); const b=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8), C.MC(0xffd23f)); b.position.set(ex,3.42,ez); DG.add(b); try{ C.cols.push([ex+OX,ez+OZ,.25]); }catch(e){} }
-    // 계절 소품 — 광장 둘레 (길 위는 피함)
+    // 계절 소품 — 광장 둘레 (길 위는 피함) · (v695) 소품·깃발 기둥 자리를 busy 에 — 🐾 단어 손님이 호박 속으로 걸어 들어가지 않게
+    for(let k=0;k<4;k++){ const a=k/4*6.283+.6; C.busy.push([Math.cos(a)*PR*.86, Math.sin(a)*PR*.86, .3]); }
     const ring=(r, n, fn)=>{ for(let k=0;k<n;k++){ const a=k/n*6.283+.35, x=Math.cos(a)*r, z=Math.sin(a)*r; try{ if(ISLE.onPave(x+OX,z+OZ) && Math.hypot(x,z)>C.MAP.plaza.r-.2) continue; }catch(e){} fn(x,z,a,k); } };
     const P_=(geo,c,x,y,z,o)=>{ const m=new THREE.Mesh(geo, C.MC(c)); m.position.set(x,y,z); if(o) m.scale.set(o[0],o[1],o[2]); m.castShadow=true; DG.add(m); return m; };
-    if(S==="autumn") ring(PR*.57, 12, (x,z,a,k)=>{ if(k%2) return; P_(new THREE.SphereGeometry(.3,12,8),0xff8a3d,x,.24,z,[1,.75,1]); P_(new THREE.CylinderGeometry(.04,.05,.16,6),0x5a8a3a,x,.5,z); });
-    if(S==="winter"){ ring(PR*.57, 12, (x,z,a,k)=>{ if(k%3) return; P_(new THREE.SphereGeometry(.34,12,10),0xffffff,x,.32,z); P_(new THREE.SphereGeometry(.24,12,10),0xffffff,x,.82,z); P_(new THREE.ConeGeometry(.05,.22,6),0xff8a3d,x+Math.cos(a+3.14)*.24,.84,z+Math.sin(a+3.14)*.24).rotation.set(0,0,Math.PI/2); });
+    if(S==="autumn") ring(PR*.57, 12, (x,z,a,k)=>{ if(k%2) return; C.busy.push([x,z,.45]); P_(new THREE.SphereGeometry(.3,12,8),0xff8a3d,x,.24,z,[1,.75,1]); P_(new THREE.CylinderGeometry(.04,.05,.16,6),0x5a8a3a,x,.5,z); });
+    if(S==="winter"){ ring(PR*.57, 12, (x,z,a,k)=>{ if(k%3) return; C.busy.push([x,z,.45]); P_(new THREE.SphereGeometry(.34,12,10),0xffffff,x,.32,z); P_(new THREE.SphereGeometry(.24,12,10),0xffffff,x,.82,z); P_(new THREE.ConeGeometry(.05,.22,6),0xff8a3d,x+Math.cos(a+3.14)*.24,.84,z+Math.sin(a+3.14)*.24).rotation.set(0,0,Math.PI/2); });
       const tx=9.2, tz=-3.8; C.busy.push([tx,tz,2]); [[1.25,1.3,.7],[1.0,1.1,1.5],[.7,.9,2.2]].forEach(([r,h,y])=>P_(new THREE.ConeGeometry(r,h,14),0x2f8f3f,tx,y,tz)); P_(new THREE.CylinderGeometry(.18,.2,.5,8),0x7a4f2c,tx,.25,tz);
       P_(new THREE.OctahedronGeometry(.28),0xffd23f,tx,2.85,tz); C.cols.push([tx+OX,tz+OZ,1.2]);
       for(let i=0;i<14;i++){ const a=i*2.4, r=.5+(i%4)*.18, y=.9+(i%5)*.3, b=new THREE.Mesh(new THREE.SphereGeometry(.08,8,6), new THREE.MeshBasicMaterial({color:C.LIN([0xff6b6b,0xffd23f,0x5aa7ff,0xffffff][i%4])})); b.position.set(tx+Math.cos(a)*r*(1.6-y/2.4), y, tz+Math.sin(a)*r*(1.6-y/2.4)); b.material=C.MC([0xff6b6b,0xffd23f,0x5aa7ff,0xffffff][i%4]); DG.add(b); } }
-    if(S==="summer") ring(PR*.59, 12, (x,z,a,k)=>{ if(k%3) return; P_(new THREE.CylinderGeometry(.04,.04,1.8,6),0xffffff,x,.9,z); P_(new THREE.ConeGeometry(.9,.4,12),[0xff6b6b,0x5aa7ff,0xffd23f][k%3],x,1.9,z); });
-    if(S==="spring") ring(PR*.58, 12, (x,z,a,k)=>{ if(k%2) return; P_(new THREE.CylinderGeometry(.24,.18,.32,10),0xc9925c,x,.16,z); [0,1,2].forEach(j=>P_(new THREE.SphereGeometry(.1,8,6),[0xff9ac8,0xffffff,0xffd23f][j],x+Math.cos(j*2.1)*.1,.42,z+Math.sin(j*2.1)*.1)); });
+    if(S==="summer") ring(PR*.59, 12, (x,z,a,k)=>{ if(k%3) return; C.busy.push([x,z,.3]); P_(new THREE.CylinderGeometry(.04,.04,1.8,6),0xffffff,x,.9,z); P_(new THREE.ConeGeometry(.9,.4,12),[0xff6b6b,0x5aa7ff,0xffd23f][k%3],x,1.9,z); });
+    if(S==="spring") ring(PR*.58, 12, (x,z,a,k)=>{ if(k%2) return; C.busy.push([x,z,.4]); P_(new THREE.CylinderGeometry(.24,.18,.32,10),0xc9925c,x,.16,z); [0,1,2].forEach(j=>P_(new THREE.SphereGeometry(.1,8,6),[0xff9ac8,0xffffff,0xffd23f][j],x+Math.cos(j*2.1)*.1,.42,z+Math.sin(j*2.1)*.1)); });
     mergeIn(DG);
     // 날리는 것 (여름 = 없음)
     parts=null; if(sea.p){ const n=(typeof LOW!=="undefined" && LOW)?120:240, g=new THREE.BufferGeometry(), a=new Float32Array(n*3); for(let i=0;i<n;i++){ a[i*3]=(Math.random()-.5)*40; a[i*3+1]=Math.random()*14; a[i*3+2]=(Math.random()-.5)*40; } g.setAttribute("position",new THREE.BufferAttribute(a,3));
@@ -455,6 +456,6 @@ const TFAC=(()=>{
       ["pointerdown","pointerup"].forEach(ev=>b.addEventListener(ev, e=>e.stopPropagation())); b.addEventListener("click", e=>{ e.stopPropagation(); openMe(); }); p.appendChild(b); };
     mk("hud","hFull","pill tap full"); mk("ihRes","ihFull",""); }
   function petPub(){ const P=PET(); return P?{t:P.t, n:P.n}:null; }
-  return {build, labels, tick, spd, full, eat, openGoal, openPost, openSnack, openPet, openMuseum, openPhoto, openLib, openStation, openMe, loadGoal, loadMail, loadMus, myPts, petPub, shoot, warp, ride, stage, season, SP, GOAL, MAIL, FAC, BOOKS, SENT, SNACK, PETS, TRICK, DEST, petObj:()=>petObj, PET};
+  return {build, labels, tick, spd, full, eat, openGoal, openPost, openSnack, openPet, openMuseum, openPhoto, openLib, openStation, openMe, loadGoal, loadMail, loadMus, myPts, petPub, shoot, warp, ride, stage, season, SP, GOAL, MAIL, FAC, BOOKS, SENT, SNACK, PETS, TRICK, DEST, petObj:()=>petObj, PET, petMesh};
 })();
 window.TFAC=TFAC;

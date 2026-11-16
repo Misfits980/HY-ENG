@@ -4247,7 +4247,7 @@ function emote(c, e){ if(c.emo){ c.g.remove(c.emo.s); c.emo.s.material.map.dispo
   emoDraw(g, e, 64, 58, 62);
   const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false})); s.renderOrder=11; s.position.y=2.05; s.scale.set(0.01,0.01,1); c.g.add(s); c.emo={s, t:0}; dirty=true;
   try{ const x=EMO_EXPR[e]; if(x && c.setExpr && c.expr!==x){ c.setExpr(x); c.exprTmp=1; } }catch(er){} }
-function updEmotes(dt){ let a=false; npcs.concat([hero, hostDoll], (typeof TWN!=="undefined" && TWN.peers) ? Object.values(TWN.peers) : [], (window.VIL && VIL.W) ? VIL.W().map(w=>w.c) : []).forEach(c=>{ if(!c || !c.emo) return; const E=c.emo; E.t+=dt; const k=E.t<0.18 ? E.t/0.18*1.15 : E.t<0.3 ? 1.15-(E.t-0.18)/0.12*0.15 : 1; E.s.scale.set(0.5*k,0.5*k,1);
+function updEmotes(dt){ let a=false; npcs.concat([hero, hostDoll], (typeof TWN!=="undefined" && TWN.peers) ? Object.values(TWN.peers) : [], (window.VIL && VIL.W) ? VIL.W().map(w=>w.c) : [], (window.GUEST && GUEST.C) ? GUEST.C() : []).forEach(c=>{ if(!c || !c.emo) return; const E=c.emo; E.t+=dt; const k=E.t<0.18 ? E.t/0.18*1.15 : E.t<0.3 ? 1.15-(E.t-0.18)/0.12*0.15 : 1; E.s.scale.set(0.5*k,0.5*k,1);
   if(E.t>1.8){ c.g.remove(E.s); E.s.material.map.dispose(); c.emo=null; if(c.exprTmp && c.setExpr){ c.exprTmp=0; c.setExpr(c.expr0||"smile"); } } a=true; }); return a; }
 /* 대화 진행 — 줄 = {en, ko, emo, anim, who:'npc'|'me'} */
 function speakLines(lines, after){ dlg.queue=lines.slice(); dlg.after=after||null; nextLine(); }
@@ -4638,7 +4638,7 @@ try{ GUARD.onLevel=perfApply; }catch(e){}
 function loopBody(now){
   if(window.MG && MG.on){ last=now; return; }   /* (v590) 🎮 게임 타워 안 — 섬은 멈추고 게임이 그림 (mg-core.js) */
   const rawMs=now-last, dt=Math.min(0.05,rawMs/1000); last=now;
-  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.VIL && VIL.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
+  let anim=updateHero(dt); try{ if(window.ISLE && ISLE.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.VIL && VIL.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.GUEST && GUEST.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } try{ if(window.TFAC && TFAC.tick(dt)) anim=true; }catch(e){ try{ GUARD.report("tick", e && e.message, {st:String(e && e.stack||"").slice(0,400)}); }catch(_){ } } if(updDoors(dt)) anim=true; if(updateFish(dt)) anim=true; if(updWobble(dt)) anim=true; if(updateNpcs(dt)) anim=true; if(updEmotes(dt)) anim=true; if(updOcclude(dt)) anim=true; if(roomTick(dt)) anim=true; if(yTick(dt)) anim=true; if(yRide(dt)) anim=true; if(hostDoll && place===PL.visit && animChar(hostDoll, dt)) anim=true; if(yHost && place===PL.yvisit && animChar(yHost, dt)) anim=true;
   farmT+=dt; if(farmT>2){ farmT=0; if(place===PL.yard){ regen(); checkPlots(); } if(place===PL.mine){ regenMine(); drawOres(); } }
   if(Math.abs(yawTo-yaw)>0.001){ yaw+=(yawTo-yaw)*Math.min(1,dt*8); if(Math.abs(yawTo-yaw)<0.002) yaw=yawTo; if(sel) placeMenu(); anim=true; if(avOpen) hero.face=yaw; }
   if(TW.on){ twTick(dt); anim=true; } else if(updCam(dt)) anim=true;
@@ -4674,6 +4674,8 @@ window.HOUSE = {MTL, mtLog, mtId, MTS, mtAcc, mtSheet, VLN, vlNetStart, vlNetSto
 <script src="town-fac.js"></script>
 <script src="town-eco.js"></script>
 <script src="isle-vil.js"></script>   <!-- (v587) 🍄 버섯 마을 · 📌 의뢰 -->
+<script src="isle-ani.js"></script>   <!-- (v694) 🐾 움직이는 동물 (Quaternius CC0) -->
+<script src="isle-guest.js"></script>   <!-- (v694) 🐾 단어 손님 -->
 <script src="mg-core.js"></script>   <!-- (v590) 🎮 놀이 공원 게임 타워 -->
 <script src="mg-arena.js"></script>   <!-- (v590) 💦 물총 아레나 -->
 <script src="mg-grid.js"></script>   <!-- (v590) 🟦 발판 게임 -->

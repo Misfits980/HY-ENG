@@ -5600,6 +5600,7 @@ body.tabP #townMt .tmB,body.tabP #helloMt .tmB{zoom:var(--stZ,1)}   /* (v688) �
 #townMt .twPips i.on{background:#5cc46a;color:#fff;border:3px solid #3f9c4c} #townMt .twSm{font-size:13px!important;color:#8a7158}
 #scSetup .c-town.twLock{filter:saturate(.6) brightness(.93)} #scSetup .c-town.twLock .townTag{color:#4b3527;background:#ffe08a}
 #stDoneIn .twLine{margin:6px auto 0;font:800 14.5px/1.4 var(--font);color:#fff;background:rgba(20,16,40,.42);border-radius:99px;padding:4px 14px;width:fit-content;max-width:100%}
+#stDoneIn .twLine.gst{background:rgba(255,184,77,.9);color:#4b2a00;font-size:14px}
 #stDoneIn .twLine.open{font-size:17px;background:#5cc46a;box-shadow:0 3px 0 #3f9c4c;animation:twPop .5s cubic-bezier(.3,1.6,.5,1)} @keyframes twPop{from{transform:scale(.6);opacity:0}} #townMt .no,#helloMt .no{background:#efe3cb;color:#4b3527}
 
 /* ===== (v484) Daily 30 유치원 꾸미기 — 아침 강가 · 연잎 보기 · 개구리 도우미 · 새 풍선 (#scStudy.thK = 유치원 책 공부 중) ===== */
@@ -15753,9 +15754,13 @@ const TownGate={ NEED:3,
     inp.addEventListener("keydown", e=>{ if(e.key==="Enter") go(); });
     d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.ok) go(); }); },
   line(before){ try{ if(!TOWN_OPEN || this.free() || Kid.guest()) return ''; }catch(e){ return ''; } const n=this.n();
-    if(before<this.NEED && n>=this.NEED) return '<p class="twLine open">🏡 My Town 이 열렸어요!</p>';
-    if(n<this.NEED) return '<p class="twLine">🏡 My Town 까지 Stage <b>'+(this.NEED-n)+'개</b> 더</p>';
-    return ''; }
+    if(before<this.NEED && n>=this.NEED) return '<p class="twLine open">🏡 My Town 이 열렸어요!</p>'+this.guest();
+    if(n<this.NEED) return '<p class="twLine">🏡 My Town 까지 Stage <b>'+(this.NEED-n)+'개</b> 더</p>'+this.guest();
+    return this.guest(); },
+  /* (v695) 🐾 단어 손님 — 오늘 처음 본 동물 단어가 마을 광장에 놀러 감 (proto/isle-guest.js 의 D 와 같은 목록) */
+  GW:["cow","ox","bull","horse","pony","donkey","chick","dog","puppy","pup","cat","kitten","rabbit","deer","fox","wolf","panda"],
+  guest(){ try{ const s=Study.load(), t=Study.today(), sd=s.sd||{}, W=this.GW.filter(w=>sd[w]===t); if(!W.length) return '';
+    return '<p class="twLine gst">🐾 오늘 배운 <b>'+W.slice(0,3).join(" · ")+'</b> — My Town 광장에 놀러 와요!</p>'; }catch(e){ return ''; } }
 };
 function townClosed(){ if($("townMt")) return; const d=document.createElement("div"); d.id="townMt";
   d.innerHTML='<div class="tmB"><div class="tmI">🛠</div><h3>새 마을 준비 중!</h3><p>마을 사람들이 <b>영어로 말을 걸고 부탁하는</b><br>새 My Town 을 만들고 있어요.</p>'
@@ -17620,7 +17625,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v694";
+const GAME_VER = "v695";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
