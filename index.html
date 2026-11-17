@@ -3197,7 +3197,8 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .kjStrip i{position:absolute;left:0;right:0;height:0;pointer-events:none}
 .kjStrip .g1{top:0;border-top:.2mm solid #cdd6ea} .kjStrip .g2{top:var(--sp);border-top:.25mm dashed #b4c4e8} .kjStrip .g3{top:calc(var(--sp)*2);border-top:.35mm solid #ec8c84} .kjStrip .g4{top:calc(var(--sp)*3);border-top:.2mm solid #cdd6ea}
 .kjC{position:relative;flex:none;height:100%;border-left:.25mm dashed #d9d5ea;overflow:hidden} .kjC:first-of-type{border-left:0} .kjB.s .kjC{flex:1}
-.kjT{position:absolute;left:1.5mm;top:calc(var(--sp)*2 - .9em);font-style:normal;font-size:var(--tf);line-height:1;color:#c9c5d8;white-space:nowrap;font-weight:600;letter-spacing:.03em;z-index:1}
+@font-face{font-family:"HY Trace";src:url(assets/fonts/hy-trace.ttf) format("truetype");font-weight:100 900;font-style:normal;font-display:swap}   /* (v709) 따라쓰기 흐린 글씨 = 학교 손글씨 글꼴(Edu SA Beginner · OFL · 똑바로 세움) — 4선에 맞는 비율 · 라틴만 17KB */
+.kjT{position:absolute;left:1.5mm;top:calc(var(--sp)*2 - .9em);font-family:"HY Trace",var(--font);font-style:normal;font-size:var(--tf);line-height:1;color:#c9c5d8;white-space:nowrap;font-weight:600;letter-spacing:.03em;z-index:1}
 .kjChk{width:4.6mm;height:4.6mm;border:.35mm solid #b8b2d6;border-radius:1.2mm;align-self:center;font-style:normal}
 .kjB.s .kjChk{align-self:start;margin-top:.8mm}
 .kjB.s.cont .kjNo{opacity:.5} .kjB.s .kjCt{margin:0 0 1.2mm;font-size:9.5pt;font-weight:700;line-height:1.3;color:#8a85a3} .kjCt span{display:inline-block;margin-right:1.6mm;padding:.1mm 1.8mm;border:.25mm solid #c9c4e0;border-radius:99px;font-size:7.5pt;font-weight:800;color:#6d6790;vertical-align:.3mm}   /* (v701) 문장 카드 「이어서」 */
@@ -17778,7 +17779,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v708";
+const GAME_VER = "v709";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -24191,8 +24192,13 @@ const Paper = {
   /* (v708) 사용자: 「따라쓰기 줄 쓰는 거에 g 나 y 가 공중에 떠 있는 경우가 있네」 — 흐린 글씨 자리를 「빨간 줄 − .9em」 어림으로 잡아서 글꼴(기기)마다 글자 밑선이 빨간 줄 위로 떴음
      (아이폰 사진: 단어가 점선 쪽에 걸치고 g·y 꼬리가 줄 사이 공중) · 크기도 20pt 고정이라 소문자 몸통이 점선을 28% 넘음
      → 쓰는 글꼴을 직접 재서 (캔버스 = 글자 모양 · 숨은 글자 = 밑선 자리): 밑선 = 빨간 줄 · 소문자 몸통(x) = 점선~빨간 줄 · l b d 머리 = 맨 윗줄 안 · g y p q j 꼬리 = 아래 칸 */
-  kjMet(){ const W=$("ppWrap"); if(!W) return; const ff=getComputedStyle(W).fontFamily, KX=window.KJ_KX||1.04;
-    if(this._kjm===ff+KX && document.getElementById("kjMet")) return;
+  /* (v709) 사용자: 「조금 더 개선해 줄래 · 애들 쓰니까」 — 보통 글꼴은 g·y 꼬리가 아래 칸 절반까지만 → 흐린 글씨만 학교 손글씨 글꼴(HY Trace · 머리:몸통:꼬리 ≈ 0.85:1:0.85)
+     글꼴이 아직 안 왔으면 지금 글꼴로 재고 · 오면 다시 재서 다시 그림 (같은 문제 그대로) */
+  kjMet(){ const W=$("ppWrap"); if(!W) return; const KX=window.KJ_KX||1.04;
+    let ff=getComputedStyle(W).fontFamily; try{ const e=document.createElement("em"); e.className="kjT"; e.style.display="none"; W.appendChild(e); ff=getComputedStyle(e).fontFamily||ff; e.remove(); }catch(e){}
+    const FT='600 20px "HY Trace"', ready=!document.fonts || !/HY Trace/.test(ff) || document.fonts.check(FT);
+    if(!ready && !this._kjWait){ this._kjWait=1; document.fonts.load(FT).then(()=>{ this._kjWait=0; this._kjm=null; const P=$("ppWrap"); if(P && P.querySelector(".pp.kj") && /^k[ws]$/.test(this.mode||"")) this.kjRender(); }).catch(()=>{ this._kjWait=0; }); }
+    if(this._kjm===ff+KX+ready && document.getElementById("kjMet")) return;
     try{ const c=document.createElement("canvas").getContext("2d"); c.font="600 100px "+ff; const A=(L,k)=>Math.max(...L.map(x=>c.measureText(x)[k]||0))/100;
       const xh=A(["x","z","v"],"actualBoundingBoxAscent"), asc=A(["l","d","b","h","k"],"actualBoundingBoxAscent"), dsc=A(["g","y","p","q","j"],"actualBoundingBoxDescent");
       if(!(xh>0.3 && xh<0.8 && asc>xh*1.1 && dsc>0.05 && dsc<0.6)) return;   /* 못 재는 브라우저 = 예전 CSS 그대로 */
@@ -24203,7 +24209,7 @@ const Paper = {
       const F=Math.min(KX/xh, 1.9/asc, 0.96/dsc);   /* 글자 크기 = 줄 칸(sp) × F */
       let st=document.getElementById("kjMet"); if(!st){ st=document.createElement("style"); st.id="kjMet"; document.head.appendChild(st); }
       st.textContent='.pp.kj .kjT{font-size:calc(var(--sp)*'+F.toFixed(3)+');top:calc(var(--sp)*2 - '+B.toFixed(3)+'em);letter-spacing:.02em}';
-      this._kjm=ff+KX; this._kjInfo={xh:+xh.toFixed(3), asc:+asc.toFixed(3), dsc:+dsc.toFixed(3), B:+B.toFixed(3), F:+F.toFixed(3)};
+      this._kjm=ff+KX+ready; this._kjInfo={font:ready && /HY Trace/.test(ff) ? 'HY Trace' : 'fallback', xh:+xh.toFixed(3), asc:+asc.toFixed(3), dsc:+dsc.toFixed(3), B:+B.toFixed(3), F:+F.toFixed(3)};
     }catch(e){} },
   kjRender(T){ const W=$("ppWrap"); if(!W) return; this.kjMet();   /* T = (v701) 모양 {on 좁히기, rx 쪼개기, probe 쪽 수만 셈} — 밖에서 부를 땐 없음 → 모양을 견줘 고름 */ const c=this.c, I=$("ppInfo"), top=W.parentNode.scrollTop, E=x=>this.E(x), m=this.mode, ks=m==="ks"; W.innerHTML=""; this.unfit(W);
     const all=this.kjWords(c); let items=[], miss=0;
