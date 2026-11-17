@@ -19,7 +19,11 @@
       K.forEach(k=>{ if(!(k in S) || alive(k)) ls.removeItem(k); }); Object.keys(S).forEach(k=>{ if(!alive(k) && k!==BK) ls.setItem(k, S[k]); }); return true; }catch(e){ return false; } };
   const parse=t=>{ try{ return JSON.parse(t||"null"); }catch(e){ return null; } };
   try{ const q=location.search, inQa=!!ss && ss.getItem("hyeng_qa")==="1";
-    if(/[?&]qa=0(&|$)/.test(q)){ const S=parse(ss && ss.getItem("hyeng_qa_snap")) || parse(ls && ls.getItem(BK)); if(S) window.HY_QA_RESTORED=restore(S); if(ss){ ss.removeItem("hyeng_qa"); ss.removeItem("hyeng_qa_snap"); } if(ls) ls.removeItem(BK); }
+    if(/[?&]qa=0(&|$)/.test(q)){ const S=parse(ss && ss.getItem("hyeng_qa_snap")) || parse(ls && ls.getItem(BK)); if(S) window.HY_QA_RESTORED=restore(S); if(ss){ ss.removeItem("hyeng_qa"); ss.removeItem("hyeng_qa_snap"); } if(ls) ls.removeItem(BK);
+      /* (v702) 크롬 점검: 「끝내기」 뒤 ?qa=0 이 게임을 보통 모드로 바로 켜서(서버에 쓰기 시작) 점검이 끝나자마자 기록이 나갔음 → 여기서 멈추고 「끝냈어요 · 게임 열기」만 보여 줌 */
+      try{ window.stop(); }catch(e){} window.HY_QA_END=true;
+      const home=location.pathname.replace(/[^/]*$/, "")+"index.html";
+      try{ document.documentElement.innerHTML='<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>점검 끝</title></head><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#1d1830;color:#fff;font:16px/1.55 sans-serif;text-align:center"><div style="padding:24px"><div style="font-size:42px">🧪</div><b style="font-size:20px">점검 모드를 끝냈어요</b><p style="opacity:.85;margin:8px 0 16px">이 기기 저장을 점검 전으로 되돌렸어요'+(S ? '' : ' (되돌릴 것이 없었어요)')+'</p><a id="hyQaHome" href="'+home+'" style="display:inline-block;padding:12px 22px;border-radius:12px;background:#ffd25e;color:#2a2340;font-weight:800;text-decoration:none">게임 열기</a></div></body>'; }catch(e){} }
     else { if(!inQa && ls && ls.getItem(BK)){ window.HY_QA_RESTORED=restore(parse(ls.getItem(BK))); ls.removeItem(BK); }   /* 점검하던 탭을 「끝내기」 없이 닫았으면 → 다음에 열 때(이 기기 어느 탭이든) 점검 전으로 되돌림 */
       if(/[?&]qa=1(&|$)/.test(q) && ss) ss.setItem("hyeng_qa","1"); }
     on=!!ss && ss.getItem("hyeng_qa")==="1"; }catch(e){}
@@ -37,7 +41,8 @@
   const badge=()=>{ if(document.getElementById("hyQa")) return; const b=document.createElement("div"); b.id="hyQa";
     b.style.cssText="position:fixed;left:6px;bottom:6px;z-index:2147483000;background:#7a1fa2;color:#fff;font:700 12px/1.2 sans-serif;padding:6px 8px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;gap:6px;align-items:center;opacity:.92";
     b.innerHTML='🧪 점검 모드 · 서버에 안 씀 <button type="button" style="font:700 12px sans-serif;border:0;border-radius:7px;padding:3px 7px;background:#fff;color:#7a1fa2;cursor:pointer">끝내기</button>';
-    b.querySelector("button").onclick=()=>{ const town=/house\.html/.test(location.pathname); location.href=(town ? "../index.html" : location.pathname)+"?qa=0"; };
+    b.querySelector("button").onclick=e=>{ e.stopPropagation(); const town=/house\.html/.test(location.pathname); location.href=(town ? "../index.html" : location.pathname)+"?qa=0"; };
+    b.title="누르면 반대쪽 구석으로"; b.onclick=()=>{ const t=b.dataset.top!=="1"; b.dataset.top=t?"1":""; b.style.top=t?"6px":""; b.style.bottom=t?"":"6px"; b.style.left=t?"":"6px"; b.style.right=t?"6px":""; };   /* (v702) 시험지 아래 칸을 가려서 — 누르면 오른쪽 위로 */
     document.body.appendChild(b); };
   if(document.body) badge(); else document.addEventListener("DOMContentLoaded", badge);
 })();
