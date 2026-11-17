@@ -9813,8 +9813,11 @@ function senseNos(en, ko){ const k=en+"|"+ko; if(k in _senseC) return _senseC[k]
 function senseOk(w, n){ if(!n || !w || !w.en) return true; const S=senseNos(w.en, w.ko); return !S || S.indexOf(+n)>=0; }
 /* (v322) 고유명사(요일·나라·언어·대륙·명절·행성 …)는 자료 키가 소문자(monday) — 화면에는 대문자로 (Monday · Eiffel Tower). 자료·저장 키는 그대로 */
 const PROPER={}; ("monday,tuesday,wednesday,thursday,friday,saturday,sunday,january,february,april,june,july,august,september,october,november,december,english,korean,spanish,italian,japan,korea,england,france,germany,italy,spain,canada,mexico,egypt,london,paris,seoul,christmas,halloween,thanksgiving,jupiter,venus,chinese,japanese,french,german,greek,asia,africa,europe,america,australia,antarctica,antarctic,"
-  +"china,india,rome,pacific,easter,saturn,eiffel tower,roman,celsius,hollywood,european,vietnam,canadian").split(",").forEach(x=>PROPER[x]=1);
+  +"china,india,rome,pacific,easter,saturn,eiffel tower,roman,celsius,hollywood,european,vietnam,canadian,"
+  +"dutch,american,british,russian,mexican,african,asian,indian,brazilian,swiss,irish,thai,turkish,egyptian,portuguese,arabic,vietnamese,netherlands,olympics").split(",")   /* (v705) 중등 시험 보기 「dutch」 → Dutch */.forEach(x=>PROPER[x]=1);
 const isProper = en => !!PROPER[String(en==null?"":en).toLowerCase()];
+/* (v705) 같은 남자아이 얼굴 그림에 빛만 다른 곳(머리·얼굴·목·턱) — 그림 보기에 같이 나오면 neck 그림이 face·head 로도 보여 애매했음 → 서로의 보기로 안 냄 */
+const PIC_LOOK = new Set(["head","face","neck","chin"]), picLook = (a, b) => PIC_LOOK.has(String(a)) && PIC_LOOK.has(String(b));
 function dispLead(t){ const T=String(t==null?"":t); if(/^china\s*\((도)?자기/.test(T)) return T; return T.replace(/^([A-Za-z' -]+?)(\s*\(|$)/, (m,a,c)=>dispEn(a)+c); }   // (v381) 'china (중국)' → 'China (중국)'
 function dispEn(en){ const s=String(en==null?"":en); return isProper(s) ? s.replace(/(^|[\s-])([a-z])/g,(m,a,c)=>a+c.toUpperCase()) : s; }
 function pickDistractors(word, count, needKo){
@@ -17767,7 +17770,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v704";
+const GAME_VER = "v705";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18542,7 +18545,7 @@ const Study = (function(){
       if(blendSeg(w.en, phc)) t="blend"; }
     /* (v302) 유치원 — 읽기 없이 소리로(hpic · bal) → 첫 글자 · 읽고 그림(first · rpic) → 만들기(make) */
     if(t==="hpic" || t==="rpic"){ if(canPic(w) && (t==="hpic" || kidRead(w))){ const used={}; used[w.emoji]=1; const wp=koParts(w.ko);   // (v322) 점검: 뜻이 같은 그림(rat/mouse · dish/bowl)은 보기에서 빼기
-        const d=shuffle(pool.concat(kidCtx ? EMO_KID() : EMO.slice())).filter(x=>x.en!==w.en && x.emoji && !used[x.emoji] && (t!=="rpic" || /^[a-z]{2,8}$/.test(x.en)) && !KID_NO.test(x.en) && KID_NOE.indexOf(x.emoji)<0 && x.ko!==w.ko && !koParts(x.ko).some(p=>wp.some(q=>koOv(p,q))) && !near(w.en,x.en) && !homo(w.en,x.en) && relW(w.en,["f"]).indexOf(x.en)<0 && relW(x.en,["f"]).indexOf(w.en)<0 && (used[x.emoji]=1)).slice(0,2);   // 가족 말(puppy·dog)도
+        const d=shuffle(pool.concat(kidCtx ? EMO_KID() : EMO.slice())).filter(x=>x.en!==w.en && !picLook(w.en, x.en) && x.emoji && !used[x.emoji] && (t!=="rpic" || /^[a-z]{2,8}$/.test(x.en)) && !KID_NO.test(x.en) && KID_NOE.indexOf(x.emoji)<0 && x.ko!==w.ko && !koParts(x.ko).some(p=>wp.some(q=>koOv(p,q))) && !near(w.en,x.en) && !homo(w.en,x.en) && relW(w.en,["f"]).indexOf(x.en)<0 && relW(x.en,["f"]).indexOf(w.en)<0 && (used[x.emoji]=1)).slice(0,2);   // 가족 말(puppy·dog)도
         return {t, w, opts:shuffle([w].concat(d))}; } t = canHear() ? "listen" : "e2k"; }
     if(t==="bal" || t==="first"){ const L=w.en.length<2 || /^(kn|wr|gn|ps)/.test(w.en) || /^[cg][eiy]/.test(w.en) || /^(eye|eu|ewe|one$|ones?$|once|eigh|hour|honest|honou?r|heir|aisle|island|use|usu|uni|uti|ura|xy)/.test(w.en) ? null : firstL(w.en);   /* (v337) QA: eye·use·one·eight 은 첫 글자와 첫소리가 다름 */   // (v308) knee·write·city 처럼 첫 글자 소리가 다르면 다른 문제로
       const SAME={c:["k","s"], k:["c"], s:["c"], f:["ph"], j:["g"], g:["j"]};
@@ -18566,7 +18569,7 @@ const Study = (function(){
       t = sentOf(w) ? "sent" : "k2e"; }
     if(t==="pic"){ const used={}; used[w.emoji]=1; const wp=koParts(w.ko||"");   /* (v634) 점검: 유치원 그림 보기 22% 가 battle·media·chart 같은 어려운 말(📈🌡️🅿️) → 유치원·G1-2 는 쉬운 그림 단어에서만 · 뜻 겹침 빼기 */
       const src=(kidCtx || easyCtx) ? EMO_KID() : EMO;
-      const d=shuffle(src).filter(x=>x.en!==w.en && !used[x.emoji] && !KID_NO.test(x.en) && KID_NOE.indexOf(x.emoji)<0 && x.ko!==w.ko && !koParts(x.ko||"").some(p=>wp.some(q=>koOv(p,q))) && (used[x.emoji]=1)).slice(0,3);
+      const d=shuffle(src).filter(x=>x.en!==w.en && !picLook(w.en, x.en) && !used[x.emoji] && !KID_NO.test(x.en) && KID_NOE.indexOf(x.emoji)<0 && x.ko!==w.ko && !koParts(x.ko||"").some(p=>wp.some(q=>koOv(p,q))) && (used[x.emoji]=1)).slice(0,3);
       return {t, w, opts:shuffle([w].concat(d))}; }
     if(t==="past"){ if(canPast(w)){ const b=PAST[w.en]; let r=regPast(b);   // 틀린 규칙 과거형(goed) — 진짜 단어가 되면(see→seed) 다른 과거형으로
         if(byEn[r]){ const o=shuffle(Object.keys(PAST).filter(e=>e!==w.en && byEn[e] && !byEn[e].sw)); r=o[0]||b+"ed"; }
@@ -24010,7 +24013,7 @@ const Paper = {
     const vfc={}, mk=(k, w)=>{ if(k==="vform" && this.gr(c.set)==="mid"){ const b=vfc[irrW(w)?"i":"r"]=vfc[irrW(w)?"i":"r"]||{s:0, w:0}, q=this.LOC.vform.call(this, w, c, R, b.s<=b.w ? "s" : "w") || GQ[k+"|"+w.en]; if(q) b[q.sn ? "s" : "w"]++; return q; }   /* (v547) 중등: 예문 문제 · 단어 문제 반반 */
       if(this.T[k][2]===2) return GQ[k+"|"+w.en]; const q={w};
       if(this.T[k][2]===1 && k!=="wen"){ q.opts=[w].concat(others(w, x=> k==="pic" ? !!x.emoji : true)); }
-      if(k==="pic"){ q.opts=[w].concat(others(w, x=>x.emoji!==w.emoji)); }
+      if(k==="pic"){ q.opts=[w].concat(others(w, x=>x.emoji!==w.emoji && !picLook(w.en, x.en))); }
       if(k==="wen"){ /* (v629) 시험지 단어 쓰기 QA — 같은 뜻 단어가 책에 또 있으면(many·much / grandfather·grandpa) 앞 글자를 더 보여 줘서 답이 하나만 되게 · 답안지에 같은 뜻 단어 */
         const ko=String(w.ko).trim(), en=w.en.toLowerCase(), sib=[]; try{ Study.lessons(c.set).forEach(x=>(x.ws||[]).forEach(v=>{ if(v && v.en && String(v.ko||"").trim()===ko && v.en.toLowerCase()!==en && sib.indexOf(v.en)<0) sib.push(v.en); })); }catch(e){}
         let n=1; sib.forEach(o=>{ const t=o.toLowerCase(); let i=0; while(i<t.length && i<en.length && t[i]===en[i]) i++; n=Math.max(n, i+1); }); q.pre=w.en.slice(0, Math.min(n, Math.max(1, w.en.length-1))); q.sib=sib; }
