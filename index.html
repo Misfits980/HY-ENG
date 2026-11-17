@@ -17767,7 +17767,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v703";
+const GAME_VER = "v704";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -18427,7 +18427,7 @@ const Study = (function(){
   const bookOf = set => Object.keys(BOOKS).find(b=>BOOKS[b].sets.indexOf(set)>=0) || "g12";
   const NOPIC_BOOK = {g34:1, g56:1, mid:1};
   const WIMG = {"1|head":["head","머리"],"1|arm":["arm","팔"],"1|face":["face","얼굴"],"1|chin":["chin","턱"],"1|neck":["neck","목"],"1|back":["back_body","등"],"1|knee":["knee","무릎"],"1|toe":["toe","발가락"],"1|finger":["finger","손가락"],"2|brother":["brother","남자 형제"],"2|sister":["sister","여자 형제"],"2|child":["child","아이"],"2|artist":["artist","예술가"],"2|dancer":["dancer","무용수"],"3|sick":["sick","아픈"],"3|old":["old","나이 많은, 오래된"],"3|young":["young","어린"],"3|full":["full","배부른, 가득 찬"],"3|short":["short","짧은"],"3|long":["long","긴"],"3|fat":["fat","뚱뚱한"],"3|thin":["thin","마른"],"3|good":["good","좋은"],"3|bad":["bad","나쁜"],"4|glue":["glue","풀"],"4|board":["board","칠판"],"4|name":["name","이름"],"4|test":["test","시험, 시험해 보다"],"4|eraser":["eraser","지우개"],"4|desk":["desk","책상"],"4|class":["class","수업"],"5|tennis":["tennis","테니스"],"5|golf":["golf","골프"],"5|go":["go","가다"],"5|stop":["stop","멈추다"],"5|baseball":["baseball","야구"],"5|ski":["ski","스키를 타다"],"5|helmet":["helmet","헬멧"],"5|exercise":["exercise","운동"],"5|bat":["bat","방망이"],"5|soccer":["soccer","축구"],"5|rule":["rule","규칙"],"5|basketball":["basketball","농구"],"5|skate":["skate","스케이트를 타다"],"5|lose":["lose","잃다"],"6|sing":["sing","노래하다"],"6|stand":["stand","서다"],"6|wake":["wake","깨다"],"6|close":["close","닫다"],"6|open":["open","열다"],"6|hit":["hit","치다, 때리다"],"7|road":["road","길"],"7|left":["left","왼쪽의"],"7|cross":["cross_walk","건너다"],"7|turn":["turn","돌다"],"7|on":["on","위에"],"7|right":["right","오른쪽의"],"7|under":["under","아래에"],"7|front":["front","앞"],"7|in":["in","안에"],"7|back":["back_pos","뒤, 뒷면"],"9|make":["make","만들다"],"9|buy":["buy","사다"],"9|help":["help","돕다"],"9|travel":["travel","여행하다"],"9|ride":["ride","타다"],"9|use":["use","사용하다"],"9|give":["give","주다"],"9|plan":["plan","계획"],"9|try":["try","해 보다"],"11|day":["day","날"],"11|dry":["dry","마른"],"11|wet":["wet","젖은"],"11|tie":["tie","묶다"],"11|skirt":["skirt","치마"],"12|sand":["sand","모래"],"12|hill":["hill","언덕"],"12|blow":["blow","불다"],"12|air":["air","공기"],"12|fresh":["fresh","신선한"],"12|rest":["rest","쉬다, 휴식"],"13|sofa":["sofa","소파"],"13|table":["table","탁자"],"13|stove":["stove","가스레인지"],"14|gray":["gray","회색"],"14|cross":["cross_shape","십자 모양"],"14|rectangle":["rectangle","직사각형"],"15|count":["count","세다"],"15|time":["time","시간"],"15|month":["month","달(월)"],"15|year":["year","해(년)"],"*|necklace":["necklace",""],"*|towel":["towel",""],"*|almond":["almond",""],"*|bottle":["bottle",""]};   // (v489) assets/words/ 그림 (과|단어 → [파일, 뜻])
-  const label = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; return b ? b.emo+" "+b.nm+(u && b.sets.length>1 ? " · "+u.nm : "") : set; };
+  const label = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; return b ? b.emo+" "+(u && b.sets.length>1 ? (String(u.nm).indexOf(b.nm)===0 ? u.nm : b.nm+" · "+u.nm) : b.nm) : set; };   /* (v704) 「중등 · 중등 voca 1」 → 「중등 voca 1」 (갈래 이름이 책 이름으로 시작하면 한 번만) */
   const tag = set => { const b=BOOKS[bookOf(set)], u=SUB[set]; if(!b) return set; const show = u && set!=="g56" && (b.sets.length>1 || /권/.test(u.nm));
     return show ? (u.nm.indexOf(b.tab)===0 ? u.nm : b.tab+" "+u.nm) : b.tab; };   // (v262) '중등 중등 voca 1' 처럼 겹치지 않게   // 시트용 짧은 이름
   const word = en => byEn[en] || null;
@@ -19992,7 +19992,7 @@ const StudyUI = {
     /* (v251) 방금 한 Stage 자리로 돌아온다 — 예전엔 📌(맨 앞의 안 한 Stage)나 맨 위로 끌려 올라갔다 */
     const fr=this._from && this._from.set===this.set ? $("stMap").querySelector('.stDot[data-i="'+this._from.i+'"]') : null;
     if(fr || !rc) setTimeout(()=>{ const n=fr || $("stMap").querySelector(".stDot.now"); if(!n || !n.scrollIntoView) return;
-      try{ const r=n.getBoundingClientRect(); if(r.bottom > scrH()*0.78) n.scrollIntoView({block:"center"}); else $("scStudy").scrollTop=0; }catch(e){} }, 60);   // (v271) 이미 보이면 그대로 — 가로 화면에서 위 탭이 잘려 보이던 것
+      try{ const r=n.getBoundingClientRect(), sc=$("scStudy"), bar=sc.querySelector(".stBar"), bb=bar ? bar.getBoundingClientRect().bottom : 0; if(r.bottom > scrH()*0.78){ const mid=bb+(scrH()-bb)/2; sc.scrollTop += (r.top+r.height/2)-mid; } else sc.scrollTop=0; }catch(e){} }, 60);   /* (v704) 위 막대(칩·▶ 다음 띠)가 커져 가운데로 맞추면 위쪽 쉬어 가기·Stage 이름이 막대 밑에 깔렸음 → 막대 아래 남은 화면의 가운데로 */   // (v271) 이미 보이면 그대로 — 가로 화면에서 위 탭이 잘려 보이던 것
     else { try{ $("scStudy").scrollTop=0; }catch(e){} }
   },
   /* (v303) 👹 학원 보스 카드 — 남은 체력 · 내 공격 · 오늘 집 공부로 깎은 것 · 쓰러지면 보상 받기 */
@@ -20076,12 +20076,13 @@ const StudyUI = {
     const ck=ch.find(c=>c.k==="chk" && c.hot); if(ck) return {k:"chk", i:"✅", t:"다음: 어제 단어 확인", s:ck.t};
     const dot=document.querySelector("#stMap .stDot.now, #stMap .stDot.nowL"), W=dot && dot.closest(".stWN, .stNode");
     if(dot && W){ const fin=W.classList.contains("fin"), lab=W.querySelector(".stWT"), tt=W.querySelector(".stTt"), num=(dot.textContent||"").trim();
-      return {k:"stage", i:"▶", t:"다음: "+(fin ? (lab ? lab.textContent.trim() : "마지막 시험") : "Stage "+num), s:fin ? "" : (tt ? tt.textContent.trim() : lab ? lab.textContent.trim() : "")}; }
+      let sn=""; if(fin){ const A=[...document.querySelectorAll("#stMap .stDot")], k=A.indexOf(dot); for(let i=k-1;i>=0;i--){ const m=(A[i].textContent||"").trim().match(/^(\d+)-\d+$/); if(m){ sn="Stage "+m[1]+" "; break; } } }   /* (v704) 「다음: ⏱ 마지막 시험」 → 어느 Stage 의 시험인지 */
+      return {k:"stage", i:"▶", t:"다음: "+(fin ? sn+(lab ? lab.textContent.trim().replace(/^⏱\s*/,"") : "마지막 시험") : "Stage "+num), s:fin ? "" : (tt ? tt.textContent.trim() : lab ? lab.textContent.trim() : "")}; }
     if(f("sty")) return {k:"sty", i:"🧭", t:"다음: 이야기", s:"배운 단어로 한 장면"};
     const pq=f("pq"); if(pq && pq.b) return {k:"pq", i:"🤝", t:"짝 퀘스트 보상 받기", s:pq.t};
     return {k:"", i:"🎉", t:"오늘 할 것 다 했어요", s:"더 하고 싶으면 아래에서 골라요", done:1}; },
   barClick(e){ const nx=e.target.closest("[data-sbnext]"); if(nx){ e.stopPropagation(); const k=nx.dataset.sbnext; try{ SFX.click(); }catch(er){}   /* (v700) ▶ 다음 할 것 */
-      if(k==="stage"){ const d=document.querySelector("#stMap .stDot.now, #stMap .stDot.nowL"); if(d){ try{ d.scrollIntoView({block:"center", behavior:"smooth"}); }catch(er){} setTimeout(()=>d.click(), 260); } return; }
+      if(k==="stage"){ const d=document.querySelector("#stMap .stDot.now, #stMap .stDot.nowL"); if(d){ try{ const sc=$("scStudy"), bar=sc.querySelector(".stBar"), bb=bar ? bar.getBoundingClientRect().bottom : 0, r=d.getBoundingClientRect(); sc.scrollBy({top:(r.top+r.height/2)-(bb+(innerHeight-bb)/2), behavior:"smooth"}); }catch(er){} setTimeout(()=>d.click(), 260); } return; }
       if(k){ const c=document.querySelector('#sbChips [data-sbk="'+k+'"]'); if(c) c.click(); return; }
       const d=document.querySelector("#stMap .stWN, #stMap .stNode"); if(d) try{ d.scrollIntoView({block:"center", behavior:"smooth"}); }catch(er){} return; }
     const t=e.target.closest("[data-sb],[data-sbk]"); if(!t) return; e.stopPropagation(); const P=$("stPath"), M=$("stMap"), T=M && M.querySelector(":scope > .stTop");
@@ -21480,7 +21481,7 @@ const GramUI = {
     /* 쉬운 것 → 어려운 것: 고르기 · OX → 순서 → 틀린 단어 · 섞어서 문제는 사이사이 */
     const rank=q=>({pick:0, ox:1, order:2, fix:3, write:3.6}[q.k]||0)+(q.hd?1.5:0)+(q.from?Math.random()*3:0);
     return out.map(q=>[rank(q)+Math.random()*0.9, q]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]); };
-    let out=go(MQ); if(MQ.length){ const o2=go([]); if(o2.length>out.length) out=o2; }
+    let out=go(MQ); if(MQ.length){ const o2=go([]), hist=L=>L.map(q=>q.k+(q.hd?"h":"")).sort().join(","); if(o2.length>out.length || hist(o2)!==hist(out)) out=o2; }   /* (v704) 빼서 문제 수뿐 아니라 갈래(★4 = 고치기 2개 등)가 달라져도 안 뺌 — gram651 */
     this.qs=out.map(q=>this.prep(Object.assign({}, q))); this.listen(this.tier>=3 ? 2 : 0); this.qi=0; this.first=0; this.n=this.qs.length; this.miss=[]; this.mode="quiz"; },
   /* (v627) 사용자: 「듣고 푸는 문법」 — ★3 부터 · 섞어 풀기: ⭕❌ 문제 2개를 글자 없이 듣고 고르기 (읽어 주는 목소리가 없는 기기는 안 함 · 「글자로 볼래요」 있음) */
   listen(n){ let ok=false; try{ ok=Voice.supported() && !Voice.broken && Voice.on!==false; }catch(e){} if(!ok || !n) return;
