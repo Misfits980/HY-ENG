@@ -17778,7 +17778,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v707";
+const GAME_VER = "v708";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -24188,7 +24188,24 @@ const Paper = {
       for(const x of L){ const g=x.en.length>=6 && x.en.length<=110 && this.SVA[x.en]; if(g) return {en:x.en, ko:x.ko, w:w.en, g}; } }
     let st=null; try{ st=Study.sentOf(w); }catch(e){} if(!st) return null; const full=(st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post).replace(/\s+/g," ").trim();
     return full.length>=6 && full.length<=110 ? {en:full, ko:st.ko||"", w:w.en} : null; },
-  kjRender(T){ const W=$("ppWrap"); if(!W) return;   /* T = (v701) 모양 {on 좁히기, rx 쪼개기, probe 쪽 수만 셈} — 밖에서 부를 땐 없음 → 모양을 견줘 고름 */ const c=this.c, I=$("ppInfo"), top=W.parentNode.scrollTop, E=x=>this.E(x), m=this.mode, ks=m==="ks"; W.innerHTML=""; this.unfit(W);
+  /* (v708) 사용자: 「따라쓰기 줄 쓰는 거에 g 나 y 가 공중에 떠 있는 경우가 있네」 — 흐린 글씨 자리를 「빨간 줄 − .9em」 어림으로 잡아서 글꼴(기기)마다 글자 밑선이 빨간 줄 위로 떴음
+     (아이폰 사진: 단어가 점선 쪽에 걸치고 g·y 꼬리가 줄 사이 공중) · 크기도 20pt 고정이라 소문자 몸통이 점선을 28% 넘음
+     → 쓰는 글꼴을 직접 재서 (캔버스 = 글자 모양 · 숨은 글자 = 밑선 자리): 밑선 = 빨간 줄 · 소문자 몸통(x) = 점선~빨간 줄 · l b d 머리 = 맨 윗줄 안 · g y p q j 꼬리 = 아래 칸 */
+  kjMet(){ const W=$("ppWrap"); if(!W) return; const ff=getComputedStyle(W).fontFamily, KX=window.KJ_KX||1.04;
+    if(this._kjm===ff+KX && document.getElementById("kjMet")) return;
+    try{ const c=document.createElement("canvas").getContext("2d"); c.font="600 100px "+ff; const A=(L,k)=>Math.max(...L.map(x=>c.measureText(x)[k]||0))/100;
+      const xh=A(["x","z","v"],"actualBoundingBoxAscent"), asc=A(["l","d","b","h","k"],"actualBoundingBoxAscent"), dsc=A(["g","y","p","q","j"],"actualBoundingBoxDescent");
+      if(!(xh>0.3 && xh<0.8 && asc>xh*1.1 && dsc>0.05 && dsc<0.6)) return;   /* 못 재는 브라우저 = 예전 CSS 그대로 */
+      const pr=document.createElement("div"); pr.className="pp kj"; pr.style.cssText="position:absolute;left:-9999px;top:0;visibility:hidden";
+      pr.innerHTML='<div class="kjStrip"><span class="kjC"><em class="kjT" style="font-size:100px">x<span style="display:inline-block;width:0;height:0;vertical-align:baseline"></span></em></span></div>'; W.appendChild(pr);
+      const t=pr.querySelector(".kjT"), B=(t.lastElementChild.getBoundingClientRect().top - t.getBoundingClientRect().top)/100; pr.remove();
+      if(!(B>0.5 && B<1.3)) return;
+      const F=Math.min(KX/xh, 1.9/asc, 0.96/dsc);   /* 글자 크기 = 줄 칸(sp) × F */
+      let st=document.getElementById("kjMet"); if(!st){ st=document.createElement("style"); st.id="kjMet"; document.head.appendChild(st); }
+      st.textContent='.pp.kj .kjT{font-size:calc(var(--sp)*'+F.toFixed(3)+');top:calc(var(--sp)*2 - '+B.toFixed(3)+'em);letter-spacing:.02em}';
+      this._kjm=ff+KX; this._kjInfo={xh:+xh.toFixed(3), asc:+asc.toFixed(3), dsc:+dsc.toFixed(3), B:+B.toFixed(3), F:+F.toFixed(3)};
+    }catch(e){} },
+  kjRender(T){ const W=$("ppWrap"); if(!W) return; this.kjMet();   /* T = (v701) 모양 {on 좁히기, rx 쪼개기, probe 쪽 수만 셈} — 밖에서 부를 땐 없음 → 모양을 견줘 고름 */ const c=this.c, I=$("ppInfo"), top=W.parentNode.scrollTop, E=x=>this.E(x), m=this.mode, ks=m==="ks"; W.innerHTML=""; this.unfit(W);
     const all=this.kjWords(c); let items=[], miss=0;
     const gr=this.gr(c.set), gm = gr!=="g12" ? c.gm : "off", quiz=gm==="quiz";
     if(ks && gm!=="off" && !this.SVA){ this.svaLoad(); I.textContent="📐 문법 자료를 받는 중…"; }
