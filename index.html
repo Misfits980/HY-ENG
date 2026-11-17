@@ -49,6 +49,7 @@ try{ if(window.HY_QA!==true && (/[?&]qa=1(&|$)/.test(location.search) || session
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);font-family:var(--font);
   overscroll-behavior:none;touch-action:none}
+html{scrollbar-color:rgba(128,108,214,.6) transparent}   /* (v706) 크롬 둘러보기: 어두운 창(상점·모드 고르기·시험지)에 PC 기본 흰 스크롤 막대가 붙어 튀었음 → 보라 막대 · 배경 투명 (따로 정한 곳은 그대로) */
 #c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .layer{position:fixed;inset:0;pointer-events:none;user-select:none}
 
@@ -95,7 +96,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ivory);
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)}
 .wcard .emo{font-size:22px;width:26px;text-align:center;flex:none}
 .wcard .txt{flex:1;min-width:0}
-.wcard .en{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:14.5px;color:#fff}
+.wcard .en{font-family:var(--font);font-weight:800;font-size:15px;letter-spacing:.02em;color:#fff}   /* (v706) 크롬 둘러보기: 결과 「다시 볼 단어」만 코딩 글꼴(고정폭)이라 튀었음 → 게임 글꼴 */
 .wcard .ko{font-size:12px;color:#b9aede;margin-top:1px}
 .wcard .spk{flex:none;width:40px;height:40px;border-radius:12px;cursor:pointer;border:0;
   background:rgba(255,196,107,.18);color:#ffd37a;font-size:15px}
@@ -1298,7 +1299,7 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 .bar small{font-size:9px;color:#8d82b8}
 .missRow{display:flex;align-items:center;gap:8px;padding:7px 10px;margin-bottom:5px;border-radius:12px;
   background:rgba(255,255,255,.05)}
-.missRow b{flex:1;font-family:ui-monospace,Menlo,monospace;font-size:13.5px;color:#fff}
+.missRow b{flex:1;font-family:var(--font);font-size:14px;letter-spacing:.02em;color:#fff}
 .missRow span{font-size:11px;color:#ffc46b;font-weight:800}
 .missRow button{width:30px;height:30px;border:0;border-radius:10px;cursor:pointer;
   background:rgba(255,196,107,.18);color:#ffd37a;font-size:13px}
@@ -3505,7 +3506,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppKS span{white-space:nowrap} .ppKS span i{font-style:normal;color:#777;margin-right:1mm;font-size:9pt} .ppKS span.m{white-space:normal}
 @page{size:A4;margin:0}
 @media print{ html,body{height:auto!important;overflow:visible!important;background:#fff!important} body.ppPrint>*:not(#paper){display:none!important}
-  body.ppPrint #paper{position:static;display:block;background:none} body.ppPrint .ppBar{display:none} body.ppPrint .ppView{overflow:visible;padding:0} body.ppPrint .ppWrap{zoom:1!important;width:auto}
+  body.ppPrint #paper{position:static;display:block;background:none} body.ppPrint .ppBar{display:none} body.ppPrint .ppView{overflow:visible;padding:0} body.ppPrint .ppWrap{zoom:1!important;width:auto;transform:none!important;margin:0!important}
   body.ppPrint .pp{margin:0;box-shadow:none;break-after:page;page-break-after:always} body.ppPrint .pp:last-child{break-after:auto;page-break-after:auto} }
 .rs.side .rsBg{position:absolute;inset:0;background-repeat:no-repeat;background-size:cover;background-position:center 85%}
 #arena #arStage.side{margin-bottom:calc(env(safe-area-inset-bottom,0px) + 6px)!important}   /* (v540) 무대를 버튼 밑까지 */
@@ -4231,7 +4232,7 @@ body.escHc #epScare.on::before{content:"";position:absolute;inset:-10%;backgroun
 .tdBar.fin{border-color:#ffd23f;background:rgba(255,210,63,.14)}
 .tdBar .dmBtn.rd{background:rgba(255,210,63,.28) !important;animation:dmPulse2 1.2s ease-in-out infinite}
 @keyframes dmPulse2{50%{background:rgba(255,210,63,.45)}}
-.tdBar .dmBtn .dmDots i{width:7px;height:7px}
+.tdBar .dmBtn .dmDots i{width:7px;height:7px} .crsBtn .tdL small{display:flex;align-items:center;gap:5px} .crsBtn small .crsDots{gap:3px} .crsBtn small .crsDots i{width:7px;height:7px;border-width:1px}
 .dmDots{display:flex;gap:3px;flex:none} .dmDots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35)} .dmDots i.on{background:#5fe0b0;border-color:#5fe0b0}
 .dmStrip{width:min(420px,100%);margin:0 auto 8px;grid-column:1/-1}
 .dmIn{width:min(400px,100%)} .dmHead{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px} .dmHead b{font-size:19px} .dmHead small{font-size:12px;font-weight:800;color:#d9cdfa}
@@ -14548,10 +14549,17 @@ const Attract = {
     if(!this.set) this.spawn();
     else {
       this.set.group.position.z += 9*dt;
-      if(this.set.group.position.z > VIEW.camZ+6) this.spawn();
-      this.set.gates.forEach((g,i)=>{
-        g.frameMat.opacity = .3 + Math.sin(this.t*1.4+i)*.12;
-      });
+      /* (v706) 크롬 둘러보기: 첫 화면 뒤 문이 카메라를 그대로 뚫고 지나가며 문 그림의 하얀 기둥이 메뉴 오른쪽 반을 덮었음
+         → 카메라 10.5 앞부터 흐려지다가 5.5 앞에서 새 문 (문 그림은 alphaTest 도 같이 낮춰 끝까지 부드럽게) */
+      const near = camera.position.z - this.set.group.position.z;
+      if(near < 5.5 || this.set.group.position.z > VIEW.camZ+6) this.spawn();
+      else {
+        this.set.gates.forEach((g,i)=>{
+          g.frameMat.opacity = .3 + Math.sin(this.t*1.4+i)*.12;
+        });
+        const f = Math.min(1, (near-5.5)/5);
+        if(f<1) this.set.group.traverse(o=>{ const m=o.material; if(!m || Array.isArray(m)) return; const u=m.userData; if(u.ao==null){ u.ao=m.opacity; u.at=m.alphaTest||0; } m.transparent=true; m.opacity=u.ao*f; if(u.at>0) m.alphaTest=Math.max(.01, u.at*f); });
+      }
     }
     // 다른 캐릭터들도 각자 폴짝거리며 서 있다
     this.buildCrew();
@@ -17631,10 +17639,10 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   let bookBest=0; try{ if(bookRun) bookBest=RunBook.best(G.book); }catch(e){}   // saveBest 보다 먼저 읽는다
   isBest = !G.testRun && total>0 && G.score > (bookRun ? bookBest : (best.score||0));
   if(isBest) msg = bookRun ? "🏆 "+RunBook.emo(G.book)+" "+RunBook.name(G.book)+" 최고 기록!" : "🏆 최고 기록! 지금까지 중 가장 잘했어요";
-  else if(prev && G.stage > prev.stage) msg="↗ 지난번보다 "+(G.stage-prev.stage)+"스테이지 더 갔어요";
+  else if(prev && G.stage > prev.stage) msg="↗ 지난번 Stage "+prev.stage+" → 이번 Stage "+G.stage+" · 더 멀리 갔어요";   /* (v706) 「1스테이지」(바로 아래 칸은 「Stage」) → 같은 말로 */
   else if(acc>=90 && total>=5) msg="🎯 정답률 "+acc+"% — 거의 다 맞혔어요";
   else if(G.bestCombo>=8) msg="🔥 "+G.bestCombo+"연속 정답을 이어갔어요";
-  else if(prev && G.stage===prev.stage) msg="지난번과 같은 "+G.stage+"스테이지 — 다음엔 한 걸음 더";
+  else if(prev && G.stage===prev.stage) msg="지난번과 같은 Stage "+G.stage+" — 다음엔 한 걸음 더";
   else msg = G.wrongWords.length ? "틀린 단어를 한 번만 더 보고 가요" : total>0 ? "좋아요, 이 흐름을 이어가요" : "다음엔 첫 문부터 같이 지나가 봐요!";   /* (v634) 0점 판에도 칭찬하던 것 */
   if(G.cleared && G.clearCh===3) msg = "🏆 왕궁 회랑을 지나왔어요! 왕좌로 가는 다음 방은 곧 열려요";
   else if(G.cleared && G.clearCh===2) msg = (G.bossWin && G.bossName==="두 번째 문지기") ? "🏆 두 번째 문지기를 쓰러뜨리고 2장을 완주했어요!" : "🏆 몰락한 수정 왕국을 가로질렀어요!";
@@ -17770,7 +17778,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v705";
+const GAME_VER = "v706";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -24180,7 +24188,7 @@ const Paper = {
       for(const x of L){ const g=x.en.length>=6 && x.en.length<=110 && this.SVA[x.en]; if(g) return {en:x.en, ko:x.ko, w:w.en, g}; } }
     let st=null; try{ st=Study.sentOf(w); }catch(e){} if(!st) return null; const full=(st.pre+(st.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+st.post).replace(/\s+/g," ").trim();
     return full.length>=6 && full.length<=110 ? {en:full, ko:st.ko||"", w:w.en} : null; },
-  kjRender(T){ const W=$("ppWrap"); if(!W) return;   /* T = (v701) 모양 {on 좁히기, rx 쪼개기, probe 쪽 수만 셈} — 밖에서 부를 땐 없음 → 모양을 견줘 고름 */ const c=this.c, I=$("ppInfo"), top=W.parentNode.scrollTop, E=x=>this.E(x), m=this.mode, ks=m==="ks"; W.innerHTML=""; W.style.zoom="";
+  kjRender(T){ const W=$("ppWrap"); if(!W) return;   /* T = (v701) 모양 {on 좁히기, rx 쪼개기, probe 쪽 수만 셈} — 밖에서 부를 땐 없음 → 모양을 견줘 고름 */ const c=this.c, I=$("ppInfo"), top=W.parentNode.scrollTop, E=x=>this.E(x), m=this.mode, ks=m==="ks"; W.innerHTML=""; this.unfit(W);
     const all=this.kjWords(c); let items=[], miss=0;
     const gr=this.gr(c.set), gm = gr!=="g12" ? c.gm : "off", quiz=gm==="quiz";
     if(ks && gm!=="off" && !this.SVA){ this.svaLoad(); I.textContent="📐 문법 자료를 받는 중…"; }
@@ -24238,7 +24246,7 @@ const Paper = {
     I.textContent="✏️ "+(ks?"문장 따라쓰기":"단어 따라쓰기")+(!ks && gm!=="off" ? " · 📐 품사·변화형 "+nw+"단어" : "")+(ks && gm!=="off" ? (this.SVA ? " · 📐 문법 "+ng+"문장"+(ng<items.length?" (나머지 "+(items.length-ng)+"문장은 문법 표시 없음)":"") : " · 📐 문법 자료 받는 중…") : "")+" · "+items.length+(ks?"문장":"단어")+" × "+rep+"번 · "+pages.length+"쪽"+(ks && miss ? " · 예문이 없는 단어 "+miss+"개는 뺐어요" : "")+(all.length>items.length && !ks ? " · 범위 단어 "+all.length+"개 중 앞 "+items.length+"개 (🔀 = 섞어서)" : "")+(this._kjMix?" · 🔀 섞음":" · 범위 순서대로");
     this.fit(); },
   render(){ const W=$("ppWrap"); if(!W) return; const c=this.c, B=this.B, I=$("ppInfo"), top=W.parentNode.scrollTop; W.innerHTML="";
-    W.style.zoom="";   /* (v577) 사용자 사진: 아이폰에서 만든 시험지 1쪽이 반만 차고 아래가 텅 빔 — 화면 맞춤(zoom)을 건 채로 「넘치나?」를 재면 사파리는 높이를 줄여서 알려 줘서 일찍 다음 쪽으로 넘김 → 쪽 나누기는 zoom 없이 재고 끝나면 다시 맞춤 */
+    this.unfit(W);   /* (v577) 사용자 사진: 아이폰에서 만든 시험지 1쪽이 반만 차고 아래가 텅 빔 — 화면 맞춤(zoom)을 건 채로 「넘치나?」를 재면 사파리는 높이를 줄여서 알려 줘서 일찍 다음 쪽으로 넘김 → 쪽 나누기는 zoom 없이 재고 끝나면 다시 맞춤 */
     if(B.pre && !B.total){ const np0=this.prePages(W, c, B); I.textContent=B.info+" · "+np0+"쪽"; this.fit(); return; }   /* (v629) 읽기만 */
     if(B.nw<4){ I.textContent = B.info ? "고른 범위·형식으로 낼 문제가 없어요 — 범위를 넓히거나 형식을 골라 주세요" : "범위에 단어가 너무 적어요 (4개 이상)"; return; }
     if(!B.total && !(B.pre && B.pre.length)){ I.textContent="고른 형식("+((B.warn||[]).join(", ")||"-")+")으로 이 범위에서 낼 문제가 없어요 — 다른 형식을 더 고르거나 범위를 넓혀 주세요"; W.innerHTML='<div class="ppNone">📭 '+this.E(I.textContent)+'</div>'; this.fit(); return; }   /* (v679) 점검: 0문제인데 빈 시험지·빈 답안지가 나왔음 */
@@ -24248,7 +24256,14 @@ const Paper = {
     if(B.info){ I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · "+B.info+" · "+np+"쪽"; this.fit(); return; }
     I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · 범위 단어 "+B.nw+"개 · "+B.total+"문제"+(c.ab?" × A·B형":"")+" · "+np+"쪽"+(B.xv?" · 불규칙 동사 "+B.xv+"개는 앞 단계·아래 학년에서 복습으로 넣었어요":"")+(B.total<c.n ? (B.nw>=c.n ? " · 고른 형식으로 낼 수 있는 단어가 모자라 "+B.total+"문제만 (형식을 더 고르면 늘어요)" : " · 범위 단어가 모자라 "+B.total+"문제만") : "")+(B.warn.length?" · 이 범위엔 못 내는 형식: "+B.warn.join(", ")+" (그림·예문·대화가 있는 단어가 없어요 — 다른 형식으로 채웠어요)":"");
     this.fit(); },
-  fit(){ const W=$("ppWrap"), V=W && W.parentNode; if(!V) return; const mm=96/25.4, z=Math.min(1, (V.clientWidth-24)/(210*mm)); W.style.zoom=z.toFixed(3); this.settle(); },
+  /* (v706) 사용자 아이폰 사진: 단어 따라쓰기 미리보기에서 ⑧⑨·⑰⑱번이 쪽 아래로 숨음 (시험지도) — 화면 맞춤을 zoom 으로 하면 작아진 글씨를 브라우저가 「최소 글씨 크기」로 키워서(사파리 9px · 크롬 6px)
+     변화형 줄이 두 줄로 바뀌는 등 카드가 길어짐 · 쪽 나누기는 zoom 없이(인쇄·PDF 와 같게) 재므로 미리보기에서만 아래가 넘쳐 숨었음 (휴대폰 크롬에서도 2쪽이 16mm 넘침)
+     → 미리보기는 transform 으로 그림만 줄임 (글줄·쪽 나누기는 인쇄와 똑같음) · 줄어든 만큼 아래 빈 스크롤은 margin 으로 당김 */
+  fit(){ const W=$("ppWrap"), V=W && W.parentNode; if(!V) return; const mm=96/25.4, z=Math.min(1, (V.clientWidth-24)/(210*mm)); W.style.zoom="";
+    if(z>0.995){ W.style.transform=""; W.style.marginBottom=""; V.style.overflowX=""; }
+    else { W.style.transformOrigin="0 0"; W.style.transform="scale("+z.toFixed(4)+")"; W.style.marginBottom=(-W.offsetHeight*(1-z)).toFixed(1)+"px"; V.style.overflowX="hidden"; }
+    this.settle(); },
+  unfit(W){ if(W){ W.style.zoom=""; W.style.transform=""; W.style.marginBottom=""; } },
   /* (v608) 사용자: 「시험지 만들 때 잘리는 게 너무 많음 · 몇 개 넣고 뺄 때마다 줄이 안 맞음」(아이폰 사진: 쪽 아래 문제가 반쯤 잘림)
      원인: 쪽을 나눈 「뒤에」 한글 글꼴 조각(새로 쓰인 글자마다 따로 받음)·그림이 늦게 들어와 글줄이 길어짐 → 이미 나눈 쪽이 넘침
      → 나눈 뒤 0.25·0.9·2·4초에 다시 재 보고(글꼴을 다 받았을 때도) 넘친 단이 있으면 그대로 다시 나눔 (문제는 안 바뀜) */
@@ -25314,7 +25329,8 @@ const Course = {
   next(){ return this.steps().find(x=>!x.done) || null; },
   paint(){ const b=$("crsBtn"); if(!b) return; const s=this.load(), L=this.steps(), nx=L.find(x=>!x.done), fin=!nx;
     let tx; if(fin){ tx = DM.ready() ? '🎁 미션 상자 열기' : '🎉 오늘 완주!'; } else if(!L.some(x=>x.done)) tx='📚 공부부터 가요 ›'; else tx='다음: '+nx.ic+' '+nx.t+' ›';
-    const h='<span class="crsDots">'+L.map(x=>'<i class="'+(x.done?'on':'')+'"></i>').join("")+'</span><span class="tdL"><small>🧭 오늘의 코스</small><em>'+tx+'</em></span>';
+    /* (v706) 크롬 둘러보기: 맨 왼쪽 빈 동그라미 두 개가 고르는 단추(라디오)처럼 보였음 → 오른쪽 「오늘의 미션 ○○○」처럼 제목 줄 안으로 · 작게 */
+    const h='<span class="tdL"><small>🧭 오늘의 코스 <span class="crsDots">'+L.map(x=>'<i class="'+(x.done?'on':'')+'"></i>').join("")+'</span></small><em>'+tx+'</em></span>';
     if(b._h!==h){ b._h=h; b.innerHTML=h; } b.classList.toggle("fin", fin); b.hidden=false; const tb=$("tdBar"); if(tb){ tb.classList.toggle("fin", fin); tb.hidden=false; } },
   /* 눌렀을 때: 다음 할 일로 */
   go(){ const nx=this.next(); if(!nx){ DM.view(); return; }
@@ -25681,10 +25697,11 @@ const RaidStage = {
       if(host){ a.bx=3+c*(54/cols)+(r===1?27/cols:0); a.by=[4,19,34][r]; }
       else if(arena){ a.bx=4+c*13; a.by=47+(c%2)*2; }
       else { a.bx = narrow ? 2+c*14 : 2+c*9; a.by = narrow ? 38+(c%2)*3 : 26+(c%2)*6; }   /* (v672) 7 → 9 */
-      a.el.classList.toggle("rsUp", !host && !arena && (this.side ? c%2===0 : c%2===1));   /* (v699) 크롬 점검: 옆모습 무대에선 0번 자리(내 바로 뒤 · 높이)가 이름표를 발밑에 달아 내 캐릭터 그림에 가렸음(「트로베…」) → 옆모습은 0·2번 머리 위 · 1·3번 발밑 */   /* (v672) 크롬 점검: 주간 보스 친구 이름표(빈·스트로베리·김지환)가 서로 겹쳤음 → 한 명 걸러 이름을 머리 위로 */
+      a.el.classList.toggle("rsUp", !host && !arena && (this.side ? c%2===0 : c%2===1)); delete a.el.dataset.up0;   /* (v699) 크롬 점검: 옆모습 무대에선 0번 자리(내 바로 뒤 · 높이)가 이름표를 발밑에 달아 내 캐릭터 그림에 가렸음(「트로베…」) → 옆모습은 0·2번 머리 위 · 1·3번 발밑 */   /* (v672) 크롬 점검: 주간 보스 친구 이름표(빈·스트로베리·김지환)가 서로 겹쳤음 → 한 명 걸러 이름을 머리 위로 */
       if(this.side){ a.el.classList.remove("rsBack","rsNar","rsArena"); return; }
       a.el.style.zIndex = host ? 3-r : 1; a.el.classList.toggle("rsBack", !!((host && r) || narrow || arena)); a.el.classList.toggle("rsNar", narrow); a.el.classList.toggle("rsArena", arena);
       ["rsR0","rsR1","rsR2"].forEach((x,j)=>a.el.classList.toggle(x, host && r===j)); });
+    if(this.side && !host && !arena) this._lay=null;   /* (v706) 위·아래를 다시 정했으니 다음 장면에서 자리 잡고 이름표 비켜 놓기(nameFix) */
     let mo=this.el.querySelector(".rsMore"); const more=total-ids.length;
     if(more>0){ if(!mo){ mo=document.createElement("b"); mo.className="rsMore"; this.el.appendChild(mo); } mo.textContent="+"+more+"명 같이 싸우는 중"; } else if(mo) mo.remove(); },
   /* 새 소식(다른 아이 공격) → 그 아이가 달려가 때림 */
@@ -25761,11 +25778,23 @@ const RaidStage = {
     const put=(o, cx, b, hpx)=>{ const st=o.el.style; st.setProperty("height", Math.round(hpx)+"px", "important"); st.setProperty("width", Math.round(hpx*0.8)+"px", "important"); st.setProperty("left", Math.round(cx-hpx*0.4)+"px", "important"); st.setProperty("bottom", Math.round(b)+"px", "important"); o.cx=cx; o.reach=Math.max(0, (bossCx-bossW*0.34)-(cx+hpx*0.35)); };
     if(this.me) put(this.me, L.meCx, g, unit);
     /* 내 뒤 대각선: [x(키 단위, 나로부터 왼쪽), 높이(키 단위), 크기] — 뒷줄은 작고 높게 */
-    const SL=[[-0.62,0.2,0.66],[-1.02,0.05,0.76],[-1.42,0.22,0.64],[-1.82,0.07,0.74]];
+    const SL=[[-0.64,0.2,0.66],[-1.16,0.05,0.76],[-1.68,0.22,0.64],[-2.2,0.07,0.74]];   /* (v706) 0.4 → 0.52 간격 — 같은 줄(한 명 걸러) 이름표 사이가 넓어져 긴 이름도 안 겹침 · 남는 건 nameFix */
     const al=Object.values(this.al); al.forEach(a=>{ const i=a.slot;
       if(host){ const cols=8, r=Math.min(2, Math.floor(i/cols)), c=i-r*cols, sc=[0.82,0.7,0.6][r]; put(a, W*(0.05+c*0.072+(r===1?0.036:0)), g+r*unit*0.22, unit*sc*1.15); a.el.style.zIndex=3-r; return; }
       const S=SL[i]; const show = !!S && !(narrow && i>=2); a.el.style.display = show ? "" : "none"; if(!show) return;
-      put(a, Math.max(unit*0.3, L.meCx+S[0]*unit), g+S[1]*unit, unit*S[2]); a.el.style.zIndex = S[1]>0.1 ? 1 : 2; }); },
+      put(a, Math.max(unit*0.3, L.meCx+S[0]*unit), g+S[1]*unit, unit*S[2]); a.el.style.zIndex = S[1]>0.1 ? 1 : 2; });
+    if(!host) this.nameFix(); },
+  /* (v706) 크롬 둘러보기: 옆모습 무대에서 친구가 27px 간격이라 같은 줄 이름표가 서로 겹쳤음(「유이홍이무이무시완」 · 「김지후스트로베리」 — v699 의 위·아래 번갈아도 이름이 길면 겹침)
+     → 놓은 뒤 앞 사람부터 이름표 자리를 고름: 원래 자리 → 반대쪽(위↔아래) → 머리 위 한 줄 더 → 두 줄 더 (무대 밖·다른 이름표와 겹치면 다음) */
+  nameFix(){ const E=this.el; if(!E || !this.side || this.role==="host" || E.id==="arStage" || E.id==="wbaStage") return; const er=E.getBoundingClientRect(); if(!er.width) return;   /* 아레나·싸움 화면은 친구 이름표를 숨김 */
+    const placed=[], mn=this.me && this.me.el && this.me.el.querySelector(".rsName"); if(mn) placed.push(mn.getBoundingClientRect());
+    const bad=r=>r.top<er.top+1 || r.bottom>er.bottom-1 || placed.some(p=>r.left<p.right+3 && r.right>p.left-3 && r.top<p.bottom && r.bottom>p.top);
+    Object.values(this.al).filter(a=>a.el.style.display!=="none").sort((x,y)=>x.slot-y.slot).forEach(a=>{ const n=a.el.querySelector(".rsName"); if(!n || !n.offsetWidth) return;
+      const up0=(a.el.dataset.up0!=null) ? a.el.dataset.up0==="1" : a.el.classList.contains("rsUp"); a.el.dataset.up0=up0?"1":"0";
+      const C=[[up0,0],[!up0,0],[true,1],[true,2]]; let r=null;
+      for(let i=0;i<C.length;i++){ a.el.classList.toggle("rsUp", C[i][0]); n.style.marginTop = C[i][1] ? (-C[i][1]*((n.offsetHeight||16)+1))+"px" : ""; r=n.getBoundingClientRect(); if(!bad(r)) break;
+        if(i===C.length-1){ a.el.classList.toggle("rsUp", up0); n.style.marginTop=""; r=n.getBoundingClientRect(); } }
+      placed.push(r); }); },
   /* (v538) 옆모습 동작 — 가만히(숨쉬기) · 공격: 기 모으며 달려감(charge) → 때림(atk) → 돌아옴 · 맞음(hurt, 뒤로 밀림) */
   stepSd(o, now){ let x=0, pose="idle", bob=Math.abs(Math.sin(now/320+o.slot))*-2; const go=this.BSG, hit=this.BSH, ret=this.BSR;
     if(o.dash){ const t=(now-o.dashT)/1000;
@@ -29994,7 +30023,7 @@ function drawGemResult(r){
     +'<div class="gBar"><i style="width:0"></i></div><small class="rwS">다음 💎까지 정답 '+Math.max(1, Math.ceil((GEM.PER-r.pts)/(GEM.PT[G.diff]||2)))+'개'+(r.boss?' · 문지기 +'+r.boss:'')+'</small></div>'
     +(r.dexNew ? '<div class="gPills"><button class="gPill" data-go="dex">📖 새 단어 <b>'+r.dexNew+'</b> ›</button></div>' : '')
     +(r.bait>0 ? '<div class="resBait">🪱 +'+r.bait+' <small>'+(townOpen() ? 'My Town 미끼' : '미끼 · 새 마을에서 써요')+'</small></div>' : r.bait<0 ? '<div class="resBait">🪱 미끼 가득! <small>My Town 에서 낚시해요</small></div>'
-      : townOpen() ? '<div class="resBait dim"><small>🪱 '+Town.RUN_STAGE+'단계까지 달리면 My Town 미끼 +'+Town.BAIT_RUN+'</small></div>' : '');   /* (v634) 마을 점검 중엔 안내 줄 숨김 */   /* (v563) */
+      : townOpen() ? '<div class="resBait dim"><small>🪱 Stage '+Town.RUN_STAGE+'까지 달리면 My Town 미끼 +'+Town.BAIT_RUN+'</small></div>' : '');   /* (v634) 마을 점검 중엔 안내 줄 숨김 */   /* (v563) */
   const bar=el.querySelector(".gBar i"); if(bar) setTimeout(()=>{ bar.style.width=pct+"%"; }, 450);
   if(r.gain>0){ const tl=el.querySelector(".rwT")||el; tl.classList.remove("gemIn"); void tl.offsetWidth; tl.classList.add("gemIn"); try{ setTimeout(()=>SFX.tone(880,.18,"triangle",.05,1320), 500); }catch(e){} }
 }
@@ -30109,7 +30138,7 @@ const ShopUI = {
       return '<div class="sCard'+(o.rare?' rare':'')+(o.dex?' dex':'')+(T?' t-'+o.tier:'')+(on?' wearing':'')+'">'
         +(T?'<i class="tierTag">'+T.name+'</i>':'')+(test?'<i class="tierTag testTag">🧪 비공개</i>':'')+art
         +(o.line?'<div class="sLine">'+o.line+'</div>':'')
-        +'<div class="sName">'+o.name+'</div><div class="sSub">'+cname(o.ch)+' · '+o.note+'</div>'
+        +'<div class="sName">'+o.name+'</div><div class="sSub">'+cname(o.ch)+' 옷 · '+o.note+'</div>'   /* (v706) 「학자 · 도감 …」 = 학자가 누구? → 「학자 옷」 */
         +(o.perks?'<div class="sPerk">✨ 입으면 '+o.perks+'</div>':'')+btn+'</div>';
     };
     const showO=o=>!o.dex && (!o.hidden || Wallet.owns(o.id) || TEST_STAGE>0);   // 비공개 옷은 시험 모드에서만

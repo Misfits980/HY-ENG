@@ -148,7 +148,8 @@ const TFAC=(()=>{
     /* (v575) 점검: 깃발이 줄 없이 1.9~2.75m 허공에 떠서 아이 얼굴·건물 앞을 가림 → 4줄 · 높이 3.3~3.8 · 진짜 줄 · 끝마다 기둥 */
     const PR=C.MAP.plaza.r, line=[]; for(let k=0;k<4;k++){ const a=k/4*6.283+.6, ex=Math.cos(a)*PR*.86, ez=Math.sin(a)*PR*.86, n=11, Y=t=>3.8-(3.8-3.3)*t-Math.sin(t*Math.PI)*.35;
       for(let i=0;i<=24;i++){ const t=i/24; line.push(ex*t+OX, Y(t)+.02, ez*t+OZ); if(i>0 && i<24) line.push(ex*t+OX, Y(t)+.02, ez*t+OZ); }
-      for(let i=1;i<n;i++){ const t=i/n, x=ex*t, z=ez*t, y=Y(t), tx=-Math.sin(a)*.16, tz=Math.cos(a)*.16; c3.set(flags[(i+k)%flags.length]).convertSRGBToLinear();
+      /* (v706) 크롬 둘러보기: 줄이 카메라 쪽으로 뻗으면 깃발이 옆면(바늘처럼 가는 가시)으로 보였음 → 깃발마다 ±30° 번갈아 비틀어 펄럭이듯 · 어느 쪽에서 봐도 세모가 보임 */
+      for(let i=1;i<n;i++){ const t=i/n, x=ex*t, z=ez*t, y=Y(t), th=(i%2 ? .52 : -.52), ux=-Math.sin(a)*.16, uz=Math.cos(a)*.16, tx=ux*Math.cos(th)+uz*Math.sin(th), tz=-ux*Math.sin(th)+uz*Math.cos(th); c3.set(flags[(i+k)%flags.length]).convertSRGBToLinear();
         [[x-tx,y,z-tz],[x+tx,y,z+tz],[x,y-.32,z]].forEach(v=>{ pos.push(v[0]+OX,v[1],v[2]+OZ); col.push(c3.r,c3.g,c3.b); }); } }
     const bg=new THREE.BufferGeometry(); bg.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); bg.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
     bunt=new THREE.Mesh(bg, new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.DoubleSide})); C.G.add(bunt);

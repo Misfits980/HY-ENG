@@ -103,7 +103,7 @@ async def main():
         await pg.evaluate("()=>{ G.runStart=Date.now()-60000; G.pauseMs=0; G.pauseAt=0; G.hidAt=0; }")
         r = await pg.evaluate(RUN_END, {"stage": 9})
         ok(await pg.evaluate(INBOX) == {"bait": 3}, "9단계 판 → 미끼 0 (그대로 3)")
-        ok("15단계까지 달리면" in r["gems"], "짧은 판 결과에 「15단계까지 달리면 미끼 +3」")
+        ok("Stage 15까지 달리면" in r["gems"], "짧은 판 결과에 「Stage 15까지 달리면 미끼 +3」")
         await pg.evaluate("()=>{ G.runStart=Date.now()-60000; }")
         await pg.evaluate(RUN_END, {"stage": 30, "prac": True}); await pg.evaluate(RUN_END, {"stage": 30, "test": True})
         ok(await pg.evaluate(INBOX) == {"bait": 3}, "연습·시험 달리기 → 미끼 없음")
