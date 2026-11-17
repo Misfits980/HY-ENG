@@ -1,5 +1,5 @@
 /* (v694) 🐾 단어 손님 — claude/hy-eng-plan-town-study.md 2번 · 사용자 「그래 너가 한번 해 봐라」
-   오늘의 30 에서 (오늘·어제) 처음 본 동물 단어 = 광장에 놀러 옴 ✨ · 며칠 뒤에도 맞힌 단어(기억 칸 3 이상) = 이사 옴 🏡 (모으기 n/17)
+   Daily 30 에서 (오늘·어제) 처음 본 동물 단어 = 광장에 놀러 옴 ✨ · 며칠 뒤에도 맞힌 단어(기억 칸 3 이상) = 이사 옴 🏡 (모으기 n/17)
    이름표는 영어 · 누르면 그 동물이 영어로 한 줄(사실) + 🔊 · 🤚 쓰다듬기 · 🥕 간식(풀 먹는 동물) — 보석·코인 보상 없음(하트만)
    모형: Quaternius 움직이는 동물(isle-ani.js, CC0) · 고양이·토끼·병아리·판다 = 펫 가게 모형(TFAC.petMesh) */
 const GUEST=(()=>{
@@ -131,7 +131,7 @@ const GUEST=(()=>{
     el=document.createElement("div"); el.id="gbP"; el.className="sheet"; document.body.appendChild(el); try{ SHEETS.push("gbP"); }catch(e){}
     el.addEventListener("click", e=>{ if(e.target.closest("[data-gx]")){ el.classList.remove("on"); return; } const c=e.target.closest("[data-gw]"); if(c){ try{ say(c.dataset.gw); }catch(er){} } }); return el; }
   function drawBook(){ const s=st(), {vis, sd, srs}=who(), n=count();
-    let h='<div class="gHd"><span style="font-size:32px">🐾</span><span class="t"><b>단어 손님 '+n+' / '+LIST.length+'</b><small>📚 오늘의 30 에서 배운 동물이 놀러 와요 ✨<br>며칠 뒤에도 맞히면 이사 와요 🏡</small></span><button class="gX" data-gx aria-label="닫기">✕</button></div>';
+    let h='<div class="gHd"><span style="font-size:32px">🐾</span><span class="t"><b>단어 손님 '+n+' / '+LIST.length+'</b><small>📚 Daily 30 에서 배운 동물이 놀러 와요 ✨<br>며칠 뒤에도 맞히면 이사 와요 🏡</small></span><button class="gX" data-gx aria-label="닫기">✕</button></div>';
     h+='<div class="gBar"><s style="width:'+Math.round(n/LIST.length*100)+'%"></s></div><div class="gB">';
     h+=LIST.map(w=>{ const I=info(w), home=!!s.home[w], v=vis.indexOf(w)>=0, b=srs[w]?(srs[w][0]|0):0, lrn=sd[w]!=null;
       const cl=home?"home":v?"vis":lrn?"lrn":"lock", st2=home?"🏡 "+hearts(w):v?"✨ 놀러 왔어요":lrn?"📚 기억 "+Math.min(b,3)+"/3":"🔒 아직";

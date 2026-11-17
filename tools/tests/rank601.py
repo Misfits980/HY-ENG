@@ -37,7 +37,7 @@ async def main():
             await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
             await pg.wait_for_timeout(1500)
             r=await pg.evaluate("()=>{ const b=document.getElementById('lrBar'); return [!!b && !b.hidden && b.offsetHeight>0, document.querySelector('#lrRoll .lrIt').innerText.replace(/\\s+/g,' '), LiveRank.it.map(x=>x[0][0]+(x[1]+1)).join(',')]; }")
-            ok(r[0] and ("공부" in r[1] or "오늘의 30" in r[1] or r[1].startswith("📚")) and "지후" in r[1] and "▲1" in r[1] and r[2].startswith("s1,w1,r1,s0,r0,s2,w2,s3,s4,s0,r0"), f"① [{nm}] 🔥 실시간 줄: 📚 1위 지후 ▲1 · 순서 {r[2]} · '{r[1]}'")
+            ok(r[0] and ("공부" in r[1] or "Daily 30" in r[1] or r[1].startswith("📚")) and "지후" in r[1] and "▲1" in r[1] and r[2].startswith("s1,w1,r1,s0,r0,s2,w2,s3,s4,s0,r0"), f"① [{nm}] 🔥 실시간 줄: 📚 1위 지후 ▲1 · 순서 {r[2]} · '{r[1]}'")
             if nm=="phone":
                 await pg.evaluate("()=>{ LiveRank.i=0; LiveRank.draw(); }"); await pg.wait_for_timeout(3300)
                 r=await pg.evaluate("()=>document.querySelector('#lrRoll .lrIt').innerText.replace(/\\s+/g,' ')")
@@ -45,7 +45,7 @@ async def main():
                 await pg.screenshot(path=OUT+"rank601_start_phone.png")
                 await pg.evaluate("()=>{ LiveRank.i=0; LiveRank.draw(); document.getElementById('lrBar').click(); }"); await pg.wait_for_timeout(300)
                 r=await pg.evaluate("()=>{ const P=document.getElementById('lrPanel'); return [!!P, P.querySelectorAll('.lrRow').length, P.querySelector('.lrTabs .on').innerText, [...P.querySelectorAll('.lrMv')].map(x=>x.innerText).join(','), !!P.querySelector('.lrRow.me .meTag'), P.querySelector('.lrRule').innerText]; }")
-                ok(r[0] and r[1]==5 and ("공부" in r[2] or "오늘의 30" in r[2]) and r[3]=="▲1,▼1,NEW,–,▼2" and r[4] and ("스테이지 점수" in r[5] or "점수" in r[5]), f"② 누르면 1~10위 · ▲▼NEW– · 내 줄(나) · 규칙 {r}")
+                ok(r[0] and r[1]==5 and ("공부" in r[2] or "오늘의 30" in r[2] or "Daily 30" in r[2]) and r[3]=="▲1,▼1,NEW,–,▼2" and r[4] and ("스테이지 점수" in r[5] or "점수" in r[5]), f"② 누르면 1~10위 · ▲▼NEW– · 내 줄(나) · 규칙 {r}")
                 r=await pg.evaluate("()=>{ const P=document.getElementById('lrPanel'); const m=P.querySelector('.lrRow.me:last-of-type'); return [!!P.querySelector('.lrDots'), [...P.querySelectorAll('.lrRow.me')].map(x=>x.innerText.replace(/\\s+/g,' ')).join('|'), (P.querySelector('.lrLv')||{}).innerText||'']; }")
                 ok(r[0] and "12" in r[1] and "서원까지 8점" in r[1] and "▼2" in r[1] and "G1-2" in r[2], f"(v602) 10위 밖이어도 ⋯ 아래 내 줄 (12위 · 서원까지 8점 · ▼2) · 내 단계 {r}")
                 r=await pg.evaluate("()=>{ const i=LiveRank.it.findIndex(x=>x[1]<0); return LiveRank.rowH(LiveRank.it[i]).replace(/<[^>]+>/g,' ').replace(/\\s+/g,' '); }")
