@@ -24,7 +24,7 @@ async def main():
         await boot(pg)
         await pg.evaluate("()=>{ localStorage.removeItem('hyeng_paper'); Paper.open({}); }"); await pg.wait_for_timeout(800)
         r = await pg.evaluate("()=>[...document.querySelectorAll('#ppMd button')].map(x=>x.dataset.v).join(',')")
-        ok(r == "test,kw,ks,lf,gm", f"모드 5개 {r}")
+        ok(r == "test,bk,kw,ks,lf,gm", f"모드 6개 (v710 📕 책 시험) {r}")
         await pg.evaluate("()=>document.querySelector('#ppMd [data-v=lf]').click()"); await pg.wait_for_timeout(1500)
         vis = await pg.evaluate("()=>[getComputedStyle(document.getElementById('ppSet').parentNode).display, getComputedStyle(document.getElementById('ppLv').parentNode).display, getComputedStyle(document.getElementById('ppGb').parentNode).display]")
         ok(vis[0] == "none" and vis[1] != "none" and vis[2] == "none", f"생활영어 모드 = 책·Stage 숨김 · 수준 보임 {vis}")

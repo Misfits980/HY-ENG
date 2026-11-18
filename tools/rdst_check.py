@@ -1,5 +1,5 @@
 """(v710) G5-6 리딩 1·2·3 짧은 글(data/rdst.json) 검사 — 게임에서 과 단어를 뽑아 맞춰 봄
-   7~8문장 · 80~100단어 · 문장 15단어 이하 · 그 과 단어 5~6개가 글에 있음 · 과거 문장 6+ · 순서 말 4 · OX ⭕❌ 하나씩 · 해요체
+   7~8문장 · 80~100단어 · 문장 15단어 이하 · 그 과 단어 5~6개가 글에 있음 · 과거 문장 6+ · 순서 말 4 · OX ⭕❌ 하나씩 · 해요체 · (v710) 책 시험 빈칸 bl
    python3 tools/rdst_check.py"""
 import re
 import asyncio, sys, os, json
@@ -62,6 +62,14 @@ for book, units in D.items():
             if len(ox)!=2 or sorted([o[2] for o in ox])!=[False,True] or any(not 1<=o[3]<=len(st["s"]) for o in ox): prob.append("OX")
             if len(st["tc"])!=3 or len(st["sm"])!=3 or st["tc"][0]!=st["t"][0]: prob.append("고르기")
             if not st.get("q") or not st.get("ex") or not st["ex"][0].startswith("I would"): prob.append("생각")
+            bl=st.get("bl")   # (v710) 책 시험 빈칸 — 글 속 낱말이 한 번 · 문장 첫 낱말 X · ⭕❌·제목·요약에 안 나옴 · 틀린 보기 3개는 글에 없음
+            if not bl or len(bl)!=4 or len(set(bl))!=4: prob.append("빈칸 bl")
+            else:
+                rx=r"\b"+re.escape(bl[0])+r"\b"; shown=" | ".join([o[0] for o in st["ox"]]+st["tc"]+st["sm"])
+                if len(re.findall(rx, txt))!=1 or any(re.match(rx, s[0]) for s in st["s"]): prob.append("빈칸 자리 "+bl[0])
+                stem=bl[0] if len(bl[0])<=4 else re.sub(r"(ed|s|d)$","",bl[0]).rstrip("e")   # 짧은 낱말(fee)은 그대로 — f… 로 줄이면 for·fun 이 다 걸림
+                if re.search(r"\b"+re.escape(stem)+r"[a-z]{0,3}\b", shown, re.I): prob.append("빈칸 답이 문제에 보임 "+bl[0])
+                if any(re.search(r"\b"+re.escape(d)+r"\b", txt, re.I) for d in bl[1:]): prob.append("틀린 보기가 글에 있음")
             for s in st["s"]:
                 if len(re.findall(r"[A-Za-z']+", s[0]))>15: prob.append("긴 문장 "+s[0][:20])
                 if not s[1].endswith(("요.", "요!", "요?")): prob.append("해요체 "+s[1][-6:])
