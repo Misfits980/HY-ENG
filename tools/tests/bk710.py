@@ -7,7 +7,9 @@
    (v711) 사용자 「시험지 개선이 더 필요해」 → 고른 것 넷
    ⑥ 이야기 = 글 하나 + 그 문제를 한 쪽에 (글은 위 넓게 · 문제 번호 범위 = 그 쪽 문제) · 글마다 세부 내용 · 순서 맞추기 · ⭕❌ 는 문장 끝 O · X
    ⑦ ✍️ 답 적는 칸 = 시험지 끝 한 쪽 (칸 수 = 문제 수 · ✎ = 쓰는 문제) · 답안지 정답 번호표 · 끄면 없음 · 머리에 시험 시간·푸는 법
-   ⑧ 단어 고르기: 아래 학년 책에도 있는 단어는 뒤로 · 「반이 자주 틀린 단어 더」 = 선생님 기기 기록의 이 책 단어가 먼저 · 기록 없으면 안내 · 책 시험 과거형 = 불규칙 먼저"""
+   ⑧ 단어 고르기: 아래 학년 책에도 있는 단어는 뒤로 · 「반이 자주 틀린 단어 더」 = 선생님 기기 기록의 이 책 단어가 먼저 · 기록 없으면 안내 · 책 시험 과거형 = 불규칙 먼저
+   (v712) ⑨ G3-4 · G1-2 도 이야기 (rdst.json elem · basic): 글 3/6편 · G3-4 글마다 빈칸 · O·X 2 · 세부 내용/제목 번갈아 · 생각 = 한 낱말 칸 · G1-2 빈칸 · O·X 2 · 생각 = 둘 중 ○
+      · 글 + 그 문제는 한 단에 붙어서(갈라지지 않음 · 번호 범위 = 그 덩어리 문제) · G1-2 글은 한 문장씩 한 줄 · 답 적는 칸 ✎ = 생각 · 답안지 예시 답"""
 import asyncio, sys, os, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
@@ -100,6 +102,24 @@ async def main():
         await E("()=>{ const S=document.getElementById('ppBkW'); S.value='even'; S.dispatchEvent(new Event('change',{bubbles:true})); localStorage.removeItem('hyeng_admin_rep'); }"); await pg.wait_for_timeout(1200)
         ab=await E("()=>[document.getElementById('ppAB').checked, (()=>{ document.querySelector('#ppMd [data-v=test]').click(); return document.getElementById('ppAB').checked; })()]")
         ok(ab[0] is False and ab[1] is True, f"④ 책 시험 A·B형 기본 끔 · 📝 시험지로 가면 원래 설정(켬) {ab}")
+        # ⑨ G3-4 · G1-2 이야기
+        await E("()=>localStorage.setItem('hyeng_pp_ver', 'school')")
+        for bk, parts, per in (("elem", ["Ⅰ 단어","Ⅱ 문장","Ⅲ 문법","Ⅳ 이야기"], 4), ("basic", ["Ⅰ 단어","Ⅱ 문장","Ⅲ 이야기"], 3)):
+            for plan, nst in (("a", 3), ("b", 6)):
+                await E("(a)=>{ localStorage.setItem('hyeng_paper', JSON.stringify({set:a[0], mode:'bk', bkPlan:a[1]})); Paper.open({mode:'bk', set:a[0]}); }", [bk, plan]); await pg.wait_for_timeout(2500)
+                r=await E("""(bk)=>{ const B=Paper.B, S=B.S.filter(s=>s.k==='rd'), D=(Paper.RDST||{})[bk]||{};
+                  const chk=S.map(s=>{ const qs=s.qs, bq=qs.find(q=>q.lab && q.lab.length===4 && q.u!=='rd'), tok=bq && bq.ans, st=Object.values(D).map(L=>L[0]).find(x=>x.bl && x.bl[0]===tok);
+                    return {n:qs.filter(q=>!q.ow).length, ox:qs.filter(q=>q.oxi).length, th:qs.filter(q=>q.ow).length, thk:qs.filter(q=>q.ow).map(q=>/ppCh/.test(q.html) ? 'ch' : /ppThk fr/.test(q.html) ? 'fr' : '?').join(''), wh:qs.filter(q=>/ppKo/.test(q.html) && q.lab && q.lab.length===4).length, tc:qs.filter(q=>q.lab && q.lab.length===3).length,
+                      cur:!!st && JSON.stringify(st.bl)===JSON.stringify(bq.lab), gone:!!tok && !new RegExp('\\b'+tok+'\\b').test(s.pre.replace(/<[^>]+>/g,'')), keep:!!s.keep, l1:/ppPg l1/.test(s.pre), ln:(s.pre.match(/class="ln"/g)||[]).length}; });
+                  const G=[...document.querySelectorAll('#ppWrap .ppKeep')].map(g=>{ const m=(g.querySelector('.ppRg')||{}).textContent.match(/(\\d+)~(\\d+)/), N=[...g.querySelectorAll('.ppNo')].map(x=>parseInt(x.textContent)); return !!m && N[0]===+m[1] && N[N.length-1]===+m[2] && N.length===(+m[2])-(+m[1])+1 && !!g.closest('.ppCol') && !!g.querySelector('.ppPg'); });
+                  const key=[...document.querySelectorAll('#ppWrap .pp.key')].map(k=>k.textContent).join(' ');
+                  return {parts:B.S.filter(s=>s.part).map(s=>s.part), chk, G, tot:B.total, bad:Paper.bad(), key:(key.match(/\(예시\)/g)||[]).length, full:document.querySelectorAll('#ppWrap .ppTop .ppPg').length}; }""", bk)
+                c=r["chk"]
+                lv1=bk=="basic"
+                good=r["parts"]==parts and len(c)==nst and r["tot"]==(50 if plan=="a" else 100) and not r["bad"] and r["full"]==0 and len(r["G"])==nst and all(r["G"]) and r["key"]==2 \
+                  and all(x["cur"] and x["gone"] and x["keep"] and x["ox"]==2 and x["n"]==per and (x["wh"]+x["tc"]==(0 if lv1 else 1)) and x["l1"]==lv1 and x["ln"]==(3 if lv1 else 0) for x in c) \
+                  and "".join(x["thk"] for x in c)==("chch" if lv1 else "frfr")
+                ok(good, f"⑨ {bk} {plan}안: {r['parts']} · {r['tot']}문제 · 글 {len(c)}편(한 단에 붙음 {r['G']}) · 글마다 {[(x['n'], x['ox'], x['wh'], x['tc']) for x in c]} · 생각 {[x['thk'] for x in c]} · 답안지 예시 {r['key']} · 넘침 {r['bad']}")
         # ⑤ 인쇄 나누기 · 바꾸기
         await E("()=>{ localStorage.setItem('hyeng_paper', JSON.stringify({set:'rd2', mode:'bk', bkPlan:'a'})); Paper.open({mode:'bk', set:'rd2'}); }"); await pg.wait_for_timeout(2500)
         res={}
