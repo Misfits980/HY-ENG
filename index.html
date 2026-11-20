@@ -5246,7 +5246,7 @@ body.tcOn #frun.tv{padding-bottom:74px}
 /* (v433) 📺 파티 보드 수업판 */
 body.tcOn #board.bdModePlay,body.tcOn #board.bdLobbyOn{padding-bottom:60px}
 body.tcOn #board.bdModePlay .bdAct{bottom:60px}
-#board.tv .bdAct[data-who]{flex-direction:column;align-items:center;justify-content:flex-end}
+#board.tv .bdAct[data-who]{flex-direction:column;align-items:center;justify-content:flex-start}   /* (v713) flex-end 였을 때 카드가 넘치면 위쪽이 화면 밖(스크롤로도 못 봄) → 위에서부터 · 아래 붙이기는 ::before margin-top:auto */
 @media (min-width:1000px) and (min-height:600px){ #board.tv .bdTop{zoom:1.35} #board.tv .bdAct{zoom:1.45;max-height:calc(62% / 1.45)} #board.tv .bdBan{zoom:1.5} #board.tv .bdNum{zoom:1.4} }
 @media (min-width:1600px) and (min-height:860px){ #board.tv .bdTop{zoom:1.6} #board.tv .bdAct{zoom:1.75;max-height:calc(62% / 1.75)} #board.tv .bdBan{zoom:1.8} }   /* (v537) 교실 TV — 글자·카드 1.5~1.8배 (뒤에서도 보이게) */
 /* (v668) 사용자 TV 사진: 「보드게임 판이 너무 지저분해」 — TV 에서 굴리기 안내가 세 줄(📱 누구 패드 · ⭐ 까지 N칸/🪙 · 🎒/🎲)로 판 아래 1/3 을 덮음
@@ -5259,7 +5259,7 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
   #board.tv .bdAct.bdDock .bdRoll,#board.tv .bdAct.bdDock .bdBag{height:56px;border-radius:18px;white-space:nowrap} #board.tv .bdAct.bdDock .bdRoll{font-size:22px;padding:0 22px}
 }
 @media (min-width:1600px) and (min-height:860px){ #board.tv .bdAct.bdDock{zoom:1.5} }
-#board.tv .bdAct[data-who]::before{content:"📱 " attr(data-who) " 패드에서";display:block;width:max-content;margin:0 auto 4px;padding:3px 12px;border-radius:99px;background:#ffd23f;color:#3a2300;font-weight:900;font-size:14px}
+#board.tv .bdAct[data-who]::before{content:"📱 " attr(data-who) " 패드에서";display:block;width:max-content;margin:auto auto 4px;padding:3px 12px;border-radius:99px;background:#ffd23f;color:#3a2300;font-weight:900;font-size:14px}
 .bdLob{margin:auto;width:min(980px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px;padding:12px 16px calc(14px + env(safe-area-inset-bottom));overflow:auto}
 .bdLobRoom{display:flex;flex-direction:column;align-items:center;padding:10px;border-radius:22px;background:var(--bdCard);border:3px solid var(--bdLine)}.bdLobRoom small{font-size:16px;opacity:.85}.bdLobRoom>b{font-size:clamp(64px,12vw,120px);letter-spacing:.12em;line-height:1.05;font-weight:900;color:#ff8a1a}
 .bdLobMode{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}.bdLobMode button{height:46px;padding:0 18px;border-radius:14px;border:2px solid var(--bdLine);background:var(--bdCard);color:inherit;font-size:17px;font-weight:900}.bdLobMode button.on{background:var(--bdBtn);color:var(--bdBtnInk);border-color:#ffd23f}.lbNt{display:flex;gap:6px}
@@ -5350,8 +5350,10 @@ body.tcOn #board.bdModePlay .bdAct{bottom:60px}
 .bdOv{font-size:20px}
 .bdNum{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.3);opacity:0;pointer-events:none;font-size:110px;font-weight:900;color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.35),0 0 30px var(--bdLine);transition:.25s cubic-bezier(.3,1.6,.5,1);z-index:9}
 .bdNum.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
-.bdAct{position:absolute;left:0;right:0;bottom:0;max-height:62%;overflow:auto;pointer-events:none;align-items:flex-end;padding:8px 10px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center}
-.bdAct>*{pointer-events:auto}
+.bdAct{position:absolute;left:0;right:0;bottom:0;max-height:62%;overflow:auto;pointer-events:none;align-items:flex-start;padding:8px 10px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center}
+.bdAct>*{pointer-events:auto;margin-top:auto}   /* (v713) 아래에 붙되, 카드가 넘치면 위에서부터 (예전 align-items:flex-end = 넘친 위쪽이 잘림 · 휴대폰 가로 상점도) */
+@media (min-width:1000px) and (min-height:600px){ #board.tv .bdAct.bdTall{zoom:1.2;max-height:calc(88% / 1.2)} #board.tv .bdAct.bdTall .bdShopL{grid-template-columns:repeat(4,minmax(0,1fr))} #board.tv .bdAct.bdTall .bdCard{max-width:98%} }
+@media (min-width:1600px) and (min-height:860px){ #board.tv .bdAct.bdTall{zoom:1.45;max-height:calc(88% / 1.45)} }   /* (v713) TV 긴 카드(🏪 상점 · 🎒 가방 · 🔄 누구에게) = 조금 작게 + 넓게 4칸 → 한 화면에 다 */
 .bdAct.bdIn>*:not(.bdEnd){animation:bdUp .25s ease-out}
 #board .bdMain{padding-bottom:8px}
 .bdRollW{margin:0 0 14px}
@@ -14591,7 +14593,7 @@ const Attract = {
           g.frameMat.opacity = .3 + Math.sin(this.t*1.4+i)*.12;
         });
         const f = Math.min(1, (near-5.5)/5);
-        if(f<1) this.set.group.traverse(o=>{ const m=o.material; if(!m || Array.isArray(m)) return; const u=m.userData; if(u.ao==null){ u.ao=m.opacity; u.at=m.alphaTest||0; } m.transparent=true; m.opacity=u.ao*f; if(u.at>0) m.alphaTest=Math.max(.01, u.at*f); });
+        if(f<1) this.set.group.traverse(o=>{ const m=o.material; if(!m || Array.isArray(m)) return; const u=m.userData||(m.userData={}); if(u.ao==null){ u.ao=m.opacity; u.at=m.alphaTest||0; } m.transparent=true; m.opacity=u.ao*f; if(u.at>0) m.alphaTest=Math.max(.01, u.at*f); });
       }
     }
     // 다른 캐릭터들도 각자 폴짝거리며 서 있다
@@ -15134,7 +15136,7 @@ const StudyCover={ el:null, on(){ const S=this.el||(this.el=document.getElementB
 function loop(time){ G._ft=time; const a=Perf.on?performance.now():0; Perf.pre(a, time); try{ loopBody(); }catch(e){ showErr(e && e.message); } if(Perf.on) Perf.frame(a, performance.now(), time); }
 function loopBody(){
   if(!G.running && StudyCover.on()){ clock.getDelta(); return; }   /* (v561) Daily 30 화면(배경이 꽉 막힘)이 열려 있으면 뒤 3D 를 안 그림 — 아이패드에서 뒤 그림 + 스크롤이 겹쳐 위 막대가 「부르르」 떨리던 것 */
-  if(Board.o && B3.R && !G.running){ clock.getDelta(); return; }   /* (v428) 🎲 3D 보드가 열려 있으면 뒤의 달리기 화면은 안 그림 (그림 두 개 = 아이패드가 힘듦) */
+  if(!G.running && ((Board.o && B3.R) || BoardPad.room)){ clock.getDelta(); return; }   /* (v428) 🎲 3D 보드가 열려 있으면 뒤의 달리기 화면은 안 그림 (그림 두 개 = 아이패드가 힘듦) · (v713) 📺 수업판 아이 패드(BoardPad)도 — 예전엔 판 뒤에서 첫 화면 3D 를 1초에 수십 번 계속 그렸음 (발열·미니게임 끊김) */
   let dt=Math.min(clock.getDelta(),.05);
   /* (v370) 아이폰 측정: 계산 1ms 인데도 가끔 한 프레임(33ms)씩 늦음 → 그 순간 세상이 두 칸 뛰어 「툭」
      → 화면 갱신 시각(rAF time)으로 dt 를 재고 · 달리는 동안은 살짝 부드럽게 (튀는 한 프레임을 몇 프레임에 나눠 줌, 전체 시간은 같음) */
@@ -17811,7 +17813,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v712";
+const GAME_VER = "v713";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -26731,6 +26733,7 @@ const Board = {
   KN:{blue:["🔵","+3","#2f8cff"], red:["🔴","−3","#ff4d5e"], duel:["⚔️","결투","#ff8a1a"], event:["❓","깜짝","#9b6bff"], shop:["🏪","상점","#2fd27a"], start:["🚩","출발","#ffffff"]},
   /* (v447) 사용자: "상점 아이템은 너무 쓸모가 없고 버그가 너무 많아" → 별에 닿는 데 쓰는 것 4개 (🔒 함정 · 코인 자석은 뺌) */
   IT:{mush:["🍄","버섯","주사위 2개 — 멀리 가요",5], gold:["🎯","황금 주사위","1~6 중 고른 숫자만큼 — ⭐ 칸에 딱!",8], swap:["🔄","자리 바꾸기","⭐ 가까운 친구와 자리 바꾸기",8], mag:["🧲","별 자석","친구의 ⭐ 1개를 끌어와요!",18], shield:["🛡","방패","🔴 칸·결투·🧲 를 한 번 막아요 (저절로)",6], lucky:["🎁","행운 상자","열면 🪙·아이템·⭐ 중 하나!",6]},   /* (v537) 사용자: 🪙 가 쌓이기만 → 아이템 2개 더 · 🧲 28→18 · 가방 3칸 · 상점에서 ⭐ 바로 사기 · 여러 개 사기 */
+  itN(k){ const I=this.IT[k]; if(!I) return ""; return k==="mush" && this.o && this.o.cfg && this.o.cfg.sk==="e" ? "버섯 물약" : I[1]; },   /* (v713) 초등 던전 판의 🍄 그림은 버섯 마개 물약 → 이름을 그림에 맞춤 */
   BAG:3, SHOPSTAR(){ return this.late() ? 15 : 25; },
   EV:[["rain","🌧️","코인 비! 🪙 +5"],["swap","🔄","친구랑 자리 바꾸기!"],["wind","🌪️","바람! 앞으로 3칸"],["robin","🏹","로빈후드! 1등에게서 🪙3"],["gift","🎁","모두에게 🪙 +2"]],
   GEMS:[10,8,8,8], DAYMAX:2,   /* (v698) ④ 판에 있던 모두 같게 + 우승 작은 덤 (예전 10·7·5·3) */ STARP:10,
@@ -26857,7 +26860,7 @@ const Board = {
     if($("bdRnd")) $("bdRnd").textContent=Math.min(o.rnd,o.R)+" / "+o.R; if(o.tv) try{ BoardTV.push(); }catch(e){} },
   fx(s){ return String(s).replace(/🪙/g, this.ic("coins","cn")); },   /* (v451) 🪙 이모지 → 금 코인 그림 (컴퓨터에서 깨짐) */
   ban(t, cls, ms){ if(this.o && this.o.tv) try{ TvCast.say(String(t).replace(/<[^>]+>/g,"").trim()); }catch(e){} const b=$("bdBan"); if(!b) return; b.innerHTML=this.fx(t); b.className="bdBan on "+(cls||""); clearTimeout(this._bt); this._bt=setTimeout(()=>{ if($("bdBan")) $("bdBan").className="bdBan"; }, ms||1400); },
-  act(h){ const a=$("bdAct"); if(a){ a.innerHTML=this.fx(h); a.classList.remove("bdIn","bdRollHide"); void a.offsetWidth; a.classList.add("bdIn"); a.classList.toggle("bdDock", !!(a.firstElementChild && a.firstElementChild.classList.contains("bdRollW")));   /* (v668) bdDock = 굴리기 줄 (TV 에서는 맨 아래 한 줄로) */ try{ const c=a.firstElementChild, st=$("bdStage"); B3.padB = (c && st && !c.classList.contains("bdEnd")) ? Math.min(0.6, c.offsetHeight/Math.max(1, st.clientHeight)) : 0; }catch(e){} }
+  act(h){ const a=$("bdAct"); if(a){ a.innerHTML=this.fx(h); a.classList.remove("bdIn","bdRollHide"); void a.offsetWidth; a.classList.add("bdIn"); a.classList.toggle("bdDock", !!(a.firstElementChild && a.firstElementChild.classList.contains("bdRollW")));   /* (v668) bdDock = 굴리기 줄 (TV 에서는 맨 아래 한 줄로) */ a.classList.remove("bdTall"); if(a.firstElementChild && !a.classList.contains("bdDock") && a.closest("#board.tv") && a.scrollHeight>a.clientHeight+4) a.classList.add("bdTall");   /* (v713) TV 에서 카드가 넘치면 bdTall */ try{ const c=a.firstElementChild, st=$("bdStage"); B3.padB = (c && st && !c.classList.contains("bdEnd")) ? Math.min(0.6, c.offsetHeight/Math.max(1, st.clientHeight)) : 0; }catch(e){} }
     if(this.o && this.o.tv) try{ BoardTV.req(h); }catch(e){ console.error(e); } },
   me(){ return this.o.P[this.o.cur]; },
   pfh(p){ return '<i class="bdPf" '+this.pf(p.ch)+'></i>'; },
@@ -26868,7 +26871,7 @@ const Board = {
   /* (v447) 사용자: "어떻게 해야 이기는지 설명이 없어 전략을 못 짬" → 굴리기 위에 늘 ⭐ 까지 몇 칸 · 내 🪙 / 별 값 · 지금 쓰면 좋은 아이템 */
   turnMenu(){ const o=this.o, p=this.me(), d=this.dist(p), sp=this.starP(), rich=p.coin>=sp, starOwners=o.P.filter(x=>x!==p && x.star>0);
     const tip = p.it.indexOf("gold")>=0 && d>=1 && d<=6 ? '🎯 황금 주사위로 '+d+' 고르면 ⭐!' : p.it.indexOf("mag")>=0 && starOwners.length ? '🧲 별 자석으로 친구 ⭐ 뺏기!' : p.it.indexOf("mush")>=0 && d>6 && d<=12 ? '🍄 버섯이면 ⭐ 까지 닿을지도!' : '';
-    this.act('<div class="bdRollW" style="--pc:'+p.col+'"><div class="bdHud"><span class="bdHudS">'+this.ic("star")+' 까지 <b>'+(d||o.N)+'</b>칸</span><span class="bdHudC'+(rich?' ok':'')+'">'+this.ic("coins")+' <b>'+p.coin+'</b> / '+sp+(rich?' · 살 수 있어요!':'')+'</span></div>'
+    this.act('<div class="bdRollW" style="--pc:'+p.col+'"><div class="bdHud"><span class="bdHudS">'+this.ic("star")+(d ? ' 까지 <b>'+d+'</b>칸' : ' <b>바로 여기</b> · 한 바퀴 뒤')+'</span><span class="bdHudC'+(rich?' ok':'')+'">'+this.ic("coins")+' <b>'+p.coin+'</b> / '+sp+(rich?' · 살 수 있어요!':'')+'</span></div>'
       +(tip ? '<div class="bdTip">💡 '+tip+'</div>' : '')
       +(p.it.length ? '<button class="bdBag'+(tip?' hot':'')+'" data-bd="bag">🎒 아이템 <b>'+p.it.map(k=>this.ic(k)).join('')+'</b></button>' : '')
       +'<button class="bdRoll" data-bd="roll">'+this.ic("dice")+(o.mush?' 두 번 굴리기!':' 굴리기!')+'</button></div>'); },
@@ -26877,15 +26880,15 @@ const Board = {
     if(k==="shield"){ this.ban("🛡 방패는 가지고 있으면 저절로 막아요", "turn", 1500); this.turnMenu(); return; }
     if(k==="lucky"){ p.it.splice(j,1); const r=Math.random(), pool=["mush","gold","swap","shield"];   /* (v537) 🎁 행운 상자 */
       if(r<0.12){ p.star++; this.ban("🎁 대박! ⭐ +1", "good", 1800); try{ B3.starGet(p.i); }catch(e){} }
-      else if(r<0.5){ const it=pool[Math.floor(Math.random()*pool.length)]; p.it.push(it); this.ban("🎁 "+this.IT[it][0]+" "+this.IT[it][1]+" 나왔어요!", "good", 1600); }
+      else if(r<0.5){ const it=pool[Math.floor(Math.random()*pool.length)]; p.it.push(it); this.ban("🎁 "+this.IT[it][0]+" "+this.itN(it)+" 나왔어요!", "good", 1600); }
       else if(r<0.8){ this.coin(p, 8); this.ban("🎁 🪙 +8!", "good", 1500); } else { this.coin(p, 4); this.ban("🎁 🪙 +4", "turn", 1500); }
       this.pl(); this._to=setTimeout(()=>this.turnMenu(), 1300); return; }
     if(k==="mush"){ if(o.mush){ this.ban("🍄 이번 차례엔 벌써 썼어요", "bad", 1400); this.turnMenu(); return; } p.it.splice(j,1); o.mush=1; this.ban("🍄 주사위 2개!", "good"); this.pl(); this.turnMenu(); return; }
-    if(k==="gold"){ const d=this.dist(p); this.act('<div class="bdCard"><b>'+this.ic("gold","sm")+' 몇 칸 갈까요?</b><small>⭐ 까지 '+d+'칸</small><div class="bdGold">'+[1,2,3,4,5,6].map(n=>'<button data-bd="gnum" data-k="'+n+'"'+(n===d?' class="hot"':'')+'>'+n+(n===d?'<small>⭐</small>':'')+'</button>').join('')+'</div><button class="bdSkip" data-bd="back">← 취소</button></div>'); return; }
+    if(k==="gold"){ const d=this.dist(p); this.act('<div class="bdCard"><b>'+this.ic("gold","sm")+' 몇 칸 갈까요?</b><small>'+(d ? '⭐ 까지 '+d+'칸' : '⭐ 이 칸 — 한 바퀴 뒤')+'</small><div class="bdGold">'+[1,2,3,4,5,6].map(n=>'<button data-bd="gnum" data-k="'+n+'"'+(n===d?' class="hot"':'')+'>'+n+(n===d?'<small>⭐</small>':'')+'</button>').join('')+'</div><button class="bdSkip" data-bd="back">← 취소</button></div>'); return; }
     if(k==="mag" && !others.some(x=>x.star>0)){ this.ban("🧲 아직 ⭐ 을 가진 친구가 없어요", "bad", 1600); this.turnMenu(); return; }
     if(k==="trap"){ if(o.T[p.pos]==="start" || o.T[p.pos]==="shop" || o.trap[p.pos]!=null){ this.ban("🔒 여기는 함정을 놓을 수 없어요", "bad", 1400); this.turnMenu(); return; }   /* (v440) 점검: TV 모드에서 카드가 다시 안 가서 멈췄음 */ p.it.splice(j,1); o.trap[p.pos]=p.i; try{ B3.tiles(); }catch(e){} this.ban("🔒 함정을 놓았어요!", "good"); this.pl(); this.turnMenu(); return; }
     o.pick={k, j}; const tg = k==="mag" ? others.filter(x=>x.star>0) : others;
-    this.act('<div class="bdCard"><b>'+this.ic(k,"sm")+' 누구에게?</b><div class="bdTg">'+tg.map(x=>'<button data-bd="tgt" data-i="'+x.i+'" style="--pc:'+x.col+'">'+this.pfh(x)+this.esc(x.n)+' <small>'+(k==="swap" ? '⭐까지 '+(this.dist(x)||o.N)+'칸' : '⭐'+x.star+' · 🪙'+x.coin)+'</small></button>').join('')+'</div><button class="bdSkip" data-bd="back">← 취소</button></div>'); },
+    this.act('<div class="bdCard"><b>'+this.ic(k,"sm")+' 누구에게?</b><div class="bdTg">'+tg.map(x=>'<button data-bd="tgt" data-i="'+x.i+'" style="--pc:'+x.col+'">'+this.pfh(x)+this.esc(x.n)+' <small>'+(k==="swap" ? (this.dist(x) ? '⭐까지 '+this.dist(x)+'칸' : '⭐ 바로 위') : '⭐'+x.star+' · 🪙'+x.coin)+'</small></button>').join('')+'</div><button class="bdSkip" data-bd="back">← 취소</button></div>'); },
   tgt(i){ const o=this.o, p=this.me(), t=o.P[i], pk=o.pick; if(!pk || !t) return; o.pick=null;
     if(pk.k==="duel"){ this.duel(t); return; }
     const ji=p.it.indexOf(pk.k); if(ji<0) return; p.it.splice(ji,1); this.act(''); this.pl();   /* (v447) 버그: 고르는 카드가 1.4초 남아 있어서 📺 수업판이 같은 카드를 다시 보내고(두 번 누름) 자리가 다시 바뀌어 원래 자리에서 출발 → 바로 지움 */
@@ -26946,11 +26949,11 @@ const Board = {
   shop(){ const p=this.me(), o=this.o, SS=this.SHOPSTAR(); this.act('<div class="bdCard bdShop"><b>'+this.ic("shop","sm")+' 상점 <small>'+this.ic("coins")+p.coin+' · 가방 '+p.it.length+'/'+this.BAG+'</small></b><div class="bdShopL">'
       +'<button class="bdShopStar" data-bd="buy" data-k="star"'+(p.coin<SS || o.shopStar ? ' disabled' : '')+'><i>'+this.ic("star")+'</i><b>⭐ 별</b><small>'+(o.shopStar ? '이번엔 벌써 샀어요' : '문제 없이 바로 ⭐ +1 (한 번에 하나)')+'</small><em>'+this.ic("coins")+SS+'</em></button>'
       +Object.keys(this.IT).map(k=>{ const I=this.IT[k], no=p.coin<I[3] || p.it.length>=this.BAG;
-      return '<button data-bd="buy" data-k="'+k+'"'+(no?' disabled':'')+'><i>'+this.ic(k)+'</i><b>'+I[1]+'</b><small>'+I[2]+'</small><em>'+this.ic("coins")+I[3]+'</em></button>'; }).join('')+'</div><button class="bdSkip" data-bd="skip">'+(p.it.length||o.shopStar?'다 샀어요 ▶':'그냥 나갈래요')+'</button></div>');
+      return '<button data-bd="buy" data-k="'+k+'"'+(no?' disabled':'')+'><i>'+this.ic(k)+'</i><b>'+this.itN(k)+'</b><small>'+I[2]+'</small><em>'+this.ic("coins")+I[3]+'</em></button>'; }).join('')+'</div><button class="bdSkip" data-bd="skip">'+(p.it.length||o.shopStar?'다 샀어요 ▶':'그냥 나갈래요')+'</button></div>');
     this.o.cont=()=>{ this.o.cont=null; this.endTurn(); }; },
   buy(k){ const p=this.me(), o=this.o;
     if(k==="star"){ const SS=this.SHOPSTAR(); if(o.shopStar || p.coin<SS) return; o.shopStar=1; this.coin(p, -SS); p.star++; this.pl(); this.ban("⭐ "+this.esc(p.n)+" 별을 샀어요!", "good", 1500); try{ B3.starGet(p.i); SFX.tone(523,.2,"triangle",.06); setTimeout(()=>SFX.tone(1046,.3,"triangle",.06),160); }catch(e){} this.shop(); return; }
-    const I=this.IT[k]; if(!I || p.coin<I[3] || p.it.length>=this.BAG) return; this.coin(p, -I[3]); p.it.push(k); this.pl(); this.ban(I[0]+" "+I[1]+" 샀어요!", "good"); this.shop(); },   /* (v537) 사고 나서도 상점 그대로 (더 사거나 「그만 살래요」) */
+    const I=this.IT[k]; if(!I || p.coin<I[3] || p.it.length>=this.BAG) return; this.coin(p, -I[3]); p.it.push(k); this.pl(); this.ban(I[0]+" "+this.itN(k)+" 샀어요!", "good"); this.shop(); },   /* (v537) 사고 나서도 상점 그대로 (더 사거나 「그만 살래요」) */
   shieldUse(p, why){ const j=p.it.indexOf("shield"); if(j<0) return false; p.it.splice(j,1); this.pl(); this.ban("🛡 "+this.esc(p.n)+" 방패로 막았어요!"+(why?" ("+why+")":""), "good", 1500); try{ B3.float(p.i, "🛡", "#8fe3ff"); SFX.tone(880,.12,"triangle",.05,1480); }catch(e){} return true; },   /* (v537) */
   /* 문제 (한 사람) — why: red · star */
   ask(why, cb){ const o=this.o; if(!o) return; o.why=why; o.qcb=cb; let q=null; const C=why==="star" ? o.hctx : o.ctx; try{ q=C.mkQ(); }catch(e){ console.error(e); } if(!q){ cb(false); return; }
@@ -27153,7 +27156,7 @@ const BoardTV = {
     this.rq=null; this.mgS={id:++this.rid, kind, sec, who, sk:o.cfg.sk, t:cfg.title && /결투/.test(cfg.title) ? "⚔️ 결투 · "+N[0] : N[0], how:N[1], L:S.list.map(w=>w.en), tf:S.tf.map(x=>x?1:0), dk:S.dk, r:S.r, go, end:go+sec*1000};
     this.mgO={cfg, done, kind, sec, who, P:cfg.P, t0:Date.now(), go, end:go+sec*1000, id:this.mgS.id, sc:{}};
     if(kind==="paint"){ const id=this.mgO.id, N0=MiniG.PT[0]*MiniG.PT[1]; this.mgO.pt=Array(N0).fill(-1); if(this._pth) this._pth.close();
-      this._pth=FB.listen("/battle/"+this.room+"/pt/"+id, t=>{ const m=this.mgO; if(!m || m.id!==id) return; for(let i=0;i<N0;i++){ const v=t && t[i]; m.pt[i] = (v==null || v==="") ? -1 : +v; } this.mgDraw(); }); }
+      this._pth=FB.listen(MiniG.ptPath(this.room, id), t=>{ const m=this.mgO; if(!m || m.id!==id) return; for(let i=0;i<N0;i++){ const v=t && t[i]; m.pt[i] = (v==null || v==="") ? -1 : +v; } this.mgDraw(); }); }
     const A=MiniG.A(o.cfg.sk), d=document.createElement("div"); d.id="bdTvMG"; d.className="sk-"+(o.cfg.sk==="k"?"k":"e"); d.style.setProperty("--mgParty", "url("+A+"bg_"+MiniG.bg(kind)+".webp)");
     d.innerHTML='<div class="tmHd"><img src="'+A+'em_'+MiniG.em(kind)+'.webp" alt=""><span><b>'+this.esc(this.mgS.t)+'</b><small>'+this.esc(N[1])+' · 📱 각자 패드로!</small></span><em id="tmT">5</em></div><div class="tmHow" id="tmHow">'+MiniG.howHtml(kind, o.cfg.sk)+'</div><div class="tmBody'+(kind==="paint"?' pt':'')+'">'+(kind==="paint" ? '<div class="tmPt" id="tmPt" style="grid-template-columns:repeat('+MiniG.PT[0]+',1fr)"></div>' : '')+'<div class="tmBars" id="tmBars"></div></div>';
     document.body.appendChild(d); this.mgDraw(); this.push(true); if(!this.kid) try{ TvCast.say("🎮 "+this.mgS.t+" — 모두 패드를 봐요!", 1); TvCast.ding("go"); }catch(e){}
@@ -27162,7 +27165,7 @@ const BoardTV = {
   khPlay(d, S){ const m=this.mgS, id=this.kid.id, mi=Board.o.P.findIndex(p=>(p.mem||[]).some(x=>x.id===id)), me={i:Math.max(0,mi), k:Math.max(0,mi)%4, col:Board.COL[Math.max(0,mi)]};
     d.classList.add("kh"); const B=$("tmBars"); if(B) B.classList.add("mini");
     d.insertAdjacentHTML("beforeend", '<div class="khMG"><div class="bpMgHd"><em id="khSc">0</em><span id="khT"></span></div><div class="mgG" id="khG"></div><div class="bpMgIn" id="khIn"><img class="mgEm" src="'+MiniG.A(m.sk)+'em_'+MiniG.em(m.kind)+'.webp" alt=""><b>'+this.esc(m.t)+'</b><small>'+this.esc(m.how||"")+'</small>'+MiniG.howHtml(m.kind, m.sk)+'<div class="mgCnt" id="khCnt"></div></div></div>');
-    if(m.kind==="paint"){ S.share=BoardPad.fbShare("/battle/"+this.room+"/pt/"+m.id, MiniG.PT[0]*MiniG.PT[1]); this._khSh=S.share; }
+    if(m.kind==="paint"){ S.share=BoardPad.fbShare(MiniG.ptPath(this.room, m.id), MiniG.PT[0]*MiniG.PT[1]); this._khSh=S.share; }
     const goL=m.go-(this.off|0), endL=m.end-(this.off|0); let g=null, last=0, sentAt=0, sent=-1, lastC="";
     const send=fin=>{ sent=g.sc; sentAt=Date.now(); FB.update("/battle/"+this.room+"/p/"+id, {mg:{id:m.id, sc:g.sc, fin:fin?1:0}, at:Date.now()}); };
     const loop=now=>{ if(!this.mgO || this.mgO.id!==m.id){ if(g) g.dead=1; if(this._khSh){ this._khSh.close(); this._khSh=null; } return; } this._khRaf=requestAnimationFrame(loop);
@@ -27233,7 +27236,7 @@ const BoardPad = {
     this.off=0; setTimeout(()=>FB.clock("/battle/"+r+"/p/"+this.me+"/ck").then(o=>{ this.off=o|0; }), 300);   /* (v447) 서버 시계 — 미니게임 시작·끝을 TV 와 같게 */
     this._hb=setInterval(()=>{ if(this.room) FB.update("/battle/"+this.room+"/p/"+this.me, {at:Date.now()}); }, 15000); },
   now(){ return Date.now()+(this.off|0); },
-  /* (v447) 🎨 땅따먹기 칸 = /battle/<방>/pt/<게임> (칸 → 판의 자리) · 내가 칠한 것은 0.15초씩 모아 보냄 */
+  /* (v447) 🎨 땅따먹기 칸 = /battle/<방>/fx/pt<게임> (v713 · 칸 → 판의 자리) · 내가 칠한 것은 0.15초씩 모아 보냄 */
   fbShare(path, N){ const A=Array(N).fill(-1), T=Array(N).fill(0), F=[]; let q={}, qt=0;
     const h=FB.listen(path, t=>{ for(let i=0;i<N;i++){ if(q[i]!=null) continue; const v=t && t[i]; A[i]=(v==null || v==="") ? -1 : +v; } F.forEach(f=>{ try{ f(); }catch(e){} }); });
     return {get:()=>A, set(i,v){ const now=performance.now(); if(now-T[i]<650) return false; A[i]=v; T[i]=now; q[i]=v; if(!qt) qt=setTimeout(()=>{ const b=q; q={}; qt=0; FB.update(path, b); }, 150); F.forEach(f=>{ try{ f(); }catch(e){} }); return true; },
@@ -27250,7 +27253,7 @@ const BoardPad = {
     P.forEach((p,i)=>{ let t=M.querySelector('.bpTk[data-i="'+i+'"]'); if(!t){ t=document.createElement("i"); t.dataset.i=i; M.appendChild(t); }
       t.className="bdPf bpTk"+(i===(s.cur|0)?" cur":"")+(i===mi?" me":""); t.style.cssText=at(p.pos)+';--c:'+p.col+';background-position:'+(Math.max(0,p.ch|0)/8*100)+'% 0'; });
     M.querySelectorAll(".bpTk").forEach(t=>{ if(+t.dataset.i>=P.length) t.remove(); });
-    M.querySelector(".bpMpT").textContent = mi>=0 ? "⭐까지 "+(((s.sp-(P[mi].pos|0))%N+N)%N)+"칸" : ""; },
+    const dd=mi>=0 ? ((s.sp-(P[mi].pos|0))%N+N)%N : 0; M.querySelector(".bpMpT").textContent = mi>=0 ? (dd ? "⭐까지 "+dd+"칸" : "⭐ 바로 여기 · 한 바퀴 뒤") : ""; },   /* (v713) 0칸 */
   draw0(){ const s=this.st||{}, B=$("bpBody"), E=x=>Raid.esc(x); if(!B) return; const P=s.P||[], mi=this.mine(), me=P[mi];
     $("bpRnd").textContent = s.s==="play" ? (s.rnd||1)+" / "+(s.R||5) : "";
     /* (v447) 🏆 미니게임 시상대 — TV 와 같은 화면 */
@@ -27286,7 +27289,7 @@ const BoardPad = {
     const W=en=>{ let w=null; try{ w=Study.word(en); }catch(e){} return w || WORD_BANK.find(x=>x.en===en) || {en, ko:en}; }; const L=(m.L||[]).map(W), seen={}, ws=L.filter(w=>!seen[w.en] && (seen[w.en]=1));
     const S={ws, list:L, tf:(m.tf||[]).map(x=>!!x), dk:m.dk||[], r:m.r||[]}; const C=$("bpCnt");
     const mi=this.mine(), PP=(this.st.P||[])[mi]||{}, me={i:Math.max(0,mi), k:Math.max(0,mi)%4, col:PP.col||Board.COL[Math.max(0,mi)]};
-    if(m.kind==="paint"){ S.share=this.fbShare("/battle/"+this.room+"/pt/"+m.id, MiniG.PT[0]*MiniG.PT[1]); this._sh=S.share; }
+    if(m.kind==="paint"){ S.share=this.fbShare(MiniG.ptPath(this.room, m.id), MiniG.PT[0]*MiniG.PT[1]); this._sh=S.share; }
     /* (v447) 시작 = TV 가 정한 서버 시각 (m.go) — 늦게 받은 패드는 카운트다운을 줄이거나 바로 시작 · 끝도 m.end 로 모두 같게 */
     const goL = m.go ? m.go-(this.off|0) : Date.now()+2100+MiniG.HOWMS, endL = m.end ? m.end-(this.off|0) : goL+(m.sec||20)*1000; let last="";
     const tick=()=>{ if(this.mgId!==m.id){ clearInterval(this._ct); return; } const left=goL-Date.now();
@@ -27326,6 +27329,10 @@ const MiniG = {
      memory:["🃏 카드 뒤집기","영어 카드와 뜻 카드 짝을 찾아요",40,"e"],
      fish:["🎣 단어 낚시","뜻에 맞는 영어 물고기를 톡!",25,"e"]},
   ACT:["balloon","mole","tug","light","paint","stop","num","fruit","stack","jump"], ENG:["ox","memory","fish"],   /* (v448) 사용자: ⏱ · 🔢 · 🍎 + 🧱 · 🏃 */
+  /* (v713) 사용자: 「땅따먹기는 버그 때문에 아직도 안 되던데?」 — 원인: Firebase 규칙(server/firebase-rules*.json)이 /battle/<방>/ 아래 cfg·st·fx·p 만 허용
+     → 예전 칸 /battle/<방>/pt/<게임> 쓰기를 서버가 모두 거절 · 패드마다 자기가 칠한 칸만 보이고 친구 색은 안 오고 TV 점수 0 (가짜 서버 테스트는 규칙이 없어 통과)
+     → 허용된 fx 아래로 (규칙 다시 붙여 넣기 필요 없음 · fx/$id 는 로그인한 아이도 씀) */
+  ptPath(room, id){ return "/battle/"+room+"/fx/pt"+id; },
   CN:["빨강","파랑","초록","노랑"], PT:[6,8],   /* 땅따먹기 6 × 8 칸 (모든 기기 같게) */
   esc(t){ return Raid.esc(t); },
   /* (v432) 그림 — assets/mg/<k|e>/ (사용자 GPT 그림: 스프라이트 4×4 · 엠블럼 3×2 · 배경 3×2) */
@@ -27746,9 +27753,10 @@ const B3 = {
     const nm=new THREE.Sprite(new THREE.SpriteMaterial({map:this.label(p.n, p.col, "#fff", 40), transparent:true, depthWrite:false, depthTest:false})); nm.scale.set(1.5,0.56,1); nm.position.y=2.25; nm.renderOrder=5; g.add(nm);
     return {p, g, sp, t, nm, row:4, f:0, ph:0, anim:null, home:new THREE.Vector3()}; },
   slot(pi){ const o=this.o, p=o.P[pi], at=p.vis!=null?p.vis:p.pos, same=o.P.filter(q=>(q.vis!=null?q.vis:q.pos)===at), k=same.indexOf(p), n=same.length;
-    const off=n<=1 ? [0,0] : n===2 ? [[-0.5,0.1],[0.5,-0.1]][k] : n<=4 ? [[-0.55,0.1],[0.55,-0.1],[-0.1,0.6],[0.1,-0.6]][k%4] : [Math.cos(k/n*6.283)*0.62, Math.sin(k/n*6.283)*0.45];   /* (v537) 같은 칸이면 더 벌려 서기 (한 덩어리로 겹쳐 보였음) */ const P=this.TP[at%o.N]; return new THREE.Vector3(P.x+off[0], 0, P.z+off[1]); },
+    const cols=n<=4 ? n : Math.ceil(n/2), row=n<=4 ? 0 : (k<cols ? 0 : 1), col=n<=4 ? k : k%cols, sp=n<=2 ? 0.8 : 0.72;
+    const off=n<=1 ? [0,0] : [(col-(cols-1)/2)*sp + (row ? sp/2 : 0), n<=4 ? (k%2 ? -0.16 : 0.16) : (row ? 0.42 : -0.42)];   /* (v537) 같은 칸이면 더 벌려 서기 · (v713) 사용자 점검: 아직 겹침(1.9 크기 말이 1.1 간격) → 화면 가로로 한 줄(5명부터 두 줄) · 간격 0.72~0.8 */ const P=this.TP[at%o.N]; return new THREE.Vector3(P.x+off[0], 0, P.z+off[1]); },
   place(now){ if(!this.pc) return; const o=this.o, at=p=>p.vis!=null?p.vis:p.pos; this.pc.forEach((c,i)=>{ const h=this.slot(i); c.home.copy(h); if(now || !c.anim) c.g.position.copy(h);
-      if(c.nm && o){ const p=o.P[i], same=o.P.filter(q=>at(q)===at(p)), k=same.indexOf(p); c.nm.position.y = 2.25 + (same.length>1 ? k*0.5 : 0); } }); },   /* (v537) 같은 칸 이름표는 층층이 (겹쳐서 이름이 가려졌음) */
+      if(c.nm && o){ const p=o.P[i], same=o.P.filter(q=>at(q)===at(p)), k=same.indexOf(p); c.nm.position.y = 2.25 + (same.length>1 ? k*0.62 : 0); } }); },   /* (v537) 같은 칸 이름표는 층층이 (겹쳐서 이름이 가려졌음) · (v713) 층 간격 0.5 → 0.62 (이름표 높이 0.56 보다 크게 = 안 겹침) */
   face(c, dx, dz){ const v=new THREE.Vector3(dx,0,dz); if(v.lengthSq()<1e-6) return; v.applyQuaternion(this.C.quaternion.clone().invert()); const a=Math.atan2(v.x, -v.z); c.row=((Math.round(a/(Math.PI/4))%8)+8)%8; },
   frameOf(c){ c.t.offset.set(c.f/6, 1-(c.row+1)/8); },
   hop(pi, from, to, d, cb){ if(!this.R){ cb && setTimeout(cb,0); return; } const c=this.pc[pi], a=this.slot(pi), A=this.TP[from], B=this.TP[to], dist=Math.hypot(B.x-A.x, B.z-A.z); this.face(c, B.x-A.x, B.z-A.z);
