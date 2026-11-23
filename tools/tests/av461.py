@@ -23,7 +23,7 @@ async def main():
         await pg.reload(); await pg.wait_for_timeout(2500)
         E = pg.evaluate
         await E("()=>{ HOUSE.setWx(false); HOUSE.go('yard'); }"); await pg.wait_for_timeout(2500)
-        r = await E("""()=>{ const h=HOUSE.hero(); let lathe=0, srgb=0; h.g.traverse(m=>{ if(m.isMesh && m.geometry && m.geometry.type==='LatheGeometry') lathe++; }); const c=new THREE.Color('#6ec3ff').convertSRGBToLinear(); let found=false; h.g.traverse(m=>{ if(m.material && m.material.isMeshToonMaterial && Math.abs(m.material.color.r-c.r)<0.002 && Math.abs(m.material.color.b-c.b)<0.002) found=true; }); return [lathe, found, h.expr]; }""")
+        r = await E("""()=>{ const h=HOUSE.hero(); let lathe=0, srgb=0; h.g.traverse(m=>{ if(m.isMesh && m.geometry) lathe+=m.geometry.type==='LatheGeometry' ? 1 : (m.geometry.userData.src||[]).filter(t=>t==='LatheGeometry').length; });   /* (v714) 아바타 조각은 마디마다 합쳐짐 → 합친 도형의 원래 모양 목록(src) */ const c=new THREE.Color('#6ec3ff').convertSRGBToLinear(); let found=false; h.g.traverse(m=>{ if(m.material && m.material.isMeshToonMaterial && Math.abs(m.material.color.r-c.r)<0.002 && Math.abs(m.material.color.b-c.b)<0.002) found=true; const ca=m.geometry && m.geometry.attributes && m.geometry.attributes.color; if(ca && m.material && m.material.vertexColors) for(let i=0;i<ca.count && !found;i++) if(Math.abs(ca.getX(i)-c.r)<0.002 && Math.abs(ca.getZ(i)-c.b)<0.002) found=true; });   /* (v714) 툰 조각 = 꼭짓점 색 */ return [lathe, found, h.expr]; }""")
         ok(r[0] >= 2 and r[1] and r[2] == "smile", f"둥근 몸통·엉덩이 · 옷 색 sRGB · 처음 표정 방긋 {r}")
         # ②
         await E("()=>HOUSE.openAv()"); await pg.wait_for_timeout(400)
