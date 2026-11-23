@@ -30,8 +30,8 @@ async def main():
         MOUNT = """(k)=>{ const old=document.getElementById('tg'); if(old) old.remove(); const d=document.createElement('div'); d.id='tg'; d.style.cssText='position:fixed;inset:0;z-index:999;display:flex'; d.innerHTML='<div class="mgG" id="tgG" style="flex:1"></div>'; document.body.appendChild(d);
             const S=MiniG.seq(Study.lessons('elem')[0].ws, k); window._g=MiniG.mount(document.getElementById('tgG'), k, S, 'e', {i:0,k:0,col:Board.COL[0]}); return 1; }"""
         await H.evaluate(MOUNT, "stop")
-        r = await H.evaluate("()=>{ const g=window._g; g.t0-=4000; g.step(.02); const hid=g.host.firstChild.classList.contains('hid'); g.stopIt(9.88); return [hid, g.sc, g.host.innerText.replace(/\\n/g,' ')]; }")   # (v715) 진짜 시각 · 점수 = 100 − 0.02초마다 1
-        ok(r[0] and r[1] == 94, f"⏱ 3초 뒤 숨김 · 9.88초 = 94점 {r}")
+        r = await H.evaluate("()=>{ const g=window._g; g.t0-=2400; g.step(.02); const hid=g.host.firstChild.classList.contains('hid'); g.stopIt(2.88); return [hid, g.sc, g.host.innerText.replace(/\\n/g,' ')]; }")   # (v717) 3번 (3·5·7초) · 1.5초 뒤 숨김 · 점수 = 100 − 0.02초마다 1
+        ok(r[0] and r[1] == 94, f"⏱ 1.5초 뒤 숨김 · 첫 판(3초) 2.88초 = 94점 {r}")
         await H.evaluate(MOUNT, "num")
         r = await H.evaluate("()=>{ const g=window._g; for(let i=0;i<5;i++) g.auto(); const a=g.sc; g.wrong(); return [a, g.sc, g.k]; }")
         ok(r == [5, 5, 6], f"🔢 1~5 차례대로 +5 · 틀린 숫자 = 점수 그대로 {r}")

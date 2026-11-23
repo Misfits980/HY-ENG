@@ -22,15 +22,23 @@ async def main():
         mono = all((ds[i] < ds[j]) <= (r[i] > r[j]) for i in range(len(T)) for j in range(len(T)) if abs(ds[i] - ds[j]) >= 0.1)
         ok(mono and min(r) >= 1 and r[0] == 100, f"① 점수: 10초에 가까울수록 높음 · 4초 넘게 어긋나도 1점 이상 {dict(zip(T, r))}")
         await H.evaluate(MOUNT, "stop")
-        r = await H.evaluate("()=>{ const g=window._g; g.stopIt(11.3); return [g.sc, g.host.innerText.replace(/\\n/g,' ')]; }")
-        ok(r[0] == 47 and "+1.30초" in r[1], f"① 11.30초에 멈춤 = 47점 (예전 0점) {r}")
+        r = await H.evaluate("()=>{ const g=window._g; g.stopIt(4.3); return [g.sc, g.host.innerText.replace(/\\n/g,' ')]; }")
+        ok(r[0] == 47 and "+1.30초" in r[1], f"① 첫 판(3초) 4.30초에 멈춤 = 47점 (예전 식이면 0점) {r}")
         await H.evaluate(MOUNT, "stop")
-        r = await H.evaluate("()=>{ const g=window._g; g.t0-=15800; g.step(.02); return [g.sc, g.done, g.host.innerText.replace(/\\n/g,' ')]; }")
-        ok(r[0] == 0 and r[1] == 1 and "안 눌렀" in r[2], f"① 끝까지 안 누르면 0점 {r}")
+        r = await H.evaluate("()=>{ const g=window._g; g.t0-=5200; g.step(.02); return [g.sc, g.res.length && g.res[0].late, g.done, !!g.pz, g.host.innerText.replace(/\\n/g,' ')]; }")
+        ok(r[0] == 0 and r[1] and r[2] == 0 and r[3] and "안 눌렀" in r[4], f"① 목표 + 1.5초까지 안 누르면 그 판 0점 · 다음 판으로 {r}")
+        # (v717) 3번 합계 — 판마다 목표 3·5·7초 · 판 사이 0.8초 쉼
+        await H.evaluate(MOUNT, "stop")
+        r = await H.evaluate("""async()=>{ const g=window._g, out=[]; g.stopIt(3.1); out.push(g.sc);
+              await new Promise(r=>setTimeout(r, 900)); g.step(.02); g.stopIt(5.5); out.push(g.sc);
+              await new Promise(r=>setTimeout(r, 900)); g.step(.02); const tg=document.querySelector('#tg .mgSwG').textContent; g.stopIt(7); out.push(g.sc, g.done, tg, document.querySelector('#tg .mgSwG').textContent, [...document.querySelectorAll('#tg .mgSwR > div i')].map(e=>e.textContent)); return out; }""")
+        ok(r[:4] == [95, 170, 270, 1] and "7.00" in r[4] and "270" in r[5] and r[6] == ["95점", "75점", "100점"], f"① 3번(3·5·7초) 합계 95+75+100 = 270 · 판마다 결과 {r}")
+        r = await H.evaluate("()=>{ const g=MiniG.L.stop; return [g[0], g[2]]; }")
+        ok(r[1] >= 22, f"① 게임 시간 {r} (가장 늦어도 0.6+4.5+0.8+6.5+0.8+8.5 = 21.7초)")
         # 진짜 시각: 프레임이 듬성듬성(dt 작게 줘도) — 누른 순간의 실제 시간
         await H.evaluate(MOUNT, "stop")
         await H.wait_for_timeout(1700)
-        r = await H.evaluate("()=>{ const g=window._g; for(let i=0;i<5;i++) g.step(0.05); const b=g.host.querySelector('.mgSwB'); b.dispatchEvent(new PointerEvent('pointerdown', {bubbles:true})); return [g.done, Math.round(g.t*100)/100]; }")
+        r = await H.evaluate("()=>{ const g=window._g; for(let i=0;i<5;i++) g.step(0.05); const b=g.host.querySelector('.mgSwB'); b.dispatchEvent(new PointerEvent('pointerdown', {bubbles:true})); return [g.res.length, Math.round(g.res[0].t*100)/100]; }")
         ok(r[0] == 1 and 0.9 <= r[1] <= 1.6, f"① 1.7초 뒤 누름(그사이 프레임 0.25초어치) → 시계 {r[1]}초 (예전 = 프레임 합 0.25초 − 0.6)")
         # ② 느린 패드: 한 프레임 0.2초 = 0.05초 × 4
         r = await H.evaluate("()=>{ const g={dead:0, n:0, tot:0, step(s){ this.n++; this.tot+=s; }}; MiniG.mount.call; const host=document.createElement('div'); const k=MiniG.mount(host, 'mole', MiniG.seq(Study.lessons('elem')[0].ws, 'mole'), 'e', {}); let n=0, tot=0; const st=k.step.bind(k); k.step=s=>{ n++; tot+=s; st(s); }; k.adv(0.2); k.adv(0.016); k.dead=1; return [n, Math.round(tot*1000)/1000]; }")
