@@ -11,24 +11,69 @@
 (function(){
 "use strict";
 if(!window.MG) return;
-/* ── 단어 (그리기 쉬운 이름씨만 · 아이 단어장 1단계) [영어, 뜻, 그림] ── */
-const W=[["cat","고양이","🐱"],["dog","개","🐶"],["bird","새","🐦"],["fish","물고기","🐟"],["cow","소","🐮"],["pig","돼지","🐷"],["duck","오리","🦆"],["lion","사자","🦁"],["bear","곰","🐻"],["frog","개구리","🐸"],["ant","개미","🐜"],["bee","벌","🐝"],["fox","여우","🦊"],["crab","게","🦀"],["worm","지렁이","🪱"],
-  ["horse","말","🐴"],["sheep","양","🐑"],["mouse","쥐","🐭"],["tiger","호랑이","🐯"],["zebra","얼룩말","🦓"],["snake","뱀","🐍"],["whale","고래","🐋"],["shark","상어","🦈"],["panda","판다","🐼"],["camel","낙타","🐫"],["hippo","하마","🦛"],["rabbit","토끼","🐰"],["monkey","원숭이","🐵"],["turtle","거북이","🐢"],["spider","거미","🕷️"],["parrot","앵무새","🦜"],
-  ["chicken","닭","🐔"],["elephant","코끼리","🐘"],["giraffe","기린","🦒"],["butterfly","나비","🦋"],["dolphin","돌고래","🐬"],["penguin","펭귄","🐧"],["crocodile","악어","🐊"],
-  ["pear","배","🍐"],["corn","옥수수","🌽"],["cake","케이크","🍰"],["milk","우유","🥛"],["egg","달걀","🥚"],["pie","파이","🥧"],
-  ["apple","사과","🍎"],["grape","포도","🍇"],["lemon","레몬","🍋"],["bread","빵","🍞"],["candy","사탕","🍬"],["pizza","피자","🍕"],["banana","바나나","🍌"],["cheese","치즈","🧀"],["carrot","당근","🥕"],["tomato","토마토","🍅"],["cookie","쿠키","🍪"],
-  ["popcorn","팝콘","🍿"],["pumpkin","호박","🎃"],["hamburger","햄버거","🍔"],["strawberry","딸기","🍓"],["watermelon","수박","🍉"],
-  ["bag","가방","🎒"],["bed","침대","🛏️"],["box","상자","📦"],["key","열쇠","🔑"],["cup","컵","🥤"],["ball","공","⚽"],["kite","연","🪁"],["hat","모자","🎩"],["cap","야구모자","🧢"],["shoe","신발","👟"],["sock","양말","🧦"],["ring","반지","💍"],["bell","종","🔔"],["lamp","램프","💡"],["door","문","🚪"],["book","책","📕"],["drum","북","🥁"],["gift","선물","🎁"],["fork","포크","🍴"],
-  ["chair","의자","🪑"],["ruler","자","📏"],["clock","시계","🕐"],["spoon","숟가락","🥄"],["robot","로봇","🤖"],["piano","피아노","🎹"],["shirt","셔츠","👕"],["pants","바지","👖"],["dress","원피스","👗"],["glove","장갑","🧤"],["broom","빗자루","🧹"],["bottle","병","🍼"],["mirror","거울","🪞"],["guitar","기타","🎸"],["pencil","연필","✏️"],["basket","바구니","🧺"],["crayon","크레용","🖍️"],
-  ["balloon","풍선","🎈"],["glasses","안경","👓"],["umbrella","우산","☂️"],["scissors","가위","✂️"],["computer","컴퓨터","💻"],["snowman","눈사람","⛄"],["monster","괴물","👾"],
-  ["sun","태양","☀️"],["moon","달","🌙"],["star","별","⭐"],["rain","비","🌧️"],["snow","눈","❄️"],["tree","나무","🌳"],["leaf","나뭇잎","🍃"],["fire","불","🔥"],
-  ["cloud","구름","☁️"],["heart","하트","❤️"],["flower","꽃","🌷"],["island","섬","🏝️"],["rainbow","무지개","🌈"],["mountain","산","⛰️"],
-  ["eye","눈","👁️"],["ear","귀","👂"],["nose","코","👃"],["hand","손","✋"],["foot","발","🦶"],["mouth","입","👄"],["tooth","이빨","🦷"],
-  ["car","자동차","🚗"],["bus","버스","🚌"],["bike","자전거","🚲"],["ship","배","🚢"],["boat","보트","⛵"],["king","왕","🤴"],["baby","아기","👶"],
-  ["train","기차","🚂"],["truck","트럭","🚚"],["plane","비행기","✈️"],["house","집","🏠"],["queen","여왕","👸"],["rocket","로켓","🚀"],["school","학교","🏫"],["bridge","다리","🌉"]];
+/* ── 단어 [영어, 뜻, 그림, 학년, 표시] (v719 사용자: 「어려움에 코끼리 · 다 명사라 행동 동사도 · 어려움 = 초5-6 · 보통 = 초1-2·초3-4 · 쉬움 = 유아·초1-2」)
+   학년 1 = 유아·초1-2(유치원·G1-2 그림 단어) · 2 = 초3-4(G3-4 책) · 3 = 초5-6(G5-6·리딩 책) — 책에 처음 나오는 곳 + key·fire 같은 쉬운 말은 1
+   표시 v = 동사 · x = 혼자 퍼즐엔 안 냄(그림 이모지가 물건으로 읽힘 · 옛 기기에 없는 그림) — 같이·그려 보기에는 나옴
+   ⚠ 같이 하기는 단어 번호를 주고받음 → 새 단어는 맨 뒤에만 붙일 것 (앞 139개 순서 그대로) ── */
+const W=[
+  ["cat","고양이","🐱",1,""],["dog","개","🐶",1,""],["bird","새","🐦",1,""],["fish","물고기","🐟",1,""],["cow","소","🐮",1,""],["pig","돼지","🐷",1,""],["duck","오리","🦆",1,""],["lion","사자","🦁",1,""],
+  ["bear","곰","🐻",1,""],["frog","개구리","🐸",1,""],["ant","개미","🐜",1,""],["bee","벌","🐝",1,""],["fox","여우","🦊",1,""],["crab","게","🦀",1,""],["worm","지렁이","🪱",2,""],["horse","말","🐴",1,""],
+  ["sheep","양","🐑",1,""],["mouse","쥐","🐭",1,""],["tiger","호랑이","🐯",1,""],["zebra","얼룩말","🦓",1,""],["snake","뱀","🐍",1,""],["whale","고래","🐋",1,""],["shark","상어","🦈",1,""],["panda","판다","🐼",1,""],
+  ["camel","낙타","🐫",2,""],["hippo","하마","🦛",1,""],["rabbit","토끼","🐰",2,""],["monkey","원숭이","🐵",1,""],["turtle","거북이","🐢",2,""],["spider","거미","🕷️",2,""],["parrot","앵무새","🦜",2,""],["chicken","닭","🐔",2,""],
+  ["elephant","코끼리","🐘",2,""],["giraffe","기린","🦒",2,""],["butterfly","나비","🦋",2,""],["dolphin","돌고래","🐬",1,""],["penguin","펭귄","🐧",2,""],["crocodile","악어","🐊",2,""],["pear","배","🍐",1,""],["corn","옥수수","🌽",1,""],
+  ["cake","케이크","🍰",1,""],["milk","우유","🥛",1,""],["egg","달걀","🥚",1,""],["pie","파이","🥧",1,""],["apple","사과","🍎",1,""],["grape","포도","🍇",1,""],["lemon","레몬","🍋",2,""],["bread","빵","🍞",1,""],
+  ["candy","사탕","🍬",1,""],["pizza","피자","🍕",2,""],["banana","바나나","🍌",1,""],["cheese","치즈","🧀",1,""],["carrot","당근","🥕",2,""],["tomato","토마토","🍅",1,""],["cookie","쿠키","🍪",1,""],["popcorn","팝콘","🍿",2,""],
+  ["pumpkin","호박","🎃",2,""],["hamburger","햄버거","🍔",1,""],["strawberry","딸기","🍓",2,""],["watermelon","수박","🍉",2,""],["bag","가방","🎒",1,""],["bed","침대","🛏️",1,""],["box","상자","📦",1,""],["key","열쇠","🔑",1,""],
+  ["cup","컵","🥤",1,""],["ball","공","⚽",1,""],["kite","연","🪁",1,""],["hat","모자","🎩",1,""],["cap","야구모자","🧢",1,""],["shoe","신발","👟",1,""],["sock","양말","🧦",1,""],["ring","반지","💍",1,""],
+  ["bell","종","🔔",1,""],["lamp","램프","💡",1,""],["door","문","🚪",1,""],["book","책","📕",1,""],["drum","북","🥁",1,""],["gift","선물","🎁",1,""],["fork","포크","🍴",1,""],["chair","의자","🪑",1,""],
+  ["ruler","자","📏",1,""],["clock","시계","🕐",1,""],["spoon","숟가락","🥄",1,""],["robot","로봇","🤖",1,""],["piano","피아노","🎹",1,""],["shirt","셔츠","👕",1,""],["pants","바지","👖",1,""],["dress","원피스","👗",1,""],
+  ["glove","장갑","🧤",1,""],["broom","빗자루","🧹",1,""],["bottle","병","🍼",1,""],["mirror","거울","🪞",1,""],["guitar","기타","🎸",2,""],["pencil","연필","✏️",1,""],["basket","바구니","🧺",2,""],["crayon","크레용","🖍️",1,""],
+  ["balloon","풍선","🎈",1,""],["glasses","안경","👓",2,""],["umbrella","우산","☂️",1,""],["scissors","가위","✂️",2,""],["computer","컴퓨터","💻",2,""],["snowman","눈사람","⛄",2,""],["monster","괴물","👾",2,""],["sun","태양","☀️",1,""],
+  ["moon","달","🌙",1,""],["star","별","⭐",1,""],["rain","비","🌧️",1,""],["snow","눈","❄️",1,""],["tree","나무","🌳",1,""],["leaf","나뭇잎","🍃",1,""],["fire","불","🔥",1,""],["cloud","구름","☁️",1,""],
+  ["heart","하트","❤️",1,""],["flower","꽃","🌷",1,""],["island","섬","🏝️",1,""],["rainbow","무지개","🌈",2,""],["mountain","산","⛰️",1,""],["eye","눈","👁️",1,""],["ear","귀","👂",1,""],["nose","코","👃",1,""],
+  ["hand","손","✋",1,""],["foot","발","🦶",1,""],["mouth","입","👄",1,""],["tooth","이빨","🦷",1,""],["car","자동차","🚗",1,""],["bus","버스","🚌",1,""],["bike","자전거","🚲",1,""],["ship","배","🚢",1,""],
+  ["boat","보트","⛵",1,""],["king","왕","🤴",1,""],["baby","아기","👶",1,""],["train","기차","🚂",1,""],["truck","트럭","🚚",1,""],["plane","비행기","✈️",1,""],["house","집","🏠",1,""],["queen","여왕","👸",2,""],
+  ["rocket","로켓","🚀",1,""],["school","학교","🏫",1,""],["bridge","다리","🌉",2,""],["run","달리다","🏃",1,"v"],["walk","걷다","🚶",1,"v"],["swim","수영하다","🏊",1,"v"],["dance","춤추다","💃",1,"v"],["jump","뛰어오르다","🤸",1,"v"],
+  ["clap","박수 치다","👏",1,"v"],["cry","울다","😭",1,"v"],["smile","미소 짓다","😊",1,"v"],["sleep","자다","😴",1,"v"],["hug","껴안다","🤗",1,"v"],["wave","손을 흔들다","👋",1,"v"],["think","생각하다","🤔",1,"v"],["wink","윙크하다","😉",1,"v"],
+  ["cook","요리하다","🍳",1,"v"],["write","쓰다","✍️",1,"v"],["sing","노래하다","🎤",1,"v"],["ride","타다","🚴",1,"v"],["kiss","뽀뽀하다","😘",1,"v"],["ski","스키를 타다","⛷️",1,"v"],["skate","스케이트를 타다","⛸️",1,"v"],["lift","들어 올리다","🏋️",1,"v"],
+  ["punch","주먹으로 치다","👊",1,"v"],["hide","숨다","🙈",1,"v"],["sit","앉다","🪑",1,"vx"],["eat","먹다","🍽️",1,"vx"],["drink","마시다","🥤",1,"vx"],["read","읽다","📖",1,"vx"],["cut","자르다","✂️",1,"vx"],["kick","발로 차다","🦵",1,"vx"],
+  ["fly","날다","🕊️",1,"vx"],["draw","그리다","🎨",1,"vx"],["play","놀다","🎮",1,"vx"],["catch","잡다","🥎",1,"vx"],["bake","굽다","🥧",1,"vx"],["stand","서다","🧍",1,"vx"],["smell","냄새 맡다","👃",1,"vx"],["hop","깡충 뛰다","🐇",1,"vx"],
+  ["dive","뛰어들다","🤿",1,"vx"],["sail","항해하다","⛵",1,"vx"],["fight","싸우다","🤺",1,"vx"],["beard","턱수염","🧔",2,""],["jacket","재킷","🧥",2,""],["tongue","혀","👅",2,""],["firefighter","소방관","🧑‍🚒",2,""],["scientist","과학자","🧑‍🔬",2,""],
+  ["homework","숙제","📝",2,""],["football","미식축구공","🏈",2,""],["badminton","배드민턴","🏸",2,""],["goal","골대","🥅",2,""],["hospital","병원","🏥",2,""],["museum","박물관","🏛️",2,""],["station","역","🚉",2,""],["stadium","경기장","🏟️",2,""],
+  ["building","건물","🏢",2,""],["potato","감자","🥔",2,""],["onion","양파","🧅",2,""],["cereal","시리얼","🥣",2,""],["pasta","파스타","🍝",2,""],["salad","샐러드","🥗",2,""],["ocean","바다","🌊",2,""],["desert","사막","🏜️",2,""],
+  ["wolf","늑대","🐺",2,""],["globe","지구본","🌐",2,""],["ticket","표","🎫",2,""],["painting","그림","🖼️",2,""],["trash","쓰레기","🗑️",2,""],["shower","샤워","🚿",2,""],["money","돈","💵",2,""],["bathroom","욕실","🛁",2,""],
+  ["plate","접시","🍽️",2,"x"],["knife","칼","🔪",2,""],["toilet","변기","🚽",2,""],["wedding","결혼식","💒",2,""],["stone","돌","🪨",2,"x"],["ladder","사다리","🪜",2,"x"],["climb","오르다","🧗",2,"v"],["laugh","웃다","😂",2,"v"],
+  ["hurt","다치다","🤕",2,"v"],["worry","걱정하다","😟",2,"v"],["speak","말하다","🗣️",2,"v"],["teach","가르치다","🧑‍🏫",2,"v"],["ask","묻다","🙋",2,"v"],["wash","씻다","🧼",2,"vx"],["listen","귀 기울이다","🎧",2,"vx"],["call","전화하다","📞",2,"vx"],
+  ["build","짓다","🏗️",2,"vx"],["cheer","응원하다","📣",2,"vx"],["hunt","사냥하다","🏹",2,"vx"],["drive","운전하다","🚗",2,"vx"],["talk","이야기하다","💬",2,"vx"],["watch","지켜보다","👀",2,"vx"],["throw","던지다","⚾",2,"vx"],["push","밀다","🛒",2,"vx"],
+  ["pull","당기다","🧲",2,"vx"],["fall","넘어지다","🍂",2,"vx"],["carry","나르다","📦",2,"vx"],["pack","짐을 싸다","🧳",2,"vx"],["pilot","조종사","🧑‍✈️",3,""],["unicorn","유니콘","🦄",3,""],["bandage","붕대","🩹",3,""],["firework","불꽃놀이","🎆",3,""],
+  ["castle","성","🏰",3,""],["bagel","베이글","🥯",3,""],["eagle","독수리","🦅",3,""],["candle","양초","🕯️",3,""],["fairy","요정","🧚",3,""],["puzzle","퍼즐","🧩",3,""],["chocolate","초콜릿","🍫",3,""],["volleyball","배구공","🏐",3,""],
+  ["temple","절","🛕",3,""],["noodle","국수","🍜",3,""],["circus","서커스","🎪",3,""],["camera","카메라","📷",3,""],["broccoli","브로콜리","🥦",3,""],["cherry","체리","🍒",3,""],["chopsticks","젓가락","🥢",3,""],["mermaid","인어","🧜",3,""],
+  ["kangaroo","캥거루","🦘",3,""],["ladybug","무당벌레","🐞",3,""],["diamond","다이아몬드","💎",3,""],["goggles","물안경","🥽",3,""],["lettuce","상추","🥬",3,""],["garlic","마늘","🧄",3,""],["violin","바이올린","🎻",3,""],["leopard","표범","🐆",3,""],
+  ["peanut","땅콩","🥜",3,""],["mushroom","버섯","🍄",3,""],["radio","라디오","📻",3,""],["cactus","선인장","🌵",3,""],["rooster","수탉","🐓",3,""],["forest","숲","🌲",3,""],["grasshopper","메뚜기","🦗",3,""],["wallet","지갑","👛",3,""],
+  ["planet","행성","🪐",3,""],["mosquito","모기","🦟",3,""],["sunset","해 질 녘","🌇",3,""],["squid","오징어","🦑",3,""],["motorcycle","오토바이","🏍️",3,""],["lizard","도마뱀","🦎",3,""],["lightning","번개","⚡",3,""],["dragon","용","🐉",3,""],
+  ["tower","탑","🗼",3,""],["sunrise","해돋이","🌅",3,""],["muscle","근육","💪",3,""],["ambulance","구급차","🚑",3,""],["ballet","발레","🩰",3,""],["chef","요리사","🧑‍🍳",3,""],["hockey","하키","🏒",3,""],["cart","수레","🛒",3,""],
+  ["earth","지구","🌍",3,""],["astronaut","우주비행사","🧑‍🚀",3,""],["calendar","달력","📅",3,""],["couch","소파","🛋️",3,""],["alarm","알람","⏰",3,""],["envelope","봉투","✉️",3,""],["luggage","여행 짐","🧳",3,""],["subway","지하철","🚇",3,""],
+  ["medicine","약","💊",3,""],["cucumber","오이","🥒",3,""],["honey","꿀","🍯",3,""],["theater","극장","🎭",3,""],["hammer","망치","🔨",3,""],["shrimp","새우","🦐",3,""],["taxi","택시","🚕",3,""],["painter","화가","🧑‍🎨",3,""],
+  ["battery","건전지","🔋",3,""],["keyboard","자판","⌨️",3,""],["printer","프린터","🖨️",3,""],["television","텔레비전","📺",3,""],["headphone","헤드폰","🎧",3,""],["germ","세균","🦠",3,""],["medal","메달","🏅",3,""],["trophy","트로피","🏆",3,""],
+  ["fountain","분수","⛲",3,""],["ghost","유령","👻",3,""],["sunglasses","선글라스","🕶️",3,""],["smartphone","스마트폰","📱",3,""],["pineapple","파인애플","🍍",3,""],["taco","타코","🌮",3,""],["avocado","아보카도","🥑",3,""],["ribbon","리본","🎀",3,""],
+  ["factory","공장","🏭",3,""],["turkey","칠면조","🦃",3,""],["squirrel","다람쥐","🐿️",3,""],["angel","천사","👼",3,""],["cottage","오두막","🏡",3,""],["bookmark","책갈피","🔖",3,""],["hotel","호텔","🏨",3,""],["hero","영웅","🦸",3,""],
+  ["newspaper","신문","📰",3,""],["golfer","골프 선수","🏌️",3,""],["beef","소고기","🥩",3,""],["blood","피","🩸",3,""],["feather","깃털","🪶",3,"x"],["bucket","양동이","🪣",3,"x"],["needle","바늘","🪡",3,"x"],["olive","올리브","🫒",3,"x"],
+  ["magic","마법","🪄",3,"x"],["sneeze","재채기하다","🤧",3,"v"],["surf","파도타기를 하다","🏄",3,"v"],["scream","비명을 지르다","😱",3,"v"],["celebrate","축하하다","🥳",3,"v"],["freeze","얼다","🥶",3,"v"],["pray","기도하다","🙏",3,"v"],["whisper","속삭이다","🤫",3,"v"],
+  ["taste","맛보다","😋",3,"v"],["shout","소리치다","📢",3,"vx"],["shiver","떨다","🥶",3,"vx"],["knit","뜨개질하다","🧶",3,"vx"],["fry","튀기다","🍤",3,"vx"],["crash","충돌하다","💥",3,"vx"],["shave","면도하다","🪒",3,"vx"],["bloom","꽃이 피다","🌸",3,"vx"],
+  ["sweep","쓸다","🧹",3,"vx"],["sew","바느질하다","🧵",3,"vx"],["paint","칠하다","🖌️",3,"vx"],["bark","짖다","🐕",3,"vx"],["greet","인사하다","🙇",3,"vx"],["relax","쉬다","🛀",3,"vx"],["search","찾다","🔍",3,"vx"],["crawl","기어가다","🐛",3,"vx"]];
 const tier=i=>{ const n=W[i][0].length; return n<=4?1:n<=6?2:3; };
-const TIERS=[[],[],[],[]]; W.forEach((w,i)=>TIERS[tier(i)].push(i));
-const LV=[null,{nm:"쉬움",ic:"⭐",t:[1]},{nm:"보통",ic:"⭐⭐",t:[1,2]},{nm:"어려움",ic:"⭐⭐⭐",t:[2,3]}];
+const TIERS=[[],[],[],[]]; W.forEach((w,i)=>TIERS[tier(i)].push(i));   /* ⭐ 수 = 철자 길이 (같이 하기 점수) */
+const LV=[null,{nm:"쉬움",ic:"⭐",gr:"유아·초1-2"},{nm:"보통",ic:"⭐⭐",gr:"초1-2·초3-4"},{nm:"어려움",ic:"⭐⭐⭐",gr:"초5-6"}];
+const isV=i=>!!W[i] && W[i][4].indexOf("v")>=0, soloOK=i=>!!W[i] && W[i][4].indexOf("x")<0;
+/* (v719) 난이도 = 학년: 쉬움 = 학년 1 · 보통 = 학년 2 + 학년 1 가운데 5글자 넘는 것 · 어려움 = 학년 3 */
+const POOL=lv=>W.map((w,i)=>i).filter(i=>{ const g=W[i][3]; return lv===1 ? g===1 : lv===3 ? g===3 : (g===2 || (g===1 && W[i][0].length>=5)); });
+/* 정답 = 그 낱말 (글자 칸이 낱말 길이라 running·~s 는 칠 수 없음 — 칸이 바로 「원래 모양」을 알려 줌) */
+const okAns=(i,v)=>!!W[i] && !!v && v===W[i][0];
+/* 그릴 단어 셋: 동사 하나 + 길이가 다른 이름씨 둘 (안 쓴 것 먼저) */
+function pick3(lv, used){ used=used||[]; const P=POOL(lv), fr=P.filter(i=>used.indexOf(i)<0), src=fr.length>=6?fr:P; const V=shuffle(src.filter(isV)), N=shuffle(src.filter(i=>!isV(i))), out=[], seen={};
+  if(V.length) out.push(V[0]); N.forEach(i=>{ if(out.length<3 && !seen[tier(i)]){ seen[tier(i)]=1; out.push(i); } }); N.concat(V.slice(1)).forEach(i=>{ if(out.length<3 && out.indexOf(i)<0) out.push(i); });
+  return out.sort((a,b)=>tier(a)-tier(b) || W[a][0].length-W[b][0].length); }
+const chTag=i=>W[i][1]+(isV(i)?' · <b class="dwVt">동사</b>':'')+' · '+"⭐".repeat(tier(i));
 const COLS=["#2b2233","#ff5a5f","#ff9a3d","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#8a5a3c","#ffffff"], SIZES=[7,16,34], PW=1000, PH=750;
 const B36="0123456789abcdefghijklmnopqrstuvwxyz";
 const PTL={d:2,g:2,b:3,c:3,m:3,p:3,f:4,h:4,v:4,w:4,y:4,k:5,j:8,x:8,q:10,z:10};
@@ -79,6 +124,10 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
 #mgUI .dwBd .ledge i{position:absolute;bottom:10px;width:7px;height:34px;border-radius:3px 3px 1px 1px;transform:rotate(var(--r));transform-origin:bottom}
 #mgUI .dwBd::before,#mgUI .dwBd::after{content:"";position:absolute;width:70px;height:20px;top:-8px;background:rgba(255,132,102,.7);border-radius:3px;z-index:2;pointer-events:none}
 #mgUI .dwBd::before{left:14px;transform:rotate(-8deg)} #mgUI .dwBd::after{right:14px;transform:rotate(7deg);background:rgba(62,162,255,.6)}
+#mgUI .dwVb{display:none;position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);z-index:3;white-space:nowrap;background:#5b3a7a;color:#fff;border:2px solid #fff;border-radius:99px;padding:2px 12px;font-size:14px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.18);pointer-events:none}
+#mgUI .dwVb.on{display:block}
+#mgUI .dwVt{display:inline-block;background:#5b3a7a;color:#fff;border-radius:6px;padding:0 5px;font-size:.92em;font-weight:700}
+#mgUI .puSeg button .dwSg{display:block;font-size:11px;opacity:.85;line-height:1.15;margin-top:1px}
 #mgUI .dwCov{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);border-radius:14px;overflow:hidden;pointer-events:none}
 #mgUI .dwCov i{display:flex;align-items:center;justify-content:center;font-style:normal;font-size:min(7vw,34px);color:rgba(255,255,255,.75);font-family:var(--en);font-weight:900;transition:transform .55s cubic-bezier(.5,-0.4,.8,.6),opacity .55s;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
 #mgUI .dwCov i.off{transform:translateY(130%) rotate(24deg) scale(.6);opacity:0}
@@ -165,7 +214,7 @@ function start(api){
   /* ── 화면 ── */
   const U=api.ui, R=document.createElement("div"); R.className="dwR"; U.insertBefore(R, U.querySelector(".mgTop"));
   R.innerHTML='<div class="dwBar"><canvas class="dwMe dwPor" data-k="me"></canvas><b class="rd"></b><div class="dwTm"><i></i></div><b class="sc"></b></div><div class="dwPl"></div>'+
-    '<div class="dwLine"></div><div class="dwBd"><div class="ledge"><i style="left:18px;--r:-12deg;background:#ff5a5f"></i><i style="left:30px;--r:-4deg;background:#3ea2ff"></i><i style="left:42px;--r:8deg;background:#ffd23f"></i><i style="right:30px;--r:10deg;background:#3fc46a"></i></div><canvas width="'+PW+'" height="'+PH+'"></canvas><div class="dwCov"></div><div class="dwOv"></div></div>'+
+    '<div class="dwLine"></div><div class="dwBd"><div class="ledge"><i style="left:18px;--r:-12deg;background:#ff5a5f"></i><i style="left:30px;--r:-4deg;background:#3ea2ff"></i><i style="left:42px;--r:8deg;background:#ffd23f"></i><i style="right:30px;--r:10deg;background:#3fc46a"></i></div><canvas width="'+PW+'" height="'+PH+'"></canvas><div class="dwCov"></div><div class="dwVb">🏃 무엇을 하고 있나요? · 동사</div><div class="dwOv"></div></div>'+
     '<div class="dwBx"></div><div class="dwFb"></div><div class="dwKb"></div><div class="dwTl"></div>'+
     '<div class="dwMenu"></div><div class="dwGal"></div><div class="dwVote"></div>';
   ["pointerdown","pointermove","pointerup"].forEach(t=>R.addEventListener(t, e=>e.stopPropagation()));
@@ -184,7 +233,7 @@ function start(api){
   function confetti(n){ const C=["#ff5a5f","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#ff8466"]; for(let i=0;i<n;i++){ const d=document.createElement("i"); d.className="dwCf"; d.style.left=(Math.random()*100)+"%"; d.style.background=C[i%6]; d.style.animationDelay=(Math.random()*.4)+"s"; d.style.animationDuration=(1.2+Math.random()*.8)+"s"; R.appendChild(d); setTimeout(()=>d.remove(), 2600); } }
   function lineGal(){ const L=(st("hyeng_proto_dwg")||[]).slice(0,5), el=$(".dwLine"); if(!el) return; const PC=["#ff8466","#3ea2ff","#3fc46a","#ffd23f","#9a6bff"]; const n=Math.max(4, L.length);
     el.innerHTML=Array.from({length:n},(_,i)=>{ const x=L[i]; return '<figure style="--r:'+((i%2?1:-1)*(3+i*2))+'deg;--pc:'+PC[i%5]+'">'+(x?'<img src="'+x.d+'" alt="">':["🎨","🖌️","🌈","⭐","🖍️"][i%5])+'</figure>'; }).join(""); }
-  const cv=$(".dwBd canvas"), g=cv.getContext("2d"), BD=$(".dwBd"), COV=$(".dwCov"), OV=$(".dwOv"), BX=$(".dwBx"), FB=$(".dwFb"), KB=$(".dwKb"), TL=$(".dwTl"), PL=$(".dwPl"), MENU=$(".dwMenu"), GAL=$(".dwGal"), VT=$(".dwVote");
+  const cv=$(".dwBd canvas"), g=cv.getContext("2d"), BD=$(".dwBd"), COV=$(".dwCov"), OV=$(".dwOv"), BX=$(".dwBx"), FB=$(".dwFb"), KB=$(".dwKb"), TL=$(".dwTl"), PL=$(".dwPl"), VB=$(".dwVb"), MENU=$(".dwMenu"), GAL=$(".dwGal"), VT=$(".dwVote");
   const show=(el,v)=>{ el.style.display=v?"":"none"; };
   function clearBoard(){ g.globalCompositeOperation="source-over"; g.fillStyle="#fff"; g.fillRect(0,0,PW,PH); }
   function paint(S){ const p=S.p; if(!p || !p.length) return; const c=COLS[S.c]||COLS[0], w=SIZES[S.s]||SIZES[1]; g.strokeStyle=g.fillStyle=c; g.lineWidth=w; g.lineCap=g.lineJoin="round";
@@ -216,11 +265,11 @@ function start(api){
   function bar(rd, sc, frac){ $(".dwBar .rd").textContent=rd; $(".dwBar .sc").textContent=sc; TMB.style.transform="scaleX("+Math.max(0,Math.min(1,frac))+")"; TMW.classList.toggle("low", frac<.2); }
 
   /* ══ 메뉴 ══ */
-  function menuShow(){ mode="menu"; kb(false); show(KB,0); show(TL,0); GAL.classList.remove("on"); const r=REC(), G0=st("hyeng_proto_dwg")||[];
+  function menuShow(){ mode="menu"; kb(false); VB.classList.remove("on"); show(KB,0); show(TL,0); GAL.classList.remove("on"); const r=REC(), G0=st("hyeng_proto_dwg")||[];
     PUI.menu(U, {title:"그림 맞히기", sub:"친구 그림을 보고 영어로 직접 써서 맞혀요", av:api.av, nick:api.nick, stats:[["trophy",r.best,"최고 점수"],["✅",r.ok,"맞힌 단어"],["🖍️",r.drawn,"그린 그림"]],
       deco:[["🎨","left:calc(50% - 132px);top:20%;transform:rotate(-14deg)"],["✏️","left:calc(50% + 72px);top:58%;font-size:34px"]],
       tiles:[{k:"solo", emoji:"🧩", bg:"#ffd36b", nm:"혼자 연습", sub:"그림 퍼즐 · 8문제"},{k:"sketch", emoji:"🖍️", bg:"#bfe6ff", nm:"그려 보기", sub:"그림첩에 쏙"},{k:"gal", emoji:"🖼️", bg:"#ffd1e6", nm:"그림첩", sub:G0.length+"장"}],
-      seg:{items:[1,2,3].map(i=>[String(i), LV[i].ic+" "+LV[i].nm]), on:SET.lv, pick:v=>{ SET.lv=+v; st("hyeng_proto_dwset", SET); menuShow(); }},
+      seg:{items:[1,2,3].map(i=>[String(i), LV[i].ic+" "+LV[i].nm+'<small class="dwSg">'+LV[i].gr+'</small>']), on:SET.lv, pick:v=>{ SET.lv=+v; st("hyeng_proto_dwset", SET); menuShow(); }},
       primary:{k:"co", label:"친구랑 그리고 맞히기", sub:"2~6명 · 그리고, 영어로 맞히고, 작품 투표!", ic:"swords"}, primaryTop:true, pay:MG.payLeft("draw"), onPick:k=>menuGo(k)});
     bar("","",1); }
   function menuGo(m){ PUI.menuHide(U); if(m==="solo") startSolo(); else if(m==="co") startCo(); else if(m==="sketch") startSketch(); else if(m==="gal") galShow(); }
@@ -231,18 +280,19 @@ function start(api){
   /* ══ 🧩 혼자: 그림 퍼즐 ══ */
   const TILE_T=1.15, NQ=8, TCOL=["#ff5a5f","#ff9a3d","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#ff7eb6","#2fc4c4"];
   let S=null;
-  function startSolo(){ mode="solo"; lineGal(); const r=REC(), lv=LV[SET.lv]||LV[2]; let pool=[]; lv.t.forEach(t=>pool=pool.concat(TIERS[t])); pool=shuffle(pool.filter(i=>r.recent.indexOf(W[i][0])<0)); if(pool.length<NQ){ pool=shuffle([].concat(...lv.t.map(t=>TIERS[t]))); }
-    S={q:pool.slice(0,NQ), n:NQ, done:0, sc:0, ok:0, streak:0, res:[], again:{}, cur:-1, t:0, pop:0, hint:0, miss:0, wait:false};
+  function startSolo(){ mode="solo"; lineGal(); const r=REC(), P=POOL(LV[SET.lv]?SET.lv:2).filter(soloOK), fr=P.filter(i=>r.recent.indexOf(W[i][0])<0), src=fr.length>=NQ+4?fr:P;
+    const V=shuffle(src.filter(isV)), N=shuffle(src.filter(i=>!isV(i))), nv=Math.min(3, V.length), q0=shuffle(V.slice(0,nv).concat(N.slice(0,NQ-nv)));   /* (v719) 8문제 중 동사 3 */
+    S={q:q0, n:NQ, done:0, sc:0, ok:0, streak:0, res:[], again:{}, cur:-1, t:0, pop:0, hint:0, miss:0, wait:false};
     r.recent=r.recent.concat(S.q.map(i=>W[i][0])).slice(-40); saveRec(r);
     show(KB,1); show(TL,0); show(PL,0); BD.classList.remove("dwT"); kbBuild('<button class="w gv" data-k="give">🤔 모르겠어요</button>'); onSubmit=soloSubmit; nextQ(); }
   function nextQ(){ if(!S.q.length){ soloEnd(); return; } S.cur=S.q.shift(); S.t=0; S.pop=0; S.hint=0; S.miss=0; S.wait=false; typed=""; hintMap={}; wordLen=W[S.cur][0].length; OV.classList.remove("on");
     emojiPic(W[S.cur][2]); COV.style.display=""; const ord=shuffle([...Array(12).keys()]); S.ord=ord; COV.innerHTML=ord.map((_,i)=>{ const q=k=>30+((i*37+k*53+S.done*11)%35); return '<i style="margin:-7px;border-radius:'+q(1)+'% '+q(2)+'% '+q(3)+'% '+q(4)+'% / '+q(5)+'% '+q(6)+'% '+q(7)+'% '+q(8)+'%;background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.45) 0 16%,transparent 17%),'+TCOL[(i*5+S.done)%8]+'">?</i>'; }).join("");
-    boxes(); fb("그림이 보이면 영어로 써 봐요 ✏️"); kb(true); bar((S.done+1)+" / "+S.n, "⭐ "+S.sc, 1); }
+    boxes(); VB.classList.toggle("on", isV(S.cur)); fb(isV(S.cur)?"하는 일(동사)을 영어로 써 봐요 ✏️":"그림이 보이면 영어로 써 봐요 ✏️"); kb(true); bar((S.done+1)+" / "+S.n, "⭐ "+S.sc, 1); }
   function popTile(){ if(S.pop>=12) return; const i=S.ord[S.pop++]; const el=COV.children[i]; if(el) el.classList.add("off"); try{ SFX.tone(300+S.pop*35,.08,"sine",.03); }catch(e){} if(S.pop===12 && !S.hint) addHint(); }
   function addHint(){ const w=W[S.cur][0]; const free=[...Array(w.length).keys()].filter(i=>!hintMap[i] && i>=typed.length); if(!free.length) return false; const i=S.hint===0?free[0]:free[Math.floor(Math.random()*free.length)]; hintMap[i]=w[i]; S.hint++; boxes(); return true; }
   function soloHint(){ if(!S || S.wait) return; if(S.hint>=Math.ceil(W[S.cur][0].length/2)){ fb("힌트는 여기까지! 🤔 모르겠어요를 눌러도 돼요"); return; } if(addHint()){ fb("💡 글자 하나 보여 줬어요 (−10점)"); try{ SFX.tone(880,.1,"triangle",.04); }catch(e){} } }
   function soloSubmit(){ if(!S || S.wait) return; const w=W[S.cur][0], v=norm(typed); if(!v){ fb("자판으로 영어를 써 봐요 ⌨️"); return; }
-    if(v===w){ S.wait=true; kb(false); const pts=Math.max(10, 20+(12-S.pop)*6-S.hint*10-S.miss*3); S.streak=(S.hint||S.miss)?0:S.streak+1; const bon=S.streak>=2?10:0; S.sc+=pts+bon; S.ok++; S.done++; S.res.push([S.cur,1]);
+    if(okAns(S.cur, v)){ S.wait=true; kb(false); const pts=Math.max(10, 20+(12-S.pop)*6-S.hint*10-S.miss*3); S.streak=(S.hint||S.miss)?0:S.streak+1; const bon=S.streak>=2?10:0; S.sc+=pts+bon; S.ok++; S.done++; S.res.push([S.cur,1]);
       boxes(w); fb("✅ 정답! +"+pts+(bon?" · 🔥 "+S.streak+"연속 +"+bon:"")); try{ SFX.clear(); }catch(e){} sayW(w); react("me","grin",1.6); confetti(S.streak>=2?40:24); for(let k=S.pop;k<12;k++) COV.children[S.ord[k]] && COV.children[S.ord[k]].classList.add("off"); S.pop=12;
       later(1.7, nextQ); return; }
     S.miss++; typed=""; shake(); try{ SFX.bad(); }catch(e){} react("me","wow",1);
@@ -250,7 +300,7 @@ function start(api){
   function giveUp(){ if(!S || S.wait) return; S.wait=true; kb(false); const w=W[S.cur][0]; S.streak=0; boxes(w); for(let k=S.pop;k<12;k++) COV.children[S.ord[k]] && COV.children[S.ord[k]].classList.add("off"); S.pop=12; sayW(w);
     if(!S.again[S.cur]){ S.again[S.cur]=1; S.q.splice(Math.min(S.q.length, 2), 0, S.cur); fb("정답은 「"+w+"」 ("+W[S.cur][1]+") — 조금 뒤에 다시 나와요!"); } else { S.done++; S.res.push([S.cur,0]); fb("정답은 「"+w+"」 ("+W[S.cur][1]+")"); }
     later(2.4, nextQ); }
-  function soloEnd(){ mode="solo-end"; kb(false); const r=REC(), isBest=S.sc>r.best; r.best=Math.max(r.best, S.sc); r.ok+=S.ok; saveRec(r);
+  function soloEnd(){ mode="solo-end"; kb(false); VB.classList.remove("on"); const r=REC(), isBest=S.sc>r.best; r.best=Math.max(r.best, S.sc); r.ok+=S.ok; saveRec(r);
     const coins=S.ok>=7?8:S.ok>=5?6:S.ok>=3?5:3, lv=LV[SET.lv]||LV[2];
     const got=PUI.award(api, {title:S.ok+" / "+S.n, sub:"그림 퍼즐", rows:null, coins, again:{go:"solo"}, upd:(b,t)=>{ b.best=Math.max(b.best|0, S.sc); t.ok=(t.ok|0)+S.ok; }}), left=MG.payLeft("draw");
     PUI.result(U, {res:"win", stars:S.ok>=7?3:S.ok>=5?2:S.ok>=3?1:0, title:S.ok+" / "+S.n+" 맞혔어요!", sub:"그림 퍼즐 · "+lv.ic+" "+lv.nm, av:api.av,
@@ -280,10 +330,10 @@ function start(api){
   /* ══ 🖍️ 그려 보기 (혼자) ══ */
   let SK=null;
   function startSketch(){ mode="sketch"; show(PL,0); show(KB,0); show(TL,0); BD.classList.add("dwT"); COV.style.display="none"; clearBoard(); wordLen=0; boxes(); fb(""); MY=[]; drawOK=false; onStroke=null;
-    const ch=[1,2,3].map(t=>TIERS[t][Math.floor(Math.random()*TIERS[t].length)]); SK={ch, i:-1, t:0};
-    OV.innerHTML='<div style="font-size:19px">무엇을 그릴까요?</div><div class="ch">'+ch.map((i,k)=>'<button data-p="'+k+'"><span class="e">'+W[i][2]+'</span><span class="w">'+W[i][0]+'</span><small>'+W[i][1]+' · '+"⭐".repeat(tier(i))+'</small></button>').join("")+'</div>'; OV.classList.add("on");
+    const ch=pick3(LV[SET.lv]?SET.lv:2); SK={ch, i:-1, t:0};
+    OV.innerHTML='<div style="font-size:19px">무엇을 그릴까요?</div><div class="ch">'+ch.map((i,k)=>'<button data-p="'+k+'"><span class="e">'+W[i][2]+'</span><span class="w">'+W[i][0]+'</span><small>'+chTag(i)+'</small></button>').join("")+'</div>'; OV.classList.add("on");
     OV.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>sketchPick(+b.dataset.p)); bar("🖍️ 그려 보기","",1); }
-  function sketchPick(k){ if(!SK || SK.i>=0) return; SK.i=SK.ch[k]; OV.classList.remove("on"); drawOK=true; show(TL,1); toolsBuild('<b>'+W[SK.i][0]+'</b> '+W[SK.i][1]+' 을(를) 그려요 🖍️', '<button class="tx go" data-t="done">✔ 다 그렸어요</button>'); sayW(W[SK.i][0]); }
+  function sketchPick(k){ if(!SK || SK.i>=0) return; SK.i=SK.ch[k]; OV.classList.remove("on"); drawOK=true; show(TL,1); toolsBuild('<b>'+W[SK.i][0]+'</b> '+W[SK.i][1]+(isV(SK.i)?' — 하는 모습을 그려요 🖍️':' 을(를) 그려요 🖍️'), '<button class="tx go" data-t="done">✔ 다 그렸어요</button>'); sayW(W[SK.i][0]); }
   function sketchDone(){ if(mode!=="sketch" || !SK || SK.i<0) return; if(!MY.length){ api.msg("조금이라도 그려 봐요 🖍️", 1100); return; } drawOK=false; galAdd(SK.i); const r=REC(); r.drawn++; saveRec(r);
     OV.innerHTML='<div class="big">🖼️</div><div class="en">'+W[SK.i][0]+'</div><div class="ko">그림첩에 넣었어요!</div><div class="ch"><button data-a="again" style="min-height:56px"><span class="w">🖍️ 또 그리기</span></button><button data-a="menu" style="min-height:56px"><span class="w">☰ 메뉴</span></button></div>'; OV.classList.add("on"); try{ SFX.clear(); }catch(e){}
     OV.querySelector('[data-a="again"]').onclick=()=>startSketch(); OV.querySelector('[data-a="menu"]').onclick=()=>{ OV.classList.remove("on"); show(TL,0); BD.classList.remove("dwT"); menuShow(); }; }
@@ -296,7 +346,7 @@ function start(api){
   const amHost=()=>!!RM && hostC===RM.code;
   const nmOf=c=>(G.nm&&G.nm[c])||"친구";
   function startCo(){ mode="co"; Object.keys(ART).forEach(k=>delete ART[k]); myVote=null; vtKey=""; awFx=false; VT.classList.remove("on"); lineGal(); KB.innerHTML=""; show(KB,0); show(TL,0); show(PL,0); COV.style.display="none"; clearBoard(); wordLen=0; boxes(); fb(""); OV.classList.remove("on"); bar("👫","",1);
-    RM=MG.room(api, {pre:"mgd", title:"그림 맞히기 같이", ic:"🎨", max:6, fill:false, wait:6000, send:.5, poll:.3, back:()=>{ try{ RM.dispose(); }catch(e){} RM=null; menuShow(); }}); RM.node=()=>({av:api.av||null});
+    RM=MG.room(api, {pre:"mgd", title:"그림 맞히기 같이", ic:"🎨", max:6, fill:false, wait:6000, send:.5, poll:.3, h:()=>({lv:SET.lv}), tag:h=>{ const L=LV[h && h.lv]||LV[2]; return L.ic+" "+L.nm+" · "+L.gr; }, back:()=>{ try{ RM.dispose(); }catch(e){} RM=null; menuShow(); }}); RM.node=()=>({av:api.av||null});
     { const st0=RM.start; RM.start=async()=>{ const L=live(); if(L.length<2){ api.msg("친구가 1명 더 들어오면 시작할 수 있어요 👫", 1600); return; } const ro=L.slice(0,6); try{ await NET.patch(RM.path+"/h", {ro}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=ro; return st0(); }; }
     RM.onEv=e=>{ if(e && amHost()) hostEv(e.s, e); };
     RM.onFeed=f=>{ if(f && (f.t==="x"||f.t==="nr") && f.s!==RM.code){ chipPop(f.s, f.t==="x"?"❌":"🔥"); react(f.s, "wow", 1); } };
@@ -306,13 +356,13 @@ function start(api){
   function toHost(o){ if(!RM) return; if(amHost()) hostEv(RM.code, o); else RM.ev(hostC||hostCode(), Object.assign({s:RM.code}, o)); }
   /* 방장 */
   function pubG(){ G.sq=(G.sq|0)+1; RM.put("g", G); render(); }
-  function hostInit(ro, nm){ G={ph:"pick", rd:0, nr:ro.length<=3?ro.length*2:ro.length, ro, nm, sc:{}, ok:{}, used:[], sq:0}; ro.forEach(c=>G.sc[c]=0); nextRound(); }
+  function hostInit(ro, nm){ const h=(RM && RM.d && RM.d.h)||{}; G={ph:"pick", rd:0, nr:ro.length<=3?ro.length*2:ro.length, ro, nm, sc:{}, ok:{}, used:[], sq:0, lv:LV[h.lv]?+h.lv:(LV[SET.lv]?SET.lv:2)}; ro.forEach(c=>G.sc[c]=0); nextRound(); }
   function nextRound(){ const L=live(); if(G.rd>0) G.hist=(G.hist||[]).concat([Object.keys(G.ok||{}).length]); G.rd++; if(G.rd>G.nr || L.length<2){ if(L.length>=2 && Object.keys(G.drs||{}).length>=2){ voteStart(); return; } G.ph="end"; pubG(); return; }
     let dr=null; for(let k=0;k<G.ro.length;k++){ const c=G.ro[(G.rd-1+k)%G.ro.length]; if(L.indexOf(c)>=0){ dr=c; break; } } if(!dr){ G.ph="end"; pubG(); return; }
     if(G.rd>1) RM.put("s/"+(G.rd-1), null);
-    const ch=[1,2,3].map(t=>{ const c=TIERS[t].filter(i=>G.used.indexOf(i)<0); const i=c[Math.floor(Math.random()*c.length)]; return i==null?TIERS[t][0]:i; });
+    const ch=pick3(G.lv||2, G.used);
     Object.assign(G, {dr, ch, w:0, wl:0, hi:{}, ok:{}, ph:"pick", t0:now(), tot:T().pick, dl:now()+T().pick, ans:-1}); drGone=0; pubG(); }
-  function hostPick(k){ if(G.ph!=="pick") return; const i=G.ch[k]; if(i==null) return; G.used.push(i); Object.assign(G, {w:encW(i,G.rd), wl:W[i][0].length, ph:"draw", t0:now(), tot:T().draw, dl:now()+T().draw}); pubG(); }
+  function hostPick(k){ if(G.ph!=="pick") return; const i=G.ch[k]; if(i==null) return; G.used.push(i); Object.assign(G, {w:encW(i,G.rd), wl:W[i][0].length, vb:isV(i)?1:0, ph:"draw", t0:now(), tot:T().draw, dl:now()+T().draw}); pubG(); }
   function hostEv(s, e){ if(!e || !s) return;
     if(e.t==="pk" && s===G.dr) hostPick(e.k|0);
     else if(e.t==="vt" && G.ph==="vote" && G.vt && G.vt[s]==null && G.drs && G.drs["r"+(e.r|0)]!=null && G.drs["r"+(e.r|0)]!==s){ G.vt[s]=e.r|0; pubG(); }
@@ -335,7 +385,7 @@ function start(api){
     else if(G.ph==="award"){ if(t>G.dl){ G.ph="end"; pubG(); } } }
   /* 모두 */
   function chipPop(c, e){ const el=PL.querySelector('[data-c="'+c+'"]'); if(!el) return; const m=document.createElement("em"); m.textContent=e; el.appendChild(m); setTimeout(()=>m.remove(), 950); }
-  function render(){ if(mode!=="co-play" || !RM) return; const me=RM.code, iDraw=G.dr===me, t=now();
+  function render(){ if(mode!=="co-play" || !RM) return; const me=RM.code, iDraw=G.dr===me, t=now(); VB.classList.toggle("on", G.ph==="draw" && !iDraw && !!G.vb);   /* (v719) 동사면 맞히는 친구에게 「동사」 */
     (G.ro||[]).forEach(c=>{ if(!AVS[c]) avFor(c, c===me?api.av:(((RM.d&&RM.d.p)||{})[c]||{}).av); });
     PL.innerHTML=(G.ro||[]).map(c=>'<span data-c="'+esc(c)+'" class="'+(c===me?"me ":"")+(c===G.dr?"dr ":"")+(G.ok&&G.ok[c]!=null?"ok":"")+'"><canvas class="dwPor" data-k="'+esc(c)+'"></canvas>'+(c===G.dr?"🖍️ ":G.ok&&G.ok[c]!=null?"✅ ":"")+esc(nmOf(c))+' <b style="font-family:var(--en)">'+((G.sc&&G.sc[c])|0)+'</b></span>').join("");
     if(G.rd!==myRd || G.ph==="vote") artSnap();
@@ -347,12 +397,12 @@ function start(api){
     if(G.ph==="end"){ coEnd(); return; }
     const rdT=G.rd+" / "+G.nr+" 판", myS="⭐ "+((G.sc&&G.sc[me])|0);
     if(G.ph==="pick"){ drawOK=false; wordLen=0; boxes(); show(KB,0); show(TL,0); fb("");
-      if(iDraw){ OV.innerHTML='<div style="font-size:19px">🖍️ <b>내 차례!</b> 무엇을 그릴까요?</div><div class="ch">'+G.ch.map((i,k)=>'<button data-p="'+k+'"><span class="e">'+W[i][2]+'</span><span class="w">'+W[i][0]+'</span><small>'+W[i][1]+' · '+"⭐".repeat(tier(i))+'</small></button>').join("")+'</div><div class="ko" style="font-size:13.5px">⭐ 많을수록 점수도 많아요 · 글자는 쓰면 안 돼요!</div>';
+      if(iDraw){ OV.innerHTML='<div style="font-size:19px">🖍️ <b>내 차례!</b> 무엇을 그릴까요?</div><div class="ch">'+G.ch.map((i,k)=>'<button data-p="'+k+'"><span class="e">'+W[i][2]+'</span><span class="w">'+W[i][0]+'</span><small>'+chTag(i)+'</small></button>').join("")+'</div><div class="ko" style="font-size:13.5px">⭐ 많을수록 점수도 많아요 · 글자는 쓰면 안 돼요!</div>';
         OV.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{ OV.querySelectorAll("[data-p]").forEach(x=>x.disabled=true); toHost({t:"pk", k:+b.dataset.p}); }); }
       else OV.innerHTML='<div class="big">🤔</div><div class="ko"><b>'+esc(nmOf(G.dr))+'</b> 친구가 그릴 단어를 고르는 중…</div>';
       OV.classList.add("on"); return; }
     if(G.ph==="draw"){ OV.classList.remove("on"); const i=iDraw?decW(G.w,G.rd):-1;
-      if(iDraw){ show(KB,0); show(TL,1); BD.classList.add("dwT"); wordLen=0; boxes(); if(!drawOK){ drawOK=true; onStroke=coStroke; toolsBuild('그릴 단어: '+W[i][2]+' <b>'+W[i][0]+'</b> '+W[i][1]); } fb("글자 말고 그림으로! 친구들이 맞히면 나도 점수 ⭐"); }
+      if(iDraw){ show(KB,0); show(TL,1); BD.classList.add("dwT"); wordLen=0; boxes(); if(!drawOK){ drawOK=true; onStroke=coStroke; toolsBuild('그릴 단어: '+W[i][2]+' <b>'+W[i][0]+'</b> '+W[i][1]+(isV(i)?' · 하는 모습을 그려요':'')); } fb("글자 말고 그림으로! 친구들이 맞히면 나도 점수 ⭐"); }
       else { drawOK=false; show(TL,0); show(KB,1); BD.classList.remove("dwT"); const done=G.ok&&G.ok[me]!=null; if(!KB.children.length) kbBuild('', true); wordLen=G.wl|0; hintMap=Object.assign({}, G.hi||{}); onSubmit=coSubmit; kb(!done);
         if(done){ boxes(myAns||""); fb("✅ 정답! 친구들을 기다려요"); } else { boxes(); if(!FB.textContent) fb("영어로 써서 맞혀요 ✏️"); } }
       return; }
@@ -383,7 +433,7 @@ function start(api){
     if(G.drs[k]===RM.code){ api.msg("내 그림 말고 친구 그림에 투표해요 😉", 1300); return; } myVote=r; try{ SFX.tone(880,.1,"triangle",.05); }catch(e){} toHost({t:"vt", r}); vtKey=""; voteRender(); }
   function fbFeed(t){ fb(t); clearTimeout(fbFeed.h); fbFeed.h=setTimeout(()=>{ if(FB.textContent===t) fb(""); }, 1800); }
   function coSubmit(){ if(G.ph!=="draw" || !RM || (G.ok&&G.ok[RM.code]!=null)) return; const i=decW(G.w,G.rd), w=W[i]?W[i][0]:"", v=norm(typed); if(!v) return;
-    if(v===w){ myAns=w; kb(false); boxes(w); react("me","grin",1.6); confetti(26); fb("✅ 정답! 「"+w+"」 "+W[i][1]); try{ SFX.clear(); }catch(e){} toHost({t:"ok", i}); return; }
+    if(okAns(i, v)){ myAns=w; kb(false); boxes(w); react("me","grin",1.6); confetti(26); fb("✅ 정답! 「"+w+"」 "+W[i][1]); try{ SFX.clear(); }catch(e){} toHost({t:"ok", i}); return; }
     typed=""; shake(); try{ SFX.bad(); }catch(e){} const nr=near(v,w); fb(nr?"🔥 거의 맞았어요! 철자를 다시 봐요":"❌ 아니에요 — 다시!"); RM.feed({t:nr?"nr":"x", s:RM.code}); boxes(); }
   /* 그리는 사람 → 방에 줄 올리기 */
   let upT=0;
@@ -426,7 +476,7 @@ function start(api){
   return {scene, cam, tick, render:rn=>{ try{ porRender(rn); }catch(e){} }, dispose, pause:v=>{ paused=!!v; },
     get mode(){ return mode; }, get S(){ return S; }, get G(){ return G; }, get RM(){ return RM; }, get ready(){ return ready; }, get MY(){ return MY; }, W,
     set fast(v){ fast=v?1:0; }, get fast(){ return fast; }, menuGo, menuShow, key, typeWord:s=>{ String(s).split("").forEach(c=>key(c)); }, submit:()=>key("ok"), giveUp, hint:soloHint, demo,
-    pick:k=>{ if(mode==="sketch") sketchPick(k); else if(mode==="co-play") toHost({t:"pk", k}); }, sketchDone, ans:()=>mode==="solo"&&S?W[S.cur][0]:(G.w?W[decW(G.w,G.rd)][0]:""), get typed(){ return typed; }, get sig(){ return strokeSig; }, get wl(){ return wordLen; }, get hints(){ return Object.assign({}, hintMap); }, get amHost(){ return amHost(); }, get fb(){ return FB.textContent; }, vote, get ART(){ return ART; } };
+    W, POOL, okAns, pick3, LV, get SK(){ return SK; }, get lv(){ return SET.lv; }, setLv:v=>{ SET.lv=+v; }, pick:k=>{ if(mode==="sketch") sketchPick(k); else if(mode==="co-play") toHost({t:"pk", k}); }, sketchDone, ans:()=>mode==="solo"&&S?W[S.cur][0]:(G.w?W[decW(G.w,G.rd)][0]:""), get typed(){ return typed; }, get sig(){ return strokeSig; }, get wl(){ return wordLen; }, get hints(){ return Object.assign({}, hintMap); }, get amHost(){ return amHost(); }, get fb(){ return FB.textContent; }, vote, get ART(){ return ART; } };
 }
 
 MG.reg("draw", {ic:"🎨", nm:"그림 맞히기", tag:"그림 보고 영어로 써서 맞히기 · 친구랑 그리고 맞히기", bg:"linear-gradient(135deg,#ff8466,#ffd23f 50%,#3ea2ff)", big:"🎨✏️", menu:true,
