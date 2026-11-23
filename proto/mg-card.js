@@ -232,7 +232,7 @@ function start(api){
   let EP=0;   /* hardSync 하면 +1 → 그 전에 돌던 apply 는 기다린 뒤 멈춤 */
   async function apply(a){ const P=G.P, ep=EP;
     switch(a.t){
-    case "deal": { G.P.forEach((p,i)=>p.h=a.h[i].slice()); G.draw=a.dw.slice(); G.pile=[a.top]; G.top=CARD(a.top); G.dir=1; G.pend=0; G.over=false; pileReset(); pileAdd(G.top); setCur(G.top.c); glowCol.copy(glowTo); G.hist=[G.P.map(p=>p.h.length)];
+    case "deal": { G.endOn=false; G.P.forEach((p,i)=>p.h=a.h[i].slice()); G.draw=a.dw.slice(); G.pile=[a.top]; G.top=CARD(a.top); G.dir=1; G.pend=0; G.over=false; pileReset(); pileAdd(G.top); setCur(G.top.c); glowCol.copy(glowTo); G.hist=[G.P.map(p=>p.h.length)];
       [1,2,3].forEach(L=>fan(SEATS[L], G.P[glo(L)].h.length, G.P[glo(L)].bk)); pileH(); feed('🃏 첫 카드: <b>'+kname(G.top)+'</b>', G.top.c); try{ SFX.noise(.4,.04,2200,.5,800); }catch(e){} handSig=""; drawHand(); plates(); drawTop(); break; }
     case "turn": { G.turn=a.s; G.drew=false; G.dl=a.dl||0; G.wait=false; G.hist.push(P.map(p=>p.h.length)); drawTop(); plates();
       if(a.s===ME){ myArc.visible=true; banner(G.pend>0?"😮 +"+G.pend+"!":"⭐ 내 차례! ⭐", G.pend>0?(canAny(ME)?"+"+(G.top.v==="d2"?2:4)+" 카드로 넘기거나 "+G.pend+"장 받아요":G.pend+"장 받아요"):(canAny(ME)?KO[G.cur]+(isW(G.top)?'':'이나 '+vs())+' 를 내요':'낼 카드가 없어요 → 🃏 뽑기')); try{ SFX.tone(660,.1,"triangle",.04); SFX.tone(990,.14,"triangle",.04,0,.09); }catch(e){} if(auto) later(.3, autoMove); }
@@ -331,7 +331,11 @@ function start(api){
   /* 같은 판에서 내가 뽑은 뒤 낼 수 있을 때 자동 */
 
   /* ══ 끝 ══ */
-  async function endShow(w, ord){ G.over=true; G.wait=true; myArc.visible=false; G.hist.push(G.P.map(p=>p.h.length)); drawTop(); plates(); cmd(); hint(); handSig=""; drawHand(); pendUI();
+  /* (v718) 사용자: 「컬러팡은 1등이 이겼는데 게임이 안 끝나는 아이들도 생기고 있어」 — ① 늦게 받은 친구가 hardSync 로 「끝」 상태를 받으면 G.over 만 켜지고 끝 화면(endShow)은 안 불림
+     ② 방장이 이기자마자 나가면 이어받은 친구가 빈손 친구를 두고 차례를 계속 돌림 → 둘 다 끝 화면으로. 끝 화면은 한 판에 한 번(G.endOn) */
+  function endCatch(g){ if(!G.over || G.endOn || phase!=="play") return false; const e=((g && g.A) || []).slice().reverse().find(a=>a.t==="end"); let w=e ? e.w : G.P.findIndex(p=>p.h && !p.h.length); if(w<0) w=0;
+    const ord=e && e.ord ? e.ord : [0,1,2,3].sort((a,b)=>(a===w?-1:b===w?1:G.P[a].h.length-G.P[b].h.length)); endShow(w, ord); return true; }
+  async function endShow(w, ord){ if(G.endOn) return; G.endOn=true; G.over=true; G.wait=true; myArc.visible=false; G.hist.push(G.P.map(p=>p.h.length)); drawTop(); plates(); cmd(); hint(); handSig=""; drawHand(); pendUI();
     [1,2,3].forEach(L=>{ const s=SEATS[L], g=glo(L); if(!s || !s.P) return; if(g===w){ arms(s.P,"yay"); s.P.setExpr("grin"); s.hand.visible=false; } else { arms(s.P,w===ME?"clap":"hold"); s.P.setExpr(w===ME?"wow":"smile"); } s.actT=99; });
     if(w===ME){ confetti(LOW?70:150); banner("🎉 다 냈다!", ""); try{ SFX.win(); }catch(e){} } else { banner("🏁 "+esc(G.P[w].nm)+" 다 냈어요!", ""); try{ SFX.tone(392,.25,"triangle",.05); SFX.tone(330,.35,"triangle",.05,0,.2); }catch(e){} }
     await wait(1.6); if(gone) return; phase="end";
@@ -470,14 +474,14 @@ function start(api){
     if(phase!=="play" && phase!=="end") return;
     const g=RM.d && RM.d.g; const hc=hostCode(); hostMiss=(hc!==hostC)?hostMiss+dt:0; if(hc!==hostC && hostMiss>7) hostC=hc;   /* 방장이 7초 넘게 안 보일 때만 바뀜 */
     const amHost=hostC===RM.code;
-    if(amHost && !HOST){ HOST=true; /* 방장이 나감 → 내가 이어서 */ if(g && g.sq>G.sq) hardSync(g); if(!G.over){ feed('👑 내가 방장이 되었어요'); later(.3, ()=>{ if(!G.lock && !Q.length) beginTurn(G.turn<0?0:G.turn); }); } }
+    if(amHost && !HOST){ HOST=true; /* 방장이 나감 → 내가 이어서 */ if(g && g.sq>G.sq) hardSync(g); const w0=G.P.length ? G.P.findIndex(p=>p.h && !p.h.length) : -1; if(!G.over && w0>=0){ later(.3, ()=>{ if(!G.over && !G.lock) finishGame(w0); }); } else if(!G.over){ feed('👑 내가 방장이 되었어요'); later(.3, ()=>{ if(!G.lock && !Q.length) beginTurn(G.turn<0?0:G.turn); }); } else endCatch(g); }
     if(HOST){ pubT+=dt; if(pubT>1.5 && RM.path) pub();
       /* 나간 친구 → 봇 */ const live=RM.live(true).map(p=>p.k); G.P.forEach((p,i)=>{ if(!p.bot && p.k && p.k!==RM.code && live.indexOf(p.k)<0){ p.gone=(p.gone||0)+dt; if(p.gone>8){ p.bot=true; feed('🚪 '+esc(p.nm)+' 나감 → 🤖'); if(G.turn===i && !G.lock && !G.over) later(.5,()=>botMove(i)); } } else p.gone=0; });
       return; }
     if(!g || !g.A) return;
     if(g.sq<=G.sq) return;
     const A=g.A, first=A.length?A[0].n:g.sq+1;
-    if(!synced || G.sq<first-1 || !G.P.length){ hardSync(g); if(G.sq>=g.sq) return; }
+    if(!synced || G.sq<first-1 || !G.P.length){ hardSync(g); if(G.sq>=g.sq){ endCatch(g); return; } }
     A.forEach(a=>{ if(a.n>G.sq && !Q.some(q=>q.n===a.n)) Q.push(a); }); runQ(); }
   let synced=false;
   function hardSync(g, keepQ){ const s=g.s; if(!s) return; EP++; synced=true; if(!keepQ) Q.length=0; const mi=s.P.findIndex(q=>q.k===(RM&&RM.code)); if(mi>=0) ME=mi; s.P.forEach((q,i)=>{ const p=G.P[i]||(G.P[i]={}); Object.assign(p,{h:q.h.slice(), called:!!q.c, k:q.k, nm:q.nm, bot:!!q.b, av:q.av, bk:q.bk, col:q.col}); });

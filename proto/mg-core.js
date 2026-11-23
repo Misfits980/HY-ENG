@@ -324,7 +324,9 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     R.authority=()=>{ const h=(R.d&&R.d.h)||{}, L=live(true).map(p=>p.k); return L.indexOf(h.c)>=0 ? h.c===code : L[0]===code; };
     R.ev=(to, o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); NET.put(R.path+"/e/"+to+"/"+id, Object.assign({at:now()}, o)).catch(()=>{}); };
     R.feed=(o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); R.seenF[id]=1; NET.put(R.path+"/fd/"+id, o).catch(()=>{}); };
-    R.put=(sub, v)=>{ if(R.path && OK) NET.put(R.path+"/"+sub, v).catch(()=>{}); };
+    /* (v718) 컬러팡 끝이 안 오던 것 — 방장이 일마다 g 를 PUT(겹쳐 보냄) → 늦게 도착한 옛 g 가 「끝」 g 를 덮고 방장이 바로 나가면 그대로 남음 → 같은 칸은 하나씩 · 밀리면 가장 새것만 */
+    const PQ={}; R.put=(sub, v)=>{ if(!R.path || !OK) return; const path=R.path+"/"+sub, q=PQ[path]||(PQ[path]={busy:0, nx:null});
+      if(q.busy){ q.nx=v; return; } q.busy=1; const go=x=>NET.put(path, x).catch(()=>{}).then(()=>{ if(q.nx!=null){ const y=q.nx; q.nx=null; go(y); } else q.busy=0; }); go(v); };
     /* (v714) 🔌 친구끼리 끊김 — 예전: 0.25초마다 방 전체를 GET(겹쳐 보내기 막음 없음 → 늦은 답이 새 답을 덮어 친구가 뒤로 튐) + 0.1초마다 내 칸 PUT(앞 PUT 이 안 끝나도 또 보냄)
        → 방을 「계속 받기」(Firebase 스트리밍 · 바뀐 칸만 · 순서 그대로)로 · 안 되면(막힌 망·옛 기기) 예전처럼 받되 하나 끝나야 다음 · 보내기도 하나씩(가장 새것만) */
     const ST={es:null, ok:false, dead:false, t0:0, last:0, echo:0, sent:0, dirty:false, polling:false, putting:false, pend:null, seq:0};

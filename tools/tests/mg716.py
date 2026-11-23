@@ -60,7 +60,7 @@ async def main():
             await H.screenshot(path=OUT + "mg716_%s.png" % ("pad" if big else "q"), clip={"x": 0, "y": 0, "width": w, "height": h})
         # 13가지 모두 자동 선수로 점수가 오름 (크기 바꾼 뒤에도)
         r = await H.evaluate("""()=>{ const out={}; MiniG.ACT.concat(MiniG.ENG).forEach(k=>{ const host=document.createElement('div'); host.className='mgG'; host.style.cssText='position:fixed;left:0;top:0;width:820px;height:1100px'; document.body.appendChild(host);
-              const g=MiniG.mount(host, k, MiniG.seq(Study.lessons('elem')[0].ws, k), 'e', {i:0,k:0,col:'#f44'}); for(let i=0;i<90;i++) g.adv(1/30); let n=0; for(let i=0;i<5;i++){ g.lock=0; try{ if(g.auto()) n++; }catch(e){ out[k]='err '+e; } g.adv(.3); } out[k]=out[k]||g.sc; g.dead=1; host.remove(); }); return out; }""")
+              const g=MiniG.mount(host, k, MiniG.seq(Study.lessons('elem')[0].ws, k), 'e', {i:0,k:0,col:'#f44'}); for(let i=0;i<90;i++) g.adv(1/30); let n=0; for(let i=0;i<(k==='light'?120:5);i++){ g.lock=0; try{ if(g.auto()) n++; }catch(e){ out[k]='err '+e; } g.adv(k==='light'?.1:.3); }   /* 🚦 = 초록불일 때만 누름 → 넉넉히 */ out[k]=out[k]||g.sc; g.dead=1; host.remove(); }); return out; }""")
         ok(all(isinstance(v, (int, float)) and v > 0 for v in r.values()), f"13가지 자동 선수 점수 {r}")
         ok(not errs, f"오류 없음 {errs[:3]}")
         await br.close()

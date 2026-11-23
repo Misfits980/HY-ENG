@@ -411,7 +411,12 @@ function start(api){
       try{ RM.dispose(); }catch(e){} RM=null; }); }
 
   /* ══ 틀 ══ */
-  function tick(dt){ if(gone || paused) return;
+  /* (v718) 사용자 사진(옛 아이패드 세로): 아래 「✔ 확인」 단추가 화면 밖 — 칠판 크기 = (화면 높이 − 410px) 어림이라 친구 줄·그림 줄이 두 줄이면 넘침(사파리 15 초반은 dvh 도 없음)
+     → 넘치면 칠판을 그만큼 줄임 (화면·모드·줄 높이가 바뀔 때만 잼 · 그림 좌표는 PW×PH 비율이라 그대로) */
+  let fitSig="", fitN=0; function fitBd(){ const W=BD && BD.parentNode; if(!W || !W.clientHeight) return; const land=innerWidth>innerHeight && innerHeight<=620;
+    const sig=innerWidth+"x"+innerHeight+"|"+mode+"|"+BD.className+"|"+(KB.offsetHeight|0)+"|"+(TL.offsetHeight|0)+"|"+(PL.offsetHeight|0)+"|"+(BX.offsetHeight|0); if(sig===fitSig) return; fitSig=sig;
+    BD.style.width=""; if(land) return; const over=W.scrollHeight-W.clientHeight; if(over>1){ const h=BD.getBoundingClientRect().height; BD.style.width=Math.max(150, Math.floor((h-over-6)*4/3))+"px"; } }
+  function tick(dt){ if(gone || paused) return; if(++fitN%12===1) try{ fitBd(); }catch(e){}
     for(let i=TM.length-1;i>=0;i--){ TM[i].t-=dt; if(TM[i].t<=0){ const f=TM[i].fn; TM.splice(i,1); try{ f(); }catch(e){ console.warn("DW", e); } } }
     if(mode==="solo" && S && !S.wait){ S.t+=dt; const step=fast?.05:TILE_T; while(S.t>=step*(S.pop+1) && S.pop<12) popTile(); bar((S.done+1)+" / "+S.n, "⭐ "+S.sc, 1-S.pop/12); }
     if(RM) coTick(dt); }
