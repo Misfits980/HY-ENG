@@ -474,18 +474,19 @@ function start(api){
     if(phase!=="play" && phase!=="end") return;
     const g=RM.d && RM.d.g; const hc=hostCode(); hostMiss=(hc!==hostC)?hostMiss+dt:0; if(hc!==hostC && hostMiss>7) hostC=hc;   /* 방장이 7초 넘게 안 보일 때만 바뀜 */
     const amHost=hostC===RM.code;
-    if(amHost && !HOST){ HOST=true; /* 방장이 나감 → 내가 이어서 */ if(g && g.sq>G.sq) hardSync(g); const w0=G.P.length ? G.P.findIndex(p=>p.h && !p.h.length) : -1; if(!G.over && w0>=0){ later(.3, ()=>{ if(!G.over && !G.lock) finishGame(w0); }); } else if(!G.over){ feed('👑 내가 방장이 되었어요'); later(.3, ()=>{ if(!G.lock && !Q.length) beginTurn(G.turn<0?0:G.turn); }); } else endCatch(g); }
+    if(amHost && !HOST){ HOST=true; /* 방장이 나감 → 내가 이어서 */ if(g && g.sq>G.sq) hardSync(g); SEQ=Math.max(SEQ, G.sq|0, (g && g.sq)|0);   /* (v718) 이어받은 방장의 일 번호가 1부터 다시 시작해 친구들이 「옛것」으로 보고 안 따라 함(방장이 판 중간에 나가도 멈춤) → 지금까지 번호 다음부터 */ const w0=G.P.length ? G.P.findIndex(p=>p.h && !p.h.length) : -1; if(!G.over && w0>=0){ later(.3, ()=>{ if(!G.over && !G.lock) finishGame(w0); }); } else if(!G.over){ feed('👑 내가 방장이 되었어요'); later(.3, ()=>{ if(!G.lock && !Q.length) beginTurn(G.turn<0?0:G.turn); }); } else endCatch(g); }
     if(HOST){ pubT+=dt; if(pubT>1.5 && RM.path) pub();
       /* 나간 친구 → 봇 */ const live=RM.live(true).map(p=>p.k); G.P.forEach((p,i)=>{ if(!p.bot && p.k && p.k!==RM.code && live.indexOf(p.k)<0){ p.gone=(p.gone||0)+dt; if(p.gone>8){ p.bot=true; feed('🚪 '+esc(p.nm)+' 나감 → 🤖'); if(G.turn===i && !G.lock && !G.over) later(.5,()=>botMove(i)); } } else p.gone=0; });
       return; }
     if(!g || !g.A) return;
+    if(G.endOn) return;   /* (v718) 끝 화면이 뜬 뒤엔 늦게 온 옛 방 상태로 되돌리지 않음 */
     if(g.sq<=G.sq) return;
     const A=g.A, first=A.length?A[0].n:g.sq+1;
     if(!synced || G.sq<first-1 || !G.P.length){ hardSync(g); if(G.sq>=g.sq){ endCatch(g); return; } }
     A.forEach(a=>{ if(a.n>G.sq && !Q.some(q=>q.n===a.n)) Q.push(a); }); runQ(); }
   let synced=false;
   function hardSync(g, keepQ){ const s=g.s; if(!s) return; EP++; synced=true; if(!keepQ) Q.length=0; const mi=s.P.findIndex(q=>q.k===(RM&&RM.code)); if(mi>=0) ME=mi; s.P.forEach((q,i)=>{ const p=G.P[i]||(G.P[i]={}); Object.assign(p,{h:q.h.slice(), called:!!q.c, k:q.k, nm:q.nm, bot:!!q.b, av:q.av, bk:q.bk, col:q.col}); });
-    G.draw=s.dw.slice(); G.pile=s.pl.slice(); G.top=s.top>=0?CARD(s.top):null; G.dir=s.dir; G.turn=s.turn; G.pend=s.pend|0; G.over=!!s.over; G.dl=s.dl; G.hist=s.hist||[]; G.drew=!!s.drew; G.sq=(s.sq!=null?s.sq:g.sq); SEQ=Math.max(SEQ,g.sq); G.A=(g.A||[]).slice(); G.wait=false;
+    G.draw=s.dw.slice(); G.pile=s.pl.slice(); G.top=s.top>=0?CARD(s.top):null; G.dir=s.dir; G.turn=s.turn; G.pend=s.pend|0; G.over=!!s.over || !!G.endOn; G.dl=s.dl; G.hist=s.hist||[]; G.drew=!!s.drew; G.sq=(s.sq!=null?s.sq:g.sq); SEQ=Math.max(SEQ,g.sq); G.A=(g.A||[]).slice(); G.wait=false;
     if(G.top){ pileReset(); G.pile.slice(-5).forEach(id=>pileAdd(CARD(id))); setCur(s.cur); }
     [1,2,3].forEach(L=>{ seatAv(L, G.P[glo(L)].av); fan(SEATS[L], G.P[glo(L)].h.length, G.P[glo(L)].bk); }); pileH(); pendUI(); myArc.visible=G.turn===ME; handSig=""; drawHand(); plates(); drawTop(); hint(); cmd(); }
 
