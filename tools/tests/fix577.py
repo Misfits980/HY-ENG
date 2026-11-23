@@ -26,7 +26,7 @@ async def main():
         await pg.evaluate("()=>{ localStorage.setItem('hyeng_proto_code', JSON.stringify('FIX77')); localStorage.setItem('hyeng_nick','루아'); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); }")
         await pg.reload(); await pg.wait_for_timeout(3000)
         # ③ 아래 빈 띠
-        r=await pg.evaluate("()=>{ const c=document.getElementById('cv').getBoundingClientRect(), b=document.querySelector('.bar.bot').getBoundingClientRect(); return [APPH, Math.round(c.height), Math.round(b.bottom), renderer.domElement.height/devicePixelRatio|0]; }")
+        r=await pg.evaluate("()=>{ const c=document.getElementById('cv').getBoundingClientRect(), b=document.querySelector('.bar.bot').getBoundingClientRect(); return [APPH, Math.round(c.height), Math.round(b.bottom), renderer.domElement.height/renderer.getPixelRatio()|0]; }")
         ok(r[0]==932 and r[1]==932 and r[2]>=930 and abs(r[3]-932)<=2, f"③ 홈 화면 앱: 캔버스·아래 단추 줄이 기기 화면 끝(932)까지 {r}")
         # ② 왼쪽 위 칸 = 두 줄 · 나가기 이름표와 안 겹침
         r=await pg.evaluate("""()=>{ const h=document.getElementById('hud').getBoundingClientRect(); const pills=[...document.querySelectorAll('#hud > *')].filter(e=>e.offsetParent).map(e=>e.getBoundingClientRect());
