@@ -267,6 +267,7 @@ function start(api){
   const day=()=>{ try{ return dayKey().replace(/\D/g,""); }catch(e){ return "0"; } };
   const BASE=()=>"/hy/day/mgg"+day();
   const R={id:null, path:null, d:null, peers:{}, sendT:0, pollT:0, listT:0, rooms:[], busy:false, host:false, lastSent:null, gone:false, endSent:false};
+  const SYNC=MG.liveSync ? MG.liveSync(R, code) : null;   /* (v714) 🔌 계속 받기 + 하나씩 보내기 (친구 끊김) */
   function roomUI(){ if(!CO) return; if(st.phase!=="room" && st.phase!=="wait"){ eRoom.style.display="none"; return; } eRoom.style.display="";
     if(st.phase==="room"){ const L=R.rooms;
       eRoom.innerHTML='<h4>👫 같이 하기 <small style="font-size:13px;opacity:.8">(최대 '+MAXP+'명)</small></h4><div class="sub">친구 방에 들어가거나, 내 방을 만들어요</div><div class="rl">'+(L.length?L.map(r=>'<button class="puBtn" data-j="'+r.id+'">🟦 '+esc(r.n)+'의 방 · '+(DF[r.df]||DF.normal).ic+' '+(DF[r.df]||DF.normal).nm+' · '+r.c+'/'+MAXP+'명</button>').join(""):'<div class="sub">아직 열린 방이 없어요</div>')+'</div><button class="puBtn mt go" data-mk="1">＋ 내 방 만들기</button><button class="puBtn gr" data-bk="1">☰ 메뉴</button>'; }
@@ -282,14 +283,14 @@ function start(api){
     R.rooms=L.sort((a,b)=>b.c-a.c).slice(0,6); if(st.phase==="room") roomUI(); }
   async function mkRoom(){ if(!NETOK){ api.msg("서버에 연결이 안 돼요<small>혼자 하기로 해 봐요</small>", 1800); return; } R.busy=true; const id=code+"_"+(Date.now()%100000);
     R.id=id; R.path=BASE()+"/"+id; R.host=true; const h={c:code, n:nm, st:0, hb:now(), at:now(), df:DFK};
-    try{ await NET.put(R.path, {h, p:{[code]:meNode()}}); }catch(e){} R.d={h, p:{[code]:meNode()}}; st.phase="wait"; R.busy=false; roomUI(); }
+    try{ await NET.put(R.path, {h, p:{[code]:meNode()}}); }catch(e){} R.d={h, p:{[code]:meNode()}}; st.phase="wait"; R.busy=false; roomUI(); if(SYNC) SYNC.start(); }
   async function joinRoom(id){ R.busy=true; const path=BASE()+"/"+id; let d=null; try{ d=await NET.get(path); }catch(e){}
     const t=now(), c=d && d.p ? Object.values(d.p).filter(p=>p && t-(p.t||0)<10000).length : 0;
     if(!d || !d.h || d.h.st || c>=MAXP){ R.busy=false; api.msg(d && d.h && d.h.st?"이미 시작한 방이에요":"방이 꽉 찼어요 (최대 "+MAXP+"명)", 1500); listRooms(); return; }
-    R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, meNode()); }catch(e){} st.phase="wait"; R.busy=false; roomUI(); }
+    R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, meNode()); }catch(e){} st.phase="wait"; R.busy=false; roomUI(); if(SYNC) SYNC.start(); }
   async function startRoom(){ if(!R.host || !R.path) return; const at=now()+WAIT, seed=(Math.random()*4294967296)>>>0;
     try{ await NET.patch(R.path+"/h", {st:at, seed, sg:{s:0, at}}); }catch(e){} R.d.h=Object.assign({}, R.d.h, {st:at, seed, sg:{s:0, at}}); roomUI(); }
-  function leaveRoom(toList){ if(R.path && NETOK){ try{ NET.del(R.path+"/p/"+code).catch(()=>{}); }catch(e){} if(R.host && st.phase==="wait"){ try{ NET.del(R.path).catch(()=>{}); }catch(e){} } }
+  function leaveRoom(toList){ if(SYNC) SYNC.stop(); if(R.path && NETOK){ try{ NET.del(R.path+"/p/"+code).catch(()=>{}); }catch(e){} if(R.host && st.phase==="wait"){ try{ NET.del(R.path).catch(()=>{}); }catch(e){} } }
     Object.values(R.peers).forEach(pp=>dropPeer(pp)); R.peers={}; R.id=R.path=null; R.d=null; R.host=false; if(toList){ st.phase="room"; listRooms(); roomUI(); drawHud(); } }
   function livePeers(withMe){ const d=R.d||{}, t=now(), L=[]; Object.keys(d.p||{}).forEach(k=>{ const p=d.p[k]; if(!p) return; if(k!==code && t-(p.t||0)>10000) return; if(!withMe && k===code) return; L.push(Object.assign({k}, p)); }); if(withMe && !L.some(p=>p.k===code)) L.push(Object.assign({k:code}, meNode())); return L.sort((a,b)=>a.k<b.k?-1:1); }
   function dropPeer(pp){ if(pp.c) scene.remove(pp.c.g); if(pp.tag) scene.remove(pp.tag); if(pp.ring) scene.remove(pp.ring); }
@@ -300,7 +301,8 @@ function start(api){
     /* 친구 모습 */
     const seen={}; Object.keys(d.p||{}).forEach(k=>{ if(k===code) return; const p=d.p[k]; if(!p || t-(p.t||0)>10000) return; seen[k]=1; let pp=R.peers[k];
       const col=PCOL[slotOf(k)]; if(pp && pp.col!==col){ dropPeer(pp); delete R.peers[k]; pp=null; }
-      if(!pp){ st.tk=0; pp=R.peers[k]={c:avatar(p.av, 1.8), tag:tag(p.n||"친구", col), ring:ring(new THREE.Color(col).getHex()), col, x:p.x||0, z:p.z||0, y:0}; } pp.tx=p.x||0; pp.tz=p.z||0; pp.ty=p.y||0; pp.f=p.f||0; pp.o=!!p.o; pp.n=p.n; });
+      if(!pp){ st.tk=0; pp=R.peers[k]={c:avatar(p.av, 1.8), tag:tag(p.n||"친구", col), ring:ring(new THREE.Color(col).getHex()), col, x:p.x||0, z:p.z||0, y:0, trk:MG.track?MG.track():null, st0:null}; } pp.tx=p.x||0; pp.tz=p.z||0; pp.ty=p.y||0; pp.f=p.f||0; pp.o=!!p.o; pp.n=p.n;
+      if(pp.trk && p.t && p.t!==pp.st0){ pp.st0=p.t; pp.trk.push(p.t, [pp.tx, pp.ty, pp.tz]); } });
     Object.keys(R.peers).forEach(k=>{ if(!seen[k]){ dropPeer(R.peers[k]); delete R.peers[k]; } });
     if(st.phase==="wait"){ if(h.df && DF[h.df] && h.df!==DFK){ DFK=h.df; st.lives=DF[DFK].life; } if(h.st){ st.seed=h.seed>>>0; st.lives=DF[DFK].life; st.phase="count"; } roomUI(); drawHud(); }
     if(st.phase==="play" && h.sg && h.sg.s>st.stage && t>=h.sg.at) newStage(h.sg.s);
@@ -313,15 +315,18 @@ function start(api){
   function netTick(dt){ if(!CO || !NETOK) return;
     if(st.phase==="room"){ R.listT-=dt; if(R.listT<=0){ R.listT=1.5; listRooms(); } return; }
     if(!R.path) return;
-    R.sendT-=dt; if(R.sendT<=0){ R.sendT=.15; const m=meNode(), s=R.lastSent; if(!s || Math.abs(s.x-m.x)+Math.abs(s.z-m.z)+Math.abs(s.y-m.y)>.05 || s.l!==m.l || s.o!==m.o || m.t-s.t>1500){ R.lastSent=m; NET.put(R.path+"/p/"+code, m).catch(()=>{}); } }
-    R.pollT-=dt; if(R.pollT<=0){ R.pollT=.3; poll(); }
+    R.sendT-=dt; if(R.sendT<=0){ R.sendT=.15; const m=meNode(), s=R.lastSent; if(!s || Math.abs(s.x-m.x)+Math.abs(s.z-m.z)+Math.abs(s.y-m.y)>.05 || s.l!==m.l || s.o!==m.o || m.t-s.t>1500){ R.lastSent=m; if(SYNC) SYNC.put("p/"+code, m); else NET.put(R.path+"/p/"+code, m).catch(()=>{}); } }
+    if(SYNC) SYNC.tick(dt, .3, ()=>{ const d=R.d; if(!d || !d.h){ if(st.phase==="wait"){ api.msg("방이 닫혔어요", 1400); leaveRoom(true); } return; } applyRoom(); });
+    else { R.pollT-=dt; if(R.pollT<=0){ R.pollT=.3; poll(); } }
     if(R.host && st.phase==="wait"){ R.hbT=(R.hbT||0)-dt; if(R.hbT<=0){ R.hbT=3; NET.put(R.path+"/h/hb", now()).catch(()=>{}); } }
     /* 판 넘기기 · 끝 (방장) */
     if(st.phase==="play" && authority() && R.d && R.d.h){ const h=R.d.h;
       if(st.blue<=0 && !(h.sg && h.sg.s>st.stage)){ const sg={s:st.stage+1, at:now()+2600}; h.sg=sg; NET.put(R.path+"/h/sg", sg).catch(()=>{}); }
       const ps=livePeers(true); if(!R.endSent && ps.length && ps.every(p=>p.k===code ? st.out : !!p.o)){ R.endSent=true; NET.put(R.path+"/h/end", 1).catch(()=>{}); end(); } } }
-  function peersTick(dt){ Object.values(R.peers).forEach(pp=>{ pp.x+=(pp.tx-pp.x)*Math.min(1,dt*10); pp.z+=(pp.tz-pp.z)*Math.min(1,dt*10); pp.y+=(pp.ty-pp.y)*Math.min(1,dt*14);
-    if(pp.c){ const mv=Math.hypot(pp.tx-pp.x,pp.tz-pp.z)>.05; pp.c.g.position.set(pp.x,pp.y,pp.z); pp.c.face=pp.f; pp.c.moving=mv && pp.y<.05; try{ animChar(pp.c, dt); }catch(e){} pp.c.g.visible=!pp.o; }
+  function peersTick(dt){ Object.values(R.peers).forEach(pp=>{ const sm=pp.trk && pp.trk.b.length ? pp.trk.smooth() : null; let mvS=-1;
+    if(sm){ pp.x=sm[0]; pp.y=sm[1]; pp.z=sm[2]; mvS=pp.trk.speed(); }   /* (v714) 받은 자리를 시간 맞춰 이어 그림 */
+    else { pp.x+=(pp.tx-pp.x)*Math.min(1,dt*10); pp.z+=(pp.tz-pp.z)*Math.min(1,dt*10); pp.y+=(pp.ty-pp.y)*Math.min(1,dt*14); }
+    if(pp.c){ const mv=mvS>=0 ? mvS>.5 : Math.hypot(pp.tx-pp.x,pp.tz-pp.z)>.05; pp.c.g.position.set(pp.x,pp.y,pp.z); pp.c.face=pp.f; pp.c.moving=mv && pp.y<.05; try{ animChar(pp.c, dt); }catch(e){} pp.c.g.visible=!pp.o; }
     if(pp.tag){ pp.tag.position.set(pp.x, pp.y+(pp.o?.4:3.5), pp.z); pp.tag.material.opacity=pp.o?.45:1; } if(pp.ring){ pp.ring.position.set(pp.x,.15,pp.z); pp.ring.visible=!pp.o; } }); }
 
   /* ── 움직임 · 칸 밟기 ── */

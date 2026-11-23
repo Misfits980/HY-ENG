@@ -314,12 +314,12 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
       Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAX) L.push({id, n:r.h.n||"친구", c, h:r.h}); });
       R.rooms=L.sort((a,b)=>b.c-a.c).slice(0,6); if(R.phase==="room") ui(); };
     R.make=async()=>{ if(!OK){ api.msg("서버에 연결이 안 돼요", 1500); return; } R.busy=true; const id=code+"_"+(Date.now()%100000); R.id=id; R.path=BASE()+"/"+id; R.host=true;
-      const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, (typeof cfg.h==="function"?cfg.h():cfg.h)||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{}); try{ await NET.put(R.path, {h, p:{[code]:me}}); }catch(e){} R.d={h, p:{[code]:me}}; R.phase="wait"; R.busy=false; ui(); };
+      const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, (typeof cfg.h==="function"?cfg.h():cfg.h)||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{}); try{ await NET.put(R.path, {h, p:{[code]:me}}); }catch(e){} R.d={h, p:{[code]:me}}; R.phase="wait"; R.busy=false; ui(); live0(); };
     R.join=async(id)=>{ R.busy=true; const path=BASE()+"/"+id; let d=null; try{ d=await NET.get(path); }catch(e){} const t=now(), c=d && d.p ? Object.values(d.p).filter(p=>p && t-(p.t||0)<10000).length : 0;
       if(!d || !d.h || d.h.st || c>=MAX){ R.busy=false; api.msg(d && d.h && d.h.st?"이미 시작한 방이에요":"방이 꽉 찼어요 (최대 "+MAX+"명)", 1500); R.list(); return; }
-      R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, Object.assign({n:nm, t:now()}, R.node?R.node():{})); }catch(e){} R.phase="wait"; R.busy=false; ui(); };
+      R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, Object.assign({n:nm, t:now()}, R.node?R.node():{})); }catch(e){} R.phase="wait"; R.busy=false; ui(); live0(); };
     R.start=async()=>{ if(!R.host || !R.path) return; const at=now()+WAITMS, seed=(Math.random()*4294967296)>>>0; try{ await NET.patch(R.path+"/h", {st:at, seed}); }catch(e){} R.d.h=Object.assign({}, R.d.h, {st:at, seed}); ui(); };
-    R.leave=(toList)=>{ if(R.path && OK){ NET.del(R.path+"/p/"+code).catch(()=>{}); if(R.host && R.phase==="wait") NET.del(R.path).catch(()=>{}); } R.id=R.path=null; R.d=null; R.host=false; if(toList){ R.phase="room"; R.list(); ui(); } };
+    R.leave=(toList)=>{ liveStop(); if(R.path && OK){ NET.del(R.path+"/p/"+code).catch(()=>{}); if(R.host && R.phase==="wait") NET.del(R.path).catch(()=>{}); } R.id=R.path=null; R.d=null; R.host=false; if(toList){ R.phase="room"; R.list(); ui(); } };
     R.live=live; R.now=now;
     R.authority=()=>{ const h=(R.d&&R.d.h)||{}, L=live(true).map(p=>p.k); return L.indexOf(h.c)>=0 ? h.c===code : L[0]===code; };
     R.ev=(to, o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); NET.put(R.path+"/e/"+to+"/"+id, Object.assign({at:now()}, o)).catch(()=>{}); };
@@ -329,22 +329,100 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
       let j; try{ j=JSON.stringify(v); }catch(e){ return; }   /* 부른 순간 모습 그대로 보냄 (NET.put 은 토큰을 기다린 뒤 글로 바꿔서, 같은 배열이 그사이 바뀌면 섞였음) */
       if(q.busy){ q.nx=j; return; } q.busy=1;
       const go=y=>{ let o; try{ o=JSON.parse(y); }catch(e){ q.busy=0; return; } NET.put(path, o).catch(()=>{}).then(()=>{ if(q.nx!=null){ const z=q.nx; q.nx=null; go(z); } else q.busy=0; }); }; go(j); };
-    async function poll(){ if(!R.path || R.busy) return; let d=null; try{ d=await NET.get(R.path); }catch(e){ return; } if(!R.path) return;
-      if(!d || !d.h){ if(R.phase==="wait"){ api.msg("방이 닫혔어요", 1400); R.leave(true); } return; } R.d=d;
+    /* (v714) 🔌 친구끼리 끊김 — 예전: 0.25초마다 방 전체를 GET(겹쳐 보내기 막음 없음 → 늦은 답이 새 답을 덮어 친구가 뒤로 튐) + 0.1초마다 내 칸 PUT(앞 PUT 이 안 끝나도 또 보냄)
+       → 방을 「계속 받기」(Firebase 스트리밍 · 바뀐 칸만 · 순서 그대로)로 · 안 되면(막힌 망·옛 기기) 예전처럼 받되 하나 끝나야 다음 · 보내기도 하나씩(가장 새것만) */
+    const ST={es:null, ok:false, dead:false, t0:0, last:0, echo:0, sent:0, dirty:false, polling:false, putting:false, pend:null, seq:0};
+    function setAt(path, data, patch){ const ks=String(path||"/").split("/").filter(Boolean);
+      if(!ks.length){ if(patch) R.d=Object.assign(R.d||{}, data||{}); else R.d=data; return; }
+      let o=R.d||(R.d={}); for(let i=0;i<ks.length-1;i++){ const k=ks[i]; if(!o[k] || typeof o[k]!=="object") o[k]={}; o=o[k]; } const k=ks[ks.length-1];
+      if(patch){ const t=(o[k] && typeof o[k]==="object") ? o[k] : (o[k]={}); Object.keys(data||{}).forEach(x=>{ if(data[x]===null) delete t[x]; else t[x]=data[x]; }); }
+      else if(data===null || data===undefined) delete o[k]; else o[k]=data; }
+    function liveStop(){ if(ST.es){ try{ ST.es.close(); }catch(e){} } ST.es=null; ST.ok=false; ST.seq++; }
+    async function live0(){ liveStop(); if(!OK || !R.path || ST.dead || !NET.stream) return; const seq=ST.seq, path=R.path; ST.t0=performance.now(); ST.echo=ST.t0;
+      try{ const es=await NET.stream(path, (k, m)=>{ if(seq!==ST.seq || !R.path || !m) return; ST.last=performance.now();
+          const pth=m.path||"/"; setAt(pth, m.data, k==="patch"); if(pth==="/" && !ST.ok){ ST.ok=true; ST.echo=ST.last; }
+          if(pth.indexOf("/p/"+code)===0) ST.echo=ST.last;   /* 내가 보낸 것이 돌아옴 = 받기가 살아 있음 */
+          ST.dirty=true; });
+        if(seq!==ST.seq){ try{ es.close(); }catch(e){} return; } ST.es=es;
+        es.onerror=()=>{ if(seq!==ST.seq) return; if(es.readyState===2){ ST.ok=false; ST.es=null; if(performance.now()-ST.t0<4000) ST.dead=true; else setTimeout(()=>{ if(seq===ST.seq && R.path) live0(); }, 1500); } };
+        ["auth_revoked","cancel"].forEach(k=>es.addEventListener(k, ()=>{ if(seq!==ST.seq) return; try{ es.close(); }catch(e){} ST.es=null; ST.ok=false; setTimeout(()=>{ if(seq===ST.seq && R.path) live0(); }, 800); }));
+      }catch(e){ ST.dead=true; } }
+    R.net=()=>({stream:ST.ok, dead:ST.dead, echo:Math.round(performance.now()-ST.echo)});
+    function process(){ const d=R.d;
+      if(!d || !d.h){ if(R.phase==="wait"){ api.msg("방이 닫혔어요", 1400); R.leave(true); } return; }
       const my=(d.e||{})[code]||{}; Object.keys(my).forEach(id=>{ if(R.seenE[id]) return; R.seenE[id]=1; NET.del(R.path+"/e/"+code+"/"+id).catch(()=>{}); try{ R.onEv && R.onEv(my[id]); }catch(e){ console.warn(e); } });
       Object.keys(d.fd||{}).forEach(id=>{ if(R.seenF[id]) return; R.seenF[id]=1; try{ R.onFeed && R.onFeed(d.fd[id]); }catch(e){} });
       if(R.phase==="wait"){ if(d.h.st) R.phase="count"; ui(); } }
+    async function poll(){ if(!R.path || R.busy || ST.polling) return; ST.polling=true; const path=R.path; let d=null;
+      try{ d=await NET.get(path); }catch(e){ ST.polling=false; return; } ST.polling=false; if(!R.path || R.path!==path || ST.ok) return;   /* 그사이 계속 받기가 붙었으면 이 (더 옛) 답은 버림 */
+      R.d=d; process(); }
+    /* 내 칸 보내기 — 앞 것이 아직 가는 중이면 가장 새것만 남겨 두었다가 끝나면 바로 */
+    /* 셋까지 동시에 (받는 쪽은 보낸 시각으로 옛것을 버림) · 더 밀리면 가장 새것만 남겨 두었다가 */
+    function putMe(m){ if((ST.putting|0)>=3){ ST.pend=m; return; } ST.putting=(ST.putting|0)+1; ST.sent=performance.now(); const path=R.path;
+      NET.put(path+"/p/"+code, m).catch(()=>{}).then(()=>{ ST.putting=Math.max(0,(ST.putting|0)-1); const n=ST.pend; ST.pend=null; if(n && R.path===path) putMe(n); }); }
     R.tick=(dt)=>{ if(!OK) return;
       if(R.phase==="room"){ R.listT-=dt; if(R.listT<=0){ R.listT=1.5; R.list(); } return; }
       if(!R.path) return;
-      R.sendT-=dt; if(R.sendT<=0){ R.sendT=cfg.send||.1; const m=Object.assign({n:nm, t:now()}, R.node?R.node():{}); const s0=R.last; if(!s0 || JSON.stringify(Object.assign({},s0,{t:0}))!==JSON.stringify(Object.assign({},m,{t:0})) || m.t-s0.t>1500){ R.last=m; NET.put(R.path+"/p/"+code, m).catch(()=>{}); } }
-      R.pollT-=dt; if(R.pollT<=0){ R.pollT=cfg.poll||.25; poll(); }
+      R.sendT-=dt; if(R.sendT<=0){ R.sendT=cfg.send||.1; const m=Object.assign({n:nm, t:now()}, R.node?R.node():{}); const s0=R.last; if(!s0 || JSON.stringify(Object.assign({},s0,{t:0}))!==JSON.stringify(Object.assign({},m,{t:0})) || m.t-s0.t>1500){ R.last=m; putMe(m); } }
+      /* 받기 살아 있나: 내가 보낸 것이 4초 넘게 안 돌아오면(막힌 망 · 몰아서 오는 망) 예전 받기로 */
+      if(ST.ok && ST.sent && performance.now()-ST.echo>4000 && performance.now()-ST.sent<3000){ liveStop(); ST.dead=true; }
+      if(ST.ok){ if(ST.dirty){ ST.dirty=false; process(); } }
+      else { R.pollT-=dt; if(R.pollT<=0){ R.pollT=cfg.poll||.25; poll(); } }
       if(R.host && R.phase==="wait"){ R.hbT-=dt; if(R.hbT<=0){ R.hbT=3; NET.put(R.path+"/h/hb", now()).catch(()=>{}); } }
       if(R.phase==="count"){ const left=((R.d.h.st||0)-now())/1000; CNT.textContent=left>0?Math.ceil(left):""; if(left<=3 && left>0 && Math.ceil(left)!==R.lc){ R.lc=Math.ceil(left); try{ api.sfx.tick(); }catch(e){} }
         if(left<=0){ CNT.textContent=""; R.phase="play"; try{ R.onStart && R.onStart(R.d.h, live(true)); }catch(e){ console.warn(e); } } } };
     R.dispose=()=>{ R.leave(false); try{ P.remove(); CNT.remove(); }catch(e){} };
     R.list(); ui(); return R; }
 
-  return {reg, GM, ORDER, draw, room, build, labels, lobby, enter, exit, step, result, rec, payLeft, SFX, I, SPOT, GATES, get on(){ return S.on; }, get run(){ return S.run; }, get k(){ return S.k; }, msg, DAY_PAY};
+  /* (v714) 받은 자리를 부드럽게 — 보낸 시각으로 간격을 맞추고(기기 시계가 달라도 친구마다 차이를 따로 잼) 조금 늦게(지금 − 지연) 두 자리 사이를 이어 그림 · 늦으면 잠깐만 앞으로 */
+  function track(o){ o=o||{}; const T={b:[], off:null, dl:o.delay||.12, j:0, lastA:0,
+    /* st = 보낸 쪽 시각(ms) · 버퍼에는 보낸 시각 그대로 두고, 그릴 때만 「이 친구 시계 차이(off)」로 바꿈 → off 가 바뀌어도 앞뒤가 안 어긋남 */
+    push(st, v, at){ at=(at==null?performance.now():at)/1000; st=(+st||0)/1000; const b=T.b, L=b[b.length-1]; if(L && st<=L.st+1e-4) return;   /* 늦게 온 옛것 */
+      const o2=at-st; if(T.off==null || o2<T.off) T.off=o2; else T.off+=Math.min(o2-T.off, .002);   /* 가장 빨리 온 것 기준 · 아주 천천히 따라감 */
+      if(T.lastA){ const gap=at-T.lastA; T.j=T.j*.9+Math.min(.3, Math.abs(gap-.1))*.1; } T.lastA=at;
+      if(L && st-L.st>.35){ const P=b[b.length-2], still=!P || Math.hypot(L.v[0]-P.v[0], (L.v[2]||0)-(P.v[2]||0))/Math.max(1e-3,L.st-P.st)<.3; if(still) b.push({st:st-.1, v:L.v.slice()}); }   /* 서 있다가 움직이기 시작 (달리던 중 늦게 온 것은 그대로 잇기) */
+      b.push({st, v:v.slice()}); while(b.length>14) b.shift(); },
+    delay(){ return Math.min(.3, T.dl+T.j*1.5); },
+    sample(now, ang){ const b=T.b; if(!b.length) return null; const rt=(now==null?performance.now():now)/1000-T.delay()-T.off;
+      if(b.length===1 || rt<=b[0].st) return b[0].v;
+      for(let i=b.length-1;i>0;i--){ const A=b[i-1], B=b[i]; if(rt>=A.st && rt<=B.st){ const k=(rt-A.st)/Math.max(1e-4,B.st-A.st); return A.v.map((x,n)=>ang && ang[n] ? x+angD(B.v[n]-x)*k : x+(B.v[n]-x)*k); } }
+      const A=b[b.length-2], B=b[b.length-1], dt2=Math.max(1e-3,B.st-A.st), ex=dt2<.5 ? Math.min(.22, rt-B.st) : 0;   /* 늦음 → 0.22초까지만 같은 빠르기로 */
+      return B.v.map((x,n)=>ang && ang[n] ? x+angD(B.v[n]-A.v[n])/dt2*ex : x+(x-A.v[n])/dt2*ex); },
+    /* 튐 없애기: 새 자리가 갑자기 건너뛰면(늦게 온 뒤) 그 차이를 0.12초 동안 서서히 메움 */
+    smooth(now, ang){ const r=T.sample(now, ang); if(!r) return null; const t=(now==null?performance.now():now)/1000;
+      if(!T.pr || r.length!==T.pr.length || t-T.ot>1){ T.pr=r.slice(); T.e=r.map(()=>0); T.vp=r.map(()=>0); T.ot=t; return r; }
+      const dt=Math.max(1e-3, t-T.ot); T.ot=t; const k=Math.exp(-dt/.12), out=[];
+      for(let n=0;n<r.length;n++){ let dr=r[n]-T.pr[n]; if(ang && ang[n]) dr=angD(dr); const ex=dr-T.vp[n]*dt;
+        if(Math.abs(ex)>(ang && ang[n] ? .5 : .18)) T.e[n]-=ex; else T.vp[n]=T.vp[n]*.7+(dr/dt)*.3;
+        T.e[n]*=k; if(Math.abs(T.e[n])>3) T.e[n]=0; out.push(r[n]+T.e[n]); }
+      T.pr=r.slice(); return out; },
+    speed(now){ const b=T.b; if(b.length<2) return 0; const rt=(now==null?performance.now():now)/1000-T.delay()-T.off; let i=b.length-1; while(i>1 && b[i-1].st>rt) i--; const A=b[i-1], B=b[i];
+      if(rt-B.st>.25) return 0; return Math.hypot(B.v[0]-A.v[0], B.v[2]-A.v[2])/Math.max(1e-3,B.st-A.st); } };
+    return T; }
+  const angD=a=>{ a=(a+Math.PI)%(Math.PI*2); if(a<0) a+=Math.PI*2; return a-Math.PI; };
+  /* (v714) 자기 방 틀을 쓰는 게임(🟦 발판 게임)도 같은 「계속 받기」 + 하나씩 보내기 — R = {path, d} · code = 내 칸 · 붙이면 sync.ok 동안은 받기(GET)를 건너뜀 */
+  function liveSync(R, code){ const ST={es:null, ok:false, dead:false, t0:0, last:0, echo:0, sent:0, dirty:false, seq:0, polling:false, putting:false, pend:null}, OK=typeof NET!=="undefined";
+    function setAt(path, data, patch){ const ks=String(path||"/").split("/").filter(Boolean);
+      if(!ks.length){ if(patch) R.d=Object.assign(R.d||{}, data||{}); else R.d=data; return; }
+      let o=R.d||(R.d={}); for(let i=0;i<ks.length-1;i++){ const k=ks[i]; if(!o[k] || typeof o[k]!=="object") o[k]={}; o=o[k]; } const k=ks[ks.length-1];
+      if(patch){ const t=(o[k] && typeof o[k]==="object") ? o[k] : (o[k]={}); Object.keys(data||{}).forEach(x=>{ if(data[x]===null) delete t[x]; else t[x]=data[x]; }); }
+      else if(data===null || data===undefined) delete o[k]; else o[k]=data; }
+    function stop(){ if(ST.es){ try{ ST.es.close(); }catch(e){} } ST.es=null; ST.ok=false; ST.seq++; ST.putting=0; ST.pend=null; }
+    async function start(){ stop(); if(!OK || !R.path || ST.dead || !NET.stream) return; const seq=ST.seq, path=R.path; ST.t0=performance.now(); ST.echo=ST.t0;
+      try{ const es=await NET.stream(path, (k, m)=>{ if(seq!==ST.seq || R.path!==path || !m) return; ST.last=performance.now(); const pth=m.path||"/"; setAt(pth, m.data, k==="patch");
+          if(pth==="/" && !ST.ok){ ST.ok=true; ST.echo=ST.last; } if(pth.indexOf("/p/"+code)===0) ST.echo=ST.last; ST.dirty=true; });
+        if(seq!==ST.seq){ try{ es.close(); }catch(e){} return; } ST.es=es;
+        es.onerror=()=>{ if(seq!==ST.seq) return; if(es.readyState===2){ ST.ok=false; ST.es=null; if(performance.now()-ST.t0<4000) ST.dead=true; else setTimeout(()=>{ if(seq===ST.seq && R.path===path) start(); }, 1500); } };
+        ["auth_revoked","cancel"].forEach(k=>es.addEventListener(k, ()=>{ if(seq!==ST.seq) return; try{ es.close(); }catch(e){} ST.es=null; ST.ok=false; setTimeout(()=>{ if(seq===ST.seq && R.path===path) start(); }, 800); }));
+      }catch(e){ ST.dead=true; } }
+    function put(sub, m){ if(!OK || !R.path) return; if((ST.putting|0)>=3){ ST.pend=[sub, m]; return; } ST.putting=(ST.putting|0)+1; ST.sent=performance.now(); const path=R.path, seq=ST.seq;
+      NET.put(path+"/"+sub, m).catch(()=>{}).then(()=>{ if(seq!==ST.seq) return; ST.putting=Math.max(0,(ST.putting|0)-1); const n=ST.pend; ST.pend=null; if(n && R.path===path) put(n[0], n[1]); }); }
+    async function poll(after){ if(!OK || !R.path || ST.polling) return; ST.polling=true; const path=R.path; let d=null;
+      try{ d=await NET.get(path); }catch(e){ ST.polling=false; return; } ST.polling=false; if(R.path!==path || ST.ok) return; R.d=d; try{ after && after(); }catch(e){ console.warn(e); } }
+    /* 한 프레임마다: 살아 있으면 바뀐 게 있을 때만 after() · 아니면 every 초마다 poll */
+    let pt=0; function tick(dt, every, after){ if(ST.ok && ST.sent && performance.now()-ST.echo>4000 && performance.now()-ST.sent<3000){ stop(); ST.dead=true; }
+      if(ST.ok){ if(ST.dirty){ ST.dirty=false; try{ after && after(); }catch(e){ console.warn(e); } } return; } pt-=dt; if(pt<=0){ pt=every||.3; poll(after); } }
+    return {start, stop, put, poll, tick, setAt, get ok(){ return ST.ok; }, get dead(){ return ST.dead; }, ST}; }
+  return {reg, GM, ORDER, draw, room, track, liveSync, build, labels, lobby, enter, exit, step, result, rec, payLeft, SFX, I, SPOT, GATES, get on(){ return S.on; }, get run(){ return S.run; }, get k(){ return S.k; }, msg, DAY_PAY};
 })();
 window.MG=MG;
