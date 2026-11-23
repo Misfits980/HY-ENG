@@ -198,12 +198,26 @@ const ISLE=(()=>{
   const LOTM={}; function lotMat(prem){ const k=prem?"p":"n"; if(LOTM[k]) return LOTM[k]; const c=document.createElement("canvas"); c.width=128; c.height=76; const g=c.getContext("2d"); g.fillStyle=prem?"#ffd23f":"#fff3d6"; g.fillRect(0,0,128,76); g.strokeStyle="#8a5a34"; g.lineWidth=6; g.strokeRect(3,3,122,70);
     g.fillStyle="#6b4a2e"; g.font="900 26px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(prem?"⭐ 좋은 땅":"🏠 빈 땅",64,40); const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding;
     const plain=MC(prem?0xffd23f:0xfff3d6), face=new THREE.MeshStandardMaterial({map:t, roughness:.9}); return LOTM[k]=[plain,plain,plain,plain,face,face]; }
+  /* (v714) 🐢 옛 아이패드 — 「빈 땅」 판이 재질 6개짜리라 판 하나에 그리기 6번(+그림자 6번) · 빈 땅 30곳이면 섬 그림자 그리기의 대부분
+     → 옆면도 같은 그림의 바탕색 자리를 보게(UV) 해서 재질 1개 · 종류(보통/좋은 땅)마다 한 덩어리 = 그리기 2번 */
+  const BOARDS={n:[], p:[]};
+  const BDGEO=()=>geo_("lotBd1",()=>{ const g=new THREE.BoxGeometry(.62,.36,.06), uv=g.attributes.uv; for(let gi=0;gi<4;gi++){ const gr=g.groups[gi]; for(let k=gr.start;k<gr.start+gr.count;k++) uv.setXY(g.index.getX(k), .5, .86); } g.clearGroups(); return g; });
+  function mergeBoards(){ ["n","p"].forEach(k=>{ const L=BOARDS[k]; if(!L.length) return; const m=mergeList(L, {mat:lotMat(k==="p")[4]}); m.userData.boards=k; G.add(m); L.length=0; }); }
+  /* (v714) 🐢 움직이지 않는 묶음(다리 판자·기둥 · 가게 차양 · 무대 · 선착장 …)은 조각마다 따로 그려서 다리 하나에 그리기 186번 → 꼭짓점 색 한 덩어리
+     · 재질 그림·투명·빛남·따로 누르기 막은 것(불꽃 등)·이름표가 붙은 조각은 그대로 둠 · 집·건물(흐려지는 것)·마을 사람·참조되는 묶음은 손대지 않음 */
+  function bakeStatic(){ const keep=new Set(); Object.values(G.userData).forEach(v=>[].concat(v).forEach(o=>{ if(o && o.isObject3D) for(let q=o;q&&q!==G;q=q.parent) keep.add(q); }));
+    G.children.slice().forEach(P=>{ if(P.isMesh || P.isSprite || !P.userData.noFade || P.userData.solo || P.name || keep.has(P) || P===GLOW || P===FLD || P.children.length<3) return; if(Object.keys(P.userData).some(k=>k!=="noFade")) return;
+      if(P.children.some(m=>!m.isMesh || m.children.length)) return;
+      const B={c:[], n:[]}; P.children.slice().forEach(m=>{ const t=m.material; if(!t || Array.isArray(t) || !t.isMeshStandardMaterial || t.map || t.transparent || t.vertexColors || t.side!==THREE.FrontSide || (t.emissive && t.emissive.getHex()) || Object.prototype.hasOwnProperty.call(m,"raycast") || Object.keys(m.userData).some(k=>k!=="noFade") || !m.geometry.attributes.normal || m.isInstancedMesh || !m.visible) return;
+        m.updateMatrix(); (m.castShadow?B.c:B.n).push({g:m.geometry, col:t.color.clone().convertLinearToSRGB().getHex(), m:m.matrix.clone(), o:m}); });
+      ["c","n"].forEach(k=>{ const L=B[k]; if(L.length<2) return; L.forEach(e=>P.remove(e.o)); const mm=vcMerge(L.map(e=>({g:e.g, col:e.col, m:e.m}))); mm.castShadow=k==="c"; mm.receiveShadow=true; mm.userData.baked=L.length; P.add(mm);
+        L.forEach(e=>{ if(!Object.values(GEO).includes(e.g)) e.g.dispose(); }); }); }); }
   function drawLots(){ owners();
     const gPad=geo_("pad",()=>{ const g=new THREE.PlaneGeometry(LOT,LOT); g.rotateX(-Math.PI/2); return g; }), gEd=geo_("ped",()=>{ const g=new THREE.RingGeometry(LOT*.66,LOT*.72,4,1); g.rotateZ(Math.PI/4); g.rotateX(-Math.PI/2); return g; });
     lots.forEach(L=>{ prim(gPad, L.owner?PAD:(L.prem?0xf3dc9a:PADE), L.x,.008,L.z,{flat:1}); prim(gEd, L.owner?0x6fae58:(L.prem?0xe0b040:0xc9a46a), L.x,.012,L.z,{flat:1});
       if(L.owner){ L.style=styleOf(L); L.tier=tierLot(L); L.fl=floorsLot(L); L.obj=houseObj(L); cols.push([L.x+OX,L.z+OZ,.9]); lotDeco(L);
         if(L.me){ const st=mesh(new THREE.OctahedronGeometry(.32), 0xffd23f, L.x,3.0,L.z,{basic:1,nocast:1}); G.userData.star=st; } }
-      else { prim(geo_("lotPost",()=>new THREE.CylinderGeometry(.05,.05,.8,6)), 0x8a5a34, L.x,.4,L.z); const b=new THREE.Mesh(geo_("lotBd",()=>new THREE.BoxGeometry(.62,.36,.06)), lotMat(L.prem)); b.position.set(L.x+OX,.82,L.z+OZ); b.rotation.y=L.face; b.castShadow=true; G.add(b); cols.push([L.x+OX,L.z+OZ,.2]); } });   /* (v575) 점검: 글씨 없는 흰 판 → 「빈 땅」 그림 (판 한 장 · 기둥은 합침) */
+      else { prim(geo_("lotPost",()=>new THREE.CylinderGeometry(.05,.05,.8,6)), 0x8a5a34, L.x,.4,L.z); BOARDS[L.prem?"p":"n"].push({g:BDGEO(), m:new THREE.Matrix4().compose(new THREE.Vector3(L.x+OX,.82,L.z+OZ), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), L.face), new THREE.Vector3(1,1,1))}); cols.push([L.x+OX,L.z+OZ,.2]); } });   /* (v575) 점검: 글씨 없는 흰 판 → 「빈 땅」 그림 (판 한 장 · 기둥은 합침) · (v714) 판도 종류마다 한 덩어리 */
     myHouse=lots.find(L=>L.me)||null;
     lots.forEach(L=>{ if(L.obj) L.obj.userData.lot=L; }); }
   /* (v535) 집 둘레 꾸밈 — 단계마다 하나씩 늘어남 (모두 땅 칸 안 · 걷는 길은 그대로) */
@@ -658,12 +672,12 @@ const ISLE=(()=>{
     MAP.hoods.slice(0,HN).forEach((h)=>laneTrees(h)); MAP.hoods.slice(HN).forEach(h=>laneTrees(h));
     // 동네 길 가로등 (땅 사이 틈)
     MAP.hoods.slice(0,HN).forEach(h=>{ const Cc=MAP.curve(h.p); for(let k=0;k<MAP.PER-1;k+=2){ const s=h.s0+(k+.5)*MAP.GAP, A=MAP.at(Cc.Q,Cc.L,s), sd=(k/2)%2?1:-1; kk("city","streetlight",A.x-A.tz*sd*1.45,A.z+A.tx*sd*1.45,{s:.85,chunk:"m",col:.15}); } });
-    const LOWD=typeof LOW!=="undefined" && LOW; trees(C,LOWD?520:950,"m"); ISX.forEach(I=>{ if(I.k==="beach") return; trees(I, Math.round(I.R*I.R*(LOWD?.45:.8)), "m"); });   /* 느린 기기 = 나무 줄임 */
+    const LOWD=typeof LOW!=="undefined" && LOW, OLDD=typeof OLDDEV!=="undefined" && OLDDEV; trees(C,OLDD?320:LOWD?520:950,"m"); ISX.forEach(I=>{ if(I.k==="beach") return; trees(I, Math.round(I.R*I.R*(OLDD?.28:LOWD?.45:.8)), "m"); });   /* 느린 기기 = 나무 줄임 · (v714) 옛 아이패드 = 더 줄임 (나무 꼭짓점이 섬의 1/3) */
     drawLots(); if(MAP.fields) fieldsBuild();
     if(myHouse){ const dx=Math.sin(myHouse.face), dz=Math.cos(myHouse.face); SPOT.home=[myHouse.x+OX+dx*1.25,1.3,myHouse.z+OZ+dz*1.25]; SPOT.homeIn=[myHouse.x+OX+dx*1.0,myHouse.z+OZ+dz*1.0]; }
-    rocks(C, 200, "m"); bushes(C, 160, "m"); ISX.forEach(I=>{ rocks(I, Math.round(I.R*1.5), "m"); bushes(I, Math.round(I.R*1.2), "m"); }); clouds();
+    { const q=OLDD?.6:1; rocks(C, Math.round(200*q), "m"); bushes(C, Math.round(160*q), "m"); ISX.forEach(I=>{ rocks(I, Math.round(I.R*1.5*q), "m"); bushes(I, Math.round(I.R*1.2*q), "m"); }); } clouds();
     // 풀포기 · 들꽃 — (v536) 12칸 구역마다 (화면 밖은 안 그림)
-    { const cells={}, CS=24; ISL.forEach(I=>{ for(let k=0;k<I.R*I.R*((typeof LOW!=="undefined" && LOW)?.4:.75);k++){ const a=rnd()*6.28, r=Math.sqrt(rnd())*rr(I,a)*.95, x=I.cx+Math.cos(a)*r, z=I.cz+Math.sin(a)*r; if(water(x,z) || onPave(x,z,.1)) continue; const key=Math.floor(x/CS)+"_"+Math.floor(z/CS); (cells[key]=cells[key]||[]).push([x,z,rnd()]); } });
+    { const cells={}, CS=24; ISL.forEach(I=>{ for(let k=0;k<I.R*I.R*(OLDD?.25:(typeof LOW!=="undefined" && LOW)?.4:.75);k++){ const a=rnd()*6.28, r=Math.sqrt(rnd())*rr(I,a)*.95, x=I.cx+Math.cos(a)*r, z=I.cz+Math.sin(a)*r; if(water(x,z) || onPave(x,z,.1)) continue; const key=Math.floor(x/CS)+"_"+Math.floor(z/CS); (cells[key]=cells[key]||[]).push([x,z,rnd()]); } });
       const g0=new THREE.ConeGeometry(.05,.24,3); g0.translate(0,.11,0); const f0=new THREE.IcosahedronGeometry(.075,0), d=new THREE.Object3D(), col=new THREE.Color();
       Object.keys(cells).forEach(key=>{ const gs=cells[key], [ci,cj]=key.split("_").map(Number), cx=(ci+.5)*CS, cz=(cj+.5)*CS, sph=new THREE.Sphere(new THREE.Vector3(0,.2,0), CS*.75);
         const geo=g0.clone(); geo.boundingSphere=sph; const im=new THREE.InstancedMesh(geo, MC(0x5aa845), gs.length*3); im.position.set(cx+OX,0,cz+OZ); im.frustumCulled=true; /* (v608) three r128 은 InstancedMesh 를 기본으로 안 걸러서(늘 그림) 풀 덩어리 147개가 다 그려지던 것 → 칸마다 둥근 범위로 거름 */ let k=0;
@@ -671,8 +685,11 @@ const ISLE=(()=>{
         const fl=gs.filter(g=>g[2]<.4); if(!fl.length) return; const fg=f0.clone(); fg.boundingSphere=sph.clone(); const fm=new THREE.InstancedMesh(fg, MC(0xffffff), fl.length); fm.position.set(cx+OX,0,cz+OZ); fm.frustumCulled=true;
         fl.forEach(([x,z,r],i)=>{ d.position.set(x-cx+.15,.08,z-cz-.1); d.rotation.set(0,r*6,0); d.scale.setScalar(1); d.updateMatrix(); fm.setMatrixAt(i,d.matrix); fm.setColorAt(i,col.set([0xff7aa8,0xffd23f,0xffffff,0xb28dff][Math.floor(r*97)%4])); }); G.add(fm); }); }
     for(let i=0;i<10;i++){ const a=i/10*6.283+0.3, d=(MAP.farR||95)+rnd()*30; kk("nature",["mountain_A_grass_trees","mountain_B_grass_trees","hills_A_trees","hills_C_trees"][i%4],Math.cos(a)*d,Math.sin(a)*d,{s:1.6+rnd(),y:-0.76,chunk:"far",cast:false}); }
-    merge(); mergeP(); walkmap(); lampGlow();
+    merge(); mergeP(); mergeBoards(); walkmap(); lampGlow();
     G.children.forEach(o=>{ if(!o.userData.solo) o.userData.noFade=1; });
+    bakeStatic();
+    /* (v714) 옛 아이패드 메모리 — 큰 덩어리의 법선·UV·꼭짓점 색은 GPU 에 올린 뒤 JS 쪽 사본을 버림 (위치·순서는 가림 검사·누르기에 그대로 씀) · 그래픽이 끊겼다 돌아오면 다시 시작 카드 */
+    if(OLDD) G.children.forEach(c=>{ if(!c.isMesh || c.isInstancedMesh || !c.geometry || !c.geometry.attributes.position || c.geometry.attributes.position.count<2000) return; ["normal","uv","color"].forEach(k=>{ const a=c.geometry.attributes[k]; if(a) a.onUpload(function(){ this.array=null; }); }); });
     setTimeout(syncMine, 600);
     G.userData.at=Date.now(); onB.forEach(f=>{ try{ f(); }catch(e){ console.warn(e); } }); try{ TOON.scan(G); }catch(e){} dirty=true; }
   /* 다시 짓기 (땅을 옮겼을 때) */

@@ -415,7 +415,7 @@ function start(api){
     for(let i=TM.length-1;i>=0;i--){ TM[i].t-=dt; if(TM[i].t<=0){ const f=TM[i].fn; TM.splice(i,1); try{ f(); }catch(e){ console.warn("DW", e); } } }
     if(mode==="solo" && S && !S.wait){ S.t+=dt; const step=fast?.05:TILE_T; while(S.t>=step*(S.pop+1) && S.pop<12) popTile(); bar((S.done+1)+" / "+S.n, "⭐ "+S.sc, 1-S.pop/12); }
     if(RM) coTick(dt); }
-  function dispose(){ gone=true; TM.length=0; window.removeEventListener("keydown", onKey); try{ if(RM) RM.dispose(); }catch(e){} RM=null; try{ R.remove(); }catch(e){} }
+  function dispose(){ gone=true; TM.length=0; try{ avFree(PSc); }catch(e){} window.removeEventListener("keydown", onKey); try{ if(RM) RM.dispose(); }catch(e){} RM=null; try{ R.remove(); }catch(e){} }
   if(O.go==="solo") startSolo(); else menuShow();
   ready=true;
   return {scene, cam, tick, render:rn=>{ try{ porRender(rn); }catch(e){} }, dispose, pause:v=>{ paused=!!v; },

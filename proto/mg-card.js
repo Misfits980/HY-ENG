@@ -109,7 +109,7 @@ function start(api){
   const SEATS=[];
   [-.6,0,.6].forEach((ang,j)=>{ const L=j+1, d=TR+.5, x=Math.sin(ang)*d, z=-Math.cos(ang)*d, G=new THREE.Group(); G.position.set(x,0,z); G.rotation.y=Math.atan2(-x,-z); scene.add(G); chair(G);
     const hand=new THREE.Group(); hand.position.set(0,.8,.42); hand.rotation.x=-.5; G.add(hand); SEATS[L]={L, G, P:null, hand, n:-1, bk:"", t:Math.random()*6, actT:0, avK:""}; });
-  function seatAv(L, av){ const s=SEATS[L], k=JSON.stringify(av||{}); if(s.avK===k && s.P) return; s.avK=k; if(s.P){ s.G.remove(s.P.g); s.P=null; }
+  function seatAv(L, av){ const s=SEATS[L], k=JSON.stringify(av||{}); if(s.avK===k && s.P) return; s.avK=k; if(s.P){ s.G.remove(s.P.g); try{ avFree(s.P); }catch(e){} s.P=null; }
     try{ const P=buildAvatar(av||{}); P.g.scale.setScalar(1.08); P.g.position.set(0,.25-(typeof AVB!=="undefined"?AVB.leg*1.08:0),-.02);   /* (v660) 다리가 길어진 만큼 내려 앉힘 */  s.G.add(P.g); P.legL.rotation.x=P.legR.rotation.x=-1.45; arms(P,"hold"); P.expr0=(av&&av.expr)||"smile"; s.P=P; }catch(e){ console.warn("CP av", e); } }
   const backPG=G3(new THREE.PlaneGeometry(CW*.62,CH*.62)), backBM=MS(0xfff8ea,{side:THREE.BackSide}), FANM={};
   function fanMat(bk){ if(FANM[bk]) return FANM[bk]; const m=new THREE.MeshStandardMaterial({map:faceMat(null,bk).map,roughness:.6}); disp.push(m); return FANM[bk]=m; }
@@ -528,7 +528,7 @@ function start(api){
       try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,PC); porG.clearRect(0,0,porCv.width,porCv.height); porG.drawImage(rn.domElement,0,rn.domElement.height-porCv.height,porCv.width,porCv.height,0,0,porCv.width,porCv.height); }catch(e){}
       rn.setScissorTest(false); const c=rn.domElement; rn.setViewport(0,0,c.width/rn.getPixelRatio(),c.height/rn.getPixelRatio()); }
     MG.draw(scene, cam); }
-  function dispose(){ gone=true; TM.length=0; FLY.length=0; Q.length=0; coachClear(); try{ if(RM) RM.dispose(); }catch(e){} try{ U.classList.remove("cpOn"); HUD.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); TEX.forEach(e=>{ try{ e.t.dispose(); e.m.dispose(); }catch(_){} }); TEX.clear(); }
+  function dispose(){ gone=true; TM.length=0; FLY.length=0; Q.length=0; coachClear(); try{ avFree(PSc); }catch(e){}   /* (v714) 얼굴 사진 장면의 합친 아바타 도형 */ try{ if(RM) RM.dispose(); }catch(e){} try{ U.classList.remove("cpOn"); HUD.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); TEX.forEach(e=>{ try{ e.t.dispose(); e.m.dispose(); }catch(_){} }); TEX.clear(); }
   return {scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, G, SEATS, ST, CARD, okC, get phase(){ return phase; }, get ME(){ return ME; }, get HOST(){ return HOST; }, get RM(){ return RM; }, get TUT(){ return TUT; }, get coach(){ return Object.assign({}, COACH); },
     get auto(){ return auto; }, set auto(v){ auto=!!v; if(auto && isMyTurn()) later(.1, autoMove); }, set fast(v){ fast=v?1:0; FASTX=!!v; }, get fast(){ return !!fast; }, get ready(){ return ready; },
     tapCard, myDraw:()=>input(G.drew && G.pend<=0?"pass":"draw"), callOne:()=>input("one"), menuGo, menuShow, cmd, drawHand, isMyTurn, missList, SET, input}; }

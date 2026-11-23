@@ -137,9 +137,9 @@ function start(api){
   OPP.G.position.set(0,0,-1.35); OPP.G.scale.setScalar(.72); scene.add(OPP.G);
   { const cm=MS(0xff8a3d), cd=MS(0xb0561c); const B=(w,h,d,x,y,z,m)=>{ const q=new THREE.Mesh(GE(new THREE.BoxGeometry(w,h,d)), m); q.position.set(x,y,z); q.castShadow=!LOW; OPP.G.add(q); };
     B(.56,.07,.52,0,.95,0,cm); B(.56,.55,.07,0,1.26,-.24,cm); [[-.23,-.21],[.23,-.21],[-.23,.21],[.23,.21]].forEach(([x,z])=>B(.06,.95,.06,x,.47,z,cd)); B(.5,.04,.04,0,.35,.21,cd); B(.5,.04,.04,0,.35,-.21,cd); }
-  function oppAv(av){ const k=JSON.stringify(av||{}); if(OPP.avK===k && OPP.P) return; OPP.avK=k; if(OPP.P){ OPP.G.remove(OPP.P.g); OPP.P=null; }
+  function oppAv(av){ const k=JSON.stringify(av||{}); if(OPP.avK===k && OPP.P) return; OPP.avK=k; if(OPP.P){ OPP.G.remove(OPP.P.g); try{ avFree(OPP.P); }catch(e){} OPP.P=null; }
     try{ const P=buildAvatar(av||{}); P.g.scale.setScalar(1.08); P.g.position.set(0,.78-(typeof AVB!=="undefined"?AVB.leg*1.08:0),-.02);   /* (v660) 다리가 길어진 만큼 내려 앉힘 */  OPP.G.add(P.g); P.legL.rotation.x=P.legR.rotation.x=-1.45; P.armL.rotation.set(-.9,0,.25); P.armR.rotation.set(-.9,0,-.25); P.expr0=(av&&av.expr)||"smile"; OPP.P=P; }catch(e){ console.warn("C4 av", e); }
-    if(OPP_POR){ try{ PSc.remove(OPP_POR.g); }catch(e){} OPP_POR=null; } try{ OPP_POR=buildAvatar(av||{}); OPP_POR.g.position.x=6; PSc.add(OPP_POR.g); }catch(e){} }
+    if(OPP_POR){ try{ PSc.remove(OPP_POR.g); avFree(OPP_POR); }catch(e){} OPP_POR=null; } try{ OPP_POR=buildAvatar(av||{}); OPP_POR.g.position.x=6; PSc.add(OPP_POR.g); }catch(e){} }
   /* 얼굴 사진 (HUD) */
   const PSc=new THREE.Scene(); PSc.background=new THREE.Color(0x2b3a5a); PSc.add(new THREE.HemisphereLight(0xffffff,0x445566,.85)); { const l=new THREE.DirectionalLight(0xffffff,.55); l.position.set(.6,1.4,1.4); PSc.add(l); }
   const PCm=new THREE.PerspectiveCamera(26,1,.1,10); PCm.position.set(.05,1.0,1.75); PCm.lookAt(0,.88,0);
@@ -260,7 +260,7 @@ function start(api){
       try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,PC); o.g.clearRect(0,0,o.c.width,o.c.height); o.g.drawImage(rn.domElement,0,rn.domElement.height-o.c.height,o.c.width,o.c.height,0,0,o.c.width,o.c.height); }catch(e){}
       rn.setScissorTest(false); const c=rn.domElement; rn.setViewport(0,0,c.width/rn.getPixelRatio(),c.height/rn.getPixelRatio()); }); }
     MG.draw(scene, cam); }
-  function dispose(){ gone=true; TM.length=0; window.removeEventListener("keydown", onKey); try{ if(RM) RM.dispose(); }catch(e){} RM=null; try{ R.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); }
+  function dispose(){ gone=true; TM.length=0; try{ avFree(PSc); }catch(e){} window.removeEventListener("keydown", onKey); try{ if(RM) RM.dispose(); }catch(e){} RM=null; try{ R.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); }
   fitCam(); oppAv(botOf("normal").av); trays(); const O=api.opt||{}; if(O.go && LV[O.go]) menuGo(O.go); else menuShow(); ready=true;
   return {scene, cam, tick, render, dispose, pause:v=>{ paused=!!v; },
     get mode(){ return mode; }, get bd(){ return bd; }, get mv(){ return mv; }, get turn(){ return turn(); }, get me(){ return me; }, get over(){ return over; }, get win(){ return win; }, get ready(){ return ready; }, get RM(){ return RM; }, get falling(){ return FALL.length; }, get board(){ return board; }, get opp(){ return OPP; },
