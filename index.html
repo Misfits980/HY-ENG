@@ -3492,7 +3492,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 /* (v668) 긴 글 문제(대화·문장·뜻풀이): 가로 패드는 글 칸을 넓게 · 글은 위에서부터 · 휴대폰에서 넘치면 위 달리기 띠를 낮춤 (Battle.qFit) */
 @media (min-width:700px) and (min-height:700px){ #scRaid.on.btPad .rdQ.txt .rdPr{justify-content:flex-start;align-items:stretch} #scRaid.on.btPad .rdQ.txt .rdPr > .btPic{align-self:center} #scRaid.on.btPad .rdQ.txt .rdPr .stSent,#scRaid.on.btPad .rdQ.txt .rdPr .stDef{text-align:center;max-width:none;align-self:center} }
 @media (min-width:700px) and (min-height:700px) and (orientation:landscape){ #scRaid.on.btPad #rdB > .rdQ.txt{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)} #scRaid.on.btPad .rdQ.txt .rdPr{justify-content:center} }
-#scRaid.btTight #btStrip{height:92px} #scRaid.btTight .rdTop .rdRoom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0} #scRaid.btTight .rdTop .rdMe{white-space:nowrap} #scRaid.btTight .btTimer{margin-top:4px;margin-bottom:6px} #scRaid.btTight .rdQ .btPic.sm{font-size:34px;margin-bottom:0} #scRaid.btTight .rdQ .btPic.sm img.emj{width:38px;height:38px}
+#scRaid.btTight #btStrip{height:92px} #scRaid.on.btPad.btTight #btStrip{height:12vh}   /* (v715) 패드도 칸이 모자라면 띠를 낮춤 (Battle.qFit) */ #scRaid.btTight .rdTop .rdRoom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0} #scRaid.btTight .rdTop .rdMe{white-space:nowrap} #scRaid.btTight .btTimer{margin-top:4px;margin-bottom:6px} #scRaid.btTight .rdQ .btPic.sm{font-size:34px;margin-bottom:0} #scRaid.btTight .rdQ .btPic.sm img.emj{width:38px;height:38px}
 /* (v656) 🏫 수업 게임 끝 — TV 아래 한 줄 · 선생님 방 기록 */
 #clsBar{position:fixed;left:50%;bottom:calc(68px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:330;display:flex;align-items:center;flex-wrap:wrap;gap:6px 18px;max-width:min(96vw,1500px);padding:10px 46px 10px 18px;border-radius:18px;background:rgba(20,16,44,.94);border:2px solid #ffd23f;color:#fff;font:700 clamp(13px,1.15vw,20px) var(--font);box-shadow:0 8px 28px rgba(0,0,0,.5);animation:clsUp .35s ease-out}
 @keyframes clsUp{from{transform:translate(-50%,30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
@@ -18362,7 +18362,8 @@ const Study = (function(){
   const olyOn=(set,x)=> !!(x && x.fin && x.pn && SPLIT[set]);
   /* (v333) 사용자 기준: 시험은 보카 올림피아드 양식 — G1-2 = Pre-Starter · G3-4 = Starter · G5-6 = Basic · 중등(중등 단어·voca 1·리딩) = Junior
      (예전 v301 은 G1-2 = Starter · G3-4 = Pre-Starter 로 뒤바뀌어 있었고 중등 단어는 Basic 이었음) */
-  const olyProf=set=> { const b=bookOf(set); return b==="g12" || b==="k" ? "ps" : b==="g34" ? "st" : b==="mid" ? "jr" : "ba"; };
+  /* (v715) 유치부(k) = 따로 — 사용자(교실 배틀 사진): 「유치부 애들이 문장 풀 수 있어? 뜻 없이?」 → 문장·대화 빈칸 없음 (아래 buildOly P==="k") */
+  const olyProf=set=> { const b=bookOf(set); return b==="k" ? "k" : b==="g12" ? "ps" : b==="g34" ? "st" : b==="mid" ? "jr" : "ba"; };
   function sentsOf(w){
     const re=new RegExp("\\b("+w.en.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")\\b","i"), E=EASY[w.en], L=[];
     let D=null; try{ D=DexData.of(w.en); }catch(e){}
@@ -18388,7 +18389,12 @@ const Study = (function(){
     const sameEmo=w=>x=>!!(w.emoji && x.emoji===w.emoji), bopts=(w, pic)=>{ const b=blankAvoid(w); return opts(w, pic ? (x=>b(x) || pic(x)) : b); };
     /* (v258) 시간 = 보카 올림피아드 표 (문제당 초): Pre Starter·Starter A 7 · B 8 · C 11 / Basic·Junior A 7 · B 10 · C 12 */
     const A=[], B=[], C=[];
-    if(P==="ps" || P==="st"){
+    if(P==="k"){   /* (v715) 유치부: A 🖼️ 그림 보고 단어 (그림 있는 단어) · B 🔊 듣고 단어 (소리 나는 기기만 · 소리 같은 말 보기에서 뺌) · C 🔤 뜻 보고 단어 — 글은 낱말 하나만 */
+      const nL = canHear() ? Math.max(1, Math.round(n*.35)) : 0;
+      pick(w=>!!w.emoji, n-nL-Math.max(1, Math.round(n*.15))).forEach(w=>A.push({t:"opic", w, opts:opts(w, sameEmo(w)), sec:9}));
+      pick(all, nL).forEach(w=>B.push({t:"listen", w, opts:opts(w, x=>homo(x.en, w.en)), sec:10}));
+      pick(all, n).forEach(w=>C.push({t:"k2e", w, opts:opts(w), sec:10}));
+    } else if(P==="ps" || P==="st"){
       pick(w=>w.emoji && n1(w), nC).forEach(w=>C.push(tq(w, {opic:1, sec:11})));
       pick(n1, nC-C.length).forEach(w=>C.push(tq(w, {sec:11})));
       pick(w=>!!w.emoji, n-nC-nB).forEach(w=>A.push({t:"opic", w, opts:opts(w, sameEmo(w)), sec:7}));
@@ -20337,7 +20343,7 @@ const StudyUI = {
     let q=this.qs[this.i]; if(!q){ this.finish(true); return; }
     try{ if(GNote.gate(this, q)){ q=this.qs[this.i]; this.total=Math.max(1, this.qs.filter(x=>x.t!=="intro").length); } }catch(e){ console.error(e); }   // (v555) ① 처음 만나는 문법은 카드 먼저
     try{ this.cardT(q); }catch(e){}   // (v600) 단어·뜻·문장 카드를 얼마나 보고 넘기는지 (시트 「단어 카드 · 끝까지 본 카드 · 카드 평균(초)」)
-    if(q.t==="listen" && !Voice.canListen()) q.t="e2k";                 // 소리가 안 나는 기기 — 듣기 문제는 글자로
+    if(q.t==="listen" && !Voice.canListen()){ let k=false; try{ k=Study.bookOf(this.set)==="k"; }catch(e){} q.t = k ? "k2e" : "e2k"; }   // 소리가 안 나는 기기 — 듣기 문제는 글자로 · (v715) 유치부는 한글 뜻 → 영어 (영어 문장·뜻 고르기보다 쉬움)
     this.saveCur();
     this.bar(); this.sel=null; this.locked=false;
     try{ $("scStudy").classList.toggle("dpL", (q.t==="intro" && q.hd==="deep") || String(q.tg||"").indexOf("💜")===0); }catch(e){}   // (v334) 보라 별 판은 보라 막대·테두리
@@ -20345,7 +20351,7 @@ const StudyUI = {
     const w=q.w, pic=(w.emoji && !q.chk && !q.oly && !q.once && !q.kn && !q.sure)?'<div class="stPic">'+w.emoji+'</div>':'';   // (v301) 확인·시험은 그림 힌트 없음
     let h=""; this._qAt=Date.now();
     if(q.t==="intro" && q.hd==="oly"){                                   // (v257) 🚩 마지막 시험 안내
-      const nm = (q.P==="ps"||q.P==="st") ? ["🖼️ 그림 보고 단어 고르기","🔤 뜻 보고 단어 고르기","💬 그림과 대화 빈칸"] : (q.P==="jr"||q.P==="hj") ? ["🔤 뜻 보고 단어 고르기","📝 한글 문장 보고 빈칸 채우기","📝📝 두 문장의 빈칸"] : ["🔤 뜻 보고 단어 고르기","💬 대화 빈칸","📝📝 두 문장의 빈칸"];
+      const nm = q.P==="k" ? ["🖼️ 그림 보고 단어 고르기","🔊 듣고 단어 고르기","🔤 뜻 보고 단어 고르기"] : (q.P==="ps"||q.P==="st") ? ["🖼️ 그림 보고 단어 고르기","🔤 뜻 보고 단어 고르기","💬 그림과 대화 빈칸"] : (q.P==="jr"||q.P==="hj") ? ["🔤 뜻 보고 단어 고르기","📝 한글 문장 보고 빈칸 채우기","📝📝 두 문장의 빈칸"] : ["🔤 뜻 보고 단어 고르기","💬 대화 빈칸","📝📝 두 문장의 빈칸"];
       h='<div class="stKind">'+(q.ex ? '📝 '+this.esc(q.exT||'시험') : '🚩 마지막 시험')+'</div><div class="stCard oly"><div class="stWuT">'+q.n+'문제 · 문제마다 ⏱ 시간 제한</div><div class="stWuS">'+(q.ex ? '틀려도 다시 나오지 않아요 · 한 번만 볼 수 있어요 · 끝나면 선생님께 점수가 가요' : '틀려도 다시 나오지 않아요 · 50점 넘으면 Stage 완성!')+'</div>'
         +'<div class="olyL">'+(()=>{ let L=0; return [q.na,q.nb,q.nc].map((c,k)=>c?'<span><b>'+String.fromCharCode(65+(L++))+'</b>'+nm[k]+' <i>'+c+'</i></span>':'').join(""); })()   /* (v503) 빈 묶음을 빼고 A·B·C 다시 매김 */+'</div></div>';
       f.innerHTML='<button class="stCheck go" id="stCheck">시험 시작 ▶</button>';
@@ -24711,7 +24717,7 @@ Object.assign(Paper, {
    아이 기기는 계속 붙어 있지 않음 — 첫 화면·Daily 30 에서 GET (평소 38초 · '곧 시작' 이면 3.5초). 선생님 관리 화면만 결과를 실시간(listen). */
 const HyExam = {
   L:[], c:null, _at:0, _pop:{}, _lh:{}, _R:{},
-  P_NM:{ps:"Pre-Starter",st:"Starter",ba:"Basic",jr:"Junior",hj:"High Junior"},
+  P_NM:{k:"유치부 (그림·듣기·뜻 · 문장 없음)",ps:"Pre-Starter",st:"Starter",ba:"Basic",jr:"Junior",hj:"High Junior"},
   me(){ let m=null; try{ m=Kid.me(); }catch(e){} if(m) return m;
     let d="", n=""; try{ d=localStorage.getItem("hyeng_dev")||""; n=localStorage.getItem("hyeng_nick")||""; }catch(e){}
     let roster=false; try{ roster=Object.keys(HyBoss.kids()).length>0; }catch(e){} if(roster || !d) return null;   // 명단이 있으면 이름을 골라야
@@ -24775,7 +24781,7 @@ const HyExam = {
     if(me) FB.update("/hy/exam/res/"+c.id+"/"+me.id, {sc, ok, tot, p:Q.filter(q=>q._r!=null).length, sec, ab, miss:miss.slice(0,40).join(", "), fin:1, end:Date.now()});
     try{ if(me) localStorage.setItem(this.dk(c.id, me.id), String(sc)); }catch(e){}
     try{ if(me && this._dy!==c.id+me.id){ this._dy=c.id+me.id; HyDay.add({c:1, ce:1}, null, me); } }catch(e){}   // (v354) 📅 오늘 한 아이
-    const E=x=>Raid.esc(x), NM={A:"🔤 뜻 보고 단어", B:"📝 빈칸 문장", C:"📝📝 두 문장 · 대화"}, gr = sc>=90 ? "🌟✨ 아주 잘했어요!" : sc>=80 ? "🌟 잘했어요!" : sc>=50 ? "👍 통과!" : "📕 틀린 단어를 다시 봐요";
+    const E=x=>Raid.esc(x), NM=c.P==="k" || (U.qs[0] && U.qs[0].P==="k") ? {A:"🖼️ 그림 보고 단어", B:"🔊 듣고 단어", C:"🔤 뜻 보고 단어"} : {A:"🔤 뜻 보고 단어", B:"📝 빈칸 문장", C:"📝📝 두 문장 · 대화"},   /* (v715) 유치부 */ gr = sc>=90 ? "🌟✨ 아주 잘했어요!" : sc>=80 ? "🌟 잘했어요!" : sc>=50 ? "👍 통과!" : "📕 틀린 단어를 다시 봐요";
     U.view("stDone");
     $("stDoneIn").innerHTML='<div class="stBigT">📝 '+E(c.title||"시험")+'</div><div class="exScore"><b>'+sc+'</b><small>점</small></div><p>'+gr+(full===false && Q.some(q=>q._r==null) ? ' · 안 푼 문제는 틀린 것으로 셌어요' : '')+'</p>'
       +'<div class="stStat"><div><b>'+ok+' / '+tot+'</b><small>맞힘</small></div><div><b>'+sec+'초</b><small>걸린 시간</small></div></div>'
@@ -24812,7 +24818,7 @@ const HyExam = {
     /* (v629) 🖨 종이 시험지 버튼은 📝 숙제·시험 탭 맨 위 줄로 (단어 · 생활영어 · 문법 · 따라쓰기) */
     h+='<section class="adCard"><h3>📚 지난 시험<small>눌러서 결과 보기</small></h3><div id="adExHist" class="exHist"><p class="adSmall">불러오는 중…</p></div><div id="adExRes" class="exRes"></div></section>';
     return h; },
-  timeTbl(P){ return P==="hj" ? "A 7초 · B 12초 · C 15초" : (P==="ps"||P==="st") ? "A 7초 · B 8초 · C 11초" : "A 7초 · B 10초 · C 12초"; },
+  timeTbl(P){ return P==="k" ? "A 그림 9초 · B 듣기 10초 · C 뜻 10초" : P==="hj" ? "A 7초 · B 12초 · C 15초" : (P==="ps"||P==="st") ? "A 7초 · B 8초 · C 11초" : "A 7초 · B 10초 · C 12초"; },
   shownKey(){ return this.L.map(c=>c.id+":"+c.st).join("|"); },
   wire(redraw){ const s=$("adExSet"); this._shown=this.shownKey();
     if(redraw && Date.now()-this._at>4000) this.check(true).then(()=>{ if(this.shownKey()!==this._shown && document.querySelector("#adExSet,#adExRes")) redraw(); });
@@ -28757,11 +28763,11 @@ const Battle = { CHEST:(navigator.webdriver && !window.HY_CHEST) ? 0 : 1/7,
     return shuffle(out).slice(0,3); },
   /* (v351) 사용자: 레이스 대결도 시험 기준 형태로 나올 줄 알았는데 쉽게 나옴 → 📝 시험처럼 (cfg.lvl="exam", 새 방 기본) = 시험과 같은 올림피아드 문제
      (A 그림 보고 영어·뜻 보고 영어 · B 대화·문장 빈칸 · C 두 문장 빈칸), 문제마다 시험과 같은 시간(q.sec) — 넘기면 틀린 것. 같은 단어 묶음 · 순서만 각자. 예전 방(lvl 없음)은 🎈 쉽게 */
-  EXT:["opic","k2e","talk","sent","sent2"],
+  EXT:["opic","k2e","talk","sent","sent2","listen"],   /* (v715) listen = 유치부 🔊 듣고 단어 (Study.buildOly P "k") */
   dataOk(){ try{ return [1,2,3].every(b=>DexData.st[b]==="ok" || DexData.st[b]==="err") && Object.keys(TALK).length>0; }catch(e){ return true; } },
   examQ(){ const c=this.cfg(); if(this._eq && !this._eqFull && this.dataOk()) this._eq=null;   // 예문·대화 자료가 늦게 오면 B·C 문제가 들어가게 다시 만듦
     if(!this._eq || !this._eq.length){ this._eqFull=this.dataOk(); if(!this._eqFull) try{ HyExam.ready(); }catch(e){} let qs=null; try{ qs=Study.buildExam({set:c.set||"elem", ws:this.words().map(w=>w.en)}); }catch(e){}
-      qs=(qs||[]).filter(q=>this.EXT.indexOf(q.t)>=0 && q.w && q.opts && q.opts.length>=2 && q.opts.some(o=>o && o.en===q.w.en) && (q.t!=="opic" || q.w.emoji) && (q.t!=="talk" || (q.tk && q.tk.lines)) && (q.t!=="sent" || q.st) && (q.t!=="sent2" || (q.sts && q.sts.length>=2)));
+      qs=(qs||[]).filter(q=>this.EXT.indexOf(q.t)>=0 && q.w && q.opts && q.opts.length>=2 && q.opts.some(o=>o && o.en===q.w.en) && (q.t!=="opic" || q.w.emoji) && (q.t!=="listen" || Voice.canListen()) && (q.t!=="talk" || (q.tk && q.tk.lines)) && (q.t!=="sent" || q.st) && (q.t!=="sent2" || (q.sts && q.sts.length>=2)));
       if(qs.length<3) return null;
       /* (v351) 사용자: 레이스 문제가 예문 식으로 안 나옴 → 문장 문제(대화·문장 빈칸)를 섞음
          (v352) 사용자: 3문제 중 2문제는 너무 빡셈 → 5문제 중 2문제 (단어·문장·단어·문장·단어 …) · 한쪽이 떨어지면 줄 끝 → 새로 만듦 */
@@ -29067,21 +29073,23 @@ const Battle = { CHEST:(navigator.webdriver && !window.HY_CHEST) ? 0 : 1/7,
         : q.t==="gap" ? '<div class="stKo">'+E(q.w.ko)+'</div><div class="stEn btGap">'+E(q.gap).replace("_",'<u>?</u>')+'</div>' : q.t==="ox" ? '<div class="stEn">'+E(q.w.en)+'</div><div class="stKo big">= '+E(q.ko)+' ?</div>'
         : (q.t==="pic" || q.t==="opic") && q.w.emoji ? '<div class="btPic">'+emoHtml(q.w.emoji)+'</div>'
         : q.t==="talk" && q.tk ? (q.opic && q.w.emoji ? '<div class="btPic sm">'+emoHtml(q.w.emoji)+'</div>' : '')+(q.tk.sit ? '<div class="stSit">📍 '+E(q.tk.sit)+'</div>' : '')+'<div class="stTalk">'+[0,1].map(k=>'<p><b>'+"AB"[k]+'</b><span>'+(k===q.tk.k ? E(q.tk.pre)+'<u>&nbsp;</u>'+E(q.tk.post) : E(q.tk.lines[k]))+'</span></p>').join('')+'</div>'
-        : q.t==="sent2" && q.sts ? q.sts.map(x=>'<div class="stSent s2">'+E(x.pre)+'<u>&nbsp;</u>'+E(x.post)+'</div>').join('') : q.t==="lsn" ? '<button class="btLsn" data-btsay="'+E(q.w.en)+'">🔊 다시 듣기</button>' : '<div class="stEn">'+E(dispEn(q.w.en))+'</div>';
-      const kq = (q.exq && q.ab ? '<b class="btAB ab'+q.ab+'">'+q.ab+'</b> ' : '')+({e2k:'뜻을 골라요', spell:'올바른 철자를 골라요', gap:'빈칸에 들어갈 글자', ox:'맞으면 ⭕ 틀리면 ❌', pic:'그림에 맞는 영어', opic:'그림에 맞는 영어', talk:'💬 빈칸에 들어갈 단어', sent:'📝 빈칸에 들어갈 단어', sent2:'📝 두 빈칸에 똑같이 들어갈 단어', lsn:'듣고 뜻을 골라요', flash:'👀 잠깐 보이는 단어의 뜻은?', lsp:'🔊 듣고 올바른 철자'}[q.t] || '영어로 골라요')
+        : q.t==="sent2" && q.sts ? q.sts.map(x=>'<div class="stSent s2">'+E(x.pre)+'<u>&nbsp;</u>'+E(x.post)+'</div>').join('') : q.t==="lsn" || q.t==="listen" ? '<button class="btLsn" data-btsay="'+E(q.w.en)+'">🔊 다시 듣기</button>' : '<div class="stEn">'+E(dispEn(q.w.en))+'</div>';
+      const kq = (q.exq && q.ab ? '<b class="btAB ab'+q.ab+'">'+q.ab+'</b> ' : '')+({e2k:'뜻을 골라요', spell:'올바른 철자를 골라요', gap:'빈칸에 들어갈 글자', ox:'맞으면 ⭕ 틀리면 ❌', pic:'그림에 맞는 영어', opic:'그림에 맞는 영어', talk:'💬 빈칸에 들어갈 단어', sent:'📝 빈칸에 들어갈 단어', sent2:'📝 두 빈칸에 똑같이 들어갈 단어', lsn:'듣고 뜻을 골라요', listen:'🔊 듣고 영어를 골라요', flash:'👀 잠깐 보이는 단어의 뜻은?', lsp:'🔊 듣고 올바른 철자'}[q.t] || '영어로 골라요')
         +(q.zap ? ' <em class="btZap">⚡ 번개 문제 · 점수 3배</em>' : this.dbl() ? ' <em class="btDbl">🔥 2배 타임</em>' : '');
       const right = k => q.ans!=null ? k===q.ans : q.opts[k].en===q.w.en;
       h=(c.mode==="flag" ? this.flagHtml(false) : '')+'<div class="rdQ'+(q.zap?' zap':'')+(/^(talk|sent|sent2|def)$/.test(q.t)?' txt':'')+'"><div class="rdQK">'+kq+(this.streak>=2?' <em>🔥 '+this.streak+'연속</em>':'')+'</div>'+(q.exq ? '<div class="btQT"><i id="btQTi"></i></div>' : '')+'<div class="rdPr">'+pr+'</div><div class="rdOpts'+(q.t==="ox"?' ox':q.t==="gap"?' gap':'')+'" id="rdOpts">'
         +q.opts.map((o,k)=>'<button class="stOpt'+(q.done?(right(k)?' ok':k===q.pick?' bad':''):'')+'" data-btk="'+k+'">'+E(q.lab ? q.lab[k] : q.t==="e2k" ? o.ko : dispEn(o.en))+'</button>').join('')+'</div>'
         +(q.done && !q.ok ? '<div class="rdRes bad">'+(q.to ? '⏰ 시간 끝! ' : '')+'정답: '+E(dispEn(q.w.en))+' = '+E(q.w.ko)+(lock?' · 잠깐 쉬어요':'')+'</div>' : q.done && q.ok && q.gain ? '<div class="rdRes ok btGain">+'+q.gain+(q.zap?' ⚡3배':'')+(q.x2?' · 🎁 2배':'')+(q.fast?' · 빠름 +1':'')+(q.chest==="p"?' · <b class="btChest">🎁 +5</b>':q.chest==="x2"?' · <b class="btChest">🎁 다음 정답 2배!</b>':'')+'</div>' : '')+'</div>';
-      if((q.t==="lsn" || q.t==="lsp") && !q._said){ q._said=1; try{ DexDet.say(q.w.en); }catch(e){} } }
+      if((q.t==="lsn" || q.t==="lsp" || q.t==="listen") && !q._said){ q._said=1; try{ DexDet.say(q.w.en); }catch(e){} } }
     Raid.reg("rdB", h); Raid.reg("rdC", this.q && !this.ended && this.running() && c.mode!=="flag" ? this.liveHtml() : ""); try{ this.padFit(); }catch(e){} },
   /* (v665) 패드 큰 화면: 긴 낱말·긴 보기는 글자를 줄여 칸 안에 (새로 그려졌을 때만 한 번) */
   /* (v668) 긴 글 문제(💬 대화 · 📝 문장 · 뜻풀이)가 보기 단추에 가려지던 것 — 사용자 사진: 패드에서 B 문장 위에 보기가 겹침 「확보 안 했다는 뜻이지」
      글(.rdPr)이 제 자리를 넘으면: 그림 이모지 숨김 → 글 크기를 조금씩 줄임 (패드 1.4배 → 최소 0.9배 · 휴대폰 1 → 0.76) · 휴대폰은 먼저 위 달리기 띠를 낮춤(btTight) */
-  qFit(S, B){ S.classList.remove("btTight"); const Q=B.querySelector(".rdQ"); if(!Q) return; const P=Q.querySelector(".rdPr"), O=Q.querySelector(".rdOpts"); if(!P || !O || !O.children.length) return;
+  /* (v715) 사용자 사진(옛 아이패드 세로 · 친구 7명 = 순위 두 칸): 「그림이 없는데?」 — A 「그림에 맞는 영어」인데 그림 칸이 모자라 위 규칙이 그림을 숨겼음(문제 = 그림뿐인데)
+     → 그림 문제(pic·opic)는 그림을 절대 숨기지 않음 · 패드도 그림 문제면 먼저 위 달리기 띠를 낮춤(그 배틀 동안 그대로 — 문제마다 띠가 오르내리지 않게) · 그래도 모자라면 그림만 작게 (패드 .5배까지) */
+  qFit(S, B){ const pad0=S.classList.contains("btPad") && innerWidth>=700 && innerHeight>=700; if(!pad0 || S._ptR!==this.room) S.classList.remove("btTight"); const Q=B.querySelector(".rdQ"); if(!Q) return; const P=Q.querySelector(".rdPr"), O=Q.querySelector(".rdOpts"); if(!P || !O || !O.children.length) return;
     const kids=[...P.children].filter(e=>!e.matches(".stEn,.stKo,.btLsn")); if(!kids.length) return;   /* 낱말 하나짜리 = 아래 글자 줄이기가 맡음 */
-    const pad=S.classList.contains("btPad") && innerWidth>=700 && innerHeight>=700, land=innerWidth>innerHeight, z0=pad?1.4:1, zMin=pad?.9:.76, pic=P.querySelector(".btPic");
+    const pad=pad0, land=innerWidth>innerHeight, pic=P.querySelector(".btPic"), picQ=!!pic && !pic.classList.contains("sm"), z0=pad?1.4:1, zMin=picQ ? (pad?.7:.5) : pad?.9:.76;
     kids.forEach(e=>{ e.style.zoom=""; }); if(pic) pic.style.display="";
     const over=()=>{ const pr=P.getBoundingClientRect(), qr=Q.getBoundingClientRect(), or=[...O.children].map(x=>x.getBoundingClientRect()), pb=parseFloat(getComputedStyle(Q).paddingBottom)||0;
       let top=1e9, bot=-1e9; [...P.children].forEach(e=>{ const r=e.getBoundingClientRect(); if(r.height>0){ top=Math.min(top, r.top); bot=Math.max(bot, r.bottom); } });
@@ -29090,9 +29098,9 @@ const Battle = { CHEST:(navigator.webdriver && !window.HY_CHEST) ? 0 : 1/7,
       if(pad) return bot>oTop+1 || oBot>qr.bottom-pb+2 || top<pr.top-1 || Q.scrollHeight>Q.clientHeight+2;
       return S.scrollHeight>S.clientHeight+1 || bot>oTop+1; };
     if(!over()) return;
-    if(!pad){ S.classList.add("btTight"); if(!over()) return; }
-    let z=z0; for(let n=0; n<14 && over(); n++){ if(n===2 && pic){ pic.style.display="none"; if(!over()) break; } if(z<=zMin) break; z=Math.max(zMin, z-z0*.05); kids.forEach(e=>{ e.style.zoom=z; }); }
-    if(over() && pic) pic.style.display="none"; },
+    if(!S.classList.contains("btTight") && (!pad || picQ)){ S.classList.add("btTight"); if(pad) S._ptR=this.room; if(!over()) return; }   /* 패드 글 문제는 예전처럼 글만 줄임 (v668) */
+    let z=z0; for(let n=0; n<20 && over(); n++){ if(n===2 && pic && !picQ){ pic.style.display="none"; if(!over()) break; } if(z<=zMin) break; z=Math.max(zMin, z-z0*.05); kids.forEach(e=>{ e.style.zoom=z; }); }
+    if(over() && pic && !picQ) pic.style.display="none"; },
   padFit(){ const S=$("scRaid"), B=$("rdB"); if(!S || !B) return; const k=B.firstElementChild; if(!k || B._pf===k) return; B._pf=k;
     try{ this.qFit(S, B); }catch(e){}
     if(innerWidth<700 || innerHeight<700){ if(k.classList.contains("rdEnd")) try{ Raid.endFit(S, k); }catch(e){} return; }   /* (v666) 휴대폰 가로 끝 화면 68px 스크롤 */
