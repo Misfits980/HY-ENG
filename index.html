@@ -3492,7 +3492,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 /* (v668) 긴 글 문제(대화·문장·뜻풀이): 가로 패드는 글 칸을 넓게 · 글은 위에서부터 · 휴대폰에서 넘치면 위 달리기 띠를 낮춤 (Battle.qFit) */
 @media (min-width:700px) and (min-height:700px){ #scRaid.on.btPad .rdQ.txt .rdPr{justify-content:flex-start;align-items:stretch} #scRaid.on.btPad .rdQ.txt .rdPr > .btPic{align-self:center} #scRaid.on.btPad .rdQ.txt .rdPr .stSent,#scRaid.on.btPad .rdQ.txt .rdPr .stDef{text-align:center;max-width:none;align-self:center} }
 @media (min-width:700px) and (min-height:700px) and (orientation:landscape){ #scRaid.on.btPad #rdB > .rdQ.txt{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)} #scRaid.on.btPad .rdQ.txt .rdPr{justify-content:center} }
-#scRaid.btTight #btStrip{height:92px} #scRaid.on.btPad.btTight #btStrip{height:12vh}   /* (v715) 패드도 칸이 모자라면 띠를 낮춤 (Battle.qFit) */ #scRaid.btTight .rdTop .rdRoom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0} #scRaid.btTight .rdTop .rdMe{white-space:nowrap} #scRaid.btTight .btTimer{margin-top:4px;margin-bottom:6px} #scRaid.btTight .rdQ .btPic.sm{font-size:34px;margin-bottom:0} #scRaid.btTight .rdQ .btPic.sm img.emj{width:38px;height:38px}
+#scRaid.btTight #btStrip{height:92px} @media (min-width:700px) and (min-height:700px){ #scRaid.on.btPad.btTight #btStrip{height:12vh} }   /* (v715) 패드도 그림 문제 칸이 모자라면 띠를 낮춤 (Battle.qFit) · 휴대폰은 92px 그대로 */ #scRaid.btTight .rdTop .rdRoom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0} #scRaid.btTight .rdTop .rdMe{white-space:nowrap} #scRaid.btTight .btTimer{margin-top:4px;margin-bottom:6px} #scRaid.btTight .rdQ .btPic.sm{font-size:34px;margin-bottom:0} #scRaid.btTight .rdQ .btPic.sm img.emj{width:38px;height:38px}
 /* (v656) 🏫 수업 게임 끝 — TV 아래 한 줄 · 선생님 방 기록 */
 #clsBar{position:fixed;left:50%;bottom:calc(68px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:330;display:flex;align-items:center;flex-wrap:wrap;gap:6px 18px;max-width:min(96vw,1500px);padding:10px 46px 10px 18px;border-radius:18px;background:rgba(20,16,44,.94);border:2px solid #ffd23f;color:#fff;font:700 clamp(13px,1.15vw,20px) var(--font);box-shadow:0 8px 28px rgba(0,0,0,.5);animation:clsUp .35s ease-out}
 @keyframes clsUp{from{transform:translate(-50%,30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
@@ -27178,7 +27178,7 @@ const BoardTV = {
       const left=goL-Date.now(), C=$("khCnt");
       if(!g){ if(left>0){ const t=MiniG.cnt(left); if(C && t!==lastC){ lastC=t; C.textContent=t; if(t) try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} } return; }
         const I=$("khIn"); if(I) I.remove(); g=MiniG.mount($("khG"), m.kind, S, m.sk, me); send(0); last=now; return; }
-      if(g.dead) return; const dt=Math.min(0.05,(now-last)/1000); last=now; g.step(dt); const T=(endL-Date.now())/1000;
+      if(g.dead) return; const dt=Math.min(0.5,(now-last)/1000); last=now; g.adv(dt); const T=(endL-Date.now())/1000;
       const sc=$("khSc"), tt=$("khT"); if(sc && sc.textContent!==String(g.sc)) sc.textContent=g.sc; if(tt) tt.textContent="⏱ "+Math.max(0,Math.ceil(T));
       if(g.sc!==sent && Date.now()-sentAt>400) send(0);
       if(T<=0){ g.dead=1; send(1); if(this._khSh){ this._khSh.close(); this._khSh=null; } const K=d.querySelector(".khMG"); if(K) K.insertAdjacentHTML("beforeend", '<div class="bpMgEnd"><b>⏱ 끝! '+g.sc+'점</b><small>🏆 결과 발표를 기다려요</small></div>'); } };
@@ -27303,7 +27303,7 @@ const BoardPad = {
       const t=MiniG.cnt(left); if(t!==last){ last=t; if(C) C.textContent=t; if(t) try{ SFX.tone(660,.1,"triangle",.05); }catch(e){} } };
     this._ct=setInterval(tick, 80); tick(); },
   mgRun(m, S, me, endL){ const g=this.g=MiniG.mount($("bpG"), m.kind, S, m.sk, me); endL=endL||Date.now()+m.sec*1000; let t=(endL-Date.now())/1000, last=0, sent=-1, sentAt=0; const send=(fin)=>{ sent=g.sc; sentAt=Date.now(); FB.update("/battle/"+this.room+"/p/"+this.me, {mg:{id:m.id, sc:g.sc, fin:fin?1:0}, at:Date.now()}); };
-    send(0); const loop=(now)=>{ if(this.g!==g || g.dead) return; const dt=last ? Math.min(0.05,(now-last)/1000) : 0.016; last=now; this._raf=requestAnimationFrame(loop); g.step(dt); t=(endL-Date.now())/1000;
+    send(0); const loop=(now)=>{ if(this.g!==g || g.dead) return; const dt=last ? Math.min(0.5,(now-last)/1000) : 0.016; last=now; this._raf=requestAnimationFrame(loop); g.adv(dt); t=(endL-Date.now())/1000;
       const sc=$("bpSc"), T=$("bpT"); if(sc && sc.textContent!==String(g.sc)) sc.textContent=g.sc; if(T){ const v=String(Math.max(0,Math.ceil(t))); if(T.dataset.v!==v){ T.dataset.v=v; if(!T.firstChild) T.innerHTML='<img class="mgTm" src="'+MiniG.A(m.sk)+'timer.webp" alt=""><b></b>'; T.lastChild.textContent=v; } }   /* (v536) 시계 그림을 매 프레임 새로 만들어 안 보이던 것 */
       if(g.sc!==sent && Date.now()-sentAt>400) send(0);
       if(t<=0){ g.dead=1; send(1); if(this._sh){ try{ this._sh.close(); }catch(e){} this._sh=null; } const H=$("bpMG"); if(H) H.insertAdjacentHTML("beforeend", '<div class="bpMgEnd"><b>⏱ 끝! '+g.sc+'점</b><small>🏆 결과 발표를 기다려요</small></div>'); } };
@@ -27352,7 +27352,7 @@ const MiniG = {
        tug:["👆 버튼을 아주 빠르게 연타!","한 번 누를 때마다 +1점","가장 많이 누른 친구가 1등"],
        light:["🟢 초록불이 켜지는 순간 톡!","🔴 빨간불에 누르면 −1점","빨리 누를수록 좋아요"],
        paint:["👆 칸을 눌러 내 색으로 칠해요","친구 칸도 눌러서 뺏을 수 있어요","끝났을 때 내 칸이 가장 많으면 1등"],
-       stop:["⏱ 숫자가 올라가요 — 10.00초에 딱 멈춰요!","3초 뒤엔 숫자가 숨어요 · 속으로 세기 🤫","10초에 가까울수록 높은 점수 (최대 100)"],
+       stop:["⏱ 숫자가 올라가요 — 10.00초에 딱 멈춰요!","3초 뒤엔 숫자가 숨어요 · 속으로 세기 🤫","10초에 가장 가까운 친구가 1등 (최대 100점)"],
        num:["🔢 1부터 차례대로 톡톡톡!","틀린 숫자를 누르면 잠깐 멈춰요","끝까지 누르면 보너스 +3, 새 판이 나와요"],
        fruit:["👆 손가락으로 바구니를 좌우로 움직여요","🍎 과일 +1 · ⭐ 황금 과일 +3","💣 폭탄을 받으면 −2점!"],
        stack:["👆 화면을 톡! 움직이는 블록을 쌓아요","딱 맞게 쌓으면 +2점 (✨)","빗나가면 탑이 무너져서 처음부터"],
@@ -27395,6 +27395,8 @@ const MiniG = {
       on(sel, fn){ this.host.addEventListener("pointerdown", e=>{ const t=e.target.closest && e.target.closest(sel); if(!t || this.dead) return; e.preventDefault(); fn.call(this, t); }); },
       later(fn, ms){ setTimeout(()=>{ if(!this.dead) fn.call(this); }, ms); },
       step(dt){ if(this.dead) return; if(this.lock>0){ this.lock-=dt; if(this.lock<=0) this.host.classList.remove("lk"); } this.tick(dt); },
+      /* (v715) 느린 패드도 같은 빠르기 — 예전엔 한 프레임 dt 를 0.05초로 잘라서 20fps 아래 패드는 게임 시간이 실제보다 느리게 감(두더지·과일이 덜 나옴 = 같은 20초에 점수가 적음) → 0.05초씩 나눠서 여러 번 */
+      adv(dt){ let r=Math.min(0.5, dt||0); while(r>1e-4 && !this.dead){ const s=Math.min(0.05, r); this.step(s); r-=s; } },
       hold(s){ this.lock=s; this.host.classList.add("lk"); } }, G);
     host.innerHTML=''; host.className='mgG g-'+kind+' sk-'+g.sk; host.style.setProperty("--mgbg", "url("+A+"bg_"+this.bg(kind)+".webp)"); host.style.setProperty("--me", g.me.col); g.init(); return g; },
   G:{
@@ -27496,15 +27498,20 @@ const MiniG = {
       wrong(){ this.lock=0; const o=this.fs.find(x=>!x.pop && x.el.dataset.en!==this.cur().en) || this.spawn(false, 1); if(!o || o.el.dataset.en===this.cur().en) return false; this.tap(o.el); return true; }
     },
     /* (v448) ⏱ 10초 딱 멈추기 — 시계가 0부터 · 3초 지나면 숫자가 숨음 · 10.00초에 딱 STOP · 점수 = 100 − 차이(0.01초마다 1) · 한 번만 */
+    /* (v715) 사용자: 「10초 멈추기 게임에 근사치가 1등 해야 하는 거 아닌가?」 — ① 1초 넘게 어긋나면 모두 0점 → 같은 0점끼리 순서가 아무렇게나(가장 가까운 아이가 1등 아님 · 🪙 도 없음)
+       ② 시계 = 프레임마다 dt 를 더함(한 프레임 최대 0.05초) → 느린 패드(20fps 아래)는 시계가 실제보다 느리게 감 = 속으로 10초 센 아이가 6~7초로 찍힘
+       → 진짜 시각(performance.now) · 누른 그 순간으로 잼 · 점수 = 1초 안: 100 − 0.02초마다 1 (100~50) · 1초 넘게: 50 − 0.1초마다 1 (최소 1) — 가까울수록 언제나 높음 · 안 누르면 0 */
     stop:{
       init(){ this.host.innerHTML='<div class="mgSw"><div class="mgSwT img"><b>0.00</b><small>10.00초에 딱!</small></div><button class="mgSwB">STOP</button></div>';
-        this.T=this.host.querySelector(".mgSwT b"); this.M=this.host.querySelector(".mgSwT small"); this.B=this.host.querySelector(".mgSwB"); this.t=-0.6; this.done=0; this.on(".mgSwB", ()=>this.stopIt()); },
-      tick(dt){ if(this.done) return; this.t+=dt; const t=Math.max(0,this.t);
+        this.T=this.host.querySelector(".mgSwT b"); this.M=this.host.querySelector(".mgSwT small"); this.B=this.host.querySelector(".mgSwB"); this.t0=performance.now()+600; this.t=-0.6; this.done=0; this.on(".mgSwB", ()=>this.stopIt()); },
+      clock(){ return (performance.now()-this.t0)/1000; },
+      tick(){ if(this.done) return; this.t=this.clock(); const t=Math.max(0,this.t);
         this.T.textContent = t<3 ? t.toFixed(2) : "?.??"; if(t>=3 && !this._h){ this._h=1; this.host.firstChild.classList.add("hid"); this.M.textContent="마음속으로 세어요… 🤫"; }
-        if(t>=15) this.stopIt(); },
-      stopIt(){ if(this.done || this.t<0.2) return; this.done=1; const d=Math.abs(this.t-10); this.sc=Math.max(0, 100-Math.round(d*100));
-        this.host.firstChild.classList.remove("hid"); this.host.firstChild.classList.add("end"); this.T.textContent=this.t.toFixed(2); this.M.textContent= d<0.05 ? "🎯 완벽해요! "+this.sc+"점" : (this.t<10 ? "−" : "+")+d.toFixed(2)+"초 · "+this.sc+"점"; this.B.disabled=true; MiniG.snd(d<0.3?1:2); },
-      auto(){ this.t=10.03; this.stopIt(); return true; }, wrong(){ this.t=11.5; this.stopIt(); return true; }
+        if(t>=15) this.stopIt(15, 1); },
+      score(d){ return d<=1 ? 100-Math.round(d*50) : Math.max(1, 50-Math.round((d-1)*10)); },
+      stopIt(at, late){ if(this.done) return; const t=at!=null ? at : this.clock(); if(t<0.2) return; this.t=t; this.done=1; const d=Math.abs(t-10); this.sc=late ? 0 : this.score(d);
+        this.host.firstChild.classList.remove("hid"); this.host.firstChild.classList.add("end"); this.T.textContent=t.toFixed(2); this.M.textContent= late ? "⏰ 안 눌렀어요 · 0점" : d<0.05 ? "🎯 완벽해요! "+this.sc+"점" : (t<10 ? "−" : "+")+d.toFixed(2)+"초 · "+this.sc+"점"; this.B.disabled=true; MiniG.snd(d<0.3?1:2); },
+      auto(){ this.stopIt(10.03); return true; }, wrong(){ this.stopIt(11.5); return true; }
     },
     /* (v448) 🔢 숫자 빨리 누르기 — 1부터 차례대로 · 다 누르면 새 판 · 틀리면 잠깐 멈춤 · 숫자 놓는 자리는 모든 자리가 같음(S.r) */
     num:{
@@ -27664,8 +27671,8 @@ const MG = {
   go(){ const o=this.o; if(!o) return; const c=o.cfg; let ws=[]; try{ ws=c.ctx.words(); }catch(e){} const S=MiniG.seq(ws, c.kind);
     if(c.kind==="paint") S.share=MiniG.share(MiniG.PT[0]*MiniG.PT[1]);   /* (v447) 🎨 땅따먹기 = 자리마다 같은 칸 판 */
     o.inst=o.P.map(p=>MiniG.mount($("mgG"+p.i), c.kind, S, o.sk, {i:p.i, k:p.i%4, col:p.col})); o.t=c.sec||MiniG.L[c.kind][2]; o.T=o.t; let last=0;
-    const loop=(now)=>{ if(!this.o || this.o!==o || o.fin) return; const dt=last ? Math.min(0.05,(now-last)/1000) : 0.016; last=now; this._raf=requestAnimationFrame(loop);
-      o.inst.forEach((g,k)=>{ g.step(dt); const p=o.P[k]; if(o.sc[p.i]!==g.sc){ o.sc[p.i]=g.sc; const e=$("mgS"+p.i); if(e){ e.textContent=g.sc; e.classList.remove("bump"); void e.offsetWidth; e.classList.add("bump"); } } });
+    const loop=(now)=>{ if(!this.o || this.o!==o || o.fin) return; const dt=last ? Math.min(0.5,(now-last)/1000) : 0.016; last=now; this._raf=requestAnimationFrame(loop);
+      o.inst.forEach((g,k)=>{ g.adv(dt); const p=o.P[k]; if(o.sc[p.i]!==g.sc){ o.sc[p.i]=g.sc; const e=$("mgS"+p.i); if(e){ e.textContent=g.sc; e.classList.remove("bump"); void e.offsetWidth; e.classList.add("bump"); } } });
       o.t-=dt; const M=$("mgMid"); if(M){ const s=Math.max(0, Math.ceil(o.t)); if(M._s!==s){ M._s=s; M.innerHTML='<img class="mgTm" src="'+MiniG.A(o.sk)+'timer.webp" alt="">'+s; M.classList.toggle("hurry", s<=5); if(s<=3 && s>0) try{ SFX.tone(880,.05,"square",.03); }catch(e){} } }
       if(o.t<=0){ o.inst.forEach(g=>g.dead=1); this.end(); } };
     this._raf=requestAnimationFrame(loop); },
