@@ -324,7 +324,11 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     R.authority=()=>{ const h=(R.d&&R.d.h)||{}, L=live(true).map(p=>p.k); return L.indexOf(h.c)>=0 ? h.c===code : L[0]===code; };
     R.ev=(to, o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); NET.put(R.path+"/e/"+to+"/"+id, Object.assign({at:now()}, o)).catch(()=>{}); };
     R.feed=(o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); R.seenF[id]=1; NET.put(R.path+"/fd/"+id, o).catch(()=>{}); };
-    R.put=(sub, v)=>{ if(R.path && OK) NET.put(R.path+"/"+sub, v).catch(()=>{}); };
+    /* (v718) 컬러팡 끝이 안 오던 것 — 방장이 일마다 g 를 PUT(겹쳐 보냄) → 늦게 도착한 옛 g 가 「끝」 g 를 덮고 방장이 바로 나가면 그대로 남음 → 같은 칸은 하나씩 · 밀리면 가장 새것만 */
+    const PQ={}; R.put=(sub, v)=>{ if(!R.path || !OK) return; const path=R.path+"/"+sub, q=PQ[path]||(PQ[path]={busy:0, nx:null});
+      let j; try{ j=JSON.stringify(v); }catch(e){ return; }   /* 부른 순간 모습 그대로 보냄 (NET.put 은 토큰을 기다린 뒤 글로 바꿔서, 같은 배열이 그사이 바뀌면 섞였음) */
+      if(q.busy){ q.nx=j; return; } q.busy=1;
+      const go=y=>{ let o; try{ o=JSON.parse(y); }catch(e){ q.busy=0; return; } NET.put(path, o).catch(()=>{}).then(()=>{ if(q.nx!=null){ const z=q.nx; q.nx=null; go(z); } else q.busy=0; }); }; go(j); };
     async function poll(){ if(!R.path || R.busy) return; let d=null; try{ d=await NET.get(R.path); }catch(e){ return; } if(!R.path) return;
       if(!d || !d.h){ if(R.phase==="wait"){ api.msg("방이 닫혔어요", 1400); R.leave(true); } return; } R.d=d;
       const my=(d.e||{})[code]||{}; Object.keys(my).forEach(id=>{ if(R.seenE[id]) return; R.seenE[id]=1; NET.del(R.path+"/e/"+code+"/"+id).catch(()=>{}); try{ R.onEv && R.onEv(my[id]); }catch(e){ console.warn(e); } });

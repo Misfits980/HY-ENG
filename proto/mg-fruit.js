@@ -79,6 +79,7 @@ function css(){ if(document.getElementById("frCss")) return; const s=document.cr
 #mgUI .frLed .rw.me{background:rgba(255,92,225,.16);color:#ff8ef0;text-shadow:0 0 5px #ff5ce1;animation:frBl 1.2s steps(2) infinite}
 @keyframes frBl{50%{background:rgba(255,92,225,.04)}}
 #mgUI .frLed .em{font-size:14px;opacity:.75;padding:6px 4px}
+#mgUI .frLed .rows{--lh:1.55;font-size:15px;min-height:calc(var(--n,4) * var(--lh) * 1em)}
 #mgUI .frTop{display:flex;align-items:center;gap:8px;width:min(100%,560px);flex:none}
 #mgUI .frTop b{background:#FFF6E3;color:#4A2E1F;border:3px solid #4A2E1F;box-shadow:0 0 0 2px #fff,0 4px 0 2px rgba(74,46,31,.35);border-radius:999px;padding:3px 12px;font-weight:400;font-size:16px;white-space:nowrap} #mgUI .frTop b.sc{color:#fff;-webkit-text-stroke:5px #4A2E1F;paint-order:stroke fill;font-family:var(--en);font-weight:900;font-size:19px;background:#ff8466}
 #mgUI .frTop .nx{margin-left:auto;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.75);border-radius:14px;padding:2px 10px 2px 8px;font-size:13px}
@@ -97,7 +98,7 @@ function css(){ if(document.getElementById("frCss")) return; const s=document.cr
 @media (orientation:landscape) and (max-height:620px){
   #mgUI .frR{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto 1fr;grid-template-areas:"top box" "evo box" "led box";column-gap:14px;align-items:start;padding-top:calc(50px + env(safe-area-inset-top))}
   #mgUI .frTop{grid-area:top} #mgUI .frEvo{grid-area:evo;width:100%} #mgUI .frLed{grid-area:led} #mgUI .frBox{grid-area:box;height:calc(100vh - 66px);height:calc(100dvh - 66px - env(safe-area-inset-bottom));width:calc((100vh - 78px)*600/820 + 22px);width:calc((100dvh - 78px - env(safe-area-inset-bottom))*600/820 + 22px)}
-  #mgUI .frLed .rw{font-size:13px;line-height:1.4}
+  #mgUI .frLed .rw{font-size:13px;line-height:1.4} #mgUI .frLed .rows{--lh:1.4;font-size:13px}
   #mgUI .frSt{flex-direction:row;flex-wrap:wrap;align-content:center}
 }`; document.head.appendChild(s); }
 
@@ -123,12 +124,15 @@ function start(api){
   /* ── 과일 그림 미리 (크기별) ── */
   let SC=1; const ART=[];
   function bake(){ for(let lv=0;lv<FR.length;lv++){ const r=FR[lv][2]*SC, sz=Math.ceil(r*2.8), mk=ex=>{ const c=document.createElement("canvas"); c.width=c.height=sz; const q=c.getContext("2d"); q.translate(sz/2,sz/2); fruitArt(q, lv, r, ex); return c; }; ART[lv]={c:mk("n"), s:mk("s"), w:mk("w"), h:sz/2}; } evoPaint(); }
-  function fit(){ const bx=cv.parentNode.getBoundingClientRect(); if(bx.width>10 && bx.height>10){ const w=Math.floor(Math.min(bx.width-20, (bx.height-12)*BW/BH)), h=Math.floor(w*BH/BW); if(cv.style.width!==w+'px'){ cv.style.width=w+'px'; cv.style.height=h+'px'; } } const r=cv.getBoundingClientRect(); const dpr=Math.min(2, window.devicePixelRatio||1); const s=Math.max(.3, Math.min(2.4, (r.width||300)*dpr/BW)); if(Math.abs(s-SC)>.01 || !ART.length){ SC=s; cv.width=Math.round(BW*SC); cv.height=Math.round(BH*SC); bake(); } }
+  let fitK="", fitC=0; function fit(force){ const k=innerWidth+"x"+innerHeight+"|"+phase; if(!force && k===fitK && ART.length && (++fitC%60)) return; const same=k===fitK && ART.length; fitK=k; const bx=cv.parentNode.getBoundingClientRect();
+    if(bx.width>10 && bx.height>10){ const w=Math.floor(Math.min(bx.width-20, (bx.height-12)*BW/BH)), h=Math.floor(w*BH/BW), w0=parseFloat(cv.style.width)||0; if(!same || w<w0-1 || w>w0+16){ cv.style.width=w+'px'; cv.style.height=h+'px'; } }   /* 같은 화면이면 1초에 한 번만 · 작아질 때(넘침)만 바로 · 커지는 건 16px 넘게 남을 때만 */ const r=cv.getBoundingClientRect(); const dpr=Math.min(2, window.devicePixelRatio||1); const s=Math.max(.3, Math.min(2.4, (r.width||300)*dpr/BW)); if(Math.abs(s-SC)>.01 || !ART.length){ SC=s; cv.width=Math.round(BW*SC); cv.height=Math.round(BH*SC); bake(); } }
   /* ══ 📟 형광판 랭킹 ══ */
   const LB={W:null, M:null, A:null}; let tabK="W", tabT=0, tabHold=0, lbErr=false, K=keys(now()), newRec={};
   async function lbLoad(){ K=keys(now()); try{ await Promise.all(TABS.map(async([k])=>{ const v=await NET.get("/hy/day/"+K[k]); LB[k]=v||{}; })); lbErr=false; }catch(e){ lbErr=true; TABS.forEach(([k])=>{ if(!LB[k]) LB[k]={}; }); } ledPaint(); }
   function rows(k){ const o=LB[k]||{}; return Object.keys(o).map(c=>Object.assign({c}, o[c]||{})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s || (a.at||0)-(b.at||0)); }
-  function ledPaint(){ U.querySelectorAll(".frLed").forEach(L=>{ const big=L.closest(".puM") || innerHeight>900 || (innerWidth>innerHeight && innerHeight<=620), n=big?8:4;
+  /* (v718) 사용자: 「과일 합치기는 화면이 커졌다 작아졌다 해 · 과일들마다 화면이 달라지는 느낌」 — 랭킹 판이 5초마다 탭(이번 주·달·전체)을 돌면서 줄 수가 달라 높이가 바뀜 → 아래 과일 판이 그만큼 커졌다 작아졌다(그때마다 과일 그림도 다시 굽느라 툭툭)
+     → 줄 칸 높이를 n줄로 고정(--n) · fit() 은 화면 크기가 바뀔 때만 다시 잼 */
+  function ledPaint(){ U.querySelectorAll(".frLed").forEach(L=>{ const big=L.closest(".puM") || innerHeight>900 || (innerWidth>innerHeight && innerHeight<=620), n=big?8:4; L.style.setProperty("--n", Math.max(1, ...TABS.map(([k])=>Math.min(n, rows(k).length))));   /* 세 탭 가운데 가장 긴 줄 수만큼 (빈 줄로 판을 줄이지 않게) */
     L.querySelectorAll(".tb button").forEach(b=>b.classList.toggle("on", b.dataset.t===tabK));
     const rs=rows(tabK), me=rs.findIndex(x=>x.c===code); let show=rs.slice(0,n); if(me>=n) show=show.slice(0,n-1).concat([rs[me]]);
     L.querySelector(".rows").innerHTML=LB[tabK]==null?'<div class="em">불러오는 중…</div>':!rs.length?'<div class="em">'+(lbErr?'서버에 연결이 안 돼요 — 내 기록만 남아요':'아직 기록이 없어요 — 1등 해 봐요!')+'</div>':
