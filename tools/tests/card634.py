@@ -174,6 +174,9 @@ async def main():
                 await x.evaluate("()=>MG.run.RM.list()"); await steps(2)
                 if await x.evaluate("()=>document.querySelectorAll('#mgUI [data-j]').length"): break
             await x.evaluate("()=>document.querySelector('#mgUI [data-j]').click()"); await steps(4)
+            for _ in range(16):   # (v714) 무거울 때 들어가기(GET+PUT)가 4걸음보다 늦을 수 있음 — 들어갈 때까지
+                if await x.evaluate("()=>MG.run.RM.phase==='wait'"): break
+                await steps(1)
         r=[await x.evaluate("()=>[MG.run.RM.phase, document.querySelectorAll('#mgUI .mgRoomP .pl span').length]") for x in P3]
         ok(all(q[0]=="wait" for q in r) and r[0][1]==4, f"⑤ 셋이 같은 방 · 자리 4 (빈자리 🤖) {r}")
         await A_.screenshot(path=OUTD+"co_room.png")

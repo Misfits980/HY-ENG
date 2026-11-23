@@ -523,10 +523,11 @@ function start(api){
     const bar=$(".cpBar i"); if(bar) bar.style.width=(phase==="play" && G.turn===ME && !G.over && G.dl?Math.max(0,Math.min(100,(G.dl-now())/(TURN_T*10))):0)+"%";
     if(G.oneWin && G.oneWin.s===ME && fr%6===0) cmd();
     fitCam(); platePos(); if(fr%20===0 && phase==="play") coachCheck(); }
+  let porSig="";   /* (v714) 🐢 얼굴 사진은 표정·크기가 바뀔 때만 다시 (8프레임마다 그래픽을 캔버스로 옮기던 것) */
   function render(rn){ fr++; const box=$(".cpPor"); if(ME_AV && box && (fr%8===1 || porCv.width<4)){ const r=box.getBoundingClientRect(), pr=rn.getPixelRatio(), sz=Math.max(8,Math.round(r.width-8));
-      if(porCv.width!==Math.round(sz*pr)){ porCv.width=porCv.height=Math.round(sz*pr); }
-      try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,PC); porG.clearRect(0,0,porCv.width,porCv.height); porG.drawImage(rn.domElement,0,rn.domElement.height-porCv.height,porCv.width,porCv.height,0,0,porCv.width,porCv.height); }catch(e){}
-      rn.setScissorTest(false); const c=rn.domElement; rn.setViewport(0,0,c.width/rn.getPixelRatio(),c.height/rn.getPixelRatio()); }
+      if(porCv.width!==Math.round(sz*pr)){ porCv.width=porCv.height=Math.round(sz*pr); } const sig=ME_AV.expr+"|"+porCv.width;
+      if(sig!==porSig){ porSig=sig; try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,PC); porG.clearRect(0,0,porCv.width,porCv.height); porG.drawImage(rn.domElement,0,rn.domElement.height-porCv.height,porCv.width,porCv.height,0,0,porCv.width,porCv.height); }catch(e){}
+      rn.setScissorTest(false); const c=rn.domElement; rn.setViewport(0,0,c.width/rn.getPixelRatio(),c.height/rn.getPixelRatio()); } }
     MG.draw(scene, cam); }
   function dispose(){ gone=true; TM.length=0; FLY.length=0; Q.length=0; coachClear(); try{ avFree(PSc); }catch(e){}   /* (v714) 얼굴 사진 장면의 합친 아바타 도형 */ try{ if(RM) RM.dispose(); }catch(e){} try{ U.classList.remove("cpOn"); HUD.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); TEX.forEach(e=>{ try{ e.t.dispose(); e.m.dispose(); }catch(_){} }); TEX.clear(); }
   return {scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, G, SEATS, ST, CARD, okC, get phase(){ return phase; }, get ME(){ return ME; }, get HOST(){ return HOST; }, get RM(){ return RM; }, get TUT(){ return TUT; }, get coach(){ return Object.assign({}, COACH); },

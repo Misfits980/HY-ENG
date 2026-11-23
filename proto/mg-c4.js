@@ -256,7 +256,9 @@ function start(api){
       /* (v684) QA: 「잘 부탁해!」 말풍선이 가운데 시간·이름 띠(.c4Top)를 가림 → 말풍선 아래 끝(꼬리 포함)을 띠 밑으로 */
       let y=(1-hv.y)/2*innerHeight; const tp=R.querySelector(".c4Top"); if(tp){ const lim=tp.getBoundingClientRect().bottom+BUB.offsetHeight+16; if(y<lim) y=lim; } BUB.style.top=y+"px"; } }
   let fr=0;
+  /* (v714) 🐢 얼굴 사진: 예전엔 8프레임마다 그려서 캔버스로 옮김(옮길 때마다 그래픽 처리가 멈춰 기다림 → 툭툭) → 표정·크기가 바뀔 때만 */
   function render(rn){ fr++; fitCam(); if(mode!=="menu" && fr%8===1){ [[ME_AV,PCm,0],[OPP_POR,PCo,1]].forEach(([A,PC,k])=>{ const o=POR[k]; if(!A || !o) return; const r=o.c.getBoundingClientRect(), pr=rn.getPixelRatio(), sz=Math.max(8,Math.round(r.width)); if(o.c.width!==Math.round(sz*pr)) o.c.width=o.c.height=Math.round(sz*pr);
+      const sig=A.expr+"|"+o.c.width+"|"+A.g.uuid; if(o.sig===sig) return; o.sig=sig;
       try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,PC); o.g.clearRect(0,0,o.c.width,o.c.height); o.g.drawImage(rn.domElement,0,rn.domElement.height-o.c.height,o.c.width,o.c.height,0,0,o.c.width,o.c.height); }catch(e){}
       rn.setScissorTest(false); const c=rn.domElement; rn.setViewport(0,0,c.width/rn.getPixelRatio(),c.height/rn.getPixelRatio()); }); }
     MG.draw(scene, cam); }

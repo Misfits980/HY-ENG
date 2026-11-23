@@ -524,7 +524,7 @@ function start(api){
   const idOf=a=>a.me?(NETR?NETR.code:"me"):a.net?a.code:"b"+a.i;
   const actorOf=id=>{ if(!id) return null; if(NETR && id===NETR.code) return me; if(id.charAt(0)==="b" && /^b\d$/.test(id)) return ACT.find(a=>a.bot && a.i===+id.slice(1))||null; return PEER[id]||null; };
   const hostCode=()=>{ const h=(NETR&&NETR.d&&NETR.d.h)||{}, L=NETR?NETR.live(true).map(p=>p.k):[]; return L.indexOf(h.c)>=0?h.c:L[0]; };
-  function mkPeer(k, p){ const a=mkAct({net:true, code:k, nm:(p.n||"친구").slice(0,8), prot:0}); a.tp=new V3(p.x||0,p.y||0,p.z||0); a.p.copy(a.tp); a.lf=p.f|0;
+  function mkPeer(k, p){ const a=mkAct({net:true, code:k, nm:(p.n||"친구").slice(0,8), prot:0}); a.tp=new V3(p.x||0,p.y||0,p.z||0); a.p.copy(a.tp); a.lf=p.f|0; a.trk=MG.track ? MG.track() : null; a.st0=null;
     let c=null; try{ c=buildAvatar(p.av||{}); c.t=0; c.blinkT=2; c.act="idle"; }catch(e){ c=null; } const G=new THREE.Group(); scene.add(G); a.G=G;
     if(c){ c.g.scale.setScalar(AVK); G.add(c.g); a.c=c; c.g.traverse(m=>{ if(m.isMesh) m.castShadow=!api.low; }); }
     a.gun=new THREE.Group(); if(c && c.armR){ c.armR.add(a.gun); a.gun.position.set(.05,-.235,0); a.gun.scale.setScalar(.7); } gunModel(a.gun, p.wi|0, true); a.gw=p.wi|0;
@@ -543,22 +543,28 @@ function start(api){
   function netApply(dt){ if(!NETR || !NETR.d || (phase!=="play" && phase!=="intro")) return; const d=NETR.d, host=NETR.authority();
     Object.keys(PEER).forEach(k=>{ const a=PEER[k], p=(d.p||{})[k]; if(!p || NETR.now()-(p.t||0)>10000){ if(a.G.visible){ a.G.visible=false; a.alive=false; } return; }
       a.tp.set(p.x||0,p.y||0,p.z||0); a.ty=p.yw||0; a.pitch=p.pt||0; a.kills=p.kl|0; a.soak=p.sk|0; a.sl=!!p.sl; a.h=a.sl?HS:HH; if((p.wi|0)!==a.gw){ a.wi=p.wi|0; a.gw=a.wi; gunModel(a.gun, a.wi, true); }
-      const al=!!p.al; if(al && !a.alive){ a.alive=true; a.dead=0; a.p.copy(a.tp); a.G.visible=true; } else if(!al && a.alive){ a.alive=false; a.dead=0; } 
+      const al=!!p.al; if(al && !a.alive){ a.alive=true; a.dead=0; a.p.copy(a.tp); a.G.visible=true; if(a.trk) a.trk.b.length=0; } else if(!al && a.alive){ a.alive=false; a.dead=0; }
+      if(a.trk && p.t && p.t!==a.st0){ a.st0=p.t; a.trk.push(p.t, [a.tp.x, a.tp.y, a.tp.z, a.ty]); }   /* (v714) 새로 온 자리만 쌓음 → netVis 가 부드럽게 이어 그림 */ 
       if((p.f|0)>a.lf){ a.lf=p.f|0; if(a.alive){ const e=eyeOf(a), dd=dirOf(a.yaw, a.pitch), r=trace(a, e, dd, WP[a.wi].rng); stream(muzzle(a), e.clone().addScaledVector(dd, Math.min(r.t, WP[a.wi].rng)), 1, WP[a.wi].t==="beam"); if(e.distanceTo(me.p)<22) api.sfx.shot(WP[a.wi].k, true); } } });
     /* 봇: 방장이 움직이고 나머지는 받아서 그림 */
-    if(host){ ACT.forEach(a=>{ if(a.bot) a.rb=false; }); NETR.bT=(NETR.bT||0)-dt; if(NETR.bT<=0){ NETR.bT=.12; NETR.put("b", ACT.filter(a=>a.bot).map(a=>[a.i, +a.p.x.toFixed(2), +a.p.y.toFixed(2), +a.p.z.toFixed(2), +a.yaw.toFixed(2), +a.pitch.toFixed(2), a.wi, a.alive?1:0, a.sl?1:0, a.fc|0, a.kills, Math.round(a.soak)])); } }
-    else { (d.b||[]).forEach(r=>{ const a=ACT.find(x=>x.bot && x.i===r[0]); if(!a) return; a.rb=true; a.tp=a.tp||new V3(); a.tp.set(r[1],r[2],r[3]); a.ty=r[4]; a.pitch=r[5]; if(r[6]!==a.wi){ a.wi=r[6]; gunModel(a.gun, a.wi, true); } a.kills=r[10]; a.soak=r[11]; a.sl=!!r[8]; a.h=a.sl?HS:HH;
-        const al=!!r[7]; if(al && !a.alive){ a.alive=true; a.dead=0; a.p.copy(a.tp); a.G.visible=true; } else if(!al && a.alive){ a.alive=false; a.dead=0; }
+    if(host){ ACT.forEach(a=>{ if(a.bot) a.rb=false; }); NETR.bT=(NETR.bT||0)-dt; if(NETR.bT<=0){ NETR.bT=.12; const tb=NETR.now(); NETR.put("b", ACT.filter(a=>a.bot).map(a=>[a.i, +a.p.x.toFixed(2), +a.p.y.toFixed(2), +a.p.z.toFixed(2), +a.yaw.toFixed(2), +a.pitch.toFixed(2), a.wi, a.alive?1:0, a.sl?1:0, a.fc|0, a.kills, Math.round(a.soak), tb])); } }
+    else { (d.b||[]).forEach(r=>{ if(!r) return; const a=ACT.find(x=>x.bot && x.i===r[0]); if(!a) return; a.rb=true; a.tp=a.tp||new V3(); a.tp.set(r[1],r[2],r[3]); a.ty=r[4]; a.pitch=r[5]; if(r[6]!==a.wi){ a.wi=r[6]; gunModel(a.gun, a.wi, true); } a.kills=r[10]; a.soak=r[11]; a.sl=!!r[8]; a.h=a.sl?HS:HH;
+        const al=!!r[7]; if(al && !a.alive){ a.alive=true; a.dead=0; a.p.copy(a.tp); a.G.visible=true; if(a.trk) a.trk.b.length=0; } else if(!al && a.alive){ a.alive=false; a.dead=0; }
+        if(MG.track){ a.trk=a.trk||MG.track(); const bt=r[12]||(r[1]+","+r[3]+","+r[4]); if(bt!==a.st0){ a.st0=bt; a.trk.push(r[12]||NETR.now(), [r[1], r[2], r[3], r[4]]); } }   /* 방장이 0.12초마다 · 옛 방장(시각 없음) = 받은 시각 */
         if((r[9]|0)>(a.lf|0)){ a.lf=r[9]|0; if(a.alive){ const e=eyeOf(a), dd=dirOf(a.yaw, a.pitch), q=trace(a, e, dd, WP[a.wi].rng); stream(muzzle(a), e.clone().addScaledVector(dd, Math.min(q.t, WP[a.wi].rng)), 1, WP[a.wi].t==="beam"); if(e.distanceTo(me.p)<22) api.sfx.shot(WP[a.wi].k, true); } } }); }
     if(d.h && d.h.win && !time.over){ const w=actorOf(d.h.win.c)||{nm:d.h.win.n}; win(w); } }
   /* 받아서 그리는 사람·봇 (부드럽게 따라감 · 넘어짐) */
-  function netVis(a, dt){ if(!a.tp) return; if(a.alive){ a.v.subVectors(a.tp, a.p).multiplyScalar(1/Math.max(dt,1e-3)*.18); a.p.lerp(a.tp, Math.min(1, dt*12)); let dy=angN(a.ty-a.yaw); a.yaw+=dy*Math.min(1,dt*14); a.onG=a.p.y<.05 || Math.abs(a.tp.y-a.p.y)<.05; }
+  const TRA=[0,0,0,1];
+  function netVis(a, dt){ if(!a.tp) return; let mvS=-1;
+    if(a.alive){ const sm=a.trk && a.trk.b.length ? a.trk.smooth(null, TRA) : null;
+      if(sm){ /* (v714) 받은 자리를 시간 맞춰 이어 그림 — 예전 lerp(dt×12)는 0.25초마다 몰려 와서 뛰었다 멈췄다(툭툭) */ const k=1/Math.max(dt,1e-3); a.v.set((sm[0]-a.p.x)*k*.18, 0, (sm[2]-a.p.z)*k*.18); a.p.set(sm[0], sm[1], sm[2]); a.yaw=sm[3]; mvS=a.trk.speed(); a.onG=a.p.y<.05 || Math.abs(a.tp.y-a.p.y)<.08; }
+      else { a.v.subVectors(a.tp, a.p).multiplyScalar(1/Math.max(dt,1e-3)*.18); a.p.lerp(a.tp, Math.min(1, dt*12)); let dy=angN(a.ty-a.yaw); a.yaw+=dy*Math.min(1,dt*14); a.onG=a.p.y<.05 || Math.abs(a.tp.y-a.p.y)<.05; } }
     else a.dead+=dt;
     const G=a.G; G.position.set(a.p.x,a.p.y,a.p.z); a.bub.visible=false; drawTag(a.tag, a.soak, a.wi);
     if(!a.alive){ const k=Math.min(1.5, a.dead*6); if(a.bk){ a.bk.g.rotation.x=-k; } else if(a.c){ a.c.g.rotation.x=-Math.min(1.4,k); } if(a.dead>1.1) G.visible=false; return; }
-    G.visible=true; if(a.c){ const c=a.c; c.face=a.yaw+Math.PI; c.moving=Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03 && a.onG && !a.sl; try{ animChar(c, dt); }catch(e){} c.g.rotation.y=a.yaw+Math.PI; c.g.rotation.x=a.sl?-.55:0; c.g.position.y=a.sl?.15:0;
+    G.visible=true; if(a.c){ const c=a.c; c.face=a.yaw+Math.PI; c.moving=(mvS>=0 ? mvS>.6 : Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03) && a.onG && !a.sl; try{ animChar(c, dt); }catch(e){} c.g.rotation.y=a.yaw+Math.PI; c.g.rotation.x=a.sl?-.55:0; c.g.position.y=a.sl?.15:0;
       if(c.armR){ c.armR.rotation.x=-Math.PI/2-a.pitch*.8; c.armR.rotation.z=0; } if(c.armL){ c.armL.rotation.x=-1.25-a.pitch*.6; c.armL.rotation.z=-.35; } reactVis(a, dt); }
-    if(a.bk){ const B=a.bk, mv=Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03; B.t+=dt*(mv?11:0); const sw=mv?Math.sin(B.t)*.8:0; B.legL.rotation.x=sw; B.legR.rotation.x=-sw; B.g.rotation.set(a.sl?-.6:0, a.yaw+Math.PI, 0); B.g.position.y=a.sl?.25:0; B.armR.rotation.set(-Math.PI/2-a.pitch*.8,0,0); B.armL.rotation.set(-Math.PI/2+.2-a.pitch*.6,-.5,0); } }
+    if(a.bk){ const B=a.bk, mv=mvS>=0 ? mvS>.6 : Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03; B.t+=dt*(mv?11:0); const sw=mv?Math.sin(B.t)*.8:0; B.legL.rotation.x=sw; B.legR.rotation.x=-sw; B.g.rotation.set(a.sl?-.6:0, a.yaw+Math.PI, 0); B.g.position.y=a.sl?.25:0; B.armR.rotation.set(-Math.PI/2-a.pitch*.8,0,0); B.armL.rotation.set(-Math.PI/2+.2-a.pitch*.6,-.5,0); } }
   const mapTag=h=>{ const M=MAPS[h && h.map]||MAPS.pool; return M.ic+' '+M.nm; };
   function goCo(){ CO=true; phase="room"; menuUI("room");
     NETR=MG.room(api, {pre:"mga", title:"물총 같이 하기", ic:"💦", max:6, fill:1, h:()=>({df:SET.diff, map:MAPK}), tag:mapTag, back:()=>{ const R0=NETR; NETR=null; try{ R0.dispose(); }catch(e){} CO=false; phase="menu"; setMap(SET.map); menuUI("main"); }});

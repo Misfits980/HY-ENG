@@ -177,7 +177,7 @@ function start(api){
   avFor("me", api.av);
   function react(k, ex, s){ const o=AVS[k]; if(!o) return; o.A.setExpr(ex); o.t=s||1.4; porDirty=1; if(k==="me"){ const m=$(".dwMe"); if(m){ m.classList.remove("hop"); void m.offsetWidth; if(ex==="grin") m.classList.add("hop"); } } }
   function porRender(rn){ frN++; Object.keys(AVS).forEach(k=>{ const o=AVS[k]; if(o.t>0){ o.t-=1/60; if(o.t<=0){ o.A.setExpr(o.A.expr0||"smile"); porDirty=1; } } });
-    if(!porDirty && frN%30) return; porDirty=0; const sz=64; Object.keys(AVS).forEach(k=>{ const o=AVS[k]; let c=PCACHE[k]; if(!c){ c=PCACHE[k]=document.createElement("canvas"); c.width=c.height=sz*2; }
+    if(!porDirty){ if(frN%30===0) porCopy(); return; } porDirty=0;   /* (v714) 🐢 그림(그래픽 → 캔버스 옮기기)은 표정이 바뀔 때만 · 30프레임마다는 이미 그린 것을 새 칸에 붙이기만 */ const sz=64; Object.keys(AVS).forEach(k=>{ const o=AVS[k]; let c=PCACHE[k]; if(!c){ c=PCACHE[k]=document.createElement("canvas"); c.width=c.height=sz*2; }
       try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,o.cm); const pr=rn.getPixelRatio(), q=Math.round(sz*pr); c.getContext("2d").clearRect(0,0,c.width,c.height); c.getContext("2d").drawImage(rn.domElement,0,rn.domElement.height-q,q,q,0,0,c.width,c.height); }catch(e){} });
     rn.setScissorTest(false); const cv0=rn.domElement; rn.setViewport(0,0,cv0.width/rn.getPixelRatio(),cv0.height/rn.getPixelRatio()); porCopy(); }
   function porCopy(){ R.querySelectorAll("canvas.dwPor").forEach(el=>{ const c=PCACHE[el.dataset.k]; if(!c) return; if(el.width!==c.width){ el.width=c.width; el.height=c.height; } const q=el.getContext("2d"); q.clearRect(0,0,el.width,el.height); q.drawImage(c,0,0); }); }
