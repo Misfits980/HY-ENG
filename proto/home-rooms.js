@@ -58,7 +58,7 @@ const HOMEX=(()=>{
   const FIXW={f4:[["window",3,3,1]]};
   function dflt(id){ if(isAx(id)) return {p:[], wl:[["window",0,2,0]], f:3, w:1, rn:6}; const r=R[id]||R.living; return {p:(FIX[id]||[]).map(x=>x.concat([0])), wl:FIXW[id]||[["window",0,r.up?3:2,0],["window",3,3,1]], f:Math.min(FLOORS.length-1,r.f|0), w:Math.min(WALLS.length-1,r.w|0), rn:6}; }
   function load(D, host){ placed.splice(0).concat(wplaced.splice(0)).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj));
-    if(host){ if(hostDoll){ roomG.remove(hostDoll.g); hostDoll=null; } buildShell(Math.max(6,Math.min(12,D.rn|0||6))); floorIx=Math.min(FLOORS.length-1,D.f|0); wallIx=Math.min(WALLS.length-1,D.w|0); setFloor(floorIx); setWall(wallIx);
+    if(host){ if(hostDoll){ roomG.remove(hostDoll.g); try{ avFree(hostDoll); }catch(e){} hostDoll=null; } buildShell(Math.max(6,Math.min(12,D.rn|0||6))); floorIx=Math.min(FLOORS.length-1,D.f|0); wallIx=Math.min(WALLS.length-1,D.w|0); setFloor(floorIx); setWall(wallIx);
       (D.p||[]).slice(0,120).forEach(([id,x,z,r,c])=>{ if(ITEMS[id] && !ITEMS[id].wall && fits(id,x,z,r,null,true)){ const p=addPlaced(id,x,z,r,c); p.host=1; } });
       (D.wl||[]).slice(0,40).forEach(([id,sd,s,c])=>{ if(ITEMS[id] && ITEMS[id].wall && wallFits(sd,s)) addWall(id,sd,s,c); }); }
     else loadRoomData(Object.assign({}, D, {s:null})); }

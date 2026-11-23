@@ -26,7 +26,7 @@ function av(a, kind){ kind=kind||"bust"; const key=kind+"|"+JSON.stringify(a||{}
     else P.setExpr(kind==="bust"?"grin":"smile");
     const c=new THREE.PerspectiveCamera(full?30:24, w/h, .1, 20); if(full){ c.position.set(.4,1.0,3.4); c.lookAt(0,.95,0); } else { c.position.set(.05,1.12,2.9); c.lookAt(0,1.08,0); }
     RR.render(sc,c); const url=RR.domElement.toDataURL("image/png"); AVC[key]=url;
-    sc.remove(P.g); return url; }catch(e){ console.warn("PUI av", e); return ""; } }
+    sc.remove(P.g); try{ avFree(P); }catch(e){} return url; }catch(e){ console.warn("PUI av", e); return ""; } }
 function css(){ if(document.getElementById("puCss")) return; const s=document.createElement("style"); s.id="puCss"; s.textContent=`
 #mgUI .puI{display:inline-block;background-repeat:no-repeat;vertical-align:middle;flex:none}
 /* ═ B 게임쇼 (메뉴 · 결과) ═ */

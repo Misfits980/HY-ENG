@@ -733,8 +733,15 @@ const renderer = new THREE.WebGLRenderer({canvas:$("cv"), antialias:true, powerP
 /* (v623) 🐢 렉 단계(GUARD.lv): 0 그대로 · 1 화소 1.5 + 테두리 끔 · 2 화소 1 + 그림자 끔 + 새 섬 안개 가깝게 · 3 화소 0.8 */
 const PERF_PR=l=>[Math.min(2, window.devicePixelRatio||1), Math.min(1.5, window.devicePixelRatio||1), 1, .8][l||0];
 const PLV=()=>(window.GUARD && GUARD.lv)||0;
+/* (v714) 🐢 옛 아이패드(사파리 15 이하 — 실제 기록: 섬 4~6fps · 들어가자마자 튕김) = 처음부터 2단계(화소 1 · 그림자 끔) — 화면 버퍼만 ~100MB → ~25MB
+   · 코어 4개 이하 + 촘촘한 화면(화소 비율 1.5 넘게) = 1단계부터 · ?perf=0 이면 그대로(점검용) */
+const OLDDEV=(()=>{ const u=navigator.userAgent||"", ios=/iPad|iPhone|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints>1); if(!ios) return false; const sv=(u.match(/Version\/(\d+)/)||[])[1], iv=/iPad|iPhone|iPod/.test(u) ? (u.match(/OS (\d+)_/)||[])[1] : null, v=+(sv||iv||99); return v<=15; })();
+const PERF_FLOOR=/[?&]perf=0/.test(location.search) ? 0 : OLDDEV ? 2 : (LOW && (window.devicePixelRatio||1)>1.5) ? 1 : 0;
+try{ if(window.GUARD && GUARD.lv<PERF_FLOOR){ GUARD.lv=PERF_FLOOR; GUARD.floor=PERF_FLOOR; } }catch(e){}
 renderer.setPixelRatio(PERF_PR(PLV()));
 try{ GUARD.watchGL(renderer.domElement); }catch(e){}
+/* (v714) 옛 아이패드는 섬 도형의 JS 사본을 버리므로(메모리) 그래픽이 끊겼다 돌아와도 다시 못 그림 → 다시 시작 카드 */
+if(OLDDEV) try{ renderer.domElement.addEventListener("webglcontextrestored", ()=>{ try{ GUARD.fatalCard("그래픽이 잠깐 끊겼어요", "다시 시작하면 돌아와요. 모은 것은 그대로예요.", "glrestored"); }catch(e){} }, false); }catch(e){}
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf1e2c8);   // (L0-8) 집 안 배경 — 따뜻한 종이색
@@ -2034,14 +2041,43 @@ function buildAvatar(c){ c=Object.assign({}, AV_DEF, c);
   const rod=new THREE.Group(); rod.position.set(0.25,0.31,0.12); up.add(rod); part(rod, cyl(0.018,0.026,1.35,8), M(0x8a5a34), 0,0.67,0); part(rod, cyl(0.04,0.04,0.08,10), M(0x444455), 0,0.12,0);
   const tip=new THREE.Object3D(); tip.position.y=1.35; rod.add(tip); rod.visible=false; P.rod=rod; P.tip=tip;
   g.traverse(m=>{ if(m.isMesh){ m.userData.av=true; if(m.userData.ol) m.castShadow=false; } });
+  avBake(P);
   P.blinkT=rnd(1.5,4);
   return P;
 }
+/* (v714) 🐢 옛 아이패드 — 아바타 한 명 = 조각 ~80개(+ 테두리)를 따로 그림 → 나 하나만 그리기 80번 + 그림자 34번 · 친구 20명이면 1600번
+   · 움직이는 마디(다리·윗몸·팔·머리)마다 같은 재질 조각을 한 덩어리로 (모양·색·테두리는 같음) · 눈·입·눈썹(표정)·낚싯대는 그대로 · ?avbake=0 이면 끔 */
+const AVBAKE=!/[?&]avbake=0/.test(location.search);
+/* 합친 도형은 아바타마다 따로라 — 버려진 아바타(친구가 멀어짐 · 옷 바꿈 · 사진 찍기 …)가 사라지면 GPU 도형도 비움 */
+const TMV=new THREE.MeshToonMaterial({color:0xffffff, vertexColors:true, gradientMap:TOON_GRAD});
+/* 아바타를 버릴 때 합친 도형(그 아바타만의 것)을 비움 — 버린 아바타·묶음·장면 무엇이든 (같이 쓰는 원래 도형은 안 건드림) */
+function avFree(x){ const o=x && (x.isObject3D ? x : x.g); if(!o || !o.traverse) return; o.traverse(m=>{ if(m.isMesh && m.geometry && (m.geometry.userData.src || m.userData.fbk)) try{ m.geometry.dispose(); }catch(e){} }); }
+const AVFR=typeof FinalizationRegistry==="function" ? new FinalizationRegistry(L=>{ L.forEach(g=>{ try{ g.dispose(); }catch(e){} }); }) : null;
+function avBake(P){ if(!AVBAKE || !P || !P.g) return; try{
+  const dyn=new Set([P.g, P.body, P.legL, P.legR, P.armL, P.armR, P.head, P.head && P.head.parent, P.eyesG, P.mouthG, P.brows, P.rod, P.tip].filter(Boolean)); [P.armL, P.armR].forEach(A=>{ if(A) A.children.forEach(c=>dyn.add(c)); });
+  const skip=new Set([P.eyesG, P.mouthG, P.brows, P.rod, P.tip].filter(Boolean)); P.g.updateMatrixWorld(true);
+  const bins=new Map(), owner=new Map();
+  P.g.traverse(m=>{ if(!m.isMesh) return; let d=m.parent; while(d && !dyn.has(d)) d=d.parent; if(!d || skip.has(d)) return; owner.set(m, d);
+    const t=m.material; if(!t || Array.isArray(t) || t.transparent || !m.visible || !m.geometry || !m.geometry.attributes.position || !m.geometry.attributes.normal || m.geometry.morphAttributes && Object.keys(m.geometry.morphAttributes).length) return;
+    const toon=t.isMeshToonMaterial && t.gradientMap===TOON_GRAD && !t.map && !t.vertexColors && t.side===THREE.FrontSide;   /* 색만 다른 툰 재질 = 꼭짓점 색 하나로 */
+    const k=d.uuid+"|"+(toon?"toon":t.uuid)+"|"+(m.castShadow?1:0)+(m.receiveShadow?1:0); (bins.get(k)||bins.set(k,{d, t:toon?TMV:t, vc:toon, cast:m.castShadow, recv:m.receiveShadow, ol:!!m.userData.ol, L:[]}).get(k)).L.push(m); });
+  const R=new Set(); bins.forEach(b=>{ if(b.L.length>=2) b.L.forEach(m=>R.add(m)); }); if(!R.size) return;
+  owner.forEach((d,m)=>{ if(!R.has(m) && R.has(m.parent)) d.attach(m); });   /* 합치는 조각에 붙어 있던 것(테두리 하나 등)은 마디로 옮김 — 자리 그대로 */
+  const inv=new THREE.Matrix4(), M=new THREE.Matrix4(), nm=new THREE.Matrix3(), v=new THREE.Vector3(), made=[];
+  bins.forEach(b=>{ if(b.L.length<2) return; inv.copy(b.d.matrixWorld).invert(); let nv=0, ni=0; b.L.forEach(m=>{ const gm=m.geometry; nv+=gm.attributes.position.count; ni+=gm.index?gm.index.count:gm.attributes.position.count; });
+    const Pp=new Float32Array(nv*3), Nn=new Float32Array(nv*3), Cc=b.vc?new Float32Array(nv*3):null, I=nv>65535?new Uint32Array(ni):new Uint16Array(ni); let ov=0, oi=0;
+    b.L.forEach(m=>{ const gm=m.geometry, pa=gm.attributes.position, na=gm.attributes.normal, ix=gm.index, col=m.material.color; M.multiplyMatrices(inv, m.matrixWorld); nm.getNormalMatrix(M); const flip=M.determinant()<0;
+      for(let i=0;i<pa.count;i++){ v.fromBufferAttribute(pa,i).applyMatrix4(M); Pp[(ov+i)*3]=v.x; Pp[(ov+i)*3+1]=v.y; Pp[(ov+i)*3+2]=v.z; v.fromBufferAttribute(na,i).applyMatrix3(nm).normalize(); Nn[(ov+i)*3]=v.x; Nn[(ov+i)*3+1]=v.y; Nn[(ov+i)*3+2]=v.z; if(Cc){ Cc[(ov+i)*3]=col.r; Cc[(ov+i)*3+1]=col.g; Cc[(ov+i)*3+2]=col.b; } }
+      const n=ix?ix.count:pa.count; for(let i=0;i<n;i+=3){ const a=ix?ix.getX(i):i, c1=ix?ix.getX(i+1):i+1, c2=ix?ix.getX(i+2):i+2; I[oi+i]=a+ov; I[oi+i+1]=(flip?c2:c1)+ov; I[oi+i+2]=(flip?c1:c2)+ov; } ov+=pa.count; oi+=n; });   /* 거울(음수 크기) 조각은 감는 방향을 뒤집음 */
+    const geo=new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(Pp,3)); geo.setAttribute("normal", new THREE.BufferAttribute(Nn,3)); if(Cc) geo.setAttribute("color", new THREE.BufferAttribute(Cc,3)); geo.setIndex(new THREE.BufferAttribute(I,1)); geo.computeBoundingSphere(); geo.userData.src=b.L.map(m=>m.geometry.type); made.push(geo);
+    const mm=new THREE.Mesh(geo, b.t); mm.castShadow=b.cast; mm.receiveShadow=b.recv; mm.userData.av=true; mm.userData.baked=b.L.length; if(b.ol) mm.userData.ol=true; b.d.add(mm); });
+  R.forEach(m=>{ if(m.parent) m.parent.remove(m); }); P.baked=R.size; if(AVFR && made.length) AVFR.register(P.g, made);
+}catch(e){ try{ GUARD.report("avbake", e && e.message); }catch(_){ } } }
 
 /* (v461) 😊 표정 — 눈(깜빡임 묶음) · 입 · 눈썹을 다시 그림 · (v659) 새 얼굴 자리 · 눈동자 색
    smile 방긋 · grin 활짝(^ ^ + 벌린 입) · wink 윙크 · wow 깜짝(큰 눈 + o 입) · cat 고양이(ω 입) · cool 새침(반쯤 감은 눈 + 한쪽 입꼬리) */
 const EXM={dark:new THREE.MeshBasicMaterial({color:0x33221f}), lash:new THREE.MeshBasicMaterial({color:0x33221f}), hi:new THREE.MeshBasicMaterial({color:0xffffff}), mouth:new THREE.MeshBasicMaterial({color:0x8a3b3b}), inner:new THREE.MeshBasicMaterial({color:0xa23246, side:THREE.DoubleSide}), tongue:new THREE.MeshBasicMaterial({color:0xff8fa3, side:THREE.DoubleSide})};
-function avExpr(P, k){ const E=P.eyesG, Mo=P.mouthG, B=P.brows; if(!E) return; [E,Mo,B].forEach(G=>{ while(G.children.length) G.remove(G.children[0]); }); P.expr=k; E.scale.y=1;
+function avExpr(P, k){ const E=P.eyesG, Mo=P.mouthG, B=P.brows; if(!E) return; [E,Mo,B].forEach(G=>{ while(G.children.length){ const c=G.children[0]; if(c.userData.fbk && c.geometry) c.geometry.dispose(); G.remove(c); } }); P.expr=k; E.scale.y=1;
   const EX=AV_EX, EY=AV_EY, EZ=AV_EZ, irisM=P.irisM||(P.irisM=new THREE.MeshBasicMaterial({color:P.irisC||0x6b4226})), browM=P.browM||(P.browM=new THREE.MeshBasicMaterial({color:P.browC}));
   const add=(G, geo, mat, x,y,z, rx,ry,rz, sx,sy,sz)=>{ const m=new THREE.Mesh(geo, mat); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,rz||0); if(sx!=null) m.scale.set(sx,sy,sz); m.userData.av=true; G.add(m); return m; };
   const openEye=(s, big, half)=>{ const q=big?1.15:1; add(E, sph(0.05), EXM.dark, s*EX,EY,EZ, 0,s*0.26,0, 0.9*q,(half?0.7:1.34)*q,0.36);
@@ -2059,7 +2095,19 @@ function avExpr(P, k){ const E=P.eyesG, Mo=P.mouthG, B=P.brows; if(!E) return; [
   else if(k==="cat"){ openEye(-1); openEye(1); brow(-1); brow(1); smileM(0.02,-0.019); smileM(0.02,0.019); }
   else if(k==="cool"){ openEye(-1,false,true); openEye(1,false,true); brow(-1,-0.02,0.14); brow(1,-0.008,-0.06); add(Mo, torus(0.03,0.009,Math.PI*0.6), EXM.mouth, 0.012,-0.132,0.3, 0,0,Math.PI*1.25); }
   else { openEye(-1); openEye(1); brow(-1); brow(1); smileM(); }
+  avBakeFace([E,Mo,B]);
   try{ dirty=true; }catch(e){} }
+/* (v714) 표정 조각(눈 12 · 입 · 눈썹)도 묶음마다 같은 재질끼리 한 덩어리 — 표정이 바뀌면 avExpr 가 다시 만듦(그때 지난 덩어리는 비움) */
+function avBakeFace(GS){ if(!AVBAKE) return; try{ GS.forEach(G=>{ if(!G || G.children.length<2) return; G.updateMatrixWorld(true); const inv=new THREE.Matrix4().copy(G.matrixWorld).invert(), bins=new Map();
+    G.children.forEach(m=>{ if(!m.isMesh || m.children.length || !m.geometry.attributes.normal) return; const t=m.material; (bins.get(t.uuid)||bins.set(t.uuid,{t, L:[]}).get(t.uuid)).L.push(m); });
+    const M=new THREE.Matrix4(), v=new THREE.Vector3();
+    bins.forEach(b=>{ if(b.L.length<2) return; let nv=0, ni=0; b.L.forEach(m=>{ const gm=m.geometry; nv+=gm.attributes.position.count; ni+=gm.index?gm.index.count:gm.attributes.position.count; });
+      const Pp=new Float32Array(nv*3), Nn=new Float32Array(nv*3), I=nv>65535?new Uint32Array(ni):new Uint16Array(ni), nm=new THREE.Matrix3(); let ov=0, oi=0;
+      b.L.forEach(m=>{ const gm=m.geometry, pa=gm.attributes.position, na=gm.attributes.normal, ix=gm.index; M.multiplyMatrices(inv, m.matrixWorld); nm.getNormalMatrix(M); const flip=M.determinant()<0;
+        for(let i=0;i<pa.count;i++){ v.fromBufferAttribute(pa,i).applyMatrix4(M); Pp.set([v.x,v.y,v.z],(ov+i)*3); v.fromBufferAttribute(na,i).applyMatrix3(nm).normalize(); Nn.set([v.x,v.y,v.z],(ov+i)*3); }
+        const n=ix?ix.count:pa.count; for(let i=0;i<n;i+=3){ const a=ix?ix.getX(i):i, c1=ix?ix.getX(i+1):i+1, c2=ix?ix.getX(i+2):i+2; I[oi+i]=a+ov; I[oi+i+1]=(flip?c2:c1)+ov; I[oi+i+2]=(flip?c1:c2)+ov; } ov+=pa.count; oi+=n; G.remove(m); });
+      const geo=new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(Pp,3)); geo.setAttribute("normal", new THREE.BufferAttribute(Nn,3)); geo.setIndex(new THREE.BufferAttribute(I,1)); geo.computeBoundingSphere();
+      const mm=new THREE.Mesh(geo, b.t); mm.userData.av=true; mm.userData.fbk=1; mm.castShadow=b.L[0].castShadow; mm.receiveShadow=b.L[0].receiveShadow; G.add(mm); }); }); }catch(e){ try{ GUARD.report("avbake", "face "+(e && e.message)); }catch(_){ } } }
 /* 감정 표현 → 잠깐 그 표정 (말풍선이 사라지면 원래 표정) */
 const EMO_EXPR={"😆":"grin","👋":"grin","🎉":"grin","🏆":"grin","⭐":"grin","❤️":"wink","👍":"wink","💪":"cool","😱":"wow","😮":"wow","💃":"grin"};
 
@@ -2709,7 +2757,7 @@ function twNetStart(){ twNetStop(); if(TW.bot) return; const K=kidInfo(); TWN.on
   go(); poll(); TWN.poll=setInterval(()=>{ if(!TWN.es){ poll(); if(Math.random()<0.15) go(); } }, 1200); }
 function twNetStop(){ const was=TWN.on; TWN.on=false; clearInterval(TWN.poll); if(TWN.es){ try{ TWN.es.close(); }catch(e){} TWN.es=null; }
   if(was && TWN.path) NET.del(TWN.path+"/"+myCode).catch(()=>{});
-  Object.values(TWN.peers).forEach(c=>{ if(c.g.parent) c.g.parent.remove(c.g); }); TWN.peers={}; TWN.sent=null; if(TWN.g) TWN.g.visible=false; }
+  Object.values(TWN.peers).forEach(c=>{ if(c.g.parent) c.g.parent.remove(c.g); avFree(c); }); TWN.peers={}; TWN.sent=null; if(TWN.g) TWN.g.visible=false; }
 addEventListener("pagehide", ()=>{ try{ if(TWN.on && TWN.path) NET.del(TWN.path+"/"+myCode); }catch(e){} });
 function twNetSend(dt){ if(!TWN.on || TW.bot) return; TWN.sendT+=dt; const p=TW.p, s=TWN.sent, f=+hero.face.toFixed(2), a=TW.fin?"win":hero.act;
   const moved=!s || Math.abs(s[0]-p.x)+Math.abs(s[1]-p.y)+Math.abs(s[2]-p.z)>0.04 || s[3]!==a;
@@ -2724,7 +2772,7 @@ function twNetTick(dt){ if(!TWN.on) return false; twNetSend(dt); const now=perfo
     c.tgt.set(+d.p[0]||0, +d.p[1]||0, +d.p[2]||0); c.face=+d.p[3]||0; const a=d.p[4]||"idle";
     if(a==="win" && !c.won){ c.won=1; toast("🏆 <b>"+esc(c.nm||"친구")+"</b> 꼭대기 도착!", 1800); }
     if(d.e && d.e[1] && d.e[1]!==c.eT){ const first=c.eT==null; c.eT=d.e[1]; if(!first || Math.abs(wall-d.e[1])<4000) if(c.g.visible && Math.abs(wall-d.e[1])<8000) emote(c, String(d.e[0]).slice(0,4)); } });
-  Object.keys(TWN.peers).forEach(k=>{ if(!TWN.tree[k] || !TWN.tree[k].p){ const c=TWN.peers[k]; if(c.g.parent) c.g.parent.remove(c.g); delete TWN.peers[k]; } });
+  Object.keys(TWN.peers).forEach(k=>{ if(!TWN.tree[k] || !TWN.tree[k].p){ const c=TWN.peers[k]; if(c.g.parent) c.g.parent.remove(c.g); avFree(c); delete TWN.peers[k]; } });
   Object.values(TWN.peers).forEach(c=>{ if(!c.g.visible) return; const P=c.g.position, d=P.distanceTo(c.tgt); if(d>6) P.copy(c.tgt); else P.lerp(c.tgt, Math.min(1, dt*9)); c.moving=d>0.06; if(animChar(c, dt)) anim=true; anim=true; });
   return anim; }
 /* (v455) 😀 타워 안 감정 표현 — 머리 위 말풍선 (내 것 = emote(hero) · 친구에게 = /e:[이모지, 시각]) · 떨어지면 😱 · 꼭대기 🎉 저절로 */
@@ -2773,21 +2821,21 @@ function vlNetStart(){ if(VLN.on) return; const K=kidInfo(); VLN.on=true; VLN.pa
   go(); poll(); VLN.poll=setInterval(()=>{ if(!VLN.es || !VLN.mes){ poll(); if(Math.random()<0.15) go(); } }, 2000); }
 function vlNetStop(){ const was=VLN.on; VLN.on=false; clearInterval(VLN.poll); [VLN.es, VLN.mes].forEach(es=>{ if(es) try{ es.close(); }catch(e){} }); VLN.es=VLN.mes=null;
   if(was && VLN.path) NET.del(VLN.path+"/"+myCode).catch(()=>{});
-  Object.values(VLN.peers).forEach(c=>{ sayOff(c); if(c.g.parent) c.g.parent.remove(c.g); }); VLN.peers={}; VLN.sent=null; $("vcFeed").innerHTML=""; VLN.feed=[]; $("vcPane").classList.remove("on"); sayOff(hero); }
+  Object.values(VLN.peers).forEach(c=>{ sayOff(c); if(c.g.parent) c.g.parent.remove(c.g); avFree(c); }); VLN.peers={}; VLN.sent=null; $("vcFeed").innerHTML=""; VLN.feed=[]; $("vcPane").classList.remove("on"); sayOff(hero); }
 addEventListener("pagehide", ()=>{ try{ if(VLN.on && VLN.path) NET.del(VLN.path+"/"+myCode); }catch(e){} });
 function vlSend(dt){ VLN.sendT+=dt; const p=hero.g.position, s=VLN.sent, f=+hero.face.toFixed(2), a=hero.moving?"walk":(hero.act||"idle");
   const moved=!s || Math.abs(s[0]-p.x)+Math.abs(s[1]-p.z)>0.05 || s[2]!==a;
   if((moved && VLN.sendT>0.25) || VLN.sendT>3){ VLN.sendT=0; const v=[+p.x.toFixed(2), +p.z.toFixed(2), f, a, Date.now()]; VLN.sent=[v[0],v[1],a]; NET.put(VLN.path+"/"+myCode+"/p", v).catch(()=>{}); } }
 function vlTick(dt){ if(!VLN.on) return false; if(!vlHere() || VLN.path!==vlNetPath()){ vlNetStop(); return false; } vlSend(dt); const now=performance.now(), wall=Date.now(); let anim=false;
   /* (v528) 학원 전체 = 많은 친구 → 가까운 20명만 그림 (멀리 있는 친구는 안 만듦) */
-  const hp=hero.g.position, near=new Set(Object.keys(VLN.tree).filter(k=>k!==myCode && VLN.tree[k] && VLN.tree[k].p).sort((a,b)=>{ const A=VLN.tree[a].p, B=VLN.tree[b].p; return Math.hypot(A[0]-hp.x,A[1]-hp.z)-Math.hypot(B[0]-hp.x,B[1]-hp.z); }).slice(0,20));
-  Object.keys(VLN.peers).forEach(k=>{ if(!near.has(k)){ const c=VLN.peers[k]; sayOff(c); if(c.g.parent) c.g.parent.remove(c.g); delete VLN.peers[k]; } });
+  const hp=hero.g.position, near=new Set(Object.keys(VLN.tree).filter(k=>k!==myCode && VLN.tree[k] && VLN.tree[k].p).sort((a,b)=>{ const A=VLN.tree[a].p, B=VLN.tree[b].p; return Math.hypot(A[0]-hp.x,A[1]-hp.z)-Math.hypot(B[0]-hp.x,B[1]-hp.z); }).slice(0,PLV()>=3?6:PLV()>=2?10:20));   /* (v714) 가볍게 2단계 = 가까운 10명 · 3단계 = 6명 */
+  Object.keys(VLN.peers).forEach(k=>{ if(!near.has(k)){ const c=VLN.peers[k]; sayOff(c); if(c.g.parent) c.g.parent.remove(c.g); avFree(c); delete VLN.peers[k]; } });
   Object.keys(VLN.tree).forEach(k=>{ if(k===myCode || !near.has(k)) return; const d=VLN.tree[k]; if(!d || !d.p || !d.i) return; let c=VLN.peers[k];
     if(!c){ const A=buildAvatar((d.i&&d.i.av)||{}); c=VLN.peers[k]=Object.assign(A, {face:0, t:0, moving:false, act:"idle", blinkT:2, tgt:new THREE.Vector3(), nm:""}); VLN.g.add(c.g); c.g.position.set(+d.p[0]||0, 0, +d.p[1]||0); }
     if(c.nm!==(d.i.n||"")){ c.nm=d.i.n||""; if(c.tag) c.g.remove(c.tag); c.tag=twNameTag(c.nm||"친구"); c.tag.position.y=1.55; c.g.add(c.tag); }
     c.g.visible=now-(VLN.seen[k]||0)<15000 && Math.abs(wall-(+d.p[4]||0))<10*60000;
     c.tgt.set(+d.p[0]||0, 0, +d.p[1]||0); c.face=+d.p[2]||0; c.act=d.p[3]==="walk"?"idle":(d.p[3]||"idle"); });
-  Object.keys(VLN.peers).forEach(k=>{ if(!VLN.tree[k] || !VLN.tree[k].p){ const c=VLN.peers[k]; sayOff(c); if(c.g.parent) c.g.parent.remove(c.g); delete VLN.peers[k]; } });
+  Object.keys(VLN.peers).forEach(k=>{ if(!VLN.tree[k] || !VLN.tree[k].p){ const c=VLN.peers[k]; sayOff(c); if(c.g.parent) c.g.parent.remove(c.g); avFree(c); delete VLN.peers[k]; } });
   Object.values(VLN.peers).forEach(c=>{ if(!c.g.visible) return; const P=c.g.position, d=P.distanceTo(c.tgt); if(d>5) P.copy(c.tgt); else P.lerp(c.tgt, Math.min(1, dt*6)); c.moving=d>0.04; if(animChar(c, dt)) anim=true; });
   if(sayTick(dt)) anim=true; vcFeedTick(); return anim; }
 function vlCount(){ return Object.values(VLN.peers).filter(c=>c.g.visible).length; }
@@ -2897,7 +2945,7 @@ function nearestFree(tx, tz, want){ const R=hero ? bfsFrom(hero.cx, hero.cz, -9,
 let hero = null; const trip={busy:false};   // (v407) 문·길로 넘어가는 중
 function makeHero(){
   const keep = hero ? {cx:hero.cx, cz:hero.cz, ry:hero.g.rotation.y} : null;
-  if(hero){ scene.remove(hero.g); }
+  if(hero){ scene.remove(hero.g); avFree(hero); }
   const P=buildAvatar(av);
   hero = Object.assign(P, {cx:keep?keep.cx:place.start[0], cz:keep?keep.cz:place.start[1], path:[], moving:false, face:keep?keep.ry:0.6, t:0, act:"idle", actT:0, then:null});
   hero.g.position.set(hero.cx+0.5, 0, hero.cz+0.5); hero.g.rotation.y=hero.face; scene.add(hero.g); dirty=true;
@@ -3550,13 +3598,13 @@ function yEnterVisit(v){ if(F.st!=="idle") return; SHEETS.forEach(id=>$(id).clas
   setTimeout(()=>{ if(visiting===v && yHost){ emote(yHost,"👋"); toast("🌳 "+esc(v.n)+" 의 마당 — 구경해요!<br><small>🚪 집 문을 누르면 들어가요</small>", 2600); say("welcome"); } }, 700); }
 function yVisitIn(v){ const d=v.data||{}; if(!yStash) yStash=store("hyeng_proto_yard")||yData();
   scene.userData.plotG.forEach(P=>P.visible=false); yVisitPlots(d.y); yLoad(d.y);   /* (v584) 친구 밭 자리 먼저 → 친구 물건이 내 밭 자리에 막혀 빠지지 않게 */
-  if(yHost){ yardG.remove(yHost.g); yHost=null; } const c=[DOOR[0]+1, DOOR[1]]; const P=buildAvatar(Object.assign({}, d.av||{})); P.g.position.set(c[0]+0.5,0,c[1]+0.5); P.g.rotation.y=Math.PI/4;
+  if(yHost){ yardG.remove(yHost.g); avFree(yHost); yHost=null; } const c=[DOOR[0]+1, DOOR[1]]; const P=buildAvatar(Object.assign({}, d.av||{})); P.g.position.set(c[0]+0.5,0,c[1]+0.5); P.g.rotation.y=Math.PI/4;
   P.g.add(tagSprite("🏠 "+(v.n||"")+(d.g?" #"+d.g:""))); P.g.traverse(m=>{ m.userData.npc="host"; }); yardG.add(P.g); yHost=Object.assign(P, {cx:c[0], cz:c[1], t:0, act:"wave", actT:0, face:Math.PI/4, moving:false, path:[]}); }
-function yVisitOut(){ if(yHost){ yardG.remove(yHost.g); yHost=null; } yVisitPlots(null); if(yStash){ scene.userData.plotG.forEach(P=>P.visible=true); const d=yStash; yStash=null; yLoad(d); } }
+function yVisitOut(){ if(yHost){ yardG.remove(yHost.g); avFree(yHost); yHost=null; } yVisitPlots(null); if(yStash){ scene.userData.plotG.forEach(P=>P.visible=true); const d=yStash; yStash=null; yLoad(d); } }
 function yVisitHouse(){ if(!visiting) return; leaveBy(DOOR, [1.5,2.95], ()=>enterVisit(visiting), houseDoor); }
 function yHostHi(){ if(!yHost) return; yHost.act="wave"; yHost.actT=0; emote(yHost,"😊"); const L="Welcome to my garden!"; toast("💬 "+L, 2200); say(L); }
 function stashMine(){ myRoom={placed:placed.splice(0), wl:wplaced.splice(0), rn:RN, f:floorIx, w:wallIx}; myRoom.placed.concat(myRoom.wl).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj)); }
-function clearHostRoom(){ placed.splice(0).concat(wplaced.splice(0)).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj)); if(hostDoll){ roomG.remove(hostDoll.g); hostDoll=null; } }
+function clearHostRoom(){ placed.splice(0).concat(wplaced.splice(0)).forEach(p=>p.obj.parent && p.obj.parent.remove(p.obj)); if(hostDoll){ roomG.remove(hostDoll.g); avFree(hostDoll); hostDoll=null; } }
 function restoreMine(){ if(!myRoom) return; clearHostRoom(); buildShell(myRoom.rn); floorIx=myRoom.f; wallIx=myRoom.w; setFloor(floorIx); setWall(wallIx);
   myRoom.placed.forEach(p=>{ placed.push(p); roomG.add(p.obj); }); myRoom.wl.forEach(p=>{ wplaced.push(p); wallPos(p.obj,p.side,p.s); }); myRoom=null; }
 function enterVisit(v){ if(F.st!=="idle") return; SHEETS.forEach(id=>$(id).classList.remove("on")); try{ closeTalk(); }catch(e){}
@@ -4331,14 +4379,51 @@ function setFade(obj,on){ if(on){ if(faded.has(obj)) return; const L=[]; obj.tra
   else { const L=faded.get(obj); if(!L) return; L.forEach(([m,mat])=>{ [].concat(m.material).forEach(x=>x.dispose&&x.dispose()); m.material=mat; }); faded.delete(obj); } }
 function clearFade(){ [...faded.keys()].forEach(o=>setFade(o,false)); }
 const occRc=new THREE.Raycaster(); occRc.camera=camera; let occT=0;   // 그림판(이름표)을 맞출 때 카메라가 필요
+/* (v714) 🐢 옛 아이패드 — 가림 검사(0.1초마다 광선 3개)가 섬의 큰 합친 덩어리(꼭짓점 ~150만) 삼각형을 다 훑어 한 번에 ~22ms(PC) · 옛 패드는 100ms 넘게 → 섬 4~10fps 의 가장 큰 까닭
+   · 큰 합친 덩어리(흐려지지 않는 것)는 땅 위 2칸 격자로 삼각형을 한 번 나눠 두고 광선이 지나는 칸만 봄 · 광선보다 낮은 것(땅·길·바다)은 건너뜀 → 결과는 같고 ~수십 배 빠름
+   · 풀·꽃(여러 개 한 번에 그리기)은 나를 가렸다고 보지 않음 (발이 풀에 닿아 보라색 실루엣이 깜빡이던 것도 없어짐) */
+const OCC=(()=>{ const CS=2, inv=new THREE.Matrix4(), A=new THREE.Vector3(), B=new THREE.Vector3(), C=new THREE.Vector3(), p0=new THREE.Vector3(), p1=new THREE.Vector3(), hp=new THREE.Vector3(), ray=new THREE.Ray(), wb=new THREE.Box3();
+  function grid(geo){ const old=geo.userData.occG; if(old) return old; const pos=geo.attributes.position, ix=geo.index, nt=((ix?ix.count:pos.count)/3)|0; if(!geo.boundingBox) geo.computeBoundingBox(); const bb=geo.boundingBox, x0=bb.min.x, z0=bb.min.z;
+    const nx=Math.max(1,Math.ceil((bb.max.x-x0)/CS+1e-6)), nz=Math.max(1,Math.ceil((bb.max.z-z0)/CS+1e-6)), st=new Uint32Array(nx*nz+1), big=[], vi=(t,k)=>ix?ix.getX(t*3+k):t*3+k;
+    const span=(t,f)=>{ let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity; for(let k=0;k<3;k++){ const i=vi(t,k), x=pos.getX(i), z=pos.getZ(i); if(x<a) a=x; if(x>b) b=x; if(z<c) c=z; if(z>d) d=z; }
+      const i0=Math.max(0,Math.floor((a-x0)/CS)), i1=Math.min(nx-1,Math.floor((b-x0)/CS)), k0=Math.max(0,Math.floor((c-z0)/CS)), k1=Math.min(nz-1,Math.floor((d-z0)/CS)); if((i1-i0+1)*(k1-k0+1)>64) return false; for(let k=k0;k<=k1;k++) for(let i=i0;i<=i1;i++) f(k*nx+i); return true; };
+    for(let t=0;t<nt;t++){ if(!span(t, c=>{ st[c+1]++; })) big.push(t); } for(let c=0;c<nx*nz;c++) st[c+1]+=st[c];
+    const L=new Uint32Array(st[nx*nz]), fill=st.slice(0, nx*nz); for(let t=0;t<nt;t++) span(t, c=>{ L[fill[c]++]=t; });
+    return geo.userData.occG={x0, z0, nx, nz, st, L, big:Uint32Array.from(big)}; }
+  /* 세계 좌표 선분 o→e 가 이 덩어리의 삼각형에 닿는지 */
+  function seg(m, o, e){ const geo=m.geometry; if(!geo || !geo.attributes.position) return false; if(!geo.boundingBox) geo.computeBoundingBox();
+    wb.copy(geo.boundingBox).applyMatrix4(m.matrixWorld); if(wb.max.y<Math.min(o.y,e.y)) return false;   /* 광선보다 낮은 것 (선분은 양 끝보다 아래로 안 내려감) */
+    inv.copy(m.matrixWorld).invert(); p0.copy(o).applyMatrix4(inv); p1.copy(e).applyMatrix4(inv); ray.origin.copy(p0); ray.direction.copy(p1).sub(p0); const len=ray.direction.length(); if(len<1e-6) return false; ray.direction.multiplyScalar(1/len);
+    if(!ray.intersectsBox(geo.boundingBox)) return false;
+    const R=grid(geo), pos=geo.attributes.position, ix=geo.index, mat=Array.isArray(m.material)?null:m.material, side=mat?mat.side:THREE.DoubleSide;
+    const tri=t=>{ const a=ix?ix.getX(t*3):t*3, b=ix?ix.getX(t*3+1):t*3+1, c=ix?ix.getX(t*3+2):t*3+2; A.fromBufferAttribute(pos,a); B.fromBufferAttribute(pos,b); C.fromBufferAttribute(pos,c);
+      const h=side===THREE.BackSide ? ray.intersectTriangle(C,B,A,true,hp) : ray.intersectTriangle(A,B,C,side!==THREE.DoubleSide,hp); return !!h && hp.distanceTo(p0)<=len; };
+    for(let i=0;i<R.big.length;i++) if(tri(R.big[i])) return true;
+    const cell=(x,z)=>Math.floor((x-R.x0)/CS)+","+Math.floor((z-R.z0)/CS), seen=new Set(), n=Math.ceil(Math.hypot(p1.x-p0.x,p1.z-p0.z)/(CS*.5))+1; let px=p0.x, pz=p0.z;
+    for(let s=0;s<=n;s++){ const x=p0.x+(p1.x-p0.x)*s/n, z=p0.z+(p1.z-p0.z)*s/n;   /* 앞뒤 두 점 사이 네모 칸을 다 (모서리를 스치는 칸도) */
+      const i0=Math.max(0,Math.floor((Math.min(px,x)-R.x0)/CS)), i1=Math.min(R.nx-1,Math.floor((Math.max(px,x)-R.x0)/CS)), k0=Math.max(0,Math.floor((Math.min(pz,z)-R.z0)/CS)), k1=Math.min(R.nz-1,Math.floor((Math.max(pz,z)-R.z0)/CS)); px=x; pz=z;
+      for(let k=k0;k<=k1;k++) for(let i=i0;i<=i1;i++){ const c=k*R.nx+i; if(seen.has(c)) continue; seen.add(c); for(let j=R.st[c];j<R.st[c+1];j++) if(tri(R.L[j])) return true; } }
+    return false; }
+  const E=new THREE.Vector3();
+  /* 섬: 큰 합친 덩어리는 격자로 (나를 가리는지만 — 흐려지지 않으니) · 나머지는 그대로 three 광선 */
+  function hits(g, me){ if(!(window.ISLE && g===ISLE.G)) return occRc.intersectObject(g,true); const out=[], o=occRc.ray.origin; E.copy(occRc.ray.direction).multiplyScalar(occRc.far).add(o);
+    const lowY=Math.min(o.y, E.y);
+    for(const c of g.children){ if(!c.visible || c.isSprite || c.isPoints || c.isLine || c.isInstancedMesh) continue;
+      if(!me && c.userData.noFade) continue;   /* 친구(대화 상대) 쪽 광선 = 흐릴 것만 찾음 */
+      if(c.isMesh && c.geometry && c.geometry.attributes.position){ const geo=c.geometry; if(!geo.boundingBox) geo.computeBoundingBox(); wb.copy(geo.boundingBox).applyMatrix4(c.matrixWorld); if(wb.max.y<lowY) continue;
+        if(c.userData.noFade && geo.attributes.position.count>1500){ if(seg(c, o, E)) out.push({object:c}); continue; } }
+      occRc.intersectObject(c, true, out); }
+    return out; }
+  return {seg, grid, hits}; })();
+window.OCC=OCC;
 function updOcclude(dt){ occT+=dt; if(occT<0.1) return false; occT=0; const g=place.g; if(!hero || !g.visible) return false;
   const targets=[hero.g].concat(talkN?[talkN.g]:[]), hit=new Set(); let hid=false;
   targets.forEach(t=>[0.45,1.15].forEach(hy=>{ const to=t.position.clone(); to.y+=hy; const dir=to.clone().sub(camera.position), dist=dir.length(); occRc.set(camera.position, dir.normalize()); occRc.far=Math.max(0.1,dist-0.35);
-    occRc.intersectObject(g,true).forEach(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; if(o.parent===g && !o.userData.npc && !o.userData.noFade) hit.add(o);
+    OCC.hits(g, t===hero.g).forEach(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; if(o.parent===g && !o.userData.npc && !o.userData.noFade) hit.add(o);
       if(t===hero.g && h.object.isMesh && !o.userData.npc && !(h.object.material && h.object.material.transparent)) hid=true; }); }));   /* (v576) 흐려지지 않는(합친) 것이 나를 가림 → 실루엣 */
   let ch=false; [...faded.keys()].forEach(o=>{ if(!hit.has(o)){ setFade(o,false); ch=true; } }); hit.forEach(o=>{ if(!faded.has(o)){ setFade(o,true); ch=true; } });
   if(!hid && PL.isle && place===PL.isle){ const to=hero.g.position.clone(); to.y+=0.22; const dir=to.clone().sub(camera.position), dist=dir.length(); occRc.set(camera.position, dir.normalize()); occRc.far=Math.max(0.1,dist-0.3);   /* 발쪽도 (나무가 낮아서) */
-    hid=occRc.intersectObject(g,true).some(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; return h.object.isMesh && !o.userData.npc && !(h.object.material && h.object.material.transparent); }); }
+    hid=OCC.hits(g, true).some(h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; return h.object.isMesh && !o.userData.npc && !(h.object.material && h.object.material.transparent); }); }
   if(HGHOST.chk(hid)) ch=true; return ch; }
 /* (v576) 🌲 숲·가로수(합쳐서 안 흐려지는 덩어리)에 가려지면 나를 보라색 실루엣으로 — 섬에서만 · 가려졌을 때만 한 번 더 그림(뒤에 있는 부분만: GreaterDepth) */
 const HGHOST=(()=>{ const mat=new THREE.MeshBasicMaterial({color:0x8a6cff, transparent:true, opacity:.6, depthTest:true, depthWrite:false, depthFunc:THREE.GreaterDepth}); let on=false;
@@ -4384,16 +4469,18 @@ function drawLabels(){ const box=$("tls"); box.innerHTML="";
     el.onclick=e=>{ e.stopPropagation(); if(F.st!=="idle" || trip.busy) return; d.act(); }; box.appendChild(el); return {d, el, v:new THREE.Vector3()}; });
   updLabels(); updUI(); }
 const _lblBack=new THREE.Vector3();
+/* (v714) 🐢 옛 아이패드 — 이름표마다 위치를 쓰고 바로 너비(offsetWidth)를 읽어서 한 프레임에 화면 배치 계산을 이름표 수만큼 다시 함 → 글·모양(class)이 바뀔 때만 잼 */
+function lblW(L){ const k=L.el.textContent+"|"+L.el.className, t=performance.now(); if(L.wk2===k && L.w2 && t-L.wt<3000) return L.w2; const w=L.el.offsetWidth; if(w){ L.w2=w; L.wk2=k; L.wt=t; } return w||L.w2||80; }   /* 3초마다 한 번은 다시 잼 (글꼴이 늦게 와도) */
 function updLabels(){ const W=innerWidth, H=VH();
   LBL.forEach(L=>{ if(L.d.show && !L.d.show()){ L.el.style.display="none"; return; } L.v.set(L.d.p[0],L.d.p[1],L.d.p[2]).project(camera);
     let x=(L.v.x+1)/2*W, y=(1-L.v.y)/2*H, off=L.v.z>1 || x<-30 || x>W+30 || y<110 || y>H-106;
     /* (v561) QA: 안내 중(hot)인 곳이 화면 밖이면 숨지 않고 화면 가장자리에 화살표로 (호수·생선 가게가 멀어서 어디로 갈지 몰랐음) */
     const hot=L.el.classList.contains("hot"); let edge=false;
-    if(off && hot && !(L.d.show && !L.d.show())){ let dx=x-W/2, dy=y-H/2; /* (v684) 크롬 점검: 「🎣 호수」 화살표가 반대쪽(왼쪽 아래)에 — 새 섬은 카메라 far 가 짧아서(안개 ≈ 80) 앞쪽 먼 곳도 z>1 이 됨 → 진짜 뒤쪽(카메라 공간 z>0)일 때만 뒤집기 */ if(_lblBack.set(L.d.p[0],L.d.p[1],L.d.p[2]).applyMatrix4(camera.matrixWorldInverse).z>0){ dx=-dx; dy=-dy; } const mx=Math.max(70, L.el.offsetWidth/2+40), k=Math.min((W/2-mx)/Math.max(1,Math.abs(dx)), (H/2-150)/Math.max(1,Math.abs(dy)));   /* (v687) 옆으로 갈 땐 이름표 + 화살표가 다 화면 안에 */ x=W/2+dx*k; y=H/2+dy*k; off=false; edge=true; const ea=Math.atan2(dy,dx), er=Math.round(Math.abs(Math.cos(ea))*L.el.offsetWidth/2+Math.abs(Math.sin(ea))*L.el.offsetHeight/2+19); L.el.style.setProperty("--ea", ea+"rad"); L.el.style.setProperty("--er", er+"px"); L.edgeA=[Math.cos(ea)*er, Math.sin(ea)*er]; }   /* (v687) 화살표가 이름표 글자(「같이 낚시」의 「같」)를 덮던 것 → 이름표 테두리 바깥에 */
+    if(off && hot && !(L.d.show && !L.d.show())){ let dx=x-W/2, dy=y-H/2; /* (v684) 크롬 점검: 「🎣 호수」 화살표가 반대쪽(왼쪽 아래)에 — 새 섬은 카메라 far 가 짧아서(안개 ≈ 80) 앞쪽 먼 곳도 z>1 이 됨 → 진짜 뒤쪽(카메라 공간 z>0)일 때만 뒤집기 */ if(_lblBack.set(L.d.p[0],L.d.p[1],L.d.p[2]).applyMatrix4(camera.matrixWorldInverse).z>0){ dx=-dx; dy=-dy; } const mx=Math.max(70, lblW(L)/2+40), k=Math.min((W/2-mx)/Math.max(1,Math.abs(dx)), (H/2-150)/Math.max(1,Math.abs(dy)));   /* (v687) 옆으로 갈 땐 이름표 + 화살표가 다 화면 안에 */ x=W/2+dx*k; y=H/2+dy*k; off=false; edge=true; const ea=Math.atan2(dy,dx), er=Math.round(Math.abs(Math.cos(ea))*L.el.offsetWidth/2+Math.abs(Math.sin(ea))*L.el.offsetHeight/2+19); L.el.style.setProperty("--ea", ea+"rad"); L.el.style.setProperty("--er", er+"px"); L.edgeA=[Math.cos(ea)*er, Math.sin(ea)*er]; }   /* (v687) 화살표가 이름표 글자(「같이 낚시」의 「같」)를 덮던 것 → 이름표 테두리 바깥에 */
     L.el.classList.toggle("edge", edge); if(!edge) L.edgeA=null; L.el.style.display=off?"none":"";
     /* (v437) 사용자: "가까이 가야 이름표가 뜨게" — 바깥(마당·마을·광산)은 가까이 갔을 때만 · 안내 중(👇)인 것은 늘 보임 · 가장자리에서 깜빡이지 않게 여유 0.5 */
     if(LBL_NEAR[place.key] && hero){ const r=L.d.r||2.4, dd=Math.hypot(hero.g.position.x-L.d.p[0], hero.g.position.z-L.d.p[2]); L.near = dd<r || (L.near && dd<r+0.5); L.el.classList.toggle("far", !L.near && !L.el.classList.contains("hot")); }
-    if(!off){ const hw=(L.el.offsetWidth||80)/2; let lx=Math.max(hw+4,Math.min(W-hw-4,x)); L.el.style.left=lx+"px"; L.el.style.top=y+"px"; L.lx=lx; L.ly=y; } else L.lx=null;
+    if(!off){ const hw=lblW(L)/2; let lx=Math.max(hw+4,Math.min(W-hw-4,x)); L.el.style.left=lx+"px"; L.el.style.top=y+"px"; L.lx=lx; L.ly=y; } else L.lx=null;
     if(hero) L.dd=Math.hypot(hero.g.position.x-L.d.p[0], hero.g.position.z-L.d.p[2]); });
   /* (v607) 사용자: 「이름표가 이상한지 다 확인」 — 섬: 멀리 있는 작은 동그라미가 다른 이름표·가게 간판 글자 위에 겹치던 것 → 가까운 이름표 먼저, 겹치는 작은 동그라미는 숨김 (가게는 지붕 간판이 있어서 멀 땐 동그라미 없음) */
   if(place.key==="isle"){ const R=[], ov=(a,b)=>!(a.x+a.w<=b.x || b.x+b.w<=a.x || a.y+a.h<=b.y || b.y+b.h<=a.y), isFar=L=>L.el.classList.contains("far") && !L.el.classList.contains("hot");

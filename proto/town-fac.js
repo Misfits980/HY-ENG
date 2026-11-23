@@ -380,7 +380,7 @@ const TFAC=(()=>{
     const P=PET(); if(P){ const pm=petMesh(P.t); pm.position.set(.55,0,.25); pm.rotation.y=-.5; S.add(pm); }
     const bb=new THREE.Box3().setFromObject(S), hgt=bb.max.y-bb.min.y||1.4, cy=bb.min.y+hgt*.5, cam=new THREE.PerspectiveCamera(30, Wd/Ht, .1, 50); cam.position.set(P?.25:0, cy+.1, hgt*2.25+.8); cam.lookAt(P?.25:0, cy, 0);
     const RT=new THREE.WebGLRenderTarget(Wd,Ht), old=renderer.getClearColor(new THREE.Color()), oa=renderer.getClearAlpha(); renderer.setRenderTarget(RT); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(S,cam);
-    const px=new Uint8Array(Wd*Ht*4); renderer.readRenderTargetPixels(RT,0,0,Wd,Ht,px); renderer.setRenderTarget(null); renderer.setClearColor(old,oa); RT.dispose(); try{ dirty=true; }catch(e){}
+    const px=new Uint8Array(Wd*Ht*4); renderer.readRenderTargetPixels(RT,0,0,Wd,Ht,px); renderer.setRenderTarget(null); renderer.setClearColor(old,oa); RT.dispose(); try{ avFree(A); }catch(e){} try{ dirty=true; }catch(e){}
     const cv=document.createElement("canvas"); cv.width=Wd; cv.height=Ht; const g=cv.getContext("2d"), bg=BGS[ph.bg], gr=g.createLinearGradient(0,0,0,Ht); bg[2].forEach((c,i)=>gr.addColorStop(i/(bg[2].length-1),c)); g.fillStyle=gr; g.fillRect(0,0,Wd,Ht);
     g.font="26px sans-serif"; g.globalAlpha=.55; for(let i=0;i<9;i++) g.fillText([...bg[3]][i%2], 14+(i*67)%230, 30+(i*97)%200); g.globalAlpha=1;
     const im=g.createImageData(Wd,Ht), gm=v=>Math.round(255*Math.pow(v/255,1/2.2)); for(let y=0;y<Ht;y++) for(let x=0;x<Wd;x++){ const s=((Ht-1-y)*Wd+x)*4, t=(y*Wd+x)*4; im.data[t]=gm(px[s]); im.data[t+1]=gm(px[s+1]); im.data[t+2]=gm(px[s+2]); im.data[t+3]=px[s+3]; }
