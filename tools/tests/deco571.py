@@ -41,7 +41,7 @@ async def main():
         for _ in range(160):
             if await pg.evaluate("()=>HOUSE.place()==='isle' && !HOUSE.trip().busy"): break
             await pg.wait_for_timeout(250)
-        r=await pg.evaluate("()=>{ let deco=0, bank=0; ISLE.G.traverse(o=>{ if(o.isGroup && o.children.length>=6 && o.children.some(c=>c.geometry && c.geometry.type==='BoxGeometry' && Math.abs(c.position.y-1.78)<.05)) deco++; if(o.userData && o.userData.fac==='bank') bank++; }); return [deco, bank, (ISLE.SPOT.shops||[]).length]; }")
+        r=await pg.evaluate("()=>{ let deco=0, bank=0; ISLE.G.traverse(o=>{ if(o.isGroup && ((o.children.length>=6 && o.children.some(c=>c.geometry && c.geometry.type==='BoxGeometry' && Math.abs(c.position.y-1.78)<.05)) || o.children.some(c=>c.userData.baked>=6 && (c.userData.ys||[]).some(y=>Math.abs(y-1.78)<.05)))) deco++;   /* (v714) 차양 조각은 한 덩어리로 합쳐짐 → 꼭짓점 높이로 셈 */ if(o.userData && o.userData.fac==='bank') bank++; }); return [deco, bank, (ISLE.SPOT.shops||[]).length]; }")
         ok(r[0]>=8 and r[1]==1, f"③ 가게 장식 8곳 이상 · 🏦 은행 건물 {r}")
         await br.close()
     ok(not errs, f"오류 없음 {errs[:2]}")

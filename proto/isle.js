@@ -210,7 +210,7 @@ const ISLE=(()=>{
       if(P.children.some(m=>!m.isMesh || m.children.length)) return;
       const B={c:[], n:[]}; P.children.slice().forEach(m=>{ const t=m.material; if(!t || Array.isArray(t) || !t.isMeshStandardMaterial || t.map || t.transparent || t.vertexColors || t.side!==THREE.FrontSide || (t.emissive && t.emissive.getHex()) || Object.prototype.hasOwnProperty.call(m,"raycast") || Object.keys(m.userData).some(k=>k!=="noFade") || !m.geometry.attributes.normal || m.isInstancedMesh || !m.visible) return;
         m.updateMatrix(); (m.castShadow?B.c:B.n).push({g:m.geometry, col:t.color.clone().convertLinearToSRGB().getHex(), m:m.matrix.clone(), o:m}); });
-      ["c","n"].forEach(k=>{ const L=B[k]; if(L.length<2) return; L.forEach(e=>P.remove(e.o)); const mm=vcMerge(L.map(e=>({g:e.g, col:e.col, m:e.m}))); mm.castShadow=k==="c"; mm.receiveShadow=true; mm.userData.baked=L.length; P.add(mm);
+      ["c","n"].forEach(k=>{ const L=B[k]; if(L.length<2) return; L.forEach(e=>P.remove(e.o)); const mm=vcMerge(L.map(e=>({g:e.g, col:e.col, m:e.m}))); mm.castShadow=k==="c"; mm.receiveShadow=true; mm.userData.baked=L.length; mm.userData.ys=[...new Set(L.map(e=>+e.o.position.y.toFixed(2)))]; P.add(mm);
         L.forEach(e=>{ if(!Object.values(GEO).includes(e.g)) e.g.dispose(); }); }); }); }
   function drawLots(){ owners();
     const gPad=geo_("pad",()=>{ const g=new THREE.PlaneGeometry(LOT,LOT); g.rotateX(-Math.PI/2); return g; }), gEd=geo_("ped",()=>{ const g=new THREE.RingGeometry(LOT*.66,LOT*.72,4,1); g.rotateZ(Math.PI/4); g.rotateX(-Math.PI/2); return g; });
