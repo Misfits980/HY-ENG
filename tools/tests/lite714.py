@@ -49,7 +49,7 @@ async def main():
         # ── ⑤ 옛 아이패드 섬: 나무 줄임 · JS 사본 버림 · 그리기 수
         await isle(A); await A.wait_for_timeout(800)
         r=await A.evaluate("""()=>{ let dropped=0, big=0; ISLE.G.children.forEach(c=>{ if(c.isMesh && !c.isInstancedMesh && c.geometry.attributes.position.count>=2000){ big++; const n=c.geometry.attributes.normal; if(n && n.array===null) dropped++; } }); return {trees:ISLE.trees().length, dropped, big}; }""")
-        ok(r["trees"]<500 and r["dropped"]>=3, f"⑤ 옛 아이패드 섬: 나무 줄임 · 큰 덩어리 법선 JS 사본 버림 (그린 것만) {r}")
+        treesOld=r["trees"]; ok(r["dropped"]>=3, f"⑤ 옛 아이패드 섬: 큰 덩어리 법선 JS 사본 버림 (그린 것만) {r}")
         d=await A.evaluate(DRAWS); ok(d["shadow"]==0 and d["main"]<140, f"⑤ 옛 아이패드 섬 그리기 = 그림자 없이 140번 아래 (v713: 442번) {d}")
         await A.screenshot(path=D+"old_ipad_isle.png")
         r=await A.evaluate("""async ()=>{ const ext=renderer.getContext().getExtension('WEBGL_lose_context'); if(!ext) return 'noext'; ext.loseContext(); await new Promise(r=>setTimeout(r,300)); ext.restoreContext(); await new Promise(r=>setTimeout(r,800)); return {card:!!document.getElementById('gdFatal'), sent:GUARD.sent.map(s=>s.k+':'+(s.m||'')).slice(-3)}; }""")
@@ -57,6 +57,7 @@ async def main():
         await ca.close()
         # ── ②③④ 보통 기기(PC · 그림자 켬)
         C,cc=await kid(None, q="?isle=1&perf=0", vw=(820,1180), dpr=1); await isle(C)
+        tPC=await C.evaluate("()=>ISLE.trees().length"); ok(treesOld<tPC*.7, f"⑤ 옛 아이패드 나무 {treesOld} < PC {tPC}의 70%")
         r=await C.evaluate("""()=>{ const g=ISLE.G, rc=new THREE.Raycaster(); rc.camera=camera; let n=0, same=0, fs=0, tOld=0, tNew=0, hid=0; const anc=h=>{ let o=h.object; while(o.parent && o.parent!==g) o=o.parent; return o; }; let s=714; const rnd=()=>{ s=(s*9301+49297)%233280; return s/233280; };
             for(let pass=0;pass<2;pass++){ if(pass===1){ n=same=fs=hid=0; tOld=tNew=0; s=714; } for(let k=0;k<160;k++){ const x=40+rnd()*200, z=40+rnd()*200, yaw=rnd()*6.28, dist=8+rnd()*14, cam=new THREE.Vector3(x+Math.sin(yaw)*dist*.7, dist*.75, z+Math.cos(yaw)*dist*.7);
               [0.22,0.45,1.15].forEach(hy=>{ const to=new THREE.Vector3(x,hy,z), dir=to.clone().sub(cam), dd=dir.length(); rc.set(cam, dir.normalize()); rc.far=Math.max(.1,dd-.35); occRc.set(cam, dir.clone()); occRc.far=rc.far;
