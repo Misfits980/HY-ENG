@@ -75,7 +75,7 @@ window.__chk=()=>{ const iss=[], I=(t,x)=>iss.push([t,x]); const W=$('ppWrap'), 
 window.__kjChk=()=>{ const iss=[], I=(t,x)=>iss.push([t,x]), W=$('ppWrap'), z=W.style.zoom; W.style.zoom=''; const c=P.c;
   const out={iss, info:$('ppInfo').textContent.slice(0,160)}; const B=[...W.querySelectorAll('.kjB')];
   if(!B.length && !/없어요|받는 중/.test(out.info)) I('KJ_EMPTY', out.info);
-  const nos=B.map(b=>+((b.querySelector('.kjNo')||{}).textContent||0)); nos.forEach((n,i)=>{ if(n!==i+1) I('NUM_GAP', (i+1)+'→'+n); });
+  const nos=B.filter(b=>!b.classList.contains('cont')).map(b=>+((b.querySelector('.kjNo')||{}).textContent||0));   /* (v720) 「이어서」 카드(v702 .cont)는 같은 번호 */ nos.forEach((n,i)=>{ if(n!==i+1) I('NUM_GAP', (i+1)+'→'+n); });
   B.forEach(b=>{ const w=(b.querySelector('.kjW b, .kjSt p')||{}).textContent||''; if(!w.trim()) I('KJ_NOWORD', (b.querySelector('.kjNo')||{}).textContent); const ko=(b.querySelector('.kjW small, .kjSt > small')||{}).textContent; if(ko!=null && !ko.trim()) I('KJ_NOKO', w.slice(0,30));
     b.querySelectorAll('.kjT').forEach(t=>{ const p=t.parentNode; if(t.offsetWidth>p.clientWidth+2) I('KJ_TRACE_CLIP', t.textContent.slice(0,30)); });
     if(!b.querySelector('.kjStrip')) I('KJ_NOLINE', w.slice(0,30)); });

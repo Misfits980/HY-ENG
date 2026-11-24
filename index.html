@@ -3525,7 +3525,7 @@ body.tabL #scStudy.vPath .stMap.wm > .stRvRow{grid-column:1/-1}
 .ppQ.pic{align-items:center} .ppPic{display:inline-flex;width:16mm;height:16mm;align-items:center;justify-content:center;font-size:36pt;line-height:1} .ppPic img{width:16mm;height:16mm;object-fit:contain}
 .ppQ.row{align-items:flex-end} .ppLine{display:inline-block;width:calc(var(--n)*4.2mm);min-width:24mm;border-bottom:1.2px solid #333;height:6mm;margin-left:auto} .ppHint{font-size:9.5pt;color:#666}
 .ppGap,.ppScr{display:inline-flex;gap:1.2mm;font-size:13pt;font-weight:800} .ppGap i{display:inline-block;width:5mm;border-bottom:1.5px solid #333;height:6mm} .ppScr b{border:1px solid #999;border-radius:1mm;width:6mm;text-align:center}
-.ppQ.match{display:block} .ppM{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin:1.5mm 0 0 7mm} .ppM ol{margin:0;padding:0 0 0 5mm;font-size:11pt;line-height:2.1} .ppM ol.r{list-style:none;padding:0}
+.ppQ.match{display:block} .ppM{display:grid;grid-template-columns:minmax(auto,1fr) minmax(0,1fr);gap:12mm;margin:1.5mm 0 0 7mm}   /* (v720) 선 잇기 왼쪽에 긴 낱말(cancellation)이 있으면 오른쪽 뜻이 단 밖으로 18px — 왼쪽은 낱말만큼 · 오른쪽이 줄어듦 */ .ppM ol{margin:0;padding:0 0 0 5mm;font-size:11pt;line-height:2.1} .ppM ol.r{list-style:none;padding:0}
 .ppM ol{list-style:none;padding:0} .ppM li{display:flex;align-items:center;gap:1.5mm} .ppM ol:not(.r) li i{margin-left:auto} .ppM em{font-style:normal;font-weight:800;min-width:6mm} .ppM i{flex:none;width:2.2mm;height:2.2mm;border-radius:50%;background:#333;margin:0 1mm}
 .ppChk.gr{border-style:dashed} .ppQ[data-src]{cursor:pointer;position:relative;border-radius:2mm} .ppQ.sel{outline:2px solid #ffb000;outline-offset:1mm;background:#fff8e0}
 .ppSwap{position:absolute;right:0;top:-1mm;appearance:none;border:0;border-radius:99px;padding:1.5mm 3mm;background:#ffb000;color:#3a2600;font:800 10pt var(--font);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
@@ -19395,7 +19395,7 @@ const Study = (function(){
         const far=o=>{ const tx=" "+exAll(o).map(e=>e[0]).join(" ").toLowerCase()+" "; return !cw.some(c=>tx.indexOf(c)>=0); };
         const sub = pool0.find(o=>far(o) && (p!=="명사" || !!o.emoji!==!!w.emoji)) || pool0.find(far) || pool0[0]; if(!sub) continue;
         if(/^(a|an)$/.test(prev) && /^[aeiou]/.test(sub.en)!==vow) continue;
-        const cand=toks.map((tk,i)=>({i, c:tk.replace(/[^A-Za-z]/g,"")})).filter(o=>o.i!==wi && o.c.length>=4 && !CTX_STOP[o.c.toLowerCase()]); if(cand.length<2) continue;
+        const cdup={[sub.en]:1, [w.en]:1}, cand=toks.map((tk,i)=>({i, c:tk.replace(/[^A-Za-z]/g,"")})).filter(o=>{ const lc=o.c.toLowerCase(); if(o.i===wi || o.c.length<4 || CTX_STOP[lc] || cdup[lc]) return false; cdup[lc]=1; return true; }); if(cand.length<2) continue;   /* (v720) 보기 둘이 같은 낱말(바꾼 말 train · 문장의 train)이던 것 */
         const marks=[wi].concat(shuffle(cand).slice(0,2).map(o=>o.i)).sort((a,b)=>a-b), t2=toks.slice();
         t2[wi]=t2[wi].replace(new RegExp(w.en,"i"), m=>/^[A-Z]/.test(m) ? cap1(sub.en) : sub.en);
         const opts=marks.map((i,k)=>"①②③"[k]+" "+t2[i].replace(/[^A-Za-z'-]/g,""));
@@ -24084,8 +24084,8 @@ const Paper = {
     this.make(); clearTimeout(this._lt); let tries=0; const again=()=>{ if(!$("paper")) return; const ok=Object.keys(TALK).length && Object.keys(BEX).length; this.make(); if(!ok && ++tries<6) this._lt=setTimeout(again, 800); }; this._lt=setTimeout(again, 700); },
   close(){ const d=$("paper"); if(d) d.remove(); document.body.classList.remove("ppOn"); if(this._rs) removeEventListener("resize", this._rs); this._rs=null; },
   cfg(){ const set=$("ppSet").value, f=+$("ppFrom").value||0, t=Math.max(f, +$("ppTo").value||0), ty=[...document.querySelectorAll("#paper .ppTy input:checked")].map(x=>x.value);
-    const c={set, from:f, to:t, n:+$("ppN").value||30, ty: ty.length ? ty : ["mean"], ab:$("ppAB").checked, key:$("ppKey").checked, note:!!(($("ppNote")||{}).checked), title:$("ppTitle").value.trim(), rep:+(($("ppRep")||{}).value)||5, tr:!!(($("ppTr")||{}).checked), gm:(/^(g12|k)$/.test(this.gr(set)) ? "off" : (($("ppGm")||{}).value || "off"))};
-    try{ const P0=this.pref(), tyG=P0.tyG||{}; tyG[this.gr(set)]=c.ty; localStorage.setItem("hyeng_paper", JSON.stringify(Object.assign({}, P0, {set, n:c.n, tyG, ab:c.ab, key:c.key, note:c.note, mode:this.mode||"test", rep:Object.assign({}, P0.rep||{}, this.mode && this.mode!=="test" ? {[this.mode]:c.rep} : {}), tr:Object.assign({}, P0.tr||{}, this.mode && this.mode!=="test" ? {[this.gr(set)]:c.tr} : {}), gm:Object.assign({}, P0.gm||{}, (this.mode==="ks" || this.mode==="kw") && this.gr(set)!=="g12" ? {[this.mode+":"+this.gr(set)]:c.gm} : {})}))); }catch(e){} return c; },
+    const c={set, from:f, to:t, n:this.nSel(), all:this.nAll(), ty: ty.length ? ty : ["mean"], ab:$("ppAB").checked, key:$("ppKey").checked, note:!!(($("ppNote")||{}).checked), title:$("ppTitle").value.trim(), rep:+(($("ppRep")||{}).value)||5, tr:!!(($("ppTr")||{}).checked), gm:(/^(g12|k)$/.test(this.gr(set)) ? "off" : (($("ppGm")||{}).value || "off"))};
+    try{ const P0=this.pref(), tyG=P0.tyG||{}; tyG[this.gr(set)]=c.ty; localStorage.setItem("hyeng_paper", JSON.stringify(Object.assign({}, P0, {set, n:c.all?this.ALL:c.n, tyG, ab:c.ab, key:c.key, note:c.note, mode:this.mode||"test", rep:Object.assign({}, P0.rep||{}, this.mode && this.mode!=="test" ? {[this.mode]:c.rep} : {}), tr:Object.assign({}, P0.tr||{}, this.mode && this.mode!=="test" ? {[this.gr(set)]:c.tr} : {}), gm:Object.assign({}, P0.gm||{}, (this.mode==="ks" || this.mode==="kw") && this.gr(set)!=="g12" ? {[this.mode+":"+this.gr(set)]:c.gm} : {})}))); }catch(e){} return c; },
   /* ── 문제 만들기 (단어 하나 = 문제 하나 · 같은 단어가 두 번 안 나옴) ── */
   build(c){ Study.ctx(c.set); const L=Study.lessons(c.set).slice(c.from, c.to+1), seen={}, ws=[];
     L.forEach(x=>(x.ws||[]).forEach(w=>{ if(w && w.en && w.ko && !seen[w.en]){ seen[w.en]=1; ws.push(w); } }));
@@ -24272,7 +24272,8 @@ const Paper = {
     if(reset){ const G0=P.gm||{}, gm=G0[m+":"+g] || (m==="ks" ? G0[g] : ""); $("ppGm").value = gm || "show"; }
     if(reset || !sel.options.length){ sel.innerHTML=L.map(n=>'<option'+(n===cur?' selected':'')+'>'+n+'</option>').join(''); if(L.indexOf(cur)<0) sel.value=String(this.KJ_DEF[m]); $("ppTr").checked = tr!=null ? !!tr : (g==="k" || g==="g12" || g==="g34"); } },
   /* (v720) 사용자: 「g5-6 리딩 1권 총단어 쓰기 · 반 권 쓰기 · 1-1 부터 2-4 까지 여러 형식으로 해야 하는데 단어가 제한이 있더라」 — 최대 50 → 200 + 「범위 전체」(ALL = 999 · 범위 단어를 다) */
-  NS:[20,25,30,40,50,60,80,100,150,200,999], ALL:999,
+  NS:[20,25,30,40,50,60,80,100,150,200,999], ALL:999, CAP:400,   /* 「범위 전체」 = 범위 단어를 다 · 한 번에 400개까지 (휴대폰에서 쪽 만들기가 한 번에 돌아 화면이 멈추지 않게 — 리딩 1권 298 · 400 넘으면 안내) */
+  nAll(){ return (+(($("ppN")||{}).value)||30)===this.ALL; }, nSel(){ const v=+(($("ppN")||{}).value)||30; return v===this.ALL ? this.CAP : v; },
   kjWords(c){ Study.ctx(c.set); const L=Study.lessons(c.set).slice(c.from, c.to+1), seen={}, ws=[];
     L.forEach(x=>(x.ws||[]).forEach(w=>{ if(w && w.en && w.ko && !seen[w.en]){ seen[w.en]=1; ws.push(w); } }));
     return this._kjMix ? this.sh(ws, this.rnd(this.seed)) : ws; },
@@ -24393,7 +24394,7 @@ const Paper = {
     pages.forEach((p,i)=>{ p.querySelector(".ppFt").textContent=(i+1)+" / "+pages.length; });
     W.parentNode.scrollTop=top;
     const ng=items.filter(x=>x.g).length, nw=items.filter(x=>x.x && x.x.f.length).length;
-    I.textContent="✏️ "+(ks?"문장 따라쓰기":"단어 따라쓰기")+(!ks && gm!=="off" ? " · 📐 품사·변화형 "+nw+"단어" : "")+(ks && gm!=="off" ? (this.SVA ? " · 📐 문법 "+ng+"문장"+(ng<items.length?" (나머지 "+(items.length-ng)+"문장은 문법 표시 없음)":"") : " · 📐 문법 자료 받는 중…") : "")+" · "+items.length+(ks?"문장":"단어")+" × "+rep+"번 · "+pages.length+"쪽"+(ks && miss ? " · 예문이 없는 단어 "+miss+"개는 뺐어요" : "")+(all.length>items.length && !ks ? " · 범위 단어 "+all.length+"개 중 앞 "+items.length+"개 (🔀 = 섞어서)" : "")+(this._kjMix?" · 🔀 섞음":" · 범위 순서대로");
+    I.textContent="✏️ "+(ks?"문장 따라쓰기":"단어 따라쓰기")+(!ks && gm!=="off" ? " · 📐 품사·변화형 "+nw+"단어" : "")+(ks && gm!=="off" ? (this.SVA ? " · 📐 문법 "+ng+"문장"+(ng<items.length?" (나머지 "+(items.length-ng)+"문장은 문법 표시 없음)":"") : " · 📐 문법 자료 받는 중…") : "")+" · "+items.length+(ks?"문장":"단어")+" × "+rep+"번 · "+pages.length+"쪽"+(ks && miss ? " · 예문이 없는 단어 "+miss+"개는 뺐어요" : "")+(all.length>items.length && !ks ? " · 범위 단어 "+all.length+"개 중 앞 "+items.length+"개 (🔀 = 섞어서)" : "")+(c.all && items.length>=c.n && all.length>c.n ? " · ⚠️ 한 번에 "+c.n+"개까지예요 — 범위를 나눠서 더 뽑아요" : "")+(this._kjMix?" · 🔀 섞음":" · 범위 순서대로");
     this.fit(); },
   render(){ const W=$("ppWrap"); if(!W) return; const c=this.c, B=this.B, I=$("ppInfo"), top=W.parentNode.scrollTop; W.innerHTML="";
     this.unfit(W);   /* (v577) 사용자 사진: 아이폰에서 만든 시험지 1쪽이 반만 차고 아래가 텅 빔 — 화면 맞춤(zoom)을 건 채로 「넘치나?」를 재면 사파리는 높이를 줄여서 알려 줘서 일찍 다음 쪽으로 넘김 → 쪽 나누기는 zoom 없이 재고 끝나면 다시 맞춤 */
@@ -24405,7 +24406,7 @@ const Paper = {
     W.parentNode.scrollTop=top;
     if(c.bk){ const o=c.out||"all"; I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · "+B.info+" · 시험지 "+(np-nk)+"쪽"+(nk ? " + 답안지 "+nk+"쪽" : "")+(o==="test" ? " · 🖨 시험지만 인쇄" : o==="key" ? " · 🖨 답안지만 인쇄" : ""); this.fit(); return; }
     if(B.info){ I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · "+B.info+" · "+np+"쪽"; this.fit(); return; }
-    I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · 범위 단어 "+B.nw+"개 · "+B.total+"문제"+(c.ab?" × A·B형":"")+" · "+np+"쪽"+(B.xv?" · 불규칙 동사 "+B.xv+"개는 앞 단계·아래 학년에서 복습으로 넣었어요":"")+(B.total<c.n && c.n<Paper.ALL ? (B.nw>=c.n ? " · 고른 형식으로 낼 수 있는 단어가 모자라 "+B.total+"문제만 (형식을 더 고르면 늘어요)" : " · 범위 단어가 모자라 "+B.total+"문제만") : "")+(B.warn.length?" · 이 범위엔 못 내는 형식: "+B.warn.join(", ")+" (그림·예문·대화가 있는 단어가 없어요 — 다른 형식으로 채웠어요)":"");
+    I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · 범위 단어 "+B.nw+"개 · "+B.total+"문제"+(c.ab?" × A·B형":"")+" · "+np+"쪽"+(B.xv?" · 불규칙 동사 "+B.xv+"개는 앞 단계·아래 학년에서 복습으로 넣었어요":"")+(c.all && B.nw>c.n ? " · ⚠️ 한 번에 "+c.n+"개까지예요 — 범위 단어 "+B.nw+"개라 범위를 나눠서 더 뽑아요" : "")+(c.all && B.total<Math.min(B.nw, c.n) ? " · 고른 형식으로 낼 수 있는 단어가 "+B.total+"개예요 (형식을 더 고르면 늘어요)" : "")+(B.total<c.n && !c.all ? (B.nw>=c.n ? " · 고른 형식으로 낼 수 있는 단어가 모자라 "+B.total+"문제만 (형식을 더 고르면 늘어요)" : " · 범위 단어가 모자라 "+B.total+"문제만") : "")+(B.warn.length?" · 이 범위엔 못 내는 형식: "+B.warn.join(", ")+" (그림·예문·대화가 있는 단어가 없어요 — 다른 형식으로 채웠어요)":"");
     this.fit(); },
   /* (v706) 사용자 아이폰 사진: 단어 따라쓰기 미리보기에서 ⑧⑨·⑰⑱번이 쪽 아래로 숨음 (시험지도) — 화면 맞춤을 zoom 으로 하면 작아진 글씨를 브라우저가 「최소 글씨 크기」로 키워서(사파리 9px · 크롬 6px)
      변화형 줄이 두 줄로 바뀌는 등 카드가 길어짐 · 쪽 나누기는 zoom 없이(인쇄·PDF 와 같게) 재므로 미리보기에서만 아래가 넘쳐 숨었음 (휴대폰 크롬에서도 2쪽이 16mm 넘침)
@@ -24554,11 +24555,11 @@ Object.assign(Paper, {
     return Promise.all(P).catch(()=>{}); },
   xCfg(){ const lf=this.mode==="lf", ty=[...document.querySelectorAll("#paper .ppTy input:checked")].map(x=>x.value), g = lf ? $("ppLv").value : $("ppGb").value,
       f=+(lf ? $("ppLF") : $("ppGF")).value||0, t=Math.max(f, +(lf ? $("ppLT") : $("ppGT")).value||0);
-    const c={x:this.mode, g, from:f, to:t, n:+$("ppN").value||30, ty, ab:$("ppAB").checked, key:$("ppKey").checked, note:!!(($("ppNote")||{}).checked), title:$("ppTitle").value.trim()};
+    const c={x:this.mode, g, from:f, to:t, n:this.nSel(), all:this.nAll(), ty, ab:$("ppAB").checked, key:$("ppKey").checked, note:!!(($("ppNote")||{}).checked), title:$("ppTitle").value.trim()};
     const N = lf ? Life.list(g) : this.gmTopics(g), A=N[f], B=N[t], nm=(lf ? this.LV_NM : this.GB_NM)[g]||"";
     c.ttlT = nm+(lf ? " 생활영어" : " 문법")+(ty.some(k=>this.T[k]) ? " 시험" : "");
     c.rngT = nm+" · "+(A ? (f+1)+". "+A.t : "")+(t>f && B ? " ~ "+(t+1)+". "+B.t : "");
-    try{ const P0=this.pref(), K=lf ? "lfTy" : "gmTy"; P0[K]=Object.assign({}, P0[K]||{}, {[g]:ty}); P0[lf ? "lfLv" : "gmBk"]=g; P0.mode=this.mode; P0.ab=c.ab; P0.key=c.key; P0.note=c.note; P0.n=c.n; localStorage.setItem("hyeng_paper", JSON.stringify(P0)); }catch(e){}
+    try{ const P0=this.pref(), K=lf ? "lfTy" : "gmTy"; P0[K]=Object.assign({}, P0[K]||{}, {[g]:ty}); P0[lf ? "lfLv" : "gmBk"]=g; P0.mode=this.mode; P0.ab=c.ab; P0.key=c.key; P0.note=c.note; P0.n=c.all?this.ALL:c.n; localStorage.setItem("hyeng_paper", JSON.stringify(P0)); }catch(e){}
     return c; },
   /* ── 생활영어 문제 ── */
   lfQ(k, s, key, R){ const E=x=>this.E(x), i=+String(key).slice(1)||0;
