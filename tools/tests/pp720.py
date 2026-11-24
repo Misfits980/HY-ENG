@@ -2,7 +2,8 @@
    원인(찾은 것): 학원 프린터용 = 그림 PDF(html2canvas) — 도구가 쪽마다 문서 전체를 복사하고 복사본의 다 읽기·글꼴·그림을 끝없이 기다림
    → 글꼴(HY Trace) 요청 하나가 멈추면(휴대폰 망) 「쪽 확인 중…」에서 영영 멈추고 다시 눌러도 안 됨
    ① 글꼴 요청이 멈춰도 PDF 가 끝남 ② 보통 때 = 빠르게 · 따라쓰기 글꼴 그대로 · 휴대폰 = 📤 공유 + 💾 받기 ③ 「✕ 그만」
-   ④ 복사 줄인 그림 = 예전과 같은 그림 ⑤ 한 쪽이 너무 오래 → 「🖨 보통 인쇄」 ⑥ PC = 「🖨 인쇄 창 열기」 그대로"""
+   ④ 복사 줄인 그림 = 예전과 같은 그림 ⑤ 한 쪽이 너무 오래 → 「🖨 보통 인쇄」 ⑥ PC = 「🖨 인쇄 창 열기」 그대로
+   ⑦ 단어·문제 수 최대 50 → 200 + 「범위 전체」 (사용자: 「g5-6 리딩 1권 총단어 쓰기 · 반 권 쓰기 · 1-1 부터 2-4 까지 여러 형식으로 … 단어가 제한이 있더라」)"""
 import asyncio, sys, os, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import *
@@ -79,6 +80,13 @@ async def main():
         await E("()=>document.querySelector('#paper [data-pp=print]').click()")
         s,t=await waitPdf(E, 40)
         ok(s[0] and "pdfOpen" in s[3] and "pdfShare" not in s[3], f"⑥ PC = 「🖨 인쇄 창 열기」 그대로 {s}")
+        # ⑦ 단어·문제 수 = 200 · 범위 전체 (사용자: 「리딩 1권 총단어 쓰기 · 반 권 쓰기 … 단어가 제한이 있더라」)
+        for m in ("kw","ks","test"):
+            await E("(m)=>{ document.getElementById('ppPdf') && document.getElementById('ppPdf').remove(); Paper.close && Paper.close(); localStorage.setItem('hyeng_paper', JSON.stringify({set:'rd1', n:999, mode:m})); Paper.open({mode:m}); }", m); await pg.wait_for_timeout(1500)
+            await E("()=>{ const s=document.getElementById('ppSet'); s.value='rd1'; s.dispatchEvent(new Event('change',{bubbles:true})); }"); await pg.wait_for_timeout(600)
+            await E("()=>{ const a=document.getElementById('ppFrom'), b=document.getElementById('ppTo'); a.value=a.options[0].value; a.dispatchEvent(new Event('change',{bubbles:true})); b.value=b.options[b.options.length-1].value; b.dispatchEvent(new Event('change',{bubbles:true})); const n=document.getElementById('ppN'); n.value='999'; n.dispatchEvent(new Event('change',{bubbles:true})); Paper.make(); }"); await pg.wait_for_timeout(1500)
+            r=await E("()=>[[...document.querySelectorAll('#ppN option')].map(o=>o.textContent).slice(-3).join(','), Paper.c && Paper.c.n, document.querySelectorAll('#ppWrap .pp').length, document.getElementById('ppInfo').textContent]")
+            ok(r[0]=="150,200,범위 전체" and r[1]==999 and r[2]>=30 and "모자라" not in r[3] and ("298" in r[3] or "290" in r[3]), f"⑦ {m} 리딩 1 전체 = 범위 단어 다 · {r[2]}쪽 · 「모자라」 없음 {r[0]} · {r[3][:90]}")
         await ctx.close()
         ok(not real_errs(errs), f"JS 오류 없음 {real_errs(errs)[:2]}")
         await br.close()

@@ -24052,7 +24052,7 @@ const Paper = {
       +'<label class="ppChk ppBkO" title="시험지 끝에 번호표 한 쪽 — 선생님은 이 한 장으로 채점"><input type="checkbox" id="ppGrid"'+(P.bkGrid!==false?' checked':'')+'>✍️ 답 적는 칸</label>'
       +'<label class="ppLfO">수준<select id="ppLv">'+Object.keys(this.LV_NM).map(k=>'<option value="'+k+'"'+(k===(P.lfLv||"g12")?' selected':'')+'>'+this.LV_NM[k]+'</option>').join('')+'</select></label><label class="ppLfO">상황<select id="ppLF"></select>~<select id="ppLT"></select></label>'
       +'<label class="ppGmO">책<select id="ppGb">'+Object.keys(this.GB_NM).map(k=>'<option value="'+k+'"'+(k===(P.gmBk||"g34")?' selected':'')+'>'+this.GB_NM[k]+' 문법</option>').join('')+'</select></label><label class="ppGmO">문법<select id="ppGF"></select>~<select id="ppGT"></select></label>'
-      +'<label class="ppNO"><span id="ppNL">문제</span><select id="ppN">'+[20,25,30,40,50].map(n=>'<option'+(n===(P.n||30)?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'
+      +'<label class="ppNO"><span id="ppNL">문제</span><select id="ppN">'+Paper.NS.map(n=>'<option value="'+n+'"'+(n===(P.n||30)?' selected':'')+'>'+(n===Paper.ALL?'범위 전체':n)+'</option>').join('')+'</select></label>'
       +'<label class="ppKjO">번씩<select id="ppRep"></select></label><label class="ppChk ppKjO"><input type="checkbox" id="ppTr">첫 칸에 흐린 글씨</label>'
       +'<label class="ppKsO">📐 문법<select id="ppGm"><option value="off">끄기</option><option value="show">표시해서 보여 주기</option><option value="quiz">문제로 내기 (+답안지)</option></select></label>'
       +'<label>제목<input id="ppTitle" maxlength="30" placeholder="(비우면 자동)" value="'+E(o.title||"")+'"></label>'
@@ -24271,6 +24271,8 @@ const Paper = {
     if(!kj) return; const P=this.pref(), m=this.mode, L=this.KJ_REP[m], cur=+((P.rep||{})[m])||this.KJ_DEF[m], sel=$("ppRep"), g=g0, tr=(P.tr||{})[g];
     if(reset){ const G0=P.gm||{}, gm=G0[m+":"+g] || (m==="ks" ? G0[g] : ""); $("ppGm").value = gm || "show"; }
     if(reset || !sel.options.length){ sel.innerHTML=L.map(n=>'<option'+(n===cur?' selected':'')+'>'+n+'</option>').join(''); if(L.indexOf(cur)<0) sel.value=String(this.KJ_DEF[m]); $("ppTr").checked = tr!=null ? !!tr : (g==="k" || g==="g12" || g==="g34"); } },
+  /* (v720) 사용자: 「g5-6 리딩 1권 총단어 쓰기 · 반 권 쓰기 · 1-1 부터 2-4 까지 여러 형식으로 해야 하는데 단어가 제한이 있더라」 — 최대 50 → 200 + 「범위 전체」(ALL = 999 · 범위 단어를 다) */
+  NS:[20,25,30,40,50,60,80,100,150,200,999], ALL:999,
   kjWords(c){ Study.ctx(c.set); const L=Study.lessons(c.set).slice(c.from, c.to+1), seen={}, ws=[];
     L.forEach(x=>(x.ws||[]).forEach(w=>{ if(w && w.en && w.ko && !seen[w.en]){ seen[w.en]=1; ws.push(w); } }));
     return this._kjMix ? this.sh(ws, this.rnd(this.seed)) : ws; },
@@ -24403,7 +24405,7 @@ const Paper = {
     W.parentNode.scrollTop=top;
     if(c.bk){ const o=c.out||"all"; I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · "+B.info+" · 시험지 "+(np-nk)+"쪽"+(nk ? " + 답안지 "+nk+"쪽" : "")+(o==="test" ? " · 🖨 시험지만 인쇄" : o==="key" ? " · 🖨 답안지만 인쇄" : ""); this.fit(); return; }
     if(B.info){ I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · "+B.info+" · "+np+"쪽"; this.fit(); return; }
-    I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · 범위 단어 "+B.nw+"개 · "+B.total+"문제"+(c.ab?" × A·B형":"")+" · "+np+"쪽"+(B.xv?" · 불규칙 동사 "+B.xv+"개는 앞 단계·아래 학년에서 복습으로 넣었어요":"")+(B.total<c.n ? (B.nw>=c.n ? " · 고른 형식으로 낼 수 있는 단어가 모자라 "+B.total+"문제만 (형식을 더 고르면 늘어요)" : " · 범위 단어가 모자라 "+B.total+"문제만") : "")+(B.warn.length?" · 이 범위엔 못 내는 형식: "+B.warn.join(", ")+" (그림·예문·대화가 있는 단어가 없어요 — 다른 형식으로 채웠어요)":"");
+    I.textContent="문제를 누르면 🔄 다른 문제로 바꿀 수 있어요 · 범위 단어 "+B.nw+"개 · "+B.total+"문제"+(c.ab?" × A·B형":"")+" · "+np+"쪽"+(B.xv?" · 불규칙 동사 "+B.xv+"개는 앞 단계·아래 학년에서 복습으로 넣었어요":"")+(B.total<c.n && c.n<Paper.ALL ? (B.nw>=c.n ? " · 고른 형식으로 낼 수 있는 단어가 모자라 "+B.total+"문제만 (형식을 더 고르면 늘어요)" : " · 범위 단어가 모자라 "+B.total+"문제만") : "")+(B.warn.length?" · 이 범위엔 못 내는 형식: "+B.warn.join(", ")+" (그림·예문·대화가 있는 단어가 없어요 — 다른 형식으로 채웠어요)":"");
     this.fit(); },
   /* (v706) 사용자 아이폰 사진: 단어 따라쓰기 미리보기에서 ⑧⑨·⑰⑱번이 쪽 아래로 숨음 (시험지도) — 화면 맞춤을 zoom 으로 하면 작아진 글씨를 브라우저가 「최소 글씨 크기」로 키워서(사파리 9px · 크롬 6px)
      변화형 줄이 두 줄로 바뀌는 등 카드가 길어짐 · 쪽 나누기는 zoom 없이(인쇄·PDF 와 같게) 재므로 미리보기에서만 아래가 넘쳐 숨었음 (휴대폰 크롬에서도 2쪽이 16mm 넘침)
