@@ -69,6 +69,11 @@
       msg=String(msg||"").replace(/\s+/g," ").slice(0,220); const key=kind+"|"+msg; if(seen[key]) { seen[key]++; return; } seen[key]=1; if(n>=8) return; n++;
       const rec={k:kind, m:msg, p:PAGE, pl:where(), v:String(window.GAME_VER||ver||""), d:dev(), w:who(), t:Date.now()};
       if(extra) for(const x in extra) rec[x]=typeof extra[x]==="string" ? extra[x].slice(0,600) : extra[x];
+      send(rec);
+    }catch(e){}
+  };
+  function send(rec){
+    try{
       GD.sent.push(rec); if(WD && !window.HY_GUARD_SEND) return;
       const base=ls.get("hyeng_fb_url"); let u=(base && URLS.includes(base) ? base : URLS[0])+"/hy/day/er"+day()+".json";
       try{ const a=JSON.parse(ls.get("hyeng_fb_auth")||"null"); if(a && a.t && Date.now()<(+a.e||0)) u+="?auth="+encodeURIComponent(a.t); }catch(e){}   /* 로그인 규칙(auth != null)일 때 — 게임이 받아 둔 토큰 */
@@ -76,7 +81,7 @@
       if(document.visibilityState==="hidden" && navigator.sendBeacon){ try{ navigator.sendBeacon(u, new Blob([body],{type:"text/plain"})); return; }catch(e){} }   /* sendBeacon = POST */
       fetch(u, {method:"POST", body, keepalive:true, headers:{"Content-Type":"text/plain"}}).catch(()=>{});
     }catch(e){}
-  };
+  }
   const stackOf=e=>{ try{ return String(e && e.stack || "").split("\n").slice(0,4).map(s=>s.trim().replace(/https?:\/\/[^/]+\/[^ )]*?\/(?=[^/ )]+:\d)/,"")).join(" | "); }catch(_){ return ""; } };
   addEventListener("error", e=>{ if(e && e.target && e.target!==window) return; GD.errs++; GD.report("err", e && e.message, {s:(e && e.filename ? String(e.filename).split("/").pop()+":"+e.lineno+":"+e.colno : ""), st:stackOf(e && e.error)}); });
   addEventListener("unhandledrejection", e=>{ const r=e && e.reason; const m=r && (r.message||r.name) || String(r||""); if(/NotAllowedError|AbortError|play\(\)|interrupted|The operation was aborted/i.test(m)) return; GD.report("promise", m, {st:stackOf(r)}); });
@@ -112,5 +117,44 @@
   GD.frame=function(ms){ if(!GD.auto || document.visibilityState==="hidden" || ms>400) { acc=0; cnt=0; since=0; return; } acc+=ms; cnt++; since+=ms;
     if(since<3000) return; const avg=acc/cnt, now=performance.now(); acc=0; cnt=0; since=0;
     if(avg>40 && GD.lv<3 && now-lastChange>6000){ GD.setLevel(GD.lv+1, Math.round(1000/avg)+"fps"); } };
+  /* (v721) 🌐 연결 재기 — 사용자: 「게임이 끊기기도 하고 렉이 너무 심해 · 다른 게임들을 만들 때 아이들이 힘들 것 같아서」 (한국 서버로 옮길지 정하기 전에 숫자로)
+     수업 게임·오락실·섬에 있는 동안 20초마다 ① 게임 서버(Firebase · 싱가포르)까지 한 번 주고받는 시간 ② 2초 동안 화면 속도(fps)·멈칫(0.1초 넘는 프레임)
+     ③ 페이지마다 한 번: 참고 서버 서울·싱가포르(AWS ping, 내용 없음)까지 시간 — 「서울 서버면 얼마나 빨라질까」
+     페이지가 HY_NETTAG()(지금 게임 이름 · 없으면 "") · HY_NETD(실시간 연결 끊김 수)를 줌 → 게임이 바뀌거나 화면을 끄거나 5분마다 한 줄(k:"net") → err.html 「🌐 연결」 */
+  const NM={S:null, busy:0, n:0, ref:0, refV:null};
+  const srt=a=>a.slice().sort((x,y)=>x-y), med=a=>a.length ? Math.round(srt(a)[Math.floor(a.length/2)]) : 0, pct=(a,p)=>a.length ? Math.round(srt(a)[Math.min(a.length-1, Math.floor(a.length*p))]) : 0;
+  /* 걸린 시간 = 브라우저 네트워크가 잰 값(Resource Timing duration) — 패드가 바빠 화면이 멈칫해도 그만큼 늘지 않게 · 없으면 직접 잰 값 */
+  async function ping(u){ let c=null; try{ c=new AbortController(); }catch(e){} const to=setTimeout(()=>{ try{ c && c.abort(); }catch(e){} }, 6000), t=performance.now(),
+      url=u+(u.indexOf("?")<0?"?":"&")+"_="+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+    try{ try{ if(performance.getEntriesByType("resource").length>200) performance.clearResourceTimings(); }catch(e){}
+      await fetch(url, Object.assign({cache:"no-store", credentials:"omit", mode:"no-cors"}, c?{signal:c.signal}:{})); const t1=performance.now();
+      let d=0; for(let k=0;k<3 && !d;k++){ try{ const E=performance.getEntriesByName(url); const x=E && E[E.length-1]; if(x && x.duration>0) d=x.duration; }catch(e){} if(!d) await new Promise(r=>setTimeout(r,30)); }
+      return Math.round(d || (t1-t)); }
+    catch(e){ return -1; } finally{ clearTimeout(to); } }
+  const best=async u=>{ let m=-1; for(let i=0;i<3;i++){ const r=await ping(u); if(r>=0 && (m<0 || r<m)) m=r; } return m; };   /* 세 번 중 가장 빠른 것 = 거리 */
+  const fpsWin=ms=>new Promise(res=>{ if(!window.requestAnimationFrame) return res(null); let n=0, t0=0, last=0, jank=0, done=0; const end=v=>{ if(!done){ done=1; res(v); } };
+    const f=t=>{ if(done) return; if(!t0){ t0=last=t; } else { n++; if(t-last>100) jank++; last=t; } if(t-t0<ms) requestAnimationFrame(f); else end({fps:n*1000/Math.max(1,t-t0), jank}); };
+    requestAnimationFrame(f); setTimeout(()=>end(null), ms+1500); });
+  const fbBase=()=>{ const b=ls.get("hyeng_fb_url"); return b && URLS.includes(b) ? b : URLS[0]; };
+  const nmTag=()=>{ try{ return String((window.HY_NETTAG && window.HY_NETTAG()) || "").slice(0,40); }catch(e){ return ""; } }, nmD=()=>{ try{ return +window.HY_NETD||0; }catch(e){ return 0; } };
+  const avg=a=>a.length ? Math.round(a.reduce((x,y)=>x+y,0)/a.length) : null;
+  function nmFlush(){ const S=NM.S; NM.S=null; if(!S || S.r.length+S.f<2 || NM.n>=12) return; NM.n++;
+    send({k:"net", m:S.tag, p:PAGE, v:String(window.GAME_VER||ver||""), d:dev(), w:who(), t:Date.now(), t0:S.t0, sec:Math.round((Date.now()-S.t0)/1000),
+      n:S.r.length, rtt:med(S.r), p90:pct(S.r,.9), mx:S.r.length?Math.max(...S.r):0, fail:S.f, fb3:S.fb3, sel:S.sel, sg:S.sg,
+      fps:avg(S.fp), fpsMin:S.fp.length?Math.round(Math.min(...S.fp)):null, jank:S.j, drop:Math.max(0, nmD()-S.d0)}); }
+  async function nmTick(){ if(NM.busy || (WD && !window.HY_NETMON) || window.HY_FB_LOCAL) return;
+    const tag=document.visibilityState==="hidden" ? "" : nmTag();
+    if(NM.S && (NM.S.tag!==tag || Date.now()-NM.S.t0>300e3)) nmFlush(); if(!tag) return;
+    NM.busy=1;
+    try{ if(!NM.S) NM.S={tag, t0:Date.now(), r:[], f:0, fp:[], j:0, d0:nmD(), fb3:null, sel:null, sg:null}; const S=NM.S;
+      if(!NM.ref){ NM.ref=1; const fb=await best(fbBase()+"/.json?shallow=true"), se=await best("https://dynamodb.ap-northeast-2.amazonaws.com/ping"), sg=await best("https://dynamodb.ap-southeast-1.amazonaws.com/ping"); NM.refV=[fb, se, sg]; }
+      if(NM.refV && S.sel==null){ S.fb3=NM.refV[0]; S.sel=NM.refV[1]; S.sg=NM.refV[2]; }
+      const r=await ping(fbBase()+"/.json?shallow=true"); if(r>=0) S.r.push(r); else S.f++;
+      const F=await fpsWin(2000); if(F){ S.fp.push(F.fps); S.j+=F.jank; }
+    }catch(e){} finally{ NM.busy=0; } }
+  GD.net={tick:nmTick, flush:nmFlush, get S(){ return NM.S; }, get ref(){ return NM.refV; }};
+  try{ setInterval(nmTick, +window.HY_NETMS || 20000); setTimeout(nmTick, 4000);
+    document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") nmFlush(); });
+    addEventListener("pagehide", ()=>nmFlush()); }catch(e){}
   window.GUARD=GD;
 })();

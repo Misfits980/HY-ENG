@@ -23072,7 +23072,7 @@ const FB = (function(){
     pollStop(h); try{ h.es=new EventSource(U(path)); h.es.addEventListener("auth_revoked", ()=>{ try{ h.es.close(); }catch(e){} h.up=false; h.at=0; FBAuth.token(); });
           const on=(e,mg)=>{ h.at=Date.now(); try{ const d=JSON.parse(e.data); if(!d) return; applyTo(h, parts(path).concat(parts(d.path)).join("/"), d.data, mg); h.up=true; h.ev=Date.now(); emit(); }catch(er){} };
           h.es.addEventListener("put", e=>on(e,false)); h.es.addEventListener("patch", e=>on(e,true)); h.es.addEventListener("keep-alive", ()=>{ h.at=Date.now(); });
-          h.es.addEventListener("cancel", ()=>{ h.up=false; h.at=0; }); h.es.onerror=()=>{ h.up=false; }; h.es.onopen=()=>{ h.up=true; h.at=Date.now(); flush(); }; }catch(e){} }
+          h.es.addEventListener("cancel", ()=>{ h.up=false; h.at=0; }); h.es.onerror=()=>{ h.up=false; window.HY_NETD=(window.HY_NETD||0)+1; };   /* (v721) 끊김 수 → guard.js 연결 재기 */ h.es.onopen=()=>{ h.up=true; h.at=Date.now(); flush(); }; }catch(e){} }
   function watch(){ if(mode!=="fb") return; const now=Date.now(); L.forEach(h=>{ if(h.poll) return; const dead = !h.es || h.es.readyState===2 || now-(h.at||0)>45000;
       if(dead){ try{ h.es && h.es.close(); }catch(e){} h.es=null; h.up=false; open1(h); } }); promote(); }
   try{ setInterval(watch, 10000); }catch(e){}
@@ -25269,6 +25269,10 @@ setInterval(()=>{ try{ if(!document.hidden && ($("scStudy").classList.contains("
    → 5분마다 · 화면을 끌 때 시트 「모드 사용」 탭(아이·날마다 한 줄)으로 (그날 합계를 보내므로 여러 번 가도 같은 줄을 덮음 — 🏝 마이타운은 proto/house.html 이 같은 줄에)
    study Daily 30 · gram 문법 · run 달리기 · battle 교실 배틀 · raid 레이드 · board 보드게임 · esc 저택 탈출 · vs 대결 · menu 첫 화면(기다림)
    혼자 하는 모드는 2분 동안 화면을 안 만지면 안 셈(켜 둔 채 자리 비움) · 수업 게임은 TV 를 보느라 안 만져도 셈 · 선생님 기기·TV(방장)는 안 셈 */
+/* (v721) 🌐 연결 재기(guard.js)에 「지금 어느 수업 게임인지」 — 패드·TV 따로 (TV 연결도 중요해서) */
+window.HY_NETTAG=()=>{ try{ if(BoardPad.room) return "파티 보드 · 패드"; if(BoardTV.cfg && $("board")) return "파티 보드 · TV";
+    if(Battle.role) return Battle.role==="host" ? "교실 배틀 · TV" : "교실 배틀 · 패드"; if(Raid.role) return Raid.role==="host" ? "레이드 · TV" : "레이드 · 패드";
+    if(EscPad.room) return "방탈출 · 패드"; if(EscTV.room) return "방탈출 · TV"; }catch(e){} return ""; };
 const Use = { K:"hyeng_use_v1", CLASS:{esc:1, board:1, battle:1, raid:1}, cur:"", at:0, act:Date.now(), sent:"", sentAt:0, force:false,
   mode(){ try{
       if(EscPad.room) return "esc"; if(BoardPad.room) return "board";
