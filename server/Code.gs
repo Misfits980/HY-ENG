@@ -1017,7 +1017,7 @@ function txtMulti_(v, n){
 /* (v419) 🔐 선생님 기기 등록 — 열쇠(ADMIN_KEY)가 맞으면 Firebase /hy/teachers/<uid> 에 적음
    스크립트 속성 FB_SECRET = Firebase 콘솔 → 프로젝트 설정 → 서비스 계정 → 데이터베이스 비밀번호(Database secrets) · FB_DB = 데이터베이스 주소(없으면 아시아) */
 function fbTeacher_(d){
-  const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const P = PropertiesService.getScriptProperties(), sec = (String(P.getProperty("FB_SECRET") || "").trim() || null), db = (String(P.getProperty("FB_DB") || "").trim().replace(/\/+$/, "") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app");
   const uid = String(d.uid || ""); if (!/^[A-Za-z0-9]{10,40}$/.test(uid)) return json_({ok:false, err:"uid"});
   if (!sec) return json_({ok:false, err:"FB_SECRET 없음"});
   const r = UrlFetchApp.fetch(db + "/hy/teachers/" + uid + ".json?auth=" + encodeURIComponent(sec), {method:"put", contentType:"application/json", payload:JSON.stringify({at:Date.now(), n:txt_(d.nick, 20)}), muteHttpExceptions:true});
@@ -1127,16 +1127,24 @@ function acPut_(sh, i, r){ sh.getRange(i + 2, 1, 1, AC_COLS.length).setValues([r
 function acFind_(rows, k, v){ for (let i = 0; i < rows.length; i++) if (String(rows[i][AI[k]]) === String(v)) return i; return -1; }
 function acLocked_(fn){ const lk = LockService.getScriptLock(); try { lk.waitLock(15000); } catch(e){ return json_({ok:false, err:"busy"}); } try { return fn(); } finally { try { lk.releaseLock(); } catch(_){} } }
 function acB64_(x){ return Utilities.base64EncodeWebSafe(x).replace(/=+$/, ""); }
-function acTok_(uid, dk){ const sec = PropertiesService.getScriptProperties().getProperty("FB_SECRET"); if (!sec) return null;
+function acTok_(uid, dk){ const sec = (String(PropertiesService.getScriptProperties().getProperty("FB_SECRET") || "").trim() || null); if (!sec) return null;
   const now = Math.floor(Date.now() / 1000), exp = now + AC_TOK_DAYS * 86400;
   const h = acB64_(JSON.stringify({typ:"JWT", alg:"HS256"})), p = acB64_(JSON.stringify({v:0, iat:now, exp:exp, d:{uid:uid, dk:dk}}));
   return {tok:h + "." + p + "." + acB64_(Utilities.computeHmacSha256Signature(h + "." + p, sec)), exp:exp * 1000}; }
 /* (v27b) AC_FBC = 마지막 Firebase 쓰기 결과 (200 · 401 = FB_SECRET 이 안 맞음 · "nosec" = 스크립트 속성에 없음 · "err") — 실패를 「됐어요」로 돌려주지 않게 */
 let AC_FBC = "";
-function acFb_(path, val){ const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"; if (!sec){ AC_FBC = "nosec"; return false; }
+function acFb_(path, val){ const P = PropertiesService.getScriptProperties(), sec = (String(P.getProperty("FB_SECRET") || "").trim() || null), db = (String(P.getProperty("FB_DB") || "").trim().replace(/\/+$/, "") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"); if (!sec){ AC_FBC = "nosec"; return false; }
   try { const r = UrlFetchApp.fetch(db + path + ".json?auth=" + encodeURIComponent(sec), val === null ? {method:"delete", muteHttpExceptions:true} : {method:"put", contentType:"application/json", payload:JSON.stringify(val), muteHttpExceptions:true}); AC_FBC = r.getResponseCode(); return AC_FBC === 200; } catch(e){ AC_FBC = "err"; return false; } }
+/* (v27b) 편집기에서 ▶ 실행 → 실행 로그에 Firebase 연결 상태만 (열쇠 값은 안 찍음: 있나 · 길이 · 쓰는 주소 · 읽기/쓰기 결과) */
+function acctDiag(){ const P = PropertiesService.getScriptProperties(), sec = String(P.getProperty("FB_SECRET") || ""), dbp = String(P.getProperty("FB_DB") || "");
+  const db = dbp.trim().replace(/\/+$/, "") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"; let rd = "", wr = "";
+  if (sec){ try { rd = UrlFetchApp.fetch(db + "/hy/acon.json?auth=" + encodeURIComponent(sec), {muteHttpExceptions:true}).getResponseCode(); } catch(e){ rd = "err " + String(e).slice(0, 80); }
+    try { const r = UrlFetchApp.fetch(db + "/kdev/_diag.json?auth=" + encodeURIComponent(sec), {method:"put", contentType:"application/json", payload:"true", muteHttpExceptions:true}); wr = r.getResponseCode() + " " + r.getContentText().slice(0, 120);
+      UrlFetchApp.fetch(db + "/kdev/_diag.json?auth=" + encodeURIComponent(sec), {method:"delete", muteHttpExceptions:true}); } catch(e){ wr = "err " + String(e).slice(0, 80); } }
+  const out = {FB_SECRET:sec ? "있음 (" + sec.length + "글자" + (sec !== sec.trim() ? " · 앞뒤 빈칸 있음!" : "") + ")" : "없음", FB_DB:dbp || "(비어 있음 → 싱가포르 기본 주소)", host:db.replace(/^https:\/\//, "").replace(/\/.*$/, ""), read:rd, write:wr};
+  Logger.log(JSON.stringify(out)); return out; }
 /* (v27b) 선생님 카드용: FB_SECRET 이 있나(값은 안 보냄) · 그 열쇠로 /hy/acon 을 읽을 수 있나 · 지금 켜져 있나 */
-function acFbChk_(){ const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app";
+function acFbChk_(){ const P = PropertiesService.getScriptProperties(), sec = (String(P.getProperty("FB_SECRET") || "").trim() || null), db = (String(P.getProperty("FB_DB") || "").trim().replace(/\/+$/, "") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app");
   if (!sec) return {sec:false, code:"nosec", on:false};
   try { const r = UrlFetchApp.fetch(db + "/hy/acon.json?auth=" + encodeURIComponent(sec), {muteHttpExceptions:true}), c = r.getResponseCode(); let on = false;
     if (c === 200){ try { const v = JSON.parse(r.getContentText()); on = !!(v && v.on); } catch(e){} } return {sec:true, code:c, on:on}; } catch(e){ return {sec:true, code:"err", on:false}; } }
