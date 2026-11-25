@@ -23176,11 +23176,18 @@ const Kid = {
   bound(){ try{ const o=JSON.parse(localStorage.getItem("hyeng_me")); return o && o.id ? o : null; }catch(e){ return null; } },
   dev(){ let o=this.bound(); const nick=this.nick(), nm=(!nick || /^player$/i.test(nick)) ? "플레이어" : nick; let K={}, ok=false; try{ K=HyBoss.kids()||{}; ok=!!HyBoss.ok; }catch(e){}
     if(o && ok && Object.keys(K).length && !K[o.id] && !/^d/.test(o.id)){ try{ localStorage.removeItem("hyeng_me"); }catch(e){} o=null; }   // 선생님이 그 줄을 지움 → 다시 찾기
+    /* (v722) 선생님 조치 「이름」으로 이름을 바꾼 기기(hyeng_rebind) — 저절로 생긴 명단 줄(반 없음)에 붙어 있으면 새 이름과 똑같은 명단 아이 한 명에게 옮김 (예: 둘째 기기 「김연우」 → 「패트」) */
+    if(o && ok && K[o.id]){ let rb=""; try{ rb=localStorage.getItem("hyeng_rebind")||""; }catch(e){}
+      if(rb){ const r=K[o.id], n=this.nk(rb), ex=Object.keys(K).filter(k=>k!==o.id && this.nk(K[k].n)===n);
+        if(r.nw && !r.t && n && this.nk(r.n)!==n && ex.length===1){ const old=o; o={id:ex[0], at:Date.now()}; try{ localStorage.setItem("hyeng_me", JSON.stringify(o)); }catch(e){}
+          if(old.mk){ try{ FB.set("/hy/roster/k/"+old.id, null); delete HyBoss.R.k[old.id]; }catch(e){} } }
+        if(ex.length<=1 || this.nk(r.n)===n){ try{ localStorage.removeItem("hyeng_rebind"); }catch(e){} } } }
     if(!o && this.bind()) o=this.bound();
     if(o){ try{ if(localStorage.getItem("hyeng_kid")) localStorage.removeItem("hyeng_kid"); }catch(e){} const k=K[o.id];   /* 예전 고르기 기록은 지움 */
       if(k && (k.t||"")!==(o.t||"")) try{ localStorage.setItem("hyeng_me", JSON.stringify(Object.assign({}, o, {t:k.t||""}))); }catch(e){}   /* My Town 이 「우리 반」을 알게 */ return {id:o.id, n:(nm==="플레이어" && k) ? HyBoss.plainN(k.n) : nm, t:(k && k.t) || "all", dev:1, rn:k ? HyBoss.plainN(k.n) : "", nw:!!(k && k.nw)}; }   /* (v536) 별명 없는 내 기기 = 명단 이름 */
     const d=this.devId(); return d ? {id:"d"+d, n:nm, t:"all", dev:1, tmp:1, amb:this.amb?1:0} : null; },
-  bind(){ if(!this.personal()) return false; const nick=this.nick(); if(!nick || /^player$/i.test(nick)) return false; let ok=false, K={}; try{ ok=!!HyBoss.ok; K=HyBoss.kids()||{}; }catch(e){} if(!ok) return false;
+  bind(){ if(!this.personal()) return false; const nick=this.nick(); if(!nick || /^player$/i.test(nick)) return false; let ok=false, K={}; try{ ok=!!HyBoss.ok && !HyBoss.stale; K=HyBoss.kids()||{}; }catch(e){} if(!ok) return false;
+    if(!Object.keys(K).length) return false;   /* (v722) 사용자: 「여러 김연우들이 생겼어」 — 명단을 아직 못 받았는데(빈 명단 · 못 읽음) 「명단에 없음」으로 보고 새 줄을 만들던 것 (한 기기가 하루에 3줄) */
     const n=this.nk(nick); let id=null;
     try{ const old=JSON.parse(localStorage.getItem("hyeng_kid")); if(old && old.id && K[old.id]){ const r=this.nk(K[old.id].n); if(r===n || this.near(r, n)) id=old.id; } }catch(e){}
     let mk=0; this.amb=0;
@@ -23279,7 +23286,7 @@ try{ addEventListener("pagehide", ()=>{ try{ Gift.flush(); }catch(e){} }); docum
 /* (v417) 🎓 졸업 · 주인 바꾸기 — 주인 패드의 기록을 /hy/move/<아이> 에 맡김 → 그 아이 새 기기에서 이름을 고르면 「가져올까요?」 */
 const Move = {
   /* (v722) 보안 점검 31: 가짜 백업에 「선생님 기기」 표시 · 관리 열쇠를 넣어 두면 가져온 기기가 선생님 기기가 됐다 → 기기 전용 · 선생님 칸은 넣지도 빼지도 않음 */
-  SKIP:/^(hyeng_dev|hyeng_admin_\w*|hyeng_teacher_dev|hyeng_fb_key|hyeng_unhook|hyeng_nick|hyeng_tag|hyeng_pad_owner|hyeng_fb_url|hyeng_fb_q|hyeng_fb_local|hyeng_sheetq|hyeng_kid|hyeng_acts_v1|hyeng_gift_done|hyeng_move_seen|hyeng_hb2)$/,
+  SKIP:/^(hyeng_dev|hyeng_admin_\w*|hyeng_teacher_dev|hyeng_fb_key|hyeng_unhook|hyeng_rebind|hyeng_nick|hyeng_tag|hyeng_pad_owner|hyeng_fb_url|hyeng_fb_q|hyeng_fb_local|hyeng_sheetq|hyeng_kid|hyeng_acts_v1|hyeng_gift_done|hyeng_move_seen|hyeng_hb2)$/,
   keys(){ const out=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(hyeng|wgr)_/.test(k)) out.push(k); } }catch(e){} return out; },
   /* 주인 패드 → 주인 것만 (다른 아이 수업 칸 @… · 다른 아이 이름이 붙은 칸은 뺌) */
   pack(o){ const sid=String(o.k).replace(/[^\w-]/g,""), other=Object.keys((()=>{ try{ return HyBoss.kids(); }catch(e){ return {}; } })()).filter(k=>k!==o.k).map(k=>String(k).replace(/[^\w-]/g,"")), d={};
@@ -23439,8 +23446,8 @@ const HyBoss = {
       out[kid]=m; }); return out; },
   /* 선생님 화면 — 실시간으로 (관리 화면 ⚔️ 탭 · 레이드/배틀 TV) */
   live(){ if(this._live) return; this._live={}; this.start();
-    FB.ready().then(m=>{ if(m!=="fb" && !window.HY_FB_LOCAL) return; this.ok=true; const L=this._live;
-      L.r=FB.listen("/hy/roster", v=>{ this.R=v||{}; this.calc(); this.after(); });
+    FB.ready().then(m=>{ if(m!=="fb" && !window.HY_FB_LOCAL) return; const L=this._live;
+      L.r=FB.listen("/hy/roster", v=>{ this.R=v||{}; this.ok=true; this.stale=0; this.calc(); this.after(); });   /* (v722) 명단을 실제로 받은 뒤에 ok (전에는 듣기 시작만 해도 ok → 빈 명단으로 새 아이 만들기) */
       L.c=FB.listen("/hy/boss", v=>{ this.C=(v && v.v===2) ? v : null; this.calc(); this.relisten(); this.after(); }); }); },
   relisten(){ const L=this._live; if(!L) return; const id=this.B && this.B.id, pid=this.P && this.P.id;
     if(L.bid!==id){ L.bid=id; if(L.d) L.d.close(); this.D={}; L.d = id ? FB.listen("/hy/dmg/"+id, d=>{ this.D=d||{}; this.after(); }) : null; }
@@ -31213,7 +31220,7 @@ const Acts = {
         else if(a.kind==="환불회수"){ const paid=Wallet.paidFor(v) || ((itemInfo(v)||{}).price|0);
           if(Wallet.take(v)){ if(paid) Wallet.adjust(paid, "선생님 조치 환불 "+v); res="환불 "+paid; msg="📦 "+this.name(v)+" 회수 · 💎 "+paid+" 돌려받음"; } else res="없음"; }
         else if(a.kind==="캐릭터"){ if(CHARACTERS.some(c=>c.id===v)){ Unlock.give(v); res="해금 "+v; msg="🔓 "+this.name(v)+" 열림"; } }
-        else if(a.kind==="이름"){ const r=NameCard.change(v, "선생님"); if(!r){ res="이름 "+v; msg="✏️ 이름이 '"+NameCard.cur()+"'(으)로 바뀌었어요"; } else res=r; }
+        else if(a.kind==="이름"){ const r=NameCard.change(v, "선생님"); if(!r){ try{ localStorage.setItem("hyeng_rebind", String(v).slice(0,20)); }catch(e){} res="이름 "+v; msg="✏️ 이름이 '"+NameCard.cur()+"'(으)로 바뀌었어요"; } else res=r; }
         else if(a.kind==="이름권"){ const k=Math.max(1, parseInt(v,10)||1); NameCard.give(k); res="이름권 +"+k; msg="🎫 이름 무료 변경권 +"+k+"장"; }
       }catch(e){ res="오류"; }
       this.mark(a.id);

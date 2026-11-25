@@ -121,6 +121,17 @@ async def main():
         ok(r4 == "", "보통 이름은 그대로 됨")
         r5 = await K.evaluate("()=>{ localStorage.setItem('hyeng_teacher_dev','1'); const r=NameCard.change('선생님'); localStorage.removeItem('hyeng_teacher_dev'); return r; }")
         ok(r5 == "" or "보석" in (r5 or ""), "선생님 기기는 「선생님」 이름 됨 " + str(r5))
+        # ── (v722) 명단: 못 받은 명단으로 새 줄 안 만듦 · 선생님 조치 「이름」 → 똑같은 이름 명단 아이로 옮김 ──
+        R = await K.evaluate("""async()=>{ const out={}; localStorage.removeItem('hyeng_me'); localStorage.setItem('hyeng_nick','콩콩');
+            const R0=HyBoss.R, ok0=HyBoss.ok; HyBoss.R={k:{}, t:{}}; HyBoss.ok=true; HyBoss.stale=0; const sets=[]; const fs=FB.set; FB.set=(p,v)=>{ sets.push([p,v]); return Promise.resolve(true); };
+            out.empty=Kid.bind(); out.emptySets=sets.length;
+            HyBoss.R={t:{ta:{n:'사자반'}}, k:{p1:{n:'몽글', t:'ta'}, a1:{n:'콩콩', t:'', nw:1}}}; localStorage.setItem('hyeng_me', JSON.stringify({id:'a1', at:1, mk:1}));
+            localStorage.setItem('hyeng_nick','몽글'); localStorage.setItem('hyeng_rebind','몽글'); const me=Kid.dev(); out.id=me && me.id; out.del=sets.some(x=>x[0]==='/hy/roster/k/a1' && x[1]===null); out.flag=localStorage.getItem('hyeng_rebind');
+            localStorage.setItem('hyeng_me', JSON.stringify({id:'a1', at:1, mk:1})); HyBoss.R.k.a1={n:'콩콩', t:'', nw:1}; localStorage.removeItem('hyeng_rebind'); const me2=Kid.dev(); out.noFlag=me2 && me2.id;
+            FB.set=fs; HyBoss.R=R0; HyBoss.ok=ok0; localStorage.removeItem('hyeng_me'); return out; }""")
+        ok(R["empty"] is False and R["emptySets"] == 0, "명단이 비어 있으면 새 아이 줄을 안 만듦 " + str(R))
+        ok(R["id"] == "p1" and R["del"] and R["flag"] is None, "선생님 「이름」 조치 → 같은 이름 명단 아이로 옮기고 저절로 생긴 줄 지움")
+        ok(R["noFlag"] == "a1", "조치 없이 이름만 바꾸면 그대로 (남의 이름으로 바꿔 옮겨 가기 막음)")
         # ── #board 길 ──
         await K.goto(ORIGIN + "index.html#board"); await K.wait_for_timeout(1500)
         ok(await K.evaluate("()=>localStorage.getItem('hyeng_board_try')") is None, "#board 주소로 점검 중 보드게임 열기 없앰")
