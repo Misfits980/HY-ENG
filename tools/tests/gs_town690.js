@@ -31,6 +31,8 @@ const get=(p)=>JSON.parse(ctx.doGet({parameter:Object.assign({key:"HYENG"},p)}).
 // 시간 고정: 2026-11-12(목) 15:00 한국 시간
 const NOW=Date.UTC(2026,10,12,6,0,0), H=3600e3, KST=d=>Date.UTC(2026,d[0]-1,d[1],d[2]-9,d[3]||0,0);
 vm.runInContext("Date.now=()=>"+NOW, ctx);
+/* 서버가 줄 날짜를 new Date() 로 적음 → 진짜 시계(오늘)가 아니라 시험 시계로 (예전엔 시험을 만든 날 11/12 에만 통과했음) */
+vm.runInContext("(function(){ const D0=Date; globalThis.Date=class extends D0{ constructor(...a){ if(!a.length) super(globalThis.Date.now()); else super(...a); } static now(){ return D0.now(); } }; })()", ctx);
 ok(post({type:"check", tk:"K"}).v>=24, "SERVER_V ≥ 24");
 const COLS=vm.runInContext("COLS.map(c=>c[0])", ctx), S=book.scores;
 ok(COLS[COLS.length-1]==="tw", "「마을 칸」(tw) 은 scores 맨 끝 칸 (옛 칸 자리 그대로)");
