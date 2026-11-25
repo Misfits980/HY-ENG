@@ -92,18 +92,19 @@ async def main():
                 if await ui(ap) == "mine": break
                 await ap.wait_for_timeout(400)
             ok(await ui(ap) == "mine", "예전부터 쓰던 기기(태그) = 승인 없이 → 포털 → 「이 기기에 있던 기록 · 토토 기록 맞아요?」")
-            t = await ap.evaluate("()=>document.getElementById('acCmp').innerText"); ok("777" in t and "아직 비어" in t, "이 기기 💎777 · 계정은 비어 있음")
+            t = await ap.evaluate("()=>document.getElementById('acCmp').innerText"); ok("777" in t and "아직 비어" in t, "이 기기 💎777 · 계정은 비어 있음"); await ap.screenshot(path=OUT + "acct723_mine.png")
             await ap.click("#acctUI [data-mine=mine]")
             for _ in range(20):
                 if await ui(ap) == "wel": break
                 await ap.wait_for_timeout(400)
-            ok(await ui(ap) == "wel", "「어서 와, 토토!」")
+            ok(await ui(ap) == "wel", "「어서 와, 토토!」"); await ap.wait_for_timeout(1200); await ap.screenshot(path=OUT + "acct723_wel.png")
             D = db()["db"]; uid = list(D.get("kacct", {}).keys())[0] if D.get("kacct") else ""
             m = D.get("kacct", {}).get(uid, {}).get("main", {}); ok(m.get("rev") == 1 and m.get("sm", {}).get("g") == 777, "서버 /kacct/<토토>/main 에 올라감 (rev 1 · 💎777)")
             ok("hyeng_acct" not in (m.get("d") or ""), "올린 기록에 출입증·기기 비밀값이 없음")
             await ap.click('#acctUI [data-go=done]'); await ap.wait_for_timeout(300)
             st = await ap.evaluate("()=>({me:localStorage.getItem('hyeng_me'), nick:localStorage.getItem('hyeng_nick'), chip:(document.getElementById('acChip')||{}).innerText||'', cloud:Cloud.who()})")
             ok('"id":"r1"' in (st["me"] or "") and st["nick"] == "토토" and "토토" in st["chip"] and st["cloud"] is None, "로그인 = 명단 토토로 묶임(이름 고르기 안 물음) · 첫 화면 칩 · 예전 공개 ☁️ 백업 안 씀")
+            await ap.screenshot(path=OUT + "acct723_start.png"); await ap.click("#acChip"); await ap.wait_for_timeout(500); ok(await ui(ap) == "me", "칩 → 내 계정"); await ap.screenshot(path=OUT + "acct723_me.png"); await ap.click('#acctUI [data-s=me] [data-go=done]'); await ap.wait_for_timeout(300)
             # 규칙: 출입증 없이 /kacct 못 읽음
             s, _ = http("GET", "/fb/kacct/%s/main.json" % uid); ok(s == 401, "출입증 없이 /kacct 못 읽음 (규칙)")
             # ── 아이 B: 빈 기기 ──
