@@ -290,6 +290,16 @@ function start(api){
   const vmS=new THREE.Scene(), vmC=new THREE.PerspectiveCamera(58, 1, .01, 10); vmS.add(new THREE.HemisphereLight(0xffffff, 0x8899bb, .5)); { const l=new THREE.DirectionalLight(0xffffff,.95); l.position.set(.6,2,1.2); vmS.add(l); }
   const VM=new THREE.Group(); vmS.add(VM); const VMG=new THREE.Group(); VM.add(VMG);
   const hand=new THREE.Mesh(new THREE.SphereGeometry(.07,12,10), toon(new THREE.MeshStandardMaterial({color:(()=>{ try{ return AV_OPT.skin[api.av.skin|0]; }catch(e){ return "#ffe0c2"; } })(), roughness:.8})));
+  /* (v730) 「공격하는 느낌이 없다」 → 쏠 때마다 총 끝에서 물이 「팡」 (내 화면 총 · 0.1초) */
+  const vmFl=new THREE.Group(); VM.add(vmFl); vmFl.visible=false; vmFl.userData.t=0;
+  { const fm=new THREE.MeshBasicMaterial({color:0x1f8fff, transparent:true, opacity:.95, depthTest:false}), fg=new THREE.IcosahedronGeometry(.046,0); disp.push(fm, fg);
+    for(let i=0;i<7;i++){ const m=new THREE.Mesh(fg, fm); const a=i/7*Math.PI*2; m.userData.d=new V3(Math.cos(a)*.55, Math.sin(a)*.55, -1).normalize(); m.renderOrder=9; vmFl.add(m); }
+    const c=new THREE.Mesh(new THREE.SphereGeometry(.06,12,9), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.9, depthTest:false})); disp.push(c.geometry, c.material); c.renderOrder=9; vmFl.add(c); vmFl.userData.core=c; }
+  const _bb=new THREE.Box3(), _bb2=new THREE.Box3(), _inv=new THREE.Matrix4();
+  function vmTip(){ VM.updateMatrixWorld(true); _bb.makeEmpty(); const tw=VMG.userData.twin; VMG.children.forEach(o=>{ if(o===hand || o===tw) return; _bb2.setFromObject(o); if(!_bb2.isEmpty()) _bb.union(_bb2); }); if(_bb.isEmpty()) return new V3(0,0,-.4); _inv.copy(VM.matrixWorld).invert(); _bb.applyMatrix4(_inv); return new V3((_bb.min.x+_bb.max.x)/2, _bb.min.y*.4+_bb.max.y*.6, _bb.min.z-.02); }
+  function myShot(W){ if(W.t==="melee") return; camK=Math.min(.09, camK+(RDM?KICK[W.k]*.3:KICK[W.k]||0)); if(W.t==="beam" && vmFl.visible) return; vmFl.position.copy(vmTip()); vmFl.userData.t=W.t==="snipe"?.16:.1; vmFl.userData.T=vmFl.userData.t; vmFl.userData.big=W.t==="snipe"||W.k==="shot"?1.6:1; vmFl.visible=true; if(W.t==="snipe" && !RDM){ try{ eScope.classList.add("kick"); setTimeout(()=>eScope.classList.remove("kick"), 130); }catch(e){} } }
+  function vmFlTick(dt){ const u=vmFl.userData; if(!vmFl.visible) return; u.t-=dt; if(u.t<=0){ vmFl.visible=false; return; } const k=1-u.t/u.T, b=u.big||1;
+    vmFl.children.forEach(m=>{ if(m===u.core){ const s=(1.2+k*1.4)*b; m.scale.set(s,s,s); m.material.opacity=.9*(1-k); return; } m.position.copy(m.userData.d).multiplyScalar(.025+k*.18*b); const s=(1-k*.6)*b; m.scale.set(s,s,s); }); vmFl.children[0].material.opacity=.95*(1-k*k); }
   function vmSet(wi){ gunModel(VMG, wi, false); VMG.add(hand); hand.position.set(0,-.2,.03); hand.scale.set(1,1.15,1.25); VM.userData.wi=wi; }
   /* (v592) 사용자: 「캐릭터 모델은 없을까」 → 「이건 아레나 지금 해 줘」 — Kenney Blocky Characters 2.0(CC0) 로블록스 같은 블록 사람 6종 · 부위(다리·몸·팔·머리)를 직접 움직임 */
   const BKS=["b","d","e","n","o","g"];
@@ -346,7 +356,7 @@ function start(api){
   function fxTick(dt){ let n=0; pudTick(dt);
     for(let i=STR.length-1;i>=0;i--){ const s=STR[i]; s.t+=dt; const hd=Math.min(s.L, s.t*s.sp), tl=Math.max(0, hd-(s.big?3.2:2.2));
       if(tl>=s.L-1e-3){ STR.splice(i,1); continue; } const k=s.big?9:6;
-      for(let j=0;j<k && n<900;j++){ const f=tl+(hd-tl)*(j/(k-1)); _v.copy(s.a).lerp(s.b, s.L>0?f/s.L:1); const sc=(s.big?2.2:1.15)*s.w*(.55+.45*j/(k-1)); if(!s.mine && _v.distanceToSquared(cam.position)<2.6) continue; _s.set(sc,sc,sc); _m.compose(_v,_q,_s); DROP.setMatrixAt(n++, _m); } }   /* (v597) 버그: 남이 나를 맞힌 물줄기가 카메라 앞에서 커다란 덩어리 → 가까운 것은 안 그림 */
+      for(let j=0;j<k && n<900;j++){ const f=tl+(hd-tl)*(j/(k-1)); _v.copy(s.a).lerp(s.b, s.L>0?f/s.L:1); const sc=(s.big?2.2:1.15)*s.w*(.55+.45*j/(k-1))*(s.mine?1.35:1);   /* (v730) 내 물줄기 굵게 */ if(!s.mine && _v.distanceToSquared(cam.position)<2.6) continue; _s.set(sc,sc,sc); _m.compose(_v,_q,_s); DROP.setMatrixAt(n++, _m); } }   /* (v597) 버그: 남이 나를 맞힌 물줄기가 카메라 앞에서 커다란 덩어리 → 가까운 것은 안 그림 */
     DROP.count=n; DROP.instanceMatrix.needsUpdate=true; n=0;
     for(let i=PAR.length-1;i>=0;i--){ const p=PAR[i]; p.t+=dt; if(p.t>p.L){ PAR.splice(i,1); continue; } p.v.y-=14*dt; p.p.addScaledVector(p.v, dt); if(p.p.y<.02){ p.p.y=.02; p.v.y*=-.2; p.v.x*=.6; p.v.z*=.6; } const sc=p.s*(1-p.t/p.L*.6); if(p.p.distanceToSquared(cam.position)<1.7) continue; _s.set(sc,sc,sc); _m.compose(p.p,_q,_s); if(n<500) SPL.setMatrixAt(n++, _m); }
     SPL.count=n; SPL.instanceMatrix.needsUpdate=true;
@@ -379,31 +389,34 @@ function start(api){
   function fire(a, o, d, hint){ const W=WP[a.wi]; a.cd=W.rate*(a.bot?D.fire:1); a.prot=0; a.fc=(a.fc|0)+1;
     const mz=muzzle(a); let snd=a.me || o.distanceTo(me.p)<22;
     if(W.t==="melee"){ let best=null, bd=W.rng; for(const t of ACT){ if(t===a || !t.alive) continue; const c=new V3(t.p.x, t.p.y+.8, t.p.z), v=c.clone().sub(o), L=v.length(); if(L>bd+.5) continue; v.y*=.4; if(v.normalize().dot(d)<Math.cos(42*D2R)) continue; if(!sees(o,c)) continue; bd=L; best=t; }
-      if(a.me){ vmA.swing=1; me.v.addScaledVector(new V3(d.x,0,d.z).normalize(), 3.2); } if(snd) api.sfx.shot("hammer", !a.me);
+      if(a.me){ vmA.swing=1; me.v.addScaledVector(new V3(d.x,0,d.z).normalize(), 3.2); if(best && !RDM) shk=Math.max(shk,.6); } if(snd) api.sfx.shot("hammer", !a.me);
       if(best){ burst(new V3(best.p.x,best.p.y+1.1,best.p.z), 16); hurt(best, W.dmg, a, a.wi, false, o); } return; }
-    if(W.t==="proj"){ const m=new THREE.Mesh(BALG, gmat(Math.random()<.5?0xff7aa8:0x46b3ff)); m.position.copy(a.me?mz:o.clone().addScaledVector(d,.7)); scene.add(m); BAL.push({m, v:d.clone().multiplyScalar(21).add(new V3(0,3.2,0)), by:a, t:0}); if(snd) api.sfx.shot("balloon", !a.me); if(a.me) vmA.kick=1; return; }
+    if(W.t==="proj"){ const m=new THREE.Mesh(BALG, gmat(Math.random()<.5?0xff7aa8:0x46b3ff)); m.position.copy(a.me?mz:o.clone().addScaledVector(d,.7)); scene.add(m); BAL.push({m, v:d.clone().multiplyScalar(21).add(new V3(0,3.2,0)), by:a, t:0}); if(snd) api.sfx.shot("balloon", !a.me); if(a.me){ vmA.kick=1; myShot(W); } return; }
     const n=W.n||1, sp=a.me?(W.t==="snipe" && (Math.hypot(me.v.x,me.v.z)>2 || !me.onG) ? 2.2 : W.spr):W.spr; let hitAny=false, hd=false;
     for(let i=0;i<n;i++){ let dd=spread(d, sp); let r=trace(a, o, dd, W.rng);
       if(!r.who && hint && i===0){ const as=hint(o, dd, W.rng); if(as){ dd=as.c.clone().sub(o).normalize(); r={t:as.L, who:as.a, head:false}; } }
       const end=o.clone().addScaledVector(dd, Math.min(r.t, W.rng)); stream(mz, end, W.t==="beam"?1.6:W.t==="snipe"?.8:1, W.t==="beam", !!a.me);
       if(r.who){ let dm=W.dmg; if(W.k==="shot"){ const L=r.t; dm*=L<9?1:Math.max(.35,1-(L-9)/15); } if(r.head && W.t!=="beam") dm*=1.5; hurt(r.who, dm, a, a.wi, r.head, o); hitAny=true; hd=hd||r.head;
-        if(W.t==="beam"){ const pu=new V3(dd.x,0,dd.z).normalize().multiplyScalar(5.5*Math.max(.3,1-r.t/16)); r.who.v.x+=pu.x*.35; r.who.v.z+=pu.z*.35; } burst(end, W.t==="beam"?2:4, .6); }
+        if(W.t==="beam"){ const pu=new V3(dd.x,0,dd.z).normalize().multiplyScalar(5.5*Math.max(.3,1-r.t/16)); r.who.v.x+=pu.x*.35; r.who.v.z+=pu.z*.35; } burst(end, W.t==="beam"?(a.me?3:2):(a.me?(W.t==="snipe"?22:9):4), a.me?.85:.6); }   /* (v730) 내가 맞히면 물보라 크게 */
       else if(r.t<W.rng){ if(Math.random()<(W.t==="beam"?.3:1)){ burst(end, W.n?2:5, .7); puddle(end); } } }
-    if(snd) api.sfx.shot(W.k, !a.me); if(a.me){ vmA.kick=W.t==="snipe"?1.6:W.t==="beam"?.25:W.k==="shot"?1.3:.7; vmA.side=-vmA.side; } }
+    if(snd) api.sfx.shot(W.k, !a.me); if(a.me){ vmA.kick=W.t==="snipe"?1.6:W.t==="beam"?.25:W.k==="shot"?1.3:.7; vmA.side=-vmA.side; myShot(W); } }
 
   /* ════ 맞음 · 흠뻑 · 단계 오르기 ════ */
-  const FEED=[]; let hitT=0, hitHead=false, hurtT=0, hurtA=0, streak=0, killT=0;
+  const FEED=[]; let hitT=0, hitHead=false, hurtT=0, hurtA=0, streak=0, killT=0, camK=0, shk=0;   /* (v730) camK = 쏠 때 카메라가 살짝 튐 · shk = 흠뻑 적실 때 흔들림 */
+  const RDM=(()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } })();
+  const KICK={pistol:.012, duo:.006, shot:.03, smg:.0045, snipe:.05, balloon:.018, wave:.002, hammer:.0};
+  function hmPop(){ try{ eHm.classList.remove("pop"); void eHm.offsetWidth; eHm.classList.add("pop"); }catch(e){} }
   function dmgFx(t, dm, head){ try{ if(hud.querySelectorAll(".aDmg").length>7) return; const v=new V3(t.p.x+(Math.random()-.5)*.5, t.p.y+1.8, t.p.z+(Math.random()-.5)*.5).project(cam); if(v.z>1 || Math.abs(v.x)>1.1) return; const el=document.createElement("div"); el.className="aDmg"+(head?" hd":""); el.textContent=Math.max(1,Math.round(dm));
       el.style.left=((v.x+1)/2*root.clientWidth)+"px"; el.style.top=((1-v.y)/2*root.clientHeight)+"px"; hud.appendChild(el); setTimeout(()=>el.remove(), 660); }catch(e){} }
   const STK=["","","연속 2명! 🔥","연속 3명! 🔥🔥","멈출 수 없어! 🔥🔥🔥"];
   function killFx(nm){ streak++; killT=1.7; eKill.innerHTML="💦 흠뻑! "+esc(nm||"")+(streak>=2?'<small>'+STK[Math.min(4,streak)]+'</small>':''); eKill.classList.remove("pop","y"); void eKill.offsetWidth; eKill.classList.add("on","pop"); if(streak>=2) eKill.classList.add("y"); try{ api.sfx.win && streak>=3 && api.sfx.clear(); }catch(e){} }
   function hurt(t, dm, by, wi, head, from, raw){ if(!t.alive || (t.prot>0 && !t.net && !t.rb) || time.over) return; t.fl=.24; if(t.c && !t.ex){ t.ex=1; try{ t.c.setExpr('wow'); }catch(e){} }   /* 친구·방장 봇은 그쪽 화면이 보호시간을 셈 */ if(by && by.bot && !raw) dm*=t.bot?D.bvb:D.dm;
     /* 같이 하기: 맞은 사람(친구 = 그 기기 · 봇 = 방장)이 젖음을 셈 → 사건으로 보냄 */
-    if(CO && NETR && (t.net || (t.bot && t.rb))){ if(by && by.me){ hitT=.18; hitHead=head; api.sfx.hit(head); dmgFx(t, dm, head); }
+    if(CO && NETR && (t.net || (t.bot && t.rb))){ if(by && by.me){ hitT=.18; hitHead=head; hmPop(); api.sfx.hit(head); dmgFx(t, dm, head); }
       if(by && (by.me || (by.bot && !by.rb))){ const o={k:t.net?"hit":"hitb", i:t.i, dm:+dm.toFixed(1), wi, hd:head?1:0, by:idOf(by), fx:from?+from.x.toFixed(1):0, fz:from?+from.z.toFixed(1):0}; NETR.ev(t.net?t.code:hostCode(), o); }
       return; }
     t.soak+=dm; t.lastHit=time.t; t.by=by; t.dmgBy.set(by, (t.dmgBy.get(by)||0)+dm);
-    if(by && by.me){ hitT=.18; hitHead=head; api.sfx.hit(head); dmgFx(t, dm, head); }
+    if(by && by.me){ hitT=.18; hitHead=head; hmPop(); api.sfx.hit(head); dmgFx(t, dm, head); }
     if(t.me){ hurtT=.7; if(from){ const v=new V3().subVectors(from, me.p); hurtA=Math.atan2(v.x, v.z); } api.sfx.hurt(); }
     if(t.bot && by && !t.brain.tg){ t.brain.tg=by; t.brain.react=D.react*.6; }
     if(t.soak>=100) soaked(t, by, wi); }
@@ -412,7 +425,7 @@ function start(api){
     feedAdd(by?by.nm:"", t.nm, by?WP[wi].ic:"💧", (by&&by.me)||t.me); if(CO && NETR) NETR.feed({a:by?by.nm:"", b:t.nm, ic:by?WP[wi].ic:"💧"});
     if(CO && by && by!==t && (by.net || by.rb)){ NETR.ev(by.net?by.code:hostCode(), by.net?{k:"kill", wi, vic:t.nm}:{k:"bkill", i:by.i, wi, vic:t.nm}); t.dmgBy.clear();
       if(t.me){ streak=0; eSplat.classList.remove("on"); void eSplat.offsetWidth; eSplat.classList.add("on"); api.msg('💦 흠뻑!<small>'+esc(by.nm)+' 의 '+WP[wi].ic+' '+WP[wi].nm+'</small>', 1900); } return; }   /* 잡은 사람(다른 기기)이 다음 무기로 */
-    if(by && by.me && by!==t) killFx(t.nm); if(t.me){ streak=0; eSplat.classList.remove("on"); void eSplat.offsetWidth; eSplat.classList.add("on"); }
+    if(by && by.me && by!==t){ killFx(t.nm); if(!RDM) shk=1; } if(t.me){ streak=0; eSplat.classList.remove("on"); void eSplat.offsetWidth; eSplat.classList.add("on"); }
     if(by && by!==t){ by.kills++; if(wi>=LAST && by.wi>=LAST){ declareWin(by); return; } up(by);
       t.dmgBy.forEach((v,k)=>{ if(k && k!==by && k!==t && v>=40 && k.alive){ k.asst++; if(k.asst>=2 && k.wi<LAST-1){ k.asst=0; up(k, true); } } }); }
     t.dmgBy.clear();
@@ -580,6 +593,22 @@ function start(api){
 #mgUI .aCx .d{width:4px;height:4px;left:-2px;top:-2px;border-radius:50%}
 #mgUI .aHm{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;pointer-events:none;opacity:0}
 #mgUI .aHm:before,#mgUI .aHm:after{content:"";position:absolute;left:15px;top:0;width:4px;height:34px;background:#fff;border-radius:2px;transform:rotate(45deg);box-shadow:0 0 0 1.5px rgba(20,30,60,.5)}
+/* (v730) 🎯 저격 조준경 — 사용자 「저격총이 줌하면 에임이 없더라」 (전: 줌하면 조준점이 사라지고 총도 숨어서 어디를 쏘는지 모름) */
+#mgUI .aScope{position:absolute;inset:0;pointer-events:none;opacity:0;--r:min(42vh,42vw);transition:transform .12s}
+#mgUI .aScope::before{content:"";position:absolute;inset:-2px;background:radial-gradient(circle at 50% 50%,transparent 0,transparent calc(var(--r) - 1px),#0e1830 calc(var(--r) + 2px))}
+#mgUI .aScope .ring{position:absolute;left:50%;top:50%;width:calc(var(--r)*2);height:calc(var(--r)*2);margin:calc(var(--r)*-1) 0 0 calc(var(--r)*-1);border-radius:50%;box-shadow:inset 0 0 0 5px #0e1830,inset 0 0 0 7px rgba(255,255,255,.35),inset 0 0 46px rgba(14,24,48,.5)}
+#mgUI .aScope .h,#mgUI .aScope .v{position:absolute;left:50%;top:50%;background:linear-gradient(var(--d),#0e1830 0,#0e1830 43%,transparent 43%,transparent 57%,#0e1830 57%)}
+#mgUI .aScope .h{--d:90deg;width:calc(var(--r)*2);height:2px;margin:-1px 0 0 calc(var(--r)*-1)} #mgUI .aScope .v{--d:180deg;height:calc(var(--r)*2);width:2px;margin:calc(var(--r)*-1) 0 0 -1px}
+#mgUI .aScope .tk{position:absolute;left:50%;top:50%;width:calc(var(--r)*.6);height:calc(var(--r)*.6);margin:calc(var(--r)*-.3) 0 0 calc(var(--r)*-.3);border-radius:50%;border:2px dashed rgba(14,24,48,.55)}
+#mgUI .aScope .dot{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 0 2px #fff,0 0 8px rgba(255,59,92,.8);transition:background .1s,transform .1s}
+#mgUI .aScope.lock .dot{background:#3ee08f;box-shadow:0 0 0 2px #fff,0 0 12px rgba(62,224,143,.95);transform:scale(1.35)}
+#mgUI .aScope.lock .tk{border-color:rgba(62,224,143,.9);border-style:solid}
+#mgUI .aScope b{position:absolute;left:50%;top:calc(50% + var(--r)*.55);transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;background:rgba(14,24,48,.62);border-radius:12px;padding:3px 12px;white-space:nowrap}
+#mgUI .aScope.lock b{background:#2bb673}
+#mgUI .aScope.kick{transform:translateY(10px) scale(1.02)}
+/* (v730) 맞히면 X 가 크게 「톡」 */
+#mgUI .aHm.pop{animation:aHmPop .2s cubic-bezier(.2,1.4,.4,1)} @keyframes aHmPop{from{transform:scale(1.7) rotate(-12deg)}to{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){ #mgUI .aHm.pop{animation:none} #mgUI .aScope{transition:none} #mgUI .aScope.kick{transform:none} }
 #mgUI .aHm:after{transform:rotate(-45deg)} #mgUI .aHm.hd:before,#mgUI .aHm.hd:after{background:#ffd23f}
 #mgUI .aWet{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center, rgba(70,170,255,0) 45%, rgba(40,140,255,.55) 100%)}
 #mgUI .aDir{position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px;pointer-events:none;opacity:0}
@@ -708,11 +737,11 @@ function start(api){
 #mgUI.aEnd .mgHud>*:not(style):not(.puR),#mgUI.aEnd .mgB,#mgUI.aEnd .mgJoy,#mgUI.aEnd .mgJoyH,#mgUI.aEnd .aPzB{display:none!important}
 </style>
 <div class="aWet"></div><div class="aDead"></div><div class="aDir"><i></i></div>
-<div class="aCx"><i class="h" style="left:-18px"></i><i class="h" style="left:8px"></i><i class="v" style="top:-18px"></i><i class="v" style="top:8px"></i><i class="d"></i></div><div class="aHm"></div>
+<div class="aCx"><i class="h" style="left:-18px"></i><i class="h" style="left:8px"></i><i class="v" style="top:-18px"></i><i class="v" style="top:8px"></i><i class="d"></i></div><div class="aHm"></div><div class="aScope"><i class="ring"></i><i class="h"></i><i class="v"></i><i class="tk"></i><i class="dot"></i><b>떼면 쏴요!</b></div>
 <div class="aTop"><div class="aClock">5:00</div><div class="aLad"></div></div><div class="aBd"></div><div class="aFd"></div>
 <div class="aSoak"><i></i></div><div class="aWpn"></div><div class="aCnt"></div><div class="aHint"></div><div class="aSplat"></div><div class="paBan aKill"></div>`;
   const eBuf=document.createElement("div"); eBuf.className="paPill aBuf"; eBuf.style.cssText="position:absolute;left:50%;top:calc(104px + env(safe-area-inset-top));transform:translateX(-50%);display:none;font-size:18px;pointer-events:none"; hud.appendChild(eBuf);
-  const Q=s=>hud.querySelector(s), eCx=Q(".aCx"), eHm=Q(".aHm"), eWet=Q(".aWet"), eDir=Q(".aDir"), eClk=Q(".aClock"), eLad=Q(".aLad"), eBd=Q(".aBd"), eFd=Q(".aFd"), eWpn=Q(".aWpn"), eSoak=Q(".aSoak i"), eCnt=Q(".aCnt"), eDead=Q(".aDead"), eHint=Q(".aHint"), eSplat=Q(".aSplat"), eKill=Q(".aKill"); try{ PUI.css(); }catch(e){}
+  const Q=s=>hud.querySelector(s), eCx=Q(".aCx"), eHm=Q(".aHm"), eWet=Q(".aWet"), eDir=Q(".aDir"), eClk=Q(".aClock"), eLad=Q(".aLad"), eBd=Q(".aBd"), eFd=Q(".aFd"), eWpn=Q(".aWpn"), eSoak=Q(".aSoak i"), eCnt=Q(".aCnt"), eDead=Q(".aDead"), eHint=Q(".aHint"), eSplat=Q(".aSplat"), eKill=Q(".aKill"), eScope=Q(".aScope"); try{ PUI.css(); }catch(e){}
   const root=api.ui, fireB=root.querySelector('[data-b=fire]'), fire2=root.querySelector('[data-b=fire2]');
   function fireIc(){ const W=WP[me.wi]; if(fireB) fireB.firstChild.nodeValue=W.ic; if(fire2) fire2.firstChild.nodeValue=W.ic; eWpn.innerHTML=W.ic+' '+W.nm+' <small>'+(me.wi+1)+'/'+WP.length+(W.t==="snipe"?' · 꾹 눌러 조준 → 떼면 쏘기':W.t==="melee"?' · 가까이 가서!':'')+'</small>'; }
   function drawLadder(){ eLad.innerHTML=WP.map((w,i)=>'<b class="'+(i<me.wi?"d":i===me.wi?"c":"")+'">'+w.ic+'</b>').join(""); }
@@ -788,7 +817,7 @@ function start(api){
     try{ api.sfx.up(); }catch(e){} }
 
   /* ════ 나 ════ */
-  let camY=0, fov=76, zoom=0, paused=false, roll=0, deadCam=0;
+  let camY=0, fov=76, zoom=0, paused=false, roll=0, deadCam=0, eScopeT=0;
   ACT.forEach(spawn); me.prot=0; ACT.forEach(a=>{ if(a.bot) a.prot=0; });
   function myTick(dt){ const I=api.I;
     /* 둘러보기 — 터치는 적 위에서 살짝 느려짐 */
@@ -849,7 +878,8 @@ function start(api){
     cam.position.set(me.p.x, camY, me.p.z); const hs=Math.hypot(me.v.x,me.v.z);
     const asp=cam.aspect||1.5, base=(asp>=1?76:Math.min(100, 76+(1-asp)*55))+FOVA[SET.fov|0];   /* 세로 화면(아이패드 세로)은 위아래 시야를 넓혀 옆이 너무 좁지 않게 */
     const tf=(base+Math.max(0,Math.min(12,(hs-MAXS)*1.4)))*(1-zoom*.55); fov+=(tf-fov)*Math.min(1,dt*8); if(Math.abs(cam.fov-fov)>.05){ cam.fov=fov; cam.updateProjectionMatrix(); }
-    roll+=((me.sl?-.06:0)-roll)*Math.min(1,dt*8); cam.rotation.set(me.pitch-deadCam*.5, me.yaw, roll+deadCam*.35);
+    roll+=((me.sl?-.06:0)-roll)*Math.min(1,dt*8); camK=Math.max(0, camK-dt*(camK*14+.02)); shk=Math.max(0, shk-dt/.16); const sx=shk>0?(Math.random()-.5)*.022*shk:0, sy=shk>0?(Math.random()-.5)*.022*shk:0;
+    cam.rotation.set(me.pitch-deadCam*.5+camK+sy, me.yaw+sx, roll+deadCam*.35);   /* (v730) 쏠 때 살짝 위로 튀었다 돌아옴 · 흠뻑 적실 때 0.16초 흔들림 (조준은 그대로) */
     cam.updateMatrixWorld();
     let introK=1; if(phase==="intro"){ const k=Math.min(1, introT/(INTRO*.85)); introK=k*k*(3-2*k); _cP.copy(cam.position); _cQ.copy(cam.quaternion); cam.position.lerpVectors(cFromP, _cP, introK); cam.quaternion.copy(cFromQ).slerp(_cQ, introK); cam.updateMatrixWorld(); }
     /* 내 화면 총 흔들림 · 반동 */
@@ -857,12 +887,13 @@ function start(api){
     const bx2=Math.sin(vmA.bob)*.012*Math.min(1,hs/6), by2=Math.abs(Math.cos(vmA.bob))*.014*Math.min(1,hs/6);
     VM.position.set(.24+bx2-zoom*.24, -.22-by2-(1-vmA.sw)*.35+(me.onG?0:.015)-(zoom*.05), -.5+vmA.kick*.05); VM.rotation.set(.04+vmA.kick*.12+vmA.swing*1.1-(1-vmA.sw)*.6, .2-vmA.swing*.5, -.06+vmA.swing*.4);
     if(VMG.userData.twin) VMG.userData.twin.position.z=(vmA.side<0?vmA.kick*.06:0); VMG.position.z=vmA.side>0?0:-vmA.kick*.0;
-    VM.visible=me.alive && zoom<.9 && introK>.95;
+    VM.visible=me.alive && zoom<.9 && introK>.95; vmFlTick(dt); if(!VM.visible) vmFl.visible=false;
     /* 글자 */
     hitT=Math.max(0,hitT-dt); eHm.style.opacity=hitT>0?1:0; eHm.classList.toggle("hd", hitHead);
     hurtT=Math.max(0,hurtT-dt); eDir.style.opacity=hurtT>0?Math.min(1,hurtT*2):0; if(hurtT>0) eDir.style.transform="rotate("+(-(hurtA-me.yaw)+Math.PI)+"rad)";
     eWet.style.opacity=Math.min(1, me.soak/85); eSoak.style.width=Math.min(100,me.soak)+"%"; eDead.style.opacity=me.alive?0:1;
     const W=WP[me.wi], spr=(W.spr||0)+(me.onG?0:1.5)+Math.min(2,hs/6); const g=8+spr*3; eCx.querySelectorAll(".h")[0].style.left=(-10-g)+"px"; eCx.querySelectorAll(".h")[1].style.left=g+"px"; eCx.querySelectorAll(".v")[0].style.top=(-10-g)+"px"; eCx.querySelectorAll(".v")[1].style.top=g+"px"; eCx.style.opacity=zoom>.5?0:1;
+    { const so=me.alive && W.t==="snipe" ? Math.max(0, Math.min(1, (zoom-.3)/.45)) : 0; if(eScope._o!==so){ eScope._o=so; eScope.style.opacity=so; } if(so>.5){ eScopeT-=dt; if(eScopeT<=0){ eScopeT=.08; const tr=trace(me, eyeOf(me), dirOf(me.yaw, me.pitch), WP[me.wi].rng), lk=tr.who && tr.who.alive && !(tr.who.prot>0) ? (tr.head?2:1) : 0; if(lk!==eScope._lk){ eScope._lk=lk; eScope.classList.toggle("lock", !!lk); eScope.querySelector("b").textContent=lk===2?"머리! 지금 떼요 ⭐":lk?"지금 떼요! 🎯":"떼면 쏴요!"; }   /* 조준점이 친구·봇 위면 초록 */ } } else if(eScope._lk){ eScope._lk=false; eScope.classList.remove("lock"); eScope.querySelector("b").textContent="떼면 쏴요!"; } }
     const s=Math.max(0,Math.ceil(time.left)); if(s!==eClk._s){ eClk._s=s; eClk.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); eClk.classList.toggle("low", s<=30 && !time.over); }
     if(killT>0){ killT-=dt; if(killT<=0) eKill.classList.remove("on"); }
     bdT-=dt; if(bdT<=0){ bdT=.5; drawBoard(); } }
@@ -872,7 +903,7 @@ function start(api){
   function render(rn){ MG.draw(scene, cam); const va=cam.aspect||1.5, vf=va>=1.3?58:Math.min(92, 58+(1.3-va)*52); if(vmC.aspect!==va || vmC.fov!==vf){ vmC.aspect=va; vmC.fov=vf; vmC.updateProjectionMatrix(); } rn.autoClear=false; rn.clearDepth(); rn.render(vmS, vmC); rn.autoClear=true; }
   function dispose(){ gone=true; try{ api.sfx.vol=1; }catch(e){} if(NETR){ try{ NETR.dispose(); }catch(e){} } if(MAPG) MAPG.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); Object.values(GM).forEach(m=>{ try{ m.dispose(); }catch(e){} }); BAL.forEach(b=>scene.remove(b.m)); }
   return {PKS, pkSpawn, pkTake, reactVis, scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, vmSet, VM, me, ACT, PEER, get NETR(){ return NETR; }, WP, time, BOX, fire, hurt, spawn, PADS, SPAWN, moveAct, up, win, path, sees, get D(){ return D; }, vmA, get zoom(){ return zoom; },
-    get phase(){ return phase; }, beginSolo, goCo, setMap, get MAPK(){ return MAPK; }, MAPS, MAPL, SET, applySet, menuUI, card, HT, BL, NC}; }
+    get phase(){ return phase; }, get camK(){ return camK; }, get shk(){ return shk; }, get zoomK(){ return zoom; }, vmFl, beginSolo, goCo, setMap, get MAPK(){ return MAPK; }, MAPS, MAPL, SET, applySet, menuUI, card, HT, BL, NC}; }
 
 MG.reg("arena", {ic:"💦", nm:"물총 아레나", tag:"1인칭 · 아레나 무브 · 무기 8단계", bg:"linear-gradient(135deg,#7fd3ff,#2f7fff)", big:"🔫💦",
   how:[["🎯","한 명을 흠뻑 적실 때마다 <b>다음 무기</b>로 (8단계)"],["🔨","마지막 <b>뿅망치</b>로 맞히면 우승! · 5분이 지나면 가장 멀리 간 사람"],["🛝","달리다 <b>슬라이드</b> → 빨라짐 · 슬라이드 중 점프 = 속도 그대로"],["🐇","땅에 닿는 순간 점프(점프 꾹) = 속도 유지 · 💧 분수 발판 = 높이 점프"],["👐","왼손 = 움직이기 · 오른손 = 끌어서 둘러보기 · 💦 누른 채 끌면 조준"]],
