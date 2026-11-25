@@ -735,7 +735,9 @@ async function padPull(){ if(!PAD.kid) return 0; let v=null; try{ v=await NET.ge
 const rnd=(a,b)=>a+Math.random()*(b-a);
 
 /* ───────── 렌더러 · 장면 · 빛 ───────── */
-const renderer = new THREE.WebGLRenderer({canvas:$("cv"), antialias:true, powerPreference:"high-performance"});
+/* (v731) 🖥 3D(WebGL)가 안 되는 브라우저 — 마을은 3D 라 못 그림 → 게임 첫 화면으로 돌아가 안내 (예전: 「Error creating WebGL context」 오류 창) */
+const renderer = (()=>{ try{ return new THREE.WebGLRenderer({canvas:$("cv"), antialias:true, powerPreference:"high-performance"}); }
+  catch(e){ try{ window.GUARD && GUARD.report && GUARD.report("gl", "nogl town: "+(e && e.message)); }catch(_){} try{ window.stop(); }catch(_){} location.replace("../index.html#nogl"); throw e; } })();
 /* (v623) 🐢 렉 단계(GUARD.lv): 0 그대로 · 1 화소 1.5 + 테두리 끔 · 2 화소 1 + 그림자 끔 + 새 섬 안개 가깝게 · 3 화소 0.8 */
 const PERF_PR=l=>[Math.min(2, window.devicePixelRatio||1), Math.min(1.5, window.devicePixelRatio||1), 1, .8][l||0];
 const PLV=()=>(window.GUARD && GUARD.lv)||0;

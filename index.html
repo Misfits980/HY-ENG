@@ -10360,8 +10360,30 @@ const Perf = {
     d.appendChild(row2); }
 };
 Perf.init();
+/* (v731) 🖥 3D(WebGL)가 안 되는 브라우저 — 사용자: ChatGPT 에이전트 QA 화면 「Uncaught Error: Error creating WebGL context.」 → 「다시 시작」도 같은 오류 · 「계속하기」 = 「모험 준비 중」에서 멈춤
+   (하드웨어 가속을 끈 크롬 · 그래픽이 막힌 기기 · 원격 브라우저) → 그리기만 안 하는 렌더러로 켜서 첫 화면 · Daily 30 · 시험지 · 관리 화면은 그대로
+   3D(달리기 · My Town)는 들어갈 때 안내 · 교실 배틀 달리기 경주는 원래 있던 대신 화면(B.screen)으로 */
+const NoGL={ on:false, why:"",
+  renderer(cv){ const R={ domElement:cv || document.createElement("canvas"), shadowMap:{enabled:false, type:0}, outputEncoding:0, toneMapping:0, toneMappingExposure:1,
+      capabilities:{maxTextureSize:4096, isWebGL2:false, getMaxAnisotropy(){ return 1; }}, info:{render:{calls:0, triangles:0}, memory:{geometries:0, textures:0}, programs:[]},
+      setPixelRatio(){}, getPixelRatio(){ return 1; }, setSize(w,h){ try{ this.domElement.width=w; this.domElement.height=h; }catch(e){} }, render(){}, setClearColor(){}, setClearAlpha(){},
+      getSize(v){ v=v || new THREE.Vector2(); return v.set(this.domElement.width||0, this.domElement.height||0); }, dispose(){}, compile(){}, initTexture(){}, clear(){}, setRenderTarget(){},
+      getContext(){ return {getExtension(){ return null; }, getParameter(){ return 0; }}; }, getClearColor(c){ return c || new THREE.Color(); }, getClearAlpha(){ return 1; }, setScissorTest(){}, setViewport(){},
+      setAnimationLoop(f){ const first=this._f==null; this._f=f; if(f && first){ const t=ts=>{ if(!this._f) return; try{ this._f(ts); }catch(e){} requestAnimationFrame(t); }; requestAnimationFrame(t); } } };
+    return R; },
+  say(what){ if($("townMt")) return; const d=document.createElement("div"); d.id="townMt";
+    const w = what==="town" ? "🏡 My Town 은 3D 라서" : what==="run" ? "🏃 달리기는 3D 라서" : "달리기 · My Town 은 3D 라서";
+    d.innerHTML='<div class="tmB"><div class="tmI">🖥</div><h3>이 브라우저는<br>3D 그림을 그릴 수 없어요</h3><p>'+w+' 여기서는 못 해요.<br><b>📚 Daily 30 · 시험지</b>는 그대로 돼요.</p>'
+      +'<p class="twSm">크롬이면 설정 → 시스템 → 「그래픽 가속 사용」을 켜고 다시 열어요<br>그래도 안 되면 다른 패드·휴대폰에서 해요</p>'
+      +'<div><button class="no" data-x="1">닫기</button><button class="go" data-d="1">📚 Daily 30 하러 가기</button></div></div>';
+    document.body.appendChild(d); try{ SFX.click(); }catch(e){}
+    d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.d){ d.remove(); try{ StudyUI.open(); }catch(_){} } }); },
+  hello(){ if(!this.on) return; let seen=false; try{ seen=sessionStorage.getItem("hyeng_nogl")==="1"; sessionStorage.setItem("hyeng_nogl","1"); }catch(e){} const tw=location.hash==="#nogl"; if(!seen || tw) setTimeout(()=>this.say(tw ? "town" : ""), 1200);
+    if(location.hash==="#nogl") try{ history.replaceState(null, "", location.pathname+location.search); }catch(e){} }
+};
 function boot(){
-  renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:!(Perf.exp && Perf.exp.noaa), powerPreference:"high-performance"});
+  try{ renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c"), antialias:!(Perf.exp && Perf.exp.noaa), powerPreference:"high-performance"}); }
+  catch(e){ NoGL.on=true; NoGL.why=String(e && e.message || e); renderer=NoGL.renderer(document.getElementById("c")); try{ document.body.classList.add("noGL"); }catch(_){} try{ window.GUARD && GUARD.report && GUARD.report("gl", "nogl: "+NoGL.why); }catch(_){} }
   Quality.load();
   renderer.setPixelRatio(Math.min(devicePixelRatio, Quality.pixelRatio()));
   fitCanvas(scrW(), gameH());           // 캔버스 겉 크기는 CSS(100%)가 정한다 → 돌려도 오른쪽이 검게 남지 않음
@@ -10427,7 +10449,7 @@ function boot(){
 /* 빛 번짐(블룸) — PC 에서만. 스크립트가 없으면 조용히 건너뛴다 */
 let composer=null, bloomPass=null;
 function setupBloom(){
-  if(!Quality.bloom()) return;
+  if(NoGL.on || !Quality.bloom()) return;   /* (v731) 3D 없음 */
   if(!(THREE.EffectComposer && THREE.RenderPass && THREE.UnrealBloomPass)) return;
   try{
     composer = new THREE.EffectComposer(renderer);
@@ -16119,6 +16141,7 @@ setTimeout(()=>{ try{ const t=document.querySelector('#selRule .c-town'); if(t &
 pickers("selRule", v=>{
   /* (v726) ①-c 게스트 잠금 — 계정을 켰고 아이 개인 기기인데 로그인 안 했으면 My Town · 수업 게임은 로그인 화면으로 (acct.js Lock) */
   if((v==="town"||v==="join") && (()=>{ try{ return window.Acct && Acct.locked(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ AcctLock.say(v); }catch(e){} return; }
+  if(v==="town" && NoGL.on){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; NoGL.say("town"); return; }   // (v731) 3D 없음
   if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town" && !townOpen()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; townClosed(); return; }   // (v601) 🛠 점검 중 (선생님 기기는 들어감)
   if(v==="town" && !TownGate.ok()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; TownGate.show(); return; }   // (v678) 🔒 Daily 30 Stage 3개
@@ -17442,7 +17465,7 @@ function titleZone(){
     Ground.build(Math.ceil((G.spawnDist+VIEW.camZ+30)/Ground.step)+2);
   }catch(e){}
 }
-function startGame(){ Later.reset(); try{ SFX.keep(!(Perf.on && Perf.exp.noka)); }catch(e){}
+function startGame(){ if(NoGL.on){ if(G.race) throw new Error("NoGL");   /* (v731) 교실 배틀 경주 = 대신 화면 */ NoGL.say("run"); return; } Later.reset(); try{ SFX.keep(!(Perf.on && Perf.exp.noka)); }catch(e){}
   try{ localStorage.setItem("hyeng_last_kind","run"); }catch(e){}
   G.words = G._nextWords || null; G._nextWords = null;      // (v226) Daily 30 → 이 Stage 단어로 달리기 (한 판만)
   if(G.words || G.rule==="daily" || G.tag) G.book=null;      // (v291) 책 달리기는 기본 모드에서만
@@ -17977,7 +18000,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v732";
+const GAME_VER = "v733";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -32036,7 +32059,7 @@ refreshResume();
 window.__start = function(){
   if(window.__booted) return;
   window.__booted = true;
-  if(window.THREE) boot();
+  if(window.THREE){ boot(); try{ NoGL.hello(); }catch(e){} }   /* (v731) 3D 가 안 되면 안내 한 번 */
   else $("err").style.display="grid";
 };
 if(window.THREE) window.__start();
