@@ -15,7 +15,7 @@ function Sheet(name){ const S = {name, d:[]};
     getLastRow(){ let n = S.d.length; while (n > 0 && !(S.d[n - 1] || []).some(v=>v !== "" && v !== undefined)) n--; return n; },
     appendRow(a){ const n = this.getLastRow() + 1; a.forEach((v, j)=>{ cell(n, j + 1)[j] = v; }); },
     setFrozenRows(){}, setTabColor(){}, setColumnWidth(){} }); }
-let NOW = 1764000000000;
+let NOW = 1764000000000, FBC = 200;
 class FDate extends Date { constructor(...a){ if (!a.length) super(NOW); else super(...a); } static now(){ return NOW; } }
 const book = {}, props = {ADMIN_KEY:"TK", FB_SECRET:"SECRET123"}, cache = {}, fbCalls = [];
 const sbytes = buf=>Array.from(buf).map(b=>(b > 127 ? b - 256 : b));
@@ -26,7 +26,7 @@ const ctx = {
   ContentService:{createTextOutput:t=>({setMimeType(){ return this; }, getContent:()=>t}), MimeType:{JSON:1}},
   PropertiesService:{getScriptProperties:()=>({getProperty:k=>(k in props ? props[k] : null), setProperty:(k, v)=>{ props[k] = String(v); }, deleteProperty:k=>{ delete props[k]; }})},
   CacheService:{getScriptCache:()=>({get:k=>(cache[k] && cache[k].until > NOW ? cache[k].v : null), put:(k, v, s)=>{ cache[k] = {v:String(v), until:NOW + s * 1000}; }, remove:k=>{ delete cache[k]; }})},
-  UrlFetchApp:{fetch:(u, o)=>{ fbCalls.push({u, m:o.method, p:o.payload}); return {getResponseCode:()=>200}; }},
+  UrlFetchApp:{fetch:(u, o)=>{ fbCalls.push({u, m:o.method, p:o.payload}); return {getResponseCode:()=>FBC, getContentText:()=>'{"on":1}'}; }},
   Utilities:{getUuid:()=>crypto.randomUUID(), formatDate:d=>new Date(d).toISOString().slice(0, 10),
     computeDigest:(a, s)=>sbytes(crypto.createHash("sha256").update(String(s), "utf8").digest()), DigestAlgorithm:{SHA_256:1}, Charset:{UTF_8:1},
     computeHmacSha256Signature:(v, k)=>sbytes(crypto.createHmac("sha256", String(k)).update(String(v), "utf8").digest()),
@@ -129,4 +129,13 @@ for (let k = 0; k < 60; k++) post({type:"acctLogin", id:"zzz" + "abcdefghij"[k %
 ok(post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}).err === "wait", "모르는 아이디 10분에 60번 → 잠깐 막기");
 NOW += 601000; ok(post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}).tok, "10분 뒤 다시");
 ok(post({type:"check", tk:"TK"}).v === 27, "서버 v27");
+// (v27b) Firebase 쓰기가 안 되면 「됐어요」라고 하지 않음
+r = T("acctList"); ok(r.fb && r.fb.sec === true && r.fb.code === 200 && r.fb.on === true && !("FB_SECRET" in r.fb) && JSON.stringify(r).indexOf("SECRET123") < 0, "선생님 목록 = Firebase 열쇠 있음·켜짐 (열쇠 값은 안 보냄)");
+FBC = 401; r = T("acctOn", {on:1}); ok(r.ok === false && r.err === "fb" && r.why === "401", "FB_SECRET 이 안 맞으면 계정 켜기 = 실패로 알림 (401)");
+r = T("acctList"); ok(r.fb.code === 401 && r.fb.on === false, "목록에도 401 · 안 켜짐");
+ok(T("acctOpen", {days:3}).err === "fb", "승인 없이 3일도 실패로 알림");
+r = post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}); ok(r.ok === false && r.err === "fb" && !r.tok, "기기를 Firebase 에 못 넣으면 출입증을 안 줌");
+FBC = 200; delete props.FB_SECRET; r = T("acctOn", {on:1}); ok(r.err === "fb" && r.why === "nosec", "FB_SECRET 이 없으면 계정 켜기 = 실패 (nosec)");
+r = T("acctList"); ok(r.fb.sec === false && r.fb.code === "nosec", "목록 = 열쇠 없음");
+props.FB_SECRET = "SECRET123"; ok(T("acctOn", {on:1}).ok, "열쇠를 넣으면 다시 켜짐");
 console.log(bad ? "FAIL " + bad : "ALL OK"); process.exit(bad ? 1 : 0);

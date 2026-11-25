@@ -1131,8 +1131,15 @@ function acTok_(uid, dk){ const sec = PropertiesService.getScriptProperties().ge
   const now = Math.floor(Date.now() / 1000), exp = now + AC_TOK_DAYS * 86400;
   const h = acB64_(JSON.stringify({typ:"JWT", alg:"HS256"})), p = acB64_(JSON.stringify({v:0, iat:now, exp:exp, d:{uid:uid, dk:dk}}));
   return {tok:h + "." + p + "." + acB64_(Utilities.computeHmacSha256Signature(h + "." + p, sec)), exp:exp * 1000}; }
-function acFb_(path, val){ const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"; if (!sec) return false;
-  try { const r = UrlFetchApp.fetch(db + path + ".json?auth=" + encodeURIComponent(sec), val === null ? {method:"delete", muteHttpExceptions:true} : {method:"put", contentType:"application/json", payload:JSON.stringify(val), muteHttpExceptions:true}); return r.getResponseCode() === 200; } catch(e){ return false; } }
+/* (v27b) AC_FBC = 마지막 Firebase 쓰기 결과 (200 · 401 = FB_SECRET 이 안 맞음 · "nosec" = 스크립트 속성에 없음 · "err") — 실패를 「됐어요」로 돌려주지 않게 */
+let AC_FBC = "";
+function acFb_(path, val){ const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"; if (!sec){ AC_FBC = "nosec"; return false; }
+  try { const r = UrlFetchApp.fetch(db + path + ".json?auth=" + encodeURIComponent(sec), val === null ? {method:"delete", muteHttpExceptions:true} : {method:"put", contentType:"application/json", payload:JSON.stringify(val), muteHttpExceptions:true}); AC_FBC = r.getResponseCode(); return AC_FBC === 200; } catch(e){ AC_FBC = "err"; return false; } }
+/* (v27b) 선생님 카드용: FB_SECRET 이 있나(값은 안 보냄) · 그 열쇠로 /hy/acon 을 읽을 수 있나 · 지금 켜져 있나 */
+function acFbChk_(){ const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app";
+  if (!sec) return {sec:false, code:"nosec", on:false};
+  try { const r = UrlFetchApp.fetch(db + "/hy/acon.json?auth=" + encodeURIComponent(sec), {muteHttpExceptions:true}), c = r.getResponseCode(); let on = false;
+    if (c === 200){ try { const v = JSON.parse(r.getContentText()); on = !!(v && v.on); } catch(e){} } return {sec:true, code:c, on:on}; } catch(e){ return {sec:true, code:"err", on:false}; } }
 function acDk_(v){ const s = String(v || "").replace(/[^a-z0-9]/gi, "").slice(0, 32); return s.length >= 6 ? s : ""; }
 function acBad_(){ try { const c = CacheService.getScriptCache(), n = (+(c.get("ac_bad") || 0)) + 1; c.put("ac_bad", String(n), 600); return n; } catch(e){ return 0; } }
 function acBadWait_(){ try { return (+(CacheService.getScriptCache().get("ac_bad") || 0)) >= 60; } catch(e){ return false; } }
@@ -1145,6 +1152,7 @@ function acDevAdd_(a, dk, n){ const ds = acRnd_(32), now = Date.now(); a.devs = 
   while (a.devs.length > AC_DEV_MAX){ a.devs.sort((x, y)=>(x.u || 0) - (y.u || 0)); const out = a.devs.shift(); acFb_("/kdev/" + a.uid + "/" + out.dk, null); }
   acFb_("/kdev/" + a.uid + "/" + dk, true); return ds; }
 function acWin_(a, dk, ds){ const t = acTok_(a.uid, dk); if (!t) return json_({ok:false, err:"nosecret"});
+  if (AC_FBC !== 200) return json_({ok:false, err:"fb", why:String(AC_FBC)});   // (v27b) /kdev 에 이 기기를 못 넣었으면 출입증이 쓸모없음
   return json_({ok:true, v:SERVER_V, uid:a.uid, dk:dk, ds:ds, tok:t.tok, exp:t.exp, acct:{id:a.id, n:a.n, t:a.t, rid:a.rid, pk:a.pk}}); }
 function acSync_(r, a){ r[AI.devs] = JSON.stringify(a.devs); r[AI.pend] = JSON.stringify(a.pend); r[AI.fails] = a.fails; r[AI.lock] = a.lock || ""; return r; }
 function acDevOk_(a, dk, ds){ return a.devs.some(x=>x && x.dk === dk && x.hs === hex_("hyeng-ds:" + String(ds || ""))); }
@@ -1189,11 +1197,11 @@ function acct_(d){
 function acctT_(d){
   const pub = a=>({uid:a.uid, id:a.id, n:a.n, t:a.t, rid:a.rid, pk:a.pk, fails:a.fails, lock:a.lock > Date.now() ? a.lock : 0, tl:a.fails >= 10, st:a.st,
     devs:a.devs.map(x=>({dk:x.dk, n:x.n, at:x.at, u:x.u})), pend:a.pend.filter(x=>x && x.st === "w" && Date.now() - (x.at || 0) < 864e5).map(x=>({pid:x.pid, n:x.n, at:x.at})), made:a.made, last:a.last});
-  if (d.type === "acctList"){ const {rows} = acRows_(); return json_({ok:true, v:SERVER_V, open:+(PropertiesService.getScriptProperties().getProperty("ACCT_OPEN") || 0), list:rows.map(r=>pub(acObj_(r)))}); }
+  if (d.type === "acctList"){ const {rows} = acRows_(); return json_({ok:true, v:SERVER_V, fb:acFbChk_(), open:+(PropertiesService.getScriptProperties().getProperty("ACCT_OPEN") || 0), list:rows.map(r=>pub(acObj_(r)))}); }
   if (d.type === "acctOpen"){ const days = Math.max(0, Math.min(14, Math.round(Number(d.days) || 0))), P = PropertiesService.getScriptProperties();
     if (days) P.setProperty("ACCT_OPEN", String(Date.now() + days * 864e5)); else P.deleteProperty("ACCT_OPEN");
-    acFb_("/hy/acon", {on:1, at:Date.now()}); return json_({ok:true, v:SERVER_V, open:days ? Date.now() + days * 864e5 : 0}); }
-  if (d.type === "acctOn"){ acFb_("/hy/acon", d.on ? {on:1, at:Date.now()} : null); return json_({ok:true, v:SERVER_V, on:!!d.on}); }
+    if (!acFb_("/hy/acon", {on:1, at:Date.now()})) return json_({ok:false, err:"fb", why:String(AC_FBC)}); return json_({ok:true, v:SERVER_V, open:days ? Date.now() + days * 864e5 : 0}); }
+  if (d.type === "acctOn"){ if (!acFb_("/hy/acon", d.on ? {on:1, at:Date.now()} : null)) return json_({ok:false, err:"fb", why:String(AC_FBC)}); return json_({ok:true, v:SERVER_V, on:!!d.on}); }
   return acLocked_(()=>{ const {sh, rows} = acRows_();
     if (d.type === "acctMake"){ const L = Array.isArray(d.list) ? d.list.slice(0, 60) : [], res = [], now = new Date(); let made = 0;
       const live = rows.filter(x=>String(x[AI.st]) !== "closed"), ids = {}, nms = {}, bts = {}, rids = {};

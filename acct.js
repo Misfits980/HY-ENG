@@ -75,6 +75,7 @@ body.acOpen{overflow:hidden}
 #acctUI .acKeys button{height:62px;border:none;background:url(assets/ui/stone-p0.webp) center/100% 100% no-repeat;padding:0 0 9px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.45))}
 #acctUI .acKeys button span{font-family:"Lilita One",var(--font,sans-serif);font-weight:900;font-size:32px;line-height:1;background:linear-gradient(180deg,#fff7c2 0%,#ffd54a 50%,#e59a00 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(1.5px 0 0 #2a1650) drop-shadow(-1.5px 0 0 #2a1650) drop-shadow(0 1.5px 0 #2a1650) drop-shadow(0 -1.5px 0 #2a1650)}
 #acctUI .acKeys button.g{height:42px;border:2px solid transparent;border-radius:30px;background:linear-gradient(180deg,#4a3889,#2c2062) padding-box,linear-gradient(180deg,#ffe58a,#c58a14) border-box;color:#fff3c4;font-weight:900;font-size:12.5px;padding:0;filter:none;box-shadow:0 3px 0 #1a1238}
+#acAdm .acNote.bad{background:rgba(255,90,90,.14);border:1px solid rgba(255,120,120,.5);color:#ffd7d7}
 #acctUI .acKeys .nil{display:block}
 #acctUI .acKeys button:active{transform:translateY(3px);filter:brightness(1.25) drop-shadow(0 0 12px rgba(190,140,255,.95))}
 #acctUI .acPpl{display:flex;gap:16px;justify-content:center;width:100%;flex-wrap:wrap;margin-top:6px}
@@ -311,7 +312,7 @@ const UI={
     if(r && r.ok && r.tok) return this.good();
     if(r && r.ok && r.wait){ this.pid=r.pid; this.show("wait"); this.poll(); return; }
     const e=r && r.err; this.bad(e==="pw" ? "앗, 다시 해 봐요 · "+(r.left|0)+"번 남았어요" : e==="lock" ? "잠깐 쉬었다가 해요 · "+Math.max(1,Math.ceil(((r.until||0)-Date.now())/60000))+"분 뒤에" : e==="tlock" ? "여러 번 틀려서 잠겼어요 · <b>선생님께</b> 풀어 달라고 해요"
-      : e==="noid" ? "아이디가 없어요 · 다시 확인해요" : e==="closed" ? "지금은 쓰지 않는 계정이에요 · 선생님께" : e==="wait" ? "잠깐 쉬었다가 다시 해요" : "인터넷을 확인하고 다시 해요");
+      : e==="nosecret"||e==="fb" ? "지금은 로그인을 할 수 없어요 · <b>선생님께</b> 말해 줘요" : e==="noid" ? "아이디가 없어요 · 다시 확인해요" : e==="closed" ? "지금은 쓰지 않는 계정이에요 · 선생님께" : e==="wait" ? "잠깐 쉬었다가 다시 해요" : "인터넷을 확인하고 다시 해요");
     if(e==="noid") this.T.push(setTimeout(()=>this.show("id"), 1300)); },
   good(){ const G=$$("acGems"), F=this.q('[data-s="pw"] .acLogo'); G.classList.add("au"); this.msg("포털이 열려요!", "ok"); [1046.5,1318.5,1568].forEach((f,i)=>this.T.push(setTimeout(()=>tone(f,.4,"triangle",.06), i*90)));
     this.T.push(setTimeout(()=>{ F.classList.add("go"); this.el.classList.add("go"); }, 300));
@@ -368,7 +369,7 @@ function roman(s){ let o=""; for(const ch of String(s||"")){ const c=ch.charCode
 const AdmA={
   tk:"", L:null, busy:false, err:"", t:"", open:null, make:false, mk:{}, res:null, sure:"", note:"",
   card(tk){ this.tk=tk||this.tk; if(this.L===null && !this.busy) this.load(); if(!Object.keys(this.kids()).length && !this._rq){ this._rq=1; try{ HyBoss.refresh(true).then(()=>{ this._rq=0; this.paint(); }); }catch(e){ this._rq=0; } } return '<div class="adCard acAdm" id="acAdm">'+this.inner()+'</div>'; },
-  load(){ if(this.busy) return; this.busy=true; Acct.call({type:"acctList", tk:this.tk}).then(r=>{ this.busy=false; if(r && r.ok){ this.L=r.list||[]; this.openUntil=r.open||0; this.err=""; } else this.err=(r && r.err)||"net"; this.paint(); }); },
+  load(){ if(this.busy) return; this.busy=true; Acct.call({type:"acctList", tk:this.tk}).then(r=>{ this.busy=false; if(r && r.ok){ this.L=r.list||[]; this.openUntil=r.open||0; this.err=""; this.fb=r.fb||null; if(r.fb && r.fb.code===200) this.onState=!!r.fb.on; } else this.err=(r && r.err)||"net"; this.paint(); }); },
   paint(){ const c=$$("acAdm"); if(c) c.innerHTML=this.inner(); },
   teams(){ let T={}; try{ T=HyBoss.teams()||{}; }catch(e){} return T; }, kids(){ try{ return HyBoss.kids()||{}; }catch(e){ return {}; } },
   tn(t){ try{ return HyBoss.tName(t); }catch(e){ return t||"반 없음"; } },
@@ -379,6 +380,7 @@ const AdmA={
     const live=L.filter(a=>a.st!=="closed"), pend=[]; live.forEach(a=>(a.pend||[]).forEach(p=>pend.push([a,p])));
     let h='<h3>🔐 아이 계정 <small>'+live.length+'명 · 로그인 · 비밀번호 · 기기</small>'+(pend.length?'<em class="adTabN">'+pend.length+'</em>':'')+'</h3>';
     if(this.note) h+='<p class="acNote">'+this.note+'</p>';
+    const fb=this.fb; if(fb && fb.code!==200) h+='<p class="acNote bad">⚠️ '+AdmA.fbWhy(fb.code)+'</p>';
     if(pend.length) h+='<div class="acPend"><b>🔔 새 기기 승인 '+pend.length+'</b>'+pend.map(([a,p])=>'<div class="row"><span>'+esc(a.n)+' <small>'+esc(a.id)+' · '+esc(p.n)+' · '+new Date(p.at).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+' · 지금 게스트로 하는 중</small></span><button class="mini go" data-acx="ap" data-u="'+a.uid+'" data-p="'+p.pid+'">✅ 승인</button><button class="mini" data-acx="no" data-u="'+a.uid+'" data-p="'+p.pid+'">🙅 아니에요</button></div>').join("")+'</div>';
     h+='<div class="acBar"><button class="mini'+(this.onState?' go':'')+'" data-acx="on">'+(this.onState===false?'▶ 계정 켜기 (아이 화면에 로그인이 보임)':this.onState?'🔐 계정 켜짐 · 끄기':'확인 중…')+'</button><button class="mini" data-acx="open">'+(this.openUntil>Date.now()?'⏳ 승인 없이 ~'+new Date(this.openUntil).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"})+' · 끄기':'🚪 처음 기기 승인 없이 3일')+'</button><button class="mini" data-acx="re">↻</button></div>';
     h+='<div class="acTabs">'+ts.map(t=>'<button class="mini'+(t===this.t?' go':'')+'" data-acx="t" data-t="'+esc(t)+'">'+esc(this.tn(t))+'</button>').join("")+'</div>';
@@ -388,6 +390,9 @@ const AdmA={
     if(this.make) h+=this.makeForm(L);
     if(this.res) h+='<div class="acRes">'+this.res+'</div>';
     return h; },
+  fbWhy(c){ c=String(c); return c==="nosec" ? "시트 서버에 Firebase 열쇠(FB_SECRET)가 없어서 계정을 켤 수 없어요 — Apps Script ⚙ 프로젝트 설정 → 스크립트 속성에 FB_SECRET 을 넣어 주세요 (값은 아무에게도 보내지 마세요)"
+      : c==="401" ? "시트 서버의 Firebase 열쇠(FB_SECRET)가 안 맞아요 — Firebase 콘솔의 데이터베이스 비밀번호를 다시 복사해 스크립트 속성 FB_SECRET 에 넣어 주세요"
+      : "시트 서버가 Firebase 에 쓰지 못했어요 ("+c+") — 잠시 뒤 다시"; },
   row(a){ const st=a.tl?'<span class="st lock">🔒 선생님 풀기</span>':a.lock?'<span class="st lock">🔒 '+Math.ceil((a.lock-Date.now())/60000)+'분</span>':(a.pend||[]).length?'<span class="st wait">⏳ 승인</span>':(a.devs||[]).length?'<span class="st ok">✅ '+a.devs.length+'대</span>':'<span class="st none">아직 로그인 안 함</span>';
     const op=this.open===a.uid; let h='<div class="acR'+(op?' op':'')+'"><button class="acRh" data-acx="op" data-u="'+a.uid+'"><b>'+esc(a.n)+'</b><small class="mono">'+esc(a.id)+'</small>'+st+'</button>';
     if(op){ const tsel=Object.keys(this.teams()).map(t=>'<option value="'+esc(t)+'"'+(t===a.t?' selected':'')+'>'+esc(this.tn(t))+'</option>').join("");
@@ -407,13 +412,13 @@ const AdmA={
         return '<div class="kv"><span>'+esc(n)+'</span><input data-mki="'+esc(k)+'" value="'+esc(sug)+'" maxlength="8" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="아이디"><input data-mkb="'+esc(k)+'" value="'+esc(this.mk[k]?this.mk[k].bd:"")+'" inputmode="numeric" maxlength="6" placeholder="생일 6자리" type="password"></div>'; }).join("")
       +'<button class="mini go" data-acx="mkgo">계정 만들기</button></div>'; },
   async act(a, b){ const u=b.dataset.u, P={uid:u, tk:this.tk}; let r=null;
-    const done=(rr, ok)=>{ if(rr && rr.ok){ this.note=ok; this.load(); } else { this.note="⚠️ "+({badid:"아이디는 영어 소문자 3~8글자예요",dupid:"이미 있는 아이디예요",dupname:"같은 반에 같은 이름이 있어요",badname:"이 이름은 쓸 수 없어요",badpw:"쉬운 번호(같은 숫자·123456)는 안 돼요"}[rr&&rr.err]||"안 됐어요 ("+((rr&&rr.err)||"인터넷")+")"); this.paint(); } };
+    const done=(rr, ok)=>{ if(rr && rr.ok){ this.note=ok; this.load(); } else { this.note="⚠️ "+({badid:"아이디는 영어 소문자 3~8글자예요",dupid:"이미 있는 아이디예요",dupname:"같은 반에 같은 이름이 있어요",badname:"이 이름은 쓸 수 없어요",badpw:"쉬운 번호(같은 숫자·123456)는 안 돼요",fb:"시트 서버가 Firebase 에 쓰지 못했어요 (FB_SECRET 확인)"}[rr&&rr.err]||"안 됐어요 ("+((rr&&rr.err)||"인터넷")+")"); this.paint(); } };
     if(a==="re"){ this.L=null; this.err=""; this.note=""; this.paint(); this.load(); return; }
     if(a==="t"){ this.t=b.dataset.t; this.open=null; this.res=null; this.paint(); return; }
     if(a==="op"){ this.open=this.open===u?null:u; this.sure=""; this.paint(); return; }
     if(a==="mk"){ this.make=!this.make; this.res=null; this.paint(); return; }
     if(a==="ap"||a==="no"){ r=await Acct.call(Object.assign(P, {type:"acctApprove", pid:b.dataset.p, yes:a==="ap"?1:0})); return done(r, a==="ap"?"✅ 승인했어요 — 아이 화면이 저절로 들어가요":"🙅 그 기기는 막았어요"); }
-    if(a==="on"){ const on=this.onState===false; r=await Acct.call({type:"acctOn", tk:this.tk, on:on?1:0}); if(r && r.ok) this.onState=on; return done(r, on?"🔐 계정을 켰어요 — 아이들 첫 화면에 로그인이 보여요":"계정을 껐어요 — 아이 화면은 예전처럼"); }
+    if(a==="on"){ const on=this.onState===false; r=await Acct.call({type:"acctOn", tk:this.tk, on:on?1:0}); if(r && r.ok) this.onState=on; else if(r && r.err==="fb"){ this.fb={code:r.why}; this.note="⚠️ 계정을 "+(on?"켜지":"끄지")+" 못했어요"; this.paint(); return; } return done(r, on?"🔐 계정을 켰어요 — 아이들 첫 화면에 로그인이 보여요":"계정을 껐어요 — 아이 화면은 예전처럼"); }
     if(a==="open"){ r=await Acct.call({type:"acctOpen", tk:this.tk, days:this.openUntil>Date.now()?0:3}); return done(r, this.openUntil>Date.now()?"승인 없이 기간을 끝냈어요":"3일 동안 처음 기기도 승인 없이 들어가요 (옮겨 가는 주에)"); }
     if(a==="eid"){ r=await Acct.call(Object.assign(P, {type:"acctEdit", id:($$("acE_id")||{}).value})); return done(r, "아이디를 바꿨어요 — 부모님께 새 쪽지를"); }
     if(a==="en"){ r=await Acct.call(Object.assign(P, {type:"acctEdit", n:($$("acE_n")||{}).value})); return done(r, "게임 이름을 바꿨어요"); }
