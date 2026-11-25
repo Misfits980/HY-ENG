@@ -17,6 +17,9 @@ const fn = new Function(...Object.keys(S), src + "\nreturn {doPost, KEY};");
 const G = fn(...Object.values(S));
 const post = o => G.doPost({postData: {contents: JSON.stringify(Object.assign({key: G.KEY}, o))}});
 let bad = 0; const ok = (c, m) => { console.log((c ? "OK  " : "BAD ") + m); if (!c) bad++; };
+// (v722 사고) 새 함수 devs_ 가 태그 칸 devs_(v) 를 덮어써서 실제 서버의 태그가 깨졌었음 → 같은 이름 함수가 둘이면 실패
+{ const C = {}; (src.match(/^function\s+([A-Za-z0-9_$]+)\s*\(/mg) || []).forEach(x => { const n = x.replace(/^function\s+|\s*\($/g, ""); C[n] = (C[n] || 0) + 1; });
+  const D = Object.keys(C).filter(k => C[k] > 1); ok(!D.length, "같은 이름 함수 없음 " + D.join(",")); }
 
 let r = post({type: "check", tk: "LEGACYKEY123"});
 ok(r.ok && r.v === 26 && r.legacy === true && r.devs === 0, "옛 열쇠 = 됨 (legacy · 기기 0) " + JSON.stringify(r));

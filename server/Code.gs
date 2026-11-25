@@ -1027,15 +1027,16 @@ function fbTeacher_(d){
    → 기기마다 무작위 열쇠(서버엔 SHA-256 값만 · 스크립트 속성 ADMIN_DEV) · 연결된 기기에서 「6자리 코드」(10분 · 한 번) → 새 기기가 그 코드로 열쇠를 받음
    · 옛 열쇠(ADMIN_KEY)는 「옛 열쇠 끄기」(ADMIN_LEGACY_OFF=1) 전까지 그대로 됨 · 틀린 열쇠·코드는 10분에 12번 넘으면 잠깐 막음 (아무나 계속 시도하지 못하게) */
 function hex_(s){ return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(s), Utilities.Charset.UTF_8).map(b=>((b<0?b+256:b).toString(16)).padStart(2,"0")).join(""); }
-function devs_(){ try { return JSON.parse(PropertiesService.getScriptProperties().getProperty("ADMIN_DEV") || "[]") || []; } catch(e){ return []; } }
+function admDevs_(){ try { const L = JSON.parse(PropertiesService.getScriptProperties().getProperty("ADMIN_DEV") || "[]"); return Array.isArray(L) ? L : []; } catch(e){ return []; } }   // ⚠ 이름 주의: devs_(v) 는 태그 칸 기기 목록 (v404)
 function devSave_(L){ PropertiesService.getScriptProperties().setProperty("ADMIN_DEV", JSON.stringify(L.slice(-12))); }
-function devEdit_(fn){ const lk = LockService.getScriptLock(); try { lk.waitLock(8000); } catch(e){ return null; } try { const L = devs_(), r = fn(L); if (r !== false) devSave_(L); return r; } finally { lk.releaseLock(); } }   // 두 기기가 동시에 바꿔도 목록이 안 날아가게
+function devEdit_(fn){ const lk = LockService.getScriptLock(); try { lk.waitLock(8000); } catch(e){ return null; } try { const L = admDevs_(), r = fn(L); if (r !== false) devSave_(L); return r; } finally { lk.releaseLock(); } }   // 두 기기가 동시에 바꿔도 목록이 안 날아가게
 function code6_(){ return String(parseInt(Utilities.getUuid().replace(/-/g, "").slice(0, 12), 16) % 1000000).padStart(6, "0"); }
-function badHit_(){ const c = CacheService.getScriptCache(), n = (+(c.get("bad_tk") || 0)) + 1; c.put("bad_tk", String(n), 600); return n; }
-function badWait_(){ return (+(CacheService.getScriptCache().get("bad_tk") || 0)) >= 12; }
+function badHit_(){ try { const c = CacheService.getScriptCache(), n = (+(c.get("bad_tk") || 0)) + 1; c.put("bad_tk", String(n), 600); return n; } catch(e){ return 0; } }
+function badWait_(){ try { return (+(CacheService.getScriptCache().get("bad_tk") || 0)) >= 12; } catch(e){ return false; } }
 function keyWho_(tk){ tk = String(tk || ""); if (!tk) return null; const P = PropertiesService.getScriptProperties(), want = P.getProperty("ADMIN_KEY");
   if (want && tk === want && P.getProperty("ADMIN_LEGACY_OFF") !== "1") return {legacy:true};
-  const h = hex_("hyeng-dev:" + tk), L = devs_(), i = L.findIndex(x=>x && x.h === h); return i >= 0 ? {i, dev:L[i]} : null; }
+  const L = admDevs_(); if (!L.length) return null;   // 연결된 기기가 없으면 해시도 안 함
+  const h = hex_("hyeng-dev:" + tk), i = L.findIndex(x=>x && x.h === h); return i >= 0 ? {i, dev:L[i]} : null; }
 function pairUse_(d){ if (badWait_()) return json_({ok:false, err:"wait"});
   const code = String(d.code || "").replace(/\D/g, ""), c = CacheService.getScriptCache();
   if (code.length !== 6 || c.get("pair_" + code) !== "1"){ badHit_(); return json_({ok:false, err:"badcode"}); }
@@ -1044,20 +1045,20 @@ function pairUse_(d){ if (badWait_()) return json_({ok:false, err:"wait"});
   return json_({ok:true, v:SERVER_V, tk}); }
 function teacher_(d){
   const P = PropertiesService.getScriptProperties(), want = P.getProperty("ADMIN_KEY");
-  if (!want && !devs_().length) return json_({ok:false, err:"nokey"});
+  if (!want && !admDevs_().length) return json_({ok:false, err:"nokey"});
   const who = keyWho_(d.tk); if (!who){ if (badWait_()) return json_({ok:false, err:"wait"}); badHit_(); return json_({ok:false, err:"badkey"}); }   /* 맞는 열쇠는 막지 않음 (남이 일부러 틀려서 선생님을 못 들어오게 하지 못하게) */
   if (who.dev && Date.now() - (who.dev.u || 0) > 864e5) devEdit_(L=>{ const x = L.find(y=>y && y.h === who.dev.h); if (!x) return false; x.u = Date.now(); return true; });   // 마지막으로 쓴 날 (하루 한 번만 적음)
-  if (d.type === "check") return json_({ok:true, v:SERVER_V, legacy:!!who.legacy, off:P.getProperty("ADMIN_LEGACY_OFF") === "1", devs:devs_().length});
+  if (d.type === "check") return json_({ok:true, v:SERVER_V, legacy:!!who.legacy, off:P.getProperty("ADMIN_LEGACY_OFF") === "1", devs:admDevs_().length});
   if (d.type === "pairSelf"){ if (!who.legacy) return json_({ok:false, err:"notlegacy"});   // 첫 선생님 기기 하나만 옛 열쇠로 바로 연결 (그 뒤로는 연결된 기기의 6자리 코드로만 — 옛 열쇠를 아는 남이 기기를 몰래 더하지 못하게)
     const tk = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "");
     const r = devEdit_(L=>{ if (L.length) return "has"; L.push({h:hex_("hyeng-dev:" + tk), n:txt_(d.n, 30) || "선생님 기기", at:Date.now()}); return true; });
     return r === true ? json_({ok:true, v:SERVER_V, tk}) : json_({ok:false, err:r || "busy"}); }
   if (d.type === "pairMake"){ if (!who.dev) return json_({ok:false, err:"notme"}); const code = code6_(); CacheService.getScriptCache().put("pair_" + code, "1", 600); return json_({ok:true, v:SERVER_V, code, ttl:600}); }
-  if (d.type === "devList") return json_({ok:true, v:SERVER_V, list:devs_().map((x, i)=>({i, n:x.n, at:x.at, u:x.u || 0, me:who.dev ? i === who.i : false})), legacy:!!who.legacy, off:P.getProperty("ADMIN_LEGACY_OFF") === "1"});
+  if (d.type === "devList") return json_({ok:true, v:SERVER_V, list:admDevs_().map((x, i)=>({i, n:x.n, at:x.at, u:x.u || 0, me:who.dev ? i === who.i : false})), legacy:!!who.legacy, off:P.getProperty("ADMIN_LEGACY_OFF") === "1"});
   if (d.type === "devDel"){ const off = P.getProperty("ADMIN_LEGACY_OFF") === "1", i = +d.i;
     const r = devEdit_(L=>{ if (!(i >= 0 && i < L.length)) return "i"; if (off && L.length <= 1) return "last"; L.splice(i, 1); return true; });   // 옛 열쇠를 껐으면 마지막 기기는 못 뺌 (아무도 못 들어오게 되니까)
     return r === true ? json_({ok:true, v:SERVER_V}) : json_({ok:false, err:r || "busy"}); }
-  if (d.type === "legacyOff"){ if (d.on && !devs_().length) return json_({ok:false, err:"nodev"}); if (d.on && !who.dev) return json_({ok:false, err:"notme"});   // 연결된 기기에서만 끄기 (끄자마자 이 기기가 막히지 않게)
+  if (d.type === "legacyOff"){ if (d.on && !admDevs_().length) return json_({ok:false, err:"nodev"}); if (d.on && !who.dev) return json_({ok:false, err:"notme"});   // 연결된 기기에서만 끄기 (끄자마자 이 기기가 막히지 않게)
     if (d.on) P.setProperty("ADMIN_LEGACY_OFF", "1"); else P.deleteProperty("ADMIN_LEGACY_OFF"); return json_({ok:true, v:SERVER_V, off:!!d.on}); }
   if (d.type === "report") return json_({ok:true, v:SERVER_V, at:Date.now(), rep:report_()});   // (v306) 우리 반 — 시트 요약 탭을 보이는 그대로
   if (d.type === "tags") return json_({ok:true, v:SERVER_V, list:tagList_(true)});
