@@ -101,7 +101,7 @@ r = post({type:"acctLogin", id:"toto", pw:"150309", dev:"kidPhone7"}); ok(r.ok &
   ok(/^\d{4}$/.test(tg || "") && String(TR[1]).indexOf("kidPhone7") >= 0 && String((book["태그"].d.find(x=>String(x[0]) === "0012") || [])[1]).indexOf("kidPhone7") < 0, "(v28) 로그인한 기기는 계정 태그 줄로 (#" + tg + ") · 다른 줄에서 빠짐"); }
 r = post({type:"acctLogin", id:"byul", pw:"150309", dev:"kidPhone7"}); ok(r.ok && r.wait, "남의 태그 기기 = 승인 기다림");
 // 승인 없이 기간
-ok(T("acctOpen", {days:3}).ok && fbCalls.some(c=>/\/hy\/acon\.json/.test(c.u)), "「승인 없이 3일」 (+ 계정 켜짐 표시)");
+fbCalls.length = 0; ok(T("acctOpen", {days:3}).ok && !fbCalls.some(c=>/\/hy\/acon\.json/.test(c.u)), "(v28b) 「승인 없이 3일」 = 계정 켜기와 따로 (계정은 안 켜짐)");
 r = post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}); ok(r.ok && r.tok, "승인 없이 기간 = 바로");
 T("acctOpen", {days:0}); ok(post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad12"}).wait, "기간 끝 = 다시 승인");
 // 기기 빼기
@@ -135,7 +135,7 @@ ok(post({type:"check", tk:"TK"}).v >= 27, "서버 v27 이상");
 r = T("acctList"); ok(r.fb && r.fb.sec === true && r.fb.code === 200 && r.fb.on === true && !("FB_SECRET" in r.fb) && JSON.stringify(r).indexOf("SECRET123") < 0, "선생님 목록 = Firebase 열쇠 있음·켜짐 (열쇠 값은 안 보냄)");
 FBC = 401; r = T("acctOn", {on:1}); ok(r.ok === false && r.err === "fb" && r.why === "401", "FB_SECRET 이 안 맞으면 계정 켜기 = 실패로 알림 (401)");
 r = T("acctList"); ok(r.fb.code === 401 && r.fb.on === false, "목록에도 401 · 안 켜짐");
-ok(T("acctOpen", {days:3}).err === "fb", "승인 없이 3일도 실패로 알림");
+ok(T("acctOpen", {days:3}).ok, "승인 없이 3일은 Firebase 를 안 씀 → 열쇠가 틀려도 됨");
 r = post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}); ok(r.ok === false && r.err === "fb" && !r.tok, "기기를 Firebase 에 못 넣으면 출입증을 안 줌");
 FBC = 200; delete props.FB_SECRET; r = T("acctOn", {on:1}); ok(r.err === "fb" && r.why === "nosec", "FB_SECRET 이 없으면 계정 켜기 = 실패 (nosec)");
 r = T("acctList"); ok(r.fb.sec === false && r.fb.code === "nosec", "목록 = 열쇠 없음");

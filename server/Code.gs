@@ -1232,7 +1232,7 @@ function acctT_(d){
   if (d.type === "acctList"){ const {rows} = acRows_(); return json_({ok:true, v:SERVER_V, fb:acFbChk_(), open:+(PropertiesService.getScriptProperties().getProperty("ACCT_OPEN") || 0), list:rows.map(r=>pub(acObj_(r)))}); }
   if (d.type === "acctOpen"){ const days = Math.max(0, Math.min(14, Math.round(Number(d.days) || 0))), P = PropertiesService.getScriptProperties();
     if (days) P.setProperty("ACCT_OPEN", String(Date.now() + days * 864e5)); else P.deleteProperty("ACCT_OPEN");
-    if (!acFb_("/hy/acon", {on:1, at:Date.now()})) return json_({ok:false, err:"fb", why:String(AC_FBC)}); return json_({ok:true, v:SERVER_V, open:days ? Date.now() + days * 864e5 : 0}); }
+    return json_({ok:true, v:SERVER_V, open:days ? Date.now() + days * 864e5 : 0}); }   // (v28b) 계정 켜기와 따로 — 예전엔 「승인 없이 3일」을 누르면 계정까지 켜졌음 (아이디를 다 만들기 전에 켜지면 안 됨)
   if (d.type === "acctOn"){ if (!acFb_("/hy/acon", d.on ? {on:1, at:Date.now()} : null)) return json_({ok:false, err:"fb", why:String(AC_FBC)}); return json_({ok:true, v:SERVER_V, on:!!d.on}); }
   return acLocked_(()=>{ const {sh, rows} = acRows_();
     if (d.type === "acctMake"){ const L = Array.isArray(d.list) ? d.list.slice(0, 60) : [], res = [], now = new Date(); let made = 0;
