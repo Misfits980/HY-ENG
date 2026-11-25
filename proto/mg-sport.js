@@ -57,8 +57,13 @@ function css(){ if(document.getElementById("spCss")) return; const s=document.cr
 /* (v731) 점수판 3줄 (나 · Tom · Lily) · 친구 소식 · 다시 보기 표 */
 #mgUI .spSc.multi{flex-direction:column;gap:3px;padding:5px 6px}
 #mgUI .spSc.multi .rw{display:flex;gap:3px;align-items:stretch}
-#mgUI .spSc.multi .nm{width:50px;align-self:center;font-family:var(--kr);font-size:13px;color:#4A2E1F;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;padding-left:2px}
-#mgUI .spSc.multi .rw.me .nm{color:#e2553c}
+#mgUI .spSc.multi .rw{border-radius:9px;padding:1px}
+#mgUI .spSc.multi .nm{width:54px;align-self:center;font-family:var(--kr);font-size:14px;color:#4A2E1F;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;padding-left:2px}
+#mgUI .spSc.multi .nm i{font-style:normal;display:inline-block;width:15px;font-size:12px} #mgUI .spSc.multi .nm i.go{animation:spBob .5s ease-in-out infinite alternate}
+@keyframes spBob{to{transform:translateY(-3px)}}
+#mgUI .spSc.multi .rw.me{background:#ffe3cc} #mgUI .spSc.multi .rw.me .nm{color:#d4472c}
+#mgUI .spSc.multi .rw.hot{animation:spHot 1.3s ease-out} @keyframes spHot{0%,40%{background:#FFC53D}100%{background:transparent}}
+#mgUI .spSc.multi .rw.me.hot{animation-name:spHotMe} @keyframes spHotMe{0%,40%{background:#FFC53D}100%{background:#ffe3cc}}
 #mgUI .spSc.multi .f{width:40px;background:#fff;color:#4A2E1F;border:2px solid #4A2E1F;border-radius:8px;text-align:center;font-family:var(--en);font-weight:900;display:flex;flex-direction:column;justify-content:center;line-height:1.08;padding:1px 0}
 #mgUI .spSc.multi .f i{font-style:normal;font-size:11.5px;min-height:13px;display:block;white-space:nowrap} #mgUI .spSc.multi .f b{font-size:13.5px;min-height:14px;display:block}
 #mgUI .spSc.multi .f.cur{box-shadow:0 0 0 2px #FFC53D;background:#fffbe8}
@@ -68,7 +73,7 @@ function css(){ if(document.getElementById("spCss")) return; const s=document.cr
 #mgUI .spPop.on{opacity:1;transform:translate(-50%,0) scale(1)}
 #mgUI .spRp{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));white-space:nowrap;display:none;background:#ff3b5c;color:#fff;border-radius:999px;padding:6px 14px;font-size:15px;pointer-events:none;box-shadow:0 0 0 3px #fff}
 #mgUI .spRp.on{display:block}
-@media (prefers-reduced-motion:reduce){ #mgUI .spPop{transition:opacity .2s} }
+@media (prefers-reduced-motion:reduce){ #mgUI .spPop{transition:opacity .2s} #mgUI .spSc.multi .nm i.go{animation:none} }
 #mgUI .puM.spMenuVs .puSeg{gap:4px} #mgUI .puM.spMenuVs .puSeg button{flex:1 1 0;min-width:0;padding:4px 2px;white-space:nowrap;font-size:14px}   /* 상대 5개가 한 줄 (좁은 휴대폰에서 두 줄로 꺾여 메뉴가 넘쳤음) */
 @media (max-width:370px){ #mgUI .puM.spMenuVs .puSeg button{font-size:12.5px} }
 @media (orientation:landscape) and (max-height:620px){ #mgUI .spSc{top:calc(8px + env(safe-area-inset-top))} #mgUI .spMenu .g button{min-height:110px}
@@ -233,7 +238,8 @@ function start(api){
   function sheet(){ const act=LANES.filter(L=>L.on);
     if(act.length<2){ SC.classList.remove("multi"); const s=bowlScore(BW.rolls), f=rollsInFrame(BW.rolls).f; SC.innerHTML=s.marks.map((m,i)=>'<div class="'+(i===f && mode==="bowl"?"cur":"")+'"><small>'+(i+1)+'</small><div class="m">'+m.map(x=>'<span>'+x+'</span>').join("")+'</div><div class="t">'+(s.out[i]==null?"":s.out[i])+'</div></div>').join("")+'<div class="tot"><small>합계</small><div class="m"></div><div class="t">'+s.total+'</div></div>'; }
     else { SC.classList.add("multi"); const T=act.map(L=>bowlScore(L.rolls).total), top=Math.max(...T);
-      SC.innerHTML=act.map((L,j)=>{ const s=bowlScore(L.rolls), f=bowlDone(L.rolls)?-1:rollsInFrame(L.rolls).f; return '<span class="rw'+(L===BW?' me':'')+(T[j]===top && top>0?' lead':'')+'"><span class="nm">'+esc(L===BW?(api.nick||"나"):L.nm)+'</span>'+s.marks.map((m,i)=>'<span class="f'+(i===f?' cur':'')+'"><i>'+m.join(" ")+'</i><b>'+(s.out[i]==null?"":s.out[i])+'</b></span>').join("")+'<span class="f tot">'+s.total+'</span></span>'; }).join(""); }
+      SC.innerHTML=act.map((L,j)=>{ const s=bowlScore(L.rolls), f=bowlDone(L.rolls)?-1:rollsInFrame(L.rolls).f; const hot=L.hot && performance.now()-L.hot<1300, ic=L.ph==="roll"||L.ph==="count"?'<i class="go">🎳</i>':L.ph==="done"?'<i>🏁</i>':'<i></i>';
+        return '<span class="rw'+(L===BW?' me':'')+(T[j]===top && top>0?' lead':'')+(hot?' hot':'')+'"><span class="nm">'+ic+esc(L===BW?(api.nick||"나"):L.nm)+'</span>'+s.marks.map((m,i)=>'<span class="f'+(i===f?' cur':'')+'"><i>'+m.join(" ")+'</i><b>'+(s.out[i]==null?"":s.out[i])+'</b></span>').join("")+'<span class="f tot">'+s.total+'</span></span>'; }).join(""); }
     if(!monBig) monPaint(); }
   let monBig=0;
   function sidePaint(L, big){ if(!L.mg) return; const g=L.mg, w=512, h=160; g.fillStyle="#08061a"; g.fillRect(0,0,w,h); g.fillStyle="rgba(255,255,255,.05)"; for(let y=0;y<h;y+=4) g.fillRect(0,y,w,2); g.textAlign="center"; g.textBaseline="middle";
@@ -243,7 +249,7 @@ function start(api){
       for(let i=0;i<NF;i++){ const x=22+i*74; g.strokeStyle="#3ea2ff"; g.lineWidth=2; g.strokeRect(x,84,68,58); g.fillStyle="#fff"; g.fillText((sc.marks[i]||[]).join(" "),x+34,104); g.fillStyle="#ffd23f"; g.fillText(sc.out[i]==null?"":sc.out[i],x+34,130); }
       g.fillStyle="#ff5ce1"; g.font="900 64px sans-serif"; g.textAlign="right"; g.fillText(sc.total, w-22, 52); }
     L.mt.needsUpdate=true; }
-  function throwLane(L, x, vx, vz){ L.bx=clampX(x); L.vx=Math.max(-1.6,Math.min(1.6,vx)); L.vz=-Math.max(5, Math.min(16, vz)); L.ph="roll"; L.t=0; L.hit=false; L.gutter=false; L.ball.position.set(L.bx, BR, .3); L.ball.visible=true; if(L.A) L.A.sw=.55; try{ SFX.noise(1.2, L===BW?.05:.016, 300, .5, 150); }catch(e){} }
+  function throwLane(L, x, vx, vz){ L.bx=clampX(x); L.vx=Math.max(-1.6,Math.min(1.6,vx)); L.vz=-Math.max(5, Math.min(16, vz)); L.ph="roll"; L.t=0; L.hit=false; L.gutter=false; L.ball.position.set(L.bx, BR, .3); L.ball.visible=true; if(L.A) L.A.sw=.55; try{ SFX.noise(1.2, L===BW?.05:.016, 300, .5, 150); }catch(e){} if(SIDE.some(S=>S.on)) sheet(); }
   function throwBall(x, vx, vz){ if(mode!=="bowl" || BW.ph!=="aim") return false; throwLane(BW, x, vx, vz); BW.th={i:BW.rolls.length, x:+BW.bx.toFixed(3), vx:+BW.vx.toFixed(3), vz:+(-BW.vz).toFixed(3)}; BW.rec=[]; arrowM.visible=false; guide.visible=false; AV.sw=.55; say(""); return true; }
   /* 봇 겨냥: 처음 공 = 포켓(가운데 살짝 옆) · 두 번째 공 = 남은 핀 가운데 · 실력만큼 흔들림 */
   function botAim(L){ const S=SKILL[L.sk]||SKILL.easy, up=L.pins.filter(p=>p.up && p.g.visible), tx=up.length>=10||!up.length ? L.pk*.16 : up.reduce((s,p)=>s+p.hx,0)/up.length;
@@ -281,7 +287,7 @@ function start(api){
     if(L.co){ const p=coP(L), ro=(p && p.ro)||[], i=L.rolls.length; if(ro.length<=i){ if(++L.cw<40 && L.on && !L.left){ later(.25, ()=>countPins(L)); return; } } else { L.cw=0; fgot=ro[i]; coMask(L, (p.mk||[])[i]); } }   /* 친구 결과가 올 때까지 (8초) */
     const before=L.pins.filter(p=>p.up).length; L.pins.forEach(p=>{ if(p.up && p.down) p.up=false; }); const after=L.pins.filter(p=>p.up).length, got=fgot!=null?fgot:before-after; L.rolls.push(got);
     if(me){ let ms=0; L.pins.forEach((p,j)=>{ if(p.up) ms|=1<<j; }); (BW.mk||(BW.mk=[])).push(ms); }
-    const strike=got===10 && before===10, spare=!strike && after===0; L.stk=strike?L.stk+1:0;
+    const strike=got===10 && before===10, spare=!strike && after===0; L.stk=strike?L.stk+1:0; if(strike||spare) L.hot=performance.now();
     if(me){ const r=REC();
       if(strike){ const k=L.stk, T=k>=3?"TURKEY!":k===2?"DOUBLE!":"STRIKE!"; big(T, k>=3?"스트라이크 "+k+"번 연속! 🦃":k===2?"스트라이크 2번 연속 🔥":"스트라이크 🎉", 1.6); r.strikes++; st("hyeng_proto_spr", r); try{ SFX.win(); }catch(e){} fx(T, k>=3?120:k===2?95:70); }
       else if(spare){ big("SPARE!", "스페어 👏", 1.4); try{ SFX.clear(); }catch(e){} fx("SPARE!", 36); }
@@ -293,7 +299,7 @@ function start(api){
     const go=()=>{ if(fin){ laneDone(L); return; } later(fast?.05:.3, ()=>sweep(L, nf.reset, ()=>{ if(me){ readyBall(); sheet(); } else readyLane(L); })); };
     if(me && strike && !fast && BW.rec && BW.rec.length>=8){ later(.95, ()=>{ if(!rpStart(go)) go(); }); return; }   /* STRIKE 글자가 사라질 즈음 다시 보기 */
     go(); }
-  function laneDone(L){ L.ph="done"; L.ball.visible=false; if(L===BW){ BW.camZ=3.4; if(SIDE.some(S=>S.on && S.ph!=="done")) say("🎳 친구들이 마지막 프레임을 굴려요…"); } checkEnd(); }
+  function laneDone(L){ L.ph="done"; L.ball.visible=false; sheet(); if(L===BW){ BW.camZ=3.4; if(SIDE.some(S=>S.on && S.ph!=="done")) say("🎳 친구들이 마지막 프레임을 굴려요…"); } checkEnd(); }
   function checkEnd(){ if(endQ || !LANES.every(L=>!L.on || L.ph==="done")) return; endQ=true; later(fast?.05:1.6, ()=>{ say(""); bowlEnd(); }); }
   function botSay(L, strike, spare, got){ const A=L.A||{}; let t="";
     if(strike){ t=L.stk>=3?L.nm+" 터키! 🦃":L.stk===2?L.nm+" 더블! 🔥":L.nm+" 스트라이크! 🎳"; A.cheer=1.4; if(L.P) L.P.setExpr("grin"); }
@@ -319,7 +325,7 @@ function start(api){
     P.forEach((p,i)=>{ const o=5+i*8, g=p.g; a[o]=g.position.x; a[o+1]=g.position.y; a[o+2]=g.position.z; a[o+3]=g.quaternion.x; a[o+4]=g.quaternion.y; a[o+5]=g.quaternion.z; a[o+6]=g.quaternion.w; a[o+7]=g.visible?1:0; }); return {t:L.t, a, h:L.hit}; }
   function rpApply(s){ const a=s.a; ball.position.set(a[0],a[1],a[2]); ball.visible=!!a[3]; ball.rotation.x=a[4]; PINS.forEach((p,i)=>{ const o=5+i*8, g=p.g; g.position.set(a[o],a[o+1],a[o+2]); g.quaternion.set(a[o+3],a[o+4],a[o+5],a[o+6]); g.visible=!!a[o+7]; }); }
   function rpStart(cb){ const R=BW.rec; if(fast || !R || R.length<8) return false; const h=R.find(s=>s.h); if(!h) return false; const t0=Math.max(R[0].t, h.t-.12), t1=Math.min(R[R.length-1].t, h.t+1.5);
-    BW.rp={t:t0, t0, t1, i:0, cb, b:ball.position.clone(), bv:ball.visible, br:ball.rotation.x, pv:PINS.map(p=>p.g.visible)}; RP.classList.add("on"); camP=null; return true; }
+    BW.rp={t:t0, t0, t1, i:0, cb, b:ball.position.clone(), bv:ball.visible, br:ball.rotation.x, pv:PINS.map(p=>p.g.visible)}; RP.classList.add("on"); BIG.classList.remove("on"); camP=null; return true; }
   function rpStep(dt){ const S=BW.rp, R=BW.rec; S.t+=dt*RPS; while(S.i+1<R.length && R[S.i+1].t<=S.t) S.i++; rpApply(R[S.i]); if(S.t>=S.t1) rpEnd(); }
   function rpEnd(){ const S=BW.rp; if(!S) return; BW.rp=null; RP.classList.remove("on"); ball.position.copy(S.b); ball.visible=S.bv; ball.rotation.x=S.br; PINS.forEach((p,i)=>{ p.g.visible=S.pv[i]; placePin(p); }); camP=null; S.cb(); }
   function fx(t, n){ confetti(0,.8,HZ-.6,LOW?Math.round(n/2):n); AV.cheer=1.6; if(MEAV) MEAV.setExpr("grin"); monBig=1; monPaint(t); later(fast?.05:1.6, ()=>{ monBig=0; monPaint(); }); }
@@ -410,7 +416,7 @@ function start(api){
       if(BW.rp){ const S=BW.rp, k=Math.min(1,(S.t-S.t0)/Math.max(.01,S.t1-S.t0)); cam.position.set(2.45-.45*k, 1.25-.1*k, HZ+2.05-.25*k); cam.lookAt(-.08,.28,HZ-.7); cam.updateProjectionMatrix(); return; }   /* 🔁 다시 보기 = 옆에서 가까이 */
       const pinCam=(BW.ph==="roll"||BW.ph==="count") && (b.z<HZ+3.4 || !ball.visible) && !BW.gutter, vsW=!portrait && SIDE.some(L=>L.on), wait=BW.ph==="done";
       const z=BW.ph==="roll"||BW.ph==="count"?Math.max(-6.2, Math.min(BW.camZ, b.z+3.4)):BW.camZ; BW.camZ=z;
-      const des=pinCam?new THREE.Vector3(.9, .95, HZ+2.6):wait?new THREE.Vector3(0, portrait?3.4:2.5, portrait?5.6:5.4):new THREE.Vector3(0, portrait?2.05:(vsW?1.9:1.6), z+(portrait?.9:(vsW?1.3:.3))), tgt=pinCam?new THREE.Vector3(-.1,.3,HZ-.6):wait?new THREE.Vector3(0,.2,-6):new THREE.Vector3(0,.1,z-8);   /* (v731) 옆 레인 친구가 보이게 가로 화면은 한 걸음 뒤 · 다 굴리고 기다릴 땐 넓게 */
+      const swc=pinCam && BW.sw, des=swc?new THREE.Vector3(.75, 1.3, HZ+3.1):pinCam?new THREE.Vector3(.9, .95, HZ+2.6):wait?new THREE.Vector3(0, portrait?3.4:2.5, portrait?5.6:5.4):new THREE.Vector3(0, portrait?2.05:(vsW?1.9:1.6), z+(portrait?.9:(vsW?1.3:.3))), tgt=swc?new THREE.Vector3(-.05,.62,HZ-.7):pinCam?new THREE.Vector3(-.1,.3,HZ-.6):wait?new THREE.Vector3(0,.2,-6):new THREE.Vector3(0,.1,z-8);   /* (v731) 옆 레인 친구가 보이게 가로 화면은 한 걸음 뒤 · 다 굴리고 기다릴 땐 넓게 */
       if(!camP || fast || BW.ph==="aim"){ camP=des.clone(); camT=tgt.clone(); } else { camP.lerp(des, pinCam?.08:wait?.05:.25); camT.lerp(tgt, pinCam?.08:wait?.05:.25); } cam.position.copy(camP); cam.lookAt(camT);
       if(shk>0){ cam.position.x+=(Math.random()-.5)*shk*.09; cam.position.y+=(Math.random()-.5)*shk*.06; } }
     cam.updateProjectionMatrix(); }

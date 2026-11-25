@@ -35,7 +35,7 @@ async def main():
         ok(r == ["hard", True, "hard"], f"① 고르면 저장 {r}")
         # ② 셋이 같이 / 혼자
         r = await E(GO, "normal"); await adv(30)
-        r2 = await E("()=>{ const R=MG.run, sc=document.querySelector('#mgUI .spSc'); return [sc.classList.contains('multi'), sc.querySelectorAll('.rw').length, [...sc.querySelectorAll('.rw .nm')].map(e=>e.textContent).join(','), R.lanes.slice(1).map(L=>!!(L.P && L.P.g.visible && L.tag && L.tag.visible && L.ball.visible)), R.lanes.slice(1).map(L=>L.sk)]; }")
+        r2 = await E("()=>{ const R=MG.run, sc=document.querySelector('#mgUI .spSc'); return [sc.classList.contains('multi'), sc.querySelectorAll('.rw').length, [...sc.querySelectorAll('.rw .nm')].map(e=>e.lastChild.textContent).join(','), R.lanes.slice(1).map(L=>!!(L.P && L.P.g.visible && L.tag && L.tag.visible && L.ball.visible)), R.lanes.slice(1).map(L=>L.sk)]; }")
         ok(r == [True, True, True] and r2[0] and r2[1] == 3 and r2[2] == "루아,Tom,Lily" and r2[3] == [True, True] and r2[4] == ["normal", "normal"], f"② 셋이 같이: 점수판 3줄 · Tom · Lily 캐릭터·이름표·공 {r} {r2}")
         await pg.screenshot(path=OUT + "bowl731_aim_phone.png")
         r = await E(GO, "0"); await adv(10)

@@ -47,7 +47,7 @@ async def main():
             r = [await x.evaluate("()=>{ const R=MG.run; return [R.CO, R.lanes.map(L=>L.on), R.lanes[1].nm, R.bw.ph]; }") for x in P2]
             if all(q[0] for q in r): break
         ok(all(q[0] and q[1] == [True, True, False] and q[3] == "aim" for q in r) and r[0][2] == "별사탕" and r[1][2] == "루아", f"③ 같이 시작: 왼쪽 레인 = 친구 이름 · 오른쪽 빈 레인 {r}")
-        r = [await x.evaluate("()=>{ const sc=document.querySelector('#mgUI .spSc'); return [[...sc.querySelectorAll('.rw .nm')].map(e=>e.textContent).join(','), !!(MG.run.lanes[1].P && MG.run.lanes[1].P.g.visible)]; }") for x in P2]
+        r = [await x.evaluate("()=>{ const sc=document.querySelector('#mgUI .spSc'); return [[...sc.querySelectorAll('.rw .nm')].map(e=>e.lastChild.textContent).join(','), !!(MG.run.lanes[1].P && MG.run.lanes[1].P.g.visible)]; }") for x in P2]
         ok(r[0] == ["루아,별사탕", True] and r[1] == ["별사탕,루아", True], f"③ 점수판 두 줄 · 친구 캐릭터 {r}")
         # A 가 한 번 굴림 → B 화면 옆 레인에서도 굴러감
         await A.evaluate("()=>MG.run.throwBall(.1, 0, 11)")
