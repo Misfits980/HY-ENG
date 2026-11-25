@@ -58,7 +58,7 @@ async def main():
         await pg.route("**/*", fake); await pg.route("https://script.google.com/**", sheet)
         await pg.goto(ORIGIN+"proto/house.html?isle=1"); await pg.wait_for_timeout(300)
         await pg.evaluate("()=>{ localStorage.setItem('hyeng_nick','루아'); localStorage.setItem('hyeng_dev','devRUA1'); localStorage.setItem('hyeng_tag','0021'); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); localStorage.removeItem('hyeng_mt_sec'); }")
-        await pg.reload(); await pg.wait_for_timeout(2400)
+        await pg.reload(); await pg.wait_for_timeout(4600)   # (v729) 집 화면의 4초 뒤 mtLog(true) 가 시험 중간에 끼어 한 번 더 보내던 것 — 먼저 지나가게
         r=await pg.evaluate("""()=>{ const H=HOUSE, M=H.MTL; M.force=true; M.id=null; M.a=0; M.last=0; H.MTS.at=0; H.MTS.sent='';
             const real=Date.now.bind(Date); const noon=new Date(); noon.setHours(12,0,0,0); window._dt=noon.getTime()-real(); Date.now=()=>real()+window._dt; const id=H.mtId();   /* (v729) 낮 12시에서 시작 — 밤 11시 넘어 돌리면 40분 숨는 동안 날이 바뀌어 실패했음 (게임 버그 아님) */ const step=(ms,fin)=>{ window._dt+=ms; H.mtLog(!!fin); };
             H.mtLog(true); for(let i=0;i<12;i++) step(60000);            // 12분 놀기 (1분마다)

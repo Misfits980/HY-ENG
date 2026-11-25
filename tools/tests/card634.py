@@ -202,6 +202,9 @@ async def main():
         await C_.screenshot(path=OUTD+"co_end.png")
         r=[await x.evaluate("()=>(MG.rec().t.card||{}).co") for x in P3]
         ok(all(q==1 for q in r), f"⑤ 같이 한 판 기록 (우정 뒷면 조건) {r}")
+        # (v729) 자리표에 내가 없으면 방장 자리(0)로 판을 받지 않고 방 목록으로
+        r=await C_.evaluate("""async ()=>{ const R=MG.run; R.RM.phase='wait'; const ME0=R.ME; R.RM.onStart({c:'ZZ1', ro:['ZZ1','ZZ2'], seed:5, hs:7}, []); for(let i=0;i<6;i++){ MG.step(.05,false); await null; } return [R.phase, R.RM.phase, ME0]; }""")
+        ok(r[0]=="room" and r[1]=="room", f"⑤ (v729) 자리표에 없으면 → 「다음 판에 같이」 · 방 목록 (방장 카드 안 봄) {r}")
         for e in (eA,eB,eC): errs_all.append(e)
         ok(not (eA+eB+eC), f"오류 0 (같이) {(eA+eB+eC)[:5]}")
         for c_ in (cA,cB,cC): await c_.close()

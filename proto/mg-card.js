@@ -457,14 +457,15 @@ function start(api){
       h:()=>({hs:SET.hs, stk:SET.stk, df:SET.df}), tag:h=>'🃏 '+(h.hs||7)+'장'+(h.stk?' · 📚 쌓기':''),
       back:()=>{ try{ RM.dispose(); }catch(e){} RM=null; CO=false; phase="menu"; menuShow(); }});
     RM.node=()=>({av:api.av||null, bk:SET.bk});
-    { const st0=RM.start; RM.start=async()=>{ const ro=RM.live(true).map(p=>p.k).slice(0,4); try{ await NET.patch(RM.path+"/h", {ro}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=ro; return st0(); }; }   /* 자리표는 방장이 시작할 때 정함 (모두 같은 자리) */
+    { const st0=RM.start; RM.start=async()=>{ const d=RM.d||{}, t=RM.now(); let ro=Object.keys(d.p||{}).filter(k=>k===RM.code || (d.p[k] && t-(d.p[k].t||0)<20000)); if(ro.indexOf(RM.code)<0) ro.push(RM.code); ro=ro.sort().slice(0,4);   /* (v729) 자리표 = 20초 안에 소식 온 친구 (전: 10초 → 느린 와이파이면 방에 있던 친구가 빠지고 그 아이 화면은 방장 자리(0)로 판을 봤음) */ try{ await NET.patch(RM.path+"/h", {ro}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=ro; return st0(); }; }   /* 자리표는 방장이 시작할 때 정함 (모두 같은 자리) */
     RM.onEv=(e)=>{ if(e && e.t==="in" && HOST && phase==="play") hostIn(e.s, e.a, e); };
     RM.onFeed=(f)=>{ if(f && f.t==="emo" && phase==="play") emote(f.s, f.e); };
     RM.onStart=(h, live)=>{ const codes=(h.ro && h.ro.length ? h.ro : live.map(p=>p.k)).slice(0,4); hostC=h.c; const PD=(RM.d&&RM.d.p)||{}; RULE={hs:h.hs||7, stk:h.stk?1:0}; BOTDF=h.df||"normal";
       const names=BOTS.slice(); let s=(h.seed||1)>>>0; const rnd=()=>{ s=(s*1103515245+12345)>>>0; return s/4294967296; };
       for(let i=names.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [names[i],names[j]]=[names[j],names[i]]; }
       G.P=[]; for(let i=0;i<4;i++){ const c=codes[i]; if(c){ const p=Object.assign({}, PD[c]||{}, live.find(q=>q.k===c)||{}); G.P.push({nm:p.n||"친구", k:c, bot:false, h:[], col:PCOL[i], av:p.av||{}, bk:p.bk||"base", called:false}); } else G.P.push(botP(i, names[i], BACKS[Math.floor(rnd()*BACKS.length)].k)); }
-      ME=Math.max(0, codes.indexOf(RM.code)); HOST=(h.c===RM.code); phase="play";
+      if(codes.indexOf(RM.code)<0){ api.msg("🙈 시작할 때 자리에 못 들어갔어요<small>다음 판에 같이 해요</small>", 2200); try{ RM.leave(true); }catch(e){} phase="room"; return; }   /* (v729) 자리표에 없으면 구경 대신 방 목록으로 (전: 방장 자리 0 으로 판을 받아 방장 카드를 봤음) */
+      ME=codes.indexOf(RM.code); HOST=(h.c===RM.code); phase="play";
       [1,2,3].forEach(L=>seatAv(L, G.P[glo(L)].av)); plates(); drawTop(); handSig=""; drawHand();
       if(HOST) later(.4, dealHost); };
   }

@@ -53,7 +53,7 @@ async def main():
         await A.evaluate("()=>document.querySelector('#mgUI .mgRoomP [data-st]').click()"); await A.wait_for_timeout(400)
         await steps(P3, 5)
         r=[await x.evaluate("()=>[MG.run.NETR.phase, document.querySelector('#mgUI .mgRoomCnt').textContent]") for x in P3]
-        ok(all(q[0]=="count" and q[1] in ("10","9","8","7") for q in r), f"① 방장이 시작 → 모두 10초 세기 {r}")
+        ok(all(q[0]=="count" and q[1] in ("10","9","8","7","6","5","4") for q in r) and len(set(q[1] for q in r))<=2, f"① 방장이 시작 → 모두 10초 세기 (세 화면 같은 숫자 · 느린 기계는 6~4) {r}")   # (v729) 세 화면 3D 를 한 번에 돌리면 시험 기계에서 4초쯤 걸림 — 진짜 시계로 세므로 게임 버그 아님
         for sh in (5200, 5300):
             for x in P3: await x.evaluate("(s)=>{ TWN8.test=(TWN8.test||0)+s; }", sh)
             await steps(P3, 6)
