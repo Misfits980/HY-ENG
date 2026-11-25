@@ -12,7 +12,7 @@ from playwright.async_api import async_playwright
 
 GO = """()=>{ const R=MG.run; R.setMap('pool'); R.beginSolo(); for(let i=0;i<200 && R.phase!=='play';i++) MG.step(.05,false); for(let i=0;i<80 && R.time.cd>0;i++) MG.step(.05,false);
   const me=R.me; me.p.set(0,0,19); me.yaw=0; me.pitch=0; R.ACT.forEach((a,i)=>{ if(a.bot){ a.brain.think=1e9; a.prot=0; if(i!==1){ a.alive=false; a.G.visible=false; a.resp=1e9; } } });
-  const b=R.ACT[1]; b.alive=true; b.G.visible=true; b.p.set(0,0,10); b.v.set(0,0,0); b.soak=0; return R.phase; }"""
+  const b=R.ACT[1]; b.alive=true; b.G.visible=true; b.p.set(0,0,10); b.v.set(0,0,0); b.soak=0; b.rb=true; R.D.dm=0; return R.phase; }"""   # 과녁 봇은 가만히 (맞으면 되쏘며 움직여 조준이 흔들리던 것) · 나는 안 젖음
 AIM = """(dy0)=>{ const R=MG.run, me=R.me, b=R.ACT[1]; b.alive=true; b.G.visible=true; b.prot=0; b.soak=Math.min(b.soak,40); b.brain.think=1e9; b.p.set(0,0,10); b.v.set(0,0,0); const dx=b.p.x-me.p.x, dz=b.p.z-me.p.z, dy=(b.p.y+dy0)-(me.p.y+1.48); me.yaw=Math.atan2(-dx,-dz); me.pitch=Math.atan2(dy, Math.hypot(dx,dz)); }"""
 SC = "()=>{ const e=document.querySelector('#mgUI .aScope'); return [+(+e.style.opacity||0).toFixed(2), e.classList.contains('lock'), e.querySelector('b').textContent, +(+getComputedStyle(document.querySelector('#mgUI .aCx')).opacity).toFixed(2)]; }"
 WI = "(w)=>{ const R=MG.run; while(R.me.wi<w) R.up(R.me); R.me.cd=0; }"
@@ -56,7 +56,7 @@ async def main():
             MG.I.fire=1; MG.step(.016,false); MG.I.fire=0; const s1=R.shk, al=b.alive; for(let i=0;i<20;i++) MG.step(.016,false); return [al, +s1.toFixed(2), +R.shk.toFixed(2)]; }""")
         ok(r[0] is False and r[1] > .5 and r[2] == 0, f"③ 흠뻑 적시면 잠깐 흔들림 → 멈춤 {r}")
         # 봇 판 1분 (오류 0)
-        await E("()=>{ const R=MG.run; R.ACT.forEach(a=>{ if(a.bot){ a.brain.think=0; a.resp=.5; } }); for(let i=0;i<1200 && !R.time.over;i++) MG.step(.05,false); }")
+        await E("()=>{ const R=MG.run; R.D.dm=.85; R.ACT.forEach(a=>{ if(a.bot){ a.rb=false; a.brain.think=0; a.resp=.5; } }); for(let i=0;i<1200 && !R.time.over;i++) MG.step(.05,false); }")
         E1 = real_errs(errs); ok(not E1, f"봇 판 1분 · 오류 0 {E1[:3]}")
         await ctx.close()
         # ③ 움직임 줄이기 → 흔들림 없음 · 튐 작게
