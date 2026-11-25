@@ -54,7 +54,7 @@ async def main():
         ok(r==[150,75,35,24,True,True,False,True,"X","7/","-5"], f"② 볼링 점수 셈 (퍼펙트 150 · 스페어 75 · 보통 35 · 끝났는지 · X / -) {r}")
         # ③ 볼링
         c0=await pg.evaluate("()=>TECO.coins()")
-        await pg.evaluate("()=>{ MG.run.fast=true; MG.run.menuGo('bowl'); }"); await pg.evaluate(STEP, 4)
+        await pg.evaluate("()=>{ MG.run.fast=true; MG.run.SET.vs='0'; MG.run.menuGo('bowl');   /* 혼자 판 (봇 대결은 bowl731) */ }"); await pg.evaluate(STEP, 4)
         await pg.screenshot(path=OUTD+"bowl_aim.png")
         await pg.evaluate("()=>MG.run.throwBall(0, 0, 13)")
         for _ in range(12):
