@@ -40,6 +40,8 @@ async def boot(pg, news=True, iso=None):
     await pg.route("**/*", route); await pg.goto(ORIGIN+"index.html"); await pg.wait_for_timeout(1200)
     if iso is not None: await pg.evaluate("(t)=>{ const k0=Kid.k.bind(Kid); Kid.k=b=>k0(b)+'@t'+t; }", str(iso))
     if news: await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
+    # (v728) 📱 관리 화면 휴대폰 모양(아래 탭 5개)은 adm728 시험만 — 다른 시험은 390 폭이어도 예전 탭 6개(#adTabs)로 (☰ 더보기 「예전 모양으로 보기」와 같은 값)
+    if not os.environ.get("HY_ADM_PH"): await pg.evaluate("()=>{ try{ localStorage.setItem('hyeng_admin_ph','0'); }catch(e){} }")
     await pg.evaluate("()=>{ try{ StudyUI.FAST=0; }catch(e){} }")   # (v301) 테스트는 '너무 빨리 누름' 막기를 끈다
     await pg.evaluate(PAT_SOLVE)   # (v390) 보스 공격 패턴을 푸는 도우미 window.patSolve(good)
     if os.environ.get("HY_CSSSCAN"): await css_scan(pg)
