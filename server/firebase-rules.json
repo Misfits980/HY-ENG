@@ -45,7 +45,7 @@
         "$b": {
           "$k": {
             ".write": true,
-            ".validate": "!newData.child('d').exists() || (newData.child('d').isNumber() && newData.child('d').val() >= 0 && newData.child('d').val() <= 1000000)"
+            ".validate": "!newData.child('d').exists() || (newData.child('d').isNumber() && newData.child('d').val() >= 0 && newData.child('d').val() <= 100000)"
           }
         }
       },
@@ -85,7 +85,11 @@
       "day": {
         "$d": {
           "$k": {
-            ".write": true
+            ".write": true,
+            ".validate": "!$d.beginsWith('vc') || (newData.child('c').isString() && newData.child('c').val().matches(/^[A-Z2-9]{5}$/) && newData.child('n').isString() && newData.child('n').val().length <= 12 && !newData.child('n').val().matches(/(선생님|관리자|운영자)/) && newData.child('m').isString() && newData.child('m').val().length <= 40 && newData.child('at').isNumber())",
+            "$f": {
+              ".validate": "!$d.beginsWith('vc') || ($f.matches(/^(c|n|m|at|b)$/)) || ($f == 'r' && newData.isString() && newData.val().length <= 40)"
+            }
           }
         }
       },
@@ -171,7 +175,7 @@
         "$kid": {
           "$id": {
             ".write": true,
-            ".validate": "!newData.exists() || (newData.child('at').isNumber() && (!newData.child('g').exists() || (newData.child('g').isNumber() && newData.child('g').val() >= 0 && newData.child('g').val() <= 500)) && (!newData.child('from').exists() || newData.child('from').val().length <= 20))"
+            ".validate": "!newData.exists() || (newData.child('at').isNumber() && (!newData.child('g').exists() || (newData.child('g').isNumber() && newData.child('g').val() >= 0 && newData.child('g').val() <= 500)) && (!newData.child('p').exists() || (newData.child('p').isNumber() && newData.child('p').val() >= 0 && newData.child('p').val() <= 10000)) && (!newData.child('from').exists() || newData.child('from').val().length <= 20) && (!newData.child('n').exists() || (newData.child('n').isString() && newData.child('n').val().length <= 12)) && (!newData.child('i').exists() || (newData.child('i').isString() && newData.child('i').val().length <= 1000)) && (!newData.child('st').exists() || (newData.child('st').isString() && newData.child('st').val().length <= 4000)) && (!newData.child('dx').exists() || (newData.child('dx').isString() && newData.child('dx').val().length <= 8000)))"
           }
         }
       },

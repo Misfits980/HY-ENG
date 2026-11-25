@@ -16002,7 +16002,7 @@ setTimeout(()=>{ try{ const t=document.querySelector('#selRule .c-town'); if(t &
   if(location.hash==="#townname"){ history.replaceState(null, "", location.pathname+location.search); setTimeout(()=>{ try{ if(!TownGate.ok()) TownGate.show(); else if(!TownGate.named()) TownGate.askName(); }catch(e){} }, 800); }   /* (v684) 마을에서 「이름 정하기」 */
   TownGate.card(); }catch(e){} }, 0);
 /* (v428) 🎲 보드게임 미리 해 보기 — 주소 끝에 #board 를 붙여 열면 이 기기에서만 카드가 보임 (다시 숨기기: #noboard) */
-try{ if(location.hash==="#board") localStorage.setItem("hyeng_board_try","1"); if(location.hash==="#noboard") localStorage.removeItem("hyeng_board_try"); /* (v441) 보드게임 카드 자리는 🎮 수업 게임 — 선생님 시범은 관리자 「🎲 영어 파티 보드 시범」 */ }catch(e){}
+/* (v722) 정리: 주소 끝 #board 로 아무 기기나 점검 중인 보드게임을 열던 길을 없앰 — 선생님 기기만 (관리 「🎲 영어 파티 보드 시범」은 그대로) */ try{ /* (v441) 보드게임 카드 자리는 🎮 수업 게임 — 선생님 시범은 관리자 「🎲 영어 파티 보드 시범」 */ }catch(e){}
 pickers("selRule", v=>{
   if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town" && !townOpen()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; townClosed(); return; }   // (v601) 🛠 점검 중 (선생님 기기는 들어감)
@@ -16014,7 +16014,7 @@ pickers("selRule", v=>{
   if(v==="join"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ SFX.select(); }catch(e){} RaidJoin.open(); return; }
   if(v==="board"){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal";
     /* (v440) 사용자: "애들한테 보이게 하는데 서비스 점검 중" — 아이 화면은 카드만 보이고 열리지 않음 · 선생님은 관리자 「🎲 영어 파티 보드 시범」(또는 #board 기기) */
-    let tr=false; try{ tr=!!localStorage.getItem("hyeng_board_try"); }catch(e){} if(!tr){ try{ SFX.click(); }catch(e){} hyToast("🔧 🎲 보드게임은 지금 점검 중이에요<br><small>곧 열려요! 조금만 기다려 주세요</small>", 2200); return; }
+    let tr=false; try{ tr=Kid.teacher(); if(!tr) localStorage.removeItem("hyeng_board_try"); }catch(e){} if(!tr){ try{ SFX.click(); }catch(e){} hyToast("🔧 🎲 보드게임은 지금 점검 중이에요<br><small>곧 열려요! 조금만 기다려 주세요</small>", 2200); return; }
     Board.setup(); return; }   // (v424) 🎲 보드게임   // Daily 30 = 공부 화면 (v212)
   G.rule=v; nextStep(); });
 function refreshExtremeTile(){
@@ -16224,7 +16224,8 @@ const NameCard = {
     if(!force && Array.from(String(raw||"").trim()).length>this.MAX) return "이름은 "+this.MAX+"글자까지예요";
     if(!v) return "이름을 적어 주세요";
     if(v.toUpperCase()==="PLAYER") return "다른 이름을 적어 주세요";
-    if(!force && /^한양|패드$/.test(v)) return "「한양…」「…패드」는 학원 공용 패드 이름이에요 — 다른 이름을 적어 주세요";   /* (v477) 개인 패드가 공용 패드처럼 바뀌어 기록이 따로 가던 것 */
+    if(!force && /^한양|패드$/.test(v)) return "「한양…」「…패드」는 학원 공용 패드 이름이에요 — 다른 이름을 적어 주세요";
+    if(!force && HY_STAFF_NAME.test(v) && !Kid.teacher()) return "「선생님 · 관리자」 같은 이름은 쓸 수 없어요 — 내 이름을 적어 주세요";   /* (v722) 보안 점검 33: 선생님인 척 하기 */   /* (v477) 개인 패드가 공용 패드처럼 바뀌어 기록이 따로 가던 것 */
     if(v===old) return "지금 이름과 같아요";
     let how;
     if(force) how=force;
@@ -17853,7 +17854,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v721";
+const GAME_VER = "v722";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -23021,7 +23022,7 @@ const FBAuth = {
 };
 try{ setInterval(()=>{ if(FBAuth.on()) FBAuth.token(); }, 5*60000); }catch(e){}
 try{ if(FB_API_KEY) localStorage.setItem("hyeng_fb_key", FB_API_KEY); }catch(e){}
-const FB_URLS = ["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app", "https://hy-eng-raid-default-rtdb.firebaseio.com", "https://hy-eng-raid-default-rtdb.europe-west1.firebasedatabase.app"];
+const FB_URLS = ["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"];   // (v722) 정리: 우리 서버(아시아)만 — 예전에 시험하던 다른 주소 2개는 없는 서버라 처음 켤 때 기다리기만 했다
 const FB = (function(){
   let base=null, mode=null, probing=null, bc=null, mem=null, lastErr=null;   /* (v355) 마지막 쓰기 실패 (선생님 화면에 「서버에 저장 못 함」) */ const L=[], LK="hyeng_fb_local", QK="hyeng_fb_q", Q=[];
   /* (v305) 학원 보스 데미지(hy/…)는 와이파이가 끊겨도 버리지 않고 기기에 모아 두었다가 다시 연결되면 보냄 */
@@ -23139,6 +23140,8 @@ const RaidNet = (function(){ let h=null, room=null, subs=[], last=null, tm=0;
    → ① 선생님 기기(관리 비밀번호를 넣은 기기 · 「🧑‍🏫 선생님이에요」) = 아이 이름은 이번에만(20분 · sessionStorage) · 평소엔 선생님 이름
      ② 플레이어 이름을 바꾸면 명단 연결을 풀고 새 이름과 같은 명단 아이가 있으면 그 아이로 · ③ 이름에서 저절로 붙은 연결(auto)은 이름이 달라지면 버림
      ④ 설정 ✏️ 내 이름 아래 「👤 기록이 쌓이는 이름」 + 한 번에 풀기 */
+/* (v722) 보안 점검 33 — 아이 이름 · 마을 대화 이름으로 「선생님 · 관리자 · 운영자」 같은 말 막기 (띄어쓰기 · 영어도) */
+const HY_STAFF_NAME=/선\s*생\s*님|쌤|관\s*리\s*자|운\s*영\s*자|원\s*장\s*님|teacher|admin|staff|manager|gm\b/i;
 const HY_PIN_H="2767bcc0af23670ffa42b9523c2ecb7094b07ede9a55dde9232a3bd379d8bd08";
 function hySha(s){ try{ return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")).catch(()=>""); }catch(e){ return Promise.resolve(""); } }
 const Kid = {
@@ -23256,8 +23259,10 @@ const Gift = {
     let done={}; try{ done=JSON.parse(localStorage.getItem(this.DONE))||{}; }catch(e){}
     const S={g:0, i:0, st:0, dx:0, from:{}};
     Object.keys(all).forEach(k=>{ const v=all[k]; if(!v || typeof v!=="object") return; if(!done[k]){ done[k]=Date.now();
-        if(v.g>0){ Wallet.addGems(Math.min(5000, v.g|0), "🎁 수업 보석 ("+String(v.from||"공용 패드").slice(0,14)+")"); S.g+=Math.min(5000, v.g|0); }
-        if(v.p>0) S.g+=Wallet.addPts(Math.min(200000, v.p|0));
+        /* (v722) 보안 점검: 선물 칸은 아직 누구나 쓸 수 있어서(v723 에서 막음) 한 번에 받는 양을 줄임 — 한 개 💎1000 · 점수 1만(💎500) · 한 번에 모두 💎2000 까지 */
+        const room=Math.max(0, 2000-S.g);
+        if(v.g>0 && room){ const g=Math.min(1000, room, v.g|0); Wallet.addGems(g, "🎁 수업 보석 ("+String(v.from||"공용 패드").slice(0,14)+")"); S.g+=g; }
+        if(v.p>0 && S.g<2000) S.g+=Wallet.addPts(Math.min(10000, (2000-S.g)*GEM.PER, v.p|0));
         if(v.i) String(v.i).split(",").forEach(id=>{ if(id && !Wallet.owns(id)){ Wallet.give(id); S.i++; } });
         if(v.st){ try{ const o=JSON.parse(v.st); Object.keys(o).forEach(kk=>{ const a=kk.split("|"), n=+a[1]; if(!a[0] || !(n>0)) return; if((o[kk]|0)>Study.lv(a[0],n)){ Study.setLv(a[0],n,Math.min(4,o[kk]|0)); S.st++; } }); }catch(e){} }
         if(v.dx) String(v.dx).split(",").forEach(en=>{ if(en && Dex.add(en, true)) S.dx++; });
@@ -23273,7 +23278,8 @@ const Gift = {
 try{ addEventListener("pagehide", ()=>{ try{ Gift.flush(); }catch(e){} }); document.addEventListener("visibilitychange", ()=>{ if(document.hidden) try{ Gift.flush(); }catch(e){} }); }catch(e){}
 /* (v417) 🎓 졸업 · 주인 바꾸기 — 주인 패드의 기록을 /hy/move/<아이> 에 맡김 → 그 아이 새 기기에서 이름을 고르면 「가져올까요?」 */
 const Move = {
-  SKIP:/^(hyeng_dev|hyeng_admin_key|hyeng_nick|hyeng_tag|hyeng_pad_owner|hyeng_fb_url|hyeng_fb_q|hyeng_fb_local|hyeng_sheetq|hyeng_kid|hyeng_acts_v1|hyeng_gift_done|hyeng_move_seen|hyeng_hb2)$/,
+  /* (v722) 보안 점검 31: 가짜 백업에 「선생님 기기」 표시 · 관리 열쇠를 넣어 두면 가져온 기기가 선생님 기기가 됐다 → 기기 전용 · 선생님 칸은 넣지도 빼지도 않음 */
+  SKIP:/^(hyeng_dev|hyeng_admin_\w*|hyeng_teacher_dev|hyeng_fb_key|hyeng_unhook|hyeng_nick|hyeng_tag|hyeng_pad_owner|hyeng_fb_url|hyeng_fb_q|hyeng_fb_local|hyeng_sheetq|hyeng_kid|hyeng_acts_v1|hyeng_gift_done|hyeng_move_seen|hyeng_hb2)$/,
   keys(){ const out=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(hyeng|wgr)_/.test(k)) out.push(k); } }catch(e){} return out; },
   /* 주인 패드 → 주인 것만 (다른 아이 수업 칸 @… · 다른 아이 이름이 붙은 칸은 뺌) */
   pack(o){ const sid=String(o.k).replace(/[^\w-]/g,""), other=Object.keys((()=>{ try{ return HyBoss.kids(); }catch(e){ return {}; } })()).filter(k=>k!==o.k).map(k=>String(k).replace(/[^\w-]/g,"")), d={};
@@ -29695,13 +29701,16 @@ const Admin = (function(){
     if(!srv.v) return '<div class="adSrv bad">⚠️ Apps Script를 새 버전으로 바꿔야 해요 (아래 순서대로)</div>';
     if(!tk) return '<div class="adSrv bad">✅ 서버는 새 버전이에요 · 아래에서 열쇠를 만들어 넣어 주세요</div>';
     if(srv.key==="nokey") return '<div class="adSrv bad">⚠️ 서버에 선생님 열쇠가 없어요 <button class="mini" data-ad="tab" data-t="set" data-s="key">🔑 열쇠 넣는 순서 ›</button></div>';
+    if(srv.key==="wait") return '<div class="adSrv bad">⏳ 틀린 열쇠가 여러 번 와서 서버가 10분 동안 잠깐 막았어요 · 잠시 뒤 「🔄 다시 확인」</div>';   // (v722)
+    if(srv.key==="badkey" && srv.v>=26) return '<div class="adSrv bad">⚠️ 이 기기는 아직 선생님 기기로 연결되지 않았어요 <button class="mini" data-ad="tab" data-t="set" data-s="key">📱 6자리 코드로 연결 ›</button></div>';   // (v722) 옛 열쇠를 끈 뒤
     if(srv.key==="badkey") return '<div class="adSrv bad">⚠️ 이 기기의 선생님 열쇠가 서버와 달라요 — 📊 랭킹 통계·반 전체 기록이 안 나와요 <button class="mini" data-ad="tab" data-t="set" data-s="key">🔑 열쇠 맞추기 ›</button><br><small>다른 기기에서 「새 열쇠」를 만들었다면 그 열쇠를 여기 「다른 선생님 기기에서 만든 열쇠 넣기」에 넣어요</small></div>';   /* (v672) 크롬 점검: 「아래 순서대로」인데 수업 탭 아래엔 안내가 없었음 → 열쇠 칸으로 바로 */
-    if(srv.key==="ok") return srv.v<25 ? '<div class="adSrv">🏡 My Town 「Stage 3개」 기기끼리 합쳐 세기 · 🤝 짝 퀘스트를 쓰려면 <b>새 Code.gs (v25)</b> 를 붙여 넣어 주세요 — ⚙️ 설정 「📋 새 Code.gs 복사」 → Apps Script → 배포 관리 → ✏️ → 새 버전</div>' : '';   // (v395) 잘 되면 아무것도 안 보임 · (v690) 서버 v24 전이면 한 줄
+    if(srv.key==="ok") return srv.v<26 ? '<div class="adSrv">🔐 선생님 기기 연결(6자리 코드)을 쓰려면 <b>새 Code.gs (v26)</b> 를 붙여 넣어 주세요 — ⚙️ 설정 「📋 새 Code.gs 복사」 → Apps Script → 배포 관리 → ✏️ → 새 버전</div>' : '';   // (v395) 잘 되면 아무것도 안 보임 · (v690) 서버 v24 전이면 한 줄 · (v722) v26
     return '<div class="adSrv">서버 연결됨 · 열쇠 확인 중…</div>';
   }
   const ready=()=>srv && srv.v>0 && srv.key==="ok" && tk;
   /* (v268) 설정 안내 — 아직 안 됐으면 위쪽에 늘 펼친 카드로 (예전 접는 칸은 아이폰에서 안 열린다는 말이 있었다) */
   function keyBox(){
+    if(tk && srv && srv.v>=26 && srv.key==="ok") return '<p class="adSmall">'+(srv.legacy ? '⚠️ 옛 열쇠(비밀번호로 만든 것)를 쓰는 중 — 위 📱 카드에서 이 기기를 연결해 주세요' : '✅ 이 기기는 선생님 기기로 연결돼 있어요 · 열쇠는 이 기기에만 있어요')+'</p>';   // (v722) 열쇠 복사 · 붙여 넣기 대신 6자리 코드
     if(tk) return '<div class="adKeyBig"><small>선생님 열쇠 (아이들에게 보여 주지 마세요)</small><input id="adKeyTxt" type="password" readonly value="'+esc(tk)+'" aria-label="선생님 열쇠" onfocus="this.type=\'text\'" onblur="this.type=\'password\'">'
       +'<button class="play adGo" data-ad="copyKey">🔑 열쇠 복사</button><p class="adSmall">복사가 안 되면 위 칸을 길게 눌러 「전체 선택 → 복사」</p>'
       +(myKey() ? '<p class="adSmall">✅ 이 기기만의 긴 열쇠를 쓰는 중이에요. 다른 선생님 기기에서도 쓰려면 아래 칸에 이 열쇠를 넣어 주세요.</p>'
@@ -29713,6 +29722,7 @@ const Admin = (function(){
   /* (v338) 사용자: 열쇠가 이미 ✅ 이면 설정 카드가 숨어서 「새 열쇠 만들기」가 안 보였다 (맨 아래 접힌 「설정 다시 보기」 안에만 있었음)
      → 아직 비밀번호에서 만든 열쇠를 쓰면 📢 공지 · 📮 보내기 맨 위에 카드로 보여 줌 */
   function keyUp(){
+    if(srv && srv.v>=26) return '';   // (v722) 「ADMIN_KEY 바꾸기」 대신 📱 기기 연결
     if(!ready() && myKey() && (!srv || srv.key===null)) return '<section class="adCard adSetupCard"><h3>🔐 새 열쇠</h3>'+keyBox()+'<p class="adSmall">복사해서 스크립트 속성 <code>ADMIN_KEY</code> 에 넣은 뒤 🔄 다시 확인</p><button class="mini" data-ad="recheck" style="width:100%;margin-top:8px">🔄 다시 확인</button></section>';   // 확인하는 동안에도 복사할 수 있게
     if(!ready() || myKey()) return '';
     return '<section class="adCard adSetupCard"><h3>🔐 열쇠를 더 안전하게 바꿔 주세요</h3>'
@@ -29726,6 +29736,7 @@ const Admin = (function(){
   }
   function setupCard(){
     if(ready()) return '';
+    if(srv && srv.v>=26 && (srv.key==="badkey"||srv.key==="wait")) return '';   // (v722) 옛 열쇠를 끈 뒤 연결 안 된 기기 = 📱 6자리 코드 카드만 (ADMIN_KEY 안내 대신)
     if(srv && srv.v<0) return '<button class="mini" data-ad="recheck" style="width:100%">🔄 인터넷 연결 다시 확인</button>';
     if(!srv || (srv.v>0 && tk && srv.key===null)) return '';   // (v308) 확인하는 동안 설정 카드를 띄우지 않음   // (v306) 잠깐 끊긴 것을 '서버 설정' 으로 보이지 않게
     const step = !srv ? 0 : srv.v<=0 ? 1 : 2;
@@ -29981,7 +29992,26 @@ const Admin = (function(){
       : '<p class="adSmall">꺼져 있어요</p><button class="mini" data-ad="go" data-t="boss">👹 주간 보스 켜기</button>');
     return h; }
   /* (v341) ⚙️ 설정 — 📢 공지 · 📮 보내기 · 🔑 서버 열쇠 · 📊 이 기기 · 🛠 고치기 · 💾 옮기기 */
-  function keyPane(){ return srvLine()+setupCard()+keyUp()+(ready() ? card('🔑 선생님 열쇠', keyBox()+'<button class="mini" data-ad="recheck" style="width:100%;margin-top:8px">🔄 다시 확인</button>') : '')+'<div class="adMsg" id="adMsg"></div>'; }
+  /* (v722) 🔐 선생님 기기 연결 — 관리 비밀번호는 그대로 (사용자) · 예전 비밀번호 확인 값이 공개 저장소 기록에 남아 있어 비밀번호에서 만든 서버 열쇠는 누구나 다시 만들 수 있음
+     → 연결된 기기에서 6자리 코드(10분 · 한 번) → 새 기기가 서버에서 자기 무작위 열쇠를 받음(LKEY) · 모든 선생님 기기를 연결한 뒤 「옛 열쇠 끄기」 (서버 v26) */
+  let pairCode=null, devL=null, devBusy=false;
+  const devName=()=>{ const u=navigator.userAgent||""; const k=/iPhone/.test(u)?"아이폰":(/iPad/.test(u)||(/Macintosh/.test(u)&&"ontouchend" in document))?"아이패드":/Android/.test(u)?(/Mobile/.test(u)?"안드로이드 폰":"안드로이드 패드"):/Windows/.test(u)?"윈도우 PC":/CrOS/.test(u)?"크롬북":/Mac/.test(u)?"맥":/Linux/.test(u)?"리눅스 PC":"기기"; const b=/Edg\//.test(u)?"엣지":/SamsungBrowser/.test(u)?"삼성 인터넷":/CriOS|Chrome\//.test(u)?"크롬":/Safari\//.test(u)?"사파리":"브라우저"; const d=new Date(); return k+" · "+b+" · "+(d.getMonth()+1)+"/"+d.getDate(); };
+  function loadDevs(){ if(devBusy || !ready()) return; devBusy=true; Online.submit({type:"devList", tk}).then(r=>{ devBusy=false; if(r && r.ok){ devL=r; if(ok && tab==="set"){ keepScroll=true; draw(); } } }).catch(()=>{ devBusy=false; }); }
+  function pairCard(){ if(!(srv && srv.v>=26)) return srv && srv.v>0 && srv.key==="ok" ? card('📱 선생님 기기 연결', '<p class="adSmall">시트 서버를 v26 으로 올리면 보여요 (새 Code.gs → 새 버전 배포)</p>') : '';
+    const inBox='<div class="adPinRow"><input id="adPairIn" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6자리 코드" aria-label="6자리 코드"><button class="mini go" data-ad="pairUse">연결</button></div>';
+    if(!ready()) return srv.key==="badkey"||srv.key==="wait" ? card('📱 이 기기를 선생님 기기로 연결', '<p class="adSmall">이미 연결된 선생님 기기의 관리 화면 ⚙️ 설정 → 🔑 「🔢 6자리 코드 만들기」 → 그 숫자를 여기 넣어요 (10분 · 한 번)</p>'+inBox) : '';
+    if(!devL) setTimeout(loadDevs, 0);
+    const L=(devL && devL.list)||[], legacy=srv.legacy, rows=L.map(x=>'<div class="adPinRow"><span style="flex:1">'+(x.me?'✅ ':'📱 ')+esc(x.n)+(x.me?' <b>(이 기기)</b>':'')+'<br><small>연결 '+when(x.at)+(x.u?' · 마지막 '+when(x.u):'')+'</small></span><button class="mini" data-ad="devDel" data-i="'+(x.i|0)+'">빼기</button></div>').join('');
+    let h='';
+    if(legacy && devL && !L.length) h+='<p class="adSmall">지금은 비밀번호로 만든 <b>옛 열쇠</b>를 써요. 옛 비밀번호 확인 값이 공개 기록에 남아 있어서, 기기마다 따로 열쇠를 받는 게 안전해요.</p><button class="play adGo" data-ad="pairSelf">📱 이 기기를 첫 선생님 기기로 연결</button><p class="adSmall">그다음 다른 선생님 기기(휴대폰 · 패드)는 이 기기에서 만든 6자리 코드로 연결해요.</p>';
+    else if(legacy) h+='<p class="adSmall">⚠️ 이 기기는 아직 <b>옛 열쇠</b>예요. 연결된 선생님 기기에서 「🔢 6자리 코드 만들기」 → 여기 넣어 주세요.</p>'+inBox;
+    else h+='<p class="adSmall">다른 선생님 기기(휴대폰 · 패드)를 연결하려면 코드를 만들고, 그 기기 관리 화면 ⚙️ 설정 → 🔑 에 넣어요 (10분 · 한 번만)</p>'
+        +(pairCode && Date.now()<pairCode.until ? '<div style="font:900 34px/1.2 var(--font);letter-spacing:8px;text-align:center;margin:8px 0">'+esc(pairCode.code.slice(0,3)+" "+pairCode.code.slice(3))+'</div><p class="adSmall" style="text-align:center">'+Math.max(1,Math.ceil((pairCode.until-Date.now())/60000))+'분 안에 넣어요 · 아이들에게 보여 주지 마세요</p>' : '<button class="play adGo" data-ad="pairMake">🔢 6자리 코드 만들기</button>');
+    if(L.length) h+='<p class="adSmall" style="margin-top:10px">연결된 선생님 기기 '+L.length+'대 — 모르는 기기가 있으면 「빼기」</p>'+rows;
+    if(devL && !legacy) h+= devL.off ? '<p class="adSmall" style="margin-top:8px">🔒 옛 열쇠(비밀번호로 만든 것)는 꺼져 있어요 — 연결된 기기만 공지 · 보석 · 반 기록을 써요</p>'
+        : '<button class="mini" data-ad="legacyOff" style="width:100%;margin-top:10px">🔒 옛 열쇠 끄기 (모든 선생님 기기를 연결한 뒤에)</button>';
+    return card('📱 선생님 기기 연결', h); }
+  function keyPane(){ return srvLine()+setupCard()+keyUp()+pairCard()+(ready() ? card('🔑 선생님 열쇠', keyBox()+'<button class="mini" data-ad="recheck" style="width:100%;margin-top:8px">🔄 다시 확인</button>') : '')+'<div class="adMsg" id="adMsg"></div>'; }
   function sendPane(){ return '<div class="full">'+srvLine()+setupCard()+'</div><div class="adCol"><h2 class="adColH">💎 보석 · 선물 보내기</h2>'+send(true)+'</div><div class="adCol"><h2 class="adColH">📢 공지</h2>'+notice(true)+'</div>'; }
   function setPane(){ if(!SUBS.some(x=>x[0]===sub)) sub="key";
     const nav='<div class="adSub full">'+SUBS.map(([k,i,t])=>'<button class="'+(k===sub?'on':'')+'" data-ad="sub" data-s="'+k+'"><span>'+i+'</span>'+t+'</button>').join('')+'</div>';
@@ -30089,7 +30119,7 @@ const Admin = (function(){
     Notice.fetch(true).then(j=>{
       srv = {v: j ? (j.v||0) : -1, notices: j ? j.notices : [], key:null, at:Date.now()};
       if(srv.v<=0 || !tk){ if(ok && needSrv()) draw(); return; }
-      return Online.submit({type:"check", tk}).then(r=>{ srv.key = r && r.ok ? "ok" : (r && r.err) || "nokey"; if(ok && needSrv()){ keepScroll=true; draw(); } if(tab==="class"||tab==="now"||tab==="rec"||tab==="prize") loadRep(); });
+      return Online.submit({type:"check", tk}).then(r=>{ srv.key = r && r.ok ? "ok" : (r && r.err) || "nokey"; srv.legacy = !!(r && r.ok && r.legacy); srv.off = !!(r && r.off);   /* (v722) 옛 열쇠인지 */ if(ok && needSrv()){ keepScroll=true; draw(); } if(tab==="class"||tab==="now"||tab==="rec"||tab==="prize") loadRep(); });
     });
   }
   function post(rec, done){
@@ -30241,7 +30271,7 @@ const Admin = (function(){
     if(a==="tab"||a==="go"){ if(el.dataset.s){ sub=el.dataset.s; ss("hyeng_admin_sub",sub); } else if(el.dataset.t==="set" && !SUBS.some(x=>x[0]===sub)) sub="key"; tab=normTab(el.dataset.t||"now", el.dataset.s); ss(TB,tab);
       const sec0=el.dataset.sec, fk={adBtSet:"bt", adRdBook:"rd", adRrSet:"rr"}[sec0]; if(fk) nowOpen=fk; try{ SFX.click(); }catch(e){} draw(); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} after();
       const sec=el.dataset.sec; if(sec) setTimeout(()=>{ const t=$(sec); if(t){ const dd=t.closest("details"); if(dd) dd.open=true; const c=t.closest(".adCard")||t; try{ c.scrollIntoView({block:"start", behavior:"smooth"}); }catch(e){} c.classList.add("adFlash"); setTimeout(()=>c.classList.remove("adFlash"), 1400); } }, 80); return; }
-    if(a==="sub"){ sub=el.dataset.s; ss("hyeng_admin_sub",sub); try{ SFX.click(); }catch(e){} draw(); after(); return; }
+    if(a==="sub"){ if(el.dataset.s==="key") devL=null; sub=el.dataset.s; ss("hyeng_admin_sub",sub); try{ SFX.click(); }catch(e){} draw(); after(); return; }
     if(a==="tmOpenAdd"){ const d=$("adTmAdd"); if(d){ d.open=true; try{ d.scrollIntoView({block:"start", behavior:"smooth"}); }catch(e){} } return; }
     if(a==="kdCopy"){ const K=HyBoss.kids(), x=K[el.dataset.k], D=rep && rep.d ? canonRep(rep.d) : {}, W=x && kidRow(x.n, D.weekly), t=W && W[12] ? pmOf(W) : ""; if(!t) return;
       const old=()=>{ msg("복사가 안 돼요 — 시트 「주간 리포트」에서 복사해 주세요", false); }; try{ navigator.clipboard.writeText(t).then(()=>{ flash(el,"✅ 복사됨"); }, old); }catch(e){ old(); } return; }
@@ -30251,6 +30281,18 @@ const Admin = (function(){
     if(a==="mkKey"){ const v=($("adPin2").value||"").trim();
       sha("hyeng-admin:"+v).then(h=>{ if(h && h===PIN_H) keyOf(v).then(t=>{ tk=t; ss(TK,t); keepScroll=true; draw(); check(true); });
         else { msg("비밀번호가 달라요"); $("adPin2").value=""; } }); return; }
+    if(a==="pairSelf"||a==="pairMake"||a==="pairUse"||a==="devDel"||a==="legacyOff"){   /* (v722) 📱 선생님 기기 연결 */
+      const E={wait:"여러 번 틀려서 잠깐 막혔어요 — 10분 뒤에 다시 해 주세요", badcode:"코드가 맞지 않거나 10분이 지났어요 — 새 코드를 받아 주세요", type:"시트 서버가 옛날 것이에요 (v26 필요)", notme:"연결된 선생님 기기에서 해 주세요", has:"이미 연결된 기기가 있어요 — 그 기기에서 6자리 코드를 받아 주세요", nodev:"먼저 이 기기를 연결해 주세요", last:"마지막 선생님 기기는 뺄 수 없어요 (옛 열쇠가 꺼져 있어서 아무도 못 들어오게 돼요)", busy:"서버가 바빠요 — 다시 눌러 주세요"};
+      const go=(rec, done)=>{ msg("보내는 중…"); Online.submit(rec).then(r=>{ if(r && r.ok) done(r); else if(r && (r.err==="badkey"||r.err==="nokey") && a!=="pairUse"){ srv.key=r.err; keepScroll=true; draw(); msg("서버 열쇠를 확인해 주세요"); } else msg((r && E[r.err]) || "보내지 못했어요 · 인터넷을 확인하고 다시 눌러 주세요"); }).catch(()=>msg("보내지 못했어요 · 인터넷을 확인하고 다시 눌러 주세요")); };
+      const got=r=>{ if(!goodKey(r.tk)) return msg("열쇠를 받지 못했어요 — 다시 해 주세요"); try{ localStorage.setItem(LKEY, r.tk); }catch(e){} tk=r.tk; ss(TK,tk); devL=null; pairCode=null; srv.key=null; keepScroll=true; draw(); check(true); msg("✅ 이 기기를 선생님 기기로 연결했어요", true); };
+      if(a==="pairSelf") return go({type:"pairSelf", tk, n:devName()}, got);
+      if(a==="pairUse"){ const c=(($("adPairIn")||{}).value||"").replace(/\D/g,""); if(c.length!==6) return msg("6자리 코드를 넣어 주세요"); return go({type:"pairUse", code:c, n:devName()}, got); }
+      if(a==="pairMake") return go({type:"pairMake", tk}, r=>{ pairCode={code:String(r.code||""), until:Date.now()+(+(r.ttl||600))*1000}; keepScroll=true; draw(); msg("이 숫자를 연결할 기기에 넣어요", true); clearTimeout(pairCard._t); pairCard._t=setTimeout(()=>{ pairCode=null; if(ok && tab==="set"){ keepScroll=true; draw(); } }, 600000); });
+      if(a==="devDel"){ const i=+el.dataset.i, x=((devL&&devL.list)||[]).find(y=>y.i===i); if(!x) return; if(!confirm("「"+x.n+"」를 선생님 기기에서 뺄까요?"+(x.me?"\n\n⚠️ 이 기기예요 — 빼면 이 기기도 다시 6자리 코드로 연결해야 해요":"\n(그 기기는 다시 6자리 코드로 연결해야 해요)"))) return;
+        return go({type:"devDel", tk, i}, ()=>{ devL=null; if(x.me){ try{ localStorage.removeItem(LKEY); }catch(e){} } keepScroll=true; draw(); msg("뺐어요", true); if(x.me) check(true); }); }
+      if(a==="legacyOff"){ if(!confirm("옛 열쇠(비밀번호로 만든 것)를 끌까요?\n\n· 연결된 선생님 기기만 공지 · 보석 · 반 기록을 써요\n· 아직 연결 안 한 선생님 기기가 있으면 먼저 6자리 코드로 연결해 주세요\n· 목록에 모르는 기기가 있으면 먼저 「빼기」")) return;
+        return go({type:"legacyOff", tk, on:1}, ()=>{ devL=null; srv.off=true; keepScroll=true; draw(); msg("🔒 옛 열쇠를 껐어요 — 이제 연결된 기기만 돼요", true); }); }
+    }
     if(a==="newKey"){ if(!confirm("새 열쇠를 만들까요?\n\n· 만든 뒤 꼭 「열쇠 복사」 → Apps Script 스크립트 속성 ADMIN_KEY 값을 바꿔 주세요\n· 바꾸기 전까지는 공지·보내기·반 보고서가 안 돼요\n· 다른 선생님 기기에는 「다른 기기 열쇠 넣기」로 같은 열쇠를 넣어요")) return;
       let k=""; try{ k=newKey(); localStorage.setItem(LKEY, k); }catch(e){ return msg("이 브라우저에서는 만들 수 없어요"); } tk=k; ss(TK,k); srv=null; keepScroll=true; draw(); check(true); msg("새 열쇠를 만들었어요 — 복사해서 ADMIN_KEY 에 넣어 주세요", true); return; }   /* (v337) 보안 */
     if(a==="putKey"){ const k=(($("adKeyIn")||{}).value||"").trim().toLowerCase(); if(!goodKey(k)) return msg("열쇠가 맞지 않아요 (긴 영어·숫자 열쇠를 그대로 붙여 넣어요)");
@@ -30331,7 +30373,7 @@ const Admin = (function(){
   function flash(el, t){ const o=el.textContent; el.textContent=t; setTimeout(()=>{ el.textContent=o; }, 1400); }
   /* 메뉴·상점 숫자 다시 그리기 */
   function refresh(){ try{ Unlock.paint(); }catch(e){} try{ if(typeof CharPick!=="undefined") CharPick.draw(); }catch(e){} }
-  function open(){ if(ok && !fresh()){ ok=false; tk=""; ss(SK,null); ss(TK,null); } else if(ok) ss(SK,String(Date.now()));
+  function open(){ devL=null;   /* (v722) 열 때마다 선생님 기기 목록 새로 */ if(ok && !fresh()){ ok=false; tk=""; ss(SK,null); ss(TK,null); } else if(ok) ss(SK,String(Date.now()));
     draw._k=""; draw(); $("shAdmin").classList.add("on"); requestAnimationFrame(tabInd); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(ok){ check(); after(); } }
   function close(){ $("shAdmin").classList.remove("on"); try{ rmSync(false); }catch(e){} }
   ["adBody","adTabs","adGearBtn"].forEach(id=>$(id).addEventListener("click", e=>{ const b=e.target.closest("[data-ad]"); if(b && !b.disabled) act(b.dataset.ad, b); }));
@@ -30422,6 +30464,7 @@ const Prize = {
   /* 선생님 — 산 아이 목록 · 줬어요 체크 · 판매 멈춤 */
   adminCard(){ const R=(HyBoss.R||{}), E=x=>Raid.esc(x), T=HyBoss.teams();
     return '<div class="full" id="adPrize">'+PRIZES.map(p=>{ const L=Object.keys((R.pz||{})[p.id]||{}).map(k=>Object.assign({k}, R.pz[p.id][k])).sort((a,b)=>(a.g|0)-(b.g|0) || (a.at||0)-(b.at||0)), off=!!((R.pzoff||{})[p.id]), past=HyBoss.dayOf(Date.now())>p.to, left=L.filter(x=>!x.g).length;
+      if(past && !left) return '';   /* (v722) 정리: 끝난 이벤트는 다 준 뒤엔 관리 화면에서 숨김 (산 기록은 서버에 그대로) */
       const tm=t=>{ const d=new Date(t||0); return (d.getMonth()+1)+"/"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
       return '<section class="adCard"><h3>'+p.emo+' '+E(p.name)+' 산 아이 '+L.length+'명'+(left?' · <b class="pzLeft">줘야 할 아이 '+left+'명</b>':'')+'<small>💎'+p.price+' · 한 사람 1번 · '+p.to.slice(5).replace("-","/")+'까지'+(past?' (끝남)':off?' (판매 멈춤)':' (파는 중)')+'</small></h3>'
         +(L.length ? '<div class="pzList">'+L.map(x=>'<div class="pzRow'+(x.g?' given':'')+'"><b>'+E(x.n||"?")+'</b><small>'+(T[x.t]?E((T[x.t].e||"")+" "+T[x.t].n)+' · ':'')+tm(x.at)+'</small><button class="mini'+(x.g?'':' go')+'" data-ad="pzGive" data-id="'+E(p.id)+'" data-k="'+E(x.k)+'">'+(x.g?'✅ 줬어요':'🎁 줬어요 체크')+'</button></div>').join('')+'</div>' : '<p class="adSmall">아직 산 아이가 없어요 — 아이들 상점 맨 위에 보여요</p>')

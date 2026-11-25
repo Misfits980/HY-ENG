@@ -51,7 +51,7 @@
   if(window.GUARD) return;
   const PAGE=/house\.html/.test(location.pathname) ? "town" : "game";
   const WD=!!navigator.webdriver;
-  const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app","https://hy-eng-raid-default-rtdb.firebaseio.com","https://hy-eng-raid-default-rtdb.europe-west1.firebasedatabase.app"];
+  const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"];   // (v722) 우리 서버만
   const ls={ get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
   const day=()=>{ const d=new Date(Date.now()+9*3600e3); return d.toISOString().slice(0,10).replace(/-/g,""); };   /* 한국 날짜 */
   const dev=()=>{ const u=navigator.userAgent||""; let os=/iPad|Macintosh.*Mobile|Macintosh/.test(u) && navigator.maxTouchPoints>1 ? "iPad" : /iPhone/.test(u) ? "iPhone" : /Android/.test(u) ? (/Mobile/.test(u)?"Android폰":"Android패드") : /Windows/.test(u) ? "Windows" : /Mac/.test(u) ? "Mac" : "기타";

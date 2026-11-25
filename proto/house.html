@@ -2848,18 +2848,20 @@ function sayTick(dt){ let a=false; const W=innerWidth, H=VH(); [hero].concat(Obj
   c.g.getWorldPosition(S.v); S.v.y+=1.95; S.v.project(camera); const x=(S.v.x+1)/2*W, y=(1-S.v.y)/2*H, off=S.v.z>1 || c.g.visible===false || x<-60 || x>W+60 || y<0 || y>H;
   S.el.style.display=off?"none":""; if(!off) S.el.style.transform="translate("+Math.round(x)+"px,"+Math.round(y)+"px) translate(-50%,-100%)"; }); return a; }
 /* 아래 대화 띠 (최근 4줄 · 20초) */
-function vcFeed(n, m, me){ VLN.feed.push({n:String(n||"친구").slice(0,10), m, me, at:Date.now()}); VLN.feed=VLN.feed.slice(-4); vcFeedDraw(); }
+function vcFeed(n, m, me){ VLN.feed.push({n:vcNm(n), m, me, at:Date.now()}); VLN.feed=VLN.feed.slice(-4); vcFeedDraw(); }
 function vcFeedDraw(){ const now=Date.now(); VLN.feed=VLN.feed.filter(f=>now-f.at<20000); $("vcFeed").innerHTML=VLN.feed.map(f=>'<div class="'+(f.me?'me':'')+'"><b>'+esc(f.n)+'</b>'+esc(f.m)+'</div>').join(""); }
 function vcFeedTick(){ const now=Date.now(); if(VLN.feed.length && now-VLN.feed[0].at>20000) vcFeedDraw(); }
 /* 💬 말하기 창 */
+/* (v722) 보안 점검 33 — 마을 대화에서 「선생님 · 관리자」 이름으로 말하기 막기 (보낼 때 · 보일 때 모두 「친구」) */
+const VC_STAFF=/선\s*생\s*님|쌤|관\s*리\s*자|운\s*영\s*자|원\s*장\s*님|teacher|admin|staff|manager/i, vcNm=n=>{ n=String(n||"친구").slice(0,10); return VC_STAFF.test(n) ? "친구" : n; };
 function vcDraw(){ if(!$("vcPane").classList.contains("on")) return; const L=Object.keys(VLN.msgs).sort().slice(-30).map(k=>VLN.msgs[k]);
-  $("vcList").innerHTML=L.length ? L.map(v=>'<p class="'+(v.c===myCode?'me':'')+'"><small>'+esc(String(v.n||"친구").slice(0,10))+'</small>'+esc(v.m)+'</p>').join("") : '<p class="vcEmpty">아직 아무도 말하지 않았어요 — 먼저 인사해 봐요! 👋</p>';
+  $("vcList").innerHTML=L.length ? L.map(v=>'<p class="'+(v.c===myCode?'me':'')+'"><small>'+esc(vcNm(v.n))+'</small>'+esc(v.m)+'</p>').join("") : '<p class="vcEmpty">아직 아무도 말하지 않았어요 — 먼저 인사해 봐요! 👋</p>';
   const el=$("vcList"); el.scrollTop=el.scrollHeight; const n=vlCount(); $("vcWho").textContent=n?"👥 마을 친구 "+n+"명":"지금은 나 혼자예요"; }
 function vcOpen(){ if(!vlHere()) return; $("vcPane").classList.add("on"); vcDraw(); }
 function vcSay(raw){ const now=Date.now(); if(now<VLN.cool){ toast("🙊 잠깐 쉬었다가 말해요", 1200); return false; } if(now-VLN.lastT<1500){ toast("🐢 천천히 말해요", 900); return false; }
   const {m, bad}=vcClean(raw); if(!m.replace(/[\s*]/g,"")){ if(bad) toast("🙅 그 말은 보낼 수 없어요", 1400); return false; }
   VLN.rep=VLN.rep.filter(r=>now-r[1]<20000); if(VLN.rep.filter(r=>r[0]===m).length>=2){ VLN.cool=now+10000; VLN.rep=[]; toast("🙊 같은 말을 너무 많이 했어요 — 10초 쉬어요", 1600); return false; } VLN.rep.push([m, now]);
-  VLN.lastT=now; const K=kidInfo(), id=now.toString(36)+myCode, v={c:myCode, n:K.n, m, at:now}; if(bad){ v.b=1; v.r=String(raw).slice(0,30); }
+  VLN.lastT=now; const K=kidInfo(), id=now.toString(36)+myCode, v={c:myCode, n:vcNm(K.n), m, at:now}; if(bad){ v.b=1; v.r=String(raw).slice(0,30); }
   VLN.msgs[id]=v; sayBubble(hero, m); vcFeed(K.n, m, true); vcDraw(); NET.put(VLN.mp+"/"+id, v).catch(()=>{}); if(bad) toast("🙅 나쁜 말은 *** 로 바꿨어요", 1400); try{ tEv("vchat"); }catch(e){} return true; }
 $("vcQuick").innerHTML=VC_QUICK.map(([en,ko],i)=>'<button data-q="'+i+'">'+en.replace(/</g,"&lt;")+'<small>'+ko+'</small></button>').join("");
 $("vcEmo").innerHTML=VC_EMO.map(e=>'<button data-e="'+e+'">'+e+'</button>').join("");
@@ -3458,7 +3460,7 @@ function frontCell(p){ return [[p.s,0],[RN-1,p.s],[p.s,RN-1],[0,p.s]][p.side]; }
    서버 = 게임과 같은 Firebase(REST) /hy/life : h/<집코드> 내 집 모습(올림) · req/<받는>/<보낸> 친구 요청 · fr/<나>/<친구> · lk/<집>/<보낸> 좋아요(날짜) · gb/<집>/<id> 스티커 방명록
    · 이름 = 게임에서 고른 반 명단 이름(hyeng_kid) — 자유 글자 없음 · 집 코드 5자(헷갈리는 0·O·1·I 없음)
    · 공용 패드(이름 '한양…'·'…패드') = 내 집을 올리지 않음 · 구경만 · 남의 집은 읽기만(가구를 못 옮기고·못 가져감) */
-const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app","https://hy-eng-raid-default-rtdb.firebaseio.com","https://hy-eng-raid-default-rtdb.europe-west1.firebasedatabase.app"];
+const NET=(()=>{ const URLS=["https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"];   /* (v722) 우리 서버(아시아)만 */
   let base=null, mode=null, probing=null, offAt=0;
   /* (v586) 사용자: 「은행에서 바꾸려는데 왜 안 돼?」(📡 서버 시계를 기다리는 중) — 처음 켤 때 한 번 연결이 늦으면 그 판 내내 「안 됨」으로 남았다 → 20초 뒤 다시 찾아봄 */
   function ready(){ if(mode==="off" && Date.now()-offAt>20000){ mode=null; probing=null; } if(mode) return Promise.resolve(mode); if(probing) return probing; let c=null; try{ c=localStorage.getItem("hyeng_fb_url"); }catch(e){}

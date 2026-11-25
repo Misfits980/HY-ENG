@@ -77,7 +77,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 25;  // (v698) 25 = 🤝 짝 퀘스트(board 답 me.pq · POST type "cheer" · 「짝 응원」 탭) · (v690) 24 = 🏡 My Town 「Stage 3개」를 기기끼리 합쳐 셈(scores 끝 「마을 칸」 · board 답 me.tw) · (v667) 23 = 🔥 오늘의 대결(board.today: 오늘 올린 점수 순위 · 오늘의 상 · me.today) · 선생님 📊 랭킹 통계(report.rk: 이번 주·지난주·이번 달·지난달 — 하루 1등 · 주 1등 · 한 날 · 푼 문제) · board fresh=1 · (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 26;  // (v722) 26 = 🔐 선생님 기기 연결(6자리 코드 → 기기마다 무작위 열쇠 · 옛 열쇠 끄기) · 틀린 열쇠 10분에 12번 넘으면 잠깐 막기 ·  // (v698) 25 = 🤝 짝 퀘스트(board 답 me.pq · POST type "cheer" · 「짝 응원」 탭) · (v690) 24 = 🏡 My Town 「Stage 3개」를 기기끼리 합쳐 셈(scores 끝 「마을 칸」 · board 답 me.tw) · (v667) 23 = 🔥 오늘의 대결(board.today: 오늘 올린 점수 순위 · 오늘의 상 · me.today) · 선생님 📊 랭킹 통계(report.rk: 이번 주·지난주·이번 달·지난달 — 하루 1등 · 주 1등 · 한 날 · 푼 문제) · board fresh=1 · (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -123,7 +123,8 @@ function doPost(e){
   if (d.type === "mt") return mtLog_(d);
   if (d.type === "cheer") return cheer_(d);                          // (v698) 🤝 짝 응원                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
   if (["duelFriends","duelSend","duelBox","duelDone"].indexOf(d.type) >= 0) return duel_(d);   // (v636) ⚔️ 스테이지 도전장
-  if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
+  if (d.type === "pairUse") return pairUse_(d);                      // (v722) 🔐 새 선생님 기기 — 6자리 코드로 연결
+  if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv","pairSelf","pairMake","devList","devDel","legacyOff"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
   /* (v367) 기기에 쌓였다가 늦게 온 기록은 실제로 판이 끝난 때(d.at)로 적는다 — 7일 안 · 미래는 안 됨. 그 밖에는 받은 때 */
@@ -1022,11 +1023,42 @@ function fbTeacher_(d){
   return json_({ok:r.getResponseCode() === 200, err:r.getResponseCode() === 200 ? "" : "firebase " + r.getResponseCode()});
 }
 /* 선생님 관리 화면 — 스크립트 속성 ADMIN_KEY 와 같은 열쇠만 */
+/* (v722) 🔐 선생님 기기 연결 — 사용자: 「관리 비밀번호는 안 바꿀게」 (예전 비밀번호 확인 값이 공개 저장소 기록에 남아 있어서 비밀번호에서 만든 열쇠는 언제든 다시 만들 수 있음)
+   → 기기마다 무작위 열쇠(서버엔 SHA-256 값만 · 스크립트 속성 ADMIN_DEV) · 연결된 기기에서 「6자리 코드」(10분 · 한 번) → 새 기기가 그 코드로 열쇠를 받음
+   · 옛 열쇠(ADMIN_KEY)는 「옛 열쇠 끄기」(ADMIN_LEGACY_OFF=1) 전까지 그대로 됨 · 틀린 열쇠·코드는 10분에 12번 넘으면 잠깐 막음 (아무나 계속 시도하지 못하게) */
+function hex_(s){ return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(s), Utilities.Charset.UTF_8).map(b=>((b<0?b+256:b).toString(16)).padStart(2,"0")).join(""); }
+function devs_(){ try { return JSON.parse(PropertiesService.getScriptProperties().getProperty("ADMIN_DEV") || "[]") || []; } catch(e){ return []; } }
+function devSave_(L){ PropertiesService.getScriptProperties().setProperty("ADMIN_DEV", JSON.stringify(L.slice(-12))); }
+function devEdit_(fn){ const lk = LockService.getScriptLock(); try { lk.waitLock(8000); } catch(e){ return null; } try { const L = devs_(), r = fn(L); if (r !== false) devSave_(L); return r; } finally { lk.releaseLock(); } }   // 두 기기가 동시에 바꿔도 목록이 안 날아가게
+function code6_(){ return String(parseInt(Utilities.getUuid().replace(/-/g, "").slice(0, 12), 16) % 1000000).padStart(6, "0"); }
+function badHit_(){ const c = CacheService.getScriptCache(), n = (+(c.get("bad_tk") || 0)) + 1; c.put("bad_tk", String(n), 600); return n; }
+function badWait_(){ return (+(CacheService.getScriptCache().get("bad_tk") || 0)) >= 12; }
+function keyWho_(tk){ tk = String(tk || ""); if (!tk) return null; const P = PropertiesService.getScriptProperties(), want = P.getProperty("ADMIN_KEY");
+  if (want && tk === want && P.getProperty("ADMIN_LEGACY_OFF") !== "1") return {legacy:true};
+  const h = hex_("hyeng-dev:" + tk), L = devs_(), i = L.findIndex(x=>x && x.h === h); return i >= 0 ? {i, dev:L[i]} : null; }
+function pairUse_(d){ if (badWait_()) return json_({ok:false, err:"wait"});
+  const code = String(d.code || "").replace(/\D/g, ""), c = CacheService.getScriptCache();
+  if (code.length !== 6 || c.get("pair_" + code) !== "1"){ badHit_(); return json_({ok:false, err:"badcode"}); }
+  c.remove("pair_" + code); const tk = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "");
+  if (devEdit_(L=>{ L.push({h:hex_("hyeng-dev:" + tk), n:txt_(d.n, 30) || "선생님 기기", at:Date.now()}); return true; }) === null) return json_({ok:false, err:"busy"});
+  return json_({ok:true, v:SERVER_V, tk}); }
 function teacher_(d){
-  const want = PropertiesService.getScriptProperties().getProperty("ADMIN_KEY");
-  if (!want) return json_({ok:false, err:"nokey"});
-  if (String(d.tk || "") !== want) return json_({ok:false, err:"badkey"});
-  if (d.type === "check") return json_({ok:true, v:SERVER_V});
+  const P = PropertiesService.getScriptProperties(), want = P.getProperty("ADMIN_KEY");
+  if (!want && !devs_().length) return json_({ok:false, err:"nokey"});
+  const who = keyWho_(d.tk); if (!who){ if (badWait_()) return json_({ok:false, err:"wait"}); badHit_(); return json_({ok:false, err:"badkey"}); }   /* 맞는 열쇠는 막지 않음 (남이 일부러 틀려서 선생님을 못 들어오게 하지 못하게) */
+  if (who.dev && Date.now() - (who.dev.u || 0) > 864e5) devEdit_(L=>{ const x = L.find(y=>y && y.h === who.dev.h); if (!x) return false; x.u = Date.now(); return true; });   // 마지막으로 쓴 날 (하루 한 번만 적음)
+  if (d.type === "check") return json_({ok:true, v:SERVER_V, legacy:!!who.legacy, off:P.getProperty("ADMIN_LEGACY_OFF") === "1", devs:devs_().length});
+  if (d.type === "pairSelf"){ if (!who.legacy) return json_({ok:false, err:"notlegacy"});   // 첫 선생님 기기 하나만 옛 열쇠로 바로 연결 (그 뒤로는 연결된 기기의 6자리 코드로만 — 옛 열쇠를 아는 남이 기기를 몰래 더하지 못하게)
+    const tk = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "");
+    const r = devEdit_(L=>{ if (L.length) return "has"; L.push({h:hex_("hyeng-dev:" + tk), n:txt_(d.n, 30) || "선생님 기기", at:Date.now()}); return true; });
+    return r === true ? json_({ok:true, v:SERVER_V, tk}) : json_({ok:false, err:r || "busy"}); }
+  if (d.type === "pairMake"){ if (!who.dev) return json_({ok:false, err:"notme"}); const code = code6_(); CacheService.getScriptCache().put("pair_" + code, "1", 600); return json_({ok:true, v:SERVER_V, code, ttl:600}); }
+  if (d.type === "devList") return json_({ok:true, v:SERVER_V, list:devs_().map((x, i)=>({i, n:x.n, at:x.at, u:x.u || 0, me:who.dev ? i === who.i : false})), legacy:!!who.legacy, off:P.getProperty("ADMIN_LEGACY_OFF") === "1"});
+  if (d.type === "devDel"){ const off = P.getProperty("ADMIN_LEGACY_OFF") === "1", i = +d.i;
+    const r = devEdit_(L=>{ if (!(i >= 0 && i < L.length)) return "i"; if (off && L.length <= 1) return "last"; L.splice(i, 1); return true; });   // 옛 열쇠를 껐으면 마지막 기기는 못 뺌 (아무도 못 들어오게 되니까)
+    return r === true ? json_({ok:true, v:SERVER_V}) : json_({ok:false, err:r || "busy"}); }
+  if (d.type === "legacyOff"){ if (d.on && !devs_().length) return json_({ok:false, err:"nodev"}); if (d.on && !who.dev) return json_({ok:false, err:"notme"});   // 연결된 기기에서만 끄기 (끄자마자 이 기기가 막히지 않게)
+    if (d.on) P.setProperty("ADMIN_LEGACY_OFF", "1"); else P.deleteProperty("ADMIN_LEGACY_OFF"); return json_({ok:true, v:SERVER_V, off:!!d.on}); }
   if (d.type === "report") return json_({ok:true, v:SERVER_V, at:Date.now(), rep:report_()});   // (v306) 우리 반 — 시트 요약 탭을 보이는 그대로
   if (d.type === "tags") return json_({ok:true, v:SERVER_V, list:tagList_(true)});
   if (d.type === "tagLv") return tagLv_(d);                                                         // (v631) 🏆 랭킹 단계 바꾸기                                 // (v404) 🏷 태그 목록
