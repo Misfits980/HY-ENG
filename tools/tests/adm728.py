@@ -106,6 +106,15 @@ async def main():
         ok(all(v <= 0 for v in ov.values()), "가로 넘침 없음 " + str(ov))
         tb = await E("()=>{ const b=document.getElementById('adToast'); return b ? parseFloat(getComputedStyle(b).bottom) : -1; }")
         ok(tb < 0 or tb >= 80, "알림 글이 아래 탭 위로 (" + str(tb) + "px)")
+        # 화면이 짧아 내려도 큰 단추 · 둥근 ＋ 가 아래 탭에 안 가림
+        await T.set_viewport_size({"width": 390, "height": 560})
+        hid = {}
+        for tb, sel in (("today", "#adBody .tdyGo"), ("class", "#adBody .adFab")):
+            await E("(t)=>Admin._tab(t)", tb); await T.wait_for_timeout(600)
+            await E("()=>{ const s=document.querySelector('#shAdmin .sheetIn'); s.scrollTop=Math.max(0, (s.scrollHeight-s.clientHeight)/2); }"); await T.wait_for_timeout(300)
+            hid[tb] = await E("(q)=>{ const b=document.querySelector(q), n=document.getElementById('adNav'), s=document.querySelector('#shAdmin .sheetIn'); if(!b) return 'none'; const r=b.getBoundingClientRect(); return [Math.round(r.bottom), Math.round(n.getBoundingClientRect().top), s.scrollHeight>s.clientHeight]; }", sel)
+        ok(all(isinstance(v, list) and v[2] and v[0] <= v[1] for v in hid.values()), "내려도 「수업 시작」 · ＋ 는 아래 탭 위에 " + str(hid))
+        await T.set_viewport_size({"width": 390, "height": 844})
         # 예전 모양 ↔ 휴대폰 모양
         await E("()=>Admin._tab('more')"); await T.wait_for_timeout(500)
         await E("()=>document.querySelector('#adBody [data-ad=phMode][data-v=\"0\"]').click()"); await T.wait_for_timeout(700)
