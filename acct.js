@@ -163,7 +163,11 @@ const Acct = {
   remember(a){ const L=this.list().filter(x=>x.id!==a.id); L.unshift({id:a.id, n:a.n, c:myChar(), at:Date.now()}); jset(AL, L.slice(0,4)); },
   forget(id){ jset(AL, this.list().filter(x=>x.id!==id)); },
   /* 공용 패드 · 선생님 기기는 1단계에 안 씀 */
-  usable(){ try{ if(TEST_STAGE) return false; }catch(e){} try{ const q=new URLSearchParams(location.search); if(q.has("admin") || q.has("vs")) return false; }catch(e){} try{ if(Kid.shared() || Kid.teacher()) return false; }catch(e){ return false; } return true; },
+  usable(){ try{ if(TEST_STAGE) return false; }catch(e){} try{ const q=new URLSearchParams(location.search); if(q.has("admin") || q.has("vs")) return false; }catch(e){} try{ if(Kid.shared() || Kid.teacher()) return false; }catch(e){ return false; }
+    /* (v725) 선생님 휴대폰(관리 화면을 6자리 코드로 연결한 기기 · 이번에 관리 화면을 연 기기)도 아이 로그인 안 띄움 — 사용자 「나도 로그인하라고 뜬다」 */
+    try{ if(/^[0-9a-f]{40,}$/.test(localStorage.getItem("hyeng_admin_key")||"")) return false; }catch(e){}
+    try{ if(sessionStorage.getItem("hyeng_admin_ok")) return false; }catch(e){}
+    return true; },
   call(o){ try{ return Online.submit(o).then(r=>r||{ok:false, err:"net"}).catch(()=>({ok:false, err:"net"})); }catch(e){ return Promise.resolve({ok:false, err:"net"}); } },
   base(){ try{ return FB_URLS[0]; }catch(e){ return ""; } },
   async tok(){ const a=this.get(); if(!a) return ""; if(a.tok && Date.now()<a.exp-864e5) return a.tok;
@@ -247,7 +251,7 @@ const Acct = {
 window.Acct=Acct;
 
 /* ───────────── 첫 화면 칩 (내 얼굴 · 이름 / 🔑 로그인) ───────────── */
-const Chip={ draw(){ const sc=$$("scStart"); if(!sc) return; let c=$$("acChip"); if(!c){ c=document.createElement("button"); c.id="acChip"; c.type="button"; sc.appendChild(c); c.addEventListener("click", ()=>{ tone(660,.06); if(Acct.on()) UI.me(); else UI.open(Acct.list().length ? "who" : "id"); }); }
+const Chip={ draw(){ const sc=$$("scStart"); if(!sc) return; let c=$$("acChip"); if(!Acct.on() && !Acct.usable()){ if(c) c.remove(); return; } if(!c){ c=document.createElement("button"); c.id="acChip"; c.type="button"; sc.appendChild(c); c.addEventListener("click", ()=>{ tone(660,.06); if(Acct.on()) UI.me(); else UI.open(Acct.list().length ? "who" : "id"); }); }
   const a=Acct.get(); c.className=a?"acChip in":"acChip"; c.innerHTML=a ? '<i style="'+face(myChar())+'"></i><b>'+esc(a.n)+'</b><span>▾</span>' : '<i class="k">🔑</i><b>로그인</b>'; } };
 
 /* ───────────── 로그인 화면 (시안 v16 · 로고 포털) ───────────── */
@@ -293,7 +297,7 @@ const UI={
   show(n){ const d=this.build(); const ORD={home:0,who:.5,id:1,wait:1.5,mine:1.6,pw:2,wel:3,me:0}; const dir=(ORD[n]||0)>=(ORD[this.cur]||0)?1:-1;
     d.querySelectorAll(".acS").forEach(s=>{ const on=s.dataset.s===n; if(on && this.cur!==n){ s.style.setProperty("--dx",(24*dir)+"px"); s.getBoundingClientRect(); } else if(s.classList.contains("on")) s.style.setProperty("--dx",(-24*dir)+"px"); s.classList.toggle("on", on); });
     this.cur=n; if(n==="id") this.drawId(); if(n==="pw") this.resetPw(); if(n==="who") this.drawWho(); },
-  open(n){ this.build(); document.body.classList.add("acOpen"); this.el.classList.add("on"); this.show(n||"home"); },
+  open(n){ if(!Acct.on() && !Acct.usable()) return; this.build(); document.body.classList.add("acOpen"); this.el.classList.add("on"); this.show(n||"home"); },
   close(){ if(!this.el) return; this.el.classList.remove("on","go"); document.body.classList.remove("acOpen"); this.T.forEach(clearTimeout); this.T=[]; },
   skip(){ try{ sessionStorage.setItem(SKIPK,"1"); }catch(e){} this.close(); Chip.draw(); },
   drawWho(){ const L=Acct.list(); $$("acPpl").innerHTML=L.map(x=>'<button type="button" data-who="'+esc(x.id)+'"><i style="'+face(x.c)+'"></i><b>'+esc(x.n)+'</b><small>'+esc(x.id)+'</small></button>').join(""); },

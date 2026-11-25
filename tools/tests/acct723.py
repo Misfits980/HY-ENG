@@ -64,6 +64,10 @@ async def main():
             t = await tp.evaluate("()=>(document.getElementById('acAdm')||{}).innerText||''")
             ok("아이 계정" in t and "0명" in t, "관리 👥 아이들에 🔐 아이 계정 카드 (아직 0명) " + t[:80].replace("\n", " "))
             ok(not await tp.evaluate("()=>!!document.getElementById('acctUI') && document.getElementById('acctUI').classList.contains('on')"), "선생님 기기엔 아이 로그인 화면이 안 뜸")
+            # (v725) 6자리 코드로 연결한 선생님 휴대폰(열쇠만 있고 「이 기기 = 선생님」은 안 누름)도 로그인 안 뜸
+            pctx, pp = await kid(br, errs, "P", "()=>{ localStorage.setItem('hyeng_admin_key', 'ab'.repeat(24)); }")
+            ok(await ui(pp) == "" and not await pp.evaluate("()=>!!document.getElementById('acChip')"), "연결된 선생님 휴대폰 = 로그인 화면 · 칩 없음")
+            await pctx.close()
             await tp.click("#acAdm [data-acx=mk]"); await tp.wait_for_timeout(300)
             sug = await tp.evaluate("()=>[...document.querySelectorAll('#acAdm [data-mki]')].map(i=>i.dataset.mki+'='+i.value)")
             ok(len(sug) == 3 and "r1=toto" in sug and "r2=satang" in sug, "명단 아이 3명 · 아이디 자동 제안(이름 → 영어) " + str(sug))
