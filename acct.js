@@ -123,6 +123,10 @@ body.acOpen{overflow:hidden}
 .acChip{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 12px);z-index:5;display:flex;align-items:center;gap:6px;padding:4px 12px 4px 4px;border-radius:99px;border:1.5px solid transparent;background:linear-gradient(180deg,#4a3889,#2c2062) padding-box,linear-gradient(180deg,#ffe58a,#c58a14) border-box;box-shadow:0 3px 0 #1a1238;font:900 13px var(--font,sans-serif);color:#fff3c4;cursor:pointer}
 .acChip i{width:28px;height:28px;border-radius:50%;background-color:#3d6db3;border:2px solid #ffd54a;display:grid;place-items:center;font-style:normal;font-size:14px}
 .acChip i.k{background:#2c2062}
+.acChip b.g{display:flex;flex-direction:column;align-items:flex-start;line-height:1.05}.acChip b.g small{font:800 10px var(--font,sans-serif);color:#cdbdf5;margin-top:1px;white-space:nowrap}
+#btnShop.acLk{position:relative;opacity:.62}#scSetup .acLkC{filter:saturate(.6) brightness(.93)}#scSetup .acLkC .townTag{color:#4b3527;background:#ffe08a}
+.acLkB{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);padding:3px 10px;border-radius:99px;background:rgba(20,14,48,.88);border:1.5px solid #ffd54a;color:#ffe9a8;font:900 12px var(--font,sans-serif);white-space:nowrap;pointer-events:none;z-index:2}
+#btnShop.acLk .acLkB{left:auto;right:6px;top:4px;bottom:auto;transform:none;padding:1px 6px;font-size:12px}
 .acAdm .acPend{border:1.5px solid #ffd54a;background:rgba(255,200,80,.1);border-radius:12px;padding:8px 10px;margin:6px 0;display:flex;flex-direction:column;gap:6px}
 .acAdm .acPend .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.acAdm .acPend .row span{flex:1;min-width:160px}
 .acAdm .acBar,.acAdm .acTabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
@@ -170,9 +174,10 @@ const Acct = {
     return true; },
   call(o){ try{ return Online.submit(o).then(r=>r||{ok:false, err:"net"}).catch(()=>({ok:false, err:"net"})); }catch(e){ return Promise.resolve({ok:false, err:"net"}); } },
   base(){ try{ return FB_URLS[0]; }catch(e){ return ""; } },
-  async tok(){ const a=this.get(); if(!a) return ""; if(a.tok && Date.now()<a.exp-864e5) return a.tok;
+  async tok(){ const a=this.get(); if(!a) return ""; let need=false; try{ need=!a.tag && !sessionStorage.getItem("hyeng_acct_tg"); }catch(e){} if(a.tok && Date.now()<a.exp-864e5 && !need) return a.tok;
+    try{ sessionStorage.setItem("hyeng_acct_tg","1"); }catch(e){}
     const r=await this.call({type:"acctRenew", uid:a.uid, dev:a.dk, ds:a.ds});
-    if(r && r.ok && r.tok){ const b=Object.assign({}, a, {tok:r.tok, exp:r.exp}, r.acct||{}); jset(AK, b); return b.tok; }
+    if(r && r.ok && r.tok){ const b=Object.assign({}, a, {tok:r.tok, exp:r.exp}, r.acct||{}); jset(AK, b); try{ if(/^\d{4}$/.test(b.tag||"")) localStorage.setItem("hyeng_tag", b.tag); }catch(e){} return b.tok; }
     if(r && r.err==="gone"){ this.kicked(); return ""; }
     return a.tok && Date.now()<a.exp ? a.tok : ""; },
   async fb(path, method, val){ const t=await this.tok(), b=this.base(); if(!t || !b) return {ok:false, err:"tok"};
@@ -193,7 +198,9 @@ const Acct = {
     setTimeout(()=>location.reload(), 500); return true; },
   /* 이 기기를 계정 아이로 — 예전 「나는 누구?」가 저절로 안 묻게 (명단 아이 · 게임 이름) */
   bind(a){ try{ if(a.rid) localStorage.setItem("hyeng_me", JSON.stringify({id:a.rid, at:Date.now(), t:a.t||"", acct:1})); }catch(e){}
-    try{ if(a.n) localStorage.setItem("hyeng_nick", a.n); }catch(e){} try{ localStorage.removeItem("hyeng_kid"); }catch(e){} },
+    try{ if(a.n) localStorage.setItem("hyeng_nick", a.n); }catch(e){} try{ localStorage.removeItem("hyeng_kid"); }catch(e){}
+    /* (v727) 🏷 계정 태그(서버 v28) = 이 기기 태그 — 랭킹·통계·My Town·도전장이 기기가 아니라 아이를 따라감 */
+    try{ if(/^\d{4}$/.test(a.tag||"")) localStorage.setItem("hyeng_tag", a.tag); }catch(e){} },
   async park(why){ const a=this.get(); if(!a) return false; const r=await this.fb("/kacct/"+a.uid+"/park/"+a.dk+"_"+Date.now().toString(36), "PUT", Object.assign(this.body(this.pack(), 0), {why})); return r.ok; },
   async put(rev){ const a=this.get(); if(!a) return {ok:false}; const data=this.pack(), t=JSON.stringify(data); if(t.length>3500000) return {ok:false, err:"big"};
     const r=await this.fb("/kacct/"+a.uid+"/main", "PUT", this.body(data, rev)); if(r.ok) jset(AS, {uid:a.uid, rev:rev|0, h:this.hash(t), at:Date.now()}); return r; },
@@ -229,30 +236,47 @@ const Acct = {
     this.bind(a); const r=await this.put(1); setTimeout(()=>location.reload(), 400); return r.ok ? {ok:1} : {err:r.err}; },
   /* 로그인 · 승인 기다림 */
   async login(id, pw){ const r=await this.call({type:"acctLogin", id, pw, dev:Online.dev(), n:devName()}); if(r && r.ok && r.tok) this.won(r); return r; },
-  won(r){ const a=Object.assign({uid:r.uid, dk:r.dk, ds:r.ds, tok:r.tok, exp:r.exp}, r.acct||{}); jset(AK, a); this.remember(a); try{ sessionStorage.removeItem(SKIPK); }catch(e){} },
+  won(r){ const a=Object.assign({uid:r.uid, dk:r.dk, ds:r.ds, tok:r.tok, exp:r.exp}, r.acct||{}); jset(AK, a); this.remember(a); try{ if(/^\d{4}$/.test(a.tag||"")) localStorage.setItem("hyeng_tag", a.tag); }catch(e){} try{ sessionStorage.removeItem(SKIPK); }catch(e){} Lock.set(false); },
   wait(id, pid){ return this.call({type:"acctWait", id, pid}); },
   /* 로그아웃 — 서버에 저장된 걸 확인한 뒤에만 · 이 기기 기록은 지움 (다음 아이가 섞이지 않게) */
   async logout(){ if(!this.on()) return {ok:1}; const ok=await this.save(true); if(!ok) return {err:"save"};
     const a=this.get(); this.remember(a);
     try{ Move.keys().forEach(k=>{ if(!Move.SKIP.test(k) && !/^hyeng_acct_list$/.test(k)) try{ localStorage.removeItem(k); }catch(e){} }); }catch(e){}
-    ["hyeng_me","hyeng_kid",AK,AS].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); try{ localStorage.setItem("hyeng_nick",""); }catch(e){}
+    ["hyeng_me","hyeng_kid","hyeng_tag",AK,AS].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); try{ localStorage.setItem("hyeng_nick",""); }catch(e){}   // (v727) 태그도 — 다음 아이 기록이 이 아이 태그로 가지 않게
     setTimeout(()=>location.reload(), 300); return {ok:1}; },
-  kicked(){ const a=this.get(); jset(AK, null); jset(AS, null); try{ hyToast("🔐 이 기기는 로그인이 풀렸어요"+(a?" ("+esc(a.n)+")":"")+" — 다시 로그인해요"); }catch(e){} },
+  kicked(){ const a=this.get(); jset(AK, null); jset(AS, null); ["hyeng_me","hyeng_tag"].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); try{ localStorage.setItem("hyeng_nick",""); }catch(e){}   /* (v727) 선생님이 기기를 뺐으면 이 기기는 그 아이가 아님 — 기록은 두고 이름·명단 아이·태그만 */ try{ hyToast("🔐 이 기기는 로그인이 풀렸어요"+(a?" ("+esc(a.n)+")":"")+" — 다시 로그인해요"); }catch(e){} },
   /* 게임 이름 바꾸기 — 같은 반에 있는 이름은 서버가 막음 */
   async rename(nm){ const a=this.get(); if(!a) return ""; const r=await this.call({type:"acctName", uid:a.uid, dev:a.dk, ds:a.ds, name:nm});
     if(r && r.ok){ jset(AK, Object.assign({}, a, {n:r.n})); return ""; } if(r && r.err==="dup") return "같은 반에 「"+nm+"」 친구가 있어요 — 다른 이름을 골라 줘 (💎 는 그대로예요)";
     if(r && r.err==="bad") return "「선생님 · 관리자」 같은 이름은 쓸 수 없어요"; return "지금은 이름을 못 바꿔요 — 인터넷을 확인해요"; },
   /* 계정을 켰는지 (선생님) — /hy/acon */
   async enabled(){ try{ await FB.ready(); const v=await FB.get("/hy/acon"); return !!(v && v.on); }catch(e){ return false; } },
-  async boot(){ if(!this.usable()) return; if(this.on()){ this.check(); return; }
+  async boot(){ if(!this.usable()){ Lock.set(false); return; } if(this.on()){ Lock.set(false); this.check(); return; }
     let skip=false; try{ skip=sessionStorage.getItem(SKIPK)==="1"; }catch(e){}
-    const on=await this.enabled(); if(!on) return; Chip.draw(); if(skip) return; UI.open(this.list().length ? "who" : "home"); }
+    const on=await this.enabled(); this.acon=on; Lock.set(on); if(!on) return; Chip.draw(); if(skip) return; UI.open(this.list().length ? "who" : "home"); },
+  /* (v726) ①-c 게스트 = 계정 켜짐 · 아이 개인 기기(공용 패드·선생님 기기 아님) · 로그인 안 함 → My Town · 수업 게임 · 상점 잠김 (Adventure · Daily 30 은 그대로) */
+  locked(){ return !!this.acon && !this.on() && this.usable(); },
+  guestNo(){ let n=""; try{ n=localStorage.getItem("hyeng_acct_gn")||""; if(!/^\d{4}$/.test(n)){ n=String(1000+Math.floor(Math.random()*9000)); localStorage.setItem("hyeng_acct_gn", n); } }catch(e){ n="0000"; } return n; }
 };
 window.Acct=Acct;
 
 /* ───────────── 첫 화면 칩 (내 얼굴 · 이름 / 🔑 로그인) ───────────── */
 const Chip={ draw(){ const sc=$$("scStart"); if(!sc) return; let c=$$("acChip"); if(!Acct.on() && !Acct.usable()){ if(c) c.remove(); return; } if(!c){ c=document.createElement("button"); c.id="acChip"; c.type="button"; sc.appendChild(c); c.addEventListener("click", ()=>{ tone(660,.06); if(Acct.on()) UI.me(); else UI.open(Acct.list().length ? "who" : "id"); }); }
-  const a=Acct.get(); c.className=a?"acChip in":"acChip"; c.innerHTML=a ? '<i style="'+face(myChar())+'"></i><b>'+esc(a.n)+'</b><span>▾</span>' : '<i class="k">🔑</i><b>로그인</b>'; } };
+  const a=Acct.get(); c.className=a?"acChip in":"acChip"; c.innerHTML=a ? '<i style="'+face(myChar())+'"></i><b>'+esc(a.n)+'</b><span>▾</span>' : '<i class="k">🔑</i><b class="g">로그인<small>🙋 게스트 '+Acct.guestNo()+'</small></b>'; Lock.paint(); } };
+/* (v726) ①-c 게스트 잠금 — 카드·단추에 🔒 · 누르면 로그인 화면 · My Town(house.html)은 hyeng_acct_glock 을 보고 첫 화면으로 */
+const Lock={ NM:{town:"🏡 My Town은", join:"🎮 수업 게임은", shop:"💎 상점은"},
+  set(on){ try{ if(on && Acct.locked()) localStorage.setItem("hyeng_acct_glock","1"); else localStorage.removeItem("hyeng_acct_glock"); }catch(e){} this.paint(); },
+  paint(){ const L=Acct.locked(), sh=$$("btnShop");
+    if(sh){ sh.classList.toggle("acLk", L); let b=sh.querySelector(".acLkB"); if(L && !b){ b=document.createElement("span"); b.className="acLkB"; b.textContent="🔒"; sh.appendChild(b); } else if(!L && b) b.remove(); }
+    const j=document.querySelector('#selRule [data-v="join"]'); if(j){ if(!j.dataset.h0a) j.dataset.h0a=j.innerHTML; j.classList.toggle("acLkC", L);
+      const h=L ? '<span class="townTag">🔒 로그인</span><b>🎮 수업 게임</b><small>로그인하면 열려요</small>' : j.dataset.h0a; if(j.innerHTML!==h) j.innerHTML=h; }
+    try{ TownGate.card(); }catch(e){} },   // 🏡 My Town 카드는 TownGate.card 가 그림 (Acct.locked 보고 「🔒 로그인」)
+  say(k){ try{ hyToast(k==="pick" ? "🙋 <b>로그인</b>하면 내 이름으로 해요" : "🔒 "+(this.NM[k]||"이건")+" <b>로그인</b>하면 열려요"); }catch(e){} UI.open(Acct.list().length ? "who" : "home"); },
+  wrap(){ try{ const o=RaidJoin.open; if(o && !o._acLk){ RaidJoin.open=function(){ if(Acct.locked()) return Lock.say("join"); return o.apply(this, arguments); }; RaidJoin.open._acLk=1; } }catch(e){}
+    try{ const o=ShopUI.open; if(o && !o._acLk){ ShopUI.open=function(){ if(Acct.locked()) return Lock.say("shop"); return o.apply(this, arguments); }; ShopUI.open._acLk=1; } }catch(e){}
+    /* (v727) 「나는 누구?」 명단 고르기 — 계정이 켜진 개인 기기의 게스트가 명단에서 아무 아이나 골라 그 아이(주간 보스·선물·시험)가 되지 않게 → 로그인 */
+    try{ const o=KidPick.open; if(o && !o._acLk){ KidPick.open=function(){ if(Acct.locked()) return Lock.say("pick"); return o.apply(this, arguments); }; KidPick.open._acLk=1; } }catch(e){} } };
+window.AcctLock=Lock;
 
 /* ───────────── 로그인 화면 (시안 v16 · 로고 포털) ───────────── */
 const DM='<svg class="acDm" viewBox="0 0 60 80" aria-hidden="true"><path class="o" d="M30 2 Q35 33 57 40 Q35 47 30 78 Q25 47 3 40 Q25 33 30 2 Z"/><path class="b" d="M30 15 L45 40 L30 65 L15 40 Z"/><path class="cr" d="M30 18 L42 40 L30 62 L18 40 Z"/><path class="hi" d="M30 18 L42 40 L30 40 Z"/><path class="sh" d="M30 40 L18 40 L30 62 Z"/></svg>';
@@ -398,7 +422,7 @@ const AdmA={
       : c==="401" ? "시트 서버의 Firebase 열쇠(FB_SECRET)가 안 맞아요 — Firebase 콘솔의 데이터베이스 비밀번호를 다시 복사해 스크립트 속성 FB_SECRET 에 넣어 주세요"
       : "시트 서버가 Firebase 에 쓰지 못했어요 ("+c+") — 잠시 뒤 다시"; },
   row(a){ const st=a.tl?'<span class="st lock">🔒 선생님 풀기</span>':a.lock?'<span class="st lock">🔒 '+Math.ceil((a.lock-Date.now())/60000)+'분</span>':(a.pend||[]).length?'<span class="st wait">⏳ 승인</span>':(a.devs||[]).length?'<span class="st ok">✅ '+a.devs.length+'대</span>':'<span class="st none">아직 로그인 안 함</span>';
-    const op=this.open===a.uid; let h='<div class="acR'+(op?' op':'')+'"><button class="acRh" data-acx="op" data-u="'+a.uid+'"><b>'+esc(a.n)+'</b><small class="mono">'+esc(a.id)+'</small>'+st+'</button>';
+    const op=this.open===a.uid; let h='<div class="acR'+(op?' op':'')+'"><button class="acRh" data-acx="op" data-u="'+a.uid+'"><b>'+esc(a.n)+'</b><small class="mono">'+esc(a.id)+(a.tag?' · #'+esc(a.tag):'')+'</small>'+st+'</button>';
     if(op){ const tsel=Object.keys(this.teams()).map(t=>'<option value="'+esc(t)+'"'+(t===a.t?' selected':'')+'>'+esc(this.tn(t))+'</option>').join("");
       h+='<div class="acD"><div class="kv"><span>🪪 아이디</span><input id="acE_id" value="'+esc(a.id)+'" maxlength="8" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="mini" data-acx="eid" data-u="'+a.uid+'">바꾸기</button></div>'
         +'<div class="kv"><span>✏️ 게임 이름</span><input id="acE_n" value="'+esc(a.n)+'" maxlength="8"><button class="mini" data-acx="en" data-u="'+a.uid+'">바꾸기</button></div>'
@@ -453,6 +477,7 @@ window.AcctAdm={ card:tk=>{ if(AdmA.onState===undefined){ AdmA.onState=null; Acc
 function start(){ try{ const why=sessionStorage.getItem("hyeng_acct_why"); if(why){ sessionStorage.removeItem("hyeng_acct_why"); const a=Acct.get();
       const t={load:"☁️ "+(a?esc(a.n):"")+" 기록을 받아 왔어요", merge:"두 기록 중 더 많이 한 쪽으로 이어요 · 다른 쪽은 선생님께 맡겨 뒀어요", other:"이 기기에 있던 기록은 선생님께 맡겨 뒀어요", pull:"다른 기기에서 한 기록을 받아 왔어요", conflict:"다른 기기에서 한 기록을 받아 왔어요 · 여기서 한 것은 선생님께 맡겨 뒀어요"}[why];
       if(t) setTimeout(()=>{ try{ hyToast(t); }catch(e){} }, 1200); } }catch(e){}
+  Lock.wrap(); if(location.hash==="#acctlock"){ try{ history.replaceState(null, "", location.pathname+location.search); }catch(e){} setTimeout(()=>{ if(Acct.locked()) Lock.say("town"); }, 1400); }
   loop(); setTimeout(()=>{ Acct.boot().catch(e=>console.error(e)); }, 600); }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

@@ -15963,6 +15963,8 @@ const TownGate={ NEED:3,
     d.addEventListener("click", e=>{ const b=e.target.closest("button"); if(e.target===d || (b && b.dataset.x)){ d.remove(); return; } if(b && b.dataset.d){ d.remove(); try{ StudyUI.open(); }catch(_){} } }); },
   card(){ const t=document.querySelector('#selRule .c-town'); if(!t || !TOWN_OPEN) return; if(!t.dataset.h0) t.dataset.h0=t.innerHTML;
     let g=false; try{ g=!!Kid.guest(); }catch(e){}
+    let acl=false; try{ acl=!!(window.Acct && Acct.locked()); }catch(e){}   /* (v726) ①-c 게스트 잠금 = 로그인부터 */
+    if(acl){ t.classList.add("twLock"); const h='<span class="townTag">🔒 로그인</span><b>🏡 My Town</b><small>로그인하면 열려요</small>'; if(t.innerHTML!==h) t.innerHTML=h; return; }
     const lock=!g && !this.ok(), n=Math.min(this.n(), this.NEED); t.classList.toggle("twLock", lock);
     t.innerHTML = lock ? '<span class="townTag">🔒 '+n+' / '+this.NEED+'</span><b>🏡 My Town</b><small>Stage '+this.NEED+'개 하면 열려요</small>' : t.dataset.h0; },
   /* Stage 끝 화면 한 줄 — 방금 열렸으면 크게, 아직이면 몇 개 남았는지 (선생님·공용 패드 손님·점검 중이면 없음) */
@@ -16004,6 +16006,8 @@ setTimeout(()=>{ try{ const t=document.querySelector('#selRule .c-town'); if(t &
 /* (v428) 🎲 보드게임 미리 해 보기 — 주소 끝에 #board 를 붙여 열면 이 기기에서만 카드가 보임 (다시 숨기기: #noboard) */
 /* (v722) 정리: 주소 끝 #board 로 아무 기기나 점검 중인 보드게임을 열던 길을 없앰 — 선생님 기기만 (관리 「🎲 영어 파티 보드 시범」은 그대로) */ try{ /* (v441) 보드게임 카드 자리는 🎮 수업 게임 — 선생님 시범은 관리자 「🎲 영어 파티 보드 시범」 */ }catch(e){}
 pickers("selRule", v=>{
+  /* (v726) ①-c 게스트 잠금 — 계정을 켰고 아이 개인 기기인데 로그인 안 했으면 My Town · 수업 게임은 로그인 화면으로 (acct.js Lock) */
+  if((v==="town"||v==="join") && (()=>{ try{ return window.Acct && Acct.locked(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; try{ AcctLock.say(v); }catch(e){} return; }
   if(v==="town" && (()=>{ try{ return !!Kid.guest(); }catch(e){ return false; } })()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; hyToast("🏡 My Town 은 <b>내 패드</b>에서 해요"); return; }   // (v417) 수업 모드
   if(v==="town" && !townOpen()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; townClosed(); return; }   // (v601) 🛠 점검 중 (선생님 기기는 들어감)
   if(v==="town" && !TownGate.ok()){ document.querySelectorAll("#selRule [data-v]").forEach(o=>o.classList.toggle("sel", o.dataset.v==="normal")); G.rule="normal"; TownGate.show(); return; }   // (v678) 🔒 Daily 30 Stage 3개
@@ -17862,7 +17866,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v725";
+const GAME_VER = "v727";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -20106,7 +20110,7 @@ const StudyUI = {
   /* (v331) 🏠 주간 보스 — 작은 타일 (체력 고리 · 기회 수 · 받을 보상). 보상이 있으면 눌러서 바로 받기 · 아니면 보스 화면 (이름 고르기·공격·랭킹은 거기서) */
   bossCard(){ const el=$("stBossCard"); if(!el) return;
     { const me=Kid.me(), nk0=Kid.nick(); if(me && !me.own && !me.teacher && !Kid.shared() && !Kid.teacher() && nk0 && Kid.nk(me.n)!==Kid.nk(nk0)){ let aw=""; try{ aw=localStorage.getItem("hyeng_kp_warn")||""; }catch(e){} const td=HyBoss.dayOf(Date.now()); if(aw!==td){ try{ localStorage.setItem("hyeng_kp_warn", td); }catch(e){} setTimeout(()=>hyToast("👤 지금 기록 이름은 <b>「"+Raid.esc(me.n)+"」</b> (설정 이름: "+Raid.esc(nk0)+")<br><small>내가 아니면 ⚙️ 설정 → 「내 이름으로 하기」</small>", 4200), 500); } } }   /* (v477) 개인 패드에 남은 다른 이름 — 하루 한 번 알려 줌 */
-    { const me=Kid.me(), roster=Object.keys(HyBoss.kids()).length>0; if(!me && roster && !Kid.shared() && !Kid.teacher()){ let ak=""; try{ ak=localStorage.getItem("hyeng_kp_ask")||""; }catch(e){} const td=HyBoss.dayOf(Date.now()); if(ak!==td){ try{ localStorage.setItem("hyeng_kp_ask", td); }catch(e){} setTimeout(()=>{ if($("scStudy").classList.contains("on") && !Kid.me() && !$("kidPick")) KidPick.open(()=>this.bossCard()); }, 400); } }   /* (v477) 개인 패드: 이름이 명단과 안 맞으면 하루 한 번 */ }
+    { const me=Kid.me(), roster=Object.keys(HyBoss.kids()).length>0; if(!me && roster && !Kid.shared() && !Kid.teacher() && !(window.Acct && Acct.locked && Acct.locked())){ let ak=""; try{ ak=localStorage.getItem("hyeng_kp_ask")||""; }catch(e){} const td=HyBoss.dayOf(Date.now()); if(ak!==td){ try{ localStorage.setItem("hyeng_kp_ask", td); }catch(e){} setTimeout(()=>{ if($("scStudy").classList.contains("on") && !Kid.me() && !$("kidPick")) KidPick.open(()=>this.bossCard()); }, 400); } }   /* (v477) 개인 패드: 이름이 명단과 안 맞으면 하루 한 번 */ }
     try{ HyBoss.refresh(); }catch(e){} const B=HyBoss.B; if(!B || !HyBoss.on()){ el.hidden=true; el.innerHTML=''; return; } el.hidden=false;
     const me=Kid.me(), roster=Object.keys(HyBoss.kids()).length>0, E=x=>this.esc(x);
     try{ if(me && !me.teacher && HyBoss.B && HyBoss.pendN()>0) setTimeout(()=>HyBoss.pendApply(Kid.me()), 0); }catch(e){}   /* (v477) 미뤄 둔 공부·달리기 */
@@ -31113,6 +31117,8 @@ const Tag = { KEY:"hyeng_tag", _busy:null,
   set(t){ try{ localStorage.setItem(this.KEY, t); }catch(e){} try{ NameCard.draw(); }catch(e){} },
   pad(){ try{ return Kid.shared(); }catch(e){ return false; } },
   sync(){ if(this._busy) return this._busy; if(!Online.on() || TEST_STAGE) return Promise.resolve(this.get());
+    /* (v727) 🔐 로그인한 아이 = 계정 태그(서버가 로그인 때 정함) · 계정이 켜진 개인 기기의 게스트 = 서버에 안 물음 (기기 태그 줄 이름을 바꾸면 그 줄 아이 기록이 섞임) */
+    try{ if(window.Acct && Acct.on()){ const t=(Acct.get()||{}).tag; if(/^\d{4}$/.test(t||"") && t!==this.get()) this.set(t); return Promise.resolve(this.get()); } if(window.Acct && Acct.locked && Acct.locked() && !this.get()) return Promise.resolve(""); }catch(e){}   // 로그아웃한 기기(태그 지움) = 게스트 — 예전 계정 태그 줄을 건드리지 않게
     const nick=NameCard.cur(); if(!nick || /^PLAYER$/i.test(nick)) return Promise.resolve(this.get());
     this._busy=Online.post({key:Online.KEY, type:"tag", dev:Online.dev(), nick, pad:this.pad()?1:0, ver:GAME_VER})
       .then(r=>{ this._busy=null; if(r && r.ok && /^\d{4}$/.test(r.tag||"") && r.tag!==this.get()) this.set(r.tag); return this.get(); }, ()=>{ this._busy=null; return this.get(); });

@@ -97,6 +97,8 @@ r = post({type:"acctLogin", id:"toto", pw:"150309", dev:"devCCC3"}); NOW += 864e
 // 태그에 있던 기기 = 바로
 ctx.tagSheet_(); book["태그"].d.push(["0012", "oldDev99, kidPhone7", "토토", "토토", "", "", "", ""]);
 r = post({type:"acctLogin", id:"toto", pw:"150309", dev:"kidPhone7"}); ok(r.ok && r.tok && !r.wait, "예전부터 그 아이 기기(태그 칸) = 승인 없이 바로");
+{ const tg = r.acct && r.acct.tag, TR = book["태그"].d.find(x=>String(x[0]) === tg) || [];
+  ok(/^\d{4}$/.test(tg || "") && String(TR[1]).indexOf("kidPhone7") >= 0 && String((book["태그"].d.find(x=>String(x[0]) === "0012") || [])[1]).indexOf("kidPhone7") < 0, "(v28) 로그인한 기기는 계정 태그 줄로 (#" + tg + ") · 다른 줄에서 빠짐"); }
 r = post({type:"acctLogin", id:"byul", pw:"150309", dev:"kidPhone7"}); ok(r.ok && r.wait, "남의 태그 기기 = 승인 기다림");
 // 승인 없이 기간
 ok(T("acctOpen", {days:3}).ok && fbCalls.some(c=>/\/hy\/acon\.json/.test(c.u)), "「승인 없이 3일」 (+ 계정 켜짐 표시)");
@@ -128,7 +130,7 @@ ok(T("acctMake", {list:[{rid:"r10", n:"토토로", t:"사자반", id:"totoz", bd
 for (let k = 0; k < 60; k++) post({type:"acctLogin", id:"zzz" + "abcdefghij"[k % 10], pw:"123456", dev:"evil0001"});
 ok(post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}).err === "wait", "모르는 아이디 10분에 60번 → 잠깐 막기");
 NOW += 601000; ok(post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}).tok, "10분 뒤 다시");
-ok(post({type:"check", tk:"TK"}).v === 27, "서버 v27");
+ok(post({type:"check", tk:"TK"}).v >= 27, "서버 v27 이상");
 // (v27b) Firebase 쓰기가 안 되면 「됐어요」라고 하지 않음
 r = T("acctList"); ok(r.fb && r.fb.sec === true && r.fb.code === 200 && r.fb.on === true && !("FB_SECRET" in r.fb) && JSON.stringify(r).indexOf("SECRET123") < 0, "선생님 목록 = Firebase 열쇠 있음·켜짐 (열쇠 값은 안 보냄)");
 FBC = 401; r = T("acctOn", {on:1}); ok(r.ok === false && r.err === "fb" && r.why === "401", "FB_SECRET 이 안 맞으면 계정 켜기 = 실패로 알림 (401)");
@@ -138,4 +140,22 @@ r = post({type:"acctLogin", id:"byul", pw:"150309", dev:"newPad11"}); ok(r.ok ==
 FBC = 200; delete props.FB_SECRET; r = T("acctOn", {on:1}); ok(r.err === "fb" && r.why === "nosec", "FB_SECRET 이 없으면 계정 켜기 = 실패 (nosec)");
 r = T("acctList"); ok(r.fb.sec === false && r.fb.code === "nosec", "목록 = 열쇠 없음");
 props.FB_SECRET = "SECRET123"; ok(T("acctOn", {on:1}).ok, "열쇠를 넣으면 다시 켜짐");
+// (v28) 🏷 계정 태그 — 기기가 바뀌어도 같은 태그 · 형제가 한 기기를 써도 안 섞임
+{ const TR = ()=>book["태그"].d.slice(1).filter(x=>x[0]), row = t=>TR().find(x=>String(x[0]) === t) || [], devsOf = t=>String(row(t)[1] || "").split(/[\s,]+/).filter(Boolean);
+  book["태그"].d.push(["0040", "momPhone1", "몽글", "몽글", new Date(2026, 0, 1), new Date(2026, 10, 20), "", ""]);
+  book["태그"].d.push(["0041", "oldPad3", "몽글", "몽글", new Date(2026, 10, 25), new Date(2026, 10, 25), "", ""]);   // 같은 이름 줄이 하나 더 (나중에 생김)
+  r = T("acctMake", {list:[{rid:"r20", n:"몽글", t:"돌고래반", id:"monggl", bd:"151010"}, {rid:"r21", n:"포포", t:"돌고래반", id:"popo", bd:"151111"}]}); ok(r.ok && r.made === 2, "몽글 · 포포 계정");
+  ok(T("acctOpen", {days:3}).ok, "승인 없이 3일 (시험)");
+  const n0 = TR().length;
+  r = post({type:"acctLogin", id:"popo", pw:"151111", dev:"momPhone1"}); const tp = r.acct && r.acct.tag;
+  ok(r.ok && tp && tp !== "0040" && TR().length === n0 + 1 && row(tp)[3] === "포포" && devsOf(tp).indexOf("momPhone1") >= 0, "형제 기기: 포포가 몽글 기기로 로그인 → 포포 새 태그 #" + tp + " (몽글 태그 아님)");
+  ok(devsOf("0040").indexOf("momPhone1") < 0 && row("0040")[3] === "몽글", "그 기기는 몽글 줄에서 빠지고 몽글 줄 이름은 그대로");
+  r = post({type:"acctLogin", id:"monggl", pw:"151010", dev:"momPhone1"});
+  ok(r.ok && r.acct.tag === "0040" && devsOf("0040").indexOf("momPhone1") >= 0 && devsOf(tp).indexOf("momPhone1") < 0, "몽글이 다시 로그인 → 몽글 태그 #0040 (같은 이름 줄 둘 중 이 아이 기기가 든 줄) · 기기는 몽글 줄로");
+  const n1 = TR().length; r = post({type:"acctLogin", id:"monggl", pw:"151010", dev:"newTab9"}); const ds9 = r.ds;
+  ok(r.ok && r.acct.tag === "0040" && devsOf("0040").indexOf("newTab9") >= 0 && TR().length === n1, "몽글 새 기기 → 같은 태그 #0040 · 새 줄 안 생김 (랭킹 한 줄)");
+  r = post({type:"acctName", uid:r.uid, dev:"newTab9", ds:ds9, name:"몽글이"}); ok(r.ok && row("0040")[3] === "몽글이", "이름 바꾸면 태그 줄 「지금 이름」도");
+  const ac = book["계정"].d, H = ac[0], AIt = H.indexOf("태그"), mi = ac.findIndex(x=>x[H.indexOf("아이디")] === "monggl"); const uidM = ac[mi][H.indexOf("계정 번호")]; ac[mi][AIt] = "";
+  r = post({type:"acctRenew", uid:uidM, dev:"newTab9", ds:ds9}); ok(r.ok && r.acct.tag === "0040" && String(ac[mi][AIt]) === "0040", "v27 때 로그인한 기기(계정에 태그 없음) = 새로 받을 때 태그 #0040 채움");
+  ok(AIt === 18, "계정 탭 머리글 맨 끝에 「태그」 칸 (" + AIt + ")"); }
 console.log(bad ? "FAIL " + bad : "ALL OK"); process.exit(bad ? 1 : 0);

@@ -81,7 +81,7 @@ async def main():
             await tp.click("#acAdm [data-acx=on]"); await tp.wait_for_timeout(900)
             ok(db()["db"].get("hy", {}).get("acon", {}).get("on") == 1, "선생님 「계정 켜기」 → 서버가 /hy/acon 켬")
             # ── 아이 A: 이 기기에 💎 기록이 있음 ──
-            actx, ap = await kid(br, errs, "A", "()=>{ localStorage.setItem('hyeng_nick','토토'); Wallet.adjust(777, '시험'); }")
+            actx, ap = await kid(br, errs, "A", "()=>{ localStorage.setItem('hyeng_nick','토토'); Wallet.adjust(777, '시험'); return Tag.sync(); }")   # 예전부터 쓰던 기기 = 태그가 이미 있음
             ok(await ui(ap) == "home", "아이 A: 켜면 로그인 첫 화면")
             await ap.screenshot(path=OUT + "acct723_home.png")
             await ap.click('#acctUI [data-s=home] .acGold'); await ap.wait_for_timeout(400); ok(await ui(ap) == "id", "🔑 로그인 → 아이디")
@@ -157,6 +157,7 @@ async def main():
             # 로그아웃 (A)
             r = await ap.evaluate("()=>Acct.logout()"); await ap.wait_for_timeout(2500)
             st = await ap.evaluate("()=>({on:Acct.on(), g:Wallet.gems(), ui:(document.querySelector('#acctUI .acS.on')||{}).dataset||{}, list:Acct.list().map(x=>x.id)})")
+            if st["ui"].get("s") != "who": print("   (디버그)", st, await ap.evaluate("()=>({skip:sessionStorage.getItem('hyeng_acct_skip'), acon:Acct.acon, usable:Acct.usable(), uiOn:!!(document.getElementById('acctUI')&&document.getElementById('acctUI').classList.contains('on'))})"), errs[-3:])
             ok(r.get("ok") and not st["on"] and st["g"] == 0 and st["ui"].get("s") == "who" and "toto" in st["list"], "로그아웃 = 저장 확인 뒤 이 기기 비움 → 「누가 할까요?」에 토토")
             await ap.screenshot(path=OUT + "acct723_who.png")
             await ap.click('#acPpl [data-who=toto]'); await ap.wait_for_timeout(300); ok(await ui(ap) == "pw", "얼굴을 누르면 비밀번호만")
