@@ -60,7 +60,7 @@ async def main():
         await pg.evaluate("()=>{ localStorage.setItem('hyeng_nick','루아'); localStorage.setItem('hyeng_dev','devRUA1'); localStorage.setItem('hyeng_tag','0021'); localStorage.setItem('hyeng_proto_tut', JSON.stringify({s:99})); localStorage.removeItem('hyeng_mt_sec'); }")
         await pg.reload(); await pg.wait_for_timeout(2400)
         r=await pg.evaluate("""()=>{ const H=HOUSE, M=H.MTL; M.force=true; M.id=null; M.a=0; M.last=0; H.MTS.at=0; H.MTS.sent='';
-            const real=Date.now.bind(Date); window._dt=0; Date.now=()=>real()+window._dt; const id=H.mtId(); const step=(ms,fin)=>{ window._dt+=ms; H.mtLog(!!fin); };
+            const real=Date.now.bind(Date); const noon=new Date(); noon.setHours(12,0,0,0); window._dt=noon.getTime()-real(); Date.now=()=>real()+window._dt; const id=H.mtId();   /* (v729) 낮 12시에서 시작 — 밤 11시 넘어 돌리면 40분 숨는 동안 날이 바뀌어 실패했음 (게임 버그 아님) */ const step=(ms,fin)=>{ window._dt+=ms; H.mtLog(!!fin); };
             H.mtLog(true); for(let i=0;i<12;i++) step(60000);            // 12분 놀기 (1분마다)
             const a=JSON.parse(localStorage.getItem('hyeng_mt_sec'))[id];
             step(1000, true); M.a=0;                                        // 화면 숨김 → 끝
