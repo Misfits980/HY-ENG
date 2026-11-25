@@ -77,7 +77,7 @@ const TAG_ME = "0000", TAG_PADS = ["0001","0002","0003","0004","0005"], TAG_FIRS
 /* (v264) 공지 탭 — 선생님이 직접 적어도 되고, 게임 관리 화면에서 올려도 된다 */
 const NOTICE_SHEET = "공지";
 const NOTICE_COLS = [["date","날짜 (비우면 자동)"], ["text","내용"], ["show","보이기 (끄기 = 숨김)"], ["until","끝나는 날 (비우면 계속)"], ["by","쓴 기기"], ["id","번호 (자동)"]];
-const SERVER_V = 26;  // (v722) 26 = 🔐 선생님 기기 연결(6자리 코드 → 기기마다 무작위 열쇠 · 옛 열쇠 끄기) · 틀린 열쇠 10분에 12번 넘으면 잠깐 막기 ·  // (v698) 25 = 🤝 짝 퀘스트(board 답 me.pq · POST type "cheer" · 「짝 응원」 탭) · (v690) 24 = 🏡 My Town 「Stage 3개」를 기기끼리 합쳐 셈(scores 끝 「마을 칸」 · board 답 me.tw) · (v667) 23 = 🔥 오늘의 대결(board.today: 오늘 올린 점수 순위 · 오늘의 상 · me.today) · 선생님 📊 랭킹 통계(report.rk: 이번 주·지난주·이번 달·지난달 — 하루 1등 · 주 1등 · 한 날 · 푼 문제) · board fresh=1 · (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
+const SERVER_V = 27;  // (v723) 27 = 🔐 아이 계정(시트 「계정」 탭 · 아이디 + 비밀번호 6자리 HMAC · 새 기기 승인 · 출입증 /kacct) · (v722) 26 = 🔐 선생님 기기 연결(6자리 코드 → 기기마다 무작위 열쇠 · 옛 열쇠 끄기) · 틀린 열쇠 10분에 12번 넘으면 잠깐 막기 ·  // (v698) 25 = 🤝 짝 퀘스트(board 답 me.pq · POST type "cheer" · 「짝 응원」 탭) · (v690) 24 = 🏡 My Town 「Stage 3개」를 기기끼리 합쳐 셈(scores 끝 「마을 칸」 · board 답 me.tw) · (v667) 23 = 🔥 오늘의 대결(board.today: 오늘 올린 점수 순위 · 오늘의 상 · me.today) · 선생님 📊 랭킹 통계(report.rk: 이번 주·지난주·이번 달·지난달 — 하루 1등 · 주 1등 · 한 날 · 푼 문제) · board fresh=1 · (v657) 22 = 🧸 주인 패드(유치부) 아이는 자동 랭킹 단계 = 유치원 (유치원 책도 랭킹에 셈) · (v654) 21 = 🎮 「모드 사용」 탭 (아이·날마다 한 줄: 모드마다 몇 분 · 🏝 마이타운도 같은 줄) · report.use · (v653) 20 = 📒 문법별 정답률 (report.learn.gram · 아이별 약한 문법) · (v650) 19 = 🧠 며칠 뒤에도 기억하나 (scores 끝에 며칠 뒤 맞힘·푼 수·틀린 단어·말한 단어 칸 · 선생님 report.learn) · (v638) 18 = 🏅 나의 리그 「기준」(같은 단계 가운데값 60%) — 낮은 점수로 칭호 못 땀 · (v636) 17 = ⚔️ 스테이지 도전장(「도전장」 탭) · (v635) 16 = 🏅 나의 리그(지난주 나 넘기: me.lg) · (v631) 15 = 🏆 아이마다 랭킹 단계 — 「태그」 탭 「랭킹 단계」 칸(자동·유치원·G1-2·G3-4·G5-6·중등·빼기) · 관리 화면에서도 · 정한 단계보다 쉬운 책은 랭킹에 안 셈(높은 건 셈) · 빼기 = 랭킹에 안 나옴 · (v618) 14 = 🏛 명예의 전당(「명예의 전당」 탭: 날마다 1위 · 주마다 1~3위) · 🔥 연속 1위 · 📅 개근 · 메달 · 📚 오늘의 30 「전체」 · 내 기록 · (v613) 13 = + 같은 Stage 는 한 주에 가장 잘한 판 하나만 · (v611) 13 = 같은 판 두 번 안 적기(기록 번호 rid) · 글자로 들어간 날짜도 읽기 · 「연습」 판은 공부 점수에 안 셈
 //  // (v603) 12 = 📚 공부 점수 = 스테이지 점수 + 푼 문제 · (v602) 11 = 랭킹은 「내 단계」보다 쉬운 판 빼기 · board 에 나(me: 순위·어제보다·바로 위 친구) · (v601) 10 = 🔥 실시간 랭킹(board=1: 이번 주 공부 점수 · 이번 주 모은 단어 · 달리기 · 어제보다 ▲▼) · 📚 공부 랭킹(diff=study) · 단어 수집 「이번 주」 = 이번 주에 모은 수 · (v600) 9 = 오늘의 30 카드 칸(단어 카드·끝까지 본 카드·카드 평균 초) · 다시 푼 판 · 「마이타운 시간」 탭 (type "mt")
 const MT_SHEET = "마이타운 시간";
 const MT_COLS = [["day","날짜"], ["kid","아이"], ["tag","태그"], ["dev","기기"], ["min","마이타운(분)"], ["segs","들어온 번"], ["at","마지막"], ["ver","버전"], ["nick","게임 이름"]];
@@ -124,7 +124,8 @@ function doPost(e){
   if (d.type === "cheer") return cheer_(d);                          // (v698) 🤝 짝 응원                             // (v600) 🏝 마이타운 시간 (아이·날마다 한 줄)
   if (["duelFriends","duelSend","duelBox","duelDone"].indexOf(d.type) >= 0) return duel_(d);   // (v636) ⚔️ 스테이지 도전장
   if (d.type === "pairUse") return pairUse_(d);                      // (v722) 🔐 새 선생님 기기 — 6자리 코드로 연결
-  if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv","pairSelf","pairMake","devList","devDel","legacyOff"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
+  if (["acctLogin","acctWait","acctRenew","acctName"].indexOf(d.type) >= 0) return acct_(d);   // (v723) 🔐 아이 계정 로그인
+  if (["check","notice","noticeOff","actAdd","report","tagMe","tagSet","tags","tagLv","pairSelf","pairMake","devList","devDel","legacyOff","acctList","acctOpen","acctOn","acctMake","acctEdit","acctPw","acctUnlock","acctDev","acctApprove","acctClose"].indexOf(d.type) >= 0) return teacher_(d);   // (v264) 선생님 관리 화면
   if (d.type && d.type !== "buy") return json_({ok:false, err:"type"});   // 모르는 종류는 scores 에 쓰지 않는다
   const isBuy = d.type === "buy";
   /* (v367) 기기에 쌓였다가 늦게 온 기록은 실제로 판이 끝난 때(d.at)로 적는다 — 7일 안 · 미래는 안 됨. 그 밖에는 받은 때 */
@@ -1064,6 +1065,7 @@ function teacher_(d){
   if (d.type === "tags") return json_({ok:true, v:SERVER_V, list:tagList_(true)});
   if (d.type === "tagLv") return tagLv_(d);                                                         // (v631) 🏆 랭킹 단계 바꾸기                                 // (v404) 🏷 태그 목록
   if (d.type === "tagMe" || d.type === "tagSet") return tagSet_(d.type === "tagMe" ? TAG_ME : tag_(d.tag), String(d.dev || ""), d);
+  if (/^acct/.test(d.type)) return acctT_(d);                                                     // (v723) 🔐 아이 계정 (선생님)
   if (d.type === "fbTeacher") return fbTeacher_(d);                                                // (v419) 🔐 Firebase 선생님 기기
   const lock = LockService.getScriptLock();
   try {
@@ -1094,6 +1096,138 @@ function teacher_(d){
   } catch(err){ return json_({ok:false, err:"busy"}); }
   finally { try { lock.releaseLock(); } catch(_){} }
   return json_({ok:false, err:"type"});
+}
+
+/* ── (v723 · 서버 v27) 🔐 아이 계정 — 사용자: 「아이디 + 생일 6자리 비밀번호 · 넷플릭스처럼 · 처음 쓰는 기기는 선생님 승인 · 같은 반 같은 이름 막기 · 출입증 A(지금 열쇠로)」
+   · 시트 「계정」 탭(비공개 시트) — 비밀번호·생일은 그대로 적지 않고 HMAC 값만 (서버 비밀 PEPPER = 스크립트 속성, 처음 쓸 때 저절로 만듦)
+   · 로그인 성공 → 출입증 = Firebase 옛 방식 토큰(JWT HS256 · FB_SECRET 으로 서명 · uid k_… · dk = 기기 코드 · 7일) → 기기가 /kacct/<uid> 를 읽고 씀 (규칙: 내 uid + /kdev 에 내 기기)
+   · 틀림: 계정마다 5번 → 5분 · 10번 → 선생님이 풀기 · 모르는 아이디는 10분에 60번 넘으면 잠깐 막기
+   · 처음 보는 기기: 그 아이 태그 칸에 이미 있던 기기(예전부터 그 아이 기기) · 「승인 없이 기간」 안 = 바로 · 아니면 선생님 승인 기다림 */
+const AC_SHEET = "계정";
+const AC_COLS = [["uid","계정 번호"], ["id","아이디"], ["n","게임 이름"], ["t","반"], ["rid","명단 번호"], ["pk","비밀번호"], ["salt","소금"], ["ph","비밀번호 값"], ["bh","생일 값"], ["bt","생일 표"],
+  ["fails","틀린 수"], ["lock","잠김 끝"], ["devs","기기"], ["pend","승인 기다림"], ["made","만든 날"], ["last","마지막 로그인"], ["st","상태"], ["memo","메모"]];
+const AI = {}; AC_COLS.forEach(([k], i)=>{ AI[k] = i; });
+const AC_TOK_DAYS = 7, AC_DEV_MAX = 6, AC_PEND_MAX = 3, AC_ID_RE = /^[a-z]{3,8}$/, AC_RESERVED = ["admin","teacher","guest","test","root","hyeng","staff"];
+const AC_STAFF = /선\s*생\s*님|쌤|관\s*리\s*자|운\s*영\s*자|원\s*장\s*님|teacher|admin|staff|manager|gm\b/i;
+function acSheet_(){ const ss = SpreadsheetApp.openById(SHEET_ID); let sh = ss.getSheetByName(AC_SHEET);
+  if (!sh){ sh = ss.insertSheet(AC_SHEET); sh.getRange(1, 1, 1, AC_COLS.length).setValues([AC_COLS.map(c=>c[1])]); sh.setFrozenRows(1); try { sh.setTabColor("#6a3fd0"); } catch(e){} }
+  return sh; }
+function acPepper_(){ const P = PropertiesService.getScriptProperties(); let p = P.getProperty("ACCT_PEPPER"); if (!p){ p = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, ""); P.setProperty("ACCT_PEPPER", p); } return p; }
+function acMac_(s){ return Utilities.computeHmacSha256Signature(String(s), acPepper_()).map(b=>((b < 0 ? b + 256 : b).toString(16)).padStart(2, "0")).join(""); }
+function acPw_(salt, pw){ return acMac_("pw:" + salt + ":" + pw); }
+function acRnd_(n){ return (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "").slice(0, n || 32); }
+function acJ_(v, d){ try { const o = JSON.parse(String(v || "")); return o == null ? d : o; } catch(e){ return d; } }
+function acNk_(s){ return String(s || "").replace(/^👤\s*/, "").replace(/\s+/g, "").toLowerCase(); }
+function acBirthOk_(s){ s = String(s || ""); if (!/^\d{6}$/.test(s)) return false; const m = +s.slice(2, 4), d = +s.slice(4, 6); return m >= 1 && m <= 12 && d >= 1 && d <= 31; }
+function acPwOk_(s){ s = String(s || ""); if (!/^\d{6}$/.test(s)) return false; if (/^(\d)\1{5}$/.test(s)) return false; return ["123456","654321","012345","543210"].indexOf(s) < 0; }
+function acRows_(){ const sh = acSheet_(), last = sh.getLastRow(); const rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, AC_COLS.length).getValues(); return {sh, rows}; }
+function acObj_(r){ return {uid:String(r[AI.uid]), id:String(r[AI.id]), n:String(r[AI.n]), t:String(r[AI.t] || ""), rid:String(r[AI.rid] || ""), pk:String(r[AI.pk] || ""),
+  fails:Number(r[AI.fails]) || 0, lock:Number(r[AI.lock]) || 0, devs:acJ_(r[AI.devs], []), pend:acJ_(r[AI.pend], []), made:time_(r[AI.made]), last:time_(r[AI.last]), st:String(r[AI.st] || "")}; }
+function acPut_(sh, i, r){ sh.getRange(i + 2, 1, 1, AC_COLS.length).setValues([r]); }
+function acFind_(rows, k, v){ for (let i = 0; i < rows.length; i++) if (String(rows[i][AI[k]]) === String(v)) return i; return -1; }
+function acLocked_(fn){ const lk = LockService.getScriptLock(); try { lk.waitLock(15000); } catch(e){ return json_({ok:false, err:"busy"}); } try { return fn(); } finally { try { lk.releaseLock(); } catch(_){} } }
+function acB64_(x){ return Utilities.base64EncodeWebSafe(x).replace(/=+$/, ""); }
+function acTok_(uid, dk){ const sec = PropertiesService.getScriptProperties().getProperty("FB_SECRET"); if (!sec) return null;
+  const now = Math.floor(Date.now() / 1000), exp = now + AC_TOK_DAYS * 86400;
+  const h = acB64_(JSON.stringify({typ:"JWT", alg:"HS256"})), p = acB64_(JSON.stringify({v:0, iat:now, exp:exp, d:{uid:uid, dk:dk}}));
+  return {tok:h + "." + p + "." + acB64_(Utilities.computeHmacSha256Signature(h + "." + p, sec)), exp:exp * 1000}; }
+function acFb_(path, val){ const P = PropertiesService.getScriptProperties(), sec = P.getProperty("FB_SECRET"), db = P.getProperty("FB_DB") || "https://hy-eng-raid-default-rtdb.asia-southeast1.firebasedatabase.app"; if (!sec) return false;
+  try { const r = UrlFetchApp.fetch(db + path + ".json?auth=" + encodeURIComponent(sec), val === null ? {method:"delete", muteHttpExceptions:true} : {method:"put", contentType:"application/json", payload:JSON.stringify(val), muteHttpExceptions:true}); return r.getResponseCode() === 200; } catch(e){ return false; } }
+function acDk_(v){ const s = String(v || "").replace(/[^a-z0-9]/gi, "").slice(0, 32); return s.length >= 6 ? s : ""; }
+function acBad_(){ try { const c = CacheService.getScriptCache(), n = (+(c.get("ac_bad") || 0)) + 1; c.put("ac_bad", String(n), 600); return n; } catch(e){ return 0; } }
+function acBadWait_(){ try { return (+(CacheService.getScriptCache().get("ac_bad") || 0)) >= 60; } catch(e){ return false; } }
+/* 예전부터 그 아이 기기 = 「태그」 탭에서 이 기기 코드가 있는 줄의 이름(처음 이름·지금 이름)이 계정 게임 이름과 같음 */
+function acTrusted_(a, dk){ try { const until = +(PropertiesService.getScriptProperties().getProperty("ACCT_OPEN") || 0); if (until > Date.now()) return true; } catch(e){}
+  try { const n = acNk_(a.n); if (!n) return false; return tagRows_(tagSheet_()).some(r=>devs_(r[1]).indexOf(dk) >= 0 && (acNk_(plain_(r[3])) === n || acNk_(plain_(r[2])) === n)); } catch(e){ return false; } }
+/* 기기 넣기 (최대 6대 · 넘으면 가장 오래 안 쓴 기기 빼기) → 새 기기 비밀값 ds (기기에만 · 서버엔 SHA-256) */
+function acDevAdd_(a, dk, n){ const ds = acRnd_(32), now = Date.now(); a.devs = a.devs.filter(x=>x && x.dk !== dk);
+  a.devs.push({dk:dk, n:txt_(n, 30) || "기기", at:now, u:now, hs:hex_("hyeng-ds:" + ds)});
+  while (a.devs.length > AC_DEV_MAX){ a.devs.sort((x, y)=>(x.u || 0) - (y.u || 0)); const out = a.devs.shift(); acFb_("/kdev/" + a.uid + "/" + out.dk, null); }
+  acFb_("/kdev/" + a.uid + "/" + dk, true); return ds; }
+function acWin_(a, dk, ds){ const t = acTok_(a.uid, dk); if (!t) return json_({ok:false, err:"nosecret"});
+  return json_({ok:true, v:SERVER_V, uid:a.uid, dk:dk, ds:ds, tok:t.tok, exp:t.exp, acct:{id:a.id, n:a.n, t:a.t, rid:a.rid, pk:a.pk}}); }
+function acSync_(r, a){ r[AI.devs] = JSON.stringify(a.devs); r[AI.pend] = JSON.stringify(a.pend); r[AI.fails] = a.fails; r[AI.lock] = a.lock || ""; return r; }
+function acDevOk_(a, dk, ds){ return a.devs.some(x=>x && x.dk === dk && x.hs === hex_("hyeng-ds:" + String(ds || ""))); }
+/* 아이 쪽 (선생님 열쇠 없음) */
+function acct_(d){
+  if (d.type === "acctLogin"){ if (acBadWait_()) return json_({ok:false, err:"wait"});
+    const id = String(d.id || "").trim().toLowerCase(), pw = String(d.pw || ""), dk = acDk_(d.dev);
+    if (!AC_ID_RE.test(id) || !/^\d{6}$/.test(pw) || !dk){ acBad_(); return json_({ok:false, err:"noid"}); }
+    return acLocked_(()=>{ const {sh, rows} = acRows_(), i = acFind_(rows, "id", id); if (i < 0){ acBad_(); return json_({ok:false, err:"noid"}); }
+      const r = rows[i], a = acObj_(r), now = Date.now();
+      if (a.st === "closed") return json_({ok:false, err:"closed"});
+      if (a.fails >= 10) return json_({ok:false, err:"tlock"});
+      if (a.lock > now) return json_({ok:false, err:"lock", until:a.lock});
+      if (acPw_(String(r[AI.salt]), pw) !== String(r[AI.ph])){ a.fails++; if (a.fails === 5) a.lock = now + 5 * 60000; acPut_(sh, i, acSync_(r, a));
+        return json_({ok:false, err:a.fails >= 10 ? "tlock" : (a.fails === 5 ? "lock" : "pw"), left:a.fails < 5 ? 5 - a.fails : 10 - a.fails, until:a.lock || 0}); }
+      a.fails = 0; a.lock = 0; r[AI.last] = new Date();
+      if (a.devs.some(x=>x && x.dk === dk) || acTrusted_(a, dk)){ const ds = acDevAdd_(a, dk, d.n); acPut_(sh, i, acSync_(r, a)); return acWin_(a, dk, ds); }
+      a.pend = a.pend.filter(x=>x && x.dk !== dk && now - (x.at || 0) < 864e5); const pid = acRnd_(20);
+      a.pend.push({pid:pid, dk:dk, n:txt_(d.n, 30) || "기기", at:now, st:"w"}); while (a.pend.length > AC_PEND_MAX) a.pend.shift();
+      acPut_(sh, i, acSync_(r, a)); return json_({ok:true, v:SERVER_V, wait:true, pid:pid, acct:{id:a.id, n:a.n}}); }); }
+  if (d.type === "acctWait"){ const id = String(d.id || "").trim().toLowerCase(), pid = String(d.pid || "");
+    if (!AC_ID_RE.test(id) || !/^[0-9a-f]{20}$/.test(pid)) return json_({ok:false, err:"pid"});
+    return acLocked_(()=>{ const {sh, rows} = acRows_(), i = acFind_(rows, "id", id); if (i < 0) return json_({ok:false, err:"pid"});
+      const r = rows[i], a = acObj_(r), p = a.pend.find(x=>x && x.pid === pid); if (!p) return json_({ok:false, err:"pid"});
+      if (p.st === "no" || Date.now() - (p.at || 0) > 864e5){ a.pend = a.pend.filter(x=>x !== p); acPut_(sh, i, acSync_(r, a)); return json_({ok:false, err:"no"}); }
+      if (p.st !== "ok") return json_({ok:true, wait:true});
+      a.pend = a.pend.filter(x=>x !== p); const ds = acDevAdd_(a, p.dk, p.n); r[AI.last] = new Date(); acPut_(sh, i, acSync_(r, a)); return acWin_(a, p.dk, ds); }); }
+  if (d.type === "acctRenew"){ const uid = String(d.uid || ""), dk = acDk_(d.dev);
+    const {sh, rows} = acRows_(), i = acFind_(rows, "uid", uid); if (i < 0 || !dk) return json_({ok:false, err:"gone"});
+    const a = acObj_(rows[i]); if (a.st === "closed" || !acDevOk_(a, dk, d.ds)) return json_({ok:false, err:"gone"});
+    const t = acTok_(a.uid, dk); if (!t) return json_({ok:false, err:"nosecret"});
+    return json_({ok:true, v:SERVER_V, tok:t.tok, exp:t.exp, acct:{id:a.id, n:a.n, t:a.t, rid:a.rid, pk:a.pk}}); }
+  if (d.type === "acctName"){ const uid = String(d.uid || ""), dk = acDk_(d.dev), nm = txt_(plain_(d.name), 12);
+    if (!nm || AC_STAFF.test(nm)) return json_({ok:false, err:"bad"});
+    return acLocked_(()=>{ const {sh, rows} = acRows_(), i = acFind_(rows, "uid", uid); if (i < 0) return json_({ok:false, err:"gone"});
+      const r = rows[i], a = acObj_(r); if (!acDevOk_(a, dk, d.ds)) return json_({ok:false, err:"gone"});
+      if (rows.some((x, j)=>j !== i && String(x[AI.st]) !== "closed" && String(x[AI.t] || "") === a.t && acNk_(x[AI.n]) === acNk_(nm))) return json_({ok:false, err:"dup"});
+      r[AI.n] = nm; acPut_(sh, i, r); return json_({ok:true, v:SERVER_V, n:nm}); }); }
+  return json_({ok:false, err:"type"});
+}
+/* 선생님 쪽 (teacher_ 안에서 열쇠 확인 뒤) */
+function acctT_(d){
+  const pub = a=>({uid:a.uid, id:a.id, n:a.n, t:a.t, rid:a.rid, pk:a.pk, fails:a.fails, lock:a.lock > Date.now() ? a.lock : 0, tl:a.fails >= 10, st:a.st,
+    devs:a.devs.map(x=>({dk:x.dk, n:x.n, at:x.at, u:x.u})), pend:a.pend.filter(x=>x && x.st === "w" && Date.now() - (x.at || 0) < 864e5).map(x=>({pid:x.pid, n:x.n, at:x.at})), made:a.made, last:a.last});
+  if (d.type === "acctList"){ const {rows} = acRows_(); return json_({ok:true, v:SERVER_V, open:+(PropertiesService.getScriptProperties().getProperty("ACCT_OPEN") || 0), list:rows.map(r=>pub(acObj_(r)))}); }
+  if (d.type === "acctOpen"){ const days = Math.max(0, Math.min(14, Math.round(Number(d.days) || 0))), P = PropertiesService.getScriptProperties();
+    if (days) P.setProperty("ACCT_OPEN", String(Date.now() + days * 864e5)); else P.deleteProperty("ACCT_OPEN");
+    acFb_("/hy/acon", {on:1, at:Date.now()}); return json_({ok:true, v:SERVER_V, open:days ? Date.now() + days * 864e5 : 0}); }
+  if (d.type === "acctOn"){ acFb_("/hy/acon", d.on ? {on:1, at:Date.now()} : null); return json_({ok:true, v:SERVER_V, on:!!d.on}); }
+  return acLocked_(()=>{ const {sh, rows} = acRows_();
+    if (d.type === "acctMake"){ const L = Array.isArray(d.list) ? d.list.slice(0, 60) : [], res = [], now = new Date(); let made = 0;
+      const live = rows.filter(x=>String(x[AI.st]) !== "closed"), ids = {}, nms = {}, bts = {}, rids = {};
+      live.forEach(x=>{ ids[String(x[AI.id])] = 1; nms[String(x[AI.t] || "") + "|" + acNk_(x[AI.n])] = 1; const k = String(x[AI.t] || "") + "|" + String(x[AI.bt]); bts[k] = (bts[k] || []).concat([String(x[AI.n])]); if (x[AI.rid]) rids[String(x[AI.rid])] = 1; });
+      L.forEach(o=>{ const id = String(o.id || "").trim().toLowerCase(), n = txt_(plain_(o.n), 12), t = txt_(o.t, 20), rid = String(o.rid || "").replace(/[^\w-]/g, "").slice(0, 40), bd = String(o.bd || "");
+        if (!AC_ID_RE.test(id) || AC_RESERVED.indexOf(id) >= 0) return res.push({id, n, err:"badid"});
+        if (ids[id]) return res.push({id, n, err:"dupid"});
+        if (!n || AC_STAFF.test(n)) return res.push({id, n, err:"badname"});
+        if (nms[t + "|" + acNk_(n)]) return res.push({id, n, err:"dupname"});
+        if (rid && rids[rid]) return res.push({id, n, err:"duprid"});
+        if (!acBirthOk_(bd)) return res.push({id, n, err:"badbd"});
+        const salt = acRnd_(16), bh = acPw_(salt, bd), bt = acMac_("bd:" + bd), uid = "k_" + acRnd_(12), k = t + "|" + bt, same = (bts[k] || []).slice();
+        const row = AC_COLS.map(([c])=>({uid, id, n, t, rid, pk:"생일", salt, ph:bh, bh, bt, fails:0, lock:"", devs:"[]", pend:"[]", made:now, last:"", st:"", memo:""})[c]);
+        sh.appendRow(row); made++; ids[id] = 1; nms[t + "|" + acNk_(n)] = 1; bts[k] = same.concat([n]); if (rid) rids[rid] = 1;
+        res.push({id, n, uid, ok:1, sameBirth:same}); });
+      return json_({ok:true, v:SERVER_V, made, res}); }
+    const i = acFind_(rows, "uid", d.uid); if (i < 0) return json_({ok:false, err:"gone"});
+    const r = rows[i], a = acObj_(r);
+    if (d.type === "acctEdit"){
+      if (d.id != null){ const id = String(d.id).trim().toLowerCase(); if (!AC_ID_RE.test(id) || AC_RESERVED.indexOf(id) >= 0) return json_({ok:false, err:"badid"});
+        if (rows.some((x, j)=>j !== i && String(x[AI.id]) === id)) return json_({ok:false, err:"dupid"}); r[AI.id] = id; }
+      if (d.t != null) r[AI.t] = txt_(d.t, 20);
+      if (d.n != null){ const n = txt_(plain_(d.n), 12); if (!n || AC_STAFF.test(n)) return json_({ok:false, err:"badname"});
+        if (rows.some((x, j)=>j !== i && String(x[AI.st]) !== "closed" && String(x[AI.t] || "") === String(r[AI.t] || "") && acNk_(x[AI.n]) === acNk_(n))) return json_({ok:false, err:"dupname"}); r[AI.n] = n; }
+      acPut_(sh, i, r); return json_({ok:true, v:SERVER_V, a:pub(acObj_(r))}); }
+    if (d.type === "acctPw"){ if (d.birth){ r[AI.ph] = r[AI.bh]; r[AI.pk] = "생일"; } else { const pw = String(d.pw || ""); if (!acPwOk_(pw)) return json_({ok:false, err:"badpw"}); r[AI.ph] = acPw_(String(r[AI.salt]), pw); r[AI.pk] = "바꿈"; }
+      a.fails = 0; a.lock = 0; acPut_(sh, i, acSync_(r, a)); return json_({ok:true, v:SERVER_V, a:pub(acObj_(r))}); }
+    if (d.type === "acctUnlock"){ a.fails = 0; a.lock = 0; acPut_(sh, i, acSync_(r, a)); return json_({ok:true, v:SERVER_V, a:pub(acObj_(r))}); }
+    if (d.type === "acctDev"){ const dk = acDk_(d.dk); a.devs = a.devs.filter(x=>x && x.dk !== dk); acFb_("/kdev/" + a.uid + "/" + dk, null); acPut_(sh, i, acSync_(r, a)); return json_({ok:true, v:SERVER_V, a:pub(acObj_(r))}); }
+    if (d.type === "acctApprove"){ const p = a.pend.find(x=>x && x.pid === String(d.pid || "")); if (!p) return json_({ok:false, err:"pid"});
+      p.st = d.yes ? "ok" : "no"; acPut_(sh, i, acSync_(r, a)); return json_({ok:true, v:SERVER_V, a:pub(acObj_(r))}); }
+    if (d.type === "acctClose"){ a.devs.forEach(x=>{ if (x && x.dk) acFb_("/kdev/" + a.uid + "/" + x.dk, null); }); a.devs = []; a.pend = []; r[AI.st] = "closed";
+      r[AI.memo] = "졸업 " + Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd"); acPut_(sh, i, acSync_(r, a)); return json_({ok:true, v:SERVER_V}); }
+    return json_({ok:false, err:"type"}); });
 }
 
 /* ── (v267) 오래된 기록 보관 — scores 가 너무 길어져 시트가 느려지면 ──

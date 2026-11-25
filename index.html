@@ -14,7 +14,7 @@ try{ if(window.HY_QA!==true && (/[?&]qa=1(&|$)/.test(location.search) || session
 <meta name="theme-color" content="#100b22">
 <meta name="description" content="다가오는 문 중 뜻에 맞는 영어 단어를 골라 통과하는 3D 단어 학습 게임">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" media="print" onload="this.media='all'">   <!-- (v677) 그림 문자 글꼴은 첫 화면을 막지 않게 (받는 동안 기다리던 것) -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Jua&family=Lilita+One&display=swap" media="print" onload="this.media='all'">   <!-- (v677) 그림 문자 글꼴은 첫 화면을 막지 않게 (받는 동안 기다리던 것) -->
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16217,6 +16217,11 @@ const NameCard = {
     try{ if(Online.on() && !TEST_STAGE) Online.submit({type:"name", nick:v, old, how, ver:GAME_VER}); }catch(e){}
     try{ setTimeout(()=>Tag.sync(), 600); }catch(e){} },   // (v404) 🏷 이름을 처음 정하면 태그가 생김 (바꿔도 태그는 그대로)
   /* 바꾸기 — 성공하면 "" · 아니면 아이에게 보일 말 */
+  /* (v723) 바꿀 수 있는지만 (보석·무료권을 쓰지 않고) — 계정 아이는 서버에 묻기 전에 */
+  pre(raw){ const v=this.clean(raw), old=this.cur(), s=this.st(); if(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ]/.test(String(raw||"").trim())) return "한글·영어·숫자만 쓸 수 있어요 (기호·이모지 빼고)";
+    if(Array.from(String(raw||"").trim()).length>this.MAX) return "이름은 "+this.MAX+"글자까지예요"; if(!v) return "이름을 적어 주세요"; if(v.toUpperCase()==="PLAYER") return "다른 이름을 적어 주세요";
+    if(/^한양|패드$/.test(v)) return "「한양…」「…패드」는 학원 공용 패드 이름이에요 — 다른 이름을 적어 주세요"; if(HY_STAFF_NAME.test(v)) return "「선생님 · 관리자」 같은 이름은 쓸 수 없어요 — 내 이름을 적어 주세요";
+    if(v===old) return "지금 이름과 같아요"; if(old && !/^player$/i.test(old) && !((s.free|0)>0) && Wallet.gems()<this.PRICE) return "보석이 모자라요 (💎 "+this.PRICE+" 필요)"; return ""; },
   change(raw, force){
     try{ if(!force && Kid.shared()) return "공용 패드 이름은 선생님이 관리 화면에서 바꿔요"; }catch(e){}   /* (v417) 「…패드」 이름이 바뀌면 공용 패드가 아니게 됨 */
     const v=this.clean(raw), old=this.cur(), s=this.st();
@@ -16253,9 +16258,12 @@ const NameCard = {
   click(a){
     if(a==="edit"){ SFX.click(); this.editing=true; this.draw(); const el=$("nick"); try{ el.focus(); el.select(); }catch(e){} return; }
     if(a==="no"){ SFX.click(); this.editing=false; this.draw(); return; }
-    if(a==="ok"){ const r=this.change($("nick").value);
-      if(r){ SFX.tone(200,.1,"square",.03); const m=$("nmMsg"); if(m) m.textContent=r; else { const row=$("nmRow"); if(row) row.querySelector("small").textContent=r; } }
-      else { SFX.select(); try{ refreshResume(); }catch(e){} } }
+    if(a==="ok"){ const val=$("nick").value, say=r=>{ SFX.tone(200,.1,"square",.03); const m=$("nmMsg"); if(m) m.textContent=r; else { const row=$("nmRow"); if(row) row.querySelector("small").textContent=r; } };
+      const run=()=>{ const r=this.change(val); if(r) say(r); else { SFX.select(); try{ refreshResume(); }catch(e){} } };
+      /* (v723) 🔐 계정 아이 — 사용자: 「같은 반 같은 이름 막아야지」 → 먼저 서버(같은 반 확인)에 묻고, 된다고 하면 그때 💎·무료권을 씀 */
+      try{ if(window.Acct && Acct.on() && !Kid.teacher()){ const pre=this.pre(val); if(pre){ say(pre); return; } const m=$("nmMsg"); if(m) m.textContent="확인하는 중…";
+          Acct.rename(this.clean(val)).then(err=>{ if(err) say(err); else run(); }); return; } }catch(e){}
+      run(); }
   },
   /* 설정을 닫을 때 — 처음 이름을 적어만 두고 안 눌렀으면 그대로 정한다 */
   close(){ if(!this.cur()){ const v=this.clean(($("nick")||{}).value); if(v && v.toUpperCase()!=="PLAYER") this.change(v); } else if(this.editing){ this.editing=false; this.draw(); } }
@@ -17854,7 +17862,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v722";
+const GAME_VER = "v723";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -23286,7 +23294,7 @@ try{ addEventListener("pagehide", ()=>{ try{ Gift.flush(); }catch(e){} }); docum
 /* (v417) 🎓 졸업 · 주인 바꾸기 — 주인 패드의 기록을 /hy/move/<아이> 에 맡김 → 그 아이 새 기기에서 이름을 고르면 「가져올까요?」 */
 const Move = {
   /* (v722) 보안 점검 31: 가짜 백업에 「선생님 기기」 표시 · 관리 열쇠를 넣어 두면 가져온 기기가 선생님 기기가 됐다 → 기기 전용 · 선생님 칸은 넣지도 빼지도 않음 */
-  SKIP:/^(hyeng_dev|hyeng_admin_\w*|hyeng_teacher_dev|hyeng_fb_key|hyeng_unhook|hyeng_rebind|hyeng_nick|hyeng_tag|hyeng_pad_owner|hyeng_fb_url|hyeng_fb_q|hyeng_fb_local|hyeng_sheetq|hyeng_kid|hyeng_acts_v1|hyeng_gift_done|hyeng_move_seen|hyeng_hb2)$/,
+  SKIP:/^(hyeng_acct\w*|hyeng_dev|hyeng_admin_\w*|hyeng_teacher_dev|hyeng_fb_key|hyeng_unhook|hyeng_rebind|hyeng_nick|hyeng_tag|hyeng_pad_owner|hyeng_fb_url|hyeng_fb_q|hyeng_fb_local|hyeng_sheetq|hyeng_kid|hyeng_acts_v1|hyeng_gift_done|hyeng_move_seen|hyeng_hb2)$/,
   keys(){ const out=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^(hyeng|wgr)_/.test(k)) out.push(k); } }catch(e){} return out; },
   /* 주인 패드 → 주인 것만 (다른 아이 수업 칸 @… · 다른 아이 이름이 붙은 칸은 뺌) */
   pack(o){ const sid=String(o.k).replace(/[^\w-]/g,""), other=Object.keys((()=>{ try{ return HyBoss.kids(); }catch(e){ return {}; } })()).filter(k=>k!==o.k).map(k=>String(k).replace(/[^\w-]/g,"")), d={};
@@ -23306,7 +23314,7 @@ const Move = {
     this.keys().forEach(k=>{ if(!/^(hyeng_dev|hyeng_admin_key|hyeng_nick|hyeng_tag|hyeng_fb_url)$/.test(k)) try{ localStorage.removeItem(k); }catch(e){} });
     try{ sessionStorage.removeItem("hyeng_kid"); }catch(e){} try{ FB.set("/hy/pads/"+Online.dev(), null); }catch(e){}
     return {ok:1, n:o.n, kb:Math.round(body.d.length/1024)}; },
-  async check(){ if(TEST_STAGE) return; try{ if(Kid.shared() || Kid.teacher()) return; }catch(e){ return; } let me=null; try{ me=Kid.me(); }catch(e){} if(!me || !me.id) return;
+  async check(){ if(TEST_STAGE) return; try{ if(Kid.shared() || Kid.teacher() || (window.Acct && Acct.on())) return; }catch(e){ return; } let me=null; try{ me=Kid.me(); }catch(e){} if(!me || !me.id) return;
     let d=null; try{ await FB.ready(); d=await FB.get("/hy/move/"+Gift.sid(me.id)); }catch(e){ return; } if(!d || d.done || !d.d) return;
     let seen=""; try{ seen=localStorage.getItem("hyeng_move_seen")||""; }catch(e){} if(seen===String(d.at)) return;
     this.ask(me, d); },
@@ -23342,7 +23350,7 @@ async function padAutoOwner(){ let sh=false; try{ sh=Kid.shared(); }catch(e){} i
    새 기기·기록이 지워진 기기(사파리 정리 등): 그 아이 이름이 되면 「☁️ 예전 기록을 가져올까요?」 · 선생님 💾 옮기기에서 아이 기록 되살리기 */
 const Cloud = {
   H:"hyeng_cloud_h", SEEN:"hyeng_cloud_seen", busy:false,
-  who(){ try{ if(Kid.guest()) return null; if(Kid.shared() && !Kid.ownerMode()) return null; if(Kid.teacher()) return null; const me=Kid.me(); return me && me.id ? me : null; }catch(e){ return null; } },
+  who(){ try{ if(window.Acct && Acct.on()) return null;   /* (v723) 🔐 계정으로 로그인한 아이는 /kacct 에 저장 (예전 공개 ☁️ /hy/acct 에 안 씀) */ if(Kid.guest()) return null; if(Kid.shared() && !Kid.ownerMode()) return null; if(Kid.teacher()) return null; const me=Kid.me(); return me && me.id ? me : null; }catch(e){ return null; } },
   pack(){ const o=Kid.shared() ? Kid.owner() : null; if(o) return Move.pack(o);
     const d={}; Move.keys().forEach(k=>{ if(Move.SKIP.test(k) || /^hyeng_(cloud_|move_)/.test(k)) return; if(k.indexOf("@")>=0 && k.indexOf("hyeng_proto_@")!==0) return; try{ d[k]=localStorage.getItem(k); }catch(e){} }); return d; },
   hash(t){ let h=2166136261; for(let i=0;i<t.length;i++){ h^=t.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h.toString(36)+"."+t.length; },
@@ -30025,7 +30033,7 @@ const Admin = (function(){
     return nav+({notice, send, key:keyPane, dev, fix, move}[sub])(); }
   function body(){
     if(!ok) return pinBox();
-    const f={now:nowPane, class:()=>'<div class="full" id="adTodoW">'+todo(rep && rep.d ? canonRep(rep.d) : null)+'</div>'+team()+'<div class="full">'+rlvCard()+'</div><div class="full">'+tagCard()+'</div>',
+    const f={now:nowPane, class:()=>'<div class="full" id="adTodoW">'+todo(rep && rep.d ? canonRep(rep.d) : null)+'</div>'+(()=>{ try{ return window.AcctAdm ? '<div class="full">'+AcctAdm.card(tk)+'</div>' : ''; }catch(e){ console.error(e); return ''; } })()+team()+'<div class="full">'+rlvCard()+'</div><div class="full">'+tagCard()+'</div>',
       rec:()=>'<div class="full adJumpW"></div>'+(()=>{ try{ return '<div class="full">'+HyDay.card()+'</div>'; }catch(e){ return ''; } })()+(()=>{ try{ return '<div class="full adTimeW">'+HyDay.timeCard()+'</div>'; }catch(e){ console.error(e); return ''; } })()+'<div class="full" id="adVc">'+HyVc.html()+'</div>'+checkCard()+'<div class="full adSecH">📊 반 전체 기록 <small>시트에서 · 이번 주</small></div>'+klass(),
       prize:()=>'<div class="adCol">'+raid("boss")+'</div><div class="adCol">'+(()=>{ const D=rep && rep.d ? canonRep(rep.d) : null; try{ return D ? townClassCard(D) : card('🏝 보석 · My Town (반 전체)', '<p class="adSmall">'+(ready() ? '시트에서 불러오는 중…' : '시트 연결이 되면 여기 나와요')+'</p>'); }catch(e){ return ''; } })()+Prize.adminCard()+'<button class="mini adGoSend" data-ad="tab" data-t="send">💎 보석·선물 보내기 · 📢 공지 → 보내기</button></div>',
       send:sendPane, work:()=>'<div class="full adPpTop"><b>🖨 종이로 뽑기</b><span>A4 · 인쇄 · PDF · A형/B형 · 답안지</span><div><button class="mini go" data-ad="paper">📝 단어 시험지</button><button class="mini go" data-ad="paper" data-m="lf">💬 생활영어</button><button class="mini go" data-ad="paper" data-m="gm">📒 문법</button><button class="mini" data-ad="paperKj">✏️ 따라쓰기</button></div></div><div class="adCol adWkHw">'+HyHW.pane()+'</div><div class="adCol adWkEx">'+HyExam.pane()+'</div>', set:setPane}[tab]||nowPane;
@@ -31883,5 +31891,6 @@ if("serviceWorker" in navigator){
   });
 }
 </script>
+<script src="acct.js"></script>   <!-- (v723) 🔐 아이 계정 · 로그인 화면 · 선생님 계정 관리 -->
 </body>
 </html>

@@ -22,7 +22,7 @@ let bad = 0; const ok = (c, m) => { console.log((c ? "OK  " : "BAD ") + m); if (
   const D = Object.keys(C).filter(k => C[k] > 1); ok(!D.length, "같은 이름 함수 없음 " + D.join(",")); }
 
 let r = post({type: "check", tk: "LEGACYKEY123"});
-ok(r.ok && r.v === 26 && r.legacy === true && r.devs === 0, "옛 열쇠 = 됨 (legacy · 기기 0) " + JSON.stringify(r));
+ok(r.ok && r.v >= 26 && r.legacy === true && r.devs === 0, "옛 열쇠 = 됨 (legacy · 기기 0) " + JSON.stringify(r));
 ok(post({type: "pairMake", tk: "LEGACYKEY123"}).err === "notme", "옛 열쇠로는 6자리 코드 못 만듦");
 r = post({type: "pairSelf", tk: "LEGACYKEY123", n: "윈도우 PC · 크롬"});
 ok(r.ok && /^[0-9a-f]{64}$/.test(r.tk), "첫 기기 바로 연결 → 64자 무작위 열쇠");
