@@ -69,6 +69,8 @@ function css(){ if(document.getElementById("spCss")) return; const s=document.cr
 #mgUI .spRp{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));white-space:nowrap;display:none;background:#ff3b5c;color:#fff;border-radius:999px;padding:6px 14px;font-size:15px;pointer-events:none;box-shadow:0 0 0 3px #fff}
 #mgUI .spRp.on{display:block}
 @media (prefers-reduced-motion:reduce){ #mgUI .spPop{transition:opacity .2s} }
+#mgUI .puM.spMenuVs .puSeg{gap:4px} #mgUI .puM.spMenuVs .puSeg button{flex:1 1 0;min-width:0;padding:4px 2px;white-space:nowrap;font-size:14px}   /* 상대 5개가 한 줄 (좁은 휴대폰에서 두 줄로 꺾여 메뉴가 넘쳤음) */
+@media (max-width:370px){ #mgUI .puM.spMenuVs .puSeg button{font-size:12.5px} }
 @media (orientation:landscape) and (max-height:620px){ #mgUI .spSc{top:calc(8px + env(safe-area-inset-top))} #mgUI .spMenu .g button{min-height:110px}
   #mgUI .spSc.multi{left:auto;right:calc(10px + env(safe-area-inset-right));transform:none} }
 @media (min-width:700px) and (min-height:900px), (min-width:1000px) and (min-height:700px){ #mgUI .spSc{zoom:1.3} #mgUI .spSay{zoom:1.25} #mgUI .spBtn{zoom:1.25} #mgUI .spBig{zoom:1.3} #mgUI .spRp{zoom:1.25} #mgUI .spPop{font-size:23px;padding:7px 20px} }`;   /* (v729) 패드 크게 */ document.head.appendChild(s); }
@@ -139,7 +141,7 @@ function start(api){
     pins.forEach(p=>{ p.x=p.hx; p.z=p.hz; placePin(p); }); return L; }
   function placePin(p){ const c=Math.abs(Math.cos(p.rot)), s=Math.abs(Math.sin(p.rot)); p.g.position.set(p.x, Math.max(.12, PC*c+.12*s)+p.y+(p.lift||0), p.z); AX.set(Math.cos(p.ta),0,-Math.sin(p.ta)); p.g.quaternion.setFromAxisAngle(AX, p.rot); }
   const ball=new THREE.Mesh(ballGeo, MS(0x5b3aff,{roughness:.2, map:tex(256,128,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,"#ff5ce1"); gr.addColorStop(.5,"#5b3aff"); gr.addColorStop(1,"#3ea2ff"); g.fillStyle=gr; g.fillRect(0,0,w,h); g.fillStyle="#1d1640"; [[100,40],[124,36],[112,62]].forEach(([x,y])=>{ g.beginPath(); g.arc(x,y,7,0,7); g.fill(); }); g.fillStyle="#fff"; g.font="bold 30px sans-serif"; g.fillText("★",30,80); })}));
-  const BW=mkLane(0, ball, false), PINS=BW.pins; BW.on=true;
+  const BW=mkLane(0, ball, false), PINS=BW.pins; BW.on=true; ball.position.set(0,BR,.3);
   /* 🤖 옆 레인 친구 (v731) — 왼쪽 Tom · 오른쪽 Lily · 공 색 다름 · pk = 겨냥하는 「포켓」 쪽 · inS = 캐릭터가 서는 쪽(가운데 레인 쪽) */
   const BOTV=[{nm:"Tom", col:"#d9661c", bc:0xff9a3d, av:{skin:1, hair:"short", hc:1, style:"overalls", top:3, pc:2, hat:"straw", acc:"none"}}, {nm:"Lily", col:"#13997a", bc:0x3dd9b0, av:{skin:0, hair:"bun", hc:6, style:"dress", top:6, pc:5, hat:"none", acc:"ribbon"}}];
   const SIDE=[-3.1,3.1].map((x,i)=>{ const v=BOTV[i], m=MS(v.bc,{roughness:.2}), L=mkLane(x, new THREE.Mesh(ballGeo, m), true); L.bv=v; L.nm=v.nm; L.pk=i?-1:1; L.inS=i?-1:1; L.ball.visible=false; return L; });
@@ -163,8 +165,11 @@ function start(api){
   function tagSpr(t, col){ const tx=tex(256,76,(g,w,h)=>{ const r=30, x=6, y=6, W=w-12, H=h-12; g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+W,y,x+W,y+H,r); g.arcTo(x+W,y+H,x,y+H,r); g.arcTo(x,y+H,x,y,r); g.arcTo(x,y,x+W,y,r); g.closePath(); g.fillStyle="#FFF6E3"; g.fill(); g.lineWidth=6; g.strokeStyle="#4A2E1F"; g.stroke();
       g.fillStyle=col; g.font="900 42px Jua,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(t, w/2, h/2+2); });
     const m=new THREE.SpriteMaterial({map:tx, depthTest:false, transparent:true}); disp.push(m); const s=new THREE.Sprite(m); s.scale.set(.78,.23,1); s.renderOrder=5; return s; }
-  function botAv(L){ if(!L.P){ try{ const P=buildAvatar(L.bv.av); P.g.rotation.y=Math.PI; P.g.scale.setScalar(.7); BOWL.add(P.g); P.armR.rotation.set(.2,0,0); L.P=P; }catch(e){} L.A={sw:0, cheer:0, sad:0, t:Math.random()*5}; }
-    if(!L.tag){ L.tag=tagSpr(L.nm, L.bv.col); BOWL.add(L.tag); } }
+  function botAv(L){ const av=L.co?(L.fav||{}):L.bv.av, key=JSON.stringify(av);
+    if(L.P && L.avk!==key){ try{ BOWL.remove(L.P.g); }catch(e){} try{ avFree(L.P); }catch(e){} L.P=null; }   /* 친구 = 친구 캐릭터 */
+    if(!L.P){ try{ const P=buildAvatar(av); P.g.rotation.y=Math.PI; P.g.scale.setScalar(.7); BOWL.add(P.g); P.armR.rotation.set(.2,0,0); L.P=P; L.avk=key; }catch(e){} }
+    L.A={sw:0, cheer:0, sad:0, t:Math.random()*5};
+    if(L.tag && L.tagN!==L.nm){ try{ BOWL.remove(L.tag); }catch(e){} L.tag=null; } if(!L.tag){ L.tag=tagSpr(L.nm, L.bv.col); L.tagN=L.nm; BOWL.add(L.tag); } }
   const arrowM=new THREE.Mesh(GE(new THREE.ConeGeometry(.12,.4,4)), new THREE.MeshBasicMaterial({color:0xffe14d, transparent:true, opacity:.85})); disp.push(arrowM.material); arrowM.rotation.x=-Math.PI/2; BOWL.add(arrowM);
   /* ── 다트 ── */
   const chC=document.createElement("canvas"); chC.width=256; chC.height=330; const chG=chC.getContext("2d"); const chT=new THREE.CanvasTexture(chC); chT.encoding=THREE.sRGBEncoding; disp.push(chT);
@@ -201,16 +206,16 @@ function start(api){
   function big(t, sub, s){ BIG.innerHTML=t+(sub?'<small>'+sub+'</small>':''); BIG.classList.add("on"); clearTimeout(big.h); big.h=setTimeout(()=>BIG.classList.remove("on"), (s||1.2)*1000*(fast?.05:1)); }
   /* ══ 메뉴 ══ */
   function menuShow(){ mode="menu"; TM.length=0; SC.style.display="none"; BTN.style.display="none"; AIM.style.display="none"; say(""); BOWL.visible=true; DART.visible=false; const r=REC();
-    PUI.menu(U, {title:"볼링 · 다트", sub:"하나 골라 한 판!", av:api.av, nick:api.nick, stats:[["🎳",r.bw,"볼링 최고"],["🎯",r.dt,"다트 최고"],["star",r.strikes,"스트라이크"]],
+    PUI.menu(U, {title:"볼링 · 다트", sub:"하나 골라 한 판!", cls:"spMenuVs", av:api.av, nick:api.nick, stats:[["🎳",r.bw,"볼링 최고"],["🎯",r.dt,"다트 최고"],["star",r.strikes,"스트라이크"]],
       deco:[["🎳","left:calc(50% - 132px);top:24%;transform:rotate(-14deg)"],["🎯","left:calc(50% + 70px);top:58%;font-size:34px"]],
-      tiles:[{k:"bowl", emoji:"🎳", bg:"#c9b8ff", nm:"볼링", sub:(vsOf()==="0"?"5프레임":"🤖 Tom · Lily 랑")+" · 최고 "+r.bw}, {k:"dart", emoji:"🎯", bg:"#ffd1e6", nm:"다트", sub:"9개 · 최고 "+r.dt}], n:2,
-      seg:{items:[["0","🙋 혼자"],["easy","🤖 쉬움"],["normal","🤖 보통"],["hard","🤖 잘함"]], on:vsOf(), pick:v=>{ SET.vs=v; st("hyeng_proto_spset", SET); menuShow(); }},   /* (v731) 볼링 상대 (범퍼는 게임 안 단추) */
+      tiles:[{k:"bowl", emoji:"🎳", bg:"#c9b8ff", nm:"볼링", sub:({"0":"5프레임", co:"👫 친구랑"}[vsOf()]||"🤖 대결")+" · 최고 "+r.bw}, {k:"dart", emoji:"🎯", bg:"#ffd1e6", nm:"다트", sub:"9개 · 최고 "+r.dt}], n:2,
+      seg:{items:[["0","🙋 혼자"],["easy","🤖 쉬움"],["normal","🤖 보통"],["hard","🤖 잘함"],["co","👫 친구"]], on:vsOf(), pick:v=>{ SET.vs=v; st("hyeng_proto_spset", SET); menuShow(); }},   /* (v731) 볼링 상대 (범퍼는 게임 안 단추) */
       pay:MG.payLeft("bowl"), onPick:k=>menuGo(k)}); }
-  function menuGo(k){ TM.length=0; CONF.forEach(m=>scene.remove(m)); CONF.length=0; PUI.menuHide(U); if(k==="bowl") bowlStart(); else dartStart(); }
+  function menuGo(k){ TM.length=0; CONF.forEach(m=>scene.remove(m)); CONF.length=0; PUI.menuHide(U); if(k==="bowl"){ if(vsOf()==="co") coRoom(); else { CO=false; bowlStart(); } } else dartStart(); }
   BTN.addEventListener("click", ()=>{ if(mode==="bowl"){ SET.bump=SET.bump?0:1; st("hyeng_proto_spset", SET); BTN.textContent="🛡 범퍼 "+(SET.bump?"켬":"끔"); BUMP.forEach(b=>b.visible=!!SET.bump); } });
 
   /* ══ 🎳 볼링 ══ (v731) 레인 셋 — 나(가운데) · 🤖 Tom(왼쪽) · 🤖 Lily(오른쪽)가 같이 굴림 · 봇은 내 프레임보다 앞서지 않음 */
-  const VSK=["0","easy","normal","hard"], vsOf=()=>VSK.indexOf(SET.vs)>=0?SET.vs:"easy";
+  const VSK=["0","easy","normal","hard","co"], vsOf=()=>VSK.indexOf(SET.vs)>=0?SET.vs:"easy";
   /* 봇 실력: sx = 서는 자리 흔들림 · sv = 옆으로 휘는 정도 · v0~v1 = 세기 · w0~w1 = 굴리기 전 기다림(초) */
   const SKILL={easy:{sx:.5, sv:.3, v0:6, v1:10, w0:1.4, w1:2.6}, normal:{sx:.38, sv:.21, v0:7, v1:11.5, w0:1.1, w1:2.2}, hard:{sx:.11, sv:.06, v0:9.5, v1:13, w0:.9, w1:1.8}};
   const gauss=()=>{ let s=0; for(let i=0;i<3;i++) s+=Math.random()*2-1; return s; };   /* 표준편차 1 */
@@ -218,12 +223,13 @@ function start(api){
   const RDM=(()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } })();
   const clampX=x=>Math.max(-LW/2+BR, Math.min(LW/2-BR, x));
   function bowlStart(){ mode="bowl"; BOWL.visible=true; DART.visible=false; SC.style.display=""; BTN.style.display=""; BTN.textContent="🛡 범퍼 "+(SET.bump?"켬":"끔"); BUMP.forEach(b=>b.visible=!!SET.bump);
-    const vs=vsOf(); endQ=false; shk=0;
-    SIDE.forEach(L=>{ L.on=vs!=="0"; L.sk=vs; L.rolls=[]; L.stk=0; L.sw=null; L.bar.visible=L.deck.visible=false; L.ph="idle"; setPins(L,true); L.ball.visible=false; if(L.on) botAv(L); if(L.P) L.P.g.visible=L.on; if(L.tag) L.tag.visible=L.on; sidePaint(L); if(L.on) readyLane(L); });
-    BW.rolls=[]; BW.stk=0; BW.sw=null; BW.rp=null; BW.bar.visible=BW.deck.visible=false; if(RET) RET.visible=vs==="0"; setPins(BW,true); readyBall(); sheet(); }   /* 공 돌아오는 기계는 혼자일 때만 (오른쪽 Lily 를 가림) */
+    const vs=CO?"co":(vsOf()==="co"?"easy":vsOf()); endQ=false; shk=0;
+    SIDE.forEach((L,i)=>{ const fr=CO?COL[i]:null; L.co=fr?fr.k:null; L.fav=fr?fr.av:null; L.nm=fr?fr.n:L.bv.nm; L.on=CO?!!fr:vs!=="0"; L.sk=vs; L.seen=-1; L.gone=0; L.left=0; L.bump=false; L.cw=0;
+      L.rolls=[]; L.stk=0; L.sw=null; L.bar.visible=L.deck.visible=false; L.ph="idle"; setPins(L,true); L.ball.visible=false; if(L.on) botAv(L); if(L.P) L.P.g.visible=L.on; if(L.tag) L.tag.visible=L.on; sidePaint(L); if(L.on) readyLane(L); });
+    BW.rolls=[]; BW.mk=[]; BW.th=null; BW.stk=0; BW.sw=null; BW.rp=null; BW.bar.visible=BW.deck.visible=false; if(RET) RET.visible=vs==="0"; setPins(BW,true); readyBall(); sheet(); }   /* 공 돌아오는 기계는 혼자일 때만 (오른쪽 Lily 를 가림) */
   function setPins(L, all){ L.pins.forEach(p=>{ if(all) p.up=true; if(p.up){ Object.assign(p,{down:false, x:p.hx, z:p.hz, vx:0, vz:0, rot:0, ta:0, y:0, vy:0, spin:0, air:false, lift:0}); p.g.visible=true; placePin(p); } else p.g.visible=false; }); }
   function readyBall(){ BW.ph="aim"; BW.bx=0; BW.vx=BW.vz=0; BW.t=0; BW.gutter=false; BW.hit=false; BW.rec=null; ball.position.set(0,BR,.3); ball.rotation.set(0,0,0); guide.visible=false; camP=null; ball.visible=true; arrowM.visible=true; BW.camZ=3.4; const f=rollsInFrame(BW.rolls); say((f.f+1)+"프레임 "+(f.k+1)+"번째 · "+(SIDE.some(L=>L.on)?"다 같이! 위로 쓱 👆":"위로 쓱! 또는 콕 👆")); }
-  function readyLane(L){ L.ph="aim"; L.aim=botAim(L); L.bx=L.aim[0]; L.vx=L.vz=0; L.t=0; L.gutter=false; L.hit=false; L.ball.position.set(L.bx,BR,.3); L.ball.visible=true; const S=SKILL[L.sk]||SKILL.easy; L.wait=(S.w0+Math.random()*(S.w1-S.w0))*(fast?.02:1); }
+  function readyLane(L){ L.ph="aim"; L.aim=L.co?[0,0,9]:botAim(L); L.bx=L.aim[0]; L.vx=L.vz=0; L.t=0; L.gutter=false; L.hit=false; L.ball.position.set(L.bx,BR,.3); L.ball.visible=true; const S=SKILL[L.sk]||SKILL.easy; L.wait=(S.w0+Math.random()*(S.w1-S.w0))*(fast?.02:1); }
   function sheet(){ const act=LANES.filter(L=>L.on);
     if(act.length<2){ SC.classList.remove("multi"); const s=bowlScore(BW.rolls), f=rollsInFrame(BW.rolls).f; SC.innerHTML=s.marks.map((m,i)=>'<div class="'+(i===f && mode==="bowl"?"cur":"")+'"><small>'+(i+1)+'</small><div class="m">'+m.map(x=>'<span>'+x+'</span>').join("")+'</div><div class="t">'+(s.out[i]==null?"":s.out[i])+'</div></div>').join("")+'<div class="tot"><small>합계</small><div class="m"></div><div class="t">'+s.total+'</div></div>'; }
     else { SC.classList.add("multi"); const T=act.map(L=>bowlScore(L.rolls).total), top=Math.max(...T);
@@ -238,7 +244,7 @@ function start(api){
       g.fillStyle="#ff5ce1"; g.font="900 64px sans-serif"; g.textAlign="right"; g.fillText(sc.total, w-22, 52); }
     L.mt.needsUpdate=true; }
   function throwLane(L, x, vx, vz){ L.bx=clampX(x); L.vx=Math.max(-1.6,Math.min(1.6,vx)); L.vz=-Math.max(5, Math.min(16, vz)); L.ph="roll"; L.t=0; L.hit=false; L.gutter=false; L.ball.position.set(L.bx, BR, .3); L.ball.visible=true; if(L.A) L.A.sw=.55; try{ SFX.noise(1.2, L===BW?.05:.016, 300, .5, 150); }catch(e){} }
-  function throwBall(x, vx, vz){ if(mode!=="bowl" || BW.ph!=="aim") return false; throwLane(BW, x, vx, vz); BW.rec=[]; arrowM.visible=false; guide.visible=false; AV.sw=.55; say(""); return true; }
+  function throwBall(x, vx, vz){ if(mode!=="bowl" || BW.ph!=="aim") return false; throwLane(BW, x, vx, vz); BW.th={i:BW.rolls.length, x:+BW.bx.toFixed(3), vx:+BW.vx.toFixed(3), vz:+(-BW.vz).toFixed(3)}; BW.rec=[]; arrowM.visible=false; guide.visible=false; AV.sw=.55; say(""); return true; }
   /* 봇 겨냥: 처음 공 = 포켓(가운데 살짝 옆) · 두 번째 공 = 남은 핀 가운데 · 실력만큼 흔들림 */
   function botAim(L){ const S=SKILL[L.sk]||SKILL.easy, up=L.pins.filter(p=>p.up && p.g.visible), tx=up.length>=10||!up.length ? L.pk*.16 : up.reduce((s,p)=>s+p.hx,0)/up.length;
     return [clampX(tx+gauss()*S.sx), gauss()*S.sv, S.v0+Math.random()*(S.v1-S.v0)]; }
@@ -252,7 +258,7 @@ function start(api){
     while(n--){
       if(roll){ L.t+=h;
         if(L.vz<0 || Math.abs(L.vx)>0){ b.x+=L.vx*h; b.z+=L.vz*h; L.ball.rotation.x+=L.vz*h/BR; }
-        if(!L.gutter){ if(me && SET.bump){ if(b.x<-LW/2+BR){ b.x=-LW/2+BR; L.vx=Math.abs(L.vx)*.6; try{ SFX.tone(240,.05,"square",.03); }catch(e){} } if(b.x>LW/2-BR){ b.x=LW/2-BR; L.vx=-Math.abs(L.vx)*.6; try{ SFX.tone(240,.05,"square",.03); }catch(e){} } }
+        if(!L.gutter){ if(me ? SET.bump : L.bump){ if(b.x<-LW/2+BR){ b.x=-LW/2+BR; L.vx=Math.abs(L.vx)*.6; try{ SFX.tone(240,.05,"square",.03); }catch(e){} } if(b.x>LW/2-BR){ b.x=LW/2-BR; L.vx=-Math.abs(L.vx)*.6; try{ SFX.tone(240,.05,"square",.03); }catch(e){} } }
           else if(Math.abs(b.x)>LW/2-BR*.4 && b.z>HZ+.4){ L.gutter=true; L.vx=0; b.x=Math.sign(b.x)*(LW/2+.16); b.y=BR-.12; if(me) big("😅 도랑!", "", 1); } }
         if(b.z<LZ+.1){ L.vz=0; L.vx=0; L.ball.visible=false; }
         else if(L.vz>-BMIN){ L.vz=-BMIN; }   /* (v729) 핀에 부딪혀도 공은 앞으로 (전: 느린 공이 거의 멈춰 5초 · 가끔 거꾸로 굴러와 19초 기다림) */
@@ -271,7 +277,10 @@ function start(api){
     if((b.z<LZ+.2 || L.vz===0) && (!moving || L.t>7) || L.t>9){ L.ph="count"; later(fast?.02:.6, ()=>countPins(L)); } }
   let hitT=0; function hitSnd(L){ const n=performance.now(); if(n-hitT<45) return; hitT=n; const v=L===BW?1:.3; try{ SFX.tone(900+Math.random()*500,.05,"square",.03*v); SFX.noise(.08,.05*v,2200); }catch(e){} }
   function crash(L, sp){ const v=(L===BW?.12:.035)*Math.min(1, sp/11); try{ SFX.noise(.5, v, 1300, .6, 240); SFX.tone(120, .22, "sine", v, 55); }catch(e){} if(L===BW && sp>8 && !RDM) shk=Math.max(shk,.35); }
-  function countPins(L){ const me=L===BW, before=L.pins.filter(p=>p.up).length; L.pins.forEach(p=>{ if(p.up && p.down) p.up=false; }); const after=L.pins.filter(p=>p.up).length, got=before-after; L.rolls.push(got);
+  function countPins(L){ const me=L===BW; let fgot=null;
+    if(L.co){ const p=coP(L), ro=(p && p.ro)||[], i=L.rolls.length; if(ro.length<=i){ if(++L.cw<40 && L.on && !L.left){ later(.25, ()=>countPins(L)); return; } } else { L.cw=0; fgot=ro[i]; coMask(L, (p.mk||[])[i]); } }   /* 친구 결과가 올 때까지 (8초) */
+    const before=L.pins.filter(p=>p.up).length; L.pins.forEach(p=>{ if(p.up && p.down) p.up=false; }); const after=L.pins.filter(p=>p.up).length, got=fgot!=null?fgot:before-after; L.rolls.push(got);
+    if(me){ let ms=0; L.pins.forEach((p,j)=>{ if(p.up) ms|=1<<j; }); (BW.mk||(BW.mk=[])).push(ms); }
     const strike=got===10 && before===10, spare=!strike && after===0; L.stk=strike?L.stk+1:0;
     if(me){ const r=REC();
       if(strike){ const k=L.stk, T=k>=3?"TURKEY!":k===2?"DOUBLE!":"STRIKE!"; big(T, k>=3?"스트라이크 "+k+"번 연속! 🦃":k===2?"스트라이크 2번 연속 🔥":"스트라이크 🎉", 1.6); r.strikes++; st("hyeng_proto_spr", r); try{ SFX.win(); }catch(e){} fx(T, k>=3?120:k===2?95:70); }
@@ -289,7 +298,7 @@ function start(api){
   function botSay(L, strike, spare, got){ const A=L.A||{}; let t="";
     if(strike){ t=L.stk>=3?L.nm+" 터키! 🦃":L.stk===2?L.nm+" 더블! 🔥":L.nm+" 스트라이크! 🎳"; A.cheer=1.4; if(L.P) L.P.setExpr("grin"); }
     else if(spare){ t=L.nm+" 스페어! 👏"; A.cheer=1; }
-    else if(got===0 && Math.random()<.6){ t=L.nm+" 앗, 0개 😅"; A.sad=1.2; if(L.P) L.P.setExpr("wow"); }
+    else if(got===0 && !L.co && Math.random()<.6){ t=L.nm+" 앗, 0개 😅"; A.sad=1.2; if(L.P) L.P.setExpr("wow"); }
     if(t) popMsg(t); }
   function popMsg(t){ POP.textContent=t; try{ const r=SC.getBoundingClientRect(), u=U.getBoundingClientRect(), multiR=SC.classList.contains("multi") && innerWidth>innerHeight && innerHeight<=620; POP.style.top=Math.round((multiR?r.top:r.bottom)-u.top+(multiR?0:8))+"px"; POP.style.left=multiR?Math.round(Math.min(u.width/2, r.left-u.left-POP.offsetWidth/2-10))+"px":""; }catch(e){}   /* 가로 = 오른쪽 위 점수판 왼쪽에 */ POP.classList.add("on"); clearTimeout(popMsg.h); popMsg.h=setTimeout(()=>POP.classList.remove("on"), 1800*(fast?.05:1)); }
   /* 핀 정리 (v731) — 판이 내려와 서 있는 핀을 들고 · 막대가 쓰러진 핀을 쓸어 내고 · 핀(새로 10개 또는 남은 핀)을 내려놓음 */
@@ -320,9 +329,39 @@ function start(api){
     const got=PUI.award(api, {title:s+"점", sub:"볼링", rows:null, coins, again:{go:"bowl"}, upd:(b,t)=>{ b.bw=Math.max(b.bw|0,s); }}), left=MG.payLeft("bowl");
     const who=tot.map(([L,t])=>(L===BW?"나":esc(L.nm))+" "+t).join(" · ");
     PUI.result(U, {res:vs&&rank>1?"draw":"win", stars:s>=100?3:s>=70?2:s>=40?1:0, title:vs?(rank===1?(best?"1등! 내 최고 기록!":"1등! 🏆"):rank+"등 · "+s+"점"):(best?"내 최고 기록!":s+"점!"),
-      sub:vs?"🤖 "+({easy:"쉬움",normal:"보통",hard:"잘함"}[act[1].sk]||"")+" · "+who:"볼링 5프레임 · "+(SET.bump?"🛡 범퍼":"범퍼 없이"), av:api.av,
+      sub:vs?(CO?"👫 친구랑":"🤖 "+({easy:"쉬움",normal:"보통",hard:"잘함"}[act[1].sk]||""))+" · "+who:"볼링 5프레임 · "+(SET.bump?"🛡 범퍼":"범퍼 없이"), av:api.av,
       rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["🎳", s, "점", best],["star", sk, "스트라이크"]], prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3},
       onAgain:()=>api.restart({go:"bowl"}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()}); }
+  /* ══ 👫 친구랑 (v731) — 방(MG.room) · 셋까지 · 내 레인은 내 기기가 굴리고, 옆 레인 = 친구가 보낸 「던진 값」을 그대로 굴려 보여 줌 · 핀은 친구가 보낸 결과(남은 핀)로 맞춤 ══ */
+  let RM=null, CO=false, COL=[];
+  function coRoom(){ mode="bowl"; CO=false; COL=[]; PUI.menuHide(U); SC.style.display="none"; BTN.style.display="none"; say(""); BOWL.visible=true; DART.visible=false; BW.ph="idle"; arrowM.visible=false; ball.position.set(0,BR,.3); ball.visible=true; camP=null;
+    SIDE.forEach(L=>{ L.on=false; L.ph="idle"; L.ball.visible=false; if(L.P) L.P.g.visible=false; if(L.tag) L.tag.visible=false; sidePaint(L); });
+    if(RM){ try{ RM.dispose(); }catch(e){} RM=null; }
+    RM=MG.room(api, {pre:"mgb", title:"볼링 같이 하기", ic:"🎳", max:3, fill:false, wait:6000, send:.25, poll:.3, back:()=>{ coQuit(); menuShow(); }});
+    RM.node=()=>({av:api.av||null, ro:BW.rolls.slice(), mk:(BW.mk||[]).slice(), th:BW.th||null, bp:SET.bump?1:0, dn:CO && BW.ph==="done"?1:0});
+    { const st0=RM.start; RM.start=async()=>{ const d=RM.d||{}, t=RM.now(); let ro=Object.keys(d.p||{}).filter(k=>k===RM.code || (d.p[k] && t-(d.p[k].t||0)<20000)); if(ro.indexOf(RM.code)<0) ro.push(RM.code); ro=ro.sort().slice(0,3);   /* (v729 컬러팡처럼) 느린 와이파이 친구도 20초 */
+      if(ro.length<2){ api.msg("친구가 들어오면 시작할 수 있어요 👫", 1500); return; } try{ await NET.patch(RM.path+"/h", {ro}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=ro; return st0(); }; }
+    RM.onStart=(h, Lv)=>coBegin(h, Lv); }
+  function coQuit(){ if(RM){ try{ RM.dispose(); }catch(e){} } RM=null; CO=false; COL=[]; }
+  function coBegin(h, Lv){ const ro=(h.ro && h.ro.length ? h.ro : Lv.map(p=>p.k)).slice(0,3), PD=(RM.d && RM.d.p)||{};
+    if(ro.indexOf(RM.code)<0){ api.msg("🙈 시작할 때 자리에 못 들어갔어요<small>다음 판에 같이 해요</small>", 2200); try{ RM.leave(true); }catch(e){} return; }
+    COL=ro.filter(c=>c!==RM.code).map(k=>({k, n:String((PD[k] && PD[k].n)||(Lv.find(q=>q.k===k)||{}).n||"친구").slice(0,8), av:(PD[k] && PD[k].av)||{}}));
+    CO=true; bowlStart(); }
+  const coP=L=>RM && RM.d && RM.d.p ? RM.d.p[L.co] : null;
+  /* 친구 결과(남은 핀 묶음)로 내 화면 핀을 맞춤 — 비트 j = j번 핀이 서 있음 */
+  function coMask(L, ms){ if(typeof ms!=="number") return; L.pins.forEach((p,j)=>{ if(!p.up) return; const st=!!((ms>>j)&1); if(!st && !p.down){ p.down=true; p.ta=Math.random()*6.28; } else if(st && p.down){ p.down=false; } }); }
+  /* 많이 밀렸거나 다시 붙었을 때: 굴리는 모습 없이 점수 · 핀만 바로 맞춤 */
+  function coSync(L, p){ L.rolls=(p.ro||[]).slice(); L.stk=0; for(let i=L.rolls.length-1;i>=0 && L.rolls[i]===10;i--) L.stk++; L.sw=null; L.bar.visible=L.deck.visible=false; L.seen=L.rolls.length-1;
+    if(bowlDone(L.rolls)){ sheet(); sidePaint(L); laneDone(L); return; }
+    const nf=rollsInFrame(L.rolls), ms=(p.mk||[])[L.rolls.length-1]; if(nf.reset || typeof ms!=="number") setPins(L,true); else { L.pins.forEach((q,j)=>{ q.up=!!((ms>>j)&1); }); setPins(L,false); }
+    readyLane(L); sheet(); sidePaint(L); }
+  function coTick(dt){ if(!RM) return; try{ RM.tick(dt); }catch(e){} if(!CO || mode!=="bowl") return; const live=RM.live(true).map(p=>p.k);
+    SIDE.forEach(L=>{ if(!L.on || !L.co || L.ph==="done") return; const p=coP(L);
+      L.gone=(!p || live.indexOf(L.co)<0) ? (L.gone||0)+dt : 0;
+      if(L.gone>12){ popMsg(L.nm+" 나갔어요 👋"); L.left=1; laneDone(L); sheet(); return; }
+      if(!p) return; const ro=p.ro||[]; L.bump=!!p.bp;
+      if(ro.length>L.rolls.length+1 || (L.ph==="aim" && ro.length>L.rolls.length)){ coSync(L, p); return; }
+      if(L.ph==="aim" && p.th && p.th.i===L.rolls.length && p.th.i!==L.seen){ L.seen=p.th.i; throwLane(L, p.th.x, p.th.vx, p.th.vz); } }); }
   /* 볼링 조작: 위로 쓱(빠르기 · 방향) · 콕 = 그쪽으로 */
   const ray=new THREE.Raycaster(), v2=new THREE.Vector2(), pl=new THREE.Plane(new THREE.Vector3(0,1,0),0), hitP=new THREE.Vector3();
   function lanePt(e){ const r=HIT.getBoundingClientRect(); v2.set((e.clientX-r.left)/r.width*2-1, -((e.clientY-r.top)/r.height*2-1)); ray.setFromCamera(v2,cam); return ray.ray.intersectPlane(pl,hitP)?hitP.clone():null; }
@@ -376,18 +415,18 @@ function start(api){
       if(shk>0){ cam.position.x+=(Math.random()-.5)*shk*.09; cam.position.y+=(Math.random()-.5)*shk*.06; } }
     cam.updateProjectionMatrix(); }
   /* ══ 틀 ══ */
-  function tick(dt){ if(gone || paused) return; if(fast) dt=Math.min(.1, dt*4);
+  function tick(dt){ if(gone || paused) return; if(fast) dt=Math.min(.1, dt*4); if(RM) coTick(dt);
     for(let i=TM.length-1;i>=0;i--){ TM[i].t-=dt; if(TM[i].t<=0){ const f=TM[i].fn; TM.splice(i,1); try{ f(); }catch(e){ console.warn("SP", e); } } }
     if(mode==="bowl"){ const slow=!fast && BW.ph==="roll" && ball.visible && !BW.gutter && ball.position.z<HZ+2.4 && ball.position.z>LZ+.3;
       if(BW.rp) rpStep(dt); else laneStep(BW, dt*(slow?.42:1));
-      SIDE.forEach(L=>{ if(!L.on) return; botTick(L, dt); laneStep(L, dt); }); LANES.forEach(L=>sweepStep(L, dt)); avStep(dt); if(shk>0) shk=Math.max(0, shk-dt*2.4); } if(mode==="dart") dartStep(dt); confStep(dt); }
+      SIDE.forEach(L=>{ if(!L.on) return; if(!L.co) botTick(L, dt); laneStep(L, dt); }); LANES.forEach(L=>sweepStep(L, dt)); avStep(dt); if(shk>0) shk=Math.max(0, shk-dt*2.4); } if(mode==="dart") dartStep(dt); confStep(dt); }
   function render(){ fitCam(); MG.draw(scene, cam); }
-  function dispose(){ gone=true; TM.length=0; try{ R.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); }
+  function dispose(){ gone=true; TM.length=0; coQuit(); try{ R.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); }
   fitCam(); const O=api.opt||{}; if(O.go==="bowl"||O.go==="dart") menuGo(O.go); else menuShow(); ready=true;
   return {scene, cam, tick, render, dispose, pause:v=>{ paused=!!v; },
     get mode(){ return mode; }, get bw(){ return BW; }, get dt(){ return DT; }, get ready(){ return ready; }, get pins(){ return PINS; }, set fast(v){ fast=v?1:0; },
     menuGo, menuShow, throwBall, dart:(x,y)=>dart(x,y), scoreAt, bowlScore, bowlDone, rollsInFrame, get SET(){ return SET; }, fitCam,
-    lanes:LANES, SKILL, botAim, laneThrow:(i,x,vx,vz)=>throwLane(LANES[i],x,vx,vz), get rp(){ return BW.rp; }, get shk(){ return shk; }, get endQ(){ return endQ; } };
+    lanes:LANES, SKILL, botAim, laneThrow:(i,x,vx,vz)=>throwLane(LANES[i],x,vx,vz), get rp(){ return BW.rp; }, get shk(){ return shk; }, get endQ(){ return endQ; }, get RM(){ return RM; }, get CO(){ return CO; } };
 }
 MG.reg("bowl", {ic:"🎳", nm:"볼링 · 다트", tag:"🎳 볼링 5프레임 · 🎯 다트 9개", bg:"linear-gradient(135deg,#5b3aff,#ff5ce1 55%,#ffd23f)", big:"🎳🎯", menu:true,
   how:[["🎳","레인을 위로 쓱 밀어 굴려요"],["🎯","조준점을 옮기고 떼면 던져요"]], payTxt:"점수 따라 🪙 3~9",

@@ -28,8 +28,8 @@ async def main():
         async def adv(n, until=None): return await E(ADV, [n, until])
         await E(ENTER); await pg.wait_for_timeout(600)
         # ① 메뉴
-        r = await E("()=>{ const M=document.querySelector('#mgUI .puM'); return [[...M.querySelectorAll('[data-sg]')].map(b=>b.dataset.sg+(b.classList.contains('on')?'*':'')).join(','), M.textContent.includes('Tom')]; }")
-        ok(r[0] == "0,easy*,normal,hard" and r[1], f"① 메뉴 상대 고르기 (기본 쉬움) {r}")
+        r = await E("()=>{ const M=document.querySelector('#mgUI .puM'); return [[...M.querySelectorAll('[data-sg]')].map(b=>b.dataset.sg+(b.classList.contains('on')?'*':'')).join(','), M.textContent.includes('🤖 대결')]; }")
+        ok(r[0] == "0,easy*,normal,hard,co" and r[1], f"① 메뉴 상대 고르기 (기본 쉬움 · 👫 친구) {r}")
         await E("()=>document.querySelector('#mgUI .puM [data-sg=\"hard\"]').click()")
         r = await E("()=>[MG.run.SET.vs, document.querySelector('#mgUI .puM [data-sg=\"hard\"]').classList.contains('on'), JSON.parse(localStorage.getItem('hyeng_proto_spset')||'{}').vs]")
         ok(r == ["hard", True, "hard"], f"① 고르면 저장 {r}")
