@@ -601,10 +601,8 @@ function start(api){
 #mgUI .aScope .h{--d:90deg;width:calc(var(--r)*2);height:2px;margin:-1px 0 0 calc(var(--r)*-1)} #mgUI .aScope .v{--d:180deg;height:calc(var(--r)*2);width:2px;margin:calc(var(--r)*-1) 0 0 -1px}
 #mgUI .aScope .tk{position:absolute;left:50%;top:50%;width:calc(var(--r)*.6);height:calc(var(--r)*.6);margin:calc(var(--r)*-.3) 0 0 calc(var(--r)*-.3);border-radius:50%;border:2px dashed rgba(14,24,48,.55)}
 #mgUI .aScope .dot{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 0 2px #fff,0 0 8px rgba(255,59,92,.8);transition:background .1s,transform .1s}
-#mgUI .aScope.lock .dot{background:#3ee08f;box-shadow:0 0 0 2px #fff,0 0 12px rgba(62,224,143,.95);transform:scale(1.35)}
-#mgUI .aScope.lock .tk{border-color:rgba(62,224,143,.9);border-style:solid}
 #mgUI .aScope b{position:absolute;left:50%;top:calc(50% + var(--r)*.55);transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;background:rgba(14,24,48,.62);border-radius:12px;padding:3px 12px;white-space:nowrap}
-#mgUI .aScope.lock b{background:#2bb673}
+#mgUI .aScope.old b{display:none}
 #mgUI .aScope.kick{transform:translateY(10px) scale(1.02)}
 /* (v730) 맞히면 X 가 크게 「톡」 */
 #mgUI .aHm.pop{animation:aHmPop .2s cubic-bezier(.2,1.4,.4,1)} @keyframes aHmPop{from{transform:scale(1.7) rotate(-12deg)}to{transform:scale(1) rotate(0)}}
@@ -817,7 +815,7 @@ function start(api){
     try{ api.sfx.up(); }catch(e){} }
 
   /* ════ 나 ════ */
-  let camY=0, fov=76, zoom=0, paused=false, roll=0, deadCam=0, eScopeT=0;
+  let camY=0, fov=76, zoom=0, paused=false, roll=0, deadCam=0, scopeN=0;
   ACT.forEach(spawn); me.prot=0; ACT.forEach(a=>{ if(a.bot) a.prot=0; });
   function myTick(dt){ const I=api.I;
     /* 둘러보기 — 터치는 적 위에서 살짝 느려짐 */
@@ -893,7 +891,7 @@ function start(api){
     hurtT=Math.max(0,hurtT-dt); eDir.style.opacity=hurtT>0?Math.min(1,hurtT*2):0; if(hurtT>0) eDir.style.transform="rotate("+(-(hurtA-me.yaw)+Math.PI)+"rad)";
     eWet.style.opacity=Math.min(1, me.soak/85); eSoak.style.width=Math.min(100,me.soak)+"%"; eDead.style.opacity=me.alive?0:1;
     const W=WP[me.wi], spr=(W.spr||0)+(me.onG?0:1.5)+Math.min(2,hs/6); const g=8+spr*3; eCx.querySelectorAll(".h")[0].style.left=(-10-g)+"px"; eCx.querySelectorAll(".h")[1].style.left=g+"px"; eCx.querySelectorAll(".v")[0].style.top=(-10-g)+"px"; eCx.querySelectorAll(".v")[1].style.top=g+"px"; eCx.style.opacity=zoom>.5?0:1;
-    { const so=me.alive && W.t==="snipe" ? Math.max(0, Math.min(1, (zoom-.3)/.45)) : 0; if(eScope._o!==so){ eScope._o=so; eScope.style.opacity=so; eHint.style.visibility=so>.3?"hidden":""; }   /* 처음 안내 글이 조준경 글과 겹치지 않게 */ if(so>.5){ eScopeT-=dt; if(eScopeT<=0){ eScopeT=.08; const tr=trace(me, eyeOf(me), dirOf(me.yaw, me.pitch), WP[me.wi].rng), lk=tr.who && tr.who.alive && !(tr.who.prot>0) ? (tr.head?2:1) : 0; if(lk!==eScope._lk){ eScope._lk=lk; eScope.classList.toggle("lock", !!lk); eScope.querySelector("b").textContent=lk===2?"머리! 지금 떼요 ⭐":lk?"지금 떼요! 🎯":"떼면 쏴요!"; }   /* 조준점이 친구·봇 위면 초록 */ } } else if(eScope._lk){ eScope._lk=false; eScope.classList.remove("lock"); eScope.querySelector("b").textContent="떼면 쏴요!"; } }
+    { const so=me.alive && W.t==="snipe" ? Math.max(0, Math.min(1, (zoom-.3)/.45)) : 0; if(eScope._o!==so){ if(so>.5 && !(eScope._o>.5)) scopeN++; eScope._o=so; eScope.style.opacity=so; eHint.style.visibility=so>.3?"hidden":""; eScope.classList.toggle("old", scopeN>3); } }   /* 처음 안내 글이 조준경 글과 겹치지 않게 · 「떼면 쏴요!」 는 처음 세 번만 (조준 도움 없음 — 사용자 「지금 떼요는 너무 한 듯」) */
     const s=Math.max(0,Math.ceil(time.left)); if(s!==eClk._s){ eClk._s=s; eClk.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); eClk.classList.toggle("low", s<=30 && !time.over); }
     if(killT>0){ killT-=dt; if(killT<=0) eKill.classList.remove("on"); }
     bdT-=dt; if(bdT<=0){ bdT=.5; drawBoard(); } }

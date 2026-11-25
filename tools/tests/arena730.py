@@ -1,5 +1,5 @@
 """(v730) 💦 물총 아레나 손맛 — 사용자 「저격총이 에임이 없더라 줌하면 · 공격한다는 느낌도 없어 · 좀 더 잘 다듬어 줘야 할 듯」
-   ① 🎯 저격 줌 = 조준경(원 · 십자선 · 빨간 점 · 「떼면 쏴요!」) · 조준점이 상대 위면 초록 「지금 떼요!」(머리면 ⭐) · 떼면 쏘고 조준경 사라짐
+   ① 🎯 저격 줌 = 조준경(원 · 십자선 · 빨간 점 · 「떼면 쏴요!」 처음 세 번만) · 상대 위에 있어도 알려 주지 않음(사용자 「지금 떼요는 너무 한 듯」) · 떼면 쏘고 조준경 사라짐
    ② 쏠 때: 카메라가 살짝 튐(무기마다) · 총 끝 물보라 · 내 물줄기 굵게 · 맞히면 X 가 「톡」
    ③ 흠뻑 적시면 0.16초 흔들림 · 움직임 줄이기 설정이면 흔들림 없음
    ④ 휴대폰 세로 · 패드 세로에서도 조준경 원이 화면 안 · 봇 판 1분 오류 0"""
@@ -14,7 +14,7 @@ GO = """()=>{ const R=MG.run; R.setMap('pool'); R.beginSolo(); for(let i=0;i<200
   const me=R.me; me.p.set(0,0,19); me.yaw=0; me.pitch=0; R.ACT.forEach((a,i)=>{ if(a.bot){ a.brain.think=1e9; a.prot=0; if(i!==1){ a.alive=false; a.G.visible=false; a.resp=1e9; } } });
   const b=R.ACT[1]; b.alive=true; b.G.visible=true; b.p.set(0,0,10); b.v.set(0,0,0); b.soak=0; b.rb=true; R.D.dm=0; return R.phase; }"""   # 과녁 봇은 가만히 (맞으면 되쏘며 움직여 조준이 흔들리던 것) · 나는 안 젖음
 AIM = """(dy0)=>{ const R=MG.run, me=R.me, b=R.ACT[1]; b.alive=true; b.G.visible=true; b.prot=0; b.soak=Math.min(b.soak,40); b.brain.think=1e9; b.p.set(0,0,10); b.v.set(0,0,0); const dx=b.p.x-me.p.x, dz=b.p.z-me.p.z, dy=(b.p.y+dy0)-(me.p.y+1.48); me.yaw=Math.atan2(-dx,-dz); me.pitch=Math.atan2(dy, Math.hypot(dx,dz)); }"""
-SC = "()=>{ const e=document.querySelector('#mgUI .aScope'); return [+(+e.style.opacity||0).toFixed(2), e.classList.contains('lock'), e.querySelector('b').textContent, +(+getComputedStyle(document.querySelector('#mgUI .aCx')).opacity).toFixed(2)]; }"
+SC = "()=>{ const e=document.querySelector('#mgUI .aScope'), b=e.querySelector('b'); return [+(+e.style.opacity||0).toFixed(2), e.classList.contains('lock'), getComputedStyle(b).display==='none' ? '' : b.textContent, +(+getComputedStyle(document.querySelector('#mgUI .aCx')).opacity).toFixed(2), getComputedStyle(e.querySelector('.dot')).backgroundColor]; }"
 WI = "(w)=>{ const R=MG.run; while(R.me.wi<w) R.up(R.me); R.me.cd=0; }"
 
 async def main():
@@ -40,16 +40,16 @@ async def main():
         await E("()=>{ MG.I.fire=1; for(let i=0;i<30;i++) MG.step(.016,false); }")
         r1 = await E(SC)
         ok(r0[0] == 0 and r1[0] >= .9 and r1[3] == 0, f"① 꾹 누르면 조준경이 나오고 작은 조준점은 숨김 (전 {r0[0]} → {r1[0]})")
-        ok(r1[1] and "지금" in r1[2], f"① 조준점이 상대 몸 위 → 초록 「지금 떼요!」 {r1}")
+        ok(not r1[1] and r1[2] == "떼면 쏴요!", f"① 상대 몸 위에 있어도 알려 주지 않음 (글 그대로 · 초록 없음) {r1}")
         await E(AIM, 1.5); await E("()=>{ for(let i=0;i<8;i++) MG.step(.016,false); }"); rh = await E(SC)
-        ok(rh[1] and "머리" in rh[2], f"① 머리 위 → 「머리! 지금 떼요 ⭐」 {rh}")
-        await E("()=>{ const me=MG.run.me; me.yaw+=.4; for(let i=0;i<8;i++) MG.step(.016,false); }"); r2 = await E(SC)
-        ok(not r2[1] and r2[2] == "떼면 쏴요!", f"① 비켜 보면 빨간 점 「떼면 쏴요!」 {r2}")
+        ok(not rh[1] and rh[2] == "떼면 쏴요!" and rh[4] == r1[4], f"① 머리 위도 그대로 (빨간 점 색 같음) {rh}")
         await E(AIM, 1.0); await E("()=>{ for(let i=0;i<8;i++) MG.step(.016,false); }")
         r = await E("()=>{ const R=MG.run, b=R.ACT[1], s0=b.soak, a0=b.alive; MG.I.fire=0; MG.step(.016,false); const fired=b.soak>s0 || !b.alive; for(let i=0;i<40;i++) MG.step(.016,false); return [fired, a0]; }")
         r3 = await E(SC)
         ok(r[0] and r3[0] == 0, f"① 떼면 쏨 → 맞음 · 조준경 사라짐 {r} {r3}")
         await P.screenshot(path=OUT + "arena730_after.png")
+        r = await E("""()=>{ const R=MG.run, I=MG.I, out=[]; for(let k=0;k<3;k++){ R.me.wi=4; R.vmSet(4); R.me.cd=0; I.fire=1; for(let i=0;i<30;i++) MG.step(.016,false); const e=document.querySelector('#mgUI .aScope'), b=e.querySelector('b'); out.push(+e.style.opacity>.9 && getComputedStyle(b).display!=='none'); I.fire=0; for(let i=0;i<40;i++) MG.step(.016,false); } return out; }""")
+        ok(r[0] and r[1] and r[2] is False, f"① 「떼면 쏴요!」 는 처음 세 번만 (2·3번째 보임 · 4번째 숨김 {r})")
         # ③ 흠뻑 = 흔들림
         await E(WI, 4); await E("()=>{ const R=MG.run; R.me.wi=0; R.vmSet(0); }")
         r = await E("""()=>{ const R=MG.run, b=R.ACT[1]; b.alive=true; b.G.visible=true; b.soak=95; b.prot=0; b.p.set(0,0,10); const me=R.me, dx=b.p.x-me.p.x, dz=b.p.z-me.p.z; me.yaw=Math.atan2(-dx,-dz); me.pitch=Math.atan2(1-1.48, Math.hypot(dx,dz)); me.cd=0;
