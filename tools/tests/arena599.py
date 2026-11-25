@@ -88,7 +88,7 @@ async def main():
             await A.screenshot(path=OUT+f"arena599_menu_{k}.png")
         # 맵마다 봇 25초
         for k in ["pool","sand","toy"]:
-            r=await A.evaluate("""(k)=>{ const R=MG.run; R.setMap(k); R.beginSolo(); for(let i=0;i<60;i++) MG.step(.05,false); R.me.alive=false; R.me.resp=999; R.ACT.forEach(a=>{ if(a.bot) a.prot=0; });
+            r=await A.evaluate("""(k)=>{ const R=MG.run; R.SET.diff='normal'; R.setMap(k); R.beginSolo();   /* (v731) 처음 하는 기기는 쉬움이 기본 → 이 검사는 보통으로 */ for(let i=0;i<60;i++) MG.step(.05,false); R.me.alive=false; R.me.resp=999; R.ACT.forEach(a=>{ if(a.bot) a.prot=0; });
                 const p0=R.ACT.map(a=>a.p.clone()), k0=R.ACT.reduce((s,a)=>s+a.kills,0); const mv=new Set(); let stuck=0;
                 for(let i=0;i<500;i++){ MG.step(.05,false); R.ACT.forEach((a,j)=>{ if(a.bot && a.p.distanceTo(p0[j])>3) mv.add(j); }); }
                 const out=[mv.size, R.ACT.reduce((s,a)=>s+a.kills,0)-k0, R.ACT.filter(a=>a.bot && (a.p.y<-.5 || Math.abs(a.p.x)>25 || Math.abs(a.p.z)>25)).length];

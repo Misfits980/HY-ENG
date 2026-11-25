@@ -346,7 +346,7 @@ function start(api){
     RM=MG.room(api, {pre:"mgb", title:"볼링 같이 하기", ic:"🎳", max:3, fill:false, wait:6000, send:.25, poll:.3, back:()=>{ coQuit(); menuShow(); }});
     RM.node=()=>({av:api.av||null, ro:BW.rolls.slice(), mk:(BW.mk||[]).slice(), th:BW.th||null, bp:SET.bump?1:0, dn:CO && BW.ph==="done"?1:0});
     { const st0=RM.start; RM.start=async()=>{ const d=RM.d||{}, t=RM.now(); let ro=Object.keys(d.p||{}).filter(k=>k===RM.code || (d.p[k] && t-(d.p[k].t||0)<20000)); if(ro.indexOf(RM.code)<0) ro.push(RM.code); ro=ro.sort().slice(0,3);   /* (v729 컬러팡처럼) 느린 와이파이 친구도 20초 */
-      if(ro.length<2){ api.msg("친구가 들어오면 시작할 수 있어요 👫", 1500); return; } try{ await NET.patch(RM.path+"/h", {ro}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=ro; return st0(); }; }
+      if(ro.length<2){ api.msg("친구가 들어오면 시작할 수 있어요 👫", 1500); return; } try{ NET.patch(RM.path+"/h", {ro}).catch(()=>{}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=ro; return st0(); }; }
     RM.onStart=(h, Lv)=>coBegin(h, Lv); }
   function coQuit(){ if(RM){ try{ RM.dispose(); }catch(e){} } RM=null; CO=false; COL=[]; }
   function coBegin(h, Lv){ const ro=(h.ro && h.ro.length ? h.ro : Lv.map(p=>p.k)).slice(0,3), PD=(RM.d && RM.d.p)||{};
