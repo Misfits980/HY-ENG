@@ -593,13 +593,13 @@ function start(api){
       if(c.armR){ c.armR.rotation.x=-Math.PI/2-a.pitch*.8; c.armR.rotation.z=0; } if(c.armL){ c.armL.rotation.x=-1.25-a.pitch*.6; c.armL.rotation.z=-.35; } reactVis(a, dt); }
     if(a.bk){ const B=a.bk, mv=mvS>=0 ? mvS>.6 : Math.hypot(a.tp.x-a.p.x, a.tp.z-a.p.z)>.03; B.t+=dt*(mv?11:0); const sw=mv?Math.sin(B.t)*.8:0; B.legL.rotation.x=sw; B.legR.rotation.x=-sw; B.g.rotation.set(a.sl?-.6:0, a.yaw+Math.PI, 0); B.g.position.y=a.sl?.25:0; B.armR.rotation.set(-Math.PI/2-a.pitch*.8,0,0); B.armL.rotation.set(-Math.PI/2+.2-a.pitch*.6,-.5,0); } }
   const mapTag=h=>{ const M=MAPS[h && h.map]||MAPS.pool; return M.ic+' '+M.nm; };
-  function goCo(){ CO=true; phase="room"; menuUI("room");
+  function goCo(){ if(PR) pracEnd(); CO=true; phase="room"; menuUI("room");
     NETR=MG.room(api, {pre:"mga", title:"물총 같이 하기", ic:"💦", max:6, fill:1, h:()=>({df:SET.diff, map:MAPK}), tag:mapTag, back:()=>{ const R0=NETR; NETR=null; try{ R0.dispose(); }catch(e){} CO=false; phase="menu"; setMap(SET.map); menuUI("main"); }});
     NETR.node=netNode; NETR.onEv=onEv; NETR.onFeed=f=>{ if(f && f.t==="pk"){ const q=PKS.find(x=>x.id===f.i); if(q) pkDrop(q); return; } feedAdd(f.a, f.b, f.ic, false); }; NETR.onStart=(h, peers)=>netStart(h, peers);
     /* (v731) 시작할 때 자리표를 방장이 정해 모두 같은 것을 씀 (전: 기기마다 「10초 안에 소식 온 친구」 → 느린 와이파이면 어떤 화면엔 친구가 끝까지 안 보이고 봇 수도 달라 봇 번호가 어긋남 · 컬러팡 v729 와 같은 문제) */
     { const st0=NETR.start; NETR.start=async()=>{ const d=NETR.d||{}, t=NETR.now(); let ro=Object.keys(d.p||{}).filter(k=>k===NETR.code || (d.p[k] && t-(d.p[k].t||0)<20000)); if(ro.indexOf(NETR.code)<0) ro.push(NETR.code); ro=ro.sort().slice(0,6);
       try{ NET.patch(NETR.path+"/h", {ro}).catch(()=>{}); }catch(e){} if(NETR.d && NETR.d.h) NETR.d.h.ro=ro; return st0(); }; } }   /* 자리표는 기다리지 않고 같이 보냄 (시작 세기가 늦어지지 않게) */
-  function beginSolo(){ CO=false; D=DIFF[SET.diff]||DIFF.normal; BOTL.forEach(a=>{ if(!ACT.includes(a)) ACT.push(a); a.rb=false; a.G.visible=true; });
+  function beginSolo(){ if(PR) pracEnd();   /* (v734) 연습장 중에 메뉴에서 바로 시작해도 연습 안내·숨긴 시계가 남지 않게 */ CO=false; D=DIFF[SET.diff]||DIFF.normal; BOTL.forEach(a=>{ if(!ACT.includes(a)) ACT.push(a); a.rb=false; a.G.visible=true; });
     /* (v731) 새 판은 모두 처음부터 (전: 같은 화면에서 다시 시작하면 봇이 앞 판 단계 그대로 → 몇 초 만에 끝) */
     ACT.forEach(a=>{ a.wi=0; a.kills=0; a.asst=0; a.deaths=0; a.soak=0; a.spT=0; a.lastHit=-9; a.dmgBy.clear(); if(a.bot && a.gun) gunModel(a.gun, 0, true); });
     time.over=false; time.t=0; streak=0; FEED.length=0; drawFeed(); vmSet(0); fireIc(); drawLadder();
@@ -612,7 +612,9 @@ function start(api){
   const PRS=[["🕹","왼쪽을 끌어서 <b>⭕ 동그라미</b>까지 걸어가요"],["👀","오른쪽을 끌어서 <b>🎈 풍선</b>을 찾아요"],["💦","<b>🎈 풍선 5개</b>를 맞혀요"],["🛝","달리면서 <b>슬라이드</b> → 바로 <b>점프</b>!"]];
   let PR=null; const PBG=new THREE.SphereGeometry(.42,16,12), PSG=new THREE.CylinderGeometry(.012,.012,.9,4), PMG=new THREE.TorusGeometry(.95,.09,8,32), PGM=new THREE.MeshBasicMaterial({color:0xffd23f, transparent:true, opacity:.35, depthWrite:false}); disp.push(PBG, PSG, PMG, PGM);
   function prFree(x, z){ const y=groundY(x, z); return Math.abs(x)<23 && Math.abs(z)<23 && free({x, y, z}, HH) && free({x, y:y+.05, z}, HH) && !PADS.some(([px,pz])=>Math.hypot(px-x,pz-z)<1.8); }
-  function prSpot(dist, ang){ for(const d of [dist, dist*.8, dist*.6, dist*1.2, dist*.45]) for(const da of [0,.3,-.3,.6,-.6,1,-1,1.5,-1.5]){ const y=me.yaw+ang+da, x=me.p.x-Math.sin(y)*d, z=me.p.z-Math.cos(y)*d; if(prFree(x,z) && sees(new V3(me.p.x, me.p.y+1.5, me.p.z), new V3(x, groundY(x,z)+1.5, z))) return [x, z]; } return [me.p.x, me.p.z]; }
+  /* (v734) 크롬 실제 화면: 워터파크에서 ⭕ 가 다리 위(2.4m)에 놓여 아래에서는 다리 옆면만 보였음 → 먼저 내가 선 바닥과 같은 높이 · 없으면 예전처럼 */
+  function prSpot(dist, ang){ for(const lv of [1, 0]) for(const d of [dist, dist*.8, dist*.6, dist*1.2, dist*.45]) for(const da of [0,.3,-.3,.6,-.6,1,-1,1.5,-1.5]){ const y=me.yaw+ang+da, x=me.p.x-Math.sin(y)*d, z=me.p.z-Math.cos(y)*d, gy=groundY(x,z);
+      if((!lv || Math.abs(gy-me.p.y)<.3) && prFree(x,z) && sees(new V3(me.p.x, me.p.y+1.5, me.p.z), new V3(x, gy+1.5, z)) && sees(new V3(me.p.x, me.p.y+1.5, me.p.z), new V3(x, gy+.3, z))) return [x, z]; } return [me.p.x, me.p.z]; }
   function prBal(x, z, h, c){ const y=groundY(x,z)+h, g=new THREE.Group(), b=new THREE.Mesh(PBG, gmat(c)); b.scale.set(1,1.18,1); g.add(b); const s=new THREE.Mesh(PSG, gmat(0xffffff)); s.position.y=-.92; g.add(s); g.position.set(x, y, z); scene.add(g); const o={g, c:new V3(x, y, z), t:Math.random()*6, y0:y}; PR.bal.push(o); return o; }
   function prHit(o, d, maxT){ if(!PR || !PR.bal.length) return null; let best=null, bt=maxT; for(const b of PR.bal){ const t=raySph(o, d, b.c, .52); if(t>0 && t<bt){ bt=t; best=b; } } if(!best) return null;
     burst(best.c.clone(), 26, 1.2); try{ api.sfx.splash(); api.sfx.hit(false); }catch(e){} hitT=.18; hitHead=false; hmPop(); scene.remove(best.g); PR.bal.splice(PR.bal.indexOf(best), 1); if(PR.look===best) PR.look=null; if(PR.step>=1) PR.n++; prDraw(); return {t:bt}; }

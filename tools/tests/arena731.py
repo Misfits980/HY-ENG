@@ -95,6 +95,16 @@ async def main():
         await E("()=>document.querySelector('#mgUI .aCard [data-go=prac]').click()")
         r = await E("()=>{ const R=MG.run; R.PR.step=3; R.PR.wait=0; const c=TECO.coins(); R.me.sl=true; for(let i=0;i<3;i++) MG.step(.016,false); R.me.sl=false; R.me.onG=false; R.me.v.set(8,4,0); MG.step(.016,false); for(let i=0;i<90;i++) MG.step(.016,false); return [document.querySelector('#mgUI .aCard').textContent.includes('🪙'), TECO.coins()-c]; }")
         ok(r == [False, 0], f"⑤ 연습장 두 번째 = 🪙 없음 {r}")
+        # (v734) 크롬 실제 화면: ⭕ 가 워터파크 다리 위(2.4m)에 놓여 아래서는 안 보였음 → 내 바닥 높이 · 눈에서 보임 (맵 3 × 나오는 자리 20)
+        r = await E("""()=>{ const R=MG.run, out={}; let root=R.cam; while(root.parent) root=root.parent; const rc=new THREE.Raycaster(); rc.camera=R.cam;
+          for(const m of ['pool','sand','toy']){ R.setMap(m); let hi=0, hid=0, n=0; for(let k=0;k<20;k++){ R.pracStart(); const me=R.me, mk=R.PR.mk; if(!mk) continue; n++; const p=mk.position;
+              if(Math.abs(p.y-me.p.y)>.3) hi++; mk.visible=false; const o=new THREE.Vector3(me.p.x, me.p.y+1.5, me.p.z), t=new THREE.Vector3(p.x, p.y+.3, p.z), d=t.clone().sub(o), L=d.length(); rc.set(o, d.normalize()); rc.far=L-.2;
+              if(rc.intersectObjects(root.children, true).some(h=>h.object.visible && h.object.type==='Mesh' && !(h.object.material && h.object.material.transparent))) hid++; mk.visible=true; }
+            out[m]=[n, hi, hid]; } R.setMap('pool'); return out; }""")
+        ok(all(v[0] == 20 and v[1] == 0 and v[2] <= 1 for v in r.values()), f"⑤ 연습장 ⭕ = 내 바닥 높이 · 눈에서 보임 (나옴·높음·가림) {r}")
+        # (v734) 연습장 중에 바로 시작 / 친구랑 → 연습 안내·숨긴 시계가 남지 않음 (크롬 실제 화면에서 찾음)
+        r = await E("""()=>{ const R=MG.run, u=document.getElementById('mgUI'), a=[]; R.pracStart(); R.beginSolo(); a.push(!R.PR, !u.classList.contains('aPrac')); R.pracStart(); R.goCo(); a.push(!R.PR, !u.classList.contains('aPrac')); return a; }""")
+        ok(r == [True, True, True, True], f"⑤ 연습장 중 혼자 시작·친구랑 = 연습 끝남 {r}")
         E1 = real_errs(errs); await ctx.close()
         # ④ 화면 5가지
         E2 = []
