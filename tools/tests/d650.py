@@ -115,6 +115,7 @@ async def main():
             await T.reload(); await T.wait_for_timeout(1500)
             await T.evaluate("(R)=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:3, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:true, rep:R.d} : {ok:true}); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }", REP)
             await T.wait_for_timeout(500); await T.click('#adTabs [data-t="rec"]'); await T.wait_for_timeout(800)
+            await T.evaluate("()=>{ const b=document.querySelector('#adBody [data-ad=v2Rv][data-v=sheet]'); if(b) b.click(); }"); await T.wait_for_timeout(500)   # (v736) 📊 기록 = 보기 넷 · 🧠 카드는 「시트 표」 보기에
             await T.evaluate("()=>{ document.querySelectorAll('#adBody details').forEach(d=>{ if(/며칠 뒤/.test(d.textContent)) d.open=true; }); const el=[...document.querySelectorAll('#adBody *')].find(x=>/며칠 뒤에도 기억하나/.test(x.textContent) && x.children.length<4); if(el) el.scrollIntoView({block:'start'}); }")
             t = await T.evaluate("()=>document.getElementById('adBody').innerText")
             ok("며칠 뒤에도 기억하나" in t and "68%" in t and "45%" in t and "quite" in t and "민준" in t, f"{nm}: 🧠 카드 — 반 68% · 민준 45% · 안 붙는 단어")

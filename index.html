@@ -18636,7 +18636,7 @@ const Study = (function(){
     return out;
   }
   /* (v281) 대화 보기 — 대화 줄에 이미 나온 단어는 보기에서 뺀다 ("Can you lift your hand?" → "I lift my ___" 에 hand 가 보기면 둘 다 정답처럼 보임) */
-  function talkOpts(w, pool, tk, ordered, more){ const txt=" "+tk.lines.join(" ").toLowerCase().replace(/[^a-z' -]/g," ")+" ", bad=blankAvoid(w);
+  function talkOpts(w, pool, tk, ordered, more){ const txt=" "+tk.lines.join(" ").toLowerCase().replace(/[^a-z' -]/g," ")+" ", bad=blankAvoid(w, tk.pre!=null ? {pre:tk.pre, post:tk.post} : null);   /* (v736) 대화 빈칸도 앞·뒤 낱말 (At the school science ___ → contest 빼기) */
     const inLine=x=>{ const e=String(x.en).toLowerCase(); return [e, e+"s", e+"es", e.replace(/y$/,"ies"), e+"ed", e+"d"].some(f=>txt.indexOf(" "+f+" ")>=0); };
     return shuffle([w].concat(decoys(w, pool, 3, "en", x=>inLine(x) || bad(x) || !!(more && more(x)), ordered))); }
   /* (v322) 점검: 빈칸 문제(대화·문장)는 뜻 문제와 달리 '문장에 넣어도 말이 되는' 보기가 또 하나의 정답이 된다 (grandmother/grandfather · mother/sister · doctor/nurse · suit/jacket · one/seven)
