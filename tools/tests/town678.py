@@ -17,7 +17,8 @@ async def main():
         print(("OK  " if c else "BAD ") + m, flush=True)
         if not c: bad.append(m)
     gate = open(os.path.join(SITE, "proto", "house.html"), encoding="utf-8").read()
-    gate = gate[gate.index("/* (v678)"):]; gate = gate[:gate.index("})();") + 5]
+    dk = gate[gate.index("window.HY_DEVK"):]; dk = dk[:dk.index("};</script>") + 2]   # (v732) 기기 판단 도우미 (선생님 기기 · 공용 패드)
+    gate = gate[gate.index("/* (v678)"):]; gate = dk + "\n" + gate[:gate.index("})();") + 5]
     async with async_playwright() as p:
         br = await p.chromium.launch(); ctx = await br.new_context(viewport={"width": 820, "height": 1180})
         await ctx.add_init_script("window.HY_TOWN_GATE=true; localStorage.setItem('hyeng_nick','민준');")

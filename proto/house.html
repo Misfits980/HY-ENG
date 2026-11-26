@@ -630,14 +630,18 @@ body.twOn .bar,body.twOn #hud,body.twOn #tls,body.twOn #coach,body.twOn #bCam,bo
 <div id="fade"></div>
 <script>/* (v726) ①-c 게스트 잠금 — 게임(index.html acct.js)이 「계정 켜짐 · 아이 개인 기기 · 로그인 안 함」이면 hyeng_acct_glock=1 → 바로 열어도 첫 화면(로그인) */
 (function(){ try{ if(localStorage.getItem("hyeng_acct_glock")==="1") location.replace("../index.html#acctlock"); }catch(e){} })();</script>
+<script>/* (v732) 기기 판단 — 게임(index.html Kid.shared · Kid.teacher)과 같은 규칙: 「한양…」「…패드」 = 공용 패드 (선생님 말이 든 이름 · 선생님 태그 #0000 은 빼고) · 선생님 기기 = 표시 "1" 또는 #0000 (표시 "0" = 끔) */
+window.HY_DEVK=function(){ let n="", t="", f=""; try{ n=(localStorage.getItem("hyeng_nick")||"").trim(); t=localStorage.getItem("hyeng_tag")||""; f=localStorage.getItem("hyeng_teacher_dev")||""; }catch(e){}
+  const shared=/^한양|패드$/.test(n) && !/선\s*생\s*님|쌤|관\s*리\s*자|운\s*영\s*자|원\s*장\s*님|teacher|admin|staff|manager|gm\b/i.test(n) && t!=="0000";
+  return {nick:n, shared, teacher:!shared && (f==="1" || (f!=="0" && t==="0000"))}; };</script>
 <script>/* (v601) 🛠 My Town 점검 중 — 북마크·옛 탭으로 바로 열어도 게임 첫 화면으로 (선생님 기기 · 시험은 들어감). 다시 열기 = TOWN_OPEN=true (index.html 도) */
 /* (v678) 🏡 오늘의 30 Stage 3개(서로 다른 판)를 해야 들어옴 — 게임 첫 화면에서 들어오면 hyeng_town_ok = 오늘 · 북마크로 바로 열면 공부 칸을 직접 셈 · 선생님 기기는 그냥 */
 (function(){ if(navigator.webdriver && !window.HY_TOWN_GATE) return; try{ const d=Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5);
-  if(localStorage.getItem("hyeng_teacher_dev")==="1" && !/^한양|패드$/.test((localStorage.getItem("hyeng_nick")||"").trim())) return;
+  if(HY_DEVK().teacher) return;
   if(localStorage.getItem("hyeng_town_ok")===String(d)) return;
   const s=JSON.parse(localStorage.getItem("hyeng_study_v1")||"{}"); if(s.tw && s.tw.d===d && Object.keys(s.tw.k||{}).length>=3) return;
   location.replace("../index.html#townlock"); }catch(e){} })();
-(function(){ const TOWN_OPEN=true;   /* (v663) 다시 엶 */ if(TOWN_OPEN || navigator.webdriver) return; let t=false; try{ t=localStorage.getItem("hyeng_teacher_dev")==="1" && !/^한양|패드$/.test((localStorage.getItem("hyeng_nick")||"").trim()); }catch(e){} if(!t) location.replace("../index.html#townclosed"); })();</script>
+(function(){ const TOWN_OPEN=true;   /* (v663) 다시 엶 */ if(TOWN_OPEN || navigator.webdriver) return; let t=false; try{ t=HY_DEVK().teacher; }catch(e){} if(!t) location.replace("../index.html#townclosed"); })();</script>
 <script src="../three.min.js"></script>
 <script src="../guard.js"></script>   <!-- (v623) 🛡 오류 기록 · 멈춤 막기 · 렉 줄이기 -->
 <script src="../emoji-dom.js"></script>   <!-- (v684) 🪙 학원 PC·옛 패드가 못 그리는 새 이모지 → 그림 -->
@@ -695,7 +699,7 @@ let dirty = true;
 function toast(t, ms){ const el=$("toast"); el.innerHTML=t; el.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("on"), ms||1800); }
 /* (v411) 사용자: 공용 패드에서 My Town 집·가방·보석이 아이들끼리 섞임 → 공용 패드(이름 한양…/…패드)는 「나는 누구?」(반 명단)로 들어와
    그 아이 칸(hyeng_proto_@<아이>_…)에 저장 · 서버 /hy/life/sv/<아이> 에 통째로(4초 뒤) → 다른 공용 패드에서도 이어서 · 내 기기(공용 아님)는 예전 그대로 */
-const PAD=(()=>{ let nick=""; try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} const shared=/^한양|패드$/.test(nick); let kid=null;
+const PAD=(()=>{ const DK=HY_DEVK(), nick=DK.nick, shared=DK.shared; let kid=null;
   let owner=null, blocked=null;
   if(shared){ try{ kid=JSON.parse(sessionStorage.getItem("hyeng_kid")||"null"); }catch(e){} if(kid && (!kid.id || (kid.at && Date.now()-kid.at>20*60000))) kid=null;   // 게임과 같음: 20분 쉬면 다시 고름
     try{ owner=JSON.parse(localStorage.getItem("hyeng_pad_owner")||"null"); if(owner && !owner.k) owner=null; }catch(e){}
@@ -3486,16 +3490,16 @@ window.HY_NETTAG=()=>{ try{ if(window.MG && MG.on){ const d=MG.GM && MG.GM[MG.k]
 })();
 const CODE_CH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 /* (v476) 게임(index.html Kid)과 같은 규칙: 🧑‍🏫 선생님 기기 = 아이 이름은 이번에만(sessionStorage · 20분) · 이름에서 저절로 붙은 연결은 이름이 달라지면 버림 */
-function kidInfo(){ let k=null, nick=""; try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} const tch=(()=>{ try{ return !/^한양|패드$/.test(nick) && localStorage.getItem("hyeng_teacher_dev")==="1"; }catch(e){ return false; } })(), nk=s=>String(s||"").replace(/^👤\s*/,"").replace(/\s+/g,"").toLowerCase();
+function kidInfo(){ let k=null, nick=""; try{ nick=(localStorage.getItem("hyeng_nick")||"").trim(); }catch(e){} const DK=HY_DEVK(), tch=DK.teacher, nk=s=>String(s||"").replace(/^👤\s*/,"").replace(/\s+/g,"").toLowerCase();
   try{ if(PAD.shared) k=PAD.kid; else if(tch) k=JSON.parse(sessionStorage.getItem("hyeng_kid")||"null"); else { const o=JSON.parse(localStorage.getItem("hyeng_me")||"null"); k=o && o.id ? {id:o.id, n:nick||"친구", t:o.t||""} : null; } }catch(e){}   /* (v478) 📱 내 기기 = hyeng_me (게임에서 정함) · 이름은 늘 설정 이름 */
   if(k && !PAD.shared && ((tch && k.at && Date.now()-k.at>20*60000) || (k.auto && nk(k.n)!==nk(nick)))) k=null;
-  return {n:String((k&&k.n)||nick||"친구").slice(0,10), t:String((k&&k.t)||""), rid:String((k&&k.id)||"").slice(0,40), shared:/^한양|패드$/.test(nick)}; }
+  return {n:String((k&&k.n)||nick||"친구").slice(0,10), t:String((k&&k.t)||""), rid:String((k&&k.id)||"").slice(0,40), shared:DK.shared}; }
 let myCode=store("hyeng_proto_code"); if(!myCode){ myCode=""; for(let k=0;k<5;k++) myCode+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; store("hyeng_proto_code", myCode); }
 /* (v474) ⏰ My Town 시간 기록 — 사용자: "애들이 마이타운은 몇 시에 들어갔는지 · 나갔는지" → 들어온 때 ~ 마지막으로 있던 때 (1분마다 · 화면을 끌 때)
    /hy/day/<날>/<아이>/tl/m<시작> = [시작초, 끝초] + n·t·la·lk="m" → 선생님 관리 ⏰ 언제 했나 (게임 index.html 의 HyDay 와 같은 자리 · 이름이 같으면 한 줄) */
 const MTL={a:0, last:0, id:"", force:false};
 function mtId(){ const K=kidInfo(); if(K.rid) return K.rid.replace(/[.#$\[\]\/]/g,"").slice(0,40); if(K.shared) return ""; let d=""; try{ d=localStorage.getItem("hyeng_dev")||""; }catch(e){} return d ? "d"+d.replace(/[^a-z0-9]/gi,"").slice(0,16) : ""; }
-function mtLog(final){ if(navigator.webdriver && !MTL.force) return; try{ if(localStorage.getItem("hyeng_teacher_dev")==="1") return; }catch(e){} const id=mtId(); if(!id) return;   /* (v476) 🧑‍🏫 선생님 기기는 기록 안 함 */ const nowT=Date.now(); if(id!==MTL.id){ MTL.id=id; MTL.a=0; MTL.last=0; } if(MTL.a && MTL.last && nowT-MTL.last>180000) MTL.a=nowT;   /* (v573) 1분마다 적는 게 3분 넘게 끊겼으면(기기가 재워 둠·화면 가림 소식이 안 옴) 앞 구간은 거기서 끝, 지금부터 새 구간 */ if(!MTL.a) MTL.a=nowT; if(!final && nowT-MTL.last<55000) return; MTL.last=nowT;
+function mtLog(final){ if(navigator.webdriver && !MTL.force) return; try{ if(HY_DEVK().teacher) return; }catch(e){} const id=mtId(); if(!id) return;   /* (v476) 🧑‍🏫 선생님 기기는 기록 안 함 */ const nowT=Date.now(); if(id!==MTL.id){ MTL.id=id; MTL.a=0; MTL.last=0; } if(MTL.a && MTL.last && nowT-MTL.last>180000) MTL.a=nowT;   /* (v573) 1분마다 적는 게 3분 넘게 끊겼으면(기기가 재워 둠·화면 가림 소식이 안 옴) 앞 구간은 거기서 끝, 지금부터 새 구간 */ if(!MTL.a) MTL.a=nowT; if(!final && nowT-MTL.last<55000) return; MTL.last=nowT;
   let mr=null; try{ mr=mtAcc(id, nowT); }catch(e){}   /* (v600) 시트용 그날 합계 */
   const K=kidInfo(), a=Math.round(MTL.a/1000), b=Math.round(nowT/1000), body={n:K.n, la:nowT, lk:"m"}; if(K.t) body.t=K.t; body["tl/m"+a.toString(36)]=[a, b];
   NET.patch("/hy/day/"+new Date(nowT+9*3600e3).toISOString().slice(0,10)+"/"+id, body).catch(()=>{}); try{ mtSheet(mr, final); }catch(e){} }

@@ -168,6 +168,7 @@ const Acct = {
   forget(id){ jset(AL, this.list().filter(x=>x.id!==id)); },
   /* 공용 패드 · 선생님 기기는 1단계에 안 씀 */
   usable(){ try{ if(TEST_STAGE) return false; }catch(e){} try{ const q=new URLSearchParams(location.search); if(q.has("admin") || q.has("vs")) return false; }catch(e){} try{ if(Kid.shared() || Kid.teacher()) return false; }catch(e){ return false; }
+    try{ if(HY_STAFF_NAME.test(Kid.nick())) return false; }catch(e){}   /* (v732) 「선생님」 이름 기기 = 선생님 것 (아이는 이런 이름을 못 씀) — 아이 로그인 안 띄움 */
     /* (v725) 선생님 휴대폰(관리 화면을 6자리 코드로 연결한 기기 · 이번에 관리 화면을 연 기기)도 아이 로그인 안 띄움 — 사용자 「나도 로그인하라고 뜬다」 */
     try{ if(/^[0-9a-f]{40,}$/.test(localStorage.getItem("hyeng_admin_key")||"")) return false; }catch(e){}
     try{ if(sessionStorage.getItem("hyeng_admin_ok")) return false; }catch(e){}
@@ -259,6 +260,8 @@ const Acct = {
   guestNo(){ let n=""; try{ n=localStorage.getItem("hyeng_acct_gn")||""; if(!/^\d{4}$/.test(n)){ n=String(1000+Math.floor(Math.random()*9000)); localStorage.setItem("hyeng_acct_gn", n); } }catch(e){ n="0000"; } return n; }
 };
 window.Acct=Acct;
+/* (v732) 켜 둔 채로 선생님 기기가 되면(관리 비밀번호 · 「🧑‍🏫 선생님이에요」 · #0000) — 새로 켜기 전까지 🔒 게스트 잠금(hyeng_acct_glock)이 남아 My Town 을 누르면 첫 화면으로 튕겼음 → 바로 풂 */
+Acct.recheck=function(){ try{ if(this.usable()) return; Lock.set(false); Chip.draw(); if(!this.on()) UI.close(); }catch(e){} };
 
 /* ───────────── 첫 화면 칩 (내 얼굴 · 이름 / 🔑 로그인) ───────────── */
 const Chip={ draw(){ const sc=$$("scStart"); if(!sc) return; let c=$$("acChip"); if(!Acct.on() && !Acct.usable()){ if(c) c.remove(); return; } if(!c){ c=document.createElement("button"); c.id="acChip"; c.type="button"; sc.appendChild(c); c.addEventListener("click", ()=>{ tone(660,.06); if(Acct.on()) UI.me(); else UI.open(Acct.list().length ? "who" : "id"); }); }
