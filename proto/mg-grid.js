@@ -29,7 +29,12 @@ const SIG=[null,"pulse","checker","quad","flood","snake","spiral","flood",null];
 const SPIRAL=(()=>{ const o=new Int16Array(N*N).fill(-1); let x0=0,y0=0,x1=N-1,y1=N-1,k=0; while(x0<=x1&&y0<=y1){ for(let i=x0;i<=x1;i++) o[y0*N+i]=k++; for(let j=y0+1;j<=y1;j++) o[j*N+x1]=k++; if(y1>y0) for(let i=x1-1;i>=x0;i--) o[y1*N+i]=k++; if(x1>x0) for(let j=y1-1;j>y0;j--) o[j*N+x0]=k++; x0++; y0++; x1--; y1--; } return o; })();
 const HZ_NM={pulse:"💓 심장 박동!", checker:"♟ 박자 스텝!", quad:"🎯 안전한 곳!", flood:"🌊 밀물!", snake:"🐍 뱀이 와요!", spiral:"🌪 소용돌이!", wall:"🟪 벽! 틈으로", fan:"🌀 선풍기!", band:"🟥 굵은 줄!"};
 /* (v596) 사용자: 「쉬움 모드랑 어려움 모드 있어야 할 것 같아」 — 🐣 쉬움: 느리게 · 간격 넓게 · 🟪 높은 것 없음(9판 전) · 굵은 줄 늦게 · 🟩 더 많이 · ❤️5 / 🔥 어려움: 빠르게 · 촘촘하게 · 🟩 적게 · 판 중간 꺼짐 일찍 */
-const DF={easy:{per:1.35, fl:.5, sp:.72, gap:1.45, hiAt:8, bandAt:5, g:4, goAt:6, goT:35, life:5, ic:"🐣", nm:"쉬움"}, normal:{per:1.05, fl:.6, sp:1, gap:1, hiAt:0, bandAt:0, g:0, goAt:3, goT:30, life:3, ic:"🙂", nm:"보통"}, hard:{per:.85, fl:.68, sp:1.22, gap:.78, hiAt:0, bandAt:0, g:-1, goAt:2, goT:24, life:3, ic:"🔥", nm:"어려움"}};
+const DF={easy:{per:1.9, fl:.5, sp:.72, gap:1.45, hiAt:8, bandAt:5, g:4, goAt:6, goT:35, life:5, ic:"🐣", nm:"쉬움"}, normal:{per:1.5, fl:.6, sp:1, gap:1, hiAt:0, bandAt:0, g:0, goAt:3, goT:30, life:3, ic:"🙂", nm:"보통"}, hard:{per:1.2, fl:.68, sp:1.22, gap:.78, hiAt:0, bandAt:0, g:-1, goAt:2, goT:24, life:3, ic:"🔥", nm:"어려움"}};
+/* (v736) 빨강 하나가 끝나는 때 (판 시작 뒤 초) — 박자 스텝은 앞 빨강이 다 끝난 뒤에 */
+function hEnd(H){ let e=0; for(const h of H){ const T=h.th||1; let d=h.w;
+    if(h.k==="row"||h.k==="col"||h.k==="ring") d+=(N+2+T)/Math.max(.1,h.sp); else if(h.k==="blink"||h.k==="quad") d+=h.on; else if(h.k==="fan") d+=h.dur; else if(h.k==="checker") d+=h.n*h.per;
+    else if(h.k==="flood"){ const F=Math.round(h.f*N); d+=2*F/Math.max(.1,h.sp)+h.hold; } else if(h.k==="snake") d+=(h.P.length+h.len)/Math.max(.1,h.sp); else if(h.k==="spiral") d+=N*N/h.rate+h.dur;
+    e=Math.max(e, h.t0+d); } return e; }
 function plan(seed, s, df){ const D=DF[df]||DF.normal; const R=RNG(mix(seed, s*7919+13)), ri=n=>Math.floor(R()*n), cell=new Uint8Array(N*N), G=[];
   const put=(i,j)=>{ if(i>=0&&j>=0&&i<N&&j<N && !cell[j*N+i]){ cell[j*N+i]=2; G.push(j*N+i); } };
   const th=Math.min(s, 8), M=N-1, c0=Math.floor(N/2);
@@ -51,7 +56,7 @@ function plan(seed, s, df){ const D=DF[df]||DF.normal; const R=RNG(mix(seed, s*7
   for(let gt=7+ri(5); gt<STAGE_T-4; gt+=11+ri(8)){ let q=ri(N*N), g=0; while(cell[q] && g++<40) q=ri(N*N); GD.push({t0:gt, q, dur:5}); }   /* ⭐ 금빛 칸 */
   while(t<STAGE_T){ const kd=first||PAL[ri(PAL.length)]; first=null; let gap=0, xt=0;
     if(kd==="pulse"){ const ci=2+ri(N-4), cj=2+ri(N-4); for(let r=0;r<3;r++) H.push({t0:t+r*.9, k:"ring", ci, cj, sp:sp*.9, w:r?0:w+.3, th:1, sig:r?0:"pulse"}); xt=2; }
-    else if(kd==="checker"){ H.push({t0:t, k:"checker", w:w+.6, per:D.per, n:6+Math.min(4,s), p0:ri(2), sig:"checker"}); xt=(6+Math.min(4,s))*D.per; }
+    else if(kd==="checker"){ t=Math.max(t, hEnd(H)+.4); H.push({t0:t, k:"checker", w:w+.6, per:D.per, n:6+Math.min(4,s), p0:ri(2), sig:"checker"}); xt=(6+Math.min(4,s))*D.per; }
     else if(kd==="quad"){ H.push({t0:t, k:"quad", w:2.3, on:2, safe:ri(4), sig:"quad"}); xt=3; }
     else if(kd==="flood"){ H.push({t0:t, k:"flood", w:1.8, side:ri(4), f:D.fl+(s>=8?.1:0), sp:sp*1.15, hold:2.2, sig:"flood"}); xt=5; }
     else if(kd==="snake"){ const P=[]; let x=ri(N), z=0, dx=0, dz=1; if(R()<.5){ z=ri(N); x=0; dx=1; dz=0; } for(let k2=0;k2<48;k2++){ P.push(z*N+x); if(R()<.28){ const tn=R()<.5?1:-1; const ndx=-dz*tn, ndz=dx*tn; dx=ndx; dz=ndz; } let nx=x+dx, nz=z+dz; if(nx<0||nz<0||nx>=N||nz>=N){ dx=-dx; dz=-dz; nx=x+dx; nz=z+dz; } x=nx; z=nz; }
@@ -67,20 +72,23 @@ function plan(seed, s, df){ const D=DF[df]||DF.normal; const R=RNG(mix(seed, s*7
     else if(kd==="spin"){ const [x,z]=C(); H.push({t0:t, k:"fan", cx:x, cz:z, nb:2, a:R()*6.28, sp:(R()<.5?-1:1)*(.9+s*.05), len:N*.62, dur:6.5, w}); }
     else if(kd==="fan"||kd==="hfan"||kd==="fan2"){ const nb=s>=6?4:3, d=(R()<.5?-1:1); const one=(x,z,dd)=>H.push({t0:t, k:"fan", cx:x, cz:z, nb, a:R()*6.28, sp:dd*(.75+s*.045), len:kd==="fan2"?N*.34:N*.55, dur:8, w:w+.3, hi:kd==="hfan" && s>=D.hiAt?1:0});
       if(kd==="fan2"){ one(N*.27,N*.27,d); one(N*.73-1,N*.73-1,-d); } else { const [x,z]=C(); one(x,z,d); } }
-    t+=Math.max(1.5, 4.4-s*.3)*D.gap+(kd.indexOf("fan")>=0||kd==="spin"?3.5:0)+(gap?1:0)+xt*.6+R()*.5; }
+    t+=Math.max(1.5, 4.4-s*.3)*D.gap+(kd.indexOf("fan")>=0||kd==="spin"?3.5:0)+(gap?1:0)+(kd==="checker"?xt:xt*.6)+R()*.5; }   /* (v736) 박자 스텝 동안엔 다른 빨강이 겹치지 않게 */
   H.forEach(h=>{ if(!h.sig && h.w>0){ h.sig=h.hi?"wall":h.k==="fan"?"fan":(h.th||1)>1?"band":0; } });
   return {cell, G, H, GO, GD, blue:k, th}; }
 /* 판 시작 뒤 el 초의 빨강·경고 (상태 없음 = 모두 같음) · hi = 🟪 높은 것(점프해도 맞음) */
-function hzAt(H, el, cell, red, warn, hi){ red.fill(0); warn.fill(0); if(hi) hi.fill(0);
+/* (v736) wl = 🟪 미는 벽 칸(점프로 못 넘는 높은 줄) · wo = 그 칸을 부드럽게 그릴 때 밀린 만큼(칸 단위가 아니라 실제 자리) */
+function hzAt(H, el, cell, red, warn, hi, wl, wo){ red.fill(0); warn.fill(0); if(hi) hi.fill(0); if(wl) wl.fill(0);
   const R1=(q,h)=>{ red[q]=1; if(h.hi && hi) hi[q]=1; };
   for(const h of H){ const t=el-h.t0; if(t<0) continue; const wu=t<h.w, u=t-h.w;
     if(h.k==="row"||h.k==="col"){ const T=h.th||1, pos=h.dir>0 ? -.5+u*h.sp : N-.5-u*h.sp; if(!wu && (pos<-1.5-T||pos>N+.5+T)) continue; const e=h.dir>0?0:N-1, g=h.gap;
       for(let a=0;a<N;a++){ if(g && a>=g[0] && a<=g[1]) continue; if(wu){ warn[h.k==="row"?e*N+a:a*N+e]=1; continue; }
-        for(let z=0;z<T;z++){ const b=Math.round(pos)-h.dir*z; if(b<0||b>=N) continue; R1(h.k==="row"?b*N+a:a*N+b, h); } } }
+        for(let z=0;z<T;z++){ const b=Math.round(pos)-h.dir*z; if(b<0||b>=N) continue; const q=h.k==="row"?b*N+a:a*N+b; R1(q, h); if(h.hi && wl){ wl[q]=h.k==="row"?2:1; if(wo) wo[q]=(pos-Math.round(pos))*TS; } } } }
     else if(h.k==="ring"){ const r=-.5+u*h.sp, T=h.th||1; if(!wu && r>N+1+T) continue; for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const d=Math.max(Math.abs(i-h.ci),Math.abs(j-h.cj)); if(wu){ if(d===0) warn[j*N+i]=1; } else if(d<=r+.5 && d>r-T+.5) R1(j*N+i, h); } }
     else if(h.k==="blink"){ if(t>h.w+h.on) continue; h.L.forEach(id=>{ if(wu) warn[id]=1; else R1(id, h); }); }
     else if(h.k==="checker"){ const b=wu?-1:Math.floor(u/h.per); if(b>=h.n) continue; for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const par=(i+j)%2;
-        if(wu){ if(par===h.p0) warn[j*N+i]=1; continue; } const pr=(b+h.p0)%2, ph=u-b*h.per; if(par===pr) R1(j*N+i, h); else if(ph>h.per-.38 && b+1<h.n) warn[j*N+i]=1; } }
+        if(wu){ if(par===h.p0) warn[j*N+i]=1; continue; } const pr=(b+h.p0)%2, ph=u-b*h.per, on=h.per*.5; if(par===pr){ if(ph<on) R1(j*N+i, h); } else if(ph>=on && b+1<h.n) warn[j*N+i]=1; } }
+    /* (v736) 사용자: 「박자 형식 격자는 살 틈이 없어」 — 예전엔 빨간 반쪽이 박자 내내 켜져 있다가 바로 반대쪽으로 바뀌어서, 옮겨 갈 칸이 늘 빨강(점프 말고는 못 삶)
+       → 박자 앞 반 = 빨강 · 뒤 반 = 다 꺼지고 다음 빨강이 주황으로 깜빡 (그동안 방금 꺼진 칸으로 콩) · 박자도 느리게(쉬움 1.9 · 보통 1.5 · 어려움 1.2초) */
     else if(h.k==="quad"){ if(!wu && u>h.on) continue; const hf=N/2; for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const qd=(i>=hf?1:0)+(j>=hf?2:0); if(qd===h.safe) continue; if(wu){ if(t>h.w*.35) warn[j*N+i]=1; } else R1(j*N+i, h); } }
     else if(h.k==="flood"){ const F=Math.round(h.f*N), fr=Math.min(F, u*h.sp), bk=Math.max(0, (u-F/h.sp-h.hold)*h.sp); if(!wu && bk>=F) continue;
       for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const a=h.side===0?i:h.side===1?N-1-i:h.side===2?j:N-1-j; if(a>=F) continue; if(wu) warn[j*N+i]=1; else if(a<fr && a>=bk) R1(j*N+i, h); } }
@@ -90,7 +98,7 @@ function hzAt(H, el, cell, red, warn, hi){ red.fill(0); warn.fill(0); if(hi) hi.
       for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const x=i-h.cx, z=j-h.cz, r=Math.hypot(x,z); if(r>h.len+.3) continue;
         for(let b=0;b<h.nb;b++){ const a=a0+b*Math.PI*2/h.nb, ca=Math.cos(a), sa=Math.sin(a), along=x*ca+z*sa, perp=Math.abs(-x*sa+z*ca); if(along>-.4 && perp<.62){ if(wu) warn[j*N+i]=1; else R1(j*N+i, h); break; } }
         if(r<.75){ if(wu) warn[j*N+i]=1; else R1(j*N+i, h); } } } }
-  for(let q=0;q<N*N;q++) if(cell[q]===2){ red[q]=0; warn[q]=0; if(hi) hi[q]=0; } }
+  for(let q=0;q<N*N;q++) if(cell[q]===2){ red[q]=0; warn[q]=0; if(hi) hi[q]=0; if(wl) wl[q]=0; } }
 
 function start(api){
   /* (v658) 사용자: 「물총 아레나랑 발판 게임 게임 자체 퀄리티도 올려 줬으면」 → 규칙은 그대로 · 무대(네온 놀이방 · LED 칸 · 조명) · 손맛(밟으면 물결 · 통통 · 터지는 조각 · 무지개) · 화면(메뉴·결과 = 공통 키트 B · 게임 중 = A) */
@@ -174,7 +182,7 @@ function start(api){
     g.fillStyle="rgba(10,14,50,.55)"; g.beginPath(); g.roundRect ? g.roundRect(x0+4,20,w,92,46) : g.rect(x0+4,20,w,92); g.fill();
     g.fillStyle=col||"#2f8cff"; g.beginPath(); g.roundRect ? g.roundRect(x0,14,w,92,46) : g.rect(x0,14,w,92); g.fill(); g.lineWidth=6; g.strokeStyle="#fff"; g.stroke();
     g.textAlign="center"; g.textBaseline="middle"; g.lineWidth=8; g.strokeStyle="rgba(10,14,50,.7)"; g.strokeText(t,256,62); g.fillStyle="#fff"; g.fillText(t,256,62);
-    const tx=new THREE.CanvasTexture(cv); tx.encoding=THREE.sRGBEncoding; disp.push(tx); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, depthWrite:false, depthTest:false, transparent:true, sizeAttenuation:false})); sp.renderOrder=5; sp.center.set(.5,0); sp.scale.set(mine?.21:.19,mine?.0525:.0475,1); scene.add(sp); return sp; }   /* 화면에서 늘 같은 크기 = 멀어도 잘 보임 */
+    const tx=new THREE.CanvasTexture(cv); tx.encoding=THREE.sRGBEncoding; disp.push(tx); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, depthWrite:false, depthTest:false, transparent:true, sizeAttenuation:false})); sp.renderOrder=5; sp.center.set(.5,0); sp.scale.set(mine?.16:.145,mine?.04:.036,1); scene.add(sp); return sp; }   /* (v736) 사용자: 「이름 때문에 파란 블럭이 안 보여」 → 이름 알약 작게 · 낮게 · 친구 것은 조금 투명 */   /* 화면에서 늘 같은 크기 = 멀어도 잘 보임 */
   function ring(col, big){ const g=new THREE.RingGeometry(big?.62:.5, big?.92:.74, 32); disp.push(g); const m=new THREE.Mesh(g, new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:.95, depthWrite:false})); m.rotation.x=-Math.PI/2; m.renderOrder=3; scene.add(m); return m; }
   const slotOf=k=>{ if(!CO || !R || !R.d) return 0; const L=livePeers(true).map(p=>p.k); const i=L.indexOf(k); return i<0?0:i%PCOL.length; };
   const AVS=2.45; const me=avatar(api.av);
@@ -190,7 +198,7 @@ function start(api){
   /* ── 판 상태 ── */
   const st={stage:0, t:0, el:0, left:STAGE_T, lives:DF[DFK].life, score:0, combo:0, comboT:0, blue:0, over:false, clearT:0, intro:(CO||MENU)?0:2.4, flash:0, steps:0, seed:(Math.random()*4294967296)>>>0, pl:null, phase:MENU?"menu":CO?"room":"play", out:false, cleared:0, wipe:9, shake:0, best:0, gold:0};
   const cell=new Uint8Array(N*N);   /* 0 꺼짐 · 1 파랑 · 2 초록 · 3 지운 칸 */
-  const red=new Float32Array(N*N), warn=new Float32Array(N*N), hi=new Float32Array(N*N), GT=new Set();   /* GT = 이번 판에 먹은 ⭐ 금빛 칸 */
+  const red=new Float32Array(N*N), warn=new Float32Array(N*N), hi=new Float32Array(N*N), wl=new Uint8Array(N*N), wo=new Float32Array(N*N), GT=new Set();   /* GT = 이번 판에 먹은 ⭐ 금빛 칸 */
   let GI=-1;
   const goldAt=q=>{ const L=st.pl && st.pl.GD; if(!L || st.phase!=="play") return -1; for(let i=0;i<L.length;i++){ const g=L[i]; if(g.q===q && st.el>=g.t0 && st.el<g.t0+g.dur && !GT.has(i) && cell[q]!==2) return i; } return -1; };
   function nearGreen(){ const G=st.pl?st.pl.G:[]; if(!G.length) return [cx(0),cx(N-1)]; let best=G[0], bd=1e9; G.forEach(q=>{ const d=Math.hypot(cx(q%N)-P.p.x, cx(Math.floor(q/N))-P.p.z); if(d<bd){ bd=d; best=q; } }); return [cx(best%N), cx(Math.floor(best/N))]; }
@@ -250,7 +258,7 @@ function start(api){
 @media (min-width:700px) and (min-height:900px), (min-width:1000px) and (min-height:700px){ #mgUI .gTop{zoom:1.4;padding-left:84px;padding-right:84px} #mgUI .gBan{zoom:1.3} #mgUI .mgB[data-b=jump]{width:140px;height:140px;font-size:32px} #mgUI .gRoom,#mgUI .gHow>div,#mgUI .gIntro{zoom:1.3} #mgUI .gCombo{font-size:46px} #mgUI .gFl{font-size:30px} }
 </style>
 <div class="gHurt"></div><div class="gTop"><span class="paPill sg"></span><span class="paPill tm"></span><span class="paPill sc"></span><span class="paPill lv"></span><span class="paPill bl"><i></i><div class="b"><i></i></div><b></b></span></div><div class="paBan gBan"></div><div class="gCombo"></div><div class="gCnt"></div><div class="paPill gOut">👀 구경 중 — 다음 판에 ❤️ 를 다시 채워서 들어가요</div><div class="gRoom" style="display:none"></div>
-<div class="gIntro"><div><b style="background:#2f8cff"></b>파란 칸 = 밟아서 지우기</div><div><b style="background:#ff2d55"></b>빨간 칸이 오면 = 점프로 넘거나 피하기</div><div><b style="background:#ff9a3d"></b>주황 깜빡 = 곧 빨강이 와요</div><div><b style="background:#2fd866"></b>초록 칸 = 안전 (판마다 바뀌고 줄어요)</div><div><b style="background:#d23dff"></b>높은 보라 벽 = 점프로 못 넘어요 · 틈으로!</div></div>`;
+<div class="gIntro"><div><b style="background:#2f8cff"></b>파란 칸 = 밟아서 지우기</div><div><b style="background:#ff2d55"></b>빨간 칸이 오면 = 점프로 넘거나 피하기</div><div><b style="background:#ff9a3d"></b>주황 깜빡 = 곧 빨강이 와요</div><div><b style="background:#2fd866"></b>초록 칸 = 안전 (판마다 바뀌고 줄어요)</div><div><b style="background:#d23dff"></b>높은 보라 벽 = 나를 밀어요 · 틈이나 초록 칸으로!</div></div>`;
   const Q=s=>hud.querySelector(s), eSg=Q(".sg"), eTm=Q(".tm"), eLv=Q(".lv"), eBl=Q(".bl"), eSc=Q(".sc"), eIn=Q(".gIntro"), eHurt=Q(".gHurt"), eCb=Q(".gCombo"), eRoom=Q(".gRoom"), eCnt=Q(".gCnt"), eOut=Q(".gOut"), eBan=Q(".gBan"), eBlB=eBl.querySelector(".b i"), eBlN=eBl.querySelector("b");
   const IC=(n,px)=>{ try{ return PUI.ic(n,px); }catch(e){ return ""; } };
   if(CO || MENU) eIn.style.display="none"; if(MENU) api.ui.classList.add("gMenuOn"); else api.ui.classList.remove("gMenuOn"); api.ui.classList.remove("gEnd");
@@ -279,7 +287,8 @@ function start(api){
   eRoom.addEventListener("pointerdown", e=>e.stopPropagation());
   function meNode(){ return {n:nm, av:api.av||{}, x:+P.p.x.toFixed(2), z:+P.p.z.toFixed(2), y:+P.p.y.toFixed(2), f:+P.face.toFixed(2), l:st.lives, o:st.out?1:0, t:now()}; }
   async function listRooms(){ if(!NETOK) return; let d=null; try{ d=await NET.get(BASE()); }catch(e){ return; } const t=now(), L=[];
-    Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAXP) L.push({id, n:r.h.n||"친구", c, df:r.h.df||"normal"}); });
+    let cut=0; Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(r && r.h && cut<4 && ((r.h.st && t-r.h.st>40*60000) || (!r.h.st && t-(r.h.hb||r.h.at||0)>10*60000))){ cut++; NET.del(BASE()+"/"+id).catch(()=>{}); return; }   /* (v736) 오래된 방 지우기 (목록이 커지지 않게) */
+      if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAXP) L.push({id, n:r.h.n||"친구", c, df:r.h.df||"normal"}); });
     R.rooms=L.sort((a,b)=>b.c-a.c).slice(0,6); if(st.phase==="room") roomUI(); }
   async function mkRoom(){ if(!NETOK){ api.msg("서버에 연결이 안 돼요<small>혼자 하기로 해 봐요</small>", 1800); return; } R.busy=true; const id=code+"_"+(Date.now()%100000);
     R.id=id; R.path=BASE()+"/"+id; R.host=true; const h={c:code, n:nm, st:0, hb:now(), at:now(), df:DFK};
@@ -290,7 +299,7 @@ function start(api){
     R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, meNode()); }catch(e){} st.phase="wait"; R.busy=false; roomUI(); if(SYNC) SYNC.start(); }
   async function startRoom(){ if(!R.host || !R.path) return; const at=now()+WAIT, seed=(Math.random()*4294967296)>>>0;
     try{ await NET.patch(R.path+"/h", {st:at, seed, sg:{s:0, at}}); }catch(e){} R.d.h=Object.assign({}, R.d.h, {st:at, seed, sg:{s:0, at}}); roomUI(); }
-  function leaveRoom(toList){ if(SYNC) SYNC.stop(); if(R.path && NETOK){ try{ NET.del(R.path+"/p/"+code).catch(()=>{}); }catch(e){} if(R.host && st.phase==="wait"){ try{ NET.del(R.path).catch(()=>{}); }catch(e){} } }
+  function leaveRoom(toList){ if(SYNC) SYNC.stop(); if(R.path && NETOK){ const last=!!(R.d && R.d.h && R.d.h.st) && !livePeers(false).length; try{ NET.del(R.path+(last?"":"/p/"+code)).catch(()=>{}); }catch(e){} if(R.host && st.phase==="wait"){ try{ NET.del(R.path).catch(()=>{}); }catch(e){} } }
     Object.values(R.peers).forEach(pp=>dropPeer(pp)); R.peers={}; R.id=R.path=null; R.d=null; R.host=false; if(toList){ st.phase="room"; listRooms(); roomUI(); drawHud(); } }
   function livePeers(withMe){ const d=R.d||{}, t=now(), L=[]; Object.keys(d.p||{}).forEach(k=>{ const p=d.p[k]; if(!p) return; if(k!==code && t-(p.t||0)>10000) return; if(!withMe && k===code) return; L.push(Object.assign({k}, p)); }); if(withMe && !L.some(p=>p.k===code)) L.push(Object.assign({k:code}, meNode())); return L.sort((a,b)=>a.k<b.k?-1:1); }
   function dropPeer(pp){ if(pp.c) scene.remove(pp.c.g); if(pp.tag) scene.remove(pp.tag); if(pp.ring) scene.remove(pp.ring); }
@@ -327,7 +336,7 @@ function start(api){
     if(sm){ pp.x=sm[0]; pp.y=sm[1]; pp.z=sm[2]; mvS=pp.trk.speed(); }   /* (v714) 받은 자리를 시간 맞춰 이어 그림 */
     else { pp.x+=(pp.tx-pp.x)*Math.min(1,dt*10); pp.z+=(pp.tz-pp.z)*Math.min(1,dt*10); pp.y+=(pp.ty-pp.y)*Math.min(1,dt*14); }
     if(pp.c){ const mv=mvS>=0 ? mvS>.5 : Math.hypot(pp.tx-pp.x,pp.tz-pp.z)>.05; pp.c.g.position.set(pp.x,pp.y,pp.z); pp.c.face=pp.f; pp.c.moving=mv && pp.y<.05; try{ animChar(pp.c, dt); }catch(e){} pp.c.g.visible=!pp.o; }
-    if(pp.tag){ pp.tag.position.set(pp.x, pp.y+(pp.o?.4:3.5), pp.z); pp.tag.material.opacity=pp.o?.45:1; } if(pp.ring){ pp.ring.position.set(pp.x,.15,pp.z); pp.ring.visible=!pp.o; } }); }
+    if(pp.tag){ pp.tag.position.set(pp.x, pp.y+(pp.o?.4:3.05), pp.z); pp.tag.material.opacity=pp.o?.4:.78; } if(pp.ring){ pp.ring.position.set(pp.x,.15,pp.z); pp.ring.visible=!pp.o; } }); }
 
   /* ── 움직임 · 칸 밟기 ── */
   const camT=new V3(); let camInit=false, paused=false;
@@ -351,9 +360,20 @@ function start(api){
     P.sq=(P.sq||0)*Math.max(0, 1-dt*9);
     P.inv=Math.max(0,P.inv-dt);
     if(!live || st.out) return;
+    wallPush();
     const id=idxAt(P.p.x,P.p.z);
-    if(id>=0){ if(P.onG && cell[id]===1) clearTile(id); if(P.onG){ const gi=goldAt(id); if(gi>=0) takeGold(gi); } if(red[id] && cell[id]!==2 && (P.onG || (hi[id] && P.p.y<1.6))) hit(); }   /* 🟪 높은 것은 점프해도 맞음 */
+    if(id>=0){ if(P.onG && cell[id]===1) clearTile(id); if(P.onG){ const gi=goldAt(id); if(gi>=0) takeGold(gi); } if(red[id] && cell[id]!==2 && !wl[id] && (P.onG || (hi[id] && P.p.y<1.6))) hit(); }   /* 🟪 높은 것은 점프해도 맞음 · 미는 벽(wl)은 맞지 않고 밀림 (wallPush) */
     st.comboT=Math.max(0, st.comboT-dt); }
+  /* (v736) 사용자: 「벽(블럭)이 다가오는데 애들이 안 밀려」 → 🟪 높은 벽은 몸을 뚫고 ❤️ 를 깎는 대신 앞에서 밀고 감 · 초록 칸에 서 있으면 벽이 비켜 감 · 틈(구멍)으로는 지나감
+     · 가장자리에 끼면 그때 ❤️ 하나 (반짝이는 동안은 벽이 지나감) */
+  function wallPush(){ const H=st.pl && st.pl.H; if(!H || P.inv>0) return; const id0=idxAt(P.p.x,P.p.z); if(id0>=0 && cell[id0]===2) return; const lim=HALF-.3, r=.38;
+    for(const h of H){ if(!h.hi || (h.k!=="row" && h.k!=="col")) continue; const t=st.el-h.t0; if(t<h.w) continue; const u=t-h.w, T=h.th||1, pos=h.dir>0 ? -.5+u*h.sp : N-.5-u*h.sp; if(pos<-1.5-T || pos>N+.5+T) continue;
+      const row=h.k==="row", lat=Math.floor(((row?P.p.x:P.p.z)+HALF)/TS); if(h.gap && lat>=h.gap[0] && lat<=h.gap[1]) continue;
+      const F=-HALF+TS*(pos+.5+h.dir*.5), Bk=-HALF+TS*(pos-h.dir*(T-1)+.5-h.dir*.5), lo=Math.min(F,Bk), up=Math.max(F,Bk); let a=row?P.p.z:P.p.x;
+      if(a+r<=lo || a-r>=up) continue;
+      if((a-(lo+up)/2)*h.dir<0){ a=h.dir>0 ? Math.min(a, Bk-r) : Math.max(a, Bk+r); }   /* 벽 뒤 = 뒤에 남음 */
+      else { a=h.dir>0 ? F+r : F-r; if(Math.abs(a)>lim){ hit(); if(st.lives>0) api.msg('앗! 벽에 끼었어요 ❤️ '+st.lives+'개<small>초록 칸이나 틈으로 피해요</small>', 1300); return; } P.push=.2; }
+      if(row) P.p.z=a; else P.p.x=a; } }
   function greenOff(){ const GO=st.pl && st.pl.GO; if(!GO || st.goS===st.stage || st.el<GO.t) return; st.goS=st.stage; GO.L.forEach(q=>{ if(cell[q]===2) cell[q]=0; }); api.msg('🟩 초록 칸이 줄었어요!<small>남은 초록으로 가요</small>', 1500); try{ api.sfx.bad(); }catch(e){} }
   const isHeart=i=>i===1 && st.stage>=1 && st.lives<DF[DFK].life && !st.out;
   const PK=[]; ["⭐","❤️"].forEach(t=>{ const cv=document.createElement("canvas"); cv.width=cv.height=128; const g=cv.getContext("2d"); g.font="96px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.shadowColor="rgba(10,14,50,.6)"; g.shadowBlur=10; g.fillText(t,64,70);
@@ -394,9 +414,9 @@ function start(api){
       if(CO){ const h=(R.d&&R.d.h)||{}, sg=h.sg||{s:0, at:h.st||now()}; st.el=sg.s===st.stage ? (now()-sg.at)/1000 : st.el; }
       else if(st.clearT<=0) st.el+=dt;
       st.left=Math.max(0, STAGE_T-st.el);
-      if(st.clearT>0 || st.clrS===st.stage){ st.clearT=Math.max(0,st.clearT-dt); red.fill(0); warn.fill(0); if(st.clearT<=0 && !CO) newStage(st.stage+1); }
+      if(st.clearT>0 || st.clrS===st.stage){ st.clearT=Math.max(0,st.clearT-dt); red.fill(0); warn.fill(0); wl.fill(0); if(st.clearT<=0 && !CO) newStage(st.stage+1); }
       else { if(st.el>=STAGE_T){ if(CO && authority() && R.path && !R.endSent){ R.endSent=true; NET.put(R.path+"/h/end", 1).catch(()=>{}); } end(); }
-        if(!st.over){ greenOff(); hzAt(st.pl.H, st.el, cell, red, warn, hi); if(st.blue<=0) stageClear(); } }
+        if(!st.over){ greenOff(); hzAt(st.pl.H, st.el, cell, red, warn, hi, wl, wo); if(st.blue<=0) stageClear(); } }
       if(!st.over){ step(dt, st.clrS!==st.stage); if(st.blue<=0 && st.clrS!==st.stage && !st.over) stageClear(); } }   /* (v734 #53) 시간이 끝난 프레임엔 더 안 움직임 (예전: 끝낸 뒤 같은 프레임에 한 칸 더 → 점수가 결과보다 늘어남) */
     else if(st.phase!=="play") step(dt, false);
     eOut.style.display=st.out && !st.over?"block":"none";
@@ -407,7 +427,7 @@ function start(api){
     const blink=(Math.sin(st.t*18)>0), pulse=.85+.15*Math.sin(st.t*5), party=st.phase==="play" && st.clrS===st.stage && st.clearT>0, demo=st.phase!=="play";
     st.wipe+=dt; for(let k=FXR.length-1;k>=0;k--){ FXR[k].t+=dt; if(FXR[k].t>FXR[k].L) FXR.splice(k,1); }
     for(let q=0;q<N*N;q++){ const i=q%N, j=(q-i)/N; let c=COL.off, k=1, glow=0; const isRed=!!red[q], tall=isRed && !!hi[q], hk=tall?2:isRed?1:0;
-      if(hk!==HT[q]){ HT[q]=hk; _m.makeTranslation(cx(i), tall?.8:isRed?.07:.02, cx(j)); if(tall) _m.scale(_s.set(1,7.6,1)); else if(isRed) _m.scale(_s.set(1,1.5,1)); T.setMatrixAt(q,_m); T.instanceMatrix.needsUpdate=true; }
+      const mw=tall && wl[q]; if(hk!==HT[q] || mw){ HT[q]=hk; const ox=mw && wl[q]===1 ? wo[q] : 0, oz=mw && wl[q]===2 ? wo[q] : 0; _m.makeTranslation(cx(i)+ox, tall?.8:isRed?.07:.02, cx(j)+oz); if(tall) _m.scale(_s.set(1,7.6,1)); else if(isRed) _m.scale(_s.set(1,1.5,1)); T.setMatrixAt(q,_m); T.instanceMatrix.needsUpdate=true; }   /* (v736) 미는 벽은 칸에 붙지 않고 실제 자리에 (밀리는 아이와 딱 맞게) */
       if(isRed){ c=hi[q]?COL.hi:COL.red; glow=.75; k=.92+.08*Math.sin(st.t*14+i+j); } else if(warn[q]){ c=blink?COL.warn:COL.off; glow=blink?.5:0; } else if((GI=goldAt(q))>=0){ c=isHeart(GI)?0xff7aa8:COL.gold; k=.8+.4*Math.abs(Math.sin(st.t*9)); glow=.9; } else if(cell[q]===1){ c=COL.blue; k=pulse; glow=.42; } else if(cell[q]===2){ c=COL.green; glow=.5; k=.94+.06*Math.sin(st.t*3+i*.7+j*.5); } else if(cell[q]===3) c=COL.done;
       _c.setHex(c).convertSRGBToLinear(); if(k!==1) _c.multiplyScalar(k);
       if(party || demo){ const h=((i+j)*.045+st.t*(party?.9:.18))%1; _w.setHSL(h, 1, party?.56:.5).convertSRGBToLinear(); if(party){ _c.copy(_w); glow=.7; } else if(cell[q]!==2){ const f=.5+.5*Math.sin(st.t*1.6-(Math.hypot(i-6.5,j-6.5))*.8); _c.lerp(_w, .55*f); glow=.35*f; } }
@@ -426,7 +446,7 @@ function start(api){
       LAND.t+=dt; { const f=LAND.t/.38; LAND.m.visible=f<1; if(f<1){ LAND.m.scale.setScalar(1+f*2.2); LAND.m.material.opacity=.8*(1-f); } } }
     if(me){ me.g.position.copy(P.p); me.face=P.face; me.moving=P.onG && Math.hypot(api.I.mx,api.I.my)>.1; try{ animChar(me, dt); }catch(e){} me.g.visible=!st.out && !(P.inv>0 && Math.sin(st.t*30)>0); const q=P.sq||0; me.g.scale.set(AVS*(1-q*.45), AVS*(1+q), AVS*(1-q*.45)); }
     { const id=idxAt(P.p.x,P.p.z); HL.visible=id>=0 && !st.out; if(id>=0) HL.position.set(cx(id%N), 0, cx(Math.floor(id/N))); }
-    myTag(); const bob=Math.sin(st.t*4)*.12, tk=(cam.aspect||1)>1.3?1.75:1; MY.tag.scale.set(.21*tk,.0525*tk,1); MY.arrow.scale.set(.085*tk,.053*tk,1); if(tk!==st.tk){ st.tk=tk; Object.values(R.peers).forEach(pp=>{ if(pp.tag) pp.tag.scale.set(.19*tk,.0475*tk,1); }); } MY.tag.position.set(P.p.x, P.p.y+3.5, P.p.z); MY.arrow.position.set(P.p.x, P.p.y+3.5+bob*.3, P.p.z); MY.arrow.center.y=(CO?-1.02:-.1)-Math.abs(bob)*.8; MY.ring.position.set(P.p.x,.16,P.p.z); MY.ring.scale.setScalar(1+Math.sin(st.t*5)*.06); MY.arrow.visible=MY.ring.visible=!st.out; MY.tag.visible=!st.out && !!CO;   /* (v659) 혼자 할 땐 이름 알약이 캐릭터를 가려서 뺌 */ pickTick();
+    myTag(); const bob=Math.sin(st.t*4)*.12, tk=(cam.aspect||1)>1.3?1.3:1; MY.tag.scale.set(.16*tk,.04*tk,1); MY.arrow.scale.set(.075*tk,.047*tk,1); if(tk!==st.tk){ st.tk=tk; Object.values(R.peers).forEach(pp=>{ if(pp.tag) pp.tag.scale.set(.145*tk,.036*tk,1); }); } MY.tag.position.set(P.p.x, P.p.y+3.05, P.p.z); MY.arrow.position.set(P.p.x, P.p.y+3.05+bob*.3, P.p.z); MY.arrow.center.y=(CO?-1.02:-.1)-Math.abs(bob)*.8; MY.ring.position.set(P.p.x,.16,P.p.z); MY.ring.scale.setScalar(1+Math.sin(st.t*5)*.06); MY.arrow.visible=MY.ring.visible=!st.out; MY.tag.visible=!st.out && !!CO;   /* (v659) 혼자 할 땐 이름 알약이 캐릭터를 가려서 뺌 */ pickTick();
     shadowD.position.set(P.p.x,.13,P.p.z); shadowD.scale.setScalar(1-Math.min(.5,P.p.y*.3)); shadowD.visible=!st.out;
     st.flash=Math.max(0,st.flash-dt); eHurt.style.opacity=st.flash>0?1:0;
     const asp=cam.aspect||1, port=asp<1, W=asp<.6?8.6:HALF+1.4, tv=Math.tan(cam.fov*Math.PI/360), d=Math.max(15, Math.min(48, W/(tv*Math.min(asp,1.45)))), pit=port?.84:.8;
@@ -434,7 +454,7 @@ function start(api){
     st.shake=Math.max(0, st.shake-dt); const sk=st.shake*st.shake*2.2, sx=sk*Math.sin(st.t*71), sy=sk*Math.cos(st.t*83);
     cam.position.set(camT.x+sx, Math.sin(pit)*d+sy, camT.z+Math.cos(pit)*d); cam.lookAt(camT.x+sx*.6, 0, camT.z); }
   function howShow(){ const el=document.createElement("div"); el.className="gHow"; const sq=(c,t)=>'<i style="background:'+c+'">'+(t||"")+'</i>';
-    el.innerHTML='<div><h4>🟦 놀이 방법</h4><p>'+sq("#2f8cff")+'<span><b>파란 칸</b>을 모두 밟으면 다음 판! 판이 넘어갈수록 빨라져요</span></p><p>'+sq("#ff2d55")+'<span><b>빨간 칸</b>이 오면 점프로 넘거나 피해요. 밟으면 ❤️ 하나</span></p><p>'+sq("#ff9a3d")+'<span><b>주황 깜빡</b> = 곧 빨강이 와요</span></p><p>'+sq("#d23dff")+'<span><b>높은 보라 벽</b>은 점프로 못 넘어요. 틈으로 달려요</span></p><p>'+sq("#2fd866")+'<span><b>초록 칸</b>은 안전해요. 판마다 바뀌고 줄어요</span></p><p>'+sq("#ffd23f","⭐")+'<span><b>금빛 칸</b>은 잠깐만 나와요. 밟으면 +50</span></p><p>'+sq("#fff","👫")+'<span><b>같이 하기</b>는 다 같이 점수를 모아요. ❤️ 를 다 쓰면 다음 판에 다시 들어가요</span></p><button class="paBtn">알겠어요!</button></div>';
+    el.innerHTML='<div><h4>🟦 놀이 방법</h4><p>'+sq("#2f8cff")+'<span><b>파란 칸</b>을 모두 밟으면 다음 판! 판이 넘어갈수록 빨라져요</span></p><p>'+sq("#ff2d55")+'<span><b>빨간 칸</b>이 오면 점프로 넘거나 피해요. 밟으면 ❤️ 하나</span></p><p>'+sq("#ff9a3d")+'<span><b>주황 깜빡</b> = 곧 빨강이 와요</span></p><p>'+sq("#d23dff")+'<span><b>높은 보라 벽</b>은 점프로 못 넘고 나를 밀어요. 틈이나 초록 칸으로 피해요 (가장자리에 끼면 ❤️ 하나)</span></p><p>'+sq("#2fd866")+'<span><b>초록 칸</b>은 안전해요. 판마다 바뀌고 줄어요</span></p><p>'+sq("#ffd23f","⭐")+'<span><b>금빛 칸</b>은 잠깐만 나와요. 밟으면 +50</span></p><p>'+sq("#fff","👫")+'<span><b>같이 하기</b>는 다 같이 점수를 모아요. ❤️ 를 다 쓰면 다음 판에 다시 들어가요</span></p><button class="paBtn">알겠어요!</button></div>';
     el.addEventListener("pointerdown", e=>e.stopPropagation()); el.querySelector("button").onclick=()=>el.remove(); hud.appendChild(el); }
   function menuShow(){ let b={}, t={}; try{ const r=MG.rec(); b=r.b.grid||{}; t=r.t.grid||{}; }catch(e){}
     PUI.menu(hud, {title:"발판 게임", sub:"파란 칸은 밟고, 빨간 칸은 피해요!", av:api.av, nick:api.nick,
@@ -452,7 +472,7 @@ function start(api){
   return {scene, cam, tick, dispose, pause:(v)=>{ paused=!!v; }, menuShow, howShow, get DFK(){ return DFK; }, st, P, cell, red, warn, newStage, idxAt, N, TS, HALF, cx, R, plan, hzAt, mkRoom, joinRoom, startRoom, listRooms, poll, code}; }
 
 MG.reg("grid", {menu:true, ic:"🟦", nm:"발판 게임", tag:"LED 바닥 · 밟고 · 피하고 · 점프 · 친구랑 같이 (최대 6명)", bg:"linear-gradient(135deg,#252a5c,#10123a)", big:"🟦🟥🟩",
-  how:[["🟦","<b>파란 칸</b>을 모두 밟으면 다음 판 (점점 빨라져요)"],["🟥","<b>빨간 줄·고리·🌀 선풍기</b>가 오면 점프로 넘거나 피하기 · 판마다 무늬가 달라요"],["🟪","<b>높은 보라 벽·굵은 줄</b>은 점프로 못 넘어요 → 틈으로 달려요"],["🟩","<b>초록 칸</b> = 안전 · 판마다 바뀌고 점점 줄어요"],["❤️","3번 맞으면 끝 (같이 하기는 구경하다 다음 판에 다시)"],["👫","같이 하기 = 친구 방에 들어가거나 방 만들기 · 방장이 시작 → 10초 뒤 · 다 같이 얻은 점수"]],
+  how:[["🟦","<b>파란 칸</b>을 모두 밟으면 다음 판 (점점 빨라져요)"],["🟥","<b>빨간 줄·고리·🌀 선풍기</b>가 오면 점프로 넘거나 피하기 · 판마다 무늬가 달라요"],["🟪","<b>높은 보라 벽</b>은 나를 밀어요 · <b>굵은 줄</b>은 점프로 못 넘어요 → 틈·초록 칸으로"],["🟩","<b>초록 칸</b> = 안전 · 판마다 바뀌고 점점 줄어요"],["❤️","3번 맞으면 끝 (같이 하기는 구경하다 다음 판에 다시)"],["👫","같이 하기 = 친구 방에 들어가거나 방 만들기 · 방장이 시작 → 10초 뒤 · 다 같이 얻은 점수"]],
   opts:[{k:"mode", t:"어떻게 할까요?", d:"solo", v:[["solo","🙋 혼자 하기"],["co","👫 같이 하기 (최대 6명)"]]},{k:"df", t:"난이도 (같이 하기는 방장 것)", d:"normal", v:[["easy","🐣 쉬움 ❤️5"],["normal","🙂 보통"],["hard","🔥 어려움"]]}],
   payTxt:"5판 🪙15 · 3판 🪙10 · 참가 🪙5",
   bestTxt:(b,t)=>'🏆 최고 '+(b.st|0)+'판 · ⭐ '+(b.sc|0)+(b.co?' · 🤝 같이 최고 '+b.co+'점':'')+' · 지운 칸 모두 '+(t.tiles|0)+'개',

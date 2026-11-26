@@ -313,7 +313,10 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
         (h.st?'<div class="sub">곧 시작해요!</div>':R.host?'<button class="go" data-st="1">▶ 게임 시작 ('+WS+'초 뒤)</button>':'<div class="sub">방장(👑)이 「게임 시작」을 누르면 '+WS+'초 뒤 시작해요</div>')+'<button class="gr" data-lv="1">방 나가기</button>'; } }
     P.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b || R.busy) return; if(b.dataset.mk) R.make(); else if(b.dataset.j) R.join(b.dataset.j); else if(b.dataset.st) R.start(); else if(b.dataset.lv) R.leave(true); else if(b.dataset.bk && cfg.back) cfg.back(); });
     R.list=async()=>{ if(!OK) return; let d=null; try{ d=await NET.get(BASE()); }catch(e){ return; } const t=now(), L=[];
-      Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAX) L.push({id, n:r.h.n||"친구", c, h:r.h}); });
+      let cut=0; Object.keys(d||{}).forEach(id=>{ const r=d[id];
+        /* (v736) 사용자: 「물총 3판 넘으면 렉」 — 끝난 방이 그날 내내 남아서 방 목록(1.5초마다 그날 방 전부 받기)이 판마다 커졌음 → 오래된 방은 보는 사람이 지움 (시작 40분 · 대기 10분) */
+        if(r && r.h && cut<4 && ((r.h.st && t-r.h.st>40*60000) || (!r.h.st && t-(r.h.hb||r.h.at||0)>10*60000))){ cut++; NET.del(BASE()+"/"+id).catch(()=>{}); return; }
+        if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAX) L.push({id, n:r.h.n||"친구", c, h:r.h}); });
       R.rooms=L.sort((a,b)=>b.c-a.c).slice(0,6); if(R.phase==="room") ui(); };
     R.make=async()=>{ if(!OK){ api.msg("서버에 연결이 안 돼요", 1500); return; } R.busy=true; const id=code+"_"+(Date.now()%100000); R.id=id; R.path=BASE()+"/"+id; R.host=true;
       const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, (typeof cfg.h==="function"?cfg.h():cfg.h)||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{});
@@ -324,7 +327,8 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
       try{ await NET.put(path+"/p/"+code, Object.assign({n:nm, t:now()}, R.node?R.node():{})); }catch(e){ R.busy=false; api.msg("방에 못 들어갔어요 — 와이파이를 보고 다시 눌러요 📶", 1800); R.list(); return; }   /* (v734 #9) */
       R.id=id; R.path=path; R.host=false; R.d=d; R.phase="wait"; R.busy=false; ui(); live0(); };
     R.start=async()=>{ if(!R.host || !R.path) return; const at=now()+WAITMS, seed=(Math.random()*4294967296)>>>0; try{ await NET.patch(R.path+"/h", {st:at, seed}); }catch(e){} R.d.h=Object.assign({}, R.d.h, {st:at, seed}); ui(); };
-    R.leave=(toList)=>{ liveStop(); if(R.path && OK){ NET.del(R.path+"/p/"+code).catch(()=>{}); if(R.host && R.phase==="wait") NET.del(R.path).catch(()=>{}); } R.id=R.path=null; R.d=null; R.host=false; if(toList){ R.phase="room"; R.list(); ui(); } };
+    R.leave=(toList)=>{ liveStop(); if(R.path && OK){ const last=!!(R.d && R.d.h && R.d.h.st) && !live(false).length;   /* (v736) 시작한 방에서 마지막으로 나가는 아이 = 방을 지움 (끝난 방이 쌓이지 않게) */
+        if(last || (R.host && R.phase==="wait")) NET.del(R.path).catch(()=>{}); else NET.del(R.path+"/p/"+code).catch(()=>{}); } R.id=R.path=null; R.d=null; R.host=false; if(toList){ R.phase="room"; R.list(); ui(); } };
     R.live=live; R.now=now;
     R.authority=()=>{ const h=(R.d&&R.d.h)||{}, L=live(true).map(p=>p.k); return L.indexOf(h.c)>=0 ? h.c===code : L[0]===code; };
     R.ev=(to, o)=>{ if(!R.path || !OK) return; const id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); NET.put(R.path+"/e/"+to+"/"+id, Object.assign({at:now()}, o)).catch(()=>{}); };

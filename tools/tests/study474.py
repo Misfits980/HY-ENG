@@ -64,6 +64,7 @@ async def main():
         r = await E("()=>{ const b=document.getElementById('adBody'); return [!!b.querySelector('#adVc'), !!b.querySelector('.adQRow'), /한 아이/.test(b.innerText), !!b.querySelector('.adTiles')]; }")
         ok(r == [False, False, False, True], f"⑤ 🏫 수업 탭 = 수업 타일만 (💬·바로가기 줄·📅 없음) {r}")
         await E("()=>document.querySelector('#adTabs [data-t=\"rec\"]').click()"); await pg.wait_for_timeout(1500)   # (v629) 📊 기록 = 오늘 한 아이 · 언제 했나 · 마을 대화
+        await E("()=>{ const b=document.querySelector('#adBody .a2Seg [data-v=today]'); if(b) b.click(); }"); await pg.wait_for_timeout(300)   # (v736) 📊 기록 = 보기 넷 → 「오늘」
         r = await E("()=>{ const b=document.getElementById('adBody'); return [!!b.querySelector('#adVc'), /한 아이/.test(b.innerText)]; }")
         ok(r == [True, True], f"⑤ 📊 기록 탭 = 📅 오늘 한 아이 + 💬 마을 대화 {r}")
         r = await E("()=>{ const b=document.getElementById('adBody'); return [/언제 했나/.test(b.innerText), b.querySelectorAll('.whRow').length]; }")

@@ -42,7 +42,7 @@ async def main():
         ok(r[0]>=24 and r[1] and r[2]==0, f"③ 🌀 선풍기 날개 4개 · 돌아감 · 끝나면 사라짐 {r}")
         # (v597) 새 무늬
         r=await pg.evaluate("""()=>{ const R=MG.run, N=R.N, c=new Uint8Array(N*N), red=new Float32Array(N*N), warn=new Float32Array(N*N), cnt=()=>[...red].filter(v=>v).length;
-            const ck={t0:0, k:'checker', w:0, per:1, n:4, p0:0}; R.hzAt([ck], .5, c, red, warn); const a=[...red].join(''), na=cnt(); R.hzAt([ck], 1.5, c, red, warn); const b=[...red].join(''), nb=cnt(); R.hzAt([ck], .8, c, red, warn); const pre=[...warn].filter(v=>v).length;
+            const ck={t0:0, k:'checker', w:0, per:1, n:4, p0:0}; R.hzAt([ck], .25, c, red, warn); const a=[...red].join(''), na=cnt(); R.hzAt([ck], 1.25, c, red, warn);   /* (v736) 빨강은 박자 앞 반만 */ const b=[...red].join(''), nb=cnt(); R.hzAt([ck], .8, c, red, warn); const pre=[...warn].filter(v=>v).length;
             const qd={t0:0, k:'quad', w:0, on:2, safe:2}; R.hzAt([qd], .5, c, red, warn); const nq=cnt(); const safe=red[(N-1)*N+0];
             const fl={t0:0, k:'flood', w:0, side:0, f:.6, sp:4, hold:2}; R.hzAt([fl], 2.4, c, red, warn); const nf=cnt(); R.hzAt([fl], 9, c, red, warn); const nf2=cnt();
             const sv={t0:0, k:'spiral', w:0, rate:26, dur:1.1}; R.hzAt([sv], 2, c, red, warn); const ns=cnt();

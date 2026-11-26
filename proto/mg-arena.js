@@ -236,15 +236,19 @@ function start(api){
   const TANK=new THREE.MeshStandardMaterial({color:0x6fd0ff, transparent:true, opacity:.72, roughness:.15, metalness:0}); disp.push(TANK);
   let KMAT=null; const kitMat=R=>{ if(!KMAT){ KMAT=R.mat; toon(KMAT); } return KMAT; };
   const GM={}; const gmat=c=>GM[c]||(GM[c]=toon(new THREE.MeshStandardMaterial({color:c, roughness:.55})));
-  function gunModel(G, wi, small){ while(G.children.length) G.remove(G.children[0]); const W=WP[wi], add=(geo,c,x,y,z,rx,ry,rz)=>{ const m=new THREE.Mesh(geo, gmat(c)); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,rz||0); if(!small) m.castShadow=false; G.add(m); return m; };
+  function gunModel(G, wi, small){ while(G.children.length){ const c=G.children[0]; G.remove(c); c.traverse(o=>{ if(o.geometry && !o.userData.keep) try{ o.geometry.dispose(); }catch(e){} }); }   /* (v736) 사용자: 「3판 넘으면 렉」 — 무기가 바뀔 때마다 옛 물총 모양(그래픽 버퍼)을 안 버려서 판마다 쌓였음 (keep = 함께 쓰는 Kenney 모양 · 손) */ const W=WP[wi], add=(geo,c,x,y,z,rx,ry,rz)=>{ const m=new THREE.Mesh(geo, gmat(c)); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,rz||0); if(!small) m.castShadow=false; G.add(m); return m; };
     /* 앞 = -z (내 화면) — 봇 손에서는 팔 방향(-y)으로 돌림 */
     const H=new THREE.Group(); G.add(H); if(small) H.rotation.x=-Math.PI/2; const A=(geo,c,x,y,z,rx,ry,rz)=>{ const m=add(geo,c,x,y,z,rx,ry,rz); G.remove(m); H.add(m); return m; };
     const B=(w,h,d)=>new THREE.BoxGeometry(w,h,d), C=(r,h,n,r2)=>new THREE.CylinderGeometry(r,r2==null?r:r2,h,n||14), S=r=>new THREE.SphereGeometry(r,14,10), Z=Math.PI/2;
     const dk=c=>{ const k=new THREE.Color(c); k.multiplyScalar(.72); return k.getHex(); };
-    if(W.k==="hammer"){ A(C(.032,.5,8),0xc98b5a,0,.02,-.08,Z*.78); A(C(.12,.32,18),W.col,0,.2,-.3,0,0,Z); [-.13,.13].forEach(x=>A(C(.125,.05,18),W.tk,x,.2,-.3,0,0,Z)); A(S(.05),0xffffff,0,.3,-.2); return; }
+    /* (v736) 사용자: 「뿅망치가 부서져 있어」 — 손잡이와 머리가 떨어져 화면 가운데에 큰 머리만 떠 있었음 → 한 묶음(HG)으로: 손잡이 위 끝에 머리가 꽂힘 · 머리 크기 줄임 · 내 화면은 비스듬히 · 봇 손에선 주먹에서 위로 */
+    if(W.k==="hammer"){ const HG=new THREE.Group(); H.add(HG); const P=(geo,c,x,y,z,rx)=>{ const m=new THREE.Mesh(geo, gmat(c)); m.position.set(x,y,z); m.rotation.x=rx||0; HG.add(m); return m; };
+      P(C(.021,.36,10,.025),0xc98b5a,0,.18,0); P(C(.028,.07,10),0x8a5a3c,0,.02,0); P(S(.03),0x8a5a3c,0,-.015,0);
+      P(C(.074,.2,20),W.col,0,.4,0,Z); [-.112,.112].forEach(z=>P(C(.079,.034,20),W.tk,0,.4,z,Z)); P(C(.03,.04,12),W.col,0,.335,0); P(S(.026),0xffffff,.05,.45,-.04);
+      if(small){ H.rotation.x=0; HG.rotation.x=Z; HG.position.set(0,0,-.04); HG.scale.setScalar(1.3); } else { HG.rotation.set(-.82,.5,.12); HG.position.set(.06,-.15,.02); HG.scale.setScalar(.86); } return; }
     /* (v591) 사용자: 「무기가 너무 아쉬워」 → Kenney Blaster Kit(CC0) 장난감 블래스터 + 위에 투명 물통 = 장난감 물총 (모델이 아직 안 왔으면 아래 상자 물총) */
     const KM=KIT[W.k], R=(typeof KK!=="undefined") && KK.R.blaster;
-    if(KM && R && R.G[KM[0]]){ const g=R.G[KM[0]], bb=g.boundingBox, s=KM[1]/(bb.max.z-bb.min.z), m=new THREE.Mesh(g, kitMat(R)); m.scale.setScalar(s); m.castShadow=!!small;   /* 모델 앞 = -z 그대로 */
+    if(KM && R && R.G[KM[0]]){ const g=R.G[KM[0]], bb=g.boundingBox, s=KM[1]/(bb.max.z-bb.min.z), m=new THREE.Mesh(g, kitMat(R)); m.userData.keep=1; m.scale.setScalar(s); m.castShadow=!!small;   /* 모델 앞 = -z 그대로 */
       m.position.set(-(bb.min.x+bb.max.x)/2*s, .07-bb.max.y*s, .1-bb.max.z*s); H.add(m); const L=KM[1], tr=KM[2]||.045;
       const tk=new THREE.Mesh(C(tr,L*.28,16), TANK); tk.rotation.x=Z; tk.position.set(0,.07+tr*.85,.1-L*.42); H.add(tk); [1,-1].forEach(e=>{ const c=new THREE.Mesh(S(tr), TANK); c.scale.z=.5; c.position.set(0,.07+tr*.85,.1-L*.42+e*L*.14); H.add(c); });
       const cp=new THREE.Mesh(C(tr*.45,.05,10), gmat(0xffffff)); cp.position.set(0,.07+tr*1.75,.1-L*.34); H.add(cp);
@@ -301,7 +305,7 @@ function start(api){
   function myShot(W){ if(W.t==="melee") return; camK=Math.min(.09, camK+(RDM?KICK[W.k]*.3:KICK[W.k]||0)); if(W.t==="beam" && vmFl.visible) return; vmFl.position.copy(vmTip()); vmFl.userData.t=W.t==="snipe"?.16:.1; vmFl.userData.T=vmFl.userData.t; vmFl.userData.big=W.t==="snipe"||W.k==="shot"?1.6:1; vmFl.visible=true; if(W.t==="snipe" && !RDM){ try{ eScope.classList.add("kick"); setTimeout(()=>eScope.classList.remove("kick"), 130); }catch(e){} } }
   function vmFlTick(dt){ const u=vmFl.userData; if(!vmFl.visible) return; u.t-=dt; if(u.t<=0){ vmFl.visible=false; return; } const k=1-u.t/u.T, b=u.big||1;
     vmFl.children.forEach(m=>{ if(m===u.core){ const s=(1.2+k*1.4)*b; m.scale.set(s,s,s); m.material.opacity=.9*(1-k); return; } m.position.copy(m.userData.d).multiplyScalar(.025+k*.18*b); const s=(1-k*.6)*b; m.scale.set(s,s,s); }); vmFl.children[0].material.opacity=.95*(1-k*k); }
-  function vmSet(wi){ gunModel(VMG, wi, false); VMG.add(hand); hand.position.set(0,-.2,.03); hand.scale.set(1,1.15,1.25); VM.userData.wi=wi; }
+  hand.userData.keep=1; function vmSet(wi){ gunModel(VMG, wi, false); VMG.add(hand); hand.position.set(0,-.2,.03); hand.scale.set(1,1.15,1.25); VM.userData.wi=wi; }
   /* (v592) 사용자: 「캐릭터 모델은 없을까」 → 「이건 아레나 지금 해 줘」 — Kenney Blocky Characters 2.0(CC0) 로블록스 같은 블록 사람 6종 · 부위(다리·몸·팔·머리)를 직접 움직임 */
   const BKS=["b","d","e","n","o","g"];
   function blockify(a, P, k){ if(!P) return; const tx=new THREE.TextureLoader().load("../assets/mg/blocky/skin-"+k+".webp"); tx.encoding=THREE.sRGBEncoding; tx.flipY=false; tx.wrapS=tx.wrapT=THREE.RepeatWrapping; tx.magFilter=tx.minFilter=THREE.NearestFilter; tx.generateMipmaps=false; disp.push(tx);
@@ -474,7 +478,13 @@ function start(api){
   /* (v663) 시작·부활 방향 — 가운데 쪽이면서 앞이 트인 쪽 (전에는 가운데만 봐서 3·2·1 내내 벽만 보이기도 했음) */
   function groundY(x, z){ let top=0; for(const b of BOX) if(b.y0<=.01 && b.y1<=3.2 && x>b.x0 && x<b.x1 && z>b.z0 && z<b.z1) top=Math.max(top, b.y1); return top; }
   function openYaw(x, z, y){ const yc=Math.atan2(x, z), o=new V3(x, (y||0)+1.5, z); let by=yc, bs=-1e9; for(let k=0;k<16;k++){ const y=k*Math.PI/8, d=new V3(-Math.sin(y), 0, -Math.cos(y)); let t=30; try{ t=Math.min(30, rayBox(o, d, 30).t); }catch(e){} const sc=Math.min(t, 16)+5*Math.cos(y-yc); if(sc>bs){ bs=sc; by=y; } } return by; }
-  function spawn(a){ let best=SPAWN[0], bd=-1; SPAWN.forEach(s=>{ let m=1e9; for(const o of ACT){ if(o===a || !o.alive) continue; m=Math.min(m, Math.hypot(o.p.x-s[0], o.p.z-s[1])); } m+=Math.random()*4; if(m>bd){ bd=m; best=s; } });
+  /* (v736) 사용자: 「스폰이 한곳에 모인 느낌」 — 판 시작 때 기기마다 「친구들(아직 대기실 자리)에서 가장 먼 곳」을 따로 골라 모두 같은 곳에 나왔음
+     → 시작 = 자리표 번호(slot)대로 서로 먼 자리 차례(첫 자리는 판마다 seed 로 바뀜) · 다시 나올 때 = 가장 먼 세 곳 중 하나 (한 곳에 몰리지 않게) */
+  function spOrder(first){ const n=SPAWN.length, o=[]; if(!n) return o; const f=((first|0)%n+n)%n; o.push(f); const used=new Uint8Array(n); used[f]=1;
+    while(o.length<n){ let bi=-1, bd=-1; for(let i=0;i<n;i++){ if(used[i]) continue; let m=1e9; for(const j of o) m=Math.min(m, Math.hypot(SPAWN[i][0]-SPAWN[j][0], SPAWN[i][1]-SPAWN[j][1])); if(m>bd){ bd=m; bi=i; } } used[bi]=1; o.push(bi); } return o; }
+  function spawn(a, slot, first){ let best=SPAWN[0];
+    if(typeof slot==="number" && typeof first==="number" && SPAWN.length){ const o=spOrder(first); best=SPAWN[o[slot%o.length]]; }
+    else if(SPAWN.length){ const sc=SPAWN.map(s=>{ let m=1e9; for(const o of ACT){ if(o===a || !o.alive) continue; m=Math.min(m, Math.hypot(o.p.x-s[0], o.p.z-s[1])); } return [m, s]; }).sort((x,y)=>y[0]-x[0]); const top=sc.slice(0, Math.min(3, sc.length)); best=top[Math.floor(Math.random()*top.length)][1]; }
     const gy=groundY(best[0], best[1]);   /* (v731) 높은 곳(워터파크 다리 위) 나오는 자리 — 전엔 높이 0 = 다리 덩어리 속에서 나와 3·2·1 동안 파란 상자 속 · 옆 땅으로 밀려남 */
     a.p.set(best[0], gy, best[1]); a.v.set(0,0,0); a.soak=0; a.alive=true; a.prot=PROT; a.sl=false; a.h=HH; a.onG=true; a.dmgBy.clear(); a.yaw=openYaw(best[0], best[1], gy); a.pitch=0; a.cd=.3;
     if(a.bot){ a.brain.tg=null; a.brain.path=[]; a.brain.aimY=a.yaw; a.G.visible=true; a.G.rotation.set(0,0,0); } }
@@ -559,8 +569,8 @@ function start(api){
     if(ro.indexOf(NETR.code)<0){ api.msg("🙈 시작할 때 자리에 못 들어갔어요<small>다음 판에 같이 해요</small>", 2200); try{ NETR.leave(true); }catch(e){} phase="room"; return; }
     if(h.map && h.map!==MAPK) setMap(h.map); D=DIFF[h.df]||DIFF.normal; const ks=ro.filter(k=>k!==NETR.code).slice(0,5);
     ks.forEach(k=>{ const p=(NETR.d.p||{})[k]||{}; mkPeer(k, p); });
-    const nb=Math.max(0, 6-1-ks.length); BOTL.slice(0,nb).forEach(a=>{ ACT.push(a); a.G.visible=true; a.rb=!NETR.authority(); spawn(a); a.prot=0; });
-    spawn(me); me.prot=0; time.st=h.st+INTRO*1000+3000; drawBoard(); intro(h.st); }
+    const nb=Math.max(0, 6-1-ks.length), f0=(h.seed>>>0)%64, rk=ro.slice(0,6); BOTL.slice(0,nb).forEach((a,j)=>{ ACT.push(a); a.G.visible=true; a.rb=!NETR.authority(); spawn(a, rk.length+j, f0); a.prot=0; });
+    spawn(me, Math.max(0, rk.indexOf(NETR.code)), f0); me.prot=0; time.st=h.st+INTRO*1000+3000; drawBoard(); intro(h.st); }
   function netNode(){ return {av:api.av||{}, x:+me.p.x.toFixed(2), y:+me.p.y.toFixed(2), z:+me.p.z.toFixed(2), yw:+me.yaw.toFixed(2), pt:+me.pitch.toFixed(2), wi:me.wi, al:me.alive?1:0, sl:me.sl?1:0, f:me.fc|0, kl:me.kills, sk:Math.round(me.soak)}; }
   function onEv(e){ if(time.over) return; const by=actorOf(e.by), from=new V3(e.fx||0,1.4,e.fz||0);
     if(e.k==="hit"){ hurt(me, e.dm, by||{nm:"친구", net:true}, e.wi|0, !!e.hd, from, true); }
@@ -603,7 +613,7 @@ function start(api){
     /* (v731) 새 판은 모두 처음부터 (전: 같은 화면에서 다시 시작하면 봇이 앞 판 단계 그대로 → 몇 초 만에 끝) */
     ACT.forEach(a=>{ a.wi=0; a.kills=0; a.asst=0; a.deaths=0; a.soak=0; a.spT=0; a.lastHit=-9; a.dmgBy.clear(); if(a.bot && a.gun) gunModel(a.gun, 0, true); });
     time.over=false; time.t=0; streak=0; FEED.length=0; drawFeed(); vmSet(0); fireIc(); drawLadder();
-    BOTL.forEach(a=>{ spawn(a); a.prot=0; }); spawn(me); me.prot=0; time.left=MATCH; drawBoard(); intro(0); }
+    { const f0=Math.floor(Math.random()*64); BOTL.forEach((a,i)=>{ spawn(a, i+1, f0); a.prot=0; }); spawn(me, 0, f0); me.prot=0; } time.left=MATCH; drawBoard(); intro(0); }
 
   /* ════ 🎯 연습장 (v731) — 걷기 → 둘러보기 → 풍선 5개 → 슬라이드 점프 (1분쯤) · 처음 한 번 🪙5 · 사용자 「연습장 + 따라잡기」 ════ */
   const PRK="hyeng_proto_arena_prac";
@@ -873,7 +883,7 @@ function start(api){
     if(k==="solo") h+='<h3>▶ 혼자 하기</h3><div class="sub2">봇 5명과 대결 · '+MAPS[MAPK].ic+' '+MAPS[MAPK].nm+'</div>'+row('🤖 봇 실력', seg("diff",[["easy","🐣 쉬움"],["normal","🙂 보통"],["hard","🔥 어려움"]]))+(prDone()?'<button class="aGo" data-go="solo">▶ 시작!</button><button class="aGo2" data-go="prac">🎯 연습장 다시 하기 (1분)</button>':'<button class="aGo" data-go="prac">🎯 처음이면 연습장부터! (1분 · 🪙5)</button><button class="aGo2" data-go="solo">건너뛰고 바로 시작 ▶</button>');
     else if(k==="set") h+='<h3>⚙ 설정</h3>'+row('👀 둘러보기', seg("sens",[[1,"1"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]]))+row('🎯 조준 도움', seg("aim",[[0,"끄기"],[1,"조금"],[2,"많이"]]))+
       row('🔫 자동 쏘기', seg("auto",[[0,"끄기"],[1,"켜기"]]))+row('🔭 시야', seg("fov",[[0,"좁게"],[1,"보통"],[2,"넓게"]]))+row('🔘 버튼 크기', seg("btn",[[0,"작게"],[1,"보통"],[2,"크게"]]))+row('🔊 소리', seg("vol",[[0,"끄기"],[1,"작게"],[2,"크게"]]))+
-      '<div class="sub2">이 기기에 저장돼요 · 자동 쏘기 = 터치에서 조준만 맞추면 쏴요</div>'+(phase==="play"?'<button class="aGo" data-go="pz">← 돌아가기</button>':'');
+      '<div class="sub2">이 기기에 저장돼요 · 자동 쏘기 = 적이 조준점 가까이 오면 저절로 쏘고 휘둘러요 (조준도 살짝 도와줘요)</div>'+(phase==="play"?'<button class="aGo" data-go="pz">← 돌아가기</button>':'');
     else if(k==="wp") h+='<h3>🔫 무기 8단계</h3><div class="sub2">한 명을 흠뻑 적시면 다음 무기 · 마지막 🔨 로 맞히면 우승</div><div class="aWpL">'+WP.map((w,i)=>'<div><i>'+w.ic+'</i><span><b>'+(i+1)+'. '+w.nm+'</b>'+WPD[i]+'</span></div>').join("")+'</div>';
     else if(k==="rec"){ const r=MG.rec(), b=r.b.arena||{}, t=r.t.arena||{};
       h+='<h3>🏆 내 기록</h3><div class="aRec">'+[["🏆 우승",(t.win|0)+"번"],["💦 모두 적신 수",(t.kills|0)+"명"],["🎯 한 판 최고",(b.kill|0)+"명"],["🪜 최고 단계",(b.wi|0)+" / 8"],["⚡ 가장 빠른 우승",b.fast?b.fast+"초":"—"],["🪙 오늘 상",MG.payLeft("arena")+"판 남음"]].map(x=>'<div>'+x[0]+'<b>'+x[1]+'</b></div>').join("")+'</div>'; }
@@ -909,8 +919,16 @@ function start(api){
     /* 쏘기 */
     me.cd-=dt; const W=WP[me.wi], e=eyeOf(me), d=dirOf(me.yaw, me.pitch);
     let want=I.fire;
-    if(SET.auto && I.touch && !want && W.t!=="snipe" && W.t!=="melee"){ const as=assist(me, e, d, W.rng, 2.4); if(as) want=1; }
-    if(W.t==="snipe"){ if(I.fire){ me.hold+=dt; zoom=Math.min(1, zoom+dt*5); } else { if(me.hold>.12 && me.cd<=0 && time.cd<=0){ fire(me, e, d, I.touch && SET.aim?(o,dd,rg)=>assist(me,o,dd,rg,SET.aim>1?1.8:1):null); } me.hold=0; zoom=Math.max(0, zoom-dt*6); } }
+    /* (v736) 사용자: 「자동 공격을 켰는데 멈춰 있어」 — 예전 자동 = 터치에서 조준점이 적 위 2.4° 안일 때만 · 저격·뿅망치는 안 됨 → 아이들이 켜도 거의 안 쏨
+       → 켜면 모든 무기: 적이 조준점 가까이(물총 6° · 저격 3° · 뿅망치 = 앞 40° 닿는 거리)면 쏨/휘두름 · 14° 안의 적 쪽으로 조준점이 천천히 따라감 (끌어 둘러보면 아이 손이 이김) */
+    let autoF=false;
+    if(SET.auto && !want && time.cd<=0 && me.alive){ const mel=W.t==="melee", as=assist(me, e, d, mel?W.rng+.6:W.rng, mel?40:W.t==="snipe"?3:6);
+      if(as) autoF=true;
+      const tg=as || assist(me, e, d, mel?7:W.rng, 14); if(tg && !mel){ const dx=tg.c.x-e.x, dy=tg.c.y-e.y, dz=tg.c.z-e.z, ty=Math.atan2(-dx,-dz), tp=Math.atan2(dy, Math.hypot(dx,dz)), k=Math.min(1, dt*2.2);
+        let dyw=ty-me.yaw; while(dyw>Math.PI) dyw-=Math.PI*2; while(dyw<-Math.PI) dyw+=Math.PI*2; me.yaw+=dyw*k; me.pitch+=(tp-me.pitch)*k; } }
+    if(autoF && W.t!=="snipe") want=1;
+    if(autoF && W.t==="snipe" && me.cd<=0){ fire(me, e, d, (o,dd,rg)=>assist(me,o,dd,rg,1.8)); me.hold=0; }
+    else if(W.t==="snipe"){ if(I.fire){ me.hold+=dt; zoom=Math.min(1, zoom+dt*5); } else { if(me.hold>.12 && me.cd<=0 && time.cd<=0){ fire(me, e, d, I.touch && SET.aim?(o,dd,rg)=>assist(me,o,dd,rg,SET.aim>1?1.8:1):null); } me.hold=0; zoom=Math.max(0, zoom-dt*6); } }
     else if(W.t==="melee"){ if(want && me.cd<=0 && time.cd<=0) fire(me, e, d); }
     else if(want && me.cd<=0 && time.cd<=0){ fire(me, e, d, !SET.aim?null:I.touch?(o,dd,rg)=>assist(me,o,dd,rg,SET.aim>1?3.4:1.8):I.mouse?(o,dd,rg)=>assist(me,o,dd,rg,.9):null); }
     /* 마르기 */
