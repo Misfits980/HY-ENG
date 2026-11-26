@@ -60,7 +60,7 @@ async def main():
         await E("()=>{ sessionStorage.setItem('hyeng_admin_ok', String(Date.now())); }")
         await pg.goto(ORIGIN + "index.html?admin", wait_until="domcontentloaded"); await pg.wait_for_timeout(2500)
         r = await E("()=>[...document.querySelectorAll('#adTabs [data-t]')].map(b=>b.dataset.t+':'+b.innerText.replace(/\\s+/g,''))")
-        ok([x.split(":")[0] for x in r] == ["now", "class", "rec", "work", "prize", "send"], f"⑤ (v629) 탭 6개 {r}")
+        ok([x.split(":")[0] for x in r] == ["today", "now", "class", "rec", "work", "prize", "send"], f"⑤ (v735) 탭 7개 (🏠 오늘 먼저) {r}")
         r = await E("()=>{ const b=document.getElementById('adBody'); return [!!b.querySelector('#adVc'), !!b.querySelector('.adQRow'), /한 아이/.test(b.innerText), !!b.querySelector('.adTiles')]; }")
         ok(r == [False, False, False, True], f"⑤ 🏫 수업 탭 = 수업 타일만 (💬·바로가기 줄·📅 없음) {r}")
         await E("()=>document.querySelector('#adTabs [data-t=\"rec\"]').click()"); await pg.wait_for_timeout(1500)   # (v629) 📊 기록 = 오늘 한 아이 · 언제 했나 · 마을 대화
