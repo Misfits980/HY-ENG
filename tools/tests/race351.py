@@ -132,7 +132,7 @@ async def main():
         ok(r, f"5초 넘게 쉬고 누르면 다시 한 번 더 물음 {r}")
         # 아이 빼기도 두 번
         await T.evaluate("()=>{ document.querySelector('#adTmList [data-ad=\"tmPick\"][data-k=\"k2\"]').click(); }"); await T.wait_for_timeout(400)
-        KD = "()=>{ const b=document.querySelector('#adTmList [data-ad=\"kdDel\"][data-k=\"k2\"]'); b.click(); }"
+        KD = "()=>{ const b=document.querySelector('#adKidSh [data-ad=\"kdDel\"][data-k=\"k2\"]'); b.click(); }"   # (v735) 아이 한 명 = 오른쪽 서랍
         await T.evaluate(KD); await T.wait_for_timeout(400)
         r1 = await T.evaluate("()=>FB.get('/hy/roster/k/k2').then(x=>!!x)")
         await T.evaluate(KD); await T.wait_for_timeout(400)
