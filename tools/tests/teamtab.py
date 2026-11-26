@@ -34,10 +34,11 @@ async def main():
         n = await pg.evaluate("()=>document.querySelectorAll('#adTmNicks [data-ad=tmAdd]').length")
         ok(n == len(nicks), f"시트 게임 이름이 버튼으로 ({n})")
         await pg.evaluate("()=>{ const sc=document.querySelector('#shAdmin .sheetIn'); sc.scrollTop=400; }")
-        top0 = await pg.evaluate("()=>document.querySelector('#shAdmin .sheetIn').scrollTop")
+        await pg.evaluate("()=>{ document.querySelector('#shAdmin .sheetIn').style.overflowAnchor='none'; }")   # (v735) 옛 사파리처럼 스크롤 고정 없이
+        top0 = await pg.evaluate("()=>document.getElementById('adTmNicks').getBoundingClientRect().top")   # (v735) 위 표(👥 아이들)가 길어져도 「보이는 자리」가 그대로인지
         for nm in ("SEOWON", "MINJUN"):
             await pg.evaluate("(n)=>document.querySelector('#adTmNicks [data-n=\"'+n+'\"]').click()", nm); await pg.wait_for_timeout(400)
-        top1 = await pg.evaluate("()=>document.querySelector('#shAdmin .sheetIn').scrollTop")
+        top1 = await pg.evaluate("()=>document.getElementById('adTmNicks').getBoundingClientRect().top")
         K = await pg.evaluate("()=>{ const T=HyBoss.teams(), K=HyBoss.kids(); return Object.values(K).map(k=>k.n+'@'+(T[k.t]||{}).n).sort(); }")
         ok(K == ["MINJUN@사자반", "SEOWON@사자반"], f"누르면 바로 들어감 {K}")
         ok(abs(top1 - top0) < 30, f"넣어도 화면이 안 튐 ({top0}→{top1})")

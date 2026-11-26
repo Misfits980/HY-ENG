@@ -30440,7 +30440,11 @@ const Admin = (function(){
       h+='<div class="a2KR avg" role="row"><span></span><span class="nm"><b>'+(kF==="all" && !q ? '전체' : '보이는 아이')+' 평균</b><small>'+L.length+'명</small></span><span class="td">'+L.filter(m=>m.did).length+'명</span><span class="hw">'+(D.length ? (D.reduce((a,m)=>a+m.days,0)/D.length).toFixed(1)+'일' : '—')+'</span><span class="hw">'+(H.length ? '끝 '+H.filter(m=>m.hw.done>=m.hw.tot).length+'/'+H.length : '—')+'</span><span class="ac">'+(A.length ? Math.round(A.reduce((a,m)=>a+m.acc,0)/A.length)+'%' : '—')+'</span></div>'; }
     h+='</div><p class="a2Leg"><i class="y"></i> 들어옴 · <i class="x"></i> 빠짐 · <i class="t"></i> 오늘 아직 (월~금) · 이름 옆 <b class="a2Dot">●</b> = 10분 안에 함 · 오늘 = 마지막으로 한 시각 · 숙제 = 지금 나간 숙제 · 처음엔 🚨 챙길 아이 먼저 (열 이름을 누르면 그 순서 · 한 번 더 = 처음 순서)</p>';
     return h; }
-  function paintKV2(force){ const el=$("a2KList"); if(!el) return; const h=kidsTbl(); if(force || el._h!==h){ el._h=h; el.innerHTML=h; } }
+  function paintKV2(force){ const el=$("a2KList"); if(!el) return; const h=kidsTbl(); if(!force && el._h===h) return;
+    /* 표 위쪽이 화면 위로 지나갔으면(밑의 🏫 반 관리를 보는 중) 표 길이가 바뀌어도 보던 자리 그대로 — 스크롤 고정이 없는 옛 사파리 */
+    const sc=$("shAdmin").querySelector(".sheetIn"), nx=$("a2Mgr"), sT=sc ? sc.getBoundingClientRect().top : 0, past=!!(sc && nx && el.getBoundingClientRect().top<sT), y0=past ? nx.getBoundingClientRect().top : 0;
+    el._h=h; el.innerHTML=h;
+    if(past){ const d=nx.getBoundingClientRect().top-y0; if(Math.abs(d)>1) sc.scrollTop+=d; } }
   /* 아이 한 명 — ⚠ 요약 · 이번 주 요일 · 숫자 · 📌 숙제 · 📕 자주 틀린 단어 · 💬 학부모 문자 · 💎 · ⋯ 더(반 옮기기 · 이름 · 빼기 · 랭킹 단계 · 태그) */
   function kidV2(k){ const m=kModel().find(x=>x.k===k); if(!m) return ''; const E=esc, T=HyBoss.teams(), K=HyBoss.kids(), x=K[k], W=m.W, td=m.td, wd=wdNow();
     const b=(HyBoss.D||{})[k], st=(()=>{ try{ return HyBoss.stock(k); }catch(e){ return {r:0,s:0}; } })(), EX=(HyExam._last && HyExam._last.R)||{}, ex=EX[k] || Object.values(EX).find(r=>r && nkey(r.n)===nkey(x.n));
