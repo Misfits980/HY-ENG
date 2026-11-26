@@ -171,7 +171,7 @@ function start(api){
   const turn=()=>(first+mv.length)%2;
   function seats(){ [0,1].forEach(k=>{ const p=k===0?me:1-me, el=$(".c4P.p"+k); el.querySelector("i").style.background=COLS[p]; el.style.setProperty("--c", COLS[p]); el.querySelector("canvas").style.borderColor=COLS[p]; el.querySelector("b").textContent=names[p]; el.classList.toggle("on", !over && turn()===p); }); trays(); const B=$(".c4Ban"), t=over||mode==="menu"?"":turn()===me?"내 차례!":names[1-me]+" 차례"; if(B.textContent!==t){ B.textContent=t; B.style.display=t?"":"none"; B.className="paBan c4Ban pop "+(turn()===me?"":"y"); } }
   function clearDiscs(){ DM.forEach(d=>board.remove(d)); DM.length=0; FALL.length=0; clearFx(); }
-  function newGame(o){ bd=fresh(); mv=[]; over=false; win=null; busy=false; clearDiscs(); first=o.first|0; me=o.me|0; opp=o.opp; lv=o.lv||lv; names=o.names; turnT=0; oppGone=0; mode=o.mode; U.classList.remove("c4Menu0"); TMR.style.display=""; oppAv(o.av); oppRest(); if(ME_AV) ME_AV.setExpr("smile"); seats();
+  function newGame(o){ bd=fresh(); mv=[]; over=false; win=null; busy=false; clearDiscs(); first=o.first|0; me=o.me|0; opp=o.opp; lv=o.lv||lv; names=o.names; turnT=0; oppGone=0; meStale=0; mode=o.mode; U.classList.remove("c4Menu0"); TMR.style.display=""; oppAv(o.av); oppRest(); if(ME_AV) ME_AV.setExpr("smile"); seats();
     bub(opp==="bot"?["한 판 해요! 😆","내가 이길걸? 😝","잘 부탁해! 👋"][Math.floor(Math.random()*3)]:"반가워! 👋", 1.8);
     busy=true; PUI.count(U, ()=>{ busy=false; turnT=0; if(opp==="bot" && turn()!==me && !over) later(.4, botGo); }, fast);
     say(turn()===me?"칸을 콕! 알 넣기 👆":(opp==="bot"?"생각하는 중…":"친구 차례예요")); }
@@ -224,11 +224,18 @@ function start(api){
     RM=MG.room(api, {pre:"mgf", title:"4줄 팡 1:1", ic:"🔴", max:2, fill:false, wait:4000, send:.5, poll:.3, back:()=>{ try{ RM.dispose(); }catch(e){} RM=null; menuShow(); }}); RM.node=()=>({av:api.av||null}); RM.onFeed=f=>{ if(f && f.t==="emo" && f.s!==RM.code){ bub(f.e, 1.5); if(OPP.P){ OPP.P.setExpr(EMX[f.e]||"grin"); OPP.act=1.5; } } };
     { const st0=RM.start; RM.start=async()=>{ const L=RM.live(true).map(p=>p.k); if(L.length<2){ api.msg("친구가 들어오면 시작할 수 있어요 👫", 1500); return; } try{ await NET.patch(RM.path+"/h", {ro:L.slice(0,2)}); }catch(e){} if(RM.d && RM.d.h) RM.d.h.ro=L.slice(0,2); return st0(); }; }
     RM.onStart=(h, L)=>{ coRo=(h.ro&&h.ro.length?h.ro:L.map(p=>p.k)).slice(0,2); const PD=(RM.d&&RM.d.p)||{}; const nm=coRo.map(c=>String((PD[c]&&PD[c].n)||(L.find(q=>q.k===c)||{}).n||"친구").slice(0,8));
-      lastSq=-1; coStart=now(); const mi=Math.max(0,coRo.indexOf(RM.code)), oc=coRo[1-mi]; newGame({mode:"co-play", opp:"co", first:(h.seed|0)%2, me:mi, names:nm, av:(PD[oc]&&PD[oc].av)||{}}); }; }
+      lastSq=-1; coStart=now(); const mi=Math.max(0,coRo.indexOf(RM.code)), oc=coRo[1-mi]; newGame({mode:"co-play", opp:"co", first:(h.seed|0)&1, me:mi, names:nm, av:(PD[oc]&&PD[oc].av)||{}}); }; }
+  /* (v734 #39) 첫 차례 = seed 의 마지막 비트 (예전 (seed|0)%2 → seed 가 2^31 이상이면 -1 · 약 4판에 1판 시작부터 멈춤)
+     (v734 #40) 친구가 안 보여도 「내 쪽 받기」가 살아 있을 때만 이김 — 예전: 두 패드 다 서버가 끊기면 둘 다 「친구가 나갔어요 — 이겼어요!」 + 보상 */
+  let meStale=0;
   function coTick(dt){ if(!RM) return; try{ RM.tick(dt); }catch(e){} if(mode!=="co-play" || over) return;
     const g=RM.d && RM.d.g; if(g && g.mv && g.sq!==lastSq && g.sq>mv.length){ lastSq=g.sq; for(let i=mv.length;i<g.mv.length && !over;i++) put(g.mv[i], turn(), true); }
+    const fresh=!RM.fresh || RM.fresh()<3500; meStale=fresh?0:meStale+dt;
+    if(!fresh){ oppGone=0; say(meStale>20?"":"📶 연결을 확인하는 중…"); if(meStale>20){ over=true; say("📶 연결이 끊겼어요 — 이 판은 기록하지 않아요"); later(2.2, ()=>{ if(gone) return; try{ if(RM){ RM.dispose(); RM=null; } }catch(e){} menuShow(); }); } return; }
+    if(meStale===0 && SAY.textContent==="📶 연결을 확인하는 중…") say(turn()===me?"칸을 콕! 알 넣기 👆":"친구 차례예요");
     const live=RM.live(true).map(p=>p.k), oc=coRo[1-me]; oppGone=(oc && live.indexOf(oc)<0)?oppGone+dt:0;
     if(oppGone>8){ over=true; win={p:me}; say("친구가 나갔어요 — 이겼어요!"); later(.5, finish); } }
+  const coFresh=()=>!RM || !RM.fresh || RM.fresh()<3500;
   /* ══ 틀 ══ */
   function tick(dt){ if(gone || paused) return;
     for(let i=TM.length-1;i>=0;i--){ TM[i].t-=dt; if(TM[i].t<=0){ const f=TM[i].fn; TM.splice(i,1); try{ f(); }catch(e){ console.warn("C4", e); } } }
@@ -236,7 +243,7 @@ function start(api){
     for(let i=FALL.length-1;i>=0;i--){ const f=FALL[i]; f.v-=(fast?200:28)*dt; f.y+=f.v*dt; if(f.y<=f.ty){ f.y=f.ty; if(f.b<2 && Math.abs(f.v)>2){ f.v=-f.v*.28; f.b++; try{ SFX.tone(300+f.b*80,.04,"sine",.03); }catch(e){} } else FALL.splice(i,1); } f.d.position.y=f.y; }
     if(mode!=="menu" && !over){ turnT+=dt; const lim=30, left=Math.max(0,lim-turnT); TMR.style.setProperty("--p", (left/lim*100)+"%"); TMR.querySelector("span").textContent=Math.ceil(left);
       if(turn()===me && turnT>lim){ const ok=[...Array(C).keys()].filter(c=>bd[c].length<Rw); play(ok[Math.floor(Math.random()*ok.length)]); }
-      if(opp==="co" && turn()!==me && turnT>lim+20){ over=true; win={p:me}; say("친구가 오래 안 놔서 이겼어요"); later(.5, finish); } }
+      if(opp==="co" && turn()!==me && turnT>lim+20 && coFresh()){ over=true; win={p:me}; say("친구가 오래 안 놔서 이겼어요"); later(.5, finish); } }
     const showG=mode!=="menu" && !over && turn()===me && hov>=0 && bd[hov].length<Rw; ghost.visible=arrow.visible=showG;
     if(showG){ ghost.position.set(cx(hov), cy(Rw)+.6, 0); arrow.position.set(cx(hov), cy(Rw)+1.35+Math.sin(performance.now()/180)*.08, 0); }
     const tg=performance.now()/1000; DM.forEach(d=>{ if(d.userData.glow){ const s=1+Math.sin(tg*8)*.12; d.scale.set(s,s,1); } }); if(winBar) winBar.material.opacity=.55+Math.sin(tg*10)*.3;

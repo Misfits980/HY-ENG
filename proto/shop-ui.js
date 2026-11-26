@@ -62,6 +62,12 @@ const SHOPUI=(()=>{
 @keyframes suBump{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
 @keyframes suFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:.2}}
 @media (min-width:700px){ #suP{bottom:18px;border-radius:26px;border:3px solid var(--line2);max-height:min(72vh,720px)} #suP .suAw{border-radius:22px 22px 0 0} #suP .suG{grid-template-columns:repeat(auto-fill,minmax(122px,1fr))} #suP .suFt{border-radius:0 0 22px 22px;padding-bottom:12px} }
+/* (v734 #18) 휴대폰 가로(높이가 낮은 화면) — 머리·탭·계산대를 줄여 물건 칸이 적어도 한 줄 반은 보이게 (예전: 창 높이 68% 중 물건 칸이 40px 남짓) */
+@media (max-height:520px){ #suP{max-height:calc(100vh - 10px);bottom:4px} @supports (height:100dvh){ #suP{max-height:calc(100dvh - 10px)} }
+  #suP .suAw{height:8px} #suP .suHd{padding:5px 10px 4px;gap:8px} #suP .suK{width:36px;height:36px;font-size:20px} #suP .suSay{padding:3px 8px} #suP .suSay small{display:none} #suP .suR{flex-direction:row;align-items:center}
+  #suP .suTabs{padding-bottom:4px} #suP .suTabs button{height:32px} #suP .suTools{padding-bottom:3px}
+  #suP .suC{padding:6px 4px 6px} #suP .suC .ic{font-size:32px;line-height:38px;height:38px} #suP .suG{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px}
+  #suP .suFt{padding-top:6px;padding-bottom:calc(6px + max(0px,env(safe-area-inset-bottom)))} #suP .suGo{height:44px} #suP .suAll{height:38px} }
 `;
   let el=null, cfg=null, tab=0, bk=new Map(), busy=false;
   function mk(){ if(el) return el; const st=document.createElement("style"); st.textContent=css; document.head.appendChild(st);
@@ -116,7 +122,7 @@ const SHOPUI=(()=>{
   function go(btn){ const L=[...bk.entries()].filter(([,q])=>q>0); if(!L.length) return; const t=T();
     if(t.mode==="buy" && quote()>coins()){ say("Oh no, not enough coins!", "🪙 가 모자라요 — 바구니에서 − 로 빼 봐요", false); try{ SND.snap && SND.snap(); }catch(_){} return; }
     busy=true; let r=null; try{ r=t.act(L); }catch(err){ console.warn(err); } busy=false;
-    if(!r || !r.n){ if(r && r.msg) say(r.msg[0], r.msg[1], false); draw(); return; }
+    if(!r || !r.n){ draw(); if(r && r.msg) say(r.msg[0], r.msg[1], false); return; }   /* (v734) 말풍선 = 그린 뒤에 (예전: 안내를 쓰고 바로 다시 그려서 「가방이 꽉」 같은 말이 안 보였음) */
     bk.clear(); fly(btn, t.mode==="sell" ? "🪙" : "🛍"); try{ (t.mode==="sell"?SND.big:SND.pop)(); }catch(_){} try{ navigator.vibrate && navigator.vibrate(25); }catch(_){}
     draw(); const K=cfg.keeper||{}; say(K.thx||"Thank you!", t.mode==="sell" ? "🪙 +"+r.c+" 받았어요 · 고마워요!" : r.n+"개 샀어요 → 🎒 가방에 · 고마워요!", true);
     try{ if(cfg.after) cfg.after(t, r); }catch(_){} }

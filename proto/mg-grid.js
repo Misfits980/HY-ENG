@@ -396,8 +396,8 @@ function start(api){
       st.left=Math.max(0, STAGE_T-st.el);
       if(st.clearT>0 || st.clrS===st.stage){ st.clearT=Math.max(0,st.clearT-dt); red.fill(0); warn.fill(0); if(st.clearT<=0 && !CO) newStage(st.stage+1); }
       else { if(st.el>=STAGE_T){ if(CO && authority() && R.path && !R.endSent){ R.endSent=true; NET.put(R.path+"/h/end", 1).catch(()=>{}); } end(); }
-        greenOff(); hzAt(st.pl.H, st.el, cell, red, warn, hi); if(st.blue<=0) stageClear(); }
-      step(dt, st.clrS!==st.stage); if(st.blue<=0 && st.clrS!==st.stage && !st.over) stageClear(); }
+        if(!st.over){ greenOff(); hzAt(st.pl.H, st.el, cell, red, warn, hi); if(st.blue<=0) stageClear(); } }
+      if(!st.over){ step(dt, st.clrS!==st.stage); if(st.blue<=0 && st.clrS!==st.stage && !st.over) stageClear(); } }   /* (v734 #53) 시간이 끝난 프레임엔 더 안 움직임 (예전: 끝낸 뒤 같은 프레임에 한 칸 더 → 점수가 결과보다 늘어남) */
     else if(st.phase!=="play") step(dt, false);
     eOut.style.display=st.out && !st.over?"block":"none";
     drawTime();

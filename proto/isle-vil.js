@@ -40,7 +40,7 @@ const VIL=(()=>{
   /* 의뢰 틀 — kind b = 가져다주기(item·n) · d = 해 오기(ev·n) · r = 🪙 */
   const QT=[
     ["tom","b","carrot",3,20,"Can you bring me 3 carrots?","당근 3개 갖다 줄래?"],
-    ["tom","b","wheat",5,20,"I need 5 wheat for my cows.","소한테 줄 밀 5개가 필요해."],
+    ["tom","b","wheat",5,20,"I need 5 bundles of wheat for my cows.","소한테 줄 밀 5다발이 필요해."],
     ["tom","b","potato",3,30,"Bring me 3 potatoes, please!","감자 3개 갖다 줘!"],
     ["tom","d","plant",3,20,"Please plant 3 seeds today!","오늘 씨앗 3개 심어 줘!"],
     ["tom","d","harvest",2,30,"Harvest 2 fields for me!","밭 두 번 거둬 줘!"],
@@ -55,7 +55,7 @@ const VIL=(()=>{
     ["sam","d","sell",3,20,"Sell 3 things at the fish shop!","생선 가게에서 3번 팔아 봐!"],
     ["joe","b","stone",4,20,"I need 4 stones to fix my wall.","벽 고칠 돌 4개가 필요해."],
     ["joe","b","branch",4,20,"Can you bring me 4 branches?","나뭇가지 4개 갖다 줄래?"],
-    ["joe","b","coal",2,30,"Bring me 2 coal from the mine!","광산에서 석탄 2개!"],
+    ["joe","b","coal",2,30,"Bring me 2 pieces of coal from the mine!","광산에서 석탄 2덩이!"],
     ["joe","d","mine",3,30,"Go to the mine and dig 3 times!","광산에서 3번 캐 봐!"],
     ["joe","d","tree",3,20,"Shake 3 trees for me!","나무 3번 흔들어 줘!"],
     ["joe","d","clear",3,20,"Pull 3 weeds in your yard!","마당 잡초 3개 뽑아 줘!"],

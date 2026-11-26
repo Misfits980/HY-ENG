@@ -14,21 +14,33 @@
    되돌리기는 다음 페이지가 시작할 때(이 파일 맨 앞) 함 — 페이지를 닫을 때(pagehide) 게임이 다시 쓰는 것까지 지우려고. */
 (function(){
   let on=false, ss=null, ls=null; try{ ss=window.sessionStorage; }catch(e){} try{ ls=window.localStorage; }catch(e){}
-  const BK="hyeng_qa_bak", alive=k=>/^hyeng_alive_/.test(k);
-  const restore=S=>{ try{ if(!S || !ls) return false; const K=[]; for(let i=0;i<ls.length;i++){ const k=ls.key(i); if(/^hyeng/.test(k) && k!==BK) K.push(k); }
-      K.forEach(k=>{ if(!(k in S) || alive(k)) ls.removeItem(k); }); Object.keys(S).forEach(k=>{ if(!alive(k) && k!==BK) ls.setItem(k, S[k]); }); return true; }catch(e){ return false; } };
+  const BK="hyeng_qa_bak", BKK="hyeng_qa_bakk", alive=k=>/^hyeng_alive_/.test(k), own=k=>k===BK || k===BKK;
+  /* (v734 #4) 되돌리기 = 점검 탭이 바꾼 칸만 (BKK 목록) — 예전: 기기 저장 전체를 점검 전으로 → 그사이 다른 탭(보통 모드)에서 한 공부·마을 기록까지 사라짐
+     목록이 없는 옛 백업만 예전처럼 전체 */
+  const restore=(S, T)=>{ try{ if(!S || !ls) return false;
+      if(Array.isArray(T)){ T.forEach(k=>{ if(!/^hyeng/.test(k) || own(k) || alive(k)) return; if(k in S) ls.setItem(k, S[k]); else ls.removeItem(k); });
+        for(let i=ls.length-1;i>=0;i--){ const k=ls.key(i); if(k && alive(k)) ls.removeItem(k); } return true; }   /* 접속 표시(튕김 알아채기)는 예전처럼 지움 — 점검 뒤에 「튕김」으로 잘못 세지 않게 */
+      const K=[]; for(let i=0;i<ls.length;i++){ const k=ls.key(i); if(/^hyeng/.test(k) && !own(k)) K.push(k); }
+      K.forEach(k=>{ if(!(k in S) || alive(k)) ls.removeItem(k); }); Object.keys(S).forEach(k=>{ if(!alive(k) && !own(k)) ls.setItem(k, S[k]); }); return true; }catch(e){ return false; } };
+  const touched=()=>{ try{ const a=JSON.parse((ss && ss.getItem("hyeng_qa_keys")) || (ls && ls.getItem(BKK)) || "null"); return Array.isArray(a) ? a : null; }catch(e){ return null; } };
   const parse=t=>{ try{ return JSON.parse(t||"null"); }catch(e){ return null; } };
   try{ const q=location.search, inQa=!!ss && ss.getItem("hyeng_qa")==="1";
-    if(/[?&]qa=0(&|$)/.test(q)){ const S=parse(ss && ss.getItem("hyeng_qa_snap")) || parse(ls && ls.getItem(BK)); if(S) window.HY_QA_RESTORED=restore(S); if(ss){ ss.removeItem("hyeng_qa"); ss.removeItem("hyeng_qa_snap"); } if(ls) ls.removeItem(BK);
+    if(/[?&]qa=0(&|$)/.test(q)){ const S=parse(ss && ss.getItem("hyeng_qa_snap")) || parse(ls && ls.getItem(BK)); if(S) window.HY_QA_RESTORED=restore(S, touched()); if(ss){ ss.removeItem("hyeng_qa"); ss.removeItem("hyeng_qa_snap"); ss.removeItem("hyeng_qa_keys"); } if(ls){ ls.removeItem(BK); ls.removeItem(BKK); }
       /* (v702) 크롬 점검: 「끝내기」 뒤 ?qa=0 이 게임을 보통 모드로 바로 켜서(서버에 쓰기 시작) 점검이 끝나자마자 기록이 나갔음 → 여기서 멈추고 「끝냈어요 · 게임 열기」만 보여 줌 */
       try{ window.stop(); }catch(e){} window.HY_QA_END=true;
       const home=location.pathname.replace(/[^/]*$/, "")+"index.html";
       try{ document.documentElement.innerHTML='<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>점검 끝</title></head><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#1d1830;color:#fff;font:16px/1.55 sans-serif;text-align:center"><div style="padding:24px"><div style="font-size:42px">🧪</div><b style="font-size:20px">점검 모드를 끝냈어요</b><p style="opacity:.85;margin:8px 0 16px">이 기기 저장을 점검 전으로 되돌렸어요'+(S ? '' : ' (되돌릴 것이 없었어요)')+'</p><a id="hyQaHome" href="'+home+'" style="display:inline-block;padding:12px 22px;border-radius:12px;background:#ffd25e;color:#2a2340;font-weight:800;text-decoration:none">게임 열기</a></div></body>'; }catch(e){} }
-    else { if(!inQa && ls && ls.getItem(BK)){ window.HY_QA_RESTORED=restore(parse(ls.getItem(BK))); ls.removeItem(BK); }   /* 점검하던 탭을 「끝내기」 없이 닫았으면 → 다음에 열 때(이 기기 어느 탭이든) 점검 전으로 되돌림 */
+    else { if(!inQa && ls && ls.getItem(BK)){ let T=null; try{ T=JSON.parse(ls.getItem(BKK)||"null"); }catch(e){} window.HY_QA_RESTORED=restore(parse(ls.getItem(BK)), Array.isArray(T)?T:null); ls.removeItem(BK); ls.removeItem(BKK); }   /* 점검하던 탭을 「끝내기」 없이 닫았으면 → 다음에 열 때(이 기기 어느 탭이든) 점검 전으로 되돌림 */
       if(/[?&]qa=1(&|$)/.test(q) && ss) ss.setItem("hyeng_qa","1"); }
     on=!!ss && ss.getItem("hyeng_qa")==="1"; }catch(e){}
   window.HY_QA=on; if(!on) return;
-  try{ if(!ss.getItem("hyeng_qa_snap")){ const S={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^hyeng/.test(k) && !alive(k) && k!==BK) S[k]=localStorage.getItem(k); } const j=JSON.stringify(S); ss.setItem("hyeng_qa_snap", j); try{ localStorage.setItem(BK, j); }catch(e){} } }catch(e){}
+  try{ if(!ss.getItem("hyeng_qa_snap")){ const S={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(/^hyeng/.test(k) && !alive(k) && !own(k)) S[k]=localStorage.getItem(k); } const j=JSON.stringify(S); ss.setItem("hyeng_qa_snap", j); ss.setItem("hyeng_qa_keys", "[]"); try{ localStorage.setItem(BK, j); localStorage.setItem(BKK, "[]"); }catch(e){} } }catch(e){}
+  /* (v734 #4) 이 탭이 바꾸는 기기 저장 칸을 적어 둠 (끝내기 때 이 칸만 되돌림) */
+  try{ const SP=Storage.prototype, oSet=SP.setItem, oDel=SP.removeItem, oClr=SP.clear; const TK=new Set(touched()||[]);
+    const mark=k=>{ k=String(k); if(!/^hyeng/.test(k) || own(k) || alive(k) || TK.has(k)) return; TK.add(k); const j=JSON.stringify([...TK]); try{ oSet.call(ss, "hyeng_qa_keys", j); }catch(e){} try{ oSet.call(ls, BKK, j); }catch(e){} };
+    SP.setItem=function(k, v){ if(this===ls) mark(k); return oSet.call(this, k, v); };
+    SP.removeItem=function(k){ if(this===ls) mark(k); return oDel.call(this, k); };
+    SP.clear=function(){ if(this===ls){ for(let i=0;i<ls.length;i++) mark(ls.key(i)); } return oClr.call(this); }; }catch(e){}
   const FBH=/firebasedatabase\.app|firebaseio\.com/, GAS=/script\.google(usercontent)?\.com/, LOG=window.HY_QA_LOG=[];
   const fake=o=>Promise.resolve(new Response(JSON.stringify(o===undefined?null:o), {status:200, headers:{"Content-Type":"application/json"}}));
   const of=window.fetch ? window.fetch.bind(window) : null;

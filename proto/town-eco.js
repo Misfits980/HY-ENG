@@ -29,11 +29,13 @@ const TECO=(()=>{
   let coin=+store("hyeng_proto_coin")||0;
   const coins=()=>coin;
   function setCoin(v){ coin=Math.max(0, Math.round(v)); store("hyeng_proto_coin", coin); hud(); sum(); }
-  function addCoin(n){ if(!(n>0)) return 0; setCoin(coin+n); return n; }
+  /* (v734 #5) 마을을 두 탭(또는 두 창)으로 열면 탭마다 기억한 🪙 가 달라서 서로 덮던 것 → 쓰기 전에 저장된 값을 다시 읽고 · 다른 탭이 바꾸면 바로 따라감 */
+  const reCoin=()=>{ try{ const v=store("hyeng_proto_coin"); if(v!=null && isFinite(+v)) coin=Math.max(0, Math.round(+v)); }catch(e){} };
+  function addCoin(n){ if(!(n>0)) return 0; reCoin(); setCoin(coin+n); return n; }
   function can(o){ return gems>=(o.g|0) && coin>=(o.c|0); }
   function lack(o){ const a=[]; if(gems<(o.g|0)) a.push("💎 "+((o.g|0)-gems)); if(coin<(o.c|0)) a.push("🪙 "+((o.c|0)-coin)); return a.join(" · "); }
   /* 💎+🪙 함께 쓰기 — 모자라면 「🏦 은행」 안내 */
-  function pay2(o){ if(!can(o)){ toast(lack(o)+" 더 있어야 해요<br><small>"+(gems<(o.g|0)?"💎 는 공부해서 벌어요 · ":"🪙 는 물고기·작물을 팔아요 · ")+"🏦 마을 은행에서 바꿀 수도 있어요</small>", 2600); return false; }
+  function pay2(o){ reCoin(); if(!can(o)){ toast(lack(o)+" 더 있어야 해요<br><small>"+(gems<(o.g|0)?"💎 는 공부해서 벌어요 · ":"🪙 는 물고기·작물을 팔아요 · ")+"🏦 마을 은행에서 바꿀 수도 있어요</small>", 2600); return false; }
     if(o.g){ gems-=o.g; saveBag(); } if(o.c) setCoin(coin-o.c); return true; }
   /* HUD 🪙 칸 */
   function hud(){ try{ const a=$("hCoin"); if(a) a.querySelector("b").textContent=fmt(coin); const b=$("ihCoin"); if(b) b.textContent=fmt(coin); }catch(e){} }
@@ -68,6 +70,11 @@ const TECO=(()=>{
   const GM_MAX=200;
   let BK=store("hyeng_proto_bank"); if(!BK || typeof BK!=="object") BK={sv:0, st:0, lk:[], gm:[]}; BK.lk=BK.lk||[]; BK.gm=BK.gm||[]; if(BK.svm==null) BK.svm=BK.sv|0;
   const bsave=()=>{ store("hyeng_proto_bank", BK); sum(); };
+  /* (v734 #3) 적금을 넣고 빼기 = 은행 기록이 패드에 저장된 것을 확인한 뒤에만 돈을 옮김 (예전: 저장 공간이 꽉 차면 🪙 는 빠지고 적금은 안 남음) */
+  const bsaveOK=()=>{ const j=JSON.stringify(BK); try{ store("hyeng_proto_bank", BK); }catch(e){} let back=null; try{ back=JSON.stringify(store("hyeng_proto_bank")); }catch(e){} sum(); return back===j; };
+  const bfail=()=>toast("📦 패드 저장 공간이 꽉 차서 은행 기록을 못 남겼어요<br><small>돈은 그대로예요 · 선생님께 알려 주세요</small>", 3200);
+  try{ addEventListener("storage", e=>{ try{ if(e.key===skey("hyeng_proto_coin")){ reCoin(); hud(); }
+      else if(e.key===skey("hyeng_proto_bank")){ const b=store("hyeng_proto_bank"); if(b && typeof b==="object"){ BK=b; BK.lk=BK.lk||[]; BK.gm=BK.gm||[]; } } }catch(er){} }); }catch(e){}
   const months=t0=>Math.max(0, Math.floor((T()-t0)/MON));
   /* 자유 저금: 한 달 지날 때마다 이자를 원금에 붙임 (서버 시각을 알 때만) */
   /* (v563 QA) 첫 달 이자 = 한 달 내내 들어 있던 돈(svm, 이번 달 가장 적었던 잔액)에만 — 이자 직전에 넣기 막기 */
@@ -77,12 +84,16 @@ const TECO=(()=>{
   function bankV(){ const lk=BK.lk.reduce((s,x)=>s+val(x,PRODUCT.lk.r),0), gm=BK.gm.reduce((s,x)=>s+val(x,PRODUCT.gm.r),0); return {sv:BK.sv|0, lk, gm}; }
   const nextIn=t0=>{ const ms=MON-((T()-t0)%MON); return Math.max(1, Math.ceil(ms/864e5)); };
   function deposit(k, n){ n=n|0; if(n<=0) return false; if(!srvOK()){ needSrv(()=>deposit(k, n)); return false; } settle();
-    if(k==="gm"){ const cur=BK.gm.reduce((s,x)=>s+x.a,0); if(cur+n>GM_MAX){ toast("💎 보석 적금은 💎"+GM_MAX+" 까지예요", 1800); return false; } if(gems<n){ toast("💎 가 모자라요",1500); return false; } gems-=n; saveBag(); BK.gm.push({a:n, t:T()}); }
-    else { if(coin<n){ toast("🪙 가 모자라요",1500); return false; } setCoin(coin-n); if(k==="sv"){ if(!BK.sv){ BK.st=T(); BK.svm=n; } BK.sv+=n; } else BK.lk.push({a:n, t:T()}); }
-    bsave(); tEvS("bank"); try{ SND.pop(); }catch(e){} toast("🏦 "+PRODUCT[k].nm+" <b>"+(k==="gm"?"💎 ":"🪙 ")+fmt(n)+"</b> 넣었어요", 1800); return true; }
+    reCoin(); const B0=JSON.stringify(BK);
+    if(k==="gm"){ const cur=BK.gm.reduce((s,x)=>s+x.a,0); if(cur+n>GM_MAX){ toast("💎 보석 적금은 💎"+GM_MAX+" 까지예요", 1800); return false; } if(gems<n){ toast("💎 가 모자라요",1500); return false; } BK.gm.push({a:n, t:T()}); }
+    else { if(coin<n){ toast("🪙 가 모자라요",1500); return false; } if(k==="sv"){ if(!BK.sv){ BK.st=T(); BK.svm=n; } BK.sv+=n; } else BK.lk.push({a:n, t:T()}); }
+    if(!bsaveOK()){ BK=JSON.parse(B0); bsave(); bfail(); return false; }
+    if(k==="gm"){ gems-=n; saveBag(); } else setCoin(coin-n);
+    tEvS("bank"); try{ SND.pop(); }catch(e){} toast("🏦 "+PRODUCT[k].nm+" <b>"+(k==="gm"?"💎 ":"🪙 ")+fmt(n)+"</b> 넣었어요", 1800); return true; }
   function withdraw(k, i){ if(k!=="sv" && !srvOK()) return needSrv(()=>withdraw(k, i)); settle();
-    if(k==="sv"){ const n=BK.sv|0; if(!n) return 0; BK.sv=0; BK.st=0; BK.svm=0; bsave(); addCoin(n); toast("🐷 🪙 "+fmt(n)+" 찾았어요", 1600); return n; }
-    const L=BK[k], x=L[i]; if(!x) return 0; const m=months(x.t), early=m<1, n=early ? x.a : val(x, PRODUCT[k].r); L.splice(i,1); bsave();
+    const B0=JSON.stringify(BK);
+    if(k==="sv"){ const n=BK.sv|0; if(!n) return 0; BK.sv=0; BK.st=0; BK.svm=0; if(!bsaveOK()){ BK=JSON.parse(B0); bfail(); return 0; } addCoin(n); toast("🐷 🪙 "+fmt(n)+" 찾았어요", 1600); return n; }
+    const L=BK[k], x=L[i]; if(!x) return 0; const m=months(x.t), early=m<1, n=early ? x.a : val(x, PRODUCT[k].r); L.splice(i,1); if(!bsaveOK()){ BK=JSON.parse(B0); bfail(); return 0; }
     if(k==="gm"){ gems+=n; saveBag(); } else addCoin(n);
     toast((early?"⏳ 한 달이 안 돼서 이자 없이 ":"🎉 이자까지 ")+(k==="gm"?"💎 ":"🪙 ")+fmt(n)+" 찾았어요", 2000); return n; }
 
@@ -104,8 +115,9 @@ const TECO=(()=>{
   /* ═════════ 📉 마을 시세 — 이번 시간 마을에서 많이 팔린 것은 내려감 ═════════
      /hy/isle/mkt/<시간>/<내 코드> = {물건: 판 수} · 다른 아이 것을 합쳐서 · 하나 팔릴 때마다 -4% (최저 ×0.6) */
   let MK={h:-1, at:0, all:{}}, mine=store("hyeng_proto_mkt")||{h:-1, n:{}};
-  function mkLoad(force){ const h=hourIx(); if(!force && MK.h===h && Date.now()-MK.at<60e3) return Promise.resolve(MK);
-    return NET.get("/hy/isle/mkt/"+h).then(v=>{ const all={}; Object.entries(v||{}).forEach(([c,o])=>{ if(c===myC() || !o || typeof o!=="object") return; Object.entries(o).forEach(([en,n])=>{ all[en]=(all[en]|0)+(n|0); }); }); MK={h, at:Date.now(), all}; return MK; }).catch(()=>MK); }
+  let mkP=null, mkTry=0;   /* (v734 #14) 시세 받는 중엔 같은 것을 또 보내지 않음 (가게 그림 한 번에 물건마다 불러서 겹치던 것) · 실패하면 15초 쉼 */
+  function mkLoad(force){ const h=hourIx(); if(!force && MK.h===h && Date.now()-MK.at<60e3) return Promise.resolve(MK); if(mkP) return mkP; if(!force && Date.now()-mkTry<15e3) return Promise.resolve(MK); mkTry=Date.now();
+    return mkP=NET.get("/hy/isle/mkt/"+h).finally(()=>{ mkP=null; }).then(v=>{ const all={}; Object.entries(v||{}).forEach(([c,o])=>{ if(c===myC() || !o || typeof o!=="object") return; Object.entries(o).forEach(([en,n])=>{ all[en]=(all[en]|0)+(n|0); }); }); MK={h, at:Date.now(), all}; return MK; }).catch(()=>MK); }
   function mkF(en, extra){ const h=hourIx(); if(MK.h!==h || Date.now()-MK.at>60e3) mkLoad();   /* (v563 QA) 다른 친구가 판 것 1분마다 다시 */
     const o=(MK.h===h ? MK.all[en]|0 : 0)+(mine.h===h ? mine.n[en]|0 : 0)+(extra|0); return Math.max(0.6, 1-0.03*o); }
   let mkT=0;

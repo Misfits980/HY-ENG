@@ -128,7 +128,7 @@ function start(api){
     if(bx.width>10 && bx.height>10){ const w=Math.floor(Math.min(bx.width-20, (bx.height-12)*BW/BH)), h=Math.floor(w*BH/BW), w0=parseFloat(cv.style.width)||0; if(!same || w<w0-1 || w>w0+16){ cv.style.width=w+'px'; cv.style.height=h+'px'; } }   /* 같은 화면이면 1초에 한 번만 · 작아질 때(넘침)만 바로 · 커지는 건 16px 넘게 남을 때만 */ const r=cv.getBoundingClientRect(); const dpr=Math.min(2, window.devicePixelRatio||1); const s=Math.max(.3, Math.min(2.4, (r.width||300)*dpr/BW)); if(Math.abs(s-SC)>.01 || !ART.length){ SC=s; cv.width=Math.round(BW*SC); cv.height=Math.round(BH*SC); bake(); } }
   /* ══ 📟 형광판 랭킹 ══ */
   const LB={W:null, M:null, A:null}; let tabK="W", tabT=0, tabHold=0, lbErr=false, K=keys(now()), newRec={};
-  async function lbLoad(){ K=keys(now()); try{ await Promise.all(TABS.map(async([k])=>{ const v=await NET.get("/hy/day/"+K[k]); LB[k]=v||{}; })); lbErr=false; }catch(e){ lbErr=true; TABS.forEach(([k])=>{ if(!LB[k]) LB[k]={}; }); } ledPaint(); }
+  async function lbLoad(){ K=keys(now()); LBK=K; try{ await Promise.all(TABS.map(async([k])=>{ const v=await NET.get("/hy/day/"+K[k]); LB[k]=v||{}; })); lbErr=false; }catch(e){ lbErr=true; TABS.forEach(([k])=>{ if(!LB[k]) LB[k]={}; }); } ledPaint(); }
   function rows(k){ const o=LB[k]||{}; return Object.keys(o).map(c=>Object.assign({c}, o[c]||{})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s || (a.at||0)-(b.at||0)); }
   /* (v718) 사용자: 「과일 합치기는 화면이 커졌다 작아졌다 해 · 과일들마다 화면이 달라지는 느낌」 — 랭킹 판이 5초마다 탭(이번 주·달·전체)을 돌면서 줄 수가 달라 높이가 바뀜 → 아래 과일 판이 그만큼 커졌다 작아졌다(그때마다 과일 그림도 다시 굽느라 툭툭)
      → 줄 칸 높이를 n줄로 고정(--n) · fit() 은 화면 크기가 바뀔 때만 다시 잼 */
@@ -140,8 +140,14 @@ function start(api){
     const top=TABS.map(([k,t])=>{ const r0=rows(k)[0]; return r0?"★ "+t+" 1등 "+String(r0.n||"").slice(0,8)+" "+(r0.s|0).toLocaleString()+"점":null; }).filter(Boolean);
     const mq=L.querySelector(".mq span"), tx=(top.length?top.join("   "):"★ 과일 합치기 랭킹 ★ 같은 과일을 합쳐서 수박을 만들어요!")+"   ★"; if(mq.textContent!==tx) mq.textContent=tx; }); }
   U.addEventListener("click", e=>{ const b=e.target.closest(".frLed .tb button"); if(!b) return; tabK=b.dataset.t; tabHold=12; tabT=0; ledPaint(); try{ SFX.tone(990,.05,"square",.02); }catch(_){} });
-  async function lbSave(score){ K=keys(now()); newRec={}; const rec={n:String(nick||"친구").slice(0,8), s:score|0, at:now()};
-    await Promise.all(TABS.map(async([k])=>{ const o=LB[k]=LB[k]||{}, mine=o[code]; if(!mine || (mine.s|0)<score){ o[code]=rec; newRec[k]=1; try{ await NET.put("/hy/day/"+K[k]+"/"+code, rec); }catch(e){} } }));
+  /* (v734 #22·#23) 쓰기 전에 「이번 주·달·전체」의 내 칸을 서버에서 다시 읽고 더 높을 때만 씀
+     예전: 순위를 못 받았으면(빈 목록) 서버의 더 높은 내 기록을 낮은 점수로 덮음 · 주·달이 바뀐 뒤엔 지난 주 기록과 비교해서 새 주 첫 기록이 안 남음 */
+  let LBK=null;
+  async function lbSave(score){ const K2=keys(now()); if(LBK) TABS.forEach(([k])=>{ if(LBK[k]!==K2[k]) LB[k]={}; }); K=K2; LBK=K2; newRec={}; const rec={n:String(nick||"친구").slice(0,8), s:score|0, at:now()};
+    await Promise.all(TABS.map(async([k])=>{ const o=LB[k]=LB[k]||{}, path="/hy/day/"+K[k]+"/"+code; let mine;
+      try{ mine=await NET.get(path); }catch(e){ mine=o[code]; if(lbErr || !mine) return; }   /* 내 칸을 못 읽으면 쓰지 않음 (다음 판에 다시) */
+      if(mine) o[code]=mine;
+      if(!mine || (mine.s|0)<score){ o[code]=rec; newRec[k]=1; try{ await NET.put(path, rec); }catch(e){} } }));
     ledPaint(); return newRec; }
   /* ══ 시작 화면 ══ */
   function title(){ phase="title"; const r=REC();
@@ -185,8 +191,10 @@ function start(api){
     if(bot && cool<=0 && !over){ botAim(); drop(); } }
   function botAim(){ /* 같은 과일 위로 · 없으면 아무 데나 */ const same=B.filter(b=>b.lv===held).sort((a,b)=>a.y-b.y)[0]; aimX=same && Math.random()<.35?same.x+(Math.random()-.5)*8:FR[held][2]+Math.random()*(BW-2*FR[held][2]); }
   async function gameOver(){ if(over) return; over=true; phase="over"; try{ SFX.bad(); }catch(e){} const r=REC(); const isBest=score>(r.best|0); r.best=Math.max(r.best|0,score); r.top=Math.max(r.top|0,maxLv); r.n=(r.n|0)+1; st("hyeng_proto_frr", r);
-    const nr=await lbSave(score); if(gone) return; const rk=rows("W").findIndex(x=>x.c===code)+1, coins=score>=1500?9:score>=800?7:score>=300?5:3;
-    setTimeout(()=>{ if(gone) return; const got=PUI.award(api, {title:score+"점", sub:"과일 합치기", rows:null, coins, again:{}, upd:(b,t)=>{ b.best=Math.max(b.best|0,score); t.top=Math.max(t.top|0,maxLv); }}), left=MG.payLeft("fruit");
+    const coins=score>=1500?9:score>=800?7:score>=300?5:3;
+    const got=PUI.award(api, {title:score+"점", sub:"과일 합치기", rows:null, coins, again:{}, upd:(b,t)=>{ b.best=Math.max(b.best|0,score); t.top=Math.max(t.top|0,maxLv); }});   /* (v734 #48) 🪙 = 판이 끝난 순간 (예전: 순위 저장이 끝난 뒤 · 그 사이 닫으면 최고 기록만 남고 🪙 는 안 들어옴) */
+    let nr={}; try{ nr=await lbSave(score); }catch(e){} if(gone) return; const rk=rows("W").findIndex(x=>x.c===code)+1;
+    setTimeout(()=>{ if(gone) return; const left=MG.payLeft("fruit");
       PUI.result(U, {res:"win", stars:score>=1500?3:score>=800?2:score>=300?1:0, title:isBest?"내 최고 기록!":score.toLocaleString()+"점!", sub:"가장 큰 과일 "+EMO[maxLv]+" "+FR[maxLv][0]+" ("+FR[maxLv][1]+")", av:api.av,
         rewards:[["🪙", got>0?"+"+got:"0", got>0?"코인":"오늘 상 끝"],["🍉", score.toLocaleString(), "점", isBest],["trophy", rk?rk+"등":"-", "이번 주"]],
         extra:(nr.W?'📟 <b style="color:#ff8ef0">이번 주 기록 NEW!</b> ':'')+(nr.A?'<b style="color:#ff8ef0">전체 기록 NEW!</b>':''), prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3},

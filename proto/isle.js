@@ -185,7 +185,9 @@ const ISLE=(()=>{
   async function claim(id){ const L=lots.find(L=>L.id===id); if(!L) return "none"; const me=myKey(), K=kidInfo(), rec={k:me, c:myCode, n:String(K.n||"친구").slice(0,10), at:Date.now()};
     if(!NET.on()){ await NET.ready(); } if(!NET.on()){ store("hyeng_proto_ilot", id); return "local"; }
     try{ const cur=await NET.get(LOTP+"/"+id); if(cur && cur.k!==me) return "taken";
-      await NET.put(LOTP+"/"+id, rec); await new Promise(r=>setTimeout(r, 450)); const chk=await NET.get(LOTP+"/"+id); if(!chk || chk.k!==me) return "taken";
+      try{ await NET.put(LOTP+"/"+id, rec); }catch(e){ let c2=null; try{ c2=await NET.get(LOTP+"/"+id); }catch(_){} if(c2 && c2.k!==me) return "taken"; throw e; }   /* (v734 #2·#7) 서버 규칙이 남의 땅 덮어쓰기를 거부 → 「먼저 골랐어요」 */
+      await new Promise(r=>setTimeout(r, 450)); const chk=await NET.get(LOTP+"/"+id); if(!chk || chk.k!==me) return "taken";
+      await new Promise(r=>setTimeout(r, 900)); const chk2=await NET.get(LOTP+"/"+id); if(!chk2 || chk2.k!==me) return "taken";   /* (v734 #7) 한 번 더 확인 — 친구가 거의 같이 골라 늦게 도착한 기록이 내 것을 덮으면 그 친구 땅 (예전: 둘 다 「내 땅」) */
       const old=Object.keys(SRV).filter(k=>k!==id && SRV[k] && SRV[k].k===me); for(const k of old){ try{ await NET.del(LOTP+"/"+k); }catch(e){} }   /* 전에 살던 땅은 비움 */
       store("hyeng_proto_ilot", id); await loadLots(); return "ok"; }catch(e){ return "err"; } }
   /* 처음 나오면 — 서버에 내 땅이 없으면 빈 땅 하나를 저절로 (나중에 게시판에서 옮길 수 있음) */

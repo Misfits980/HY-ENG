@@ -120,6 +120,8 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     if(dn && e.code==="Escape" && !I.lock){ confirmExit(); } }
   addEventListener("pointermove", onMove, {passive:false}); addEventListener("pointerup", onUp); addEventListener("pointercancel", onUp);
   addEventListener("keydown", e=>onKey(e,1)); addEventListener("keyup", e=>onKey(e,0));
+  /* (v734 #52) 「게임을 그만할까요?」 창이 떠 있으면 키보드가 뒤의 게임으로 안 감 (과일 스페이스 · 4줄 팡 1~7 · 그림 글자) · Esc = 계속하기 */
+  addEventListener("keydown", e=>{ if(!S.on || !ROOT) return; const c=ROOT.querySelector(".mgConf"); if(!c || !c.classList.contains("on")) return; e.stopImmediatePropagation(); if(e.key==="Escape"){ e.preventDefault(); const b=c.querySelector(".no"); if(b) b.click(); } else if(e.key!=="Tab" && e.key!=="Enter") e.preventDefault(); }, true);
   document.addEventListener("pointerlockchange", ()=>{ I.lock=!!ROOT && document.pointerLockElement===ROOT; if(!I.lock) btnSet("fire",0); });
   addEventListener("blur", ()=>{ if(S.on) resetI(); });
   const unstick=()=>{ if(!S.on) return; resetI(); if(joyEl){ joyEl.classList.remove("on"); } if(ROOT) ROOT.classList.remove("joyOn"); ROOT && ROOT.querySelectorAll(".mgB.dn").forEach(b=>b.classList.remove("dn")); };
@@ -291,7 +293,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
 
   /* ══ (v598) 👫 같이 하기 방 — 방 목록 · 대기방 · 방장 시작 → 10초 · 위치 보내기 · 사건(맞음·잡음) 주고받기 ══
      /hy/day/<pre><날>/<방>/{h:{c 방장, n, st, seed, hb, …}, p:{<코드>:상태}, e:{<코드>:{<id>:사건}}, fd:{<id>:소식}, b: 봇(방장)} — 서버 규칙 /hy/day/$d/$k 그대로 */
-  function room(api, cfg){ const MAX=cfg.max||6, WAITMS=cfg.wait||10000, OK=typeof NET!=="undefined";
+  function room(api, cfg){ const MAX=cfg.max||6, WAITMS=cfg.wait||10000, OK=typeof NET!=="undefined", WS=Math.round(WAITMS/1000);   /* (v734 #47) 안내 「10초 뒤」 = 실제 기다림(4줄 팡 4초 · 컬러팡 8초) */
     const code=(()=>{ try{ return myCode; }catch(e){ return "ME"+Math.floor(Math.random()*999); } })(), nm=api.nick;
     const now=()=>{ try{ return srvNow(); }catch(e){ return Date.now(); } }, day=()=>{ try{ return dayKey().replace(/\D/g,""); }catch(e){ return "0"; } };
     const BASE=()=>"/hy/day/"+cfg.pre+day(), esc2=x=>String(x==null?"":x).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
@@ -308,16 +310,19 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     function ui(){ if(R.phase!=="room" && R.phase!=="wait"){ P.style.display="none"; return; } P.style.display="";
       if(R.phase==="room"){ P.innerHTML='<h4>👫 '+cfg.title+' <small style="font-size:13px;opacity:.8">(최대 '+MAX+'명)</small></h4><div class="sub">친구 방에 들어가거나, 내 방을 만들어요</div><div class="rl">'+(R.rooms.length?R.rooms.map(r=>'<button data-j="'+r.id+'">'+cfg.ic+' '+esc2(r.n)+'의 방 · '+(cfg.tag?cfg.tag(r.h)+' · ':'')+r.c+'/'+MAX+'명</button>').join(""):'<div class="sub">아직 열린 방이 없어요</div>')+'</div><button class="go" data-mk="1">＋ 내 방 만들기</button>'+(cfg.back?'<button class="gr" data-bk="1">← 뒤로</button>':''); }
       else { const h=(R.d&&R.d.h)||{}, ps=live(true); P.innerHTML='<h4>'+cfg.ic+' '+esc2(h.n||"")+'의 방</h4><div class="pl">'+ps.map(p=>'<span class="'+(p.k===code?"me":"")+'">'+(p.k===h.c?"👑 ":"")+esc2(p.n)+'</span>').join("")+(cfg.fill?Array.from({length:Math.max(0,MAX-ps.length)},()=>'<span class="bt">🤖 봇</span>').join(""):'')+'</div><div class="sub">'+(cfg.tag?cfg.tag(h)+' · ':'')+ps.length+' / '+MAX+'명'+(cfg.fill?' · 빈자리는 봇이 채워요':'')+'</div>'+
-        (h.st?'<div class="sub">곧 시작해요!</div>':R.host?'<button class="go" data-st="1">▶ 게임 시작 (10초 뒤)</button>':'<div class="sub">방장(👑)이 「게임 시작」을 누르면 10초 뒤 시작해요</div>')+'<button class="gr" data-lv="1">방 나가기</button>'; } }
+        (h.st?'<div class="sub">곧 시작해요!</div>':R.host?'<button class="go" data-st="1">▶ 게임 시작 ('+WS+'초 뒤)</button>':'<div class="sub">방장(👑)이 「게임 시작」을 누르면 '+WS+'초 뒤 시작해요</div>')+'<button class="gr" data-lv="1">방 나가기</button>'; } }
     P.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b || R.busy) return; if(b.dataset.mk) R.make(); else if(b.dataset.j) R.join(b.dataset.j); else if(b.dataset.st) R.start(); else if(b.dataset.lv) R.leave(true); else if(b.dataset.bk && cfg.back) cfg.back(); });
     R.list=async()=>{ if(!OK) return; let d=null; try{ d=await NET.get(BASE()); }catch(e){ return; } const t=now(), L=[];
       Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAX) L.push({id, n:r.h.n||"친구", c, h:r.h}); });
       R.rooms=L.sort((a,b)=>b.c-a.c).slice(0,6); if(R.phase==="room") ui(); };
     R.make=async()=>{ if(!OK){ api.msg("서버에 연결이 안 돼요", 1500); return; } R.busy=true; const id=code+"_"+(Date.now()%100000); R.id=id; R.path=BASE()+"/"+id; R.host=true;
-      const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, (typeof cfg.h==="function"?cfg.h():cfg.h)||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{}); try{ await NET.put(R.path, {h, p:{[code]:me}}); }catch(e){} R.d={h, p:{[code]:me}}; R.phase="wait"; R.busy=false; ui(); live0(); };
+      const h=Object.assign({c:code, n:nm, st:0, hb:now(), at:now()}, (typeof cfg.h==="function"?cfg.h():cfg.h)||{}); const me=Object.assign({n:nm, t:now()}, R.node?R.node():{});
+      try{ await NET.put(R.path, {h, p:{[code]:me}}); }catch(e){ R.id=R.path=null; R.host=false; R.busy=false; api.msg("방을 못 만들었어요 — 와이파이를 보고 다시 눌러요 📶", 1800); ui(); return; }   /* (v734 #9) 예전: 저장이 실패해도 대기실로 → 친구 화면엔 방이 없음 */
+      R.d={h, p:{[code]:me}}; R.phase="wait"; R.busy=false; ui(); live0(); };
     R.join=async(id)=>{ R.busy=true; const path=BASE()+"/"+id; let d=null; try{ d=await NET.get(path); }catch(e){} const t=now(), c=d && d.p ? Object.values(d.p).filter(p=>p && t-(p.t||0)<10000).length : 0;
-      if(!d || !d.h || d.h.st || c>=MAX){ R.busy=false; api.msg(d && d.h && d.h.st?"이미 시작한 방이에요":"방이 꽉 찼어요 (최대 "+MAX+"명)", 1500); R.list(); return; }
-      R.id=id; R.path=path; R.host=false; R.d=d; try{ await NET.put(path+"/p/"+code, Object.assign({n:nm, t:now()}, R.node?R.node():{})); }catch(e){} R.phase="wait"; R.busy=false; ui(); live0(); };
+      if(!d || !d.h || d.h.st || c>=MAX){ R.busy=false; api.msg(!d?"방을 못 찾았어요 — 와이파이를 보고 다시 눌러요 📶":d.h && d.h.st?"이미 시작한 방이에요":"방이 꽉 찼어요 (최대 "+MAX+"명)", 1500); R.list(); return; }
+      try{ await NET.put(path+"/p/"+code, Object.assign({n:nm, t:now()}, R.node?R.node():{})); }catch(e){ R.busy=false; api.msg("방에 못 들어갔어요 — 와이파이를 보고 다시 눌러요 📶", 1800); R.list(); return; }   /* (v734 #9) */
+      R.id=id; R.path=path; R.host=false; R.d=d; R.phase="wait"; R.busy=false; ui(); live0(); };
     R.start=async()=>{ if(!R.host || !R.path) return; const at=now()+WAITMS, seed=(Math.random()*4294967296)>>>0; try{ await NET.patch(R.path+"/h", {st:at, seed}); }catch(e){} R.d.h=Object.assign({}, R.d.h, {st:at, seed}); ui(); };
     R.leave=(toList)=>{ liveStop(); if(R.path && OK){ NET.del(R.path+"/p/"+code).catch(()=>{}); if(R.host && R.phase==="wait") NET.del(R.path).catch(()=>{}); } R.id=R.path=null; R.d=null; R.host=false; if(toList){ R.phase="room"; R.list(); ui(); } };
     R.live=live; R.now=now;
@@ -348,13 +353,18 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
         ["auth_revoked","cancel"].forEach(k=>es.addEventListener(k, ()=>{ if(seq!==ST.seq) return; try{ es.close(); }catch(e){} ST.es=null; ST.ok=false; setTimeout(()=>{ if(seq===ST.seq && R.path) live0(); }, 800); }));
       }catch(e){ ST.dead=true; } }
     R.net=()=>({stream:ST.ok, dead:ST.dead, echo:Math.round(performance.now()-ST.echo)});
+    /* (v734 #40) 내 쪽 받기가 살아 있나 — 마지막으로 서버에서 받은 뒤 몇 ms (계속 받기 = 내 칸이 돌아옴 · 예전 받기 = GET 성공) */
+    R.fresh=()=>{ if(!ST.last) return R.path ? performance.now()-(ST.t0||performance.now()) : 0; return performance.now()-ST.last; };
     function process(){ const d=R.d;
       if(!d || !d.h){ if(R.phase==="wait"){ api.msg("방이 닫혔어요", 1400); R.leave(true); } return; }
       const my=(d.e||{})[code]||{}; Object.keys(my).forEach(id=>{ if(R.seenE[id]) return; R.seenE[id]=1; NET.del(R.path+"/e/"+code+"/"+id).catch(()=>{}); try{ R.onEv && R.onEv(my[id]); }catch(e){ console.warn(e); } });
       Object.keys(d.fd||{}).forEach(id=>{ if(R.seenF[id]) return; R.seenF[id]=1; try{ R.onFeed && R.onFeed(d.fd[id]); }catch(e){} });
-      if(R.phase==="wait"){ if(d.h.st) R.phase="count"; ui(); } }
+      if(R.phase==="wait"){ if(d.h.st) R.phase="count";
+        else if(!R.host && d.h.c && d.h.c!==code && now()-(d.h.hb||0)>12000){ const L=live(true).map(p=>p.k); if(L.indexOf(d.h.c)<0 && L[0]===code){   /* (v734 #10) 예전: 방장이 끊기면 남은 아이는 「게임 시작」이 없어 계속 기다림 */
+            R.host=true; d.h.c=code; d.h.n=nm; d.h.hb=now(); NET.patch(R.path+"/h", {c:code, n:nm, hb:d.h.hb}).catch(()=>{}); api.msg("방장이 나가서 내가 👑 방장이 됐어요", 1800); } }
+        ui(); } }
     async function poll(){ if(!R.path || R.busy || ST.polling) return; ST.polling=true; const path=R.path; let d=null;
-      try{ d=await NET.get(path); }catch(e){ ST.polling=false; return; } ST.polling=false; if(!R.path || R.path!==path || ST.ok) return;   /* 그사이 계속 받기가 붙었으면 이 (더 옛) 답은 버림 */
+      try{ d=await NET.get(path); }catch(e){ ST.polling=false; return; } ST.polling=false; ST.last=performance.now(); if(!R.path || R.path!==path || ST.ok) return;   /* 그사이 계속 받기가 붙었으면 이 (더 옛) 답은 버림 */
       R.d=d; process(); }
     /* 내 칸 보내기 — 앞 것이 아직 가는 중이면 가장 새것만 남겨 두었다가 끝나면 바로 */
     /* 셋까지 동시에 (받는 쪽은 보낸 시각으로 옛것을 버림) · 더 밀리면 가장 새것만 남겨 두었다가 */

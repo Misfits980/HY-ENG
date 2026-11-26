@@ -921,8 +921,8 @@ function start(api){
   /* ════ 판 끝 ════ */
   function win(w){ if(time.over) return; time.over=true; finishMatch(w); }
   function declareWin(w){ if(CO && NETR){ NETR.put("h/win", {n:w.nm, c:idOf(w)}); } win(w); }
-  function finishMatch(w){ if(w && !ACT.includes(w)) w=ACT.find(a=>a.nm===w.nm)||null; const L=ACT.slice().sort((x,y)=>(y===w)-(x===w) || y.wi-x.wi || y.kills-x.kills), rank=L.indexOf(me)+1, won=L[0]===me;
-    api.msg(won?'🏆 우승!':w?'🏁 '+esc(w.nm)+' 우승!':'⏰ 시간 끝!', 1800);
+  function finishMatch(w){ if(w && !ACT.includes(w)) w=ACT.find(a=>a.nm===w.nm)||null; const L=ACT.slice().sort((x,y)=>(y===w)-(x===w) || y.wi-x.wi || y.kills-x.kills || (y===me)-(x===me)), tie=!w && L.length>1 && L[1].wi===L[0].wi && L[1].kills===L[0].kills, rank=L.indexOf(me)+1, won=L[0]===me && !tie;   /* (v734 #50) */
+    api.msg(won?'🏆 우승!':w?'🏁 '+esc(w.nm)+' 우승!':tie && L.slice(0,2).includes(me)?'🤝 공동 1등! (시간 끝)':'⏰ 시간 끝!', 1800);
     setTimeout(()=>{ try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
       if(gone) return; const coins=won?15:rank<=3?8:5, b0=(()=>{ try{ return Object.assign({}, MG.rec().b.arena||{}); }catch(e){ return {}; } })();
       const got=PUI.award(api, {title:won?'🏆 '+esc(me.nm)+' 우승!':rank<=3?'🎉 '+rank+'등!':'💦 '+rank+'등', sub:'흠뻑 적신 수 '+me.kills+' · 단계 '+(me.wi+1)+'/'+WP.length, rows:null, coins, again:{mode:CO?"co":"solo", quick:1},

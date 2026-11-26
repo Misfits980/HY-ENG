@@ -288,9 +288,9 @@ function start(api){
   function crash(L, sp){ const v=(L===BW?.12:.035)*Math.min(1, sp/11); try{ SFX.noise(.5, v, 1300, .6, 240); SFX.tone(120, .22, "sine", v, 55); }catch(e){} if(L===BW && sp>8 && !RDM) shk=Math.max(shk,.35); }
   function countPins(L){ const me=L===BW; let fgot=null;
     if(L.co){ const p=coP(L), ro=(p && p.ro)||[], i=L.rolls.length; if(ro.length<=i){ if(++L.cw<40 && L.on && !L.left){ later(.25, ()=>countPins(L)); return; } } else { L.cw=0; fgot=ro[i]; coMask(L, (p.mk||[])[i]); } }   /* 친구 결과가 올 때까지 (8초) */
-    const before=L.pins.filter(p=>p.up).length; L.pins.forEach(p=>{ if(p.up && p.down) p.up=false; }); const after=L.pins.filter(p=>p.up).length, got=fgot!=null?fgot:before-after; L.rolls.push(got);
+    const fr0=rollsInFrame(L.rolls), before=L.pins.filter(p=>p.up).length; L.pins.forEach(p=>{ if(p.up && p.down) p.up=false; }); const after=L.pins.filter(p=>p.up).length, got=fgot!=null?fgot:before-after; L.rolls.push(got);
     if(me){ let ms=0; L.pins.forEach((p,j)=>{ if(p.up) ms|=1<<j; }); (BW.mk||(BW.mk=[])).push(ms); }
-    const strike=got===10 && before===10, spare=!strike && after===0; L.stk=strike?L.stk+1:0; if(strike||spare) L.hot=performance.now();
+    const strike=got===10 && before===10 && fr0.reset,   /* (v734 #34) */ spare=!strike && after===0; L.stk=strike?L.stk+1:0; if(strike||spare) L.hot=performance.now();
     if(me){ const r=REC();
       if(strike){ const k=L.stk, T=k>=3?"TURKEY!":k===2?"DOUBLE!":"STRIKE!"; big(T, k>=3?"스트라이크 "+k+"번 연속! 🦃":k===2?"스트라이크 2번 연속 🔥":"스트라이크 🎉", 1.6); r.strikes++; st("hyeng_proto_spr", r); try{ SFX.win(); }catch(e){} fx(T, k>=3?120:k===2?95:70); }
       else if(spare){ big("SPARE!", "스페어 👏", 1.4); try{ SFX.clear(); }catch(e){} fx("SPARE!", 36); }
@@ -332,7 +332,7 @@ function start(api){
   function rpStep(dt){ const S=BW.rp, R=BW.rec; S.t+=dt*RPS; while(S.i+1<R.length && R[S.i+1].t<=S.t) S.i++; rpApply(R[S.i]); if(S.t>=S.t1) rpEnd(); }
   function rpEnd(){ const S=BW.rp; if(!S) return; BW.rp=null; RP.classList.remove("on"); ball.position.copy(S.b); ball.visible=S.bv; ball.rotation.x=S.br; PINS.forEach((p,i)=>{ p.g.visible=S.pv[i]; placePin(p); }); camP=null; S.cb(); }
   function fx(t, n){ confetti(0,.8,HZ-.6,LOW?Math.round(n/2):n); AV.cheer=1.6; if(MEAV) MEAV.setExpr("grin"); monBig=1; monPaint(t); later(fast?.05:1.6, ()=>{ monBig=0; monPaint(); }); }
-  function bowlEnd(){ const s=bowlScore(BW.rolls).total, r=REC(), best=s>r.bw; r.bw=Math.max(r.bw,s); const coins=s>=100?9:s>=70?7:s>=40?5:3, sk=BW.rolls.filter(x=>x===10).length;
+  function bowlEnd(){ const s=bowlScore(BW.rolls).total, r=REC(), best=s>r.bw; r.bw=Math.max(r.bw,s); const coins=s>=100?9:s>=70?7:s>=40?5:3, sk=bowlScore(BW.rolls).marks.reduce((n,m)=>n+m.filter(x=>x==="X").length,0);
     const act=LANES.filter(L=>L.on), vs=act.length>1, tot=act.map(L=>[L, bowlScore(L.rolls).total]).sort((a,b)=>b[1]-a[1]), rank=1+tot.filter(x=>x[1]>s).length;
     if(vs && rank===1) r.vw=(r.vw|0)+1; st("hyeng_proto_spr", r);
     const got=PUI.award(api, {title:s+"점", sub:"볼링", rows:null, coins, again:{go:"bowl"}, upd:(b,t)=>{ b.bw=Math.max(b.bw|0,s); }}), left=MG.payLeft("bowl");
@@ -375,10 +375,11 @@ function start(api){
   const ray=new THREE.Raycaster(), v2=new THREE.Vector2(), pl=new THREE.Plane(new THREE.Vector3(0,1,0),0), hitP=new THREE.Vector3();
   function lanePt(e){ const r=HIT.getBoundingClientRect(); v2.set((e.clientX-r.left)/r.width*2-1, -((e.clientY-r.top)/r.height*2-1)); ray.setFromCamera(v2,cam); return ray.ray.intersectPlane(pl,hitP)?hitP.clone():null; }
   let pd=null, trail=[];
-  HIT.addEventListener("pointerdown", e=>{ e.preventDefault(); if(mode==="bowl" && BW.rp){ BW.rp.t=BW.rp.t1; return; }   /* 다시 보기 건너뛰기 */ pd={x:e.clientX, y:e.clientY, t:performance.now()}; trail=[pd]; if(mode==="dart") dartDown(e); });
-  HIT.addEventListener("pointermove", e=>{ if(!pd) return; trail.push({x:e.clientX,y:e.clientY,t:performance.now()}); if(trail.length>12) trail.shift();
+  HIT.addEventListener("pointerdown", e=>{ e.preventDefault(); if(mode==="bowl" && BW.rp){ BW.rp.t=BW.rp.t1; return; }   /* 다시 보기 건너뛰기 */ if(pd && pd.id!==e.pointerId && performance.now()-pd.t<4000) return; pd={x:e.clientX, y:e.clientY, t:performance.now(), id:e.pointerId}; trail=[pd]; if(mode==="dart") dartDown(e); });   /* (v734 #55) 처음 누른 손가락만 */
+  ["pointercancel","lostpointercapture"].forEach(t=>HIT.addEventListener(t, e=>{ if(pd && pd.id===e.pointerId){ pd=null; DT.hold=false; try{ guide.visible=false; }catch(_){} } }));
+  HIT.addEventListener("pointermove", e=>{ if(!pd || pd.id!==e.pointerId) return; trail.push({x:e.clientX,y:e.clientY,t:performance.now()}); if(trail.length>12) trail.shift();
     if(mode==="bowl" && BW.ph==="aim"){ const p=lanePt(e); if(p && p.z>-2.5) { BW.bx=Math.max(-LW/2+BR, Math.min(LW/2-BR, p.x)); ball.position.x=BW.bx; } const p0=trail[0], dy=p0.y-e.clientY, dx=e.clientX-p0.x; if(dy>20){ const vx=dx/Math.max(dy,1)*3.2; guideTo(BW.bx+vx*HZ/-11, HZ+1.2); } else if(p && p.z<-2) guideTo(p.x, p.z); else guide.visible=false; } if(mode==="dart") dartMove(e); });
-  HIT.addEventListener("pointerup", e=>{ if(!pd) return; const p0=trail[0], dy=p0.y-e.clientY, dx=e.clientX-p0.x, dt=Math.max(30, performance.now()-p0.t);
+  HIT.addEventListener("pointerup", e=>{ if(!pd || pd.id!==e.pointerId) return; const p0=trail[0], dy=p0.y-e.clientY, dx=e.clientX-p0.x, dt=Math.max(30, performance.now()-p0.t);
     if(mode==="bowl" && BW.ph==="aim"){ if(dy>40){ const sp=dy/dt*1000/innerHeight; throwBall(BW.bx, dx/Math.max(dy,1)*3.2, 6+sp*7); }
       else { const p=lanePt(e); if(p && p.z<-2){ const dist=-p.z; throwBall(BW.bx, (p.x-BW.bx)/dist*9, 9); } } }
     if(mode==="dart") dartUp(e); pd=null; guide.visible=false; });
@@ -386,22 +387,22 @@ function start(api){
   /* ══ 🎯 다트 ══ */
   const DT={n:0, darts:[], sum:0, rnd:[], aimX:0, aimY:0, hold:false, fly:null, wob:0};
   const DN=9;
-  function dartStart(){ mode="dart"; BOWL.visible=false; DART.visible=true; SC.style.display=""; BTN.style.display="none"; DT.darts.forEach(d=>DART.remove(d.m)); Object.assign(DT,{n:0, darts:[], sum:0, rnd:[], aimX:0, aimY:-.2, fly:null, hold:false}); AIM.style.display="block"; dsheet(); chPaint(); say("손가락으로 조준점을 옮기고, 떼면 던져요 🎯"); }
+  function dartStart(){ mode="dart"; BOWL.visible=false; DART.visible=true; SC.style.display=""; BTN.style.display="none"; DT.darts.forEach(d=>DART.remove(d.m)); Object.assign(DT,{clr:0, n:0, darts:[], sum:0, rnd:[], aimX:0, aimY:-.2, fly:null, hold:false}); AIM.style.display="block"; dsheet(); chPaint(); say("손가락으로 조준점을 옮기고, 떼면 던져요 🎯"); }
   function dsheet(){ const R3=[0,1,2].map(r=>DT.rnd.slice(r*3,r*3+3)); SC.innerHTML=R3.map((x,i)=>'<div class="'+(Math.floor(DT.n/3)===i?"cur":"")+'" style="width:84px"><small>'+(i+1)+'라운드</small><div class="m">'+x.map(q=>'<span>'+q.s+'</span>').join(" ")+'</div><div class="t">'+(x.length?x.reduce((s,q)=>s+q.s,0):"")+'</div></div>').join("")+'<div class="tot"><small>합계</small><div class="m"></div><div class="t">'+DT.sum+'</div></div>'; }
   const toBoard=(px,py)=>{ /* 화면 → 판 (반지름 1 = 판 끝) */ const v=new THREE.Vector3(0,DB.y,DB.z).project(cam), e=new THREE.Vector3(DB.R,DB.y,DB.z).project(cam), W=innerWidth, H=innerHeight; const cx=(v.x+1)/2*W, cy=(1-v.y)/2*H, rr=((e.x+1)/2*W)-cx; return [(px-cx)/rr, -(py-cy)/rr, cx, cy, rr]; };
   const toScr=(bx,by)=>{ const t=toBoard(0,0); return [t[2]+bx*t[4], t[3]-by*t[4]]; };
-  function dartDown(e){ if(DT.fly || DT.n>=DN) return; DT.hold=true; const b=toBoard(e.clientX, e.clientY-70); DT.aimX=b[0]; DT.aimY=b[1]; }
+  function dartDown(e){ if(DT.fly || DT.clr || DT.n>=DN) return; DT.hold=true; const b=toBoard(e.clientX, e.clientY-70); DT.aimX=b[0]; DT.aimY=b[1]; }
   function dartMove(e){ if(!DT.hold) return; const b=toBoard(e.clientX, e.clientY-70); DT.aimX=Math.max(-1.4,Math.min(1.4,b[0])); DT.aimY=Math.max(-1.4,Math.min(1.4,b[1])); }
   function dartUp(){ if(!DT.hold) return; DT.hold=false; const w=wob(); dart(DT.aimX+w[0], DT.aimY+w[1]); }
   function wob(){ const t=DT.wob; return [Math.sin(t*1.7)*.07+Math.sin(t*4.1)*.025, Math.sin(t*2.3+1)*.07+Math.cos(t*3.7)*.025]; }
   function scoreAt(x,y){ const r=Math.hypot(x,y); if(r<=.037) return {s:50, t:"BULL'S-EYE!", w:"fifty", k:"bull"}; if(r<=.094) return {s:25, t:"BULL!", w:"twenty-five", k:"bull"}; if(r>1) return {s:0, t:"MISS", w:"", k:"miss"};
     let a=Math.atan2(x,y); if(a<0) a+=Math.PI*2; const i=Math.round(a/(Math.PI/10))%20, n=SEG[i];
     if(r>=.582 && r<=.629) return {s:n*3, t:"TRIPLE "+NUMW[n].toUpperCase()+"!", w:"triple "+NUMW[n], k:"t", n}; if(r>=.953) return {s:n*2, t:"DOUBLE "+NUMW[n].toUpperCase()+"!", w:"double "+NUMW[n], k:"d", n}; return {s:n, t:NUMW[n].toUpperCase()+"!", w:NUMW[n], k:"s", n}; }
-  function dart(x, y){ if(mode!=="dart" || DT.fly || DT.n>=DN) return null; const m=dartMesh([0xff4d5e,0x3fc46a,0x3ea2ff][Math.floor(DT.n/3)]); m.position.copy(hand.position); DART.add(m); hand.visible=false;
+  function dart(x, y){ if(mode!=="dart" || DT.fly || DT.clr || DT.n>=DN) return null; const m=dartMesh([0xff4d5e,0x3fc46a,0x3ea2ff][Math.floor(DT.n/3)]); m.position.copy(hand.position); DART.add(m); hand.visible=false;
     const to=new THREE.Vector3(x*DB.R, DB.y+y*DB.R, DB.z+.3); DT.fly={m, from:m.position.clone(), to, t:0, x, y}; try{ SFX.noise(.18,.04,1800,.6,900); }catch(e){} return scoreAt(x,y); }
   function dartLand(){ const f=DT.fly; DT.fly=null; const sc=scoreAt(f.x,f.y); DT.darts.push({m:f.m, x:f.x, y:f.y}); DT.rnd.push(sc); DT.sum+=sc.s; DT.n++; try{ SFX.tone(sc.s?1200:200,.06,"square",.04); }catch(e){}
     big(sc.t, sc.s?(sc.s+"점"):"괜찮아요!", 1.2); if(sc.w && sc.k!=="miss") sayW(sc.w); if(sc.k==="bull"){ const r=REC(); r.bulls++; st("hyeng_proto_spr", r); }
-    dsheet(); chPaint(); if(DT.n>=DN){ later(fast?.05:1.6, dartEnd); return; } if(DT.n%3===0) later(fast?.05:1.4, ()=>{ DT.darts.forEach(d=>DART.remove(d.m)); DT.darts=[]; say((DT.n/3+1)+"라운드!"); }); }
+    dsheet(); chPaint(); if(DT.n>=DN){ later(fast?.05:1.6, dartEnd); return; } if(DT.n%3===0){ const old=DT.darts.slice(), rn=DT.n/3+1; DT.clr=1; later(fast?.05:1.4, ()=>{ old.forEach(d=>DART.remove(d.m)); DT.darts=DT.darts.filter(d=>old.indexOf(d)<0); DT.clr=0; say(rn+"라운드!"); }); } }   /* (v734 #54) */
   function dartEnd(){ const s=DT.sum, r=REC(), best=s>r.dt; r.dt=Math.max(r.dt,s); st("hyeng_proto_spr", r); AIM.style.display="none"; const coins=s>=300?9:s>=180?7:s>=90?5:3, top=Math.max(...DT.rnd.map(q=>q.s));
     const got=PUI.award(api, {title:s+"점", sub:"다트", rows:null, coins, again:{go:"dart"}, upd:(b,t)=>{ b.dt=Math.max(b.dt|0,s); }}), left=MG.payLeft("bowl");
     PUI.result(U, {res:"win", stars:s>=250?3:s>=150?2:s>=80?1:0, title:best?"내 최고 기록!":s+"점!", sub:"다트 9개 · 가장 큰 한 방 "+top+"점", av:api.av,

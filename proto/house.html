@@ -722,15 +722,19 @@ const MT_EPOCH=536;
     del.forEach(k=>localStorage.removeItem(k)); localStorage.setItem(kE, String(MT_EPOCH)); console.log("[My Town] 처음부터 (v536)", del.length); }catch(e){} })();
 let padT=0;
 /* (v561) 처음 열 때(서버에서 받아 오기 전) 저절로 쓰이는 것이 _mt 를 올려서, 다른 공용 패드에서 이어 하기가 안 되던 것 고침 — 받아 오기가 끝날 때까지 미뤘다가 저장 */
-function padSave(){ if(!PAD.ready) return; if(PAD.kid && !PAD.pulled){ PAD.pend=1; return; }   /* 처음 열 때 기본값을 쓰는 것은 '고친 것'이 아님 (서버 것을 받아야 함) */ try{ localStorage.setItem("hyeng_proto_"+PAD.ns+"_mt", String(Date.now())); PAD.kid.at=Date.now(); sessionStorage.setItem("hyeng_kid", JSON.stringify(PAD.kid)); }catch(e){} clearTimeout(padT); padT=setTimeout(()=>padPush(), 4000); }
+function padSave(){ if(!PAD.ready || PAD.bad) return; if(PAD.kid && !PAD.pulled){ PAD.pend=1; return; }   /* 처음 열 때 기본값을 쓰는 것은 '고친 것'이 아님 (서버 것을 받아야 함) */ try{ localStorage.setItem("hyeng_proto_"+PAD.ns+"_mt", String(Date.now())); PAD.kid.at=Date.now(); sessionStorage.setItem("hyeng_kid", JSON.stringify(PAD.kid)); }catch(e){} clearTimeout(padT); padT=setTimeout(()=>padPush(), 4000); }
 function padDump(){ const pre="hyeng_proto_"+PAD.ns, o={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(pre)===0 && k.charAt(pre.length)!=="_") o[k.slice(pre.length)]=localStorage.getItem(k); } return o; }
 const padPath=()=>"/hy/life/sv/"+encodeURIComponent(PAD.id);
-async function padPush(){ if(!PAD.kid) return false; try{ await NET.put(padPath(), {at:Date.now(), n:String(PAD.kid.n||"").slice(0,12), d:JSON.stringify(padDump())}); return true; }catch(e){ return false; } }
+/* (v734 #1) 서버 기록을 아직 못 받았거나(읽기 실패) 받다가 덜 받았으면(#8 저장 공간) 이 패드 것을 서버에 올리지 않음 — 예전: 읽기 실패 = 「받았음」 → 옛 기록이 최신을 덮음 */
+async function padPush(){ if(!PAD.kid || !PAD.pulled || PAD.bad) return false; try{ await NET.put(padPath(), {at:Date.now(), n:String(PAD.kid.n||"").slice(0,12), d:JSON.stringify(padDump())}); return true; }catch(e){ return false; } }
 /* 들어올 때 — 서버 것이 이 패드 것보다 새것이면 받아서 한 번 다시 열기 (다른 패드에서 놀다 온 아이) */
-async function padPull(){ if(!PAD.kid) return 0; let v=null; try{ v=await NET.get(padPath()); }catch(e){ return 0; } if(!v || !v.d) return 0;
+async function padPull(){ if(!PAD.kid) return 0; let v=null; try{ v=await NET.get(padPath()); }catch(e){ return -1; } if(!v || !v.d) return 0;   /* -1 = 못 읽음 (다시 해 봄) · 0 = 이 패드 것이 최신 · 1 = 받아서 다시 열기 */
   const pre="hyeng_proto_"+PAD.ns, mt=+(localStorage.getItem(pre+"_mt")||0); if(!(v.at>mt)) return 0; let o=null; try{ o=JSON.parse(v.d); }catch(e){ return 0; }
   const del=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(pre)===0 && k.charAt(pre.length)!=="_" && !(k.slice(pre.length) in o)) del.push(k); } del.forEach(k=>localStorage.removeItem(k));
-  Object.keys(o).forEach(k=>{ try{ localStorage.setItem(pre+k, o[k]); }catch(e){} }); localStorage.setItem(pre+"_mt", String(v.at));
+  let fail=0; Object.keys(o).forEach(k=>{ try{ localStorage.setItem(pre+k, o[k]); }catch(e){ fail++; } });
+  if(fail){ PAD.bad=true; try{ localStorage.removeItem(pre+"_mt"); }catch(e){} try{ window.GUARD && GUARD.report && GUARD.report("pad", "pull fail "+fail); }catch(e){}   /* (v734 #8) 덜 받았는데 「최신」으로 적던 것 → 최신 표시 안 함 · 서버에 안 올림 · 다음에 다시 받음 */
+    setTimeout(()=>{ try{ toast("📦 패드 저장 공간이 꽉 차서 내 기록을 다 못 받았어요<br><small>선생님께 알려 주세요 — 기록은 서버에 그대로 있어요</small>", 6000); }catch(e){} }, 1500); return 0; }
+  localStorage.setItem(pre+"_mt", String(v.at));
   const g="hyeng_pad_pulled_"+PAD.id+"_"+v.at; if(!sessionStorage.getItem(g)){ sessionStorage.setItem(g, "1"); location.reload(); } return 1; }
 const rnd=(a,b)=>a+Math.random()*(b-a);
 
@@ -1377,7 +1381,7 @@ const GP={ dirt:{nm:"dirt path", e:"🟫", p:0, c:"#c99a62"}, stone:{nm:"stone p
 const HXC={ r:["#e46a5a","#4f8fd6","#5cbf5a","#a879e0","#f2b33d","#6b5a4e","#ff8fb8"], w:["#fff1d6","#ffd9e0","#d8f0ff","#e6f5d8","#f3e2c0","#ffffff"], d:["#8a5a34","#e85d5d","#4f8fd6","#5db95a","#2c2c3a","#ffd23f"] };
 let yd=null, ystock={}, ownGP=["dirt"];
 const Y_DEF={b:[3,1], k:[4,2], t:TREES.map(t=>t.slice())};   // 처음 자리 (친구 마당에 옮긴 기록이 없으면 이것으로)
-const yplaced=[]; const ydG=new THREE.Group(); yardG.add(ydG); const ydbG=new THREE.Group(); yardG.add(ydbG); let yLoading=false; const ygG=new THREE.Group(); yardG.add(ygG); const ywG=new THREE.Group(); yardG.add(ywG);
+const yplaced=[]; const ydG=new THREE.Group(); yardG.add(ydG); const ydbG=new THREE.Group(); yardG.add(ydbG); let yLoading=false, yLoadId=""; const ygG=new THREE.Group(); yardG.add(ygG); const ywG=new THREE.Group(); yardG.add(ywG);
 let yGrid=null, yTool="items", yPaint="dirt", yEC=null, yNightOn=false;
 function yLocked(x,z){ const i=parcOf(x,z); return i>=0 && !(yd && yd.pc[i]); }
 function yDeb(x,z){ return !!(yd && yd.db[x+","+z]); }
@@ -1508,7 +1512,7 @@ function yBase(x,z, skipFixed){ if(x<0||z<0||x>=YN||z>=YN) return true;
   if((x===DOOR[0]&&z===DOOR[1]) || at(STALL_FRONT,x,z)>=0 || (x===Y_GATE[0]&&z===Y_GATE[1])) return true;
   const fx=yFixedAt(x,z); if(fx && !(skipFixed && skipFixed.f===fx.f && skipFixed.i===fx.i)) return true;
   if(PARC.some((p,i)=>p.sign[0]===x&&p.sign[1]===z && !(yd && yd.pc[i]))) return true;
-  { const w=yWS(); if(w && w[0]===x && w[1]===z) return true; }   /* (v586) 🪣 우물 자리는 비워 둠 */
+  { const w=yWS(); if(w && w[0]===x && w[1]===z && !(yLoading && /well/.test(yLoadId))) return true; }   /* (v586) 🪣 우물 자리는 비워 둠 · (v734 #38) 불러올 때 그 자리에 지어 둔 우물은 그대로 (예전: 불러오는 동안엔 「우물 없음」이라 우물 자리에 지은 우물이 빠짐) */
   return yLocked(x,z) || yDeb(x,z); }
 function yFits(id, x, z, r, skip, skipFixed){ const C=skipFixed ? [[x,z]] : yCells(id,x,z,r);
   for(const [a,b] of C){ if(yBase(a,b, skipFixed)) return 0; const o=yItemAt(a,b); if(o && o!==skip) return 0; if(!yLoading && hero && place===PL.yard && a===hero.cx && b===hero.cz) return 0; }
@@ -1614,7 +1618,7 @@ function yLoad(d){ yplaced.splice(0).forEach(p=>p.obj.parent && p.obj.parent.rem
   if(d && d.mv){ const ok=a=>Array.isArray(a)&&a.length===2&&a.every(v=>Number.isInteger(v)&&v>=0&&v<YN); if(ok(d.mv.b)){ BENCH[0]=d.mv.b[0]; BENCH[1]=d.mv.b[1]; } if(ok(d.mv.k)){ POT[0]=d.mv.k[0]; POT[1]=d.mv.k[1]; } (d.mv.t||[]).forEach((t,i)=>{ if(TREES[i] && ok(t)){ TREES[i][0]=t[0]; TREES[i][1]=t[1]; } }); }
   scene.userData.benchObj.position.set(BENCH[0]+0.5,0,BENCH[1]+0.5); scene.userData.potObj.position.set(POT[0]+0.5,0,POT[1]+0.5); scene.userData.trees.forEach((T,i)=>T.position.set(TREES[i][0]+0.5,0,TREES[i][1]+0.5));
   Object.keys(yDebObj).forEach(k=>{ ydbG.remove(yDebObj[k]); delete yDebObj[k]; });
-  yLoading=true; ((d&&d.p)||[]).slice(0,120).forEach(([id,x,z,r,c])=>{ if(OUT[id] && yFits(id,x,z,r|0)===1) yAdd(id,x,z,r,c); }); yLoading=false;
+  yLoading=true; ((d&&d.p)||[]).slice(0,120).forEach(([id,x,z,r,c])=>{ yLoadId=String(id); if(OUT[id] && yFits(id,x,z,r|0)===1) yAdd(id,x,z,r,c); }); yLoading=false; yLoadId="";
   yFences(); yDrawWild(); yDrawDeb(); yDrawGround(); yHouseColors(); yNight(yNightOn); }
 /* ── (v576) 🌿 잡초가 다시 자람 — 사용자: 「그래도 좋지」(매일 들러 돌볼 작은 일)
    하루마다 2포기 (며칠 비우면 최대 3일치) · 마당 전체 최대 8 · 빈 칸만(가구·밭·길·칠한 길·문 앞·잠긴 땅 피함) · 뽑으면 가끔 씨앗(weed2) ── */
@@ -1631,7 +1635,10 @@ function yParcOpen(i){ const n=yd.pc.filter(Boolean).length; if(yd.pc[i] || !pay
   for(let x=p.x0;x<=p.x1;x++) for(let z=p.z0;z<=p.z1;z++){ const h=hashf("dbg|"+i+"|"+x+"|"+z), k=x+","+z; if(isRoad(x,z)) continue; yd.db[k]= h<0.5 ? "weed" : h<0.62 ? "stone" : h<0.72 ? "stump" : undefined; if(!yd.db[k]) delete yd.db[k]; }
   yDrawWild(); yDrawDeb(); yFlowersUpd(); ySave(); act("yay"); emote(hero,"🌱"); say("new land"); tEv("land"); toast("🌱 「"+p.nm+"」 이 열렸어요!<br><small>🌿 잡초 · 🪨 돌 · 🪵 그루터기를 눌러 치워요</small>", 2800); drawLabels(); return true; }
 const DEB_GIVE={weed:[["wheat seeds",0.15],["carrot seeds",0.1]], weed2:[["wheat seeds",0.25],["carrot seeds",0.2],["strawberry seeds",0.08],["tomato seeds",0.08]], stone:[["stone",1]], stump:[["branch",1],["branch",0.5]]};
-function yClear(k){ const t=yd.db[k]; if(!t) return; const got=[]; for(const [n,pr] of DEB_GIVE[t]){ if(Math.random()<pr){ if(!canAdd(n,1)){ fullMsg(); return; } addMat(n,1); const g=got.find(x=>x[0]===n); g ? g[1]++ : got.push([n,1]); } }
+/* (v734 #26) 나온 것을 먼저 다 정하고 → 가방에 다 들어가면 그때 주고 치움 (예전: 첫 재료를 주고 둘째 칸이 없으면 멈춤 → 장애물은 남아 같은 잡초를 계속 눌러 첫 재료를 끝없이 받음) */
+function fitsMats(L){ let extra=0; L.forEach(([n,q])=>{ const cur=mats[n]|0; extra+=Math.ceil((cur+q)/MAT_STACK)-Math.ceil(cur/MAT_STACK); }); return slots().length+extra<=bagCap; }
+function yClear(k){ const t=yd.db[k]; if(!t) return; const got=[]; for(const [n,pr] of DEB_GIVE[t]){ if(Math.random()<pr){ const g=got.find(x=>x[0]===n); g ? g[1]++ : got.push([n,1]); } }
+  if(got.length && !fitsMats(got)){ fullMsg(); return; } got.forEach(([n,q])=>addMat(n,q));
   delete yd.db[k]; if(!Object.keys(yd.db).length && !yd.gc){ yd.gc=1; setTimeout(()=>{ try{ yGuideUpd(true); }catch(e){} }, 1400); } act("reel"); wobble(yDebObj[k]||hero.g); setTimeout(()=>{ yDrawDeb(); yFlowersUpd(); }, 180); try{ SND.click(); }catch(e){} tEv("clear"); ySave();
   const left=Object.keys(yd.db).length; if(got.length) gotList(got); else toast(t==="weed"||t==="weed2"?"🌿 잡초를 뽑았어요":"🧹 치웠어요"+(left?"":" — 다 치웠어요! 🎉"), 1200);
   if(!left){ setTimeout(()=>{ toast("🎉 땅을 다 치웠어요!<br><small>✏️ 꾸미기로 내 땅을 꾸며요</small>", 2600); act("yay"); }, 900); } }
@@ -2551,7 +2558,10 @@ function twIsland(){ const R=TQ+9.5, g=new THREE.Group(); g.position.set(TWC,0,T
    시각 = 서버 시계 (패드 시계를 바꿔도 안 뚫림) · 한국 시간 22:00~06:00 · 선생님 비밀번호(관리자와 같음) = 그 패드는 아침 6시까지 열림 · 안에 있으면 21:59 알림 → 22:00 마을로 */
 const TWN8={off:0, ok:false, warned:0, test:0, auto:!!(navigator.webdriver), force:false};
 const TW_PIN_H="2767bcc0af23670ffa42b9523c2ecb7094b07ede9a55dde9232a3bd379d8bd08";
-function srvNow(){ return Date.now()+TWN8.off+TWN8.test; }
+/* (v734 #11) 서버 시계를 맞춘 뒤 기기 시계를 바꾸면 은행 이자 날짜가 같이 움직이던 것 — 맞춘 순간부터 흐른 시간(performance.now)과 비교해서
+   1분 반 넘게 어긋나면 늦은 쪽 시각을 쓰고(이자가 앞당겨지지 않게) 서버 시계를 다시 맞춤 (자동 시험은 시계를 일부러 돌리므로 예전대로) */
+function srvNow(){ const w=Date.now()+TWN8.off; if(TWN8.pa==null || TWN8.auto) return w+TWN8.test;
+  const m=TWN8.base+(performance.now()-TWN8.pa); if(Math.abs(m-w)>90000){ if(TWN8.ok){ TWN8.ok=false; TWN8.err="clock"; setTimeout(()=>{ try{ twClock(); }catch(e){} }, 0); } return Math.min(m, w)+TWN8.test; } return w+TWN8.test; }
 function kstHM(t){ const d=new Date(t+9*3600e3); return [d.getUTCHours(), d.getUTCMinutes()]; }
 function twNightAt(t){ const h=kstHM(t)[0]; return h>=22 || h<6; }
 function twOpenAt(t){ const d=new Date(t+9*3600e3); let o=Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 6)-9*3600e3; if(o<=t) o+=86400e3; return o; }   /* 다음 아침 6시 */
@@ -2559,8 +2569,8 @@ function twUnlocked(){ return +(store("hyeng_proto_twnight")||0) > srvNow(); }
 function twNightOn(){ return (!TWN8.auto || TWN8.force) && !TW.bot && twNightAt(srvNow()) && !twUnlocked(); }
 /* (v586) 서버 시계 — 실패하면 10분 뒤가 아니라 15초마다 다시 · 앱으로 돌아오거나 인터넷이 다시 되면 바로 · 은행을 열면 바로 · 실패 까닭(TWN8.err) */
 let twCkBusy=null;
-function twClock(){ if(twCkBusy) return twCkBusy; try{ twCkBusy=NET.put("/hy/day/ck"+dayKey().replace(/\D/g,"")+"/"+(myCode||"anon"), {".sv":"timestamp"}).then(ts=>{ if(typeof ts==="number"){ TWN8.off=ts-Date.now(); TWN8.ok=true; TWN8.err=""; } else TWN8.err="ts"; return TWN8.ok; }).catch(e=>{ TWN8.err=String(e); return false; }).finally(()=>{ twCkBusy=null; }); }catch(e){ TWN8.err=String(e); return Promise.resolve(false); } return twCkBusy; }
-setInterval(()=>{ if(!TWN8.ok) twClock(); }, 15000); addEventListener("online", ()=>twClock()); document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && !TWN8.ok) twClock(); });
+function twClock(){ if(twCkBusy) return twCkBusy; try{ twCkBusy=NET.put("/hy/day/ck"+dayKey().replace(/\D/g,"")+"/"+(myCode||"anon"), {".sv":"timestamp"}).then(ts=>{ if(typeof ts==="number"){ TWN8.off=ts-Date.now(); TWN8.base=ts; TWN8.pa=performance.now(); TWN8.ok=true; TWN8.err=""; } else TWN8.err="ts"; return TWN8.ok; }).catch(e=>{ TWN8.err=String(e); return false; }).finally(()=>{ twCkBusy=null; }); }catch(e){ TWN8.err=String(e); return Promise.resolve(false); } return twCkBusy; }
+setInterval(()=>{ if(!TWN8.ok) twClock(); }, 15000); addEventListener("online", ()=>twClock()); document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ try{ srvNow(); }catch(e){} if(!TWN8.ok) twClock(); } });
 function sha256(s){ try{ return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")).catch(()=>""); }catch(e){ return Promise.resolve(""); } }
 function twNightAsk(){ info('<div class="iBig">🌙</div><b>타워는 문을 닫았어요</b><br><small>밤 10시 ~ 아침 6시는 쉬는 시간이에요 · <b>아침 6시</b>에 다시 열려요!</small>'
     +'<div class="twPin"><input id="twPin" type="password" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="선생님 비밀번호" aria-label="선생님 비밀번호"><button class="btn" id="twPinB">🔓 열기</button></div><small id="twPinM"></small>', "알겠어요", null);
@@ -2694,13 +2704,16 @@ function twShards(dt){ towerG.children.filter(m=>m.userData.shard).forEach(m=>{ 
 function twWin(){ if(TW.fin) return; TW.fin=true; try{ twHiSave(); twEmote("🎉"); }catch(e){} const t=(performance.now()-TW.t0)/1000, d=dayKey(), r=TW.rec[d]||(TW.rec[d]={}), m=r[TW.mode]||(r[TW.mode]={}); const first=!m.best, rec=!first && t<m.best;
   m.best=first?t:Math.min(m.best,t); m.n=(m.n|0)+1; const g=first && !r.pay ? (TW.mode==="sky"?15:TW.mode==="hard"?12:TW.mode==="kid"?6:4) : 0;   /* (v454) 30층 = 💎 25 · 10층 = 💎 6 → (v559) 💰 하루 한 번(처음 깬 것) · 15/12/6/4 */ if(g){ r.pay=1; try{ TECO.addCoin(g*5); }catch(e){} saveBag(); } else if(first) setTimeout(()=>toast("🏆 꼭대기 🪙 는 하루 한 번 — 오늘은 이미 받았어요", 2400), 1800);
   const all=TW.rec; Object.keys(all).sort().slice(0,-14).forEach(k=>delete all[k]); store("hyeng_proto_tower", all); TW.tEnd=t;
+  if(TW.mode==="sky"){ try{ const sN=Object.values(all).reduce((a,x)=>a+((x && x.sky && x.sky.n)|0),0); store("hyeng_proto_twtot", Math.max((+store("hyeng_proto_twtot")||0)+1, sN)); const bb=+store("hyeng_proto_twbest")||0; if(!bb || t<bb) store("hyeng_proto_twbest", t); }catch(e){} }   /* (v734 #44) */
   try{ SND.big(); }catch(e){} act("yay"); emote(hero,"🏆"); say("I did it!"); twConfetti();
   setTimeout(()=>info('<div class="iBig">🏆</div><b>꼭대기!</b> '+(TW.mode==="sky"?"🗼 "+TW_N.sky+"층":TW.mode==="kid"?"🟢 쉬움 "+TW_N.kid+"층":TW.mode==="hard"?"🔴 어려움":"🟢 쉬움")+'<br><span class="twT">⏱ '+twTime(t)+'</span>'+(rec?'<br><b class="twRec">🎉 새 기록!</b>':first?'':'<br><small>오늘 최고 '+twTime(m.best)+'</small>')
     +'<br><small>⬇️ 떨어진 횟수 '+(TW.fall+TW.dead)+' · ⭐ 숨은 별 '+(TW.starN|0)+' / '+((TW.stars||[]).length)+'</small>'+(g?'<div class="iBox">🪙 +'+(g*5)+' <small>(오늘 처음)</small></div>':'')+(TW.mode==="easy"||TW.mode==="kid"?'<br><small>🗼 40층 도전도 해 볼까요?</small>':''), "🏘 마을로", ()=>twLeave()), 1100);
   if(first || rec){ twSocT=0; try{ publish().catch(()=>{}); }catch(e){} }
   twHud(); }
-function twConfetti(){ const c=TW.top.mesh.position; for(let k=0;k<40;k++){ const m=new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), new THREE.MeshBasicMaterial({color:new THREE.Color(TCOL[k%10]), side:THREE.DoubleSide})); m.position.set(c.x+rnd(-0.5,0.5), TW.top.max.y+0.5, c.z+rnd(-0.5,0.5)); m.userData.v=new THREE.Vector3(rnd(-2.5,2.5), rnd(4,8), rnd(-2.5,2.5)); m.userData.shard=1; towerG.add(m); } }
-const twTime=s=>{ s=Math.max(0,s); const m=Math.floor(s/60), ss=s-m*60; return m+":"+(ss<10?"0":"")+ss.toFixed(1); };
+let TWCF=null;   /* (v734 #45) */
+function twConfetti(){ const c=TW.top.mesh.position; if(!TWCF) TWCF={g:new THREE.PlaneGeometry(0.12,0.08), m:TCOL.slice(0,10).map(x=>new THREE.MeshBasicMaterial({color:new THREE.Color(x), side:THREE.DoubleSide}))};
+  for(let k=0;k<40;k++){ const m=new THREE.Mesh(TWCF.g, TWCF.m[k%TWCF.m.length]); m.position.set(c.x+rnd(-0.5,0.5), TW.top.max.y+0.5, c.z+rnd(-0.5,0.5)); m.userData.v=new THREE.Vector3(rnd(-2.5,2.5), rnd(4,8), rnd(-2.5,2.5)); m.userData.shard=1; towerG.add(m); } }
+const twTime=s=>{ const t10=Math.round(Math.max(0,+s||0)*10), m=Math.floor(t10/600), r=t10-m*600; return m+":"+(r<100?"0":"")+(r/10).toFixed(1); };   /* (v734 #46) 0.1초로 먼저 반올림 (예전: 59.98초 = 「0:60.0」 · 9.97초 = 「0:010.0」) */
 function twFloorAt(){ const ys=TW.ys||[]; let f=0; for(let i=0;i<ys.length-1;i++) if(TW.p.y>=ys[i]-0.35) f=i; return f; }   /* (v453) 지금 몸 높이의 층 (0부터) */
 function twHud(){ const n=TW.cps.length-1, f=TW.bot ? TW.cp : twFloorAt(); $("twFloor").textContent=Math.min(f+(TW.fin?0:1), n)+" / "+n+"층"; $("twSec").textContent=TW.fin?"🏆 꼭대기!":(TW_NM[TW.secs[f]]||"")+(TW.secsB&&TW.secsB[f]?" + "+(TW_NM[TW.secsB[f]]||"").split(" ")[0]:"")+((TW.starN|0)?"  ⭐"+TW.starN:""); { const pe=$("twPeers"); if(pe){ const k=twNetCount(); pe.textContent="👥 "+k; pe.classList.toggle("on", k>0); } } $("twBar").style.height=Math.round(Math.max(0,Math.min(1,(TW.p.y)/(TW.hy||1)))*100)+"%"; }
 /* 카메라 — 바깥 옆에서 멀리 (내가 끌면 돌림 · 2.5초 뒤 그 면으로) · 화면이 좁으면 더 멀리 (발판 7칸이 보이게) */
@@ -3230,8 +3243,14 @@ COOK.forEach(r=>{ r.base=Object.keys(r.need).reduce((a,n)=>a+ingBase(n)*r.need[n
 const fishFood=()=>bag.map((b,i)=>({b,i})).filter(x=>!FISH_BY[x.b.en].noRot && !FISH_BY[x.b.en].noCook).sort((a,b)=>((a.b.sh|0)-(b.b.sh|0)) || fresh(a.b)-fresh(b.b));   /* (v414) 오리·수달·펭귄·물개·돌고래·악어·인어는 요리 ✕ · ✨ 반짝이는 맨 나중 */   // 요리엔 가장 오래된 물고기부터
 const haveN=n=>n==="🐟" ? fishFood().length : (mats[n]|0);
 function canMake(r){ return Object.keys(r.need).every(n=>haveN(n)>=r.need[n]) && !(r.once && r.once()); }
-function make(kind, id){ const L=kind==="craft"?CRAFT:COOK, r=L.find(x=>x.id===id); if(!r || !canMake(r)) return false; tEv(kind);
-  if(kind==="cook" && !canAdd(id,1) && !Object.keys(r.need).some(n=>n!=="🐟" && mats[n]===r.need[n])){ fullMsg(); return false; }
+/* (v734 #29) 요리하면 가방 칸이 몇 개가 되나 — 재료(물고기 포함)를 뺀 뒤 요리를 넣어 셈 (예전: 물고기를 써서 칸이 비어도 「가방이 꽉」) */
+function cookFits(r, id){ const cnt={}; bag.forEach(b=>cnt[b.en]=(cnt[b.en]|0)+1); Object.keys(mats).forEach(m=>{ if(mats[m]>0) cnt[m]=mats[m]; });
+  const nf=r.need["🐟"]|0; if(nf){ const F=fishFood(); for(let k=0;k<nf && k<F.length;k++) cnt[F[k].b.en]--; }
+  Object.keys(r.need).forEach(n=>{ if(n!=="🐟") cnt[n]=(cnt[n]|0)-r.need[n]; }); cnt[id]=(cnt[id]|0)+1;
+  let n=0; Object.keys(cnt).forEach(k=>{ if(cnt[k]>0) n+=Math.ceil(cnt[k]/(FISH_BY[k]?FISH_STACK:MAT_STACK)); }); return n<=bagCap; }
+function make(kind, id){ const L=kind==="craft"?CRAFT:COOK, r=L.find(x=>x.id===id); if(!r || !canMake(r)) return false;
+  if(kind==="cook" && !cookFits(r, id)){ fullMsg(); return false; }
+  tEv(kind);   /* (v734 #25) 할 일 · 의뢰 실적 = 정말 만든 뒤에만 (예전: 가방이 꽉 차 못 만들어도 셈) */
   Object.keys(r.need).forEach(n=>{ if(n==="🐟"){ for(let k=0;k<r.need[n];k++){ const f=fishFood()[0]; bag.splice(f.i,1); } saveBag(); updBagBtn(); } else addMat(n, -r.need[n]); });
   if(kind==="craft"){ r.give(); drawInv(); toast(r.e+" "+r.nm+" → "+r.to); say(r.nm==="good rod"?"fishing rod":r.nm==="big bag"?"bag":r.nm); }
   else { addMat(id, 1); toast(MAT[id].e+" "+id+"! 🍽"); say(id); }
@@ -4616,7 +4635,10 @@ if(PAD.blocked){ const d=document.createElement("div"); d.id="padBlock"; d.inner
     +'<button class="btn on" id="pbBack">🎮 게임으로</button><button class="btn" id="pbOwn">🧸 나는 '+esc(PAD.owner.n||"")+'</button></div>'; document.body.appendChild(d);
   $("pbBack").onclick=()=>{ location.href="../index.html"; }; $("pbOwn").onclick=()=>{ try{ sessionStorage.setItem("hyeng_kid", JSON.stringify({id:PAD.owner.k, n:PAD.owner.n, t:PAD.owner.t||"all", pk:Date.now(), at:Date.now(), ok:1})); }catch(e){} location.reload(); }; }
 if(PAD.shared && !PAD.blocked){ const w=$("hWho"); w.hidden=false; w.querySelector("b").textContent=PAD.kid ? String(PAD.kid.n||"").slice(0,8) : "누구?"; w.onclick=async()=>{ if(PAD.kid) await padPush(); openWho(true); };
-  if(!PAD.kid) setTimeout(()=>openWho(false), 300); else setTimeout(()=>padPull().catch(()=>0).then(r=>{ PAD.pulled=true; if(!r && PAD.pend){ PAD.pend=0; padSave(); } }), 200);
+  /* (v734 #1) 받기 실패면 3·6·12…초 뒤 다시 (그동안 이 패드에서 바뀐 것은 패드에만 · 받은 뒤에 올림) */
+  const pullTry=n=>padPull().catch(()=>-1).then(r=>{ if(r<0){ if(n===0) setTimeout(()=>{ try{ if(!PAD.pulled) toast("📡 내 기록을 아직 못 받았어요 — 와이파이가 되면 이어져요", 2600); }catch(e){} }, 1200); setTimeout(()=>pullTry(n+1), Math.min(30000, 3000*Math.pow(2,n))); return; }
+    PAD.pulled=true; if(r!==1 && PAD.pend){ PAD.pend=0; padSave(); } });
+  if(!PAD.kid) setTimeout(()=>openWho(false), 300); else setTimeout(()=>pullTry(0), 200);
   const flush=()=>{ if(PAD.kid && padT){ clearTimeout(padT); padT=0; padPush(); } }; addEventListener("pagehide", flush); document.addEventListener("visibilitychange", ()=>{ if(document.hidden) flush(); }); }   // 나갈 때 바로 서버에
 /* (v414) 🕐 하늘·빛 = 실제 한국 시간 (아침·낮·저녁·밤) · 🌧 비 · ✨ 황금 물고기 떼 알림 */
 const ENV={a:{sky:0xffd6b4, h:0.72, s:0xffc890, si:0.8}, d:{sky:0, h:0.75, s:0xffe2b8, si:0.85}, e:{sky:0xffa77a, h:0.62, s:0xff9a5c, si:0.72}, n:{sky:0x1e2b52, h:0.45, s:0x9fb4ff, si:0.38}};

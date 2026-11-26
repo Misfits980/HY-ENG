@@ -267,7 +267,7 @@ function start(api){
   /* 방장/혼자: 일을 정해서 기록 → 같이면 방에 → 적용 */
   let SEQ=0;
   async function act(a){ a.n=++SEQ; G.A.push(a); if(G.A.length>120) G.A.shift(); if(CO) pub(); await apply(a); G.sq=a.n; if(CO) pubT=Math.max(pubT,1.2); }
-  function snap(){ return {sq:SEQ, A:G.A, s:{P:G.P.map(p=>({h:p.h, c:p.called?1:0, k:p.k||"", nm:p.nm, b:p.bot?1:0, av:p.av||null, bk:p.bk||"base", col:p.col})), dw:G.draw, pl:G.pile, top:G.top?G.top.id:-1, cur:G.cur, dir:G.dir, turn:G.turn, pend:G.pend, over:G.over?1:0, dl:G.dl, hist:G.hist.slice(-80), drew:G.drew?1:0, sq:G.sq}}; }   /* s.sq = 상태가 반영한 일 번호 (A 는 그보다 앞설 수 있음) */
+  function snap(){ return {sq:SEQ, by:(RM&&RM.code)||"", A:G.A, s:{P:G.P.map(p=>({h:p.h, c:p.called?1:0, k:p.k||"", nm:p.nm, b:p.bot?1:0, av:p.av||null, bk:p.bk||"base", col:p.col})), dw:G.draw, pl:G.pile, top:G.top?G.top.id:-1, cur:G.cur, dir:G.dir, turn:G.turn, pend:G.pend, over:G.over?1:0, dl:G.dl, hist:G.hist.slice(-80), drew:G.drew?1:0, sq:G.sq}}; }   /* s.sq = 상태가 반영한 일 번호 (A 는 그보다 앞설 수 있음) */
   let pubT=0; function pub(){ if(!RM) return; pubT=0; RM.put("g", snap()); }
 
   /* ══ 방장 일 ══ */
@@ -366,12 +366,14 @@ function start(api){
     E.querySelector(".go").onclick=()=>{ if(CO){ api.restart({}); return; } api.restart({quick:1, tut:0}); }; }
 
   /* ══ 🎯 미션 · 🎴 뒷면 ══ */
-  const MDAY=dayK(); let MSTORE=st("hyeng_proto_cpm"); if(!MSTORE || MSTORE.d!==MDAY) MSTORE={d:MDAY, p:{}, got:{}, all:0};
-  const MISSP=MSTORE.p;
+  let MDAY=dayK(); let MSTORE=st("hyeng_proto_cpm"); if(!MSTORE || MSTORE.d!==MDAY) MSTORE={d:MDAY, p:{}, got:{}, all:0};
+  let MISSP=MSTORE.p;
+  /* (v734 #43) 게임을 켠 채 자정을 넘기면 오늘 미션을 새 날로 (예전: 켠 날 미션에 더해서 전날로 저장) */
+  function missDay(){ const d=dayK(); if(d===MDAY) return; MDAY=d; const o=st("hyeng_proto_cpm"); MSTORE=(o && o.d===d) ? o : {d, p:{}, got:{}, all:0}; MSTORE.p=MSTORE.p||{}; MSTORE.got=MSTORE.got||{}; MISSP=MSTORE.p; }
   const GK={games:1,win:1,top2:1}, MK={cards:"play"};
   const mv=k=>GK[k] ? (MISSP[k]|0) : (MISSP[MK[k]||k]|0)+(ST[MK[k]||k]|0);   /* ST = 이번 판(끝나면 MISSP 에 더하고 0) */
-  function missList(){ return missToday(MDAY).map(m=>Object.assign({}, m, {v:mv(m.k), ok:!!MSTORE.got[m.k]})); }
-  function missTick(save){ if(TUT) return; const L=missToday(MDAY); let any=false;
+  function missList(){ missDay(); return missToday(MDAY).map(m=>Object.assign({}, m, {v:mv(m.k), ok:!!MSTORE.got[m.k]})); }
+  function missTick(save){ if(TUT) return; missDay(); const L=missToday(MDAY); let any=false;
     L.forEach(m=>{ const cur=mv(m.k);
       if(!MSTORE.got[m.k] && cur>=m.n){ MSTORE.got[m.k]=1; any=true; let got=0; try{ got=TECO.addCoin(m.c)|0; }catch(e){} mtoast('🎯 미션 완료! '+m.t+' · 🪙+'+(got||m.c)); try{ SFX.tone(784,.1,"triangle",.05); SFX.tone(1046,.16,"triangle",.05,0,.1); }catch(e){}
         try{ const r=REC(); r.t.card=r.t.card||{}; r.t.card.ms=(r.t.card.ms|0)+1; st("hyeng_proto_mg", r); }catch(e){} } });
@@ -450,7 +452,7 @@ function start(api){
     act({t:"deal", h:H, dw, top}).then(()=>wait(.6)).then(()=>beginTurn(first)); }
 
   /* ══ 👫 같이 하기 (MG.room · 최대 4명 · 빈자리 봇 · 방장이 판을 돌림) ══ */
-  let hostC="", hostMiss=0;
+  let hostC="", hostMiss=0, pausedAt=0;   /* (v734 #51) */
   const hostCode=()=>{ if(!RM || !RM.d) return hostC; const live=RM.live(true).map(p=>p.k), h=RM.d.h||{}; return live.indexOf(h.c)>=0?h.c:(live[0]||h.c); };
   function startCo(){ CO=true; TUT=false; coachOn=false; phase="room";
     RM=MG.room(api, {pre:"mgc", title:"컬러팡 같이 하기", ic:"🃏", max:4, fill:true, wait:8000, send:.5, poll:.35,
@@ -475,9 +477,11 @@ function start(api){
     if(phase!=="play" && phase!=="end") return;
     const g=RM.d && RM.d.g; const hc=hostCode(); hostMiss=(hc!==hostC)?hostMiss+dt:0; if(hc!==hostC && hostMiss>7) hostC=hc;   /* 방장이 7초 넘게 안 보일 때만 바뀜 */
     const amHost=hostC===RM.code;
-    if(amHost && !HOST){ HOST=true; /* 방장이 나감 → 내가 이어서 */ if(g && g.sq>G.sq) hardSync(g); SEQ=Math.max(SEQ, G.sq|0, (g && g.sq)|0);   /* (v718) 이어받은 방장의 일 번호가 1부터 다시 시작해 친구들이 「옛것」으로 보고 안 따라 함(방장이 판 중간에 나가도 멈춤) → 지금까지 번호 다음부터 */ const w0=G.P.length ? G.P.findIndex(p=>p.h && !p.h.length) : -1; if(!G.over && w0>=0){ later(.3, ()=>{ if(!G.over && !G.lock) finishGame(w0); }); } else if(!G.over){ feed('👑 내가 방장이 되었어요'); later(.3, ()=>{ if(!G.lock && !Q.length) beginTurn(G.turn<0?0:G.turn); }); } else endCatch(g); }
+    if(amHost && !HOST){ HOST=true; try{ if(RM.path && RM.d && RM.d.h && RM.d.h.c!==RM.code){ RM.d.h.c=RM.code; NET.patch(RM.path+"/h", {c:RM.code}).catch(()=>{}); } }catch(e){}   /* (v734 #41) 이어받은 방장을 방에 적음 → 옛 방장이 돌아와도 방장은 그대로 */ /* 방장이 나감 → 내가 이어서 */ if(g && g.sq>G.sq) hardSync(g); SEQ=Math.max(SEQ, G.sq|0, (g && g.sq)|0);   /* (v718) 이어받은 방장의 일 번호가 1부터 다시 시작해 친구들이 「옛것」으로 보고 안 따라 함(방장이 판 중간에 나가도 멈춤) → 지금까지 번호 다음부터 */ const w0=G.P.length ? G.P.findIndex(p=>p.h && !p.h.length) : -1; if(!G.over && w0>=0){ later(.3, ()=>{ if(!G.over && !G.lock) finishGame(w0); }); } else if(!G.over){ feed('👑 내가 방장이 되었어요'); later(.3, ()=>{ if(!G.lock && !Q.length) beginTurn(G.turn<0?0:G.turn); }); } else endCatch(g); }
+    if(HOST && g && g.by && g.by!==RM.code && (g.sq|0)>(SEQ|0)){ HOST=false; hostC=g.by; hostMiss=0; synced=false; feed('👑 '+esc(((G.P.find(p=>p.k===g.by)||{}).nm)||"친구")+' 이(가) 방장이에요'); }   /* (v734 #41) 끊겼다 돌아온 옛 방장 = 앞선 판을 받아서 따라감 (예전: 둘이 같이 판을 보냄) */
+    if(HOST && !amHost && hostMiss===0 && hostC!==RM.code){ HOST=false; synced=false; }
     if(HOST){ pubT+=dt; if(pubT>1.5 && RM.path) pub();
-      /* 나간 친구 → 봇 */ const live=RM.live(true).map(p=>p.k); G.P.forEach((p,i)=>{ if(!p.bot && p.k && p.k!==RM.code && live.indexOf(p.k)<0){ p.gone=(p.gone||0)+dt; if(p.gone>8){ p.bot=true; feed('🚪 '+esc(p.nm)+' 나감 → 🤖'); if(G.turn===i && !G.lock && !G.over) later(.5,()=>botMove(i)); } } else p.gone=0; });
+      /* 나간 친구 → 봇 */ const live=RM.live(true).map(p=>p.k); G.P.forEach((p,i)=>{ if(!p.bot && p.k && p.k!==RM.code && live.indexOf(p.k)<0){ p.gone=(p.gone||0)+dt; if(p.gone>8){ p.bot=true; feed('🚪 '+esc(p.nm)+' 나감 → 🤖'); if(G.turn===i && !G.lock && !G.over) later(.5,()=>botMove(i)); } } else { p.gone=0; if(p.bot && p.k && p.k!==RM.code && live.indexOf(p.k)>=0 && G.turn!==i && !G.over){ p.bot=false; feed('🔌 '+esc(p.nm)+' 돌아왔어요'); } } });   /* (v734 #42) 예전: 한 번 🤖 가 되면 친구가 돌아와도 끝까지 봇 */
       return; }
     if(!g || !g.A) return;
     if(G.endOn) return;   /* (v718) 끝 화면이 뜬 뒤엔 늦게 온 옛 방 상태로 되돌리지 않음 */
@@ -536,7 +540,7 @@ function start(api){
       rn.setScissorTest(false); const c=rn.domElement; rn.setViewport(0,0,c.width/rn.getPixelRatio(),c.height/rn.getPixelRatio()); } }
     MG.draw(scene, cam); }
   function dispose(){ gone=true; TM.length=0; FLY.length=0; Q.length=0; coachClear(); try{ avFree(PSc); }catch(e){}   /* (v714) 얼굴 사진 장면의 합친 아바타 도형 */ try{ if(RM) RM.dispose(); }catch(e){} try{ U.classList.remove("cpOn"); HUD.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); TEX.forEach(e=>{ try{ e.t.dispose(); e.m.dispose(); }catch(_){} }); TEX.clear(); }
-  return {scene, cam, tick, render, dispose, pause:(v)=>{ paused=!!v; }, G, SEATS, ST, CARD, okC, get phase(){ return phase; }, get ME(){ return ME; }, get HOST(){ return HOST; }, get RM(){ return RM; }, get TUT(){ return TUT; }, get coach(){ return Object.assign({}, COACH); },
+  return {scene, cam, tick, render, dispose, pause:(v)=>{ v=!!v; if(v && !paused) pausedAt=now(); else if(!v && paused && !CO && pausedAt && G.dl) G.dl+=now()-pausedAt; if(!v) pausedAt=0; paused=v; }, G, SEATS, ST, CARD, okC, get phase(){ return phase; }, get ME(){ return ME; }, get HOST(){ return HOST; }, get RM(){ return RM; }, get TUT(){ return TUT; }, get coach(){ return Object.assign({}, COACH); },
     get auto(){ return auto; }, set auto(v){ auto=!!v; if(auto && isMyTurn()) later(.1, autoMove); }, set fast(v){ fast=v?1:0; FASTX=!!v; }, get fast(){ return !!fast; }, get ready(){ return ready; },
     tapCard, myDraw:()=>input(G.drew && G.pend<=0?"pass":"draw"), callOne:()=>input("one"), menuGo, menuShow, cmd, drawHand, isMyTurn, missList, SET, input}; }
 

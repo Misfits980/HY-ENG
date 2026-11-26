@@ -49,12 +49,12 @@ const TFAC=(()=>{
   const close=id=>{ const d=$(id); if(d) d.classList.remove("on"); };
   const hd=(t,s)=>'<h3>'+t+'<small>'+(s||"")+'</small><button class="x" aria-label="닫기">✕</button></h3>';
   /* 그림 → 영어 3~4개 중 고르기 (한 문제) */
-  function pick1(title, e, ans, pool, then, opt){ opt=opt||{}; let q=$("hqP"); if(!q){ HLIFE.quiz("", [], ()=>{}); q=$("hqP"); } const box=q.querySelector(".b");
+  function pick1(title, e, ans, pool, then, opt){ opt=opt||{}; let q=$("hqP"); if(!q){ HLIFE.quiz("", [], ()=>{}); q=$("hqP"); } const box=q.querySelector(".b"); const tk=q._tk=(q._tk|0)+1; delete box.dataset.lock;   /* (v734 #33) 문제마다 번호 — 앞 문제 타이머는 새 문제를 안 닫음 */
     const opts=[ans]; let g=0; while(opts.length<(opt.n||4) && g++<80){ const x=pool[Math.floor(Math.random()*pool.length)]; if(x && opts.indexOf(x)<0) opts.push(x); } opts.sort(()=>Math.random()-.5);
     box.innerHTML='<div class="t">'+title+'</div><div class="e">'+e+'</div><div class="k">'+(opt.ask||"영어로?")+'</div><div class="o">'+opts.map(o=>'<button data-w="'+esc(o)+'">'+esc(o)+'</button>').join("")+'</div>';
     box.onclick=ev=>{ const b=ev.target.closest("[data-w]"); if(!b || box.dataset.lock) return; const r=b.dataset.w===ans; if(!r && opt.retry){ b.classList.add("w"); try{ SND.snap(); say(ans); }catch(_){} setTimeout(()=>b.classList.remove("w"),500); return; }
       box.dataset.lock=1; b.classList.add(r?"r":"w"); box.querySelectorAll("[data-w]").forEach(x=>{ if(x.dataset.w===ans) x.classList.add("r"); }); try{ say(ans); (r?SND.win:SND.snap)(); }catch(_){}
-      setTimeout(()=>{ delete box.dataset.lock; q.classList.remove("on"); then(r); }, 900); };
+      setTimeout(()=>{ if(q._tk===tk){ delete box.dataset.lock; q.classList.remove("on"); } then(r); }, 900); };
     q.classList.add("on"); }
 
   /* ═════════ 🏗 건물 (isle.js build 가 부름) ═════════ */
@@ -215,9 +215,11 @@ const TFAC=(()=>{
   function openPost(tab){ tab=tab||"in"; const d=show("tfPo", hd("📮 우체국", "영어 편지 · 하루 3통 보내기")+'<div class="tfTabs"><button data-tab="in" class="'+(tab==="in"?"on":"")+'">📬 받은 편지'+(MAIL.unread?" ("+MAIL.unread+")":"")+'</button><button data-tab="out" class="'+(tab==="out"?"on":"")+'">✏️ 편지 쓰기</button></div><div id="tfPoB"><p>불러오는 중…</p></div>');
     d.querySelector(".tfTabs").onclick=e=>{ const b=e.target.closest("[data-tab]"); if(b) openPost(b.dataset.tab); };
     if(tab==="in") loadMail().then(()=>drawInbox()); else writeTo(); }
-  function drawInbox(){ const B=$("tfPoB"); if(!B) return; const R=readSet();
-    B.innerHTML=MAIL.list.length ? '<div class="hlList">'+MAIL.list.slice(0,30).map(m=>'<button data-m="'+esc(m.id)+'"><span style="font-size:26px">'+(R.indexOf(m.id)<0?"💌":m.st)+'</span><span><b style="font-weight:400">'+esc(m.n)+'</b><br><small style="color:#8a6a4a">'+(R.indexOf(m.id)<0?"새 편지! 눌러서 읽어요":esc(m.en))+'</small></span>'+(m.g?'<em>🎁</em>':'')+'</button>').join("")+'</div>' : '<p style="text-align:center;color:#8a6a4a">아직 편지가 없어요</p>';
-    B.onclick=e=>{ const b=e.target.closest("[data-m]"); if(!b) return; const m=MAIL.list.find(x=>x.id===b.dataset.m); if(m) readMail(m); }; }
+  let inboxAll=false;
+  function drawInbox(){ const B=$("tfPoB"); if(!B) return; const R=readSet(), un=m=>R.indexOf(m.id)<0?0:1;
+    const LS=MAIL.list.slice().sort((a,b)=>un(a)-un(b) || b.t-a.t), more=!inboxAll && LS.length>30;   /* (v734 #15) 안 읽은 편지를 먼저 · 30통 넘으면 「더 보기」 (예전: 새것 30통만 · 오래된 안 읽은 편지는 못 엶) */
+    B.innerHTML=LS.length ? '<div class="hlList">'+LS.slice(0, more?30:LS.length).map(m=>'<button data-m="'+esc(m.id)+'"><span style="font-size:26px">'+(R.indexOf(m.id)<0?"💌":m.st)+'</span><span><b style="font-weight:400">'+esc(m.n)+'</b><br><small style="color:#8a6a4a">'+(R.indexOf(m.id)<0?"새 편지! 눌러서 읽어요":esc(m.en))+'</small></span>'+(m.g?'<em>🎁</em>':'')+'</button>').join("")+'</div>'+(more?'<div class="tfRow"><button data-more style="font-size:15px">📬 편지 더 보기 ('+(LS.length-30)+')</button></div>':'') : '<p style="text-align:center;color:#8a6a4a">아직 편지가 없어요</p>';
+    B.onclick=e=>{ if(e.target.closest("[data-more]")){ inboxAll=true; drawInbox(); return; } const b=e.target.closest("[data-m]"); if(!b) return; const m=MAIL.list.find(x=>x.id===b.dataset.m); if(m) readMail(m); }; }
   function readMail(m){ const R=readSet(), fresh=R.indexOf(m.id)<0; if(fresh){ R.push(m.id); store("hyeng_proto_mailr", R.slice(-80)); MAIL.unread=Math.max(0,MAIL.unread-1); }
     const B=$("tfPoB"); B.innerHTML='<div class="tfCard"><div class="ko">From. <b>'+esc(m.n)+'</b></div><div class="big">'+m.st+'</div><div class="en">'+esc(m.en)+'</div><div class="ko">'+esc(m.ko)+'</div>'+(m.g?'<div style="margin-top:8px;font-size:15px">🎁 선물: '+MAT[m.g].e+' <b>'+esc(m.g)+'</b></div>':'')+'</div><div class="tfRow"><button data-say>🔊 듣기</button><button data-back>📬 목록</button>'+(m.npc?'':'<button data-reply>✏️ 답장</button>')+'</div>';
     try{ say(m.en); }catch(e){}
@@ -227,6 +229,7 @@ const TFAC=(()=>{
     const L=[]; Object.values(S).forEach(v=>{ if(v && v.c && v.k!==me && v.c!==myCode && !seen[v.c]){ seen[v.c]=1; L.push({c:v.c, n:String(v.n||"친구").slice(0,8)}); } }); return L; }
   async function writeTo(to){ const B=$("tfPoB"); if(!B) return; const D=daily("mail"), sentTo=(store("hyeng_proto_mails")||{}); const today=sentTo.d===day()?sentTo.to||[]:[];
     if(D.n>=3){ B.innerHTML='<p style="text-align:center">✉️ 오늘은 3통 다 보냈어요 — 내일 또 써요!</p>'; return; }
+    if(to && today.indexOf(to.c)>=0){ B.innerHTML='<p style="text-align:center">✉️ <b>'+esc(to.n)+'</b> 에게는 오늘 벌써 보냈어요 — 내일 답장해요!</p><div class="tfRow"><button data-back>📬 목록</button></div>'; B.onclick=e=>{ if(e.target.closest("[data-back]")) drawInbox(); }; return; }   /* (v734 #28) 답장으로는 같은 친구에게 또 보낼 수 있던 것 */
     if(!to){ B.innerHTML='<p>누구에게 보낼까요? <small>(오늘 '+(3-D.n)+'통 더)</small></p><div class="hlList" id="tfTo"><p>찾는 중…</p></div>'; const F=await friends();
       const NP=NPCM.map(x=>({c:"npc:"+x[0], n:x[0], npc:1})); const all=F.concat(NP);
       $("tfTo").innerHTML=all.map(f=>'<button data-c="'+esc(f.c)+'" data-n="'+esc(f.n)+'"'+(today.indexOf(f.c)>=0?' disabled style="opacity:.5"':'')+'><span style="font-size:24px">'+(f.npc?"👩‍🌾":"🏠")+'</span><span>'+esc(f.n)+(f.npc?' <small style="color:#8a6a4a">마을 사람</small>':'')+'</span><em>'+(today.indexOf(f.c)>=0?"오늘 보냄":"✏️")+'</em></button>').join("");
@@ -263,15 +266,19 @@ const TFAC=(()=>{
       tools:'<span>🍗 배부름 '+heartTxt()+' · 배부르면 ⚡ 빨리 달리고, 배고프면 느려져요</span>',
       tabs:[{k:"snack", t:"🍦 간식", mode:"buy", items:()=>SNACK.map(([n,e,p,h])=>({id:n, e, en:n, sub:"🍗 +"+h+" · 🎒 "+(mats[n]|0), price:p*5})),
         act:B=>{ const tot=B.reduce((s,[n,q])=>s+SNACK.find(x=>x[0]===n)[2]*5*q,0); if(TECO.coins()<tot) return {n:0, msg:["Oh no, not enough coins!","🪙 가 모자라요"]};
+          if(!fitsAll(B)) return {n:0, msg:["Your bag is full!","🎒 가방 칸이 모자라요 — 팔거나 창고에 넣고 와요"]};   /* (v734 #16) 예전: 가방 칸 확인 없이 들어감 */
           const S=SNACK.find(x=>x[0]===B[0][0]); SHOPUI.close();
-          pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!TECO.pay2({g:0,c:tot})) return; let n=0; B.forEach(([m,q])=>{ addMat(m,q); n+=q; }); saveBag(); try{ say("Here you are"); }catch(_){} toast("👩‍🍳 \"Here you are!\" "+B.map(([m,q])=>SNACK.find(x=>x[0]===m)[1]+(q>1?"×"+q:"")).join(" ")+" → 🎒", 1800); openSnack(); }, {ask:'👩‍🍳 "What would you like?"<br><small>'+S[1]+' 이 간식은 영어로?</small>', n:3, retry:1});
+          pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!fitsAll(B)){ fullMsg(); return; } if(!TECO.pay2({g:0,c:tot})) return; let n=0; B.forEach(([m,q])=>{ addMat(m,q); n+=q; }); saveBag(); try{ say("Here you are"); }catch(_){} toast("👩‍🍳 \"Here you are!\" "+B.map(([m,q])=>SNACK.find(x=>x[0]===m)[1]+(q>1?"×"+q:"")).join(" ")+" → 🎒", 1800); openSnack(); }, {ask:'👩‍🍳 "What would you like?"<br><small>'+S[1]+' 이 간식은 영어로?</small>', n:3, retry:1});
           return {n:0}; }}]}); return; }
     const d=show("tfSn", hd("🍦 간식 가게", "영어로 주문해요 · 🪙 <b>"+TECO.coins()+"</b>")+'<div class="tfCard" style="text-align:left;display:flex;gap:10px;align-items:center"><span style="font-size:40px">👩‍🍳</span><span><b style="font:800 18px var(--en)">"What would you like?"</b><br><small>먹고 싶은 걸 눌러요 — 영어 이름을 맞히면 주문 끝!</small></span></div>'
       +'<div class="hlList">'+SNACK.map(([n,e,p,h])=>'<button data-sn="'+esc(n)+'"><span style="font-size:30px">'+e+'</span><span><b style="font:800 16px var(--en)">'+esc(n)+'</b><br><small style="color:#8a6a4a">🍗 +'+h+' · 가방에 '+(mats[n]|0)+'</small></span><em>🪙 '+(p*5)+'</em></button>').join("")+'</div>'
       +'<p style="font-size:13px;color:#8a6a4a;margin:6px 4px">🍗 배부름 '+heartTxt()+' · 배부르면 ⚡ 빨리 달리고, 배고프면 느려져요 · 🍳 요리한 음식도 먹을 수 있어요</p>');
     try{ say("What would you like"); }catch(e){}
     d.querySelector(".lb").onclick=e=>{ const b=e.target.closest("[data-sn]"); if(!b) return; const S=SNACK.find(x=>x[0]===b.dataset.sn); if(TECO.coins()<S[2]*5){ TECO.pay2({g:0,c:S[2]*5}); return; } close("tfSn");   /* (v563) 간식 = 🪙 */
-      pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!TECO.pay2({g:0,c:S[2]*5})) return; addMat(S[0],1); saveBag(); try{ say("Here you are"); }catch(_){} toast("👩‍🍳 \"Here you are!\" "+S[1]+" → 🎒", 1700); openSnack(); }, {ask:'👩‍🍳 "What would you like?"<br><small>이 간식은 영어로?</small>', n:3, retry:1}); }; }
+      if(!fitsAll([[S[0],1]])){ fullMsg(); return; }
+      pick1("🍦 주문하기", S[1], S[0], SNACK.map(x=>x[0]), r=>{ if(!fitsAll([[S[0],1]])){ fullMsg(); return; } if(!TECO.pay2({g:0,c:S[2]*5})) return; addMat(S[0],1); saveBag(); try{ say("Here you are"); }catch(_){} toast("👩‍🍳 \"Here you are!\" "+S[1]+" → 🎒", 1700); openSnack(); }, {ask:'👩‍🍳 "What would you like?"<br><small>이 간식은 영어로?</small>', n:3, retry:1}); }; }
+  /* 여러 가지를 한 번에 담을 칸이 있나 (가방 칸 = 종류마다 묶음) */
+  const fitsAll=B=>{ try{ let extra=0; B.forEach(([n,q])=>{ const cur=mats[n]|0; extra+=Math.ceil((cur+q)/MAT_STACK)-Math.ceil(cur/MAT_STACK); }); return slots().length+extra<=bagCap; }catch(e){ return true; } };
   const heartTxt=()=>{ const h=Math.round(full()); return "❤️".repeat(h)+"🤍".repeat(5-h); };
   function openMe(){ const P=PET(), foods=Object.keys(mats).filter(n=>(mats[n]|0)>0 && foodV(n));
     const d=show("tfMe", hd("🍗 배부름 · 🐾 내 펫", "")+'<div class="tfCard"><div style="font-size:28px">'+heartTxt()+'</div><div class="ko">'+(full()>=4.5?"⚡ 배불러요! 마을에서 더 빨리 달려요":full()<=.01?"😵 배고파요… 느려졌어요 — 뭐라도 먹어요":"🙂 괜찮아요 · 2시간마다 하트 1개씩 줄어요")+'</div></div>'
@@ -331,10 +338,10 @@ const TFAC=(()=>{
     h+='<p style="margin:8px 4px 4px">'+(P?'🔁 다른 친구로 바꾸기 (재주는 그대로)':'🐾 같이 다닐 친구를 골라요')+'</p><div class="tfGrid">'+PETS.map(p=>'<button data-buy="'+p.k+'"'+(P&&P.t===p.k?' class="no"':'')+'><i>'+p.ic+'</i><span>'+p.nm+'</span><b>💎 '+p.p+'</b></button>').join("")+'</div>';
     const d=show("tfPt", h);
     d.querySelector(".lb").onclick=e=>{ if(e.target.closest("[data-food]")){ if(!TECO.pay2({g:0,c:10})) return; addMat("pet food",1); saveBag(); try{ say("pet food"); SND.pop(); }catch(_){} openPet(); return; }
-      const b=e.target.closest("[data-buy]"); if(b){ const p=PETS_BY[b.dataset.buy]; if(P && P.t===p.k) return; ask(p.ic+" <b>"+p.nm+"</b> 를 데려갈까요? (💎 "+p.p+")", ()=>{ if(!spend(p.p)) return; const old=PET(); if(old){ old.t=p.k; store("hyeng_proto_pet", old); petSync(); trick("happy"); openPet(); return; } pickName(p); }); return; }
+      const b=e.target.closest("[data-buy]"); if(b){ const p=PETS_BY[b.dataset.buy]; if(P && P.t===p.k) return; ask(p.ic+" <b>"+p.nm+"</b> 를 데려갈까요? (💎 "+p.p+")", ()=>{ const old=PET(); if(old){ if(!spend(p.p)) return; old.t=p.k; store("hyeng_proto_pet", old); petSync(); trick("happy"); openPet(); return; } if(gems<p.p){ spend(p.p); return; } pickName(p); }); return; }   /* (v734 #19) 첫 펫 = 이름을 고른 뒤에 💎 (예전: 💎 먼저 → 이름 창을 닫으면 펫 없이 💎 만 빠짐) */
       petClick(e, openPet); }; }
-  function pickName(p){ const d=show("tfPt", hd("🐾 이름 지어 주기", p.ic+" "+p.nm)+'<div class="tfRow">'+PNAME.map(n=>'<button data-nm="'+n+'">'+n+'</button>').join("")+'</div>');
-    d.querySelector(".lb").onclick=e=>{ const b=e.target.closest("[data-nm]"); if(!b) return; store("hyeng_proto_pet", {t:p.k, n:b.dataset.nm, h:4, fed:T(), tr:[]}); addMat("pet food",2); saveBag(); petSync(); trick("happy"); try{ say(b.dataset.nm); SND.big(); tEv("pet"); emote(hero,"💖"); }catch(_){} close("tfPt");
+  function pickName(p){ const d=show("tfPt", hd("🐾 이름 지어 주기", p.ic+" "+p.nm+" · 이름을 누르면 💎 "+p.p)+'<div class="tfRow">'+PNAME.map(n=>'<button data-nm="'+n+'">'+n+'</button>').join("")+'</div>');
+    d.querySelector(".lb").onclick=e=>{ const b=e.target.closest("[data-nm]"); if(!b) return; if(PET()){ close("tfPt"); return; } if(!spend(p.p)){ close("tfPt"); return; } store("hyeng_proto_pet", {t:p.k, n:b.dataset.nm, h:4, fed:T(), tr:[]}); addMat("pet food",2); saveBag(); petSync(); trick("happy"); try{ say(b.dataset.nm); SND.big(); tEv("pet"); emote(hero,"💖"); }catch(_){} close("tfPt");
       toast(p.ic+" <b>"+b.dataset.nm+"</b> 이(가) 나를 따라와요!<br><small>🦴 밥 2개 선물 · 오른쪽 위 "+p.ic+" 단추로 돌봐요</small>", 3000); updPill(); }; }
 
   /* ═════════ 🏛 박물관 ═════════ */
@@ -345,7 +352,7 @@ const TFAC=(()=>{
   async function loadMus(){ let v=null; try{ v=await NET.get("/hy/isle/museum"); }catch(e){} MUS=Object.assign({}, store("hyeng_proto_mus")||{}, v||{}); return MUS; }
   function openMuseum(){ show("tfMu", hd("🏛 마을 박물관", "기증하면 마을 모두가 봐요 · 내 이름이 남아요")+'<p>불러오는 중…</p>'); loadMus().then(drawMus); }
   function drawMus(){ const d=$("tfMu"); if(!d || !d.classList.contains("on")) return; const CAT=MUSC(), all=CAT.reduce((a,c)=>a+c[2].length,0), got=CAT.reduce((a,c)=>a+c[2].filter(x=>MUS[mkey(x[0])]).length,0), cur=CAT.find(c=>c[0]===musTab)||CAT[0];
-    d.querySelector(".lb").innerHTML=hd("🏛 마을 박물관", "기증하면 마을 모두가 봐요 · 내 이름이 남아요")+'<div class="tfBar"><i style="width:'+(got/all*100)+'%"></i></div><p style="margin:0 4px 6px;font-size:14px">마을 전시 <b>'+got+' / '+all+'</b> · 기증하면 🪙25</p>'
+    d.querySelector(".lb").innerHTML=hd("🏛 마을 박물관", "기증하면 마을 모두가 봐요 · 내 이름이 남아요")+'<div class="tfBar"><i style="width:'+(got/all*100)+'%"></i></div><p style="margin:0 4px 6px;font-size:14px">마을 전시 <b>'+got+' / '+all+'</b> · '+(daily("mus").n<2?'기증하면 🪙25 (오늘 '+(2-daily("mus").n)+'번 더)':'오늘 기증 🪙 는 다 받았어요 (이름표는 붙어요)')+'</p>'
       +'<div class="tfTabs">'+CAT.map(c=>'<button data-mt="'+c[0]+'" class="'+(c[0]===cur[0]?"on":"")+'">'+c[1]+' '+c[2].filter(x=>MUS[mkey(x[0])]).length+'/'+c[2].length+'</button>').join("")+'</div>'
       +'<div class="tfGrid">'+cur[2].map(([n,e])=>{ const m=MUS[mkey(n)]; if(m) return '<button data-sy="'+esc(n)+'"><i>'+e+'</i><b>'+esc(n)+'</b><span>🏷 '+esc(String(m.n||"친구").slice(0,8))+'</span></button>'; const can=hasIt(cur[0],n); return '<button data-dn="'+esc(n)+'" class="'+(can?"can":"no")+'"><i>'+(can?e:"❔")+'</i><span>'+(can?"🎁 기증하기":"아직 없어요")+'</span></button>'; }).join("")+'</div>';
     d.querySelector(".lb").onclick=e=>{ const t=e.target.closest("[data-mt]"); if(t){ musTab=t.dataset.mt; drawMus(); return; } const s=e.target.closest("[data-sy]"); if(s){ try{ say(s.dataset.sy); }catch(_){} return; }
@@ -354,15 +361,30 @@ const TFAC=(()=>{
     pick1("🏛 기증하기 — 이름표 붙이기", e, n, cat[2].map(x=>x[0]), async r=>{ if(!r){ toast("🏷 이름표가 틀렸어요 — 다시 해 봐요<br><b>"+e+" = "+esc(n)+"</b>", 2200); openMuseum(); return; }
       let ex=null; try{ ex=await NET.get("/hy/isle/museum/"+mkey(n)); }catch(_){} if(ex){ MUS[mkey(n)]=ex; toast("😮 방금 "+esc(ex.n||"친구")+" 이(가) 먼저 기증했어요!", 2000); openMuseum(); return; }
       if(!hasIt(cat[0],n)){ openMuseum(); return; }
+      /* (v734 #20) 예전: 물건을 먼저 빼고 서버 저장 실패는 넘김 → 전시엔 없는데 물건만 사라짐 · 둘이 같이 기증하면 둘 다 빠짐
+         → 서버에 먼저 쓰고 · 다시 읽어 내 이름이 남았을 때만 물건을 뺌 */
+      const rec={c:myCode, n:nick(), t:T()}; let mine=false;
+      try{ await NET.put("/hy/isle/museum/"+mkey(n), rec); const back=await NET.get("/hy/isle/museum/"+mkey(n)); mine=!!back && back.c===rec.c && back.t===rec.t; if(back && !mine) MUS[mkey(n)]=back; }
+      catch(_){ let b2=null; try{ b2=await NET.get("/hy/isle/museum/"+mkey(n)); }catch(__){} if(b2 && b2.c!==rec.c){ MUS[mkey(n)]=b2; toast("😮 방금 "+esc(b2.n||"친구")+" 이(가) 먼저 기증했어요! 물건은 그대로예요", 2200); openMuseum(); return; }   /* 서버 규칙 = 처음 기증한 아이만 (거부되면 누가 먼저인지 봄) */
+        toast("📡 박물관에 못 보냈어요 — 물건은 그대로예요 · 와이파이를 보고 다시 해 봐요", 2400); openMuseum(); return; }
+      if(!mine){ toast("😮 방금 "+esc((MUS[mkey(n)]||{}).n||"친구")+" 이(가) 먼저 기증했어요! 물건은 그대로예요", 2200); openMuseum(); return; }
+      if(!hasIt(cat[0],n)){ openMuseum(); return; }
       if(cat[0]==="fish"){ const i=bag.findIndex(it=>it.en===n); bag.splice(i,1); } else addMat(n,-1); saveBag();
-      const rec={c:myCode, n:nick(), t:T()}; MUS[mkey(n)]=rec; const L=store("hyeng_proto_mus")||{}; L[mkey(n)]=rec; store("hyeng_proto_mus", L); try{ await NET.put("/hy/isle/museum/"+mkey(n), rec); }catch(_){}
-      try{ tEv("museum"); emote(hero,"🏛"); }catch(_){} { const Dm=daily("mus"); if(Dm.n<2){ Dm.add(); payC(5, "🏛 "+e+" "+n+" 기증"); } else toast("🏛 "+e+" "+n+" 기증! 🏷 내 이름이 붙었어요<br><small>기증 💎 는 하루 두 번까지</small>", 2200); } openMuseum(); }   /* (v561) QA: 마트에서 사서 기증하면 하루 💎110 — 하루 💎10 까지 */, {ask:"🏷 이 전시물의 영어 이름은?"}); }
+      MUS[mkey(n)]=rec; const L=store("hyeng_proto_mus")||{}; L[mkey(n)]=rec; store("hyeng_proto_mus", L);
+      try{ tEv("museum"); emote(hero,"🏛"); }catch(_){} { const Dm=daily("mus"); if(Dm.n<2){ Dm.add(); payC(5, "🏛 "+e+" "+n+" 기증"); } else toast("🏛 "+e+" "+n+" 기증! 🏷 내 이름이 붙었어요<br><small>기증 🪙 는 하루 두 번까지 (오늘 다 받았어요)</small>", 2200); } openMuseum(); }   /* (v561) QA: 마트에서 사서 기증하면 하루 💎110 — 하루 💎10 까지 */, {ask:"🏷 이 전시물의 영어 이름은?"}); }
 
   /* ═════════ 📸 사진관 ═════════ */
   const BGS=[["rainbow","🌈",["#ffd6e8","#d6ebff","#d8f5cc"],"🌈⭐"],["beach","🏖",["#8fd3f0","#cfeffc","#ffe8a8"],"🐚🌊"],["space","🚀",["#1d1b4a","#3b2f7a","#6a4bb0"],"⭐🪐"],["flower","🌸",["#ffe0ef","#fff3c4","#d8f5cc"],"🌸🌼"],["castle","🏰",["#e6dcff","#fff3e0","#ffd0d0"],"👑✨"]];
   const CAPS=["Best day ever!","Hello, friends!","I love my town!","Me and my pet!","Happy Halloween!","Merry Christmas!","Cheese!"];
   const POSES=[["yay","🙌"],["wave","👋"],["dance","💃"],["idle","🙂"]];
-  const album=()=>store("hyeng_proto_album")||[];
+  /* (v734 #30) 앨범 = 6칸 (칸 번호 s 가 안 바뀜) — 예전: 새 사진을 맨 앞에 끼워서 걸어 둔 액자 사진이 다 한 칸씩 밀렸음
+     새 사진 = 빈 칸 · 6칸이 다 차면 가장 오래된 칸 · 보여 줄 땐 새것부터 */
+  const albumRaw=()=>{ const A=store("hyeng_proto_album")||[]; let ch=false; A.forEach((a,i)=>{ if(a && a.s==null){ a.s=i; ch=true; } }); if(ch) store("hyeng_proto_album", A); return A.filter(a=>a && a.d); };
+  const album=()=>albumRaw().slice().sort((a,b)=>(b.t||0)-(a.t||0));
+  function albumAdd(o){ const A=albumRaw(); let s=-1; for(let i=0;i<6;i++) if(!A.some(a=>a.s===i)){ s=i; break; }
+    if(s<0){ const old=A.reduce((m,a)=>(!m || (a.t||0)<(m.t||0))?a:m, null); s=old.s; A.splice(A.indexOf(old),1); }
+    A.push(Object.assign({s}, o)); store("hyeng_proto_album", A.sort((a,b)=>a.s-b.s)); }
+  const albumAt=c=>{ const A=albumRaw().sort((a,b)=>a.s-b.s); if(!A.length) return null; return A.find(a=>a.s===(c|0)%6) || A[(c|0)%A.length]; };
   let ph={bg:0, cap:0, pose:0};
   function openPhoto(){ const A=album(); const d=show("tfPh", hd("📸 사진관", "배경·포즈·영어 한 줄 → 찰칵! · 🖼 액자로 방에 걸어요")
       +'<p style="margin:2px 4px">배경</p><div class="tfRow">'+BGS.map((b,i)=>'<button data-bg="'+i+'" class="'+(ph.bg===i?"sel":"")+'" style="font-size:24px">'+b[1]+'</button>').join("")+'</div>'
@@ -370,8 +392,9 @@ const TFAC=(()=>{
       +'<p style="margin:2px 4px">영어 한 줄</p><div class="tfRow">'+CAPS.map((c,i)=>'<button data-cp="'+i+'" class="'+(ph.cap===i?"sel":"")+'" style="font-size:14px">'+c+'</button>').join("")+'</div>'
       +'<button class="hlBig" data-shoot>📸 찰칵! (🪙 10)</button>'+(A.length?'<p style="margin:6px 4px">📒 내 앨범 '+A.length+' / 6</p><div class="tfRow">'+A.map((a,i)=>'<img src="'+a.d+'" alt="" style="width:76px;border-radius:8px;border:2.5px solid #3b2433">').join("")+'</div>':''));
     d.querySelector(".lb").onclick=e=>{ const g=(k,a)=>{ const b=e.target.closest("["+a+"]"); if(b){ ph[k]=+b.getAttribute(a); if(k==="cap") try{ say(CAPS[ph.cap]); }catch(_){} openPhoto(); return true; } }; if(g("bg","data-bg")||g("pose","data-po")||g("cap","data-cp")) return;
-      if(e.target.closest("[data-shoot]")){ if(!TECO.pay2({g:0,c:10})) return; let url=""; try{ url=shoot(); }catch(err){ console.warn(err); } if(!url){ toast("📸 사진을 못 찍었어요", 1500); return; }
-        const A2=album(); A2.unshift({d:url, t:T()}); store("hyeng_proto_album", A2.slice(0,6)); addStock("photo"); try{ SND.big(); tEv("photo"); say(CAPS[ph.cap]); }catch(_){}
+      if(e.target.closest("[data-shoot]")){ if(TECO.coins()<10){ TECO.pay2({g:0,c:10}); return; } let url=""; try{ url=shoot(); }catch(err){ console.warn(err); } if(!url){ toast("📸 사진을 못 찍었어요 — 🪙 는 그대로예요", 1600); return; }   /* (v734 #21) 예전: 🪙 먼저 → 못 찍어도 안 돌려줌 */
+        if(!TECO.pay2({g:0,c:10})) return;
+        albumAdd({d:url, t:T()}); addStock("photo"); try{ SND.big(); tEv("photo"); say(CAPS[ph.cap]); }catch(_){}
         show("tfPh", hd("📸 찰칵!", "🖼 액자 1개 → 🏠 창고 · 집 🛋️ 가구에서 벽에 걸어요")+'<div style="text-align:center"><img src="'+url+'" alt="" style="width:min(240px,70vw);border-radius:12px;border:3px solid #3b2433;box-shadow:0 4px 0 #3b2433"></div><button class="hlBig" data-again>📸 또 찍기</button>');
         $("tfPh").querySelector(".lb").onclick=ev=>{ if(ev.target.closest("[data-again]")) openPhoto(); }; } }; }
   /* 따로 작은 장면에 내 캐릭터(+펫)를 세워 찍음 → 배경·액자·글자 */
@@ -388,10 +411,14 @@ const TFAC=(()=>{
     g.fillStyle="#fffdf7"; g.fillRect(0,Ht-56,Wd,56); g.fillStyle="#3b2433"; g.font="bold 24px sans-serif"; g.textAlign="center"; g.fillText(CAPS[ph.cap], Wd/2, Ht-20);
     g.lineWidth=12; g.strokeStyle="#3b2433"; g.strokeRect(0,0,Wd,Ht); return cv.toDataURL("image/jpeg", .8); }
   /* 🖼 액자 (벽) — 색 단추 = 앨범의 다른 사진 */
-  const phTex={};
-  ITEMS.photo={nm:"photo frame", ic:"🖼", sz:[1,1], wall:true, use:"photo", special:1, cols:[0xc9925c,0xffffff,0xff9ac8,0x5aa7ff,0xffd23f,0x3b2433], build(c){ const g=new THREE.Group(), A=album(), a=A.length?A[(c|0)%A.length]:null;
+  const phTex={}; let phVisit=null;
+  /* (v734 #27) 친구 집 액자 = 내 사진이 아니라 「친구 사진」 그림 (친구 앨범은 친구 패드에만 있어요) · (v734 #35) 앨범에서 빠진 사진 그림은 버림 */
+  function phVisitTex(){ if(phVisit) return phVisit; const cv=document.createElement("canvas"); cv.width=128; cv.height=160; const g=cv.getContext("2d"), gr=g.createLinearGradient(0,0,0,160); gr.addColorStop(0,"#d6ebff"); gr.addColorStop(1,"#fff3c4"); g.fillStyle=gr; g.fillRect(0,0,128,160);
+    g.font="64px sans-serif"; g.textAlign="center"; g.fillText("🙂", 64, 92); g.fillStyle="#3b2433"; g.font="bold 15px sans-serif"; g.fillText("My friend", 64, 140); phVisit=new THREE.CanvasTexture(cv); phVisit.encoding=THREE.sRGBEncoding; return phVisit; }
+  function phPrune(){ const keep={}; albumRaw().forEach(a=>keep[a.t]=1); Object.keys(phTex).forEach(k=>{ if(!keep[k]){ try{ phTex[k].dispose(); }catch(e){} delete phTex[k]; } }); }
+  ITEMS.photo={nm:"photo frame", ic:"🖼", sz:[1,1], wall:true, use:"photo", special:1, cols:[0xc9925c,0xffffff,0xff9ac8,0x5aa7ff,0xffd23f,0x3b2433], build(c){ const g=new THREE.Group(), vis=(()=>{ try{ return !!visiting; }catch(e){ return false; } })(), a=vis?null:albumAt(c);
       const fr=part(g, new THREE.BoxGeometry(.7,.86,.05), M(this.cols[(c|0)%this.cols.length]), 0,1.5,.03);
-      let mat; if(a){ if(!phTex[a.t]){ const tx=new THREE.TextureLoader().load(a.d, ()=>{ try{ dirty=true; }catch(e){} }); tx.encoding=THREE.sRGBEncoding; phTex[a.t]=tx; } mat=new THREE.MeshBasicMaterial({map:phTex[a.t]}); } else mat=M(0xfff3e0);
+      let mat; if(vis) mat=new THREE.MeshBasicMaterial({map:phVisitTex()}); else if(a){ phPrune(); if(!phTex[a.t]){ const tx=new THREE.TextureLoader().load(a.d, ()=>{ try{ dirty=true; }catch(e){} }); tx.encoding=THREE.sRGBEncoding; phTex[a.t]=tx; } mat=new THREE.MeshBasicMaterial({map:phTex[a.t]}); } else mat=M(0xfff3e0);
       const p=new THREE.Mesh(new THREE.PlaneGeometry(.56,.7), mat); p.position.set(0,1.5,.06); g.add(p); return g; }};
   try{ VISIT_OK.photo=1; const _use=HLIFE.use; HLIFE.use=u=>{ if(u==="photo"){ const A=album(); if(visiting){ toast("🖼 친구 사진이에요", 1400); return true; } if(!A.length){ toast("🖼 아직 사진이 없어요 — 마을 📸 사진관에서 찍어요", 2000); return true; }
       show("tfAl", hd("📒 내 앨범", "액자 색 단추를 누르면 다른 사진")+'<div class="tfRow">'+A.map(a=>'<img src="'+a.d+'" alt="" style="width:120px;border-radius:10px;border:2.5px solid #3b2433">').join("")+'</div>'); return true; } return _use(u); }; }catch(e){}
@@ -399,9 +426,9 @@ const TFAC=(()=>{
   /* ═════════ 📚 도서관 — 영어 그림책 ═════════ */
   const BOOKS=[
     {id:"cat", t:"My Cat", e:"🐱", c:"#ff9ac8", p:[["🐱","This is my cat.","이건 내 고양이야."],["🐾","My cat is small.","내 고양이는 작아."],["🐟","My cat likes fish.","내 고양이는 물고기를 좋아해."],["⬆️","My cat can jump.","내 고양이는 점프할 수 있어."],["🛏","My cat sleeps on my bed.","내 고양이는 내 침대에서 자."],["❤️","I love my cat!","나는 내 고양이가 좋아!"]]},
-    {id:"park", t:"At the Park", e:"🌳", c:"#7fd36a", p:[["🌳","I go to the park.","나는 공원에 가."],["🌲","I see a big tree.","큰 나무가 보여."],["⚽","I see a red ball.","빨간 공이 보여."],["🧒","I play with my friend.","나는 친구랑 놀아."],["🏃","We run and jump.","우리는 달리고 점프해."],["☀️","It is a happy day!","행복한 날이야!"]]},
+    {id:"park", t:"At the Park", e:"🌳", c:"#7fd36a", p:[["🏞","I go to the park.","나는 공원에 가."],["🌳","I see a big tree.","큰 나무가 보여."],["⚽","I kick a ball.","나는 공을 차."],["🧒","I play with my friend.","나는 친구랑 놀아."],["🏃","We run and jump.","우리는 달리고 점프해."],["☀️","It is a happy day!","행복한 날이야!"]]},
     {id:"dog", t:"The Hungry Dog", e:"🐶", c:"#ffc93d", p:[["🐶","The dog is hungry.","강아지가 배고파."],["🍎","He finds an apple.","강아지가 사과를 찾았어."],["🙅","He does not like apples.","강아지는 사과를 안 좋아해."],["🦴","He finds a bone.","강아지가 뼈다귀를 찾았어."],["😋","Yum! He likes bones.","냠! 강아지는 뼈다귀를 좋아해."],["😊","Now he is happy.","이제 강아지는 행복해."]]},
-    {id:"rain", t:"Rainy Day", e:"☔", c:"#5aa7ff", p:[["🌧","It is raining.","비가 와."],["☂️","I have a yellow umbrella.","나는 노란 우산이 있어."],["💦","I jump in the water.","나는 물웅덩이에서 점프해."],["👢","My boots are wet.","내 장화가 젖었어."],["🌈","I see a rainbow!","무지개가 보여!"],["☀️","Hello, sun!","안녕, 해님!"]]},
+    {id:"rain", t:"Rainy Day", e:"☔", c:"#5aa7ff", p:[["🌧","It is raining.","비가 와."],["☂️","I have an umbrella.","나는 우산이 있어."],["💦","I jump in the water.","나는 물웅덩이에서 점프해."],["👢","My boots are wet.","내 장화가 젖었어."],["🌈","I see a rainbow!","무지개가 보여!"],["☀️","Hello, sun!","안녕, 해님!"]]},
     {id:"fish", t:"Fishing Trip", e:"🎣", c:"#4cc3c9", p:[["🏞","We go to the lake.","우리는 호수에 가."],["🎣","I have a fishing rod.","나는 낚싯대가 있어."],["⏳","I wait and wait.","나는 기다리고 또 기다려."],["🐟","I catch a big fish!","큰 물고기를 잡았어!"],["🐢","Look! A turtle!","봐! 거북이야!"],["🎉","What a fun day!","정말 재미있는 날이야!"]]},
     {id:"night", t:"Good Night", e:"🌙", c:"#9b72f0", p:[["🌙","The moon is up.","달이 떴어."],["⭐","The stars are shining.","별이 반짝여."],["🪥","I brush my teeth.","나는 이를 닦아."],["📖","I read a book.","나는 책을 읽어."],["🧸","I hug my teddy bear.","나는 곰 인형을 안아."],["😴","Good night!","잘 자!"]]},
   ];
