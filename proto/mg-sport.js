@@ -73,6 +73,9 @@ function css(){ if(document.getElementById("spCss")) return; const s=document.cr
 #mgUI .spPop.on{opacity:1;transform:translate(-50%,0) scale(1)}
 #mgUI .spRp{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));white-space:nowrap;display:none;background:#ff3b5c;color:#fff;border-radius:999px;padding:6px 14px;font-size:15px;pointer-events:none;box-shadow:0 0 0 3px #fff}
 #mgUI .spRp.on{display:block}
+#mgUI .spPip{position:absolute;display:none;border:3px solid #4A2E1F;border-radius:14px;box-shadow:0 0 0 2px #fff,0 4px 0 2px rgba(74,46,31,.35);pointer-events:none}
+#mgUI .spPip.on{display:block}
+#mgUI .spPip b{position:absolute;left:50%;top:-12px;transform:translateX(-50%);background:#FFF6E3;color:#4A2E1F;border:2px solid #4A2E1F;border-radius:999px;padding:0 9px;font-size:13px;font-weight:400;white-space:nowrap;font-family:var(--kr)}
 @media (prefers-reduced-motion:reduce){ #mgUI .spPop{transition:opacity .2s} #mgUI .spSc.multi .nm i.go{animation:none} }
 #mgUI .puM.spMenuVs .puSeg{gap:4px} #mgUI .puM.spMenuVs .puSeg button{flex:1 1 0;min-width:0;padding:4px 2px;white-space:nowrap;font-size:14px}   /* 상대 5개가 한 줄 (좁은 휴대폰에서 두 줄로 꺾여 메뉴가 넘쳤음) */
 @media (max-width:370px){ #mgUI .puM.spMenuVs .puSeg button{font-size:12.5px} }
@@ -426,13 +429,26 @@ function start(api){
     if(mode==="bowl"){ const slow=!fast && BW.ph==="roll" && ball.visible && !BW.gutter && ball.position.z<HZ+2.4 && ball.position.z>LZ+.3;
       if(BW.rp) rpStep(dt); else laneStep(BW, dt*(slow?.42:1));
       SIDE.forEach(L=>{ if(!L.on) return; if(!L.co) botTick(L, dt); laneStep(L, dt); }); LANES.forEach(L=>sweepStep(L, dt)); avStep(dt); if(shk>0) shk=Math.max(0, shk-dt*2.4); } if(mode==="dart") dartStep(dt); confStep(dt); }
-  function render(){ fitCam(); MG.draw(scene, cam); }
+  /* 📺 세로 화면 작은 화면 (v731) — 세로 휴대폰은 옆 레인이 화면 밖이라, 친구·봇이 굴리는 동안만 구석에 그 레인을 따로 그림 (사용자 「세로 폰: 옆 레인 친구도 보이게」) · 낮은 기기는 안 함 */
+  const PIPC=new THREE.PerspectiveCamera(46, .8, .05, 60), PIPE=[0,1].map(()=>{ const d=document.createElement("div"); d.className="spPip"; d.innerHTML="<b></b>"; R.insertBefore(d, R.querySelector(".spMenu")); return d; });
+  const pipOn=L=>L.on && (L.ph==="roll" || L.ph==="count" || !!(L.sw && L.sw.t<.45));   /* 낮은 기기 = 한 번에 하나만 (나중에 굴린 레인) */
+  function pipDraw(rn){ const portrait=innerWidth/innerHeight<.9; let any=false; const one=LOW && pipOn(SIDE[0]) && pipOn(SIDE[1]) ? ((SIDE[0].t||0)<(SIDE[1].t||0) ? 0 : 1) : -1;
+    SIDE.forEach((L,i)=>{ const E=PIPE[i], show=!!rn && mode==="bowl" && portrait && !BW.rp && pipOn(L) && (one<0 || one===i); if(!show){ if(E._on){ E.classList.remove("on"); E._on=0; } return; }
+      const u=U.getBoundingClientRect(), sc=SC.getBoundingClientRect(), w=Math.round(Math.min(u.width>=700?190:132, u.width*.31)), h=Math.round(w*1.2), top=Math.round(sc.bottom-u.top+58), left=i===0?8:Math.round(u.width-8-w), k=w+","+top+","+left+","+L.nm;
+      if(!E._on || E._k!==k){ E._k=k; Object.assign(E.style, {left:left+"px", top:top+"px", width:w+"px", height:h+"px"}); E.querySelector("b").textContent=L.nm; E.classList.add("on"); E._on=1; }
+      const b=L.ball.position, x0=L.x0, near=!L.ball.visible || b.z<HZ+3.4 || L.ph!=="roll";
+      if(near){ PIPC.position.set(x0+.5, 1.0, HZ+2.7); PIPC.lookAt(x0-.05, .32, HZ-.65); } else { PIPC.position.set(x0+b.x*.3, 1.2, b.z+2.3); PIPC.lookAt(x0+b.x*.5, .22, b.z-4); }
+      PIPC.aspect=w/h; PIPC.updateProjectionMatrix();
+      const cv=rn.domElement, cr=cv.getBoundingClientRect(), H=cv.clientHeight||innerHeight, x=Math.round(u.left-cr.left+left+3), y=Math.round(H-(u.top-cr.top+top+3)-(h-6));
+      rn.setScissorTest(true); rn.setScissor(x, y, w-6, h-6); rn.setViewport(x, y, w-6, h-6); rn.render(scene, PIPC); any=true; });
+    if(any){ const cv=rn.domElement; rn.setScissorTest(false); rn.setViewport(0, 0, cv.clientWidth||innerWidth, cv.clientHeight||innerHeight); } }
+  function render(rn){ fitCam(); MG.draw(scene, cam); try{ pipDraw(rn); }catch(e){} }
   function dispose(){ gone=true; TM.length=0; coQuit(); try{ R.remove(); }catch(e){} disp.forEach(x=>{ try{ x.dispose(); }catch(e){} }); }
   fitCam(); const O=api.opt||{}; if(O.go==="bowl"||O.go==="dart") menuGo(O.go); else menuShow(); ready=true;
   return {scene, cam, tick, render, dispose, pause:v=>{ paused=!!v; },
     get mode(){ return mode; }, get bw(){ return BW; }, get dt(){ return DT; }, get ready(){ return ready; }, get pins(){ return PINS; }, set fast(v){ fast=v?1:0; },
     menuGo, menuShow, throwBall, dart:(x,y)=>dart(x,y), scoreAt, bowlScore, bowlDone, rollsInFrame, get SET(){ return SET; }, fitCam,
-    lanes:LANES, SKILL, botAim, laneThrow:(i,x,vx,vz)=>throwLane(LANES[i],x,vx,vz), get rp(){ return BW.rp; }, get shk(){ return shk; }, get endQ(){ return endQ; }, get RM(){ return RM; }, get CO(){ return CO; } };
+    lanes:LANES, SKILL, botAim, laneThrow:(i,x,vx,vz)=>throwLane(LANES[i],x,vx,vz), get rp(){ return BW.rp; }, get shk(){ return shk; }, get endQ(){ return endQ; }, get RM(){ return RM; }, get CO(){ return CO; }, PIPE };
 }
 MG.reg("bowl", {ic:"🎳", nm:"볼링 · 다트", tag:"🎳 볼링 5프레임 · 🎯 다트 9개", bg:"linear-gradient(135deg,#5b3aff,#ff5ce1 55%,#ffd23f)", big:"🎳🎯", menu:true,
   how:[["🎳","레인을 위로 쓱 밀어 굴려요"],["🎯","조준점을 옮기고 떼면 던져요"]], payTxt:"점수 따라 🪙 3~9",

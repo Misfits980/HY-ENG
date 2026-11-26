@@ -4,7 +4,8 @@
    ③ 봇은 내 프레임보다 앞서지 않음 · 다 끝나야 결과 · 결과 = 등수 · 이름 · 🪙
    ④ 핀 손맛: 맞은 핀이 튀어 오르고 돌다가 눕기 · 핀 정리(판이 서 있는 핀을 들고 · 막대가 쓰러진 핀을 쓸고 · 내려놓음)
    ⑤ 스트라이크 다시 보기(옆에서 느리게 · 누르면 건너뜀) · 더블 · 터키 · 봇 스트라이크 소식
-   ⑥ 휴대폰 세로 · 가로 · 패드: 점수판 · 소식이 화면 안 · 안 겹침 · 움직임 줄이기 = 흔들림 없음 · 오류 0"""
+   ⑥ 휴대폰 세로 · 가로 · 패드: 점수판 · 소식이 화면 안 · 안 겹침 · 움직임 줄이기 = 흔들림 없음 · 오류 0
+   ⑦ 세로 휴대폰: 옆 레인 친구·봇이 굴리는 동안만 구석에 작은 화면 (사용자 「세로 폰: 옆 레인 친구도 보이게」)"""
 import asyncio, sys, os
 os.environ["HY_REAL3D"] = "1"
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -99,6 +100,16 @@ async def main():
         await adv(1500, "R.lanes[1].rolls.length===1"); await adv(4)
         r = await E("()=>{ const L=MG.run.lanes[1], P=document.querySelector('#mgUI .spPop'); return [L.rolls[0], P.classList.contains('on'), P.textContent]; }")
         ok(r[0] != 10 or (r[1] and "Tom" in r[2] and "스트라이크" in r[2]), f"⑤ 봇 스트라이크 → 「Tom 스트라이크!」 {r}")
+        # ⑦ 세로 휴대폰: 봇이 굴리는 동안 구석 작은 화면 · 끝나면 사라짐
+        await E(GO, "normal"); await adv(10)
+        await E("()=>{ const L=MG.run.lanes[1]; L.aim=[.12,0,10]; L.wait=0; MG.run.lanes[2].wait=99; }")
+        await adv(600, "R.lanes[1].ph==='roll'"); await adv(20)
+        r = await E("()=>{ const e=MG.run.PIPE[0], b=e.getBoundingClientRect(), sc=document.querySelector('#mgUI .spSc').getBoundingClientRect(); return [e.classList.contains('on'), e.textContent, Math.round(b.left), Math.round(b.top), Math.round(b.width), b.top>sc.bottom, b.right<=innerWidth, MG.run.PIPE[1].classList.contains('on')]; }")
+        ok(r[0] and r[1] == "Tom" and r[5] and r[6] and not r[7], f"⑦ 세로: Tom 이 굴리면 왼쪽 작은 화면 (점수판 밑) {r}")
+        await pg.screenshot(path=OUT + "bowl731_pip.png")
+        await adv(1500, "R.lanes[1].ph==='aim' && R.lanes[1].rolls.length>0"); await adv(4)
+        r = await E("()=>MG.run.PIPE.map(e=>e.classList.contains('on'))")
+        ok(r == [False, False], f"⑦ 다 굴리면 작은 화면 사라짐 {r}")
         E1 = real_errs(errs); await ctx.close()
         # ⑥ 화면 3가지 (셋이 같이)
         E2 = []
