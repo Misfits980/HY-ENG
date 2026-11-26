@@ -18646,11 +18646,34 @@ const Study = (function(){
   let topicC=null; const BLANK_TOP={people:1, body:1, food:1, home:1, play:1, time:1, place:1, animal:1};
   const topicOf=en=>{ if(!topicC){ topicC={}; try{ DEX_ALBUMS.forEach(A=>String(A.w||"").split(/\s+/).forEach(e=>{ e=e.replace(/_/g," "); if(e && !topicC[e]) topicC[e]=A.id; })); }catch(e){} } return topicC[String(en).toLowerCase()]||""; };
   const posParts=w=>posOf(w).split(/[·,\/\s]+/).filter(Boolean), isNoun=w=>posParts(w).indexOf("명사")>=0;
-  function blankAvoid(w){ const lw=String(w.en).toLowerCase(), rw={}; relW(lw,["o","s","g"]).forEach(e=>rw[e]=1);
+  /* (v736) 사용자: 「어제 아이가 데일리 30 에서 맞췄는데 틀렸다고 나온대」 → 시트(G5-6 Stage 6-1 틀린 단어 fair · circus · 7-2 fashionable) + 문제 1만 4천 개 점검:
+     빈칸 보기에 같이 맞는 말이 남아 있었음 — 「Our school will hold a science ___」 fair 인데 보기에 contest(같은 Stage · science contest 도 맞음) ·
+     「We laughed at the clowns at the ___」 circus 인데 보기에 fair(축제) · 「Big jackets are very ___」 fashionable 인데 보기에 comfortable · 「We needed ___ chairs」 more 인데 보기에 enough
+     → ① 행사·모임 이름끼리 ② 수량 말끼리 ③ 품사가 같고 빈칸 바로 앞·뒤 낱말과 예문(bex)에서 같이 쓰인 적이 있는 말(science contest · very comfortable · board game)은 빈칸 보기로 안 씀
+        (st = 그 문제 문장 · sent2 는 두 문장 — 문장을 모르면 ①② 만) */
+  const BLANK_EV=new Set("fair festival circus carnival contest competition concert show party parade ceremony wedding event match game race tournament championship final exhibition performance picnic camp field_trip trip tour fireworks market".split(" ").map(x=>x.replace(/_/g," ")));
+  const BLANK_QN=new Set("more enough many much few some any several all every each most less lots plenty little no".split(" "));
+  const FIT_STOP=new Set(("a an the my your his her our their its this that these those to of in on at for with from by into onto over under about after before around near and or but so than as if when while because "
+    +"is are was were be am been being do does did don't didn't doesn't isn't aren't wasn't can could will would should must may might let's please "
+    +"it i you he she we they me him us them there here what who where why how "
+    +"last next yesterday today tomorrow tonight every each ago one two three four five ten first new old big small little good great nice very_much has have had get got go went make made").split(/\s+/).map(x=>x.replace(/_/g," ")));
+  let fitBig=null, fitN=0;
+  const fitPairs=()=>{ let n=0; try{ n=Object.keys(BEX).length; }catch(e){} if(fitBig && n===fitN) return fitBig; const S=new Set(); fitN=n;
+    try{ Object.keys(BEX).forEach(en=>{ const b=BEX[en]; ((b && b.x)||[]).forEach(x=>{ const t=String(x[0]||"").toLowerCase().match(/[a-z']+/g)||[]; for(let i=0;i+1<t.length;i++){ S.add(t[i]+" "+t[i+1]);
+        const a1=FIT_STOP.has(t[i]) ? "" : fitAlb(t[i]), a2=FIT_STOP.has(t[i+1]) ? "" : fitAlb(t[i+1]); if(a2) S.add(t[i]+" >"+a2); if(a1) S.add(a1+"< "+t[i+1]); } }); }); }catch(e){}
+    if(n>200) fitBig=S; return S; };
+  const fitAlb=t=>topicOf(t) || (/s$/.test(t) ? topicOf(t.replace(/(ses|xes|ches|shes)$/, m=>m.slice(0,-2)).replace(/s$/,"")) || topicOf(t.slice(0,-1)) : "");   /* 같은 무리 낱말(hat · shoe = 집·물건) — comfortable shoes 가 있으면 comfortable hat 도 말이 됨 */
+  const fitNb=st=>{ const L=(String((st && st.pre)||"").toLowerCase().match(/[a-z']+/g)||[]).pop()||"", R=(String((st && st.post)||"").toLowerCase().match(/[a-z']+/g)||[])[0]||"";
+    return [FIT_STOP.has(L) ? "" : L, FIT_STOP.has(R) ? "" : R]; };
+  function blankAvoid(w, st){ const lw=String(w.en).toLowerCase(), rw={}; relW(lw,["o","s","g"]).forEach(e=>rw[e]=1);
     const tp=isNoun(w) && BLANK_TOP[topicOf(lw)] ? topicOf(lw) : "", sw=isSW(w), wp=sw ? posParts(w) : [], art=/^(a|an|the)$/.test(lw);
+    const ev=BLANK_EV.has(lw) && isNoun(w), qn=BLANK_QN.has(lw), wpp=posParts(w), NB=(Array.isArray(st) ? st : st ? [st] : []).map(fitNb).filter(nb=>nb[0] || nb[1]);
     return x=>{ const e=String(x.en).toLowerCase(); if(rw[e] || relW(e,["o","s","g"]).indexOf(lw)>=0) return true;
       if(tp && topicOf(e)===tp && isNoun(x)) return true;
       if(sw && ((art && /^(a|an|the)$/.test(e)) || (wp.length && posParts(x).some(p=>wp.indexOf(p)>=0)))) return true;
+      if(ev && BLANK_EV.has(e) && isNoun(x)) return true;
+      if(qn && BLANK_QN.has(e)) return true;
+      if(NB.length && wpp.length && posParts(x).some(p=>wpp.indexOf(p)>=0)){ const B=fitPairs(); if(NB.some(([L,R])=>{ const aL=L && fitAlb(L), aR=R && fitAlb(R); return (L && (B.has(L+" "+e) || (aL && B.has(aL+"< "+e)))) || (R && (B.has(e+" "+R) || (aR && B.has(e+" >"+aR)))); })) return true; }
       return false; }; }
   const canSpell = w => /^[a-z]{3,10}$/.test(w.en) && !isProper(w.en);   // (v322) 고유명사(monday)는 소문자 철자로 가르치지 않음
   /* (v248) 소리가 같은 단어 — 듣기 보기에 같이 내지 않고, 받아쓰기에는 뜻을 함께 보여 준다 */
@@ -18729,11 +18752,11 @@ const Study = (function(){
     const pick=(ok,k)=>{ const out=[]; ws.forEach(w=>{ if(out.length<k && !used[w.en] && ok(w)){ used[w.en]=1; out.push(w); } }); return out; };
     const n1=w=>!!talkOf(w) || sentsOf(w).length>=1, n2=w=>sentsOf(w).length>=2, all=()=>true;
     const tq=(w, x)=>{ const t=talkOf(w), pic=x && x.opic ? sameEmo(w) : null;   // (v322) 그림 + 빈칸이면 같은 그림 보기도 빼기
-      return t ? Object.assign({t:"talk", w, tk:t, opts:talkOpts(w, strictPool(w, set, les.ws), t, true, pic)}, x) : Object.assign({t:"sent", w, st:one(w), opts:bopts(w, pic)}, x); };   // (v259) 대화 단문이 있으면 그것으로
+      if(t) return Object.assign({t:"talk", w, tk:t, opts:talkOpts(w, strictPool(w, set, les.ws), t, true, pic)}, x); const st=one(w); return Object.assign({t:"sent", w, st, opts:bopts(w, pic, st)}, x); };   // (v259) 대화 단문이 있으면 그것으로
     /* (v301) 보기는 엄격하게 — 같은 Stage 단어만으로 내면 아는 단어를 지워서 찍을 수 있었다 → 철자가 비슷한 말·헷갈리는 짝(같은 책 다른 Stage) 2 + 같은 Stage 1 */
     const opts=(w, avoid)=>strictOpts(w, set, les.ws, "en", avoid), one=w=>{ const L=sentsOf(w); return L[Math.floor(Math.random()*L.length)]; };
     /* (v322) 점검: 빈칸 보기(sent·sent2)는 문장에 같이 들어가는 말 빼기 · 그림 문제(opic)는 같은 그림(rainy🌧️/rain🌧️ · table🪑/chair) 보기 빼기 */
-    const sameEmo=w=>x=>!!(w.emoji && x.emoji===w.emoji), bopts=(w, pic)=>{ const b=blankAvoid(w); return opts(w, pic ? (x=>b(x) || pic(x)) : b); };
+    const sameEmo=w=>x=>!!(w.emoji && x.emoji===w.emoji), bopts=(w, pic, st)=>{ const b=blankAvoid(w, st); return opts(w, pic ? (x=>b(x) || pic(x)) : b); };
     /* (v258) 시간 = 보카 올림피아드 표 (문제당 초): Pre Starter·Starter A 7 · B 8 · C 11 / Basic·Junior A 7 · B 10 · C 12 */
     const A=[], B=[], C=[];
     if(P==="k"){   /* (v715) 유치부: A 🖼️ 그림 보고 단어 (그림 있는 단어) · B 🔊 듣고 단어 (소리 나는 기기만 · 소리 같은 말 보기에서 뺌) · C 🔤 뜻 보고 단어 — 글은 낱말 하나만 */
@@ -18748,8 +18771,8 @@ const Study = (function(){
       pick(all, n).forEach(w=>B.push({t:"k2e", w, opts:opts(w), sec:8}));
     } else {
       const sB = P==="hj" ? 12 : 10, sC = P==="hj" ? 15 : 12;   // (v328) High Junior = A 7 · B 12 · C 15 (사용자 시간표)
-      pick(n2, nC).forEach(w=>{ const L=shuffle(sentsOf(w)); C.push({t:"sent2", w, sts:L.slice(0,2), opts:bopts(w), sec:sC}); });
-      pick(n1, nB).forEach(w=>B.push(P==="ba" ? tq(w, {noKo:1, sec:sB}) : sentsOf(w).length ? {t:"sent", w, st:one(w), opts:bopts(w), sec:sB} : tq(w, {sec:sB})));   // (v336) 점검: 예문 없이 대화만 있는 단어(bounce·germ…)는 대화 빈칸 — 예전엔 st 가 비어 화면이 멈춤
+      pick(n2, nC).forEach(w=>{ const L=shuffle(sentsOf(w)); C.push({t:"sent2", w, sts:L.slice(0,2), opts:bopts(w, null, L.slice(0,2)), sec:sC}); });
+      pick(n1, nB).forEach(w=>B.push(P==="ba" ? tq(w, {noKo:1, sec:sB}) : sentsOf(w).length ? (st=>({t:"sent", w, st, opts:bopts(w, null, st), sec:sB}))(one(w)) : tq(w, {sec:sB})));   // (v336) 점검: 예문 없이 대화만 있는 단어(bounce·germ…)는 대화 빈칸 — 예전엔 st 가 비어 화면이 멈춤
       pick(all, n).forEach(w=>A.push({t:"k2e", w, opts:opts(w), sec:7}));
     }
     A.forEach(q=>q.ab="A"); B.forEach(q=>q.ab="B"); C.forEach(q=>q.ab="C");   // (v328) 시험 결과 유형별
@@ -18977,7 +19000,7 @@ const Study = (function(){
         const toks=full.split(/\s+/).filter(Boolean).map(x=>({t:x, ok:x.replace(/[^A-Za-z'-]/g,"").toLowerCase()===lw}));
         if(toks.some(x=>x.ok) && toks.length>=3) return {t, w, st, toks}; }
       t="listen"; }
-    if(t==="sent"){ const st=sentOf(w); if(st) return {t, w, st, opts:lOpts(w, pool, "en", blankAvoid(w), level)};   // (v322) 빈칸에 같이 들어가는 말은 빼기
+    if(t==="sent"){ const st=sentOf(w); if(st) return {t, w, st, opts:lOpts(w, pool, "en", blankAvoid(w, st), level)};   // (v322) 빈칸에 같이 들어가는 말은 빼기
       return {t:"k2e", w, opts:lOpts(w, pool, "en", null, level)}; }
     return {t, w, opts:lOpts(w, pool, t==="e2k"?"ko":"en", null, level)};
   }
@@ -19667,7 +19690,7 @@ const Study = (function(){
     if(t==="colb"){ const re=reW(w.en);
       const ph=String((D && D[6])||"").split(/\s*·\s*/).map(s=>s.trim()).filter(s=>s && s.split(/\s+/).length>=2 && re.test(s) && (s.match(new RegExp(re.source,"gi"))||[]).length===1); if(!ph.length) return null;   // (v322) side by side 처럼 정답이 짝말에 또 보이면 건너뛰기
       const p=ph[Math.floor(Math.random()*ph.length)], m=p.match(re);
-      return {t:"sent", w, col:1, noKo:1, st:{pre:p.slice(0,m.index), post:p.slice(m.index+m[0].length), ko:"", cap:/^[A-Z]/.test(m[0])}, opts:shuffle([w].concat(decoys(w,pool,3,"en",blankAvoid(w))))}; }
+      { const st={pre:p.slice(0,m.index), post:p.slice(m.index+m[0].length), ko:"", cap:/^[A-Z]/.test(m[0])}; return {t:"sent", w, col:1, noKo:1, st, opts:shuffle([w].concat(decoys(w,pool,3,"en",blankAvoid(w, st))))}; } }
     if(t==="opp" || t==="rel"){ const R=(D && D[7])||{};
       for(const kd of (only ? [only] : t==="opp" ? ["o"] : shuffle(["o","s"]))){ const raw=R[kd]; if(!raw) continue;
         const it=String(raw).split(/\s*[,·\/]\s*/)[0]||"", mm=/^([A-Za-z][A-Za-z' -]*?)\s*(?:\((.*?)\))?$/.exec(it.trim()); if(!mm) continue;
@@ -19753,7 +19776,7 @@ const Study = (function(){
       const fakes=shuffle(SUF.map(s=>(/^[aeiou]/.test(s)?stem:w.en)+s)).filter(f=>f!==it.en && f!==w.en && !byEn[f] && !F.some(z=>z.en===f) && !realW(f)).slice(0,2);   // (v322) magical · patiently 처럼 진짜 있는 말은 가짜 보기로 안 냄
       if(fakes.length<2) return null;
       return {t:"famf", w, so:1, ans:it.en, opts:shuffle([it.en].concat(fakes)), x:{ako:it.ko}}; }
-    if(t==="sent2"){ const S=sentsOf(w); if(S.length<2 || w.alt) return null; return {t:"sent2", w, sts:shuffle(S).slice(0,2), opts:shuffle([w].concat(decoys(w,pool,3,"en",blankAvoid(w))))}; }
+    if(t==="sent2"){ const S=sentsOf(w); if(S.length<2 || w.alt) return null; const sts=shuffle(S).slice(0,2); return {t:"sent2", w, sts, opts:shuffle([w].concat(decoys(w,pool,3,"en",blankAvoid(w, sts))))}; }
     return null; }
   /* 규칙 카드 — 이 Stage 단어로 예를 든다 (G3-4: 여러 개 -s/-es · 3인칭 -s / G5-6: 지난 일 -ed · 더 ~한 -er / 중등: 모양 바꾸기) */
   function ruleCard(gr, ws){
@@ -19817,7 +19840,7 @@ const Study = (function(){
     if(t==="xfam" || t==="xidm" || t==="xfrm") return xQ(t, w, set, own);   // (v442)
     if(t==="spell"){ if(!canSpell(w)) return null; const ex=[...new Set(w.en.split("").map(c=>CONFL[c]).filter(c=>c && w.en.indexOf(c)<0))].slice(0,2);
       return {t:"spell", w, tiles:shuffle(w.en.split("").concat(ex.length ? ex : ["e","a"].filter(c=>w.en.indexOf(c)<0).slice(0,1)))}; }
-    if(t==="sent"){ const st=w.alt ? null : sentOf(w); if(!st) return null; return {t:"sent", w, st, noKo:(gr==="g56"||gr==="mid")?1:0, opts:strictOpts(w, set, own, "en", blankAvoid(w))}; }
+    if(t==="sent"){ const st=w.alt ? null : sentOf(w); if(!st) return null; return {t:"sent", w, st, noKo:(gr==="g56"||gr==="mid")?1:0, opts:strictOpts(w, set, own, "en", blankAvoid(w, st))}; }
     if(t==="listen"){ if(!canHear()) return null; return {t:"listen", w, opts:strictOpts(w, set, own, "en")}; }
     if(t==="e2k") return {t:"e2k", w, opts:strictOpts(w, set, own, "ko")};
     return {t:"k2e", w, opts:strictOpts(w, set, own, "en")}; }
@@ -19874,7 +19897,7 @@ const Study = (function(){
       const ds=[]; C.forEach(e=>{ if(ds.length<3 && ds.indexOf(e)<0) ds.push(e); }); if(ds.length<2) return null;
       return {t:"rel", w, so:1, ans:f[0], opts:shuffle([f[0]].concat(ds)), x:{kd:"f", ako:f[1], why:"🔗 "+w.en+" ("+w.ko+") 의 가족 단어 → "+f[0]+" ("+f[1]+")"}}; }
     if(t==="xidm"){ const ko=X.idm[1]||"", blank=X.idm[0].slice(0, X.pre.length)+"___"+X.idm[0].slice(X.idm[0].length-X.post.length);
-      return {t:"sent", w, col:1, idm:1, st:{pre:X.pre, post:X.post, ko:"= "+ko, cap:/^[A-Z]/.test(X.idm[0].slice(X.pre.length))}, opts:strictOpts(w, set||ctxSet, pool, "en", blankAvoid(w)), x:{why:"📌 "+X.idm[0]+" — "+ko}}; }
+      { const st={pre:X.pre, post:X.post, ko:"= "+ko, cap:/^[A-Z]/.test(X.idm[0].slice(X.pre.length))}; return {t:"sent", w, col:1, idm:1, st, opts:strictOpts(w, set||ctxSet, pool, "en", blankAvoid(w, st)), x:{why:"📌 "+X.idm[0]+" — "+ko}}; } }
     if(t==="xfrm"){ const cap=/^[A-Z]/.test(X.form), O=X.fopt.map(o=>cap ? cap1(o) : o);
       return {t:"sentp", w, xf:1, st:{pre:X.fpre, post:X.fpost, ko:X.fs[1], cap:false}, form:X.form, opts:shuffle(O), x:{why:"✏️ "+w.en+" → "+X.form}}; }
     return null; }
@@ -19930,7 +19953,7 @@ const Study = (function(){
   return { clsMiss, clsN:()=>{ const s=load(), t=today(); return Object.keys(s.cm||{}).filter(en=>s.cm[en]>=t-1 && (s.srs||{})[en] && s.srs[en][1]<=t+1).length; }, ret, retSum, sticky, cfPair, hasHomo, ctx, gvWallet, hasFlag:set=>!!SPLIT[set], mig:()=>{ if(!m) load(); phMig(m); midMig(m); spMig(m); gvMig(m); tierMig(m); },
     /* (v542) 🖨 시험지 — 학년 문장형 문제 한 개 (Daily 30 과 같은 만들기) · own = 범위 단어(보기용) */
     paperQ:(t, en, set, own)=>{ ctx(set); const w=byEn[en]; if(!w) return null; const gr=gradeOf(set), O=(own||[]).map(x=>byEn[x]||x).filter(x=>x && x.en);
-      try{ if(t==="sent2"){ const L=shuffle(sentsOf(w)); return L.length>=2 ? {t:"sent2", w, sts:L.slice(0,2), opts:strictOpts(w, set, O, "en", blankAvoid(w))} : null; }
+      try{ if(t==="sent2"){ const L=shuffle(sentsOf(w)); return L.length>=2 ? {t:"sent2", w, sts:L.slice(0,2), opts:strictOpts(w, set, O, "en", blankAvoid(w, L.slice(0,2)))} : null; }
         if(t==="tense" || t==="prep") return gramQ(t, w);
         if(t==="gx") return gxQ(w, gr);   // (v549)
         if(["opp","syn","pastc","def","xfam","xidm","xfrm","conf2","sent"].indexOf(t)>=0) return chkQ(t, w, set, O);

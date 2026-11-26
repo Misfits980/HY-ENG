@@ -381,7 +381,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
       if(!R.path) return;
       R.sendT-=dt; if(R.sendT<=0){ R.sendT=cfg.send||.1; const m=Object.assign({n:nm, t:now()}, R.node?R.node():{});
         /* (v736) 사용자: 「한 시간 하면 얼마나?」 → 옷 정보(av)가 0.1초마다 같이 가서 보내는 글의 절반이었음 → 옷은 a/<나> 에 바뀔 때만 한 번 · 자리 글에서는 뺌 (받는 쪽은 avFill 로 p.av 를 채워 게임 코드는 그대로) */
-        if("av" in m){ const aj=JSON.stringify(m.av||null); if((aj!==R._avS || R._avP!==R.path) && R.path){ R._avS=aj; R._avP=R.path; R.put("a/"+code, m.av||null); } delete m.av; } const s0=R.last; if(!s0 || JSON.stringify(Object.assign({},s0,{t:0}))!==JSON.stringify(Object.assign({},m,{t:0})) || m.t-s0.t>1500){ R.last=m; putMe(m); } }
+        if("av" in m){ const aj=JSON.stringify(m.av||null); const tn=Date.now(); if((aj!==R._avS || R._avP!==R.path || tn-(R._avT||0)>15000) && R.path){ R._avS=aj; R._avP=R.path; R._avT=tn; R.put("a/"+code, m.av||null); }   /* (v736 점검) 처음 한 번이 인터넷 끊김으로 안 가면 친구 화면에 끝까지 기본 옷 → 15초마다 한 번 더 (작은 글) */ delete m.av; } const s0=R.last; if(!s0 || JSON.stringify(Object.assign({},s0,{t:0}))!==JSON.stringify(Object.assign({},m,{t:0})) || m.t-s0.t>1500){ R.last=m; putMe(m); } }
       /* 받기 살아 있나: 내가 보낸 것이 4초 넘게 안 돌아오면(막힌 망 · 몰아서 오는 망) 예전 받기로 */
       if(ST.ok && ST.sent && performance.now()-ST.echo>4000 && performance.now()-ST.sent<3000){ liveStop(); ST.dead=true; }
       if(ST.ok){ if(ST.dirty){ ST.dirty=false; process(); } }

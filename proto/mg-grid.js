@@ -325,7 +325,7 @@ function start(api){
   function netTick(dt){ if(!CO || !NETOK) return;
     if(st.phase==="room"){ R.listT-=dt; if(R.listT<=0){ R.listT=1.5; listRooms(); } return; }
     if(!R.path) return;
-    if(R.path && R._avP!==R.path){ R._avP=R.path; try{ NET.put(R.path+"/a/"+code, api.av||{}).catch(()=>{}); }catch(e){} }   /* (v736) 옷 정보는 방마다 한 번 (전: 0.15초마다 자리 글에 같이) */
+    if(R.path && (R._avP!==R.path || Date.now()-(R._avT||0)>15000)){ R._avP=R.path; R._avT=Date.now(); try{ NET.put(R.path+"/a/"+code, api.av||{}).catch(()=>{}); }catch(e){} }   /* (v736) 옷 정보는 방마다 한 번 (전: 0.15초마다 자리 글에 같이) */
     R.sendT-=dt; if(R.sendT<=0){ R.sendT=.15; const m=meNode(), s=R.lastSent; if(!s || Math.abs(s.x-m.x)+Math.abs(s.z-m.z)+Math.abs(s.y-m.y)>.05 || s.l!==m.l || s.o!==m.o || m.t-s.t>1500){ R.lastSent=m; if(SYNC) SYNC.put("p/"+code, m); else NET.put(R.path+"/p/"+code, m).catch(()=>{}); } }
     if(SYNC) SYNC.tick(dt, .3, ()=>{ const d=R.d; if(!d || !d.h){ if(st.phase==="wait"){ api.msg("방이 닫혔어요", 1400); leaveRoom(true); } return; } applyRoom(); });
     else { R.pollT-=dt; if(R.pollT<=0){ R.pollT=.3; poll(); } }
