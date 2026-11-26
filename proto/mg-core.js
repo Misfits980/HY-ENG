@@ -341,7 +341,9 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     /* (v714) 🔌 친구끼리 끊김 — 예전: 0.25초마다 방 전체를 GET(겹쳐 보내기 막음 없음 → 늦은 답이 새 답을 덮어 친구가 뒤로 튐) + 0.1초마다 내 칸 PUT(앞 PUT 이 안 끝나도 또 보냄)
        → 방을 「계속 받기」(Firebase 스트리밍 · 바뀐 칸만 · 순서 그대로)로 · 안 되면(막힌 망·옛 기기) 예전처럼 받되 하나 끝나야 다음 · 보내기도 하나씩(가장 새것만) */
     const ST={es:null, ok:false, dead:false, t0:0, last:0, echo:0, sent:0, dirty:false, polling:false, putting:false, pend:null, seq:0};
-    function setAt(path, data, patch){ const ks=String(path||"/").split("/").filter(Boolean);
+    function setAt(path, data, patch){ setAt0(path, data, patch); avFill(); }
+    function avFill(){ const d=R.d; if(!d || !d.p || !d.a) return; for(const k in d.p){ const p=d.p[k]; if(p && typeof p==="object" && !p.av && d.a[k]) p.av=d.a[k]; } }   /* (v736) 옷 정보 = a/<아이> */
+    function setAt0(path, data, patch){ const ks=String(path||"/").split("/").filter(Boolean);
       if(!ks.length){ if(patch) R.d=Object.assign(R.d||{}, data||{}); else R.d=data; return; }
       let o=R.d||(R.d={}); for(let i=0;i<ks.length-1;i++){ const k=ks[i]; if(!o[k] || typeof o[k]!=="object") o[k]={}; o=o[k]; } const k=ks[ks.length-1];
       if(patch){ const t=(o[k] && typeof o[k]==="object") ? o[k] : (o[k]={}); Object.keys(data||{}).forEach(x=>{ if(data[x]===null) delete t[x]; else t[x]=data[x]; }); }
@@ -369,7 +371,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
         ui(); } }
     async function poll(){ if(!R.path || R.busy || ST.polling) return; ST.polling=true; const path=R.path; let d=null;
       try{ d=await NET.get(path); }catch(e){ ST.polling=false; return; } ST.polling=false; ST.last=performance.now(); if(!R.path || R.path!==path || ST.ok) return;   /* 그사이 계속 받기가 붙었으면 이 (더 옛) 답은 버림 */
-      R.d=d; process(); }
+      R.d=d; avFill(); process(); }
     /* 내 칸 보내기 — 앞 것이 아직 가는 중이면 가장 새것만 남겨 두었다가 끝나면 바로 */
     /* 셋까지 동시에 (받는 쪽은 보낸 시각으로 옛것을 버림) · 더 밀리면 가장 새것만 남겨 두었다가 */
     function putMe(m){ if((ST.putting|0)>=3){ ST.pend=m; return; } ST.putting=(ST.putting|0)+1; ST.sent=performance.now(); const path=R.path;
@@ -377,7 +379,9 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
     R.tick=(dt)=>{ if(!OK) return;
       if(R.phase==="room"){ R.listT-=dt; if(R.listT<=0){ R.listT=1.5; R.list(); } return; }
       if(!R.path) return;
-      R.sendT-=dt; if(R.sendT<=0){ R.sendT=cfg.send||.1; const m=Object.assign({n:nm, t:now()}, R.node?R.node():{}); const s0=R.last; if(!s0 || JSON.stringify(Object.assign({},s0,{t:0}))!==JSON.stringify(Object.assign({},m,{t:0})) || m.t-s0.t>1500){ R.last=m; putMe(m); } }
+      R.sendT-=dt; if(R.sendT<=0){ R.sendT=cfg.send||.1; const m=Object.assign({n:nm, t:now()}, R.node?R.node():{});
+        /* (v736) 사용자: 「한 시간 하면 얼마나?」 → 옷 정보(av)가 0.1초마다 같이 가서 보내는 글의 절반이었음 → 옷은 a/<나> 에 바뀔 때만 한 번 · 자리 글에서는 뺌 (받는 쪽은 avFill 로 p.av 를 채워 게임 코드는 그대로) */
+        if("av" in m){ const aj=JSON.stringify(m.av||null); if((aj!==R._avS || R._avP!==R.path) && R.path){ R._avS=aj; R._avP=R.path; R.put("a/"+code, m.av||null); } delete m.av; } const s0=R.last; if(!s0 || JSON.stringify(Object.assign({},s0,{t:0}))!==JSON.stringify(Object.assign({},m,{t:0})) || m.t-s0.t>1500){ R.last=m; putMe(m); } }
       /* 받기 살아 있나: 내가 보낸 것이 4초 넘게 안 돌아오면(막힌 망 · 몰아서 오는 망) 예전 받기로 */
       if(ST.ok && ST.sent && performance.now()-ST.echo>4000 && performance.now()-ST.sent<3000){ liveStop(); ST.dead=true; }
       if(ST.ok){ if(ST.dirty){ ST.dirty=false; process(); } }

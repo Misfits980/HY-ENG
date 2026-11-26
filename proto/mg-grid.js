@@ -285,7 +285,7 @@ function start(api){
   const esc=s=>String(s==null?"":s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
   eRoom.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b || R.busy) return; try{ api.sfx.tick(); }catch(_){} if(b.dataset.bk){ api.restart({}); return; } if(b.dataset.mk) mkRoom(); else if(b.dataset.j) joinRoom(b.dataset.j); else if(b.dataset.st) startRoom(); else if(b.dataset.lv) leaveRoom(true); });
   eRoom.addEventListener("pointerdown", e=>e.stopPropagation());
-  function meNode(){ return {n:nm, av:api.av||{}, x:+P.p.x.toFixed(2), z:+P.p.z.toFixed(2), y:+P.p.y.toFixed(2), f:+P.face.toFixed(2), l:st.lives, o:st.out?1:0, t:now()}; }
+  function meNode(){ return {n:nm, x:+P.p.x.toFixed(2), z:+P.p.z.toFixed(2), y:+P.p.y.toFixed(2), f:+P.face.toFixed(2), l:st.lives, o:st.out?1:0, t:now()}; }
   async function listRooms(){ if(!NETOK) return; let d=null; try{ d=await NET.get(BASE()); }catch(e){ return; } const t=now(), L=[];
     let cut=0; Object.keys(d||{}).forEach(id=>{ const r=d[id]; if(r && r.h && cut<4 && ((r.h.st && t-r.h.st>40*60000) || (!r.h.st && t-(r.h.hb||r.h.at||0)>10*60000))){ cut++; NET.del(BASE()+"/"+id).catch(()=>{}); return; }   /* (v736) 오래된 방 지우기 (목록이 커지지 않게) */
       if(!r || !r.h || r.h.st) return; if(t-(r.h.hb||0)>15000) return; const c=Object.values(r.p||{}).filter(p=>p && t-(p.t||0)<10000).length; if(c<MAXP) L.push({id, n:r.h.n||"친구", c, df:r.h.df||"normal"}); });
@@ -310,7 +310,8 @@ function start(api){
     /* 친구 모습 */
     const seen={}; Object.keys(d.p||{}).forEach(k=>{ if(k===code) return; const p=d.p[k]; if(!p || t-(p.t||0)>10000) return; seen[k]=1; let pp=R.peers[k];
       const col=PCOL[slotOf(k)]; if(pp && pp.col!==col){ dropPeer(pp); delete R.peers[k]; pp=null; }
-      if(!pp){ st.tk=0; pp=R.peers[k]={c:avatar(p.av, 1.8), tag:tag(p.n||"친구", col), ring:ring(new THREE.Color(col).getHex()), col, x:p.x||0, z:p.z||0, y:0, trk:MG.track?MG.track():null, st0:null}; } pp.tx=p.x||0; pp.tz=p.z||0; pp.ty=p.y||0; pp.f=p.f||0; pp.o=!!p.o; pp.n=p.n;
+      const pav=(d.a && d.a[k]) || p.av || null; if(pp && pp.noav && pav){ dropPeer(pp); delete R.peers[k]; pp=null; }   /* 옷 정보가 늦게 오면 그때 다시 */
+      if(!pp){ st.tk=0; pp=R.peers[k]={c:avatar(pav||{}, 1.8), noav:!pav, tag:tag(p.n||"친구", col), ring:ring(new THREE.Color(col).getHex()), col, x:p.x||0, z:p.z||0, y:0, trk:MG.track?MG.track():null, st0:null}; } pp.tx=p.x||0; pp.tz=p.z||0; pp.ty=p.y||0; pp.f=p.f||0; pp.o=!!p.o; pp.n=p.n;
       if(pp.trk && p.t && p.t!==pp.st0){ pp.st0=p.t; pp.trk.push(p.t, [pp.tx, pp.ty, pp.tz]); } });
     Object.keys(R.peers).forEach(k=>{ if(!seen[k]){ dropPeer(R.peers[k]); delete R.peers[k]; } });
     if(st.phase==="wait"){ if(h.df && DF[h.df] && h.df!==DFK){ DFK=h.df; st.lives=DF[DFK].life; } if(h.st){ st.seed=h.seed>>>0; st.lives=DF[DFK].life; st.phase="count"; } roomUI(); drawHud(); }
@@ -324,6 +325,7 @@ function start(api){
   function netTick(dt){ if(!CO || !NETOK) return;
     if(st.phase==="room"){ R.listT-=dt; if(R.listT<=0){ R.listT=1.5; listRooms(); } return; }
     if(!R.path) return;
+    if(R.path && R._avP!==R.path){ R._avP=R.path; try{ NET.put(R.path+"/a/"+code, api.av||{}).catch(()=>{}); }catch(e){} }   /* (v736) 옷 정보는 방마다 한 번 (전: 0.15초마다 자리 글에 같이) */
     R.sendT-=dt; if(R.sendT<=0){ R.sendT=.15; const m=meNode(), s=R.lastSent; if(!s || Math.abs(s.x-m.x)+Math.abs(s.z-m.z)+Math.abs(s.y-m.y)>.05 || s.l!==m.l || s.o!==m.o || m.t-s.t>1500){ R.lastSent=m; if(SYNC) SYNC.put("p/"+code, m); else NET.put(R.path+"/p/"+code, m).catch(()=>{}); } }
     if(SYNC) SYNC.tick(dt, .3, ()=>{ const d=R.d; if(!d || !d.h){ if(st.phase==="wait"){ api.msg("방이 닫혔어요", 1400); leaveRoom(true); } return; } applyRoom(); });
     else { R.pollT-=dt; if(R.pollT<=0){ R.pollT=.3; poll(); } }
