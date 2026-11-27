@@ -1118,7 +1118,12 @@ img.ic{width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.28em;display
 #adNav{display:none}
 #shAdmin.adPh{place-items:stretch}
 #shAdmin.adPh .sheetIn.adIn{width:100%;max-width:none;height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:0 12px;display:flex;flex-direction:column;box-sizing:border-box;scroll-padding-top:80px;scroll-padding-bottom:90px}
-#shAdmin.adPh .adTop{position:sticky;top:0;flex:0 0 auto;margin:0 -12px 10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 10px;border-radius:0;border-bottom:1px solid rgba(255,209,102,.2)}
+#shAdmin.adPh .adTop{position:sticky;top:0;flex:0 0 auto;margin:0 -12px 10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 10px;border-radius:0;border-bottom:1px solid rgba(255,209,102,.2);box-shadow:none;background:#1a1235}
+/* (v737) 사용자(아이폰): 「위로 땡기면 카테고리바가 올라가」 · 「옆에 스크롤이 생겨」 · 「위에 바 쪽이 그림자처럼 보여」
+   → 관리 화면이 열려 있는 동안 뒤 화면(첫 화면)은 안 움직이게 · 관리 화면 끝에서 더 끌어도 튕기지 않게(탭 바 · 맨 위 바가 같이 딸려 오지 않음) · 맨 위 바 아래 그림자 없앰(밑으로 지나가는 카드가 검게 번져 보였음) */
+html:has(#shAdmin.on),html:has(#shAdmin.on) body{overflow:hidden;overscroll-behavior:none}
+#shAdmin.on{overscroll-behavior:none}
+#shAdmin.adPh .sheetIn.adIn{overscroll-behavior:none}
 #shAdmin.adPh .adHead{margin:0;gap:8px}
 #shAdmin.adPh .adHead h2{flex:1;min-width:0;margin:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:7px}
 #shAdmin.adPh .adHead h2::before{content:"";flex:0 0 auto;width:52px;height:34px;background:url(assets/ui/logo.webp) center/contain no-repeat}
@@ -18160,7 +18165,7 @@ function gameOver(){ Later.reset(); try{ SFX.keep(false); }catch(e){} try{ Loot.
   $("scOver").classList.add("on");
 }
 /* 학원 시트에 함께 보내는 한 판 기록 — 보스 처치·최대 콤보·끝난 이유 등 (시트 코드가 받는 칸만 저장된다) */
-const GAME_VER = "v736";
+const GAME_VER = "v737";
 try{ const vt=document.getElementById("verTag"); if(vt) vt.textContent=GAME_VER; }catch(e){}   // (v234) 기기에 새 버전이 들어왔는지 선생님이 바로 볼 수 있게
 /* 상점 물건 이름 찾기 (구글 시트 기록용) */
 function itemInfo(id){
@@ -19113,20 +19118,27 @@ const Study = (function(){
   /* ══ (v302) ★1 배우기 6단계 (사용자 10/16: 4~5분 OK) — 단어 4개씩 한 묶음
      ① 만나기(짐작, 점수 없음) → ② 알아보기(카드) → ③ 묶어 보기(같은 소리·헷갈리는 짝·반대말·가족) → ④ 만져 보기(철자, 첫 글자 힌트)
      → ⑤ 써 보기(문장 빈칸·대화) … 묶음마다 아는 단어 1개 → 판 끝 ⑥ 한 번 더(힌트 없이 4문제, 다시 안 냄) ══ */
+  /* (v737) 사용자: 「그렇긴 하네 이건 고쳐 보고」 — 🤔 짐작해 봐요 「Our school will hold a science fair …」 뜻 보기에 「대회」(contest) → 문장에 같이 맞는 말의 뜻은 보기로 안 씀 (빈칸 보기와 같은 규칙 blankAvoid) */
   function guessQ(w, gr, pool){
-    const ko=decoys(w, pool, 2, "ko").map(x=>x.ko); if(ko.length<2) return null; const opts=shuffle([w.ko].concat(ko));
-    if(gr==="g12" || (!sentOf(w) && w.emoji)) return {t:"intro", hd:"guess", w, ws:[w], opts, x:{pic:w.emoji||"", aud:1}};
-    const L=exAll(w).filter(x=>reW(w.en).test(x[0]) && x[0].split(/\s+/).length<=14); if(!L.length) return w.emoji ? {t:"intro", hd:"guess", w, ws:[w], opts, x:{pic:w.emoji, aud:1}} : null;
-    return {t:"intro", hd:"guess", w, ws:[w], opts, x:{sent:L[Math.floor(Math.random()*L.length)][0]}}; }
+    const picOnly = gr==="g12" || (!sentOf(w) && w.emoji), L = picOnly ? [] : exAll(w).filter(x=>reW(w.en).test(x[0]) && x[0].split(/\s+/).length<=14);
+    const sent = L.length ? L[Math.floor(Math.random()*L.length)][0] : null, m = sent ? sent.match(reW(w.en)) : null, st = m ? {pre:sent.slice(0, m.index), post:sent.slice(m.index+m[0].length)} : null;
+    const ko=decoys(w, pool, 2, "ko", st ? blankAvoid(w, st) : null).map(x=>x.ko); if(ko.length<2) return null; const opts=shuffle([w.ko].concat(ko));
+    if(picOnly) return {t:"intro", hd:"guess", w, ws:[w], opts, x:{pic:w.emoji||"", aud:1}};
+    if(!sent) return w.emoji ? {t:"intro", hd:"guess", w, ws:[w], opts, x:{pic:w.emoji, aud:1}} : null;
+    return {t:"intro", hd:"guess", w, ws:[w], opts, x:{sent}}; }
   function bundleQ(grp, gr, pool){
     const T = gr==="g12" ? ["sfs","opp"] : gr==="g34" ? ["opp","conf","sfs"] : gr==="g56" ? ["conf","rel","famf"] : ["famf","conf","rel"];
     for(const t of T) for(const w of shuffle(grp.slice())){ let q=null; try{ q=mkDeep(t, w, gr, pool); }catch(e){} if(q){ q.tg="③ 묶어 보기"; return q; } }
     return null; }
+  /* (v737) 사용자가 본 것: fair(이 Stage 뜻 = 박람회, 축제) 새 단어 카드에 「≈ 비슷한 말 just (공정한)」 — 도감 반대말·비슷한 말은 첫 뜻(공정한) 기준
+     → 이 Stage 뜻이 첫 뜻이 아니면 안 보여 줌 · 비슷한 말 괄호 뜻이 있으면 Stage 뜻과 같아야 (반대말은 뜻이 반대라 괄호 비교는 안 함) */
+  function relSense(w, item, opp){ let S=null; try{ S=senseNos(w.en, w.ko); }catch(e){} if(S && S.indexOf(1)<0) return false;
+    const m=/\(([^)]*)\)/.exec(String(item||"")); if(!opp && m && m[1] && /[가-힣]/.test(m[1]) && !koSame(m[1], w.ko)) return false; return true; }
   function grpCard(grp){ const rows=[];
     grp.forEach(w=>{ const D=dexOf(w)||[], R=D[7]||{}, one=v=>String(v||"").split(/\s*[,·\/]\s*/)[0].trim();
       const c=confOf(w.en); if(c && byEn[c]) rows.push([w.en, "🤔 헷갈리는 짝", c+" ("+byEn[c].ko+")"]);
-      else if(R.o) rows.push([w.en, "↔ 반대말", one(R.o)]);
-      else if(R.s && gradeOf(load().set)!=="g12") rows.push([w.en, "≈ 비슷한 말", one(R.s)]);
+      else if(R.o && relSense(w, one(R.o), true)) rows.push([w.en, "↔ 반대말", one(R.o)]);
+      else if(R.s && gradeOf(load().set)!=="g12" && relSense(w, one(R.s))) rows.push([w.en, "≈ 비슷한 말", one(R.s)]);
       else if(R.f && gradeOf(load().set)!=="g12" && famOf(w)[0]) rows.push([w.en, "👪 가족", famOf(w)[0].en+" ("+famOf(w)[0].ko+")"]);
       else { const on=onset(w.en), fr=on ? grp.concat(shuffle(WORD_BANK.filter(x=>x.level<=1 && /^[a-z]{3,6}$/.test(x.en))).slice(0,200)).find(x=>x.en!==w.en && onset(x.en)===on) : null; if(fr) rows.push([w.en, "🔤 같은 첫소리", fr.en, fr.emoji||""]); }   /* (v565) 그림 글자는 따로 — 학원 PC 는 EmojiFix 가 <img> 로 바꿔 둬서 esc 하면 코드가 글로 보였음 */ });
     return rows.length ? {t:"intro", hd:"grp", w:grp[0], ws:grp, x:{rows:rows.slice(0,4)}} : null; }
@@ -19961,7 +19973,7 @@ const Study = (function(){
     sentsAll:w=>sentsOf(w),   /* (v700) 🧭 이야기 — 예문 여럿 중 이야기에 맞는 것 고르기 */
     sentsFull:w=>sentsOf(w).map(x=>({en:(x.pre+(x.cap ? w.en.charAt(0).toUpperCase()+w.en.slice(1) : w.en)+x.post).replace(/\s+/g," ").trim(), ko:x.ko||""})),   /* (v582) ✏️ 따라쓰기 문장 + 문장 성분 */
     deepLv, dlCur:()=>dlNow, DL_MAX, buildDuel:(set, n)=>{ ctx(set); const les=lessons(set).find(x=>x.n===n); if(!les) return null; tierNow=3; dlNow=2; return buildD2(set, les); },   /* (v636) ⚔️ 도전장 = 💜2 (철자 + 빈칸 · ⏱) */
-    estMin, dayTick, townTick, townN, townK, week, gradeOf, isKid, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, hsqReady:()=>!!HSQ || hsqTried>=2, _el:(s, gr)=>elOk(s, gr), _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length, bank:!!G.bank} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
+    estMin, dayTick, townTick, townN, townK, week, gradeOf, isKid, relSense, xQ, xHas, storyFor, readDone, readQs, buildExam, examWords, olyProf, hsqLoad, hsqReady:()=>!!HSQ || hsqTried>=2, _el:(s, gr)=>elOk(s, gr), _up:(set, i, tier)=>{ ctx(set); const L=lessons(set); return upQ(set, L[i], tier); }, stgGx:(set, n)=>{ try{ ctx(set); const G=stgGx(set, n); return G ? {k:G.k, nm:G.nm, n:G.ws.length, bank:!!G.bank} : null; }catch(e){ return null; } }, _bt:(set, i, tier)=>{ ctx(set); const les=lessons(set)[i]; if(!les) return []; tierNow=tier; return tier===2 ? buildT2(set, les) : buildT3(set, les, 1); }, _gx:(en, set, k)=>{ ctx(set); const w=byEn[en]; return w ? gxQ(w, gradeOf(set), k) : null; }, _gxAll:(set, k)=>{ ctx(set); const out=[]; lessons(set).forEach(x=>(x.ws||[]).forEach(w0=>{ const w=byEn[w0.en]||w0; let q=null; try{ q=gxQ(w, gradeOf(set), k); }catch(e){} if(q) out.push(q); })); return out; }, _gram:(t,en)=>{ const w=byEn[en]; ctx("g56"); return w ? gramQ(t,w) : null; }, _mk:(t,en,set,tier)=>{ const w=byEn[en]; ctx(set||"elem"); tierNow=tier||3; return w ? mkDeep(t, w, gradeOf(set||"elem"), []) : null; }, _strict:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? strictPool(w, set, []).slice(0,8).map(x=>x.en) : null; }, _opts:(w,set,own)=>{ ctx(set); return strictOpts(w, set, own).map(x=>x.en); }, _q:(t,w,set,pool)=>{ ctx(set); if(typeof w==="string") w=byEn[w]; return w ? makeQ(t, w, pool||[], 1) : null; }, _pastOf:en=>pastOf(en), _cz:(en,set,aud,kk)=>{ const w=byEn[en]; ctx(set); return w ? czQ(w, gradeOf(set), aud, kk) : null; }, _err:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? errQ(w) : null; }, _oxs:(en,set)=>{ const w=byEn[en]; ctx(set); return w ? oxsQ(w, lessons(set).find(x=>x.ws.indexOf(w)>=0).ws) : null; }, /* (v334) 테스트 훅 */ /* (v322) 테스트 훅 */ knQ:(w,set,own,hard)=>{ ctx(set); return chkQ(hard && midDef(w) ? "def" : Math.random()<0.5 ? "k2e" : "e2k", w, set, own) || chkQ("k2e", w, set, own); }, kidRead, firstL, tierOf, tierSet, tierLes, dpOpen, setDp, best2, ckOk, ckReady, setCk, setD1, starN, cfSet, _day:k=>{ dayOff=k|0; }, dgLeft, dgUse, conquered, useInfo, gradeOf, tierCur:()=>tierNow, setTier:t=>{ tierNow=t|0; }, SETS, N, MAXW, BOOKS, SUB, tag, bookOf, label, word, touch, stageNo, stageName, load, save, lessons, lv, open, cur, build, key, mark, due, streak, didToday, today, buildReview, quick, plan, stepQ, sentOf, olyOn, buildOly, talkOf,
     unseenLeft(set,n){ const les=lessons(set).find(x=>x.n===n), S=load(); return les ? les.ws.filter(w=>!S.seen[w.en]).length : 0; },
     dueOn(d){ const R=load().srs||{}; return Object.keys(R).filter(en=>R[en][1]===d && byEn[en]).length; },
     setLv(set,n,v){ const s=load(); s.lv[key(set,n)]=Math.max(s.lv[key(set,n)]||0, v); save(); try{ HyHW.reportSoon(); }catch(e){} try{ Gift.add({st:[set,n,v]}); }catch(e){} },   // (v396) 숙제 진행은 Stage 를 끝낸 바로 뒤 선생님께 (길로 돌아와야만 가던 것)
@@ -21350,7 +21362,7 @@ const StudyUI = {
   cardX(w, D){ const bk=Study.bookOf(this.set); if(bk!=="g56" && bk!=="mid") return ''; const L=[], pos=String((D && D[1])||"");
     if(/동사/.test(pos) && D[2]) L.push(['모양', String(D[2]).split(/\s*·\s*/).filter(f=>!/ing$/.test(f)).slice(0,3).join(' → ')]);
     const R=(D && D[7])||{}, sy=String(R.s||"").split(/\s*[,·\/]\s*/)[0];
-    if(sy && /형용사|부사|동사/.test(pos)) L.push(['≈ 비슷한 말', sy]);
+    if(sy && /형용사|부사|동사/.test(pos) && Study.relSense(w, sy)) L.push(['≈ 비슷한 말', sy]);   /* (v737) fair(박람회) 카드에 just(공정한) — Stage 뜻과 다른 뜻의 비슷한 말은 안 보임 */
     if(bk==="mid"){ const M=MIDX[w.en]; if(M && M.d) L.unshift(['📖 영어 풀이', M.d]); if(M && M.v && M.v[0]) L.push(['🏗️ 형식', M.v[0][1]+' ('+M.v[0][0]+'형식)']); }
     return L.slice(0, bk==="mid" ? 3 : 2).map(r=>'<div class="usRow cdx"><b>'+this.esc(r[0])+'</b><span>'+this.esc(r[1])+'</span></div>').join(''); },
   /* (v474) 🤔 모르겠어요 — 사용자: "모를 때 「모르겠어요」 하고 답 보여 주고 다시 푸는 형태 · 대신 모른다 하면 맨 마지막으로 보내서 풀게"
@@ -30969,7 +30981,13 @@ const Admin = (function(){
   /* 메뉴·상점 숫자 다시 그리기 */
   function refresh(){ try{ Unlock.paint(); }catch(e){} try{ if(typeof CharPick!=="undefined") CharPick.draw(); }catch(e){} }
   function open(){ devL=null;   /* (v722) 열 때마다 선생님 기기 목록 새로 */ if(ok && !fresh()){ ok=false; tk=""; ss(SK,null); ss(TK,null); } else if(ok) ss(SK,String(Date.now()));
-    draw._k=""; draw(); $("shAdmin").classList.add("on"); requestAnimationFrame(tabInd); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(ok){ check(); after(); } }
+    draw._k=""; draw(); $("shAdmin").classList.add("on"); try{ noBounce($("shAdmin").querySelector(".sheetIn")); }catch(e){} requestAnimationFrame(tabInd); try{ $("shAdmin").querySelector(".sheetIn").scrollTop=0; }catch(e){} if(ok){ check(); after(); } }
+  /* (v737) 옛 아이폰(사파리 16 아래 = overscroll-behavior 없음) — 맨 위·맨 아래에서 더 끌면 화면 전체가 튕기며 탭 바가 딸려 옴 → 그 끌기만 막음 (안쪽 옆 스크롤 표·칩 줄은 그대로) */
+  function noBounce(sc){ if(!sc || sc._nb) return; sc._nb=1; let y0=0, x0=0;
+    sc.addEventListener("touchstart", e=>{ const t=e.touches[0]; y0=t.clientY; x0=t.clientX; }, {passive:true});
+    sc.addEventListener("touchmove", e=>{ if(e.touches.length!==1) return; const t=e.touches[0], dy=t.clientY-y0, dx=t.clientX-x0; if(Math.abs(dx)>Math.abs(dy)) return;
+      for(let el=e.target; el && el!==sc; el=el.parentElement){ if(el.scrollHeight>el.clientHeight+1 && /auto|scroll/.test(getComputedStyle(el).overflowY)) return; }
+      const top=sc.scrollTop<=0, end=sc.scrollTop+sc.clientHeight>=sc.scrollHeight-1; if((top && dy>0) || (end && dy<0)){ if(e.cancelable) e.preventDefault(); } }, {passive:false}); }
   function close(){ $("shAdmin").classList.remove("on"); try{ rmSync(false); }catch(e){} tmPick=""; kidSheet(); }   /* (v735) PC·패드 서랍도 */
   ["adBody","adTabs","adGearBtn","adNav","adConn","adKidSh"].forEach(id=>$(id).addEventListener("click", e=>{ const b=e.target.closest("[data-ad]"); if(b && !b.disabled) act(b.dataset.ad, b); }));
   $("btnAdminX").addEventListener("click", ()=>{ try{ SFX.click(); }catch(e){} close(); });
