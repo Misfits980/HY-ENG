@@ -68,6 +68,10 @@ function css(){ if(document.getElementById("puCss")) return; const s=document.cr
   #mgUI .puTile{min-height:72px;padding:4px} #mgUI .puBtn.two small{display:none} #mgUI .puM:has(.puBtn.two) .stats{display:none} #mgUI .puM:has(.puSeg):has(.puBtn.pk) .stats{display:none} #mgUI .puSeg button{min-height:36px;padding:4px 10px} #mgUI .puTile .pic{width:40px;height:40px;font-size:24px} #mgUI .puTile b{font-size:16px} #mgUI .puTtl p{display:none} #mgUI .puM{row-gap:4px}
   #mgUI .puHero{min-height:0} #mgUI .puHero img{height:auto;max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px);margin-bottom:18px} #mgUI .puHero .stage{width:170px;margin-left:-85px;height:42px} #mgUI .puPanel{gap:7px;padding:9px} #mgUI .puBtn{min-height:44px;font-size:20px;padding:6px 12px}
 }
+/* (v741) 낮은 가로 휴대폰(667×375): 그림 맞히기·볼링 메뉴의 「🏝 섬으로」가 화면 밖(반쯤) → 넘칠 때만 줄임(.puTight) · 그래도 넘치면 끌어 내리기(.puScroll) */
+#mgUI .puM.puTight .stats{display:none} #mgUI .puM.puTight .puTtl h2{font-size:30px} #mgUI .puM.puTight .puTile small,#mgUI .puM.puTight .puSeg small{display:none}
+#mgUI .puM.puTight .puTile{min-height:56px;padding:3px} #mgUI .puM.puTight .puPanel{gap:6px;padding:8px} #mgUI .puM.puTight .puSeg button{min-height:34px}
+#mgUI .puM.puScroll{overflow-y:auto;-webkit-overflow-scrolling:touch}
 /* 결과 */
 #mgUI .puR{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;pointer-events:auto;background:rgba(13,15,51,.72);padding:calc(30px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));animation:puFade .3s}
 @keyframes puFade{from{opacity:0}}
@@ -92,6 +96,10 @@ function css(){ if(document.getElementById("puCss")) return; const s=document.cr
 #mgUI .puR .prog{text-align:left;font-size:14.5px;margin:0 4px 12px} #mgUI .puR .prog .b{height:16px;border:2px solid var(--gold);border-radius:10px;background:var(--deep);overflow:hidden;margin-top:4px} #mgUI .puR .prog .b i{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--gold) 0 10px,#ffd76b 10px 20px)}
 #mgUI .puR .bt{display:grid;grid-template-columns:1fr 1fr;gap:8px} #mgUI .puR .bt .big{grid-column:1/-1;font-size:26px;padding:12px}
 @media (max-height:640px){ #mgUI .puR .box{margin-top:60px;padding-top:46px} #mgUI .puR .stars{top:-78px} #mgUI .puR .stars .puI{transform:scale(.75)} #mgUI .puR .who{display:none} }
+/* (v741) 375×667 물총 아레나 결과(6명 순위)에서 「☰ 메뉴 · 🏝 섬으로」가 반쯤 화면 밖 → 넘칠 때만 줄임 · 그래도 넘치면 위부터 끌어 내리기 */
+#mgUI .puR.puTight .box{margin-top:60px;padding-top:46px} #mgUI .puR.puTight .stars{top:-78px} #mgUI .puR.puTight .stars .puI{transform:scale(.75)} #mgUI .puR.puTight .who{display:none}
+#mgUI .puR.puTight .rw .it{padding:3px 4px 5px} #mgUI .puR.puTight .rw .it .e{font-size:26px;line-height:30px} #mgUI .puR.puTight .puRank div{padding:2px 10px} #mgUI .puR.puTight .bt .big{font-size:22px;padding:8px} #mgUI .puR.puTight .sub{margin-bottom:6px}
+#mgUI .puR.puScroll{align-items:flex-start;overflow-y:auto}
 @media (orientation:landscape) and (max-height:620px){
   #mgUI .puR{align-items:flex-start;padding-top:calc(8px + env(safe-area-inset-top));overflow:auto} #mgUI .puR .box{margin-top:42px;padding:40px 12px 10px;width:min(100%,560px)} #mgUI .puR .stars{top:-66px} #mgUI .puR .stars .puI{transform:scale(.62)} #mgUI .puR .who{display:none} #mgUI .puR .rib{font-size:24px;top:-22px}
   #mgUI .puR .rw .it{width:84px;padding:3px} #mgUI .puR .rw .it .e{font-size:24px;line-height:28px} #mgUI .puR .rw .it b{font-size:17px} #mgUI .puR .prog{display:none} #mgUI .puR .sub{margin-bottom:6px} #mgUI .puR .bt{grid-template-columns:2fr 1fr 1fr} #mgUI .puR .bt .big{grid-column:auto;font-size:21px;padding:6px} #mgUI .puR .extra{margin:-2px 0 6px} #mgUI .puR .puRank div:nth-child(n+4):not(.me){display:none} #mgUI .puR .puRank div{padding:2px 10px} #mgUI .puR .rw{margin-bottom:8px}
@@ -137,6 +145,7 @@ function css(){ if(document.getElementById("puCss")) return; const s=document.cr
 
 /* ── 메뉴 (B) ── o={title, sub, av, stats:[[icon|emoji, num, label]], tiles:[{k, pic|emoji, nm, sub, bd}], n, primary:{k,label,ic}, seg:{title, items:[[k,label]], on, pick}, pay, more:html, onPick, onOut, cls} */
 function pbtn(p){ return '<button class="puBtn pk'+(p.sub?' two':'')+'" data-m="'+esc(p.k)+'" style="font-size:25px">'+(p.ic?ic(p.ic,36):'')+(p.sub?'<span><b>'+esc(p.label)+'</b><small>'+esc(p.sub)+'</small></span>':esc(p.label))+'</button>'; }
+let FIT=null, FITON=0;
 function menu(host, o){ css(); let el=host.querySelector(".puM"); if(!el){ el=document.createElement("div"); el.className="puM puIn"; host.appendChild(el); setTimeout(()=>el.classList.remove("puIn"), 1100); } if(o.cls) el.classList.add(o.cls);
   const st=(o.stats||[]).map(([i,n,l])=>'<span class="puChip">'+(ic(i,26)||'<span style="font-size:20px">'+i+'</span>')+'<b>'+esc(n)+'</b>'+esc(l)+'</span>').join("");
   const url=o.av===false?"":av(o.av||{}, "wave");
@@ -148,6 +157,8 @@ function menu(host, o){ css(); let el=host.querySelector(".puM"); if(!el){ el=do
       (o.primary&&!o.primaryTop?pbtn(o.primary):'')+
       '<div class="puRow"><span class="pay">오늘 '+SV.coin+' 상 '+(o.pay>0?'<b>'+o.pay+'</b>판 남음':'다 받았어요 (연습은 계속!)')+'</span><button class="puBtn sm out">🏝 섬으로</button></div></div>';
   el.style.display="";
+  const fit=()=>{ if(!el.isConnected || el.style.display==="none") return; el.classList.remove("puTight","puScroll"); if(el.scrollHeight>el.clientHeight+1){ el.classList.add("puTight"); if(el.scrollHeight>el.clientHeight+1) el.classList.add("puScroll"); } };
+  FIT=fit; requestAnimationFrame(fit); setTimeout(fit, 450); if(!FITON){ FITON=1; addEventListener("resize", ()=>setTimeout(()=>{ try{ FIT && FIT(); }catch(_){} }, 120)); }
   el.onclick=e=>{ const b=e.target.closest("button"); if(!b) return; try{ MG.SFX.tone(660,.06,"triangle",.04); }catch(_){} if(b.classList.contains("out")){ (o.onOut||MG.exit)(); return; } if(b.dataset.sg!=null){ o.seg.pick(b.dataset.sg); return; } if(b.dataset.m) o.onPick(b.dataset.m); };
   return el; }
 function menuHide(host){ const el=host.querySelector(".puM"); if(el) el.style.display="none"; }
@@ -161,6 +172,9 @@ function result(host, o){ css(); let el=host.querySelector(".puR"); if(el) el.re
     (o.extra?'<div class="extra">'+o.extra+'</div>':'')+
     (o.prog?'<div class="prog">'+coinTx(o.prog.t)+'<div class="b"><i style="width:'+Math.round(Math.max(0,Math.min(1,o.prog.v))*100)+'%"></i></div></div>':'')+
     '<div class="bt"><button class="puBtn mt big again">'+ic("retry",34)+'한 판 더</button><button class="puBtn menu">☰ 메뉴</button><button class="puBtn out">🏝 섬으로</button></div></div>';
+  const fitR=()=>{ if(!el.isConnected) return; el.classList.remove("puTight","puScroll"); let land=false; try{ land=matchMedia("(orientation:landscape) and (max-height:620px)").matches; }catch(_){}   /* 낮은 가로는 원래 따로 줄인 모양 + 끌기 */
+    if(!land && el.scrollHeight>el.clientHeight+1){ el.classList.add("puTight"); if(el.scrollHeight>el.clientHeight+1) el.classList.add("puScroll"); } };
+  FIT=fitR; requestAnimationFrame(fitR); setTimeout(fitR, 520); if(!FITON){ FITON=1; addEventListener("resize", ()=>setTimeout(()=>{ try{ FIT && FIT(); }catch(_){} }, 120)); }
   el.querySelector(".again").onclick=()=>{ el.remove(); o.onAgain && o.onAgain(); };
   el.querySelector(".menu").onclick=()=>{ el.remove(); o.onMenu && o.onMenu(); };
   el.querySelector(".out").onclick=()=>{ el.remove(); (o.onOut||MG.exit)(); };

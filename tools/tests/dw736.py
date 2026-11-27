@@ -38,7 +38,7 @@ async def main():
             if (w,h) in ((390,844),(1180,820),(667,375),(820,1180)): await pg.screenshot(path=OUTD+f"sketch_{w}x{h}.png")
         ok(all(abs(v["r"]-1.333)<.012 for v in res.values()), "① 칠판 늘 4:3 "+str({k:v["r"] for k,v in res.items()}))
         ok(all(v["out"]==0 and v["ov"]==0 and not v["sx"] for v in res.values()), "① 도구 화면 안 · 칠판과 안 겹침 · 옆 넘침 없음 "+str({k:(v["out"],v["ov"],v["sx"]) for k,v in res.items() if v["out"] or v["ov"] or v["sx"]}))
-        ok(res[(1180,820)]["w"]>=760 and res[(820,1180)]["w"]>=760 and res[(1366,768)]["w"]>=800 and res[(390,844)]["w"]>=360, "① 큰 화면에서 칠판이 큼 "+str({k:res[k]["w"] for k in [(1180,820),(820,1180),(1366,768),(390,844)]}))
+        ok(res[(1180,820)]["w"]>=760 and res[(820,1180)]["w"]>=760 and res[(1366,768)]["w"]>=800 and res[(390,844)]["w"]>=350, "① 큰 화면에서 칠판이 큼 (휴대폰 세로 350 이상 · v740 도구 줄이 늘어 359) "+str({k:res[k]["w"] for k in [(1180,820),(820,1180),(1366,768),(390,844)]}))
         await pg.set_viewport_size({"width":820,"height":1180}); await pg.wait_for_timeout(600)
         # ② 도구
         n=await pg.evaluate("()=>[document.querySelectorAll('#mgUI .dwTl .r.cl button').length, document.querySelectorAll('#mgUI .dwTl button.s').length, !!document.querySelector('#mgUI .dwTl [data-m=fill]'), !!document.querySelector('#mgUI .dwTl [data-m=stamp]'), !!document.querySelector('#mgUI .dwTl [data-m=erase]')]")

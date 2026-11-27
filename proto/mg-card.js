@@ -162,7 +162,7 @@ function start(api){
   const loc=g=>(g-ME+4)%4, glo=L=>(L+ME)%4, SE=g=>SEATS[loc(g)];
   const meP=()=>G.P[ME];
   const STK_MAX=8;   /* 쌓기는 8장까지 — 넘으면 받아야 함 (아이 판이 끝없이 길어지지 않게) */
-  const okC=(k)=>{ const top=G.top; if(!top) return false; if(G.pend>0) return G.pend<STK_MAX && (k.v==="wild4" || (k.v==="d2" && top.v==="d2")); return isW(k) || k.c===G.cur || (!isW(top) && k.v===top.v); };
+  const okC=(k)=>{ const top=G.top; if(!top) return false; if(G.pend>0) return (k.v==="wild4" || (k.v==="d2" && top.v==="d2")) && G.pend+(k.v==="wild4"?4:2)<=STK_MAX;   /* (v741) 예전 G.pend<8 → 6 에서 +4 를 얹으면 10장 (한도 8 을 넘음 · card634 ③ 가끔 실패) */ return isW(k) || k.c===G.cur || (!isW(top) && k.v===top.v); };
   const canAny=g=>G.P[g].h.some(id=>okC(CARD(id)));
   const isMyTurn=()=>phase==="play" && !G.over && G.turn===ME && !G.wait && !Q.length && !G.lock;
 
@@ -187,8 +187,11 @@ function start(api){
   function plates(){ [1,2,3].forEach(L=>{ const el=PL.querySelector('[data-l="'+L+'"]'), p=G.P[glo(L)]; if(!p){ el.style.display="none"; return; } el.style.display=""; el.querySelector(".n").textContent=p.nm+(p.bot?" 🤖":""); el.querySelector(".dot").style.background=p.col;
       const u=el.querySelector("u"); u.textContent="🂠 "+p.h.length; u.classList.toggle("one", p.h.length===1); el.classList.toggle("turn", G.turn===glo(L) && !G.over && phase==="play"); el.classList.toggle("o1", p.h.length===1 && !G.over); }); }
   const v3=new THREE.Vector3();
-  const PLX={}; function platePos(){ const W=innerWidth, H=innerHeight; [1,2,3].forEach(L=>{ const s=SEATS[L]; if(!s || !s.P) return; s.P.head.getWorldPosition(v3); v3.y+=.42; v3.project(cam);
-      const x=Math.round((v3.x+1)/2*W*2)/2, y=Math.round((1-v3.y)/2*H*2)/2, o=PLX[L]; if(o && Math.abs(o[0]-x)<.5 && Math.abs(o[1]-y)<.5) return; PLX[L]=[x,y];   /* (v740) 🐢 0.5px 넘게 움직였을 때만 · transform 으로 (매 프레임 left/top = 옛 패드에서 화면 배치를 다시 함) */
+  /* (v741) 낮은 가로 휴대폰(844×390): 가운데 자리 이름표가 위 차례 줄(나 › 콩 › 모 › 토) 뒤로 숨음 → 차례 줄과 겹치면 그 아래로 (화면 크기·차례 줄이 바뀔 때만 잼) */
+  const PLX={}; let ordK="", ordR=null, plH=0, ordN=0; function platePos(){ const W=innerWidth, H=innerHeight, ok=W+"x"+H+"|"+ORD.childElementCount;
+    if(ok!==ordK || (++ordN%30)===0 || (!ordR && ordN%6===0)){ ordK=ok; try{ const r=ORD.getBoundingClientRect(); ordR=r.height>0?[r.left, r.right, r.bottom+3]:null; plH=24; PL.querySelectorAll(".cpPlate").forEach(e=>{ plH=Math.max(plH, e.offsetHeight|0); }); }catch(e){ ordR=null; } }   /* 이름표 높이 = 차례면 아래 「…」 점까지 */
+    [1,2,3].forEach(L=>{ const s=SEATS[L]; if(!s || !s.P) return; s.P.head.getWorldPosition(v3); v3.y+=.42; v3.project(cam);
+      const x=Math.round((v3.x+1)/2*W*2)/2, o=PLX[L]; let y=Math.round((1-v3.y)/2*H*2)/2; if(ordR && plH && x>ordR[0]-60 && x<ordR[1]+60 && y-plH<ordR[2]) y=ordR[2]+plH; if(o && Math.abs(o[0]-x)<.5 && Math.abs(o[1]-y)<.5) return; PLX[L]=[x,y];   /* (v740) 🐢 0.5px 넘게 움직였을 때만 · transform 으로 (매 프레임 left/top = 옛 패드에서 화면 배치를 다시 함) */
       const el=PL.querySelector('[data-l="'+L+'"]'); el.style.transform="translate3d("+x+"px,"+y+"px,0) translate(-50%,-100%)"; }); }
   const EMT={}; function emote(g, e){ const L=loc(g), el=L===0?$(".cpPor .emo"):PL.querySelector('[data-l="'+L+'"] .emo'); if(!el) return; el.textContent=e; el.classList.add("on"); clearTimeout(EMT[L]); EMT[L]=setTimeout(()=>el.classList.remove("on"), 1800);
     const P=L===0?ME_AV:(SEATS[L]&&SEATS[L].P); if(P && EMO_X[e]){ P.setExpr(EMO_X[e]); if(L) SEATS[L].actT=1.8; } }

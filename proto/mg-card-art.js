@@ -139,6 +139,7 @@ function css(){ if(document.getElementById("cpCss")) return; const st=document.c
 .cpPlate .emo.on,.cpPor .emo.on{opacity:1;transform:scale(1)}
 .cpPlate .one1{display:none;position:absolute;left:50%;top:-26px;transform:translateX(-50%) rotate(-6deg);background:#ff5a5f;color:#fff;border:3px solid var(--ink);border-radius:9px;font-size:13px;padding:0 6px;white-space:nowrap}
 .cpPlate.o1 .one1{display:block}
+@media (orientation:landscape) and (max-height:420px){ .cpPlate .nm{font-size:11.5px;padding:1px 5px 1px 4px;gap:3px;border-width:1.5px} .cpPlate u{font-size:11.5px;padding:0 4px} .cpPlate .dot{width:8px;height:8px} }   /* (v741) 667×375: 세 자리 이름표가 서로 겹쳐 카드 수가 가려짐 */
 .cpFeed{position:absolute;left:max(10px,env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:4px;max-width:62%}
 .cpFeed div{background:rgba(42,30,40,.82);color:#fff;border-left:4px solid var(--c);border-radius:8px;padding:3px 9px;font-size:14px;display:flex;align-items:center;gap:6px;animation:cpIn .25s}
 .cpFeed div:nth-child(n+2){opacity:.72}.cpFeed div:nth-child(3){opacity:.5}

@@ -47,7 +47,7 @@ body.mgOn > :not(#mgUI):not(#cv):not(#fade):not(#mgLob):not(#mgRes):not(script):
 #mgUI{position:fixed;inset:0;z-index:30;touch-action:none;user-select:none;-webkit-user-select:none;font-family:var(--kr);color:#fff;display:none;overflow:hidden}
 #mgUI.on{display:block}
 #mgUI .mgTop{position:absolute;left:0;right:0;top:0;padding:calc(8px + env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left));display:flex;align-items:flex-start;gap:8px;pointer-events:none}
-#mgUI .mgX{pointer-events:auto;border:0;background:rgba(20,30,60,.55);color:#fff;font:inherit;font-size:15px;border-radius:14px;padding:8px 12px;min-height:40px}
+#mgUI .mgX{pointer-events:auto;border:0;background:rgba(20,30,60,.55);color:#fff;font:inherit;font-size:15px;border-radius:14px;padding:8px 12px;min-height:40px;white-space:nowrap;flex:none}   /* (v741) 360 폭 컬러팡: 「✕ 나가기」가 두 줄로 꺾여 아래 소식 줄을 가림 */
 #mgUI .mgB{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(20,40,80,.38);color:#fff;font-size:26px;line-height:1;pointer-events:auto;touch-action:none;transition:transform .06s}
 #mgUI .mgB small{font-size:11px;margin-top:3px;opacity:.95}
 #mgUI .mgB.tx{font-family:var(--en);font-weight:900;font-size:15px;letter-spacing:.04em}
