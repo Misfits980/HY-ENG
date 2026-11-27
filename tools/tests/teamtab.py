@@ -87,10 +87,10 @@ async def main():
         ok(w[:2] == ["MINJUN", "send"], f"🎁 다른 것 → 📢 보내기 탭에 이름 {w}")
         # (v392) 🏫 지금 수업 — 타일 3개 · ⚙ 바꾸기 → 그 설정 칸만 펼침
         await pg.evaluate("()=>Admin._tab('now')"); await pg.wait_for_timeout(500)
-        q = await pg.evaluate("()=>document.querySelectorAll('#adBody .adTile').length")
+        q = await pg.evaluate("()=>document.querySelectorAll('#adBody .adTile, #adBody .a3T').length")
         await pg.evaluate("()=>document.querySelector('#adBody [data-ad=nowEdit][data-k=bt]').click()"); await pg.wait_for_timeout(700)
         t = await pg.evaluate("()=>[document.querySelector('#adTabs .on').dataset.t, !!document.getElementById('adBtSet'), getComputedStyle(document.getElementById('adF_bt')).display!=='none', getComputedStyle(document.getElementById('adF_rd')).display]")
-        ok(q == 3 and t == ["now", True, True, "none"], f"지금 수업 타일 {q}개 → ⚙ 바꾸기 = 배틀 칸만 {t}")
+        ok(q in (3, 4) and t == ["now", True, True, "none"], f"지금 수업 타일 {q}개 → ⚙ 바꾸기 = 배틀 칸만 {t}")
         # 접는 칸(더 고르기 · ⓘ)이 보임 · 마지막 고른 값 기억
         vis = await pg.evaluate("()=>[...document.querySelectorAll('#adF_bt details')].map(d=>d.getBoundingClientRect().height>0)")
         ok(vis and all(vis), f"접는 칸 보임 {vis}")

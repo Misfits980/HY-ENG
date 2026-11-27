@@ -41,7 +41,7 @@ async def main():
         ok(r == "도윤", f"다음에 열면 이름이 들어 있음 {r}")
         # ② 두 팀 자동
         await T.wait_for_timeout(1200)
-        r = await T.evaluate("()=>{ const P=Battle.T().p||{}; const t=Object.keys(P).map(k=>P[k].tm); return {r:t.filter(x=>x==='r').length, b:t.filter(x=>x==='b').length, lanes:Battle.teamsOf().map(a=>a.t).sort(), cols:document.querySelectorAll('.btCol').length}; }")
+        r = await T.evaluate("()=>{ const P=Battle.T().p||{}; const t=Object.keys(P).map(k=>P[k].tm); return {r:t.filter(x=>x==='r').length, b:t.filter(x=>x==='b').length, lanes:Battle.teamsOf().map(a=>a.t).sort(), cols:document.querySelectorAll('.btCol, .lb4T').length}; }")
         ok(r["r"] + r["b"] == 5 and abs(r["r"] - r["b"]) <= 1 and r["lanes"] == ["b", "r"] and r["cols"] == 2, f"들어온 아이를 두 팀으로 고르게 · 두 줄 · 대기 화면 팀 칸 {r}")
         t0 = await T.evaluate("()=>{ const P=Battle.T().p||{}; return Object.keys(P).sort().map(k=>P[k].tm).join(''); }")
         await T.evaluate("()=>{ for(let i=0;i<6;i++) Battle.hostAct('shuffle'); }"); await T.wait_for_timeout(800)

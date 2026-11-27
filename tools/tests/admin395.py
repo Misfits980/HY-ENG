@@ -31,10 +31,12 @@ async def main():
         pg = await admin(ctx, {"width": 390, "height": 844}, errs)
         await pg.evaluate("()=>Admin.open()"); await pg.wait_for_timeout(1200)
         # ── 반 고르기 = 공용 패드 반 ──
+        await pg.evaluate("()=>{ const b=document.querySelector('#adBody .a3ScB'); if(b) b.click(); }"); await pg.wait_for_timeout(300)   # (v738) 반 고르기 = 「📚 오늘 단어 · 바꾸기」 창 안
         await pg.click('[data-ad="nowCls"][data-c="ta"]'); await pg.wait_for_timeout(700)
         ok(await pg.evaluate("()=>HyBoss.nowT()") == "ta", "반 고르기 → 공용 패드 반 (지금 수업)")
         ok("사자반" in await pg.evaluate("()=>(document.querySelector('.adClsSub')||{}).innerText||''"), "📱 공용 패드 줄")
         # ── ⭐ 즐겨찾기 저장 → 칩 ──
+        await pg.evaluate("()=>{ const b=document.querySelector('#a3Sh [data-ad=scClose]'); if(b) b.click(); }"); await pg.wait_for_timeout(200)   # (v738) 창 닫고
         await pg.click('[data-ad="nowEdit"][data-k="bt"]'); await pg.wait_for_timeout(500)
         await pg.click('#adF_bt [data-ad="favSave"]'); await pg.wait_for_timeout(800)
         F = await pg.evaluate("()=>Object.values((HyBoss.R||{}).fav||{})")

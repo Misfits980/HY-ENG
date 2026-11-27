@@ -117,8 +117,9 @@ async def main():
         await E("()=>Admin._tab('play')"); await T.wait_for_timeout(700); await E("()=>document.querySelector('[data-ad=nowEdit][data-k=bt]').click()"); await T.wait_for_timeout(500)
         await T.select_option("#adBtCls", "a")
         await E("()=>{ const s=document.getElementById('adBtSet'); s.value='g56'; s.dispatchEvent(new Event('change')); document.getElementById('adBtDur').value='180'; }"); await T.wait_for_timeout(200)
+        await E("()=>document.querySelectorAll('#adF_bt .a3Rng').forEach(d=>d.open=true)")   # (v738) 이번만 바꾸기 창의 📚 단어 줄은 접혀 있음
         await T.click("#adBtFromPick .stgGB[data-g='0']"); await T.click("#adBtFromPick .stgGB[data-g='0']"); await T.click("#adBtFromPick .stgC[data-e='2']")
-        await T.click('[data-ad="btGo"]'); await T.wait_for_timeout(1500)
+        await T.click('#adF_bt [data-ad="btGo"]'); await T.wait_for_timeout(1500)
         room = await E("()=>Battle.room"); cfg = await E("()=>Battle.cfg()")
         ok(cfg.get("cls") == "a" and cfg.get("from") == 0 and cfg.get("to") == 2, f"배틀 방: 반·범위 {cfg.get('cls')} {cfg.get('from')}~{cfg.get('to')}")
         w = await E("()=>document.getElementById('rdIn').innerText")
@@ -160,7 +161,7 @@ async def main():
         # ── ③ 레이드 (돌고래반) 기다리는 화면 ──
         await E("()=>{ Admin.open(); Admin._tab('play'); }"); await T.wait_for_timeout(700); await E("()=>{ const b=document.querySelector('[data-ad=nowEdit][data-k=rd]'); if(!document.querySelector('#adForms[data-open=rd]')) b.click(); }"); await T.wait_for_timeout(500)
         await T.select_option("#adRdCls", "b")
-        await T.click('[data-ad="raidGo"]'); await T.wait_for_timeout(1500)
+        await T.click('#adF_rd [data-ad="raidGo"]'); await T.wait_for_timeout(1500)
         w = await E("()=>document.getElementById('rdIn').innerText")
         ok(await E("()=>(RaidNet.get().cfg||{}).cls") == "b" and "아직 1명" in w and "하준" in w and "민준" not in w, f"레이드 기다리는 화면: 돌고래반 아직 1명 {w[-120:]!r}")
         ok(await E("()=>{ const b=document.querySelector('[data-rdh=\"start\"]'); return b && b.classList.contains('big'); }"), "레이드 시작 버튼 크게")

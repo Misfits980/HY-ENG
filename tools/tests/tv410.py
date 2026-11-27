@@ -19,7 +19,7 @@ async def main():
         ok(await E("()=>!!document.querySelector('#tvCast .tcLive') && document.body.classList.contains('tcOn')"), "선생님 TV: ● LIVE 중계 바")
         await E(f"()=>FB.update('/battle/{room}/p', {{k1:{{n:'민준', c:'hero', sc:0}}, k2:{{n:'서연', c:'cat', sc:0}}}})"); await T.wait_for_timeout(3500)
         ok(await E("()=>/입장/.test(TvCast.cur||'') || TvCast.q.some(x=>/입장/.test(x.t))") or await E("()=>/입장/.test(document.getElementById('tcMsg').innerText)"), "아이가 들어오면 '입장!'")
-        ok(await E("()=>document.querySelectorAll('#scRaid .rdPeople.tcLine .btChr').length")==2, "기다리는 TV: 들어온 아이 캐릭터")
+        ok(await E("()=>document.querySelectorAll('#scRaid .rdPeople.tcLine .btChr, #scRaid .lb4K').length")==2, "기다리는 TV: 들어온 아이 캐릭터")
         await E("()=>Battle.hostAct('start')")
         for _ in range(60):
             if await E("()=>Battle.st().s==='run'"): break
