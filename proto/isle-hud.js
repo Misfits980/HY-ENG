@@ -181,7 +181,12 @@ body.isleOn #quiz #qOk{background:linear-gradient(180deg,#8fe07f,#4caf50);color:
   $("ihMenu").onclick=e=>{ e.stopPropagation(); phone(); try{ SND.pop && SND.pop(); }catch(_){} };
   $("ihQ").onclick=e=>{ e.stopPropagation(); try{ openQ(); }catch(_){} };
   $("ihMe").onclick=e=>{ e.stopPropagation(); click("bIAv"); };
+  /* (v741) 📱 앱을 고르면 열려 있던 창을 먼저 닫음 — 예전엔 새 창이 열린 창 뒤에 깔리거나(도감 위에서 가방 → 가방이 뒤로) 나 꾸미기 위에 겹침(꾸미기 카메라 그대로 걸어감) */
+  function shutOpen(k){ try{ if(typeof avOpen!=="undefined" && avOpen && k!=="me") closeAv(); }catch(_){} try{ closeTalk(); }catch(_){}
+    try{ SHEETS.forEach(id=>{ if(id!=="avP"){ const e=$(id); if(e) e.classList.remove("on"); } }); }catch(_){}
+    ["lotP","hsP","teBank","ihMap","emoBar"].forEach(id=>{ const e=$(id); if(e) e.classList.remove("on"); }); }
   m.addEventListener("click", e=>{ const b=e.target.closest("[data-m]"); if(!b && e.target!==m) return; m.classList.remove("on"); if(!b) return; let k=b.dataset.m; if(k==="news") k=b.dataset.go||"";
+    if(k && k!=="emo") shutOpen(k);
     if(k==="home") click("bIHome"); else if(k==="fr") click("bFr"); else if(k==="map") openMap(); else if(k==="dex") click("bDex"); else if(k==="q") openQ(); else if(k==="lot") ISLE.openLots();
     else if(k==="bag") click("bIBag"); else if(k==="me") click("bIAv"); else if(k==="deco") ISLE.openHouse(); else if(k==="emo"){ const eb=$("emoBar"); if(eb) eb.classList.toggle("on"); }
     else if(k==="nb"){ try{ VIL.openList(); }catch(_){} } else if(k==="guest"){ try{ GUEST.openBook(); }catch(_){} } });

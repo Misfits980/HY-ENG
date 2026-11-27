@@ -237,7 +237,10 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
    → 가로면 늘 칠판 왼쪽 · 도구 오른쪽 · 칠판 크기는 fitBd 가 남은 자리에 맞춰 4:3 그대로 (가로 · 세로 모두 정해 줌) */
 #mgUI .dwR.dwLand{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto auto 1fr;grid-template-areas:"bd bar" "bd pl" "bd bx" "bd fb" "bd kb";column-gap:14px;row-gap:5px;align-items:start;justify-items:center;padding-top:calc(52px + env(safe-area-inset-top))}
 #mgUI .dwR.dwLand .dwBd{grid-area:bd;margin:0;max-width:none} #mgUI .dwR.dwLand .dwBar{grid-area:bar} #mgUI .dwR.dwLand .dwPl{grid-area:pl} #mgUI .dwR.dwLand .dwBx{grid-area:bx} #mgUI .dwR.dwLand .dwFb{grid-area:fb} #mgUI .dwR.dwLand .dwKb,#mgUI .dwR.dwLand .dwTl{grid-area:kb;align-self:end}
-#mgUI .dwR.dwLand .dwLine{display:none} #mgUI .dwR.dwLand .dwBar,#mgUI .dwR.dwLand .dwPl,#mgUI .dwR.dwLand .dwKb,#mgUI .dwR.dwLand .dwTl{width:100%}`; document.head.appendChild(s); }
+#mgUI .dwR.dwLand .dwLine{display:none}
+/* (v741) 낮은 가로 휴대폰(667×375): 빈 글자 칸(46px)·빈 안내 줄(24px)이 자리를 먹어 「✔ 다 그렸어요」·굵기 줄이 화면 밖 → 비었으면 접음 */
+#mgUI .dwR.dwLand .dwBx:empty,#mgUI .dwR.dwLand .dwFb:empty{display:none}
+#mgUI .dwR.dwLand .dwBar,#mgUI .dwR.dwLand .dwPl,#mgUI .dwR.dwLand .dwKb,#mgUI .dwR.dwLand .dwTl{width:100%}`; document.head.appendChild(s); }
 
 function start(api){
   const SFX=api.sfx, O=api.opt||{};

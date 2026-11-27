@@ -2923,6 +2923,7 @@ function emoDo(i){ const [e,au]=EMO[i]; $("emoBar").classList.remove("on"); if(F
 $("bEmo").onclick=e=>{ e.stopPropagation(); $("emoBar").classList.toggle("on"); };
 $("emoBar").innerHTML=EMO.map((x,i)=>'<button data-emo="'+i+'" aria-label="'+x[1]+'">'+x[0]+'</button>').join("");
 $("emoBar").onclick=e=>{ const b=e.target.closest("[data-emo]"); if(b) emoDo(+b.dataset.emo); };
+addEventListener("pointerdown", e=>{ const eb=$("emoBar"); if(eb.classList.contains("on") && !(e.target.closest && e.target.closest("#emoBar,#bEmo,#ihM,#ihMenu"))) eb.classList.remove("on"); }, true);   /* (v741) 다른 곳을 누르면 표정 줄 닫힘 */
 /* (v422) 🏆 오늘 친구 타워 기록 — 내 집 데이터(publish)에 tw:{d,e,h} 를 같이 올림 → 반 친구·친구 것을 모아 보여 줌 (새 서버 경로 없음) */
 function twPub(){ const r=TW.rec[dayKey()]; if(!r) return null; const o={d:dayKey()}; if(r.easy && r.easy.best) o.e=Math.round(r.easy.best*10)/10; if(r.hard && r.hard.best) o.h=Math.round(r.hard.best*10)/10; if(r.sky && r.sky.best) o.s=Math.round(r.sky.best*10)/10; if(r.kid && r.kid.best) o.k=Math.round(r.kid.best*10)/10; return (o.e||o.h||o.s||o.k) ? o : null; }
 function twBoard(){ const d=dayKey(), L=[], seen={}; const add=(c,n,tw,me)=>{ if(!tw || tw.d!==d || seen[c]) return; seen[c]=1; L.push({n, e:tw.e, h:tw.h, s:tw.s, k:tw.k, me}); };
@@ -4529,7 +4530,9 @@ function updLabels(){ const W=innerWidth, H=VH();
     LBL_HUD.r.forEach(q=>R.push(q));
     vis.filter(L=>isFar(L) && !L.d.sign).sort((a,b)=>(a.dd||0)-(b.dd||0)).forEach(L=>{ const r={x:L.lx-17, y:L.ly-40, w:34, h:34}, hit=R.some(q=>ov(q,r)); L.el.classList.toggle("dc", hit); if(!hit) R.push(r); }); } }
 function uiBusy(){ return sheetOpen() || edit || !!ghost || F.st!=="idle" || !!dlg || avOpen || trip.busy || $("info").classList.contains("on") || $("drawer").classList.contains("on"); }
-function updUI(){ const b=uiBusy(); $("tls").classList.toggle("off", b); drawCoach(b); const eo=(place===PL.yard || place===PL.village || place===PL.mine || place===PL.yvisit) && !b && !coachOn && !TW.on; $("bEmo").classList.toggle("on", eo); if(!eo) $("emoBar").classList.remove("on"); }
+function updUI(){ const b=uiBusy(); $("tls").classList.toggle("off", b); drawCoach(b); const eo=(place===PL.yard || place===PL.village || place===PL.mine || place===PL.yvisit) && !b && !coachOn && !TW.on; $("bEmo").classList.toggle("on", eo);
+  const isl=!!(PL.isle && place===PL.isle) && !b && !coachOn && !TW.on;   /* (v741) 🏝 섬은 📱 → 😊 표정 으로 엶 (단추 bEmo 는 없음) — 예전엔 열자마자 여기서 닫혀 표정을 못 썼음 */
+  if(!eo && !isl) $("emoBar").classList.remove("on"); }
 
 /* 🧑‍🌾 Mia 의 처음 안내 — 한 번에 한 가지 · 해 보면 저절로 다음 · 순서를 건너뛰어도(먼저 마을에 가도) 따라감 */
 const TUT=[   /* (v539) 사용자: "애들이 켜면 튜토리얼이 무엇을 따라가서 집이 생기고 침대·책상이 생기는 거야?" → 마을 광장에서 시작 → 📋 땅 고르기 → 집이 생김 → 🎁 입주 선물 */
