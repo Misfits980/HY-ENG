@@ -868,6 +868,9 @@ body.ui-skin .vsPick.p2 .tile.sel:not(.card):not(.gbtn){filter:drop-shadow(0 0 8
 .sheetIn.adIn{max-height:94dvh;padding-top:18px}
 .adTop{position:sticky;top:-18px;z-index:3;margin:-18px -20px 12px;padding:16px 16px 8px;background:#1a1235;border-radius:28px 28px 0 0;box-shadow:0 8px 14px -6px rgba(8,5,18,.7)}
 .adHead{display:flex;align-items:center;gap:10px;margin:0 0 10px 4px}
+/* (v738) 🧭 화면 투어: 휴대폰(390)에서 서버 연결이 안 돼 예전 관리 모양이 뜨면 「연결 문제」 칩 때문에 ✕ 닫기가 화면 밖(383~421px)으로 밀림 → 좁으면 제목이 줄고 칩은 점만 */
+@media (max-width:640px){ #shAdmin:not(.adPh) .adHead{gap:6px} #shAdmin:not(.adPh) .adHead h2{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #shAdmin:not(.adPh) .adBadge{display:none}
+  #shAdmin:not(.adPh) .adConn{padding:0 10px} #shAdmin:not(.adPh) .adConn span{display:none} #shAdmin:not(.adPh) .adHBtn,#shAdmin:not(.adPh) .adClose{flex:0 0 auto} }
 .adClose{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font-size:16px;cursor:pointer;flex:none}
 .adHBtn{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#fff;font-size:16px;cursor:pointer;display:grid;place-items:center;text-decoration:none;flex:none} #adSheetBtn{margin-left:auto}
 .adToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%) translateY(20px);z-index:80;max-width:min(92vw,520px);padding:12px 18px;border-radius:14px;background:#2a1f55;border:1px solid rgba(143,227,255,.35);color:#fff;font:800 14px var(--font);box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center}
@@ -25761,7 +25764,11 @@ const DM = {
       +'<div class="dmChest'+(rd?' rd':s.got?' got':'')+'"><button class="dmCh" data-dmopen="1"'+(rd?'':' disabled')+'>'+'<img class="chImg" src="assets/d30/chest/gold'+(s.got?'_o':'')+'.webp" alt="" draggable="false">'+'</button>'
         +'<p>'+(s.got ? '💎 '+(s.g|0)+' 받았어요! 내일 또 만나요' : rd ? '눌러서 열기! 💎'+this.reward()+(s.st>0?' (🔥 연속 +'+Math.min(5,s.st)+')':'') : '미션 3개를 다 하면 열려요 · 💎'+this.reward()+(s.st>0?' (연속 보너스 포함)':''))+'</p></div>'
       +'<p class="dmTip">매일 열면 🔥 연속 보너스 (+1씩, 최대 +5) · 가끔 💎 두 배!</p>'
-      +'<div class="dmFoot"><button class="dmMon" data-dmmon="1">📊 이달의 나</button><button class="stLater" data-dmx="1">닫기</button></div></div>'; },
+      +'<div class="dmFoot"><button class="dmMon" data-dmmon="1">📊 이달의 나</button><button class="stLater" data-dmx="1">닫기</button></div></div>';
+    this.fit(d); },
+  /* (v738) 점검 mon639·wg638: 패드 세로에서 🎯 이번 주 목표 고르기가 떠 있으면 미션 창이 6px(820×1180)~59px(768×1024) 넘쳐 굴려야 상자·닫기가 보였음 → 넘치면 그 창만 배율을 줄임 */
+  fit(d){ try{ const b=d.querySelector(".dmIn"); if(!b || !document.body.classList.contains("tabP")) return; b.style.removeProperty("--stZ");
+      const z0=parseFloat(getComputedStyle(b).getPropertyValue("--stZ"))||1, sh=b.scrollHeight, ch=b.clientHeight; if(sh>ch+1) b.style.setProperty("--stZ", (z0*ch/sh*0.995).toFixed(3)); }catch(e){} },
   click(e){ const t=e.target; if(!t || !t.closest) return;
     const wg=t.closest("[data-wg]"); if(wg){ WeekGoal.act(wg); this.draw(); return; }   /* (v638) */
     if(t.closest("[data-dmmon]")){ try{ SFX.click(); }catch(er){} this.close(); MonthCard.open(); return; }   /* (v639) */
@@ -26323,7 +26330,7 @@ const RAID_AW = {
    그림은 있던 것만: 걷기 그림(오른쪽 줄) · 레이드 초원 배경 (좌우 뒤집어 이어 붙여 끝없이). Raid.reg 가 다시 그려도 안 끊기게 #scRaid 에 따로 붙임 */
 const BtRace = { tv:null, kd:null, L:{}, pv:{}, rk:{}, fd:[], cap:0,
   bg(){ return '<div class="brSky"><div class="brScr"><i></i><i class="f"></i><i></i><i class="f"></i></div></div>'; },
-  chr(c){ return Battle.chr(c) || Battle.chr("hero") || '<i class="btChr"></i>'; },
+  chr(c){ return Battle.chr(c, "", true) || Battle.chr("hero", "", true) || '<i class="btChr"></i>'; },
   want(){ const B=Battle, S=$("scRaid"); if(!B.role || !S || !S.classList.contains("on") || !S.classList.contains("btOn")) return ""; let c, st; try{ c=B.cfg(); st=B.st(); }catch(e){ return ""; }
     if(B.isRun() || c.mode==="flag" || B.ended) return ""; if(st.s!=="run" && st.s!=="count") return ""; return B.role==="host" ? "tv" : B.role==="kid" ? "kid" : ""; },
   sync(){ let w=""; try{ w=this.want(); }catch(e){} const S=$("scRaid"); if(!S) return;
@@ -26491,7 +26498,7 @@ const Raid = {
   awHtml(L, big){ if(!L || !L.length) return ''; const E=x=>this.esc(x);
     return '<div class="rdAw'+(big?' big':'')+'"><h3>🏆 오늘의 레이드 시상식</h3><div class="rdAwG">'+L.map((x,i)=>{ const A=RAID_AW[x.id], me=x.k===this.me && this.role==="kid";
       const val = x.id==="last" ? "" : x.id==="sharp" ? x.v+"%" : (A.u==="문제" ? x.v+"문제" : A.u+" "+x.v);
-      return '<div class="rdAwC'+(me?' me':'')+'" style="animation-delay:'+(i*0.45)+'s"><i class="rdAwS" style="background-image:url(assets/chars/walk/walk-'+(CHARACTERS.some(c=>c.id===x.c)?x.c:"hero")+'.webp)"></i><em>'+A.e+'</em><b>'+E(A.n)+'</b><span>'+E(x.n)+(me?' (나!)':'')+'</span><small>'+E(val || A.d)+'</small></div>'; }).join('')+'</div></div>'; },
+      return '<div class="rdAwC'+(me?' me':'')+'" style="animation-delay:'+(i*0.45)+'s"><i class="rdAwS" style="background-image:url('+walkImg(CHARACTERS.some(c=>c.id===x.c)?x.c:"hero", big)+')"></i><em>'+A.e+'</em><b>'+E(A.n)+'</b><span>'+E(x.n)+(me?' (나!)':'')+'</span><small>'+E(val || A.d)+'</small></div>'; }).join('')+'</div></div>'; },
 
   /* ══ 선생님 ══ */
   host(book, words, bi, room, hp, cls){ room=room||String(1000+Math.floor(Math.random()*9000)); this.role="host"; this.room=room; this.book=book; this.ended=false; this._awW=0; HyBoss.live();
@@ -28231,7 +28238,7 @@ const FlagRun = {
        → 무리 = 1등을 뺀 나머지 · 큰 캐릭터 그림 = 지금 1등 아이 · 패드도 모든 반 무리(3명까지) */
     o.L.forEach(T=>{ const P=$("frK"+T.k); if(!P) return; const all=(T.kids||[]).slice().sort((a,b)=>(b.sc|0)-(a.sc|0)), ks=all.slice(1), show=ks.slice(0, o.tv?6:3), more=ks.length-show.length, s=T._s||60, ks2=Math.round(s*0.86);
       if(all[0] && all[0].ch && T._lc!==all[0].ch){ const R=$("frR"+T.k), sp=R && R.querySelector(".frSpr"); if(sp){ T._lc=all[0].ch; sp.style.backgroundImage="url(assets/chars/walk/walk-"+this.cid(all[0].ch)+".webp)"; } }
-      if(fresh || P.childElementCount!==show.length+(more>0?1:0)) P.innerHTML=show.map(k=>'<i class="frKid" style="background-image:url(assets/chars/walk/walk-'+this.cid(k.ch)+'.webp)"></i>').join('')+(more>0?'<b class="frMore">+'+more+'</b>':'');
+      if(fresh || P.childElementCount!==show.length+(more>0?1:0)) P.innerHTML=show.map(k=>'<i class="frKid" style="background-image:url('+walkImg(this.cid(k.ch))+')"></i>').join('')+(more>0?'<b class="frMore">+'+more+'</b>':'');
       const x=Math.max(s*0.62+18, W*this.X(T.p)/100), room=Math.max(0, x-s*0.42-4), want=ks2*0.62, sp=show.length ? Math.min(want, room/show.length) : 0;
       [...P.children].forEach((c,i)=>{ if(c.classList.contains("frMore")){ c.style.left=Math.round(-s*0.42-sp)+"px"; c.style.bottom=Math.round(ks2*0.92)+"px"; return; }
         c.style.left=Math.round(-s*0.42-(i+1)*sp)+"px"; c.style.width=c.style.height=ks2+"px"; }); }); },
@@ -28419,6 +28426,9 @@ const RunRace = {
   hide(){ if(this._el){ this._el.remove(); this._el=null; } if(this._inf){ this._inf.remove(); this._inf=null; } this._v=null; this._rk=0; }
 };
 /* (v738) 🔐 방탈출 · 🏚 저택 탈출 코드 뺌 — 사용자: 「저택 탈출은 폐기하기로 했잖아 · 방탈출 없애고」 (v664 에 수업 탭에서 내린 뒤 안 씀 · 옛 코드는 git v737 에) */
+/* (v738) ⏱ 성능: 걷기 그림(chars/walk) 한 장 = 1392×1856 → 풀면 10MB · 교실 배틀 TV 에 9명이면 걷기 그림만 93MB (perf738)
+   → 작게(36~72px) 그리는 곳은 절반 사본 s/ (696×928 · 풀면 2.6MB) · 크게(달리기 줄 · 시상대 big · 3D 판) 그리는 곳만 원본 */
+function walkImg(id, big){ return "assets/chars/walk/"+(big ? "" : "s/")+"walk-"+id+".webp"; }
 const Battle = { CHEST:(navigator.webdriver && !window.HY_CHEST) ? 0 : 1/7,
   role:null, room:null, me:null, pick:null, h:null, t:null, q:null, qAt:0, lockTo:0, streak:0, sc:0, ok:0, ng:0, ended:false, FAST:700,
   T(){ let t=(this.h && this.h.get())||this._last||{}; if(this._poll && (this._pollAt||0) > (this._evAt||0)){ const lt=t; t=Object.assign({}, this._poll); if(lt.st && this.role==="host" && (lt.st.s!==(t.st||{}).s)) t.st=lt.st; }   // (v359) 직접 읽은 것이 더 새것이면 그것 (선생님 기기가 방금 쓴 st 는 이 기기 것 우선)
@@ -28649,7 +28659,7 @@ const Battle = { CHEST:(navigator.webdriver && !window.HY_CHEST) ? 0 : 1/7,
     const em=(CHARACTERS.find(c=>c.id===id)||{}).emoji||"🙂";
     if(this.role==="kid" && this.room && !this.ended){ try{ FB.update("/battle/"+this.room+"/p/"+this.me, {c:id, e:em}); }catch(e){} try{ this.draw(); }catch(e){} }
     if(Raid.role==="kid" && Raid.room && !Raid.ended){ try{ RaidNet.write("/p/"+Raid.me, {c:id, e:em}, true); }catch(e){} const b=$("rdStage"); if(b) b.dataset.k=""; try{ Raid.drawKid(); }catch(e){} } },
-  chr(c, cls){ const id=CHARACTERS.some(x=>x.id===c) ? c : null; return id ? '<i class="btChr'+(cls?' '+cls:'')+'" style="background-image:url(assets/chars/walk/walk-'+id+'.webp)"></i>' : ''; },
+  chr(c, cls, full){ const id=CHARACTERS.some(x=>x.id===c) ? c : null; return id ? '<i class="btChr'+(cls?' '+cls:'')+'" style="background-image:url('+walkImg(id, full || /(^| )big( |$)/.test(cls||""))+')"></i>' : ''; },
   teamChr(t){ const P=this.T().p||{}, ks=Object.keys(P).filter(k=>this.tk(P[k])===t && P[k].c).sort((x,y)=>(P[y].ok|0)-(P[x].ok|0)).slice(0,3);
     return ks.map((k,i)=>this.chr(P[k].c, "n"+i)).join(''); },
   flagHtml(big){ const L=this.teamsOf(), g=this.goal(), st=this.st(), me=(this.T().p||{})[this.me], mt=me && this.tk(me);

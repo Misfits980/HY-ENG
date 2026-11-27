@@ -81,6 +81,7 @@ async def main():
         cur = await E("()=>FB.get('/hy/hw/cur')"); ok(len(cur) == 2 and gid not in cur, f"■ 끝내기 = 그 숙제만 {len(cur)}")
         # 📒 문법별 정답률 (기록 탭)
         await T.click('#adTabs [data-t="rec"]'); await T.wait_for_timeout(900)
+        await T.click('#adBody [data-ad="v2Rv"][data-v="sheet"]'); await T.wait_for_timeout(300)   # (v735~) 기록 탭 「시트 표」 보기 안
         await E("()=>{ document.querySelectorAll('#adBody details').forEach(d=>{ if(/문법별|며칠 뒤/.test(d.textContent)) d.open=true; }); const el=[...document.querySelectorAll('#adBody h3, #adBody summary')].find(x=>/문법별 정답률/.test(x.textContent)); if(el) el.scrollIntoView({block:'start'}); }")
         t = await E("()=>document.getElementById('adBody').innerText")
         ok("문법별 정답률" in t and "45%" in t and "현재완료" in t and "약한 문법" in t, "기록 탭: 📒 문법별 정답률 · 아이별 약한 문법"); await T.screenshot(path=OUT + "rec_pad.png")
