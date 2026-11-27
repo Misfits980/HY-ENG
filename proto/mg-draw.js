@@ -79,12 +79,19 @@ const chTag=i=>W[i][1]+(isV(i)?' · <b class="dwVt">동사</b>':'')+' · '+"⭐"
    c 0~7 · 8 = 지우개(흰색) · 9~15 새 색 · 30 = 🌈 무지개 · s 0~3 굵기 · 20 = 🪣 채우기 · 21~ = 도장 (도장은 c = 크기) */
 const COLS=["#2b2233","#ff5a5f","#ff9a3d","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#8a5a3c","#ffffff","#ff8fc4","#ffcfa3","#9aa0ad","#9fdcff","#b6e36b","#1f7a3a","#26408f"], SIZES=[7,16,34,62], PW=1000, PH=750;
 const RB=30, FILLS=20, ST0=21, STAMPS=["⭐","❤️","🌸","✨","🎀","🐾"], STSZ=[70,110,160,230];
+/* (v740) 사용자: 「rgb 형태로 고르는 방식도 · 윈도우 그림판처럼 도구 추가」 — 같이 하기 글(enc)에 칸만 더함
+   c 31 = 🎨 내가 고른 색 (글 맨 앞 세 값 = R G B) · s 4~7 📏 직선 · 8~11 ⬜ 네모 · 12~15 ⭕ 동그라미 · 16~19 💨 뿌리기 (굵기 = s % 4)
+   직선·네모·동그라미 = 점 두 개(처음 · 끝) · 뿌리기 = 지나간 점마다 같은 씨앗으로 같은 점들 → 기기마다 똑같이 그려짐 */
+const CU=31, SH={line:4, rect:8, oval:12, spray:16}, KIND=s=>s<4?"pen":s<8?"line":s<12?"rect":s<16?"oval":s<20?"spray":s===FILLS?"fill":"stamp", SZI=s=>s<4?s:(s-4)%4;
+const hex2=n=>("0"+(n|0).toString(16)).slice(-2), rgbHex=(r,g,b)=>"#"+hex2(r)+hex2(g)+hex2(b);
+const colOf=(S,i)=>S.c===RB ? "hsl("+(((i|0)*9)%360)+",92%,55%)" : S.c===CU ? (S.x||"#2b2233") : (COLS[S.c]||COLS[0]);
 const PAL=[0,1,2,3,4,5,6,7,9,10,11,12,13,14,15];
 const B36="0123456789abcdefghijklmnopqrstuvwxyz";
 const PTL={d:2,g:2,b:3,c:3,m:3,p:3,f:4,h:4,v:4,w:4,y:4,k:5,j:8,x:8,q:10,z:10};
 const e2=n=>{ n=Math.max(0,Math.min(1295,Math.round(n))); return B36[(n/36)|0]+B36[n%36]; };
-const enc=S=>{ let o=B36[S.c]+B36[S.s]; for(let i=0;i<S.p.length;i++) o+=e2(S.p[i]); return o; };
-const dec=str=>{ if(typeof str!=="string" || str.length<2) return null; const S={c:B36.indexOf(str[0]), s:B36.indexOf(str[1]), p:[]}; for(let i=2;i+1<str.length;i+=2) S.p.push(B36.indexOf(str[i])*36+B36.indexOf(str[i+1])); return S; };
+const enc=S=>{ let o=B36[S.c]+B36[S.s]; if(S.c===CU){ const x=S.x||"#2b2233"; o+=e2(parseInt(x.slice(1,3),16))+e2(parseInt(x.slice(3,5),16))+e2(parseInt(x.slice(5,7),16)); } for(let i=0;i<S.p.length;i++) o+=e2(S.p[i]); return o; };
+const dec=str=>{ if(typeof str!=="string" || str.length<2) return null; const S={c:B36.indexOf(str[0]), s:B36.indexOf(str[1]), p:[]}; for(let i=2;i+1<str.length;i+=2) S.p.push(B36.indexOf(str[i])*36+B36.indexOf(str[i+1]));
+  if(S.c===CU){ const q=S.p.splice(0,3); S.x=rgbHex(q[0]&255, q[1]&255, q[2]&255); } return S; };
 const norm=s=>String(s||"").toLowerCase().replace(/[^a-z]/g,"");
 function lev(a,b){ const m=a.length, n=b.length; if(Math.abs(m-n)>2) return 9; let p=Array.from({length:n+1},(_,j)=>j); for(let i=1;i<=m;i++){ const c=[i]; for(let j=1;j<=n;j++) c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); p=c; } return p[n]; }
 const near=(g,w)=>g.length>=2 && lev(g,w)<=(w.length>=7?2:1);
@@ -111,6 +118,7 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
 #mgUI .dwLine figure img{width:100%;height:100%;object-fit:cover}
 #mgUI .dwLine figure::before{content:"";position:absolute;left:50%;top:-8px;width:8px;height:16px;margin-left:-4px;background:var(--pc,#ff8466);border-radius:2px}
 @media (max-height:760px){ #mgUI .dwLine{display:none} }
+#mgUI .dwCfL{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:9}   /* (v740) 색종이가 화면 밑으로 나가며 판이 한순간 길어지던 것(89~104px) → 잘리는 층 안에서만 */
 #mgUI .dwCf{position:absolute;top:-20px;width:10px;height:14px;pointer-events:none;animation:dwFall 1.6s ease-in forwards;z-index:9}
 @keyframes dwFall{to{transform:translateY(110vh) rotate(720deg)}}
 #mgUI .dwBar b{background:#FFF6E3;color:#4A2E1F;border:3px solid #4A2E1F;box-shadow:0 3px 0 #4A2E1F;border-radius:999px;padding:3px 11px;font-weight:400;font-size:16px;white-space:nowrap}
@@ -178,6 +186,8 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
 #mgUI .dwKb button.dn{transform:translateY(3px);box-shadow:none;background:#ffe9a8}
 #mgUI .dwKb button.w{max-width:none;flex:1.6;font-family:var(--kr);font-weight:400;font-size:15px;white-space:nowrap;letter-spacing:-.02em} #mgUI .dwKb button.go{background:#3fc46a;color:#fff;box-shadow:0 3px 0 #2a8a4a} #mgUI .dwKb button.gv{background:#efe3ff;box-shadow:0 3px 0 #c9b6e0}
 #mgUI .dwKb.off{opacity:.45;pointer-events:none}
+/* (v740) 같이 하기: 자판 ↔ 도구 ↔ 아무것도 없음(고르기·보여 주기) 이 바뀌어도 칠판 크기 그대로 — 둘 중 큰 높이를 아래에 늘 비워 둠 (사용자: 「자판 나오면 화면이 작아지고 커지고」) */
+#mgUI .dwKb,#mgUI .dwTl{justify-content:flex-end} #mgUI .dwSp{flex:none;margin-top:auto;display:none} #mgUI .dwPr{position:absolute!important;left:0;top:0;visibility:hidden!important;pointer-events:none!important;display:flex!important;margin:0!important}
 #mgUI .dwTl{margin-top:auto;width:min(100%,720px);display:flex;flex-direction:column;gap:6px;flex:none}
 #mgUI .dwTl .wd{text-align:center;font-size:16px} #mgUI .dwTl .wd b{font-family:var(--en);font-weight:900;font-size:21px;color:#5b3a7a}
 #mgUI .dwTl div.r{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
@@ -185,10 +195,19 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
 #mgUI .dwTl div.r.cl{gap:5px} #mgUI .dwTl div.r.cl button.c{width:36px;height:36px} #mgUI .dwTl button.c.rb{background:conic-gradient(#ff5a5f,#ffd23f,#3fc46a,#3ea2ff,#9a6bff,#ff5a5f)}
 #mgUI .dwTl button.m{border-radius:14px;width:auto;min-width:52px;height:46px;padding:0 9px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font-size:20px;gap:1px}
 #mgUI .dwTl button.m small{font-size:10.5px;opacity:.8} #mgUI .dwTl button.m.on{background:#5b3a7a;color:#fff;box-shadow:0 3px 0 #3b2450}
-#mgUI .dwTl button.st{font-size:24px} #mgUI .dwTl button.st.on{outline:4px solid #ff8466;outline-offset:1px}
-#mgUI .dwTl button.c.off{opacity:.45}
-#mgUI .dwTl button.c.on{outline:4px solid #5b3a7a;outline-offset:2px} #mgUI .dwTl button.s{display:flex;align-items:center;justify-content:center} #mgUI .dwTl button.s i{display:block;background:#3b2433;border-radius:50%}
-#mgUI .dwTl button.s.on{outline:4px solid #ff8466;outline-offset:1px} #mgUI .dwTl button.tx{border-radius:14px;width:auto;padding:0 14px;font-size:16px} #mgUI .dwTl button.go{background:#3fc46a;color:#fff}
+#mgUI .dwTl button.st{font-size:24px} #mgUI .dwTl button.st.on{box-shadow:0 0 0 3px #fff,0 0 0 6px #ff8466}
+#mgUI .dwTl .c.off{opacity:.45}
+/* (v740) 고른 표시 = 단추 모양 그대로 동그란 고리 (outline 은 옛 아이패드 사파리 15 에서 네모로 그려졌음 — 사용자 사진) · 🎨 내 색 = 기기 색 고르기 창(RGB) · 도구 줄 */
+#mgUI .dwTl label.c.cu{position:relative;display:inline-block;flex:none;width:36px;height:36px;border-radius:50%;background:conic-gradient(from 0deg,#ff3b3b,#ffd23f,#3fc46a,#3ea2ff,#9a6bff,#ff3b3b);box-shadow:0 3px 0 rgba(0,0,0,.18);overflow:hidden;cursor:pointer}
+#mgUI .dwTl label.c.cu::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--cu,#ff6fae);border:2px solid #fff}
+#mgUI .dwTl label.c.cu b{position:absolute;right:-3px;bottom:-4px;font-size:15px;line-height:1;font-weight:400;pointer-events:none}
+#mgUI .dwTl label.c.cu input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;cursor:pointer}
+#mgUI .dwTl label.c.cu.on{box-shadow:0 0 0 3px #fff,0 0 0 6px #5b3a7a;overflow:visible}
+#mgUI .dwTl label.c.cu.on input{border-radius:50%}
+#mgUI .dwTl div.r.dwTr{gap:4px} #mgUI .dwTl div.r.dwTr button.m{min-width:46px;padding:0 5px}
+#mgUI .dwTl .hint{align-self:center;font-size:14px;color:#5b3a7a}
+#mgUI .dwTl .c.on{box-shadow:0 0 0 3px #fff,0 0 0 6px #5b3a7a} #mgUI .dwTl button.s{display:flex;align-items:center;justify-content:center} #mgUI .dwTl button.s i{display:block;background:#3b2433;border-radius:50%}
+#mgUI .dwTl button.s.on{box-shadow:0 0 0 3px #fff,0 0 0 6px #ff8466} #mgUI .dwTl button.tx{border-radius:14px;width:auto;padding:0 14px;font-size:16px} #mgUI .dwTl button.go{background:#3fc46a;color:#fff}
 #mgUI .dwMenu{position:absolute;inset:0;background:inherit;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:calc(58px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));z-index:4}
 #mgUI .dwMenu.on{display:flex}
 #mgUI .dwMenu h2{margin:0;font-weight:400;font-size:34px;color:#5b3a7a;text-shadow:0 3px 0 #fff} #mgUI .dwMenu .sub{font-size:14px;opacity:.8;text-align:center}
@@ -211,7 +230,7 @@ function css(){ if(document.getElementById("dwCss")) return; const s=document.cr
   #mgUI .dwBar{grid-area:bar} #mgUI .dwPl{grid-area:pl} #mgUI .dwBx{grid-area:bx} #mgUI .dwFb{grid-area:fb} #mgUI .dwKb,#mgUI .dwTl{grid-area:kb;align-self:end}
   #mgUI .dwKb button{min-height:36px;font-size:17px} #mgUI .dwBx i{height:38px;font-size:20px} #mgUI .dwMe{width:34px;height:34px;border-width:2px} #mgUI .dwBd,#mgUI .dwBd.dwT{margin-bottom:0} #mgUI .dwKb{gap:4px}
   #mgUI .dwMenu .g{grid-template-columns:repeat(4,1fr);width:min(100%,760px)} #mgUI .dwMenu .g button.big{grid-column:auto}
-  #mgUI .dwTl button{width:38px;height:38px;font-size:18px} #mgUI .dwTl div.r.cl{gap:4px} #mgUI .dwTl div.r.cl button.c{width:30px;height:30px} #mgUI .dwTl button.m{height:38px;min-width:40px;padding:0 5px} #mgUI .dwTl button.m small{display:none} #mgUI .dwTl{gap:4px} #mgUI .dwTl div.r{gap:4px}
+  #mgUI .dwTl button{width:38px;height:38px;font-size:18px} #mgUI .dwTl div.r.cl{gap:4px} #mgUI .dwTl div.r.cl button.c,#mgUI .dwTl label.c.cu{width:30px;height:30px} #mgUI .dwTl label.c.cu::before{inset:6px} #mgUI .dwTl button.m,#mgUI .dwTl div.r.dwTr button.m{height:38px;min-width:36px;padding:0 4px} #mgUI .dwTl button.m small{display:none} #mgUI .dwTl{gap:4px} #mgUI .dwTl div.r{gap:4px}
   #mgUI .dwTl .wd{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;max-width:100%} #mgUI .dwTl .wd b{font-size:17px} #mgUI .dwTl button.tx{font-size:14px;padding:0 10px}
 }
 /* (v736) 사용자: 「가로 세로 크기가 안 맞아」 — 가로 화면(패드 가로 · PC)은 칠판이 작게 가운데 + 옆이 텅 빔 · 낮은 가로에선 칠판이 4:3 이 아니게 늘어남
@@ -232,7 +251,7 @@ function start(api){
   const U=api.ui, R=document.createElement("div"); R.className="dwR"; U.insertBefore(R, U.querySelector(".mgTop"));
   R.innerHTML='<div class="dwBar"><canvas class="dwMe dwPor" data-k="me"></canvas><b class="rd"></b><div class="dwTm"><i></i></div><b class="sc"></b></div><div class="dwPl"></div>'+
     '<div class="dwLine"></div><div class="dwBd"><div class="ledge"><i style="left:18px;--r:-12deg;background:#ff5a5f"></i><i style="left:30px;--r:-4deg;background:#3ea2ff"></i><i style="left:42px;--r:8deg;background:#ffd23f"></i><i style="right:30px;--r:10deg;background:#3fc46a"></i></div><canvas width="'+PW+'" height="'+PH+'"></canvas><div class="dwCov"></div><div class="dwVb">🏃 무엇을 하고 있나요? · 동사</div><div class="dwOv"></div></div>'+
-    '<div class="dwBx"></div><div class="dwFb"></div><div class="dwKb"></div><div class="dwTl"></div>'+
+    '<div class="dwBx"></div><div class="dwFb"></div><div class="dwKb"></div><div class="dwTl"></div><div class="dwSp"></div><div class="dwKb dwPr" aria-hidden="true"></div><div class="dwTl dwPr" aria-hidden="true"></div>'+
     '<div class="dwMenu"></div><div class="dwGal"></div><div class="dwVote"></div>';
   ["pointerdown","pointermove","pointerup"].forEach(t=>R.addEventListener(t, e=>e.stopPropagation()));
   const $=s=>R.querySelector(s);
@@ -247,11 +266,11 @@ function start(api){
       try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,o.cm); const pr=rn.getPixelRatio(), q=Math.round(sz*pr); c.getContext("2d").clearRect(0,0,c.width,c.height); c.getContext("2d").drawImage(rn.domElement,0,rn.domElement.height-q,q,q,0,0,c.width,c.height); }catch(e){} });
     rn.setScissorTest(false); const cv0=rn.domElement; rn.setViewport(0,0,cv0.width/rn.getPixelRatio(),cv0.height/rn.getPixelRatio()); porCopy(); }
   function porCopy(){ R.querySelectorAll("canvas.dwPor").forEach(el=>{ const c=PCACHE[el.dataset.k]; if(!c) return; if(el.width!==c.width){ el.width=c.width; el.height=c.height; } const q=el.getContext("2d"); q.clearRect(0,0,el.width,el.height); q.drawImage(c,0,0); }); }
-  function confetti(n){ const C=["#ff5a5f","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#ff8466"]; for(let i=0;i<n;i++){ const d=document.createElement("i"); d.className="dwCf"; d.style.left=(Math.random()*100)+"%"; d.style.background=C[i%6]; d.style.animationDelay=(Math.random()*.4)+"s"; d.style.animationDuration=(1.2+Math.random()*.8)+"s"; R.appendChild(d); setTimeout(()=>d.remove(), 2600); } }
+  function confetti(n){ const C=["#ff5a5f","#ffd23f","#3fc46a","#3ea2ff","#9a6bff","#ff8466"]; for(let i=0;i<n;i++){ const d=document.createElement("i"); d.className="dwCf"; d.style.left=(Math.random()*100)+"%"; d.style.background=C[i%6]; d.style.animationDelay=(Math.random()*.4)+"s"; d.style.animationDuration=(1.2+Math.random()*.8)+"s"; let L=R.querySelector(".dwCfL"); if(!L){ L=document.createElement("div"); L.className="dwCfL"; R.appendChild(L); } L.appendChild(d); setTimeout(()=>d.remove(), 2600); } }
   function lineGal(){ const L=(st("hyeng_proto_dwg")||[]).slice(0,5), el=$(".dwLine"); if(!el) return; const PC=["#ff8466","#3ea2ff","#3fc46a","#ffd23f","#9a6bff"]; const n=Math.max(4, L.length);
     el.innerHTML=Array.from({length:n},(_,i)=>{ const x=L[i]; return '<figure style="--r:'+((i%2?1:-1)*(3+i*2))+'deg;--pc:'+PC[i%5]+'">'+(x?'<img src="'+x.d+'" alt="">':["🎨","🖌️","🌈","⭐","🖍️"][i%5])+'</figure>'; }).join(""); }
   const cv=$(".dwBd canvas"), g=cv.getContext("2d"), BD=$(".dwBd"), COV=$(".dwCov"), OV=$(".dwOv"), BX=$(".dwBx"), FB=$(".dwFb"), KB=$(".dwKb"), TL=$(".dwTl"), PL=$(".dwPl"), VB=$(".dwVb"), MENU=$(".dwMenu"), GAL=$(".dwGal"), VT=$(".dwVote");
-  const show=(el,v)=>{ el.style.display=v?"":"none"; };
+  const FIT={now:0}; const show=(el,v)=>{ el.style.display=v?"":"none"; FIT.now=1; };   /* (v740) 자판·도구가 바뀐 다음 틱에 바로 맞춤 (12틱 기다리면 느린 패드에서 칠판이 한 번 튐) */
   const SNAP={k:[], cv:null};   /* (v736) 다시 그리기 빠르게: 마지막 하나 빼고 그린 모습을 기억 (채우기가 많아도 느려지지 않게) */
   function clearBoard(){ g.globalCompositeOperation="source-over"; g.fillStyle="#fff"; g.fillRect(0,0,PW,PH); SNAP.k=[]; }
   const rbCol=i=>"hsl("+((i*9)%360)+",92%,55%)";
@@ -263,10 +282,19 @@ function start(api){
       for(; x<PW && !seen[i] && m(i); x++, i++){ seen[i]=1; if(y>0){ const u=i-PW; if(!seen[u] && m(u)){ if(!up){ stk.push(u); up=true; } } else up=false; } if(y<PH-1){ const v=i+PW; if(!seen[v] && m(v)){ if(!dn){ stk.push(v); dn=true; } } else dn=false; } } }
     for(let y=0;y<PH;y++) for(let x=0;x<PW;x++){ const i=y*PW+x; if(!seen[i] && !((x>0&&seen[i-1]===1)||(x<PW-1&&seen[i+1]===1)||(y>0&&seen[i-PW]===1)||(y<PH-1&&seen[i+PW]===1))) continue; const o=i*4; d[o]=r; d[o+1]=gg; d[o+2]=b; d[o+3]=255; }   /* 1칸 더 = 선 둘레 흰 테두리 없게 */
     g.putImageData(im,0,0); }
-  function paint(S){ const p=S.p; if(!p || !p.length) return;
-    if(S.s===FILLS){ flood(p[0], p[1], S.c===RB ? "#ff5a5f" : COLS[S.c]||COLS[0]); return; }
+  /* (v740) 💨 뿌리기 점 — 점 자리·순서로 정한 씨앗 (기기마다 같음) */
+  function sprayAt(x, y, k, w){ let sd=(x*73856093 ^ y*19349663 ^ k*83492791)>>>0; const rnd=()=>{ sd=(sd*1664525+1013904223)>>>0; return sd/4294967296; }, R=w*1.5, n=12+Math.round(w*.6), d=Math.max(3.2, w/5.5);   /* 점 크기·수 = 굵기에 맞춤 */
+    for(let j=0;j<n;j++){ const a=rnd()*6.2832, r=Math.sqrt(rnd())*R; g.fillRect(x+Math.cos(a)*r-d/2, y+Math.sin(a)*r-d/2, d, d); } }
+  function paint(S){ const p=S.p; if(!p || !p.length) return; const K=KIND(S.s);
+    if(S.s===FILLS){ flood(p[0], p[1], S.c===RB ? "#ff5a5f" : colOf(S)); return; }
+    if(K==="line" || K==="rect" || K==="oval" || K==="spray"){ const w=SIZES[SZI(S.s)]||SIZES[1]; g.strokeStyle=g.fillStyle=colOf(S); g.lineWidth=w; g.lineCap=g.lineJoin="round";
+      if(K==="spray"){ for(let i=0;i+1<p.length;i+=2){ if(S.c===RB) g.fillStyle=colOf(S, i/2); sprayAt(p[i], p[i+1], i/2, w); } return; }
+      const x0=p[0], y0=p[1], x1=p.length>=4?p[p.length-2]:x0, y1=p.length>=4?p[p.length-1]:y0; if(S.c===RB) g.strokeStyle=colOf(S, 6);
+      g.beginPath(); if(K==="line"){ g.moveTo(x0,y0); g.lineTo(x1,y1); } else if(K==="rect"){ g.rect(Math.min(x0,x1), Math.min(y0,y1), Math.abs(x1-x0), Math.abs(y1-y0)); }
+      else { const rx=Math.abs(x1-x0)/2, ry=Math.abs(y1-y0)/2; if(rx<1 && ry<1){ g.arc(x0,y0,w/2,0,7); g.fill(); return; } g.ellipse((x0+x1)/2, (y0+y1)/2, Math.max(rx,.5), Math.max(ry,.5), 0, 0, 7); }
+      g.stroke(); return; }
     if(S.s>=ST0 && S.s<ST0+STAMPS.length){ const z=STSZ[S.c]||STSZ[1]; g.save(); g.textAlign="center"; g.textBaseline="middle"; g.font=z+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.fillText(STAMPS[S.s-ST0], p[0], p[1]); g.restore(); return; }
-    const rb=S.c===RB, c=rb ? rbCol(0) : COLS[S.c]||COLS[0], w=SIZES[S.s]||SIZES[1]; g.strokeStyle=g.fillStyle=c; g.lineWidth=w; g.lineCap=g.lineJoin="round";
+    const rb=S.c===RB, c=colOf(S, 0), w=SIZES[S.s]||SIZES[1]; g.strokeStyle=g.fillStyle=c; g.lineWidth=w; g.lineCap=g.lineJoin="round";
     if(p.length<=2){ g.beginPath(); g.arc(p[0],p[1],w/2,0,7); g.fill(); return; }
     if(rb){ for(let i=2;i<p.length;i+=2){ g.strokeStyle=rbCol(i/2); g.beginPath(); g.moveTo(p[i-2],p[i-1]); g.lineTo(p[i],p[i+1]); g.stroke(); } return; }
     g.beginPath(); g.moveTo(p[0],p[1]); for(let i=2;i<p.length-2;i+=2){ g.quadraticCurveTo(p[i],p[i+1],(p[i]+p[i+2])/2,(p[i+1]+p[i+3])/2); } g.lineTo(p[p.length-2],p[p.length-1]); g.stroke(); }
@@ -285,7 +313,8 @@ function start(api){
   function boxes(okWord){ const n=wordLen; if(!n){ BX.innerHTML=""; return; } const bw=Math.max(22,Math.min(38, Math.floor((Math.min(BD.clientWidth||360, 640)-4*n)/n))); BX.style.setProperty("--bw", bw+"px");
     let h=""; for(let i=0;i<n;i++){ const t=okWord?okWord[i]:typed[i]; h+='<i class="'+(t?"":(hintMap[i]?"h":""))+(!okWord && i===typed.length?" cur":"")+'">'+esc(t||hintMap[i]||"")+'</i>'; } BX.innerHTML=h; BX.classList.toggle("ok", !!okWord); }
   function kb(on){ kbOn=on; KB.classList.toggle("off", !on); }
-  function kbBuild(extra, noHint){ const rows=["qwertyuiop","asdfghjkl","zxcvbnm"]; KB.innerHTML=rows.map((r,i)=>'<div>'+r.split("").map(c=>'<button data-k="'+c+'">'+c+'<sub style="position:absolute;right:4px;bottom:2px;font-size:9px;opacity:.6">'+(PTL[c]||1)+'</sub></button>').join("")+(i===2?'<button class="w" data-k="bs">⌫</button>':'')+'</div>').join("")+
+  function kbBuild(extra, noHint){ KB.innerHTML=kbHtml(extra, noHint); }
+  function kbHtml(extra, noHint){ const rows=["qwertyuiop","asdfghjkl","zxcvbnm"]; return rows.map((r,i)=>'<div>'+r.split("").map(c=>'<button data-k="'+c+'">'+c+'<sub style="position:absolute;right:4px;bottom:2px;font-size:9px;opacity:.6">'+(PTL[c]||1)+'</sub></button>').join("")+(i===2?'<button class="w" data-k="bs">⌫</button>':'')+'</div>').join("")+
       '<div>'+(noHint?'':'<button class="w gv" data-k="hint">💡 힌트</button>')+(extra||'')+'<button class="w go" data-k="ok" style="flex:2.4">✔ 확인</button></div>'; }
   KB.addEventListener("pointerdown", e=>{ const b=e.target.closest("button"); if(!b) return; e.preventDefault(); b.classList.add("dn"); setTimeout(()=>b.classList.remove("dn"),110); key(b.dataset.k); });
   function key(k){ if(!kbOn || gone) return; if(k==="bs"){ typed=typed.slice(0,-1); boxes(); return; } if(k==="ok"){ if(onSubmit) onSubmit(); return; } if(k==="hint"){ if(mode==="solo") soloHint(); return; } if(k==="give"){ if(mode==="solo") giveUp(); return; }
@@ -343,29 +372,53 @@ function start(api){
       prog:{t:"오늘 🪙 상 "+(3-left)+" / 3판", v:(3-left)/3}, onAgain:()=>api.restart({go:"solo"}), onMenu:()=>api.restart({}), onOut:()=>MG.exit()}); }
 
   /* ══ 🖍️ 그리기 도구 (같이 · 그려 보기) ══ */
-  const TOOL={c:0, s:1, m:"pen", e:0};
+  /* (v740) 도구: ✏️ 그리기 · 💨 뿌리기 · 📏 직선 · ⬜ 네모 · ⭕ 동그라미 · 🪣 채우기 · 💧 색 집기 · 🧽 지우개 · (⭐ 도장) · 🎨 내 색(기기 색 고르기 창 = RGB) */
+  const TOOL={c:0, s:1, m:"pen", e:0, x:(st("hyeng_proto_dwcol")||{}).x||"#ff6fae"};
+  const myCols=()=>{ const o=st("hyeng_proto_dwcol")||{}; return (o.L||[]).filter(x=>/^#[0-9a-f]{6}$/.test(x)).slice(0,4); };
+  const keepCol=x=>{ const L=[x].concat(myCols().filter(y=>y!==x)).slice(0,4); st("hyeng_proto_dwcol", {x, L}); };
   let MY=[], cur=null, drawOK=false, onStroke=null, myKey=0;
   let stampOK=false;
   function toolsBuild(word, extra, stamps){ stampOK=!!stamps; if(TOOL.m==="stamp" && !stampOK) TOOL.m="pen"; if(TOOL.c===8) TOOL.c=0; toolsDraw(word, extra); }
-  function toolsDraw(word, extra){ if(word!=null){ TL._w=word; TL._x=extra||""; } const M=TOOL.m;
-    const mb=(k,ic,t)=>'<button class="m'+(M===k?" on":"")+'" data-m="'+k+'">'+ic+'<small>'+t+'</small></button>';
-    TL.innerHTML='<div class="wd">'+TL._w+'</div><div class="r cl">'+PAL.map(i=>'<button class="c'+(TOOL.c===i&&M!=="erase"?" on":"")+(M==="stamp"||M==="erase"?" off":"")+'" data-c="'+i+'" style="background:'+COLS[i]+'" aria-label="색"></button>').join("")+'<button class="c rb'+(TOOL.c===RB&&M!=="erase"?" on":"")+(M==="stamp"||M==="erase"?" off":"")+'" data-c="'+RB+'" aria-label="무지개"></button></div>'+
-      '<div class="r">'+mb("pen","✏️","그리기")+mb("fill","🪣","채우기")+mb("erase","🧽","지우개")+(stampOK?mb("stamp","⭐","도장"):"")+'<button data-t="undo" aria-label="되돌리기">↩️</button><button data-t="clr" aria-label="다 지우기">🗑️</button></div>'+
-      '<div class="r">'+(M==="stamp" ? STAMPS.map((e,i)=>'<button class="st'+(TOOL.e===i?" on":"")+'" data-e="'+i+'">'+e+'</button>').join("") : "")+(M==="fill" ? "" : SIZES.map((z,i)=>'<button class="s'+(TOOL.s===i?" on":"")+'" data-s="'+i+'"><i style="width:'+(5+i*6)+'px;height:'+(5+i*6)+'px"></i></button>').join(""))+TL._x+'</div>'; }
-  TL.addEventListener("pointerdown", e=>{ const b=e.target.closest("button"); if(!b) return; e.preventDefault();
-    if(b.dataset.c){ TOOL.c=+b.dataset.c; if(TOOL.m==="erase" || TOOL.m==="stamp") TOOL.m="pen"; toolsDraw(); }
+  const SIZED={pen:1, spray:1, line:1, rect:1, oval:1, erase:1};
+  function toolsDraw(word, extra){ if(word!=null){ TL._w=word; TL._x=extra||""; } TL.innerHTML=toolsHtml(TL._w, TL._x); toolsBind(); FIT.now=1; }
+  function toolsHtml(w, x){ const M=TOOL.m, dim=(M==="stamp"||M==="erase"||M==="pick")?" off":"";
+    const mb=(k,ic,t)=>'<button class="m'+(M===k?" on":"")+'" data-m="'+k+'" aria-label="'+t+'">'+ic+'<small>'+t+'</small></button>';
+    const cOn=i=>TOOL.c===i && M!=="erase" && M!=="pick";
+    return '<div class="wd">'+w+'</div><div class="r cl">'+PAL.map(i=>'<button class="c'+(cOn(i)?" on":"")+dim+'" data-c="'+i+'" style="background:'+COLS[i]+'" aria-label="색"></button>').join("")
+      +'<button class="c rb'+(cOn(RB)?" on":"")+dim+'" data-c="'+RB+'" aria-label="무지개"></button>'
+      +myCols().filter(x=>x!==TOOL.x).slice(0,3).map(x=>'<button class="c my'+dim+'" data-cx="'+x+'" style="background:'+x+'" aria-label="내 색"></button>').join("")
+      +'<label class="c cu'+(cOn(CU)?" on":"")+dim+'" style="--cu:'+TOOL.x+'" aria-label="색 고르기 (RGB)"><input type="color" value="'+TOOL.x+'"><b>🎨</b></label></div>'
+      +'<div class="r dwTr">'+mb("pen","✏️","그리기")+mb("spray","💨","뿌리기")+mb("line","📏","직선")+mb("rect","⬜","네모")+mb("oval","⭕","동그라미")+mb("fill","🪣","채우기")+mb("pick","💧","색 집기")+mb("erase","🧽","지우개")+(stampOK?mb("stamp","⭐","도장"):"")
+      +'<button data-t="undo" aria-label="되돌리기">↩️</button><button data-t="clr" aria-label="다 지우기">🗑️</button></div>'
+      +'<div class="r">'+(M==="stamp" ? STAMPS.map((e,i)=>'<button class="st'+(TOOL.e===i?" on":"")+'" data-e="'+i+'">'+e+'</button>').join("") : "")+(SIZED[M]||M==="stamp" ? SIZES.map((z,i)=>'<button class="s'+(TOOL.s===i?" on":"")+'" data-s="'+i+'"><i style="width:'+(5+i*6)+'px;height:'+(5+i*6)+'px"></i></button>').join("") : (M==="pick" ? '<span class="hint">그림에서 색을 톡 — 그 색으로 그려요</span>' : ""))+(x||"")+'</div>'; }
+  function toolsBind(){ const ci=TL.querySelector(".cu input"); if(ci){ ci.addEventListener("input", ()=>{ TOOL.x=ci.value; TOOL.c=CU; if(TOOL.m==="erase"||TOOL.m==="stamp"||TOOL.m==="pick") TOOL.m="pen"; const L=ci.parentNode; L.style.setProperty("--cu", TOOL.x); TL.querySelectorAll(".c.on").forEach(x=>x.classList.remove("on")); L.classList.add("on"); });
+      ci.addEventListener("change", ()=>{ TOOL.x=ci.value; TOOL.c=CU; keepCol(TOOL.x); if(TOOL.m==="erase"||TOOL.m==="stamp"||TOOL.m==="pick") TOOL.m="pen"; setTimeout(()=>toolsDraw(), 30); }); } }
+  TL.addEventListener("pointerdown", e=>{ if(e.target.closest(".cu")){ if(TOOL.c!==CU || TOOL.m==="erase"||TOOL.m==="pick"||TOOL.m==="stamp"){ TOOL.c=CU; if(TOOL.m==="erase"||TOOL.m==="stamp"||TOOL.m==="pick") TOOL.m="pen"; const L=e.target.closest(".cu"); TL.querySelectorAll(".c.on").forEach(x=>x.classList.remove("on")); L.classList.add("on"); TL.querySelectorAll(".c.off").forEach(x=>x.classList.remove("off")); } return; }   /* 🎨 = 기기 색 고르기 창이 열려야 해서 preventDefault 안 함 */
+    const b=e.target.closest("button"); if(!b) return; e.preventDefault();
+    if(b.dataset.cx){ TOOL.x=b.dataset.cx; TOOL.c=CU; keepCol(TOOL.x); if(TOOL.m==="erase" || TOOL.m==="stamp" || TOOL.m==="pick") TOOL.m="pen"; toolsDraw(); }
+    else if(b.dataset.c){ TOOL.c=+b.dataset.c; if(TOOL.m==="erase" || TOOL.m==="stamp" || TOOL.m==="pick") TOOL.m="pen"; toolsDraw(); }
     else if(b.dataset.m){ TOOL.m=b.dataset.m; toolsDraw(); }
     else if(b.dataset.e){ TOOL.e=+b.dataset.e; toolsDraw(); }
     else if(b.dataset.s){ TOOL.s=+b.dataset.s; TL.querySelectorAll(".s").forEach(x=>x.classList.toggle("on", x===b)); }
     else if(b.dataset.t==="undo"){ const s=MY.pop(); if(s){ redraw(MY.map(x=>x.S)); onStroke && onStroke("undo", s); } }
     else if(b.dataset.t==="clr"){ if(!MY.length) return; MY=[]; clearBoard(); onStroke && onStroke("clr"); }
     else if(b.dataset.t==="done"){ sketchDone(); } });
-  const toPt=e=>{ const r=cv.getBoundingClientRect(); return [Math.round((e.clientX-r.left)/r.width*PW), Math.round((e.clientY-r.top)/r.height*PH)]; };
-  cv.addEventListener("pointerdown", e=>{ if(!drawOK) return; e.preventDefault(); const p=toPt(e);
-    if(TOOL.m==="fill" || (TOOL.m==="stamp" && stampOK)){ const one={S:TOOL.m==="fill" ? {c:TOOL.c, s:FILLS, p:[p[0],p[1]]} : {c:TOOL.s, s:ST0+TOOL.e, p:[p[0],p[1]]}, k:"k"+(myKey++), sent:0}; MY.push(one); paint(one.S); try{ SFX.tick(); }catch(_){} onStroke && onStroke("end", one); return; }   /* 🪣 · ⭐ = 한 번 누르면 끝 */
-    try{ cv.setPointerCapture(e.pointerId); }catch(_){} cur={S:{c:TOOL.m==="erase"?8:TOOL.c, s:TOOL.s, p:[p[0],p[1]]}, k:"k"+(myKey++), sent:0}; MY.push(cur); paint(cur.S); });
-  cv.addEventListener("pointermove", e=>{ if(!cur || !drawOK) return; const p=toPt(e), q=cur.S.p, lx=q[q.length-2], ly=q[q.length-1]; if(Math.hypot(p[0]-lx,p[1]-ly)<4) return; q.push(p[0],p[1]);
-    g.strokeStyle=cur.S.c===RB ? rbCol(q.length/2-1) : COLS[cur.S.c]; g.lineWidth=SIZES[cur.S.s]; g.lineCap=g.lineJoin="round"; g.beginPath(); g.moveTo(lx,ly); g.lineTo(p[0],p[1]); g.stroke(); if(q.length>1200) endStroke(); });
+  const toPt=e=>{ const r=cv.getBoundingClientRect(); return [Math.max(0,Math.min(PW,Math.round((e.clientX-r.left)/r.width*PW))), Math.max(0,Math.min(PH,Math.round((e.clientY-r.top)/r.height*PH)))]; };
+  const SHAPE={line:1, rect:1, oval:1};
+  let prevRaf=0; const preview=()=>{ if(prevRaf) return; prevRaf=requestAnimationFrame(()=>{ prevRaf=0; if(cur) redraw(MY.map(x=>x.S)); }); };
+  function pickAt(p){ try{ const d=g.getImageData(Math.min(PW-1,p[0]), Math.min(PH-1,p[1]), 1, 1).data; TOOL.x=rgbHex(d[0],d[1],d[2]); TOOL.c=CU; keepCol(TOOL.x); TOOL.m="pen"; toolsDraw(); try{ SFX.tick(); }catch(_){} }catch(e){} }
+  cv.addEventListener("pointerdown", e=>{ if(!drawOK) return; e.preventDefault(); const p=toPt(e), M=TOOL.m;
+    if(M==="pick"){ pickAt(p); return; }
+    const col=()=>{ const S={c:TOOL.c}; if(TOOL.c===CU) S.x=TOOL.x; return S; };
+    if(M==="fill" || (M==="stamp" && stampOK)){ const one={S:M==="fill" ? Object.assign(col(), {s:FILLS, p:[p[0],p[1]]}) : {c:TOOL.s, s:ST0+TOOL.e, p:[p[0],p[1]]}, k:"k"+(myKey++), sent:0}; MY.push(one); paint(one.S); try{ SFX.tick(); }catch(_){} onStroke && onStroke("end", one); return; }   /* 🪣 · ⭐ = 한 번 누르면 끝 */
+    try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+    const S=M==="erase" ? {c:8, s:TOOL.s, p:[p[0],p[1]]} : Object.assign(col(), {s:(SH[M]!=null ? SH[M] : 0)+TOOL.s, p:SHAPE[M] ? [p[0],p[1],p[0],p[1]] : [p[0],p[1]]});
+    cur={S, k:"k"+(myKey++), sent:0}; MY.push(cur); paint(cur.S); });
+  cv.addEventListener("pointermove", e=>{ if(!cur || !drawOK) return; const p=toPt(e), q=cur.S.p, K=KIND(cur.S.s);
+    if(SHAPE[K]){ q[q.length-2]=p[0]; q[q.length-1]=p[1]; preview(); return; }   /* 📏⬜⭕ 끝점만 따라감 · 그린 모습 위에 다시 */
+    const lx=q[q.length-2], ly=q[q.length-1]; if(Math.hypot(p[0]-lx,p[1]-ly)<(K==="spray"?7:4)) return; q.push(p[0],p[1]);
+    if(K==="spray"){ g.fillStyle=colOf(cur.S, q.length/2-1); sprayAt(p[0], p[1], q.length/2-1, SIZES[SZI(cur.S.s)]); if(q.length>1200) endStroke(); return; }
+    g.strokeStyle=colOf(cur.S, q.length/2-1); g.lineWidth=SIZES[cur.S.s]; g.lineCap=g.lineJoin="round"; g.beginPath(); g.moveTo(lx,ly); g.lineTo(p[0],p[1]); g.stroke(); if(q.length>1200) endStroke(); });
   function endStroke(){ if(!cur) return; const c=cur; cur=null; redraw(MY.map(x=>x.S)); onStroke && onStroke("end", c); }
   cv.addEventListener("pointerup", endStroke); cv.addEventListener("pointercancel", endStroke);
   function demo(n){ /* 시험: 동그라미 · 줄 몇 개 */ n=n||3; for(let j=0;j<n;j++){ const S0={c:(j%7), s:1, p:[]}; for(let a=0;a<=24;a++){ const t=a/24*Math.PI*2; S0.p.push(Math.round(500+Math.cos(t)*(120+j*60)), Math.round(375+Math.sin(t)*(90+j*40))); } const c={S:S0, k:"k"+(myKey++), sent:0}; MY.push(c); onStroke && onStroke("end", c); } redraw(MY.map(x=>x.S)); }
@@ -507,13 +560,23 @@ function start(api){
   /* (v718) 사용자 사진(옛 아이패드 세로): 아래 「✔ 확인」 단추가 화면 밖 — 칠판 크기 = (화면 높이 − 410px) 어림이라 친구 줄·그림 줄이 두 줄이면 넘침(사파리 15 초반은 dvh 도 없음)
      → 넘치면 칠판을 그만큼 줄임 (화면·모드·줄 높이가 바뀔 때만 잼 · 그림 좌표는 PW×PH 비율이라 그대로) */
   /* (v736) 칠판 = 남은 자리에 꽉 차게 · 늘 4:3 (가로·세로를 둘 다 정함 — 예전엔 낮은 가로에서 max-width 에 걸려 4:3 이 깨지고, 큰 화면에선 640px 에 묶여 작았음) */
+  /* (v740) 같이 하기 아래 칸 = 자판·도구 중 큰 높이 (숨은 판으로 미리 잼 · 화면 크기마다 한 번) — 내가 그릴 차례 ↔ 맞힐 차례 ↔ 고르기에도 칠판이 그대로 */
+  const PRK=R.querySelector(".dwKb.dwPr"), PRT=R.querySelector(".dwTl.dwPr"), SP=R.querySelector(".dwSp"); let resK="", resH=0;
+  function coRes(land){ const co=/^co/.test(mode), sk=mode==="sketch"; if(!(co||sk) || land){ KB.style.minHeight=TL.style.minHeight=""; SP.style.display="none"; return 0; }
+    const k=innerWidth+"x"+innerHeight+"|"+mode+"|"+stampOK; if(k!==resK){ resK=k; const cs=getComputedStyle(R), cw=R.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight), m0=TOOL.m, w0='그릴 단어: 🐘 <b>elephant</b> 코끼리 · 하는 모습을 그려요';
+      PRK.style.width=Math.min(cw, 640)+"px"; PRT.style.width=Math.min(cw, 720)+"px"; let h=0;
+      if(co){ PRK.innerHTML=kbHtml(); h=PRK.offsetHeight; }
+      ["pen"].forEach(m=>{ TOOL.m=m; PRT.innerHTML=toolsHtml(w0, sk?'<button class="tx go">✔ 다 그렸어요</button>':""); h=Math.max(h, PRT.offsetHeight); }); TOOL.m=m0;
+      resH=Math.ceil(h); PRK.innerHTML=PRT.innerHTML=""; }   /* 도구는 ✏️ 그리기(굵기 줄) 때가 가장 높음 → 도구를 바꿔도 칠판 그대로 (⭐ 도장 줄은 그려 보기에서만 · 휴대폰에서 한 줄 더라 그때만 칠판이 조금 작아짐 — 늘 비워 두면 칠판이 너무 작아서) */
+    KB.style.minHeight=TL.style.minHeight=resH+"px"; const none=KB.style.display==="none" && TL.style.display==="none"; SP.style.display=none?"block":"none"; SP.style.height=resH+"px"; return resH; }
   let fitSig="", fitN=0; function fitBd(){ const W=BD && BD.parentNode; if(!W || !W.clientHeight) return; let mq=false; try{ mq=matchMedia("(orientation:landscape) and (max-height:620px)").matches; }catch(e){} const land=innerWidth>innerHeight*1.15 || mq;
-    const sig=innerWidth+"x"+innerHeight+"|"+mode+"|"+BD.className+"|"+(KB.offsetHeight|0)+"|"+(TL.offsetHeight|0)+"|"+(PL.offsetHeight|0)+"|"+(BX.offsetHeight|0)+"|"+land; if(sig===fitSig) return; fitSig=sig;
+    const sig=innerWidth+"x"+innerHeight+"|"+mode+"|"+BD.className+"|"+(KB.style.display)+(TL.style.display)+"|"+(PL.offsetHeight|0)+"|"+(BX.offsetHeight|0)+"|"+land+"|"+((/^co/.test(mode) || mode==="sketch") ? resH+"|"+stampOK+"|"+Math.max(0,(TL.offsetHeight|0)-resH-2)+"|"+Math.max(0,(KB.offsetHeight|0)-resH-2) : (KB.offsetHeight|0)+"|"+(TL.offsetHeight|0)); if(sig===fitSig) return; fitSig=sig;
+    coRes(land);
     W.classList.toggle("dwLand", land); const cs=getComputedStyle(W), pw=W.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight), ph=W.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
     const set=w=>{ w=Math.max(150, Math.floor(w)); BD.style.width=w+"px"; BD.style.height=Math.floor(w*3/4)+"px"; return w; };
-    if(land){ const side=KB.style.display!=="none" ? Math.max(280, pw*.42) : Math.max(innerHeight<=620?290:230, pw*.3); set(Math.min(pw-Math.min(side, 440)-14, (ph-4)*4/3)); return; }
+    if(land){ const side=(KB.style.display!=="none" || /^co/.test(mode)) ? Math.max(280, pw*.42) : Math.max(innerHeight<=620?290:230, pw*.3); set(Math.min(pw-Math.min(side, 440)-14, (ph-4)*4/3)); return; }
     let w=set(Math.min(pw, 960)); const over=W.scrollHeight-W.clientHeight; if(over>1) set((w*3/4-over-6)*4/3); }
-  function tick(dt){ if(gone || paused) return; if(++fitN%12===1) try{ fitBd(); }catch(e){}
+  function tick(dt){ if(gone || paused) return; if(++fitN%12===1 || FIT.now){ FIT.now=0; try{ fitBd(); }catch(e){} }
     for(let i=TM.length-1;i>=0;i--){ TM[i].t-=dt; if(TM[i].t<=0){ const f=TM[i].fn; TM.splice(i,1); try{ f(); }catch(e){ console.warn("DW", e); } } }
     if(mode==="solo" && S && !S.wait){ S.t+=dt; const step=fast?.05:TILE_T; while(S.t>=step*(S.pop+1) && S.pop<12) popTile(); bar((S.done+1)+" / "+S.n, "⭐ "+S.sc, 1-S.pop/12); }
     if(RM) coTick(dt); }
@@ -523,7 +586,7 @@ function start(api){
   return {scene, cam, tick, render:rn=>{ try{ porRender(rn); }catch(e){} }, dispose, pause:v=>{ paused=!!v; },
     get mode(){ return mode; }, get S(){ return S; }, get G(){ return G; }, get RM(){ return RM; }, get ready(){ return ready; }, get MY(){ return MY; }, W,
     set fast(v){ fast=v?1:0; }, get fast(){ return fast; }, menuGo, menuShow, key, typeWord:s=>{ String(s).split("").forEach(c=>key(c)); }, submit:()=>key("ok"), giveUp, hint:soloHint, demo,
-    W, POOL, okAns, pick3, LV, get SK(){ return SK; }, get lv(){ return SET.lv; }, setLv:v=>{ SET.lv=+v; }, pick:k=>{ if(mode==="sketch") sketchPick(k); else if(mode==="co-play") toHost({t:"pk", k}); }, sketchDone, ans:()=>mode==="solo"&&S?W[S.cur][0]:(G.w?W[decW(G.w,G.rd)][0]:""), get typed(){ return typed; }, get sig(){ return strokeSig; }, get wl(){ return wordLen; }, get hints(){ return Object.assign({}, hintMap); }, get amHost(){ return amHost(); }, get fb(){ return FB.textContent; }, vote, get ART(){ return ART; } };
+    W, POOL, okAns, pick3, LV, get SK(){ return SK; }, TOOL, enc, dec, CU, SH, get resH(){ return resH; }, px:(x,y)=>{ const d=g.getImageData(x,y,1,1).data; return rgbHex(d[0],d[1],d[2]); },   /* (v740) 시험 */ get lv(){ return SET.lv; }, setLv:v=>{ SET.lv=+v; }, pick:k=>{ if(mode==="sketch") sketchPick(k); else if(mode==="co-play") toHost({t:"pk", k}); }, sketchDone, ans:()=>mode==="solo"&&S?W[S.cur][0]:(G.w?W[decW(G.w,G.rd)][0]:""), get typed(){ return typed; }, get sig(){ return strokeSig; }, get wl(){ return wordLen; }, get hints(){ return Object.assign({}, hintMap); }, get amHost(){ return amHost(); }, get fb(){ return FB.textContent; }, vote, get ART(){ return ART; } };
 }
 
 MG.reg("draw", {ic:"🎨", nm:"그림 맞히기", tag:"그림 보고 영어로 써서 맞히기 · 친구랑 그리고 맞히기", bg:"linear-gradient(135deg,#ff8466,#ffd23f 50%,#3ea2ff)", big:"🎨✏️", menu:true,

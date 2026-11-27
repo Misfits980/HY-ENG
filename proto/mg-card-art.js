@@ -108,7 +108,25 @@ function css(){ if(document.getElementById("cpCss")) return; const st=document.c
 .cpOrd b{color:#ffe14d;font-size:13px}.cpOrd b.d{margin-left:4px;font-size:15px}
 .cpCoin{background:rgba(42,30,40,.8);border:2px solid rgba(255,211,107,.7);border-radius:99px;color:#fff;font-size:14px;padding:5px 10px;white-space:nowrap}
 .cpVig{position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 50% 42%,transparent 55%,rgba(20,10,20,.42))}
-.cpPlate{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:3px}
+/* (v740) 손맛: 가운데 도장 · 색 번쩍 · 맞은 친구 흔들림 + 「+2」 · 옛 기기(cpLow) = 그림자 흐림·필터 없이 */
+.cpFx{position:absolute;left:0;right:0;top:34%;display:flex;justify-content:center;pointer-events:none;z-index:7;opacity:0}
+.cpFx.on{animation:cpStamp 1s cubic-bezier(.2,1.3,.4,1) forwards}
+.cpFx .s{position:relative;background:var(--c);color:#fff;border:4px solid var(--ink);border-radius:22px;padding:4px 24px 6px;box-shadow:0 6px 0 var(--ink);transform:rotate(-5deg);text-align:center;max-width:90vw}
+.cpFx .s b{display:block;font-size:46px;line-height:1.15;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;letter-spacing:1px;white-space:nowrap}
+.cpFx .s small{display:block;font-size:15px;margin-top:2px;text-shadow:0 1px 0 var(--ink)}
+.cpFx .s.sm b{font-size:32px} .cpFx .rv{display:inline-block;font-style:normal;animation:cpRv .6s cubic-bezier(.3,1.4,.5,1)} @keyframes cpRv{from{transform:rotate(-360deg)}to{transform:rotate(0)}}
+@keyframes cpStamp{0%{opacity:0;transform:scale(2.3)}16%{opacity:1;transform:scale(.9)}26%{transform:scale(1.06)}34%{transform:scale(1)}78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translateY(-16px) scale(.92)}}
+.cpFlash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,var(--c,#fff) 0,transparent 68%)}
+.cpFlash.on{animation:cpFlash .55s ease-out}
+@keyframes cpFlash{0%{opacity:.6}100%{opacity:0}}
+.cpHit{animation:cpHitK .42s}
+.cpPlate.cpHit .nm{background:#ff5a5f}
+@keyframes cpHitK{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:7px 0}60%{translate:-5px 0}80%{translate:4px 0}}
+.cpDmg{position:absolute;left:50%;top:-6px;z-index:3;font-size:30px;color:#ffe14d;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;pointer-events:none;white-space:nowrap;animation:cpDmgU 1.05s ease-out forwards}
+@keyframes cpDmgU{0%{opacity:0;transform:translate(-50%,8px) scale(.6)}18%{opacity:1;transform:translate(-50%,-6px) scale(1.25)}70%{opacity:1;transform:translate(-50%,-30px) scale(1)}100%{opacity:0;transform:translate(-50%,-44px) scale(.95)}}
+#cpHud.cpLow .cpC{filter:none} #cpHud.cpLow .cpC.no{filter:none;opacity:.6} #cpHud.cpLow .cpC.ok:before{box-shadow:0 0 0 4px #ffe14d} #cpHud.cpLow .cpCmd .glow{animation:none;box-shadow:0 3px 0 var(--ink),0 0 0 4px #ffe14d}
+@media (prefers-reduced-motion:reduce){ .cpFx.on{animation:cpFlash 1s ease-out reverse} .cpHit,.cpFx .rv{animation:none} .cpDmg{animation-duration:1.6s} }
+.cpPlate{position:absolute;left:0;top:0;transform:translate(-50%,-100%);will-change:transform;display:flex;flex-direction:column;align-items:center;gap:3px}
 .cpPlate .nm{display:flex;align-items:center;gap:4px;background:rgba(42,30,40,.86);color:#fff;border:2px solid rgba(255,255,255,.5);border-radius:12px;padding:2px 7px 2px 5px;font-size:14px;white-space:nowrap}
 .cpPlate .dot{width:10px;height:10px;border-radius:50%;border:2px solid #fff}
 .cpPlate u{text-decoration:none;background:#fff;color:var(--ink);border-radius:8px;padding:0 5px;font-size:14px;margin-left:2px}
@@ -152,7 +170,7 @@ function css(){ if(document.getElementById("cpCss")) return; const st=document.c
 .cpHint{background:#fff8ea;border:3px solid var(--ink);border-radius:13px;box-shadow:0 3px 0 var(--ink);font-size:16px;padding:4px 10px;display:flex;gap:5px;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
 .cpHint.my{background:#ffe14d}.cpHint.warn{background:#ff8a8e;color:#fff}
 .cpHint b{font-weight:400;color:#c2410c}.cpHint.warn b{color:#fff}
-.cpBar{height:13px;border-radius:99px;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);overflow:hidden}.cpBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffe14d,#ffb02e);transition:width .25s linear}
+.cpBar{height:13px;border-radius:99px;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);overflow:hidden}.cpBar i{display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,#ffe14d,#ffb02e);transition:transform .25s linear}
 .cpCmd{flex:none;display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .cpCmd button{width:60px;height:58px;border-radius:14px;border:3px solid var(--ink);background:linear-gradient(#fffaf0,#f1e2c4);box-shadow:0 3px 0 var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;gap:1px;color:var(--ink);padding:0}
 .cpCmd button span{font-size:22px;line-height:1}.cpCmd button b{font-weight:400;white-space:nowrap}

@@ -813,12 +813,16 @@ const TOON = (()=>{
 function canvasTex(w, h, draw, rep){ const c=document.createElement("canvas"); c.width=w; c.height=h; draw(c.getContext("2d"), w, h);
   const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.anisotropy=4; if(rep){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); } return t; }
 const geoCache = {};
-function rbox(w,h,d,r){ const key=[w,h,d,r].join(","); if(geoCache[key]) return geoCache[key];
+/* (v740) 🐢 멀리 있는 캐릭터(컬러팡 자리 · 옛 기기)는 조각 수를 줄인 도형으로 — buildAvatarLo() 동안만 GEO_LO (같은 모양 · 삼각형 ⅓쯤)
+   사용자: 「컬러팡은 렉도 걸리는데」 — 옛 아이패드 흉내에서 한 자리 캐릭터 = 삼각형 3만 개 (탁자 전체 9.2만 중 8.5만) */
+var GEO_LO=false;   // var = 이 줄보다 먼저 도는 코드가 불러도 괜찮게
+function buildAvatarLo(c){ GEO_LO=true; try{ return buildAvatar(c); } finally{ GEO_LO=false; } }
+function rbox(w,h,d,r){ const LO=GEO_LO, key=[w,h,d,r].join(",")+(LO?"|L":""); if(geoCache[key]) return geoCache[key];
   r=Math.max(0.005, Math.min(r, w/2-0.01, h/2-0.01, d/2-0.01));
   const iw=w-2*r, ih=h-2*r, cr=Math.min(r, iw/2, ih/2)*0.6, s=new THREE.Shape(), x0=-iw/2, y0=-ih/2;
   s.moveTo(x0+cr,y0); s.lineTo(x0+iw-cr,y0); s.quadraticCurveTo(x0+iw,y0,x0+iw,y0+cr); s.lineTo(x0+iw,y0+ih-cr); s.quadraticCurveTo(x0+iw,y0+ih,x0+iw-cr,y0+ih);
   s.lineTo(x0+cr,y0+ih); s.quadraticCurveTo(x0,y0+ih,x0,y0+ih-cr); s.lineTo(x0,y0+cr); s.quadraticCurveTo(x0,y0,x0+cr,y0);
-  const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.001,d-2*r), bevelEnabled:true, bevelThickness:r, bevelSize:r, bevelSegments:3, curveSegments:4});
+  const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.001,d-2*r), bevelEnabled:true, bevelThickness:r, bevelSize:r, bevelSegments:LO?1:3, curveSegments:LO?2:4});
   g.translate(0,0,-(d-2*r)/2); g.computeVertexNormals(); geoCache[key]=g; return g; }
 const matCache = {};
 function M(col, opt){ const k=col+(opt?JSON.stringify(opt):""); if(matCache[k]) return matCache[k]; const m=matCache[k]=new THREE.MeshStandardMaterial(Object.assign({color:col, roughness:.75}, opt||{})); m.userData.leg=1; return m; }
@@ -829,8 +833,8 @@ function linMat(m){ if(!m || !m.userData || !m.userData.leg) return m; let c=LIN
 function yLin(root){ (root||yardG).traverse(o=>{ if(!o.isMesh) return; if(Array.isArray(o.material)) o.material=o.material.map(linMat); else if(o.material && o.material.userData && o.material.userData.leg) o.material=linMat(o.material);
     if(o.isInstancedMesh && o.instanceColor && o.userData.linI!==o.instanceColor){ const a=o.instanceColor.array, c=new THREE.Color(); for(let i=0;i<a.length;i+=3){ c.setRGB(a[i],a[i+1],a[i+2]).convertSRGBToLinear(); a[i]=c.r; a[i+1]=c.g; a[i+2]=c.b; } o.instanceColor.needsUpdate=true; o.userData.linI=o.instanceColor; } }); }
 function part(g, geo, mat, x,y,z){ const m=new THREE.Mesh(geo, mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; g.add(m); return m; }
-function cyl(rt,rb,h,seg){ const k="c"+[rt,rb,h,seg]; return geoCache[k] || (geoCache[k]=new THREE.CylinderGeometry(rt,rb,h,seg||20)); }
-function sph(r){ const k="s"+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,18,14)); }
+function cyl(rt,rb,h,seg){ if(GEO_LO){ const n=Math.max(6,Math.round((seg||20)/2)), k="cL"+[rt,rb,h,n]; return geoCache[k] || (geoCache[k]=new THREE.CylinderGeometry(rt,rb,h,n)); } const k="c"+[rt,rb,h,seg]; return geoCache[k] || (geoCache[k]=new THREE.CylinderGeometry(rt,rb,h,seg||20)); }
+function sph(r){ if(GEO_LO){ const k="sL"+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,11,8)); } const k="s"+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,18,14)); }
 function cone(r,h,s){ const k="n"+[r,h,s]; return geoCache[k] || (geoCache[k]=new THREE.ConeGeometry(r,h,s||10)); }
 /* ═════════ (v434) 🎨 그래픽 손보기 — 사용자: "마이타운 그래픽 개선 · 1~3 해 줘"
    ③ KayKit(CC0, Kay Lousberg — www.kaylousberg.com) 로우폴리 모델: assets/town/kk/<묶음>.json·.bin·.webp (tools/kk/pack.py)
@@ -1976,11 +1980,11 @@ const toonCache={};
 function TM(col){ const k=String(col); return toonCache[k]||(toonCache[k]=new THREE.MeshToonMaterial({color:new THREE.Color(col).convertSRGBToLinear(), gradientMap:TOON_GRAD})); }
 const OUTLINE=new THREE.MeshBasicMaterial({color:0x3b2b3f, side:THREE.BackSide});
 function tp(g, geo, col, x,y,z, ol){ const m=part(g, geo, TM(col), x,y,z); if(ol){ const o=new THREE.Mesh(geo, OUTLINE); o.scale.setScalar(ol); o.userData.ol=true; m.add(o); } return m; }
-function hemi(r){ const k="h"+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,24,14,0,Math.PI*2,0,Math.PI*0.52)); }
-function torus(r,t,a){ const k="t"+[r,t,a]; return geoCache[k] || (geoCache[k]=new THREE.TorusGeometry(r,t,8,18,a||Math.PI*2)); }
+function hemi(r){ const L=GEO_LO, k=(L?"hL":"h")+r; return geoCache[k] || (geoCache[k]=new THREE.SphereGeometry(r,L?13:24,L?8:14,0,Math.PI*2,0,Math.PI*0.52)); }
+function torus(r,t,a){ const L=GEO_LO, k=(L?"tL":"t")+[r,t,a]; return geoCache[k] || (geoCache[k]=new THREE.TorusGeometry(r,t,L?5:8,L?10:18,a||Math.PI*2)); }
 /* (v461) 몸통 = 돌림체 (네모 상자 → 어깨가 둥글고 허리가 살짝 들어간 몸) */
 const LATHE={};
-function lathe(key, pts){ return LATHE[key] || (LATHE[key]=new THREE.LatheGeometry(pts.map(([x,y])=>new THREE.Vector2(x,y)), 22)); }
+function lathe(key, pts){ const L=GEO_LO, k=key+(L?"~L":""); return LATHE[k] || (LATHE[k]=new THREE.LatheGeometry(pts.map(([x,y])=>new THREE.Vector2(x,y)), L?12:22)); }
 const TORSO_PTS=[[0.001,-0.155],[0.17,-0.155],[0.198,-0.125],[0.2,-0.06],[0.19,0.0],[0.193,0.05],[0.185,0.1],[0.15,0.14],[0.09,0.158],[0.001,0.162]];
 const HIP_PTS=[[0.001,-0.055],[0.165,-0.055],[0.185,-0.03],[0.188,0.02],[0.178,0.06],[0.001,0.062]];
 function shade(hex, k){ const c=new THREE.Color(hex); c.offsetHSL(0,0,k); return "#"+c.getHexString(); }

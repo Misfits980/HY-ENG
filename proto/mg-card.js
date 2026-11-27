@@ -110,7 +110,7 @@ function start(api){
   [-.6,0,.6].forEach((ang,j)=>{ const L=j+1, d=TR+.5, x=Math.sin(ang)*d, z=-Math.cos(ang)*d, G=new THREE.Group(); G.position.set(x,0,z); G.rotation.y=Math.atan2(-x,-z); scene.add(G); chair(G);
     const hand=new THREE.Group(); hand.position.set(0,.8,.42); hand.rotation.x=-.5; G.add(hand); SEATS[L]={L, G, P:null, hand, n:-1, bk:"", t:Math.random()*6, actT:0, avK:""}; });
   function seatAv(L, av){ const s=SEATS[L], k=JSON.stringify(av||{}); if(s.avK===k && s.P) return; s.avK=k; if(s.P){ s.G.remove(s.P.g); try{ avFree(s.P); }catch(e){} s.P=null; }
-    try{ const P=buildAvatar(av||{}); P.g.scale.setScalar(1.08); P.g.position.set(0,.25-(typeof AVB!=="undefined"?AVB.leg*1.08:0),-.02);   /* (v660) 다리가 길어진 만큼 내려 앉힘 */  s.G.add(P.g); P.legL.rotation.x=P.legR.rotation.x=-1.45; arms(P,"hold"); P.expr0=(av&&av.expr)||"smile"; s.P=P; }catch(e){ console.warn("CP av", e); } }
+    try{ const P=((LOW && typeof buildAvatarLo==="function") ? buildAvatarLo : buildAvatar)(av||{}); P.g.scale.setScalar(1.08);   /* (v740) 옛 기기 = 조각 줄인 캐릭터 (자리 하나 삼각형 3만 → 1만쯤) */ P.g.position.set(0,.25-(typeof AVB!=="undefined"?AVB.leg*1.08:0),-.02);   /* (v660) 다리가 길어진 만큼 내려 앉힘 */  s.G.add(P.g); P.legL.rotation.x=P.legR.rotation.x=-1.45; arms(P,"hold"); P.expr0=(av&&av.expr)||"smile"; s.P=P; }catch(e){ console.warn("CP av", e); } }
   const backPG=G3(new THREE.PlaneGeometry(CW*.62,CH*.62)), backBM=MS(0xfff8ea,{side:THREE.BackSide}), FANM={};
   function fanMat(bk){ if(FANM[bk]) return FANM[bk]; const m=new THREE.MeshStandardMaterial({map:faceMat(null,bk).map,roughness:.6}); disp.push(m); return FANM[bk]=m; }
   function fan(s, n, bk){ n=Math.min(n,8); bk=bk||SET.bk; if(s.n===n && s.bk===bk) return; s.n=n; s.bk=bk; while(s.hand.children.length) s.hand.remove(s.hand.children[0]); const fm=fanMat(bk);
@@ -125,16 +125,30 @@ function start(api){
     g.rotate(-.18); g.font="900 62px Jua,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.lineWidth=14; g.strokeStyle=INK; g.strokeText("팡!",0,4); g.fillStyle="#ff5a5f"; g.fillText("팡!",0,4); });
   const popM=new THREE.SpriteMaterial({map:popTex,depthTest:false,transparent:true}); disp.push(popM); const popS=new THREE.Sprite(popM); popS.renderOrder=9; popS.visible=false; scene.add(popS); let popT=9;
   function pop(){ const w=new THREE.Vector3(); disc.getWorldPosition(w); popS.position.set(w.x+.3,w.y+.34,w.z-.1); popT=0; popS.visible=true; }
+  /* (v740) 손맛 — 사용자: 「컬러팡은 … 게임 자체가 매우 효과가 없다 할까?」
+     · 카드가 앉을 때 탁자에 그 색 물결(고리 하나 · 특수 카드는 더 크게) · 특수 카드 = 가운데 큰 도장(⊘ 건너뛰기 · ⇄ 거꾸로 · +2/+4 · 🌈 색) · 맞은 친구 이름표 흔들림 + 「+2」 떠오름
+     · +2/+4 맞으면 탁자가 살짝 흔들림 · 무지개 = 그 색으로 화면 번쩍 · 모두 transform/opacity (옛 패드) · 움직임 줄이기 = 흔들림·큰 움직임 끔 */
+  const RINGM=new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0, depthWrite:false}); disp.push(RINGM);
+  const RING=new THREE.Mesh(G3(new THREE.RingGeometry(.16,.24,40)), RINGM); RING.rotation.x=-Math.PI/2; RING.position.set(.36,TY+.02,.3); RING.visible=false; RING.renderOrder=3; table.add(RING); let ringT=9, ringS=6;
+  const RMO=(()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } })();
+  function wave(c, big){ RINGM.color.set(COL[c]||"#ffffff"); ringT=0; ringS=big?10:6; RING.visible=true; }
+  let shkT=0; function tShake(){ if(!RMO) shkT=.28; }
+  let fxT=0; function stamp(t, sub, c, sm){ if(fxT>.55 && !fast){ const w=fxT-.55; later(w, ()=>stamp(t, sub, c, sm)); fxT=Math.max(fxT, .01); return; }   /* 앞 도장이 0.45초는 보이게 (🌈 +4 → +4!) */
+    const F=$(".cpFx"); if(!F) return; F.innerHTML='<div class="s'+(sm?" sm":"")+'" style="--c:'+(COL[c]||"#5b3a7a")+'"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'; F.classList.remove("on"); void F.offsetWidth; F.classList.add("on"); fxT=1; }
+  function flash(c){ const F=$(".cpFlash"); if(!F) return; F.style.setProperty("--c", COL[c]||"#fff"); F.classList.remove("on"); void F.offsetWidth; F.classList.add("on"); }
+  function hitFx(g, t){ const L=loc(g), el=L===0 ? $(".cpPor") : PL.querySelector('[data-l="'+L+'"]'); if(!el) return; el.classList.remove("cpHit"); void el.offsetWidth; el.classList.add("cpHit");
+    const d=document.createElement("b"); d.className="cpDmg"; d.textContent=t; el.appendChild(d); setTimeout(()=>{ d.remove(); el.classList.remove("cpHit"); }, 1100); }
   const CONF=[]; function confetti(n){ const g=G3(new THREE.PlaneGeometry(.08,.13)); for(let i=0;i<n;i++){ const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:[0xff5a5f,0xffc83d,0x3fc46a,0x3ea2ff,0xffffff][i%5],side:THREE.DoubleSide})); disp.push(m.material);
       m.position.set((Math.random()-.5)*4, 2.6+Math.random()*2, (Math.random()-.5)*3.4); m.rotation.set(Math.random()*6,Math.random()*6,0); m.userData.v=.5+Math.random()*.7; m.userData.s=(Math.random()-.5)*4; scene.add(m); CONF.push(m); } }
 
   /* ══ 화면 ══ */
   const U=api.ui, HUD=document.createElement("div"); HUD.id="cpHud"; U.appendChild(HUD);
-  HUD.innerHTML='<div class="cpVig"></div><div class="cpPlates"></div><div class="cpFeed"></div><div class="cpBan"><div><span class="t"></span><small></small></div></div><div class="cpPend"></div><div class="cpMT"></div>'
+  if(LOW) HUD.classList.add("cpLow");
+  HUD.innerHTML='<div class="cpVig"></div><div class="cpFlash"></div><div class="cpPlates"></div><div class="cpFeed"></div><div class="cpBan"><div><span class="t"></span><small></small></div></div><div class="cpPend"></div><div class="cpMT"></div>'
     +'<div class="cpHand"><div class="in"></div></div>'
     +'<div class="cpCon"><div class="cpPor"><canvas></canvas><div class="who"></div><div class="emo"></div></div><div class="cpMid"><div class="cpHint"></div><div class="cpBar"><i></i></div></div>'
     +'<div class="cpCmd"><button data-c="draw"><span>🃏</span><b>뽑기</b></button><button data-c="one" class="one"><span>☝️</span><b>한 장!</b></button><button data-c="emo"><span>😊</span><b>표정</b></button><button data-c="sort"><span>🔀</span><b>색 순서</b></button></div></div>'
-    +'<div class="cpEmo"></div><div class="cpPick"></div><div class="cpEnd"></div><div class="cpMenu"></div><div class="cpCoachW"></div><div class="cpLoad">🃏 카드 섞는 중…</div>';
+    +'<div class="cpFx"></div><div class="cpEmo"></div><div class="cpPick"></div><div class="cpEnd"></div><div class="cpMenu"></div><div class="cpCoachW"></div><div class="cpLoad">🃏 카드 섞는 중…</div>';
   const $=s=>HUD.querySelector(s);
   api.topR.innerHTML='<div class="cpTop"><div class="cpOrd"></div><div class="cpCoin"></div></div>';
   const ORD=api.topR.querySelector(".cpOrd"); const porCv=$(".cpPor canvas"), porG=porCv.getContext("2d");
@@ -173,7 +187,9 @@ function start(api){
   function plates(){ [1,2,3].forEach(L=>{ const el=PL.querySelector('[data-l="'+L+'"]'), p=G.P[glo(L)]; if(!p){ el.style.display="none"; return; } el.style.display=""; el.querySelector(".n").textContent=p.nm+(p.bot?" 🤖":""); el.querySelector(".dot").style.background=p.col;
       const u=el.querySelector("u"); u.textContent="🂠 "+p.h.length; u.classList.toggle("one", p.h.length===1); el.classList.toggle("turn", G.turn===glo(L) && !G.over && phase==="play"); el.classList.toggle("o1", p.h.length===1 && !G.over); }); }
   const v3=new THREE.Vector3();
-  function platePos(){ const W=innerWidth, H=innerHeight; [1,2,3].forEach(L=>{ const s=SEATS[L]; if(!s || !s.P) return; s.P.head.getWorldPosition(v3); v3.y+=.42; v3.project(cam); const el=PL.querySelector('[data-l="'+L+'"]'); el.style.left=((v3.x+1)/2*W)+"px"; el.style.top=((1-v3.y)/2*H)+"px"; }); }
+  const PLX={}; function platePos(){ const W=innerWidth, H=innerHeight; [1,2,3].forEach(L=>{ const s=SEATS[L]; if(!s || !s.P) return; s.P.head.getWorldPosition(v3); v3.y+=.42; v3.project(cam);
+      const x=Math.round((v3.x+1)/2*W*2)/2, y=Math.round((1-v3.y)/2*H*2)/2, o=PLX[L]; if(o && Math.abs(o[0]-x)<.5 && Math.abs(o[1]-y)<.5) return; PLX[L]=[x,y];   /* (v740) 🐢 0.5px 넘게 움직였을 때만 · transform 으로 (매 프레임 left/top = 옛 패드에서 화면 배치를 다시 함) */
+      const el=PL.querySelector('[data-l="'+L+'"]'); el.style.transform="translate3d("+x+"px,"+y+"px,0) translate(-50%,-100%)"; }); }
   const EMT={}; function emote(g, e){ const L=loc(g), el=L===0?$(".cpPor .emo"):PL.querySelector('[data-l="'+L+'"] .emo'); if(!el) return; el.textContent=e; el.classList.add("on"); clearTimeout(EMT[L]); EMT[L]=setTimeout(()=>el.classList.remove("on"), 1800);
     const P=L===0?ME_AV:(SEATS[L]&&SEATS[L].P); if(P && EMO_X[e]){ P.setExpr(EMO_X[e]); if(L) SEATS[L].actT=1.8; } }
   function react(g, ex, t){ const L=loc(g); if(!L) return; const s=SEATS[L]; if(!s || !s.P) return; s.P.setExpr(ex); s.actT=t||1.6; }
@@ -242,6 +258,7 @@ function start(api){
       const pc=G.cur, pt=G.top;
       await fly(k, true, from, pileTop(), a.s===ME?.34:.42, {arc:a.s===ME?.35:.5, r0:new THREE.Euler(a.s===ME?-1.1:-.6,0,.3), r1:new THREE.Euler(0,(Math.random()-.5)*.7,0)});
       if(gone || ep!==EP) return; G.pile.push(a.id); G.top=k; pileAdd(k); setCur(isW(k)?a.c:k.c); pop(); if(p.h.length>1) p.called=false;
+      { const sp=k.v==="skip"||k.v==="rev"||k.v==="d2"||isW(k), cc=isW(k)?a.c:k.c; wave(cc, sp); if(isW(k)){ flash(a.c); stamp((k.v==="wild4"?"🌈 +4 · ":"🌈 ")+KO[a.c]+"!", "색이 바뀌었어요", a.c); } }
       try{ SFX.tone(isW(k)?520:440,.1,"triangle",.05,isW(k)?1040:880); if(isW(k)) [523,659,784,988].forEach((f,j)=>SFX.tone(f,.12,"triangle",.035,0,j*.05)); }catch(e){}
       feed((a.s===ME?"🙋 ":"")+nm(a.s)+' <b>'+kname(k)+'</b>'+(isW(k)?' → '+KO[a.c]:''), isW(k)?a.c:k.c); stat(k, a.s, pc, pt); if(a.s!==ME) react(a.s,"grin",1.2);
       handSig=""; drawHand(); plates(); break; }
@@ -251,12 +268,12 @@ function start(api){
         if(ep!==EP) return; p.h.push(id); if(a.s===ME){ newIds[id]=1; handSig=""; drawHand(); } else fan(SE(a.s), p.h.length, p.bk); plates(); }
       if(p.h.length>1) p.called=false; if(a.own && a.s===G.turn){ G.drew=true; G.wait=false; if(a.s===ME && auto) later(.3, autoMove); } handSig=""; drawHand(); break; }
     case "rf": { G.draw=a.dw.slice(); G.pile=[G.pile[G.pile.length-1]]; pileH(); feed("🔄 카드를 다시 섞었어요"); break; }
-    case "dir": G.dir=a.d; feed('⇄ 방향이 바뀌었어요', G.top&&G.top.c); drawTop(); break;
-    case "sk": react(a.s,"wow"); feed('⊘ '+esc(nm2(a.s))+' 건너뛰어요', G.top&&G.top.c); if(a.s===ME) banner("⊘ 건너뛰기!", "이번엔 쉬어요"); break;
-    case "pend": G.pend=a.m; pendUI(); if(a.m>0) feed('📚 +'+a.m+' 쌓였어요!', G.top&&G.top.c); break;
-    case "hit": react(a.s,"wow",2.2); if(a.s!==ME && Math.random()<.6) later(.3,()=>emote(a.s,"😱")); if(a.s===ME) banner("😮 +"+a.m+"!", a.m+"장 받고 한 번 쉬어요"); feed('😱 '+esc(nm2(a.s))+' +'+a.m+'장', G.cur); break;
+    case "dir": G.dir=a.d; feed('⇄ 방향이 바뀌었어요', G.top&&G.top.c); drawTop(); stamp('<i class="rv">⇄</i> 거꾸로!', "방향이 바뀌었어요", G.top&&G.top.c); try{ SFX.tone(660,.12,"triangle",.04,440); SFX.tone(440,.12,"triangle",.04,660,.12); }catch(e){} break;
+    case "sk": react(a.s,"wow"); feed('⊘ '+esc(nm2(a.s))+' 건너뛰어요', G.top&&G.top.c); stamp("⊘ 건너뛰기!", a.s===ME?"이번엔 내가 쉬어요":esc(nm2(a.s))+" 쉬어요", G.top&&G.top.c); hitFx(a.s, "⊘"); try{ SFX.tone(300,.14,"square",.035,180); }catch(e){} break;
+    case "pend": G.pend=a.m; pendUI(); if(a.m>0){ feed('📚 +'+a.m+' 쌓였어요!', G.top&&G.top.c); stamp("📚 +"+a.m+"!", "쌓였어요 — 다음 친구는 +2 를 내거나 받아요", G.top&&G.top.c); tShake(); } break;
+    case "hit": react(a.s,"wow",2.2); if(a.s!==ME && Math.random()<.6) later(.3,()=>emote(a.s,"😱")); stamp("+"+a.m+"!", a.s===ME?a.m+"장 받고 한 번 쉬어요":esc(nm2(a.s))+" "+a.m+"장 받기", G.cur); hitFx(a.s, "+"+a.m); tShake(); feed('😱 '+esc(nm2(a.s))+' +'+a.m+'장', G.cur); try{ SFX.tone(180,.2,"sawtooth",.035,90); }catch(e){} break;
     case "ow": G.oneWin={s:a.s, t:ONE_T}; break;
-    case "one": P[a.s].called=true; G.oneWin=null; if(a.s===ME){ ST.one++; missTick(); emote(ME,"☝️"); } else { emote(a.s,"😝"); } feed('☝️ '+esc(nm2(a.s))+' 「한 장!」'); try{ SFX.tone(880,.12,"square",.04); SFX.tone(1320,.12,"square",.03,0,.08); }catch(e){} break;
+    case "one": P[a.s].called=true; G.oneWin=null; stamp("☝️ 한 장!", esc(nm2(a.s))+(a.s===ME?" — 하나만 남았어요":""), null, true); if(a.s===ME){ ST.one++; missTick(); emote(ME,"☝️"); } else { emote(a.s,"😝"); } feed('☝️ '+esc(nm2(a.s))+' 「한 장!」'); try{ SFX.tone(880,.12,"square",.04); SFX.tone(1320,.12,"square",.03,0,.08); }catch(e){} break;
     case "oops": G.oneWin=null; feed('😅 '+esc(nm2(a.s))+' 「한 장!」 깜빡 → 2장'); if(a.s===ME) banner("😅 깜빡!", "「☝️ 한 장!」을 안 눌러서 2장 받아요"); else react(a.s,"wow",1.8); break;
     case "pass": G.wait=true; feed('⏭ '+(a.s===ME?"내가":esc(josa(P[a.s].nm,"이","")))+' 넘겼어요'+(a.why?' ('+a.why+')':'')); break;
     case "end": if(!HOST && RM && RM.d && RM.d.g && RM.d.g.s && RM.d.g.s.over) hardSync(RM.d.g, true); await endShow(a.w, a.ord); break;
@@ -526,14 +543,17 @@ function start(api){
     if(mtT>0){ mtT-=dt; if(mtT<=0) $(".cpMT").classList.remove("on"); }
     if(replyT>0) replyT-=dt;
     glowCol.lerp(glowTo, Math.min(1,dt*6)); glowM.color.copy(glowCol); haloM.color.copy(glowCol);
+    if(RING.visible){ ringT+=dt; const k=Math.min(1, ringT/.5), e=1-Math.pow(1-k,3); RING.scale.setScalar(1+e*ringS); RINGM.opacity=.85*(1-k); if(k>=1) RING.visible=false; }
+    if(shkT>0){ shkT-=dt; const a=Math.max(0,shkT)/.28; table.position.x=Math.sin(shkT*90)*.03*a; table.position.z=Math.cos(shkT*70)*.02*a; if(shkT<=0) table.position.set(0,0,0); }
+    if(fxT>0){ fxT-=dt; if(fxT<=0){ const F=$(".cpFx"); if(F) F.classList.remove("on"); } }
     if(popS.visible){ popT+=dt; const k=popT<.15?popT/.15:1; popS.scale.setScalar(.65*(.6+.4*k)*(1+.08*Math.sin(popT*20))); popM.opacity=popT>.55?Math.max(0,1-(popT-.55)/.25):1; if(popT>.8) popS.visible=false; }
     [1,2,3].forEach(L=>{ const s=SEATS[L]; if(!s || !s.P) return; s.t+=dt; const th=G.turn===glo(L) && !G.over && phase==="play"; s.P.g.position.y=.25+(th?Math.abs(Math.sin(s.t*5))*.025:Math.sin(s.t*1.6)*.006); s.P.head.rotation.y=th?Math.sin(s.t*2)*.15:Math.sin(s.t*.7)*.08;
       if(s.actT>0 && s.actT<90){ s.actT-=dt; if(s.actT<=0) s.P.setExpr(s.P.expr0||"smile"); } });
     for(const m of CONF){ m.position.y-=m.userData.v*dt; m.rotation.x+=m.userData.s*dt; m.rotation.y+=dt*2; if(m.position.y<TY+.02) m.position.y=TY+.02; }
-    const bar=$(".cpBar i"); if(bar) bar.style.width=(phase==="play" && G.turn===ME && !G.over && G.dl?Math.max(0,Math.min(100,(G.dl-now())/(TURN_T*10))):0)+"%";
+    if(!BARI) BARI=$(".cpBar i"); if(BARI){ const v=Math.round(phase==="play" && G.turn===ME && !G.over && G.dl?Math.max(0,Math.min(100,(G.dl-now())/(TURN_T*10))):0); if(v!==BARV){ BARV=v; BARI.style.transform="scaleX("+(v/100)+")"; } }   /* (v740) width → scaleX · 바뀔 때만 */
     if(G.oneWin && G.oneWin.s===ME && fr%6===0) cmd();
     fitCam(); platePos(); if(fr%20===0 && phase==="play") coachCheck(); }
-  let porSig="";   /* (v714) 🐢 얼굴 사진은 표정·크기가 바뀔 때만 다시 (8프레임마다 그래픽을 캔버스로 옮기던 것) */
+  let porSig="", BARI=null, BARV=-1;   /* (v714) 🐢 얼굴 사진은 표정·크기가 바뀔 때만 다시 (8프레임마다 그래픽을 캔버스로 옮기던 것) */
   function render(rn){ fr++; const box=$(".cpPor"); if(ME_AV && box && (fr%8===1 || porCv.width<4)){ const r=box.getBoundingClientRect(), pr=rn.getPixelRatio(), sz=Math.max(8,Math.round(r.width-8));
       if(porCv.width!==Math.round(sz*pr)){ porCv.width=porCv.height=Math.round(sz*pr); } const sig=ME_AV.expr+"|"+porCv.width;
       if(sig!==porSig){ porSig=sig; try{ rn.setScissorTest(true); rn.setScissor(0,0,sz,sz); rn.setViewport(0,0,sz,sz); rn.render(PSc,PC); porG.clearRect(0,0,porCv.width,porCv.height); porG.drawImage(rn.domElement,0,rn.domElement.height-porCv.height,porCv.width,porCv.height,0,0,porCv.width,porCv.height); }catch(e){}
