@@ -117,6 +117,10 @@ async def main():
         # ── ⑤ 얼굴 사진
         cC,C=await boot("루아","CCCC7",False)
         await C.evaluate("()=>MG.enter('c4',{go:'normal'})"); await C.wait_for_timeout(2500)
+        for _ in range(40):   # (v741) 봇이 먼저면 「생각 중」 표정이 바뀌어 다시 그림(정상) → 내 차례 · 떨어지는 알 없을 때부터 잼 (v740 도 3번 중 2번 실패하던 흔들림)
+            if await C.evaluate("()=>{ const R=MG.run; return !!(R && R.turn===R.me && !R.falling && !R.over); }"): break
+            await C.wait_for_timeout(250)
+        await C.wait_for_timeout(1200)
         r=await C.evaluate("""()=>new Promise(res=>{ const rn=renderer, o=rn.render; let n=0; rn.render=function(sc){ if(sc && sc!==MG.run.scene && sc.children && sc.children.some(c=>c.isGroup)) n++; return o.apply(this, arguments); }; setTimeout(()=>{ rn.render=o; res(n); }, 1500); })""")
         ok(r<=1, f"⑤ 4줄 팡 얼굴 사진: 표정이 그대로면 다시 안 그림 (1.5초에 {r}번 · 예전 8프레임마다)")
         await C.evaluate("()=>MG.exit()"); await C.wait_for_timeout(800)
