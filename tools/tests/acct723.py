@@ -129,15 +129,16 @@ async def main():
             ok(g == 777, "승인되면 B 가 토토 기록(💎777)을 받아 옴 (빈 기기라 묻지 않음)")
             await bp.wait_for_load_state("load"); await bp.wait_for_timeout(1200)
             # B 에서 바꾸고 저장 → A 가 받아 옴
+            rv0 = db()["db"]["kacct"][uid]["main"]["rev"]
             await bp.evaluate("()=>{ Wallet.adjust(23, '시험'); }"); r = await bp.evaluate("()=>Acct.save()"); ok(r is True, "B 저장 (rev 2)")
-            ok(db()["db"]["kacct"][uid]["main"]["rev"] == 2, "서버 rev 2")
+            rv = db()["db"]["kacct"][uid]["main"]["rev"]; ok(rv == rv0 + 1 and rv0 == 1, f"서버 rev 2 (전 {rv0} → {rv})")   # (v738) 값 보이게 — 무거울 때 한 번 틀림
             await ap.evaluate("()=>Acct.check()"); await ap.wait_for_timeout(1800)
             ok(await ap.evaluate("()=>Wallet.gems()") == 800, "A: 여기서 바뀐 게 없으면 B 기록(💎800)을 받아 옴")
             # 둘 다 바꿈 → 먼저 저장한 쪽이 남고 다른 쪽은 맡겨 둠
             await bp.evaluate("()=>{ Wallet.adjust(5, '시험'); }"); await ap.evaluate("()=>{ Wallet.adjust(100, '시험'); }")
             await bp.evaluate("()=>Acct.save()"); await ap.evaluate("()=>Acct.save()"); await ap.wait_for_timeout(1800)
             D = db()["db"]["kacct"][uid]; ok(D["main"]["sm"]["g"] == 805 and any(v.get("why") == "conflict" and v.get("sm", {}).get("g") == 900 for v in D.get("park", {}).values()), "둘 다 바꾸면 늦은 A 것(💎900)은 선생님께 맡겨 두고(park) 서버 것(💎805)을 받음")
-            ok(await ap.evaluate("()=>Wallet.gems()") == 805, "A 는 서버 기록으로")
+            ok(await eval_ok(ap, "()=>Wallet.gems()") == 805, "A 는 서버 기록으로")   # (v738) 서버 기록을 받으면 새로 켜짐 — 다 뜬 뒤 다시
             # 이름 바꾸기 (같은 반 막기)
             g0 = await ap.evaluate("()=>Wallet.gems()")
             r = await ap.evaluate("()=>Acct.rename('별사탕')"); ok("같은 반" in r, "같은 반에 있는 이름(별사탕) = 막힘")

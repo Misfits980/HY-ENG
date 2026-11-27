@@ -39,7 +39,7 @@ async def main():
                 v=await pg.evaluate("()=>[(document.getElementById('adBtWords')||{}).value, document.querySelector('#adTabs .on').dataset.t]"); print("weakBt", v)
                 if v[1]!="now" or "home" not in (v[0] or ""): bad.append(f"약한 단어 → 배틀 칸 (🏫 지금 수업) {v}")
                 await pg.screenshot(path=OUT+"class_raidtab.png")
-                await pg.click("[data-ad=btGo]"); await pg.wait_for_timeout(900)   # (v308) 배틀 방 만들기 버튼이 정말 방을 여는지
+                await pg.click("#adF_bt [data-ad=btGo]"); await pg.wait_for_timeout(900)   # (v738 설정 창 안 단추) (v308) 배틀 방 만들기 버튼이 정말 방을 여는지
                 bt=await pg.evaluate("()=>[Battle.role, Battle.room, (Battle.cfg().words||[]).length]"); print("btGo", bt)
                 if bt[0]!="host" or not bt[1] or bt[2]<3: bad.append(f"배틀 방 만들기 버튼 {bt}")
                 # (v322) 📺 TV 새로고침 → 관리 ⚔️ 탭 「방 다시 열기」 → 같은 방 (새로 쓰지 않음)

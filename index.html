@@ -559,6 +559,7 @@ body.hud-ok #btnPauseSet .hico.gear{display:inline-block}
   .tdyTm{font-size:13px} .tdyCta{font-size:20px;margin-top:14px} .tdyCta small{font-size:15px} .tdyH{font-size:15px} .tdyH small{font-size:13px} .tdyAwC{padding:10px 2px 9px} .tdyAwC b{font-size:13.5px} .tdyAwC span{font-size:14.5px} .tdyAwC .rkPf{width:40px;height:40px} .tdyAwC .ic{font-size:18px;right:6px;top:5px} .tdyMore{font-size:14px} }
 @media (min-width:1000px) and (min-height:700px) and (orientation:landscape){ #scRank.tdyOn .panel{width:min(940px,92vw)} #scRank.tdyOn .panel>.group:not(#rankList){max-width:600px}
   #scRank.tdyOn #rankList{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:0 18px;align-items:start} #scRank.tdyOn .tdyAwBox{margin-top:14px} #scRank.tdyOn .tdyAwBox .tdyH{margin-top:0} #scRank.tdyOn .tdyAw{grid-template-columns:repeat(2,1fr)} #scRank.tdyOn .tdyAwBox .tdyH small{display:block;margin:2px 0 0} }
+@media (min-width:1000px) and (min-height:700px) and (max-height:880px) and (orientation:landscape){ #scRank.tdyOn .tdyCta{margin-top:8px} #scRank.tdyOn .tdyDay{margin-top:10px} }   /* (v738) 가로 패드 1180×820: 「한 판 더」 단추가 화면 밑으로 1px 나감 (today667) */
 @media (prefers-reduced-motion:reduce){ .tdyRow{transition:none} }
 /* 관리 화면 📊 랭킹 통계 */
 .adSeg{display:flex;gap:4px;padding:3px;border-radius:12px;background:#120c28;margin-bottom:8px} .adSeg button{flex:1 1 0;appearance:none;border:0;border-radius:9px;background:none;color:#9d92c8;font:800 13px var(--font);padding:8px 2px;cursor:pointer;white-space:nowrap} .adSeg button.on{background:#fff;color:#241b52}
@@ -15284,8 +15285,10 @@ function playLater(fn, ms){ let left=ms, last=performance.now();
 (function(){ try{
   let armed=false; const arm=()=>{ if(armed) return; try{ history.pushState({hyeng:1}, ""); armed=true; }catch(e){} };
   /* (v337) QA: 판이 끝난 뒤에도 넣어 둔 기록 칸이 남아 안드로이드 뒤로 버튼을 한 번 더 눌러야 나갔다 → 판이 끝나면 그 칸을 조용히 뺌 */
-  let skip=false;
-  setInterval(()=>{ if(G.running && !document.hidden) arm(); else if(!G.running && armed && !document.hidden){ armed=false; skip=true; try{ history.back(); }catch(e){ skip=false; } setTimeout(()=>{ skip=false; }, 1500); } }, 800);
+  let skip=false, leaving=false;
+  /* (v738) 점검 exp376: 판이 끝나자마자 새로 고침(측정기 🧪 실험 단추 등)을 누르면 0.8초 틱의 history.back() 이 그 새로 고침을 끊어(ERR_ABORTED) 그대로 남았음 → 떠나는 중이면 안 뺌 */
+  addEventListener("beforeunload", ()=>{ leaving=true; });
+  setInterval(()=>{ if(leaving) return; if(G.running && !document.hidden) arm(); else if(!G.running && armed && !document.hidden){ armed=false; skip=true; try{ history.back(); }catch(e){ skip=false; } setTimeout(()=>{ skip=false; }, 1500); } }, 800);
   addEventListener("popstate", ()=>{ if(skip){ skip=false; return; } armed=false; if(G.running){ if(!G.paused && !G.overFade && !G.finishing) togglePause(); arm(); } });
 }catch(e){} })();
 const StudyCover={ el:null, on(){ const S=this.el||(this.el=document.getElementById("scStudy")); return !!(S && S.classList.contains("on")); } };
@@ -28752,7 +28755,7 @@ const Battle = { CHEST:(navigator.webdriver && !window.HY_CHEST) ? 0 : 1/7,
       return '<div class="btRow'+(me?' me':'')+(now-(p.at||0)>60000?' idle':'')+'"><i class="btRk">'+(i<3?["🥇","🥈","🥉"][i]:i+1)+'</i><b>'+this.esc(p.n)+'</b><div class="btTrack'+(this.st().s==="run"?' go':'')+'"><span style="left:'+Math.min(92,pc)+'%">'+(this.chr(p.c) || (p.e||'🏃'))+'</span></div><em>'+(p.sc|0)+'</em></div>'; }).join('')+'</div>'; },
   /* (v738) 📺 대기 화면 v4 — 레이스 · 교실 배틀(개인) · 두 팀 · 반 깃발 */
   lobby4(flag, lag){ const c=this.cfg(), P=this.T().p||{}, ks=Object.keys(P), n=ks.length, run=this.isRun(), au=this.auto(), team=(flag || run) && au, E=x=>this.esc(x);
-    const durT=this.noLimit() ? '⏱ 끝낼 때까지' : '⏱ '+Math.round((c.dur||300)/60)+'분', modeT = au ? '🔴🔵 두 팀' : flag ? '🏫 반 대항' : '🙋 한 명씩';
+    const durT=this.noLimit() ? '⏱ 끝낼 때까지' : '⏱ '+Math.round((c.dur||300)/60)+'분', modeT = (au ? '🔴🔵 두 팀' : flag ? '🏫 반 대항' : '🙋 한 명씩')+(run ? '' : c.lvl==="exam" ? ' · 📝 시험처럼' : ' · 🎈 쉽게');
     const rg = run ? (c.rng==="stg" ? Lob4.rng(c.rset||c.set, c.from, c.to) : ((WORD_SETS[c.rset]||{}).label||"")) : (c.words && c.words.length ? '고른 단어 '+c.words.length+'개' : Lob4.rng(c.set, c.from, c.to));
     const title = run ? (au ? '🏃 빨강 vs 파랑 달리기!' : '🏃 단어 게이트 달리기!') : flag ? (au ? '🏫 빨강 vs 파랑 교실 배틀!' : '🚩 반 깃발 레이스!') : '🏫 교실 배틀!';
     const rule = run ? (au ? '들어오면 두 팀으로 저절로 나눠요 · 뜻에 맞는 단어 게이트로 달려요' : '뜻에 맞는 단어 게이트로 달려요 · 머리 위에 내 순위가 떠요')

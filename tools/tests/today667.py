@@ -141,6 +141,7 @@ async def main():
             await T.reload(); await T.wait_for_timeout(1500)
             await T.evaluate("(R)=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:3, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:true, rep:R.d} : {ok:true}); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); window._clip=''; try{ Object.defineProperty(navigator, 'clipboard', {value:{writeText:t=>{ window._clip=t; return Promise.resolve(); }}, configurable:true}); }catch(e){} Admin.open(); }", REP)
             await T.wait_for_timeout(500); await T.click('#adTabs [data-t="rec"]'); await T.wait_for_timeout(800)
+            await T.click('#adBody [data-ad="v2Rv"][data-v="sheet"]'); await T.wait_for_timeout(300)   # (v735~) 📊 랭킹 통계 = 기록 탭 「시트 표」 보기
             GET = "()=>{ const t=document.querySelector('#adBody table.rkStat'); if(t) t.scrollIntoView({block:'center'}); return [[...document.querySelectorAll('#adBody .adSeg button')].map(x=>x.textContent+(x.classList.contains('on')?'*':'')), t ? [...t.rows].map(r=>[...r.cells].map(c=>c.textContent.trim())) : null, document.getElementById('adBody').scrollWidth-document.getElementById('adBody').clientWidth]; }"
             r = await T.evaluate(GET)
             ok(r[0] == ["이번 주*", "지난주", "이번 달", "지난달"] and r[1] and r[1][0][:5] == ["아이", "🥇 하루 1등", "주 순위", "📅 한 날", "✏️ 푼 문제"] and r[1][1][:5] == ["김지후", "2번", "1위", "4일", "3,690"] and r[1][2][0] == "최선아 스트로베리" and r[1][3][1:3] == ["–", "–"] and r[2] <= 1, f"{nm}: 이번 주 표 {r[1] and r[1][:2]} 넘침 {r[2]}")
@@ -157,6 +158,7 @@ async def main():
         await T.evaluate("()=>{ localStorage.setItem('hyeng_admin_rep', JSON.stringify({at:Date.now(), d:{nicks:[]}})); sessionStorage.setItem('hyeng_admin_ok',String(Date.now())); sessionStorage.setItem('hyeng_admin_tk','testkey'); }"); await T.reload(); await T.wait_for_timeout(1500)
         await T.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); Online.on=()=>true; Notice.fetch=()=>Promise.resolve({v:3, notices:[]}); Online.submit=o=>Promise.resolve(o.type==='report' ? {ok:true, rep:{nicks:[]}} : {ok:true, v:22}); document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on')); Admin.open(); }")
         await T.wait_for_timeout(500); await T.click('#adTabs [data-t="rec"]'); await T.wait_for_timeout(800)
+        await T.click('#adBody [data-ad="v2Rv"][data-v="sheet"]'); await T.wait_for_timeout(300)   # (v735~) 📊 랭킹 통계 = 기록 탭 「시트 표」 보기
         tx = await T.evaluate("()=>{ const c=[...document.querySelectorAll('#adBody .adCard')].find(x=>/랭킹 통계/.test(x.textContent)); return c ? c.textContent : ''; }")
         ok("v23" in tx and "새 Code.gs 복사" in tx, "옛 서버: 랭킹 통계 카드에 서버 올리는 법")
         await ctx.close(); await b.close()

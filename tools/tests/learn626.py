@@ -47,7 +47,7 @@ async def main():
         await pg.evaluate("()=>{ const D=864e5; ['g34-1','g34-3'].forEach(id=>Gram.put(id,{mx:Date.now()-1.1*D})); Gram.put('g34-2',{mx:Date.now()-1.1*D}); Gram.put('g34-4',{s:1,last:100}); }")
         r = await pg.evaluate("""()=>GramUI.mixPool('g34').then(T=>{ const o=GramUI.mixOrder(T); return [o.map(t=>t.id), o.map(t=>+t.acc.toFixed(2))]; })""")
         ok(r[0][0] == "g34-2" and "g34-1" not in r[0][:1], f"틀린 문법이 다음 날 맨 앞 {r}")
-        cnt = await pg.evaluate("""async ()=>{ const c={}; for(let i=0;i<12;i++){ GramUI.mixStart('g34'); await new Promise(z=>setTimeout(z,150)); GramUI.qs.forEach(q=>{ c[q.gid]=(c[q.gid]||0)+1; }); } return c; }""")
+        cnt = await pg.evaluate("""async ()=>{ const c={}; for(let i=0;i<40;i++){ const q0=GramUI.qs; GramUI.mixStart('g34'); for(let k=0;k<60 && GramUI.qs===q0;k++) await new Promise(z=>setTimeout(z,50)); GramUI.qs.forEach(q=>{ c[q.gid]=(c[q.gid]||0)+1; }); } return c; }""")
         ok(cnt.get("g34-2", 0) > cnt.get("g34-4", 0), f"많이 틀린 g34-2 문제가 다 맞힌 g34-4 보다 많이 {cnt}")
         # ③ 듣기: ★3 판 = ⭕❌ 2개 듣기
         await pg.evaluate("()=>{ Voice.broken=false; Voice.fails=0; Gram.put('g34-1',{s:2}); const s=Study.load(); s.book='g34'; s.set=Gram.MAIN.g34; Study.save(); StudyUI.open(); GramUI.start('g34-1'); }"); await pg.wait_for_timeout(500)

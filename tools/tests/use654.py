@@ -27,9 +27,10 @@ async def main():
         r = await E("()=>{ Use.force=true; localStorage.removeItem('hyeng_use_v1'); Use.cur=''; Use.at=0; Use.act=Date.now(); Use.tick(false); return Use.cur; }"); ok(r == "menu", f"첫 화면 = menu {r}")
         r = await E(STEP, 15); ok(abs(r[1].get("menu", 0) - 15) < 1.5, f"15초 뒤 menu 15초 {r[1]}")
         await E("()=>{ StudyUI.open(); }"); await pg.wait_for_timeout(500)
-        r = await E(STEP, 15); r = await E(STEP, 15); ok(r[0] == "study" and abs(r[1].get("study", 0) - 15) < 1.5 and r[2].get("study") == 1, f"Daily 30 = study · 들어간 번 1 {r}")
-        await E("()=>GramUI.start('mid-11')"); await pg.wait_for_timeout(500)
-        r = await E(STEP, 15); r = await E(STEP, 15); ok(r[0] == "gram" and abs(r[1].get("gram", 0) - 15) < 1.5, f"문법 판 = gram {r[:2]}")
+        # (v738) 화면이 바뀐 때 한 번 세고 바로 15초 — 5초마다 세는 틱이 언제 오든 같게 (그 틱이 먼저 오면 study 30초로 셌음) · 한 번에 해서 무거울 때 사이 시간도 안 들어감
+        r = await E("(sec)=>{ Use.act=Date.now(); Use.tick(false); return (%s)(sec); }" % STEP, 15); ok(r[0] == "study" and abs(r[1].get("study", 0) - 15) < 1.5 and r[2].get("study") == 1, f"Daily 30 = study · 들어간 번 1 {r}")
+        await E("()=>GramUI.start('mid-11')"); await pg.wait_for_function("()=>GramUI.mode && GramUI.mode!=='note' && document.getElementById('stGram').style.display!=='none'", timeout=10000)
+        r = await E("(sec)=>{ Use.act=Date.now(); Use.tick(false); return (%s)(sec); }" % STEP, 15); ok(r[0] == "gram" and abs(r[1].get("gram", 0) - 15) < 1.5, f"문법 판 = gram {r[:2]}")
         await E("()=>{ GramUI.home(); }"); await pg.wait_for_timeout(300)
         # 2분 동안 안 만지면 안 셈 (혼자 하는 모드) · 수업 게임은 셈
         r = await E("()=>{ Use.tick(false); const a=Use.load().s.study; Use.act=Date.now()-130000; Use.tick(false); const c1=Use.cur; Use.at-=15000; Use.tick(false); return [a, Use.load().s.study, c1]; }")

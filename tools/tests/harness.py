@@ -84,3 +84,43 @@ SOLVE="""(wrongFirst)=>{ const U=StudyUI; if(U._brk){ document.getElementById('s
 
 # (v536) My Town 은 빈 방에서 시작 — 예전 테스트(가구 7개·창문 2·그림 1 기준)는 이 방을 넣고 시작 (새 문 자리 피해서)
 LEGACY_ROOM = """localStorage.setItem('hyeng_proto_room', JSON.stringify({p:[["rug",2,2,0,0],["bed",5,1,0,0],["shelf",2,0,0,0],["plant",5,0,0,0],["desk",2,4,0,0],["chair",3,3,2,0],["chest",0,3,3,0]], wl:[["window",0,2,0],["window",3,3,1],["painting",3,4,0]], f:0, w:0, rn:6, s:{chair:1, shelf:1, plant:1, lamp:1, sofa:1}}));"""
+
+# (v738) 새로 고침(location.reload · 「다시 열기」 단추 · 서버 기록 받기)이 끼는 시험 — 고정 2초 기다림은 여럿 같이 돌 때
+#        「Execution context was destroyed」 로 깨졌다 (perf373 · exp376 · joy378 · aud377 · acct723) → 다 뜰 때까지 기다림
+async def settle(pg, extra=600, timeout=90000):
+    """다시 불러온 페이지가 다 뜰 때까지 (load + 게임 스크립트 + 첫 화면)"""
+    try: await pg.wait_for_load_state("load", timeout=timeout)
+    except Exception: pass
+    for _ in range(3):
+        try:
+            await pg.wait_for_function("()=>document.readyState==='complete' && typeof startGame==='function' && !!document.getElementById('scStart')", timeout=timeout); break
+        except Exception as e:
+            if "destroyed" not in str(e) and "navigat" not in str(e): raise
+            await pg.wait_for_timeout(500)
+    await pg.wait_for_timeout(extra)
+async def reload_by(pg, expr, arg=None, timeout=90000):
+    """expr 를 하면 페이지가 새로 고쳐지는 경우 — 새로 고침이 끝나고 다 뜰 때까지
+       (v738) 옛 페이지에 표시를 해 두고 표시가 없는 새 페이지가 뜰 때까지 기다림 — evaluate 가 「destroyed」로 끊기면
+       expect_navigation 도 같이 빠져나와, 아직 안 바뀐 옛 페이지를 다 뜬 것으로 보고 읽던 흔들림(exp376)"""
+    try: await pg.evaluate("()=>{ window.__hyOld=1; }")
+    except Exception: pass
+    try:
+        async with pg.expect_navigation(timeout=timeout):
+            await (pg.evaluate(expr) if arg is None else pg.evaluate(expr, arg))
+    except Exception as e:
+        m = str(e)   # 눌러 바로 새로 고쳐지면 evaluate 자체가 「destroyed」 · 앞 이동이 끊기면 ERR_ABORTED — 둘 다 새로 고침이 된 것
+        if not any(k in m for k in ("destroyed", "ERR_ABORTED", "navigat", "detached")): raise
+    for _ in range(int(timeout / 250)):
+        try:
+            if await pg.evaluate("()=>!window.__hyOld"): break
+        except Exception: pass
+        await pg.wait_for_timeout(250)
+    await settle(pg)
+async def eval_ok(pg, expr, arg=None, tries=6):
+    """도중에 새로 고쳐질 수 있는 evaluate — 깨지면 다 뜰 때까지 기다렸다 다시"""
+    for i in range(tries):
+        try: return await (pg.evaluate(expr) if arg is None else pg.evaluate(expr, arg))
+        except Exception as e:
+            m = str(e)
+            if not ("destroyed" in m or "navigat" in m or "is not defined" in m) or i == tries - 1: raise
+            await settle(pg)

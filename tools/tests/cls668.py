@@ -72,7 +72,8 @@ async def main():
             except Exception: pass
             await T.wait_for_timeout(1200)
             await T.evaluate(SEED, [room, [528, 528, 363, 187]])
-            try: await T.wait_for_function("()=>FlagRun.o && FlagRun.o.L.length===4 && Math.max(...FlagRun.o.L.map(t=>t.p))>5.4", timeout=25000)   # 다른 검사와 같이 돌 때도 (느린 기기) 자리가 잡힐 때까지
+            lead = 8.5 if dur >= 3600 else 6.0
+            try: await T.wait_for_function("(ld)=>FlagRun.o && FlagRun.o.L.length===4 && Math.max(...FlagRun.o.L.map(t=>t.p))>ld-0.45", arg=lead, timeout=30000)   # (v738) 결승 자리(시간 없음 8.5 · 있음 6.0)에 거의 닿을 때까지 — 예전 5.4 고정은 8.5 판에서 아직 가는 중이었음
             except Exception: pass
             await T.wait_for_timeout(1500)
             r = await T.evaluate("()=>{ const L=FlagRun.o.L, by=n=>L.find(t=>t.n===n).p; const S=document.getElementById('frStage').getBoundingClientRect(), x=n=>{ const t=L.find(t=>t.n===n), e=document.getElementById('frR'+t.k).getBoundingClientRect(); return Math.round((e.left-S.left)/S.width*100); }; return {p:['경훈','라언','주호','단우'].map(n=>Math.round(by(n)*10)/10), x:['경훈','단우'].map(x), tm:document.getElementById('frTime').textContent}; }")

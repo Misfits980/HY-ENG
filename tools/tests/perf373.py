@@ -20,8 +20,7 @@ async def main():
         await boot(pg)
         # 버전 글씨 5번 → 켜짐
         await pg.evaluate("()=>{ show('scStart'); }"); await pg.wait_for_timeout(300)
-        await pg.evaluate("()=>{ const v=document.querySelector('#scStart .verTag'); for(let i=0;i<5;i++) v.click(); }")
-        await pg.wait_for_timeout(2000)
+        await reload_by(pg, "()=>{ const v=document.querySelector('#scStart .verTag'); for(let i=0;i<5;i++) v.click(); }")   # (v738) 새로 고침 끝까지
         await pg.evaluate("()=>{ const b=document.getElementById('btnNewsOk'); if(b) b.click(); }")
         ok(await pg.evaluate("()=>Perf.on"), "버전 글씨 5번 빨리 누르면 측정기 켜짐")
         await pg.evaluate("()=>{ G.set='elem'; G.diff='normal'; G.rule='normal'; G.lesson=null; G.tag=null; startGame(); }")
@@ -40,8 +39,7 @@ async def main():
         ok(rep.startswith("📊") and "🌐 브라우저" in rep and "손가락 누른 채 1" in rep, "보고서: 브라우저/홈 화면 앱 · 누른 채 집계")
         # 다시 5번 → 꺼짐
         await pg.evaluate("()=>{ document.getElementById('perfBox').remove(); Perf.el=null; show('scStart'); }"); await pg.wait_for_timeout(300)
-        await pg.evaluate("()=>{ const v=document.querySelector('#scStart .verTag'); for(let i=0;i<5;i++) v.click(); }")
-        await pg.wait_for_timeout(2000)
+        await reload_by(pg, "()=>{ const v=document.querySelector('#scStart .verTag'); for(let i=0;i<5;i++) v.click(); }")
         ok(await pg.evaluate("()=>!Perf.on && !localStorage.getItem('hyeng_perf')"), "다시 5번 → 꺼짐")
         e = real_errs(errs); ok(not e, "오류 없음 " + str(e[:3]))
         await br.close()

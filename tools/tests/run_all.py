@@ -36,13 +36,9 @@ def check_output(out):
 FLAKY = {}   # (v399) 처음 실패하고 다시 돌려 통과한 테스트 — 컴퓨터가 느려 시간이 모자란 것일 수 있어 한 번 더 혼자 돌려 봄
 
 def run_test(name):
-    r = run_once(name)
-    if r[2] and os.environ.get("HY_RETRY", "1") != "0":
-        first = r[2]; r2 = run_once(name)
-        if not r2[2]:
-            FLAKY[name] = first[:2]; return (name, r[1] + r2[1], [])
-        return (name, r[1] + r2[1], ["두 번 다 실패"] + r2[2])
-    return r
+    """(v738) 한 번만 돌림 — 실패한 것은 다 끝난 뒤 하나씩 혼자 다시 (main 의 「혼자 다시」) · 예전엔 바로 그 자리에서 다시 돌려
+       다른 시험이 같이 도는 무거운 때 또 실패 → 「두 번 다 실패」 (CPU 2개 기계에서 새로 고침 시험 acct723 exp376 aud377 이 그랬음)"""
+    return run_once(name)
 
 # (v690) 사용자 「2번은 없애자」 — 새 섬(v610) 전 옛 마당·마을 시험 town407 · land415 는 지움 (v687 LEGACY 목록도 없앰)
 V4_ONLY = {"farm580", "yqa580", "yguide586", "polish576"}   # (v687) polish576 = v576 옛 섬 다듬기 (옛 섬에서 통과)   # 마당 밭(새 섬에선 텃밭 섬으로 이사) 시험
@@ -130,9 +126,19 @@ def main():
         futs = [ex2.submit(run_test, n) for n in H] + [ex1.submit(run_test, n) for n in Lt]
         for f in as_completed(futs):
             name, secs, probs = f.result(); T[name] = secs
-            print("  %s %-12s %4ds%s" % ("✅" if not probs else "❌", name, secs, "" if not probs else "  " + " | ".join(probs[:3])), flush=True)
-            if probs: fails.append(name)
-    for n, why in FLAKY.items(): print("  ⚠️ %s — 처음엔 실패했다가 다시 돌려 통과 (%s) — 자주 나오면 원인 찾기" % (n, " | ".join(why)))
+            print("  %s %-12s %4ds%s" % ("✅" if not probs else "🔸", name, secs, "" if not probs else "  " + " | ".join(probs[:3]) + " → 끝나고 혼자 다시"), flush=True)
+            if probs: fails.append((name, probs))
+    if fails and os.environ.get("HY_RETRY", "1") != "0":
+        print("== 실패한 %d개를 하나씩 혼자 다시 (다른 시험 없이)" % len(fails), flush=True)
+        again = []
+        for name, first in fails:
+            _, secs, probs = run_once(name); T[name] += secs
+            print("  %s %-12s %4ds%s" % ("✅" if not probs else "❌", name, secs, "  혼자면 통과 (같이 돌 때만 실패)" if not probs else "  혼자도 실패 | " + " | ".join(probs[:3])), flush=True)
+            if probs: again.append(name)
+            else: FLAKY[name] = first[:2]
+        fails = again
+    else: fails = [n for n, _ in fails]
+    for n, why in FLAKY.items(): print("  ⚠️ %s — 같이 돌 때 실패 · 혼자 통과 (%s) — 자주 나오면 원인 찾기" % (n, " | ".join(why)))
     slow = sorted(T.items(), key=lambda x: -x[1])[:5]
     print("== 걸린 시간 %d분 · 오래 걸린 것: %s" % (round((time.time() - t0) / 60), ", ".join("%s %ds" % x for x in slow)))
     ok = not bp and not fails

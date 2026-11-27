@@ -25,7 +25,7 @@ async def main():
         await E("()=>{ Wallet.addGems(33,'t'); Study.setLv('basic',1,3); Study.setLv('basic',2,1); localStorage.setItem('hyeng_proto_gems','12'); }")
         r = await E("()=>Cloud.save().then(ok=>[ok, FB.get('/hy/acct/k2')]).then(async ([ok,p])=>[ok, await p])")
         ok(r[0] and r[1]["sm"]["g"] == 33 and r[1]["sm"]["st"] == 2 and r[1]["n"] == "민준", f"☁️ 서버에 저장 (💎33 · Stage 2) {r[1] and r[1].get('sm')}")
-        ok(await E("()=>Cloud.save()") is False, "바뀐 게 없으면 다시 안 올림")
+        ok(await E("()=>Cloud.save(true).then(()=>Cloud.save())") is False, "바뀐 게 없으면 다시 안 올림")   # (v738) 바로 이어서 — 무거울 때 사이에 다른 타이머가 칸을 적으면 흔들렸음
         await E("()=>Wallet.addGems(1,'t')")
         ok(await E("()=>Cloud.save()") is True, "바뀌면 올림")
         fb = await E("()=>localStorage.getItem('hyeng_fb_local')")
