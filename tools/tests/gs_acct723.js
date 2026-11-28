@@ -158,4 +158,11 @@ props.FB_SECRET = "SECRET123"; ok(T("acctOn", {on:1}).ok, "열쇠를 넣으면 �
   const ac = book["계정"].d, H = ac[0], AIt = H.indexOf("태그"), mi = ac.findIndex(x=>x[H.indexOf("아이디")] === "monggl"); const uidM = ac[mi][H.indexOf("계정 번호")]; ac[mi][AIt] = "";
   r = post({type:"acctRenew", uid:uidM, dev:"newTab9", ds:ds9}); ok(r.ok && r.acct.tag === "0040" && String(ac[mi][AIt]) === "0040", "v27 때 로그인한 기기(계정에 태그 없음) = 새로 받을 때 태그 #0040 채움");
   ok(AIt === 18, "계정 탭 머리글 맨 끝에 「태그」 칸 (" + AIt + ")"); }
+/* (v742) 아이디 3~12글자 — 9·12글자 만들기 · 13글자 안 됨 · 12글자로 로그인 · 아이디 바꾸기 12 / 13 */
+{ const r = T("acctMake", {list:[{rid:"r30", n:"하늘", t:"돌고래반", id:"haneulbyeol", bd:"150101"}, {rid:"r31", n:"구름", t:"돌고래반", id:"gureumgureum", bd:"150102"}, {rid:"r32", n:"노을", t:"돌고래반", id:"noeulnoeulnoe", bd:"150103"}]});
+  const R2 = {}; (r.res || []).forEach(x=>{ R2[x.id] = x; });
+  ok(r.ok && r.made === 2 && R2.haneulbyeol.ok && R2.gureumgureum.ok && R2.noeulnoeulnoe.err === "badid", "(v742) 아이디 11·12글자 됨 · 13글자 = badid " + JSON.stringify(r.res));
+  const lg = post({type:"acctLogin", id:"gureumgureum", pw:"150102", dev:"devTAB12"}); ok(lg && lg.ok !== false && lg.err !== "noid", "(v742) 12글자 아이디로 로그인 (noid 아님) " + JSON.stringify(lg).slice(0, 120));
+  const u = T("acctList").list.find(x=>x.id === "haneulbyeol");
+  ok(T("acctEdit", {uid:u.uid, id:"haneulbyeolss"}).err === "badid" && T("acctEdit", {uid:u.uid, id:"haneulbyeols"}).ok, "(v742) 아이디 바꾸기 13글자 안 됨 · 12글자 됨"); }
 console.log(bad ? "FAIL " + bad : "ALL OK"); process.exit(bad ? 1 : 0);

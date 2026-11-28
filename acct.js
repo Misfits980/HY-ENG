@@ -305,7 +305,7 @@ const UI={
       +'<div class="acS" data-s="who"><div class="acTop end"><button type="button" class="acSlab sm" data-go="skip">✕ 닫기</button></div><div class="acFloat sm"><img class="acSmall" src="assets/ui/logo.webp" alt="HY ENG"></div><div class="acBig acGt">누가 할까요?</div><div class="acPpl" id="acPpl"></div><div class="acHint">얼굴을 누르면 <b>비밀번호만</b> 눌러요</div><div class="grow"></div><div class="acRow"><button type="button" class="acSlab" data-go="id">＋ 다른 친구</button><button type="button" class="acSlab" data-go="skip">🙋 로그인 없이</button></div></div>'
       /* 아이디 */
       +'<div class="acS" data-s="id"><div class="acTop"><button type="button" class="acSlab sm" data-go="back">◀ 처음으로</button><span class="acStep"><b class="cur">아이디</b><i></i><b>비밀번호</b></span><span class="sp"></span></div><div class="acFloat sm"><img class="acSmall" src="assets/ui/logo.webp" alt="HY ENG"></div>'
-      +'<div class="acPlate"><span class="lab">아이디</span><div class="acTyped" id="acIdT"></div></div><div class="acHint" id="acIdH">영어 소문자 3~8글자 · 잊었으면 <b>선생님께</b></div><div class="grow"></div><div class="acKb" id="acKb">'+kb+'</div><button type="button" class="acGold" id="acIdNext" disabled>다음 ▶</button></div>'
+      +'<div class="acPlate"><span class="lab">아이디</span><div class="acTyped" id="acIdT"></div></div><div class="acHint" id="acIdH">영어 소문자 3~12글자 · 잊었으면 <b>선생님께</b></div><div class="grow"></div><div class="acKb" id="acKb">'+kb+'</div><button type="button" class="acGold" id="acIdNext" disabled>다음 ▶</button></div>'
       /* 비밀번호 */
       +'<div class="acS" data-s="pw"><div class="acTop"><button type="button" class="acSlab sm" id="acPwBack" data-go="idk">◀ 아이디</button><span class="acWho"><i id="acPwFace"></i><b id="acPwName"></b></span><span class="sp"></span></div><div class="acFloat">'+LOGO+'</div>'
       +'<div class="acGems" id="acGems" aria-label="누른 숫자 0개">'+DM.repeat(6)+'</div><div class="acMsg" id="acMsg" aria-live="polite">비밀번호 6자리를 눌러요</div><div class="grow"></div><div class="acKeys" id="acKeys">'+pk+'</div><div class="acHint">잊어버렸어요 → <b>선생님께</b></div></div>'
@@ -328,7 +328,7 @@ const UI={
   close(){ if(!this.el) return; this.el.classList.remove("on","go"); document.body.classList.remove("acOpen"); this.T.forEach(clearTimeout); this.T=[]; },
   skip(){ try{ sessionStorage.setItem(SKIPK,"1"); }catch(e){} this.close(); Chip.draw(); },
   drawWho(){ const L=Acct.list(); $$("acPpl").innerHTML=L.map(x=>'<button type="button" data-who="'+esc(x.id)+'"><i style="'+face(x.c)+'"></i><b>'+esc(x.n)+'</b><small>'+esc(x.id)+'</small></button>').join(""); },
-  drawId(){ const v=this.idv; $$("acIdT").innerHTML=(v ? v.split("").map((c,i)=>'<span class="acGt'+(i===v.length-1?' nw':'')+'">'+c+'</span>').join("") : '<span class="ph">toto</span>')+'<i class="caret"></i>'; $$("acIdNext").disabled=v.length<3; },
+  drawId(){ const v=this.idv; $$("acIdT").style.fontSize=(v.length>8 ? Math.max(24, Math.round(40*8.5/v.length)) : 40)+"px";   /* (v742) 9~12글자는 판 안에 들어가게 줄임 */ $$("acIdT").innerHTML=(v ? v.split("").map((c,i)=>'<span class="acGt'+(i===v.length-1?' nw':'')+'">'+c+'</span>').join("") : '<span class="ph">toto</span>')+'<i class="caret"></i>'; $$("acIdNext").disabled=v.length<3; },
   resetPw(){ this.code=""; this.busy=false; const G=$$("acGems"); G.className="acGems"; this.q('[data-s="pw"] .acLogo').className="acLogo"; const M=$$("acMsg"); M.className="acMsg"; M.textContent="비밀번호 6자리를 눌러요";
     const B=$$("acPwBack"); if(this.fromWho){ B.dataset.go="back"; B.textContent="◀ 누가 할까요"; } else { B.dataset.go="idk"; B.textContent="◀ 아이디"; }
     const w=this.who||{n:this.idv}; $$("acPwName").textContent=w.n||this.idv; $$("acPwFace").setAttribute("style", face(w.c||myChar())); this.drawPw(); },
@@ -374,12 +374,12 @@ const UI={
         if(g==="idk"){ this.show("id"); return; }
         if(g==="id"){ this.who=null; this.idv=""; } this.show(g); return; }
       const w=t.closest("[data-who]"); if(w){ tone(660,.06); const x=Acct.list().find(y=>y.id===w.dataset.who); this.who=x||null; this.idv=w.dataset.who; this.fromWho=true; this.show("pw"); return; }
-      const l=t.closest("#acKb button"); if(l){ const v=l.dataset.l; if(v==="del") this.idv=this.idv.slice(0,-1); else if(this.idv.length<8) this.idv+=v; tone(v==="del"?330:520+this.idv.length*35,.07); this.drawId(); return; }
+      const l=t.closest("#acKb button"); if(l){ const v=l.dataset.l; if(v==="del") this.idv=this.idv.slice(0,-1); else if(this.idv.length<12) this.idv+=v; tone(v==="del"?330:520+this.idv.length*35,.07); this.drawId(); return; }
       if(t.closest("#acIdNext")){ if(this.idv.length>=3){ this.who=Acct.list().find(y=>y.id===this.idv)||null; this.fromWho=false; this.show("pw"); } return; }
       const k=t.closest("#acKeys button"); if(k){ this.press(k.dataset.k); return; }
       const m=t.closest("[data-mine]"); if(m && this._mine){ const f=this._mine; this._mine=null; f(m.dataset.mine); return; } });
     document.addEventListener("keydown", e=>{ if(!this.el || !this.el.classList.contains("on")) return; const tg=e.target; if(tg && /^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName)) return;
-      if(this.cur==="id"){ if(/^[a-z]$/i.test(e.key) && this.idv.length<8){ this.idv+=e.key.toLowerCase(); this.drawId(); } else if(e.key==="Backspace"){ this.idv=this.idv.slice(0,-1); this.drawId(); } else if(e.key==="Enter" && this.idv.length>=3){ this.who=Acct.list().find(y=>y.id===this.idv)||null; this.fromWho=false; this.show("pw"); } }
+      if(this.cur==="id"){ if(/^[a-z]$/i.test(e.key) && this.idv.length<12){ this.idv+=e.key.toLowerCase(); this.drawId(); } else if(e.key==="Backspace"){ this.idv=this.idv.slice(0,-1); this.drawId(); } else if(e.key==="Enter" && this.idv.length>=3){ this.who=Acct.list().find(y=>y.id===this.idv)||null; this.fromWho=false; this.show("pw"); } }
       else if(this.cur==="pw"){ if(/^[0-9]$/.test(e.key)) this.press(e.key); else if(e.key==="Backspace") this.press("del"); } });
     /* 로그아웃 2초 꾹 */
     const ob=d.querySelector("#acOut"); let hT=null; const stop=()=>{ clearTimeout(hT); ob.classList.remove("hold"); };
@@ -427,7 +427,7 @@ const AdmA={
   row(a){ const st=a.tl?'<span class="st lock">🔒 선생님 풀기</span>':a.lock?'<span class="st lock">🔒 '+Math.ceil((a.lock-Date.now())/60000)+'분</span>':(a.pend||[]).length?'<span class="st wait">⏳ 승인</span>':(a.devs||[]).length?'<span class="st ok">✅ '+a.devs.length+'대</span>':'<span class="st none">아직 로그인 안 함</span>';
     const op=this.open===a.uid; let h='<div class="acR'+(op?' op':'')+'"><button class="acRh" data-acx="op" data-u="'+a.uid+'"><b>'+esc(a.n)+'</b><small class="mono">'+esc(a.id)+(a.tag?' · #'+esc(a.tag):'')+'</small>'+st+'</button>';
     if(op){ const tsel=Object.keys(this.teams()).map(t=>'<option value="'+esc(t)+'"'+(t===a.t?' selected':'')+'>'+esc(this.tn(t))+'</option>').join("");
-      h+='<div class="acD"><div class="kv"><span>🪪 아이디</span><input id="acE_id" value="'+esc(a.id)+'" maxlength="8" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="mini" data-acx="eid" data-u="'+a.uid+'">바꾸기</button></div>'
+      h+='<div class="acD"><div class="kv"><span>🪪 아이디</span><input id="acE_id" value="'+esc(a.id)+'" maxlength="12" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="mini" data-acx="eid" data-u="'+a.uid+'">바꾸기</button></div>'
         +'<div class="kv"><span>✏️ 게임 이름</span><input id="acE_n" value="'+esc(a.n)+'" maxlength="8"><button class="mini" data-acx="en" data-u="'+a.uid+'">바꾸기</button></div>'
         +'<div class="kv"><span>🏫 반</span><select id="acE_t">'+tsel+'</select><button class="mini" data-acx="et" data-u="'+a.uid+'">옮기기</button></div>'
         +'<div class="kv"><span>🔑 비밀번호 · '+(a.pk==="바꿈"?"바꿈":"처음(생일)")+'</span><input id="acE_pw" inputmode="numeric" maxlength="6" placeholder="새 6자리"><button class="mini" data-acx="pw" data-u="'+a.uid+'">새로</button><button class="mini" data-acx="pwb" data-u="'+a.uid+'">생일로 되돌리기</button></div>'
@@ -438,12 +438,12 @@ const AdmA={
   makeForm(L){ const K=this.kids(), have={}; L.forEach(a=>{ if(a.rid && a.st!=="closed") have[a.rid]=1; });
     const ks=Object.keys(K).filter(k=>(K[k].t||"")===this.t && !have[k] && !K[k].nw);
     if(!ks.length) return '<p class="adSmall">이 반 명단의 아이는 모두 계정이 있어요 (명단에 없는 아이는 👥 명단에 먼저 넣어요)</p>';
-    return '<div class="acMk"><p class="adSmall">아이디 = 영어 소문자 3~8글자(겹치면 철자를 다르게) · 생일 = 6자리(예: 2015년 3월 9일 → 150309) — 생일이 처음 비밀번호예요 · 화면엔 「생일」이라고 안 나와요</p>'
-      +ks.map(k=>{ const n=String(HyBoss.plainN ? HyBoss.plainN(K[k].n) : K[k].n), sug=this.mk[k] ? this.mk[k].id : roman(n.length>=3 ? n.slice(1) : n).slice(0,8);
-        return '<div class="kv"><span>'+esc(n)+'</span><input data-mki="'+esc(k)+'" value="'+esc(sug)+'" maxlength="8" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="아이디"><input data-mkb="'+esc(k)+'" value="'+esc(this.mk[k]?this.mk[k].bd:"")+'" inputmode="numeric" maxlength="6" placeholder="생일 6자리" type="password"></div>'; }).join("")
+    return '<div class="acMk"><p class="adSmall">아이디 = 영어 소문자 3~12글자(겹치면 철자를 다르게) · 생일 = 6자리(예: 2015년 3월 9일 → 150309) — 생일이 처음 비밀번호예요 · 화면엔 「생일」이라고 안 나와요</p>'
+      +ks.map(k=>{ const n=String(HyBoss.plainN ? HyBoss.plainN(K[k].n) : K[k].n), sug=this.mk[k] ? this.mk[k].id : roman(n.length>=3 ? n.slice(1) : n).slice(0,12);
+        return '<div class="kv"><span>'+esc(n)+'</span><input data-mki="'+esc(k)+'" value="'+esc(sug)+'" maxlength="12" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="아이디"><input data-mkb="'+esc(k)+'" value="'+esc(this.mk[k]?this.mk[k].bd:"")+'" inputmode="numeric" maxlength="6" placeholder="생일 6자리" type="password"></div>'; }).join("")
       +'<button class="mini go" data-acx="mkgo">계정 만들기</button></div>'; },
   async act(a, b){ const u=b.dataset.u, P={uid:u, tk:this.tk}; let r=null;
-    const done=(rr, ok)=>{ if(rr && rr.ok){ this.note=ok; this.load(); } else { this.note="⚠️ "+({badid:"아이디는 영어 소문자 3~8글자예요",dupid:"이미 있는 아이디예요",dupname:"같은 반에 같은 이름이 있어요",badname:"이 이름은 쓸 수 없어요",badpw:"쉬운 번호(같은 숫자·123456)는 안 돼요",fb:"시트 서버가 Firebase 에 쓰지 못했어요 (FB_SECRET 확인)"}[rr&&rr.err]||"안 됐어요 ("+((rr&&rr.err)||"인터넷")+")"); this.paint(); } };
+    const done=(rr, ok)=>{ if(rr && rr.ok){ this.note=ok; this.load(); } else if(rr && rr.err==="badid" && /^[a-z]{9,12}$/.test(String(((document.getElementById("acE_id")||{}).value)||"").trim().toLowerCase())){ this.note="⚠️ 시트 서버가 아직 8글자까지 — 서버 새 버전을 올려야 9~12글자가 돼요"; this.paint(); } else { this.note="⚠️ "+({badid:"아이디는 영어 소문자 3~12글자예요",dupid:"이미 있는 아이디예요",dupname:"같은 반에 같은 이름이 있어요",badname:"이 이름은 쓸 수 없어요",badpw:"쉬운 번호(같은 숫자·123456)는 안 돼요",fb:"시트 서버가 Firebase 에 쓰지 못했어요 (FB_SECRET 확인)"}[rr&&rr.err]||"안 됐어요 ("+((rr&&rr.err)||"인터넷")+")"); this.paint(); } };
     if(a==="re"){ this.L=null; this.err=""; this.note=""; this.paint(); this.load(); return; }
     if(a==="t"){ this.t=b.dataset.t; this.open=null; this.res=null; this.paint(); return; }
     if(a==="op"){ this.open=this.open===u?null:u; this.sure=""; this.paint(); return; }
@@ -463,8 +463,8 @@ const AdmA={
         if(K && i.value.trim() && bd.trim()) list.push({rid:k, n:HyBoss.plainN ? HyBoss.plainN(K.n) : K.n, t:K.t||"", id:i.value.trim().toLowerCase(), bd:bd.replace(/\D/g,"")}); });
       if(!list.length){ this.note="⚠️ 아이디와 생일을 적은 아이가 없어요"; this.paint(); return; }
       r=await Acct.call({type:"acctMake", tk:this.tk, list}); if(!r || !r.ok){ this.note="⚠️ 만들지 못했어요 ("+((r&&r.err)||"인터넷")+")"; this.paint(); return; }
-      const E={badid:"아이디 모양(영어 소문자 3~8)",dupid:"이미 있는 아이디",dupname:"같은 반에 같은 이름",duprid:"이미 계정 있음",badbd:"생일 6자리 확인",badname:"쓸 수 없는 이름"};
-      this.res='<b>만든 계정 '+(r.made|0)+'개</b>'+(r.res||[]).map(x=>'<div>'+(x.ok?'✅':'⚠️')+' '+esc(x.n)+' <span class="mono">'+esc(x.id)+'</span> '+(x.ok?((x.sameBirth||[]).length?'<em>같은 반에 생일이 같은 친구('+esc(x.sameBirth.join(", "))+') → 한 명은 🔑 새 6자리로</em>':''):esc(E[x.err]||x.err))+'</div>').join("");
+      const E={badid:"아이디 모양(영어 소문자 3~12)",dupid:"이미 있는 아이디",dupname:"같은 반에 같은 이름",duprid:"이미 계정 있음",badbd:"생일 6자리 확인",badname:"쓸 수 없는 이름"};
+      this.res='<b>만든 계정 '+(r.made|0)+'개</b>'+(r.res||[]).map(x=>'<div>'+(x.ok?'✅':'⚠️')+' '+esc(x.n)+' <span class="mono">'+esc(x.id)+'</span> '+(x.ok?((x.sameBirth||[]).length?'<em>같은 반에 생일이 같은 친구('+esc(x.sameBirth.join(", "))+') → 한 명은 🔑 새 6자리로</em>':''):esc(x.err==="badid" && /^[a-z]{9,12}$/.test(x.id) ? "시트 서버가 아직 8글자까지 — 서버 새 버전을 올려야 9~12글자가 돼요" : (E[x.err]||x.err)))+'</div>').join("");
       (r.res||[]).forEach(x=>{ if(x.ok) Object.keys(this.mk).forEach(k=>{ if(this.mk[k].id===x.id) delete this.mk[k]; }); }); this.load(); return; }
     if(a==="slip"){ this.print(); return; } },
   print(){ const L=(this.L||[]).filter(a=>a.st!=="closed" && a.t===this.t); if(!L.length){ this.note="이 반은 계정이 없어요"; this.paint(); return; }
